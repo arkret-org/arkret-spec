@@ -78,7 +78,7 @@ updated: 2026-07-02
 |------|------|
 | `event_id` | 用户已读的最新那条 Event 的 ID。由于因果性，表示该 Event 及其因果前驱均已读。 |
 | `actor_id` | 阅读者 DID。该字段名与协议中其它 actor-引用字段一致。 |
-| `device_id` / `proof` | 来源设备与 detached proof。所有 `ak.receipt.read` 广播 MUST 携带；`proof.verification_method` 的 controller DID MUST 等于 `actor_id`，fragment MUST 等于 `device_id`，签名 context 为 `ck-ephemeral-proof-v1`。 |
+| `device_id` / `proof` | 来源设备与 detached proof。所有 `ak.receipt.read` 广播 MUST 携带；`proof.verification_method` 的 controller DID MUST 等于 `actor_id`，fragment MUST 等于 `device_id`，签名 context 为 `ak.ephemeral-proof-v1`。 |
 | `hlc` | 可选；当 Sync Service 需要按 HLC 合并 / 去重多个 receipts 时由客户端附带。 |
 
 **来源真实性（normative）**：Sync Service 接收 `ak.receipt.read` 时 MUST 同时校验提交会话的 authenticated principal 与 envelope `actor_id` 一致、`proof` 验证通过、`proof.verification_method` 控制者等于 `actor_id` 且 fragment 等于 `device_id`。跨服务、联邦或 relay 转发的 read receipt 若无法验证该 actor device proof，接收方 MUST 丢弃；服务端签名的转发断言只能作为传输层 provenance，不能替代 actor device proof。`ak.schema.ephemeral_envelope.v1` 因此把 `device_id` 与 `proof` 作为所有 broadcast ephemeral kind 的必填字段。

@@ -944,7 +944,9 @@ MIMI Interop profile MUST 额外提供：
 
 Conformance 面此前全部以部署形态 profile 为单位（`profile_requirements` 只绑 endpoints / event kinds / schemas / fixtures）。但本文与 [conformance-vectors.md](./conformance-vectors.md) 中存在一批**客户端侧 MUST**，它们约束的是实现内部行为或库 API 形状（例如"proof 验证不能被跳过""cursor MUST NOT 被结构化解析"），部署级黑盒测试无法完整覆盖。本节为库 / SDK（区别于部署形态 client）提供统一的可测性分级、条款映射与 API 形状实现指引。
 
-**本节定位（normative for grading, informative for tooling）**：本节不新增 profile、不新增 wire MUST、不扩展 `profile_requirements` 机读面；表中条款全部是既有条款的重述，其覆盖映射仍在各原始定义位置（§2.1.1 的悬空禁令不因本节复述而重复计数）。本节的作用是（a）给每条客户端侧 MUST 一个明确的可测性等级，（b）给"黑盒测不到"的条款一个审计锚点与 SDK 实现指引。
+部署 profile 的 vector 集合不得从本节表格反推；其唯一算法见 [`conformance-suite.md` §2](./conformance-suite.md) 的向量适用性闭包，并由 `vector-registry.json` 的显式 selector 与 `profile_requirements` 的继承后 fixture closure 共同决定。
+
+**本节定位（normative for grading and claims）**：本节不新增 profile、不新增 wire MUST、不扩展部署用途的 `profile_requirements`；表中条款全部是既有条款的重述，其覆盖映射仍在各原始定义位置（§2.1.1 的悬空禁令不因本节复述而重复计数）。`conformance-profiles.json#sdk_conformance_contract` 为这些条款提供独立机读 claim 面：稳定 `clause_id`、V/A/U 等级、证据类型和 claim 必填字段。SDK 声明不得复用 deployment profile 字段，也不得以易漂移的表格行号代替 clause ID。
 
 ### 23.1 可测性三级
 
@@ -984,8 +986,8 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 - SHOULD 采用"验证即构造"（parse, don't validate）类型形态：未通过 envelope schema + proof 验证的字节不产出可直接消费的 Event 值类型（对应条款 1、2）。
 - SHOULD 把 fail-closed 判定（causal / revoked / proof 失效、未知 critical feature）实现为默认路径；任何放宽行为 SHOULD 是显式、可审计的 opt-in，而非默认参数（对应条款 3、4、13）。
 
-声明遵循本节的 SDK SHOULD 在其 conformance 声明或发布文档中列出所覆盖的条款行号（§23.2 的 # 列），作为 U / A 级条款的审计锚点。
+声明遵循本节的 SDK MUST 为每个适用 `AK-SDK-NNN` clause 发布一个 machine-readable `clause_claim`，至少给出 `result` 与不可变 `evidence[]` 引用。V 级证据引用向量结果，A级引用 public API inventory，U 级引用代码 / 配置 / 数据流审计；`not_applicable` 必须携带机器可读理由。SDK release 必须同时钉定 `spec_revision` 与 `sdk_conformance_contract` 的 canonical digest，防止用新条款解释旧证据。
 
 ### 23.4 与机读面的关系
 
-V 级条款的机读挂点是既有 `vector-registry.json` 与 `artifacts/fixtures/*.json`，无需新增。A / U 级条款在 v1 不进入 `profile_requirements`（该结构只表达部署可测面）；其核查以 §23.3 的 API 面审查与代码审计为准。若未来引入 SDK 级机读声明面，MUST 以新顶层结构提出，不得复用 `profile_requirements` 的字段语义。
+V 级条款的可执行输入仍是 `vector-registry.json` 与 `artifacts/fixtures/*.json`；A / U 级条款的证据仍分别来自 API 面审查和审计。三类结果统一由 `conformance-profiles.json#sdk_conformance_contract` 声明，且与部署 `profile_requirements` 分离。验证器 MUST 拒绝未知 clause ID、重复 clause、缺证据、缺 contract digest、使用表格行号作为 ID，或 claim 钉定的 contract digest 与本地 canonical artifact 不一致的声明。

@@ -1,5 +1,210 @@
 {
   "version": "2026-05-02",
+  "sdk_conformance_contract": {
+    "contract_version": "1",
+    "claim_required_fields": [
+      "sdk_name",
+      "sdk_version",
+      "spec_revision",
+      "contract_digest",
+      "clause_claims"
+    ],
+    "clause_claim_required_fields": [
+      "clause_id",
+      "result",
+      "evidence"
+    ],
+    "allowed_results": [
+      "pass",
+      "fail",
+      "not_applicable"
+    ],
+    "evidence_kinds": [
+      "vector_result",
+      "public_api_inventory",
+      "code_audit",
+      "config_audit",
+      "data_flow_audit"
+    ],
+    "rules": [
+      "Each SDK release claiming Arkret v1 conformance MUST publish one claim object against this exact contract digest.",
+      "Every applicable clause MUST appear exactly once; not_applicable MUST include a machine-readable rationale.",
+      "Evidence references MUST be content-addressed or carry an immutable CI run identifier.",
+      "Section numbers and table row numbers are not clause identifiers; only clause_id is stable."
+    ],
+    "clauses": [
+      {
+        "clause_id": "AK-SDK-001",
+        "grades": [
+          "V",
+          "U"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "summary": "Validate Event Envelope and payload class before consumption",
+        "required_evidence": [
+          "vector_result",
+          "code_audit"
+        ]
+      },
+      {
+        "clause_id": "AK-SDK-002",
+        "grades": [
+          "V",
+          "A"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "summary": "Do not expose a bypass for proof, HLC, actor sequence, prev refs, or authorization refs",
+        "required_evidence": [
+          "vector_result",
+          "public_api_inventory"
+        ]
+      },
+      {
+        "clause_id": "AK-SDK-003",
+        "grades": [
+          "A",
+          "U"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "summary": "Do not expose configuration that disables authorization constraints",
+        "required_evidence": [
+          "public_api_inventory",
+          "config_audit"
+        ]
+      },
+      {
+        "clause_id": "AK-SDK-004",
+        "grades": [
+          "V"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "summary": "Fail closed for causal, revoked, and invalid-proof states",
+        "required_evidence": [
+          "vector_result"
+        ]
+      },
+      {
+        "clause_id": "AK-SDK-005",
+        "grades": [
+          "A"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "summary": "Model cursor values as opaque and expose no structured decode API",
+        "required_evidence": [
+          "public_api_inventory"
+        ]
+      },
+      {
+        "clause_id": "AK-SDK-006",
+        "grades": [
+          "V"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "summary": "Reject malformed or non-canonical JSON without repair",
+        "required_evidence": [
+          "vector_result"
+        ]
+      },
+      {
+        "clause_id": "AK-SDK-007",
+        "grades": [
+          "V"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "summary": "Reject malformed HLC without normalization or truncation",
+        "required_evidence": [
+          "vector_result"
+        ]
+      },
+      {
+        "clause_id": "AK-SDK-008",
+        "grades": [
+          "V",
+          "U"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "summary": "Preserve prev refs, authorization refs, and actor sequence constraints during retry",
+        "required_evidence": [
+          "vector_result",
+          "code_audit"
+        ]
+      },
+      {
+        "clause_id": "AK-SDK-009",
+        "grades": [
+          "V",
+          "A",
+          "U"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "summary": "Verify governance binding and KeyPackage DID before decrypting or encrypting",
+        "required_evidence": [
+          "vector_result",
+          "public_api_inventory",
+          "code_audit"
+        ]
+      },
+      {
+        "clause_id": "AK-SDK-010",
+        "grades": [
+          "V",
+          "U"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "summary": "Do not disclose plaintext or keys to unauthorized services",
+        "required_evidence": [
+          "vector_result",
+          "data_flow_audit"
+        ]
+      },
+      {
+        "clause_id": "AK-SDK-011",
+        "grades": [
+          "V"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "summary": "Light clients must not authorize a DataEvent from a single leaf proof",
+        "required_evidence": [
+          "vector_result"
+        ]
+      },
+      {
+        "clause_id": "AK-SDK-012",
+        "grades": [
+          "V",
+          "U"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "summary": "Apply late-key-recovery visibility checks before decrypting",
+        "required_evidence": [
+          "vector_result",
+          "code_audit"
+        ]
+      },
+      {
+        "clause_id": "AK-SDK-013",
+        "grades": [
+          "V"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "summary": "Fail closed on unknown critical features or unmet requirements",
+        "required_evidence": [
+          "vector_result"
+        ]
+      },
+      {
+        "clause_id": "AK-SDK-014",
+        "grades": [
+          "V"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "summary": "Reject production use of test DIDs, keys, and trust domains",
+        "required_evidence": [
+          "vector_result"
+        ]
+      }
+    ]
+  },
   "default_unsupported_behavior": {
     "write_receiver_unknown_active_standard_kind": {
       "must_not_accept": true,
@@ -2138,7 +2343,8 @@
       ],
       "required_fixtures": [
         "capability-fixture.json",
-        "privacy-security-fixture.json"
+        "privacy-security-fixture.json",
+        "agent-vectors-fixture.json"
       ],
       "optional_extensions": [
         "tool_execution",
@@ -2187,7 +2393,8 @@
       ],
       "required_fixtures": [
         "capability-fixture.json",
-        "privacy-security-fixture.json"
+        "privacy-security-fixture.json",
+        "agent-vectors-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -2219,7 +2426,8 @@
         "ak.schema.capability.v1"
       ],
       "required_fixtures": [
-        "capability-fixture.json"
+        "capability-fixture.json",
+        "agent-vectors-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -2250,7 +2458,9 @@
         "ak.schema.capability.v1"
       ],
       "required_fixtures": [
-        "capability-fixture.json"
+        "capability-fixture.json",
+        "agent-vectors-fixture.json",
+        "agent-participation-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -2290,7 +2500,8 @@
       ],
       "required_fixtures": [
         "capability-fixture.json",
-        "privacy-security-fixture.json"
+        "privacy-security-fixture.json",
+        "agent-sidecar-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -2323,7 +2534,8 @@
       "rejected_event_kinds": [],
       "required_schemas": [],
       "required_fixtures": [
-        "capability-fixture.json"
+        "capability-fixture.json",
+        "agent-participation-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -2561,7 +2773,7 @@
     },
     "ak.profile.media_service_binding.v1": {
       "role": "server",
-      "description": "Transport-agnostic media backend binding framework (AKP-0010). Requires ak.realm.media_service to declare a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label ck-rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / arkret-native) declare an additional sub-profile. See zh/crypto-media/media-service-binding.md §2 / §3 / §5–§8 and zh/crypto-media/call-state.md §4.",
+      "description": "Transport-agnostic media backend binding framework. Requires ak.realm.media_service to declare a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label ak.rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / arkret-native) declare an additional sub-profile. See zh/crypto-media/media-service-binding.md §2 / §3 / §5–§8 and zh/crypto-media/call-state.md §4.",
       "depends_on": [
         "ak.profile.webrtc_media.v1"
       ],
@@ -2593,8 +2805,8 @@
           "focus_token_exchange_ttl",
           "participant_binding_scheme",
           "session_focus_persistence",
-          "mls_exporter_label_ck_rtc_frame_key_v1",
-          "recording_exporter_label_ck_rtc_recording_key_v1"
+          "mls_exporter_label_ak_rtc_frame_key_v1",
+          "recording_exporter_label_ak_rtc_recording_key_v1"
         ],
         "unsupported_optional": "MUST fail closed with unknown_focus_type for unsupported foci[].type values; MUST NOT infer a focus when foci[] is missing"
       },
@@ -2603,14 +2815,14 @@
         "issuer_did_sealing_must": "service_signature.kid and participant_binding.issuer_kid MUST resolve to a service DID declared in ak.realm.media_service.service_id of the current MLS epoch; otherwise reject with token_issuer_unauthorised.",
         "session_focus_must": "ak.call.state.session_focus is write-once per call; in-session focus migration is not supported in v1. Token issuer MUST reject focus_id != committed session_focus (focus_mismatch).",
         "participant_binding_must": "ak.call.state.participants[].participant_binding MUST be verified by both reducer (on event acceptance) and client (on backend ParticipantConnected event). Failure surfaces as participant_binding_invalid (reducer) or participant_identity_unrecognised (client).",
-        "e2ee_key_source_must": "Client binding adapter MUST derive frame keys from Arkret MLS-Exporter with label ck-rtc-frame-key/v1 (length=19 bytes, Context=canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}), KDF.Nh=32 bytes), where participant_identity/device_id come from the verified ak.call.state.participants[] and participant_binding. Empty Context, missing sender fields, or epoch-only binding MUST be rejected with e2ee_key_source_unauthorised. MUST NOT accept keys from backend cloud key escrow; reject with e2ee_key_source_unauthorised.",
+        "e2ee_key_source_must": "Client binding adapter MUST derive frame keys from Arkret MLS-Exporter with label ak.rtc-frame-key/v1 (length=19 bytes, Context=canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}), KDF.Nh=32 bytes), where participant_identity/device_id come from the verified ak.call.state.participants[] and participant_binding. Empty Context, missing sender fields, or epoch-only binding MUST be rejected with e2ee_key_source_unauthorised. MUST NOT accept keys from backend cloud key escrow; reject with e2ee_key_source_unauthorised.",
         "recording_pipeline_must": "Backend-generated recording artifacts MUST strand through Arkret authenticated blob upload (media-and-blob.md) with recording_initiator_capability_ref. Direct backend-to-storage paths are forbidden (recording_artifact_pipeline_bypassed).",
-        "recording_key_source_must": "Recording artifact encryption keys MUST derive from Arkret MLS-Exporter label ck-rtc-recording-key/v1 with Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}) and 32 output bytes. The SFrame label ck-rtc-frame-key/v1 and empty Context MUST be rejected for recording artifacts."
+        "recording_key_source_must": "Recording artifact encryption keys MUST derive from Arkret MLS-Exporter label ak.rtc-recording-key/v1 with Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}) and 32 output bytes. The SFrame label ak.rtc-frame-key/v1 and empty Context MUST be rejected for recording artifacts."
       }
     },
     "ak.profile.media_service_binding.livekit.v1": {
       "role": "server",
-      "description": "LiveKit backend binding sub-profile (AKP-0010 §4.5). Maps Arkret token_exchange to LiveKit JWT claims, SFrame-based E2EE via inject_frame_key, capability mapping to video.canPublishSources, and Egress-based recording through Arkret blob pipeline. Declaring this sub-profile requires declaring ak.profile.media_service_binding.v1. Optional in v1 cycle; not part of v1 mandatory conformance set. See zh/crypto-media/bindings/livekit.md.",
+      "description": "LiveKit backend binding sub-profile. Maps Arkret token_exchange to LiveKit JWT claims, SFrame-based E2EE via inject_frame_key, capability mapping to video.canPublishSources, and Egress-based recording through Arkret blob pipeline. Declaring this sub-profile requires declaring ak.profile.media_service_binding.v1. Optional in v1 cycle; not part of v1 mandatory conformance set. See zh/crypto-media/bindings/livekit.md.",
       "depends_on": [
         "ak.profile.media_service_binding.v1"
       ],
@@ -2649,7 +2861,7 @@
     },
     "ak.profile.media_service_binding.arkret_native.v1": {
       "role": "server",
-      "description": "Arkret-native SFU reference binding sub-profile (AKP-0010 §4.5). Provides a backend-SDK-free reference implementation of the Arkret-native SFU wire format for protocol self-consistency and conformance testing. Reference / conformance binding only: it MUST NOT be claimed as a production media backend, and production deployments MUST use a production-grade media_service_binding sub-profile such as ak.profile.media_service_binding.livekit.v1. Declaring this sub-profile requires declaring ak.profile.media_service_binding.v1. See zh/crypto-media/bindings/arkret-native.md.",
+      "description": "Arkret-native SFU reference binding sub-profile. Provides a backend-SDK-free reference implementation of the Arkret-native SFU wire format for protocol self-consistency and conformance testing. Reference / conformance binding only: it MUST NOT be claimed as a production media backend, and production deployments MUST use a production-grade media_service_binding sub-profile such as ak.profile.media_service_binding.livekit.v1. Declaring this sub-profile requires declaring ak.profile.media_service_binding.v1. See zh/crypto-media/bindings/arkret-native.md.",
       "depends_on": [
         "ak.profile.media_service_binding.v1"
       ],

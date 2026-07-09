@@ -39,14 +39,14 @@ ROOT = Path(__file__).resolve().parents[1]
 SPEC_ROOT = ROOT / "spec" / "v1"
 ARTIFACTS = SPEC_ROOT / "artifacts"
 
-EVENT_KIND_TOKEN_RE = re.compile(r"\bck\.[a-z0-9_]+(?:\.[a-z0-9_]+)+\b")
-OPERATION_ID_RE = re.compile(r"^ck\.[a-z0-9_]+(?:\.[a-z0-9_]+)+$")
-SCHEMA_ID_RE = re.compile(r"^ck\.schema\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+$")
-SCHEMA_ID_TOKEN_RE = re.compile(r"\bck\.schema\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+\b")
-PROFILE_ID_RE = re.compile(r"^ck\.profile\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+$")
-PROFILE_ID_TOKEN_RE = re.compile(r"\bck\.profile\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+\b")
-VECTOR_ID_TOKEN_RE = re.compile(r"\bck\.vector\.[a-z0-9_.-]+\.v[0-9]+\b")
-VECTOR_GROUP_ID_RE = re.compile(r"^ck\.vector_group\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+$")
+EVENT_KIND_TOKEN_RE = re.compile(r"\bak\.[a-z0-9_]+(?:\.[a-z0-9_]+)+\b")
+OPERATION_ID_RE = re.compile(r"^ak\.[a-z0-9_]+(?:\.[a-z0-9_]+)+$")
+SCHEMA_ID_RE = re.compile(r"^ak\.schema\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+$")
+SCHEMA_ID_TOKEN_RE = re.compile(r"\bak\.schema\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+\b")
+PROFILE_ID_RE = re.compile(r"^ak\.profile\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+$")
+PROFILE_ID_TOKEN_RE = re.compile(r"\bak\.profile\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+\b")
+VECTOR_ID_TOKEN_RE = re.compile(r"\bak\.vector\.[a-z0-9_.-]+\.v[0-9]+\b")
+VECTOR_GROUP_ID_RE = re.compile(r"^ak\.vector_group\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+$")
 TYPED_ID_TOKEN_RE = re.compile(r"\bak:([a-z0-9_]+):([A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*)")
 UUID7_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
@@ -59,7 +59,6 @@ JSON_FENCE_FIRST_ERROR_ATTR_RE = re.compile(r"\bfirst_error=(?:\"([^\"]+)\"|'([^
 TYPED_ID_PREFIX_TOKEN_RE = re.compile(r"\bak:([a-z0-9_]+):")
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)\s]+(?:#[^)]+)?)\)")
 RULE_MARKER_EMOJI_RE = re.compile(r"[✅❌]")
-AKP_ID_RE = re.compile(r"^AKP-[0-9]{4}$")
 TEXT_ARTIFACT_REF_RE = re.compile(
     r"(?<![A-Za-z0-9_./-])("
     r"zh/[A-Za-z0-9_./-]+\.mdx?|"
@@ -71,6 +70,12 @@ STABLE_SECTION_PLACEHOLDER_RE = re.compile(r"(?:§\s*\d+\.x|§\s*x|^#{2,6}\s+\d+
 OPERATION_COUNT_RE = re.compile(r"(\d+)\s*条\s*operation(?:_id)?", re.IGNORECASE)
 TRUST_DOMAIN_JSON_DID_RE = re.compile(r'"trust_domain"\s*:\s*"did:')
 LEGACY_DID_METHOD_REGEX_RE = re.compile(r"\^did:\[a-z0-9:[.\-_\\]+")
+DEVICE_ID_PATTERN = r"^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+DID_LEGACY_PREFIX_PATTERN = r"^did:"
+DID_LEGACY_GREEDY_PATTERN = r"^did:[a-z0-9]+:[^\s]+$"
+DID_BARE_PATTERN = r"^did:[a-z0-9]+:[^\s#?]+$"
+GENERIC_OPERATION_REQUEST_REF = "#/components/schemas/OperationRequest"
+GENERIC_OPERATION_RESULT_REF = "#/components/schemas/OperationResult"
 
 SECURITY_CLOSURE_VECTOR_IDS = {
     "ak.vector.federation.idempotency_after_key_revoke.v1",
@@ -426,11 +431,7 @@ LEGACY_WIRE_FIELDS: dict[str, dict[str, Any]] = {
     },
 }
 
-MIGRATION_BOOKKEEPING_FILES = {
-    "renames.json",
-    "forbidden-wire-fields.json",
-    "removed-event-kinds.json",
-}
+WIRE_GUARD_FILES = {"forbidden-wire-fields.json"}
 
 FORBIDDEN_NAMING_ALIAS_KEYS = {
     "valid_from": "not_before",
@@ -612,8 +613,8 @@ FORBIDDEN_NAMING_STRING_ALIASES = {
 }
 
 
-def is_migration_bookkeeping_file(path: Path) -> bool:
-    return path.name in MIGRATION_BOOKKEEPING_FILES or path.name == "CHANGELOG.md"
+def is_wire_guard_file(path: Path) -> bool:
+    return path.name in WIRE_GUARD_FILES
 
 
 def check_legacy_wire_fields(lint: Lint) -> None:
@@ -630,7 +631,7 @@ def check_legacy_wire_fields(lint: Lint) -> None:
     scan_paths.extend(p for p in all_json_files() if ARTIFACTS in p.parents)
     seen: set[tuple[Path, int]] = set()
     for path in scan_paths:
-        if is_migration_bookkeeping_file(path):
+        if is_wire_guard_file(path):
             continue
         try:
             text = path.read_text(encoding="utf-8")
@@ -678,7 +679,7 @@ def check_forbidden_naming_aliases(lint: Lint) -> None:
         for json_path, _value, key in walk_json(data, where):
             check_key(path, json_path, key)
 
-    json_paths = [p for p in all_json_files() if not is_migration_bookkeeping_file(p)]
+    json_paths = [p for p in all_json_files() if not is_wire_guard_file(p)]
     for path in json_paths:
         data = load_json(lint, path)
         if data is not None:
@@ -689,10 +690,10 @@ def check_forbidden_naming_aliases(lint: Lint) -> None:
         path
         for path in raw_artifact_files()
         if path.suffix.lower() in {".json", ".yaml", ".yml", ".md"}
-        and not is_migration_bookkeeping_file(path)
+        and not is_wire_guard_file(path)
     )
     for path in text_paths:
-        if is_migration_bookkeeping_file(path):
+        if is_wire_guard_file(path):
             continue
         try:
             text = path.read_text(encoding="utf-8")
@@ -1054,138 +1055,6 @@ def check_no_rule_marker_emoji(lint: Lint) -> None:
                 )
 
 
-def check_proposal_merge_manifest(lint: Lint) -> None:
-    path = ARTIFACTS / "registry" / "proposal-merge-manifest.json"
-    data = load_json(lint, path)
-    if not isinstance(data, dict):
-        return
-
-    if data.get("source_of_truth") is not True:
-        lint.fail(path, "source_of_truth must be true")
-    if data.get("scope") != "accepted_merged_akp_v1":
-        lint.fail(path, "scope must be accepted_merged_akp_v1")
-
-    policy = data.get("policy")
-    if not isinstance(policy, dict):
-        lint.fail(path, "policy must be an object")
-        policy = {}
-    if policy.get("accepted_proposals_are_historical") is not True:
-        lint.fail(path, "policy.accepted_proposals_are_historical must be true")
-
-    forbidden = policy.get("formal_zh_refs_forbidden")
-    forbidden_akps: set[str] = set()
-    if not isinstance(forbidden, list) or not forbidden:
-        lint.fail(path, "policy.formal_zh_refs_forbidden must be a non-empty list")
-    else:
-        for index, value in enumerate(forbidden):
-            if not isinstance(value, str) or not AKP_ID_RE.fullmatch(value):
-                lint.fail(path, f"policy.formal_zh_refs_forbidden[{index}] must be AKP-NNNN")
-                continue
-            forbidden_akps.add(value)
-
-    rows = data.get("merged_proposals")
-    if not isinstance(rows, list) or not rows:
-        lint.fail(path, "merged_proposals must be a non-empty list")
-        return
-
-    seen: set[str] = set()
-    for index, row in enumerate(rows):
-        if not isinstance(row, dict):
-            lint.fail(path, f"merged_proposals[{index}] must be an object")
-            continue
-        akp = row.get("akp")
-        if not isinstance(akp, str) or not AKP_ID_RE.fullmatch(akp):
-            lint.fail(path, f"merged_proposals[{index}].akp must be AKP-NNNN")
-            continue
-        if akp in seen:
-            lint.fail(path, f"duplicate proposal merge row for {akp}")
-        seen.add(akp)
-        if row.get("status") != "accepted_merged":
-            lint.fail(path, f"{akp}.status must be accepted_merged")
-
-        proposal_file = row.get("proposal_file")
-        if not isinstance(proposal_file, str) or not proposal_file.startswith("proposals/"):
-            lint.fail(path, f"{akp}.proposal_file must be a proposals/ path")
-        elif Path(proposal_file).is_absolute() or ".." in Path(proposal_file).parts:
-            lint.fail(path, f"{akp}.proposal_file escapes spec/v1: {proposal_file}")
-        elif not (SPEC_ROOT / proposal_file).exists():
-            lint.fail(path, f"{akp}.proposal_file does not exist: {proposal_file}")
-
-        sections = row.get("merged_sections")
-        if not isinstance(sections, list) or not sections:
-            lint.fail(path, f"{akp}.merged_sections must be a non-empty list")
-            continue
-        for section_index, section in enumerate(sections):
-            if not isinstance(section, dict):
-                lint.fail(path, f"{akp}.merged_sections[{section_index}] must be an object")
-                continue
-            targets = section.get("targets")
-            if not isinstance(targets, list) or not targets:
-                lint.fail(path, f"{akp}.merged_sections[{section_index}].targets must be non-empty")
-                continue
-            for target in targets:
-                if not isinstance(target, str) or not target:
-                    lint.fail(path, f"{akp}.merged_sections[{section_index}] has non-string target")
-                    continue
-                if Path(target).is_absolute() or ".." in Path(target).parts:
-                    lint.fail(path, f"{akp} target escapes spec/v1: {target}")
-                    continue
-                if not (SPEC_ROOT / target).exists():
-                    lint.fail(path, f"{akp} target does not exist: {target}")
-
-    if forbidden_akps != seen:
-        lint.fail(
-            path,
-            "policy.formal_zh_refs_forbidden must match merged_proposals akps: "
-            f"forbidden-only={sorted(forbidden_akps - seen)}, rows-only={sorted(seen - forbidden_akps)}",
-        )
-
-    accepted_merged_from_frontmatter: set[str] = set()
-    for proposal_path in sorted((SPEC_ROOT / "proposals").glob("[0-9][0-9][0-9][0-9]-*.md")):
-        try:
-            text = proposal_path.read_text(encoding="utf-8")
-        except Exception as exc:
-            lint.fail(proposal_path, f"unable to read proposal frontmatter: {exc}")
-            continue
-        fm, _body = _parse_frontmatter_block(text)
-        if not isinstance(fm, dict):
-            lint.fail(proposal_path, "proposal missing frontmatter")
-            continue
-        akp = fm.get("akp")
-        status = fm.get("status")
-        merged_to = fm.get("merged_to")
-        if status == "accepted" and isinstance(merged_to, list) and merged_to:
-            if not isinstance(akp, str) or not AKP_ID_RE.fullmatch(akp):
-                lint.fail(proposal_path, "accepted merged proposal frontmatter must declare akp: AKP-NNNN")
-                continue
-            accepted_merged_from_frontmatter.add(akp)
-
-    missing_from_manifest = accepted_merged_from_frontmatter - seen
-    if missing_from_manifest:
-        lint.fail(
-            path,
-            "merged_proposals must include accepted proposal frontmatter with merged_to: "
-            f"frontmatter-only={sorted(missing_from_manifest)}",
-        )
-
-    for zh_path in sorted((SPEC_ROOT / "zh").rglob("*.md")):
-        try:
-            text = zh_path.read_text(encoding="utf-8")
-        except Exception:
-            continue
-        for line_number, line in enumerate(text.splitlines(), 1):
-            for akp in sorted(forbidden_akps):
-                if akp in line:
-                    lint.fail(
-                        zh_path,
-                        f"line {line_number}: accepted merged proposal {akp} must not be "
-                        "referenced from formal zh/ normative text; use proposal-merge-manifest.json "
-                        "for history and link formal v1 sections instead.",
-                    )
-
-
-
-
 def check_registries(lint: Lint) -> dict[str, set[str]]:
     event_path = ARTIFACTS / "registry" / "event-kind-registry.json"
     schema_path = ARTIFACTS / "registry" / "schema-registry.json"
@@ -1208,7 +1077,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         for row in event_rows
         if isinstance(row, dict) and isinstance(row.get("event_kind"), str)
     }
-    kind_pattern = re.compile(event_registry.get("kind_pattern", r"^ck\.[a-z0-9_]+(\.[a-z0-9_]+)*$"))
+    kind_pattern = re.compile(event_registry.get("kind_pattern", r"^ak\.[a-z0-9_]+(\.[a-z0-9_]+)*$"))
     wire_scopes = set((event_registry.get("wire_scope_definitions") or {}).keys())
     for row in event_by_kind.values():
         kind = row["event_kind"]
@@ -1478,16 +1347,9 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
 
 
 def check_schema_refs(lint: Lint, known: dict[str, set[str]]) -> None:
-    # Tracking files exist precisely to list identifiers that have been
-    # removed / deprecated; their bodies necessarily contain ids that are no
-    # longer in the canonical registries. Skip cross-reference checks on them.
-    drift_tracking_files = {
-        "removed-event-kinds.json",
-        "removed-operation-ids.json",
-        "deprecated-profile-ids.json",
-        "renames.json",
-        "forbidden-wire-fields.json",
-    }
+    # The current-wire rejection guard intentionally names forbidden fields
+    # that are absent from active registries.
+    drift_tracking_files = {"forbidden-wire-fields.json"}
     for path in all_json_files():
         data = load_json(lint, path)
         if data is None:
@@ -1603,6 +1465,55 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
                 lint.fail(path, f"{profile_id} feature_discovery.required must be a list")
             if not isinstance(feature_discovery.get("unsupported_optional"), str):
                 lint.fail(path, f"{profile_id} feature_discovery.unsupported_optional must be a string")
+
+
+def check_sdk_conformance_contract(lint: Lint) -> None:
+    path = ARTIFACTS / "profiles" / "conformance-profiles.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+    contract = data.get("sdk_conformance_contract")
+    if not isinstance(contract, dict):
+        lint.fail(path, "missing sdk_conformance_contract")
+        return
+    if contract.get("contract_version") != "1":
+        lint.fail(path, "sdk_conformance_contract.contract_version must be '1'")
+    evidence_kinds = contract.get("evidence_kinds")
+    if not isinstance(evidence_kinds, list) or not evidence_kinds:
+        lint.fail(path, "sdk_conformance_contract.evidence_kinds must be non-empty")
+        evidence_kinds = []
+    clauses = contract.get("clauses")
+    if not isinstance(clauses, list) or not clauses:
+        lint.fail(path, "sdk_conformance_contract.clauses must be non-empty")
+        return
+    seen: set[str] = set()
+    allowed_grades = {"V", "A", "U"}
+    for index, clause in enumerate(clauses):
+        label = f"sdk_conformance_contract.clauses[{index}]"
+        if not isinstance(clause, dict):
+            lint.fail(path, f"{label} must be an object")
+            continue
+        clause_id = clause.get("clause_id")
+        if not isinstance(clause_id, str) or not re.fullmatch(r"AK-SDK-[0-9]{3}", clause_id):
+            lint.fail(path, f"{label}.clause_id must be AK-SDK-NNN")
+        elif clause_id in seen:
+            lint.fail(path, f"{label}.clause_id duplicates {clause_id}")
+        else:
+            seen.add(clause_id)
+        grades = clause.get("grades")
+        if not isinstance(grades, list) or not grades or any(grade not in allowed_grades for grade in grades):
+            lint.fail(path, f"{label}.grades must be a non-empty subset of V/A/U")
+        required_evidence = clause.get("required_evidence")
+        if not isinstance(required_evidence, list) or not required_evidence:
+            lint.fail(path, f"{label}.required_evidence must be non-empty")
+        elif any(kind not in evidence_kinds for kind in required_evidence):
+            lint.fail(path, f"{label}.required_evidence contains an unknown evidence kind")
+        source_anchor = clause.get("source_anchor")
+        if not isinstance(source_anchor, str) or not source_anchor.startswith("spec/v1/zh/") or "#" not in source_anchor:
+            lint.fail(path, f"{label}.source_anchor must reference a stable zh/ heading")
+    expected_ids = {f"AK-SDK-{index:03d}" for index in range(1, 15)}
+    if seen != expected_ids:
+        lint.fail(path, "sdk_conformance_contract must define exactly AK-SDK-001 through AK-SDK-014")
 
 
 def check_vector_group_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
@@ -2683,10 +2594,7 @@ def check_typed_id_prose_consistency(lint: Lint) -> None:
     if "any 16-byte token" in registry_text:
         lint.fail(id_registry, "rtc_participant must not permit non-UUIDv7 16-byte tokens")
 
-    allowed_legacy_paths = {
-        (ARTIFACTS / "migration" / "renames.json").resolve(),
-        (ARTIFACTS / "registry" / "forbidden-wire-fields.json").resolve(),
-    }
+    allowed_legacy_paths = {(ARTIFACTS / "registry" / "forbidden-wire-fields.json").resolve()}
     for path in [*markdown_files(), *all_json_files()]:
         if path.resolve() in allowed_legacy_paths:
             continue
@@ -2721,36 +2629,6 @@ def check_binding_variant_non_http(lint: Lint) -> None:
             lint.fail(operation_path, f"{operation_id} http-only binding variant must not declare grpc/mq")
         if operation_id in binding_operation_ids:
             lint.fail(binding_path, f"{operation_id} http-only binding variant must not appear in non-HTTP bindings")
-
-
-def check_rename_operation_replacements(lint: Lint, known: dict[str, set[str]]) -> None:
-    """Operation rename replacements must point at current canonical operation ids."""
-    path = ARTIFACTS / "migration" / "renames.json"
-    data = load_json(lint, path)
-    if not isinstance(data, dict):
-        return
-    entries = data.get("entries")
-    if not isinstance(entries, list):
-        lint.fail(path, "entries must be a list")
-        return
-    operation_ids = known["operation_ids"]
-    for index, row in enumerate(entries):
-        if not isinstance(row, dict) or row.get("kind_class") != "operation_id":
-            continue
-        replacement = row.get("replacement")
-        if isinstance(replacement, str) and replacement.startswith("ak.") and replacement not in operation_ids:
-            lint.fail(
-                path,
-                f"entries[{index}] operation_id replacement {replacement!r} is not a current operation_id",
-            )
-
-
-DEVICE_ID_PATTERN = r"^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-DID_LEGACY_PREFIX_PATTERN = r"^did:"
-DID_LEGACY_GREEDY_PATTERN = r"^did:[a-z0-9]+:[^\s]+$"
-DID_BARE_PATTERN = r"^did:[a-z0-9]+:[^\s#?]+$"
-GENERIC_OPERATION_REQUEST_REF = "#/components/schemas/OperationRequest"
-GENERIC_OPERATION_RESULT_REF = "#/components/schemas/OperationResult"
 
 
 def check_openapi_error_enum_alignment(lint: Lint) -> None:
@@ -3490,6 +3368,14 @@ def check_vector_registry(lint: Lint) -> None:
     if data.get("source_of_truth") is not True:
         lint.fail(path, "source_of_truth must be true")
 
+    profiles_path = ARTIFACTS / "profiles" / "conformance-profiles.json"
+    profiles_data = load_json(lint, profiles_path)
+    if not isinstance(profiles_data, dict):
+        return
+    known_profiles = set(PROFILE_ID_TOKEN_RE.findall(json.dumps(profiles_data, ensure_ascii=False)))
+    known_vector_groups = set(profiles_data.get("vector_groups") or [])
+    known_fixtures = {fixture.name for fixture in (ARTIFACTS / "fixtures").glob("*.json")}
+
     rows = data.get("vectors")
     if not isinstance(rows, list) or not rows:
         lint.fail(path, "vectors must be a non-empty list")
@@ -3516,6 +3402,38 @@ def check_vector_registry(lint: Lint) -> None:
         expected_domain = vector_id.removeprefix("ak.vector.").rsplit(".v", 1)[0].split(".", 1)[0]
         if row.get("domain") != expected_domain:
             lint.fail(path, f"{label}.domain must match vector id domain {expected_domain!r}")
+
+        if "profile" in row:
+            lint.fail(path, f"{label}.profile is ambiguous; use one explicit applicability selector")
+        selector_keys = [
+            key
+            for key in ("scope", "applies_to_profiles", "applies_to_vector_groups", "applies_to_fixtures")
+            if key in row
+        ]
+        if len(selector_keys) != 1:
+            lint.fail(path, f"{label} must declare exactly one applicability selector")
+        elif selector_keys[0] == "scope":
+            if row.get("scope") != "universal":
+                lint.fail(path, f"{label}.scope must be 'universal'")
+        else:
+            selector = selector_keys[0]
+            values = row.get(selector)
+            if not isinstance(values, list) or not values or any(not isinstance(value, str) for value in values):
+                lint.fail(path, f"{label}.{selector} must be a non-empty string array")
+            elif len(values) != len(set(values)):
+                lint.fail(path, f"{label}.{selector} must not contain duplicates")
+            elif selector == "applies_to_profiles":
+                for profile_id in values:
+                    if profile_id not in known_profiles:
+                        lint.fail(path, f"{label}.{selector} references unknown profile: {profile_id}")
+            elif selector == "applies_to_vector_groups":
+                for group_id in values:
+                    if group_id not in known_vector_groups:
+                        lint.fail(path, f"{label}.{selector} references unknown vector group: {group_id}")
+            elif selector == "applies_to_fixtures":
+                for fixture in values:
+                    if fixture not in known_fixtures:
+                        lint.fail(path, f"{label}.{selector} references missing fixture: {fixture}")
 
         source_refs = row.get("source_refs")
         if not isinstance(source_refs, list) or not source_refs:
@@ -3546,6 +3464,11 @@ def check_vector_registry(lint: Lint) -> None:
                 continue
             if vector_id not in VECTOR_ID_TOKEN_RE.findall(source_text):
                 lint.fail(path, f"{source_label} does not contain vector_id {vector_id}")
+
+        for fixture in row.get("applies_to_fixtures", []):
+            expected_ref = f"spec/v1/artifacts/fixtures/{fixture}"
+            if expected_ref not in source_refs:
+                lint.fail(path, f"{label}.applies_to_fixtures entry lacks matching source_ref: {fixture}")
 
     for scan_path in markdown_files() + raw_artifact_files():
         try:
@@ -3945,6 +3868,20 @@ def check_crypto_signature_fixture(lint: Lint) -> None:
             if proof.get("event_digest") != vector["event_digest"]:
                 lint.fail(path, f"vectors[{index}] proof event_digest differs from vector event_digest")
 
+    negative_cases = data.get("negative_cases")
+    if not isinstance(negative_cases, list) or not negative_cases:
+        lint.fail(path, "negative_cases must be a non-empty list")
+        return
+    positive_names = {vector.get("name") for vector in vectors if isinstance(vector, dict)}
+    negative_bases = {
+        case.get("base_vector")
+        for case in negative_cases
+        if isinstance(case, dict) and isinstance(case.get("base_vector"), str)
+    }
+    missing_algorithm_negatives = positive_names - negative_bases
+    if missing_algorithm_negatives:
+        lint.fail(path, f"each active signature vector needs an algorithm-specific negative case: {sorted(missing_algorithm_negatives)}")
+
 
 def is_placeholder_typed_id(rest: str) -> bool:
     return (
@@ -4058,7 +3995,7 @@ def resolve_json_pointer(document: Any, fragment: str) -> Any:
 
 def load_json_schema_for_uri(uri: str) -> Any:
     # Canonical schema $id base: https://arkret.org/v1/schemas/<name>.schema.json
-    # (the /v1/ segment pins the spec major version so v2 schemas get distinct
+    # (the /v1/ segment pins the current spec generation so other generations get distinct
     # $ids). All schemas live on disk under ARTIFACTS/schemas/, so strip the
     # base and resolve the remaining filename there.
     prefix = "https://arkret.org/v1/schemas/"
@@ -4570,7 +4507,7 @@ def check_fixture_reject_reason_closure(lint: Lint) -> None:
 
 
 def check_cross_doc_anchors(lint: Lint) -> None:
-    """T4-4: cross-doc anchor cheak.
+    """T4-4: cross-doc anchor check.
 
     Every markdown link `(./foo.md#anchor)` must resolve to a real header in
     foo.md, slugified the same way GitHub-flavored renderers do. Prevents
@@ -5143,8 +5080,8 @@ def check_signature_algorithm_registry(lint: Lint) -> None:
 # a one-line reason.
 ALLOWED_PROSE_ACTIONS: set[str] = set()
 
-_ACTION_TOKEN_RE = re.compile(r"^ck\.[a-z0-9_]+(?:\.[a-z0-9_]+)*$")
-_PROSE_ACTION_BULLET_RE = re.compile(r"^\s*-\s+`(ck\.[a-z0-9_.]+)`")
+_ACTION_TOKEN_RE = re.compile(r"^ak\.[a-z0-9_]+(?:\.[a-z0-9_]+)*$")
+_PROSE_ACTION_BULLET_RE = re.compile(r"^\s*-\s+`(ak\.[a-z0-9_.]+)`")
 
 
 def check_action_reference_closure(lint: Lint) -> None:
@@ -5335,10 +5272,10 @@ def main() -> int:
         return 1
 
     check_registry_manifest(lint)
-    check_proposal_merge_manifest(lint)
     known = check_registries(lint)
     check_schema_refs(lint, known)
     check_profile_requirements(lint, known)
+    check_sdk_conformance_contract(lint)
     check_vector_group_requirements(lint, known)
     check_event_schema_coverage(lint, known)
     check_openapi_schema_component_order(lint)
@@ -5359,7 +5296,6 @@ def main() -> int:
     check_operation_field_table_schema_refs(lint)
     check_design_phase_legacy_compat_removed(lint)
     check_binding_variant_non_http(lint)
-    check_rename_operation_replacements(lint, known)
     check_capability_action_event_mapping(lint)
     check_event_admission_coverage(lint)
     check_operation_dto_closure(lint)

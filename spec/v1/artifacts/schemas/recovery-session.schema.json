@@ -531,7 +531,7 @@
     },
     "device_authorize_material": {
       "type": "object",
-      "description": "A complete, client-signed ak.device.authorize payload used by the recovery strand. It MUST also validate against event-payload.schema.json#/$defs/device_authorize_payload. The recovering client unlocks the self-signing key (SSK) from the did_recovery backup during the proof/verify phase, signs the new device's cross_signing_binding with that SSK, signs device_signature with the new device identity private key over the ck-device-authorize-possession-v1 canonical input, submits the resulting ordinary Event Envelope to the principal control stream, and passes only the accepted authorization_event_id to recovery_session_complete_request_body. The server MUST verify before completing the recovery session: (a) device_id == session.requesting_device_id; (b) recovery_session_id == this session's id; (c) principal_id == session.principal_id; (d) cross_signing_binding.ssk_generation == session.ssk_generation (else device_recovery_ssk_generation_mismatch); (e) device_signature verifies with device_public_key. Recovery is never a bootstrap-first-device case, so cross_signing_binding (not bootstrap_binding) is required.",
+      "description": "A complete, client-signed ak.device.authorize payload used by the recovery strand. It MUST also validate against event-payload.schema.json#/$defs/device_authorize_payload. The recovering client unlocks the self-signing key (SSK) from the did_recovery backup during the proof/verify phase, signs the new device's cross_signing_binding with that SSK, signs device_signature with the new device identity private key over the ak.device-authorize-possession-v1 canonical input, submits the resulting ordinary Event Envelope to the principal control stream, and passes only the accepted authorization_event_id to recovery_session_complete_request_body. The server MUST verify before completing the recovery session: (a) device_id == session.requesting_device_id; (b) recovery_session_id == this session's id; (c) principal_id == session.principal_id; (d) cross_signing_binding.ssk_generation == session.ssk_generation (else device_recovery_ssk_generation_mismatch); (e) device_signature verifies with device_public_key. Recovery is never a bootstrap-first-device case, so cross_signing_binding (not bootstrap_binding) is required.",
       "required": [
         "principal_id",
         "device_id",
@@ -563,7 +563,7 @@
         "device_signature": {
           "type": "string",
           "minLength": 1,
-          "description": "New-device Ed25519/EdDSA signature proving possession of the private key corresponding to device_public_key. The signing input is ck-device-authorize-possession-v1, defined in crypto-media/device-lifecycle.md §5.2. Satisfies event-payload.schema.json device_authorize_payload's proof/device_signature anyOf."
+          "description": "New-device Ed25519/EdDSA signature proving possession of the private key corresponding to device_public_key. The signing input is ak.device-authorize-possession-v1, defined in crypto-media/device-lifecycle.md §5.2. Satisfies event-payload.schema.json device_authorize_payload's proof/device_signature anyOf."
         },
         "recovery_session_id": {
           "$ref": "#/$defs/recovery_session_id"

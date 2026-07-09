@@ -4,7 +4,7 @@
   "generated_at": "2026-07-02T00:00:00Z",
   "generated_from": "registry/contract-catalog.json",
   "generated_by": "tools/artifact_pipeline.py",
-  "action_pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
+  "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
   "risk_tier_definitions": {
     "low": "Read, projection, discovery, ack, and account-private affordances. Freshness fail-closed treats unknown / stale as local-pending allowed (capabilities.md §18).",
     "medium": "Object create / update / delete, message authoring, invite issuance, MLS proposal, audit query. Freshness requires recent frontier within freshness_required_ms.",

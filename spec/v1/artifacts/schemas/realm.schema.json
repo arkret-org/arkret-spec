@@ -526,7 +526,7 @@
         "type": "array",
         "items": {
           "type": "string",
-          "pattern": "^ck\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+          "pattern": "^ak\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
         },
         "minItems": 1,
         "uniqueItems": true
@@ -878,7 +878,7 @@
       "properties": {
         "cell_family": {
           "type": "string",
-          "pattern": "^ck\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+          "pattern": "^ak\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
         },
         "lattice": {
           "type": "string",
@@ -939,10 +939,10 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+            "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
           },
           "uniqueItems": true,
-          "description": "Optional companion to `initial_value` (cas_register only). When `initial_value` is declared, set ops whose effect equals the sentinel are rejected by default (initial_value_reserved). Listing event_kinds here permits those event_kinds to write the sentinel back — typically the cleanup event_kind in a singleton-once-set / explicit-reset workflow. Capability authorization remains a separate independent cheak. See event-auth-state-resolution.md §9.3.1."
+          "description": "Optional companion to `initial_value` (cas_register only). When `initial_value` is declared, set ops whose effect equals the sentinel are rejected by default (initial_value_reserved). Listing event_kinds here permits those event_kinds to write the sentinel back — typically the cleanup event_kind in a singleton-once-set / explicit-reset workflow. Capability authorization remains a separate independent check. See event-auth-state-resolution.md §9.3.1."
         }
       },
       "additionalProperties": false,

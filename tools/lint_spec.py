@@ -46,15 +46,7 @@ OPENAPI = ROOT / "spec" / "v1" / "artifacts" / "openapi" / "arkret-service-api.o
 
 REQUIRED_FRONTMATTER = {"title", "status", "normative", "stability", "updated"}
 ALLOWED_STATUS = {"draft", "candidate", "stable", "deprecated"}
-ALLOWED_PROPOSAL_STATUS = {
-    "draft",
-    "review",
-    "accepted",
-    "rejected",
-    "withdrawn",
-    "superseded",
-    "deferred-to-v1.1",
-}
+ALLOWED_PROPOSAL_STATUS = {"draft", "review"}
 
 SECOND_PERSON_RE = re.compile(r"[你您]的?|我们")
 
@@ -441,17 +433,6 @@ def lint_proposal_file(path: Path) -> list[Finding]:
                 1,
                 "AKP001",
                 "review status MUST carry a discussion: frontmatter link",
-                "warn",
-            )
-        )
-
-    if status == "accepted" and not (fm.get("merged_into") or fm.get("merged_to")):
-        findings.append(
-            Finding(
-                path,
-                1,
-                "AKP002",
-                "accepted proposal MUST declare merged_into: target path or merged_to: target paths",
                 "warn",
             )
         )

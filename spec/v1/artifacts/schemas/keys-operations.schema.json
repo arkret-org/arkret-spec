@@ -173,7 +173,7 @@
           "items": {
             "$ref": "#/$defs/non_empty_string"
           },
-          "description": "The canonical (UTF-8 bytewise sorted, deduplicated) algorithm ids echoed verbatim from ak.device.authorize.payload.algorithms; together with device_signing_key and hpke_key this is the material the §5.2 ck-device-trust-bind-v1 transcript covers. Distinct from the sibling `algorithms` prekey-bundle map."
+          "description": "The canonical (UTF-8 bytewise sorted, deduplicated) algorithm ids echoed verbatim from ak.device.authorize.payload.algorithms; together with device_signing_key and hpke_key this is the material the §5.2 ak.device-trust-bind-v1 transcript covers. Distinct from the sibling `algorithms` prekey-bundle map."
         },
         "device_status": {
           "$ref": "#/$defs/device_status"
@@ -625,7 +625,7 @@
       "properties": {
         "verification_method": {
           "$ref": "#/$defs/non_empty_string",
-          "description": "DID URL of the self-signing key (SSK) that produced the binding signature, e.g. did:webvh:...#ck_self_signing_v1."
+          "description": "DID URL of the self-signing key (SSK) that produced the binding signature, e.g. did:webvh:...#ak_self_signing_v1."
         },
         "alg": {
           "$ref": "#/$defs/non_empty_string"

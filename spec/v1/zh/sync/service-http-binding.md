@@ -988,7 +988,7 @@ cursor + `has_more` 只告诉客户端"拿到了一页"，不告诉客户端"该
 GET /_arkret/self/events/subscribe?realms=<id>&after=<cursor>&catchup=true
 ```
 
-`after=<cursor>` 表示订阅起点：从该 cursor *之后*（排除）开始接收事件，与 [`ak.self.events.query.scan`](#33-查询--回填-eventckselfeventsqueryscan) 的 `after=` 同义。Subscribe 天然只有"朝未来推进"一个方向，不接受 `before=` / `order=`；想要历史回填请用 `ak.self.events.query.scan`。
+`after=<cursor>` 表示订阅起点：从该 cursor *之后*（排除）开始接收事件，与 [`ak.self.events.query.scan`](#33-查询--回填-eventakselfeventsqueryscan) 的 `after=` 同义。Subscribe 天然只有"朝未来推进"一个方向，不接受 `before=` / `order=`；想要历史回填请用 `ak.self.events.query.scan`。
 
 支持多 realm / actor 一次订阅；`catchup=true` 时服务端只回放 `after=` 到当前 frontier 的追赶区间，再发出 `catchup_complete` 帧切到实时尾部。完整历史必须通过 `GET /_arkret/self/events` 的 `before` / `after` 分页或区间查询读取。
 

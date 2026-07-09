@@ -572,7 +572,7 @@
       "name": "capability_grant_wildcard_action_rejected",
       "schema_ref": "schemas/capability-grant.schema.json",
       "expect_valid": false,
-      "first_expected_error": "$.actions[0]: 'ak.strand.*' does not match '^ck\\\\.[a-z0-9_]+(\\\\.[a-z0-9_]+)*$'",
+      "first_expected_error": "$.actions[0]: 'ak.strand.*' does not match '^ak\\\\.[a-z0-9_]+(\\\\.[a-z0-9_]+)*$'",
       "instance": {
         "id": "ak:grant:0196410c-1000-7000-8000-000000000000",
         "schema": "ak.schema.capability.v1",
@@ -971,7 +971,7 @@
         "not_before": "2026-05-20T00:00:00Z",
         "expires_at": null,
         "cross_signing_binding": {
-          "verification_method": "did:webvh:z6mkfixture:alice.example#ck_self_signing_v1",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
           "alg": "EdDSA",
           "ssk_generation": 1,
           "signature": "c2ln"

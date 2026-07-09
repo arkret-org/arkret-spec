@@ -7,6 +7,9 @@
       "vector_id": "ak.vector.agent.act_on_behalf.v1",
       "status": "active",
       "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
@@ -16,6 +19,9 @@
       "vector_id": "ak.vector.agent.controller_lifecycle.v1",
       "status": "active",
       "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
@@ -25,6 +31,9 @@
       "vector_id": "ak.vector.agent.mention_selector.v1",
       "status": "active",
       "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-participation-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
@@ -34,6 +43,9 @@
       "vector_id": "ak.vector.agent.pairing_expiry.v1",
       "status": "active",
       "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
@@ -43,6 +55,9 @@
       "vector_id": "ak.vector.agent.participation.ceiling_tighten.v1",
       "status": "active",
       "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-participation-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
@@ -52,6 +67,9 @@
       "vector_id": "ak.vector.agent.participation.effective_intersection.v1",
       "status": "active",
       "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-participation-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
@@ -61,6 +79,9 @@
       "vector_id": "ak.vector.agent.participation.selection_within_ceiling.v1",
       "status": "active",
       "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-participation-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
@@ -70,6 +91,9 @@
       "vector_id": "ak.vector.agent.participation.session_overlay.v1",
       "status": "active",
       "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-participation-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
@@ -79,6 +103,9 @@
       "vector_id": "ak.vector.agent.participation.third_party_mention_gate.v1",
       "status": "active",
       "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-participation-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
@@ -88,6 +115,9 @@
       "vector_id": "ak.vector.agent.provision.v1",
       "status": "active",
       "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
@@ -97,6 +127,9 @@
       "vector_id": "ak.vector.agent.session_grant.replay.v1",
       "status": "active",
       "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
@@ -106,6 +139,9 @@
       "vector_id": "ak.vector.applet.transaction_source_signature_anchor.v1",
       "status": "active",
       "domain": "applet",
+      "applies_to_fixtures": [
+        "final-conformance-closure-fixture.json"
+      ],
       "description": "Applet transaction push source signature anchor: per-delivery RFC 9421 HTTP Message Signature covering method/target/authority/content-digest/source-service-did/destination-service-did/idempotency-key, source_signature_anchor persisted into the idempotency/replay record, duplicate body/anchor conflicts fail closed, and source service authentication does not replace Event actor/applet/capability checks.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -116,6 +152,9 @@
       "vector_id": "ak.vector.auth.session_grant_audience_binding.v1",
       "status": "active",
       "domain": "auth",
+      "applies_to_fixtures": [
+        "auth-session-proof-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
@@ -125,6 +164,9 @@
       "vector_id": "ak.vector.auth.soft_logout_did_proof.v1",
       "status": "active",
       "domain": "auth",
+      "applies_to_fixtures": [
+        "auth-session-proof-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
@@ -134,6 +176,9 @@
       "vector_id": "ak.vector.auth.sensitive_field_handling.v1",
       "status": "active",
       "domain": "auth",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
       "description": "field_access.sensitive_fields read projection handling: redact/hash/omit remove original values, hash uses keyed/salted digest discipline, and unenforceable handling falls back to omit.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -144,6 +189,9 @@
       "vector_id": "ak.vector.blob.stream_aead_roundtrip.v1",
       "status": "active",
       "domain": "blob",
+      "applies_to_fixtures": [
+        "blob-stream-aead-fixture.json"
+      ],
       "description": "Streaming chunked AEAD (ak.blob.stream_aead.v1) happy path: multi-segment plaintext with a short final segment is split, per-segment AEAD encrypted, segment-wise downloaded and incrementally verified, and the top-level ciphertext_digest is recomputed and matches per media-and-blob.md section 3.3.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -154,6 +202,9 @@
       "vector_id": "ak.vector.blob.stream_aead_truncation_rejected.v1",
       "status": "active",
       "domain": "blob",
+      "applies_to_fixtures": [
+        "blob-stream-aead-fixture.json"
+      ],
       "description": "Streaming AEAD truncation: a dropped final segment, a last segment whose flag stays 0x00, or segment_count exhausted without last_segment_flag=0x01 MUST be rejected with segment_stream_truncated and buffered plaintext discarded.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -164,6 +215,9 @@
       "vector_id": "ak.vector.blob.stream_aead_reorder_rejected.v1",
       "status": "active",
       "domain": "blob",
+      "applies_to_fixtures": [
+        "blob-stream-aead-fixture.json"
+      ],
       "description": "Streaming AEAD ordering: out-of-order / skipped / gapped segment_index MUST be rejected with segment_sequence_invalid; a repeated segment_index MUST be rejected with segment_replay.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -174,6 +228,9 @@
       "vector_id": "ak.vector.blob.stream_aead_scheme_closure.v1",
       "status": "active",
       "domain": "blob",
+      "applies_to_fixtures": [
+        "blob-stream-aead-fixture.json"
+      ],
       "description": "Streaming AEAD scheme closure: an unknown attachment scheme MUST fail closed with unsupported_attachment_scheme (no fallback decrypt); an envelope carrying both whole-file nonce and chunked nonce_prefix/segment_* fields MUST fail blob.schema.json encrypted_attachment oneOf validation.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -184,6 +241,9 @@
       "vector_id": "ak.vector.blob.stream_aead_bounds_rejected.v1",
       "status": "active",
       "domain": "blob",
+      "applies_to_fixtures": [
+        "blob-stream-aead-fixture.json"
+      ],
       "description": "Streaming AEAD declared-bounds negatives (declared fields only, no multi-MiB payload materialised): segment_count above 2^20, segment_size below 1 KiB or above 8 MiB, and segment_count inconsistent with ceil(size_bytes / segment_size) MUST all be rejected fail-closed (schema_violation, reason_code segment_bounds_invalid) before key derivation or any segment download.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -194,6 +254,9 @@
       "vector_id": "ak.vector.capability.approval_constraint.v1",
       "status": "active",
       "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/capability-fixture.json"
@@ -203,6 +266,9 @@
       "vector_id": "ak.vector.capability.membership_is_not_baseline.v1",
       "status": "active",
       "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/capability-fixture.json"
@@ -212,6 +278,9 @@
       "vector_id": "ak.vector.capability.realm_founding_grant_bootstrap.v1",
       "status": "active",
       "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
       "description": "Realm create is atomically paired with one immediately following closed-form self founding grant for created_by; missing, widened, third-party, reordered, or post-bootstrap replayed founding grants fail closed without leaving a partial Realm or membership.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -222,6 +291,9 @@
       "vector_id": "ak.vector.constraint.quota_linearizable_authority.v1",
       "status": "active",
       "domain": "constraint",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
       "description": "Hard quota counters use one logical linearizable authority across every service node: a race for the last slot cannot overshoot, idempotent retries count once, unavailable authority fails closed, and calendar-month periods are rejected.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -232,6 +304,9 @@
       "vector_id": "ak.vector.constraint.temporal_action_window.v1",
       "status": "active",
       "domain": "constraint",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
       "description": "Temporal action gates are neutral for unrelated actions according to effect, while edit/redact windows use the verified target created_at and the fixed verification time/skew to accept inside the deadline and fail closed outside or on missing target time.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -242,15 +317,21 @@
       "vector_id": "ak.vector.capability.delegate_chain.v1",
       "status": "active",
       "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.capability.revoke_downstream_recheak.v1",
+      "vector_id": "ak.vector.capability.revoke_downstream_recheck.v1",
       "status": "active",
       "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/capability-fixture.json"
@@ -260,6 +341,9 @@
       "vector_id": "ak.vector.capability.revoke_rollbaak.v1",
       "status": "active",
       "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/capability-fixture.json"
@@ -375,7 +459,7 @@
       "applies_to_profiles": [
         "ak.profile.media_service_binding.v1"
       ],
-      "description": "Transcription requires ak.call.transcribe (transcription_denied otherwise), and transcript artifacts MUST use the ck-rtc-transcript-key/v1 exporter label with a dedicated Context (transcription_artifact_pipeline_bypassed otherwise).",
+      "description": "Transcription requires ak.call.transcribe (transcription_denied otherwise), and transcript artifacts MUST use the ak.rtc-transcript-key/v1 exporter label with a dedicated Context (transcription_artifact_pipeline_bypassed otherwise).",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json"
@@ -411,6 +495,9 @@
       "vector_id": "ak.vector.consent.cache_invalidation.v1",
       "status": "active",
       "domain": "consent",
+      "applies_to_fixtures": [
+        "security-closure-vectors.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-vectors.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -420,6 +507,9 @@
       "vector_id": "ak.vector.consent.scope_cascade.v1",
       "status": "active",
       "domain": "consent",
+      "applies_to_fixtures": [
+        "security-closure-vectors.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-vectors.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -429,6 +519,9 @@
       "vector_id": "ak.vector.cursor.revoke_high_assurance.v1",
       "status": "active",
       "domain": "cursor",
+      "applies_to_fixtures": [
+        "service-closure-hardening-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -438,6 +531,9 @@
       "vector_id": "ak.vector.device.revocation_seal_binding.v1",
       "status": "active",
       "domain": "device",
+      "applies_to_fixtures": [
+        "service-closure-hardening-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -447,6 +543,9 @@
       "vector_id": "ak.vector.device_recovery.lifecycle.v1",
       "status": "active",
       "domain": "device_recovery",
+      "applies_to_fixtures": [
+        "service-closure-hardening-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -456,6 +555,9 @@
       "vector_id": "ak.vector.directory.accept_policy_denied.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -465,6 +567,9 @@
       "vector_id": "ak.vector.directory.announce_bad_signature.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -474,6 +579,9 @@
       "vector_id": "ak.vector.directory.announce_bidirectional_opt_in.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -483,6 +591,9 @@
       "vector_id": "ak.vector.directory.announce_directory_not_authorized.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -492,6 +603,9 @@
       "vector_id": "ak.vector.directory.announce_signature_stale.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -501,6 +615,9 @@
       "vector_id": "ak.vector.directory.invite_not_found_blinding.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -510,6 +627,9 @@
       "vector_id": "ak.vector.directory.operator_takedown_audit.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -519,6 +639,9 @@
       "vector_id": "ak.vector.directory.organization_badge_verification.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -528,6 +651,9 @@
       "vector_id": "ak.vector.directory.organization_search.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -537,6 +663,9 @@
       "vector_id": "ak.vector.directory.pairwise_did_exclusion.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -546,6 +675,9 @@
       "vector_id": "ak.vector.directory.policy_revision_rollbaak.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -555,6 +687,9 @@
       "vector_id": "ak.vector.directory.public_realm_search.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -564,6 +699,9 @@
       "vector_id": "ak.vector.directory.pull_mode_refresh_verification.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -573,6 +711,9 @@
       "vector_id": "ak.vector.directory.reannounce_idempotent_ttl.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -582,6 +723,9 @@
       "vector_id": "ak.vector.directory.resolve_target_blinding.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -591,6 +735,9 @@
       "vector_id": "ak.vector.directory.resolve_agent_selector_failure_blinding.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "description": "resolve_agent_selector failure branches for missing, hidden, and unauthorized selectors return the same status, body shape, error class, and timing bucket.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
@@ -601,6 +748,9 @@
       "vector_id": "ak.vector.directory.resolve_handle_failure_blinding.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "description": "resolve_handle failure branches for missing, hidden, and unauthorized handles return the same status, body shape, error class, and timing bucket.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
@@ -611,6 +761,9 @@
       "vector_id": "ak.vector.directory.restricted_claim_presentation.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -620,6 +773,9 @@
       "vector_id": "ak.vector.directory.result_common_fields.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -629,6 +785,9 @@
       "vector_id": "ak.vector.directory.stale_result_rejection.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -638,6 +797,9 @@
       "vector_id": "ak.vector.directory.takedown_reannounce_rejected.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -647,6 +809,9 @@
       "vector_id": "ak.vector.directory.ttl_expiry_removal.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -656,6 +821,9 @@
       "vector_id": "ak.vector.directory.unlisted_exact_resolve.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -665,6 +833,9 @@
       "vector_id": "ak.vector.directory.withdraw_blinded_not_found.v1",
       "status": "active",
       "domain": "directory",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -673,8 +844,10 @@
     {
       "vector_id": "ak.vector.disappearing.on_last_read_offline_window.v1",
       "status": "active",
-      "profile": "ak.profile.disappearing.v1",
       "domain": "disappearing",
+      "applies_to_profiles": [
+        "ak.profile.disappearing.v1"
+      ],
       "description": "on_last_read converges by principal-level aggregate contributions and read_trigger_window_ms; offline devices receive expiry stubs and shred keys when they reconnect.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
@@ -685,8 +858,10 @@
     {
       "vector_id": "ak.vector.disappearing.read_trigger_anonymous_aggregate.v1",
       "status": "active",
-      "profile": "ak.profile.disappearing.v1",
       "domain": "disappearing",
+      "applies_to_profiles": [
+        "ak.profile.disappearing.v1"
+      ],
       "description": "Read-trigger expiry anchors are derived from anonymous aggregate contributions and MUST NOT reveal reader identity or reader counts to other clients or services outside the aggregate boundary.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
@@ -697,9 +872,25 @@
     {
       "vector_id": "ak.vector.disappearing.read_trigger_idempotent_replay.v1",
       "status": "active",
-      "profile": "ak.profile.disappearing.v1",
       "domain": "disappearing",
+      "applies_to_profiles": [
+        "ak.profile.disappearing.v1"
+      ],
       "description": "Duplicate, stale, out-of-order, or cross-bound read-trigger contributions MUST NOT refresh anchors, double-count readers, or expire the wrong message.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/crypto-media/disappearing-messages.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.disappearing.read_trigger_multi_aggregator_convergence.v1",
+      "status": "active",
+      "domain": "disappearing",
+      "applies_to_profiles": [
+        "ak.profile.disappearing.v1"
+      ],
+      "description": "Opposite delivery orders at two aggregate services converge through per-token and aggregate min joins; a late earlier valid contribution can only move expiry earlier and can never restore shredded content.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -710,6 +901,9 @@
       "vector_id": "ak.vector.e2ee.content_floor_downgrade_rejected.v1",
       "status": "active",
       "domain": "e2ee",
+      "applies_to_fixtures": [
+        "visibility-policy-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/models/circle.md",
         "spec/v1/artifacts/profiles/conformance-profiles.json",
@@ -720,6 +914,9 @@
       "vector_id": "ak.vector.e2ee.in_place_enable.v1",
       "status": "active",
       "domain": "e2ee",
+      "applies_to_fixtures": [
+        "visibility-policy-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/models/circle.md",
         "spec/v1/artifacts/profiles/conformance-profiles.json",
@@ -730,6 +927,9 @@
       "vector_id": "ak.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1",
       "status": "active",
       "domain": "e2ee",
+      "applies_to_fixtures": [
+        "history-crypto-closure-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -739,6 +939,9 @@
       "vector_id": "ak.vector.e2ee.metadata_floor_downgrade_rejected.v1",
       "status": "active",
       "domain": "e2ee",
+      "applies_to_fixtures": [
+        "visibility-policy-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/models/circle.md",
         "spec/v1/artifacts/profiles/conformance-profiles.json",
@@ -749,6 +952,9 @@
       "vector_id": "ak.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
       "status": "active",
       "domain": "e2ee_relaxed",
+      "applies_to_fixtures": [
+        "security-closure-vectors.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-vectors.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -758,6 +964,9 @@
       "vector_id": "ak.vector.encoding.canonical_json.basic.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -767,6 +976,22 @@
       "vector_id": "ak.vector.encoding.canonical_json.nested.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.digest.blake3.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_profiles": [
+        "ak.profile.hash.blake3.v1"
+      ],
+      "description": "BLAKE3 KAT over fixed UTF-8 bytes plus wrong-prefix, wrong-length, Realm-suite mismatch, and unknown-suite downgrade rejection cases.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -776,6 +1001,9 @@
       "vector_id": "ak.vector.encoding.crypto.ed25519_detached_jws.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "crypto-signature-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -811,7 +1039,10 @@
       "vector_id": "ak.vector.encoding.crypto.signature_negative.v1",
       "status": "active",
       "domain": "encoding",
-      "description": "Executable signature negative family: bit-flipped signature, alg=none, alg/key-type mismatch (ES256 header resolving to an Ed25519 key), truncated public key, and a non-empty detached-JWS payload segment that still verifies in attached form; every case MUST be rejected with the recorded error_code.",
+      "applies_to_fixtures": [
+        "crypto-signature-fixture.json"
+      ],
+      "description": "Executable signature negative family for Ed25519, ES256, and ML-DSA-65: bad or truncated signatures, alg/key-type mismatch, malformed algorithm-specific public keys, and detached-profile confusion; every case MUST be rejected with the recorded error_code.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -821,6 +1052,9 @@
       "vector_id": "ak.vector.encoding.cursor_opaque.core.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -830,6 +1064,9 @@
       "vector_id": "ak.vector.encoding.reject_invalid_cursor.core.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "cursor-negative-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cursor-negative-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -839,6 +1076,9 @@
       "vector_id": "ak.vector.encoding.encrypted_envelope_digest.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -848,6 +1088,9 @@
       "vector_id": "ak.vector.encoding.event_batch_receipt_digest.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -857,6 +1100,9 @@
       "vector_id": "ak.vector.encoding.event_digest.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -866,6 +1112,9 @@
       "vector_id": "ak.vector.encoding.hlc_logical_overflow.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -875,6 +1124,9 @@
       "vector_id": "ak.vector.encoding.hlc_order.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -884,6 +1136,9 @@
       "vector_id": "ak.vector.encoding.reject_cbor_array_bounds.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "description": "Hand-written deterministic CBOR bounds: a definite-length array declaring/carrying 65537 items (generator-described, built by the runner) exceeds the v1 cap of 65536 items per array/map and MUST be rejected (reason_code cbor_bounds_invalid) without preallocating from the declared count.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -894,6 +1149,9 @@
       "vector_id": "ak.vector.encoding.reject_cbor_indefinite_length.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "description": "CBOR indefinite-length item (raw bytes bf616101ff, the indefinite-length map {_ \"a\": 1}) violates RFC 8949 section 4.2 deterministic encoding and MUST be rejected (reason_code cbor_not_deterministic); locks the SDK's existing indefinite-length rejection on the mls_governance_binding decode path.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -904,6 +1162,9 @@
       "vector_id": "ak.vector.encoding.reject_cbor_length_bomb.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "description": "CBOR capacity bomb: a byte string header declaring 4294967295 bytes with only 4 bytes of remaining input (raw bytes 5affffffffdeadbeef) MUST be rejected (reason_code cbor_bounds_invalid) before any buffer is allocated from the declared length.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -914,6 +1175,9 @@
       "vector_id": "ak.vector.encoding.reject_duplicate_key.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
@@ -923,6 +1187,9 @@
       "vector_id": "ak.vector.encoding.reject_feff_injection.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
@@ -932,6 +1199,9 @@
       "vector_id": "ak.vector.encoding.reject_malformed_hlc.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
@@ -941,6 +1211,9 @@
       "vector_id": "ak.vector.encoding.reject_malformed_json.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -950,6 +1223,9 @@
       "vector_id": "ak.vector.encoding.reject_non_nfc_string.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
@@ -959,6 +1235,9 @@
       "vector_id": "ak.vector.encoding.reject_noncanonical_numbers.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -968,6 +1247,9 @@
       "vector_id": "ak.vector.encoding.reject_structure_depth_exceeded.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "description": "Canonical structure depth cap: a JSON object nested 65 levels deep (generator-described, built by the runner; top-level container = depth 1) exceeds the v1 maximum nesting depth of 64 (objects and arrays combined) and MUST be rejected (reason_code structure_depth_exceeded) with bounded recursion; a depth-64 control input MUST be accepted.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -978,6 +1260,9 @@
       "vector_id": "ak.vector.encoding.signature_binding_payload.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -987,6 +1272,9 @@
       "vector_id": "ak.vector.encoding.signature_binding_payload_domain.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -996,6 +1284,9 @@
       "vector_id": "ak.vector.encoding.signature_binding_payload_audience.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1005,6 +1296,9 @@
       "vector_id": "ak.vector.encoding.signature_binding_payload_domain_audience.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1014,6 +1308,9 @@
       "vector_id": "ak.vector.ephemeral.capability_ttl.v1",
       "status": "active",
       "domain": "ephemeral",
+      "applies_to_fixtures": [
+        "service-closure-hardening-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1023,6 +1320,9 @@
       "vector_id": "ak.vector.federation.idempotency_after_key_revoke.v1",
       "status": "active",
       "domain": "federation",
+      "applies_to_fixtures": [
+        "security-closure-vectors.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-vectors.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1032,6 +1332,9 @@
       "vector_id": "ak.vector.federation.timing_bucket.v1",
       "status": "active",
       "domain": "federation",
+      "applies_to_fixtures": [
+        "final-conformance-closure-fixture.json"
+      ],
       "description": "Federation ingress authentication-failure family (unknown peer / not authorized / target absent) returns indistinguishable responses within one timing bucket per relation.md section 4.5 sampling rules.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -1042,6 +1345,9 @@
       "vector_id": "ak.vector.federation.reducer_profile_digest.v1",
       "status": "active",
       "domain": "federation",
+      "applies_to_fixtures": [
+        "federation-fixture.json"
+      ],
       "description": "service_binding_ref.reducer_profile_digest is computed per federation.md section 4.1.1 from the reducer-profile-registry.json digest_input row (Arkret canonical JSON, sha256); receiver recomputes and byte-compares, rejecting the whole batch with reducer_profile_mismatch on any divergence.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/federation-fixture.json",
@@ -1052,6 +1358,9 @@
       "vector_id": "ak.vector.strand_tracks_update.atomic.v1",
       "status": "active",
       "domain": "strand_tracks_update",
+      "applies_to_fixtures": [
+        "state-reducer-hardening-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1061,6 +1370,9 @@
       "vector_id": "ak.vector.history_sharing.e2ee_prejoin_key_share_policy.v1",
       "status": "active",
       "domain": "history_sharing",
+      "applies_to_fixtures": [
+        "history-crypto-closure-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1070,6 +1382,9 @@
       "vector_id": "ak.vector.history_visibility.joined_prejoin_denied.v1",
       "status": "active",
       "domain": "history_visibility",
+      "applies_to_fixtures": [
+        "visibility-policy-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
@@ -1079,6 +1394,9 @@
       "vector_id": "ak.vector.hpke.x25519_chacha20poly1305_base.v1",
       "status": "active",
       "domain": "hpke",
+      "applies_to_fixtures": [
+        "hpke-suite-fixture.json"
+      ],
       "description": "RFC 9180 base-mode byte-level KAT for ak.hpke_x25519_aead_chacha20poly1305.v1 (DHKEM(X25519, HKDF-SHA256) / HKDF-SHA256 / ChaCha20-Poly1305): DeriveKeyPair, encap, key-schedule intermediates, seq-0/1 ciphertexts and export values MUST reproduce byte-for-byte.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -1089,6 +1407,9 @@
       "vector_id": "ak.vector.hpke.x25519_aes256gcm_base.v1",
       "status": "active",
       "domain": "hpke",
+      "applies_to_fixtures": [
+        "hpke-suite-fixture.json"
+      ],
       "description": "RFC 9180 base-mode byte-level KAT for ak.hpke_x25519_aead_aes256gcm.v1 (DHKEM(X25519, HKDF-SHA256) / HKDF-SHA256 / AES-256-GCM): DeriveKeyPair, encap, key-schedule intermediates, seq-0/1 ciphertexts and export values MUST reproduce byte-for-byte.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -1112,6 +1433,9 @@
       "vector_id": "ak.vector.identity.did_proof_replay_window.v1",
       "status": "active",
       "domain": "identity",
+      "applies_to_fixtures": [
+        "auth-session-proof-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/identity/identity-did.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -1122,6 +1446,9 @@
       "vector_id": "ak.vector.identity_link.eager_invalidation.v1",
       "status": "active",
       "domain": "identity_link",
+      "applies_to_fixtures": [
+        "security-closure-vectors.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-vectors.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1131,6 +1458,9 @@
       "vector_id": "ak.vector.identity_link.policy_tightening_invalidation.v1",
       "status": "active",
       "domain": "identity_link",
+      "applies_to_fixtures": [
+        "security-closure-vectors.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-vectors.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1140,6 +1470,9 @@
       "vector_id": "ak.vector.invite.failure_indistinguishable.v1",
       "status": "active",
       "domain": "invite",
+      "applies_to_fixtures": [
+        "security-closure-vectors.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-vectors.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1149,6 +1482,9 @@
       "vector_id": "ak.vector.invite.claim_reducer_state_machine.v1",
       "status": "active",
       "domain": "invite",
+      "applies_to_fixtures": [
+        "security-closure-vectors.json"
+      ],
       "description": "Realm reducer authority for ak.invite.claim: binding_proof and subject_proof signature transcripts, token_commitment match, verification_service_did allowlist re-check, claim_nonce replay rejection, pending -> claimed membership-proposal conversion, and expiry cleanup are enforced before acceptance.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-vectors.json",
@@ -1160,6 +1496,9 @@
       "vector_id": "ak.vector.invite.oob_code_entropy.v1",
       "status": "active",
       "domain": "invite",
+      "applies_to_fixtures": [
+        "security-closure-vectors.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-vectors.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1169,6 +1508,9 @@
       "vector_id": "ak.vector.invite.consumed_token_resubject_rejected.v1",
       "status": "active",
       "domain": "invite",
+      "applies_to_fixtures": [
+        "service-closure-hardening-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -1179,6 +1521,9 @@
       "vector_id": "ak.vector.key_backup.kdf_floor_rejected.v1",
       "status": "active",
       "domain": "key_backup",
+      "applies_to_fixtures": [
+        "key-backup-hardening-fixture.json"
+      ],
       "description": "New passphrase_kdf backup envelopes below the unconditional base KDF floor (Argon2id memory_kib>=65536 / iterations>=3 / parallelism>=1; PBKDF2 iterations>=600000 with allowed digest_algorithm) MUST be rejected.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -1189,6 +1534,9 @@
       "vector_id": "ak.vector.key_backup.unlock_proof.v1",
       "status": "active",
       "domain": "key_backup",
+      "applies_to_fixtures": [
+        "key-backup-hardening-fixture.json"
+      ],
       "description": "Key backup retrieval requires a session-bound unlock proof (ak.schema.key_backup_unlock_proof.v1); any binding mismatch or bearer-token-only access fails closed before ciphertext is returned.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -1199,6 +1547,9 @@
       "vector_id": "ak.vector.key_backup.passphrase_kdf_kat.v1",
       "status": "active",
       "domain": "key_backup",
+      "applies_to_fixtures": [
+        "key-backup-hardening-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1208,6 +1559,9 @@
       "vector_id": "ak.vector.keypackage.exhaustion_claim_limits.v1",
       "status": "active",
       "domain": "keypackage",
+      "applies_to_fixtures": [
+        "keypackage-lifecycle-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
@@ -1217,6 +1571,9 @@
       "vector_id": "ak.vector.keypackage.last_resort_claim_and_reuse.v1",
       "status": "active",
       "domain": "keypackage",
+      "applies_to_fixtures": [
+        "keypackage-lifecycle-fixture.json"
+      ],
       "description": "Last-resort KeyPackage (ak.feature.mls_last_resort_keypackage.v1): when the normal pool is empty, claim MAY return last_resort=true; the package is reused across multiple Welcomes within the same intended_realm_id, consume is idempotent (stays published, never keypackage_already_consumed), and each consumption emits an append-only audit record per encryption-and-audit.md section 2.6.2.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -1227,6 +1584,9 @@
       "vector_id": "ak.vector.keypackage.last_resort_forced_rotation.v1",
       "status": "active",
       "domain": "keypackage",
+      "applies_to_fixtures": [
+        "keypackage-lifecycle-fixture.json"
+      ],
       "description": "Last-resort KeyPackage forced rotation: on next online the holder MUST rotate the last-resort package (new init key, old marked rotated) and trigger an MLS self-update Commit on every group joined via it to advance the epoch and close the forward-secrecy weakening window.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -1237,6 +1597,9 @@
       "vector_id": "ak.vector.keypackage.last_resort_affinity_and_optionality.v1",
       "status": "active",
       "domain": "keypackage",
+      "applies_to_fixtures": [
+        "keypackage-lifecycle-fixture.json"
+      ],
       "description": "Last-resort KeyPackage Realm affinity, optionality, and profile gating: cross-intended_realm_id reuse MUST be rejected with last_resort_realm_affinity_violation; a server not declaring the feature MUST fail closed on an empty pool and MUST NOT return a last_resort package, with explicit last-resort fallback returning last_resort_not_supported; high_security_organization and sovereign_deployment Realms MUST treat last-resort as forbidden even when the service supports the feature.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -1247,6 +1610,9 @@
       "vector_id": "ak.vector.late_key_recovery.removed_actor.v1",
       "status": "active",
       "domain": "late_key_recovery",
+      "applies_to_fixtures": [
+        "security-closure-vectors.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-vectors.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1256,6 +1622,9 @@
       "vector_id": "ak.vector.lattice.lww_open_set.v1",
       "status": "active",
       "domain": "lattice",
+      "applies_to_fixtures": [
+        "security-closure-vectors.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-vectors.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1331,8 +1700,8 @@
       "status": "active",
       "domain": "media_binding",
       "applies_to_profiles": [
-        "ak.profile.media_service_binding.v1",
-        "ak.profile.media_service_binding.livekit.v1"
+        "ak.profile.media_service_binding.livekit.v1",
+        "ak.profile.media_service_binding.v1"
       ],
       "source_refs": [
         "spec/v1/zh/crypto-media/bindings/livekit.md",
@@ -1397,6 +1766,9 @@
       "vector_id": "ak.vector.membership.delivery_binding.did_document_default.v1",
       "status": "active",
       "domain": "membership",
+      "applies_to_fixtures": [
+        "membership-delivery-binding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1406,6 +1778,9 @@
       "vector_id": "ak.vector.membership.delivery_binding.explicit.v1",
       "status": "active",
       "domain": "membership",
+      "applies_to_fixtures": [
+        "membership-delivery-binding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1415,6 +1790,9 @@
       "vector_id": "ak.vector.membership.delivery_binding.handover.v1",
       "status": "active",
       "domain": "membership",
+      "applies_to_fixtures": [
+        "membership-delivery-binding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1424,6 +1802,9 @@
       "vector_id": "ak.vector.membership.delivery_binding.policy_mismatch.v1",
       "status": "active",
       "domain": "membership",
+      "applies_to_fixtures": [
+        "membership-delivery-binding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1433,6 +1814,9 @@
       "vector_id": "ak.vector.membership.delivery_binding.unroutable.v1",
       "status": "active",
       "domain": "membership",
+      "applies_to_fixtures": [
+        "membership-delivery-binding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1554,6 +1938,9 @@
       "vector_id": "ak.vector.mls.governance_epoch_binding.v1",
       "status": "active",
       "domain": "mls",
+      "applies_to_fixtures": [
+        "final-conformance-closure-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1563,6 +1950,9 @@
       "vector_id": "ak.vector.mls.welcome_keypackage_hash.v1",
       "status": "active",
       "domain": "mls",
+      "applies_to_fixtures": [
+        "keypackage-lifecycle-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
@@ -1572,6 +1962,9 @@
       "vector_id": "ak.vector.moderation.appeal_atomicity.v1",
       "status": "active",
       "domain": "moderation",
+      "applies_to_fixtures": [
+        "final-conformance-closure-fixture.json"
+      ],
       "description": "Appeal verdict transitions are atomic: overturn requires a same-batch ak.moderation.decision.lift and never resurrects irreversible redaction/key-destruction effects; modify requires both a same-batch lift of the original decision and the replacement decision matched by modify_decision_ref.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -1582,6 +1975,9 @@
       "vector_id": "ak.vector.moderation.franking_roundtrip.v1",
       "status": "active",
       "domain": "moderation",
+      "applies_to_fixtures": [
+        "final-conformance-closure-fixture.json"
+      ],
       "description": "E2EE franking proof construction, report submission, and moderator-side verification roundtrip per content-moderation.md section 3.4; digest mismatch or minimal-disclosure violations downgrade or reject the proof.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -1592,6 +1988,9 @@
       "vector_id": "ak.vector.moderation.review_resolution_fold.v1",
       "status": "active",
       "domain": "moderation",
+      "applies_to_fixtures": [
+        "final-conformance-closure-fixture.json"
+      ],
       "description": "Multiple active moderation decisions use the deterministic strictest fold instead of being mislabeled as split; require_review is carried by the active decision add and resolution atomically lifts every applicable review gate before current authz is re-evaluated or a stricter replacement is added.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -1602,6 +2001,9 @@
       "vector_id": "ak.vector.moderation.evidence_package_minimal_disclosure.v1",
       "status": "active",
       "domain": "moderation",
+      "applies_to_fixtures": [
+        "final-conformance-closure-fixture.json"
+      ],
       "description": "E2EE moderation evidence packages are encrypted to the authorized moderation recipient, target only reported events, carry reporter signature evidence, and reject MLS epoch/history secrets or unrelated plaintext.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -1637,6 +2039,9 @@
       "vector_id": "ak.vector.cba_lattice.data_event_accepts_without_seal_finality.v1",
       "status": "active",
       "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
@@ -1645,6 +2050,9 @@
       "vector_id": "ak.vector.cba_lattice.data_event_observation_does_not_seal.v1",
       "status": "active",
       "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
@@ -1653,6 +2061,9 @@
       "vector_id": "ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1",
       "status": "active",
       "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
@@ -1661,6 +2072,9 @@
       "vector_id": "ak.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1",
       "status": "active",
       "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
@@ -1669,6 +2083,9 @@
       "vector_id": "ak.vector.cba_lattice.data_plane_conflict_returns_bottom_without_winner.v1",
       "status": "active",
       "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
@@ -1677,6 +2094,9 @@
       "vector_id": "ak.vector.cba_lattice.seal_delta_excludes_data_event_digest.v1",
       "status": "active",
       "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
@@ -1685,6 +2105,9 @@
       "vector_id": "ak.vector.cba_lattice.open_set_compaction_preserves_control_roots.v1",
       "status": "active",
       "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
@@ -1693,6 +2116,9 @@
       "vector_id": "ak.vector.cba_lattice.seal_canonical_no_self_reference.v1",
       "status": "active",
       "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
       "description": "Seal canonical bytes exclude id and notary_signature; verifier recomputes the typed id and signature payload digest from signed top-level fields only.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
@@ -1702,6 +2128,9 @@
       "vector_id": "ak.vector.cba_lattice.cas_mixed_basis.v1",
       "status": "active",
       "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
       "description": "cas_register writes on non-initial state require an explicit CBA basis: Control Move preconditions or equivalent DataEvent causal/lattice proof; null-basis blind overwrites fail closed.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
@@ -1711,6 +2140,9 @@
       "vector_id": "ak.vector.cba_lattice.auth_context_epoch_pinning_reject.v1",
       "status": "active",
       "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
@@ -1719,6 +2151,9 @@
       "vector_id": "ak.vector.cba_lattice.seal_compaction_interval_enforced.v1",
       "status": "active",
       "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
@@ -1727,6 +2162,9 @@
       "vector_id": "ak.vector.cba_lattice.inclusion_list_obligation.v1",
       "status": "active",
       "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
@@ -1735,6 +2173,9 @@
       "vector_id": "ak.vector.cba_lattice.notary_fault_equivocation_quarantine.v1",
       "status": "active",
       "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
@@ -1743,6 +2184,9 @@
       "vector_id": "ak.vector.cba_lattice.threshold_forensic_attribution.v1",
       "status": "active",
       "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
@@ -1751,6 +2195,9 @@
       "vector_id": "ak.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1",
       "status": "active",
       "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
       "description": "open_set concurrent revocation is evaluated against the joined control view; revoked or bottom authorization cells fail closed without a freshness window.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
@@ -1760,6 +2207,9 @@
       "vector_id": "ak.vector.cba_lattice.conflict_recovery_move.v1",
       "status": "active",
       "domain": "cba_lattice",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
       "description": "bottom=reject control cell recovery accepts only a sealed conflict-recovery Move with valid recovery_capability and pre-conflict state_witness; negative cases pin recovery_witness_* reasons.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
@@ -1769,7 +2219,10 @@
       "vector_id": "ak.vector.policy_server.decision_replay_rejected.v1",
       "status": "active",
       "domain": "policy_server",
-      "description": "Expired policy decisions and decisions bound to an older auth/policy/membership frontier MUST be rejected on replay; receivers fail closed and re-request the policy cheak.",
+      "applies_to_fixtures": [
+        "policy-server-fixture.json"
+      ],
+      "description": "Expired policy decisions and decisions bound to an older auth/policy/membership frontier MUST be rejected on replay; receivers fail closed and re-request the policy check.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/policy-server-fixture.json"
@@ -1779,6 +2232,9 @@
       "vector_id": "ak.vector.policy_server.request_digest_recompute.v1",
       "status": "active",
       "domain": "policy_server",
+      "applies_to_fixtures": [
+        "policy-server-fixture.json"
+      ],
       "description": "Receivers recompute the RFC 8785 JCS request_canonical_digest of the presented request body; mismatch with the signed bound_to transcript MUST reject the decision.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -1789,6 +2245,9 @@
       "vector_id": "ak.vector.preview.token_scoped_stripped_state.v1",
       "status": "active",
       "domain": "preview",
+      "applies_to_fixtures": [
+        "history-crypto-closure-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1798,6 +2257,9 @@
       "vector_id": "ak.vector.projection.pagination_shape.v1",
       "status": "active",
       "domain": "projection",
+      "applies_to_fixtures": [
+        "service-closure-hardening-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1807,6 +2269,9 @@
       "vector_id": "ak.vector.psi.no_reachability_metadata.v1",
       "status": "active",
       "domain": "psi",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1816,6 +2281,9 @@
       "vector_id": "ak.vector.psi.oprf_two_round_shape.v1",
       "status": "active",
       "domain": "psi",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1825,6 +2293,9 @@
       "vector_id": "ak.vector.psi.padding_and_cardinality.v1",
       "status": "active",
       "domain": "psi",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1834,6 +2305,9 @@
       "vector_id": "ak.vector.psi.quota_blinded_denial.v1",
       "status": "active",
       "domain": "psi",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1843,6 +2317,9 @@
       "vector_id": "ak.vector.push.broadcast_mention_controls.v1",
       "status": "active",
       "domain": "push",
+      "applies_to_fixtures": [
+        "push-rule-core-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/push-rule-core-fixture.json"
@@ -1852,6 +2329,9 @@
       "vector_id": "ak.vector.push.strand_engaged_mention.v1",
       "status": "active",
       "domain": "push",
+      "applies_to_fixtures": [
+        "push-rule-core-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/push-rule-core-fixture.json"
@@ -1861,6 +2341,9 @@
       "vector_id": "ak.vector.push.wakeup_policy.v1",
       "status": "active",
       "domain": "push",
+      "applies_to_fixtures": [
+        "service-closure-hardening-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1870,6 +2353,9 @@
       "vector_id": "ak.vector.range_completeness.witness_disagreement.v1",
       "status": "active",
       "domain": "range_completeness",
+      "applies_to_fixtures": [
+        "service-closure-hardening-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1879,6 +2365,9 @@
       "vector_id": "ak.vector.redaction.hard_erasure_receipt.v1",
       "status": "active",
       "domain": "redaction",
+      "applies_to_fixtures": [
+        "redaction-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
@@ -1888,6 +2377,9 @@
       "vector_id": "ak.vector.redaction.policy_scope.v1",
       "status": "active",
       "domain": "redaction",
+      "applies_to_fixtures": [
+        "redaction-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
@@ -1897,6 +2389,9 @@
       "vector_id": "ak.vector.redaction.preserve_fields.v1",
       "status": "active",
       "domain": "redaction",
+      "applies_to_fixtures": [
+        "redaction-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
@@ -1906,6 +2401,9 @@
       "vector_id": "ak.vector.redaction.snapshot_pruning_stub.v1",
       "status": "active",
       "domain": "redaction",
+      "applies_to_fixtures": [
+        "redaction-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
@@ -1915,6 +2413,9 @@
       "vector_id": "ak.vector.redaction.space_target_ref_schema.v1",
       "status": "active",
       "domain": "redaction",
+      "applies_to_fixtures": [
+        "redaction-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/redaction-fixture.json"
@@ -1924,6 +2425,9 @@
       "vector_id": "ak.vector.circle.content_floor_below_realm_rejected.v1",
       "status": "active",
       "domain": "circle",
+      "applies_to_fixtures": [
+        "visibility-policy-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/models/circle.md",
         "spec/v1/artifacts/profiles/conformance-profiles.json",
@@ -1934,6 +2438,9 @@
       "vector_id": "ak.vector.circle.directory_visibility_members_indistinguishable.v1",
       "status": "active",
       "domain": "circle",
+      "applies_to_fixtures": [
+        "visibility-policy-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/models/circle.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -1944,6 +2451,9 @@
       "vector_id": "ak.vector.relation.reference_projection_indistinguishable.v1",
       "status": "active",
       "domain": "relation",
+      "applies_to_fixtures": [
+        "final-conformance-closure-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/models/relation.md",
@@ -1954,6 +2464,9 @@
       "vector_id": "ak.vector.sidecar.eligibility_states.v1",
       "status": "active",
       "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
@@ -1963,6 +2476,9 @@
       "vector_id": "ak.vector.sidecar.ensure_idempotent.v1",
       "status": "active",
       "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
@@ -1972,6 +2488,9 @@
       "vector_id": "ak.vector.sidecar.existence_privacy.v1",
       "status": "active",
       "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
@@ -1981,6 +2500,9 @@
       "vector_id": "ak.vector.sidecar.multi_agent_publish.v1",
       "status": "active",
       "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
@@ -1990,6 +2512,9 @@
       "vector_id": "ak.vector.session.pop_presentation.v1",
       "status": "active",
       "domain": "session",
+      "applies_to_fixtures": [
+        "auth-session-proof-fixture.json"
+      ],
       "description": "Sender-constrained session PoP: a write request with a valid RFC 9421 HTTP Message Signature (kid = current grant session_public_key, covering @method/@target-uri/@authority/content-digest) is accepted; a signature whose transcript mismatches the method/path/body digest fails verification and is rejected per api-conventions.md section 3.2 and service-http-binding.md section 2.5.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -2000,6 +2525,9 @@
       "vector_id": "ak.vector.session.bare_bearer_rejected_protected.v1",
       "status": "active",
       "domain": "session",
+      "applies_to_fixtures": [
+        "auth-session-proof-fixture.json"
+      ],
       "description": "Production current-v1 protected endpoints MUST reject bare Authorization: Bearer unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof; high-security profiles additionally require RFC 9421 PoP for regular writes / sensitive reads; a PoP signature whose created/expires falls outside the replay window MUST be rejected.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -2007,9 +2535,26 @@
       ]
     },
     {
+      "vector_id": "ak.vector.session.dpop_target_uri_binding.v1",
+      "status": "active",
+      "domain": "session",
+      "applies_to_fixtures": [
+        "auth-session-proof-fixture.json"
+      ],
+      "description": "DPoP htu binds scheme, authority, and path: cross-authority/scheme reuse, untrusted forwarding headers, and missing authority are rejected; only a configured trusted proxy with scrubbed headers may reconstruct the external URI.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
+        "spec/v1/zh/sync/api-conventions.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.snapshot.inclusion_challenge.v1",
       "status": "active",
       "domain": "snapshot",
+      "applies_to_fixtures": [
+        "sync-fixture.json"
+      ],
       "description": "High-assurance snapshot inclusion-challenge sampling verifies sufficient event_id and actor_seq_range coverage, recomputes the event-set Merkle root, rejects commitment-root mismatch, and rejects silent actor sequence gaps.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/sync-fixture.json",
@@ -2020,6 +2565,9 @@
       "vector_id": "ak.vector.state_root.incremental.v1",
       "status": "active",
       "domain": "state_root",
+      "applies_to_fixtures": [
+        "state-reducer-hardening-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -2029,6 +2577,9 @@
       "vector_id": "ak.vector.sync.range_completeness_client_query.v1",
       "status": "active",
       "domain": "sync",
+      "applies_to_fixtures": [
+        "final-conformance-closure-fixture.json"
+      ],
       "description": "Client events.query backfill with include_completeness=true detects withheld actor branches via ak.attestation.range_completeness verification; feature-less servers ignore the parameter; single_source attestation does not satisfy high-assurance realms.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -2039,6 +2590,9 @@
       "vector_id": "ak.vector.sync.soft_fail_reconcile.v1",
       "status": "active",
       "domain": "sync",
+      "applies_to_fixtures": [
+        "security-closure-vectors.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-vectors.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -2048,6 +2602,9 @@
       "vector_id": "ak.vector.webrtc.media_plaintext_downgrade.v1",
       "status": "active",
       "domain": "webrtc",
+      "applies_to_fixtures": [
+        "security-closure-vectors.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-vectors.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -2056,8 +2613,10 @@
     {
       "vector_id": "ak.vector.encoding.canonical_json.utf16_supplementary_order.v1",
       "status": "active",
-      "profile": "ak.vector_group.encoding.v1",
       "domain": "encoding",
+      "applies_to_vector_groups": [
+        "ak.vector_group.encoding.v1"
+      ],
       "description": "Canonical JSON object key ordering follows UTF-16 code units for supplementary-plane keys.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
@@ -2067,6 +2626,9 @@
       "vector_id": "ak.vector.encoding.multibase_did_key.core.v1",
       "status": "active",
       "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -2075,8 +2637,10 @@
     {
       "vector_id": "ak.vector.search.blind_index_stale_posting_fail_closed.v1",
       "status": "active",
-      "profile": "ak.profile.search.blind_index.v1",
       "domain": "search",
+      "applies_to_profiles": [
+        "ak.profile.search.blind_index.v1"
+      ],
       "description": "Blind-index stale postings after revocation, visibility tightening, redaction, expiry, or epoch rotation MUST not produce unauthorized recall.",
       "source_refs": [
         "spec/v1/zh/sync/privacy-preserving-search.md",
@@ -2086,8 +2650,10 @@
     {
       "vector_id": "ak.vector.search.result_not_authz_proof.v1",
       "status": "active",
-      "profile": "ak.profile.search.blind_index.v1",
       "domain": "search",
+      "applies_to_profiles": [
+        "ak.profile.search.blind_index.v1"
+      ],
       "description": "Search hit is not an authorization proof; unauthorized or unverifiable hits return non-enumerating stubs.",
       "source_refs": [
         "spec/v1/zh/sync/privacy-preserving-search.md",
@@ -2097,8 +2663,10 @@
     {
       "vector_id": "ak.vector.search.surface_separation_no_plaintext_leakage.v1",
       "status": "active",
-      "profile": "ak.profile.search.blind_index.v1",
       "domain": "search",
+      "applies_to_profiles": [
+        "ak.profile.search.blind_index.v1"
+      ],
       "description": "Directory search, privacy-preserving search, and bridge interop surfaces stay separated and do not leak private plaintext.",
       "source_refs": [
         "spec/v1/zh/sync/privacy-preserving-search.md",
@@ -2108,8 +2676,10 @@
     {
       "vector_id": "ak.vector.media.aead_nonce_sender_domain_collision.v1",
       "status": "active",
-      "profile": "ak.profile.e2ee_client.v1",
       "domain": "media",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1"
+      ],
       "description": "Receiver rejects sender_nonce_prefix collision or nonce prefix mismatch.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -2119,8 +2689,10 @@
     {
       "vector_id": "ak.vector.media.aead_nonce_counter_replay.v1",
       "status": "active",
-      "profile": "ak.profile.e2ee_client.v1",
       "domain": "media",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1"
+      ],
       "description": "Receiver rejects repeated per-device AEAD nonce counter.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -2130,8 +2702,10 @@
     {
       "vector_id": "ak.vector.media.aead_nonce_random_rejected.v1",
       "status": "active",
-      "profile": "ak.profile.e2ee_client.v1",
       "domain": "media",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1"
+      ],
       "description": "Receiver rejects pure random 96-bit nonce profile for v1 encrypted attachments.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -2141,8 +2715,10 @@
     {
       "vector_id": "ak.vector.lattice.mv_register_join.v1",
       "status": "active",
-      "profile": "ak.vector_group.cba_lattice.v1",
       "domain": "lattice",
+      "applies_to_vector_groups": [
+        "ak.vector_group.cba_lattice.v1"
+      ],
       "description": "mv_register join/validate_op convergence for the same CBA Event set.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
@@ -2151,8 +2727,10 @@
     {
       "vector_id": "ak.vector.lattice.counter_join.v1",
       "status": "active",
-      "profile": "ak.vector_group.cba_lattice.v1",
       "domain": "lattice",
+      "applies_to_vector_groups": [
+        "ak.vector_group.cba_lattice.v1"
+      ],
       "description": "counter join/validate_op convergence for the same CBA Event set.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
@@ -2161,8 +2739,10 @@
     {
       "vector_id": "ak.vector.lattice.ordered_log_join.v1",
       "status": "active",
-      "profile": "ak.vector_group.cba_lattice.v1",
       "domain": "lattice",
+      "applies_to_vector_groups": [
+        "ak.vector_group.cba_lattice.v1"
+      ],
       "description": "ordered_log join/validate_op convergence for the same CBA Event set.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
@@ -2171,8 +2751,10 @@
     {
       "vector_id": "ak.vector.lattice.fsm_join.v1",
       "status": "active",
-      "profile": "ak.vector_group.cba_lattice.v1",
       "domain": "lattice",
+      "applies_to_vector_groups": [
+        "ak.vector_group.cba_lattice.v1"
+      ],
       "description": "fsm join: identical (from,to) sibling transitions converge idempotently; same-from different-to siblings return bottom (reject path).",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
@@ -2181,8 +2763,10 @@
     {
       "vector_id": "ak.vector.lattice.ordered_log_gap.v1",
       "status": "active",
-      "profile": "ak.vector_group.cba_lattice.v1",
       "domain": "lattice",
+      "applies_to_vector_groups": [
+        "ak.vector_group.cba_lattice.v1"
+      ],
       "description": "ordered_log issuer sub-chain seq gap yields contiguous_prefix plus pending_gap diagnostics; deterministic recompute after backfill.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -2192,8 +2776,10 @@
     {
       "vector_id": "ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1",
       "status": "active",
-      "profile": "ak.profile.circle_conformance.v1",
       "domain": "circle",
+      "applies_to_profiles": [
+        "ak.profile.circle_conformance.v1"
+      ],
       "description": "directory_visibility=realm_members exposes only the Realm-member preview field set and gives non-Realm callers the same locked stub/timing bucket as members-only circles.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -2203,8 +2789,10 @@
     {
       "vector_id": "ak.vector.calendar.rsvp_occurrence_key.v1",
       "status": "active",
-      "profile": "ak.profile.calendar_event.v1",
       "domain": "calendar",
+      "applies_to_profiles": [
+        "ak.profile.calendar_event.v1"
+      ],
       "description": "RSVP occurrence key canonicalizes recurrence instance local wall-clock start in the event timezone.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -2215,6 +2803,9 @@
       "vector_id": "ak.vector.realm_organization.schema_semantic.v1",
       "status": "active",
       "domain": "realm_organization",
+      "applies_to_fixtures": [
+        "realm-organization-fixture.json"
+      ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/realm-organization-fixture.json"
       ]

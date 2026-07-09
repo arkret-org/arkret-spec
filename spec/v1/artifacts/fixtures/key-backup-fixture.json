@@ -67,7 +67,7 @@
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "auth_data": {
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "ssk_generation": 1,
@@ -138,7 +138,7 @@
         "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "auth_data": {
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "ssk_generation": 1,
@@ -220,7 +220,7 @@
         "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "auth_data": {
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "ssk_generation": 1,
@@ -291,7 +291,7 @@
         "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "auth_data": {
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "ssk_generation": 1,
@@ -362,7 +362,7 @@
         "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "auth_data": {
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "ssk_generation": 1,
@@ -434,7 +434,7 @@
         "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "auth_data": {
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "ssk_generation": 1,
@@ -515,7 +515,7 @@
         "ciphertext_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
         "auth_data": {
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "ssk_generation": 1,
@@ -603,7 +603,7 @@
         "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
         "auth_data": {
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "ssk_generation": 1,
@@ -681,7 +681,7 @@
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "auth_data": {
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "ssk_generation": 1,
@@ -756,7 +756,7 @@
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "auth_data": {
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "ssk_generation": 1,
@@ -831,7 +831,7 @@
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "auth_data": {
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "ssk_generation": 1,
@@ -906,7 +906,7 @@
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "auth_data": {
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "ssk_generation": 1,
@@ -980,7 +980,7 @@
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "auth_data": {
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "ssk_generation": 1,
@@ -1056,7 +1056,7 @@
         "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
         "auth_data": {
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "ssk_generation": 1,
@@ -1138,7 +1138,7 @@
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "auth_data": {
           "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "ssk_generation": 1,
@@ -1197,7 +1197,7 @@
         },
         "issued_at": "2026-04-26T00:00:00Z",
         "auth_data": {
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_principal_signing_v1",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
@@ -1215,7 +1215,7 @@
       }
     },
     {
-      "name": "recovery_policy_v2_missing_supersedes_rejected",
+      "name": "recovery_policy_successor_missing_supersedes_rejected",
       "schema_ref": "schemas/recovery-policy.schema.json",
       "expect_valid": false,
       "first_expected_error": "$: 'supersedes' is a required property",
@@ -1237,7 +1237,7 @@
         },
         "issued_at": "2026-04-27T00:00:00Z",
         "auth_data": {
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_principal_signing_v1",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
@@ -1269,7 +1269,7 @@
         "expires_at": "2026-04-27T00:00:00Z",
         "issued_at": "2026-04-27T00:00:00Z",
         "auth_data": {
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_principal_signing_v1",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
@@ -1360,7 +1360,7 @@
         "started_at": "2026-04-27T00:00:00Z",
         "completed_at": "2026-04-27T00:05:00Z",
         "auth_data": {
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964139",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964139",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
@@ -1417,7 +1417,7 @@
         "started_at": "2026-04-27T00:00:00Z",
         "completed_at": "2026-04-27T00:05:00Z",
         "auth_data": {
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964139",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964139",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
@@ -1457,7 +1457,7 @@
         },
         "issued_at": "2026-04-27T00:00:00Z",
         "auth_data": {
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
@@ -1490,7 +1490,7 @@
         "proof_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
         "issued_at": "2026-04-27T00:04:00Z",
         "auth_data": {
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964139",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964139",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [

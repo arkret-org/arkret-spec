@@ -68,7 +68,7 @@
       "uniqueItems": true,
       "items": {
         "type": "string",
-        "pattern": "^(ck\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*[A-Za-z0-9_.:-]*)$"
+        "pattern": "^(ak\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*[A-Za-z0-9_.:-]*)$"
       },
       "description": "Authoritative schema set for Morph fields and transition validation. Reducers MUST validate fields against exactly these refs; morph_type and facets are not a replacement for schema_refs."
     },
@@ -292,7 +292,7 @@
     },
     "content_kind": {
       "type": "string",
-      "pattern": "^(ck\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
+      "pattern": "^(ak\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
     },
     "content_block": {
       "type": "object",

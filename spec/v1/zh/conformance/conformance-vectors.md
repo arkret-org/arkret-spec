@@ -34,10 +34,6 @@ MIMI Provider Facade 的 active interop vectors 为 `ak.vector.mimi.provider_dir
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [normative-language.md](./normative-language.md) 解释；仅大写形式具规范约束力。
 
-### 0.1 Core-Invariant Formal Model 路线图（informative）
-
-Conformance vectors 是 v1 的当前互操作基线，但它们只能覆盖有限样例。对授权与收敛安全内核，v2 / high-assurance profile SHOULD 交付机器可校验的形式化模型或等价 property-based proof harness，并把发现的反例回灌为新的 `ak.vector.*`。该路线图不改变 v1 wire，也不把形式化工具作为 default profile 的发布 gate。
-
 形式化 proof obligations 至少 SHOULD 覆盖：
 
 - CBA / open_set 多 leaf 下 per-cell lattice join `J(L)` 是纯函数，且与输入顺序、接收方、墙钟无关；所有 conformant reducer 对同一 accepted Seal frontier 收敛到同一 cell value。
@@ -112,6 +108,10 @@ sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777
 - 输出包含空格、换行或缩进。
 - 字段顺序为 `b` 后 `a`。
 - hash 输入使用非 canonical JSON。
+
+### 1.3.1 Vector: BLAKE3 Digest Suite
+
+`ak.vector.encoding.digest.blake3.v1` 固定输入 `Arkret v1 BLAKE3 conformance` 的精确 UTF-8 bytes、`blake3:` 输出与 profile gate。声明 `ak.profile.hash.blake3.v1` 的实现 MUST 同时通过正向 KAT，以及错 suite prefix、截断 digest、Realm suite mismatch 和未知 suite downgrade 四个负例；不得只证明“库能调用 BLAKE3”。完整字节与期望值见 [`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json)。
 
 ### 1.4 Vector: Canonical JSON Nested
 
@@ -652,6 +652,7 @@ ak.vector.encoding.reject_cbor_array_bounds.v1
 | --- | --- | --- | --- | --- | --- |
 | `ak.vector.encoding.canonical_json.basic.v1` | MUST | MUST | MUST | MUST | MUST |
 | `ak.vector.encoding.canonical_json.nested.v1` | MUST | MUST | MUST | MUST | MUST |
+| `ak.vector.encoding.digest.blake3.v1` | MAY | MAY | MAY | MAY | MAY |
 | `ak.vector.encoding.canonical_json.utf16_supplementary_order.v1` | MUST | MUST | MUST | MUST | MUST |
 | `ak.vector.encoding.reject_noncanonical_numbers.v1` | MUST | MUST | MUST | MUST | SHOULD |
 | `ak.vector.encoding.reject_malformed_json.v1` | MUST | MUST | MUST | MUST | MUST |
@@ -692,7 +693,7 @@ fixture 同时固化以下向量（2026-07-03 起）：
 
 - `ak.vector.encoding.crypto.es256_detached_jws.v1` — ES256（ECDSA P-256，RFC 6979 确定性签名）detached JWS 正向量；由 `ak.profile.signature.ecdsa_p256.v1` 门控，声明该 profile 的实现 MUST 通过。
 - `ak.vector.encoding.crypto.mldsa65_raw_detached_signature.v1` — ML-DSA-65（NIST FIPS 204）raw detached signature 正向量（registry `proof_kind = raw_detached_signature`，无 JOSE 包装）；由 `ak.profile.signature.pqc.v1` 门控。
-- `ak.vector.encoding.crypto.signature_negative.v1` — 可执行负向量组：坏签名（位翻转）、`alg=none`、alg 与解析出的密钥类型错配、截断公钥、detached JWS payload 段非空。所有做签名验证的实现 MUST 逐条拒绝，且拒绝原因 MUST 来自 fixture 声明的稳定错误码。
+- `ak.vector.encoding.crypto.signature_negative.v1` — 可执行负向量组：Ed25519 位翻转 / `alg=none` / key-type mismatch / 截断公钥 / detached payload 混淆，ES256 截断 raw `r||s` 与 P-256 坐标，以及 ML-DSA-65 截断签名与公钥。实现只执行通用 Ed25519 负例不得声明 ES256 或 ML-DSA-65 profile；每个 active suite 都 MUST 逐条拒绝其算法专属负例，且拒绝原因 MUST 来自 fixture 声明的稳定错误码。
 
 后续 conformance suite 仍应增加扩展 fixture：
 
@@ -1045,15 +1046,15 @@ ak.vector.cba_lattice.cas_mixed_basis.v1
 
 本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 的 **Basis 强制（normative）**：“cas_register 的 set effect 在目标 cell 的 settled 值为非初始态时，Control Move MUST 携带针对本 cell 的 `head_eq` precondition；DataEvent MUST 通过 causal refs 与 lattice 规则表达同等 CAS 约束。缺失时，receiver MUST 以 `failed_precondition` 拒绝该 effect，并按多 cell 原子性拒绝整个 reducer input，不接受‘无 CAS 强制写’。”
 
-输入（cas_register cell，未声明 `initial_value`，初值 `null`；前置 Seal 已把 settled 值推进到 `v1`，即非初始态）：
+输入（cas_register cell，未声明 `initial_value`，初值 `null`；前置 Seal 已把 settled 值推进到 `value_1`，即非初始态）：
 
-- **Case A — 非初始态盲写**：一条 set Event 写入 `v2`，**不带**针对本 cell 的 basis 证明（null basis）。
-- **Case B — 正确 basis 收敛**：一条 set Control Move 写入 `v2`，携带 `head_eq: "v1"`（与 settled pre-state 一致）。
+- **Case A — 非初始态盲写**：一条 set Event 写入 `value_2`，**不带**针对本 cell 的 basis 证明（null basis）。
+- **Case B — 正确 basis 收敛**：一条 set Control Move 写入 `value_2`，携带 `head_eq: "value_1"`（与 settled pre-state 一致）。
 
 期望：
 
-- **Case A**：receiver MUST 以 `failed_precondition` 拒绝整个 Event（多 cell 原子性，不得部分应用其余 effect）；cell 保持 `v1`。若此类 Event 越过验证进入 join（防御性路径），join MUST 返回 ⊥，MUST NOT 把 null-basis 盲写当作合法覆盖。
-- **Case B**：Control Move 接受并在被 accepted Seal 覆盖后使 cell 收敛到 `v2`；两个 conformant reducer 以不同输入顺序重放 MUST 得到同一结果。
+- **Case A**：receiver MUST 以 `failed_precondition` 拒绝整个 Event（多 cell 原子性，不得部分应用其余 effect）；cell 保持 `value_1`。若此类 Event 越过验证进入 join（防御性路径），join MUST 返回 ⊥，MUST NOT 把 null-basis 盲写当作合法覆盖。
+- **Case B**：Control Move 接受并在被 accepted Seal 覆盖后使 cell 收敛到 `value_2`；两个 conformant reducer 以不同输入顺序重放 MUST 得到同一结果。
 - “无条件覆盖”语义 MUST 通过 profile 显式注册的专门高权限 event kind 或 §8 conflict-recovery 路径表达，不得通过省略普通 set Control Move 的 `head_eq` 实现。
 
 失败条件：
@@ -2009,6 +2010,8 @@ ak.vector.disappearing.read_trigger_anonymous_aggregate.v1
 - 允许的 trigger metadata 仅限 `source_event_id`、`trigger`、`anchor_hlc`、`expires_at` 与不可反查的 aggregate status；不得包含 read receipt UI payload。
 
 ### 5.2.3 Vector: Disappearing Read-trigger Idempotent Replay
+
+除单服务 replay 外，实现还 MUST 运行 `ak.vector.disappearing.read_trigger_multi_aggregator_convergence.v1`：两个聚合服务以相反顺序接收同一 contribution 集合，per-token `min` 与 aggregate `min` join 必须产生逐字节相同的 `on_first_read` anchor；晚到更早值只能把 expiry 提前，不能恢复已 shred 内容。
 
 向量名称：
 
@@ -3060,7 +3063,7 @@ Expected：
 
 ### 10.7 Vector: Capability Revoke Downstream Recheck
 
-`vector_id`: `ak.vector.capability.revoke_downstream_recheak.v1`
+`vector_id`: `ak.vector.capability.revoke_downstream_recheck.v1`
 
 Steps：
 
@@ -3624,7 +3627,7 @@ Steps:
 Expected:
 
 - Client MUST 拒绝该 key 并报 `e2ee_key_source_unauthorised`。
-- 唯一合法 key 来源是 MLS-Exporter（label `ck-rtc-frame-key/v1`, length=19 bytes, Context=`canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id})`, KDF.Nh=32 bytes），其中 `participant_identity` / `device_id` 取自已验证的 `ak.call.state.participants[]` 与 `participant_binding`。
+- 唯一合法 key 来源是 MLS-Exporter（label `ak.rtc-frame-key/v1`, length=19 bytes, Context=`canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id})`, KDF.Nh=32 bytes），其中 `participant_identity` / `device_id` 取自已验证的 `ak.call.state.participants[]` 与 `participant_binding`。
 - 负向覆盖：以下派生 MUST 同样 fail closed 报 `e2ee_key_source_unauthorised`——(a) `Context=""`（空 Context）；(b) 缺少 sender 字段（`participant_identity` / `device_id`）；(c) 仅绑定 `epoch_id` 而不含完整 sender-bound Context。
 
 ### 12.8 Participant Identity — Cross-Check
@@ -3786,7 +3789,7 @@ Steps:
 3. Producer 提交 artifact，`encryption.exporter_label` 不是 `"ak.rtc-recording-key/v1"`，或 `encryption.context` 缺少 `{realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}` 中任一字段。
 4. Backend 尝试在 result / artifact 中携带直出 recording URL、S3/GCS/LiveKit Cloud destination，或缺失 `recording_initiator_capability_ref`。
 5. Retention 到期或 manual delete 触发删除，artifact `deletion_audit.trigger` 与 `retention.deletion_trigger` 不一致，或 `outcome="completed"` 但缺少 `erasure_receipt_ref`。
-6. Producer 提交合法 artifact：`schema="ak.schema.call_recording_artifact.v1"`，绑定同一 `realm_id` / `call_id` / `recording_id` / `recording_start_event_id`，通过 Arkret blob pipeline，使用 `"ck-rtc-recording-key/v1"` 与完整 Context，携带 retention、capability ref；删除完成时携带同 trigger 的 `deletion_audit` 与 `ak.schema.erasure_receipt.v1` 引用。
+6. Producer 提交合法 artifact：`schema="ak.schema.call_recording_artifact.v1"`，绑定同一 `realm_id` / `call_id` / `recording_id` / `recording_start_event_id`，通过 Arkret blob pipeline，使用 `"ak.rtc-recording-key/v1"` 与完整 Context，携带 retention、capability ref；删除完成时携带同 trigger 的 `deletion_audit` 与 `ak.schema.erasure_receipt.v1` 引用。
 
 Expected:
 
@@ -4333,6 +4336,12 @@ Expected：
 - **Case A**：MUST 以 `unauthenticated` 拒绝；高安全 profile 对常规写与敏感读要求 RFC 9421 PoP 出示（见 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 对应 profile 的 `additional_requirements`），纯 bearer 对这些操作 MUST 被拒绝。
 - **Case B**：受保护 endpoint MUST 以 `unauthenticated` 拒绝。若 endpoint 是公开 metadata surface，响应 MUST 按未认证 public request 处理，不得授予 session/capability 语义。
 - **Case C**：过窗签名即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝；时效窗口外的逐字节重放同样 MUST 拒绝。
+
+### 18.3 Vector: DPoP Target URI Binding
+
+`vector_id`: `ak.vector.session.dpop_target_uri_binding.v1`
+
+本向量固化 DPoP `htu` 的完整外部 URI 绑定。校验时只移除 query 与 fragment，scheme、authority 与 path 均参与比较：相同 path 的不同 authority、HTTP/HTTPS scheme 淆混、来自非受信 peer 的 `Forwarded` / `X-Forwarded-*`、以及无法重建 authority 的请求都 MUST 以 `unauthenticated` 拒绝。只有静态配置的 public origin，或由受信最后一跳代理在入口清洗同名客户端 header 后提供的 external URI，才可用于匹配；不存在 path-only fallback。
 
 ## 19. Applet Transaction Push Vectors
 

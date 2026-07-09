@@ -8,7 +8,8 @@
     "ak.vector.auth.soft_logout_did_proof.v1",
     "ak.vector.identity.did_proof_replay_window.v1",
     "ak.vector.session.pop_presentation.v1",
-    "ak.vector.session.bare_bearer_rejected_protected.v1"
+    "ak.vector.session.bare_bearer_rejected_protected.v1",
+    "ak.vector.session.dpop_target_uri_binding.v1"
   ],
   "cases": [
     {
@@ -160,6 +161,64 @@
         "production current-v1 protected endpoints reject bare bearer unless sender-constrained proof is present",
         "public metadata surfaces do not treat bare bearer as session or capability authentication",
         "PoP created/expires outside the replay window is rejected even after replay-cache eviction"
+      ]
+    },
+    {
+      "name": "dpop_target_uri_binding",
+      "vector_id": "ak.vector.session.dpop_target_uri_binding.v1",
+      "kind": "dpop_htu_external_uri_binding",
+      "proof": {
+        "htm": "POST",
+        "htu": "https://service.example.com/_arkret/self/events",
+        "ath": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "requests": [
+        {
+          "name": "direct_full_uri_match",
+          "external_uri": "https://service.example.com/_arkret/self/events",
+          "trusted_proxy": false,
+          "expected": "accepted"
+        },
+        {
+          "name": "same_path_different_authority",
+          "external_uri": "https://evil.example.com/_arkret/self/events",
+          "trusted_proxy": false,
+          "expected": "unauthenticated"
+        },
+        {
+          "name": "same_authority_different_scheme",
+          "external_uri": "http://service.example.com/_arkret/self/events",
+          "trusted_proxy": false,
+          "expected": "unauthenticated"
+        },
+        {
+          "name": "untrusted_forwarded_host_spoof",
+          "request_uri": "https://internal.service/_arkret/self/events",
+          "forwarded_host": "service.example.com",
+          "trusted_proxy": false,
+          "expected": "unauthenticated"
+        },
+        {
+          "name": "trusted_proxy_clean_external_uri",
+          "request_uri": "http://internal.service/_arkret/self/events",
+          "forwarded_host": "service.example.com",
+          "forwarded_proto": "https",
+          "trusted_proxy": true,
+          "headers_scrubbed_at_edge": true,
+          "expected": "accepted"
+        },
+        {
+          "name": "authority_unavailable_no_path_fallback",
+          "request_path": "/_arkret/self/events",
+          "trusted_proxy": false,
+          "expected": "unauthenticated"
+        }
+      ],
+      "assertions": [
+        "htu comparison removes query and fragment but retains scheme, authority, and path",
+        "the same path at a different authority or scheme is rejected",
+        "forwarding headers are used only from a configured trusted final proxy after edge scrubbing",
+        "an implementation unable to reconstruct the external URI rejects instead of using path-only comparison"
       ]
     }
   ]

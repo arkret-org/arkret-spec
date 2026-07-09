@@ -76,7 +76,7 @@ sidebar:
 
 ### 1.3 Interop 命名空间例外
 
-以下名称来自外部互通协议的固有术语，不属于 Arkret core 模型命名。`renames.json` 与 `forbidden-wire-fields.json` 等漂移防护机制只允许它们出现在登记的 interop 模块上下文中，授权 / 解析逻辑不得把这些术语提升为 core model 概念：
+以下名称来自外部互通协议的固有术语，不属于 Arkret core 模型命名。`forbidden-wire-fields.json` 与 registry lint 只允许它们出现在登记的 interop 模块上下文中，授权 / 解析逻辑不得把这些术语提升为 core model 概念：
 
 | 名称 | 当前语义 | 允许理由 | 防护参考 |
 | --- | --- | --- | --- |

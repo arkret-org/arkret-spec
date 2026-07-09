@@ -37,7 +37,7 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
 </StarlightPage>
 
 <style is:global>
-  .ck-surface-jump {
+  .ak-surface-jump {
     border: 1px solid var(--sl-color-gray-5);
     border-radius: 0.5rem;
     padding: 0.6rem 0.85rem;
@@ -45,10 +45,10 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
     margin: 0.75rem 0 1.5rem;
     font-size: 0.9rem;
   }
-  .ck-surface-jump strong {
+  .ak-surface-jump strong {
     margin-right: 0.5rem;
   }
-  .ck-surface-jump ul {
+  .ak-surface-jump ul {
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem 0.6rem;
@@ -56,7 +56,7 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
     padding: 0;
     margin: 0.4rem 0 0;
   }
-  .ck-surface-jump a {
+  .ak-surface-jump a {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
@@ -67,11 +67,11 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
     text-decoration: none;
     color: var(--sl-color-text);
   }
-  .ck-surface-jump a:hover {
+  .ak-surface-jump a:hover {
     border-color: var(--sl-color-text-accent);
     color: var(--sl-color-text-accent);
   }
-  .ck-surface-jump .ck-surface-tier {
+  .ak-surface-jump .ak-surface-tier {
     font-size: 0.72rem;
     padding: 0 0.35rem;
     border-radius: 999px;
@@ -80,15 +80,15 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
-  .ck-surface-jump a[data-tier="extension"] .ck-surface-tier {
+  .ak-surface-jump a[data-tier="extension"] .ak-surface-tier {
     background: color-mix(in srgb, #d97706 22%, transparent);
     color: #d97706;
   }
-  .ck-surface-jump a[data-tier="interop_bridge"] .ck-surface-tier {
+  .ak-surface-jump a[data-tier="interop_bridge"] .ak-surface-tier {
     background: color-mix(in srgb, #0d9488 22%, transparent);
     color: #0d9488;
   }
-  .ck-surface-jump a[data-tier="deployment_local"] .ck-surface-tier {
+  .ak-surface-jump a[data-tier="deployment_local"] .ak-surface-tier {
     background: color-mix(in srgb, #6b46c1 22%, transparent);
     color: #6b46c1;
   }

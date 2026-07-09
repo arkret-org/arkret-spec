@@ -20,7 +20,7 @@ Client Sync 是客户端 **账号视角聚合** 同步协议。它在 Events API
 
 两者共享相同的 stream cursor 形态、resume / `dropped` / `resync_required` 恢复语义，差异仅在 selector 与 frame 内容。
 
-本文定义 Arkret v1 的客户端账号同步语义，不表示存在 `sync v1` / `sync v2` 两个协议版本。版本演进应由 transport binding 路径、feature discovery 和 conformance profile 表达。
+本文定义 Arkret v1 的客户端账号同步语义。能力差异由 feature discovery 与 conformance profile 表达；transport path 不携带版本段。
 
 所有 full client 和 E2EE client MUST 支持本文件。
 

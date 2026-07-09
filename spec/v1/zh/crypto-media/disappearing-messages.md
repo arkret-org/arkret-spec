@@ -61,18 +61,18 @@ Sync / account aggregate service MAY 观察或持有执行该职责所必需的�
 
 `on_send` 的 anchor 是 accepted Event 的 canonical send seal HLC。
 
-`on_first_read` 的 anchor 是第一个有效 read trigger contribution 的 canonical 稳定 HLC。**canonical 选取规则（normative）**：anchor = `max(position_hlc, accepted_at_hlc)`，其中 `position_hlc` 是该 contribution 的 read position HLC、`accepted_at_hlc` 是聚合服务接受该 contribution 时铸造的 HLC（二者 HLC 相等时取相同值，不产生分歧）。该规则是确定性的、不依赖实现 profile：任何聚合服务 / 客户端对同一第一个有效 contribution MUST 收敛到同一 anchor，使跨实现、跨聚合服务的过期判定一致。同一 message 一旦产生 first-read anchor，后续 contribution、重复投递或 replay MUST NOT 改写 anchor。
+`on_first_read` 的 anchor 是全部有效 read trigger contribution 的可收敛最小值。**canonical 选取规则（normative）**：每个 contribution 的候选值是其经验证的 `position_hlc`，且 MUST 满足 `position_hlc >= send_seal_hlc`；聚合状态以 `min(position_hlc)` 做 join。接收时本地铸造的 HLC、wall clock 和网络到达顺序 MUST NOT 进入 anchor。两个聚合服务即使以相反顺序观察同一组 contribution，也必须在合并集合后得到同一 anchor。晚到的更早有效 contribution MAY 只把 anchor 单调向更早移动；更晚值、重复投递或 replay 不得把 anchor 后移，已经生成的 expiry stub 或已经 shred 的 key 也不得复活。
 
-`on_last_read` 的 anchor 是冻结 `eligible_reader_set` 中每个 principal 均有一个有效 contribution 后的最大 contribution HLC；若 read-trigger window 先结束，anchor 为该 window 的结束 HLC / timestamp。`read_trigger_window_ms` 由 effective `ak.realm.disappearing_policy` 给出；缺省时 MUST 使用 `max_ttl_ms` 作为上限窗口。`eligible_reader_set` 为空时，`on_first_read` 与 `on_last_read` MUST 退化为 `on_send` anchor，且不得暴露"无人可读"作为成员枚举信号。
+`on_last_read` 先按 `read_trigger_token` 对每个冻结 principal 的有效 contribution 取最小 `position_hlc`，再对这些 principal-level 最小值取最大值。该两级 `min`/`max` 只依赖可验证 contribution 集合，满足可交换、结合、幂等。若 read-trigger window 先结束，anchor MUST 等于 `send_seal_hlc + read_trigger_window_ms`，不得使用任一聚合服务的本地接受时刻。`read_trigger_window_ms` 由 effective `ak.realm.disappearing_policy` 给出；缺省时 MUST 使用 `max_ttl_ms` 作为上限窗口。`eligible_reader_set` 为空时，`on_first_read` 与 `on_last_read` MUST 退化为 `on_send` anchor，且不得暴露"无人可读"作为成员枚举信号。
 
-`expired_at = min(anchor + ttl_ms + grace_ms, send_seal_hlc + max_ttl_ms)`；其中 `send_seal_hlc` 是该 message create 被 accepted 的 canonical send seal HLC，`max_ttl_ms` 来自同一 policy frontier 下的 effective `ak.realm.disappearing_policy`。该上限保证 `on_last_read` 的等待窗口和 `grace_ms` 都不会变成额外 plaintext lifetime：`ttl_ms + grace_ms` MUST 受 `max_ttl_ms` 约束。`expired_at` 只控制 projection、local cache 和 key shredding，不得进入 authorization、membership、history visibility 或 reducer acceptance 判定。不同副本在 wall-clock 边界附近的短暂显示差异是允许的；一旦观察到相同 anchor、send seal 和 policy，projection MUST 收敛到相同 stub。
+`expired_at = min(anchor + ttl_ms + grace_ms, send_seal_hlc + max_ttl_ms)`；其中 `send_seal_hlc` 是该 message create 被 accepted 的 canonical send seal HLC，`max_ttl_ms` 来自同一 policy frontier 下的 effective `ak.realm.disappearing_policy`。该上限保证 `on_last_read` 的等待窗口和 `grace_ms` 都不会变成额外 plaintext lifetime：`ttl_ms + grace_ms` MUST 受 `max_ttl_ms` 约束。`expired_at` 只控制 projection、local cache 和 key shredding，不得进入 authorization、membership、history visibility 或 reducer acceptance 判定。副本尚未交换全部 contribution 时 MAY 暂时得到较晚 anchor；合并后 anchor/expired_at 只能保持或向更早移动，并最终收敛到相同 stub。
 
 ### 2.4 幂等、重放与离线多设备
 
 Read trigger contribution MUST 是单调且幂等的：
 
-- 同一 `(message, principal)` 的重复 contribution 使用同一 `read_trigger_token` 去重；重复投递返回 success / already_observed 等幂等结果，不得增加计数或刷新 anchor。
-- 比本地已接受 read position 更旧的 receipt / cursor MUST 被忽略；HLC 相等时按 read cursor 规范的 device tie-break 收敛，但仍只产生一个 principal-level contribution。
+- 同一 `(message, principal)` 的重复 contribution 使用同一 `read_trigger_token` 去重；同 token 的状态以最小有效 `position_hlc` 收敛。逐字节重复投递返回 success / already_observed，不得增加计数；晚到的更早有效位置只允许按 §2.3 把 anchor 单调向更早移动。
+- 更晚的 receipt / cursor 不得覆盖同 token 已观察到的更早 read position；HLC 相等时按 read cursor 规范的 device tie-break 收敛，但仍只产生一个 principal-level contribution。
 - replayed contribution 若 token、message、scope、trigger 或 policy frontier 不匹配，MUST fail closed；不得因攻击者重放旧 receipt 让另一条消息提前过期。
 - `on_last_read` 按 principal 计数，不按设备计数。一个 principal 的任一授权设备满足 read trigger 即视为该 principal 已读；其它离线设备不得阻塞全局 anchor，但这些设备在重新上线时仍 MUST 应用已过期 stub 并删除本地 plaintext / key material。
 - 离线 principal、不可达 delivery binding、丢失的 to-device 消息或被移除成员不得无限期阻塞 `on_last_read`；read-trigger window 到达时 MUST 关闭等待并计算 anchor。
@@ -91,7 +91,7 @@ E2EE Realm 中，disappearing message SHOULD 使用 per-message temporary conten
 
 Saved items、pins、replies、search index、push snippet 和 blob preview MUST NOT 复活已过期 plaintext。任何派生内容若包含明文或可逆摘要，必须跟随最早的 message expiry 失效。
 
-每个设备在观察到本地或聚合 expiry anchor 后 MUST 排程删除 per-message content key、短 epoch exporter secret、解密 cache、plaintext render cache、附件 preview key 与 search / notification derived plaintext。重复收到同一 anchor 或较旧 anchor MUST 幂等处理；收到更晚 anchor 只有在本地从未接受过 anchor 且该 anchor 能由当前 policy frontier 验证时才可采用，已经过期并 shred 的 key 不得因迟到 anchor 被恢复。
+每个设备在观察到本地或聚合 expiry anchor 后 MUST 排程删除 per-message content key、短 epoch exporter secret、解密 cache、plaintext render cache、附件 preview key 与 search / notification derived plaintext。重复收到同一 anchor MUST 幂等处理；收到更早且可由当前 policy frontier 与 contribution closure 验证的 anchor时 MUST 单调提前本地 expiry，收到更晚 anchor MUST 忽略。已经过期并 shred 的 key 不得因任何迟到 anchor 被恢复。
 
 到期后保留的 encrypted envelope、Event、Seal、batch receipt、message id、strand id、track name、expiry metadata 和最小审计引用仍可存在。它们是 append-only history 的一部分，但不得包含可解密正文或可逆摘要。
 
@@ -111,4 +111,5 @@ Late key recovery 也不得复活已过期 plaintext。该 expiry / retention gu
 
 - `ak.vector.disappearing.read_trigger_anonymous_aggregate.v1`：`on_first_read` / `on_last_read` 只能输出 aggregate expiry anchor / stub；发送者和其他成员不得观察 reader identity、reader count 或可跨消息关联 token。
 - `ak.vector.disappearing.read_trigger_idempotent_replay.v1`：重复 read cursor、重复 receipt、跨消息 replay 和乱序 delivery 不得刷新 anchor、重复计数或提前过期错误消息。
+- `ak.vector.disappearing.read_trigger_multi_aggregator_convergence.v1`：两个聚合服务以相反顺序观察同一 contribution 集合时，必须通过 per-token `min` 与 aggregate join 得到逐字节相同 anchor；晚到更早值只能提前 expiry，不能复活已 shred 内容。
 - `ak.vector.disappearing.on_last_read_offline_window.v1`：离线 principal / 多设备场景按 principal-level contribution 和 `read_trigger_window_ms` 收敛；离线设备上线后必须看到 stub 并 shred key。

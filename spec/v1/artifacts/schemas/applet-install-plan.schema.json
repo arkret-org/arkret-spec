@@ -235,7 +235,7 @@
       "properties": {
         "event_kind": {
           "type": "string",
-          "pattern": "^ck\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)+$"
+          "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)+$"
         },
         "payload": {
           "type": "object",

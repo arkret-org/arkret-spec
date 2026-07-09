@@ -78,7 +78,7 @@
       "vector_id": "ak.vector.media_binding.e2ee_key_source.v1",
       "runner": "cotest::conformance::media_binding::run_e2ee_key_source_vector",
       "assertions": [
-        "SFrame frame keys use the ck-rtc-frame-key/v1 exporter label",
+        "SFrame frame keys use the ak.rtc-frame-key/v1 exporter label",
         "backend-cloud key escrow is rejected",
         "canonical six-field Context changes the derived frame key"
       ]
@@ -106,7 +106,7 @@
       "vector_id": "ak.vector.media_binding.recording_exporter_label.v1",
       "runner": "cotest::conformance::media_binding::run_recording_exporter_label_vector",
       "assertions": [
-        "recording artifacts use the ck-rtc-recording-key/v1 exporter label",
+        "recording artifacts use the ak.rtc-recording-key/v1 exporter label",
         "SFrame or transcript labels are rejected for recording artifact encryption",
         "the recording exporter Context binds realm_id, call_id, focus_id, recording_id, media_service_did, and recording_start_event_id"
       ]

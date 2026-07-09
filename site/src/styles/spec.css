@@ -1,7 +1,7 @@
 /* Arkret spec site overrides. Keep small and intentional. */
 
 :root {
-  --ck-mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas,
+  --ak-mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas,
     monospace;
 
   /* Roomier docs sidebar than Starlight's default 18.75rem so multi-word
@@ -12,14 +12,14 @@
 
   /* Match the prose column to the SiteNav width so the main reading
    * area on docs pages spans the same horizontal band as the header
-   * menu — `--ck-max` is defined in marketing.css. */
-  --sl-content-width: var(--ck-max, 87.5rem);
+   * menu — `--ak-max` is defined in marketing.css. */
+  --sl-content-width: var(--ak-max, 87.5rem);
 
   /* Cap the entire docs grid at "left sidebar + prose + right TOC" so
    * the prose column lands centered between two equally-wide columns
    * and aligns horizontally with the SiteNav above. Beyond that,
    * symmetric outer gutters absorb the remaining viewport. */
-  --ck-docs-max: calc(var(--ck-max, 87.5rem) + 2 * var(--sl-sidebar-width));
+  --ak-docs-max: calc(var(--ak-max, 87.5rem) + 2 * var(--sl-sidebar-width));
 
   /* Tone down Starlight's default heading scale — the defaults
    * (h1 2.488rem / h2 2.074rem / h3 1.728rem / h4 1.44rem) read as
@@ -69,7 +69,7 @@
  * gutter clamps to 0.
  *
  * The header is intentionally left alone: SiteNav self-centers at
- * `--ck-max` (1180px), so the docs nav sits in the same place as the
+ * `--ak-max` (1180px), so the docs nav sits in the same place as the
  * homepage nav.
  *
  * Starlight uses `position: fixed` on the sidebar pane and computes the
@@ -82,14 +82,14 @@
 @media (min-width: 50rem) {
   :root {
     /* Half of the gutter that would appear left and right of a centered
-     * docs grid clamped at --ck-docs-max. Negative results clamp to 0. */
-    --ck-docs-gutter: max(0px, calc((100vw - var(--ck-docs-max)) / 2));
+     * docs grid clamped at --ak-docs-max. Negative results clamp to 0. */
+    --ak-docs-gutter: max(0px, calc((100vw - var(--ak-docs-max)) / 2));
   }
 
   /* Shift the fixed sidebar inward to the left edge of the centered
    * docs grid. */
   nav.sidebar .sidebar-pane {
-    inset-inline-start: var(--ck-docs-gutter);
+    inset-inline-start: var(--ak-docs-gutter);
   }
 
   /* Match the main content's left offset to the new sidebar position and
@@ -104,17 +104,17 @@
    * slides under the shifted sidebar. */
   .main-frame {
     padding-inline-start: calc(
-      var(--sl-sidebar-width) + var(--ck-docs-gutter)
+      var(--sl-sidebar-width) + var(--ak-docs-gutter)
     );
-    padding-inline-end: var(--ck-docs-gutter);
+    padding-inline-end: var(--ak-docs-gutter);
   }
 }
 
-.ck-tag {
+.ak-tag {
   display: inline-block;
   padding: 0.05rem 0.4rem;
   border-radius: 0.25rem;
-  font-family: var(--ck-mono);
+  font-family: var(--ak-mono);
   font-size: 0.78em;
   line-height: 1.4;
   background: var(--sl-color-gray-6);
@@ -122,28 +122,28 @@
   border: 1px solid var(--sl-color-gray-5);
 }
 
-.ck-tag[data-kind="event"] {
+.ak-tag[data-kind="event"] {
   background: color-mix(in srgb, var(--sl-color-accent) 18%, transparent);
   border-color: var(--sl-color-accent);
 }
-.ck-tag[data-kind="error"] {
+.ak-tag[data-kind="error"] {
   background: color-mix(in srgb, #c53030 22%, transparent);
   border-color: #c53030;
 }
-.ck-tag[data-kind="operation"] {
+.ak-tag[data-kind="operation"] {
   background: color-mix(in srgb, #2b6cb0 22%, transparent);
   border-color: #2b6cb0;
 }
-.ck-tag[data-kind="profile"] {
+.ak-tag[data-kind="profile"] {
   background: color-mix(in srgb, #2f855a 22%, transparent);
   border-color: #2f855a;
 }
-.ck-tag[data-kind="schema"] {
+.ak-tag[data-kind="schema"] {
   background: color-mix(in srgb, #6b46c1 22%, transparent);
   border-color: #6b46c1;
 }
 
-.ck-card {
+.ak-card {
   border: 1px solid var(--sl-color-gray-5);
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
@@ -151,60 +151,60 @@
   background: var(--sl-color-bg-nav);
 }
 
-.ck-card header {
+.ak-card header {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
   align-items: baseline;
-  font-family: var(--ck-mono);
+  font-family: var(--ak-mono);
   margin-bottom: 0.4rem;
 }
 
-.ck-card .ck-card-title {
+.ak-card .ak-card-title {
   font-weight: 600;
 }
 
-.ck-card dl {
+.ak-card dl {
   display: grid;
   grid-template-columns: max-content 1fr;
   gap: 0.25rem 0.75rem;
   margin: 0;
 }
 
-.ck-card dt {
+.ak-card dt {
   color: var(--sl-color-gray-3);
   font-size: 0.85em;
 }
 
-.ck-card dd {
+.ak-card dd {
   margin: 0;
-  font-family: var(--ck-mono);
+  font-family: var(--ak-mono);
   font-size: 0.9em;
   word-break: break-word;
 }
 
-table.ck-table {
+table.ak-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.92em;
 }
 
-table.ck-table th,
-table.ck-table td {
+table.ak-table th,
+table.ak-table td {
   border-bottom: 1px solid var(--sl-color-gray-5);
   padding: 0.4rem 0.6rem;
   vertical-align: top;
   text-align: left;
 }
 
-table.ck-table th {
+table.ak-table th {
   position: sticky;
   top: 0;
   background: var(--sl-color-bg);
 }
 
-table.ck-table code {
-  font-family: var(--ck-mono);
+table.ak-table code {
+  font-family: var(--ak-mono);
   font-size: 0.95em;
 }
 
@@ -253,7 +253,7 @@ table.ck-table code {
   height: auto;
 }
 
-.ck-schema-viewer {
+.ak-schema-viewer {
   border: 1px solid var(--sl-color-gray-5);
   border-radius: 0.5rem;
   padding: 0.5rem 0.75rem;
@@ -261,23 +261,23 @@ table.ck-table code {
   margin: 0.75rem 0;
 }
 
-.ck-schema-viewer details {
+.ak-schema-viewer details {
   margin-left: 1rem;
   border-left: 1px dashed var(--sl-color-gray-5);
   padding-left: 0.5rem;
 }
 
-.ck-schema-viewer summary {
+.ak-schema-viewer summary {
   cursor: pointer;
-  font-family: var(--ck-mono);
+  font-family: var(--ak-mono);
 }
 
-.ck-schema-viewer .ck-required {
+.ak-schema-viewer .ak-required {
   color: #c53030;
   font-weight: 700;
 }
 
-.ck-fixture {
+.ak-fixture {
   background: var(--sl-color-bg-nav);
   border: 1px solid var(--sl-color-gray-5);
   border-radius: 0.5rem;
@@ -285,12 +285,12 @@ table.ck-table code {
   margin: 0.75rem 0;
 }
 
-.ck-fixture summary {
+.ak-fixture summary {
   cursor: pointer;
-  font-family: var(--ck-mono);
+  font-family: var(--ak-mono);
   font-weight: 600;
 }
 
-.ck-fixture pre {
+.ak-fixture pre {
   margin-top: 0.5rem;
 }

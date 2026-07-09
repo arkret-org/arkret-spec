@@ -45,7 +45,7 @@
         "agent_deactivated",
         "accountability_grant_missing"
       ],
-      "description": "Account Authority session grant issuance. Shared by human user_session and agent runtime branches (AKP-0008 §4.6): when `proof.proof_kind=\"oidc_code_exchange\"`, `proof_invalid` covers issuer/discovery/state/nonce/redirect_uri/code_verifier/principal/device/audience binding failures; when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures of the agent_key_proof, `verification_method_principal_mismatch` when the verification_method DID does not match `principal_id`, `agent_paused` / `agent_deactivated` for lifecycle-gated rejections of the target agent principal, and `accountability_grant_missing` when the controller's accountability grant over the agent has been revoked or lapsed its freshness window so the agent is no longer eligible to receive a session grant (zh/identity/account-lifecycle.md §9.1)."
+      "description": "Account Authority session grant issuance. Shared by human user_session and agent runtime branches: when `proof.proof_kind=\"oidc_code_exchange\"`, `proof_invalid` covers issuer/discovery/state/nonce/redirect_uri/code_verifier/principal/device/audience binding failures; when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures of the agent_key_proof, `verification_method_principal_mismatch` when the verification_method DID does not match `principal_id`, `agent_paused` / `agent_deactivated` for lifecycle-gated rejections of the target agent principal, and `accountability_grant_missing` when the controller's accountability grant over the agent has been revoked or lapsed its freshness window so the agent is no longer eligible to receive a session grant (zh/identity/account-lifecycle.md §9.1)."
     },
     {
       "operation_id": "ak.gate.account.command.revoke_session",
@@ -97,7 +97,7 @@
         "proof_invalid",
         "agent_deactivated"
       ],
-      "description": "Native personal agent runtime key pairing (AKP-0008 §4.5). 412 responses use these codes; pairing into an already-deactivated agent principal is terminal."
+      "description": "Native personal agent runtime key pairing. 412 responses use these codes; pairing into an already-deactivated agent principal is terminal."
     },
     {
       "operation_id": "ak.self.agent.command.provision",
@@ -106,7 +106,7 @@
         "failed_precondition",
         "accountability_grant_missing"
       ],
-      "description": "Provision a native personal agent principal (AKP-0008). The op is the aggregate `ak.self.agent.command.provision` capability action (capability-action-registry.json) and fans out `ak.profile.create` + `ak.identity.accountability_grant` + `ak.agent.key.authorize` + `ak.capability.grant`. `accountability_grant_missing` is returned when the orchestrator cannot write or validate the fan-out `ak.identity.accountability_grant` (controller lacks `ak.self.agent.command.provision` authority or its required constraints, the candidate grant fails accountability schema checks, or a concurrent state cell makes the grant unauditable). Other ineligibility reasons surface as `failed_precondition`."
+      "description": "Provision a native personal agent principal. The op is the aggregate `ak.self.agent.command.provision` capability action (capability-action-registry.json) and fans out `ak.profile.create` + `ak.identity.accountability_grant` + `ak.agent.key.authorize` + `ak.capability.grant`. `accountability_grant_missing` is returned when the orchestrator cannot write or validate the fan-out `ak.identity.accountability_grant` (controller lacks `ak.self.agent.command.provision` authority or its required constraints, the candidate grant fails accountability schema checks, or a concurrent state cell makes the grant unauditable). Other ineligibility reasons surface as `failed_precondition`."
     },
     {
       "operation_id": "ak.self.agent.query.list",
@@ -193,7 +193,7 @@
         "agent_deactivated",
         "failed_precondition"
       ],
-      "description": "Idempotent ensure (AKP-0009 §4.2.1): server-derived dedupe keys are `(realm_id, controller_principal_id)` for the sidecar Circle and `(controller_principal_id, normalized_context_ref)` for the private Strand / reuse identity — `agent_principal_id` is NOT part of either key, so all eligible agents of the same controller share one sidecar per Realm. Clients MUST NOT supply Idempotency-Key. sidecar_create_denied is a deliberately generic precondition that hides whether a sidecar with the same derived short_name already exists (existence privacy)."
+      "description": "Idempotent ensure: server-derived dedupe keys are `(realm_id, controller_principal_id)` for the sidecar Circle and `(controller_principal_id, normalized_context_ref)` for the private Strand / reuse identity — `agent_principal_id` is NOT part of either key, so all eligible agents of the same controller share one sidecar per Realm. Clients MUST NOT supply Idempotency-Key. sidecar_create_denied is a deliberately generic precondition that hides whether a sidecar with the same derived short_name already exists (existence privacy)."
     },
     {
       "operation_id": "ak.self.agent.participation.resource.replace",
@@ -747,7 +747,7 @@
         "media_plaintext_service_not_authorised",
         "media_service_foci_required"
       ],
-      "description": "Media service token exchange (AKP-0010, zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ak.call.join capability, focus_id against current foci[], session_focus persistence, MLS governance binding policy_root freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ak.realm.media_service does not declare explicit foci[]."
+      "description": "Media service token exchange (zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ak.call.join capability, focus_id against current foci[], session_focus persistence, MLS governance binding policy_root freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ak.realm.media_service does not declare explicit foci[]."
     },
     {
       "operation_id": "ak.root.identity.registry.query.describe",

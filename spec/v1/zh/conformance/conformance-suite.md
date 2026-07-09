@@ -28,6 +28,8 @@ sidebar:
 
 完整 profile 集合、角色分类和 requirement blocks 的机器真相源是 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)。本节只列首轮 release gate / 文档阅读优先子集；测试 runner MUST 枚举 JSON 中的 `implementation_profiles`、`deployment_profiles` 与 `hardening_profiles`(capability-negotiation profile)，并单独枚举 `vector_groups`(conformance 向量分组，`ak.vector_group.*` 命名空间，非可协商能力)，不得把下列清单解释为穷尽集合。
 
+**向量适用性闭包（normative）**：[`vector-registry.json`](../../artifacts/registry/vector-registry.json) 中每个 active vector MUST 恰好声明一个适用性 selector：`scope="universal"`、`applies_to_profiles[]`、`applies_to_vector_groups[]` 或 `applies_to_fixtures[]`。旧的单值 `profile` 字段禁止出现。某 profile 的认证集合等于：（a）`scope="universal"`；（b）直接列出该 profile 的向量；（c）该 claim 明确包含的 vector group 向量；（d）该 profile 及其全部 `inherits[]` 的 `required_fixtures[]` 所映射向量的并集。runner MUST 先计算继承后的 fixture closure，再按集合去重；未命中该闭包的 vector 不得被实现或认证器自行猜测为必测或免测。fixture selector 只是适用性索引，`source_refs[]` 仍必须包含同一 fixture，二者由 lint 逐字校验。
+
 Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-profiles.md) §6 与 `conformance-profiles.json` 的 `role` 为准）:**实现 profile**（声明实现承担的角色与能力集合）与 **hardening profile**（在某实现 profile 之上叠加的安全加固 overlay,`role=admin`,不单独作为可声明的实现角色）。
 
 **实现 profile**:
@@ -187,7 +189,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 | `v1-interop-preview` | 多实现试验互通。 | 至少两个独立实现通过同一 reference validator 的 `core_event_store` 向量，并能重放官方 sync / state / capability fixture。 |
 | `v1-conformance-certified` | 某实现宣称完全通过指定 profile。 | reference validator、reference reducer、reference authz evaluator 和 conformance runner 已发布；canonical JSON、Event Envelope negative vectors、CBA/Lattice、capability、privacy/security、sync 和 snapshot vectors 均由 CI 或公开认证报告执行；英文或其他翻译不得作为 stale source of truth 发布。 |
 
-当前仓库发布的是 `v1.0.0` 规范稳定基线。实现若未同时通过 reference validator / reducer / authz evaluator / runner 及核心 vectors，只能声明为“支持某些 v1 profile”，不得声明为 `v1-conformance-certified`。
+当前仓库仍是 candidate，尚未发布 `v1.0.0` 稳定基线。只有 §6.1 的 stable gate 全部通过并完成显式发布后，仓库才可切换为 `v1.0.0`；在此之前实现只能声明“试验性支持某些 v1 profile”，不得声明稳定规范兼容或 `v1-conformance-certified`。
 
 若某 profile 的 payload schema 仍使用宽泛结构（例如 `state_content` 或 `generic_standard_content`），该 profile 的 stable 声明必须额外依赖 reference reducer / validator 中的语义校验，不能只依赖 JSON Schema 通过。
 

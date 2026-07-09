@@ -215,13 +215,15 @@ DPoP: <DPoP proof JWT>
 Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失败即 `unauthenticated`，fail closed）：
 
 - **DPoP 签名**:DPoP proof JWT MUST 用该 grant 的 grant-binding(DPoP)key 签名，其公钥 JWK thumbprint（[RFC 7638](https://www.rfc-editor.org/rfc/rfc7638)）MUST 等于 grant 的 `cnf.jkt`(Principal Server 通过 session-grant 内省取得 `cnf_jkt`,见 §3.1 与下文)。
-- **DPoP 绑定声明**:`htm` MUST 等于请求方法、`htu` MUST 等于请求 URL、`ath` MUST 等于所出示 grant 的 hash;这些把该 proof 钉死到「本方法 + 本 URL + 本 grant」,防跨 endpoint / 跨 grant 复用。`htu` 比对遵循 [RFC 9449](https://www.rfc-editor.org/rfc/rfc9449) §4.3,先剥离 query 与 fragment 再比 scheme + authority + path。**authority 规范化**:`htu` 的 authority 是客户端看到的 gate origin;当 Principal Server 部署在重写 `Host` 的网关之后(上游 `Host` 可能被改写为内部源),实现 MUST 以网关记录的客户端可见 host(`X-Forwarded-Host` 首跳)为准比对 authority,仅在无任何可信 authority 头时回退到 path-only 绑定(同源直连部署)。
+- **DPoP 绑定声明**:`htm` MUST 等于请求方法、`htu` MUST 等于请求 URL、`ath` MUST 等于所出示 grant 的 hash;这些把该 proof 钉死到「本方法 + 本 URL + 本 grant」,防跨 endpoint / 跨 grant 复用。`htu` 比对遵循 [RFC 9449](https://www.rfc-editor.org/rfc/rfc9449) §4.3,先剥离 query 与 fragment，再逐字比较经规范化的 scheme + authority + path。**外部 URI 重建**:`htu` 的 authority 是客户端看到的 gate origin。直连部署 MUST 使用请求自身的 scheme 与 authority；反向代理部署 MUST 使用静态配置的 public origin，或仅接受由受信最后一跳代理写入、并在入口清洗所有客户端同名 header 后得到的 `Forwarded` / `X-Forwarded-Host` / `X-Forwarded-Proto`。实现不得信任任意首跳转发值，也不得退化为 path-only 比对；无法可靠重建完整外部 URI 时 MUST 以 `unauthenticated` 拒绝 DPoP 出示。
 - **grant active**:grant MUST 经 session-grant 内省判定 active(`ak.gate.account.command.introspect_session_grant`)。Principal Server **MAY** 缓存内省结果，但 TTL **SHOULD ≤ 120s**；对敏感操作 MUST 旁路缓存、强制重新内省(吊销生效上界即缓存 TTL，见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。内省的 `proof` 字段是部署内部 S2S 的可选附加确认；默认 self-path 客户端只发送本节的 `Authorization` + `DPoP`，Principal Server MUST 依据内省返回的 `cnf_jkt` 在本地校验该请求的 DPoP，不得要求客户端再发送额外的 session-grant introspection proof header。
 - **audience**:grant 的 audience MUST 等于本 Principal Server 的 service DID。
 - **scope**:grant scope MUST 含 Principal Server 的 session.bind scope 与 device scope。
 - **principal / device 绑定**:grant 绑定的 principal / device MUST 与请求一致。
 - **未过期**:grant 与 DPoP proof 均 MUST 未过期。
 - **DPoP 重放防护**:Principal Server MUST 按 DPoP `jti` + `iat` 新鲜度窗口拒绝重放(窗口量级与 §3.2 / `federation.md` §3.2 PoP 时效窗口同口径)。
+
+实现 MUST 通过 `ak.vector.session.dpop_target_uri_binding.v1`，证明跨 authority、跨 scheme、伪造转发头与 authority 不可重建场景均 fail closed，且不存在 path-only fallback。
 
 **DPoP 与 RFC 9421 PoP 是两层正交保障**。DPoP（RFC 9449）提供 per-request 认证 + sender-constraint,但**不绑定请求 body**——默认 profile 下 body 完整性依赖 TLS(与 Matrix 同口径)。§3.2 的 RFC 9421 PoP 则额外提供 body 完整性(覆盖 `content-digest`)。两层用**同一把** Ed25519 grant-binding(DPoP)key:该 key 的 RFC 7638 thumbprint 即 grant 的 `cnf.jkt`(DPoP 绑定),其公钥即 grant 委托的 `session_public_key`(9421 绑定),客户端无需为 DPoP 与 9421 各管理一把密钥。此 grant-binding key 是会话认证凭据，与签事件 / KeyPackage / MLS 的设备身份 key(`device_public_key`)是两个正交角色(见 [`../crypto-media/device-lifecycle.md` §3.3/§5.2](../crypto-media/device-lifecycle.md))。
 
@@ -305,9 +307,9 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 
 ## 6. 幂等
 
-所有写接口 MUST 支持幂等重试。
+每个写接口 MUST 在 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 中声明幂等机制与重试安全性。只有 `retry_safe=true` 的 operation 承诺可对逐字节相同的完整请求执行自动幂等重试；`retry_safe=false` 的 operation 不作该承诺，客户端必须走 operation-specific outcome 查询、恢复流程或人工确认。
 
-写入请求 SHOULD 携带以下之一：
+`retry_safe=true` 且 `idempotency_mechanism != "none"` 的写入请求 MUST 携带或内生以下至少一种稳定 request identity；`retry_safe=false` 的 operation 仅在其 registry 行声明了对应机制时才使用该机制。少数使用 command binding 但语义为纯计算 / 只读判定的 operation MAY 声明 `none/true`，前提是任何重复执行都不持久化状态、不消费一次性材料且不产生外部副作用：
 
 - `event_id`
 - `request_id`
@@ -315,15 +317,16 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 
 **机读真相源（normative）**：每个 operation 实际采用哪种幂等机制（§2.5 所列 `Idempotency-Key` / 对象 id / request id / canonical hash / protocol sequence），以 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 中该 operation 的 `idempotency_mechanism` 字段为机读真相源；配套 `retry_safe` 布尔字段声明"逐字节相同的全量重试是否不产生重复副作用"（`true` = 重试返回原 outcome、等价幂等 no-op 或确定性冲突；`false` = 盲目重试可能重复副作用或消费一次性材料）。客户端 MUST NOT 对 `retry_safe=false` 的 operation 在未带外确认首次请求效果的情况下自动重试。
 
-规则：
+对 `idempotency_mechanism != "none"` 的 operation，规则如下：
 
 - 相同幂等键 + 相同 canonical request body MUST 返回与首次请求语义等价的结果。
 - 相同幂等键 + 不同 canonical request body MUST 返回 `duplicate_conflict`。
 - 服务端 SHOULD 记录幂等键与 canonical request hash；联邦与服务间写入 MUST 将该 hash 纳入签名 transcript 或 transaction replay cache。
+- `idempotency_mechanism="none"` 与 `retry_safe=false` 同时出现时，该 operation MUST 在 binding 文档中给出超时后的 outcome 查询、一次性材料重新签发或人工确认路径；客户端 MUST NOT 把传输失败解释为“服务端未执行”并盲目重放。`none/true` 只表示重复执行纯计算等价，不产生需要去重的 write outcome。
 
 ### 6.1 幂等记录保留窗口（normative）
 
-- 接收方 MUST 自幂等记录创建时刻起保留该记录**至少 24 小时**。
+- 对 `idempotency_mechanism != "none"` 的 operation，接收方 MUST 自幂等记录创建时刻起保留该记录**至少 24 小时**。
 - 该保留窗口 MUST ≥ 对应请求面的签名时效 replay window（`expires - created` 上限，见 §3.2 与 [`federation.md` §3.2](./federation.md)）加最大允许时钟偏移。
 - 保留窗口内，同一幂等键 + 相同 canonical request body 的重放 MUST 返回与首次请求语义等价的原 outcome；同一幂等键 + 不同 canonical request body 仍按本节上文规则返回 `duplicate_conflict`。
 - 保留窗口过后的重放行为由实现自定（MAY 按新请求处理或拒绝），但实现 MUST NOT 对窗口外的重放声称幂等保证。
@@ -333,7 +336,8 @@ Applet transaction push 的幂等记录（[`applet-integration.md` §7.3](../ext
 
 ### 6.2 客户端重试义务（normative）
 
-- **全量重试同 key**：语义上同一请求的全量重试（即重交完全相同的请求以补偿超时 / 网络失败 / 5xx）MUST 复用同一幂等键（`Idempotency-Key` / `event_id` / `request_id`，按该 operation 的 `idempotency_mechanism`），且 canonical form 的 request body MUST 逐字节相同。
+- **安全全量重试同 identity**：仅当 registry 声明 `retry_safe=true` 时，语义上同一请求的全量重试才允许自动执行。若 `idempotency_mechanism != "none"`，重试 MUST 复用同一稳定 request identity（`Idempotency-Key` / `event_id` / `request_id` / object id / canonical hash / protocol sequence），且 canonical form 的 request body MUST 逐字节相同；若为纯计算 `none/true`，请求体仍 MUST 逐字节相同，但不虚构 idempotency key。
+- **不安全 operation 禁止自动重放**：`retry_safe=false` 时，客户端 MUST NOT 自动全量重试；必须先执行该 operation 的 outcome 查询或恢复流程。若没有机器可调用的恢复路径，调用方只能把结果标为 uncertain 并请求人工确认，不能生成新的 key 盲目再发。
 - **改内容必换 key**：请求内容修改后重交 MUST 换新幂等键，MUST NOT 以旧幂等键携带新 canonical body 重交（服务端按上文规则返回 `duplicate_conflict`）。
 - **partial retry 是新 batch，不是全量重试**：联邦批量提交发生 partial accept 后，按 `accepted[] ∪ duplicate[]` 求差重组的下一次提交是**新请求**，MUST 使用新的 `Idempotency-Key`（或省略），见 [`federation.md` §4.1](./federation.md) partial-retry 条文。本条与其不冲突：body 逐字节相同的全量重试复用同 key，body 已变化（求差重组）的重交必须换 key；接收方对同 `(origin, destination, Idempotency-Key)` 且 canonical hash 相同的请求 MAY 幂等接受的条文（[`federation.md` §8.5](./federation.md)）保持不变。
 
@@ -494,7 +498,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 **path 不含版本段。** 所有 HTTP path 都是 `/_arkret/<信任段>/...` 形态的绝对路径，URL 只编码信任拓扑，版本是元数据，绝不放进 path（不存在 `/v1/`、`/api/v1`、`/arkret/v1`）。契约版本的唯一真相源是 `contract-catalog.json` 与 `protocol_version`（固定 `"1.0"`）；wire 级版本由 schema id（`ak.schema.*.v1`）和 event kind 版本后缀承载。
 
-版本与能力发现走 **`*.describe` 协商**：调用方 MUST 用 `describe.supported_operations` / `supported_profiles`（而非 path 里写死的版本）判断对端支持什么。破坏性变更通过新增 event kind / schema id + `renames.json` 的 `hard_reject` + `forbidden-wire-fields` + profile gating + [`CHANGELOG.md`](../../CHANGELOG.md) 发布门槛承载，从不发生"整面切 v2"。如确需在传输层标注协议版本，用请求/响应 header（`Arkret-Protocol-Version: 1.0`）或 media-type 参数做 content negotiation，**绝不放 path**。
+版本与能力发现走 **`*.describe` 协商**：调用方 MUST 用 `describe.supported_operations` / `supported_profiles`（而非 path 里写死的版本）判断对端支持什么。当前尚未发布，破坏性修订直接更新 current-v1 canonical event kind、schema、profile、fixture 与 `forbidden-wire-fields`，不保留 rename alias、迁移表或双读路径。如确需在传输层标注协议版本，用请求/响应 header（`Arkret-Protocol-Version: 1.0`）或 media-type 参数做 content negotiation，**绝不放 path**。
 
 每个服务 SHOULD 暴露 describe endpoint，返回：
 

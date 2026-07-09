@@ -7,6 +7,7 @@
     "ak.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1",
     "ak.vector.disappearing.read_trigger_anonymous_aggregate.v1",
     "ak.vector.disappearing.read_trigger_idempotent_replay.v1",
+    "ak.vector.disappearing.read_trigger_multi_aggregator_convergence.v1",
     "ak.vector.disappearing.on_last_read_offline_window.v1",
     "ak.vector.preview.token_scoped_stripped_state.v1",
     "ak.vector.history_sharing.e2ee_prejoin_key_share_policy.v1"
@@ -81,7 +82,8 @@
     {
       "vector_id": "ak.vector.disappearing.read_trigger_anonymous_aggregate.v1",
       "assertions": [
-        "first_read_anchor_set_once",
+        "first_read_anchor_uses_min_join",
+        "arrival_order_does_not_change_anchor",
         "projection_contains_only_aggregate_expiry_metadata",
         "reader_identity_and_counts_not_leaked"
       ],
@@ -121,7 +123,8 @@
         "read_receipt_payload"
       ],
       "expected": {
-        "anchor_set_once": true,
+        "anchor_join": "minimum_valid_position_hlc",
+        "anchor_never_moves_later": true,
         "projection_after_expiry": "expiry_stub",
         "forbidden_fields_present": false
       }
@@ -134,6 +137,7 @@
         "cross_message_replay_fails_closed"
       ],
       "message_id": "ak:message:0196419b-0000-7000-8000-000000006201",
+      "send_seal_hlc": "01970e589d21-0001-a13f9c2e",
       "accepted_anchor_hlc": "01970e589d21-0001-a13f9c2e",
       "contributions": [
         {
@@ -153,7 +157,7 @@
           "opaque_token": "read-token-bob-m1"
         },
         {
-          "label": "old_replay",
+          "label": "invalid_before_send_replay",
           "message_id": "ak:message:0196419b-0000-7000-8000-000000006201",
           "principal_id": "did:webvh:z6mkfixture:bob.example",
           "device_id": "ak:device:0196419b-0000-7000-8000-000000006202",
@@ -173,8 +177,60 @@
         "principal_contribution_count": 1,
         "anchor_hlc": "01970e589d21-0001-a13f9c2e",
         "duplicate_result": "already_observed",
+        "invalid_before_send_decision": "reject",
         "cross_message_replay_decision": "reject",
         "cross_message_replay_reason": "replay_scope_mismatch"
+      }
+    },
+    {
+      "vector_id": "ak.vector.disappearing.read_trigger_multi_aggregator_convergence.v1",
+      "assertions": [
+        "opposite_arrival_orders_converge",
+        "per_token_state_uses_minimum_valid_position_hlc",
+        "aggregate_anchor_uses_minimum_candidate",
+        "late_earlier_candidate_only_moves_expiry_earlier",
+        "shredded_key_never_recovers"
+      ],
+      "message_id": "ak:message:0196419b-0000-7000-8000-000000006251",
+      "send_seal_hlc": "01970e589d20-0001-a13f9c2e",
+      "contributions": [
+        {
+          "label": "bob_later_position",
+          "opaque_token": "read-token-bob-multi",
+          "position_hlc": "01970e589d24-0001-a13f9c2e"
+        },
+        {
+          "label": "carol_first_seen_by_b",
+          "opaque_token": "read-token-carol-multi",
+          "position_hlc": "01970e589d23-0001-a13f9c2e"
+        },
+        {
+          "label": "bob_earlier_position_late_delivery",
+          "opaque_token": "read-token-bob-multi",
+          "position_hlc": "01970e589d22-0001-a13f9c2e"
+        }
+      ],
+      "aggregator_arrival_orders": {
+        "aggregator_a": [
+          "bob_later_position",
+          "carol_first_seen_by_b",
+          "bob_earlier_position_late_delivery"
+        ],
+        "aggregator_b": [
+          "bob_earlier_position_late_delivery",
+          "carol_first_seen_by_b",
+          "bob_later_position"
+        ]
+      },
+      "expected": {
+        "per_token_minimums": {
+          "read-token-bob-multi": "01970e589d22-0001-a13f9c2e",
+          "read-token-carol-multi": "01970e589d23-0001-a13f9c2e"
+        },
+        "on_first_read_anchor_hlc": "01970e589d22-0001-a13f9c2e",
+        "aggregator_a_anchor_equals_aggregator_b": true,
+        "anchor_never_moves_later": true,
+        "shredded_key_restored": false
       }
     },
     {

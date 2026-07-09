@@ -86,7 +86,7 @@ confidential_discussion_of
 
 | `relation_kind` | 默认基数 | 作用域与去重规则 |
 | --- | --- | --- |
-| `contains`：`Space(kind=board) -> Space(kind=list)` | **派生投影**(derived projection only) | 一个 Board 可包含多个 List；同一 List 在同一 Realm 内 MUST 至多有一个 active Board parent。**Truth source 是 cas_register cell `ak:cell:ak.component.space.parent.v1:<list_space_id>`，写入路径是 `ak.space.parent` Move，不是 `ak.relation.create`**。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(详见 [realm-and-space.md §3.5](./realm-and-space.md#35-ckspaceparent-cas_register-basis))。`contains` Relation 仍出现在标准 kinds 列表中是因为 projection / query / UI 仍按 Relation 视角读它，但**写入路径单一化**到 `ak.space.parent`。 |
+| `contains`：`Space(kind=board) -> Space(kind=list)` | **派生投影**(derived projection only) | 一个 Board 可包含多个 List；同一 List 在同一 Realm 内 MUST 至多有一个 active Board parent。**Truth source 是 cas_register cell `ak:cell:ak.component.space.parent.v1:<list_space_id>`，写入路径是 `ak.space.parent` Move，不是 `ak.relation.create`**。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(详见 [realm-and-space.md §3.5](./realm-and-space.md#35-akspaceparent-cas_register-basis))。`contains` Relation 仍出现在标准 kinds 列表中是因为 projection / query / UI 仍按 Relation 视角读它，但**写入路径单一化**到 `ak.space.parent`。 |
 | `contains`：`Space(kind=list) -> Strand` | **派生投影**(derived projection only) with board-exclusive target | 一个 List 可包含多个 Strand；同一 Strand 在同一个 Board 内 MUST 至多处于一个 active List。去重/互斥 key 为 `(board_space_id, strand_id)`，与 [realm-and-space.md §3.6](./realm-and-space.md#36-strand-位置) 的位置唯一性一致。**Truth source 是 cas_register cell `ak:cell:ak.component.strand.position.v1:<board_space_id>:<strand_id>`，写入路径是 `ak.strand.move` / `ak.strand.reorder` Move**，不是 `ak.relation.create`。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(与 `watches` derived Relation 同模式)。 |
 | `contains`：其他对象组合(非 Space 容器场景，例如 `Strand -> Strand` subtask / checklist item) | `many_to_many` unless profiled | 默认只按完整 tuple 去重；若对象被当作容器使用，Realm schema/profile MUST 声明更严格基数、排序字段和 cascade 规则。这种非派生形态的 `contains` 由 `ak.relation.create` 直接写入，不得与 Board/List 的派生 `contains` 混用。 |
 | `belongs_to` | `many_to_one` | 作为 `contains` 的显式 parent 关系时，同一 `from_ref` 在同一作用域内至多有一个 active `to_ref`。优先使用 canonical `contains` 表达容器包含。 |
@@ -225,7 +225,7 @@ Relation conflict 的默认处理为：候选先通过格式、签名、授权�
 ## 7. 常见关系（按对象）
 
 - **Strand**：见 [strand-and-message.md §7](./strand-and-message.md)。
-- **Space**（Board / List）：见 [realm-and-space.md §3.5](./realm-and-space.md#35-ckspaceparent-cas_register-basis) 与 [§3.6](./realm-and-space.md#36-strand-位置)。
+- **Space**（Board / List）：见 [realm-and-space.md §3.5](./realm-and-space.md#35-akspaceparent-cas_register-basis) 与 [§3.6](./realm-and-space.md#36-strand-位置)。
 - **Message**：见 [strand-and-message.md §9.7](./strand-and-message.md)。
 - **Morph**：业务自定义关系，由 Realm schema / Morph profile 声明。
 

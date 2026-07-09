@@ -28,7 +28,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Contrix is the legacy brand name (lowercase `contrix`, wire prefixes `cx.` / `cx:`). Use Arkret / arkret / `ak.` / `ak:` in all current prose, identifiers, file names, and UI copy. See renames.json migration group brand_namespace_cx_to_ak."
+      "notes": "Use Arkret / arkret / `ak.` / `ak:` in all current prose, identifiers, file names, and UI copy; the listed term and prefixes are forbidden current-wire inputs."
     },
     {
       "id": "Room",

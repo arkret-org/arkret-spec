@@ -23,7 +23,7 @@
     },
     "kind": {
       "type": "string",
-      "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
+      "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
       "description": "Standard ak.* effect kinds MUST appear in artifacts/registry/event-kind-registry.json. State convergence is defined by CBA: DataEvents use effects + seal_ref + auth_context; Control Moves use effects + seal_basis and Seal finality; per-cell Lattice join remains deterministic."
     },
     "realm_id": {
@@ -3335,7 +3335,7 @@
       "properties": {
         "schema": {
           "type": "string",
-          "pattern": "^(ck\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*(?:\\.[a-z0-9_.-]+)*\\.v[0-9]+)$"
+          "pattern": "^(ak\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*(?:\\.[a-z0-9_.-]+)*\\.v[0-9]+)$"
         },
         "protocol": {
           "type": "string",
@@ -3565,7 +3565,7 @@
         },
         "predicate_id": {
           "type": "string",
-          "pattern": "^ck\\.predicate\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+          "pattern": "^ak\\.predicate\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
         }
       },
       "additionalProperties": false

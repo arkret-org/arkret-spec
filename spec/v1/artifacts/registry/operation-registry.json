@@ -1405,7 +1405,7 @@
       "http": "POST /_arkret/self/rtc/token",
       "grpc": "SelfCallMedia/TokenExchange",
       "mq": "self.call.media.exchange.issue_token",
-      "notes": "Media service token exchange operation (AKP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ak.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / arkret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
+      "notes": "Media service token exchange operation. Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ak.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / arkret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "none",
       "retry_safe": false,
@@ -1813,7 +1813,7 @@
       "http": "POST /_arkret/self/policy/check",
       "grpc": "SelfPolicy/Check",
       "mq": "self.policy.query.check",
-      "notes": "Canonical HTTP binding is POST /_arkret/self/policy/cheak. Paths carry no version segment; protocol version is negotiated via *.describe / supported_operations (see sync/api-conventions.md).",
+      "notes": "Canonical HTTP binding is POST /_arkret/self/policy/check. Paths carry no version segment; protocol version is negotiated via *.describe / supported_operations (see sync/api-conventions.md).",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome"
@@ -1894,7 +1894,7 @@
       "http": "DELETE /_arkret/self/realms/{realm_id}/policy-server",
       "grpc": "SelfRealmPolicyServer/Delete",
       "mq": "self.realm_policy_server.resource.delete",
-      "notes": "Tombstones the per-Realm ak.realm.policy_server cell so callers fall back to the governed_by chain or local-only capability cheak. Empty success response.",
+      "notes": "Tombstones the per-Realm ak.realm.policy_server cell so callers fall back to the governed_by chain or local-only capability check. Empty success response.",
       "success_shape_kind": "empty_response",
       "idempotency_mechanism": "object_id",
       "retry_safe": true

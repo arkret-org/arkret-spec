@@ -73,7 +73,7 @@ Policy 至少声明允许的 `enabled_profile_refs`、service DID、可接收数
 3. **conformance 向量**：交付 per-profile 的 access-hiding 行为向量。
 4. 若采用 enclave 路线，其 attestation SHOULD 复用 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) 的 attested_hardware 基础设施，不另起一套。
 
-在上述 activation requirements 满足前，`access_hiding` 是 reserved 占位:它锁定未来方向与 fail-closed 纪律，但 v1 不引入任何 access-hiding wire。具体后端选型（PIR vs ORAM、单 vs 多服务器）为 v2 路线图裁决点。
+`access_hiding` 不属于 current-v1 wire。实现不得发布该 profile、在 describe 中声明支持，或自行选择 PIR / ORAM 后端并把私有形态放入 Arkret namespace；只有当前 canonical registry/schema 明确定义的搜索模式可以互操作。
 
 ## 5. Result Semantics
 

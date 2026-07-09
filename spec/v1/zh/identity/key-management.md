@@ -430,7 +430,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
   "expires_at": null,
   "authorized_by": "ak:device:01964136-8000-7000-8000-000000000000",
   "cross_signing_binding": {
-    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_self_signing_v1",
+    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_self_signing_v1",
     "alg": "EdDSA",
     "ssk_generation": 1,
     "signature": "base64url..."
@@ -591,7 +591,7 @@ Arkret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 
 ```
 
 实现 SHOULD 使用现代 KDF，例如 Argon2id。新创建的 `recipient_method="passphrase_kdf"` envelope MUST 满足以下机器下限（base v1 无条件要求，`ak.schema.key_backup.v1` 同步编码）：Argon2id `memory_kib >= 65536`、`iterations >= 3`、`parallelism >= 1`；salt MUST 随 envelope 独立生成并进入 KDF 输入。
-如果平台限制只能使用 PBKDF2，新创建的 PBKDF2 envelope MUST 满足 `iterations >= 600000` 且 `digest_algorithm ∈ {sha256, sha384, sha512}`，并 MUST 在 backup metadata 中声明 `degraded_profile_reason`、迭代次数、salt、KDF 参数和 profile id。`params.digest_algorithm` 是 digest 算法选择器；`params.hash` 不是合法字段，current parser MUST reject（登记于 `artifacts/migration/renames.json`）。新创建的 `passphrase_kdf` envelope（§7.5.1）不得默认使用 PBKDF2：Argon2id 可用时 MUST 优先。声明 `ak.profile.key_backup.memory_hard.v1` 是在上述 base 下限之上的更强承诺：该 profile 下 `passphrase_kdf` envelope 的 KDF MUST 是 Argon2id；PBKDF2 只允许出现在显式 degraded profile（见下）中，不满足 memory-hard 要求。
+如果平台限制只能使用 PBKDF2，新创建的 PBKDF2 envelope MUST 满足 `iterations >= 600000` 且 `digest_algorithm ∈ {sha256, sha384, sha512}`，并 MUST 在 backup metadata 中声明 `degraded_profile_reason`、迭代次数、salt、KDF 参数和 profile id。`params.digest_algorithm` 是唯一合法的 digest 算法选择器；任何其它字段名均因 schema closed-world 校验而被 current parser 拒绝。新创建的 `passphrase_kdf` envelope（§7.5.1）不得默认使用 PBKDF2：Argon2id 可用时 MUST 优先。声明 `ak.profile.key_backup.memory_hard.v1` 是在上述 base 下限之上的更强承诺：该 profile 下 `passphrase_kdf` envelope 的 KDF MUST 是 Argon2id；PBKDF2 只允许出现在显式 degraded profile（见下）中，不满足 memory-hard 要求。
 
 FIPS-only 部署若不能批准 Argon2id，MUST 使用显式降级 profile（例如 `fips_pbkdf2` key backup profile），并声明其安全级别低于默认 memory-hard backup profile。该 profile 至少要求 FIPS 批准的 KDF、强口令策略、在线恢复限速、失败审计和备份 metadata 中的 `degraded_profile_reason`；它不得作为公共网络默认 key backup profile。
 
@@ -700,7 +700,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 
 这样 envelope 的真实性锚定在 actor 当前设备信任根，而不是“碰巧持有某个 device key”，与 series 链（§7.6，防回滚 / 扣留）正交：前者保证 authenticity，后者保证 freshness / 单调性。
 
-> **Schema 影响**：`ak.schema.key_backup.v1.auth_data.ssk_generation` 绑定 [`ak.cross_signing.publish`](../crypto-media/device-lifecycle.md) 的 `generation`（见 [`../crypto-media/device-lifecycle.md` §5](../crypto-media/device-lifecycle.md)）；`ak.schema.key_backup.v1.auth_data.device_authorize_event_id` 绑定 [`ak.device.authorize`](../crypto-media/device-lifecycle.md) 的 accepted event id（见 [`../crypto-media/device-lifecycle.md` §5.4](../crypto-media/device-lifecycle.md)）。二者 MUST 精确二选一；携带 `auth_data.x_ssk_generation` 或 `auth_data.x_device_authorize_event_id` 的 envelope MUST reject（`schema_violation`，登记于 `artifacts/migration/renames.json`）。
+> **Schema 影响**：`ak.schema.key_backup.v1.auth_data.ssk_generation` 绑定 [`ak.cross_signing.publish`](../crypto-media/device-lifecycle.md) 的 `generation`（见 [`../crypto-media/device-lifecycle.md` §5](../crypto-media/device-lifecycle.md)）；`ak.schema.key_backup.v1.auth_data.device_authorize_event_id` 绑定 [`ak.device.authorize`](../crypto-media/device-lifecycle.md) 的 accepted event id（见 [`../crypto-media/device-lifecycle.md` §5.4](../crypto-media/device-lifecycle.md)）。二者 MUST 精确二选一；任何未声明的 `auth_data` 字段 MUST 因 closed-world schema 校验以 `schema_violation` 拒绝。
 
 ### 7.5 Recipient Method Profiles
 
@@ -905,7 +905,7 @@ Recovery policy 的标准发布面是 `POST /_arkret/root/identity/recovery-poli
   "expires_at": null,
   "issued_at": "2026-04-26T00:00:00Z",
   "auth_data": {
-    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_principal_signing_v1",
+    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
     "signature_algorithm": "Ed25519",
     "signature": "base64url...",
     "signed_fields": [

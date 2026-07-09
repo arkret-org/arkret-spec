@@ -66,13 +66,13 @@ authors:
 - [ ] 待定的具体决策点 1
 - [ ] 待定的具体决策点 2
 
-## 7. Migration plan
+## 7. Canonical merge plan
 
-> **accepted 状态才需要填**。draft / review 阶段可以保持 placeholder。
+列出接受本提案时必须在同一变更中更新的 normative prose、schema、registry、OpenAPI、profile、fixture 和 vector。合并完成后删除 proposal 文件，不保留兼容副本。
 
 1. ...
 2. ...
-3. 迁入 normative spec 的 PR 列表与顺序。
+3. 门禁与回归向量。
 
 ## 8. References
 

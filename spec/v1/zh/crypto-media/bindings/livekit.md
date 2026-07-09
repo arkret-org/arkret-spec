@@ -30,7 +30,7 @@ sidebar:
 | `nbf` / `iat` | token 签发时刻 | — |
 | `exp` | `expires_at` Unix epoch | MUST ≤ 600s after `iat`（media-service-binding §3 TTL 上限） |
 | `name` | optional display label | MUST NOT 携带可关联 actor 身份信息（与 [`../media-service-binding.md` §3](../media-service-binding.md) pairwise pseudonym 对齐）；推荐留空或使用 `participant_identity` |
-| `video.room` | `backend_room_id` | MUST 是 issuer 从 `(realm_id, call_id, focus_id)` 派生的稳定后端 room handle；MUST 与请求的 `call_id` 唯一绑定，但 MUST NOT 等于 raw `call_id` 或暴露 raw Realm/call id（建议 `ck_call_<sha256(realm_id || 0x00 || call_id || 0x00 || focus_id)>` 的短截断形式） |
+| `video.room` | `backend_room_id` | MUST 是 issuer 从 `(realm_id, call_id, focus_id)` 派生的稳定后端 room handle；MUST 与请求的 `call_id` 唯一绑定，但 MUST NOT 等于 raw `call_id` 或暴露 raw Realm/call id（建议 `ak_call_<sha256(realm_id || 0x00 || call_id || 0x00 || focus_id)>` 的短截断形式） |
 | `video.roomJoin` | `true` | join 权限 |
 | `video.canPublish` | `desired_media.audio ∨ video ∨ screen` | issuer 按 capability 派生 |
 | `video.canPublishSources[]` | `["microphone","camera","screen_share"]` 子集 | 与 `ak.call.screen_share` 等子 capability 对齐 |
@@ -78,7 +78,7 @@ LiveKit 通过 [SFrame](https://www.rfc-editor.org/rfc/rfc9605.html) 实现 fram
 Arkret-LiveKit 部署 MAY 使用 LiveKit Egress 触发录制，但 Egress endpoint MUST 是 Arkret-side proxy；录制 artifact 流向严格按 [`../call-state.md` §5](../call-state.md) 与 [`../media-service-binding.md` §8.1](../media-service-binding.md)：
 
 - Egress destination MUST 是 Arkret media service 的 authenticated upload endpoint；不得 LiveKit Cloud 直传 S3 / GCS。
-- 录制加密 key 来自 MLS exporter，label 固定为 ASCII 字符串 `"ak.rtc-recording-key/v1"`（与 SFrame `"ck-rtc-frame-key/v1"` 区分；`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，`KDF.Nh=32`）。实现若复用 SFrame label、空 Context，或接受 LiveKit/KMS 自行生成的 recording key，MUST fail closed；LiveKit 不持久化明文。
+- 录制加密 key 来自 MLS exporter，label 固定为 ASCII 字符串 `"ak.rtc-recording-key/v1"`（与 SFrame `"ak.rtc-frame-key/v1"` 区分；`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，`KDF.Nh=32`）。实现若复用 SFrame label、空 Context，或接受 LiveKit/KMS 自行生成的 recording key，MUST fail closed；LiveKit 不持久化明文。
 - 录制完成后通过 `ak.call.state` 发布 `recording_state="ready"` + content digest。
 - 客户端检测到 LiveKit Egress 配置指向非 Arkret endpoint → fail closed `recording_artifact_pipeline_bypassed`。
 - 转写(`capture_kind="transcript"`)走同一 Egress / Arkret blob 路径，但加密 key label 固定为 `"ak.rtc-transcript-key/v1"`(`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, transcript_start_event_id})`,`KDF.Nh=32`),与录制 / SFrame label 区分；复用其它 label、空 Context 或 backend 自生成 transcript key MUST fail closed `transcription_artifact_pipeline_bypassed`。转写完成后通过 `ak.call.state` 发布 `transcript_state="ready"`。见 [`../call-state.md` §5.1](../call-state.md)。

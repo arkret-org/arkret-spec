@@ -140,7 +140,7 @@
     },
     "profile_id": {
       "type": "string",
-      "pattern": "^ck\\.profile\\.[a-z0-9_.-]+\\.v1$"
+      "pattern": "^ak\\.profile\\.[a-z0-9_.-]+\\.v1$"
     },
     "hash": {
       "type": "string",

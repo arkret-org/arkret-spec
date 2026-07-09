@@ -209,4 +209,3 @@ HTTPS 落地链接中，`strand` / `m` / 尤其 `tok` **MUST** 放在 URL **frag
 - Digest 纪律（JCS + 字段白名单）：[`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md)。
 - 逻辑 ID grammar：[`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)。
 - Operation 注册 / HTTP binding：[`artifacts/registry/contract-catalog.json`](../../artifacts/registry/contract-catalog.json)、[`sync/service-http-binding.md` §2.3](../sync/service-http-binding.md)。
-- 设计 rationale（历史）：[`proposals/0011-shareable-object-addressing.md`](../../proposals/0011-shareable-object-addressing.md)。

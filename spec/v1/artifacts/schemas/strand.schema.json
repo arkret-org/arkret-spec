@@ -194,7 +194,7 @@
   "$defs": {
     "content_kind": {
       "type": "string",
-      "pattern": "^(ck\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
+      "pattern": "^(ak\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
     },
     "content_block": {
       "type": "object",

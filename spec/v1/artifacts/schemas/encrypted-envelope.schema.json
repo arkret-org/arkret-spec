@@ -78,7 +78,7 @@
         },
         "event_kind": {
           "type": "string",
-          "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+          "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
         },
         "event_id": {
           "type": "string",

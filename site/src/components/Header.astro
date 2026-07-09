@@ -47,18 +47,18 @@ const shouldRenderSearch =
   /* Starlight wraps the header slot in `<header class="header">` with
    * fixed positioning + a 3-cell grid intended for its default chrome.
    * We're replacing the grid with a single SiteNav row, so neutralize
-   * the grid and let the inner `.ck-shell` re-center to `--ck-max`,
+   * the grid and let the inner `.ak-shell` re-center to `--ak-max`,
    * matching the marketing layout. */
   header.header {
     display: block !important;
-    height: var(--ck-nav-height);
+    height: var(--ak-nav-height);
     padding: 0;
-    background: var(--ck-bg-nav);
-    border-bottom: 1px solid var(--ck-border);
+    background: var(--ak-bg-nav);
+    border-bottom: 1px solid var(--ak-border);
     backdrop-filter: blur(12px);
   }
 
-  .ck-nav--docs {
+  .ak-nav--docs {
     margin: 0;
     padding: 0;
     height: 100%;
@@ -66,7 +66,7 @@ const shouldRenderSearch =
 
   /* On wide screens, ensure the right-side tools (search, theme, lang)
    * don't get squeezed by the nav-links list. */
-  .ck-nav--docs .ck-nav-tools {
+  .ak-nav--docs .ak-nav-tools {
     gap: 0.75rem;
   }
 
@@ -76,23 +76,23 @@ const shouldRenderSearch =
    *
    * Specificity note: Starlight ships its own `site-search button` styles
    * with a base class. To win without `!important`, we double-up the
-   * `.ck-docs-search` class on the wrapper selector and reach the button
+   * `.ak-docs-search` class on the wrapper selector and reach the button
    * through `site-search`, beating Starlight's component-scoped rules. */
-  .ck-docs-search {
+  .ak-docs-search {
     display: flex;
     align-items: center;
   }
 
-  .ck-docs-search.ck-docs-search site-search button[data-open-modal] {
-    color: var(--ck-fg-muted);
-    background: var(--ck-bg-elevated);
-    border: 1px solid var(--ck-border);
+  .ak-docs-search.ak-docs-search site-search button[data-open-modal] {
+    color: var(--ak-fg-muted);
+    background: var(--ak-bg-elevated);
+    border: 1px solid var(--ak-border);
     border-radius: 10px;
     padding: 0.42rem 0.7rem 0.42rem 0.85rem;
     min-width: 14rem;
     width: 18rem;
     max-width: 24rem;
-    box-shadow: 0 1px 0 0 var(--ck-border) inset;
+    box-shadow: 0 1px 0 0 var(--ak-border) inset;
     transition:
       width 0.22s ease,
       border-color 0.18s ease,
@@ -101,56 +101,56 @@ const shouldRenderSearch =
       box-shadow 0.18s ease;
   }
 
-  .ck-docs-search.ck-docs-search site-search button[data-open-modal]:hover {
-    color: var(--ck-fg);
-    border-color: var(--ck-border-strong);
-    background: var(--ck-bg-overlay-strong, var(--ck-bg-elevated));
+  .ak-docs-search.ak-docs-search site-search button[data-open-modal]:hover {
+    color: var(--ak-fg);
+    border-color: var(--ak-border-strong);
+    background: var(--ak-bg-overlay-strong, var(--ak-bg-elevated));
   }
 
-  .ck-docs-search.ck-docs-search site-search button[data-open-modal]:focus-visible {
+  .ak-docs-search.ak-docs-search site-search button[data-open-modal]:focus-visible {
     width: 22rem;
-    color: var(--ck-fg);
-    border-color: color-mix(in srgb, var(--ck-accent) 55%, transparent);
+    color: var(--ak-fg);
+    border-color: color-mix(in srgb, var(--ak-accent) 55%, transparent);
     box-shadow:
-      0 0 0 3px color-mix(in srgb, var(--ck-accent) 22%, transparent),
-      0 1px 0 0 var(--ck-border) inset;
+      0 0 0 3px color-mix(in srgb, var(--ak-accent) 22%, transparent),
+      0 1px 0 0 var(--ak-border) inset;
     outline: none;
   }
 
-  .ck-docs-search.ck-docs-search site-search button[data-open-modal] kbd {
-    background: var(--ck-bg);
-    border: 1px solid var(--ck-border);
-    color: var(--ck-fg-muted);
+  .ak-docs-search.ak-docs-search site-search button[data-open-modal] kbd {
+    background: var(--ak-bg);
+    border: 1px solid var(--ak-border);
+    color: var(--ak-fg-muted);
     border-radius: 5px;
     padding: 0.05rem 0.32rem;
-    font-family: var(--ck-mono);
+    font-family: var(--ak-mono);
     font-size: 0.72rem;
     letter-spacing: 0.04em;
   }
 
   @media (max-width: 60rem) {
-    .ck-docs-search.ck-docs-search site-search button[data-open-modal] {
+    .ak-docs-search.ak-docs-search site-search button[data-open-modal] {
       min-width: 0;
       width: auto;
     }
   }
 
-  .ck-docs-tools {
+  .ak-docs-tools {
     display: none;
     align-items: center;
     gap: 0.75rem;
   }
 
   @media (min-width: 50rem) {
-    .ck-docs-tools {
+    .ak-docs-tools {
       display: flex;
     }
   }
 
-  .ck-docs-tools::before {
+  .ak-docs-tools::before {
     content: "";
     width: 1px;
     height: 1.4rem;
-    background: var(--ck-border);
+    background: var(--ak-border);
   }
 </style>

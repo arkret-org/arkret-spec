@@ -126,7 +126,7 @@
       "vector_id": "ak.vector.projection.pagination_shape.v1",
       "assertions": [
         "page_response_always_has_has_more",
-        "has_more_true_requires_ck_cursor",
+        "has_more_true_requires_ak_cursor",
         "cursor_binds_caller_selector_and_purpose",
         "malformed_downstream_page_is_invalid_response"
       ],

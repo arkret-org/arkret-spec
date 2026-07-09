@@ -9,6 +9,7 @@ derived.
 from __future__ import annotations
 
 import base64
+import copy
 import hashlib
 import json
 import sys
@@ -72,6 +73,10 @@ def sign_mldsa65_vector(v: dict, binding_canon: bytes) -> None:
 
 
 def regen_vector(v: dict) -> dict:
+    event_without_proofs = v.get("event_without_proofs")
+    if not isinstance(event_without_proofs, dict):
+        raise SystemExit(f"missing event_without_proofs: {v.get('name')}")
+    v["canonical_event_payload"] = canonical_json_str(event_without_proofs)
     canon = v["canonical_event_payload"].encode("utf-8")
     payload_digest = "sha256:" + hashlib.sha256(canon).hexdigest()
     v["payload_digest"] = payload_digest
@@ -148,13 +153,134 @@ def regen_vector(v: dict) -> dict:
                 p["payload_digest"] = payload_digest
                 p["jws"] = detached_jws
 
+    if isinstance(v.get("proof"), dict):
+        event_with_proof = copy.deepcopy(event_without_proofs)
+        event_with_proof["proofs"] = [copy.deepcopy(v["proof"])]
+        v["event_with_proof"] = event_with_proof
+
     return v
+
+
+def split_jws(jws: str) -> tuple[str, str, str]:
+    parts = jws.split(".")
+    if len(parts) != 3:
+        raise SystemExit("invalid compact JWS in generated vector")
+    return parts[0], parts[1], parts[2]
+
+
+def find_case(cases: list[dict], name: str) -> dict:
+    for case in cases:
+        if case.get("name") == name:
+            return case
+    case = {"name": name}
+    cases.append(case)
+    return case
+
+
+def regenerate_negative_cases(data: dict) -> None:
+    vectors = {v.get("name"): v for v in data.get("vectors", []) if isinstance(v, dict)}
+    ed = vectors["ak.vector.encoding.crypto.ed25519_detached_jws.v1"]
+    es = vectors["ak.vector.encoding.crypto.es256_detached_jws.v1"]
+    ml = vectors["ak.vector.encoding.crypto.mldsa65_raw_detached_signature.v1"]
+    cases = data.setdefault("negative_cases", [])
+
+    ed_header, _, ed_signature = split_jws(ed["proof"]["jws"])
+    ed_signature_bytes = bytearray(b64u_decode(ed_signature))
+    ed_signature_bytes[0] ^= 0x01
+    case = find_case(cases, "reject_flipped_signature_bit")
+    case["proof_jws"] = f"{ed_header}..{b64u(bytes(ed_signature_bytes))}"
+    case["jws_signing_input"] = ed["jws_signing_input"]
+    case["public_key_jwk"] = copy.deepcopy(ed["did_document_fragment"]["publicKeyJwk"])
+
+    case = find_case(cases, "reject_alg_none")
+    none_header = canonical_json_str(case["protected_header"]).encode("utf-8")
+    case["proof_jws"] = f"{b64u(none_header)}..{ed_signature}"
+
+    case = find_case(cases, "reject_alg_key_type_mismatch")
+    mismatch_header = canonical_json_str(case["protected_header"])
+    mismatch_input = f"{b64u(mismatch_header.encode('utf-8'))}.{ed['detached_payload_b64u']}"
+    mismatch_signature = sign_jws_input(es["test_private_key_jwk"], mismatch_input.encode("ascii"))
+    case["proof_jws"] = f"{b64u(mismatch_header.encode('utf-8'))}..{b64u(mismatch_signature)}"
+    case["resolved_public_key_jwk"] = copy.deepcopy(ed["did_document_fragment"]["publicKeyJwk"])
+
+    case = find_case(cases, "reject_truncated_public_key")
+    case["proof_jws"] = ed["proof"]["jws"]
+    truncated_ed = copy.deepcopy(ed["did_document_fragment"]["publicKeyJwk"])
+    truncated_ed["x"] = b64u(b64u_decode(truncated_ed["x"])[:-1])
+    case["public_key_jwk"] = truncated_ed
+
+    case = find_case(cases, "reject_non_empty_payload_segment")
+    case["proof_jws"] = f"{ed_header}.{ed['detached_payload_b64u']}.{ed_signature}"
+
+    es_header, _, es_signature = split_jws(es["proof"]["jws"])
+    case = find_case(cases, "reject_es256_truncated_signature")
+    case.update(
+        {
+            "base_vector": es["name"],
+            "description": "The ES256 JOSE signature is 63 bytes instead of the required raw 64-byte r||s form.",
+            "proof_jws": f"{es_header}..{b64u(b64u_decode(es_signature)[:-1])}",
+            "public_key_jwk": copy.deepcopy(es["did_document_fragment"]["publicKeyJwk"]),
+            "expected": {
+                "decision": "reject",
+                "error_code": "invalid_signature",
+                "reason": "ES256 detached JWS signatures MUST be exactly 64 raw bytes (r||s)",
+            },
+        }
+    )
+
+    case = find_case(cases, "reject_es256_truncated_public_key")
+    truncated_es = copy.deepcopy(es["did_document_fragment"]["publicKeyJwk"])
+    truncated_es["x"] = b64u(b64u_decode(truncated_es["x"])[:-1])
+    case.update(
+        {
+            "base_vector": es["name"],
+            "description": "The P-256 x coordinate is truncated to 31 bytes while the detached JWS is otherwise valid.",
+            "proof_jws": es["proof"]["jws"],
+            "public_key_jwk": truncated_es,
+            "expected": {
+                "decision": "reject",
+                "error_code": "invalid_signature",
+                "reason": "ES256 verification keys MUST contain valid 32-byte P-256 x and y coordinates",
+            },
+        }
+    )
+
+    case = find_case(cases, "reject_mldsa65_truncated_signature")
+    case.update(
+        {
+            "base_vector": ml["name"],
+            "description": "The ML-DSA-65 raw signature is truncated by one byte.",
+            "signature_b64u": b64u(b64u_decode(ml["signature_b64u"])[:-1]),
+            "public_key_b64u": ml["public_key_b64u"],
+            "expected": {
+                "decision": "reject",
+                "error_code": "invalid_signature",
+                "reason": "ML-DSA-65 signatures MUST have the exact FIPS 204 byte length",
+            },
+        }
+    )
+
+    case = find_case(cases, "reject_mldsa65_truncated_public_key")
+    case.update(
+        {
+            "base_vector": ml["name"],
+            "description": "The ML-DSA-65 public key is truncated by one byte while the signature is otherwise valid.",
+            "signature_b64u": ml["signature_b64u"],
+            "public_key_b64u": b64u(b64u_decode(ml["public_key_b64u"])[:-1]),
+            "expected": {
+                "decision": "reject",
+                "error_code": "invalid_signature",
+                "reason": "ML-DSA-65 public keys MUST have the exact FIPS 204 byte length",
+            },
+        }
+    )
 
 
 def main() -> int:
     data = json.loads(FIXTURE.read_text(encoding="utf-8"))
     for v in data.get("vectors", []):
         regen_vector(v)
+    regenerate_negative_cases(data)
     with FIXTURE.open("w", encoding="utf-8", newline="\n") as handle:
         handle.write(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
     print(f"updated {FIXTURE.relative_to(ROOT).as_posix()}")

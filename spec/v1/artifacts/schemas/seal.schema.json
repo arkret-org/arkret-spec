@@ -88,7 +88,7 @@
     },
     "previous_digest_algorithm": {
       "type": "string",
-      "pattern": "^ck\\.profile\\.hash\\.[a-z0-9_]+\\.v[0-9]+$",
+      "pattern": "^ak\\.profile\\.hash\\.[a-z0-9_]+\\.v[0-9]+$",
       "description": "Profile id of the previous hash algorithm. Required iff previous_state_root is present; absent on non-transition Seals."
     },
     "notary_signature": {

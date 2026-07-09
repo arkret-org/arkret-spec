@@ -26,7 +26,7 @@
     {
       "schema_id": "ak.schema.circle.v1",
       "file": "schemas/circle.schema.json",
-      "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by AKP-0007; see zh/models/circle.md."
+      "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. see zh/models/circle.md."
     },
     {
       "schema_id": "ak.schema.strand.v1",

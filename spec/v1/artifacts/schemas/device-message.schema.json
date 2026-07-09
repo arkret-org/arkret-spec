@@ -16,7 +16,7 @@
   "properties": {
     "kind": {
       "type": "string",
-      "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+      "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
     },
     "sender_principal_id": {
       "$ref": "#/$defs/did",
@@ -562,13 +562,13 @@
           "minItems": 1,
           "items": {
             "type": "string",
-            "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+            "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
           },
           "uniqueItems": true
         },
         "method": {
           "type": "string",
-          "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+          "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
         },
         "timestamp": {
           "$ref": "#/$defs/timestamp"

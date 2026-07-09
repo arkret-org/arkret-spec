@@ -402,7 +402,7 @@
     },
     "content_kind": {
       "type": "string",
-      "pattern": "^(ck\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
+      "pattern": "^(ak\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
     },
     "agent_slug": {
       "type": "string",
@@ -4552,7 +4552,7 @@
         },
         "runtime_attestation": {
           "type": "object",
-          "description": "Optional runtime / workload attestation captured at pairing approval time (AKP-0008 §4.5). v1 enum includes self_asserted as baseline; future profiles MAY register TEE / SLSA / SPIFFE attestation kinds. Implementations encountering an unknown kind MUST fail closed.",
+          "description": "Optional runtime / workload attestation captured at pairing approval time. v1 enum includes self_asserted as baseline; future profiles MAY register TEE / SLSA / SPIFFE attestation kinds. Implementations encountering an unknown kind MUST fail closed.",
           "required": [
             "kind"
           ],
@@ -5726,7 +5726,7 @@
         },
         "device_signature": {
           "$ref": "#/$defs/signature_material",
-          "description": "Device possession proof for ak.device.authorize. When present, it MUST be an Ed25519/EdDSA detached signature by the private key corresponding to device_public_key over the ck-device-authorize-possession-v1 canonical input defined in zh/crypto-media/device-lifecycle.md §5.2. It MUST NOT be signed by the grant-binding (DPoP) key / session_public_key / cnf.jkt key. Recovery-strand device authorization requires this field."
+          "description": "Device possession proof for ak.device.authorize. When present, it MUST be an Ed25519/EdDSA detached signature by the private key corresponding to device_public_key over the ak.device-authorize-possession-v1 canonical input defined in zh/crypto-media/device-lifecycle.md §5.2. It MUST NOT be signed by the grant-binding (DPoP) key / session_public_key / cnf.jkt key. Recovery-strand device authorization requires this field."
         },
         "proof": {
           "$ref": "#/$defs/signature_material"
@@ -6630,7 +6630,7 @@
         },
         "binding_profile": {
           "type": "string",
-          "pattern": "^ck\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$",
+          "pattern": "^ak\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$",
           "description": "Explicit profile that defines how this governance binding is interpreted. Full E2EE uses ak.profile.mls_governance_binding.full.v1; the only v1 downgrade profile is ak.profile.e2ee_relaxed.v1. Receivers MUST fail closed when this field is missing, unsupported, inconsistent with the Realm profile declaration, or used to imply a downgrade without the matching policy/profile declaration."
         },
         "reducer_profile": {
@@ -7308,7 +7308,7 @@
         },
         "issuer": {
           "$ref": "./common-ids.schema.json#/$defs/did",
-          "description": "Actor or service DID issuing the sealed moderation decision. Reducers use it as part of the or_set add tag and appeal separation-of-duties cheak."
+          "description": "Actor or service DID issuing the sealed moderation decision. Reducers use it as part of the or_set add tag and appeal separation-of-duties check."
         },
         "request_canonical_digest": {
           "$ref": "#/$defs/hash",
@@ -8437,7 +8437,7 @@
         },
         "transcript_result": {
           "type": "object",
-          "description": "Typed transcription outcome, present when transcript_state ∈ {stopped, ready, failed}. The transcript artifact is encrypted with the MLS-Exporter label ck-rtc-transcript-key/v1 (see exporter-label-registry.json) and strands through the same Arkret blob pipeline as recordings. transcript_start_event_id binds this segment to its ak.call.transcribe.start. All fields optional at schema level; prose defines state-specific requirements. See crypto-media/call-state.md §5.1.",
+          "description": "Typed transcription outcome, present when transcript_state ∈ {stopped, ready, failed}. The transcript artifact is encrypted with the MLS-Exporter label ak.rtc-transcript-key/v1 (see exporter-label-registry.json) and strands through the same Arkret blob pipeline as recordings. transcript_start_event_id binds this segment to its ak.call.transcribe.start. All fields optional at schema level; prose defines state-specific requirements. See crypto-media/call-state.md §5.1.",
           "properties": {
             "content_digest": {
               "$ref": "#/$defs/hash"

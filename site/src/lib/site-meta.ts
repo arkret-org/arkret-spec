@@ -25,11 +25,11 @@ export function specFileUrl(relPath: string): string {
 }
 
 /**
- * The current v1 release shown by the site.
+ * The current v1 publication state shown by the site.
  *
- * Bump this together with the git tag and the CHANGELOG entry. The published
+ * Keep the pre-release suffix until the stable promotion gate passes. The published
  * `site/public/v1/contract-catalog-<version>.json` snapshot is generated from
  * this tag at build time (scripts/gen-public-catalog.mjs) and is not committed.
  */
-export const specReleaseTag = "v1.0.0";
+export const specReleaseTag = "v1.0.0-candidate";
 export const specReleaseLabel = "v1";

@@ -44,15 +44,13 @@ v1 内部演进采用以下加性方式：
 - 需要改变对象模型或状态机语义时，必须新增可协商的 schema/profile/kind，并明确与既有 current-v1 语义的边界；
 - 新增 critical extension、required feature 或高风险 profile 时，未声明实现按 [conformance/conformance-profiles.md](../conformance/conformance-profiles.md) 与 `conformance-profiles.json` 的 unknown/unsupported 规则 fail closed。
 
-Profile 命名采用 `ak.profile.<name>.v<major>`。`<major>` 是该 profile 自身的演进轴，不是 HTTP path 版本，也不是另一个协议版本。
+Profile 命名采用 `ak.profile.<name>.v1`。current-v1 树不得预注册其它 major；需要调整的 profile 在稳定发布前直接原子更新其 canonical v1 定义。
 
 ### 3.1 破坏性变更的承载（normative）
 
-v1 wire 内 **MUST NOT** in-place 改变任一已接受 event kind / schema / 字段的 canonical bytes 语义。需要破坏性语义（与既有 current-v1 语义不兼容）时：
+当前规范尚未稳定发布，因此破坏性修订 MUST 在一个原子变更中直接更新 canonical event kind、schema、field、profile、OpenAPI、fixture 与 vector，并删除被替代形态。current-v1 树不得保留 rename alias、migration manifest、旧 parser 分支、新旧双写或未来 major profile。修订完成后，只有更新后的 canonical 形态存在；任何缺席于当前 registry/schema 的输入都按 `unknown_kind`、`unknown_field`、`schema_violation` 或对应稳定错误 fail closed。
 
-- 破坏性语义 **MUST** 通过**新增** event kind / schema id（或新 major profile）承载，并明确与旧 current-v1 标识符的语义边界；旧标识符在其退役前保持原语义不变。
-- 旧标识符的退役（rename / removal）**MUST** 登记到 [`../../artifacts/migration/`](../../artifacts/migration/)。这些登记表是 **CI / 发布期的 drift-detection 工具**，不是 current-wire normative 契约：current parser 一律按 `hard_reject` 拒绝旧标识符、不做 payload-shape 消歧。其中 `removed-event-kinds.json` / `removed-operation-ids.json` / `deprecated-profile-ids.json` 已收敛为纯 hard-reject 黑名单，**不含** `migration_only` / `compat_only` 容忍窗口或离线迁移解析层，退役标识符只允许出现在 CHANGELOG 文档与断言拒绝的 cotest negative fixture 中（v1 尚未发布，不承载旧数据兼容）；`renames.json` 额外承载 rename old→new 的映射登记。
-- v1 **不**通过"整面切 v2"或 URL path 版本段承载破坏性变更；`v1` 后缀是长期锚点（消歧见 [`../index.md` §1](../index.md)）。
+稳定发布后的跨版本兼容策略不属于本 candidate 规范树；在发布前不得用兼容叙述限制正确的 current-v1 模型收敛。
 
 ## 4. Profile / capability 协商
 

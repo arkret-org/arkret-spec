@@ -597,7 +597,7 @@
     },
     {
       "name": "revoke_downstream_recheck",
-      "vector_id": "ak.vector.capability.revoke_downstream_recheak.v1",
+      "vector_id": "ak.vector.capability.revoke_downstream_recheck.v1",
       "grants": [
         {
           "grant_id": "ak:grant:01964110-0000-7000-8000-000000000000",

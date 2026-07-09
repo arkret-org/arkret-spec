@@ -1225,7 +1225,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "ServiceDescribe.verified_profiles entry field cotest_issuer_did renamed to verifier_did (conformance_verifier_neutralization): the signing authority is the neutral Conformance Verifier role (conformance-suite.md §6.2), not a specific downstream tool name. The companion claim_kind enum value rename cotest_verified → conformance_verified is registered in renames.json (cotest_verified#service_describe_claim_kind)."
+      "notes": "ServiceDescribe.verified_profiles uses verifier_did and claim_kind=conformance_verified because the signing authority is the neutral Conformance Verifier role (conformance-suite.md §6.2). Tool-specific issuer fields or claim values are forbidden."
     },
     {
       "id": "name",
@@ -1732,7 +1732,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Native personal agent is represented by actor_kind=agent and AKP-0008 provisioning/accountability state, not by an expanded actor_kind enum."
+      "notes": "Native personal agent is represented by actor_kind=agent and the current provisioning/accountability state machine, not by an expanded actor_kind enum."
     },
     {
       "id": "actor_kind=agent_ghost",

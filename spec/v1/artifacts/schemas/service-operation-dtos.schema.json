@@ -585,7 +585,7 @@
     },
     "AuthzCheckRequestBody": {
       "type": "object",
-      "description": "ak.self.authz.query.check input — local capability projection / preflight / diagnostic query. `resource` is optional because some actions (e.g. `ak.realm.create`, identity-scoped actions) have no Realm-bound target. The result is not a signed Policy Server decision and MUST NOT be used as Event auth_context, reducer accept proof, or cross-service authorization fact; dynamic policy obligations use ak.self.policy.query.cheak.\n",
+      "description": "ak.self.authz.query.check input — local capability projection / preflight / diagnostic query. `resource` is optional because some actions (e.g. `ak.realm.create`, identity-scoped actions) have no Realm-bound target. The result is not a signed Policy Server decision and MUST NOT be used as Event auth_context, reducer accept proof, or cross-service authorization fact; dynamic policy obligations use ak.self.policy.query.check.\n",
       "required": [
         "actor_id",
         "action"
@@ -2232,12 +2232,12 @@
         },
         "agent_key_authorization_ref": {
           "type": "string",
-          "description": "`ak.profile.agent_auth.v1` overlay (AKP-0008 §4.6). Event ref of the accepted\n`ak.agent.key.authorize` that authorized the runtime key. REQUIRED when\n`proof.proof_kind=\"agent_key_proof\"`; MUST be omitted for human session grants.\n",
+          "description": "`ak.profile.agent_auth.v1` overlay. Event ref of the accepted\n`ak.agent.key.authorize` that authorized the runtime key. REQUIRED when\n`proof.proof_kind=\"agent_key_proof\"`; MUST be omitted for human session grants.\n",
           "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "agent_scope_request": {
           "type": "object",
-          "description": "`ak.profile.agent_auth.v1` overlay (AKP-0008 §4.6). Narrowing hints for the\nissued session scope. Service-surface requested_scope values are intersected\nwith the accepted agent_key_scope service ceiling and endpoint/resource policy;\ncontent actions are additionally intersected with effective capability grants,\nmembership, history visibility and E2EE policy. REQUIRED when\n`proof.proof_kind=\"agent_key_proof\"`; MUST be omitted for human session grants.\n`track_names` is a request-side narrowing field only — the materialized session\ngrant MUST express track scope via the canonical `allowed_tracks` constraint,\nnot via a new `track_names` grant.\n",
+          "description": "`ak.profile.agent_auth.v1` overlay. Narrowing hints for the\nissued session scope. Service-surface requested_scope values are intersected\nwith the accepted agent_key_scope service ceiling and endpoint/resource policy;\ncontent actions are additionally intersected with effective capability grants,\nmembership, history visibility and E2EE policy. REQUIRED when\n`proof.proof_kind=\"agent_key_proof\"`; MUST be omitted for human session grants.\n`track_names` is a request-side narrowing field only — the materialized session\ngrant MUST express track scope via the canonical `allowed_tracks` constraint,\nnot via a new `track_names` grant.\n",
           "additionalProperties": false,
           "properties": {
             "realm_ids": {
@@ -2264,7 +2264,7 @@
         },
         "dpop_binding_proof": {
           "$ref": "#/$defs/SessionGrantDpopBindingProof",
-          "description": "`ak.profile.agent_auth.v1` overlay (AKP-0008 §4.6). DPoP proof JWT for the holder key that the issued session grant will bind to. REQUIRED when `proof.proof_kind=\"agent_key_proof\"`; the Account Authority verifies the proof and materializes the resulting JWK thumbprint into the issued grant's `cnf.jkt` / session_public_key binding."
+          "description": "`ak.profile.agent_auth.v1` overlay. DPoP proof JWT for the holder key that the issued session grant will bind to. REQUIRED when `proof.proof_kind=\"agent_key_proof\"`; the Account Authority verifies the proof and materializes the resulting JWK thumbprint into the issued grant's `cnf.jkt` / session_public_key binding."
         },
         "applet_delegation": {
           "$ref": "#/$defs/SessionGrantAppletDelegation",
@@ -2283,7 +2283,7 @@
           "properties": {
             "proof_kind": {
               "type": "string",
-              "description": "`agent_key_proof` selects the `ak.profile.agent_auth.v1` overlay branch (AKP-0008 §4.6).\nImplementations MUST route `agent_key_proof` to an independent validator and MUST NOT\nfall back to password / OIDC / passkey validators for this branch.\n",
+              "description": "`agent_key_proof` selects the `ak.profile.agent_auth.v1` overlay branch.\nImplementations MUST route `agent_key_proof` to an independent validator and MUST NOT\nfall back to password / OIDC / passkey validators for this branch.\n",
               "enum": [
                 "did_bound_signature",
                 "paired_device_proof",
@@ -2345,7 +2345,7 @@
             },
             "verification_method": {
               "type": "string",
-              "description": "`ak.profile.agent_auth.v1` overlay (AKP-0008 §4.6). DID URL of the runtime\nsigning key (`<agent_principal_id>#<key-fragment>`). REQUIRED when\n`proof_kind=\"agent_key_proof\"`; the DID component MUST bit-identically equal\n`principal_id` after stripping the fragment / query — otherwise the endpoint\nreturns `verification_method_principal_mismatch`. MUST be omitted for human\nproof kinds.\n",
+              "description": "`ak.profile.agent_auth.v1` overlay. DID URL of the runtime\nsigning key (`<agent_principal_id>#<key-fragment>`). REQUIRED when\n`proof_kind=\"agent_key_proof\"`; the DID component MUST bit-identically equal\n`principal_id` after stripping the fragment / query — otherwise the endpoint\nreturns `verification_method_principal_mismatch`. MUST be omitted for human\nproof kinds.\n",
               "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
             },
             "signature": {
@@ -2612,7 +2612,7 @@
         },
         "scope_details": {
           "type": "object",
-          "description": "`ak.profile.agent_auth.v1` overlay (AKP-0008 §4.6). Materialized narrow scope\nactually granted to the agent runtime session. Service-surface scope is the\nintersection of requested_scope, accepted agent_key_scope and endpoint/resource\npolicy; content actions are additionally constrained by effective capability\ngrants, membership, history visibility and E2EE policy. Present iff the request\nwas the `proof.proof_kind=\"agent_key_proof\"` branch; absent for human session\ngrants.\n",
+          "description": "`ak.profile.agent_auth.v1` overlay. Materialized narrow scope\nactually granted to the agent runtime session. Service-surface scope is the\nintersection of requested_scope, accepted agent_key_scope and endpoint/resource\npolicy; content actions are additionally constrained by effective capability\ngrants, membership, history visibility and E2EE policy. Present iff the request\nwas the `proof.proof_kind=\"agent_key_proof\"` branch; absent for human session\ngrants.\n",
           "additionalProperties": false,
           "properties": {
             "realm_ids": {
@@ -2637,7 +2637,7 @@
             },
             "participation": {
               "type": "array",
-              "description": "`ak.profile.agent_participation_policy.v1` overlay (AKP-0016, service-surface.md §10.1). Present when the agent session scope covers participation-aware scope. Each entry is isomorphic to agent_participation_entry ({participation_scope, selection, ceiling, effective}). The runtime MUST treat this array as a behavioral contract; the server still enforces capability grants, dispatcher gates and reducer checks as the hard boundary.",
+              "description": "`ak.profile.agent_participation_policy.v1` overlay (service-surface.md §10.1). Present when the agent session scope covers participation-aware scope. Each entry is isomorphic to agent_participation_entry ({participation_scope, selection, ceiling, effective}). The runtime MUST treat this array as a behavioral contract; the server still enforces capability grants, dispatcher gates and reducer checks as the hard boundary.",
               "items": {
                 "$ref": "./agent-operations.schema.json#/$defs/agent_participation_entry"
               }
@@ -2668,7 +2668,7 @@
       "properties": {
         "kind": {
           "type": "string",
-          "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+          "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
         },
         "content": {
           "type": "object"
@@ -2827,7 +2827,7 @@
         },
         "kind": {
           "type": "string",
-          "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+          "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
         },
         "realm_id": {
           "$ref": "#/$defs/RealmId"
@@ -2899,7 +2899,7 @@
         },
         "kind": {
           "type": "string",
-          "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+          "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
         },
         "realm_id": {
           "$ref": "#/$defs/RealmId",

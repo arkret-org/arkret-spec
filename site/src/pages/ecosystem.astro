@@ -154,11 +154,11 @@ const tiers: Tier[] = [
           <div class="ak.eco-grid">
             {tier.projects.map((p) =>
               p.href ? (
-                <a class="ak.eco-card ck-eco-card--link" href={p.href}>
+                <a class="ak.eco-card ak-eco-card--link" href={p.href}>
                   <header class="ak.eco-card-head">
                     <span class="ak.eco-name">{p.name}</span>
                     <span
-                      class={`ck-eco-status ck-eco-status--${p.status}`}
+                      class={`ak-eco-status ak-eco-status--${p.status}`}
                       title={statusLabel[p.status]}
                     >
                       <span class="ak.eco-status-dot" aria-hidden="true" />
@@ -176,7 +176,7 @@ const tiers: Tier[] = [
                   <header class="ak.eco-card-head">
                     <span class="ak.eco-name">{p.name}</span>
                     <span
-                      class={`ck-eco-status ck-eco-status--${p.status}`}
+                      class={`ak-eco-status ak-eco-status--${p.status}`}
                       title={statusLabel[p.status]}
                     >
                       <span class="ak.eco-status-dot" aria-hidden="true" />
@@ -198,11 +198,11 @@ const tiers: Tier[] = [
 
 <style is:global>
   /* The first tier section now sits directly under the site nav. Drop the
-   * `.ck-section` border-top on it (otherwise we get a thin line right under
+   * `.ak-section` border-top on it (otherwise we get a thin line right under
    * the nav's own border) and trim its top padding to a comfortable lead-in.
    * `is:global` because the `main` element lives in MarketingLayout, outside
    * this component's scope. */
-  body.ck-marketing main > section.ck-section:first-of-type {
+  body.ak-marketing main > section.ak-section:first-of-type {
     border-top: none;
     padding-top: 3rem;
   }

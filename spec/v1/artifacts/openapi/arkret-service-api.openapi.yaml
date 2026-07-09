@@ -889,7 +889,7 @@ components:
       properties:
         kind:
           type: string
-          pattern: ^ck\.[a-z0-9_]+(\.[a-z0-9_]+)*$
+          pattern: ^ak\.[a-z0-9_]+(\.[a-z0-9_]+)*$
         content:
           type: object
         expires_at:
@@ -3989,8 +3989,8 @@ paths:
       - bearerAuth: []
       summary: Exchange Arkret capability proof for a backend media token.
       description: |
-        Media service token exchange operation (AKP-0010,
-        zh/crypto-media/media-service-binding.md §3). Issues a short-lived
+        Media service token exchange operation defined by
+        zh/crypto-media/media-service-binding.md §3. Issues a short-lived
         (TTL ≤ 600s, SHOULD ≤ 300s) backend_token + participant_binding for
         joining a focus declared in `ak.realm.media_service.foci[]`.
 
@@ -4423,7 +4423,7 @@ paths:
       operationId: ak.self.circle.command.rotate_scope
       security:
       - bearerAuth: []
-      summary: Rotate the Circle's bound MLS group (AKP-0007).
+      summary: Rotate the Circle's bound MLS group.
       description: |
         MUST NOT acknowledge a rotation without actually changing the
         cryptographic scope. Returns unsupported_feature until the MLS
@@ -7434,7 +7434,7 @@ paths:
           default: localhost
     post:
       operationId: ak.gate.account.command.pair_agent_key
-      description: Native personal agent runtime key pairing (AKP-0008 §4.5). Validates verification_method ↔ agent_principal_id consistency, writes ak.agent.key.authorize on approval.
+      description: Native personal agent runtime key pairing. Validates verification_method ↔ agent_principal_id consistency, writes ak.agent.key.authorize on approval.
       security:
       - bearerAuth: []
       responses:
@@ -7467,7 +7467,7 @@ paths:
                 $ref: '#/components/schemas/AgentList'
     post:
       operationId: ak.self.agent.command.provision
-      description: Provision a native personal agent principal (AKP-0008).
+      description: Provision a native personal agent principal.
       security:
       - bearerAuth: []
       responses:
@@ -7674,7 +7674,7 @@ paths:
     post:
       operationId: ak.self.agent.sidecar_thread.command.ensure
       description: |
-        Idempotently ensure the controller-agent sidecar Circle, Strand, and relation (AKP-0009 §4.2.1).
+        Idempotently ensure the controller-agent sidecar Circle, Strand, and relation.
         The wire-level idempotency keys are **server-derived**: the sidecar Circle is keyed by
         `(realm_id, controller_principal_id)` and the sidecar private Strand / reuse identity by
         `(controller_principal_id, normalized_context_ref)`. Note that `agent_principal_id` is NOT part of

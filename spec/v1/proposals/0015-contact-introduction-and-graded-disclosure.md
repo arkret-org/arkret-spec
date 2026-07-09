@@ -8,17 +8,15 @@ status: draft
 created: 2026-06-08
 authors:
   - chris@acroidea.com
-depends_on:
-  - AKP-0013
 ---
 
 # AKP-0015: Contact introduction evidence & graded invite-outcome disclosure
 
-> **Status: draft.** 本提案在 [AKP-0013](./0013-contact-and-direct-conversation-lifecycle.md) 的 contact / consent / invite 基础上,补齐"联系人拉群"的引入证据与回包披露语义。在被接受并合入 normative spec 之前,实现 MUST NOT 依赖本文新增的 `consent_grant` 高信任引入路径或 `disclosed_outcome` 回包字段。
+> **Status: draft.** 本提案在 [`contact-and-direct-conversation.md`](../zh/identity/contact-and-direct-conversation.md) 的 contact / consent / invite 基础上,补齐"联系人拉群"的引入证据与回包披露语义。在被接受并合入 normative spec 之前,实现 MUST NOT 依赖本文新增的 `consent_grant` 高信任引入路径或 `disclosed_outcome` 回包字段。
 
 ## 1. Summary
 
-AKP-0013 把"加联系人 → 找他聊天"定义在 contact fact / consent gate / direct conversation binding 之上,但把"联系人拉进 Realm/Strand 群聊"这一步留在了较弱的引入证据模型里:已经互授 `consent_scope=invite` 的两个人,邀请仍只能退化为 `same_principal_server` 或 `explicit_address` 这类低信任 evidence,接收方据此普遍按陌生人对待。
+现行 contact model 把"加联系人 → 找他聊天"定义在 contact fact / consent gate / direct conversation binding 之上,但把"联系人拉进 Realm/Strand 群聊"这一步留在了较弱的引入证据模型里:已经互授 `consent_scope=invite` 的两个人,邀请仍只能退化为 `same_principal_server` 或 `explicit_address` 这类低信任 evidence,接收方据此普遍按陌生人对待。
 
 本提案在既有 invite 引入证据与 receive policy 之上做四处收敛,均为既有 schema 上的加字段 / 加枚举值,不新增 event kind、operation、error code 或 schema id:
 
@@ -31,7 +29,7 @@ AKP-0013 把"加联系人 → 找他聊天"定义在 contact fact / consent gate
 
 ### 2.1 G1:联系人拉群退化成弱信任
 
-AKP-0013 让 Alice 与 Bob 在 contact accept 时互写 consent grant(`invite` 或更广 scope)。但当 Alice 要把 Bob 拉进一个 Realm/Strand 群聊时,invite delivery 携带的引入证据只能是 `locator_ref`(需要 Bob 主动给出的 locator URL)、`shared_realm`(需要已同在某 Realm)、`same_principal_server` 或 `explicit_address`。对"已经是联系人、已互授 invite consent"的这对人,既没有现成 locator,也未必同在 Realm,于是 invite 退化为低信任档,接收方按陌生人策略处理,容易被 quarantine 或 drop。这与"他们已经显式互相授权过 invite"的事实矛盾。
+现行 contact accept 会让 Alice 与 Bob 互写 consent grant(`invite` 或更广 scope)。但当 Alice 要把 Bob 拉进一个 Realm/Strand 群聊时,invite delivery 携带的引入证据只能是 `locator_ref`(需要 Bob 主动给出的 locator URL)、`shared_realm`(需要已同在某 Realm)、`same_principal_server` 或 `explicit_address`。对"已经是联系人、已互授 invite consent"的这对人,既没有现成 locator,也未必同在 Realm,于是 invite 退化为低信任档,接收方按陌生人策略处理,容易被 quarantine 或 drop。这与"他们已经显式互相授权过 invite"的事实矛盾。
 
 ### 2.2 G2:没有分级披露
 
@@ -170,11 +168,10 @@ D1–D4 设计不变,以下为本轮在实现对齐过程中新增/补登的配�
 
 - **OQ1 consent grant 过期与 invite gate cache 一致性。** `consent-model.md` §4.1.2 的 invite gate cache 在 grant 撤销后失效;`consent_grant` evidence 在被邀请方侧的校验需要读到最新 grant dot 状态。跨 Principal Server 的撤销传播延迟窗口内,evidence 可能短暂仍被判高信任。窗口内的 fail-closed/fail-open 选择需在 normative 合入时钉死(倾向 fail-closed 降级为低信任)。
 - **OQ2 `disclosed_outcome` 与既有 `status` 的组合约束。** 是否需要 normative 约束某些 `status` 与 `disclosed_outcome` 的组合(例如 `status=duplicate` 时 `disclosed_outcome` 的允许取值),当前 schema 仅做枚举,未做组合约束。
-- **OQ3 `blocked_subjects` 与 pairwise DID。** 拉黑基于 subject DID;pairwise DID 场景下同一人可能呈现多个 DID,blocked_subjects 是否需要映射回稳定 subject,与 AKP-0013 §3.7 pair key canonical encoding 的未决项耦合。
+- **OQ3 `blocked_subjects` 与 pairwise DID。** 拉黑基于 subject DID;pairwise DID 场景下同一人可能呈现多个 DID,blocked_subjects 是否需要映射回稳定 subject,与现行 contact pair key canonical encoding 的未决项耦合。
 - **OQ4 是否登记 conformance vector。** 本提案未引入新 conformance vector;`consent_grant` 高信任降级、`blocked_subjects` 强制 opaque、分档披露这几条是否需要补 vector,留待 normative 合入时决定。
 
 ## 7. References
 
-- 依赖提案:[AKP-0013 Contact & Direct Conversation Lifecycle](./0013-contact-and-direct-conversation-lifecycle.md)。
 - normative:[`zh/sync/invite-addressing.md`](../zh/sync/invite-addressing.md)、[`zh/identity/contact-and-direct-conversation.md`](../zh/identity/contact-and-direct-conversation.md)、[`zh/identity/consent-model.md`](../zh/identity/consent-model.md)。
 - schemas:[`invite-delivery-request.schema.json`](../artifacts/schemas/invite-delivery-request.schema.json)、[`invite-receive-policy.schema.json`](../artifacts/schemas/invite-receive-policy.schema.json)、[`contact-operations.schema.json`](../artifacts/schemas/contact-operations.schema.json)。

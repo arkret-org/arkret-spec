@@ -47,7 +47,7 @@
         },
         "proofs": [
           {
-            "verification_method": "did:webvh:z6mkfixture:alice.example#ck_device_0197",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_0197",
             "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "signature": "signature-base64url-placeholder"
           }
@@ -104,7 +104,7 @@
       "name": "space_target_ref_schema",
       "vector_id": "ak.vector.redaction.space_target_ref_schema.v1",
       "input": "object_lifecycle_payload_with_space_target_ref",
-      "expected": "schema_accepts_ck_space_target_ref_rejects_malformed"
+      "expected": "schema_accepts_ak_space_target_ref_rejects_malformed"
     },
     {
       "name": "policy_scope",
@@ -133,7 +133,7 @@
         },
         "proofs": [
           {
-            "verification_method": "did:webvh:z6mkfixture:alice.example#ck_device_0197",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_0197",
             "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
             "signature": "signature-base64url-placeholder"
           }

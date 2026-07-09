@@ -30,7 +30,7 @@ see_also:
 
 > 上面"数据主语"是本规范的 canonical 对象清单；§6 与其他章节引用对象集合时以此为准。Morph 既是 canonical 对象清单中的开放对象，也充当 schema / profile 扩展承载，两处指的是同一对象，不是两类东西。
 
-> **关于 “v1”（消歧）**：本规范树的 `v1/` 目录、`stability: v1` 以及 `ak.*.v1` 标识符中的 `v1`，指的是**协议代际**（对应 `protocol_version="1.0"` 与 schema id / event kind 后缀承载的 wire 级版本），**不是 URL 路径版本号**。HTTP path 不含任何版本段（不存在 `/v1/`、`/api/v1`），版本是元数据，通过 `*.describe` 协商；规则见 [`sync/api-conventions.md` §11](./sync/api-conventions.md)。破坏性变更通过新增 event kind / schema id 承载，**从不发生“整面切 v2”**，因此 `v1` 后缀是长期锚点，不应被移除。
+> **关于 “v1”（消歧）**：本规范树的 `v1/` 目录、`stability: v1` 以及 `ak.*.v1` 标识符中的 `v1`，指的是**协议代际**（对应 `protocol_version="1.0"` 与 schema id / event kind 后缀承载的 wire 级版本），**不是 URL 路径版本号**。HTTP path 不含任何版本段（不存在 `/v1/`、`/api/v1`），版本是元数据，通过 `*.describe` 协商；规则见 [`sync/api-conventions.md` §11](./sync/api-conventions.md)。current-v1 树只定义这一代协议标识符；未发布阶段的破坏性修订直接更新 canonical v1 真源，不增加 path 版本或未来 major profile。
 
 ### 1.1 5 分钟读法
 

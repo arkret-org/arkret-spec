@@ -252,9 +252,8 @@
         "ak.agent.action_approve",
         "ak.account_data.set"
       ],
-      "description": "Controller-owned encrypted draft created when Principal Server materializes an agent's ak.agent.draft.propose / ak.agent.action_request after capability / policy / accountability / risk cheak. Draft MUST NOT enter shared Realm history; publishing produces a new shared event referencing only an opaque digest. See AKP-0008 §4.8 / private-objects.md §4.1.",
+      "description": "Controller-owned encrypted draft created when Principal Server materializes an agent's ak.agent.draft.propose / ak.agent.action_request after capability / policy / accountability / risk check. Draft MUST NOT enter shared Realm history; publishing produces a new shared event referencing only an opaque digest. See private-objects.md §4.1.",
       "source_refs": [
-        "spec/v1/proposals/0008-personal-agent-provisioning.md",
         "spec/v1/zh/models/private-objects.md"
       ]
     },
@@ -267,9 +266,8 @@
       "write_event_kinds": [
         "ak.account_data.set"
       ],
-      "description": "Controller-private personal-track projection for the agent sidecar UI (cross-device sync of My AI tab order, pin state, addressed agents). MUST NOT modify target Strand tracks map or write any target-side metadata / Relation / watch / unread / search / notification state. See AKP-0009 §4.14 / private-objects.md §4.1.",
+      "description": "Controller-private personal-track projection for the agent sidecar UI (cross-device sync of My AI tab order, pin state, addressed agents). MUST NOT modify target Strand tracks map or write any target-side metadata / Relation / watch / unread / search / notification state. See private-objects.md §4.1.",
       "source_refs": [
-        "spec/v1/proposals/0009-agent-sidecar-thread.md",
         "spec/v1/zh/models/private-objects.md"
       ]
     },

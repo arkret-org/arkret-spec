@@ -97,7 +97,7 @@ digest suite 的 canonical 机器来源是 [`digest-suite-registry.json`](../../
 | Algo | Digest 长度 | v1 角色 | 抗量子 / future-ready 评估 |
 | --- | ---: | --- | --- |
 | `sha256` | 32 bytes（64 hex） | **v1 default**；所有 receiver MUST 支持。Event digest、Merkle leaf、state_root、blob CID、receipt digest 等核心字段默认使用。 | 不抗量子（Grover 把搜索成本减半到 2^128，仍可用）；通过 `ak.profile.hash_transition.v1` 可平滑迁移到 stronger hash。 |
-| `blake3` | 32 bytes（64 hex） | v1 optional；声明 `ak.profile.hash.blake3.v1` 的实现 MUST 支持。性能最佳（可并行）；blob CID 与高吞吐场景推荐。 | sha256-class 抗碰撞；非 NIST 但被 IRTF / RFC 路径认可。 |
+| `blake3` | 32 bytes（64 hex） | v1 optional；声明 `ak.profile.hash.blake3.v1` 的实现 MUST 支持，并通过 `ak.vector.encoding.digest.blake3.v1` 的正向 KAT 与 suite/长度/downgrade 负例。性能最佳（可并行）；blob CID 与高吞吐场景推荐。 | sha256-class 抗碰撞；非 NIST。 |
 
 v1 active 集合刻意保持最小（`sha256` + `blake3`）。需要 algorithm diversity（如 SHA-3 / Keccak 家族对冲 SHA-2 结构性风险）或抗量子 hash 时，按 registry 规则**加法注册**新行（新 hash profile + conformance vector），wire 形态无需重写；不预注册无实际使用场景的算法。
 
@@ -258,7 +258,7 @@ Proof MUST bind（下列为绑定字段集合；canonical binding object 的实�
 
 Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned` 与 reducer-stamped 顶层字段（当前为 `effective_scope`、`actor_kind`），按 §1 canonicalize 并计算 `event_digest`；再与 `proof.event_digest` constant-time 比对；最后按上表字段构造 canonical binding object（含固定 `context`）并验证 detached JWS。实现 MUST NOT 直接签 HTTP envelope、transport metadata 或只签 `payload` 字段。
 
-非 Event 的 detached proof（使用 `payload_digest` 的 receipt、capability grant、snapshot witness、handle claim 等）MUST 同样在 canonical proof binding object 内包含对象族固定 `context` 常量。每个对象族的规范或 schema description MUST 定义自己的 context 值；MUST NOT 复用 `ck-event-proof-v1`，也 MUST NOT 省略 context 后只签 `{payload_digest, verification_method, created_at, ...}`。
+非 Event 的 detached proof（使用 `payload_digest` 的 receipt、capability grant、snapshot witness、handle claim 等）MUST 同样在 canonical proof binding object 内包含对象族固定 `context` 常量。每个对象族的规范或 schema description MUST 定义自己的 context 值；MUST NOT 复用 `ak.event-proof-v1`，也 MUST NOT 省略 context 后只签 `{payload_digest, verification_method, created_at, ...}`。
 
 **Realm 绑定（normative）**：event proof 通过 `event_digest` 间接绑定 `realm_id` —— `event_digest = canonical_digest(envelope_without_proofs_unsigned_reducer_stamps)` 覆盖 producer Event envelope，而 envelope MUST 含 `realm_id` 字段（见 §1.6 event digest 向量）；任何改写 `realm_id` 的尝试都会改变 `event_digest`，使 proof 验证失败。因此 event proof 对跨 Realm 重放提供与 Event Batch Receipt 的 `scope` 等价的保护：receipt 显式绑定 `scope`（见 §5），event proof 经由 `event_digest` 覆盖 `realm_id`。实现 MUST 在验证 proof 前确认 envelope 的 `realm_id` 与处理上下文的目标 Realm 一致，MUST NOT 仅凭 proof 验证通过就跨 Realm 接受同一 Event。
 

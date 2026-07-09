@@ -37,7 +37,7 @@
       "runner": "cotest::conformance::call_state_media_lifecycle::run_transcribe_lifecycle_vector",
       "assertions": [
         "transcription requires ak.call.transcribe capability",
-        "transcript artifacts use ck-rtc-transcript-key/v1",
+        "transcript artifacts use ak.rtc-transcript-key/v1",
         "SFrame or recording exporter labels are rejected for transcripts"
       ]
     },

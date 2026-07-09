@@ -91,14 +91,6 @@
       "description": "Canonical reducer profile definitions and digest input rules for federation reducer_profile_digest comparison."
     },
     {
-      "name": "proposal_merges",
-      "file": "registry/proposal-merge-manifest.json",
-      "kind": "proposal_merge_manifest",
-      "source_role": "canonical",
-      "source_of_truth": true,
-      "description": "Canonical accepted-AKP merge manifest mapping historical proposals to formal v1 normative sections, schemas, registries, and fixtures."
-    },
-    {
       "name": "event_kinds",
       "file": "registry/event-kind-registry.json",
       "kind": "event_kind_registry",

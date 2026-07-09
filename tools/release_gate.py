@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 CHECKS: list[tuple[str, list[str]]] = [
     ("artifact pipeline", [sys.executable, "tools/artifact_pipeline.py", "check"]),
-    ("crossref", ["node", "site/scripts/crossref-cheak.mjs"]),
+    ("crossref", ["node", "site/scripts/crossref-check.mjs"]),
 ]
 
 

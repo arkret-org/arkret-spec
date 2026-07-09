@@ -386,8 +386,8 @@ Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不�
     "info": "ak.realm.member_application.envelope.v1 || 0x00 || ak:realm:0196419b-0000-7000-8000-000000000000 || 0x00 || sha256:...",
     "ciphertext": "base64url:...",
     "recipients": [
-      {"reviewer_did": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice", "device_id": "ak:device:...", "recipient_hpke_kid": "did:webvh:...#ck_device_01HV_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."},
-      {"reviewer_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:carol", "device_id": "ak:device:...", "recipient_hpke_kid": "did:webvh:...#ck_device_01HW_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."}
+      {"reviewer_did": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice", "device_id": "ak:device:...", "recipient_hpke_kid": "did:webvh:...#ak_device_01HV_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."},
+      {"reviewer_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:carol", "device_id": "ak:device:...", "recipient_hpke_kid": "did:webvh:...#ak_device_01HW_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."}
     ]
   }
 }

@@ -406,7 +406,6 @@ MCP 主要是 agent 到 tool/data 的协议，不是 Arkret 的 agent-to-agent �
 
 Arkret 只要求最终状态、artifact、审计证明和授权边界回流，不要求记录远端 agent 内部每次 MCP tool call，除非 Realm policy 要求 full transcript 或 regulated audit。
 
-> **MCP-as-server 方向的授权映射（informative）**：上文把 MCP 定位为 agent→tool 的下游调用。但当 **Arkret agent 反过来作为 MCP server** 向外部 host 暴露能力时，MCP 在 2025–2026 已标准化出授权轴（OAuth 2.1 resource server + protected resource metadata，RFC 9728）与 elicitation / structured-output。此方向下，外部 host 携带的 OAuth credential 与 Arkret 自身的 capability / `agent_key_scope`（[`../identity/key-management.md` §3.6.1](../identity/key-management.md)）需要一层明确映射，否则各实现会各自发明不兼容的 OAuth↔capability 桥接。建议：`mcp_bridge` adapter 在 MCP-server 方向 SHOULD 把 RFC 9728 protected-resource-metadata 归约到 `ak.agent.endpoint` policy 与 `agent_key_scope`，并沿用与 MIMI 同款的 draft-pinning 纪律（外部协议变更 = 新 profile 版本，不在 wire 内静默扩张）。此为 v2 路线图候选，待 MCP auth spec 稳定后细化；v1 仅登记该映射缺口。
 
 ## 11. Adapter Registry
 
