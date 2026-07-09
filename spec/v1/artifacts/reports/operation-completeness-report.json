@@ -18,13 +18,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 177,
+    "total_operations": 179,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 165
+      "typed_schema": 167
     },
     "by_tier_and_class": {
       "core": {
@@ -39,7 +39,7 @@
         "binary_or_redirect": 2,
         "no_request_body": 1,
         "service_describe": 2,
-        "typed_schema": 113
+        "typed_schema": 115
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -568,6 +568,34 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountOidcCallbackRequestBody",
         "response": "#/components/schemas/AccountOidcCallbackOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.open.agent_pairing.command.submit_runtime_key_request",
+      "tier": "extension",
+      "http": "POST /_cokret/open/agent-pairing/runtime-key-requests",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AgentRuntimeApprovalRequestBody",
+        "response": "#/components/schemas/AgentRuntimeApprovalOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.open.agent_pairing.query.resolve",
+      "tier": "extension",
+      "http": "POST /_cokret/open/agent-pairing/resolve",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pairing_resolve_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AgentPairingResolveRequestBody",
+        "response": "#/components/schemas/AgentPairingBootstrap"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

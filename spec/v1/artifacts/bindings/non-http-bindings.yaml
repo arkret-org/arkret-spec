@@ -226,6 +226,9 @@ grpc:
       RoomUpdate: ck.open.mimi.command.update_room
       SubmitMessage: ck.open.mimi.command.submit_message
       UpdateConsent: ck.open.mimi.command.update_consent
+    OpenAgentPairing:
+      Resolve: ck.open.agent_pairing.query.resolve
+      SubmitRuntimeKeyRequest: ck.open.agent_pairing.command.submit_runtime_key_request
     OpenInviteLocator:
       Resolve: ck.open.invite_locator.query.resolve
     SelfModeration:
@@ -387,6 +390,8 @@ mq:
     open.mimi.command.report_abuse: ck.open.mimi.command.report_abuse
     open.mimi.command.proxy_download: ck.open.mimi.command.proxy_download
     open.invite_locator.query.resolve: ck.open.invite_locator.query.resolve
+    open.agent_pairing.query.resolve: ck.open.agent_pairing.query.resolve
+    open.agent_pairing.command.submit_runtime_key_request: ck.open.agent_pairing.command.submit_runtime_key_request
     edge.push.command.notify: ck.edge.push.command.notify
     self.authz.query.check: ck.self.authz.query.check
 libp2p:

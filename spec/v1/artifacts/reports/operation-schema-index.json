@@ -3795,6 +3795,83 @@
       }
     },
     {
+      "operation_id": "ck.open.agent_pairing.query.resolve",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pairing_resolve_request_body",
+        "schema_kind": "object",
+        "required": [
+          "pairing_token"
+        ],
+        "properties": [
+          "pairing_token"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap",
+        "schema_kind": "object",
+        "required": [
+          "cokret_base_url",
+          "service_did",
+          "agent_principal_id",
+          "pairing_request_id",
+          "pairing_code",
+          "pairing_expires_at"
+        ],
+        "properties": [
+          "cokret_base_url",
+          "service_did",
+          "agent_principal_id",
+          "pairing_request_id",
+          "pairing_code",
+          "pairing_expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.open.agent_pairing.command.submit_runtime_key_request",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body",
+        "schema_kind": "object",
+        "required": [
+          "pairing_code",
+          "pairing_request_id",
+          "agent_principal_id",
+          "verification_method",
+          "public_key",
+          "proof_of_possession"
+        ],
+        "properties": [
+          "pairing_code",
+          "pairing_request_id",
+          "agent_principal_id",
+          "verification_method",
+          "public_key",
+          "proof_of_possession",
+          "runtime_attestation"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "approval_request_id",
+          "status"
+        ],
+        "properties": [
+          "ok",
+          "approval_request_id",
+          "status"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.open.invite_locator.query.resolve",
       "success_shape_kind": "typed_response",
       "request": {

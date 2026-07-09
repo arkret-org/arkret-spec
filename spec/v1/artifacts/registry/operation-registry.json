@@ -338,11 +338,18 @@
       ]
     },
     {
+      "surface": "agent_pairing_handoff",
+      "tier": "extension",
+      "operations": [
+        "ck.open.agent_pairing.query.resolve",
+        "ck.open.agent_pairing.command.submit_runtime_key_request"
+      ]
+    },
+    {
       "surface": "invite_locator_handoff",
       "tier": "extension",
       "operations": [
-        "ck.open.invite_locator.query.resolve",
-        "ck.open.agent_pairing.query.resolve"
+        "ck.open.invite_locator.query.resolve"
       ]
     },
     {
@@ -1644,16 +1651,6 @@
       "response_schema_ref": "schemas/ice-config-response.schema.json"
     },
     {
-      "operation_id": "ck.open.invite_locator.query.resolve",
-      "http": "POST /_cokret/open/invite-locators/resolve",
-      "grpc": "OpenInviteLocator/Resolve",
-      "mq": "open.invite_locator.query.resolve",
-      "notes": "Resolves an online invite locator token carried out-of-band, usually as a URL fragment in a QR/link. The locator token MUST be sent in the JSON body, never in URL path or query string; the response is a signed principal_locator.",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body",
-      "response_schema_ref": "schemas/principal-locator.schema.json"
-    },
-    {
       "operation_id": "ck.open.agent_pairing.query.resolve",
       "http": "POST /_cokret/open/agent-pairing/resolve",
       "grpc": "OpenAgentPairing/Resolve",
@@ -1662,6 +1659,28 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pairing_resolve_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap"
+    },
+    {
+      "operation_id": "ck.open.agent_pairing.command.submit_runtime_key_request",
+      "http": "POST /_cokret/open/agent-pairing/runtime-key-requests",
+      "grpc": "OpenAgentPairing/SubmitRuntimeKeyRequest",
+      "mq": "open.agent_pairing.command.submit_runtime_key_request",
+      "notes": "Runtime-to-controller pending approval request for native personal-agent key pairing. The runtime proves possession of the local key and the short pairing code; the controller still must approve by signing ck.agent.key.authorize. The pairing code and proof-of-possession MUST be sent in the JSON body, never in URL path or query string.",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome"
+    },
+    {
+      "operation_id": "ck.open.invite_locator.query.resolve",
+      "http": "POST /_cokret/open/invite-locators/resolve",
+      "grpc": "OpenInviteLocator/Resolve",
+      "mq": "open.invite_locator.query.resolve",
+      "notes": "Resolves an online invite locator token carried out-of-band, usually as a URL fragment in a QR/link. The locator token MUST be sent in the JSON body, never in URL path or query string; the response is a signed principal_locator.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body",
+      "response_schema_ref": "schemas/principal-locator.schema.json"
     },
     {
       "operation_id": "ck.open.mimi.query.group_info",

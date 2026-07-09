@@ -949,6 +949,18 @@
       ]
     },
     {
+      "operation_id": "ck.open.agent_pairing.query.resolve",
+      "http_alias": "POST /_cokret/open/agent-pairing/resolve",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.open.agent_pairing.command.submit_runtime_key_request",
+      "http_alias": "POST /_cokret/open/agent-pairing/runtime-key-requests",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
       "operation_id": "ck.open.invite_locator.query.resolve",
       "http_alias": "POST /_cokret/open/invite-locators/resolve",
       "operation_specific": [],

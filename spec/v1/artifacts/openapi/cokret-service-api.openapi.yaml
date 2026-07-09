@@ -339,6 +339,10 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_rotate_key_outcome
     AgentRotateKeyRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_rotate_key_request_body
+    AgentRuntimeApprovalOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome
+    AgentRuntimeApprovalRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body
     AgentSidecarThreadEnsureOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_outcome
     AgentSidecarThreadEnsureRequestBody:
@@ -5501,6 +5505,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentPairingBootstrap'
+  /_cokret/open/agent-pairing/runtime-key-requests:
+    post:
+      operationId: ck.open.agent_pairing.command.submit_runtime_key_request
+      security: []
+      x-cokret-auth:
+        public_metadata: false
+        proof_in_body: true
+      summary: Submit an agent runtime key request for controller approval.
+      description: |
+        Runtime-to-controller pending approval request for native personal-agent
+        key pairing. The runtime proves possession of the local key and the
+        short pairing code; the controller still must approve by signing
+        ck.agent.key.authorize and submitting agent_key_pair_request_body. The
+        pairing code and proof-of-possession are sent in the JSON body, never in
+        the URL path or query string.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentRuntimeApprovalRequestBody'
+      responses:
+        '200':
+          description: Agent runtime key request accepted for controller approval.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentRuntimeApprovalOutcome'
   /_cokret/open/mimi/provider-directory:
     get:
       operationId: ck.open.mimi.query.provider_directory
