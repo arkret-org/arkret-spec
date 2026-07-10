@@ -903,7 +903,7 @@
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
-      "id": "cx.agent.key.authorized",
+      "id": "ak.agent.key.authorized",
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
@@ -916,7 +916,7 @@
       "notes": "Past-participle agent key event kind is removed."
     },
     {
-      "id": "cx.agent.key.revoked",
+      "id": "ak.agent.key.revoked",
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
@@ -929,7 +929,7 @@
       "notes": "Past-participle agent key event kind is removed."
     },
     {
-      "id": "cx.agent.key.rotated",
+      "id": "ak.agent.key.rotated",
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
@@ -942,7 +942,7 @@
       "notes": "Past-participle agent key event kind is removed."
     },
     {
-      "id": "cx.device.authorized",
+      "id": "ak.device.authorized",
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
@@ -955,7 +955,7 @@
       "notes": "Past-participle device event kind is removed."
     },
     {
-      "id": "cx.device.revoked",
+      "id": "ak.device.revoked",
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
@@ -968,7 +968,7 @@
       "notes": "Past-participle device event kind is removed."
     },
     {
-      "id": "cx.relation.delete",
+      "id": "ak.relation.delete",
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
@@ -981,7 +981,7 @@
       "notes": "Relation termination uses ak.relation.tombstone."
     },
     {
-      "id": "cx.read.marker",
+      "id": "ak.read.marker",
       "context": "event_kind_or_capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
@@ -994,7 +994,7 @@
       "notes": "Read position state is read cursor; the canonical event_kind and capability action share the name ak.read_cursor.advance."
     },
     {
-      "id": "cx.schema.read_marker.v1",
+      "id": "ak.schema.read_marker.v1",
       "context": "schema_id",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
