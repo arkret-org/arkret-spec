@@ -2888,6 +2888,74 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/realm-organization-fixture.json"
       ]
+    },
+    {
+      "vector_id": "ak.vector.realm_link.fsm_transition_matrix.v1",
+      "status": "active",
+      "domain": "realm_link",
+      "applies_to_vector_groups": [
+        "ak.vector_group.cba_lattice.v1"
+      ],
+      "description": "Realm Link FSM: all declared initial states and transitions are accepted, tombstoned is terminal except byte-equivalent replay, undeclared transitions reject with realm_link_invalid_transition, same-basis divergent siblings return bottom, general graph cycles remain valid, and self-reference rejects with realm_link_self_reference.",
+      "source_refs": [
+        "spec/v1/zh/models/realm-links.md",
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.push.mention_routing_hint_disabled_on_hardened_realm.v1",
+      "status": "active",
+      "domain": "push",
+      "applies_to_fixtures": [
+        "push-rule-core-fixture.json"
+      ],
+      "description": "minimal-metadata and audited E2EE Realms force mention_routing_hint=disabled even when policy declares recipient_registered_token; no sidecar registration, comparison, or persistence occurs and delivery falls back to blind or batch wakeup.",
+      "source_refs": [
+        "spec/v1/zh/discovery/push-notifications.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/push-rule-core-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sync.stream_frame_sequence.v1",
+      "status": "active",
+      "domain": "sync",
+      "applies_to_vector_groups": [
+        "ak.vector_group.sync.v1"
+      ],
+      "description": "Account and events NDJSON stream trace conformance: catchup completion ordering, cursor-bearing frame closure, dropped-versus-resync branching, and reconnect position advancement are evaluated over complete traces rather than isolated frame schemas.",
+      "source_refs": [
+        "spec/v1/zh/sync/transport-bindings.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/sync-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.agent_auth.human_approval_required.v1",
+      "status": "active",
+      "domain": "agent_auth",
+      "applies_to_profiles": [
+        "ak.profile.agent_auth.v1"
+      ],
+      "description": "High-risk agent session scope returns claim_required with closed details {reason_code=human_approval_required, approval_request_id}; controller approval is out of band and CAPTCHA, OTP, password, and browser challenges are forbidden on the runtime path.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity_link.minimal_metadata_author_credential.v1",
+      "status": "active",
+      "domain": "identity_link",
+      "applies_to_profiles": [
+        "ak.profile.mls.minimal_metadata_realm.v1"
+      ],
+      "description": "Minimal-metadata author verification binds Event.actor_id and proof.verification_method to exactly one active MLS basic credential / LeafNode signature_key at the envelope epoch, rejects rollback/removal/duplicate/key-mismatch cases, and forbids principal-scoped keys/query fallback.",
+      "source_refs": [
+        "spec/v1/zh/crypto-media/encryption-and-audit.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/privacy-security-fixture.json"
+      ]
     }
   ]
 }

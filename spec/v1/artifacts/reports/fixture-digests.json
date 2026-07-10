@@ -10,7 +10,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "fee9a75ef50624362c3fc6acecbee7591104b521548d198da08326ece61ed3fa"
+      "sha256": "a5014bcde3260a70bb02845e97915addb16d63b933d822c2899f7c25664e13d8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
@@ -34,7 +34,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "67dc71afd145dd5fb28bc004d95d0a10e1adff8124aebfbaf92b49b5e8afd086"
+      "sha256": "ca9eb0c1a6527a7020978f9ee2da69b03e66baad25fc8b2afe4017dd861a081e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -130,11 +130,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "1c568c1263b7b7ad4678faa2a538a33a2c0c7b5533c5fbdeebc3182c5d089cc7"
+      "sha256": "b2ee3bae4a647cf80d8442ff0617963197b5516ba3b6d3ed4a06f9042cad6934"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-rule-core-fixture.json",
-      "sha256": "34cb902351805312740ac956c62e60068d40acdcae0c52df0bd219fcaccab230"
+      "sha256": "d6378bb50eb671d77f01a757b8889a3f542201464ef2e3cae13f9237df78e343"
     },
     {
       "path": "spec/v1/artifacts/fixtures/reaction-fixture.json",
@@ -170,7 +170,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "1d5d9e10732399907fd4b81e77a631fbca9123e8fbbfc8c707db041a103fc9bd"
+      "sha256": "0b7a06ae8827c13824575be732f5cb6473ad15d0285e616ea7e274270064ccb2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",

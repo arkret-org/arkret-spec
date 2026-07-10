@@ -2255,6 +2255,26 @@ ak.vector.disappearing.on_last_read_offline_window.v1
 - 当 viewer 可读取 Strand discussion track 时，`strand-discussion-timeline` MUST 返回该消息。
 - 仅当 viewer 可读取 Strand（按 Strand 的 effective scope）时，`strand-discussions` MUST 才包含该消息；当 Strand 通过 `scope_circle_id` 落在 Realm 内的 [Circle](../models/circle.md) 时，仅有 Realm-default 成员身份不足以读取该 Strand——必须同时是该 Circle 成员。
 
+### 5.7 Vector: Account / Events Stream Frame Sequence
+
+`vector_id`: `ak.vector.sync.stream_frame_sequence.v1`
+
+机器 fixture：`sync-fixture.json#stream_frame_sequence`；runner：`cotest::conformance::sync::run_stream_frame_sequence_vector`。Runner MUST 对 `ak.self.account.stream.subscribe` 与 `ak.self.events.stream.subscribe` 各执行同一组完整 frame trace，而不是把 frame 拆成互不关联的 schema cases。
+
+Cases：
+
+1. `catchup=true`：至少一个带 cursor 的 baseline `delta` 先于带 cursor 的 `catchup_complete`；其间 MAY 有带 cursor 的 `frontier`。
+2. `catchup=false`：允许 `delta` / `frontier` / `heartbeat`，但 MUST NOT 出现 `catchup_complete`。
+3. `catchup_complete` 先于首个 `delta`，或在 `catchup=false` 出现：trace 拒绝。
+4. 服务端有可恢复 cursor 时发 `dropped{cursor,reconnect_after_ms?}`；无可恢复 cursor 时必须改发无 cursor 的 `resync_required`，不得发 cursorless `dropped`。
+5. `delta` / `frontier` / `catchup_complete` / `dropped` 的 cursor 可推进 reconnect position；`heartbeat` / `resync_required` / `unauthorized` 不得推进。
+
+Expected：
+
+- server runner 必须证明输出序列满足 catch-up 与 cursor closure；client runner 必须证明持久 reconnect cursor 只取自 cursor-bearing frame。
+- 单帧均通过 JSON Schema、但整体顺序违反任一 case 的 trace，仍视为 conformance failure。
+- account 与 events stream 对相同控制帧不得采用不同 reconnect 规则。
+
 ## 6. Space Lifecycle Vectors
 
 ### 6.1 目标
@@ -2955,6 +2975,29 @@ Expected：
 - 对外失败响应 MUST 与 `not_found` 不可区分（与本节其它 invite 向量一致），具体 reason code 只写入服务端 audit log。
 - 规范定义见 [`../sync/third-party-invites.md` §6.1](../sync/third-party-invites.md)。
 
+### 9.14 Vector: Minimal-Metadata Author Credential Binding
+
+`vector_id`: `ak.vector.identity_link.minimal_metadata_author_credential.v1`
+
+机器 fixture：`privacy-security-fixture.json` 中同名 case；runner：`cotest::conformance::privacy_security::run_minimal_metadata_author_credential_vector`。
+
+Preconditions：
+
+- Realm 声明 `ak.profile.mls.minimal_metadata_realm.v1`；内容 Event `actor_id` 为 Realm-scoped pairwise DID。
+- Encrypted envelope 固定 `(group_id, epoch, key_ref.group_state_ref)`，该 accepted group state 有一条 active RFC 9420 basic credential identity 等于 `utf8(actor_id)` 的 LeafNode。
+
+Cases：
+
+1. 唯一 active leaf，Event proof key 与 LeafNode `signature_key` 相同且签名有效：接受为 verified pairwise author。
+2. 同一 pairwise identity 对应多条 active leaf、leaf 已在该 epoch 被移除、group-state ref 不是该 epoch winning state、proof key 与 leaf key 不同：均以 `minimal_metadata_author_credential_invalid` 拒绝。
+3. 实现尝试用 principal-scoped `keys/query` 兜底：拒绝该实现路径，目录调用计数必须为 0。
+
+Expected：
+
+- 作者性验证只建立 pairwise sender leaf 身份，不揭示 principal；principal 提升仍依赖独立、端到端加密的 `ak.identity_link`。
+- Receiver 不得回退 current epoch、未验证 ratchet-tree cache、真实 principal DID 或 principal device directory。
+- 所有失败 case 都在内容进入 verified timeline 前 fail closed。
+
 ## 10. Service Closure Vectors
 
 ### 10.1 Vector: Ephemeral Capability And TTL
@@ -3158,6 +3201,24 @@ Expected：
 - 第 1 步 MUST NOT 发送单事件 blind wakeup。
 - 第 2 步 MUST 按更保守策略处理，不得猜测规则内容。
 - 第 3 步 MUST 合并为 batch wakeup，仍携带 `evaluation_locus_unresolved=true`。
+
+### 10.10.1 Vector: Hardened Realm Mention Routing Hint Disabled
+
+`vector_id`: `ak.vector.push.mention_routing_hint_disabled_on_hardened_realm.v1`
+
+Steps：
+
+1. 分别让 Realm 声明 `ak.profile.mls.minimal_metadata_realm.v1`、`ak.profile.attested_audit.e2ee.v1`、`ak.profile.disclosed_audit.e2ee.v1`，同时在 policy 中显式写 `mention_routing_hint=recipient_registered_token`。
+2. 尝试注册 opaque mention token、比较 message sidecar tag、持久化 token/tag，并触发 mention notification。
+3. 对照 Realm 只声明普通 `ak.profile.e2ee_client.v1`，显式 opt-in 同一 hint。
+4. Hardened Realm 另提交未知 hint 值。
+
+Expected：
+
+- 第 1-2 步 effective hint 必须是 `disabled`；注册、比较、持久化均为 false，mention 走 blind / batch wakeup。
+- 第 3 步作为正对照，可按完整 token 安全规则启用 `recipient_registered_token`。
+- 第 4 步按 `disabled` fail closed，不得把未知值解释成 opt-in。
+- Runner 必须检查无 sidecar 状态写入，而不只检查最终 notification payload。
 
 ### 10.11 Vector: Audience Mention Controls
 
@@ -3551,6 +3612,22 @@ Expected:
 - 第 2 步照常投递(controller 自己的 mention 不受此 gate，仍受 `A` 是否被授权读取该 scope 约束)。
 - 第 3 步翻转 **非追溯**：第 1 步发生在 `false` 期间的历史 mention，翻转为 `true` 后对 `A` 仍 MUST 零记录(notification / inbox row / `ak.self.events.stream.subscribe` 投影皆无)。
 - 第 4 步在 `true` 期间的第三方 mention 照常投递，并受 `level=muted`、blocklist、DND、rate-limit 等既有更高优先级规则约束。
+
+### 11.17 Vector: Agent Human Approval Required
+
+`vector_id`: `ak.vector.agent_auth.human_approval_required.v1`
+
+Steps：
+
+1. Agent runtime 以 `proof.proof_kind="agent_key_proof"` 调用 `ak.gate.account.command.issue_session_grant`，请求 policy 标记为 high-risk 且需 controller 批准的 scope。
+2. Account Authority 生成 opaque `approval_request_id`，但不向 runtime 返回人类交互 challenge。
+3. Controller 在带外 UI 批准，产生 accepted approval / capability / delegation evidence；agent 带该 evidence 重试。
+
+Expected：
+
+- 第一次响应使用统一 ErrorEnvelope：`error.code=claim_required`，`error.details` 必须严格通过 `agent-operations.schema.json#/$defs/agent_human_approval_error_details`，即只含 `reason_code=human_approval_required` 与 `approval_request_id`。
+- Runtime 响应中 MUST NOT 出现 CAPTCHA、OTP、password prompt、browser redirect 或等价 interactive human challenge。
+- 批准前不得签发 session grant；带外批准成功后的 retry 仍须重新验证 agent key proof、scope ceiling、approval evidence 新鲜度与单次消费语义。
 
 ## 12. Media Service Binding Vectors
 

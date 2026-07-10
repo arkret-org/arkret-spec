@@ -35,7 +35,8 @@
     "ak.vector.search.result_not_authz_proof.v1",
     "ak.vector.search.surface_separation_no_plaintext_leakage.v1",
     "ak.vector.identity.reject_handle_homograph.v1",
-    "ak.vector.identity.reject_realm_alias_homograph.v1"
+    "ak.vector.identity.reject_realm_alias_homograph.v1",
+    "ak.vector.identity_link.minimal_metadata_author_credential.v1"
   ],
   "cases": [
     {
@@ -523,6 +524,43 @@
           "hyphen_disallowed_position"
         ]
       }
+    },
+    {
+      "vector_id": "ak.vector.identity_link.minimal_metadata_author_credential.v1",
+      "name": "minimal_metadata_author_credential_is_the_only_author_trust_anchor",
+      "runner": "cotest::conformance::privacy_security::run_minimal_metadata_author_credential_vector",
+      "base": {
+        "actor_id": "did:key:z6MkpairwiseAlice",
+        "group_id": "Zml4dHVyZS1yZWFsbQ",
+        "epoch": 7,
+        "group_state_ref": "ak:event:01970e58-9d27-7000-8000-000000000001",
+        "leaf": {
+          "leaf_index": 3,
+          "credential_type": "basic",
+          "credential_identity_utf8": "did:key:z6MkpairwiseAlice",
+          "signature_key": "z6MkpairwiseAuthorKey"
+        },
+        "proof": {
+          "verification_method": "did:key:z6MkpairwiseAlice#z6MkpairwiseAuthorKey",
+          "resolved_public_key": "z6MkpairwiseAuthorKey",
+          "signature_valid": true
+        }
+      },
+      "cases": [
+        {"name": "active_unique_leaf", "mutation": "none", "expected": {"result": "accept_pairwise_author"}},
+        {"name": "duplicate_pairwise_identity", "mutation": "duplicate_active_leaf_identity", "expected": {"result": "reject", "reason_code": "minimal_metadata_author_credential_invalid"}},
+        {"name": "removed_leaf", "mutation": "leaf_removed_at_epoch", "expected": {"result": "reject", "reason_code": "minimal_metadata_author_credential_invalid"}},
+        {"name": "group_state_rollback", "mutation": "group_state_ref_not_winning_for_epoch", "expected": {"result": "reject", "reason_code": "minimal_metadata_author_credential_invalid"}},
+        {"name": "signature_key_mismatch", "mutation": "proof_key_differs_from_leaf_signature_key", "expected": {"result": "reject", "reason_code": "minimal_metadata_author_credential_invalid"}},
+        {"name": "principal_directory_fallback", "mutation": "attempt_keys_query_principal_lookup", "expected": {"result": "reject", "principal_directory_queries": 0}}
+      ],
+      "assertions": [
+        "credential identity equals Event.actor_id byte for byte",
+        "exactly one active leaf matches at the envelope epoch",
+        "proof key equals LeafNode signature_key",
+        "author verification never queries principal-scoped keys/query",
+        "identity_link disclosure is separate from pairwise author verification"
+      ]
     }
   ]
 }

@@ -4410,6 +4410,37 @@
       "code": "invite_oob_entropy_too_low",
       "applies_to": ["auth_decision"],
       "description": "An out-of-band invite code was rejected because its entropy is below the required floor. See zh/conformance/conformance-vectors.md §9 (ak.vector.invite.oob_code_entropy.v1)."
+    },
+    {
+      "code": "realm_link_self_reference",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution"
+      ],
+      "description": "An ak.realm.link targets its own enclosing Realm. Self-links have no cross-boundary meaning and MUST be rejected with top-level schema_violation. General directed cycles remain valid. See zh/models/realm-links.md §2."
+    },
+    {
+      "code": "realm_link_invalid_transition",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "An ak.realm.link status transition is absent from the canonical FSM transition matrix, including any non-byte-identical attempt to leave terminal tombstoned state. The reducer MUST reject with top-level failed_precondition. See zh/models/realm-links.md §4."
+    },
+    {
+      "code": "human_approval_required",
+      "applies_to": [
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "An agent runtime requested a high-risk session scope that requires out-of-band controller approval. The top-level service error is claim_required; error.details carries this reason_code and an opaque approval_request_id. The runtime MUST NOT receive a CAPTCHA, OTP, or browser challenge. See zh/identity/key-management.md §3.2."
+    },
+    {
+      "code": "minimal_metadata_author_credential_invalid",
+      "applies_to": [
+        "event_envelope",
+        "identity_resolution"
+      ],
+      "description": "A minimal-metadata content Event proof could not be bound to exactly one active MLS LeafNode whose basic credential identity equals Event.actor_id and whose signature_key matches proof.verification_method at the encrypted envelope epoch/group-state reference. The receiver MUST fail closed without querying a principal-scoped device directory. See zh/crypto-media/encryption-and-audit.md §2.10.3."
     }
   ]
 }

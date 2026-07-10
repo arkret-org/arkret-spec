@@ -222,7 +222,7 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 - `event_id`：`ak:event:` 后接 UUIDv7。
 - `policy_id`：`ak:policy:` 后接 UUIDv7。
 - `invite_id`：`ak:invite:` 后接 UUIDv7。
-- `schema_ref`：schema registry id，例如 `ak.schema.strand.v1` 或反向域名 schema id。历史 shorthand token 名 `schema_id` MAY 被 parser 接受，但 canonical JSON 字段名 MUST 是 `schema_ref`。
+- `schema_ref`：schema registry id，例如 `ak.schema.strand.v1` 或反向域名 schema id。Shorthand 与 canonical JSON 都只使用 `schema_ref`；parser MUST 拒绝 `schema_id` 等未声明 token。
 - `did`：DID URI。
 - `blob_ref`：Blob typed ID，wire form 为 `ak:blob:` 前缀后接 UUIDv7（blob metadata ID），或 `ak:blob:<suite>:<hex>` content-addressed ref（suite ∈ digest-suite registry active rows，v1 即 `sha256` / `blake3`）。
 - `morph_type`：Realm schema 中注册的开放对象类型。

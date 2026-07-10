@@ -675,7 +675,7 @@ RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部�
 Profile 规则：
 
 - Event Envelope 的 `actor_id` 仍然必须是 DID。minimal-metadata profile 中，`actor_id` SHOULD 使用 Realm-scoped pairwise DID，例如成员为该 Realm / Strand track 生成的 `did:key`、`did:peer` 或 policy 允许的其他 pseudonymous DID。实现不得把非 DID 字符串放入 `actor_id`。
-- MLS leaf credential SHOULD 绑定同一个 Realm-scoped pairwise DID，或绑定可由该 pairwise DID 验证的 credential。
+- 声明 minimal-metadata profile 的 Realm 中，MLS LeafNode MUST 使用 RFC 9420 `basic` credential，credential identity 必须是 Event `actor_id` 所用 Realm-scoped pairwise DID 的 UTF-8 字节；LeafNode `signature_key` 是该 pairwise sender 的内容作者性验签锚。不得改用真实 principal DID 作为该 credential identity，也不得要求服务端目录解析真实 principal 才能验签。
 - 真实 `principal_id`、设备身份、display profile 和可选 handle MUST 放入端到端加密的 `ak.identity_link` application message 或 MLS private extension 中，只对当前 Realm members 可见。v1 的必需 wire shape 是 `ak.schema.identity_link.v1`；MLS private extension 只是等价承载，payload schema 不变。
 - `ak.identity_link` MUST 绑定 pairwise DID、principal DID、device id、realm id、trust domain、可选 strand id / track、MLS leaf index、MLS epoch、effective time 和签名证明；签名输入固定为 `utf8("ak.identity-link-v1\n") || canonical_json(identity-link object with proof.signature omitted)`。证明必须能从 principal DID 的控制链或 profile 声明的 disclosure proof 验证。Receiver MUST 在验证签名前检查 `trust_domain` 与当前接收上下文一致；不一致时不得接受该 pairwise DID -> principal DID 映射。
 - Sync / Federation 服务只可按 pairwise DID、realm id、epoch、event id / routing hash 和授权服务绑定路由；不得要求明文 principal DID 才能转发密文。
@@ -822,9 +822,16 @@ scheme 选择是 Realm policy 字段 `ak.realm.content_scheme`（[`realm.schema.
 
 缺失上述任一条等于把群内冒名漏洞放出（任一成员可伪造“看似他人所写”的内容）。
 
-**与 minimal-metadata pairwise DID 的交互（normative）**：上述作者性校验把签名链接到"`actor_id` 当前授权的设备"。当 Realm 同时启用 §2.7 `ak.profile.mls.minimal_metadata_realm.v1` 时，Event Envelope 的 `actor_id` 是 **Realm-scoped pairwise DID**（不是真实 principal DID）。此时本节作者签名的验证 MUST 在**该 pairwise DID 的设备集投影域内**进行——即 receiver 校验"内容事件的签名链接到该 pairwise DID（及其绑定的 MLS leaf credential）当前授权的设备"，而**不**在验证内容作者性这一步解析真实 principal。真实 principal 的揭示走 §2.7 的端到端加密 `ak.identity_link`（pairwise DID → principal DID 的签名映射），与内容作者性校验解耦：内容只需证明"某 pairwise sender 所写且其设备授权有效"，是否提升为"已验证 principal DID 发送者"由 `ak.identity_link` 映射额外决定（§2.7：无法建立映射时 MUST 仅呈现为未验证 pairwise sender，MUST NOT 提升为已验证 principal）。
+**与 minimal-metadata pairwise DID 的交互（normative）**：上述作者性校验把签名链接到"`actor_id` 当前授权的发送 leaf"。当 Realm 启用 §2.7 `ak.profile.mls.minimal_metadata_realm.v1` 时，Event Envelope 的 `actor_id` 是 **Realm-scoped pairwise DID**（不是真实 principal DID），作者性验签的唯一信任锚是该 Event 所引用 MLS group state 中的 active LeafNode credential；本路径 MUST NOT 查询 [`device-lifecycle.md` §8.2](./device-lifecycle.md) 的 principal-scoped `keys/query` 目录。
 
-> **实现缺口登记（留协调者）**：上述"在 pairwise DID 设备集投影域内验签"要求设备验签公钥目录（[`device-lifecycle.md` §8.2](./device-lifecycle.md)）能按 **pairwise-scoped 设备集**解析 `(pairwise_did, device_id) → device_signing_key`。当前 §8.2 的 `keys/query` 目录以 `(principal_id, device_id)` 为键，并未定义 pairwise-DID-scoped 的设备目录投影；因此 minimal-metadata Realm 下"用 pairwise DID 而非 principal DID 解析作者设备公钥"在 v1 spec 层尚无明确的目录承载。这是**真实实现缺口**：要么 §8.2 增补 pairwise-scoped 设备目录面（pairwise DID 绑定的 MLS leaf credential 作为验签锚），要么 minimal-metadata Realm 的内容作者性验签依赖 MLS leaf credential（绑定 pairwise DID，§2.7）而非 `keys/query` principal 目录。本条仅登记该缺口供协调者裁决，不在本次改动中引入新的目录 schema。
+Receiver MUST 按以下顺序验证：
+
+1. 从 encrypted envelope 的 `(group_id, epoch, key_ref.group_state_ref)` 解析并验证对应 accepted `ak.mls.genesis` / winning `ak.mls.commit` group state；不得退回 current epoch 或未验证的 ratchet-tree cache。
+2. 在该 epoch 的 active LeafNode 集合中查找 credential type=`basic` 且 credential identity 逐字节等于 `utf8(Event.actor_id)` 的 leaf；结果必须恰好一条。零条、重复 identity、leaf 已被该 epoch 的 Remove/Commit 排除或 credential type 不符时，MUST 以 `failed_precondition`、`reason_code=minimal_metadata_author_credential_invalid` 拒绝。
+3. Event `proof.verification_method` 必须由该 pairwise DID 控制，且解析出的公钥与该 LeafNode `signature_key` 逐字节相同；receiver 使用该 `signature_key` 验证 §2.10.3 的 Event proof。key mismatch、签名无效或算法不匹配同样使用 `minimal_metadata_author_credential_invalid` fail closed。
+4. 上述步骤只证明"某 active pairwise sender leaf 所写"。真实 principal 的揭示仍只走 §2.7 的端到端加密 `ak.identity_link`（pairwise DID → principal DID）；无法建立映射时 MUST 仅呈现为未验证 pairwise sender，MUST NOT 提升为已验证 principal。
+
+`ak.vector.identity_link.minimal_metadata_author_credential.v1` 固化合法 leaf、重复 identity、epoch/group-state rollback、removed leaf、signature-key mismatch 与禁止 principal-directory fallback 的行为。
 
 #### 2.10.4 历史密钥交付（normative）
 

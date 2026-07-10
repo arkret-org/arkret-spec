@@ -8,7 +8,8 @@
     "ak.vector.agent.pairing_expiry.v1",
     "ak.vector.agent.controller_lifecycle.v1",
     "ak.vector.agent.act_on_behalf.v1",
-    "ak.vector.agent.session_grant.replay.v1"
+    "ak.vector.agent.session_grant.replay.v1",
+    "ak.vector.agent_auth.human_approval_required.v1"
   ],
   "cases": [
     {
@@ -63,6 +64,40 @@
         "agent_key_proof challenge replay, audience mismatch, and bad signature fail closed",
         "agent session branch rejects invalid proofs, DID mismatch, paused agents, and deactivated agents",
         "accountability grant absence is pinned as accountability_grant_missing"
+      ]
+    },
+    {
+      "name": "agent_human_approval_required",
+      "vector_id": "ak.vector.agent_auth.human_approval_required.v1",
+      "runner": "cotest::conformance::agent_vectors::run_agent_human_approval_required_vector",
+      "request": {
+        "operation_id": "ak.gate.account.command.issue_session_grant",
+        "proof_kind": "agent_key_proof",
+        "risk_class": "high",
+        "requested_scope_requires_controller_approval": true
+      },
+      "expected_error": {
+        "ok": false,
+        "error": {
+          "code": "claim_required",
+          "details": {
+            "reason_code": "human_approval_required",
+            "approval_request_id": "approval-opaque-01"
+          }
+        }
+      },
+      "forbidden_runtime_challenges": [
+        "captcha",
+        "otp",
+        "browser_redirect",
+        "password_prompt"
+      ],
+      "assertions": [
+        "error details validate against agent_human_approval_error_details",
+        "approval_request_id is opaque and is the only runtime-visible correlation handle",
+        "controller approval completes out of band",
+        "agent retry references accepted approval evidence",
+        "no interactive human challenge is returned to the agent runtime"
       ]
     }
   ]

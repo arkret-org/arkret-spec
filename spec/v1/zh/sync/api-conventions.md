@@ -249,7 +249,7 @@ Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失�
 - 批量 / 多结果路径走 `{status, accepted[], rejected[], ...}`；
 - 创建 / 解析类直接返回构造好的对象，不另加包裹。
 
-`{ok: true}` 与 `{deleted: true}` / `{accepted: true}` 等单 boolean 标记**等价**（历史命名差异），新设计统一使用 `ok`。
+`ok` 是简单 mutation 的唯一通用成功 discriminator。`deleted`、`accepted` 等字段只有在某个 operation 的 typed response schema 把它们定义为独立业务状态时才可出现，MUST NOT 与 `ok` 互换；客户端与服务端不得为同一 operation 实现双读或别名输出。
 
 流式 endpoint MAY 使用 newline-delimited JSON、SSE 或 WebSocket frame，但每个 frame 仍 SHOULD 是独立 JSON 对象。`request_id` 字段（若返回）SHOULD 与请求侧的 idempotency / tracing id 对齐，但不作为 success/failure discriminator。成功建立的 subscribe stream 若需要指示客户端延迟重连，MUST 使用 control frame 上的 `reconnect_after_ms`；`retry_after_ms` 保留给错误响应、非 HTTP binding 的失败诊断或显式 retry 语义。
 

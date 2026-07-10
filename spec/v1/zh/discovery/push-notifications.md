@@ -358,7 +358,7 @@ E2EE Realm 中，Sync Service 不持有正文密钥，无法在 server 端评估
 
     minimal-metadata Realm 与 audited E2EE Realm MUST 保持 `disabled`，即使显式声明也不得启用 `recipient_registered_token`。
 
-    **该 MUST 须 conformance vector 固化（normative，可测试条目）**：上述"minimal-metadata / audited E2EE Realm 拒绝 `mention_routing_hint=recipient_registered_token`"是可测试的拒绝行为，MUST 由 conformance vector 固化为机器可执行断言——具体断言："声明 `ak.profile.mls.minimal_metadata_realm.v1` 或 audited E2EE profile 的 Realm，在其 policy 显式声明 `mention_routing_hint=recipient_registered_token` 时，实现 MUST 按 `disabled` 处理（拒绝注册 / 比较 / 持久化 mention routing sidecar），mention 一律回退到 §4.5 第 1-5 步 blind / batch wakeup"。该 vector 建议命名为 push 域的 `mention_routing_hint_disabled_on_hardened_realm`（完整 id 由协调者按 conformance vector 命名规范登记）；新增该 vector 涉及 conformance-vectors registry 与 vector mirror 表，**留协调者**登记，本节正文先把该 MUST 表述为可测试条目，待登记后再回填正式 vector id 引用。
+    **Conformance 锚点（normative）**：`ak.vector.push.mention_routing_hint_disabled_on_hardened_realm.v1` 以机器 trace 固化上述拒绝行为。声明 `ak.profile.mls.minimal_metadata_realm.v1`、`ak.profile.attested_audit.e2ee.v1` 或 `ak.profile.disclosed_audit.e2ee.v1` 的 Realm，在 policy 显式声明 `mention_routing_hint=recipient_registered_token` 时，runner MUST 断言 effective hint 为 `disabled`、注册/比较/持久化 sidecar 均未发生，并回退到 §4.5 第 1-5 步 blind / batch wakeup；普通非 hardened E2EE Realm 是允许 opt-in 的对照组。
 
 明确禁止：
 

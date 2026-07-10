@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-02",
+  "version": "2026-07-10",
   "source_of_truth": true,
-  "generated_at": "2026-07-02T00:00:00Z",
+  "generated_at": "2026-07-10T00:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "generated_registries": [
     {
@@ -157,10 +157,57 @@
             }
           ]
         },
-        "lattice": "ordered_log",
-        "bottom": "expose",
+        "lattice": "fsm",
+        "bottom": "reject",
         "plane": "control",
-        "sealed": true
+        "sealed": true,
+        "parameters": {
+          "initial_states": [
+            "active",
+            "rejected",
+            "tombstoned"
+          ],
+          "states": [
+            "active",
+            "rejected",
+            "tombstoned"
+          ],
+          "terminal_states": [
+            "tombstoned"
+          ],
+          "idempotent_replay": "same_status_same_basis_noop",
+          "concurrent_sibling_conflict": "bottom",
+          "allowed_transitions": [
+            [
+              "active",
+              "active"
+            ],
+            [
+              "active",
+              "rejected"
+            ],
+            [
+              "active",
+              "tombstoned"
+            ],
+            [
+              "rejected",
+              "rejected"
+            ],
+            [
+              "rejected",
+              "active"
+            ],
+            [
+              "rejected",
+              "tombstoned"
+            ],
+            [
+              "tombstoned",
+              "tombstoned"
+            ]
+          ]
+        }
       },
       {
         "event_kind": "ak.realm.policy",
@@ -4155,7 +4202,7 @@
         "http": "POST /_arkret/gate/account/session-grants",
         "grpc": "GateAccount/IssueSessionGrant",
         "mq": "gate.account.command.issue_session_grant",
-        "notes": "Account Authority single-call grant exchange. The response is the client-visible SessionGrantOutcome; any Principal-side local session provisioning is internal to the Account Authority. There is no separate client-visible grant-to-bearer exchange step: the client presents the returned ak.session.grant directly to /_arkret/self/* with a DPoP proof (api-conventions §3.3). For proof_kind=oidc_code_exchange, the Account Authority exchanges the authorization code at the issuer token_endpoint and validates issuer/state/nonce/redirect_uri/principal/device/audience binding before issuing the grant; the client MAY omit principal_id at first sign-in, in which case the Account Authority derives/mints the principal DID and returns it in SessionGrantOutcome.principal_id.",
+        "notes": "Account Authority single-call grant exchange. The response is the client-visible SessionGrantOutcome; any Principal-side local session provisioning is internal to the Account Authority. There is no separate client-visible grant-to-bearer exchange step: the client presents the returned ak.session.grant directly to /_arkret/self/* with a DPoP proof (api-conventions §3.3). For proof_kind=oidc_code_exchange, the Account Authority exchanges the authorization code at the issuer token_endpoint and validates issuer/state/nonce/redirect_uri/principal/device/audience binding before issuing the grant; the client MAY omit principal_id at first sign-in, in which case the Account Authority derives/mints the principal DID and returns it in SessionGrantOutcome.principal_id. For proof_kind=agent_key_proof when high-risk scope needs controller approval, the endpoint returns 403 ErrorEnvelope with error.code=claim_required and error.details matching agent-operations.schema.json#/$defs/agent_human_approval_error_details; it never returns CAPTCHA, OTP, password, or browser challenge material to the runtime.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
@@ -5558,7 +5605,7 @@
         "http": "POST /_arkret/self/realms/{realm_id}/links",
         "grpc": "SelfRealmLink/Create",
         "mq": "self.realm_link.command.create",
-        "notes": "Builds a ak.realm.link Move from realm_id -> target_realm_id. The reducer runs realm_link_* validators (cycle detection, self-reference, kind validation); a rejected payload returns 422 with the canonical reason code (e.g. realm_link_cycle, realm_link_self_reference).",
+        "notes": "Builds an ak.realm.link Control Move from realm_id -> target_realm_id. General directed cycles are valid and traversal uses a visited set; admission rejects only self-reference, invalid kind, invalid payload, or an illegal FSM transition. Self-reference returns schema_violation with reason_code realm_link_self_reference; an illegal transition returns failed_precondition with reason_code realm_link_invalid_transition.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": false,

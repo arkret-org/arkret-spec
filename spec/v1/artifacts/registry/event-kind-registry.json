@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-02",
+  "version": "2026-07-10",
   "source_of_truth": false,
-  "generated_at": "2026-07-02T00:00:00Z",
+  "generated_at": "2026-07-10T00:00:00Z",
   "generated_from": "registry/contract-catalog.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -125,10 +125,57 @@
           }
         ]
       },
-      "lattice": "ordered_log",
-      "bottom": "expose",
+      "lattice": "fsm",
+      "bottom": "reject",
       "plane": "control",
-      "sealed": true
+      "sealed": true,
+      "parameters": {
+        "initial_states": [
+          "active",
+          "rejected",
+          "tombstoned"
+        ],
+        "states": [
+          "active",
+          "rejected",
+          "tombstoned"
+        ],
+        "terminal_states": [
+          "tombstoned"
+        ],
+        "idempotent_replay": "same_status_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "active",
+            "active"
+          ],
+          [
+            "active",
+            "rejected"
+          ],
+          [
+            "active",
+            "tombstoned"
+          ],
+          [
+            "rejected",
+            "rejected"
+          ],
+          [
+            "rejected",
+            "active"
+          ],
+          [
+            "rejected",
+            "tombstoned"
+          ],
+          [
+            "tombstoned",
+            "tombstoned"
+          ]
+        ]
+      }
     },
     {
       "event_kind": "ak.realm.policy",

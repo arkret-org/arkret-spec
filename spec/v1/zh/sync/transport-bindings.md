@@ -34,17 +34,14 @@ libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供
 
 ### 1.1 Stream frame 序列约束的机读锚点（normative）
 
-`ak.self.account.stream.subscribe` 与 `ak.self.events.stream.subscribe` 的 NDJSON 多帧 stream 当前只有散文级的帧序列约束（见 [`client-sync.md` §2 / §2.2](./client-sync.md)、[`service-http-binding.md` §3.4](./service-http-binding.md)），缺独立的机读 normative 锚点。为关闭该缺口：
+`ak.self.account.stream.subscribe` 与 `ak.self.events.stream.subscribe` 的 NDJSON 多帧序列由 registered vector `ak.vector.sync.stream_frame_sequence.v1` 机读固化（fixture `sync-fixture.json#stream_frame_sequence`，runner `cotest::conformance::sync::run_stream_frame_sequence_vector`）。两类 stream 的输出和客户端 reconnect 状态机都 MUST 通过同一组完整 trace 断言；逐帧 JSON Schema validation 不能替代序列测试：
 
-- **frame 序列约束 MUST 由 conformance vector 固化**：上述两类 stream 的帧先后序与必带字段组合 MUST 被登记的 conformance vector（`vector-registry.json`）机读固化，作为 wire conformance 的判定基准，而非仅靠散文。实现的 stream 输出必须能通过该 vector。
-- 至少应被固化为可测试条目的 frame 序列约束（散文真相源见 client-sync.md，本节集中列举其 testable 形式）：
+- 必须固化并执行的 frame 序列约束（散文真相源见 client-sync.md，本节集中列举其 testable 形式）：
   1. `catchup=true` 时，`catchup_complete` 之前 MUST 至少出现一个 `delta` frame（baseline / catch-up delta）；`catchup=false` 时 MUST NOT 出现 `catchup_complete`。
   2. `dropped` frame MUST 携带 `cursor`；服务端无可用补齐 cursor 时 MUST 改发 `resync_required`（不带 cursor），MUST NOT 发送无 cursor 的 `dropped`。
   3. `delta` / `frontier` / `catchup_complete` frame MUST 携带 `cursor`；`heartbeat` / `resync_required` / `unauthorized` MUST NOT 依赖 cursor 推进位置。
   4. 客户端用作下一次 `after=` 的位置只来自 cursor-bearing frame 的 `cursor`；不带 cursor 的控制帧不推进重连位置。
-- **AsyncAPI 交付（计划）**：在上述 vector 固化之外，stream 帧的事件驱动 schema MAY 由独立 AsyncAPI 文档补充描述；该 AsyncAPI 描述是 informative 补充，不改变本节"frame 序列约束 MUST 由 conformance vector 固化"的 normative 要求，也不改变 §1 的 core transport 锁定。
-
-> 注：若上述 frame 序列约束需要在 `vector-registry.json` 新增条目，属 registry / artifact 改动，留协调者处理（见本提交报告说明）；本节只确立"MUST 由 conformance vector 固化 + AsyncAPI 计划"的 normative 要求与可测试条目清单。
+- Stream 帧的事件驱动 schema MAY 另由 AsyncAPI 文档作 informative 补充；AsyncAPI 不改变本节 vector 的 normative 判定，也不改变 §1 的 core transport 锁定。
 
 ## 2. 分层
 

@@ -507,6 +507,23 @@
       },
       "additionalProperties": false
     },
+    "agent_human_approval_error_details": {
+      "type": "object",
+      "description": "Closed error.details shape returned by ak.gate.account.command.issue_session_grant when an agent_key_proof request needs out-of-band controller approval. The enclosing ErrorEnvelope.error.code MUST be claim_required. The agent runtime MUST NOT be given CAPTCHA, OTP, browser-login, or other interactive human challenge material.",
+      "required": [
+        "reason_code",
+        "approval_request_id"
+      ],
+      "properties": {
+        "reason_code": {
+          "const": "human_approval_required"
+        },
+        "approval_request_id": {
+          "$ref": "#/$defs/opaque_local_id"
+        }
+      },
+      "additionalProperties": false
+    },
     "agent_runtime_approval_outcome": {
       "type": "object",
       "required": [

@@ -746,6 +746,8 @@ POST /_arkret/self/keys/claim
 
 `keys/query` 响应在每个 `(principal_id, device_id)` 记录上附带便捷的**设备验签公钥目录**面，供任意 realm 成员把 `(actor, device)` 解析为权威验签公钥，据此 fail-closed 验证通话信令（[`webrtc-signaling.md` §5.1](./webrtc-signaling.md)）与持久消息的 proof：
 
+该目录严格是 principal-scoped 目录，不提供 pairwise-DID 枚举或别名查询。声明 `ak.profile.mls.minimal_metadata_realm.v1` 的内容作者性验证 MUST 按 [`encryption-and-audit.md` §2.10.3](./encryption-and-audit.md) 使用 encrypted envelope 所指 epoch 的 MLS LeafNode basic credential / `signature_key`，MUST NOT 为了验签把 pairwise DID 映射为 principal 后调用本 endpoint；`keys/query` 也 MUST NOT 接受 pairwise DID 作为 `principal_id` 的替代形态。
+
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `device_signing_key` | `did:key`(Ed25519 multibase) | optional | 该设备的**权威验签公钥**，来源 = 该设备权威 `ak.device.authorize.payload.device_public_key`(§5.2/§5.4)。MUST **仅对 verified 且未吊销**的设备返回。 |

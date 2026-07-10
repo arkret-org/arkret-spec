@@ -307,6 +307,8 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body
     AgentGrantDetachOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome
+    AgentHumanApprovalErrorDetails:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_human_approval_error_details
     AgentKeyPairOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome
     AgentKeyPairRequestBody:
@@ -518,8 +520,8 @@ components:
           - type: string
           # lint-waiver(type:number): CollectionFieldValueGroupSource.value is a UI/query
           # filter parameter accepting whatever the projected field's runtime type is. It
-          # does not enter canonical Event bytes. A follow-up wire revision MAY migrate
-          # decimal-needing field types to {integer, scale} envelope; see _todos.md T2-3.
+          # does not enter canonical Event bytes. Runtime values remain JSON numbers on
+          # this query-only surface; canonical decimal fields use their own typed schema.
           - type: number
           - type: boolean
       additionalProperties: false
@@ -2235,8 +2237,8 @@ components:
         score:
           # lint-waiver(type:number): Search ranking score is a non-canonical, non-signed
           # query-time annotation. It MUST NOT enter canonical Event bytes or any signed
-          # artefact. A follow-up wire revision MAY migrate this to score_basis_points
-          # (integer, 0..10000) so SDK codegen stops emitting float; see _todos.md T2-3.
+          # artefact. The query-time ranking score is therefore a JSON number; any signed
+          # ranking input must use a separately registered canonical integer representation.
           type: number
         highlights:
           type: array
@@ -7196,6 +7198,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SessionGrantOutcome'
+        '403':
+          description: Agent high-risk scope requires out-of-band controller approval. Returns error.code=claim_required and closed error.details; no CAPTCHA, OTP, or browser challenge is exposed to the agent runtime.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ErrorEnvelope'
+                - type: object
+                  properties:
+                    error:
+                      type: object
+                      required:
+                      - code
+                      - details
+                      properties:
+                        code:
+                          const: claim_required
+                        details:
+                          $ref: '#/components/schemas/AgentHumanApprovalErrorDetails'
       requestBody:
         required: true
         content:

@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-02",
+  "version": "2026-07-10",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -830,6 +830,7 @@
       "required_fixtures": [
         "membership-delivery-binding-fixture.json",
         "privacy-security-fixture.json",
+        "push-rule-core-fixture.json",
         "realm-organization-fixture.json",
         "security-closure-vectors.json"
       ],
@@ -920,7 +921,8 @@
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "sync_vector_runner"
+          "sync_vector_runner",
+          "stream_frame_sequence_runner"
         ],
         "unsupported_optional": "not applicable"
       }
@@ -2087,12 +2089,14 @@
         "ak.schema.notification.v1"
       ],
       "required_fixtures": [
-        "privacy-security-fixture.json"
+        "privacy-security-fixture.json",
+        "push-rule-core-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
           "blind_wakeup_payload_schema",
+          "hardened_mention_routing_hint_disabled",
           "push_target_id_scope",
           "wakeup_kind_enum"
         ],
@@ -3271,7 +3275,8 @@
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
-        "crypto-signature-fixture.json"
+        "crypto-signature-fixture.json",
+        "push-rule-core-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -3279,6 +3284,8 @@
           "pairwise_actor_id",
           "identity_link_schema",
           "identity_link_eager_invalidation",
+          "minimal_metadata_author_credential",
+          "hardened_mention_routing_hint_disabled",
           "principal_disclosure_policy",
           "minimal_metadata_presign_forbidden"
         ],
@@ -3439,7 +3446,8 @@
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
-        "crypto-signature-fixture.json"
+        "crypto-signature-fixture.json",
+        "push-rule-core-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -3448,6 +3456,7 @@
           "audit_release_service_attestation",
           "audit_release_ryw_receipt",
           "audit_release_session_notice",
+          "hardened_mention_routing_hint_disabled",
           "audit_assurance_class_attested_hardware"
         ],
         "unsupported_optional": "fail closed before joining auditable encrypted Realm"
@@ -3479,7 +3488,8 @@
         "ak.schema.seal.v1"
       ],
       "required_fixtures": [
-        "privacy-security-fixture.json"
+        "privacy-security-fixture.json",
+        "push-rule-core-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -3487,6 +3497,7 @@
           "audit_applet_binding_visible",
           "audit_release_ryw_receipt",
           "audit_release_session_notice",
+          "hardened_mention_routing_hint_disabled",
           "audit_assurance_class_disclosed_policy",
           "forbidden_marketing_terms_check"
         ],

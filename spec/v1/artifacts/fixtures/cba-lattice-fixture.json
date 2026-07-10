@@ -14,7 +14,8 @@
       "ak.vector.lattice.counter_join.v1",
       "ak.vector.lattice.ordered_log_join.v1",
       "ak.vector.lattice.ordered_log_gap.v1",
-      "ak.vector.lattice.fsm_join.v1"
+      "ak.vector.lattice.fsm_join.v1",
+      "ak.vector.realm_link.fsm_transition_matrix.v1"
     ],
     "cases": [
       {
@@ -57,6 +58,36 @@
         "assertions": [
           "duplicate_same_transition_idempotent",
           "same_from_different_to_returns_bottom"
+        ]
+      },
+      {
+        "vector_id": "ak.vector.realm_link.fsm_transition_matrix.v1",
+        "cell_family": "ak.component.realm.link.v1",
+        "lattice": "fsm",
+        "bottom": "reject",
+        "parameters": {
+          "initial_states": ["active", "rejected", "tombstoned"],
+          "states": ["active", "rejected", "tombstoned"],
+          "terminal_states": ["tombstoned"],
+          "allowed_transitions": [
+            ["active", "active"],
+            ["active", "rejected"],
+            ["active", "tombstoned"],
+            ["rejected", "rejected"],
+            ["rejected", "active"],
+            ["rejected", "tombstoned"],
+            ["tombstoned", "tombstoned"]
+          ]
+        },
+        "assertions": [
+          "all_declared_initial_states_are_accepted",
+          "every_declared_transition_is_accepted",
+          "undeclared_transition_rejects_with_realm_link_invalid_transition",
+          "tombstoned_is_terminal_except_byte_equivalent_replay",
+          "same_status_same_basis_replay_is_idempotent",
+          "same_basis_different_status_siblings_return_bottom",
+          "general_graph_cycles_are_not_an_admission_error",
+          "self_reference_rejects_with_realm_link_self_reference"
         ]
       }
     ]

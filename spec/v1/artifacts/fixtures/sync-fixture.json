@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.sync.v1",
-  "version": "2026-05-02",
+  "version": "2026-07-10",
   "collection_projection": {
     "projection": "collection",
     "renderer": "board",
@@ -59,6 +59,88 @@
     ],
     "next_cursor": "ak:cursor:eyJoIjoiYjNCaGNYVmxMWE4wY21WaGJTMW9ZVzVrYkdVIiwicHVycG9zZSI6InN0cmVhbSIsInQiOiIyMDI2LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6MTc5ODc2MTU5OTAwMH0",
     "limited": false
+  },
+  "stream_frame_sequence": {
+    "vector_id": "ak.vector.sync.stream_frame_sequence.v1",
+    "runner": "cotest::conformance::sync::run_stream_frame_sequence_vector",
+    "operations": [
+      "ak.self.account.stream.subscribe",
+      "ak.self.events.stream.subscribe"
+    ],
+    "cases": [
+      {
+        "name": "catchup_true_baseline_then_complete",
+        "request": {"catchup": true},
+        "frames": [
+          {"kind": "delta", "cursor": "ak:cursor:stream-c1", "partial": false},
+          {"kind": "frontier", "cursor": "ak:cursor:stream-c2"},
+          {"kind": "catchup_complete", "cursor": "ak:cursor:stream-c2"},
+          {"kind": "heartbeat"}
+        ],
+        "expected": {"result": "accept", "reconnect_after": "ak:cursor:stream-c2"}
+      },
+      {
+        "name": "catchup_false_forbids_completion",
+        "request": {"catchup": false},
+        "frames": [
+          {"kind": "delta", "cursor": "ak:cursor:stream-c3", "partial": false},
+          {"kind": "heartbeat"}
+        ],
+        "expected": {"result": "accept", "catchup_complete_seen": false, "reconnect_after": "ak:cursor:stream-c3"}
+      },
+      {
+        "name": "completion_before_baseline_delta_rejected",
+        "request": {"catchup": true},
+        "frames": [
+          {"kind": "catchup_complete", "cursor": "ak:cursor:stream-c4"}
+        ],
+        "expected": {"result": "reject", "reason": "schema_violation", "trace_violation": "catchup_complete_before_delta"}
+      },
+      {
+        "name": "completion_on_non_catchup_rejected",
+        "request": {"catchup": false},
+        "frames": [
+          {"kind": "delta", "cursor": "ak:cursor:stream-c5", "partial": false},
+          {"kind": "catchup_complete", "cursor": "ak:cursor:stream-c5"}
+        ],
+        "expected": {"result": "reject", "reason": "schema_violation", "trace_violation": "unexpected_catchup_complete"}
+      },
+      {
+        "name": "dropped_requires_cursor",
+        "request": {"catchup": false},
+        "frames": [
+          {"kind": "delta", "cursor": "ak:cursor:stream-c6", "partial": false},
+          {"kind": "dropped", "cursor": "ak:cursor:stream-c6", "reconnect_after_ms": 1000}
+        ],
+        "expected": {"result": "reconnect", "reconnect_after": "ak:cursor:stream-c6"}
+      },
+      {
+        "name": "missing_drop_cursor_uses_resync_required",
+        "request": {"catchup": false},
+        "server_has_resume_cursor": false,
+        "forbidden_frame": {"kind": "dropped"},
+        "required_frame": {"kind": "resync_required", "reconnect_after_ms": 1000},
+        "expected": {"result": "resync", "reconnect_cursor_advanced": false}
+      },
+      {
+        "name": "cursorless_controls_do_not_advance_position",
+        "request": {"catchup": false},
+        "initial_reconnect_cursor": "ak:cursor:stream-c7",
+        "frames": [
+          {"kind": "heartbeat"},
+          {"kind": "unauthorized"}
+        ],
+        "expected": {"result": "closed", "reconnect_after": "ak:cursor:stream-c7"}
+      }
+    ],
+    "assertions": [
+      "delta frontier catchup_complete and dropped carry cursor",
+      "heartbeat resync_required and unauthorized never advance reconnect position",
+      "catchup_complete is emitted only after a baseline delta when catchup is true",
+      "catchup_complete is forbidden when catchup is false",
+      "a server without a drop cursor emits resync_required instead of cursorless dropped",
+      "the same trace rules apply to account and events streams"
+    ]
   },
   "cursor_gap_recovery": {
     "request": {
