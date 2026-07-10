@@ -25,6 +25,8 @@ Realm 是硬安全边界，不承担产品导航树职责。因此 Arkret v1 不
 3. Link 不自动级联 membership、capability、history visibility、E2EE key、schema、policy、retention、notification 或 Applet permission。
 4. 任何跨 Realm 继承或派生 grant 必须由目标 Realm 显式 opt-in，且只能收窄。
 5. 遍历 link graph 时，节点 MUST 对每个 Realm 独立做授权和历史可见性检查。
+6. Link graph MAY 含环；遍历器 MUST 以 visited-set 截断重复节点，不得把一般有向图误判为树。`target_realm_id` 等于事件所属 Realm 的 self-link 没有跨边界语义，reducer MUST 以 `schema_violation`、`reason_code=realm_link_self_reference` 拒绝。
+7. Realm 之间的治理、发现、继承、迁移或 mirror 边 MUST 使用 `ak.realm.link`；实现 MUST NOT 用端点为 Realm 的 `ak.relation` 绕过本文件的 reciprocal、commitment 与 no-cascade 规则。Relation 仍可把 Realm 当作普通内容引用端点，但不得获得 Realm-link 语义。
 
 ## 3. 标准 Link Kind
 
@@ -68,7 +70,7 @@ Payload 字段：
 | `split_from` | 本 Realm 从目标 Realm 拆分或迁移而来。 | no |
 | `replaces` | 本 Realm 替代目标 Realm。 | no，除非 replacement profile 明确声明。 |
 
-Profile MAY 注册额外 `link_kind`，但必须声明：
+Profile MAY 注册额外 `link_kind`。扩展值 MUST 使用 `x.<reverse-dns>.<name>` 形式并进入该 profile 的机读登记；未声明相应 profile 的 receiver MUST fail closed。扩展登记还必须声明：
 
 - 是否需要双方确认。
 - 是否可被目录展示。
@@ -84,9 +86,22 @@ Profile MAY 注册额外 `link_kind`，但必须声明：
 - `rejected`
 - `tombstoned`
 
+`ak.realm.link` 写入 `ak.component.realm.link.v1` cell。cell subject 是 `(target_realm_id, link_kind)` 元组，Realm 由 Event scope 给出；`lattice=fsm`、`bottom=reject`、`plane=control`、`sealed=true`。写入必须持有 `ak.realm.link` capability（聚合 `ak.realm.admin` 也可覆盖该 event kind）。
+
+允许的状态迁移如下；`absent` 只表示尚无 cell，不是 wire 状态：
+
+| from | to | 说明 |
+| --- | --- | --- |
+| `absent` | `active` / `rejected` / `tombstoned` | 创建声明；直接 tombstone 用于幂等删除。 |
+| `active` | `active` / `rejected` / `tombstoned` | 同态写可更新 label/commitment；拒绝或终止。 |
+| `rejected` | `rejected` / `active` / `tombstoned` | 本侧可在新的已授权 Control Move 中重新接受。 |
+| `tombstoned` | `tombstoned` | 终态；仅允许字节等价的幂等重放。 |
+
+未列出的迁移 MUST 以 `failed_precondition`、`reason_code=realm_link_invalid_transition` 拒绝。并发 Control Move 按 CBA/Seal basis 裁决；无法得到单一 sealed head 时 cell 为 `⊥` 并 fail closed，不得按时间戳或接收顺序挑选。
+
 Projection MAY 派生：
 
-- `sealed`：要求双方声明的 kind 同时 active。
+- `confirmed`：要求双方声明的 kind 同时 active。
 - `unconfirmed_link`：只有一侧声明。
 - `rejected`：任一侧拒绝。
 - `tombstoned`：任一侧 tombstone 或 Realm lifecycle 使 link 失效。
@@ -147,6 +162,7 @@ Realm link 查询返回 link graph，不返回产品导航树。产品导航应�
 | `source_realm_id` | `id:realm` | 源 Realm。 |
 | `target_realm_id` | `id:realm` | 目标 Realm。 |
 | `link_kind` | `string` | link kind。 |
+| `status` | `active \| rejected \| tombstoned` | 本侧 durable cell 的原始状态。 |
 | `edge_status` | `confirmed \| unconfirmed_link \| rejected \| tombstoned` | 派生状态。 |
 | `accessible` | `boolean` | 调用方是否可读取目标 Realm 摘要。 |
 

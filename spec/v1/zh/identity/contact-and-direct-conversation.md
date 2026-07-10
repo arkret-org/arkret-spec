@@ -155,8 +155,8 @@ v1 规范采用窄读：private contact discovery 响应 MAY 在 PSI set-members
 
 Resolver MUST：
 
-1. 验证 requester 与 peer 的 contact projection 为 `accepted`，且 requester 未 tombstone 该 contact。若没有 accepted contact，返回 `failed_precondition` / `contact_not_accepted`。本 resolver 是"联系人私聊入口"；只想基于 consent 发起非联系人 DM 的 profile 必须另行注册 operation。
-2. 验证目标 holder 对 requester 有 active `consent_scope=direct_message` 或 `any`。若没有，返回 `failed_precondition` / `contact_consent_missing`。
+1. 验证 requester 与 peer 的 contact projection 为 `accepted`，且 requester 未 tombstone 该 contact。若没有 accepted contact，对 requester 统一返回 `failed_precondition` / `direct_conversation_unavailable`。本 resolver 是"联系人私聊入口"；只想基于 consent 发起非联系人 DM 的 profile 必须另行注册 operation。
+2. 验证目标 holder 对 requester 有 active `consent_scope=direct_message` 或 `any`。若没有，对 requester 同样返回 `failed_precondition` / `direct_conversation_unavailable`。服务端 MAY 在 holder-private 审计中区分 contact/consent 原因，但响应状态、body 与时序 MUST 不可区分。
 3. 查询 direct conversation binding。若已有 active canonical binding，返回其 `realm_id` 与 `main_strand_id`。
 4. 若 `create=false` 且不存在 binding，返回 `not_found`。
 5. 若 `create=true`，走既有 KeyPackage claim、Realm create / member add、MLS group create、Strand create，然后写 direct conversation binding fact。该编排的失败路径 MUST 返回如下终态错误，且 MUST NOT 把半成品 Realm 作为 canonical binding 返回：

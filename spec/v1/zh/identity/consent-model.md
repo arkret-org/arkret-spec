@@ -281,6 +281,14 @@ policy MAY 声明 `ak.realm.policy_components` 中的 `preauth` component 包含
 - **不向 requester 暴露可联系信号（normative）**：invite 进入 quarantine inbox 暂存(§3.1 缺省判定的"非拒绝、非放行")**MUST NOT** 被对 requester 暴露为送达 / 可联系信号。quarantine 期间(暂存项处于 `pending_review`,以及超时丢弃后)服务端与客户端 **MUST NOT** 向 requester 返回任何 deliver / seen / read receipt / presence / typing / "已送达" / "可联系" 等指示，亦不得通过响应码、时序或副作用让 requester 区分"已进入 holder quarantine"与"被直接拒绝 / holder 不存在"。requester 只有在 holder 显式 review 接受并构造 grant Control Move(本节 review 后转换 (a))后，才 MAY 从正常 active-grant 路径观察到可联系状态。否则 quarantine 暂存本身会成为"holder 真实存在且 inbox 可达"的可联系侧信道，违背 consent gate 的"非授权即不可联系"语义。
 - **反滥用限速（normative）**：为闭合"换 pairwise DID 即重新入列"的骚扰放大面，服务端对写入同一 holder quarantine inbox 的**新来源**（此前未见过的 `peer` pairwise DID）首次接触项 MUST 施加 per-holder 速率与总量上限（与 [`../discovery/discovery-directory.md` §6.4](../discovery/discovery-directory.md) 的 private contact discovery 限速同构；具体阈值由 deployment policy 声明，缺省 SHOULD 收敛到与该 PSI quota 同量级）。超过上限的新来源接触 MUST 被静默丢弃——不入列、不向 requester 暴露任何送达 / 可联系信号（遵守上一条不可区分要求）；holder MAY 在 UI 显式放宽。该限速仅针对"新陌生 pairwise 首次接触"；已被 holder grant 过、走正常 active-grant 路径的 peer 不受此限。
 
+#### 6.1.2 `ak.self.consent.command.request`（normative）
+
+该 self-surface operation 只把陌生 peer 的请求提交给上述 quarantine/anti-abuse pipeline；它**不**创建 consent grant dot、pending consent state 或 contact fact。`peer_did` 省略时取 authenticated actor，出现时 MUST 与 actor 相等；否则拒绝 `unauthorized`。
+
+服务端对 holder 不存在、holder policy deny、per-holder 限速、静默丢弃与成功进入 quarantine MUST 返回完全相同的 `consent_request_outcome {ok:true, accepted_for_processing:true}`，并 SHOULD 做统一时序填充。响应 MUST NOT 包含 cell id、state、dots、expiry、request timestamp、account-existence flag 或可关联 queue id。写入 quarantine 时必须执行 §6.1.1 的总量/速率上限；`require_explicit_consent` profile 下请求被静默丢弃，仍返回相同 opaque outcome。
+
+完整 consent cell 查询 `ak.self.consent.query.list` / `.resource.get` 仅允许 holder 或 holder 明确授权的 controller 调用。Peer MUST NOT 读取 consent cell、grant/revoked dots、expiry 或 request history；peer 若获 holder 主动披露，只能消费 §2.1/§6.2.2 定义的 audience-bound 短期 opaque green-light。
+
 **UX 提示（normative for client implementations）**: 撤销 consent 后，客户端 UI MUST 明确披露两点语义：已发出的 invite 不会因 consent revoke 自动失效；如需撤销已发出的 invite，必须单独执行 `ak.invite.revoke`。该提示是非追溯语义的 UX 配套，服务端不强制（consent revoke 不会自动 cascade 到 invite）。
 
 ### 6.2 Contact / DM 前置 gate
@@ -289,7 +297,7 @@ policy MAY 声明 `ak.realm.policy_components` 中的 `preauth` component 包含
 
 WebRTC `ak.call.signal{signal_type=invite}` 在服务端投递与目标客户端展示前都 MUST 校验 `voice_call` / `video_call` consent；无 consent 的 invite MUST 被丢弃或进入 profile 声明的 quarantine，且不得产生 VoIP push / ringing UI。Presence subscription / fanout 由 Sync Service 在每次订阅建立和每次 fanout 前校验 holder 对 observer 的 `presence` consent；无 consent 时不得泄露在线、离线、last active bucket 或订阅是否存在。
 
-`ak.self.direct_conversation.command.resolve` 是联系人私聊入口；它 MUST 同时检查 accepted contact projection 与目标 holder 对 requester 的 active `direct_message` / `any` consent。只有 consent、没有 accepted contact 时，resolver MUST fail closed（`failed_precondition` / `contact_not_accepted`）；只有 accepted contact、没有可验证 consent 时，resolver MUST fail closed（`failed_precondition` / `contact_consent_missing`）。非联系人但基于 consent 发起的一次性 DM profile 若未来需要，必须另行注册 operation，不得复用该 resolver。
+`ak.self.direct_conversation.command.resolve` 是联系人私聊入口；它 MUST 同时检查 accepted contact projection 与目标 holder 对 requester 的 active `direct_message` / `any` consent。任一条件不成立时，对 requester 统一 fail closed（`failed_precondition` / `direct_conversation_unavailable`），响应状态、body 与时序不得泄露究竟是 contact 缺失还是 holder 私有 consent 缺失；细分原因只可写 holder-private 审计。非联系人但基于 consent 发起的一次性 DM profile 若未来需要，必须另行注册 operation，不得复用该 resolver。
 
 `ak.private_contact_discovery.v1` 返回 PSI set-membership 命中位图时，MAY 附带 holder 当前 consent state hash 或最小 invite/consent handoff stub（不暴露具体 consent 内容，只声明 grant/revoke 状态与下一步引导），让发起方在尝试联系前判断是否需要先请求 consent。该响应 MUST NOT 包含 contact request handoff token、reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。
 

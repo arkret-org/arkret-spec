@@ -19,7 +19,7 @@ see_also:
 
 搜索不是 Arkret 真相源。客户端本地搜索、受托 search / projection 服务和 directory search 都必须回到 signed Event、reducer profile、Realm policy 与 causal frontier 校验结果。
 
-本文只定义两类隐私保护 search profile：
+本文定义三类隐私保护 search profile：
 
 - `ak.profile.search.client_index.v1`: 客户端加密索引托管。
 - `ak.profile.search.blind_index.v1`: keyed blind token 服务端候选检索。

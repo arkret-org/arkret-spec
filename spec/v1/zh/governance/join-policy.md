@@ -330,6 +330,13 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 
 `reviewer_quorum != "any"` 时，reducer 需收集 N 个独立 reviewer 的 accept 才认为申请进入 `accepted` 状态；任一 reject 即终止。quorum 判定 MUST 遵循 §3 的 `reviewer_quorum` 解析规则：`majority` / `all` 的分母与 reviewer 资格按各 accept Event 的 CBA basis 取值；accept 计入后 reviewer 失去 capability 不追溯使该 accept 失效。
 
+`request_changes` 与 quorum 的聚合规则（normative）：
+
+1. 任一在当前 application revision 上有效的 `request_changes` 立即把 application 投影置为 `changes_requested`，并暂停该 revision 的 quorum 计数；同批存在 `reject` 时 `reject` 优先并进入终态。
+2. Application 的每个提交/修订 MUST 计算 `application_revision_digest = sha256(JCS({answers, gate_proofs, requested_role, policy_version_digest}))`。每条 review receipt MUST 签名绑定该 digest；缺失或不等的 accept/request_changes/reject 不得作用于当前 revision。
+3. Applicant 提交修订后，旧 digest 上全部 accept 与 request_changes 保留审计事实但 MUST NOT 计入新 revision 的 threshold。新 revision 的 accept 从零重新累计；实现 MUST NOT 复用 reviewer 对旧正文的同意。
+4. 同一 reviewer 对同一 revision 的多个决定按其因果后继取最新；并发不同决定为冲突，不计入 quorum，直到 reviewer 在新 basis 上显式收敛。不同 reviewer 的 accept 按集合并集计数。
+
 **review reason_code / reason_text 可见性（normative）**：§7.3 的细粒度 `reason_code` 与 `reason_text` 只在 applicant **已提交 stage 1 `ak.member.state{knock}`**（即进入半信任的申请-审核状态机）后，才 MAY 对该 applicant 自身可见。这与 §5 自动解析路径"外部 applicant 失败不可枚举"不冲突：尚未 knock 的外部探测者仍只能看到统一不可枚举错误，细粒度 review 原因 MUST NOT 出现在 directory hint、discovery surface、push / notification payload 或任何未经 knock 的 caller 可见响应中。换言之，半信任边界由"是否已 knock"划定——knock 之前等同自动路径的不可枚举约束，knock 之后才解锁面向本人的 review reason。
 
 ### 7.4 `member.application.cancel`

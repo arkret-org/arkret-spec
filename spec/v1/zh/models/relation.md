@@ -22,6 +22,8 @@ Relation 连接的是对象引用：标准字段使用 `from_ref` / `to_ref`，�
 
 联系人关系不是 Relation。`ak.relation.*` 是 Realm-scoped 协作图边，`realm_id` 必填；跨 Realm 的联系人请求、接受、拒绝、tombstone 与 direct conversation binding 的真源是 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 定义的 principal-scoped facts。实现 MUST NOT 用 `relation_kind=contact` 或等价自定义 Relation 替代 `ak.contact.*`。
 
+Realm 端点只允许普通内容引用。Realm 之间的治理、发现、继承、迁移、mirror 或 confidential-extension 边的唯一真源是 [`realm-links.md`](./realm-links.md)；实现 MUST NOT 用 `ak.relation` 表达这些边，也 MUST NOT 从 Realm 端点 Relation 派生 membership、capability、policy、history、E2EE 或 federation 语义。
+
 ## 2. Schema 与字段
 
 Schema id: `ak.schema.relation.v1`

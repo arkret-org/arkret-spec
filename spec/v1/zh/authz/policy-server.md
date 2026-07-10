@@ -158,6 +158,14 @@ Content-Type: application/json
 | `signature.kid` | `did-url` | required | 签名 key id。 |
 | `signature.sig` | `base64url string` | required | detached signature。 |
 
+`policy_frontier_digest` 与 `membership_frontier_digest` 是可跨 issuer 复算的 filtered state roots，不是 issuer-local opaque 值。二者 MUST 复用 [`event-auth-state-resolution.md` §6.2.1/§6.2.2](./event-auth-state-resolution.md#621-治理-state_root-的-merkle-计算规则normative) 的 JCS leaf、排序、hash suite 与 RFC 6962 组合规则：
+
+- `policy_frontier_digest` 枚举 decision `bound_to.realm_id` 当前 accepted Seal view 中全部 non-`⊥` policy control cell（`ak.component.realm.*policy*`、join rule、history visibility、policy components、media service，以及 profile 明确登记的 policy family）。
+- `membership_frontier_digest` 枚举同一 Seal view 中全部影响 `bound_to.actor_id` 的 Realm/Circle membership、account lifecycle、device trust/authorization 与 role cell。
+- 每个 leaf 都是 `canonical_json({"cell":"<cell_wire_id>","state":{"value":<lattice_value>}})` 的 UTF-8 bytes；按 cell id 升序，`leaf=H(0x00||bytes)`、`node=H(0x01||left||right)`，奇数节点原样提升，空集用 `H("")`。
+
+签发者与 verifier MUST 从 decision 绑定的 Seal/frontier 独立枚举并重算；漏报一个 cell、使用本地到达顺序或无法证明 frontier inclusion 时，该结构化比较路径失败，跨 issuer receiver 必须走 §5.1 的本地重跑分支。
+
 响应示例（非完整 schema）：
 
 ```json schema=openapi/arkret-service-api.openapi.yaml#/components/schemas/PolicyCheckOutcome
@@ -357,7 +365,7 @@ Policy Server MAY 执行 Realm 级与组织级的 blocklist、allowlist、rate l
 | 词表 | 权威源 | kind 集合 | 适用范围 |
 | --- | --- | --- | --- |
 | **Capability resource selector** | [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) / [`resource-selector-grammar.md`](./resource-selector-grammar.md) §3.1 | 18 项：`realm` / `space` / `circle` / `strand` / `message` / `morph` / `object` / `relation` / `view` / `event` / `actor` / `schema` / `policy` / `invite` / `notification` / `read_cursor` / `blob` / `*` | capability grant 的 `resources[]`，表达细粒度授权 scope。 |
-| **Policy rule resource** | [`policy.schema.json`](../../artifacts/schemas/policy.schema.json) `rule.resource[].kind` | 5 项：`realm` / `strand` / `space` / `object` / `service` | Policy Server 规则的作用对象，是上面的有意收窄子集（policy 规则作用在较粗的治理粒度上）。 |
+| **Policy rule resource** | [`policy.schema.json`](../../artifacts/schemas/policy.schema.json) `rule.resource[].kind` | 5 项：`realm` / `strand` / `space` / `object` / `service` | 与 capability 词表部分重叠：前四项取自 capability 词表并在 policy 层收窄；`service` 是 policy 专属治理 kind。 |
 
 适用规则：
 

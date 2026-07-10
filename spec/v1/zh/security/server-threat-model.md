@@ -103,6 +103,9 @@ sidebar:
 26. **实时活动信号去匿名追踪（Real-time Activity-Signal Deanonymization）**
     攻击者（外部 world-readable 观察者、受托 Sync Service 或共谋成员）订阅并关联实时活动信号——read receipt（`ak.receipt.read`）已读位置、typing（`ak.typing`）逐键活动、presence（`ak.presence` 的 `dnd` / `idle` / bucket 化 `last_active_at`）以及 push wakeup timing——以重建特定 actor 的活动时间序列、作息画像，甚至在 world-readable scope 下对外部观察者去匿名其阅读 / 输入行为。这些信号单独看是产品功能，关联后成为去匿名 timing oracle。防护以各自正文为权威：read receipt 的 world-readable / forced-public 组合 fail-closed 与 fanout 收口见 [`discovery/read-receipts.md` §2.5.1](../discovery/read-receipts.md)；typing 的 world_readable scope fail-closed 与 presence `dnd`/`idle` 对未授权观察者 MUST 降级见 [`discovery/profiles-presence.md` §3.4 / §3.5](../discovery/profiles-presence.md)；push wakeup 不得成为 presence timing oracle（bucket 化、默认 ≥60s 批处理）见 [`discovery/push-notifications.md` §2.4](../discovery/push-notifications.md)。
 
+27. **实时媒体 / SFU 信任边界滥用（Media-Plane Abuse）**
+    恶意或被攻陷的 token issuer、SFU/MCU、TURN 服务或 recording/transcription backend 可能注入未授权 participant、伪造 `participant_identity` / frame-key 来源、静默把 `media_service_decrypts` 从 false 降级为 true、滥用短期 TURN credential、把 backend 明文产物绕过 Arkret blob pipeline，或通过 room join/leave timing 与包大小重建会议参与图谱。防护以 [`crypto-media/media-service-binding.md` §3/§7/§8](../crypto-media/media-service-binding.md)、[`crypto-media/webrtc-signaling.md` §3a/§5/§10](../crypto-media/webrtc-signaling.md) 与 [`crypto-media/call-state.md` §4/§5](../crypto-media/call-state.md) 为权威：participant admission 必须同时验证 membership/account/device/capability 与 signed binding；远端 SFU 默认不得获得 exporter key；任何 backend 明文访问必须通过三层 governance gate；TURN credential 必须短期、audience/focus/call 绑定；录制/转写只经 Arkret authenticated encrypted-blob pipeline。任一校验不可得 MUST fail closed。即使内容 E2EE，SFU/relay 仍可观察 room timing/size；实现 MUST 在 UI/policy 披露该残余元数据面，minimal-metadata profile SHOULD 做 bucket/padding/短留存。
+
 ### 2.1a 需 profile 才能缓解的攻击项（base v1 不直接防御）
 
 §2.1 中以 *conditional* 标注的条目不属于 base v1 可直接防御范围，只有在显式声明对应 hardening profile 时才能缓解。本节是 conditional 项的索引，缓解手段与 normative 约束（含「未声明 profile 时 MUST NOT 把 E2EE 误表述为隐藏 federation traffic metadata」）以被索引条目正文为权威，不在此重述：
@@ -164,6 +167,7 @@ sidebar:
 | Directory ingest 滥用 | 是 | announce 来源 DID 验签、`as_of` 单调 / 时间锚、policy_revision 单调防回退、announce 一次性 + 过期窗口、source-ref 授权核验、takedown 授权链(见 §2.1 #25 与 [`discovery/discovery-directory.md` §8.10 / §11](../discovery/discovery-directory.md))。 |
 | URL 凭证泄露 | 是 | 禁止 query string 认证。**单一登记例外**：`ak.self.blob.command.presign` 签发的 pre-signed URL 通过 `?presign=` 携带 server-issued、短时效（≤1h）、单 blob、只读、可撤销的签名 envelope（见 §2.1 #21 与 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)）；E2EE 附件 ciphertext fetch MUST NOT 使用此机制。 |
 | 媒体侧信道探测 | 是 | 私有 blob 的 HEAD/Range/redirect 统一授权；不可见资源不返回大小、MIME、文件名或 Range header。 |
+| 实时媒体 / SFU 滥用 | 是 | participant binding + membership/account/device/capability 分层 admission；`media_service_decrypts` 三层 governance gate；sender-bound exporter key；TURN credential call/focus/audience 绑定；backend artifact 强制 Arkret encrypted-blob pipeline（§2.1 #27）。 |
 | 出站 URL / SSRF | 是 | [`sync/api-conventions.md`](../sync/api-conventions.md) §11.2 的出站网络目标策略；DID、联邦、媒体、snapshot、Policy Server、Webhook、Applet/Agent endpoint 统一做私网/metadata 地址拒绝、DNS rebind 防护和 redirect 复核。 |
 
 ## 4. 协议规则完善（落地要求）
@@ -205,6 +209,9 @@ sidebar:
 - 私有 blob 下载、HEAD、Range 和 redirect 必须使用同一授权上下文。
 - 不可见 blob 应返回与不存在资源一致的失败语义，不得通过 `Content-Length`、`Content-Type`、`Content-Disposition`、`Accept-Ranges` 或 redirect URL 暴露信息。
 - 上传 MIME 与 filename 均为不可信 metadata；下载时 `Content-Disposition` 必须使用安全清理后的文件名，并对危险类型默认 `attachment`。
+- SFU/MCU/token issuer 在每次 join、token refresh 与 participant notification 上必须重验 signed participant binding、membership/account/device/capability；不得只信 backend 自报 identity。
+- 默认 E2EE binding 不得把 exporter key 发送给远端媒体服务。只有 `media_service_decrypts=true` 经 policy component、`plaintext_visible_services` 与 MLS governance binding 三层同时授权后才可发送，且该事实必须成员可见。
+- TURN credential 必须短期、单 call/focus/audience 绑定并限速；backend-generated recording/transcript 必须经 Arkret authenticated encrypted-blob pipeline，禁止直出 URL 或云存储旁路。
 
 ### 4.5 目录与发现
 

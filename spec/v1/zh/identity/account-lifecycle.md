@@ -101,7 +101,7 @@ Arkret 身份由 DID principal 表示，但用户访问通常经过一个或多�
 - **降低严格度**（任一 `to` 严格度低于 `from`，如 `suspended → active`、`locked → soft_logged_out`）的转换 MUST 满足规则 2（引用 `supersedes_status_event_id` 且在当前 Seal view 可见），否则按并发候选处理，不构成有效转换。
   - **例外：`soft_logged_out → active` 自助恢复**（normative）：该转换由 §4 的 fresh DID proof（设备 / principal 重新证明控制权）授权，**不要求** `supersedes_status_event_id`；fresh DID proof 即构成有效降严格度转换的充分凭据。其余降严格度转换（`suspended → active`、`locked → *` 等）仍按规则 2 要求 `supersedes_status_event_id`。
 - **`erasure_pending` 为 terminal**（规则 3）：其唯一出边为空，任何转出 MUST 拒绝 `erasure_pending_is_terminal`。
-- **`deactivated` 重激活**（normative）：v1 **不**允许 `deactivated → active` 等任意降严格度转换。§7.1 的 deactivation fanout（device `revoked`、KeyPackage `retired`、session/push/to-device 撤销）是不可逆操作，v1 不定义其逆操作语义；需要恢复访问的用户 MUST 走新的 onboarding（绑定到同一 principal DID 的新 session/device/KeyPackage），而非把既有 `deactivated` account status 翻回 `active`。`deactivated` 的唯一合法出边是 `erasure_pending`（继续到擦除）。实现 MUST NOT 接受声称把 `deactivated` 降级回较低严格度状态的 `ak.account.status` event（`account_status_transition_invalid`）。
+- **`deactivated` 重激活**（normative）：v1 **不**允许同一 `account_id` 的 `deactivated → active` 等任意降严格度转换。§7.1 的 deactivation fanout 对绑定到该 account 的 device、KeyPackage、session、push 与 to-device 资源不可逆；需要恢复访问的用户 MUST 创建新的 service account（新 `account_id`）并走完整 onboarding，可继续绑定同一 principal DID，但不得复活旧 account 或旧资源。`deactivated` 的唯一合法出边是 `erasure_pending`。实现 MUST NOT 接受声称把该 `account_id` 的 `deactivated` 降级回较低严格度状态的 `ak.account.status` event（`account_status_transition_invalid`）。
 
 状态发布为服务侧 signed account status：
 
@@ -118,11 +118,11 @@ Arkret 身份由 DID principal 表示，但用户访问通常经过一个或多�
 }
 ```
 
-Current account status projection 是 ordered_log 上的确定性派生值，而不是简单取本地最后到达的 event。本节定义的 severity-order 仲裁是 cell family `ak.component.account.status.v1`（`ordered_log` lattice）之上的 canonical projection；本节即该投影函数的权威定义，实现 MUST 产出与本节规则一致的 current status。若同一 `principal_id` 出现并发 `ak.account.status` head，client / server MUST 按以下规则选择当前状态：
+Current account status projection 是 ordered_log 上的确定性派生值，而不是简单取本地最后到达的 event。cell family `ak.component.account.status.v1` 的 `cell_subject` 是 `account_id`；`principal_id` 是该 service account 的绑定主体，不是 lifecycle key。本节定义的 severity-order 仲裁是该 cell 上的 canonical projection。若同一 `account_id` 出现并发 `ak.account.status` head，client / server MUST 按以下规则选择当前状态；同一 principal 绑定的其它 `account_id` MUST 独立求值：
 
 1. 严格度高者优先：`erasure_pending` > `deactivated` > `suspended` > `locked` > `soft_logged_out` > `active`。
 2. 降低严格度的状态（例如 appeal 后回到 `active`）MUST 在 payload 的 `supersedes_status_event_id` 字段（见 [`event-payload.schema.json#/$defs/account_status_payload`](../../artifacts/schemas/event-payload.schema.json)）引用被解除的 status event id，且该引用必须在当前 Seal view 可见；否则它只是并发候选，不能覆盖更严格状态。
-3. **`erasure_pending` 是 terminal 状态（normative，不可逆）**：一旦某 `principal_id` 的 account status projection 进入 `erasure_pending`，它 MUST NOT 被任何 `supersedes_status_event_id` 引用降级回 `deactivated` / `suspended` / `locked` / `soft_logged_out` / `active` 中的任意一个。任何声称把 `erasure_pending` superseded 为较低严格度状态的 `ak.account.status` event MUST 被 reducer / projection 拒绝（`erasure_pending_is_terminal`），并保持 `erasure_pending` 为 current。理由：擦除流程一旦开始即对 blob bytes、account private state、受托 projection 执行不可逆的物理删除/最小化，把状态"恢复"为 active 会产生一个数据已被销毁却显示为正常的不一致账号。需要在擦除真正执行前撤销的，应在进入 `erasure_pending` 之前用较低严格度状态处理；进入 `erasure_pending` 之后只能继续完成擦除并发布 erasure receipt（§8）。`erasure_pending` 之上没有更严格状态，故规则 2 的"降低严格度"路径对它不适用。
+3. **`erasure_pending` 是 terminal 状态（normative，不可逆）**：一旦某 `account_id` 的 account status projection 进入 `erasure_pending`，它 MUST NOT 被任何 `supersedes_status_event_id` 引用降级回 `deactivated` / `suspended` / `locked` / `soft_logged_out` / `active` 中的任意一个。任何声称把 `erasure_pending` superseded 为较低严格度状态的 `ak.account.status` event MUST 被 reducer / projection 拒绝（`erasure_pending_is_terminal`），并保持 `erasure_pending` 为 current。理由：擦除流程一旦开始即对 blob bytes、account private state、受托 projection 执行不可逆的物理删除/最小化，把状态"恢复"为 active 会产生一个数据已被销毁却显示为正常的不一致账号。需要在擦除真正执行前撤销的，应在进入 `erasure_pending` 之前用较低严格度状态处理；进入 `erasure_pending` 之后只能继续完成擦除并发布 erasure receipt（§8）。`erasure_pending` 之上没有更严格状态，故规则 2 的"降低严格度"路径对它不适用。
 4. 同严格度并发时，先按 domain 语义主键 `effective_at` 取较晚者；`effective_at` 仍相等的并发 head，最终消歧 MUST 落到 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的统一 canonical tie-break(`event_digest` bytewise 最大值)，而**不**用 `event_id`——`event_id` 是 UUIDv7，其时间戳前缀是 producer 设定的墙钟量，用作 tie-break 会重新引入墙钟依赖。被选中者为 projection current，其他 head 仍保留在 ordered_log conflict/audit view 中。
 
 **Deactivation 进度 flag（normative）**：`status` 是封闭 6 值枚举（不含下列 token）。`deactivation_partial`（§7.1）与 `deactivation_federation_incomplete`（§7 末）**不是** `status` 值，而是 `deactivated` 状态下叠加的**独立服务侧 flag**，表达 deactivation fanout 的完成进度：
@@ -214,7 +214,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 
 ### 7.1 Deactivation Fanout（normative）
 
-为关闭"deactivation 后仍有未撤销路径继续投递或被授权"的窗口，**deactivation accepted 进入 frontier 的同一事务边界内** MUST 触发下列 fanout：
+为关闭"deactivation 后仍有未撤销路径继续投递或被授权"的窗口，**deactivation accepted 进入 frontier 的同一事务边界内** MUST 对 `owner_account_id == deactivated.account_id` 的资源触发下列 fanout。授权、设备、KeyPackage、push 与队列存储 MUST 保存该 owner 绑定；无法证明 owner 的记录 MUST fail closed 并进入人工恢复队列，不能按相同 `principal_id` 扩大到其它 service account：
 
 | 域 | Fanout 动作 | 触发什么 event |
 | --- | --- | --- |
@@ -227,7 +227,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 | **Identity link cache** | 客户端与服务端可见缓存 MUST eager invalidate 所有 `(*, pairwise_did → deactivated_principal)` 映射；不得等待 7d TTL 或 MLS epoch 推进。 | `ak.identity_link` cache invalidation |
 | **Capability cache** | 所有 cached `ak.capability.grant` decision 引用该 principal 作为 subject 或 issuer 的 MUST eager invalidate；下次 capability check 走完整判定。 | cache invalidation |
 
-**写屏障（write barrier）**：`deactivated` accepted 进入当前 account status frontier 后，任何以该 principal 为 actor、subject、issuer、recipient 或 device owner 的新 `ak.session.grant`、`ak.device.authorize`、KeyPackage publish / claim、agent / applet delegation、capability grant / delegation、push route、to-device enqueue 和 Realm membership delivery-binding 写入 MUST `failed_precondition`，`reason="principal_deactivated"`。该屏障按 account status frontier 生效，不得被较新的 HLC、不同 device、未完成 federation ack 或尚未失效的本地 cache 绕过。已经在屏障前 accepted 的历史 Event 不被改写；尚处 pending / quarantine / soft-fail 的写入 MUST 在恢复前重新检查该屏障。
+**写屏障（write barrier）**：`deactivated` accepted 进入当前 account status frontier 后，任何通过该 `account_id` 的 session、device 或 account binding 发起，或以该 account 作为 owner 的新 `ak.session.grant`、`ak.device.authorize`、KeyPackage publish / claim、agent / applet delegation、capability grant / delegation、push route、to-device enqueue 和 Realm membership delivery-binding 写入 MUST `failed_precondition`，`reason_code="account_deactivated"`。该屏障按 `account_id` 的 status frontier 生效，不得被较新的 HLC、不同 device、未完成 federation ack 或尚未失效的本地 cache 绕过；绑定同一 principal DID 的不同 active `account_id` 不受旧 account 屏障影响，但必须用自己的新 session/device/KeyPackage 完成 onboarding。已经在屏障前 accepted 的历史 Event 不被改写；尚处 pending / quarantine / soft-fail 的写入 MUST 在恢复前重新检查该屏障。
 
 约束：
 

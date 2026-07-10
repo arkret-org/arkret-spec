@@ -39,23 +39,7 @@ Space hierarchy 可以跨 Realm 导航，但不改变 Realm 边界。Realm 决�
 }
 ```
 
-Reducer 编译为：
-
-```text
-cell_id := ak:cell:ak.component.space.parent.v1:<space_id>
-lattice := cas_register
-bottom  := reject
-effect  := set <parent_space_id | null>
-precondition := head_eq <expected_parent_space_id | null>
-```
-
-规则：
-
-- `space_id == parent_space_id` MUST `schema_violation`。
-- Reducer 在接受 `ak.space.parent` 前 MUST 以上移后的 parent 链为准自上而下检测 acyclic；若新 edge 会让 `space_id` 重新出现在自己的 ancestor 集合中，MUST 拒绝，reason=`space_parent_cycle`。跨 Realm parent 也必须参与该检测；无法读取某个 ancestor 时不得假设无环，必须 fail closed 或进入 pending until proof。
-- `parent_space_id = null` 表示移动到 root。
-- 并发 reparent 返回 `⊥`，依赖该 cell 的后续 Move fail closed。
-- 若 parent Space 不可读取，projection MAY 返回 `{ parent_space_id_hidden: true }`，但不得伪造 root。
+`ak.component.space.parent.v1` 的 cell identity、control-plane CBA、CAS basis、acyclic 检测、不可读 ancestor 的 fail-closed 错误与 root/hidden-parent 规则，其唯一 normative 真源是 [`realm-and-space.md` §3.5](./realm-and-space.md#35-akspaceparent-cas_register-basis)。本文件只定义产品导航与查询语义；实现 MUST NOT 从本节另行派生一套 reducer。
 
 ## 4. Effective Realm
 

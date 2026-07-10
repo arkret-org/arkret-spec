@@ -138,9 +138,11 @@ Schema id: `ak.schema.capability.v1`
 | `resources` | yes | `array<object>` | 资源 selector array，其 kind 词表、canonical JSON 结构、匹配算法与求值时机由 [`../authz/resource-selector-grammar.md`](../authz/resource-selector-grammar.md) 与 [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) 权威定义；多个 `resources[]` 默认 OR。匹配失败 fail-closed（不命中即不授权）。 | 资源范围。 |
 | `constraints` | no | `array<object>` | 见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md) §20.3 grant 示例。委托控制 MUST 通过 `constraint_type=delegation_control` 的 `max_delegation_depth` 表达；缺省（无 delegation_control 约束）等价于 `max_delegation_depth=0`，即不可转授。 | 约束条件。 |
 | `parent_grant_id` | no | `id:grant` | derived grant 必填；MUST 以 `ak:grant:` 开头，不得指向 `ak:capability:`。 | 父授权。 |
+| `capability_action_registry_digest` | conditional | `sha256:<64hex>` | `actions[]` 含 aggregate admin action 时必填；proof 覆盖，按 [`capabilities.md` §3/§5.0.1](../authz/capabilities.md) 固定签发时 registry snapshot。 | 防 registry 演进造成历史 grant 权限蠕变。 |
 | `issued_at` | no | `timestamp` | 承载 Grant 的"创建时间"语义，取代通用 `created_at`（见 [`common-fields.md` §3.2](./common-fields.md)）；retention / audit / 排序查询 MUST 用 `issued_at` / `expires_at` / `revoked_at`，不回退到通用 `created_at`。缺省时该 Grant 无创建时间真源，签发方 SHOULD 始终提供。 | 签发时间。 |
 | `not_before` | no | `timestamp` |  | 生效时间。 |
 | `expires_at` | no | `timestamp` |  | 过期时间。 |
+| `effective_after_first_authorized_key` | no | `boolean` | 仅 provisioning 编排可设。`true` 时 grant durable-but-inactive；agent principal 首条 accepted、未过期、未撤销的 `ak.agent.key.authorize` 生效前 evaluator MUST fail closed，生效后 reducer 清除此 flag。actor 不得在已生效 grant 上补设。 | Personal-agent 首钥生效门。 |
 | `updated_by` | no | `did` | grant lifecycle update 的 actor；普通 grant body 仍不可变。 | 最近更新者。 |
 | `updated_at` | no | `timestamp` | grant lifecycle update 的时间；普通 grant body 仍不可变。 | 最近更新时间。 |
 | `revoked_by` | no | `did` | 撤销后设置。 | 撤销者。 |

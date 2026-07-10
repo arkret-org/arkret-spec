@@ -59,7 +59,7 @@ Arkret v1 把三件事分开处理：
 多设备登录的过程，本质上是“已授权设备将新设备加入身份控制网”的密码学授权过程。
 
 ### 2.1 配对流程 (无密码登录)
-1. **新设备初始化**：用户在新手机或新电脑上打开应用，本地生成一组全新的 ECDSA/Ed25519 密钥对。屏幕上显示包含公钥与临时连接信息的二维码 (QR Code)。
+1. **新设备初始化**：用户在新手机或新电脑上打开应用，本地生成一组全新的 Ed25519 密钥对。屏幕上显示包含公钥与临时连接信息的二维码 (QR Code)。
 2. **主设备扫码**：用户使用已登录的主设备（如已通过面容 ID 解锁的手机）扫描该二维码。
 3. **密码学授权**：
    - 主设备验证 pairing challenge 后，签发 `ak.device.authorize`、符合 DID method 的 key-log operation，或触发 recovery policy 允许的设备授权流程。
@@ -371,14 +371,16 @@ DID-method history → principal_signing_key (PSK)
 1. 解析 principal control stream 中 `accepted_generation = max(publish.generation)` 的 `ak.cross_signing.publish` 事件作为当前 PSK / SSK / USK。
 2. 校验 `publish.principal_signing_key.kid` 出现在该 principal DID method 当前控制集中。
 3. 校验 `publish.self_signing_key.binding.signature` 由 PSK 对 §5.1 canonical 输入签名。
-4. 在该设备的最新 `ak.device.authorize` 事件中读取 `cross_signing_binding`；若缺失 MUST 视为 `unverified`，不得回退到"已授权 ⇒ cross-signed"。
+4. 在该设备的最新 accepted `ak.device.authorize` 事件中判定授权 regime：
+   - 若存在 `enrollment_authority_binding.kind="service_attested"`，receiver MUST 在当前 principal-control frontier 重新执行 §5.4 的入册权威委派、按时点签名、payload-to-projection 相等与未吊销校验。全部通过时 trust state 直接为 `verified`；任一步失败为 `unverified`。该分支不要求 `cross_signing_binding`，并以 accepted `device_authorize_event_id` 作为可复算锚。
+   - 否则读取 `cross_signing_binding`；若缺失 MUST 视为 `unverified`，不得回退到"已授权 ⇒ cross-signed"。
 5. 比较 `cross_signing_binding.ssk_generation` 与 `accepted_generation`：
    - 相等：用当前 SSK 公钥校验签名，签名输入 MUST 覆盖该设备当前 `device_public_key`、`hpke_key`、canonical `algorithms` 与 `ssk_generation`；通过则 `cross_signed`，失败则 `unverified`。
    - 小于：cross-signing 在该设备签发后已重置；设备 trust state MUST 强制降为 `needs_reverification`（见 §14）。
    - 大于：未来 generation；MUST 视为 `unverified` 并触发 stream re-sync。
 6. 跨 principal 信任（USK 签对方 PSK / device key）按对称流程执行：本端 USK binding 必须签发对方 PSK 的 `(kid, generation)` 元组而不是裸公钥，避免对方静默轮换 PSK 后仍继承信任。
 
-实现 MUST 把"未携带 `cross_signing_binding` 的 `ak.device.authorize`"与"binding 校验失败"区分上报，因为前者属于 bootstrap 例外（仅 [`identity/key-management.md` §5.0.1](../identity/key-management.md) inception 路径允许），后者属于密码学异常。
+实现 MUST 把"未携带 `cross_signing_binding` 的 `ak.device.authorize`"与"binding 校验失败"区分上报：前者仅允许于 [`identity/key-management.md` §5.0.1](../identity/key-management.md) inception bootstrap 或上述 `service_attested` 入册分支，后者属于密码学异常。
 
 #### 5.2.2 设备 lifecycle × trust 正交状态机（normative）
 
@@ -396,7 +398,7 @@ DID-method history → principal_signing_key (PSK)
 
 正交转换规则：
 
-- **trust 出边**：`unverified → cross_signed`（binding 校验通过）；`cross_signed → verified`（人工 SAS/QR 验证）；`cross_signed`/`verified → needs_reverification`（cross-signing reset，§14.2 或 binding generation 落后）；`needs_reverification → cross_signed`（被新 generation SSK 重新 cross-sign，即出现 `ssk_generation == accepted_generation` 的有效 binding）；`needs_reverification → verified`（重新 cross-sign 后再次人工验证）。`verified` 不直接降回 `cross_signed`（人工信任只被 reset 显式作废为 `needs_reverification`）。
+- **trust 出边**：`unverified → cross_signed`（binding 校验通过）；`unverified → verified`（§5.4 service-attested 入册链完整通过）；`cross_signed → verified`（人工 SAS/QR 验证）；`cross_signed`/`verified → needs_reverification`（cross-signing reset，§14.2 或 binding generation 落后）；`needs_reverification → cross_signed`（被新 generation SSK 重新 cross-sign，即出现 `ssk_generation == accepted_generation` 的有效 binding）；`needs_reverification → verified`（重新 cross-sign 后再次人工验证，或 service-attested 入册链在新 frontier 重新成立）。`verified` 不直接降回 `cross_signed`（人工信任只被 reset 显式作废为 `needs_reverification`）。
 - **lifecycle 出边**：`active → revoked`（`ak.device.revoke`），terminal，无逆边。
 - **revoked 设备的 trust 取值**：设备进入 `revoked` 后其 trust 维度**冻结**为吊销时刻的值且不再用于任何信任判定——receiver MUST 把 revoked 设备一律当作不可用于验签 / 不可接收新密钥（§8.2 / §9：`device_status != active` 即 fail-closed），无论其冻结的 trust 值为何。trust 维度仅对 `active` 设备有协议意义。
 - **非法迁移**：从 `revoked` 转出任何 lifecycle/trust 态 MUST 被拒绝（视为陈旧投影，按 control 流 frontier fail-closed）。
@@ -1406,7 +1408,7 @@ MUST 同时排除 `signature` 字段和 `unlock_commitment` 字段。随后
 `recovery_unloak.signature` 仍然覆盖上面的完整 canonical input，也就是覆盖已经
 计算出的 `unlock_commitment`。
 
-`device_quorum.signatures[]` 的每个设备签名分别覆盖同一 canonical input。`trusted_recovery_service` 的 `service_did` MUST 出现在 principal DID Document 的恢复服务声明中；未声明的服务签名无效。
+`device_quorum.signatures[]` 的每个设备签名分别覆盖同一 canonical input。`trusted_recovery_service` 的 `service_did` MUST 出现在 principal DID Document 的恢复服务声明中；未声明的服务签名无效。该 service proof 不能单独授权 reset：它还 MUST 绑定一个当前 `verified`、未过期、未消费的 `recovery_session_id`，且该 session 已由 `principal_signing`、`recovery_unlock` 或 `device_quorum` 中至少一种非 service 因子验证。仅由另一个 `trusted_recovery_service` session 验证不构成第二因子。
 
 每类 proof 的接收方验证规则见 §14.4；schema（[`cross-signing-reset.schema.json`](../../artifacts/schemas/cross-signing-reset.schema.json)）只编码 wire 形态最低限，签名 / 门限 / commitment 验证均为本节 normative。
 
@@ -1414,9 +1416,9 @@ MUST 同时排除 `signature` 字段和 `unlock_commitment` 字段。随后
 
 Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 
-1. **本 principal 名下所有设备**的 trust state 强制从 `cross_signed` / `verified` 降为 `needs_reverification`。设备本身不被撤销，可以继续读写已经获得 capability 的 Realm；但 sender-side trust UI MUST 显示警告，且任何要求 cross-signed 的策略（例如 `ak.realm.policy.require_cross_signed`）MUST 重新计算。
+1. **本 principal 名下所有设备**的 trust state 强制从 `cross_signed` / `verified` 降为 `needs_reverification`。reset payload `revoked_device_ids[]` 中列出的已攻陷/丢失设备 MUST 同事务写入 `ak.device.revoke` 并进入 terminal `revoked`；`reset_reason_code ∈ {compromise,device_loss}` 时该数组 MUST 非空。未列出的设备可在重新验证前保留最低限度读能力，但不得通过 require-cross-signed gate，也不得签发新长期授权。
 2. **本 principal USK 签发的跨 principal 信任**全部进入 `needs_reverification`：对方在自己视图里看到的"由 X 验证过我"提示 MUST 消失，需要等待新一轮 USK publish 与人工再确认。
-3. **MLS leaf credential** 不直接因 reset 失效——MLS credential 由 device key 与 KeyPackage 单独签名。但发送方 SHOULD 在 reset 后发送的第一个 outbound MLS handshake 中发起一次 Empty Commit，让 epoch transcript 在新 SSK generation 下重新被覆盖；接收方 MUST 允许该 commit 推进。
+3. **MLS leaf credential 与强制重钥**：`revoked_device_ids[]` 对应的全部 MLS leaf MUST 被 Remove proposal 覆盖；principal 参与的每个 active MLS group MUST 在 reset 后发起并接受 Commit（无待移除 leaf 时为 Empty Commit），让 epoch transcript 绑定新 SSK generation。该 Commit 完成前 scope 进入 `epoch_update_required`，发送方 MUST 暂停新加密 application message。旧 leaf 不得因“credential 由 device key 单独签名”继续存活。
 4. **in-flight verification transaction**（§10 状态机里仍在 `request` / `ready` / `start` / `accept` / `key` / `mac` 阶段的）MUST 以 `code=cross_signing_reset` cancel，禁止把基于旧 SSK 的 SAS / QR transcript 用旧 generation 完成。
 5. **To-device 队列隔离**：reset accepted 后，服务端和客户端 MUST drop 或 quarantine 所有已排队但尚未处理的 `ak.key.verification.*` to-device 消息，以及任何未显式绑定 `new_generation` 的 cross-signing / trust bootstrap 消息。隔离窗口内仅允许 `ak.key.verification.cancel(code=cross_signing_reset)`、新的 `ak.cross_signing.publish` 可验证通知和重新发起的、显式绑定 `new_generation` 的验证事务通过；不得让旧 generation 的 `mac` / `done` 消息在 reset 后完成信任升级。
 6. **新的 `ak.cross_signing.publish`** MUST 在 reset 接受后 `ak.profile.cross_signing.reset.v1` 的 `parameters.publish_recovery_window_seconds` 窗口内发布到 control stream（默认 24h）；超时未发布的 reset 会让该 principal 进入"无可用 SSK / USK"窗口，接收方在此窗口内 MUST 拒绝任何 `ak.device.authorize.cross_signing_binding.ssk_generation == new_generation` 的事件，避免静默接受未公布的 SSK。
@@ -1439,7 +1441,7 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 | `principal_signing` | (a) `verification_method` MUST 是该 principal 当前 DID Document 中具备**principal-grade 控制权**的 verification method（即 [`../identity/key-management.md` §3.2](../identity/key-management.md) 定义的 principal signing key 类，例如 `did:webvh:...#ak_principal_signing_v1` 或等价 DID method 控制密钥），且在 `issued_at` 时刻未撤销 / 未轮换；**MUST NOT** 是被本次 reset 重置对象的 `self_signing_key` / `user_signing_key`（让被废止的密钥自我授权废止自身会导致 trust circular）。(b) `signature` 在 `alg` 下覆盖 §14.1 canonical input 验证通过；(c) `previous_generation` 等于 receiver 持有的 accepted publish generation，`new_generation = previous_generation + 1`。 | `cross_signing_reset_proof_authority_invalid` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_generation_mismatch` |
 | `recovery_unlock` | (a) `recovery_secret_ref` 解析到 principal **当前 DID Document recovery 区或 `recovery_policy`** 中声明的 recovery key entry（必须在 `issued_at` 时刻 authoritative，未撤销 / 未过期）；(b) `signature` 验证使用该 entry 绑定的 public key、`alg` 在 entry 的算法白名单内、覆盖 §14.1 canonical input（**密码学强度仅由本签名提供**——拥有 recovery 私钥即视作 unlock 通过）；(c) `unlock_commitment` 等于 `SHA-256(utf8("ak.cross-signing-reset-unlock-binding-v1\n") \|\| recovery_secret_ref \|\| unlock_binding_input_bytes)`；`unlock_binding_input_bytes` 按 §14.1 定义，使用同一组 reset 字段，但 `proof_body` 同时排除 `signature` 与 `unlock_commitment`，避免 commitment 对自身取 hash。这是一个**完全由公开材料派生**的 wire-integrity 哈希，receiver 用事件自身的 `recovery_secret_ref` 与 `unlock_binding_input_bytes` 重算后比对；它**不证明持有 recovery secret**（signature 已承担该证明），但绑定 proof 到具体 ref + reset 内容，阻止把同一 ref 的签名跨 reset 复用为另一组 (principal_id, generation) 的 proof shell。 | `cross_signing_reset_recovery_ref_unknown` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_unlock_commitment_mismatch` |
 | `device_quorum` | (a) 每个 `signatures[i]` 的 `verification_method` 是当前 principal device set 中**已授权且未撤销**的 device key（按 `signatures[i].device_id` 查找其 `ak.device.authorize` 记录），并验证 `signature` 覆盖 §14.1 canonical input；(b) `signatures[]` 按 `device_id` 去重；(c) 去重后**有效**签名数 ≥ `threshold`；(d) `threshold` 等于 receiver 当前 `recovery_policy.device_quorum.k`（或等价已发布门限策略），小于该值 MUST 拒（`recovery_policy` 自身的发布 / 修改授权——含降低 `device_quorum.k`——受 [`../identity/key-management.md` §8.1](../identity/key-management.md) 的 ratchet 约束:MUST 由当前 principal signing key 或满足旧 policy 门限的 quorum 签名、`version` 严格递增，因此单设备无法单方面调低本门限）。 | `cross_signing_reset_signature_invalid` / `cross_signing_reset_quorum_insufficient` / `cross_signing_reset_quorum_below_policy` |
-| `trusted_recovery_service` | (a) `service_did` 出现在 principal DID Document 的恢复服务声明（或 organization recovery_policy `trusted_services[]`）中、未撤销、`issued_at` 在其有效窗口内；(b) `verification_method` 是该服务**已公布**的 verification method；(c) `signature` 覆盖 §14.1 canonical input；(d) 若 service 声明要求 `attestation_ref`，则该 ref MUST 解析到一条 receiver 可校验的 attestation event，且 attestation 所属 trust domain MUST 等于 reset payload 的 `trust_domain`；跨 trust domain attestation 不得作为恢复服务授权依据。 | `cross_signing_reset_recovery_service_unknown` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_attestation_missing` / `cross_signing_reset_recovery_service_attestation_domain_mismatch` |
+| `trusted_recovery_service` | (a) `service_did` 出现在 principal DID Document 的恢复服务声明（或 organization recovery_policy `trusted_services[]`）中、未撤销、`issued_at` 在其有效窗口内；(b) `verification_method` 是该服务**已公布**的 verification method；(c) `signature` 覆盖 §14.1 canonical input；(d) 若 service 声明要求 `attestation_ref`，该 ref 在同 `trust_domain` 可验证；(e) `recovery_session_id` 指向当前 verified、未过期、未消费的 session，且该 session 的独立 proof kind 为 `principal_signing` / `recovery_unlock` / `device_quorum`，不得仍为 trusted service。 | `cross_signing_reset_recovery_service_unknown` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_attestation_missing` / `cross_signing_reset_recovery_service_attestation_domain_mismatch` / `cross_signing_reset_second_factor_missing` |
 
 通用规则：
 

@@ -9,6 +9,7 @@
     "actor_id",
     "backup_class",
     "active_series_id",
+    "series_pointer_version",
     "previous_series_ids",
     "frontier_ref",
     "issued_at",
@@ -26,6 +27,11 @@
     },
     "active_series_id": {
       "$ref": "#/$defs/backup_series_id"
+    },
+    "series_pointer_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Strictly monotonic per (actor_id, backup_class). The first record is 1 and every successor is previous+1; receivers reject rollback, gaps and same-version forks."
     },
     "previous_series_ids": {
       "type": "array",
@@ -94,6 +100,11 @@
             {
               "contains": {
                 "const": "active_series_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "series_pointer_version"
               }
             },
             {

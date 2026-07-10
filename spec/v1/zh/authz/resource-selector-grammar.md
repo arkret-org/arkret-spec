@@ -207,6 +207,8 @@ strand_part            ::= strand_id | "*"
 
 **运算符优先级**：`+`（合取/AND）优先级高于 `,`（析取/OR）。即 `a+b,c` 解析为 `(a AND b) OR c`。需要表达 `a AND (b OR c)` 时，MUST 使用 §2 JSON canonical selector，不得仅用 shorthand 表达。
 
+Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id 字段”，绝不是 canonical JSON 的字段值。例如 `strand:<realm>:*` 解析为 `{"kind":"strand","realm_id":<realm>}`，MUST NOT 产生 `"strand_id":"*"`。同理适用于 `space_id`、`circle_id`、`message_id`、`morph_id`、`relation_id`、`view_id`、`event_id`、`policy_id`、`invite_id` 与 `object_ref`。`realm_part="*"` 只允许能由全局 kind 安全表达的 shorthand；对 Realm-local kind，若对象 id 也为 `*`，parser MUST 拒绝 `selector_missing_realm_scope`。
+
 ### 3.2 词法规则（reference）
 
 - `realm_id`：`ak:realm:` 后接 UUIDv7。
@@ -381,6 +383,13 @@ function matches(target, selector):
     if selector.realm_id and selector.realm_id != "*" and target.realm_id != selector.realm_id:
         return false
 
+    realm_local_kinds = {
+      "strand", "message", "morph", "object", "relation", "view",
+      "event", "policy", "invite"
+    }
+    if selector.kind in realm_local_kinds and not selector.realm_id:
+        raise SchemaViolation("selector_missing_realm_scope")
+
     if selector.match_scope is absent:
         selector.match_scope = "exact"
 
@@ -411,7 +420,7 @@ function matches(target, selector):
     if selector.kind == "message":
         if target.type != "message":
             return false
-        if selector.strand_id and selector.strand_id != "*" and target.strand_id != selector.strand_id:
+        if selector.strand_id and target.strand_id != selector.strand_id:
             return false
         if selector.message_id and selector.message_id != target.id:
             return false

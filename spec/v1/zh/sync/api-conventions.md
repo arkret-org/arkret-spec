@@ -416,7 +416,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 }
 ```
 
-该 cursor 内部 `purpose=barrier`、`target.event_id` 与 `target.event_digest` 绑定到刚提交事件。后续读接口 SHOULD 接受：
+该 cursor 的 server-side handle 绑定到刚提交事件：`purpose=barrier`，`target.event_id` 与 `target.event_digest` 由 issuing server 通过 handle 解析；`target` 不出现在 cursor wire body 中。后续读接口 SHOULD 接受：
 
 ```text
 X-Arkret-Wait-For: <cursor>

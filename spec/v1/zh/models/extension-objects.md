@@ -41,7 +41,7 @@ Applet 是受注册、受授权、可审计的集成服务。它可以：
 ### 2.2 关键对象
 
 - `ak:applet:<uuid>`：Applet 对象 typed ID。
-- `ak.applet.registration`：Applet 注册 event；包含 `applet_id`、`service_did`、`controller_did`、`base_url`、`bot_actor_id`、`protocols`、`namespaces` 等。
+- `ak.applet.registration`：Applet 注册 event；完整字段与校验规则的唯一真源是 [`../extensions/applet-schema.md`](../extensions/applet-schema.md)。
 - **Applet Service**：运行集成逻辑的服务端进程（独立 service DID）。
 - **Applet Controller**：管理该 Applet 的主体（组织、开发者、企业管理员）。
 - **Bot Actor**：Applet 的主要可见 Actor，可以加入 Realm、被 mention、发送消息或执行自动化。

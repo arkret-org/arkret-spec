@@ -96,6 +96,8 @@ Space.scope_circle_id         : id:circle | null   # Space 自身 metadata / sco
 Space.default_scope_circle_id : id:circle | null   # 在该 Space 新建 Strand 的默认 scope(hint，非强制；属于 effective default_realm_id)
 Space.child_scope_policy      : object             # 子资源 placement/encryption floor，见 §7
 Morph.scope_circle_id         : id:circle | null
+Relation.scope_circle_id      : id:circle | null
+Relation.effective_scope      : reducer-stamped, immutable tagged scope
 ```
 
 **关键约束:Strand 永远只有一个 effective scope**。不存在 per-track scope —— 整个 Strand(synthesis、discussion、其他 track)共享同一事件 / 投递 / history 边界，要么都在 Realm-default，要么都在某个 Circle。
@@ -107,6 +109,7 @@ Morph.scope_circle_id         : id:circle | null
 - `scope_circle_id=null` 不表示"没有 scope"；它表示 Realm-default scope。Reducer MUST 把它物化为 tagged `effective_scope = {kind:"realm", realm_id}`。
 - `scope_circle_id=ak:circle:...` MUST 物化为 tagged `effective_scope = {kind:"circle", realm_id, circle_id}`。
 - Reducer 在接受每个 event 时 MUST 固化 `effective_scope`。该值进入 Event envelope 与 Seal/sub-seal leaf；在 MLS-backed scope 中还进入 E2EE AAD 与 MLS governance binding 输入。后续 `scope_circle_id` 改绑不得重解释旧 event。
+- Message 与 Relation 的 canonical reducer-output 对象 MUST 物化顶层 `effective_scope`；Strand 与 Morph 的 canonical 对象只保存 actor-signed `scope_circle_id`，其 reducer 派生的 `effective_scope` MUST 写入承载变更的 Event。该差异用于避免把派生字段混入 Strand/Morph 的 actor-signed 对象前像；实现 MUST NOT 从当前 Circle 状态重算历史 Event 的 scope。
 - Effective history visibility = 父 Realm policy floor 与 Circle `history_visibility` 的更严格者。Circle MAY 收紧父 Realm，不得放宽父 Realm 的隐私/合规下限。
 - 改绑 `scope_circle_id` 默认 reducer 拒绝(`failed_precondition` `reason=scope_rebind_forbidden`);profile MAY 允许，但 MUST audit-paired high-risk update。所有已存在 Message / 子内容保留其写入时的 `effective_scope` 与旧 scope 的 history / key eligibility；新内容才进新 scope。客户端 MUST 把切分前后历史分段展示。
 - Structural Relation / position cell 的 `effective_scope` **MUST be no broader than 参与端点中最窄的 scope**(取参与端点 scope 集合中最严格者作为关系事实自身的 scope)。具体例:`public Board (Realm-default)` 包含 `private Strand (Circle=HR-Conf)` 时，`contains` 关系事实与其 position cell 的 `effective_scope = Circle:HR-Conf`,**不是** Realm-default；非 Circle 成员看不到该 containment 关系、看不到 private Strand 的 rank/position，也看不到 board 上"此处有隐藏项"的可枚举元数据。

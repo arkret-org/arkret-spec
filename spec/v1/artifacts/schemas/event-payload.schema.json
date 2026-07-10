@@ -6346,6 +6346,7 @@
         "share_class",
         "recipient_principal_id",
         "sender_device_id",
+        "source_authorization_ref",
         "key_scope",
         "sender_device_signature",
         "created_at"
@@ -6434,9 +6435,13 @@
         "sender_device_id": {
           "$ref": "#/$defs/device_id"
         },
+        "source_authorization_ref": {
+          "$ref": "#/$defs/event_ref",
+          "description": "Accepted policy/grant/source-authorisation Control Move proving that sender_device_id may deliver this share_class and key_scope to the named recipient at the Event CBA basis. It is covered by sender_device_signature and MUST be independently verified before installing history_secret material."
+        },
         "sender_device_signature": {
           "$ref": "#/$defs/signature_material",
-          "description": "Detached device signature over canonical share metadata and ciphertext reference. Verifiers MUST bind share_class, sender_device_id, recipient_principal_id, the variant target fields (recipient_device_id OR recipient_verification_method + recovery_recipient_id), key_scope, aad_digest?, ciphertext/encrypted_key_ref and created_at."
+          "description": "Detached device signature over canonical share metadata and ciphertext reference. Verifiers MUST bind share_class, sender_device_id, source_authorization_ref, recipient_principal_id, the variant target fields (recipient_device_id OR recipient_verification_method + recovery_recipient_id), key_scope, aad_digest?, ciphertext/encrypted_key_ref and created_at."
         },
         "key_scope": {
           "$ref": "#/$defs/realm_key_scope"
@@ -8313,10 +8318,17 @@
           "items": {
             "type": "object",
             "required": [
+              "removal_event_id",
               "actor_id",
-              "action"
+              "action",
+              "removed_by",
+              "removed_at"
             ],
             "properties": {
+              "removal_event_id": {
+                "$ref": "#/$defs/event_ref",
+                "description": "Unique id of the durable moderation Event that added this OR-set dot."
+              },
               "actor_id": {
                 "$ref": "./common-ids.schema.json#/$defs/did"
               },
@@ -8332,9 +8344,47 @@
               },
               "removed_at": {
                 "$ref": "#/$defs/timestamp"
+              },
+              "removed_by": {
+                "$ref": "./common-ids.schema.json#/$defs/did"
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "action": {
+                      "const": "kick"
+                    }
+                  },
+                  "required": [
+                    "action"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "device_id"
+                  ]
+                },
+                "else": {
+                  "not": {
+                    "required": [
+                      "device_id"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "removed_participant_tombstones": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "description": "Observed-remove tombstone set for removed_participants[].removal_event_id. Active bans are ban entries whose id is absent here.",
+          "items": {
+            "$ref": "#/$defs/event_ref"
           }
         },
         "participant_mute_overrides": {

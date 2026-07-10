@@ -41,6 +41,16 @@
       "enum": ["rotation", "compromise", "device_loss", "policy_required"],
       "description": "Machine-readable reset reason code."
     },
+    "revoked_device_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      },
+      "description": "Devices known compromised or lost. Reducer atomically revokes them and requires MLS leaf removal/rekey. Required for compromise and device_loss resets."
+    },
     "proof": {
       "oneOf": [
         { "$ref": "#/$defs/principal_signing_proof" },
@@ -52,6 +62,28 @@
     "issued_at": { "$ref": "#/$defs/timestamp" }
   },
   "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "reset_reason_code": {
+            "enum": [
+              "compromise",
+              "device_loss"
+            ]
+          }
+        },
+        "required": [
+          "reset_reason_code"
+        ]
+      },
+      "then": {
+        "required": [
+          "revoked_device_ids"
+        ]
+      }
+    }
+  ],
   "$defs": {
     "did": {
       "type": "string",
@@ -151,13 +183,18 @@
     },
     "trusted_recovery_service_proof": {
       "type": "object",
-      "required": ["kind", "service_did", "verification_method", "alg", "signature"],
+      "required": ["kind", "service_did", "verification_method", "alg", "signature", "recovery_session_id"],
       "properties": {
         "kind": { "const": "trusted_recovery_service" },
         "service_did": { "$ref": "#/$defs/did" },
         "verification_method": { "$ref": "#/$defs/did_url" },
         "alg": { "type": "string", "minLength": 1 },
         "signature": { "$ref": "#/$defs/signature_b64u" },
+        "recovery_session_id": {
+          "type": "string",
+          "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Verified, unexpired, unconsumed recovery session authenticated by principal_signing, recovery_unlock or device_quorum. A service-only session is not a second factor."
+        },
         "attestation_ref": {
           "type": "string",
           "pattern": "^ak:attestation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",

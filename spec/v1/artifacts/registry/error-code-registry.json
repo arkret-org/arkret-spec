@@ -770,16 +770,10 @@
       "description": "CBA lattice join produced bottom (irreconcilable state) for the event's effects. Terminal failure state per zh/authz/event-auth-state-resolution.md \u00a713; MUST NOT be reported as cas_conflict."
     },
     {
-      "code": "contact_not_accepted",
+      "code": "direct_conversation_unavailable",
       "http_status": 409,
       "scope": "both",
-      "description": "Sub-reason for failed_precondition when ak.self.direct_conversation.command.resolve is called for a peer without an accepted contact projection, or after the requester has tombstoned that contact. Consent alone is not sufficient for the contact direct-conversation resolver. See zh/identity/contact-and-direct-conversation.md."
-    },
-    {
-      "code": "contact_consent_missing",
-      "http_status": 409,
-      "scope": "both",
-      "description": "Sub-reason for failed_precondition when ak.self.direct_conversation.command.resolve has an accepted contact but cannot verify target-holder active consent_scope=direct_message or any for the requester. See zh/identity/contact-and-direct-conversation.md and zh/identity/consent-model.md \u00a76.2."
+      "description": "Opaque failed_precondition sub-reason for direct-conversation resolution when accepted contact or holder consent is unavailable. The requester-visible response MUST NOT distinguish those holder-private causes; detail is holder-private audit only."
     },
     {
       "code": "peer_unresolvable",

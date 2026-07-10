@@ -121,6 +121,8 @@ sidebar:
   4. `sig` 通过签名验证。
   任一失败 → `failed_precondition` `reason="participant_binding_invalid"`。
 - `participant_mute_overrides[]`：主持人强制静音的 durable 当前覆盖集。每项绑定 `(actor_id, device_id)`，携带 `audio_muted` / `video_muted`、`muted_by` 与 `muted_at`；写入者 MUST 持有 `ak.call.moderate`。SFU / token issuer 在签发或刷新 participant token 前 MUST 应用该覆盖集，收紧对应 call leg 的 send permission；客户端本地 UI / track 状态也 MUST 镜像覆盖集。撤销强制静音通过新的 `ak.call.state` 移除或改写对应 entry，而不是依赖旧 `mute_state` 帧过期。
+- `removed_participants[]`：主持 kick/ban 的 grow-only add set。每项 MUST 含唯一 `removal_event_id`、`actor_id`、可选 `device_id`、`action`、`removed_by`、`removed_at`；`kick` MUST 含 `device_id` 且只终止该 call leg，`ban` MUST 省略 `device_id` 并阻止该 actor 在本 call 重入。写入者 MUST 持有 `ak.call.moderate`。
+- `removed_participant_tombstones[]`：对 `removed_participants[].removal_event_id` 的 observed-remove tombstone set。解除 ban 时 moderator MUST 把当前 basis 已观察到的对应 ban ids 加入该集合；未知 id MUST `schema_violation`。有效 ban = `action=ban` 且其 id 不在 tombstones 的 add。并发的新 ban 若未被解除操作观察到，不会被该 tombstone 删除；必须在新 basis 显式解除。
 
 高频 speaking、自主 mute/video 状态 SHOULD 走 ephemeral channel；主持人 `by=moderator` 的强制静音不是纯高频 UI 状态，MUST 通过 `participant_mute_overrides[]` 在 durable `ak.call.state` 中留下当前覆盖集并驱动服务端媒体权限。
 
@@ -163,6 +165,7 @@ sidebar:
 - **终态集合**：`{ ready, failed }` 为硬终态；`stopped` 是软终态——只能向 `ready` 升级（同一 `recording_start_event_id`，backend 事后产出可用 artifact），不得转 `failed` 或回 `recording`。`ready` / `failed` 之后对同一捕获段的任何转出 MUST `failed_precondition`，`reason_code="recording_state_transition_invalid"`。
 - **非法转换**：源态为非终态时，任何不在"合法后继"列内的 `recording_state` / `transcript_state` 转换 MUST `failed_precondition`，`reason_code="recording_state_transition_invalid"`（转写用同一 reason_code）。新一段捕获 MUST 先接受新的 `ak.call.recording.start`（新 `recording_id`，见 §5），不得在终态上原地翻回 `recording`。
 - **多正交字段并发 join**：`state` / `recording_state` / `transcript_state` 写入同一 `ak.component.call.state.v1` cell（lattice=`fsm`，`bottom=reject`），但各字段是**独立的正交 fsm 维度**：reducer MUST 按 per-field 判定后继合法性与并发冲突，单条 `ak.call.state` 只写未变更字段的当前值。两个并发 sibling `ak.call.state` 对**同一**字段（如都改 `recording_state`）写入不同 `to` 值时，该字段的 fsm join MUST 返回 `Bottom{kind="conflict"}` 并按 `bottom=reject` 暴露 `failed_bottom`；对**不同**字段的并发写入互不冲突，分别独立 join。实现 MUST NOT 用 HLC、`created_at`、`event_id`、actor id、event digest 或接收顺序为任一字段选择 winner。
+- **集合字段并发 join**：`removed_participants[]` 与 `removed_participant_tombstones[]` 不走上述 fsm 冲突规则，而组成同一 observed-remove set：add 与 tombstone 分别按 `removal_event_id` 做集合并集，重复 id 的 entry 必须逐字节等价，否则 `Bottom{kind="conflict"}`。两个 moderator 并发 kick/ban 不同目标 MUST 合并而不是冲突。token issuer/SFU 每次签发或接纳前 MUST 由合并后的 active ban set 重算重入资格。
 
 ## 5. 录制与转写
 

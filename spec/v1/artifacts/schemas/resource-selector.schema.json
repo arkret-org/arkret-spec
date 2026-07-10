@@ -152,6 +152,34 @@
       }
     },
     {
+      "$comment": "Realm-local resource kinds always carry realm_id, including exact-id selectors. This prevents a schema-valid bare kind selector from matching every Realm and keeps authorization scope explicit in signed grant bytes.",
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "strand",
+              "message",
+              "morph",
+              "object",
+              "relation",
+              "view",
+              "event",
+              "policy",
+              "invite"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "realm_id"
+        ]
+      }
+    },
+    {
       "$comment": "resource-selector-grammar.md §4.8/§8.1: actor:* is forbidden and an actor selector MUST carry a concrete principal DID. Force actor_id present so a bare {\"kind\":\"actor\"} is rejected at the schema layer rather than only at the reducer (selector_actor_wildcard_forbidden).",
       "if": {
         "properties": {

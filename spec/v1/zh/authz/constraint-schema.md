@@ -812,17 +812,25 @@ function matches_field_access(operation, constraint):
         deny = constraint.denied_write_fields
         fields = operation.write_fields
 
+    if constraint.condition and not meets_condition(operation, constraint.condition):
+        return constraint.effect == "allow"
+
+    if constraint.effect == "deny":
+        # A deny constraint matches exactly when the operation touches a
+        # denied field. Non-overlap is neutral and MUST NOT deny the write.
+        return any(field in deny for field in fields)
+
+    # allow/quarantine/review constraints retain subset semantics. For allow,
+    # every touched field must be admitted and no denied field may be touched.
     for field in fields:
         if field in deny:
             return false
         if allow and field not in allow:
             return false
-        if constraint.condition:
-            if not meets_condition(operation, constraint.condition):
-                return false
-
     return true
 ```
+
+`effect="deny"` 的 `field_access` constraint MUST 至少包含与 operation mode 对应的 `denied_read_fields` 或 `denied_write_fields`；空 deny 集不得匹配任何 operation。实现 MUST NOT 把 allow 的“全部字段满足白名单”谓词复用于 deny fold。
 
 #### 16.2.1 敏感字段处理（normative）
 
@@ -918,8 +926,7 @@ function matches_field_access(operation, constraint):
   "resources": [
     {
       "kind": "strand",
-      "realm_id": "ak:realm:...",
-      "strand_id": "*"
+      "realm_id": "ak:realm:..."
     }
   ],
   "constraints": [

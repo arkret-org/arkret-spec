@@ -77,6 +77,8 @@ LiveKit 通过 [SFrame](https://www.rfc-editor.org/rfc/rfc9605.html) 实现 fram
 
 Arkret-LiveKit 部署 MAY 使用 LiveKit Egress 触发录制，但 Egress endpoint MUST 是 Arkret-side proxy；录制 artifact 流向严格按 [`../call-state.md` §5](../call-state.md) 与 [`../media-service-binding.md` §8.1](../media-service-binding.md)：
 
+任何 backend-generated recording 或 transcript 都意味着 media service 获得明文媒体。其启动与产物发布 MUST 以 `media_service_decrypts=true` 为前置，并完整通过 [`../media-service-binding.md` §8.2](../media-service-binding.md) 的三层校验（policy component、`plaintext_visible_services` 授权、MLS governance binding 覆盖）；缺任一条件 MUST fail closed。该明文可见事实 MUST 进入 governance binding 覆盖的成员可见 metadata。
+
 - Egress destination MUST 是 Arkret media service 的 authenticated upload endpoint；不得 LiveKit Cloud 直传 S3 / GCS。
 - 录制加密 key 来自 MLS exporter，label 固定为 ASCII 字符串 `"ak.rtc-recording-key/v1"`（与 SFrame `"ak.rtc-frame-key/v1"` 区分；`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，`KDF.Nh=32`）。实现若复用 SFrame label、空 Context，或接受 LiveKit/KMS 自行生成的 recording key，MUST fail closed；LiveKit 不持久化明文。
 - 录制完成后通过 `ak.call.state` 发布 `recording_state="ready"` + content digest。

@@ -474,9 +474,11 @@ value   := id:space | null
 规则：
 
 - 首次 set 使用 `head_eq null`。
-- reparent 使用 `head_eq <old_parent_space_id>`。
+- reparent 使用 `head_eq <expected_parent_space_id>`；该名称与 `ak.space.parent` payload 字段一致。
 - 并发 reparent 返回 `⊥`，后续 Move fail closed，必须走 conflict recovery。
 - `parent_space_id == this_space_id` MUST `schema_violation`。
+- Reducer 在接受 `ak.space.parent` 前 MUST 以候选新 parent 链执行确定性 acyclic 检测；若 `space_id` 再次出现在 ancestor 集合中，MUST 以 `failed_precondition`、`reason_code=space_parent_cycle` 拒绝。跨 Realm parent 同样参与检测；任何 ancestor 不可读取或缺少可验证 parent proof 时 MUST 以 `failed_precondition`、`reason_code=space_parent_unreadable` fail closed，不得假设无环。
+- `parent_space_id=null` 表示移动到 root。不可读 parent 的 projection MAY 返回 `{parent_space_id_hidden:true}`，但 MUST NOT 伪造 root。
 - parent Space MAY 位于不同 Realm；这只影响导航，不传播 membership、capability、history、E2EE key 或 retention policy。
 
 ### 3.6 Strand 位置

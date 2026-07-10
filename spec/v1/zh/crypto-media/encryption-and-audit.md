@@ -248,7 +248,7 @@ late key recovery 接受条件（normative）— 客户端 MUST 全部通过才�
 
 a. **Membership 时点校验**：受影响 event 的 T₀，receiver 在 T₀ 必须确实是该 Realm 的成员（`ak.member.state` 在 T₀ pre-state 下为 join，且不是 ban / leave）。如果 receiver 在 T₀ 不是成员、或当时还未被 invite，late key 解码出的明文 MUST NOT 进入 verified timeline；audit log emit `late_recovery_rejected_membership`。
 b. **Policy 时点校验**：T₀ 处的 Realm policy MUST 允许该 receiver 类别看到该 event（history visibility / disclosure policy 在 T₀ 处）；若 policy 在 T₀ 之后收紧到禁止该 receiver，late material 仍按 T₀ policy 解码（policy 不溯及既往），但 UI MUST 提示"已不在当前 policy 下可见"。
-c. **Key share 来源授权**：late key 提供方 MUST 是 Realm policy 声明的合法 key recovery 源（key backup、archive node、authorized peer）；P2P 之间随意 share key MUST 被拒。
+c. **Key share 来源授权**：late key 提供方 MUST 是 Realm policy 声明的合法 key recovery 源（key backup、archive node、authorized peer）。每条 `ak.realm_key.share` MUST 携带 `source_authorization_ref`，指向在 share Event 的 CBA basis 下有效、明确覆盖 `(source principal/device, recipient principal/device, key_scope, share_class)` 的 policy/grant/authorized-source Control Move；该引用与 `sender_device_signature` 一起进入 canonical Event bytes。Receiver MUST 独立验证引用、签名与当前未撤销设备，缺失或不覆盖时以 `late_recovery_share_not_authorized` 拒绝。裸 `history_secret` 或没有该可验证来源凭证的 P2P 传递不得进入 key store。
 d. **Audit profile 强制**：`ak.profile.attested_audit.e2ee.v1` / `ak.profile.disclosed_audit.e2ee.v1` 下，late_recovered transition MUST 同步 emit `ak.audit.accessed` Event（payload `access_kind="e2ee_late_recovery"`、`late_recovery_original_event_id=<原 event_id>`、当前 receiver actor），并等待 RYW receipt 与正常解码相同的流程；未拿到 receipt MUST NOT 解码。`ak.audit.ryw_receipt` 在 receipt object 上 MAY 标 `recovery_reason_code` = "late_key_arrival"（payload 取值，**不是** error code registry 中的 reason_code；仅用于 audit projection 区分晚到 key 触发的访问与首次访问）。**成员自访问 receipt 类别（normative 澄清）**：此处 late_recovered 所需的 RYW receipt 与该成员**正常解码**所用 receipt 同类（`single_source` / 本地 receipt 即可）；它**不是** [`audited-e2ee.md` §6](./audited-e2ee.md) 的 audit *release* 所要求的 `federation_witness_attested`（≥2 独立 witness）receipt——后者只约束阶段性 release session，MUST NOT 施加到成员对自己在 T₀ 合法可见历史的自访问活性路径，否则离线 / 分区下合法历史恢复将事实不可达。
 e. **Expiry / retention guard**：目标 event 带 disappearing expiry 且当前时间已超过 `expired_at + grace`，或 Realm / retention policy 已要求销毁该 event 的内容 key 时，late key MUST NOT 使 plaintext 进入 `late_recovered`。客户端必须保持 expiry stub / metadata-only 状态并记录 `late_recovery_rejected_expired`；key recovery source 在发放 late material 前也必须执行同一 guard。
 
@@ -440,6 +440,15 @@ MLS group 的 key scope 由 `effective_scope`（§2.5 开头）唯一决定，**
 - 客户端在接受 MLS epoch 前 MUST 独立验证 `governance_binding` 指向的 Arkret Seal view 与 state_root。无法回补 Control Move inclusion proof 或 hash 不匹配时 MUST 标记 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
 - 并发 Commit 是并发 Control Move。它们只有被 accepted Seal 覆盖，且其 preconditions 在 `seal_basis` 指向的控制面 pre-state 下成立时，才能推进 `mls_epoch_cell`。
 
+**`policy_root` / `capability_root` canonical 计算（normative）**：两者都是 [`event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md#621-治理-state_root-的-merkle-计算规则normative) `state_root` 算法的确定性过滤视图，使用同一 hash suite、JCS leaf 前像、`0x00` / `0x01` 域分隔、奇数节点提升与空树 root。
+
+1. 从 `governance_binding` 引用的 accepted Seal 重建 joined control state `J(S)`；`⊥` cell 不进入 root，并使依赖它的 commit fail closed。
+2. `policy_root` 的 leaf 集是 `J(S)` 中当前 `effective_scope` 可见的 policy cell：cell family 为 `ak.component.realm.*policy*`、`ak.component.realm.join_rule.v1`、`ak.component.realm.history_visibility.v1`、`ak.component.realm.media_service.v1`、`ak.component.realm.policy_components.v1`，以及同 scope 的 Circle history/encryption/lifecycle policy cell。未知或 profile 新增的 policy family只有在 profile 的 governance-binding coverage registry 显式登记后才可加入；full profile 遇到未登记且会影响解密/投递的 family MUST fail closed。
+3. `capability_root` 的 leaf 集是 `J(S)` 中 cell family 以 `ak.component.capability.` 开头的全部 grant、revoke、delegate 与 derived-capability cell；不得由 producer 选择子集。
+4. 每个 leaf 的 `leaf_preimage`、排序与 hash 完全复用 §6.2.1：`canonical_json({"cell":"<cell_wire_id>","state":{"value":<lattice_value>}})`，按 `cell_wire_id` Unicode code point 升序。wire root 形态为 `<suite>:<lowercase_hex>`。
+
+Verifier MUST 从同一 Seal view 独立枚举 leaf 集并重算两个 root；producer 少报、漏报、重排或使用不同编码时 MUST 拒绝 `governance_binding`。Conformance suite MUST 为单 leaf、奇数 leaf、空集合与“漏一个治理 cell”提供 byte-level KAT。
+
 #### 2.5.2 Covered Seals Cell (`covered_seals_cell`)
 
 `covered_seals_cell`（cell family `ak.component.covered_seals.v1`，or_set，bottom=expose）是 MLS Governance Binding 的 lattice 侧累加器。它声明 "本 MLS group 已由 commit attest 覆盖的 governance Seal 集合"；MLS Commit 被建模为 Control Move，读取 governance Seal，写入：
@@ -463,6 +472,8 @@ MLS group 的 key scope 由 `effective_scope`（§2.5 开头）唯一决定，**
 - 覆盖满足 **当且仅当** `M` 中**每一个**元素都在该 Seal view 下的 `covered_seals_cell` `active_dots` 的 attested-frontier 并集内（全称量化，不是存在量化）；任一元素求值为 `expose` → 整个 coverage false → DataEvent `failed_precondition`，reducer 不接受该消息进入 verified timeline。
 - `contains` 在 sealed control state 上求值，不读取本地未 sealed 的 pending commit；客户端不得用"我本地已构造但尚未被 accepted Seal 覆盖的 commit"来满足该 coverage。
 - `M` 单调增长：governance Seal 推进后，旧 covered 集合不自动覆盖新元素；新元素回到默认 `expose`，直到后续 commit 重新 attest——这正是 ban / revoke 在新消息上生效的机制。
+
+**`M` 的确定性重建算法（normative）**：receiver 以消息 `seal_ref=S` 与其 `effective_scope` 为输入，先重建 `J(S)`，再枚举三组输入：(a) `membership_frontier` 覆盖的 membership/device/lifecycle cell；(b) 按 §2.5.1 `policy_root` leaf 过滤规则得到的全部 policy cell；(c) 按 §2.5.1 `capability_root` leaf 过滤规则得到的全部 capability cell。对每个当前物化 cell，取在 `covered_set(S)` 中最后一次改变该物化值的 Control Move，并取首次把该 Move 纳入 accepted control state 的 Seal id；再加入消息自身的 `S` 与由这些 cell 触发、在 `S` 可见的最新 Realm/Circle cascade Seal。所有 Seal id 去重后按 Unicode code point 升序即为 `M`。若存在多个并发 Move 共同决定 lattice value，必须加入覆盖每个 contributing head 的 Seal；任一 head 的首次覆盖 Seal 无法证明时 fail closed。producer 不得传入或删减 `M`，receiver 必须独立重建。
 
 规则：
 
@@ -794,6 +805,8 @@ scheme 选择是 Realm policy 字段 `ak.realm.content_scheme`（[`realm.schema.
 
 `ciphertext = base64url(nonce || AEAD_seal(K_content[N], nonce, aad_bytes, plaintext))`。`nonce` 与 AEAD AAD MUST 遵循 [`../conformance/encoding.md`](../conformance/encoding.md) §10.1 的 canonical AEAD nonce / AAD contract——`purpose="mls_exporter_aead_content"`、`device_id` 取作者设备、`aead_profile` 取 ciphersuite AEAD，nonce 为 `sender_nonce_prefix || device_nonce_counter_be64`（per-sender 前缀 + 持久单调计数器，§10.1 保证 `(K_content[N], nonce)` 跨设备唯一、不回退 random）；AEAD AAD 按 §10.1 绑定 `(key_ref, ciphertext_digest, nonce)` 的 canonical 形态并覆盖 §2.3.2 的 `aad_bytes`（routing 元数据）。AEAD tag 含在 seal 输出内，故 `authentication_tag` 字段 MUST NOT 出现（§2.3.1）。`key_ref.algorithm = "MLS-EXPORTER-AEAD"`，`scheme = "mls-exporter-aead-v1"`。`payload_digest` 按 §2.3.3 对 `ciphertext` 字节计算（`scheme` 取本值）。
 
+发送设备必须把 §10.1 的 counter 状态与 epoch 一起耐久化。设备恢复备份、检测到 counter 丢失/回退、无法证明下一 counter 严格大于该域全部已用值，或接近 `2^64-1` 时 MUST 停止发送并先通过 accepted MLS Commit 推进 epoch；新 epoch 使用新的 exporter prefix 后才可从 0 重新计数。Receiver 必须维护 per-`(key_ref,epoch,device_id,purpose,aead_profile)` replay set 或无误判等价结构；counter rollback/reuse MUST fail closed，且不得用 random nonce 兜底。Conformance suite MUST 覆盖持久化回退与设备备份恢复负例。
+
 接收方 MUST 先按 §2.10.3 验签确定作者设备，再用 `history_secret[N]` 派生 `K_content[N]`、按 §10.1 用作者 `device_id` 重算 `sender_nonce_prefix` 校验 nonce 与 replay、以 `aad_bytes` 为 AEAD AAD 解密；AEAD 校验失败 MUST 按 §2.3.4（`payload_digest_mismatch` / `key_unavailable`）处理，不得把结果纳入 verified timeline。作者设备身份由 §2.10.3 Event 签名与 §10.1 nonce 前缀双重绑定。
 
 **共享 `K_content[N]` 的关键安全前提（normative）**：与标准 MLS（`mls-rfc9420`，每个发送方有独立的 secret-tree 派生 leaf key、AEAD 上下文天然按 leaf 隔离）不同，本 scheme 的 `K_content[N]` 是**全 epoch 成员共享的同一把 AEAD key**。这使 **nonce / prefix 唯一性从"实现细节"上升为关键安全前提**：在共享 key 下，任意两个发送方若复用同一 `(K_content[N], nonce)` 即发生灾难性 AEAD nonce 重用（泄露 keystream / 可伪造）。因此本 scheme 比标准 MLS 更脆——其安全性额外依赖跨设备 nonce 前缀不碰撞。两条 MUST：(1) 发送方按 §10.1 `sender_nonce_prefix || device_nonce_counter_be64` 构造 nonce，per-sender 前缀 + 持久单调计数器保证 `(K_content[N], nonce)` 跨设备唯一、不回退 random；(2) **接收方对 nonce 的 sender prefix 校验 MUST NOT 省略**——接收方 MUST 按 §10.1 用已验签作者 `device_id` 重算期望的 `sender_nonce_prefix` 并逐字节比对密文携带的 nonce 前缀，不匹配 MUST fail closed（按 `payload_digest_mismatch` 处理），以闭合"伪造方借他人 prefix 制造碰撞"的面。prefix 唯一性与碰撞防护的 canonical 契约见 [`../conformance/encoding.md`](../conformance/encoding.md) §10.1。
@@ -815,7 +828,7 @@ scheme 选择是 Realm policy 字段 `ak.realm.content_scheme`（[`realm.schema.
 
 #### 2.10.4 历史密钥交付（normative）
 
-`mls-exporter-aead-v1` Realm 的历史共享通过 `ak.realm_key.share` 交付 `history_secret`：其 `ciphertext` / `encrypted_key_ref` MUST 为该区间内**每个 epoch 的 `history_secret` 集合**（`{history_secret[from_epoch], …, history_secret[to_epoch]}`，区间见 `key_scope.from_epoch` / `to_epoch`）经 HPKE 封装到接收方公钥的密文，服务器不可解。普通成员设备交付 MUST 使用 `share_class="member_device"`，封装目标是**接收方掌握对应私钥的设备 HPKE 公钥**，并携带 `recipient_device_id`。注意 MLS KeyPackage init key 的私钥通常不被 MLS 栈暴露供带外解封，故接收设备 SHOULD 发布/广告一把**专用设备 HPKE 公钥**（在 `ak.realm_key.request.recipient_hpke_public_key` 中携带，或预先 publish）供 provider seal，而非依赖 KeyPackage init key。发送前 MUST 通过 [`device-lifecycle.md`](./device-lifecycle.md) §13 的 canonical key-share 资格校验与 [`../governance/history-visibility.md`](../governance/history-visibility.md) §6 判定。接收方安装 `history_secret[N]` 后即可解 epoch-N 的 `decryption_pending` 内容，纳入 §2.3.5 late-recovery 状态机。
+`mls-exporter-aead-v1` Realm 的历史共享通过 `ak.realm_key.share` 交付 `history_secret`：其 `ciphertext` / `encrypted_key_ref` MUST 为该区间内**每个 epoch 的 `history_secret` 集合**（`{history_secret[from_epoch], …, history_secret[to_epoch]}`，区间见 `key_scope.from_epoch` / `to_epoch`）经 HPKE 封装到接收方公钥的密文，服务器不可解。普通成员设备交付 MUST 使用 `share_class="member_device"`，封装目标是**接收方掌握对应私钥的设备 HPKE 公钥**，并携带 `recipient_device_id`。每条 share 还 MUST 携带 §2.3.5(c) 的 `source_authorization_ref`；发送方设备签名 MUST 覆盖该 ref，receiver 必须在安装 secret 前验证来源授权。注意 MLS KeyPackage init key 的私钥通常不被 MLS 栈暴露供带外解封，故接收设备 SHOULD 发布/广告一把**专用设备 HPKE 公钥**（在 `ak.realm_key.request.recipient_hpke_public_key` 中携带，或预先 publish）供 provider seal，而非依赖 KeyPackage init key。发送前 MUST 通过 [`device-lifecycle.md`](./device-lifecycle.md) §13 的 canonical key-share 资格校验与 [`../governance/history-visibility.md`](../governance/history-visibility.md) §6 判定。接收方安装 `history_secret[N]` 后即可解 epoch-N 的 `decryption_pending` 内容，纳入 §2.3.5 late-recovery 状态机。
 
 `mls-rfc9420`（PrivateMessage）Realm 不具备可交付的 `history_secret`，其 `ak.realm_key.share` 不适用于 join 前内容（那些 epoch 的 secret tree 已焚）。
 
