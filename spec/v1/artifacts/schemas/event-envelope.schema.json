@@ -3807,6 +3807,14 @@
             }
           ]
         },
+        "proof_purpose": {
+          "type": "string",
+          "enum": [
+            "issuer_attestation",
+            "holder_acceptance"
+          ],
+          "description": "Optional role discriminator for non-Event proofs. handle-claim.schema.json requires binding_state=verified claims to carry at least one proofs[] entry with proof_purpose=holder_acceptance; without this optional field that requirement was unsatisfiable under additionalProperties:false. Generic proof consumers ignore it unless their object-family contract makes it load-bearing."
+        },
         "jws": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
