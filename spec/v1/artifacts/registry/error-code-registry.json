@@ -4372,7 +4372,7 @@
       "applies_to": [
         "batch_item"
       ],
-      "description": "Per-event rejection reason in an Applet edge transaction response (rejected[].reason_code) when the receiving applet's inbound processing queue is saturated (baakpressure). The push sender MAY re-deliver the rejected events later under the same idempotency identity. See zh/extensions/applet-integration.md \u00a77.3."
+      "description": "Per-event rejection reason in an Applet edge transaction response (rejected[].reason_code) when the receiving applet's inbound processing queue is saturated (backpressure). The push sender MAY re-deliver the rejected events later under the same idempotency identity. See zh/extensions/applet-integration.md \u00a77.3."
     },
     {
       "code": "internal_error",

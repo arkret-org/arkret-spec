@@ -121,7 +121,7 @@
     "track_name": {
       "type": "string",
       "const": "discussion",
-      "description": "Strand track key for this Message. v1 Message objects are restricted to the Strand discussion traak. Profiles that need another timeline kind MUST register a separate object/event profile instead of overloading Message.track_name."
+      "description": "Strand track key for this Message. v1 Message objects are restricted to the Strand discussion track. Profiles that need another timeline kind MUST register a separate object/event profile instead of overloading Message.track_name."
     },
     "effective_scope": {
       "$ref": "#/$defs/effective_scope",

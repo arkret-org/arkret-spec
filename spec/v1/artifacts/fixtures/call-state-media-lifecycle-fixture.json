@@ -4,7 +4,7 @@
   "suite": "call_state_media_lifecycle",
   "runner": "cotest::conformance::call_state_media_lifecycle",
   "covers_vectors": [
-    "ak.vector.call_state.recording_retention_loak.v1",
+    "ak.vector.call_state.recording_retention_lock.v1",
     "ak.vector.call_state.recording_result_artifact_shape.v1",
     "ak.vector.call_state.transcribe_lifecycle.v1",
     "ak.vector.call_state.moderator_kick_ban.v1",
@@ -13,7 +13,7 @@
   "cases": [
     {
       "name": "recording_retention_lock",
-      "vector_id": "ak.vector.call_state.recording_retention_loak.v1",
+      "vector_id": "ak.vector.call_state.recording_retention_lock.v1",
       "runner": "cotest::conformance::call_state_media_lifecycle::run_recording_retention_lock_vector",
       "assertions": [
         "audit_lock blocks recording deletion regardless of retention_expires_at",

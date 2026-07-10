@@ -84,7 +84,7 @@
     "hlc": {
       "type": "string",
       "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$",
-      "description": "Advisory hybrid logical cloak. INCLUDED in canonical bytes for signing and event digest (so it is integrity-protected and cannot be rewritten by relays), but semantically advisory: used only as a deterministic tiebreaker for timeline display when two events are causally unreachable. MUST NOT influence authorization, lattice join, Control Move precondition comparison, or Seal finality. See encoding.md §7 and event-auth-state-resolution.md §3 rule 1."
+      "description": "Advisory hybrid logical clock. INCLUDED in canonical bytes for signing and event digest (so it is integrity-protected and cannot be rewritten by relays), but semantically advisory: used only as a deterministic tiebreaker for timeline display when two events are causally unreachable. MUST NOT influence authorization, lattice join, Control Move precondition comparison, or Seal finality. See encoding.md §7 and event-auth-state-resolution.md §3 rule 1."
     },
     "prev_refs": {
       "type": "array",

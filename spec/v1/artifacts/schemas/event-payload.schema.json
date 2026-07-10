@@ -3437,7 +3437,7 @@
             "maxLength": 256
           },
           "uniqueItems": true,
-          "description": "Optional E2EE mention-routing sidecar tags for push-notification fallbaak. Tags are opaque keyed-HMAC routing tokens produced by the sender client only when Realm policy enables recipient_registered_token routing; services compare them to recipient-registered opaque tokens and MUST NOT derive MLS exporter secrets."
+          "description": "Optional E2EE mention-routing sidecar tags for push-notification fallback. Tags are opaque keyed-HMAC routing tokens produced by the sender client only when Realm policy enables recipient_registered_token routing; services compare them to recipient-registered opaque tokens and MUST NOT derive MLS exporter secrets."
         },
         "reply_to": {
           "$ref": "#/$defs/message_id",
@@ -6547,7 +6547,7 @@
       "properties": {
         "effective_scope": {
           "$ref": "#/$defs/effective_scope",
-          "description": "Tagged scope of the key material. Realm-default history uses {kind:'realm', realm_id}; Circle history uses {kind:'circle', realm_id, circle_id}. Implementations MUST NOT infer key scope from strand_id or traak."
+          "description": "Tagged scope of the key material. Realm-default history uses {kind:'realm', realm_id}; Circle history uses {kind:'circle', realm_id, circle_id}. Implementations MUST NOT infer key scope from strand_id or track."
         },
         "policy_digest": {
           "$ref": "#/$defs/hash",
@@ -7174,7 +7174,7 @@
         },
         "binding_scope": {
           "type": "object",
-          "description": "Arkret Realm + Strand scope this MIMI room projects. strand_id MUST point at an accepted Strand with discussion track enabled inside realm_id; the MIMI room timeline only projects that Strand's discussion traak.",
+          "description": "Arkret Realm + Strand scope this MIMI room projects. strand_id MUST point at an accepted Strand with discussion track enabled inside realm_id; the MIMI room timeline only projects that Strand's discussion track.",
           "required": [
             "realm_id",
             "strand_id"

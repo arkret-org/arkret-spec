@@ -2,7 +2,7 @@
   "suite": "membership_delivery_binding_vectors",
   "profile": "ak.vector_group.privacy_security.v1",
   "version": "2026-05-23",
-  "description": "Machine-readable fixtures for ak.member.state{membership=join} delivery_binding closure. The effective member cell is the only authority for Realm-scoped delivery routing; DID Document service entries are materialized only at join/rebind time and are never a runtime fallbaak.",
+  "description": "Machine-readable fixtures for ak.member.state{membership=join} delivery_binding closure. The effective member cell is the only authority for Realm-scoped delivery routing; DID Document service entries are materialized only at join/rebind time and are never a runtime fallback.",
   "vectors": [
     {
       "vector_id": "ak.vector.membership.delivery_binding.explicit.v1",

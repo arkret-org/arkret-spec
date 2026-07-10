@@ -467,7 +467,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.call_state.recording_retention_loak.v1",
+      "vector_id": "ak.vector.call_state.recording_retention_lock.v1",
       "status": "active",
       "domain": "call_state",
       "applies_to_profiles": [

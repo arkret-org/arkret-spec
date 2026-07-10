@@ -3864,7 +3864,7 @@ Expected:
 
 ### 12.16 Call State — Recording Retention & Audit Lock
 
-`vector_id`: `ak.vector.call_state.recording_retention_loak.v1`
+`vector_id`: `ak.vector.call_state.recording_retention_lock.v1`
 
 Steps:
 

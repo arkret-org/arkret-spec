@@ -3780,7 +3780,7 @@
           "default": 300,
           "min": 60,
           "max": 900,
-          "rationale": "Maximum allowed deviation between `ak.cross_signing.reset.issued_at` and receiver local cloak. Default 300s mirrors policy-decision freshness windows; receivers MAY tighten down to 60s for high-assurance deployments or relax up to 900s for federated peers with documented clock skew. Beyond the configured value receivers MUST emit cross_signing_reset_clock_skew_exceeded."
+          "rationale": "Maximum allowed deviation between `ak.cross_signing.reset.issued_at` and receiver local clock. Default 300s mirrors policy-decision freshness windows; receivers MAY tighten down to 60s for high-assurance deployments or relax up to 900s for federated peers with documented clock skew. Beyond the configured value receivers MUST emit cross_signing_reset_clock_skew_exceeded."
         },
         "publish_recovery_window_seconds": {
           "default": 86400,

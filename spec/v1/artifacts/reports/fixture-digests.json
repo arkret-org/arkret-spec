@@ -26,7 +26,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json",
-      "sha256": "4678a984bbe3353fe3a3b4210226db003595b185267fe632e89ea938361146b6"
+      "sha256": "925a898204fa3a552e6107249b811fc265515c84523a032f51dceed7e762603a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
@@ -110,7 +110,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
-      "sha256": "c2aedb853bd1ac9307232725f2e79380e9f8bbc9f2f5141cacd56c91fd2ed0ef"
+      "sha256": "e4b04b5097359781c403902656654345792c1221e4b8a47e50b40d893ce4f39c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
