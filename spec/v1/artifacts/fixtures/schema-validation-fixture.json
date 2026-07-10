@@ -1682,6 +1682,56 @@
           "jws": "a..b"
         }
       }
+    },
+    {
+      "name": "agent_runtime_approval_request_body_valid",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body",
+      "expect_valid": true,
+      "instance": {
+        "pairing_code": "PAIR-7H2K",
+        "pairing_request_id": "pairing-request-01970e58",
+        "agent_principal_id": "did:webvh:z6mkfixture:agent.example",
+        "verification_method": "did:webvh:z6mkfixture:agent.example#key-1",
+        "public_key": {
+          "kty": "OKP",
+          "kid": "did:webvh:z6mkfixture:agent.example#key-1",
+          "alg": "EdDSA",
+          "key": "cHVibGljLWtleQ"
+        },
+        "proof_of_possession": {
+          "kind": "detached_jws",
+          "jws": "a..b"
+        }
+      }
+    },
+    {
+      "name": "agent_runtime_approval_request_body_missing_pairing_id_rejected",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body",
+      "expect_valid": false,
+      "first_expected_error": "'pairing_request_id' is a required property",
+      "instance": {
+        "pairing_code": "PAIR-7H2K",
+        "agent_principal_id": "did:webvh:z6mkfixture:agent.example",
+        "verification_method": "did:webvh:z6mkfixture:agent.example#key-1",
+        "public_key": {
+          "kty": "OKP",
+          "kid": "did:webvh:z6mkfixture:agent.example#key-1",
+          "alg": "EdDSA",
+          "key": "cHVibGljLWtleQ"
+        },
+        "proof_of_possession": {
+          "kind": "detached_jws",
+          "jws": "a..b"
+        }
+      }
+    },
+    {
+      "name": "agent_pairing_resolve_request_body_token_rules",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pairing_resolve_request_body",
+      "expect_valid": true,
+      "instance": {
+        "pairing_token": "pairing-token-01970e58-ABCDEFG"
+      }
     }
   ]
 }
