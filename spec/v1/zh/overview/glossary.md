@@ -124,7 +124,7 @@ see_also:
 | Seal | 检查点锚点 | Ordering authority 对控制面 frontier 的签名承诺；包含 predecessors、frontier、`control_event_set_root`、控制面 `state_root` 与 notary / committee signature。它只 finalizes 控制面；数据面 root 是观测承诺。 |
 | Genesis Seal | 创世检查点 | 某个 Realm 的 Seal DAG 根；它是唯一允许 `predecessor_refs=[]` 的 Seal，且 v1 要求控制面 `frontier=[]`。它为首个控制面写入提供治理基线，本身不是 Event，也不写入 cell。详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。 |
 | Seal DAG | 检查点图 | 某个 Realm 内已接受 Seal 形成的 DAG；多个 leaf 通过确定性 control view 合成。 |
-| Cell | 状态单元 | Lattice 维护的最小协议状态键，形如 `ak:cell:<component>:<subject>`。 |
+| Cell | 状态单元 | Lattice 维护的最小协议状态键，形如 `ak:cell:<component>:<subject>`；其中 `<component>` 是原样嵌入的完整 `ak.component.<facet-path>.v<n>` Cell Family 标识符，因此 canonical 实例具有 `ak:cell:ak.component...` 双层 Arkret 限定。 |
 | Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；核心类型包括 `or_set`、`mv_register`、`cas_register`、`fsm`、`counter`、`ordered_log`、`lww_register`、`rga`。各类型的 join 语义、bottom 行为及使用约束（如 `lww_register` 仅可用于 `client_projection_only=true` 的 UI affordance、不得作为授权或 Seal 关键路径；`rga` 用于协作文本与有序列表）以权威源 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 为准；本条只列类型不重复承载 normative 约束。 |
 | Bottom | 底值 | Lattice join 无法给出合法 value 时返回的 `⊥`；`bottom=reject` 时依赖它的后续写入 fail closed，`bottom=expose` 时可投影为冲突诊断。 |
 | Reset | 重置语义 | 规范中“reset”不是单一 wire 动作：capability reset 通常是 revoke + reissue；cross-signing reset 是 `ak.cross_signing.reset`；cas_register / fsm 进入 `⊥` 后的恢复是 conflict-recovery Control Move（带 `state_witness` / `inclusion_proof` / recovery capability），不是普通 CAS 覆盖。正文使用 reset 时必须说明对应 event kind 或 recovery path。 |

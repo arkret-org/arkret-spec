@@ -310,7 +310,7 @@ ak.vector.encoding.event_digest.v1
   "refs": [],
   "effects": [
     {
-      "cell": "ak:cell:message:019640ed-8000-7000-8000-000000000000",
+      "cell": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:01964137-0000-7000-8000-000000000000",
       "op": {
         "kind": "append",
         "value": {
@@ -345,13 +345,13 @@ ak.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:webvh:z6mkfixture:alice.example","actor_seq":1,"auth_context":{"capability_refs":["ak:grant:0196410c-0000-7000-8000-000000000000"],"did":"did:webvh:z6mkfixture:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ak:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"message_id":"ak:message:019640ed-8000-7000-8000-000000000000","strand_id":"ak:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ak:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"message_id":"ak:message:019640ed-8000-7000-8000-000000000000","strand_id":"ak:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:01964137-0000-7000-8000-000000000000","refs":[],"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
+{"actor_id":"did:webvh:z6mkfixture:alice.example","actor_seq":1,"auth_context":{"capability_refs":["ak:grant:0196410c-0000-7000-8000-000000000000"],"did":"did:webvh:z6mkfixture:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:01964137-0000-7000-8000-000000000000","op":{"kind":"append","value":{"message_id":"ak:message:019640ed-8000-7000-8000-000000000000","strand_id":"ak:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ak:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"message_id":"ak:message:019640ed-8000-7000-8000-000000000000","strand_id":"ak:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:01964137-0000-7000-8000-000000000000","refs":[],"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
 ```
 
 期望 digest：
 
 ```text
-sha256:7dd89cbf24de3183c28323e5b64e7d0b214cf0d546cb9804d1ef34a17c6410c1
+sha256:1fff3e5887d9daaef534ac83d2016799a3028efdf490f21dad6be53c31dc153d
 ```
 
 判定规则：

@@ -57,7 +57,7 @@ updated: 2026-07-02
 ## 3. Cell Family 与 State Event
 
 ```text
-cell_id     := ak:cell:realm.join_policy.v1:<realm_id>
+cell_id     := ak:cell:ak.component.realm.join_policy.v1:<realm_id>
 lattice     := cas_register
 bottom      := reject
 value shape := JoinPolicy（见下）

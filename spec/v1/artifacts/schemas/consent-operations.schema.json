@@ -66,6 +66,7 @@
         },
         "cell_id": {
           "type": "string",
+          "pattern": "^ak:cell:ak\\.component\\.consent\\.grant\\.v1:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$",
           "description": "Consent cell id (ak:cell:ak.component.consent.grant.v1:<consent_id>)."
         },
         "holder_did": {

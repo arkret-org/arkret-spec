@@ -410,7 +410,7 @@ components:
       properties:
         cell:
           type: string
-          pattern: ^ak:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$
+          pattern: ^ak:cell:ak\.component\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+:[A-Za-z0-9._~=-]*(?::[A-Za-z0-9._~=-]+)*$
         status:
           type: string
           enum:

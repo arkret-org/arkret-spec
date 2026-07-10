@@ -36,7 +36,17 @@ updated: 2026-07-02
 
 注：`device_id` 不是例外字段；它的类型是 `id:device`，wire form MUST 为 `ak:device:<uuid>`。只有部分辅助标识符（如 `transaction_id`、`backup_version`、`stream_id`）使用领域特定前缀（如 `ver_`、`kb_`、`devstream_`），不遵循 `ak:<kind>:<uuid>` 格式。这些标识符的编码规则由各自所在章节定义。`recording_id` 是 [`crypto-media/call-state.md` §5](../crypto-media/call-state.md) 定义的 opaque 领域标识（示例形态 `rtc-recording-<uuid>`）：它是 backend 媒体服务（如 LiveKit Egress）生成的 opaque 录制 lifecycle 句柄，进入 recording key exporter Context，**不是** `ak:*` typed ID。
 
-Arkret 命名空间约定（normative）：协议 identifier 使用 `ak.*`，typed ID 使用 `ak:<kind>:`；需要安全域分离的固定字符串 label 也使用 registry 明确登记的 `ak.*` 值。任何缺席于当前 registry/schema 的前缀或拼写都不是 alias，parser MUST fail closed。MLS GroupContext extension 的当前 wire 名是 `mls_governance_binding`（codepoint 0xF1C0，不使用品牌前缀），实现 MUST 用 `mls_governance_binding`、MUST NOT 接受其它拼写。
+Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同层级，MUST NOT 互换，也不得把其中一种拼写当作另一种的 alias。
+
+| 形态 | 语义 | 示例 |
+| --- | --- | --- |
+| `ak.<symbol-path>` | **符号名称 / 注册表词汇**。`.` 只表达命名空间与分类层级；值命名一种 event、operation、schema、profile、capability action、content kind、Cell Family 或 namespaced key，不直接充当某个协议对象实例的 typed reference。 | `ak.message.create`、`ak.self.events.command.submit`、`ak.schema.event.v1`、`ak.component.strand.discussion.timeline.v1` |
+| `ak:<kind>:<payload>` | **具体实例或引用**。第一个 `:` 把 Arkret namespace 与 ref kind 分开，第二个 `:` 开始该 kind 的实例载荷；载荷由 `id-kind-registry.json` 对应 kind 的 wire form 决定。 | `ak:message:<uuid>`、`ak:strand:<uuid>`、`ak:seal:sha256:<digest>`、`ak:trust_domain:<scope>` |
+| `ak:cell:<cell-family>:<subject>` | **复合 typed reference**。外层 `ak:cell:` 表示 CellRef；`<cell-family>` MUST 原样嵌入完整的点分 `ak.component.<facet-path>.v<n>` 符号名称；`<subject>` MAY 自身是一个带 `:` 的 typed reference。 | `ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:<uuid>` |
+
+因此，看到 `ak:` 先按“typed ref / special-form ref”解析，看到 `ak.` 先按“registry symbol / namespaced key”解析。CellRef 中同时出现两者是有意的类型组合，不是可选拼写：省略内层 family 的 `ak.` 限定、把外层 CellRef 写成点分名称，或将 `ak.component.*` family 改写为冒号分隔，均不是 canonical wire。完整 typed-ref special forms 以 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 和 [`encoding.md` §4](../conformance/encoding.md) 为准；各点分 symbol 的合法 segment、版本后缀及登记边界以对应 registry/schema 为准。任何缺席于当前 registry/schema 的前缀或拼写都不是 alias，parser MUST fail closed。
+
+需要安全域分离的固定字符串 label 也使用 registry 明确登记的 `ak.*` 值。MLS GroupContext extension 的当前 wire 名是 `mls_governance_binding`（codepoint 0xF1C0，不使用品牌前缀），实现 MUST 用 `mls_governance_binding`、MUST NOT 接受其它拼写。
 
 字段默认规则：
 

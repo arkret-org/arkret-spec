@@ -504,7 +504,7 @@
         "refs": [],
         "preconditions": [
           {
-            "cell": "ak:cell:audit:session:019a6aa0-5000-7000-8000-000000000000",
+            "cell": "ak:cell:ak.component.audit.session.v1:ak:audit_session:019a6aa0-5000-7000-8000-000000000000",
             "predicate": {
               "op": "head_eq",
               "value": null
@@ -513,7 +513,7 @@
         ],
         "effects": [
           {
-            "cell": "ak:cell:audit:session:019a6aa0-5000-7000-8000-000000000000",
+            "cell": "ak:cell:ak.component.audit.session.v1:ak:audit_session:019a6aa0-5000-7000-8000-000000000000",
             "op": {
               "kind": "set",
               "value": "request"
@@ -1568,6 +1568,18 @@
           "created_at": "2026-05-20T00:00:00Z",
           "jws": "a..b"
         }
+      }
+    },
+    {
+      "name": "cell_ref_without_complete_ak_component_family_rejected",
+      "schema_ref": "schemas/bottom.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.cells[0]: 'ak:cell:message:019640ed-8000-7000-8000-000000000000' does not match '^ak:cell:ak\\\\.component\\\\.[a-z0-9_]+(?:\\\\.[a-z0-9_]+)*\\\\.v[0-9]+:[A-Za-z0-9._~=-]*(?::[A-Za-z0-9._~=-]+)*$'",
+      "instance": {
+        "kind": "conflict",
+        "cells": [
+          "ak:cell:message:019640ed-8000-7000-8000-000000000000"
+        ]
       }
     },
     {

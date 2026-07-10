@@ -50,10 +50,10 @@
     },
     {
       "kind": "cell",
-      "wire_form": "ak:cell:<component>:<subject>",
+      "wire_form": "ak:cell:ak.component.<facet-path>.v<n>:<subject>",
       "status": "active",
       "storage_recommendation": "Store canonical tuple fields separately when indexing cell state.",
-      "description": "Canonical protocol cell identifier."
+      "description": "Canonical protocol cell identifier. The complete ak.component.<facet-path>.v<n> family identifier is embedded unchanged after ak:cell:."
     },
     {
       "kind": "trust_domain",

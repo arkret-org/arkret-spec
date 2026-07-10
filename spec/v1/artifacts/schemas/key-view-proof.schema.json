@@ -65,7 +65,8 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 512,
-          "description": "Canonical cell wire id (ak:cell:<component>:<subject>)."
+          "pattern": "^ak:cell:ak\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+:[A-Za-z0-9._~=-]*(?::[A-Za-z0-9._~=-]+)*$",
+          "description": "Canonical cell wire id (ak:cell:ak.component.<facet-path>.v<n>:<subject>); the complete dot-qualified Cell Family is embedded unchanged."
         },
         "lattice_type": {
           "type": "string",

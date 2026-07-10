@@ -106,6 +106,7 @@ REGISTRY_LATTICES = {
 REGISTRY_BOTTOMS = {"reject", "expose"}
 REGISTRY_PLANES = {"data", "control"}
 LIFECYCLE_UNSAFE_LATTICES = {"lww_register", "rga"}
+CELL_FAMILY_RE = re.compile(r"^ak\.component\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+$")
 
 FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
     "spec/v1/zh/models/realm-and-space.md": {
@@ -1096,6 +1097,11 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         if cell_family is not None:
             if not isinstance(cell_family, str):
                 lint.fail(event_path, f"{kind} cell_family must be a string")
+            elif CELL_FAMILY_RE.fullmatch(cell_family) is None:
+                lint.fail(
+                    event_path,
+                    f"{kind} cell_family must use canonical ak.component.<facet-path>.v<n> form",
+                )
             plane = row.get("plane")
             if plane not in REGISTRY_PLANES:
                 lint.fail(event_path, f"{kind} cell_family row must declare plane=data|control")

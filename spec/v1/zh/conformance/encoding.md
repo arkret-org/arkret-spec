@@ -167,7 +167,7 @@ v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中�
 - `ak:cursor:<base64url>` 是 opaque token，不是 typed UUIDv7 object ID。
 - `ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`ak:blob:019640ba-0000-7000-8000-000000000000` 是 Blob metadata ID。二者 MUST NOT 混用。
 - `ak:seal:sha256:<digest>` 是内容寻址 Seal hash（active special form；见 `id-kind-registry.json`）。
-- `ak:cell:<component>:<subject>` 是 canonical cell tuple 引用（active special form；component 来自 cell-component registry，subject 是 cell 的 subject key）。
+- `ak:cell:<component>:<subject>` 是 canonical cell tuple 引用（active special form；`component` MUST 是从 cell-component registry 取得并原样嵌入的完整 `ak.component.<facet-path>.v<n>` family 标识符，`subject` 是 cell 的 subject key）。因此标准实例形如 `ak:cell:ak.component.strand.position.v1:<subject>`；`ak:cell:component.*`、`ak:cell:<裸 family>`、旧命名空间 family 或任何未完整携带 `ak.component.*.v<n>` 的形态 MUST 拒绝。
 - `ak:mls:<profile>:<profile_id>`、`ak:pseudonym:<scope_id>:<random>` 等 profile-scoped form 必须由对应 profile 注册和校验。
 - `ak:trust_domain:<scope>` 是部署 / 联邦信任域 ref，不是 typed UUIDv7 object ID；`<scope>` 的 profile 与匹配规则由 Realm / federation policy 声明。
 

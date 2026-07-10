@@ -34,7 +34,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "0d8318f2c1aeccaaccab44dd493faa214eba9a6b2e844e25c2b426ed4e95e70f"
+      "sha256": "67dc71afd145dd5fb28bc004d95d0a10e1adff8124aebfbaf92b49b5e8afd086"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -42,7 +42,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
-      "sha256": "8fc9ff1d3602670107cd80a302fedce2f57f6d8f5e18d74c6e14247e9592a253"
+      "sha256": "82644247513db5df198ea35abbfbc5eba8eebb4642c4a279a09b197b012ac33c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cursor-negative-fixture.json",
@@ -50,7 +50,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "8fc0f544c467440cb443ef14d7955edd8f501a0090d8f6e0af1a524e9c876822"
+      "sha256": "d932b480c3ad01e8ac448322c9b3d3a9254b33a9bf8cb03fd229c2f08317193a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-envelope-negative-fixture.json",
@@ -130,7 +130,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "b655de029afd272380ab4a42feb50b016f6bf140a071d1a7c407a4ed17bf5e50"
+      "sha256": "4021393683ecfb5c23680771e588f228991790f33f495bb6ac5a7e41987ee2fd"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-vectors.json",

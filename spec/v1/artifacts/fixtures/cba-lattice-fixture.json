@@ -4,7 +4,7 @@
   "notes": [
     "These vectors pin CBA dual-plane semantics. DataEvent vectors use effects + seal_ref + auth_context and never use preconditions. Control Move vectors use effects + seal_basis and may use preconditions.",
     "Seal delta entries reference only newly sealed control-plane event digests. Cumulative coverage is derived from predecessor_refs[] plus delta[]. DataEvent digests may appear in data_event_set_root / data_view_root observations, but those roots do not confer control-plane finality.",
-    "Cell ids follow ak:cell:<component>:<subject>; subject placeholders use dot-safe strings to keep examples unambiguous."
+    "Cell ids follow ak:cell:ak.component.<facet-path>.v<n>:<subject>; subject placeholders use dot-safe strings to keep examples unambiguous."
   ],
   "lattice_round_trip": {
     "description": "SDK lattice round-trip runner coverage for CBA lattice family vectors whose semantics are exercised directly through arkret_core::lattice implementations.",
