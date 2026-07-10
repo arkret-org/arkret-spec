@@ -210,7 +210,7 @@ Content-Type: application/json
 - Pseudonym 生成 MUST 使用每次通话的新随机种子或 media service 私有密钥派生，且至少绑定 `(realm_id, call_id, actor_id, device_id, issued_at_bucket, media_service_did)`；推荐：
 
   ```text
-  pseudonym = "ak.pseudonym_call_" ||
+  pseudonym = "ak_pseudonym_call_" ||
     base64url(HMAC-SHA256(media_service_pseudonym_secret,
       canonical_json({realm_id, call_id, actor_id, device_id, issued_at_bucket, nonce})
     )[0:16])
