@@ -48,8 +48,6 @@ discussion: <issue-or-pr-url>  # review 必填
 
 ## 4. 当前提案
 
-| AKP | 标题 | Status |
-| --- | --- | --- |
-| [AKP-0015](./0015-contact-introduction-and-graded-disclosure.md) | Contact introduction evidence & graded invite-outcome disclosure | draft |
+当前没有在审提案。
 
 目录索引必须与实际文件集合一致。已合并、延期、否决或撤回的 AKP 不得留在本表或 current-v1 目录。
