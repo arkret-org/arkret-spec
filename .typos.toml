@@ -1,3 +1,12 @@
+[default]
+extend-ignore-re = [
+    # multibase/base58 strings (did:key, did:webvh, multibase test vectors)
+    "z[1-9A-HJ-NP-Za-km-z]{20,}",
+    # long base64 / base64url runs (fixture payloads, signatures, JWT segments)
+    "[A-Za-z0-9+/=]{40,}",
+    "[A-Za-z0-9_-]{40,}",
+]
+
 [files]
 extend-exclude = [
   "site/dist",
@@ -35,3 +44,8 @@ Iz = "Iz"
 ND = "ND"
 OT = "OT"
 daa = "daa"
+# hyphenated prefix: mis-routed, mis-labelled, ...
+mis = "mis"
+Mis = "Mis"
+# legitimate plural of canonicalization
+canonicalizations = "canonicalizations"

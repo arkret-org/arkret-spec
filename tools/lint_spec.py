@@ -8,7 +8,7 @@ P0/P1 checks aligned with `_improve.md`:
   for RFC 2119 keywords (warning, not error).
 - Second-person pronouns ("你 / 你的 / 我们") flagged as style violations.
 - Casual section titles ("一句话理解 / 速查 / 读图要点 / 先读路径") flagged.
-- Internal link style: `[file.md §N.M](path)` prefered; bare relative paths
+- Internal link style: `[file.md §N.M](path)` preferred; bare relative paths
   in body text flagged as warnings.
 - Mixed half-width punctuation in Chinese-language paragraphs (`,` `;`
   surrounded by CJK chars) reported.
