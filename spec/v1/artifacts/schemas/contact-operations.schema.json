@@ -132,6 +132,33 @@
       },
       "additionalProperties": false
     },
+    "contact_agent_projection": {
+      "type": "object",
+      "required": [
+        "agent_principal_id",
+        "controller_principal_id"
+      ],
+      "properties": {
+        "agent_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "controller_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "agent_slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9](?:[a-z0-9_-]{0,62}[a-z0-9])?$"
+        },
+        "direct_conversation": {
+          "$ref": "#/$defs/direct_conversation_summary"
+        }
+      },
+      "additionalProperties": false
+    },
     "contact_list_row": {
       "type": "object",
       "required": [
@@ -180,6 +207,12 @@
         },
         "direct_conversation": {
           "$ref": "#/$defs/direct_conversation_summary"
+        },
+        "agents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contact_agent_projection"
+          }
         }
       },
       "additionalProperties": false

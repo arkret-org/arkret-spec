@@ -92,7 +92,7 @@ Consent revoke 与 contact tombstone 仍是两条显式事实：单独 revoke co
 | --- | --- | --- | --- |
 | `ak.self.contact.command.request` | `POST /_arkret/self/contacts/request` | `ContactRequestRequestBody` / `ContactRequestOutcome` | 写 requester 侧 request fact，并投递签名请求给 target；request body MAY 含可选 `message`(1..2000,NFC,wire bound 登记于 [`../conformance/scalability-constraints.md` §6.1](../conformance/scalability-constraints.md)),透传到 `ak.contact.requested` 的 `message` 字段作为加好友附言；target 在对端 PS 时 MUST 携带可选 `recipient_service_did`(见 §4.1)以驱动跨端投递；首次接触 MAY 携带 `introduction_evidence`（例如 `locator_ref`、`handle_claim` 或 `explicit_address`），issuer 侧 PS 若无法构造合规 evidence MUST 按 `explicit_address` 低信任处理 |
 | `ak.self.contact.command.respond` | `POST /_arkret/self/contacts/respond` | `ContactRespondRequestBody` / `ContactRespondOutcome` | 由 target 接受 / 拒绝 request；accept 同步写 target consent grants |
-| `ak.self.contact.query.list` | `GET /_arkret/self/contacts` | `ContactList` | 从 contact facts 投影，并附带 consent-derived scopes |
+| `ak.self.contact.query.list` | `GET /_arkret/self/contacts` | `ContactList` | 从 contact facts 投影，并附带 consent-derived scopes；human contact 的 `agents[]` 仅投影当前 viewer 具有 accepted `direct_message` contact / consent、且 lifecycle active 的 accountable native personal agents |
 | `ak.self.contact.command.tombstone` | `POST /_arkret/self/contacts/tombstone` | `ContactTombstoneRequestBody` / `ContactTombstone` | 写 holder 侧 tombstone；默认 revoke holder 给 peer 的 contact-managed consent；request body 含可选 `block_peer`(默认 false),为 true 时额外把 peer DID 写入 holder `invite_receive_policy.blocked_subjects`(硬拉黑) |
 
 `ContactListRow` MUST 至少区分：
