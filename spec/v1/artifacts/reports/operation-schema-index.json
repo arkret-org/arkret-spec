@@ -4972,33 +4972,15 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_outcome",
         "schema_kind": "object",
         "required": [
           "ok",
-          "cell_id",
-          "holder_did",
-          "peer_did",
-          "consent_scope",
-          "state",
-          "active_grant_dots",
-          "grant_dots",
-          "revoked_dots",
-          "updated_at"
+          "accepted_for_processing"
         ],
         "properties": [
           "ok",
-          "cell_id",
-          "holder_did",
-          "peer_did",
-          "consent_scope",
-          "state",
-          "expires_at",
-          "requested_at",
-          "updated_at",
-          "active_grant_dots",
-          "grant_dots",
-          "revoked_dots"
+          "accepted_for_processing"
         ],
         "closed": true
       }

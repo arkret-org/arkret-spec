@@ -1991,7 +1991,7 @@
       "http": "GET /_arkret/self/consent/cells",
       "grpc": "SelfConsent/List",
       "mq": "self.consent.query.list",
-      "notes": "Lists holder-private consent cells where the caller is holder or peer. Each cell projects the current effective consent for a (holder, peer, consent_scope).",
+      "notes": "Lists holder-private consent cells for the authenticated holder only. Peer actors MUST NOT receive cell state, dots, expiry or request timestamps.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_list"
     },
@@ -2000,7 +2000,7 @@
       "http": "GET /_arkret/self/consent/cells/{holder_did}",
       "grpc": "SelfConsent/Get",
       "mq": "self.consent.resource.get",
-      "notes": "Reads one consent cell. Requires peer and consent_scope query params; caller MUST be holder or that peer. Returns not_found when no cell exists.",
+      "notes": "Reads one holder-private consent cell. The authenticated actor MUST equal holder_did or be an explicitly authorised holder controller; peers never receive this DTO.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
     },
@@ -2033,12 +2033,12 @@
       "http": "POST /_arkret/self/consent/request",
       "grpc": "SelfConsent/Request",
       "mq": "self.consent.command.request",
-      "notes": "Opens a pending consent request from the authenticated peer to a holder. peer_did defaults to and MUST equal the authenticated actor; the holder account MUST exist.",
+      "notes": "Submits an opaque consent-contact request from the authenticated peer. peer_did defaults to and MUST equal the actor. The response is identical for missing holders, policy denial, rate limiting, silent drop and quarantine acceptance; the operation never returns a consent cell.",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
-      "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
+      "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_outcome"
     },
     {
       "operation_id": "ak.self.account_data.query.list",

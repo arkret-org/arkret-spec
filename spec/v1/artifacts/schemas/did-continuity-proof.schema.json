@@ -9,8 +9,8 @@
     "old_did",
     "new_did",
     "purpose",
+    "trust_domain",
     "issued_at",
-    "transfer_evidence",
     "signature_chain"
   ],
   "properties": {
@@ -27,9 +27,13 @@
       "type": "string",
       "enum": [
         "principal_method_upgrade",
-        "principal_migration",
-        "account_binding_continuity"
+        "principal_migration"
       ]
+    },
+    "trust_domain": {
+      "type": "string",
+      "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$",
+      "description": "Receive-context trust domain covered by every signature_chain payload_digest. Verifier MUST reject a proof whose value differs from current_receive_context.trust_domain."
     },
     "audience": {
       "type": "array",
@@ -88,7 +92,7 @@
     },
     "signature_chain": {
       "type": "array",
-      "minItems": 2,
+      "minItems": 1,
       "items": {
         "type": "object",
         "required": [
@@ -118,7 +122,7 @@
           },
           "payload_digest": {
             "$ref": "#/$defs/hash",
-            "description": "Hash of utf8('ak.did-continuity-proof-v1\\n') || canonical_json(proof object with signature_chain[].payload_digest and signature_chain[].signature omitted)."
+          "description": "Hash of utf8('ak.did-continuity-proof-v1\\n') || canonical_json(proof object, including trust_domain and audience, with signature_chain[].payload_digest and signature_chain[].signature omitted)."
           },
           "signature": {
             "type": "string",
@@ -129,6 +133,34 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "purpose": {
+            "const": "principal_method_upgrade"
+          }
+        },
+        "required": [
+          "purpose"
+        ]
+      },
+      "then": {
+        "required": [
+          "audience",
+          "transfer_evidence"
+        ],
+        "properties": {
+          "audience": {
+            "minItems": 1
+          },
+          "signature_chain": {
+            "minItems": 2
+          }
+        }
+      }
+    }
+  ],
   "additionalProperties": false,
   "$defs": {
     "did": {

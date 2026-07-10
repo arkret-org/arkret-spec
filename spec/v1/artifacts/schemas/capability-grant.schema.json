@@ -79,7 +79,7 @@
       "items": {
         "$ref": "./grant-constraint.schema.json"
       },
-      "description": "Constraints applied to this grant. Delegation control MUST be expressed via a constraint with constraint_type='delegation_control' and 'max_delegation_depth' (canonical, see capabilities.md §10). The early-draft top-level 'delegable' boolean is removed — it duplicated max_delegation_depth=0 semantics with no precedence rule. Implementations MUST reject grants carrying a top-level 'delegable' field as schema_violation. Default when no delegation_control constraint is present: not delegable (equivalent to max_delegation_depth=0)."
+      "description": "Constraints applied to this grant. Delegation control MUST be expressed via constraint_type='delegation_control' and max_delegation_depth (see capabilities.md §10). Top-level delegable is forbidden and MUST be rejected as schema_violation. With no delegation_control constraint the grant is not delegable (equivalent to max_delegation_depth=0)."
     },
     "parent_grant_id": {
       "type": "string",

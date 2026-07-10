@@ -325,6 +325,8 @@ Circle lifecycle 只有 `active` / `archived` / `tombstoned` 三态，对应 `ak
 | 场景 | Realm-level / 未 scope 对象 | scope_circle_id 指向该 Circle 的对象 |
 | --- | --- | --- |
 | 父 Realm tombstone / destroy | 按 Realm lifecycle 停止 | Circle 全部 tombstone；对象按 Circle lifecycle 停止；tombstone 到 successor Realm 时不会自动把 Circle membership / MLS key / history grant 迁移到 successor |
+| 父 Realm freeze | 所有非豁免新写入按 Realm §2.6.0 拒绝 `realm_frozen` | Circle-scoped 新写入同样按 `realm_frozen` 拒绝；Circle 本身不定义独立 freeze，也不得用 Circle capability 绕过父 Realm freeze |
+| 父 Realm archive | 按 Realm 默认隐藏 / 只读投影，可由 Realm restore 恢复 | Circle 与其对象遵循父 Realm archive 的默认隐藏 / 只读投影；不额外 tombstone、不改 membership / MLS eligibility，Realm restore 后恢复到 Circle 自身 lifecycle 决定的状态 |
 | Circle archive | 不受影响 | 新写入 MUST fail closed(`failed_precondition`, `reason=circle_not_active`)，**含新建以该 archived Circle 为 `scope_circle_id` 的对象**（与 §6.1 "`scope_circle_id` 引用的 Circle MUST `state=active`" 同一裁决）；既有对象保持历史可读/可审计投影，但不得继续追加 Message / Morph / structural Relation / position update，直到 `ak.circle.restore` 使 Circle 恢复 active |
 | Circle tombstone | 不受影响 | 对象写入 MUST fail closed,projection 显示 scope unavailable;`scope_circle_id` 不会被自动 rewrite |
 | 父 Realm 收紧 history visibility | 按新 visibility | Effective visibility 重新计算为更严格值；Circle 不得保持比父 Realm 更宽的历史披露 |

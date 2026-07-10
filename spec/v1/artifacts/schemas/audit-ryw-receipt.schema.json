@@ -13,6 +13,7 @@
     "audit_event_digest",
     "realm_id",
     "trust_domain",
+    "realm_operator_organization",
     "audit_actor_id",
     "frontier",
     "observed_at",
@@ -55,6 +56,10 @@
       "type": "string",
       "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$",
       "description": "Deployment trust domain for the Realm at the receipt frontier. Verifiers MUST require this to match the current receive context and the enclosing audit Event Realm context before using audit_policy_version_digest."
+    },
+    "realm_operator_organization": {
+      "$ref": "#/$defs/did",
+      "description": "DID of the Realm operator's ultimate controlling organization at this receipt frontier. Verifiers MUST derive and verify it from the Realm service/operator DID control chain; it is not a self-attested label. For federation_witness_attested, every witness controlling_organization MUST be distinct from this value and from any organization under the same ultimate controller."
     },
     "audit_actor_id": {
       "$ref": "#/$defs/did"
@@ -113,7 +118,7 @@
             "federation_witness_attested",
             "single_source"
           ],
-          "description": "Attestation kind derived from witnesses[]. 'federation_witness_attested' MUST be used iff witnesses[] contains >= 2 distinct entries (distinct issuer.did AND distinct controlling_organization AND distinct verification_method) AND each issuer.did is listed by Realm policy under audit.ryw_witnesses[]. 'single_source' MUST be used iff witnesses[] contains exactly 1 entry. Any mismatch between 'kind' and the witnesses[] cardinality / distinctness / Realm policy listing MUST be rejected with audit_receipt_invalidated. The value is externally verifiable from the witness list, not a self-claim."
+          "description": "Attestation kind derived from witnesses[]. 'federation_witness_attested' MUST be used iff witnesses[] contains >= 2 distinct entries (distinct issuer.did AND distinct controlling_organization AND distinct verification_method), each issuer.did is listed by Realm policy under audit.ryw_witnesses[], and no witness controlling organization equals or is ultimately controlled by realm_operator_organization. 'single_source' MUST be used iff witnesses[] contains exactly 1 entry. Any mismatch between 'kind' and the witnesses[] cardinality / distinctness / Realm policy listing / operator independence MUST be rejected with audit_receipt_invalidated. The value is externally verifiable from the witness list, not a self-claim."
         },
         "witnesses": {
           "type": "array",
@@ -136,7 +141,7 @@
               },
               "controlling_organization": {
                 "$ref": "#/$defs/did",
-                "description": "DID of the organization that controls the witness. This value is not self-attested: verifiers MUST resolve issuer DID Document and confirm its controller / service ownership chain matches controlling_organization. For 'federation_witness_attested', all witnesses' controlling_organization values MUST be pairwise distinct and MUST NOT equal the audit actor's controlling organization."
+                "description": "DID of the organization that controls the witness. This value is not self-attested: verifiers MUST resolve issuer DID Document and confirm its controller / service ownership chain matches controlling_organization. For 'federation_witness_attested', all witnesses' controlling_organization values MUST be pairwise distinct and MUST NOT equal the audit actor's controlling organization or realm_operator_organization, including common ultimate controllers."
               },
               "attested_at": {
                 "$ref": "#/$defs/timestamp",
@@ -149,7 +154,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Witness attestation bloak. The receipt's independence is externally verifiable from the witnesses[] list rather than self-claimed via a single enum. See zh/crypto-media/audited-e2ee.md §4.1 / §4.1.1."
+      "description": "Witness attestation block. The receipt's independence is externally verifiable from the witnesses[] list rather than self-claimed via a single enum. See zh/crypto-media/audited-e2ee.md §4.1 / §4.1.1."
     },
     "audit_assurance_class": {
       "type": "string",

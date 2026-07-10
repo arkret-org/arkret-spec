@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-link-operations.schema.json",
   "title": "Arkret Realm Link Self-Management Operation DTOs",
-  "description": "Closed request/response DTOs for the self-surface cross-Realm link operations (ak.self.realm_link.*). Each write builds a ak.realm.link Move and routes it through the local accept pipeline so the reducer's realm_link_* validators (cycle detection, self-reference, kind validation) run. The durable link payload is the canonical ak.realm.link; see spec/v1/zh/models/realm-links.md.",
+  "description": "Closed request/response DTOs for the self-surface cross-Realm link operations (ak.self.realm_link.*). Each write builds a ak.realm.link Move and routes it through the local accept pipeline so the reducer validates self-reference and link kind. General link-graph cycles are legal; traversal uses a visited set and does not reject a write merely for forming a cycle. The durable link payload is the canonical ak.realm.link; see spec/v1/zh/models/realm-links.md.",
   "anyOf": [
     {
       "$ref": "#/$defs/realm_link_create_request_body"
@@ -25,16 +25,24 @@
     },
     "link_kind": {
       "type": "string",
-      "enum": [
-        "governed_by",
-        "discoverable_from",
-        "join_gate_from",
-        "inherits_policy_from",
-        "confidential_extension_of",
-        "mirror_of",
-        "split_from",
-        "replaces"
-      ]
+      "anyOf": [
+        {
+          "enum": [
+            "governed_by",
+            "discoverable_from",
+            "join_gate_from",
+            "inherits_policy_from",
+            "confidential_extension_of",
+            "mirror_of",
+            "split_from",
+            "replaces"
+          ]
+        },
+        {
+          "pattern": "^x\\.[a-z0-9](?:[a-z0-9.-]{0,61}[a-z0-9])?\\.[a-z][a-z0-9_]{0,63}$"
+        }
+      ],
+      "description": "Core value or machine-registered extension kind using x.<reverse-dns>.<name>; unregistered extension values fail closed."
     },
     "link_status": {
       "type": "string",

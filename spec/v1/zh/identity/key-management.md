@@ -831,6 +831,8 @@ v1 core 不把 `hardware_wrapped_key` 作为 `ak.schema.key_backup.v1.encryption
 
 v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybrid 迁移：
 
+- `recovery_policy.recovery_keys[].alg` MUST 取自 active [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json) row；v1 机读集合为 `Ed25519`、`ES256`、`ML-DSA-65`。`Ed25519` 是默认 MUST，`ES256` 用于硬件 / WebAuthn 兼容，`ML-DSA-65` 仅在实现声明相应 PQ 签名能力时可签发。receiver 不支持 entry 声明的 active algorithm 时 MUST fail closed `unsupported_signature_alg`，不得回退为 Ed25519 或忽略该 recovery key。
+
 - Receiver MUST 对未知 `encryption.kdf.name`、`encryption.aead.name`、`encryption.aead.aead_profile`、`encryption.recipient_method` fail closed（不得回退到默认）。
 - PQ / hybrid KEM agility MUST 通过 `encryption.hpke_suite` 选择子 + [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 声明，不得塞进 AEAD profile。PQ hybrid（X25519+ML-KEM-768）已在该 registry 预留 `ak.hpke_xwing_aead_chacha20poly1305.v1`（status=reserved，profile `ak.profile.kem.hybrid_xwing.v1`），与 `ak.aead.hybrid_kem.*` 预留 namespace 对齐；只有该 registry row 的 activation requirements 全部满足并翻为 active 后才可出现在 wire 上。`ak.aead.*` 只描述 AEAD 算法、nonce/tag/key 长度和 AAD 构造；receiver 收到把 KEM 语义编码进 `encryption.aead.aead_profile` 的 envelope MUST fail closed。
 - 当 `frontier_ref` 携带 `seal_ref` 时，client 可以用 Seal inclusion proof 来证明 envelope 创建时刻不晚于 Seal commit；receiver MAY 在 sovereign / high_security_organization profile 中要求该证明。

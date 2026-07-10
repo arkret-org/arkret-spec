@@ -140,8 +140,8 @@ TSP transport 不引入平行 operation namespace。若 TSP adapter 需要 trans
 - TSP authenticity 不替代 Arkret event signature / operation proof。任何通过 TSP 承载的 Arkret operation（包括非持久 operation、控制消息、Event 提交、capability 驱动动作）在进入 Arkret operation layer 前，receiver MUST 验证对应的 Arkret 签名、payload proof 或 capability-bound proof；仅凭 TSP relationship / channel authentication MUST NOT 放行。没有 Arkret operation 语义的 TSP-private 控制消息必须留在 `tsp.adapter.*` namespace，不得伪装成 Arkret operation。
 - TSP confidentiality 不替代 Realm E2EE；它只保护 transport message payload。
 - TSP relationship 不自动授予 Realm membership 或 capability。
-- TSP routed mode 中 intermediary 不应被视为可信授权方。
-- 若使用 nested TSP message 隐藏内层 VID，外层 endpoint 仍必须满足 Arkret routing 和 policy 要求。
+- TSP routed mode 中 intermediary MUST NOT 被视为可信授权方，也 MUST NOT 获得、记录或向下游暴露内层 VID、内层 relationship id 或可逆的外层 VID → 内层 VID 映射；实现 MUST 对长度使用协商的 padding bucket，并对可合并投递使用批处理，避免把精确大小与时序作为稳定关联键。
+- 若使用 nested TSP message 隐藏内层 VID，外层 endpoint 仍必须满足 Arkret routing 和 policy 要求。发送方在发送前 MUST 验证 endpoint 的反向绑定声明同时包含 `metadata_privacy.nested_messages=true`；routed mode 还 MUST 验证 `metadata_privacy.routed_messages=true`。声明缺失、过期或与实际握手能力不一致时 MUST fail closed，不得把隐私模式静默降级为 direct/public VID。
 
 ## 6. 与 MLS 的差异
 
@@ -187,7 +187,8 @@ TSP 不能单独解决“披露什么”的问题。披露决策仍由 holder wa
 - 将 TSP relationship 与 Arkret principal/service DID 显式绑定。
 - 防止把 TSP channel authentication 当作 Realm authorization。
 - 对 metadata privacy mode 做显式声明，尤其是 public VID、nested VID、routed mode。
-- 对 routed intermediary 做最小信任假设。
+- 对 routed intermediary 做最小信任假设：中继可见面 MUST 限于下一跳 routing handle、padding bucket、粗粒度 delivery window 和 opaque ciphertext；它 MUST NOT 看见内层 VID、Arkret actor / principal DID、operation payload、relationship id 或跨 relationship 稳定 tag。中继日志 MUST 按最短投递诊断窗口保留，且 MUST NOT 跨 relationship、租户或时间窗关联外层 routing handle。
+- sender MUST 通过 §4.1 反向绑定签名验证对端 `metadata_privacy` 能力；仅有 DID Document 自声明不足以启用 nested / routed privacy mode。
 - 在 audit log 中记录 TSP binding、remote VID、relationship id、payload hash 和 verification result。
 
 ## 9. Conformance

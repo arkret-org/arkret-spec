@@ -40,7 +40,7 @@ Calendar event 是一个带 `ak.profile.calendar_event.v1` 的 Strand profile，
 
 ## 3. Recurrence
 
-v1 recurrence 使用 RRULE 子集：`FREQ`、`INTERVAL`、`BYDAY`、`COUNT`、`UNTIL`。wire schema 使用协议命名字段 `frequency`、`interval`、`by_day`、`count`、`expires_at`；实现 MUST 按 `timezone` 做 wall-clock 展开；跨 DST 时，同一 local time 的会议不得因为 UTC offset 改变而漂移。
+v1 recurrence 使用 RRULE 子集：`FREQ`、`INTERVAL`、`BYDAY`、`COUNT`、`UNTIL`。wire schema 使用协议命名字段 `frequency`、`interval`、`by_day`、`count`、`expires_at`；`by_day[]` 是无序集合，只允许 `MO`、`TU`、`WE`、`TH`、`FR`、`SA`、`SU` 且不得重复，不支持 `1MO`、`-1FR` 等带序数 BYDAY。实现 MUST 按 `timezone` 做 wall-clock 展开；跨 DST 时，同一 local time 的会议不得因为 UTC offset 改变而漂移。
 
 `count` 与 `expires_at` MUST NOT 同时出现；二者均省略表示无协议层终止条件，但实现仍必须受 [`../conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) 的单次展开上限约束。`count` 的最大值为 10000；projection、查询和通知展开单次最多返回 10000 个 occurrence，超过时 MUST 分页或返回 `limit_exceeded`。未知 RRULE 字段 MUST 触发 schema / profile reject，而不是静默忽略。
 
@@ -56,7 +56,7 @@ Attendee DID、display name snapshot 和 attendance role 不得替代 Realm memb
 
 ## 5. RSVP
 
-RSVP 通过 `ak.rsvp.set` 写入。payload 必须包含 `event_ref`、`status` 和 `occurrence`；`comment` 若存在 MUST 加密，除非 Realm policy 明确允许该服务接收 plaintext-visible RSVP comment。
+RSVP 通过 `ak.rsvp.set` 写入。payload 必须包含 `event_ref`、`status` 和 `occurrence`；`status` 是封闭集 `accepted | declined | tentative`，未知值 MUST `schema_violation`；`comment` 若存在 MUST 加密，除非 Realm policy 明确允许该服务接收 plaintext-visible RSVP comment。
 
 RSVP projection 按 actor 对 `(event_ref, occurrence)` 做 LWW 收敛。`occurrence=null` 表示整个 series；实例级 RSVP 使用 recurrence instance key。该 key MUST 是 occurrence 的 local wall-clock start 按事件 `timezone` 展开后写成 `YYYY-MM-DD`（all-day）或 `YYYY-MM-DDTHH:mm:ss[Zone]`（非 all-day，Zone 为 IANA timezone 名）的 canonical 字符串；同一 series instance 在所有实现中必须生成相同 key。重复写同一 status 是 no-op，较新 HLC 的不同 status 替换旧值。
 

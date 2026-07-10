@@ -24,7 +24,7 @@
     "required": [
       "track"
     ],
-    "$comment": "Strand track keys use track_name on current wire."
+    "$comment": "Strand track keys use track_name; track is forbidden."
   },
   "properties": {
     "id": {

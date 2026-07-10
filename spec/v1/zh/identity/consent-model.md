@@ -65,11 +65,11 @@ Consent state 写入 holder 控制的 Realm（默认是 holder 的 principal con
 ```text
 cell_id  = ak:cell:ak.component.consent.grant.v1:<consent_id>
 lattice  = or_set
-bottom   = (registry-declared, inert for or_set)  // or_set join never produces ⊥
+bottom   = inert  // or_set join never produces ⊥
 ```
 
 - `consent_id` 是 consent 槽的 subject。同一 holder 对同一 peer 的不同 consent_scope 用不同 consent_id；同 consent_id 上所有 add / remove tag op 收敛于同一 cell。
-- or_set join 永不产生 ⊥，因此 `bottom` 字段只是 registry 声明的占位值（registry-declared），对 consent 行为 **inert**，不构成任何"reject"语义；effective consent 始终由 or_set join 决定，不读取 `bottom`。
+- or_set join 永不产生 ⊥，因此 registry 对 consent cell 明确登记 `bottom=inert`，不构成任何"reject"语义；effective consent 始终由 or_set join 决定。
 - **缺省判定（normative，唯一默认）**：一个 `(consent_id, peer, consent_scope)` 没有任何 active grant dot（`active_dots` 为空，或全部 dot 已被 `observed_dots` 撤销，或当前时间不在 `[not_before, expires_at]` 窗口内）时，**effective consent = no-consent**，invite / contact gate MUST NOT 放行（按 §6.1 profile：`require_explicit_consent` profile 下 MUST `failed_precondition` 拒绝；default profile 下 MAY 进入 holder 的 quarantine inbox 暂存待 review，而非直接拒绝或放行）。"无 active dot ⇒ no-consent ⇒ gate 拒绝"是 consent 的唯一默认判定——默认无授权而非默认放行；这不是来自 cell `bottom`，而是来自 §5 effective consent 的存在性要求（至少一条 active dot 才放行）。
 
 ### 3.2 `ak.consent.grant` Control Move

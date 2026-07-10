@@ -8,6 +8,7 @@
     "ak.vector.agent.participation.ceiling_tighten.v1",
     "ak.vector.agent.participation.effective_intersection.v1",
     "ak.vector.agent.participation.selection_within_ceiling.v1",
+    "ak.vector.agent.participation.wire_shape_normalization.v1",
     "ak.vector.agent.participation.session_overlay.v1",
     "ak.vector.agent.participation.third_party_mention_gate.v1"
   ],
@@ -180,6 +181,39 @@
         "session scope_details.participation entries are isomorphic to agent_participation_entry",
         "the overlay is a behavior contract and not an authorization boundary",
         "missing backing capability grant still fails the runtime operation"
+      ]
+    },
+    {
+      "name": "wire_shape_normalization",
+      "vector_id": "ak.vector.agent.participation.wire_shape_normalization.v1",
+      "kind": "ceiling_wire_shape_normalization",
+      "realm_wrapped": {
+        "native_agent": {
+          "reply": true,
+          "accept_third_party_mention": false,
+          "act_on_behalf": false
+        }
+      },
+      "circle_flat": {
+        "reply": true,
+        "accept_third_party_mention": false,
+        "act_on_behalf": false
+      },
+      "invalid_widening_circle_flat": {
+        "reply": true,
+        "accept_third_party_mention": true,
+        "act_on_behalf": false
+      },
+      "expected": {
+        "normalized_equal": true,
+        "invalid_widening_decision": "reject",
+        "invalid_widening_reason": "agent_participation_ceiling_widen",
+        "missing_native_agent_axis": "fail_closed_all_false"
+      },
+      "assertions": [
+        "the Realm native_agent wrapper is removed only for bitwise comparison",
+        "Circle and Strand flat bits align by exact field name",
+        "a structural wrapper mismatch never bypasses tighten-only validation"
       ]
     },
     {

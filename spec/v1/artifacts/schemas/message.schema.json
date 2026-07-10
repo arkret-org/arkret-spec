@@ -132,7 +132,7 @@
     },
     "encrypted_content": {
       "$ref": "./encrypted-envelope.schema.json",
-      "description": "Encrypted envelope whose plaintext is the Message ContentBloak."
+      "description": "Encrypted envelope whose plaintext is the Message ContentBlock."
     },
     "metadata": {
       "$ref": "#/$defs/message_metadata"

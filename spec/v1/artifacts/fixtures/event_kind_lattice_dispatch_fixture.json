@@ -1,0 +1,31 @@
+{
+  "suite": "event_kind_lattice_dispatch_fixture",
+  "version": "2026-07-10",
+  "runner": {
+    "kind": "registry_coverage",
+    "inputs": [
+      "registry/contract-catalog.json",
+      "registry/event-kind-registry.json",
+      "registry/reducer-profile-registry.json",
+      "fixtures/cba-lattice-fixture.json"
+    ]
+  },
+  "assertions": [
+    {
+      "id": "registered_dispatch_target",
+      "rule": "Every durable event kind resolves to its registered component and state-resolution family without prose inference."
+    },
+    {
+      "id": "or_set_bottom_is_inert",
+      "rule": "Every or_set component dispatches bottom as inert and never as an authorization rejection."
+    },
+    {
+      "id": "family_semantics_present",
+      "rule": "Every referenced lattice or state-machine family has a registered reducer semantic."
+    },
+    {
+      "id": "unknown_dispatch_fails_closed",
+      "rule": "Unknown component, lattice family, or critical dispatch metadata is rejected before state mutation."
+    }
+  ]
+}

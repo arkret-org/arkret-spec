@@ -197,7 +197,7 @@ Receiver / reducer MUST 拒绝任何缺失 `eligibility_proof`、`eligibility_pr
 
 规则：
 
-- `attested_hardware` release MUST 等待 `witness_attestation.kind="federation_witness_attested"` 的 receipt；至少两个独立 witness，且 witness 不得由 release service 自己控制。
+- `attested_hardware` release MUST 等待 `witness_attestation.kind="federation_witness_attested"` 的 receipt；至少两个独立 witness，且 witness 不得由 release service、audit actor 或 Realm operator 自己控制。每个 receipt MUST 携带 `realm_operator_organization`，verifier MUST 由 Realm service / operator 的 DID 控制链独立验证该值；任一 witness 的 `controlling_organization` 与其相同或同属一个最终控制组织时，receipt MUST `audit_receipt_invalidated` fail closed。
 - `disclosed_policy` MAY 使用 `single_source` receipt，但 issuer 仍不得是 release service / audit actor 本身。
 - Receipt 的 `audit_policy_version_digest` MUST 覆盖 `{realm_id, trust_domain, audit_binding, release_policy, release_window_policy, activation_frontier_digest, first_auditable_epoch}`，并与 `ak.audit.release.eligibility_proof` 一致；policy hash MUST 按本节定义计算，不得引入其他 hash 语义。
 - Remote attestation evidence 绑定的是 release service / applet controlled output path，不是 MLS group membership。Evidence MUST 绑定 `realm_id`、`service_did`、`audit_service_actor_id`、measurement、purpose、policy digest、validity 和 operator DID。

@@ -537,7 +537,7 @@
     },
     {
       "name": "revoke_rollback_forward_recompute",
-      "vector_id": "ak.vector.capability.revoke_rollbaak.v1",
+      "vector_id": "ak.vector.capability.revoke_rollback.v1",
       "events": [
         {
           "event_id": "ak:event:01964101-2800-7000-8000-000000000000",

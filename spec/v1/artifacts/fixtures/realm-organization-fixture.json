@@ -14,6 +14,19 @@
     "spec/v1/artifacts/registry/error-code-registry.json"
   ],
   "description": "Conformance vectors for the ak.realm.organization statement payload (organization-authorized Realm relationship endorsement / revocation). Validates schema_validation_cases[] against schemas/event-payload.schema.json#/$defs/realm_organization_payload via tools/lint_artifacts.py. The verified organization relationship has two independent authorization layers (realm-and-space.md §2.3.0): Realm-side acceptance (writer holds ak.realm.admin or rides an allowed create-bootstrap batch) and Organization-side consent (payload.authorization proof verifies to the organization DID control state, a threshold governance quorum, or a delegated Account Authority / governance service whose delegation purpose covers ak.realm.organization, the relationship, and the control_scopes). Placeholder signature/proof strings are intentional and MUST NOT be treated as cryptographic vectors. Cases whose schema_only_valid is true but whose semantic_outcome is reject pass JSON Schema yet MUST be rejected by the reducer for the listed expected_reason_code; downstream SDK validators and cotest negative cases MUST assert that exact registered reason code rather than a bare string.",
+  "runner": {
+    "kind": "json_schema_and_semantic_cases",
+    "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "schema_assertion_fields": [
+      "schema_ref",
+      "expect_valid",
+      "instance"
+    ],
+    "semantic_assertion_fields": [
+      "semantic_outcome",
+      "expected_reason_code"
+    ]
+  },
   "schema_validation_cases": [
     {
       "name": "active_organization_did_owner_valid",

@@ -8,6 +8,8 @@ see_also:
   - private-objects.md
   - strand-and-message.md
   - ../sync/client-sync.md
+  - ../../artifacts/schemas/personal-productivity.schema.json
+  - ../../artifacts/schemas/draft-sync.schema.json
   - ../../artifacts/registry/account-data-type-registry.json
 ---
 

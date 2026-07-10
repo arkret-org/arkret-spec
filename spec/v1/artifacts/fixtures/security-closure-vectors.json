@@ -252,6 +252,108 @@
             },
             "expected_audit_reason": "media_plaintext_service_not_authorised"
           }
+        },
+        {
+          "name": "client_warning_not_present",
+          "input": {
+            "media_service_decrypts": true,
+            "policy_root_covers_media_service_decrypts": true,
+            "sfu_service_did": "did:webvh:z6mkfixture:sfu.example",
+            "plaintext_visible_services": [
+              "did:webvh:z6mkfixture:sfu.example"
+            ],
+            "prominent_client_warning_present": false,
+            "second_confirmation_completed": false
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "media_plaintext_warning_required",
+            "invariants": [
+              "client refuses to join until a prominent warning is displayed and explicitly confirmed"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.webrtc.media_plaintext_downgrade.v1",
+              "preconditions": {
+                "media_service_decrypts": true,
+                "policy_root_covers_media_service_decrypts": true,
+                "plaintext_visible_services_contains_sfu": true,
+                "prominent_client_warning_present": false,
+                "second_confirmation_completed": false
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "client_warning_not_present",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "prominent_client_warning_present": false,
+                "second_confirmation_completed": false
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "rejected",
+              "reason_code": "media_plaintext_warning_required",
+              "invariants": [
+                "no join token or media key is released"
+              ]
+            },
+            "expected_external_response": {
+              "outcome": "rejected",
+              "reason_code": "media_plaintext_warning_required"
+            },
+            "expected_audit_reason": "media_plaintext_warning_required"
+          }
+        },
+        {
+          "name": "independent_transcript_recomputation_mismatch",
+          "input": {
+            "media_service_decrypts": true,
+            "policy_root_covers_media_service_decrypts": true,
+            "member_recomputed_media_service_decrypts": false,
+            "governance_binding_metadata_media_service_decrypts": true
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "mls_governance_binding_stale",
+            "invariants": [
+              "member relies on its independent transcript recomputation instead of the SFU declaration",
+              "client does not negotiate plaintext-visible media"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.webrtc.media_plaintext_downgrade.v1",
+              "preconditions": {
+                "media_service_decrypts": true,
+                "policy_root_covers_media_service_decrypts": true,
+                "member_recomputed_media_service_decrypts": false,
+                "governance_binding_metadata_media_service_decrypts": true
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "independent_transcript_recomputation_mismatch",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "member_recomputed_media_service_decrypts": false,
+                "governance_binding_metadata_media_service_decrypts": true
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "rejected",
+              "reason_code": "mls_governance_binding_stale",
+              "invariants": [
+                "member blocks media negotiation until a matching governance binding is committed"
+              ]
+            },
+            "expected_external_response": {
+              "outcome": "rejected",
+              "reason_code": "mls_governance_binding_stale"
+            },
+            "expected_audit_reason": "mls_governance_binding_stale"
+          }
         }
       ]
     },

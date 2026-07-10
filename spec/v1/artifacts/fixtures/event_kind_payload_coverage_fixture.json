@@ -1,0 +1,31 @@
+{
+  "suite": "event_kind_payload_coverage_fixture",
+  "version": "2026-07-10",
+  "runner": {
+    "kind": "registry_coverage",
+    "inputs": [
+      "registry/contract-catalog.json",
+      "registry/event-kind-registry.json",
+      "schemas/event-envelope.schema.json",
+      "schemas/event-payload.schema.json"
+    ]
+  },
+  "assertions": [
+    {
+      "id": "catalog_registry_bijection",
+      "rule": "contract-catalog event_kinds and generated event-kind-registry rows form a one-to-one mapping by kind."
+    },
+    {
+      "id": "payload_schema_ref_resolves",
+      "rule": "Every durable event kind declares a payload_schema_ref that resolves to an existing JSON Schema location."
+    },
+    {
+      "id": "wire_scope_matches_envelope",
+      "rule": "Durable, actor-private, and ephemeral kinds are accepted only by their designated envelope class."
+    },
+    {
+      "id": "unknown_durable_kind_fails_closed",
+      "rule": "An unknown durable event kind is rejected before reducer dispatch."
+    }
+  ]
+}

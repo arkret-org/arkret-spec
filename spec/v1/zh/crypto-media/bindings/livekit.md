@@ -80,10 +80,10 @@ Arkret-LiveKit 部署 MAY 使用 LiveKit Egress 触发录制，但 Egress endpoi
 任何 backend-generated recording 或 transcript 都意味着 media service 获得明文媒体。其启动与产物发布 MUST 以 `media_service_decrypts=true` 为前置，并完整通过 [`../media-service-binding.md` §8.2](../media-service-binding.md) 的三层校验（policy component、`plaintext_visible_services` 授权、MLS governance binding 覆盖）；缺任一条件 MUST fail closed。该明文可见事实 MUST 进入 governance binding 覆盖的成员可见 metadata。
 
 - Egress destination MUST 是 Arkret media service 的 authenticated upload endpoint；不得 LiveKit Cloud 直传 S3 / GCS。
-- 录制加密 key 来自 MLS exporter，label 固定为 ASCII 字符串 `"ak.rtc-recording-key/v1"`（与 SFrame `"ak.rtc-frame-key/v1"` 区分；`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，`KDF.Nh=32`）。实现若复用 SFrame label、空 Context，或接受 LiveKit/KMS 自行生成的 recording key，MUST fail closed；LiveKit 不持久化明文。
+- 录制加密 key 来自 MLS exporter，label 固定为 ASCII 字符串 `"ak.rtc-recording-key/v1"`（与 SFrame `"ak.rtc-frame-key/v1"` 区分；`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，`KDF.Nh=32`）。实现若复用 SFrame label、空 Context，或接受 LiveKit/KMS 自行生成的 recording key，MUST fail closed `e2ee_key_source_unauthorised`；LiveKit 不持久化明文。
 - 录制完成后通过 `ak.call.state` 发布 `recording_state="ready"` + content digest。
 - 客户端检测到 LiveKit Egress 配置指向非 Arkret endpoint → fail closed `recording_artifact_pipeline_bypassed`。
-- 转写(`capture_kind="transcript"`)走同一 Egress / Arkret blob 路径，但加密 key label 固定为 `"ak.rtc-transcript-key/v1"`(`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, transcript_start_event_id})`,`KDF.Nh=32`),与录制 / SFrame label 区分；复用其它 label、空 Context 或 backend 自生成 transcript key MUST fail closed `transcription_artifact_pipeline_bypassed`。转写完成后通过 `ak.call.state` 发布 `transcript_state="ready"`。见 [`../call-state.md` §5.1](../call-state.md)。
+- 转写(`capture_kind="transcript"`)走同一 Egress / Arkret blob 路径，但加密 key label 固定为 `"ak.rtc-transcript-key/v1"`(`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, transcript_start_event_id})`,`KDF.Nh=32`),与录制 / SFrame label 区分；复用其它 label 或空 Context MUST fail closed `e2ee_key_source_unauthorised`；backend 自生成 transcript key 或绕过 Arkret artifact pipeline 才使用 `transcription_artifact_pipeline_bypassed`。转写完成后通过 `ak.call.state` 发布 `transcript_state="ready"`。见 [`../call-state.md` §5.1](../call-state.md)。
 
 ## 7. Cascading
 

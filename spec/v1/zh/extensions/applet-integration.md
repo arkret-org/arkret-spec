@@ -154,7 +154,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
     "handles": [
       {
         "exclusive": true,
-        "pattern": "slaak.acme.example/*"
+        "pattern": "slack.acme.example/*"
       }
     ]
   },
@@ -288,7 +288,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
 ```json
 {
   "exclusive": false,
-  "pattern": "slaak.acme.example/*"
+  "pattern": "slack.acme.example/*"
 }
 ```
 

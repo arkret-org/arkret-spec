@@ -138,7 +138,7 @@ expected_<role>_<kind>_id
 | `updated_at` | no | `timestamp` | MUST be no earlier than `created_at`。 | 最近更新时间。 |
 | `deleted_at` | no | `timestamp` | durable tombstone 可用。对没有独立 `deleted` / `tombstoned` 终态的对象（Strand / Morph，其不可逆终态是 `redacted`），`deleted_at` 仅表示该对象因 `ak.redaction` 进入 `redacted` 的逻辑删除时间，不暗示存在单独的 deleted 终态；对有 `tombstoned` / `deleted` 终态的对象（Space / Realm / Message 的相应终态），表示该终态发生时间。Relation 的不可逆终态虽为 `tombstoned`，但以 `state` 表达、**不使用** `deleted_at`（见 §3.1 矩阵）。 | 逻辑删除时间。 |
 | `state_changed_at` | R when state≠active | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Circle / Space / Strand / Message / Morph / Relation）当 `state != active` 时 MUST 写入（逐对象必填性矩阵见 §3.1，统一标记 `R when state≠active`）;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值，以触发该 state transition 的 Event 的 `created_at`(或对应 seal 的 `sealed_at`,以两者中较晚者为准)覆盖写入。MUST be no earlier than `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
-| `stage` | conditional | `enum` | 适用对象自己的 schema 声明本字段时可用（v1 适用对象 = Strand / Morph，详见 §5.3）；Strand MAY 省略，Morph 必填。取值为 §5.3 的协议级 8 值枚举。**禁止与 `state` 混用**：`stage` 表达业务进度，`state` 表达物理生命周期，两者正交。Strand 的 `metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason`，以及 Morph 的 `fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` 等同名/近名 wire 路径 MUST 被拒绝（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。stage 变更的"为什么"解释通过 discussion track Message 表达，不在对象字段中携带。 | 业务进度阶段。 |
+| `stage` | conditional | `enum` | 适用对象自己的 schema 声明本字段时可用（v1 适用对象 = Strand / Morph，详见 §5.3）；二者在通用 schema 中均可省略，具体 profile MAY 收紧为必填。取值为 §5.3 的协议级 8 值枚举。**禁止与 `state` 混用**：`stage` 表达业务进度，`state` 表达物理生命周期，两者正交。Strand 的 `metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason`，以及 Morph 的 `fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` 等同名/近名 wire 路径 MUST 被拒绝。stage 变更的"为什么"解释通过 discussion track Message 表达，不在对象字段中携带。 | 业务进度阶段。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived，actor 不可信：** 适用对象 `stage` 字段每次实际变更时 MUST 写入；Strand 缺少 `stage` 时 MUST NOT 单独出现。reducer **MUST** 忽略 wire payload 的 actor-supplied 值，以触发该 transition 的 `ak.<kind>.stage.set` event 的 `created_at` 覆盖写入。MUST be no earlier than `created_at`。same-value self-transition（stage 值未变）reducer MUST NOT 更新本字段。 | 最近一次 stage 转换时间。 |
 | `labels` | no | `array<string>` | SHOULD 小写短标签。 | 用户或系统标签。 |
 | `fields` | no | `object` | 字段 schema 由对象类型自身的 `schema_refs` 决定。 | 扩展字段；v1 唯一标准扩展容器。 |
@@ -180,7 +180,7 @@ expected_<role>_<kind>_id
 | `deleted_at` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | — | — | O | O | O | — | — | — | O | — | — | — | — | — |
 | `state` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | Y | O | O | Y | O | O | — | — | — | — | Y（流程状态轴，见附注） | — | Y（特例语义，见附注） | — (see `status`，mirrors account status) |
 | `state_changed_at` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | — | — | — | — | — | — | — | — |
-| `stage` | Progress | — | — | — | O | — | Y | — | — | — | — | — | — | — | — | — |
+| `stage` | Progress | — | — | — | O | — | O | — | — | — | — | — | — | — | — | — |
 | `stage_changed_at` | Progress | — | — | — | R per `ak.strand.stage.set` | — | R per `ak.morph.stage.set` | — | — | — | — | — | — | — | — | — |
 | `labels` | Universal | O | — | O | O | O | O | — | — | — | — | — | — | — | — | — |
 | `fields` / `metadata.fields` | Universal | O | — | O | O (`metadata.fields`) | O (`metadata.fields`) | Y (主要载荷) | O | — | — | — | — | — | — | — | — (see `profile_fields`) |
@@ -304,6 +304,8 @@ DID 是 Arkret 的主体标识，不是普通协作对象 ID。标准协作对�
 
 **归一映射（reducer tighten-only 比较 MUST 按此执行）**：比较内层 scope 与外层 scope 的 ceiling 时，取外层（Realm / deployment）的 `native_agent` 子对象与内层（Circle / Strand）扁平三位**逐位对齐**（`reply ↔ reply`、`accept_third_party_mention ↔ accept_third_party_mention`、`act_on_behalf ↔ act_on_behalf`），逐位执行 tighten-only 校验：内层每一位为真 MUST 蕴含外层对应位为真，违反 MUST `failed_precondition`（`reason="agent_participation_ceiling_widen"`）。实现 MUST NOT 把 Realm 侧的 `native_agent` 外层包裹当作与 Circle/Strand 扁平形态**结构不可比**而跳过校验，也 MUST NOT 把扁平三位误当作某个隐含轴的子对象；逐位对齐后两侧语义完全一致，包裹差异只是 wire 形态。逐 scope 的 effective ceiling 计算与 selection 约束（`effective = ceiling ∩ selection`）详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)。
 
+Conformance vector `ak.vector.agent.participation.wire_shape_normalization.v1` 固化上述 wrapped↔flat 正向归一与结构错配不得跳过收紧校验的负例。
+
 ## 5. State 枚举对齐
 
 `state`、`stage`、`status`、`runtime_status` 和 `binding_state` 分属不同状态轴，不是同一字段的别名：
@@ -398,10 +400,10 @@ Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们�
 | 对象 | 是否声明 `stage` | 必填语义 | 触发 event |
 | --- | --- | --- | --- |
 | `Strand` | yes | 可选；`ak.strand.create` MAY 省略，普通业务 Strand SHOULD 填写，DM 主 Strand MAY 省略或选填合法值 | `ak.strand.stage.set` |
-| `Morph` | yes | `ak.morph.create` 时 actor 必填 | `ak.morph.stage.set` |
+| `Morph` | yes | 可选；generic mirror/data Morph MAY 省略，需要进度轴的 morph_type profile MAY 收紧为 create 必填 | `ak.morph.stage.set` |
 | Realm / Space / Message / Relation / View / Policy / ... | no | — | — |
 
-适用对象自己的 schema MUST 显式枚举允许值；`strand.schema.json` MUST 把 `stage` 声明为可选字段，且 `stage_changed_at` MUST NOT 在缺少 `stage` 时单独出现；`morph.schema.json` MUST 把 `stage` 列入 `required[]`。不适用对象 MUST NOT 暴露 `stage` 顶层字段。**未来如有新对象需要 stage 轴**,扩展时 MUST 同步在本节登记。
+适用对象自己的 schema MUST 显式枚举允许值；`strand.schema.json` 与 `morph.schema.json` MUST 把 `stage` 声明为可选字段，且 `stage_changed_at` MUST NOT 在缺少 `stage` 时单独出现。Morph 缺失 stage 时，首条 `ak.morph.stage.set` 是初始化而非从某个隐含默认值迁移；可取任一注册值，之后才应用普通转换规则。不适用对象 MUST NOT 暴露 `stage` 顶层字段。**未来如有新对象需要 stage 轴**,扩展时 MUST 同步在本节登记。
 
 #### 5.3.2 协议级枚举（8 值，固定）
 

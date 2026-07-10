@@ -26,6 +26,11 @@
       "config_audit",
       "data_flow_audit"
     ],
+    "grade_definitions": {
+      "V": "Black-box verifiable by canonical conformance vectors and fixture runner results.",
+      "A": "Verifiable by the public SDK API shape and inventory; no implementation-private inspection is required.",
+      "U": "Verifiable only by implementation, configuration, or data-flow audit evidence."
+    },
     "rules": [
       "Each SDK release claiming Arkret v1 conformance MUST publish one claim object against this exact contract digest.",
       "Every applicable clause MUST appear exactly once; not_applicable MUST include a machine-readable rationale.",
@@ -39,7 +44,7 @@
           "V",
           "U"
         ],
-        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-001",
         "summary": "Validate Event Envelope and payload class before consumption",
         "required_evidence": [
           "vector_result",
@@ -52,7 +57,7 @@
           "V",
           "A"
         ],
-        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-002",
         "summary": "Do not expose a bypass for proof, HLC, actor sequence, prev refs, or authorization refs",
         "required_evidence": [
           "vector_result",
@@ -65,7 +70,7 @@
           "A",
           "U"
         ],
-        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-003",
         "summary": "Do not expose configuration that disables authorization constraints",
         "required_evidence": [
           "public_api_inventory",
@@ -77,7 +82,7 @@
         "grades": [
           "V"
         ],
-        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-004",
         "summary": "Fail closed for causal, revoked, and invalid-proof states",
         "required_evidence": [
           "vector_result"
@@ -88,7 +93,7 @@
         "grades": [
           "A"
         ],
-        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-005",
         "summary": "Model cursor values as opaque and expose no structured decode API",
         "required_evidence": [
           "public_api_inventory"
@@ -99,7 +104,7 @@
         "grades": [
           "V"
         ],
-        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-006",
         "summary": "Reject malformed or non-canonical JSON without repair",
         "required_evidence": [
           "vector_result"
@@ -110,7 +115,7 @@
         "grades": [
           "V"
         ],
-        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-007",
         "summary": "Reject malformed HLC without normalization or truncation",
         "required_evidence": [
           "vector_result"
@@ -122,7 +127,7 @@
           "V",
           "U"
         ],
-        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-008",
         "summary": "Preserve prev refs, authorization refs, and actor sequence constraints during retry",
         "required_evidence": [
           "vector_result",
@@ -136,7 +141,7 @@
           "A",
           "U"
         ],
-        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-009",
         "summary": "Verify governance binding and KeyPackage DID before decrypting or encrypting",
         "required_evidence": [
           "vector_result",
@@ -150,7 +155,7 @@
           "V",
           "U"
         ],
-        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-010",
         "summary": "Do not disclose plaintext or keys to unauthorized services",
         "required_evidence": [
           "vector_result",
@@ -162,7 +167,7 @@
         "grades": [
           "V"
         ],
-        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-011",
         "summary": "Light clients must not authorize a DataEvent from a single leaf proof",
         "required_evidence": [
           "vector_result"
@@ -174,7 +179,7 @@
           "V",
           "U"
         ],
-        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-012",
         "summary": "Apply late-key-recovery visibility checks before decrypting",
         "required_evidence": [
           "vector_result",
@@ -186,7 +191,7 @@
         "grades": [
           "V"
         ],
-        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-013",
         "summary": "Fail closed on unknown critical features or unmet requirements",
         "required_evidence": [
           "vector_result"
@@ -197,7 +202,7 @@
         "grades": [
           "V"
         ],
-        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#232-????-must-????????",
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-014",
         "summary": "Reject production use of test DIDs, keys, and trust domains",
         "required_evidence": [
           "vector_result"
@@ -646,7 +651,8 @@
         "ak.schema.seal.v1"
       ],
       "required_fixtures": [
-        "event-envelope-negative-fixture.json"
+        "event-envelope-negative-fixture.json",
+        "scalability-limits-fixture.json"
       ],
       "required_cotest_suites": [
         {
@@ -669,11 +675,13 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": [],
+      "required_fixtures": [
+        "discovery_profile_fixture.json"
+      ],
       "required_cotest_suites": [
         {
           "suite": "discovery_profile_fixture",
-          "local_fixture": "discovery_profile_fixture.json"
+          "artifact_fixture": "discovery_profile_fixture.json"
         }
       ],
       "optional_extensions": [],
@@ -691,11 +699,13 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": [],
+      "required_fixtures": [
+        "event_kind_lattice_dispatch_fixture.json"
+      ],
       "required_cotest_suites": [
         {
           "suite": "event_kind_lattice_dispatch_fixture",
-          "local_fixture": "event_kind_lattice_dispatch_fixture.json"
+          "artifact_fixture": "event_kind_lattice_dispatch_fixture.json"
         }
       ],
       "optional_extensions": [],
@@ -716,11 +726,13 @@
         "ak.schema.event.v1",
         "ak.schema.event_payload.v1"
       ],
-      "required_fixtures": [],
+      "required_fixtures": [
+        "event_kind_payload_coverage_fixture.json"
+      ],
       "required_cotest_suites": [
         {
           "suite": "event_kind_payload_coverage_fixture",
-          "local_fixture": "event_kind_payload_coverage_fixture.json"
+          "artifact_fixture": "event_kind_payload_coverage_fixture.json"
         }
       ],
       "optional_extensions": [],
@@ -736,11 +748,13 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": [],
+      "required_fixtures": [
+        "operation_registry_coverage_fixture.json"
+      ],
       "required_cotest_suites": [
         {
           "suite": "operation_registry_coverage_fixture",
-          "local_fixture": "operation_registry_coverage_fixture.json"
+          "artifact_fixture": "operation_registry_coverage_fixture.json"
         }
       ],
       "optional_extensions": [],
@@ -756,11 +770,13 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": [],
+      "required_fixtures": [
+        "error_code_registry_coverage_fixture.json"
+      ],
       "required_cotest_suites": [
         {
           "suite": "error_code_registry_coverage_fixture",
-          "local_fixture": "error_code_registry_coverage_fixture.json"
+          "artifact_fixture": "error_code_registry_coverage_fixture.json"
         }
       ],
       "optional_extensions": [],
@@ -1114,6 +1130,7 @@
         "encoding-fixture.json",
         "crypto-signature-fixture.json",
         "event-envelope-negative-fixture.json",
+        "scalability-limits-fixture.json",
         "sync-fixture.json"
       ],
       "optional_extensions": [
@@ -3763,7 +3780,7 @@
         "reset_replay_cache_min_retention_seconds": {
           "default": 90000,
           "min": 86400,
-          "rationale": "Minimum retention for the (principal_id, previous_generation) replay-rejection cache used by §14.4 通用规则. MUST be at least `publish_recovery_window_seconds + 3600` so that no late-arriving duplicate reset can bypass the cache before the successor publish window closes. Default = 24h + 1h slaak."
+          "rationale": "Minimum retention for the (principal_id, previous_generation) replay-rejection cache used by §14.4 通用规则. MUST be at least `publish_recovery_window_seconds + 3600` so that no late-arriving duplicate reset can bypass the cache before the successor publish window closes. Default = 24h + 1h slack."
         }
       },
       "feature_discovery": {

@@ -230,56 +230,6 @@ AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifact
 
 `ak.attestation.range_completeness` 是 v1 已注册 active event kind（payload schema `ak.schema.range_completeness_attestation.v1`，artifact [`range-completeness-attestation.schema.json`](../../artifacts/schemas/range-completeness-attestation.schema.json)），用于提供 *completeness* 证明——即“该范围内没有 reducer-input event 被静默丢弃”。它与 `ak.event_batch_receipt`（set-bound integrity）和 `ak.audit.ryw_receipt`（per-event RYW）正交：completeness 需要 range 语义 + per-actor seq interval + witness 背书，缺一不可。
 
-#### 6.4.1 Scope 语义
-
-- `from_frontier` 是 **exclusive** 下界；attestation 覆盖该 frontier *之后* 因果发生的 reducer-input event。
-- `to_frontier` 是 **inclusive** 上界。
-- `actor_seq_ranges[]` 给出每个在 `(from_frontier, to_frontier]` 区间内产生 reducer-input event 的 actor 的 seq 区间（half-open `(from_seq_exclusive, to_seq_inclusive]`）。MUST 覆盖区间内所有产生 reducer-input event 的 actor；不可遗漏。
-- silent fork 经常表现为“某个 actor 的某段 seq 在对端不可见而全局 frontier 仍单调推进”——这就是为什么必须显式 per-actor seq interval，仅有 frontier 不够。
-
-#### 6.4.2 `root` 计算
-
-`root` 是 canonical Merkle root over **scope 内全部 reducer-input event 的 `(actor_id, actor_seq, event_id, payload_hash)` 四元组排序集合**：
-
-1. 收集 scope 内每个 actor 在其 seq interval 内的全部 accepted reducer-input event；
-2. 对每个 event 形成 leaf `canonical_bytes({actor_id, actor_seq, event_id, payload_hash})`；
-3. 按 `(actor_id, actor_seq)` 字典序排序；
-4. 计算 binary Merkle tree（hash 算法按 Realm `digest_algorithm` 声明的 digest suite，见 [`../conformance/encoding.md` §3.3](../conformance/encoding.md)）；
-5. `count` MUST 等于叶子数。
-
-不包含 non-reducer event（read marker / typing 等）。leaves 排序确定性使 verifier 可以局部 backfill 后独立重算 `root`。
-
-#### 6.4.3 Witness Attestation 与 sovereign-grade 完整性
-
-`witness_attestation` 复用 `ak.audit.ryw_receipt.witness_attestation` 的语义（见 [`../crypto-media/audited-e2ee.md` §4.1.1](../crypto-media/audited-e2ee.md)）：
-
-- `witness_attestation.kind="federation_witness_attested"` MUST 满足 `witnesses[].length >= 2`、`(issuer, controlling_organization, verification_method)` 两两 distinct、且每个 `issuer` 在 Realm `audit.range_completeness_witnesses[]` 中已声明。
-- `witness_attestation.kind="single_source"` 是单签发者的诚实声明，MUST `witnesses.length == 1`。
-
-**重要**：`single_source` attestation 不构成 sovereign-grade completeness 证明——它只是 issuer 的自报。需要“对方未藏分支”语义保证的部署 MUST 要求 `federation_witness_attested`。这是 silent fork 抗性的最后一道防线：base batch receipt（integrity）+ frontier exchange（probe）+ range-completeness attestation（completeness with witness quorum）才能完整覆盖。
-
-#### 6.4.4 Verifier 协议
-
-接收方 verifier 验证 attestation 时 MUST：
-
-1. 校验所有 `proofs[]` 与 `witness_attestation.witnesses[].verification_method` 签名；
-2. 校验 `witness_attestation.kind` 与 `witnesses[]` cardinality / distinctness / Realm policy 列表一致；
-3. 校验 `from_frontier` / `to_frontier` 因果一致（`to_frontier` ⊇ `from_frontier`）；
-4. 若 verifier 自身持有 scope 内事件，MUST 重算 `root` 并 constant-time 比较；不一致 `range_completeness_root_mismatch`；
-5. 若 verifier 只持有 scope 子集，可以验证 inclusion proof（按 standard Merkle inclusion）；不持有任何 scope 事件时只能记录 attestation 不能确认 completeness；
-6. 校验 `actor_seq_ranges[]` 中每个 actor 的 seq interval 与 verifier 本地视图（partial replication 后）一致；本地视图若发现缺口而 attestation 声称完整，MUST `range_completeness_actor_seq_gap`；
-7. 声明 `security_class=high_assurance` 或 `ak.profile.federation.high_assurance.v1` 的 Realm，若 `witness_attestation` 未达 `federation_witness_attested` quorum 或 witness 集合彼此对 `root` / `actor_seq_ranges[]` 给出不一致背书，MUST 按 `witness_disagreement` fail closed，不得据 `single_source` 自报解除 completeness 关注。
-
-#### 6.4.5 与其它原语的关系
-
-| 原语 | scope | 提供 | 不提供 |
-| --- | --- | --- | --- |
-| `ak.event_batch_receipt` | issuer 选择的 events 集合 | integrity（给的没被改） | completeness（没漏给） |
-| `ak.audit.ryw_receipt` | 单个 `ak.audit.accessed` event | RYW witness attestation | range coverage |
-| `ak.attestation.range_completeness`（本节） | 显式 (from_frontier, to_frontier] + per-actor seq intervals | completeness with witness quorum | per-event payload 解密能力 |
-
-issuer / verifier 应根据需求选取；混用以补强各自边界。客户端读取面的暴露方式见 [`service-http-binding.md` §3.3.6](./service-http-binding.md)（optional feature `events_query_range_completeness`）；联邦面 server-to-server 强制语义见 [`federation.md` §4.5.3](./federation.md)。
-
 #### 6.4.1 Payload 与 root（normative）
 
 `ak.attestation.range_completeness` 的 payload schema 是 [`range-completeness-attestation.schema.json`](../../artifacts/schemas/range-completeness-attestation.schema.json)（schema id `ak.schema.range_completeness_attestation.v1`）。payload MUST 至少声明：

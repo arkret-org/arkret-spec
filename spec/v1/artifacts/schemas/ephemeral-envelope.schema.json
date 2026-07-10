@@ -108,13 +108,69 @@
               "seq": {
                 "type": "integer",
                 "minimum": 0,
-                "description": "Monotonic per-(realm_id, call_id, actor_id, device_id) sequence. Receivers MUST reject replay or rollbaak."
+                "description": "Monotonic per-(realm_id, call_id, actor_id, device_id) sequence. Receivers MUST reject replay or rollback."
               },
               "data": {
                 "type": "object",
-                "description": "Signal-type-specific payload body (invite/answer/candidate/mute_state/...). Declared as the closed payload field per webrtc-signaling.md §5/§6; optional because some signals (e.g. ack) carry no body. Inner shape is signal_type-specific and intentionally open."
+                "description": "Signal-type-specific payload body (invite/answer/candidate/mute_state/...). Optional because some signals (e.g. ack) carry no body. moderation is closed by the conditional below; other signal types retain their profile-specific shape."
               }
             },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "signal_type": {
+                      "const": "moderation"
+                    }
+                  },
+                  "required": [
+                    "signal_type"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "action",
+                        "target_actor_id"
+                      ],
+                      "properties": {
+                        "action": {
+                          "type": "string",
+                          "enum": [
+                            "mute",
+                            "unmute",
+                            "kick",
+                            "ban"
+                          ]
+                        },
+                        "target_actor_id": {
+                          "type": "string",
+                          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+                        },
+                        "target_device_id": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 128,
+                          "pattern": "^[A-Za-z0-9._:-]+$"
+                        },
+                        "reason_code": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64,
+                          "pattern": "^[a-z][a-z0-9_]*$"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  }
+                }
+              }
+            ],
             "additionalProperties": true
           }
         }

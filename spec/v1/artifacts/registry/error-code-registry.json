@@ -1395,6 +1395,23 @@
   ],
   "reason_codes": [
     {
+      "code": "capability_registry_basis_unavailable",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An aggregate capability grant pins a capability-action registry digest whose canonical snapshot is unavailable or whose JCS digest does not match. Receiver MUST fail closed and MUST NOT expand the grant against the current registry."
+    },
+    {
+      "code": "unsupported_digest_algorithm",
+      "applies_to": [
+        "schema_validation",
+        "batch_item",
+        "event_envelope"
+      ],
+      "description": "Per-item algorithm-agility failure: a critical digest prefix is not an active digest-suite registry row. Receiver MUST fail closed. Dual-registered with the top-level service code."
+    },
+    {
       "code": "ok",
       "applies_to": [
         "batch_item",
@@ -2128,6 +2145,15 @@
       "description": "`ak.space.parent` would create a cycle in the Space ancestor chain (self-loop or chain loop). Reducer MUST reject (zh/models/realm-and-space.md \u00a73.5)."
     },
     {
+      "code": "space_parent_unreadable",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "projection"
+      ],
+      "description": "The effective Space parent chain cannot be read or verified at the operation basis. Parent-dependent placement, default-Realm resolution, and subtree authorization MUST fail closed rather than treating the Space as a root. See zh/models/space-hierarchy.md section 4."
+    },
+    {
       "code": "morph_not_active",
       "applies_to": [
         "event_envelope",
@@ -2244,7 +2270,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`recovery_unloak.recovery_secret_ref` does not resolve to a recovery key declared in the principal's current DID Document recovery section / `recovery_policy` at `issued_at`. See zh/crypto-media/device-lifecycle.md \u00a714.4."
+      "description": "`recovery_unlock.recovery_secret_ref` does not resolve to a recovery key declared in the principal's current DID Document recovery section / `recovery_policy` at `issued_at`. See zh/crypto-media/device-lifecycle.md \u00a714.4."
     },
     {
       "code": "cross_signing_reset_unlock_commitment_mismatch",
@@ -2252,7 +2278,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`recovery_unloak.unlock_commitment` does not equal the receiver-recomputed `SHA-256(utf8('ak.cross-signing-reset-unlock-binding-v1\\n') || recovery_secret_ref || unlock_binding_input_bytes)`, where `unlock_binding_input_bytes` is the \u00a714.1 canonical input with `proof_body` excluding both signature fields and `unlock_commitment`. This is a wire-integrity binding (not a secret-knowledge proof) preventing the same recovery-key signature from being shelled into a different reset envelope. See zh/crypto-media/device-lifecycle.md \u00a714.4."
+      "description": "`recovery_unlock.unlock_commitment` does not equal the receiver-recomputed `SHA-256(utf8('ak.cross-signing-reset-unlock-binding-v1\\n') || recovery_secret_ref || unlock_binding_input_bytes)`, where `unlock_binding_input_bytes` is the \u00a714.1 canonical input with `proof_body` excluding both signature fields and `unlock_commitment`. This is a wire-integrity binding (not a secret-knowledge proof) preventing the same recovery-key signature from being shelled into a different reset envelope. See zh/crypto-media/device-lifecycle.md \u00a714.4."
     },
     {
       "code": "cross_signing_reset_quorum_insufficient",
@@ -3327,6 +3353,13 @@
       "description": "An SFU / MCU attempted to negotiate plaintext-decrypting media role without being listed in Realm policy plaintext_visible_services[] with purpose=media_plaintext, OR without policy_root covering media_service_decrypts=true. MUST be rejected; the SFU may still act as opaque RTP relay. See zh/crypto-media/media-service-binding.md \u00a78.2."
     },
     {
+      "code": "media_plaintext_warning_required",
+      "applies_to": [
+        "auth_decision"
+      ],
+      "description": "A client attempted to join a call where media_service_decrypts=true without first displaying the required prominent plaintext-service warning and obtaining explicit second confirmation. The client MUST reject the join before releasing a token or media key. See zh/crypto-media/media-service-binding.md \u00a78.2."
+    },
+    {
       "code": "mls_governance_binding_stale",
       "applies_to": [
         "state_resolution",
@@ -3437,6 +3470,14 @@
         "event_envelope"
       ],
       "description": "Event Envelope prev_refs exceeds the v1 maximum of 128 entries, or duplicates entries where uniqueness is required. Receiver MUST reject with schema_violation. See zh/conformance/scalability-constraints.md."
+    },
+    {
+      "code": "causal_refs_too_large",
+      "applies_to": [
+        "schema_validation",
+        "event_envelope"
+      ],
+      "description": "Event Envelope causal_refs exceeds the v1 maximum of 128 entries or contains duplicates. Receiver MUST reject with schema_violation and MUST NOT truncate the causal frontier. See zh/conformance/scalability-constraints.md."
     },
     {
       "code": "refs_too_large",

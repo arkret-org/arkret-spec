@@ -53,7 +53,7 @@
       "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
       "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Seal coverage, governance state_root, or reducer state.",
       "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
-      "Reducer-input durable kinds MAY declare cell_family, cell_subject, plane, sealed, lattice, bottom, and (cas_register only) initial_value. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject or expose. initial_value declares the value the cas_register reports before any DataEvent or Control Move effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Control Move predicates implements singleton-once-set cells.",
+      "Reducer-input durable kinds MAY declare cell_family, cell_subject, plane, sealed, lattice, bottom, and (cas_register only) initial_value. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used for lattices such as or_set whose join cannot produce Bottom. initial_value declares the value the cas_register reports before any DataEvent or Control Move effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Control Move predicates implements singleton-once-set cells.",
       "Registered exemption: protocol-singleton cells that are not written through a single event_kind are NOT indexed here. Currently the only such cell family is ak.component.notary.v1 (per-Realm notary cell, lattice=cas_register, bottom=reject): its genesis value comes from the ak.realm.create payload notary object and subsequent changes are ordinary notary-finalized Control Moves; its canonical definition lives in zh/authz/event-auth-state-resolution.md section 4.4. Any future cell family without a single writer kind MUST be added to this exemption list explicitly.",
       "Lattice MUST be one of: core types or_set, mv_register, cas_register, fsm, counter, ordered_log; or extension types lww_register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement ak.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww_register or rga). Authorization, policy, notary, membership, and lifecycle cells MUST NOT use lww_register or rga.",
       "State convergence is defined by CBA: DataEvent effects are locally accepted against seal_ref, Control Move effects are finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
@@ -673,7 +673,8 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Issuer-signed endorsement that a subject DID (typically an agent / service / hosted actor) is accountable_principal_ids the issuer for a declared scope (employment / contracted_service / agent_operator / etc.). Required to verify `Actor Profile.accountable_principal_ids[]` entries; reducer strips unverified DIDs from accountable_principal_ids. See zh/models/actor.md §3.3.1."
+        "payload": "Issuer-signed endorsement that a subject DID (typically an agent / service / hosted actor) is accountable_principal_ids the issuer for a declared scope (employment / contracted_service / agent_operator / etc.). Required to verify `Actor Profile.accountable_principal_ids[]` entries; reducer strips unverified DIDs from accountable_principal_ids. See zh/models/actor.md §3.3.1.",
+        "payload_schema_ref": "schemas/accountability-grant.schema.json"
       },
       {
         "event_kind": "ak.schema.define",
@@ -1458,7 +1459,7 @@
           ]
         },
         "lattice": "or_set",
-        "bottom": "reject",
+        "bottom": "inert",
         "plane": "control",
         "sealed": true
       },
@@ -1582,7 +1583,7 @@
           "field": "payload.grant_id"
         },
         "lattice": "or_set",
-        "bottom": "reject",
+        "bottom": "inert",
         "plane": "control",
         "sealed": true
       },
@@ -1599,7 +1600,7 @@
           "field": "payload.grant_id"
         },
         "lattice": "or_set",
-        "bottom": "reject",
+        "bottom": "inert",
         "plane": "control",
         "sealed": true
       },
@@ -1616,7 +1617,7 @@
           "field": "payload.grant_id"
         },
         "lattice": "or_set",
-        "bottom": "reject",
+        "bottom": "inert",
         "plane": "control",
         "sealed": true
       },
@@ -1633,7 +1634,7 @@
           "field": "payload.grant_id"
         },
         "lattice": "or_set",
-        "bottom": "reject",
+        "bottom": "inert",
         "plane": "control",
         "sealed": true
       },
@@ -1651,7 +1652,7 @@
           "field": "payload.grant_id"
         },
         "lattice": "or_set",
-        "bottom": "reject",
+        "bottom": "inert",
         "plane": "control",
         "sealed": true
       },
@@ -1669,7 +1670,7 @@
           "field": "payload.consent_id"
         },
         "lattice": "or_set",
-        "bottom": "reject",
+        "bottom": "inert",
         "plane": "control",
         "sealed": true
       },
@@ -1687,7 +1688,7 @@
           "field": "payload.consent_id"
         },
         "lattice": "or_set",
-        "bottom": "reject",
+        "bottom": "inert",
         "plane": "control",
         "sealed": true
       },
@@ -1892,7 +1893,7 @@
           ]
         },
         "lattice": "or_set",
-        "bottom": "reject",
+        "bottom": "inert",
         "plane": "control",
         "sealed": true
       },
@@ -1913,7 +1914,7 @@
           ]
         },
         "lattice": "or_set",
-        "bottom": "reject",
+        "bottom": "inert",
         "plane": "control",
         "sealed": true
       },
@@ -1931,7 +1932,7 @@
           "field": "payload.principal_id"
         },
         "lattice": "or_set",
-        "bottom": "reject",
+        "bottom": "inert",
         "plane": "control",
         "sealed": true
       },
@@ -2697,6 +2698,12 @@
         "file": "schemas/actor-profile.schema.json"
       },
       {
+        "schema_id": "ak.schema.accountability_grant.v1",
+        "file": "schemas/accountability-grant.schema.json",
+        "status": "active",
+        "description": "Issuer-signed accountability endorsement for Actor Profile accountable_principal_ids verification."
+      },
+      {
         "schema_id": "ak.schema.agent_selector_claim.v1",
         "file": "schemas/agent-selector-claim.schema.json",
         "status": "active",
@@ -3304,10 +3311,10 @@
       },
       {
         "kind": "blob",
-        "wire_form": "ak:blob:sha256:<digest>",
+        "wire_form": "ak:blob:<digest-suite>:<digest>",
         "status": "active",
         "storage_recommendation": "Store digest bytes/hex separately from any logical blob row ID.",
-        "description": "Content-addressed blob reference; distinct from ak:blob:<uuid> blob metadata IDs."
+        "description": "Content-addressed blob reference using an active digest-suite id (v1: sha256 or profile-gated blake3); distinct from ak:blob:<uuid> blob metadata IDs."
       },
       {
         "kind": "mls",
@@ -3417,7 +3424,7 @@
         "category": "identity",
         "status": "active",
         "wire_form": "ak:backup_series:<uuid>",
-        "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_class). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ak.schema.key_backup.v1.series_id and recovery strands to detect rollbaak. See identity/key-management.md §7.6."
+        "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_class). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ak.schema.key_backup.v1.series_id and recovery strands to detect rollback. See identity/key-management.md §7.6."
       },
       {
         "kind": "batch",

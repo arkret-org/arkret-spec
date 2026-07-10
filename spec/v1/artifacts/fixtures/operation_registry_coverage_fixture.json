@@ -1,0 +1,34 @@
+{
+  "suite": "operation_registry_coverage_fixture",
+  "version": "2026-07-10",
+  "runner": {
+    "kind": "registry_coverage",
+    "inputs": [
+      "registry/contract-catalog.json",
+      "registry/operation-registry.json",
+      "openapi/arkret-service-api.openapi.yaml"
+    ]
+  },
+  "assertions": [
+    {
+      "id": "catalog_registry_bijection",
+      "rule": "contract-catalog operations and generated operation-registry rows form a one-to-one mapping by operation_id."
+    },
+    {
+      "id": "registry_openapi_bijection",
+      "rule": "Every operation-registry operation_id appears exactly once as an OpenAPI operationId and no extra operationId exists."
+    },
+    {
+      "id": "schema_refs_resolve",
+      "rule": "Every request_schema and response_schema reference resolves to a registered schema artifact."
+    },
+    {
+      "id": "write_retry_contract",
+      "rule": "Every write operation declares idempotency_mechanism and retry_safe."
+    },
+    {
+      "id": "read_retry_contract",
+      "rule": "Read-only query and resource-get operations do not invent an idempotency key contract."
+    }
+  ]
+}

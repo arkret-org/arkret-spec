@@ -1,0 +1,86 @@
+{
+  "suite": "scalability_limits",
+  "version": "2026-07-10",
+  "profile": "ak.profile.core_event_store.v1",
+  "runner": {
+    "kind": "generated_limit_cases",
+    "canonicalization": "fixture_json_v1",
+    "must_not_allocate_declared_cardinality": true
+  },
+  "covers_vectors": [
+    "ak.vector.scalability.refs_limit.v1",
+    "ak.vector.scalability.circle_count_limit.v1"
+  ],
+  "cases": [
+    {
+      "name": "reject_refs_over_limit",
+      "vector_id": "ak.vector.scalability.refs_limit.v1",
+      "given_state": {
+        "base_event_kind": "ak.message.create"
+      },
+      "input": {
+        "generator": {
+          "kind": "event_refs",
+          "count": 129,
+          "unique": true,
+          "role_cycle": [
+            "authorized_by",
+            "attestation",
+            "parent_event",
+            "after"
+          ]
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "reason_code": "refs_too_large",
+        "limit": "refs <= 128",
+        "must_not_enter_reducer": true
+      }
+    },
+    {
+      "name": "reject_realm_active_circle_count_over_limit",
+      "vector_id": "ak.vector.scalability.circle_count_limit.v1",
+      "given_state": {
+        "generator": {
+          "kind": "active_circle_count",
+          "realm_active_circle_count": 1000
+        }
+      },
+      "input": {
+        "event_kind": "ak.circle.create",
+        "circle_visibility": "realm_visible"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition",
+        "reason_code": "circle_count_exceeded",
+        "limit": "active circles per Realm <= 1000",
+        "state_unchanged": true
+      }
+    },
+    {
+      "name": "reject_actor_mls_circle_count_over_limit",
+      "vector_id": "ak.vector.scalability.circle_count_limit.v1",
+      "given_state": {
+        "generator": {
+          "kind": "actor_active_mls_circle_memberships",
+          "count": 256
+        }
+      },
+      "input": {
+        "event_kind": "ak.circle.member.state",
+        "target_actor_id": "did:webvh:z6mkfixture:alice.example",
+        "target_circle_encryption_mode": "mls"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition",
+        "reason_code": "circle_count_exceeded",
+        "limit": "active MLS-backed Circle memberships per actor <= 256",
+        "state_unchanged": true
+      }
+    }
+  ]
+}

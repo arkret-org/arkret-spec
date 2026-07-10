@@ -18,6 +18,12 @@
       "file": "schemas/actor-profile.schema.json"
     },
     {
+      "schema_id": "ak.schema.accountability_grant.v1",
+      "file": "schemas/accountability-grant.schema.json",
+      "status": "active",
+      "description": "Issuer-signed accountability endorsement for Actor Profile accountable_principal_ids verification."
+    },
+    {
       "schema_id": "ak.schema.agent_selector_claim.v1",
       "file": "schemas/agent-selector-claim.schema.json",
       "status": "active",

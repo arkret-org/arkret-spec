@@ -9,7 +9,6 @@
     "realm_id",
     "schema_refs",
     "morph_type",
-    "stage",
     "created_by",
     "created_at"
   ],
@@ -128,7 +127,7 @@
         "cancelled",
         "superseded"
       ],
-      "description": "Morph business-progression stage. Orthogonal to top-level 'state' (physical lifecycle). Required on ak.morph.create (no protocol-level default). The only wire path that mutates stage is the dedicated ak.morph.stage.set event; ak.morph.update / ak.morph.schema_migrate patches on stage / stage_changed_at MUST be rejected (schema_violation, single-source). Stage transitions intentionally do NOT carry a reason / note field — the ak.morph.stage.set event log is the audit source; human-readable explanations belong in a Message on an associated discussion track that references the event. See models/common-fields.md §5.3 for full semantics."
+      "description": "Optional Morph business-progression stage. Orthogonal to top-level 'state' (physical lifecycle). A morph_type profile MAY require it; generic mirror/data Morphs may omit it. If absent, the first ak.morph.stage.set initializes the axis to any registered value; later changes follow the normal transition rules. ak.morph.update / ak.morph.schema_migrate patches on stage / stage_changed_at MUST be rejected. Stage transitions do not carry a reason/note; explanations belong in a referenced Message. See models/common-fields.md §5.3."
     },
     "stage_changed_at": {
       "$ref": "#/$defs/timestamp",
@@ -165,6 +164,18 @@
       "then": {
         "required": [
           "state_changed_at"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "stage_changed_at"
+        ]
+      },
+      "then": {
+        "required": [
+          "stage"
         ]
       }
     }

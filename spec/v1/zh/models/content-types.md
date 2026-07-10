@@ -106,13 +106,13 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 {
   "kind": "ak.content.image",
   "body": "screenshot.png",
-  "blob_ref": "ak:blob:sha256:a1b2c3...",
+  "blob_ref": "ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "mime_type": "image/png",
   "width": 1920,
   "height": 1080,
   "size_bytes": 204800,
   "thumbnail": {
-    "blob_ref": "ak:blob:sha256:d4e5f6...",
+    "blob_ref": "ak:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "mime_type": "image/webp",
     "width": 320,
     "height": 180,
@@ -138,14 +138,14 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 {
   "kind": "ak.content.video",
   "body": "demo-recording.mp4",
-  "blob_ref": "ak:blob:sha256:b2c3d4...",
+  "blob_ref": "ak:blob:sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
   "mime_type": "video/mp4",
   "width": 1280,
   "height": 720,
   "duration_ms": 45000,
   "size_bytes": 10485760,
   "thumbnail": {
-    "blob_ref": "ak:blob:sha256:e5f6a7...",
+    "blob_ref": "ak:blob:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
     "mime_type": "image/jpeg",
     "width": 320,
     "height": 180
@@ -163,7 +163,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 {
   "kind": "ak.content.audio",
   "body": "voice-memo.ogg",
-  "blob_ref": "ak:blob:sha256:c3d4e5...",
+  "blob_ref": "ak:blob:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
   "mime_type": "audio/ogg",
   "duration_ms": 12000,
   "size_bytes": 96000,
@@ -181,7 +181,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 {
   "kind": "ak.content.file",
   "body": "Q2-financial-report.pdf",
-  "blob_ref": "ak:blob:sha256:d4e5f6...",
+  "blob_ref": "ak:blob:sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
   "mime_type": "application/pdf",
   "size_bytes": 2097152,
   "filename": "Q2-financial-report.pdf"
@@ -303,7 +303,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
     {
       "kind": "ak.content.image",
       "body": "design-v3.png",
-      "blob_ref": "ak:blob:sha256:aaa...",
+      "blob_ref": "ak:blob:sha256:1111111111111111111111111111111111111111111111111111111111111111",
       "mime_type": "image/png",
       "width": 1920,
       "height": 1080
@@ -311,7 +311,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
     {
       "kind": "ak.content.file",
       "body": "spec-v3.pdf",
-      "blob_ref": "ak:blob:sha256:bbb...",
+      "blob_ref": "ak:blob:sha256:2222222222222222222222222222222222222222222222222222222222222222",
       "mime_type": "application/pdf",
       "size_bytes": 1048576,
       "filename": "spec-v3.pdf"

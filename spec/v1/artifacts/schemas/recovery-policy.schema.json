@@ -691,9 +691,11 @@
         "alg": {
           "type": "string",
           "enum": [
-            "Ed25519"
+            "Ed25519",
+            "ES256",
+            "ML-DSA-65"
           ],
-          "description": "Signature algorithm the recovery key signs with. v1 fixes this to Ed25519."
+          "description": "Signature algorithm used by the recovery key. Values mirror active signature-alg-registry rows; ML-DSA-65 use additionally requires the corresponding PQ-capable implementation profile."
         },
         "not_before": {
           "$ref": "#/$defs/timestamp",

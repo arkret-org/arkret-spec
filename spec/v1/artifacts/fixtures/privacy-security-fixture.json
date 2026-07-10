@@ -19,7 +19,7 @@
     "ak.vector.directory.announce_directory_not_authorized.v1",
     "ak.vector.directory.announce_bad_signature.v1",
     "ak.vector.directory.announce_signature_stale.v1",
-    "ak.vector.directory.policy_revision_rollbaak.v1",
+    "ak.vector.directory.policy_revision_rollback.v1",
     "ak.vector.directory.accept_policy_denied.v1",
     "ak.vector.directory.reannounce_idempotent_ttl.v1",
     "ak.vector.directory.pull_mode_refresh_verification.v1",
@@ -33,7 +33,9 @@
     "ak.vector.psi.quota_blinded_denial.v1",
     "ak.vector.search.blind_index_stale_posting_fail_closed.v1",
     "ak.vector.search.result_not_authz_proof.v1",
-    "ak.vector.search.surface_separation_no_plaintext_leakage.v1"
+    "ak.vector.search.surface_separation_no_plaintext_leakage.v1",
+    "ak.vector.identity.reject_handle_homograph.v1",
+    "ak.vector.identity.reject_realm_alias_homograph.v1"
   ],
   "cases": [
     {
@@ -227,7 +229,7 @@
         "ak.vector.directory.announce_directory_not_authorized.v1",
         "ak.vector.directory.announce_bad_signature.v1",
         "ak.vector.directory.announce_signature_stale.v1",
-        "ak.vector.directory.policy_revision_rollbaak.v1",
+        "ak.vector.directory.policy_revision_rollback.v1",
         "ak.vector.directory.accept_policy_denied.v1",
         "ak.vector.directory.reannounce_idempotent_ttl.v1",
         "ak.vector.directory.pull_mode_refresh_verification.v1",
@@ -476,6 +478,49 @@
         ],
         "forbidden_literals": [
           "needle secret launch plan"
+        ]
+      }
+    },
+    {
+      "vector_id": "ak.vector.identity.reject_handle_homograph.v1",
+      "name": "reject_handle_homograph_before_idna",
+      "input": {
+        "existing_u_label": "paypal.example",
+        "candidates": [
+          "раypal.example",
+          "аcme.example",
+          "ab--cd.example"
+        ]
+      },
+      "expected": {
+        "accepted": false,
+        "error_code": "failed_precondition",
+        "reason_code": "handle_homograph_forbidden",
+        "checks": [
+          "uts39_confusable_skeleton_collision",
+          "mixed_script_label",
+          "hyphen_disallowed_position"
+        ]
+      }
+    },
+    {
+      "vector_id": "ak.vector.identity.reject_realm_alias_homograph.v1",
+      "name": "reject_realm_alias_homograph_before_canonical_alias",
+      "input": {
+        "existing_u_label": "acme-workspace",
+        "candidates": [
+          "аcme-workspace",
+          "acme--workspace"
+        ]
+      },
+      "expected": {
+        "accepted": false,
+        "error_code": "failed_precondition",
+        "reason_code": "realm_alias_homograph_forbidden",
+        "checks": [
+          "uts39_confusable_skeleton_collision",
+          "mixed_script_label",
+          "hyphen_disallowed_position"
         ]
       }
     }

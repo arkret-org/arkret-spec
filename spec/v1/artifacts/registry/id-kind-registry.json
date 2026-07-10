@@ -22,10 +22,10 @@
     },
     {
       "kind": "blob",
-      "wire_form": "ak:blob:sha256:<digest>",
+      "wire_form": "ak:blob:<digest-suite>:<digest>",
       "status": "active",
       "storage_recommendation": "Store digest bytes/hex separately from any logical blob row ID.",
-      "description": "Content-addressed blob reference; distinct from ak:blob:<uuid> blob metadata IDs."
+      "description": "Content-addressed blob reference using an active digest-suite id (v1: sha256 or profile-gated blake3); distinct from ak:blob:<uuid> blob metadata IDs."
     },
     {
       "kind": "mls",
@@ -135,7 +135,7 @@
       "category": "identity",
       "status": "active",
       "wire_form": "ak:backup_series:<uuid>",
-      "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_class). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ak.schema.key_backup.v1.series_id and recovery strands to detect rollbaak. See identity/key-management.md §7.6."
+      "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_class). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ak.schema.key_backup.v1.series_id and recovery strands to detect rollback. See identity/key-management.md §7.6."
     },
     {
       "kind": "batch",

@@ -866,7 +866,7 @@ POST /_arkret/self/keys/keypackages/revoke
 
 | 状态 | 语义 | 合法后继 | 终态? |
 | --- | --- | --- | --- |
-| `published` | 已 upload，可被 claim | `claimed`（原子 claim）、`revoked`（device revoke / principal 失效 / KeyPackage `expires_at` 到期）、`retired`（account deactivation，§7.1） | 否 |
+| `published` | 已 upload，可被 claim | `claimed`（原子 claim）、`revoked`（device revoke / principal 失效 / KeyPackage `expires_at` 到期）、`retired`（account deactivation，[`account-lifecycle.md` §7.1](../identity/account-lifecycle.md)） | 否 |
 | `claimed` | 已被某次 claim 原子占用 | `consumed`（Welcome 成功处理后 consume）、`revoked`（claim `expires_at` 到期 / device revoke / capability revoke） | 否 |
 | `consumed` | 已被 Welcome 消费 | —（终态） | **是** |
 | `revoked` | 因过期 / 吊销 / policy 失效不可用 | —（终态） | **是** |
@@ -1134,7 +1134,7 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
   "ciphertext_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "auth_data": {
     "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
+    "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak:device:01964137-0000-7000-8000-000000000000",
     "signature_algorithm": "Ed25519",
     "signature": "base64url...",
     "signed_fields": [
@@ -1402,10 +1402,10 @@ canonical_json({
 - 接收方验证顺序：(a) 检查 `trust_domain` 与本 receiver 当前 trust 域一致；不一致直接 `cross_domain_replay_rejected`，不进入签名校验。(b) 检查 `reset_event_id == enclosing Event.event_id`；不一致 `reset_event_id_mismatch`。(c) 按上面 canonical input 重算 transcript 并验证每个 proof 的签名；任一不匹配 `invalid_signature`。
 - 多 deployment 部署、sovereign trust domain、recovery service 跨域复用、device quorum 跨 trust domain 都受这两个字段保护——任一变化都会让 transcript 失配。
 
-`recovery_unloak.unlock_commitment` 的派生输入 MUST 避免自引用：其
+`recovery_unlock.unlock_commitment` 的派生输入 MUST 避免自引用：其
 `unlock_binding_input_bytes` 使用与上面相同的字段集合，但 `proof_body`
 MUST 同时排除 `signature` 字段和 `unlock_commitment` 字段。随后
-`recovery_unloak.signature` 仍然覆盖上面的完整 canonical input，也就是覆盖已经
+`recovery_unlock.signature` 仍然覆盖上面的完整 canonical input，也就是覆盖已经
 计算出的 `unlock_commitment`。
 
 `device_quorum.signatures[]` 的每个设备签名分别覆盖同一 canonical input。`trusted_recovery_service` 的 `service_did` MUST 出现在 principal DID Document 的恢复服务声明中；未声明的服务签名无效。该 service proof 不能单独授权 reset：它还 MUST 绑定一个当前 `verified`、未过期、未消费的 `recovery_session_id`，且该 session 已由 `principal_signing`、`recovery_unlock` 或 `device_quorum` 中至少一种非 service 因子验证。仅由另一个 `trusted_recovery_service` session 验证不构成第二因子。

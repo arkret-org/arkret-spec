@@ -485,7 +485,7 @@ AvailabilityReceipt {
 声明来源与默认值：
 
 - `bottom` policy 是 **cell family 属性**，由 Realm schema 的 cell family 声明（与 `lattice` 同处声明，权威载体为 [`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 对应 cell 的 `bottom` 字段）。
-- 每个 core lattice type 的默认 `bottom`：`cas_register` / `fsm` 默认 `reject`（强单值治理 cell，冲突即 fail-closed）；`or_set` / `ordered_log` / `counter` 的 join 在数学上永不产生 `⊥`，未显式定义领域冲突语义时其 `bottom` 字段对收敛 **inert**（例如 capability grant 与 consent grant 这类普通 observed-remove 集合，即使 registry 为占位登记 `reject`，reducer 也 MUST NOT 据其产生 reject 语义；见 [`capabilities.md` §12.1](./capabilities.md) 与 [`../identity/consent-model.md`](../identity/consent-model.md)）。若某个 or_set cell family 显式登记 `bottom=expose` 并由领域文档定义 exposed multi-head 处理（例如 `ak.component.moderation_state.v1`），实现 MUST 执行该领域规则，不得用普通 or_set 的 inert 默认覆盖它。`mv_register` 不产生 `⊥`（暴露多 heads 而非 bottom），无 `bottom` 语义。
+- 每个 core lattice type 的默认 `bottom`：`cas_register` / `fsm` 默认 `reject`（强单值治理 cell，冲突即 fail-closed）；`or_set` / `ordered_log` / `counter` 的 join 在数学上永不产生 `⊥`，未显式定义领域冲突语义时 registry MUST 登记 `bottom=inert`（例如 capability grant 与 consent grant 这类普通 observed-remove 集合），reducer MUST NOT 据其产生 reject 语义；见 [`capabilities.md` §12.1](./capabilities.md) 与 [`../identity/consent-model.md`](../identity/consent-model.md)。若某个 or_set cell family 显式登记 `bottom=expose` 并由领域文档定义 exposed multi-head 处理（例如 `ak.component.moderation_state.v1`），实现 MUST 执行该领域规则，不得用普通 or_set 的 inert 默认覆盖它。`mv_register` 不产生 `⊥`（暴露多 heads 而非 bottom），无 `bottom` 语义。
 - cell family 未显式声明 `bottom` 时，reducer MUST 按上述 per-lattice-type 默认处理；MUST NOT 把未声明当作 `expose` 放宽强单值治理 cell。
 
 > `bottom=reject` cell 进入 `⊥` 后的恢复路径由 §9.5 control cell `⊥` recovery 定义（conflict-recovery Move）。

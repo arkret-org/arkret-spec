@@ -104,7 +104,7 @@ Push Gateway MUST NOT 因 read receipt 产生通知。它只能把 receipt / mar
 
 Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 `ak.receipt.read` 的披露要求。需要让 Strand 时间线与父 Realm 在 read receipt policy 上分离时，整个 Strand 通过 `Strand.scope_circle_id` 落在一个 [Circle](../models/circle.md)（参见 [`../models/strand-and-message.md` §5](../models/strand-and-message.md)）；effective policy 由父 Realm `ak.realm.read_receipt_policy` 与 Circle 自身策略取更严格者。Track 级别 override 不在 v1 范围内。该 policy SHOULD 由 `ak.realm.policy_components.components.read_receipt` 引用；在 MLS-backed scope 中还必须纳入 MLS-bound `policy_root`。
 
-> **Realm 作用域** 由 enclosing Event envelope 的 `realm_id` 决定；payload 本身不重复 `realm_id`。Payload schema 在 [`event-payload.schema.json#/$defs/read_receipt_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 为闭合对象（`additionalProperties: false`），任何未识别字段或字段名拼写错误（包括 §2.5 中的合规旁路 `allow_child_privacy_tightening_against_required`）在 wire 解析阶段就会以 `schema_violation` 拒绝。Payload **MUST 至少包含一个字段**（schema `minProperties: 1`）：空 `{}` 在语义上与"从不写该 event"等价（cell 保持 null，effective defaults 由 §2.5 字段表给出），因此 wire 上 `payload: {}` MUST 被拒绝；想要"用默认值"的 Realm 直接省略该 event 即可。该约束与 `event-envelope.schema.json` 通用 `ak.realm.*` policy 分支的 `state_payload` `minProperties: 1` 保持一致，避免同一 Event 在两个 schema 分支上得出不同结果。
+> **Realm 作用域** 由 enclosing Event envelope 的 `realm_id` 决定；payload 本身不重复 `realm_id`。Payload schema 在 [`event-payload.schema.json#/$defs/read_receipt_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 为闭合对象（`additionalProperties: false`），任何未识别字段或 `receipt_compliance_opt_in` 子字段拼写错误在 wire 解析阶段就会以 `schema_violation` 拒绝。Payload **MUST 至少包含一个字段**（schema `minProperties: 1`）：空 `{}` 在语义上与"从不写该 event"等价，因此 MUST 被拒绝；想要"用默认值"的 Realm 直接省略该 event 即可。
 
 ```json
 {
@@ -123,8 +123,8 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 | --- | --- | --- | --- |
 | `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。该字段同时影响隐私上限与合规义务：`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 客户端与 Sync Service MUST NOT 在该 scope 转发 `ak.receipt.read`。 |
 | `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Strand 的 effective scope 可见性允许的全部观察者；`members` = Strand effective scope 的可见成员（`scope_circle_id=null` 时为父 Realm 成员，`scope_circle_id` 指向 Circle 时为该 Circle 成员）；`private` = 仅消息发送者本人（Sync Service 按发送者 fanout，不广播给其他成员）。**警告**：在 `history_visibility=world_readable` 的 Realm/Strand 下，`visibility=public` 允许外部观察者读取 actor 的已读位置；若用于 metadata-private 场景，receipt-policy MUST 收紧 `visibility` 为 `members` 或 `private`。该组合的 reducer 级强制判定见 §2.5.1。 |
-| `scope_overrides_allowed` | `bool` | `true` | 是否允许 Realm 内的 [Circle](../models/circle.md) 声明独立、**收紧**（不放宽）的 read receipt policy。visibility 的收紧方向固定为 `private` > `members` > `public`。disclosure 必须同时满足两条规则：隐私上限允许 `optional -> disabled`，但合规下限禁止从父 `required` 降到 `optional` 或 `disabled`，除非父 policy 显式声明 `allow_child_privacy_tightening_against_required=true`。父 Realm `scope_overrides_allowed=true` 仅允许 Circle 在满足上述两条规则时进一步收紧；`scope_overrides_allowed=false` 要求 Circle 完全继承父 Realm 策略。任何放宽方向或违反合规下限的 child policy 声明 MUST reducer 拒绝。 |
-| `allow_child_privacy_tightening_against_required` | `bool` | `false` | 父 Realm 显式同意 child Realm 把 `disclosure=required` 进一步收紧为 `optional` 或 `disabled` 的合规例外开关。**仅当父 policy 把该字段显式声明为 `true` 时** child policy 才允许 `optional → disabled` 方向跨越合规下限；否则（字段缺省、为 `false` 或字段名拼写错误）reducer MUST 以 `read_receipt_compliance_floor_violated` 拒绝相应 child policy Move。该字段为 prose-defined 合规旁路，schema 必须 `additionalProperties=false` 防止"未识别字段被静默忽略"，writer 必须在该 cell 的 wire JSON 中按字面拼写出现该字段。 |
+| `scope_overrides_allowed` | `bool` | `true` | 是否允许 Realm 内的 [Circle](../models/circle.md) 声明独立、**收紧**（不放宽）的 read receipt policy。visibility 的收紧方向固定为 `private` > `members` > `public`。disclosure 的合规下限禁止从父 `required` 降到 `optional` 或 `disabled`，除非父 policy 显式声明 `receipt_compliance_opt_in.child_privacy_tightening_against_required=true`。 |
+| `receipt_compliance_opt_in` | closed object | absent（全部 false） | 单一合规旁路对象；子字段为 `child_privacy_tightening_against_required`、`public_receipts_on_world_readable`、`forced_public_world_readable_receipts`。对象 / 子字段缺失或为 false 均等价未 opt-in；未知子字段 `schema_violation`。最后一项是第二道门，不能替代 `public_receipts_on_world_readable=true`。 |
 
 规则：
 
@@ -133,7 +133,7 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 - `disclosure="required"`：合规客户端 MUST NOT 允许用户在该 scope 把 `ak.read_receipt.preferences` 设为 `send=false`，并 SHOULD 在每次进入 track 时按 §2.2 发送至少一条覆盖当前可见 head 的 receipt。
 - `disclosure="disabled"`：合规客户端 MUST NOT 生成该 scope 的 `ak.receipt.read`；Sync Service 收到时 SHOULD 丢弃并返回或广播 `policy_violation` 语义。Read Cursor 不受影响。
 - `visibility="private"`：Sync Service MUST 仅向 receipt 引用的 `event_id` 的发送者 fanout，不得广播给其他成员。Push Gateway 同样不得据此产生通知。**发送者归属不可投递时静默丢弃（normative）**：当 receipt 引用的 `event_id` 的 sender 不可投递（已离开 / removed / ban、其 delivery binding 不可达）、`event_id` 为多发送者聚合事件无单一 sender 主体、或为无 actor 主体的系统事件时，Sync Service MUST 静默丢弃该 receipt，MUST NOT 回退到向 `members` 或 Strand effective scope 广播。即在 `private` 下找不到唯一合法发送者目标时，正确行为是不 fanout，绝不放宽到成员广播。
-- Child Realm policy MUST 等于或更严格于父策略，同时不得破坏父策略声明的合规下限。visibility 仅允许 `public→members→private` 方向收紧。disclosure 的隐私收紧方向是 `optional→disabled`；父策略为 `required` 时，child 不得降到 `optional` 或 `disabled`，除非父 policy 显式声明 `allow_child_privacy_tightening_against_required=true`。放宽方向（例如父 `disabled` → 子 `required`、父 `private` → 子 `public`）MUST 被 reducer 拒绝，与 `scope_overrides_allowed` 取值无关——`scope_overrides_allowed=true` 仅允许 child 在上述限制内进一步收紧，`scope_overrides_allowed=false` 要求 child 完全继承父策略。
+- Child Realm policy MUST 等于或更严格于父策略，同时不得破坏父策略声明的合规下限。visibility 仅允许 `public→members→private` 方向收紧。disclosure 的隐私收紧方向是 `optional→disabled`；父策略为 `required` 时，child 不得降到 `optional` 或 `disabled`，除非父 policy 显式声明 `receipt_compliance_opt_in.child_privacy_tightening_against_required=true`。放宽方向 MUST 被 reducer 拒绝。
 - 与 §2.3 防雪崩规则共存：即便 `disclosure="required"`，客户端仍 MUST 按 debounce / merge 规则发送，不得为合规绕开限流。
 
 #### 2.5.1 `visibility × history_visibility` 组合约束（normative）
@@ -146,13 +146,13 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 | `members` | ✓ | ✓ |
 | `public` | `✗*`（默认拒绝，opt-in 后降级为 `!`，见下） | ✓ |
 
-- `visibility="public"` + `history_visibility="world_readable"` 会让任意外部 world-readable 观察者读取 actor 的已读位置（活动侧信道）。该组合 MUST 是**显式 opt-in**：reducer MUST 拒绝（`read_receipt_visibility_combination_invalid`）该组合，**除非** receipt policy payload 显式声明 opt-in 标记 `allow_public_receipts_on_world_readable=true`；显式 opt-in 时 reducer MUST 仍附带警告诊断并要求客户端按 §2.4 / §2.5 在 UI 明示。该字段与 `allow_child_privacy_tightening_against_required` 同纪律，是 prose-defined 合规旁路：read_receipt_policy payload schema MUST `additionalProperties=false` 收录该字段，writer 必须在 wire JSON 中按字面拼写出现它，字段缺省 / 为 `false` / 拼写错误时 reducer MUST 按拒绝处理。
+- `visibility="public"` + `history_visibility="world_readable"` 会让任意外部观察者读取 actor 的已读位置。reducer MUST 拒绝（`read_receipt_visibility_combination_invalid`），除非 payload 显式声明 `receipt_compliance_opt_in.public_receipts_on_world_readable=true`；opt-in 后仍 MUST 附带警告诊断并在 UI 明示。
 - metadata-private 场景下 receipt policy MUST 收紧 `visibility` 为 `members` 或 `private`，不得依赖上述显式 opt-in 旁路。
-- **强制公开去匿名组合 fail-closed(normative)**:有效 policy 同时满足 `disclosure="required"`(强制每个成员发送已读位置、用户 MUST NOT 关闭，见 §2.5 字段表)+ `visibility="public"` + `history_visibility="world_readable"` 时，等于**强制**每个成员发出对任意外部观察者可拉取的已读位置且无任何 opt-out——这是无法关闭的强制去匿名活动追踪。reducer MUST 拒绝该有效组合(`read_receipt_forced_public_world_readable_forbidden`),**除非** receipt policy payload 显式声明第二道 opt-in `allow_forced_public_world_readable_receipts=true`。该字段与 `allow_public_receipts_on_world_readable` 同纪律(payload schema `additionalProperties=false` 收录、writer 必须字面拼写出现、缺省/`false`/拼写错误时按拒绝处理)，且它是在前者之上的**第二道**门:`allow_public_receipts_on_world_readable=true` 只解除 `visibility=public`+`world_readable` 本身的拒绝，不解除"叠加 `disclosure=required`"这层强制去匿名。
-- **fanout 收口(normative)**:即便已显式 opt-in `allow_public_receipts_on_world_readable=true`,Sync Service **SHOULD** 仍把 `ak.receipt.read` 的 fanout 限制在该 Strand effective scope 的 active member 集合，而**不**把 receipt 主动广播给非成员的 world-readable 外部观察者——即把"历史 world-readable"(读取已落库历史)与"receipt world-readable"(主动 fanout 实时已读位置)解耦。**当上一条的强制组合经第二道 opt-in 被允许时，该 fanout 收口对该组合升为 MUST**:Sync Service MUST 把 fanout 限制在 active member 集合，MUST NOT 主动把 receipt 推送给非成员的 world-readable 外部观察者(外部观察者仍可经历史拉取已落库 receipt，但不得被主动推送)。opt-in 只解除 reducer 的 accept 拒绝，不构成"必须向全网外部观察者主动推送 receipt"的义务；高隐私部署 SHOULD 默认采用该收口。实现者 MUST 向用户明示:public receipt 在 world-readable scope 下，actor 的已读位置对该 scope 的任意外部观察者实际可读，是活动侧信道。
+- **强制公开去匿名组合 fail-closed(normative)**：`disclosure="required"` + `visibility="public"` + `history_visibility="world_readable"` MUST 拒绝 `read_receipt_forced_public_world_readable_forbidden`，除非 `receipt_compliance_opt_in.public_receipts_on_world_readable=true` **且** `receipt_compliance_opt_in.forced_public_world_readable_receipts=true`；第二项不能单独解锁。
+- **fanout 收口(normative)**：即便第一道 opt-in 已启用，Sync Service SHOULD 仍把 fanout 限制在 active member 集合；强制组合经两道 opt-in 被允许时，该收口升为 MUST，MUST NOT 主动推送给非成员观察者。
 - 该表只约束 receipt `visibility` 与 history visibility 的组合，不替代 §2.5 字段表与 child-policy 收紧规则；冲突时更严格者优先。
 
-**合规旁路 opt-in 字段的目标结构（normative，schema 协调项）**：本文件族当前用三个平行 prose-defined 布尔旁路字段拼出安全闭合——`allow_child_privacy_tightening_against_required`（§2.5）、`allow_public_receipts_on_world_readable`（本节）、`allow_forced_public_world_readable_receipts`（本节）。三者均依赖 `additionalProperties=false` + writer 必须字面拼写出现 + 缺省/`false`/拼写错误一律按拒绝（fail-closed）处理；平行字段越多，enforcement 链越长越脆（漏拼一个即静默退化）。v1 的目标结构是把这三个标记**合并为单一结构化 opt-in 对象** `receipt_compliance_opt_in`，缺省整体等价"全部未 opt-in（拒绝）"：
+**合规旁路 opt-in 的 canonical 结构（normative）**：v1 只接受下列单一结构化对象，三个旧顶层平行字段不是 wire 字段，出现时 MUST `schema_violation`：
 
 ```json
 {
@@ -166,7 +166,7 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 
 - 三个子字段语义与各自原平行字段一一对应，缺省（对象缺省、子字段缺省、为 `false` 或子字段名拼写错误）一律按未 opt-in 即拒绝处理；`forced_public_world_readable_receipts` 仍是 `public_receipts_on_world_readable` 之上的**第二道**门（前者为 `true` 不解除后者）。
 - read_receipt_policy payload schema MUST 对 `receipt_compliance_opt_in` 对象本身及其子字段集合声明 `additionalProperties=false`，未识别子字段 MUST 以 `schema_violation` 在 wire 解析阶段拒绝。
-- 该合并触及 [`event-payload.schema.json#/$defs/read_receipt_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 的字段定义（移除三个顶层平行字段、引入嵌套对象），属 schema/registry 协调项，**留协调者**统一改 artifact；在 artifact 落地前，本节正文以上述目标结构与"缺省拒绝（fail-closed）"语义为 normative 真源。
+- [`event-payload.schema.json#/$defs/read_receipt_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 已以 closed object 落地该结构；正文与 schema 共同构成单一现行契约。
 
 ## 3. Read Cursor (私有游标)
 

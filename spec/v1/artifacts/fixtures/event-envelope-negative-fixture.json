@@ -332,8 +332,10 @@
       },
       "expected": {
         "decision": "reject",
-        "error_code": "payload_too_large",
-        "limit": "prev_refs <= 128"
+        "error_code": "schema_violation",
+        "reason_code": "prev_refs_too_large",
+        "limit": "prev_refs <= 128",
+        "must_not_enter_reducer": true
       }
     },
     {

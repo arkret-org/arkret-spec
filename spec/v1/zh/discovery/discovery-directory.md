@@ -860,7 +860,7 @@ Directory-capable implementations MUST test：
 - `ak.vector.directory.announce_directory_not_authorized.v1`：announce rejected with `directory_not_authorized` when directory DID NOT listed。
 - `ak.vector.directory.announce_bad_signature.v1`：announce rejected with `invalid_signature` on bad `discovery_state.proof`。
 - `ak.vector.directory.announce_signature_stale.v1`：announce rejected with `signature_stale` when `as_of` skew > 5 min。
-- `ak.vector.directory.policy_revision_rollbaak.v1`：announce rejected with `policy_revision_rollback` when `as_of` earlier than indexed entry。
+- `ak.vector.directory.policy_revision_rollback.v1`：announce rejected with `policy_revision_rollback` when `as_of` earlier than indexed entry。
 - `ak.vector.directory.accept_policy_denied.v1`：announce rejected with `accept_policy_denied` when resource outside policy。
 - `ak.vector.directory.reannounce_idempotent_ttl.v1`：re-announce idempotent on `(resource_id, as_of)`，TTL 正确续约。
 - `ak.vector.directory.pull_mode_refresh_verification.v1`：pull-mode ingest verifies signed discovery state on every refresh。

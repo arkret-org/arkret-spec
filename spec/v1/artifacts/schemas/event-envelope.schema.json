@@ -3737,6 +3737,14 @@
             }
           ]
         },
+        "proof_purpose": {
+          "type": "string",
+          "enum": [
+            "issuer_attestation",
+            "holder_acceptance"
+          ],
+          "description": "Optional role discriminator for handle-claim proofs. Generic proof consumers ignore it unless their object-family contract makes it required."
+        },
         "jws": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"

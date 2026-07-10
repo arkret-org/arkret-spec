@@ -38,6 +38,7 @@ title: <短句>
 status: draft | review
 normative: false
 stability: v1
+created: YYYY-MM-DD
 updated: YYYY-MM-DD
 authors:
   - <DID、handle 或邮箱>

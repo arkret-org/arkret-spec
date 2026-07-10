@@ -1,0 +1,34 @@
+{
+  "suite": "error_code_registry_coverage_fixture",
+  "version": "2026-07-10",
+  "runner": {
+    "kind": "registry_coverage",
+    "inputs": [
+      "registry/error-code-registry.json",
+      "registry/operation-registry.json",
+      "registry/operations-error-mapping.json"
+    ]
+  },
+  "assertions": [
+    {
+      "id": "unique_top_level_codes",
+      "rule": "Every codes[].code is unique and non-empty."
+    },
+    {
+      "id": "unique_reason_codes",
+      "rule": "Every reason_codes[].code is unique and non-empty."
+    },
+    {
+      "id": "operation_errors_registered",
+      "rule": "Every error identifier referenced by an operation or operations-error mapping exists in codes[]."
+    },
+    {
+      "id": "reason_references_registered",
+      "rule": "Every reason_code referenced by a canonical fixture exists in reason_codes[]."
+    },
+    {
+      "id": "layering_is_explicit",
+      "rule": "A reason-only identifier MUST NOT be emitted as a top-level error_code unless it is explicitly dual-registered."
+    }
+  ]
+}

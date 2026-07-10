@@ -20,6 +20,8 @@ see_also:
 
 Shared pin 是进入 Realm reducer 的共享投影事实，用于把 Message、Strand、Morph、Relation 或其它可引用对象固定在某个共享范围中。个人保存 / 收藏不使用 shared pin；它们由 [personal-productivity.md](./personal-productivity.md) 的 account data 表达。
 
+**架构决策（normative boundary）**：Pin 有意不建模为 `Relation.kind=pinned`。Relation 表达对象之间可查询、可参与图遍历的语义边；Pin 表达某个 projection home 的有序 UI roster，`pin_scope` 不是关系端点或安全边界，且 reorder 是高频 CAS 排序操作。把 Pin 放入 Relation 会让 UI 排序边进入通用关系图、改变 graph query / relation-kind registry 语义并混淆 scope。实现 MUST 使用本文件的 pin cell 与三类 event，MUST NOT 以 `Relation` 代替 shared Pin；二者共享 `event_digest` 并发 tie-break 规则只是复用确定性原语，不表示模型等价。
+
 实现声明 `ak.profile.pinned_items.v1` 时，MUST 支持 `ak.pin.add`、`ak.pin.remove` 和 `ak.pin.reorder`。
 
 ## 2. Pin Scope
@@ -34,13 +36,13 @@ Cell special form 使用 `ak:cell:ak.component.pin.v1:<pin_scope.id>`。v1 不�
 
 目标对象必须落在 resolved effective scope 内，或在该 scope 内可见。Public Space 不得 pin Circle-private object；Realm-wide pin 不得泄露 Circle-scoped Message 的存在性。若目标不可见或跨 scope 不合法，reducer MUST fail closed，并对调用方返回与不可见对象一致的 `not_found`；错误形态不得向无权 actor 泄露目标是否存在。内部审计 MAY 记录更具体的 scope mismatch 诊断。
 
-Pin note 若存在 MUST 加密，除非 Realm policy 明确允许该 note plaintext-visible。
+Pin note 若存在 MUST 使用 `EncryptedPayload` 加密；v1 不提供 plaintext-visible note 分支。需要公开说明时应创建普通 Message / Morph 并 pin 该对象，不得把 Pin 元数据变成额外明文通道。
 
 ## 4. Events
 
 `ak.pin.add` 添加或更新一个 `(pin_scope, target_ref)` pin entry，携带 rank 和可选 note。`ak.pin.remove` tombstone 同一 entry。`ak.pin.reorder` 只更新 rank；不得改变 target 或 pin scope。
 
-重排必须保持稳定：相同 rank 冲突时，projection 使用 event causal order 作主裁——严格因果后继 supersede 前驱；对互不可达（并发）候选，MUST 使用与 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) / [`relation.md` §6](./relation.md) 一致的 `event_digest` bytewise **最大值** 作 deterministic tie-breaker（`event_digest` 是签名覆盖的 canonical Event digest，不得由 `event_id`、HLC、actor id 或接收顺序替代）。writer SHOULD 使用 rank rebalance 避免长期冲突。
+重排必须保持稳定：`rank` 按 ASCII bytewise lexicographic ascending 排序。`ak.pin.remove.expected_rank` 与 `ak.pin.reorder.expected_rank` 是可选 CAS 前置；存在时 MUST 与当前 materialized rank 逐字节相等，否则 `failed_precondition` 且不得修改 entry。相同 rank 冲突时，projection 使用 event causal order 作主裁——严格因果后继 supersede 前驱；对互不可达（并发）候选，MUST 使用与 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) / [`relation.md` §6](./relation.md) 一致的 `event_digest` bytewise **最大值** 作 deterministic tie-breaker（`event_digest` 是签名覆盖的 canonical Event digest，不得由 `event_id`、HLC、actor id 或接收顺序替代）。writer SHOULD 使用 rank rebalance 避免长期冲突。
 
 ## 5. Interactions
 

@@ -741,6 +741,12 @@ Expected：前 13 类 `reason_code = invalid_cursor`（顶层错误码 `invalid_
 
 Expected：`expected_multibase` / `expected_did_key` MUST byte-for-byte 复现；decode MUST round-trip 回原始 32 字节公钥，前缀非 `0xed01` 或长度非 34 字节 MUST 拒绝。
 
+### 1.12.2 Vector: Event 引用与 Circle 基数上限（normative）
+
+`ak.vector.scalability.refs_limit.v1` MUST 由 runner 生成带 129 个互异 `refs[]` 条目的 Event，并在 reducer 之前断言 `schema_violation`、`reason_code=refs_too_large`；实现不得截断、去重后继续或只检查单一 role 的数量。
+
+`ak.vector.scalability.circle_count_limit.v1` MUST 同时覆盖：（a）已有 1,000 个 active Circle 的 Realm 再提交 `ak.circle.create`；（b）已有 256 个 active MLS-backed Circle membership 的 actor 再加入一个 MLS-backed Circle。两者均 MUST 以 `failed_precondition`、`reason_code=circle_count_exceeded` 拒绝且不得改变状态。体量状态由 runner 按 [`scalability-limits-fixture.json`](../../artifacts/fixtures/scalability-limits-fixture.json) 的 generator 描述构造，不要求 fixture 字面展开全部对象。
+
 ## 2. CBA · Lattice Vectors
 
 > 来源：`cba-lattice-fixture.json`。
@@ -860,6 +866,12 @@ Expected：
 
 - Receiver MUST reject before decrypting or accepting the Welcome。
 - `payload.keypackage_digest`、`payload.claim_ref.keypackage_digest`、claim record `keypackage_digest` 和已发布 `ak.mls.keypackage.payload.keypackage_digest` MUST 全部一致。
+
+### 2.5.3 Vector: RFC 9420 MTI Ciphersuite Byte-Level KAT
+
+`vector_id`: `ak.vector.mls.rfc9420_mti_kat.v1`
+
+Arkret 不复制易漂移的外部密码学金值；本向量直接 pin MLS WG `mlswg/mls-implementations` 的 `test-vectors/` corpus commit `cfd450286d1bfd9cd2519b95c80f9771f94a5b1a`。声明 MLS 支持的实现 MUST 对 ciphersuite `0x0001` 运行 registry 列出的 `crypto-basics.json`、`key-schedule.json`、`messages.json`、`welcome.json` 与 `treekem.json` 全部适用 case，并逐字节匹配编码、KEM/HPKE 输出、joiner / epoch secret、Welcome 与 TreeKEM 派生值。只通过 Arkret 结构绑定 fixture、不运行该字节级 corpus，不足以声明 `ak.vector.mls.rfc9420_mti_kat.v1` 通过。更换 upstream commit 必须作为 registry review 变更并重新跑全套 KAT。
 
 ### 2.6 Vector: 数据面冲突返回 Bottom 且不选 Winner
 
@@ -1706,7 +1718,7 @@ ak.vector.capability.delegate_chain.v1
 向量名称：
 
 ```text
-ak.vector.capability.revoke_rollbaak.v1
+ak.vector.capability.revoke_rollback.v1
 ```
 
 输入：
@@ -3027,6 +3039,12 @@ Expected：
 - 第 4 步 MUST 因 audience/origin mismatch 或 freshness window 超限拒绝；服务端不得裁剪有效期后继续接受同一 proof。
 - 第 5 步 MUST 拒绝；默认 skew 上限 SHOULD ≤ 300s。
 
+### 10.4.2 Vector: Handle / Realm Alias Homograph Rejection
+
+`vector_id`: `ak.vector.identity.reject_handle_homograph.v1`、`ak.vector.identity.reject_realm_alias_homograph.v1`
+
+Runner 必须把 fixture 中的 Unicode U-label 原样交给注册 / 解析前置校验，不得先做 IDNA ToASCII。Handle 与 Realm alias 两条路径都必须拒绝：(a) Latin/Cyrillic 混排；(b) 与既有名称 UTS#39 skeleton 冲突；(c) hyphen-disallowed-position。Handle 返回 `failed_precondition` + `handle_homograph_forbidden`，Realm alias 返回 `failed_precondition` + `realm_alias_homograph_forbidden`。仅执行 NFC 或仅依赖最终 ASCII schema pattern 不算通过。
+
 ### 10.5 Vector: Session Grant Audience Binding
 
 `vector_id`: `ak.vector.auth.session_grant_audience_binding.v1`
@@ -3440,6 +3458,12 @@ Expected:
 - 第 1、2 步 MUST 接受(每一位 ⊆ 父级 ceiling)。
 - 变体 A、B MUST fail closed(`failed_precondition`, `reason="agent_participation_ceiling_widen"`)，与 [`../models/circle.md` §7](../models/circle.md) 的 floor downgrade 同形。
 - 未显式声明 `agent_participation` 的内层 scope 继承父级 ceiling(不放宽)；effective ceiling 以从 Strand→Circle→Realm→deployment 逐级按位 AND 求值，对违反不变量的历史数据 fail closed。
+
+#### 11.12.1 Vector: Participation Wire-Shape Normalization
+
+`vector_id`: `ak.vector.agent.participation.wire_shape_normalization.v1`
+
+Runner MUST 将 Realm/deployment 的 `{native_agent:{...}}` 与 Circle/Strand 的扁平 `{...}` 同时送入 reducer。去掉外层轴名后逐位相同的输入 MUST 等价；Circle 把父级 false 位写成 true MUST `failed_precondition` + `agent_participation_ceiling_widen`。Realm 缺失 `native_agent`、字段缺失或类型错误时 MUST fail closed 为全 false / schema reject，MUST NOT 因结构不同而跳过比较。
 
 ### 11.13 Vector: Participation Effective = Ceiling ∩ Selection
 

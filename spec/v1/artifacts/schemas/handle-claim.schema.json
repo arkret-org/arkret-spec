@@ -45,7 +45,8 @@
     },
     "issuer": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$|^[a-z0-9.-]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+      "description": "DID of the handle authority. Bare hostnames are discovery inputs, never proof issuers."
     },
     "issuer_service_did": {
       "type": "string",
@@ -208,7 +209,23 @@
         "required": [
           "handle",
           "expires_at"
-        ]
+        ],
+        "properties": {
+          "proofs": {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "proof_purpose": {
+                  "const": "holder_acceptance"
+                }
+              },
+              "required": [
+                "proof_purpose"
+              ]
+            },
+            "minContains": 1
+          }
+        }
       }
     },
     {

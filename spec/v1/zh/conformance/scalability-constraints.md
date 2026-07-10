@@ -31,6 +31,7 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 单个 federation transaction 的 Event 数 | 500 | 超过时 MUST 拆分 transaction；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单次 sync / backfill / projection page 返回项 | 1,000 | 执行方 MUST enforce；客户端不得假设更大 page 可用。 |
 | 单个 Event 的 `prev_refs` 数量 | 128 | 超过时 MUST reject（`schema_violation`，`reason_code=prev_refs_too_large`）或要求提交 snapshot / seal 引用；数组项 MUST 去重。 |
+| 单个 Event 的 `causal_refs` 数量 | 128 | 超过或存在重复项时 MUST reject（`schema_violation`，`reason_code=causal_refs_too_large`）；不得截断因果前驱集。 |
 | 单个 Event `refs[]` 中 `role="authorized_by"` 的条目数量 | 64 | 超过时 MUST reject；authorized_by refs 必须是最小授权状态集合（见 [event-and-patch.md](../models/event-and-patch.md) §2.2）。 |
 | 单个 Event 的 `refs[]` 总条目数量 | 128 | 涵盖 `authorized_by` / `attestation` / `parent_event` / `after` / `recovery_capability` / `state_witness` / `inclusion_proof` 等所有 role；超过时 MUST reject（`schema_violation`，`reason_code=refs_too_large`）或拆分。 |
 | 同一 `(actor_id, actor_seq, prev_frontier_digest)` sibling fork 数 | 16 | 超过时 receiver MUST quarantine 或要求 actor chain repair；见 [event-and-patch.md](../models/event-and-patch.md) §2.6。 |
@@ -40,10 +41,13 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 手写 deterministic CBOR 结构单个 array / map 项数 | 65,536 | 适用于 `mls_governance_binding`（[encryption-and-audit.md](../crypto-media/encryption-and-audit.md) §2.5.3）等不经 JSON schema 校验的手写 deterministic CBOR 结构。单个 array 或 map 声明或实际项数超过 65,536 时 decoder MUST reject（`schema_violation`，`reason_code=cbor_bounds_invalid`），且 MUST NOT 依据声明项数在校验前预分配内存。 |
 | 手写 CBOR 声明长度自洽性 | 声明长度 ≤ 剩余输入 | CBOR string / byte string / array / map 头部声明的长度或项数 MUST ≤ 实际剩余输入可满足的量；违反时 decoder MUST 在按声明长度分配缓冲区之前 reject（`schema_violation`，`reason_code=cbor_bounds_invalid`）。indefinite-length 项（map `0xbf` / array `0x9f` / string `0x5f`、`0x7f`）违反 deterministic encoding（RFC 8949 §4.2），MUST reject（`schema_violation`，`reason_code=cbor_not_deterministic`），不得归一化后接受。负例见 [conformance-vectors.md](./conformance-vectors.md) §1.12.1。 |
 | 单 actor 每毫秒 HLC 生成事件数 | 65,536（HLC logical 4 hex 段上限） | HLC wire 形态为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，logical 段为 16-bit；同一 actor 在同一 ms 内最多分配 65,536 个 logical 值（`0x0000`–`0xFFFF`，即 0..65535），第 65,537 个 event 触发 HLC logical 段饱和，producer MUST 等待至下一 ms 再生成或返回本地错误 `hlc_logical_overflow`，MUST NOT wrap 或复用相同 HLC。HLC 仅作为时间线 advisory tie-breaker，不参与授权或状态收敛——饱和不影响协议正确性，只影响展示排序。[^hlc-throughput] [^hlc-logical-width] |
+
 | 单 actor 持续吞吐建议 | ≤ 100,000 events/min | Producer SHOULD 在生产侧自我限速，避免在突发情况下饱和 HLC logical 段或下游 reducer。超过该建议持续吞吐时，actor SHOULD 拆分为多 device / 多 actor 并行，或考虑使用 batch event。 |
 | HLC `hard_future_skew_ms`（硬 future drift 上限） | 300,000 ms（5 分钟） | 见 [encoding.md](./encoding.md) §7.2。HLC `unix_ms` 超本地时钟该阈值时 receiver MUST reject / quarantine。该校验是 envelope freshness / DoS guard，非授权、Lattice winner、Control Move precondition 或 Seal finality 输入。 |
 | HLC `expected_future_skew_ms`（软 future drift 阈值） | 30,000 ms（30 秒） | 见 [encoding.md](./encoding.md) §7.2。超该阈值但未超 `hard_future_skew_ms` 时 receiver SHOULD soft-fail / quarantine。 |
 | HLC `state_event_expected_future_skew_ms`（state event 软阈值） | 默认按 `expected_future_skew_ms` | 见 [encoding.md](./encoding.md) §7.2。profile MAY 对 state event（capability / membership / policy / service binding / Realm upgrade / MLS commit 等）声明更严窗口；未声明时按 `expected_future_skew_ms` 处理。 |
+
+`refs[]` 总量边界的生成式负例由 `ak.vector.scalability.refs_limit.v1` 固化。
 
 [^hlc-throughput]: informative：换算约 65.5 M events/s（精确 65,536,000 events/s）单 actor 上限，仅为 65,536/ms × 1000 的派生值，**非 normative 吞吐保证**，实现 MUST NOT 以此作为容量承诺。
 
@@ -119,10 +123,13 @@ CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 
 | 单次 recurrence expansion 返回 occurrence 数 | 10,000 | 超过时 MUST paginate、截断为带 cursor 的 page，或返回 `limit_exceeded`；不得无界展开 RRULE。 |
 | 单个 File Transfer `recipient_device_ids` 数 | 1,000 | 超过时 MUST reject 或拆分 transfer；每个 device key wrap 必须保持独立可验证。 |
 | 单条 `ak.call.state` 的 `payload.participants[]` 数 | 1,000 | 超过时 MUST reject（`schema_violation`）或改用采样 / 摘要写入；schema 已声明 `maxItems: 1000`。见 [call-state.md](../crypto-media/call-state.md) §4.1。 |
+
 | join policy 单个 `application_form` gate 的 `questions[]` 数 | 64 | 超过时 MUST reject（`schema_violation`）。见 [join-policy.md](../governance/join-policy.md) §3.3。 |
 | `member.application` 的 `answers[]` 数 | 64 | 与 `questions[]` 上限对齐；超过时 MUST reject（`schema_violation`）。见 [join-policy.md](../governance/join-policy.md) §7.2。 |
 | join / application 的 `gate_proofs[]` 数 | 16 | 与 join policy `gates` 1..16 上限对齐（含 runtime challenge proof）；超过时 MUST reject（`schema_violation`）。见 [join-policy.md](../governance/join-policy.md) §5 / §7.2。 |
 | `member.application.encryption_envelope.recipients[]` 数 | 64 | 每个 recipient 是一组独立 HPKE 封装；超过时 MUST reject（`schema_violation`）。见 [join-policy.md](../governance/join-policy.md) §8.2。 |
+
+Realm 与 actor 两条 Circle 基数边界由 `ak.vector.scalability.circle_count_limit.v1` 同时覆盖。
 
 Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一 key 下多个 active edge 只允许 reducer 选择一个 winner，并记录 losers；View projection MAY 暴露 loser conflict records，但不得把同一 Strand 渲染成多个主位置。
 

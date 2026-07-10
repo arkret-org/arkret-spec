@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/accountability-grant.schema.json",
+  "title": "Arkret Accountability Grant",
+  "description": "Issuer-signed endorsement used to verify Actor Profile accountable_principal_ids entries. This is the payload contract for ak.identity.accountability_grant.",
+  "type": "object",
+  "required": [
+    "schema",
+    "issuer",
+    "subject",
+    "accountability_scope",
+    "not_before",
+    "expires_at",
+    "grant_status",
+    "proof"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.accountability_grant.v1"
+    },
+    "issuer": {
+      "$ref": "./common-ids.schema.json#/$defs/did",
+      "description": "Principal DID accepting accountability for subject. MUST equal the proof verification method controller."
+    },
+    "subject": {
+      "$ref": "./common-ids.schema.json#/$defs/did",
+      "description": "Actor principal DID being endorsed."
+    },
+    "accountability_scope": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/scope"
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/scope"
+          }
+        }
+      ],
+      "description": "Display/governance scope only; never grants authorization."
+    },
+    "not_before": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "expires_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "grant_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "revoked"
+      ]
+    },
+    "proof": {
+      "$ref": "./event-envelope.schema.json#/$defs/proof",
+      "description": "Detached proof by issuer over utf8('ak.accountability-grant-v1\\n') || canonical_json(the object with proof omitted)."
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "scope": {
+      "type": "string",
+      "enum": [
+        "employment",
+        "contracted_service",
+        "agent_operator"
+      ]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  }
+}

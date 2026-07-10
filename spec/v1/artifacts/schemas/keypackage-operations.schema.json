@@ -153,7 +153,16 @@
           "description": "Base64url encoding of the canonical MLS KeyPackage bytes."
         },
         "cipher_suites": {
-          "$ref": "#/$defs/string_list"
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
+            ]
+          },
+          "description": "Generated from active canonical_id rows in mls-ciphersuite-registry.json."
         },
         "capabilities": {
           "$ref": "#/$defs/string_list"

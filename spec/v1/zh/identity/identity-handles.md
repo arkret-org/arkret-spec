@@ -197,11 +197,11 @@ Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时�
 
 **Step 0 — 候选集预过滤**（normative）：
 
-候选集 = `{ c | c ∈ claim_set_snapshot 且 c.binding_state == "verified" 且 c.created_at <= resolution_as_of 且 c.expires_at > resolution_as_of }`（`binding_state` 取 snapshot 中的 as-of 值），再施加：
+候选集 = `{ c | c ∈ claim_set_snapshot 且 c.binding_state == "verified" 且 c.created_at <= resolution_as_of 且 c.expires_at > resolution_as_of }`（`binding_state` 取 snapshot 中的 as-of 值），但 `verified` 只有在 §6 的 holder-acceptance 门禁已经通过后才成立：`proofs[]` MUST 至少包含一条 `proof_purpose="holder_acceptance"` 且由 `subject` DID 当前有效验证方法签发的 proof；issuer-only 自述的 `binding_state="verified"` MUST 在本步骤前降级并排除。再施加：
 
 - **生效时间下界**：`c.created_at <= resolution_as_of` MUST 成立——即在求值时刻该 claim 已被签发；这保证 audit / replay 用历史 `as_of` 时未来才签发的 claim 不会回到候选集，也不会通过 most-recent 抢占展示。`created_at` 是 handle_claim 的签发时刻（见 §5 example），不使用 forbidden 同义别名 `valid_from` / `issued_at`（handle claim 自身命名沿用 `created_at`；候选 schema 内的 `issued_at` 是另一对象，不在此层）。
 - **失效时间上界**：`c.expires_at > resolution_as_of` MUST 成立——过期 claim 不参与展示选择。
-- **issuer trust filter**：丢弃 `c.issuer` ∉ 当前 Realm / 调用上下文 policy `accepted_issuers` 的 claim。该步是**强制前置**——任何后续优先级匹配都只在受信 issuer 候选集合内进行，避免未受信 issuer 的 audience-matched claim 抢占展示。
+- **issuer trust + domain-authority filter**：`policy_snapshot.accepted_issuers[]` 的每个 entry MUST 是 `{issuer, authorized_handle_domains, authority_class}`，其中 `issuer` 是 DID，`authorized_handle_domains[]` 是该 issuer 可签发的 canonical A-label 域（精确域或 `*.<domain>` 子域模式），`authority_class ∈ {domain_authority, delegated_issuer, directory_mirror}`。丢弃 issuer 未列入 policy、handle 的 `<domain>` 不在该 entry 授权域、或授权链无法回溯到该域权威根的 claim。该步是**强制前置**；v1 不接受无域作用域的裸 issuer 字符串作为 Realm handle policy。
 - **audience scope filter**：丢弃 `c.audience` 存在且与当前 context 互斥（例如 audience 限定为另一 Realm 或另一 service DID）的 claim。`c.audience` 缺失视为"无 audience 限制"，保留在候选集。
 
 **Step 1 — 优先级匹配**：在 Step 0 输出的候选集内，按以下优先级取第一个非空层：
@@ -212,7 +212,7 @@ Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时�
 
 **Step 2 — Tie-breaker**（确定性收敛）：若 Step 1 选定层内仍有多个候选，按以下顺序消歧：
 
-1. `c.issuer` 在 policy `accepted_issuers` 列表中位置更靠前者（policy 决定的 trust 顺序）；
+1. 同一 handle 域内按 `domain_authority`、`delegated_issuer`、`directory_mirror` 的顺序优先；只有 `authority_class` 相同才比较 `c.issuer` 在 policy `accepted_issuers` 列表中的位置；
 2. `c.created_at` 较晚者；
 3. `claim_digest(c)` 字典序较小者（见下方定义）。`claim_digest` 是 claim 自身的 canonical identifier，不依赖 `proofs[]` 数组顺序——避免 issuer 重新打包 proof 时 tie-breaker 抖动；
 4. 若 `claim_digest(c)` 仍同（极小概率：两份候选共享同一 canonical claim），取 `min(c.proofs[].payload_digest)` 字典序较小者作为最后保险。
@@ -341,7 +341,7 @@ Handle 的 issuer 决定它的信任锚点；同一 canonical handle 形态可�
 | **Holder DID（self-issued）** | 用户自己控制 `<domain>`，自己运营单用户 Principal Server 或 well-known endpoint。例：`@alice:alice.dev` 由 Alice 的 DID 签发。 | (a) `<domain>` 解析 `https://<domain>/.well-known/arkret/handle?localpart=<localpart>` 或 DNS TXT `_arkret.<domain>` 返回签名 handle claim；(b) holder DID Document `alsoKnownAs` 含对应 `<localpart>:<domain>`；两侧均验签通过。 |
 | **Organization DID** | 组织把 handle 签发给员工或受管成员。例：`@alice:acme.example` 由 `did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example` 签发给 Alice 个人 DID。 | issuer claim + holder DID Document `alsoKnownAs`（公开 handle）或受限 presentation；audience / scope 限定到目标 Realm / 组织。 |
 | **Principal Server service DID** | Principal Server 为它承载的用户签发 handle。例：托管平台 `did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example`。 | claim 由 service DID 签发，service DID 由 Organization DID 委派（DID Document service entry 或 governance attestation）；最终归约到 Organization 信任根。 |
-| **受信 Directory DID** | 公共 Directory 索引 handle 并发放短期 routable claim。 | Directory claim + 上游 `source_refs`；Directory 是镜像层，不是真相源。 |
+| **受信 Directory DID** | 公共 Directory 索引 handle 并发放短期 routable claim。 | Directory claim + 上游 `source_refs`；`source_refs` MUST 回溯到 `<domain>` 权威 issuer 的有效 signed claim。Directory 是镜像层，不是真相源。 |
 
 **自托管即单用户实例**：用户自己控制域名时，handle 形态仍是 `alice:alice.dev`（或任意 localpart），与组织部署完全一致；只是 issuer 与 holder 是同一个 DID。verifier 解析时按 §5 走 `<domain>` 的 well-known 通道发现 issuer，再走 issuer claim + alsoKnownAs 双向验证——验证路径自然分流，不依赖其它字符串 shape。
 
@@ -606,7 +606,7 @@ Handle 解析分为两个方向：
 3. **Directory / Organization 服务**：`POST /_arkret/find/directory/resolve-handle`（[`discovery/discovery-directory.md` §9.0](../discovery/discovery-directory.md)）或 `POST /_arkret/find/directory/list-handles-for-subject`（已知 subject 时）。response 仍是签名 `ak.schema.handle_claim.v1`。
 4. **Bridge / 外部 issuer**：当 handle 来自 bridge 或外部体系（例如组织自有 IDP），claim 由该体系签发并通过 §7 VC presentation 出示。
 
-解析结果 MUST 包含 §3.2 列出的字段；audience / scope / expiry 决定使用范围。multiple issuer 同时签发同一 handle 时，verifier 按本地 trust policy 选最严格者；issuer 之间冲突（不同 `subject`）MUST fail closed 并交人工处理。
+解析结果 MUST 包含 §3.2 列出的字段；audience / scope / expiry 决定使用范围。multiple issuer 同时签发同一 handle 时，verifier 先按 §3.2.1 的域授权与 `authority_class` 收敛：有效 `domain_authority` claim 优先于 delegated issuer，二者都优先于 Directory mirror；Directory claim 的 `source_refs` MUST 验证到该域权威根，否则直接排除。只有同一最高 authority class 内仍存在不同 `subject` 的有效 claim 才 MUST fail closed 并交人工处理。低 authority 冲突不得让已经验证的域权威绑定失效，从而避免镜像 issuer 注入冲突造成解析 DoS。
 
 账号侧 claim 管理不走 Directory 搜索，但 v1 core 也不定义账号侧管理 API：当前登录 principal 如何在注册、换设备、管理员修改或 claim 续期后拿到自己的 claims，是 issuer / Auth Server / 部署本地 bootstrap 的职责。Directory 只解析已经签发且对调用方可见的 claims；它不得被当作 handle 申请、审批或管理员治理接口。`ak.find.directory.query.list_handles_for_subject` MUST 应用与 `resolve_handle` 相同的 visibility、audience、requester proof、不可区分拒绝与限速规则；未授权调用方不得通过已知 subject 枚举其受限组织 handle。
 
@@ -1201,7 +1201,7 @@ Verifier MUST：
 
 - Handle 的 canonical wire form 是 `<localpart>:<domain>`，其中 `<localpart>` 在 wire 上必须是 lowercase canonical form；`acct:<localpart>@<domain>(:<port>)?` 为 `handle_aliases[]` 中的互通别名。handle ABNF 必须限制为可规范化、大小写明确、禁止控制字符和混淆分隔符的字符串；`<domain>` 使用 IDNA 处理后再验证。**Wire-level canonical 比较(normative)**：issuer / registry / resolver 在做 handle 注册、claim 校验、§13 跨 issuer 冲突检测时，MUST 先对 `<localpart>` 与 `<domain>` 应用 Unicode NFC normalization，再应用 [UTS#39](https://www.unicode.org/reports/tr39/) confusable skeleton 折叠；比较与冲突判定 MUST 在折叠后的形态上执行。issuer / registry MUST 拒绝 *script-mixed* handle（同一 label 内同时含 Latin 与 Cyrillic / Greek / Armenian 等不同 script 字符，例如 `аcme.example` U+0430 + Latin 混排），以及 `hyphen-disallowed-position` 形态；违反者注册请求 `failed_precondition` `reason="handle_homograph_forbidden"`。显示层防混淆仍 MUST 实现，但不能替代 wire-level 检测。
 
-  **NFC / UTS#39 检测的作用层与 schema ASCII pattern 的关系(normative，消歧)**：上述 NFC normalization 与 UTS#39 confusable / script-mixing 检测 MUST 作用于 IDNA 转换**之前**的 **U-label**(用户可见的 Unicode 形态，可能含非 ASCII 字符)——这是 homograph 攻击的实际载体。检测通过后，`<domain>` MUST 经 IDNA2008(ToASCII)转为 **A-label**(punycode,`xn--` 前缀的纯 ASCII),`<localpart>` 经本节 lowercase canonical 规则归一为受限 ASCII；只有该 ASCII canonical 形态才是进入 `ak.schema.handle_claim.v1` 等 wire claim `handle` 字段、并由 [`handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) ASCII-only pattern 校验的值。因此 schema pattern 是 ASCII-only **不是**与 §17 检测矛盾，而是有意分层:UTS#39 confusable 折叠在 U-label 上做(schema 校验不到、也不应在 wire canonical handle 上重复执行),schema pattern 只兜底"进入 wire 的 handle 已是受限 ASCII canonical 形态"。实现 MUST NOT 把含非 ASCII 字符的 U-label 直接作为 wire `handle` 提交(会被 schema 拒绝)，亦 MUST NOT 因 schema 通过就跳过 U-label 阶段的 NFC / UTS#39 检测。
+  **NFC / UTS#39 检测的作用层与 schema ASCII pattern 的关系(normative，消歧)**：上述 NFC normalization 与 UTS#39 confusable / script-mixing 检测 MUST 作用于 IDNA 转换**之前**的 **U-label**(用户可见的 Unicode 形态，可能含非 ASCII 字符)——这是 homograph 攻击的实际载体。检测通过后，`<domain>` MUST 经 IDNA2008(ToASCII)转为 **A-label**(punycode,`xn--` 前缀的纯 ASCII),`<localpart>` 经本节 lowercase canonical 规则归一为受限 ASCII；只有该 ASCII canonical 形态才是进入 `ak.schema.handle_claim.v1` 等 wire claim `handle` 字段、并由 [`handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) ASCII-only pattern 校验的值。因此 schema pattern 是 ASCII-only **不是**与 §17 检测矛盾，而是有意分层:UTS#39 confusable 折叠在 U-label 上做(schema 校验不到、也不应在 wire canonical handle 上重复执行),schema pattern 只兜底"进入 wire 的 handle 已是受限 ASCII canonical 形态"。实现 MUST NOT 把含非 ASCII 字符的 U-label 直接作为 wire `handle` 提交(会被 schema 拒绝)，亦 MUST NOT 因 schema 通过就跳过 U-label 阶段的 NFC / UTS#39 检测。Handle 与 Realm alias 两条负例分别由 `ak.vector.identity.reject_handle_homograph.v1`、`ak.vector.identity.reject_realm_alias_homograph.v1` 固化。
 - **Handle 字符串的 wire-level 作用域**（normative）：handle 字符串作为 wire-level **权威字段**（actor reference、authorization subject、audit attribution、解析输入）MUST 只在以下三类位置出现：
   1. **Handle claim lifecycle 对象与 issuer / Auth Server 本地管理请求**：`ak.schema.handle_claim.v1`、issuer / Auth Server 定义的申请、审批、重签、撤销、Directory withdraw、handle reassignment 等显式管理 handle 生命周期的请求、响应、签名 claim 与 audit receipt。这些管理 API 不属于 Arkret v1 core，但一旦在 Arkret wire 上作为 claim evidence 被消费，必须产出可验证的 `ak.schema.handle_claim.v1` 或明确的 revocation / audit evidence。
   2. **Discovery / Directory query 请求与响应**：`/.well-known/arkret/handle?localpart=...`、`POST /_arkret/find/directory/resolve-handle`、`POST /_arkret/find/directory/list-handles-for-subject` 等解析路径的输入与输出。

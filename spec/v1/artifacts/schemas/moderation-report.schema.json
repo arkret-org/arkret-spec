@@ -76,7 +76,7 @@
     },
     "franking_proof": {
       "$ref": "#/$defs/franking_proof",
-      "description": "Optional franking proof metadata bloak. Mirrors the franking_proof object spec'd in zh/governance/content-moderation.md §3.4. It proves service receipt of ciphertext metadata; it does not prove plaintext authorship and does not grant moderators any MLS epoch/exporter secret."
+      "description": "Optional franking proof metadata block. Mirrors the franking_proof object spec'd in zh/governance/content-moderation.md §3.4. It proves service receipt of ciphertext metadata; it does not prove plaintext authorship and does not grant moderators any MLS epoch/exporter secret."
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"

@@ -1,7 +1,7 @@
 {
   "version": "2026-06-10",
   "source_of_truth": true,
-  "description": "Canonical registry of all normative MLS-Exporter labels in Arkret v1 (media key derivation, routing-tag HMAC keys, AEAD nonce-prefix derivation). Each label is a wire-breaking security-domain-separation parameter: implementations MUST use the exact label string and Context field shape registered here, MUST NOT derive with an empty Context, and MUST NOT migrate or reuse keys across labels without declaring a new profile. Per-entry `defined_in` points to the normative defining document. See zh/crypto-media/media-service-binding.md §8 and conformance/conformance-vectors.md §12.7.",
+  "description": "Canonical registry of all normative MLS-Exporter labels in Arkret v1. Each label is a wire-breaking security-domain-separation parameter: implementations MUST use the exact label string and Context field shape, MUST NOT derive with an empty Context, and MUST NOT migrate or reuse keys across distinct labels without a new profile. Domain separation is defined by exact label inequality; forbid_reuse_with is a non-exhaustive human/tooling hint and MUST NOT be interpreted as an allow-list or require symmetric closure. Per-entry defined_in points to the normative source. See zh/crypto-media/media-service-binding.md §8 and conformance/conformance-vectors.md §12.7.",
   "labels": [
     {
       "label": "ak.rtc-frame-key/v1",
@@ -130,7 +130,7 @@
       ],
       "grandfathered": false,
       "empty_context_forbidden": true,
-      "empty_context_error": "failed_precondition",
+      "empty_context_error": "e2ee_key_source_unauthorised",
       "forbid_reuse_with": []
     },
     {

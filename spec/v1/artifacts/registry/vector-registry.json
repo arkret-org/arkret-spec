@@ -4,6 +4,32 @@
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
+      "vector_id": "ak.vector.scalability.circle_count_limit.v1",
+      "status": "active",
+      "domain": "scalability",
+      "applies_to_fixtures": [
+        "scalability-limits-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/conformance/scalability-constraints.md",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.scalability.refs_limit.v1",
+      "status": "active",
+      "domain": "scalability",
+      "applies_to_fixtures": [
+        "scalability-limits-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/conformance/scalability-constraints.md",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.agent.act_on_behalf.v1",
       "status": "active",
       "domain": "agent",
@@ -83,6 +109,20 @@
         "agent-participation-fixture.json"
       ],
       "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.agent.participation.wire_shape_normalization.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-participation-fixture.json"
+      ],
+      "description": "Reducer normalizes Realm/deployment native_agent wrappers against flat Circle/Strand participation bits before tighten-only comparison; structural mismatch never skips enforcement.",
+      "source_refs": [
+        "spec/v1/zh/models/common-fields.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]
@@ -338,7 +378,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.capability.revoke_rollbaak.v1",
+      "vector_id": "ak.vector.capability.revoke_rollback.v1",
       "status": "active",
       "domain": "capability",
       "applies_to_fixtures": [
@@ -672,7 +712,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.directory.policy_revision_rollbaak.v1",
+      "vector_id": "ak.vector.directory.policy_revision_rollback.v1",
       "status": "active",
       "domain": "directory",
       "applies_to_fixtures": [
@@ -1443,6 +1483,34 @@
       ]
     },
     {
+      "vector_id": "ak.vector.identity.reject_handle_homograph.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "description": "Handle issuer/registry rejects mixed-script U-labels, UTS#39 skeleton collisions, and hyphen-disallowed-position inputs before IDNA conversion.",
+      "source_refs": [
+        "spec/v1/zh/identity/identity-handles.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/privacy-security-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity.reject_realm_alias_homograph.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "description": "Realm alias registry applies the same mixed-script, confusable-skeleton, and hyphen-position rejection discipline as handles.",
+      "source_refs": [
+        "spec/v1/zh/identity/identity-handles.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/privacy-security-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.identity_link.eager_invalidation.v1",
       "status": "active",
       "domain": "identity_link",
@@ -1943,6 +2011,17 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mls.rfc9420_mti_kat.v1",
+      "status": "active",
+      "domain": "mls",
+      "scope": "universal",
+      "description": "Byte-level KAT for MLS ciphersuite 0x0001, pinned to the MLS WG vector corpus commit recorded in mls-ciphersuite-registry.json.",
+      "source_refs": [
+        "spec/v1/artifacts/registry/mls-ciphersuite-registry.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },

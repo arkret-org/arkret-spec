@@ -3309,7 +3309,7 @@
       ]
     },
     "read_receipt_policy_payload": {
-      "$comment": "Payload for ak.realm.read_receipt_policy. Closed object (additionalProperties=false) so that typos in the structured compliance opt-in object `receipt_compliance_opt_in` (or its sub-fields) cause schema_violation rather than silent acceptance. The enclosing Event envelope already carries `realm_id`; the payload does NOT duplicate it. `minProperties: 1` aligns with the generic state_payload branch in event-envelope.schema.json (ak.realm.* policy events): an empty `{}` payload is semantically identical to never writing the event (cell stays null with the same effective defaults), so it MUST be schema_violation rather than a silent no-op. The three former parallel boolean escape switches (allow_child_privacy_tightening_against_required / allow_public_receipts_on_world_readable / allow_forced_public_world_readable_receipts) are merged into the nested receipt_compliance_opt_in object; an absent object / absent sub-field / false / misspelling all mean NOT opted in (reject, fail-closed). See zh/discovery/read-receipts.md §2.5.1.",
+      "$comment": "Payload for ak.realm.read_receipt_policy. Closed object so typos in receipt_compliance_opt_in or its sub-fields cause schema_violation. The enclosing Event carries realm_id; payload does not duplicate it. minProperties=1 rejects an empty no-op policy. Compliance exceptions exist only as sub-fields of receipt_compliance_opt_in; absent object / absent sub-field / false all mean not opted in. See zh/discovery/read-receipts.md §2.5.1.",
       "type": "object",
       "minProperties": 1,
       "properties": {

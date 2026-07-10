@@ -57,13 +57,13 @@ updated: 2026-07-02
 ## 3. Cell Family 与 State Event
 
 ```text
-cell_id     := ak:cell:ak.component.realm.join_policy.v1:<realm_id>
+cell_id     := ak:cell:ak.component.realm.join_policy.v1:null
 lattice     := cas_register
 bottom      := reject
 value shape := JoinPolicy（见下）
 ```
 
-本 cell 的 `cell_subject` 取 `<realm_id>`（每 Realm 一个单例），与 [`member-delivery-binding.md`](member-delivery-binding.md) §4 的 `ak.component.realm.delivery_binding_policy.v1` 使用 `cell_subject=null` 的写法在语义上等价——二者都表达"per-Realm 单例 policy"，差异仅是历史保留的 subject 编码约定：join_policy cell 把 `realm_id` 编入 `cell_subject`，delivery_binding_policy cell 把 Realm 归属隐含在 cell family 并以 `null` subject 标记单例。实现 MUST NOT 据此推断二者作用域不同。
+本 cell 的 `cell_subject=null`，与 [`member-delivery-binding.md`](member-delivery-binding.md) §4 的 `ak.component.realm.delivery_binding_policy.v1` 统一：二者都是由 Event envelope `realm_id` 定位的 per-Realm 单例 policy cell。实现不得把 `realm_id` 再编码进 cell subject，也不得从 payload 重复字段派生第二个 cell key。
 
 写入 cell 的候选概念在正式登记前记为 `realm.join_policy`（裸名仅是 design-time concept/action，不是 v1 wire `Event.kind`，也 MUST NOT 作为 Event envelope 的 `kind` 上链或同步），需要 `ak.policy.manage` capability（与 `ak.realm.policy_server` / `ak.realm.policy_components` 同等级）。`ak.realm.create` 时 SHOULD 通过 `ak.realm.policy_components` 一并提供 join policy 初值；省略时 cell 维持 `null`，行为退化为"`default_join_rule` 单独决定"。
 

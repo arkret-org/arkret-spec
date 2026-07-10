@@ -276,7 +276,7 @@ MIMI facade MUST 支持接收：
 
 ### 8.1 Content Mapping Receipt
 
-facade 在 Arkret ↔ MIMI 之间转换一条内容时，SHOULD 生成 **Content Mapping Receipt**（`content_mapping_receipt`，`kind="ak.mimi.mapping_receipt"`，schema `ak.schema.mimi_interop.v1`，见 [`mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json)），作为该次格式映射的可审计证据。它记录 `mimi_room_uri`、`source_format` → `target_format`、被映射源信封摘要 `original_envelope_digest` 与目标 `mapped_operation_id`（可选携带 `mimi_message_id` / `arkret_event_id` / `accepted_at`），使双向投递的内容转换可被追溯与对账。该回执是 EXTENSION 范围对象，不进入 v1 core 互操作必需集。
+facade 在 Arkret ↔ MIMI 之间转换一条内容时，SHOULD 生成 **Content Mapping Receipt**（`receipt_kind="content_mapping_receipt"`，schema `ak.schema.mimi_interop.v1`，见 [`mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json)），作为该次格式映射的可审计证据。它记录 `mimi_room_uri`、`source_format` → `target_format`、被映射源信封摘要 `original_envelope_digest` 与目标 `mapped_operation_id`（可选携带 `mimi_message_id` / `arkret_event_id` / `accepted_at`），使双向投递的内容转换可被追溯与对账。该回执是 facade 本地或受控 interop-audit store 中的 signed metadata，**不是 Event Envelope、`receipt_kind` 不是 event kind、不得以裸 `kind` 写入 Realm history，也不在 event-kind-registry 登记**。需要把回执锚定到 durable history 时，facade MUST 另发已注册的 audit Event，并只引用 receipt digest；回执本体仍留在受控审计存储。该回执是 EXTENSION 范围对象，不进入 v1 core 互操作必需集。
 
 **生成强度（normative）**：Content Mapping Receipt 是跨协议内容映射的唯一可审计证据。在 E2EE Realm、regulated-audit Realm（Realm policy 声明合规审计要求），或本地 binding `local_provider_role="hub"`（本地 facade 即拥有该 room URI、对外承担 room 真相投影责任）时，facade 在每次 Arkret ↔ MIMI 内容转换时 MUST 生成 Content Mapping Receipt；这些场景下缺失 receipt 的映射 MUST 被视为不可审计而拒绝或 quarantine。其余普通场景仍为 SHOULD。
 

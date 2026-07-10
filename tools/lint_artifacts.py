@@ -103,7 +103,7 @@ REGISTRY_LATTICES = {
     "lww_register",
     "rga",
 }
-REGISTRY_BOTTOMS = {"reject", "expose"}
+REGISTRY_BOTTOMS = {"reject", "expose", "inert"}
 REGISTRY_PLANES = {"data", "control"}
 LIFECYCLE_UNSAFE_LATTICES = {"lww_register", "rga"}
 CELL_FAMILY_RE = re.compile(r"^ak\.component\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+$")
@@ -1778,7 +1778,7 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
 
 
 def collect_payload_dispatch_pairs(value: Any) -> list[tuple[str, str]]:
-    """Return [(kind, payload_class_name)] for every `if kind=const → then payload $ref` bloak."""
+    """Return [(kind, payload_class_name)] for every `if kind=const → then payload $ref` block."""
     pairs: list[tuple[str, str]] = []
     if isinstance(value, dict):
         if_schema = value.get("if")
@@ -2520,6 +2520,14 @@ def check_read_scope_schema_closure(lint: Lint) -> None:
         if not isinstance(read_scope, dict):
             lint.fail(cursor_path, "read_cursor.read_scope schema missing")
         else:
+            local_ref = read_scope.get("$ref")
+            if isinstance(local_ref, str) and local_ref.startswith("#/$defs/"):
+                def_name = local_ref.removeprefix("#/$defs/")
+                resolved = (cursor.get("$defs") or {}).get(def_name)
+                if isinstance(resolved, dict):
+                    read_scope = resolved
+                else:
+                    lint.fail(cursor_path, f"read_cursor.read_scope local $ref does not resolve: {local_ref}")
             properties = read_scope.get("properties") or {}
             if "track_name" not in properties:
                 lint.fail(cursor_path, "read_cursor.read_scope must define track_name for strand-track cursors")
@@ -5271,6 +5279,20 @@ def check_non_normative_frontmatter(lint: Lint) -> None:
 def main() -> int:
     lint = Lint()
     check_text_files_utf8_no_nul(lint)
+    corrupt_brand_replacement_tokens = (
+        "roll" + "baak",
+        "b" + "loak",
+        "un" + "loak",
+        "s" + "laak",
+    )
+    for scan_root in (SPEC_ROOT, ROOT / "tools"):
+        for path in scan_root.rglob("*"):
+            if not path.is_file() or path.suffix.lower() not in {".json", ".md", ".py", ".yaml", ".yml"}:
+                continue
+            text = path.read_text(encoding="utf-8")
+            for token in corrupt_brand_replacement_tokens:
+                if token in text.lower():
+                    lint.fail(path, f"corrupt brand-replacement token forbidden: {token}")
     if lint.errors:
         print("Artifact registry lint failed:", file=sys.stderr)
         for error in lint.errors:

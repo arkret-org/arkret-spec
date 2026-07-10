@@ -584,6 +584,7 @@ Schema id: `ak.schema.message.v1`
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` | 由最近一次 revise / redact 等 materialized update 的 Event actor 派生。 | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
+| `effective_scope` | materialized | `EffectiveScope` | reducer 从 Realm / Circle scope 推导并盖章；actor 的 create / revise payload MUST NOT 携带，accepted 后 immutable。 | Message 的实际可见与授权边界。 |
 
 > `revision_root` 字段位于对象顶层，**不**藏在 `metadata.fields` 黑盒中；可见性由顶层 `state` 枚举（`active` / `redacted`）表达，不存在独立的 `visible_state` 顶层字段。`metadata.fields.revision_root` / `metadata.fields.visible_state` / `metadata.fields.redacted` 形态在 v1 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。
 

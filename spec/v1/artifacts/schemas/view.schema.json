@@ -1171,15 +1171,22 @@
     },
     "collection_config": {
       "type": "object",
+      "required": [
+        "item_render",
+        "item_order_by",
+        "grouping"
+      ],
       "properties": {
         "item_object_types": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "type": "string"
           }
         },
         "item_facets": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "type": "string"
           }
@@ -1344,7 +1351,7 @@
     },
     "ref": {
       "type": "string",
-      "pattern": "^(ak:(realm|strand|message|morph|relation|event|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$"
+      "pattern": "^(ak:(realm|space|circle|strand|message|morph|relation|event|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$"
     }
   },
   "patternProperties": {

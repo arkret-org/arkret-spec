@@ -962,20 +962,20 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 
 | # | 条款（摘述） | 真相源 | 分级 |
 | --- | --- | --- | --- |
-| 1 | Event Envelope MUST 先过 `ak.schema.event.v1` 与 payload class 校验，失败 MUST `schema_violation`，不得进入 reducer（先验证后消费） | 本文 §3 | **V**（`event-envelope-negative-fixture.json`）；"先于消费"的内部顺序为 U |
-| 2 | `proof`、`hlc`、`actor_seq`、`prev_refs`、`refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过 | 本文 §3 | **V**（负例向量拒收）；"库不得暴露跳过入口"为 A |
-| 3 | `auth` 约束必须执行，不得通过客户端配置豁免 | 本文 §3 | **U**（配置面审计）；辅以 A（不提供豁免配置项） |
-| 4 | 对 `causal` 关系、`revoked` 与 `proof` 失效状态 MUST fail-closed，不得静默接受 | 本文 §3；conformance-vectors §2.19 | **V**（`ak.vector.cba_lattice.*` 并发撤销 fail closed 向量） |
-| 5 | cursor MUST 当作不透明字符串保存回传；SDK / 应用层 MUST NOT 解析内部字段构造请求 | conformance-vectors §1.11（`ak.vector.encoding.cursor_opaque.core.v1`） | **A**（不暴露结构化解码 API）；黑盒仅能以变异 handle cursor 抽样旁证 |
-| 6 | canonicalization 失败（duplicate key、malformed UTF-8、隐式 NFC 归一）MUST reject，不得"修复"后继续 hash / 验签 | conformance-vectors §1.4–1.5 | **V**（encoding 负例向量） |
-| 7 | malformed HLC MUST reject，不得截断、补零或大小写折叠后接受 | conformance-vectors §1.9–1.10 | **V** |
-| 8 | 重试 / 等待期间 `prev_refs`、`refs[role=authorized_by]`、`actor_seq` 约束 MUST NOT 放松 | conformance-vectors §1.10 | **V**（重放向量）；内部重试路径为 U |
-| 9 | E2EE：`governance_binding` root 不匹配 MUST NOT 继续解密正文；未验证 KeyPackage 所属 DID 不得加密 | 本文 §6；conformance-vectors §2.5.1 | **V**（root mismatch 拒收向量）；"不解密"的本地行为为 U，KeyPackage DID 验证入口为 A |
-| 10 | E2EE：MUST NOT 把明文 / 解密密钥交给未授权 Sync / search / projection 服务 | 本文 §6、§8 | **V**（privacy regression 出向流量观测）为主；本地泄露面为 U |
-| 11 | 轻客户端 MUST NOT 用单 leaf 授权结论接受 DataEvent，MUST hold pending 或 fail closed | conformance-vectors §2.19 Case C | **V**（以 SDK API 输出为观测点） |
-| 12 | late key recovery：`T0` 不可见 / key source unauthorized 时 MUST 拒绝解密（先验证后消费） | conformance-vectors late_key_recovery 向量族 | **V** |
-| 13 | 未知 critical feature / `requirements` 不匹配 MUST fail closed | 本文 §3、§20 | **V**（downgrade / unsupported feature tests） |
-| 14 | 生产 profile MUST 拒绝测试 DID、测试 key id、测试 trust domain | conformance-vectors §1.14 | **V** |
+| <a id="ak-sdk-001"></a>1 | Event Envelope MUST 先过 `ak.schema.event.v1` 与 payload class 校验，失败 MUST `schema_violation`，不得进入 reducer（先验证后消费） | 本文 §3 | **V**（`event-envelope-negative-fixture.json`）；"先于消费"的内部顺序为 U |
+| <a id="ak-sdk-002"></a>2 | `proof`、`hlc`、`actor_seq`、`prev_refs`、`refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过 | 本文 §3 | **V**（负例向量拒收）；"库不得暴露跳过入口"为 A |
+| <a id="ak-sdk-003"></a>3 | `auth` 约束必须执行，不得通过客户端配置豁免 | 本文 §3 | **U**（配置面审计）；辅以 A（不提供豁免配置项） |
+| <a id="ak-sdk-004"></a>4 | 对 `causal` 关系、`revoked` 与 `proof` 失效状态 MUST fail-closed，不得静默接受 | 本文 §3；conformance-vectors §2.19 | **V**（`ak.vector.cba_lattice.*` 并发撤销 fail closed 向量） |
+| <a id="ak-sdk-005"></a>5 | cursor MUST 当作不透明字符串保存回传；SDK / 应用层 MUST NOT 解析内部字段构造请求 | conformance-vectors §1.11（`ak.vector.encoding.cursor_opaque.core.v1`） | **A**（不暴露结构化解码 API）；黑盒仅能以变异 handle cursor 抽样旁证 |
+| <a id="ak-sdk-006"></a>6 | canonicalization 失败（duplicate key、malformed UTF-8、隐式 NFC 归一）MUST reject，不得"修复"后继续 hash / 验签 | conformance-vectors §1.4–1.5 | **V**（encoding 负例向量） |
+| <a id="ak-sdk-007"></a>7 | malformed HLC MUST reject，不得截断、补零或大小写折叠后接受 | conformance-vectors §1.9–1.10 | **V** |
+| <a id="ak-sdk-008"></a>8 | 重试 / 等待期间 `prev_refs`、`refs[role=authorized_by]`、`actor_seq` 约束 MUST NOT 放松 | conformance-vectors §1.10 | **V**（重放向量）；内部重试路径为 U |
+| <a id="ak-sdk-009"></a>9 | E2EE：`governance_binding` root 不匹配 MUST NOT 继续解密正文；未验证 KeyPackage 所属 DID 不得加密 | 本文 §6；conformance-vectors §2.5.1 | **V**（root mismatch 拒收向量）；"不解密"的本地行为为 U，KeyPackage DID 验证入口为 A |
+| <a id="ak-sdk-010"></a>10 | E2EE：MUST NOT 把明文 / 解密密钥交给未授权 Sync / search / projection 服务 | 本文 §6、§8 | **V**（privacy regression 出向流量观测）为主；本地泄露面为 U |
+| <a id="ak-sdk-011"></a>11 | 轻客户端 MUST NOT 用单 leaf 授权结论接受 DataEvent，MUST hold pending 或 fail closed | conformance-vectors §2.19 Case C | **V**（以 SDK API 输出为观测点） |
+| <a id="ak-sdk-012"></a>12 | late key recovery：`T0` 不可见 / key source unauthorized 时 MUST 拒绝解密（先验证后消费） | conformance-vectors late_key_recovery 向量族 | **V** |
+| <a id="ak-sdk-013"></a>13 | 未知 critical feature / `requirements` 不匹配 MUST fail closed | 本文 §3、§20 | **V**（downgrade / unsupported feature tests） |
+| <a id="ak-sdk-014"></a>14 | 生产 profile MUST 拒绝测试 DID、测试 key id、测试 trust domain | conformance-vectors §1.14 | **V** |
 
 ### 23.3 "仅 API 形状可保证"类的 SDK 实现指引
 

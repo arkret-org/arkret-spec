@@ -4,6 +4,15 @@
   "profile": "ak.profile.key_backup.memory_hard.v1",
   "version": "2026-05-26",
   "description": "Schema-only positive and negative wire-form validation cases for key backup and recovery contracts. Placeholder nonce/ciphertext/signature values are intentional and MUST NOT be treated as cryptographic conformance vectors. Covers ak.schema.key_backup.v1 series chain rules (genesis vs successor), passphrase_kdf nonce_salt, Argon2id memory-hard floor, PBKDF2 degraded-profile requirement, mixed_secret_storage policy gate, auth_data.signed_fields coverage required for series fields, and minimal ak.schema.recovery_policy.v1 / ak.schema.recovery_receipt.v1 binding cases. Per identity/key-management.md §7.6 / §8 and crypto-media/device-lifecycle.md §12 / §15. Lint runs tools/lint_artifacts.py against schema_validation_cases[]. Real AEAD/HPKE/signature transcript vectors belong in a separate crypto fixture with reproducible key material and canonical bytes.",
+  "runner": {
+    "kind": "json_schema_validation_cases",
+    "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "assertion_fields": [
+      "schema_ref",
+      "expect_valid",
+      "instance"
+    ]
+  },
   "schema_validation_cases": [
     {
       "name": "genesis_envelope_valid",
@@ -1448,6 +1457,7 @@
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "backup_class": "secret_storage",
         "active_series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_pointer_version": 1,
         "previous_series_ids": [
           "ak:backup_series:01964137-1000-7000-8000-000000000001"
         ],
@@ -1465,6 +1475,7 @@
             "actor_id",
             "backup_class",
             "active_series_id",
+            "series_pointer_version",
             "previous_series_ids",
             "frontier_ref",
             "issued_at"

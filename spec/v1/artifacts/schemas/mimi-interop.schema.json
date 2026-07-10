@@ -109,9 +109,13 @@
             "mls_cipher_suites": {
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
+                ]
               },
-              "uniqueItems": true
+              "uniqueItems": true,
+              "description": "Generated from active canonical_id rows in mls-ciphersuite-registry.json."
             },
             "content_profiles": {
               "type": "array",
@@ -159,7 +163,7 @@
       "type": "object",
       "description": "MIMI room binding effect payload. In CBA/Lattice state, the cell subject is payload.mimi_room_uri for ak.component.mimi.room_binding.v1.",
       "required": [
-        "kind",
+        "receipt_kind",
         "payload"
       ],
       "properties": {
@@ -275,8 +279,9 @@
         "schema": {
           "const": "ak.schema.mimi_interop.v1"
         },
-        "kind": {
-          "const": "ak.mimi.mapping_receipt"
+        "receipt_kind": {
+          "const": "content_mapping_receipt",
+          "description": "Interop-audit object discriminator. This object is not an Event Envelope and this value is not an event kind."
         },
         "profile": {
           "const": "ak.profile.mimi_interop.v1"

@@ -90,7 +90,7 @@ Schema id: `ak.schema.policy.v1`
 | `schema` | yes | `ak.schema.policy.v1` |  | Schema ID。 |
 | `realm_id` | no | `id:realm` | 组织级 policy 可省略。 | 适用 Realm。 |
 | `policy_type` | yes | `enum(access, encryption, retention, federation, moderation, discoverability, join, history_visibility, plaintext_visibility, media, applet, agent)` |  | 策略类型。 |
-| `rules` | yes | `array<PolicyRule>` | 每条规则必须有 `rule_id`、`kind`、`effect`；规则顶层 closed，profile 扩展必须使用 `kind=extension` + `schema_ref` / `profile_ref` + `params`。 | 策略规则。 |
+| `rules` | yes | non-empty `array<PolicyRule>` | `minItems=1`；每条规则必须有 `rule_id`、`kind`、`effect`；规则顶层 closed，profile 扩展必须使用 `kind=extension` + `schema_ref` / `profile_ref` + `params`。纯默认策略也必须显式写一条覆盖目标 scope 的规则，不接受空数组。 | 策略规则。 |
 | `default_effect` | yes | `enum(allow, deny, quarantine, require_review)` |  | 默认效果。 |
 | `priority` | no | `integer` | 数值大者优先；缺省视为 `0`。同 `priority` 冲突的确定性裁决见下方说明。 | 策略优先级。 |
 | `not_before` | no | `timestamp` |  | 生效时间。 |

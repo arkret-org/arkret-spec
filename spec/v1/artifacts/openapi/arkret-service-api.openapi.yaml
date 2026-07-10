@@ -844,6 +844,8 @@ components:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_cell_list
     ConsentCellView:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_cell_view
+    ConsentRequestOutcome:
+      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_request_outcome
     ConsentRequestRequestBody:
       $ref: ../schemas/consent-operations.schema.json#/$defs/consent_request_request_body
     ConsentUpdateRequestBody:
@@ -1154,8 +1156,7 @@ components:
               - failed_precondition
               - failed_plane
               - failed_bottom
-              - contact_not_accepted
-              - contact_consent_missing
+              - direct_conversation_unavailable
               - peer_unresolvable
               - contact_request_not_pending
               - contact_request_expired
@@ -6998,11 +6999,11 @@ paths:
               $ref: '#/components/schemas/ConsentRequestRequestBody'
       responses:
         '200':
-          description: Pending consent request opened.
+          description: Consent request accepted for opaque processing.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConsentCellView'
+                $ref: '#/components/schemas/ConsentRequestOutcome'
   /_arkret/self/account_data:
     get:
       operationId: ak.self.account_data.query.list

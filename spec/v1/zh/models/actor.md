@@ -106,6 +106,8 @@ Schema id: `ak.schema.actor_profile.v1`
 | `grant_status` | enum(active, revoked) | issuer 主动 revoke 改为 `revoked` |
 | `proof` | object | 由 `issuer` 的 active authentication key 签发 |
 
+完整机读形态由 [`accountability-grant.schema.json`](../../artifacts/schemas/accountability-grant.schema.json) 权威定义；payload 的 `schema` MUST 为 `ak.schema.accountability_grant.v1`。`proof.payload_digest` MUST 覆盖 `utf8("ak.accountability-grant-v1\n") || canonical_json(payload with proof omitted)`，且 verification method controller MUST 等于 `issuer`。
+
 **UI / projection 责任**:
 
 - 客户端 UI **MUST** 把 `accountable_principal_ids[]` 中已校验通过的 DID 与 unverified(grant 缺失 / 过期 / revoked)的 DID 以可感知、可测试的 presentation invariant 区分；具体文案、图形、隐藏策略或控件形式属于实现自由，但 verified 与 unverified 两种状态不得在同一上下文中呈现为等价信任暗示。

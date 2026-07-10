@@ -62,7 +62,7 @@ transfer_key = derive_account_data_key(transfer_id)
 | `media_type` | yes | 原始文件 MIME；只在 encrypted account-data 明文中出现。 |
 | `filename` | no | 清理后的原始文件名；只在 encrypted account-data 明文中出现。 |
 | `plaintext_size_bytes` | yes | 加密前文件字节数。 |
-| `access` | yes | 封闭对象；`access.visibility` 取 `actor_private` 或 `device_bound`，`device_bound` 时必须携带 `recipient_device_ids[]`。 |
+| `access` | yes | 封闭对象；`access.visibility` 取 `actor_private` 或 `device_bound`，`device_bound` 时必须携带互异的 `recipient_device_ids[]`，条目数 MUST 为 1–1,000。 |
 | `encryption` | yes | 文件密文 AEAD、AAD 与 key-delivery descriptor。 |
 | `origin_device_id` | yes | 发起上传的 `ak:device:<uuid>`。 |
 | `created_at` | yes | 传输创建时间，RFC3339 UTC。 |
@@ -106,7 +106,7 @@ AAD MUST NOT 绑定 content-addressed `blob_ref`，因为这会让 `blob_ref = d
 
 每个 file-transfer item 是独立 account-data 值，MUST NOT 使用一个不断增长的大列表作为唯一真相源。
 
-状态更新（例如 `downloaded`、`dismissed`、`deleted`）写回同一个 `ak.file_transfer.v1:<transfer_key>`。`deleted` 是该 `transfer_key` 的不可逆 terminal tombstone：任一副本一旦观察到 `state="deleted"`，同一 `transfer_key` 后续或并发的非 deleted 状态 MUST NOT 复活该 transfer；需要重新发送时必须生成新的 `transfer_id` 与新的 `transfer_key`。非 terminal 状态之间的冲突按 `(actor, transfer_key)` 做 last-writer-wins，比较源为 `updated_hlc`；多个 deleted tombstone 之间 MAY 用较新的 `updated_hlc` 更新保留元数据。如果设备本地时钟或 HLC 来源不可信，客户端 SHOULD 保留本地冲突副本供用户恢复，但 shared reducer 不参与 file-transfer 合并。
+状态更新（例如 `downloaded`、`dismissed`、`deleted`）写回同一个 `ak.file_transfer.v1:<transfer_key>`。三个非 terminal 状态 `available`、`downloaded`、`dismissed` 之间允许双向迁移：重新下载可写 `downloaded`，从 UI 收起可写 `dismissed`，重新发送到同一授权设备集合前可写回 `available`；它们之间的冲突按 `(actor, transfer_key)` 做 last-writer-wins，比较源为 `updated_hlc`。`deleted` 是该 `transfer_key` 的不可逆 terminal tombstone：任一副本一旦观察到 `state="deleted"`，同一 `transfer_key` 后续或并发的非 deleted 状态 MUST NOT 复活该 transfer；需要重新发送时必须生成新的 `transfer_id` 与新的 `transfer_key`。多个 deleted tombstone 之间 MAY 用较新的 `updated_hlc` 更新保留元数据。如果设备本地时钟或 HLC 来源不可信，客户端 SHOULD 保留本地冲突副本供用户恢复，但 shared reducer 不参与 file-transfer 合并。
 
 客户端断线恢复 MUST 使用 `ak.self.account.stream.subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta；不得用 `ak.self.events.query.scan` 代替，因为 file-transfer account-data 和 to-device key messages 不属于裸 Realm Event 查询面。
 

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://arkret.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "version": 1,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,

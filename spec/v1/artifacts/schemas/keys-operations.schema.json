@@ -572,7 +572,7 @@
     },
     "keys_backups_unlock_request_body": {
       "type": "object",
-      "description": "Request body for ak.self.keys.backups.command.unloak. The unlock proof MUST validate as ak.schema.key_backup_unlock_proof.v1 and MUST be verified against the recovery session, caller, requesting device key, active-series record, and target envelope before the full ciphertext is returned (key-management.md §7.7.1 / §7.8). The path backup_id and proof.backup_id MUST match.",
+      "description": "Request body for ak.self.keys.backups.command.unlock. The unlock proof MUST validate as ak.schema.key_backup_unlock_proof.v1 and MUST be verified against the recovery session, caller, requesting device key, active-series record, and target envelope before the full ciphertext is returned (key-management.md §7.7.1 / §7.8). The path backup_id and proof.backup_id MUST match.",
       "required": [
         "proof"
       ],
