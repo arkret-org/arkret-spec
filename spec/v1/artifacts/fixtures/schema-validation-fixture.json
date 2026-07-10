@@ -1708,7 +1708,7 @@
       "name": "agent_runtime_approval_request_body_missing_pairing_id_rejected",
       "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body",
       "expect_valid": false,
-      "first_expected_error": "'pairing_request_id' is a required property",
+      "first_expected_error": "$: 'pairing_request_id' is a required property",
       "instance": {
         "pairing_code": "PAIR-7H2K",
         "agent_principal_id": "did:webvh:z6mkfixture:agent.example",
