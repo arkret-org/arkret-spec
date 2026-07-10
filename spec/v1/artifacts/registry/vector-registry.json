@@ -2016,10 +2016,10 @@
     },
     {
       "vector_id": "ak.vector.mls.rfc9420_mti_kat.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "mls",
       "scope": "universal",
-      "description": "Byte-level KAT for MLS ciphersuite 0x0001, pinned to the MLS WG vector corpus commit recorded in mls-ciphersuite-registry.json.",
+      "description": "Byte-level KAT for MLS ciphersuite 0x0001, pinned to the MLS WG vector corpus commit recorded in mls-ciphersuite-registry.json. Reserved until an in-tree machine fixture (spec/v1/artifacts/fixtures/) carries the executable KAT evidence; the strict certification gate rejects active doc-only rows.",
       "source_refs": [
         "spec/v1/artifacts/registry/mls-ciphersuite-registry.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
