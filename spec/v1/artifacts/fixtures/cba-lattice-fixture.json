@@ -319,8 +319,8 @@
         "hlc": "2026-06-11T00:00:00Z/0000000000000001"
       },
       "expected": {
-        "id": "ak:seal:sha256:6bff426d2a0b0f48a3730eb35fbd0459e1df361ce4de865020093c7a9fc99cc8",
-        "notary_signature_payload_digest": "sha256:6bff426d2a0b0f48a3730eb35fbd0459e1df361ce4de865020093c7a9fc99cc8",
+        "id": "ak:seal:sha256:86d1e9325f053679bf38c0a6fe760fd1c872f5e44a3018d691f70e67c74a727f",
+        "notary_signature_payload_digest": "sha256:86d1e9325f053679bf38c0a6fe760fd1c872f5e44a3018d691f70e67c74a727f",
         "valid_result": "accept"
       },
       "attacks": [
@@ -368,7 +368,7 @@
         "bottom": "reject"
       },
       "pre_state": {
-        "settled_value": "value_1",
+        "settled_value": "v1",
         "settled_by_seal": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
       },
       "cases": [
@@ -383,7 +383,7 @@
                 "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
                 "op": {
                   "kind": "set",
-                  "value": "value_2"
+                  "value": "v2"
                 }
               }
             ],
@@ -391,7 +391,7 @@
           },
           "expected": {
             "result": "failed_precondition",
-            "cell_value": "value_1",
+            "cell_value": "v1",
             "atomic_rejects_all_effects": true,
             "defensive_join_result": "bottom"
           }
@@ -406,7 +406,7 @@
                 "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
                 "predicate": {
                   "op": "head_eq",
-                  "value": "value_1"
+                  "value": "v1"
                 }
               }
             ],
@@ -415,14 +415,14 @@
                 "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
                 "op": {
                   "kind": "set",
-                  "value": "value_2"
+                  "value": "v2"
                 }
               }
             ]
           },
           "expected": {
             "result": "accept_after_valid_seal",
-            "cell_value": "value_2",
+            "cell_value": "v2",
             "replay_order_independent": true
           }
         }

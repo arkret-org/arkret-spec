@@ -1580,10 +1580,33 @@
       }
     },
     {
+      "name": "cell_ref_with_percent_encoded_did_subject_accepted",
+      "schema_ref": "schemas/bottom.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "kind": "conflict",
+        "cells": [
+          "ak:cell:ak.component.member.state.v1:did:webvh:z6mkfixture:127.0.0.1%3A22816:webvh:alice"
+        ]
+      }
+    },
+    {
+      "name": "cell_ref_with_malformed_percent_escape_rejected",
+      "schema_ref": "schemas/bottom.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.cells[0]: 'ak:cell:ak.component.member.state.v1:did:web:host%3' does not match '^ak:cell:ak\\\\.component\\\\.[a-z0-9_]+(?:\\\\.[a-z0-9_]+)*\\\\.v[0-9]+:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$'",
+      "instance": {
+        "kind": "conflict",
+        "cells": [
+          "ak:cell:ak.component.member.state.v1:did:web:host%3"
+        ]
+      }
+    },
+    {
       "name": "cell_ref_without_complete_ak_component_family_rejected",
       "schema_ref": "schemas/bottom.schema.json",
       "expect_valid": false,
-      "first_expected_error": "$.cells[0]: 'ak:cell:message:019640ed-8000-7000-8000-000000000000' does not match '^ak:cell:ak\\\\.component\\\\.[a-z0-9_]+(?:\\\\.[a-z0-9_]+)*\\\\.v[0-9]+:[A-Za-z0-9._~=-]*(?::[A-Za-z0-9._~=-]+)*$'",
+      "first_expected_error": "$.cells[0]: 'ak:cell:message:019640ed-8000-7000-8000-000000000000' does not match '^ak:cell:ak\\\\.component\\\\.[a-z0-9_]+(?:\\\\.[a-z0-9_]+)*\\\\.v[0-9]+:(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})*(?::(?:[A-Za-z0-9._~=-]|%[0-9A-Fa-f]{2})+)*$'",
       "instance": {
         "kind": "conflict",
         "cells": [
