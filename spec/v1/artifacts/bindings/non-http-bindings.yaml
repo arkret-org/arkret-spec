@@ -229,6 +229,7 @@ grpc:
     OpenAgentPairing:
       Resolve: ak.open.agent_pairing.query.resolve
       SubmitRuntimeKeyRequest: ak.open.agent_pairing.command.submit_runtime_key_request
+      RuntimeKeyRequestStatus: ak.open.agent_pairing.query.runtime_key_request_status
     OpenInviteLocator:
       Resolve: ak.open.invite_locator.query.resolve
     SelfModeration:
@@ -392,6 +393,7 @@ mq:
     open.invite_locator.query.resolve: ak.open.invite_locator.query.resolve
     open.agent_pairing.query.resolve: ak.open.agent_pairing.query.resolve
     open.agent_pairing.command.submit_runtime_key_request: ak.open.agent_pairing.command.submit_runtime_key_request
+    open.agent_pairing.query.runtime_key_request_status: ak.open.agent_pairing.query.runtime_key_request_status
     edge.push.command.notify: ak.edge.push.command.notify
     self.authz.query.check: ak.self.authz.query.check
 libp2p:

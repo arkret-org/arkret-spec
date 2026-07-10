@@ -960,6 +960,12 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
+      "operation_id": "ak.open.agent_pairing.query.runtime_key_request_status",
+      "http_alias": "POST /_arkret/open/agent-pairing/runtime-key-requests/status",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
       "operation_id": "ak.open.invite_locator.query.resolve",
       "http_alias": "POST /_arkret/open/invite-locators/resolve",
       "operation_specific": [],

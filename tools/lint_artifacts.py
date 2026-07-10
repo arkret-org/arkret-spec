@@ -2468,6 +2468,7 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         "ak.open.invite_locator.query.resolve",
         "ak.open.agent_pairing.query.resolve",
         "ak.open.agent_pairing.command.submit_runtime_key_request",
+        "ak.open.agent_pairing.query.runtime_key_request_status",
     }
 
     for operation_id, operation in operations.items():

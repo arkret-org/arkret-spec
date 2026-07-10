@@ -342,7 +342,8 @@
       "tier": "extension",
       "operations": [
         "ak.open.agent_pairing.query.resolve",
-        "ak.open.agent_pairing.command.submit_runtime_key_request"
+        "ak.open.agent_pairing.command.submit_runtime_key_request",
+        "ak.open.agent_pairing.query.runtime_key_request_status"
       ]
     },
     {
@@ -1671,6 +1672,16 @@
       "retry_safe": false,
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome"
+    },
+    {
+      "operation_id": "ak.open.agent_pairing.query.runtime_key_request_status",
+      "http": "POST /_arkret/open/agent-pairing/runtime-key-requests/status",
+      "grpc": "OpenAgentPairing/RuntimeKeyRequestStatus",
+      "mq": "open.agent_pairing.query.runtime_key_request_status",
+      "notes": "Runtime-side poll for the controller decision on a previously submitted runtime key request. The pairing_request_id + pairing_code + agent_principal_id triple is the query credential and MUST be sent in the JSON body, never in URL path or query string; a record miss and a pairing_code or agent_principal_id mismatch MUST be indistinguishable (both not_found). Once approved, the outcome carries authorized_event_ref plus the authorized key binding; the runtime MUST compare authorized_public_key_digest against its own key and treat a mismatch as paired-by-another-runtime.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome"
     },
     {
       "operation_id": "ak.open.invite_locator.query.resolve",

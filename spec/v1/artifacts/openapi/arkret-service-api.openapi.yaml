@@ -345,6 +345,10 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome
     AgentRuntimeApprovalRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body
+    AgentRuntimeApprovalStatusOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome
+    AgentRuntimeApprovalStatusRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body
     AgentSidecarThreadEnsureOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_outcome
     AgentSidecarThreadEnsureRequestBody:
@@ -5590,6 +5594,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentRuntimeApprovalOutcome'
+  /_arkret/open/agent-pairing/runtime-key-requests/status:
+    post:
+      operationId: ak.open.agent_pairing.query.runtime_key_request_status
+      security: []
+      x-arkret-auth:
+        public_metadata: false
+        proof_in_body: true
+      summary: Poll the controller decision for a submitted runtime key request.
+      description: |
+        Runtime-side poll for the controller decision on a previously submitted
+        runtime key request. The pairing_request_id + pairing_code +
+        agent_principal_id triple is the query credential and is sent in the
+        JSON body, never in the URL path or query string; a record miss and a
+        pairing_code or agent_principal_id mismatch are indistinguishable (both
+        not_found). Once approved, the outcome carries authorized_event_ref
+        plus the authorized key binding; the runtime compares
+        authorized_public_key_digest against its own key and treats a mismatch
+        as paired-by-another-runtime.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentRuntimeApprovalStatusRequestBody'
+      responses:
+        '200':
+          description: Current controller-decision status for the pairing request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentRuntimeApprovalStatusOutcome'
   /_arkret/open/mimi/provider-directory:
     get:
       operationId: ak.open.mimi.query.provider_directory

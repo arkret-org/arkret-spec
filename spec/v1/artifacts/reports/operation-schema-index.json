@@ -3872,6 +3872,42 @@
       }
     },
     {
+      "operation_id": "ak.open.agent_pairing.query.runtime_key_request_status",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body",
+        "schema_kind": "object",
+        "required": [
+          "pairing_request_id",
+          "pairing_code",
+          "agent_principal_id"
+        ],
+        "properties": [
+          "pairing_request_id",
+          "pairing_code",
+          "agent_principal_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "status"
+        ],
+        "properties": [
+          "ok",
+          "status",
+          "approval_request_id",
+          "authorized_event_ref",
+          "authorized_verification_method",
+          "authorized_public_key_digest"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.open.invite_locator.query.resolve",
       "success_shape_kind": "typed_response",
       "request": {
