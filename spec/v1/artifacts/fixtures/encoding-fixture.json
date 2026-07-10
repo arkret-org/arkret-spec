@@ -307,7 +307,7 @@
       "ciphertext_base64url": "Y2lwaGVydGV4dC1leGFtcGxlLTAwMQ",
       "ciphertext_bytes_utf8": "ciphertext-example-001",
       "digest_input_rule": "sha256(canonical_json(payload_metadata) || base64url_decode(ciphertext))",
-      "aad_digest": "sha256:4cefc2e155017beb49d0877b58eef90318d26fa542db8b6bc0323fa23df65630",
+      "aad_digest": "sha256:c6c8e4087953d8396a8b0b434d990fb2752772065c2dba0970b6bcdcaec704f5",
       "expected_digest": "sha256:0916208f55147ef7ece7719915091f1a7623bebdd28730fbbf1d9deb2afc6644",
       "rules": [
         "implementations MUST NOT hash plaintext payload",

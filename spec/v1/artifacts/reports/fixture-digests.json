@@ -54,7 +54,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "6a43ba1f91d5e9bf2dd2d142aac59a2f513a9efd287bc2e3ac028f79744d3147"
+      "sha256": "a7c6d7f7a92a54ada3d4d1498b45fc7ce848c48c2225c30c2a4ee04e5366c5f8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error_code_registry_coverage_fixture.json",
