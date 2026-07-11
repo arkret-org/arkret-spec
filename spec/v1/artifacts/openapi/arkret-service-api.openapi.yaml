@@ -4194,7 +4194,7 @@ paths:
         TTL would have expired. A revoked cursor returns `cursor_revoked` and
         MUST NOT advance account subscribe position, wait-for barrier state,
         or dropped recovery state. To-device queue deletion is decoupled from
-        cursors entirely and happens only via ak.self.device_messages.command.aak.
+        cursors entirely and happens only via ak.self.device_messages.command.ack.
       requestBody:
         required: true
         content:

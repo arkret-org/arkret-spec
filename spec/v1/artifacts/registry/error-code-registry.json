@@ -3431,7 +3431,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "A to-device message ack carried an ack token that does not correspond to a delivered to-device cursor (unknown, malformed, or already-superseded). Carried under invalid_param. See zh/sync/client-sync.md \u00a710.1 and zh/sync/service-http-binding.md device_messages/aak."
+      "description": "A to-device message ack carried an ack token that does not correspond to a delivered to-device cursor (unknown, malformed, or already-superseded). Carried under invalid_param. See zh/sync/client-sync.md \u00a710.1 and zh/sync/service-http-binding.md device_messages/ack."
     },
     {
       "code": "late_recovery_rejected_membership",

@@ -69,7 +69,12 @@ def main(argv: list[str]) -> int:
         failures.append("stable promotion evidence")
     for label, cmd in checks:
         print(f"=== release-gate: {label} ===", flush=True)
-        result = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
+        try:
+            result = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
+        except OSError as exc:
+            print(f"unable to start {cmd[0]!r} for {label}: {exc}")
+            failures.append(label)
+            continue
         out = (result.stdout or "") + (result.stderr or "")
         sys.stdout.write(out)
         if not out.endswith("\n"):

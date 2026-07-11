@@ -70,15 +70,8 @@
   },
   "$defs": {
     "cursor_value": {
-      "oneOf": [
-        {
-          "type": "string",
-          "pattern": "^ak:cursor:.+$"
-        },
-        {
-          "$ref": "./cursor.schema.json"
-        }
-      ]
+      "type": "string",
+      "pattern": "^ak:cursor:.+$"
     },
     "event_container": {
       "type": "object",
@@ -129,7 +122,7 @@
         "ack_token": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 256,
+          "maxLength": 1024,
           "description": "Server-issued opaque acknowledgement token, REQUIRED whenever messages[] is non-empty. Bound server-side to (principal_id, device_id, queue high-water position of this batch) and covering this batch plus all previously delivered messages. NOT a cursor: no ak:cursor: wire form, no cursor schema/TTL/purpose. The client passes it verbatim to ak.self.device_messages.command.ack AFTER durably persisting the batch payloads; queue deletion happens only through that explicit ack, never through stream cursor advancement (client-sync.md §10.1)."
         },
         "lost": {
@@ -142,7 +135,7 @@
         },
         "next_cursor": {
           "$ref": "#/$defs/cursor_value",
-          "description": "Read-only to-device queue continuation cursor for ak.self.device_messages.query.list?from=... . It is not an acknowledgement and MUST NOT delete queued messages; queue deletion happens only through `ack_token` passed to ak.self.device_messages.command.aak."
+          "description": "Read-only to-device queue continuation cursor for ak.self.device_messages.query.list?from=... . It is not an acknowledgement and MUST NOT delete queued messages; queue deletion happens only through `ack_token` passed to ak.self.device_messages.command.ack."
         }
       },
       "allOf": [
