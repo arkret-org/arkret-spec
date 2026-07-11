@@ -339,6 +339,8 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provision_outcome
     AgentProvisionRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provision_request_body
+    AgentRenewPairingRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_request_body
     AgentResumeRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_resume_request_body
     AgentRotateKeyOutcome:
@@ -7565,6 +7567,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentView'
+  /_arkret/self/agents/{agent_id}/renew-pairing:
+    post:
+      operationId: ak.self.agent.command.renew_pairing
+      description: Re-open pairing on a never-activated agent (pending_runtime_key or pairing_expired) with a fresh single-use pairing handle; all previously issued handles stay permanently unresolvable.
+      security:
+      - bearerAuth: []
+      parameters:
+      - in: path
+        name: agent_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Pairing renewed; fresh pending runtime key pairing returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentProvisionOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentRenewPairingRequestBody'
   /_arkret/self/agents/{agent_id}/pause:
     post:
       operationId: ak.self.agent.command.pause

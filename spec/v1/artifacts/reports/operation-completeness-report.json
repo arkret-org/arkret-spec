@@ -18,13 +18,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 179,
+    "total_operations": 180,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 167
+      "typed_schema": 168
     },
     "by_tier_and_class": {
       "core": {
@@ -39,7 +39,7 @@
         "binary_or_redirect": 2,
         "no_request_body": 1,
         "service_describe": 2,
-        "typed_schema": 115
+        "typed_schema": 116
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -1219,6 +1219,20 @@
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentProvisionRequestBody",
+        "response": "#/components/schemas/AgentProvisionOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.agent.command.renew_pairing",
+      "tier": "extension",
+      "http": "POST /_arkret/self/agents/{agent_id}/renew-pairing",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AgentRenewPairingRequestBody",
         "response": "#/components/schemas/AgentProvisionOutcome"
       },
       "completeness_class": "typed_schema",

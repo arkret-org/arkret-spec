@@ -375,6 +375,7 @@
       "operations": [
         "ak.gate.account.command.pair_agent_key",
         "ak.self.agent.command.provision",
+        "ak.self.agent.command.renew_pairing",
         "ak.self.agent.query.list",
         "ak.self.agent.resource.get",
         "ak.self.agent.command.pause",
@@ -548,6 +549,21 @@
         "operation_id": "ak.self.agent.query.list"
       },
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome"
+    },
+    {
+      "operation_id": "ak.self.agent.command.renew_pairing",
+      "http": "POST /_arkret/self/agents/{agent_id}/renew-pairing",
+      "grpc": "SelfAgent/RenewPairing",
+      "mq": "self.agent.command.renew_pairing",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.self.agent.resource.get"
+      },
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome"
     },
     {

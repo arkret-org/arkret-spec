@@ -109,6 +109,16 @@
       "description": "Provision a native personal agent principal. The op is the aggregate `ak.self.agent.command.provision` capability action (capability-action-registry.json) and fans out `ak.profile.create` + `ak.identity.accountability_grant` + `ak.agent.key.authorize` + `ak.capability.grant`. `accountability_grant_missing` is returned when the orchestrator cannot write or validate the fan-out `ak.identity.accountability_grant` (controller lacks `ak.self.agent.command.provision` authority or its required constraints, the candidate grant fails accountability schema checks, or a concurrent state cell makes the grant unauditable). Other ineligibility reasons surface as `failed_precondition`."
     },
     {
+      "operation_id": "ak.self.agent.command.renew_pairing",
+      "http_alias": "POST /_arkret/self/agents/{agent_id}/renew-pairing",
+      "operation_specific": [
+        "failed_precondition",
+        "agent_deactivated",
+        "accountability_grant_missing"
+      ],
+      "description": "Re-open pairing on an agent whose runtime key was never authorized. Only `pending_runtime_key` and `pairing_expired` states are renewable; an agent that ever had an authorized key (`active` / `paused`) returns `failed_precondition` (rotate the key instead) and `deactivated` returns `agent_deactivated`. A renewed pairing MUST issue a fresh single-use `pairing_request_id` + `pairing_code` and MUST leave every previously issued handle permanently unresolvable. If the agent's slug is meanwhile bound to another active or open agent of the same controller, renewal returns `failed_precondition`. Pending grants revoked at expiry are re-issued flagged `effective_after_first_authorized_key=true`; a re-issuance failure surfaces as `accountability_grant_missing` like provision."
+    },
+    {
       "operation_id": "ak.self.agent.query.list",
       "http_alias": "GET /_arkret/self/agents",
       "operation_specific": [

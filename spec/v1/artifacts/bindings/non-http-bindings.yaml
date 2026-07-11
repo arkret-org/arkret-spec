@@ -53,6 +53,7 @@ grpc:
       OidcCallback: ak.gate.account.exchange.complete_oidc
     SelfAgent:
       Provision: ak.self.agent.command.provision
+      RenewPairing: ak.self.agent.command.renew_pairing
       List: ak.self.agent.query.list
       Get: ak.self.agent.resource.get
       Pause: ak.self.agent.command.pause
@@ -302,6 +303,7 @@ mq:
     gate.account.command.revoke_session: ak.gate.account.command.revoke_session
     gate.account.command.pair_agent_key: ak.gate.account.command.pair_agent_key
     self.agent.command.provision: ak.self.agent.command.provision
+    self.agent.command.renew_pairing: ak.self.agent.command.renew_pairing
     self.agent.query.list: ak.self.agent.query.list
     self.agent.resource.get: ak.self.agent.resource.get
     self.agent.command.pause: ak.self.agent.command.pause

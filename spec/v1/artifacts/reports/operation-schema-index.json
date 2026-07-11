@@ -412,6 +412,35 @@
       }
     },
     {
+      "operation_id": "ak.self.agent.command.renew_pairing",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_request_body",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "pairing_ttl_ms"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+        "schema_kind": "object",
+        "required": [
+          "agent_id",
+          "pairing_request_id",
+          "expires_at"
+        ],
+        "properties": [
+          "agent_id",
+          "pairing_request_id",
+          "pairing_code",
+          "expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.self.agent.query.list",
       "success_shape_kind": "typed_response",
       "response": {

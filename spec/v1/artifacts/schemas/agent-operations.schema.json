@@ -654,6 +654,18 @@
       },
       "additionalProperties": false
     },
+    "agent_renew_pairing_request_body": {
+      "type": "object",
+      "description": "Re-open pairing on an agent whose runtime key was never authorized (pending_runtime_key or pairing_expired). The service issues a fresh one-time pairing_request_id + pairing_code; every previously issued pairing handle for the agent becomes permanently unresolvable.",
+      "properties": {
+        "pairing_ttl_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 43200000
+        }
+      },
+      "additionalProperties": false
+    },
     "agent_pairing_bootstrap": {
       "type": "object",
       "description": "One-time bootstrap material handed to a personal agent runtime after provisioning. This is not a session grant, capability grant or long-term secret.",
