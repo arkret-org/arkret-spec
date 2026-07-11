@@ -37,6 +37,10 @@
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
+    "blob_ref": {
+      "type": "string",
+      "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+    },
     "event_id": {
       "type": "string",
       "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -152,6 +156,9 @@
         "agent_slug": {
           "type": "string",
           "pattern": "^[a-z0-9](?:[a-z0-9_-]{0,62}[a-z0-9])?$"
+        },
+        "avatar_blob_ref": {
+          "$ref": "#/$defs/blob_ref"
         },
         "direct_conversation": {
           "$ref": "#/$defs/direct_conversation_summary"

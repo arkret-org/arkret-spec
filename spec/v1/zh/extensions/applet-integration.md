@@ -113,6 +113,8 @@ Native personal AI agent(由 controller 通过 `ak.self.agent.command.provision`
 
 `ak.profile.personal_agent_provisioning.v1` / `ak.profile.agent_sidecar_thread.v1` 只覆盖 native personal agent 路径；Ghost Actor / Applet Bot Actor 不走 personal agent provisioning 或 sidecar thread profile。
 
+面向 Realm 全体成员、并由组织或 Realm 运维的知识库问答、moderation、workflow 等共享机器人，不得建模为“没有 owner 的 Native Personal Agent”。Native Personal Agent 必须有可验证的人类 / 组织 controller，且不能脱离该 controller 的 Realm membership 单独存留。此类共享机器人 SHOULD 作为管理员安装的 Applet Bot Actor 接入：Applet service / registration 是其 lifecycle 与 accountability 根；只有需要代表外部网络中多个独立主体时才进一步 provision Ghost Actors。单一共享 bot 不需要为了满足该规则虚构一个 Ghost Actor。
+
 ### 3.5 Portal Realm
 
 外部网络 location 在 Arkret 中的镜像 Realm。例如 Slack channel、Discord guild channel、GitHub issue discussion。

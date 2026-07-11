@@ -309,6 +309,8 @@ Realm 有两个终态 event，语义不同：
 
 未列出的 transition MUST `failed_precondition`，reason=`invalid_membership_transition` 或更具体的 join / delivery-binding reason。`join -> invite`、`ban -> join`、`invite -> knock`、`leave -> leave` 等均非法；需要重试时 producer 必须基于当前 state 重新提交合法 transition。父 Realm `join -> leave/ban` 的 cascade 对 Circle membership 的影响见 [`circle.md` §9.1](./circle.md)。
 
+上表 `leave -> join` 另有一个封闭的 Native Personal Agent controller carve-out：当 writer 是 target agent 的已验证 controller、writer 自身在目标 Realm 为 active `join`、target agent lifecycle 为 `active`，且 accountability / Realm native-agent policy / Join Policy / MLS admission 全部通过时，controller MAY 直接写入 target agent 的 `join`。该写入不产生 invite，也不需要 agent runtime 接受。该 carve-out 不授予 writer 通用 `ak.realm.admin`，不得用于其他 principal。反向约束同样是强制的：controller 从 `join` 转为 `leave` / `ban` 时，其在该 Realm 内仍为 `join` 的 Native Personal Agents MUST 级联为 `leave`（reason=`controller_membership_ended`）；已为 `ban` 的 agent 保持 `ban`，不得被 cascade 降级。
+
 ### 2.8 Realm 角色分类（normative）
 
 schema 层只有一个 `ak.schema.realm.v1`；按 **用途** 把 Realm 分成两大类，Collaboration 再按 **成员是否跨信任域** 分两类。所有 Realm 共享同一组生命周期 event（`ak.realm.create` / `ak.realm.tombstone` / `ak.realm.destroy`）与同一套 reducer 规则；下面的分类影响的是 marker 字段、policy 字段默认值与允许的 event kind 集合。

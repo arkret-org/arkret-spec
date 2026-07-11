@@ -388,6 +388,7 @@
         "properties": [
           "display_name",
           "slug",
+          "avatar_blob_ref",
           "requested_scope",
           "accountability",
           "pairing_ttl_ms"
