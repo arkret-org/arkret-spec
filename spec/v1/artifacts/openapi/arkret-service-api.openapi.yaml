@@ -240,14 +240,22 @@ components:
       description: Stable request identifier.
       schema:
         type: string
+        minLength: 1
+        maxLength: 128
+        pattern: '^[A-Za-z0-9._~-]+$'
     IdempotencyKey:
       description: Idempotency key for write requests.
       schema:
         type: string
+        minLength: 1
+        maxLength: 128
+        pattern: '^[A-Za-z0-9._~-]+$'
     XArkretWaitFor:
       description: Causal frontier token the caller is waiting on.
       schema:
         type: string
+        minLength: 1
+        maxLength: 4096
     RetryAfter:
       description: Standard retry hint.
       schema:
@@ -1055,6 +1063,8 @@ components:
               - bad_json
               - bad_query
               - schema_violation
+              - duplicate_clause_claim
+              - key_transparency_proof_missing
               - missing_param
               - invalid_param
               - unauthenticated

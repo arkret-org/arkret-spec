@@ -399,6 +399,9 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "manual_confirmation"
+      },
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_request_body",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_outcome"
     },
@@ -410,6 +413,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.self.account.query.viewer"
+      },
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome"
     },
@@ -422,6 +429,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.self.account.query.viewer"
+      },
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome"
     },
@@ -434,6 +445,11 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "reissue_material",
+        "operation_id": "ak.gate.account.command.issue_session_grant",
+        "requires_fresh_request_identity": true
+      },
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome"
     },
@@ -456,6 +472,11 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "reissue_material",
+        "operation_id": "ak.gate.account.command.issue_session_grant",
+        "requires_fresh_request_identity": true
+      },
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome"
     },
@@ -467,6 +488,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.gate.account.command.introspect_session_grant"
+      },
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome"
     },
@@ -489,6 +514,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.gate.account.command.introspect_session_grant"
+      },
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome"
     },
@@ -500,6 +529,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.self.agent.query.list"
+      },
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome"
     },
@@ -511,6 +544,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.self.agent.query.list"
+      },
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome"
     },
@@ -581,6 +618,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.self.agent.resource.get"
+      },
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_rotate_key_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_rotate_key_outcome"
     },
@@ -592,6 +633,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.self.authz.grants.query.effective"
+      },
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome"
     },
@@ -644,6 +689,9 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "manual_confirmation"
+      },
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome"
     },
@@ -863,6 +911,11 @@
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "reissue_material",
+        "operation_id": "ak.self.blob.command.presign",
+        "requires_fresh_request_identity": true
+      },
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignOutcome"
     },
@@ -907,6 +960,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.self.contact.query.list"
+      },
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_outcome"
     },
@@ -985,6 +1042,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.self.circle.query.list"
+      },
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_create_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
     },
@@ -1038,6 +1099,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.self.circle.resource.get"
+      },
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome"
     },
     {
@@ -1084,6 +1149,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.find.directory.query.resolve_target"
+      },
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome"
     },
@@ -1224,6 +1293,9 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "manual_confirmation"
+      },
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome"
     },
@@ -1398,6 +1470,9 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "drop_unconfirmed"
+      },
       "request_schema_ref": "schemas/ephemeral-envelope.schema.json",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitOutcome"
     },
@@ -1410,6 +1485,11 @@
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "reissue_material",
+        "operation_id": "ak.self.call.media.exchange.issue_token",
+        "requires_fresh_request_identity": true
+      },
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome"
     },
@@ -1493,6 +1573,10 @@
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.root.identity.recovery_session.resource.get"
+      },
       "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
       "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state"
     },
@@ -1512,6 +1596,10 @@
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.root.identity.recovery_session.resource.get"
+      },
       "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body",
       "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome"
     },
@@ -1534,6 +1622,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.self.keys.query.lookup"
+      },
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_request_body",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_outcome"
     },
@@ -1575,6 +1667,11 @@
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "reissue_material",
+        "operation_id": "ak.self.keys.backups.command.unlock",
+        "requires_fresh_request_identity": true
+      },
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body",
       "response_schema_ref": "schemas/key-backup.schema.json"
     },
@@ -1586,6 +1683,11 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "reissue_material",
+        "operation_id": "ak.self.keys.keypackages.command.claim",
+        "requires_fresh_request_identity": true
+      },
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_outcome"
     },
@@ -1619,6 +1721,11 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "reissue_material",
+        "operation_id": "ak.self.keys.keypackages.upload.create",
+        "requires_fresh_request_identity": true
+      },
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_request_body",
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_outcome"
     },
@@ -1670,6 +1777,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.open.agent_pairing.query.runtime_key_request_status"
+      },
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome"
     },
@@ -1718,6 +1829,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.open.mimi.query.group_info"
+      },
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome"
     },
@@ -1729,6 +1844,9 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "drop_unconfirmed"
+      },
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_outcome"
     },
@@ -1749,6 +1867,11 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "reissue_material",
+        "operation_id": "ak.open.mimi.command.proxy_download",
+        "requires_fresh_request_identity": true
+      },
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_outcome"
     },
@@ -1761,6 +1884,9 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "manual_confirmation"
+      },
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_outcome"
     },
@@ -1772,6 +1898,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.self.consent.query.list"
+      },
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_outcome"
     },
@@ -1783,6 +1913,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.open.mimi.query.group_info"
+      },
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome"
     },
@@ -1794,6 +1928,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.open.mimi.query.group_info"
+      },
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_outcome"
     },
@@ -1805,6 +1943,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.self.consent.query.list"
+      },
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome"
     },
@@ -1816,6 +1958,9 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "manual_confirmation"
+      },
       "request_schema_ref": "schemas/moderation-report.schema.json",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome"
     },
@@ -2048,6 +2193,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.self.consent.query.list"
+      },
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_outcome"
     },
@@ -2226,6 +2375,10 @@
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.self.account.query.viewer"
+      },
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_request_body",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_outcome"
     },

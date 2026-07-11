@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/key-transparency.schema.json",
+  "x-arkret-conformance-vector": "ak.vector.identity.key_transparency_proofs.v1",
+  "title": "Arkret Key Transparency Evidence",
+  "description": "Canonical evidence for ak.profile.key_transparency.v1 and the log-backed witness requirement of high-security/sovereign profiles.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "log_service_did",
+    "principal_id",
+    "key_material_digest",
+    "log_head",
+    "inclusion_proof",
+    "consistency_proof",
+    "witness_signatures"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.key_transparency.v1"
+    },
+    "log_service_did": {
+      "$ref": "#/$defs/did"
+    },
+    "principal_id": {
+      "$ref": "#/$defs/did"
+    },
+    "key_material_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "log_head": {
+      "$ref": "#/$defs/log_head"
+    },
+    "inclusion_proof": {
+      "$ref": "#/$defs/inclusion_proof"
+    },
+    "consistency_proof": {
+      "$ref": "#/$defs/consistency_proof"
+    },
+    "witness_signatures": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 32,
+      "items": {
+        "$ref": "#/$defs/witness_signature"
+      }
+    }
+  },
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+      "maxLength": 2048
+    },
+    "did_url": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+      "maxLength": 2048
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    },
+    "log_head": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tree_size",
+        "root_hash",
+        "issued_at"
+      ],
+      "properties": {
+        "tree_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "root_hash": {
+          "$ref": "#/$defs/digest"
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "inclusion_proof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "leaf_index",
+        "tree_size",
+        "audit_path"
+      ],
+      "properties": {
+        "leaf_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tree_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "audit_path": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/digest"
+          }
+        }
+      }
+    },
+    "consistency_proof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from_tree_size",
+        "to_tree_size",
+        "audit_path"
+      ],
+      "properties": {
+        "from_tree_size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "to_tree_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "audit_path": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/digest"
+          }
+        }
+      }
+    },
+    "witness_signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "witness_did",
+        "verification_method",
+        "signature"
+      ],
+      "properties": {
+        "witness_did": {
+          "$ref": "#/$defs/did"
+        },
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
+        },
+        "signature": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 16384
+        }
+      }
+    }
+  }
+}

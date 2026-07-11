@@ -1,4 +1,8 @@
 {
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "arkret-rust-sdk::signatures::crypto_signature_fixture"
+  },
   "profile": "ak.vector_group.crypto_signature.v1",
   "version": "2026-07-03",
   "vectors": [

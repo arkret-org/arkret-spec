@@ -2,7 +2,10 @@
   "profile": "ak.profile.media_service_binding.v1",
   "version": "2026-06-19",
   "suite": "media_binding",
-  "runner": "cotest::conformance::media_binding",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::media_binding"
+  },
   "covers_vectors": [
     "ak.vector.media_binding.focus_selection_oldest_membership.v1",
     "ak.vector.media_binding.session_focus_no_split_brain.v1",

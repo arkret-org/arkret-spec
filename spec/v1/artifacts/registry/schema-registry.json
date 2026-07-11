@@ -609,6 +609,18 @@
       "file": "schemas/service-operation-dtos.schema.json",
       "status": "active",
       "description": "Canonical DTO bundle for service operation request/response shapes migrated out of OpenAPI inline components."
+    },
+    {
+      "schema_id": "ak.schema.sdk_conformance_claim.v1",
+      "file": "schemas/sdk-conformance-claim.schema.json",
+      "status": "active",
+      "description": "Machine-verifiable SDK release claim against the canonical sdk_conformance_contract."
+    },
+    {
+      "schema_id": "ak.schema.key_transparency.v1",
+      "file": "schemas/key-transparency.schema.json",
+      "status": "active",
+      "description": "Canonical log head, inclusion proof, consistency proof and witness evidence for ak.profile.key_transparency.v1 and high-security log-backed identity checks."
     }
   ]
 }

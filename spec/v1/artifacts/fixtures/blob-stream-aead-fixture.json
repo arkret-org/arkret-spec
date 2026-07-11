@@ -2,7 +2,10 @@
   "profile": "ak.profile.blob_node.v1",
   "version": "2026-07-03",
   "suite": "blob_stream_aead",
-  "runner": "cotest::conformance::blob_stream_aead",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::blob_stream_aead"
+  },
   "notes": "Adversarial bound cases are declared-field-only: the runner MUST judge them from the envelope's declared segment_size / segment_count / size_bytes values before deriving keys or downloading any segment, and MUST NOT materialise multi-MiB plaintext or ciphertext to exercise them.",
   "covers_vectors": [
     "ak.vector.blob.stream_aead_roundtrip.v1",

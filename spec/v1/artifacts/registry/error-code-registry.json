@@ -20,6 +20,18 @@
       "description": "Parsed input does not satisfy the declared schema contract."
     },
     {
+      "code": "duplicate_clause_claim",
+      "http_status": 422,
+      "scope": "both",
+      "description": "An SDK conformance claim repeats the same stable clause_id; each applicable clause must appear exactly once."
+    },
+    {
+      "code": "key_transparency_proof_missing",
+      "http_status": 422,
+      "scope": "both",
+      "description": "A profile requiring log-backed key transparency omitted its inclusion proof, consistency proof, log head, or required witness evidence."
+    },
+    {
       "code": "missing_param",
       "http_status": 400,
       "scope": "both",

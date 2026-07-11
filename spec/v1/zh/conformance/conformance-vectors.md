@@ -747,6 +747,10 @@ Expected：`expected_multibase` / `expected_did_key` MUST byte-for-byte 复现�
 
 `ak.vector.scalability.circle_count_limit.v1` MUST 同时覆盖：（a）已有 1,000 个 active Circle 的 Realm 再提交 `ak.circle.create`；（b）已有 256 个 active MLS-backed Circle membership 的 actor 再加入一个 MLS-backed Circle。两者均 MUST 以 `failed_precondition`、`reason_code=circle_count_exceeded` 拒绝且不得改变状态。体量状态由 runner 按 [`scalability-limits-fixture.json`](../../artifacts/fixtures/scalability-limits-fixture.json) 的 generator 描述构造，不要求 fixture 字面展开全部对象。
 
+`ak.vector.scalability.envelope_size_limit.v1` MUST 生成精确 1,048,576 bytes 的 canonical Event/Operation envelope 作为接受边界，并生成 1,048,577 bytes 的超限输入，后者 MUST 在 reducer / signature verification 前以 `payload_too_large` 拒绝。
+
+`ak.vector.scalability.http_header_limits.v1` MUST 至少覆盖：128-char `Idempotency-Key` 接受、129-char 拒绝；非 ASCII / 非 canonical alphabet 拒绝；HTTP header aggregate 32 KiB 接受、32 KiB + 1 byte 拒绝；超限输入不得建立 replay-cache entry、不得构造无界签名 transcript。
+
 ## 2. CBA · Lattice Vectors
 
 > 来源：`cba-lattice-fixture.json`。
@@ -3631,7 +3635,7 @@ Expected：
 
 ## 12. Media Service Binding Vectors
 
-本节列出 `ak.profile.media_service_binding.v1` 的核心 conformance 向量。完整 fixture 与执行脚本在 candidate 阶段补完；以下为 normative steps + expected outcomes 的最小契约。详见 [`../crypto-media/media-service-binding.md`](../crypto-media/media-service-binding.md) §2 / §3 / §5–§8 与 [`../crypto-media/call-state.md`](../crypto-media/call-state.md) §4。
+本节列出 `ak.profile.media_service_binding.v1` 的核心 conformance 向量。完整机器 fixture 为 [`media-binding-fixture.json`](../../artifacts/fixtures/media-binding-fixture.json)，由其顶层 `runner.kind` / `runner.entrypoint` 分派执行；active 状态与适用性以 `vector-registry.json` 为准。详见 [`../crypto-media/media-service-binding.md`](../crypto-media/media-service-binding.md) §2 / §3 / §5–§8 与 [`../crypto-media/call-state.md`](../crypto-media/call-state.md) §4。
 
 ### 12.1 Focus Selection — Oldest Membership Wins
 

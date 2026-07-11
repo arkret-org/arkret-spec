@@ -2,7 +2,10 @@
   "profile": "ak.profile.auth_server.v1",
   "version": "2026-06-19",
   "suite": "auth_session_proof",
-  "runner": "cotest::conformance::auth_session_proof",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::auth_session_proof"
+  },
   "covers_vectors": [
     "ak.vector.auth.session_grant_audience_binding.v1",
     "ak.vector.auth.soft_logout_did_proof.v1",

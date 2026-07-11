@@ -1,4 +1,8 @@
 {
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::federation"
+  },
   "suite": "federation",
   "profile": "ak.vector_group.federation.v1",
   "topology": {

@@ -2,7 +2,10 @@
   "profile": "ak.profile.agent_participation_policy.v1",
   "version": "2026-06-19",
   "suite": "agent_participation",
-  "runner": "cotest::conformance::agent_participation",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::agent_participation"
+  },
   "covers_vectors": [
     "ak.vector.agent.mention_selector.v1",
     "ak.vector.agent.participation.ceiling_tighten.v1",

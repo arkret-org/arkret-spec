@@ -2,7 +2,10 @@
   "profile": "ak.profile.e2ee_client.v1",
   "version": "2026-07-03",
   "suite": "key_backup_hardening",
-  "runner": "cotest::conformance::key_backup_hardening",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::key_backup_hardening"
+  },
   "covers_vectors": [
     "ak.vector.key_backup.kdf_floor_rejected.v1",
     "ak.vector.key_backup.unlock_proof.v1",

@@ -2,7 +2,10 @@
   "profile": "ak.vector_group.privacy_security.v1",
   "version": "2026-06-19",
   "suite": "final_conformance_closure",
-  "runner": "cotest::conformance::final_conformance_closure",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::final_conformance_closure"
+  },
   "covers_vectors": [
     "ak.vector.applet.transaction_source_signature_anchor.v1",
     "ak.vector.calendar.rsvp_occurrence_key.v1",

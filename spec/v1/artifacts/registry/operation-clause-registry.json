@@ -1,0 +1,139 @@
+{
+  "version": "2026-07-11",
+  "source_of_truth": true,
+  "description": "Canonical selector-based normative-clause coverage registry for service operations. A profile conformance claim computes its inherited required_endpoints closure and MUST satisfy every active clause whose selector matches each operation. This registry complements operation-registry shape; it does not create a second operation namespace.",
+  "certification_rule": {
+    "profile_operation_source": "profiles/conformance-profiles.json#profile_requirements",
+    "operation_shape_source": "registry/operation-registry.json#operations",
+    "coverage": "all_matching_active_clauses",
+    "missing_evidence": "profile_not_conformance_certified",
+    "unknown_clause": "fail_closed"
+  },
+  "clauses": [
+    {
+      "clause_id": "AK-OP-001",
+      "status": "active",
+      "selector": {
+        "kind": "all_operations"
+      },
+      "requirement": "The canonical operation id and every advertised HTTP binding shape MUST match contract-catalog, generated operation-registry, OpenAPI and operation schema index.",
+      "required_evidence": [
+        "artifact_pipeline",
+        "openapi_contract_check"
+      ],
+      "source_refs": [
+        "spec/v1/zh/sync/service-http-binding.md",
+        "spec/v1/artifacts/registry/operation-registry.json",
+        "spec/v1/artifacts/openapi/arkret-service-api.openapi.yaml"
+      ]
+    },
+    {
+      "clause_id": "AK-OP-002",
+      "status": "active",
+      "selector": {
+        "kind": "openapi_protected_operations"
+      },
+      "requirement": "Protected operations MUST enforce the OpenAPI security declaration and sender-constrained proof rules before any durable side effect or sensitive response.",
+      "required_evidence": [
+        "auth_session_proof_fixture",
+        "openapi_security_check"
+      ],
+      "source_refs": [
+        "spec/v1/zh/sync/api-conventions.md#3-认证",
+        "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
+      ]
+    },
+    {
+      "clause_id": "AK-OP-003",
+      "status": "active",
+      "selector": {
+        "kind": "write_operations"
+      },
+      "requirement": "Every write operation MUST expose machine-readable idempotency, retry safety, and an uncertain-outcome recovery strategy when blind retry is unsafe.",
+      "required_evidence": [
+        "operation_registry_coverage_fixture"
+      ],
+      "source_refs": [
+        "spec/v1/zh/sync/api-conventions.md#6-幂等",
+        "spec/v1/artifacts/fixtures/operation_registry_coverage_fixture.json"
+      ]
+    },
+    {
+      "clause_id": "AK-OP-004",
+      "status": "active",
+      "selector": {
+        "kind": "http_operations"
+      },
+      "requirement": "HTTP headers, aggregate headers, path/query and canonical request envelopes MUST obey the v1 transport bounds and reject generated over-limit inputs before unbounded allocation.",
+      "required_evidence": [
+        "scalability_limits_fixture"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/scalability-constraints.md#2-通用-wire-上限",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "clause_id": "AK-OP-005",
+      "status": "active",
+      "selector": {
+        "kind": "all_operations"
+      },
+      "requirement": "Operation-specific and universal failures MUST use registered error codes and preserve the minimal-disclosure error envelope.",
+      "required_evidence": [
+        "error_code_registry_coverage_fixture",
+        "operations_error_mapping_check"
+      ],
+      "source_refs": [
+        "spec/v1/zh/sync/service-http-binding.md#10-标准错误码",
+        "spec/v1/artifacts/fixtures/error_code_registry_coverage_fixture.json"
+      ]
+    },
+    {
+      "clause_id": "AK-OP-006",
+      "status": "active",
+      "selector": {
+        "kind": "stream_operations"
+      },
+      "requirement": "Stream operations MUST implement the registered frame ordering, dropped/resync recovery, cursor binding and reconnect cooldown behavior.",
+      "required_evidence": [
+        "sync_fixture"
+      ],
+      "source_refs": [
+        "spec/v1/zh/sync/client-sync.md",
+        "spec/v1/artifacts/fixtures/sync-fixture.json"
+      ]
+    },
+    {
+      "clause_id": "AK-OP-007",
+      "status": "active",
+      "selector": {
+        "kind": "partial_outcome_operations"
+      },
+      "requirement": "Batch and fanout operations that admit partial outcomes MUST account for every input item and define safe partial retry identity.",
+      "required_evidence": [
+        "sync_fixture",
+        "federation_fixture"
+      ],
+      "source_refs": [
+        "spec/v1/zh/sync/federation.md",
+        "spec/v1/zh/sync/service-http-binding.md"
+      ]
+    },
+    {
+      "clause_id": "AK-OP-008",
+      "status": "active",
+      "selector": {
+        "kind": "privacy_sensitive_operations"
+      },
+      "requirement": "Privacy-sensitive operations MUST preserve indistinguishable failures and the minimum response/metadata disclosure defined by their profile.",
+      "required_evidence": [
+        "privacy_security_fixture"
+      ],
+      "source_refs": [
+        "spec/v1/zh/security/server-threat-model.md",
+        "spec/v1/artifacts/fixtures/privacy-security-fixture.json"
+      ]
+    }
+  ]
+}

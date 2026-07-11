@@ -1,4 +1,8 @@
 {
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::event_envelope"
+  },
   "suite": "event_envelope_negative",
   "profile": "ak.profile.core_event_store.v1",
   "version": "2026-07-03",

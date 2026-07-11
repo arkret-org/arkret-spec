@@ -2,7 +2,10 @@
   "profile": "ak.profile.personal_agent_provisioning.v1",
   "version": "2026-06-19",
   "suite": "agent_vectors",
-  "runner": "cotest::conformance::agent_vectors",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::agent_vectors"
+  },
   "covers_vectors": [
     "ak.vector.agent.provision.v1",
     "ak.vector.agent.pairing_expiry.v1",

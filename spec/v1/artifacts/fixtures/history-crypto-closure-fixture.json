@@ -2,7 +2,10 @@
   "profile": "ak.profile.e2ee_client.v1",
   "version": "2026-06-19",
   "suite": "history_crypto_closure",
-  "runner": "cotest::conformance::history_crypto_closure",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::history_crypto_closure"
+  },
   "covers_vectors": [
     "ak.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1",
     "ak.vector.disappearing.read_trigger_anonymous_aggregate.v1",

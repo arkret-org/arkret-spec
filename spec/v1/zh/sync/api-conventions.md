@@ -103,7 +103,7 @@ HTTP method 不是 operation action 的来源：同一 `query.scan` 语义可以
 HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id` 的最后一个词：
 
 - `GET` / `HEAD`：只读、无 server-side mutation；可用 path/query 定位资源、projection 或分页读取位置。读取 cursor 不得触发队列删除或 ack。
-- `POST`：提交 command、batch、proof、搜索/复杂查询 body、入队、fanout、创建服务端分配 id 的资源，或执行由签名/admission 决定效果的操作。写请求使用 `POST` 时仍 MUST 通过 `Idempotency-Key`、对象 id、request id、canonical hash 或 protocol sequence 提供幂等/重放语义。每个 operation 具体采用哪种机制、以及是否可安全全量重试，以 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 的 `idempotency_mechanism` / `retry_safe` 字段为机读真相源（见 §6）。
+- `POST`：提交 command、batch、proof、搜索/复杂查询 body、入队、fanout、创建服务端分配 id 的资源，或执行由签名/admission 决定效果的操作。每个写 operation MUST 在 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 声明 `idempotency_mechanism` / `retry_safe`；可自动重试的写入必须使用 `Idempotency-Key`、对象 id、request id、canonical hash 或 protocol sequence。确实无法提供稳定 identity 的 operation 只能声明 `none/false`，并 MUST 同时声明 §6 的机读 `uncertain_outcome`，不得让客户端猜测恢复路径。
 - `PUT`：仅用于“客户端对一个已知 URI 表达完整目标表示或当前 slot 值”的创建/替换/设置。重复发送同一 URI 和同一表示 MUST 不产生额外副作用；同一 URI 上不同表示按该 slot 的覆盖、版本或 precondition 规则处理。
 - `DELETE`：删除一个已知 URI 表示的资源、binding 或 slot；重复删除必须有定义良好的幂等结果。
 - `PATCH`：仅在规范显式定义 patch document 语义、冲突检测和幂等边界时使用；否则 partial update 使用 `POST` command 或 `PUT` slot replacement。
@@ -323,6 +323,8 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 - 相同幂等键 + 不同 canonical request body MUST 返回 `duplicate_conflict`。
 - 服务端 SHOULD 记录幂等键与 canonical request hash；联邦与服务间写入 MUST 将该 hash 纳入签名 transcript 或 transaction replay cache。
 - `idempotency_mechanism="none"` 与 `retry_safe=false` 同时出现时，该 operation MUST 在 binding 文档中给出超时后的 outcome 查询、一次性材料重新签发或人工确认路径；客户端 MUST NOT 把传输失败解释为“服务端未执行”并盲目重放。`none/true` 只表示重复执行纯计算等价，不产生需要去重的 write outcome。
+
+上述恢复路径的机读真相源是 operation registry 同行 `uncertain_outcome`：`query_operation` 必须引用 outcome/read operation；`reissue_material` 必须引用重新签发入口并要求 fresh request identity；`manual_confirmation` 明确进入 uncertain 人工确认；`drop_unconfirmed` 仅允许不持久化、可安全丢弃的 ephemeral/fanout signal。`none/false` 缺该字段、引用未知 operation、或 `reissue_material` 未要求 fresh identity 时，artifact lint MUST 失败。
 
 ### 6.1 幂等记录保留窗口（normative）
 

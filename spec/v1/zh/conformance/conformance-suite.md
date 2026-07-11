@@ -170,7 +170,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 | Moderation | report / queue item schema、E2EE evidence package、franking、operator ACL | appeal / audit trail |
 | Agent Runtime | capability grant 解释、knowledge source 声明、owner presence policy、join policy、capability revoke | approval UX、tool call audit |
 
-**向量覆盖现状（normative，gate 语义澄清）**：上表"MUST 覆盖"表达的是**认证测试范围承诺**，不等于每行当前都有已注册的可执行向量。每行**当前是否已有 active 可执行向量**的实况以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 的 active 状态、对应 `fixtures/*.json` 证据与 runner 断言为唯一查询真源；本文不再镜像逐条 vector id 清单（镜像会随 registry 演进漂移）。service-http-binding / api-conventions 行为语义当前仍以 OpenAPI 形状测试和 prose 约束为主，尚不单独构成 §6.1 `v1-conformance-certified` 的 vector gate。
+**向量与 operation clause 覆盖（normative）**：领域行为的 active 向量以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为真相源；HTTP/API 行为以 [`operation-clause-registry.json`](../../artifacts/registry/operation-clause-registry.json) 的 selector-based clause closure 为认证入口。runner MUST 先计算 profile 继承后的 `required_endpoints`，再对每个 operation 执行全部匹配的 active `AK-OP-NNN` clause；OpenAPI shape、认证、错误、限额、幂等/uncertain outcome、stream recovery、partial outcome 与 privacy evidence 任一缺失，均不得声明该 profile 为 `v1-conformance-certified`。prose 或 OpenAPI 形状检查不能替代 registry 声明的行为证据。
 
 不变量（normative）：实现 **MUST NOT 仅凭通过现有向量集合就宣称尚未被 registry active vectors 覆盖的行"已认证覆盖"**；某行的 gate 是否生效 MUST 以 vector-registry 的 active 状态、fixture 证据与 runner 断言为准（见 §6.1），不得以本表"MUST 覆盖"承诺或任何 prose 列举替代该查询。
 
@@ -189,7 +189,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 | --- | --- | --- |
 | `v1.0.0` | 对外发布稳定规范基线。 | `zh/` + `artifacts/` registry lint 通过；`core_event_store`、`chat_mvp`、`kanban_mvp` 的 schema / fixture / profile 已冻结；OpenAPI、cryptographic fixture 和 Markdown JSON 示例不得包含未发布占位、非 active wire 字段、未注册 Event kind 或 schema-invalid `constraint_type`。只做结构验证的 fixture MUST 声明 `fixture_kind="schema_only"`，其占位 nonce / ciphertext / signature 不计为 cryptographic vector。 |
 | `v1-interop-preview` | 多实现试验互通。 | 至少两个独立实现通过同一 reference validator 的 `core_event_store` 向量，并能重放官方 sync / state / capability fixture。 |
-| `v1-conformance-certified` | 某实现宣称完全通过指定 profile。 | reference validator、reference reducer、reference authz evaluator 和 conformance runner 已发布；canonical JSON、Event Envelope negative vectors、CBA/Lattice、capability、privacy/security、sync 和 snapshot vectors 均由 CI 或公开认证报告执行；英文或其他翻译不得作为 stale source of truth 发布。 |
+| `v1-conformance-certified` | 某实现宣称完全通过指定 profile。 | reference validator、reference reducer、reference authz evaluator 和 conformance runner 已发布；canonical JSON、Event Envelope negative vectors、CBA/Lattice、capability、privacy/security、sync 和 snapshot vectors 均由 CI 或公开认证报告执行；并且 profile operation closure 中每个 endpoint 的全部 active `AK-OP-NNN` clause 均有不可变证据。英文或其他翻译不得作为 stale source of truth 发布。 |
 
 当前仓库仍是 candidate，尚未发布 `v1.0.0` 稳定基线。只有 §6.1 的 stable gate 全部通过并完成显式发布后，仓库才可切换为 `v1.0.0`；在此之前实现只能声明“试验性支持某些 v1 profile”，不得声明稳定规范兼容或 `v1-conformance-certified`。
 

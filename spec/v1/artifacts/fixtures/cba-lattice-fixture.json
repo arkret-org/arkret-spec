@@ -1,4 +1,8 @@
 {
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::cba_lattice"
+  },
   "profile": "ak.vector_group.cba_lattice.v1",
   "version": "2026-06-11",
   "notes": [

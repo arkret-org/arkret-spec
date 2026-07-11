@@ -30,6 +30,73 @@
       ]
     },
     {
+      "vector_id": "ak.vector.scalability.envelope_size_limit.v1",
+      "status": "active",
+      "domain": "scalability",
+      "applies_to_fixtures": [
+        "scalability-limits-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/conformance/scalability-constraints.md",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.scalability.http_header_limits.v1",
+      "status": "active",
+      "domain": "scalability",
+      "scope": "universal",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/conformance/scalability-constraints.md",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sdk_conformance.claim_validation.v1",
+      "status": "active",
+      "domain": "sdk_conformance",
+      "applies_to_fixtures": [
+        "sdk-conformance-claim-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-profiles.md",
+        "spec/v1/artifacts/schemas/sdk-conformance-claim.schema.json",
+        "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity.key_transparency_proofs.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_profiles": [
+        "ak.profile.key_transparency.v1",
+        "ak.profile.high_security_organization.v1",
+        "ak.profile.sovereign_deployment.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/identity/identity-did.md",
+        "spec/v1/artifacts/schemas/key-transparency.schema.json",
+        "spec/v1/artifacts/fixtures/key-transparency-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity.did_webvh_v1_adapter.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_profiles": [
+        "ak.profile.identity_registry.v1",
+        "ak.profile.org_high_assurance_identity.v1",
+        "ak.profile.principal_server.v1",
+        "ak.profile.full_client.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/identity/identity-did.md",
+        "spec/v1/artifacts/fixtures/did-webvh-v1-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.agent.act_on_behalf.v1",
       "status": "active",
       "domain": "agent",

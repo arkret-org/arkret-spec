@@ -27,6 +27,10 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
 | 单个 canonical Event / Operation envelope | 1 MiB | 超过时 MUST reject 为 `payload_too_large` 或 `schema_violation`。正文、附件和大对象必须使用 Blob。 |
+| 单个 HTTP header value | 8 KiB（但专用 header 可更小） | 入口 MUST 在解析/复制到业务对象前拒绝超限值。`Idempotency-Key` 与 `X-Arkret-Request-Id` 的专用上限均为 128 ASCII chars；cursor / causal wait token header 的专用上限为 4 KiB。 |
+| HTTP header aggregate | 32 KiB | request line 之外全部 header name/value 的编码总量；超限 MUST 在认证、签名 transcript 构造和幂等缓存分配前以 `payload_too_large` 拒绝。反向代理可声明更小上限，但不得接受超过本上限的请求。 |
+| HTTP path + query | 8 KiB | 按接收的 UTF-8/percent-encoded octets 计；超限 MUST `payload_too_large`，不得先展开为无界对象。大型 selector 必须使用已注册的 POST query-body variant。 |
+| `Idempotency-Key` | 1..128 ASCII chars | canonical alphabet `[A-Za-z0-9._~-]`；空值、非 ASCII、超长或其它字符 MUST `invalid_param`，不得进入 replay cache key。 |
 | 单次 `/_arkret/self/events` 批量提交的 Event 数 | 1,000 | 超过时 MUST 拆分请求；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单个 federation transaction 的 Event 数 | 500 | 超过时 MUST 拆分 transaction；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单次 sync / backfill / projection page 返回项 | 1,000 | 执行方 MUST enforce；客户端不得假设更大 page 可用。 |
@@ -47,7 +51,7 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | HLC `expected_future_skew_ms`（软 future drift 阈值） | 30,000 ms（30 秒） | 见 [encoding.md](./encoding.md) §7.2。超该阈值但未超 `hard_future_skew_ms` 时 receiver SHOULD soft-fail / quarantine。 |
 | HLC `state_event_expected_future_skew_ms`（state event 软阈值） | 默认按 `expected_future_skew_ms` | 见 [encoding.md](./encoding.md) §7.2。profile MAY 对 state event（capability / membership / policy / service binding / Realm upgrade / MLS commit 等）声明更严窗口；未声明时按 `expected_future_skew_ms` 处理。 |
 
-`refs[]` 总量边界的生成式负例由 `ak.vector.scalability.refs_limit.v1` 固化。
+`refs[]` 总量边界的生成式负例由 `ak.vector.scalability.refs_limit.v1` 固化。envelope 1 MiB 边界与 HTTP header/path/query 上限分别由 `ak.vector.scalability.envelope_size_limit.v1`、`ak.vector.scalability.http_header_limits.v1` 固化；runner MUST 使用 generator 描述在执行时构造边界值，不在 fixture 中内嵌兆级字符串。
 
 [^hlc-throughput]: informative：换算约 65.5 M events/s（精确 65,536,000 events/s）单 actor 上限，仅为 65,536/ms × 1000 的派生值，**非 normative 吞吐保证**，实现 MUST NOT 以此作为容量承诺。
 

@@ -1877,11 +1877,13 @@
       "required_schemas": [
         "ak.schema.did_key_log_entry.v1",
         "ak.schema.identity_receipt.v1",
-        "ak.schema.handle_claim.v1"
+        "ak.schema.handle_claim.v1",
+        "ak.schema.key_transparency.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
-        "crypto-signature-fixture.json"
+        "crypto-signature-fixture.json",
+        "did-webvh-v1-fixture.json"
       ],
       "optional_extensions": [
         "did:web_adapter",
@@ -1990,10 +1992,13 @@
       "required_schemas": [
         "ak.schema.did_key_log_entry.v1",
         "ak.schema.identity_receipt.v1",
-        "ak.schema.handle_claim.v1"
+        "ak.schema.handle_claim.v1",
+        "ak.schema.key_transparency.v1"
       ],
       "required_fixtures": [
-        "crypto-signature-fixture.json"
+        "crypto-signature-fixture.json",
+        "did-webvh-v1-fixture.json",
+        "key-transparency-fixture.json"
       ],
       "optional_extensions": [
         "did:webvh_witness",
@@ -2004,9 +2009,51 @@
         "required": [
           "history_bearing_did_method",
           "witness_or_watcher_policy",
-          "resolver_cache_policy"
+          "resolver_cache_policy",
+          "did_webvh_1_0",
+          "key_transparency_inclusion_proof",
+          "key_transparency_consistency_proof"
         ],
         "unsupported_optional": "return unsupported_did_method"
+      }
+    },
+    "ak.profile.key_transparency.v1": {
+      "description": "Append-only key-transparency profile for principal DID history, cross-signing roots, active device-key-set digests and KeyPackage publication digests. Claims require independently verifiable log heads, inclusion proofs, consistency proofs and at least two distinct witness signatures.",
+      "required_endpoints": [
+        "ak.root.identity.query.resolve",
+        "ak.root.identity.log.query.list",
+        "ak.root.identity.receipts.query.list"
+      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ak.schema.key_transparency.v1",
+        "ak.schema.did_key_log_entry.v1",
+        "ak.schema.identity_receipt.v1"
+      ],
+      "required_fixtures": [
+        "key-transparency-fixture.json",
+        "did-webvh-v1-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "key_transparency_log_head",
+          "key_transparency_inclusion_proof",
+          "key_transparency_consistency_proof",
+          "key_transparency_split_view_evidence"
+        ],
+        "unsupported_optional": "omit the profile claim and fail closed for any high-risk operation whose deployment profile requires log-backed witness evidence"
+      },
+      "default_unsupported_behavior": "fail_closed",
+      "identity": {
+        "did_method": "did:webvh",
+        "did_method_versions": [
+          "did:webvh:1.0"
+        ],
+        "witness_threshold_minimum": 2,
+        "require_inclusion_proof": true,
+        "require_consistency_proof": true
       }
     },
     "ak.profile.blob_node.v1": {
@@ -2643,11 +2690,14 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.policy.v1",
-        "ak.schema.capability.v1"
+        "ak.schema.capability.v1",
+        "ak.schema.key_transparency.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json",
-        "capability-fixture.json"
+        "capability-fixture.json",
+        "did-webvh-v1-fixture.json",
+        "key-transparency-fixture.json"
       ],
       "optional_extensions": [
         "isolated_resolver",
@@ -2657,7 +2707,10 @@
         "required": [
           "resolver_policy",
           "federation_boundary",
-          "audit_policy"
+          "audit_policy",
+          "did_webvh_1_0",
+          "key_transparency_inclusion_proof",
+          "key_transparency_consistency_proof"
         ],
         "unsupported_optional": "deny bridge until explicit policy exists"
       },
@@ -2666,7 +2719,8 @@
       ],
       "additional_requirements": {
         "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, regular writes (any request advancing actor_seq / Realm frontier or producing durable side effects) and sensitive reads MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ak.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. Public metadata surfaces may return only unauthenticated public responses when no valid proof is present; they MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §2.5.",
-        "mls_last_resort_forbidden_must": "Realms claiming this profile MUST NOT allow last-resort KeyPackage join: services MUST NOT advertise ak.feature.mls_last_resort_keypackage.v1 for those Realms, claim responses MUST NOT return last_resort=true packages, and requesters MUST treat any last_resort=true claim record as profile-forbidden and fail closed."
+        "mls_last_resort_forbidden_must": "Realms claiming this profile MUST NOT allow last-resort KeyPackage join: services MUST NOT advertise ak.feature.mls_last_resort_keypackage.v1 for those Realms, claim responses MUST NOT return last_resort=true packages, and requesters MUST treat any last_resort=true claim record as profile-forbidden and fail closed.",
+        "key_transparency_must": "High-risk identity, recovery, service delegation and membership decisions MUST verify ak.schema.key_transparency.v1 inclusion and consistency proofs under ak.profile.key_transparency.v1; missing or invalid proof fails closed."
       }
     },
     "ak.profile.sovereign_enclave.v1": {
@@ -3117,12 +3171,15 @@
       "required_schemas": [
         "ak.schema.snapshot.v1",
         "ak.schema.encrypted_envelope.v1",
-        "ak.schema.moderation_queue_item.v1"
+        "ak.schema.moderation_queue_item.v1",
+        "ak.schema.key_transparency.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
         "privacy-security-fixture.json",
-        "capability-fixture.json"
+        "capability-fixture.json",
+        "did-webvh-v1-fixture.json",
+        "key-transparency-fixture.json"
       ],
       "optional_extensions": [
         "witness_quorum",
@@ -3132,7 +3189,10 @@
         "required": [
           "snapshot_witness",
           "mls_governance_binding",
-          "revocation_freshness"
+          "revocation_freshness",
+          "did_webvh_1_0",
+          "key_transparency_inclusion_proof",
+          "key_transparency_consistency_proof"
         ],
         "unsupported_optional": "fail closed for high-risk action"
       },
@@ -3141,7 +3201,8 @@
       ],
       "additional_requirements": {
         "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, regular writes (any request advancing actor_seq / Realm frontier or producing durable side effects) and sensitive reads MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ak.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. Public metadata surfaces may return only unauthenticated public responses when no valid proof is present; they MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §2.5.",
-        "mls_last_resort_forbidden_must": "Realms claiming this profile MUST NOT allow last-resort KeyPackage join: services MUST NOT advertise ak.feature.mls_last_resort_keypackage.v1 for those Realms, claim responses MUST NOT return last_resort=true packages, and requesters MUST treat any last_resort=true claim record as profile-forbidden and fail closed."
+        "mls_last_resort_forbidden_must": "Realms claiming this profile MUST NOT allow last-resort KeyPackage join: services MUST NOT advertise ak.feature.mls_last_resort_keypackage.v1 for those Realms, claim responses MUST NOT return last_resort=true packages, and requesters MUST treat any last_resort=true claim record as profile-forbidden and fail closed.",
+        "key_transparency_must": "High-risk identity, recovery, service delegation and membership decisions MUST verify ak.schema.key_transparency.v1 inclusion and consistency proofs under ak.profile.key_transparency.v1; missing or invalid proof fails closed."
       },
       "identity": {
         "principal_method_default": "did:webvh",
@@ -3149,6 +3210,9 @@
           "did:webvh"
         ],
         "service_method_default": "did:webvh",
+        "did_method_versions": [
+          "did:webvh:1.0"
+        ],
         "principal_method_downgrade_allowed": false,
         "witness_threshold_minimum": 2,
         "require_witness_evidence": true

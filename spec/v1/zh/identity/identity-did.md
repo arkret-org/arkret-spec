@@ -159,7 +159,7 @@ DID 托管域名、Principal Server 服务域名和 handle 域名是**三个独�
 Arkret v1 core conformance 要求如下：
 
 - Core resolver / verifier MUST 支持 DID Core 解析 / 验证抽象、`did:webvh`、`did:web` 和 `did:key`。
-  - `did:webvh` 是 v1 core 默认 principal method（`personal_node` profile 例外，见 §3.1）。
+  - `did:webvh` 是 v1 core 默认 principal method（`personal_node` profile 例外，见 §3.1）；Arkret v1 的 method adapter 精确钉定为 `did:webvh:1.0`。method evidence 的 `parameters.method` MUST 等于 `did:webvh:1.0`；缺失该字段或出现其他版本 MUST `unsupported_did_method`，不得自动选择外部规范的“最新版”。未来 method 版本只有在 Arkret 规范显式注册新的 adapter、profile 要求与 conformance vector 后才能使用。
   - `did:web` 是 `personal_node` profile 的可选 principal method，也是显式 no-history service profile 可用的 service method。它不是 v1 core 默认 service method，也不是 `did:webvh` outage fallback；outage 行为见 §3.4 cache-only degraded mode。
   - `did:key` 用于测试、bootstrap、一次性邀请、pairwise DID 和 registry outage 时的本地可验证身份材料。设备本身不是独立 DID 主体（其密钥是所属 principal DID 下的 verification method）；bootstrap 首台设备时的 inception key 属于 principal，不是设备的 DID。
 - AT Protocol interop（`did:plc` adapter）、wallet binding（`did:pkh`）、KERI 等 method 是 **interop extension profile**；core 实现 MAY 不支持，profile 化承载的好处是把仍在演进的子规范隔离在 core 互操作之外。
@@ -175,6 +175,8 @@ Arkret v1 core conformance 要求如下：
 - 与 Arkret signed-event chain 范式同构的"链式可验证"语义
 
 所有声称 v1 core principal_server / full_client / e2ee_client conformance 的实现 MUST 支持 `did:webvh` witness 验证、SCID 派生、entry hash chain 验证和 controller proof 验证。
+
+`ak.vector.identity.did_webvh_v1_adapter.v1` 与 `did-webvh-v1-fixture.json` 是上述精确版本选择的可执行证据：接受 `parameters.method=did:webvh:1.0`，并拒绝未知或缺失的 method 版本。
 
 `did:webvh` hosting domain 暂时不可达时 resolver MAY 进入 **cache-only degraded mode**——仅消费此前已验证并落入本地 cache 的 `did:webvh` DID Document、SCID、entry hash chain 与 controller proof,**MUST NOT** 通过 live HTTP 获取该 DID 当前的 `did:web` document 作为 principal 控制权依据(这等价于把信任根从 SCID-sealed history chain 降级到当前 DNS + TLS,正好落入 [`server-threat-model.md` §2](../security/server-threat-model.md) 所列服务端攻击面中的 DNS / TLS 单点失陷)。
 
@@ -209,7 +211,7 @@ Arkret v1 core conformance 要求如下：
 
 > **高保障 profile 加固（normative，profile-gated）**：`high_security_organization` 与 `sovereign_deployment` profile 的实现，对 key rotation、recovery、service delegation、membership change 等高风险操作所依据的 `did:webvh` cache entry / witness evidence，**MUST** 提供由 append-only Merkle transparency log 支撑的 witness，而非仅依赖离散 witness 签名；该 log-backed witness **MUST** 同时携带可被独立审计的 inclusion proof（证明该 entry 已纳入 log）与 consistency proof（证明 log 单调 append-only、历史未被改写），以抵抗 split-view、历史分叉与选择性披露攻击。上述任一证明缺失或验证不通过时，对应高风险操作 **MUST** fail closed。该要求是对上一条离散 witness 基线的 profile-gated 加固，仅作用于这两个高保障 profile；它**不改变** base v1（含 `small_team` / `organization` profile）的 witness 语义与强制要求，base v1 实现仍以"≥2 witness from distinct controlling org"的离散 witness 签名为准，**不要求**提供 log-backed witness。
 
-> **`ak.profile.key_transparency.v1` 覆盖范围（informative）**：上述 log-backed witness 覆盖 `did:webvh` cache entry / witness evidence；`ak.profile.key_transparency.v1` 进一步覆盖 principal control stream 内的 device key、cross-signing key 与 KeyPackage 发布，目标是检测"服务器对不同 verifier 出示不同 key 集合"的 key material split-view。该 profile 的最小映射为 principal label → cross-signing root + active device key set digest + KeyPackage publication digest；log 运营方与 auditor 角色可与 did:webvh witness 运营方合并。实现声明该 profile 后，目录解析、identity receipt 或 principal control projection 必须给 verifier 足够的 inclusion / consistency proof 来确认其看到的 key material 与 log head 一致；缺 proof 时，高风险 key material 使用路径 MUST fail closed。
+> **`ak.profile.key_transparency.v1` 覆盖范围（normative，profile-gated）**：上述 log-backed witness 覆盖 `did:webvh` cache entry / witness evidence；`ak.profile.key_transparency.v1` 进一步覆盖 principal control stream 内的 device key、cross-signing key 与 KeyPackage 发布，目标是检测“服务器对不同 verifier 出示不同 key 集合”的 key material split-view。该 profile 的最小映射为 principal label → cross-signing root + active device key set digest + KeyPackage publication digest；log 运营方与 auditor 角色可与 did:webvh witness 运营方合并。实现声明该 profile 后，目录解析、identity receipt 或 principal control projection MUST 给 verifier 提供符合 [`key-transparency.schema.json`](../../artifacts/schemas/key-transparency.schema.json)（`ak.schema.key_transparency.v1`）的 evidence，其中同时包含 log head、inclusion proof、从已信任旧 head 到当前 head 的 consistency proof，以及至少两个 distinct controlling organization 的 witness signatures。缺失或验证失败 MUST `key_transparency_proof_missing`，高风险 key material 使用路径 MUST fail closed。`ak.vector.identity.key_transparency_proofs.v1` 与 `key-transparency-fixture.json` 是该要求的可执行证据。
 >
 > **为什么 fallback 是 "cache-only" 而不是 "did:web 等价行为"**(rationale):允许 fallback "退化为 `did:web` 等价行为(仅当前状态)" 实际等于默许 resolver 在 hosting 不可达时切换到 live `did:web` resolve。攻击模型:hosting domain 在 `did:webvh` 的 SCID hash chain 之上叠加 DNS/TLS 控制，如果只在 unreachable 时退化为 `did:web` live,等于把信任根**主动**从 method-history-sealed 降级到 DNS+TLS 当前状态——攻击者可以**故意**让 hosting 短暂不可达(BGP / CDN / DNS hijack 都可触发),迫使 resolver 切换到攻击者控制的 live document。Cache-only mode 关闭这条降级路径:即使 hosting 不可达,resolver 也只能从此前已 sealed 的 evidence 读取，无新信任根可被攻击者注入。`did:web` 作为 principal method 仅由部署侧主动选择(`personal_node`),不是 outage fallback。
 

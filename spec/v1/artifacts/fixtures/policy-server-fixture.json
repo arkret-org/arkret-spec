@@ -1,4 +1,8 @@
 {
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::policy_server"
+  },
   "suite": "policy_server",
   "cases": [
     {

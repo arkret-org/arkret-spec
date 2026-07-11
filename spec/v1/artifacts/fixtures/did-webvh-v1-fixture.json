@@ -1,0 +1,61 @@
+{
+  "suite": "did_webvh_v1_adapter",
+  "profile": "ak.profile.identity_registry.v1",
+  "version": "2026-07-11",
+  "runner": {
+    "kind": "did_method_adapter_cases",
+    "method": "did:webvh:1.0",
+    "entrypoint": "cotest::conformance::did_webvh_v1"
+  },
+  "covers_vectors": [
+    "ak.vector.identity.did_webvh_v1_adapter.v1"
+  ],
+  "cases": [
+    {
+      "name": "accept_exact_v1_method",
+      "input": {
+        "parameters": {
+          "method": "did:webvh:1.0",
+          "scid": "z6mkfixture"
+        },
+        "state": {
+          "id": "did:webvh:z6mkfixture:alice.example"
+        }
+      },
+      "expected": {
+        "decision": "accept"
+      }
+    },
+    {
+      "name": "reject_unknown_method_version",
+      "input": {
+        "parameters": {
+          "method": "did:webvh:99.0",
+          "scid": "z6mkfixture"
+        },
+        "state": {
+          "id": "did:webvh:z6mkfixture:alice.example"
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "unsupported_did_method"
+      }
+    },
+    {
+      "name": "reject_missing_method_version",
+      "input": {
+        "parameters": {
+          "scid": "z6mkfixture"
+        },
+        "state": {
+          "id": "did:webvh:z6mkfixture:alice.example"
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "unsupported_did_method"
+      }
+    }
+  ]
+}

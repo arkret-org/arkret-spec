@@ -9,7 +9,9 @@
   },
   "covers_vectors": [
     "ak.vector.scalability.refs_limit.v1",
-    "ak.vector.scalability.circle_count_limit.v1"
+    "ak.vector.scalability.circle_count_limit.v1",
+    "ak.vector.scalability.envelope_size_limit.v1",
+    "ak.vector.scalability.http_header_limits.v1"
   ],
   "cases": [
     {
@@ -37,6 +39,67 @@
         "reason_code": "refs_too_large",
         "limit": "refs <= 128",
         "must_not_enter_reducer": true
+      }
+    },
+    {
+      "name": "accept_envelope_at_one_mib",
+      "vector_id": "ak.vector.scalability.envelope_size_limit.v1",
+      "input": {
+        "generator": {
+          "kind": "canonical_operation_envelope_bytes",
+          "encoded_size_bytes": 1048576
+        }
+      },
+      "expected": {
+        "decision": "accept",
+        "limit": "canonical envelope <= 1048576 bytes"
+      }
+    },
+    {
+      "name": "reject_envelope_over_one_mib",
+      "vector_id": "ak.vector.scalability.envelope_size_limit.v1",
+      "input": {
+        "generator": {
+          "kind": "canonical_operation_envelope_bytes",
+          "encoded_size_bytes": 1048577
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "payload_too_large",
+        "limit": "canonical envelope <= 1048576 bytes",
+        "must_not_enter_reducer": true
+      }
+    },
+    {
+      "name": "reject_idempotency_key_over_128_chars",
+      "vector_id": "ak.vector.scalability.http_header_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "http_header",
+          "name": "Idempotency-Key",
+          "ascii_char_count": 129
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "invalid_param",
+        "must_not_allocate_replay_cache_entry": true
+      }
+    },
+    {
+      "name": "reject_http_header_aggregate_over_32_kib",
+      "vector_id": "ak.vector.scalability.http_header_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "http_header_aggregate",
+          "encoded_size_bytes": 32769
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "payload_too_large",
+        "must_not_build_signature_transcript": true
       }
     },
     {

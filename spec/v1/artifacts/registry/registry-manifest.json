@@ -184,6 +184,14 @@
       "description": "Canonical endpoint -> operation-specific error code map. Layered on top of the universal failure surface (auth / schema / rate-limit / internal). Cross-linked from zh/sync/service-http-binding.md §2.3."
     },
     {
+      "name": "operation_clauses",
+      "file": "registry/operation-clause-registry.json",
+      "kind": "operation_clause_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Selector-based normative clause and evidence closure for profile operation conformance certification."
+    },
+    {
       "name": "profiles_dependency_graph",
       "file": "registry/profiles-dependency-graph.json",
       "kind": "profiles_dependency_graph",

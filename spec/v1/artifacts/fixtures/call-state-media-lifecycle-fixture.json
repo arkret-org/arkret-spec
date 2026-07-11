@@ -2,7 +2,10 @@
   "profile": "ak.profile.media_service_binding.v1",
   "version": "2026-06-19",
   "suite": "call_state_media_lifecycle",
-  "runner": "cotest::conformance::call_state_media_lifecycle",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::call_state_media_lifecycle"
+  },
   "covers_vectors": [
     "ak.vector.call_state.recording_retention_lock.v1",
     "ak.vector.call_state.recording_result_artifact_shape.v1",

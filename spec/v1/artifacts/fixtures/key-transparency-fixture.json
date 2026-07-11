@@ -1,0 +1,102 @@
+{
+  "suite": "key_transparency",
+  "profile": "ak.profile.key_transparency.v1",
+  "version": "2026-07-11",
+  "runner": {
+    "kind": "json_schema_and_semantic_cases",
+    "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "schema_assertion_fields": [
+      "schema_ref",
+      "expect_valid",
+      "instance"
+    ],
+    "semantic_assertion_fields": [
+      "semantic_outcome",
+      "expected_reason_code"
+    ]
+  },
+  "covers_vectors": [
+    "ak.vector.identity.key_transparency_proofs.v1"
+  ],
+  "schema_validation_cases": [
+    {
+      "name": "log_backed_witness_evidence_valid",
+      "schema_ref": "schemas/key-transparency.schema.json",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "schema": "ak.schema.key_transparency.v1",
+        "log_service_did": "did:webvh:z6mkfixture:transparency.example",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
+        "key_material_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "log_head": {
+          "tree_size": 8,
+          "root_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "issued_at": "2026-07-11T00:00:00Z"
+        },
+        "inclusion_proof": {
+          "leaf_index": 7,
+          "tree_size": 8,
+          "audit_path": [
+            "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          ]
+        },
+        "consistency_proof": {
+          "from_tree_size": 4,
+          "to_tree_size": 8,
+          "audit_path": [
+            "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+          ]
+        },
+        "witness_signatures": [
+          {
+            "witness_did": "did:webvh:z6mkfixture:witness-a.example",
+            "verification_method": "did:webvh:z6mkfixture:witness-a.example#key-1",
+            "signature": "signature-placeholder-a"
+          },
+          {
+            "witness_did": "did:webvh:z6mkfixture:witness-b.example",
+            "verification_method": "did:webvh:z6mkfixture:witness-b.example#key-1",
+            "signature": "signature-placeholder-b"
+          }
+        ]
+      }
+    },
+    {
+      "name": "missing_consistency_proof_rejected",
+      "schema_ref": "schemas/key-transparency.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$: 'consistency_proof' is a required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "key_transparency_proof_missing",
+      "instance": {
+        "schema": "ak.schema.key_transparency.v1",
+        "log_service_did": "did:webvh:z6mkfixture:transparency.example",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
+        "key_material_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "log_head": {
+          "tree_size": 8,
+          "root_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "issued_at": "2026-07-11T00:00:00Z"
+        },
+        "inclusion_proof": {
+          "leaf_index": 7,
+          "tree_size": 8,
+          "audit_path": []
+        },
+        "witness_signatures": [
+          {
+            "witness_did": "did:webvh:z6mkfixture:witness-a.example",
+            "verification_method": "did:webvh:z6mkfixture:witness-a.example#key-1",
+            "signature": "signature-placeholder-a"
+          },
+          {
+            "witness_did": "did:webvh:z6mkfixture:witness-b.example",
+            "verification_method": "did:webvh:z6mkfixture:witness-b.example#key-1",
+            "signature": "signature-placeholder-b"
+          }
+        ]
+      }
+    }
+  ]
+}

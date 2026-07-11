@@ -1218,6 +1218,48 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     operation_path,
                     f"{operation_id} is a write operation and must declare retry_safe as a boolean",
                 )
+            uncertain_outcome = row.get("uncertain_outcome")
+            if idempotency_mechanism == "none" and retry_safe is False:
+                if not isinstance(uncertain_outcome, dict):
+                    lint.fail(
+                        operation_path,
+                        f"{operation_id} uses none/false and must declare uncertain_outcome",
+                    )
+                else:
+                    strategy = uncertain_outcome.get("strategy")
+                    allowed_strategies = {
+                        "query_operation",
+                        "reissue_material",
+                        "manual_confirmation",
+                        "drop_unconfirmed",
+                    }
+                    if strategy not in allowed_strategies:
+                        lint.fail(
+                            operation_path,
+                            f"{operation_id} uncertain_outcome.strategy must be one of {sorted(allowed_strategies)}",
+                        )
+                    recovery_operation = uncertain_outcome.get("operation_id")
+                    if strategy in {"query_operation", "reissue_material"}:
+                        if recovery_operation not in operation_ids:
+                            lint.fail(
+                                operation_path,
+                                f"{operation_id} uncertain_outcome references unknown operation {recovery_operation!r}",
+                            )
+                    elif "operation_id" in uncertain_outcome:
+                        lint.fail(
+                            operation_path,
+                            f"{operation_id} uncertain_outcome strategy {strategy!r} must not declare operation_id",
+                        )
+                    if strategy == "reissue_material" and uncertain_outcome.get("requires_fresh_request_identity") is not True:
+                        lint.fail(
+                            operation_path,
+                            f"{operation_id} reissue_material must require a fresh request identity",
+                        )
+            elif uncertain_outcome is not None:
+                lint.fail(
+                    operation_path,
+                    f"{operation_id} may declare uncertain_outcome only for idempotency_mechanism=none and retry_safe=false",
+                )
         else:
             if "idempotency_mechanism" in row or "retry_safe" in row:
                 lint.fail(
@@ -1398,7 +1440,12 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
         return
 
     declared_profiles: set[str] = set()
-    for key in ("implementation_profiles", "deployment_profiles", "hardening_profiles"):
+    for key in (
+        "implementation_profiles",
+        "identity_extension_profiles",
+        "deployment_profiles",
+        "hardening_profiles",
+    ):
         values = data.get(key, [])
         if isinstance(values, list):
             declared_profiles.update(item for item in values if isinstance(item, str) and item.startswith("ak.profile."))
@@ -1520,6 +1567,126 @@ def check_sdk_conformance_contract(lint: Lint) -> None:
     expected_ids = {f"AK-SDK-{index:03d}" for index in range(1, 15)}
     if seen != expected_ids:
         lint.fail(path, "sdk_conformance_contract must define exactly AK-SDK-001 through AK-SDK-014")
+
+    schema_path = ARTIFACTS / "schemas" / "sdk-conformance-claim.schema.json"
+    fixture_path = ARTIFACTS / "fixtures" / "sdk-conformance-claim-fixture.json"
+    if not schema_path.is_file():
+        lint.fail(path, "sdk_conformance_contract requires schemas/sdk-conformance-claim.schema.json")
+    if not fixture_path.is_file():
+        lint.fail(path, "sdk_conformance_contract requires fixtures/sdk-conformance-claim-fixture.json")
+    schema_registry = load_json(lint, ARTIFACTS / "registry" / "schema-registry.json")
+    registered_schema_ids = {
+        row.get("schema_id")
+        for row in schema_registry.get("schemas", [])
+        if isinstance(row, dict)
+    } if isinstance(schema_registry, dict) else set()
+    if "ak.schema.sdk_conformance_claim.v1" not in registered_schema_ids:
+        lint.fail(path, "sdk conformance claim schema is not registered")
+
+
+def check_fixture_runner_contract(lint: Lint) -> None:
+    fixture_root = ARTIFACTS / "fixtures"
+    for path in sorted(fixture_root.glob("*.json")):
+        data = load_json(lint, path)
+        if not isinstance(data, dict):
+            continue
+        runner = data.get("runner")
+        if not isinstance(runner, dict):
+            lint.fail(path, "top-level runner must be an object with runner.kind")
+            continue
+        kind = runner.get("kind")
+        if not isinstance(kind, str) or not kind:
+            lint.fail(path, "top-level runner.kind must be a non-empty string")
+            continue
+        if kind == "named_suite":
+            entrypoint = runner.get("entrypoint")
+            if not isinstance(entrypoint, str) or not entrypoint:
+                lint.fail(path, "runner.kind=named_suite requires a non-empty entrypoint")
+
+
+def check_operation_clause_registry(lint: Lint) -> None:
+    clause_path = ARTIFACTS / "registry" / "operation-clause-registry.json"
+    operation_path = ARTIFACTS / "registry" / "operation-registry.json"
+    clause_data = load_json(lint, clause_path)
+    operation_data = load_json(lint, operation_path)
+    if not isinstance(clause_data, dict) or not isinstance(operation_data, dict):
+        return
+    clauses = clause_data.get("clauses")
+    operations = operation_data.get("operations")
+    if not isinstance(clauses, list) or not clauses:
+        lint.fail(clause_path, "operation clause registry must contain clauses")
+        return
+    if not isinstance(operations, list):
+        return
+
+    allowed_selectors = {
+        "all_operations",
+        "openapi_protected_operations",
+        "write_operations",
+        "http_operations",
+        "stream_operations",
+        "partial_outcome_operations",
+        "privacy_sensitive_operations",
+    }
+    selectors_by_clause: dict[str, str] = {}
+    seen: set[str] = set()
+    for index, clause in enumerate(clauses):
+        label = f"clauses[{index}]"
+        if not isinstance(clause, dict):
+            lint.fail(clause_path, f"{label} must be an object")
+            continue
+        clause_id = clause.get("clause_id")
+        if not isinstance(clause_id, str) or not re.fullmatch(r"AK-OP-[0-9]{3}", clause_id):
+            lint.fail(clause_path, f"{label}.clause_id must be AK-OP-NNN")
+            continue
+        if clause_id in seen:
+            lint.fail(clause_path, f"duplicate operation clause {clause_id}")
+        seen.add(clause_id)
+        selector = clause.get("selector")
+        selector_kind = selector.get("kind") if isinstance(selector, dict) else None
+        if selector_kind not in allowed_selectors:
+            lint.fail(clause_path, f"{clause_id} has unknown selector kind {selector_kind!r}")
+            continue
+        selectors_by_clause[clause_id] = selector_kind
+        evidence = clause.get("required_evidence")
+        if not isinstance(evidence, list) or not evidence or any(not isinstance(item, str) or not item for item in evidence):
+            lint.fail(clause_path, f"{clause_id}.required_evidence must be a non-empty string list")
+        refs = clause.get("source_refs")
+        if not isinstance(refs, list) or not refs:
+            lint.fail(clause_path, f"{clause_id}.source_refs must be non-empty")
+        else:
+            for ref in refs:
+                if not isinstance(ref, str) or not ref.startswith("spec/v1/"):
+                    lint.fail(clause_path, f"{clause_id} has invalid source ref {ref!r}")
+                    continue
+                relative = ref.split("#", 1)[0].removeprefix("spec/v1/")
+                if not (SPEC_ROOT / relative).is_file():
+                    lint.fail(clause_path, f"{clause_id} source ref does not exist: {ref}")
+
+    required_clause_ids = {f"AK-OP-{index:03d}" for index in range(1, 9)}
+    if seen != required_clause_ids:
+        lint.fail(clause_path, "operation clause registry must define exactly AK-OP-001 through AK-OP-008")
+
+    for row in operations:
+        if not isinstance(row, dict):
+            continue
+        operation_id = row.get("operation_id")
+        if not isinstance(operation_id, str):
+            continue
+        segments = operation_id.split(".")
+        op_kind = segments[-2] if len(segments) >= 2 else ""
+        op_action = segments[-1] if segments else ""
+        is_write = op_kind in {"command", "upload", "exchange"} or (
+            op_kind == "resource" and op_action in {"replace", "delete"}
+        )
+        required = {"AK-OP-001", "AK-OP-004", "AK-OP-005"}
+        if is_write:
+            required.add("AK-OP-003")
+        if op_kind == "stream":
+            required.add("AK-OP-006")
+        missing = required - seen
+        if missing:
+            lint.fail(clause_path, f"{operation_id} lacks required clause coverage {sorted(missing)}")
 
 
 def check_vector_group_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
@@ -5305,6 +5472,7 @@ def main() -> int:
     check_schema_refs(lint, known)
     check_profile_requirements(lint, known)
     check_sdk_conformance_contract(lint)
+    check_operation_clause_registry(lint)
     check_vector_group_requirements(lint, known)
     check_event_schema_coverage(lint, known)
     check_openapi_schema_component_order(lint)
@@ -5335,6 +5503,7 @@ def main() -> int:
     check_vector_reference_closure(lint)
     check_security_closure_vectors(lint)
     check_fixtures(lint, known)
+    check_fixture_runner_contract(lint)
     check_crypto_signature_fixture(lint)
     check_markdown_links(lint)
     check_no_rule_marker_emoji(lint)

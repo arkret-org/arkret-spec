@@ -1,4 +1,8 @@
 {
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "arkret-rust-sdk::core::reaction_fixture"
+  },
   "suite": "reaction",
   "profile": "ak.vector_group.reaction.v1",
   "version": "2026-05-08",

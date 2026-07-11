@@ -1,4 +1,8 @@
 {
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::capability"
+  },
   "profile": "ak.vector_group.capability.v1",
   "version": "2026-05-02",
   "fixtures": [

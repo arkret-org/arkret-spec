@@ -2,7 +2,10 @@
   "profile": "ak.profile.mls_governance_binding.full.v1",
   "version": "2026-06-19",
   "suite": "keypackage_lifecycle",
-  "runner": "cotest::conformance::keypackage_lifecycle",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::keypackage_lifecycle"
+  },
   "covers_vectors": [
     "ak.vector.keypackage.exhaustion_claim_limits.v1",
     "ak.vector.keypackage.last_resort_claim_and_reuse.v1",

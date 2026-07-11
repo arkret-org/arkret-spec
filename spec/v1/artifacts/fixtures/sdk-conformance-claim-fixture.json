@@ -1,0 +1,105 @@
+{
+  "suite": "sdk_conformance_claim",
+  "profile": "ak.vector_group.schema_validation.v1",
+  "version": "2026-07-11",
+  "runner": {
+    "kind": "json_schema_and_semantic_cases",
+    "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "schema_assertion_fields": [
+      "schema_ref",
+      "expect_valid",
+      "instance"
+    ],
+    "semantic_assertion_fields": [
+      "semantic_outcome",
+      "expected_reason_code"
+    ]
+  },
+  "covers_vectors": [
+    "ak.vector.sdk_conformance.claim_validation.v1"
+  ],
+  "schema_validation_cases": [
+    {
+      "name": "valid_sdk_clause_claim",
+      "schema_ref": "schemas/sdk-conformance-claim.schema.json",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "sdk_name": "arkret-rust-sdk",
+        "sdk_version": "1.0.0",
+        "spec_revision": "0000000000000000000000000000000000000000",
+        "contract_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "clause_claims": [
+          {
+            "clause_id": "AK-SDK-001",
+            "result": "pass",
+            "evidence": [
+              {
+                "kind": "vector_result",
+                "ref": "ci://arkret-rust-sdk/run/1",
+                "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "not_applicable_without_rationale_rejected",
+      "schema_ref": "schemas/sdk-conformance-claim.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.clause_claims[0]: 'rationale' is a required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "sdk_name": "arkret-rust-sdk",
+        "sdk_version": "1.0.0",
+        "spec_revision": "0000000000000000000000000000000000000000",
+        "contract_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "clause_claims": [
+          {
+            "clause_id": "AK-SDK-005",
+            "result": "not_applicable",
+            "evidence": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "duplicate_clause_id_semantic_rejected",
+      "schema_ref": "schemas/sdk-conformance-claim.schema.json",
+      "expect_valid": true,
+      "schema_only_valid": true,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "duplicate_clause_claim",
+      "instance": {
+        "sdk_name": "arkret-rust-sdk",
+        "sdk_version": "1.0.0",
+        "spec_revision": "0000000000000000000000000000000000000000",
+        "contract_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "clause_claims": [
+          {
+            "clause_id": "AK-SDK-001",
+            "result": "pass",
+            "evidence": [
+              {
+                "kind": "vector_result",
+                "ref": "ci://arkret-rust-sdk/run/1"
+              }
+            ]
+          },
+          {
+            "clause_id": "AK-SDK-001",
+            "result": "pass",
+            "evidence": [
+              {
+                "kind": "code_audit",
+                "ref": "audit://arkret-rust-sdk/1"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

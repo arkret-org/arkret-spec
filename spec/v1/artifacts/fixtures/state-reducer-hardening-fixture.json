@@ -2,7 +2,10 @@
   "profile": "ak.vector_group.cba_lattice.v1",
   "version": "2026-06-19",
   "suite": "state_reducer_hardening",
-  "runner": "cotest::conformance::state_reducer_hardening",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::state_reducer_hardening"
+  },
   "covers_vectors": [
     "ak.vector.state_root.incremental.v1",
     "ak.vector.strand_tracks_update.atomic.v1"

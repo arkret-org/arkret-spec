@@ -2,7 +2,10 @@
   "profile": "ak.profile.agent_sidecar_thread.v1",
   "version": "2026-06-19",
   "suite": "sidecar_vectors",
-  "runner": "cotest::conformance::sidecar_vectors",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::sidecar_vectors"
+  },
   "covers_vectors": [
     "ak.vector.sidecar.ensure_idempotent.v1",
     "ak.vector.sidecar.eligibility_states.v1",
