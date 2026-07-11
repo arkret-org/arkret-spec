@@ -3840,6 +3840,14 @@
       "description": "A ak.member.state Move requests a membership FSM transition that is not listed as legal for the member's current state. Reducers MUST reject the Move with failed_precondition. See zh/models/realm-and-space.md \u00a72.7."
     },
     {
+      "code": "controller_membership_ended",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "Canonical reason written on reducer-generated ak.member.state transitions that move an active Native Personal Agent from join to leave because its verified controller left or was banned from the same Realm. The cascade MUST also drive Circle membership, delivery, and MLS removal convergence and MUST NOT automatically rejoin the agent if the controller later rejoins. See zh/models/actor.md \u00a73.2 and zh/models/realm-and-space.md \u00a72.7."
+    },
+    {
       "code": "share_commitment_mismatch",
       "applies_to": [
         "crypto",
