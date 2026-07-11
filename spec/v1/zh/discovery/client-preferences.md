@@ -30,6 +30,10 @@ updated: 2026-07-02
 
 **Account-data namespace key（normative）**：需要从私有对象引用、集合名、搜索索引 shard 或其它敏感输入派生 account-data key 片段时，producer MUST 使用同一 principal 的 `account_data_namespace_key`。该密钥是 client-local `secret_storage` 域材料，存储于 `secret_storage/account_data_namespace/v1` 子域，并按 [`../identity/key-management.md` §7.1](../identity/key-management.md) / §7.10 进入备份与轮换流程；服务端、Directory、Search 或 relay MUST NOT 看到该密钥。标准派生 primitive 为 `derive_account_data_key(input) = base64url(HMAC-SHA256(account_data_namespace_key, input))`，其中 `input` MUST 是 canonical JSON、typed id 或本规范逐项定义的规范化字节串。不同 principal 的 namespace key MUST 独立；namespace key 轮换后，客户端 MUST 以新的 account-data key 重写对应 encrypted value，并在同一更新事务中 tombstone 旧 key 或保留只读迁移索引，避免把同一私有对象长期映射到两个可链接 key。
 
+**Account-data value encryption（normative）**：registry 中 `storage="encrypted_account_data"` 的 value MUST 使用 `ak.schema.account_data_encrypted_value.v1`，不得使用摘要、固定字符串或其它不可解密占位符冒充 ciphertext。该 envelope 使用 `ak.aead.xchacha20_poly1305.v1`；每次写入 MUST 产生新的 24-byte 随机 nonce。AEAD key 由同一 principal 的 32-byte account secret 通过 HKDF-SHA256 派生，salt=`arkret-account-data-value-hkdf-v1`，info=`canonical_json({schema:"ak.schema.account_data_encrypted_value.v1",actor_id,data_type})`。account secret 属于 `secret_storage` 域，MUST 进入 §7 key-backup / recovery 生命周期；不同 principal 或不同 `data_type` 的派生 key MUST 域隔离。
+
+AEAD AAD 是 envelope `aad` 的 canonical JSON；`aad` MUST 精确包含 `actor_id`、`data_type`、`schema` 与 `version`。`aad_digest` 是该 canonical JSON 的 `sha256:` digest，`ciphertext_digest` 是解码后 ciphertext bytes 的 `sha256:` digest。consumer MUST 在解密前验证闭合 schema、AAD 的 actor/path data type 绑定以及两个 digest；任一不匹配都 MUST fail closed，且不得用失败结果覆盖本地已验证状态。Sync/Principal Server MAY 重算 digest 和验证 envelope 结构，但 MUST NOT 获得 account secret、派生 key 或明文。
+
 ```json
 {
   "kind": "ak.account_data.set",
