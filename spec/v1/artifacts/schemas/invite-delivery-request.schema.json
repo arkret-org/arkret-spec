@@ -58,14 +58,14 @@
       "type": "object",
       "required": [
         "subject_id",
-        "recipient_service_did"
+        "recipient_service_id"
       ],
       "properties": {
         "subject_id": {
           "$ref": "#/$defs/did",
           "description": "Principal DID of the invite recipient. v1 core defaults principal DIDs to did:webvh; did:web is only valid for principal identity when an explicit deployment profile or resolver policy allows it."
         },
-        "recipient_service_did": {
+        "recipient_service_id": {
           "$ref": "#/$defs/did",
           "description": "Principal Server service DID that accepts invite delivery for subject_id."
         },
@@ -79,10 +79,10 @@
     "invite_delivery_target": {
       "type": "object",
       "required": [
-        "recipient_service_did"
+        "recipient_service_id"
       ],
       "properties": {
-        "recipient_service_did": {
+        "recipient_service_id": {
           "$ref": "#/$defs/did"
         },
         "recipient_service_type": {
@@ -198,7 +198,7 @@
         },
         "member_delivery_binding_candidate": {
           "$ref": "./member-delivery-binding-candidate.schema.json",
-          "description": "Optional builder evidence returned by a Directory or trusted issuer for intent=invite. When present, verifiers MUST check subject_id, handle, recipient_service_did, audience, issuer_service_did, expiry and proofs against this delivery."
+          "description": "Optional builder evidence returned by a Directory or trusted issuer for intent=invite. When present, verifiers MUST check subject_id, handle, recipient_service_id, audience, issuer_service_id, expiry and proofs against this delivery."
         },
         "resolved_by": {
           "$ref": "#/$defs/did",

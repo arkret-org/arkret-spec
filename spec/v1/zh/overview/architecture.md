@@ -121,7 +121,7 @@ Principal Server 不是身份本身，也不能替 principal 伪造 Event，**�
 - 非 E2EE / 非内容加密的私有内容 MUST NOT 提交给未被发送方、接收方或 Realm policy 明确委托的第三方服务。
 - 如果 Realm 声明了 shared notary / Sync Service，该服务必须是 Realm policy 中显式列出的受信 Principal Server 或组织服务 DID。
 - 客户端在发送非加密内容前 MUST 校验目标服务器是否属于本 principal 控制、对方 principal 控制，或 Realm policy 明确委托。
-- Realm 内成员的投递目标由该成员的 effective `delivery_binding.recipient_service_did` 决定；DID Document 中的默认 Principal Server 只可在 join / rebind 时作为 Realm policy 明确允许的 `did_document_default` 物化来源，binding accepted 之后 MUST NOT 再作为投递 fallback。组织 Principal Server 上存在同一 DID 的内部账号，MUST NOT 自动获得该 DID 的其它 Realm 或个人上下文投递权。
+- Realm 内成员的投递目标由该成员的 effective `delivery_binding.recipient_service_id` 决定；DID Document 中的默认 Principal Server 只可在 join / rebind 时作为 Realm policy 明确允许的 `did_document_default` 物化来源，binding accepted 之后 MUST NOT 再作为投递 fallback。组织 Principal Server 上存在同一 DID 的内部账号，MUST NOT 自动获得该 DID 的其它 Realm 或个人上下文投递权。
 - 凡会接收或保存私有正文、附件预览、全文索引、通知摘要、embedding、可逆派生摘要的服务，都必须在 Realm policy 中声明为 `plaintext_visible_services`。
 - `plaintext_visible_services` 条目 MUST 声明机器可校验的 `data_classes[]`（例如 `message_content`、`attachment_preview`、`full_text_index`、`embedding`、`notification_summary`、`media_plaintext`）和 `visibility`；自由文本 `purposes` 只用于解释，MUST NOT 单独作为明文授权依据。
 - 修改 `plaintext_visible_services` 的事件必须经 `ak.realm.plaintext_visible_services` 授权；普通 `ak.realm.update` 或服务自声明 MUST NOT 隐式扩大明文可见边界。

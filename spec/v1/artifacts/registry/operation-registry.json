@@ -376,7 +376,6 @@
         "ak.gate.account.command.pair_agent_key",
         "ak.self.agent.command.provision",
         "ak.self.agent.query.list",
-        "ak.self.agent.protocol.query.discover",
         "ak.self.agent.resource.get",
         "ak.self.agent.command.pause",
         "ak.self.agent.command.resume",
@@ -560,18 +559,8 @@
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_list"
     },
     {
-      "operation_id": "ak.self.agent.protocol.query.discover",
-      "http": "POST /_arkret/self/agents/discover",
-      "grpc": "SelfAgent/ProtocolDiscover",
-      "mq": "self.agent.protocol.query.discover",
-      "notes": "Probe the public ak.agent.endpoint registry for an agent's declared external protocol endpoints; returns the projection of an accepted ak.agent.endpoint event (no controller-private fields). Authorized by the ak.agent.protocol.discover capability action (profile ak.profile.agent_runtime.v1). See agent-protocol-interop.md §5.1 / §11 / §12.",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_outcome"
-    },
-    {
       "operation_id": "ak.self.agent.resource.get",
-      "http": "GET /_arkret/self/agents/{agent_principal_id}",
+      "http": "GET /_arkret/self/agents/{agent_id}",
       "grpc": "SelfAgent/Get",
       "mq": "self.agent.resource.get",
       "success_shape_kind": "typed_response",
@@ -579,7 +568,7 @@
     },
     {
       "operation_id": "ak.self.agent.command.pause",
-      "http": "POST /_arkret/self/agents/{agent_principal_id}/pause",
+      "http": "POST /_arkret/self/agents/{agent_id}/pause",
       "grpc": "SelfAgent/Pause",
       "mq": "self.agent.command.pause",
       "success_shape_kind": "typed_response",
@@ -590,7 +579,7 @@
     },
     {
       "operation_id": "ak.self.agent.command.resume",
-      "http": "POST /_arkret/self/agents/{agent_principal_id}/resume",
+      "http": "POST /_arkret/self/agents/{agent_id}/resume",
       "grpc": "SelfAgent/Resume",
       "mq": "self.agent.command.resume",
       "success_shape_kind": "typed_response",
@@ -601,7 +590,7 @@
     },
     {
       "operation_id": "ak.self.agent.command.deactivate",
-      "http": "POST /_arkret/self/agents/{agent_principal_id}/deactivate",
+      "http": "POST /_arkret/self/agents/{agent_id}/deactivate",
       "grpc": "SelfAgent/Deactivate",
       "mq": "self.agent.command.deactivate",
       "success_shape_kind": "typed_response",
@@ -612,7 +601,7 @@
     },
     {
       "operation_id": "ak.self.agent.command.rotate_key",
-      "http": "POST /_arkret/self/agents/{agent_principal_id}/rotate-key",
+      "http": "POST /_arkret/self/agents/{agent_id}/rotate-key",
       "grpc": "SelfAgent/RotateKey",
       "mq": "self.agent.command.rotate_key",
       "success_shape_kind": "typed_response",
@@ -627,7 +616,7 @@
     },
     {
       "operation_id": "ak.self.agent.grant.command.attach",
-      "http": "POST /_arkret/self/agents/{agent_principal_id}/grants",
+      "http": "POST /_arkret/self/agents/{agent_id}/grants",
       "grpc": "SelfAgent/GrantAttach",
       "mq": "self.agent.grant.command.attach",
       "success_shape_kind": "typed_response",
@@ -642,7 +631,7 @@
     },
     {
       "operation_id": "ak.self.agent.grant.resource.delete",
-      "http": "DELETE /_arkret/self/agents/{agent_principal_id}/grants/{grant_id}",
+      "http": "DELETE /_arkret/self/agents/{agent_id}/grants/{grant_id}",
       "grpc": "SelfAgent/GrantDetach",
       "mq": "self.agent.grant.resource.delete",
       "success_shape_kind": "typed_response",
@@ -663,7 +652,7 @@
     },
     {
       "operation_id": "ak.self.agent.participation.resource.replace",
-      "http": "PUT /_arkret/self/agents/{agent_principal_id}/participation",
+      "http": "PUT /_arkret/self/agents/{agent_id}/participation",
       "grpc": "SelfAgent/ParticipationReplace",
       "mq": "self.agent.participation.resource.replace",
       "success_shape_kind": "typed_response",
@@ -674,7 +663,7 @@
     },
     {
       "operation_id": "ak.self.agent.participation.resource.get",
-      "http": "GET /_arkret/self/agents/{agent_principal_id}/participation",
+      "http": "GET /_arkret/self/agents/{agent_id}/participation",
       "grpc": "SelfAgent/ParticipationGet",
       "mq": "self.agent.participation.resource.get",
       "success_shape_kind": "typed_response",
@@ -814,8 +803,8 @@
             "@target-uri",
             "@authority",
             "content-digest",
-            "source-service-did",
-            "destination-service-did",
+            "source-service-id",
+            "destination-service-id",
             "idempotency-key"
           ],
           "freshness": {
@@ -825,14 +814,14 @@
           "source_signature_anchor": {
             "audit_field": "source_signature_anchor",
             "request_body_field": false,
-            "node_to_applet": "Source-Service-DID current service DID verification method; Destination-Service-DID MUST equal the Applet registration service_did.",
-            "applet_to_arkret_inbound": "Applet registration webhook_auth.key_ref; DID part MUST equal Source-Service-DID and the active effective install service_did."
+            "node_to_applet": "Source-Service-ID current service DID verification method; Destination-Service-ID MUST equal the Applet registration service_id.",
+            "applet_to_arkret_inbound": "Applet registration webhook_auth.key_ref; DID part MUST equal Source-Service-ID and the active effective install service_id."
           },
           "idempotency_identity_fields": [
             "operation_id",
             "direction",
-            "Source-Service-DID",
-            "Destination-Service-DID",
+            "Source-Service-ID",
+            "Destination-Service-ID",
             "Idempotency-Key"
           ],
           "replay_cached_fields": [
@@ -1363,7 +1352,7 @@
       "http": "POST /_arkret/self/events",
       "grpc": "SelfEvents/Submit",
       "mq": "self.events.command.submit",
-      "notes": "Durable self event submission, including ak.invite.claim. For ak.invite.claim, the receiving Realm reducer is the authoritative state machine: it MUST match token_commitment, re-check verification_service_did allowlist against current Realm policy, reject claim_nonce replay, perform pending -> claimed / membership-proposal effects, and run expiry cleanup before accepting.",
+      "notes": "Durable self event submission, including ak.invite.claim. For ak.invite.claim, the receiving Realm reducer is the authoritative state machine: it MUST match token_commitment, re-check verification_service_id allowlist against current Realm policy, reject claim_nonce replay, perform pending -> claimed / membership-proposal effects, and run expiry cleanup before accepting.",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "protocol_sequence",
       "retry_safe": true,
@@ -1433,7 +1422,7 @@
       "http": "POST /_arkret/peer/invites",
       "grpc": "PeerInvites/Submit",
       "mq": "peer.invites.command.submit",
-      "notes": "Private Principal Server to Principal Server invite delivery. Requires service-to-service authentication, Destination-Service-DID equal to invite_address.recipient_service_did, a ak.invite.create event whose invitee equals invite_address.subject_id, and introduction_evidence accepted by the recipient invite_receive_policy.",
+      "notes": "Private Principal Server to Principal Server invite delivery. Requires service-to-service authentication, Destination-Service-ID equal to invite_address.recipient_service_id, a ak.invite.create event whose invitee equals invite_address.subject_id, and introduction_evidence accepted by the recipient invite_receive_policy.",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
@@ -1445,7 +1434,7 @@
       "http": "POST /_arkret/peer/contacts",
       "grpc": "PeerContacts/Submit",
       "mq": "peer.contacts.command.submit",
-      "notes": "Private Principal Server to Principal Server contact fact delivery. Requires service-to-service authentication, Destination-Service-DID equal to contact_address.recipient_service_did, and a signed ak.contact.* envelope the recipient projects into the target holder's contact projection without re-signing.",
+      "notes": "Private Principal Server to Principal Server contact fact delivery. Requires service-to-service authentication, Destination-Service-ID equal to contact_address.recipient_service_id, and a signed ak.contact.* envelope the recipient projects into the target holder's contact projection without re-signing.",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
@@ -1789,7 +1778,7 @@
       "http": "POST /_arkret/open/agent-pairing/runtime-key-requests/status",
       "grpc": "OpenAgentPairing/RuntimeKeyRequestStatus",
       "mq": "open.agent_pairing.query.runtime_key_request_status",
-      "notes": "Runtime-side poll for the controller decision on a previously submitted runtime key request. The pairing_request_id + pairing_code + agent_principal_id triple is the query credential and MUST be sent in the JSON body, never in URL path or query string; a record miss and a pairing_code or agent_principal_id mismatch MUST be indistinguishable (both not_found). Once approved, the outcome carries authorized_event_ref plus the authorized key binding; the runtime MUST compare authorized_public_key_digest against its own key and treat a mismatch as paired-by-another-runtime.",
+      "notes": "Runtime-side poll for the controller decision on a previously submitted runtime key request. The pairing_request_id + pairing_code + agent_id triple is the query credential and MUST be sent in the JSON body, never in URL path or query string; a record miss and a pairing_code or agent_id mismatch MUST be indistinguishable (both not_found). Once approved, the outcome carries authorized_event_ref plus the authorized key binding; the runtime MUST compare authorized_public_key_digest against its own key and treat a mismatch as paired-by-another-runtime.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome"

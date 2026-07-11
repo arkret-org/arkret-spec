@@ -175,7 +175,7 @@
         ],
         "same_timing_class": "directory_hidden_not_found",
         "must_not_include": [
-          "agent_principal_id",
+          "agent_id",
           "controller_subject",
           "binding_state",
           "endpoint",
@@ -264,13 +264,13 @@
       "name": "plaintext_visible_service_required_for_private_body_processing",
       "operation_id": "ak.self.events.command.submit",
       "input": {
-        "service_did": "did:webvh:z6mkfixture:search.example",
+        "service_id": "did:webvh:z6mkfixture:search.example",
         "event_kind": "ak.message.create",
         "content_class": "private_plaintext",
         "realm_policy": {
           "plaintext_visible_services": [
             {
-              "service_did": "did:webvh:z6mkfixture:principal.example",
+              "service_id": "did:webvh:z6mkfixture:principal.example",
               "service_type": "principal_server",
               "data_classes": [
                 "message_content"

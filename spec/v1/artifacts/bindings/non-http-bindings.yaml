@@ -54,7 +54,6 @@ grpc:
     SelfAgent:
       Provision: ak.self.agent.command.provision
       List: ak.self.agent.query.list
-      ProtocolDiscover: ak.self.agent.protocol.query.discover
       Get: ak.self.agent.resource.get
       Pause: ak.self.agent.command.pause
       Resume: ak.self.agent.command.resume
@@ -304,7 +303,6 @@ mq:
     gate.account.command.pair_agent_key: ak.gate.account.command.pair_agent_key
     self.agent.command.provision: ak.self.agent.command.provision
     self.agent.query.list: ak.self.agent.query.list
-    self.agent.protocol.query.discover: ak.self.agent.protocol.query.discover
     self.agent.resource.get: ak.self.agent.resource.get
     self.agent.command.pause: ak.self.agent.command.pause
     self.agent.command.resume: ak.self.agent.command.resume
@@ -401,8 +399,8 @@ libp2p:
     required:
       - stream_protocol
       - operation_id
-      - source_service_did
-      - target_service_did
+      - source_service_id
+      - target_service_id
       - payload
       - proof
     properties:
@@ -410,9 +408,9 @@ libp2p:
         type: string
       operation_id:
         type: string
-      source_service_did:
+      source_service_id:
         type: string
-      target_service_did:
+      target_service_id:
         type: string
       payload:
         type: object

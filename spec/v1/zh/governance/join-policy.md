@@ -233,7 +233,7 @@ applicant 直接提交：
     "membership": "join",
     "delivery_status": "routable",
     "delivery_binding": {
-      "recipient_service_did": "did:webvh:zumXV7yCE8UjvfwVEcio4oN3f:principal.org-a.example",
+      "recipient_service_id": "did:webvh:zumXV7yCE8UjvfwVEcio4oN3f:principal.org-a.example",
       "recipient_service_type": "principal_server",
       "binding_scope": "realm",
       "binding_source": "explicit",

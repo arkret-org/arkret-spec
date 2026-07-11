@@ -30,17 +30,17 @@ base v1 invite **MUST NOT** 依赖 `ak.find.directory.query.resolve_handle(inten
 ```json
 {
   "subject_id": "did:webvh:z2dmjBobExample:users.bob.example:bob",
-  "recipient_service_did": "did:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc:ps.bob.example"
+  "recipient_service_id": "did:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc:ps.bob.example"
 }
 ```
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `subject_id` | DID | MUST | 被邀请的 principal / holder DID。v1 core 默认使用 `did:webvh`；`did:web` 仅在 `personal_node` deployment profile 或其它显式 method policy 允许时可作为 principal DID。 |
-| `recipient_service_did` | DID | MUST | 接收 invite delivery 的 Principal Server service DID。 |
+| `recipient_service_id` | DID | MUST | 接收 invite delivery 的 Principal Server service DID。 |
 | `recipient_service_type` | const | MAY | 若出现，MUST 等于 `principal_server`；默认省略。 |
 
-`recipient_service_did` 在 v1 中只表示 Principal Server。它 **MUST NOT** 指向 notary、shared Sync Service、push gateway、Directory 或任意第三方服务。将来如果需要组织、群组或其它接收服务形态，必须定义独立 locator / delivery schema，不得把 `recipient_service_type` 扩成宽枚举后复用本 schema。
+`recipient_service_id` 在 v1 中只表示 Principal Server。它 **MUST NOT** 指向 notary、shared Sync Service、push gateway、Directory 或任意第三方服务。将来如果需要组织、群组或其它接收服务形态，必须定义独立 locator / delivery schema，不得把 `recipient_service_type` 扩成宽枚举后复用本 schema。
 
 ## 2. Introduction Evidence
 
@@ -53,7 +53,7 @@ base v1 invite **MUST NOT** 依赖 `ak.find.directory.query.resolve_handle(inten
 | `shared_realm` | 中 | 邀请者与被邀请者已经同在某个 Realm；接收方按本地 policy 判断该 Realm 是否可信。 |
 | `handle_claim` | 发现信任 | 邀请者通过 verified handle claim 找到 `subject_id`。它证明 holder 或受信 issuer 将某 handle 披露为可解析入口，但**不**证明 holder 已同意该邀请者联系自己。默认 SHOULD quarantine 或 drop；只有 subject policy 与部署约束都允许时才可 notify。 |
 | `same_principal_server` | 中 / 部署相关 | 双方由同一个 Principal Server 承载；适合组织或个人同域场景。 |
-| `explicit_address` | 弱 | 邀请者只提供 `subject_id + recipient_service_did`；等价于“我知道或猜测这个地址”。默认 SHOULD quarantine 或 drop。 |
+| `explicit_address` | 弱 | 邀请者只提供 `subject_id + recipient_service_id`；等价于“我知道或猜测这个地址”。默认 SHOULD quarantine 或 drop。 |
 
 `explicit_address` 是合法但最低信任 evidence。接收方 **MUST NOT** 因为请求格式正确就通知用户；必须先应用 subject 私有 `invite_receive_policy`。
 
@@ -61,7 +61,7 @@ base v1 invite **MUST NOT** 依赖 `ak.find.directory.query.resolve_handle(inten
 
 `consent_grant` evidence 的接收方验证:`consent_grant_ref` 指向的 `ak.consent.grant` 在被邀请方(`invite_address.subject_id`)的 consent cell 中仍是 active grant dot，且 `peer == inviter`、`consent_scope ∈ {invite, any}`、未过期未撤销。验证通过即按高信任处理。`consent_grant_ref` 校验失败时，接收方 MUST 降级按 `explicit_address`(低信任)处理，MUST NOT 因为携带了 evidence 字段就放行。
 
-`handle_claim` evidence 的接收方验证: `handle_claim.handle == evidence.handle`，`handle_claim.subject == invite_address.subject_id`，`binding_state=verified`，`expires_at` 未过期，`proofs[]` 有效，issuer / Directory / visibility / audience 满足 subject policy 与部署约束。若 handle claim 携带 `member_delivery_binding`，还 MUST 校验 `handle_claim.member_delivery_binding.recipient_service_did == invite_address.recipient_service_did`；若 evidence 携带 `member_delivery_binding_candidate`，还 MUST 校验 `candidate.subject_id == invite_address.subject_id`、`candidate.handle == evidence.handle`、`candidate.member_delivery_binding.recipient_service_did == invite_address.recipient_service_did`、`candidate.intent == "invite"`、`audience` 匹配当前邀请上下文且 proof 有效。任何校验失败 MUST 降级按 `explicit_address` 处理，MUST NOT 因为 handle 字符串可解析就通知用户。
+`handle_claim` evidence 的接收方验证: `handle_claim.handle == evidence.handle`，`handle_claim.subject == invite_address.subject_id`，`binding_state=verified`，`expires_at` 未过期，`proofs[]` 有效，issuer / Directory / visibility / audience 满足 subject policy 与部署约束。若 handle claim 携带 `member_delivery_binding`，还 MUST 校验 `handle_claim.member_delivery_binding.recipient_service_id == invite_address.recipient_service_id`；若 evidence 携带 `member_delivery_binding_candidate`，还 MUST 校验 `candidate.subject_id == invite_address.subject_id`、`candidate.handle == evidence.handle`、`candidate.member_delivery_binding.recipient_service_id == invite_address.recipient_service_id`、`candidate.intent == "invite"`、`audience` 匹配当前邀请上下文且 proof 有效。任何校验失败 MUST 降级按 `explicit_address` 处理，MUST NOT 因为 handle 字符串可解析就通知用户。
 
 ## 3. 在线 Principal Locator
 
@@ -91,9 +91,9 @@ body：
 
 token 要求：
 
-- `locator_token` SHOULD 是不透明 server-side handle；服务端私有状态保存 `subject_id`、`recipient_service_did`、TTL、撤销状态与接收策略。
+- `locator_token` SHOULD 是不透明 server-side handle；服务端私有状态保存 `subject_id`、`recipient_service_id`、TTL、撤销状态与接收策略。
 - `locator_token` MUST 至少 128 bit 熵；base64url 无 padding 编码时 128 bit 约为 22 字符，192 bit 为 32 字符。高安全部署 SHOULD 使用 192 bit 或更高，但 128 bit 已满足 v1 floor。
-- `locator_token` MUST NOT 是明文可解码的 `base64url(JSON)`，也不得在 token 明文中携带 `subject_id`、`recipient_service_did`、`expires_at`、策略状态或其它可识别 invitee 的材料。若部署需要 stateless token，payload MUST 先做 authenticated encryption；调用方仍只把它当 opaque bearer secret。
+- `locator_token` MUST NOT 是明文可解码的 `base64url(JSON)`，也不得在 token 明文中携带 `subject_id`、`recipient_service_id`、`expires_at`、策略状态或其它可识别 invitee 的材料。若部署需要 stateless token，payload MUST 先做 authenticated encryption；调用方仍只把它当 opaque bearer secret。
 - token MUST be unguessable、可撤销、可设置短 TTL，并 MAY 设置一次性使用。
 - endpoint 对不存在、过期、撤销、策略拒绝的对外响应 MUST byte-identical 或等价不可区分（含 status / body / headers）；timing 侧信道按 [`conformance/conformance-vectors.md`](../conformance/conformance-vectors.md) `ak.vector.invite.failure_indistinguishable.v1`（§9.7）收口（timing 差异 SHOULD ≤ 50ms，高安全 profile MUST 用 jitter / padding）。仅服务端 audit log MAY 记录具体 reason_code。
 - endpoint 返回体 MUST 是签名 `principal_locator`；调用方不能只信任 HTTPS URL。
@@ -108,7 +108,7 @@ token 要求：
 {
   "schema": "ak.schema.principal_locator.v1",
   "subject_id": "did:webvh:z2dmjBobExample:users.bob.example:bob",
-  "recipient_service_did": "did:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc:ps.bob.example",
+  "recipient_service_id": "did:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc:ps.bob.example",
   "issued_at": "2026-06-07T10:00:00Z",
   "expires_at": "2026-06-07T10:15:00Z",
   "locator_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
@@ -130,12 +130,12 @@ token 要求：
 
 验证规则：
 
-1. `subject_id` 是被邀请主体；`recipient_service_did` 是接收 invite delivery 的 Principal Server service DID。
+1. `subject_id` 是被邀请主体；`recipient_service_id` 是接收 invite delivery 的 Principal Server service DID。
 2. `recipient_service_type` 若出现 MUST 等于 `principal_server`。
 3. `locator_ref_digest` 绑定私有 locator ref material；raw token 不得写入 Realm durable event。
 4. `proof.payload_digest` MUST 覆盖 `canonical_json(principal_locator_without_proofs)`。
 5. `proofs[]` MUST 至少包含 `recipient_service_acceptance`；高安全 / audited / enterprise 部署 SHOULD 同时要求 `subject_locator_authorization`。
-6. 若缺少 `subject_locator_authorization`，verifier MUST 通过 DID Document、account binding 或 service delegation 证明 `recipient_service_did` 有权代表 `subject_id` 发布 locator。
+6. 若缺少 `subject_locator_authorization`，verifier MUST 通过 DID Document、account binding 或 service delegation 证明 `recipient_service_id` 有权代表 `subject_id` 发布 locator。
 
 `principal_locator` 不是 membership grant、不是 invite accept proof、不是 `member_delivery_binding`。它只证明“可以把这次邀请投递给这个 Principal Server 处理”。
 
@@ -250,7 +250,7 @@ effective_receive_policy =
   "invite_id": "ak:invite:0196419b-0000-7000-8000-000000000010",
   "invitee": "did:webvh:z2dmjBobExample:users.bob.example:bob",
   "invite_delivery_target": {
-    "recipient_service_did": "did:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc:ps.bob.example"
+    "recipient_service_id": "did:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc:ps.bob.example"
   },
   "introduction_evidence_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "expires_at": "2026-06-14T10:00:00Z"
@@ -260,7 +260,7 @@ effective_receive_policy =
 Rules:
 
 - `payload.invitee` MUST equal `invite_address.subject_id`.
-- `payload.invite_delivery_target.recipient_service_did` MUST equal `invite_address.recipient_service_did`.
+- `payload.invite_delivery_target.recipient_service_id` MUST equal `invite_address.recipient_service_id`.
 - `payload.invite_delivery_target.recipient_service_type` MAY appear; if present, it MUST be `principal_server`.
 - `introduction_evidence_digest = digest(canonical_json(private_delivery_introduction_evidence))`，用于审计关联，不得泄露 raw locator token。
 - 普通定向邀请的取消 / 拒绝 MUST 使用 `ak.invite.cancel`，payload 为 `InviteRefPayload`（`invite_id`，可选 `reason`）。被邀请者本人提交时表示拒绝并写入 `rejected`；邀请者或 Realm 管理 actor 提交时表示撤销尚未接受的 pending invite 并写入 `revoked`。
@@ -278,10 +278,10 @@ operation_id = ak.peer.invites.command.submit
 request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Principal Server MUST：
 
 1. 验证 service-to-service authentication，绑定 Source/Destination service DID、trust domain、Request-Canonical-Digest、Content-Digest 与 idempotency key。
-2. 验证 `Destination-Service-DID == invite_address.recipient_service_did`。
+2. 验证 `Destination-Service-ID == invite_address.recipient_service_id`。
 3. 验证 `invite_event.kind == "ak.invite.create"`、Event signature、Realm capability、`invite_id` 与 `realm_id`。
 4. 验证 `invite_event.payload.invitee == invite_address.subject_id`。
-5. 验证 `invite_event.payload.invite_delivery_target.recipient_service_did == invite_address.recipient_service_did`。
+5. 验证 `invite_event.payload.invite_delivery_target.recipient_service_id == invite_address.recipient_service_id`。
 6. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。对 `consent_grant` evidence,MUST 按 §2 校验 `consent_grant_ref` 是被邀请方给 inviter 的 active `invite` / `any` grant dot；校验失败 MUST 降级为低信任 `explicit_address` 处理。对 `handle_claim` evidence,MUST 按 §2 校验 handle claim、issuer / Directory trust、domain allowlist、expiry、audience、handle claim 自带的 `member_delivery_binding`（若存在）和可选 `member_delivery_binding_candidate`；校验失败 MUST 降级为低信任 `explicit_address` 处理。
 7. 计算 effective receive policy:先取 subject 私有 `invite_receive_policy`，再与 §5.2 `receive_policy_constraints` 及适用组织 / Realm 约束求交集。随后查 `blocked_subjects`(命中 inviter 即 `drop` 且强制 opaque)与 `blocked_principal_services`；再按 effective `allowed_introduction_kinds`、`handle_claim_behavior`、`explicit_address_behavior`、`unknown_invites` 决定 drop / quarantine / notify。
 8. 返回 receive outcome:按 §5.1 分级披露。发现信任档、低信任档或 `blocked_subjects` 命中时默认返回 generic `status`(opaque),MUST NOT 通过响应泄露 subject 是否存在或策略如何处理；高信任档且 `disclosure.high_trust=outcome` 时 MAY 在 `disclosed_outcome` 回送真实结果。仅当 subject 与部署约束都允许 `disclosure.discovery_trust=outcome` 时，`handle_claim` MAY 回送真实结果。

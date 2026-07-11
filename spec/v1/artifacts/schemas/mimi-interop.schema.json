@@ -44,7 +44,7 @@
         "schema": {
           "const": "ak.schema.mimi_interop.v1"
         },
-        "service_did": {
+        "service_id": {
           "$ref": "#/$defs/did"
         },
         "service_type": {

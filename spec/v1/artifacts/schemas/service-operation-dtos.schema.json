@@ -1234,7 +1234,7 @@
           "format": "date-time"
         },
         "principal_server_did": {
-          "$ref": "#/$defs/ServiceDid"
+          "$ref": "#/$defs/ServiceId"
         },
         "ttl_seconds": {
           "type": "integer",
@@ -1963,12 +1963,12 @@
         "source": {
           "type": "object",
           "required": [
-            "service_did",
+            "service_id",
             "service_type",
             "signed_transport"
           ],
           "properties": {
-            "service_did": {
+            "service_id": {
               "type": "string",
               "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
             },
@@ -1978,7 +1978,7 @@
             "source_ip_digest": {
               "type": "string",
               "pattern": "^sha256:[0-9a-f]{64}$",
-              "description": "Keyed, unlinkable derivation of the request source IP (e.g. HMAC-SHA256 under a service-private, salt-epoch-rotated secret bound to the calling service_did), encoded as sha256:<64 hex>. The sha256: prefix denotes the 32-byte digest container, NOT a bare SHA-256 of the IP address; unkeyed IP hashes are forbidden. Derivation, rotation and namespace rules: zh/authz/policy-server.md §3.1. High-privacy (relay/OHTTP) deployments MAY omit this field."
+              "description": "Keyed, unlinkable derivation of the request source IP (e.g. HMAC-SHA256 under a service-private, salt-epoch-rotated secret bound to the calling service_id), encoded as sha256:<64 hex>. The sha256: prefix denotes the 32-byte digest container, NOT a bare SHA-256 of the IP address; unkeyed IP hashes are forbidden. Derivation, rotation and namespace rules: zh/authz/policy-server.md §3.1. High-privacy (relay/OHTTP) deployments MAY omit this field."
             },
             "signed_transport": {
               "type": "boolean"
@@ -2345,7 +2345,7 @@
             },
             "verification_method": {
               "type": "string",
-              "description": "`ak.profile.agent_auth.v1` overlay. DID URL of the runtime\nsigning key (`<agent_principal_id>#<key-fragment>`). REQUIRED when\n`proof_kind=\"agent_key_proof\"`; the DID component MUST bit-identically equal\n`principal_id` after stripping the fragment / query — otherwise the endpoint\nreturns `verification_method_principal_mismatch`. MUST be omitted for human\nproof kinds.\n",
+              "description": "`ak.profile.agent_auth.v1` overlay. DID URL of the runtime\nsigning key (`<agent_id>#<key-fragment>`). REQUIRED when\n`proof_kind=\"agent_key_proof\"`; the DID component MUST bit-identically equal\n`principal_id` after stripping the fragment / query — otherwise the endpoint\nreturns `verification_method_principal_mismatch`. MUST be omitted for human\nproof kinds.\n",
               "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
             },
             "signature": {
@@ -2553,7 +2553,7 @@
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$"
         },
-        "service_did": {
+        "service_id": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
         },
@@ -2782,7 +2782,7 @@
           "pattern": "Z$"
         },
         "issuer": {
-          "$ref": "#/$defs/ServiceDid"
+          "$ref": "#/$defs/ServiceId"
         },
         "signature": {
           "type": "object",
@@ -3291,7 +3291,7 @@
     "RealmId": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
-    "ServiceDid": {
+    "ServiceId": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
       "description": "Bare DID identifying a service endpoint."

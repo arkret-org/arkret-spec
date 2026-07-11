@@ -8,7 +8,7 @@
   "additionalProperties": false,
   "required": [
     "schema",
-    "log_service_did",
+    "log_service_id",
     "principal_id",
     "key_material_digest",
     "log_head",
@@ -20,7 +20,7 @@
     "schema": {
       "const": "ak.schema.key_transparency.v1"
     },
-    "log_service_did": {
+    "log_service_id": {
       "$ref": "#/$defs/did"
     },
     "principal_id": {

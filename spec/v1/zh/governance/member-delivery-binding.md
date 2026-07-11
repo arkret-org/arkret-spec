@@ -27,7 +27,7 @@ see_also:
 1. `payload.delivery_status ∈ {routable, unroutable}` 显式声明。
 2. `delivery_status="routable"` 时 `payload.delivery_binding` 必填，且其 `binding_source` 在 Realm `ak.component.realm.delivery_binding_policy.v1`（§4）的 `allow_binding_sources` 集合内。
 3. `delivery_status="unroutable"` 仅当 Realm policy 显式允许（`allow_unroutable_membership=true`）。
-4. `delivery_binding.recipient_service_did` 的服务准入 MUST 满足：该 DID 出现在 Realm policy 的 `allowed_recipient_services` 集合内，或该 policy 显式声明哨兵 `["*"]`（unrestricted），或该 DID 被 `required_endorsers` 中至少一个治理 DID 通过 `service_acceptance_ref` 引用的 acceptance Event 背书。`required_endorsers` 非空时，该背书要求独立生效：即使命中 allowlist 或 `["*"]` 哨兵，`service_acceptance_ref` 仍 MUST 被其中至少一个治理 DID 背书。**`allowed_recipient_services` 为空集 `[]` 时 = 拒绝（fail-closed，见 §4 字段表）**：既未命中 allowlist、又未声明 `["*"]` 哨兵、又无 `required_endorsers` 背书时，reducer MUST 拒绝该 routable join（`delivery_binding_policy_mismatch`），不得把空集解释为"不限"放行。
+4. `delivery_binding.recipient_service_id` 的服务准入 MUST 满足：该 DID 出现在 Realm policy 的 `allowed_recipient_services` 集合内，或该 policy 显式声明哨兵 `["*"]`（unrestricted），或该 DID 被 `required_endorsers` 中至少一个治理 DID 通过 `service_acceptance_ref` 引用的 acceptance Event 背书。`required_endorsers` 非空时，该背书要求独立生效：即使命中 allowlist 或 `["*"]` 哨兵，`service_acceptance_ref` 仍 MUST 被其中至少一个治理 DID 背书。**`allowed_recipient_services` 为空集 `[]` 时 = 拒绝（fail-closed，见 §4 字段表）**：既未命中 allowlist、又未声明 `["*"]` 哨兵、又无 `required_endorsers` 背书时，reducer MUST 拒绝该 routable join（`delivery_binding_policy_mismatch`），不得把空集解释为"不限"放行。
 5. `delivery_binding` 的 `binding_source`-conditional required 字段满足 [`event-payload.schema.json#/$defs/member_delivery_binding`](../../artifacts/schemas/event-payload.schema.json)（例如 `did_document_default` MUST 含 `did_document_digest`；`explicit` / `invite` / `organization_policy` MUST 含 `service_acceptance_ref`；policy-driven source MUST 含 `policy_event_ref`）。
 6. `delivery_binding.delivery_modes` 是该 binding 的**显式**模式集合；空集合或缺失等价于 schema violation。普通"全功能"成员 SHOULD 列出 `["events", "sync", "to_device", "push", "key_packages"]`。
 
@@ -35,7 +35,7 @@ see_also:
 
 声明可加入 unroutable member Realm 的客户端 profile SHOULD 在 join / accept UI 中披露："该 Realm 仅向本地可见，不接收服务端推送、同步、to-device、push 或 KeyPackage 投递"。该披露是客户端 profile 义务，不参与 reducer 接受条件；reducer 的可验证判据仅为上述 policy 和 payload 条件。
 
-注意：`payload.delivery_binding` / `member_delivery_binding.recipient_service_did` 描述的是成员加入后接收 events、sync、to-device、push、KeyPackage 的目标 Principal Server；`join_candidates[]` 描述的是本次 join / invite-accept / knock material 可提交到哪些 Realm ingress service。两者方向不同、生命周期不同、授权来源不同。Join builder 和 reducer MUST NOT 从 `join_candidates[].service_did` 推导成员 `delivery_binding`，也 MUST NOT 从成员 `delivery_binding.recipient_service_did` 推导 Realm ingress candidate。
+注意：`payload.delivery_binding` / `member_delivery_binding.recipient_service_id` 描述的是成员加入后接收 events、sync、to-device、push、KeyPackage 的目标 Principal Server；`join_candidates[]` 描述的是本次 join / invite-accept / knock material 可提交到哪些 Realm ingress service。两者方向不同、生命周期不同、授权来源不同。Join builder 和 reducer MUST NOT 从 `join_candidates[].service_id` 推导成员 `delivery_binding`，也 MUST NOT 从成员 `delivery_binding.recipient_service_id` 推导 Realm ingress candidate。
 
 ## 3. `binding_source` 与责任方
 
@@ -62,12 +62,12 @@ see_also:
 构造 `ak.member.state{membership="join"}` 前，客户端 / 提交服务 MUST：
 
 1. 以 `subject_id` / `payload.actor_id` 作为成员主语；不得把 handle 字符串写作 actor、grant subject 或 cell subject。
-2. 对基础路径，验证 `invite_address.subject_id`、`invite_address.recipient_service_did`、`principal_locator` proof、`introduction_evidence_digest` 和 Realm Join Policy；`invite_address.recipient_service_did` 只能作为 join-time `delivery_binding` 的候选输入，仍需按本文件 §2 和 §4 物化。
-3. 对可选 handle 辅助路径，先按 [`identity/identity-handles.md` §3.1](../identity/identity-handles.md) 规范化为 canonical `handle`，再仅在 Directory / Organization 明确支持时调用 `ak.find.directory.query.resolve_handle(intent="member_add" | "invite")`。不支持、无权或解析失败时，客户端 MUST 回到基础路径，要求提供 locator 或显式 address；不得本地合成 remote `recipient_service_did`。
-4. 若可选解析结果携带 `MemberDeliveryBindingCandidate` 或 `member_delivery_binding`，验证其 handle claim / presentation 绑定 `handle`、`subject_id`、`member_delivery_binding.recipient_service_did`、issuer、`issued_at`、`expires_at`、撤销状态与 `audience`。claim `audience` MUST 等于目标 `realm_id` 或邀请方 service DID 之一；不一致 MUST 视作未授权 claim。
+2. 对基础路径，验证 `invite_address.subject_id`、`invite_address.recipient_service_id`、`principal_locator` proof、`introduction_evidence_digest` 和 Realm Join Policy；`invite_address.recipient_service_id` 只能作为 join-time `delivery_binding` 的候选输入，仍需按本文件 §2 和 §4 物化。
+3. 对可选 handle 辅助路径，先按 [`identity/identity-handles.md` §3.1](../identity/identity-handles.md) 规范化为 canonical `handle`，再仅在 Directory / Organization 明确支持时调用 `ak.find.directory.query.resolve_handle(intent="member_add" | "invite")`。不支持、无权或解析失败时，客户端 MUST 回到基础路径，要求提供 locator 或显式 address；不得本地合成 remote `recipient_service_id`。
+4. 若可选解析结果携带 `MemberDeliveryBindingCandidate` 或 `member_delivery_binding`，验证其 handle claim / presentation 绑定 `handle`、`subject_id`、`member_delivery_binding.recipient_service_id`、issuer、`issued_at`、`expires_at`、撤销状态与 `audience`。claim `audience` MUST 等于目标 `realm_id` 或邀请方 service DID 之一；不一致 MUST 视作未授权 claim。
 5. 将有效 delivery evidence 物化为 `payload.delivery_binding` 时，按 Realm `ak.realm.delivery_binding_policy` 选择 `binding_source`：
    - 多个来源同时可用时，reducer MUST 按固定优先级选择唯一 binding：`explicit` > `organization_policy` > `invite` > `join_policy` > `realm_policy` > `did_document_default`。
-   - schema MUST 先校验该 `binding_source` 的 conditional required evidence 字段；缺少 `service_acceptance_ref` / `policy_event_ref` / `did_document_digest` 等 source-specific 必填字段时，接收方 MUST 以 `schema_violation` 拒绝，reducer 不进入来源选择或 policy validation。字段齐备后，若 evidence 引用不可解析、签名无效、scope 不覆盖目标 Realm，reducer MUST 拒绝并返回 `delivery_binding_invalid`；若该来源不在 `allow_binding_sources` 内；或 `recipient_service_did` 既不在 `allowed_recipient_services` 内、也未被 `["*"]` 哨兵覆盖、且无 `required_endorsers` 背书；或 `required_endorsers` 非空但 `service_acceptance_ref` 未被其中任一治理 DID 背书，reducer MUST 拒绝并返回 `delivery_binding_policy_mismatch`。上述失败均 MUST NOT 降级尝试较低优先级来源。
+   - schema MUST 先校验该 `binding_source` 的 conditional required evidence 字段；缺少 `service_acceptance_ref` / `policy_event_ref` / `did_document_digest` 等 source-specific 必填字段时，接收方 MUST 以 `schema_violation` 拒绝，reducer 不进入来源选择或 policy validation。字段齐备后，若 evidence 引用不可解析、签名无效、scope 不覆盖目标 Realm，reducer MUST 拒绝并返回 `delivery_binding_invalid`；若该来源不在 `allow_binding_sources` 内；或 `recipient_service_id` 既不在 `allowed_recipient_services` 内、也未被 `["*"]` 哨兵覆盖、且无 `required_endorsers` 背书；或 `required_endorsers` 非空但 `service_acceptance_ref` 未被其中任一治理 DID 背书，reducer MUST 拒绝并返回 `delivery_binding_policy_mismatch`。上述失败均 MUST NOT 降级尝试较低优先级来源。
    - invite locator / invite delivery 已携带并通过接收服务背书的 binding 使用 `invite`，并携带 `service_acceptance_ref`；
    - Realm join policy 推导的 binding 使用 `join_policy`，并携带 `policy_event_ref`；
    - 组织目录 / 员工名录背书的地址使用 `organization_policy`，并携带 `service_acceptance_ref` + `policy_event_ref`；
@@ -75,7 +75,7 @@ see_also:
    - 用户 / 管理员显式选择服务时使用 `explicit`，并携带 `service_acceptance_ref`；
    - 最后才考虑 `did_document_default`，且仅当 Realm `delivery_binding_policy.allow_did_document_default=true` 并已在 join 时物化 DID document hash。
    - 可选 handle candidate 的 `member_delivery_binding.binding_source` 不得是 `did_document_default`；handle resolution 与 DID Document fallback 是两条独立的物化路径。
-6. 若输入只证明 actor DID、没有可接受的 `recipient_service_did` 或服务背书，除非 Realm policy 允许 `did_document_default` fallback 并在 join 时完成物化，否则 reducer MUST 拒绝 routable join。
+6. 若输入只证明 actor DID、没有可接受的 `recipient_service_id` 或服务背书，除非 Realm policy 允许 `did_document_default` fallback 并在 join 时完成物化，否则 reducer MUST 拒绝 routable join。
 
 Reducer MUST 在 gate proof 通过前先校验 applicant 是否具备提交 `ak.member.state{join}` 的 capability 或等价 invite / join-authorized grant；gate 只能增加限制，不能创造权限。最终 `binding_source` 不在 `allow_binding_sources` 中、或优先级决策得到的 binding 与 policy allowlist 冲突时，reducer MUST 返回 `delivery_binding_policy_mismatch`，不得降级到下一个来源。
 
@@ -89,7 +89,7 @@ Realm history SHOULD NOT 写入受限组织 handle 明文。需要审计时，Co
 - `explicit` / `organization_policy`：必须携带真实 `service_acceptance_ref`（以及 `organization_policy` 的 `policy_event_ref`）；
 - `join_policy` / `realm_policy`：必须携带真实 `policy_event_ref`。
 
-初始批次中为其他 actor 写入 `ak.member.state{membership="join"}` 时也适用 §3.1 的普通规则。Handle 字符串本身、Directory `resolve_handle` 失败结果、或仅由客户端本地拼造的 DID / service DID 都不得作为 routable delivery binding；没有真实 `recipient_service_did` 证据时，producer 只能提交 `delivery_status="unroutable"`（若 Realm policy 允许），或改走后续 invite / rebind 流程。`binding_source="invite"` 只在存在真实 invite delivery / service-acceptance evidence 时使用；它不是 realm bootstrap 的兜底来源。
+初始批次中为其他 actor 写入 `ak.member.state{membership="join"}` 时也适用 §3.1 的普通规则。Handle 字符串本身、Directory `resolve_handle` 失败结果、或仅由客户端本地拼造的 DID / service DID 都不得作为 routable delivery binding；没有真实 `recipient_service_id` 证据时，producer 只能提交 `delivery_status="unroutable"`（若 Realm policy 允许），或改走后续 invite / rebind 流程。`binding_source="invite"` 只在存在真实 invite delivery / service-acceptance evidence 时使用；它不是 realm bootstrap 的兜底来源。
 
 ## 4. Policy 事件：`ak.realm.delivery_binding_policy`
 
@@ -125,8 +125,8 @@ Realm 通过独立的 `ak.realm.delivery_binding_policy` event 声明对成员�
 | --- | --- | --- | --- |
 | `allow_binding_sources` | `enum[]` | `["did_document_default"]` for 个人 / 公开 Realm；组织 Realm 必须显式收窄 | 允许出现在被接受 binding 中的 `binding_source` 子集。 |
 | `allow_did_document_default` | `boolean` | `false` | 是否允许 binding_source=did_document_default。组织 / 合规 Realm MUST 设为 `false`。 |
-| `allowed_recipient_services` | `did[] \| ["*"]` | `[]`（**拒绝 / fail-closed**） | 允许出现在 `recipient_service_did` 的封闭集合。**默认空集 `[]` = 拒绝任意 recipient service（fail-closed）**，不再是"不限"——与本文整体 fail-closed 取向（§2 / §5 / §6）一致；漏配空集时 reducer MUST 拒绝 routable join（`delivery_binding_policy_mismatch`），不得放开任意 recipient service。需要"不限"语义时 MUST **显式声明哨兵** `["*"]`（unrestricted 标记），而非依赖空集。普通成员 binding 仍必须满足 `binding_source` / 背书等其余 §2 准则；`["*"]` 只解除 recipient service allowlist 这一维度的限制，不豁免 `required_endorsers` 等其它校验。 |
-| `required_endorsers` | `did[]` | `[]` | 非空时，`recipient_service_did` 的 `service_acceptance_ref` MUST 由其中一个治理 DID 背书；该要求独立于 `allowed_recipient_services` 与 `["*"]` 哨兵。空数组表示无强制背书要求。 |
+| `allowed_recipient_services` | `did[] \| ["*"]` | `[]`（**拒绝 / fail-closed**） | 允许出现在 `recipient_service_id` 的封闭集合。**默认空集 `[]` = 拒绝任意 recipient service（fail-closed）**，不再是"不限"——与本文整体 fail-closed 取向（§2 / §5 / §6）一致；漏配空集时 reducer MUST 拒绝 routable join（`delivery_binding_policy_mismatch`），不得放开任意 recipient service。需要"不限"语义时 MUST **显式声明哨兵** `["*"]`（unrestricted 标记），而非依赖空集。普通成员 binding 仍必须满足 `binding_source` / 背书等其余 §2 准则；`["*"]` 只解除 recipient service allowlist 这一维度的限制，不豁免 `required_endorsers` 等其它校验。 |
+| `required_endorsers` | `did[]` | `[]` | 非空时，`recipient_service_id` 的 `service_acceptance_ref` MUST 由其中一个治理 DID 背书；该要求独立于 `allowed_recipient_services` 与 `["*"]` 哨兵。空数组表示无强制背书要求。 |
 | `allow_unroutable_membership` | `boolean` | `false` | 是否允许 `delivery_status="unroutable"` 成员。 |
 | `rebind_authorization` | `enum(member, member_and_admin, admin_only, service_only, any)` | `member_and_admin` | rebind Control Move 的合法签名 / 背书集合（见 §6）。 |
 | `expires_after_seconds` | `int?` | unset = 不过期 | 该 Realm 中所有 binding 的最大有效期；reducer MUST 在物化时把 `delivery_binding.expires_at = resolved_at + expires_after_seconds`，除非 binding 显式声明更短的 `expires_at`。 |
@@ -137,9 +137,9 @@ Realm 通过独立的 `ak.realm.delivery_binding_policy` event 声明对成员�
 
 `delivery_binding` 一旦进入 accepted member cell，**任何 sender** 在向该 Realm 投递面向该成员的事件 / sync delta / to-device 消息 / push 唤醒 / MLS KeyPackage 请求时：
 
-- MUST 解析当前 effective `delivery_binding.recipient_service_did` 作为唯一投递目标。
-- MUST NOT 退路到该 actor 的 DID Document `ArkretPrincipalServer` service entry，即便 DID Document 当前可解析、`recipient_service_did` 临时不可达、binding 已 `expires_at` 过期或被撤销。失败时 MUST 进入 quarantine + retry（重试策略：quarantine + 指数退避，见 [`sync/federation.md`](../sync/federation.md) §4.1），并在第二次失败后向 sender 上游暴露 `delivery_binding_unresolvable` 诊断。
-- MUST NOT 把"recipient_service_did 在本地登记了该 DID 的内部账号 / OIDC subject / 员工目录条目"视为投递授权——所有授权 MUST 通过 binding 的 `service_acceptance_ref` / `policy_event_ref` 显式建立。
+- MUST 解析当前 effective `delivery_binding.recipient_service_id` 作为唯一投递目标。
+- MUST NOT 退路到该 actor 的 DID Document `ArkretPrincipalServer` service entry，即便 DID Document 当前可解析、`recipient_service_id` 临时不可达、binding 已 `expires_at` 过期或被撤销。失败时 MUST 进入 quarantine + retry（重试策略：quarantine + 指数退避，见 [`sync/federation.md`](../sync/federation.md) §4.1），并在第二次失败后向 sender 上游暴露 `delivery_binding_unresolvable` 诊断。
+- MUST NOT 把"recipient_service_id 在本地登记了该 DID 的内部账号 / OIDC subject / 员工目录条目"视为投递授权——所有授权 MUST 通过 binding 的 `service_acceptance_ref` / `policy_event_ref` 显式建立。
 
 `expires_at` 到期：sender MUST 停止向该 binding 投递、quarantine pending events，并提示该成员客户端通过 §6 rebind 流程提交新 binding。**未提供 fallback path**——这是设计约束。
 
@@ -147,7 +147,7 @@ Realm 通过独立的 `ak.realm.delivery_binding_policy` event 声明对成员�
 
 ## 6. Rebind 过渡（normative）
 
-成员保持 `membership="join"` 但迁移 `recipient_service_did`（个人 PS → 组织 PS、组织换集群、灾备切换等）通过同一 `ak.member.state{membership="join"}` 的同状态 self-transition 完成：
+成员保持 `membership="join"` 但迁移 `recipient_service_id`（个人 PS → 组织 PS、组织换集群、灾备切换等）通过同一 `ak.member.state{membership="join"}` 的同状态 self-transition 完成：
 
 1. **签名 / 背书**：rebind Control Move 的可签名主体由 `rebind_authorization` 决定：
    - `member`：仅成员 DID 自签即可。
@@ -157,11 +157,11 @@ Realm 通过独立的 `ak.realm.delivery_binding_policy` event 声明对成员�
    - `any`：上述任一即可。
 2. **Precondition**：Control Move 的 `prev_refs` MUST 引用前一 sealed member cell 的 head；reducer 用 cas_register 校验前态。
 3. **Handover frontier `F`**：该 Control Move 被 accepted Seal 覆盖时的 control point 是 rebind 切换点。事件因果图是偏序，切分 MUST 按下表**全分类**（任何 Realm event 恰好落入一类，不存在实现自由）：
-   - causal 上 `prec(F)`（严格先于 F，不含 F）的 Realm events MUST 仍投递到旧 `recipient_service_did`（grace 内；grace 外见第 4 条）。
-   - causal 上 `succ(F)`（含 F 及其后继）的 Realm events MUST 投递到新 `recipient_service_did`。
-   - **与 F 并发**（既非 `prec(F)` 也非 `succ(F)`）的 Realm events：grace 内 sender MUST 双投（旧 + 新两个 `recipient_service_did`），接收方按 `event_id` + canonical hash 去重（与 [`operations-sync.md` §2.1](../sync/operations-sync.md) 的 `duplicate_conflict` 配对规则一致）；grace 外 MUST 只投新服务。
+   - causal 上 `prec(F)`（严格先于 F，不含 F）的 Realm events MUST 仍投递到旧 `recipient_service_id`（grace 内；grace 外见第 4 条）。
+   - causal 上 `succ(F)`（含 F 及其后继）的 Realm events MUST 投递到新 `recipient_service_id`。
+   - **与 F 并发**（既非 `prec(F)` 也非 `succ(F)`）的 Realm events：grace 内 sender MUST 双投（旧 + 新两个 `recipient_service_id`），接收方按 `event_id` + canonical hash 去重（与 [`operations-sync.md` §2.1](../sync/operations-sync.md) 的 `duplicate_conflict` 配对规则一致）；grace 外 MUST 只投新服务。
    - **sender frontier 判定**：sender 的本地 `service_binding_ref.delivery_binding_frontier` 与 F 的比较同样是偏序——frontier `≥ F`（F 在 sender 已观察 closure 内）时 MUST 切换到上述全分类规则；frontier `< F` 或**与 F 不可比**（含并发分支但缺 F 的部分前驱）时一律归入"落后"分支：仍按旧 binding 投递，并 MUST 触发 backfill 以推进本地 frontier（接收方负责回执并通知 sender 升级）。
-4. **Grace period**：旧 `recipient_service_did` MUST 在 `handover_grace_seconds`（默认 86400）内继续接受迟到的 `prec(F)` 与 ∥F（与 F 并发）event；超过 grace 后旧服务 MUST reject 并返回 `delivery_binding_handed_over` + `new_recipient_service_did`。
+4. **Grace period**：旧 `recipient_service_id` MUST 在 `handover_grace_seconds`（默认 86400）内继续接受迟到的 `prec(F)` 与 ∥F（与 F 并发）event；超过 grace 后旧服务 MUST reject 并返回 `delivery_binding_handed_over` + `new_recipient_service_id`。
 5. **In-flight 事件**：sender 收到旧目标的 reject（无论 grace 内的临时失败还是 grace 外的 `delivery_binding_handed_over`）MUST 按新 binding 重新投递；不得回退到 DID Document，不得因 grace 已过而丢弃事件。
 6. 旧服务在 grace 结束后 MUST NOT 保留可逆映射到该 Realm membership 的 sync state / to-device queue / push registration。新服务从 handover frontier 起重建 sync state，但 MUST 接受 `prec(F)` ∪ ∥F 的迟到 / 重投事件写入 Realm 历史（重建基线只约束 sync state 起点，不构成对迟到事件的拒收理由）。
 
@@ -169,11 +169,11 @@ Realm 通过独立的 `ak.realm.delivery_binding_policy` event 声明对成员�
 
 ## 7. 单 binding 约束 + 多设备策略
 
-同一 `(realm_id, actor_id)` 在任一时刻**有且仅有**一个 active `membership="join"` cell；该 cell 持有唯一 effective `delivery_binding`。**不允许**同一 DID 通过两个不同 `recipient_service_did` 同时持有两条 join membership——这种诉求应通过下列正确机制表达：
+同一 `(realm_id, actor_id)` 在任一时刻**有且仅有**一个 active `membership="join"` cell；该 cell 持有唯一 effective `delivery_binding`。**不允许**同一 DID 通过两个不同 `recipient_service_id` 同时持有两条 join membership——这种诉求应通过下列正确机制表达：
 
-- **同一 binding 下多设备**：member 的多台设备各自向 `recipient_service_did` 上传 KeyPackage、注册 push、维护 to-device 队列。同一 binding 下的设备共享 sync state。
+- **同一 binding 下多设备**：member 的多台设备各自向 `recipient_service_id` 上传 KeyPackage、注册 push、维护 to-device 队列。同一 binding 下的设备共享 sync state。
 - **Realm-level mirror / shared sync**：Realm 自身需要多服务承载（HA / 灾备 / 跨区域）时，使用 Realm metadata 的 [`sync_endpoints`](../sync/federation.md) 表达 Realm-level service binding，与 member-level `delivery_binding` 正交。
-- **同一物理用户的多个上下文** (e.g. Alice 既参与 personal Realm P 也参与 work Realm S)：每个 Realm 各自有独立 membership 与独立 binding；同一 DID 在 P 中 `recipient_service_did = personal PS`，在 S 中 `recipient_service_did = org PS`。这就是本文整套机制要解决的核心场景。
+- **同一物理用户的多个上下文** (e.g. Alice 既参与 personal Realm P 也参与 work Realm S)：每个 Realm 各自有独立 membership 与独立 binding；同一 DID 在 P 中 `recipient_service_id = personal PS`，在 S 中 `recipient_service_id = org PS`。这就是本文整套机制要解决的核心场景。
 
 ## 8. 关联性与隐私边界
 

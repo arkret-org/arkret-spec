@@ -59,7 +59,7 @@
     "push_target_id": {
       "type": "string",
       "pattern": "^ak:pseudonym:push:[A-Za-z0-9_-]{22,128}$",
-      "description": "Typed pairwise pseudonym for one (recipient_service_did, principal, device, push_route) tuple. It MUST NOT be a DID, DID URL, Realm id, Strand id, Message id, Event id, or stable cross-Realm correlation key."
+      "description": "Typed pairwise pseudonym for one (recipient_service_id, principal, device, push_route) tuple. It MUST NOT be a DID, DID URL, Realm id, Strand id, Message id, Event id, or stable cross-Realm correlation key."
     },
     "push_route_token": {
       "type": "string",
@@ -140,7 +140,7 @@
     },
     "route_tokens": {
       "type": "object",
-      "description": "Gateway-internal opaque routing fragment shared by blind and visible notifications. Every field here drives gateway-side routing / dedup / circuit-breaker state and MUST be stripped before the gateway calls any push provider; it MUST NOT be forwarded to a provider. Tokens are issued by the recipient Sync or Principal Service and bound to recipient_service_did, push gateway service DID, purpose, scope, and salt epoch.",
+      "description": "Gateway-internal opaque routing fragment shared by blind and visible notifications. Every field here drives gateway-side routing / dedup / circuit-breaker state and MUST be stripped before the gateway calls any push provider; it MUST NOT be forwarded to a provider. Tokens are issued by the recipient Sync or Principal Service and bound to recipient_service_id, push gateway service DID, purpose, scope, and salt epoch.",
       "properties": {
         "realm_route_token": {
           "$ref": "#/$defs/push_route_token",
@@ -438,7 +438,7 @@
         "display_name": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "recipient_service_did": {
+        "recipient_service_id": {
           "$ref": "#/$defs/did"
         }
       },

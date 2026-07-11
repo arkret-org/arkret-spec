@@ -19,7 +19,7 @@
       "vector_id": "ak.vector.keypackage.exhaustion_claim_limits.v1",
       "kind": "claim_pool_limits",
       "target_principal_id": "did:webvh:z6mkfixture:alice.example",
-      "requester_service_did": "did:webvh:z6mkfixture:ps.example",
+      "requester_service_id": "did:webvh:z6mkfixture:ps.example",
       "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
       "intended_realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
       "keypackage_min_available": 2,

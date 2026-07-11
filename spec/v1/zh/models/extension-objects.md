@@ -84,7 +84,7 @@ Agent 的对象身份与 Applet 类似（独立 DID 或受托 device DID），�
 
 ### 3.3 详细规范
 
-- A2A / ACP / external agent protocol handoff：[`../extensions/agent-protocol-interop.md`](../extensions/agent-protocol-interop.md)。
+- A2A / ACP / external agent protocol handoff 已退出协议面；reserved 名字空间见 [`../extensions/agent-protocol-interop.md`](../extensions/agent-protocol-interop.md)。
 - Agent 落点（结果如何写回 Strand / Message / Morph）：[`../overview/current-model.md` §8](../overview/current-model.md)。
 
 ## 4. Blob
@@ -117,7 +117,7 @@ Blob 在协作图中通过 typed blob ref 引用——内容寻址引用使用 `
 
 - 公共字段：[common-fields.md](./common-fields.md)。
 - Applet 完整规范：[`../extensions/applet-integration.md`](../extensions/applet-integration.md)、[`../extensions/applet-schema.md`](../extensions/applet-schema.md)。
-- Agent 互通：[`../extensions/agent-protocol-interop.md`](../extensions/agent-protocol-interop.md)。
+- Agent 互通：当前 reserved，见 [`../extensions/agent-protocol-interop.md`](../extensions/agent-protocol-interop.md)。
 - MIMI Provider：[`../extensions/mimi-interop.md`](../extensions/mimi-interop.md)。
 - Media / Blob：[`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md)。
 - Conformance profiles：[`../conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)。

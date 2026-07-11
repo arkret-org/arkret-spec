@@ -376,7 +376,7 @@
       "required": [
         "kind",
         "challenge",
-        "service_did",
+        "service_id",
         "audience",
         "verification_method",
         "alg",
@@ -389,7 +389,7 @@
         "challenge": {
           "$ref": "#/$defs/challenge"
         },
-        "service_did": {
+        "service_id": {
           "$ref": "#/$defs/did"
         },
         "audience": {

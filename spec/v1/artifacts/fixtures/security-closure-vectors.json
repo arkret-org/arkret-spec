@@ -16,8 +16,8 @@
           "input": {
             "operation_id": "ak.peer.events.command.submit",
             "headers": {
-              "Source-Service-DID": "did:webvh:z6mkfixture:alpha.example",
-              "Destination-Service-DID": "did:webvh:z6mkfixture:beta.example",
+              "Source-Service-ID": "did:webvh:z6mkfixture:alpha.example",
+              "Destination-Service-ID": "did:webvh:z6mkfixture:beta.example",
               "Source-Trust-Domain": "ak:trust_domain:did.webvh.alpha.example",
               "Destination-Trust-Domain": "ak:trust_domain:did.webvh.beta.example",
               "Request-Canonical-Digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -37,8 +37,8 @@
               "preconditions": {
                 "operation_id": "ak.peer.events.command.submit",
                 "headers": {
-                  "Source-Service-DID": "did:webvh:z6mkfixture:alpha.example",
-                  "Destination-Service-DID": "did:webvh:z6mkfixture:beta.example",
+                  "Source-Service-ID": "did:webvh:z6mkfixture:alpha.example",
+                  "Destination-Service-ID": "did:webvh:z6mkfixture:beta.example",
                   "Source-Trust-Domain": "ak:trust_domain:did.webvh.alpha.example",
                   "Destination-Trust-Domain": "ak:trust_domain:did.webvh.beta.example",
                   "Request-Canonical-Digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -54,8 +54,8 @@
               "input": {
                 "operation_id": "ak.peer.events.command.submit",
                 "headers": {
-                  "Source-Service-DID": "did:webvh:z6mkfixture:alpha.example",
-                  "Destination-Service-DID": "did:webvh:z6mkfixture:beta.example",
+                  "Source-Service-ID": "did:webvh:z6mkfixture:alpha.example",
+                  "Destination-Service-ID": "did:webvh:z6mkfixture:beta.example",
                   "Source-Trust-Domain": "ak:trust_domain:did.webvh.alpha.example",
                   "Destination-Trust-Domain": "ak:trust_domain:did.webvh.beta.example",
                   "Request-Canonical-Digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -214,7 +214,7 @@
           "name": "sfu_not_plaintext_visible",
           "input": {
             "media_service_decrypts": true,
-            "sfu_service_did": "did:webvh:z6mkfixture:sfu.example",
+            "sfu_service_id": "did:webvh:z6mkfixture:sfu.example",
             "plaintext_visible_services": []
           },
           "expected": {
@@ -229,7 +229,7 @@
               "vector_id": "ak.vector.webrtc.media_plaintext_downgrade.v1",
               "preconditions": {
                 "media_service_decrypts": true,
-                "sfu_service_did": "did:webvh:z6mkfixture:sfu.example",
+                "sfu_service_id": "did:webvh:z6mkfixture:sfu.example",
                 "plaintext_visible_services": []
               }
             },
@@ -239,7 +239,7 @@
               "canonicalization": "fixture_json_v1",
               "input": {
                 "media_service_decrypts": true,
-                "sfu_service_did": "did:webvh:z6mkfixture:sfu.example",
+                "sfu_service_id": "did:webvh:z6mkfixture:sfu.example",
                 "plaintext_visible_services": []
               }
             },
@@ -262,7 +262,7 @@
           "input": {
             "media_service_decrypts": true,
             "policy_root_covers_media_service_decrypts": true,
-            "sfu_service_did": "did:webvh:z6mkfixture:sfu.example",
+            "sfu_service_id": "did:webvh:z6mkfixture:sfu.example",
             "plaintext_visible_services": [
               "did:webvh:z6mkfixture:sfu.example"
             ],
@@ -1019,7 +1019,7 @@
             "reason_code": "proof_invalid",
             "invariants": [
               "current effective Realm allowlist is authoritative",
-              "valid subject_proof does not override verification_service_did rejection",
+              "valid subject_proof does not override verification_service_id rejection",
               "no membership proposal is materialized"
             ]
           },
@@ -1046,7 +1046,7 @@
               "membership_proposal": "none",
               "invariants": [
                 "current effective Realm allowlist is authoritative",
-                "valid subject_proof does not override verification_service_did rejection",
+                "valid subject_proof does not override verification_service_id rejection",
                 "no membership proposal is materialized"
               ]
             },

@@ -2545,7 +2545,7 @@ Input — `ak.member.state{membership="join"}` Control Move payload：
   "membership": "join",
   "delivery_status": "routable",
   "delivery_binding": {
-    "recipient_service_did": "did:webvh:z6mkfixture:principal.acme.example",
+    "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
     "recipient_service_type": "principal_server",
     "binding_scope": "realm",
     "binding_source": "explicit",
@@ -2578,7 +2578,7 @@ Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `allow_did_docu
   "membership": "join",
   "delivery_status": "routable",
   "delivery_binding": {
-    "recipient_service_did": "did:webvh:z6mkfixture:personal.alice.example",
+    "recipient_service_id": "did:webvh:z6mkfixture:personal.alice.example",
     "recipient_service_type": "principal_server",
     "binding_scope": "realm",
     "binding_source": "did_document_default",
@@ -2624,12 +2624,12 @@ Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `allow_unroutab
 
 序列：
 
-1. **Initial join**（`F0`）：Alice join with `recipient_service_did=did:webvh:z6mkfixture:personal.alice.example`，accepted。
+1. **Initial join**（`F0`）：Alice join with `recipient_service_id=did:webvh:z6mkfixture:personal.alice.example`，accepted。
 2. **Events 流量**：Realm 内事件 `E1, E2` 进入因果图，sender 将它们投递到 `did:webvh:z6mkfixture:personal.alice.example`。
 3. **Rebind**（`F1`）：Alice 提交同状态 `ak.member.state{membership="join"}` self-transition，新 binding 指向 `did:webvh:z6mkfixture:principal.acme.example`，签名按 `rebind_authorization` 规则。Control Move accepted。
 4. **Post-rebind events**：sender 投递 `E3, E4` 时观察 `service_binding_ref.delivery_binding_frontier`：
    - sender frontier ≥ `F1` → 投递到 `did:webvh:z6mkfixture:principal.acme.example`；
-   - sender frontier 仍 `< F1` 且投到旧 `did:webvh:z6mkfixture:personal.alice.example` → 旧服务在 `handover_grace_seconds` 内接受并返回 `delivery_binding_stale + new_recipient_service_did=did:webvh:z6mkfixture:principal.acme.example + handover_frontier=F1`；sender MUST 切换后重试，**不得**回退到 DID Document。
+   - sender frontier 仍 `< F1` 且投到旧 `did:webvh:z6mkfixture:personal.alice.example` → 旧服务在 `handover_grace_seconds` 内接受并返回 `delivery_binding_stale + new_recipient_service_id=did:webvh:z6mkfixture:principal.acme.example + handover_frontier=F1`；sender MUST 切换后重试，**不得**回退到 DID Document。
    - sender frontier ≥ `F1` 但仍投到旧 → 旧服务 reject `delivery_binding_handed_over`。
 5. **Grace 结束**：旧服务停止接受新 Realm S event；本地 to-device 队列、push registration、MLS group share state 进入 destruction。
 6. **撤销**：Alice 离职，Org-A 治理 key 提交 `ak.member.state{membership="leave"}` 或 `ak.capability.revoke`。`F2` 之后 sender MUST NOT 继续向 `did:webvh:z6mkfixture:principal.acme.example` 投递该 Realm 的内容；MUST NOT 转而退回 `did:webvh:z6mkfixture:personal.alice.example`（DID Document fallback）；该 actor 在 Realm S 中变成 **non-member**。
@@ -2646,8 +2646,8 @@ Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `allow_unroutab
 Steps:
 
 1. Realm policy 不允许 `binding_source=explicit`，但 join Control Move 携带 explicit `delivery_binding`。
-2. Realm policy 声明 `allowed_recipient_services`，但 `delivery_binding.recipient_service_did` 不在集合内且没有满足 `required_endorsers` 的 proof。
-3. Realm policy 声明非空 `required_endorsers`，但 `service_acceptance_ref` 未被其中任一治理 DID 背书，即使 `recipient_service_did` 命中 `allowed_recipient_services` 或 `["*"]` 哨兵也一样。
+2. Realm policy 声明 `allowed_recipient_services`，但 `delivery_binding.recipient_service_id` 不在集合内且没有满足 `required_endorsers` 的 proof。
+3. Realm policy 声明非空 `required_endorsers`，但 `service_acceptance_ref` 未被其中任一治理 DID 背书，即使 `recipient_service_id` 命中 `allowed_recipient_services` 或 `["*"]` 哨兵也一样。
 4. Realm policy 不允许 `allow_unroutable_membership`，但 join Control Move 携带 `delivery_status="unroutable"`。
 
 Expected:
@@ -2706,7 +2706,7 @@ Directory 返回 verified handle claim：
     "binding_state": "verified",
     "audience": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "member_delivery_binding": {
-      "recipient_service_did": "did:webvh:z6mkfixture:principal.acme.example",
+      "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
       "recipient_service_type": "principal_server",
       "binding_source": "organization_policy",
       "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
@@ -2726,7 +2726,7 @@ Directory 返回 verified handle claim：
     }]
   }],
   "member_delivery_binding": {
-    "recipient_service_did": "did:webvh:z6mkfixture:principal.acme.example",
+    "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
     "recipient_service_type": "principal_server",
     "binding_source": "organization_policy",
     "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
@@ -2740,7 +2740,7 @@ Directory 返回 verified handle claim：
 Expected join Control Move:
 
 - `payload.actor_id = did:webvh:z2dmjA1ice:users.acme.example`。
-- `payload.delivery_binding.recipient_service_did = did:webvh:z6mkfixture:principal.acme.example`。
+- `payload.delivery_binding.recipient_service_id = did:webvh:z6mkfixture:principal.acme.example`。
 - `payload.delivery_binding.binding_source = organization_policy`。
 - `payload.delivery_binding.service_acceptance_ref` 与 `policy_event_ref` 来自 verified claim / policy。
 - Control Move payload MUST NOT 把 `@alice:acme.example` 当作 actor、cell subject 或 grant subject；受限 handle 明文 SHOULD NOT 进入公开 Realm history。
@@ -2749,8 +2749,8 @@ Negative cases：
 
 - Directory 返回 `verified=false` 或 challenge / audience 不匹配 → builder MUST NOT 构造 handle-based join。
 - 返回 `subject != did` → client MUST reject `handle_subject_mismatch`。
-- 返回 `member_delivery_binding.recipient_service_did` 但 Realm `allowed_recipient_services` 不包含该 DID，且没有 required endorser 背书 → reducer MUST reject `delivery_binding_policy_mismatch`。
-- 返回无 `member_delivery_binding.recipient_service_did` → 只能作为 DID lookup；除非 Realm policy 允许 `did_document_default` 并物化 fallback，否则 reducer MUST reject handle-based join。
+- 返回 `member_delivery_binding.recipient_service_id` 但 Realm `allowed_recipient_services` 不包含该 DID，且没有 required endorser 背书 → reducer MUST reject `delivery_binding_policy_mismatch`。
+- 返回无 `member_delivery_binding.recipient_service_id` → 只能作为 DID lookup；除非 Realm policy 允许 `did_document_default` 并物化 fallback，否则 reducer MUST reject handle-based join。
 
 ## 9. Security Closure Vectors
 
@@ -2762,7 +2762,7 @@ Negative cases：
 
 Steps：
 
-1. Origin service `did:webvh:z6mkfixture:alpha.example` 使用 active service key 向 destination 提交 `POST /_arkret/peer/events`（`ak.peer.events.command.submit`），header 绑定 `Source-Service-DID`、`Destination-Service-DID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Request-Canonical-Digest`、`Idempotency-Key`，批次 accepted。
+1. Origin service `did:webvh:z6mkfixture:alpha.example` 使用 active service key 向 destination 提交 `POST /_arkret/peer/events`（`ak.peer.events.command.submit`），header 绑定 `Source-Service-ID`、`Destination-Service-ID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Request-Canonical-Digest`、`Idempotency-Key`，批次 accepted。
 2. Realm policy 或 DID Document 随后撤销该 origin service key；destination 的 accepted authorization frontier 前进。
 3. 攻击者重放完全相同的 HTTP body、signature 与 `Idempotency-Key`。
 
@@ -2868,12 +2868,12 @@ Expected：
 
 Steps：
 
-1. 正路径：Realm frontier 中存在 `state="pending"` 的 `ak.invite.third_party`，`token_commitment`、`claim_nonce`、`verification_service_did` allowlist、`binding_proof`、`subject_proof` 和 `expires_at` 均有效。
+1. 正路径：Realm frontier 中存在 `state="pending"` 的 `ak.invite.third_party`，`token_commitment`、`claim_nonce`、`verification_service_id` allowlist、`binding_proof`、`subject_proof` 和 `expires_at` 均有效。
 2. Binding proof signature replay：`binding_proof.signature` 来自另一组 `invite_id` / `token_commitment` / `claim_nonce` / `invite_digest` transcript。
 3. Subject proof old DID key：`subject_proof.verification_method` 曾属于 `subject_id`，但不在当前 DID document 的有效 verification method 集。
 4. Subject proof transcript replay：`subject_proof.transcript_digest` / signature 绑定的是另一份 `binding_proof_digest` 或 verification service。
 5. Token commitment mismatch：`ak.invite.claim.payload.token_commitment` 不等于 pending invite 的 commitment。
-6. Allowlist 复校验失败：验证服务曾签发 binding proof，但当前 effective Realm policy 已移除该 `verification_service_did`。
+6. Allowlist 复校验失败：验证服务曾签发 binding proof，但当前 effective Realm policy 已移除该 `verification_service_id`。
 7. Claim nonce replay：同一 `(invite_id, claim_nonce)` 或同一 `token_commitment` 已被 reducer 观察为 claim effect。
 8. Expired cleanup：`invite.expires_at <= now` 时提交 claim。
 
@@ -3043,7 +3043,7 @@ Expected：
 Steps：
 
 1. Device 可用 KeyPackage 数量低于 `keypackage_min_available`。
-2. 同一 `(requester_service_did, target_principal_id)` 在 60s 内发起超过 5 次 claim。
+2. 同一 `(requester_service_id, target_principal_id)` 在 60s 内发起超过 5 次 claim。
 3. 已 claimed KeyPackage 到达 `expires_at` 后再尝试 consume。
 
 Expected：
@@ -3291,14 +3291,14 @@ Expected：
 
 Steps:
 
-1. Controller 调用 `ak.self.agent.command.provision`，得到 `agent_principal_id`、初始 grant ids(每条 grant payload 含 `effective_after_first_authorized_key=true`)与 `pairing_request_id`。
+1. Controller 调用 `ak.self.agent.command.provision`，得到 `agent_id`、初始 grant ids(每条 grant payload 含 `effective_after_first_authorized_key=true`)与 `pairing_request_id`。
 2. Agent runtime 生成 key pair，调用 `ak.gate.account.command.pair_agent_key`。
-3. Pairing endpoint 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与 `agent_principal_id` bit-identical。
+3. Pairing endpoint 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与 `agent_id` bit-identical。
 4. 批准后写入 `ak.agent.key.authorize`,reducer 清除 effective_after_first_authorized_key flag。
 
 Expected:
 
-- 第 3 步 verification_method 与 agent_principal_id 不一致时 MUST `failed_precondition` `reason=verification_method_principal_mismatch`。
+- 第 3 步 verification_method 与 agent_id 不一致时 MUST `failed_precondition` `reason=verification_method_principal_mismatch`。
 - 在第 4 步之前，任何 `agent_key_proof` session grant 请求 MUST fail closed；以该 grant 为基础的 capability check 也 MUST fail closed。
 - 第 4 步后 grant 进入正常 effective window 评估；agent runtime 可签发 session grant 并执行 capability action。
 
@@ -3341,7 +3341,7 @@ Expected:
 
 - 服务 MUST 自动写入 `ak.capability.revoke` 撤销 pending grant,agent status → `pairing_expired`。
 - 重放 `ak.gate.account.command.pair_agent_key`(使用过期 pairing_request_id)MUST fail closed。
-- Controller 可重新发起 `ak.self.agent.command.provision`，得到新 pairing_request_id；旧 agent_principal_id 与新 provisioning 不复用。
+- Controller 可重新发起 `ak.self.agent.command.provision`，得到新 pairing_request_id；旧 agent_id 与新 provisioning 不复用。
 
 ### 11.3 Vector: Agent Session Grant Replay Protection
 
@@ -3440,7 +3440,7 @@ Expected:
 Steps:
 
 1. Alice 的两台设备并发调用 `ak.self.agent.sidecar_thread.command.ensure` 同一 `context_ref`。
-2. 同一 Alice 第三次调用 `ensure`(同样 context_ref),`addressed_agent_principal_ids` 列表不同。
+2. 同一 Alice 第三次调用 `ensure`(同样 context_ref),`addressed_agent_ids` 列表不同。
 3. Alice 在另一 context_ref 调用 ensure(同 Realm)。
 
 Expected:
@@ -3482,7 +3482,7 @@ Steps:
 
 Expected:
 
-- 第 2 步 ensure SHOULD succeed。MLS-backed sidecar Circle 的 response 携带 `pending_member_reconciliations: [{agent_principal_id: R, reason: missing_mls_keypackage}]`；plaintext sidecar Circle 不需要 KeyPackage，但仍必须等待 Circle membership active。
+- 第 2 步 ensure SHOULD succeed。MLS-backed sidecar Circle 的 response 携带 `pending_member_reconciliations: [{agent_id: R, reason: missing_mls_keypackage}]`；plaintext sidecar Circle 不需要 KeyPackage，但仍必须等待 Circle membership active。
 - 第 3 步在 MLS-backed sidecar Circle 中，R 通过 MLS Welcome 加入，得到 join 之后的 future epoch keys(MUST NOT 获得 join 之前的 epoch keys)；plaintext sidecar Circle 中，R 只获得从 membership active frontier 之后的投递 / 查询资格。
 - 第 4 步 reducer 主动 fan-out `ak.circle.member.state` 把 R 标记为 `leave`；若该 Circle 为 MLS-backed，MLS group 进入新 epoch。后续 R 的 `agent_key_proof` MUST fail closed,sidecar 写入全部拒绝。
 
@@ -3769,7 +3769,7 @@ Steps:
 
 1. LiveKit Egress 通过 Arkret proxy 上传合法 recording artifact。
 2. Artifact encryption metadata 声称 key 来自 MLS exporter，但使用 SFrame label `"ak.rtc-frame-key/v1"` 或空 Context。
-3. Producer 重新上传同一 artifact，使用 label `"ak.rtc-recording-key/v1"`，Context 为 canonical JSON `{realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}`。
+3. Producer 重新上传同一 artifact，使用 label `"ak.rtc-recording-key/v1"`，Context 为 canonical JSON `{realm_id, call_id, focus_id, recording_id, media_service_id, recording_start_event_id}`。
 
 Expected:
 
@@ -3891,7 +3891,7 @@ Steps:
 
 1. Producer 提交 `ak.call.state`，`recording_state="ready"`，但 `recording_result.artifact` 缺失。
 2. Producer 提交 `recording_result.artifact`，但其中 `schema` 不是 `ak.schema.call_recording_artifact.v1`，或 `recording_id` / `recording_start_event_id` 与 `recording_result` 绑定不一致。
-3. Producer 提交 artifact，`encryption.exporter_label` 不是 `"ak.rtc-recording-key/v1"`，或 `encryption.context` 缺少 `{realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}` 中任一字段。
+3. Producer 提交 artifact，`encryption.exporter_label` 不是 `"ak.rtc-recording-key/v1"`，或 `encryption.context` 缺少 `{realm_id, call_id, focus_id, recording_id, media_service_id, recording_start_event_id}` 中任一字段。
 4. Backend 尝试在 result / artifact 中携带直出 recording URL、S3/GCS/LiveKit Cloud destination，或缺失 `recording_initiator_capability_ref`。
 5. Retention 到期或 manual delete 触发删除，artifact `deletion_audit.trigger` 与 `retention.deletion_trigger` 不一致，或 `outcome="completed"` 但缺少 `erasure_receipt_ref`。
 6. Producer 提交合法 artifact：`schema="ak.schema.call_recording_artifact.v1"`，绑定同一 `realm_id` / `call_id` / `recording_id` / `recording_start_event_id`，通过 Arkret blob pipeline，使用 `"ak.rtc-recording-key/v1"` 与完整 Context，携带 retention、capability ref；删除完成时携带同 trigger 的 `deletion_audit` 与 `ak.schema.erasure_receipt.v1` 引用。
@@ -3910,7 +3910,7 @@ Steps:
 
 1. 不具 `ak.call.transcribe` 的 actor 发起 `ak.call.recording.start{capture_kind="transcript"}`。
 2. 具 `ak.call.transcribe` 的 actor 发起 transcript start，artifact 加密 key 声称来自 MLS exporter 但复用 SFrame label `"ak.rtc-frame-key/v1"` 或空 Context。
-3. 同一 artifact 改用 label `"ak.rtc-transcript-key/v1"`、`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, transcript_start_event_id})` 重新上传，并通过 `ak.call.state` 写 `transcript_state="ready"`。
+3. 同一 artifact 改用 label `"ak.rtc-transcript-key/v1"`、`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_id, transcript_start_event_id})` 重新上传，并通过 `ak.call.state` 写 `transcript_state="ready"`。
 
 Expected:
 
@@ -4215,7 +4215,7 @@ Expected：所有中间值与输出 MUST byte-for-byte 复现；固定盐 / 参�
 
 Steps：
 
-1. 对同一 federation ingress endpoint（如 `POST /_arkret/peer/events`）分别触发鉴权失败族中的不同原因：(a) 未知 peer（`Source-Service-DID` 无法解析 / 不在任何 binding 中）；(b) 签名可解析但 source 未被目标 Realm policy / 本地 peer policy 授权；(c) 目标 Realm 或资源不存在。
+1. 对同一 federation ingress endpoint（如 `POST /_arkret/peer/events`）分别触发鉴权失败族中的不同原因：(a) 未知 peer（`Source-Service-ID` 无法解析 / 不在任何 binding 中）；(b) 签名可解析但 source 未被目标 Realm policy / 本地 peer policy 授权；(c) 目标 Realm 或资源不存在。
 2. 在同一服务端测量点、同一请求类别与同一部署 profile 下，对每类失败至少采样 30 次，记录 HTTP status、`reason_code`、响应字段集合与服务端处理时延（网络传输时间不计入服务端本地口径）。
 
 Expected：
@@ -4456,15 +4456,15 @@ Expected：
 
 `vector_id`: `ak.vector.applet.transaction_source_signature_anchor.v1`
 
-本向量固化 applet transaction push 的逐次来源签名与幂等 replay MUST：`ak.edge.applet.command.transaction` 在 node→Applet 与 app/bridge→arkret inbound 两个方向都 MUST 携带 RFC 9421 HTTP Message Signature，covered components 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-did`、`destination-service-did`、`idempotency-key`，签名参数含 `created` / `expires` 并满足 300s replay window；接收方 MUST 形成并持久化 `source_signature_anchor`，幂等 identity 绑定 `operation_id`、方向、source/destination service DID 与 `Idempotency-Key`，缓存记录绑定 canonical body digest 与 source anchor。来源 service 签名不替代每条 Event 的 actor / applet / capability 校验。
+本向量固化 applet transaction push 的逐次来源签名与幂等 replay MUST：`ak.edge.applet.command.transaction` 在 node→Applet 与 app/bridge→arkret inbound 两个方向都 MUST 携带 RFC 9421 HTTP Message Signature，covered components 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`idempotency-key`，签名参数含 `created` / `expires` 并满足 300s replay window；接收方 MUST 形成并持久化 `source_signature_anchor`，幂等 identity 绑定 `operation_id`、方向、source/destination service DID 与 `Idempotency-Key`，缓存记录绑定 canonical body digest 与 source anchor。来源 service 签名不替代每条 Event 的 actor / applet / capability 校验。
 
 Steps：
 
-- **Case A — 合法 app/bridge→arkret inbound**：已安装 Applet registration `service_did=did:webvh:z6mkfixture:bridge.example`，`registration_epoch=sha256:<R>`，`webhook_auth.key_ref=did:webvh:z6mkfixture:bridge.example#tx-1`，install active。Applet 提交 `POST /_arkret/edge/applet/transactions`，header `Source-Service-DID=did:webvh:z6mkfixture:bridge.example`、`Destination-Service-DID=did:webvh:z6mkfixture:principal.example`、`Idempotency-Key=tx-001`、`Content-Digest` 与 body 一致；`Signature-Input` 覆盖 required components，`keyid=did:webvh:z6mkfixture:bridge.example#tx-1`，`created` / `expires` 在窗口内；body `source_service_did` 与 header 一致，`events[]` 中的 `applet_id`、`authorization_ref`、`proofs[]` 与 actor namespace / capability grant 均有效。
+- **Case A — 合法 app/bridge→arkret inbound**：已安装 Applet registration `service_id=did:webvh:z6mkfixture:bridge.example`，`registration_epoch=sha256:<R>`，`webhook_auth.key_ref=did:webvh:z6mkfixture:bridge.example#tx-1`，install active。Applet 提交 `POST /_arkret/edge/applet/transactions`，header `Source-Service-ID=did:webvh:z6mkfixture:bridge.example`、`Destination-Service-ID=did:webvh:z6mkfixture:principal.example`、`Idempotency-Key=tx-001`、`Content-Digest` 与 body 一致；`Signature-Input` 覆盖 required components，`keyid=did:webvh:z6mkfixture:bridge.example#tx-1`，`created` / `expires` 在窗口内；body `source_service_id` 与 header 一致，`events[]` 中的 `applet_id`、`authorization_ref`、`proofs[]` 与 actor namespace / capability grant 均有效。
 - **Case B — 缺签名 / 纯 bearer**：同一 body 只携带 `Authorization: Bearer` 或完全缺少 `Signature` / `Signature-Input`。
-- **Case C — transcript / source 混淆**：签名覆盖的 `source-service-did`、header `Source-Service-DID` 或 body `source_service_did` 三者任一不同；或 `Destination-Service-DID` 不等于实际接收服务；或 `Content-Digest` 与 body 不一致。
-- **Case D — idempotency replay**：重复 Case A 的相同 headers/body/signature anchor；随后再次使用同一 `(operation_id, direction, Source-Service-DID, Destination-Service-DID, Idempotency-Key)`，但改变 body digest、`webhook_auth.key_ref` / `keyid`、`registration_epoch` 或 actor namespace。
-- **Case E — 无 active install / actor namespace 混淆**：`Source-Service-DID` 可验签但没有 active effective install，或 `events[]` 中 actor / `executed_by` 不属于该 Applet registration 的 service / bot / ghost actor namespace，或 `authorization_ref` 指向另一 Applet 的 grant。
+- **Case C — transcript / source 混淆**：签名覆盖的 `source-service-id`、header `Source-Service-ID` 或 body `source_service_id` 三者任一不同；或 `Destination-Service-ID` 不等于实际接收服务；或 `Content-Digest` 与 body 不一致。
+- **Case D — idempotency replay**：重复 Case A 的相同 headers/body/signature anchor；随后再次使用同一 `(operation_id, direction, Source-Service-ID, Destination-Service-ID, Idempotency-Key)`，但改变 body digest、`webhook_auth.key_ref` / `keyid`、`registration_epoch` 或 actor namespace。
+- **Case E — 无 active install / actor namespace 混淆**：`Source-Service-ID` 可验签但没有 active effective install，或 `events[]` 中 actor / `executed_by` 不属于该 Applet registration 的 service / bot / ghost actor namespace，或 `authorization_ref` 指向另一 Applet 的 grant。
 
 Expected：
 

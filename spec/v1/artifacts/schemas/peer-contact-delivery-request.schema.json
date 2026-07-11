@@ -84,14 +84,14 @@
       "type": "object",
       "required": [
         "subject_id",
-        "recipient_service_did"
+        "recipient_service_id"
       ],
       "properties": {
         "subject_id": {
           "$ref": "#/$defs/did",
           "description": "Principal DID of the contact fact recipient (the request target, or the original requester for an accept/reject travelling back). The recipient Principal Server projects the fact into this holder's contact projection."
         },
-        "recipient_service_did": {
+        "recipient_service_id": {
           "$ref": "#/$defs/did",
           "description": "Principal Server service DID that hosts subject_id and accepts contact delivery for it."
         },

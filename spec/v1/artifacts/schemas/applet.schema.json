@@ -25,7 +25,7 @@
         }
       ]
     },
-    "service_did": {
+    "service_id": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
       "description": "DID of the service that hosts the applet runtime (used by registration / discovery)."
@@ -44,7 +44,7 @@
         "failed",
         "cancelled"
       ],
-      "description": "Bridge-implementation-defined runtime status for ak.applet.interop_session.status events. v1 does NOT mandate a canonical applet session state machine (unlike ak.agent.* which uses the 9-value agent_interop_session_status enum); bridges MAY restrict the set further in their applet manifest. The field name is `runtime_status` (not `status`) to keep applet object snapshots distinguishable from the canonical agent session state machine in agent.schema.json."
+      "description": "Bridge-implementation-defined runtime status for ak.applet.interop_session.status events. v1 does NOT mandate a canonical applet session state machine; bridges MAY restrict the set further in their applet manifest. This applet bridge mechanism remains independent of the reserved agent interop namespace."
     },
     "params": {
       "description": "Caller-supplied parameters for interop_session.start. Opaque to the Arkret protocol — bridge implementations interpret per applet manifest."

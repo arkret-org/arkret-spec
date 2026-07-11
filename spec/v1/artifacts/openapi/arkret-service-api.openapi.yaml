@@ -132,8 +132,8 @@ components:
         User-session bearer token (passkey / OIDC / device proof). Used for
         operations called by an end-user client. NOT acceptable as the sole
         auth material for S2S federation / inter-service calls — those MUST
-        also satisfy the httpMessageSignature + sourceServiceDid +
-        destinationServiceDid AND group (see service-http-binding.md §2.2).
+        also satisfy the httpMessageSignature + sourceServiceId +
+        destinationServiceId AND group (see service-http-binding.md §2.2).
     httpMessageSignature:
       type: apiKey
       in: header
@@ -141,25 +141,25 @@ components:
       description: |
         RFC 9421 HTTP Message Signature applied with the source service DID's
         verification key. When present, the request MUST also include
-        Source-Service-DID / Destination-Service-DID / Content-Digest (the
+        Source-Service-ID / Destination-Service-ID / Content-Digest (the
         latter only for requests with a body); federation event push also MUST
         include Source-Trust-Domain / Destination-Trust-Domain and
         Request-Canonical-Digest. These are modeled as separate apiKey
         securitySchemes and MUST appear in the same security AND group as
         httpMessageSignature when required by the operation.
-    sourceServiceDid:
+    sourceServiceId:
       type: apiKey
       in: header
-      name: Source-Service-DID
+      name: Source-Service-ID
       description: |
         Required companion to httpMessageSignature. Identifies the originating
         service DID and MUST be covered by the signature transcript. SDK
         generators MUST treat the absence of this header on S2S endpoints as
         an authentication failure, not a 400.
-    destinationServiceDid:
+    destinationServiceId:
       type: apiKey
       in: header
-      name: Destination-Service-DID
+      name: Destination-Service-ID
       description: |
         Required companion to httpMessageSignature. Identifies the intended
         recipient service DID (anti-misdirection / cross-tenant guard). MUST
@@ -335,10 +335,6 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_participation_replace_request_body
     AgentPauseRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_pause_request_body
-    AgentProtocolDiscoverOutcome:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_outcome
-    AgentProtocolDiscoverRequestBody:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_request_body
     AgentProvisionOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provision_outcome
     AgentProvisionRequestBody:
@@ -2287,7 +2283,7 @@ components:
       required:
       - protocol_version
       - service_type
-      - service_did
+      - service_id
       - trust_domain
       - supported_profiles
       - supported_operations
@@ -2312,7 +2308,7 @@ components:
           type: string
         service_type:
           type: string
-        service_did:
+        service_id:
           type: string
         trust_domain:
           type: string
@@ -2740,7 +2736,7 @@ components:
           description: |
             Mirror of the service's development_mode flag. When true,
             `verified_profiles` MUST be empty.
-    ServiceDid:
+    ServiceId:
       type: string
       pattern: ^did:[a-z0-9]+:[^\s#?]+$
       description: Bare DID identifying a service endpoint.
@@ -3117,8 +3113,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         sourceTrustDomain: []
         destinationTrustDomain: []
         requestCanonicalDigest: []
@@ -3144,8 +3140,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       parameters:
       - name: did
         in: query
@@ -3166,8 +3162,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       responses:
         '200':
           description: DID key log
@@ -3180,8 +3176,8 @@ paths:
       operationId: ak.root.identity.command.submit_did_operation
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -3202,8 +3198,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       responses:
         '200':
           description: Identity receipts
@@ -3217,8 +3213,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       requestBody:
         required: true
         content:
@@ -3237,8 +3233,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       parameters:
       - name: principal_id
         in: query
@@ -3260,8 +3256,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       requestBody:
         required: true
         content:
@@ -3281,8 +3277,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       parameters:
       - name: recovery_session_id
         in: path
@@ -3302,8 +3298,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       parameters:
       - name: recovery_session_id
         in: path
@@ -3329,8 +3325,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       parameters:
       - name: recovery_session_id
         in: path
@@ -3356,8 +3352,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         sourceTrustDomain: []
         destinationTrustDomain: []
         requestCanonicalDigest: []
@@ -3388,8 +3384,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         sourceTrustDomain: []
         destinationTrustDomain: []
         requestCanonicalDigest: []
@@ -3492,8 +3488,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         sourceTrustDomain: []
         destinationTrustDomain: []
         requestCanonicalDigest: []
@@ -3544,8 +3540,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         sourceTrustDomain: []
         destinationTrustDomain: []
         requestCanonicalDigest: []
@@ -3617,8 +3613,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       parameters:
       - name: event_id
         in: path
@@ -3643,8 +3639,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       requestBody:
         required: true
@@ -3668,8 +3664,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       parameters:
       - name: actor_id
         in: query
@@ -3702,8 +3698,8 @@ paths:
       operationId: ak.peer.events.command.submit
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         sourceTrustDomain: []
         destinationTrustDomain: []
         requestCanonicalDigest: []
@@ -3748,8 +3744,8 @@ paths:
       - - actors
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         sourceTrustDomain: []
         destinationTrustDomain: []
       summary: Federation peer event pull / backfill query.
@@ -3823,8 +3819,8 @@ paths:
       operationId: ak.peer.events.query.scan_body
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         sourceTrustDomain: []
         destinationTrustDomain: []
         requestCanonicalDigest: []
@@ -3851,8 +3847,8 @@ paths:
       operationId: ak.peer.events.query.resolve
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         sourceTrustDomain: []
         destinationTrustDomain: []
         requestCanonicalDigest: []
@@ -3876,8 +3872,8 @@ paths:
       operationId: ak.peer.events.query.frontier
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         sourceTrustDomain: []
         destinationTrustDomain: []
       parameters:
@@ -3898,8 +3894,8 @@ paths:
       operationId: ak.peer.invites.command.submit
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         sourceTrustDomain: []
         destinationTrustDomain: []
         requestCanonicalDigest: []
@@ -3929,8 +3925,8 @@ paths:
       operationId: ak.peer.contacts.command.submit
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         sourceTrustDomain: []
         destinationTrustDomain: []
         requestCanonicalDigest: []
@@ -3966,8 +3962,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       summary: Send a broadcast ephemeral signal.
       description: |
@@ -4608,8 +4604,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       parameters:
       - name: realm_id
         in: query
@@ -4635,8 +4631,8 @@ paths:
       operationId: ak.peer.snapshot.query.manifest_head
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         sourceTrustDomain: []
         destinationTrustDomain: []
       parameters:
@@ -4662,8 +4658,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         requestCanonicalDigest: []
       summary: List Space lifecycle projection rows for a Realm.
       description: |
@@ -4711,8 +4707,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         requestCanonicalDigest: []
       summary: List Strand lifecycle projection rows for a Realm.
       description: |
@@ -4759,8 +4755,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         requestCanonicalDigest: []
       summary: List Morph lifecycle projection rows for a Realm.
       description: |
@@ -4807,8 +4803,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         requestCanonicalDigest: []
       summary: Materialize a collection View projection.
       description: |
@@ -4842,8 +4838,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         requestCanonicalDigest: []
       summary: Read a single document Morph projection.
       description: |
@@ -4877,8 +4873,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -4899,8 +4895,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -4921,8 +4917,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       summary: List current visible handle claims for a subject in context.
       requestBody:
@@ -4986,8 +4982,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       - presignParam: []
       responses:
         '200':
@@ -4997,8 +4993,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       - presignParam: []
       parameters:
       - in: header
@@ -5124,8 +5120,8 @@ paths:
       operationId: ak.edge.push.command.notify
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       parameters:
       - in: header
@@ -5136,7 +5132,7 @@ paths:
           transport header (not a body field); MUST be covered by the HTTP
           Message Signature transcript when present. The originating service
           DID and intended recipient service DID travel as the
-          Source-Service-DID / Destination-Service-DID headers
+          Source-Service-ID / Destination-Service-ID headers
           (httpMessageSignature companions), not in the request body.
         schema:
           type: string
@@ -5159,8 +5155,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       requestBody:
         required: true
@@ -5181,8 +5177,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       responses:
         '200':
           description: Effective grants
@@ -5196,8 +5192,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       parameters:
       - in: header
@@ -5279,8 +5275,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -5301,8 +5297,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -5341,8 +5337,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -5363,8 +5359,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -5615,9 +5611,9 @@ paths:
       description: |
         Runtime-side poll for the controller decision on a previously submitted
         runtime key request. The pairing_request_id + pairing_code +
-        agent_principal_id triple is the query credential and is sent in the
+        agent_id triple is the query credential and is sent in the
         JSON body, never in the URL path or query string; a record miss and a
-        pairing_code or agent_principal_id mismatch are indistinguishable (both
+        pairing_code or agent_id mismatch are indistinguishable (both
         not_found). Once approved, the outcome carries authorized_event_ref
         plus the authorized key binding; the runtime compares
         authorized_public_key_digest against its own key and treats a mismatch
@@ -5651,8 +5647,8 @@ paths:
       operationId: ak.open.mimi.exchange.request_key_material
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -5672,8 +5668,8 @@ paths:
       operationId: ak.open.mimi.command.update_room
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       parameters:
       - in: path
@@ -5699,8 +5695,8 @@ paths:
       operationId: ak.open.mimi.command.notify
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       parameters:
       - in: path
@@ -5726,8 +5722,8 @@ paths:
       operationId: ak.open.mimi.command.submit_message
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       parameters:
       - in: path
@@ -5753,8 +5749,8 @@ paths:
       operationId: ak.open.mimi.query.group_info
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       parameters:
       - in: path
         name: strand_id
@@ -5784,8 +5780,8 @@ paths:
       operationId: ak.open.mimi.command.request_consent
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -5805,8 +5801,8 @@ paths:
       operationId: ak.open.mimi.command.update_consent
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -5826,8 +5822,8 @@ paths:
       operationId: ak.open.mimi.query.identifiers
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -5847,8 +5843,8 @@ paths:
       operationId: ak.open.mimi.command.report_abuse
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -5868,8 +5864,8 @@ paths:
       operationId: ak.open.mimi.command.proxy_download
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -5923,8 +5919,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -5945,8 +5941,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -5967,8 +5963,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -5989,8 +5985,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -6011,8 +6007,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -6033,8 +6029,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -6055,8 +6051,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -6077,8 +6073,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -6099,8 +6095,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -6121,8 +6117,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -6143,8 +6139,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -6196,8 +6192,8 @@ paths:
       operationId: ak.edge.applet.query.ping
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       responses:
         '200':
           description: Applet liveness and public metadata
@@ -6221,8 +6217,8 @@ paths:
       operationId: ak.edge.applet.command.transaction
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       x-arkret-auth:
         service_signature:
@@ -6233,15 +6229,15 @@ paths:
             audit_field: source_signature_anchor
             request_body_field: false
             directions:
-              node_to_applet: Source-Service-DID current service DID verification method; Destination-Service-DID MUST equal the Applet registration service_did.
-              applet_to_arkret_inbound: Applet registration webhook_auth.key_ref; DID part MUST equal Source-Service-DID and the active effective install service_did.
+              node_to_applet: Source-Service-ID current service DID verification method; Destination-Service-ID MUST equal the Applet registration service_id.
+              applet_to_arkret_inbound: Applet registration webhook_auth.key_ref; DID part MUST equal Source-Service-ID and the active effective install service_id.
           covered_components:
           - '@method'
           - '@target-uri'
           - '@authority'
           - content-digest
-          - source-service-did
-          - destination-service-did
+          - source-service-id
+          - destination-service-id
           - idempotency-key
           freshness:
             created_skew_seconds: 30
@@ -6250,8 +6246,8 @@ paths:
             idempotency_identity:
             - operation_id
             - direction
-            - Source-Service-DID
-            - Destination-Service-DID
+            - Source-Service-ID
+            - Destination-Service-ID
             - Idempotency-Key
             cached_fields:
             - Content-Digest
@@ -6269,7 +6265,7 @@ paths:
       - in: header
         name: Idempotency-Key
         required: true
-        description: Per-delivery transaction idempotency / nonce key. It MUST be covered by Signature-Input and is scoped by operation_id, direction, Source-Service-DID and Destination-Service-DID; the cached record also binds Content-Digest and source_signature_anchor.
+        description: Per-delivery transaction idempotency / nonce key. It MUST be covered by Signature-Input and is scoped by operation_id, direction, Source-Service-ID and Destination-Service-ID; the cached record also binds Content-Digest and source_signature_anchor.
         schema:
           type: string
       responses:
@@ -6290,8 +6286,8 @@ paths:
       operationId: ak.edge.applet.actor.query.resolve
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       parameters:
       - in: path
         name: actor_id
@@ -6311,8 +6307,8 @@ paths:
       operationId: ak.edge.applet.realm.query.resolve
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       parameters:
       - in: path
         name: realm_id_or_alias
@@ -6350,8 +6346,8 @@ paths:
       operationId: ak.edge.applet.third_party_users.query.list
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       parameters:
       - in: query
         name: protocol
@@ -6383,8 +6379,8 @@ paths:
       operationId: ak.edge.applet.third_party_locations.query.list
       security:
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
       parameters:
       - in: query
         name: protocol
@@ -6472,7 +6468,7 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
+        sourceServiceId: []
         contentDigest: []
       parameters:
       - in: path
@@ -6541,8 +6537,8 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
+        sourceServiceId: []
+        destinationServiceId: []
         contentDigest: []
       responses:
         '200':
@@ -7501,7 +7497,7 @@ paths:
           default: localhost
     post:
       operationId: ak.gate.account.command.pair_agent_key
-      description: Native personal agent runtime key pairing. Validates verification_method ↔ agent_principal_id consistency, writes ak.agent.key.authorize on approval.
+      description: Native personal agent runtime key pairing. Validates verification_method ↔ agent_id consistency, writes ak.agent.key.authorize on approval.
       security:
       - bearerAuth: []
       responses:
@@ -7550,26 +7546,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentProvisionRequestBody'
-  /_arkret/self/agents/discover:
-    post:
-      operationId: ak.self.agent.protocol.query.discover
-      description: Discover an agent runtime's declared external protocol endpoints from the public ak.agent.endpoint registry projection (agent-protocol-interop.md §5.1).
-      security:
-      - bearerAuth: []
-      responses:
-        '200':
-          description: Agent protocol endpoint projection
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentProtocolDiscoverOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AgentProtocolDiscoverRequestBody'
-  /_arkret/self/agents/{agent_principal_id}:
+  /_arkret/self/agents/{agent_id}:
     get:
       operationId: ak.self.agent.resource.get
       description: Read one native personal agent projection.
@@ -7577,7 +7554,7 @@ paths:
       - bearerAuth: []
       parameters:
       - in: path
-        name: agent_principal_id
+        name: agent_id
         required: true
         schema:
           type: string
@@ -7588,7 +7565,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentView'
-  /_arkret/self/agents/{agent_principal_id}/pause:
+  /_arkret/self/agents/{agent_id}/pause:
     post:
       operationId: ak.self.agent.command.pause
       description: Pause a native personal agent and reject new agent sessions.
@@ -7596,7 +7573,7 @@ paths:
       - bearerAuth: []
       parameters:
       - in: path
-        name: agent_principal_id
+        name: agent_id
         required: true
         schema:
           type: string
@@ -7613,7 +7590,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentPauseRequestBody'
-  /_arkret/self/agents/{agent_principal_id}/resume:
+  /_arkret/self/agents/{agent_id}/resume:
     post:
       operationId: ak.self.agent.command.resume
       description: Resume a paused native personal agent after freshness and sidecar disclosure checks.
@@ -7621,7 +7598,7 @@ paths:
       - bearerAuth: []
       parameters:
       - in: path
-        name: agent_principal_id
+        name: agent_id
         required: true
         schema:
           type: string
@@ -7638,7 +7615,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentResumeRequestBody'
-  /_arkret/self/agents/{agent_principal_id}/deactivate:
+  /_arkret/self/agents/{agent_id}/deactivate:
     post:
       operationId: ak.self.agent.command.deactivate
       description: Terminally deactivate a native personal agent. fan-out ak.agent.key.revoke / ak.capability.revoke / runtime endpoint revocation.
@@ -7646,7 +7623,7 @@ paths:
       - bearerAuth: []
       parameters:
       - in: path
-        name: agent_principal_id
+        name: agent_id
         required: true
         schema:
           type: string
@@ -7663,7 +7640,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentDeactivateRequestBody'
-  /_arkret/self/agents/{agent_principal_id}/rotate-key:
+  /_arkret/self/agents/{agent_id}/rotate-key:
     post:
       operationId: ak.self.agent.command.rotate_key
       description: Rotate the active runtime key for a native personal agent.
@@ -7671,7 +7648,7 @@ paths:
       - bearerAuth: []
       parameters:
       - in: path
-        name: agent_principal_id
+        name: agent_id
         required: true
         schema:
           type: string
@@ -7688,7 +7665,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentRotateKeyRequestBody'
-  /_arkret/self/agents/{agent_principal_id}/grants:
+  /_arkret/self/agents/{agent_id}/grants:
     post:
       operationId: ak.self.agent.grant.command.attach
       description: Attach a capability grant to a native personal agent.
@@ -7696,7 +7673,7 @@ paths:
       - bearerAuth: []
       parameters:
       - in: path
-        name: agent_principal_id
+        name: agent_id
         required: true
         schema:
           type: string
@@ -7713,7 +7690,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentGrantAttachRequestBody'
-  /_arkret/self/agents/{agent_principal_id}/grants/{grant_id}:
+  /_arkret/self/agents/{agent_id}/grants/{grant_id}:
     delete:
       operationId: ak.self.agent.grant.resource.delete
       description: Detach or revoke a capability grant from a native personal agent.
@@ -7721,7 +7698,7 @@ paths:
       - bearerAuth: []
       parameters:
       - in: path
-        name: agent_principal_id
+        name: agent_id
         required: true
         schema:
           type: string
@@ -7743,8 +7720,8 @@ paths:
       description: |
         Idempotently ensure the controller-agent sidecar Circle, Strand, and relation.
         The wire-level idempotency keys are **server-derived**: the sidecar Circle is keyed by
-        `(realm_id, controller_principal_id)` and the sidecar private Strand / reuse identity by
-        `(controller_principal_id, normalized_context_ref)`. Note that `agent_principal_id` is NOT part of
+        `(realm_id, controller_id)` and the sidecar private Strand / reuse identity by
+        `(controller_id, normalized_context_ref)`. Note that `agent_id` is NOT part of
         either key — a single sidecar Circle is shared across all eligible agents owned by the same controller
         in a given Realm. Clients MUST NOT supply an `Idempotency-Key` header and MUST NOT retry with a different
         body to "force" creation. Concurrent ensure calls converge to the same sidecar refs; repeated calls
@@ -7766,7 +7743,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentSidecarThreadEnsureRequestBody'
-  /_arkret/self/agents/{agent_principal_id}/participation:
+  /_arkret/self/agents/{agent_id}/participation:
     put:
       operationId: ak.self.agent.participation.resource.replace
       description: Set an agent's participation selection for a scope (controller-self only).
@@ -7774,7 +7751,7 @@ paths:
       - bearerAuth: []
       parameters:
       - in: path
-        name: agent_principal_id
+        name: agent_id
         required: true
         schema:
           type: string
@@ -7798,7 +7775,7 @@ paths:
       - bearerAuth: []
       parameters:
       - in: path
-        name: agent_principal_id
+        name: agent_id
         required: true
         schema:
           type: string

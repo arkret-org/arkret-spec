@@ -44,7 +44,7 @@
           "membership": "join",
           "delivery_status": "routable",
           "delivery_binding": {
-            "recipient_service_did": "did:webvh:z6mkfixture:principal.acme.example",
+            "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
             "recipient_service_type": "principal_server",
             "binding_scope": "realm",
             "binding_source": "explicit",
@@ -82,7 +82,7 @@
         },
         "did_document_service": {
           "service_type": "ArkretPrincipalServer",
-          "recipient_service_did": "did:webvh:z6mkfixture:personal.alice.example",
+          "recipient_service_id": "did:webvh:z6mkfixture:personal.alice.example",
           "canonical_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
         }
       },
@@ -95,7 +95,7 @@
           "membership": "join",
           "delivery_status": "routable",
           "delivery_binding": {
-            "recipient_service_did": "did:webvh:z6mkfixture:personal.alice.example",
+            "recipient_service_id": "did:webvh:z6mkfixture:personal.alice.example",
             "recipient_service_type": "principal_server",
             "binding_scope": "realm",
             "binding_source": "did_document_default",
@@ -164,7 +164,7 @@
           "sent_to": "did:webvh:z6mkfixture:personal.alice.example",
           "expected_response": {
             "reason_code": "delivery_binding_stale",
-            "new_recipient_service_did": "did:webvh:z6mkfixture:principal.acme.example",
+            "new_recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
             "handover_frontier": "F1"
           }
         },
@@ -208,7 +208,7 @@
           "membership": "join",
           "delivery_status": "routable",
           "delivery_binding": {
-            "recipient_service_did": "did:webvh:z6mkfixture:untrusted.example",
+            "recipient_service_id": "did:webvh:z6mkfixture:untrusted.example",
             "recipient_service_type": "principal_server",
             "binding_scope": "realm",
             "binding_source": "explicit",
@@ -259,7 +259,7 @@
               "membership": "join",
               "delivery_status": "routable",
               "delivery_binding": {
-                "recipient_service_did": "did:webvh:z6mkfixture:principal.acme.example",
+                "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
                 "recipient_service_type": "principal_server",
                 "binding_scope": "realm",
                 "binding_source": "explicit",

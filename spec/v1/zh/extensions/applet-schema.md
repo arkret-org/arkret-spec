@@ -18,8 +18,8 @@ updated: 2026-07-02
 {
   "kind": "ak.applet.registration",
   "applet_id": "ak:applet:dd552c17-0000-7000-8000-000000000000",
-  "service_did": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example",
-  "controller_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
+  "service_id": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example",
+  "controller_id": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
   "base_url": "https://applet.example/applet",
   "bot_actor_id": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example:bot",
   "protocols": ["slack"],
@@ -63,8 +63,8 @@ updated: 2026-07-02
 ```json
 [
   "applet_id",
-  "service_did",
-  "controller_did",
+  "service_id",
+  "controller_id",
   "base_url",
   "bot_actor_id",
   "protocols",
@@ -93,8 +93,8 @@ updated: 2026-07-02
 | `schema` | yes | 固定 `ak.schema.applet_package.v1`。 |
 | `package_id` | yes | typed id 或 DID URL；仅用于 package 分发。 |
 | `applet_id` | yes | DID 或 `ak:applet:<uuidv7>`。 |
-| `service_did` | yes | Applet runtime DID。 |
-| `controller_did` | yes | 对 package / registration 负责的 controller DID。 |
+| `service_id` | yes | Applet runtime DID。 |
+| `controller_id` | yes | 对 package / registration 负责的 controller DID。 |
 | `base_url` | yes | Applet API base URL。 |
 | `bot_actor_id` | yes | 可见 bot actor DID；不得含 `#fragment`。 |
 | `claimed_profiles` | yes | v1 Applet profile id 数组；MUST 至少包含 `ak.profile.applet_service.v1`。 |
@@ -102,7 +102,7 @@ updated: 2026-07-02
 | `namespaces` | yes | `actors` / `realms` / `handles` 对象形态 namespace。 |
 | `requested_scopes` | yes | capability action 请求列表；只用于审批 UI。 |
 | `endpoint_policy` | yes | 实际支持的 Applet API endpoint 与 auth requirement。 |
-| `webhook_auth` | yes | HTTP message signature key ref / accepted algorithms；`key_ref` MUST 是 Applet `service_did` 下的 DID URL，并作为 app/bridge→arkret inbound transaction push 的来源签名锚点。 |
+| `webhook_auth` | yes | HTTP message signature key ref / accepted algorithms；`key_ref` MUST 是 Applet `service_id` 下的 DID URL，并作为 app/bridge→arkret inbound transaction push 的来源签名锚点。 |
 | `receive_events` | yes | 派生 registration 的接收事件声明。 |
 | `receive_ephemeral` | yes | 派生 registration 的 ephemeral 接收声明。 |
 | `rate_limited` | yes | 派生 registration 的服务端限流声明。 |
@@ -122,8 +122,8 @@ Package -> registration 派生映射:
 | `ak.applet.registration` 字段 | Package 来源 | 规则 |
 | --- | --- | --- |
 | `applet_id` | `applet_id` | 原样复制；只接受 DID 或 `ak:applet:<uuidv7>`。 |
-| `service_did` | `service_did` | 原样复制；必须可解析并绑定 Applet endpoint。 |
-| `controller_did` | `controller_did` | 原样复制；必须验证 controller proof。 |
+| `service_id` | `service_id` | 原样复制；必须可解析并绑定 Applet endpoint。 |
+| `controller_id` | `controller_id` | 原样复制；必须验证 controller proof。 |
 | `base_url` | `base_url` | 原样复制；必须与 service DID Document binding 一致。 |
 | `bot_actor_id` | `bot_actor_id` | 原样复制；不得含 `#fragment`。 |
 | `protocols` | `protocols` | 原样复制；空数组非法。 |
@@ -133,7 +133,7 @@ Package -> registration 派生映射:
 | `rate_limited` | `rate_limited` | 原样复制；不得省略。 |
 | `requested_scopes` | `requested_scopes` | 原样复制；仍只是请求声明。 |
 | `registration_epoch` | `registration_epoch` | 由 canonical derived registration + DID/key/endpoint/auth evidence 计算。 |
-| `webhook_auth` | `webhook_auth` | 原样复制；必须覆盖 transaction push signature 验证锚点。`key_ref` MUST 归属于 `service_did`，绑定当前 `registration_epoch`；key rotate 后必须通过新的 effective registration / install 生效，旧 key 不得继续放行 inbound push。 |
+| `webhook_auth` | `webhook_auth` | 原样复制；必须覆盖 transaction push signature 验证锚点。`key_ref` MUST 归属于 `service_id`，绑定当前 `registration_epoch`；key rotate 后必须通过新的 effective registration / install 生效，旧 key 不得继续放行 inbound push。 |
 | `manifest` | `claimed_profiles` + `limits` + policies + optional widget declaration | 作为 snapshot 放入 manifest，但不得替代顶层 required 字段；widget snapshot MUST 保持 `ak.schema.applet_widget_declaration.v1` 的闭合形态。 |
 | `proof` | `proof` | detached proof 覆盖 canonical package 或 derived registration object。 |
 | `created_at` | `created_at` | 原样复制。 |
@@ -236,13 +236,13 @@ Idempotency-Key: <opaque-string>
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
-| `Idempotency-Key` | header | `string` | required | 发送方生成的幂等 / nonce 键，长度 1..128；接收方 MUST 以 `(operation_id, direction, Source-Service-DID, Destination-Service-DID, Idempotency-Key)` 定位幂等记录，并绑定 canonical body digest 与 `source_signature_anchor`；重复键但 body digest 或签名锚点不同 MUST fail closed。 |
-| `Source-Service-DID` | header | `did` | required | 推送来源 service DID；MUST 等于 body `source_service_did`，并进入 HTTP Message Signature transcript。 |
-| `Destination-Service-DID` | header | `did` | required | 接收方 service DID；MUST 等于实际接收服务 identity，并进入 HTTP Message Signature transcript。 |
+| `Idempotency-Key` | header | `string` | required | 发送方生成的幂等 / nonce 键，长度 1..128；接收方 MUST 以 `(operation_id, direction, Source-Service-ID, Destination-Service-ID, Idempotency-Key)` 定位幂等记录，并绑定 canonical body digest 与 `source_signature_anchor`；重复键但 body digest 或签名锚点不同 MUST fail closed。 |
+| `Source-Service-ID` | header | `did` | required | 推送来源 service DID；MUST 等于 body `source_service_id`，并进入 HTTP Message Signature transcript。 |
+| `Destination-Service-ID` | header | `did` | required | 接收方 service DID；MUST 等于实际接收服务 identity，并进入 HTTP Message Signature transcript。 |
 | `Content-Digest` | header | `sha256=:...:` | required | 覆盖 canonical request body；接收方 MUST 在验签前重算 body hash。 |
-| `Signature-Input` | header | `string` | required | RFC 9421 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-did`、`destination-service-did`、`idempotency-key`，并带 `created` / `expires`。 |
+| `Signature-Input` | header | `string` | required | RFC 9421 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`idempotency-key`，并带 `created` / `expires`。 |
 | `Signature` | header | `string` | required | 来源 service DID 的逐次 HTTP Message Signature；纯 bearer 不满足 transaction push 认证。 |
-| `source_service_did` | body | `did` | required | 推送来源 service DID。 |
+| `source_service_id` | body | `did` | required | 推送来源 service DID。 |
 | `events` | body | `EventEnvelope[]` | required | 推送给 Applet 的 signed Event 数组；每项必须满足 `event-envelope.schema.json`。 |
 | `ephemeral` | body | `object[]` | optional | 非持久临时事件数组。 |
 
@@ -252,7 +252,7 @@ Idempotency-Key: <opaque-string>
 
 ```json
 {
-  "source_service_did": "did:webvh:z7SrvceTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:server.example",
+  "source_service_id": "did:webvh:z7SrvceTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:server.example",
   "events": [],
   "ephemeral": []
 }
@@ -367,7 +367,7 @@ GET /_arkret/edge/applet/protocols/{protocol}
 
 ## 8. Applet Interop Session Events
 
-Applet 外部会话使用两类 Realm event 回流状态（`ak.applet.interop_session.start` 与 `ak.applet.interop_session.status`）。字段的机器可读真源是 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 中对应 payload `$defs`（`$defs/applet_interop_session_start_payload`、`$defs/applet_interop_session_status_payload`）；本节只列出 wire 语义。与 `ak.agent.interop_session.*` 不同，v1 不为 applet interop session 定义 canonical result 事件或 session 状态机；`runtime_status` 由 applet bridge 实现按 applet manifest 解释。
+Applet 外部会话使用两类 Realm event 回流状态（`ak.applet.interop_session.start` 与 `ak.applet.interop_session.status`）。字段的机器可读真源是 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 中对应 payload `$defs`（`$defs/applet_interop_session_start_payload`、`$defs/applet_interop_session_status_payload`）；本节只列出 wire 语义。v1 不为 applet interop session 定义 canonical result 事件或 session 状态机；`runtime_status` 由 applet bridge 实现按 applet manifest 解释。原 agent interop 名字空间已 reserved，但不影响本 applet bridge 机制。
 
 ### 8.1 `ak.applet.interop_session.start`
 
@@ -375,7 +375,7 @@ Applet 外部会话使用两类 Realm event 回流状态（`ak.applet.interop_se
 | --- | --- | --- | --- |
 | `applet_id` | `id` | required | 发起或承载该会话的 Applet。 |
 | `session_id` | `id` | required | Applet interop session id。 |
-| `service_did` | `did` | optional | 对端或承载服务 DID。 |
+| `service_id` | `did` | optional | 对端或承载服务 DID。 |
 | `params` | `object` | optional | 启动参数；不得内联未授权外部正文。 |
 | `created_at` | `timestamp` | optional | 会话创建时间。 |
 

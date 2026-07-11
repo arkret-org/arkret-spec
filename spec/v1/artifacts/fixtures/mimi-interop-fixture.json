@@ -27,7 +27,7 @@
       "vector_id": "ak.vector.mimi.provider_directory_draft_pinning.v1",
       "name": "provider_directory_draft_pinning",
       "input": {
-        "service_did": "did:webvh:z6mkfixture:mimi.example.com",
+        "service_id": "did:webvh:z6mkfixture:mimi.example.com",
         "service_type": "mimi_provider_facade",
         "supported_profiles": [
           "ak.profile.mimi_interop.v1"

@@ -249,7 +249,7 @@
       "applies_to_fixtures": [
         "final-conformance-closure-fixture.json"
       ],
-      "description": "Applet transaction push source signature anchor: per-delivery RFC 9421 HTTP Message Signature covering method/target/authority/content-digest/source-service-did/destination-service-did/idempotency-key, source_signature_anchor persisted into the idempotency/replay record, duplicate body/anchor conflicts fail closed, and source service authentication does not replace Event actor/applet/capability checks.",
+      "description": "Applet transaction push source signature anchor: per-delivery RFC 9421 HTTP Message Signature covering method/target/authority/content-digest/source-service-id/destination-service-id/idempotency-key, source_signature_anchor persisted into the idempotency/replay record, duplicate body/anchor conflicts fail closed, and source service authentication does not replace Event actor/applet/capability checks.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1620,7 +1620,7 @@
       "applies_to_fixtures": [
         "security-closure-vectors.json"
       ],
-      "description": "Realm reducer authority for ak.invite.claim: binding_proof and subject_proof signature transcripts, token_commitment match, verification_service_did allowlist re-check, claim_nonce replay rejection, pending -> claimed membership-proposal conversion, and expiry cleanup are enforced before acceptance.",
+      "description": "Realm reducer authority for ak.invite.claim: binding_proof and subject_proof signature transcripts, token_commitment match, verification_service_id allowlist re-check, claim_nonce replay rejection, pending -> claimed membership-proposal conversion, and expiry cleanup are enforced before acceptance.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-vectors.json",
         "spec/v1/zh/conformance/conformance-vectors.md",

@@ -139,7 +139,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A per-delivery RFC 9421 HTTP Message Signature failed verification, Content-Digest did not cover the canonical body, or source_service_did disagreed with the Source-Service-DID header / signature transcript. See zh/extensions/applet-integration.md \u00a77.3.1."
+      "description": "A per-delivery RFC 9421 HTTP Message Signature failed verification, Content-Digest did not cover the canonical body, or source_service_id disagreed with the Source-Service-ID header / signature transcript. See zh/extensions/applet-integration.md \u00a77.3.1."
     },
     {
       "code": "signature_window_invalid",
@@ -845,19 +845,19 @@
       "code": "delivery_binding_stale",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "Federation sender used an obsolete member delivery binding frontier; response carries new_recipient_service_did and handover_frontier so the sender can retry at the current service."
+      "description": "Federation sender used an obsolete member delivery binding frontier; response carries new_recipient_service_id and handover_frontier so the sender can retry at the current service."
     },
     {
       "code": "delivery_binding_handed_over",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "Federation sender continued using a previous recipient_service_did after the handover grace window expired; sender MUST resolve the current binding and retry there."
+      "description": "Federation sender continued using a previous recipient_service_id after the handover grace window expired; sender MUST resolve the current binding and retry there."
     },
     {
       "code": "delivery_binding_unresolvable",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "An accepted member delivery binding could not be resolved to a reachable recipient_service_did after the bounded retry limit; sender MUST NOT fall back to the DID Document ArkretPrincipalServer entry. Surfaced to the upstream sender as a diagnostic after the second failure so it can quarantine pending events and await rebind. See zh/governance/join-policy.md \u00a75.1.4."
+      "description": "An accepted member delivery binding could not be resolved to a reachable recipient_service_id after the bounded retry limit; sender MUST NOT fall back to the DID Document ArkretPrincipalServer entry. Surfaced to the upstream sender as a diagnostic after the second failure so it can quarantine pending events and await rebind. See zh/governance/join-policy.md \u00a75.1.4."
     },
     {
       "code": "historical_only",
@@ -1624,14 +1624,14 @@
         "event_envelope",
         "service_call"
       ],
-      "description": "A `ak.device.push_route` registration would exceed the v1 wire limit of 16 active push_route entries per `(recipient_service_did, principal_id, device_id)`. The server MUST reject the new registration. See zh/crypto-media/device-lifecycle.md \u00a75a.2 and zh/conformance/scalability-constraints.md \u00a76.1."
+      "description": "A `ak.device.push_route` registration would exceed the v1 wire limit of 16 active push_route entries per `(recipient_service_id, principal_id, device_id)`. The server MUST reject the new registration. See zh/crypto-media/device-lifecycle.md \u00a75a.2 and zh/conformance/scalability-constraints.md \u00a76.1."
     },
     {
       "code": "push_route_registration_rate_limited",
       "applies_to": [
         "service_call"
       ],
-      "description": "Internal audit reason recorded when push-route registration / rotation writes for a `(recipient_service_did, principal_id, device_id)` exceed the default rate (8 writes per 60s). The outward response uses a generic rate-limited envelope; this reason is for server-side abuse detection only. See zh/crypto-media/device-lifecycle.md \u00a75a.2 and zh/conformance/scalability-constraints.md \u00a76.1."
+      "description": "Internal audit reason recorded when push-route registration / rotation writes for a `(recipient_service_id, principal_id, device_id)` exceed the default rate (8 writes per 60s). The outward response uses a generic rate-limited envelope; this reason is for server-side abuse detection only. See zh/crypto-media/device-lifecycle.md \u00a75a.2 and zh/conformance/scalability-constraints.md \u00a76.1."
     },
     {
       "code": "selector_actor_wildcard_forbidden",
@@ -1945,7 +1945,7 @@
         "federation_transaction",
         "service_call"
       ],
-      "description": "HTTP Message Signature @authority / target URI host does not match the resolved service endpoint for Destination-Service-DID, or the Destination-Service-DID is not authorized by Realm policy for the requested federation operation. Receiver MUST reject before processing events."
+      "description": "HTTP Message Signature @authority / target URI host does not match the resolved service endpoint for Destination-Service-ID, or the Destination-Service-ID is not authorized by Realm policy for the requested federation operation. Receiver MUST reject before processing events."
     },
     {
       "code": "federation_trust_domain_mismatch",
@@ -2314,7 +2314,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`trusted_recovery_service.service_did` is not declared in the principal DID Document recovery section or organization `recovery_policy.trusted_services[]`, or is outside its validity window. See zh/crypto-media/device-lifecycle.md \u00a714.4."
+      "description": "`trusted_recovery_service.service_id` is not declared in the principal DID Document recovery section or organization `recovery_policy.trusted_services[]`, or is outside its validity window. See zh/crypto-media/device-lifecycle.md \u00a714.4."
     },
     {
       "code": "cross_signing_reset_attestation_missing",
@@ -2649,7 +2649,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A request supplied a `verification_method` whose DID component does not bit-identically match the target principal id after stripping fragment/query. Surfaces in two places. (1) `ak.gate.account.command.pair_agent_key`: `verification_method` vs `agent_principal_id`. (2) `ak.gate.account.command.issue_session_grant` agent branch (`proof.proof_kind=\"agent_key_proof\"`): `proof.verification_method` vs request `principal_id`. Endpoints MUST fail closed before invoking the proof validator so that mismatch is reported as this code rather than as a generic signature failure. See zh/identity/key-management.md \u00a73.6.1."
+      "description": "A request supplied a `verification_method` whose DID component does not bit-identically match the target principal id after stripping fragment/query. Surfaces in two places. (1) `ak.gate.account.command.pair_agent_key`: `verification_method` vs `agent_id`. (2) `ak.gate.account.command.issue_session_grant` agent branch (`proof.proof_kind=\"agent_key_proof\"`): `proof.verification_method` vs request `principal_id`. Endpoints MUST fail closed before invoking the proof validator so that mismatch is reported as this code rather than as a generic signature failure. See zh/identity/key-management.md \u00a73.6.1."
     },
     {
       "code": "pairing_request_expired",
@@ -2698,7 +2698,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "Internal server-side audit reason recorded when an MLS KeyPackage claim exceeds the per-(requester_service_did, target_principal_id) rate limit. The outward response MUST stay anti-enumeration (generic `claim_failed` or rate-limited envelope) and MUST NOT leak target existence; this reason is the canonical audit-log token only. See zh/conformance/scalability-constraints.md \u00a76 and zh/identity/key-management.md."
+      "description": "Internal server-side audit reason recorded when an MLS KeyPackage claim exceeds the per-(requester_service_id, target_principal_id) rate limit. The outward response MUST stay anti-enumeration (generic `claim_failed` or rate-limited envelope) and MUST NOT leak target existence; this reason is the canonical audit-log token only. See zh/conformance/scalability-constraints.md \u00a76 and zh/identity/key-management.md."
     },
     {
       "code": "delegation_cycle",
@@ -2984,7 +2984,7 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "The resolved member delivery binding source, recipient_service_did, endorsement set, unroutable-membership status, or selected source priority conflicts with the Realm delivery_binding_policy allowlist / priority rules. Reducers MUST NOT fall through to a lower-priority binding source after this mismatch. See zh/governance/member-delivery-binding.md \u00a72 and \u00a73.1."
+      "description": "The resolved member delivery binding source, recipient_service_id, endorsement set, unroutable-membership status, or selected source priority conflicts with the Realm delivery_binding_policy allowlist / priority rules. Reducers MUST NOT fall through to a lower-priority binding source after this mismatch. See zh/governance/member-delivery-binding.md \u00a72 and \u00a73.1."
     },
     {
       "code": "principal_control_event_kind_forbidden",
@@ -3057,7 +3057,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A Realm, organization, account, holder-disclosure, agent, or deployment policy explicitly denied the requested operation after syntactic validation and authentication succeeded. Use a narrower code when a more specific registry entry applies. See zh/authz/policy-server.md, zh/crypto-media/device-lifecycle.md, zh/identity/identity-handles.md, and zh/extensions/agent-protocol-interop.md."
+      "description": "A Realm, organization, account, holder-disclosure, agent, or deployment policy explicitly denied the requested operation after syntactic validation and authentication succeeded. Use a narrower code when a more specific registry entry applies. See zh/authz/policy-server.md, zh/crypto-media/device-lifecycle.md, and zh/identity/identity-handles.md."
     },
     {
       "code": "audience_mismatch",
@@ -3128,20 +3128,6 @@
       "description": "ak.self.agent.command.resume was rejected because the agent gained eligibility for one or more ak.profile.agent_sidecar_thread.v1 sidecar Circles created or joined during pause, and the controller has not yet supplied the matching sidecar_exposure_ack re-disclosure. Returned as a failed_precondition sub-reason; the controller MUST re-read the sidecar exposure disclosure and resubmit resume with the acknowledgement before the agent silently inherits access. See zh/identity/key-management.md \u00a73.6.1."
     },
     {
-      "code": "artifact_rejected",
-      "applies_to": [
-        "service_call"
-      ],
-      "description": "An Agent Protocol handoff returned or submitted an artifact that failed Arkret schema, safety, policy, or malware checks. The agent session MAY continue, but the artifact MUST NOT be admitted as accepted Realm content. See zh/extensions/agent-protocol-interop.md."
-    },
-    {
-      "code": "remote_rejected",
-      "applies_to": [
-        "service_call"
-      ],
-      "description": "A remote agent or peer explicitly rejected the delegated task / protocol handoff. Arkret records the rejection as a stable handoff outcome rather than retrying blindly. See zh/extensions/agent-protocol-interop.md."
-    },
-    {
       "code": "webvh_cache_too_stale",
       "applies_to": [
         "auth_decision",
@@ -3155,7 +3141,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A federation delivery-binding handover response carried a proof that does not verify against the Realm Event graph, handover_frontier, actor_id, new_recipient_service_did, or effective delivery binding policy. Sender MUST stop redirection and MUST NOT fall back to DID Document routing. See zh/sync/federation.md \u00a74.1."
+      "description": "A federation delivery-binding handover response carried a proof that does not verify against the Realm Event graph, handover_frontier, actor_id, new_recipient_service_id, or effective delivery binding policy. Sender MUST stop redirection and MUST NOT fall back to DID Document routing. See zh/sync/federation.md \u00a74.1."
     },
     {
       "code": "delivery_binding_handover_rate_limited",
@@ -3334,7 +3320,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Audit release service attestation evidence (ak.schema.attestation_evidence.v1) does not match the active ak.audit.applet_binding, ak.audit.release service_did, measurement, or policy digest. Reducer / verifier MUST reject. See zh/crypto-media/audited-e2ee.md \u00a76."
+      "description": "Audit release service attestation evidence (ak.schema.attestation_evidence.v1) does not match the active ak.audit.applet_binding, ak.audit.release service_id, measurement, or policy digest. Reducer / verifier MUST reject. See zh/crypto-media/audited-e2ee.md \u00a76."
     },
     {
       "code": "audit_purpose_mismatch",
@@ -3530,30 +3516,6 @@
         "identity_resolution"
       ],
       "description": "Cross-method principal upgrade transfer_evidence.old_did_document_fetched_at is older than the maximum 168h evidence window. Receiver MUST reject instead of accepting stale did:web evidence. See zh/identity/key-management.md \u00a75.0.5."
-    },
-    {
-      "code": "session_pinned_did_epoch_mismatch",
-      "applies_to": [
-        "auth_decision",
-        "agent_protocol"
-      ],
-      "description": "An agent protocol session status/result no longer matches the DID Document hash, service entry, endpoint digest, or verification method pinned at session start. Session MUST be blocked or cancelled. See zh/extensions/agent-protocol-interop.md \u00a75.2."
-    },
-    {
-      "code": "agent_endpoint_retired",
-      "applies_to": [
-        "auth_decision",
-        "agent_protocol"
-      ],
-      "description": "A pinned agent endpoint digest was marked retired or revoked by the owner/admin endpoint state. Existing sessions MUST be blocked/cancelled and new sessions MUST re-start with a fresh pin. See zh/extensions/agent-protocol-interop.md \u00a75.2."
-    },
-    {
-      "code": "agent_protocol_malformed_response",
-      "applies_to": [
-        "agent_protocol",
-        "schema_validation"
-      ],
-      "description": "An external agent protocol response failed declared schema, transcript hash, or artifact binding validation. The failure MUST be recorded via ak.agent.interop_session.status/result. See zh/extensions/agent-protocol-interop.md \u00a712."
     },
     {
       "code": "gate_check_failed",
@@ -3986,10 +3948,11 @@
     {
       "code": "egress_policy_denied",
       "applies_to": [
-        "agent_protocol",
-        "authz"
+        "authz",
+        "federation_transaction",
+        "service_call"
       ],
-      "description": "An outbound agent-protocol handoff would emit E2EE Realm plaintext or derived content without a matching egress grant and data-class check. Session start MUST be rejected."
+      "description": "An outbound Applet, MIMI, or federation transfer would emit plaintext or derived content without the egress grant, data-class allowance, or destination policy required for that transfer. The sender MUST reject the transfer before releasing content."
     },
     {
       "code": "erasure_receipt_stub_digest_mismatch",
@@ -4219,22 +4182,6 @@
       "description": "Reducer rejected a read-receipt policy whose effective combination is `disclosure='required'` AND `visibility='public'` on a `world_readable` scope \u2014 forced emission of publicly-pullable read positions with no member opt-out (forced de-anonymized activity tracking) \u2014 unless the policy payload also sets the second explicit opt-in `allow_forced_public_world_readable_receipts=true`. See zh/discovery/read-receipts.md \u00a72.5.1."
     },
     {
-      "code": "interop_session_writer_unauthorized",
-      "applies_to": [
-        "auth_decision",
-        "agent_protocol"
-      ],
-      "description": "A ak.agent.interop_session.status/result/cancel event was submitted by an actor that is neither the interop_session.start submitter nor a holder of a session-scoped delegation for that session_id. The event MUST fail closed. See zh/extensions/agent-protocol-interop.md section 5.3."
-    },
-    {
-      "code": "agent_participation_denied",
-      "applies_to": [
-        "auth_decision",
-        "agent_protocol"
-      ],
-      "description": "An interop_session.start named a native personal agent as counterparty while the start submitter is not that agent's controller and the agent's effective accept_third_party_mention is false. Session start MUST be rejected. See zh/extensions/agent-protocol-interop.md section 5.2."
-    },
-    {
       "code": "mimi_observer_write_forbidden",
       "applies_to": [
         "service_call",
@@ -4320,7 +4267,7 @@
         "event_envelope",
         "audit_decision"
       ],
-      "description": "Audit Agent attestation evidence does not match the expected binding: realm_id, service_did, audit_agent_principal_id, measurement, audit_purpose, policy digest, validity, or operator DID diverge from the registered audit binding. Join and release paths MUST fail closed. See zh/crypto-media/audited-e2ee.md \u00a76 and artifacts/schemas/attestation-evidence.schema.json."
+      "description": "Audit Agent attestation evidence does not match the expected binding: realm_id, service_id, audit_service_actor_id, measurement, audit_purpose, policy digest, validity, or operator DID diverge from the registered audit binding. Join and release paths MUST fail closed. See zh/crypto-media/audited-e2ee.md \u00a76 and artifacts/schemas/attestation-evidence.schema.json."
     },
     {
       "code": "lite_profile_writes_disallowed_event_kind",

@@ -379,7 +379,7 @@
         "issuer": "did:webvh:z6mkfixture:owner.example",
         "subject": "did:webvh:z6mkfixture:agent.example",
         "actions": [
-          "ak.agent.interop_session.start"
+          "ak.agent.action_request"
         ],
         "resources": [
           {

@@ -36,7 +36,7 @@
         "call_id",
         "focus_id",
         "recording_id",
-        "media_service_did",
+        "media_service_id",
         "recording_start_event_id"
       ],
       "output_length": 32,
@@ -60,7 +60,7 @@
         "call_id",
         "focus_id",
         "recording_id",
-        "media_service_did",
+        "media_service_id",
         "transcript_start_event_id"
       ],
       "output_length": 32,

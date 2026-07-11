@@ -243,7 +243,7 @@
       ]
     },
     {
-      "key_pattern": "ak.agent.draft.v1:<agent_principal_id>:<draft_id>",
+      "key_pattern": "ak.agent.draft.v1:<agent_id>:<draft_id>",
       "status": "active",
       "scope": "controller_private_state",
       "storage": "encrypted_account_data",
@@ -258,7 +258,7 @@
       ]
     },
     {
-      "key_pattern": "ak.agent.sidecar_projection.v1:<controller_principal_id>:<target_realm_id>:<target_strand_id>",
+      "key_pattern": "ak.agent.sidecar_projection.v1:<controller_id>:<target_realm_id>:<target_strand_id>",
       "status": "active",
       "scope": "controller_private_preference",
       "storage": "encrypted_account_data",
@@ -272,7 +272,7 @@
       ]
     },
     {
-      "key_pattern": "ak.agent.participation.v1:<agent_principal_id>:<scope_key>",
+      "key_pattern": "ak.agent.participation.v1:<agent_id>:<scope_key>",
       "status": "active",
       "scope": "controller_private_state",
       "storage": "encrypted_account_data",

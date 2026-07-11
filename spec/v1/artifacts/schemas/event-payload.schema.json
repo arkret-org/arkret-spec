@@ -46,7 +46,7 @@
       "type": "object",
       "description": "Per-Realm binding of a member to a concrete delivery target service. Authoritative source for Realm-scoped event / sync / to-device / push / key-package delivery; sender MUST NOT consult the actor's DID Document service entry as an alternative resolution path when this binding is present. Pairwise / unlinkability use-cases are orthogonal — see identity-did.md and pairwise DID guidance.",
       "required": [
-        "recipient_service_did",
+        "recipient_service_id",
         "recipient_service_type",
         "binding_scope",
         "binding_source",
@@ -54,7 +54,7 @@
         "resolved_at"
       ],
       "properties": {
-        "recipient_service_did": {
+        "recipient_service_id": {
           "$ref": "#/$defs/did",
           "description": "service DID of the recipient Principal Server for this member in this Realm."
         },
@@ -97,7 +97,7 @@
         "service_endpoint": {
           "type": "string",
           "format": "uri",
-          "description": "Optional cached HTTPS endpoint of recipient_service_did at resolved_at. Diagnostic / fast-path hint only; sender MUST re-resolve via DID Document before federation transactions and SHOULD verify endpoint matches the service DID's current binding."
+          "description": "Optional cached HTTPS endpoint of recipient_service_id at resolved_at. Diagnostic / fast-path hint only; sender MUST re-resolve via DID Document before federation transactions and SHOULD verify endpoint matches the service DID's current binding."
         },
         "did_document_digest": {
           "$ref": "#/$defs/hash",
@@ -109,11 +109,11 @@
         },
         "service_acceptance_ref": {
           "$ref": "#/$defs/event_ref",
-          "description": "Reference to the recipient service's prior service_acceptance / endorsement Event. Required when binding_source = explicit, invite, or organization_policy; reducer MUST verify the referenced Event is signed by recipient_service_did and its scope covers this Realm. Producers MUST NOT fabricate this ref for realm bootstrap; bootstrap without real service evidence must use another binding_source with its own evidence or remain unroutable."
+          "description": "Reference to the recipient service's prior service_acceptance / endorsement Event. Required when binding_source = explicit, invite, or organization_policy; reducer MUST verify the referenced Event is signed by recipient_service_id and its scope covers this Realm. Producers MUST NOT fabricate this ref for realm bootstrap; bootstrap without real service evidence must use another binding_source with its own evidence or remain unroutable."
         },
         "holder_proof_ref": {
           "$ref": "#/$defs/event_ref",
-          "description": "Reference to the member's DID proof (challenge-response) that bound the DID to recipient_service_did at the auth/account layer. Required when the member did not submit the join Control Move directly from a session at recipient_service_did."
+          "description": "Reference to the member's DID proof (challenge-response) that bound the DID to recipient_service_id at the auth/account layer. Required when the member did not submit the join Control Move directly from a session at recipient_service_id."
         },
         "policy_event_ref": {
           "$ref": "#/$defs/event_ref",
@@ -255,7 +255,7 @@
               "items": {
                 "$ref": "#/$defs/did"
               },
-              "description": "Closed allow-list of recipient_service_did values. Empty array [] = reject any recipient service (fail-closed): the reducer MUST reject routable joins (delivery_binding_policy_mismatch) when the recipient service is neither on this list, nor covered by the [\"*\"] sentinel, nor endorsed via required_endorsers. The empty array MUST NOT be interpreted as 'unrestricted'. Non-empty required_endorsers remains mandatory even when the service is listed here."
+              "description": "Closed allow-list of recipient_service_id values. Empty array [] = reject any recipient service (fail-closed): the reducer MUST reject routable joins (delivery_binding_policy_mismatch) when the recipient service is neither on this list, nor covered by the [\"*\"] sentinel, nor endorsed via required_endorsers. The empty array MUST NOT be interpreted as 'unrestricted'. Non-empty required_endorsers remains mandatory even when the service is listed here."
             },
             {
               "type": "array",
@@ -275,7 +275,7 @@
           "items": {
             "$ref": "#/$defs/did"
           },
-          "description": "When this array is non-empty, the recipient_service_did's service_acceptance_ref MUST be endorsed by one of these governance DIDs, regardless of allowed_recipient_services or the [\"*\"] sentinel. Empty array = no mandatory endorsement requirement."
+          "description": "When this array is non-empty, the recipient_service_id's service_acceptance_ref MUST be endorsed by one of these governance DIDs, regardless of allowed_recipient_services or the [\"*\"] sentinel. Empty array = no mandatory endorsement requirement."
         },
         "allow_unroutable_membership": {
           "type": "boolean",
@@ -731,10 +731,6 @@
       "type": "string",
       "pattern": "^ak:invite:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "agent_interop_session_id": {
-      "type": "string",
-      "pattern": "^ak:agent_interop_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
     "verification_method": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#]+#[^\\s#]+$",
@@ -747,7 +743,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^(ak:(realm|circle|space|actor_profile|strand|message|morph|relation|view|policy|grant|invite|call|agent_interop_session|audit_binding|audit_session|audit_release|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^(ak:(realm|circle|space|actor_profile|strand|message|morph|relation|view|policy|grant|invite|call|audit_binding|audit_session|audit_release|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
     },
     "keypackage_ref": {
       "type": "string",
@@ -2751,7 +2747,7 @@
           },
           "description": "Join-policy gate proofs evaluated by governance/join-policy.md before accepting membership=join. maxItems aligns with the gates 1..16 bound in join_policy_payload; see zh/conformance/scalability-constraints.md."
         },
-        "via_service_dids": {
+        "via_service_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did"
@@ -2910,14 +2906,14 @@
           "items": {
             "type": "object",
             "required": [
-              "service_did",
+              "service_id",
               "service_type",
               "data_classes",
               "purposes",
               "visibility"
             ],
             "properties": {
-              "service_did": {
+              "service_id": {
                 "$ref": "#/$defs/did"
               },
               "service_type": {
@@ -3664,7 +3660,7 @@
       "type": "object",
       "required": [
         "enabled_profile_refs",
-        "allowed_service_dids",
+        "allowed_service_ids",
         "data_classes"
       ],
       "properties": {
@@ -3680,7 +3676,7 @@
           },
           "uniqueItems": true
         },
-        "allowed_service_dids": {
+        "allowed_service_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did"
@@ -4151,269 +4147,6 @@
       },
       "additionalProperties": false
     },
-    "agent_endpoint_payload": {
-      "type": "object",
-      "description": "Payload for ak.agent.endpoint. agent_did is the interop-surface DID of the agent runtime declaring its external protocol endpoints; distinct from the governance-surface agent_principal_id (authorization subject).",
-      "required": [
-        "agent_did",
-        "endpoints"
-      ],
-      "properties": {
-        "agent_did": {
-          "$ref": "#/$defs/did"
-        },
-        "endpoints": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          },
-          "minItems": 1
-        }
-      },
-      "additionalProperties": false
-    },
-    "agent_interop_session_start_payload": {
-      "type": "object",
-      "required": [
-        "session_id",
-        "counterparty_agent",
-        "protocol",
-        "capability_grant"
-      ],
-      "properties": {
-        "session_id": {
-          "$ref": "#/$defs/agent_interop_session_id"
-        },
-        "task_strand_id": {
-          "$ref": "#/$defs/strand_id"
-        },
-        "counterparty_agent": {
-          "$ref": "#/$defs/did"
-        },
-        "protocol": {
-          "type": "string",
-          "enum": [
-            "a2a",
-            "acp",
-            "mcp_bridge",
-            "http_custom"
-          ]
-        },
-        "external_protocol_version": {
-          "type": "string"
-        },
-        "endpoint_ref": {
-          "type": "string",
-          "minLength": 1
-        },
-        "capability_grant": {
-          "$ref": "#/$defs/grant_id"
-        },
-        "allowed_artifact_types": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "uniqueItems": true
-        },
-        "max_duration_seconds": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "audit_mode": {
-          "type": "string",
-          "enum": [
-            "status_only",
-            "summary_and_artifacts",
-            "full_transcript_digest",
-            "full_transcript"
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
-    "agent_interop_session_status_payload": {
-      "type": "object",
-      "required": [
-        "session_id",
-        "status"
-      ],
-      "properties": {
-        "session_id": {
-          "$ref": "#/$defs/agent_interop_session_id"
-        },
-        "status": {
-          "type": "string",
-          "enum": [
-            "negotiating",
-            "accepted",
-            "working",
-            "input_required",
-            "blocked",
-            "completed",
-            "failed",
-            "cancelled",
-            "expired"
-          ]
-        },
-        "external_task_id": {
-          "type": "string",
-          "minLength": 1
-        },
-        "last_update_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "progress_basis_points": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 10000,
-          "description": "Progress in basis points (0..10000 = 0%..100%). v1 wire forbids non-integer numbers; producers MUST use integer scaled forms."
-        },
-        "summary": {
-          "type": "string"
-        },
-        "cancelled_by": {
-          "$ref": "#/$defs/did",
-          "description": "Set when status=cancelled: the actor that cancelled the session. See zh/extensions/agent-protocol-interop.md §5.3."
-        },
-        "cancelled_at": {
-          "$ref": "#/$defs/timestamp",
-          "description": "Set when status=cancelled: cancellation time."
-        },
-        "reason_code": {
-          "$ref": "#/$defs/non_empty_string",
-          "description": "Set when status=cancelled: machine-readable cancellation reason."
-        },
-        "external_cancel_ref": {
-          "type": "string",
-          "description": "Optional external-protocol cancellation reference for the cancelled session."
-        },
-        "cleanup_required": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Set when status=cancelled: cleanup steps the canceller / host MUST perform."
-        }
-      },
-      "additionalProperties": false
-    },
-    "agent_interop_session_result_payload": {
-      "type": "object",
-      "required": [
-        "session_id",
-        "status"
-      ],
-      "properties": {
-        "session_id": {
-          "$ref": "#/$defs/agent_interop_session_id"
-        },
-        "status": {
-          "type": "string",
-          "enum": [
-            "completed",
-            "failed",
-            "cancelled",
-            "expired"
-          ]
-        },
-        "result_objects": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          },
-          "description": "Protocol objects materialized by the completed interop session."
-        },
-        "artifacts": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
-        },
-        "artifact_retention": {
-          "type": "string",
-          "enum": [
-            "none",
-            "session",
-            "realm_policy",
-            "external_stub_only"
-          ]
-        },
-        "external_artifact_stub": {
-          "type": "object",
-          "additionalProperties": true
-        },
-        "external_transcript_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "completed_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "cancelled_by": {
-          "type": "string",
-          "enum": [
-            "local",
-            "remote",
-            "system"
-          ]
-        },
-        "cancelled_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "reason_code": {
-          "type": "string",
-          "minLength": 1
-        },
-        "external_cancel_ref": {
-          "type": "string",
-          "minLength": 1
-        },
-        "cleanup_required": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false,
-      "anyOf": [
-        {
-          "required": [
-            "result_objects"
-          ]
-        },
-        {
-          "required": [
-            "artifacts"
-          ]
-        },
-        {
-          "required": [
-            "reason_code"
-          ]
-        }
-      ],
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "status": {
-                "const": "cancelled"
-              }
-            },
-            "required": [
-              "status"
-            ]
-          },
-          "then": {
-            "required": [
-              "cancelled_by",
-              "cancelled_at",
-              "reason_code",
-              "artifact_retention"
-            ]
-          }
-        }
-      ]
-    },
     "agent_key_scope": {
       "type": "object",
       "description": "Closed authorization scope for an agent signing key. Resource selectors and actions are both explicit so the key cannot silently widen its authority through omitted dimensions. actions may contain service operation ids (for example ak.self.events.stream.subscribe) and content capability action tokens (for example ak.event.read); content capability grants are not the sole source for service-surface scope.",
@@ -4454,7 +4187,7 @@
               "operation": {
                 "$ref": "#/$defs/non_empty_string"
               },
-              "service_did": {
+              "service_id": {
                 "$ref": "#/$defs/did"
               }
             },
@@ -4505,7 +4238,7 @@
       "type": "object",
       "description": "Payload for ak.agent.key.authorize. Binds one concrete agent signing key to an accountable principal, explicit agent_key_scope, audience, validity window, approval evidence, and both the service-surface and content-capability ceilings that later agent_key_proof sessions must narrow from.",
       "required": [
-        "agent_principal_id",
+        "agent_id",
         "key_id",
         "verification_method",
         "accountable_principal_id",
@@ -4516,7 +4249,7 @@
         "approval_evidence"
       ],
       "properties": {
-        "agent_principal_id": {
+        "agent_id": {
           "$ref": "#/$defs/did"
         },
         "key_id": {
@@ -4589,15 +4322,15 @@
     },
     "agent_key_revoke_payload": {
       "type": "object",
-      "description": "Payload for ak.agent.key.revoke. The or_set cell subject is (agent_principal_id, key_id); future protocol proofs from this key fail closed once this event is covered by an accepted Seal. The authoring basis is the Control Move envelope seal_basis; the payload carries no frontier field.",
+      "description": "Payload for ak.agent.key.revoke. The or_set cell subject is (agent_id, key_id); future protocol proofs from this key fail closed once this event is covered by an accepted Seal. The authoring basis is the Control Move envelope seal_basis; the payload carries no frontier field.",
       "required": [
-        "agent_principal_id",
+        "agent_id",
         "key_id",
         "revoked_by",
         "revoked_at"
       ],
       "properties": {
-        "agent_principal_id": {
+        "agent_id": {
           "$ref": "#/$defs/did"
         },
         "key_id": {
@@ -4620,7 +4353,7 @@
       "type": "object",
       "description": "Payload for ak.agent.key.rotate. key_id names the retiring key used as the cell subject; replacement_key_id names the new key. Reducers MUST verify the accountable_principal_id is unchanged, agent_key_scope is equivalent or narrower, and expires_at does not extend the retiring key's effective TTL.",
       "required": [
-        "agent_principal_id",
+        "agent_id",
         "key_id",
         "replacement_key_id",
         "replacement_verification_method",
@@ -4632,7 +4365,7 @@
         "approval_evidence"
       ],
       "properties": {
-        "agent_principal_id": {
+        "agent_id": {
           "$ref": "#/$defs/did"
         },
         "key_id": {
@@ -4705,20 +4438,20 @@
     },
     "agent_pause_payload": {
       "type": "object",
-      "description": "Payload for ak.agent.pause. The status cell is keyed by agent_principal_id and moves from active to paused under the captured freshness frontier.",
+      "description": "Payload for ak.agent.pause. The status cell is keyed by agent_id and moves from active to paused under the captured freshness frontier.",
       "required": [
-        "agent_principal_id",
-        "controller_principal_id",
+        "agent_id",
+        "controller_id",
         "transition",
         "previous_status",
         "status_changed_at",
         "freshness_frontier"
       ],
       "properties": {
-        "agent_principal_id": {
+        "agent_id": {
           "$ref": "#/$defs/did"
         },
-        "controller_principal_id": {
+        "controller_id": {
           "$ref": "#/$defs/did"
         },
         "transition": {
@@ -4744,18 +4477,18 @@
       "type": "object",
       "description": "Payload for ak.agent.resume. Reducers re-check controller, agent, key, capability, Realm policy, accountability grant, and any sidecar exposure acknowledgement before returning the agent to active.",
       "required": [
-        "agent_principal_id",
-        "controller_principal_id",
+        "agent_id",
+        "controller_id",
         "transition",
         "previous_status",
         "status_changed_at",
         "freshness_frontier"
       ],
       "properties": {
-        "agent_principal_id": {
+        "agent_id": {
           "$ref": "#/$defs/did"
         },
-        "controller_principal_id": {
+        "controller_id": {
           "$ref": "#/$defs/did"
         },
         "transition": {
@@ -4784,17 +4517,17 @@
       "type": "object",
       "description": "Payload for ak.agent.deactivate. Revocation fan-out and future agent-session rejection are judged at the accepted Seal covering this Move (or its successors); the authoring basis is the Control Move envelope seal_basis. The payload carries no frontier field.",
       "required": [
-        "agent_principal_id",
-        "controller_principal_id",
+        "agent_id",
+        "controller_id",
         "transition",
         "previous_status",
         "status_changed_at"
       ],
       "properties": {
-        "agent_principal_id": {
+        "agent_id": {
           "$ref": "#/$defs/did"
         },
-        "controller_principal_id": {
+        "controller_id": {
           "$ref": "#/$defs/did"
         },
         "transition": {
@@ -4883,8 +4616,8 @@
       "description": "Payload for ak.agent.draft.propose. Actor-private proposal that may materialize into controller-owned encrypted draft account data after policy checks.",
       "required": [
         "draft_id",
-        "agent_principal_id",
-        "controller_principal_id",
+        "agent_id",
+        "controller_id",
         "proposed_action",
         "target",
         "content_digest",
@@ -4895,10 +4628,10 @@
         "draft_id": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "agent_principal_id": {
+        "agent_id": {
           "$ref": "#/$defs/did"
         },
-        "controller_principal_id": {
+        "controller_id": {
           "$ref": "#/$defs/did"
         },
         "proposed_action": {
@@ -4931,8 +4664,8 @@
       "description": "Payload for ak.agent.action_request. Actor-private request for controller approval before a shared Realm write is emitted.",
       "required": [
         "request_id",
-        "agent_principal_id",
-        "controller_principal_id",
+        "agent_id",
+        "controller_id",
         "proposed_action",
         "target",
         "request_canonical_digest",
@@ -4946,10 +4679,10 @@
         "draft_id": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "agent_principal_id": {
+        "agent_id": {
           "$ref": "#/$defs/did"
         },
-        "controller_principal_id": {
+        "controller_id": {
           "$ref": "#/$defs/did"
         },
         "proposed_action": {
@@ -4975,8 +4708,8 @@
       "description": "Payload for ak.agent.action_approve. Controller approval binds the draft/action request, target, approved payload digest, expiry, and single-use nonce.",
       "required": [
         "approval_id",
-        "agent_principal_id",
-        "controller_principal_id",
+        "agent_id",
+        "controller_id",
         "proposed_action",
         "target",
         "approved_payload_digest",
@@ -4994,10 +4727,10 @@
         "draft_id": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "agent_principal_id": {
+        "agent_id": {
           "$ref": "#/$defs/did"
         },
-        "controller_principal_id": {
+        "controller_id": {
           "$ref": "#/$defs/did"
         },
         "proposed_action": {
@@ -5029,8 +4762,8 @@
       "description": "Payload for ak.agent.action_reject. Controller rejection terminates a draft/action request without shared Realm side effects.",
       "required": [
         "rejection_id",
-        "agent_principal_id",
-        "controller_principal_id",
+        "agent_id",
+        "controller_id",
         "rejected_at"
       ],
       "properties": {
@@ -5043,10 +4776,10 @@
         "draft_id": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "agent_principal_id": {
+        "agent_id": {
           "$ref": "#/$defs/did"
         },
-        "controller_principal_id": {
+        "controller_id": {
           "$ref": "#/$defs/did"
         },
         "reason": {
@@ -5560,9 +5293,9 @@
         },
         "binding_proof": {
           "type": "object",
-          "description": "Verification-service proof for ak.invite.claim. Reducers verify signature over the ak.invite.claim.binding_proof.v1 transcript against the invite's verification_public_key and current Realm verification_service_did allowlist before accepting a claimed transition.",
+          "description": "Verification-service proof for ak.invite.claim. Reducers verify signature over the ak.invite.claim.binding_proof.v1 transcript against the invite's verification_public_key and current Realm verification_service_id allowlist before accepting a claimed transition.",
           "required": [
-            "verification_service_did",
+            "verification_service_id",
             "verification_method",
             "subject_id",
             "realm_id",
@@ -5572,7 +5305,7 @@
             "signature"
           ],
           "properties": {
-            "verification_service_did": {
+            "verification_service_id": {
               "$ref": "#/$defs/did",
               "description": "Verification service DID. Realm reducers MUST re-check this DID against the current effective Realm allowlist and any service DID pinned by the original invite."
             },
@@ -5604,14 +5337,14 @@
             },
             "signature": {
               "$ref": "#/$defs/signature_material",
-              "description": "Signature over utf8(\"ak.invite.claim.binding_proof.v1\\n\") || canonical_json({audience, binding_proof: unsigned_binding_proof, claim_nonce, invite_digest, invite_id, realm_id, subject_id, token_commitment, verification_service_did}); unsigned_binding_proof is this object without signature."
+              "description": "Signature over utf8(\"ak.invite.claim.binding_proof.v1\\n\") || canonical_json({audience, binding_proof: unsigned_binding_proof, claim_nonce, invite_digest, invite_id, realm_id, subject_id, token_commitment, verification_service_id}); unsigned_binding_proof is this object without signature."
             }
           },
           "additionalProperties": false
         },
         "subject_proof": {
           "type": "object",
-          "description": "Subject DID proof over ak.invite.claim.subject_proof.v1 transcript. The transcript digest binds subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience, verification_service_did, and binding_proof_digest of the complete signed binding_proof object.",
+          "description": "Subject DID proof over ak.invite.claim.subject_proof.v1 transcript. The transcript digest binds subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience, verification_service_id, and binding_proof_digest of the complete signed binding_proof object.",
           "required": [
             "verification_method",
             "alg",
@@ -5785,7 +5518,7 @@
     "device_push_route_payload": {
       "type": "object",
       "required": [
-        "recipient_service_did",
+        "recipient_service_id",
         "principal_id",
         "device_id",
         "push_route",
@@ -5795,7 +5528,7 @@
         "capabilities"
       ],
       "properties": {
-        "recipient_service_did": {
+        "recipient_service_id": {
           "$ref": "#/$defs/did"
         },
         "principal_id": {
@@ -6904,8 +6637,8 @@
       "description": "Payload for ak.applet.registration. Durable Realm-history Event registering an Applet (bridge / bot / Ghost Actor namespace). Field vocabulary: zh/extensions/applet-integration.md §4 and zh/extensions/applet-schema.md §1 (the authoritative machine schema is applet.schema.json, which documents the applet object snapshot; the wire Event payload is this closed class). An Applet's capability to enter a Realm MUST be granted by that Realm's owner / admin / authorized registry-authz service; a self-signed registration alone MUST NOT write to a Realm (reason=applet_registration_unauthorized). registration MUST be signed by the controller DID (proof per models/event-and-patch.md §3).",
       "required": [
         "applet_id",
-        "service_did",
-        "controller_did",
+        "service_id",
+        "controller_id",
         "base_url",
         "bot_actor_id",
         "protocols",
@@ -6932,11 +6665,11 @@
           ],
           "description": "Stable applet identifier: a DID or the typed-id form ak:applet:<uuidv7>."
         },
-        "service_did": {
+        "service_id": {
           "$ref": "#/$defs/did",
           "description": "DID of the service hosting the applet runtime."
         },
-        "controller_did": {
+        "controller_id": {
           "$ref": "#/$defs/did",
           "description": "DID of the Applet controller / external system; signs the registration."
         },
@@ -6976,7 +6709,7 @@
         },
         "webhook_auth": {
           "type": "object",
-          "description": "Transaction push HTTP signature policy copied from the Applet package. webhook_auth.key_ref is the Applet service DID URL used as the app/bridge->arkret inbound source signature anchor and is bound to this registration_epoch; node->Applet pushes verify the Arkret source service DID from Source-Service-DID instead.",
+          "description": "Transaction push HTTP signature policy copied from the Applet package. webhook_auth.key_ref is the Applet service DID URL used as the app/bridge->arkret inbound source signature anchor and is bound to this registration_epoch; node->Applet pushes verify the Arkret source service DID from Source-Service-ID instead.",
           "additionalProperties": true
         },
         "manifest": {
@@ -7072,7 +6805,7 @@
     },
     "applet_interop_session_start_payload": {
       "type": "object",
-      "description": "Payload for ak.applet.interop_session.start. Parallel to ak.agent.interop_session.start but applet-scoped. Field vocabulary: applet.schema.json (session_id correlates start/status; params are caller-supplied, opaque to the Arkret protocol and interpreted per applet manifest). Unlike ak.agent.* there is NO canonical applet session state machine in v1.",
+      "description": "Payload for ak.applet.interop_session.start. This applet-scoped bridge mechanism remains active independently of the reserved agent interop namespace. Field vocabulary: applet.schema.json (session_id correlates start/status; params are caller-supplied, opaque to the Arkret protocol and interpreted per applet manifest). There is no canonical applet session state machine in v1.",
       "required": [
         "applet_id",
         "session_id"
@@ -7093,7 +6826,7 @@
           "$ref": "#/$defs/non_empty_string",
           "description": "Per-invocation correlation id pairing start with the matching status event."
         },
-        "service_did": {
+        "service_id": {
           "$ref": "#/$defs/did"
         },
         "params": {
@@ -7109,7 +6842,7 @@
     },
     "applet_interop_session_status_payload": {
       "type": "object",
-      "description": "Payload for ak.applet.interop_session.status. Parallel to ak.agent.interop_session.status but applet-scoped. runtime_status is the bridge-implementation-defined status (applet.schema.json) — v1 does NOT mandate a canonical applet session state machine; the field is named runtime_status (not status) to keep applet snapshots distinguishable from the canonical agent session state machine. detail is a free-form bridge-side surface.",
+      "description": "Payload for ak.applet.interop_session.status. This applet-scoped bridge mechanism remains active independently of the reserved agent interop namespace. runtime_status is the bridge-implementation-defined status (applet.schema.json) — v1 does NOT mandate a canonical applet session state machine. detail is a free-form bridge-side surface.",
       "required": [
         "applet_id",
         "session_id",
@@ -7419,7 +7152,7 @@
         "realm_id",
         "effective_scope",
         "applet_id",
-        "service_did",
+        "service_id",
         "status",
         "purpose_classes",
         "allowed_release_modes",
@@ -7452,7 +7185,7 @@
             }
           ]
         },
-        "service_did": {
+        "service_id": {
           "$ref": "#/$defs/did"
         },
         "status": {
@@ -7598,7 +7331,7 @@
             }
           ]
         },
-        "service_did": {
+        "service_id": {
           "$ref": "#/$defs/did"
         },
         "requested_by": {
@@ -7769,7 +7502,7 @@
         {
           "required": [
             "authorize_ref",
-            "service_did",
+            "service_id",
             "purpose_class",
             "approved_release_mode",
             "approver_actor_id",
@@ -7824,7 +7557,7 @@
         "realm_id",
         "effective_scope",
         "applet_id",
-        "service_did",
+        "service_id",
         "release_mode",
         "seal_digest",
         "recipient_audit_actor_id",
@@ -7865,7 +7598,7 @@
             }
           ]
         },
-        "service_did": {
+        "service_id": {
           "$ref": "#/$defs/did"
         },
         "release_mode": {

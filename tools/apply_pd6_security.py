@@ -162,8 +162,8 @@ def render_security(bucket: str, has_body: bool, indent: str) -> list[str]:
             f"{pad}security:",
             f"{pad}- bearerAuth: []",
             f"{pad}- httpMessageSignature: []",
-            f"{pad}  sourceServiceDid: []",
-            f"{pad}  destinationServiceDid: []",
+            f"{pad}  sourceServiceId: []",
+            f"{pad}  destinationServiceId: []",
         ]
         if has_body:
             lines.append(f"{pad}  contentDigest: []")
@@ -172,8 +172,8 @@ def render_security(bucket: str, has_body: bool, indent: str) -> list[str]:
         lines = [
             f"{pad}security:",
             f"{pad}- httpMessageSignature: []",
-            f"{pad}  sourceServiceDid: []",
-            f"{pad}  destinationServiceDid: []",
+            f"{pad}  sourceServiceId: []",
+            f"{pad}  destinationServiceId: []",
         ]
         if has_body:
             lines.append(f"{pad}  contentDigest: []")
@@ -183,8 +183,8 @@ def render_security(bucket: str, has_body: bool, indent: str) -> list[str]:
             f"{pad}security:",
             f"{pad}- bearerAuth: []",
             f"{pad}- httpMessageSignature: []",
-            f"{pad}  sourceServiceDid: []",
-            f"{pad}  destinationServiceDid: []",
+            f"{pad}  sourceServiceId: []",
+            f"{pad}  destinationServiceId: []",
         ]
         if has_body:
             lines.append(f"{pad}  contentDigest: []")

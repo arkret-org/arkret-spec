@@ -184,7 +184,8 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 | 协议责任主体（DID 作为主体 ID） | `<role>_id` | 例：`actor_id`、`principal_id`、`subject_id`。 |
 | 因果 / finality / proof / schema-profile reference | `<noun>_ref` / `<noun>_refs` | 例：`prev_refs`、`seal_ref`、`schema_refs`、`policy_event_ref`。 |
 | Blob / content-addressed / polymorphic reference | `<noun>_ref` / `<noun>_refs` | 例：`blob_ref`、`target_ref`、`from_ref`、`to_ref`。 |
-| 原始 DID ecosystem material | `<role>_did` | 例：`service_did`、`pairwise_did`、`old_did`、`new_did`。 |
+| Service identity（wire value 为 DID） | `service_id` / `<role>_service_id` | 例：`service_id`、`recipient_service_id`、`source_service_id`、`verification_service_id`。 |
+| 其它原始 DID ecosystem material | `<role>_did` | 例：`pairwise_did`、`old_did`、`new_did`、`operator_did`。 |
 
 ### 4.2 Canonical 确定性 tie-break（normative，单一真相源）
 

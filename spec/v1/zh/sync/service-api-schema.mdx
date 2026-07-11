@@ -40,7 +40,7 @@ HTTP/JSON 是参考绑定；同一操作应能无语义损失映射到其它 tra
 - 关键行为不由路径决定，而由 `operation_id` 与数据语义决定。
 - Arkret 协议字段和 feature discovery 使用 `operation_id`，取值使用 `ak.<namespace>.<lower_snake_case>`。OpenAPI 3.1 标准字段名仍为 `operationId`，其值应等于对应的 Arkret `operation_id`。
 - 服务发现使用 canonical `ServiceDescribe` shape；响应 core shape 包含：
-  - `service_did`
+  - `service_id`
   - `trust_domain`
   - `service_type`
   - `protocol_version`

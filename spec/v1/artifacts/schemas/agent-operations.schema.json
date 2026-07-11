@@ -203,12 +203,12 @@
     "agent_projection": {
       "type": "object",
       "required": [
-        "agent_principal_id",
+        "agent_id",
         "slug",
         "status"
       ],
       "properties": {
-        "agent_principal_id": {
+        "agent_id": {
           "$ref": "#/$defs/did"
         },
         "display_name": {
@@ -425,7 +425,7 @@
       "type": "object",
       "required": [
         "pairing_request_id",
-        "agent_principal_id",
+        "agent_id",
         "verification_method",
         "public_key",
         "proof_of_possession",
@@ -436,7 +436,7 @@
           "$ref": "#/$defs/opaque_local_id",
           "description": "Single-use pairing artifact id returned by agent_provision_outcome. Profile-local, short-lived and not a durable protocol object ref."
         },
-        "agent_principal_id": {
+        "agent_id": {
           "$ref": "#/$defs/did"
         },
         "verification_method": {
@@ -483,7 +483,7 @@
       "required": [
         "pairing_code",
         "pairing_request_id",
-        "agent_principal_id",
+        "agent_id",
         "verification_method",
         "public_key",
         "proof_of_possession"
@@ -496,7 +496,7 @@
           "$ref": "#/$defs/opaque_local_id",
           "description": "Single-use pairing artifact id returned by agent_provision_outcome. Profile-local, short-lived and not a durable protocol object ref."
         },
-        "agent_principal_id": {
+        "agent_id": {
           "$ref": "#/$defs/did"
         },
         "verification_method": {
@@ -554,11 +554,11 @@
     },
     "agent_runtime_approval_status_request_body": {
       "type": "object",
-      "description": "Runtime-side poll for the controller decision on a previously submitted runtime key request. The pairing_request_id, pairing_code, and agent_principal_id triple is the query credential and MUST be sent in the JSON body, never in URL path or query string. A record miss and a pairing_code or agent_principal_id mismatch MUST be indistinguishable (both not_found).",
+      "description": "Runtime-side poll for the controller decision on a previously submitted runtime key request. The pairing_request_id, pairing_code, and agent_id triple is the query credential and MUST be sent in the JSON body, never in URL path or query string. A record miss and a pairing_code or agent_id mismatch MUST be indistinguishable (both not_found).",
       "required": [
         "pairing_request_id",
         "pairing_code",
-        "agent_principal_id"
+        "agent_id"
       ],
       "properties": {
         "pairing_request_id": {
@@ -568,7 +568,7 @@
         "pairing_code": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "agent_principal_id": {
+        "agent_id": {
           "$ref": "#/$defs/did"
         }
       },
@@ -634,12 +634,12 @@
     "agent_provision_outcome": {
       "type": "object",
       "required": [
-        "agent_principal_id",
+        "agent_id",
         "pairing_request_id",
         "expires_at"
       ],
       "properties": {
-        "agent_principal_id": {
+        "agent_id": {
           "$ref": "#/$defs/did"
         },
         "pairing_request_id": {
@@ -659,8 +659,8 @@
       "description": "One-time bootstrap material handed to a personal agent runtime after provisioning. This is not a session grant, capability grant or long-term secret.",
       "required": [
         "arkret_base_url",
-        "service_did",
-        "agent_principal_id",
+        "service_id",
+        "agent_id",
         "pairing_request_id",
         "pairing_code",
         "pairing_expires_at"
@@ -670,10 +670,10 @@
           "type": "string",
           "format": "uri"
         },
-        "service_did": {
+        "service_id": {
           "$ref": "#/$defs/did"
         },
-        "agent_principal_id": {
+        "agent_id": {
           "$ref": "#/$defs/did"
         },
         "pairing_request_id": {
@@ -700,57 +700,6 @@
           "minLength": 22,
           "maxLength": 512,
           "pattern": "^[A-Za-z0-9_-]+$"
-        }
-      },
-      "additionalProperties": false
-    },
-    "agent_protocol_discover_request_body": {
-      "type": "object",
-      "description": "Probe the public ak.agent.endpoint registry for an agent's declared external protocol endpoints. agent_did is the interop-surface DID of the target agent runtime (which MAY be an external, non-Arkret agent); it is not an authorization subject — that role belongs to agent_principal_id in the governance operations.",
-      "required": [
-        "agent_did"
-      ],
-      "properties": {
-        "agent_did": {
-          "$ref": "#/$defs/did"
-        }
-      },
-      "additionalProperties": false
-    },
-    "agent_protocol_discover_outcome": {
-      "type": "object",
-      "description": "Projection of an accepted ak.agent.endpoint event (agent-protocol-interop.md §5.1); controller-private fields are not surfaced. supported_protocols is constrained to the §11 adapter registry.",
-      "required": [
-        "agent_did",
-        "supported_protocols"
-      ],
-      "properties": {
-        "agent_did": {
-          "$ref": "#/$defs/did"
-        },
-        "supported_protocols": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": [
-              "a2a",
-              "acp",
-              "mcp_bridge",
-              "http_custom"
-            ]
-          }
-        },
-        "agent_card_url": {
-          "type": "string",
-          "format": "uri"
-        },
-        "metadata_url": {
-          "type": "string",
-          "format": "uri"
-        },
-        "endpoint_url": {
-          "type": "string",
-          "format": "uri"
         }
       },
       "additionalProperties": false
@@ -976,14 +925,14 @@
     "agent_sidecar_thread_ensure_request_body": {
       "type": "object",
       "required": [
-        "controller_principal_id",
+        "controller_id",
         "context_ref"
       ],
       "properties": {
-        "controller_principal_id": {
+        "controller_id": {
           "$ref": "#/$defs/did"
         },
-        "addressed_agent_principal_ids": {
+        "addressed_agent_ids": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did"
@@ -999,11 +948,11 @@
     "pending_member_reconciliation_item": {
       "type": "object",
       "required": [
-        "agent_principal_id",
+        "agent_id",
         "reason"
       ],
       "properties": {
-        "agent_principal_id": {
+        "agent_id": {
           "$ref": "#/$defs/did"
         },
         "reason": {
@@ -1129,7 +1078,7 @@
       "type": "object",
       "required": [
         "ok",
-        "agent_principal_id",
+        "agent_id",
         "entries"
       ],
       "properties": {
@@ -1137,7 +1086,7 @@
           "type": "boolean",
           "const": true
         },
-        "agent_principal_id": {
+        "agent_id": {
           "type": "string"
         },
         "entries": {

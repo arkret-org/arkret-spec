@@ -72,8 +72,7 @@ Arkret DID method adapter SHOULD 暴露某个 principal 或服务是否支持 TS
     "ak.self.events.command.submit",
     "ak.self.events.query.scan",
     "ak.identity.presentation_request",
-    "ak.identity.presentation_response",
-    "ak.agent.interop_session.start"
+    "ak.identity.presentation_response"
   ],
   "metadata_privacy": {
     "nested_messages": true,

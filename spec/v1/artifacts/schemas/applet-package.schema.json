@@ -8,8 +8,8 @@
     "schema",
     "package_id",
     "applet_id",
-    "service_did",
-    "controller_did",
+    "service_id",
+    "controller_id",
     "base_url",
     "bot_actor_id",
     "claimed_profiles",
@@ -49,10 +49,10 @@
         }
       ]
     },
-    "service_did": {
+    "service_id": {
       "$ref": "#/$defs/did"
     },
-    "controller_did": {
+    "controller_id": {
       "$ref": "#/$defs/did"
     },
     "base_url": {
@@ -277,7 +277,7 @@
     },
     "webhook_auth": {
       "type": "object",
-      "description": "HTTP message signature verification seal for transaction push. key_ref is the Applet service DID URL used as the app/bridge->arkret inbound source signature anchor; its DID part MUST equal service_did and it is bound to the effective registration_epoch. accepted_algs pins the acceptable RFC 9421 signature algorithms.",
+      "description": "HTTP message signature verification seal for transaction push. key_ref is the Applet service DID URL used as the app/bridge->arkret inbound source signature anchor; its DID part MUST equal service_id and it is bound to the effective registration_epoch. accepted_algs pins the acceptable RFC 9421 signature algorithms.",
       "required": [
         "type",
         "key_ref",
@@ -292,7 +292,7 @@
         },
         "key_ref": {
           "$ref": "#/$defs/did_url",
-          "description": "DID URL under the Applet service_did. For app/bridge->arkret inbound transaction push, Signature-Input keyid MUST equal this value. Node->Applet pushes verify the Arkret source service DID key from Source-Service-DID, not this field."
+          "description": "DID URL under the Applet service_id. For app/bridge->arkret inbound transaction push, Signature-Input keyid MUST equal this value. Node->Applet pushes verify the Arkret source service DID key from Source-Service-ID, not this field."
         },
         "accepted_algs": {
           "type": "array",

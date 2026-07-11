@@ -12,7 +12,7 @@
   },
   "admission_class_definitions": {
     "self_authored_proof": "Admitted by a self-authored proof bound to the subject principal's identity (DID-bound signature / proof of possession with bounded freshness). Reducer MUST verify actor == subject and a fresh, replay-protected proof; no capability grant is consulted. Fail-closed: missing or stale proof MUST be rejected.",
-    "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-DID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed.",
+    "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed.",
     "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
     "capability_gated": "Gated by one or more named capability actions listed in admission_capabilities. Reducer MUST verify the actor holds a matching action grant per capability-action-registry. Fail-closed."
   },
@@ -1412,11 +1412,10 @@
     {
       "event_kind": "ak.agent.endpoint",
       "category": "agent",
-      "status": "active",
+      "status": "reserved",
       "wire_scope": "durable_event",
-      "reducer_input": true,
-      "admission": "service_attested",
-      "payload": "Agent protocol endpoint declaration"
+      "reducer_input": false,
+      "payload": "Reserved former agent protocol endpoint declaration. The runtime metadata surface was removed from v1; this name MUST NOT appear on wire."
     },
     {
       "event_kind": "ak.agent.key.authorize",
@@ -1424,12 +1423,12 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Agent signing key authorization. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_authorize_payload and bind agent_principal_id, key_id, verification_method, accountable_principal_id, agent_key_scope, audience, issued_at, expires_at, and approval_evidence.",
+      "payload": "Agent signing key authorization. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_authorize_payload and bind agent_id, key_id, verification_method, accountable_principal_id, agent_key_scope, audience, issued_at, expires_at, and approval_evidence.",
       "cell_family": "ak.component.agent.key.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
-          "payload.agent_principal_id",
+          "payload.agent_id",
           "payload.key_id"
         ]
       },
@@ -1444,12 +1443,12 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Agent signing key revocation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_revoke_payload and bind agent_principal_id, key_id, revoked_at, and revoked_by; the revocation's control-plane basis is the Control Move envelope seal_basis, and its cutoff is the accepted Seal covering the Move.",
+      "payload": "Agent signing key revocation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_revoke_payload and bind agent_id, key_id, revoked_at, and revoked_by; the revocation's control-plane basis is the Control Move envelope seal_basis, and its cutoff is the accepted Seal covering the Move.",
       "cell_family": "ak.component.agent.key.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
-          "payload.agent_principal_id",
+          "payload.agent_id",
           "payload.key_id"
         ]
       },
@@ -1469,7 +1468,7 @@
       "cell_subject": {
         "type": "composite",
         "components": [
-          "payload.agent_principal_id",
+          "payload.agent_id",
           "payload.key_id"
         ]
       },
@@ -1488,7 +1487,7 @@
       "cell_family": "ak.component.agent.status.v1",
       "cell_subject": {
         "type": "did",
-        "field": "payload.agent_principal_id"
+        "field": "payload.agent_id"
       },
       "lattice": "fsm",
       "bottom": "reject",
@@ -1505,7 +1504,7 @@
       "cell_family": "ak.component.agent.status.v1",
       "cell_subject": {
         "type": "did",
-        "field": "payload.agent_principal_id"
+        "field": "payload.agent_id"
       },
       "lattice": "fsm",
       "bottom": "reject",
@@ -1522,7 +1521,7 @@
       "cell_family": "ak.component.agent.status.v1",
       "cell_subject": {
         "type": "did",
-        "field": "payload.agent_principal_id"
+        "field": "payload.agent_id"
       },
       "lattice": "fsm",
       "bottom": "reject",
@@ -1564,26 +1563,26 @@
     {
       "event_kind": "ak.agent.interop_session.start",
       "category": "agent",
-      "status": "active",
+      "status": "reserved",
       "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Agent protocol session start"
+      "reducer_input": false,
+      "payload": "Reserved former agent protocol session start; this name MUST NOT appear on wire."
     },
     {
       "event_kind": "ak.agent.interop_session.status",
       "category": "agent",
-      "status": "active",
+      "status": "reserved",
       "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Agent protocol session status"
+      "reducer_input": false,
+      "payload": "Reserved former agent protocol session status; this name MUST NOT appear on wire."
     },
     {
       "event_kind": "ak.agent.interop_session.result",
       "category": "agent",
-      "status": "active",
+      "status": "reserved",
       "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Agent protocol session result"
+      "reducer_input": false,
+      "payload": "Reserved former agent protocol session result; this name MUST NOT appear on wire."
     },
     {
       "event_kind": "ak.capability.grant",
@@ -1987,12 +1986,12 @@
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Push route binding for a (recipient_service_did, principal, device, push_route) tuple. Carries push_target_id, push_gateway_did, encryption_key, capabilities. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_did context.",
+      "payload": "Push route binding for a (recipient_service_id, principal, device, push_route) tuple. Carries push_target_id, push_gateway_did, encryption_key, capabilities. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_id context.",
       "cell_family": "ak.component.device.push_route.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
-          "payload.recipient_service_did",
+          "payload.recipient_service_id",
           "payload.principal_id",
           "payload.device_id",
           "payload.push_route"
@@ -2473,7 +2472,7 @@
       "reducer_authority": "realm",
       "reducer_effects": [
         "match pending ak.invite.third_party by invite_id and token_commitment",
-        "re-check verification_service_did against current effective Realm allowlist",
+        "re-check verification_service_id against current effective Realm allowlist",
         "deduplicate (invite_id, claim_nonce) and token_commitment before accepting",
         "transition invite cell pending -> claimed and materialize subject-bound membership proposal",
         "expire and clean pending invite material before claim acceptance when expires_at <= now"

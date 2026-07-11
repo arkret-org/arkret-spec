@@ -6,7 +6,7 @@
   "type": "object",
   "required": [
     "realm_id",
-    "service_did",
+    "service_id",
     "service_type",
     "role",
     "operations",
@@ -21,7 +21,7 @@
       "$ref": "./common-ids.schema.json#/$defs/realm_id",
       "description": "Realm this candidate is bound to. Verifiers MUST reject a candidate used for any other Realm."
     },
-    "service_did": {
+    "service_id": {
       "$ref": "#/$defs/did",
       "description": "Service DID that can receive or relay join-side submissions for this Realm."
     },
@@ -85,7 +85,7 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 1000,
-      "description": "Lower values are preferred. Ties are broken deterministically by service_did."
+      "description": "Lower values are preferred. Ties are broken deterministically by service_id."
     },
     "source": {
       "type": "string",
@@ -130,7 +130,7 @@
         "$ref": "./event-envelope.schema.json#/$defs/proof"
       },
       "minItems": 1,
-      "description": "Optional proof set binding realm_id, service_did, role, operations, join_methods, as_of, and expires_at. Required when the candidate is carried outside a freshly resolved Directory response."
+      "description": "Optional proof set binding realm_id, service_id, role, operations, join_methods, as_of, and expires_at. Required when the candidate is carried outside a freshly resolved Directory response."
     }
   },
   "additionalProperties": false,

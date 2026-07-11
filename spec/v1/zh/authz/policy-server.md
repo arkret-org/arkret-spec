@@ -83,7 +83,7 @@ Content-Type: application/json
 | `actor_id` | body | `did` | required | 发起动作的 Actor DID。 |
 | `device_id` | body | `id` | optional | 发起设备。 |
 | `source` | body | `object` | required | 调用来源摘要。 |
-| `source.service_did` | body | `did` | required | 调用服务 DID。 |
+| `source.service_id` | body | `did` | required | 调用服务 DID。 |
 | `source.service_type` | body | `string` | required | 调用服务类型。 |
 | `source.source_ip_digest` | body | `sha256:<hash>` | optional | 来源 IP 的 keyed 不可链接派生值；派生与轮换规则见 §3.1。MUST NOT 是对 IP 地址的裸 SHA-256。 |
 | `source.signed_transport` | body | `boolean` | required | 请求是否由签名 transport 保护。 |
@@ -101,7 +101,7 @@ Content-Type: application/json
   "actor_id": "did:webvh:...",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "source": {
-    "service_did": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
+    "service_id": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
     "service_type": "principal_server",
     "source_ip_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "signed_transport": true
@@ -128,9 +128,9 @@ Content-Type: application/json
 
 `source_ip_digest` 只用于限速、滥用聚类等策略维度，不用于身份识别。IP 地址空间很小，裸 hash 可被字典枚举，并可跨服务、跨 realm、跨时间关联请求来源，因此：
 
-- 该值 MUST 是调用服务私有 secret 下的 keyed 派生，例如 `HMAC-SHA256(policy_source_secret[salt_epoch], canonical_json({service_did, ip_or_prefix, salt_epoch}))`；wire 形态仍为 `sha256:<64 hex>`——`sha256:` 前缀表示 32 字节摘要容器，**不**表示对 IP 地址的裸 SHA-256。实现 MUST NOT 直接对 IPv4/IPv6 地址或其简单变形做无 key hash。
+- 该值 MUST 是调用服务私有 secret 下的 keyed 派生，例如 `HMAC-SHA256(policy_source_secret[salt_epoch], canonical_json({service_id, ip_or_prefix, salt_epoch}))`；wire 形态仍为 `sha256:<64 hex>`——`sha256:` 前缀表示 32 字节摘要容器，**不**表示对 IP 地址的裸 SHA-256。实现 MUST NOT 直接对 IPv4/IPv6 地址或其简单变形做无 key hash。
 - `policy_source_secret` MUST NOT 上 wire，MUST 按 salt epoch 轮换；同一来源 IP 在不同 epoch 的派生值 MUST 互不可链接。epoch 长度由部署 profile 决定，SHOULD 不超过限速窗口所需的最小期限。
-- 派生命名空间 MUST 绑定调用服务（如把 `service_did` 纳入派生输入）；secret 不得跨服务或跨 realm 复用，使 Policy Server 或旁观者无法据此跨服务关联同一来源。
+- 派生命名空间 MUST 绑定调用服务（如把 `service_id` 纳入派生输入）；secret 不得跨服务或跨 realm 复用，使 Policy Server 或旁观者无法据此跨服务关联同一来源。
 - relay / OHTTP 等高隐私部署形态（见 [`../security/server-threat-model.md`](../security/server-threat-model.md)）下，调用方 MAY 省略该字段，或以不可链接限速 token（如 Privacy Pass 类机制，informative）替代 IP 维度；Policy Server MUST 容忍该字段缺失。
 
 ## 4. Decision
@@ -425,7 +425,7 @@ Policy Server fast path 与 sealed control decision 的关系：
 
 服务端中对“开放联邦入口”“垃圾泛滥”“地址枚举”“内容扫描”“重放放大”的常见防护可直接映射到策略服务：
 
-- **反开放联邦入口**：来自未声明 `source.service_did` 的联邦请求先降级到 `rate_limited` 或 `soft_deny`，只有在策略显式 allowlist 后才恢复 normal allow。
+- **反开放联邦入口**：来自未声明 `source.service_id` 的联邦请求先降级到 `rate_limited` 或 `soft_deny`，只有在策略显式 allowlist 后才恢复 normal allow。
 - **反爆发**：策略决策返回中可携带 `rate_limit` `obligation`，要求源服务在 `next_retry_at` 之前退避。
 - **反假源**：`source.signed_transport=true` 且 service key 可校验时可放行；未签名来源只能走更严格决策分支并写入审计。
 - **反重放**：`request_id` 与 `request_canonical_digest` 一起构成 decision 缓存键；不同 payload 使用同一 `request_id` MUST 触发 `duplicate_conflict` 语义。

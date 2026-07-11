@@ -358,7 +358,7 @@ SHOULD 支持：
 | `ak.profile.push_gateway.v1` | `gateway` | 实现网关时必选；MUST `depends_on` `blind_wakeup` | `register_device` / `unregister_device` / `notify` 三个操作，`ak.schema.notification.v1`，service DID 校验，`rejected[]` 回传，失效 token 回收 | `privacy-security-fixture.json` |
 | `ak.profile.push_gateway.blind_wakeup.v1` | `gateway` | **默认互操作安全基线**：声明 `push_gateway.v1` 即 MUST 声明 | provider 出向 payload 仅含 `push_target_id`（pairwise pseudonym，按 [`crypto-media/device-lifecycle.md` §5a](../crypto-media/device-lifecycle.md)）+ 封闭枚举的 `wakeup_kind` / `badge_count` / `unread_increment` / `l10n_key`；MUST NOT 携带 principal DID、sender DID / handle、Realm / Strand / Message id、event id、device DID URL、reaction 实际值、附件文件名、跨 Realm stable correlation key、IP / geolocation | `privacy-security-fixture.json` |
 | `ak.profile.push_gateway.visible_notification.v1` | `gateway` | Opt-in；仅在 Realm policy 列入 `plaintext_visible_services` 且声明 `visible_notification` allowance、接收设备 opt-in、UI 显式标示时声明 | 维持 blind wakeup 之上扩展的最小可见字段集合；MUST NOT 携带正文、DID URL、跨 Realm stable correlation key、IP / geolocation 或未列入 profile 的自由文本；E2EE 默认实现不得依赖该 profile | `privacy-security-fixture.json` |
-| `ak.profile.push_gateway.matrix_passthrough.v1` | `interop` | Opt-in；Matrix 互通桥接 | 在与 `ak.profile.matrix_compat.v1` 并行的前提下，按 Matrix push gateway 形态承载 passthrough payload；MUST 与 `blind_wakeup.v1` 流量分区，**MUST NOT** 在同一 `(recipient_service_did, device)` 元组上同时声明两者。**选择此 profile 即接受 Matrix-equivalent metadata 可见性**（典型字段如 `room_id` / `sender` / `event_id` 透传到 Matrix push gateway）。该 profile MUST NOT 与 minimal-metadata Realm 共享同一 `(recipient_service_did, device)` 元组。 | `privacy-security-fixture.json` |
+| `ak.profile.push_gateway.matrix_passthrough.v1` | `interop` | Opt-in；Matrix 互通桥接 | 在与 `ak.profile.matrix_compat.v1` 并行的前提下，按 Matrix push gateway 形态承载 passthrough payload；MUST 与 `blind_wakeup.v1` 流量分区，**MUST NOT** 在同一 `(recipient_service_id, device)` 元组上同时声明两者。**选择此 profile 即接受 Matrix-equivalent metadata 可见性**（典型字段如 `room_id` / `sender` / `event_id` 透传到 Matrix push gateway）。该 profile MUST NOT 与 minimal-metadata Realm 共享同一 `(recipient_service_id, device)` 元组。 | `privacy-security-fixture.json` |
 
 MUST 支持（在所有变体上）：
 
@@ -603,7 +603,7 @@ SHOULD 支持：
 
 MUST 支持:
 - `POST /_arkret/self/agents` (`ak.self.agent.command.provision`) 编排 Actor Profile + `ak.identity.accountability_grant` + 初始 `ak.capability.grant`(带 `effective_after_first_authorized_key=true` flag)+ pairing request
-- `POST /_arkret/gate/account/agent-key-pair` (`ak.gate.account.command.pair_agent_key`) 校验 `verification_method` 与 `agent_principal_id` 一致性后写入 `ak.agent.key.authorize`,清除 effective_after_first_authorized_key
+- `POST /_arkret/gate/account/agent-key-pair` (`ak.gate.account.command.pair_agent_key`) 校验 `verification_method` 与 `agent_id` 一致性后写入 `ak.agent.key.authorize`,清除 effective_after_first_authorized_key
 - Provisioning `status` 枚举:`pending_runtime_key` / `active` / `paused` / `pairing_expired` / `deactivated`
 - Pairing expiry 自动 `ak.capability.revoke` pending grants
 - Agent management operations(list/get/pause/resume/deactivate/rotate-key/grant attach/detach)写入 durable lifecycle events
@@ -662,12 +662,12 @@ MUST 支持:
 - `POST /_arkret/self/agent-sidecar-threads:ensure` (`ak.self.agent.sidecar_thread.command.ensure`) idempotent operation,返回 `{ok, private_circle_id, private_strand_id, private_relation_id, pending_member_reconciliations?}`
 - `context_ref` polymorphic descriptor(`relation_id` 单独 / `strand_id` 加可选 `track_name` + 可选 seal)
 - Closed request schema(reject unknown top-level fields)
-- Fixed reuse:Strand `(controller_principal_id, normalized_context_ref)`、Circle `(realm_id, controller_principal_id)`
+- Fixed reuse:Strand `(controller_id, normalized_context_ref)`、Circle `(realm_id, controller_id)`
 - 派生 `controller_agent_circle_key`(canonical realm_id + canonical DID + UTF-8 + SHA-256 + base32 + 24 字符小写)
 - Sidecar Circle `display.short_name = "AI-" + controller_agent_circle_key[:12].upper()`,short_name 碰撞且 caller 非 member 时 generic `failed_precondition` `reason=sidecar_create_denied`
 - `eligible_sidecar_agent(realm, controller, agent)` predicate;Circle membership 主动 fan-out `ak.circle.member.state`(不被动 reconcile)
 - Eligibility / Circle membership / encryption-readiness 三态(eligible+active / pending join 或 pending key material / not eligible)
-- `addressed_agent_principal_ids[]` per-ensure ephemeral(服务端不持久化);MUST NOT 包含 controller 自身
+- `addressed_agent_ids[]` per-ensure ephemeral(服务端不持久化);MUST NOT 包含 controller 自身
 - 历史 backfill 经由 application-level resend(显式 plaintext 披露)；MLS-backed Circle 中不得使用 MLS exporter secret / past commit secret
 - Cross-Realm fan-out:agent deactivate 只影响该 agent 实际所在的 sidecar Circles
 - `agent_sidecar_of` relation kind(weak-semantic、non-structural、non-cascading);`fields` 不含 `target_realm_id`
@@ -711,9 +711,9 @@ Applet v1 家族适用于运行 Applet 集成服务。`ak.profile.applet_service
 - transaction push endpoint
 - transaction idempotency
 - transaction push per-delivery source signature anchor（`source_signature_anchor`）
-- idempotency / replay binding across `Source-Service-DID`、`Destination-Service-DID`、`Idempotency-Key`、canonical body digest and source verification method
+- idempotency / replay binding across `Source-Service-ID`、`Destination-Service-ID`、`Idempotency-Key`、canonical body digest and source verification method
 - capability enforcement
-- HTTP message signature verification（RFC 9421，覆盖 `@method` / `@target-uri` / `@authority` / `content-digest` / `source-service-did` / `destination-service-did` / `idempotency-key`）
+- HTTP message signature verification（RFC 9421，覆盖 `@method` / `@target-uri` / `@authority` / `content-digest` / `source-service-id` / `destination-service-id` / `idempotency-key`）
 - event signature verification
 - bot actor attribution
 - `ak.edge.applet.command.transaction` as operation_id only, never as durable Event kind
@@ -724,7 +724,7 @@ MUST NOT：
 - 把 namespace 命中当作写权限
 - 静默 impersonate native user
 - 在无授权时接收全网 sync stream
-- 只凭裸 `Idempotency-Key`、body 内 `source_service_did` 或首次握手状态接受 transaction push replay
+- 只凭裸 `Idempotency-Key`、body 内 `source_service_id` 或首次握手状态接受 transaction push replay
 - 在未提示边界的情况下把 E2EE 内容桥接到非 E2EE 网络
 
 `ak.profile.applet_bridge.v1` inherits `ak.profile.applet_service.v1` and MUST 支持：
@@ -901,7 +901,7 @@ MIMI Interop profile MUST 额外提供：
 
 ```json
 {
-  "service_did": "did:webvh:z6h868X7rdVapSQTt7ehsQB8v:server.example.com",
+  "service_id": "did:webvh:z6h868X7rdVapSQTt7ehsQB8v:server.example.com",
   "service_type": "principal_server",
   "protocol_version": "1.0",
   "supported_profiles": [

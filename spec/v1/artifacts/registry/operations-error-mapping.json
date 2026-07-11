@@ -117,7 +117,7 @@
     },
     {
       "operation_id": "ak.self.agent.resource.get",
-      "http_alias": "GET /_arkret/self/agents/{agent_principal_id}",
+      "http_alias": "GET /_arkret/self/agents/{agent_id}",
       "operation_specific": [
         "not_found"
       ],
@@ -125,7 +125,7 @@
     },
     {
       "operation_id": "ak.self.agent.command.pause",
-      "http_alias": "POST /_arkret/self/agents/{agent_principal_id}/pause",
+      "http_alias": "POST /_arkret/self/agents/{agent_id}/pause",
       "operation_specific": [
         "agent_paused",
         "agent_deactivated",
@@ -135,7 +135,7 @@
     },
     {
       "operation_id": "ak.self.agent.command.resume",
-      "http_alias": "POST /_arkret/self/agents/{agent_principal_id}/resume",
+      "http_alias": "POST /_arkret/self/agents/{agent_id}/resume",
       "operation_specific": [
         "agent_deactivated",
         "failed_precondition",
@@ -146,7 +146,7 @@
     },
     {
       "operation_id": "ak.self.agent.command.deactivate",
-      "http_alias": "POST /_arkret/self/agents/{agent_principal_id}/deactivate",
+      "http_alias": "POST /_arkret/self/agents/{agent_id}/deactivate",
       "operation_specific": [
         "agent_deactivated",
         "failed_precondition"
@@ -155,7 +155,7 @@
     },
     {
       "operation_id": "ak.self.agent.command.rotate_key",
-      "http_alias": "POST /_arkret/self/agents/{agent_principal_id}/rotate-key",
+      "http_alias": "POST /_arkret/self/agents/{agent_id}/rotate-key",
       "operation_specific": [
         "agent_paused",
         "agent_deactivated",
@@ -167,7 +167,7 @@
     },
     {
       "operation_id": "ak.self.agent.grant.command.attach",
-      "http_alias": "POST /_arkret/self/agents/{agent_principal_id}/grants",
+      "http_alias": "POST /_arkret/self/agents/{agent_id}/grants",
       "operation_specific": [
         "agent_paused",
         "agent_deactivated",
@@ -177,7 +177,7 @@
     },
     {
       "operation_id": "ak.self.agent.grant.resource.delete",
-      "http_alias": "DELETE /_arkret/self/agents/{agent_principal_id}/grants/{grant_id}",
+      "http_alias": "DELETE /_arkret/self/agents/{agent_id}/grants/{grant_id}",
       "operation_specific": [
         "not_found",
         "agent_deactivated"
@@ -193,27 +193,19 @@
         "agent_deactivated",
         "failed_precondition"
       ],
-      "description": "Idempotent ensure: server-derived dedupe keys are `(realm_id, controller_principal_id)` for the sidecar Circle and `(controller_principal_id, normalized_context_ref)` for the private Strand / reuse identity — `agent_principal_id` is NOT part of either key, so all eligible agents of the same controller share one sidecar per Realm. Clients MUST NOT supply Idempotency-Key. sidecar_create_denied is a deliberately generic precondition that hides whether a sidecar with the same derived short_name already exists (existence privacy)."
+      "description": "Idempotent ensure: server-derived dedupe keys are `(realm_id, controller_id)` for the sidecar Circle and `(controller_id, normalized_context_ref)` for the private Strand / reuse identity — `agent_id` is NOT part of either key, so all eligible agents of the same controller share one sidecar per Realm. Clients MUST NOT supply Idempotency-Key. sidecar_create_denied is a deliberately generic precondition that hides whether a sidecar with the same derived short_name already exists (existence privacy)."
     },
     {
       "operation_id": "ak.self.agent.participation.resource.replace",
-      "http_alias": "PUT /_arkret/self/agents/{agent_principal_id}/participation",
+      "http_alias": "PUT /_arkret/self/agents/{agent_id}/participation",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
       "operation_id": "ak.self.agent.participation.resource.get",
-      "http_alias": "GET /_arkret/self/agents/{agent_principal_id}/participation",
+      "http_alias": "GET /_arkret/self/agents/{agent_id}/participation",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
-    },
-    {
-      "operation_id": "ak.self.agent.protocol.query.discover",
-      "http_alias": "POST /_arkret/self/agents/discover",
-      "operation_specific": [
-        "not_found"
-      ],
-      "description": "Probe the public ak.agent.endpoint registry for an agent's declared external protocol endpoints. Missing, unauthorized, not-visible, or revoked endpoint registrations all collapse into a single not_found surface indistinguishable from nonexistence (matches the ak.find.directory.query.resolve_agent_selector uniform surface); the op never returns candidate endpoints for an agent the caller may not discover."
     },
     {
       "operation_id": "ak.gate.account.exchange.complete_oidc",

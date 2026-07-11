@@ -51,7 +51,7 @@ Arkret 的合规审计目标是：在不削弱默认 E2EE 的前提下，为明�
 | `binding_id` | yes | `ak:audit_binding:<uuid>`，binding 的稳定 ID。 |
 | `realm_id` | yes | 父 Realm。 |
 | `effective_scope` | yes | `{kind:"realm", realm_id}` 或 `{kind:"circle", realm_id, circle_id}`。Realm-scope binding 只覆盖 Realm-default history；Circle history MUST 有 Circle-scoped binding。 |
-| `applet_id` / `service_did` | yes | 审计 applet 与承载服务身份。 |
+| `applet_id` / `service_id` | yes | 审计 applet 与承载服务身份。 |
 | `status` | yes | `active` / `suspended` / `revoked`。只有 `active` 可授权新 session。 |
 | `purpose_classes` | yes | 允许的审计目的，例如 `legal_compliance`、`regulatory_audit`、`incident_investigation`。 |
 | `allowed_release_modes` | yes | 允许的 release mode；默认 SHOULD 仅含 `targeted_evidence_release`。 |
@@ -147,7 +147,7 @@ Authorization 只授予一个有界 release 窗口，不是一次性永久凭证
 | `session_id` | yes | 对应 session。 |
 | `binding_id` | yes | 对应 active binding。 |
 | `realm_id` / `effective_scope` | yes | release scope。 |
-| `applet_id` / `service_did` | yes | 接收 release 的审计 applet / service。 |
+| `applet_id` / `service_id` | yes | 接收 release 的审计 applet / service。 |
 | `release_mode` | yes | `targeted_evidence_release` 或 `sealed_epoch_key_release`。 |
 | `sealed_epoch_range` | conditional | release 覆盖 epoch 时必填；不得包含当前 active epoch。 |
 | `target_refs` | conditional | target-based release 时必填。 |
@@ -200,7 +200,7 @@ Receiver / reducer MUST 拒绝任何缺失 `eligibility_proof`、`eligibility_pr
 - `attested_hardware` release MUST 等待 `witness_attestation.kind="federation_witness_attested"` 的 receipt；至少两个独立 witness，且 witness 不得由 release service、audit actor 或 Realm operator 自己控制。每个 receipt MUST 携带 `realm_operator_organization`，verifier MUST 由 Realm service / operator 的 DID 控制链独立验证该值；任一 witness 的 `controlling_organization` 与其相同或同属一个最终控制组织时，receipt MUST `audit_receipt_invalidated` fail closed。
 - `disclosed_policy` MAY 使用 `single_source` receipt，但 issuer 仍不得是 release service / audit actor 本身。
 - Receipt 的 `audit_policy_version_digest` MUST 覆盖 `{realm_id, trust_domain, audit_binding, release_policy, release_window_policy, activation_frontier_digest, first_auditable_epoch}`，并与 `ak.audit.release.eligibility_proof` 一致；policy hash MUST 按本节定义计算，不得引入其他 hash 语义。
-- Remote attestation evidence 绑定的是 release service / applet controlled output path，不是 MLS group membership。Evidence MUST 绑定 `realm_id`、`service_did`、`audit_service_actor_id`、measurement、purpose、policy digest、validity 和 operator DID。
+- Remote attestation evidence 绑定的是 release service / applet controlled output path，不是 MLS group membership。Evidence MUST 绑定 `realm_id`、`service_id`、`audit_service_actor_id`、measurement、purpose、policy digest、validity 和 operator DID。
 
 ## 7. 非保证项
 

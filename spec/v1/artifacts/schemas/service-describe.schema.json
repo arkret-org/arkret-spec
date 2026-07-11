@@ -2,14 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/service-describe.schema.json",
   "title": "Arkret Service Describe",
-  "description": "Canonical service describe response returned by ak.server.query.describe and per-surface describe operations. It combines stable service metadata (service_did, service_type, protocol_version, profiles, bindings, auth, limits, plaintext visibility and rate-limit policy) with claim-level partitions: implemented_features, claimed_profiles, verified_profiles, experimental_features and compat_surfaces. The `supported_operations` field MUST list endpoint-callable operation_ids. Constraint: when `development_mode=true`, the service MUST NOT advertise any `verified_profiles` entry, and clients MUST verify the referenced verification artifacts before treating verified_profiles as production conformance. See service-surface.md §3.0.",
+  "description": "Canonical service describe response returned by ak.server.query.describe and per-surface describe operations. It combines stable service metadata (service_id, service_type, protocol_version, profiles, bindings, auth, limits, plaintext visibility and rate-limit policy) with claim-level partitions: implemented_features, claimed_profiles, verified_profiles, experimental_features and compat_surfaces. The `supported_operations` field MUST list endpoint-callable operation_ids. Constraint: when `development_mode=true`, the service MUST NOT advertise any `verified_profiles` entry, and clients MUST verify the referenced verification artifacts before treating verified_profiles as production conformance. See service-surface.md §3.0.",
   "type": "object",
   "patternProperties": {
     "^x_[a-z][a-z0-9_]{0,63}$": true
   },
   "additionalProperties": false,
   "required": [
-    "service_did",
+    "service_id",
     "trust_domain",
     "service_type",
     "protocol_version",
@@ -28,7 +28,7 @@
     "development_mode"
   ],
   "properties": {
-    "service_did": {
+    "service_id": {
       "$ref": "#/$defs/did",
       "description": "DID of the service endpoint making this describe claim."
     },
@@ -231,7 +231,7 @@
               "items": {
                 "type": "string",
                 "enum": [
-                  "recipient_service_did",
+                  "recipient_service_id",
                   "principal_id",
                   "device_id",
                   "push_route_id",
@@ -417,7 +417,7 @@
                 "type": "string",
                 "minLength": 1
               },
-              "service_did": {
+              "service_id": {
                 "$ref": "#/$defs/did"
               },
               "trust_domain": {

@@ -26,7 +26,7 @@
       "semantic_outcome": "accept",
       "instance": {
         "schema": "ak.schema.key_transparency.v1",
-        "log_service_did": "did:webvh:z6mkfixture:transparency.example",
+        "log_service_id": "did:webvh:z6mkfixture:transparency.example",
         "principal_id": "did:webvh:z6mkfixture:alice.example",
         "key_material_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "log_head": {
@@ -71,7 +71,7 @@
       "expected_reason_code": "key_transparency_proof_missing",
       "instance": {
         "schema": "ak.schema.key_transparency.v1",
-        "log_service_did": "did:webvh:z6mkfixture:transparency.example",
+        "log_service_id": "did:webvh:z6mkfixture:transparency.example",
         "principal_id": "did:webvh:z6mkfixture:alice.example",
         "key_material_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "log_head": {

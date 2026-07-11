@@ -182,7 +182,7 @@
           "applet_id",
           "effective_scope",
           "registration_epoch",
-          "service_did",
+          "service_id",
           "capability_grant_refs",
           "proof"
         ],
@@ -345,7 +345,7 @@
         "schema_kind": "object",
         "required": [
           "pairing_request_id",
-          "agent_principal_id",
+          "agent_id",
           "verification_method",
           "public_key",
           "proof_of_possession",
@@ -353,7 +353,7 @@
         ],
         "properties": [
           "pairing_request_id",
-          "agent_principal_id",
+          "agent_id",
           "verification_method",
           "public_key",
           "proof_of_possession",
@@ -398,12 +398,12 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
         "schema_kind": "object",
         "required": [
-          "agent_principal_id",
+          "agent_id",
           "pairing_request_id",
           "expires_at"
         ],
         "properties": [
-          "agent_principal_id",
+          "agent_id",
           "pairing_request_id",
           "pairing_code",
           "expires_at"
@@ -425,37 +425,6 @@
           "agents",
           "next_cursor",
           "has_more"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.agent.protocol.query.discover",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_request_body",
-        "schema_kind": "object",
-        "required": [
-          "agent_did"
-        ],
-        "properties": [
-          "agent_did"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_outcome",
-        "schema_kind": "object",
-        "required": [
-          "agent_did",
-          "supported_protocols"
-        ],
-        "properties": [
-          "agent_did",
-          "supported_protocols",
-          "agent_card_url",
-          "metadata_url",
-          "endpoint_url"
         ],
         "closed": true
       }
@@ -639,12 +608,12 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_request_body",
         "schema_kind": "object",
         "required": [
-          "controller_principal_id",
+          "controller_id",
           "context_ref"
         ],
         "properties": [
-          "controller_principal_id",
-          "addressed_agent_principal_ids",
+          "controller_id",
+          "addressed_agent_ids",
           "context_ref"
         ],
         "closed": true
@@ -689,12 +658,12 @@
         "schema_kind": "object",
         "required": [
           "ok",
-          "agent_principal_id",
+          "agent_id",
           "entries"
         ],
         "properties": [
           "ok",
-          "agent_principal_id",
+          "agent_id",
           "entries"
         ],
         "closed": true
@@ -708,12 +677,12 @@
         "schema_kind": "object",
         "required": [
           "ok",
-          "agent_principal_id",
+          "agent_id",
           "entries"
         ],
         "properties": [
           "ok",
-          "agent_principal_id",
+          "agent_id",
           "entries"
         ],
         "closed": true
@@ -875,13 +844,13 @@
         "required": [
           "ok",
           "applet_id",
-          "service_did",
+          "service_id",
           "protocol_version"
         ],
         "properties": [
           "ok",
           "applet_id",
-          "service_did",
+          "service_id",
           "protocol_version"
         ],
         "closed": true
@@ -986,7 +955,7 @@
         "required": [
           "schema",
           "applet_id",
-          "service_did",
+          "service_id",
           "ghost_actor_id",
           "protocol",
           "tenant",
@@ -997,7 +966,7 @@
         "properties": [
           "schema",
           "applet_id",
-          "service_did",
+          "service_id",
           "ghost_actor_id",
           "protocol",
           "tenant",
@@ -1068,11 +1037,11 @@
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
         "schema_kind": "object",
         "required": [
-          "source_service_did",
+          "source_service_id",
           "events"
         ],
         "properties": [
-          "source_service_did",
+          "source_service_id",
           "events",
           "ephemeral"
         ],
@@ -1329,7 +1298,7 @@
           "requested_scopes",
           "message",
           "idempotency_key",
-          "recipient_service_did",
+          "recipient_service_id",
           "introduction_evidence"
         ],
         "closed": true
@@ -1366,7 +1335,7 @@
           "requester",
           "action",
           "granted_scopes",
-          "requester_service_did"
+          "requester_service_id"
         ],
         "closed": true
       },
@@ -1417,7 +1386,7 @@
           "revoke_scopes",
           "full_peer_revoke",
           "block_peer",
-          "peer_service_did"
+          "peer_service_id"
         ],
         "closed": true
       },
@@ -3815,16 +3784,16 @@
         "schema_kind": "object",
         "required": [
           "arkret_base_url",
-          "service_did",
-          "agent_principal_id",
+          "service_id",
+          "agent_id",
           "pairing_request_id",
           "pairing_code",
           "pairing_expires_at"
         ],
         "properties": [
           "arkret_base_url",
-          "service_did",
-          "agent_principal_id",
+          "service_id",
+          "agent_id",
           "pairing_request_id",
           "pairing_code",
           "pairing_expires_at"
@@ -3841,7 +3810,7 @@
         "required": [
           "pairing_code",
           "pairing_request_id",
-          "agent_principal_id",
+          "agent_id",
           "verification_method",
           "public_key",
           "proof_of_possession"
@@ -3849,7 +3818,7 @@
         "properties": [
           "pairing_code",
           "pairing_request_id",
-          "agent_principal_id",
+          "agent_id",
           "verification_method",
           "public_key",
           "proof_of_possession",
@@ -3882,12 +3851,12 @@
         "required": [
           "pairing_request_id",
           "pairing_code",
-          "agent_principal_id"
+          "agent_id"
         ],
         "properties": [
           "pairing_request_id",
           "pairing_code",
-          "agent_principal_id"
+          "agent_id"
         ],
         "closed": true
       },
@@ -3929,7 +3898,7 @@
         "required": [
           "schema",
           "subject_id",
-          "recipient_service_did",
+          "recipient_service_id",
           "issued_at",
           "expires_at",
           "locator_ref_digest",
@@ -3938,7 +3907,7 @@
         "properties": [
           "schema",
           "subject_id",
-          "recipient_service_did",
+          "recipient_service_id",
           "recipient_service_type",
           "issued_at",
           "expires_at",
@@ -5332,7 +5301,7 @@
           "platform",
           "app_id",
           "display_name",
-          "recipient_service_did"
+          "recipient_service_id"
         ],
         "closed": true
       },

@@ -288,7 +288,7 @@
     },
     "server_selector": {
       "type": "object",
-      "description": "Selector for federation server policy rules. Domain rules match normalized DNS labels only; service_did exact rules take precedence in policy evaluation.",
+      "description": "Selector for federation server policy rules. Domain rules match normalized DNS labels only; service_id exact rules take precedence in policy evaluation.",
       "required": [
         "kind"
       ],
@@ -296,12 +296,12 @@
         "kind": {
           "type": "string",
           "enum": [
-            "service_did",
+            "service_id",
             "domain",
             "trust_domain"
           ]
         },
-        "service_did": {
+        "service_id": {
           "$ref": "#/$defs/did"
         },
         "domain": {
@@ -321,7 +321,7 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "service_did"
+                "const": "service_id"
               }
             },
             "required": [
@@ -330,7 +330,7 @@
           },
           "then": {
             "required": [
-              "service_did"
+              "service_id"
             ]
           }
         },

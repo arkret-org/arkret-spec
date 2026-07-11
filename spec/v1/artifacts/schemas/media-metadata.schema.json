@@ -81,7 +81,7 @@
             "type": "string",
             "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"
           },
-          "generated_by_service_did": {
+          "generated_by_service_id": {
             "$ref": "#/$defs/did"
           },
           "visibility": {

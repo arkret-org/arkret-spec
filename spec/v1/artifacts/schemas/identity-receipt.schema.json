@@ -16,7 +16,7 @@
     "did",
     "seq",
     "head_event_digest",
-    "registry_service_did",
+    "registry_service_id",
     "witness_role",
     "created_at",
     "signature"
@@ -42,7 +42,7 @@
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
-    "registry_service_did": {
+    "registry_service_id": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },

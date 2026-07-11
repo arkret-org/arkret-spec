@@ -506,7 +506,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 - `protocol_version`
 - `service_type`
-- `service_did`
+- `service_id`
 - `supported_features`
 - `supported_profiles`
 - `auth_metadata`

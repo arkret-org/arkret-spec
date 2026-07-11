@@ -183,7 +183,7 @@
             "call_id",
             "focus_id",
             "recording_id",
-            "media_service_did",
+            "media_service_id",
             "recording_start_event_id"
           ],
           "properties": {
@@ -201,7 +201,7 @@
             "recording_id": {
               "$ref": "#/$defs/recording_id"
             },
-            "media_service_did": {
+            "media_service_id": {
               "$ref": "#/$defs/did"
             },
             "recording_start_event_id": {

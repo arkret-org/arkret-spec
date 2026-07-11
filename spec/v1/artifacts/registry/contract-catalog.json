@@ -44,7 +44,7 @@
     },
     "admission_class_definitions": {
       "self_authored_proof": "Admitted by a self-authored proof bound to the subject principal's identity (DID-bound signature / proof of possession with bounded freshness). Reducer MUST verify actor == subject and a fresh, replay-protected proof; no capability grant is consulted. Fail-closed: missing or stale proof MUST be rejected.",
-      "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-DID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed.",
+      "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed.",
       "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
       "capability_gated": "Gated by one or more named capability actions listed in admission_capabilities. Reducer MUST verify the actor holds a matching action grant per capability-action-registry. Fail-closed."
     },
@@ -1444,11 +1444,10 @@
       {
         "event_kind": "ak.agent.endpoint",
         "category": "agent",
-        "status": "active",
+        "status": "reserved",
         "wire_scope": "durable_event",
-        "reducer_input": true,
-        "admission": "service_attested",
-        "payload": "Agent protocol endpoint declaration"
+        "reducer_input": false,
+        "payload": "Reserved former agent protocol endpoint declaration. The runtime metadata surface was removed from v1; this name MUST NOT appear on wire."
       },
       {
         "event_kind": "ak.agent.key.authorize",
@@ -1456,12 +1455,12 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent signing key authorization. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_authorize_payload and bind agent_principal_id, key_id, verification_method, accountable_principal_id, agent_key_scope, audience, issued_at, expires_at, and approval_evidence.",
+        "payload": "Agent signing key authorization. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_authorize_payload and bind agent_id, key_id, verification_method, accountable_principal_id, agent_key_scope, audience, issued_at, expires_at, and approval_evidence.",
         "cell_family": "ak.component.agent.key.v1",
         "cell_subject": {
           "type": "composite",
           "components": [
-            "payload.agent_principal_id",
+            "payload.agent_id",
             "payload.key_id"
           ]
         },
@@ -1476,12 +1475,12 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent signing key revocation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_revoke_payload and bind agent_principal_id, key_id, revoked_at, and revoked_by; the revocation's control-plane basis is the Control Move envelope seal_basis, and its cutoff is the accepted Seal covering the Move.",
+        "payload": "Agent signing key revocation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_revoke_payload and bind agent_id, key_id, revoked_at, and revoked_by; the revocation's control-plane basis is the Control Move envelope seal_basis, and its cutoff is the accepted Seal covering the Move.",
         "cell_family": "ak.component.agent.key.v1",
         "cell_subject": {
           "type": "composite",
           "components": [
-            "payload.agent_principal_id",
+            "payload.agent_id",
             "payload.key_id"
           ]
         },
@@ -1501,7 +1500,7 @@
         "cell_subject": {
           "type": "composite",
           "components": [
-            "payload.agent_principal_id",
+            "payload.agent_id",
             "payload.key_id"
           ]
         },
@@ -1520,7 +1519,7 @@
         "cell_family": "ak.component.agent.status.v1",
         "cell_subject": {
           "type": "did",
-          "field": "payload.agent_principal_id"
+          "field": "payload.agent_id"
         },
         "lattice": "fsm",
         "bottom": "reject",
@@ -1537,7 +1536,7 @@
         "cell_family": "ak.component.agent.status.v1",
         "cell_subject": {
           "type": "did",
-          "field": "payload.agent_principal_id"
+          "field": "payload.agent_id"
         },
         "lattice": "fsm",
         "bottom": "reject",
@@ -1554,7 +1553,7 @@
         "cell_family": "ak.component.agent.status.v1",
         "cell_subject": {
           "type": "did",
-          "field": "payload.agent_principal_id"
+          "field": "payload.agent_id"
         },
         "lattice": "fsm",
         "bottom": "reject",
@@ -1596,26 +1595,26 @@
       {
         "event_kind": "ak.agent.interop_session.start",
         "category": "agent",
-        "status": "active",
+        "status": "reserved",
         "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Agent protocol session start"
+        "reducer_input": false,
+        "payload": "Reserved former agent protocol session start; this name MUST NOT appear on wire."
       },
       {
         "event_kind": "ak.agent.interop_session.status",
         "category": "agent",
-        "status": "active",
+        "status": "reserved",
         "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Agent protocol session status"
+        "reducer_input": false,
+        "payload": "Reserved former agent protocol session status; this name MUST NOT appear on wire."
       },
       {
         "event_kind": "ak.agent.interop_session.result",
         "category": "agent",
-        "status": "active",
+        "status": "reserved",
         "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Agent protocol session result"
+        "reducer_input": false,
+        "payload": "Reserved former agent protocol session result; this name MUST NOT appear on wire."
       },
       {
         "event_kind": "ak.capability.grant",
@@ -2019,12 +2018,12 @@
         "status": "active",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Push route binding for a (recipient_service_did, principal, device, push_route) tuple. Carries push_target_id, push_gateway_did, encryption_key, capabilities. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_did context.",
+        "payload": "Push route binding for a (recipient_service_id, principal, device, push_route) tuple. Carries push_target_id, push_gateway_did, encryption_key, capabilities. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_id context.",
         "cell_family": "ak.component.device.push_route.v1",
         "cell_subject": {
           "type": "composite",
           "components": [
-            "payload.recipient_service_did",
+            "payload.recipient_service_id",
             "payload.principal_id",
             "payload.device_id",
             "payload.push_route"
@@ -2505,7 +2504,7 @@
         "reducer_authority": "realm",
         "reducer_effects": [
           "match pending ak.invite.third_party by invite_id and token_commitment",
-          "re-check verification_service_did against current effective Realm allowlist",
+          "re-check verification_service_id against current effective Realm allowlist",
           "deduplicate (invite_id, claim_nonce) and token_commitment before accepting",
           "transition invite cell pending -> claimed and materialize subject-bound membership proposal",
           "expire and clean pending invite material before claim acceptance when expires_at <= now"
@@ -2857,7 +2856,7 @@
         "schema_id": "ak.schema.principal_locator.v1",
         "file": "schemas/principal-locator.schema.json",
         "status": "active",
-        "description": "Signed online invite locator asserting subject_id and recipient_service_did for private invite delivery."
+        "description": "Signed online invite locator asserting subject_id and recipient_service_id for private invite delivery."
       },
       {
         "schema_id": "ak.schema.invite_delivery_request.v1",
@@ -3214,12 +3213,6 @@
         "description": "Closed request/response DTO bundle for ak.self.applet.ghost.command.provision (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
       },
       {
-        "schema_id": "ak.schema.agent.v1",
-        "file": "schemas/agent.schema.json",
-        "status": "active",
-        "description": "Schema-registry object for agent protocol metadata snapshots. Event payloads for ak.agent.* use typed payload definitions in event-payload.schema.json."
-      },
-      {
         "schema_id": "ak.schema.audit_ryw_receipt.v1",
         "file": "schemas/audit-ryw-receipt.schema.json"
       },
@@ -3323,7 +3316,7 @@
         "schema_id": "ak.schema.delivery_binding_stale.v1",
         "file": "schemas/delivery-binding-stale.schema.json",
         "status": "active",
-        "description": "Canonical response body for the delivery_binding_stale federation signal (member delivery-binding rebind handover): new_recipient_service_did, handover_frontier, and the verifiable handover_proof. See zh/sync/federation.md §4.1 and error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid)."
+        "description": "Canonical response body for the delivery_binding_stale federation signal (member delivery-binding rebind handover): new_recipient_service_id, handover_frontier, and the verifiable handover_proof. See zh/sync/federation.md §4.1 and error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid)."
       },
       {
         "schema_id": "ak.schema.query.v1",
@@ -3432,9 +3425,9 @@
       {
         "kind": "agent_interop_session",
         "category": "extension",
-        "status": "active",
+        "status": "reserved",
         "wire_form": "ak:agent_interop_session:<uuid>",
-        "description": "Agent interop session ID. Note the cross-surface naming: this typed ID uses the short form `agent_interop_session`, while the corresponding event kinds use the full form `ak.agent.interop_session.{start,status,result}` and capability actions use `ak.agent.interop_session.{start,cancel,stream_status,attach_artifact,read_transcript}`. The three surfaces all refer to the same session concept; downstream tooling MUST NOT assume `ak:<event-prefix>:<uuid>` mechanical derivation."
+        "description": "Reserved former agent interop session ID. The namespace remains pinned but MUST NOT appear on v1 wire."
       },
       {
         "kind": "announce",
@@ -3522,7 +3515,7 @@
         "category": "media",
         "status": "active",
         "wire_form": "ak:rtc_participant:<uuid>",
-        "description": "SFU-local participant handle. Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `ak.call.state.participants[].participant_identity` and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern."
+        "description": "SFU-local participant handle. Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_id, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `ak.call.state.participants[].participant_identity` and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern."
       },
       {
         "kind": "capability",
@@ -4161,7 +4154,6 @@
           "ak.gate.account.command.pair_agent_key",
           "ak.self.agent.command.provision",
           "ak.self.agent.query.list",
-          "ak.self.agent.protocol.query.discover",
           "ak.self.agent.resource.get",
           "ak.self.agent.command.pause",
           "ak.self.agent.command.resume",
@@ -4317,18 +4309,8 @@
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_list"
       },
       {
-        "operation_id": "ak.self.agent.protocol.query.discover",
-        "http": "POST /_arkret/self/agents/discover",
-        "grpc": "SelfAgent/ProtocolDiscover",
-        "mq": "self.agent.protocol.query.discover",
-        "notes": "Probe the public ak.agent.endpoint registry for an agent's declared external protocol endpoints; returns the projection of an accepted ak.agent.endpoint event (no controller-private fields). Authorized by the ak.agent.protocol.discover capability action (profile ak.profile.agent_runtime.v1). See agent-protocol-interop.md §5.1 / §11 / §12.",
-        "success_shape_kind": "typed_response",
-        "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_outcome"
-      },
-      {
         "operation_id": "ak.self.agent.resource.get",
-        "http": "GET /_arkret/self/agents/{agent_principal_id}",
+        "http": "GET /_arkret/self/agents/{agent_id}",
         "grpc": "SelfAgent/Get",
         "mq": "self.agent.resource.get",
         "success_shape_kind": "typed_response",
@@ -4336,7 +4318,7 @@
       },
       {
         "operation_id": "ak.self.agent.command.pause",
-        "http": "POST /_arkret/self/agents/{agent_principal_id}/pause",
+        "http": "POST /_arkret/self/agents/{agent_id}/pause",
         "grpc": "SelfAgent/Pause",
         "mq": "self.agent.command.pause",
         "success_shape_kind": "typed_response",
@@ -4347,7 +4329,7 @@
       },
       {
         "operation_id": "ak.self.agent.command.resume",
-        "http": "POST /_arkret/self/agents/{agent_principal_id}/resume",
+        "http": "POST /_arkret/self/agents/{agent_id}/resume",
         "grpc": "SelfAgent/Resume",
         "mq": "self.agent.command.resume",
         "success_shape_kind": "typed_response",
@@ -4358,7 +4340,7 @@
       },
       {
         "operation_id": "ak.self.agent.command.deactivate",
-        "http": "POST /_arkret/self/agents/{agent_principal_id}/deactivate",
+        "http": "POST /_arkret/self/agents/{agent_id}/deactivate",
         "grpc": "SelfAgent/Deactivate",
         "mq": "self.agent.command.deactivate",
         "success_shape_kind": "typed_response",
@@ -4369,7 +4351,7 @@
       },
       {
         "operation_id": "ak.self.agent.command.rotate_key",
-        "http": "POST /_arkret/self/agents/{agent_principal_id}/rotate-key",
+        "http": "POST /_arkret/self/agents/{agent_id}/rotate-key",
         "grpc": "SelfAgent/RotateKey",
         "mq": "self.agent.command.rotate_key",
         "success_shape_kind": "typed_response",
@@ -4381,7 +4363,7 @@
       },
       {
         "operation_id": "ak.self.agent.grant.command.attach",
-        "http": "POST /_arkret/self/agents/{agent_principal_id}/grants",
+        "http": "POST /_arkret/self/agents/{agent_id}/grants",
         "grpc": "SelfAgent/GrantAttach",
         "mq": "self.agent.grant.command.attach",
         "success_shape_kind": "typed_response",
@@ -4393,7 +4375,7 @@
       },
       {
         "operation_id": "ak.self.agent.grant.resource.delete",
-        "http": "DELETE /_arkret/self/agents/{agent_principal_id}/grants/{grant_id}",
+        "http": "DELETE /_arkret/self/agents/{agent_id}/grants/{grant_id}",
         "grpc": "SelfAgent/GrantDetach",
         "mq": "self.agent.grant.resource.delete",
         "success_shape_kind": "typed_response",
@@ -4414,7 +4396,7 @@
       },
       {
         "operation_id": "ak.self.agent.participation.resource.replace",
-        "http": "PUT /_arkret/self/agents/{agent_principal_id}/participation",
+        "http": "PUT /_arkret/self/agents/{agent_id}/participation",
         "grpc": "SelfAgent/ParticipationReplace",
         "mq": "self.agent.participation.resource.replace",
         "success_shape_kind": "typed_response",
@@ -4425,7 +4407,7 @@
       },
       {
         "operation_id": "ak.self.agent.participation.resource.get",
-        "http": "GET /_arkret/self/agents/{agent_principal_id}/participation",
+        "http": "GET /_arkret/self/agents/{agent_id}/participation",
         "grpc": "SelfAgent/ParticipationGet",
         "mq": "self.agent.participation.resource.get",
         "success_shape_kind": "typed_response",
@@ -4563,8 +4545,8 @@
               "@target-uri",
               "@authority",
               "content-digest",
-              "source-service-did",
-              "destination-service-did",
+              "source-service-id",
+              "destination-service-id",
               "idempotency-key"
             ],
             "freshness": {
@@ -4574,14 +4556,14 @@
             "source_signature_anchor": {
               "audit_field": "source_signature_anchor",
               "request_body_field": false,
-              "node_to_applet": "Source-Service-DID current service DID verification method; Destination-Service-DID MUST equal the Applet registration service_did.",
-              "applet_to_arkret_inbound": "Applet registration webhook_auth.key_ref; DID part MUST equal Source-Service-DID and the active effective install service_did."
+              "node_to_applet": "Source-Service-ID current service DID verification method; Destination-Service-ID MUST equal the Applet registration service_id.",
+              "applet_to_arkret_inbound": "Applet registration webhook_auth.key_ref; DID part MUST equal Source-Service-ID and the active effective install service_id."
             },
             "idempotency_identity_fields": [
               "operation_id",
               "direction",
-              "Source-Service-DID",
-              "Destination-Service-DID",
+              "Source-Service-ID",
+              "Destination-Service-ID",
               "Idempotency-Key"
             ],
             "replay_cached_fields": [
@@ -5094,7 +5076,7 @@
         "http": "POST /_arkret/self/events",
         "grpc": "SelfEvents/Submit",
         "mq": "self.events.command.submit",
-        "notes": "Durable self event submission, including ak.invite.claim. For ak.invite.claim, the receiving Realm reducer is the authoritative state machine: it MUST match token_commitment, re-check verification_service_did allowlist against current Realm policy, reject claim_nonce replay, perform pending -> claimed / membership-proposal effects, and run expiry cleanup before accepting.",
+        "notes": "Durable self event submission, including ak.invite.claim. For ak.invite.claim, the receiving Realm reducer is the authoritative state machine: it MUST match token_commitment, re-check verification_service_id allowlist against current Realm policy, reject claim_nonce replay, perform pending -> claimed / membership-proposal effects, and run expiry cleanup before accepting.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,
@@ -5164,7 +5146,7 @@
         "http": "POST /_arkret/peer/invites",
         "grpc": "PeerInvites/Submit",
         "mq": "peer.invites.command.submit",
-        "notes": "Private Principal Server to Principal Server invite delivery. Requires service-to-service authentication, Destination-Service-DID equal to invite_address.recipient_service_did, a ak.invite.create event whose invitee equals invite_address.subject_id, and introduction_evidence accepted by the recipient invite_receive_policy.",
+        "notes": "Private Principal Server to Principal Server invite delivery. Requires service-to-service authentication, Destination-Service-ID equal to invite_address.recipient_service_id, a ak.invite.create event whose invitee equals invite_address.subject_id, and introduction_evidence accepted by the recipient invite_receive_policy.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
@@ -5176,7 +5158,7 @@
         "http": "POST /_arkret/peer/contacts",
         "grpc": "PeerContacts/Submit",
         "mq": "peer.contacts.command.submit",
-        "notes": "Private Principal Server to Principal Server contact fact delivery. Requires service-to-service authentication, Destination-Service-DID equal to contact_address.recipient_service_did, and a signed ak.contact.* envelope the recipient projects into the target holder's contact projection without re-signing.",
+        "notes": "Private Principal Server to Principal Server contact fact delivery. Requires service-to-service authentication, Destination-Service-ID equal to contact_address.recipient_service_id, and a signed ak.contact.* envelope the recipient projects into the target holder's contact projection without re-signing.",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
@@ -5490,7 +5472,7 @@
         "http": "POST /_arkret/open/agent-pairing/runtime-key-requests/status",
         "grpc": "OpenAgentPairing/RuntimeKeyRequestStatus",
         "mq": "open.agent_pairing.query.runtime_key_request_status",
-        "notes": "Runtime-side poll for the controller decision on a previously submitted runtime key request. The pairing_request_id + pairing_code + agent_principal_id triple is the query credential and MUST be sent in the JSON body, never in URL path or query string; a record miss and a pairing_code or agent_principal_id mismatch MUST be indistinguishable (both not_found). Once approved, the outcome carries authorized_event_ref plus the authorized key binding; the runtime MUST compare authorized_public_key_digest against its own key and treat a mismatch as paired-by-another-runtime.",
+        "notes": "Runtime-side poll for the controller decision on a previously submitted runtime key request. The pairing_request_id + pairing_code + agent_id triple is the query credential and MUST be sent in the JSON body, never in URL path or query string; a record miss and a pairing_code or agent_id mismatch MUST be indistinguishable (both not_found). Once approved, the outcome carries authorized_event_ref plus the authorized key binding; the runtime MUST compare authorized_public_key_digest against its own key and treat a mismatch as paired-by-another-runtime.",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome"
@@ -6109,6 +6091,14 @@
       "target_event_kinds links the action to one or more ak.* event_kinds in event_kind_registry. Empty array means the action authorizes a read / projection / signaling path that does not produce a durable reducer-input event. Reducer admission for a listed event_kind MUST verify the actor holds at least one matching action grant.",
       "profile is null for v1 core actions, or a ak.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default).",
       "Every action MUST declare event_mapping_kind. action == single target_event_kind uses same_name; empty target_event_kinds uses non_event_surface; any other mapping MUST use one of the allowed deviation categories."
+    ],
+    "reserved_actions": [
+      "ak.agent.protocol.discover",
+      "ak.agent.interop_session.start",
+      "ak.agent.interop_session.cancel",
+      "ak.agent.interop_session.stream_status",
+      "ak.agent.interop_session.attach_artifact",
+      "ak.agent.interop_session.read_transcript"
     ],
     "actions": [
       {
@@ -7287,83 +7277,6 @@
         "profile": "ak.profile.agent_participation_policy.v1",
         "migration_group": "ak._0016_agent_participation",
         "event_mapping_kind": "aggregate_admin"
-      },
-      {
-        "action": "ak.agent.protocol.discover",
-        "category": "general",
-        "risk_tier": "low",
-        "required_constraints": [],
-        "target_event_kinds": [],
-        "profile": "ak.profile.agent_runtime.v1",
-        "event_mapping_kind": "non_event_surface"
-      },
-      {
-        "action": "ak.agent.interop_session.start",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [
-          "allowed_endpoints",
-          "allowed_data_classes"
-        ],
-        "target_event_kinds": [
-          "ak.agent.interop_session.start"
-        ],
-        "profile": "ak.profile.agent_runtime.v1",
-        "event_mapping_kind": "same_name"
-      },
-      {
-        "action": "ak.agent.interop_session.cancel",
-        "category": "management",
-        "risk_tier": "medium",
-        "required_constraints": [
-          "allowed_session_ids"
-        ],
-        "target_event_kinds": [
-          "ak.agent.interop_session.status",
-          "ak.agent.interop_session.result"
-        ],
-        "profile": "ak.profile.agent_runtime.v1",
-        "event_mapping_kind": "operation_verb"
-      },
-      {
-        "action": "ak.agent.interop_session.stream_status",
-        "category": "general",
-        "risk_tier": "low",
-        "required_constraints": [
-          "allowed_session_ids"
-        ],
-        "target_event_kinds": [
-          "ak.agent.interop_session.status"
-        ],
-        "profile": "ak.profile.agent_runtime.v1",
-        "event_mapping_kind": "operation_verb"
-      },
-      {
-        "action": "ak.agent.interop_session.attach_artifact",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [
-          "allowed_data_classes",
-          "allowed_session_ids",
-          "max_artifact_bytes"
-        ],
-        "target_event_kinds": [
-          "ak.agent.interop_session.status",
-          "ak.agent.interop_session.result"
-        ],
-        "profile": "ak.profile.agent_runtime.v1",
-        "event_mapping_kind": "operation_verb"
-      },
-      {
-        "action": "ak.agent.interop_session.read_transcript",
-        "category": "general",
-        "risk_tier": "high",
-        "required_constraints": [
-          "allowed_data_classes"
-        ],
-        "target_event_kinds": [],
-        "profile": "ak.profile.agent_runtime.v1",
-        "event_mapping_kind": "non_event_surface"
       },
       {
         "action": "ak.policy.manage",

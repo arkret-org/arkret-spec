@@ -119,7 +119,7 @@
       "description": "Wire-level 3PID/OOB invite binding. No plaintext email/phone/SMS code is allowed here. `oob_code_kind` distinguishes offline high-entropy token validation from server-side lookup short-code validation.",
       "required": [
         "oob_code_kind",
-        "verification_service_did",
+        "verification_service_id",
         "verification_public_key"
       ],
       "properties": {
@@ -164,7 +164,7 @@
           "minimum": 128,
           "description": "Required for offline_token mode. Entropy estimate excluding separators."
         },
-        "verification_service_did": {
+        "verification_service_id": {
           "$ref": "#/$defs/did"
         },
         "verification_public_key": {

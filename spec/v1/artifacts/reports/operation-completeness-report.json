@@ -18,13 +18,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 180,
+    "total_operations": 179,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 168
+      "typed_schema": 167
     },
     "by_tier_and_class": {
       "core": {
@@ -39,7 +39,7 @@
         "binary_or_redirect": 2,
         "no_request_body": 1,
         "service_describe": 2,
-        "typed_schema": 116
+        "typed_schema": 115
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -1185,7 +1185,7 @@
     {
       "operation_id": "ak.self.agent.command.deactivate",
       "tier": "extension",
-      "http": "POST /_arkret/self/agents/{agent_principal_id}/deactivate",
+      "http": "POST /_arkret/self/agents/{agent_id}/deactivate",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state",
@@ -1199,7 +1199,7 @@
     {
       "operation_id": "ak.self.agent.command.pause",
       "tier": "extension",
-      "http": "POST /_arkret/self/agents/{agent_principal_id}/pause",
+      "http": "POST /_arkret/self/agents/{agent_id}/pause",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pause_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state",
@@ -1227,7 +1227,7 @@
     {
       "operation_id": "ak.self.agent.command.resume",
       "tier": "extension",
-      "http": "POST /_arkret/self/agents/{agent_principal_id}/resume",
+      "http": "POST /_arkret/self/agents/{agent_id}/resume",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_resume_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state",
@@ -1241,7 +1241,7 @@
     {
       "operation_id": "ak.self.agent.command.rotate_key",
       "tier": "extension",
-      "http": "POST /_arkret/self/agents/{agent_principal_id}/rotate-key",
+      "http": "POST /_arkret/self/agents/{agent_id}/rotate-key",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_rotate_key_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_rotate_key_outcome",
@@ -1255,7 +1255,7 @@
     {
       "operation_id": "ak.self.agent.grant.command.attach",
       "tier": "extension",
-      "http": "POST /_arkret/self/agents/{agent_principal_id}/grants",
+      "http": "POST /_arkret/self/agents/{agent_id}/grants",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome",
@@ -1269,7 +1269,7 @@
     {
       "operation_id": "ak.self.agent.grant.resource.delete",
       "tier": "extension",
-      "http": "DELETE /_arkret/self/agents/{agent_principal_id}/grants/{grant_id}",
+      "http": "DELETE /_arkret/self/agents/{agent_id}/grants/{grant_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome",
@@ -1282,7 +1282,7 @@
     {
       "operation_id": "ak.self.agent.participation.resource.get",
       "tier": "extension",
-      "http": "GET /_arkret/self/agents/{agent_principal_id}/participation",
+      "http": "GET /_arkret/self/agents/{agent_id}/participation",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
@@ -1295,27 +1295,13 @@
     {
       "operation_id": "ak.self.agent.participation.resource.replace",
       "tier": "extension",
-      "http": "PUT /_arkret/self/agents/{agent_principal_id}/participation",
+      "http": "PUT /_arkret/self/agents/{agent_id}/participation",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_replace_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentParticipationReplaceRequestBody",
         "response": "#/components/schemas/AgentParticipationOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.agent.protocol.query.discover",
-      "tier": "extension",
-      "http": "POST /_arkret/self/agents/discover",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/AgentProtocolDiscoverRequestBody",
-        "response": "#/components/schemas/AgentProtocolDiscoverOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1336,7 +1322,7 @@
     {
       "operation_id": "ak.self.agent.resource.get",
       "tier": "extension",
-      "http": "GET /_arkret/self/agents/{agent_principal_id}",
+      "http": "GET /_arkret/self/agents/{agent_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_view",

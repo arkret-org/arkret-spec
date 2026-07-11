@@ -436,10 +436,6 @@
             "enum": [
               "ak.account.status",
               "ak.actor.discovery",
-              "ak.agent.endpoint",
-              "ak.agent.interop_session.result",
-              "ak.agent.interop_session.start",
-              "ak.agent.interop_session.status",
               "ak.agent.key.authorize",
               "ak.agent.key.revoke",
               "ak.agent.key.rotate",
@@ -1998,82 +1994,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/view_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.agent.endpoint"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/agent_endpoint_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.agent.interop_session.start"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/agent_interop_session_start_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.agent.interop_session.status"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/agent_interop_session_status_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.agent.interop_session.result"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/agent_interop_session_result_payload"
           }
         }
       }

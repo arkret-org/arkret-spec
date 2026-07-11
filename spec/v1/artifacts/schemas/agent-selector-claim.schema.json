@@ -35,7 +35,7 @@
       "$ref": "#/$defs/did",
       "description": "DID that signs this selector claim. It is normally controller_subject; a delegated issuer MUST be authorized by controller_subject and bound in source_refs or proof evidence."
     },
-    "issuer_service_did": {
+    "issuer_service_id": {
       "$ref": "#/$defs/did",
       "description": "Service DID that served or vouched for this selector claim when distinct from issuer."
     },

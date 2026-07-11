@@ -48,7 +48,7 @@
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
       "description": "DID of the handle authority. Bare hostnames are discovery inputs, never proof issuers."
     },
-    "issuer_service_did": {
+    "issuer_service_id": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
       "description": "Service DID that signed, served, or vouched for this handle claim when distinct from issuer."
@@ -93,13 +93,13 @@
     },
     "member_delivery_binding": {
       "type": "object",
-      "description": "Single source for the Principal Server service DID and delivery parameters this handle claim offers to the membership builder. Top-level delivery shortcuts are forbidden; use member_delivery_binding.recipient_service_did, member_delivery_binding.service_acceptance_ref, and member_delivery_binding.policy_event_ref.",
+      "description": "Single source for the Principal Server service DID and delivery parameters this handle claim offers to the membership builder. Top-level delivery shortcuts are forbidden; use member_delivery_binding.recipient_service_id, member_delivery_binding.service_acceptance_ref, and member_delivery_binding.policy_event_ref.",
       "required": [
-        "recipient_service_did",
+        "recipient_service_id",
         "binding_source"
       ],
       "properties": {
-        "recipient_service_did": {
+        "recipient_service_id": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
         },
@@ -178,7 +178,7 @@
     "anyOf": [
       {
         "required": [
-          "recipient_service_did"
+          "recipient_service_id"
         ]
       },
       {

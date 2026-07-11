@@ -1111,11 +1111,11 @@
       "notes": "Error code uses the full franking_proof noun."
     },
     {
-      "id": "recipient_service_did",
+      "id": "recipient_service_id",
       "context": "handle_claim_top_level",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "member_delivery_binding.recipient_service_did",
+      "replacement": "member_delivery_binding.recipient_service_id",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -1596,7 +1596,7 @@
       "context": "agent_key_payload",
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
-      "replacement": "agent_principal_id",
+      "replacement": "agent_id",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -1615,7 +1615,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Audit release evidence names the attested release actor with _id; service_did remains the hosting service DID."
+      "notes": "Audit release evidence names the attested release actor with _id; service_id remains the hosting service DID."
     },
     {
       "id": "accountable_actor",
@@ -1791,13 +1791,13 @@
       "context": "membership_payload",
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
-      "replacement": "via_service_dids",
+      "replacement": "via_service_ids",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "The membership delivery routing list carries service DIDs; the field names the value category explicitly as via_service_dids. Bare via is removed."
+      "notes": "The membership delivery routing list carries service DIDs; the field names the value category explicitly as via_service_ids. Bare via is removed."
     },
     {
       "id": "by",

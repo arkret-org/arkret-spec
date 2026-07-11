@@ -388,7 +388,7 @@
           "$ref": "../schemas/applet-install-plan.schema.json#/$defs/effective_scope"
         },
         "registration_epoch": { "$ref": "#/$defs/hash" },
-        "service_did": { "$ref": "#/$defs/did" },
+        "service_id": { "$ref": "#/$defs/did" },
         "capability_grant_refs": {
           "type": "array",
           "items": { "$ref": "#/$defs/typed_ref" },
@@ -409,7 +409,7 @@
           "applet_id",
           "effective_scope"
         ],
-        "service_did": [
+        "service_id": [
           "applet_id",
           "effective_scope",
           "registration_epoch"

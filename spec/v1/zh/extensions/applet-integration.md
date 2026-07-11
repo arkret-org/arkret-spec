@@ -131,8 +131,8 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
 {
   "kind": "ak.applet.registration",
   "applet_id": "ak:applet:21532600-0000-7000-8000-000000000000",
-  "service_did": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example",
-  "controller_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
+  "service_id": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example",
+  "controller_id": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
   "base_url": "https://slack-bridge.example/applet",
   "bot_actor_id": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:bot",
   "protocols": [
@@ -189,8 +189,8 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
 ### 4.1 Registration 规则
 
 - `applet_id` MUST 稳定。
-- `service_did` MUST 可解析，并声明 Applet endpoint。
-- `controller_did` MUST 对 registration 签名。
+- `service_id` MUST 可解析，并声明 Applet endpoint。
+- `controller_id` MUST 对 registration 签名。
 - `namespaces` MUST 明确声明，不能默认为全网。
 - exclusive namespace 冲突时，registry / authz service MUST 拒绝后注册者。
 - `requested_scopes` 只是请求权限，不是实际授权。
@@ -239,7 +239,7 @@ Commit MUST 执行：
 
 多事件 fan-out 不是分布式原子事务；安全性依赖 registration 无 grant 即无授权。preview-time reject MUST NOT 提交任何 durable event。reduce-time reject MUST 把 accepted refs 与 rejected refs 写入 install execution record 和 audit/projection。registration 成功但所有 grant 失败时 MUST 返回 rejected，标记 registration 无 effective install，并在 local projection / audit 显式显示 orphan registration。
 
-Revoke MUST 撤销绑定到 applet + effective_scope + registration_epoch 的全部 active grant、撤销 widget scoped token、撤销 delegated session/device（若有），并在需要时触发 bot/ghost membership leave/remove 与 MLS epoch rotation requirement。涉及 delegated session revoke 时，请求 MUST 携带 `proof: AccountLifecycleProof`；Principal Server MUST 用 active install 重建 `ak.gate.account.command.revoke_session` applet selector（`applet_id`、`effective_scope`、`registration_epoch`、`service_did`、`capability_grant_refs`）并转发给 Account Authority，Account Authority MUST 按该 selector 撤销授权侧 session grant。`remove_ghost_membership` 依赖 active ghost projection 能枚举该 effective_scope 下仍 active 的 applet-managed ghost member；若 projection 不完整，MUST fail closed 并要求先重建 projection，不得按 namespace pattern 猜测成员。revoked effective install 继续尝试未来写入或调用 MUST fail closed，reason=`applet_revoked` 或更细 reason。
+Revoke MUST 撤销绑定到 applet + effective_scope + registration_epoch 的全部 active grant、撤销 widget scoped token、撤销 delegated session/device（若有），并在需要时触发 bot/ghost membership leave/remove 与 MLS epoch rotation requirement。涉及 delegated session revoke 时，请求 MUST 携带 `proof: AccountLifecycleProof`；Principal Server MUST 用 active install 重建 `ak.gate.account.command.revoke_session` applet selector（`applet_id`、`effective_scope`、`registration_epoch`、`service_id`、`capability_grant_refs`）并转发给 Account Authority，Account Authority MUST 按该 selector 撤销授权侧 session grant。`remove_ghost_membership` 依赖 active ghost projection 能枚举该 effective_scope 下仍 active 的 applet-managed ghost member；若 projection 不完整，MUST fail closed 并要求先重建 projection，不得按 namespace pattern 猜测成员。revoked effective install 继续尝试未来写入或调用 MUST fail closed，reason=`applet_revoked` 或更细 reason。
 
 ### 4b.1 术语:Effective Install 与 Orphan Registration
 
@@ -350,9 +350,9 @@ Base URL 来自 registration 的 `base_url`。
 
 | operation_id | surface / 调用方向 | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- | --- |
-| `ak.edge.applet.query.ping` | edge（节点→Applet） | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_did: did`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
-| `ak.edge.applet.query.describe` | edge（节点→Applet） | 无 | 无 | `applet_id: id`; `service_did: did`; `protocols: string[]`; `namespaces: object`; `limits: object`; `auth: object` | public mode 只返回公开 capabilities。 |
-| `ak.edge.applet.command.transaction` | edge（节点→Applet） | `header.Idempotency-Key: string`; `source_service_did: did`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet MUST 验证来源 service DID、HTTP signature、event signature、namespace 和 capability。 |
+| `ak.edge.applet.query.ping` | edge（节点→Applet） | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_id: did`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
+| `ak.edge.applet.query.describe` | edge（节点→Applet） | 无 | 无 | `applet_id: id`; `service_id: did`; `protocols: string[]`; `namespaces: object`; `limits: object`; `auth: object` | public mode 只返回公开 capabilities。 |
+| `ak.edge.applet.command.transaction` | edge（节点→Applet） | `header.Idempotency-Key: string`; `source_service_id: did`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet MUST 验证来源 service DID、HTTP signature、event signature、namespace 和 capability。 |
 | `ak.edge.applet.actor.query.resolve` | edge（节点→Applet） | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 Applet actor namespace。 |
 | `ak.edge.applet.realm.query.resolve` | edge（节点→Applet） | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
 | `ak.edge.applet.query.protocol_metadata` | edge（节点→Applet） | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_types: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
@@ -361,7 +361,7 @@ Base URL 来自 registration 的 `base_url`。
 | `ak.self.applet.install.command.preview` | self（管理员→Principal Server） | `applet_package`; `effective_scope`; `approval_request`（字段见 [`applet-schema.md` §1b](./applet-schema.md)） | 无 | `InstallPlan` + `plan_digest`（契约 `applet-install-plan.schema.json`） | 只读预览；字段定义见 §4b 与 `applet-schema.md` §1b。 |
 | `ak.self.applet.command.install` | self（管理员→Principal Server） | `Idempotency-Key`; `plan_digest`; `applet_package`; `effective_scope`; `approval_request`（见 [`applet-schema.md` §1b](./applet-schema.md)） | 无 | install / commit response 的完整 required 字段集合以 [`applet-schema.md` §1b](./applet-schema.md) 与契约 `applet-install-operations.schema.json` 为权威源（本表不再部分罗列） | 提交安装；字段定义见 §4b 与 `applet-schema.md` §1b。 |
 | `ak.self.applet.command.revoke` | self（管理员→Principal Server） | `path.applet_id`; `effective_scope` | 无 | revoke 结果（撤销的 grant / membership / token refs） | 撤销 effective install；见 §4b。 |
-| `ak.self.applet.ghost.command.provision` | self（已安装 Applet service→Principal Server） | `header.Idempotency-Key`; `path.applet_id`; `schema`; `applet_id`; `service_did`; `ghost_actor_id`; `protocol`; `tenant`; `external_user_id`; `realm_id`; `external_ref` | `display_name` | `ghost_actor_id: did`; `profile_event_ref: ref`; `accountability_grant_ref: ref`; `authorization_ref: ref`; `display_name: string?` | bridge Applet 为单个外部用户 provision Ghost Actor；字段与幂等规则见 §9.1，契约 `applet-ghost-operations.schema.json`。 |
+| `ak.self.applet.ghost.command.provision` | self（已安装 Applet service→Principal Server） | `header.Idempotency-Key`; `path.applet_id`; `schema`; `applet_id`; `service_id`; `ghost_actor_id`; `protocol`; `tenant`; `external_user_id`; `realm_id`; `external_ref` | `display_name` | `ghost_actor_id: did`; `profile_event_ref: ref`; `accountability_grant_ref: ref`; `authorization_ref: ref`; `display_name: string?` | bridge Applet 为单个外部用户 provision Ghost Actor；字段与幂等规则见 §9.1，契约 `applet-ghost-operations.schema.json`。 |
 
 ### 7.1 Ping
 
@@ -375,7 +375,7 @@ GET /_arkret/edge/applet/ping
 {
   "ok": true,
   "applet_id": "ak:applet:21532600-0000-7000-8000-000000000000",
-  "service_did": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example",
+  "service_id": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example",
   "protocol_version": "1.0"
 }
 ```
@@ -401,7 +401,7 @@ Arkret Sync Service / Events API 向 Applet 推送事件批次。
 
 ```json
 {
-  "source_service_did": "did:webvh:z7SrvceTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:server.example",
+  "source_service_id": "did:webvh:z7SrvceTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:server.example",
   "events": [
     {
       "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
@@ -432,7 +432,7 @@ Arkret Sync Service / Events API 向 Applet 推送事件批次。
 规则：
 
 - `Idempotency-Key` MUST 作为逐次 transaction push 的 nonce / idempotency key 使用，并进入 HTTP Message Signature transcript（见 §7.3.1）。
-- 幂等 identity MUST 至少绑定 `(operation_id, direction, Source-Service-DID, Destination-Service-DID, Idempotency-Key)`；接收方的幂等记录 MUST 同时保存 canonical body digest / `Content-Digest` 与本次验签得到的 `source_signature_anchor`。
+- 幂等 identity MUST 至少绑定 `(operation_id, direction, Source-Service-ID, Destination-Service-ID, Idempotency-Key)`；接收方的幂等记录 MUST 同时保存 canonical body digest / `Content-Digest` 与本次验签得到的 `source_signature_anchor`。
 - 相同幂等 identity、相同 canonical body digest 且相同 `source_signature_anchor` 的重复投递 MUST 返回原 outcome 或等价成功，不得再次执行外部副作用。
 - 相同幂等 identity 但 canonical body digest、source / destination service DID 或 `source_signature_anchor` 任一不一致时 MUST fail closed；若认证先通过则返回 `duplicate_conflict`，若签名 / source 绑定先失败则返回 §7.3.1 的认证失败 reason。
 - 单事件级别仍以 `event_id` 去重；重复 `event_id` 且内容一致 MUST `accepted`，内容不一致 MUST 拒绝。
@@ -445,38 +445,38 @@ Arkret Sync Service / Events API 向 Applet 推送事件批次。
 
 transaction push 是 service↔service 调用，**两个方向**都 MUST 携带**逐次投递**的 RFC 9421 HTTP Message Signature（per-delivery source signature），接收方 MUST 在处理任何 event / 副作用前先验签；纯 `Authorization: Bearer`（无 `Signature`）的 transaction push MUST 被拒绝。两方向不可只靠 bearer，也不可只在首次握手时验签一次：
 
-- **node → Applet**（§7.3 上文，Arkret 节点向 Applet 推送）：Applet 端 MUST 按 `Source-Service-DID` 解析推送方 Arkret service DID 的当前有效 verification method，并逐次验证 HTTP Message Signature；`Destination-Service-DID` MUST 等于接收 Applet registration 的 `service_did`。Applet registration 的 `webhook_auth` 在该方向声明 transaction endpoint 要求 `http_message_signature` 与可接受算法；`webhook_auth.key_ref` MUST NOT 被解释成任意 Arkret 节点的来源 key。
-- **app/bridge → arkret edge inbound**（`POST /_arkret/edge/applet/transactions` 的入站方向，已安装 Applet service / bridge 向 arkret edge 推送外部网络 transaction）：arkret edge 接收方 MUST 先用 `Source-Service-DID` 找到 active effective install（§4b.1）与当前 effective Applet registration，再要求签名 `keyid` / verification method 等于该 registration 的 `webhook_auth.key_ref`（其 DID 部分 MUST 等于 registration `service_did` / header `Source-Service-DID`），并逐次验签。缺签名、签名无效、`Source-Service-DID` 与 registration 不一致、`webhook_auth.key_ref` 不属于该 Applet service DID 或无 active install 时 MUST fail closed。
+- **node → Applet**（§7.3 上文，Arkret 节点向 Applet 推送）：Applet 端 MUST 按 `Source-Service-ID` 解析推送方 Arkret service DID 的当前有效 verification method，并逐次验证 HTTP Message Signature；`Destination-Service-ID` MUST 等于接收 Applet registration 的 `service_id`。Applet registration 的 `webhook_auth` 在该方向声明 transaction endpoint 要求 `http_message_signature` 与可接受算法；`webhook_auth.key_ref` MUST NOT 被解释成任意 Arkret 节点的来源 key。
+- **app/bridge → arkret edge inbound**（`POST /_arkret/edge/applet/transactions` 的入站方向，已安装 Applet service / bridge 向 arkret edge 推送外部网络 transaction）：arkret edge 接收方 MUST 先用 `Source-Service-ID` 找到 active effective install（§4b.1）与当前 effective Applet registration，再要求签名 `keyid` / verification method 等于该 registration 的 `webhook_auth.key_ref`（其 DID 部分 MUST 等于 registration `service_id` / header `Source-Service-ID`），并逐次验签。缺签名、签名无效、`Source-Service-ID` 与 registration 不一致、`webhook_auth.key_ref` 不属于该 Applet service DID 或无 active install 时 MUST fail closed。
 
 **覆盖 header 集（MUST，与 [`../sync/federation.md` §3.2](../sync/federation.md) service-to-service 签名对称）**：签名 transcript MUST 覆盖以下 RFC 9421 derived components 与 header：
 
 - `@method`、`@target-uri`、`@authority`
 - `content-digest`（覆盖 canonical request body；transaction push 总是带 body，故 MUST 携带 `Content-Digest`）
-- `source-service-did`（header `Source-Service-DID`，等于 body `source_service_did`）
-- `destination-service-did`（header `Destination-Service-DID`，等于接收方 service DID）
+- `source-service-id`（header `Source-Service-ID`，等于 body `source_service_id`）
+- `destination-service-id`（header `Destination-Service-ID`，等于接收方 service DID）
 - `idempotency-key`（header `Idempotency-Key`；参与幂等 / replay key，MUST 进入 transcript）
 - 签名 parameters MUST 含 `created` 与 `expires`；时效窗口判据沿用 [`../sync/federation.md` §3.2](../sync/federation.md)（`expires - created` ≤ 300s、`created` ±30s skew、`expires` 未过期），落在窗口外的逐字节重放即便 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝。
 
-接收方 MUST 在验签前先校验 body 实际 hash 与 `Content-Digest` 一致，再验证签名 transcript；body 内 `source_service_did` MUST 与 header `Source-Service-DID` 及签名 transcript 一致。
+接收方 MUST 在验签前先校验 body 实际 hash 与 `Content-Digest` 一致，再验证签名 transcript；body 内 `source_service_id` MUST 与 header `Source-Service-ID` 及签名 transcript 一致。
 
 **来源签名锚点（normative）**：接收方在验签通过后 MUST 形成不可伪造的 `source_signature_anchor` audit value，并把它写入 transaction 幂等 / replay 记录；该值不是 request body 字段。锚点 canonical tuple 至少包含：
 
 - `operation_id="ak.edge.applet.command.transaction"` 与方向（`node_to_applet` 或 `applet_to_arkret_inbound`）；
-- `source_service_did`、`destination_service_did`；
+- `source_service_id`、`destination_service_id`；
 - 签名使用的 `verification_method` / `keyid` 与签名算法；
 - Applet 相关方向的 effective `registration_epoch` 与 `webhook_auth.key_ref`，或 Arkret node 方向的 source service DID key-state evidence；
 - `Idempotency-Key`、`Content-Digest` / canonical body digest、`Signature-Input` covered component set、`created`、`expires`。
 
-幂等 / replay cache 的接受判定 MUST 绑定该锚点；实现不得只用裸 `Idempotency-Key` 或 body 内 `source_service_did` 决定重复投递，也不得在 service DID key rotate、registration epoch 改变或 active install 撤销后把旧锚点当成新授权。
+幂等 / replay cache 的接受判定 MUST 绑定该锚点；实现不得只用裸 `Idempotency-Key` 或 body 内 `source_service_id` 决定重复投递，也不得在 service DID key rotate、registration epoch 改变或 active install 撤销后把旧锚点当成新授权。
 
-`source_service_did` 只认证来源服务，不认证每条 durable Event 的业务 actor。arkret edge 把 Applet transaction 落为 Arkret Event 时，仍 MUST 对每条 Event 独立验证 `actor_id`、`applet_id`、`authorization_ref`、`external_ref` / provenance、`proofs[]` 与 registration `namespaces.actors` / capability grant；ghost actor、bot actor 或 delegated native actor 与 source service 不一致时 MUST fail closed（`applet_namespace_mismatch` / `capability_denied` / `applet_registration_unauthorized`，按失败层级选择）。
+`source_service_id` 只认证来源服务，不认证每条 durable Event 的业务 actor。arkret edge 把 Applet transaction 落为 Arkret Event 时，仍 MUST 对每条 Event 独立验证 `actor_id`、`applet_id`、`authorization_ref`、`external_ref` / provenance、`proofs[]` 与 registration `namespaces.actors` / capability grant；ghost actor、bot actor 或 delegated native actor 与 source service 不一致时 MUST fail closed（`applet_namespace_mismatch` / `capability_denied` / `applet_registration_unauthorized`，按失败层级选择）。
 
 **失败码（normative）**：
 
 - 缺 `Signature` / 纯 bearer：`unauthorized`（401，reason=`http_signature_required`）。
-- 签名验证失败、`content-digest` 不覆盖 body、`source_service_did` 与 header / transcript 不一致：`unauthorized`（401，reason=`http_signature_invalid`）。
+- 签名验证失败、`content-digest` 不覆盖 body、`source_service_id` 与 header / transcript 不一致：`unauthorized`（401，reason=`http_signature_invalid`）。
 - `created` / `expires` 超出时效窗口（含 replay cache evict 后的窗口外重放）：`unauthorized`（401，reason=`signature_window_invalid`）。
-- inbound 方向 `Source-Service-DID` 无 active effective install 或与 registration service DID 不一致：fail closed，reason=`applet_registration_unauthorized`（与 §4 / §4b 同门槛）。
+- inbound 方向 `Source-Service-ID` 无 active effective install 或与 registration service DID 不一致：fail closed，reason=`applet_registration_unauthorized`（与 §4 / §4b 同门槛）。
 - 幂等 identity 已存在但 canonical body digest 或 `source_signature_anchor` 不一致：认证成功后 MUST 返回 `duplicate_conflict`；认证未通过时 MUST 优先返回对应认证失败 reason，避免泄露历史 transaction 状态。
 
 transaction push 的逐次签名是传输层来源认证，**不替代** §8 每条 Applet-originated 写入 Event 的 envelope event signature（`proofs[]`）与 capability grant 校验：arkret 把外部 transaction 落为 durable Arkret Event 时，仍 MUST 按 §8 / §11 校验每条 Event 的 `actor_id` / `applet_id` / `authorization_ref` / `proofs[]`。
@@ -588,7 +588,7 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
 `authorization_ref` 的取值按事件签署主体区分：
 
 - **Delegated-ghost / masquerading 事件**（`actor_id` 为 ghost / bot / delegated native actor，即 Applet 代表已授权 actor 署名的常见情形）：`authorization_ref` MUST 指向该 ghost 的 `ak.identity.accountability_grant`（见 [§9](#9-ghost-actor-provisioning) 与 [§11](#11-masquerading-与-delegated-agent)），表达“Applet 以委托授权身份代表该 actor 行事”的委托链。
-- **Service-actor 自署事件**（`actor_id` 为 Applet 自身的 service DID，如 portal strand 创建、`ak.applet.bridge_error` 审计等运维 / 审计事件，非委托 ghost）：此类事件不存在委托关系，`authorization_ref` MUST 指向该 Applet 的 registration grant（[§4](#4-applet-registration) Applet Registration 安装授权）而非某个 ghost 的 accountability_grant；若部署未为 Applet registration 铸造独立的 grant ref，service-actor 自署事件 MAY 省略 `authorization_ref`（签名的 `applet_id` 与 service-DID `actor_id` 已承载 provenance）。两类事件的 `applet_id` 均 MUST 携带。
+- **Service-actor 自署事件**（`actor_id` 为 Applet 自身的 service DID，如 portal strand 创建、`ak.applet.bridge_error` 审计等运维 / 审计事件，非委托 ghost）：此类事件不存在委托关系，`authorization_ref` MUST 指向该 Applet 的 registration grant（[§4](#4-applet-registration) Applet Registration 安装授权）而非某个 ghost 的 accountability_grant；若部署未为 Applet registration 铸造独立的 grant ref，service-actor 自署事件 MAY 省略 `authorization_ref`（签名的 `applet_id` 与 service-ID `actor_id` 已承载 provenance）。两类事件的 `applet_id` 均 MUST 携带。
 
 示例：
 
@@ -818,7 +818,7 @@ Applet v1 conformance 按 profile 继承拆分。实现声明某 profile 时 MUS
 - namespace 匹配
 - transaction 幂等性
 - transaction push 的逐次投递 source signature anchor（§7.3.1）
-- `Source-Service-DID`、`Destination-Service-DID`、`Idempotency-Key`、body digest 与 `source_signature_anchor` 之间的幂等 / replay 绑定
+- `Source-Service-ID`、`Destination-Service-ID`、`Idempotency-Key`、body digest 与 `source_signature_anchor` 之间的幂等 / replay 绑定
 - capability enforcement
 - bot actor attribution
 - 当实现暴露 self/admin Applet install 时，install preview / commit / revoke aggregate operation 的幂等性
@@ -844,7 +844,7 @@ Applet v1 conformance 按 profile 继承拆分。实现声明某 profile 时 MUS
 
 - `applet_registration` JSON Schema 由 `applet-schema.md` 和 `schema-registry.md` 固定，必须包含 service DID、endpoint、namespace、protocol、capability refs、signing method 和 expiry。
 - Namespace pattern grammar（命名空间模式语法）MUST 明确 actor、realm、handle、external protocol id 的匹配边界；namespace 命中不授予写权限。
-- Transaction push 操作 MUST 包含 `source_service_did`、`events[]`、`Idempotency-Key`、HTTP message signature 与 received_at audit metadata；**两个投递方向（node→Applet 与 app/bridge→arkret edge inbound）都 MUST 携带逐次投递 RFC 9421 来源签名并由接收方逐次验签，覆盖 header 集、失败码与签名锚点见 §7.3.1**；纯 bearer 的 transaction push MUST 被拒绝。外部 source network、external event id、mapped actor、target Realm / Circle 与 operation refs 必须落在具体 Arkret Event 的 `external_ref` / provenance / capability refs 中，不得通过 transaction 专用 durable Event 表达。
+- Transaction push 操作 MUST 包含 `source_service_id`、`events[]`、`Idempotency-Key`、HTTP message signature 与 received_at audit metadata；**两个投递方向（node→Applet 与 app/bridge→arkret edge inbound）都 MUST 携带逐次投递 RFC 9421 来源签名并由接收方逐次验签，覆盖 header 集、失败码与签名锚点见 §7.3.1**；纯 bearer 的 transaction push MUST 被拒绝。外部 source network、external event id、mapped actor、target Realm / Circle 与 operation refs 必须落在具体 Arkret Event 的 `external_ref` / provenance / capability refs 中，不得通过 transaction 专用 durable Event 表达。
 - Protocol metadata schema（协议元数据 schema）MUST 声明外部系统、identity mapping、permission mapping、E2EE boundary、rate limit 和 supported media types。
 - Bridge error event 使用 `ak.applet.bridge_error`，必须绑定 failed transaction、外部错误类别、是否可重试和可见范围；不得泄露未授权外部正文。
 - External event deduplication key（外部事件去重 key）MUST 至少包含 protocol、tenant/workspace、external channel/location、external event id 和 normalized sender；不得只依赖时间戳或正文 hash。

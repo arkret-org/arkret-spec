@@ -109,7 +109,7 @@
       "type": "object",
       "required": [
         "enabled_profile_refs",
-        "allowed_service_dids",
+        "allowed_service_ids",
         "data_classes"
       ],
       "properties": {
@@ -125,7 +125,7 @@
           },
           "uniqueItems": true
         },
-        "allowed_service_dids": {
+        "allowed_service_ids": {
           "type": "array",
           "items": {
             "type": "string",

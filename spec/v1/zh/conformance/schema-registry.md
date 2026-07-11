@@ -255,16 +255,16 @@ sidebar:
 | `ak.realm_key.share` | Realm key share（成员设备历史交付或 RRK 持久化封存） |
 | `ak.realm_key.withheld` | Realm key withheld notice |
 | `ak.realm_key.share_audit` | Auditable history key share marker |
-| `ak.agent.endpoint` | Agent protocol endpoint declaration |
-| `ak.agent.interop_session.start` | Agent protocol session start |
-| `ak.agent.interop_session.status` | Agent protocol session status |
-| `ak.agent.interop_session.result` | Agent protocol session result |
 | `ak.applet.bridge_error` | Bridge failure |
 | `ak.applet.registration` | Applet registration |
 | `ak.applet.interop_session.start` | Applet / agent protocol session start |
 | `ak.applet.interop_session.status` | Protocol session status |
 | `ak.mimi.room_binding` | MIMI room binding state |
 | `ak.redaction` | Generic redaction envelope |
+
+`ak.agent.endpoint` 与 `ak.agent.interop_session.{start,status,result}` 已退出 active
+Event kind 集合并保留名字空间；见
+[`agent-protocol-interop.md`](../extensions/agent-protocol-interop.md)。
 
 ## 5. Extension 约定
 

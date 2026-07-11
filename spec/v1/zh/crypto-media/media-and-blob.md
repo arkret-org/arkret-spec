@@ -57,7 +57,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 - 客户端 SHOULD 提供准确 `Content-Type`，但服务端 MUST 把上传声明的 MIME 和文件名视为不可信 metadata。
 - 如果服务端发现声明 MIME 与内容明显冲突，MAY 把 `media_type` 降级为 `application/octet-stream`，并记录安全标记。
 - 文件名 MUST 做控制字符、路径分隔符和过长字段清理；不得影响 `blob_ref` 或存储路径。
-- `upload_receipt` 若返回，MUST 绑定 `blob_ref`、`content_digest`、`size_bytes`、`received_at` 与 `issuer_service_did`，并由 Blob Service DID 对 receipt canonical bytes 签名；不得作为开放实现私有对象返回。
+- `upload_receipt` 若返回，MUST 绑定 `blob_ref`、`content_digest`、`size_bytes`、`received_at` 与 `issuer_service_id`，并由 Blob Service DID 对 receipt canonical bytes 签名；不得作为开放实现私有对象返回。
 - 大文件 / 弱网场景 MAY 通过 §2.1 的可续传上传 binding 完成同一次上传；该 binding 是可选扩展，是否支持以及如何发现见 §2.1 与 [`sync/service-surface.md` §3](../sync/service-surface.md)。
 
 ### 2.1 可续传上传（Resumable Upload binding，optional extension）
@@ -406,7 +406,7 @@ Cache-Control: public, immutable, max-age=31536000
 - 服务端生成私有明文缩略图前，该服务 MUST 列入 `plaintext_visible_services`，且 `data_classes[]` 覆盖 `thumbnail` / `attachment_preview`。
 - 预览 URL、尺寸、MIME、文件名和 unsafe 标记都必须服从 Realm policy 与 capability，不能绕过正文授权。
 - 缩略图必须重新绑定源 blob、生成参数、生成服务 DID 和可见性；删除、撤回、保留策略或 legal hold 改变时，派生内容必须随源内容重新判定。
-- 缩略图 descriptor MUST 至少绑定 `source_blob_ref`、`source_ciphertext_digest?`、`thumbnail_blob_ref`、`width`、`height`、`media_type`、`generated_by_service_did?`、`visibility` 和 `derivation_profile`。若源附件是 E2EE，缩略图必须使用独立 AEAD key / nonce context，推荐 `purpose="thumbnail"` 并把 `source_blob_ref`、`thumbnail_blob_ref`、尺寸和生成参数纳入 key derivation / AAD；不得复用原附件正文 key+nonce，也不得把明文缩略图 hash 暴露给未获授权服务。
+- 缩略图 descriptor MUST 至少绑定 `source_blob_ref`、`source_ciphertext_digest?`、`thumbnail_blob_ref`、`width`、`height`、`media_type`、`generated_by_service_id?`、`visibility` 和 `derivation_profile`。若源附件是 E2EE，缩略图必须使用独立 AEAD key / nonce context，推荐 `purpose="thumbnail"` 并把 `source_blob_ref`、`thumbnail_blob_ref`、尺寸和生成参数纳入 key derivation / AAD；不得复用原附件正文 key+nonce，也不得把明文缩略图 hash 暴露给未获授权服务。
 - producer SHOULD 使用 `thumbnails[]` 数组表达上述绑定。Consumer 收到只含 `media-metadata.schema.json` 的 `preview_blob_ref`、缺少 `thumbnails[]` descriptor 的 metadata 时，必须按源 blob 的最严格可见性处理，不得因缺少 descriptor 而放宽访问或缓存。
 
 `media-metadata.visibility` 的标准取值是 `public` / `realm_bound` / `actor_private` / `device_bound`。`realm_bound` 表示访问受 owning Realm、Circle scope 与 capability 共同约束；它不是 Space 边界。`actor_private` 表示仅 issuing actor 的授权会话可通过 header auth 获取，MUST NOT 被转换为 bearer presign URL。`presign` 是 §5.4 定义的**下载通道机制**（发放短 TTL bearer URL），不是 visibility 维度上的取值；blob 的 visibility 仍按上述四值之一判定，是否允许 presign 由 §5.4.4.1 的 fail-closed 规则按 visibility 与 Realm policy 决定（例如 `actor_private` MUST NOT 走 presign）。`presigned` 不是合法 visibility 枚举值。
@@ -446,7 +446,7 @@ Cache-Control: public, immutable, max-age=31536000
   "scheme": "ak.blob.presign.v1",
   "blob_ref": "ak:blob:sha256:0123456789abcdef...",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-  "issuer_service_did": "did:webvh:z9L9sKcFqigzdgN2ucF1V6ztq:blob.acme.example",
+  "issuer_service_id": "did:webvh:z9L9sKcFqigzdgN2ucF1V6ztq:blob.acme.example",
   "issued_at": "2026-05-18T10:00:00Z",
   "expires_at": "2026-05-18T10:05:00Z",
   "purpose": "media_inline",
@@ -466,7 +466,7 @@ Cache-Control: public, immutable, max-age=31536000
 | `scheme` | yes | 固定 `ak.blob.presign.v1`；未来版本 MUST 用新 scheme id（不接受 in-space 升级） |
 | `blob_ref` | yes | 单一 blob 引用；与请求 `?blob_ref=` 必须完全匹配 |
 | `realm_id` | conditional | 该 presign 授权的 Realm。普通 Realm-owned blob MUST 设置，且必须与 blob metadata 的 `realm_id`、签发时 capability scope 和响应时可见性检查一致。仅 deployment policy 明确声明的 public/global blob MAY 省略。 |
-| `issuer_service_did` | yes | 签发该 presign 的 blob service DID；MUST 是被部署 trust 的 service DID |
+| `issuer_service_id` | yes | 签发该 presign 的 blob service DID；MUST 是被部署 trust 的 service DID |
 | `issued_at` / `expires_at` | yes | TTL 硬上限 1h；deployment SHOULD 默认 ≤ 5 min |
 | `purpose` | yes | `media_inline` / `thumbnail` / `download`；服务端按 purpose 决定 `Content-Disposition`、限流强度等 |
 | `audience_hint` | optional | 期望使用者 DID（**仅诊断 hint，不构成访问控制**；浏览器原生标签无法证明调用者身份，详见 §5.4.4.1）。（注意：`audience_hint` 仅为路由/下载体验提示，**不构成授权，也不是密码学意义上的 audience 绑定**。） |
@@ -479,7 +479,7 @@ Cache-Control: public, immutable, max-age=31536000
 `GET /_arkret/self/blob/get?blob_ref=X&presign=<envelope>` 处理时：
 
 1. **互斥检查**：`Authorization` header 与 `?presign=` 同时出现 MUST 拒绝 `invalid_param`，避免混合 auth 模式
-2. **签名校验**：用 envelope 内 `issuer_service_did` 当前 verification method 验证签名
+2. **签名校验**：用 envelope 内 `issuer_service_id` 当前 verification method 验证签名
 3. **scheme 校验**：仅识别注册 scheme id（v1 = `ak.blob.presign.v1`）；未知 scheme MUST 拒绝
 4. **blob_ref 一致性**：envelope `blob_ref` 与 query `blob_ref` 必须完全相同
 5. **Realm 绑定校验**：若 blob metadata 有 `realm_id`，envelope `realm_id` MUST 存在且完全相同；若 envelope 省略 `realm_id`，该 blob **MUST** 是 deployment public/global 白名单中**显式登记**的 blob。服务端 **MUST NOT** 仅因 blob metadata 缺 `realm_id` 即推断其为 public/global——"缺失 `realm_id`"与"已授权公开"必须解耦：未显式登记在白名单的 realm-less blob（例如因上传 bug 漏设 `realm_id` 的 Realm-owned blob）MUST fail closed（`not_found`），不得为其签发无 Realm 绑定的 bearer URL。为 Realm A 签发的 presign 不能作为 Realm B 的授权使用。

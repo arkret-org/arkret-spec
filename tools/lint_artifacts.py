@@ -675,6 +675,13 @@ def check_forbidden_naming_aliases(lint: Lint) -> None:
         replacement = FORBIDDEN_NAMING_ALIAS_KEYS.get(key)
         if replacement:
             lint.fail(path, f"{where} uses forbidden legacy field `{key}`; use `{replacement}`")
+            return
+        if key != "principal_server_did" and (key == "service_did" or "_service_did" in key):
+            lint.fail(
+                path,
+                f"{where} uses forbidden legacy service identity field `{key}`; "
+                f"use `{key.replace('service_did', 'service_id')}`",
+            )
 
     def check_json_value(path: Path, data: Any, where: str = "$") -> None:
         for json_path, _value, key in walk_json(data, where):
@@ -711,6 +718,25 @@ def check_forbidden_naming_aliases(lint: Lint) -> None:
                 pattern = rf"(?<![A-Za-z0-9_]){re.escape(old)}(?![A-Za-z0-9_])"
                 if re.search(pattern, stripped):
                     lint.fail(path, f"line {line_no}: legacy name `{old}` appears; use `{replacement}`")
+            legacy_service_identity = re.search(
+                r"(?<!principal_server_)\b(?:[a-z0-9_]+_)?service_dids?\b"
+                r"|\b(?:[A-Za-z0-9]+)?ServiceDids?\b"
+                r"|\b(?:[A-Za-z]+-)*[Ss]ervice-(?:DID|did)\b",
+                stripped,
+            )
+            if legacy_service_identity:
+                old = legacy_service_identity.group(0)
+                replacement = (
+                    old.replace("service_did", "service_id")
+                    .replace("ServiceDid", "ServiceId")
+                    .replace("Service-DID", "Service-ID")
+                    .replace("service-did", "service-id")
+                )
+                lint.fail(
+                    path,
+                    f"line {line_no}: legacy service identity name `{old}` appears; "
+                    f"use `{replacement}`",
+                )
 
         for match in JSON_FENCE_RE.finditer(text):
             try:
@@ -2239,7 +2265,7 @@ def check_service_describe_alignment(lint: Lint) -> None:
 
     openapi_required = set(component.get("required") or [])
     schema_required = set(service_schema.get("required") or [])
-    for required_field in ("service_did", "trust_domain"):
+    for required_field in ("service_id", "trust_domain"):
         if required_field not in schema_required:
             lint.fail(schema_path, f"ServiceDescribe.required must include {required_field}")
         if required_field not in openapi_required:

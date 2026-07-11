@@ -8,7 +8,7 @@
     "evidence_id",
     "realm_id",
     "audit_service_actor_id",
-    "service_did",
+    "service_id",
     "platform",
     "measurement",
     "attestation_chain",
@@ -34,9 +34,9 @@
       "$ref": "#/$defs/did",
       "description": "DID of the audit release service / applet actor whose controlled output path this evidence attests. MUST match the recipient_audit_actor_id or service actor accepted by the active ak.audit.applet_binding."
     },
-    "service_did": {
+    "service_id": {
       "$ref": "#/$defs/did",
-      "description": "Operating service DID hosting the audit applet or release service. MUST match the service_did in the active ak.audit.applet_binding / ak.audit.release chain."
+      "description": "Operating service DID hosting the audit applet or release service. MUST match the service_id in the active ak.audit.applet_binding / ak.audit.release chain."
     },
     "platform": {
       "type": "object",
@@ -208,7 +208,7 @@
     },
     "operator_did": {
       "$ref": "#/$defs/did",
-      "description": "DID of the controlling organization actually operating this enclave / HSM. This intentionally keeps the _did suffix because it is raw external DID material being compared against service_did and Realm policy, not a protocol actor_id/principal_id alias. MUST match what the Realm policy lists as the allowed audit operator. Distinct from service_did when the operating org is different from the technical service DID (e.g. service hosted by org A on behalf of org B)."
+      "description": "DID of the controlling organization actually operating this enclave / HSM. This intentionally keeps the _did suffix because it is raw external DID material being compared against service_id and Realm policy, not a protocol actor_id/principal_id alias. MUST match what the Realm policy lists as the allowed audit operator. Distinct from service_id when the operating org is different from the technical service DID (e.g. service hosted by org A on behalf of org B)."
     },
     "audit_purpose": {
       "type": "string",

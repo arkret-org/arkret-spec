@@ -348,9 +348,10 @@
     },
     "allowed_session_ids": {
       "type": "array",
-      "description": "Limits agent interop-session status/result/cancel delegation to the listed ak:agent_interop_session ids.",
+      "description": "Limits applet interop-session operations to the listed applet-defined session correlation ids.",
       "items": {
-        "$ref": "./common-ids.schema.json#/$defs/agent_interop_session_id"
+        "type": "string",
+        "minLength": 1
       },
       "uniqueItems": true
     },

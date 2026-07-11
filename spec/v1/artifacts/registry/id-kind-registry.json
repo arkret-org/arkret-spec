@@ -84,9 +84,9 @@
     {
       "kind": "agent_interop_session",
       "category": "extension",
-      "status": "active",
+      "status": "reserved",
       "wire_form": "ak:agent_interop_session:<uuid>",
-      "description": "Agent interop session ID. Note the cross-surface naming: this typed ID uses the short form `agent_interop_session`, while the corresponding event kinds use the full form `ak.agent.interop_session.{start,status,result}` and capability actions use `ak.agent.interop_session.{start,cancel,stream_status,attach_artifact,read_transcript}`. The three surfaces all refer to the same session concept; downstream tooling MUST NOT assume `ak:<event-prefix>:<uuid>` mechanical derivation."
+      "description": "Reserved former agent interop session ID. The namespace remains pinned but MUST NOT appear on v1 wire."
     },
     {
       "kind": "announce",
@@ -174,7 +174,7 @@
       "category": "media",
       "status": "active",
       "wire_form": "ak:rtc_participant:<uuid>",
-      "description": "SFU-local participant handle. Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `ak.call.state.participants[].participant_identity` and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern."
+      "description": "SFU-local participant handle. Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_id, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `ak.call.state.participants[].participant_identity` and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern."
     },
     {
       "kind": "capability",

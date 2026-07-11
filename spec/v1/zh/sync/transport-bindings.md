@@ -117,7 +117,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 
 HTTP binding MAY 把 `operation_id` 映射成路径；gRPC binding MAY 把它映射成 service method；message queue binding MAY 把它映射成 topic + message type。
 
-Agent protocol handoff 状态通过 durable Event kind（例如 `ak.agent.interop_session.start`、`ak.agent.interop_session.status`）表达，不注册为 service `operation_id`。
+Agent runtime 对外协议配置与 handoff 状态不属于 Arkret transport binding；原 agent interop 名字空间已 reserved。Applet bridge 的 `ak.applet.interop_session.*` 仍按其独立规范回流。
 
 ## 5. HTTP/JSON Binding
 
@@ -167,7 +167,7 @@ transport MUST 各自通过 binding profile 单独 normative 化。
 ```json
 {
   "service_type": "principal_server",
-  "service_did": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
+  "service_id": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
   "supported_bindings": [
     {
       "kind": "http_json",

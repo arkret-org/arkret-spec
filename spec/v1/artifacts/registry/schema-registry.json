@@ -130,7 +130,7 @@
       "schema_id": "ak.schema.principal_locator.v1",
       "file": "schemas/principal-locator.schema.json",
       "status": "active",
-      "description": "Signed online invite locator asserting subject_id and recipient_service_did for private invite delivery."
+      "description": "Signed online invite locator asserting subject_id and recipient_service_id for private invite delivery."
     },
     {
       "schema_id": "ak.schema.invite_delivery_request.v1",
@@ -487,12 +487,6 @@
       "description": "Closed request/response DTO bundle for ak.self.applet.ghost.command.provision (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
     },
     {
-      "schema_id": "ak.schema.agent.v1",
-      "file": "schemas/agent.schema.json",
-      "status": "active",
-      "description": "Schema-registry object for agent protocol metadata snapshots. Event payloads for ak.agent.* use typed payload definitions in event-payload.schema.json."
-    },
-    {
       "schema_id": "ak.schema.audit_ryw_receipt.v1",
       "file": "schemas/audit-ryw-receipt.schema.json"
     },
@@ -596,7 +590,7 @@
       "schema_id": "ak.schema.delivery_binding_stale.v1",
       "file": "schemas/delivery-binding-stale.schema.json",
       "status": "active",
-      "description": "Canonical response body for the delivery_binding_stale federation signal (member delivery-binding rebind handover): new_recipient_service_did, handover_frontier, and the verifiable handover_proof. See zh/sync/federation.md §4.1 and error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid)."
+      "description": "Canonical response body for the delivery_binding_stale federation signal (member delivery-binding rebind handover): new_recipient_service_id, handover_frontier, and the verifiable handover_proof. See zh/sync/federation.md §4.1 and error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid)."
     },
     {
       "schema_id": "ak.schema.query.v1",

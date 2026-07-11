@@ -183,10 +183,10 @@
     },
     "trusted_recovery_service_proof": {
       "type": "object",
-      "required": ["kind", "service_did", "verification_method", "alg", "signature", "recovery_session_id"],
+      "required": ["kind", "service_id", "verification_method", "alg", "signature", "recovery_session_id"],
       "properties": {
         "kind": { "const": "trusted_recovery_service" },
-        "service_did": { "$ref": "#/$defs/did" },
+        "service_id": { "$ref": "#/$defs/did" },
         "verification_method": { "$ref": "#/$defs/did_url" },
         "alg": { "type": "string", "minLength": 1 },
         "signature": { "$ref": "#/$defs/signature_b64u" },
@@ -198,7 +198,7 @@
         "attestation_ref": {
           "type": "string",
           "pattern": "^ak:attestation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Optional attestation object for service_did. If present, receivers MUST resolve it in the same trust_domain as the reset payload and reject cross-domain attestations as cross_signing_reset_recovery_service_attestation_domain_mismatch."
+          "description": "Optional attestation object for service_id. If present, receivers MUST resolve it in the same trust_domain as the reset payload and reject cross-domain attestations as cross_signing_reset_recovery_service_attestation_domain_mismatch."
         }
       },
       "additionalProperties": false

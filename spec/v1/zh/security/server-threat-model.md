@@ -56,7 +56,7 @@ sidebar:
     allowlist/blacklist/secret 管理缺失，导致高敏入口被过度放开。
 
 12. **服务拓扑污染（Topology / Service Discovery Poisoning）**
-    篡改目录、`sync_endpoints`、`service_did`、`plaintext_visible_services`、官方组织/Realm 背书引用，影响服务选择、传播路径与明文可见边界。
+    篡改目录、`sync_endpoints`、`service_id`、`plaintext_visible_services`、官方组织/Realm 背书引用，影响服务选择、传播路径与明文可见边界。
 
 13. **身份解析污染（DID Resolver / Registry Tampering）**
     污染 DID resolver、registry、witness 可信链或 `did:web` 域绑定，错误承认身份控制权。
@@ -81,7 +81,7 @@ sidebar:
 
 20. **推送网关与通知元数据滥用（Push/Gateway Abuse）**
     攻击者利用未鉴权的 gateway 注册、metadata 推送接口、超频或伪造事件触发隐私侧信道或 DoS。
-    **推送侧信道细分（与 [`discovery/push-notifications.md` §2.2 / §2.4 / §5.1](../discovery/push-notifications.md) 交叉引用）**:具体威胁向量包括——(a) **collapse / dedup key 跨 window 关联**:provider 可见的 collapse / dedup key 若跨 delivery window 稳定，可关联同一目标的连续 wakeup，还原活动模式；防护见 push-notifications §2.4「Provider 侧 collapse / dedup key 约束」(跨 window 不可链接随机值，MUST NOT 直接用 `source_event_digest` / event id / Realm id 等稳定派生)。(b) **push timing oracle**:在用户刚上线 / 离线瞬间发出可被 provider 观察的 per-event push burst，使 presence 成为精确 timing oracle；防护见 push-notifications §2.4(按 Realm policy bucket 粒度，默认 ≥ 60s 批处理 / 延迟)。(c) **`push_target_id` 可链接性**:伪名若可跨 Realm / Principal Server 关联即成行为追踪点；防护见 push-notifications §2.2(per-(recipient_service_did, principal, device, push_route) pairwise pseudonym，keyed salt 派生，跨上下文不可复用)。(d) **counts 活动侧信道**:明文绝对未读数让 provider 重建累计活跃度画像；防护见 push-notifications §5.1(blind_wakeup 下 counts MUST NOT 携带明文绝对未读数，改用布尔 / 增量 / bucket)。(e) **`is_direct_message` / `member_count` DM 关系图重建**:push rule 的 server-side 条件 `is_direct_message` 与 `member_count` 要求 Sync Service 读取精确成员数与"是否双人私聊"，在 E2EE Realm 中构成成员数与私聊存在性侧信道；叠加 push timing 可近似重建"谁在和谁私聊"的 DM 关系图。防护见 push-notifications §4.3「`is_direct_message` / `member_count` 在 E2EE / 高隐私 Realm 的侧信道收口」为权威(`member_count` 仅暴露 bucket 化值、口径同 discovery §3；`is_direct_message` 受 Realm policy gate，`minimal-metadata` Realm MUST 关闭并降级为 §4.5 client-side 评估)。
+    **推送侧信道细分（与 [`discovery/push-notifications.md` §2.2 / §2.4 / §5.1](../discovery/push-notifications.md) 交叉引用）**:具体威胁向量包括——(a) **collapse / dedup key 跨 window 关联**:provider 可见的 collapse / dedup key 若跨 delivery window 稳定，可关联同一目标的连续 wakeup，还原活动模式；防护见 push-notifications §2.4「Provider 侧 collapse / dedup key 约束」(跨 window 不可链接随机值，MUST NOT 直接用 `source_event_digest` / event id / Realm id 等稳定派生)。(b) **push timing oracle**:在用户刚上线 / 离线瞬间发出可被 provider 观察的 per-event push burst，使 presence 成为精确 timing oracle；防护见 push-notifications §2.4(按 Realm policy bucket 粒度，默认 ≥ 60s 批处理 / 延迟)。(c) **`push_target_id` 可链接性**:伪名若可跨 Realm / Principal Server 关联即成行为追踪点；防护见 push-notifications §2.2(per-(recipient_service_id, principal, device, push_route) pairwise pseudonym，keyed salt 派生，跨上下文不可复用)。(d) **counts 活动侧信道**:明文绝对未读数让 provider 重建累计活跃度画像；防护见 push-notifications §5.1(blind_wakeup 下 counts MUST NOT 携带明文绝对未读数，改用布尔 / 增量 / bucket)。(e) **`is_direct_message` / `member_count` DM 关系图重建**:push rule 的 server-side 条件 `is_direct_message` 与 `member_count` 要求 Sync Service 读取精确成员数与"是否双人私聊"，在 E2EE Realm 中构成成员数与私聊存在性侧信道；叠加 push timing 可近似重建"谁在和谁私聊"的 DM 关系图。防护见 push-notifications §4.3「`is_direct_message` / `member_count` 在 E2EE / 高隐私 Realm 的侧信道收口」为权威(`member_count` 仅暴露 bucket 化值、口径同 discovery §3；`is_direct_message` 受 Realm policy gate，`minimal-metadata` Realm MUST 关闭并降级为 §4.5 client-side 评估)。
 
 21. **URL 凭证泄露（URL Credential Leakage）**
     将 session token、API key 或签名材料放入 query string，导致浏览器历史、代理日志、崩溃日志、复制链接或 referrer 泄露。

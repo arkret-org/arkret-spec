@@ -32,8 +32,8 @@
       "later": "alg"
     },
     {
-      "earlier": "agent_principal_id",
-      "later": "controller_principal_id"
+      "earlier": "agent_id",
+      "later": "controller_id"
     }
   ],
   "hard_immediate_follow": [

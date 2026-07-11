@@ -228,7 +228,7 @@
         "reducer_invariants": [
           "ak.invite.claim is accepted only by the destination Realm reducer",
           "token_commitment must match a pending unexpired ak.invite.third_party invite",
-          "verification_service_did allowlist is re-evaluated against current effective Realm policy",
+          "verification_service_id allowlist is re-evaluated against current effective Realm policy",
           "(invite_id, claim_nonce) and token_commitment are one-time reducer state constraints",
           "successful claim atomically transitions invite pending -> claimed and materializes a subject-bound membership proposal",
           "expired third-party invites are cleaned before claim acceptance"

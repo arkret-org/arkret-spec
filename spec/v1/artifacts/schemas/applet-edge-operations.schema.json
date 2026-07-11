@@ -161,7 +161,7 @@
       "required": [
         "ok",
         "applet_id",
-        "service_did",
+        "service_id",
         "protocol_version"
       ],
       "properties": {
@@ -172,7 +172,7 @@
         "applet_id": {
           "$ref": "#/$defs/applet_id"
         },
-        "service_did": {
+        "service_id": {
           "$ref": "#/$defs/did"
         },
         "protocol_version": {
@@ -184,15 +184,15 @@
     },
     "applet_transaction_request_body": {
       "type": "object",
-      "description": "Body for ak.edge.applet.command.transaction. Transport-layer requirements are mandatory but not body fields: RFC 9421 Signature/Signature-Input, Source-Service-DID, Destination-Service-DID, Content-Digest, Idempotency-Key, received_at audit metadata, and a persisted source_signature_anchor. See zh/extensions/applet-integration.md section 7.3.1.",
+      "description": "Body for ak.edge.applet.command.transaction. Transport-layer requirements are mandatory but not body fields: RFC 9421 Signature/Signature-Input, Source-Service-ID, Destination-Service-ID, Content-Digest, Idempotency-Key, received_at audit metadata, and a persisted source_signature_anchor. See zh/extensions/applet-integration.md section 7.3.1.",
       "required": [
-        "source_service_did",
+        "source_service_id",
         "events"
       ],
       "properties": {
-        "source_service_did": {
+        "source_service_id": {
           "$ref": "#/$defs/did",
-          "description": "Must exactly match the Source-Service-DID header and the signed source-service-did component. It identifies the source service only; each Event still requires independent actor/applet/capability signature verification."
+          "description": "Must exactly match the Source-Service-ID header and the signed source-service-id component. It identifies the source service only; each Event still requires independent actor/applet/capability signature verification."
         },
         "events": {
           "type": "array",

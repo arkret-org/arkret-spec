@@ -145,7 +145,7 @@ DID 托管域名、Principal Server 服务域名和 handle 域名是**三个独�
 
 - DID 字符串中出现的域名（例如 `did:webvh:...:users.acme.example` 中的 `users.acme.example`）只表示 `did.jsonl` 历史的托管位置，**不**承诺该域名运行 Principal Server，也**不**是用户公开 handle。
 - 用户/组织搬迁 Principal Server、变更端口、增加 mirror、切换到第三方 host 时，正确路径是更新 DID Document 中的 service entry 并重新签发 service delegation；这条路径会进入可验证历史，不依赖 DNS+TLS 的现时强度。
-- DID Document 中的 `ArkretPrincipalServer` service entry 是该 DID 的默认服务发现入口，不是所有 Realm 的强制投递入口。某个 Realm 中已接受的 `ak.member.state{membership="join"}` 若携带 `delivery_binding.recipient_service_did`，该 Realm 的事件、sync、to-device、push 与 KeyPackage 投递 MUST 优先使用该 binding。只有 Realm policy 允许 `did_document_default` fallback，且 fallback 结果已在 join 时物化为 `delivery_binding`（含 `did_document_digest` / `resolved_at`）时，DID Document 默认 endpoint 才能作为该 Realm 的投递路径。
+- DID Document 中的 `ArkretPrincipalServer` service entry 是该 DID 的默认服务发现入口，不是所有 Realm 的强制投递入口。某个 Realm 中已接受的 `ak.member.state{membership="join"}` 若携带 `delivery_binding.recipient_service_id`，该 Realm 的事件、sync、to-device、push 与 KeyPackage 投递 MUST 优先使用该 binding。只有 Realm policy 允许 `did_document_default` fallback，且 fallback 结果已在 join 时物化为 `delivery_binding`（含 `did_document_digest` / `resolved_at`）时，DID Document 默认 endpoint 才能作为该 Realm 的投递路径。
 - DID Document MAY 用窄关系指派**设备入册权威**（device enrollment authority）：一条 `ArkretDeviceEnrollmentAuthority` service entry（`serviceEndpoint` 指向入册权威 DID，用于托管 DID / account-authority 模型），或一条 `capabilityDelegation` verification method（用于自主权模型，指向 holder 自有控制密钥）。被指派者获授签发 `service_attested` 的 `ak.device.authorize`（见 [`../crypto-media/device-lifecycle.md` §5.4](../crypto-media/device-lifecycle.md) 与 [`key-management.md` §5.0.6](./key-management.md)）。该指派 **MUST NOT** 复用 `controller`（`controller` 是改写身份根的强权，入册权威按最小权限只应能入册）。文档锚定的指派可被任意解析方自证;deployment 信任策略只能收紧或在文档无法表达时补空，**MUST NOT** 并集扩权。
 - **无 history-resolution method 作入册权威时的历史复验（normative）**：当被指派的入册权威 DID 是**无可验证历史 method**（典型 `did:web`，只反映当前 DID Document、无按时点解析能力）时，被它签发并被引用为 actor 的旧 `ak.device.authorize` 无法按签发时点验签——入册密钥轮换后或 hosting domain 被劫持回填当前文档后，历史授权既无法解析当时的 verification method、也可被替换后的当前文档伪造复验。为此，由无 history-resolution method 入册权威签发的 `ak.device.authorize` **MUST** 在 `enrollment_authority_binding` 中 inline 携带签发时刻的 verification method 快照 + 该 key 的 controller proof，使历史复验只依赖事件内自带证据、不依赖对 `did:web` 当前文档的在线按时点解析；**或** deployment policy 禁止 `did:web` 等无历史 method 作入册权威轮换（轮换须先按 §4.2.2 / [`key-management.md` §5.0.5](./key-management.md) 升级到 `did:webvh`）。二者择一，v1 推荐前者。规范细则与 schema 协调见 [`key-management.md` §5.0.6 step4](./key-management.md)。
 - **设备密钥不写入 DID method key log。** 设备的 `device_public_key` 作为所属 principal DID 下的 verification method，由 `ak.device.authorize` 进入**设备集投影**，而非写入 `did:webvh` 的 `did.jsonl`（[`../crypto-media/device-lifecycle.md` §5.4](../crypto-media/device-lifecycle.md)）。因此 resolver 解析该 principal DID 文档得到的 verification method 是控制者/入册权威密钥（如 `#did-key-1`）；设备密钥经设备集投影解析，二者来源不同。**校验普通业务事件 proof 的 receiver MUST NOT 在线解析 DID**，而是按 `{principal_did}#{device_id}` 从当前 control 流 frontier 的设备集投影取 `device_public_key`（缺失或已吊销即拒）；DID 解析只在入册、吊销/轮换 re-sync 与联邦边界出现。历史复验按 Event accepted-at 做按时点解析（`did:webvh` 历史 `versionTime`），故入册权威密钥轮换不使既有授权失效。
@@ -189,7 +189,7 @@ Arkret v1 core conformance 要求如下：
   - Allowed: 已缓存对象的本地搜索 / 本地索引查询
   - Allowed: 已收到 snapshot / Seal 的 state_root 重算(用于本地一致性自检)
   - Forbidden: 接收新到达的 Event Envelope / DataEvent / Control Move / Seal 并写入本地 store(即使是只读 store)
-  - Forbidden: 联邦 transaction 接收(`POST /_arkret/peer/events` / `ak.peer.events.command.submit`:含 `Source-Service-DID` / `Destination-Service-DID` header)
+  - Forbidden: 联邦 transaction 接收(`POST /_arkret/peer/events` / `ak.peer.events.command.submit`:含 `Source-Service-ID` / `Destination-Service-ID` header)
   - Forbidden: Push notification wakeup 后的 client sync 拉取
   - Forbidden: 任何 capability cache 重建或 freshness check
   - Forbidden: 任何 `ak.session.grant` 验证或登录态续期
@@ -200,7 +200,7 @@ Arkret v1 core conformance 要求如下：
   - **evidence age ≤ 7 天**：构建该索引条目所依据的 `did:webvh` DID Document / SCID / entry hash chain / controller proof evidence 的 `cached_evidence_age_ms ≤ 7d`，且 controller-proof 在构建时已验证通过（与本节 per-entry 7 天 cache age 上限一致；过旧或 controller-proof 未验证的 evidence 不得支撑索引）。
   - **携带 build-time evidence 引用**：每条索引条目 MUST 记录其 build-time evidence 引用（被解析 DID、entry hash chain head / `versionId`、evidence 构建时间、controller-proof 验证结果摘要）；缺少该引用的索引条目视为"来源不可追溯"，degraded 期间 MUST 被拒绝。这关闭"在 outage 前用未经 controller-proof 验证或来源不明的数据建一份本地索引，再在 degraded 期间把它当作 verified 结果读出"的索引洗白路径——degraded 模式只能消费可回溯到 sealed、age 合格、controller-proof 已验证 evidence 的索引，而不是任何"碰巧已落地的本地表"。
 - Resolver MUST 把 cache-only degraded 状态作为 service health / diagnostics 信号暴露给同 Realm peers（例如 `resolver_state=webvh_cache_only_degraded`、`cached_evidence_age_ms`、受影响 DID 集合摘要）。Peer 收到来自 degraded resolver 的高风险写入、capability 变更、service delegation 或 membership 变更时 MUST fail closed 或要求非 degraded resolver / witness 复核。
-- **degraded / health 诊断信号的可验证性（normative）**：该 degraded / health 诊断信号 MUST 由 resolver 的 service DID 当前有效 verification method 签名，并在签名 transcript 中绑定 `resolver_service_did`、`as_of`（签发时间戳）、`trust_domain` 与一个 freshness nonce（防止旧的 "healthy" 信号被重放来掩盖当前 degraded 状态）。Peer MUST 先校验该签名链接到 Realm policy 授权的 resolver service DID（验证 service DID 控制权与 verification method 当前有效性），才可据此调整 fail-closed 决策。**缺失健康信号、或无法验证健康信号（签名失效、service DID 不在 Realm policy 授权集合、`as_of` 过旧 / freshness nonce 不可信、`trust_domain` 不匹配）时，peer MUST 按"该 resolver 可能 degraded"保守处理**——对高风险写入（grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation、joining new Realm、accepting invite）fail closed，不得因"没收到 degraded 信号"就默认 resolver healthy。该保守纪律与 freshness `unknown` 的 fail-closed 纪律一致：信号缺失或不可验证一律向 degraded 方向取整，而不是向 healthy 方向取整。
+- **degraded / health 诊断信号的可验证性（normative）**：该 degraded / health 诊断信号 MUST 由 resolver 的 service DID 当前有效 verification method 签名，并在签名 transcript 中绑定 `resolver_service_id`、`as_of`（签发时间戳）、`trust_domain` 与一个 freshness nonce（防止旧的 "healthy" 信号被重放来掩盖当前 degraded 状态）。Peer MUST 先校验该签名链接到 Realm policy 授权的 resolver service DID（验证 service DID 控制权与 verification method 当前有效性），才可据此调整 fail-closed 决策。**缺失健康信号、或无法验证健康信号（签名失效、service DID 不在 Realm policy 授权集合、`as_of` 过旧 / freshness nonce 不可信、`trust_domain` 不匹配）时，peer MUST 按"该 resolver 可能 degraded"保守处理**——对高风险写入（grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation、joining new Realm、accepting invite）fail closed，不得因"没收到 degraded 信号"就默认 resolver healthy。该保守纪律与 freshness `unknown` 的 fail-closed 纪律一致：信号缺失或不可验证一律向 degraded 方向取整，而不是向 healthy 方向取整。
 - 任何高风险动作——新写入、grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation、joining new Realm、accepting invite——MUST fail closed 直到 hosting 或 mirror 恢复，或走部署 policy 明确允许的替代路径。
 - Resolver MUST 在 outage diagnostics 中暴露 `webvh_unreachable` 标记 + `cached_evidence_age_ms`,让客户端 UI 显式提示用户。客户端 UI MUST 在 fallback 期间向用户展示 banner-level 警示("身份历史链暂不可达，仅显示本地缓存内容"),不得静默继续。
 - Fallback 总时长 MUST ≤ 24 小时（hosting 不可达期间对应 §4.2.1 `degraded_hosting_unreachable` 健康状态；**注意不是** `degraded_no_witness`——后者是 hosting 仍可达但缺 witness,触发条件与本节 cache-only fallback 互斥）；部署 policy MAY 缩短该窗口，MUST NOT 延长到超过 24 小时。超时后即使是低风险只读也 MUST fail closed，resolver MUST 进入 §4.2.1 的 `stale_history` 或 `write_unavailable` 状态，强制用户等待恢复或切换 resolver。
@@ -244,19 +244,19 @@ artifact。
 - `trust_domain` MUST 全 deployment 唯一；推荐由组织主控 DID 派生（例如 `ak:trust_domain:did.webvh.acme.example`）或外部 trust framework 分配。
 - 同一 principal DID 在多个 deployment 中被复用时，每个 deployment 仍各自有独立 `trust_domain`；跨域 high-risk proof（reset、recovery service unlock、device quorum 等）的 canonical transcript MUST 嵌入 receive 端的 `trust_domain`，使 deployment A 签发的 proof bytes 在 deployment B 校验时 signature transcript 不匹配，立即触发 `cross_domain_replay_rejected` 而进入不到签名校验。
 - Resolver / Sync / Federation 服务 MAY 在不同 `trust_domain` 之间互联，但跨域 federation transaction MUST 通过 `Source-Trust-Domain` / `Destination-Trust-Domain` header 显式声明 source / destination `trust_domain`，并把两者纳入 HTTP Message Signature transcript；receiver MUST 按本 deployment 的 trust policy 决定是否接受。
-- `trust_domain` 不替代 `service_did`、`realm_id`、`principal_id` 等其它绑定；它只关闭"完全相同的 proof bytes 被搬到另一 deployment 重放"这一面。
+- `trust_domain` 不替代 `service_id`、`realm_id`、`principal_id` 等其它绑定；它只关闭"完全相同的 proof bytes 被搬到另一 deployment 重放"这一面。
 
 详见 [`../crypto-media/device-lifecycle.md` §14.1](../crypto-media/device-lifecycle.md) 的 reset proof transcript 与 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 中 `cross_domain_replay_rejected` 条目。
 
 ### 3.7 服务身份自举（Service Identity Bootstrap）
 
-一个服务的 `service_did` 与其签名私钥是同一事实的两面：service DID 是该服务签发的一切凭据（`ak.session.grant`、notary seal、claim attestation）、其派生子身份（如 `{service_did}:users:<id>`）以及 §3.6 `trust_domain` 的稳定根。因此 service identity MUST 在服务生命周期内稳定，MUST NOT 在每次启动时重新生成——重新生成会使此前签发的所有凭据与派生身份成为无根孤儿。
+一个服务的 `service_id` 与其签名私钥是同一事实的两面：service DID 是该服务签发的一切凭据（`ak.session.grant`、notary seal、claim attestation）、其派生子身份（如 `{service_id}:users:<id>`）以及 §3.6 `trust_domain` 的稳定根。因此 service identity MUST 在服务生命周期内稳定，MUST NOT 在每次启动时重新生成——重新生成会使此前签发的所有凭据与派生身份成为无根孤儿。
 
 本节规范服务如何获得并持有自身 service identity。目标是让部署**无需人工 mint DID 字符串即可启动**，同时以 fail-closed 纪律防止身份被代持或被静默替换。约束按重要性排列：
 
 - **I-1 密钥自持**：每个服务 MUST 自行生成自身 service DID 的签名私钥，私钥 MUST NOT 离开该服务的信任边界。一个服务 MAY 作为另一主体 `did:webvh` 的 **hosting**（存放公开 `did.jsonl` 日志、代为发布 inception / rotation 条目），但 MUST NOT 生成或持有该主体的控制私钥；被托管方的 inception / rotation 条目 MUST 由被托管方用自己的密钥签名后提交。违反此约束会使 hosting 方能够伪造被托管方签发的凭据，等于消除签发方与验证方之间的信任边界。
 
-- **I-2 持久身份为真相源，config 为 fail-closed pin**：服务的权威 service identity（签名密钥 + `did.jsonl` 日志）MUST 持久化在该服务自身的持久层。部署配置中的 service DID 值（例如 coauth `arkret.service_did` / soland `service_did`）是**可选的 pin**：
+- **I-2 持久身份为真相源，config 为 fail-closed pin**：服务的权威 service identity（签名密钥 + `did.jsonl` 日志）MUST 持久化在该服务自身的持久层。部署配置中的 service DID 值（例如 coauth `arkret.service_id` / soland `service_id`）是**可选的 pin**：
   - 若已配置且与持久层身份**不一致**，服务 MUST 拒绝启动并输出明确诊断（用于抓住误挂错误数据卷 / 误连错误库导致的身份漂移）；
   - 若已配置且持久层为空，见 I-3 的采纳规则；
   - 若未配置，服务 MUST 采用持久层身份。
@@ -565,7 +565,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
     },
     "service_delegations": [
       {
-        "service_did": "did:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ:server.acme.example",
+        "service_id": "did:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ:server.acme.example",
         "purposes": ["principal_server", "space_endorsement"],
         "validFrom": "2026-04-26T00:00:00Z",
         "validUntil": null

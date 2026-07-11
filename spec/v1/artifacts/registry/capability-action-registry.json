@@ -19,6 +19,14 @@
     "profile is null for v1 core actions, or a ak.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default).",
     "Every action MUST declare event_mapping_kind. action == single target_event_kind uses same_name; empty target_event_kinds uses non_event_surface; any other mapping MUST use one of the allowed deviation categories."
   ],
+  "reserved_actions": [
+    "ak.agent.protocol.discover",
+    "ak.agent.interop_session.start",
+    "ak.agent.interop_session.cancel",
+    "ak.agent.interop_session.stream_status",
+    "ak.agent.interop_session.attach_artifact",
+    "ak.agent.interop_session.read_transcript"
+  ],
   "actions": [
     {
       "action": "ak.realm.discover",
@@ -1196,83 +1204,6 @@
       "profile": "ak.profile.agent_participation_policy.v1",
       "migration_group": "ak._0016_agent_participation",
       "event_mapping_kind": "aggregate_admin"
-    },
-    {
-      "action": "ak.agent.protocol.discover",
-      "category": "general",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": "ak.profile.agent_runtime.v1",
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.agent.interop_session.start",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [
-        "allowed_endpoints",
-        "allowed_data_classes"
-      ],
-      "target_event_kinds": [
-        "ak.agent.interop_session.start"
-      ],
-      "profile": "ak.profile.agent_runtime.v1",
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.agent.interop_session.cancel",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [
-        "allowed_session_ids"
-      ],
-      "target_event_kinds": [
-        "ak.agent.interop_session.status",
-        "ak.agent.interop_session.result"
-      ],
-      "profile": "ak.profile.agent_runtime.v1",
-      "event_mapping_kind": "operation_verb"
-    },
-    {
-      "action": "ak.agent.interop_session.stream_status",
-      "category": "general",
-      "risk_tier": "low",
-      "required_constraints": [
-        "allowed_session_ids"
-      ],
-      "target_event_kinds": [
-        "ak.agent.interop_session.status"
-      ],
-      "profile": "ak.profile.agent_runtime.v1",
-      "event_mapping_kind": "operation_verb"
-    },
-    {
-      "action": "ak.agent.interop_session.attach_artifact",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [
-        "allowed_data_classes",
-        "allowed_session_ids",
-        "max_artifact_bytes"
-      ],
-      "target_event_kinds": [
-        "ak.agent.interop_session.status",
-        "ak.agent.interop_session.result"
-      ],
-      "profile": "ak.profile.agent_runtime.v1",
-      "event_mapping_kind": "operation_verb"
-    },
-    {
-      "action": "ak.agent.interop_session.read_transcript",
-      "category": "general",
-      "risk_tier": "high",
-      "required_constraints": [
-        "allowed_data_classes"
-      ],
-      "target_event_kinds": [],
-      "profile": "ak.profile.agent_runtime.v1",
-      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "ak.policy.manage",

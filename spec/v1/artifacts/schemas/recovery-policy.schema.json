@@ -147,11 +147,11 @@
       "items": {
         "type": "object",
         "required": [
-          "service_did",
+          "service_id",
           "audience"
         ],
         "properties": {
-          "service_did": {
+          "service_id": {
             "$ref": "#/$defs/did"
           },
           "audience": {
