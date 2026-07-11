@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/spec/v1/schemas/applet-registration-epoch-transcript.schema.json",
+  "title": "Arkret Applet Registration Epoch Transcript",
+  "description": "Closed, normalized security transcript hashed to produce an Applet registration_epoch. The hash input is the UTF-8 domain separator arkret-applet-registration-epoch-v1\\n followed by the JCS bytes of this object.",
+  "type": "object",
+  "required": [
+    "schema",
+    "derived_registration",
+    "service_did_document",
+    "accepted_signing_keys",
+    "endpoint_policy",
+    "webhook_auth",
+    "security_policy"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.applet_registration_epoch_transcript.v1"
+    },
+    "derived_registration": {
+      "$ref": "#/$defs/derived_registration"
+    },
+    "service_did_document": {
+      "$ref": "#/$defs/service_did_document"
+    },
+    "accepted_signing_keys": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/accepted_signing_key"
+      }
+    },
+    "endpoint_policy": {
+      "$ref": "./applet-package.schema.json#/$defs/endpoint_policy"
+    },
+    "webhook_auth": {
+      "$ref": "./applet-package.schema.json#/$defs/webhook_auth"
+    },
+    "security_policy": {
+      "$ref": "#/$defs/security_policy"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:.+$"
+    },
+    "did_url": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:.+#[^#]+$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "string_set": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/non_empty_string"
+      },
+      "uniqueItems": true
+    },
+    "derived_registration": {
+      "type": "object",
+      "required": [
+        "kind",
+        "applet_id",
+        "service_id",
+        "controller_id",
+        "base_url",
+        "bot_actor_id",
+        "protocols",
+        "namespaces",
+        "receive_events",
+        "receive_ephemeral",
+        "rate_limited",
+        "requested_scopes",
+        "created_at"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ak.applet.registration"
+        },
+        "applet_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/did"
+            },
+            {
+              "type": "string",
+              "pattern": "^ak:applet:[0-9a-f-]+$"
+            }
+          ]
+        },
+        "service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "controller_id": {
+          "$ref": "#/$defs/did"
+        },
+        "base_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "bot_actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "protocols": {
+          "$ref": "#/$defs/string_set"
+        },
+        "namespaces": {
+          "$ref": "./applet-package.schema.json#/$defs/applet_namespaces"
+        },
+        "receive_events": {
+          "type": "boolean"
+        },
+        "receive_ephemeral": {
+          "type": "boolean"
+        },
+        "rate_limited": {
+          "type": "boolean"
+        },
+        "requested_scopes": {
+          "$ref": "#/$defs/string_set"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "service_did_document": {
+      "type": "object",
+      "required": [
+        "service_id",
+        "document_digest",
+        "method_version"
+      ],
+      "properties": {
+        "service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "document_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "method_version": {
+          "$ref": "#/$defs/did_method_version"
+        }
+      },
+      "additionalProperties": false
+    },
+    "did_method_version": {
+      "type": "object",
+      "required": [
+        "method",
+        "unversioned_refetch"
+      ],
+      "properties": {
+        "method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+$"
+        },
+        "version_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "version_time": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "unversioned_refetch": {
+          "type": "boolean"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "unversioned_refetch": {
+              "const": true
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "version_id"
+                ]
+              },
+              {
+                "required": [
+                  "version_time"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "unversioned_refetch": {
+              "const": false
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "version_id"
+              ]
+            },
+            {
+              "required": [
+                "version_time"
+              ]
+            }
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "accepted_signing_key": {
+      "type": "object",
+      "required": [
+        "key_ref",
+        "public_key_digest"
+      ],
+      "properties": {
+        "key_ref": {
+          "$ref": "#/$defs/did_url"
+        },
+        "public_key_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "security_policy": {
+      "type": "object",
+      "required": [
+        "claimed_profiles",
+        "limits",
+        "ghost_policy",
+        "delegation_policy",
+        "e2ee_policy"
+      ],
+      "properties": {
+        "claimed_profiles": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^ak\\.profile\\.[a-z0-9_.-]+\\.v1$"
+          },
+          "uniqueItems": true
+        },
+        "limits": {
+          "$ref": "./applet-package.schema.json#/$defs/limits"
+        },
+        "ghost_policy": {
+          "$ref": "./applet-package.schema.json#/$defs/ghost_policy"
+        },
+        "delegation_policy": {
+          "$ref": "./applet-package.schema.json#/$defs/delegation_policy"
+        },
+        "e2ee_policy": {
+          "$ref": "./applet-package.schema.json#/$defs/e2ee_policy"
+        },
+        "widget": {
+          "$ref": "./applet-widget-declaration.schema.json"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -197,7 +197,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
 - exclusive namespace 冲突时，registry / authz service MUST 拒绝后注册者。
 - `requested_scopes` 只是请求权限，不是实际授权。
 - 实际权限 MUST 通过 capability grant 授予。
-- `registration_epoch` MUST 进入 payload required 字段，并覆盖 canonical derived registration、service DID Document digest/version evidence、accepted signing key set、endpoint/auth material。grant 存储与匹配只绑定该 epoch；reducer/verifier 仍 MUST 展开 epoch evidence，校验当前 DID Document digest / signing key 与 epoch 捕获值一致。
+- `registration_epoch` MUST 进入 payload required 字段，并严格按 [`applet-schema.md` §1.0.1](./applet-schema.md#101-registration_epoch-transcript-与计算算法normative) 的 closed transcript、集合排序、JCS、域分离与 SHA-256 步骤覆盖 canonical derived registration、service DID Document digest/version evidence、accepted signing key set、endpoint/auth material。grant 存储与匹配只绑定该 epoch；reducer/verifier 仍 MUST 展开 epoch evidence，校验当前 DID Document digest / signing key 与 epoch 捕获值一致。
 - `proof` MUST 是 controller DID detached proof，覆盖 canonical registration object（不含 `proof` 自身）；空对象 MUST 以 `schema_violation` 拒绝。
 
 ## 4a. Applet Package 与安装聚合操作

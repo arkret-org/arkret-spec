@@ -2259,11 +2259,13 @@
         "ak.schema.event.v1",
         "ak.schema.event_payload.v1",
         "ak.schema.seal.v1",
-        "ak.schema.applet_package.v1"
+        "ak.schema.applet_package.v1",
+        "ak.schema.applet_registration_epoch_transcript.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json",
-        "federation-fixture.json"
+        "federation-fixture.json",
+        "applet-registration-epoch-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {

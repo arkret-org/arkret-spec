@@ -128,6 +128,7 @@ sidebar:
 | `ak.schema.recovery_receipt.v1` | Recovery Receipt |
 | `ak.schema.account_subscribe_frame.v1` | Account Subscribe Frame |
 | `ak.schema.device_message.v1` | To-device Message Envelope |
+| `ak.schema.applet_registration_epoch_transcript.v1` | Closed Applet registration epoch security transcript |
 | `ak.schema.mimi_interop.v1` | MIMI Provider Directory / MIMI Room Binding (interop; see [`../extensions/mimi-interop.md`](../extensions/mimi-interop.md)) / Mapping Receipt |
 | `ak.schema.moderation_report.v1` | Moderation Report |
 | `ak.schema.moderation_queue_item.v1` | Moderation Queue Item |

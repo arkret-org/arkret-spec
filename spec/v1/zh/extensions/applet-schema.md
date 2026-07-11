@@ -56,7 +56,19 @@ updated: 2026-07-02
 
 > **`requested_scopes` 是请求声明，不是授权**：该数组只是 Applet 在 registration 时声明它"打算请求的能力范围"，用于 Realm owner / human reviewer 审批 UI 展示。registration 接受**不**等于授予；Applet 实际写入 / 读取任何对象都需要独立的 `ak.capability.grant` event 命中具体 action / resource selector / constraint。reducer **MUST NOT** 因为 `requested_scopes` 包含某 action 而隐式 allow 该 action。详见 [`extensions/applet-integration.md` §11](./applet-integration.md)（末段）与 §4.1。
 
-> **`registration_epoch`（registration epoch hash）**：对该 registration 的 canonical security evidence（不含 `proof` 自身）取的稳定 epoch hash，唯一标识本次 registration 的安全版本。它用于 [`applet-integration.md` §11](./applet-integration.md) 的 delegated-agent grant 绑定：grant constraint MUST 绑定 `registration_epoch`。该 epoch 的 canonical 输入 MUST 包含 derived registration object、service DID Document digest/version evidence、accepted signing key set、endpoint/auth material、bot actor/base URL 等安全相关字段。grant 存储与匹配只绑定该 epoch；reducer/verifier 仍 MUST 展开 epoch evidence，重新解析或按 method-specific version evidence 读取 service DID Document，并确认当前 DID Document digest、accepted signing key set 与 epoch 捕获值一致。无版本化 `did:web` MUST re-fetch canonical document 并比对 digest。该字段 required。
+> **`registration_epoch`（registration epoch hash）**：对该 registration 的 canonical security transcript（不含 `proof` 与 `registration_epoch` 自身）取的稳定 epoch hash，唯一标识本次 registration 的安全版本。它用于 [`applet-integration.md` §11](./applet-integration.md) 的 delegated-agent grant 绑定：grant constraint MUST 绑定 `registration_epoch`。transcript MUST 通过 [`ak.schema.applet_registration_epoch_transcript.v1`](../../artifacts/schemas/applet-registration-epoch-transcript.schema.json) 校验，并按下方 §1.0.1 的唯一算法计算。grant 存储与匹配只绑定该 epoch；reducer/verifier 仍 MUST 展开 transcript evidence，重新解析或按 method-specific version evidence 读取 service DID Document，并确认当前 DID Document digest、accepted signing key set 与 epoch 捕获值一致。无版本化 `did:web` MUST re-fetch canonical document 并比对 digest。该字段 required。
+
+### 1.0.1 `registration_epoch` transcript 与计算算法（normative）
+
+唯一 canonical transcript 是 `ak.schema.applet_registration_epoch_transcript.v1` 的 closed object，顶层字段依次为：`schema`、`derived_registration`、`service_did_document`、`accepted_signing_keys`、`endpoint_policy`、`webhook_auth`、`security_policy`。不得加入 package id、package digest、proof、registration epoch 自身或实现私有缓存字段。
+
+- `derived_registration` MUST 固定包含 schema 所列的 registration 安全字段；`proof`、`registration_epoch` 与派生 `manifest` 不进入该对象。manifest 的安全含义必须展开到 `endpoint_policy`、`webhook_auth` 与 `security_policy`，不得通过嵌套 opaque manifest 间接参与 hash。
+- `service_did_document` MUST 包含 `service_id`、canonical DID Document 的 `document_digest` 与 closed `method_version`。有稳定版本证据的 DID method MUST 令 `unversioned_refetch=false`，并至少给出 `version_id` 或 `version_time`；没有稳定版本证据的 method MUST 令 `unversioned_refetch=true`，且 MUST 省略 `version_id` / `version_time`。后者在每次授权验证时重新解析 canonical document 并比对 `document_digest`。
+- 以下数组是数学集合，producer MUST 先按 UTF-8 字节序升序排列并拒绝重复项：`protocols`、`requested_scopes`、`claimed_profiles`、`webhook_auth.accepted_algs`、`accepted_signing_keys`（按 `key_ref`）、三个 namespace bucket（按 `pattern`，相同 pattern 再按 `exclusive=false` 在前）、`endpoint_policy.endpoints`（按 `method`、`path`、`auth` 的 tuple）。同一排序键重复 MUST fail closed，不能靠“保留第一项”消歧。
+- 任意 optional 字段缺失时 MUST 直接省略；不得以 JSON `null` 代替。对象成员顺序最终由 JCS 处理；上述数组排序在 JCS 之前完成。
+- transcript 通过 schema 与集合规范化校验后，令 `canonical_bytes = JCS(transcript)`；令域分离字节为 UTF-8 `arkret-applet-registration-epoch-v1\n`（末尾单个 LF，字节 `0a`）；最终值为 `registration_epoch = "sha256:" + lowercase_hex(SHA-256(domain_separator || canonical_bytes))`。
+
+[`applet-registration-epoch-fixture.json`](../../artifacts/fixtures/applet-registration-epoch-fixture.json) 给出 transcript、完整 canonical bytes、expected digest 以及排序重复、null、DID version 分支和安全字段变更的负向向量。实现 MUST 执行这些向量，不得只检查 fixture 文件存在。
 
 `applet_registration_payload.required` 的顺序 MUST 与 schema properties 字段出现顺序一致:
 

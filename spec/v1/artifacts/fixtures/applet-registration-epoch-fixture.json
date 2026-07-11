@@ -1,0 +1,134 @@
+{
+  "profile": "ak.profile.applet_service.v1",
+  "version": "2026-07-12",
+  "suite": "applet_registration_epoch",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "arkret_core::applet::registration_epoch"
+  },
+  "covers_vectors": [
+    "ak.vector.applet.registration_epoch_transcript.v1"
+  ],
+  "domain_separator_utf8": "arkret-applet-registration-epoch-v1\n",
+  "positive": {
+    "name": "versioned_service_id",
+    "transcript": {
+      "schema": "ak.schema.applet_registration_epoch_transcript.v1",
+      "derived_registration": {
+        "kind": "ak.applet.registration",
+        "applet_id": "ak:applet:01904100-0000-7000-8000-aaaaaaaaaaaa",
+        "service_id": "did:webvh:z6mkfixture:applet.example",
+        "controller_id": "did:webvh:z6mkfixture:alice.example",
+        "base_url": "https://applet.example/cx",
+        "bot_actor_id": "did:webvh:z6mkfixture:bot.example",
+        "protocols": [
+          "ak.applet.v1",
+          "slack"
+        ],
+        "namespaces": {
+          "actors": [
+            {
+              "exclusive": true,
+              "pattern": "did:webvh:z6mkfixture:applet.example:ghost:*"
+            }
+          ],
+          "realms": [],
+          "handles": []
+        },
+        "receive_events": true,
+        "receive_ephemeral": false,
+        "rate_limited": true,
+        "requested_scopes": [
+          "ak.message.create",
+          "ak.reaction.add"
+        ],
+        "created_at": "2026-07-12T00:00:00Z"
+      },
+      "service_did_document": {
+        "service_id": "did:webvh:z6mkfixture:applet.example",
+        "document_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "method_version": {
+          "method": "did:webvh",
+          "version_id": "QmRegistrationVersion1",
+          "unversioned_refetch": false
+        }
+      },
+      "accepted_signing_keys": [
+        {
+          "key_ref": "did:webvh:z6mkfixture:applet.example#server-key-1",
+          "public_key_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "key_ref": "did:webvh:z6mkfixture:applet.example#server-key-2",
+          "public_key_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        }
+      ],
+      "endpoint_policy": {
+        "endpoints": [
+          {
+            "method": "POST",
+            "path": "/_arkret/edge/applet/transactions",
+            "auth": "webhook_signature"
+          }
+        ]
+      },
+      "webhook_auth": {
+        "type": "http_message_signature",
+        "key_ref": "did:webvh:z6mkfixture:applet.example#server-key-1",
+        "accepted_algs": [
+          "EdDSA",
+          "ML-DSA-65"
+        ]
+      },
+      "security_policy": {
+        "claimed_profiles": [
+          "ak.profile.applet_service.v1"
+        ],
+        "limits": {
+          "max_transaction_events": 64,
+          "max_payload_bytes": 1048576,
+          "rate_limit_per_minute": 120
+        },
+        "ghost_policy": {
+          "enabled": false
+        },
+        "delegation_policy": {
+          "enabled": false
+        },
+        "e2ee_policy": {
+          "enabled": false,
+          "mls_join_requested": false
+        }
+      }
+    },
+    "canonical_bytes_utf8": "{\"accepted_signing_keys\":[{\"key_ref\":\"did:webvh:z6mkfixture:applet.example#server-key-1\",\"public_key_digest\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"},{\"key_ref\":\"did:webvh:z6mkfixture:applet.example#server-key-2\",\"public_key_digest\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"}],\"derived_registration\":{\"applet_id\":\"ak:applet:01904100-0000-7000-8000-aaaaaaaaaaaa\",\"base_url\":\"https://applet.example/cx\",\"bot_actor_id\":\"did:webvh:z6mkfixture:bot.example\",\"controller_id\":\"did:webvh:z6mkfixture:alice.example\",\"created_at\":\"2026-07-12T00:00:00Z\",\"kind\":\"ak.applet.registration\",\"namespaces\":{\"actors\":[{\"exclusive\":true,\"pattern\":\"did:webvh:z6mkfixture:applet.example:ghost:*\"}],\"handles\":[],\"realms\":[]},\"protocols\":[\"ak.applet.v1\",\"slack\"],\"rate_limited\":true,\"receive_ephemeral\":false,\"receive_events\":true,\"requested_scopes\":[\"ak.message.create\",\"ak.reaction.add\"],\"service_id\":\"did:webvh:z6mkfixture:applet.example\"},\"endpoint_policy\":{\"endpoints\":[{\"auth\":\"webhook_signature\",\"method\":\"POST\",\"path\":\"/_arkret/edge/applet/transactions\"}]},\"schema\":\"ak.schema.applet_registration_epoch_transcript.v1\",\"security_policy\":{\"claimed_profiles\":[\"ak.profile.applet_service.v1\"],\"delegation_policy\":{\"enabled\":false},\"e2ee_policy\":{\"enabled\":false,\"mls_join_requested\":false},\"ghost_policy\":{\"enabled\":false},\"limits\":{\"max_payload_bytes\":1048576,\"max_transaction_events\":64,\"rate_limit_per_minute\":120}},\"service_did_document\":{\"document_digest\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"method_version\":{\"method\":\"did:webvh\",\"unversioned_refetch\":false,\"version_id\":\"QmRegistrationVersion1\"},\"service_id\":\"did:webvh:z6mkfixture:applet.example\"},\"webhook_auth\":{\"accepted_algs\":[\"EdDSA\",\"ML-DSA-65\"],\"key_ref\":\"did:webvh:z6mkfixture:applet.example#server-key-1\",\"type\":\"http_message_signature\"}}",
+    "expected_registration_epoch": "sha256:dcfb0e8b42e68126b8aa297f80fad5ab93407d93f3599bbc8c2217dc203739e2"
+  },
+  "negative": [
+    {
+      "name": "accepted_signing_keys_unsorted",
+      "mutation": "reverse accepted_signing_keys",
+      "expected": "reject_before_jcs"
+    },
+    {
+      "name": "accepted_signing_key_duplicate",
+      "mutation": "append accepted_signing_keys[0]",
+      "expected": "reject_before_jcs"
+    },
+    {
+      "name": "optional_null_forbidden",
+      "mutation": "set service_did_document.method_version.version_time to null",
+      "expected": "schema_violation"
+    },
+    {
+      "name": "unversioned_branch_carries_version",
+      "mutation": "set unversioned_refetch=true while retaining version_id",
+      "expected": "schema_violation"
+    },
+    {
+      "name": "security_field_change_rotates_epoch",
+      "mutation": "set derived_registration.base_url to https://other.example/cx",
+      "expected": "digest_mismatch"
+    }
+  ]
+}

@@ -3189,6 +3189,12 @@
         "description": "Controller-signed package used by ak.self.applet.command.install preview/commit to derive ak.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
       },
       {
+        "schema_id": "ak.schema.applet_registration_epoch_transcript.v1",
+        "file": "schemas/applet-registration-epoch-transcript.schema.json",
+        "status": "active",
+        "description": "Closed normalized transcript for deterministic recomputation of Applet registration_epoch from derived registration, DID document/version, signing-key, endpoint/auth, and security-policy evidence."
+      },
+      {
         "schema_id": "ak.schema.applet_widget_declaration.v1",
         "file": "schemas/applet-widget-declaration.schema.json",
         "status": "active",

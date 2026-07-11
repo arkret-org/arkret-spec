@@ -4485,3 +4485,16 @@ Expected：
 - **Case C**：MUST 在处理任何 Event / 副作用前 fail closed，reason=`http_signature_invalid`；`Content-Digest` MUST 在验签前重算，source/destination DID mismatch 不得进入业务逻辑。
 - **Case D**：完全相同的 replay MUST 返回原 outcome 或等价成功且不得重复副作用；同一幂等 identity 但 body digest 或 `source_signature_anchor` 不一致时 MUST fail closed，认证已通过时 reason=`duplicate_conflict`，认证未通过时使用相应认证失败 reason。
 - **Case E**：无 active install MUST fail closed，reason=`applet_registration_unauthorized`；actor / namespace / grant 混淆 MUST fail closed（`applet_namespace_mismatch`、`capability_denied` 或 `applet_registration_unauthorized`），不得把来源 service 签名当成 native actor 授权。
+
+### 19.2 Vector: Registration Epoch Transcript
+
+`vector_id`: `ak.vector.applet.registration_epoch_transcript.v1`
+
+本向量固化 [`applet-schema.md` §1.0.1](../extensions/applet-schema.md#101-registration_epoch-transcript-与计算算法normative) 的唯一重算路径。runner MUST 读取 [`applet-registration-epoch-fixture.json`](../../artifacts/fixtures/applet-registration-epoch-fixture.json) 的完整 transcript，以 `arkret-applet-registration-epoch-v1\n` 为域分离前缀，执行 JCS 与 SHA-256，并逐字节比较 `canonical_bytes_utf8` 和 `expected_registration_epoch`。
+
+Expected：
+
+- 正向 transcript MUST 产生 fixture 登记的完整 canonical bytes 与 digest。
+- set-like 数组乱序或排序键重复 MUST 在 JCS 前 fail closed；不得静默排序重复项后继续，也不得保留第一项。
+- optional 成员使用 `null`、unversioned DID evidence 同时携带 version 字段，均 MUST schema violation。
+- base URL、bot actor、endpoint/auth、accepted key、DID document digest、requested scope、profile 或 policy 任一安全字段改变，MUST 产生不同 epoch；验证旧 grant 时视为 evidence mismatch。

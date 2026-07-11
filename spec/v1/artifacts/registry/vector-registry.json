@@ -256,6 +256,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.applet.registration_epoch_transcript.v1",
+      "status": "active",
+      "domain": "applet",
+      "applies_to_fixtures": [
+        "applet-registration-epoch-fixture.json"
+      ],
+      "description": "Deterministic Applet registration_epoch recomputation from the closed normalized transcript, UTF-8 domain separator, JCS bytes, and SHA-256; covers set sorting and duplicate rejection, optional omission, DID method version evidence, and security-field rotation.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.auth.session_grant_audience_binding.v1",
       "status": "active",
       "domain": "auth",
