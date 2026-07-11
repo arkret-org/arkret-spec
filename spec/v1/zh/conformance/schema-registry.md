@@ -122,6 +122,7 @@ sidebar:
 | `ak.schema.read_receipt.v1` | Read Receipt |
 | `ak.schema.blob.v1` | Blob Metadata |
 | `ak.schema.encrypted_envelope.v1` | MLS Encrypted Payload Envelope |
+| `ak.schema.account_data_encrypted_value.v1` | Principal-private Account Data AEAD envelope |
 | `ak.schema.key_backup.v1` | Encrypted Key Backup |
 | `ak.schema.recovery_policy.v1` | Principal Recovery Policy |
 | `ak.schema.recovery_session.v1` | Device Recovery Session |

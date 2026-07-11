@@ -3031,6 +3031,12 @@
         "file": "schemas/encrypted-envelope.schema.json"
       },
       {
+        "schema_id": "ak.schema.account_data_encrypted_value.v1",
+        "file": "schemas/account-data-encrypted-value.schema.json",
+        "status": "active",
+        "description": "Closed XChaCha20-Poly1305 envelope for principal-private encrypted Account Data values."
+      },
+      {
         "schema_id": "ak.schema.key_backup.v1",
         "file": "schemas/key-backup.schema.json"
       },

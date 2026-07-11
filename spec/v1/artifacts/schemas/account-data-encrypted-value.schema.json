@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/account-data-encrypted-value.schema.json",
+  "title": "Arkret Account Data Encrypted Value",
+  "description": "Principal-private Account Data value sealed client-side. Services validate and store this envelope but never receive the account secret or plaintext.",
+  "type": "object",
+  "required": [
+    "schema",
+    "version",
+    "aead_profile",
+    "key_ref",
+    "nonce",
+    "ciphertext",
+    "aad",
+    "aad_digest",
+    "ciphertext_digest"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.account_data_encrypted_value.v1"
+    },
+    "version": {
+      "const": "1.0"
+    },
+    "aead_profile": {
+      "const": "ak.aead.xchacha20_poly1305.v1"
+    },
+    "key_ref": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "nonce": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{32}$"
+    },
+    "ciphertext": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{22,}$"
+    },
+    "aad": {
+      "type": "object",
+      "required": [
+        "schema",
+        "version",
+        "actor_id",
+        "data_type"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.account_data_encrypted_value.v1"
+        },
+        "version": {
+          "const": "1.0"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "data_type": {
+          "type": "string",
+          "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*(?::[A-Za-z0-9_-]+)?$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "aad_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "ciphertext_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "additionalProperties": false
+}
