@@ -24,7 +24,7 @@
     },
     {
       "id": "write_retry_contract",
-      "rule": "Every write operation declares idempotency_mechanism and retry_safe."
+      "rule": "Every write operation declares idempotency_mechanism and retry_safe; every retry_safe=false operation also declares a machine-actionable uncertain_outcome recovery strategy."
     },
     {
       "id": "read_retry_contract",

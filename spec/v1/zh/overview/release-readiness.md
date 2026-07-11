@@ -37,7 +37,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 | Claimable conformance profile | 65 | `artifacts/profiles/conformance-profiles.json` |
 | Profile id references | 91 | `artifacts/profiles/conformance-profiles.json` |
 
-上表的 `Schema` 是 **registered schema id** 计数（116）。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数为 115；`ak.schema.agent_pairing_bootstrap.v1` 是 `agent-operations.schema.json#/$defs/agent_pairing_bootstrap` 中的 bundle schema id,因此 registered schema id 数可大于 raw file 数。以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 精确校验；其中 `ak.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body 所在文件，不另占独立文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
+上表的 `Schema` 是 **registered schema id** 计数（115）。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数为 114；`ak.schema.agent_pairing_bootstrap.v1` 是 `agent-operations.schema.json#/$defs/agent_pairing_bootstrap` 中的 bundle schema id,因此 registered schema id 数可大于 raw file 数。以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 精确校验；其中 `ak.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body 所在文件，不另占独立文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
 
 当前候选基线包含三项 wire 约束：(1) `ak.schema.handle_claim.v1.claim_kind` 的合法取值不含服务 / 资源可读名（服务 / 资源可读名使用独立的服务 / 资源 schema；组织分配给用户或 principal 的 handle 使用 `organization_handle`）；(2) `ak.member.identity.update` payload 使用 `identity_payload_digest` 作为 payload 摘要字段，与 roster `member_display_state_digest` 区分；(3) 直接 DID 邀请（`ak.schema.invite.v1` 中出现 `invitee` 且不属于 `third_party_id` 分支）MUST 携带 `invite_delivery_target` 与 `introduction_evidence_digest`，使 base invite 不依赖 handle resolve 作为投递授权。current parser 只接受当前 registry/schema 中存在的 canonical 形态，不运行草案迁移层。
 
@@ -67,7 +67,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 
 ## 3. 工件矩阵
 
-> 「对应工件」列同时列出 prose 与机读工件：`.md` / `.mdx` 文件为**说明性 prose**，`.json` / `.yaml`（registry / schema / profiles / fixtures / OpenAPI / bindings）为**机读 canonical**；二者冲突时以机读 canonical 与 `contract-catalog.json` 为权威源。
+> 「对应工件」列同时列出规范正文与机读工件，权威性按领域划分而不是按扩展名划分：标识符集合、字段形状、operation binding 与 profile membership 以 registry / schema / `contract-catalog.json` 为 canonical；状态机、授权、因果、失败恢复与安全语义以 `normative: true` 的中文正文为 canonical；生成的 catalog、站点视图与报告只作 informative 镜像。跨领域不一致必须阻断发布并修复两个来源，不得以“机器文件总是覆盖正文”掩盖语义冲突。
 
 | 主题 | 对应工件 | 当前要求 |
 | --- | --- | --- |
@@ -96,6 +96,8 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 ### 5.1 `v1.0.0` 目标 stable promotion gate
 
 - `zh/` 与 `artifacts/` registry lint 通过
+- 官方最小 reference validator、reducer、authz evaluator 与 conformance runner 已发布，并由发布 CI 实际执行 core behavioral vectors；仅校验 registry/schema/digest 不满足 stable promotion。
+- 至少两个相互独立、共享代码不构成同一实现的实现必须通过同一 runner 的 `core_event_store`、sync/state/capability 与安全负向向量；结果必须以绑定实现 artifact digest、spec revision 与 contract digest 的签名 conformance claim 留档。
 - `core_event_store`、`chat_mvp`、`kanban_mvp` 的 schema、fixture、profile 已冻结；若 accepted proposal 改动这些 surface，必须在 freeze 前同步 schema / fixture / profile / vector，而不是只更新 prose
 - OpenAPI MUST NOT 包含未发布生成器报告、占位 body 说明或 operation-level 非法字段
 - fixture 与 Markdown JSON 示例 MUST NOT 使用非 active wire 字段、未注册 Event kind 或任何 schema-invalid wire shape。所有标记为正向的 fixture / vector MUST 先通过本地 JSON Schema resolver 校验；负向 fixture MUST 先满足基础 envelope shape，并在声明的目标错误处失败，MUST NOT 被更早的 schema 错误掩盖。
@@ -107,7 +109,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 
 ### 5.2 `v1-interop-preview` 实现互操作预览
 
-> **门槛依赖（normative）**：本 gate 与 §5.3 依赖 §6 的 reference validator / reducer / authz / conformance runner 交付；如 §2 所述这些工具**尚未**作为完整认证工具链发布。因此 §5.2 / §5.3 是 §5.1（仅依赖本地 artifact / schema / registry / fixture digest 门禁）之上的 **future gate**，在 §6 工具发布前不可执行，不构成当前 `v1.0.0` stable promotion（§5.1）的前置条件。
+> **门槛依赖（normative）**：本 gate 与 §5.3 依赖 §6 的 reference validator / reducer / authz / conformance runner 交付；如 §2 所述这些工具**尚未**作为完整认证工具链发布。因此当前规范只能保持 candidate；§5.2 的双实现互操作证据与 §5.3 的可执行 runner 是 §5.1 stable promotion 的前置条件，工具或证据缺失时 MUST 阻断 `v1.0.0` tag。
 
 - 至少两个独立实现通过同一 reference validator 的 `core_event_store` 向量
 - 能重放官方 sync / state / capability fixture

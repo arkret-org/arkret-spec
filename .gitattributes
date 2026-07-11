@@ -1,3 +1,10 @@
+.gitattributes text eol=lf
 spec/v1/artifacts/registry/*.json whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 spec/v1/artifacts/reports/operation-completeness-report.json whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 spec/v1/artifacts/reports/operation-schema-index.json whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+*.md text eol=lf
+*.mdx text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.py text eol=lf

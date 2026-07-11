@@ -18,7 +18,7 @@ DEFAULT_REFERENCE = ROOT / "spec" / "v1" / "artifacts" / "reports" / "fixture-di
 def fixture_entries() -> list[dict[str, str]]:
     entries: list[dict[str, str]] = []
     for path in sorted(FIXTURE_DIR.glob("*.json")):
-        data = path.read_bytes()
+        data = path.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
         entries.append(
             {
                 "path": path.relative_to(ROOT).as_posix(),

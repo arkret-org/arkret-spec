@@ -5,100 +5,101 @@
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
-    "schema_assertion_fields": [
-      "schema_ref",
-      "expect_valid",
-      "instance"
-    ],
-    "semantic_assertion_fields": [
-      "semantic_outcome",
-      "expected_reason_code"
-    ]
+    "schema_assertion_fields": ["schema_ref", "expect_valid", "instance"],
+    "semantic_assertion_fields": ["semantic_outcome", "expected_reason_code"]
   },
-  "covers_vectors": [
-    "ak.vector.sdk_conformance.claim_validation.v1"
-  ],
+  "covers_vectors": ["ak.vector.sdk_conformance.claim_validation.v1"],
   "schema_validation_cases": [
     {
-      "name": "valid_sdk_clause_claim",
+      "name": "valid_signed_artifact_bound_claim",
       "schema_ref": "schemas/sdk-conformance-claim.schema.json",
       "expect_valid": true,
-      "semantic_outcome": "accept",
+      "semantic_outcome": "accept_after_digest_revision_and_signature_verification",
       "instance": {
         "sdk_name": "arkret-rust-sdk",
         "sdk_version": "1.0.0",
-        "spec_revision": "0000000000000000000000000000000000000000",
-        "contract_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-        "clause_claims": [
-          {
-            "clause_id": "AK-SDK-001",
-            "result": "pass",
-            "evidence": [
-              {
-                "kind": "vector_result",
-                "ref": "ci://arkret-rust-sdk/run/1",
-                "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
-              }
-            ]
-          }
-        ]
+        "sdk_artifact": {
+          "uri": "oci://registry.example/arkret-rust-sdk@sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "spec_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
+        "contract_digest": "sha256:d39906742ff96c62cf1ecff81d66d3ec9090e505c0b45c787d646816f7b44aa0",
+        "issued_at": "2026-07-11T00:00:00Z",
+        "issuer": {
+          "id": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+          "verification_method": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd"
+        },
+        "clause_claims": [{
+          "clause_id": "AK-SDK-001",
+          "result": "pass",
+          "evidence": [{
+            "kind": "vector_result",
+            "ref": "ci://arkret-rust-sdk/run/1",
+            "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+          }]
+        }],
+        "proof": {
+          "alg": "EdDSA",
+          "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+          "signature": "aJtxevQ7OiSMz7sIm09RsBTP31Pbx00LKdi_Y61PKwWbqX2efznqQTrORpNuoYYy6XFoNOYN8l-BV4WzlVnABQ"
+        }
       }
     },
     {
-      "name": "not_applicable_without_rationale_rejected",
+      "name": "zero_revision_and_digest_rejected",
       "schema_ref": "schemas/sdk-conformance-claim.schema.json",
       "expect_valid": false,
-      "first_expected_error": "$.clause_claims[0]: 'rationale' is a required property",
+      "first_expected_error": "$.contract_digest: 'sha256:0000000000000000000000000000000000000000000000000000000000000000' should not be valid under {'pattern': '^(sha256|blake3):0{64}$'}",
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
         "sdk_name": "arkret-rust-sdk",
         "sdk_version": "1.0.0",
+        "sdk_artifact": {"uri": "urn:arkret:sdk:test", "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"},
         "spec_revision": "0000000000000000000000000000000000000000",
         "contract_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-        "clause_claims": [
-          {
-            "clause_id": "AK-SDK-005",
-            "result": "not_applicable",
-            "evidence": []
-          }
-        ]
+        "issued_at": "2026-07-11T00:00:00Z",
+        "issuer": {"id": "did:webvh:z6mkfixture:release.example", "verification_method": "did:webvh:z6mkfixture:release.example#claim-key-1"},
+        "clause_claims": [{"clause_id": "AK-SDK-001", "result": "pass", "evidence": [{"kind": "vector_result", "ref": "ci://run/zero", "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"}]}],
+        "proof": {"alg": "EdDSA", "kid": "did:webvh:z6mkfixture:release.example#claim-key-1", "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}
       }
     },
     {
-      "name": "duplicate_clause_id_semantic_rejected",
+      "name": "missing_evidence_digest_rejected",
       "schema_ref": "schemas/sdk-conformance-claim.schema.json",
-      "expect_valid": true,
-      "schema_only_valid": true,
+      "expect_valid": false,
+      "first_expected_error": "$.clause_claims[0].evidence[0]: 'digest' is a required property",
       "semantic_outcome": "reject",
-      "expected_reason_code": "duplicate_clause_claim",
+      "expected_reason_code": "schema_violation",
       "instance": {
         "sdk_name": "arkret-rust-sdk",
         "sdk_version": "1.0.0",
-        "spec_revision": "0000000000000000000000000000000000000000",
-        "contract_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-        "clause_claims": [
-          {
-            "clause_id": "AK-SDK-001",
-            "result": "pass",
-            "evidence": [
-              {
-                "kind": "vector_result",
-                "ref": "ci://arkret-rust-sdk/run/1"
-              }
-            ]
-          },
-          {
-            "clause_id": "AK-SDK-001",
-            "result": "pass",
-            "evidence": [
-              {
-                "kind": "code_audit",
-                "ref": "audit://arkret-rust-sdk/1"
-              }
-            ]
-          }
-        ]
+        "sdk_artifact": {"uri": "urn:arkret:sdk:test", "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"},
+        "spec_revision": "1111111111111111111111111111111111111111",
+        "contract_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "issued_at": "2026-07-11T00:00:00Z",
+        "issuer": {"id": "did:webvh:z6mkfixture:release.example", "verification_method": "did:webvh:z6mkfixture:release.example#claim-key-1"},
+        "clause_claims": [{"clause_id": "AK-SDK-001", "result": "pass", "evidence": [{"kind": "vector_result", "ref": "ci://run/1"}]}],
+        "proof": {"alg": "EdDSA", "kid": "did:webvh:z6mkfixture:release.example#claim-key-1", "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}
+      }
+    },
+    {
+      "name": "bad_signature_semantic_rejected",
+      "schema_ref": "schemas/sdk-conformance-claim.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.proof.signature: 'not+base64url' does not match '^[A-Za-z0-9_-]+$'",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "sdk_name": "arkret-rust-sdk",
+        "sdk_version": "1.0.0",
+        "sdk_artifact": {"uri": "urn:arkret:sdk:test", "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"},
+        "spec_revision": "1111111111111111111111111111111111111111",
+        "contract_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "issued_at": "2026-07-11T00:00:00Z",
+        "issuer": {"id": "did:webvh:z6mkfixture:release.example", "verification_method": "did:webvh:z6mkfixture:release.example#claim-key-1"},
+        "clause_claims": [{"clause_id": "AK-SDK-001", "result": "pass", "evidence": [{"kind": "vector_result", "ref": "ci://run/1", "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"}]}],
+        "proof": {"alg": "EdDSA", "kid": "did:webvh:z6mkfixture:release.example#claim-key-1", "signature": "not+base64url"}
       }
     }
   ]

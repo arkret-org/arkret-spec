@@ -354,6 +354,65 @@
       { "name": "silent_actor_seq_gap", "mutation": "drop_gap_attribution", "expected": { "decision": "reject", "reason": "inclusion_proof_failed" } }
     ]
   },
+  "account_subscribe_schema_cases": [
+    {
+      "name": "typed_device_list_delta_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "kind": "delta",
+        "cursor": "ak:cursor:fixture",
+        "device_lists": {
+          "changed": ["did:webvh:z6mkfixture:alice.example"],
+          "left": []
+        }
+      }
+    },
+    {
+      "name": "device_list_unknown_field_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "kind": "delta",
+        "cursor": "ak:cursor:fixture",
+        "device_lists": {"changed": [], "left": [], "devices": []}
+      }
+    },
+    {
+      "name": "closed_window_start_state_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "kind": "delta",
+        "cursor": "ak:cursor:fixture",
+        "realms": {
+          "ak:realm:0196419b-0000-7000-8000-000000000129": {
+            "state_at_window_start": {
+              "actor_profiles": {"did:webvh:z6mkfixture:alice.example": {"display_name": "Alice"}},
+              "realm_metadata": {"title": "Example", "join_rule": "invite"},
+              "e2ee_epoch": {"epoch": 7, "key_ref": "ak:mls:fixture"}
+            },
+            "summary": {"joined_member_count": 1},
+            "unread_notifications": {"notification_count": 0, "highlight_count": 0}
+          }
+        }
+      }
+    },
+    {
+      "name": "negative_unread_count_rejected",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "kind": "delta",
+        "cursor": "ak:cursor:fixture",
+        "realms": {
+          "ak:realm:0196419b-0000-7000-8000-000000000129": {
+            "unread_notifications": {"notification_count": -1}
+          }
+        }
+      }
+    }
+  ],
   "e2ee_decryption_pending": {
     "event_id": "ak:event:01964140-8000-7000-8000-000000000000",
     "strand_id": "ak:strand:01964180-0000-7000-8000-000000000000",

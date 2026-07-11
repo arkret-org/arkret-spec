@@ -1245,11 +1245,11 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     f"{operation_id} is a write operation and must declare retry_safe as a boolean",
                 )
             uncertain_outcome = row.get("uncertain_outcome")
-            if idempotency_mechanism == "none" and retry_safe is False:
+            if retry_safe is False:
                 if not isinstance(uncertain_outcome, dict):
                     lint.fail(
                         operation_path,
-                        f"{operation_id} uses none/false and must declare uncertain_outcome",
+                        f"{operation_id} has retry_safe=false and must declare uncertain_outcome",
                     )
                 else:
                     strategy = uncertain_outcome.get("strategy")
@@ -1284,7 +1284,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             elif uncertain_outcome is not None:
                 lint.fail(
                     operation_path,
-                    f"{operation_id} may declare uncertain_outcome only for idempotency_mechanism=none and retry_safe=false",
+                    f"{operation_id} may declare uncertain_outcome only when retry_safe=false",
                 )
         else:
             if "idempotency_mechanism" in row or "retry_safe" in row:
@@ -1612,6 +1612,43 @@ def check_sdk_conformance_contract(lint: Lint) -> None:
 
 def check_fixture_runner_contract(lint: Lint) -> None:
     fixture_root = ARTIFACTS / "fixtures"
+    allowed_kinds = {
+        "named_suite",
+        "registry_coverage",
+        "json_schema_and_semantic_cases",
+        "json_schema_validation_cases",
+        "did_method_adapter_cases",
+        "profile_discovery_coverage",
+        "generated_limit_cases",
+    }
+    executable_registry_assertions = {
+        "error_code_registry_coverage_fixture": {
+            "unique_top_level_codes",
+            "unique_reason_codes",
+            "operation_errors_registered",
+            "reason_references_registered",
+            "layering_is_explicit",
+        },
+        "operation_registry_coverage_fixture": {
+            "catalog_registry_bijection",
+            "registry_openapi_bijection",
+            "schema_refs_resolve",
+            "write_retry_contract",
+            "read_retry_contract",
+        },
+        "event_kind_lattice_dispatch_fixture": {
+            "registered_dispatch_target",
+            "or_set_bottom_is_inert",
+            "family_semantics_present",
+            "unknown_dispatch_fails_closed",
+        },
+        "event_kind_payload_coverage_fixture": {
+            "catalog_registry_bijection",
+            "payload_schema_ref_resolves",
+            "wire_scope_matches_envelope",
+            "unknown_durable_kind_fails_closed",
+        },
+    }
     for path in sorted(fixture_root.glob("*.json")):
         data = load_json(lint, path)
         if not isinstance(data, dict):
@@ -1624,10 +1661,74 @@ def check_fixture_runner_contract(lint: Lint) -> None:
         if not isinstance(kind, str) or not kind:
             lint.fail(path, "top-level runner.kind must be a non-empty string")
             continue
+        if kind not in allowed_kinds:
+            lint.fail(path, f"runner.kind is not registered: {kind!r}")
+            continue
         if kind == "named_suite":
             entrypoint = runner.get("entrypoint")
-            if not isinstance(entrypoint, str) or not entrypoint:
-                lint.fail(path, "runner.kind=named_suite requires a non-empty entrypoint")
+            if not isinstance(entrypoint, str) or not re.fullmatch(r"[a-z0-9_-]+(?:::[a-z0-9_-]+)+", entrypoint):
+                lint.fail(path, "runner.kind=named_suite requires a canonical namespace entrypoint")
+        if kind == "registry_coverage":
+            inputs = runner.get("inputs")
+            if not isinstance(inputs, list) or not inputs:
+                lint.fail(path, "runner.kind=registry_coverage requires non-empty inputs")
+            else:
+                for relative in inputs:
+                    if not isinstance(relative, str) or not (ARTIFACTS / relative).is_file():
+                        lint.fail(path, f"registry coverage input does not exist: {relative!r}")
+            suite = data.get("suite")
+            expected = executable_registry_assertions.get(suite)
+            assertions = data.get("assertions")
+            actual = {
+                row.get("id") for row in assertions if isinstance(row, dict) and isinstance(row.get("id"), str)
+            } if isinstance(assertions, list) else set()
+            if expected is None or actual != expected:
+                lint.fail(path, f"registry coverage assertions are not bound to the executable lint contract: {sorted(actual)}")
+
+        if path.name == "morph-schema-migration-fixture.json":
+            vectors = data.get("vectors")
+            if not isinstance(vectors, list) or not vectors:
+                lint.fail(path, "morph migration runner requires vectors")
+                continue
+            observed_rules: set[str] = set()
+            for vector in vectors:
+                if not isinstance(vector, dict):
+                    lint.fail(path, "morph migration vector must be an object")
+                    continue
+                fields = dict(((vector.get("input") or {}).get("fields") or {}))
+                rules = (((vector.get("input") or {}).get("payload") or {}).get("transformation_rules") or [])
+                for rule in rules:
+                    rule_id = rule.get("rule") if isinstance(rule, dict) else None
+                    observed_rules.add(rule_id)
+                    if rule_id == "ak.transform.identity.v1":
+                        continue
+                    if rule_id == "ak.transform.rename.v1":
+                        source, target = rule.get("from"), rule.get("to")
+                        if source not in fields or target in fields:
+                            lint.fail(path, f"{vector.get('vector_id')} rename precondition failed")
+                            continue
+                        fields[target] = fields.pop(source)
+                    elif rule_id == "ak.transform.type_widen.v1":
+                        if (rule.get("from_type"), rule.get("to_type")) != ("integer", "number") or not isinstance(fields.get(rule.get("field")), int):
+                            lint.fail(path, f"{vector.get('vector_id')} type widening precondition failed")
+                    elif rule_id == "ak.transform.default_backfill.v1":
+                        fields.setdefault(rule.get("to"), rule.get("value"))
+                    else:
+                        lint.fail(path, f"{vector.get('vector_id')} uses unknown transformation rule {rule_id!r}")
+                if fields != vector.get("expected_output"):
+                    lint.fail(path, f"{vector.get('vector_id')} executable transformation output mismatch")
+                canonical = json.dumps(fields, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+                digest = "sha256:" + hashlib.sha256(canonical).hexdigest()
+                if digest != vector.get("expected_output_digest"):
+                    lint.fail(path, f"{vector.get('vector_id')} expected_output_digest mismatch")
+            required_rules = {
+                "ak.transform.identity.v1",
+                "ak.transform.rename.v1",
+                "ak.transform.type_widen.v1",
+                "ak.transform.default_backfill.v1",
+            }
+            if observed_rules != required_rules:
+                lint.fail(path, f"morph runner rule coverage mismatch: {sorted(observed_rules)}")
 
 
 def check_operation_clause_registry(lint: Lint) -> None:
@@ -5365,7 +5466,7 @@ NON_NORMATIVE_KEYWORD_WAIVERS: dict[str, str] = {
 
 _NORMATIVE_KEYWORD_RE = re.compile(r"\b(MUST NOT|MUST|SHOULD NOT|SHOULD)\b")
 _NORMATIVE_HEADING_RE = re.compile(r"^#{1,6}\s+.*normative", re.IGNORECASE)
-_FRONTMATTER_BLOCK_RE = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
+_FRONTMATTER_BLOCK_RE = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n", re.DOTALL)
 C_BET_04_REQUIRED_FRONTMATTER = {"title", "status", "normative", "stability", "updated"}
 
 

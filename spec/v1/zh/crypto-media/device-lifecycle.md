@@ -106,7 +106,7 @@ Arkret v1 把三件事分开处理：
 - **不引入长期离线续期凭据**:本协议以「grant-binding key 轮换 grant」承担续期职责,grant 自身保持分钟到小时级 TTL;不依赖、也不要求签发 OAuth `offline_access` 类长期续期凭据。
 - **登出即终结**:轮换链挂靠在 Auth Server 的 `browser_session` 上；`browser_session` 被登出终结后，即便持有正确的 grant-binding 私钥(指纹匹配 `cnf.jkt`)也 MUST NOT 再轮换出新 grant——续期必须重新走完整认证。
 
-**grant-binding key 与设备身份 key 的生命周期正交(normative)**:`grant-binding key` 是**会话认证凭据**,`cnf.jkt`、`ak.session.grant` 轮换与 hard-logout 清除只作用于它；它按 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md) 在 hard logout 时被清除、下次登录轮换,soft recovery 路径保留。§5.2 的**设备身份 key**(`device_public_key` / `verify_key`,签事件 / KeyPackage / MLS leaf)是 E2EE 信任根，只经 `ak.device.revoke` + 重新入册轮换。二者是两个正交角色:**实现即便复用同一密钥字节，也 MUST 保证 grant-binding key 的轮换或清除不导致设备身份 key 变更或被覆盖**——否则一次重新登录即把该设备静默逐出其 MLS 群组并丢失历史解密能力。会话生命周期(登录 / 登出 / grant 轮换)MUST NOT 触发设备身份 key 的重铸(见 §5.2)。
+**grant-binding key 与设备身份 key 的生命周期正交(normative)**:`grant-binding key` 是**会话认证凭据**,`cnf.jkt`、`ak.session.grant` 轮换与 hard-logout 清除只作用于它；它按 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md) 在 hard logout 时被清除、下次登录轮换,soft recovery 路径保留。§5.2 的**设备身份 key**(`device_public_key` / `verify_key`,签事件 / KeyPackage / MLS leaf)是 E2EE 信任根，只经 `ak.device.revoke` + 重新入册轮换。二者必须独立生成、独立存储并独立轮换：grant-binding key 的私钥字节、公钥字节、JWK thumbprint 与 `kid` 都 MUST NOT 等于或复用设备身份 key 的对应材料。违反该分离要求的会话或设备授权 MUST fail closed。会话生命周期(登录 / 登出 / grant 轮换)MUST NOT 触发设备身份 key 的重铸(见 §5.2)。
 
 此模式只把 Web2 SSO 作为登录因子和会话授权输入。它不授予 E2EE 密钥访问权，不自动创建长期设备，不替代 `ak.device.authorize`、DID/key-log operation 或 recovery policy。
 
@@ -299,7 +299,7 @@ DID-method history → principal_signing_key (PSK)
                        └── user_signing_key (USK)   ── signs ──► other principal's verify_key
 ```
 
-**设备身份 key 稳定性(normative)**:设备的 `device_public_key`(= `verify_key`,per-device Ed25519)是该设备的 E2EE 信任根，签事件、KeyPackage 与 MLS leaf,并投影进设备验签公钥目录(§8.2)供 receiver 解析。它**只经 `ak.device.revoke` + 以新 key 重新入册(= 新设备)轮换**;会话生命周期——登录、登出、`ak.session.grant` 轮换——**MUST NOT** 触发它的重铸或覆盖。与之相对,§3.3 的 grant-binding(DPoP)key 是会话认证凭据，按 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md) 随登出/重登轮换；二者生命周期正交，实现即便复用同一密钥字节，也 MUST 保证 grant-binding key 的轮换不改变设备身份 key(见 §3.3)。
+**设备身份 key 稳定性(normative)**:设备的 `device_public_key`(= `verify_key`,per-device Ed25519)是该设备的 E2EE 信任根，签事件、KeyPackage 与 MLS leaf,并投影进设备验签公钥目录(§8.2)供 receiver 解析。它**只经 `ak.device.revoke` + 以新 key 重新入册(= 新设备)轮换**;会话生命周期——登录、登出、`ak.session.grant` 轮换——**MUST NOT** 触发它的重铸或覆盖。与之相对,§3.3 的 grant-binding(DPoP)key 是会话认证凭据，按 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md) 随登出/重登轮换；二者生命周期和密钥材料均必须分离，任何字节、JWK thumbprint 或 `kid` 复用都不合规(见 §3.3)。
 
 每条 `ak.device.authorize` 事件 MUST 在 `payload.cross_signing_binding` 字段携带 SSK 对该设备 `verify_key`、`hpke_key` 与声明算法集合的签名：
 
@@ -496,6 +496,8 @@ Arkret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sy
 ## 6. Device List Sync
 
 任何设备新增、撤销、签名更新或算法更新，MUST 产生 `ak.device.list_update` event。该 event 是 principal control stream 中的 actor-private durable identity state；若使用 Event Envelope，顶层 `realm_id` MUST 是目标 principal 的 `principal_control_realm_id`。它不进入任一共享 Realm 控制面 Seal coverage / state_root；共享 Realm 只能通过 MLS Welcome / Remove、device trust proof 或 explicit membership / KeyPackage event 感知其结果：
+
+Account Subscribe 的聚合提示 `delta.device_lists` 与本 event payload 不是同一 DTO：前者固定为 `{changed: principal_did[], left: principal_did[]}`，只指出哪些 principal 的权威设备列表需要刷新或清除；后者才携带该 principal 的具体 device 变化。实现 MUST NOT 把 `device_id` 写入 `delta.device_lists.changed/left`，也不得把聚合提示当作完整设备清单。
 
 ```json
 {

@@ -2158,6 +2158,18 @@
       ]
     },
     {
+      "vector_id": "ak.vector.morph.transformation_identity.v1",
+      "status": "active",
+      "domain": "morph",
+      "applies_to_profiles": [
+        "ak.profile.morph.schema_migration_transformations.v1"
+      ],
+      "description": "Deterministic identity migration preserves every Morph field and canonical JSON value.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/morph-schema-migration-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.morph.transformation_rename.v1",
       "status": "active",
       "domain": "morph",
@@ -2177,6 +2189,18 @@
         "ak.profile.morph.schema_migration_transformations.v1"
       ],
       "description": "Deterministic ak.morph.schema_migrate transformation: a ak.transform.default_backfill.v1 rule backfills a new optional field with a fixed default while preserving existing fields; idempotent and replay-deterministic.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/morph-schema-migration-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.morph.transformation_type_widen.v1",
+      "status": "active",
+      "domain": "morph",
+      "applies_to_profiles": [
+        "ak.profile.morph.schema_migration_transformations.v1"
+      ],
+      "description": "Deterministic integer-to-number schema widening preserves the JSON numeric value and rejects unregistered widening pairs.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/morph-schema-migration-fixture.json"
       ]
@@ -2692,6 +2716,19 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
         "spec/v1/zh/sync/api-conventions.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.session.device_identity_key_separation.v1",
+      "status": "active",
+      "domain": "session",
+      "applies_to_fixtures": [
+        "auth-session-proof-fixture.json"
+      ],
+      "description": "A DPoP/RFC 9421 grant-binding session key must not reuse bytes, fingerprints, thumbprints, or key identifiers from the long-term device identity key; reuse fails closed.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {

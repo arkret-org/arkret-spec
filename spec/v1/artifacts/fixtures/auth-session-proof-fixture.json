@@ -12,7 +12,8 @@
     "ak.vector.identity.did_proof_replay_window.v1",
     "ak.vector.session.pop_presentation.v1",
     "ak.vector.session.bare_bearer_rejected_protected.v1",
-    "ak.vector.session.dpop_target_uri_binding.v1"
+    "ak.vector.session.dpop_target_uri_binding.v1",
+    "ak.vector.session.device_identity_key_separation.v1"
   ],
   "cases": [
     {
@@ -164,6 +165,31 @@
         "production current-v1 protected endpoints reject bare bearer unless sender-constrained proof is present",
         "public metadata surfaces do not treat bare bearer as session or capability authentication",
         "PoP created/expires outside the replay window is rejected even after replay-cache eviction"
+      ]
+    },
+    {
+      "name": "session_and_device_identity_key_separation",
+      "vector_id": "ak.vector.session.device_identity_key_separation.v1",
+      "kind": "key_role_separation",
+      "cases": [
+        {
+          "name": "independent_keys_accepted",
+          "grant_binding_jkt": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "session_public_key_fingerprint": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "device_public_key_fingerprint": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "expected": "accepted"
+        },
+        {
+          "name": "same_key_material_rejected",
+          "grant_binding_jkt": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "session_public_key_fingerprint": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "device_public_key_fingerprint": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "expected": "unauthenticated"
+        }
+      ],
+      "assertions": [
+        "the DPoP/RFC 9421 session key may be shared only between those two session proof layers",
+        "session and long-term device identity key bytes, fingerprints, and key identifiers must be distinct"
       ]
     },
     {

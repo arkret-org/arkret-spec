@@ -39,8 +39,8 @@
       "description": "To-device message batch on `delta` frames."
     },
     "device_lists": {
-      "type": "object",
-      "description": "Device list changes on `delta` frames."
+      "$ref": "#/$defs/device_list_changes",
+      "description": "Principal DID sets whose authoritative device list changed or left the caller's visibility scope on `delta` frames."
     },
     "account_data": {
       "$ref": "#/$defs/event_container",
@@ -94,6 +94,25 @@
         }
       },
       "additionalProperties": true
+    },
+    "device_list_changes": {
+      "type": "object",
+      "required": ["changed", "left"],
+      "properties": {
+        "changed": {
+          "type": "array",
+          "items": { "$ref": "./common-ids.schema.json#/$defs/did" },
+          "uniqueItems": true,
+          "maxItems": 10000
+        },
+        "left": {
+          "type": "array",
+          "items": { "$ref": "./common-ids.schema.json#/$defs/did" },
+          "uniqueItems": true,
+          "maxItems": 10000
+        }
+      },
+      "additionalProperties": false
     },
     "device_message_container": {
       "type": "object",
@@ -195,23 +214,7 @@
           "$ref": "#/$defs/timeline"
         },
         "state_at_window_start": {
-          "type": "object",
-          "description": "Derived projection-only state at the timeline window start, for rendering correctness when timeline.limited=true (client-sync.md §5.2 path (a)). NOT part of state hash / frontier / causal graph. When timeline.limited=true the server MUST return either this field or timeline.preview_only=true.",
-          "properties": {
-            "actor_profiles": {
-              "type": "object",
-              "description": "Display context for actors appearing in the window (display_name, avatar_blob_ref, ...), keyed by principal DID."
-            },
-            "realm_metadata": {
-              "type": "object",
-              "description": "Realm-level Lattice cell values at window start (title, summary, join_rule, ...)."
-            },
-            "e2ee_epoch": {
-              "type": "object",
-              "description": "MLS epoch hint at the window start (epoch number + key_ref)."
-            }
-          },
-          "additionalProperties": true
+          "$ref": "#/$defs/state_at_window_start"
         },
         "state": {
           "$ref": "#/$defs/event_container"
@@ -226,7 +229,7 @@
           "$ref": "#/$defs/event_container"
         },
         "summary": {
-          "type": "object"
+          "$ref": "#/$defs/realm_summary"
         },
         "members": {
           "type": "array",
@@ -244,7 +247,7 @@
           "description": "Optional pagination cursor for continuing member roster retrieval."
         },
         "unread_notifications": {
-          "type": "object"
+          "$ref": "#/$defs/unread_notification_counts"
         },
         "event_states": {
           "type": "array",
@@ -313,7 +316,74 @@
           }
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
+    },
+    "state_at_window_start": {
+      "type": "object",
+      "description": "Derived projection-only state at the timeline window start. NOT part of state hash, frontier, or causal graph.",
+      "required": ["actor_profiles", "realm_metadata", "e2ee_epoch"],
+      "properties": {
+        "actor_profiles": {
+          "type": "object",
+          "patternProperties": {
+            "^did:[a-z0-9]+:[^\\s#?]+$": {
+              "type": "object",
+              "properties": {
+                "display_name": { "type": "string", "maxLength": 256 },
+                "avatar_blob_ref": { "type": "string", "minLength": 1, "maxLength": 2048 }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "realm_metadata": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string", "maxLength": 256 },
+            "summary": { "type": "string", "maxLength": 4096 },
+            "join_rule": { "type": "string", "minLength": 1, "maxLength": 128 }
+          },
+          "additionalProperties": false
+        },
+        "e2ee_epoch": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["epoch", "key_ref"],
+              "properties": {
+                "epoch": { "type": "integer", "minimum": 0 },
+                "key_ref": { "type": "string", "minLength": 1, "maxLength": 2048 }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_summary": {
+      "type": "object",
+      "properties": {
+        "joined_member_count": { "type": "integer", "minimum": 0 },
+        "invited_member_count": { "type": "integer", "minimum": 0 },
+        "heroes": {
+          "type": "array",
+          "items": { "$ref": "./common-ids.schema.json#/$defs/did" },
+          "uniqueItems": true,
+          "maxItems": 20
+        }
+      },
+      "additionalProperties": false
+    },
+    "unread_notification_counts": {
+      "type": "object",
+      "properties": {
+        "notification_count": { "type": "integer", "minimum": 0 },
+        "highlight_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
     },
     "member_roster_entry": {
       "type": "object",

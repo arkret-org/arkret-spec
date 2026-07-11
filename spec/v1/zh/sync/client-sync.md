@@ -187,7 +187,9 @@ Account subscribe `delta` frame 包含以下 stream：
 | `applet` | per-Realm 派生：Applet delivery receipt / bridge health 作为对应 Realm 的事件随 `delta.realms[<realm_id>].timeline` / `ephemeral` 投递 |
 | `blob_status` | per-Realm 派生：upload scan / thumbnail / retention 状态作为对应 Realm 的派生事件随 `delta.realms[<realm_id>].timeline` 投递 |
 
-顶层 `delta` 与 per-Realm entry 的对象 schema 均允许 `additionalProperties:true` 以容纳这些 stream class 的承载字段；上表给出 v1 canonical 承载位置，实现不得自行另设外层分桶。`receipts` / `applet` / `blob_status` 不在顶层 `delta` 另立独立 bucket。
+顶层 `delta` 与 per-Realm entry 都是 closed DTO（`additionalProperties:false`）；上表及 `account-subscribe-frame.schema.json` 给出 v1 全部 canonical 承载位置，实现不得自行另设字段或外层分桶。新增 stream class 必须先登记并更新 schema/profile；`receipts` / `applet` / `blob_status` 不在顶层 `delta` 另立独立 bucket。
+
+`device_lists` 的 wire 形态固定为 `{changed: did[], left: did[]}`。两个数组都必须存在、去重；元素是 principal DID，不是 `device_id`：`changed` 表示该 principal 的权威 device list 已变化，`left` 表示该 principal 已离开调用方可见范围。客户端收到 `changed` 后必须重新查询对应 principal 的 device list；收到 `left` 后必须删除其缓存设备信任投影。
 
 `receipts`、`notifications` 和高频 actor-private `read_cursor` delta MAY 被服务端合并；同一 scope 在一个 account subscribe frame 内只需要返回最新可见位置和最终 unread count。客户端不得要求服务返回每一次中间 read receipt / marker 变化；`cursor` 只承诺覆盖 frame 中声明的最终 stream positions。
 
@@ -270,6 +272,7 @@ Account subscribe `delta` frame 包含以下 stream：
 
 - 该字段是 **派生 projection-only 字段**，不参与 state hash / frontier 计算，不进入因果图。
 - 字段范围仅限三类 context：`actor_profiles`（window 内出现的 actor）、`realm_metadata`（Realm-level Lattice cell value at window start）、`e2ee_epoch`（window 起点的 MLS epoch hint）。
+- 三个字段都必须出现；`actor_profiles` 只允许 `display_name` / `avatar_blob_ref`，`realm_metadata` 只允许 `title` / `summary` / `join_rule`，`e2ee_epoch` 必须为 `null` 或 `{epoch: non-negative integer, key_ref: non-empty string}`。各层对象均为 closed DTO，未知字段必须按 `schema_violation` 拒绝。
 - 客户端 SHOULD 在渲染 window 内事件时优先用 `state_at_window_start` 而非"当前查询 basis"。
 - 服务端可以沿 Seal DAG 回溯控制面 basis，并按 DataEvent 因果闭包或观察性 `data_event_set_root` 定位 window 起点，再按各 Lattice 的 deterministic join 取 cell value 派生该状态；不可用时退路径 (b)。HLC 只能作为定位候选历史 view 的非权威索引 hint，MUST NOT 作为 cell value 选择键或状态判断依据。
 - **单一 canonical 定位规则（normative）**：上一条提到 window 起点可由 DataEvent 因果闭包或观察性 `data_event_set_root` 定位，但这两条路径对同一 limited timeline 的 window 起点**可能定位到不同的 cell view**（渲染层 display name / `realm_metadata` / `e2ee_epoch` 错位），"是否分歧"本身没有确定判据。为消除双路径歧义，凡实现选择给出 `state_at_window_start` 确定值，**MUST**（不再是 SHOULD）使用唯一 canonical 定位规则：**以该 limited timeline 首事件的 `prev_refs` 因果闭包在最近 Seal basis 下的 deterministic join 取 cell value**。该规则是确定性算法，对同一输入跨实现产出同一渲染投影，因此不存在"两条路径产出不同 cell view"的合法分歧。由于本字段是 projection-only、不入协议状态，实现仍 MUST NOT 把它当作权威 cell value 对外承诺；当实现无法按上述 canonical 规则计算出确定值（例如缺 Seal basis 或缺首事件因果闭包）时，MUST 回退到路径 (b)（`preview_only=true`），不得输出非 canonical 定位规则得出的 `state_at_window_start`。

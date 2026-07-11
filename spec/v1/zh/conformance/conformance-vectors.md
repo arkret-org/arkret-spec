@@ -4448,6 +4448,18 @@ Expected：
 
 本向量固化 DPoP `htu` 的完整外部 URI 绑定。校验时只移除 query 与 fragment，scheme、authority 与 path 均参与比较：相同 path 的不同 authority、HTTP/HTTPS scheme 淆混、来自非受信 peer 的 `Forwarded` / `X-Forwarded-*`、以及无法重建 authority 的请求都 MUST 以 `unauthenticated` 拒绝。只有静态配置的 public origin，或由受信最后一跳代理在入口清洗同名客户端 header 后提供的 external URI，才可用于匹配；不存在 path-only fallback。
 
+### 18.4 Vector: Session / Device Identity Key Separation
+
+`vector_id`: `ak.vector.session.device_identity_key_separation.v1`
+
+本向量固化 grant-binding session key 与长期 device identity key 的材料分离。DPoP 与 RFC 9421 可以共享同一短期 session key；但其 key bytes、公钥 fingerprint、JWK thumbprint 或 `kid` 任一与 `device_public_key` 对应材料相同都必须 fail closed，不能以“生命周期逻辑分开”替代密码学 key separation。
+
+### 18.5 Vectors: Morph Migration Transformation Closure
+
+`vector_id`: `ak.vector.morph.transformation_identity.v1`、`ak.vector.morph.transformation_rename.v1`、`ak.vector.morph.transformation_type_widen.v1`、`ak.vector.morph.transformation_default_backfill.v1`
+
+这组向量是 `ak.profile.morph.schema_migration_transformations.v1` 的必需 fixture，覆盖 identity、rename、integer-to-number type widening 与 default backfill。runner 必须实际应用登记的 transformation grammar，比较 canonical JSON output 并重算 `expected_output_digest`；只检查字符串存在或 fixture 非空不算通过。
+
 ## 19. Applet Transaction Push Vectors
 
 本节收拢 Applet inbound transaction push 的来源签名锚点与 replay 绑定向量，固化 [`applet-integration.md`](../extensions/applet-integration.md) §7.3.1、[`applet-schema.md`](../extensions/applet-schema.md) §3、[`service-http-binding.md`](../sync/service-http-binding.md) §2.2 的 service-to-service HTTP Message Signature 要求。每个 `vector_id` 均为规范性引用目标，登记于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)。
