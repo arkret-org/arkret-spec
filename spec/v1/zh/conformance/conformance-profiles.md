@@ -607,7 +607,7 @@ MUST 支持:
 - Provisioning `status` 枚举:`pending_runtime_key` / `active` / `paused` / `pairing_expired` / `deactivated`
 - Pairing expiry 自动 `ak.capability.revoke` pending grants
 - Agent management operations(list/get/pause/resume/deactivate/rotate-key/grant attach/detach)写入 durable lifecycle events
-- Native personal agent selector claim `ak.schema.agent_selector_claim.v1`，Actor Profile `agent_slug` 投影 hint，以及 `@<controller-handle>/<agent_slug>` 输入别名到 agent `subject_id` 的唯一解析；slug 不是 handle、公开 Directory search/list key 或授权主体
+- Agent provision request 与 list/get projection 使用必填固有字段 `slug`；native personal agent selector claim `ak.schema.agent_selector_claim.v1` 与 Actor Profile 投影 hint 使用外部引用字段 `agent_slug`，并支持 `@<controller-handle>/<agent_slug>` 输入别名到 agent `subject_id` 的唯一解析；slug 不是 handle、公开 Directory search/list key 或授权主体
 - Draft-only family:`ak.agent.draft.propose` / `ak.agent.action_request` / `ak.agent.action_approve` / `ak.agent.action_reject`,materialize 为 controller-owned `ak.agent.draft.v1` encrypted account-data
 - Draft approval 状态机:`proposed → approved → published`,approval nonce atomic consume
 - Event Envelope `executed_by` / `authorization_ref` / reducer-stamped `actor_kind` projection

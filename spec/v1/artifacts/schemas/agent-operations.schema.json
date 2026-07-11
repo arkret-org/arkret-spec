@@ -128,7 +128,7 @@
     "agent_slug": {
       "type": "string",
       "pattern": "^[a-z0-9](?:[a-z0-9_-]{0,62}[a-z0-9])?$",
-      "description": "Controller-scoped native personal agent selector slug. Used only as the right-hand component of @<controller-handle>/<agent_slug>; not a global handle or authorization subject. Provisioning services that accept this field MUST issue or update a ak.schema.agent_selector_claim.v1."
+      "description": "Required controller-scoped native personal agent selector slug. Used only as the right-hand component of @<controller-handle>/<agent_slug>; not a global handle or authorization subject. Provisioning services MUST issue or update a ak.schema.agent_selector_claim.v1."
     },
     "base64url": {
       "type": "string",
@@ -204,6 +204,7 @@
       "type": "object",
       "required": [
         "agent_principal_id",
+        "slug",
         "status"
       ],
       "properties": {
@@ -213,7 +214,7 @@
         "display_name": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "agent_slug": {
+        "slug": {
           "$ref": "#/$defs/agent_slug"
         },
         "status": {
@@ -605,11 +606,14 @@
     },
     "agent_provision_request_body": {
       "type": "object",
+      "required": [
+        "slug"
+      ],
       "properties": {
         "display_name": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "agent_slug": {
+        "slug": {
           "$ref": "#/$defs/agent_slug"
         },
         "requested_scope": {
@@ -702,12 +706,12 @@
     },
     "agent_protocol_discover_request_body": {
       "type": "object",
-      "description": "Probe the public ak.agent.endpoint registry for an agent's declared external protocol endpoints.",
+      "description": "Probe the public ak.agent.endpoint registry for an agent's declared external protocol endpoints. agent_did is the interop-surface DID of the target agent runtime (which MAY be an external, non-Arkret agent); it is not an authorization subject — that role belongs to agent_principal_id in the governance operations.",
       "required": [
-        "agent_id"
+        "agent_did"
       ],
       "properties": {
-        "agent_id": {
+        "agent_did": {
           "$ref": "#/$defs/did"
         }
       },
@@ -717,11 +721,11 @@
       "type": "object",
       "description": "Projection of an accepted ak.agent.endpoint event (agent-protocol-interop.md §5.1); controller-private fields are not surfaced. supported_protocols is constrained to the §11 adapter registry.",
       "required": [
-        "agent_id",
+        "agent_did",
         "supported_protocols"
       ],
       "properties": {
-        "agent_id": {
+        "agent_did": {
           "$ref": "#/$defs/did"
         },
         "supported_protocols": {

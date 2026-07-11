@@ -3318,7 +3318,7 @@ Steps:
 1. Bob 在 message composer 输入 `@alice:acme.example/summary`。
 2. 客户端从本地 Realm roster / actor profile / handle claim cache 解析 controller handle → `AliceDID`，再验证 selector claim `(AliceDID, "summary")` → 唯一 active `AgentSDID`。
 3. 客户端提交 Message content AST，其中 mention node `subject_id=AgentSDID`，并可携带 `controller_subject_id=AliceDID`、`controller_handle_at_time="alice:acme.example"`、`agent_slug_at_time="summary"`、`mention_text_original="@alice:acme.example/summary"`。
-4. Alice 之后把 `AgentS.agent_slug` 改为 `sum`，或把 `summary` 分配给另一个新 agent `AgentT`。
+4. Alice 之后把 `AgentS.slug` 改为 `sum` 并更新对应 selector claim 的 `agent_slug`，或把 `summary` 分配给另一个新 agent `AgentT`。
 5. 另一次测试中，Alice 同时存在两个 current valid selector claims 绑定 `(AliceDID, "summary")` 到不同 active agents，或 Bob 不可见 selector claim / accountability evidence。
 
 Expected:

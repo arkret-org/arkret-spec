@@ -97,7 +97,7 @@ expected_<role>_<kind>_id
 
 - canonical materialized object 自身 primary identity 字段 MUST 使用 `id`，不得写成 `strand_id` / `message_id` / `actor_profile_id` 等带对象名前缀的字段。Actor / user-facing identity 在 v1 中由 Actor Profile 表达：Profile 对象自身仍使用 `id`，其授权主体 DID 另用 `principal_id`。
 - Snapshot manifest 自身也使用 `id`；`snapshot_ref` 只在其他对象、chunk payload、challenge 或 API hint 指向该 manifest 时使用。
-- Event Envelope、Receipt、Attestation / Evidence、Key Backup、Applet / Agent 等协议 artifact 或非通用 materialized object MAY 使用 `<artifact>_id` 作为自身标识（例如 `event_id`、`receipt_id`、`attestation_id`、`evidence_id`、`backup_id`、`applet_id`、`agent_id`），因为这些对象经常与 `realm_id`、`actor_id`、`policy_id`、`device_id` 等并列并进入签名 transcript，需要在混合上下文中消歧。该例外不得反向用于 Realm / Space / Strand / Message / Morph / Relation / View / Policy / Actor Profile 等普通 canonical object。
+- Event Envelope、Receipt、Attestation / Evidence、Key Backup、Applet 等协议 artifact 或非通用 materialized object MAY 使用 `<artifact>_id` 作为自身标识（例如 `event_id`、`receipt_id`、`attestation_id`、`evidence_id`、`backup_id`、`applet_id`），因为这些对象经常与 `realm_id`、`actor_id`、`policy_id`、`device_id` 等并列并进入签名 transcript，需要在混合上下文中消歧。该例外不得反向用于 Realm / Space / Strand / Message / Morph / Relation / View / Policy / Actor Profile 等普通 canonical object。Agent 互操作 artifact（`ak.agent.endpoint` / discover / `ak.schema.agent.v1`）标识对端 agent runtime 的字段使用 `agent_did` 而非 `agent_id`：该值是 DID、对端可以是非 Arkret 外部 agent，且必须与治理域的授权主体 `agent_principal_id` 明确区分。
 - 单一具体 kind MUST 在字段名中出现 kind slug，例如 `space_id`、`parent_space_id`、`default_realm_id`、`scope_circle_id`、`policy_id`、`retention_policy_id`。
 - protocol responsibility subject 使用 `_id`，即使 wire value 是 DID，例如 `actor_id`、`principal_id`、`subject_id`、`watcher_actor_id`。
 - Event payload 若写入某个 materialized object / projection 字段的值，payload 字段名 MUST 与该物化字段同名。操作目标、CAS expected head、audit target、selector target 等事件操作角色 MAY 加 role prefix，例如 `space_id` 与 `expected_parent_space_id`。
@@ -156,6 +156,10 @@ expected_<role>_<kind>_id
 需要 profile author 直接书写的人类可读策略时长 MUST 使用 ISO 8601 duration 字符串（如 `PT24H`、`P30D`、`P1Y`），并以统一 pattern `^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$` 约束。v1 内**只有这一种 duration 字符串格式**：自造的 compact duration mini-DSL（如 `^[0-9]+(ms|s|m|h|d)$`）与无 pattern 的裸 duration string MUST NOT 出现在 wire 字段中。
 
 时长名词按语义区分：`ttl` 表示对象或凭据存活期；`timeout` 表示等待无响应后的放弃；`window` 表示允许动作发生的相对窗口；`period` 表示周期性轮换/复发；`cooldown` 表示拒绝或关闭后的最短重试间隔；`age` / `staleness` 表示已存在材料相对当前时间的新鲜度上限。
+
+### 3.0.3 Slug 字段命名
+
+对象自身的 canonical slug 字段 MUST 使用裸名 `slug`；创建、更新或投影该对象且只存在一个 slug 语义的 DTO MUST 与物化字段同名。其它对象、claim、mention metadata、selector 参数或混合上下文引用该对象的 slug 时，MUST 使用 `<entity>_slug` 或带 role / time qualifier 的名称，例如 `agent_slug`、`agent_slug_at_time`。该规则与 §2.1 中对象自身 `id`、外部引用 `<entity>_id` 的区分一致；不得因为外部 selector claim 使用 `agent_slug`，就把 Agent 自身字段改名为 `agent_slug`。
 
 ### 3.1 字段 × 对象适用性矩阵（normative reference）
 

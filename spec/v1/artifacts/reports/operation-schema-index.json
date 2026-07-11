@@ -382,10 +382,12 @@
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
         "schema_kind": "object",
-        "required": [],
+        "required": [
+          "slug"
+        ],
         "properties": [
           "display_name",
-          "agent_slug",
+          "slug",
           "requested_scope",
           "accountability",
           "pairing_ttl_ms"
@@ -434,10 +436,10 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_request_body",
         "schema_kind": "object",
         "required": [
-          "agent_id"
+          "agent_did"
         ],
         "properties": [
-          "agent_id"
+          "agent_did"
         ],
         "closed": true
       },
@@ -445,11 +447,11 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_outcome",
         "schema_kind": "object",
         "required": [
-          "agent_id",
+          "agent_did",
           "supported_protocols"
         ],
         "properties": [
-          "agent_id",
+          "agent_did",
           "supported_protocols",
           "agent_card_url",
           "metadata_url",

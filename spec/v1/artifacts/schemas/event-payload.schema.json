@@ -4153,12 +4153,13 @@
     },
     "agent_endpoint_payload": {
       "type": "object",
+      "description": "Payload for ak.agent.endpoint. agent_did is the interop-surface DID of the agent runtime declaring its external protocol endpoints; distinct from the governance-surface agent_principal_id (authorization subject).",
       "required": [
-        "agent_id",
+        "agent_did",
         "endpoints"
       ],
       "properties": {
-        "agent_id": {
+        "agent_did": {
           "$ref": "#/$defs/did"
         },
         "endpoints": {

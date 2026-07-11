@@ -76,7 +76,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 ```json
 {
   "kind": "ak.agent.endpoint",
-  "agent_id": "did:webvh:z7JFwDcjH8CMYDmNUkUBhGpNN:agent.example.com",
+  "agent_did": "did:webvh:z7JFwDcjH8CMYDmNUkUBhGpNN:agent.example.com",
   "endpoints": [
     {
       "protocol": "a2a",
@@ -98,6 +98,8 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 ```
 
 `ak.agent.endpoint` 的机读 schema 真源为 [`schemas/event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 中 `$defs/agent_endpoint_payload`（`agent.schema.json` 仅描述 agent session metadata snapshot，不含本 endpoint payload 字段）。
+
+> **`agent_did` 命名（normative）**：互操作面标识对端 agent runtime 的字段是 `agent_did`（DID；对端 MAY 是非 Arkret 的外部 agent，无 controller / accountability grant）。它不是授权主体——授权主体在治理域操作（provision / pairing / lifecycle / key authorize）中始终是 `agent_principal_id`。同一 native personal agent 两个字段的值可以相等，但语义角色不同，MUST NOT 混用字段名。
 
 > **`version` 语义(normative)**:endpoint 的 `version` 是 **human-readable hint**,仅供展示与粗粒度兼容判断;`1.x` / `0.x` 通配形式不是有效 semver 也不是 draft id,**MUST NOT** 用于精确 pinning 或版本协商。精确兼容与重放防护以 §5.2 / §5.5 的 `endpoint_digest`(= DID Document canonical hash + service endpoint digest 等 epoch 证据，见 §5.5)为唯一权威 pin;实现 SHOULD 在可行时同时给出精确版本 / 范围，但 reducer 与 session pinning MUST 以 `endpoint_digest` 为准，而非 `version` 字符串。
 

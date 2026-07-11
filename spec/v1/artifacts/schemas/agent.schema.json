@@ -6,16 +6,16 @@
   "type": "object",
   "required": [
     "schema",
-    "agent_id"
+    "agent_did"
   ],
   "properties": {
     "schema": {
       "const": "ak.schema.agent.v1"
     },
-    "agent_id": {
+    "agent_did": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-      "description": "Stable agent runtime identifier. v1 uses a DID here; ak:agent:* is not a registered typed-id kind. Agent session object ids use ak:agent_interop_session:* in their own fields."
+      "description": "Interop-surface DID of the agent runtime (MAY be an external, non-Arkret agent). Distinct from the governance-surface agent_principal_id (authorization subject); ak:agent:* is not a registered typed-id kind. Agent session object ids use ak:agent_interop_session:* in their own fields."
     },
     "endpoint_url": {
       "type": "string",
