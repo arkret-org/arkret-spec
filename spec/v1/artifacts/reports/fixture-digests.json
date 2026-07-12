@@ -102,7 +102,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
-      "sha256": "bc0b437db7742b3d57c998cafe2d7569de8dd64f20ffb9afc27c5cd024c7cc13"
+      "sha256": "96efa312a8b57efa18babcf84fd87acc2506198fa90effd2b737d0a38c8b47d6"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-transparency-fixture.json",
