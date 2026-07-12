@@ -29,6 +29,11 @@
       "$ref": "./common-ids.schema.json#/$defs/realm_id",
       "description": "Parent Realm. create-locked; Circle never re-binds to another Realm."
     },
+    "profile_ref": {
+      "type": "string",
+      "pattern": "^ak\\.profile\\.[a-z0-9_.-]+\\.v1$",
+      "description": "Optional create-locked Circle semantic profile discriminator. Ordinary Circles omit it. Profile-specific creation paths MUST persist their registered profile id; ak.profile.agent_sidecar_thread.v1 is reserved to the self Agent Sidecar ensure operation and MUST be excluded from ordinary Circle navigation/search/projection surfaces."
+    },
     "title": {
       "type": "string",
       "minLength": 1,

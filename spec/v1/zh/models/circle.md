@@ -38,6 +38,7 @@ Schema id: `ak.schema.circle.v1`
 | `id` | yes | `id:circle` | `ak:circle:<uuid>`(UUIDv7) | Circle ID。 |
 | `schema` | yes | `ak.schema.circle.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | create-locked;Circle 永远属于一个 Realm，不可改绑。 | 归属 Realm(父安全/联邦边界)。 |
+| `profile_ref` | no | `profile id` | create-locked；必须匹配 `^ak\.profile\.[a-z0-9_.-]+\.v1$`。普通 Circle 省略；profile-specific 创建路径必须写入其规范注册的 profile id。`ak.profile.agent_sidecar_thread.v1` 只能由 §11.1 的 ensure carve-out 创建，普通 `ak.circle.create` / Circle REST create MUST 拒绝 caller 选择该值。 | Circle 的语义 profile 判别器；目录、查询与客户端用它执行 profile-specific fail-closed 过滤，不得依赖 title、short_name 或 relation 推断。 |
 | `title` | yes | `string` | 1..256 chars。 | 人类可读名称。 |
 | `summary` | no | `string` | ≤2048 chars。 | 简短说明(渲染在 banner / 详情)。 |
 | `display` | yes | `object` | 见 §4。 | **跨客户端一致**的视觉身份字段；只对 `directory_visibility` 允许的 actor 投影。 |
@@ -77,7 +78,7 @@ Schema id: `ak.schema.circle.v1`
 | event kind | reducer_input | payload 形态 | 说明 |
 | --- | --- | --- | --- |
 | `ak.circle.create` | yes | full object | 创建 Circle；当 `encryption_profile=mls_rfc9420` 时同时初始化独立 MLS group 与 epoch 0 governance binding。 |
-| `ak.circle.update` | yes | `ak.patch.v1`(path 不含 `realm_id` / `encryption_profile`) | 改 title / summary / display / directory_visibility / join_rule / history_visibility。 |
+| `ak.circle.update` | yes | `ak.patch.v1`(path 不含 `realm_id` / `profile_ref` / `encryption_profile`) | 改 title / summary / display / directory_visibility / join_rule / history_visibility。 |
 | `ak.circle.archive` | yes | object_lifecycle_payload | active → archived。 |
 | `ak.circle.restore` | yes | object_lifecycle_payload | archived → active。 |
 | `ak.circle.tombstone` | yes | object_lifecycle_payload | terminal；触发 §8 cascade。 |
@@ -401,6 +402,8 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 ## 11.1 Agent sidecar Circle profile
 
 `ak.profile.agent_sidecar_thread.v1` 把 Circle 作为 controller 与 controller 的 native personal agents 之间的私聊 scoped event boundary。该 profile 依赖 Circle 的 membership / delivery / query / projection 隔离；是否提供密码学隔离由 Circle `encryption_profile` 与父 Realm floor 决定。父 Realm 要求 E2EE 时 sidecar Circle MUST 为 `mls_rfc9420`；父 Realm 明文且允许 plaintext content 时，sidecar Circle MAY 为 `none`，但 UI / service description MUST 明确披露其不是 E2EE。该 profile 对 Circle 形态加了若干 sidecar-specific 约束:
+
+Sidecar Circle 的 `profile_ref` MUST 固定为 `ak.profile.agent_sidecar_thread.v1`。服务端在返回允许包含 Sidecar 的专用 get/projection 时 MUST 原样返回该字段；普通 Circle list、导航、搜索、Board、scope picker 与公开 relation expansion MUST 在读取其他可展示字段前先按该字段排除 Sidecar。客户端仍 MUST 对普通 Circle 响应执行同样的防御性过滤。缺失或未知 profile 的处理必须遵循调用 surface 的 fail-closed policy，客户端不得通过 title、short_name、成员集合或 relation kind 猜测 Sidecar 身份。
 
 `eligible_sidecar_agent(realm, controller, agent)` 是本 profile 的 membership predicate，MUST fail closed。它仅在以下条件同时成立时为 true：(1) `controller` 是 `realm` 的 active member；(2) `agent` 是 active Native Personal Agent，且其 Actor Profile / provisioning state 指向 `controller`；(3) 存在 active `ak.identity.accountability_grant`，issuer / subject / validity / revocation freshness 均通过；(4) agent lifecycle 不是 paused / deactivated，pairing 未过期，active `ak.agent.key.authorize` 与 runtime proof validator 均未被 revoke；(5) Realm policy、capability constraints、sidecar profile gate 和 controller approval 均未拒绝该 agent 进入 sidecar scope。任一输入未知、过期、未 sealed 或 freshness 不足时，predicate MUST 为 false，并使用通用 `failed_precondition` / `sidecar_create_denied` 等不泄露 sidecar 存在性的错误。
 

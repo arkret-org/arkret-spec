@@ -66,6 +66,7 @@
         "circle_id",
         "realm_id",
         "title",
+        "display",
         "directory_visibility",
         "join_rule",
         "history_visibility",
@@ -82,6 +83,11 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
+        "profile_ref": {
+          "type": "string",
+          "pattern": "^ak\\.profile\\.[a-z0-9_.-]+\\.v1$",
+          "description": "Create-locked Circle semantic profile discriminator. Ordinary Circles omit it; profile-specific Circles expose it so clients can apply mandatory filtering."
+        },
         "title": {
           "type": "string",
           "minLength": 1,
@@ -90,6 +96,9 @@
         "summary": {
           "type": "string",
           "maxLength": 2048
+        },
+        "display": {
+          "$ref": "./circle.schema.json#/$defs/display"
         },
         "directory_visibility": {
           "type": "string",
@@ -144,6 +153,15 @@
         },
         "state": {
           "$ref": "#/$defs/circle_state"
+        },
+        "member_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Exact count of active Circle members. Present only when the caller is an active Circle member; directory-only previews MUST omit it and use the privacy-bucketed preview contract instead."
+        },
+        "viewer_membership": {
+          "$ref": "#/$defs/circle_member_state",
+          "description": "The caller's own Circle membership state when one exists."
         },
         "members": {
           "type": "array",
