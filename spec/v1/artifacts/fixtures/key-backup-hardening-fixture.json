@@ -281,15 +281,15 @@
             "hkdf_sha256_subkeys": {
               "aead": {
                 "info": "arkret-key-backup/secret_storage/aead/v1",
-                "subkey_hex": "9f94a1105e9f54b3127df47a82f4db39dc289b984746304e6a62baa7b1479cbb"
+                "subkey_hex": "a11df082bc53159500eabf529fec251ab70ca86046d65d1c5d76154e3d583086"
               },
               "nonce": {
                 "info": "arkret-key-backup-aead-nonce-v1",
-                "subkey_hex": "a4b195ea9fbb45c0ac5511f6120fc28d2d745ed74b15d99b88c8ff63c3e6b677"
+                "subkey_hex": "6a03b18c2b9a41cba1efdc75f1bcf1c66a62c4450bc5f78734d65d882004eefa"
               },
               "commitment": {
                 "info": "arkret-key-backup/secret_storage/commitment/v1",
-                "subkey_hex": "086756b7c0fbacaa1f47bd947b73eab26eb3eddea40171c249175f7fd11cd883"
+                "subkey_hex": "6b1360d8a7cf5f1c1c00d6792886c62fdf2204c9735f57aa871bd35f247dd3b0"
               }
             },
             "nonce_transcript_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"aead\":\"xchacha20_poly1305\",\"aead_profile\":\"ak.aead.xchacha20_poly1305.v1\",\"backup_class\":\"secret_storage\",\"backup_id\":\"ak:backup:01964137-0000-7000-8000-000000000000\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-04-26T00:00:00Z\",\"device_id\":null,\"nonce_salt\":\"AgICAgICAgICAgICAgICAg\"}",
@@ -298,11 +298,11 @@
           "expected": {
             "aead": "xchacha20_poly1305",
             "aead_profile": "ak.aead.xchacha20_poly1305.v1",
-            "nonce_hex": "853cde5e180c03496a1c59c53033b5fa6a2a4acb0989b079",
-            "nonce_b64u": "hTzeXhgMA0lqHFnFMDO1-moqSssJibB5",
-            "ciphertext_b64u": "mMF-N_DKYu6n3so5hvuParSqDu5V-ux4zlVSfnH6I3qLIrKMqVzEmq2cOwNPDPS2BAv5j4Z7GyKjR5U",
-            "ciphertext_digest": "sha256:ba3fbe648b79c5ce629afad4960e6d9ca198a48a927f68f81a62094840f3fb8c",
-            "key_commitment": "sha256:fab0222fb7086fff89d857330ba1c3552a36fe72aced782df36807115835c5e6"
+            "nonce_hex": "d8b72ab1d573cded7c8491bd2b6929c9f5143dbaad3cf9b8",
+            "nonce_b64u": "2LcqsdVzze18hJG9K2kpyfUUPbqtPPm4",
+            "ciphertext_b64u": "frGWEnF6UZRnRLBVXqfSZz2gWZBRvSVXwqJVUYiBEcmkcyzQxfzg6MDMNsa7TXYJ7E0Tn33cRODpVrM",
+            "ciphertext_digest": "sha256:0f1cc9c4a7aac5609e865c257a03f20b04e04d4230a8c9b4c21db5c636b6b290",
+            "key_commitment": "sha256:072dc9c217ff50d8128c5ec261c28ffadd920635cc557a5f4ec43852e28827f4"
           }
         },
         {
@@ -338,15 +338,15 @@
             "hkdf_sha256_subkeys": {
               "aead": {
                 "info": "arkret-key-backup/did_recovery/aead/v1",
-                "subkey_hex": "78a0bcf070af3c9d527b801fa26e86105994346f246745e1bdc544aad445cf3e"
+                "subkey_hex": "0583f497ea28d2cb2bc193e2fbc2d5f3afb83f3528b4219c5a2fa92e80b02777"
               },
               "nonce": {
                 "info": "arkret-key-backup-aead-nonce-v1",
-                "subkey_hex": "05730f3ef7537d2ed274a945ed53a51b7af4e874541074dbf9780f82e3887e10"
+                "subkey_hex": "1aff4dfaf2236848ca0ea4c8f5aa38a1d152300bf06cf2a8d6bfc3294103ac2b"
               },
               "commitment": {
                 "info": "arkret-key-backup/did_recovery/commitment/v1",
-                "subkey_hex": "f2dc37f24f1d717c1e5a5829b41fe0b5906a11dbcc9bb3c38170e4edc3cf9ba7"
+                "subkey_hex": "d6cfc5f19962188cefbb3931a4490957875d52a13bb463a31cfaf1c0b9613d1e"
               }
             },
             "nonce_transcript_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:bob.example\",\"aead\":\"xchacha20_poly1305\",\"aead_profile\":\"ak.aead.xchacha20_poly1305.v1\",\"backup_class\":\"did_recovery\",\"backup_id\":\"ak:backup:0196419b-0000-7000-8000-000000000201\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-07-03T00:00:00Z\",\"device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"nonce_salt\":\"oKGio6SlpqeoqaqrrK2urw\"}",
@@ -355,11 +355,11 @@
           "expected": {
             "aead": "xchacha20_poly1305",
             "aead_profile": "ak.aead.xchacha20_poly1305.v1",
-            "nonce_hex": "fbe0913fbf31831433e5c618b9629f8146a9d10bad2377cb",
-            "nonce_b64u": "--CRP78xgxQz5cYYuWKfgUap0QutI3fL",
-            "ciphertext_b64u": "rLu7uY9XEvEpWjFLMzgn5ix9pzxCBXFt2uBdKiO7cpgzzzCE0MPSZ9aGND821IGtphWGT86G-7ff5ldp",
-            "ciphertext_digest": "sha256:c5ef1c9e37f0edea559e6cc61cb5f3ae212a9b5297a5d4508e5129df80353d41",
-            "key_commitment": "sha256:bb911dcda52923f03c990046f4da1989bec6e400438740212f28e940093d3fe2"
+            "nonce_hex": "6c55f614ceab5f7624b595e353ee3365e13d78c60c6fc409",
+            "nonce_b64u": "bFX2FM6rX3YktZXjU-4zZeE9eMYMb8QJ",
+            "ciphertext_b64u": "FtnjqotEYaV5p8slylele2RaIGMiizl1R-WS7T_bkEouX1IUSNMqTo1Pc1Gdp61gM8XQqXoZcZEwySjM",
+            "ciphertext_digest": "sha256:25c66451503d0ef66cf3348463c228d70cffc33d51a2d2f64477ee609f303248",
+            "key_commitment": "sha256:7bd2163685a173eab2593980614e73b9feee8beaf182633e8822733d0a6c0d4a"
           }
         }
       ],
