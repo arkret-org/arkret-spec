@@ -97,7 +97,7 @@
         "proof_invalid",
         "agent_deactivated"
       ],
-      "description": "Native personal agent runtime key pairing. 412 responses use these codes; pairing into an already-deactivated agent principal is terminal."
+      "description": "Native personal agent runtime key pairing. 412 responses use these codes; pairing into an already-deactivated agent principal is terminal. When the agent already holds active authorized keys (runtime replacement re-pairing), completion authorizes the new key and revokes every prior active key with reason=superseded_by_repairing in the same accepted transaction."
     },
     {
       "operation_id": "ak.self.agent.command.provision",
@@ -116,7 +116,7 @@
         "agent_deactivated",
         "accountability_grant_missing"
       ],
-      "description": "Re-open pairing on an agent whose runtime key was never authorized. Only `pending_runtime_key` and `pairing_expired` states are renewable; an agent that ever had an authorized key (`active` / `paused`) returns `failed_precondition` (rotate the key instead) and `deactivated` returns `agent_deactivated`. A renewed pairing MUST issue a fresh single-use `pairing_request_id` + `pairing_code` and MUST leave every previously issued handle permanently unresolvable. If the agent's slug is meanwhile bound to another active or open agent of the same controller, renewal returns `failed_precondition`. Pending grants revoked at expiry are re-issued flagged `effective_after_first_authorized_key=true`; a re-issuance failure surfaces as `accountability_grant_missing` like provision."
+      "description": "Re-open pairing on any non-terminal agent; only `deactivated` returns `agent_deactivated`. A renewed pairing MUST issue a fresh single-use `pairing_request_id` + `pairing_code` and MUST leave every previously issued handle permanently unresolvable. `pending_runtime_key` / `pairing_expired` re-open bootstrap pairing: pending grants revoked at expiry are re-issued flagged `effective_after_first_authorized_key=true`, and a re-issuance failure surfaces as `accountability_grant_missing` like provision. `active` / `paused` perform runtime replacement re-pairing: status, existing keys and grants stay untouched until the new pairing completes, at which point every prior active key is revoked with reason=superseded_by_repairing; handle expiry has no side effects. If the agent's slug is meanwhile bound to another active or open agent of the same controller, renewal returns `failed_precondition`."
     },
     {
       "operation_id": "ak.self.agent.query.list",
@@ -162,18 +162,6 @@
         "failed_precondition"
       ],
       "description": "agent_deactivated is returned for idempotent re-deactivation of an already-terminal agent."
-    },
-    {
-      "operation_id": "ak.self.agent.command.rotate_key",
-      "http_alias": "POST /_arkret/self/agents/{agent_id}/rotate-key",
-      "operation_specific": [
-        "agent_paused",
-        "agent_deactivated",
-        "verification_method_principal_mismatch",
-        "proof_invalid",
-        "failed_precondition"
-      ],
-      "description": "Wire op ak.self.agent.command.rotate_key corresponds to event kind ak.agent.key.rotate; rotation MUST NOT widen scope or extend the retiring key's TTL."
     },
     {
       "operation_id": "ak.self.agent.grant.command.attach",

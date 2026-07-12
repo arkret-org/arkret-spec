@@ -438,7 +438,6 @@
               "ak.actor.discovery",
               "ak.agent.key.authorize",
               "ak.agent.key.revoke",
-              "ak.agent.key.rotate",
               "ak.applet.bridge_error",
               "ak.applet.discovery",
               "ak.applet.interop_session.start",
@@ -2032,25 +2031,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/agent_key_revoke_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.agent.key.rotate"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/agent_key_rotate_payload"
           }
         }
       }

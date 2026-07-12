@@ -30,12 +30,12 @@ sidebar:
 
 该面描述的是 agent runtime 向自身部署汇报的外部 A2A / ACP / MCP endpoint 与会话
 metadata，不是 Arkret 问责链成立的前提。Agent 写入的问责由 controller 授权的 key、
-事件签名、`agent_context` 与 accountability grant 闭环承担。Runtime 对端配置属于 runtime
-本地配置；若需向部署汇报，使用 actor-private Account Data 或部署本地 API，不新增 Arkret
-协议对象。
+事件签名、`executed_by` / `authorization_ref` / reducer-stamped `actor_kind` 署名与
+accountability grant 闭环承担（见 [`../models/event-and-patch.md`](../models/event-and-patch.md)）。
+Runtime 对端配置属于 runtime 本地配置；若需向部署汇报，使用 actor-private Account Data
+或部署本地 API，不新增 Arkret 协议对象。
 
-`ak.applet.interop_session.*` 是 applet bridge 的独立机制，不受本次退出影响；
-`agent_context` 仍是规范的审计上下文。
+`ak.applet.interop_session.*` 是 applet bridge 的独立机制，不受本次退出影响。
 
 ## 重新立项条件
 

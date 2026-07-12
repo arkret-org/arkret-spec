@@ -59,12 +59,6 @@
       "$ref": "#/$defs/agent_deactivate_request_body"
     },
     {
-      "$ref": "#/$defs/agent_rotate_key_request_body"
-    },
-    {
-      "$ref": "#/$defs/agent_rotate_key_outcome"
-    },
-    {
       "$ref": "#/$defs/agent_grant_attach_request_body"
     },
     {
@@ -666,7 +660,7 @@
     },
     "agent_renew_pairing_request_body": {
       "type": "object",
-      "description": "Re-open pairing on an agent whose runtime key was never authorized (pending_runtime_key or pairing_expired). The service issues a fresh one-time pairing_request_id + pairing_code; every previously issued pairing handle for the agent becomes permanently unresolvable.",
+      "description": "Re-open pairing on any non-terminal agent. The service issues a fresh one-time pairing_request_id + pairing_code; every previously issued pairing handle for the agent becomes permanently unresolvable. pending_runtime_key / pairing_expired re-open bootstrap pairing; active / paused perform runtime replacement re-pairing (existing keys stay valid until the new pairing completes, then are revoked with reason=superseded_by_repairing). deactivated rejects.",
       "properties": {
         "pairing_ttl_ms": {
           "type": "integer",
@@ -803,39 +797,6 @@
     },
     "agent_lifecycle_state": {
       "$ref": "#/$defs/operation_status_outcome"
-    },
-    "agent_rotate_key_request_body": {
-      "type": "object",
-      "required": [
-        "replacement_key",
-        "proof_of_possession"
-      ],
-      "properties": {
-        "replacement_key": {
-          "$ref": "#/$defs/public_key"
-        },
-        "proof_of_possession": {
-          "$ref": "#/$defs/proof"
-        }
-      },
-      "additionalProperties": false
-    },
-    "agent_rotate_key_outcome": {
-      "type": "object",
-      "required": [
-        "ok",
-        "authorized_event_ref"
-      ],
-      "properties": {
-        "ok": {
-          "type": "boolean",
-          "const": true
-        },
-        "authorized_event_ref": {
-          "$ref": "#/$defs/event_id"
-        }
-      },
-      "additionalProperties": false
     },
     "agent_grant_attach_request_body": {
       "type": "object",

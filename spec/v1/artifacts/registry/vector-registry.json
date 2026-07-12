@@ -145,6 +145,30 @@
       ]
     },
     {
+      "vector_id": "ak.vector.agent.repairing_supersede.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.agent.longevity_no_expiry.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.agent.participation.ceiling_tighten.v1",
       "status": "active",
       "domain": "agent",

@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.personal_agent_provisioning.v1",
-  "version": "2026-06-19",
+  "version": "2026-07-12",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -9,6 +9,8 @@
   "covers_vectors": [
     "ak.vector.agent.provision.v1",
     "ak.vector.agent.pairing_expiry.v1",
+    "ak.vector.agent.repairing_supersede.v1",
+    "ak.vector.agent.longevity_no_expiry.v1",
     "ak.vector.agent.controller_lifecycle.v1",
     "ak.vector.agent.act_on_behalf.v1",
     "ak.vector.agent.session_grant.replay.v1",
@@ -34,6 +36,32 @@
         "agent key-pair operation id remains ak.gate.account.command.pair_agent_key",
         "expired pairing requests fail with pairing_request_expired",
         "DID mismatch, invalid proof, expired pairing, and deactivated agent errors are all pinned"
+      ]
+    },
+    {
+      "name": "agent_repairing_supersede",
+      "vector_id": "ak.vector.agent.repairing_supersede.v1",
+      "runner": "cotest::conformance::agent_vectors::run_agent_repairing_supersede_vector",
+      "assertions": [
+        "renew_pairing on an active or paused agent leaves status, existing keys, and grants untouched",
+        "issuing a new pairing handle makes every previous handle permanently unresolvable",
+        "pair completion authorizes the new key and revokes every prior active key with reason superseded_by_repairing in the same accepted transaction",
+        "sessions issued from superseded keys fail closed within the revocation freshness window",
+        "replacement handle expiry has no side effects and never yields pairing_expired on a previously keyed agent",
+        "renew_pairing on a deactivated agent fails with failed_precondition"
+      ]
+    },
+    {
+      "name": "agent_longevity_no_expiry",
+      "vector_id": "ak.vector.agent.longevity_no_expiry.v1",
+      "runner": "cotest::conformance::agent_vectors::run_agent_longevity_no_expiry_vector",
+      "assertions": [
+        "agent key authorization without expires_at is accepted and remains valid until revoked",
+        "accountability grant without expires_at is accepted and verifies accountable_principal_ids",
+        "low and medium risk agent grants without temporal constraints are accepted",
+        "session issuance long after provisioning succeeds while the chain is unrevoked",
+        "pause fails closed new sessions and invalidates issued sessions within the freshness window",
+        "high risk agent grants without expires_at fail with failed_precondition"
       ]
     },
     {

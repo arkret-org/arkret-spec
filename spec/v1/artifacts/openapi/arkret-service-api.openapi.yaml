@@ -343,10 +343,6 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_request_body
     AgentResumeRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_resume_request_body
-    AgentRotateKeyOutcome:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_rotate_key_outcome
-    AgentRotateKeyRequestBody:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_rotate_key_request_body
     AgentRuntimeApprovalOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome
     AgentRuntimeApprovalRequestBody:
@@ -7570,7 +7566,7 @@ paths:
   /_arkret/self/agents/{agent_id}/renew-pairing:
     post:
       operationId: ak.self.agent.command.renew_pairing
-      description: Re-open pairing on a never-activated agent (pending_runtime_key or pairing_expired) with a fresh single-use pairing handle; all previously issued handles stay permanently unresolvable.
+      description: Re-open pairing on any non-terminal agent with a fresh single-use pairing handle; all previously issued handles stay permanently unresolvable. pending_runtime_key/pairing_expired re-open bootstrap pairing (re-issuing pending grants when needed); active/paused perform runtime replacement re-pairing (status, existing keys and grants stay untouched until the new pairing completes, at which point every prior active key is revoked with reason=superseded_by_repairing). deactivated rejects.
       security:
       - bearerAuth: []
       parameters:
@@ -7667,31 +7663,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentDeactivateRequestBody'
-  /_arkret/self/agents/{agent_id}/rotate-key:
-    post:
-      operationId: ak.self.agent.command.rotate_key
-      description: Rotate the active runtime key for a native personal agent.
-      security:
-      - bearerAuth: []
-      parameters:
-      - in: path
-        name: agent_id
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Agent key rotated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentRotateKeyOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AgentRotateKeyRequestBody'
   /_arkret/self/agents/{agent_id}/grants:
     post:
       operationId: ak.self.agent.grant.command.attach

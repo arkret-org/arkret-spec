@@ -2436,6 +2436,7 @@
       ],
       "required_endpoints": [
         "ak.self.agent.command.provision",
+        "ak.self.agent.command.renew_pairing",
         "ak.gate.account.command.pair_agent_key",
         "ak.self.events.command.submit",
         "ak.self.events.query.scan"
@@ -2444,7 +2445,6 @@
         "ak.profile.create",
         "ak.identity.accountability_grant",
         "ak.agent.key.authorize",
-        "ak.agent.key.rotate",
         "ak.agent.key.revoke",
         "ak.self.agent.pause",
         "ak.self.agent.resume",

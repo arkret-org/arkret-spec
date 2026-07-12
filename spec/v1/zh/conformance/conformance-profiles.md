@@ -603,10 +603,12 @@ SHOULD 支持：
 
 MUST 支持:
 - `POST /_arkret/self/agents` (`ak.self.agent.command.provision`) 编排 Actor Profile + `ak.identity.accountability_grant` + 初始 `ak.capability.grant`(带 `effective_after_first_authorized_key=true` flag)+ pairing request
-- `POST /_arkret/gate/account/agent-key-pair` (`ak.gate.account.command.pair_agent_key`) 校验 `verification_method` 与 `agent_id` 一致性后写入 `ak.agent.key.authorize`,清除 effective_after_first_authorized_key
-- Provisioning `status` 枚举:`pending_runtime_key` / `active` / `paused` / `pairing_expired` / `deactivated`
-- Pairing expiry 自动 `ak.capability.revoke` pending grants
-- Agent management operations(list/get/pause/resume/deactivate/rotate-key/grant attach/detach)写入 durable lifecycle events
+- `POST /_arkret/gate/account/agent-key-pair` (`ak.gate.account.command.pair_agent_key`) 校验 `verification_method` 与 `agent_id` 一致性后写入 `ak.agent.key.authorize`,清除 effective_after_first_authorized_key;agent 已有 active key 时(runtime replacement re-pairing)在同一接受事务中以 reason=`superseded_by_repairing` 撤销全部既有 active key
+- Provisioning `status` 枚举:`pending_runtime_key` / `active` / `paused` / `pairing_expired` / `deactivated`(`pairing_expired` 仅描述从未完成首次配对的 agent;`active` / `paused` 上的 open re-pairing handle 是属性而非状态)
+- Pairing expiry 自动 `ak.capability.revoke` pending grants(仅 bootstrap pairing;runtime replacement handle 过期无副作用)
+- `POST /_arkret/self/agents/{agent_id}/renew-pairing` (`ak.self.agent.command.renew_pairing`) 对任何非 terminal agent 重开 pairing(bootstrap 重开 / runtime replacement 两种语义，见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))
+- Agent management operations(list/get/renew-pairing/pause/resume/deactivate/grant attach/detach)写入 durable lifecycle events
+- Longevity-safe 授权链:`ak.agent.key.authorize`、`ak.identity.accountability_grant` 与非 registry-required 的 agent capability grant 的 `expires_at` 均可缺省(revocation-governed);实现 MUST NOT 因缺省 `expires_at` 拒绝这些对象
 - Agent provision request 与 list/get projection 使用必填固有字段 `slug`；native personal agent selector claim `ak.schema.agent_selector_claim.v1` 与 Actor Profile 投影 hint 使用外部引用字段 `agent_slug`，并支持 `@<controller-handle>/<agent_slug>` 输入别名到 agent `subject_id` 的唯一解析；slug 不是 handle、公开 Directory search/list key 或授权主体
 - Draft-only family:`ak.agent.draft.propose` / `ak.agent.action_request` / `ak.agent.action_approve` / `ak.agent.action_reject`,materialize 为 controller-owned `ak.agent.draft.v1` encrypted account-data
 - Draft approval 状态机:`proposed → approved → published`,approval nonce atomic consume

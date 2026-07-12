@@ -381,7 +381,6 @@
         "ak.self.agent.command.pause",
         "ak.self.agent.command.resume",
         "ak.self.agent.command.deactivate",
-        "ak.self.agent.command.rotate_key",
         "ak.self.agent.grant.command.attach",
         "ak.self.agent.grant.resource.delete",
         "ak.self.agent.sidecar_thread.command.ensure",
@@ -630,21 +629,6 @@
       },
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state"
-    },
-    {
-      "operation_id": "ak.self.agent.command.rotate_key",
-      "http": "POST /_arkret/self/agents/{agent_id}/rotate-key",
-      "grpc": "SelfAgent/RotateKey",
-      "mq": "self.agent.command.rotate_key",
-      "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "none",
-      "retry_safe": false,
-      "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.self.agent.resource.get"
-      },
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_rotate_key_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_rotate_key_outcome"
     },
     {
       "operation_id": "ak.self.agent.grant.command.attach",

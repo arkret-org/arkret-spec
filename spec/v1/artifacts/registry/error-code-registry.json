@@ -2652,6 +2652,43 @@
       "description": "A request supplied a `verification_method` whose DID component does not bit-identically match the target principal id after stripping fragment/query. Surfaces in two places. (1) `ak.gate.account.command.pair_agent_key`: `verification_method` vs `agent_id`. (2) `ak.gate.account.command.issue_session_grant` agent branch (`proof.proof_kind=\"agent_key_proof\"`): `proof.verification_method` vs request `principal_id`. Endpoints MUST fail closed before invoking the proof validator so that mismatch is reported as this code rather than as a generic signature failure. See zh/identity/key-management.md \u00a73.6.1."
     },
     {
+      "code": "agent_grant_expiry_required",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "A capability grant whose subject is an agent/service principal carries a risk_tier=high action (or an action whose registry required_constraints demand expires_at) without a finite effective expiry. capabilities.md §8: low/medium-risk agent grants may be non-expiring (revocation-governed), high-risk agent grants MUST carry a finite expires_at; the reducer rejects with failed_precondition."
+    },
+    {
+      "code": "agent_grant_constraint_missing",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "A capability grant whose subject is an agent/service principal is missing a typed constraint listed in the action's capability-action-registry required_constraints (for example allowed_strand_ids on ak.agent.sidecar_thread.write). The reducer rejects with failed_precondition."
+    },
+    {
+      "code": "agent_key_authorization_expired",
+      "applies_to": [
+        "auth_decision"
+      ],
+      "description": "Agent session issuance rejected because the referenced ak.agent.key.authorize declared an expires_at that has elapsed. Distinct from proof_invalid (malformed / unverifiable proof): the runtime should prompt the controller to re-authorize the same key (same-key re-authorization, zh/identity/key-management.md §3.6) rather than rebuild the proof. Never returned for non-expiring (absent expires_at) authorizations."
+    },
+    {
+      "code": "superseded_by_repairing",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "ak.agent.key.revoke reason stamped when runtime replacement re-pairing authorizes a new agent key: every prior active key of the agent is revoked in the same accepted transaction that writes the new ak.agent.key.authorize. Sessions issued from superseded keys MUST fail closed within the revocation freshness window. See zh/identity/key-management.md §3.6.1."
+    },
+    {
+      "code": "pairing_expired",
+      "applies_to": [
+        "auth_decision",
+        "event_envelope"
+      ],
+      "description": "Agent bootstrap pairing window elapsed before the first runtime key authorization completed: the service auto-revokes the pending effective_after_first_authorized_key grants (session/grant revoke reason) and the agent provisioning status projection reports pairing_expired. Never applies to previously keyed agents: an expired runtime replacement re-pairing handle has no side effects. See zh/identity/account-lifecycle.md §9.1 and zh/identity/key-management.md §3.6.1."
+    },
+    {
       "code": "pairing_request_expired",
       "applies_to": [
         "auth_decision",

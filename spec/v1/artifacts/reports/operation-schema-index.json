@@ -557,36 +557,6 @@
       }
     },
     {
-      "operation_id": "ak.self.agent.command.rotate_key",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_rotate_key_request_body",
-        "schema_kind": "object",
-        "required": [
-          "replacement_key",
-          "proof_of_possession"
-        ],
-        "properties": [
-          "replacement_key",
-          "proof_of_possession"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_rotate_key_outcome",
-        "schema_kind": "object",
-        "required": [
-          "ok",
-          "authorized_event_ref"
-        ],
-        "properties": [
-          "ok",
-          "authorized_event_ref"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.self.agent.grant.command.attach",
       "success_shape_kind": "typed_response",
       "request": {

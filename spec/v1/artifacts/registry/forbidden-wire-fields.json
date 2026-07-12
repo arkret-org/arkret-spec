@@ -933,13 +933,26 @@
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ak.agent.key.rotate",
+      "replacement": "runtime replacement re-pairing: ak.agent.key.authorize (new key) + ak.agent.key.revoke (reason=superseded_by_repairing) in the same accepted transaction",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
       "notes": "Past-participle agent key event kind is removed."
+    },
+    {
+      "id": "ak.agent.key.rotate",
+      "context": "event_kind",
+      "since_revision": "2026-07-12",
+      "rejection_level": "hard_reject",
+      "replacement": "runtime replacement re-pairing: ak.agent.key.authorize (new key) + ak.agent.key.revoke (reason=superseded_by_repairing) in the same accepted transaction",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Dedicated agent key rotate event kind is removed; key replacement is expressed exclusively through re-pairing supersede semantics (zh/identity/key-management.md §3.6.1)."
     },
     {
       "id": "ak.device.authorized",

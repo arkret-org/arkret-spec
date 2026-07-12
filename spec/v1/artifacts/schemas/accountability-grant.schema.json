@@ -10,7 +10,6 @@
     "subject",
     "accountability_scope",
     "not_before",
-    "expires_at",
     "grant_status",
     "proof"
   ],
@@ -46,7 +45,8 @@
       "$ref": "#/$defs/timestamp"
     },
     "expires_at": {
-      "$ref": "#/$defs/timestamp"
+      "$ref": "#/$defs/timestamp",
+      "description": "Optional: absent means the accountability grant is non-expiring and governed by grant_status revocation and controller lifecycle cascade."
     },
     "grant_status": {
       "type": "string",

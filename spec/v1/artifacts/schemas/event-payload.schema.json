@@ -4245,7 +4245,6 @@
         "agent_key_scope",
         "audience",
         "issued_at",
-        "expires_at",
         "approval_evidence"
       ],
       "properties": {
@@ -4275,7 +4274,8 @@
           "$ref": "#/$defs/timestamp"
         },
         "expires_at": {
-          "$ref": "#/$defs/timestamp"
+          "$ref": "#/$defs/timestamp",
+          "description": "Optional: absent means the key authorization is non-expiring and governed solely by revocation (ak.agent.key.revoke / lifecycle cascade)."
         },
         "approval_evidence": {
           "$ref": "#/$defs/agent_key_approval_evidence"
@@ -4345,61 +4345,6 @@
         "reason": {
           "type": "string",
           "maxLength": 1024
-        }
-      },
-      "additionalProperties": false
-    },
-    "agent_key_rotate_payload": {
-      "type": "object",
-      "description": "Payload for ak.agent.key.rotate. key_id names the retiring key used as the cell subject; replacement_key_id names the new key. Reducers MUST verify the accountable_principal_id is unchanged, agent_key_scope is equivalent or narrower, and expires_at does not extend the retiring key's effective TTL.",
-      "required": [
-        "agent_id",
-        "key_id",
-        "replacement_key_id",
-        "replacement_verification_method",
-        "accountable_principal_id",
-        "agent_key_scope",
-        "audience",
-        "issued_at",
-        "expires_at",
-        "approval_evidence"
-      ],
-      "properties": {
-        "agent_id": {
-          "$ref": "#/$defs/did"
-        },
-        "key_id": {
-          "$ref": "#/$defs/agent_key_id"
-        },
-        "replacement_key_id": {
-          "$ref": "#/$defs/agent_key_id"
-        },
-        "replacement_verification_method": {
-          "$ref": "#/$defs/verification_method"
-        },
-        "replacement_public_key_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "accountable_principal_id": {
-          "$ref": "#/$defs/did"
-        },
-        "agent_key_scope": {
-          "$ref": "#/$defs/agent_key_scope"
-        },
-        "audience": {
-          "$ref": "#/$defs/string_list"
-        },
-        "issued_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "expires_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "approval_evidence": {
-          "$ref": "#/$defs/agent_key_approval_evidence"
-        },
-        "previous_authorization_ref": {
-          "$ref": "#/$defs/event_ref"
         }
       },
       "additionalProperties": false

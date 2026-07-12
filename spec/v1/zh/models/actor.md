@@ -90,7 +90,7 @@ Schema id: `ak.schema.actor_profile.v1`
 
 因此 reducer **MUST** 校验:
 
-1. 写入 / 更新 `Actor Profile.accountable_principal_ids[]` 的 Event 提交时,reducer MUST 解析数组中**每个** DID,并检查是否存在已 sealed 的 `ak.identity.accountability_grant` event,其 `issuer = <该 DID>`、`subject = profile.principal_id`、`grant_status = "active"`、`not_before <= now <= expires_at`。
+1. 写入 / 更新 `Actor Profile.accountable_principal_ids[]` 的 Event 提交时,reducer MUST 解析数组中**每个** DID,并检查是否存在已 sealed 的 `ak.identity.accountability_grant` event,其 `issuer = <该 DID>`、`subject = profile.principal_id`、`grant_status = "active"`、`not_before <= now`,且若声明了 `expires_at` 则 `now <= expires_at`。
 2. 不存在对应 grant 的 DID 条目 MUST 被 reducer 从 accountable_principal_ids 中剔除(或整个 Event 以 `failed_precondition` reason=`accountability_grant_missing` 拒绝；部署 policy 可选其一，默认推荐"剔除 + audit log",见下方)。
 3. accountability grant 被签发方 revoke 后,reducer **SHOULD** 在 freshness 窗口(默认 ≤ 1 小时)内把对应 actor profile 的 `accountable_principal_ids[]` 中该条目降级为 `unverified`(projection 层标记),并在下次 actor profile update 时移除。
 
@@ -104,7 +104,7 @@ Schema id: `ak.schema.actor_profile.v1`
 | `subject` | did | 被担保的 actor principal(actor profile 的 `principal_id`) |
 | `accountability_scope` | string \| array | 担保范围(例如 `"employment"` / `"contracted_service"` / `"agent_operator"`);仅供 UI 与 governance 展示，不参与授权 |
 | `not_before` | timestamp | 担保起始时间 |
-| `expires_at` | timestamp | 担保到期；过期后视作 unverified |
+| `expires_at` | timestamp（可选） | 担保到期；过期后视作 unverified。缺省表示不设时间过期，由 `grant_status` 撤销与 controller lifecycle 级联治理;native personal agent 的 controller 自担保 SHOULD 缺省不声明 `expires_at`,避免静默失效悬崖（见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md)） |
 | `grant_status` | enum(active, revoked) | issuer 主动 revoke 改为 `revoked` |
 | `proof` | object | 由 `issuer` 的 active authentication key 签发 |
 

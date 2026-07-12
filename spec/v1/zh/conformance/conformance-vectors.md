@@ -3341,7 +3341,51 @@ Expected:
 
 - 服务 MUST 自动写入 `ak.capability.revoke` 撤销 pending grant,agent status → `pairing_expired`。
 - 重放 `ak.gate.account.command.pair_agent_key`(使用过期 pairing_request_id)MUST fail closed。
-- Controller 可重新发起 `ak.self.agent.command.provision`，得到新 pairing_request_id；旧 agent_id 与新 provisioning 不复用。
+- Controller 可通过 `ak.self.agent.command.renew_pairing` 对同一 agent principal 原地重开 pairing(bootstrap 重开，重发 pending grant),也可重新发起 `ak.self.agent.command.provision`;后者得到新 agent_id,旧 agent_id 与新 provisioning 不复用。
+
+### 11.2.1 Vector: Runtime Replacement Re-pairing Supersede
+
+`vector_id`: `ak.vector.agent.repairing_supersede.v1`
+
+Preconditions:
+
+- Agent `A` status `active`,持有 authorized key `K1`(`ak.agent.key.authorize`),`K1` 签发的 session grant `S1` 未过期。
+
+Steps:
+
+1. Controller 调用 `ak.self.agent.command.renew_pairing`(agent 状态 `active`),得到新一次性 `pairing_request_id` + `pairing_code`。
+2. 在新 pairing 完成前,runtime 用 `K1` 正常签发 session 并执行 capability action。
+3. 新 runtime 生成 key `K2` 提交 runtime-key-request,controller 签 `ak.agent.key.authorize`(K2)并调用 `ak.gate.account.command.pair_agent_key` 完成配对。
+4. 用 `K1` 再次请求 `agent_key_proof` session grant;`S1` 在 freshness window 后被使用。
+5. 变体 A:第 1 步的 handle 过期，未走到第 3 步。
+6. 变体 B:agent 已 `deactivated`,controller 调用 renew_pairing。
+
+Expected:
+
+- 第 1 步 MUST NOT 改变 agent status、既有 key 或 grant;此前所有 pairing handle 永久不可解析。
+- 第 2 步 MUST 成功(零停机:replacement 期间旧 key 有效)。
+- 第 3 步 MUST 在同一接受事务中写入 `ak.agent.key.authorize`(K2)与 `ak.agent.key.revoke`(K1, reason=`superseded_by_repairing`);capability grants 不受影响。
+- 第 4 步 MUST fail closed:`K1` 的新 session 请求拒绝;`S1` MUST 在 revocation freshness window 内 fail closed,MUST NOT 自然存活到原 TTL。
+- 变体 A:无任何副作用,agent 保持 `active`、`K1` 有效;`pairing_expired` MUST NOT 出现在曾持钥 agent 上。
+- 变体 B:MUST `failed_precondition`(terminal 状态拒绝续期)。
+
+### 11.2.2 Vector: Longevity-safe Authorization Chain(No Expiry Cliffs)
+
+`vector_id`: `ak.vector.agent.longevity_no_expiry.v1`
+
+Steps:
+
+1. Controller provision agent,`ak.identity.accountability_grant` 不声明 `expires_at`,`ak.agent.key.authorize` 不声明 `expires_at`,授予不带 temporal constraint 的低风险内容 grant(如 `ak.agent.draft.propose` + 显式 resource selector)。
+2. 模拟长时间推移(超过任何常见部署 TTL,如 400 天)后,runtime 用 authorized key 签发 session 并执行 grant 内动作。
+3. Controller 执行 `ak.self.agent.command.pause`。
+4. 提交 `risk_tier=high` action 的 agent grant(如 act-on-behalf 链路)但不带 `expires_at`。
+
+Expected:
+
+- 第 1 步 reducer MUST 接受:缺省 `expires_at` 的 key authorization / accountability grant / 低风险 agent grant 均合法(revocation-governed),MUST NOT 以 `failed_precondition` reason=缺失过期拒绝;Actor Profile `accountable_principal_ids` 校验把无 `expires_at` 的 active grant 判为 verified。
+- 第 2 步 MUST 成功:授权链上没有任何静默定时器;session 签发仍逐次校验未撤销 / status / scope / audience。
+- 第 3 步后新 session MUST 拒绝，已签发 session 在 freshness window(SHOULD ≤ 60s)内 fail closed——kill switch 是唯一失效路径的证明。
+- 第 4 步 reducer MUST `failed_precondition`:高风险 action 的 grant 仍然强制有限 `expires_at`(§8 风险分层硬约束不因 longevity 放宽)。
 
 ### 11.3 Vector: Agent Session Grant Replay Protection
 

@@ -59,7 +59,6 @@ grpc:
       Pause: ak.self.agent.command.pause
       Resume: ak.self.agent.command.resume
       Deactivate: ak.self.agent.command.deactivate
-      RotateKey: ak.self.agent.command.rotate_key
       GrantAttach: ak.self.agent.grant.command.attach
       GrantDetach: ak.self.agent.grant.resource.delete
       SidecarThreadEnsure: ak.self.agent.sidecar_thread.command.ensure
@@ -309,7 +308,6 @@ mq:
     self.agent.command.pause: ak.self.agent.command.pause
     self.agent.command.resume: ak.self.agent.command.resume
     self.agent.command.deactivate: ak.self.agent.command.deactivate
-    self.agent.command.rotate_key: ak.self.agent.command.rotate_key
     self.agent.grant.command.attach: ak.self.agent.grant.command.attach
     self.agent.grant.resource.delete: ak.self.agent.grant.resource.delete
     self.agent.sidecar_thread.command.ensure: ak.self.agent.sidecar_thread.command.ensure

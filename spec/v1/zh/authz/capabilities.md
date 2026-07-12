@@ -296,13 +296,15 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.capability.delegate`
 - `ak.capability.derived`（risk_tier=medium；记录从 parent grant 机械派生出的 child grant 记录，target=`ak.capability.derived`。与 `ak.capability.delegate` 的区别：`delegate` 是“主体主动再授权第三方”的授权动作，`derived` 仅承载 reducer / 工具按既有委托规则物化出的派生 grant 记录，不引入新的授权意图）
 - `ak.capability.revoke`
-- `ak.agent.key.authorize`（high risk；授权 agent key，target=`ak.agent.key.authorize`）
-- `ak.agent.key.rotate`（high risk；轮换 agent key，target=`ak.agent.key.rotate`）
+- `ak.agent.key.authorize`（high risk；授权 agent key，target=`ak.agent.key.authorize`。key 替换不设独立 rotate action:runtime replacement re-pairing 在同一接受事务中 authorize 新 key 并 revoke 旧 key,见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md)）
 - `ak.agent.key.revoke`（high risk；撤销 agent key，target=`ak.agent.key.revoke`）
 - `ak.self.agent.command.provision`(aggregate admin action,`target_event_kinds=[ak.profile.create, ak.identity.accountability_grant, ak.agent.key.authorize, ak.capability.grant]`,profile=`ak.profile.personal_agent_provisioning.v1`)
+- `ak.self.agent.command.renew_pairing`(controller-only,high risk;重开 pairing handle,对 `active` / `paused` agent 即 runtime replacement 入口;target=`ak.self.agent.command.renew_pairing`,语义见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))
 - `ak.self.agent.command.pause`(controller-only;target=`ak.self.agent.command.pause`)
 - `ak.self.agent.command.resume`(controller-only;target=`ak.self.agent.command.resume`)
 - `ak.self.agent.command.deactivate`(controller-only,terminal;target=`ak.self.agent.command.deactivate`,fan-out 见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
+- `ak.self.agent.grant.command.attach`(controller-only,high risk;为 agent 附加 capability grant,`target_event_kinds=[ak.capability.grant]`;grant subject MUST 是该 agent principal 且 MUST NOT 超过 controller 可委托范围)
+- `ak.self.agent.grant.resource.delete`(controller-only,medium risk;撤销 agent capability grant,`target_event_kinds=[ak.capability.revoke]`;撤销后后续 agent action proof MUST fail closed)
 - `ak.agent.draft.propose`(agent-initiated draft;target=`ak.agent.draft.propose`,wire_scope=`actor_private_event`)
 - `ak.agent.action_request`(agent-initiated action request;target=`ak.agent.action_request`)
 - `ak.agent.action_approve`(controller-only;target=`ak.agent.action_approve`)
@@ -590,7 +592,8 @@ Capability 必须支持“有直接身份但需要责任主体/监护主体/控�
 
 - `risk_tier=high` 的 action MUST 有 `expires_at`、resource selector narrowing、authorization evidence ref 与 audit evidence。
 - 对需要更高保证的 high-risk action，profile MAY 要求显式 approval / proposal workflow、默认 `delegable=false`、更短 child grant TTL、不可扩大 scope 和 approver DID 记录；该要求 MUST NOT 通过 registry 未定义的第四级风险字符串表达。
-- Agent / service principal 的 grant 无论 action 风险级别如何，默认 MUST 有最大 TTL 与 resource selector；缺失时 reducer MUST `failed_precondition`。
+- Agent / service principal 的 grant 无论 action 风险级别如何，默认 MUST 有 resource selector；缺失时 reducer MUST `failed_precondition`。
+- Agent / service principal 的 grant 的 `expires_at` 分层要求:`risk_tier=high` 的 action 按上文风险分层硬约束 MUST 有有限 `expires_at`;registry `required_constraints` 列出 `expires_at` 的 action(如 `ak.agent.sidecar_thread.publish`)同样 MUST,缺失时 reducer MUST `failed_precondition`。**低 / 中风险** action 的 agent grant MAY 不设时间过期(longevity-safe:失效控制由撤销链、pause / deactivate kill switch 与 controller lifecycle / membership 级联承担，见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md));agent 的常驻工作面(read / draft / reply_as_agent / organizer)全部落在该层，因此配对完成后的持续在线不依赖任何 grant 定时器。
 
 ### 8.1 Proposal 模式
 
@@ -608,7 +611,7 @@ system/human -> `ak.strand.update` 或 `ak.morph.update`
 
 - 只授予明确 Realm / Strand / Message / Morph / View 范围。
 - 只授予所需动作。
-- 只授予有限时效。
+- 对 registry 要求 `expires_at` 的高风险 action 授予有限时效；其余 action 以撤销链与 lifecycle 级联为失效控制（§8）。
 - 只授予该 agent 任务所需的最小可写字段、可写 track 和可写 Morph 类型集合。
 - 对 high action 按 action registry 与 profile 要求 controller / responsible actor approval。
 
@@ -616,7 +619,7 @@ system/human -> `ak.strand.update` 或 `ak.morph.update`
 
 - 给 agent 长期全 Realm 管理权。
 - 让 agent 直接继承 human owner 全权限。
-- 不设过期时间。
+- registry 要求有限时效的高风险 action 不设过期时间。
 - 不保留 agent 执行审计链。
 - 高风险操作不需要 approval。
 
@@ -637,7 +640,7 @@ canonical 展开表:
 | --- | --- | --- | --- | --- |
 | `read` | `ak.event.read` | 显式 resource selector(MUST) | 显式 Realm / Strand / Circle scope,MUST NOT Realm-wide 无约束 | 授予**内容层**事件投影读能力。`ak.event.read` 是 `non_event_surface` 的内容读能力,**MUST NOT** 被解释为授予 events 服务面本身——agent 要真正调用 events 查询 / 订阅 endpoint,其 **session 还 MUST 携带对应服务面 scope**(`ak.self.events.query.scan` / `ak.self.events.stream.subscribe`,§5.5;见下方「服务面 scope 与内容能力分层」)。二者按 **AND** 组合:读取 surface 由服务面 scope 授权,payload 由 `ak.event.read` + membership / history visibility 授权(见 [`../models/relation.md` §4.2](../models/relation.md))。**MUST NOT** 隐含 object content/history 读取、`ak.object.read*`、`ak.strand.read`、E2EE history key 或 MLS membership。 |
 | `read_content` / `read_history` | `ak.object.read_content` / `ak.object.read_history`(按需分别授予) | 显式 resource selector(MUST) | 同上 | 对象正文 / 历史读取是**独立的 additive 预设**,不折叠进 `read`。实现若需要"读事件+读正文",MUST 分别授予这些 action,而不是扩大 `read` 的展开集合。 |
-| `draft` | `ak.agent.draft.propose`, `ak.agent.action_request` | `expires_at`(MUST,registry required) | controller-private control surface | 允许 agent 提出候选草稿 / 动作请求，由 Principal Server materialize controller-owned `ak.agent.draft.v1` account-data(见 [`../models/private-objects.md` §4.1](../models/private-objects.md))。两个 action 均 profile-gated 于 `ak.profile.personal_agent_provisioning.v1`。**MUST NOT** 直接发布到 shared Realm / Strand(不得展开为 `ak.message.create` / `ak.strand.create` 或任何 `wire_scope=durable_event`)。 |
+| `draft` | `ak.agent.draft.propose`, `ak.agent.action_request` | —(revocation-governed;`expires_at` MAY 由部署 / controller 策略添加) | controller-private control surface | 允许 agent 提出候选草稿 / 动作请求，由 Principal Server materialize controller-owned `ak.agent.draft.v1` account-data(见 [`../models/private-objects.md` §4.1](../models/private-objects.md))。两个 action 均 profile-gated 于 `ak.profile.personal_agent_provisioning.v1`。**MUST NOT** 直接发布到 shared Realm / Strand(不得展开为 `ak.message.create` / `ak.strand.create` 或任何 `wire_scope=durable_event`)。 |
 | `reply_as_agent` | `ak.message.create`, `ak.reaction.add` | 显式 resource selector(MUST) | 显式 Strand / Circle scope | agent 以自身 principal identity 在授权 scope 内发消息 / 加反应。 |
 | `act_on_behalf` | `ak.message.create`(及选定 workflow actions) | controller approval / accountability 证据(MUST,见 §8)+ 有限 `expires_at`(MUST)+ resource selector narrowing + audit evidence ref | 显式 scope,MUST NOT 全 Realm 无约束 | **高风险。** `actor_id` 为 controller、`executed_by` 为 agent 的 accountable-actor 授权(§8)。MUST 携带 controller approval / accountability 约束,MUST NOT 仅做 action union。 |
 | `organizer` | `ak.strand.create`, `ak.strand.update`, `ak.relation.create`,受限 `ak.message.create` | `ak.strand.update` MUST 携带 `allowed_write_fields`(registry required);显式 resource selector(MUST) | 显式 Realm / Space scope | **中到高风险。** 结构化编排权限。包含 `ak.strand.update` 时 MUST 通过 `allowed_write_fields` 限定可写字段,MUST NOT 展开为无约束的 strand 全字段写。 |
@@ -666,7 +669,7 @@ canonical 展开表:
 | 子 grant 字段 | 与 parent grant 关系 |
 | --- | --- |
 | `effective_not_before` | MUST ≥ `parent.effective_not_before` |
-| `effective_expires_at` | MUST 存在且 ≤ `parent.effective_expires_at`(无限期 parent 在 v1 中不允许；若 parent 未声明 finite effective upper bound,delegate 时 child MUST 自带 `expires_at` 或 temporal `expires_at`)。**注意：仅"child 自带 `expires_at` ≤ `now + max_delegation_lifetime_ms`"不足以防滚动续期；整条 child 链每一级的 `effective_expires_at` 还 MUST ≤ 不可刷新的固定 `delegation_expiry_seal`，见下方"固定 seal 防滚动续期"段。** |
+| `effective_expires_at` | MUST 存在且 ≤ `parent.effective_expires_at`(无限期 parent MUST NOT 直接作为无 seal 的 delegation source,见下方"固定 seal 防滚动续期"段；若 parent 未声明 finite effective upper bound,delegate 时 child MUST 自带 `expires_at` 或 temporal `expires_at`)。**注意：仅"child 自带 `expires_at` ≤ `now + max_delegation_lifetime_ms`"不足以防滚动续期；整条 child 链每一级的 `effective_expires_at` 还 MUST ≤ 不可刷新的固定 `delegation_expiry_seal`，见下方"固定 seal 防滚动续期"段。** |
 | `max_delegation_depth` | MUST ≤ `parent.max_delegation_depth - 1` |
 | `actions[]` | MUST ⊆ `parent.actions[]` |
 | `resources[]` | MUST 是 `parent.resources[]` 的 selector-narrowing 子集(见 `resource-selector-grammar.md`) |
@@ -892,11 +895,11 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 
 | 动作风险等级 | `fresh` | `stale` | `unknown` |
 | --- | --- | --- | --- |
-| 高风险（**[`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中 `risk_tier=high` 的全部已登记动作**，例如 `ak.realm.destroy`、`ak.realm.freeze`、`ak.realm.tombstone`、`ak.capability.revoke`、`ak.realm.admin`、`ak.policy.manage`、`ak.schema.define`、`ak.agent.key.authorize` / `ak.agent.key.rotate` / `ak.agent.key.revoke`、`ak.call.record`、`ak.call.transcribe`、`ak.audit.export` 等；以及按"默认 fail closed"规则被视为高风险的未登记动作） | allow | **MUST fail closed**（`revocation_freshness_unknown`） | **MUST fail closed**（`revocation_freshness_unknown`） |
+| 高风险（**[`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中 `risk_tier=high` 的全部已登记动作**，例如 `ak.realm.destroy`、`ak.realm.freeze`、`ak.realm.tombstone`、`ak.capability.revoke`、`ak.realm.admin`、`ak.policy.manage`、`ak.schema.define`、`ak.agent.key.authorize` / `ak.agent.key.revoke`、`ak.call.record`、`ak.call.transcribe`、`ak.audit.export` 等；以及按"默认 fail closed"规则被视为高风险的未登记动作） | allow | **MUST fail closed**（`revocation_freshness_unknown`） | **MUST fail closed**（`revocation_freshness_unknown`） |
 | 中风险（`ak.strand.update`、`ak.circle.member.manage`、`ak.invite.create`、跨 Realm relation 创建、policy_components 修改） | allow | allow + audit log + 异步 re-check | **MUST fail closed**，可携带 `retry_after_ms` |
 | 高频写入 / 本地 pending tier（按本表显式枚举：`ak.message.create`、`ak.reaction.add`、`ak.read_cursor.advance`、`ak.strand.move`、`ak.strand.reorder`） | allow | allow + 加快后台 Seal 同步 | **本地 pending（不对外生效）**：客户端 MAY 在本地 UI 中乐观显示作者自己看到的状态，但 MUST NOT 把该 Event 同步给其他成员、不得 fanout、不得 push notify，直到 freshness 恢复。basis 恢复 fresh 后再做完整 re-validate；validate 失败的本地 pending Event MUST 静默丢弃，不写入 redaction（因为它从未进入共享 accepted set）。 |
 
-> **本表行归属（normative）**：上表三行是 **freshness 分区降级策略**，其成员按本表**显式枚举**确定，与 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 的 `risk_tier` 是两个正交轴。`risk_tier` 在本节只治理两件事：(i) **未登记动作**的 freshness fail-closed 默认（registry 缺失该动作 ⇒ 视为 high ⇒ `unknown` 时 fail closed，见 registry_rules）；(ii) 禁止 grant author 通过 grant-side 标签把高风险动作降级（下方 MUST 列表）。因此 `ak.message.create` / `ak.strand.move` / `ak.strand.reorder` 虽在 registry 中为 `risk_tier=medium`，在分区 `unknown` 下仍按本行「本地 pending」处理——这是有意的离线可用性取舍，**不**构成与 `risk_tier` 的冲突；它们不会被静默放行给其他成员，因此不违反 medium 行的「不污染他人」目标。
+> **本表行归属（normative）**：上表三行是 **freshness 分区降级策略**，其成员按本表**显式枚举**确定，与 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 的 `risk_tier` 是两个正交轴。`risk_tier` 在本节只治理两件事：(i) **未登记动作**的 freshness fail-closed 默认（registry 缺失该动作 ⇒ 视为 high ⇒ `unknown` 时 fail closed，见 registry_rules）；(ii) 禁止 grant author 通过 grant-side 标签把高风险动作降级（下方 MUST 列表）。因此 `ak.message.create` / `ak.strand.move` / `ak.strand.reorder` 虽在 registry 中为 `risk_tier=medium`，在分区 `unknown` 下仍按本行「本地 pending」处理——这是有意的离线可用性取舍，**不**构成与 `risk_tier` 的冲突；它们不会被静默放行给其他成员，因此不违反 medium 行的「不污染他人」目标。反向同理：**agent participation effective ceiling 的求值被显式排除在 low-tier「本地 pending / 视为允许」宽松规则之外**——ceiling 任一层 unknown / stale 时 MUST 按最严格值 fold 并 fail closed(不投递、不参与),见上文 `ak.self.agent.participation.resource.replace` 与 [`../models/strand-and-message.md` §9.4](../models/strand-and-message.md)。
 
 设计取舍：低风险 `unknown` allow + 后续重放校验在分区下会让恶意 actor 故意制造分区然后高频写入；即使后续 redaction 也已经污染过其他成员的 inbox / notification / 通话邀请。**v1 采用本地 pending 模式**：分区期间作者自己看得见自己的写入（保留 UX），但分区另一侧的成员看不到任何被分区动作影响的内容，分区恢复时被 invalidate 的 Event 直接丢弃，无副作用。
 

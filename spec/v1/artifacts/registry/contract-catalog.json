@@ -720,7 +720,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Issuer-signed endorsement that a subject DID (typically an agent / service / hosted actor) is accountable_principal_ids the issuer for a declared scope (employment / contracted_service / agent_operator / etc.). Required to verify `Actor Profile.accountable_principal_ids[]` entries; reducer strips unverified DIDs from accountable_principal_ids. See zh/models/actor.md §3.3.1.",
+        "payload": "Issuer-signed endorsement that a subject DID (typically an agent / service / hosted actor) is accountable_principal_ids the issuer for a declared scope (employment / contracted_service / agent_operator / etc.). Required to verify `Actor Profile.accountable_principal_ids[]` entries; reducer strips unverified DIDs from accountable_principal_ids. See zh/models/actor.md §3.3.1. expires_at is optional; absent means non-expiring, governed by grant_status revocation and controller lifecycle cascade.",
         "payload_schema_ref": "schemas/accountability-grant.schema.json"
       },
       {
@@ -1455,7 +1455,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent signing key authorization. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_authorize_payload and bind agent_id, key_id, verification_method, accountable_principal_id, agent_key_scope, audience, issued_at, expires_at, and approval_evidence.",
+        "payload": "Agent signing key authorization. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_authorize_payload and bind agent_id, key_id, verification_method, accountable_principal_id, agent_key_scope, audience, issued_at, and approval_evidence; expires_at is optional (absent means non-expiring, revocation-governed). Controller MAY re-authorize the same (agent_id, key_id) at any time (same-key re-authorization); the latest accepted authorize supersedes the previous scope/audience/expires_at bounds without any pairing ceremony. Key replacement has no dedicated rotate kind: runtime replacement re-pairing authorizes the new key and revokes every prior active key (reason=superseded_by_repairing) in the same accepted transaction.",
         "cell_family": "ak.component.agent.key.v1",
         "cell_subject": {
           "type": "composite",
@@ -1486,26 +1486,6 @@
         },
         "lattice": "or_set",
         "bottom": "expose",
-        "plane": "control",
-        "sealed": true
-      },
-      {
-        "event_kind": "ak.agent.key.rotate",
-        "category": "agent",
-        "status": "active",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Agent signing key rotation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_rotate_payload; key_id names the retiring key and replacement_key_id names the new key under the same accountable_principal_id with equivalent or narrower agent_key_scope.",
-        "cell_family": "ak.component.agent.key.v1",
-        "cell_subject": {
-          "type": "composite",
-          "components": [
-            "payload.agent_id",
-            "payload.key_id"
-          ]
-        },
-        "lattice": "or_set",
-        "bottom": "inert",
         "plane": "control",
         "sealed": true
       },
@@ -4171,7 +4151,6 @@
           "ak.self.agent.command.pause",
           "ak.self.agent.command.resume",
           "ak.self.agent.command.deactivate",
-          "ak.self.agent.command.rotate_key",
           "ak.self.agent.grant.command.attach",
           "ak.self.agent.grant.resource.delete",
           "ak.self.agent.sidecar_thread.command.ensure",
@@ -4377,18 +4356,6 @@
       "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.agent.resource.get"},
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state"
-      },
-      {
-        "operation_id": "ak.self.agent.command.rotate_key",
-        "http": "POST /_arkret/self/agents/{agent_id}/rotate-key",
-        "grpc": "SelfAgent/RotateKey",
-        "mq": "self.agent.command.rotate_key",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "none",
-        "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.self.agent.resource.get"},
-        "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_rotate_key_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_rotate_key_outcome"
       },
       {
         "operation_id": "ak.self.agent.grant.command.attach",
@@ -7164,28 +7131,26 @@
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ak.agent.key.rotate",
+        "action": "ak.self.agent.command.provision",
         "category": "management",
         "risk_tier": "high",
         "required_constraints": [],
         "target_event_kinds": [
-          "ak.agent.key.rotate"
-        ],
-        "profile": null,
-        "event_mapping_kind": "same_name"
-      },
-      {
-        "action": "ak.self.agent.command.provision",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [
-          "expires_at",
-          "controller_approval_required"
-        ],
-        "target_event_kinds": [
           "ak.profile.create",
           "ak.identity.accountability_grant",
           "ak.agent.key.authorize",
+          "ak.capability.grant"
+        ],
+        "profile": "ak.profile.personal_agent_provisioning.v1",
+        "migration_group": "ak._0008_agent_provisioning",
+        "event_mapping_kind": "aggregate_admin"
+      },
+      {
+        "action": "ak.self.agent.command.renew_pairing",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
           "ak.capability.grant"
         ],
         "profile": "ak.profile.personal_agent_provisioning.v1",
@@ -7226,12 +7191,34 @@
         "event_mapping_kind": "operation_verb"
       },
       {
+        "action": "ak.self.agent.grant.command.attach",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.capability.grant"
+        ],
+        "profile": "ak.profile.personal_agent_provisioning.v1",
+        "migration_group": "ak._0008_agent_provisioning",
+        "event_mapping_kind": "aggregate_admin"
+      },
+      {
+        "action": "ak.self.agent.grant.resource.delete",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.capability.revoke"
+        ],
+        "profile": "ak.profile.personal_agent_provisioning.v1",
+        "migration_group": "ak._0008_agent_provisioning",
+        "event_mapping_kind": "aggregate_admin"
+      },
+      {
         "action": "ak.agent.draft.propose",
         "category": "general",
         "risk_tier": "low",
-        "required_constraints": [
-          "expires_at"
-        ],
+        "required_constraints": [],
         "target_event_kinds": [
           "ak.agent.draft.propose"
         ],
@@ -7242,9 +7229,7 @@
         "action": "ak.agent.action_request",
         "category": "general",
         "risk_tier": "low",
-        "required_constraints": [
-          "expires_at"
-        ],
+        "required_constraints": [],
         "target_event_kinds": [
           "ak.agent.action_request"
         ],
