@@ -57,7 +57,7 @@
         },
         "data_type": {
           "type": "string",
-          "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*(?::[A-Za-z0-9_-]+)?$"
+          "pattern": "^ak\\.[A-Za-z0-9._:-]+$"
         }
       },
       "additionalProperties": false
