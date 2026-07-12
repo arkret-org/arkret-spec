@@ -31,7 +31,7 @@
       "type": "object",
       "required": [
         "kind",
-        "ref"
+        "subject_ref"
       ],
       "properties": {
         "kind": {
@@ -45,7 +45,7 @@
             "account_private_state"
           ]
         },
-        "ref": {
+        "subject_ref": {
           "$ref": "#/$defs/subject_ref"
         }
       },
@@ -276,7 +276,7 @@
           "type": "object",
           "required": [
             "kind",
-            "ref"
+            "subject_ref"
           ],
           "properties": {
             "kind": {
@@ -290,7 +290,7 @@
                 "account_private_state"
               ]
             },
-            "ref": {
+            "subject_ref": {
               "$ref": "#/$defs/subject_ref"
             }
           },

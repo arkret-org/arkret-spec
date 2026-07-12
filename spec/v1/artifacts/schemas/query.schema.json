@@ -190,7 +190,7 @@
           ]
         },
         "source_ref": {
-          "$ref": "./relation.schema.json#/$defs/ref"
+          "$ref": "./relation.schema.json#/$defs/object_ref"
         },
         "source_actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/did"
@@ -199,7 +199,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "target_ref": {
-          "$ref": "./relation.schema.json#/$defs/ref"
+          "$ref": "./relation.schema.json#/$defs/object_ref"
         },
         "target_actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/did"

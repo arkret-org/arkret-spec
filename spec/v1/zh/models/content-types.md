@@ -352,7 +352,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
   "body": "> Alice: 这个方案可行吗？\n\n我觉得需要再评估一下风险。",
   "format": "markdown",
   "reply_context": {
-    "ref": "ak:message:01964200-0000-7000-8000-000000000129",
+    "message_ref": "ak:message:01964200-0000-7000-8000-000000000129",
     "sender_actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "excerpt": "这个方案可行吗？"
   }

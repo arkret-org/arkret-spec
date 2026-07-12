@@ -158,7 +158,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
-      "sha256": "e3083ab5daa5295859a2a63a5784c4bbaf3a30065e5c475fa58384f909a2f5ef"
+      "sha256": "5bc0b75d92fb89aa771b6d47732fbf9bc4df725915d89c2233b7cdc0e1832c49"
     },
     {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
@@ -166,11 +166,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "98463c305f6c67cc51ee3de6486a9428436e60cc7eff2f0e4f5e8dfb291b3add"
+      "sha256": "bfdd4afdc2836ae986404d040e43aa8531869a695cb991b2cc67f9e8ef4e6299"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
-      "sha256": "cfd0d90f8bba5353e41f980cf42b9892f75a8ecceec1f4656a3e24c0304b4a66"
+      "sha256": "51ee1c66c9ffd29821b3be39ce10974344b60e7af2c8ab4559c43ad622ba93f9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-vectors.json",

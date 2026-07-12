@@ -34,7 +34,7 @@
           "result": "pass",
           "evidence": [{
             "kind": "vector_result",
-            "ref": "ci://arkret-rust-sdk/run/1",
+            "evidence_ref": "ci://arkret-rust-sdk/run/1",
             "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
           }]
         }],
@@ -60,7 +60,7 @@
         "contract_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "issued_at": "2026-07-11T00:00:00Z",
         "issuer": {"id": "did:webvh:z6mkfixture:release.example", "verification_method": "did:webvh:z6mkfixture:release.example#claim-key-1"},
-        "clause_claims": [{"clause_id": "AK-SDK-001", "result": "pass", "evidence": [{"kind": "vector_result", "ref": "ci://run/zero", "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"}]}],
+        "clause_claims": [{"clause_id": "AK-SDK-001", "result": "pass", "evidence": [{"kind": "vector_result", "evidence_ref": "ci://run/zero", "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"}]}],
         "proof": {"alg": "EdDSA", "kid": "did:webvh:z6mkfixture:release.example#claim-key-1", "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}
       }
     },
@@ -79,7 +79,7 @@
         "contract_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
         "issued_at": "2026-07-11T00:00:00Z",
         "issuer": {"id": "did:webvh:z6mkfixture:release.example", "verification_method": "did:webvh:z6mkfixture:release.example#claim-key-1"},
-        "clause_claims": [{"clause_id": "AK-SDK-001", "result": "pass", "evidence": [{"kind": "vector_result", "ref": "ci://run/1"}]}],
+        "clause_claims": [{"clause_id": "AK-SDK-001", "result": "pass", "evidence": [{"kind": "vector_result", "evidence_ref": "ci://run/1"}]}],
         "proof": {"alg": "EdDSA", "kid": "did:webvh:z6mkfixture:release.example#claim-key-1", "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}
       }
     },
@@ -98,7 +98,7 @@
         "contract_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
         "issued_at": "2026-07-11T00:00:00Z",
         "issuer": {"id": "did:webvh:z6mkfixture:release.example", "verification_method": "did:webvh:z6mkfixture:release.example#claim-key-1"},
-        "clause_claims": [{"clause_id": "AK-SDK-001", "result": "pass", "evidence": [{"kind": "vector_result", "ref": "ci://run/1", "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"}]}],
+        "clause_claims": [{"clause_id": "AK-SDK-001", "result": "pass", "evidence": [{"kind": "vector_result", "evidence_ref": "ci://run/1", "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"}]}],
         "proof": {"alg": "EdDSA", "kid": "did:webvh:z6mkfixture:release.example#claim-key-1", "signature": "not+base64url"}
       }
     }
