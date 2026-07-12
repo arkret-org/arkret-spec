@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://arkret.org/spec/v1/schemas/applet-registration-epoch-transcript.schema.json",
+  "$id": "https://arkret.org/v1/schemas/applet-registration-epoch-transcript.schema.json",
   "title": "Arkret Applet Registration Epoch Transcript",
   "description": "Closed, normalized security transcript hashed to produce an Applet registration_epoch. The hash input is the UTF-8 domain separator arkret-applet-registration-epoch-v1\\n followed by the JCS bytes of this object.",
   "type": "object",
