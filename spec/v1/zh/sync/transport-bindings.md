@@ -117,7 +117,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 
 HTTP binding MAY 把 `operation_id` 映射成路径；gRPC binding MAY 把它映射成 service method；message queue binding MAY 把它映射成 topic + message type。
 
-Agent runtime 对外协议配置与 handoff 状态不属于 Arkret transport binding；原 agent interop 名字空间已 reserved。Applet bridge 的 `ak.applet.interop_session.*` 仍按其独立规范回流。
+Agent/Applet runtime 的外部协议配置、handoff 进度、私有 session id 与实现状态不属于 Arkret transport binding，也不得回流为共享 Realm history；只有跨实现有 canonical 语义的结果对象才能通过已注册 Arkret Event 或 operation response/stream 传递。
 
 ## 5. HTTP/JSON Binding
 

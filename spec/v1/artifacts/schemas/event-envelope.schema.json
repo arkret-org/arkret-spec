@@ -440,8 +440,6 @@
               "ak.agent.key.revoke",
               "ak.applet.bridge_error",
               "ak.applet.discovery",
-              "ak.applet.interop_session.start",
-              "ak.applet.interop_session.status",
               "ak.applet.registration",
               "ak.audit.accessed",
               "ak.audit.applet_binding",
@@ -3151,44 +3149,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/applet_registration_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.applet.interop_session.start"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/applet_interop_session_start_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.applet.interop_session.status"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/applet_interop_session_status_payload"
           }
         }
       }

@@ -30,30 +30,6 @@
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
       "description": "DID of the service that hosts the applet runtime (used by registration / discovery)."
     },
-    "session_id": {
-      "type": "string",
-      "description": "Per-invocation correlation id used by interop_session.start / .status to pair request/response.",
-      "minLength": 1
-    },
-    "runtime_status": {
-      "type": "string",
-      "enum": [
-        "pending",
-        "running",
-        "completed",
-        "failed",
-        "cancelled"
-      ],
-      "description": "Bridge-implementation-defined runtime status for ak.applet.interop_session.status events. v1 does NOT mandate a canonical applet session state machine; bridges MAY restrict the set further in their applet manifest. This applet bridge mechanism remains independent of the reserved agent interop namespace."
-    },
-    "params": {
-      "description": "Caller-supplied parameters for interop_session.start. Opaque to the Arkret protocol — bridge implementations interpret per applet manifest."
-    },
-    "detail": {
-      "type": "object",
-      "description": "Bridge-side detail surface (echo response payload, error context, bridge identifier, etc.). Free-form object; bridges document their own schema.",
-      "additionalProperties": true
-    },
     "error": {
       "type": "object",
       "description": "Bridge-error context for ak.applet.bridge_error events.",

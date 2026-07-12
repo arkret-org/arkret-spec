@@ -336,7 +336,6 @@ document.addEventListener("astro:after-swap", boot);
               items: planeItems("extensions", [
                 "applet-integration",
                 "applet-schema",
-                "agent-protocol-interop",
                 "mimi-interop",
               ]),
             },

@@ -3097,6 +3097,104 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json"
       ]
+    },
+    {
+      "vector_id": "ak.vector.audit.binding_fsm.v1",
+      "status": "active",
+      "domain": "audit",
+      "applies_to_profiles": [
+        "ak.profile.attested_audit.e2ee.v1",
+        "ak.profile.disclosed_audit.e2ee.v1"
+      ],
+      "description": "Audit binding is a closed control-plane FSM: active and suspended may transition as registered, revoked is terminal, and same-basis conflicting siblings produce Bottom.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/audit-release-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.audit.session_fsm.v1",
+      "status": "active",
+      "domain": "audit",
+      "applies_to_profiles": [
+        "ak.profile.attested_audit.e2ee.v1",
+        "ak.profile.disclosed_audit.e2ee.v1"
+      ],
+      "description": "Audit session stages follow the registered request-authorize-notice-close FSM, permit explicit early close, reject skipped stages, and make close terminal.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/audit-release-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.audit.release_recipient_binding.v1",
+      "status": "active",
+      "domain": "audit",
+      "applies_to_profiles": [
+        "ak.profile.attested_audit.e2ee.v1",
+        "ak.profile.disclosed_audit.e2ee.v1"
+      ],
+      "description": "Release recipient actor and public key must exactly match authorization and resolve to the same authorized audit actor; substitution fails closed.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/audit-release-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.audit.release_window.v1",
+      "status": "active",
+      "domain": "audit",
+      "applies_to_profiles": [
+        "ak.profile.attested_audit.e2ee.v1",
+        "ak.profile.disclosed_audit.e2ee.v1"
+      ],
+      "description": "Release is bounded by binding activation, first_auditable_epoch, encryption-time eligibility, sealed epoch state, and sealed_by_commit_ref.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/audit-release-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.audit.binding_and_authorization_gate.v1",
+      "status": "active",
+      "domain": "audit",
+      "applies_to_profiles": [
+        "ak.profile.attested_audit.e2ee.v1",
+        "ak.profile.disclosed_audit.e2ee.v1"
+      ],
+      "description": "Release requires an active binding, unexpired authorization, and accepted session head notice; suspended, revoked, expired, or wrong-stage inputs fail closed.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/audit-release-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.audit.close_release_concurrency.v1",
+      "status": "active",
+      "domain": "audit",
+      "applies_to_profiles": [
+        "ak.profile.attested_audit.e2ee.v1",
+        "ak.profile.disclosed_audit.e2ee.v1"
+      ],
+      "description": "Same-basis close dominates release, earlier accepted releases must be frozen in close release_refs, post-close releases fail, and ordered_log ordering is deterministic.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/audit-release-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.audit.ryw_before_output.v1",
+      "status": "active",
+      "domain": "audit",
+      "applies_to_profiles": [
+        "ak.profile.attested_audit.e2ee.v1",
+        "ak.profile.disclosed_audit.e2ee.v1"
+      ],
+      "description": "Release material output is gated on accepted release plus a profile-valid RYW receipt, matching policy digest, and independent witnesses where attested hardware is claimed.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/audit-release-fixture.json"
+      ]
     }
   ]
 }

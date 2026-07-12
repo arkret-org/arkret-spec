@@ -1410,14 +1410,6 @@
       "sealed": false
     },
     {
-      "event_kind": "ak.agent.endpoint",
-      "category": "agent",
-      "status": "reserved",
-      "wire_scope": "durable_event",
-      "reducer_input": false,
-      "payload": "Reserved former agent protocol endpoint declaration. The runtime metadata surface was removed from v1; this name MUST NOT appear on wire."
-    },
-    {
       "event_kind": "ak.agent.key.authorize",
       "category": "agent",
       "status": "active",
@@ -1463,7 +1455,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Agent lifecycle transition to paused state. Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within the revocation freshness window. Reversible via ak.agent.resume.",
+      "payload": "Agent lifecycle transition to paused state. Authorization basis is the Control Move envelope seal_basis; payload carries no independent frontier. Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within the revocation freshness window. Reversible via ak.self.agent.resume.",
       "cell_family": "ak.component.agent.status.v1",
       "cell_subject": {
         "type": "did",
@@ -1480,7 +1472,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Agent lifecycle transition from paused to active. Reducer MUST re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
+      "payload": "Agent lifecycle transition from paused to active. Authorization basis is the Control Move envelope seal_basis; payload carries no independent frontier. At acceptance the reducer MUST use the accepted current control frontier to re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
       "cell_family": "ak.component.agent.status.v1",
       "cell_subject": {
         "type": "did",
@@ -1539,30 +1531,6 @@
       "wire_scope": "actor_private_event",
       "reducer_input": false,
       "payload": "Controller rejection of a draft / action request. Draft transitions to rejected; agent runtime MUST NOT continue publish attempts."
-    },
-    {
-      "event_kind": "ak.agent.interop_session.start",
-      "category": "agent",
-      "status": "reserved",
-      "wire_scope": "durable_event",
-      "reducer_input": false,
-      "payload": "Reserved former agent protocol session start; this name MUST NOT appear on wire."
-    },
-    {
-      "event_kind": "ak.agent.interop_session.status",
-      "category": "agent",
-      "status": "reserved",
-      "wire_scope": "durable_event",
-      "reducer_input": false,
-      "payload": "Reserved former agent protocol session status; this name MUST NOT appear on wire."
-    },
-    {
-      "event_kind": "ak.agent.interop_session.result",
-      "category": "agent",
-      "status": "reserved",
-      "wire_scope": "durable_event",
-      "reducer_input": false,
-      "payload": "Reserved former agent protocol session result; this name MUST NOT appear on wire."
     },
     {
       "event_kind": "ak.capability.grant",
@@ -2208,7 +2176,49 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Audit Applet Binding. Declares that an audit applet/service may request staged historical release sessions for a specific Realm or Circle effective_scope. Binding is control-plane only: it does not add the applet to MLS, does not subscribe it to realtime sync, and does not grant plaintext/history keys. Bindings are non-retroactive: activation_frontier_digest / first_auditable_epoch define the earliest eligible material, and later policy changes MUST NOT expand eligibility for already encrypted messages."
+      "payload": "Audit Applet Binding. Declares that an audit applet/service may request staged historical release sessions for a specific Realm or Circle effective_scope. Binding is control-plane only: it does not add the applet to MLS, does not subscribe it to realtime sync, and does not grant plaintext/history keys. Bindings are non-retroactive: activation_frontier_digest / first_auditable_epoch define the earliest eligible material, and later policy changes MUST NOT expand eligibility for already encrypted messages.",
+      "cell_family": "ak.component.audit.binding.v1",
+      "cell_subject": {
+        "type": "typed_id",
+        "field": "payload.binding_id"
+      },
+      "lattice": "fsm",
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true,
+      "parameters": {
+        "initial_states": [
+          "active"
+        ],
+        "states": [
+          "active",
+          "suspended",
+          "revoked"
+        ],
+        "terminal_states": [
+          "revoked"
+        ],
+        "idempotent_replay": "same_status_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "active",
+            "suspended"
+          ],
+          [
+            "active",
+            "revoked"
+          ],
+          [
+            "suspended",
+            "active"
+          ],
+          [
+            "suspended",
+            "revoked"
+          ]
+        ]
+      }
     },
     {
       "event_kind": "ak.audit.session.request",
@@ -2216,7 +2226,54 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Audit release session request. Must reference an active ak.audit.applet_binding and a bounded historical target range or target_refs."
+      "payload": "Audit release session request. Must reference an active ak.audit.applet_binding and a bounded historical target range or target_refs.",
+      "cell_family": "ak.component.audit.session.v1",
+      "cell_subject": {
+        "type": "typed_id",
+        "field": "payload.session_id"
+      },
+      "lattice": "fsm",
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true,
+      "parameters": {
+        "initial_states": [
+          "request"
+        ],
+        "states": [
+          "request",
+          "authorize",
+          "notice",
+          "close"
+        ],
+        "terminal_states": [
+          "close"
+        ],
+        "idempotent_replay": "same_stage_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "request",
+            "authorize"
+          ],
+          [
+            "authorize",
+            "notice"
+          ],
+          [
+            "request",
+            "close"
+          ],
+          [
+            "authorize",
+            "close"
+          ],
+          [
+            "notice",
+            "close"
+          ]
+        ]
+      }
     },
     {
       "event_kind": "ak.audit.session.authorize",
@@ -2224,7 +2281,54 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Audit release session authorization by a scoped approver. Approves only the intersection of request, binding, policy, and effective_scope."
+      "payload": "Audit release session authorization by a scoped approver. Approves only the intersection of request, binding, policy, and effective_scope.",
+      "cell_family": "ak.component.audit.session.v1",
+      "cell_subject": {
+        "type": "typed_id",
+        "field": "payload.session_id"
+      },
+      "lattice": "fsm",
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true,
+      "parameters": {
+        "initial_states": [
+          "request"
+        ],
+        "states": [
+          "request",
+          "authorize",
+          "notice",
+          "close"
+        ],
+        "terminal_states": [
+          "close"
+        ],
+        "idempotent_replay": "same_stage_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "request",
+            "authorize"
+          ],
+          [
+            "authorize",
+            "notice"
+          ],
+          [
+            "request",
+            "close"
+          ],
+          [
+            "authorize",
+            "close"
+          ],
+          [
+            "notice",
+            "close"
+          ]
+        ]
+      }
     },
     {
       "event_kind": "ak.audit.session.notice",
@@ -2232,7 +2336,54 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Member-visible notice for an audit release session. Circle-scoped notices are visible only to the target Circle audience and authorized moderators/admins."
+      "payload": "Member-visible notice for an audit release session. Circle-scoped notices are visible only to the target Circle audience and authorized moderators/admins.",
+      "cell_family": "ak.component.audit.session.v1",
+      "cell_subject": {
+        "type": "typed_id",
+        "field": "payload.session_id"
+      },
+      "lattice": "fsm",
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true,
+      "parameters": {
+        "initial_states": [
+          "request"
+        ],
+        "states": [
+          "request",
+          "authorize",
+          "notice",
+          "close"
+        ],
+        "terminal_states": [
+          "close"
+        ],
+        "idempotent_replay": "same_stage_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "request",
+            "authorize"
+          ],
+          [
+            "authorize",
+            "notice"
+          ],
+          [
+            "request",
+            "close"
+          ],
+          [
+            "authorize",
+            "close"
+          ],
+          [
+            "notice",
+            "close"
+          ]
+        ]
+      }
     },
     {
       "event_kind": "ak.audit.release",
@@ -2240,7 +2391,21 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Sealed audit release manifest. Records exactly which historical target_refs or sealed epochs were released, to whom, under which binding/session/notice/policy. Current active epoch release is forbidden; sealed epoch releases must reference sealed_by_commit_ref."
+      "payload": "Sealed audit release manifest. Appends to the session release log only while the session FSM head is notice. Records exactly which historical target_refs or sealed epochs were released, to whom, under which binding/session/notice/policy. Current active epoch release is forbidden; sealed epoch releases must reference sealed_by_commit_ref. Same-basis close dominates release and rejects the release.",
+      "cell_family": "ak.component.audit.release.v1",
+      "cell_subject": {
+        "type": "typed_id",
+        "field": "payload.session_id"
+      },
+      "lattice": "ordered_log",
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true,
+      "parameters": {
+        "required_session_state": "notice",
+        "same_basis_close_vs_release": "close_wins_release_rejected",
+        "within_seal_order": "event_digest_lexicographic"
+      }
     },
     {
       "event_kind": "ak.audit.session.close",
@@ -2248,7 +2413,54 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Close an audit release session and freeze its final release_refs."
+      "payload": "Close an audit release session and freeze its final release_refs. release_refs MUST exactly equal the accepted ordered release log at the close seal_basis. Close is terminal; for same-basis close versus release, close wins and the competing release is rejected.",
+      "cell_family": "ak.component.audit.session.v1",
+      "cell_subject": {
+        "type": "typed_id",
+        "field": "payload.session_id"
+      },
+      "lattice": "fsm",
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true,
+      "parameters": {
+        "initial_states": [
+          "request"
+        ],
+        "states": [
+          "request",
+          "authorize",
+          "notice",
+          "close"
+        ],
+        "terminal_states": [
+          "close"
+        ],
+        "idempotent_replay": "same_stage_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "request",
+            "authorize"
+          ],
+          [
+            "authorize",
+            "notice"
+          ],
+          [
+            "request",
+            "close"
+          ],
+          [
+            "authorize",
+            "close"
+          ],
+          [
+            "notice",
+            "close"
+          ]
+        ]
+      }
     },
     {
       "event_kind": "ak.audit.ryw_receipt",
@@ -2488,24 +2700,6 @@
       "reducer_input": true,
       "admission": "service_attested",
       "payload": "Applet registration"
-    },
-    {
-      "event_kind": "ak.applet.interop_session.start",
-      "category": "applet",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "admission": "service_attested",
-      "payload": "Applet protocol session start"
-    },
-    {
-      "event_kind": "ak.applet.interop_session.status",
-      "category": "applet",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "admission": "service_attested",
-      "payload": "Applet protocol session status"
     },
     {
       "event_kind": "ak.mimi.room_binding",

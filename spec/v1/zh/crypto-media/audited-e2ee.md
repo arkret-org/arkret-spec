@@ -63,7 +63,13 @@ Arkret 的合规审计目标是：在不削弱默认 E2EE 的前提下，为明�
 | `policy_version_digest` | yes | Realm-bound policy hash，覆盖 binding、scope、purpose、notice、approver 与 release-mode policy。 |
 | `not_before` / `expires_at` | no | Binding 有效窗口。 |
 
-### 3.1 Activation Frontier 与不可追溯性
+### 3.1 Binding FSM（normative）
+
+每个 `binding_id` 唯一对应 control-plane cell `ak.component.audit.binding.v1/<binding_id>`；该 cell 使用 `fsm` lattice，初始状态只能是 `active`，合法迁移只有 `active -> suspended`、`suspended -> active`、`active -> revoked`、`suspended -> revoked`。`revoked` 是 terminal，不能重新激活；需要新的资格时必须创建新的 `binding_id` 并重新经过 activation frontier 与成员可见流程。同一 `seal_basis` 的同状态重放是 no-op；同一 basis 的不同目标状态 sibling 产生 Bottom 并拒绝，不得按到达时间挑选 winner。
+
+Binding Event 必须作为 Control Move 写入上述 cell，信封携带 `seal_basis`，且 payload 的 `status` 必须等于 effect 的目标状态。Reducer 在接受任何 session 或 release 时必须读取 accepted current binding head；仅 `active` 可创建 request/authorize/release，`suspended` 与 `revoked` 均 fail closed。策略收窄或扩大除了更新同一 binding cell 外，仍受下一节的 epoch 覆盖与不可追溯规则约束。
+
+### 3.2 Activation Frontier 与不可追溯性
 
 Binding 生效必须经过两个步骤：
 
@@ -80,7 +86,7 @@ Binding 或 policy 的后续变更遵守同一规则：
 
 因此，成员在某一天看到 Realm / Circle 没有 active Audit Applet Binding 时，该状态下发送的 E2EE 消息获得永久的协议级承诺：未来新增审计 applet 不得追溯审计这些消息。需要处理 binding 之前材料的政府 / 企业流程必须走协议外的 legal hold / export / enterprise archive 机制，不能用本 profile 的 `ak.audit.release` 表达。
 
-### 3.2 成员可见提示
+### 3.3 成员可见提示
 
 客户端在加入或打开存在 active binding 的 Realm / Circle 前 MUST 显示对应 scope 的提示。文案可本地化，但必须保留以下语义：
 
@@ -98,6 +104,10 @@ Binding 或 policy 的后续变更遵守同一规则：
 3. `ak.audit.session.notice`
 4. `ak.audit.release`
 5. `ak.audit.session.close`
+
+每个 `session_id` 唯一对应 control-plane cell `ak.component.audit.session.v1/<session_id>`；payload `stage` 是目标状态。该 cell 使用 `fsm` lattice，初始状态只能是 `request`，主路径为 `request -> authorize -> notice -> close`。为关闭失败或被撤回的流程，也允许 `request -> close` 与 `authorize -> close`；`close` 是 terminal。除同一 `seal_basis`、同一 stage、同一 payload digest 的幂等重放外，重复 stage、跳过 authorize/notice、terminal 后追加或同 basis 不同目标 sibling 均产生 Bottom 并拒绝。四类 session Event 都必须作为 Control Move 写入同一 cell，payload `session_id`、`binding_id`、`realm_id` 与 `effective_scope` 必须从 request 起逐字节保持一致。
+
+`ak.audit.release` 不改变 session FSM head，而是向 control-plane `ordered_log` cell `ak.component.audit.release.v1/<session_id>` 追加一条以 `release_id` 标识的记录。只有 accepted current session head 为 `notice` 时才可追加；日志按接受它的 Seal coverage 顺序排列，同一 Seal 内按 `event_digest` 字节序排列。重复 `release_id`、不一致的 request/authorize/notice 引用或已 close 的 session 必须拒绝。
 
 ### 4.1 Request
 
@@ -164,11 +174,13 @@ Authorization 只授予一个有界 release 窗口，不是一次性永久凭证
 
 Release event MUST 先 accepted，并取得有效 `ak.audit.ryw_receipt` 后，attested release service 才能输出 wrapped material。输出前，release service MUST 重新解析并验证 `recipient_public_key_ref` 仍是 `recipient_audit_actor_id` 授权的 audit release 接收 key；不得把 material 加密给 release manifest 自带但未被 authorize 批准、或不属于该审计主体的 key。`disclosed_policy` 也 MUST 按同一顺序记录，但其保证是流程性。
 
-Receiver / reducer MUST 拒绝任何缺失 `eligibility_proof`、`eligibility_proof` 与 binding policy 不一致、`sealed_epoch_range.first_epoch < first_auditable_epoch`，或 target 在其 encryption-time eligibility snapshot 中未包含该 binding / release mode 的 release。Release 被 accepted 时还 MUST 重新校验 binding 仍为 `active`、authorize 未过 expiry、authorize 批准的 recipient actor/key 与 release manifest 一致、`recipient_public_key_ref` 解析到 `recipient_audit_actor_id` 授权 key、notice 已按 scope 留痕且 session 未 close。该拒绝使用 `audit_release_retroactive_scope_forbidden`、`audit_release_manifest_invalid`、`audit_release_binding_inactive` 或 `auth_expired`，取决于错误是越过不可追溯边界、manifest 自身不一致、binding 已暂停 / revoked，还是授权窗口已过期。
+Receiver / reducer MUST 拒绝任何缺失 `eligibility_proof`、`eligibility_proof` 与 binding policy 不一致、`sealed_epoch_range.first_epoch < first_auditable_epoch`，或 target 在其 encryption-time eligibility snapshot 中未包含该 binding / release mode 的 release。Release 被 accepted 时还 MUST 重新校验 binding 仍为 `active`、session accepted current head 为 `notice`、authorize 未过 expiry、authorize 批准的 recipient actor/key 与 release manifest 一致、`recipient_public_key_ref` 解析到 `recipient_audit_actor_id` 授权 key、notice 已按 scope 留痕且 session 未 close。该拒绝使用 `audit_release_retroactive_scope_forbidden`、`audit_release_manifest_invalid`、`audit_release_binding_inactive`、`auth_expired` 或 `failed_precondition`，取决于错误是越过不可追溯边界、manifest 自身不一致、binding 已暂停 / revoked、授权窗口已过期，还是 session FSM head 不允许 release。
 
 ### 4.5 Close
 
-`ak.audit.session.close` 关闭 session，记录 `occurred_at`、`closer_actor_id`、`close_reason`、最终 `release_refs[]` 和任何未完成原因。Session close 后不得追加新的 `ak.audit.release`；需要更多材料必须发起新 session。
+`ak.audit.session.close` 关闭 session，记录 `occurred_at`、`closer_actor_id`、`close_reason`、最终 `release_refs[]` 和任何未完成原因。`release_refs[]` MUST 与该 close 的 `seal_basis` 所见 `ak.component.audit.release.v1/<session_id>` accepted ordered log 完全一致，顺序也必须一致；缺失、增加或重排均以 `audit_release_manifest_invalid` 拒绝。
+
+Session close 后不得追加新的 `ak.audit.release`；需要更多材料必须发起新 session。若 close 与 release 基于同一 `seal_basis` 并作为 sibling 被同一个 Seal 候选覆盖，采用 fail-closed 的唯一裁决：close 被接受，release 以 `failed_precondition` 拒绝。若 release 已在更早的 accepted Seal 中进入日志，后续 close 必须把它列入 `release_refs[]`；若 close 已先被接受，任何后续 release 都拒绝。Reducer MUST NOT 用本地到达顺序改变上述结果。
 
 ## 5. Release Mode
 

@@ -316,7 +316,6 @@ Arkret 可以继续吸收 Matrix 的成熟经验：
 - [`identity/consent-model.md`](../identity/consent-model.md) — holder-private consent on consent cell（or_set lattice）
 - [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) — MIMI policy component / consent 互译
 - [`extensions/applet-integration.md`](../extensions/applet-integration.md)
-- [`extensions/agent-protocol-interop.md`](../extensions/agent-protocol-interop.md)
 - [`identity/identity-did.md`](../identity/identity-did.md)
 - [`sync/service-surface.md`](../sync/service-surface.md)
 

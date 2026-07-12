@@ -4546,3 +4546,19 @@ Expected：
 - set-like 数组乱序或排序键重复 MUST 在 JCS 前 fail closed；不得静默排序重复项后继续，也不得保留第一项。
 - optional 成员使用 `null`、unversioned DID evidence 同时携带 version 字段，均 MUST schema violation。
 - base URL、bot actor、endpoint/auth、accepted key、DID document digest、requested scope、profile 或 policy 任一安全字段改变，MUST 产生不同 epoch；验证旧 grant 时视为 evidence mismatch。
+
+## 20. Audited E2EE Release Vectors
+
+[`audit-release-fixture.json`](../../artifacts/fixtures/audit-release-fixture.json) 是 `ak.profile.attested_audit.e2ee.v1` 与 `ak.profile.disclosed_audit.e2ee.v1` 的必需行为 fixture。Runner MUST 实际执行 binding FSM、session FSM、release ordered log 与 output gate；只验证 payload schema 或 Event kind 存在不算通过。
+
+### 20.1 Binding 与 Session FSM
+
+`ak.vector.audit.binding_fsm.v1` MUST 覆盖 `active <-> suspended`、到 terminal `revoked`、revoked 后恢复拒绝与 same-basis sibling Bottom。`ak.vector.audit.session_fsm.v1` MUST 覆盖 `request -> authorize -> notice -> close`、失败流程的 early close、跳阶段拒绝、重复阶段与 terminal replay。Runner 的状态和值必须来自 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 登记的 cell family / lattice / parameters，不能维护另一套迁移表。
+
+### 20.2 Release 安全门
+
+`ak.vector.audit.release_recipient_binding.v1`、`ak.vector.audit.release_window.v1` 与 `ak.vector.audit.binding_and_authorization_gate.v1` MUST 证明：recipient actor/key 与 authorize 逐字节一致且 key 解析到同一 actor；release 不早于 binding activation / `first_auditable_epoch`，不包含 active epoch，sealed epoch 模式绑定 `sealed_by_commit_ref`；binding 必须 active，authorize 未过期，session accepted head 必须为 `notice`。每个相反变体都必须 fail closed，不能裁剪范围后继续输出。
+
+### 20.3 Close 并发与 RYW-before-output
+
+`ak.vector.audit.close_release_concurrency.v1` MUST 覆盖 same-basis close-vs-release 的 close-wins 裁决、更早 accepted release 的完整 `release_refs[]` freeze、post-close release 拒绝与同 Seal 内 `event_digest` 排序。`ak.vector.audit.ryw_before_output.v1` MUST 证明 material 在 release accepted 且取得 profile-valid RYW receipt 前不会输出；`attested_hardware` 分支还必须验证独立 witness 与 policy digest / eligibility proof 一致。Runner 必须检查输出至多一次，不能把“已构造 wrapped material”误当成“已允许交付”。

@@ -4386,11 +4386,6 @@
       },
       "additionalProperties": false
     },
-    "agent_lifecycle_frontier": {
-      "type": "object",
-      "description": "Auth/key/grant freshness frontier captured when accepting an agent lifecycle transition.",
-      "minProperties": 1
-    },
     "agent_sidecar_exposure_ack": {
       "type": "object",
       "description": "Controller acknowledgement of sidecar Circles that became newly visible or eligible while the agent was paused.",
@@ -4420,14 +4415,13 @@
     },
     "agent_pause_payload": {
       "type": "object",
-      "description": "Payload for ak.agent.pause. The status cell is keyed by agent_id and moves from active to paused under the captured freshness frontier.",
+      "description": "Payload for ak.self.agent.pause. The status cell is keyed by agent_id and moves from active to paused. Authorization is evaluated against the Control Move envelope seal_basis; the reducer accepts the transition only under the accepted current control frontier.",
       "required": [
         "agent_id",
         "controller_id",
         "transition",
         "previous_status",
-        "status_changed_at",
-        "freshness_frontier"
+        "status_changed_at"
       ],
       "properties": {
         "agent_id": {
@@ -4445,9 +4439,6 @@
         "status_changed_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "freshness_frontier": {
-          "$ref": "#/$defs/agent_lifecycle_frontier"
-        },
         "reason": {
           "type": "string",
           "maxLength": 1024
@@ -4457,14 +4448,13 @@
     },
     "agent_resume_payload": {
       "type": "object",
-      "description": "Payload for ak.agent.resume. Reducers re-check controller, agent, key, capability, Realm policy, accountability grant, and any sidecar exposure acknowledgement before returning the agent to active.",
+      "description": "Payload for ak.self.agent.resume. Authorization is evaluated against the Control Move envelope seal_basis, and reducers re-check controller, agent, key, capability, Realm policy, accountability grant, and any sidecar exposure acknowledgement against the accepted current control frontier before returning the agent to active.",
       "required": [
         "agent_id",
         "controller_id",
         "transition",
         "previous_status",
-        "status_changed_at",
-        "freshness_frontier"
+        "status_changed_at"
       ],
       "properties": {
         "agent_id": {
@@ -4482,9 +4472,6 @@
         "status_changed_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "freshness_frontier": {
-          "$ref": "#/$defs/agent_lifecycle_frontier"
-        },
         "sidecar_exposure_ack": {
           "$ref": "#/$defs/agent_sidecar_exposure_ack"
         },
@@ -4497,7 +4484,7 @@
     },
     "agent_deactivate_payload": {
       "type": "object",
-      "description": "Payload for ak.agent.deactivate. Revocation fan-out and future agent-session rejection are judged at the accepted Seal covering this Move (or its successors); the authoring basis is the Control Move envelope seal_basis. The payload carries no frontier field.",
+      "description": "Payload for ak.self.agent.deactivate. Revocation fan-out and future agent-session rejection are judged at the accepted Seal covering this Move (or its successors); the authoring basis is the Control Move envelope seal_basis. The payload carries no frontier field.",
       "required": [
         "agent_id",
         "controller_id",
@@ -6785,88 +6772,6 @@
       },
       "additionalProperties": false
     },
-    "applet_interop_session_start_payload": {
-      "type": "object",
-      "description": "Payload for ak.applet.interop_session.start. This applet-scoped bridge mechanism remains active independently of the reserved agent interop namespace. Field vocabulary: applet.schema.json (session_id correlates start/status; params are caller-supplied, opaque to the Arkret protocol and interpreted per applet manifest). There is no canonical applet session state machine in v1.",
-      "required": [
-        "applet_id",
-        "session_id"
-      ],
-      "properties": {
-        "applet_id": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/did"
-            },
-            {
-              "type": "string",
-              "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-            }
-          ]
-        },
-        "session_id": {
-          "$ref": "#/$defs/non_empty_string",
-          "description": "Per-invocation correlation id pairing start with the matching status event."
-        },
-        "service_id": {
-          "$ref": "#/$defs/did"
-        },
-        "params": {
-          "type": "object",
-          "additionalProperties": true,
-          "description": "Caller-supplied parameters. Opaque to the Arkret protocol; bridge interprets per applet manifest."
-        },
-        "created_at": {
-          "$ref": "#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false
-    },
-    "applet_interop_session_status_payload": {
-      "type": "object",
-      "description": "Payload for ak.applet.interop_session.status. This applet-scoped bridge mechanism remains active independently of the reserved agent interop namespace. runtime_status is the bridge-implementation-defined status (applet.schema.json) — v1 does NOT mandate a canonical applet session state machine. detail is a free-form bridge-side surface.",
-      "required": [
-        "applet_id",
-        "session_id",
-        "runtime_status"
-      ],
-      "properties": {
-        "applet_id": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/did"
-            },
-            {
-              "type": "string",
-              "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-            }
-          ]
-        },
-        "session_id": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "runtime_status": {
-          "type": "string",
-          "enum": [
-            "pending",
-            "running",
-            "completed",
-            "failed",
-            "cancelled"
-          ],
-          "description": "Bridge-implementation-defined runtime status. Bridges MAY restrict the set further in their applet manifest."
-        },
-        "detail": {
-          "type": "object",
-          "additionalProperties": true,
-          "description": "Bridge-side detail surface (echo response, error context, bridge identifier, etc.). Bridges document their own schema."
-        },
-        "updated_at": {
-          "$ref": "#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false
-    },
     "mimi_room_binding_payload": {
       "type": "object",
       "description": "Payload for ak.mimi.room_binding. Writes the ak.component.mimi.room_binding.v1 cell whose subject is payload.mimi_room_uri (see event-kind-registry.json cell_subject). Authoritative field set: zh/extensions/mimi-interop.md §3. The binding is a projection of a Arkret Realm/Strand discussion track into a MIMI room; it is not canonical truth. Creation / update / revocation MUST hold ak.policy.manage, ak.realm.admin, or an equivalent interop capability. E2EE MIMI rooms MUST bind mls_group_id and pass the MLS Governance Binding covered_seals_cell precondition.",
@@ -7128,7 +7033,7 @@
     },
     "audit_applet_binding_payload": {
       "type": "object",
-      "description": "Payload for ak.audit.applet_binding. Declares a non-retroactive audit applet/service binding for a Realm or Circle effective_scope. Binding is control-plane only and does not make the applet an MLS member or realtime sync recipient. Messages encrypted before activation_frontier_digest / first_auditable_epoch are never eligible for this binding's ak.audit.release.",
+      "description": "Payload for ak.audit.applet_binding. Writes the control-plane FSM cell ak.component.audit.binding.v1 keyed by binding_id. Initial status is active; legal transitions are active->suspended, suspended->active, active->revoked, and suspended->revoked; revoked is terminal. The binding is non-retroactive and does not make the applet an MLS member or realtime sync recipient. Messages encrypted before activation_frontier_digest / first_auditable_epoch are never eligible for this binding's ak.audit.release.",
       "required": [
         "binding_id",
         "realm_id",
@@ -7271,7 +7176,7 @@
     },
     "audit_session_payload": {
       "type": "object",
-      "description": "Shared payload class for ak.audit.session.request / authorize / notice / close. The stage field identifies which lifecycle step this event represents; reducers validate the step-specific state machine against the enclosing Event.kind.",
+      "description": "Shared payload class for ak.audit.session.request / authorize / notice / close. The stage field is the target state of the control-plane FSM cell ak.component.audit.session.v1 keyed by session_id. Initial state is request; legal main-path transitions are request->authorize->notice->close, with request->close and authorize->close allowed for aborted sessions. Close is terminal; same-basis conflicting siblings produce Bottom.",
       "required": [
         "session_id",
         "binding_id",
@@ -7531,7 +7436,7 @@
     },
     "audit_release_payload": {
       "type": "object",
-      "description": "Payload for ak.audit.release. A sealed audit release manifest for a bounded historical window. It records release metadata and wrapped material digests only; plaintext MUST NOT be inlined.",
+      "description": "Payload for ak.audit.release. A sealed audit release manifest for a bounded historical window. It appends to the control-plane ordered log ak.component.audit.release.v1 keyed by session_id only while the accepted session FSM head is notice. Same-basis close dominates and rejects the release. The payload records release metadata and wrapped material digests only; plaintext MUST NOT be inlined.",
       "required": [
         "release_id",
         "session_id",

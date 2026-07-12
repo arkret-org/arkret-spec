@@ -19,14 +19,7 @@
     "profile is null for v1 core actions, or a ak.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default).",
     "Every action MUST declare event_mapping_kind. action == single target_event_kind uses same_name; empty target_event_kinds uses non_event_surface; any other mapping MUST use one of the allowed deviation categories."
   ],
-  "reserved_actions": [
-    "ak.agent.protocol.discover",
-    "ak.agent.interop_session.start",
-    "ak.agent.interop_session.cancel",
-    "ak.agent.interop_session.stream_status",
-    "ak.agent.interop_session.attach_artifact",
-    "ak.agent.interop_session.read_transcript"
-  ],
+  "reserved_actions": [],
   "actions": [
     {
       "action": "ak.realm.discover",

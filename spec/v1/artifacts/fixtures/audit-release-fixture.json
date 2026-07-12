@@ -1,0 +1,100 @@
+{
+  "profile": "ak.profile.attested_audit.e2ee.v1",
+  "applies_to_profiles": [
+    "ak.profile.attested_audit.e2ee.v1",
+    "ak.profile.disclosed_audit.e2ee.v1"
+  ],
+  "version": "2026-07-13",
+  "suite": "audit_release",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::audit_release"
+  },
+  "covers_vectors": [
+    "ak.vector.audit.binding_fsm.v1",
+    "ak.vector.audit.session_fsm.v1",
+    "ak.vector.audit.release_recipient_binding.v1",
+    "ak.vector.audit.release_window.v1",
+    "ak.vector.audit.binding_and_authorization_gate.v1",
+    "ak.vector.audit.close_release_concurrency.v1",
+    "ak.vector.audit.ryw_before_output.v1"
+  ],
+  "cases": [
+    {
+      "name": "binding_fsm",
+      "vector_id": "ak.vector.audit.binding_fsm.v1",
+      "runner": "cotest::conformance::audit_release::run_binding_fsm_vector",
+      "assertions": [
+        "active may transition to suspended or revoked",
+        "suspended may transition to active or revoked",
+        "revoked is terminal",
+        "same-basis conflicting target states produce Bottom"
+      ]
+    },
+    {
+      "name": "session_fsm",
+      "vector_id": "ak.vector.audit.session_fsm.v1",
+      "runner": "cotest::conformance::audit_release::run_session_fsm_vector",
+      "assertions": [
+        "request authorize notice close is accepted",
+        "request or authorize may close an aborted session",
+        "authorize without request and notice without authorize are rejected",
+        "close is terminal"
+      ]
+    },
+    {
+      "name": "release_recipient_binding",
+      "vector_id": "ak.vector.audit.release_recipient_binding.v1",
+      "runner": "cotest::conformance::audit_release::run_release_recipient_binding_vector",
+      "assertions": [
+        "release recipient actor and key exactly match authorization",
+        "the recipient key resolves to the authorized audit actor",
+        "actor or key substitution fails with audit_release_manifest_invalid"
+      ]
+    },
+    {
+      "name": "release_window",
+      "vector_id": "ak.vector.audit.release_window.v1",
+      "runner": "cotest::conformance::audit_release::run_release_window_vector",
+      "assertions": [
+        "release cannot precede first_auditable_epoch",
+        "sealed epoch release cannot include the current active epoch",
+        "sealed epoch release requires sealed_by_commit_ref",
+        "target release must be inside the encryption-time eligibility snapshot"
+      ]
+    },
+    {
+      "name": "binding_and_authorization_gate",
+      "vector_id": "ak.vector.audit.binding_and_authorization_gate.v1",
+      "runner": "cotest::conformance::audit_release::run_binding_and_authorization_gate_vector",
+      "assertions": [
+        "release requires an active binding",
+        "suspended and revoked bindings fail closed",
+        "expired authorization fails closed",
+        "release requires the accepted session head to be notice"
+      ]
+    },
+    {
+      "name": "close_release_concurrency",
+      "vector_id": "ak.vector.audit.close_release_concurrency.v1",
+      "runner": "cotest::conformance::audit_release::run_close_release_concurrency_vector",
+      "assertions": [
+        "same-basis close wins and the competing release is rejected",
+        "a release accepted in an earlier Seal must appear in close release_refs",
+        "release after close is rejected",
+        "release order is Seal coverage then event_digest byte order"
+      ]
+    },
+    {
+      "name": "ryw_before_output",
+      "vector_id": "ak.vector.audit.ryw_before_output.v1",
+      "runner": "cotest::conformance::audit_release::run_ryw_before_output_vector",
+      "assertions": [
+        "wrapped material is not output before release acceptance",
+        "attested_hardware requires a valid independent-witness RYW receipt",
+        "receipt policy digest and release eligibility proof agree",
+        "output occurs at most once after all gates pass"
+      ]
+    }
+  ]
+}

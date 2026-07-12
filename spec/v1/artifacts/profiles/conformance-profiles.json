@@ -2299,8 +2299,6 @@
         "ak.edge.applet.query.protocol_metadata"
       ],
       "required_event_kinds": [
-        "ak.applet.interop_session.start",
-        "ak.applet.interop_session.status",
         "ak.applet.bridge_error"
       ],
       "rejected_event_kinds": [],
@@ -3362,6 +3360,7 @@
         "ak.schema.identity_link.v1"
       ],
       "required_fixtures": [
+        "audit-release-fixture.json",
         "privacy-security-fixture.json",
         "crypto-signature-fixture.json",
         "push-rule-core-fixture.json"
@@ -3533,6 +3532,7 @@
         "ak.schema.seal.v1"
       ],
       "required_fixtures": [
+        "audit-release-fixture.json",
         "privacy-security-fixture.json",
         "crypto-signature-fixture.json",
         "push-rule-core-fixture.json"

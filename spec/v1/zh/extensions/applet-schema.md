@@ -377,28 +377,3 @@ GET /_arkret/edge/applet/protocols/{protocol}
 
 `ak.applet.bridge_error` MUST 绑定 `realm_id`、`failed_transaction_ref`、`retriable` 和 `visibility_scope`；缺少任一 required 字段的 bridge error event MUST 被以 `schema_violation` 拒绝。该 event MUST NOT 泄露未授权外部正文（与 [`applet-integration.md` §16](./applet-integration.md) 一致）。
 
-## 8. Applet Interop Session Events
-
-Applet 外部会话使用两类 Realm event 回流状态（`ak.applet.interop_session.start` 与 `ak.applet.interop_session.status`）。字段的机器可读真源是 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 中对应 payload `$defs`（`$defs/applet_interop_session_start_payload`、`$defs/applet_interop_session_status_payload`）；本节只列出 wire 语义。v1 不为 applet interop session 定义 canonical result 事件或 session 状态机；`runtime_status` 由 applet bridge 实现按 applet manifest 解释。原 agent interop 名字空间已 reserved，但不影响本 applet bridge 机制。
-
-### 8.1 `ak.applet.interop_session.start`
-
-| 字段 | 类型 | 必需 | 说明 |
-| --- | --- | --- | --- |
-| `applet_id` | `id` | required | 发起或承载该会话的 Applet。 |
-| `session_id` | `id` | required | Applet interop session id。 |
-| `service_id` | `did` | optional | 对端或承载服务 DID。 |
-| `params` | `object` | optional | 启动参数；不得内联未授权外部正文。 |
-| `created_at` | `timestamp` | optional | 会话创建时间。 |
-
-### 8.2 `ak.applet.interop_session.status`
-
-| 字段 | 类型 | 必需 | 说明 |
-| --- | --- | --- | --- |
-| `applet_id` | `id` | required | 会话所属 Applet。 |
-| `session_id` | `id` | required | Applet interop session id。 |
-| `runtime_status` | `string` | required | Applet runtime 暴露的状态值；实现必须按 Applet profile 声明解释。 |
-| `detail` | `object` | optional | 最小状态详情；不得泄露未授权外部正文。 |
-| `updated_at` | `timestamp` | optional | 状态更新时间。 |
-
-`ak.applet.interop_session.status` 的 `runtime_status` 只描述 Applet runtime 状态，不替代 Realm capability、policy 或 bridge error 判断。

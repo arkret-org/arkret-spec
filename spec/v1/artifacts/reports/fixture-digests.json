@@ -17,6 +17,10 @@
       "sha256": "ba6020f187815423d5ca180532b97fb3b0fd1253a33431736f34512ad4ecf739"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/audit-release-fixture.json",
+      "sha256": "5f58fb212611ce11f9a6a2210d6f972029bf56f6f194d8e66bedca237c720970"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
       "sha256": "9288ac892db803135d363dc7f30182ac4c6b5df745e3068e48a7e08b99009fba"
     },
