@@ -3,7 +3,7 @@ title: Encoding, IDs, Hashes, Signatures
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 sidebar:
   label: Encoding & IDs
 ---
@@ -158,7 +158,7 @@ v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中�
 
 同一 producer 在同一 millisecond 内连续产出 SHOULD 使用 RFC 9562 §6.2 列出的 monotonic 方法之一（推荐 Method 1：单调随机段递增）以保证字典序稳定且与时间序一致。**v1 wire MUST NOT 接受其他 UUID version 替代**——v1（基于 MAC + 时间戳）、v3/v5（命名空间 hash）、v4（纯随机）、v6（重排时间戳）、v8（自定义）以及任何非 UUID 格式的等价 ID（UUIDv7、KSUID、Snowflake、TSID、CUID）即使经过 hex 重编码并伪造 version=7 nibble，也 MUST NOT 作为 typed `ak:<kind>:<uuid>` 的 ID 段使用；wire 上锁定单一构造方式以避免 prev_refs / refs / cursor / index 出现两套分布。这条限制是 wire 兼容性约束，不是收敛或审计要求：receiver 校验以正则 + 长度 + version/variant nibble 为准，不对 timestamp 段做语义解析；但 producer SHOULD 拒绝产出 timestamp 段明显畸形（远未来或远过去于本地时钟超过实现声明阈值）的 ID，并 SHOULD 在生成时检测同 actor 时钟回退导致的非单调情况。
 
-`event_id` 不是 canonical bytes 的 hash，是 producer 在签名前分配并写入 canonical bytes 的稳定 typed UUIDv7。Envelope 的内容指纹由 `proof.event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned)`）承担；`event_id` 与 hash 是两个独立字段，相同 `event_id` 配不同 canonical hash MUST 触发 `duplicate_conflict` quarantine（见 [`operations-sync.md` §2.1](../sync/operations-sync.md)）。
+`event_id` 不是 canonical bytes 的 hash，是 producer 在签名前分配并写入 canonical bytes 的稳定 typed UUIDv7。Envelope 的内容指纹由 `proof.event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned)`）承担；`event_id` 与 hash 是两个独立字段，相同 `event_id` 配不同 canonical hash MUST 触发整组 `duplicate_conflict` quarantine（含此前已 accepted 变体），完整追溯与 Seal 例外见 [`operations-sync.md` §12](../sync/operations-sync.md)。
 
 本节定义的 UUIDv7 构造、编码、单调性、receiver 校验规则 MUST 应用于 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) `id_kinds[]` 中**全部** typed kind（包括但不限于 `realm`、`strand`、`space`、`morph`、`message`、`relation`、`view`、`actor_profile`、`device`、`capability`、`grant`、`invite`、`receipt`、`snapshot`、`transaction` 等），event 不是特例。新 kind 注册 MUST 遵循同一规则；只有 registry `special_forms[]` 中已列出的形态（opaque cursor、content-addressed blob / seal、canonical cell tuple、MLS profile-scoped 引用、Realm-scoped pseudonym、trust domain）才允许偏离 typed-UUIDv7 pattern，并各自由对应 schema / profile 单独校验。未在 registry 注册的非 typed-UUIDv7 前缀形态 MUST 按未知 critical wire type 拒绝。
 
@@ -257,11 +257,11 @@ Proof MUST bind（下列为绑定字段集合；canonical binding object 的实�
 }
 ```
 
-Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned` 与 reducer-stamped 顶层字段（当前为 `effective_scope`、`actor_kind`），按 §1 canonicalize 并计算 `event_digest`；再与 `proof.event_digest` constant-time 比对；最后按上表字段构造 canonical binding object（含固定 `context`）并验证 detached JWS。实现 MUST NOT 直接签 HTTP envelope、transport metadata 或只签 `payload` 字段。
+Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned` 与 reducer-stamped 顶层字段（当前为 `effective_scope`、`actor_kind`），按 §2 canonicalize 并计算 `event_digest`；再与 `proof.event_digest` constant-time 比对；最后按上表字段构造 canonical binding object（含固定 `context`）并验证 detached JWS。实现 MUST NOT 直接签 HTTP envelope、transport metadata 或只签 `payload` 字段。
 
 非 Event 的 detached proof（使用 `payload_digest` 的 receipt、capability grant、snapshot witness、handle claim 等）MUST 同样在 canonical proof binding object 内包含对象族固定 `context` 常量。每个对象族的规范或 schema description MUST 定义自己的 context 值；MUST NOT 复用 `ak.event-proof-v1`，也 MUST NOT 省略 context 后只签 `{payload_digest, verification_method, created_at, ...}`。
 
-**Realm 绑定（normative）**：event proof 通过 `event_digest` 间接绑定 `realm_id` —— `event_digest = canonical_digest(envelope_without_proofs_unsigned_reducer_stamps)` 覆盖 producer Event envelope，而 envelope MUST 含 `realm_id` 字段（见 §1.6 event digest 向量）；任何改写 `realm_id` 的尝试都会改变 `event_digest`，使 proof 验证失败。因此 event proof 对跨 Realm 重放提供与 Event Batch Receipt 的 `scope` 等价的保护：receipt 显式绑定 `scope`（见 §5），event proof 经由 `event_digest` 覆盖 `realm_id`。实现 MUST 在验证 proof 前确认 envelope 的 `realm_id` 与处理上下文的目标 Realm 一致，MUST NOT 仅凭 proof 验证通过就跨 Realm 接受同一 Event。
+**Realm 绑定（normative）**：event proof 通过 `event_digest` 间接绑定 `realm_id` —— `event_digest = canonical_digest(envelope_without_proofs_unsigned_reducer_stamps)` 覆盖 producer Event envelope，而 envelope MUST 含 `realm_id` 字段（见 [`conformance-vectors.md` §1.6](./conformance-vectors.md) event digest 向量）；任何改写 `realm_id` 的尝试都会改变 `event_digest`，使 proof 验证失败。因此 event proof 对跨 Realm 重放提供与 Event Batch Receipt 的 `scope` 等价的保护：receipt 显式绑定 `scope`（见 §5），event proof 经由 `event_digest` 覆盖 `realm_id`。实现 MUST 在验证 proof 前确认 envelope 的 `realm_id` 与处理上下文的目标 Realm 一致，MUST NOT 仅凭 proof 验证通过就跨 Realm 接受同一 Event。
 
 ### 6.1 Signature Suite registered set
 
@@ -275,7 +275,7 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned` 与 redu
 | --- | --- | --- | --- | --- |
 | `Ed25519` | `EdDSA`（JWS, crv=Ed25519） | `Ed25519` | **v1 default-MUST**；所有 receiver MUST 支持。Event proof、receipt proof、device cross-signing binding 等核心签名默认使用。 | 不抗量子(Shor 可破)；通过 `ak.profile.signature.pqc.v1` 迁移到后量子 suite。 |
 | `ECDSA-P256-SHA256` | `ES256`（JWS, P-256 + SHA-256） | `ES256` | v1 optional；声明 `ak.profile.signature.ecdsa_p256.v1` 的实现 MUST 支持。用于需要与 WebAuthn / FIDO2 / 既有 PKI 互通的部署。 | 不抗量子(Shor 可破)；选择仅出于生态互通。 |
-| `ML-DSA-65` | `ML-DSA-65`（NIST FIPS 204, Dilithium category 3） | `ML-DSA-65` | v1 profile-gated；声明 `ak.profile.signature.pqc.v1` 的实现 MUST 支持。后量子格基签名，用于长生命周期审计签名与抗量子迁移。 | 抗量子(NIST PQC 标准);wire 形态 `<suite>:<...>` 已为加法准备好，无需重写 wire。 |
+| `ML-DSA-65` | `ML-DSA-65`（RFC 9964 detached JWS；JWK `kty=AKP`、`alg=ML-DSA-65`、`pub` 必填） | `ML-DSA-65` | v1 profile-gated；声明 `ak.profile.signature.pqc.v1` 的实现 MUST 支持。`detached_jws` 与 raw detached signature 均可使用；JWK 私钥只允许 RFC 9964 的 32-byte seed `priv`，公共 JWK 不得含 `priv`。 | 抗量子（NIST FIPS 204）；JOSE / COSE 映射以 RFC 9964 为准。 |
 
 实现 MUST:
 
@@ -378,6 +378,8 @@ function compare_hlc(hlc1, hlc2):
 ```text
 causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC
 ```
+
+`hlc` 缺省时在该排序键上使用 **absent-last**：缺省值大于任何 schema-valid HLC；两个事件都缺省时继续比较 `actor_id`。实现 MUST NOT 用空字符串、零 HLC、本地接收时间或 `created_at` 代填缺省值。
 
 协议状态 MUST NOT 使用 timeline 排序选择 winner。DataEvent / Control Move 的 CBA basis、Seal coverage 与 Lattice join 决定当前 cell value；并发不可合并时返回 structured bottom。Timeline 展示顺序与 cell value 是两种不同 projection：前者排历史，后者由 Lattice 计算。实现 MUST 在 profile 中明确使用哪一个，MUST NOT 把 timeline 中最后出现的 Event 直接当作状态 value。
 

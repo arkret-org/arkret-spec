@@ -3461,11 +3461,9 @@
             "transition",
             "inc",
             "dec",
-            "append",
-            "insert",
-            "delete"
+            "append"
           ],
-          "description": "add/remove → or_set; set → mv_register/cas_register/lww_register; transition → fsm; inc/dec → counter; append → ordered_log; insert/delete → rga (rga + lww_register require ak.profile.collaborative_text.v1)."
+          "description": "add/remove → or_set; set → mv_register/cas_register; transition → fsm; inc/dec → counter; append → ordered_log."
         },
         "tag": {
           "type": "string"
@@ -3479,14 +3477,6 @@
         "issuer_seq": {
           "type": "integer",
           "minimum": 0
-        },
-        "element_id": {
-          "type": "string",
-          "description": "RGA element id, format: \"<issuer-did>:<seq>\". Required for insert/delete ops on rga lattice cells."
-        },
-        "predecessor": {
-          "type": "string",
-          "description": "RGA insert: predecessor element id, or the literal \"head\" for list start."
         }
       },
       "additionalProperties": false

@@ -1,5 +1,5 @@
 {
-  "version": "2026-06-04",
+  "version": "2026-07-13",
   "source_of_truth": true,
   "description": "Canonical signature algorithm vocabulary for v1 proof alg and raw signature_algorithm fields.",
   "registry_rules": [
@@ -41,15 +41,21 @@
       "canonical_id": "ML-DSA-65",
       "proof_alg": "ML-DSA-65",
       "signature_algorithm": "ML-DSA-65",
-      "jwk_kty": null,
+      "jwk_kty": "AKP",
       "jwk_crv": null,
+      "jwk_alg_required": true,
+      "jwk_public_parameter": "pub",
+      "jwk_private_parameter": "priv",
+      "jwk_private_representation": "32-byte seed",
+      "jose_reference": "RFC 9964",
       "status": "active",
       "role": "v1_profile_gated_pqc",
       "profile_gate": "ak.profile.signature.pqc.v1",
       "proof_kinds": [
+        "detached_jws",
         "raw_detached_signature"
       ],
-      "security_note": "NIST FIPS 204 ML-DSA category 3 suite for post-quantum hardening profiles."
+      "security_note": "NIST FIPS 204 ML-DSA category 3 suite for post-quantum hardening profiles. JOSE/JWK serialization follows RFC 9964: alg=ML-DSA-65, kty=AKP, required pub, optional private seed in priv, and empty ML-DSA context."
     }
   ]
 }

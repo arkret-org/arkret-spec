@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-10",
+  "version": "2026-07-13",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -213,6 +213,45 @@
         "required_evidence": [
           "vector_result"
         ]
+      },
+      {
+        "clause_id": "AK-SDK-015",
+        "grades": [
+          "U",
+          "A"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-015",
+        "summary": "Reconcile trimmed build capabilities with every published profile claim",
+        "required_evidence": [
+          "config_audit",
+          "public_api_inventory"
+        ]
+      },
+      {
+        "clause_id": "AK-SDK-016",
+        "grades": [
+          "V",
+          "A"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-016",
+        "summary": "Preserve unknown values from open registries without failing whole-object deserialization",
+        "required_evidence": [
+          "vector_result",
+          "public_api_inventory"
+        ]
+      },
+      {
+        "clause_id": "AK-SDK-017",
+        "grades": [
+          "V",
+          "U"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-017",
+        "summary": "Preserve explicit extension-slot content through canonical round trips and forwarding",
+        "required_evidence": [
+          "vector_result",
+          "data_flow_audit"
+        ]
       }
     ]
   },
@@ -385,9 +424,7 @@
     "ak.profile.constraint.visibility_control.v1",
     "ak.profile.constraint.resource_limit.v1"
   ],
-  "lattice_extension_profiles": [
-    "ak.profile.collaborative_text.v1"
-  ],
+  "lattice_extension_profiles": [],
   "interop_compat_profiles": [
     "ak.profile.matrix_compat.v1"
   ],
@@ -467,7 +504,6 @@
     "ak.profile.constraint.encryption_requirement.v1": "admin",
     "ak.profile.constraint.visibility_control.v1": "admin",
     "ak.profile.constraint.resource_limit.v1": "admin",
-    "ak.profile.collaborative_text.v1": "client",
     "ak.profile.matrix_compat.v1": "interop",
     "ak.profile.encoding.cbor.v1": "interop",
     "ak.profile.encoding.multihash.v1": "interop",
@@ -1430,6 +1466,7 @@
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
+        "mls-rfc9420-kat-fixture.json",
         "privacy-security-fixture.json",
         "sync-fixture.json"
       ],
@@ -1470,7 +1507,9 @@
       ],
       "required_constraint_kinds": [],
       "required_cell_namespaces": [],
-      "required_fixtures": [],
+      "required_fixtures": [
+        "security-closure-vectors.json"
+      ],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -3692,25 +3731,6 @@
         "unsupported_optional": "fail closed or omit profile claim"
       }
     },
-    "ak.profile.collaborative_text.v1": {
-      "inherits": [],
-      "description": "Lattice extension profile that registers lww_register and rga as legal cell lattice types for content / ui_affordance / draft / cosmetic cells. Implementations not claiming this profile MUST fail closed (unsupported_lattice_type) when they encounter cell schemas declaring these types. lww_register and rga MUST NOT be used for authorization_root / policy_root / notary_root / membership / lifecycle cells (statically rejected by realm.schema.json).",
-      "required_endpoints": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.realm.v1"
-      ],
-      "required_fixtures": [],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "lattice.lww_register",
-          "lattice.rga"
-        ],
-        "unsupported_optional": "fail closed or omit profile claim"
-      }
-    },
     "ak.profile.matrix_compat.v1": {
       "inherits": [],
       "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, cross-signing key hierarchy, SAS verification message strand. Account-aggregate sync is NOT covered: Arkret v1 chose a streaming push form (ak.self.account.stream.subscribe / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the ak.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
@@ -3728,7 +3748,12 @@
       "required_schemas": [
         "ak.schema.device_message.v1"
       ],
-      "required_fixtures": [],
+      "required_fixtures": [
+        "cross-signing-binding-fixture.json",
+        "keypackage-lifecycle-fixture.json",
+        "push-rule-core-fixture.json",
+        "sync-fixture.json"
+      ],
       "optional_extensions": [
         "matrix_push_gateway_passthrough"
       ],
@@ -3861,7 +3886,9 @@
         "ak.schema.cross_signing_reset.v1",
         "ak.schema.cross_signing_publish.v1"
       ],
-      "required_fixtures": [],
+      "required_fixtures": [
+        "cross-signing-binding-fixture.json"
+      ],
       "optional_extensions": [],
       "parameters": {
         "max_clock_skew_seconds": {

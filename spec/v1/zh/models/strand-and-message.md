@@ -3,7 +3,7 @@ title: Strand & Message
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 ---
 
 ## 0. 规范语言
@@ -806,11 +806,11 @@ Message timeline 的同步与 reducer 行为：
 | 撤回先到、原消息后到 | 接收方 MUST 保留 dangling redaction，待原消息到达后再应用；保留键为 `redacts` 目标 event id。 |
 | Reaction | Reaction-specific remove-wins set 收敛；同一 actor 对同一 emoji 的 add/remove 由 §9.8.3 定义。 |
 
-历史可见性枚举与 canonical 语义见 [`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)。
+历史可见性枚举与 canonical 语义见 [`../governance/history-visibility.md`](../governance/history-visibility.md)。
 
 #### 9.5.1 并发 revision 的「最新可见 revision」全序选择（normative）
 
-同一 `revision_root` chain 内，两条 `ak.message.revise`（或 `ak.message.create` 后接 revise）若**因果上互不可达**（彼此不在对方的 `prev_refs` 因果闭包中），不存在天然的「谁更晚」。默认视图展示的「最新可见 revision」MUST 由下列确定性全序 winner 规则机械选出，与 [`relation.md` §6](./relation.md#6-冲突处理)（互不可达候选按 `event_digest` bytewise 升序）、[`identity/account-lifecycle.md` §3](../identity/account-lifecycle.md)（`(effective_at, event_id)` canonical order）同属 canonical 全序 tie-break（各域的取端方向见各自定义）：
+同一 `revision_root` chain 内，两条 `ak.message.revise`（或 `ak.message.create` 后接 revise）若**因果上互不可达**（彼此不在对方的 `prev_refs` 因果闭包中），不存在天然的「谁更晚」。默认视图展示的「最新可见 revision」MUST 由下列确定性全序 winner 规则机械选出，与 [`relation.md` §6](./relation.md#6-冲突处理)（互不可达候选按 [`encoding.md` §4.2](../conformance/encoding.md) 统一规则取 `event_digest` bytewise 最大者）、[`identity/account-lifecycle.md` §3](../identity/account-lifecycle.md) 的领域顺序同属 canonical 全序 tie-break：
 
 1. **因果优先**：若一条 revise event 在另一条的 `prev_refs` 因果闭包中（严格因果后继），则后继 revision 胜出，前驱被该后继 supersede。此步用 prev_refs 因果序，不用任何墙钟字段。
 2. **并发 tie-break（canonical 全序）**：对一组**互不可达**的 revision，winner 按 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的统一 canonical tie-break 选出——即这些 revision 各自产生 event 的 canonical `event_digest` 按 bytewise 升序排序后的**最大值**（字典序最后者）。`event_digest` 是签名覆盖的 canonical Event digest，是全协议统一的最终 tie-break 键，对所有 verifier 唯一确定。
@@ -873,6 +873,8 @@ v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective sc
 #### 9.8.3 Reaction-specific remove-wins set 收敛（authoritative）
 
 成员身份键为 `(actor_id, target_ref, key)`；本节为权威定义，[§9.5](#95-冲突与收敛规则) 表中的一行是其摘要：
+
+`ak.vector.reaction.remove_wins_join.v1` 与 `reaction-fixture.json` 固化本节 add/remove、并发、redaction、epoch 与 capability-revoke 行为。
 
 - **去重**：同一 actor 对同一 `(target_ref, key)` 的多次 `add` 收敛为一个成员条目（`count` 不重复累加）；per-event 审计日志保留全部 add event。
 - **add / remove**：`ak.reaction.remove` 对该 actor 在其因果过去内、同 `(target_ref, key)` 的所有 add 打 tombstone。并发（无因果序）的 (add, remove) 在默认视图按 remove 收敛；审计视图保留双方。本规则是 reaction 专用的 remove-wins set，不引用 `event-auth-state-resolution.md` 的核心 `or_set` lattice。

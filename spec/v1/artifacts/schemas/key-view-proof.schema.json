@@ -76,9 +76,7 @@
             "cas_register",
             "fsm",
             "counter",
-            "ordered_log",
-            "lww_register",
-            "rga"
+            "ordered_log"
           ]
         },
         "heads": {

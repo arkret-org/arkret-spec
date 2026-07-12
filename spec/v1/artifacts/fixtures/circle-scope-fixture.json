@@ -6,6 +6,9 @@
   "suite": "circle_scope",
   "profile": "ak.profile.circle_conformance.v1",
   "version": "2026-05-29",
+  "covers_vectors": [
+    "ak.vector.circle.scope_rebind_and_admission.v1"
+  ],
   "description": "Machine-contract fixture for Circle effective_scope semantics. Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope and materialized object). Covers None->None, same-scope->same-scope, None->Some, Some->None, Some(A)->Some(B) rebind transitions plus negative cases. negative_cases also pin the accepted-Event / materialized-object closure: accepted Circle-scoped DataEvents MUST carry effective_scope, effective_scope MUST agree with scope_circle_id, the signed event_digest binds effective_scope, and content_encryption_floor=e2ee_required rejects plaintext content. See spec/v1/zh/models/circle.md §6.1 / §6.2 / §7 / §10.2.",
   "submit_payload_shape": {
     "description": "Actor-supplied input on ak.strand.create / ak.message.create / ak.morph.create / ak.relation.create / ak.space.* writes. MUST carry only scope_circle_id (id:circle | null). MUST NOT carry effective_scope.",

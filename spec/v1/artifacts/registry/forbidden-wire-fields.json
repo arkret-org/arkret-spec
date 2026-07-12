@@ -1332,19 +1332,6 @@
       "notes": "CRDT lattice enum values use snake_case."
     },
     {
-      "id": "lww-register",
-      "context": "crdt_lattice_enum",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "lww_register",
-      "allowed_contexts": [
-        "changelog",
-        "legacy_migration",
-        "negative_test"
-      ],
-      "notes": "CRDT lattice enum values use snake_case."
-    },
-    {
       "id": "notification.space_name",
       "context": "notification_payload",
       "since_revision": "2026-05-24",

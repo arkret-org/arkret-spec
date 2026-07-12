@@ -3,7 +3,7 @@ title: Artifact Consumption Guide
 status: candidate
 normative: false
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 ---
 
 # Arkret v1 Artifact Consumption Guide
@@ -24,13 +24,13 @@ updated: 2026-07-02
 - `registry/id-kind-registry.json`: typed ID kind 与 wire form。
 - `profiles/conformance-profiles.json`: profile inheritance、required operations、event kinds、schemas、fixtures、features、capability actions、cell namespaces、rejected event kinds。
 
-> 上述 `registry/{event-kind,operation,schema,id-kind}-registry.json` 是从 canonical `registry/contract-catalog.json` 生成的机器视图；contract-catalog 是它们的 single source of truth，实现 / SDK / lint 直接消费这些生成视图即可，但新增 / 修改 contract 时 MUST 改 contract-catalog 再重生成。
+> 上述 `registry/{event-kind,operation,schema,id-kind}-registry.json` 是从 canonical `registry/contract-catalog.json` 生成的机器视图；contract-catalog 是它们的 single source of truth。新增或修改 contract 时，实施流程先修改 catalog 再重生成；权威规则见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md)。
 
 手写常量只能作为 ergonomics alias；admission、profile claim、conformance gate 应避免以手写常量作为唯一事实来源。
 
 ## JSON Schema `$id` 与发布形态
 
-仓库内 validator SHOULD 使用本地 resolver，把 `$id` 映射到 `spec/v1/artifacts/schemas/<file>.json`，避免测试依赖网络。发布站点在相同路径提供 raw JSON Schema artifact、而不是 HTML catalog 页面的要求，权威来源为 [`../overview/release-readiness.md`](../overview/release-readiness.md)；`$id` URL 返回的 body 需要能被标准 JSON Schema validator 直接解析。
+仓库内 validator 可使用本地 resolver，把 `$id` 映射到 `spec/v1/artifacts/schemas/<file>.json`，避免测试依赖网络。发布站点在相同路径提供 raw JSON Schema artifact、而不是 HTML catalog 页面的要求，权威来源为 [`../overview/release-readiness.md`](../overview/release-readiness.md)；`$id` URL 返回的 body 需要能被标准 JSON Schema validator 直接解析。
 
 推荐响应头：
 

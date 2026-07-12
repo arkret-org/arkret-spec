@@ -3,7 +3,7 @@ title: Join Policy
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 ---
 
 ## 0. 规范语言
@@ -77,7 +77,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | `combinator` | yes | `enum(all, any)` | 无默认值；producer MUST 显式写入。 | gate 之间的组合语义。 |
 | `review_capability` | conditional | `string` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；wire payload MUST 显式写入。 | 审核所需 capability，取 **capability action token** 形态（如 `ak.realm.join.review`），不是 grant id 引用；与 §7.3 `reviewer_capability_proof`（引用授予该 action 的 **grant id** + frontier digest）是两个不同概念。[^review-capability-alias] |
 
-[^review-capability-alias]: 该字段语义是 *被授权 reviewer 所持的 capability action token*，不是 grant id 引用。v1 wire 字段名为 `review_capability`，不会改变。（未来版本对该字段的 prose alias 规划属 roadmap 范畴，不在 v1 normative 范围内。）
+[^review-capability-alias]: 该字段语义是 *被授权 reviewer 所持的 capability action token*，不是 grant id 引用；wire 字段名固定为 `review_capability`。
 | `reviewer_quorum` | no | `enum(any, majority, all) \| object` | 默认 `any`。`object` 形式 `{ threshold: int, reviewers: did[] }` 表达 N-of-M。 | 审核法定人数。 |
 | `application_ttl` | no | `duration` | 默认 `PT168H`，最小 `PT1H`，最大 `P1Y`。 | 申请未决超时即失效。 |
 | `cooldown_after_reject` | no | `duration` | 默认 `PT72H`。 | 拒绝后同一 actor 重新申请的最短间隔。 |

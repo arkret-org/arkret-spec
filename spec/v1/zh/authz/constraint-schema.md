@@ -3,7 +3,7 @@ title: 授权约束 Schema
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-07
+updated: 2026-07-13
 ---
 
 ## 0. 规范语言
@@ -68,12 +68,13 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `delegation_control` | — | core | 委托深度、路径、`delegation_scope` 等。 | core |
 | `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `constraint_scope` + `burst`）。 | core |
 | `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resources` / `max_total_blob_bytes`）。 | `ak.profile.constraint.resource_limit.v1` |
-| `claim_based` | `claim` | extension | `requires_claims[]` 凭证 / 证明要求；包含原 `accountability`（responsible / guardian / controller 通过 claim 表达）和原 `device_session`（device binding 通过 claim issuer = device cross-signing key 表达）。 | `ak.profile.constraint.claim_based.v1` |
+| `claim_based` | `claim` | extension | `requires_claims[]` 凭证 / 证明要求；responsible / guardian / controller 通过 claim 表达，device binding 通过 claim issuer = device cross-signing key 表达。 | `ak.profile.constraint.claim_based.v1` |
 | `claim_based` | `approval` | extension | 预审批 / proposal-then-approve / approval workflow。 | `ak.profile.constraint.approval_workflow.v1` |
+| `claim_based` | `accountability` | extension | grant-local 责任主体、guardian / controller 审批关系；使用 `accountability_required`、`approval_relation`、`approval_actor_ids` 等已注册字段。 | `ak.profile.constraint.claim_based.v1` |
 | `confidentiality` | `encryption` | extension | 强制加密、key 轮换、key issuer。 | `ak.profile.constraint.encryption_requirement.v1` |
 | `confidentiality` | `visibility` | extension | 对象 / 消息可见性裁剪、`deny_redacted_history`。 | `ak.profile.constraint.visibility_control.v1` |
 
-> v1 共 8 个核心 typed family，narrow-scoped 子类作为可选 `subtype` 表达：`edit_window` / `redact_window` 走 `temporal` (subtype 标记)；`container_move` 走 `scope_limitation`；`rate_limiting` / `resource_limit` 走 `quota` (`subtype=rate` / `resource`)；`approval_workflow` / `accountability` 走 `claim_based` (`subtype=approval` / `accountability`)；device/session binding **不是独立 subtype**，并入 `claim_based` `subtype=claim`，通过 claim issuer = device cross-signing key 表达；`encryption_requirement` / `visibility_control` 走 `confidentiality` (`subtype=encryption` / `visibility`)。底层字段或 subtype 值——`recurrence` / `max_session_duration` / `condition.kind` / `requires_claims[]` 等都是合法字段（见 §3 / §4 / §10）。canonical 8 family：`temporal` / `field_access` / `type_restriction` / `scope_limitation` / `delegation_control` / `quota` / `claim_based` / `confidentiality`。
+> v1 共 8 个核心 typed family，narrow-scoped 子类作为可选 `subtype` 表达：`edit_window` / `redact_window` / `window` / `session` 走 `temporal` (subtype 标记)；`container_move` 走 `scope_limitation`；`rate_limiting` / `resource_limit` 走 `quota` (`subtype=rate` / `resource`)；`approval_workflow` / `accountability` 走 `claim_based` (`subtype=approval` / `accountability`)；其中通过 claim 表达 responsible / guardian / controller 的凭证条件仍走 `subtype=claim`，不会取代独立的 grant-local `subtype=accountability`。device/session binding **不是 claim_based 的独立 subtype**，并入 `subtype=claim`，通过 claim issuer = device cross-signing key 表达；`encryption_requirement` / `visibility_control` 走 `confidentiality` (`subtype=encryption` / `visibility`)。底层字段或 subtype 值——`recurrence` / `max_session_duration` / `condition.kind` / `requires_claims[]` 等都是合法字段（见 §3 / §4 / §10）。canonical 8 family：`temporal` / `field_access` / `type_restriction` / `scope_limitation` / `delegation_control` / `quota` / `claim_based` / `confidentiality`。
 
 未注册的 `constraint_type` 或未注册的 `(constraint_type, subtype)` 组合 MUST fail closed。新增 family / subtype 必须先在本表登记，并在 grant-constraint schema 的 `constraint_type` 与 `subtype` enum 中注册。
 
@@ -214,7 +215,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`allowed_object_types` 只按对象类型收窄范围，不赋予能力。v1 中所有 Realm 同属一种安全边界、无 kind 区分，**不存在 Realm-kind 维度的约束**；若未来真的引入 Realm kind，必须注册新约束版本或明确 profile 语义。需按结构收窄请用 `allowed_space_kinds`。**结构容器（看板、列、泳道、calendar bucket 等）由 Space 对象承担**——使用 `allowed_space_kinds` 收窄到 Space.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；allowed_space_kinds 不会把 Space 升级为独立 membership 或 E2EE 边界（Space 永远透明回退到所属 Realm）。Strand 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Realm schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 约束表达。`allowed_facets` 只按 Realm schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `allowed_object_types` / `allowed_morph_types`。Morph 语义 SHOULD 通过 `allowed_morph_types` 和显式 profile 继续细分。
+`allowed_object_types` 只按对象类型收窄范围，不赋予能力。v1 中所有 Realm 同属一种安全边界、无 kind 区分，**不存在 Realm-kind 维度的约束**。需按结构收窄请用 `allowed_space_kinds`。**结构容器（看板、列、泳道、calendar bucket 等）由 Space 对象承担**——使用 `allowed_space_kinds` 收窄到 Space.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；allowed_space_kinds 不会把 Space 升级为独立 membership 或 E2EE 边界（Space 永远透明回退到所属 Realm）。Strand 没有顶层模式或业务分类约束；业务语义 SHOULD 通过 Realm schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 约束表达。`allowed_facets` 只按 Realm schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `allowed_object_types` / `allowed_morph_types`。Morph 语义 SHOULD 通过 `allowed_morph_types` 和显式 profile 继续细分。
 
 ## 6. 范围限制
 
@@ -514,10 +515,10 @@ quota authority MUST 同时满足：
   "subtype": "accountability",
   "effect": "allow",
   "accountability_required": true,
-  "responsible_actor": "did:webvh:z2vHtethmmzFY86zLhnqXP4rr:guardian.example.com",
-  "accountability_relation": "guardian",
-  "log_all_operations": true,
-  "require_signature": true
+  "approval_relation": "guardian",
+  "approval_actor_ids": [
+    "did:webvh:z2vHtethmmzFY86zLhnqXP4rr:guardian.example.com"
+  ]
 }
 ```
 
@@ -529,7 +530,8 @@ quota authority MUST 同时满足：
   "subtype": "accountability",
   "effect": "require_review",
   "guardian_approval_required": true,
-  "guardian_actor_refs": [
+  "approval_relation": "guardian",
+  "approval_actor_ids": [
     "did:webvh:z82PFJkUuQZejFmNvW4u3ZU59:parent1.example.com",
     "did:webvh:z6TTT4uWX85mtomzdpBz259yF:parent2.example.com"
   ],
@@ -950,7 +952,10 @@ function matches_field_access(operation, constraint):
       "subtype": "accountability",
       "effect": "allow",
       "accountability_required": true,
-      "responsible_actor": "did:webvh:zG3K9Kaj8YcWDiopkdAiWoCxY:owner.example.com"
+      "approval_relation": "controller",
+      "approval_actor_ids": [
+        "did:webvh:zG3K9Kaj8YcWDiopkdAiWoCxY:owner.example.com"
+      ]
     },
     {
       "constraint_type": "claim_based",

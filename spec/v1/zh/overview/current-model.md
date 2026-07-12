@@ -3,7 +3,7 @@ title: 当前模型说明
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 ---
 
 ## 0. 规范语言
@@ -45,12 +45,7 @@ Jira / Trello 一类产品里的细粒度 workflow status（例如 QA、Review�
 - `synthesis`：正式表达、结构化字段、状态推进、标题、摘要、正文
 - `discussion`：消息时间线、通知入口与讨论 UI；成员、历史可见性和 E2EE 由整个 Strand 的 effective scope 决定，不由 track 自己持有
 
-轨道规则：
-
-- `synthesis` 与 `discussion` 都可独立启用或关闭；`tracks` map 只要求至少有一个 active track。「只聊天不归纳」（仅 `discussion`）和「只承载结构化正文不开讨论」（仅 `synthesis`）都是合法形态。
-- 关闭 track 用 `tracks.<name>.enabled: set false`（冻结新写入、保留历史），或从 map 中删除 key。primary track MUST NOT 空缺：若被关闭的是当前 primary，MUST 在同一 `ak.strand.tracks.update` patch 中把 primary 转给另一个 active track。
-- `discussion` 的额外护栏：reducer MUST NOT 隐式创建 `discussion` track——切换 primary 到 `discussion` 时，若该 track 尚未 enabled，必须在同一 patch 中同时写 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true`。`synthesis` 没有此特殊约束（默认即标准 primary 候选，见 [`models/strand-and-message.md` §4.5](../models/strand-and-message.md)）。
-- 任何 track 启用、关停或切换 primary 通过单一 event `ak.strand.tracks.update`（payload 为 `ak.patch.v1` 形态）原子完成，不改变 `strand_id`；详见 [`models/strand-and-message.md` §4.8](../models/strand-and-message.md)。
+Track 可独立启用或关闭，也可原子切换 primary；「只聊天不归纳」和「只承载结构化正文不开讨论」都是合法模型形态。完整的 active/primary 不变量、`discussion` 启用护栏与 `ak.strand.tracks.update` patch 规则只由 [`models/strand-and-message.md` §4.5–§4.8](../models/strand-and-message.md) 规范定义，本导览不重复承载。
 
 ## 4. 工作流容器
 

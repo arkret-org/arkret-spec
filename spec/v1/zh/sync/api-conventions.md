@@ -3,7 +3,7 @@ title: HTTP/JSON Binding 通用约定
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 ---
 
 ## 0. 规范语言
@@ -281,7 +281,7 @@ Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失�
 
 ### 5.1 标准错误码
 
-标准 `error.code` 与批处理/联邦响应中的逐项 `reason_code` 共享同一字符串命名空间。**Canonical 单一来源** 是 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)：所有标准 code、HTTP 状态、scope (`response` / `endpoint` / `both`) 与简短描述均以该 registry 为准。新增、修改或废弃代码 MUST 先更新 registry；本文与 `service-http-binding.md` §9 不再维护并行表格。
+标准 `error.code` 与批处理/联邦响应中的逐项 `reason_code` 共享同一字符串命名空间。**Canonical 单一来源** 是 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)：所有标准 code、HTTP 状态、scope (`response` / `endpoint` / `both`) 与简短描述均以该 registry 为准。新增、修改或删除代码 MUST 先更新 registry；本文与 `service-http-binding.md` §9 只引用该 registry，不维护并行表格。
 
 实现使用要点（registry 之外的语义协议）：
 
@@ -317,20 +317,21 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 
 **机读真相源（normative）**：每个 operation 实际采用哪种幂等机制（§2.5 所列 `Idempotency-Key` / 对象 id / request id / canonical hash / protocol sequence），以 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 中该 operation 的 `idempotency_mechanism` 字段为机读真相源；配套 `retry_safe` 布尔字段声明"逐字节相同的全量重试是否不产生重复副作用"（`true` = 重试返回原 outcome、等价幂等 no-op 或确定性冲突；`false` = 盲目重试可能重复副作用或消费一次性材料）。客户端 MUST NOT 对 `retry_safe=false` 的 operation 在未带外确认首次请求效果的情况下自动重试。
 
-对 `idempotency_mechanism != "none"` 的 operation，规则如下：
+对请求级 identity 机制（`idempotency_key` / `request_id` / `canonical_hash`，以及以 `event_id` 作为 request identity 的事件提交）适用以下规则。self 面的 `Idempotency-Key` 去重作用域 MUST 至少绑定 `(authenticated principal, operation_id, Idempotency-Key)`；不同 principal 或不同 operation 复用同一字符串不构成重复：
 
 - 相同幂等键 + 相同 canonical request body MUST 返回与首次请求语义等价的结果。
 - 相同幂等键 + 不同 canonical request body MUST 返回 `duplicate_conflict`。
 - 服务端 SHOULD 记录幂等键与 canonical request hash；联邦与服务间写入 MUST 将该 hash 纳入签名 transcript 或 transaction replay cache。
+- `object_id` 与 `protocol_sequence` 是资源/协议状态 identity，不是请求级幂等键。逐字节相同的合法重放按 registry 的 `retry_safe` 承诺返回原 outcome 或等价 no-op；同一对象或序列上的不同 canonical body 是普通后继写，受 CAS、frontier、版本或状态机规则约束，MUST NOT 仅因 identity 相同返回 `duplicate_conflict`。
 - `idempotency_mechanism="none"` 与 `retry_safe=false` 同时出现时，该 operation MUST 在 binding 文档中给出超时后的 outcome 查询、一次性材料重新签发或人工确认路径；客户端 MUST NOT 把传输失败解释为“服务端未执行”并盲目重放。`none/true` 只表示重复执行纯计算等价，不产生需要去重的 write outcome。
 
 上述恢复路径的机读真相源是 operation registry 同行 `uncertain_outcome`：`query_operation` 必须引用 outcome/read operation；`reissue_material` 必须引用重新签发入口并要求 fresh request identity；`manual_confirmation` 明确进入 uncertain 人工确认；`drop_unconfirmed` 仅允许不持久化、可安全丢弃的 ephemeral/fanout signal。`none/false` 缺该字段、引用未知 operation、或 `reissue_material` 未要求 fresh identity 时，artifact lint MUST 失败。
 
 ### 6.1 幂等记录保留窗口（normative）
 
-- 对 `idempotency_mechanism != "none"` 的 operation，接收方 MUST 自幂等记录创建时刻起保留该记录**至少 24 小时**。
+- 对请求级 identity 机制的 operation，接收方 MUST 自幂等记录创建时刻起保留该记录**至少 24 小时**。`object_id` / `protocol_sequence` 的状态保留由对象生命周期或协议状态机决定，不受本段请求去重记录窗口约束。
 - 该保留窗口 MUST ≥ 对应请求面的签名时效 replay window（`expires - created` 上限，见 §3.2 与 [`federation.md` §3.2](./federation.md)）加最大允许时钟偏移。
-- 保留窗口内，同一幂等键 + 相同 canonical request body 的重放 MUST 返回与首次请求语义等价的原 outcome；同一幂等键 + 不同 canonical request body 仍按本节上文规则返回 `duplicate_conflict`。
+- 保留窗口内，同一请求级幂等键 + 相同 canonical request body 的重放 MUST 返回与首次请求语义等价的原 outcome；同一请求级幂等键 + 不同 canonical request body 仍按本节上文规则返回 `duplicate_conflict`。
 - 保留窗口过后的重放行为由实现自定（MAY 按新请求处理或拒绝），但实现 MUST NOT 对窗口外的重放声称幂等保证。
 - 在 24 小时下限之上，服务端 SHOULD 记录幂等结果至少到相关 Event 被最终同步或过期。
 
@@ -340,7 +341,7 @@ Applet transaction push 的幂等记录（[`applet-integration.md` §7.3](../ext
 
 - **安全全量重试同 identity**：仅当 registry 声明 `retry_safe=true` 时，语义上同一请求的全量重试才允许自动执行。若 `idempotency_mechanism != "none"`，重试 MUST 复用同一稳定 request identity（`Idempotency-Key` / `event_id` / `request_id` / object id / canonical hash / protocol sequence），且 canonical form 的 request body MUST 逐字节相同；若为纯计算 `none/true`，请求体仍 MUST 逐字节相同，但不虚构 idempotency key。
 - **不安全 operation 禁止自动重放**：`retry_safe=false` 时，客户端 MUST NOT 自动全量重试；必须先执行该 operation 的 outcome 查询或恢复流程。若没有机器可调用的恢复路径，调用方只能把结果标为 uncertain 并请求人工确认，不能生成新的 key 盲目再发。
-- **改内容必换 key**：请求内容修改后重交 MUST 换新幂等键，MUST NOT 以旧幂等键携带新 canonical body 重交（服务端按上文规则返回 `duplicate_conflict`）。
+- **改内容必换 request key**：采用请求级 identity 的请求修改内容后重交 MUST 换新幂等键，MUST NOT 以旧幂等键携带新 canonical body 重交（服务端按上文规则返回 `duplicate_conflict`）。`object_id` / `protocol_sequence` 不适用本条。
 - **partial retry 是新 batch，不是全量重试**：联邦批量提交发生 partial accept 后，按 `accepted[] ∪ duplicate[]` 求差重组的下一次提交是**新请求**，MUST 使用新的 `Idempotency-Key`（或省略），见 [`federation.md` §4.1](./federation.md) partial-retry 条文。本条与其不冲突：body 逐字节相同的全量重试复用同 key，body 已变化（求差重组）的重交必须换 key；接收方对同 `(origin, destination, Idempotency-Key)` 且 canonical hash 相同的请求 MAY 幂等接受的条文（[`federation.md` §8.5](./federation.md)）保持不变。
 
 ## 7. Cursor（统一不透明 token）
@@ -471,6 +472,8 @@ HTTP response MUST 同时设置 `Retry-After` header。`Retry-After` 的值按 H
 - `503 temporarily_unavailable` SHOULD 在可预估恢复时间时设置 `Retry-After`。
 - body 中的 `retry_after_ms` 用于非 HTTP binding 和精细诊断；其值 SHOULD 与 header 表达的时间一致。
 - 客户端和对端服务 MUST 对同一 actor / service DID / endpoint 组合执行指数退避，避免重试放大。
+
+缺少 `Retry-After` / `retry_after_ms` 或其它 operation-specific 恢复提示的可恢复错误，统一使用以下默认退避：首次等待至少 1,000 ms，factor=2，单次上限至少 60,000 ms，应用 0–20% jitter，且同一组合在连续 5 分钟内最多自动重试 5 次。声明 `traffic_metadata_hardened` profile 时，实际发送时刻还 MUST 受该 profile 的 `retry_cadence_padding` 约束。
 
 ## 10. CORS 与浏览器客户端
 

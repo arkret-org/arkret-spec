@@ -1,0 +1,51 @@
+{
+  "suite": "mls_rfc9420_mti_kat",
+  "profile": "ak.profile.e2ee_client.v1",
+  "version": "2026-07-13",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::mls_rfc9420_kat"
+  },
+  "covers_vectors": [
+    "ak.vector.mls.rfc9420_mti_kat.v1"
+  ],
+  "corpus": {
+    "repository": "https://github.com/mlswg/mls-implementations",
+    "commit": "cfd450286d1bfd9cd2519b95c80f9771f94a5b1a",
+    "raw_base_url": "https://raw.githubusercontent.com/mlswg/mls-implementations/cfd450286d1bfd9cd2519b95c80f9771f94a5b1a/test-vectors",
+    "cache_policy": "The runner MAY use a local immutable cache keyed by commit and sha256. It MUST verify sha256 before parsing and MUST fail the vector rather than fetch a moving branch or accept a digest mismatch.",
+    "files": [
+      {
+        "path": "crypto-basics.json",
+        "sha256": "17cfcf89af9f51d0f2aa7af77f6f9ec99376a039214b6d42a6f11646b83e8c29"
+      },
+      {
+        "path": "key-schedule.json",
+        "sha256": "05aa9a68bd2538ace72d8c53375984cc728ef62220ebf314df675708546d97a7"
+      },
+      {
+        "path": "messages.json",
+        "sha256": "b194abe1561995223482dbad51c180146920dc2f637e74d01e07a388308791fb"
+      },
+      {
+        "path": "welcome.json",
+        "sha256": "06be9d5c99817ef2545e4b15b8e73fd9b604685a8e55b59ca168eda98e236502"
+      },
+      {
+        "path": "treekem.json",
+        "sha256": "d8bbdf78394797f21db7476fd286af6830ebcb18d2e3b2c839fecd4eb11056f8"
+      }
+    ]
+  },
+  "case_selector": {
+    "cipher_suite": 1,
+    "cipher_suite_hex": "0x0001",
+    "run_all_matching_cases": true
+  },
+  "assertions": [
+    "every matching crypto-basics, key-schedule, message, welcome, and TreeKEM case reproduces the corpus bytes exactly",
+    "the runner verifies every file digest before parsing or executing a case",
+    "missing corpus, network failure without a verified cache, digest mismatch, skipped matching case, or unsupported field fails the vector",
+    "the runner records the corpus commit, file digests, matching case count, and implementation artifact digest as evidence"
+  ]
+}

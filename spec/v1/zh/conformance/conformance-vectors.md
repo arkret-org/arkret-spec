@@ -3,7 +3,7 @@ title: Conformance Vectors
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 ---
 
 本文是 v1 conformance 测试向量的人类阅读入口，按域分组呈现核心 normative steps。完整 active vector 集合的机器真相源是 `artifacts/registry/vector-registry.json`；测试 runner MUST 从 registry 的 `source_refs` 加载本文件、领域文档与 fixture，不得假定本文件正文穷尽列出所有 vector id。
@@ -205,7 +205,7 @@ ak.vector.encoding.reject_malformed_json.v1
 
 - duplicate key MUST NOT 按 parser 默认行为静默覆盖。
 - malformed string MUST NOT 被替换成 U+FFFD 后继续签名。
-- reject 结果 MUST 可审计；canonical JSON 解析失败 MUST 使用单一错误码 `invalid_canonical_json`（不再在 `schema_violation` / `invalid_encoding` 间三选一），以保证跨实现错误码一致、可被 conformance runner 断言。
+- reject 结果 MUST 可审计；canonical JSON 解析失败 MUST 使用单一错误码 `invalid_canonical_json`，以保证跨实现错误码一致、可被 conformance runner 断言。
 
 #### 1.5.2 Vector: Reject Duplicate Key
 
@@ -3590,7 +3590,7 @@ Preconditions:
 
 Steps:
 
-1. Alice 调用 `ak.self.agent.participation.set`，scope=`R`，selection=`{reply:true, accept_third_party_mention:false, act_on_behalf:true}`。
+1. Alice 调用 `ak.self.agent.participation.resource.replace`，scope=`R`，selection=`{reply:true, accept_third_party_mention:false, act_on_behalf:true}`。
 2. 服务端求 effective selection = controller selection ∩ effective ceiling ∩ agent capability intersection。
 3. 变体 A：之后 Realm ceiling 把 `reply` 收紧为 `false`。
 4. 变体 B：controller selection 来源缺失或 unknown。
@@ -3614,7 +3614,7 @@ Preconditions:
 
 Steps:
 
-1. Controller 调用 `ak.self.agent.participation.set`，scope=`R`，selection=`{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。
+1. Controller 调用 `ak.self.agent.participation.resource.replace`，scope=`R`，selection=`{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。
 2. 变体 A：调用方不是该 agent 的 controller。
 3. 变体 B：该 agent 非 active(`paused` / `deactivated` / `pairing_expired`)。
 4. 变体 C：scope 不可解析，或 controller 非该 Realm active member。
@@ -3622,7 +3622,7 @@ Steps:
 Expected:
 
 - 第 1 步 MUST fail closed(`failed_precondition`, `reason="agent_participation_exceeds_ceiling"`)，并在 error detail 中列出被封顶的位(`accept_third_party_mention`)，使 UI 能解释“为何不能开启”；MUST NOT 物化任何 grant。
-- 变体 A、B、C MUST fail closed。`set` 仅 controller 可调用；`get` 可由 controller 或该 agent runtime 调用。
+- 变体 A、B、C MUST fail closed。`ak.self.agent.participation.resource.replace` 仅 controller 可调用；`ak.self.agent.participation.resource.get` 可由 controller 或该 agent runtime 调用。
 
 ### 11.15 Vector: Participation Session Overlay
 
@@ -4417,7 +4417,7 @@ Expected：
 
 `vector_id`: `ak.vector.keypackage.last_resort_forced_rotation.v1`
 
-本向量固化 §2.6.2「强制轮换闭合弱化窗口」MUST：last-resort 包持有 device 下次上线时 MUST 轮换该包（发布新 init/encryption key 的新 last-resort 包并把旧包标记 `rotated`，使旧包不再分发给新 claim）；持有者上线后 MUST 对所有经该 last-resort 包加入的 group 触发一次 MLS self-update Commit 推进 epoch，把前向保密恢复到正常 ratchet 水平，闭合 Welcome 阶段前向保密弱化窗口。
+本向量固化 §2.6.2「强制轮换闭合弱化窗口」MUST：last-resort 包持有 device 下次上线时 MUST 轮换该包（发布新 init/encryption key 的新 last-resort 包，并把旧包转入 `revoked`、记录 `revocation_reason="keypackage_rotated"`，使旧包不再分发给新 claim）；持有者上线后 MUST 对所有经该 last-resort 包加入的 group 触发一次 MLS self-update Commit 推进 epoch，把前向保密恢复到正常 ratchet 水平，闭合 Welcome 阶段前向保密弱化窗口。
 
 Steps：
 
@@ -4426,7 +4426,7 @@ Steps：
 
 Expected：
 
-- holder 上线后 MUST 发布新的 last-resort KeyPackage（新 init/encryption key）并把旧包标记 / 撤销为 `rotated`；轮换后旧包 MUST NOT 再被分发给新 claim。
+- holder 上线后 MUST 发布新的 last-resort KeyPackage（新 init/encryption key），并把旧包转入 `revoked`、记录 `revocation_reason="keypackage_rotated"`；轮换后旧包 MUST NOT 再被分发给新 claim。
 - holder MUST 对所有经该旧 last-resort 包加入的 group 触发一次 MLS self-update Commit（引入新 leaf key 材料）推进 epoch；无法精确定位经哪个包加入了哪些 group 时，MUST 对该 device 当前所有 last-resort-joined group 保守触发 update。
 - 该轮换 + update 序列 MUST 把上文弱化窗口闭合在有界范围内；组建立后常规消息 ratchet 前向保密不受影响（仅初始 Welcome 注入受弱化窗口约束）。
 

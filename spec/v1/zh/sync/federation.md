@@ -3,7 +3,7 @@ title: Federation
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 ---
 
 ## 0. 规范语言
@@ -512,7 +512,7 @@ GET pull 无 body，但签名 transcript MUST 覆盖 §3.2 中适用于无 body 
 - 同一个 `event_id` 的 Event MAY 被多个 Principal Server 推送多次
 - 接收方 MUST 以 `event_id` 去重
 - 内容相同的重复推送 MUST 幂等接受
-- `event_id` 相同但内容不同的推送 MUST 以 `duplicate_conflict`（HTTP 409 / conflict-class reason）拒绝，与 [operations-sync.md](./operations-sync.md) §15 一致；不得退化为 `causal_conflict` / `state_mismatch`
+- `event_id` 相同但内容不同的推送 MUST 以 `duplicate_conflict`（HTTP 409 / conflict-class reason）拒绝，与 [operations-sync.md](./operations-sync.md) §12 一致；不得退化为 `causal_conflict` / `state_mismatch`
 
 ### 4.4 Capability Revoke Fanout
 
@@ -583,6 +583,7 @@ Probe 响应 payload：
 冲突检测规则：
 
 - 若两端历史包含相同 `event_id` 但不同 hash，接收方 MUST quarantine 并以 `duplicate_conflict` 报告。此处的 `duplicate_conflict` 是 **probe-detected fork 的 quarantine reason**（语义同 error-code-registry 的 `duplicate_conflict` reason_code，`applies_to=event_envelope`：两条 canonical-byte 不同的 event 共用同一 `event_id`，reducer MUST quarantine 并要求 operator / fork-resolution 处理），**不是** §8.5 / `ak.peer.events.command.submit` 提交路径上"同一幂等键 + 不同 canonical body"那种可由调用方修正后重试的 submit 冲突。接收方 MUST NOT 把它当作可直接重试的提交错误返回给上游 sender，也不得通过简单重发解除；只能走 raw replay、quorum witness 或 operator-approved fork resolution。
+- 上述 probe 检测一旦成立，必须复用 [`operations-sync.md` §12](./operations-sync.md) 的整组追溯处置：此前已 accepted 的同 id 变体也进入 quarantine，数据面 effects 被移除，Seal 已覆盖的控制面变体只按 CBA §6.3.2 由后继 fork-resolution compaction Seal 归一。不得因一个变体先到达或来自本地 submit 就保留其普通 accepted 状态。
 - 若冲突来自同一 actor 的不同签名 frontier，接收方 SHOULD 保留最小证据集：冲突 event id、hash、签名 key id、source service DID、收到时间和相关 frontier。证据集不得包含未授权明文 payload。
 - 可疑 remote 输入 MAY 在 quarantine 队列中暂存，直到签名、schema、capability、fork resolution 与 operator policy 全部通过。
 - **quarantine 驻留语义（normative 澄清）**：quarantine 是 fail-closed 安全态——quarantined 输入 MUST NOT 推进本地 frontier、MUST NOT 进入 joined view 或授权判定，因此长时间驻留**不影响互操作正确性或一致性**。协议**不**为 quarantine 设 wire 级最大驻留时长或自动转 `rejected` 的超时:fork resolution 依赖 raw replay / quorum witness / operator-approved resolution 等可能耗时的带外动作，设硬超时反而会丢弃合法但解析较慢的分叉。最大驻留时长、是否以及何时人工清退，属 **operator policy**，不在 wire conformance 范围。实现 SHOULD 对超过部署声明阈值仍未解析的 quarantine 条目触发治理健康告警（运维可见)，但 MUST NOT 据此自动接受或静默丢弃。high-assurance profile MAY 声明更严格的 operator-side resolution SLA，但该 SLA 是运营承诺，不改变上述 wire 语义。
@@ -959,7 +960,7 @@ Signature: sig1=:<base64>:
 
 该方向用于性能和可靠性提升，不是签名真实性的前提条件。最小实现可直接使用本文件 4/7 节的 push + pull。实现支持时应遵循：
 
-> **集合调和算法 pin（informative）**：本节与 [`../authz/event-auth-state-resolution.md` §155](../authz/event-auth-state-resolution.md) 把数据面传播指向"gossip / anti-entropy / RBSR（range-based set reconciliation）类"。跨实现需要具体算法 pin 时，双方 MAY 声明 `ak.profile.federation.rbsr.negentropy.v1` candidate profile：该 profile 把 federation set reconciliation 固定为 Negentropy-style range reconciliation，range fingerprint hash 复用 `digest-suite-registry` 的 active digest suite，运行在 `/_arkret/peer/*` pull 轨之上，不改变单 Event 签名语义。只有双方 ServiceDescribe 都声明该 profile 且 profile digest / hash suite / range bound 一致时，receiver 才可把 RBSR 摘要用于 backfill 缺口定位；任一条件不满足时，peer MUST 回退到本节的 push/pull 与 cursor 回填，不得把本地私有 RBSR 摘要当成互操作证据。
+> **集合调和算法 pin（informative）**：本节与 [`../authz/event-auth-state-resolution.md` §4.4](../authz/event-auth-state-resolution.md) 把数据面传播指向"gossip / anti-entropy / RBSR（range-based set reconciliation）类"。跨实现需要具体算法 pin 时，双方 MAY 声明 `ak.profile.federation.rbsr.negentropy.v1` candidate profile：该 profile 把 federation set reconciliation 固定为 Negentropy-style range reconciliation，range fingerprint hash 复用 `digest-suite-registry` 的 active digest suite，运行在 `/_arkret/peer/*` pull 轨之上，不改变单 Event 签名语义。只有双方 ServiceDescribe 都声明该 profile 且 profile digest / hash suite / range bound 一致时，receiver 才可把 RBSR 摘要用于 backfill 缺口定位；任一条件不满足时，peer MUST 回退到本节的 push/pull 与 cursor 回填，不得把本地私有 RBSR 摘要当成互操作证据。
 
 - 批次内必须保持 `events` 的原始签名 Envelope 顺序与 `event_id` 可去重性。
 - Gossip 转发不得改变单条 Event 的语义、签名或时间线排序前置假设。

@@ -19,6 +19,66 @@
       "expected_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777"
     },
     {
+      "vector_id": "ak.vector.encoding.open_registry_unknown_roundtrip.v1",
+      "kind": "open_registry_unknown_roundtrip",
+      "input": {
+        "registry_value": "ak.future.event_kind.v1",
+        "container": {
+          "known": "value"
+        }
+      },
+      "expected_canonical_bytes_utf8": "{\"container\":{\"known\":\"value\"},\"registry_value\":\"ak.future.event_kind.v1\"}",
+      "expected": {
+        "deserialization": "success",
+        "unknown_value": "ak.future.event_kind.v1",
+        "roundtrip_value_preserved": true,
+        "semantic_disposition_occurs_after_parse": true
+      },
+      "rules": [
+        "an unknown value from an open registry MUST NOT fail deserialization of the containing object",
+        "the exact unknown string MUST survive decode and encode",
+        "admission may still return unsupported_event_kind or another profile-defined result after parsing"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.extension_slot_roundtrip.v1",
+      "kind": "extension_slot_canonical_roundtrip",
+      "input": {
+        "critical_extensions": [
+          {
+            "id": "ak.feature.future_optional.v1",
+            "extension_scope": "projection",
+            "fail_closed": false,
+            "parameters": {
+              "future_flag": true,
+              "nested": {
+                "n": 1
+              }
+            }
+          }
+        ],
+        "x_future_hint": {
+          "opaque": [
+            "a",
+            1,
+            true
+          ]
+        }
+      },
+      "expected_canonical_bytes_utf8": "{\"critical_extensions\":[{\"extension_scope\":\"projection\",\"fail_closed\":false,\"id\":\"ak.feature.future_optional.v1\",\"parameters\":{\"future_flag\":true,\"nested\":{\"n\":1}}}],\"x_future_hint\":{\"opaque\":[\"a\",1,true]}}",
+      "expected": {
+        "decode_encode_bytes_equal": true,
+        "store_reload_bytes_equal": true,
+        "federation_forward_bytes_equal": true,
+        "backfill_bytes_equal": true
+      },
+      "rules": [
+        "schema-declared x_* and critical extension parameter slots are canonical signed content",
+        "unknown nested values MUST be preserved without key filtering, normalization, or reordering beyond canonical encoding",
+        "a receiver that does not implement the optional extension still preserves and forwards its exact content"
+      ]
+    },
+    {
       "vector_id": "ak.vector.encoding.canonical_json.nested.v1",
       "kind": "canonical_json",
       "input": {
@@ -115,7 +175,34 @@
     },
     {
       "vector_id": "ak.vector.encoding.reject_malformed_json.v1",
-      "kind": "canonical_json_reject",
+      "kind": "canonical_json_reject_raw",
+      "cases": [
+        {
+          "name": "reject_overlong_utf8",
+          "input_hex": "7b2278223a22c0af227d",
+          "expected_error": "invalid_encoding"
+        },
+        {
+          "name": "reject_truncated_utf8_sequence",
+          "input_hex": "7b2278223a22e282227d",
+          "expected_error": "invalid_encoding"
+        },
+        {
+          "name": "reject_lone_low_surrogate_escape",
+          "input_hex": "7b2278223a225c7564633030227d",
+          "expected_error": "invalid_canonical_json"
+        },
+        {
+          "name": "reject_reversed_surrogate_pair",
+          "input_hex": "7b2278223a225c75646330305c7564383030227d",
+          "expected_error": "invalid_canonical_json"
+        },
+        {
+          "name": "reject_bom_codepoint_in_string",
+          "input_hex": "7b2278223a22efbbbf227d",
+          "expected_error": "invalid_encoding"
+        }
+      ],
       "rejected_input_classes": [
         "malformed UTF-8",
         "duplicate JSON object keys at the same level",

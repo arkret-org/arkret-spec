@@ -3,7 +3,7 @@ title: Scalability Constraints
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-03
+updated: 2026-07-13
 ---
 
 ## 0. 规范语言
@@ -39,6 +39,7 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 单个 Event `refs[]` 中 `role="authorized_by"` 的条目数量 | 64 | 超过时 MUST reject；authorized_by refs 必须是最小授权状态集合（见 [event-and-patch.md](../models/event-and-patch.md) §2.2）。 |
 | 单个 Event 的 `refs[]` 总条目数量 | 128 | 涵盖 `authorized_by` / `attestation` / `parent_event` / `after` / `recovery_capability` / `state_witness` / `inclusion_proof` 等所有 role；超过时 MUST reject（`schema_violation`，`reason_code=refs_too_large`）或拆分。 |
 | 同一 `(actor_id, actor_seq, prev_frontier_digest)` sibling fork 数 | 16 | 超过时 receiver MUST quarantine 或要求 actor chain repair；见 [event-and-patch.md](../models/event-and-patch.md) §2.6。 |
+| 同一 `(actor_id, actor_seq)` 跨全部 `prev_frontier_digest` 桶的 sibling fork 累计数 | 64 | 超过时该高度全部 sibling MUST 进入与单桶 over-fork 相同的 quarantine / repair 终局；producer 不得通过变换 `prev_refs` 子集绕过单桶上限。 |
 | 单个 Relation / View / Morph `fields` canonical size | 256 KiB | 更大内容必须放入 Blob 或加密 payload。Morph `facets` map 与 `labels` 数组（[common-fields.md](../models/common-fields.md) §3.1）计入同一对象 256 KiB budget，不另设独立条数上限；见 [morph.md](../models/morph.md) §2。 |
 | 关系展开深度 | 32 | Projection executor / graph query MUST enforce，跨 Realm 引用必须按 Lazy Link 截断（Lazy Link 定义见 [glossary.md](../overview/glossary.md) "Lazy Link"）。 |
 | canonical JSON / deterministic CBOR 结构最大嵌套深度 | 64 | 适用于进入 canonical bytes 的任何 JSON / CBOR 结构（Event / Operation envelope、payload、`fields`，以及 `mls_governance_binding` 等手写 deterministic CBOR 结构）；object 与 array 混合计深，顶层容器深度为 1，深度 64 的输入 MUST 被接受（上限含边界）。超过时 MUST reject（`schema_violation`，`reason_code=structure_depth_exceeded`），MUST NOT 截断或部分解析后继续处理；实现的递归下降 MUST 有深度界或改用显式 worklist，不得依赖栈耗尽崩溃兜底。负例见 [conformance-vectors.md](./conformance-vectors.md) §1.12.1。 |
@@ -52,6 +53,8 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | HLC `state_event_expected_future_skew_ms`（state event 软阈值） | 默认按 `expected_future_skew_ms` | 见 [encoding.md](./encoding.md) §7.2。profile MAY 对 state event（capability / membership / policy / service binding / Realm upgrade / MLS commit 等）声明更严窗口；未声明时按 `expected_future_skew_ms` 处理。 |
 
 `refs[]` 总量边界的生成式负例由 `ak.vector.scalability.refs_limit.v1` 固化。envelope 1 MiB 边界与 HTTP header/path/query 上限分别由 `ak.vector.scalability.envelope_size_limit.v1`、`ak.vector.scalability.http_header_limits.v1` 固化；runner MUST 使用 generator 描述在执行时构造边界值，不在 fixture 中内嵌兆级字符串。
+
+其余 wire 上限按语义族由 `ak.vector.scalability.event_ref_role_limits.v1`、`ak.vector.scalability.batch_page_limits.v1`、`ak.vector.scalability.sibling_fork_limits.v1`、`ak.vector.scalability.object_control_limits.v1` 与 `ak.vector.scalability.capability_limits.v1` 固化；统一生成式输入与期望结果见 `scalability-limits-fixture.json`。
 
 [^hlc-throughput]: informative：换算约 65.5 M events/s（精确 65,536,000 events/s）单 actor 上限，仅为 65,536/ms × 1000 的派生值，**非 normative 吞吐保证**，实现 MUST NOT 以此作为容量承诺。
 
@@ -162,6 +165,12 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | 第三方 invite `(invite_id, claim_nonce)` replay set TTL | `invite.expires_at + 24h`（下限） | 验证服务 / 接收 Sync Service MUST 至少保留到该窗口结束；窗口内重复 claim MUST 在 reducer 仲裁前拒绝。replay key SHOULD 以 HMAC / hash 存储，不得持久化明文 invite token。 |
 | expired invite token secret zeroize | 24h 内 | `expires_at <= now` 后，服务端 MUST 在 24h 内 zeroize `token_salt` / lookup pepper material，并 GC active commitment 记录；claim 路径返回 `expired_invite_token` 或等价不可枚举错误。 |
 | inception key 在线签名窗口 | 24h（硬上限；推荐 ≤1h） | 见 [key-management.md](../identity/key-management.md) §5.0.1。receiver / Auth Server MUST 独立计算 inception key age；超过 24h 后必须拒绝该 key 签发的 `ak.device.authorize` / `ak.session.grant` / 长期 capability / ordinary DID update，reason_code=`inception_key_window_exceeded`。deployment policy 不得放宽该硬上限。 |
+| `contact_request_pending_ttl` | 默认且最大 14 days | 见 [contact-and-direct-conversation.md](../identity/contact-and-direct-conversation.md) §3。双方分别从 accepted request 的 canonical `created_at` 计时；超窗的 accept/respond MUST fail closed，不得由本地配置放宽。 |
+| `erasure_propagation_window_ms` | 默认且最大 604,800,000 ms（7 days） | 见 [realm-and-space.md](../models/realm-and-space.md) §2.6.2。超窗未回执的 peer MUST 标 `timed_out`，issuing receipt 的 `fanout_status` MUST 为 `incomplete`。 |
+| `deactivation_propagation_window_ms` | 最大 600,000 ms（10 min） | 见 [federation.md](../sync/federation.md) §4.4.1。超窗 MUST 标 `deactivation_federation_incomplete`，并暂停受影响主体的新 onboard / grant / KeyPackage 路径。 |
+| `mls_deactivation_grace_ms` | 默认且最大 600,000 ms（10 min） | 见 [account-lifecycle.md](../identity/account-lifecycle.md) §7.1。超窗未完成 MLS remove 的成员 MUST 标 `unverifiable_member`，并拒收其新 epoch 消息。 |
+| soft-logout fresh DID proof replay window | `expires_at - issued_at` 最大 300,000 ms；clock skew 最大 300,000 ms | 见 [account-lifecycle.md](../identity/account-lifecycle.md) §4。任一边界超限 MUST 拒绝，reason_code=`did_proof_replay_window_exceeded`。 |
+| `call_empty_timeout_ms` | 默认且最大 120,000 ms | 见 [call-state.md](../crypto-media/call-state.md) §4.2。active media roster 持续为空达到该窗口时，focus / token issuer 或 P2P 承载 Principal Server MUST 推进 `active -> ended`；profile MAY 收紧，不得放宽。 |
 | key backup 每 principal 每 24h 下载上限 | 64（memory-hard profile 可声明 16–256） | 见 [key-management.md](../identity/key-management.md) §7.8。实现 MUST 在 `server/describe.limits` 或 profile 参数中公布实际上限；超限 MUST rate-limit / fail closed，并不得在日志或 telemetry 中泄露 plaintext keybag。 |
 | `push_target_id` rotation 周期 | 默认 ≤ 90 days | 见 [device-lifecycle.md](../crypto-media/device-lifecycle.md) §5a.1。客户端 SHOULD 在 push token 变化、设备恢复、out-of-band 重新登录或自定义 rotation 周期到达时轮换；高安全部署 SHOULD 声明更短周期。 |
 | 旧 / 新 `push_target_id` 可逆映射保留 | ≤ 24h，或单条未投递消息 TTL，取较短者 | 服务方只可在 rotation 时短暂保留映射以迁移未投递消息；超过窗口 MUST 物理删除旧 pseudonym 与索引材料，不得保留能把新旧映射回同一 device 的信息。 |

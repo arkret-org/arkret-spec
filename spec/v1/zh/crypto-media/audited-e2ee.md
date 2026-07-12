@@ -3,7 +3,7 @@ title: Audited End-to-End Encryption (Profile)
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 sidebar:
   label: Audited E2EE
 ---
@@ -33,7 +33,7 @@ Arkret 的合规审计目标是：在不削弱默认 E2EE 的前提下，为明�
 
 ## 2. Profile 与保证类别
 
-为保持 v1 profile 命名稳定，本 profile 沿用两个已登记的 profile id，但其语义仅指 **release path 的保证类别**，不再表示常驻审计成员：
+本 profile 登记两个 profile id，其语义是 **release path 的保证类别**：
 
 | Profile | `audit_assurance_class` | 含义 |
 | --- | --- | --- |

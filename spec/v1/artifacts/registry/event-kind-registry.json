@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-10",
+  "version": "2026-07-13",
   "source_of_truth": false,
-  "generated_at": "2026-07-10T00:00:00Z",
+  "generated_at": "2026-07-13T00:00:00Z",
   "generated_from": "registry/contract-catalog.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -23,7 +23,7 @@
     "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
     "Reducer-input durable kinds MAY declare cell_family, cell_subject, plane, sealed, lattice, bottom, and (cas_register only) initial_value. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used for lattices such as or_set whose join cannot produce Bottom. initial_value declares the value the cas_register reports before any DataEvent or Control Move effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Control Move predicates implements singleton-once-set cells.",
     "Registered exemption: protocol-singleton cells that are not written through a single event_kind are NOT indexed here. Currently the only such cell family is ak.component.notary.v1 (per-Realm notary cell, lattice=cas_register, bottom=reject): its genesis value comes from the ak.realm.create payload notary object and subsequent changes are ordinary notary-finalized Control Moves; its canonical definition lives in zh/authz/event-auth-state-resolution.md section 4.4. Any future cell family without a single writer kind MUST be added to this exemption list explicitly.",
-    "Lattice MUST be one of: core types or_set, mv_register, cas_register, fsm, counter, ordered_log; or extension types lww_register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement ak.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww_register or rga). Authorization, policy, notary, membership, and lifecycle cells MUST NOT use lww_register or rga.",
+    "Lattice MUST be one of the fully specified core types: or_set, mv_register, cas_register, fsm, counter, ordered_log. A new lattice type cannot become active until its join, bottom, op schema, profile gate, and conformance vectors are all registered.",
     "State convergence is defined by CBA: DataEvent effects are locally accepted against seal_ref, Control Move effects are finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
     "Every active durable reducer-input event_kind MUST have a machine-readable admission source: either at least one capability action targets it (capability_action_registry.target_event_kinds), or it declares an admission class from admission_class_definitions. capability_gated events MUST list the authorizing action(s) in admission_capabilities. Enforced by lint_artifacts.py; no active durable reducer-input event may lack an admission source (fail-closed)."
   ],
@@ -1754,8 +1754,8 @@
       "payload": "Signed account lifecycle status",
       "cell_family": "ak.component.account.status.v1",
       "cell_subject": {
-        "type": "did",
-        "field": "payload.principal_id"
+        "type": "string",
+        "field": "payload.account_id"
       },
       "lattice": "ordered_log",
       "bottom": "expose",

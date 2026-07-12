@@ -178,7 +178,7 @@
         },
         "last_resort": {
           "type": "boolean",
-          "description": "When true, this entry is a reusable last-resort KeyPackage (RFC 9420 Section 10). It is not consumed single-use; it cycles between published and claimed until rotated, expired, or revoked. Optional capability gated by ak.feature.mls_last_resort_keypackage.v1. See encryption-and-audit.md section 2.6.2."
+          "description": "When true, this entry is a reusable last-resort KeyPackage (RFC 9420 Section 10). It remains published across claims and never enters the single-use claimed or consumed states; rotation, expiry, or explicit revocation transitions it to revoked with a registered revocation_reason. This application-layer flag is covered by the upload entry's device_signature. Optional capability gated by ak.feature.mls_last_resort_keypackage.v1. See encryption-and-audit.md section 2.6.2."
         }
       },
       "additionalProperties": false

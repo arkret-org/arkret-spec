@@ -215,7 +215,7 @@
       "code": "realm_frozen",
       "http_status": 403,
       "scope": "both",
-      "description": "The target Realm is frozen, archived, tombstoned, or otherwise closed to ordinary writes."
+      "description": "The target Realm is reversibly frozen or archived and the attempted write is outside the closed exemption set in zh/models/realm-and-space.md §2.6.0. Terminal tombstone/destroy states use realm_terminal_state."
     },
     {
       "code": "claim_required",
@@ -749,7 +749,7 @@
       "code": "unsupported_lattice_type",
       "http_status": 422,
       "scope": "both",
-      "description": "The implementation does not support a lattice type referenced by the Realm schema (e.g., lww_register or rga without ak.profile.collaborative_text.v1). Receivers fail closed."
+      "description": "The Realm schema or Event references a lattice type outside the active, fully specified v1 lattice set. Receivers fail closed; implementation-local CRDT support does not activate a wire lattice."
     },
     {
       "code": "profile_unsupported",
@@ -2419,6 +2419,14 @@
       "description": "A single payload.patch contains parent/child writes, duplicate target paths, selector-affecting writes, or another multi-path combination that cannot be applied as one deterministic atomic Move. Reducer MUST reject the whole patch rather than partially applying paths. See zh/models/event-and-patch.md \u00a74.4."
     },
     {
+      "code": "effects_payload_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "Wire effects[] is not bytewise canonical-equivalent to derive_patch_effects(kind, target_ref, payload.patch, frozen_pre_state). Receiver MUST recompute and reject the entire Event; effects[] remains the CBA materialization input but cannot diverge from the signed patch instruction. See zh/models/event-and-patch.md §4.3.1."
+    },
+    {
       "code": "patch_path_reducer_managed",
       "applies_to": [
         "event_envelope"
@@ -3348,7 +3356,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "Realm has accepted ak.realm.destroy (or equivalent terminal decommission marker) and cannot accept new ordinary writes. Only audit-class events (ak.audit.*, ak.audit.erasure_receipt) are still acceptable. Receivers MUST reject ak.self.events.command.submit for any other kind targeting this Realm. See zh/models/realm-and-space.md \u00a72.6."
+      "description": "Realm has accepted ak.realm.tombstone or ak.realm.destroy and cannot accept new ordinary writes. Only audit-class events (ak.audit.*, ak.audit.erasure_receipt) are still acceptable. Receivers MUST reject ak.self.events.command.submit for any other kind targeting this Realm. See zh/models/realm-and-space.md \u00a72.6."
     },
     {
       "code": "audit_release_attestation_mismatch",
@@ -4437,6 +4445,20 @@
         "service_call"
       ],
       "description": "An agent runtime requested a high-risk session scope that requires out-of-band controller approval. The top-level service error is claim_required; error.details carries this reason_code and an opaque approval_request_id. The runtime MUST NOT receive a CAPTCHA, OTP, or browser challenge. See zh/identity/key-management.md §3.2."
+    },
+    {
+      "code": "keypackage_rotated",
+      "applies_to": [
+        "keypackage_lifecycle"
+      ],
+      "description": "A reusable last-resort KeyPackage was revoked because its holder came online and rotated it to fresh init / encryption key material. This is a revocation reason, not a KeyPackage lifecycle state. See zh/crypto-media/encryption-and-audit.md §2.6.2."
+    },
+    {
+      "code": "keypackage_expired",
+      "applies_to": [
+        "keypackage_lifecycle"
+      ],
+      "description": "A reusable last-resort KeyPackage was revoked because its expires_at deadline elapsed. It MUST NOT be returned by a later claim. This is a revocation reason, not a KeyPackage lifecycle state. See zh/crypto-media/encryption-and-audit.md §2.6.2."
     },
     {
       "code": "minimal_metadata_author_credential_invalid",

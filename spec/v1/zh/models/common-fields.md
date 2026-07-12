@@ -3,7 +3,7 @@ title: Common Fields
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 ---
 
 ## 0. 规范语言
@@ -69,7 +69,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 - `scope` 命名约定：当 scope 是该对象自身的边界字段时，wire schema 使用裸 `scope`（与对象自身 `id` 的命名规则相同），例如 `ak.schema.erasure_receipt.v1.scope`、`ak.schema.erasure_verification_stub.v1.scope`、`ak.schema.event_batch_receipt.v1.scope`。当字段引用外部对象、表达子结构中的特定作用域，或同一 payload 同时出现多个 scope 语义时，必须用领域前缀说明形态与用途，例如 `read_scope`、`event_range`、`match_scope`、`claim_scope`、`agent_key_scope`、`consent_scope`、`realm_key_scope`、`extension_scope`、`constraint_scope`、`policy_scope`、`search_scope`、`relation_scope`。Registry 元数据若表示条目适用范围，可继续使用 `scope`。
 - 诊断命名约定：机器可枚举的失败 / 恢复 / reset 原因使用 `reason_code` 或带领域前缀的 `*_reason_code`；人类可读自由文本使用 `reason` 或 `description`。受控枚举不得命名为 `reason`。
 - ID kind 与 wire prefix 必须使用完整 snake_case 名称，不得使用缩写前缀（例如使用 `ak:notification:`、`ak:device_message:`、`ak:key_event:`、`ak:moderation_queue_item:`、`ak:request:`、`ak:transaction:`、`ak:franking_proof:`）。
-- CRDT lattice 字段使用 `lattice`，枚举值使用 snake_case（如 `or_set`、`mv_register`、`cas_register`、`ordered_log`、`lww_register`）。新增 lattice 枚举不得使用 kebab-case。
+- CRDT lattice 字段使用 `lattice`，枚举值使用 snake_case（如 `or_set`、`mv_register`、`cas_register`、`ordered_log`）。新增 lattice 枚举不得使用 kebab-case，且必须先完成 join、op schema、profile gate 与 conformance vector 闭包。
 - Event kind 动词使用动词原形表达 reducer 动作（如 `authorize`、`revoke`、`rotate`、`tombstone`）；只有纯状态通告或外部标准名有明确理由时才可使用过去分词。
 - Capability action 命名约定：
   - **`ak.<entity>.<verb>` 是默认形态**，对应 `target_event_kinds` 中的一个或多个 reducer-input event kind。新增 action 默认 MUST 与被授权 event kind 同名；只有 [`authz/capabilities.md` §5.0](../authz/capabilities.md#50-action--event-kind-偏离类别normative-reference) 登记的偏离类别允许不同名。授权、IAM 工具、SDK 生成和 audit 解析 MUST 读取 capability-action-registry 的 `target_event_kinds`，不得从 action 字符串拆解推断 event kind。
@@ -127,7 +127,7 @@ Service identity 字段统一使用 `service_id` / `<role>_service_id`，即使 
 
 ## 3. Common Object Fields
 
-所有 durable canonical object SHOULD 使用以下公共字段，除非对象类型另有说明。公共字段的 canonical 排列顺序以 §3.2 为单一真源（content → lifecycle → audit）：即 `state`、`state_changed_at`、`stage`、`stage_changed_at` 等 lifecycle 簇 MUST 排在 `created_by`、`created_at`、`updated_by`、`updated_at`、`deleted_at` 等 audit 簇之前（与全部已实现 schema 一致）。对象专属字段 MAY 插入在 scope / lifecycle / body 分组中，但同名公共字段的相对顺序 MUST 与 §3.2 和 `tools/field-order-rules.json` 保持一致。本节字段表（§3.1）仅为概念性字段清单，不作为顺序真源。
+所有 durable canonical object SHOULD 使用以下公共字段，除非对象类型另有说明。公共字段的 canonical 排列顺序以 §3.2 为单一真源（content → lifecycle → audit）：即 `state`、`state_changed_at`、`stage`、`stage_changed_at` 等 lifecycle 簇 MUST 排在 `created_by`、`created_at`、`updated_by`、`updated_at` 等 audit 簇之前（与全部已实现 schema 一致）。对象专属字段 MAY 插入在 scope / lifecycle / body 分组中，但同名公共字段的相对顺序 MUST 与 §3.2 和 `tools/field-order-rules.json` 保持一致。本节字段表（§3.1）仅为概念性字段清单，不作为顺序真源。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -138,8 +138,7 @@ Service identity 字段统一使用 `service_id` / `<role>_service_id`，即使 
 | `created_at` | yes | `timestamp` | 不能作为因果真相。 | 创建时间。 |
 | `updated_by` | no | `did` | 更新时 SHOULD 设置。 | 最近更新主体。 |
 | `updated_at` | no | `timestamp` | MUST be no earlier than `created_at`。 | 最近更新时间。 |
-| `deleted_at` | no | `timestamp` | durable tombstone 可用。对没有独立 `deleted` / `tombstoned` 终态的对象（Strand / Morph，其不可逆终态是 `redacted`），`deleted_at` 仅表示该对象因 `ak.redaction` 进入 `redacted` 的逻辑删除时间，不暗示存在单独的 deleted 终态；对有 `tombstoned` / `deleted` 终态的对象（Space / Realm / Message 的相应终态），表示该终态发生时间。Relation 的不可逆终态虽为 `tombstoned`，但以 `state` 表达、**不使用** `deleted_at`（见 §3.1 矩阵）。 | 逻辑删除时间。 |
-| `state_changed_at` | R when state≠active | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Circle / Space / Strand / Message / Morph / Relation）当 `state != active` 时 MUST 写入（逐对象必填性矩阵见 §3.1，统一标记 `R when state≠active`）;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值，以触发该 state transition 的 Event 的 `created_at`(或对应 seal 的 `sealed_at`,以两者中较晚者为准)覆盖写入。MUST be no earlier than `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
+| `state_changed_at` | R when state≠active | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Circle / Space / Strand / Message / Morph / Relation）当 `state != active` 时 MUST 写入（逐对象必填性矩阵见 §3.1，统一标记 `R when state≠active`）;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值。权威值为 `max(Event.created_at, first_covering_sealed_at)`；`first_covering_sealed_at` 是覆盖该 Move 的全部 accepted Seal 中 `sealed_at` 的最小值，data-plane Event 或尚未被 Seal 覆盖时只取 `created_at`。MUST be no earlier than `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
 | `stage` | conditional | `enum` | 适用对象自己的 schema 声明本字段时可用（v1 适用对象 = Strand / Morph，详见 §5.3）；二者在通用 schema 中均可省略，具体 profile MAY 收紧为必填。取值为 §5.3 的协议级 8 值枚举。**禁止与 `state` 混用**：`stage` 表达业务进度，`state` 表达物理生命周期，两者正交。Strand 的 `metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason`，以及 Morph 的 `fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` 等同名/近名 wire 路径 MUST 被拒绝。stage 变更的"为什么"解释通过 discussion track Message 表达，不在对象字段中携带。 | 业务进度阶段。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived，actor 不可信：** 适用对象 `stage` 字段每次实际变更时 MUST 写入；Strand 缺少 `stage` 时 MUST NOT 单独出现。reducer **MUST** 忽略 wire payload 的 actor-supplied 值，以触发该 transition 的 `ak.<kind>.stage.set` event 的 `created_at` 覆盖写入。MUST be no earlier than `created_at`。same-value self-transition（stage 值未变）reducer MUST NOT 更新本字段。 | 最近一次 stage 转换时间。 |
 | `labels` | no | `array<string>` | SHOULD 小写短标签。 | 用户或系统标签。 |
@@ -183,27 +182,26 @@ Service identity 字段统一使用 `service_id` / `<role>_service_id`，即使 
 | `created_at` | Authorship | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | —（见 `issued_at`，§3.2） | Y | —（仅 `updated_at`，见 §3.2） | Y | Y |
 | `updated_by` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | — | — | O |
 | `updated_at` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | Y | O | O |
-| `deleted_at` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | — | — | O | O | O | — | — | — | O | — | — | — | — | — |
 | `state` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | Y | O | O | Y | O | O | — | — | — | — | Y（流程状态轴，见附注） | — | Y（特例语义，见附注） | — (see `status`，mirrors account status) |
 | `state_changed_at` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | — | — | — | — | — | — | — | — |
 | `stage` | Progress | — | — | — | O | — | O | — | — | — | — | — | — | — | — | — |
 | `stage_changed_at` | Progress | — | — | — | R per `ak.strand.stage.set` | — | R per `ak.morph.stage.set` | — | — | — | — | — | — | — | — | — |
-| `labels` | Universal | O | — | O | O | O | O | — | — | — | — | — | — | — | — | — |
-| `fields` / `metadata.fields` | Universal | O | — | O | O (`metadata.fields`) | O (`metadata.fields`) | Y (主要载荷) | O | — | — | — | — | — | — | — | — (see `profile_fields`) |
+| `labels` | Universal | — | — | O | — | — | — | — | — | — | — | — | — | — | — | — |
+| `fields` / `metadata.fields` | Universal | O | — | O | O (`metadata.fields`) | O (`metadata.fields`) | O (主要载荷) | O | — | — | — | — | — | — | — | — (see `profile_fields`) |
 
 附注：
 
 - Realm 使用通用 `created_by` 字段；其额外语义是 Realm create event 的 authorizing principal，并作为 genesis member bootstrap 主体（见 §4.1 / §4.2 与 [`realm-and-space.md` §2.5](./realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative)）。
 - Capability Grant / Invite / Read Cursor / Notification / Actor Profile 用领域特有的 authorship 字段（`issuer` / `inviter` / `actor_id` / `principal_id`），各对象 schema 内部独立约束；本表对应格写"—"是因为它们不使用通用 `created_by`，并不表示没有创建主体记录。
 - Read Cursor / Notification 是 actor-private 状态：`realm_id` 在 Read Cursor 上必填（`read-cursor.schema.json` 列入 `required[]`），在 Notification 上可选（允许 actor-scoped 视图省略）；`updated_by` 均不适用——这些对象由系统派生或 actor 本人推进。
-- **`state_changed_at` reducer-derived 总括 MUST（单一真源）**：任何承载物理 lifecycle `state` 轴的对象（Circle / Space / Strand / Message / Morph / Relation）在 `state != active` 时 MUST 写入 `state_changed_at`；该字段一律 **reducer-derived，actor MUST NOT 携带**，reducer 强制以触发 state transition 的 Event `created_at`（或较晚的 seal `sealed_at`）覆盖，actor wire 值 MUST 被忽略（详见 §5.1）。各对象专属文件的 `state_changed_at` 行不必重复声明该 reducer-derived 约束，以本条为权威。本条不适用于 Notification / Invite 的特例 `state` 轴（见下条）。
+- **`state_changed_at` reducer-derived 总括 MUST（单一真源）**：任何承载物理 lifecycle `state` 轴的对象（Circle / Space / Strand / Message / Morph / Relation）在 `state != active` 时 MUST 写入 `state_changed_at`；该字段一律 **reducer-derived，actor MUST NOT 携带**，reducer 强制使用 §3 定义的 `max(Event.created_at, min(covering Seal.sealed_at))`，actor wire 值 MUST 被忽略（详见 §5.1）。各对象专属文件的 `state_changed_at` 行不必重复声明该 reducer-derived 约束，以本条为权威。本条不适用于 Notification / Invite 的特例 `state` 轴（见下条）。
 - **`state` 必填性差异（Circle=Y vs Space/Strand/Morph=O）**：Circle 的 `state` 为必填（`circle.schema.json` 列入 `required[]`），而 Space / Strand / Morph 为可选（缺省语义 `active`）。理由：Circle 是独立的 scoped event boundary，其 lifecycle（`active` / `archived` / `tombstoned`）直接决定该 scope 内对象能否继续写入与投递裁剪（见 [`circle.md` §9.2](./circle.md)），故 reducer / projection 必须能从 Circle 对象直接读出确定 state，不容许 "缺省即 active" 的隐式解释带来 scope 可写性歧义；Space / Strand / Morph 的缺省 `active` 不影响其它对象的 scope 边界，省略时按 `active` 解释是安全且省 wire 的取舍。两类对象的 `state` 转换真源仍统一为 §5.1 的 reducer-input lifecycle event，必填性差异只影响 wire 上是否允许省略该字段。
 - Notification 的 `state` 是 schema required 字段（enum `unread / read / dismissed / archived`）：它承载 actor-private 的通知处理轴，是 Notification 的特例语义，不是 §5 协作对象物理 lifecycle 枚举；字段名保留 `state`，且 Notification 无 `state_changed_at`。Invite 的 `state` 同为 schema required，承载邀请流程状态轴（命名例外，见 [`governance-objects.md` §5](./governance-objects.md)），同样不落入 §5 lifecycle 状态机。
 - `stage_changed_at` 仅 Strand / Morph 适用，且仅当 `stage` 存在并真正发生 stage 变更时写入；同值 self-transition reducer MUST NOT 更新（详见 §3 与 §5.3）。
-- `labels` 对 Relation / View / Policy / Blob meta / Capability Grant / Invite / Read Cursor / Notification / Actor Profile 不适用：这些对象的 "标签" 语义由各自的 schema-specific 字段（如 `tags`、`reason`、`category`）承担，避免与协作对象 labels 投影冲突。
+- `labels` 仅适用于 Space。Realm / Circle / Strand / Message / Morph / Relation / View / Policy / Blob meta / Capability Grant / Invite / Read Cursor / Notification / Actor Profile 的标签语义由各自的 schema-specific 字段（如 `tags`、`reason`、`category`）或扩展容器承担，避免与 Space labels 投影冲突。
 - `fields` 是协作对象的扩展容器；Strand / Message 的用户可读扩展放入 `metadata.fields` 或 `encrypted_metadata`，不得作为顶层 `fields`；View / Policy / Blob meta / Capability Grant / Invite / Read Cursor / Notification 不暴露开放扩展容器。
-- **View 无 durable 终态**：v1 的 View 只有 `ak.view.create` / `ak.view.update` / `ak.view.reconcile`，`view.schema.json` 不含 `state` / `deleted_at`，registry 也无 `ak.view.tombstone`；故本表 View 的 `state` / `deleted_at` 为 "—"。共享 View 的"移除"是 owner-private / 带外操作（或由后续 reconcile 覆盖），不走对象生命周期终态。这是有意取舍，待未来若出现"可治理删除"的需求再单独引入 lifecycle event。
-- **Realm 无 materialized `state` 字段**：Realm 的 `archived` / `frozen` / `tombstoned` / `destroyed` 由 `ak.component.realm.*` lifecycle facet 表达，`realm.schema.json` 拒绝 `state` / `state_changed_at` / `deleted_at`。Projection MAY 把 `ak.realm.tombstone` 与 `ak.realm.destroy` 均显示为 `realm_terminal_state`，并用 `terminal_kind=tombstone|destroy` 或同等字段区分 successor 迁移与永久退役；不得把该 projection 状态写回 Realm 对象。
+- **View 无 durable 终态**：v1 的 View 只有 `ak.view.create` / `ak.view.update` / `ak.view.reconcile`，`view.schema.json` 不含 lifecycle timestamp，registry 也无 `ak.view.tombstone`；共享 View 的"移除"是 owner-private / 带外操作（或由后续 reconcile 覆盖），不走对象生命周期终态。
+- **Realm 无 materialized `state` 字段**：Realm 的 `archived` / `frozen` / `tombstoned` / `destroyed` 由 `ak.component.realm.*` lifecycle facet 表达，`realm.schema.json` 拒绝 `state` / `state_changed_at`。Projection MAY 把 `ak.realm.tombstone` 与 `ak.realm.destroy` 均显示为 `realm_terminal_state`，并用 `terminal_kind=tombstone|destroy` 或同等字段区分 successor 迁移与永久退役；不得把该 projection 状态写回 Realm 对象。
 
 ### 3.2 字段声明 / 展示顺序约定（normative reference）
 
@@ -217,7 +215,7 @@ Service identity 字段统一使用 `service_id` / `<role>_service_id`，即使 
    3. object discriminator / 引用：`kind`、`rank`、`schema_refs`
    4. content / config：`title`、`metadata`、`fields`、policy / config 字段
    5. lifecycle：`state`、`state_changed_at`、`stage`、`stage_changed_at`
-   6. audit：`created_by`、`created_at`、`updated_by`、`updated_at`、`deleted_at`
+   6. audit：`created_by`、`created_at`、`updated_by`、`updated_at`
    7. extension / profile 容器（若未在第 4 组出现）
 2. **protocol artifact / proof**（Blob meta、attestation、receipt 等）：`schema`、`<artifact>_id`、scope refs、issuer / subject、artifact body、validity（`not_before`、`expires_at`）、签发 / 审计字段。这类对象 MAY 不含顶层 `id`（使用 `<artifact>_id`），不视为遗漏。
 3. **private projection / process artifact**（Read Cursor、Capability Grant、Notification 等）：projection id / scope、grant / body、validity、lifecycle update（`updated_by`、`updated_at`）、revocation（`revoked_by`、`revoked_at`）。
@@ -365,7 +363,7 @@ Conformance vector `ak.vector.agent.participation.wire_shape_normalization.v1` �
 - **未知对象 pending / replay**：reducer 若收到的 lifecycle event 指向尚未在本地物化的对象（create event 尚未通过 causal / backfill 到达），MUST NOT 把该事件当作成功 no-op 丢弃，也 MUST NOT 返回普通 `failed_precondition`。接收方 MUST 把该 lifecycle event 保留为 `pending_causal_apply`（或等价可重放状态），按目标对象 id / digest 建索引，并在目标 create/backfill、可验证 snapshot 或 target visibility 证明到达后重新执行同一 state transition 校验。若后续证明目标永久不可见、未授权或已被 retention 剪裁，实现 MAY 暴露 `dependency_missing`、`unauthorized`、`history_not_visible` 或 `retention_pruned` 诊断，但不得把签名 lifecycle event 记为 accepted-and-applied。该规则与“对已知对象的 state 校验”互补：已知对象走上表 pre-state 校验；未知对象进入 pending/replay，从而保证相同事件集合在不同交付顺序下仍收敛。
 - **终态等价**:`tombstoned` / `deleted` 在 state-machine 中等价，都属于"不可逆终态";`redacted` 单独占一格但对 archive / restore / tombstone 而言同样是"不可逆终态"(MUST NOT 被这些 event 修改)。
 - **不允许 same-state self-transition**:`ak.<kind>.archive` 在 `state == "archived"` 时 MUST 返回 `<kind>_not_active`,**MUST NOT** 当作 idempotent no-op。这保证 reducer 路径上每个 state transition 都对应一次 audit-able 状态变化；客户端如果想"重新 archive"应当先 restore 再 archive,或确认目标对象 state 后跳过事件提交。
-- **`state_changed_at` reducer-derived(normative)**:reducer **MUST** 忽略 wire payload 中任何 actor-supplied 的 `state_changed_at` 值。该字段的权威值是触发本次 state transition 的 Event 的 `created_at`,或 cell update 时该 Event 落在 seal frontier 上的 `sealed_at`(两者较晚者),与 §3 字段表一致。客户端不得依赖 wire 上的 `state_changed_at` 做时序判断；若 wire 值与 reducer 派生值不一致,SDK SHOULD 报警并以 reducer 派生值为准。该规则防止 actor 通过填错时间戳干扰 retention、audit timeline、conflict tie-break(虽然 §6 已禁止 HLC / event id / actor_seq 作为 cell winner 选边，但 retention 与 audit query 仍可能 group by `state_changed_at`)。
+- **`state_changed_at` reducer-derived(normative)**:reducer **MUST** 忽略 wire payload 中任何 actor-supplied 的 `state_changed_at` 值。该字段的权威值是 `max(Event.created_at, first_covering_sealed_at)`，其中 `first_covering_sealed_at = min({S.sealed_at | accepted Seal S covers Event})`；覆盖集合为空时只取 `created_at`。同一 Move 被多个 `open_set` 并发 Seal 覆盖时仍由该集合纯函数得到唯一值。客户端不得依赖 wire 上的 `state_changed_at` 做时序判断；若 wire 值与 reducer 派生值不一致,SDK SHOULD 报警并以 reducer 派生值为准。该规则防止 actor 通过填错时间戳干扰 retention、audit timeline、conflict tie-break(虽然 §6 已禁止 HLC / event id / actor_seq 作为 cell winner 选边，但 retention 与 audit query 仍可能 group by `state_changed_at`)。
 
 `*.create` 与 `*.update` 永远 set state 为 `active`(或保持当前 active);对一个非 active 对象提交 update MUST 失败(`failed_precondition`,reason 同 `archive_not_active` 家族),否则编辑会隐式复活已 archive/tombstone 的对象——这与 `*.restore` 的语义冲突。Conformance 实现 MUST 把"update on non-active object"视为 invariant 违反。
 

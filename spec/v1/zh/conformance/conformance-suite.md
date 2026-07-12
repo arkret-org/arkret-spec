@@ -3,7 +3,7 @@ title: Conformance Suite（自动化互操作测试）
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 sidebar:
   label: Conformance Suite
 ---
@@ -98,7 +98,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 - `conformance-vectors.md`：redaction 保留与审计可见性向量。
 - `conformance-vectors.md` 与 `capability-fixture.json`：委派、撤销回滚、Strand discussion track 不继承 Strand synthesis 权限与审批约束向量。
 - `privacy-security-fixture.json`：hidden resource、private contact discovery、plaintext-visible service、private blob 与 blind push 的隐私回归向量。
-- `mimi-interop-fixture.json`：MIMI provider directory、room binding、content mapping、identifier query、consent、proxy download 与 unsupported draft 的 fixture cases（未注册向量）。
+- `mimi-interop-fixture.json`：MIMI provider directory、room binding、content mapping、identifier query、consent、proxy download 与 unsupported draft 的 fixture cases，已注册为 `ak.vector.mimi.*`。
 
 ### 4.2 State resolution 向量
 
@@ -138,6 +138,8 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
   - high risk action 未满足 approval 时应软拒绝或进入 proposal 流程。
 
 **Capability coverage plan（normative gate plan）**：进入 `v1-conformance-certified` 前，capability fixture / runner MUST 增加并执行下列负向与正向覆盖；在对应 `ak.vector.*` 行进入 `vector-registry.json` active 状态前，实现不得声称这些行为已通过 vector gate：
+
+规模型授权上限已由 active `ak.vector.scalability.capability_limits.v1` 与 `scalability-limits-fixture.json` 的生成式 runner 固化：delegation chain 深度 5、单次展开 1,025 grants、单 grant 65 constraints、selector AST 深度 17 均必须 fail closed；这些 case 与下列语义型 capability coverage 同属认证闭包，不得只运行其一。
 
 - 首发 grant issuer 上界校验：grant 的 `actions[]` / `resources[]` 超出 issuer 当前 effective capability 时 MUST 拒绝（`grant_exceeds_issuer_authority`），并覆盖 freshness unknown fail-closed。
 - effective validity window 归一化：`effective_not_before >= effective_expires_at` MUST 拒绝（`grant_validity_window_empty`）。

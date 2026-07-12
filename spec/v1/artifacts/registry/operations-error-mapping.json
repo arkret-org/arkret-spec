@@ -6,7 +6,7 @@
   "source_of_truth": true,
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
-    "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, invalid_signature, capability_denied, schema_violation, bad_json, bad_query, missing_param, invalid_param, rate_limited, too_large, conflict, internal_error, service_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
+    "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, invalid_signature, capability_denied, schema_violation, bad_json, bad_query, missing_param, invalid_param, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
     "operation_specific": "operation_specific[] lists the error codes that are semantically tied to this operation's domain logic (event ingest, key claim, blob upload, push gateway, directory ingest, ...). An entry may name either a top-level code from error-code-registry.json `codes` or a sub-code from its `reason_codes` section (carried under a top-level code such as failed_precondition or schema_violation). Consumers discriminate by first matching the entry against the registry's top-level `codes` set; an entry not found there is a reason_code and matches the error reply's `reason_code` field rather than its top-level `code`. Receivers SHOULD recognize and surface these codes specifically.",
     "endpoint_aliases": "Each operation entry lists its canonical HTTP method+path alias for human navigation; alternative bindings (gRPC, MQ) inherit the same error code set.",
     "operation_coverage": "Every operation_id in artifacts/registry/operation-registry.json MUST appear exactly once in operations[]. An empty operation_specific[] means the operation has no domain-specific reply shape beyond the universal failure surface."
@@ -442,6 +442,7 @@
       "operation_specific": [
         "not_found",
         "failed_precondition",
+        "keypackage_unknown",
         "direct_conversation_unavailable"
       ],
       "description": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates or repairs the canonical DM Realm/main Strand/binding."

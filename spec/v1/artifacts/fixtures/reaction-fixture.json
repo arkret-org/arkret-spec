@@ -6,6 +6,9 @@
   "suite": "reaction",
   "profile": "ak.vector_group.reaction.v1",
   "version": "2026-05-08",
+  "covers_vectors": [
+    "ak.vector.reaction.remove_wins_join.v1"
+  ],
   "notes": "Reducer-level vectors for ak.reaction.add / ak.reaction.remove. Convergence is OR-Set on (actor_id, target_ref, key); see zh/models/strand-and-message.md §9.8 (Reaction model + authoritative OR-Set semantics) and zh/crypto-media/encryption-and-audit.md §2.9 (plaintext-vs-encrypted visibility).",
   "cases": [
     {

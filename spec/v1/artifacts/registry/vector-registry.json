@@ -1,8 +1,161 @@
 {
-  "version": "2026-07-10",
+  "version": "2026-07-13",
   "source_of_truth": true,
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
+    {
+      "vector_id": "ak.vector.cross_signing.subordinate_key_binding.v1",
+      "status": "active",
+      "domain": "cross_signing",
+      "applies_to_fixtures": [
+        "cross-signing-binding-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cross-signing-binding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.device_trust.binding_input.v1",
+      "status": "active",
+      "domain": "device_trust",
+      "applies_to_fixtures": [
+        "cross-signing-binding-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cross-signing-binding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.circle.scope_rebind_and_admission.v1",
+      "status": "active",
+      "domain": "circle",
+      "applies_to_fixtures": [
+        "circle-scope-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/circle-scope-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.scalability.event_ref_role_limits.v1",
+      "status": "active",
+      "domain": "scalability",
+      "applies_to_fixtures": [
+        "scalability-limits-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/scalability-constraints.md",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.scalability.batch_page_limits.v1",
+      "status": "active",
+      "domain": "scalability",
+      "applies_to_fixtures": [
+        "scalability-limits-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/scalability-constraints.md",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.scalability.sibling_fork_limits.v1",
+      "status": "active",
+      "domain": "scalability",
+      "applies_to_fixtures": [
+        "scalability-limits-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/scalability-constraints.md",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.scalability.object_control_limits.v1",
+      "status": "active",
+      "domain": "scalability",
+      "applies_to_fixtures": [
+        "scalability-limits-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/scalability-constraints.md",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.scalability.capability_limits.v1",
+      "status": "active",
+      "domain": "scalability",
+      "applies_to_fixtures": [
+        "scalability-limits-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/scalability-constraints.md",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.open_registry_unknown_roundtrip.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-profiles.md",
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.extension_slot_roundtrip.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-profiles.md",
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.envelope.negative_admission.v1",
+      "status": "active",
+      "domain": "envelope",
+      "applies_to_fixtures": [
+        "event-envelope-negative-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-profiles.md",
+        "spec/v1/artifacts/fixtures/event-envelope-negative-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.reaction.remove_wins_join.v1",
+      "status": "active",
+      "domain": "reaction",
+      "applies_to_fixtures": [
+        "reaction-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/models/strand-and-message.md",
+        "spec/v1/artifacts/fixtures/reaction-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.patch.atomic_application.v1",
+      "status": "active",
+      "domain": "patch",
+      "applies_to_fixtures": [
+        "state-reducer-hardening-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/models/event-and-patch.md",
+        "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json"
+      ]
+    },
     {
       "vector_id": "ak.vector.scalability.circle_count_limit.v1",
       "status": "active",
@@ -1759,7 +1912,7 @@
       "applies_to_fixtures": [
         "keypackage-lifecycle-fixture.json"
       ],
-      "description": "Last-resort KeyPackage forced rotation: on next online the holder MUST rotate the last-resort package (new init key, old marked rotated) and trigger an MLS self-update Commit on every group joined via it to advance the epoch and close the forward-secrecy weakening window.",
+      "description": "Last-resort KeyPackage forced rotation: on next online the holder MUST publish fresh init key material, transition the old package to revoked with revocation_reason=keypackage_rotated, and trigger an MLS self-update Commit on every group joined via it to advance the epoch and close the forward-secrecy weakening window.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
@@ -2120,12 +2273,15 @@
     },
     {
       "vector_id": "ak.vector.mls.rfc9420_mti_kat.v1",
-      "status": "reserved",
+      "status": "active",
       "domain": "mls",
-      "scope": "universal",
-      "description": "Byte-level KAT for MLS ciphersuite 0x0001, pinned to the MLS WG vector corpus commit recorded in mls-ciphersuite-registry.json. Reserved until an in-tree machine fixture (spec/v1/artifacts/fixtures/) carries the executable KAT evidence; the strict certification gate rejects active doc-only rows.",
+      "applies_to_fixtures": [
+        "mls-rfc9420-kat-fixture.json"
+      ],
+      "description": "Byte-level KAT for MLS ciphersuite 0x0001. The in-tree fixture pins the MLS WG corpus commit, every source-file SHA-256 digest, the ciphersuite selector, and fail-closed runner behavior.",
       "source_refs": [
         "spec/v1/artifacts/registry/mls-ciphersuite-registry.json",
+        "spec/v1/artifacts/fixtures/mls-rfc9420-kat-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },

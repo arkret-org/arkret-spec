@@ -3,7 +3,7 @@ title: Realm & Space
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 ---
 
 ## 0. 规范语言
@@ -65,6 +65,8 @@ Realm 与 MLS group 不是同义词：
 - 若某个 Strand / artifact 需要 Realm 内的子事件 / 子消息边界（子集成员、独立 history、投递 / 查询裁剪，必要时独立 MLS group），创建一个 [Circle](./circle.md) 并把对象的 `scope_circle_id` 指向该 Circle。仅当跨 federation/policy/capability registry 边界时才升级到另一个独立 Realm，并通过 `ak.realm.link` 显式引用连接。
 - `history_visibility` 的五个值只定义历史读取资格；是否能发现 Realm、能否加入、是否能解密旧 E2EE epoch、以及服务是否可接收明文，分别由 discoverability、join rule、history sharing policy / key share、`plaintext_visible_services` 决定。完整语义见 [`../governance/history-visibility.md`](../governance/history-visibility.md)。
 
+Realm policy component `availability_policy` 声明 Control Move、snapshot 与 backfill bytes 的签名持有者门槛；`audit_policy` 声明 range-completeness / transparency witness 白名单、最小 attestation 份数与独立性。二者均经 `ak.realm.policy_components` 写入并进入 `policy_root`，结构以 `realm.schema.json` 为机器真源；实现不得用未登记的 profile-local 隐式集合替代。
+
 ### 2.3 Schema id 与字段
 
 Schema id: `ak.schema.realm.v1`
@@ -97,7 +99,10 @@ Schema id: `ak.schema.realm.v1`
 | `notary_profile` | yes | `enum(single_did, threshold, open_set, mixed)` | create-locked。 | Seal finality profile。 |
 | `digest_algorithm` | no | `enum(digest-suite-registry active ids；v1: sha256, blake3)` | create-locked，默认 `sha256`。 | Digest suite（canonicalization × hash 注册元组，见 [`encoding.md` §3.1–§3.3](../conformance/encoding.md)）：裸 id = canonical JSON 归一化，点分 id（如 reserved 的 `cbor.sha256`）= 备用归一化编码 suite。Realm 内单一 suite 排他；切换走控制面 suite transition Seal（[`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。 |
 | `notary` | yes | `object` | Genesis notary control cell 初值；其 `type` MUST 与 `notary_profile` 同源并满足对应 profile 的条件必填子字段。其 discriminator 子字段为 `type`（取值与 `notary_profile` 枚举同源：`single_did` / `threshold` / `open_set` / `mixed`）。**这是协议内 discriminator 默认用 `kind` 约定的已登记例外**（schema `realm.schema.json` 锁定 `notary.type`），见 [`common-fields.md` §2](./common-fields.md)。 | 当前 Seal 签发规则。 |
+| `availability_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_components` 写入；缺省为 1 个 notary holder，仅约束 Seal include。 | bytes availability receipt 门槛。 |
+| `audit_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_components` 写入；缺省时不得声称 `grade=witnessed`。 | completeness / transparency witness policy。 |
 | `revocation_freshness_window_ms` | no | `integer` | 默认 24h；用于 DataEvent `seal_ref` 和 Control Move `seal_basis` 的撤销新鲜度判定。高风险写入 MAY 按 [`capabilities.md` §18.2](../authz/capabilities.md) 要求更短窗口。 | CBA 授权基准 freshness 上限。 |
+| `recovery_witness_freshness_window_ms` | no | `integer` | 默认 24h，最大 7d；按签名覆盖的 `Seal.sealed_at` DAG 时间差计算。 | conflict-recovery witness freshness 上限。 |
 | `max_delegation_lifetime_ms` | no | `integer` | 默认 24h；用于 [`capabilities.md` §10.1](../authz/capabilities.md) 无限期 parent grant 首次转授时冻结 `delegation_expiry_seal`。effective 值取 Realm 字段与任何 grant / policy / deployment / profile 更短窗口的最小值。 | 委托防滚动续期窗口。 |
 | `bottom_escalation_after_ms` | no | `integer` | cell `⊥` 持续超过该窗口后，reducer / Projection SHOULD 标记 `escalated_at` 并触发带外告警；详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。 | bottom 诊断升级窗口。 |
 | `cell_lattices` | no | `array<CellLattice>` | `CellLattice` 结构（cell family / lattice / bottom 等）定义见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)。 | Realm-specific 扩展 cell family。 |
@@ -242,7 +247,7 @@ Realm 有两个终态 event，语义不同：
 
 二者均为 cas_register（bottom=reject）durable event，承载一个 **reversible boolean** facet：**同一个 `ak.realm.archive` 写 `true` 进入 `archived`、写 `false` 复原**，**不走独立 `ak.realm.restore` event**；`ak.realm.freeze` 同理用单一 reversible boolean facet 在 frozen / 非 frozen 之间切换。这区别于 [`common-fields.md` §5.2](./common-fields.md) 模板中 `ak.<kind>.archive` + `ak.<kind>.restore` 成对的形态——Realm 的可逆性由 facet boolean 表达，registry `lifecycle_modality=reversible` 是真源。capability：`ak.realm.archive` / `ak.realm.freeze`（action 见 [`../authz/capabilities.md`](../authz/capabilities.md)）。
 
-被 `archived` 或 `frozen` facet 关闭普通写入的 Realm 收到非豁免普通写入时，reducer / 服务端 MUST 返回 `realm_frozen`（HTTP 403）；审计类豁免仍按 §2.6.1 的终态规则和 error-code registry 处理。
+被 `archived` 或 `frozen` facet 关闭普通写入的 Realm 收到非豁免普通写入时，reducer / 服务端 MUST 返回 `realm_frozen`（HTTP 403）。豁免集合是封闭集合，仅包括：(a) `ak.realm.archive` / `ak.realm.freeze` facet 自身的后继写（包括写 `false` 解锁）；(b) `ak.realm.tombstone` / `ak.realm.destroy` 终态升级；(c) `ak.audit.*` 与 `ak.audit.erasure_receipt`；(d) 撤权或主动退出写入：`ak.member.state{membership="leave"}`、`ak.capability.revoke`、delegation revoke、device / key revoke，以及这些动作必需的审计回执。豁免动作仍 MUST 通过其普通 capability、CAS basis、签名和 schema 校验；冻结/归档不授予额外权限。`ak.realm.policy_components`、新增成员、授权扩张和其它控制面写入不在豁免集合内。Circle 与其它子对象 MUST 直接回指本枚举，不得自行扩张豁免面。
 
 #### 2.6.0.1 产品态"解散 Realm"映射（normative）
 
@@ -255,20 +260,20 @@ Realm 有两个终态 event，语义不同：
 
 实现的 UI 可以把上述 wire event 命名为"解散 Realm"、"关闭 Realm"或"冻结 Realm"，但审计、capability、federation 与 reducer MUST 以本节的 event 语义为准。ownership transfer 是成员 / capability 治理动作，不改变 Realm lifecycle；当 owner/admin 不愿 transfer 时，应在 `freeze`（可逆只读）与 `destroy`（无 successor 永久关闭）之间选择，而不是滥用 `tombstone`。
 
-#### 2.6.1 `ak.realm.destroy` 终态规则（normative）
+#### 2.6.1 `ak.realm.tombstone` / `ak.realm.destroy` 终态规则（normative）
 
-`ak.realm.destroy` accepted 进入 frontier 之后：
+任一终态 Event accepted 进入 frontier 之后：
 
 1. **拒绝后续普通写入**：reducer MUST reject 所有非 `ak.audit.*` / 非 `ak.audit.erasure_receipt` event；后续 `ak.self.events.command.submit` 返回 `realm_terminal_state`（错误码归类于 `realm_lifecycle` 错误域，避免与 `ak.realm.lifecycle.*` capability action 命名混用）。
 2. **Snapshot / Backfill / GC**：
    - Snapshot service MAY 发布最后一份 final snapshot（`ak.snapshot.*` event）；之后 snapshot 不再更新。
    - Backfill MAY 继续提供历史 event 给已授权 reader，受 history visibility policy 控制；新读权 MUST NOT 再被授予。
-   - GC：blob bytes、projection 缓存、to-device 队列、push route 按部署 retention policy 物理删除。canonical event log 仍按 retention/legal hold 保留。
-3. **Successor / Tombstone 区分**：`ak.realm.destroy` MUST NOT 携带 `successor_realm_id`；如果产品需要迁移到新 Realm，使用 `ak.realm.tombstone` 而不是 destroy。
+   - GC：tombstone 本身只关闭旧 Realm，不触发额外物理删除；destroy 可令 blob bytes、projection 缓存、to-device 队列、push route 按部署 retention policy 物理删除。canonical event log 仍按 retention/legal hold 保留。
+3. **Successor / Tombstone 区分**：`ak.realm.tombstone` MUST 携带不同于自身的 `successor_realm_id`；`ak.realm.destroy` MUST NOT 携带该字段。Projection 对二者统一暴露 `realm_terminal_state`，并用 `terminal_kind=tombstone|destroy`（或逐字节等价的封闭枚举）区分迁移与永久退役。
 4. **Erasure Receipt 与 Legal Hold**：destroy 不自动触发 erasure。若部署进入 erasure 阶段，发布 `ak.audit.erasure_receipt`（schema `ak.schema.erasure_receipt.v1`），可能 `outcome=blocked_by_legal_hold`。Legal hold 优先于 destroy 的 GC 路径。
-5. **Federation Fanout**：destroy event MUST 沿 federation 推送到所有曾持有该 Realm 状态的 peer Principal Server；peer 收到后 MUST 在 30 天内本地标记 `realm_terminal_state` 并停止接受该 Realm 的新 `ak.peer.events.command.submit`（包括 backfill 写入）。
-6. **Child Space / Strand cascade**：destroy accepted 后，home Realm 内所有 non-terminal Space、Strand placement 与 structural `contains` projection MUST NOT 作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为 `realm_destroyed_orphan`（只读 locked projection）或自动 tombstone/archive；不得继续允许 `ak.strand.move`、`ak.space.parent`、`ak.space.update` 等普通写入复活它们。跨 Realm `parent_space_id` 指向已 destroyed Realm 的 Space 时，引用方 MUST 在发现 destroy frontier 后将该 edge 降级为 locked/lazy link，并在 policy 窗口内 reparent、archive 或 tombstone；不得传播 destroyed Realm 的 membership、capability、history 或 E2EE key material。
-7. **Circle scope cascade**：Realm 内的 [Circle](./circle.md) 在父 Realm destroy 时一并 tombstone（Circle 不持有独立 federation identity，无法独立存活）。对象 `scope_circle_id` 指向已 tombstone Circle 时，写入 MUST fail closed（`failed_precondition`, `reason_code=scope_unavailable`）；projection MAY 显示同名 `scope_unavailable` 状态标记；`scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md) lifecycle cascade 表。
+5. **Federation Fanout**：终态 Event MUST 沿 federation 推送到所有曾持有该 Realm 状态的 peer Principal Server；peer 收到后 MUST 在 30 天内本地标记 `realm_terminal_state`、记录相同 `terminal_kind`，并停止接受该 Realm 的新 `ak.peer.events.command.submit`（包括 backfill 写入）。
+6. **Child Space / Strand cascade**：终态 accepted 后，home Realm 内所有 non-terminal Space、Strand placement 与 structural `contains` projection MUST NOT 作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为只读 locked projection（destroy 可用 `realm_destroyed_orphan`，tombstone 可用 `realm_tombstoned_orphan`）或自动 tombstone/archive；不得继续允许 `ak.strand.move`、`ak.space.parent`、`ak.space.update` 等普通写入复活它们。跨 Realm `parent_space_id` 指向终态 Realm 的 Space 时，引用方 MUST 在发现终态 frontier 后将该 edge 降级为 locked/lazy link，并在 policy 窗口内 reparent、archive 或 tombstone；不得传播终态 Realm 的 membership、capability、history 或 E2EE key material。
+7. **Circle scope cascade**：Realm 内的 [Circle](./circle.md) 在父 Realm tombstone 或 destroy 时一并 tombstone（Circle 不持有独立 federation identity，无法独立存活）。对象 `scope_circle_id` 指向已 tombstone Circle 时，写入 MUST fail closed（`failed_precondition`, `reason_code=scope_unavailable`）；projection MAY 显示同名 `scope_unavailable` 状态标记；`scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md) lifecycle cascade 表。
 
 #### 2.6.2 跨 Principal Server Erasure Receipt Fanout（normative）
 

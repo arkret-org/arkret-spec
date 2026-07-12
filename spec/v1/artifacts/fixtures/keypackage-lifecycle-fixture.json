@@ -94,7 +94,8 @@
         "mls-group-b"
       ],
       "expected": {
-        "old_state": "rotated",
+        "old_state": "revoked",
+        "old_revocation_reason": "keypackage_rotated",
         "old_not_distributed_after_rotation": true,
         "new_state": "published",
         "self_update_commits": 2,

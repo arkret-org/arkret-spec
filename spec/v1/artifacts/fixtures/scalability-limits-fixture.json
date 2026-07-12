@@ -9,9 +9,14 @@
   },
   "covers_vectors": [
     "ak.vector.scalability.refs_limit.v1",
+    "ak.vector.scalability.event_ref_role_limits.v1",
     "ak.vector.scalability.circle_count_limit.v1",
     "ak.vector.scalability.envelope_size_limit.v1",
-    "ak.vector.scalability.http_header_limits.v1"
+    "ak.vector.scalability.http_header_limits.v1",
+    "ak.vector.scalability.batch_page_limits.v1",
+    "ak.vector.scalability.sibling_fork_limits.v1",
+    "ak.vector.scalability.object_control_limits.v1",
+    "ak.vector.scalability.capability_limits.v1"
   ],
   "cases": [
     {
@@ -143,6 +148,332 @@
         "reason_code": "circle_count_exceeded",
         "limit": "active MLS-backed Circle memberships per actor <= 256",
         "state_unchanged": true
+      }
+    },
+    {
+      "name": "accept_causal_refs_at_limit",
+      "vector_id": "ak.vector.scalability.event_ref_role_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "event_causal_refs",
+          "count": 128,
+          "unique": true
+        }
+      },
+      "expected": {
+        "decision": "accept",
+        "limit": "causal_refs <= 128"
+      }
+    },
+    {
+      "name": "reject_causal_refs_over_limit",
+      "vector_id": "ak.vector.scalability.event_ref_role_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "event_causal_refs",
+          "count": 129,
+          "unique": true
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "reason_code": "causal_refs_too_large",
+        "must_not_truncate": true
+      }
+    },
+    {
+      "name": "accept_authorized_by_refs_at_limit",
+      "vector_id": "ak.vector.scalability.event_ref_role_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "event_refs_by_role",
+          "role": "authorized_by",
+          "count": 64
+        }
+      },
+      "expected": {
+        "decision": "accept",
+        "limit": "authorized_by refs <= 64"
+      }
+    },
+    {
+      "name": "reject_authorized_by_refs_over_limit",
+      "vector_id": "ak.vector.scalability.event_ref_role_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "event_refs_by_role",
+          "role": "authorized_by",
+          "count": 65
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "must_not_enter_reducer": true
+      }
+    },
+    {
+      "name": "reject_single_header_value_over_8_kib",
+      "vector_id": "ak.vector.scalability.http_header_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "http_header",
+          "name": "X-Arkret-Trace",
+          "encoded_size_bytes": 8193
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "payload_too_large",
+        "must_reject_before_business_copy": true
+      }
+    },
+    {
+      "name": "reject_cursor_header_over_4_kib",
+      "vector_id": "ak.vector.scalability.http_header_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "http_header",
+          "name": "X-Arkret-Wait-For",
+          "encoded_size_bytes": 4097
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "payload_too_large"
+      }
+    },
+    {
+      "name": "reject_path_query_over_8_kib",
+      "vector_id": "ak.vector.scalability.http_header_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "http_path_query",
+          "encoded_size_bytes": 8193
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "payload_too_large",
+        "must_not_expand_selector": true
+      }
+    },
+    {
+      "name": "reject_self_events_batch_over_limit",
+      "vector_id": "ak.vector.scalability.batch_page_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "operation_batch_items",
+          "operation_id": "ak.self.events.command.submit",
+          "count": 1001
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "allowed_error_codes": [
+          "rate_limited",
+          "payload_too_large"
+        ]
+      }
+    },
+    {
+      "name": "reject_federation_transaction_over_limit",
+      "vector_id": "ak.vector.scalability.batch_page_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "federation_transaction_events",
+          "count": 501
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "allowed_error_codes": [
+          "rate_limited",
+          "payload_too_large"
+        ]
+      }
+    },
+    {
+      "name": "cap_sync_page_at_limit",
+      "vector_id": "ak.vector.scalability.batch_page_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "sync_page_candidates",
+          "count": 1001
+        }
+      },
+      "expected": {
+        "returned_items": 1000,
+        "cursor_present": true,
+        "must_not_return_more_than_limit": true
+      }
+    },
+    {
+      "name": "quarantine_single_bucket_sibling_fork_17",
+      "vector_id": "ak.vector.scalability.sibling_fork_limits.v1",
+      "given_state": {
+        "generator": {
+          "kind": "sibling_forks",
+          "same_prev_frontier_digest": true,
+          "count": 17
+        }
+      },
+      "expected": {
+        "decision": "quarantine",
+        "repair_required": true,
+        "effects_removed": true
+      }
+    },
+    {
+      "name": "quarantine_cross_bucket_sibling_fork_65",
+      "vector_id": "ak.vector.scalability.sibling_fork_limits.v1",
+      "given_state": {
+        "generator": {
+          "kind": "sibling_forks",
+          "same_actor_sequence": true,
+          "distinct_prev_frontier_digests": true,
+          "count": 65
+        }
+      },
+      "expected": {
+        "decision": "quarantine_entire_actor_sequence_height",
+        "repair_required": true,
+        "effects_removed": true,
+        "accepted_seal_finality_preserved": true
+      }
+    },
+    {
+      "name": "reject_fields_over_256_kib",
+      "vector_id": "ak.vector.scalability.object_control_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "object_fields_canonical_bytes",
+          "object_kind": "morph",
+          "encoded_size_bytes": 262145
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "payload_too_large"
+      }
+    },
+    {
+      "name": "reject_space_nesting_depth_9",
+      "vector_id": "ak.vector.scalability.object_control_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "space_parent_chain",
+          "depth": 9
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition"
+      }
+    },
+    {
+      "name": "reject_rank_length_129",
+      "vector_id": "ak.vector.scalability.object_control_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "rank_string",
+          "char_count": 129
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation"
+      }
+    },
+    {
+      "name": "reject_control_move_preconditions_effects_257",
+      "vector_id": "ak.vector.scalability.object_control_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "control_move_preconditions_effects",
+          "combined_count": 257
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation"
+      }
+    },
+    {
+      "name": "reject_seal_new_control_moves_1001",
+      "vector_id": "ak.vector.scalability.object_control_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "seal_new_control_moves",
+          "count": 1001
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "allowed_error_codes": [
+          "rate_limited",
+          "temporarily_unavailable"
+        ]
+      }
+    },
+    {
+      "name": "deny_delegation_chain_depth_5",
+      "vector_id": "ak.vector.scalability.capability_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "capability_delegation_chain",
+          "depth": 5
+        }
+      },
+      "expected": {
+        "decision": "deny",
+        "fail_closed": true
+      }
+    },
+    {
+      "name": "reject_grant_constraints_65",
+      "vector_id": "ak.vector.scalability.capability_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "capability_grant_constraints",
+          "count": 65
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation"
+      }
+    },
+    {
+      "name": "reject_resource_selector_depth_17",
+      "vector_id": "ak.vector.scalability.capability_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "resource_selector_ast",
+          "depth": 17
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "selector_too_complex"
+      }
+    },
+    {
+      "name": "fail_closed_grant_expansion_1025",
+      "vector_id": "ak.vector.scalability.capability_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "authorization_grant_expansion",
+          "count": 1025
+        }
+      },
+      "expected": {
+        "decision": "fail_closed",
+        "allowed_error_codes": [
+          "soft_failed",
+          "temporarily_unavailable"
+        ]
       }
     }
   ]

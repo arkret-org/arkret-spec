@@ -3,7 +3,7 @@ title: Event, Proof, Patch & Receipt
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 ---
 
 ## 0. 规范语言
@@ -154,11 +154,13 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 - Producer SHOULD 为同一 `actor_id` 维护单调本地链，避免主动产生同高 sibling fork。
 - 同一 `actor_id` 的非 genesis event MUST 在 `prev_refs` 中引用至少一个该 actor 的 accepted predecessor；该 predecessor 的最大 `actor_seq` 必须是当前 `actor_seq - 1`，除非 profile 明确声明恢复/导入场景。
 - 相同 `(actor_id, actor_seq)` 的多个 event 是 sibling fork。它们没有隐含先后顺序；展示排序可使用 HLC，但协议状态生效必须使用 DataEvent / Control Move 验证、Seal coverage 与 Lattice join。
-- 实现 MUST 对同一 `(actor_id, actor_seq, prev_frontier_digest)` 接受的 sibling 数量设置上限；v1 public profile 的上限为 16，超过后 MUST quarantine 或要求 actor chain repair。
+- 实现 MUST 对同一 `(actor_id, actor_seq, prev_frontier_digest)` 接受的 sibling 数量设置上限；v1 public profile 的单桶上限为 16。同一 `(actor_id, actor_seq)` 跨全部 `prev_frontier_digest` 桶的合法签名 sibling 累计上限为 64；任一上限被超过时 MUST quarantine 或要求 actor chain repair。累计候选集合只由已验证 canonical Event 集合决定，不依赖到达顺序。
 - 被判定为 rejected 的 fork 不推进 actor accepted frontier，也不得作为后续 accepted event 的 predecessor。
 - **over-fork repair 终局（normative）**：当某 `(actor_id, actor_seq, prev_frontier_digest)` 桶内合法签名 sibling 数超过上限时，「quarantine 或要求 actor chain repair」的收敛终局复用 [`../sync/federation.md` §4.5](../sync/federation.md) 定义的 fork resolution 机制，而非各实现自定义：(a) receiver MUST 把整个 over-fork 桶（该桶内全部 sibling，含上限内已 accepted 者）标为 quarantine，MUST NOT 把其中任何 sibling 推进为 actor accepted frontier；(b) 重新归一只能由 federation §4.5 的 `raw replay` / `quorum witness` / `operator-approved fork resolution` 三条终局路径之一产生一个 canonical 归一结果，由有 recovery / fork-resolution capability 的主体写入；(c) 在归一结果产生前，所有 receiver 对同一 over-fork 桶 MUST 一致地拒绝推进 frontier（即 quarantine 子集 = 整桶，跨 receiver 确定相同），避免不同 receiver quarantine 不同子集导致 accepted frontier 跨 receiver 分歧。over-fork 桶不适用 §2.6 的分桶限流容忍语义（限流只针对未超限的合法分叉计数）。追溯进入 quarantine 的 sibling 的 effects MUST 从所有 data/control cell 的 join 输入集中移除，并按"非 quarantine accepted set 的纯函数"确定性重算 projection；以这些 sibling 作为 `prev_refs`、`refs[role=authorized_by]`、critical ref 或 payload-level critical causal ref 的后续 Event MUST 转为 `dependency_missing` / pending，不得继续使用被 quarantine 的 predecessor 维持 accepted 状态。
 
 `prev_frontier_digest` 的 canonical 计算为 `sha256:` + hex(SHA-256(JCS(sort_unique(prev_refs))))；`prev_refs` 先按 bytewise UTF-8 升序排序并去重，输入为空数组时编码为 `[]`。若 Realm 的 `digest_algorithm` 不是 `sha256`，同一结构使用该 Realm 声明的 digest algorithm，并把算法名前缀写入结果。该 digest 只用于 sibling fork 计数分桶，不参与 winner 选择。
+
+跨桶累计超过 64 时，上述“整桶”扩展为同一 `(actor_id, actor_seq)` 的全部 sibling：receiver MUST quarantine 该高度的全部候选，并沿用相同三条归一终局。对已经被 accepted Seal 覆盖的 Control Move，追溯规则存在唯一例外：其 effects 与 digest MUST 保留在该 Seal 的 `covered_set` / `state_root` 输入中，不得改写已接受 Seal；该 actor 后续控制面 Move 在显式 fork-resolution compaction Seal 归一前 fail closed。数据面 sibling 与尚未被任何 accepted Seal 覆盖的 pending Control Move 仍按上段移除 effects。完整衔接见 [`event-auth-state-resolution.md` §6.3.2](../authz/event-auth-state-resolution.md)。
 
 ### 2.7 Requirements 与 critical extensions
 
@@ -282,16 +284,15 @@ reducer MUST 在 patch path 命中 redactable field + `$op="unset"` 时返回 `s
 
 ### 4.3 在 Event 中的位置
 
-Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.target_ref`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。`ak.strand.update` 使用 `payload.target_ref` 指向目标 Strand；`ak.strand.tracks.update` 等专用 track 事件仍使用自身 schema 声明的目标字段。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §7.2 / §8。
+Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.target_ref`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。`ak.strand.update` 使用 `payload.target_ref` 指向目标 Strand；`ak.strand.tracks.update` 等专用 track 事件仍使用自身 schema 声明的目标字段。接收、去重与 reducer 验证见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §3 / §12。
 
-下面是一个 `ak.strand.update` event 中携带 `payload.patch` 字段 delta 的典型示例，覆盖直接 `set` 值（`metadata.fields.review_status` 标量字段）、对象形态 `set`（`metadata.fields.due_date`）、`unset`（`metadata.fields.dropped_field`）与 `add`（`labels.security` 集合追加）四类 op：
+下面是一个 `ak.strand.update` event 中携带 `payload.patch` 字段 delta 的典型示例，覆盖直接 `set` 值（`metadata.fields.review_status` 标量字段）、对象形态 `set`（`metadata.fields.due_date`）与 `unset`（`metadata.fields.dropped_field`）三类 op：
 
 ```json schema=schemas/patch.schema.json expect=valid
 {
   "metadata.fields.review_status": "approved",
   "metadata.fields.due_date": { "$op": "set", "value": "2026-06-01" },
-  "metadata.fields.dropped_field": { "$op": "unset" },
-  "labels.security": { "$op": "add", "value": "confidential" }
+  "metadata.fields.dropped_field": { "$op": "unset" }
 }
 ```
 
@@ -323,15 +324,14 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
   "effects": [
     {
       "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
-      "op": { "kind": "set", "value": { "metadata.fields.review_status": "approved", "metadata.fields.due_date": "2026-06-01", "labels.security": "confidential" } }
+      "op": { "kind": "set", "value": { "metadata": { "fields": { "review_status": "approved", "due_date": "2026-06-01" } } } }
     }
   ],
   "payload": {
     "target_ref": "ak:strand:019640c6-8000-7000-8000-000000000000",
     "patch": {
       "metadata.fields.review_status": { "$op": "set", "value": "approved" },
-      "metadata.fields.due_date": { "$op": "set", "value": "2026-06-01" },
-      "labels.security": { "$op": "add", "value": "confidential" }
+      "metadata.fields.due_date": { "$op": "set", "value": "2026-06-01" }
     }
   },
   "proofs": [
@@ -349,9 +349,24 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
 
 Reducer MUST 按 §4.4 原子性规则评估整个 `payload.patch` map（全部成功才接受），其中每条 path 还要分别通过 §4.2.4 redactable 字段保护与 §4.2.5 reducer-managed 字段保护检查。
 
+#### 4.3.1 Patch 与 `effects[]` 的唯一一致性规则（normative）
+
+`effects[]` 是 CBA 物化与 conflict-domain 的唯一输入；`payload.patch` 是 producer 签名的更新指令，二者不得独立表达两个结果。对任何携带 `payload.patch` 的 reducer-input Event，producer 与 receiver MUST 在该 Event 的冻结 pre-state 上执行同一纯函数 `derive_patch_effects(kind, target_ref, patch, pre_state)`，并要求输出与 wire `effects[]` 逐字节 canonical 等价；不一致 MUST 以 `schema_violation`、`reason_code=effects_payload_mismatch` 拒绝整个 Event。receiver MUST 重算，不能信 producer 的 effects。
+
+派生函数按以下封闭规则工作：
+
+1. 先按 §4.2 / §4.4 验证并原子应用 patch，得到完整 post-state；命中 redactable 或 reducer-managed 路径时在产生 effects 前即拒绝，因此不能经 effects 绕过保护。
+2. 目标 cell family、cell subject、plane 与 lattice 只从 event-kind registry 和 kind payload schema 派生，producer 不得用 `effects[].cell` 改写目标。
+3. `mv_register` / `cas_register` 产生单个 `op.kind="set"`，`op.value` 是完整 post-state cell value，不是 partial patch。`or_set` 只允许 patch `add` / `remove`，逐项产生同名 lattice op；`counter` 只允许 schema 登记的增减字段并产生 `inc` / `dec`；`fsm` 只允许领域 transition Event，MUST NOT 用通用 patch 改状态。其它 lattice 若无本节或领域文档的显式映射，携带 patch MUST fail closed。
+4. 派生 effects 按 cell id、op kind、tag / element id 的 canonical tuple 升序排列；相同 tuple 重复、patch 父子路径冲突或一个 patch 需要跨 plane 写入时 MUST 拒绝，不能靠数组顺序消歧。
+
+因此 verifier、Seal 与 projection 始终消费 `effects[]`，同时通过重算保证它只能是合法 patch 的规范派生物。
+
 ### 4.4 原子性与条件
 
 同一个 `payload.patch` map 中的所有 path 变更属于同一个 reducer-input Event 的单次原子写入。Reducer MUST 在读取旧对象状态后先验证全部 path grammar、schema transition、capability field constraint、redactable / reducer-managed 字段限制，以及 Control Move 的 `preconditions[]`（若存在）；任一失败时整个 patch MUST fail closed，不得部分应用已经通过的 path。
+
+`ak.vector.patch.atomic_application.v1` 与 `state-reducer-hardening-fixture.json` 固化多 path 单 cell 写入、原子 primary 切换、非法 selector 与失败时全量回滚。
 
 Patch path 之间若同时写入父子路径、同一路径重复写入、或一条操作会改变另一条操作的 selector 结果，producer MUST 拆分为多个有明确语义边界的 Event；若需要强单值 precondition 或跨 cell invariant，schema MUST 将目标 cell family 声明为 control plane 或 per-object sequencer。Receiver 在无法按 canonical path order 得到唯一结果时 MUST `schema_violation`，`reason="patch_atomic_conflict"`。Patch 的 canonical order 只用于签名和诊断，不得被实现用作“先应用 A 再应用 B”的业务语义逃逸路径。
 
@@ -361,7 +376,7 @@ Patch path 之间若同时写入父子路径、同一路径重复写入、或一
 
 Event Batch Receipt 是可选审计/同步加速对象，**不是 canonical history**，也**不是 reducer input**。缺少 receipt 不得导致格式、签名、授权和因果均有效的 Event 被拒绝，除非 deployment profile 额外要求 witness。
 
-单事件确认是 `events[]` 单元素的退化形态：relay / notary / witness 对某个数据面 Event 签发"已看见"回执（驱动查询等级 `local → seen`）时，签发的就是一个 `events = [<event_digest>]`、`scope.realm_id` 就位的 Event Batch Receipt。协议不定义独立的单事件 receipt 对象（原 SeenReceipt 已合并至此，合并说明见 [`../authz/event-auth-state-resolution.md` §4.4](../authz/event-auth-state-resolution.md)）。
+单事件确认是 `events[]` 单元素的退化形态：relay / notary / witness 对某个数据面 Event 签发"已看见"回执（驱动查询等级 `local → seen`）时，签发的就是一个 `events = [<event_digest>]`、`scope.realm_id` 就位的 Event Batch Receipt。协议只定义这一种 set-bound receipt 结构。
 
 Receipt 的覆盖语义是 **set-bound**：`events[]` 列出 issuer *选择* 承诺的 event 集合。它提供该集合的 *integrity*（未被中间人篡改），不提供该 `scope` 下的 *completeness*（issuer 未静默丢弃属于该范围的其他 event）。即便实现额外叠加 Merkle / set commitment，恶意 issuer 仍可只承诺自己愿意承诺的子集——所以 batch receipt MUST NOT 被实现解释为 range completeness 证明。range completeness 由已注册的 active attestation event `ak.attestation.range_completeness`（payload schema `ak.schema.range_completeness_attestation.v1`）承担，其 `event_range` 必须有显式 range 语义（per-actor seq interval + frontier 上下界）+ witness quorum 或独立 seal 背书。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §6.4 与 [`../overview/glossary.md`](../overview/glossary.md) *integrity vs completeness*。
 
@@ -408,4 +423,4 @@ Reducer MUST：
 - Canonical JSON、HLC、cursor：[`../conformance/encoding.md`](../conformance/encoding.md)。
 - Conformance vector：[`../conformance/conformance-vectors.md`](../conformance/conformance-vectors.md)。
 - Schema / event registry：[`../conformance/schema-registry.md`](../conformance/schema-registry.md)。
-- Schemas：`artifacts/schemas/event-envelope.schema.json`（含 `$defs.proof` — Proof 是 Event Envelope schema 内嵌定义，不再发布为独立 `proof.schema.json` 文件）、`artifacts/schemas/event-batch-receipt.schema.json`。
+- Schemas：`artifacts/schemas/event-envelope.schema.json`（Proof 由其 `$defs.proof` 内嵌定义）、`artifacts/schemas/event-batch-receipt.schema.json`。

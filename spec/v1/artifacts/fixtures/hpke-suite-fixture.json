@@ -30,7 +30,15 @@
       "kdf_rfc9180_id": "0x0001",
       "aead": "chacha20_poly1305",
       "aead_rfc9180_id": "0x0003",
-      "source": "RFC 9180 official CFRG test vectors (base mode), re-verified byte-for-byte with an independent HPKE implementation before inclusion",
+      "source": "RFC 9180 CFRG test-vectors.json pinned at commit 5f503c564da00b0687b3de75f1dfbdfc4079ad31",
+      "source_url": "https://raw.githubusercontent.com/cfrg/draft-irtf-cfrg-hpke/5f503c564da00b0687b3de75f1dfbdfc4079ad31/test-vectors.json",
+      "source_commit": "5f503c564da00b0687b3de75f1dfbdfc4079ad31",
+      "source_selector": {
+        "mode": 0,
+        "kem_id": 32,
+        "kdf_id": 1,
+        "aead_id": 3
+      },
       "encoding_note": "All byte fields in this vector are lowercase hex exactly as published by the RFC 9180 test-vector corpus. Wire envelopes (enc/ciphertext) use base64url per the consuming schemas; hex is retained here to stay byte-identical with the upstream KAT source.",
       "info_hex": "4f6465206f6e2061204772656369616e2055726e",
       "ikmE_hex": "909a9b35d3dc4713a5e72a4da274b55d3d3821a37e5d099e74a647db583a904b",
@@ -90,7 +98,15 @@
       "kdf_rfc9180_id": "0x0001",
       "aead": "aes_256_gcm",
       "aead_rfc9180_id": "0x0002",
-      "source": "RFC 9180 official CFRG test vectors (base mode), re-verified byte-for-byte with an independent HPKE implementation before inclusion",
+      "source": "RFC 9180 CFRG test-vectors.json pinned at commit 5f503c564da00b0687b3de75f1dfbdfc4079ad31",
+      "source_url": "https://raw.githubusercontent.com/cfrg/draft-irtf-cfrg-hpke/5f503c564da00b0687b3de75f1dfbdfc4079ad31/test-vectors.json",
+      "source_commit": "5f503c564da00b0687b3de75f1dfbdfc4079ad31",
+      "source_selector": {
+        "mode": 0,
+        "kem_id": 32,
+        "kdf_id": 1,
+        "aead_id": 2
+      },
       "encoding_note": "All byte fields in this vector are lowercase hex exactly as published by the RFC 9180 test-vector corpus. Wire envelopes (enc/ciphertext) use base64url per the consuming schemas; hex is retained here to stay byte-identical with the upstream KAT source.",
       "info_hex": "4f6465206f6e2061204772656369616e2055726e",
       "ikmE_hex": "2cd7c601cefb3d42a62b04b7a9041494c06c7843818e0ce28a8f704ae7ab20f9",
@@ -150,7 +166,15 @@
       "kdf_rfc9180_id": "0x0001",
       "aead": "aes_256_gcm",
       "aead_rfc9180_id": "0x0002",
-      "source": "RFC 9180 official CFRG test vectors (base mode), re-verified byte-for-byte with an independent HPKE implementation before inclusion",
+      "source": "RFC 9180 CFRG test-vectors.json pinned at commit 5f503c564da00b0687b3de75f1dfbdfc4079ad31",
+      "source_url": "https://raw.githubusercontent.com/cfrg/draft-irtf-cfrg-hpke/5f503c564da00b0687b3de75f1dfbdfc4079ad31/test-vectors.json",
+      "source_commit": "5f503c564da00b0687b3de75f1dfbdfc4079ad31",
+      "source_selector": {
+        "mode": 0,
+        "kem_id": 16,
+        "kdf_id": 1,
+        "aead_id": 2
+      },
       "encoding_note": "All byte fields in this vector are lowercase hex exactly as published by the RFC 9180 test-vector corpus. Wire envelopes (enc/ciphertext) use base64url per the consuming schemas; hex is retained here to stay byte-identical with the upstream KAT source.",
       "info_hex": "4f6465206f6e2061204772656369616e2055726e",
       "ikmE_hex": "a90d3417c3da9cb6c6ae19b4b5dd6cc9529a4cc24efb7ae0ace1f31887a8cd6c",
@@ -220,6 +244,27 @@
         "decision": "reject",
         "error_code": "unsupported_hpke_suite",
         "reason": "receivers MUST fail closed on unknown / inactive / reserved-but-not-activated suite ids and MUST NOT infer suite parameters from the AEAD name"
+      }
+    },
+    {
+      "name": "reject_reserved_suite_on_wire",
+      "description": "A registered but reserved HPKE suite is not an active wire suite.",
+      "hpke_suite": "ak.hpke_xwing_aead_chacha20poly1305.v1",
+      "expected": {
+        "decision": "reject",
+        "error_code": "unsupported_hpke_suite",
+        "reason": "registry presence is insufficient; only status=active rows are accepted"
+      }
+    },
+    {
+      "name": "reject_selector_aead_mismatch",
+      "description": "The explicit selector chooses the ChaCha20-Poly1305 suite while the envelope claims AES-256-GCM.",
+      "hpke_suite": "ak.hpke_x25519_aead_chacha20poly1305.v1",
+      "aead": "aes_256_gcm",
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "reason": "the explicit AEAD name MUST equal the selected active suite row"
       }
     }
   ]

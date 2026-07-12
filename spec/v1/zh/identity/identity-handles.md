@@ -3,7 +3,7 @@ title: Handle 与 Claim 证明
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 ---
 
 ## 0. 规范语言
@@ -326,7 +326,7 @@ contact request / invite / member-add 不再把 `resolve_handle(intent="contact_
 
 ### 3.3 `member_delivery_binding`
 
-解析结果 MAY 携带 `member_delivery_binding`，其中 `recipient_service_id`、`binding_source`、`service_acceptance_ref`、`policy_event_ref` 和 `delivery_modes` 可直接用于构造 `ak.member.state{membership="join"}.delivery_binding`。Handle claim schema 不再允许顶层 `recipient_service_id`、`service_acceptance_ref` 或 `policy_event_ref` 快捷字段；这些 delivery binding 字段必须只从 `member_delivery_binding.*` 读取。
+解析结果 MAY 携带 `member_delivery_binding`，其中 `recipient_service_id`、`binding_source`、`service_acceptance_ref`、`policy_event_ref` 和 `delivery_modes` 可直接用于构造 `ak.member.state{membership="join"}.delivery_binding`。Handle claim schema 不允许顶层 `recipient_service_id`、`service_acceptance_ref` 或 `policy_event_ref` 快捷字段；这些 delivery binding 字段必须只从 `member_delivery_binding.*` 读取。
 
 `member_delivery_binding.binding_source` 的合法取值是 `explicit` / `invite` / `join_policy` / `organization_policy` / `realm_policy`。**MUST NOT** 是 `did_document_default`——handle resolution 本身就是 directory-attested 路径，与 DID Document fallback 是两条独立的物化路径，不可在 hint 中混用。
 

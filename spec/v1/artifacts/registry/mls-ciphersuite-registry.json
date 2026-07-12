@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-02",
+  "version": "2026-07-13",
   "source_of_truth": true,
   "description": "Canonical MLS (RFC 9420) ciphersuite vocabulary for v1 KeyPackage cipher_suites[] negotiation and server describe surfaces. Completes the algorithm-agility registry symmetry with digest-suite-registry.json, signature-alg-registry.json and hpke-suite-registry.json.",
   "registry_rules": [
@@ -29,12 +29,14 @@
     {
       "canonical_id": "MLS_128_XWING_AES128GCM_SHA256_Ed25519",
       "rfc9420_id": null,
-      "kem_draft": "draft-connolly-cfrg-xwing-kem",
+      "kem_draft": "draft-connolly-cfrg-xwing-kem-10",
+      "kem_hpke_id": "0x647A",
+      "kem_reference_url": "https://datatracker.ietf.org/doc/html/draft-connolly-cfrg-xwing-kem-10",
       "status": "reserved",
       "role": "reserved_pqc_hybrid",
       "profile_gate": "ak.profile.kem.hybrid_xwing.v1",
       "activation_requirements": [
-        "ak.profile.kem.hybrid_xwing.v1 fully specified with the X-Wing KEM draft pinned (draft-connolly-cfrg-xwing-kem) under MIMI-style draft-pinning discipline (draft change = new profile version)",
+        "ak.profile.kem.hybrid_xwing.v1 fully specifies draft-connolly-cfrg-xwing-kem-10 and its IANA HPKE KEM id 0x647A; incompatible draft changes require an explicit registry release and refreshed KAT digest",
         "IETF/IANA MLS ciphersuite code point assigned for the X-Wing hybrid suite and recorded here as rfc9420_id (registry release required; receivers MUST NOT improvise a private code point)",
         "Per-suite MLS conformance vectors published (KeyPackage encoding, welcome/commit KEM encap/decap, group key schedule)",
         "Coverage-priority alignment recorded: activates only after the HPKE X-Wing row (hpke-suite-registry.json ak.hpke_xwing_aead_chacha20poly1305.v1) — static ciphertext backups are the primary Harvest-Now-Decrypt-Later target, MLS group KEM is the second wave"

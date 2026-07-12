@@ -6,6 +6,9 @@
   "suite": "event_envelope_negative",
   "profile": "ak.profile.core_event_store.v1",
   "version": "2026-07-03",
+  "covers_vectors": [
+    "ak.vector.envelope.negative_admission.v1"
+  ],
   "notes": "Cases whose input carries a `generator` object instead of a literal event are constructed by the runner at execution time: starting from the embedded `base_event`, the runner applies the generator rule (e.g. inflating one field, key, or value until the canonical envelope reaches `target_canonical_bytes`) and then submits the generated envelope. This keeps megabyte-scale adversarial payloads out of the fixture file while keeping the reject assertion executable. Size limits are defined in zh/conformance/scalability-constraints.md section 2 (1 MiB = 1048576 bytes canonical envelope cap).",
   "cases": [
     {

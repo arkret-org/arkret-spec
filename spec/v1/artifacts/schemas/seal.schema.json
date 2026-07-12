@@ -109,7 +109,7 @@
       "type": "string",
       "format": "date-time",
       "pattern": "Z$",
-      "description": "Wall-clock timestamp at which the notary signed this Seal. Used only for reducer-derived projection timestamps and freshness diagnostics; not a lattice winner input."
+      "description": "Normative notary commit timestamp covered by the Seal signature transcript. It is the time input for revocation_freshness_window_ms, recovery_witness_freshness_window_ms, receipt_sla_ms, and reducer-derived projection timestamps. It MUST be >= every predecessor Seal.sealed_at and MUST NOT exceed verifier wall time by more than hard_future_skew_ms. It is never a lattice winner input."
     },
     "hlc": {
       "$ref": "#/$defs/hlc"

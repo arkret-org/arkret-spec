@@ -1,5 +1,5 @@
 {
-  "version": "2026-06-20",
+  "version": "2026-07-13",
   "source_of_truth": true,
   "description": "Canonical HPKE (RFC 9180) suite vocabulary for v1 application-layer public-key sealing surfaces that are NOT carried inside MLS: key-backup `recovery_public_key` envelopes, did_recovery envelopes, to-device sealed material (`ak.secret.send`), member-application reviewer envelopes and file-transfer key envelopes. An HPKE suite names the (KEM, KDF, AEAD) triple; its canonical_id is the wire scheme / `hpke_suite` selector value. The KEM (DHKEM-X25519-HKDF-SHA256), the KDF (HKDF-SHA256) and the application-layer seal/open transcript are standard RFC 9180 base mode (SetupBaseS / SetupBaseR): the RFC 9180 key_schedule with LabeledExtract / LabeledExpand derives key, base_nonce and exporter_secret from the DHKEM shared secret and the caller `info`, and the AEAD nonce is the internally derived base_nonce XOR seq (single-shot seq=0), NOT carried on the wire. This is the fourth algorithm-agility registry, symmetric to signature-alg-registry.json, digest-suite-registry.json and mls-ciphersuite-registry.json. MLS group messages keep their own HPKE internals via mls-ciphersuite-registry.json and are out of scope here.",
   "suite_id_grammar": "suite_id = 'ak.hpke_' kem_id '_aead_' aead_id '.v' major ; each id segment matches [a-z0-9]+ . The canonical_id is the full wire string; it is NOT freely composed from parts — only suites present as rows below exist, and only status=active rows are valid on wire.",
@@ -61,7 +61,10 @@
     {
       "canonical_id": "ak.hpke_xwing_aead_chacha20poly1305.v1",
       "kem": "xwing_x25519_mlkem768",
-      "kem_draft": "draft-connolly-cfrg-xwing-kem",
+      "kem_rfc9180_id": "0x647A",
+      "kem_draft": "draft-connolly-cfrg-xwing-kem-10",
+      "kem_reference_url": "https://datatracker.ietf.org/doc/html/draft-connolly-cfrg-xwing-kem-10",
+      "kem_iana_registry": "HPKE KEM Identifiers",
       "kdf": "hkdf_sha256",
       "kdf_rfc9180_id": "0x0001",
       "aead": "chacha20_poly1305",
@@ -71,11 +74,11 @@
       "role": "reserved_pqc_hybrid",
       "profile_gate": "ak.profile.kem.hybrid_xwing.v1",
       "activation_requirements": [
-        "ak.profile.kem.hybrid_xwing.v1 fully specified with the X-Wing KEM draft pinned (draft-connolly-cfrg-xwing-kem) under MIMI-style draft-pinning discipline (draft change = new profile version)",
+        "ak.profile.kem.hybrid_xwing.v1 fully specifies draft-connolly-cfrg-xwing-kem-10 and HPKE KEM id 0x647A; any incompatible draft change requires an explicit registry release and refreshed KAT digest before activation",
         "Per-suite HPKE conformance vectors published (KEM encap/decap, key schedule, sealed bytes)",
         "Coverage-priority alignment recorded: key-backup envelope before MLS KeyPackage (static ciphertext backups are the primary Harvest-Now-Decrypt-Later target; reuses the reserved ak.aead.hybrid_kem.* namespace)"
       ],
-      "security_note": "Reserved post-quantum hybrid KEM (X25519 + ML-KEM-768) per the encryption-and-audit.md §2 PQ roadmap. Hybrid confidentiality: secure if either X25519 or ML-KEM-768 holds. Not on wire until activated."
+      "security_note": "Reserved post-quantum hybrid KEM (X25519 + ML-KEM-768) per the encryption-and-audit.md §2 PQ roadmap. The KEM identifier is the IANA-assigned HPKE value 0x647A and the exact construction is pinned to draft-connolly-cfrg-xwing-kem-10. Hybrid confidentiality: secure if either X25519 or ML-KEM-768 holds. Not on wire until the profile and KAT activation requirements are complete."
     }
   ]
 }

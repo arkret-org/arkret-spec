@@ -402,6 +402,88 @@
       ],
       "description": "Create-locked Seal finality profile. single_did and threshold deployments require signed Seal single-chain uniqueness; open_set deployments allow multiple Seal leaves and deterministic joined control views; mixed deployments use a primary notary plus fallback recovery notary."
     },
+    "availability_policy": {
+      "type": "object",
+      "description": "Realm policy component governing independently signed byte-availability receipts before Seal inclusion and before snapshot/backfill availability claims. Absent means {min_holders:1, holder_roles:['notary'], applies_to:['seal_include']}. Holder roles are resolved from the accepted notary/service-binding state at the Seal basis; a self-asserted role is insufficient.",
+      "required": [
+        "min_holders",
+        "holder_roles",
+        "applies_to"
+      ],
+      "properties": {
+        "min_holders": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "holder_roles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "notary",
+              "independent_witness",
+              "sync_mirror",
+              "archive_node"
+            ]
+          }
+        },
+        "applies_to": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "seal_include",
+              "snapshot",
+              "backfill"
+            ]
+          }
+        },
+        "minimum_retention_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 86400000
+        }
+      },
+      "additionalProperties": false
+    },
+    "audit_policy": {
+      "type": "object",
+      "description": "Realm policy component for range-completeness and seal-transparency witness admission. If absent, receivers MUST NOT claim grade=witnessed and federation_witness_attested range completeness has no admissible witness set.",
+      "required": [
+        "range_completeness_witnesses",
+        "witnessed_min_attestations",
+        "witness_independence"
+      ],
+      "properties": {
+        "range_completeness_witnesses": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/did"
+          }
+        },
+        "witnessed_min_attestations": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "witness_independence": {
+          "type": "string",
+          "enum": [
+            "distinct_did",
+            "distinct_controlling_organization"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "digest_algorithm": {
       "type": "string",
       "enum": [
@@ -480,6 +562,13 @@
       "minimum": 0,
       "default": 86400000,
       "description": "Realm-level maximum control-plane seal distance/time window for accepting DataEvents whose seal_ref predates an observed revocation seal. Receivers evaluate this window by seal topology and policy (the notary-committed seal-time delta along the Seal DAG per authz/event-auth-state-resolution.md section 4.3), not by unverified event signing time. risk_tier=high capabilities get no grace (effective 0). High-risk Realms SHOULD use a short value or move the affected cell family to control plane."
+    },
+    "recovery_witness_freshness_window_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 604800000,
+      "default": 86400000,
+      "description": "Maximum signed Seal.sealed_at distance from the conflict-detecting frontier to a state_witness used by a conflict-recovery Move. Receivers compute the non-negative DAG time delta from the witness Seal to the recovery Move's seal_basis leaves; exceeding this value fails closed with recovery_witness_revoke_lagging."
     },
     "receipt_sla_ms": {
       "type": "integer",
@@ -888,9 +977,7 @@
             "cas_register",
             "fsm",
             "counter",
-            "ordered_log",
-            "lww_register",
-            "rga"
+            "ordered_log"
           ]
         },
         "bottom": {
@@ -915,7 +1002,7 @@
             "audit",
             "telemetry"
           ],
-          "description": "Semantic role declared by Realm schema. authorization_root / policy_root / notary_root / membership / lifecycle MUST NOT use lattice types lww_register or rga (enforced by allOf below). ui_affordance / content / draft / cosmetic MAY use lww_register or rga."
+          "description": "Semantic role declared by Realm schema. Security-root roles are restricted to control-plane lattice semantics by the allOf rules below."
         },
         "plane": {
           "type": "string",
@@ -997,33 +1084,6 @@
             "required": [
               "plane"
             ]
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "lattice": {
-                "enum": [
-                  "lww_register",
-                  "rga"
-                ]
-              }
-            },
-            "required": [
-              "lattice"
-            ]
-          },
-          "then": {
-            "properties": {
-              "cell_role": {
-                "enum": [
-                  "ui_affordance",
-                  "content",
-                  "draft",
-                  "cosmetic"
-                ]
-              }
-            }
           }
         },
         {

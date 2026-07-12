@@ -3,7 +3,7 @@ title: Call State and Recording
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 sidebar:
   label: Call State
 ---
@@ -110,7 +110,7 @@ sidebar:
 
 ### 4.1 字段语义（normative）
 
-- `session_focus`：本 call 唯一 authoritative `focus_id`。**reducer 写入规则**：第一个 `ak.call.state` 事件根据 [`media-service-binding.md` §5](./media-service-binding.md) 选举规则把 oldest member 的 `foci_preferred[0]` 写入；后续 `ak.call.state` MUST 保持同值，任何改写 MUST `failed_precondition` `reason="session_focus_already_committed"`。session 结束（所有 participants 离开）后才重置。
+- `session_focus`：本 call 唯一 authoritative `focus_id`。**reducer 写入规则**：第一个 `ak.call.state` 事件根据 [`media-service-binding.md` §5](./media-service-binding.md) 选举规则把 oldest member 的 `foci_preferred[0]` 写入；后续 `ak.call.state` MUST 保持同值，任何改写 MUST `failed_precondition` `reason="session_focus_already_committed"`。同一 `call_id` 内永不重置；重开通话 MUST 分配新的 `call_id`。
 - `participants[]`：单条 `ak.call.state` 事件的 `participants[]` MUST ≤ 1,000 项（v1 wire 上限，见 [`../conformance/scalability-constraints.md` §5](../conformance/scalability-constraints.md)；schema 声明 `maxItems: 1000`）；超过时 MUST reject 或改用采样 / 摘要写入。
 - `participants[]` 的 durable 身份最小化：除 Realm policy 明确要求实名审计且在入会前向成员披露外，`actor_id` MUST 使用 call-scoped pairwise DID，`device_id` MUST 使用仅在该 call 内稳定的 typed device alias，二者与真实 principal / device 的映射 MUST NOT 写入 Realm history。映射只可保存在成员本地或授权 token issuer 的加密短期状态中，并 MUST 在 call 终态后 24 小时内删除（更短 policy 优先）。`joined_at` 若写入 durable event MUST 向下取整到 5 分钟 bucket；精确 join/leave 时序只可留在 ephemeral transport 诊断面。`session_focus` committed 后的后续 state MUST 省略 `foci_preferred`；终态 summary MUST 只保留聚合计数，不得复制 participant roster。需要长期实名审计的部署 MUST 使用独立、访问受控且有 retention policy 的 audit artifact，而不得把默认 `participants[]` 当作永久会议图谱。
 - `participants[].foci_preferred`：客户端本地排序的 focus 偏好列表，用于 [`media-service-binding.md` §5](./media-service-binding.md) 选举。后加入者写入的 `foci_preferred` 不影响已 committed 的 `session_focus`。
@@ -148,6 +148,7 @@ sidebar:
 - **同状态重放**：同一 basis 上重复提交相同 `from -> to` 转换是幂等 no-op；reducer MUST 不产生新的分叉 head，也不得把同值重放当成非法转换。
 - **并发冲突**：同一 `call_id`、同一 CBA basis 下出现两个 sibling `ak.call.state` 转换，且二者的 `to` state 不同，`fsm` join MUST 返回 `Bottom{kind="conflict"}` 并按 `bottom=reject` 暴露 `failed_bottom` / diagnostic。实现 MUST NOT 用 HLC、`created_at`、`event_id`、actor id、event digest、数据库插入顺序或本地接收顺序选择 winner。冲突恢复必须由后续显式 recovery / operator action 在新的 accepted basis 上提交，不能静默回退。
 - **终态吸收**：一旦某 accepted head 进入终态，任何后续转出都按 `call_state_terminal` 拒绝；终态不能被并发 winner 规则覆盖，因为本状态机没有 winner 规则。
+- **空 roster 终态推进**：当 focus / token issuer 观察到 active media roster 为空时，最后离开的、仍持有 `ak.call.join` 的成员 SHOULD 立即提交 `active -> ended`；focus / token issuer MUST 启动 `call_empty_timeout_ms`（默认且最大 120,000 ms），超时前 roster 仍为空时 MUST 代表该 call 提交 `state="ended"`。若没有 focus（纯 P2P），承载该 Realm 的 Principal Server MUST 以相同窗口根据 authenticated ephemeral leave / leg expiry 证据推进终态。任何新 leg 在该窗口内重新加入会取消计时；终态 accepted 后不得复活，重新加入必须创建新 `call_id`。
 
 **`recording_state`（录制维度，与 `state` 正交，normative）**：`{ recording, stopped, ready, failed }`，缺省=未录制。录制随 `ak.call.recording.start` 进入 `recording`；人工停止时通过 `ak.call.state` 写 `recording_state="stopped"`；artifact 入 Arkret blob pipeline 后转 `ready`，失败转 `failed`。录制态**独立于** `state`——通话可在 `active` 期间为 `recording_state="recording"`，通话 `ended` 之后再写 `recording_state="ready"`。`recording_state ∈ { ready, failed, stopped }` 时 SHOULD 携带 `recording_result.recording_start_event_id` 绑定本段录制的 start event；`ready` MUST 携带 `recording_result.artifact`（schema `ak.schema.call_recording_artifact.v1`），并携带 content digest / duration / media type / retention policy 投影字段；`failed` SHOULD 携带 `failure_reason_code`。v1 不为录制注册独立 result/stop event，录制态变化通过 `ak.call.state` 写入（见 §5）。
 

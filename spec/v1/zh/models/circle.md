@@ -3,7 +3,7 @@ title: Circle
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 ---
 
 ## 0. 规范语言
@@ -61,7 +61,7 @@ Schema id: `ak.schema.circle.v1`
 
 ## 4. `display` 字段(标准化视觉身份)
 
-跨客户端一致的 UI 表达是 Circle 安全模型的必要条件(见 §10 UX 论证):
+跨客户端一致的 UI 表达是 Circle 安全模型的必要条件（见 §11 UX 论证）：
 
 | 子字段 | 必填 | 类型 | 约束 |
 | --- | --- | --- | --- |
@@ -390,7 +390,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 - **短名**:`short_name`(如 `HR-Conf`)相比裸 Circle ID（如 `ak:circle:01964...`）更易人工识别；客户端 SHOULD 显示 `short_name` 以辅助 scope 识别。
 - **符号 / glyph**:无障碍 / 色盲场景的第二信号。
 
-客户端实现 MUST 满足以下可测试不变量。**本节即这组不变量的 normative 归属地**：协议只约束下列可测试行为；具体控件布局、文案与视觉形式是实现自由，不属于协议面，v1 不另设独立 UX 文档或 conformance profile 承接。
+以下不变量只适用于**向人类用户呈现写入、回复、转发、引用、mention、邀请或导航入口的客户端 surface**。纯 headless SDK、webhook worker、自动化 agent runtime 若不向人类呈现这些入口，则本节呈现义务不适用；但它们向上层 UI 暴露 Circle 数据时 MUST 原样提供 `display` 与 effective scope，使实际呈现方能够履行本节。适用的客户端实现 MUST 满足以下可测试不变量。具体控件布局、文案与视觉形式是实现自由。
 
 1. 在任何会导致写入、回复、转发、引用、mention 或发送通知的入口，当前 effective scope MUST 可被用户区分；Circle scope 至少呈现 `display.color_token`、`display.symbol` 与 `display.short_name` 中的两个互补信号。
 2. Plaintext Circle MUST 使用不会暗示 E2EE 的 glyph、标签或披露语义；MLS-backed Circle MAY 使用 lock/shield 类语义，但不得让 plaintext scope 与 E2EE scope 看起来等价。
@@ -399,7 +399,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 5. 跨 Circle 引用必须标识为“另一 Circle / 另一协作圈 / 另一作用域”或等价语义，**不得**使用“信任圈”措辞，且不得预览调用者无权访问的内容。
 6. "宽 seal Strand + 窄 discussion Strand" 的组合形态(§7.2)在 UI 上 MAY 渲染为同一工作 surface,**但**两个 Strand 之间的切换 MUST 表现为跨 scope 转场，不得表现为同一 Strand 内不同视图。
 
-## 11.1 Agent sidecar Circle profile
+### 11.1 Agent sidecar Circle profile
 
 `ak.profile.agent_sidecar_thread.v1` 把 Circle 作为 controller 与 controller 的 native personal agents 之间的私聊 scoped event boundary。该 profile 依赖 Circle 的 membership / delivery / query / projection 隔离；是否提供密码学隔离由 Circle `encryption_profile` 与父 Realm floor 决定。父 Realm 要求 E2EE 时 sidecar Circle MUST 为 `mls_rfc9420`；父 Realm 明文且允许 plaintext content 时，sidecar Circle MAY 为 `none`，但 UI / service description MUST 明确披露其不是 E2EE。该 profile 对 Circle 形态加了若干 sidecar-specific 约束:
 
@@ -438,6 +438,6 @@ Sidecar Circle 的 `profile_ref` MUST 固定为 `ak.profile.agent_sidecar_thread
 - 父 Realm 与 capability 主源:[`realm-and-space.md`](./realm-and-space.md)。
 - Strand scope 字段定义:[`strand-and-message.md` §3 / §5](./strand-and-message.md)。
 - 跨 scope Relation 规则:[`relation.md` §4](./relation.md)。
-- 历史可见性枚举:[`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)。
+- 历史可见性枚举与 canonical 语义：[`../governance/history-visibility.md`](../governance/history-visibility.md)。
 - MLS 加密 / governance binding:[`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md)。
 - Circle schema artifact:`spec/v1/artifacts/schemas/circle.schema.json`。

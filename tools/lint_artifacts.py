@@ -100,12 +100,9 @@ REGISTRY_LATTICES = {
     "fsm",
     "counter",
     "ordered_log",
-    "lww_register",
-    "rga",
 }
 REGISTRY_BOTTOMS = {"reject", "expose", "inert"}
 REGISTRY_PLANES = {"data", "control"}
-LIFECYCLE_UNSAFE_LATTICES = {"lww_register", "rga"}
 CELL_FAMILY_RE = re.compile(r"^ak\.component\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+$")
 
 FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
@@ -568,7 +565,6 @@ FORBIDDEN_NAMING_STRING_ALIASES = {
     "mv-register": "mv_register",
     "cas-register": "cas_register",
     "ordered-log": "ordered_log",
-    "lww-register": "lww_register",
     "frank_unavailable": "franking_proof_unavailable",
     "frank_only": "franking_proof_only",
     "routing_hash": "routing_digest",
@@ -1136,12 +1132,6 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                 lint.fail(event_path, f"{kind} cell_family row must declare sealed boolean")
             elif (plane == "control") != sealed:
                 lint.fail(event_path, f"{kind} sealed must be true iff plane=control")
-        lifecycle_status_cell = (
-            isinstance(cell_family, str) and ".status." in cell_family
-        ) or kind.rsplit(".", 1)[-1] in {"pause", "resume", "deactivate"}
-        if lifecycle_status_cell and lattice in LIFECYCLE_UNSAFE_LATTICES:
-            lint.fail(event_path, f"{kind} lifecycle/status cell must not use {lattice}")
-
     schema_rows = schema_registry.get("schemas", [])
     schema_ids = unique_values(lint, schema_path, schema_rows, "schema_id")
     for row in schema_rows if isinstance(schema_rows, list) else []:
@@ -1590,9 +1580,9 @@ def check_sdk_conformance_contract(lint: Lint) -> None:
         source_anchor = clause.get("source_anchor")
         if not isinstance(source_anchor, str) or not source_anchor.startswith("spec/v1/zh/") or "#" not in source_anchor:
             lint.fail(path, f"{label}.source_anchor must reference a stable zh/ heading")
-    expected_ids = {f"AK-SDK-{index:03d}" for index in range(1, 15)}
+    expected_ids = {f"AK-SDK-{index:03d}" for index in range(1, 18)}
     if seen != expected_ids:
-        lint.fail(path, "sdk_conformance_contract must define exactly AK-SDK-001 through AK-SDK-014")
+        lint.fail(path, "sdk_conformance_contract must define exactly AK-SDK-001 through AK-SDK-017")
 
     schema_path = ARTIFACTS / "schemas" / "sdk-conformance-claim.schema.json"
     fixture_path = ARTIFACTS / "fixtures" / "sdk-conformance-claim-fixture.json"

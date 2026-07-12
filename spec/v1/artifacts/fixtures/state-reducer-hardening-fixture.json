@@ -7,6 +7,7 @@
     "entrypoint": "cotest::conformance::state_reducer_hardening"
   },
   "covers_vectors": [
+    "ak.vector.patch.atomic_application.v1",
     "ak.vector.state_root.incremental.v1",
     "ak.vector.strand_tracks_update.atomic.v1"
   ],

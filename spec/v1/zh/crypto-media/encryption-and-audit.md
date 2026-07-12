@@ -3,7 +3,7 @@ title: Encryption and Auditability
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 sidebar:
   label: Encryption & Audit
 ---
@@ -96,6 +96,8 @@ Realm policy MUST 通过 `ak.realm.policy_components.metadata_encryption_floor` 
 | `e2ee_required` | `realm_id`、kind、epoch、routing digest、必要 cell subject、必要 causal refs、Strand `tracks`、`stage` / `state` | Strand / Message `metadata.title` / `metadata.summary` / `metadata.fields`、mention/reply 摘要、client search tokens | MLS / E2EE 默认；用户可读 metadata 进密文。 |
 
 `metadata_encryption_floor` 只决定“用户可读 metadata 是否必须 E2EE”这一个是非问题；**哪些字段为换取服务端搜索 / projection 能力而对受托服务暴露明文，由独立的 `plaintext_visible_services` 声明控制**（见下条与 §2.8），不再用额外的 metadata 加密档位表达。`realm_id`、kind、epoch、routing digest 等同步收敛边界字段在两档下都保持 wire 明文，不可加密。
+
+**`plaintext_visible_services` prose 权威（normative）**：本节是该 Realm policy 组件的唯一字段级 prose 真相源。每个条目 MUST 声明受托服务 DID、机器可校验的 `data_classes[]`（`message_content`、`attachment_preview`、`full_text_index`、`embedding`、`notification_summary`、`media_plaintext` 等注册值）与 `visibility`；自由文本 `purposes` 只作解释，MUST NOT 单独授权明文。新增、扩大、收缩或移除条目只能由具备 `ak.realm.plaintext_visible_services` capability 的 actor 通过同名 policy Event 写入；普通 `ak.realm.update`、ServiceDescribe 自声明或服务本地配置 MUST NOT 扩大边界。ServiceDescribe 声明的 `plaintext_visibility` 只能是当前 Realm policy 授权集合的子集，任何接收、索引、projection、通知或 media 路径都必须在披露前按 `(service DID, data_class, visibility, policy_root)` 逐项校验，缺失或不匹配时 fail closed。
 
 `metadata_encryption_floor` 必须纳入 MLS governance binding `policy_root`。客户端 / 服务端不得仅通过 `encryption_profile="mls_rfc9420"` 推断 metadata 处理方式；缺省规则是：MLS 或 `content_encryption_floor=e2ee_required` Realm 为 `e2ee_required`，其他 Realm 为 `allow_plaintext`。
 
@@ -435,8 +437,8 @@ MLS group 的 key scope 由 `effective_scope`（§2.5 开头）唯一决定，**
 - `binding_profile` 与 `reducer_profile` 是 required 字段。`binding_profile` MUST 等于该 Realm 实际声明的 MLS governance binding profile：默认/full Realm 为 `ak.profile.mls_governance_binding.full.v1`；唯一 v1 降级 Realm 为 `ak.profile.e2ee_relaxed.v1`。接收方 MUST NOT 在字段缺失时用本地默认值补齐，也 MUST NOT 把未知 profile 当作 full profile 处理；缺失、未知或与 Realm policy / ServiceDescribe / federation peer 声明不一致时 MUST fail closed。
 - `previous_epoch` / `next_epoch` MUST 同时出现在 `governance_binding` 与 `ak.mls.commit` payload 中；接收端 MUST 校验 `payload.base_epoch == governance_binding.previous_epoch` 且 `payload.next_epoch == governance_binding.next_epoch`。任一不一致时该 commit 不得推进 `mls_epoch_cell`。
 - `policy_root` MUST 覆盖本次 Commit 依赖的 policy / join rule / history visibility / history sharing / media service / plaintext-visible service / moderation / lifecycle cell。
-- `capability_root` MUST 覆盖本次 Commit 依赖的 grant / revoke / delegate / derived capability cell。
-- `discussion_metadata_digest` 覆盖成员可见的 discussion 名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。
+- full profile 下 `capability_root` MUST 出现，并 MUST 覆盖本次 Commit 依赖的 grant / revoke / delegate / derived capability cell；缺失即拒绝 governance binding。`ak.profile.e2ee_relaxed.v1` 可按其显式降级规则省略。
+- full profile 下 `discussion_metadata_digest` MUST 出现，并 MUST 覆盖成员可见的 discussion 名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。接收方 MUST 从同一 Seal view 独立重算，缺失或不匹配即拒绝 governance binding。
 - 客户端在接受 MLS epoch 前 MUST 独立验证 `governance_binding` 指向的 Arkret Seal view 与 state_root。无法回补 Control Move inclusion proof 或 hash 不匹配时 MUST 标记 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
 - 并发 Commit 是并发 Control Move。它们只有被 accepted Seal 覆盖，且其 preconditions 在 `seal_basis` 指向的控制面 pre-state 下成立时，才能推进 `mls_epoch_cell`。
 
@@ -494,15 +496,15 @@ Arkret v1 定义以下 MLS GroupContext extension 绑定形状；codepoint 以 `
 | ExtensionType（数值 codepoint） | `0xF1C0` ∈ MLS GroupContext **private-use range `0xF000`–`0xFFFF`**（RFC 9420 §17.6 / IANA MLS registry）。**Arkret v1 wire 形态固定（pinned）为 `0xF1C0`,任何实现 MUST 使用该 codepoint;deployment policy MUST NOT 用其他 codepoint 覆盖该 binding。** `ak.profile.mls_governance_binding.full.v1` MUST 使用 `0xF1C0`。所有 Arkret 私有 MLS 扩展 codepoint 集中登记在 `artifacts/registry/mls-extension-registry.json`。 |
 | ExtensionData | `governance_binding` 对象的 CBOR 编码 |
 
-CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)。字段顺序按 lexicographic key 排列；标注为 optional 的字段（如 `capability_root`、`circle_id`、`discussion_metadata_digest`）在不满足出现条件时 **MUST 从 CBOR map 整体省略该 key，MUST NOT 写入 null 占位**——deterministic CBOR 下 null 占位会改变 canonical 字节序，导致不同实现对同一 governance binding 得出不一致编码；lexicographic key 排序只对实际存在（present）的 key 生效。下表中的字段顺序仅为可读性展示，实际 wire 顺序以 present key 的 lexicographic 排序为准：
+CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)。字段顺序按 lexicographic key 排列；条件字段不满足出现条件时 **MUST 从 CBOR map 整体省略该 key，MUST NOT 写入 null 占位**——`circle_id` 只在 Circle scope 出现，`capability_root` / `discussion_metadata_digest` 在 full profile 必填、仅在显式 `ak.profile.e2ee_relaxed.v1` 降级时可省略。deterministic CBOR 下 null 占位会改变 canonical 字节序，导致不同实现对同一 governance binding 得出不一致编码；lexicographic key 排序只对实际存在（present）的 key 生效。下表中的字段顺序仅为可读性展示，实际 wire 顺序以 present key 的 lexicographic 排序为准：
 
 ```text
 {
   "binding_profile":     tstr,
   "binding_version":     uint,    ; v1 = 1
-  "capability_root":     bstr,    ; optional, full profile only
+  "capability_root":     bstr,    ; required in full profile; omitted only by relaxed profile
   "circle_id":           tstr,    ; optional, only when effective_scope.kind="circle"
-  "discussion_metadata_digest": bstr, ; optional, full profile only
+  "discussion_metadata_digest": bstr, ; required in full profile; omitted only by relaxed profile
   "effective_scope":     { "kind": tstr, "realm_id": tstr, "circle_id": tstr? },
   "encoding_profile":    tstr,    ; "cbor-deterministic-rfc8949-v1"
   "membership_frontier": [+ bstr],
@@ -552,8 +554,8 @@ KeyPackage lifecycle：
 
 ```text
 published -> claimed -> consumed
-          -> expired
           -> revoked
+          -> retired
 ```
 
 推荐记录：
@@ -636,7 +638,8 @@ RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部�
 
 **状态与多次使用（normative）**：
 
-- last-resort KeyPackage 在发布时 MUST 标记 `last_resort=true`，并 MUST NOT 进入单次 `consumed` 终态；它在 `published` 与（多次）`claimed` 之间循环，直到被轮换（`rotated`）、`expired` 或 `revoked`。
+- last-resort KeyPackage 在发布时 MUST 标记 `last_resort=true`，并 MUST NOT 进入单次 `claimed` / `consumed` 状态。每次领取由独立 `keypackage_claim_record` 表达，KeyPackage 本身保持 `published`，直到轮换、过期或显式吊销时转入 `revoked`；account deactivation 可按 [`device-lifecycle.md` §9.1](./device-lifecycle.md) 转入 `retired`。
+- `last_resort` 是 Arkret 应用层标记，MUST 包含在 KeyPackage 发布条目的 `device_signature` 签名输入中；接收方 MUST 验证该签名，不得从未签名元数据推断或改写此标记。v1 不为尚未进入 IANA MLS 注册表的应用组件分配私有 wire codepoint。
 - 池中存在普通（单次）KeyPackage 时，claim 响应 MUST 优先返回普通包；仅当普通包池为空时，claim 响应 MAY 返回 last-resort 包。
 - claim 响应返回 last-resort 包时 MUST 在对应 `keypackage_claim_record` 中置 `last_resort=true`，使 requester 与 holder 都能识别本次 join 走的是 last-resort 路径。
 - last-resort 包**不走** §2.6 的单次 `consume` 路径：服务端 MUST NOT 因一次 Welcome 消费而把它转入 `consumed` 或从池中移除。`ak.keys.keypackages.consume` 对 last-resort `keypackage_ref` 的调用 MUST 被服务端识别为幂等（返回成功但不改变 `published` 状态），不得返回 `keypackage_already_consumed`。
@@ -646,11 +649,11 @@ RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部�
 
 **强制轮换时点（normative）**：
 
-- last-resort 包的持有 device 下次上线时 MUST 轮换该 last-resort 包：发布新的 last-resort KeyPackage（新 init/encryption key）并撤销 / 标记旧包为 `rotated`，使旧包不再被分发给新 claim。
+- last-resort 包的持有 device 下次上线时 MUST 轮换该 last-resort 包：发布新的 last-resort KeyPackage（新 init/encryption key），并把旧包转入 `revoked`、记录 `revocation_reason="keypackage_rotated"`，使旧包不再被分发给新 claim。`keypackage_rotated` 不是 KeyPackage 状态。
 - 持有者上线后 MUST 对**所有经该 last-resort 包加入的 group**触发一次 MLS update（self-update Commit，引入新 leaf key 材料），以推进这些 group 的 epoch、把前向保密恢复到正常 ratchet 水平，从而**闭合**上文所述的弱化窗口。
 - 实现 SHOULD 在 holder 本地持久化"经哪个 last-resort 包加入了哪些 group"的映射，以便上线后精确触发上述 update；无法精确定位时 MUST 对该 device 当前所有 last-resort-joined group 保守触发 update。
 - 轮换与 update 完成前，弱化窗口持续存在；实现 SHOULD 尽量缩短 device 的离线-上线间隔以限制窗口长度。device 上线时间不可由协议强制，故"上线触发轮换"无法单独给出 normative 上界；为防止设备长期离线把弱化窗口拉到任意长，对 last-resort 包**自身的 `expires_at`** 施加独立于上线轮换的硬上限：
-  - 非 `personal_node` profile 的部署，last-resort KeyPackage 发布时 MUST 设置 `expires_at`，且其有效期（`expires_at - created_at`）MUST NOT 超过 [`../conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) §6 登记的 "KeyPackage 有效期" 默认上限（30 days）；profile 对 last-resort 包 MUST NOT 声明长于该上限的有效期（普通 KeyPackage 的"更长有效期由 profile 声明"豁免不适用于 last-resort 包）。服务端 MUST NOT 把已过 `expires_at` 的 last-resort 包返回给新 claim（MUST 转 `expired`），从而把"未上线轮换"情形下的弱化窗口硬封顶在该生命周期内。
+  - 非 `personal_node` profile 的部署，last-resort KeyPackage 发布时 MUST 设置 `expires_at`，且其有效期（`expires_at - created_at`）MUST NOT 超过 [`../conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) §6 登记的 "KeyPackage 有效期" 默认上限（30 days）；profile 对 last-resort 包 MUST NOT 声明长于该上限的有效期（普通 KeyPackage 的"更长有效期由 profile 声明"豁免不适用于 last-resort 包）。服务端 MUST NOT 把已过 `expires_at` 的 last-resort 包返回给新 claim（MUST 转 `revoked`，`revocation_reason="keypackage_expired"`），从而把"未上线轮换"情形下的弱化窗口硬封顶在该生命周期内。
   - `personal_node` profile MAY 放宽该上限（个人设备长期离线场景），但 MUST 向用户披露弱化窗口随之延长。
 - 高保证部署 MUST 禁止 last-resort 回退：`ak.profile.high_security_organization.v1` / `ak.profile.sovereign_deployment.v1` 下的 Realm MUST 通过 profile 禁止 last-resort join（即不声明 `ak.feature.mls_last_resort_keypackage.v1` 或在 Realm profile 中 opt-out），此时该 Realm 的邀请 MUST 走单次包或 fail closed，不接受任何 `last_resort=true` 的包。
 
@@ -788,7 +791,7 @@ Reaction 事件的 `aad.event_kind` 始终为明文 (`ak.reaction.add` / `ak.rea
 
 默认内容 scheme `mls-rfc9420`（MLS PrivateMessage）提供 per-message 前向安全，但其消息密钥由 MLS secret tree 单向棘轮、用完即焚，**后加入成员在密码学上无法解开 join 前 epoch 的内容**（这是 MLS 前向安全的本质，不是实现缺陷）。需要把历史授权给后加入成员的 Realm，MUST 改用本节定义的 `mls-exporter-aead-v1` scheme：内容用一把**可保留、可重新封装**的 per-epoch `history_secret` 加密，从而能经 `ak.realm_key.share` 合法交付给后加入成员。
 
-scheme 选择是 Realm policy 字段 `ak.realm.content_scheme`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)，取 `mls-rfc9420` / `mls-exporter-aead-v1`；缺省时 `encryption_profile=mls_rfc9420` 的 Realm 视为 `mls-rfc9420`），MUST 纳入 MLS governance binding 的 `policy_root`（§2.5.1）。同一 Realm 的 effective content scheme 由该字段在每个 epoch 的 `T0` 决定；不同 epoch 可使用不同 scheme（切换只对其后 epoch 生效，§2.10.6）。每条密文 envelope 自身的 `scheme` 字段记录其所用 scheme，故接收方解密时直接读 envelope，无需回溯 policy。
+scheme 选择是 Realm policy 字段 `content_scheme`（经 `ak.realm.policy_components` 写入；[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 取 `mls-rfc9420` / `mls-exporter-aead-v1`；缺省时 `encryption_profile=mls_rfc9420` 的 Realm 视为 `mls-rfc9420`），MUST 纳入 MLS governance binding 的 `policy_root`（§2.5.1）。同一 Realm 的 effective content scheme 由该字段在每个 epoch 的 `T0` 决定；不同 epoch 可使用不同 scheme（切换只对其后 epoch 生效，§2.10.6）。每条密文 envelope 自身的 `scheme` 字段记录其所用 scheme，故接收方解密时直接读 envelope，无需回溯 policy。
 
 **与 `history_visibility` 的强制联动（normative）**：在 `encryption_profile=mls_rfc9420` 的 Realm 中，`history_visibility ∈ {world_readable, shared, invited}` 表示允许后加入 / 加入前读取历史；这只有在 effective `content_scheme=mls-exporter-aead-v1` 时结构上可实现。若 effective `content_scheme=mls-rfc9420`（包括缺省值）或未声明 history-capable scheme，则该 Realm 只能使用 `history_visibility ∈ {joined, restricted}`。reducer / admission MUST 拒绝任何 `ak.realm.create` bootstrap、`ak.realm.history_visibility` 或 `ak.realm.policy_components` 写入导致的非法有效组合，返回 `failed_precondition`，reason=`history_visibility_requires_history_capable_scheme`。选择 `mls-exporter-aead-v1` 只表示历史在密码学上**可**按 policy 交付，并不自动打开 pre-join delivery；`history_visibility=joined` / `restricted` 仍可与 exporter scheme 同用，以便未来 policy 或 RRK 能力可用但默认不放开历史。
 
@@ -994,7 +997,7 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 
 - `group_id`：目标 MLS group。
 - `base_epoch`：Commit 构造时读取的当前 epoch。
-- `base_epoch_ref`：本地认为当前 effective 的 `ak.mls.commit` Control Move 或 `ak.mls.genesis` Control Move / genesis group state ref（v1 不再有独立的 `ak.mls.epoch` seal event；epoch 由 effective commit 机械派生）。
+- `base_epoch_ref`：本地认为当前 effective 的 `ak.mls.commit` Control Move 或 `ak.mls.genesis` Control Move / genesis group state ref；epoch 由 effective commit 机械派生，协议不定义独立的 `ak.mls.epoch` seal event。
 - `proposal_refs`：被该 Commit 消费的 `ak.mls.proposal` events；即使只有一个 proposal，也 MUST 使用长度为 1 的数组，生产者不得使用单数 `proposal_ref`。
 - `commit_message_ref` / `commit_digest`：MLS Commit 消息或其 content-addressed blob。
 - `next_epoch`：必须等于 `base_epoch + 1`。
@@ -1028,7 +1031,7 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 
 ### 5.6 Epoch 自保推进 (Self-preservation Commit)
 
-无成员变动时 epoch 也不能无限期停留：单 epoch 存活越久，within-epoch skipped-key 缓存越大、前向保密暴露窗口越长、§6 的前驱 epoch 恢复缓存越难有界。本节规定**普通 Realm**（声明 `encryption_profile="mls_rfc9420"`、未声明更严 profile）的客户端自保 epoch 推进；隐私优先 Realm 与 minimal-metadata Realm 的更严阈值见 §2.9（1 小时 / 100 commit，minimal-metadata 为 MUST ≤ 1h）。
+无成员变动时 epoch 也不能无限期停留：单 epoch 存活越久，within-epoch skipped-key 缓存越大、前向保密暴露窗口越长、§6 的前驱 epoch 恢复缓存越难有界。本节规定**普通 Realm**（声明 `encryption_profile="mls_rfc9420"`、未声明更严 profile）的客户端自保 epoch 推进；隐私优先 Realm 与 minimal-metadata Realm 的更严时间阈值见 §2.9（minimal-metadata 为 MUST ≤ 1h）。
 
 **第一义务是接收链持久化（normative）**：客户端成功解密某 epoch 的 application message 后，MUST 持久化推进后的 MLS group state（含有界的 skipped message key 缓存），不得在下次解密时从更早的快照重放 ratchet——"解密成功但不落盘、重启后同 epoch 消息不可解"是实现缺陷，MUST NOT 以提高 commit 频率来掩盖。
 

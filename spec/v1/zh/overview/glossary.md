@@ -3,7 +3,7 @@ title: 术语表
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 see_also:
   - ../index.md
   - architecture.md
@@ -67,7 +67,7 @@ see_also:
 | synthesis track | 正式表达轨道 | Strand 的"synthesis"轨道，承载正式状态、结构化字段与决策正文。完整字段、profile、适用场景以 [`../models/strand-and-message.md` §4.2](../models/strand-and-message.md) 为准。 |
 | discussion track | 讨论轨道 | Strand 的"discussion"轨道，承载消息与讨论时间线；成员、历史可见性和 E2EE 由 Strand 整体的 `scope_circle_id` 决定（`null`=Realm-default scope，否则=该 [Circle](../models/circle.md) scope）。Strand 单一 scope，不存在 per-track 安全边界。完整 profile 集合与适用场景以 [`../models/strand-and-message.md` §4.3](../models/strand-and-message.md) 为准。 |
 | Circle | 子事件边界 / scoped 协作圈 | `ak:circle:` 对象，Realm 内的子集成员 + 独立 history visibility + 投递 / 查询 / projection 裁剪边界。**译名注意**：不要叫"信任圈"——Circle 不构成信任域，避免与 Trust Domain 混淆。**不**持有 federation identity 或 Policy Server（这些仍在父 Realm）。对象通过 `scope_circle_id` 引用 Circle 表达"窄于 Realm 的协作圈"；可按父 Realm floor 启用独立 MLS group。详见 [`../models/circle.md`](../models/circle.md)。 |
-| Circle scope / `scope_circle_id` | 对象 effective scope 引用 | 对象（Strand / Message / Morph / Space）的 `scope_circle_id` 字段；`null` = Realm-default scope，否则指向同 Realm 的 Circle。Reducer 把它物化为 immutable tagged `effective_scope`，进入 Event envelope；MLS-backed scope 中也进入 E2EE AAD。 |
+| Circle scope / `scope_circle_id` | 对象 effective scope 引用 | 对象（Strand / Space / Morph / Relation）的 `scope_circle_id` 字段；`null` = Realm-default scope，否则指向同 Realm 的 Circle。Message 不携带该字段，其 effective scope 从所属 Strand 派生。Reducer 把 scope 物化为 immutable tagged `effective_scope`，进入 Event envelope；MLS-backed scope 中也进入 E2EE AAD。 |
 | effective_scope | 事件 immutable scope tag | Reducer 在每个 Event 接受时固化的 tagged scope（`{kind:"realm",realm_id}` 或 `{kind:"circle",realm_id,circle_id}`）。进入 envelope / sub-seal leaf；在 MLS-backed scope 中也进入 AAD；后续 `scope_circle_id` 改绑不得重解释旧 event。 |
 | Board | 看板 | `ak:space: kind=board`，组织一组 List Space 与其他 Space 的工作流容器。 |
 | List | 列 / 泳道 | `ak:space: kind=list`，挂到 Board Space 下、承载 Strand 位置关系的列容器。 |
@@ -82,7 +82,7 @@ see_also:
 | Ephemeral Channel | 临时通道 | 承载 presence、typing、read receipt / read cursor live hint、call signaling 等高频非持久信号的 Sync Service 通道。Ephemeral Channel 的消息使用 dedicated ephemeral envelope，不进入 durable Event Envelope、data/control cell、Seal coverage、state_root 或 historical backfill；通道权限仍由 Realm policy / capability（如 `ak.presence.broadcast`、`ak.typing.broadcast`、`ak.receipt.broadcast`、`ak.call.signal.send`）控制。权威 wire 边界见 [`transport-bindings.md`](../sync/transport-bindings.md)、[`client-sync.md`](../sync/client-sync.md) 与 [`event-and-patch.md`](../models/event-and-patch.md) 的 Event Envelope wire-scope 规则。 |
 | Ephemeral Event | 临时事件 | 在 Ephemeral Channel 上传输的非 durable envelope item；它可被 account subscribe / events subscribe 作为 live projection 投递，但不是 signed durable Wire Event，不分配 `event_id` / `actor_seq`，不推进 Realm frontier，也不得作为 reducer input 或审计真相源。需要持久审计或授权效果的行为必须使用 registered durable Event kind。 |
 | Event Store | 事件存储 | 保存 Event Envelope 的服务能力，不是协议真相源本身。 |
-| Event Batch Receipt | 事件批次回执 | 可选审计/同步加速对象（payload schema `ak.schema.event_batch_receipt.v1`），**不是 canonical history**，也**不是 reducer input**；只对 issuer *选择* 承诺的事件集合提供 *integrity*，不提供 *completeness*。**wire-scope：仅为 receipt object 名称（`ak.event_batch_receipt`），不是 Event `kind`、不进入 `event-kind-registry.json`、不进 reducer**——与 Audit RYW Receipt 的"object + durable-kind 双形态"形成对照，命名分层的 normative 定义见 [`../models/event-and-patch.md` §5.1 概念分层](../models/event-and-patch.md)。数据面单事件"已看见"确认（原 SeenReceipt，已合并）是其 `events[]` 单元素用法，驱动查询等级 `seen`；合并说明见 [`../authz/event-auth-state-resolution.md` §4.4](../authz/event-auth-state-resolution.md)。详见同文件 §5 与 [`../sync/operations-sync.md` §6.1](../sync/operations-sync.md)。 |
+| Event Batch Receipt | 事件批次回执 | 可选审计/同步加速对象（payload schema `ak.schema.event_batch_receipt.v1`），**不是 canonical history**，也**不是 reducer input**；只对 issuer *选择* 承诺的事件集合提供 *integrity*，不提供 *completeness*。**wire-scope：仅为 receipt object 名称（`ak.event_batch_receipt`），不是 Event `kind`、不进入 `event-kind-registry.json`、不进 reducer**——与 Audit RYW Receipt 的"object + durable-kind 双形态"形成对照，命名分层的 normative 定义见 [`../models/event-and-patch.md` §5.1 概念分层](../models/event-and-patch.md)。数据面单事件"已看见"确认是其 `events[]` 单元素用法，驱动查询等级 `seen`。详见同文件 §5 与 [`../sync/operations-sync.md` §6.1](../sync/operations-sync.md)。 |
 | Integrity (data) | 数据完整性 | 给定数据未被中间人或第三方篡改。集合上的 Merkle / set commitment 提供 integrity，但不保证集合本身已覆盖给定范围。 |
 | Completeness (range) | 范围完整性 | 给定范围内（per-actor seq interval、frontier 上下界、actor / realm scope）**没有漏给**任何属于该范围的成员。Completeness 必须依赖 *range-bound* attestation（带显式 from/to 边界）+ witness quorum 或独立 seal 背书；set-bound commitment 单独不足以证明 completeness。 |
 | Witness | 见证方 | 可对 frontier、range completeness、DID key-log 头部或 handover frontier 签发 attestation / receipt 的受信背书主体；可由 Principal Server、registry node 或独立 witness / receipt service 承担。Witness 不是 canonical truth 来源，不替代 Event 自身签名、Seal finality 或 reducer 验证；其签名只证明被见证的范围、头部或 frontier 在该 witness 视图中可验证。机制示例见 [`../sync/federation.md`](../sync/federation.md)、[`../sync/operations-sync.md`](../sync/operations-sync.md) 与 [`../identity/identity-did.md`](../identity/identity-did.md)。 |
@@ -125,7 +125,7 @@ see_also:
 | Genesis Seal | 创世检查点 | 某个 Realm 的 Seal DAG 根；它是唯一允许 `predecessor_refs=[]` 的 Seal，且 v1 要求控制面 `frontier=[]`。它为首个控制面写入提供治理基线，本身不是 Event，也不写入 cell。详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。 |
 | Seal DAG | 检查点图 | 某个 Realm 内已接受 Seal 形成的 DAG；多个 leaf 通过确定性 control view 合成。 |
 | Cell | 状态单元 | Lattice 维护的最小协议状态键，形如 `ak:cell:<component>:<subject>`；其中 `<component>` 是原样嵌入的完整 `ak.component.<facet-path>.v<n>` Cell Family 标识符，因此 canonical 实例具有 `ak:cell:ak.component...` 双层 Arkret 限定。 |
-| Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；核心类型包括 `or_set`、`mv_register`、`cas_register`、`fsm`、`counter`、`ordered_log`、`lww_register`、`rga`。各类型的 join 语义、bottom 行为及使用约束（如 `lww_register` 仅可用于 `client_projection_only=true` 的 UI affordance、不得作为授权或 Seal 关键路径；`rga` 用于协作文本与有序列表）以权威源 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 为准；本条只列类型不重复承载 normative 约束。 |
+| Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；v1 active 类型为 `or_set`、`mv_register`、`cas_register`、`fsm`、`counter`、`ordered_log`。各类型的 join 语义与 bottom 行为以权威源 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 为准；未同时具备 join、op schema、profile gate 与 conformance vectors 的实现私有 CRDT 不属于 v1 wire lattice。 |
 | Bottom | 底值 | Lattice join 无法给出合法 value 时返回的 `⊥`；`bottom=reject` 时依赖它的后续写入 fail closed，`bottom=expose` 时可投影为冲突诊断。 |
 | Reset | 重置语义 | 规范中“reset”不是单一 wire 动作：capability reset 通常是 revoke + reissue；cross-signing reset 是 `ak.cross_signing.reset`；cas_register / fsm 进入 `⊥` 后的恢复是 conflict-recovery Control Move（带 `state_witness` / `inclusion_proof` / recovery capability），不是普通 CAS 覆盖。正文使用 reset 时必须说明对应 event kind 或 recovery path。 |
 | Component / Cell Family | 组件 / Cell 族 | 跨协议版本稳定的 cell family 标识符，URI 形式 `ak.component.<facet-path>.v<n>`；registry 为 reducer-input kind 声明 `cell_family`、`lattice` 与 `bottom`。 |

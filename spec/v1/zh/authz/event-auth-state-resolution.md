@@ -3,7 +3,7 @@ title: Event Auth、CBA 双平面与状态收敛
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 sidebar:
   label: Event Auth & State Resolution
 ---
@@ -37,7 +37,7 @@ Arkret v1 的一致性层采用 **CBA（Control-plane Basis-committed Sealing）
 | seal_basis | Control Move 签名覆盖的控制面基线：`{leaves[], control_event_set_root, state_root}`。 |
 | control_event_set_root | Seal 对递归控制面覆盖集 `covered_set(S)` 的 authenticated root。basis、inclusion、non-membership、receipt obligation 与 censorship evidence 都以它为锚点。 |
 | KeyView | Seal 对某个 data cell 的观测记录，包含 cell、lattice type、heads / value digest 与 last covered event。 |
-| Event Batch Receipt | issuer（relay / notary / witness / Principal Server）对其选择承诺的 Event 集合签发的 receipt object（`ak.schema.event_batch_receipt.v1`）。数据面单事件"已看见"确认是其 `events[]` 单元素用法（原 SeenReceipt，已合并，见 §4.4）。它不是准入证明，不进入 state。 |
+| Event Batch Receipt | issuer（relay / notary / witness / Principal Server）对其选择承诺的 Event 集合签发的 receipt object（`ak.schema.event_batch_receipt.v1`）。数据面单事件"已看见"确认是其 `events[]` 单元素用法。它不是准入证明，不进入 state。 |
 | AvailabilityReceipt | holder 对某个 Event bytes 在 retention 窗口内可获取的签名承诺。 |
 
 ## 3. Plane 判定
@@ -158,7 +158,7 @@ Grant 晚于 producer 最新 seal 签发时，producer MUST 等下一个控制�
 
 Relay / notary / witness 收到 DataEvent 时 SHOULD 返回一个 Event Batch Receipt（receipt object，schema [`event-batch-receipt.schema.json`](../../artifacts/schemas/event-batch-receipt.schema.json)，schema id `ak.schema.event_batch_receipt.v1`，字段与概念分层见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md)）。单事件确认即 `events[]` 只含该 `event_digest` 的单元素 receipt：`scope` 携带 `realm_id`，`created_at` 为 issuer 看见该事件的时间，`frontier` 为签发时 issuer 前沿。
 
-> **合并说明（normative）**：v1 早期草案曾把这一用途单列为 "SeenReceipt"（`{realm_id, event_digest, received_at, receipt_seq, expires_at, issuer, signature}`）。它与 Event Batch Receipt 语义同层——issuer 签名的、非 canonical、只保 set integrity 的 hint——且从未注册 schema，故收敛为 Event Batch Receipt 的单元素用法，协议中不再存在独立的 SeenReceipt 对象。旧结构的 `receipt_seq` 与 `expires_at` 一并取消：全规范无消费者——issuer 侧漏发/扣发检测由 [`../sync/operations-sync.md` §6.4](../sync/operations-sync.md) range-completeness attestation 与 frontier probe 承担，equivocation 检测归 Seal 的 `notary_seq`（§7.1）；receipt 是 best-effort hint 且"已看见"是不可撤销的事实陈述，过期语义没有可执行含义，receipt 的保留期属部署本地 retention 决策。
+单元素 receipt 与批量 receipt 使用同一语义：它是 best-effort、set-bound integrity hint，不带协议级过期或序列语义。issuer 侧漏发/扣发检测由 [`../sync/operations-sync.md` §6.4](../sync/operations-sync.md) range-completeness attestation 与 frontier probe 承担，equivocation 检测归 Seal 的 `notary_seq`（§7.1）；receipt 的本地保留期由部署 retention policy 决定。
 
 Event Batch Receipt 只证明"issuer 看见并承诺所列事件集合的 integrity"，不证明事件有效、不提议排序、不进入控制面 state、不提供范围 completeness。部署 MAY 不签发数据面 receipt；关闭后同账号 RYW（`grade=seen`）与数据面审查诊断能力降低。
 
@@ -222,7 +222,7 @@ Seal {
   completeness_root             // 控制面 per-actor 区间承诺
   notary_seq
   notary_signature
-  sealed_at                   // 诊断
+  sealed_at                   // 签名覆盖的 normative notary commit time；freshness / receipt SLA / projection 输入
   hlc                           // 诊断
 
   data_view_root?               // observational
@@ -298,10 +298,10 @@ inclusion proof 使用 Merkle audit path，non-membership 使用 sorted-neighbor
 ```text
 apply_seal(A):
   1. 校验 predecessor_refs 均已知、同 Realm、且不是 fork_quarantine。
-  2. 校验 notary_seq 单调性和 notary_signature。
+  2. 校验 notary_seq 单调性和 notary_signature；`sealed_at` MUST 不早于全部 predecessor 的 `sealed_at`，且不得晚于 verifier 当前时钟加 `hard_future_skew_ms`。
   3. 校验 delta[] canonical 升序去重。
   4. 校验 delta[] 与所有 predecessor covered_set 不相交。
-  5. 校验 delta[] 每项都是已知、签名有效、且未被本 Seal predecessor closure 覆盖的 Control Move digest
+  5. 校验 delta[] 每项都是已知、签名有效、且未被本 Seal predecessor closure 覆盖的 Control Move digest；若 effective `availability_policy.applies_to` 含 `seal_include`，还 MUST 验证每项有满足 holder 数、role 与 retention 下限的 AvailabilityReceipt
      （"尚未 sealed" 的判定范围见下方并发 leaf 规则）。
   6. 计算 covered_set(A) = delta(A) union predecessor covered sets。
   7. 校验 control_event_set_root == root(covered_set(A)).
@@ -332,6 +332,12 @@ Seal 被拒绝时，其 `delta[]` 内 Control Move 不因此有效。节点 MAY 
 5. **结果**:`J(L)` 是所有 control cell 的 join 结果集合；它就是 receiver 在 step 8 `verify_control_move` 与所有授权判定（capability / membership / policy）所用的 "predecessor joined governance state"。
 
 `J(L)` 是 `L` 的纯函数（不依赖到达顺序、本地时钟或接收方身份），因此观察到相同 leaf 集的 receiver 得到逐 cell 相同的治理状态；leaf 集不同的 receiver 在缺失 leaf 补齐后收敛到同一 `J`。compaction Seal（§6.2）把 `covered(L)` 物化为有界 bootstrap 点，使新 verifier 无需重放全链即可重建 `J`。
+
+#### 6.3.2 已 Seal Control Move 与后发现 fork 的衔接（normative）
+
+accepted Seal 的 `covered_set`、`control_event_set_root`、`completeness_root` 与 `state_root` 是不可追溯改写的签名承诺。某个已覆盖 Control Move 后续因同 `event_id` 双变体、单桶 over-fork 或跨桶累计 over-fork 被检出时，receiver MUST quarantine 全部原始 sibling bytes，但 MUST 保留已被 accepted Seal 覆盖的那个 digest 及其 effects 作为该历史 Seal 的输入；不得从已接受 Seal 重算并删除它。普通 quarantine 的 effects 移除只适用于 data plane Event 与尚未被任何 accepted Seal 覆盖的 pending Control Move。
+
+该状态下 receiver MUST 对受影响 `(actor_id, actor_seq)` 之后的 Control Move fail closed，直到有 fork-resolution capability 的主体按 federation §4.5 证据签发 recovery / fork-resolution compaction Seal。该 Seal MUST 显式列出冲突 sibling digest 集、选定 canonical digest 或“全部作废”的归一裁决、所依据 witness / operator authorization，并从 predecessor 已承诺状态写入后继归一结果；它不能声称旧 Seal 从未覆盖原 Move。notary 在签发普通 Seal 前 SHOULD 检查 `delta[]` 中每个 Move 的已知 sibling 桶和跨桶累计计数，已越界者 MUST NOT 纳入普通 Seal。
 
 ### 6.4 数据面观测承诺
 
@@ -436,7 +442,7 @@ Wire schema：[`seal-transparency.schema.json`](../../artifacts/schemas/seal-tra
 - **log entry**：`{log_id, log_index, realm_id, seal_id, control_event_set_root, completeness_root, state_root, prev_entry_digest, logged_at, log_signature}`——`log_index` append-only，`prev_entry_digest` 形成 hash 链。同一 `(log_id, log_index)` 出现两个签名不同的 entry 即构成**可证明的 log fork**：split-view 攻击者要么一致发布、要么留下可出示的分叉证据。
 - **auditor attestation**（`#/$defs/auditor_attestation`）：`{log_id, realm_id, from_index, to_index, head_entry_digest, auditor_id, checks{append_only, seal_signatures, set_root_monotonic, completeness_monotonic}, attested_at, signature}`——四项 checks 全部为 true 才可签发；auditor 无法断言任一项时 MUST NOT 出具。
 
-`grade=witnessed` 的判定标准即"该 Seal 被 ≥ policy 要求份数的独立 auditor attestation 的已验证范围覆盖"。
+`grade=witnessed` 的判定标准即“该 Seal 被至少 `Realm.audit_policy.witnessed_min_attestations` 份、且满足 `witness_independence` 的独立 auditor attestation 的已验证范围覆盖”。`audit_policy` 缺失时客户端 MUST NOT 返回或展示 `grade=witnessed`。
 
 ## 8. AvailabilityReceipt
 
@@ -455,8 +461,9 @@ AvailabilityReceipt {
 
 规则：
 
-- 控制面 Seal include 一个 Control Move 前，MUST 满足 Realm availability policy。小 Realm 默认要求 notary + 至少一个 witness 持有 bytes；组织 Realm MAY 要求 m-of-n storage witnesses。
-- Snapshot / backfill 承诺 MUST 同样满足 availability policy。
+- `Realm.availability_policy` 是本义务的唯一机器承载，结构见 `realm.schema.json`。缺失时按 `{min_holders:1, holder_roles:["notary"], applies_to:["seal_include"], minimum_retention_ms:86400000}` 解释；不得按“Realm 大小”或产品类别自行选择隐式门槛。
+- notary 在 Seal include 一个 Control Move 前 MUST 收集满足 effective policy 的签名 AvailabilityReceipt；`apply_seal` receiver MUST 按 §6.3 step 5 独立验证 receipt 的 event/digest、holder DID、accepted holder role、互异 holder 数与 `retention_expires_at >= Seal.sealed_at + minimum_retention_ms`。不满足时拒绝 Seal，而不是降级为诊断。
+- policy 的 `applies_to` 含 `snapshot` 或 `backfill` 时，相关签发服务在作出 bytes-available 承诺前 MUST 收集同样门槛的 receipts，并把 receipt digest / proof 随响应或承诺 root 暴露给 verifier；verifier 缺少可验证门槛时 MUST NOT 声称 availability 已满足。
 - 数据面默认 SHOULD 在 relay 签 Event Batch Receipt（§4.4）时同时签 availability 承诺；高对抗部署 MAY 要求更高 storage quorum。
 - erasure coding / data availability sampling 不进 v1 core。
 
@@ -475,12 +482,13 @@ AvailabilityReceipt {
 
 #### 9.1.1 `bottom` policy（normative）
 
-控制面 cell 在 join 无法收敛到单一合法值时进入 `⊥`（bottom）。`⊥` 的暴露语义由 cell family 的 **`bottom` policy** 决定，取值为封闭枚举 `bottom ∈ {expose, reject}`：
+控制面 cell 在 join 无法收敛到单一合法值时进入 `⊥`（bottom）。`⊥` 的暴露语义由 cell family 的 **`bottom` policy** 决定，取值为封闭枚举 `bottom ∈ {expose, reject, inert}`：
 
 | `bottom` | 语义 |
 | --- | --- |
 | `expose` | join 产生 `⊥` 时把冲突 heads 暴露给读路径与后续 Move（不直接 fail-closed 写入）；典型用于 `or_set` 形态的并存/审计语义（如 §7.1 `(or_set, bottom=expose)` notary fault cell、moderation_state cell）。 |
 | `reject` | join 产生 `⊥` 时，所有依赖该 cell 的 Control Move precondition、DataEvent 授权判定与读路径 MUST fail closed，返回 `failed_bottom`（`reason=cell_in_bottom_state`，见 §13）；典型用于 `cas_register` / `fsm` 等强单值治理 cell。 |
+| `inert` | 该 lattice 的数学 join 不产生 `⊥`，因此本字段不引入额外 reject / expose 语义；普通 `or_set` / `ordered_log` / `counter` 使用此值。若领域定义了独立冲突条件，必须另行登记为 `expose` 或 `reject`，不得借 `inert` 绕过。 |
 
 声明来源与默认值：
 
@@ -544,7 +552,7 @@ conflict-recovery Move 不是新 event kind，而是一条**针对该 cell 的 C
 2. **witness 可重建 state_root**：`state_witness` 的 inclusion proof MUST 能重建该 witness frontier 的 `state_root`；不能则 `recovery_witness_invalid`。
 3. **witness 严格 pre-conflict**：`state_witness` frontier MUST NOT 有到触发 `⊥` 的任一 sibling Move 的因果路径（即必须早于冲突）；否则 `recovery_witness_post_conflict`。这保证 recovery 锚定的是冲突前的合法状态，而非把冲突之一单方面"洗白"。
 4. **recovery_capability 已 sealed 且在 witness 下成立**：`recovery_capability` grant 引用的 cell MUST 出现在 `state_witness` 的 `state_root` 中且取值不冲突；否则 `recovery_capability_not_sealed`。
-5. **witness 不陈旧、未被撤销**：`state_witness` MUST NOT 早于允许的 freshness window，且 local frontier MUST NOT 已观察到针对该 `recovery_capability` 的 revoke / supersede 晚于 witness frontier；违反则 `recovery_witness_revoke_lagging`（receiver MUST 拒绝 stale witness replay）。
+5. **witness 不陈旧、未被撤销**：`state_witness` 到 recovery Move `seal_basis.leaves[]` 的签名 Seal 时间差 MUST ≤ Realm `recovery_witness_freshness_window_ms`（默认 86,400,000 ms，最大 604,800,000 ms）；差值使用 `max(leaves[].sealed_at) - witness_seal.sealed_at`，负值或 DAG 不可达同样拒绝。local frontier 还 MUST NOT 已观察到针对该 `recovery_capability` 的 revoke / supersede 晚于 witness frontier；违反则 `recovery_witness_revoke_lagging`（receiver MUST 拒绝 stale witness replay）。
 6. **必须 sealed**：conflict-recovery Move 是控制面 Move，MUST 经控制面 Seal 接受（继承 Seal finality），使"从 `⊥` 恢复到的单值"跨 receiver canonical 一致——与 §7.1 fork-resolution 的跨 receiver 确定性同纪律。reducer 在 cell 处于 `⊥` 时，**仅**接受满足上述全部条件的 conflict-recovery Move 写入该 cell（这是 `bottom=reject` cell 在 `⊥` 下对 `failed_bottom` 的唯一例外），把 cell 解析为该 Move 声明的单一合法值。
 
 **recovery capability 来源**：`recovery_capability` 由 Realm 的恢复权威持有——即 §7.2 闭环里的 **recovery notary**（genesis `recovery_members` / `mixed` profile 的 fallback notary）所辖的 recovery / fork-resolution 授权；它与 §7.1 的 fork-resolution、[`event-and-patch.md` §2.6](../models/event-and-patch.md) over-fork repair 复用同一恢复权威，不引入新授权主体。`single_did` 且未声明可用 recovery 路径的 Realm，control cell `⊥` 是诚实的死状态（与 §7.2 第 2 点"证据可流转但不可生效"同一限制，也是 genesis 强制 `recovery_members` 组织分离的理由之一）。

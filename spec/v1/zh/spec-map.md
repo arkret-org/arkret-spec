@@ -3,7 +3,7 @@ title: Spec Map
 status: candidate
 normative: false
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 see_also:
   - index.md
   - conformance/normative-language.md
@@ -97,7 +97,7 @@ see_also:
 - signed Event Envelope 是唯一 canonical fact。
 - Principal Server 通过 `/_arkret/self/events/*` API 提交、读取、回填和验证 Event frontier。
 - Principal Server 是主体控制或委托的服务边界；Sync Service 是其 Realm 同步能力。
-- 搜索、inbox、notification 和 View projection 默认由客户端本地派生；可选受托服务也不充当真相源（规范约束见 [`overview/architecture.md`](./overview/architecture.md) §3）。
+- 搜索、inbox、notification 和 View projection 默认由客户端本地派生；可选受托服务也不充当真相源（规范约束见 [`conformance/query-schema.md`](./conformance/query-schema.md) §8–§9）。
 
 ### 3.4 Discoverability / Join Rule / History Visibility
 

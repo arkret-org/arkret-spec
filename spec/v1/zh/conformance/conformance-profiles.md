@@ -3,7 +3,7 @@ title: 实现 Profile 与一致性要求
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-03
+updated: 2026-07-13
 sidebar:
   label: 实现 Profile
 ---
@@ -49,7 +49,7 @@ ak.profile.<name>.v<major>
 | --- | --- | --- |
 | Minimal interop floor | 仅声称 v1 Event Store interop 时的最小声明。 | `ak.profile.core_event_store.v1`：Event Envelope、per-actor event chain、events submit/get/list/frontier/backfill、标准错误。 |
 | Stable profile catalog | v1 stable catalog 中可独立声明的实现 profile，不构成默认全量包。 | `chat_mvp`、`kanban_mvp`、`minimal_client`、`full_client`、`principal_server`、`identity_registry`、`blob_node`、`push_gateway`、`federation_minimal`、`sovereign_client` 等。 |
-| Extension（v1 lattice / interop） | 在 v1 stable catalog 中可独立声明，但**只在显式 opt-in 时启用**。未声明的实现遇到这些能力 MUST fail closed。 | `ak.profile.collaborative_text.v1`（lww_register / rga lattice 扩展）、`ak.profile.matrix_compat.v1`（Matrix 兼容声明：to-device / `/_arkret/self/keys/*` / push gateway / cross-signing / SAS 与 Matrix 等价语义；账号聚合不声明 Matrix `/sync` wire parity）。 |
+| Extension（v1 interop） | 在 v1 stable catalog 中可独立声明，但**只在显式 opt-in 时启用**。未声明的实现遇到这些能力 MUST fail closed。 | `ak.profile.matrix_compat.v1`（Matrix 兼容声明：to-device / `/_arkret/self/keys/*` / push gateway / cross-signing / SAS 与 Matrix 等价语义；账号聚合不声明 Matrix `/sync` wire parity）。 |
 | Interop staging extension | **不属于 v1 core interop floor**，跟踪外部演进标准；声明 v1 core 的实现 MAY 完全省略。 | MIMI interop、Applet integration、Agent protocol bridge、TSP integration 等；这些 profile 在外部标准定型后将被稳定版本固定取代。 |
 
 Document、File、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profile，不是 core 标准对象。实现不得因为未来可能标准化这些类型，就在 v1 wire contract 中要求对端支持专用对象类型。
@@ -964,7 +964,7 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 
 | # | 条款（摘述） | 真相源 | 分级 |
 | --- | --- | --- | --- |
-| <a id="ak-sdk-001"></a>1 | Event Envelope MUST 先过 `ak.schema.event.v1` 与 payload class 校验，失败 MUST `schema_violation`，不得进入 reducer（先验证后消费） | 本文 §3 | **V**（`event-envelope-negative-fixture.json`）；"先于消费"的内部顺序为 U |
+| <a id="ak-sdk-001"></a>1 | Event Envelope MUST 先过 `ak.schema.event.v1` 与 payload class 校验，失败 MUST `schema_violation`，不得进入 reducer（先验证后消费） | 本文 §3 | **V**（`ak.vector.envelope.negative_admission.v1` / `event-envelope-negative-fixture.json`）；"先于消费"的内部顺序为 U |
 | <a id="ak-sdk-002"></a>2 | `proof`、`hlc`、`actor_seq`、`prev_refs`、`refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过 | 本文 §3 | **V**（负例向量拒收）；"库不得暴露跳过入口"为 A |
 | <a id="ak-sdk-003"></a>3 | `auth` 约束必须执行，不得通过客户端配置豁免 | 本文 §3 | **U**（配置面审计）；辅以 A（不提供豁免配置项） |
 | <a id="ak-sdk-004"></a>4 | 对 `causal` 关系、`revoked` 与 `proof` 失效状态 MUST fail-closed，不得静默接受 | 本文 §3；conformance-vectors §2.19 | **V**（`ak.vector.cba_lattice.*` 并发撤销 fail closed 向量） |
@@ -978,6 +978,9 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 | <a id="ak-sdk-012"></a>12 | late key recovery：`T0` 不可见 / key source unauthorized 时 MUST 拒绝解密（先验证后消费） | conformance-vectors late_key_recovery 向量族 | **V** |
 | <a id="ak-sdk-013"></a>13 | 未知 critical feature / `requirements` 不匹配 MUST fail closed | 本文 §3、§20 | **V**（downgrade / unsupported feature tests） |
 | <a id="ak-sdk-014"></a>14 | 生产 profile MUST 拒绝测试 DID、测试 key id、测试 trust domain | conformance-vectors §1.14 | **V** |
+| <a id="ak-sdk-015"></a>15 | 裁剪构建若移除任一已声明 profile 的 MUST 能力，MUST 同时移除该 profile claim；构建产物的 capability inventory 与 claim 必须对账 | 本文 §2.1.2 | **U**（构建配置审计）；辅以 A（公开 API / capability inventory） |
+| <a id="ak-sdk-016"></a>16 | 开放注册集中的未知值 MUST 在反序列化时原样保留，不得因本地 registry 快照较旧而使整个对象解码失败 | schema-registry §6.1 | **V**（`ak.vector.encoding.open_registry_unknown_roundtrip.v1`）；辅以 A（非封闭 enum API 形状） |
+| <a id="ak-sdk-017"></a>17 | schema 明示的 `x_*` 与 `critical_extensions[].parameters` 未识别内容 MUST 在 decode/encode、存储、联邦转发与 backfill 后逐字节保留，且继续进入 canonical bytes | 本文 §20；schema-registry §6 | **V**（`ak.vector.encoding.extension_slot_roundtrip.v1`）；内部存储/转发路径为 U |
 
 ### 23.3 "仅 API 形状可保证"类的 SDK 实现指引
 
@@ -987,6 +990,7 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 - SHOULD NOT 提供跳过 proof / schema 验证的公开入口（`verify=false` 参数、insecure 构造器、直接产出"已验证"类型的裸构造函数等）；测试性 bypass 若确需存在，SHOULD 置于非默认 feature / 内部模块，不得从默认公开面可达（对应条款 1、2、9）。
 - SHOULD 采用"验证即构造"（parse, don't validate）类型形态：未通过 envelope schema + proof 验证的字节不产出可直接消费的 Event 值类型（对应条款 1、2）。
 - SHOULD 把 fail-closed 判定（causal / revoked / proof 失效、未知 critical feature）实现为默认路径；任何放宽行为 SHOULD 是显式、可审计的 opt-in，而非默认参数（对应条款 3、4、13）。
+- SHOULD 将开放注册集建模为可保留未知字符串的 non-exhaustive 类型，并为 schema 明示扩展位保留 raw canonical value；不得用封闭 enum 或丢弃未知字段的通用反序列化默认破坏条款 16、17。
 
 声明遵循本节的 SDK MUST 发布符合 [`sdk-conformance-claim.schema.json`](../../artifacts/schemas/sdk-conformance-claim.schema.json)（`ak.schema.sdk_conformance_claim.v1`）的 machine-readable claim；`ak.vector.sdk_conformance.claim_validation.v1` 与 `sdk-conformance-claim-fixture.json` 是其可执行证据。SDK 为每个适用 `AK-SDK-NNN` clause 提供一个 `clause_claims[]` 条目，至少给出 `result` 与不可变 `evidence[]` 引用；每条 evidence 都 MUST 携带非零 content digest。V 级证据引用向量结果，A级引用 public API inventory，U 级引用代码 / 配置 / 数据流审计；`not_applicable` 必须携带机器可读理由。SDK release 必须以 `sdk_artifact.uri + sdk_artifact.digest` 绑定确切发布物，同时钉定非零 `spec_revision` 与 `sdk_conformance_contract` 的 canonical digest，防止用新条款解释旧证据或把一份结果移植到另一产物。claim 必须声明 `issued_at`、issuer DID 与 verification method；`proof.signature` 覆盖 UTF-8 `"arkret-sdk-conformance-claim-v1\n"` 加移除顶层 `proof` 后对象的 RFC 8785 JCS bytes，`proof.kid` 必须等于 `issuer.verification_method`。验证器除执行 JSON Schema 外，MUST 验证发布物、证据与 contract digest，解析 spec revision，验证 issuer 当前授权及签名，并执行 clause ID 唯一性与已知 clause 集合检查；任一步失败都不得接受 conformance 声明，重复 clause MUST `duplicate_clause_claim`。
 

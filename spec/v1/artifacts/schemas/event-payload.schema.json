@@ -2354,11 +2354,18 @@
     "account_status_payload": {
       "type": "object",
       "required": [
+        "account_id",
         "principal_id",
         "status",
         "effective_at"
       ],
       "properties": {
+        "account_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "description": "Opaque service-account identifier. It is the ak.component.account.status.v1 cell subject; accounts bound to the same principal_id are evaluated independently."
+        },
         "principal_id": {
           "$ref": "#/$defs/did"
         },
@@ -6395,6 +6402,24 @@
           "then": {
             "required": [
               "circle_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "binding_profile": {
+                "const": "ak.profile.mls_governance_binding.full.v1"
+              }
+            },
+            "required": [
+              "binding_profile"
+            ]
+          },
+          "then": {
+            "required": [
+              "capability_root",
+              "discussion_metadata_digest"
             ]
           }
         }

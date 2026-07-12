@@ -3,7 +3,7 @@ title: Operations And Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-13
 see_also:
   - service-surface.md
   - client-sync.md
@@ -214,7 +214,7 @@ Event 是 canonical history；receipt、attestation、snapshot 与 Seal observat
 
 Event Batch Receipt（schema [`event-batch-receipt.schema.json`](../../artifacts/schemas/event-batch-receipt.schema.json)，`ak.schema.event_batch_receipt.v1`，字段与概念分层见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md)）是 best-effort RYW / 加速 / 审计 hint：issuer（服务、客户端或 witness）证明已看到并承诺 `events[]` 所列 Event 集合的 integrity。它可用于 read-your-writes（驱动查询等级 `local → seen`，§8）、跨服务对账、轻客户端同步与 censorship 诊断；它不证明 Event 已进入控制面 finality，只对 issuer 选择承诺的集合提供 integrity，不提供范围 completeness。接收方 MUST 能在没有 batch receipt 的情况下验证单个 Event。
 
-单事件确认是 `events[]` 单元素的退化形态（原 SeenReceipt，已合并——合并说明与被取消字段的理由见 [`../authz/event-auth-state-resolution.md` §4.4](../authz/event-auth-state-resolution.md)）；协议不再定义独立的单事件 receipt 对象。
+单事件确认是 `events[]` 单元素的退化形态；协议只定义 Event Batch Receipt 这一种 set-bound receipt 结构。
 
 ### 6.2 AvailabilityReceipt
 
@@ -268,6 +268,8 @@ leaf 顺序按 `(actor_id code point ASC, actor_seq ASC, event_id ASC, event_dig
 
 声明 `security_class=high_assurance` 或 `ak.profile.federation.high_assurance.v1` 的 Realm，解除 completeness 关注时 MUST 只接受 `federation_witness_attested`；`single_source` 只能作为诊断输入。
 
+本节所称 witness policy 的唯一 wire 承载是 Realm `audit_policy`（`realm.schema.json`）。“等价 profile-declared witness 集合”仅指 profile 要求同一字段取更严格值，不能引入另一私有承载；`audit_policy` 缺失时 `federation_witness_attested` 不可验证，verifier MUST fail closed。
+
 #### 6.4.3 single-source issuer 行为（normative）
 
 签发 `single_source` attestation 的 issuer MUST 先从自己的 accepted store 构造 `(from_frontier, to_frontier]` 范围，按 §6.4.1 计算 `actor_seq_ranges[]`、`root` 与 `count`，再签名 payload。issuer 不得仅依据分页结果、查询过滤器结果或一组 `events[]` 响应临时推断完整性；范围必须来自该 issuer 对 Realm history 的 accepted frontier 视图。issuer 后续发现该 range 内存在漏收、over-fork quarantine、签名无效或 actor chain repair 时，MUST 将旧 attestation 视为 stale diagnostic，不得继续作为 completeness 证明返回。
@@ -304,7 +306,7 @@ Strand Sync MUST NOT 因 actor 可读 Strand synthesis 就自动展开不可读 
 
 ## 8. 查询等级
 
-查询响应 SHOULD 带 `basis`，说明结果基于哪个 Seal 与何种等级。
+查询响应 MUST 携带 `basis`，说明结果基于哪个 Seal 与何种等级；字段形态与等级语义的权威定义见 [`event-auth-state-resolution.md` §10](../authz/event-auth-state-resolution.md) 和 [`query-schema.md`](../conformance/query-schema.md)。
 
 | grade | 语义 |
 | --- | --- |
@@ -323,7 +325,6 @@ Strand Sync MUST NOT 因 actor 可读 Strand synthesis 就自动展开不可读 
 Arkret 不用全局链决定普通协作写入顺序。状态收敛由 cell family 的 Lattice / CRDT 规则定义：
 
 - OR-Set、ordered log、RGA、PN-counter、escrow counter 等可合并 cell MUST 对输入顺序不敏感。
-  > **序列 CRDT 选型注记（informative）**：上面把 **RGA（Replicated Growable Array）** 列为序列 cell 的示例算法。RGA 有学界充分记录的**并发插入交错（interleaving anomaly）**——两个 actor 在同一位置并发插入文本时，字符可能交错成乱序串。RGA 不是协作富文本的"最佳实践"基线：实现协作文本（`ak.profile.collaborative_text.v1`，见 [`../conformance/conformance-profiles.md` §3](../conformance/conformance-profiles.md)）时 SHOULD 优先采用消除 interleaving 的现代序列 CRDT —— **Eg-walker（Event Graph Walker，diamond-types）**、**Fugue/Peritext**（后者并处理富文本 mark 并发）或 **Loro/Yjs(YATA)**。其中 Eg-walker 在 event graph 上重放求值，与本规范的 event/causal-graph 范式天然同构、落地阻抗最小。序列 CRDT 仅活在该 opt-in extension profile、不进 core wire，因此算法升级是 profile 内的加法（新 lattice 标识 + 新 conformance vector / 新 `ak.profile.collaborative_text.v<n>`），不破坏任何 v1 core 签名字节。
 - 单值、硬配额、跨 cell 原子性和不可交换操作不得放在 data plane，除非使用专门 sequencer。
 - 并发不可合并时，reducer MUST 产生 structured bottom / conflict diagnostic，而不是用 HLC、actor id、数据库自增 ID、本地到达顺序或 Sync Service 顺序挑选 winner。
 - Timeline 展示顺序是 projection，MUST NOT 反向写入 canonical state、授权判断或 Lattice winner。
@@ -379,7 +380,8 @@ Snapshot 后续恢复流程：
 
 - `event_id` MUST 全局稳定。
 - 同一个 `event_id` 的完全相同 canonical bytes MAY 被重复接收，并作为幂等成功处理。
-- 同一个 `event_id` 对应不同 canonical bytes 时，节点 MUST 拒绝并返回 `duplicate_conflict`，同时保留最小冲突证据。
+- 同一个 `event_id` 对应不同 canonical bytes 时，提交响应 MUST 拒绝新到变体并返回 `duplicate_conflict`；本地状态处置则 MUST 把该 `event_id` 的全部已知变体作为一组进入 quarantine，包括此前已 accepted 的变体。节点 MUST 从所有 data cell join 输入移除这些变体的 effects；尚未被 accepted Seal 覆盖的 control Move 同样移除。依赖任一变体的后续 Event 转为 `dependency_missing` / pending。已被 accepted Seal 覆盖的 Control Move 不得从其 `covered_set` / `state_root` 追溯删除，按 [`event-auth-state-resolution.md` §6.3.2](../authz/event-auth-state-resolution.md) 等待 fork-resolution compaction Seal；相关 actor 的后续控制写入在归一前 fail closed。节点同时保留最小冲突证据。
+- submit、probe、backfill 或本地审计任一路径发现双变体，都 MUST 执行同一整组 quarantine 处置；wire `duplicate_conflict` 只是当前调用的响应语义，不能替代本地追溯状态转换。解除 quarantine 只允许走 [`federation.md` §4.5](./federation.md) 的 raw replay、quorum witness 或 operator-approved fork resolution。
 - Sync Service SHOULD 以 `event_id` 与 `event_digest` 去重，而不是以到达次数计数。
 
 ## 13. 授权时序

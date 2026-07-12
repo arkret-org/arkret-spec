@@ -79,6 +79,7 @@
       "items": {
         "$ref": "./grant-constraint.schema.json"
       },
+      "maxItems": 64,
       "description": "Constraints applied to this grant. Delegation control MUST be expressed via constraint_type='delegation_control' and max_delegation_depth (see capabilities.md §10). Top-level delegable is forbidden and MUST be rejected as schema_violation. With no delegation_control constraint the grant is not delegable (equivalent to max_delegation_depth=0)."
     },
     "parent_grant_id": {

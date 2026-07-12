@@ -4,7 +4,7 @@
   "suite": "morph_schema_migration",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::e2e::models::morph_schema_migration"
+    "entrypoint": "arkret-rust-sdk::core::models::artifacts::event_payload::morph_transformation_fixture_executes_all_registered_rules"
   },
   "description": "Deterministic ak.morph.schema_migrate transformation vectors (zh/models/morph.md §4.1 S3 + the migration profile additional_requirements.deterministic_transformation_must). Each vector seeds a Morph from input.fields with input.from_schema_refs, POSTs a ak.morph.schema_migrate carrying input.payload, then asserts the post-migration Morph fields projection equals expected_output under Arkret canonical JSON (sorted keys, no whitespace). expected_output_digest is sha256 over those canonical bytes. The transformation_rules[] dialect ids are the canonical ak.transform.*.v1 set the profile transformation_rules_v1_grammar declares. Schema ids are the registered reference profiles ak.schema.morph.customer_risk.v1 and its additive extension ak.schema.morph.customer_risk.ext.v1.",
   "covers_vectors": [
