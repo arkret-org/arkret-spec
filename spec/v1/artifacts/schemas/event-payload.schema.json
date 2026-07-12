@@ -4282,7 +4282,7 @@
         },
         "revocation_check_ref": {
           "$ref": "#/$defs/object_ref",
-          "description": "Optional freshness source for revocation checking. Absence does not waive expires_at."
+          "description": "Optional freshness source for revocation checking. When expires_at is absent, authorization lifetime is governed by the canonical revocation chain and lifecycle cascade; this field may identify the freshness source used for that check."
         },
         "runtime_attestation": {
           "type": "object",

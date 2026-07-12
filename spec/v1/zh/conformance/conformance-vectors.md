@@ -3367,7 +3367,7 @@ Expected:
 - 第 3 步 MUST 在同一接受事务中写入 `ak.agent.key.authorize`(K2)与 `ak.agent.key.revoke`(K1, reason=`superseded_by_repairing`);capability grants 不受影响。
 - 第 4 步 MUST fail closed:`K1` 的新 session 请求拒绝;`S1` MUST 在 revocation freshness window 内 fail closed,MUST NOT 自然存活到原 TTL。
 - 变体 A:无任何副作用,agent 保持 `active`、`K1` 有效;`pairing_expired` MUST NOT 出现在曾持钥 agent 上。
-- 变体 B:MUST `failed_precondition`(terminal 状态拒绝续期)。
+- 变体 B:MUST `agent_deactivated`(terminal 状态拒绝续期)。
 
 ### 11.2.2 Vector: Longevity-safe Authorization Chain(No Expiry Cliffs)
 
@@ -3379,6 +3379,8 @@ Steps:
 2. 模拟长时间推移(超过任何常见部署 TTL,如 400 天)后,runtime 用 authorized key 签发 session 并执行 grant 内动作。
 3. Controller 执行 `ak.self.agent.command.pause`。
 4. 提交 `risk_tier=high` action 的 agent grant(如 act-on-behalf 链路)但不带 `expires_at`。
+5. Controller 对同一 `(agent_id, key_id)` 提交 re-authorization，在 `seal_basis` view 中 observe 当前单一 authorize dot。
+6. 变体 A：两个 re-authorization 基于同一旧 `seal_basis` 并发，并声明不同的 scope / audience / `expires_at`。
 
 Expected:
 
@@ -3386,6 +3388,8 @@ Expected:
 - 第 2 步 MUST 成功:授权链上没有任何静默定时器;session 签发仍逐次校验未撤销 / status / scope / audience。
 - 第 3 步后新 session MUST 拒绝，已签发 session 在 freshness window(SHOULD ≤ 60s)内 fail closed——kill switch 是唯一失效路径的证明。
 - 第 4 步 reducer MUST `failed_precondition`:高风险 action 的 grant 仍然强制有限 `expires_at`(§8 风险分层硬约束不因 longevity 放宽)。
+- 第 5 步 MUST 在同一 Control Move 中 observe-remove 全部已观察 authorize dots 并 add 一个 replacement dot；接受后该 cell 只有一个 active authorize dot，新边界生效。
+- 变体 A join 后的 effective authorization MUST 对 scope / audience 取交集、对 `expires_at` 取最早有限值（缺省按 `+infinity`）；MUST NOT 按到达顺序选 winner。
 
 ### 11.3 Vector: Agent Session Grant Replay Protection
 

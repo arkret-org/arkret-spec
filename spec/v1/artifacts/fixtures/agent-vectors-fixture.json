@@ -48,7 +48,7 @@
         "pair completion authorizes the new key and revokes every prior active key with reason superseded_by_repairing in the same accepted transaction",
         "sessions issued from superseded keys fail closed within the revocation freshness window",
         "replacement handle expiry has no side effects and never yields pairing_expired on a previously keyed agent",
-        "renew_pairing on a deactivated agent fails with failed_precondition"
+        "renew_pairing on a deactivated agent fails with agent_deactivated"
       ]
     },
     {
@@ -57,6 +57,8 @@
       "runner": "cotest::conformance::agent_vectors::run_agent_longevity_no_expiry_vector",
       "assertions": [
         "agent key authorization without expires_at is accepted and remains valid until revoked",
+        "same-key re-authorization atomically removes all observed authorization dots and adds one replacement dot",
+        "concurrent same-key re-authorizations fold to the intersection of scope and audience and the earliest finite expiry",
         "accountability grant without expires_at is accepted and verifies accountable_principal_ids",
         "low and medium risk agent grants without temporal constraints are accepted",
         "session issuance long after provisioning succeeds while the chain is unrevoked",
