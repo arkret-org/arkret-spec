@@ -258,7 +258,7 @@ def print_contract_status() -> None:
 
 def write_generated_registries() -> None:
     for path, payload in generated_registry_payloads(load_contract_catalog()).items():
-        path.write_text(dump_json(payload), encoding="utf-8")
+        path.write_text(dump_json(payload), encoding="utf-8", newline="\n")
         print(f"updated {path.relative_to(ROOT).as_posix()}")
 
 
@@ -267,6 +267,7 @@ def write_operation_schema_index() -> None:
     OPERATION_SCHEMA_INDEX_PATH.write_text(
         dump_json(operation_schema_index_payload(load_contract_catalog())),
         encoding="utf-8",
+        newline="\n",
     )
     print(f"updated {OPERATION_SCHEMA_INDEX_PATH.relative_to(ROOT).as_posix()}")
 

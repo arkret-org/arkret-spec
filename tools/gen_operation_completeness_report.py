@@ -362,7 +362,7 @@ def build_report() -> dict[str, Any]:
 
 def write_report() -> None:
     REPORT.parent.mkdir(parents=True, exist_ok=True)
-    REPORT.write_text(dump_json(build_report()), encoding="utf-8")
+    REPORT.write_text(dump_json(build_report()), encoding="utf-8", newline="\n")
     print(f"updated {REPORT.relative_to(ROOT).as_posix()}")
 
 

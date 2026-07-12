@@ -4207,10 +4207,9 @@
     },
     "agent_key_approval_evidence": {
       "type": "object",
-      "description": "Evidence that authorized this agent key. High-risk keys MUST carry an approval/proposal/capability reference that can be replayed at the event frontier.",
+      "description": "Evidence that authorized this agent key. Durable grant/approval/proposal/policy evidence carries ref so it can be replayed at the event frontier; the short-lived pairing_request branch instead binds pairing_request_id, request_canonical_digest, and approved_by and MUST omit ref.",
       "required": [
-        "kind",
-        "ref"
+        "kind"
       ],
       "properties": {
         "kind": {
@@ -4219,7 +4218,8 @@
             "capability_grant",
             "approval_event",
             "proposal_event",
-            "policy_event"
+            "policy_event",
+            "pairing_request"
           ]
         },
         "ref": {
@@ -4228,10 +4228,47 @@
         "request_canonical_digest": {
           "$ref": "#/$defs/hash"
         },
+        "pairing_request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "description": "Optional profile-local, short-lived pairing artifact id. Required by the agent-key pairing acceptance flow and MUST equal the pairing_request_id in the accepted request; it is not a durable protocol object ref."
+        },
         "approved_by": {
           "$ref": "#/$defs/did"
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "pairing_request"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "request_canonical_digest",
+              "pairing_request_id",
+              "approved_by"
+            ],
+            "not": {
+              "required": [
+                "ref"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "ref"
+            ]
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "agent_key_authorize_payload": {
