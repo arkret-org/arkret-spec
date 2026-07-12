@@ -1,4 +1,26 @@
-.gitattributes text eol=lf
+# Normalize text files consistently across operating systems.
+* text=auto eol=lf
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+*.gif binary
+*.gz binary
+*.ico binary
+*.jpeg binary
+*.jpg binary
+*.mp3 binary
+*.mp4 binary
+*.pdf binary
+*.png binary
+*.ttf binary
+*.wasm binary
+*.webm binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.zip binary
+
 spec/v1/artifacts/registry/*.json whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 spec/v1/artifacts/reports/operation-completeness-report.json whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 spec/v1/artifacts/reports/operation-schema-index.json whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

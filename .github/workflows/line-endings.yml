@@ -1,0 +1,24 @@
+name: Line endings
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  normalized:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify canonical line endings
+        shell: bash
+        run: |
+          git add --renormalize .
+          if ! git diff --cached --quiet; then
+            git diff --cached --stat
+            echo "::error::Tracked text files are not normalized according to .gitattributes"
+            exit 1
+          fi
+
