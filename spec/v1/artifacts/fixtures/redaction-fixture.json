@@ -73,7 +73,7 @@
             "stub_schema": "ak.schema.erasure_verification_stub.v1",
             "subject": {
               "kind": "event",
-              "ref": "ak:event:01970e58-0004-7000-8000-0000000005a1"
+              "subject_ref": "ak:event:01970e58-0004-7000-8000-0000000005a1"
             },
             "scope": {
               "storage_boundary": "projection_store",
@@ -149,7 +149,7 @@
         "issuer": "did:webvh:z6mkfixture:soland.example",
         "subject": {
           "kind": "event",
-          "ref": "ak:event:01970e58-0004-7000-8000-0000000004b1"
+          "subject_ref": "ak:event:01970e58-0004-7000-8000-0000000004b1"
         },
         "scope": {
           "storage_boundary": "canonical_log_minimization",
@@ -168,7 +168,7 @@
           "stub_schema": "ak.schema.erasure_verification_stub.v1",
           "subject": {
             "kind": "event",
-            "ref": "ak:event:01970e58-0004-7000-8000-0000000004b1"
+            "subject_ref": "ak:event:01970e58-0004-7000-8000-0000000004b1"
           },
           "scope": {
             "storage_boundary": "canonical_log_minimization",

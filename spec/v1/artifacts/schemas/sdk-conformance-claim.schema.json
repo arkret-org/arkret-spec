@@ -67,10 +67,10 @@
     "evidence": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "ref", "digest"],
+      "required": ["kind", "evidence_ref", "digest"],
       "properties": {
         "kind": { "enum": ["vector_result", "public_api_inventory", "code_audit", "config_audit", "data_flow_audit"] },
-        "ref": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "evidence_ref": { "type": "string", "minLength": 1, "maxLength": 2048 },
         "digest": { "$ref": "#/$defs/nonzero_digest" }
       }
     },

@@ -62,7 +62,7 @@
           ],
           "description": "Read-scope discriminator from the same family as read-cursor.schema.json; each schema declares its own supported subset (receipt additionally supports view/message/morph; cursor additionally supports circle/space). kind='thread' selects the reply sub-timeline rooted at a message (zh/discovery/read-receipts.md §5); thread is a projection selector, not a first-class protocol object."
         },
-        "ref": {
+        "object_ref": {
           "type": "string",
           "pattern": "^ak:(realm|strand|message|morph|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Required when kind is anything other than 'realm'. Thread read scopes reference the root message."
@@ -97,7 +97,7 @@
               "anyOf": [
                 {
                   "required": [
-                    "ref"
+                    "object_ref"
                   ]
                 },
                 {
@@ -115,7 +115,7 @@
           },
           "else": {
             "required": [
-              "ref"
+              "object_ref"
             ]
           }
         },
@@ -132,7 +132,7 @@
           },
           "then": {
             "properties": {
-              "ref": {
+              "object_ref": {
                 "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               }
             },
@@ -194,7 +194,7 @@
           },
           "then": {
             "properties": {
-              "ref": {
+              "object_ref": {
                 "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               }
             }
@@ -213,7 +213,7 @@
           },
           "then": {
             "properties": {
-              "ref": {
+              "object_ref": {
                 "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               }
             }
@@ -232,7 +232,7 @@
           },
           "then": {
             "properties": {
-              "ref": {
+              "object_ref": {
                 "pattern": "^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               }
             }
@@ -251,7 +251,7 @@
           },
           "then": {
             "properties": {
-              "ref": {
+              "object_ref": {
                 "pattern": "^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               }
             }

@@ -56,7 +56,7 @@ updated: 2026-07-02
     "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "read_scope": {
       "kind": "strand",
-      "ref": "ak:strand:01964200-0000-7000-8000-000000000001",
+      "object_ref": "ak:strand:01964200-0000-7000-8000-000000000001",
       "track_name": "discussion"
     },
     "event_id": "ak:event:01964387-7000-7000-8000-000000000000",
@@ -189,7 +189,7 @@ Read cursor schema：`ak.schema.read_cursor.v1`。Read Cursor 是 actor-private 
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "read_scope": {
     "kind": "strand",
-    "ref": "ak:strand:01964200-0000-7000-8000-000000000001",
+    "container_ref": "ak:strand:01964200-0000-7000-8000-000000000001",
     "track_name": "discussion"
   },
   "position": {
@@ -225,7 +225,7 @@ Notification / unread count 是派生状态。服务 MAY 在一个 sync response
 在 Thread 模式下，Strand discussion timeline 和子 Thread 的阅读进度是分离的。
 如果 `ak.receipt.read` 或 `ak.read_cursor.advance` 的目标 `event_id` 是一个 Thread 内的回复，它只更新该 Thread 的已读游标，**不**更新父 Strand discussion timeline 的游标，反之亦然。
 
-Thread 在 read scope 中的 wire 表达（normative）：Thread **不是一等协议对象**，没有独立 id kind、membership 或生命周期；它是某条 root message 的回复子时间线（`replies_to` 链）的投影选择器。Read Receipt 与 Read Cursor 的 Thread 范围都使用 `read_scope.kind="thread"`、`ref` = Thread 根消息的 `id:message`（见 `ak.schema.read_receipt.v1` / `ak.schema.read_cursor.v1` 与 [`../models/private-objects.md` §2.2](../models/private-objects.md)）。两份 schema 的 `read_scope` 共享同一 discriminator 族，但各自声明支持子集，以各自 schema 为权威源。
+Thread 在 read scope 中的 wire 表达（normative）：Thread **不是一等协议对象**，没有独立 id kind、membership 或生命周期；它是某条 root message 的回复子时间线（`replies_to` 链）的投影选择器。Thread 根消息的 `id:message` 在 Read Receipt 中使用 `read_scope.object_ref`，在 Read Cursor 中使用 `read_scope.container_ref`（见 `ak.schema.read_receipt.v1` / `ak.schema.read_cursor.v1` 与 [`../models/private-objects.md` §2.2](../models/private-objects.md)）。两份 schema 的 `read_scope` 共享同一 discriminator 族，但各自声明支持子集，以各自 schema 为权威源。
 
 ## 6. Schema 与 Notification Projection
 
@@ -240,7 +240,7 @@ Read Cursor 是 actor-private 状态。最小结构示例：
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "read_scope": {
     "kind": "strand",
-    "ref": "ak:strand:01964180-0280-7000-8000-000000000000",
+    "container_ref": "ak:strand:01964180-0280-7000-8000-000000000000",
     "track_name": "discussion"
   },
   "position": {
@@ -265,7 +265,7 @@ Receipt 可以公开或私有，取决于 Realm policy。schema：`ak.schema.rea
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "read_scope": {
     "kind": "strand",
-    "ref": "ak:strand:01964200-0000-7000-8000-000000000001",
+    "object_ref": "ak:strand:01964200-0000-7000-8000-000000000001",
     "track_name": "discussion"
   },
   "event_id": "ak:event:01964387-7000-7000-8000-000000000000",

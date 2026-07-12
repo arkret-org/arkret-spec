@@ -488,7 +488,7 @@
         "reply_context": {
           "type": "object",
           "properties": {
-            "ref": {
+            "message_ref": {
               "$ref": "#/$defs/message_id"
             },
             "sender_actor_id": {
@@ -1796,7 +1796,7 @@
                   "did": {
                     "$ref": "#/$defs/did"
                   },
-                  "ref": {
+                  "object_ref": {
                     "$ref": "#/$defs/object_ref"
                   },
                   "value": {
@@ -1811,7 +1811,7 @@
                   },
                   {
                     "required": [
-                      "ref"
+                      "object_ref"
                     ]
                   },
                   {
@@ -4181,7 +4181,7 @@
               "realm_id": {
                 "$ref": "./common-ids.schema.json#/$defs/realm_id"
               },
-              "ref": {
+              "resource_ref": {
                 "$ref": "#/$defs/object_ref"
               },
               "operation": {
@@ -4222,7 +4222,7 @@
             "pairing_request"
           ]
         },
-        "ref": {
+        "evidence_ref": {
           "$ref": "#/$defs/object_ref"
         },
         "request_canonical_digest": {
@@ -4258,13 +4258,13 @@
             ],
             "not": {
               "required": [
-                "ref"
+                "evidence_ref"
               ]
             }
           },
           "else": {
             "required": [
-              "ref"
+              "evidence_ref"
             ]
           }
         }
@@ -4535,7 +4535,7 @@
         },
         {
           "required": [
-            "ref"
+            "object_ref"
           ]
         },
         {
@@ -4565,7 +4565,7 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "ref": {
+        "object_ref": {
           "$ref": "#/$defs/object_ref"
         },
         "operation_id": {

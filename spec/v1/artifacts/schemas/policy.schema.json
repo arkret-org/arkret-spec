@@ -158,7 +158,7 @@
               "realm_id": {
                 "$ref": "./common-ids.schema.json#/$defs/realm_id"
               },
-              "ref": {
+              "resource_ref": {
                 "type": "string",
                 "pattern": "^(ak:[a-z0-9_]+:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*|did:[^\\s]+)$"
               }

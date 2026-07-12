@@ -475,7 +475,7 @@
           "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
           "read_scope": {
             "kind": "strand",
-            "ref": "ak:strand:019a6aa0-3000-7000-8000-000000000000",
+            "container_ref": "ak:strand:019a6aa0-3000-7000-8000-000000000000",
             "track_name": "discussion"
           },
           "position": {
@@ -752,7 +752,7 @@
         "expires_at": "2026-05-21T00:00:00Z",
         "approval_evidence": {
           "kind": "capability_grant",
-          "ref": "ak:grant:019a6aa0-0000-7000-8000-000000000000"
+          "evidence_ref": "ak:grant:019a6aa0-0000-7000-8000-000000000000"
         }
       }
     },

@@ -474,10 +474,10 @@
               "const": "relation_container"
             },
             "scope_container_id": {
-              "$ref": "#/$defs/ref"
+              "$ref": "#/$defs/object_ref"
             },
             "container_id": {
-              "$ref": "#/$defs/ref"
+              "$ref": "#/$defs/object_ref"
             },
             "relation_kind": {
               "type": "string",
@@ -574,10 +574,10 @@
               "const": "relation"
             },
             "scope_container_id": {
-              "$ref": "#/$defs/ref"
+              "$ref": "#/$defs/object_ref"
             },
             "container_id": {
-              "$ref": "#/$defs/ref"
+              "$ref": "#/$defs/object_ref"
             },
             "relation_kind": {
               "type": "string",
@@ -976,7 +976,7 @@
           }
         },
         "context_ref": {
-          "$ref": "#/$defs/ref"
+          "$ref": "#/$defs/object_ref"
         },
         "filters": {
           "type": "array",
@@ -1305,7 +1305,7 @@
                 ]
               },
               "source_view_ref": {
-                "$ref": "#/$defs/ref"
+                "$ref": "#/$defs/object_ref"
               },
               "query": {
                 "$ref": "#/$defs/query"
@@ -1349,7 +1349,7 @@
       },
       "additionalProperties": false
     },
-    "ref": {
+    "object_ref": {
       "type": "string",
       "pattern": "^(ak:(realm|space|circle|strand|message|morph|relation|event|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$"
     }
