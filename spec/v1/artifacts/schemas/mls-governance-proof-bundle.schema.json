@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/mls-governance-proof-bundle.schema.json",
+  "title": "Arkret MLS Governance Proof Bundle",
+  "description": "Complete-materialization proof bundle used by a light client to verify an MLS full-profile governance binding against an accepted Seal. v1 deliberately carries the complete covered-event digest manifest and every non-bottom control-state leaf: a selective proof over server-chosen leaves cannot prove that a policy, capability, membership, or metadata leaf was not omitted. The bundle is content-addressable and cacheable by accepted_seal_id; a future compact profile requires a separately registered completeness-proof construction.",
+  "type": "object",
+  "required": [
+    "bundle_version",
+    "materialization_profile",
+    "realm_id",
+    "effective_scope",
+    "reducer_profile",
+    "governance_binding",
+    "trust_anchor_seal_id",
+    "accepted_seal_id",
+    "seal_path",
+    "covered_event_digests",
+    "control_state",
+    "frontier_events"
+  ],
+  "properties": {
+    "bundle_version": {
+      "const": 1
+    },
+    "materialization_profile": {
+      "const": "complete_control_state_v1",
+      "description": "The only v1 profile. covered_event_digests is the entire recursive covered_set of accepted_seal_id and control_state is the entire sorted set of non-bottom joined control cells committed by its state_root."
+    },
+    "realm_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+    },
+    "effective_scope": {
+      "$ref": "./event-envelope.schema.json#/$defs/effective_scope"
+    },
+    "reducer_profile": {
+      "type": "string",
+      "pattern": "^ak\\.reducer(?:\\.[a-z0-9][a-z0-9_.-]*)?\\.v[0-9]+$"
+    },
+    "governance_binding": {
+      "$ref": "./event-payload.schema.json#/$defs/mls_governance_binding"
+    },
+    "trust_anchor_seal_id": {
+      "$ref": "./event-envelope.schema.json#/$defs/seal_ref",
+      "description": "Seal id the verifier already trusts through Realm bootstrap or prior successful verification. Presence in this bundle never makes an anchor trusted."
+    },
+    "accepted_seal_id": {
+      "$ref": "./event-envelope.schema.json#/$defs/seal_ref",
+      "description": "Id of the accepted Seal whose control_event_set_root and state_root authenticate this bundle. It MUST identify the final Seal in seal_path."
+    },
+    "seal_path": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "./seal.schema.json"
+      },
+      "description": "Topologically ordered Seal extension path beginning at the trusted anchor (or its direct successor) and ending at accepted_seal_id. The verifier validates every id, predecessor edge, notary authorization and signature; bundle order is not itself trusted."
+    },
+    "covered_event_digests": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "./event-envelope.schema.json#/$defs/hash"
+      },
+      "description": "Complete recursive covered_set of accepted_seal_id in canonical wire-value order. The verifier MUST reject duplicates or non-canonical order and MUST recompute accepted Seal.control_event_set_root with the Seal RFC 6962 domain-separated Merkle rules."
+    },
+    "control_state": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/control_state_leaf"
+      },
+      "description": "Complete canonical cell-id ordered materialization of every non-bottom joined control cell under accepted_seal_id. Bottom cells MUST be omitted and separately cause any dependent full-profile binding to fail closed. The verifier recomputes accepted Seal.state_root over this exact array."
+    },
+    "frontier_events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "./event-envelope.schema.json"
+      },
+      "description": "Complete set of signed Control Move envelopes named by governance_binding.membership_frontier. The verifier recomputes each Event digest, requires it in covered_event_digests, checks its effects target the registered membership/device/lifecycle coverage families for effective_scope, and rejects missing, extra, duplicate, cross-Realm or cross-scope events."
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "control_state_leaf": {
+      "type": "object",
+      "required": [
+        "cell",
+        "state"
+      ],
+      "properties": {
+        "cell": {
+          "$ref": "./event-envelope.schema.json#/$defs/cell_ref"
+        },
+        "state": {
+          "type": "object",
+          "required": [
+            "value"
+          ],
+          "properties": {
+            "value": true
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -533,6 +533,12 @@
       "description": "Seal control-plane finality commitment schema"
     },
     {
+      "schema_id": "ak.schema.mls_governance_proof_bundle.v1",
+      "file": "schemas/mls-governance-proof-bundle.schema.json",
+      "status": "active",
+      "description": "Complete-materialization accepted-Seal proof bundle for independently verifying full-profile MLS governance bindings"
+    },
+    {
       "schema_id": "ak.schema.inclusion_list.v1",
       "file": "schemas/inclusion-list.schema.json",
       "status": "active",
