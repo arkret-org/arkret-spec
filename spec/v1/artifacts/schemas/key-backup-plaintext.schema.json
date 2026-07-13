@@ -101,6 +101,10 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
+        "managed_principal_binding": {
+          "$ref": "./key-backup.schema.json#/$defs/managed_principal_binding",
+          "description": "Required for controller-custodied Native Personal Agent PCR MLS material and MUST byte-for-byte match the corresponding public contents[] binding and AEAD AAD canonical binding set."
+        },
         "mls_group_id": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+$"
@@ -118,6 +122,29 @@
           "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "managed_principal_binding"
+            ]
+          },
+          "then": {
+            "required": [
+              "realm_id"
+            ],
+            "properties": {
+              "item_type": {
+                "enum": [
+                  "mls_group_state",
+                  "mls_epoch_secret",
+                  "pending_welcome"
+                ]
+              }
+            }
+          }
+        }
+      ],
       "patternProperties": {
         "^x_[a-z][a-z0-9_]{0,63}$": true
       },

@@ -1087,7 +1087,7 @@ Client-local secret storage 的存储格式仍可使用本节的 `ak.secret_stor
 
 ## 12. Key Backup
 
-Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当前 actor 已经通过 membership、history visibility 和 Realm policy 获得的历史范围，不是给未来新成员预先保留历史 secret 的机制。
+Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当前 actor 已经通过 membership、history visibility 和 Realm policy 获得的历史范围，不是给未来新成员预先保留历史 secret 的机制。唯一的 managed-principal 托管分支是 [`../identity/key-management.md` §7.5.6](../identity/key-management.md)：Native Personal Agent controller 可把其依当前 Agent DID delegation 合法持有的 Agent PCR MLS state 写入 **controller-owned** `mls_history` envelope；外层 `actor_id` 与 caller 仍是 controller，不放宽跨 actor backup 访问。
 
 备份单元使用 `ak.schema.key_backup.v1`，并设置 `backup_class="mls_history"`。示例：
 
@@ -1172,6 +1172,7 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
 - `backup_class="did_recovery"` 的 wire envelope MUST 使用 `recipient_method="recovery_public_key"`，并携带顶层 `recovery_policy_ref{policy_id, policy_version}`，且与当前 accepted recovery policy 一致；不一致 MUST `recovery_policy_mismatch`。`mls_history` 与 `secret_storage` envelope MAY 携带 `recovery_policy_ref` 作为恢复流程 hint；若出现，receiver MUST 验证它与当前 accepted recovery policy 一致，但不得用它替代 active-series record、frontier_ref 或 Realm/MLS 授权校验。
 - 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名，并 SHOULD 携带 `auth_data.ssk_generation` 绑定当前 accepted `ak.cross_signing.publish.generation`（加固档 `ak.profile.*.e2ee.v1` 等 hardening profile 下 MUST 携带并纳入 `signed_fields`；core schema 不把 `ssk_generation` 列为 required，故核心档下缺失时不报 schema `schema_violation`。但对高敏 `backup_class ∈ {secret_storage, did_recovery}`，receiver 即便在 core 档下也 MUST 在缺失 `ssk_generation` 时 fail-closed，详见 [`identity/key-management.md` §7.4.1](../identity/key-management.md)；`mls_history` 类缺失时按 hardening profile 策略处置）。`auth_data.signed_fields` MUST 至少覆盖 `backup_id`、`actor_id`、`backup_class`、`backup_version`、`series_id`、`series_seq`、`supersedes`、`encryption`、`contents` 与 `ciphertext_digest`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`，携带 `recovery_policy_ref` 时还 MUST 覆盖 `recovery_policy_ref`。签名链必须链接到当前 principal 的 self-signing / device trust chain。
 - 服务端 MUST 只允许同一 actor 的当前授权设备、满足 recovery policy 的恢复流程，或 policy 明确授权的组织恢复服务读取备份密文。
+- 含 Agent PCR managed item 的 envelope MUST 使用 `recovery_public_key`，携带 controller 当前 `recovery_policy_ref`，并让 public index、plaintext keybag 与 AEAD AAD 对同一 `managed_principal_binding` canonical set 达成逐字一致；服务端在接受上传前 MUST 按 envelope `created_at` 验证 Agent DID/PCR/controller/delegation binding。该验证只证明 controller 当时有权托管密钥，不让服务端获得解密能力，也不让历史解密能力替代当前 Agent DID authoring authorization。
 - 服务端返回备份列表时 SHOULD 最小化 metadata；不得向无关 caller 暴露 Realm membership、MLS group id 或历史范围。
 - 删除备份只删除服务端密文和 metadata；它不撤销 DID 控制权，也不改变 Realm membership。需要吊销设备或轮换 MLS epoch 时必须发布相应事件。
 - 被撤销设备上传的新备份 MUST 被拒绝。撤销前上传的备份 MAY 继续保留，但恢复使用时必须重新验证当前 recovery policy、device revocation state 和 Realm history visibility。

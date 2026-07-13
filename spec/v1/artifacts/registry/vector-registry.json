@@ -326,6 +326,20 @@
       "description": "Managed-agent DID-to-PCR binding, controller delegated authoring attribution, control-fact placement, and rejection of non-PCR Realms at either principal control id."
     },
     {
+      "vector_id": "ak.vector.agent.managed_pcr_recovery.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/identity/key-management.md",
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
+      ],
+      "description": "Controller-owned recovery_public_key backup of managed Agent PCR MLS state, canonical managed-principal binding across public/plaintext/AAD views, pairing recovery-readiness gate, and prohibition on Agent runtime private-key backup or per-Agent human mnemonic."
+    },
+    {
       "vector_id": "ak.vector.agent.repairing_supersede.v1",
       "status": "active",
       "domain": "agent",

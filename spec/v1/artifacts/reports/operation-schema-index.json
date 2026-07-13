@@ -400,11 +400,17 @@
         "schema_kind": "object",
         "required": [
           "agent_id",
+          "principal_control_realm_id",
+          "controller_authorization_ref",
+          "pcr_recovery",
           "pairing_request_id",
           "expires_at"
         ],
         "properties": [
           "agent_id",
+          "principal_control_realm_id",
+          "controller_authorization_ref",
+          "pcr_recovery",
           "pairing_request_id",
           "pairing_code",
           "expires_at"
@@ -425,15 +431,23 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_outcome",
         "schema_kind": "object",
         "required": [
           "agent_id",
+          "principal_control_realm_id",
+          "controller_authorization_ref",
+          "pcr_recovery",
+          "pairing_mode",
           "pairing_request_id",
           "expires_at"
         ],
         "properties": [
           "agent_id",
+          "principal_control_realm_id",
+          "controller_authorization_ref",
+          "pcr_recovery",
+          "pairing_mode",
           "pairing_request_id",
           "pairing_code",
           "expires_at"

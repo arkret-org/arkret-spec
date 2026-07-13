@@ -11,6 +11,7 @@
     "ak.vector.agent.pairing_expiry.v1",
     "ak.vector.agent.runtime_key_binding.v1",
     "ak.vector.agent.managed_pcr_separation.v1",
+    "ak.vector.agent.managed_pcr_recovery.v1",
     "ak.vector.agent.repairing_supersede.v1",
     "ak.vector.agent.longevity_no_expiry.v1",
     "ak.vector.agent.controller_lifecycle.v1",
@@ -26,6 +27,8 @@
       "assertions": [
         "agent provision operation id remains ak.self.agent.command.provision",
         "agent provision capability action matches the operation id",
+        "provision fails without a controller recovery policy before creating any Agent DID, PCR, or grant side effect",
+        "provision returns the Agent PCR binding with pcr_recovery pending and does not pre-write an Agent profile or runtime key authorization",
         "agent grants marked effective_after_first_authorized_key remain inactive before key pairing",
         "missing accountability grants fail with accountability_grant_missing"
       ]
@@ -83,11 +86,29 @@
       "runner": "cotest::conformance::agent_vectors::run_agent_repairing_supersede_vector",
       "assertions": [
         "renew_pairing on an active or paused agent leaves status, existing keys, and grants untouched",
+        "renew_pairing returns pairing_mode replacement and the current pcr_recovery projection without resetting it to pending",
         "issuing a new pairing handle makes every previous handle permanently unresolvable",
-        "pair completion authorizes the new key and revokes every prior active key with reason superseded_by_repairing in the same accepted transaction",
+        "one controller-signed authorize event carries an exact supersedes set and atomically replaces every prior active authorization dot with reason superseded_by_repairing",
+        "stale, partial, extra, or wrong authorized_event_ref supersedes sets fail closed without changing any key",
         "sessions issued from superseded keys fail closed within the revocation freshness window",
         "replacement handle expiry has no side effects and never yields pairing_expired on a previously keyed agent",
         "renew_pairing on a deactivated agent fails with agent_deactivated"
+      ]
+    },
+    {
+      "name": "agent_managed_pcr_recovery",
+      "vector_id": "ak.vector.agent.managed_pcr_recovery.v1",
+      "runner": "cotest::conformance::agent_vectors::run_agent_managed_pcr_recovery_vector",
+      "assertions": [
+        "provision returns the Agent PCR binding with pcr_recovery pending and never pre-authorizes a runtime key",
+        "the controller E2EE client, never the server, generates Agent PCR MLS private state",
+        "managed Agent PCR MLS state is stored in a controller-owned mls_history envelope encrypted to the controller recovery public key",
+        "public contents, plaintext keybag, and AEAD AAD carry the same canonical managed principal binding set",
+        "pairing commits only while the active backup tail covers the current Agent PCR Seal frontier and MLS epoch",
+        "an accepted pairing advances the Agent PCR frontier, makes recovery stale, and requires a post-commit backup tail before the next pairing",
+        "pending, stale, missing, cross-actor, secret-storage-key-only, or binding-mismatched recovery states fail with agent_pcr_recovery_not_ready without consuming the pairing handle",
+        "Agent runtime private keys are never backed up or cloned and replacement always generates a fresh local key",
+        "a Native Personal Agent has no independent human-facing mnemonic; controller recovery restores PCR continuity but does not bypass current delegation or capability checks"
       ]
     },
     {

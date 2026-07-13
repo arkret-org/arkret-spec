@@ -602,8 +602,9 @@ SHOULD 支持：
 `ak.profile.personal_agent_provisioning.v1` 注册 controller-面的 personal native agent management surface,扩展 `ak.profile.agent_runtime.v1`。
 
 MUST 支持:
-- `POST /_arkret/self/agents` (`ak.self.agent.command.provision`) 编排 Actor Profile + `ak.identity.accountability_grant` + 初始 `ak.capability.grant`(带 `effective_after_first_authorized_key=true` flag)+ pairing request
-- `POST /_arkret/gate/account/agent-key-pair` (`ak.gate.account.command.pair_agent_key`) 校验 `verification_method` 与 `agent_id` 一致性后写入 `ak.agent.key.authorize`,清除 effective_after_first_authorized_key;agent 已有 active key 时(runtime replacement re-pairing)在同一接受事务中以 reason=`superseded_by_repairing` 撤销全部既有 active key
+- `POST /_arkret/self/agents` (`ak.self.agent.command.provision`) 分配 managed Agent DID / Agent PCR binding，在 controller PCR 写 `ak.identity.accountability_grant` + selector claim + 初始 `ak.capability.grant`(带 `effective_after_first_authorized_key=true` flag)，返回 `pcr_recovery.status=pending` + pairing request；controller E2EE client 再本地生成并提交 Agent PCR MLS/genesis/Profile state，服务端不得生成 MLS private state
+- controller-owned `backup_class=mls_history` active series 按 [`../identity/key-management.md` §7.5.6](../identity/key-management.md) 备份 Agent PCR state：managed binding 进入 public index、plaintext keybag 与 AAD，使用 controller `recovery_public_key` / current recovery policy；Agent runtime private key 永不备份，也不为 Agent 生成独立 24 词
+- `POST /_arkret/gate/account/agent-key-pair` (`ak.gate.account.command.pair_agent_key`) 必须先验证 `pcr_recovery.status=ready`，再校验 `verification_method` 与 `agent_id` 一致性并写入 `ak.agent.key.authorize`、清除 effective_after_first_authorized_key；agent 已有 active key 时(runtime replacement re-pairing)以单一 controller-signed authorize Event 的精确 `supersedes[]` 原子替换全部既有 active authorization
 - Provisioning `status` 枚举:`pending_runtime_key` / `active` / `paused` / `pairing_expired` / `deactivated`(`pairing_expired` 仅描述从未完成首次配对的 agent;`active` / `paused` 上的 open re-pairing handle 是属性而非状态)
 - Pairing expiry 自动 `ak.capability.revoke` pending grants(仅 bootstrap pairing;runtime replacement handle 过期无副作用)
 - `POST /_arkret/self/agents/{agent_id}/renew-pairing` (`ak.self.agent.command.renew_pairing`) 对任何非 terminal agent 重开 pairing(bootstrap 重开 / runtime replacement 两种语义，见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))
@@ -622,6 +623,7 @@ MUST NOT:
 - 返回长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token
 - 引入 custom URI scheme(`arkret://` 等)
 - 把 `agent_slug` 当作 grant subject、actor attribution、membership key、delivery key、Directory search key 或 audit attribution source
+- 让服务端生成/托管 Agent PCR MLS private state，跨 actor 读取 Agent backup，以 `single_point_of_failure` 绕过 managed-PCR recovery gate，或备份/克隆 Agent runtime private key
 
 ### 18.2 Agent Auth
 

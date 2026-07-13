@@ -483,6 +483,15 @@
                 "type": "string"
               }
             },
+            "managed_principal_bindings": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/managed_principal_binding"
+              },
+              "description": "Canonical sorted set of every distinct managed_principal_binding carried by contents[] and by the decrypted plaintext keybag. Required when any managed Agent PCR item is present; otherwise it MUST be absent. This binds managed-principal custody to the AEAD/HPKE ciphertext and prevents cross-Agent or cross-PCR transplant."
+            },
             "recipient_method": {
               "type": "string",
               "enum": [
@@ -536,6 +545,10 @@
           "realm_id": {
             "$ref": "./common-ids.schema.json#/$defs/realm_id"
           },
+          "managed_principal_binding": {
+            "$ref": "#/$defs/managed_principal_binding",
+            "description": "Required only for controller-custodied Native Personal Agent PCR MLS material. The outer backup actor remains the controller; this binding does not change backup ownership."
+          },
           "mls_group_id": {
             "type": "string",
             "pattern": "^[A-Za-z0-9_-]+$"
@@ -562,6 +575,29 @@
             "description": "Monotonic version of the backed-up secret (e.g. mls_account_secret). Used by clients for deterministic preferred-backup selection and anti-rollback ordering (key-management.md §9.1). Present on versioned secret items; absent on share-style items such as recovery_key_share."
           }
         },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "managed_principal_binding"
+              ]
+            },
+            "then": {
+              "required": [
+                "realm_id"
+              ],
+              "properties": {
+                "item_type": {
+                  "enum": [
+                    "mls_group_state",
+                    "mls_epoch_secret",
+                    "pending_welcome"
+                  ]
+                }
+              }
+            }
+          }
+        ],
         "patternProperties": {
           "^x_[a-z][a-z0-9_]{0,63}$": true
         },
@@ -730,6 +766,111 @@
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": {
+          "contents": {
+            "contains": {
+              "type": "object",
+              "required": [
+                "managed_principal_binding"
+              ]
+            }
+          }
+        },
+        "required": [
+          "contents"
+        ]
+      },
+      "then": {
+        "required": [
+          "frontier_ref",
+          "recovery_policy_ref"
+        ],
+        "properties": {
+          "backup_class": {
+            "const": "mls_history"
+          },
+          "encryption": {
+            "properties": {
+              "recipient_method": {
+                "const": "recovery_public_key"
+              }
+            },
+            "required": [
+              "recipient_key_ref"
+            ]
+          },
+          "domain_separation": {
+            "properties": {
+              "hkdf_info": {
+                "const": "arkret-key-backup/mls_history/managed_agent_pcr/v1"
+              },
+              "subdomain": {
+                "const": "managed_agent_pcr"
+              },
+              "aead_aad": {
+                "required": [
+                  "managed_principal_bindings",
+                  "recipient_method",
+                  "recipient_key_ref"
+                ]
+              }
+            }
+          },
+          "contents": {
+            "contains": {
+              "type": "object",
+              "required": [
+                "item_type",
+                "realm_id",
+                "managed_principal_binding"
+              ],
+              "properties": {
+                "item_type": {
+                  "const": "mls_group_state"
+                }
+              }
+            }
+          }
+        },
+        "description": "A controller-owned mls_history envelope carrying managed Agent PCR material MUST be recoverable by the controller recovery public key, bind the controller policy and both controller/Agent PCR frontiers, use the managed_agent_pcr domain, and contain a current mls_group_state item. Semantic validation requires the AAD binding set to equal the distinct bindings in public contents and decrypted plaintext."
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "contents": {
+            "not": {
+              "contains": {
+                "type": "object",
+                "required": [
+                  "managed_principal_binding"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "contents"
+        ]
+      },
+      "then": {
+        "properties": {
+          "domain_separation": {
+            "properties": {
+              "aead_aad": {
+                "not": {
+                  "required": [
+                    "managed_principal_bindings"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     {
       "if": {
         "properties": {
@@ -989,6 +1130,59 @@
   },
   "additionalProperties": false,
   "$defs": {
+    "managed_frontier_ref": {
+      "type": "object",
+      "description": "Accepted and sealed Agent Principal Control Realm frontier covered by a controller-owned managed-PCR backup item.",
+      "required": [
+        "frontier_digest",
+        "seal_ref",
+        "mls_epoch"
+      ],
+      "properties": {
+        "frontier_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "seal_ref": {
+          "type": "string",
+          "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+        },
+        "mls_epoch": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "managed_principal_binding": {
+      "type": "object",
+      "description": "Binds controller-custodied MLS recovery material to one managed Native Personal Agent and its Principal Control Realm. controller_id MUST equal the outer backup actor_id; authorization_ref is resolved from the Agent DID history at envelope created_at and MUST authorize principal_control_realm_recovery.",
+      "required": [
+        "managed_principal_id",
+        "controller_id",
+        "principal_control_realm_id",
+        "authorization_ref",
+        "managed_frontier_ref"
+      ],
+      "properties": {
+        "managed_principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "controller_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "authorization_ref": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "managed_frontier_ref": {
+          "$ref": "#/$defs/managed_frontier_ref"
+        }
+      },
+      "additionalProperties": false
+    },
     "timestamp": {
       "type": "string",
       "format": "date-time",

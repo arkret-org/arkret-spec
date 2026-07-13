@@ -1053,7 +1053,6 @@
         "ak.profile.create",
         "ak.identity.accountability_grant",
         "ak.agent.selector_claim",
-        "ak.agent.key.authorize",
         "ak.capability.grant"
       ],
       "profile": "ak.profile.personal_agent_provisioning.v1",

@@ -1230,10 +1230,10 @@
       "http": "POST /_arkret/self/agents/{agent_id}/renew-pairing",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_outcome",
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentRenewPairingRequestBody",
-        "response": "#/components/schemas/AgentProvisionOutcome"
+        "response": "#/components/schemas/AgentRenewPairingOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

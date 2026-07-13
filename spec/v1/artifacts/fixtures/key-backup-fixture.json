@@ -3,7 +3,7 @@
   "fixture_kind": "schema_only",
   "profile": "ak.profile.key_backup.memory_hard.v1",
   "version": "2026-05-26",
-  "description": "Schema-only positive and negative wire-form validation cases for key backup and recovery contracts. Placeholder nonce/ciphertext/signature values are intentional and MUST NOT be treated as cryptographic conformance vectors. Covers ak.schema.key_backup.v1 series chain rules (genesis vs successor), passphrase_kdf nonce_salt, Argon2id memory-hard floor, PBKDF2 degraded-profile requirement, mixed_secret_storage policy gate, auth_data.signed_fields coverage required for series fields, and minimal ak.schema.recovery_policy.v1 / ak.schema.recovery_receipt.v1 binding cases. Per identity/key-management.md §7.6 / §8 and crypto-media/device-lifecycle.md §12 / §15. Lint runs tools/lint_artifacts.py against schema_validation_cases[]. Real AEAD/HPKE/signature transcript vectors belong in a separate crypto fixture with reproducible key material and canonical bytes.",
+  "description": "Schema-only positive and negative wire-form validation cases for key backup and recovery contracts. Placeholder nonce/ciphertext/signature values are intentional and MUST NOT be treated as cryptographic conformance vectors. Covers ak.schema.key_backup.v1 series chain rules (genesis vs successor), passphrase_kdf nonce_salt, Argon2id memory-hard floor, PBKDF2 degraded-profile requirement, mixed_secret_storage policy gate, managed Agent PCR binding across public/plaintext/AAD views, auth_data.signed_fields coverage required for series fields, and minimal ak.schema.recovery_policy.v1 / ak.schema.recovery_receipt.v1 binding cases. Per identity/key-management.md §7.5.6 / §7.6 / §8 and crypto-media/device-lifecycle.md §12 / §15. Lint runs tools/lint_artifacts.py against schema_validation_cases[]. Real AEAD/HPKE/signature transcript vectors belong in a separate crypto fixture with reproducible key material and canonical bytes.",
   "runner": {
     "kind": "json_schema_validation_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -244,7 +244,8 @@
             "encryption",
             "domain_separation",
             "contents",
-            "ciphertext_digest"
+            "ciphertext_digest",
+            "ssk_generation"
           ]
         }
       }
@@ -1446,6 +1447,147 @@
             "completed_at"
           ]
         }
+      }
+    },
+    {
+      "name": "managed_agent_pcr_recovery_envelope_valid",
+      "schema_ref": "schemas/key-backup.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "backup_id": "ak:backup:01964143-0000-7000-8000-000000000001",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
+        "backup_class": "mls_history",
+        "backup_version": "kb_1",
+        "series_id": "ak:backup_series:01964143-1000-7000-8000-000000000001",
+        "series_seq": 0,
+        "frontier_ref": {
+          "frontier_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+          "seal_ref": "ak:seal:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+          "ssk_generation": 2
+        },
+        "recovery_policy_ref": {
+          "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
+          "policy_version": 2
+        },
+        "created_at": "2026-07-13T00:00:00Z",
+        "encryption": {
+          "recipient_method": "recovery_public_key",
+          "recipient_key_ref": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery-2",
+          "aead": {
+            "name": "chacha20_poly1305",
+            "aead_profile": "ak.aead.chacha20_poly1305.v1",
+            "enc": "hpke-encapsulation-placeholder"
+          }
+        },
+        "domain_separation": {
+          "hkdf_info": "arkret-key-backup/mls_history/managed_agent_pcr/v1",
+          "subdomain": "managed_agent_pcr",
+          "aead_aad": {
+            "schema": "ak.schema.key_backup.v1",
+            "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+            "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
+            "backup_class": "mls_history",
+            "backup_version": "kb_1",
+            "created_at": "2026-07-13T00:00:00Z",
+            "item_types": [
+              "mls_group_state"
+            ],
+            "managed_principal_bindings": [
+              {
+                "managed_principal_id": "did:webvh:QmAgent7p8K3pV4cXbKqL2nMsR9:agent.example",
+                "controller_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+                "principal_control_realm_id": "ak:realm:01964144-0000-7000-8000-000000000001",
+                "authorization_ref": "did:webvh:QmAgent7p8K3pV4cXbKqL2nMsR9:agent.example#controller-alice",
+                "managed_frontier_ref": {
+                  "frontier_digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+                  "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "mls_epoch": 3
+                }
+              }
+            ],
+            "recipient_method": "recovery_public_key",
+            "recipient_key_ref": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery-2"
+          }
+        },
+        "contents": [
+          {
+            "item_type": "mls_group_state",
+            "realm_id": "ak:realm:01964144-0000-7000-8000-000000000001",
+            "managed_principal_binding": {
+              "managed_principal_id": "did:webvh:QmAgent7p8K3pV4cXbKqL2nMsR9:agent.example",
+              "controller_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+              "principal_control_realm_id": "ak:realm:01964144-0000-7000-8000-000000000001",
+              "authorization_ref": "did:webvh:QmAgent7p8K3pV4cXbKqL2nMsR9:agent.example#controller-alice",
+              "managed_frontier_ref": {
+                "frontier_digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+                "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "mls_epoch": 3
+              }
+            },
+            "mls_group_id": "managed-agent-pcr-group",
+            "epoch": 3,
+            "secret_id": "managed_agent_pcr_state",
+            "secret_version": 1
+          }
+        ],
+        "ciphertext": "ciphertext-base64url-placeholder",
+        "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "auth_data": {
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
+          "signature_algorithm": "Ed25519",
+          "signature": "signature-base64url-placeholder",
+          "signed_fields": [
+            "backup_id",
+            "actor_id",
+            "backup_class",
+            "backup_version",
+            "series_id",
+            "series_seq",
+            "frontier_ref",
+            "recovery_policy_ref",
+            "encryption",
+            "domain_separation",
+            "contents",
+            "ciphertext_digest"
+          ],
+          "ssk_generation": 2
+        }
+      }
+    },
+    {
+      "name": "managed_agent_pcr_plaintext_valid",
+      "schema_ref": "schemas/key-backup-plaintext.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.key_backup_plaintext.v1",
+        "backup_id": "ak:backup:01964143-0000-7000-8000-000000000001",
+        "backup_class": "mls_history",
+        "series_id": "ak:backup_series:01964143-1000-7000-8000-000000000001",
+        "series_seq": 0,
+        "items": [
+          {
+            "item_type": "mls_group_state",
+            "secret_id": "managed_agent_pcr_state",
+            "secret_b64u": "c2VjcmV0",
+            "secret_generation": 1,
+            "realm_id": "ak:realm:01964144-0000-7000-8000-000000000001",
+            "managed_principal_binding": {
+              "managed_principal_id": "did:webvh:QmAgent7p8K3pV4cXbKqL2nMsR9:agent.example",
+              "controller_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+              "principal_control_realm_id": "ak:realm:01964144-0000-7000-8000-000000000001",
+              "authorization_ref": "did:webvh:QmAgent7p8K3pV4cXbKqL2nMsR9:agent.example#controller-alice",
+              "managed_frontier_ref": {
+                "frontier_digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+                "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "mls_epoch": 3
+              }
+            },
+            "mls_group_id": "managed-agent-pcr-group",
+            "epoch": 3
+          }
+        ]
       }
     },
     {

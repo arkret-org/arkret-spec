@@ -35,6 +35,9 @@
       "$ref": "#/$defs/agent_provision_outcome"
     },
     {
+      "$ref": "#/$defs/agent_renew_pairing_outcome"
+    },
+    {
       "$ref": "#/$defs/agent_pairing_bootstrap"
     },
     {
@@ -90,6 +93,14 @@
     "device_id": {
       "type": "string",
       "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "backup_id": {
+      "type": "string",
+      "pattern": "^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "backup_series_id": {
+      "type": "string",
+      "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "event_id": {
       "type": "string",
@@ -254,15 +265,174 @@
     "key_state": {
       "type": "object",
       "required": [
-        "verification_method",
-        "status"
+        "agent_id",
+        "controller_id",
+        "principal_control_realm_id",
+        "controller_authorization_ref",
+        "status",
+        "pcr_recovery"
       ],
       "properties": {
-        "verification_method": {
+        "agent_id": {
+          "$ref": "#/$defs/did"
+        },
+        "controller_id": {
+          "$ref": "#/$defs/did"
+        },
+        "principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "controller_authorization_ref": {
           "$ref": "#/$defs/did_url"
         },
         "status": {
+          "$ref": "#/$defs/agent_status"
+        },
+        "pcr_recovery": {
+          "$ref": "#/$defs/agent_pcr_recovery_state"
+        },
+        "requested_scope": {
+          "$ref": "#/$defs/agent_key_scope"
+        },
+        "pairing_request_id": {
+          "$ref": "#/$defs/opaque_local_id"
+        },
+        "pairing_code": {
           "$ref": "#/$defs/non_empty_string"
+        },
+        "pairing_expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "approval_request_id": {
+          "$ref": "#/$defs/opaque_local_id"
+        },
+        "pending_runtime_key_request": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": true
+        },
+        "approval_requested_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "authorized_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "active_authorizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/agent_key_authorization_state"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_pcr_recovery_state": {
+      "type": "object",
+      "description": "Controller-visible recovery readiness for the managed Agent Principal Control Realm. pending means no accepted controller-owned managed-PCR backup exists; ready means the current controller recovery policy and Agent PCR sealed MLS frontier are covered by the active mls_history series tail; stale means an older backup exists but no longer covers the current policy, delegation, Seal frontier, or MLS epoch. Runtime pairing commits require ready at the pre-commit frontier; the accepted key-authorization Event then advances the frontier and makes this projection stale until a post-commit backup tail is accepted.",
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "ready",
+            "stale"
+          ]
+        },
+        "backup_id": {
+          "$ref": "#/$defs/backup_id"
+        },
+        "series_id": {
+          "$ref": "#/$defs/backup_series_id"
+        },
+        "series_seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "managed_frontier_ref": {
+          "$ref": "./key-backup.schema.json#/$defs/managed_frontier_ref"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "ready",
+                  "stale"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "backup_id",
+              "series_id",
+              "series_seq",
+              "managed_frontier_ref"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "pending"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "backup_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "series_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "series_seq"
+                  ]
+                },
+                {
+                  "required": [
+                    "managed_frontier_ref"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "agent_key_authorization_state": {
+      "type": "object",
+      "required": [
+        "key_id",
+        "verification_method",
+        "authorized_event_ref"
+      ],
+      "properties": {
+        "key_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
         },
         "authorized_event_ref": {
           "$ref": "#/$defs/event_id"
@@ -453,10 +623,8 @@
           "$ref": "#/$defs/runtime_attestation"
         },
         "authorize_event": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": true,
-          "description": "Fully-signed ak.agent.key.authorize Event envelope approved by the controller or policy engine. Required so key activation never depends on an unaudited pairing side effect."
+          "$ref": "./event-envelope.schema.json",
+          "description": "Fully-signed ak.agent.key.authorize Event envelope approved by the controller or policy engine. It MUST target the Agent Principal Control Realm, carry actor_id equal to agent_id, executed_by equal to the controller DID, authorization_ref equal to the controller delegation DID URL bound by the Agent DID Document, and a proof verification method belonging to the controller or one of its currently authorized devices. Required so key activation never depends on an unaudited pairing side effect. authorize_event.event_id is the pair operation idempotency identity."
         }
       },
       "additionalProperties": false
@@ -639,12 +807,35 @@
       "type": "object",
       "required": [
         "agent_id",
+        "principal_control_realm_id",
+        "controller_authorization_ref",
+        "pcr_recovery",
         "pairing_request_id",
         "expires_at"
       ],
       "properties": {
         "agent_id": {
           "$ref": "#/$defs/did"
+        },
+        "principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "controller_authorization_ref": {
+          "$ref": "#/$defs/did_url"
+        },
+        "pcr_recovery": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/agent_pcr_recovery_state"
+            },
+            {
+              "properties": {
+                "status": {
+                  "const": "pending"
+                }
+              }
+            }
+          ]
         },
         "pairing_request_id": {
           "$ref": "#/$defs/opaque_local_id"
@@ -660,12 +851,56 @@
     },
     "agent_renew_pairing_request_body": {
       "type": "object",
-      "description": "Re-open pairing on any non-terminal agent. The service issues a fresh one-time pairing_request_id + pairing_code; every previously issued pairing handle for the agent becomes permanently unresolvable. pending_runtime_key / pairing_expired re-open bootstrap pairing; active / paused perform runtime replacement re-pairing (existing keys stay valid until the new pairing completes, then are revoked with reason=superseded_by_repairing). deactivated rejects.",
+      "description": "Re-open pairing on any non-terminal agent. The service issues a fresh one-time pairing_request_id + pairing_code; every previously issued pairing handle for the agent becomes permanently unresolvable. pending_runtime_key / pairing_expired re-open bootstrap pairing; active / paused perform runtime replacement re-pairing (existing keys stay valid until the new controller-signed authorization with an exact supersedes set is accepted atomically). deactivated rejects.",
       "properties": {
         "pairing_ttl_ms": {
           "type": "integer",
           "minimum": 1,
           "maximum": 43200000
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_renew_pairing_outcome": {
+      "type": "object",
+      "description": "Fresh pairing handle plus the current managed Agent PCR recovery projection. Unlike initial provisioning, pcr_recovery can already be ready or stale; pair commit still requires ready.",
+      "required": [
+        "agent_id",
+        "principal_control_realm_id",
+        "controller_authorization_ref",
+        "pcr_recovery",
+        "pairing_mode",
+        "pairing_request_id",
+        "expires_at"
+      ],
+      "properties": {
+        "agent_id": {
+          "$ref": "#/$defs/did"
+        },
+        "principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "controller_authorization_ref": {
+          "$ref": "#/$defs/did_url"
+        },
+        "pcr_recovery": {
+          "$ref": "#/$defs/agent_pcr_recovery_state"
+        },
+        "pairing_mode": {
+          "type": "string",
+          "enum": [
+            "bootstrap",
+            "replacement"
+          ]
+        },
+        "pairing_request_id": {
+          "$ref": "#/$defs/opaque_local_id"
+        },
+        "pairing_code": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false

@@ -296,9 +296,9 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.capability.delegate`
 - `ak.capability.derived`（risk_tier=medium；记录从 parent grant 机械派生出的 child grant 记录，target=`ak.capability.derived`。与 `ak.capability.delegate` 的区别：`delegate` 是“主体主动再授权第三方”的授权动作，`derived` 仅承载 reducer / 工具按既有委托规则物化出的派生 grant 记录，不引入新的授权意图）
 - `ak.capability.revoke`
-- `ak.agent.key.authorize`（high risk；授权 agent key，target=`ak.agent.key.authorize`。key 替换不设独立 rotate action:runtime replacement re-pairing 在同一接受事务中 authorize 新 key 并 revoke 旧 key,见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md)）
+- `ak.agent.key.authorize`（high risk；授权 agent key，target=`ak.agent.key.authorize`。key 替换不设独立 rotate action：runtime replacement 的 controller-signed authorize Event 必须用精确 `supersedes[]` 列出全部既有 active authorization；reducer 接受该单一 Event 时原子 observe-remove，见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md)）
 - `ak.agent.key.revoke`（high risk；撤销 agent key，target=`ak.agent.key.revoke`）
-- `ak.self.agent.command.provision`(aggregate admin action,`target_event_kinds=[ak.profile.create, ak.identity.accountability_grant, ak.agent.key.authorize, ak.capability.grant]`,profile=`ak.profile.personal_agent_provisioning.v1`)
+- `ak.self.agent.command.provision`(aggregate admin action,`target_event_kinds=[ak.profile.create, ak.identity.accountability_grant, ak.agent.selector_claim, ak.capability.grant]`,profile=`ak.profile.personal_agent_provisioning.v1`；`ak.profile.create` 覆盖两阶段流程中 controller E2EE client 后续提交的 Agent PCR Profile，不表示服务端代写；首次 `ak.agent.key.authorize` 不属于 provision 覆盖或 fan-out)
 - `ak.self.agent.command.renew_pairing`(controller-only,high risk;重开 pairing handle,对 `active` / `paused` agent 即 runtime replacement 入口;target=`ak.capability.grant`,语义见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))
 - `ak.self.agent.command.pause`(controller-only;target=`ak.self.agent.pause`)
 - `ak.self.agent.command.resume`(controller-only;target=`ak.self.agent.resume`)

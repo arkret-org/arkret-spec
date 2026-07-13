@@ -4324,6 +4324,28 @@
         "approval_evidence": {
           "$ref": "#/$defs/agent_key_approval_evidence"
         },
+        "supersedes": {
+          "type": "array",
+          "description": "Exact set of active Agent-key authorization dots that this controller-signed authorization replaces during runtime re-pairing. Each entry binds both the key id and the authorization Event that introduced the active dot. The array MUST be omitted for first pairing and same-key re-authorization. For replacement pairing it MUST set-equal the authoritative active authorization set except for the new authorization; a stale, partial, or extra set fails closed. Acceptance atomically removes these dots with reason superseded_by_repairing and adds this authorize dot, so no server-forged ak.agent.key.revoke Event is required.",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "required": [
+              "key_id",
+              "authorized_event_ref"
+            ],
+            "properties": {
+              "key_id": {
+                "$ref": "#/$defs/agent_key_id"
+              },
+              "authorized_event_ref": {
+                "$ref": "#/$defs/event_ref"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
         "revocation_check_ref": {
           "$ref": "#/$defs/object_ref",
           "description": "Optional freshness source for revocation checking. When expires_at is absent, authorization lifetime is governed by the canonical revocation chain and lifecycle cascade; this field may identify the freshness source used for that check."

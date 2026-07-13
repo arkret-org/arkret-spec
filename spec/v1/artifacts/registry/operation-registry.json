@@ -530,12 +530,8 @@
       "grpc": "GateAccount/AgentKeyPair",
       "mq": "gate.account.command.pair_agent_key",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "none",
-      "retry_safe": false,
-      "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.self.agent.query.list"
-      },
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome"
     },
@@ -567,7 +563,7 @@
         "operation_id": "ak.self.agent.resource.get"
       },
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome"
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_outcome"
     },
     {
       "operation_id": "ak.self.agent.query.list",

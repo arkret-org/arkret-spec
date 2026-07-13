@@ -2686,7 +2686,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "ak.agent.key.revoke reason stamped when runtime replacement re-pairing authorizes a new agent key: every prior active key of the agent is revoked in the same accepted transaction that writes the new ak.agent.key.authorize. Sessions issued from superseded keys MUST fail closed within the revocation freshness window. See zh/identity/key-management.md §3.6.1."
+      "description": "Reducer audit reason stamped when one controller-signed ak.agent.key.authorize runtime-replacement Event atomically observe-removes every prior active authorization dot named by its exact supersedes[] set and adds the new authorization. No synthetic ak.agent.key.revoke Event is authored. Sessions issued from superseded keys MUST fail closed within the revocation freshness window. See zh/identity/key-management.md §3.6.1."
     },
     {
       "code": "pairing_expired",
@@ -2718,6 +2718,14 @@
         "service_call"
       ],
       "description": "A different stable runtime key binding was submitted while the same open pairing_request_id already has a pending runtime request. The service MUST return HTTP 409 and MUST NOT replace the current pending request, approval_request_id, or notification id. A retry with the same ak.agent.runtime_key_binding.v1 digest is idempotent and does not use this error. See zh/identity/key-management.md §3.6.2."
+    },
+    {
+      "code": "agent_pcr_recovery_not_ready",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "A Native Personal Agent runtime pairing commit was attempted while its controller-owned managed-PCR recovery projection was pending, stale, missing, or unverifiable. The endpoint MUST leave the pairing handle and every existing key/grant unchanged. The controller E2EE client must publish a current recovery_public_key mls_history series tail whose managed binding covers the Agent PCR accepted Seal frontier and MLS epoch, then retry the identical pairing request. See zh/identity/key-management.md §3.6.1 / §7.5.6."
     },
     {
       "code": "agent_paused",

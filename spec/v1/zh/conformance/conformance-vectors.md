@@ -3384,7 +3384,33 @@ Expected:
 - Agent profile、key authorize/revoke、lifecycle 只进入 `PCR_A`；accountability/selector facts 只进入 `PCR_C`；pairing request/notification 不进入任一 PCR。
 - 三个变体全部 fail closed，且不得留下非 PCR Realm 占用任一 principal control id。
 
-### 11.2.3 Vector: Runtime Replacement Re-pairing Supersede
+### 11.2.3 Vector: Managed Agent PCR Recovery
+
+`vector_id`: `ak.vector.agent.managed_pcr_recovery.v1`
+
+Preconditions:
+
+- Controller `C` 有 current accepted recovery policy `RP_C` 与 recovery public key；managed Agent `A` 的 DID service binding 指向 `PCR_A`，delegation purpose 覆盖 `principal_control_realm_bootstrap`、agent-control authoring 与 `principal_control_realm_recovery`。
+- `ak.self.agent.command.provision` 已返回 `pcr_recovery.status=pending`；尚无 runtime key authorization。
+
+Steps:
+
+1. Controller E2EE client 本地生成 `PCR_A` MLS group state，提交 Agent PCR genesis / profile Event；服务端只接收 ciphertext/承诺，不接触 MLS private state。
+2. `C` 的授权设备向 `C` 自己的 `backup_class=mls_history` active series 尾部写入 `mls_group_state` item：外层 `actor_id=C`，`recipient_method=recovery_public_key`，`recovery_policy_ref=RP_C`；item 的 `realm_id=PCR_A`，`managed_principal_binding={managed_principal_id:A, controller_id:C, principal_control_realm_id:PCR_A, authorization_ref, managed_frontier_ref}`，AAD `managed_principal_bindings[]` 与 public/plaintext binding canonical set 完全一致。
+3. 服务投影 `pcr_recovery.status=ready`，首次 `pair_agent_key` 针对 pre-commit frontier 通过门控并写入 Agent PCR 的 controller-signed `ak.agent.key.authorize`；该 Event 推进 frontier 后，投影转为 `stale`，producer 再追加覆盖 post-commit frontier 的 backup 尾部使其恢复 `ready`。
+4. 丢失 Agent runtime private key；新 runtime 生成 `K2`，controller 先确认 managed PCR backup 仍覆盖 current frontier，再走 replacement re-pairing。
+5. 丢失 controller 全部日常设备；controller 用自己的 24 词/门限/硬件恢复普通用户设备与 `mls_history` active series，解出 `PCR_A` group state，并依据当前 Agent DID delegation 继续管理 `A`。
+6. 变体：服务端生成 MLS state；把 runtime private key 放入任一 backup；外层 `actor_id=A` 但由 `C` 读取；缺失/篡改 binding 或 AAD set；使用 `secret_storage_key`；`RP_C` / delegation / PCR Seal / MLS epoch stale；为 `A` 生成独立人类助记词。
+
+Expected:
+
+- 步骤 1–2 中 MLS private state 只在 controller E2EE client；backup owner/caller 始终是 `C`，不放宽跨 actor 拒绝。合法 envelope 通过 `ak.schema.key_backup.v1` / plaintext schema 与 accepted-at delegation 校验。
+- 只有 active series 尾部包含 pre-commit current `PCR_A` group state 且 policy/binding/frontier/epoch 全部匹配时状态为 `ready`；否则为 `pending` / `stale`，步骤 3/4 的 pairing commit MUST `agent_pcr_recovery_not_ready`，handle、旧 key 与 grants 全部不变。pairing 自身推进 frontier 后必须先投影 `stale`，待 post-commit backup accepted 再回到 `ready`，不得把 pre-commit backup 错当成仍覆盖新 frontier。
+- 步骤 4 不恢复或克隆旧 runtime private key；K2 由新 runtime 本地生成，旧 authorization 由单一 authorize Event 的精确 `supersedes[]` 原子替换。
+- 步骤 5 只恢复 PCR 解密/管理连续性，不自动授予 Agent DID 控制或业务 capability；后续写入仍验证当前 controller delegation。
+- 步骤 6 全部 fail closed。Native Personal Agent 不拥有独立面向用户 Recovery Key；controller 的 Recovery Key 解锁 controller-owned envelope，不直接确定性派生 Agent/runtime private key。
+
+### 11.2.4 Vector: Runtime Replacement Re-pairing Supersede
 
 `vector_id`: `ak.vector.agent.repairing_supersede.v1`
 
@@ -3394,23 +3420,23 @@ Preconditions:
 
 Steps:
 
-1. Controller 调用 `ak.self.agent.command.renew_pairing`(agent 状态 `active`),得到新一次性 `pairing_request_id` + `pairing_code`。
+1. Controller 调用 `ak.self.agent.command.renew_pairing`(agent 状态 `active`),得到新一次性 `pairing_request_id` + `pairing_code`、`pairing_mode="replacement"` 与未被重置的当前 `pcr_recovery` 投影。
 2. 在新 pairing 完成前,runtime 用 `K1` 正常签发 session 并执行 capability action。
-3. 新 runtime 生成 key `K2` 提交 runtime-key-request,controller 签 `ak.agent.key.authorize`(K2)并调用 `ak.gate.account.command.pair_agent_key` 完成配对。
+3. 新 runtime 生成 key `K2` 提交 runtime-key-request；controller 签 `ak.agent.key.authorize`(K2)，其 payload 带 `supersedes=[{key_id: K1, authorized_event_ref: <K1 authorize Event>}]`，再调用 `ak.gate.account.command.pair_agent_key` 完成配对。
 4. 用 `K1` 再次请求 `agent_key_proof` session grant;`S1` 在 freshness window 后被使用。
 5. 变体 A:第 1 步的 handle 过期，未走到第 3 步。
 6. 变体 B:agent 已 `deactivated`,controller 调用 renew_pairing。
 
 Expected:
 
-- 第 1 步 MUST NOT 改变 agent status、既有 key 或 grant;此前所有 pairing handle 永久不可解析。
+- 第 1 步 MUST NOT 改变 agent status、既有 key、grant 或 `pcr_recovery`；响应分支是 `pairing_mode="replacement"`，此前所有 pairing handle 永久不可解析。
 - 第 2 步 MUST 成功(零停机:replacement 期间旧 key 有效)。
-- 第 3 步 MUST 在同一接受事务中写入 `ak.agent.key.authorize`(K2)与 `ak.agent.key.revoke`(K1, reason=`superseded_by_repairing`);capability grants 不受影响。
+- 第 3 步 MUST 以单一 controller-signed `ak.agent.key.authorize`(K2) Event 原子 remove `supersedes[]` 指定的 K1 authorization dot（reason=`superseded_by_repairing`）并 add K2 dot；不得伪造第二条 controller-authored revoke Event；capability grants 不受影响。遗漏 K1、加入不存在/已撤销 authorization，或引用错误 `authorized_event_ref` 的变体 MUST conflict / fail closed 且不改变任何 key。
 - 第 4 步 MUST fail closed:`K1` 的新 session 请求拒绝;`S1` MUST 在 revocation freshness window 内 fail closed,MUST NOT 自然存活到原 TTL。
 - 变体 A:无任何副作用,agent 保持 `active`、`K1` 有效;`pairing_expired` MUST NOT 出现在曾持钥 agent 上。
 - 变体 B:MUST `agent_deactivated`(terminal 状态拒绝续期)。
 
-### 11.2.4 Vector: Longevity-safe Authorization Chain(No Expiry Cliffs)
+### 11.2.5 Vector: Longevity-safe Authorization Chain(No Expiry Cliffs)
 
 `vector_id`: `ak.vector.agent.longevity_no_expiry.v1`
 

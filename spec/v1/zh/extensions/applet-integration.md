@@ -102,7 +102,7 @@ Native personal AI agent(由 controller 通过 `ak.self.agent.command.provision`
 
 | 维度 | Native personal agent | Applet-managed Ghost Actor |
 | --- | --- | --- |
-| 创建路径 | `ak.self.agent.command.provision` operation,fan-out `ak.profile.create` / `ak.identity.accountability_grant` / `ak.agent.key.authorize` / `ak.capability.grant` | `ak.applet.registration` + Applet bot/Ghost Actor 注册 |
+| 创建路径 | `ak.self.agent.command.provision` 分配 Agent DID/PCR binding，并在 controller PCR fan-out `ak.identity.accountability_grant` / `ak.agent.selector_claim` / pending `ak.capability.grant`；controller E2EE client 随后本地生成并提交 Agent PCR genesis/Profile 与恢复备份，首次 `ak.agent.key.authorize` 只在 pairing commit 时提交 | `ak.applet.registration` + Applet bot/Ghost Actor 注册 |
 | `accountable_principal_ids` | 指向 controller principal，显式 `ak.identity.accountability_grant` | 指向 Applet controller / 外部系统 |
 | Runtime credential | 通过 `POST /_arkret/gate/account/agent-key-pair` pairing 得到 `ak.agent.key.authorize` 绑定的 key | Applet 管辖，通常是 Applet service DID + HTTP signature |
 | Session 路径 | `POST /_arkret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"` | Applet `ak.edge.applet.command.transaction` 与 Applet 的 delegated session |

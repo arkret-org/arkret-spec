@@ -339,6 +339,8 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provision_outcome
     AgentProvisionRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provision_request_body
+    AgentRenewPairingOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_outcome
     AgentRenewPairingRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_request_body
     AgentResumeRequestBody:
@@ -7495,9 +7497,20 @@ paths:
           default: localhost
     post:
       operationId: ak.gate.account.command.pair_agent_key
-      description: Native personal agent runtime key pairing. Validates verification_method ↔ agent_id consistency, writes ak.agent.key.authorize on approval.
+      description: Native personal agent runtime key pairing. Requires a ready controller-owned managed-PCR recovery backup covering the pre-commit Agent PCR frontier, validates verification_method ↔ agent_id consistency, and writes ak.agent.key.authorize on approval. The accepted authorization advances the frontier and makes recovery stale until a post-commit backup tail is accepted; that transition does not roll back this successful pairing but blocks the next pairing commit. Agent runtime private keys are locally generated and never uploaded or restored.
       security:
       - bearerAuth: []
+      - httpMessageSignature: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        description: MUST equal authorize_event.event_id.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: '^[A-Za-z0-9._~:-]+$'
       responses:
         '200':
           description: Agent key pairing accepted; ak.agent.key.authorize event written.
@@ -7506,7 +7519,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AgentKeyPairOutcome'
         '412':
-          description: Pairing failed (verification_method_principal_mismatch, pairing_request_expired, proof_invalid, etc.)
+          description: Pairing failed (verification_method_principal_mismatch, pairing_request_expired, agent_pcr_recovery_not_ready, proof_invalid, etc.)
       requestBody:
         required: true
         content:
@@ -7528,7 +7541,7 @@ paths:
                 $ref: '#/components/schemas/AgentList'
     post:
       operationId: ak.self.agent.command.provision
-      description: Provision a native personal agent principal.
+      description: Allocate a native personal Agent DID and Principal Control Realm binding plus pending controller-owned facts and a pairing request. Returns pcr_recovery.status=pending; the controller E2EE client must locally bootstrap and back up Agent PCR MLS state before pairing can commit.
       security:
       - bearerAuth: []
       responses:
@@ -7566,7 +7579,7 @@ paths:
   /_arkret/self/agents/{agent_id}/renew-pairing:
     post:
       operationId: ak.self.agent.command.renew_pairing
-      description: Re-open pairing on any non-terminal agent with a fresh single-use pairing handle; all previously issued handles stay permanently unresolvable. pending_runtime_key/pairing_expired re-open bootstrap pairing (re-issuing pending grants when needed); active/paused perform runtime replacement re-pairing (status, existing keys and grants stay untouched until the new pairing completes, at which point every prior active key is revoked with reason=superseded_by_repairing). deactivated rejects.
+      description: Re-open pairing on any non-terminal agent with a fresh single-use pairing handle and return the current managed-PCR recovery projection. All previously issued handles stay permanently unresolvable. pending_runtime_key/pairing_expired re-open bootstrap pairing (re-issuing pending grants when needed); active/paused perform runtime replacement re-pairing while status, existing keys and grants stay untouched until the controller-signed authorization with an exact supersedes set is accepted atomically. Pair commit requires pcr_recovery.status=ready; deactivated rejects.
       security:
       - bearerAuth: []
       parameters:
@@ -7581,7 +7594,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentProvisionOutcome'
+                $ref: '#/components/schemas/AgentRenewPairingOutcome'
       requestBody:
         required: true
         content:
