@@ -619,6 +619,7 @@ Recommended operations：
 GET  /_arkret/find/directory/describe
 POST /_arkret/find/directory/search-realms
 POST /_arkret/find/directory/resolve-realm
+POST /_arkret/find/directory/resolve-target
 POST /_arkret/find/directory/search-organizations
 POST /_arkret/find/directory/resolve-organization
 POST /_arkret/find/directory/search-actors

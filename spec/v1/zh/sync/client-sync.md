@@ -36,7 +36,7 @@ Accept: application/json
 
 该端点对应 `ak.self.account.stream.subscribe`，HTTP binding 支持两种响应编码：
 
-- `Accept: application/json`：推荐给浏览器和普通客户端的有界长轮询形态。响应体是单个 `SyncOutcome` JSON 对象；当 `after` 存在且没有新 delta 时，服务端 MAY 等待到 `max_wait_ms` / 部署默认窗口后返回空 delta。JSON 响应关闭连接，不发送 `catchup_complete` 行。**cursor 失效返回（normative）**：JSON 形态下 `after` cursor 失效（`cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized` / `stale_frontier`）MUST 以 §5 标准错误 envelope 返回（HTTP 4xx + 对应 error code），而非 NDJSON 的 `dropped` / `resync_required` frame；客户端据此按 §12.3 分支恢复（重新 baseline / backfill）。
+- `Accept: application/json`：推荐给浏览器和普通客户端的有界长轮询形态。响应体是单个 `SyncOutcome` JSON 对象；当 `after` 存在且没有新 delta 时，服务端 MAY 等待到部署默认的有界长轮询窗口后返回空 delta。该窗口是部署侧配置，不是客户端可控的 query 参数。JSON 响应关闭连接，不发送 `catchup_complete` 行。**cursor 失效返回（normative）**：JSON 形态下 `after` cursor 失效（`cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized` / `stale_frontier`）MUST 以 §5 标准错误 envelope 返回（HTTP 4xx + 对应 error code），而非 NDJSON 的 `dropped` / `resync_required` frame；客户端据此按 §12.3 分支恢复（重新 baseline / backfill）。
 - `Accept: application/x-ndjson`：长连接 frame stream 形态。响应体是 `AccountSubscribeFrame` NDJSON；`catchup=true` 时 baseline / catch-up delta 后发送 `catchup_complete`，然后可继续进入实时推送。
 
 两种编码使用相同的 query 参数、cursor、授权与 delta 语义；客户端 MUST 同时把 `SyncOutcome.cursor` 或 cursor-bearing frame 的 `cursor` 作为下一次 `after=` 起点。该端点聚合跨 Realm delta、to_device、account_data、device_lists、presence；不同于 `GET /_arkret/self/events/subscribe`(按 selector 的事件流订阅)和 `GET /_arkret/self/events?before=...` / `?after=...`(按 selector 的双向历史查询)。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `ak.self.account.*`，snapshot 入口在 `ak.self.snapshot.*`，事件读取在 `ak.self.events.*`（权威 operation namespace 以 [`../../artifacts/registry/operation-registry.json`](../../artifacts/registry/operation-registry.json) 为准，canonical 均带 `ak.self.*` 信任面前缀；`ak.account.*` / `ak.snapshot.*` / `ak.events.*` 只是 surface-group 口语简称，不是 wire operation_id）。
@@ -231,7 +231,7 @@ Account subscribe `delta` frame 包含以下 stream：
 }
 ```
 
-如果 `timeline.limited=true`，客户端 MUST 使用 backfill / pagination 拉取缺口，不得假设 timeline 连续。服务端 SHOULD 在响应中提供 `prev_cursor`、顶层 `cursor`、`snapshot_frontier` 或等价恢复提示；若缺口无法用当前 cursor 恢复，必须返回 `cursor_expired`、`cursor_integrity_invalid`、`stale_frontier` 或 `temporarily_unavailable`，不得静默退化为不完整状态。这些返回触发的恢复分支不同，客户端 MUST 区分处理：
+如果 `timeline.limited=true`，客户端 MUST 使用 backfill / pagination 拉取缺口，不得假设 timeline 连续。服务端 SHOULD 在响应中提供 `prev_cursor`、顶层 `cursor`、`snapshot_frontier` 或等价恢复提示。若 cursor 本身已失效，必须返回 `cursor_expired` 或 `cursor_integrity_invalid`；若 cursor 仍有效但当前服务状态暂时不能完成恢复，则返回 `stale_frontier` 或 `temporarily_unavailable`。服务端不得静默退化为不完整状态，客户端 MUST 按以下分支区分处理：
 
 - `cursor_expired` / `cursor_integrity_invalid`：cursor 本端状态失效（TTL 超时或 tamper / 未知 handle / cross-binding）。客户端 MUST 清空本地 cursor 缓存并从 initial sync 重做（重新建立 `ak.self.account.stream.subscribe`，`after=` 缺省 + `catchup=true`），与 §12.3 一致；不能用旧 cursor 继续 backfill。
 - `stale_frontier`：cursor 本身仍有效，只是服务 frontier 落后于请求所需 causal frontier。客户端 MUST NOT 清 cursor 重做 initial sync，而是按 §12.3 等待 / backfill——先以 `account/describe` 或 `snapshot/head` 取当前 frontier，再从该 frontier 起点用现有 cursor backfill 补齐缺口。

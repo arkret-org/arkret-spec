@@ -486,6 +486,11 @@
     "ak.profile.applet_e2ee_join.v1": "server",
     "ak.profile.applet_widget.v1": "server",
     "ak.profile.agent_runtime.v1": "server",
+    "ak.profile.personal_agent_provisioning.v1": "server",
+    "ak.profile.agent_auth.v1": "server",
+    "ak.profile.agent_delegation_policy.v1": "server",
+    "ak.profile.agent_sidecar_thread.v1": "server",
+    "ak.profile.agent_participation_policy.v1": "server",
     "ak.profile.mimi_interop.v1": "interop",
     "ak.profile.franking.v1": "server",
     "ak.profile.morph.schema_migration_transformations.v1": "server",
@@ -510,7 +515,11 @@
     "ak.profile.hash.blake3.v1": "interop",
     "ak.profile.hash_transition.v1": "interop",
     "ak.profile.kem.hybrid_xwing.v1": "admin",
+    "ak.profile.hpke.p256.v1": "admin",
+    "ak.profile.signature.ecdsa_p256.v1": "admin",
+    "ak.profile.signature.pqc.v1": "admin",
     "ak.profile.candidate.join_policy.v1": "admin",
+    "ak.profile.ucan_interop.v1": "interop",
     "ak.profile.mls_governance_binding.full.v1": "admin",
     "ak.profile.attested_audit.e2ee.v1": "admin",
     "ak.profile.disclosed_audit.e2ee.v1": "admin",
@@ -4248,6 +4257,57 @@
           "stale_posting_fail_closed"
         ],
         "unsupported_optional": "return unsupported_feature unless Realm search_policy explicitly enables ak.profile.search.forward_private.v1 and leakage_class=forward_private"
+      }
+    },
+    "ak.profile.signature.ecdsa_p256.v1": {
+      "description": "Optional ES256 detached-JWS interoperability suite.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [
+        "crypto-signature-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "signature_suite.ECDSA-P256-SHA256"
+        ],
+        "unsupported_optional": "do not claim ak.profile.signature.ecdsa_p256.v1 and reject ES256 proofs as unsupported"
+      }
+    },
+    "ak.profile.signature.pqc.v1": {
+      "description": "Profile-gated ML-DSA-65 detached-signature interoperability suite.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [
+        "crypto-signature-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "signature_suite.ML-DSA-65"
+        ],
+        "unsupported_optional": "do not claim ak.profile.signature.pqc.v1 and reject ML-DSA-65 proofs as unsupported"
+      }
+    },
+    "ak.profile.hpke.p256.v1": {
+      "description": "Profile-gated DHKEM(P-256, HKDF-SHA256) / AES-256-GCM HPKE interoperability suite.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [
+        "hpke-suite-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "hpke_suite.ak.hpke_p256_aead_aes256gcm.v1"
+        ],
+        "unsupported_optional": "do not claim ak.profile.hpke.p256.v1 and reject the P-256 HPKE suite as unsupported"
       }
     }
   },

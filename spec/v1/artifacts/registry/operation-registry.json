@@ -2206,7 +2206,7 @@
       "http": "PUT /_arkret/self/realms/{realm_id}/moderation-policy",
       "grpc": "SelfRealm/ModerationPolicyReplace",
       "mq": "self.realm.moderation_policy.resource.replace",
-      "notes": "Writes a Realm moderation-policy override (ak.realm.moderation_policy). Only the Realm owner may write; an override that loosens an action an organization policy denies requires explicit organization approval embedded in the document, otherwise the server returns requires_organization_approval.",
+      "notes": "Writes a Realm moderation-policy override (ak.realm.moderation_policy). Only the Realm owner may write; an override that loosens an action an organization policy denies requires explicit organization approval embedded in the document, otherwise the server returns failed_precondition with reason_code=requires_organization_approval.",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
       "retry_safe": true,

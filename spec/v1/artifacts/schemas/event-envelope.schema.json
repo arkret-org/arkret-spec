@@ -299,6 +299,7 @@
               "ak.agent.action_request",
               "ak.agent.draft.propose",
               "ak.attestation.range_completeness",
+              "ak.audit.erasure_receipt",
               "ak.audit.ryw_receipt",
               "ak.circle.seal_commit",
               "ak.device.push_route",

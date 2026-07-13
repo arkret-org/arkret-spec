@@ -2852,12 +2852,13 @@ Expected：
 
 Steps：
 
-1. 分别触发 token 不存在、过期、已撤销、已消费、audience 不匹配、邀请者已离开 Realm、policy gate 不满足七类失败。
-2. 对外调用同一个 claim endpoint，记录 HTTP status、response body、headers 和响应时间。
+1. 对 third-party claim endpoint 分别触发 token 不存在、过期、已撤销、已消费、audience 不匹配、邀请者已离开 Realm、policy gate 不满足七类失败。
+2. 对 `POST /_arkret/open/invite-locators/resolve` 分别触发 locator token 不存在、过期、已撤销、策略拒绝四类失败。
+3. 分别在两个 endpoint surface 内记录 HTTP status、response body、headers 和响应时间；不同 endpoint 之间不要求响应 body 相同，但同一 endpoint 的各失败原因 MUST 不可区分。
 
 Expected：
 
-- 对外响应 MUST byte-identical 或等价不可区分；仅服务端 audit log 可记录具体 reason_code。
+- 每个 endpoint surface 内的对外响应 MUST byte-identical 或等价不可区分；仅服务端 audit log 可记录具体 reason_code。
 - timing 差异 SHOULD ≤ 50ms；高安全 profile MUST 对该窗口做 jitter / padding。
 
 ### 9.7.1 Vector: Invite Claim Reducer State Machine
@@ -4562,3 +4563,19 @@ Expected：
 ### 20.3 Close 并发与 RYW-before-output
 
 `ak.vector.audit.close_release_concurrency.v1` MUST 覆盖 same-basis close-vs-release 的 close-wins 裁决、更早 accepted release 的完整 `release_refs[]` freeze、post-close release 拒绝与同 Seal 内 `event_digest` 排序。`ak.vector.audit.ryw_before_output.v1` MUST 证明 material 在 release accepted 且取得 profile-valid RYW receipt 前不会输出；`attested_hardware` 分支还必须验证独立 witness 与 policy digest / eligibility proof 一致。Runner 必须检查输出至多一次，不能把“已构造 wrapped material”误当成“已允许交付”。
+
+## 21. Arkret 私有 MLS 派生与持久化向量
+
+[`arkret-private-kdf-fixture.json`](../../artifacts/fixtures/arkret-private-kdf-fixture.json) 是本节三条 active 向量的字节级与状态机真源。Runner MUST 按 RFC 9420 §2.1.2、§8 与 §8.5 实际执行 HKDF-SHA256、最小宽度 varint、`ExpandWithLabel`、`MLS-Exporter`、NFC 与 HMAC-SHA256；MUST NOT 直接信任 fixture 中间值或只比较字符串。
+
+### 21.1 `mls-exporter-aead-v1` 内容键派生
+
+`ak.vector.mls_exporter_aead.content_key_derivation.v1` 固定 `exporter_secret` 与 `realm_id`，逐字节比较 `history_secret`、`ak.content-v1` 的完整 KDFLabel info 与 `K_content`。错误 label、空 Realm exporter context、给第二级派生加入非空 context、跨 epoch 复用内容键均 MUST 与金值不同或在加密前 fail closed。
+
+### 21.2 Reaction routing HMAC
+
+`ak.vector.reaction.routing_hmac_kat.v1` 固定 exporter secret、Realm context 与 routing label，要求分解形式 `U+0065 U+0301` 与预组形式 `U+00E9` 经 NFC 后产生完全相同的 tag，并覆盖 emoji modifier。跳过 NFC、错误 label、跨 Realm context 或跨 epoch 复用 exporter key MUST fail closed。
+
+### 21.3 RRK eager seal before GC
+
+`ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1` 要求 `durability_policy.mode != none` 时，在每个配置的 `recovery_recipients[]` 对应 `ak.realm_key.share` accepted 前保留 `history_secret[N]`。未达到完整目标集即 GC MUST 返回 `failed_precondition` / `durability_seal_missing_before_gc`；恢复 verification method 非 active 或未由 `ArkretRealmHistoryRecoveryKey` 指定时 MUST 返回 `durability_recovery_recipient_unverified` 且不得换用其它 key。threshold 只控制恢复授权，不缩减 eager-seal 目标集。

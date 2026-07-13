@@ -6906,7 +6906,7 @@ paths:
       description: |
         Writes ak.realm.moderation_policy. Only the Realm owner may write; an
         override that loosens an action an organization policy denies requires
-        explicit organization approval, otherwise requires_organization_approval
+        explicit organization approval, otherwise failed_precondition with reason_code=requires_organization_approval
         is returned.
       parameters:
       - in: path

@@ -1795,6 +1795,7 @@
       "vector_id": "ak.vector.invite.failure_indistinguishable.v1",
       "status": "active",
       "domain": "invite",
+      "description": "Failure-indistinguishability vector covering both the third-party claim endpoint and the invite-locator resolve endpoint; each endpoint's failure classes MUST share one external response shape and bounded timing distribution.",
       "applies_to_fixtures": [
         "security-closure-vectors.json"
       ],
@@ -3350,6 +3351,46 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/audit-release-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mls_exporter_aead.content_key_derivation.v1",
+      "status": "active",
+      "domain": "mls_exporter_aead",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1"
+      ],
+      "description": "Byte-level RFC 9420 MLS-Exporter plus ExpandWithLabel KAT for the Arkret ak.history-v1 -> ak.content-v1 content-key chain, including domain/context/epoch negative mutations.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.reaction.routing_hmac_kat.v1",
+      "status": "active",
+      "domain": "reaction",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1",
+        "ak.profile.mls.minimal_metadata_realm.v1"
+      ],
+      "description": "Byte-level reaction routing HMAC KAT covering RFC 9420 exporter derivation, NFC normalization, combining code points, emoji modifiers, and cross-label/Realm/epoch negatives.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1",
+      "status": "active",
+      "domain": "mls_exporter_aead",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1"
+      ],
+      "description": "Executable RRK durability state-transition vector: all configured recovery recipients are sealed before GC, revoked or undesignated recovery methods fail closed, and threshold authorization does not shrink the eager-seal target set.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"
       ]
     }
   ]

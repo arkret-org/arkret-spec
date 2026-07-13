@@ -1602,15 +1602,26 @@ def check_sdk_conformance_contract(lint: Lint) -> None:
 
 def check_fixture_runner_contract(lint: Lint) -> None:
     fixture_root = ARTIFACTS / "fixtures"
+    runner_registry_path = ARTIFACTS / "registry" / "runner-kind-registry.json"
+    runner_registry = load_json(lint, runner_registry_path)
+    rows = runner_registry.get("runner_kinds", []) if isinstance(runner_registry, dict) else []
     allowed_kinds = {
-        "named_suite",
-        "registry_coverage",
-        "json_schema_and_semantic_cases",
-        "json_schema_validation_cases",
-        "did_method_adapter_cases",
-        "profile_discovery_coverage",
-        "generated_limit_cases",
+        row.get("kind")
+        for row in rows
+        if isinstance(row, dict) and isinstance(row.get("kind"), str)
     }
+    if not allowed_kinds:
+        lint.fail(runner_registry_path, "runner kind registry must declare a non-empty closed vocabulary")
+        return
+    if len(allowed_kinds) != len(rows):
+        lint.fail(runner_registry_path, "runner kind registry contains duplicate or malformed kind entries")
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        if not isinstance(row.get("execution_contract"), str) or not row["execution_contract"].strip():
+            lint.fail(runner_registry_path, f"runner kind {row.get('kind')!r} lacks execution_contract")
+        if row.get("owner") not in {"in_tree_lint", "cotest", "in_tree_lint_and_cotest"}:
+            lint.fail(runner_registry_path, f"runner kind {row.get('kind')!r} has invalid owner")
     executable_registry_assertions = {
         "error_code_registry_coverage_fixture": {
             "unique_top_level_codes",
@@ -4366,12 +4377,18 @@ def check_json_instance_against_schema(
         lint.fail(owner, f"{label} fails {schema_ref}: " + "; ".join(errors[:3]))
     if not expect_valid and not errors:
         lint.fail(owner, f"{label} expected to fail {schema_ref} but validated successfully")
-    if not expect_valid and first_expected_error and errors and errors[0] != first_expected_error:
-        lint.fail(
-            owner,
-            f"{label} first schema error drift for {schema_ref}: got {errors[0]!r}, "
-            f"expected {first_expected_error!r}",
-        )
+    if not expect_valid and first_expected_error and errors:
+        if first_expected_error.startswith("contains:"):
+            expected_fragment = first_expected_error.removeprefix("contains:")
+            matches = expected_fragment in errors[0]
+        else:
+            matches = errors[0] == first_expected_error
+        if not matches:
+            lint.fail(
+                owner,
+                f"{label} first schema error drift for {schema_ref}: got {errors[0]!r}, "
+                f"expected {first_expected_error!r}",
+            )
 
 
 def check_markdown_full_object_example(lint: Lint, path: Path, block_index: int, data: Any) -> None:
@@ -5290,8 +5307,16 @@ def check_exporter_label_registry(lint: Lint) -> None:
                 lint.fail(path, f"duplicate exporter label: {label}")
             seen.add(label)
         context_fields = entry.get("context_fields")
-        if not isinstance(context_fields, list) or not context_fields:
-            lint.fail(path, f"labels[{index}] context_fields MUST be a non-empty list")
+        if not isinstance(context_fields, list):
+            lint.fail(path, f"labels[{index}] context_fields MUST be a list")
+        elif not context_fields:
+            if entry.get("primitive") != "ExpandWithLabel" or entry.get("empty_context_forbidden") is not False:
+                lint.fail(
+                    path,
+                    f"labels[{index}] empty context_fields is allowed only for an explicitly empty-context ExpandWithLabel entry",
+                )
+            if not isinstance(entry.get("context_encoding"), str) or "empty" not in entry["context_encoding"]:
+                lint.fail(path, f"labels[{index}] empty-context entry must define context_encoding")
 
 
 def json_pointer_get(data: Any, pointer: str) -> Any:
@@ -5381,6 +5406,7 @@ ALLOWED_PROSE_ACTIONS: set[str] = set()
 
 _ACTION_TOKEN_RE = re.compile(r"^ak\.[a-z0-9_]+(?:\.[a-z0-9_]+)*$")
 _PROSE_ACTION_BULLET_RE = re.compile(r"^\s*-\s+`(ak\.[a-z0-9_.]+)`")
+_PROSE_ACTION_TARGET_RE = re.compile(r"target=`([^`]+)`")
 
 
 def check_action_reference_closure(lint: Lint) -> None:
@@ -5397,6 +5423,11 @@ def check_action_reference_closure(lint: Lint) -> None:
         return
     known = {
         a.get("action")
+        for a in data.get("actions", [])
+        if isinstance(a, dict) and isinstance(a.get("action"), str)
+    }
+    rows_by_action = {
+        a.get("action"): a
         for a in data.get("actions", [])
         if isinstance(a, dict) and isinstance(a.get("action"), str)
     }
@@ -5428,6 +5459,19 @@ def check_action_reference_closure(lint: Lint) -> None:
         if not _ACTION_TOKEN_RE.match(action):
             continue
         if action in known or action in ALLOWED_PROSE_ACTIONS:
+            target_match = _PROSE_ACTION_TARGET_RE.search(line)
+            if target_match and action in rows_by_action:
+                raw_targets = target_match.group(1).strip().strip("{}")
+                prose_targets = sorted(
+                    target.strip() for target in raw_targets.split(",") if target.strip()
+                )
+                registry_targets = sorted(rows_by_action[action].get("target_event_kinds") or [])
+                if prose_targets != registry_targets:
+                    lint.fail(
+                        path,
+                        f"capabilities.md §5 action {action!r} declares target={prose_targets} "
+                        f"but capability-action-registry.json declares {registry_targets}",
+                    )
             continue
         lint.fail(
             path,

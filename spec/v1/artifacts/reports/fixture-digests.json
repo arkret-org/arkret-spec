@@ -17,6 +17,10 @@
       "sha256": "ba6020f187815423d5ca180532b97fb3b0fd1253a33431736f34512ad4ecf739"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json",
+      "sha256": "c3e49b1ca35273fb18ef4c348df90c6d8759803557e32aa1ee09444d5499b45d"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/audit-release-fixture.json",
       "sha256": "5f58fb212611ce11f9a6a2210d6f972029bf56f6f194d8e66bedca237c720970"
     },
@@ -178,7 +182,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "bfdd4afdc2836ae986404d040e43aa8531869a695cb991b2cc67f9e8ef4e6299"
+      "sha256": "d7ea06084eac1ee782b9a1fa7a4754054ad5727ea2a83e1682eefa10cad66979"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -186,7 +190,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-vectors.json",
-      "sha256": "54b0b9fd2a1d2b30d1d5f2b2fafb1e811d9833dd7dcdb1d4c2973c50c4eb86a0"
+      "sha256": "c144eabcef9288d3899849a52bd1a2371fc5bcaf79246f2257dfd9fd825f20e0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
@@ -206,6 +210,11 @@
     }
   ],
   "fixtures_root": "spec/v1/artifacts/fixtures",
+  "generated_by": "tools/check_fixture_digests.py --write-reference",
+  "generated_from": [
+    "spec/v1/artifacts/fixtures/*.json"
+  ],
   "hash": "sha256",
-  "schema": "arkret.fixture-digests.v1"
+  "schema": "arkret.fixture-digests.v1",
+  "source_of_truth": false
 }

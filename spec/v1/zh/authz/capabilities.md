@@ -187,7 +187,7 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 | --- | --- | --- |
 | **聚合 admin 动作** | 一个 action 覆盖多条 Realm policy facet event kinds | `ak.realm.admin` → registry 中声明的 Realm policy facet events；`ak.policy.manage` → `ak.policy.*` 与 `ak.realm.policy_*` 系列 |
 | **polymorphic 对象动作** | 一个 action 同时覆盖 Strand / Morph / Space 等同语义 event | `ak.object.archive` → `{ak.strand.archive, ak.morph.archive}`；`ak.object.restore` → `{ak.strand.restore, ak.morph.restore, ak.space.restore}`；`ak.object.stage.set` → `{ak.strand.stage.set, ak.morph.stage.set}` |
-| **scope 后缀变体** | 同一 event，授权按 self vs others / target subset 分粒度 | `ak.message.revise.own` → `ak.message.revise`；`ak.message.redact.own` → `ak.message.redact`；`ak.strand.watch.set.others` → `ak.strand.watch.set` |
+| **scope 后缀变体** | action 按主体、目标子集或语义相邻的 event 子集细分授权；可映射到一个异名 event，也可映射到多个紧密相关 event | `ak.message.revise.own` → `ak.message.revise`；`ak.call.join` → `{ak.call.state, ak.call.summary}`；`ak.circle.member.add` → `ak.circle.member.state` |
 | **操作动词动作（`event_mapping_kind="operation_verb"`）** | action token 命名为操作 / 命令动词，与 target event kind 名形态不同；reducer admission 经 `target_event_kinds` 解析，逐字命中 `actions[]` 规则照常适用，且不带聚合 admin 语义 | `ak.message.redact` → `{ak.message.redact, ak.redaction}` |
 
 `ak.mls.commit` action → `{ak.mls.commit, ak.mls.commit_failed}`、`ak.moderation.appeal.review` → `{ak.moderation.appeal.review, ak.moderation.appeal.decision, ak.moderation.appeal.close}` 等"同一 action 同时覆盖正常 event 与诊断 / 派生 event"的情况落在**聚合 admin 动作**类别，并以 registry `target_event_kinds` 为准。
@@ -299,10 +299,10 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.agent.key.authorize`（high risk；授权 agent key，target=`ak.agent.key.authorize`。key 替换不设独立 rotate action:runtime replacement re-pairing 在同一接受事务中 authorize 新 key 并 revoke 旧 key,见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md)）
 - `ak.agent.key.revoke`（high risk；撤销 agent key，target=`ak.agent.key.revoke`）
 - `ak.self.agent.command.provision`(aggregate admin action,`target_event_kinds=[ak.profile.create, ak.identity.accountability_grant, ak.agent.key.authorize, ak.capability.grant]`,profile=`ak.profile.personal_agent_provisioning.v1`)
-- `ak.self.agent.command.renew_pairing`(controller-only,high risk;重开 pairing handle,对 `active` / `paused` agent 即 runtime replacement 入口;target=`ak.self.agent.command.renew_pairing`,语义见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))
-- `ak.self.agent.command.pause`(controller-only;target=`ak.self.agent.command.pause`)
-- `ak.self.agent.command.resume`(controller-only;target=`ak.self.agent.command.resume`)
-- `ak.self.agent.command.deactivate`(controller-only,terminal;target=`ak.self.agent.command.deactivate`,fan-out 见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
+- `ak.self.agent.command.renew_pairing`(controller-only,high risk;重开 pairing handle,对 `active` / `paused` agent 即 runtime replacement 入口;target=`ak.capability.grant`,语义见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))
+- `ak.self.agent.command.pause`(controller-only;target=`ak.self.agent.pause`)
+- `ak.self.agent.command.resume`(controller-only;target=`ak.self.agent.resume`)
+- `ak.self.agent.command.deactivate`(controller-only,terminal;target=`ak.self.agent.deactivate`,fan-out 见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
 - `ak.self.agent.grant.command.attach`(controller-only,high risk;为 agent 附加 capability grant,`target_event_kinds=[ak.capability.grant]`;grant subject MUST 是该 agent principal 且 MUST NOT 超过 controller 可委托范围)
 - `ak.self.agent.grant.resource.delete`(controller-only,medium risk;撤销 agent capability grant,`target_event_kinds=[ak.capability.revoke]`;撤销后后续 agent action proof MUST fail closed)
 - `ak.agent.draft.propose`(agent-initiated draft;target=`ak.agent.draft.propose`,wire_scope=`actor_private_event`)
@@ -357,7 +357,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.typing.broadcast`
 - `ak.receipt.broadcast`
 - `ak.call.signal.send`
-- `ak.call.join`（risk_tier=medium；加入通话，scope_suffix_variant，target=`ak.call.state`）
+- `ak.call.join`（risk_tier=medium；加入通话，scope_suffix_variant，target=`{ak.call.state, ak.call.summary}`）
 - `ak.call.screen_share`（risk_tier=medium；屏幕共享，scope_suffix_variant，target=`ak.call.state`）
 - `ak.call.record`（**high risk**；录制通话，aggregate admin action，target=`{ak.call.recording.start, ak.call.state}`；MUST 按 high-risk 规则携带 `expires_at`、resource selector narrowing 与审计证据）
 - `ak.call.transcribe`（**high risk**；转写通话，scope_suffix_variant，target=`ak.call.state`；同 high-risk 约束要求）

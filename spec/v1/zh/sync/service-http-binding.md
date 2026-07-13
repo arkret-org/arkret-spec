@@ -98,7 +98,7 @@ Arkret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 
 新增顶层 REST 命名空间前，规范必须同步更新 `contract-catalog.json#operation_registry`、OpenAPI path、必要的 request/response schema refs、feature discovery 返回值和对应 conformance profile；`artifacts/reports/operation-schema-index.json` 由 pipeline 生成并用于复核 DTO 字段集合。实现不得用未声明路径绕过 canonical operation、capability、幂等、分页或错误语义。
 
-#### 2.1.2 Conformance / Debug 命名空间（test-only，profile-gated，normative）
+#### 2.1.3 Conformance / Debug 命名空间（test-only，profile-gated，normative）
 
 测试 harness、conformance runner、活体调试需要一些**非生产**观测 / 注入能力（例如直接读取内部 reducer cell 状态、强制推进 HLC、清空幂等缓存、dump seal DAG、回放固定 fixture）。这些能力 **MUST NOT** 伪装成协议生产面 operation，也 **MUST NOT** 复用 §2.1 表中任何生产 trust-surface 段（`self` / `gate` / `root` / `find` / `peer` / `open` / `edge`）。规范为它们保留**单一专用命名空间**：
 
@@ -114,7 +114,7 @@ Arkret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 
 §2.1.1 的"部署私有审批面必须放在实现自己的 negative-space root 下"是同一原则的另一面：私有**产品**面放实现自己的 root；test-only **调试 / conformance** 面放 `/_arkret/_conformance/*` 并受 `development_mode=true` gate。二者都不得污染生产 trust-surface 段，也都不得列入 v1 core conformance 的生产 operation 集。
 
-#### 2.1.3 非 spec `/_arkret/*` 路径群边界（catalog completeness，normative）
+#### 2.1.4 非 spec `/_arkret/*` 路径群边界（catalog completeness，normative）
 
 §2.2 末条"实现不得用未声明路径绕过 canonical operation"是**强制**的 catalog-completeness 不变量。本节把它写实为可判定规则，并对未登记 `/_arkret/*` 路径群逐簇裁决归位，作为 conformance 判定基准。
 
@@ -122,9 +122,9 @@ Arkret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 
 - **(a) 真协议能力** → MUST 先补 canonical operation（catalog + OpenAPI + §2.1 命名空间 + 对应 conformance profile）再暴露；在补齐前 MUST NOT 以未登记 `/_arkret/*` 路径作为事实协议面。
 - **(b) 产品 / 运维 / 部署私有能力** → MUST NOT 占用任何 `/_arkret/*` 生产段，而是放实现自己的 negative-space root（实现私有，例如 `/_<impl>/*`），且 MUST NOT 列入 v1 core conformance 的生产 operation 集。
-- **(c) test-only 调试 / conformance / fixture-replay** → 走 §2.1.2 的 `/_arkret/_conformance/*`，受 `development_mode=true` gate。
+- **(c) test-only 调试 / conformance / fixture-replay** → 走 §2.1.3 的 `/_arkret/_conformance/*`，受 `development_mode=true` gate。
 
-三者互斥；任一对端实现（含 cotest 等测试面）MUST NOT 把未登记 `/_arkret/*` 路径当作协议依赖消费，而应改查已注册 operation 或对应实现私有面。本节与 §2.1.2 正交：(c) 处理 test-only 观测，(a)/(b) 处理生产能力的归属。
+三者互斥；任一对端实现（含 cotest 等测试面）MUST NOT 把未登记 `/_arkret/*` 路径当作协议依赖消费，而应改查已注册 operation 或对应实现私有面。本节与 §2.1.3 正交：(c) 处理 test-only 观测，(a)/(b) 处理生产能力的归属。
 
 **路径群裁决（normative resolution）**。下表把未登记 `/_arkret/*` 路径形态逐簇归位；标注的 canonical operation / event 即该能力的唯一合规协议入口，其余形态按 (b) 归实现私有面。
 
@@ -281,7 +281,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 | `GET /_arkret/self/realms/{realm_id}` | path `{realm_id: id}` | `user_session`;不可见返回 `not_found`。 | `schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view`。 |
 | `GET /_arkret/self/realms/{realm_id}/export` | path `{realm_id: id}` | `user_session`;调用方须有读取该 Realm 的授权。 | `schemas/realm-read-operations.schema.json#/$defs/realm_export`;`ak.export.realm.v1` 全量 event-log + operation dump;payload 可见性仍按 Realm policy。 |
 | `GET /_arkret/self/realms/{realm_id}/moderation-policy/effective` | path `{realm_id: id}` | `user_session`。 | `schemas/realm-read-operations.schema.json#/$defs/realm_effective_moderation_policy`;组织继承的合并审核策略视图。 |
-| `PUT /_arkret/self/realms/{realm_id}/moderation-policy` | path `{realm_id: id}` body `schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body` | `user_session`;仅 Realm owner 可写。 | `schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document`;构造 `ak.realm.moderation_policy`;若 override 放宽了组织策略禁止的动作，需文档内嵌组织 approval，否则返回 `requires_organization_approval`。 |
+| `PUT /_arkret/self/realms/{realm_id}/moderation-policy` | path `{realm_id: id}` body `schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body` | `user_session`;仅 Realm owner 可写。 | `schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document`;构造 `ak.realm.moderation_policy`;若 override 放宽了组织策略禁止的动作，需文档内嵌组织 approval，否则返回 `failed_precondition` 且 `reason_code=requires_organization_approval`。 |
 | `GET /_arkret/self/consent/cells` | query none | `user_session`;只返回调用方作为 holder（或显式 holder controller）可读的私有 consent cell，peer 禁止读取。 | `schemas/consent-operations.schema.json#/$defs/consent_cell_list`。 |
 | `GET /_arkret/self/consent/cells/{holder_did}` | path `{holder_did: did}` query `{peer: did, consent_scope?: enum}` | `user_session`;调用方 MUST 为 holder 或显式 holder controller，peer 禁止读取 dots / expiry / state。 | `schemas/consent-operations.schema.json#/$defs/consent_cell_view`;holder 视图中无 cell 返回 `not_found`。 |
 | `POST /_arkret/self/consent/cells/{holder_did}/grant` | path `{holder_did: did}` body `schemas/consent-operations.schema.json#/$defs/consent_update_request_body` | `user_session`;调用方 MUST 有权写 holder consent(holder 或显式授权的 controller / agent)。 | `schemas/consent-operations.schema.json#/$defs/consent_cell_view`;构造 `ak.consent.grant` Control Move。 |
@@ -351,7 +351,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 | `POST /_arkret/open/mimi/report-abuse` | body `schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body` | `user_session` 或 `service_signature`;同 `ak.self.moderation.command.report` 互补。 | `schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_outcome` |
 | `POST /_arkret/open/mimi/proxy-download` | body `schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_request_body` | `service_signature`;MIMI 桥接 blob 时使用；不接受 user_session。 | `schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_outcome` |
 
-> **§2.3 表格作用域**: 上表是 v1 core 服务面**所有**已注册 HTTP operation 的 endpoint 契约清单(operation_id 的权威计数由 generated registry 视图 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 维护，本文不硬编码数字；一个 operation_id 对应多个 HTTP 别名时合并展示)。Auth / MIMI / Keys.keypackages / Directory.announce|withdraw 等子表面也都在表中。OpenAPI 是 **HTTP/JSON binding** 的机器可消费最终来源；operation id、event kind、schema id 与 profile id 的全局 canonical source 仍是 `contract-catalog.json` / 对应 registry；operation DTO 字段集合的生成索引为 [`operation-schema-index.json`](../../artifacts/reports/operation-schema-index.json)。本表是人类阅读视图。
+> **§2.3 表格作用域**: 上表是 v1 core 服务面的主要 HTTP operation endpoint 契约阅读视图(operation_id 的权威全集由 generated registry 视图 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 维护，本文不硬编码数字；一个 operation_id 对应多个 HTTP 别名时合并展示)。OpenAPI 是 **HTTP/JSON binding** 的机器可消费最终来源；operation id、event kind、schema id 与 profile id 的全局 canonical source 仍是 `contract-catalog.json` / 对应 registry；operation DTO 字段集合的生成索引为 [`operation-schema-index.json`](../../artifacts/reports/operation-schema-index.json)。未在本表展开的已注册 operation 仍以这些机读来源为准。
 
 > **错误码映射**: 每个 operation_id 的 operation-specific 错误码集合（在通用 `unauthenticated` / `auth_expired` / `schema_violation` / `rate_limited` / `internal_error` / `service_unavailable` 等通用失败面之外）由 [`artifacts/registry/operations-error-mapping.json`](../../artifacts/registry/operations-error-mapping.json) 给出。错误码语义见 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)。
 
@@ -637,7 +637,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 | `ak.self.realm.resource.get` | `path.realm_id: id` | 无 | `ok: boolean`; `realm_id: id`; `owner: did`; `members: did[]`; `deleted: boolean` | response_schema_ref=schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view。不可见返回 `not_found`。 |
 | `ak.self.realm.query.export` | `path.realm_id: id` | 无 | `schema: const(ak.export.realm.v1)`; `realm_id: id`; `generated_at: datetime`; `operations: object[]`; `events: object[]` | response_schema_ref=schemas/realm-read-operations.schema.json#/$defs/realm_export。全量 event-log + operation dump；payload 可见性按 Realm policy。 |
 | `ak.self.realm.moderation_policy.query.effective` | `path.realm_id: id` | 无 | `realm_id: id`; `inheritance_mode: enum(none,organization)`; `inheritance_chain: did[]`; `organization_policy_layers: object[]`; `effective_rules: object[]`; `realm_policy: object?` | response_schema_ref=schemas/realm-read-operations.schema.json#/$defs/realm_effective_moderation_policy。组织继承的合并审核策略视图。 |
-| `ak.self.realm.moderation_policy.resource.replace` | `policy: object`(自由 `ak.realm.moderation_policy` 文档) | 无 | `kind: const`; `realm_id: id`; `policy: object`; `updated_by: did`; `updated_at: datetime` | request_schema_ref=schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body; response_schema_ref=schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document。仅 Realm owner 可写；放宽组织策略禁止动作的 override 需文档内嵌组织 approval，否则返回 `requires_organization_approval`。 |
+| `ak.self.realm.moderation_policy.resource.replace` | `policy: object`(自由 `ak.realm.moderation_policy` 文档) | 无 | `kind: const`; `realm_id: id`; `policy: object`; `updated_by: did`; `updated_at: datetime` | request_schema_ref=schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body; response_schema_ref=schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document。仅 Realm owner 可写；放宽组织策略禁止动作的 override 需文档内嵌组织 approval，否则返回 `failed_precondition` 且 `reason_code=requires_organization_approval`。 |
 | `ak.self.consent.query.list` | 无 | 无 | `ok: boolean`; `cells: object[]` | response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_cell_list。仅 authenticated holder（或显式 holder controller）可读；peer 不得获得 cell/dot/expiry。 |
 | `ak.self.consent.resource.get` | `path.holder_did: did`; `query.peer: did` | `query.consent_scope: enum` | `ok: boolean`; `cell_id: string`; `holder_did: did`; `peer_did: did`; `consent_scope: enum`; `state: enum(active,no_consent)`; `active_grant_dots: string[]`; `grant_dots: string[]`; `revoked_dots: string[]`; `expires_at: datetime?`; `requested_at: datetime?`; `updated_at: datetime` | response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_cell_view。调用方 MUST 为 holder 或显式 holder controller；peer 禁止读取。 |
 | `ak.self.consent.command.grant` | `path.holder_did: did`; `peer_did: did` | `consent_scope: enum=direct_message`; `expires_at: datetime` | 同 `ak.self.consent.resource.get` 响应字段 | request_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_update_request_body; response_schema_ref=schemas/consent-operations.schema.json#/$defs/consent_cell_view。构造 `ak.consent.grant`;调用方 MUST 有权写 holder consent。 |
@@ -823,7 +823,7 @@ POST /_arkret/self/events
 - `status=accepted` **仅当** `rejected[]` 与 `quarantine[]` 均为 empty 且 `accepted[]` 非 empty（至少一项首次接受；可与 `duplicate[]` 中的幂等重复项并存）。
 - `status=duplicate` **仅当** 本批所有项均为内容完全相同的幂等重复——全部列入 `duplicate[]` 且 `accepted[]` 为 empty——且 `rejected[]` / `quarantine[]` 均为 empty。
 - 调用方重试求差时 MUST 以 `accepted[] ∪ duplicate[]` 为已投递集合（联邦路径同 [`federation.md` §4.1](./federation.md)）。
-- 其他所有场景（包括部分成功 + 部分拒绝、部分成功 + 部分隔离、全部拒绝、空 batch 等）一律 `status=partial`，此时响应中 `rejected[]` 与 `quarantine[]` 至少之一 MUST 非 empty，且不得把 `partial` 上报为 `accepted`。
+- 其他所有已通过请求 schema 校验的场景（包括部分成功 + 部分拒绝、部分成功 + 部分隔离、全部拒绝等）一律 `status=partial`，此时响应中 `rejected[]` 与 `quarantine[]` 至少之一 MUST 非 empty，且不得把 `partial` 上报为 `accepted`。空 `events[]` 违反请求 schema 的 `minItems: 1`，MUST 以 `schema_violation` 拒绝且不进入本状态判定。
 - 上述规则覆盖 self submit 路径（`ak.self.events.command.submit`，enum `accepted` / `duplicate` / `partial`）。`status=historical_only` **不**在 self 路径出现，仅由 federation peer submit（`ak.peer.events.command.submit`）在 idempotency cache 撤销后重放路径产生，语义见本表 `ak.peer.events.command.submit` 行与 [`federation.md` §8.5.1](./federation.md)；故"其他一律 partial"不含该值。
 
 实现 MUST NOT 把 `status=partial` 简化为 `accepted` 以便利客户端处理；客户端 MUST 在 `partial` 时根据 `rejected[]` / `quarantine[]` 决定是否重试或上报。

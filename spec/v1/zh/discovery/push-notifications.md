@@ -412,6 +412,8 @@ POST /_arkret/edge/push/notify
 | `reason_code` | string | optional | 顶层：caller 提供的 wire-safe reason code。well-known 值 `historical_only` 标记诊断重放（非新事件），**MUST NOT** 触发新 push fanout（gateway 回 200 幂等式 ack）。其它取值仅在操作显式定义处被接受。 |
 | `audit_envelope` | object | optional | 顶层：`ak.audit.accessed` 信封路由片段（`{access_kind, late_recovery_original_event_id?}`）。present 时该请求是审计管线事件（如 `e2ee_late_recovery` 访问通知）而非 push notify：gateway 写审计事件、回 200、跳过整条 push 管线。 |
 
+`blind_wakeup` 下上述最小化义务覆盖 `counts` 内的所有绝对活动计数，包括未读数与未接来电数；`badge` 与 `missed_call` 均只能使用布尔存在标志或 policy 声明的封闭 bucket 字符串，MUST NOT 发送明文绝对计数。`unread_increment` 是唯一允许的有界增量形态，不得被解释为累计总数。
+
 > **传输层 header（非 body 字段）**：notify 的 `idempotency_key`→`Idempotency-Key` header；来源服务 DID→`Source-Service-ID` header；目标服务 DID 与 `recipient_service_id` 复用→`Destination-Service-ID` header（均为 `httpMessageSignature` 伴随项，见 [`../sync/service-http-binding.md` §3](../sync/service-http-binding.md) 与 OpenAPI securitySchemes）。`operation_id` 由 URL path（operationId `ak.edge.push.command.notify`）唯一确定，不在 body 重复承载。以上字段 **MUST NOT** 出现在请求体内。
 
 **Notify body / product-private body / provider payload 三层边界（normative）**：
@@ -443,7 +445,7 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
     "timing_profile_hint": "default",
     "counts": {
       "badge": "2-5",
-      "missed_call": 0
+      "missed_call": false
     },
     "devices": [
       {

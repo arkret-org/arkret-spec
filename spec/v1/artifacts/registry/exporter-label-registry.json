@@ -1,7 +1,7 @@
 {
   "version": "2026-06-10",
   "source_of_truth": true,
-  "description": "Canonical registry of all normative MLS-Exporter labels in Arkret v1. Each label is a wire-breaking security-domain-separation parameter: implementations MUST use the exact label string and Context field shape, MUST NOT derive with an empty Context, and MUST NOT migrate or reuse keys across distinct labels without a new profile. Domain separation is defined by exact label inequality; forbid_reuse_with is a non-exhaustive human/tooling hint and MUST NOT be interpreted as an allow-list or require symmetric closure. Per-entry defined_in points to the normative source. See zh/crypto-media/media-service-binding.md §8 and conformance/conformance-vectors.md §12.7.",
+  "description": "Canonical registry of all normative MLS-Exporter and MLS ExpandWithLabel domain-separation labels in Arkret v1. Each label is a wire-breaking security parameter: implementations MUST use the exact label string, primitive, and Context field shape, and MUST NOT migrate or reuse keys across distinct labels without a new profile. MLS-Exporter entries MUST NOT derive with an empty Context; an ExpandWithLabel entry follows its registered context_encoding, including an explicitly registered empty context. Domain separation is defined by exact label inequality; forbid_reuse_with is a non-exhaustive human/tooling hint and MUST NOT be interpreted as an allow-list or require symmetric closure. Per-entry defined_in points to the normative source. See zh/crypto-media/media-service-binding.md §8 and conformance/conformance-vectors.md §12.7.",
   "labels": [
     {
       "label": "ak.rtc-frame-key/v1",
@@ -135,6 +135,7 @@
     },
     {
       "label": "ak.history-v1",
+      "primitive": "MLS-Exporter",
       "purpose": "Per-epoch history_secret root for mls-exporter-aead-v1 content encryption; may be retained and re-sealed to authorized later joiners via ak.realm_key.share",
       "defined_in": "zh/crypto-media/encryption-and-audit.md §2.10.1",
       "context_fields": [
@@ -149,6 +150,28 @@
       "empty_context_forbidden": true,
       "empty_context_error": "e2ee_key_source_unauthorised",
       "forbid_reuse_with": [
+        "ak.content-v1",
+        "arkret-aead-sender-nonce-prefix-v1",
+        "arkret-reaction-routing-v1",
+        "arkret-mention-routing-v1"
+      ]
+    },
+    {
+      "label": "ak.content-v1",
+      "primitive": "ExpandWithLabel",
+      "parent_label": "ak.history-v1",
+      "purpose": "Per-epoch content AEAD key derived from history_secret for mls-exporter-aead-v1",
+      "defined_in": "zh/crypto-media/encryption-and-audit.md §2.10.1",
+      "context_fields": [],
+      "context_encoding": "empty byte string, exactly as specified by the registered ExpandWithLabel derivation",
+      "output_length": "AEAD.Nk for the active MLS ciphersuite",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1"
+      ],
+      "grandfathered": false,
+      "empty_context_forbidden": false,
+      "forbid_reuse_with": [
+        "ak.history-v1",
         "arkret-aead-sender-nonce-prefix-v1",
         "arkret-reaction-routing-v1",
         "arkret-mention-routing-v1"

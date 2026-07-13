@@ -1,0 +1,47 @@
+{
+  "version": "2026-07-13",
+  "source_of_truth": true,
+  "description": "Closed vocabulary for fixture top-level runner.kind. Unknown kinds MUST fail lint and conformance loading. Each entry identifies the execution contract and ownership boundary; fixture-local runner metadata may further specialize an entry but cannot invent a new kind.",
+  "runner_kinds": [
+    {
+      "kind": "named_suite",
+      "execution_contract": "Dispatch to the canonical namespace in runner.entrypoint; the entrypoint MUST execute the fixture assertions, not merely load the file.",
+      "owner": "cotest"
+    },
+    {
+      "kind": "registry_coverage",
+      "execution_contract": "Load runner.inputs and execute the registered assertion IDs against canonical registries and generated views.",
+      "owner": "in_tree_lint"
+    },
+    {
+      "kind": "json_schema_and_semantic_cases",
+      "execution_contract": "Validate each case against its declared JSON Schema, then execute the semantic acceptance or rejection assertion.",
+      "owner": "cotest"
+    },
+    {
+      "kind": "json_schema_validation_cases",
+      "execution_contract": "Validate each case against its declared JSON Schema and compare the validation decision with expected_valid.",
+      "owner": "cotest"
+    },
+    {
+      "kind": "did_method_adapter_cases",
+      "execution_contract": "Execute DID method adapter resolution and normalization cases with fail-closed method/profile dispatch.",
+      "owner": "cotest"
+    },
+    {
+      "kind": "profile_discovery_coverage",
+      "execution_contract": "Cross-check claimed and discovered profiles against conformance profile requirements and role metadata.",
+      "owner": "in_tree_lint_and_cotest"
+    },
+    {
+      "kind": "generated_limit_cases",
+      "execution_contract": "Materialize bounded adversarial inputs from each generator rule and execute the declared limit decision.",
+      "owner": "cotest"
+    },
+    {
+      "kind": "arkret_private_kdf_and_durability",
+      "execution_contract": "Execute RFC 9420 KDFLabel/MLS-Exporter bytes, NFC/HMAC KATs, and RRK eager-seal state transitions from arkret-private-kdf-fixture.json.",
+      "owner": "cotest"
+    }
+  ]
+}

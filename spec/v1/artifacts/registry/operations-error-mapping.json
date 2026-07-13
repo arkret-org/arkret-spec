@@ -1300,8 +1300,10 @@
     {
       "operation_id": "ak.self.realm.moderation_policy.resource.replace",
       "http_alias": "PUT /_arkret/self/realms/{realm_id}/moderation-policy",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
+      "operation_specific": [
+        "requires_organization_approval"
+      ],
+      "description": "A policy override that relaxes an action forbidden by inherited organization policy returns top-level failed_precondition with reason_code=requires_organization_approval unless the document embeds a valid organization approval."
     },
     {
       "operation_id": "ak.self.consent.query.list",

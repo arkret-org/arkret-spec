@@ -31,6 +31,9 @@ def fixture_entries() -> list[dict[str, str]]:
 def manifest() -> dict[str, Any]:
     return {
         "schema": "arkret.fixture-digests.v1",
+        "source_of_truth": False,
+        "generated_from": ["spec/v1/artifacts/fixtures/*.json"],
+        "generated_by": "tools/check_fixture_digests.py --write-reference",
         "fixtures_root": "spec/v1/artifacts/fixtures",
         "hash": "sha256",
         "files": fixture_entries(),

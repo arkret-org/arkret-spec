@@ -223,7 +223,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
       "default_join_rule": "restricted",
       "history_visibility": "joined",
       "encryption_profile": "mls_rfc9420",
-      "federation_policy": "closed",
+      "federation_policy": "restricted",
       "notary_profile": "single_did",
       "notary": {
         "type": "single_did",

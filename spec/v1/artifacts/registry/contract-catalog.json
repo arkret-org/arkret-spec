@@ -53,6 +53,7 @@
       "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
       "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Seal coverage, governance state_root, or reducer state.",
       "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
+      "Every active lifecycle event kind MUST declare lifecycle_modality. Use reversible for a reversible lifecycle facet or either member of an archive/restore pair, and terminal for an irreversible transition that cannot be restored. Reducers and SDKs MUST NOT infer modality from event-kind spelling or the presence of a sibling event.",
       "Reducer-input durable kinds MAY declare cell_family, cell_subject, plane, sealed, lattice, bottom, and (cas_register only) initial_value. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used for lattices such as or_set whose join cannot produce Bottom. initial_value declares the value the cas_register reports before any DataEvent or Control Move effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Control Move predicates implements singleton-once-set cells.",
       "Registered exemption: protocol-singleton cells that are not written through a single event_kind are NOT indexed here. Currently the only such cell family is ak.component.notary.v1 (per-Realm notary cell, lattice=cas_register, bottom=reject): its genesis value comes from the ak.realm.create payload notary object and subsequent changes are ordinary notary-finalized Control Moves; its canonical definition lives in zh/authz/event-auth-state-resolution.md section 4.4. Any future cell family without a single writer kind MUST be added to this exemption list explicitly.",
       "Lattice MUST be one of the fully specified core types: or_set, mv_register, cas_register, fsm, counter, ordered_log. A new lattice type cannot become active until its join, bottom, op schema, profile gate, and conformance vectors are all registered.",
@@ -568,7 +569,8 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Circle archive lifecycle facet (active -> archived)."
+        "payload": "Circle archive lifecycle facet (active -> archived).",
+        "lifecycle_modality": "reversible"
       },
       {
         "event_kind": "ak.circle.restore",
@@ -576,7 +578,8 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Circle restore lifecycle facet (archived -> active)."
+        "payload": "Circle restore lifecycle facet (archived -> active).",
+        "lifecycle_modality": "reversible"
       },
       {
         "event_kind": "ak.circle.tombstone",
@@ -970,7 +973,8 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Strand archive"
+        "payload": "Strand archive",
+        "lifecycle_modality": "reversible"
       },
       {
         "event_kind": "ak.strand.restore",
@@ -978,7 +982,8 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Strand restore"
+        "payload": "Strand restore",
+        "lifecycle_modality": "reversible"
       },
       {
         "event_kind": "ak.strand.stage.set",
@@ -1137,7 +1142,8 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Space archive (UI-level grouping archive; contained Strands MUST be relocated or follow archive)"
+        "payload": "Space archive (UI-level grouping archive; contained Strands MUST be relocated or follow archive)",
+        "lifecycle_modality": "reversible"
       },
       {
         "event_kind": "ak.space.restore",
@@ -1145,7 +1151,8 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Space restore (transition state archived -> active; only valid when current state == archived; tombstoned Spaces MUST NOT be restored)"
+        "payload": "Space restore (transition state archived -> active; only valid when current state == archived; tombstoned Spaces MUST NOT be restored)",
+        "lifecycle_modality": "reversible"
       },
       {
         "event_kind": "ak.space.tombstone",
@@ -1153,7 +1160,8 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Space tombstone (irreversible; contained Strands MUST be relocated before)"
+        "payload": "Space tombstone (irreversible; contained Strands MUST be relocated before)",
+        "lifecycle_modality": "terminal"
       },
       {
         "event_kind": "ak.message.create",
@@ -1291,7 +1299,8 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Generic redaction envelope for non-message objects/events and profile-declared content trimming"
+        "payload": "Generic redaction envelope for non-message objects/events and profile-declared content trimming",
+        "lifecycle_modality": "terminal"
       },
       {
         "event_kind": "ak.morph.create",
@@ -1315,7 +1324,8 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Morph archive"
+        "payload": "Morph archive",
+        "lifecycle_modality": "reversible"
       },
       {
         "event_kind": "ak.morph.restore",
@@ -1323,7 +1333,8 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Morph restore"
+        "payload": "Morph restore",
+        "lifecycle_modality": "reversible"
       },
       {
         "event_kind": "ak.morph.schema_migrate",
@@ -1372,7 +1383,8 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Relation tombstone"
+        "payload": "Relation tombstone",
+        "lifecycle_modality": "terminal"
       },
       {
         "event_kind": "ak.container.move_item",
@@ -5885,7 +5897,7 @@
         "http": "PUT /_arkret/self/realms/{realm_id}/moderation-policy",
         "grpc": "SelfRealm/ModerationPolicyReplace",
         "mq": "self.realm.moderation_policy.resource.replace",
-        "notes": "Writes a Realm moderation-policy override (ak.realm.moderation_policy). Only the Realm owner may write; an override that loosens an action an organization policy denies requires explicit organization approval embedded in the document, otherwise the server returns requires_organization_approval.",
+        "notes": "Writes a Realm moderation-policy override (ak.realm.moderation_policy). Only the Realm owner may write; an override that loosens an action an organization policy denies requires explicit organization approval embedded in the document, otherwise the server returns failed_precondition with reason_code=requires_organization_approval.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,

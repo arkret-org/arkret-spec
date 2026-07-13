@@ -4439,6 +4439,14 @@
       "description": "An ak.realm.link status transition is absent from the canonical FSM transition matrix, including any non-byte-identical attempt to leave terminal tombstoned state. The reducer MUST reject with top-level failed_precondition. See zh/models/realm-links.md §4."
     },
     {
+      "code": "requires_organization_approval",
+      "applies_to": [
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "Sub-reason for failed_precondition when a Realm moderation-policy override would relax an action forbidden by inherited organization policy without embedding a valid organization approval. See zh/sync/service-http-binding.md §2.3."
+    },
+    {
       "code": "human_approval_required",
       "applies_to": [
         "auth_decision",

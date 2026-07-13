@@ -654,6 +654,10 @@
         {
           "name": "all_failure_causes_share_external_shape",
           "input": {
+            "surfaces": [
+              "third_party_claim",
+              "invite_locator_resolve"
+            ],
             "failure_causes": [
               "not_found",
               "expired",
@@ -672,13 +676,18 @@
               "timing_delta_max_ms": 50
             },
             "invariants": [
-              "specific reason code is only written to server-side audit log"
+              "specific reason code is only written to server-side audit log",
+              "claim failures and locator-resolve failures are each indistinguishable within their own endpoint surface"
             ]
           },
           "runner": {
             "given_state": {
               "vector_id": "ak.vector.invite.failure_indistinguishable.v1",
               "preconditions": {
+                "surfaces": [
+                  "third_party_claim",
+                  "invite_locator_resolve"
+                ],
                 "failure_causes": [
                   "not_found",
                   "expired",
@@ -695,6 +704,10 @@
               "step": "all_failure_causes_share_external_shape",
               "canonicalization": "fixture_json_v1",
               "input": {
+                "surfaces": [
+                  "third_party_claim",
+                  "invite_locator_resolve"
+                ],
                 "failure_causes": [
                   "not_found",
                   "expired",
@@ -709,7 +722,8 @@
             "expected_state_transition": {
               "outcome": "not_found",
               "invariants": [
-                "specific reason code is only written to server-side audit log"
+                "specific reason code is only written to server-side audit log",
+                "claim failures and locator-resolve failures are each indistinguishable within their own endpoint surface"
               ]
             },
             "expected_external_response": {

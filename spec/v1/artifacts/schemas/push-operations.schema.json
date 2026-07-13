@@ -87,11 +87,8 @@
             },
             {
               "type": "string",
-              "enum": [
-                "1",
-                "2-5",
-                "6+"
-              ]
+              "pattern": "^(?:0|[1-9][0-9]*(?:-[1-9][0-9]*|\\+)?)$",
+              "maxLength": 32
             }
           ]
         },
@@ -101,9 +98,17 @@
           "maximum": 99
         },
         "missed_call": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 99
+          "description": "Coarse missed-call indicator. Under blind_wakeup it MUST NOT carry a plaintext absolute count; only a boolean presence flag or the policy-declared bucket string is allowed. See push-notifications.md §5.1.",
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string",
+              "pattern": "^(?:0|[1-9][0-9]*(?:-[1-9][0-9]*|\\+)?)$",
+              "maxLength": 32
+            }
+          ]
         }
       },
       "additionalProperties": false

@@ -192,6 +192,14 @@
       "description": "Selector-based normative clause and evidence closure for profile operation conformance certification."
     },
     {
+      "name": "runner_kinds",
+      "file": "registry/runner-kind-registry.json",
+      "kind": "runner_kind_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Closed vocabulary, execution contract, and owner for fixture top-level runner.kind dispatch."
+    },
+    {
       "name": "profiles_dependency_graph",
       "file": "registry/profiles-dependency-graph.json",
       "kind": "profiles_dependency_graph",
