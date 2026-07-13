@@ -4156,7 +4156,7 @@
     },
     "agent_key_scope": {
       "type": "object",
-      "description": "Closed authorization scope for an agent signing key. Resource selectors and actions are both explicit so the key cannot silently widen its authority through omitted dimensions. actions may contain service operation ids (for example ak.self.events.stream.subscribe) and content capability action tokens (for example ak.event.read); content capability grants are not the sole source for service-surface scope.",
+      "description": "Closed authorization scope for an agent signing key. Resource selectors and actions are both explicit so the key cannot silently widen its authority through omitted dimensions. actions may contain service operation ids (for example ak.self.events.stream.subscribe) and content capability action tokens (for example ak.event.read); content capability grants are not the sole source for service-surface scope. Omission never implies a default action. Provisioning maps supported content actions only to explicit Realm-scoped content resources and writes each pending grant in that governed Realm; operation/service resources constrain the service surface and MUST NOT be converted into content capability resources.",
       "required": [
         "actions",
         "resources"

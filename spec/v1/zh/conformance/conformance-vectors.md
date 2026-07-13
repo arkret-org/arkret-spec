@@ -3373,16 +3373,16 @@ Steps:
 
 1. Provision Agent DID `A`，controller DID 为 `C`；Agent DID Document 写唯一 `ArkretPrincipalControlRealm` service entry，分配 `PCR_A`，controller 已有 `PCR_C`。
 2. Controller 按 delegation 创建 `PCR_A` genesis，并写 Agent profile/key/lifecycle facts。
-3. Provisioning 同时把 accountability grant 与 selector claim 写入 `PCR_C`。
-4. 变体 A：实现把 `PCR_C` deterministic id 当作 Agent PCR；变体 B：在 `PCR_A` 或 `PCR_C` id 上创建缺 PCR marker、restricted history、MLS profile 或任一 E2EE floor 的 Realm；变体 C：服务端以 Agent DID 伪造 proof，省略 `executed_by=C` / `authorization_ref`。
+3. Provisioning 同时把 accountability grant 与 selector claim 写入 `PCR_C`；若请求显式内容 scope，则 pending capability grant 按 resource `realm_id` 写入对应受治理 Realm，不写入 `PCR_C`。省略 scope 或仅请求 operation/service 服务面 scope 时，不生成隐式 `ak.event.read` 或其他内容 grant。
+4. 变体 A：实现把 `PCR_C` deterministic id 当作 Agent PCR；变体 B：在 `PCR_A` 或 `PCR_C` id 上创建缺 PCR marker、restricted history、MLS profile 或任一 E2EE floor 的 Realm；变体 C：服务端以 Agent DID 伪造 proof，省略 `executed_by=C` / `authorization_ref`；变体 D：忽略 `requested_scope.resources[]`，把内容 grant 默认写入 `PCR_C` 或把服务面 resource 转成内容权限。
 
 Expected:
 
 - `PCR_A != PCR_C`，且 receiver 必须从 Agent DID accepted-at history 验证 service entry，不得验证实现私有派生算法。
 - `PCR_A.created_by == PCR_A.notary == A`，purpose/profile/history/encryption floor 全部满足 PCR invariant。
 - Controller 写 Agent PCR 时 `actor_id=A`、`executed_by=C`，proof method 属于 C，delegation 覆盖目标 kind；不得伪造 A 签名。
-- Agent profile、key authorize/revoke、lifecycle 只进入 `PCR_A`；accountability/selector facts 只进入 `PCR_C`；pairing request/notification 不进入任一 PCR。
-- 三个变体全部 fail closed，且不得留下非 PCR Realm 占用任一 principal control id。
+- Agent profile、key authorize/revoke、lifecycle 只进入 `PCR_A`；accountability/selector facts 只进入 `PCR_C`；Realm-specific capability grant 只进入其所治理 Realm；pairing request/notification 不进入任一 PCR。
+- 四个变体全部 fail closed，且不得留下非 PCR Realm 占用任一 principal control id，也不得扩大 Agent 的内容权限。
 
 ### 11.2.3 Vector: Managed Agent PCR Recovery
 

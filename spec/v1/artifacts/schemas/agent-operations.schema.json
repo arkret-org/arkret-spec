@@ -292,7 +292,8 @@
           "$ref": "#/$defs/agent_pcr_recovery_state"
         },
         "requested_scope": {
-          "$ref": "#/$defs/agent_key_scope"
+          "$ref": "#/$defs/agent_key_scope",
+          "description": "Explicit Agent key/session ceiling. Omission grants no implicit content capability. During provisioning, supported content actions may create pending capability grants only from Realm-scoped content resources and in each resource's governed Realm; operation/service resources remain service-surface constraints and never become content grants."
         },
         "pairing_request_id": {
           "$ref": "#/$defs/opaque_local_id"
@@ -789,7 +790,8 @@
           "$ref": "#/$defs/blob_ref"
         },
         "requested_scope": {
-          "$ref": "#/$defs/agent_key_scope"
+          "$ref": "#/$defs/agent_key_scope",
+          "description": "Explicit Agent key/session ceiling. Omission grants no implicit content capability. Supported content actions may create pending capability grants only from Realm-scoped content resources and in each resource's governed Realm; operation/service resources remain service-surface constraints and never become content grants."
         },
         "accountability": {
           "type": "object",
