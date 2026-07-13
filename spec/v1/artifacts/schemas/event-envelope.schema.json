@@ -34,11 +34,12 @@
       "description": "Reducer-stamped immutable effective scope for this accepted Event. scope_circle_id=null materializes as {kind:'realm', realm_id}; Circle-scoped objects materialize as {kind:'circle', realm_id, circle_id}. Actor-supplied submit payloads MUST NOT carry this field. This value is excluded from producer proof.event_digest, but enters accepted envelope storage, Seal/sub-seal observational commitments when present, and in MLS-backed scopes E2EE AAD and MLS governance binding input."
     },
     "actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did"
+      "$ref": "./common-ids.schema.json#/$defs/did",
+      "description": "Principal whose Realm/cell state the Event mutates and to whom the durable fact is attributed. When executed_by is absent, the proof signer maps to actor_id. When executed_by is present, actor_id remains the principal of record while the actual executor and proof signer map to executed_by."
     },
     "executed_by": {
       "$ref": "#/$defs/did",
-      "description": "Optional. Present when a native personal agent, delegated applet, or delegated service acts on behalf of the controller actor. actor_id is the principal of record (controller), executed_by is the agent / applet / service principal that actually issued the wire write. When present, MUST appear together with authorization_ref. Applet delegated writes also MUST carry applet_id. Enters canonical event bytes, event digest, and E2EE AAD. Receivers MUST verify the proof's verification_method maps to executed_by (not actor_id) when this field is present."
+      "description": "Optional actual executor DID for a delegated write. This covers both an agent/applet/service acting for a controller actor and a controller acting under explicit managed-principal delegation to write an Agent principal's control state. actor_id is always the principal of record; executed_by is the principal that issued and signed the wire write. When present, MUST appear together with authorization_ref. Applet delegated writes also MUST carry applet_id. Enters canonical event bytes, event digest, and E2EE AAD. Receivers MUST verify the proof's verification_method maps to executed_by (not actor_id) and MUST NOT synthesize an actor_id signature."
     },
     "authorization_ref": {
       "oneOf": [
@@ -52,7 +53,7 @@
           "$ref": "#/$defs/did_delegation_ref"
         }
       ],
-      "description": "Optional. Required when executed_by is present. Prefer a materialized ak:grant:* id; an event id is allowed only when it points to the accepted grant/delegation event that produced the effective authorization; a DID-document delegation URL (did_delegation_ref) is allowed when the delegation is expressed in the principal DID document (e.g. a ArkretDeviceEnrollmentAuthority service designating the enrollment authority). Reducer MUST validate the referenced grant/delegation covers the event kind and target resource and is within its effective validity window; for did_delegation_ref the designation is resolved against the principal DID document at the event's accepted-at."
+      "description": "Optional. Required when executed_by is present. Prefer a materialized ak:grant:* id; an event id is allowed only when it points to the accepted grant/delegation event that produced the effective authorization; a DID-document delegation URL (did_delegation_ref) is allowed when the delegation is expressed in the principal DID document (for example ArkretDeviceEnrollmentAuthority or the managed-agent principal-control delegation). Reducer MUST validate the referenced grant/delegation covers the event kind and target resource and is within its effective validity window; for did_delegation_ref the designation is resolved against the actor_id principal DID document at the event's accepted-at."
     },
     "applet_id": {
       "$ref": "#/$defs/applet_id",
@@ -260,6 +261,11 @@
       "additionalProperties": false
     }
   },
+  "dependentRequired": {
+    "executed_by": [
+      "authorization_ref"
+    ]
+  },
   "allOf": [
     {
       "$comment": "Signed Applet provenance invariants. external_ref is only meaningful when bound to a signed applet_id, and Applet-originated writes must cite the accepted authorization/delegation grant.",
@@ -439,6 +445,7 @@
               "ak.actor.discovery",
               "ak.agent.key.authorize",
               "ak.agent.key.revoke",
+              "ak.agent.selector_claim",
               "ak.applet.bridge_error",
               "ak.applet.discovery",
               "ak.applet.registration",
@@ -1992,6 +1999,25 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/view_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.agent.selector_claim"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./agent-selector-claim.schema.json"
           }
         }
       }

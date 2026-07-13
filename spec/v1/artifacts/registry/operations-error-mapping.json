@@ -948,8 +948,10 @@
     {
       "operation_id": "ak.open.agent_pairing.command.submit_runtime_key_request",
       "http_alias": "POST /_arkret/open/agent-pairing/runtime-key-requests",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
+      "operation_specific": [
+        "agent_runtime_request_conflict"
+      ],
+      "description": "A same-binding retry is idempotent and retains the approval_request_id and notification id. A different stable ak.agent.runtime_key_binding.v1 digest on the same open pairing_request_id returns HTTP 409 agent_runtime_request_conflict and MUST NOT replace the pending request."
     },
     {
       "operation_id": "ak.open.agent_pairing.query.runtime_key_request_status",

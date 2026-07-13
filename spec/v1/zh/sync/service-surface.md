@@ -295,7 +295,7 @@ GET /_arkret/describe
 
 能力发现示例（normative 指引）：客户端判断服务端是否支持某项**可选传输能力**时，MUST 以 describe 的 `supported_features` / `supported_bindings` / `limits` 为权威发现面，而不是对猜测 endpoint 直接探测。以可续传 Blob 上传为例，服务端支持时 MUST 同时声明 `supported_features` 含 `ak.feature.blob.resumable_upload.tus.v1`、`supported_bindings` 含一条 `kind="tus"` 的 binding，并在 `limits` 暴露续传上限；客户端据此发现后再用 tus `OPTIONS`（`Tus-Resumable` / `Tus-Version` / `Tus-Extension`）做 endpoint 级线上确认。完整 binding 语义、内容寻址不变式与隐私约束见 [`crypto-media/media-and-blob.md` §2.1](../crypto-media/media-and-blob.md)。
 
-本规范登记的标准 `supported_features` 还包括：`ak.feature.realm_key.peer_relay.v1`（中继 to-device `ak.realm_key.request`）、`ak.feature.realm_key.backup_retrieval.v1`（托管 `mls_history` key backup unlock）、`ak.feature.realm_key.archive_retrieval.v1`（archive node 历史 key 取回）与 `ak.feature.mls_exporter_aead.v1`（接受并同步 `content_scheme=mls-exporter-aead-v1` Realm；见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10）。客户端依赖这些能力时 MUST 以 describe 声明为准，未声明时 fail closed 或选择其他授权 source。
+本规范登记的标准 `supported_features` 还包括：`ak.feature.realm_key.peer_relay.v1`（中继 to-device `ak.realm_key.request`）、`ak.feature.realm_key.backup_retrieval.v1`（托管 `mls_history` key backup unlock）、`ak.feature.realm_key.archive_retrieval.v1`（archive node 历史 key 取回）、`ak.feature.mls_exporter_aead.v1`（接受并同步 `content_scheme=mls-exporter-aead-v1` Realm；见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10）与 `ak.feature.agent_runtime_approval_notifications.v1`（通过 account subscribe 的闭合 notification delta 投递 Agent runtime 审批；见 [`client-sync.md` §3.1](./client-sync.md)）。客户端依赖这些能力时 MUST 以 describe 声明为准，未声明时 fail closed 或选择规范明确允许的 fallback。
 
 服务类型命名规则：
 

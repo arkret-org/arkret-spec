@@ -172,6 +172,20 @@ v1 不定义独立的 agent key rotate 事件：key 替换统一通过 §3.6.1 �
 - **Lifecycle**:`ak.self.agent.command.pause` / `ak.self.agent.command.resume` / `ak.self.agent.command.deactivate` 是 agent lifecycle 写入。对应 Event 都是写入 `ak.component.agent.status.v1` 的 Control Move，authoring basis 只由 Event Envelope 顶层 `seal_basis` 表达；payload 不携带独立 freshness frontier。Resume reducer 在接受时以 accepted current control frontier 重校验 controller / agent / key / capability / Realm policy / accountability grant。Pause 保留 durable state 但拒绝新 session;Auth Server MUST 在 revocation freshness window(MUST ≤ session 最大 TTL,SHOULD ≤ 60 秒——pause 是 kill switch,生效延迟应以秒计)内对已签发 session token fail closed。实现 MAY 通过同步 token revocation、introspection fail-closed、资源访问时强制 agent status freshness check 或等价机制达成，但 MUST NOT 仅等待 token 自然过期。Deactivate 是 terminal,fan-out `ak.agent.key.revoke` / `ak.capability.revoke` / runtime endpoint revocation,并使该 agent 全部 open pairing handle 永久不可解析。
 - **Resume 时 sidecar exposure 重新披露(normative)**:`ak.self.agent.command.resume` 提交前，实现 MUST 重新执行上一条 "Sidecar exposure 披露" 流程，把 agent 在 pause 期间 controller 在 eligible Realm 中**新建或新加入**的 `ak.profile.agent_sidecar_thread.v1` sidecar Circle 列出；若该集合非空,resume MUST 在 controller 显式再次同意之前拒绝执行(不得 silent resume),并把该确认作为 audit 事件留底。仅当 pause 期间无新 sidecar 进入 agent 的 eligibility 集合时,resume 可不重复披露。该规则关闭"pairing 期完成一次披露后,pause 期新建 sidecar 在 resume 时被 agent 静默继承访问权"的暴露面。
 
+#### 3.6.2 Runtime request binding、审批竞态与账号通知（normative）
+
+Conformance vector：`ak.vector.agent.runtime_key_binding.v1`。
+
+每个 open `pairing_request_id` 同时最多一个 pending runtime key binding。服务端 MUST 以 canonical JSON 对象计算稳定 digest，kind 固定为 `ak.agent.runtime_key_binding.v1`，对象字段为 `{kind, agent_id, pairing_request_id, verification_method, public_key_digest, attestation_digest}`；`public_key_digest` 与 `attestation_digest` 分别对 `agent_runtime_approval_request_body.public_key` 和 `runtime_attestation`（缺省时为 JSON `null`）的 canonical JSON bytes 计算 SHA-256 typed digest。外层 binding 对象再按同一规则计算 SHA-256 typed digest。pairing code、过期时间、PoP challenge/signature 等 freshness proof 不得进入这份稳定身份。canonical helper 只能由 arkret-rust-sdk 定义并供实现复用。
+
+该 digest 与 controller `ak.agent.key.authorize.payload.approval_evidence.request_canonical_digest` 使用的 `ak.agent.key_pairing_request_binding.v1` 不同：后者绑定 pairing handle、当前完整 request 与 freshness 字段，是 controller 批准的证据。最终 `ak.gate.account.command.pair_agent_key` MUST 从数据库当前持久化的完整 runtime request 重新计算二者，并与 controller 签名证据、提交 body 和当前 stable binding 比较；不得只比较提交 body 与 pairing handle。过期 prompt 或任一不一致必须 fail closed，客户端重新读取。
+
+首次合法请求生成一个稳定 `approval_request_id` 和 `ak:notification:*` id，并在创建 pairing record 的 account context 中物化 `agent_runtime_approval action=add`。相同 stable binding 的重试是幂等的：允许刷新 PoP 和完整 request，但保留两项 id，并物化 `action=update`。已有 pending 时，不同 stable binding MUST 返回 HTTP 409 `agent_runtime_request_conflict`，不得替换 controller 当前看到的请求。
+
+Pairing record 与 account notification projection 的 add/update/remove MUST 同一数据库事务提交。只有 durable `ak.agent.key.authorize` 被 accepted 后才能消费 pairing handle并发 `remove(reason=approved)`；expiry、renew-pairing、deactivate 与 supersede 也必须发对应 remove。Authorization Event/activation projection 与该消费必须共享事务，或者以 `authorized_event_ref` 为键提供启动时和请求时均可幂等执行的 reconciler；崩溃不得使 accepted authorization 永久显示 pending。Notification 只负责 controller 发现，不是 durable 审批事实。
+
+Controller 通过 `ak.self.account.stream.subscribe.notifications.items[]` 发现请求；声明支持的服务 MUST 在 `ServiceDescribe.supported_features` 列出 `ak.feature.agent_runtime_approval_notifications.v1`。只有 describe 已成功解析且缺少该 token 时，controller 客户端才能启用 30 秒起、带 jitter、最大 60 秒的 list/get fallback；describe 未解析、应用隐藏或离线时不得轮询。未配对 runtime 仍通过 `ak.open.agent_pairing.query.runtime_key_request_status` 有界轮询；HTTP response MUST 携带 `Retry-After`，客户端采用 1s/2s/5s/10s 后最大 30s，并遵守更长的服务端值，在 pairing 过期后停止。
+
 ### 3.7 MLS KeyPackage Key
 
 MLS KeyPackage key 用于加入加密 Realm。
@@ -221,6 +235,12 @@ MLS KeyPackage key 用于加入加密 Realm。
 `principal_control_realm_id` MUST 可通过 DID Document service、normalized principal view、device/key server describe endpoint 或本地 account binding 验证。客户端无法验证 control Realm 与 principal DID 的绑定时，MUST fail closed：不得接受该 principal 的新 device grant、session grant、KeyPackage 或 device revocation 状态。
 
 Organization principal 的 control stream 遵守同一 PCR 规则，但它没有共享 human password account。组织 PCR 的 genesis / recovery / delegated write MUST 由组织 DID inception/controller proof、满足组织 governance threshold 的 proof、或组织 DID Document / governance profile 明确委派的 Account Authority / `ArkretGovernanceService` 授权。委派路径的 purpose MUST 覆盖对应动作（例如 `principal_control_realm_bootstrap`、`device_enrollment`、`session_issuer` 或 `ak.realm.organization`），且事件必须保留实际执行主体（`executed_by`、governance decision id 或等价审计 ref）。普通企业 SSO/OIDC/passkey 登录只认证某个管理员 principal；它不能单独创建、登录或控制组织 PCR，除非该 Account Authority 同时出示上述组织侧 delegation / governance proof。
+
+Native Personal Agent 是独立 DID principal，不继承 controller 的 PCR 或 home/Collaboration Realm。Managed-agent DID bootstrap MUST 在 Agent DID Document 中包含唯一 service entry：`id=<agent DID>#arkret-principal-control-realm`、`type="ArkretPrincipalControlRealm"`，`serviceEndpoint` 为闭合对象 `{realm_id, controller_did, authorization_ref}`。`realm_id` 是服务端分配的 `ak:realm:*`（本规范不规定算法派生）；`controller_did` 是获授权的 managed-principal controller；`authorization_ref` 是 DID Document 中覆盖 `principal_control_realm_bootstrap` 与 agent-control authoring 的 delegation DID URL。Receiver 必须按 accepted-at 解析 Agent DID history，逐字验证此 entry 后才把 `realm_id` 认作该 Agent 的 `principal_control_realm_id`；缺失、多条、controller 不匹配、delegation purpose 不足或 Realm genesis 不匹配均 fail closed。实现不得把本地确定性派生算法当成协议绑定。
+
+该边界的 conformance vector 为 `ak.vector.agent.managed_pcr_separation.v1`。
+
+Agent PCR genesis 必须遵守普通 PCR marker、`history_visibility=restricted`、`encryption_profile=mls_rfc9420` 与两条 `e2ee_required` floor；`created_by` 与 notary 都是 Agent DID。Controller 受托创建或写入 Agent PCR 时，Event `actor_id` 是 Agent DID（控制事实所属 principal），`executed_by` 是 controller DID，`authorization_ref` 是上述 DID delegation 或其可验证 materialized grant；proof verification method 必须属于 controller，不得由服务端伪造 Agent 签名。Agent profile、`ak.agent.key.authorize/revoke` 与 `ak.self.agent.pause/resume/deactivate` 写入 Agent PCR。Controller-owned `ak.identity.accountability_grant` 与 `ak.agent.selector_claim` 保持在 controller PCR，再由 Agent 状态引用；Realm-specific capability grant 仍写入所治理 action 所属 Realm。Pairing request 与 approval notification 永远不写入任一 PCR。
 
 实现 MAY 用 identity sidecar、device registry 或 DID/key-log operation 存储同一状态，但它们必须提供等价的签名、digest、auth dependency 和撤销语义；桥接到 Event Envelope 时仍必须遵守上述 `realm_id` 规则。
 

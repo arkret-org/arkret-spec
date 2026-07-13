@@ -70,8 +70,9 @@ Schema id: `ak.schema.notification.v1`
 | `schema` | yes | `ak.schema.notification.v1` |  | Schema ID。 |
 | `actor_id` | yes | `did` | 接收者。 | 通知主体。 |
 | `realm_id` | no | `id:realm` |  | 来源 Realm。 |
-| `source_event_id` | yes | `id:event` |  | 来源事件。 |
-| `source_ref` | no | `id:(message\|strand\|morph\|relation\|view\|blob)` | 取值形如 `ak:(message\|strand\|morph\|relation\|view\|blob):…`，union 枚举即此 6 类。render-only hint;reducer MUST 以 `source_event_id` 为权威。**子集差异（informative）**：本字段允许的 kind 子集与 Relation 端点（[`relation.md` §1](./relation.md)，端点另允许 `realm` / `space` / `actor_profile` / `event` / DID）、Read Cursor `read_scope`（§2.2，scope 限 `realm` / `circle` / `space` / `strand` / `thread`）各自不同；差异由各自语义决定（Notification 渲染目标 = 可被通知指向的内容对象；Relation 端点 = 可连边的图节点；Read Cursor scope = 可定位已读位置的时间线容器）。三处实现 MUST 按各自 schema 校验字段形状，同时以 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `referenceability` 作为 kind 子集的机读真相源；本字段对应 `notification_source` 类别。 | 可选 canonical 对象引用，供客户端直接渲染通知目标。 |
+| `source_event_id` | conditional | `id:event` | 与 `source_account_artifact` 恰好一个出现。 | durable Realm Event 来源。 |
+| `source_account_artifact` | conditional | `{kind, id}` | 与 `source_event_id` 恰好一个出现；v1 闭合分支仅 `{kind="agent_runtime_approval", id=<approval_request_id>}`。 | 非 Event 的 account-private 短期 artifact 来源。不得伪造 Event id。 |
+| `source_ref` | no | `id:(message\|strand\|morph\|relation\|view\|blob)` | 只允许在 `source_event_id` 分支出现。取值形如 `ak:(message\|strand\|morph\|relation\|view\|blob):…`，union 枚举即此 6 类。render-only hint;reducer MUST 以 `source_event_id` 为权威。**子集差异（informative）**：本字段允许的 kind 子集与 Relation 端点（[`relation.md` §1](./relation.md)，端点另允许 `realm` / `space` / `actor_profile` / `event` / DID）、Read Cursor `read_scope`（§2.2，scope 限 `realm` / `circle` / `space` / `strand` / `thread`）各自不同；差异由各自语义决定（Notification 渲染目标 = 可被通知指向的内容对象；Relation 端点 = 可连边的图节点；Read Cursor scope = 可定位已读位置的时间线容器）。三处实现 MUST 按各自 schema 校验字段形状，同时以 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `referenceability` 作为 kind 子集的机读真相源；本字段对应 `notification_source` 类别。 | 可选 canonical 对象引用，供客户端直接渲染通知目标。 |
 | `strand_id` | no | `id:strand` |  | 可选 Strand 上下文，用于路由通知。 |
 | `track_name` | no | `string` | `^[a-z][a-z0-9_]{0,63}$`。 | 可选，来源 Strand 上的 track key。 |
 | `notification_type` | yes | `enum(message, mention, reply, assignment, schedule, invite, reaction, policy, call, applet, agent, moderation, system)` |  | 通知类型。 |
@@ -84,6 +85,7 @@ Schema id: `ak.schema.notification.v1`
 ### 3.3 行为规则
 
 - Notification 是派生 projection；客户端 / 服务端 SHOULD 从 source event + actor preferences 计算，不要把它当作独立真相源持久化为 durable canonical event。
+- 每条 Notification 必须恰好选择 `source_event_id` 或 `source_account_artifact`；Agent runtime approval 使用后者、`notification_type="agent"`，且不得携带 `realm_id`、`source_ref`、`strand_id` 或 `track_name`。`source_account_artifact.id` 是 profile-local 短期 id，不是 durable protocol object ref；Notification 终止后 durable 真相只有 accepted `ak.agent.key.authorize` / lifecycle state。
 - E2EE Realm 中 `preview` 必须由发送者客户端脱敏后置入推送 envelope；服务端不得用明文重新生成 preview。
 - `notification_type=message` 表示普通 `ak.message.create` 在接收者 effective watch / push rule 允许普通消息提醒时产生的 inbox / push 提醒；默认 `mentions_only` 不得为非定向普通消息产生该类型。当同一 source event 对同一 actor 同时命中 `mention`、`reply`、`assignment` 等更具体原因时，dispatcher MUST NOT 额外产生重复的 `message` notification。
 - `notification_type=assignment` 表示当前 actor 被新增为某 Strand 的 `assigned_to` target；它不是普通 message 的别名。

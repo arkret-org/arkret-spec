@@ -10,7 +10,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "5be6ba600089c2d65785e22fc1a96576bb16fd1a8de2742aab51479e1f7767e4"
+      "sha256": "5097c6e3cd1920bcbe0c0323aff7e31a4594eac99e9bad63d9024ba17c890a8b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",

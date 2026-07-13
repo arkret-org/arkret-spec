@@ -298,6 +298,34 @@
       ]
     },
     {
+      "vector_id": "ak.vector.agent.runtime_key_binding.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/identity/key-management.md",
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
+      ],
+      "description": "Stable runtime key binding digest, same-binding idempotent retry, different-binding HTTP 409 conflict, and stale approval fail-closed behavior."
+    },
+    {
+      "vector_id": "ak.vector.agent.managed_pcr_separation.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/identity/key-management.md",
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
+      ],
+      "description": "Managed-agent DID-to-PCR binding, controller delegated authoring attribution, control-fact placement, and rejection of non-PCR Realms at either principal control id."
+    },
+    {
       "vector_id": "ak.vector.agent.repairing_supersede.v1",
       "status": "active",
       "domain": "agent",

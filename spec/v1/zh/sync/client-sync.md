@@ -115,7 +115,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
   "device_lists": {"changed": [], "left": []},
   "account_data": {"events": []},
   "presence": {"events": []},
-  "notifications": {"events": []}
+  "notifications": {"items": []}
 }
 ```
 
@@ -130,7 +130,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 {"kind": "unauthorized"}
 ```
 
-`realms` MUST 是以 `ak:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。membership state 的完整枚举是 `join` / `invite` / `knock` / `leave` / `ban`，它们是事件 payload / `ak.member.state` projection 取值，不再作为 `realms` 外层 bucket；其中只有 `join` / `invite` / `knock` 进入 roster（`members[]`），`leave` / `ban` 不进入 roster（见 §中 roster `members[]` 定义）。`state`、`state_after`、`ephemeral`、Realm-scoped `account_data` 以及顶层 `presence` / `account_data` / `notifications` 都使用事件容器形状:
+`realms` MUST 是以 `ak:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。membership state 的完整枚举是 `join` / `invite` / `knock` / `leave` / `ban`，它们是事件 payload / `ak.member.state` projection 取值，不再作为 `realms` 外层 bucket；其中只有 `join` / `invite` / `knock` 进入 roster（`members[]`），`leave` / `ban` 不进入 roster（见 §中 roster `members[]` 定义）。`state`、`state_after`、`ephemeral`、Realm-scoped `account_data` 以及顶层 `presence` / `account_data` 使用事件容器形状:
 
 ```json
 {
@@ -138,7 +138,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 }
 ```
 
-顶层 `to_device` 不是事件容器；它使用 `DeviceMessageEnvelope[]` 承载形态 `{messages, ack_token?, limited?, next_cursor?, lost?}`，schema 为 `account-subscribe-frame.schema.json#/$defs/device_message_container`。`messages[]` 中的对象不得作为 durable Event Envelope 处理。
+顶层 `notifications` 与 `to_device` 都不是事件容器。`notifications` 使用 §3.1 的闭合 `{items: NotificationDelta[]}`；`to_device` 使用 `DeviceMessageEnvelope[]` 承载形态 `{messages, ack_token?, limited?, next_cursor?, lost?}`，schema 为 `account-subscribe-frame.schema.json#/$defs/device_message_container`。两者中的对象均不得作为 durable Event Envelope 处理。
 
 ### 2.2 连接管理与重连
 
@@ -192,6 +192,21 @@ Account subscribe `delta` frame 包含以下 stream：
 `device_lists` 的 wire 形态固定为 `{changed: did[], left: did[]}`。两个数组都必须存在、去重；元素是 principal DID，不是 `device_id`：`changed` 表示该 principal 的权威 device list 已变化，`left` 表示该 principal 已离开调用方可见范围。客户端收到 `changed` 后必须重新查询对应 principal 的 device list；收到 `left` 后必须删除其缓存设备信任投影。
 
 `receipts`、`notifications` 和高频 actor-private `read_cursor` delta MAY 被服务端合并；同一 scope 在一个 account subscribe frame 内只需要返回最新可见位置和最终 unread count。客户端不得要求服务返回每一次中间 read receipt / marker 变化；`cursor` 只承诺覆盖 frame 中声明的最终 stream positions。
+
+### 3.1 Account notification delta（normative）
+
+顶层 `notifications` 的 wire 形态固定为 `{items: NotificationDelta[]}`，不再复用 `{events: EventEnvelope[]}`。`NotificationDelta` 是闭合对象 `{id, type, action, data?}`：`id` 为 `ak:notification:*`，`type="agent"`，`action` 只能为 `add | update | remove`。当前 v1 数据分支只登记 `data.kind="agent_runtime_approval"`：
+
+- `add` / `update` 的 `data` MUST 含 `approval_request_id`、`agent_id`、`requested_at`、`expires_at`，并且不得含 pairing code、runtime public key、PoP、attestation、display name 或 slug。客户端必须在显示和审批前通过认证的 `ak.self.agent.query.get` 读取当前完整投影。
+- `remove` 的 `data` MAY 省略；若存在，必须是闭合 `{kind="agent_runtime_approval", reason}`，其中 `reason` 只能为 `approved | expired | renewed | deactivated | superseded`。
+- 客户端 projector MUST 按 `add=插入`、`update=按同 id 完整替换`、`remove=删除` 应用 delta；把所有 action 都当 insert 的实现不得声明支持该 notification delta。
+- `add` / `update` 后，客户端 MUST 重读 Agent，要求当前 `approval_request_id` 相同、pairing 仍 open 且未过期、lifecycle 为 `pending_runtime_key | active | paused`；`active` / `paused` 必须明确显示 runtime key replacement 警告。审批前 MUST 再次读取或依赖服务端 current-request CAS。匹配 `remove` 必须关闭 prompt 并清除本地缓存。Local dismiss 只影响当前设备 UI，不写 durable dismissed state。
+
+Notification 是 account-private projection，不是 Realm Event。服务端必须从认证的 provision/session 上下文派生 `controller_account_id` 与 `recipient_service_id`，调用方不得提交它们；selection 必须同时绑定 account context、principal 与 service。若同一服务允许一个 principal 绑定多个本地 account，session 与 cursor 也 MUST 绑定本地 account id，仅按 DID 过滤不充分。该 notification 没有 `realm_id`，不得经过 `realm_id_accessible`。
+
+每次 add/update/remove 都 MUST 在持久化事务中分配严格单调的 notification projection position；不得用可改写的 `created_at` 加 id 拼 position。Opaque account cursor 内部保存其 high-water。Initial sync 必须把当前 account context 下全部仍 open 的 `agent_runtime_approval` 作为 `add` baseline 返回；该子集是完整集合，客户端应用前必须删除同一 account context 本地缓存中 baseline 未出现的 open approval。Incremental sync 只返回 cursor position 之后的变化；终止 tombstone 至少保留到 account cursor 最大生命周期加安全窗口。
+
+服务端提交 projection 事务后 MAY 发 account-context-scoped 内存 wakeup 以降低长轮询延迟。持久 projection 与 cursor 是权威；丢失 wakeup 后，有界 long poll 超时或重连必须仍可从 durable position 恢复，不要求仅为 wakeup 建 durable outbox。Push provider 只能收到现有 blind wakeup，notification body、Agent DID 和 approval id 均不得进入 provider-visible payload。
 
 ## 4. Realm Buckets
 
@@ -727,6 +742,7 @@ Accept: application/json
 - 对活跃 Realm 返回有限 timeline。
 - 返回足够 `required_state` 让客户端首屏可渲染。
 - 返回 device list delta 的完整 baseline。
+- 把当前 account context 下全部仍 open 的 `agent_runtime_approval` notification 作为 `action=add` 的权威完整集合返回；即使其它 notification 历史受限也不得截断该子集。
 
 大型账户 MAY 使用 sliding window subscriptions，避免一次性返回所有 Realm。
 

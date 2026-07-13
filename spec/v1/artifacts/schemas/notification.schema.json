@@ -14,7 +14,6 @@
     "id",
     "schema",
     "actor_id",
-    "source_event_id",
     "notification_type",
     "priority",
     "state",
@@ -43,6 +42,25 @@
     "source_event_id": {
       "type": "string",
       "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "source_account_artifact": {
+      "type": "object",
+      "required": [
+        "kind",
+        "id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "agent_runtime_approval"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:-]{1,128}$",
+          "description": "Profile-local approval_request_id. It is not a durable ak:<kind> object id."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Closed account-private artifact source for notifications that are not derived from a durable Realm Event."
     },
     "source_ref": {
       "type": "string",
@@ -106,5 +124,56 @@
       "$ref": "#/$defs/timestamp"
     }
   },
+  "oneOf": [
+    {
+      "required": [
+        "source_event_id"
+      ],
+      "not": {
+        "required": [
+          "source_account_artifact"
+        ]
+      }
+    },
+    {
+      "required": [
+        "source_account_artifact"
+      ],
+      "properties": {
+        "notification_type": {
+          "const": "agent"
+        }
+      },
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "source_event_id"
+            ]
+          },
+          {
+            "required": [
+              "realm_id"
+            ]
+          },
+          {
+            "required": [
+              "source_ref"
+            ]
+          },
+          {
+            "required": [
+              "strand_id"
+            ]
+          },
+          {
+            "required": [
+              "track_name"
+            ]
+          }
+        ]
+      }
+    }
+  ],
   "additionalProperties": false
 }

@@ -480,7 +480,7 @@
     },
     "agent_runtime_approval_request_body": {
       "type": "object",
-      "description": "Runtime-to-controller pending approval request for native personal-agent key pairing. The runtime proves possession of the local key and the short pairing code; the controller still must approve by signing ak.agent.key.authorize and submitting agent_key_pair_request_body.",
+      "description": "Runtime-to-controller pending approval request for native personal-agent key pairing. The runtime proves possession of the local key and the short pairing code; the controller still must approve by signing ak.agent.key.authorize and submitting agent_key_pair_request_body. The service computes ak.agent.runtime_key_binding.v1 from agent_id, pairing_request_id, verification_method, public-key digest and attestation digest. One open pairing_request_id has at most one pending stable binding: same-binding retry is idempotent and refreshes the full request while retaining approval/notification ids; a different binding fails with HTTP 409 agent_runtime_request_conflict without replacement.",
       "required": [
         "pairing_code",
         "pairing_request_id",
@@ -555,7 +555,7 @@
     },
     "agent_runtime_approval_status_request_body": {
       "type": "object",
-      "description": "Runtime-side poll for the controller decision on a previously submitted runtime key request. The pairing_request_id, pairing_code, and agent_id triple is the query credential and MUST be sent in the JSON body, never in URL path or query string. A record miss and a pairing_code or agent_id mismatch MUST be indistinguishable (both not_found).",
+      "description": "Runtime-side poll for the controller decision on a previously submitted runtime key request. The pairing_request_id, pairing_code, and agent_id triple is the query credential and MUST be sent in the JSON body, never in URL path or query string. A record miss and a pairing_code or agent_id mismatch MUST be indistinguishable (both not_found). HTTP responses MUST carry Retry-After; clients wait at least that interval and stop polling after pairing expiry.",
       "required": [
         "pairing_request_id",
         "pairing_code",

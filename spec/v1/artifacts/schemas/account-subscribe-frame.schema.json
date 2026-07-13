@@ -51,8 +51,8 @@
       "description": "Presence updates on `delta` frames."
     },
     "notifications": {
-      "$ref": "#/$defs/event_container",
-      "description": "Notification deliveries on `delta` frames."
+      "$ref": "#/$defs/notification_container",
+      "description": "Account-private notification projection deltas on `delta` frames. These are not Realm Events and are authorized by the authenticated account context rather than realm_id visibility."
     },
     "partial": {
       "type": "boolean",
@@ -87,6 +87,160 @@
         }
       },
       "additionalProperties": true
+    },
+    "notification_container": {
+      "type": "object",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/notification_delta"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "notification_delta": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "action"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^ak:notification:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "type": {
+          "const": "agent",
+          "description": "Closed notification type. Agent runtime approvals reuse the registered notification type `agent`."
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "add",
+            "update",
+            "remove"
+          ]
+        },
+        "data": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/agent_runtime_approval_notification_data"
+            },
+            {
+              "$ref": "#/$defs/agent_runtime_approval_notification_removal_data"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "enum": [
+                  "add",
+                  "update"
+                ]
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/$defs/agent_runtime_approval_notification_data"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "remove"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "properties": {
+              "data": {
+                "$ref": "#/$defs/agent_runtime_approval_notification_removal_data"
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "agent_runtime_approval_notification_data": {
+      "type": "object",
+      "required": [
+        "kind",
+        "approval_request_id",
+        "agent_id",
+        "requested_at",
+        "expires_at"
+      ],
+      "properties": {
+        "kind": {
+          "const": "agent_runtime_approval"
+        },
+        "approval_request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+        },
+        "agent_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "requested_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_runtime_approval_notification_removal_data": {
+      "type": "object",
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "properties": {
+        "kind": {
+          "const": "agent_runtime_approval"
+        },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "expired",
+            "renewed",
+            "deactivated",
+            "superseded"
+          ]
+        }
+      },
+      "additionalProperties": false
     },
     "device_list_changes": {
       "type": "object",

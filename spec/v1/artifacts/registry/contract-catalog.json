@@ -1494,6 +1494,27 @@
         "sealed": true
       },
       {
+        "event_kind": "ak.agent.selector_claim",
+        "category": "agent",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Controller-owned signed selector statement binding (controller_subject, agent_slug) to one native personal agent DID. The Event belongs in the controller Principal Control Realm, never the Agent PCR or a Collaboration Realm. Concurrent distinct current values remain visible and make selector resolution ambiguous/fail-closed.",
+        "payload_schema_ref": "schemas/agent-selector-claim.schema.json",
+        "cell_family": "ak.component.agent.selector_claim.v1",
+        "cell_subject": {
+          "type": "composite",
+          "components": [
+            "payload.controller_subject",
+            "payload.agent_slug"
+          ]
+        },
+        "lattice": "mv_register",
+        "bottom": "expose",
+        "plane": "control",
+        "sealed": true
+      },
+      {
         "event_kind": "ak.self.agent.pause",
         "category": "agent",
         "status": "active",
@@ -5558,11 +5579,10 @@
         "http": "POST /_arkret/open/agent-pairing/runtime-key-requests",
         "grpc": "OpenAgentPairing/SubmitRuntimeKeyRequest",
         "mq": "open.agent_pairing.command.submit_runtime_key_request",
-        "notes": "Runtime-to-controller pending approval request for native personal-agent key pairing. The runtime proves possession of the local key and the short pairing code; the controller still must approve by signing ak.agent.key.authorize. The pairing code and proof-of-possession MUST be sent in the JSON body, never in URL path or query string.",
+        "notes": "Runtime-to-controller pending approval request for native personal-agent key pairing. The runtime proves possession of the local key and the short pairing code; the controller still must approve by signing ak.agent.key.authorize. The pairing code and proof-of-possession MUST be sent in the JSON body, never in URL path or query string. One open pairing_request_id has at most one pending stable ak.agent.runtime_key_binding.v1 digest: same-binding retries retain approval/notification ids and update freshness proof, while a different binding fails with HTTP 409 agent_runtime_request_conflict without replacement.",
         "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "none",
-        "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.open.agent_pairing.query.runtime_key_request_status"},
+        "idempotency_mechanism": "object_id",
+        "retry_safe": true,
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome"
       },
@@ -5571,7 +5591,7 @@
         "http": "POST /_arkret/open/agent-pairing/runtime-key-requests/status",
         "grpc": "OpenAgentPairing/RuntimeKeyRequestStatus",
         "mq": "open.agent_pairing.query.runtime_key_request_status",
-        "notes": "Runtime-side poll for the controller decision on a previously submitted runtime key request. The pairing_request_id + pairing_code + agent_id triple is the query credential and MUST be sent in the JSON body, never in URL path or query string; a record miss and a pairing_code or agent_id mismatch MUST be indistinguishable (both not_found). Once approved, the outcome carries authorized_event_ref plus the authorized key binding; the runtime MUST compare authorized_public_key_digest against its own key and treat a mismatch as paired-by-another-runtime.",
+        "notes": "Runtime-side poll for the controller decision on a previously submitted runtime key request. The pairing_request_id + pairing_code + agent_id triple is the query credential and MUST be sent in the JSON body, never in URL path or query string; a record miss and a pairing_code or agent_id mismatch MUST be indistinguishable (both not_found). Once approved, the outcome carries authorized_event_ref plus the authorized key binding; the runtime MUST compare authorized_public_key_digest against its own key and treat a mismatch as paired-by-another-runtime. HTTP responses MUST carry Retry-After; clients wait at least that interval and use 1s/2s/5s/10s then at most 30s backoff, stopping after pairing expiry.",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome"
@@ -7215,6 +7235,17 @@
         "event_mapping_kind": "same_name"
       },
       {
+        "action": "ak.agent.selector_claim",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.agent.selector_claim"
+        ],
+        "profile": "ak.profile.personal_agent_provisioning.v1",
+        "event_mapping_kind": "same_name"
+      },
+      {
         "action": "ak.self.agent.command.provision",
         "category": "management",
         "risk_tier": "high",
@@ -7222,6 +7253,7 @@
         "target_event_kinds": [
           "ak.profile.create",
           "ak.identity.accountability_grant",
+          "ak.agent.selector_claim",
           "ak.agent.key.authorize",
           "ak.capability.grant"
         ],

@@ -1111,7 +1111,16 @@
           "ak.mls.keypackage",
           "ak.account.status",
           "ak.consent.grant",
-          "ak.consent.revoke"
+          "ak.consent.revoke",
+          "ak.profile.create",
+          "ak.profile.update",
+          "ak.agent.key.authorize",
+          "ak.agent.key.revoke",
+          "ak.self.agent.pause",
+          "ak.self.agent.resume",
+          "ak.self.agent.deactivate",
+          "ak.identity.accountability_grant",
+          "ak.agent.selector_claim"
         ],
         "reject_categories": [
           "strand",
@@ -1124,6 +1133,30 @@
           "media"
         ],
         "reject_reason": "principal_control_event_kind_forbidden"
+      },
+      "agent_control_event_placement": {
+        "agent_pcr_event_kinds": [
+          "ak.profile.create",
+          "ak.profile.update",
+          "ak.agent.key.authorize",
+          "ak.agent.key.revoke",
+          "ak.self.agent.pause",
+          "ak.self.agent.resume",
+          "ak.self.agent.deactivate"
+        ],
+        "controller_pcr_event_kinds": [
+          "ak.identity.accountability_grant",
+          "ak.agent.selector_claim"
+        ],
+        "non_event_account_artifacts": [
+          "agent_pairing_request",
+          "agent_runtime_approval_notification"
+        ],
+        "rules": [
+          "Agent PCR events MUST target the Agent DID bound to the Realm; controller execution uses actor_id=Agent DID, executed_by=controller DID, and a verified authorization_ref.",
+          "Controller-owned accountability and selector facts MUST target the controller PCR and reference the Agent DID; they MUST NOT be moved into the Agent PCR.",
+          "Pairing requests and account approval notifications MUST NOT be written to any PCR or Collaboration Realm."
+        ]
       },
       "realm_defaults": {
         "federation_policy": "closed",
@@ -1140,7 +1173,9 @@
         "encryption_profile MUST be mls_rfc9420; PCRs MUST NOT use none or external.",
         "content_encryption_floor and metadata_encryption_floor MUST both be e2ee_required; a PCR genesis declaring either floor below e2ee_required MUST be rejected (no plaintext-floor PCR exists in v1).",
         "history_visibility MUST be restricted; new same-principal devices obtain prior control history via durable device-list / normalized principal view baseline and policy-gated MLS history key share, not by joining at the current epoch.",
-        "Control events MUST bind principal_id / device_id / session grant audience to the same principal DID or an explicitly trusted recovery/session issuer."
+        "Control events MUST bind principal_id / device_id / session grant audience to the same principal DID or an explicitly trusted recovery/session issuer.",
+        "A managed Agent principal_control_realm_id MUST be verified from the unique ArkretPrincipalControlRealm DID service entry at accepted-at; implementation-private deterministic derivation is not protocol evidence.",
+        "Managed Agent PCR genesis created_by and notary MUST equal the Agent DID; a controller authoring under delegation MUST be recorded as executed_by and MUST NOT synthesize an Agent signature."
       ]
     },
     "ak.profile.core_event_store.v1": {
@@ -2490,6 +2525,7 @@
       "required_event_kinds": [
         "ak.profile.create",
         "ak.identity.accountability_grant",
+        "ak.agent.selector_claim",
         "ak.agent.key.authorize",
         "ak.agent.key.revoke",
         "ak.self.agent.pause",
@@ -2519,6 +2555,9 @@
           "pending_runtime_key_status",
           "pairing_request",
           "agent_slug_selector",
+          "ak.feature.agent_runtime_approval_notifications.v1",
+          "runtime_key_binding_conflict_cas",
+          "managed_agent_pcr_binding",
           "executed_by_attribution",
           "actor_kind_projection",
           "sidecar_exposure_disclosure"

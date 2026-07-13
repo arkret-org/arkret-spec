@@ -3344,7 +3344,47 @@ Expected:
 - 重放 `ak.gate.account.command.pair_agent_key`(使用过期 pairing_request_id)MUST fail closed。
 - Controller 可通过 `ak.self.agent.command.renew_pairing` 对同一 agent principal 原地重开 pairing(bootstrap 重开，重发 pending grant),也可重新发起 `ak.self.agent.command.provision`;后者得到新 agent_id,旧 agent_id 与新 provisioning 不复用。
 
-### 11.2.1 Vector: Runtime Replacement Re-pairing Supersede
+### 11.2.1 Vector: Stable Runtime Key Binding 与审批 CAS
+
+`vector_id`: `ak.vector.agent.runtime_key_binding.v1`
+
+Steps:
+
+1. Runtime `R1` 对 open pairing handle 提交 key `K1`；服务端按 [`key-management.md` §3.6.2](../identity/key-management.md) 计算 stable binding digest，生成 approval/notification id 并发送 notification `add`。
+2. `R1` 以相同 Agent、handle、verification method、public key 和 attestation 重试，但刷新 pairing code proof / PoP challenge；服务端重算 stable digest。
+3. Runtime `R2` 在同一 handle 提交不同 public key `K2`。
+4. Controller device `C1` 读取当前 request 并签审批；在提交前，同一 binding 的完整 request 又因 PoP 刷新而 update。
+5. 变体：Controller device `C0` 持有旧的、不同 stable binding 对应的 prompt/审批证据并提交最终 pair。
+
+Expected:
+
+- 第 1 步得到 fixture 固定的 `public_key_digest`、`attestation_digest` 与 `expected_binding_digest`；helper 输出必须逐字匹配。
+- 第 2 步 digest、approval id、notification id 不变，projection action 为 `update`；freshness 字段不进入 stable digest。
+- 第 3 步 MUST HTTP 409 `agent_runtime_request_conflict`，不得覆盖 K1、approval id 或 notification id。
+- 第 4 步服务端必须从当前持久化完整 request 重算 `ak.agent.key_pairing_request_binding.v1`；若 controller 签名绑定当前值，审批成功并在 durable authorize accepted 后发 `remove(reason=approved)`。
+- 第 5 步 MUST fail closed；过期 prompt 不得消费 handle或激活 key。
+- 所有 notification delta 与 provider-visible blind push 中均不得出现 pairing code、public key、PoP、attestation、display name 或 slug。
+
+### 11.2.2 Vector: Managed Agent PCR 分离
+
+`vector_id`: `ak.vector.agent.managed_pcr_separation.v1`
+
+Steps:
+
+1. Provision Agent DID `A`，controller DID 为 `C`；Agent DID Document 写唯一 `ArkretPrincipalControlRealm` service entry，分配 `PCR_A`，controller 已有 `PCR_C`。
+2. Controller 按 delegation 创建 `PCR_A` genesis，并写 Agent profile/key/lifecycle facts。
+3. Provisioning 同时把 accountability grant 与 selector claim 写入 `PCR_C`。
+4. 变体 A：实现把 `PCR_C` deterministic id 当作 Agent PCR；变体 B：在 `PCR_A` 或 `PCR_C` id 上创建缺 PCR marker、restricted history、MLS profile 或任一 E2EE floor 的 Realm；变体 C：服务端以 Agent DID 伪造 proof，省略 `executed_by=C` / `authorization_ref`。
+
+Expected:
+
+- `PCR_A != PCR_C`，且 receiver 必须从 Agent DID accepted-at history 验证 service entry，不得验证实现私有派生算法。
+- `PCR_A.created_by == PCR_A.notary == A`，purpose/profile/history/encryption floor 全部满足 PCR invariant。
+- Controller 写 Agent PCR 时 `actor_id=A`、`executed_by=C`，proof method 属于 C，delegation 覆盖目标 kind；不得伪造 A 签名。
+- Agent profile、key authorize/revoke、lifecycle 只进入 `PCR_A`；accountability/selector facts 只进入 `PCR_C`；pairing request/notification 不进入任一 PCR。
+- 三个变体全部 fail closed，且不得留下非 PCR Realm 占用任一 principal control id。
+
+### 11.2.3 Vector: Runtime Replacement Re-pairing Supersede
 
 `vector_id`: `ak.vector.agent.repairing_supersede.v1`
 
@@ -3370,7 +3410,7 @@ Expected:
 - 变体 A:无任何副作用,agent 保持 `active`、`K1` 有效;`pairing_expired` MUST NOT 出现在曾持钥 agent 上。
 - 变体 B:MUST `agent_deactivated`(terminal 状态拒绝续期)。
 
-### 11.2.2 Vector: Longevity-safe Authorization Chain(No Expiry Cliffs)
+### 11.2.4 Vector: Longevity-safe Authorization Chain(No Expiry Cliffs)
 
 `vector_id`: `ak.vector.agent.longevity_no_expiry.v1`
 

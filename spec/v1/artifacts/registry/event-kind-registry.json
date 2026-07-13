@@ -1462,6 +1462,27 @@
       "sealed": true
     },
     {
+      "event_kind": "ak.agent.selector_claim",
+      "category": "agent",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Controller-owned signed selector statement binding (controller_subject, agent_slug) to one native personal agent DID. The Event belongs in the controller Principal Control Realm, never the Agent PCR or a Collaboration Realm. Concurrent distinct current values remain visible and make selector resolution ambiguous/fail-closed.",
+      "payload_schema_ref": "schemas/agent-selector-claim.schema.json",
+      "cell_family": "ak.component.agent.selector_claim.v1",
+      "cell_subject": {
+        "type": "composite",
+        "components": [
+          "payload.controller_subject",
+          "payload.agent_slug"
+        ]
+      },
+      "lattice": "mv_register",
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
+    },
+    {
       "event_kind": "ak.self.agent.pause",
       "category": "agent",
       "status": "active",
