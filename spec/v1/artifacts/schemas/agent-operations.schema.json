@@ -1042,8 +1042,7 @@
       ],
       "properties": {
         "grant": {
-          "type": "object",
-          "additionalProperties": true
+          "$ref": "./capability-grant.schema.json"
         }
       },
       "additionalProperties": false

@@ -303,7 +303,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.self.agent.command.pause`(controller-only;target=`ak.self.agent.pause`)
 - `ak.self.agent.command.resume`(controller-only;target=`ak.self.agent.resume`)
 - `ak.self.agent.command.deactivate`(controller-only,terminal;target=`ak.self.agent.deactivate`,fan-out 见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
-- `ak.self.agent.grant.command.attach`(controller-only,high risk;为 agent 附加 capability grant,`target_event_kinds=[ak.capability.grant]`;grant subject MUST 是该 agent principal 且 MUST NOT 超过 controller 可委托范围)
+- `ak.self.agent.grant.command.attach`(controller-only,high risk;为 agent 附加完整、已签名的 capability grant,`target_event_kinds=[ak.capability.grant]`;grant subject MUST 是该 agent principal、issuer MUST 是 authenticated controller、`realm_id` MUST 存在且 Event MUST 写入该受治理 Realm，并且 MUST NOT 超过 controller 可委托范围；服务端不得补默认 action/resource)
 - `ak.self.agent.grant.resource.delete`(controller-only,medium risk;撤销 agent capability grant,`target_event_kinds=[ak.capability.revoke]`;撤销后后续 agent action proof MUST fail closed)
 - `ak.agent.draft.propose`(agent-initiated draft;target=`ak.agent.draft.propose`,wire_scope=`actor_private_event`)
 - `ak.agent.action_request`(agent-initiated action request;target=`ak.agent.action_request`)
