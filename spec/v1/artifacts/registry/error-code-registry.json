@@ -3408,7 +3408,7 @@
       "applies_to": [
         "auth_decision"
       ],
-      "description": "An SFU / MCU attempted to negotiate plaintext-decrypting media role without being listed in Realm policy plaintext_visible_services[] with purpose=media_plaintext, OR without policy_root covering media_service_decrypts=true. MUST be rejected; the SFU may still act as opaque RTP relay. See zh/crypto-media/media-service-binding.md \u00a78.2."
+      "description": "An SFU / MCU attempted to negotiate plaintext-decrypting media role without a matching Realm policy plaintext_visible_services[] entry whose data_classes[] contains media_plaintext, OR without policy_root covering media_service_decrypts=true. Free-text purposes do not grant authority. MUST be rejected; the SFU may still act as opaque RTP relay. See zh/crypto-media/media-service-binding.md \u00a78.2."
     },
     {
       "code": "media_plaintext_warning_required",

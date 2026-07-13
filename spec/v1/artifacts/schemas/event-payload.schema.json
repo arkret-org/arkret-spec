@@ -5801,6 +5801,7 @@
         "claim_id",
         "claim_ref",
         "claim_envelope",
+        "governance_binding",
         "expires_at"
       ],
       "anyOf": [

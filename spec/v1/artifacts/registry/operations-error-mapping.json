@@ -583,6 +583,18 @@
       ]
     },
     {
+      "operation_id": "ak.self.events.query.mls_governance_proof",
+      "http_alias": "POST /_arkret/self/events/mls-governance-proof",
+      "operation_specific": [
+        "not_found",
+        "frontier_unavailable",
+        "state_mismatch",
+        "signature_invalid",
+        "profile_unsupported"
+      ],
+      "description": "not_found preserves Realm/scope visibility; frontier_unavailable covers missing accepted Seal material; state_mismatch covers incomplete covered/control materialization; signature_invalid covers an unverifiable Seal/Event chain; profile_unsupported rejects unsupported binding or reducer profiles."
+    },
+    {
       "operation_id": "ak.self.events.resource.get",
       "http_alias": "GET /_arkret/self/events/{event_id}",
       "operation_specific": [

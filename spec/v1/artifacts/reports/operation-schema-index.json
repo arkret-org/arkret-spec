@@ -2473,6 +2473,66 @@
       }
     },
     {
+      "operation_id": "ak.self.events.query.mls_governance_proof",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/proof_request",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "effective_scope",
+          "mls_group_id",
+          "previous_epoch",
+          "next_epoch",
+          "binding_profile",
+          "reducer_profile"
+        ],
+        "properties": [
+          "realm_id",
+          "effective_scope",
+          "mls_group_id",
+          "previous_epoch",
+          "next_epoch",
+          "binding_profile",
+          "reducer_profile"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/mls-governance-proof-bundle.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "bundle_version",
+          "materialization_profile",
+          "realm_id",
+          "effective_scope",
+          "reducer_profile",
+          "governance_binding",
+          "trust_anchor_seal_id",
+          "accepted_seal_id",
+          "seal_path",
+          "covered_event_digests",
+          "control_state",
+          "frontier_events"
+        ],
+        "properties": [
+          "bundle_version",
+          "materialization_profile",
+          "realm_id",
+          "effective_scope",
+          "reducer_profile",
+          "governance_binding",
+          "trust_anchor_seal_id",
+          "accepted_seal_id",
+          "seal_path",
+          "covered_event_digests",
+          "control_state",
+          "frontier_events"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.self.events.resource.get",
       "success_shape_kind": "typed_response",
       "response": {

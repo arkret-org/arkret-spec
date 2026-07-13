@@ -165,6 +165,7 @@ grpc:
     SelfEvents:
       Describe: ak.self.events.query.describe
       Frontier: ak.self.events.query.frontier
+      MlsGovernanceProof: ak.self.events.query.mls_governance_proof
       Get: ak.self.events.resource.get
       Query: ak.self.events.query.scan
       Resolve: ak.self.events.query.resolve
@@ -281,6 +282,7 @@ mq:
         type: array
   topics:
     self.events.command.submit: ak.self.events.command.submit
+    self.events.query.mls_governance_proof: ak.self.events.query.mls_governance_proof
     self.events.query.scan.resolve: ak.self.events.query.resolve
     self.events.query.scan: ak.self.events.query.scan
     self.events.stream.subscribe: ak.self.events.stream.subscribe

@@ -1786,6 +1786,10 @@ components:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome
     MimiUpdateConsentRequestBody:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body
+    MlsGovernanceProofBundle:
+      $ref: ../schemas/mls-governance-proof-bundle.schema.json
+    MlsGovernanceProofRequest:
+      $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/proof_request
     ModerationQueueView:
       type: object
       required:
@@ -3682,6 +3686,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsFrontierState'
+  /_arkret/self/events/mls-governance-proof:
+    post:
+      operationId: ak.self.events.query.mls_governance_proof
+      security:
+      - bearerAuth: []
+      summary: Materialize a verifiable full-profile MLS governance binding.
+      description: |
+        Returns a complete_control_state_v1 proof bundle for one caller-visible
+        Realm/scope. The server derives the membership frontier and all roots
+        from one accepted Seal view; the request cannot supply either.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MlsGovernanceProofRequest'
+      responses:
+        '200':
+          description: Complete accepted-Seal governance proof bundle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MlsGovernanceProofBundle'
   /_arkret/peer/events/describe:
     get:
       operationId: ak.peer.events.query.describe

@@ -3966,6 +3966,7 @@
           "ak.self.events.query.scan_body",
           "ak.self.events.stream.subscribe",
           "ak.self.events.query.frontier",
+          "ak.self.events.query.mls_governance_proof",
           "ak.self.account.query.describe",
           "ak.self.account.query.viewer",
           "ak.self.account.command.update_profile",
@@ -5147,6 +5148,16 @@
         "mq": "self.events.query.scan.frontier",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState"
+      },
+      {
+        "operation_id": "ak.self.events.query.mls_governance_proof",
+        "http": "POST /_arkret/self/events/mls-governance-proof",
+        "grpc": "SelfEvents/MlsGovernanceProof",
+        "mq": "self.events.query.mls_governance_proof",
+        "notes": "Return a complete_control_state_v1 proof bundle for one authenticated, caller-visible Realm/scope. The service derives membership_frontier and all governance roots from one accepted Seal view; callers cannot supply roots. Implementations MUST enforce Realm/scope visibility before materialization and MUST fail closed when any covered Event, control state, Seal path, signature authority, or reducer profile cannot be reconstructed.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/proof_request",
+        "response_schema_ref": "schemas/mls-governance-proof-bundle.schema.json"
       },
       {
         "operation_id": "ak.self.events.resource.get",

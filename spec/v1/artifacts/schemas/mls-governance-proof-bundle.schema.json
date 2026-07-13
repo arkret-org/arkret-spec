@@ -81,6 +81,49 @@
   },
   "additionalProperties": false,
   "$defs": {
+    "proof_request": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "effective_scope",
+        "mls_group_id",
+        "previous_epoch",
+        "next_epoch",
+        "binding_profile",
+        "reducer_profile"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "effective_scope": {
+          "$ref": "./event-envelope.schema.json#/$defs/effective_scope"
+        },
+        "mls_group_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "previous_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "next_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "binding_profile": {
+          "const": "ak.profile.mls_governance_binding.full.v1"
+        },
+        "reducer_profile": {
+          "type": "string",
+          "pattern": "^ak\\.reducer(?:\\.[a-z0-9][a-z0-9_.-]*)?\\.v[0-9]+$"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Authenticated account-client query input. The service derives all governance roots and membership_frontier from one accepted Seal view; callers MUST NOT supply any root or frontier. Genesis requests MUST use previous_epoch=0 and next_epoch=0; commit requests MUST use next_epoch=previous_epoch+1."
+    },
     "control_state_leaf": {
       "type": "object",
       "required": [
