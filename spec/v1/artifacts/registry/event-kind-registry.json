@@ -11,7 +11,7 @@
     "ephemeral_event": "Transient sync/federation/app signal; MUST NOT be persisted as durable Event Envelope history."
   },
   "admission_class_definitions": {
-    "self_authored_proof": "Admitted by a self-authored proof bound to the subject principal's identity (DID-bound signature / proof of possession with bounded freshness). Reducer MUST verify actor == subject and a fresh, replay-protected proof; no capability grant is consulted. Fail-closed: missing or stale proof MUST be rejected.",
+    "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
     "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed.",
     "crypto_verifiable": "Admitted by cryptographic verification of the payload against group/key state (MLS epoch, key material, franking) and its policy preconditions. Reducer MUST verify the cryptographic binding; not a user capability. Fail-closed.",
     "capability_gated": "Gated by one or more named capability actions listed in admission_capabilities. Reducer MUST verify the actor holds a matching action grant per capability-action-registry. Fail-closed."
@@ -1833,6 +1833,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
+      "admission": "self_authored_proof",
       "payload": "Actor profile create",
       "cell_family": "ak.component.profile.create.v1",
       "cell_subject": {

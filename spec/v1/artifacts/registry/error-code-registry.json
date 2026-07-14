@@ -2694,7 +2694,7 @@
         "auth_decision",
         "event_envelope"
       ],
-      "description": "Agent bootstrap pairing window elapsed before the first runtime key authorization completed: the service auto-revokes the pending effective_after_first_authorized_key grants (session/grant revoke reason) and the agent provisioning status projection reports pairing_expired. Never applies to previously keyed agents: an expired runtime replacement re-pairing handle has no side effects. See zh/identity/account-lifecycle.md §9.1 and zh/identity/key-management.md §3.6.1."
+      "description": "Agent bootstrap pairing window elapsed before the first runtime key authorization completed, so the agent provisioning status projection reports pairing_expired. Pairing expiry does not create, revoke, or rewrite Realm grants. Never applies to previously keyed agents: an expired runtime replacement re-pairing handle has no side effects. See zh/identity/account-lifecycle.md §9.1 and zh/identity/key-management.md §3.6.1."
     },
     {
       "code": "pairing_request_expired",
@@ -2828,9 +2828,10 @@
       "code": "agent_participation_ceiling_unresolved",
       "applies_to": [
         "event_envelope",
-        "auth_decision"
+        "auth_decision",
+        "service_call"
       ],
-      "description": "Evaluating `ak.self.agent.participation.resource.replace` required folding the deployment\u2287Realm\u2287Circle\u2287Strand agent-participation ceiling, but one or more layers were in a bottom (\u22a5) / unresolvable state at the operation's basis. The fold MUST treat any unresolved layer as the most restrictive (empty selection / full deny) and the replace MUST `failed_precondition`; an unresolved layer MUST NOT be read as 'no declaration = no tightening'. See zh/authz/capabilities.md \u00a75.4."
+      "description": "Evaluating `ak.self.agent.participation.resource.replace` required folding the immutable provision-derived ceiling with the deployment\u2287Realm\u2287Circle\u2287Strand agent-participation ceiling, but one or more layers were in a bottom (\u22a5) / unresolvable state at the operation's basis. The fold MUST treat any unresolved layer as the most restrictive (empty selection / full deny) and the replace MUST `failed_precondition`; an unresolved layer MUST NOT be read as 'no declaration = no tightening'. See zh/authz/capabilities.md \u00a75.4."
     },
     {
       "code": "space_parent_chain_in_bottom_state",
@@ -3730,11 +3731,30 @@
       "description": "Sub-reason for failed_precondition when a Realm/Circle/Strand agent_participation ceiling write would widen (enable a bit disabled by) its parent ceiling. The deployment \u2287 Realm \u2287 Circle \u2287 Strand ceiling chain is tighten-only (monotone). See zh/models/realm-and-space.md, zh/models/circle.md, zh/authz/capabilities.md \u00a75.4."
     },
     {
+      "code": "agent_grant_exceeds_requested_scope",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "A personal Agent Realm grant contains an action or resource not covered by the Agent's immutable provision requested_scope, or attempts to omit or relax a mandatory provision constraint. Grant attach and reducer admission MUST fail closed with failed_precondition; Realm membership, policy, participation, pairing or key authorization cannot restore authority omitted at provision time. See zh/authz/capabilities.md section 9.1 and zh/identity/key-management.md section 3.6.1."
+    },
+    {
+      "code": "agent_requested_scope_commitment_invalid",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "The complete immutable Agent requested_scope commitment is missing from accepted-at Agent DID history, differs from the service projection, or its domain-separated digest does not verify. Pairing, Realm grant admission, participation and agent session issuance MUST fail closed and MUST NOT treat a service-local Agent row as the authority source. See zh/identity/key-management.md section 3.6.1."
+    },
+    {
       "code": "agent_participation_exceeds_ceiling",
       "applies_to": [
-        "state_resolution"
+        "state_resolution",
+        "service_call"
       ],
-      "description": "Sub-reason for failed_precondition when a controller's ak.self.agent.participation.resource.replace selection enables a bit the effective ceiling disables. Effective participation = effective_ceiling \u2229 selection. See zh/authz/capabilities.md \u00a75.4."
+      "description": "Sub-reason for failed_precondition when a controller's ak.self.agent.participation.resource.replace selection enables a bit disabled by either the immutable provision-derived ceiling or the effective deployment/Realm/Circle/Strand governance ceiling. Effective participation = provision-derived ceiling \u2229 governance ceiling \u2229 selection. See zh/authz/capabilities.md \u00a75.4."
     },
     {
       "code": "agent_reply_not_permitted",

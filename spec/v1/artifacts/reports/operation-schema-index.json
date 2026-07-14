@@ -383,7 +383,8 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
         "schema_kind": "object",
         "required": [
-          "slug"
+          "slug",
+          "requested_scope"
         ],
         "properties": [
           "display_name",
@@ -402,6 +403,7 @@
           "agent_id",
           "principal_control_realm_id",
           "controller_authorization_ref",
+          "requested_scope_digest",
           "pcr_recovery",
           "pairing_request_id",
           "expires_at"
@@ -410,6 +412,7 @@
           "agent_id",
           "principal_control_realm_id",
           "controller_authorization_ref",
+          "requested_scope_digest",
           "pcr_recovery",
           "pairing_request_id",
           "pairing_code",
@@ -437,6 +440,7 @@
           "agent_id",
           "principal_control_realm_id",
           "controller_authorization_ref",
+          "requested_scope_digest",
           "pcr_recovery",
           "pairing_mode",
           "pairing_request_id",
@@ -446,6 +450,7 @@
           "agent_id",
           "principal_control_realm_id",
           "controller_authorization_ref",
+          "requested_scope_digest",
           "pcr_recovery",
           "pairing_mode",
           "pairing_request_id",

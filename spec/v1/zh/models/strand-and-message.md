@@ -780,7 +780,7 @@ Audience mention 的失败不得污染普通消息写入语义：实现 MAY 接�
 
 #### 9.4.5 Native agent 第三方 mention 投递 gate
 
-当一条 `ak.message.create` / `ak.message.revise`（含 direct mention 与 audience mention）的某个 mention target 是一个 **native personal agent** principal 时，dispatcher / reducer 在为该 agent 派生 mention notification 前 MUST 解析该 message effective_scope（Strand → Circle / Realm）针对该 agent 的 effective participation（effective ceiling ∩ controller selection），并据 `accept_third_party_mention` 位决定投递：
+当一条 `ak.message.create` / `ak.message.revise`（含 direct mention 与 audience mention）的某个 mention target 是一个 **native personal agent** principal 时，dispatcher / reducer 在为该 agent 派生 mention notification 前 MUST 解析该 message effective_scope（Strand → Circle / Realm）针对该 agent 的 effective participation（immutable provision-derived ceiling ∩ deployment/Realm/Circle/Strand governance ceiling ∩ controller selection），并据 `accept_third_party_mention` 位决定投递。该位只有在 provision `requested_scope.actions[]` 含 `ak.event.read` 时才可能为真；治理 policy 不得补回创建时省略的 action：
 
 - mention 作者 == 该 agent 的 controller principal：照常投递（仍受该 agent 是否被授权读取该 scope 约束）。
 - mention 作者 != controller 且 effective `accept_third_party_mention=false`：MUST NOT 为该 agent 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入该 agent 的 `ak.self.events.stream.subscribe` 投影。该抑制只针对该 agent 自身；对 message 的其他人类 target、shared history、其它投影无影响。

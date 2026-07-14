@@ -4156,17 +4156,19 @@
     },
     "agent_key_scope": {
       "type": "object",
-      "description": "Closed authorization scope for an agent signing key. Resource selectors and actions are both explicit so the key cannot silently widen its authority through omitted dimensions. actions may contain service operation ids (for example ak.self.events.stream.subscribe) and content capability action tokens (for example ak.event.read); content capability grants are not the sole source for service-surface scope. Omission never implies a default action. Provisioning maps supported content actions only to explicit Realm-scoped content resources and writes each pending grant in that governed Realm; operation/service resources constrain the service surface and MUST NOT be converted into content capability resources.",
+      "description": "Agent scope object with two uses. In POST /_arkret/self/agents requested_scope it is the required immutable global Agent ceiling; in ak.agent.key.authorize it is a per-key ceiling that MAY be narrower but MUST be an actions/resources/constraints subset of the provision ceiling. It is never a capability grant. actions may contain service operation ids and content action tokens; an omitted action can never be restored by a key, Realm grant, participation selection or session. resources constrain the service surface and may optionally narrow later content resources, but never authorize content by themselves. Provisioning and pairing do not materialize capability grants from this object; effective authority is the intersection of provision ceiling, key ceiling, independent Realm-scoped grants, participation, session request, membership and policy.",
       "required": [
         "actions",
         "resources"
       ],
       "properties": {
         "actions": {
-          "$ref": "#/$defs/string_list"
+          "$ref": "#/$defs/string_list",
+          "description": "Literal action ceiling. Every downstream key scope, grant or session action MUST appear here; action families, prefixes and subsumption do not widen it."
         },
         "resources": {
           "type": "array",
+          "description": "Selector ceiling, not authorization. Each downstream selector must be covered by a parent selector. operation/service parents cover the same kind and matching explicit field and cannot carry content fields. The content-kind vocabulary is the ResourceSelector vocabulary except '*'; kind=realm covers every Realm-local content kind in the matching Realm and other content kinds cover only the same kind. Omitted parent realm_id is a cross-Realm ceiling wildcard and omitted exact ref is a same-kind/same-Realm wildcard. With no content selector, later Realm grants still choose concrete resources and no content wildcard is granted.",
           "minItems": 1,
           "items": {
             "type": "object",
@@ -4178,9 +4180,22 @@
                 "type": "string",
                 "enum": [
                   "realm",
-                  "strand",
                   "space",
+                  "circle",
+                  "strand",
+                  "message",
+                  "morph",
                   "object",
+                  "relation",
+                  "view",
+                  "event",
+                  "actor",
+                  "schema",
+                  "policy",
+                  "invite",
+                  "notification",
+                  "read_cursor",
+                  "blob",
                   "operation",
                   "service"
                 ]
@@ -4191,6 +4206,9 @@
               "resource_ref": {
                 "$ref": "#/$defs/object_ref"
               },
+              "schema_ref": {
+                "$ref": "#/$defs/non_empty_string"
+              },
               "operation": {
                 "$ref": "#/$defs/non_empty_string"
               },
@@ -4198,12 +4216,161 @@
                 "$ref": "#/$defs/did"
               }
             },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "enum": [
+                        "realm",
+                        "space",
+                        "circle",
+                        "strand",
+                        "message",
+                        "morph",
+                        "object",
+                        "relation",
+                        "view",
+                        "event",
+                        "actor",
+                        "schema",
+                        "policy",
+                        "invite",
+                        "notification",
+                        "read_cursor",
+                        "blob"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "not": {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "operation"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "service_id"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "enum": [
+                        "operation",
+                        "service"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "not": {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "realm_id"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "resource_ref"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "schema_ref"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "operation"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "not": {
+                    "required": [
+                      "service_id"
+                    ]
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "service"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "not": {
+                    "required": [
+                      "operation"
+                    ]
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "schema"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "not": {
+                    "required": [
+                      "resource_ref"
+                    ]
+                  }
+                },
+                "else": {
+                  "not": {
+                    "required": [
+                      "schema_ref"
+                    ]
+                  }
+                }
+              }
+            ],
             "additionalProperties": false
           },
           "uniqueItems": true
         },
         "constraints": {
           "type": "array",
+          "description": "Global mandatory constraints. Every effective key/grant/session evaluation MUST retain and AND these constraints; downstream scopes may add stricter constraints but MUST NOT omit or relax provision constraints.",
           "items": {
             "$ref": "./grant-constraint.schema.json"
           },

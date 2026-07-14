@@ -24,12 +24,33 @@
       "name": "agent_provision",
       "vector_id": "ak.vector.agent.provision.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_provision_vector",
+      "requested_scope_commitment": {
+        "agent_id": "did:webvh:z6mkagent:agent.example",
+        "controller_id": "did:webvh:z6mkcontroller:controller.example",
+        "requested_scope": {
+          "actions": [
+            "ak.event.read",
+            "ak.self.events.stream.subscribe"
+          ],
+          "resources": [
+            {
+              "kind": "operation",
+              "operation": "ak.self.events.stream.subscribe"
+            }
+          ]
+        },
+        "expected_digest": "sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042"
+      },
       "assertions": [
         "agent provision operation id remains ak.self.agent.command.provision",
         "agent provision capability action matches the operation id",
         "provision fails without a controller recovery policy before creating any Agent DID, PCR, or grant side effect",
         "provision returns the Agent PCR binding with pcr_recovery pending and does not pre-write an Agent profile or runtime key authorization",
-        "agent grants marked effective_after_first_authorized_key remain inactive before key pairing",
+        "requested_scope is required, immutable and records a global hard ceiling rather than a grant",
+        "the accepted Agent DID service entry fixes the complete requested_scope and its domain-separated digest",
+        "provisioning writes only accountability and selector facts and never materializes Realm grants",
+        "a narrower per-key scope is accepted while a wider action/resource scope or omitted mandatory provision constraint is rejected",
+        "a narrower Realm grant is accepted while an omitted action or out-of-ceiling content resource is rejected with agent_grant_exceeds_requested_scope",
         "missing accountability grants fail with accountability_grant_missing"
       ]
     },
@@ -74,6 +95,7 @@
         "agent DID document has one ArkretPrincipalControlRealm service entry binding a non-controller PCR id",
         "agent PCR genesis created_by and notary equal the agent DID and both encryption floors are e2ee_required",
         "controller-authored agent PCR events use actor_id equal to agent DID, executed_by equal to controller DID, and a verified authorization_ref",
+        "delegated admission fails when the accepted-at delegation purpose or resource scope does not cover the target Event kind and Agent PCR",
         "agent profile, key authorization and lifecycle events land in the agent PCR",
         "accountability grant and agent selector claim land in the controller PCR",
         "pairing requests and approval notifications land in neither PCR",

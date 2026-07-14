@@ -102,7 +102,7 @@ Native personal AI agent(由 controller 通过 `ak.self.agent.command.provision`
 
 | 维度 | Native personal agent | Applet-managed Ghost Actor |
 | --- | --- | --- |
-| 创建路径 | `ak.self.agent.command.provision` 分配 Agent DID/PCR binding，并在 controller PCR fan-out `ak.identity.accountability_grant` / `ak.agent.selector_claim`；显式内容 scope 的 pending `ak.capability.grant` 写入各自受治理 Realm，服务面-only scope 不生成内容 grant；controller E2EE client 随后本地生成并提交 Agent PCR genesis/Profile 与恢复备份，首次 `ak.agent.key.authorize` 只在 pairing commit 时提交 | `ak.applet.registration` + Applet bot/Ghost Actor 注册 |
+| 创建路径 | `ak.self.agent.command.provision` 分配 Agent DID/PCR binding，并在 controller PCR 只 fan-out `ak.identity.accountability_grant` / `ak.agent.selector_claim`；必填 `requested_scope` 只建立 immutable 全局 ceiling，无论是否含内容 selector 都不生成 pending/active `ak.capability.grant`。controller E2EE client 随后本地生成并提交 Agent PCR genesis/Profile 与恢复备份，首次 `ak.agent.key.authorize` 只在 pairing commit 时提交；Realm grant 必须在之后独立签发且不得超过 provision ceiling | `ak.applet.registration` + Applet bot/Ghost Actor 注册 |
 | `accountable_principal_ids` | 指向 controller principal，显式 `ak.identity.accountability_grant` | 指向 Applet controller / 外部系统 |
 | Runtime credential | 通过 `POST /_arkret/gate/account/agent-key-pair` pairing 得到 `ak.agent.key.authorize` 绑定的 key | Applet 管辖，通常是 Applet service DID + HTTP signature |
 | Session 路径 | `POST /_arkret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"` | Applet `ak.edge.applet.command.transaction` 与 Applet 的 delegated session |

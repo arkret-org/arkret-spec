@@ -2237,7 +2237,7 @@
         },
         "agent_scope_request": {
           "type": "object",
-          "description": "`ak.profile.agent_auth.v1` overlay. Narrowing hints for the\nissued session scope. Service-surface requested_scope values are intersected\nwith the accepted agent_key_scope service ceiling and endpoint/resource policy;\ncontent actions are additionally intersected with effective capability grants,\nmembership, history visibility and E2EE policy. REQUIRED when\n`proof.proof_kind=\"agent_key_proof\"`; MUST be omitted for human session grants.\n`track_names` is a request-side narrowing field only — the materialized session\ngrant MUST express track scope via the canonical `allowed_tracks` constraint,\nnot via a new `track_names` grant.\n",
+          "description": "`ak.profile.agent_auth.v1` overlay. Narrowing hints for the\nissued session scope. Service-surface requested_scope values are intersected\nwith the immutable provision requested_scope, accepted agent_key_scope and\nendpoint/resource policy; content actions are additionally intersected with\nindependent effective Realm capability grants, participation, membership,\nhistory visibility and E2EE policy. Provision mandatory constraints remain in\nforce at every layer. REQUIRED when `proof.proof_kind=\"agent_key_proof\"`; MUST\nbe omitted for human session grants. `track_names` is a request-side narrowing\nfield only — the materialized session grant MUST express track scope via the\ncanonical `allowed_tracks` constraint, not via a new `track_names` grant.\n",
           "additionalProperties": false,
           "properties": {
             "realm_ids": {
@@ -2612,7 +2612,7 @@
         },
         "scope_details": {
           "type": "object",
-          "description": "`ak.profile.agent_auth.v1` overlay. Materialized narrow scope\nactually granted to the agent runtime session. Service-surface scope is the\nintersection of requested_scope, accepted agent_key_scope and endpoint/resource\npolicy; content actions are additionally constrained by effective capability\ngrants, membership, history visibility and E2EE policy. Present iff the request\nwas the `proof.proof_kind=\"agent_key_proof\"` branch; absent for human session\ngrants.\n",
+          "description": "`ak.profile.agent_auth.v1` overlay. Materialized narrow scope\nactually granted to the agent runtime session. Service-surface scope is the\nintersection of immutable provision requested_scope, accepted agent_key_scope,\nsession requested_scope and endpoint/resource policy; content actions are\nadditionally constrained by independent effective Realm capability grants,\nparticipation, membership, history visibility and E2EE policy. Provision\nmandatory constraints remain in force. Present iff the request was the\n`proof.proof_kind=\"agent_key_proof\"` branch; absent for human session grants.\n",
           "additionalProperties": false,
           "properties": {
             "realm_ids": {

@@ -270,7 +270,9 @@
         "principal_control_realm_id",
         "controller_authorization_ref",
         "status",
-        "pcr_recovery"
+        "pcr_recovery",
+        "requested_scope",
+        "requested_scope_digest"
       ],
       "properties": {
         "agent_id": {
@@ -293,7 +295,11 @@
         },
         "requested_scope": {
           "$ref": "#/$defs/agent_key_scope",
-          "description": "Explicit Agent key/session ceiling. Omission grants no implicit content capability. During provisioning, supported content actions may create pending capability grants only from Realm-scoped content resources and in each resource's governed Realm; operation/service resources remain service-surface constraints and never become content grants."
+          "description": "Required immutable global Agent key/session ceiling captured at provision time, not a grant. Content actions are the maximum actions that later key scopes, Realm-scoped grants, participation or sessions may allow; an omitted action cannot be added later. Provisioning never materializes content grants from this field. Operation/service resources constrain the service surface; explicit content resource selectors only further narrow later grants. Receiver authority comes from the matching accepted-at Agent DID commitment, not this service projection."
+        },
+        "requested_scope_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "sha256 digest of the domain-separated Agent requested_scope commitment fixed in the accepted Agent DID ArkretPrincipalControlRealm service entry."
         },
         "pairing_request_id": {
           "$ref": "#/$defs/opaque_local_id"
@@ -625,7 +631,7 @@
         },
         "authorize_event": {
           "$ref": "./event-envelope.schema.json",
-          "description": "Fully-signed ak.agent.key.authorize Event envelope approved by the controller or policy engine. It MUST target the Agent Principal Control Realm, carry actor_id equal to agent_id, executed_by equal to the controller DID, authorization_ref equal to the controller delegation DID URL bound by the Agent DID Document, and a proof verification method belonging to the controller or one of its currently authorized devices. Required so key activation never depends on an unaudited pairing side effect. authorize_event.event_id is the pair operation idempotency identity."
+          "description": "Fully-signed ak.agent.key.authorize Event envelope approved by the controller or policy engine. It MUST target the Agent Principal Control Realm, carry actor_id equal to agent_id, executed_by equal to the controller DID, authorization_ref equal to the controller delegation DID URL bound by the Agent DID Document, and a proof verification method belonging to the controller or one of its currently authorized devices. Its payload.agent_key_scope MAY be narrower than, but MUST be an actions/resources/constraints subset of, the immutable provision requested_scope; every provision constraint remains mandatory. Required so key activation never depends on an unaudited pairing side effect. authorize_event.event_id is the pair operation idempotency identity."
         }
       },
       "additionalProperties": false
@@ -776,8 +782,10 @@
     },
     "agent_provision_request_body": {
       "type": "object",
+      "description": "Creates an Agent principal with a required immutable requested_scope global ceiling. Provisioning emits only controller-owned accountability and selector facts; it never creates an Agent profile, key authorization or Realm capability grant.",
       "required": [
-        "slug"
+        "slug",
+        "requested_scope"
       ],
       "properties": {
         "display_name": {
@@ -791,7 +799,7 @@
         },
         "requested_scope": {
           "$ref": "#/$defs/agent_key_scope",
-          "description": "Explicit Agent key/session ceiling. Omission grants no implicit content capability. Supported content actions may create pending capability grants only from Realm-scoped content resources and in each resource's governed Realm; operation/service resources remain service-surface constraints and never become content grants."
+          "description": "Required immutable global Agent key/session ceiling, not a grant. Later key scopes, Realm grants, participation selections and session requests MAY narrow it but MUST NOT exceed its actions, resource selectors or mandatory constraints. An omitted action can never be added later. Provisioning never materializes content grants from this field. Operation/service resources constrain the service surface; explicit content resource selectors only further narrow later grants."
         },
         "accountability": {
           "type": "object",
@@ -811,6 +819,7 @@
         "agent_id",
         "principal_control_realm_id",
         "controller_authorization_ref",
+        "requested_scope_digest",
         "pcr_recovery",
         "pairing_request_id",
         "expires_at"
@@ -824,6 +833,10 @@
         },
         "controller_authorization_ref": {
           "$ref": "#/$defs/did_url"
+        },
+        "requested_scope_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Digest of the complete immutable requested_scope commitment in the Agent DID accepted inception history. The client MUST recompute it from its submitted scope, returned agent_id and authenticated controller DID."
         },
         "pcr_recovery": {
           "allOf": [
@@ -870,6 +883,7 @@
         "agent_id",
         "principal_control_realm_id",
         "controller_authorization_ref",
+        "requested_scope_digest",
         "pcr_recovery",
         "pairing_mode",
         "pairing_request_id",
@@ -884,6 +898,10 @@
         },
         "controller_authorization_ref": {
           "$ref": "#/$defs/did_url"
+        },
+        "requested_scope_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Unchanged digest of the immutable requested_scope commitment in the Agent DID binding."
         },
         "pcr_recovery": {
           "$ref": "#/$defs/agent_pcr_recovery_state"
@@ -1042,7 +1060,8 @@
       ],
       "properties": {
         "grant": {
-          "$ref": "./capability-grant.schema.json"
+          "$ref": "./capability-grant.schema.json",
+          "description": "Complete signed Realm-scoped grant. In addition to JSON Schema validation, admission MUST verify its subject/issuer/Realm bindings and that every action and resource is covered by the Agent's immutable provision requested_scope; provision constraints remain mandatory. A violation fails with agent_grant_exceeds_requested_scope."
         }
       },
       "additionalProperties": false
@@ -1213,6 +1232,7 @@
     },
     "agent_participation": {
       "type": "object",
+      "description": "Native Agent participation bits. The provision-derived ceiling maps reply to ak.message.create plus ak.reaction.add, accept_third_party_mention to ak.event.read, and act_on_behalf to ak.message.create plus applicable controller-approval/accountability constraints.",
       "properties": {
         "reply": {
           "type": "boolean"
@@ -1264,7 +1284,8 @@
           "$ref": "#/$defs/agent_participation_scope"
         },
         "selection": {
-          "$ref": "#/$defs/agent_participation"
+          "$ref": "#/$defs/agent_participation",
+          "description": "Controller selection. Every true bit MUST be allowed by both the immutable provision-derived ceiling and the deployment/Realm/Circle/Strand governance ceiling."
         }
       },
       "additionalProperties": false
@@ -1285,10 +1306,12 @@
           "$ref": "#/$defs/agent_participation"
         },
         "ceiling": {
-          "$ref": "#/$defs/agent_participation"
+          "$ref": "#/$defs/agent_participation",
+          "description": "Effective admission ceiling after intersecting the immutable provision-derived ceiling with the deployment/Realm/Circle/Strand governance ceiling."
         },
         "effective": {
-          "$ref": "#/$defs/agent_participation"
+          "$ref": "#/$defs/agent_participation",
+          "description": "Final participation after intersecting ceiling with controller selection."
         }
       },
       "additionalProperties": false

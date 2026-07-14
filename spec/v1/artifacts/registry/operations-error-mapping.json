@@ -44,7 +44,8 @@
         "agent_paused",
         "agent_deactivated",
         "agent_key_authorization_expired",
-        "accountability_grant_missing"
+        "accountability_grant_missing",
+        "agent_requested_scope_commitment_invalid"
       ],
       "description": "Account Authority session grant issuance. Shared by human user_session and agent runtime branches: when `proof.proof_kind=\"oidc_code_exchange\"`, `proof_invalid` covers issuer/discovery/state/nonce/redirect_uri/code_verifier/principal/device/audience binding failures; when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures of the agent_key_proof, `verification_method_principal_mismatch` when the verification_method DID does not match `principal_id`, `agent_paused` / `agent_deactivated` for lifecycle-gated rejections of the target agent principal, `agent_key_authorization_expired` when the effective authorization declares an elapsed expires_at, and `accountability_grant_missing` when the controller's accountability grant over the agent has been revoked or lapsed its freshness window so the agent is no longer eligible to receive a session grant (zh/identity/account-lifecycle.md §9.1)."
     },
@@ -97,7 +98,8 @@
         "pairing_request_expired",
         "proof_invalid",
         "agent_pcr_recovery_not_ready",
-        "agent_deactivated"
+        "agent_deactivated",
+        "agent_requested_scope_commitment_invalid"
       ],
       "description": "Native personal agent runtime key pairing. Pairing commit first requires a current controller-owned managed-PCR recovery backup; pending/stale/missing coverage returns agent_pcr_recovery_not_ready without consuming the handle or changing any key/grant. Pairing into an already-deactivated agent principal is terminal. Runtime replacement uses one controller-signed ak.agent.key.authorize with an exact supersedes[] set to atomically replace every prior active authorization dot and record reason=superseded_by_repairing; the service does not synthesize ak.agent.key.revoke Events."
     },
@@ -106,9 +108,10 @@
       "http_alias": "POST /_arkret/self/agents",
       "operation_specific": [
         "failed_precondition",
-        "accountability_grant_missing"
+        "accountability_grant_missing",
+        "agent_requested_scope_commitment_invalid"
       ],
-      "description": "Provision a native personal agent principal. Before any side effect the controller must have an accepted recovery policy. The operation allocates the managed Agent DID/PCR binding, writes controller-owned accountability/selector facts in the controller PCR, and returns pcr_recovery.status=pending plus a pairing request. Only explicit content actions produce pending capability grants, grouped into their governed Realms from the requested resource selectors; omitted or service-only scope grants no implicit content access. The controller E2EE client subsequently creates Agent PCR MLS/genesis/Profile state and its managed recovery backup. The operation never pre-writes ak.agent.key.authorize and the server never generates Agent PCR MLS private state. accountability_grant_missing is returned when the controller-owned grant cannot be written or validated; other ineligibility reasons surface as failed_precondition."
+      "description": "Provision a native personal agent principal. Before any side effect the controller must have an accepted recovery policy. The operation allocates the managed Agent DID/PCR binding, writes controller-owned accountability/selector facts in the controller PCR, and returns pcr_recovery.status=pending plus a pairing request. requested_scope establishes the global Agent key/session ceiling but produces no Realm capability grant; later grants and participation must be subsets of that ceiling. The controller E2EE client subsequently creates Agent PCR MLS/genesis/Profile state and its managed recovery backup. The operation never pre-writes ak.agent.key.authorize and the server never generates Agent PCR MLS private state. accountability_grant_missing is returned when the controller-owned grant cannot be written or validated; other ineligibility reasons surface as failed_precondition."
     },
     {
       "operation_id": "ak.self.agent.command.renew_pairing",
@@ -116,9 +119,10 @@
       "operation_specific": [
         "failed_precondition",
         "agent_deactivated",
-        "accountability_grant_missing"
+        "accountability_grant_missing",
+        "agent_requested_scope_commitment_invalid"
       ],
-      "description": "Re-open pairing on any non-terminal agent; only `deactivated` returns `agent_deactivated`. A renewed pairing MUST issue a fresh single-use `pairing_request_id` + `pairing_code` and MUST leave every previously issued handle permanently unresolvable. `pending_runtime_key` / `pairing_expired` re-open bootstrap pairing: pending grants revoked at expiry are re-issued flagged `effective_after_first_authorized_key=true`, and a re-issuance failure surfaces as `accountability_grant_missing` like provision. `active` / `paused` perform runtime replacement re-pairing: status, existing keys and grants stay untouched until the new pairing completes, whose single controller-signed authorize Event atomically supersedes the prior authorization dots; handle expiry has no side effects. If the agent's slug is meanwhile bound to another active or open agent of the same controller, renewal returns `failed_precondition`."
+      "description": "Re-open pairing on any non-terminal agent; only `deactivated` returns `agent_deactivated`. A renewed pairing MUST issue a fresh single-use `pairing_request_id` + `pairing_code` and MUST leave every previously issued handle permanently unresolvable. `pending_runtime_key` / `pairing_expired` re-open bootstrap pairing; `active` / `paused` perform runtime replacement re-pairing, whose single controller-signed authorize Event atomically supersedes the prior authorization dots. Neither branch creates, revokes, or re-issues Realm grants. Status, existing keys, and grants stay untouched until replacement pairing completes; handle expiry has no grant side effects. If the agent's slug is meanwhile bound to another active or open agent of the same controller, renewal returns `failed_precondition`."
     },
     {
       "operation_id": "ak.self.agent.query.list",
@@ -171,9 +175,11 @@
       "operation_specific": [
         "agent_paused",
         "agent_deactivated",
-        "failed_precondition"
+        "failed_precondition",
+        "agent_grant_exceeds_requested_scope",
+        "agent_requested_scope_commitment_invalid"
       ],
-      "description": "Attaches a capability grant to the agent. capability_denied surfaces controller-side delegation refusal; agent_paused / agent_deactivated guard the lifecycle gate."
+      "description": "Attaches a complete signed Realm capability grant to the agent. capability_denied surfaces controller-side delegation refusal; agent_paused / agent_deactivated guard the lifecycle gate. An action/resource outside the immutable provision ceiling, or removal/relaxation of a mandatory provision constraint, returns failed_precondition with reason=`agent_grant_exceeds_requested_scope`."
     },
     {
       "operation_id": "ak.self.agent.grant.resource.delete",
@@ -198,8 +204,12 @@
     {
       "operation_id": "ak.self.agent.participation.resource.replace",
       "http_alias": "PUT /_arkret/self/agents/{agent_id}/participation",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
+      "operation_specific": [
+        "agent_participation_exceeds_ceiling",
+        "agent_participation_ceiling_unresolved",
+        "agent_requested_scope_commitment_invalid"
+      ],
+      "description": "The requested selection is bounded by the immutable provision-derived ceiling and the deployment/Realm/Circle/Strand governance ceiling. A true bit outside either ceiling returns failed_precondition with reason=`agent_participation_exceeds_ceiling`; an unreadable provision or governance layer returns `agent_participation_ceiling_unresolved`."
     },
     {
       "operation_id": "ak.self.agent.participation.resource.get",

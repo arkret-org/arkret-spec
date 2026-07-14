@@ -3286,22 +3286,24 @@ Expected：
 
 ## 11. Personal Agent & Sidecar Vectors
 
-### 11.1 Vector: Provisioning + Pairing + Effective Grant
+### 11.1 Vector: Provisioning + Pairing + Global Scope Ceiling
 
 `vector_id`: `ak.vector.agent.provision.v1`
 
 Steps:
 
-1. Controller 调用 `ak.self.agent.command.provision`，得到 `agent_id`、初始 grant ids(每条 grant payload 含 `effective_after_first_authorized_key=true`)与 `pairing_request_id`。
-2. Agent runtime 生成 key pair，调用 `ak.gate.account.command.pair_agent_key`。
+1. Controller 调用 `ak.self.agent.command.provision`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限，得到 `agent_id`、`requested_scope_digest` 与 `pairing_request_id`；服务端在 Agent DID accepted inception history 的唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 固定完整 scope 与 digest。Controller 按 `sha256(canonical_json({agent_id, controller_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算并逐字匹配；provisioning 只写 accountability / selector facts，不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope` 的变体必须 schema validation 失败。
+2. Agent runtime 生成 key pair，调用 `ak.gate.account.command.pair_agent_key`；controller-signed `ak.agent.key.authorize.payload.agent_key_scope` 使用 actions/resources/constraints 的严格子集。另提交一个超出 action/resource ceiling 或删除 provision mandatory constraint 的变体。
 3. Pairing endpoint 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与 `agent_id` bit-identical。
-4. 批准后写入 `ak.agent.key.authorize`,reducer 清除 effective_after_first_authorized_key flag。
+4. 批准后写入 `ak.agent.key.authorize`；随后为该 Agent 附加一个更窄的 Realm-scoped grant，并分别尝试附加含未 provision action、超出显式内容 resource ceiling 的 grant。
 
 Expected:
 
 - 第 3 步 verification_method 与 agent_id 不一致时 MUST `failed_precondition` `reason=verification_method_principal_mismatch`。
-- 在第 4 步之前，任何 `agent_key_proof` session grant 请求 MUST fail closed；以该 grant 为基础的 capability check 也 MUST fail closed。
-- 第 4 步后 grant 进入正常 effective window 评估；agent runtime 可签发 session grant 并执行 capability action。
+- 第 1 步 DID commitment 必须与 fixture 固定 digest 匹配；缺少、摘要不匹配或 accepted-at history 中 scope 被替换时 MUST fail closed，且不得退回服务本地 Agent row 作为权威来源。
+- 在第 4 步之前，任何 `agent_key_proof` session grant 请求 MUST fail closed。
+- 第 2 步更窄 key scope MUST 接受；任何 action/resource 越界或删除 mandatory constraint 的 key scope MUST fail closed。实现不得要求 key scope 与 provision scope 完全相等。
+- 第 4 步后 agent runtime 只能在 `requested_scope ∩ agent_key_scope` 上限内签发 session grant；内容 capability 还必须来自后续独立的 Realm-scoped grant。更窄 grant MUST 接受；未 provision action 或超出显式内容 resource ceiling的 grant MUST 以 `agent_grant_exceeds_requested_scope` fail closed。
 
 ### 11.1.1 Vector: Controller-scoped Agent Mention Selector
 
@@ -3340,9 +3342,9 @@ Steps:
 
 Expected:
 
-- 服务 MUST 自动写入 `ak.capability.revoke` 撤销 pending grant,agent status → `pairing_expired`。
+- 服务将 agent status 转为 `pairing_expired`，不得创建、撤销或改写任何 Realm grant。
 - 重放 `ak.gate.account.command.pair_agent_key`(使用过期 pairing_request_id)MUST fail closed。
-- Controller 可通过 `ak.self.agent.command.renew_pairing` 对同一 agent principal 原地重开 pairing(bootstrap 重开，重发 pending grant),也可重新发起 `ak.self.agent.command.provision`;后者得到新 agent_id,旧 agent_id 与新 provisioning 不复用。
+- Controller 可通过 `ak.self.agent.command.renew_pairing` 对同一 agent principal 原地重开 bootstrap pairing，也可重新发起 `ak.self.agent.command.provision`;后者得到新 agent_id,旧 agent_id 与新 provisioning 不复用。两种操作都不得从 `requested_scope` 物化 Realm grant。
 
 ### 11.2.1 Vector: Stable Runtime Key Binding 与审批 CAS
 
@@ -3371,14 +3373,14 @@ Expected:
 
 Steps:
 
-1. Provision Agent DID `A`，controller DID 为 `C`；Agent DID Document 写唯一 `ArkretPrincipalControlRealm` service entry，分配 `PCR_A`，controller 已有 `PCR_C`。
+1. Provision Agent DID `A`，controller DID 为 `C`；Agent DID Document 写唯一 `ArkretPrincipalControlRealm` service entry，分配 `PCR_A`，并固定完整 immutable `requested_scope` 与域分离 digest；controller 已有 `PCR_C`。
 2. Controller 按 delegation 创建 `PCR_A` genesis，并写 Agent profile/key/lifecycle facts。
-3. Provisioning 同时把 accountability grant 与 selector claim 写入 `PCR_C`；若请求显式内容 scope，则 pending capability grant 按 resource `realm_id` 写入对应受治理 Realm，不写入 `PCR_C`。省略 scope 或仅请求 operation/service 服务面 scope 时，不生成隐式 `ak.event.read` 或其他内容 grant。
-4. 变体 A：实现把 `PCR_C` deterministic id 当作 Agent PCR；变体 B：在 `PCR_A` 或 `PCR_C` id 上创建缺 PCR marker、restricted history、MLS profile 或任一 E2EE floor 的 Realm；变体 C：服务端以 Agent DID 伪造 proof，省略 `executed_by=C` / `authorization_ref`；变体 D：忽略 `requested_scope.resources[]`，把内容 grant 默认写入 `PCR_C` 或把服务面 resource 转成内容权限。
+3. Provisioning 只把 accountability grant 与 selector claim 写入 `PCR_C`；无论 `requested_scope` 是否列出内容 action 或显式内容 resource selector，都不得产生 pending / active capability grant。内容授权只能由后续独立、完整签名且写入对应受治理 Realm 的 `ak.capability.grant` 产生；operation/service scope 同样不生成隐式 `ak.event.read` 或其它内容 grant。
+4. 变体 A：实现把 `PCR_C` deterministic id 当作 Agent PCR；变体 B：在 `PCR_A` 或 `PCR_C` id 上创建缺 PCR marker、restricted history、MLS profile 或任一 E2EE floor 的 Realm；变体 C：服务端以 Agent DID 伪造 proof，省略 `executed_by=C` / `authorization_ref`，或引用的 delegation purpose/resource scope 不覆盖目标 Event kind/PCR；变体 D：把 `requested_scope` 当作 Realm grant、在 provisioning 时物化内容权限，或在后续 Realm grant / participation 中允许超出 `requested_scope.actions[]` 的 action。
 
 Expected:
 
-- `PCR_A != PCR_C`，且 receiver 必须从 Agent DID accepted-at history 验证 service entry，不得验证实现私有派生算法。
+- `PCR_A != PCR_C`，且 receiver 必须从 Agent DID accepted-at history 验证 service entry 的 PCR/controller/authorization/scope/digest 五元组，不得验证实现私有派生算法或信任服务本地 scope row。
 - `PCR_A.created_by == PCR_A.notary == A`，purpose/profile/history/encryption floor 全部满足 PCR invariant。
 - Controller 写 Agent PCR 时 `actor_id=A`、`executed_by=C`，proof method 属于 C，delegation 覆盖目标 kind；不得伪造 A 签名。
 - Agent profile、key authorize/revoke、lifecycle 只进入 `PCR_A`；accountability/selector facts 只进入 `PCR_C`；Realm-specific capability grant 只进入其所治理 Realm；pairing request/notification 不进入任一 PCR。
@@ -3653,14 +3655,15 @@ Runner MUST 将 Realm/deployment 的 `{native_agent:{...}}` 与 Circle/Strand �
 
 Preconditions:
 
-- Realm `R` 的 `native_agent` ceiling `{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。Agent `A` 为 controller `Alice` 的 active native personal agent。
+- Realm `R` 的 `native_agent` ceiling `{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。Agent `A` 为 controller `Alice` 的 active native personal agent；其 accepted-at DID binding 中完整 `requested_scope.actions=[ak.message.create, ak.reaction.add]`，且 mandatory constraints 含一条适用于 `ak.message.create` 的 `claim_based{subtype=accountability}` controller constraint，因此现场派生 provision ceiling=`{reply:true, accept_third_party_mention:false, act_on_behalf:true}`。
 
 Steps:
 
 1. Alice 调用 `ak.self.agent.participation.resource.replace`，scope=`R`，selection=`{reply:true, accept_third_party_mention:false, act_on_behalf:true}`。
-2. 服务端求 effective selection = controller selection ∩ effective ceiling ∩ agent capability intersection。
+2. 服务端从 accepted-at DID binding 验证完整 scope/digest，现场派生 provision ceiling，再求 effective selection = controller selection ∩ provision ceiling ∩ governance ceiling。
 3. 变体 A：之后 Realm ceiling 把 `reply` 收紧为 `false`。
 4. 变体 B：controller selection 来源缺失或 unknown。
+5. 变体 C：从 `requested_scope.actions[]` 删除 `ak.reaction.add`；变体 D：保留 `ak.message.create` 但删除 controller approval/accountability constraint；变体 E：constraint 仅适用于 `ak.reaction.add` 而不适用于 `ak.message.create`。
 
 Expected:
 
@@ -3668,6 +3671,7 @@ Expected:
 - 物化是幂等的：重复 set 收敛到同一 grant 集合；selection 改变导致的 grant 增删 MUST atomic，不得留半物化状态。
 - 变体 A：`reply` effective 翻为 `false` 后 MUST `ak.capability.revoke` 对应 grant。
 - 变体 B：任一来源缺失或 unknown，对应位 MUST fail closed 为 `false`。
+- 变体 C 派生 `reply=false`；变体 D、E 派生 `act_on_behalf=false`。实现不得接受调用方直接提供的预计算 provision 三位来绕过 actions/constraints 派生。
 
 ### 11.14 Vector: Participation Selection Within Ceiling
 
@@ -3677,11 +3681,11 @@ Expected:
 
 Preconditions:
 
-- Realm `R` 的 `native_agent` ceiling `{reply:true, accept_third_party_mention:false, act_on_behalf:false}`。
+- Realm `R` 的 `native_agent` ceiling `{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。Agent accepted-at DID binding 的完整 `requested_scope.actions=[ak.message.create, ak.reaction.add]` 且不含 `ak.event.read`，现场派生 provision ceiling=`{reply:true, accept_third_party_mention:false, act_on_behalf:false}`。
 
 Steps:
 
-1. Controller 调用 `ak.self.agent.participation.resource.replace`，scope=`R`，selection=`{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。
+1. Controller 调用 `ak.self.agent.participation.resource.replace`，scope=`R`，selection=`{reply:true, accept_third_party_mention:true, act_on_behalf:false}`；虽然 Realm governance 允许第三方 mention，但 provision ceiling 不允许。
 2. 变体 A：调用方不是该 agent 的 controller。
 3. 变体 B：该 agent 非 active(`paused` / `deactivated` / `pairing_expired`)。
 4. 变体 C：scope 不可解析，或 controller 非该 Realm active member。

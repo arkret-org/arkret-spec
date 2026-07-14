@@ -441,6 +441,7 @@
       "vector_id": "ak.vector.agent.provision.v1",
       "status": "active",
       "domain": "agent",
+      "description": "Provision requested_scope is a required immutable global ceiling rather than a grant; narrower key scopes and Realm grants are accepted, while action/resource/mandatory-constraint widening fails closed and provisioning emits no Realm grant.",
       "applies_to_fixtures": [
         "agent-vectors-fixture.json"
       ],

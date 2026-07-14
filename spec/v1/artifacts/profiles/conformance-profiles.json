@@ -1174,7 +1174,7 @@
         "content_encryption_floor and metadata_encryption_floor MUST both be e2ee_required; a PCR genesis declaring either floor below e2ee_required MUST be rejected (no plaintext-floor PCR exists in v1).",
         "history_visibility MUST be restricted; new same-principal devices obtain prior control history via durable device-list / normalized principal view baseline and policy-gated MLS history key share, not by joining at the current epoch.",
         "Control events MUST bind principal_id / device_id / session grant audience to the same principal DID or an explicitly trusted recovery/session issuer.",
-        "A managed Agent principal_control_realm_id MUST be verified from the unique ArkretPrincipalControlRealm DID service entry at accepted-at; implementation-private deterministic derivation is not protocol evidence.",
+        "A managed Agent principal_control_realm_id and immutable requested_scope commitment MUST be verified from the unique ArkretPrincipalControlRealm DID service entry at accepted-at; the entry fixes realm_id, controller_did, authorization_ref, complete requested_scope and its domain-separated digest. Implementation-private deterministic derivation or a service-local Agent row is not protocol evidence.",
         "Managed Agent PCR genesis created_by and notary MUST equal the Agent DID; a controller authoring under delegation MUST be recorded as executed_by and MUST NOT synthesize an Agent signature."
       ]
     },
@@ -2566,6 +2566,9 @@
           "runtime_key_binding_conflict_cas",
           "managed_agent_pcr_binding",
           "managed_agent_pcr_recovery",
+          "agent_requested_scope_global_ceiling",
+          "agent_requested_scope_did_commitment",
+          "provision_no_realm_grant",
           "executed_by_attribution",
           "actor_kind_projection",
           "sidecar_exposure_disclosure"
@@ -2705,6 +2708,7 @@
       "feature_discovery": {
         "required": [
           "agent_participation_ceiling_tightens",
+          "provision_ceiling_intersection",
           "effective_is_ceiling_meet_selection",
           "third_party_mention_gate",
           "selection_within_ceiling_gate",

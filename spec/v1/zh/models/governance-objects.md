@@ -142,7 +142,6 @@ Schema id: `ak.schema.capability.v1`
 | `issued_at` | no | `timestamp` | 承载 Grant 的"创建时间"语义，取代通用 `created_at`（见 [`common-fields.md` §3.2](./common-fields.md)）；retention / audit / 排序查询 MUST 用 `issued_at` / `expires_at` / `revoked_at`，不回退到通用 `created_at`。缺省时该 Grant 无创建时间真源，签发方 SHOULD 始终提供。 | 签发时间。 |
 | `not_before` | no | `timestamp` |  | 生效时间。 |
 | `expires_at` | no | `timestamp` |  | 过期时间。 |
-| `effective_after_first_authorized_key` | no | `boolean` | 仅 provisioning 编排可设。`true` 时 grant durable-but-inactive；agent principal 首条 accepted、未过期、未撤销的 `ak.agent.key.authorize` 生效前 evaluator MUST fail closed，生效后 reducer 清除此 flag。actor 不得在已生效 grant 上补设。 | Personal-agent 首钥生效门。 |
 | `updated_by` | no | `did` | grant lifecycle update 的 actor；普通 grant body 仍不可变。 | 最近更新者。 |
 | `updated_at` | no | `timestamp` | grant lifecycle update 的时间；普通 grant body 仍不可变。 | 最近更新时间。 |
 | `revoked_by` | no | `did` | 撤销后设置。 | 撤销者。 |

@@ -810,6 +810,76 @@
       }
     },
     {
+      "name": "agent_provision_requested_scope_global_ceiling_valid",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
+      "expect_valid": true,
+      "instance": {
+        "slug": "summary",
+        "requested_scope": {
+          "actions": [
+            "ak.event.read",
+            "ak.self.events.stream.subscribe"
+          ],
+          "resources": [
+            {
+              "kind": "operation",
+              "operation": "ak.self.events.stream.subscribe"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "agent_provision_missing_requested_scope_rejected",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
+      "expect_valid": false,
+      "first_expected_error": "$: 'requested_scope' is a required property",
+      "instance": {
+        "slug": "summary"
+      }
+    },
+    {
+      "name": "agent_provision_circle_content_ceiling_valid",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
+      "expect_valid": true,
+      "instance": {
+        "slug": "circle-summary",
+        "requested_scope": {
+          "actions": [
+            "ak.event.read"
+          ],
+          "resources": [
+            {
+              "kind": "circle",
+              "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
+              "resource_ref": "ak:circle:019a7360-0000-7000-8000-000000000001"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "agent_provision_service_selector_with_content_fields_rejected",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
+      "expect_valid": false,
+      "first_expected_error": "contains:should not be valid under",
+      "instance": {
+        "slug": "ambiguous-service-scope",
+        "requested_scope": {
+          "actions": [
+            "ak.self.events.stream.subscribe"
+          ],
+          "resources": [
+            {
+              "kind": "operation",
+              "operation": "ak.self.events.stream.subscribe",
+              "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000"
+            }
+          ]
+        }
+      }
+    },
+    {
       "name": "invite_third_party_offline_token_valid",
       "schema_ref": "schemas/invite.schema.json",
       "expect_valid": true,

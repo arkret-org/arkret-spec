@@ -602,13 +602,13 @@ SHOULD 支持：
 `ak.profile.personal_agent_provisioning.v1` 注册 controller-面的 personal native agent management surface,扩展 `ak.profile.agent_runtime.v1`。
 
 MUST 支持:
-- `POST /_arkret/self/agents` (`ak.self.agent.command.provision`) 分配 managed Agent DID / Agent PCR binding，在 controller PCR 仅写 `ak.identity.accountability_grant` + selector claim；显式内容 scope 的初始 `ak.capability.grant` 按 resource `realm_id` 写入各自受治理 Realm并带 `effective_after_first_authorized_key=true` flag，省略/服务面-only scope 不生成隐式内容 grant；返回 `pcr_recovery.status=pending` + pairing request；controller E2EE client 再本地生成并提交 Agent PCR MLS/genesis/Profile state，服务端不得生成 MLS private state
+- `POST /_arkret/self/agents` (`ak.self.agent.command.provision`) 分配 managed Agent DID / Agent PCR binding，在 Agent DID accepted inception history 的唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 固定完整 `requested_scope` + 域分离 `requested_scope_digest`，在 controller PCR 仅写 `ak.identity.accountability_grant` + selector claim；必填且 immutable 的 `requested_scope` 记录 Agent key/session 的全局权限硬上限，但 provisioning 不得物化任何 Realm grant；后续 Agent key scope、Realm grant、participation 与 session request 可更窄但不得超过该上限；返回 `requested_scope_digest`、`pcr_recovery.status=pending` + pairing request，controller 必须重算 digest 后再继续；controller E2EE client 再本地生成并提交 Agent PCR MLS/genesis/Profile state，服务端不得生成 MLS private state
 - controller-owned `backup_class=mls_history` active series 按 [`../identity/key-management.md` §7.5.6](../identity/key-management.md) 备份 Agent PCR state：managed binding 进入 public index、plaintext keybag 与 AAD，使用 controller `recovery_public_key` / current recovery policy；Agent runtime private key 永不备份，也不为 Agent 生成独立 24 词
-- `POST /_arkret/gate/account/agent-key-pair` (`ak.gate.account.command.pair_agent_key`) 必须先验证 `pcr_recovery.status=ready`，再校验 `verification_method` 与 `agent_id` 一致性并写入 `ak.agent.key.authorize`、清除 effective_after_first_authorized_key；agent 已有 active key 时(runtime replacement re-pairing)以单一 controller-signed authorize Event 的精确 `supersedes[]` 原子替换全部既有 active authorization
+- `POST /_arkret/gate/account/agent-key-pair` (`ak.gate.account.command.pair_agent_key`) 必须先验证 `pcr_recovery.status=ready`，再校验 `verification_method` 与 `agent_id` 一致性并写入 `ak.agent.key.authorize`；agent 已有 active key 时(runtime replacement re-pairing)以单一 controller-signed authorize Event 的精确 `supersedes[]` 原子替换全部既有 active authorization
 - Provisioning `status` 枚举:`pending_runtime_key` / `active` / `paused` / `pairing_expired` / `deactivated`(`pairing_expired` 仅描述从未完成首次配对的 agent;`active` / `paused` 上的 open re-pairing handle 是属性而非状态)
-- Pairing expiry 自动 `ak.capability.revoke` pending grants(仅 bootstrap pairing;runtime replacement handle 过期无副作用)
+- Pairing expiry 仅把尚未首次配对的 agent 投影为 `pairing_expired`，不得创建、撤销或改写任何 Realm grant；runtime replacement handle 过期无副作用
 - `POST /_arkret/self/agents/{agent_id}/renew-pairing` (`ak.self.agent.command.renew_pairing`) 对任何非 terminal agent 重开 pairing(bootstrap 重开 / runtime replacement 两种语义，见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md))
-- Agent management operations(list/get/renew-pairing/pause/resume/deactivate/grant attach/detach)写入 durable lifecycle events
+- Agent management surface 中 list/get 是 read-only；renew-pairing 只轮换 profile-local pairing artifact，不写 durable Event；pause/resume/deactivate 写 lifecycle Event；grant attach/detach 分别写 Realm-scoped capability grant/revoke Event
 - Longevity-safe 授权链:`ak.agent.key.authorize`、`ak.identity.accountability_grant` 与非 registry-required 的 agent capability grant 的 `expires_at` 均可缺省(revocation-governed);实现 MUST NOT 因缺省 `expires_at` 拒绝这些对象
 - Agent provision request 与 list/get projection 使用必填固有字段 `slug`；native personal agent selector claim `ak.schema.agent_selector_claim.v1` 与 Actor Profile 投影 hint 使用外部引用字段 `agent_slug`，并支持 `@<controller-handle>/<agent_slug>` 输入别名到 agent `subject_id` 的唯一解析；slug 不是 handle、公开 Directory search/list key 或授权主体
 - Draft-only family:`ak.agent.draft.propose` / `ak.agent.action_request` / `ak.agent.action_approve` / `ak.agent.action_reject`,materialize 为 controller-owned `ak.agent.draft.v1` encrypted account-data
@@ -619,7 +619,7 @@ MUST 支持:
 - Sidecar exposure 披露:激活新 agent 前 UI MUST 显式披露其将获得现有 sidecar 访问权(联动 `ak.profile.agent_sidecar_thread.v1`)
 
 MUST NOT:
-- 注册独立 `ak.self.agent.command.provision` aggregate provisioning operation(provisioning fan-out 到既有子事件)
+- 为 provisioning 引入独立 durable `ak.self.agent.command.provision` Event，或在 provision fan-out 中加入 Agent Profile、Agent key authorization、Realm capability grant；`ak.self.agent.command.provision` 只作为 aggregate operation id 存在，其 durable outputs 仅为 controller PCR 中既有 accountability / selector Event
 - 返回长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token
 - 引入 custom URI scheme(`arkret://` 等)
 - 把 `agent_slug` 当作 grant subject、actor attribution、membership key、delivery key、Directory search key 或 audit attribution source
@@ -694,7 +694,8 @@ MUST 支持:
 - `ak.self.agent.participation.resource.replace`
 - `ak.self.agent.participation.resource.get`
 - deployment ⊇ Realm ⊇ Circle ⊇ Strand 的 tighten-only ceiling 校验
-- effective participation = effective ceiling ∩ controller selection
+- effective participation = provision-derived global ceiling ∩ deployment/Realm/Circle/Strand governance ceiling ∩ controller selection；`reply` 要求 provision actions 同时含 `ak.message.create` 与 `ak.reaction.add`，`accept_third_party_mention` 要求 `ak.event.read`，`act_on_behalf` 要求 `ak.message.create` 加适用的 controller approval / accountability constraints
+- provision-derived participation ceiling MUST 从完整 `requested_scope` 现场派生，不得由调用方直接提供预计算三位；缺 `ak.reaction.add` 时 `reply=false`，缺适用于 `ak.message.create` 的 `claim_based{subtype=approval|accountability}` mandatory constraint 时 `act_on_behalf=false`
 - 第三方 mention gate：`accept_third_party_mention=false` 时不得向该 agent 派生 mention notification、inbox row、push wakeup 或 agent subscribe 投影；gate 在 message event fanout 时一次性求值，participation 之后翻转不追溯补发或撤销既有派生（[strand-and-message.md §9.4.5](../models/strand-and-message.md)）
 - `scope_details.participation[]` session overlay，形态与 `agent-operations.schema.json#/$defs/agent_participation_entry` 对齐
 
