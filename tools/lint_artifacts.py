@@ -3048,6 +3048,38 @@ def check_reducer_payload_closure(lint: Lint) -> None:
             )
 
 
+def check_circle_membership_enum_single_source(lint: Lint) -> None:
+    """Circle operation DTOs must reference the canonical membership enum directly."""
+    path = ARTIFACTS / "schemas" / "circle-operations.schema.json"
+    schema = load_json(lint, path)
+    if not isinstance(schema, dict):
+        return
+
+    defs = schema.get("$defs", {})
+    if not isinstance(defs, dict):
+        lint.fail(path, "circle operation schema missing $defs")
+        return
+
+    if "circle_member_state" in defs:
+        lint.fail(path, "$defs.circle_member_state is a forbidden alias; reference membership_state directly")
+
+    canonical_ref = "./event-payload.schema.json#/$defs/membership_state"
+    fields = (
+        ("circle_view", "viewer_membership"),
+        ("circle_member_request_body", "membership"),
+        ("circle_membership_outcome", "membership"),
+    )
+    for def_name, field_name in fields:
+        definition = defs.get(def_name, {})
+        properties = definition.get("properties", {}) if isinstance(definition, dict) else {}
+        field = properties.get(field_name) if isinstance(properties, dict) else None
+        if not isinstance(field, dict) or field.get("$ref") != canonical_ref:
+            lint.fail(
+                path,
+                f"$defs.{def_name}.properties.{field_name} must reference {canonical_ref}",
+            )
+
+
 def check_did_and_device_constraints(lint: Lint) -> None:
     """Reject ambiguous DID/DID URL and device_id constraints in machine artifacts."""
     openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
@@ -5847,6 +5879,7 @@ def main() -> int:
     check_read_scope_schema_closure(lint)
     check_signed_object_closure(lint)
     check_reducer_payload_closure(lint)
+    check_circle_membership_enum_single_source(lint)
     check_did_and_device_constraints(lint)
     check_operation_binding_metadata(lint)
     check_binding_completeness_index(lint)

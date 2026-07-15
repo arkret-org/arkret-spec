@@ -48,17 +48,6 @@
         "tombstoned"
       ]
     },
-    "circle_member_state": {
-      "type": "string",
-      "description": "Deprecated internal alias name retained only for schema ref stability; values are the canonical membership_state enum shared by ak.member.state and ak.circle.member.state.",
-      "enum": [
-        "join",
-        "invite",
-        "knock",
-        "leave",
-        "ban"
-      ]
-    },
     "circle_view": {
       "type": "object",
       "description": "Circle projection row returned by create/get/lifecycle operations. Field set mirrors circle.schema.json; reducer-managed fields (mls_group_ref, state, members, created_at) are read-only outputs.",
@@ -160,7 +149,7 @@
           "description": "Exact count of active Circle members. Present only when the caller is an active Circle member; directory-only previews MUST omit it and use the privacy-bucketed preview contract instead."
         },
         "viewer_membership": {
-          "$ref": "#/$defs/circle_member_state",
+          "$ref": "./event-payload.schema.json#/$defs/membership_state",
           "description": "The caller's own Circle membership state when one exists."
         },
         "members": {
@@ -288,7 +277,7 @@
           "$ref": "#/$defs/did"
         },
         "membership": {
-          "$ref": "#/$defs/circle_member_state",
+          "$ref": "./event-payload.schema.json#/$defs/membership_state",
           "default": "join",
           "description": "Target canonical ak.circle.member.state membership value. Defaults to join. Joining another actor requires ak.circle.member.manage and the target MUST already be a joined parent-Realm member; knock requires join_rule=request."
         }
@@ -310,7 +299,7 @@
           "$ref": "#/$defs/did"
         },
         "membership": {
-          "$ref": "#/$defs/circle_member_state"
+          "$ref": "./event-payload.schema.json#/$defs/membership_state"
         }
       },
       "additionalProperties": false
