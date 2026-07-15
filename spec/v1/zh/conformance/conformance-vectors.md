@@ -3294,18 +3294,35 @@ Expected：
 
 Steps:
 
-1. Controller 调用 `ak.self.agent.command.provision`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限，得到 `agent_id`、`requested_scope_digest` 与 `pairing_request_id`；服务端在 Agent DID accepted inception history 的唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 固定完整 scope 与 digest。Controller 按 `sha256(canonical_json({agent_id, controller_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算并逐字匹配；provisioning 只写 accountability / selector facts，不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope` 的变体必须 schema validation 失败。
-2. Agent runtime 生成 key pair，调用 `ak.gate.account.command.pair_agent_key`；controller-signed `ak.agent.key.authorize.payload.agent_key_scope` 使用 actions/resources/constraints 的严格子集。另提交一个超出 action/resource ceiling 或删除 provision mandatory constraint 的变体。
+1. Controller 调用 `ak.self.agent.command.provision`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限，得到 `agent_id`、`requested_scope_digest` 与 `pairing_request_id`；服务端在 Agent DID accepted inception history 的唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 只固定 digest，公开 entry 不含完整 scope。Controller 按 `sha256(canonical_json({agent_id, controller_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算并逐字匹配；provisioning 只写 accountability / selector facts，不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope` 的变体必须 schema validation 失败。
+2. Agent runtime 生成 key pair，取得 pairing verifier 签名的 presentation request/challenge；controller 生成符合 `ak.schema.agent_requested_scope_disclosure.v1`、绑定该 verifier/audience/challenge 且接收窗口不超过 300 秒的私有披露，与 key pair request 一起提交。controller-signed `ak.agent.key.authorize.payload.agent_key_scope` 使用 actions/resources/constraints 的严格子集。另提交一个超出 action/resource ceiling 或删除 provision mandatory constraint 的变体。
 3. Pairing endpoint 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与 `agent_id` bit-identical。
 4. 批准后写入 `ak.agent.key.authorize`；随后为该 Agent 附加一个更窄的 Realm-scoped grant，并分别尝试附加含未 provision action、超出显式内容 resource ceiling 的 grant。
 
 Expected:
 
 - 第 3 步 verification_method 与 agent_id 不一致时 MUST `failed_precondition` `reason=verification_method_principal_mismatch`。
-- 第 1 步 DID commitment 必须与 fixture 固定 digest 匹配；缺少、摘要不匹配或 accepted-at history 中 scope 被替换时 MUST fail closed，且不得退回服务本地 Agent row 作为权威来源。
+- 第 1 步 DID commitment 必须与 fixture 固定 digest 匹配；公开 service endpoint 必须是 `{realm_id, controller_did, authorization_ref, requested_scope_digest}` 闭合四元组，出现 `requested_scope` 或其它 scope/resource/constraint 明文字段 MUST reject。
+- 第 2 步 disclosure 的 controller proof、request/challenge 单次性、verifier/audience、接收窗口与 digest 必须全部通过；缺失、摘要不匹配、重放或错 audience MUST fail closed，且不得退回服务本地 Agent row 作为权威来源。完整 disclosure 不得进入 authorize Event、Realm history、pairing code 或通知。
 - 在第 4 步之前，任何 `agent_key_proof` session grant 请求 MUST fail closed。
 - 第 2 步更窄 key scope MUST 接受；任何 action/resource 越界或删除 mandatory constraint 的 key scope MUST fail closed。实现不得要求 key scope 与 provision scope 完全相等。
 - 第 4 步后 agent runtime 只能在 `requested_scope ∩ agent_key_scope` 上限内签发 session grant；内容 capability 还必须来自后续独立的 Realm-scoped grant。更窄 grant MUST 接受；未 provision action 或超出显式内容 resource ceiling的 grant MUST 以 `agent_grant_exceeds_requested_scope` fail closed。
+
+### 11.1.0 Vector: Requested Scope Public-History Privacy
+
+`vector_id`: `ak.vector.agent.requested_scope_privacy.v1`
+
+Steps:
+
+1. 解析 Agent accepted inception DID Document，验证唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 的闭合四元组；扫描完整 DID version history 与公开 registry/notification/Event fixture。
+2. Verifier 生成签名 `ak.identity.presentation_request`，包含唯一 `request_id`、不可预测 `challenge`、`verifier_did`、`audience/domain` 与五分钟内 expiry；controller 经 TSP、HTTP/JWE、DIDComm-like、to-device 或 MLS DM 私有通道返回 `ak.schema.agent_requested_scope_disclosure.v1`。
+3. Verifier 验证 controller current proof、`payload_digest`、`agent_id/controller_id`、`verifier_did/audience`、`expires_at-issued_at <= 300s`，消费 `(verifier_did, request_id, challenge)`，并以披露 scope 重算 DID commitment。
+4. 负向变体依次为：公开 endpoint 加入完整 `requested_scope`；disclosure 改一个 resource/constraint 但保留旧 digest；错 verifier 或 audience；过期/超 300 秒窗口；重放已消费 challenge；把 disclosure 复制进 grant、authorize Event、notification 或 Realm plaintext。
+
+Expected:
+
+- 正向 disclosure 只作为加密 verifier-private evidence 接受；其缓存键至少为 `(agent_id, requested_scope_digest, verifier_did, audience)`，accepted-at DID/controller lifecycle 变化时重新验证或 fail closed。
+- 六类负向变体全部 fail closed。公开 DID history 与其它公共 fixture 中不得出现完整 scope；实现不得因 disclosure 本身“不授予能力”而放宽隐私检查。
 
 ### 11.1.1 Vector: Controller-scoped Agent Mention Selector
 
@@ -3375,14 +3392,14 @@ Expected:
 
 Steps:
 
-1. Provision Agent DID `A`，controller DID 为 `C`；Agent DID Document 写唯一 `ArkretPrincipalControlRealm` service entry，分配 `PCR_A`，并固定完整 immutable `requested_scope` 与域分离 digest；controller 已有 `PCR_C`。
+1. Provision Agent DID `A`，controller DID 为 `C`；Agent DID Document 写唯一 `ArkretPrincipalControlRealm` service entry，分配 `PCR_A`，并只固定 immutable `requested_scope` 的域分离 digest；完整 scope 由 controller-private disclosure 出示，controller 已有 `PCR_C`。
 2. Controller 按 delegation 创建 `PCR_A` genesis，并写 Agent profile/key/lifecycle facts。
 3. Provisioning 只把 accountability grant 与 selector claim 写入 `PCR_C`；无论 `requested_scope` 是否列出内容 action 或显式内容 resource selector，都不得产生 pending / active capability grant。内容授权只能由后续独立、完整签名且写入对应受治理 Realm 的 `ak.capability.grant` 产生；operation/service scope 同样不生成隐式 `ak.event.read` 或其它内容 grant。
 4. 变体 A：实现把 `PCR_C` deterministic id 当作 Agent PCR；变体 B：在 `PCR_A` 或 `PCR_C` id 上创建缺 PCR marker、restricted history、MLS profile 或任一 E2EE floor 的 Realm；变体 C：服务端以 Agent DID 伪造 proof，省略 `executed_by=C` / `authorization_ref`，或引用的 delegation purpose/resource scope 不覆盖目标 Event kind/PCR；变体 D：把 `requested_scope` 当作 Realm grant、在 provisioning 时物化内容权限，或在后续 Realm grant / participation 中允许超出 `requested_scope.actions[]` 的 action。
 
 Expected:
 
-- `PCR_A != PCR_C`，且 receiver 必须从 Agent DID accepted-at history 验证 service entry 的 PCR/controller/authorization/scope/digest 五元组，不得验证实现私有派生算法或信任服务本地 scope row。
+- `PCR_A != PCR_C`，且 receiver 必须从 Agent DID accepted-at history 验证 service entry 的 PCR/controller/authorization/digest 四元组，再验证 controller-signed private disclosure 后使用 scope；不得验证实现私有派生算法或信任服务本地 scope row。
 - `PCR_A.created_by == PCR_A.notary == A`，purpose/profile/history/encryption floor 全部满足 PCR invariant。
 - Controller 写 Agent PCR 时 `actor_id=A`、`executed_by=C`，proof method 属于 C，delegation 覆盖目标 kind；不得伪造 A 签名。
 - Agent profile、key authorize/revoke、lifecycle 只进入 `PCR_A`；accountability/selector facts 只进入 `PCR_C`；Realm-specific capability grant 只进入其所治理 Realm；pairing request/notification 不进入任一 PCR。
@@ -3657,12 +3674,12 @@ Runner MUST 将 Realm/deployment 的 `{native_agent:{...}}` 与 Circle/Strand �
 
 Preconditions:
 
-- Realm `R` 的 `native_agent` ceiling `{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。Agent `A` 为 controller `Alice` 的 active native personal agent；其 accepted-at DID binding 中完整 `requested_scope.actions=[ak.message.create, ak.reaction.add]`，且 mandatory constraints 含一条适用于 `ak.message.create` 的 `claim_based{subtype=accountability}` controller constraint，因此现场派生 provision ceiling=`{reply:true, accept_third_party_mention:false, act_on_behalf:true}`。
+- Realm `R` 的 `native_agent` ceiling `{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。Agent `A` 为 controller `Alice` 的 active native personal agent；其 accepted-at DID binding 固定 digest，verifier-private controller disclosure 给出 `requested_scope.actions=[ak.message.create, ak.reaction.add]`，且 mandatory constraints 含一条适用于 `ak.message.create` 的 `claim_based{subtype=accountability}` controller constraint，因此现场派生 provision ceiling=`{reply:true, accept_third_party_mention:false, act_on_behalf:true}`。
 
 Steps:
 
 1. Alice 调用 `ak.self.agent.participation.resource.replace`，scope=`R`，selection=`{reply:true, accept_third_party_mention:false, act_on_behalf:true}`。
-2. 服务端从 accepted-at DID binding 验证完整 scope/digest，现场派生 provision ceiling，再求 effective selection = controller selection ∩ provision ceiling ∩ governance ceiling。
+2. 服务端从 accepted-at DID binding 验证 digest，并验证 verifier-private controller disclosure 后现场派生 provision ceiling，再求 effective selection = controller selection ∩ provision ceiling ∩ governance ceiling。
 3. 变体 A：之后 Realm ceiling 把 `reply` 收紧为 `false`。
 4. 变体 B：controller selection 来源缺失或 unknown。
 5. 变体 C：从 `requested_scope.actions[]` 删除 `ak.reaction.add`；变体 D：保留 `ak.message.create` 但删除 controller approval/accountability constraint；变体 E：constraint 仅适用于 `ak.reaction.add` 而不适用于 `ak.message.create`。
@@ -3683,7 +3700,7 @@ Expected:
 
 Preconditions:
 
-- Realm `R` 的 `native_agent` ceiling `{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。Agent accepted-at DID binding 的完整 `requested_scope.actions=[ak.message.create, ak.reaction.add]` 且不含 `ak.event.read`，现场派生 provision ceiling=`{reply:true, accept_third_party_mention:false, act_on_behalf:false}`。
+- Realm `R` 的 `native_agent` ceiling `{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。Agent accepted-at DID binding 固定 digest，verifier-private controller disclosure 的 `requested_scope.actions=[ak.message.create, ak.reaction.add]` 且不含 `ak.event.read`，现场派生 provision ceiling=`{reply:true, accept_third_party_mention:false, act_on_behalf:false}`。
 
 Steps:
 

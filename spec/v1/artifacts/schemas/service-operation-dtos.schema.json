@@ -2263,6 +2263,10 @@
             }
           }
         },
+        "requested_scope_disclosure": {
+          "$ref": "./agent-requested-scope-disclosure.schema.json",
+          "description": "Optional only for the agent_key_proof branch. A runtime includes this controller-signed private disclosure when the Account Authority does not yet hold verifier-private ceiling evidence established by pairing or an authenticated private evidence transfer. If absent, the authority MUST resolve an already verified disclosure keyed by the same agent_id, DID commitment digest, verifier and audience; a service-local Agent row alone is insufficient."
+        },
         "dpop_binding_proof": {
           "$ref": "#/$defs/SessionGrantDpopBindingProof",
           "description": "`ak.profile.agent_auth.v1` overlay. DPoP proof JWT for the holder key that the issued session grant will bind to. REQUIRED when `proof.proof_kind=\"agent_key_proof\"`; the Account Authority verifies the proof and materializes the resulting JWK thumbprint into the issued grant's `cnf.jkt` / session_public_key binding."
@@ -2358,7 +2362,7 @@
       },
       "allOf": [
         {
-          "description": "Machine-enforceable agent_key_proof branch selector. When `proof.proof_kind` is\n`agent_key_proof`, the request MUST carry the `ak.profile.agent_auth.v1` overlay\nfields (`agent_key_authorization_ref`, `agent_scope_request`, `dpop_binding_proof`,\n`proof.verification_method`); when it is any other enum value, agent-only fields\nMUST be absent. SDKs and server-side validators MUST reject violations at\nschema-validation time, not at proof-validator time.\n",
+          "description": "Machine-enforceable agent_key_proof branch selector. When `proof.proof_kind` is\n`agent_key_proof`, the request MUST carry the `ak.profile.agent_auth.v1` overlay\nfields (`agent_key_authorization_ref`, `agent_scope_request`, `dpop_binding_proof`,\n`proof.verification_method`) and MAY carry a private requested_scope_disclosure\nwhen the verifier has no accepted cache; when it is any other enum value, agent-only fields\nMUST be absent. SDKs and server-side validators MUST reject violations at\nschema-validation time, not at proof-validator time.\n",
           "if": {
             "properties": {
               "proof": {
@@ -2410,6 +2414,13 @@
                 "not": {
                   "required": [
                     "dpop_binding_proof"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "requested_scope_disclosure"
                   ]
                 }
               },

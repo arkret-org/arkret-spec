@@ -8,6 +8,7 @@
   },
   "covers_vectors": [
     "ak.vector.agent.provision.v1",
+    "ak.vector.agent.requested_scope_privacy.v1",
     "ak.vector.agent.pairing_expiry.v1",
     "ak.vector.agent.runtime_key_binding.v1",
     "ak.vector.agent.managed_pcr_separation.v1",
@@ -41,17 +42,78 @@
         },
         "expected_digest": "sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042"
       },
+      "public_did_service_endpoint": {
+        "realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
+        "controller_did": "did:webvh:z6mkcontroller:controller.example",
+        "authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
+        "requested_scope_digest": "sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042"
+      },
       "assertions": [
         "agent provision operation id remains ak.self.agent.command.provision",
         "agent provision capability action matches the operation id",
         "provision fails without a controller recovery policy before creating any Agent DID, PCR, or grant side effect",
         "provision returns the Agent PCR binding with pcr_recovery pending and does not pre-write an Agent profile or runtime key authorization",
         "requested_scope is required, immutable and records a global hard ceiling rather than a grant",
-        "the accepted Agent DID service entry fixes the complete requested_scope and its domain-separated digest",
+        "the accepted Agent DID service entry is a closed four-field binding that fixes only the domain-separated requested_scope digest and contains no complete scope",
+        "pairing and grant admission require a controller-signed verifier-bound private requested_scope disclosure whose digest matches the accepted-at DID commitment",
         "provisioning writes only accountability and selector facts and never materializes Realm grants",
         "a narrower per-key scope is accepted while a wider action/resource scope or omitted mandatory provision constraint is rejected",
         "a narrower Realm grant is accepted while an omitted action or out-of-ceiling content resource is rejected with agent_grant_exceeds_requested_scope",
         "missing accountability grants fail with accountability_grant_missing"
+      ]
+    },
+    {
+      "name": "agent_requested_scope_privacy",
+      "vector_id": "ak.vector.agent.requested_scope_privacy.v1",
+      "runner": "cotest::conformance::agent_vectors::run_agent_requested_scope_privacy_vector",
+      "disclosure": {
+        "schema": "ak.schema.agent_requested_scope_disclosure.v1",
+        "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
+        "agent_id": "did:webvh:z6mkagent:agent.example",
+        "controller_id": "did:webvh:z6mkcontroller:controller.example",
+        "requested_scope": {
+          "actions": [
+            "ak.event.read",
+            "ak.self.events.stream.subscribe"
+          ],
+          "resources": [
+            {
+              "kind": "operation",
+              "operation": "ak.self.events.stream.subscribe"
+            }
+          ]
+        },
+        "requested_scope_digest": "sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042",
+        "verifier_did": "did:webvh:z6mkverifier:pair.example",
+        "audience": "https://pair.example/_arkret/gate/account/agent-key-pair",
+        "challenge": "ak.challenge.01964137000070008000000000000000",
+        "issued_at": "2026-04-26T00:00:00Z",
+        "expires_at": "2026-04-26T00:04:00Z",
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkcontroller:controller.example#device-1",
+            "alg": "EdDSA",
+            "payload_digest": "sha256:282240ee276be70b94f5c6046cb0b828d8e031fc2015a4feaf44c9f1767ba37e",
+            "created_at": "2026-04-26T00:00:00Z",
+            "audience": "https://pair.example/_arkret/gate/account/agent-key-pair",
+            "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+          }
+        ]
+      },
+      "negative_cases": [
+        "public_service_endpoint_contains_requested_scope",
+        "requested_scope_digest_mismatch",
+        "verifier_or_audience_mismatch",
+        "presentation_window_exceeds_300_seconds",
+        "consumed_challenge_replay",
+        "disclosure_copied_to_durable_or_public_history"
+      ],
+      "assertions": [
+        "the public did:webvh history never contains the complete requested_scope, resource selectors, or constraints",
+        "the disclosure validates against agent-requested-scope-disclosure.schema.json and its controller proof payload_digest",
+        "the verifier consumes request_id and challenge once and rejects replay, wrong audience, stale proof, and digest mismatch",
+        "accepted disclosure is stored only as encrypted verifier-private evidence keyed by agent, digest, verifier, and audience"
       ]
     },
     {

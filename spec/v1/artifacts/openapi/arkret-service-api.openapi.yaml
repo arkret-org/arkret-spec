@@ -7561,7 +7561,7 @@ paths:
           default: localhost
     post:
       operationId: ak.gate.account.command.pair_agent_key
-      description: Native personal agent runtime key pairing. Requires a ready controller-owned managed-PCR recovery backup covering the pre-commit Agent PCR frontier, validates verification_method ↔ agent_id consistency, and writes ak.agent.key.authorize on approval. The accepted authorization advances the frontier and makes recovery stale until a post-commit backup tail is accepted; that transition does not roll back this successful pairing but blocks the next pairing commit. Agent runtime private keys are locally generated and never uploaded or restored.
+      description: Native personal agent runtime key pairing. Requires a ready controller-owned managed-PCR recovery backup covering the pre-commit Agent PCR frontier and a controller-signed, verifier/audience/challenge-bound private requested_scope disclosure whose digest matches the accepted-at public DID commitment. The disclosure is transaction evidence and is never copied into the authorization Event or public history. The operation validates verification_method ↔ agent_id consistency and writes ak.agent.key.authorize on approval. The accepted authorization advances the frontier and makes recovery stale until a post-commit backup tail is accepted; that transition does not roll back this successful pairing but blocks the next pairing commit. Agent runtime private keys are locally generated and never uploaded or restored.
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -7605,7 +7605,7 @@ paths:
                 $ref: '#/components/schemas/AgentList'
     post:
       operationId: ak.self.agent.command.provision
-      description: Allocate a native personal Agent DID and Principal Control Realm binding plus controller-owned accountability/selector facts and a pairing request. requested_scope is required and becomes the immutable global Agent ceiling; the complete scope and its domain-separated requested_scope_digest are fixed in the Agent DID accepted inception history. It is not a grant, and later key scopes, Realm grants, participation and sessions may narrow but never exceed it. Provisioning creates no Agent profile, key authorization or Realm capability grant. Returns requested_scope_digest and pcr_recovery.status=pending; the controller E2EE client must verify the digest, then locally bootstrap and back up Agent PCR MLS state before pairing can commit.
+      description: Allocate a native personal Agent DID and Principal Control Realm binding plus controller-owned accountability/selector facts and a pairing request. requested_scope is required and becomes the immutable global Agent ceiling; only its domain-separated requested_scope_digest is fixed in the public Agent DID accepted inception history, while the complete scope stays controller-private and is disclosed later through a signed verifier-bound presentation. It is not a grant, and later key scopes, Realm grants, participation and sessions may narrow but never exceed it. Provisioning creates no Agent profile, key authorization or Realm capability grant. Returns requested_scope_digest and pcr_recovery.status=pending; the controller E2EE client must verify the digest, then locally bootstrap and back up Agent PCR MLS state before pairing can commit.
       security:
       - bearerAuth: []
       responses:
@@ -7743,7 +7743,7 @@ paths:
   /_arkret/self/agents/{agent_id}/grants:
     post:
       operationId: ak.self.agent.grant.command.attach
-      description: Attach a complete signed Realm-scoped capability grant to a native personal agent. Its actions and resources must be covered by the immutable provision requested_scope, all provision constraints remain mandatory, and no defaults are added.
+      description: Attach a complete signed Realm-scoped capability grant to a native personal agent together with a controller-signed, verifier-bound private requested_scope disclosure. The verifier recomputes the accepted-at public DID commitment; grant actions and resources must be covered by the disclosed immutable ceiling, all provision constraints remain mandatory, no defaults are added, and the disclosure is never copied into Realm history.
       security:
       - bearerAuth: []
       parameters:

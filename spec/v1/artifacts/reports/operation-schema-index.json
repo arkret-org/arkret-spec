@@ -141,6 +141,7 @@
           "requested_scope",
           "agent_key_authorization_ref",
           "agent_scope_request",
+          "requested_scope_disclosure",
           "dpop_binding_proof",
           "applet_delegation",
           "proof"
@@ -350,6 +351,7 @@
           "verification_method",
           "public_key",
           "proof_of_possession",
+          "requested_scope_disclosure",
           "authorize_event"
         ],
         "properties": [
@@ -358,6 +360,7 @@
           "verification_method",
           "public_key",
           "proof_of_possession",
+          "requested_scope_disclosure",
           "runtime_attestation",
           "authorize_event"
         ],
@@ -583,10 +586,12 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body",
         "schema_kind": "object",
         "required": [
-          "grant"
+          "grant",
+          "requested_scope_disclosure"
         ],
         "properties": [
-          "grant"
+          "grant",
+          "requested_scope_disclosure"
         ],
         "closed": true
       },

@@ -295,11 +295,11 @@
         },
         "requested_scope": {
           "$ref": "#/$defs/agent_key_scope",
-          "description": "Required immutable global Agent key/session ceiling captured at provision time, not a grant. Content actions are the maximum actions that later key scopes, Realm-scoped grants, participation or sessions may allow; an omitted action cannot be added later. Provisioning never materializes content grants from this field. Operation/service resources constrain the service surface; explicit content resource selectors only further narrow later grants. Receiver authority comes from the matching accepted-at Agent DID commitment, not this service projection."
+          "description": "Controller-private projection of the required immutable global Agent key/session ceiling captured at provision time, not a grant. Content actions are the maximum actions that later key scopes, Realm-scoped grants, participation or sessions may allow; an omitted action cannot be added later. Provisioning never materializes content grants from this field. Operation/service resources constrain the service surface; explicit content resource selectors only further narrow later grants. Receiver authority comes from a valid agent-requested-scope-disclosure whose digest matches the accepted-at Agent DID commitment, not this service projection."
         },
         "requested_scope_digest": {
           "$ref": "#/$defs/hash",
-          "description": "sha256 digest of the domain-separated Agent requested_scope commitment fixed in the accepted Agent DID ArkretPrincipalControlRealm service entry."
+          "description": "sha256 digest of the domain-separated Agent requested_scope commitment fixed in the accepted Agent DID ArkretPrincipalControlRealm service entry; the public entry does not contain the complete scope."
         },
         "pairing_request_id": {
           "$ref": "#/$defs/opaque_local_id"
@@ -607,6 +607,7 @@
         "verification_method",
         "public_key",
         "proof_of_possession",
+        "requested_scope_disclosure",
         "authorize_event"
       ],
       "properties": {
@@ -625,6 +626,10 @@
         },
         "proof_of_possession": {
           "$ref": "#/$defs/proof"
+        },
+        "requested_scope_disclosure": {
+          "$ref": "./agent-requested-scope-disclosure.schema.json",
+          "description": "Controller-signed private disclosure addressed to the authoritative pairing verifier. The endpoint MUST consume its presentation challenge once, match agent/controller/audience, recompute the public DID commitment digest, and use the disclosed scope for the subset check. It MUST NOT copy the disclosure into authorize_event or any durable/public history."
         },
         "runtime_attestation": {
           "$ref": "#/$defs/runtime_attestation"
@@ -836,7 +841,7 @@
         },
         "requested_scope_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Digest of the complete immutable requested_scope commitment in the Agent DID accepted inception history. The client MUST recompute it from its submitted scope, returned agent_id and authenticated controller DID."
+          "description": "Digest of the complete immutable requested_scope commitment in the Agent DID accepted inception history; only this digest, not the complete scope, is public. The client MUST recompute it from its submitted scope, returned agent_id and authenticated controller DID."
         },
         "pcr_recovery": {
           "allOf": [
@@ -901,7 +906,7 @@
         },
         "requested_scope_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Unchanged digest of the immutable requested_scope commitment in the Agent DID binding."
+          "description": "Unchanged digest of the immutable requested_scope commitment in the Agent DID binding; the complete scope remains controller-private."
         },
         "pcr_recovery": {
           "$ref": "#/$defs/agent_pcr_recovery_state"
@@ -1056,12 +1061,17 @@
     "agent_grant_attach_request_body": {
       "type": "object",
       "required": [
-        "grant"
+        "grant",
+        "requested_scope_disclosure"
       ],
       "properties": {
         "grant": {
           "$ref": "./capability-grant.schema.json",
-          "description": "Complete signed Realm-scoped grant. In addition to JSON Schema validation, admission MUST verify its subject/issuer/Realm bindings and that every action and resource is covered by the Agent's immutable provision requested_scope; provision constraints remain mandatory. A violation fails with agent_grant_exceeds_requested_scope."
+          "description": "Complete signed Realm-scoped grant. In addition to JSON Schema validation, admission MUST verify its subject/issuer/Realm bindings and that every action and resource is covered by the requested_scope disclosed in the verifier-bound private sidecar; provision constraints remain mandatory. A violation fails with agent_grant_exceeds_requested_scope."
+        },
+        "requested_scope_disclosure": {
+          "$ref": "./agent-requested-scope-disclosure.schema.json",
+          "description": "Fresh, controller-signed private ceiling disclosure addressed to the grant admission verifier. It is transaction evidence only and MUST NOT be copied into the Realm-scoped grant or Event history."
         }
       },
       "additionalProperties": false

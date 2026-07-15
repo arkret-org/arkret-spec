@@ -30,6 +30,12 @@
       "description": "Signed controller-scoped native personal agent selector claim for @<controller-handle>/<agent_slug> resolution."
     },
     {
+      "schema_id": "ak.schema.agent_requested_scope_disclosure.v1",
+      "file": "schemas/agent-requested-scope-disclosure.schema.json",
+      "status": "active",
+      "description": "Controller-signed, verifier-bound private disclosure of a managed Agent's immutable requested_scope; the public Agent DID carries only its commitment digest."
+    },
+    {
       "schema_id": "ak.schema.circle.v1",
       "file": "schemas/circle.schema.json",
       "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. see zh/models/circle.md."

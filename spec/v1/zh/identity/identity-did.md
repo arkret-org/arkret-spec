@@ -63,6 +63,8 @@ DID Document SHOULD 只承载：
 
 DID Document MUST NOT 被用作跨组织身份画像。邮箱、跨组织 handle、第三方账号和隐私敏感属性应通过 claim / presentation 按需证明。
 
+Managed Agent 的完整 `requested_scope`（包括 resource selector 与 mandatory constraint）属于隐私敏感授权意图，MUST NOT 写入当前 DID Document 或可解析的 DID version history。`ArkretPrincipalControlRealm.serviceEndpoint` 只保留域分离 `requested_scope_digest`；需要执行 ceiling 子集判定的 verifier 按 [`key-management.md` §4.1](./key-management.md) 取得 controller-signed 私有披露。
+
 `metadata.primary_handle` 是 v1 唯一允许的 Arkret DID Document metadata 槽位：它 MAY 出现在 holder 自己控制的 DID Document 中，值 MUST 是 canonical handle 字符串或缺省。该字段只是 holder 的 primary handle 偏好指针，不是 handle claim、身份画像或可枚举 handle 列表；verifier MUST 按 [`identity-handles.md` §3.2.1](./identity-handles.md) 先验证 signed handle claim set，且仅当该值命中 verified candidates 时才可把它作为 holder-flagged 输入。
 
 ## 3. 默认 DID 方法

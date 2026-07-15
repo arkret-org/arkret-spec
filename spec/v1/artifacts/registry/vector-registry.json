@@ -531,6 +531,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.agent.requested_scope_privacy.v1",
+      "status": "active",
+      "domain": "agent",
+      "description": "The public managed-Agent DID history contains only the requested_scope commitment digest; complete scope disclosure is controller-signed, verifier/audience/challenge-bound, short-window private evidence, and public-copy, mismatch, stale, wrong-audience, and replay variants fail closed.",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.agent.session_grant.replay.v1",
       "status": "active",
       "domain": "agent",

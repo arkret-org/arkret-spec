@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/agent-requested-scope-disclosure.schema.json",
+  "title": "Arkret Agent Requested Scope Disclosure",
+  "description": "Controller-signed, verifier-bound private disclosure of a managed Agent's immutable requested_scope. This object is authorization evidence, not a grant. It MUST travel only over an authenticated confidential presentation/operation channel and MUST NOT be written to a public DID Document, durable Realm Event, public registry, pairing code, or notification. The verifier consumes request_id/challenge once, validates the short presentation window, verifies a current controller proof, recomputes requested_scope_digest against the accepted-at Agent DID commitment, and then applies the Agent ceiling subset rules. After successful one-time admission, an implementation MAY retain the object only as encrypted verifier-private evidence keyed by (agent_id, requested_scope_digest, verifier_did, audience).",
+  "type": "object",
+  "required": [
+    "schema",
+    "request_id",
+    "agent_id",
+    "controller_id",
+    "requested_scope",
+    "requested_scope_digest",
+    "verifier_did",
+    "audience",
+    "challenge",
+    "issued_at",
+    "expires_at",
+    "proofs"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.agent_requested_scope_disclosure.v1"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Identifier of the signed ak.identity.presentation_request or an equivalent authenticated private challenge request. It is single-use at verifier_did."
+    },
+    "agent_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "controller_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "requested_scope": {
+      "$ref": "./event-payload.schema.json#/$defs/agent_key_scope",
+      "description": "Complete immutable Agent ceiling disclosed only to the bound verifier. It does not grant any action or resource."
+    },
+    "requested_scope_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "MUST equal sha256(canonical_json({agent_id, controller_id, kind:'ak.agent.requested_scope_commitment.v1', requested_scope})) and the digest in the accepted-at Agent DID service binding."
+    },
+    "verifier_did": {
+      "$ref": "./common-ids.schema.json#/$defs/did",
+      "description": "Exact verifier named by the presentation request. A different verifier MUST NOT accept or forward this disclosure as its own evidence."
+    },
+    "audience": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Exact origin, service audience, or canonical operation audience requested by verifier_did."
+    },
+    "challenge": {
+      "type": "string",
+      "minLength": 16,
+      "description": "Verifier-generated unpredictable challenge. The (verifier_did, request_id, challenge) tuple is single-use; replay MUST fail closed."
+    },
+    "issued_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "expires_at": {
+      "$ref": "#/$defs/timestamp",
+      "description": "Presentation admission expiry. expires_at MUST be later than issued_at and expires_at - issued_at MUST NOT exceed 300 seconds. It does not change the immutable ceiling; it only bounds disclosure delivery/replay."
+    },
+    "proofs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "./event-envelope.schema.json#/$defs/proof"
+      },
+      "description": "At least one current controller proof. The proof verification method MUST belong to controller_id or one of its currently authorized devices. payload_digest is sha256(canonical_json(this object with proofs omitted)); detached JWS signs canonical_json({context:'ak.agent-requested-scope-disclosure-proof-v1', payload_digest, agent_id, controller_id, verifier_did, audience, challenge, verification_method, created_at})."
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  }
+}
