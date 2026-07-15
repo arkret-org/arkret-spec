@@ -813,6 +813,24 @@
       ]
     },
     {
+      "operation_id": "ak.root.identity.service_registration.command.ensure",
+      "http_alias": "POST /_arkret/root/identity/service-registrations:ensure",
+      "operation_specific": [
+        "service_identity_provider_unavailable",
+        "service_registration_rejected",
+        "service_identity_conflict"
+      ],
+      "description": "The Provider verifies a client-signed WebVH inception and returns the stable mapping for the canonical registration key. Conflicting control roots or hosted-document declarations fail closed."
+    },
+    {
+      "operation_id": "ak.root.identity.service_registration.resource.get",
+      "http_alias": "GET /_arkret/root/identity/service-registrations",
+      "operation_specific": [
+        "service_identity_provider_unavailable",
+        "did_not_found"
+      ]
+    },
+    {
       "operation_id": "ak.root.identity.recovery_policy.resource.get",
       "http_alias": "GET /_arkret/root/identity/recovery-policy",
       "operation_specific": [],

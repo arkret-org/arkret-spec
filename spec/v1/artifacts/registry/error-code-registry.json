@@ -722,6 +722,30 @@
       "description": "The service or a required upstream dependency is unavailable; callers MAY retry according to Retry-After / next_retry_at when provided."
     },
     {
+      "code": "service_identity_unavailable",
+      "http_status": 503,
+      "scope": "both",
+      "description": "The target service cannot serve the request because its runtime service identity is not ready. The response SHOULD carry Retry-After when retry timing is known."
+    },
+    {
+      "code": "service_identity_provider_unavailable",
+      "http_status": 503,
+      "scope": "service_call",
+      "description": "The configured Service Identity Provider is temporarily unreachable or unavailable. Callers may retry without changing the registration request."
+    },
+    {
+      "code": "service_registration_rejected",
+      "http_status": 400,
+      "scope": "both",
+      "description": "A service-registration request is well formed but its signed inception, service type, canonical public base, or control proof violates the Provider profile."
+    },
+    {
+      "code": "service_identity_conflict",
+      "http_status": 409,
+      "scope": "both",
+      "description": "The service registration key or declared public base is already bound to a different DID, inception operation, or control root. Providers MUST return this error instead of minting a fork."
+    },
+    {
       "code": "policy_combination_invalid",
       "http_status": 422,
       "scope": "both",

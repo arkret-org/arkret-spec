@@ -48,8 +48,17 @@
     },
     {
       "id": "service_registration_key",
-      "description": "The service_type half of a ServiceRegistrationKey (service_type + canonical public_base). Only roles that own a service DID under a public base belong here. No schema enum is generated for this context in v1; it is consumed by arkret-rust-sdk when constructing a registration key, which MUST reject any service_type absent from this context.",
-      "consumers": []
+      "description": "The service_type half of a ServiceRegistrationKey (service_type + canonical public_base). Only roles that own a service DID under a public base belong here. The wire enum and arkret-rust-sdk constructor MUST both reject any service_type absent from this context.",
+      "consumers": [
+        {
+          "file": "schemas/service-operation-dtos.schema.json",
+          "pointer": "/$defs/ServiceRegistrationKey/properties/service_type/enum"
+        },
+        {
+          "file": "schemas/service-operation-dtos.schema.json",
+          "pointer": "/$defs/ServiceDidEndpoint/properties/serviceType/enum"
+        }
+      ]
     },
     {
       "id": "mimi_provider_directory",

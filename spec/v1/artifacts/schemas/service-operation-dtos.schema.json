@@ -56,6 +56,12 @@
       "$ref": "#/$defs/DidOperationSubmitOutcome"
     },
     {
+      "$ref": "#/$defs/ServiceRegistrationEnsureRequestBody"
+    },
+    {
+      "$ref": "#/$defs/ServiceRegistrationOutcome"
+    },
+    {
       "$ref": "#/$defs/DirectoryAnnounceRequestBody"
     },
     {
@@ -159,6 +165,7 @@
         },
         "audience": {
           "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
           "description": "Optional; MUST equal the grant's bound audience if present (audience MUST NOT change across rotation, else audience_mismatch)."
         },
         "device_id": {
@@ -205,6 +212,7 @@
         },
         "audience": {
           "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
           "description": "MUST equal the session grant audience."
         },
         "issued_at": {
@@ -258,7 +266,8 @@
           "format": "date-time"
         },
         "audience": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
         },
         "scopes": {
           "type": "array",
@@ -356,6 +365,7 @@
         },
         "audience": {
           "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
           "description": "Audience the caller is validating the grant for; a mismatch yields status audience_mismatch."
         },
         "proof": {
@@ -451,7 +461,8 @@
           "$ref": "./common-ids.schema.json#/$defs/device_id"
         },
         "audience": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
         },
         "scopes": {
           "type": "array",
@@ -1177,6 +1188,363 @@
           "items": {
             "type": "object"
           }
+        }
+      }
+    },
+    "ServiceRegistrationKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_type",
+        "public_base"
+      ],
+      "properties": {
+        "service_type": {
+          "type": "string",
+          "enum": [
+            "principal_server",
+            "auth_server",
+            "identity_registry"
+          ]
+        },
+        "public_base": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://[^?#]+/$",
+          "description": "Canonical service base URL: lower-case scheme and host, no query or fragment, normalized path, and exactly one trailing slash. Production deployments MUST use https; explicit development deployments MAY use http."
+        }
+      }
+    },
+    "ServiceDidVerificationMethod": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "controller",
+        "publicKeyMultibase"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[^\\s]+$"
+        },
+        "type": {
+          "const": "Multikey"
+        },
+        "controller": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "publicKeyMultibase": {
+          "type": "string",
+          "pattern": "^z[1-9A-HJ-NP-Za-km-z]+$"
+        }
+      }
+    },
+    "ServiceDidEndpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "serviceType",
+        "serviceEndpoint"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[^\\s]+$"
+        },
+        "type": {
+          "const": "ArkretService"
+        },
+        "serviceType": {
+          "type": "string",
+          "enum": [
+            "principal_server",
+            "auth_server",
+            "identity_registry"
+          ]
+        },
+        "serviceEndpoint": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://[^?#]+/$"
+        }
+      }
+    },
+    "ServiceDidDocument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "@context",
+        "id",
+        "verificationMethod",
+        "authentication",
+        "assertionMethod",
+        "service"
+      ],
+      "properties": {
+        "@context": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "contains": {
+            "const": "https://www.w3.org/ns/did/v1"
+          }
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^did:webvh:[^\\s#?]+$"
+        },
+        "alsoKnownAs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "verificationMethod": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/ServiceDidVerificationMethod"
+          }
+        },
+        "authentication": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[^\\s]+$"
+          }
+        },
+        "assertionMethod": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[^\\s]+$"
+          }
+        },
+        "service": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/ServiceDidEndpoint"
+          }
+        }
+      }
+    },
+    "ServiceWebvhInceptionParameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scid",
+        "method",
+        "updateKeys"
+      ],
+      "properties": {
+        "scid": {
+          "type": "string",
+          "pattern": "^[1-9A-HJ-NP-Za-km-z]+$"
+        },
+        "method": {
+          "const": "did:webvh:1.0"
+        },
+        "updateKeys": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^z[1-9A-HJ-NP-Za-km-z]+$"
+          }
+        }
+      }
+    },
+    "ServiceWebvhDataIntegrityProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "cryptosuite",
+        "verificationMethod",
+        "proofPurpose",
+        "proofValue"
+      ],
+      "properties": {
+        "type": {
+          "const": "DataIntegrityProof"
+        },
+        "cryptosuite": {
+          "const": "eddsa-jcs-2022"
+        },
+        "verificationMethod": {
+          "type": "string",
+          "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+#[^\\s]+$"
+        },
+        "proofPurpose": {
+          "const": "assertionMethod"
+        },
+        "proofValue": {
+          "type": "string",
+          "pattern": "^z[1-9A-HJ-NP-Za-km-z]+$"
+        }
+      }
+    },
+    "ServiceWebvhInceptionOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "versionId",
+        "versionTime",
+        "parameters",
+        "state",
+        "proof"
+      ],
+      "properties": {
+        "versionId": {
+          "type": "string",
+          "pattern": "^1-[1-9A-HJ-NP-Za-km-z]+$"
+        },
+        "versionTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "parameters": {
+          "$ref": "#/$defs/ServiceWebvhInceptionParameters"
+        },
+        "state": {
+          "$ref": "#/$defs/ServiceDidDocument"
+        },
+        "proof": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/ServiceWebvhDataIntegrityProof"
+          }
+        }
+      }
+    },
+    "ServiceRegistrationReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receipt_id",
+        "registration_key",
+        "service_id",
+        "version_id",
+        "log_head_digest",
+        "control_key_digest",
+        "issued_at",
+        "provider_service_id",
+        "proof"
+      ],
+      "properties": {
+        "receipt_id": {
+          "type": "string",
+          "pattern": "^ak:service_registration_receipt:[0-9a-f]{64}$"
+        },
+        "registration_key": {
+          "$ref": "#/$defs/ServiceRegistrationKey"
+        },
+        "service_id": {
+          "type": "string",
+          "pattern": "^did:webvh:[^\\s#?]+$"
+        },
+        "version_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "log_head_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "control_key_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "provider_service_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "proof": {
+          "$ref": "#/$defs/ServiceWebvhDataIntegrityProof"
+        }
+      }
+    },
+    "ServiceRegistrationEnsureRequestBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_type",
+        "public_base",
+        "inception_operation",
+        "idempotency_key"
+      ],
+      "properties": {
+        "service_type": {
+          "$ref": "#/$defs/ServiceRegistrationKey/properties/service_type"
+        },
+        "public_base": {
+          "$ref": "#/$defs/ServiceRegistrationKey/properties/public_base"
+        },
+        "inception_operation": {
+          "$ref": "#/$defs/ServiceWebvhInceptionOperation"
+        },
+        "idempotency_key": {
+          "type": "string",
+          "pattern": "^ak:service-registration:[0-9a-f]{64}$"
+        },
+        "previous_receipt": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ServiceRegistrationReceipt"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "ServiceRegistrationOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_id",
+        "did_document",
+        "version_id",
+        "registration_receipt",
+        "created"
+      ],
+      "properties": {
+        "service_id": {
+          "type": "string",
+          "pattern": "^did:webvh:[^\\s#?]+$"
+        },
+        "did_document": {
+          "$ref": "#/$defs/ServiceDidDocument"
+        },
+        "version_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "registration_receipt": {
+          "$ref": "#/$defs/ServiceRegistrationReceipt"
+        },
+        "created": {
+          "type": "boolean"
         }
       }
     },
@@ -2306,7 +2674,8 @@
               "pattern": "^sha256:[0-9a-f]{64}$"
             },
             "audience": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
             },
             "expires_at": {
               "type": "string",
@@ -2614,6 +2983,7 @@
         },
         "audience": {
           "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
           "description": "Audience the grant is bound to (the Principal Server / service the grant is valid for). MUST equal the grant's bound audience. Mirrors SessionGrantRefreshOutcome.audience."
         },
         "granted_scope": {

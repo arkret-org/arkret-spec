@@ -1159,6 +1159,9 @@ components:
               - internal_error
               - temporarily_unavailable
               - service_unavailable
+              - service_identity_unavailable
+              - service_registration_rejected
+              - service_identity_conflict
               - policy_combination_invalid
               - history_sharing_policy_missing
               - history_not_visible
@@ -2767,6 +2770,10 @@ components:
       type: string
       pattern: ^did:[a-z0-9]+:[^\s#?]+$
       description: Bare DID identifying a service endpoint.
+    ServiceRegistrationEnsureRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationEnsureRequestBody
+    ServiceRegistrationOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome
     SessionGrantIntrospectOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectOutcome
     SessionGrantIntrospectRequestBody:
@@ -3234,6 +3241,79 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DidOperationSubmitRequestBody'
+  /_arkret/root/identity/service-registrations:ensure:
+    post:
+      operationId: ak.root.identity.service_registration.command.ensure
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        requestCanonicalDigest: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRegistrationEnsureRequestBody'
+      responses:
+        '200':
+          description: Existing or newly created stable service registration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceRegistrationOutcome'
+        '400':
+          description: Signed inception or registration-key binding rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: Registration key or hosted document conflicts with another service identity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '503':
+          $ref: '#/components/responses/TemporarilyUnavailable'
+  /_arkret/root/identity/service-registrations:
+    get:
+      operationId: ak.root.identity.service_registration.resource.get
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+      parameters:
+      - name: service_type
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - principal_server
+          - auth_server
+          - identity_registry
+      - name: public_base
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uri
+          pattern: ^https?://[^?#]+/$
+      responses:
+        '200':
+          description: Stable service registration bound to the requested key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceRegistrationOutcome'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/root/identity/receipts:
     get:
       operationId: ak.root.identity.receipts.query.list

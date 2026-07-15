@@ -5306,7 +5306,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "audience": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "#/$defs/did"
         },
         "origin": {
           "$ref": "#/$defs/non_empty_string"

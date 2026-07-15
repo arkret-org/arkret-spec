@@ -18,19 +18,19 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 180,
+    "total_operations": 182,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 168
+      "typed_schema": 170
     },
     "by_tier_and_class": {
       "core": {
         "service_describe": 4,
         "streaming_frame_schema": 2,
-        "typed_schema": 24
+        "typed_schema": 26
       },
       "deployment_local": {
         "typed_schema": 10
@@ -1063,6 +1063,33 @@
       },
       "completeness_class": "service_describe",
       "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
+    },
+    {
+      "operation_id": "ak.root.identity.service_registration.command.ensure",
+      "tier": "core",
+      "http": "POST /_arkret/root/identity/service-registrations:ensure",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationEnsureRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ServiceRegistrationEnsureRequestBody",
+        "response": "#/components/schemas/ServiceRegistrationOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.root.identity.service_registration.resource.get",
+      "tier": "core",
+      "http": "GET /_arkret/root/identity/service-registrations",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/ServiceRegistrationOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ak.self.account.command.revoke_cursor",

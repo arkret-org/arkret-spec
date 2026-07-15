@@ -194,6 +194,8 @@ grpc:
       GetReceipts: ak.root.identity.receipts.query.list
       Resolve: ak.root.identity.query.resolve
       SubmitDidOperation: ak.root.identity.command.submit_did_operation
+      EnsureServiceRegistration: ak.root.identity.service_registration.command.ensure
+      GetServiceRegistration: ak.root.identity.service_registration.resource.get
       RecoveryPolicyGet: ak.root.identity.recovery_policy.resource.get
       RecoveryPolicyPublish: ak.root.identity.recovery_policy.command.publish
       RecoverySessionCreate: ak.root.identity.recovery_session.command.create

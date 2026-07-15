@@ -258,27 +258,29 @@ artifact。
 
 - **I-1 密钥自持**：每个服务 MUST 自行生成自身 service DID 的签名私钥，私钥 MUST NOT 离开该服务的信任边界。一个服务 MAY 作为另一主体 `did:webvh` 的 **hosting**（存放公开 `did.jsonl` 日志、代为发布 inception / rotation 条目），但 MUST NOT 生成或持有该主体的控制私钥；被托管方的 inception / rotation 条目 MUST 由被托管方用自己的密钥签名后提交。违反此约束会使 hosting 方能够伪造被托管方签发的凭据，等于消除签发方与验证方之间的信任边界。
 
-- **I-2 持久身份为真相源，config 为 fail-closed pin**：服务的权威 service identity（签名密钥 + `did.jsonl` 日志）MUST 持久化在该服务自身的持久层。部署配置中的 service DID 值（例如 coauth `arkret.service_id` / soland `service_id`）是**可选的 pin**：
-  - 若已配置且与持久层身份**不一致**，服务 MUST 拒绝启动并输出明确诊断（用于抓住误挂错误数据卷 / 误连错误库导致的身份漂移）；
-  - 若已配置且持久层为空，见 I-3 的采纳规则；
-  - 若未配置，服务 MUST 采用持久层身份。
+- **I-2 持久身份与 Provider mapping 是真相源，config 不含 DID**：部署配置 MUST NOT 接受、复制或 pin 本服务的 `service_id`。运行时只从已验证的本地 `service_identity` 记录、外部 Service Identity Provider 的稳定 registration mapping，或可验证 identity bundle 恢复 DID。配置只声明网络 endpoint、Provider transport credential 和 key/bundle backend。所有 wire `service_id`、issuer 和 audience 均使用 SDK `Did` 强类型。
 
-- **I-3 显式 bootstrap 门（防命名空间分叉）**："持久层无 service identity" 有两种可能——真正的首次部署，或数据丢失 / 误配导致的灾难。二者 MUST NOT 一律按首次部署静默 mint 新身份：
-  - 持久层为空 **且** 存在显式 bootstrap 信号（部署侧一次性授权，例如启动标志或一次性 provisioning token，具体形式由实现定义）时，服务 MAY 生成新 service identity 并落库；
-  - 持久层为空 **且** 已配置 service DID（存量部署升级路径）时，服务 MUST 把该配置值连同其对应密钥采纳为权威身份并落库（**首启动自动采纳**，保证既有部署升级不中断），此后按 I-2 将 config 视为 pin；采纳前 MUST 校验配置的 DID 与可用密钥材料匹配，不匹配 MUST 拒绝启动；
-  - 持久层**已存在**但 service identity 记录缺失或与预期不符时，服务 MUST 拒绝启动而非重新 mint。
+- **I-3 显式 first-provisioning 门仅适用于 B 类**："持久层无 service identity" 对自身就是 Provider 的部署可能是真正首次部署，也可能是数据灾难；没有外部权威能区分两者。因此 B 类生产部署仅在显式一次性 `first-provisioning` 信号存在时 MAY 创建新 DID。开发模式 MAY 自动 provision。B 类有可验证 bundle 时 MUST 恢复原 DID；无 bundle、无记录、无信号时 MUST fail closed。A 类不使用该信号：它先按 `ServiceRegistrationKey {service_type, public_base}` 查询外部 Provider，mapping 存在则校验本地 control/signing key binding 后回填原 DID，明确 not-found 才提交 client-signed inception，传输失败时进入 waiting 且绝不 mint。
 
-启动流程（informative，说明 I-1..I-3 如何组合）：
+Service Identity Provider 的标准操作是：
 
-- 自身即为 `did:webvh` hosting 的服务（例如托管自己 `did.jsonl` 的 principal server）在满足 I-3 的 bootstrap 条件时，本地生成密钥、构造 inception 条目、写入自身 webvh 日志并落库，全过程无需外部网络。
-- 依赖外部 `did:webvh` hosting 的服务（例如以 principal server 为宿主的 Auth Server），在满足 I-3 时本地生成**自己的**密钥、构造 inception，并提交到宿主的 DID operation 端点；宿主按 I-1 只发布公开日志、不接触其私钥。此依赖使宿主 MUST 先于被托管服务就绪。
+- `ak.root.identity.service_registration.command.ensure` → `POST /_arkret/root/identity/service-registrations:ensure`；
+- `ak.root.identity.service_registration.resource.get` → `GET /_arkret/root/identity/service-registrations?service_type=...&public_base=...`。
+
+注册键由 registry 限定的 `service_type` 与 canonical `public_base` 组成。同一个注册键 MUST 永远映射到同一个 DID；普通 ensure、重启、数据库重连和 key rotation 都不得改变它。Provider MUST 验证 client-signed `did:webvh` inception 内声明的 service type / endpoint 与注册键完全相等，MUST 以 `UNIQUE(service_type, public_base)` 和单事务先查后建保证并发幂等，并且在 mapping 行缺失时扫描现存托管 DID Document：任何 document 已声明同一注册键都必须返回 `service_identity_conflict`，不得创建第二 DID。`idempotency_key` 只用于审计关联，不是并发正确性的来源。
+
+Provider 是 hosting 方而非控制者。transport bearer、mTLS 或内网凭据只认证部署通道；inception、rotation、endpoint update 与 registration-key migration 仍 MUST 由服务持有的 WebVH control/update key 签名。Provider 不得生成、接收或托管调用方私钥。服务自身持久化 active signing key ref、control key ref、version/receipt；B 类若要求数据库灾难后保持 DID，MUST 另有可验证 identity bundle backend。
+
+运行时状态至少区分 `Ready`、`DegradedStored`、`WaitingProvider`、`RegistrationKeyDrift` 与 `Faulted`。已有并验证过的本地记录在 Provider 短暂不可用时 MAY 以 `DegradedStored` 提供普通签发/验证流程，但 MUST 禁止身份变更；本地为空且 Provider 不可达时进入 `WaitingProvider`，readiness=false，Service Describe 返回 `503 service_identity_unavailable` 与 `Retry-After`，Provider 恢复后自动重试，无需重启。`public_base` 漂移进入 `RegistrationKeyDrift`，继续用原 DID 服务但不得静默 ensure；只有 control-key-signed `migrate-base` 可以原子重绑同一 DID。
 
 Profile 分层（承接 §3.4 的 witness 要求，不新增语义）：
 
 - `personal_node` / `small_team`：自举产出的 `did:webvh` 若仅由宿主自身见证（self-witness），属 §3.4 的单 witness 降级——MUST 按 §3.4 对高风险写入的 witness 规则处理，并向用户暴露降级状态；MUST NOT 把 self-witness 宣称为具备外部见证的信任强度。
 - `organization` / `high_security_organization` / `sovereign_deployment`：自举产出的 service identity MUST 满足 §3.4 对应 profile 的 ≥2 distinct-org witness（及高保障 profile 的 log-backed witness）要求，MUST NOT 以宿主自见证作为高风险控制判断的唯一依据。
 
-> service identity 的采纳、分叉阻断与 pin 不匹配都是**启动期**判定：服务据此**拒绝启动**并输出 operator-facing 诊断，不是 wire 层错误响应，故不进入 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)。启动成功后该服务对外呈现的 service DID 即稳定，后续 rotation 遵循 §7.2 与 §4.2 的 method-specific 与 continuity 规则。
+> 错误是否进入 registry 取决于观察者。Provider/服务对调用方的 wire 响应使用 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 中的 `service_identity_unavailable`、`service_identity_provider_unavailable`、`service_registration_rejected`、`service_identity_conflict`。
+>
+> 本机启动监督器的 `service_identity_provider_ambiguous`、`service_identity_provider_not_configured`、`service_identity_key_mismatch`、`service_registration_restore_failed`、`service_identity_first_provisioning_required`、`service_identity_registration_key_drift` 是 operator-facing diagnostic，不是 wire code；其中 drift 继续服务，不能笼统描述为“启动失败”。
 
 ## 4. Identity Resolution Infrastructure
 

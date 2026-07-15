@@ -58,6 +58,8 @@
         "ak.root.identity.log.query.list",
         "ak.root.identity.receipts.query.list",
         "ak.root.identity.command.submit_did_operation",
+        "ak.root.identity.service_registration.command.ensure",
+        "ak.root.identity.service_registration.resource.get",
         "ak.root.identity.recovery_policy.resource.get",
         "ak.root.identity.recovery_policy.command.publish",
         "ak.root.identity.recovery_session.command.create",
@@ -1585,6 +1587,27 @@
       "retry_safe": true,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome"
+    },
+    {
+      "operation_id": "ak.root.identity.service_registration.command.ensure",
+      "http": "POST /_arkret/root/identity/service-registrations:ensure",
+      "grpc": "RootIdentity/EnsureServiceRegistration",
+      "mq": "root.identity.service_registration.command.ensure",
+      "notes": "Idempotently return or create the service DID bound to the canonical (service_type, public_base) registration key. The client supplies and controls a signed did:webvh inception operation; the Provider verifies the proof and endpoint binding and never receives private key material. Provider persistence MUST enforce UNIQUE(service_type, public_base) and MUST reject an existing hosted document that declares the same key even when the mapping row is absent.",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationEnsureRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome"
+    },
+    {
+      "operation_id": "ak.root.identity.service_registration.resource.get",
+      "http": "GET /_arkret/root/identity/service-registrations",
+      "grpc": "RootIdentity/GetServiceRegistration",
+      "mq": "root.identity.service_registration.resource.get",
+      "notes": "Read the service registration bound to the canonical (service_type, public_base) key without creating or mutating identity state.",
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome"
     },
     {
       "operation_id": "ak.root.identity.recovery_policy.resource.get",
