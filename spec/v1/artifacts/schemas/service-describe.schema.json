@@ -151,6 +151,43 @@
           "type": "integer",
           "minimum": 1,
           "description": "Maximum total selector count (`realms[]` + `actors[]`) that this service accepts on GET /_arkret/self/events. Clients SHOULD use POST /_arkret/self/events/query when the selector count exceeds this value or filters are sensitive enough to avoid URL logging. If omitted, clients use the v1 default of 8."
+        },
+        "mls_governance_proof": {
+          "type": "object",
+          "description": "Required with these exact v1 interoperability bounds when supported_operations contains ak.self.events.query.mls_governance_proof.",
+          "required": [
+            "max_response_bytes",
+            "max_total_item_bytes",
+            "max_chunks",
+            "max_seal_path_items",
+            "max_covered_event_digests",
+            "max_control_state_items",
+            "max_frontier_events"
+          ],
+          "properties": {
+            "max_response_bytes": {
+              "const": 4194304
+            },
+            "max_total_item_bytes": {
+              "const": 268435456
+            },
+            "max_chunks": {
+              "const": 1024
+            },
+            "max_seal_path_items": {
+              "const": 4096
+            },
+            "max_covered_event_digests": {
+              "const": 1048576
+            },
+            "max_control_state_items": {
+              "const": 262144
+            },
+            "max_frontier_events": {
+              "const": 128
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": true
@@ -731,6 +768,29 @@
         "properties": {
           "verified_profiles": {
             "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "supported_operations": {
+            "contains": {
+              "const": "ak.self.events.query.mls_governance_proof"
+            }
+          }
+        },
+        "required": [
+          "supported_operations"
+        ]
+      },
+      "then": {
+        "properties": {
+          "limits": {
+            "required": [
+              "mls_governance_proof"
+            ]
           }
         }
       }

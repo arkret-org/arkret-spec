@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/mls-governance-proof-bundle.schema.json",
   "title": "Arkret MLS Governance Proof Bundle",
-  "description": "Complete-materialization proof bundle used by a light client to verify an MLS full-profile governance binding against an accepted Seal. v1 deliberately carries the complete covered-event digest manifest and every non-bottom control-state leaf: a selective proof over server-chosen leaves cannot prove that a policy, capability, membership, or metadata leaf was not omitted. proof_request_digest binds the normalized acquisition identity, including the verifier's trusted anchor; bundle_digest is the content address of the complete canonical bundle. accepted_seal_id alone is not a Bundle cache key. A future compact profile requires a separately registered completeness-proof construction.",
+  "description": "Bounded chunk of a complete-materialization proof bundle used by a light client to verify an MLS full-profile governance binding against an accepted Seal. The fixed-size manifest commits every ordered chunk through chunks_root; the verifier accepts only after fetching all chunks, checking contiguous collection ranges, and recomputing the accepted Seal roots. proof_request_digest binds the acquisition identity, bundle_digest addresses the complete logical bundle, and each chunk_digest addresses one bounded transport chunk. accepted_seal_id alone is not a Bundle cache key.",
   "type": "object",
   "required": [
     "bundle_version",
@@ -15,26 +15,24 @@
     "governance_binding",
     "trusted_anchor_seal_id",
     "accepted_seal_id",
-    "seal_path",
-    "covered_event_digests",
-    "control_state",
-    "frontier_events"
+    "chunk_manifest",
+    "chunk"
   ],
   "properties": {
     "bundle_version": {
       "const": 1
     },
     "proof_request_digest": {
-      "$ref": "./event-envelope.schema.json#/$defs/hash",
-      "description": "sha256(UTF-8('arkret-mls-governance-proof-request-v1\\n') || RFC 8785 canonical JSON bytes of the exact proof_request object). The verifier MUST recompute it from its request before using or caching the response."
+      "$ref": "#/$defs/sha256_digest",
+      "description": "sha256(UTF-8('arkret-mls-governance-proof-request-v1\\n') || RFC 8785 canonical JSON bytes of the proof identity object containing realm_id, effective_scope, mls_group_id, previous_epoch, next_epoch, binding_profile, reducer_profile and trusted_anchor_seal_id). Transport fields chunk_index and expected_bundle_digest are excluded. The verifier MUST recompute it before using or caching any chunk."
     },
     "bundle_digest": {
-      "$ref": "./event-envelope.schema.json#/$defs/hash",
-      "description": "Content address: sha256(UTF-8('arkret-mls-governance-proof-bundle-v1\\n') || RFC 8785 canonical JSON bytes of this complete Bundle with bundle_digest omitted). A verifier MUST recompute it after schema and request binding checks."
+      "$ref": "#/$defs/sha256_digest",
+      "description": "Content address of the complete logical bundle: sha256(UTF-8('arkret-mls-governance-proof-bundle-v1\\n') || RFC 8785 canonical JSON bytes of all top-level response members except bundle_digest and chunk). chunk_manifest.chunks_root transitively commits every chunk. A verifier MUST recompute this digest for every response."
     },
     "materialization_profile": {
       "const": "complete_control_state_v1",
-      "description": "The only v1 profile. covered_event_digests is the entire recursive covered_set of accepted_seal_id and control_state is the entire sorted set of non-bottom joined control cells committed by its state_root."
+      "description": "The only v1 profile. Across every committed chunk, covered_event_digests is the entire recursive covered_set of accepted_seal_id and control_state is the entire sorted set of non-bottom joined control cells committed by its state_root."
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -55,42 +53,21 @@
     },
     "accepted_seal_id": {
       "$ref": "./event-envelope.schema.json#/$defs/seal_ref",
-      "description": "Id of the accepted Seal whose control_event_set_root and state_root authenticate this bundle. It MUST identify the final Seal in seal_path."
+      "description": "Id of the accepted Seal whose control_event_set_root and state_root authenticate this bundle. It MUST identify the final Seal assembled from the seal_path chunks."
     },
-    "seal_path": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "$ref": "./seal.schema.json"
-      },
-      "description": "Topologically ordered Seal extension path beginning at the trusted anchor (or its direct successor) and ending at accepted_seal_id. The verifier validates every id, predecessor edge, notary authorization and signature; bundle order is not itself trusted."
+    "chunk_manifest": {
+      "$ref": "#/$defs/chunk_manifest"
     },
-    "covered_event_digests": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
-        "$ref": "./event-envelope.schema.json#/$defs/hash"
-      },
-      "description": "Complete recursive covered_set of accepted_seal_id in canonical wire-value order. The verifier MUST reject duplicates or non-canonical order and MUST recompute accepted Seal.control_event_set_root with the Seal RFC 6962 domain-separated Merkle rules."
-    },
-    "control_state": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/control_state_leaf"
-      },
-      "description": "Complete canonical cell-id ordered materialization of every non-bottom joined control cell under accepted_seal_id. Bottom cells MUST be omitted and separately cause any dependent full-profile binding to fail closed. The verifier recomputes accepted Seal.state_root over this exact array."
-    },
-    "frontier_events": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "$ref": "./event-envelope.schema.json"
-      },
-      "description": "Complete set of signed Control Move envelopes named by governance_binding.membership_frontier. The verifier recomputes each Event digest, requires it in covered_event_digests, checks its effects target the registered membership/device/lifecycle coverage families for effective_scope, and rejects missing, extra, duplicate, cross-Realm or cross-scope events."
+    "chunk": {
+      "$ref": "#/$defs/proof_chunk"
     }
   },
   "additionalProperties": false,
   "$defs": {
+    "sha256_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
     "proof_request": {
       "type": "object",
       "required": [
@@ -101,7 +78,8 @@
         "next_epoch",
         "binding_profile",
         "reducer_profile",
-        "trusted_anchor_seal_id"
+        "trusted_anchor_seal_id",
+        "chunk_index"
       ],
       "properties": {
         "realm_id": {
@@ -134,10 +112,339 @@
         "trusted_anchor_seal_id": {
           "$ref": "./event-envelope.schema.json#/$defs/seal_ref",
           "description": "Seal id already trusted by this verifier. The service MUST construct seal_path from this exact anchor (or its direct successor) and MUST NOT silently substitute a newer, older, or service-selected anchor. A bootstrap client uses the Realm genesis/compaction Seal only after validating it through its authenticated Realm bootstrap, join, snapshot, or equivalent trust package."
+        },
+        "chunk_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1023,
+          "description": "Zero-based global chunk index. The first request MUST use 0. Later requests use an index below chunk_manifest.chunk_count and include expected_bundle_digest."
+        },
+        "expected_bundle_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "Required when chunk_index is greater than 0 and forbidden for chunk_index 0. It pins later reads to the exact manifest returned by the initial request."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "chunk_index": {
+                "const": 0
+              }
+            },
+            "required": [
+              "chunk_index"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "expected_bundle_digest"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "expected_bundle_digest"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false,
+      "description": "Authenticated account-client query input. The service derives all governance roots and membership_frontier from one accepted Seal view; callers MUST NOT supply any root or frontier. chunk_index and expected_bundle_digest select transport chunks and are excluded from proof_request_digest. The caller MUST name one locally trusted anchor. If the service cannot prove a path from that exact anchor to the target accepted Seal, it returns mls_governance_anchor_unreachable and MUST NOT suggest or substitute an untrusted anchor. Genesis requests MUST use previous_epoch=0 and next_epoch=0; commit requests MUST use next_epoch=previous_epoch+1."
+    },
+    "collection_totals": {
+      "type": "object",
+      "required": [
+        "seal_path",
+        "covered_event_digests",
+        "control_state",
+        "frontier_events"
+      ],
+      "properties": {
+        "seal_path": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4096
+        },
+        "covered_event_digests": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1048576
+        },
+        "control_state": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 262144
+        },
+        "frontier_events": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 128
+        }
+      },
+      "additionalProperties": false
+    },
+    "chunk_item_limits": {
+      "type": "object",
+      "required": [
+        "seal_path",
+        "covered_event_digests",
+        "control_state",
+        "frontier_events"
+      ],
+      "properties": {
+        "seal_path": {
+          "const": 128
+        },
+        "covered_event_digests": {
+          "const": 8192
+        },
+        "control_state": {
+          "const": 1024
+        },
+        "frontier_events": {
+          "const": 32
+        }
+      },
+      "additionalProperties": false
+    },
+    "chunk_manifest": {
+      "type": "object",
+      "required": [
+        "manifest_version",
+        "chunk_count",
+        "chunks_root",
+        "total_item_bytes",
+        "collection_totals",
+        "max_response_bytes",
+        "max_total_item_bytes",
+        "max_items_per_chunk"
+      ],
+      "properties": {
+        "manifest_version": {
+          "const": 1
+        },
+        "chunk_count": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 1024
+        },
+        "chunks_root": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "Merkle root over chunk_digest raw bytes in chunk_index order, using SHA-256(0x00 || chunk_digest_raw) leaves and SHA-256(0x01 || left || right) internal nodes."
+        },
+        "total_item_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 268435456,
+          "description": "Sum of the UTF-8 byte lengths of RFC 8785 canonical JSON for every individual item across all four collections. Array delimiters and repeated response metadata are excluded. A verifier recomputes this incrementally and MUST NOT allocate from the declaration."
+        },
+        "collection_totals": {
+          "$ref": "#/$defs/collection_totals"
+        },
+        "max_response_bytes": {
+          "const": 4194304
+        },
+        "max_total_item_bytes": {
+          "const": 268435456
+        },
+        "max_items_per_chunk": {
+          "$ref": "#/$defs/chunk_item_limits"
         }
       },
       "additionalProperties": false,
-      "description": "Authenticated account-client query input. The service derives all governance roots and membership_frontier from one accepted Seal view; callers MUST NOT supply any root or frontier. The caller MUST name one locally trusted anchor. If the service cannot prove a path from that exact anchor to the target accepted Seal, it returns mls_governance_anchor_unreachable and MUST NOT suggest or substitute an untrusted anchor. Genesis requests MUST use previous_epoch=0 and next_epoch=0; commit requests MUST use next_epoch=previous_epoch+1."
+      "description": "Fixed-size commitment to the complete chunk sequence. Chunk order is all seal_path chunks, then covered_event_digests, control_state and frontier_events; within a collection start_index is contiguous and items retain canonical collection order. Empty collections emit no chunk."
+    },
+    "chunk_proof": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "$ref": "#/$defs/sha256_digest"
+      },
+      "description": "RFC 6962-style inclusion path for chunk_digest at chunk_index under chunk_manifest.chunks_root. At most 10 siblings are needed for the 1024-chunk limit."
+    },
+    "seal_path_chunk": {
+      "type": "object",
+      "required": [
+        "chunk_index",
+        "collection",
+        "start_index",
+        "items",
+        "chunk_digest",
+        "chunk_proof"
+      ],
+      "properties": {
+        "chunk_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1023
+        },
+        "collection": {
+          "const": "seal_path"
+        },
+        "start_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4095
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": {
+            "$ref": "./seal.schema.json"
+          }
+        },
+        "chunk_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "chunk_proof": {
+          "$ref": "#/$defs/chunk_proof"
+        }
+      },
+      "additionalProperties": false
+    },
+    "covered_event_digests_chunk": {
+      "type": "object",
+      "required": [
+        "chunk_index",
+        "collection",
+        "start_index",
+        "items",
+        "chunk_digest",
+        "chunk_proof"
+      ],
+      "properties": {
+        "chunk_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1023
+        },
+        "collection": {
+          "const": "covered_event_digests"
+        },
+        "start_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1048575
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8192,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./event-envelope.schema.json#/$defs/hash"
+          }
+        },
+        "chunk_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "chunk_proof": {
+          "$ref": "#/$defs/chunk_proof"
+        }
+      },
+      "additionalProperties": false
+    },
+    "control_state_chunk": {
+      "type": "object",
+      "required": [
+        "chunk_index",
+        "collection",
+        "start_index",
+        "items",
+        "chunk_digest",
+        "chunk_proof"
+      ],
+      "properties": {
+        "chunk_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1023
+        },
+        "collection": {
+          "const": "control_state"
+        },
+        "start_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 262143
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1024,
+          "items": {
+            "$ref": "#/$defs/control_state_leaf"
+          }
+        },
+        "chunk_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "chunk_proof": {
+          "$ref": "#/$defs/chunk_proof"
+        }
+      },
+      "additionalProperties": false
+    },
+    "frontier_events_chunk": {
+      "type": "object",
+      "required": [
+        "chunk_index",
+        "collection",
+        "start_index",
+        "items",
+        "chunk_digest",
+        "chunk_proof"
+      ],
+      "properties": {
+        "chunk_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1023
+        },
+        "collection": {
+          "const": "frontier_events"
+        },
+        "start_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 127
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "$ref": "./event-envelope.schema.json"
+          }
+        },
+        "chunk_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "chunk_proof": {
+          "$ref": "#/$defs/chunk_proof"
+        }
+      },
+      "additionalProperties": false
+    },
+    "proof_chunk": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/seal_path_chunk"
+        },
+        {
+          "$ref": "#/$defs/covered_event_digests_chunk"
+        },
+        {
+          "$ref": "#/$defs/control_state_chunk"
+        },
+        {
+          "$ref": "#/$defs/frontier_events_chunk"
+        }
+      ],
+      "description": "One bounded collection slice. chunk_digest = sha256(UTF-8('arkret-mls-governance-proof-chunk-v1\\n') || RFC 8785 canonical JSON bytes of {chunk_index, collection, start_index, items}); chunk_proof authenticates that digest under chunk_manifest.chunks_root."
     },
     "control_state_leaf": {
       "type": "object",

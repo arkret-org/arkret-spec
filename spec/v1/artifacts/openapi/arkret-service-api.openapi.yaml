@@ -1131,6 +1131,7 @@ components:
               - did_revoked
               - frontier_unavailable
               - mls_governance_anchor_unreachable
+              - mls_governance_proof_bounds_exceeded
               - handle_unverified
               - key_replay
               - keypackage_already_consumed
@@ -3811,12 +3812,16 @@ paths:
       - bearerAuth: []
       summary: Materialize a verifiable full-profile MLS governance binding.
       description: |
-        Returns a complete_control_state_v1 proof bundle for one caller-visible
-        Realm/scope. The server derives the membership frontier and all roots
-        from one accepted Seal view; the request cannot supply either. The
-        request MUST name one locally trusted_anchor_seal_id. The response path
-        starts from that exact anchor, proof_request_digest binds the normalized
-        request, and bundle_digest (not accepted_seal_id) is the content address.
+        Returns one bounded chunk of a complete_control_state_v1 proof bundle
+        for one caller-visible Realm/scope. The server derives the membership
+        frontier and all roots from one accepted Seal view; the request cannot
+        supply either. The request MUST name one locally trusted_anchor_seal_id
+        and a chunk_index. Chunk 0 returns the committed manifest; later reads
+        pin expected_bundle_digest. Each response is at most 4 MiB and the
+        manifest commits at most 1024 chunks / 256 MiB of canonical item bytes.
+        The response path starts from the exact caller anchor,
+        proof_request_digest binds acquisition identity, and bundle_digest
+        (not accepted_seal_id) addresses the complete logical bundle.
       requestBody:
         required: true
         content:
@@ -3825,13 +3830,19 @@ paths:
               $ref: '#/components/schemas/MlsGovernanceProofRequest'
       responses:
         '200':
-          description: Complete accepted-Seal governance proof bundle
+          description: One bounded, manifest-committed accepted-Seal governance proof chunk
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MlsGovernanceProofBundle'
         '409':
           description: No verified path can be constructed from the exact caller-trusted anchor (`mls_governance_anchor_unreachable`); retry only with another locally trusted anchor or authorized proof service.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '422':
+          description: The logical complete_control_state_v1 bundle exceeds a v1 count, byte, or chunk bound (`mls_governance_proof_bounds_exceeded`); no partial bundle is returned.
           content:
             application/json:
               schema:

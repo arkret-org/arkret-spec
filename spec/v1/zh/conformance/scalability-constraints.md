@@ -146,6 +146,10 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | --- | ---: | --- |
 | 单 principal active device 数 | 100 | 超过时 Device / Key Server MAY require admin approval or device cleanup。 |
 | 单 MLS commit 绑定的 `membership_frontier` refs | 128 | 超过时 MUST 使用签名 state root / snapshot reference。 |
+| 单个 MLS Governance Proof HTTP/JSON 响应 | 4 MiB（4,194,304 bytes） | 包含重复的 Bundle metadata、manifest、一个 chunk 及其 inclusion proof 的完整接收字节数；server MUST 在发送前 enforce，client MUST 在流式接收时 enforce，不能只信任 `Content-Length`。超限响应 MUST 丢弃且不得部分解析为有效 chunk。 |
+| `complete_control_state_v1` 逻辑 Bundle canonical item bytes 总和 | 256 MiB（268,435,456 bytes） | `chunk_manifest.total_item_bytes` 是四类集合每个 item 的 RFC 8785 canonical JSON UTF-8 长度之和，不含数组括号和重复 metadata；client MUST 流式重算，MUST NOT 按声明值预分配。超过时 server MUST 返回 422 `mls_governance_proof_bounds_exceeded`，不得截断。 |
+| MLS Governance Proof 集合总项数 | `seal_path` 4,096；`covered_event_digests` 1,048,576；`control_state` 262,144；`frontier_events` 128 | `chunk_manifest.collection_totals` 与实际无缝拼接后的计数 MUST 精确相等。任一总数超过上限时不得生成 manifest；server 返回 `mls_governance_proof_bounds_exceeded`。只有 `seal_path` 超限时 caller MAY 用自己已信任的更近 anchor 重试；其它总界超限必须 fail closed，等待单独注册的 compact completeness profile 或更小的 accepted state。 |
+| MLS Governance Proof chunk 数 / 每 chunk 项数 | 最多 1,024 chunks；单块 `seal_path` 128、`covered_event_digests` 8,192、`control_state` 1,024、`frontier_events` 32 | 每个 chunk 只承载一种 collection 且 `items` 非空。全局顺序固定为 `seal_path` → `covered_event_digests` → `control_state` → `frontier_events`；同 collection 的 `start_index` 必须从 0 连续无洞。`chunk_index` 范围为 0..1023，inclusion path 最多 10 个 sibling hash。超出 schema 上限或出现空块、乱序、重叠、缺口均 MUST reject。 |
 | 普通 KeyPackage 有效期 | 1 hour（下限）– 30 days（默认上限） | 更长有效期必须由 profile 明确声明。接收方 MUST NOT 使用已过期 KeyPackage 建立新 MLS 会话（过期复用是已知 E2EE 风险）；签发方 SHOULD NOT 签发有效期短于 1 小时的 KeyPackage（避免正常 join 流程内即过期）。 |
 | Last-resort KeyPackage 有效期 | 30 days（默认上限） | **Last-resort KeyPackage**（[encryption-and-audit.md](../crypto-media/encryption-and-audit.md) §2.6.2）的有效期 MUST 受与普通 KeyPackage 同一 30 days 默认上限约束，且 **不享** "更长有效期由 profile 声明" 的豁免（last-resort 包复用 init/encryption key、弱化 Welcome 前向保密，其生命周期即弱化窗口硬上界）；`personal_node` profile MAY 放宽但 MUST 向用户披露。 |
 | KeyPackage 接收侧时钟偏差宽限 | ≤ 有效期的 10% | 实现 MAY 声明一个不超过该 KeyPackage 有效期 10% 的接收侧时钟偏差宽限窗口；该宽限同时适用于普通与 last-resort KeyPackage 的过期判定。 |
@@ -154,6 +158,10 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | 单次 to-device page | 1,000 | 服务端 MUST enforce。 |
 | 分块流式 AEAD 附件 `segment_size` 取值范围 | 1 KiB（1,024）– 8 MiB（8,388,608），默认 256 KiB（262,144） | 见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3。超出范围 MUST reject（`schema_violation`）；`segment_size` 越界或与 `segment_count`、`size_bytes` 不自洽时接收方 MUST fail closed。 |
 | 分块流式 AEAD 附件 `segment_count` 上限 | 1,048,576（2^20） | 见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3。`segment_index` 为 `u32`（硬上界 2^32），但 v1 wire 互操作上限为 2^20；超过时 MUST reject（`schema_violation`）。`segment_count` MUST 等于 `ceil(size_bytes_plaintext / segment_size)` 并与实际段数一致，否则接收方 MUST 拒绝（`segment_bounds_invalid` / `segment_sequence_invalid`）。声明字段越界 / 不自洽负例见 [conformance-vectors.md](./conformance-vectors.md) §16.5（`ak.vector.blob.stream_aead_bounds_rejected.v1`）。 |
+
+声明 `ak.self.events.query.mls_governance_proof` 的 Service Describe MUST 在 `limits.mls_governance_proof` 暴露上述固定 v1 bounds；该对象的 schema 使用 `const` 防止服务声称同一 operation 却采用不同互操作边界。Chunk 0 请求不得携带 `expected_bundle_digest`；取得 manifest 后，chunk 1..N-1 请求 MUST 携带 chunk 0 的 `bundle_digest`。若该 manifest 已不可用，server 返回 `frontier_unavailable`，caller 只能从 chunk 0 重新开始，不能把另一 manifest 的 chunk 混入。`chunk_index >= chunk_manifest.chunk_count` 使用 `invalid_param`。任何超总界响应、丢块后继续接受、服务器自报 total 替代最终 root 重算，或按本地更高上限绕过本表，均不符合 v1。
+
+上述全部数值边界、chunk acquisition 条件及 `limit-1 / limit / limit+1` 生成矩阵由 `ak.vector.scalability.mls_governance_proof_bounds.v1` 固化；runner 归属与逐项期望见 [conformance-vectors.md](./conformance-vectors.md) §1.12.3。
 
 ### 6.1 身份、邀请与推送隐私窗口
 

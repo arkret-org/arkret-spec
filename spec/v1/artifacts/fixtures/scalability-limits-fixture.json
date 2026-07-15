@@ -1,6 +1,6 @@
 {
   "suite": "scalability_limits",
-  "version": "2026-07-10",
+  "version": "2026-07-15",
   "profile": "ak.profile.core_event_store.v1",
   "runner": {
     "kind": "generated_limit_cases",
@@ -16,7 +16,8 @@
     "ak.vector.scalability.batch_page_limits.v1",
     "ak.vector.scalability.sibling_fork_limits.v1",
     "ak.vector.scalability.object_control_limits.v1",
-    "ak.vector.scalability.capability_limits.v1"
+    "ak.vector.scalability.capability_limits.v1",
+    "ak.vector.scalability.mls_governance_proof_bounds.v1"
   ],
   "cases": [
     {
@@ -474,6 +475,197 @@
           "soft_failed",
           "temporarily_unavailable"
         ]
+      }
+    },
+    {
+      "name": "mls_governance_proof_limit_matrix",
+      "vector_id": "ak.vector.scalability.mls_governance_proof_bounds.v1",
+      "input": {
+        "generator": {
+          "kind": "mls_governance_proof_limit_matrix",
+          "operation_id": "ak.self.events.query.mls_governance_proof",
+          "schema_ref": "schemas/mls-governance-proof-bundle.schema.json",
+          "dimensions": [
+            {
+              "field": "response_encoded_bytes",
+              "limit": 4194304,
+              "values": [
+                4194303,
+                4194304,
+                4194305
+              ],
+              "over_decision": "reject_response_before_full_buffer"
+            },
+            {
+              "field": "chunk_manifest.total_item_bytes",
+              "limit": 268435456,
+              "values": [
+                268435455,
+                268435456,
+                268435457
+              ],
+              "over_error_code": "mls_governance_proof_bounds_exceeded"
+            },
+            {
+              "field": "chunk_manifest.chunk_count",
+              "limit": 1024,
+              "values": [
+                1023,
+                1024,
+                1025
+              ],
+              "over_error_code": "mls_governance_proof_bounds_exceeded"
+            },
+            {
+              "field": "chunk_manifest.collection_totals.seal_path",
+              "limit": 4096,
+              "values": [
+                4095,
+                4096,
+                4097
+              ],
+              "over_error_code": "mls_governance_proof_bounds_exceeded"
+            },
+            {
+              "field": "chunk_manifest.collection_totals.covered_event_digests",
+              "limit": 1048576,
+              "values": [
+                1048575,
+                1048576,
+                1048577
+              ],
+              "over_error_code": "mls_governance_proof_bounds_exceeded"
+            },
+            {
+              "field": "chunk_manifest.collection_totals.control_state",
+              "limit": 262144,
+              "values": [
+                262143,
+                262144,
+                262145
+              ],
+              "over_error_code": "mls_governance_proof_bounds_exceeded"
+            },
+            {
+              "field": "chunk_manifest.collection_totals.frontier_events",
+              "limit": 128,
+              "values": [
+                127,
+                128,
+                129
+              ],
+              "over_error_code": "mls_governance_proof_bounds_exceeded"
+            },
+            {
+              "field": "chunk.seal_path.items",
+              "limit": 128,
+              "values": [
+                127,
+                128,
+                129
+              ],
+              "over_error_code": "schema_violation"
+            },
+            {
+              "field": "chunk.covered_event_digests.items",
+              "limit": 8192,
+              "values": [
+                8191,
+                8192,
+                8193
+              ],
+              "over_error_code": "schema_violation"
+            },
+            {
+              "field": "chunk.control_state.items",
+              "limit": 1024,
+              "values": [
+                1023,
+                1024,
+                1025
+              ],
+              "over_error_code": "schema_violation"
+            },
+            {
+              "field": "chunk.frontier_events.items",
+              "limit": 32,
+              "values": [
+                31,
+                32,
+                33
+              ],
+              "over_error_code": "schema_violation"
+            },
+            {
+              "field": "chunk.chunk_proof",
+              "limit": 10,
+              "values": [
+                9,
+                10,
+                11
+              ],
+              "over_error_code": "schema_violation"
+            },
+            {
+              "field": "proof_request.chunk_index",
+              "limit": 1023,
+              "values": [
+                1022,
+                1023,
+                1024
+              ],
+              "over_error_code": "schema_violation"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "limit_minus_one": "accept",
+        "limit": "accept",
+        "limit_plus_one": "reject_without_truncation",
+        "must_not_allocate_declared_cardinality": true,
+        "must_not_return_partial_manifest": true
+      }
+    },
+    {
+      "name": "mls_governance_proof_chunk_request_matrix",
+      "vector_id": "ak.vector.scalability.mls_governance_proof_bounds.v1",
+      "input": {
+        "generator": {
+          "kind": "mls_governance_proof_chunk_request_matrix",
+          "cases": [
+            {
+              "chunk_index": 0,
+              "expected_bundle_digest": "absent",
+              "expect": "accept"
+            },
+            {
+              "chunk_index": 0,
+              "expected_bundle_digest": "present",
+              "expect": "schema_violation"
+            },
+            {
+              "chunk_index": 1,
+              "expected_bundle_digest": "absent",
+              "expect": "schema_violation"
+            },
+            {
+              "chunk_index": 1,
+              "expected_bundle_digest": "matches_chunk_zero",
+              "expect": "accept"
+            },
+            {
+              "chunk_index": "equal_to_manifest_chunk_count",
+              "expected_bundle_digest": "matches_chunk_zero",
+              "expect": "invalid_param"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "proof_request_digest_excludes_transport_fields": true,
+        "must_not_mix_bundle_digests": true,
+        "unavailable_expected_bundle_error_code": "frontier_unavailable"
       }
     }
   ]

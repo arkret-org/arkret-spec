@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-13",
+  "version": "2026-07-15",
   "source_of_truth": true,
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
@@ -93,6 +93,20 @@
       ],
       "source_refs": [
         "spec/v1/zh/conformance/scalability-constraints.md",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.scalability.mls_governance_proof_bounds.v1",
+      "status": "active",
+      "domain": "scalability",
+      "applies_to_fixtures": [
+        "scalability-limits-fixture.json"
+      ],
+      "description": "Generated limit-1 / limit / limit+1 matrix for MLS Governance Proof response bytes, logical item bytes, chunk count, collection totals, per-chunk item counts, Merkle proof length and chunk request pinning semantics.",
+      "source_refs": [
+        "spec/v1/zh/conformance/scalability-constraints.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
     },

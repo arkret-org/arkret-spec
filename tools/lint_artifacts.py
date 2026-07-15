@@ -5689,6 +5689,94 @@ def check_mls_pq_suite_registration(lint: Lint) -> None:
         lint.fail(path, "private MLS_128_XWING_AES128GCM_SHA256_Ed25519 alias is forbidden")
 
 
+def check_mls_governance_proof_bounds(lint: Lint) -> None:
+    """Bounded proof chunks and Service Describe limits must stay identical."""
+    schema_path = ARTIFACTS / "schemas" / "mls-governance-proof-bundle.schema.json"
+    schema = load_json(lint, schema_path)
+    if not isinstance(schema, dict):
+        return
+
+    expected_schema_values = {
+        "/$defs/proof_request/properties/chunk_index/maximum": 1023,
+        "/$defs/chunk_manifest/properties/chunk_count/minimum": 2,
+        "/$defs/chunk_manifest/properties/chunk_count/maximum": 1024,
+        "/$defs/chunk_manifest/properties/total_item_bytes/maximum": 268435456,
+        "/$defs/chunk_manifest/properties/max_response_bytes/const": 4194304,
+        "/$defs/chunk_manifest/properties/max_total_item_bytes/const": 268435456,
+        "/$defs/collection_totals/properties/seal_path/maximum": 4096,
+        "/$defs/collection_totals/properties/covered_event_digests/maximum": 1048576,
+        "/$defs/collection_totals/properties/control_state/maximum": 262144,
+        "/$defs/collection_totals/properties/frontier_events/maximum": 128,
+        "/$defs/seal_path_chunk/properties/items/maxItems": 128,
+        "/$defs/covered_event_digests_chunk/properties/items/maxItems": 8192,
+        "/$defs/control_state_chunk/properties/items/maxItems": 1024,
+        "/$defs/frontier_events_chunk/properties/items/maxItems": 32,
+        "/$defs/chunk_proof/maxItems": 10,
+    }
+    for pointer, expected in expected_schema_values.items():
+        actual = json_pointer_get(schema, pointer)
+        if actual != expected:
+            lint.fail(schema_path, f"{pointer} must be {expected}, got {actual!r}")
+
+    sha256_ref = "#/$defs/sha256_digest"
+    digest_ref_pointers = (
+        "/properties/proof_request_digest/$ref",
+        "/properties/bundle_digest/$ref",
+        "/$defs/proof_request/properties/expected_bundle_digest/$ref",
+        "/$defs/chunk_manifest/properties/chunks_root/$ref",
+        "/$defs/chunk_proof/items/$ref",
+        "/$defs/seal_path_chunk/properties/chunk_digest/$ref",
+        "/$defs/covered_event_digests_chunk/properties/chunk_digest/$ref",
+        "/$defs/control_state_chunk/properties/chunk_digest/$ref",
+        "/$defs/frontier_events_chunk/properties/chunk_digest/$ref",
+    )
+    for pointer in digest_ref_pointers:
+        actual = json_pointer_get(schema, pointer)
+        if actual != sha256_ref:
+            lint.fail(schema_path, f"{pointer} must reference fixed {sha256_ref}, got {actual!r}")
+
+    top_required = set(schema.get("required") or [])
+    if not {"chunk_manifest", "chunk"} <= top_required:
+        lint.fail(schema_path, "top-level response must require chunk_manifest and chunk")
+    top_properties = schema.get("properties", {})
+    for legacy_collection in ("seal_path", "covered_event_digests", "control_state", "frontier_events"):
+        if isinstance(top_properties, dict) and legacy_collection in top_properties:
+            lint.fail(schema_path, f"top-level unbounded {legacy_collection} collection is forbidden")
+    proof_request = schema.get("$defs", {}).get("proof_request", {})
+    request_required = set(proof_request.get("required") or []) if isinstance(proof_request, dict) else set()
+    request_properties = proof_request.get("properties", {}) if isinstance(proof_request, dict) else {}
+    if "chunk_index" not in request_required or "expected_bundle_digest" not in request_properties:
+        lint.fail(schema_path, "proof_request must require chunk_index and define expected_bundle_digest")
+
+    describe_path = ARTIFACTS / "schemas" / "service-describe.schema.json"
+    describe = load_json(lint, describe_path)
+    if not isinstance(describe, dict):
+        return
+    describe_expected = {
+        "max_response_bytes": 4194304,
+        "max_total_item_bytes": 268435456,
+        "max_chunks": 1024,
+        "max_seal_path_items": 4096,
+        "max_covered_event_digests": 1048576,
+        "max_control_state_items": 262144,
+        "max_frontier_events": 128,
+    }
+    limit_schema = (
+        describe.get("properties", {})
+        .get("limits", {})
+        .get("properties", {})
+        .get("mls_governance_proof", {})
+    )
+    required_limits = set(limit_schema.get("required") or []) if isinstance(limit_schema, dict) else set()
+    if required_limits != set(describe_expected):
+        lint.fail(describe_path, f"MLS governance proof limit fields must be {sorted(describe_expected)}")
+    limit_properties = limit_schema.get("properties", {}) if isinstance(limit_schema, dict) else {}
+    for field, expected in describe_expected.items():
+        actual = limit_properties.get(field, {}).get("const") if isinstance(limit_properties, dict) else None
+        if actual != expected:
+            lint.fail(describe_path, f"limits.mls_governance_proof.{field} must const {expected}, got {actual!r}")
+
+
 # --- STR-002 / OPT-005: action prose-reference closure ------------------------
 # (ak.profile.*.vN prose closure is already enforced for all markdown by
 # check_markdown_examples; only the hand-maintained action list lacked a gate.)
@@ -5985,6 +6073,7 @@ def main() -> int:
     check_model_required_field_table_coverage(lint)
     check_exporter_label_registry(lint)
     check_signature_algorithm_registry(lint)
+    check_mls_governance_proof_bounds(lint)
     check_mls_pq_suite_registration(lint)
     check_service_type_registry(lint)
     check_action_reference_closure(lint)

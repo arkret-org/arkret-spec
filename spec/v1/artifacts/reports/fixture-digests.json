@@ -186,7 +186,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
-      "sha256": "6cf073ffa3b6cc4453416531726abcf90a660813aa5b243bf4389096ed5e0d8b"
+      "sha256": "8cb597516d373c77b52313fabc2a4d223aa30259333bede1ddb40732223d820b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",

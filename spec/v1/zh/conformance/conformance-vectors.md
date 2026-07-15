@@ -751,6 +751,12 @@ Expected：`expected_multibase` / `expected_did_key` MUST byte-for-byte 复现�
 
 `ak.vector.scalability.http_header_limits.v1` MUST 至少覆盖：128-char `Idempotency-Key` 接受、129-char 拒绝；非 ASCII / 非 canonical alphabet 拒绝；HTTP header aggregate 32 KiB 接受、32 KiB + 1 byte 拒绝；超限输入不得建立 replay-cache entry、不得构造无界签名 transcript。
 
+### 1.12.3 Vector: MLS Governance Proof 分块与总界（normative）
+
+`ak.vector.scalability.mls_governance_proof_bounds.v1` 由 [`scalability-limits-fixture.json`](../../artifacts/fixtures/scalability-limits-fixture.json) 的生成式矩阵固化 [`scalability-constraints.md` §6](./scalability-constraints.md) 与 `mls-governance-proof-bundle.schema.json`。Runner MUST 对下列每个维度生成 `limit-1 / limit / limit+1`：4 MiB response bytes、256 MiB logical item bytes、1,024 chunks、四类 collection total（4,096 / 1,048,576 / 262,144 / 128）、四类 per-chunk item count（128 / 8,192 / 1,024 / 32）、10 个 inclusion-proof sibling，以及 request `chunk_index=1023`。`limit-1` 与 `limit` 必须通过该维度的边界检查；`limit+1` 必须在 materializer 或 verifier 对应边界以 `mls_governance_proof_bounds_exceeded` / `schema_violation` fail closed，且不得截断、返回 partial manifest、按声明 cardinality 预分配或把已接收前缀标为完整。
+
+同一 vector 还 MUST 覆盖 chunk acquisition 状态：chunk 0 只在缺少 `expected_bundle_digest` 时合法；chunk >0 必须携带 chunk 0 的 digest；`chunk_index == chunk_count` 返回 `invalid_param`；manifest 已不可用返回 `frontier_unavailable` 并要求从 0 重启。`chunk_index` / `expected_bundle_digest` 不得改变 `proof_request_digest`，但后续响应的 `bundle_digest`、`chunks_root` 或 identity 任一变化都必须拒绝，禁止跨 manifest 混块。
+
 ## 2. CBA · Lattice Vectors
 
 > 来源：`cba-lattice-fixture.json`。

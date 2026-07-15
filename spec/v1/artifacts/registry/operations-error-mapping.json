@@ -599,12 +599,13 @@
       "operation_specific": [
         "not_found",
         "mls_governance_anchor_unreachable",
+        "mls_governance_proof_bounds_exceeded",
         "frontier_unavailable",
         "state_mismatch",
         "signature_invalid",
         "profile_unsupported"
       ],
-      "description": "not_found preserves Realm/scope visibility; mls_governance_anchor_unreachable means no verified path exists from the exact caller-trusted anchor and permits retry only with another locally trusted anchor/service; frontier_unavailable covers temporarily missing accepted Seal material; state_mismatch covers incomplete covered/control materialization; signature_invalid covers an unverifiable Seal/Event chain; profile_unsupported rejects unsupported binding or reducer profiles."
+      "description": "not_found preserves Realm/scope visibility; mls_governance_anchor_unreachable means no verified path exists from the exact caller-trusted anchor and permits retry only with another locally trusted anchor/service; mls_governance_proof_bounds_exceeded means the complete logical bundle exceeds a v1 count/byte/chunk bound and forbids partial output; frontier_unavailable covers temporarily missing accepted Seal material or an unavailable expected_bundle_digest and permits restarting at chunk 0; state_mismatch covers incomplete covered/control materialization; signature_invalid covers an unverifiable Seal/Event/chunk commitment; profile_unsupported rejects unsupported binding or reducer profiles."
     },
     {
       "operation_id": "ak.self.events.resource.get",

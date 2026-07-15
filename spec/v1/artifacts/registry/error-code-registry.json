@@ -548,6 +548,12 @@
       "description": "The MLS governance proof service cannot construct a verified Seal extension path from the exact trusted_anchor_seal_id supplied by the caller to the target accepted Seal. The service MUST NOT substitute or recommend an untrusted anchor. The caller MAY retry with another locally trusted older/genesis/compaction anchor or another authorized proof service."
     },
     {
+      "code": "mls_governance_proof_bounds_exceeded",
+      "http_status": 422,
+      "scope": "endpoint",
+      "description": "The complete_control_state_v1 logical bundle exceeds a v1 total-item, total-byte, chunk-count, or collection-count interoperability bound and cannot be materialized without truncation. The service MUST NOT return a partial bundle. A caller MAY retry with a nearer locally trusted anchor only when the exceeded bound is seal_path; otherwise it MUST fail closed until a separately registered compact completeness profile or a smaller accepted state is available."
+    },
+    {
       "code": "handle_unverified",
       "http_status": 403,
       "scope": "endpoint",
