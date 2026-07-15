@@ -38,8 +38,30 @@
     },
     "service_type": {
       "type": "string",
-      "minLength": 1,
-      "description": "Registered lowercase service_type such as principal_server, sync_node, directory_service, push_gateway, applet_service, archive_node, key_recovery_service or recovery_service."
+      "enum": [
+        "agent_runtime",
+        "applet_service",
+        "archive_node",
+        "auth_server",
+        "authz_service",
+        "blob_node",
+        "device_key_service",
+        "directory_service",
+        "identity_registry",
+        "key_recovery_service",
+        "media_service",
+        "moderation_service",
+        "notary",
+        "policy_server",
+        "principal_server",
+        "push_gateway",
+        "recovery_service",
+        "search_service",
+        "sfu_service",
+        "sync_node",
+        "turn_service"
+      ],
+      "description": "Role this service plays on the wire. The value space is registry/service-type-registry.json filtered to rows whose valid_in contains service_describe; tools/lint_artifacts.py check_service_type_registry keeps this enum in sync with that registry. Was an unconstrained string that listed only eight values in prose."
     },
     "protocol_version": {
       "type": "string",

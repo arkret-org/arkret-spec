@@ -5394,6 +5394,109 @@ def check_signature_algorithm_registry(lint: Lint) -> None:
             lint.fail(schema_path, f"{pointer} must match signature-alg-registry signature_algorithm values {expected_raw}")
 
 
+def check_service_type_registry(lint: Lint) -> None:
+    path = ARTIFACTS / "registry" / "service-type-registry.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+    if data.get("source_of_truth") is not True:
+        lint.fail(path, "source_of_truth must be true")
+
+    contexts = data.get("contexts")
+    rows = data.get("service_types")
+    if not isinstance(contexts, list) or not contexts:
+        lint.fail(path, "contexts must be a non-empty array")
+        return
+    if not isinstance(rows, list) or not rows:
+        lint.fail(path, "service_types must be a non-empty array")
+        return
+
+    context_ids: set[str] = set()
+    for index, context in enumerate(contexts):
+        if not isinstance(context, dict):
+            lint.fail(path, f"contexts[{index}] must be an object")
+            continue
+        context_id = context.get("id")
+        if not isinstance(context_id, str) or not context_id:
+            lint.fail(path, f"contexts[{index}].id must be a non-empty string")
+            continue
+        if context_id in context_ids:
+            lint.fail(path, f"duplicate context id: {context_id}")
+        context_ids.add(context_id)
+
+    # Active canonical ids per context, derived from the rows.
+    by_context: dict[str, set[str]] = {context_id: set() for context_id in context_ids}
+    canonical_ids: set[str] = set()
+    for index, row in enumerate(rows):
+        label = f"service_types[{index}]"
+        if not isinstance(row, dict):
+            lint.fail(path, f"{label} must be an object")
+            continue
+        canonical_id = row.get("canonical_id")
+        status = row.get("status")
+        valid_in = row.get("valid_in")
+        if not isinstance(canonical_id, str) or not re.fullmatch(r"[a-z][a-z0-9_]*", canonical_id or ""):
+            lint.fail(path, f"{label}.canonical_id must be lowercase snake_case matching [a-z][a-z0-9_]*")
+            continue
+        if canonical_id in canonical_ids:
+            lint.fail(path, f"duplicate canonical_id: {canonical_id}")
+        canonical_ids.add(canonical_id)
+        if status not in {"active", "reserved"}:
+            lint.fail(path, f"{label}.status must be active or reserved")
+            continue
+        if not isinstance(valid_in, list) or not valid_in:
+            lint.fail(path, f"{label}.valid_in must be a non-empty array")
+            continue
+        for context_id in valid_in:
+            if context_id not in context_ids:
+                lint.fail(path, f"{label}.valid_in references unknown context {context_id!r}")
+                continue
+            if status == "active":
+                by_context[context_id].add(context_id and canonical_id)
+
+    # Every declared consumer pointer must match the derived value set exactly.
+    for context in contexts:
+        if not isinstance(context, dict):
+            continue
+        context_id = context.get("id")
+        if context_id not in by_context:
+            continue
+        expected = sorted(by_context[context_id])
+        if not expected:
+            lint.fail(path, f"context {context_id} has no active service_types")
+            continue
+        for consumer in context.get("consumers") or []:
+            if not isinstance(consumer, dict):
+                lint.fail(path, f"context {context_id} consumers[] entries must be objects")
+                continue
+            file_ref = consumer.get("file")
+            pointer = consumer.get("pointer")
+            if not isinstance(file_ref, str) or not isinstance(pointer, str):
+                lint.fail(path, f"context {context_id} consumer must declare file and pointer")
+                continue
+            schema_path = ARTIFACTS / file_ref
+            schema = load_json(lint, schema_path)
+            actual = json_pointer_get(schema, pointer) if isinstance(schema, dict) else None
+            if pointer.endswith("/const"):
+                # A const pins a single-value context; it must still be a registered id.
+                if len(expected) != 1:
+                    lint.fail(
+                        schema_path,
+                        f"{pointer} is a const but context {context_id} has {len(expected)} active service_types",
+                    )
+                elif actual != expected[0]:
+                    lint.fail(
+                        schema_path,
+                        f"{pointer} must match service-type-registry {context_id} value {expected[0]!r}",
+                    )
+                continue
+            if sorted(actual or []) != expected:
+                lint.fail(
+                    schema_path,
+                    f"{pointer} must match service-type-registry {context_id} values {expected}",
+                )
+
+
 # --- STR-002 / OPT-005: action prose-reference closure ------------------------
 # (ak.profile.*.vN prose closure is already enforced for all markdown by
 # check_markdown_examples; only the hand-maintained action list lacked a gate.)
@@ -5689,6 +5792,7 @@ def main() -> int:
     check_model_required_field_table_coverage(lint)
     check_exporter_label_registry(lint)
     check_signature_algorithm_registry(lint)
+    check_service_type_registry(lint)
     check_action_reference_closure(lint)
     check_non_normative_frontmatter(lint)
 

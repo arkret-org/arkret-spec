@@ -1,0 +1,252 @@
+{
+  "version": "2026-07-15",
+  "source_of_truth": true,
+  "description": "Canonical service_type vocabulary. A service_type names the role a deployed service plays on the wire; it is the value space of Service Describe service_type, of the Realm sync_endpoint / join-candidate service class fields, and of the service_type half of a ServiceRegistrationKey. Before this registry the vocabulary was defined in four places that had drifted apart: service-describe.schema.json left it an unconstrained string (listing eight values in prose only), realm.schema.json inlined a seven-value enum, realm-join-candidate.schema.json inlined a three-value enum, and arkret-rust-sdk wire-base ServiceType carried sixteen variants. This file is now the single source; every consumer enum is asserted against it by tools/lint_artifacts.py.",
+  "registry_rules": [
+    "A service_type id matches [a-z][a-z0-9_]* and is lowercase snake_case. Only ids present as rows in this registry exist; only status=active rows are valid on wire.",
+    "Value spaces are NOT interchangeable. Each row declares valid_in, the set of contexts the id may legally appear in. A service_type valid for Service Describe is not thereby valid as a Realm sync endpoint class or as a ServiceRegistrationKey component. Consumers MUST derive their enum from the rows whose valid_in contains that consumer's context, never from the full row list.",
+    "Schema enum values for every service_type selector field MUST be generated from active rows filtered by valid_in; tools/lint_artifacts.py check_service_type_registry asserts each declared JSON pointer.",
+    "service_registration_key is the most restrictive context: it admits only service types that are a standalone deployment owning a service DID under a canonical public base. Adding a row to this context means that service type can hold a service identity and appear in ak.root.identity.service_registration.* operations.",
+    "The registry is additive. New service types enter as new rows with their own valid_in set; existing wire values never change meaning. Widening an existing row's valid_in is a registry release, not an implementation decision.",
+    "service_type is a role name, not a product name. Deployment or implementation identifiers (for example a binary called soland or starid) MUST NOT be registered. A single deployment MAY fill more than one role; the SDK expresses this by extending that service_type's allowed_operation_prefixes, not by minting a compound service_type.",
+    "This registry governs the service_type field only. Adjacent value spaces that happen to use similar words are separate and out of scope: the policy source_service_type attribution field, and Service Describe service_roles."
+  ],
+  "contexts": [
+    {
+      "id": "service_describe",
+      "description": "Top-level service_type of a Service Describe document (schemas/service-describe.schema.json). Every deployable role may describe itself.",
+      "consumers": [
+        {
+          "file": "schemas/service-describe.schema.json",
+          "pointer": "/properties/service_type/enum"
+        }
+      ]
+    },
+    {
+      "id": "realm_sync_endpoint",
+      "description": "Service class of a Realm sync endpoint (schemas/realm.schema.json $defs/sync_endpoint).",
+      "consumers": [
+        {
+          "file": "schemas/realm.schema.json",
+          "pointer": "/$defs/sync_endpoint/properties/service_type/enum"
+        }
+      ]
+    },
+    {
+      "id": "realm_join_candidate",
+      "description": "Service class permitted to receive join-side submissions (schemas/realm-join-candidate.schema.json). principal_server is the normal candidate; the others only when Realm policy authorizes them.",
+      "consumers": [
+        {
+          "file": "schemas/realm-join-candidate.schema.json",
+          "pointer": "/properties/service_type/enum"
+        }
+      ]
+    },
+    {
+      "id": "service_registration_key",
+      "description": "The service_type half of a ServiceRegistrationKey (service_type + canonical public_base). Only roles that own a service DID under a public base belong here. No schema enum is generated for this context in v1; it is consumed by arkret-rust-sdk when constructing a registration key, which MUST reject any service_type absent from this context.",
+      "consumers": []
+    },
+    {
+      "id": "mimi_provider_directory",
+      "description": "Provider directory descriptor of the MIMI interop surface (schemas/mimi-interop.schema.json $defs/provider_directory). Pinned as a const rather than an enum because the context admits exactly one role.",
+      "consumers": [
+        {
+          "file": "schemas/mimi-interop.schema.json",
+          "pointer": "/$defs/provider_directory/properties/service_type/const"
+        }
+      ]
+    }
+  ],
+  "service_types": [
+    {
+      "canonical_id": "principal_server",
+      "status": "active",
+      "valid_in": [
+        "service_describe",
+        "realm_sync_endpoint",
+        "realm_join_candidate",
+        "service_registration_key"
+      ],
+      "description": "Account-owning home server: event ingestion, sync, authz projections, key backup, federation. Also acts as an embedded did:webvh host for the identities it serves, which is why it is valid_in service_registration_key both as a subject and as a Service Identity Provider."
+    },
+    {
+      "canonical_id": "auth_server",
+      "status": "active",
+      "valid_in": [
+        "service_describe",
+        "service_registration_key"
+      ],
+      "description": "OIDC / token issuance and account lifecycle. Hosts no DID documents of its own; obtains its service DID from an external Service Identity Provider."
+    },
+    {
+      "canonical_id": "identity_registry",
+      "status": "active",
+      "valid_in": [
+        "service_describe",
+        "service_registration_key"
+      ],
+      "description": "Standalone did:webvh registry: DID documents, key logs, receipts, watcher/mirror. Self-hosts its own service DID through its local store."
+    },
+    {
+      "canonical_id": "sync_node",
+      "status": "active",
+      "valid_in": [
+        "service_describe",
+        "realm_sync_endpoint",
+        "realm_join_candidate"
+      ],
+      "description": "Event sync surface without account authority."
+    },
+    {
+      "canonical_id": "notary",
+      "status": "active",
+      "valid_in": [
+        "service_describe",
+        "realm_sync_endpoint",
+        "realm_join_candidate"
+      ],
+      "description": "Seal / attestation notary. Registered from the realm.schema.json inline enum; was absent from both the Service Describe prose list and the SDK enum before this registry."
+    },
+    {
+      "canonical_id": "directory_service",
+      "status": "active",
+      "valid_in": [
+        "service_describe"
+      ],
+      "description": "Discovery ingest/query with anti-enumeration and takedown audit."
+    },
+    {
+      "canonical_id": "push_gateway",
+      "status": "active",
+      "valid_in": [
+        "service_describe"
+      ],
+      "description": "Push provider dispatch gateway."
+    },
+    {
+      "canonical_id": "applet_service",
+      "status": "active",
+      "valid_in": [
+        "service_describe"
+      ],
+      "description": "Applet / third-party bridge edge surface."
+    },
+    {
+      "canonical_id": "agent_runtime",
+      "status": "active",
+      "valid_in": [
+        "service_describe"
+      ],
+      "description": "Agent execution runtime."
+    },
+    {
+      "canonical_id": "blob_node",
+      "status": "active",
+      "valid_in": [
+        "service_describe"
+      ],
+      "description": "Blob storage surface."
+    },
+    {
+      "canonical_id": "media_service",
+      "status": "active",
+      "valid_in": [
+        "service_describe"
+      ],
+      "description": "Media upload / transform / delivery surface."
+    },
+    {
+      "canonical_id": "sfu_service",
+      "status": "active",
+      "valid_in": [
+        "service_describe"
+      ],
+      "description": "Selective forwarding unit for calls."
+    },
+    {
+      "canonical_id": "turn_service",
+      "status": "active",
+      "valid_in": [
+        "service_describe"
+      ],
+      "description": "TURN / ICE relay surface."
+    },
+    {
+      "canonical_id": "device_key_service",
+      "status": "active",
+      "valid_in": [
+        "service_describe"
+      ],
+      "description": "Device signing-key directory surface."
+    },
+    {
+      "canonical_id": "authz_service",
+      "status": "active",
+      "valid_in": [
+        "service_describe"
+      ],
+      "description": "Authorization evaluation surface."
+    },
+    {
+      "canonical_id": "policy_server",
+      "status": "active",
+      "valid_in": [
+        "service_describe"
+      ],
+      "description": "Policy distribution and evaluation surface."
+    },
+    {
+      "canonical_id": "moderation_service",
+      "status": "active",
+      "valid_in": [
+        "service_describe"
+      ],
+      "description": "Moderation surface."
+    },
+    {
+      "canonical_id": "search_service",
+      "status": "active",
+      "valid_in": [
+        "service_describe",
+        "realm_sync_endpoint"
+      ],
+      "description": "Search index surface. Registered from the realm.schema.json inline enum; was absent from the SDK enum before this registry."
+    },
+    {
+      "canonical_id": "archive_node",
+      "status": "active",
+      "valid_in": [
+        "service_describe",
+        "realm_sync_endpoint"
+      ],
+      "description": "Long-term archive surface. Registered from realm.schema.json and the Service Describe prose list; was absent from the SDK enum before this registry."
+    },
+    {
+      "canonical_id": "key_recovery_service",
+      "status": "active",
+      "valid_in": [
+        "service_describe",
+        "realm_sync_endpoint"
+      ],
+      "description": "Key backup / recovery surface. Registered from realm.schema.json and the Service Describe prose list; was absent from the SDK enum before this registry."
+    },
+    {
+      "canonical_id": "recovery_service",
+      "status": "active",
+      "valid_in": [
+        "service_describe",
+        "realm_sync_endpoint"
+      ],
+      "description": "Account recovery surface. Registered from realm.schema.json and the Service Describe prose list; was absent from the SDK enum before this registry."
+    },
+    {
+      "canonical_id": "mimi_provider_facade",
+      "status": "active",
+      "valid_in": [
+        "mimi_provider_directory"
+      ],
+      "description": "MIMI interop provider facade. Deliberately NOT valid_in service_describe: it names a facade role inside the MIMI provider-directory descriptor, not a standalone Arkret service describing itself."
+    }
+  ]
+}
