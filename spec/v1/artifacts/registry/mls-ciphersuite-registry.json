@@ -27,21 +27,32 @@
       "security_note": "RFC 9420 mandatory-to-implement suite; classical X25519 KEM (not post-quantum). Conformance pins the MLS WG byte-level vector corpus at commit cfd450286d1bfd9cd2519b95c80f9771f94a5b1a; implementations MUST run all cases for ciphersuite 0x0001 in the listed files."
     },
     {
-      "canonical_id": "MLS_128_XWING_AES128GCM_SHA256_Ed25519",
+      "canonical_id": "MLS_128_MLKEM768X25519_AES128GCM_SHA256_Ed25519",
       "rfc9420_id": null,
-      "kem_draft": "draft-connolly-cfrg-xwing-kem-10",
+      "mls_draft": "draft-ietf-mls-pq-ciphersuites-05",
+      "mls_reference_url": "https://datatracker.ietf.org/doc/html/draft-ietf-mls-pq-ciphersuites-05",
+      "kem_draft": "draft-ietf-hpke-pq-05",
       "kem_hpke_id": "0x647A",
-      "kem_reference_url": "https://datatracker.ietf.org/doc/html/draft-connolly-cfrg-xwing-kem-10",
+      "kem_reference_url": "https://datatracker.ietf.org/doc/html/draft-ietf-hpke-pq-05",
+      "kdf_hpke_id": "0x0011",
+      "aead_hpke_id": "0x0001",
+      "transcript_hash": "SHA256",
+      "signature_scheme": "ed25519",
+      "ietf_recommended": true,
+      "construction_draft": "draft-irtf-cfrg-concrete-hybrid-kems-03",
+      "construction_reference_url": "https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-concrete-hybrid-kems-03",
+      "xwing_supplemental_draft": "draft-connolly-cfrg-xwing-kem-10",
+      "xwing_supplemental_reference_url": "https://datatracker.ietf.org/doc/html/draft-connolly-cfrg-xwing-kem-10",
       "status": "reserved",
       "role": "reserved_pqc_hybrid",
       "profile_gate": "ak.profile.kem.hybrid_xwing.v1",
       "activation_requirements": [
-        "ak.profile.kem.hybrid_xwing.v1 fully specifies draft-connolly-cfrg-xwing-kem-10 and its IANA HPKE KEM id 0x647A; incompatible draft changes require an explicit registry release and refreshed KAT digest",
-        "IETF/IANA MLS ciphersuite code point assigned for the X-Wing hybrid suite and recorded here as rfc9420_id (registry release required; receivers MUST NOT improvise a private code point)",
+        "The exact suite mapping MUST match draft-ietf-mls-pq-ciphersuites-05: MLKEM768-X25519 KEM 0x647A, SHAKE256 KDF 0x0011, AES-128-GCM AEAD 0x0001, SHA256 transcript hash and ed25519 signature; any incompatible MLS/HPKE/CFRG draft change requires an explicit registry release and refreshed KAT digest",
+        "IETF/IANA MLS ciphersuite code point assigned for MLS_128_MLKEM768X25519_AES128GCM_SHA256_Ed25519 and recorded here as rfc9420_id (registry release required; receivers MUST NOT improvise a private code point)",
         "Per-suite MLS conformance vectors published (KeyPackage encoding, welcome/commit KEM encap/decap, group key schedule)",
-        "Coverage-priority alignment recorded: activates only after the HPKE X-Wing row (hpke-suite-registry.json ak.hpke_xwing_aead_chacha20poly1305.v1) — static ciphertext backups are the primary Harvest-Now-Decrypt-Later target, MLS group KEM is the second wave"
+        "Coverage-priority alignment recorded: activates only after the non-MLS HPKE row for the same MLKEM768-X25519/X-Wing construction (hpke-suite-registry.json ak.hpke_xwing_aead_chacha20poly1305.v1) — static ciphertext backups are the primary Harvest-Now-Decrypt-Later target, MLS group KEM is the second wave"
       ],
-      "security_note": "Reserved post-quantum hybrid MLS suite (X-Wing = X25519 + ML-KEM-768 KEM; AES-128-GCM; Ed25519 signatures) per the encryption-and-audit.md PQ roadmap and 'MLS 内容 KEM 边界' scoping note. Hybrid confidentiality: secure if either X25519 or ML-KEM-768 holds. Not on wire until activated; receivers MUST fail closed on this suite before activation."
+      "security_note": "Reserved MLS WG post-quantum hybrid suite using MLKEM768-X25519, AES-128-GCM, SHA256 and classical Ed25519 signatures. The CFRG concrete construction is identical to X-Wing, retained only as a supplemental KEM reference; MLS naming and activation track draft-ietf-mls-pq-ciphersuites. This suite targets post-quantum confidentiality, not post-quantum authentication. Not on wire until activated; receivers MUST fail closed on this suite before activation."
     }
   ]
 }

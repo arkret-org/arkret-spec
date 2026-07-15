@@ -5652,6 +5652,43 @@ def check_service_type_registry(lint: Lint) -> None:
                 )
 
 
+def check_mls_pq_suite_registration(lint: Lint) -> None:
+    """The reserved PQ-MLS row must track the current MLS WG suite mapping."""
+    path = ARTIFACTS / "registry" / "mls-ciphersuite-registry.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+    rows = data.get("ciphersuites")
+    if not isinstance(rows, list):
+        lint.fail(path, "ciphersuites must be an array")
+        return
+    pq_rows = [row for row in rows if isinstance(row, dict) and row.get("role") == "reserved_pqc_hybrid"]
+    if len(pq_rows) != 1:
+        lint.fail(path, f"expected exactly one reserved_pqc_hybrid row, found {len(pq_rows)}")
+        return
+    row = pq_rows[0]
+    expected = {
+        "canonical_id": "MLS_128_MLKEM768X25519_AES128GCM_SHA256_Ed25519",
+        "rfc9420_id": None,
+        "mls_draft": "draft-ietf-mls-pq-ciphersuites-05",
+        "mls_reference_url": "https://datatracker.ietf.org/doc/html/draft-ietf-mls-pq-ciphersuites-05",
+        "kem_draft": "draft-ietf-hpke-pq-05",
+        "kem_hpke_id": "0x647A",
+        "kem_reference_url": "https://datatracker.ietf.org/doc/html/draft-ietf-hpke-pq-05",
+        "kdf_hpke_id": "0x0011",
+        "aead_hpke_id": "0x0001",
+        "transcript_hash": "SHA256",
+        "signature_scheme": "ed25519",
+        "ietf_recommended": True,
+        "status": "reserved",
+    }
+    for field, value in expected.items():
+        if row.get(field) != value:
+            lint.fail(path, f"reserved PQ-MLS row {field} must be {value!r}, got {row.get(field)!r}")
+    if any(isinstance(item, dict) and item.get("canonical_id") == "MLS_128_XWING_AES128GCM_SHA256_Ed25519" for item in rows):
+        lint.fail(path, "private MLS_128_XWING_AES128GCM_SHA256_Ed25519 alias is forbidden")
+
+
 # --- STR-002 / OPT-005: action prose-reference closure ------------------------
 # (ak.profile.*.vN prose closure is already enforced for all markdown by
 # check_markdown_examples; only the hand-maintained action list lacked a gate.)
@@ -5948,6 +5985,7 @@ def main() -> int:
     check_model_required_field_table_coverage(lint)
     check_exporter_label_registry(lint)
     check_signature_algorithm_registry(lint)
+    check_mls_pq_suite_registration(lint)
     check_service_type_registry(lint)
     check_action_reference_closure(lint)
     check_non_normative_frontmatter(lint)
