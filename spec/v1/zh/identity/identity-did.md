@@ -494,27 +494,33 @@ Arkret MUST NOT：
 
 DID 更新 MUST 使用对应 DID method 的 operation 格式、授权规则和提交通道。Arkret 不定义通用的自有 DID operation patch 格式。
 
-Identity Resolution Surface MAY 提供统一 API 来提交或查询 method-specific operation，但请求体 MUST 明确 `did_method`、raw operation、proofs 和 resolver policy context。
+Identity Resolution Surface MAY 提供统一 API 来提交或查询 method-specific operation，但请求体 MUST 明确不含 `did:` 前缀的 `did_method` 与完整 raw operation。控制权 proof 是 raw operation 的 method-native 组成部分；统一 wrapper 不得再附加一套 method-neutral proof。resolver policy、trust roots 与 witness 要求来自接收方配置和已验证状态，不得由调用方自报。
 
 示例：
 
 ```json
 {
-  "did": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
-  "did_method": "did:plc",
+  "did": "did:webvh:zQ3shExampleScid:alice.example",
+  "did_method": "webvh",
+  "seq": 1,
   "operation": {
-    "type": "plc_operation",
-    "raw": "<method-specific canonical object>"
-  },
-  "proofs": [
-    {
-      "verification_method": "did:plc:ewvi7nxzyoun6zhxrhs64oiz#atproto",
-      "jws": "..."
-    }
-  ],
-  "policy_context": {
-    "audience": "did:webvh:z2Cxbwy2o7AmBLzdfDbix8WAP:registry.example",
-    "purpose": "did_update"
+    "versionId": "1-<entry-hash>",
+    "versionTime": "2026-07-15T00:00:00Z",
+    "parameters": {
+      "scid": "zQ3shExampleScid",
+      "method": "did:webvh:1.0",
+      "updateKeys": ["z6Mk..."]
+    },
+    "state": {
+      "id": "did:webvh:zQ3shExampleScid:alice.example"
+    },
+    "proof": [{
+      "type": "DataIntegrityProof",
+      "cryptosuite": "eddsa-jcs-2022",
+      "verificationMethod": "did:key:z6Mk...#z6Mk...",
+      "proofPurpose": "assertionMethod",
+      "proofValue": "z..."
+    }]
   }
 }
 ```
@@ -522,10 +528,13 @@ Identity Resolution Surface MAY 提供统一 API 来提交或查询 method-speci
 Resolver / registry / adapter MUST 拒绝：
 
 - 签名无效
+- `did_method` 与 DID 的 method component 不一致，或 registry 没有该 method 的显式 adapter
 - method-specific operation 不符合对应 DID method 规范
 - history head / previous operation 不匹配
 - operation 与本地 resolver policy、trust roots 或 allowed role 冲突
 - method 不支持该操作却被当作支持处理
+
+相同 native operation 可以由冷端一次签名后提交给多个 registry / witness。接收方不得要求 Provider-specific challenge 才接受控制操作；重放与并发安全由 native operation identity、canonical bytes、previous head / sequence CAS、逐字节幂等和 sibling fork 检测共同保证。所有验证 MUST 在任何 DID Document、history、receipt 或 cache 写入之前完成。
 
 ## 8. Organization Principal Ownership
 

@@ -1582,6 +1582,7 @@
       "http": "POST /_arkret/root/identity/submit-did-operation",
       "grpc": "RootIdentity/SubmitDidOperation",
       "mq": "root.identity.command.submit_did_operation",
+      "notes": "The wrapper carries one complete DID method-native operation. did_method is the bare method discriminator and MUST equal the DID method component. Controller/update/recovery authorization comes only from the native operation; transport authentication is admission-only. Unsupported methods, generic replace/patch/document fallbacks, stale heads, and sibling forks fail closed. Exact canonical-operation retries are duplicate-success without a second history append.",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "protocol_sequence",
       "retry_safe": true,

@@ -1080,8 +1080,7 @@
       "required": [
         "did",
         "did_method",
-        "operation",
-        "proofs"
+        "operation"
       ],
       "properties": {
         "did": {
@@ -1091,7 +1090,7 @@
         "did_method": {
           "type": "string",
           "pattern": "^[a-z0-9]+$",
-          "description": "DID method discriminator (e.g. web, webvh, key). Verifiers dispatch method-specific validation from this value and the did prefix."
+          "description": "DID method discriminator without the did: prefix (e.g. web, webvh, key). It MUST exactly equal the method component of did; verifiers dispatch method-specific validation only after that equality check."
         },
         "seq": {
           "type": "integer",
@@ -1106,48 +1105,7 @@
         "operation": {
           "type": "object",
           "additionalProperties": true,
-          "description": "DID method-specific raw operation object. This is not a generic JSON Patch and MUST be validated by the selected DID method adapter."
-        },
-        "policy_context": {
-          "type": "object",
-          "additionalProperties": true,
-          "description": "Optional resolver / registry policy context bound into authorization and audit."
-        },
-        "proofs": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "object",
-            "additionalProperties": true,
-            "required": [
-              "proof_kind",
-              "challenge",
-              "request_canonical_digest",
-              "signature"
-            ],
-            "properties": {
-              "proof_kind": {
-                "type": "string",
-                "enum": [
-                  "did_update_key",
-                  "authorized_device",
-                  "recovery_policy"
-                ]
-              },
-              "challenge": {
-                "type": "string",
-                "minLength": 16
-              },
-              "request_canonical_digest": {
-                "type": "string",
-                "pattern": "^sha256:[0-9a-f]{64}$"
-              },
-              "signature": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
+          "description": "Complete DID method-native operation, including every controller/update/recovery proof required by that method. This is not a generic JSON Patch. The selected adapter MUST validate the immutable native operation and its full history before any state mutation; transport authentication never substitutes for method-native control proof."
         }
       }
     },
@@ -1387,7 +1345,7 @@
         },
         "verificationMethod": {
           "type": "string",
-          "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+#[^\\s]+$"
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[^\\s]+$"
         },
         "proofPurpose": {
           "const": "assertionMethod"

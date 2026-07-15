@@ -3136,17 +3136,14 @@
         "required": [
           "did",
           "did_method",
-          "operation",
-          "proofs"
+          "operation"
         ],
         "properties": [
           "did",
           "did_method",
           "seq",
           "prev_event_digest",
-          "operation",
-          "policy_context",
-          "proofs"
+          "operation"
         ],
         "closed": true
       },

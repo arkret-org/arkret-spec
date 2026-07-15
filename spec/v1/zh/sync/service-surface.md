@@ -423,16 +423,17 @@ POST /_arkret/root/identity/submit-did-operation
 - `did`
 - `did_method`
 - `operation`
-- `proofs`
 - `seq` / `prev_event_digest`（当 DID method 暴露 key-log 序号或 head hash 时）
-- `policy_context`（可选，绑定 resolver / registry policy）
 
 要求：
 
-- `operation` 是 DID-method-specific 原始操作对象；实现 MUST NOT 把 DID 更新降格为通用 JSON Patch。
-- 相同 DID method operation id / seq / canonical hash 的重复提交 MUST 幂等成功。
-- 相同 DID method operation id / seq 但内容不同 MUST 拒绝。
+- `did_method` 不含 `did:` 前缀，且 MUST 与 `did` 的 method component 逐字节相等；不支持该 method 的 registry MUST fail closed，不得把它转交给通用 JSON handler。
+- `operation` 是完整、不可变的 DID-method-native 原始操作对象，并且包含该 method 要求的 controller / update / recovery proof；实现 MUST NOT 把 DID 更新降格为通用 JSON Patch，也不得在 wrapper 外另造一套 method-neutral 授权 proof。transport bearer、mTLS、session 或部署凭据只负责通道准入，不能替代 method-native control proof。
+- `seq` / `prev_event_digest` 仅是调用方给出的乐观并发条件。若提供，adapter MUST 将其与从 native operation / accepted history 推导的 sequence 与 previous head 精确比对；不得用 wrapper 值覆盖或修补已签名 operation。
+- registry policy、trust roots、witness threshold 与审计上下文 MUST 来自服务端配置和已验证状态，不得由 caller-supplied `policy_context` 决定授权。
+- 相同 DID method operation id / seq / canonical operation bytes 的重复提交 MUST 返回 `duplicate` 且不追加第二条 history；相同 operation id / seq 但 canonical bytes 不同、previous head stale、或同一 previous head 产生 sibling candidate 时 MUST 以 conflict fail closed，并保留可审计分叉证据（若实现支持 quarantine），不得覆盖 accepted head。
 - registry MUST 从已验证 genesis 开始验证完整 method-native 授权链。did:webvh adapter 必须逐 entry 验证当前显式 `updateKeys`、上一 entry `nextKeyHashes` commitment、SCID/hash chain、`state.id` 与 spent-key 永不复用；不得以 previous-key 签名或缺失字段继承替代。
+- 所有 method-native proof 与 CAS 检查 MUST 在持久化 DID Document、log entry、receipt 或 cache 之前完成；失败不得产生部分写入。
 
 #### 3.1.5 获取 receipt / witness 证明
 
