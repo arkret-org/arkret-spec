@@ -12,7 +12,7 @@ updated: 2026-07-13
 
 ## 1. 目标
 
-Client Sync 是客户端 **账号视角聚合** 同步协议。它在 Events API 之上提供跨 Realm 的稳定 delta 视图（包含 to_device、account_data、device_lists、presence、unread / notification counts），由服务端按需推送或以有界长轮询返回。它不是裸事件读取——逐 Realm 的事件查询和实时订阅请使用 `ak.self.events.query.scan` / `ak.self.events.stream.subscribe`。
+Client Sync 是客户端 **账号视角聚合** 同步协议。它在 Events API 之上提供跨 Realm 的稳定 delta 视图（包含 to_device、account_data、device_lists、presence、unread / notification counts），由服务端通过 `ak.self.account.stream.subscribe` 的长连接 frame stream 按需推送。它不是裸事件读取——逐 Realm 的事件查询和实时订阅请使用 `ak.self.events.query.scan` / `ak.self.events.stream.subscribe`。
 
 `ak.self.account.stream.subscribe` 与 `ak.self.events.stream.subscribe` 是对称的两类 streaming 订阅:
 - `ak.self.events.stream.subscribe` 是**逐 Realm / actor 的事件流**(selector 范围内的每条 Event)
