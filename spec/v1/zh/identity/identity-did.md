@@ -269,6 +269,13 @@ Service Identity Provider 的标准操作是：
 
 注册键由 registry 限定的 `service_type` 与 canonical `public_base` 组成。同一个注册键 MUST 永远映射到同一个 DID；普通 ensure、重启、数据库重连和 key rotation 都不得改变它。Provider MUST 验证 client-signed `did:webvh` inception 内声明的 service type / endpoint 与注册键完全相等，MUST 以 `UNIQUE(service_type, public_base)` 和单事务先查后建保证并发幂等，并且在 mapping 行缺失时扫描现存托管 DID Document：任何 document 已声明同一注册键都必须返回 `service_identity_conflict`，不得创建第二 DID。`idempotency_key` 只用于审计关联，不是并发正确性的来源。
 
+`ServiceRegistrationReceipt` 的 `proof` MUST 使用 `eddsa-jcs-2022`，且 transcript 只能按下列步骤构造，Provider 与 SDK 不得各自解释签名输入：
+
+1. 令 `receipt_claims` 为不含 `receipt_id` 与 `proof` 的对象 `{registration_key, service_id, version_id, log_head_digest, control_key_digest, issued_at, provider_service_id}`；`receipt_id` MUST 匹配 `ServiceRegistrationReceipt` schema 的固定前缀，并以 `SHA-256(JCS(receipt_claims))` 的 64 位小写十六进制作为后缀。
+2. 令 `proof_config` 为不含 `proofValue` 的对象 `{type: "DataIntegrityProof", cryptosuite: "eddsa-jcs-2022", verificationMethod, proofPurpose: "assertionMethod"}`；令 `document` 为包含 `receipt_id`、但删除整个 `proof` 后的完整 receipt。
+3. Ed25519 签名输入 MUST 精确等于 `SHA-256(JCS(proof_config)) || SHA-256(JCS(document))`，`proofValue` MUST 为该 64-byte signature 的 base58btc multibase（`z...`）。
+4. `verificationMethod` MUST 由 `provider_service_id` 控制，并在 receipt 签发时属于 Provider DID Document 的 `assertionMethod`。消费者 MUST 解析 Provider 的可验证 `did:webvh` 历史、检查该授权关系并验证签名；transport bearer、mTLS、HTTPS 成功或 proof 的结构校验均不得替代密码学验证。identity bundle 的离线恢复同样 MUST 完成上述验证，不能只检查 receipt 字段形状。
+
 Provider 是 hosting 方而非控制者。transport bearer、mTLS 或内网凭据只认证部署通道；inception、rotation、endpoint update 与 registration-key migration 仍 MUST 由服务持有的 WebVH control/update key 签名。Provider 不得生成、接收或托管调用方私钥。服务自身持久化 active signing key ref、control key ref、version/receipt；B 类若要求数据库灾难后保持 DID，MUST 另有可验证 identity bundle backend。
 
 运行时状态至少区分 `Ready`、`DegradedStored`、`WaitingProvider`、`RegistrationKeyDrift` 与 `Faulted`。已有并验证过的本地记录在 Provider 短暂不可用时 MAY 以 `DegradedStored` 提供普通签发/验证流程，但 MUST 禁止身份变更；本地为空且 Provider 不可达时进入 `WaitingProvider`，readiness=false，Service Describe 返回 `503 service_identity_unavailable` 与 `Retry-After`，Provider 恢复后自动重试，无需重启。`public_base` 漂移进入 `RegistrationKeyDrift`，继续用原 DID 服务但不得静默 ensure；只有 control-key-signed `migrate-base` 可以原子重绑同一 DID。

@@ -1404,6 +1404,7 @@
     },
     "ServiceRegistrationReceipt": {
       "type": "object",
+      "description": "Provider-signed stable service-registration receipt. receipt_id is ak:service_registration_receipt:<lowercase hex SHA-256(JCS({registration_key,service_id,version_id,log_head_digest,control_key_digest,issued_at,provider_service_id}))>. proof is eddsa-jcs-2022 over SHA-256(JCS(proof config without proofValue)) || SHA-256(JCS(the complete receipt without proof)); verificationMethod MUST be an assertionMethod controlled by provider_service_id and consumers MUST cryptographically verify it against the Provider DID history.",
       "additionalProperties": false,
       "required": [
         "receipt_id",
