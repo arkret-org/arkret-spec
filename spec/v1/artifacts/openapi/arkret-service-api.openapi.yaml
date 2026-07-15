@@ -2312,6 +2312,28 @@ components:
           type: string
         service_type:
           type: string
+          enum:
+          - agent_runtime
+          - applet_service
+          - archive_node
+          - auth_server
+          - authz_service
+          - blob_node
+          - device_key_service
+          - directory_service
+          - identity_registry
+          - key_recovery_service
+          - media_service
+          - moderation_service
+          - notary
+          - policy_server
+          - principal_server
+          - push_gateway
+          - recovery_service
+          - search_service
+          - sfu_service
+          - sync_node
+          - turn_service
         service_id:
           type: string
         trust_domain:
@@ -3096,6 +3118,17 @@ paths:
     get:
       operationId: ak.server.query.describe
       security: []
+      parameters:
+      - name: service_type
+        in: query
+        required: false
+        description: >-
+          Registered service_describe role to select. Required when one public
+          binding exposes multiple co-located roles; the response describes
+          exactly the selected role. Omission on a multi-role binding returns
+          missing_param; an illegal or unavailable role returns invalid_param.
+        schema:
+          $ref: '#/components/schemas/ServiceDescribe/properties/service_type'
       responses:
         '200':
           description: Service description
@@ -3103,6 +3136,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceDescribe'
+        '400':
+          description: >-
+            missing_param when a shared multi-role binding requires
+            service_type; invalid_param for an illegal or unavailable role.
         '404':
           $ref: '#/components/responses/NotFound'
         '405':

@@ -82,7 +82,7 @@ DID Document SHOULD 只负责：
 
 ### 2.5 实际服务器与服务面组合
 
-实际部署中的“服务器”是一个或多个服务面的组合，不是协议真相源。实现可以合并服务器，但必须在 `GET /_arkret/describe` 中明确 `service_type`、`supported_operations`、认证方式、限制和 profile。
+实际部署中的“服务器”是一个或多个服务面的组合，不是协议真相源。实现可以合并服务器，但每个 `ServiceDescribe` MUST 只描述一个逻辑角色，并明确该角色的 `service_type`、`supported_operations`、认证方式、限制、plaintext visibility 和 profile；不得把多角色聚合成一个 compound `service_type`，也不得把其它角色的 operation 或明文边界混入当前响应。多个角色共享同一 public binding 时，部署 MUST 为每个角色支持 `GET /_arkret/describe?service_type=<registered-id>` 的 role-scoped 响应；查询值、响应 `service_type` 和该角色的 DID/service binding 必须一致。查询省略规则和错误语义见 [`service-http-binding.md` §2.3](./service-http-binding.md)。
 
 协议层统一使用 **Principal Server** 表示 principal 控制或委托的受控入口。登录与账号准入另有一个客户端可见的 **Account Authority** 角色：客户端从 Principal Server 的 `/_arkret/describe` 发现它，之后所有客户端可见的 `/_arkret/gate/account/*` 请求都只发往该 Account Authority。部署内部 S2S 子操作只可由 Account Authority 按对应 operation 契约调用，不能由客户端派生。不同部署形态的差异由 deployment profile、支持的 operation、是否内置 Auth / Account、Policy、Events API、Blob、Identity Resolution 等能力表达。
 
@@ -302,7 +302,7 @@ GET /_arkret/describe
 服务类型命名规则：
 
 - DID Document `service.type` 使用协议注册名，例如 `ArkretPrincipalServer`、`ArkretDirectory`。
-- describe 响应的 `service_type` 使用小写注册值，例如 `principal_server`、`sync_node`、`identity_registry`、`auth_server`、`blob_node`、`directory_service`、`device_key_service`、`authz_service`、`policy_server`、`push_gateway`、`applet_service`、`mimi_provider_facade`、`agent_runtime`、`media_service`、`sfu_service`、`turn_service`、`moderation_service`、`archive_node`、`key_recovery_service`、`recovery_service`。其中 `sync_node` 保留：它不是独立的 describe-only 角色，而是 `realm.schema.json` / `realm-join-candidate.schema.json` 的 service class 枚举值，仅当 Realm policy 授权其接收 join-side submission / delivery binding 时使用（见 [`realm-join-candidate.schema.json`](../../artifacts/schemas/realm-join-candidate.schema.json)）。
+- describe 响应的 `service_type` 使用 [`service-type-registry.json`](../../artifacts/registry/service-type-registry.json) 中 `status=active` 且 `valid_in` 包含 `service_describe` 的小写注册值；正文不复制该闭集。其它 context 的值不得进入 Describe：例如 `mimi_provider_facade` 只用于 `mimi_provider_directory` descriptor，不是 `ServiceDescribe.service_type`。`sync_node` 同时被 registry 允许用于 Realm sync endpoint / join candidate，但只有当 Realm policy 授权对应 submission / delivery binding 时才能用于这些 Realm 字段（见 [`realm-join-candidate.schema.json`](../../artifacts/schemas/realm-join-candidate.schema.json)）。
 - conformance profile 使用 `ak.profile.*` 标识，例如 `ak.profile.principal_server.v1`。
 - 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_type 与 conformance profile 混用。
 

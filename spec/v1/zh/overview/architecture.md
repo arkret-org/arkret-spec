@@ -168,14 +168,14 @@ Arkret 的 client 不只包括 GUI 应用，也包括：
 
 ### 2.8 Principal Server 部署形态
 
-Arkret 的协议文档按“服务角色”定义能力；实际落地时可以把多个角色合并在同一进程、同一域名或同一节点中。合并部署 MUST NOT 改变各角色的安全边界：service DID、`service_type`、capability、Realm policy、plaintext visibility 和 endpoint 契约仍必须可区分。
+Arkret 的协议文档按“服务角色”定义能力；实际落地时可以把多个角色合并在同一进程、同一域名或同一节点中。合并部署 MUST NOT 改变各角色的安全边界：每个 `ServiceDescribe` 只描述一个逻辑角色；共享 public binding 的多个角色必须通过 `GET /_arkret/describe?service_type=<registered-id>` 分别返回 role-scoped describe，使 service DID、`service_type`、capability、Realm policy、plaintext visibility、`supported_operations` 和 endpoint 契约仍可逐角色验证。
 
 面向用户和运维文档时，也应直接使用 **Principal Server**。不同部署层级的差异由 deployment profile、内置或拆分的服务角色、委托来源、公共基础设施依赖、合规和明文边界要求表达。
 
 部署 profile 与服务角色契约的权威定义：
 
 - 部署 profile（包括 `personal_node` / `small_team` / `organization` / `high_security_organization` / `isolated_sovereign_network` / `sovereign_deployment` 等，非穷尽列举）：完整 deployment profile 集合以 [`artifacts/profiles/conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的 `deployment_profiles` 为准。
-- 服务角色与 `service_type` / 真相源 / 明文边界矩阵：informative 一览见 [`sync/service-surface.md` §2.5](../sync/service-surface.md)；`service_type` 机读真源见 [`artifacts/profiles/conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)、namespace canonical 见 [`sync/service-http-binding.md` §2.1](../sync/service-http-binding.md)。
+- 服务角色与 `service_type` / 真相源 / 明文边界矩阵：informative 一览见 [`sync/service-surface.md` §2.5](../sync/service-surface.md)；`service_type` 机读真源见 [`artifacts/registry/service-type-registry.json`](../../artifacts/registry/service-type-registry.json)、namespace canonical 见 [`sync/service-http-binding.md` §2.1](../sync/service-http-binding.md)。
 - 高安全自建网络的额外约束：见 [`sync/sovereign-deployment.md`](../sync/sovereign-deployment.md)。
 
 本节只保留无法机器化的信任边界叙述、最小拓扑示意和 identity resolver 的部署常识；任何"哪种规模需要哪些服务"的列举请直接读上面三处源。

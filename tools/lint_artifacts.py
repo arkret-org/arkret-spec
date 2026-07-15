@@ -5571,7 +5571,7 @@ def check_service_type_registry(lint: Lint) -> None:
                 lint.fail(path, f"context {context_id} consumer must declare file and pointer")
                 continue
             schema_path = ARTIFACTS / file_ref
-            schema = load_json(lint, schema_path)
+            schema = load_schema_document(lint, schema_path)
             actual = json_pointer_get(schema, pointer) if isinstance(schema, dict) else None
             if pointer.endswith("/const"):
                 # A const pins a single-value context; it must still be a registered id.
