@@ -64,7 +64,7 @@
         "recovery_key_share",
         "self_signing_key",
         "user_signing_key",
-        "recovery_secret",
+        "account_data_namespace_key",
         "mls_account_secret",
         "mls_private_plaintext",
         "mls_group_secrets_backup_key",

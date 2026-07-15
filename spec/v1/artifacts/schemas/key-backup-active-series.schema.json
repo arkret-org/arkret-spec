@@ -43,7 +43,7 @@
     },
     "frontier_ref": {
       "$ref": "#/$defs/frontier_ref",
-      "description": "Principal control stream frontier under which active_series_id was selected."
+      "description": "Principal control stream frontier under which active_series_id was selected, bound to exactly one A/B identity-model generation."
     },
     "issued_at": {
       "$ref": "#/$defs/timestamp"
@@ -54,8 +54,7 @@
         "verification_method",
         "signature_algorithm",
         "signature",
-        "signed_fields",
-        "ssk_generation"
+        "signed_fields"
       ],
       "properties": {
         "verification_method": {
@@ -128,11 +127,72 @@
           "type": "integer",
           "minimum": 1,
           "description": "Accepted ak.cross_signing.publish.generation used to authorize this active-series selection."
+        },
+        "device_authorize_event_id": {
+          "type": "string",
+          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Accepted current-generation ak.device.authorize event anchoring the B-model device that signed this active-series selection."
         }
       },
+      "oneOf": [
+        {
+          "required": [
+            "ssk_generation"
+          ],
+          "not": {
+            "required": [
+              "device_authorize_event_id"
+            ]
+          }
+        },
+        {
+          "required": [
+            "device_authorize_event_id"
+          ],
+          "not": {
+            "required": [
+              "ssk_generation"
+            ]
+          }
+        }
+      ],
       "additionalProperties": false
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "auth_data": {
+            "required": [
+              "ssk_generation"
+            ]
+          }
+        },
+        "required": [
+          "auth_data"
+        ]
+      },
+      "then": {
+        "properties": {
+          "frontier_ref": {
+            "required": [
+              "ssk_generation"
+            ]
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "frontier_ref": {
+            "required": [
+              "device_generation_ref"
+            ]
+          }
+        }
+      }
+    }
+  ],
   "patternProperties": {
     "^x_[a-z][a-z0-9_]{0,63}$": true
   },
@@ -170,8 +230,7 @@
     "frontier_ref": {
       "type": "object",
       "required": [
-        "frontier_digest",
-        "ssk_generation"
+        "frontier_digest"
       ],
       "properties": {
         "frontier_digest": {
@@ -184,8 +243,34 @@
         "ssk_generation": {
           "type": "integer",
           "minimum": 1
+        },
+        "device_generation_ref": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*-[^\\s]+$"
         }
       },
+      "oneOf": [
+        {
+          "required": [
+            "ssk_generation"
+          ],
+          "not": {
+            "required": [
+              "device_generation_ref"
+            ]
+          }
+        },
+        {
+          "required": [
+            "device_generation_ref"
+          ],
+          "not": {
+            "required": [
+              "ssk_generation"
+            ]
+          }
+        }
+      ],
       "additionalProperties": false
     }
   }

@@ -39,9 +39,9 @@ Arkret 身份由 DID principal 表示，但用户访问通常经过一个或多�
 在这种模式下，account service / auth service MUST 在允许持久写入前完成以下动作之一：
 
 - 绑定到用户已控制的 principal DID，并验证 DID proof、device binding 或等价 session grant。
-- 为该服务账号创建受支持的托管 DID，并记录 controller、recovery policy、trust domain、service-account 绑定和审计证据。
+- 由客户端创建并签名受支持的 principal DID，服务只托管已签名 history/提供 enrollment authority，并记录 delegation、recovery policy、trust domain、service-account 绑定和审计证据；服务不得生成或持有 identity root。
 
-托管 DID 分支在允许最终 actor 持久写入前，MUST 证明其 recovery policy 已形成可用恢复路径：默认 MUST 满足 [`key-management.md` §5.0.1](./key-management.md) 的 first-backup gate（至少一个可验证、可恢复、非空的 active policy / backup 路径已经生效），并满足 §7.11 对加密 Realm 写入前恢复路径的要求。只有 deployment 明确声明 `ak.profile.personal_node.v1` 且该用户显式选择 `single_point_of_failure=true` 时，才 MAY 跳过 first-backup gate；该跳过选择 MUST 进入 account binding / audit evidence，且不得作为组织或托管企业账号的默认行为。
+account-first DID 分支必须执行 [`key-management.md` §5.0.1](./key-management.md) 的两道门：entry 0 发布前完成 custody confirmation；bootstrap 后只允许 gate-closing 首个 Seal、genesis recovery policy 与 `did_recovery` material，直至 recovery-material gate 完成。`personal_node + single_point_of_failure=true` 只允许以本地持久化替代人工抄录确认，不得跳过同一恢复状态标记与持续风险提示。
 
 未绑定 DID 的 session MAY 执行注册、风险检查、邀请预览、邮箱验证、设备初始化等 pre-registration 操作；MUST NOT 作为最终 actor 提交 Realm Event、capability grant、MLS membership、service delegation 或 federation transaction。
 

@@ -250,6 +250,86 @@
       ]
     },
     {
+      "vector_id": "ak.vector.identity.recovery_kdf.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1",
+        "ak.profile.full_client.v1",
+        "ak.profile.principal_server.v1",
+        "ak.profile.identity_registry.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/identity/key-management.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/identity-recovery-kdf-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1",
+        "ak.profile.full_client.v1",
+        "ak.profile.principal_server.v1",
+        "ak.profile.identity_registry.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/identity/key-management.md",
+        "spec/v1/zh/authz/event-auth-state-resolution.md",
+        "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity.recovery_key_role_separation.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1",
+        "ak.profile.full_client.v1",
+        "ak.profile.principal_server.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/identity/key-management.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity.device_reanchor.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1",
+        "ak.profile.full_client.v1",
+        "ak.profile.principal_server.v1",
+        "ak.profile.identity_registry.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/identity/key-management.md",
+        "spec/v1/zh/crypto-media/device-lifecycle.md",
+        "spec/v1/zh/authz/event-auth-state-resolution.md",
+        "spec/v1/zh/models/event-and-patch.md",
+        "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity.recovery_secret_handoff.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1",
+        "ak.profile.full_client.v1",
+        "ak.profile.principal_server.v1",
+        "ak.profile.identity_registry.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/identity/key-management.md",
+        "spec/v1/artifacts/fixtures/identity-root-anchor-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.agent.act_on_behalf.v1",
       "status": "active",
       "domain": "agent",

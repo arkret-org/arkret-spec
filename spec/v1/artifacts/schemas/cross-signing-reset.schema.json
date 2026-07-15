@@ -124,7 +124,7 @@
     },
     "recovery_unlock_proof": {
       "type": "object",
-      "description": "Recovery-key unlock proof. The cryptographic strength comes entirely from `signature` — possession of the recovery private key is proven by verifying `signature` over the §14.1 canonical input under the public key bound to `recovery_secret_ref` in the DID Document recovery section / `recovery_policy`. `unlock_commitment` is a wire-integrity / debug binding only: it is a deterministic public hash that the receiver re-computes from material already in the event. See zh/crypto-media/device-lifecycle.md §14.4: (a) recovery_secret_ref MUST resolve to a recovery key entry that was authoritative at issued_at; (b) signature MUST verify against that entry's public key; (c) unlock_commitment MUST equal SHA-256(utf8('ak.cross-signing-reset-unlock-binding-v1\\n') || recovery_secret_ref || unlock_binding_input_bytes), where unlock_binding_input_bytes is the §14.1 canonical input with proof_body excluding both signature fields and unlock_commitment. Receivers MUST reject the reset if any of (a)-(c) fails.",
+      "description": "Recovery-key unlock proof. The cryptographic strength comes entirely from `signature` — possession of the recovery private key is proven by verifying `signature` over the §14.1 canonical input under the public key bound to `recovery_secret_ref` in the recovery session's snapshotted accepted recovery_policy. A DID Document-only recovery key is not authoritative. `unlock_commitment` is a wire-integrity / debug binding only: it is a deterministic public hash that the receiver re-computes from material already in the event. See zh/crypto-media/device-lifecycle.md §14.4: (a) recovery_secret_ref MUST resolve to a recovery_keys[] entry that was authoritative at issued_at; (b) signature MUST verify against that entry's public key; (c) unlock_commitment MUST equal SHA-256(utf8('ak.cross-signing-reset-unlock-binding-v1\\n') || recovery_secret_ref || unlock_binding_input_bytes), where unlock_binding_input_bytes is the §14.1 canonical input with proof_body excluding both signature fields and unlock_commitment. Receivers MUST reject the reset if any of (a)-(c) fails.",
       "required": ["kind", "recovery_session_id", "recovery_secret_ref", "unlock_commitment", "alg", "signature"],
       "properties": {
         "kind": { "const": "recovery_unlock" },
@@ -136,7 +136,7 @@
         "recovery_secret_ref": {
           "type": "string",
           "minLength": 1,
-          "description": "Stable identifier of the recovery key entry inside the principal's DID Document recovery section or `recovery_policy` (e.g. `did:webvh:...#recovery-1` or a recovery share id). MUST match an entry that was authoritative at issued_at."
+          "description": "Stable verification_method identifier of a recovery_keys[] signing entry inside the recovery session's snapshotted accepted recovery_policy (e.g. `did:webvh:...#recovery-proof-1`). MUST match an entry that was authoritative, unexpired and unrevoked at issued_at; a DID Document-only key or recovery share id is invalid."
         },
         "unlock_commitment": {
           "$ref": "#/$defs/hash",

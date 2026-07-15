@@ -339,6 +339,12 @@
       "description": "Wire payload schema for the principal recovery policy. Bound to the Principal Control Realm via signed publish / rotate / share-revoke; receivers MUST reject recovery / rotate / ak.device.authorize and cross-signing-reset evidence whose proof family is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8."
     },
     {
+      "schema_id": "ak.schema.device_reanchor.v1",
+      "file": "schemas/device-reanchor.schema.json",
+      "status": "active",
+      "description": "Closed B-model recovery re-anchor payload binding one verified DID version, the complete pre-fence Seal frontier, and the exact replacement device authorization event id/digest."
+    },
+    {
       "schema_id": "ak.schema.recovery_session.v1",
       "file": "schemas/recovery-session.schema.json",
       "status": "active",

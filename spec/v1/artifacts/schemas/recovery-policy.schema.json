@@ -188,6 +188,15 @@
       },
       "description": "Recovery signing keys this principal authorizes to satisfy a 'recovery_unlock' proof. Each entry binds a verification method (24-word Recovery Key derived signing key, or hardware-released equivalent) to the principal. A recovery_unlock proof's recovery_secret_ref MUST resolve to one of these entries that is non-revoked and within its validity window at the proof's binding time; the proof signature MUST verify under that entry's public key. Required when allowed_proof_kinds contains 'recovery_unlock'. See identity/key-management.md §7.5.2 and crypto-media/device-lifecycle.md §14.4 / §15."
     },
+    "recovery_key_agreements": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/recovery_key_agreement_entry"
+      },
+      "description": "Backup-only HPKE recipient keys. These entries are cryptographically and semantically distinct from recovery_keys[] signing keys. key-backup encryption.recipient_key_ref resolves only here in the envelope's referenced accepted policy, never to a DID Document-only key agreement or a recovery signing verification_method."
+    },
     "approval_requirement": {
       "type": "object",
       "description": "Two-person rule / cooldown enforcement layered on top of cryptographic proofs.",
@@ -251,7 +260,7 @@
       "properties": {
         "verification_method": {
           "type": "string",
-          "description": "DID URL identifying the principal signing key (or quorum coordinator) that issued the policy."
+          "description": "DID URL identifying the authorized issuer: bootstrap-accepted first device for genesis; current SSK for later A-model updates; current-generation accepted device for later B-model updates; or a coordinator satisfying the superseded policy quorum. Receivers resolve this semantic authority from accepted principal-control state, not from arbitrary DID Document membership."
         },
         "signature_algorithm": {
           "type": "string",
@@ -510,6 +519,9 @@
         ]
       },
       "then": {
+        "required": [
+          "recovery_key_agreements"
+        ],
         "properties": {
           "auth_data": {
             "properties": {
@@ -518,6 +530,30 @@
                   {
                     "contains": {
                       "const": "recovery_keys"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "recovery_key_agreements"
+        ]
+      },
+      "then": {
+        "properties": {
+          "auth_data": {
+            "properties": {
+              "signed_fields": {
+                "allOf": [
+                  {
+                    "contains": {
+                      "const": "recovery_key_agreements"
                     }
                   }
                 ]
@@ -676,9 +712,11 @@
     },
     "recovery_key_entry": {
       "type": "object",
-      "description": "A recovery signing key the principal authorizes for 'recovery_unlock' proofs. The verification_method is the stable recovery_secret_ref a recovery_unlock proof MUST reference; the proof signature is verified under this entry's public key resolved via verification_method.",
+      "description": "A recovery signing key the principal authorizes for 'recovery_unlock' proofs. The verification_method is the stable recovery_secret_ref; public_key_multibase carries the actual signing public key so B-model principals do not depend on a DID Document verificationMethod. key_agreement_ref pairs this signer with a distinct backup-only recovery_key_agreements[] entry.",
       "required": [
         "verification_method",
+        "public_key_multibase",
+        "key_agreement_ref",
         "alg",
         "not_before",
         "expires_at"
@@ -687,6 +725,15 @@
         "verification_method": {
           "$ref": "#/$defs/did_url",
           "description": "DID URL (e.g. `did:webvh:...#recovery-1`) identifying this recovery signing key. This is the value a recovery_unlock proof carries in recovery_secret_ref / verification_method and MUST be unique within recovery_keys[]."
+        },
+        "public_key_multibase": {
+          "type": "string",
+          "pattern": "^z[1-9A-HJ-NP-Za-km-z]+$",
+          "description": "Multikey for the recovery proof signature algorithm. MUST NOT equal or be converted into the paired HPKE key."
+        },
+        "key_agreement_ref": {
+          "$ref": "#/$defs/did_url",
+          "description": "MUST identify exactly one non-revoked recovery_key_agreements[] entry in the same policy."
         },
         "alg": {
           "type": "string",
@@ -715,6 +762,65 @@
             }
           ],
           "description": "When set, the entry is revoked from this instant onward and MUST NOT satisfy any recovery_unlock proof whose binding time is at or after it."
+        }
+      },
+      "additionalProperties": false
+    },
+    "recovery_key_agreement_entry": {
+      "type": "object",
+      "description": "Dedicated X25519 HPKE recipient for key-backup envelopes. It cannot verify recovery_unlock or authorize DID/Event operations.",
+      "required": [
+        "key_agreement_ref",
+        "alg",
+        "public_key_multibase",
+        "hpke_suites",
+        "use",
+        "not_before",
+        "expires_at"
+      ],
+      "properties": {
+        "key_agreement_ref": {
+          "$ref": "#/$defs/did_url",
+          "description": "Stable identifier used by key-backup encryption.recipient_key_ref."
+        },
+        "alg": {
+          "const": "X25519"
+        },
+        "public_key_multibase": {
+          "type": "string",
+          "pattern": "^z[1-9A-HJ-NP-Za-km-z]+$",
+          "description": "X25519 public multikey (multicodec x25519-pub)."
+        },
+        "hpke_suites": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "ak.hpke_x25519_aead_chacha20poly1305.v1",
+              "ak.hpke_x25519_aead_aes256gcm.v1"
+            ]
+          }
+        },
+        "use": {
+          "const": "backup_hpke"
+        },
+        "not_before": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "revoked_at": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/timestamp"
+            }
+          ]
         }
       },
       "additionalProperties": false

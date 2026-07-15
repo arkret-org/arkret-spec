@@ -2862,12 +2862,28 @@ def check_signed_object_closure(lint: Lint) -> None:
 
     batch = load_json(lint, batch_path)
     if isinstance(batch, dict):
+        def is_closed_object_schema(schema: object) -> bool:
+            if not isinstance(schema, dict):
+                return False
+            if schema.get("additionalProperties") is False:
+                return True
+            ref = schema.get("$ref")
+            if isinstance(ref, str) and ref.startswith("#/$defs/"):
+                target: object = batch
+                for token in ref[2:].split("/"):
+                    if not isinstance(target, dict):
+                        return False
+                    target = target.get(token)
+                return is_closed_object_schema(target)
+            branches = schema.get("oneOf")
+            return isinstance(branches, list) and bool(branches) and all(is_closed_object_schema(branch) for branch in branches)
+
         if batch.get("additionalProperties") is not False:
             lint.fail(batch_path, "event batch receipt root additionalProperties must be false")
         properties = batch.get("properties") or {}
         for name in ("scope", "frontier"):
             schema = properties.get(name)
-            if not isinstance(schema, dict) or schema.get("additionalProperties") is not False:
+            if not is_closed_object_schema(schema):
                 lint.fail(batch_path, f"event batch receipt {name} additionalProperties must be false")
 
 
@@ -2987,6 +3003,7 @@ def check_wire_schema_no_bare_scope(lint: Lint) -> None:
         ("erasure-receipt.schema.json", "$.$defs.verification_stub.properties"),
         ("erasure-verification-stub.schema.json", "$.properties"),
         ("event-batch-receipt.schema.json", "$.properties"),
+        ("event-batch-receipt.schema.json", "$.allOf[0].if.properties"),
     }
     for path in sorted((ARTIFACTS / "schemas").glob("*.schema.json")):
         data = load_json(lint, path)
@@ -3495,6 +3512,9 @@ def check_event_admission_coverage(lint: Lint) -> None:
     allowed_classes = set((event_registry.get("admission_class_definitions") or {}).keys())
     if not allowed_classes:
         lint.fail(event_path, "event registry missing admission_class_definitions")
+    predicate_contract = event_registry.get("admission_predicate_contract")
+    if not isinstance(predicate_contract, dict) or predicate_contract.get("closed_world") is not True:
+        lint.fail(event_path, "event registry missing closed-world admission_predicate_contract")
     actions = action_registry.get("actions", [])
     action_names = {a.get("action") for a in actions if isinstance(a, dict)}
     covered: set[str] = set()
@@ -3515,7 +3535,83 @@ def check_event_admission_coverage(lint: Lint) -> None:
         if admission is not None:
             if admission not in allowed_classes:
                 lint.fail(event_path, f"{kind}: invalid admission class {admission!r}")
-            if admission == "capability_gated":
+            if admission == "conditional":
+                variants = event.get("admission_variants")
+                if not isinstance(variants, list) or len(variants) < 2:
+                    lint.fail(event_path, f"{kind}: admission=conditional MUST list at least two admission_variants")
+                else:
+                    otherwise_count = 0
+                    seen_predicates: set[str] = set()
+                    for index, variant in enumerate(variants):
+                        if not isinstance(variant, dict):
+                            lint.fail(event_path, f"{kind}: admission_variants[{index}] MUST be an object")
+                            continue
+                        unknown_variant_keys = set(variant) - {"when", "admission", "admission_capabilities"}
+                        if unknown_variant_keys:
+                            lint.fail(event_path, f"{kind}: admission_variants[{index}] has unknown keys {sorted(unknown_variant_keys)!r}")
+                        when = variant.get("when")
+                        variant_admission = variant.get("admission")
+                        if not isinstance(when, dict):
+                            lint.fail(event_path, f"{kind}: admission_variants[{index}].when MUST be an object")
+                        elif when.get("otherwise") is True:
+                            otherwise_count += 1
+                            if index != len(variants) - 1 or len(when) != 1:
+                                lint.fail(event_path, f"{kind}: conditional otherwise MUST be the final predicate and contain no other selectors")
+                        else:
+                            allowed_selectors = {"payload_path", "const", "not_const", "ref_role", "ref_critical", "ref_exact_count", "top_level_fields_present"}
+                            unknown_selectors = set(when) - allowed_selectors
+                            if unknown_selectors:
+                                lint.fail(event_path, f"{kind}: admission_variants[{index}].when has unknown selectors {sorted(unknown_selectors)!r}")
+                            if not when:
+                                lint.fail(event_path, f"{kind}: admission_variants[{index}].when MUST contain a selector")
+                            payload_path = when.get("payload_path")
+                            if "payload_path" in when:
+                                if not isinstance(payload_path, str) or re.fullmatch(r"[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*", payload_path) is None:
+                                    lint.fail(event_path, f"{kind}: admission_variants[{index}].when.payload_path is invalid")
+                                comparison_selectors = {selector for selector in ("const", "not_const") if selector in when}
+                                if len(comparison_selectors) != 1:
+                                    lint.fail(event_path, f"{kind}: admission_variants[{index}].when.payload_path requires exactly one of const/not_const")
+                            elif "const" in when or "not_const" in when:
+                                lint.fail(event_path, f"{kind}: admission_variants[{index}] const/not_const requires payload_path")
+                            for selector in ("const", "not_const"):
+                                if selector in when and not (when[selector] is None or isinstance(when[selector], (str, int, bool))):
+                                    lint.fail(event_path, f"{kind}: admission_variants[{index}].when.{selector} MUST be a JSON scalar")
+                            ref_role = when.get("ref_role")
+                            if "ref_role" in when and (not isinstance(ref_role, str) or re.fullmatch(r"[a-z][a-z0-9_]*", ref_role) is None):
+                                lint.fail(event_path, f"{kind}: admission_variants[{index}].when.ref_role is invalid")
+                            for selector in ("ref_critical", "ref_exact_count"):
+                                if selector in when and "ref_role" not in when:
+                                    lint.fail(event_path, f"{kind}: admission_variants[{index}].when.{selector} requires ref_role")
+                            if "ref_critical" in when and not isinstance(when["ref_critical"], bool):
+                                lint.fail(event_path, f"{kind}: admission_variants[{index}].when.ref_critical MUST be boolean")
+                            if "ref_exact_count" in when and (not isinstance(when["ref_exact_count"], int) or isinstance(when["ref_exact_count"], bool) or when["ref_exact_count"] < 0):
+                                lint.fail(event_path, f"{kind}: admission_variants[{index}].when.ref_exact_count MUST be a non-negative integer")
+                            if "top_level_fields_present" in when:
+                                fields = when["top_level_fields_present"]
+                                allowed_fields = {"executed_by", "authorization_ref"}
+                                if not isinstance(fields, list) or not fields or len(fields) != len(set(fields)) or any(field not in allowed_fields for field in fields):
+                                    lint.fail(event_path, f"{kind}: admission_variants[{index}].when.top_level_fields_present MUST be a non-empty unique subset of {sorted(allowed_fields)!r}")
+                            predicate_key = json.dumps(when, sort_keys=True, separators=(",", ":"))
+                            if predicate_key in seen_predicates:
+                                lint.fail(event_path, f"{kind}: admission_variants[{index}].when duplicates an earlier predicate")
+                            seen_predicates.add(predicate_key)
+                        if variant_admission not in allowed_classes - {"conditional"}:
+                            lint.fail(event_path, f"{kind}: admission_variants[{index}] has invalid admission {variant_admission!r}")
+                        caps = variant.get("admission_capabilities")
+                        if variant_admission == "capability_gated":
+                            if not isinstance(caps, list) or not caps:
+                                lint.fail(event_path, f"{kind}: capability_gated admission variant MUST list admission_capabilities")
+                            else:
+                                for cap in caps:
+                                    if cap not in action_names:
+                                        lint.fail(event_path, f"{kind}: admission variant references unknown action {cap!r}")
+                        elif "admission_capabilities" in variant:
+                            lint.fail(event_path, f"{kind}: admission_capabilities only allowed on capability_gated variants")
+                    if otherwise_count != 1:
+                        lint.fail(event_path, f"{kind}: admission=conditional MUST contain exactly one final otherwise variant")
+                if "admission_capabilities" in event:
+                    lint.fail(event_path, f"{kind}: admission=conditional keeps capabilities inside admission_variants")
+            elif admission == "capability_gated":
                 caps = event.get("admission_capabilities")
                 if not isinstance(caps, list) or not caps:
                     lint.fail(event_path, f"{kind}: admission=capability_gated MUST list non-empty admission_capabilities")

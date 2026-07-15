@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/recovery-receipt.schema.json",
   "title": "Arkret Recovery Receipt",
-  "description": "Signed completion receipt for a principal recovery strand. Bound to the recovery_session_id used by every proof, backup unlock, and MLS Welcome replay action; written to either the audit Realm declared by the active recovery policy or — when audit policy permits — as an actor-private record on the Principal Control Realm. Formal recovery receipts are signed only after the recovering device has been accepted via ak.device.authorize; pre-authorization failures use server outcome/audit evidence instead. See crypto-media/device-lifecycle.md §15 step 7.",
+  "description": "Signed completion receipt for a principal recovery strand. Bound to the recovery_session_id, identity model, model generation, accepted device authorization path, every proof, backup unlock, and MLS Welcome replay action. Formal recovery receipts are signed only after the recovering device has been accepted via ak.device.authorize; pre-authorization failures use server outcome/audit evidence instead. See crypto-media/device-lifecycle.md §15.",
   "type": "object",
   "required": [
     "schema",
@@ -13,6 +13,10 @@
     "policy_version",
     "trust_domain",
     "new_device_id",
+    "identity_model",
+    "previous_model_generation_ref",
+    "result_model_generation_ref",
+    "authorization_event_id",
     "proof_summary",
     "backup_classes_unlocked",
     "welcome_count",
@@ -52,13 +56,54 @@
       "type": "string",
       "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "previous_ssk_generation": {
-      "type": "integer",
-      "minimum": 0
+    "identity_model": {
+      "type": "string",
+      "enum": [
+        "cross_signing",
+        "enrollment_authority"
+      ]
     },
-    "new_ssk_generation": {
-      "type": "integer",
-      "minimum": 0
+    "previous_model_generation_ref": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*-[^\\s]+$"
+        }
+      ],
+      "description": "Server-snapshotted generation at recovery-session creation: accepted SSK generation for cross_signing or pre-reanchor DID versionId for enrollment_authority."
+    },
+    "result_model_generation_ref": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*-[^\\s]+$"
+        }
+      ],
+      "description": "Accepted generation after completion. Equals previous_model_generation_ref for an A-model fresh-device recovery without reset; equals the re-anchor did_version_id for B-model recovery."
+    },
+    "authorization_event_id": {
+      "type": "string",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "device_list_update_event_id": {
+      "type": "string",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "reanchor_event_id": {
+      "type": "string",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "reanchor_batch_receipt_id": {
+      "type": "string",
+      "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "proof_summary": {
       "type": "object",
@@ -262,6 +307,26 @@
             },
             {
               "contains": {
+                "const": "identity_model"
+              }
+            },
+            {
+              "contains": {
+                "const": "previous_model_generation_ref"
+              }
+            },
+            {
+              "contains": {
+                "const": "result_model_generation_ref"
+              }
+            },
+            {
+              "contains": {
+                "const": "authorization_event_id"
+              }
+            },
+            {
+              "contains": {
                 "const": "proof_summary"
               }
             },
@@ -414,49 +479,90 @@
     },
     {
       "if": {
+        "properties": {
+          "identity_model": {
+            "const": "cross_signing"
+          }
+        },
         "required": [
-          "previous_ssk_generation"
+          "identity_model"
         ]
       },
       "then": {
+        "required": [
+          "device_list_update_event_id"
+        ],
         "properties": {
+          "previous_model_generation_ref": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "result_model_generation_ref": {
+            "type": "integer",
+            "minimum": 1
+          },
           "auth_data": {
             "properties": {
               "signed_fields": {
-                "allOf": [
-                  {
-                    "contains": {
-                      "const": "previous_ssk_generation"
-                    }
-                  }
-                ]
+                "contains": {
+                  "const": "device_list_update_event_id"
+                }
               }
             }
           }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "reanchor_event_id"
+              ]
+            },
+            {
+              "required": [
+                "reanchor_batch_receipt_id"
+              ]
+            }
+          ]
         }
-      }
-    },
-    {
-      "if": {
-        "required": [
-          "new_ssk_generation"
-        ]
       },
-      "then": {
+      "else": {
+        "required": [
+          "reanchor_event_id",
+          "reanchor_batch_receipt_id"
+        ],
         "properties": {
+          "previous_model_generation_ref": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*-[^\\s]+$"
+          },
+          "result_model_generation_ref": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*-[^\\s]+$"
+          },
           "auth_data": {
             "properties": {
               "signed_fields": {
                 "allOf": [
                   {
                     "contains": {
-                      "const": "new_ssk_generation"
+                      "const": "reanchor_event_id"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "reanchor_batch_receipt_id"
                     }
                   }
                 ]
               }
             }
           }
+        },
+        "not": {
+          "required": [
+            "device_list_update_event_id"
+          ]
         }
       }
     }

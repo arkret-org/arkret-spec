@@ -149,11 +149,45 @@
         "active",
         "revoked"
       ],
-      "description": "Directory status of the (principal_id, device_id) pair at query time. active = device.authorize present and not revoked; revoked = a ak.device.revoke is in effect. Servers MUST omit device_signing_key for any non-active (revoked / unverified) device."
+      "description": "Usable directory status of the (principal_id, device_id) pair at query time. active requires an accepted, non-revoked authorization and, for B-model principals, device_generation_status=active plus authorized_generation_ref=current_device_generation_ref. revoked means ak.device.revoke is in effect. Servers MUST omit usable key material for revoked, unverified, fenced, or conflicted devices."
+    },
+    "did_version_id": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*-[^\\s]+$"
+    },
+    "device_generation_state": {
+      "type": "object",
+      "description": "Reducer-managed B-model generation state. Omitted for A-model principals, which use SSK generation instead.",
+      "required": [
+        "current_device_generation_ref",
+        "device_generation_status"
+      ],
+      "properties": {
+        "current_device_generation_ref": {
+          "$ref": "#/$defs/did_version_id"
+        },
+        "device_generation_status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "conflicted"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "principal_device_generation_states": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/did"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/device_generation_state"
+      }
     },
     "query_device_record": {
       "type": "object",
-      "description": "Per-(principal_id, device_id) entry in keys_query_outcome. Carries the prekey bundle under `algorithms` plus the convenience signing-key directory fields `device_signing_key` / `device_status` at the same level as the algorithm dimension (not repeated per algorithm). The directory facet is populated only for verified, non-revoked devices; see device-lifecycle.md §8.",
+      "description": "Per-(principal_id, device_id) entry in keys_query_outcome. The directory facet is populated only for currently usable devices. For B-model principals the server MUST compare authorized_generation_ref with the sibling principal device_generations state and omit device_signing_key, hpke_key and prekey claims when the generation is fenced or conflicted.",
       "required": [
         "algorithms"
       ],
@@ -187,8 +221,66 @@
         "device_authorize_event_id": {
           "$ref": "#/$defs/event_id",
           "description": "Accepted ak.device.authorize event id anchoring the current device-set projection. For service_attested / enrollment-authority devices this pairs with enrollment_authority_binding and identifies the accepted authorization event whose payload.device_public_key is exposed as device_signing_key."
+        },
+        "authorized_generation_ref": {
+          "$ref": "#/$defs/did_version_id",
+          "description": "Reducer-managed B-model DID generation that authorized this device. Producers MUST NOT self-report it. A B-model device is usable only when this equals the principal current_device_generation_ref and device_generation_status is active. Omitted for A-model SSK devices."
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "device_signing_key"
+            ]
+          },
+          "then": {
+            "required": [
+              "hpke_key",
+              "trust_algorithms",
+              "device_status",
+              "device_authorize_event_id"
+            ],
+            "properties": {
+              "device_status": {
+                "const": "active"
+              }
+            },
+            "oneOf": [
+              {
+                "required": [
+                  "cross_signing_binding"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "enrollment_authority_binding"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "authorized_generation_ref"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "enrollment_authority_binding",
+                  "authorized_generation_ref"
+                ],
+                "not": {
+                  "required": [
+                    "cross_signing_binding"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "query_device_keys": {
@@ -490,6 +582,10 @@
           "additionalProperties": {
             "$ref": "./cross-signing-publish.schema.json"
           }
+        },
+        "device_generations": {
+          "$ref": "#/$defs/principal_device_generation_states",
+          "description": "Current B-model generation fence by principal. Omitted for A-model principals. If a principal is conflicted, or a device record's authorized_generation_ref differs from current_device_generation_ref, the corresponding device record MUST expose no usable signing/HPKE/prekey material and keys_claim MUST not return a claim for it."
         }
       },
       "additionalProperties": false
@@ -616,7 +712,7 @@
     },
     "cross_signing_binding": {
       "type": "object",
-      "description": "Tier-2 device trust binding echoed from ak.device.authorize.payload.cross_signing_binding (device-lifecycle.md §5.2). The accepted-generation SSK signs `\"ak.device-trust-bind-v1\n\" + canonical_json({principal_id, device_id, device_public_key, ssk_generation})`. Absent for inception bootstrap devices (§5.0.1).",
+      "description": "Tier-2 A-model device trust binding echoed from ak.device.authorize.payload.cross_signing_binding (device-lifecycle.md §5.2). The accepted-generation SSK signs `\"ak.device-trust-bind-v1\n\" + canonical_json({principal_id, device_id, device_public_key, hpke_key, algorithms, ssk_generation})`. B-model devices instead use enrollment_authority_binding plus authorized_generation_ref.",
       "required": [
         "verification_method",
         "ssk_generation",

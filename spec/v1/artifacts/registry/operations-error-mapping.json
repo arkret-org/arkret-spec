@@ -39,6 +39,7 @@
       "http_alias": "POST /_arkret/gate/account/session-grants",
       "operation_specific": [
         "audience_unknown",
+        "principal_unknown",
         "proof_invalid",
         "verification_method_principal_mismatch",
         "agent_paused",
@@ -47,7 +48,7 @@
         "accountability_grant_missing",
         "agent_requested_scope_commitment_invalid"
       ],
-      "description": "Account Authority session grant issuance. Shared by human user_session and agent runtime branches: when `proof.proof_kind=\"oidc_code_exchange\"`, `proof_invalid` covers issuer/discovery/state/nonce/redirect_uri/code_verifier/principal/device/audience binding failures; when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures of the agent_key_proof, `verification_method_principal_mismatch` when the verification_method DID does not match `principal_id`, `agent_paused` / `agent_deactivated` for lifecycle-gated rejections of the target agent principal, `agent_key_authorization_expired` when the effective authorization declares an elapsed expires_at, and `accountability_grant_missing` when the controller's accountability grant over the agent has been revoked or lapsed its freshness window so the agent is no longer eligible to receive a session grant (zh/identity/account-lifecycle.md §9.1)."
+      "description": "Account Authority session grant issuance. `principal_unknown` is returned when the required principal_id has no verified account binding; the authority must not derive or mint a DID as a fallback. Shared by human user_session and agent runtime branches: when `proof.proof_kind=\"oidc_code_exchange\"`, `proof_invalid` covers issuer/discovery/state/nonce/redirect_uri/code_verifier/principal/device/audience binding failures; when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures of the agent_key_proof, `verification_method_principal_mismatch` when the verification_method DID does not match `principal_id`, `agent_paused` / `agent_deactivated` for lifecycle-gated rejections of the target agent principal, `agent_key_authorization_expired` when the effective authorization declares an elapsed expires_at, and `accountability_grant_missing` when the controller's accountability grant over the agent has been revoked or lapsed its freshness window so the agent is no longer eligible to receive a session grant (zh/identity/account-lifecycle.md §9.1)."
     },
     {
       "operation_id": "ak.gate.account.command.revoke_session",
@@ -863,7 +864,12 @@
         "recovery_policy_mismatch",
         "recovery_evidence_unbound",
         "recovery_session_challenge_mismatch",
-        "device_recovery_ssk_generation_mismatch"
+        "device_recovery_ssk_generation_mismatch",
+        "device_reanchor_entry_not_head",
+        "device_reanchor_frontier_mismatch",
+        "device_reanchor_authorize_mismatch",
+        "device_reanchor_conflict",
+        "device_generation_fenced"
       ]
     },
     {

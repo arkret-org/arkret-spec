@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/device-reanchor.schema.json",
+  "title": "Arkret Device Recovery Re-anchor Payload",
+  "description": "Canonical closed payload for ak.device.reanchor (ak.schema.device_reanchor.v1).",
+  "$ref": "./event-payload.schema.json#/$defs/device_reanchor_payload"
+}

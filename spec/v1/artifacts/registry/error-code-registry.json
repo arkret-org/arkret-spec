@@ -1977,7 +1977,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Cross-method principal upgrade `ak.did.proof.continuity` `signature_chain` is missing one of the two mandated signatures (old-method inception key + new-method entry-0 controller key) or one of the signatures fails to verify (key-management.md \u00a75.0.5)."
+      "description": "Cross-method principal upgrade `ak.did.proof.continuity` `signature_chain` is missing one of the two mandated signatures (the old method's continuity-evidence-bound cold root + the new method's entry-0 active cold root), uses a DID Document-only inception/verification key instead of the bound cold-root evidence key, or one of the signatures fails to verify (key-management.md \u00a75.0.5)."
     },
     {
       "code": "inception_upgrade_old_document_hash_mismatch",
@@ -1993,15 +1993,51 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Cross-method principal upgrade evidence `inception_public_key_fingerprint` does not match the fingerprint derived from the matched inception `verificationMethod[]` entry of the canonicalised old DID Document \u2014 i.e. the entry whose signature verified in \u00a75.0.5.3 step 3 (not necessarily index 0). See key-management.md \u00a75.0.5."
+      "description": "Cross-method principal upgrade evidence `inception_public_key_fingerprint` does not match the cold root key bound by the old method continuity evidence and verified in key-management.md \u00a75.0.5."
     },
     {
-      "code": "inception_key_window_exceeded",
+      "code": "device_reanchor_entry_not_head",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "Live B-model re-anchor references a verified DID entry that is not the registry head at admission time. Historical replay uses the accepted batch receipt instead of this live-head check."
+    },
+    {
+      "code": "device_reanchor_frontier_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "The re-anchor pre_fence_basis is null despite an accepted Seal, omits or adds frontier leaves, has unreconstructable roots, or lost the admission-time frontier compare-and-swap race."
+    },
+    {
+      "code": "device_reanchor_authorize_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "The atomic replacement ak.device.authorize id/digest, prev_refs, principal, device, session, or enrollment-authority proof does not exactly match the binding in ak.device.reanchor."
+    },
+    {
+      "code": "device_reanchor_conflict",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "More than one non-identical re-anchor unit occupies the same (principal_id, did_version_number) slot. Every candidate and successor generation is quarantined; first-seen selection is forbidden."
+    },
+    {
+      "code": "device_generation_fenced",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "The inception key age, computed independently by the receiver / Auth Server from the verifiable inception bootstrap timestamp (`did:webvh` entry-0 / continuity proof) against the local clock, exceeds the 24h protocol hard cap. The receiver MUST reject the `ak.device.authorize` / `ak.session.grant` / long-lived capability / ordinary DID update signed by that inception key regardless of any longer `inception_key_max_online_window` self-reported by deployment policy (key-management.md \u00a75)."
+      "description": "A normal Event or Seal was signed by a device whose authorized_generation_ref does not equal the active current_device_generation_ref, or the principal generation state is conflicted."
     },
     {
       "code": "audit_release_binding_missing",
@@ -2282,7 +2318,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`recovery_unlock.recovery_secret_ref` does not resolve to a recovery key declared in the principal's current DID Document recovery section / `recovery_policy` at `issued_at`. See zh/crypto-media/device-lifecycle.md \u00a714.4."
+      "description": "`recovery_unlock.recovery_secret_ref` does not resolve to an active recovery_keys[] signing entry in the recovery session's snapshotted accepted recovery_policy at `issued_at`. DID Document-only keys are not authoritative. See zh/crypto-media/device-lifecycle.md \u00a714.4."
     },
     {
       "code": "cross_signing_reset_unlock_commitment_mismatch",
@@ -2314,7 +2350,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`trusted_recovery_service.service_id` is not declared in the principal DID Document recovery section or organization `recovery_policy.trusted_services[]`, or is outside its validity window. See zh/crypto-media/device-lifecycle.md \u00a714.4."
+      "description": "`trusted_recovery_service.service_id` is not declared in the recovery session's snapshotted accepted `recovery_policy.trusted_recovery_services[]`, or is outside its validity window. A DID Document-only service declaration is not sufficient. See zh/crypto-media/device-lifecycle.md \u00a714.4."
     },
     {
       "code": "cross_signing_reset_attestation_missing",
@@ -3941,7 +3977,7 @@
         "device_recovery",
         "state_resolution"
       ],
-      "description": "`ak.schema.key_backup.v1.frontier_ref.frontier_digest` does not match the current principal control stream frontier, or `ssk_generation` is below the current accepted generation. Receivers MUST refuse to use the envelope as the primary recovery source. See zh/identity/key-management.md \u00a77.6."
+      "description": "`ak.schema.key_backup.v1.frontier_ref.frontier_digest` does not match the current principal control stream frontier; in A model `ssk_generation` is below the current accepted generation; or in B model `device_generation_ref` does not equal the active `current_device_generation_ref` / the generation is not active. Receivers MUST refuse to use the envelope as the primary recovery source. See zh/identity/key-management.md \u00a77.6."
     },
     {
       "code": "backup_post_reset_stale",

@@ -281,7 +281,7 @@ MUST 支持：
 - DID resolve
 - DID log fetch
 - DID operation submit
-- `inception_key` verification
+- cold identity-root / current active update-authority verification（含 method-native pre-rotation 与 spent-key 规则）
 - `key_log` validation
 - receipt publication
 - method adapter metadata

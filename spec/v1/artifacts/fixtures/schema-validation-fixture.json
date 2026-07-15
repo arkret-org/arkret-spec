@@ -550,6 +550,288 @@
       }
     },
     {
+      "name": "event_envelope_self_principal_pcr_genesis_with_root_did_key_valid",
+      "schema_ref": "schemas/event-envelope.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "event_id": "ak:event:019a6aa0-7000-7000-8000-000000000000",
+        "kind": "ak.realm.create",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000010",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_seq": 0,
+        "created_at": "2026-05-20T00:00:00Z",
+        "hlc": "01970e589d21-0001-a13f9c2e",
+        "prev_refs": [],
+        "refs": [
+          {
+            "id": "did:webvh:z6mkfixture:alice.example#entry-0",
+            "role": "did_inception",
+            "critical": true
+          }
+        ],
+        "effects": [
+          {
+            "cell": "ak:cell:ak.component.realm.create.v1:principal_control",
+            "op": {
+              "kind": "append",
+              "value": "ak:realm:0196419b-0000-7000-8000-000000000010"
+            }
+          }
+        ],
+        "payload": {
+          "object": {
+            "id": "ak:realm:0196419b-0000-7000-8000-000000000010",
+            "schema": "ak.schema.realm.v1",
+            "title": "Alice Principal Control Realm",
+            "created_by": "did:webvh:z6mkfixture:alice.example",
+            "trust_domain": "ak:trust_domain:did.webvh.alice.example",
+            "schema_refs": [
+              "ak.schema.realm.v1",
+              "ak.profile.principal_control_realm.v1"
+            ],
+            "default_discoverability": "secret",
+            "default_join_rule": "closed",
+            "history_visibility": "restricted",
+            "encryption_profile": "mls_rfc9420",
+            "notary_profile": "single_did",
+            "notary": {
+              "type": "single_did",
+              "did": "did:webvh:z6mkfixture:alice.example",
+              "recovery_members": [
+                "did:webvh:z6mkfixture:alice-recovery.example"
+              ]
+            },
+            "fields": {
+              "purpose": "principal_control"
+            },
+            "created_at": "2026-05-20T00:00:00Z",
+            "security_class": "high_assurance",
+            "content_encryption_floor": "e2ee_required",
+            "metadata_encryption_floor": "e2ee_required"
+          }
+        },
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "alg": "EdDSA",
+            "verification_method": "did:key:z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ#z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ",
+            "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "created_at": "2026-05-20T00:00:00Z",
+            "jws": "a..b"
+          }
+        ]
+      }
+    },
+    {
+      "name": "event_envelope_delegated_agent_pcr_genesis_without_did_inception_valid",
+      "schema_ref": "schemas/event-envelope.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "event_id": "ak:event:019a6aa0-7000-7000-8000-000000000001",
+        "kind": "ak.realm.create",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000011",
+        "actor_id": "did:webvh:z6mkfixture:agent.example",
+        "executed_by": "did:webvh:z6mkfixture:alice.example",
+        "authorization_ref": "did:webvh:z6mkfixture:agent.example#controller-alice",
+        "actor_seq": 0,
+        "created_at": "2026-05-20T00:00:00Z",
+        "hlc": "01970e589d21-0001-a13f9c2e",
+        "prev_refs": [],
+        "refs": [],
+        "effects": [
+          {
+            "cell": "ak:cell:ak.component.realm.create.v1:managed_agent_principal_control",
+            "op": {
+              "kind": "append",
+              "value": "ak:realm:0196419b-0000-7000-8000-000000000011"
+            }
+          }
+        ],
+        "payload": {
+          "object": {
+            "id": "ak:realm:0196419b-0000-7000-8000-000000000011",
+            "schema": "ak.schema.realm.v1",
+            "title": "Managed Agent Principal Control Realm",
+            "created_by": "did:webvh:z6mkfixture:agent.example",
+            "trust_domain": "ak:trust_domain:did.webvh.alice.example",
+            "schema_refs": [
+              "ak.schema.realm.v1",
+              "ak.profile.principal_control_realm.v1"
+            ],
+            "default_discoverability": "secret",
+            "default_join_rule": "closed",
+            "history_visibility": "restricted",
+            "encryption_profile": "mls_rfc9420",
+            "notary_profile": "single_did",
+            "notary": {
+              "type": "single_did",
+              "did": "did:webvh:z6mkfixture:agent.example",
+              "recovery_members": [
+                "did:webvh:z6mkfixture:alice.example"
+              ]
+            },
+            "fields": {
+              "purpose": "principal_control"
+            },
+            "created_at": "2026-05-20T00:00:00Z",
+            "security_class": "high_assurance",
+            "content_encryption_floor": "e2ee_required",
+            "metadata_encryption_floor": "e2ee_required"
+          }
+        },
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "alg": "EdDSA",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a6aa0-7100-7000-8000-000000000000",
+            "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "created_at": "2026-05-20T00:00:00Z",
+            "jws": "a..b"
+          }
+        ]
+      }
+    },
+    {
+      "name": "event_envelope_noncritical_did_inception_rejected",
+      "schema_ref": "schemas/event-envelope.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.refs: [{'id': 'did:webvh:z6mkfixture:alice.example#entry-0', 'role': 'did_inception', 'critical': False}] does not contain items matching the given schema",
+      "instance": {
+        "event_id": "ak:event:019a6aa0-7000-7000-8000-000000000002",
+        "kind": "ak.realm.create",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000012",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_seq": 0,
+        "created_at": "2026-05-20T00:00:00Z",
+        "prev_refs": [],
+        "refs": [
+          {
+            "id": "did:webvh:z6mkfixture:alice.example#entry-0",
+            "role": "did_inception",
+            "critical": false
+          }
+        ],
+        "effects": [
+          {
+            "cell": "ak:cell:ak.component.realm.create.v1:principal_control",
+            "op": {
+              "kind": "append",
+              "value": "ak:realm:0196419b-0000-7000-8000-000000000012"
+            }
+          }
+        ],
+        "payload": {
+          "object": {
+            "id": "ak:realm:0196419b-0000-7000-8000-000000000012",
+            "schema": "ak.schema.realm.v1",
+            "title": "Alice Principal Control Realm",
+            "created_by": "did:webvh:z6mkfixture:alice.example",
+            "trust_domain": "ak:trust_domain:did.webvh.alice.example",
+            "schema_refs": [
+              "ak.schema.realm.v1",
+              "ak.profile.principal_control_realm.v1"
+            ],
+            "default_discoverability": "secret",
+            "default_join_rule": "closed",
+            "history_visibility": "restricted",
+            "encryption_profile": "mls_rfc9420",
+            "notary_profile": "single_did",
+            "notary": {
+              "type": "single_did",
+              "did": "did:webvh:z6mkfixture:alice.example",
+              "recovery_members": [
+                "did:webvh:z6mkfixture:alice-recovery.example"
+              ]
+            },
+            "fields": {
+              "purpose": "principal_control"
+            },
+            "created_at": "2026-05-20T00:00:00Z",
+            "security_class": "high_assurance",
+            "content_encryption_floor": "e2ee_required",
+            "metadata_encryption_floor": "e2ee_required"
+          }
+        },
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "alg": "EdDSA",
+            "verification_method": "did:key:z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ#z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ",
+            "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "created_at": "2026-05-20T00:00:00Z",
+            "jws": "a..b"
+          }
+        ]
+      }
+    },
+    {
+      "name": "event_envelope_collaboration_realm_did_inception_ref_rejected",
+      "schema_ref": "schemas/event-envelope.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.payload.object.fields: 'purpose' is a required property",
+      "instance": {
+        "event_id": "ak:event:019a6aa0-7000-7000-8000-000000000003",
+        "kind": "ak.realm.create",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000013",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_seq": 0,
+        "created_at": "2026-05-20T00:00:00Z",
+        "prev_refs": [],
+        "refs": [
+          {
+            "id": "did:webvh:z6mkfixture:alice.example#entry-0",
+            "role": "did_inception",
+            "critical": true
+          }
+        ],
+        "effects": [
+          {
+            "cell": "ak:cell:ak.component.realm.create.v1:collaboration",
+            "op": {
+              "kind": "append",
+              "value": "ak:realm:0196419b-0000-7000-8000-000000000013"
+            }
+          }
+        ],
+        "payload": {
+          "object": {
+            "id": "ak:realm:0196419b-0000-7000-8000-000000000013",
+            "schema": "ak.schema.realm.v1",
+            "title": "Collaboration Realm",
+            "created_by": "did:webvh:z6mkfixture:alice.example",
+            "trust_domain": "ak:trust_domain:did.webvh.alice.example",
+            "schema_refs": [
+              "ak.schema.realm.v1"
+            ],
+            "default_discoverability": "invite_only",
+            "default_join_rule": "invite",
+            "history_visibility": "joined",
+            "encryption_profile": "mls_rfc9420",
+            "notary_profile": "single_did",
+            "notary": {
+              "type": "single_did",
+              "did": "did:webvh:z6mkfixture:alice.example",
+              "recovery_members": [
+                "did:webvh:z6mkfixture:alice-recovery.example"
+              ]
+            },
+            "fields": {},
+            "created_at": "2026-05-20T00:00:00Z"
+          }
+        },
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "alg": "EdDSA",
+            "verification_method": "did:key:z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ#z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ",
+            "event_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "created_at": "2026-05-20T00:00:00Z",
+            "jws": "a..b"
+          }
+        ]
+      }
+    },
+    {
       "name": "audit_session_request_stage_mismatch_rejected",
       "schema_ref": "schemas/event-envelope.schema.json",
       "expect_valid": false,
@@ -1116,7 +1398,7 @@
       }
     },
     {
-      "name": "device_authorize_bootstrap_binding_valid",
+      "name": "device_authorize_delegated_genesis_valid",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload",
       "expect_valid": true,
       "instance": {
@@ -1128,15 +1410,16 @@
           "ak.device.alg.ed25519.v1",
           "ak.device.hpke.x25519_hkdf_sha256.v1"
         ],
-        "authorized_by": "did:webvh:z6mkfixture:alice.example",
+        "authorized_by": "did:webvh:z6mkfixture:authority.example",
         "not_before": "2026-05-20T00:00:00Z",
-        "bootstrap_binding": {
-          "kind": "inception_self_authorized",
-          "did_method_evidence_ref": "did:webvh:z6mkfixture:alice.example/entry-0"
+        "enrollment_authority_binding": {
+          "kind": "service_attested",
+          "authority_did": "did:webvh:z6mkfixture:authority.example",
+          "authorization_ref": "did:webvh:z6mkfixture:alice.example#device-enrollment"
         },
         "device_signature": {
           "kind": "detached_jws",
-          "verification_method": "did:webvh:z6mkfixture:alice.example#inception",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a6aa0-0000-7000-8000-000000000000",
           "jws": "..."
         }
       }
@@ -1264,6 +1547,7 @@
         "trust_domain": "ak:trust_domain:example.local",
         "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
+        "identity_model": "cross_signing",
         "ssk_generation": 1,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "state": "pending",
@@ -1284,6 +1568,7 @@
         "trust_domain": "ak:trust_domain:example.local",
         "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
+        "identity_model": "cross_signing",
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "state": "pending",
         "created_at": "2026-05-30T00:00:00Z",
@@ -1291,6 +1576,30 @@
         "expires_at": "2026-05-30T00:15:00Z"
       },
       "first_expected_error": "$: 'ssk_generation' is a required property"
+    },
+    {
+      "name": "recovery_session_enrollment_authority_pending_valid",
+      "schema_ref": "schemas/recovery-session.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.recovery_session.v1",
+        "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-0000000000ab",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
+        "requesting_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000098",
+        "trust_domain": "ak:trust_domain:example.local",
+        "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "policy_version": 1,
+        "identity_model": "enrollment_authority",
+        "current_device_generation_ref": "1-fixturegenesis",
+        "device_generation_status": "active",
+        "registry_head": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "accepted_seal_frontier": null,
+        "challenge": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+        "state": "pending",
+        "created_at": "2026-05-30T00:00:00Z",
+        "updated_at": "2026-05-30T00:00:00Z",
+        "expires_at": "2026-05-30T00:15:00Z"
+      }
     },
     {
       "name": "recovery_session_verified_requires_proof_summary_rejected",
@@ -1304,6 +1613,7 @@
         "trust_domain": "ak:trust_domain:example.local",
         "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
+        "identity_model": "cross_signing",
         "ssk_generation": 1,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "state": "verified",
@@ -1320,8 +1630,7 @@
       "instance": {
         "principal_id": "did:webvh:z6mkfixture:alice.example",
         "requesting_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "ak:trust_domain:example.local",
-        "ssk_generation": 1
+        "trust_domain": "ak:trust_domain:example.local"
       }
     },
     {
@@ -1332,10 +1641,21 @@
         "principal_id": "did:webvh:z6mkfixture:alice.example",
         "requesting_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000099",
         "trust_domain": "ak:trust_domain:example.local",
-        "ssk_generation": 1,
         "unexpected": "x"
       },
       "first_expected_error": "$: Additional properties are not allowed ('unexpected' was unexpected)"
+    },
+    {
+      "name": "recovery_session_create_request_model_self_report_rejected",
+      "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
+      "expect_valid": false,
+      "instance": {
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
+        "requesting_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000098",
+        "trust_domain": "ak:trust_domain:example.local",
+        "identity_model": "enrollment_authority"
+      },
+      "first_expected_error": "$: Additional properties are not allowed ('identity_model' was unexpected)"
     },
     {
       "name": "recovery_session_principal_signing_proof_valid",
@@ -1378,6 +1698,16 @@
       "first_expected_error": "$: 'authorization_event_id' is a required property"
     },
     {
+      "name": "recovery_session_enrollment_authority_complete_request_valid",
+      "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
+      "expect_valid": true,
+      "instance": {
+        "authorization_event_id": "ak:event:01964137-0000-7000-8000-00000000b111",
+        "reanchor_event_id": "ak:event:01964137-0000-7000-8000-00000000b222",
+        "reanchor_batch_receipt_id": "ak:receipt:01964137-0000-7000-8000-00000000b333"
+      }
+    },
+    {
       "name": "recovery_session_principal_signing_transcript_valid",
       "schema_ref": "schemas/recovery-session.schema.json#/$defs/principal_signing_transcript",
       "expect_valid": true,
@@ -1390,7 +1720,8 @@
         "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
         "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
-        "ssk_generation": 1,
+        "identity_model": "cross_signing",
+        "model_generation_ref": 1,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "created_at": "2026-05-30T00:00:00Z",
         "expires_at": "2026-05-30T00:15:00Z"
@@ -1409,6 +1740,11 @@
         "policy_version": 1,
         "trust_domain": "ak:trust_domain:example.local",
         "new_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000099",
+        "identity_model": "cross_signing",
+        "previous_model_generation_ref": 1,
+        "result_model_generation_ref": 1,
+        "authorization_event_id": "ak:event:01964137-0000-7000-8000-00000000a111",
+        "device_list_update_event_id": "ak:event:01964137-0000-7000-8000-00000000a222",
         "proof_summary": {
           "kind": "principal_signing",
           "proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -1438,6 +1774,68 @@
             "policy_version",
             "trust_domain",
             "new_device_id",
+            "identity_model",
+            "previous_model_generation_ref",
+            "result_model_generation_ref",
+            "authorization_event_id",
+            "device_list_update_event_id",
+            "proof_summary",
+            "backup_classes_unlocked",
+            "welcome_count",
+            "outcome",
+            "started_at",
+            "completed_at"
+          ]
+        }
+      }
+    },
+    {
+      "name": "recovery_receipt_enrollment_authority_valid",
+      "schema_ref": "schemas/recovery-receipt.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.recovery_receipt.v1",
+        "receipt_id": "ak:receipt:019a6aa0-0000-7000-8000-0000000000cd",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
+        "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-0000000000ab",
+        "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "policy_version": 1,
+        "trust_domain": "ak:trust_domain:example.local",
+        "new_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000098",
+        "identity_model": "enrollment_authority",
+        "previous_model_generation_ref": "1-fixturegenesis",
+        "result_model_generation_ref": "2-fixturerecovery",
+        "authorization_event_id": "ak:event:01964137-0000-7000-8000-00000000b111",
+        "reanchor_event_id": "ak:event:01964137-0000-7000-8000-00000000b222",
+        "reanchor_batch_receipt_id": "ak:receipt:01964137-0000-7000-8000-00000000b333",
+        "proof_summary": {
+          "kind": "recovery_unlock",
+          "proof_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "backup_classes_unlocked": [],
+        "welcome_count": 0,
+        "outcome": "completed",
+        "started_at": "2026-05-30T00:00:00Z",
+        "completed_at": "2026-05-30T00:00:01Z",
+        "auth_data": {
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a6aa0-0000-7000-8000-000000000098",
+          "signature_algorithm": "Ed25519",
+          "signature": "c2ln",
+          "signed_fields": [
+            "schema",
+            "receipt_id",
+            "principal_id",
+            "recovery_session_id",
+            "policy_id",
+            "policy_version",
+            "trust_domain",
+            "new_device_id",
+            "identity_model",
+            "previous_model_generation_ref",
+            "result_model_generation_ref",
+            "authorization_event_id",
+            "reanchor_event_id",
+            "reanchor_batch_receipt_id",
             "proof_summary",
             "backup_classes_unlocked",
             "welcome_count",
@@ -1461,6 +1859,11 @@
         "policy_version": 1,
         "trust_domain": "ak:trust_domain:example.local",
         "new_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000099",
+        "identity_model": "cross_signing",
+        "previous_model_generation_ref": 1,
+        "result_model_generation_ref": 1,
+        "authorization_event_id": "ak:event:01964137-0000-7000-8000-00000000a111",
+        "device_list_update_event_id": "ak:event:01964137-0000-7000-8000-00000000a222",
         "proof_summary": {
           "kind": "principal_signing",
           "proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -1482,6 +1885,11 @@
             "policy_version",
             "trust_domain",
             "new_device_id",
+            "identity_model",
+            "previous_model_generation_ref",
+            "result_model_generation_ref",
+            "authorization_event_id",
+            "device_list_update_event_id",
             "proof_summary",
             "backup_classes_unlocked",
             "welcome_count",

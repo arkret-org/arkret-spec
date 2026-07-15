@@ -408,7 +408,7 @@ generic 形态的 digest 与 proof 字节语义（normative；与 [`../conforman
 ```
 
 - Verifier 顺序固定：先重算并 constant-time 比对 `head_event_digest` 与 `proof.payload_digest`，再构造 binding object 并验证 detached JWS；任一步失败 MUST 拒绝该 entry 及其后续链段。实现 MUST NOT 用字段拼接字符串、裸 hex 或任何非 canonical JSON 形态替代上述 transcript。
-- 签名者授权：`proofs[]` 的 `verification_method` MUST 是按该 DID method 控制规则、对该 `operation` 在前一条 accepted entry 状态下有效的 controller key（`seq=0` inception 由 inception key 自签；`recover` 按 method 的 recovery 规则）。registry host MUST NOT 以自身 key 代替 controller 签名；registry / witness 对 head 状态的背书走 identity receipt，不进入 entry `proofs[]`。
+- 签名者授权：`proofs[]` 的 `verification_method` MUST 按该 DID method 的原生控制规则验证；不得把“上一 entry 的 key 验下一 entry”当成通用规则。`seq=0` 由该 entry 声明的 cold identity root 自签。对启用 pre-rotation 的 did:webvh，entry N 的 proof 必须由 **entry N 当前显式 `updateKeys`** 验证，且当前 key 的 canonical multikey hash 必须命中 entry N-1 的 `nextKeyHashes`；省略当前 `updateKeys`、沿用 previous key、复用 spent key均拒绝。其它 method 依其注册 adapter 的 update/recovery 规则。registry host MUST NOT 以自身 key 代替 controller 签名；registry / witness 对 head 状态的背书走 identity receipt，不进入 entry `proofs[]`。
 
 did method 原生日志有更强互操作格式时 MAY 直接返回该 method 的原生 accepted log entry，例如 `did:webvh` 的 Data Integrity proof 日志；这种服务 MUST 在 `describe.experimental_features[]` 中声明对应 feature id（例如 `ak.feature.identity.webvh_native_log.v1`），并且 `operation_body` / proof 语义 MUST 可按该 DID method 的规范重建同一 DID Document head。未声明该 experimental feature 的 `ak.root.identity.log.query.list` 响应仍 MUST 使用 `did-key-log-entry.schema.json`。
 
@@ -432,7 +432,7 @@ POST /_arkret/root/identity/submit-did-operation
 - `operation` 是 DID-method-specific 原始操作对象；实现 MUST NOT 把 DID 更新降格为通用 JSON Patch。
 - 相同 DID method operation id / seq / canonical hash 的重复提交 MUST 幂等成功。
 - 相同 DID method operation id / seq 但内容不同 MUST 拒绝。
-- registry MUST 验证从 `inception_key` 出发的授权链
+- registry MUST 从已验证 genesis 开始验证完整 method-native 授权链。did:webvh adapter 必须逐 entry 验证当前显式 `updateKeys`、上一 entry `nextKeyHashes` commitment、SCID/hash chain、`state.id` 与 spent-key 永不复用；不得以 previous-key 签名或缺失字段继承替代。
 
 #### 3.1.5 获取 receipt / witness 证明
 

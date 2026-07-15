@@ -25,20 +25,14 @@
       "$ref": "./event-envelope.schema.json#/$defs/did"
     },
     "scope": {
-      "type": "object",
-      "properties": {
-        "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ordinary_scope"
         },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "query_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/hash"
+        {
+          "$ref": "#/$defs/device_reanchor_scope"
         }
-      },
-      "minProperties": 1,
-      "additionalProperties": false
+      ]
     },
     "frontier": {
       "type": "object",
@@ -70,6 +64,9 @@
           },
           {
             "$ref": "./event-envelope.schema.json#/$defs/hash"
+          },
+          {
+            "$ref": "#/$defs/event_receipt_item"
           }
         ]
       },
@@ -87,5 +84,139 @@
       "minItems": 1
     }
   },
-  "additionalProperties": false
+  "allOf": [
+    {
+      "$comment": "A device re-anchor receipt is closed over exactly [reanchor, replacement authorize] in that order. The issuer MUST additionally compare scope.reanchor_digest and scope.replacement_authorize_digest byte-for-byte with events[0].event_digest and events[1].event_digest before signing; this relational equality is semantic because JSON Schema cannot compare sibling values.",
+      "if": {
+        "properties": {
+          "scope": {
+            "$ref": "#/$defs/device_reanchor_scope"
+          }
+        },
+        "required": [
+          "scope"
+        ]
+      },
+      "then": {
+        "properties": {
+          "events": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/event_receipt_item"
+                  },
+                  {
+                    "properties": {
+                      "kind": {
+                        "const": "ak.device.reanchor"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/event_receipt_item"
+                  },
+                  {
+                    "properties": {
+                      "kind": {
+                        "const": "ak.device.authorize"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "minItems": 2,
+            "maxItems": 2,
+            "items": false
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "ordinary_scope": {
+      "type": "object",
+      "properties": {
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "query_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/hash"
+        }
+      },
+      "minProperties": 1,
+      "additionalProperties": false
+    },
+    "device_reanchor_scope": {
+      "type": "object",
+      "required": [
+        "kind",
+        "principal_id",
+        "realm_id",
+        "did_version_id",
+        "registry_head",
+        "reanchor_digest",
+        "replacement_authorize_digest"
+      ],
+      "properties": {
+        "kind": {
+          "const": "device_reanchor_unit"
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "did_version_id": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*-[^\\s]+$"
+        },
+        "registry_head": {
+          "$ref": "./event-envelope.schema.json#/$defs/hash",
+          "description": "Digest of the accepted-at identity registry head snapshot."
+        },
+        "reanchor_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/hash",
+          "description": "MUST equal events[0].event_digest."
+        },
+        "replacement_authorize_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/hash",
+          "description": "MUST equal events[1].event_digest."
+        }
+      },
+      "additionalProperties": false
+    },
+    "event_receipt_item": {
+      "type": "object",
+      "required": [
+        "event_id",
+        "event_digest",
+        "kind"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "event_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/hash"
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  }
 }

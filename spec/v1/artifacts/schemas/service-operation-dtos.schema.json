@@ -2212,13 +2212,14 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
+        "principal_id",
         "proof"
       ],
       "properties": {
         "principal_id": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-          "description": "Principal DID the grant is requested for. REQUIRED for every proof_kind EXCEPT oidc_code_exchange: for first sign-in via oidc_code_exchange the client MAY omit principal_id and the Account Authority derives/mints the principal DID from the verified id_token and returns it in SessionGrantOutcome.principal_id. When present for oidc_code_exchange it MUST match the principal the Account Authority resolves for the verified subject."
+          "description": "Existing principal DID the grant is requested for. REQUIRED for every proof_kind, including oidc_code_exchange. Account Authorities MUST NOT derive or mint a principal DID from an OIDC subject. A first-time OIDC flow may establish only a pre-registration browser session until the client has completed cold-root custody, submitted a client-signed inception, and registered the resulting principal_id."
         },
         "device_id": {
           "type": "string",
@@ -2427,7 +2428,7 @@
           }
         },
         {
-          "description": "Machine-enforceable OIDC code exchange branch. Account Authority, not the client, exchanges the authorization code at the issuer token_endpoint and validates issuer, state, nonce, redirect_uri, principal binding, device binding and request canonical digest before issuing SessionGrantOutcome.",
+          "description": "Machine-enforceable OIDC code exchange branch. Account Authority, not the client, exchanges the authorization code at the issuer token_endpoint and validates issuer, state, nonce, redirect_uri, the REQUIRED existing principal_id binding, device binding and request canonical digest before issuing SessionGrantOutcome. OIDC identity alone never creates a principal DID.",
           "if": {
             "properties": {
               "proof": {

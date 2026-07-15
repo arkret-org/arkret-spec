@@ -1045,9 +1045,10 @@
         "ak.self.keys.keypackages.command.revoke"
       ],
       "required_event_kinds": [
-        "ak.realm.create",
-        "ak.device.authorize",
-        "ak.device.revoke",
+      "ak.realm.create",
+      "ak.device.authorize",
+      "ak.device.reanchor",
+      "ak.device.revoke",
         "ak.device.list_update",
         "ak.session.grant",
         "ak.cross_signing.publish",
@@ -1075,8 +1076,9 @@
       "required_schemas": [
         "ak.schema.realm.v1",
         "ak.schema.event.v1",
-        "ak.schema.event_payload.v1",
-        "ak.schema.capability.v1",
+      "ak.schema.event_payload.v1",
+      "ak.schema.device_reanchor.v1",
+      "ak.schema.capability.v1",
         "ak.schema.key_backup.v1",
         "ak.schema.cross_signing_publish.v1",
         "ak.schema.cross_signing_reset.v1"
@@ -1101,9 +1103,10 @@
       "realm_event_kind_policy": {
         "allowlist_only": true,
         "allowed_event_kinds": [
-          "ak.realm.create",
-          "ak.device.authorize",
-          "ak.device.revoke",
+        "ak.realm.create",
+        "ak.device.authorize",
+        "ak.device.reanchor",
+        "ak.device.revoke",
           "ak.device.list_update",
           "ak.session.grant",
           "ak.cross_signing.publish",

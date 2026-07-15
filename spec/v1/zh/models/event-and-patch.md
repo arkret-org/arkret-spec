@@ -152,7 +152,7 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 ### 2.6 `actor_seq` fork 约束
 
 - Producer SHOULD 为同一 `actor_id` 维护单调本地链，避免主动产生同高 sibling fork。
-- 同一 `actor_id` 的非 genesis event MUST 在 `prev_refs` 中引用至少一个该 actor 的 accepted predecessor；该 predecessor 的最大 `actor_seq` 必须是当前 `actor_seq - 1`，除非 profile 明确声明恢复/导入场景。
+- 同一 `actor_id` 的非 genesis event MUST 在 `prev_refs` 中引用至少一个该 actor 的 accepted predecessor；该 predecessor 的最大 `actor_seq` 必须是当前 `actor_seq - 1`。唯一 identity recovery 例外是 B 模型 `ak.device.reanchor`：其 `prev_refs` 精确等于 `pre_fence_basis` preserved closure 加 genesis anchor set 中该 actor 的 canonical heads，`actor_seq=1+max(preserved actor_seq)`；紧随的 replacement authorize 只引用 re-anchor id 且 sequence 加一。未被 basis 保留的 pending/unsealed sibling 不进入新 generation，也不能以更高 sequence 阻塞恢复。
 - 相同 `(actor_id, actor_seq)` 的多个 event 是 sibling fork。它们没有隐含先后顺序；展示排序可使用 HLC，但协议状态生效必须使用 DataEvent / Control Move 验证、Seal coverage 与 Lattice join。
 - 实现 MUST 对同一 `(actor_id, actor_seq, prev_frontier_digest)` 接受的 sibling 数量设置上限；v1 public profile 的单桶上限为 16。同一 `(actor_id, actor_seq)` 跨全部 `prev_frontier_digest` 桶的合法签名 sibling 累计上限为 64；任一上限被超过时 MUST quarantine 或要求 actor chain repair。累计候选集合只由已验证 canonical Event 集合决定，不依赖到达顺序。
 - 被判定为 rejected 的 fork 不推进 actor accepted frontier，也不得作为后续 accepted event 的 predecessor。
@@ -161,6 +161,10 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 `prev_frontier_digest` 的 canonical 计算为 `sha256:` + hex(SHA-256(JCS(sort_unique(prev_refs))))；`prev_refs` 先按 bytewise UTF-8 升序排序并去重，输入为空数组时编码为 `[]`。若 Realm 的 `digest_algorithm` 不是 `sha256`，同一结构使用该 Realm 声明的 digest algorithm，并把算法名前缀写入结果。该 digest 只用于 sibling fork 计数分桶，不参与 winner 选择。
 
 跨桶累计超过 64 时，上述“整桶”扩展为同一 `(actor_id, actor_seq)` 的全部 sibling：receiver MUST quarantine 该高度的全部候选，并沿用相同三条归一终局。对已经被 accepted Seal 覆盖的 Control Move，追溯规则存在唯一例外：其 effects 与 digest MUST 保留在该 Seal 的 `covered_set` / `state_root` 输入中，不得改写已接受 Seal；该 actor 后续控制面 Move 在显式 fork-resolution compaction Seal 归一前 fail closed。数据面 sibling 与尚未被任何 accepted Seal 覆盖的 pending Control Move 仍按上段移除 effects。完整衔接见 [`event-auth-state-resolution.md` §6.3.2](../authz/event-auth-state-resolution.md)。
+
+`ak.device.reanchor` 另使用独立冲突槽 `(principal_id,did_version_number)`，version number 必须从已验证 DID versionId 解析。did_version_id、re-anchor digest 与 replacement-authorize digest 全相同才是幂等重试；同槽任一不同即把全部候选 unit 及后继 generation Seal quarantine，禁止 first-seen winner。reducer 保留最后未冲突的 current generation ref、将状态置 `conflicted` 并关闭普通 Event/Seal admission；只有更高 version、由下一预承诺 authority 签发且在 registry/witness policy 下成为 canonical head 的 re-anchor 可以解除。该规则优先于普通 actor sibling 容量/限流规则，不能用唯一约束丢弃第二份证据。
+
+上述独立冲突槽、到达顺序无关性与解除路径由 `ak.vector.identity.device_reanchor.v1` 执行验证。
 
 ### 2.7 Requirements 与 critical extensions
 

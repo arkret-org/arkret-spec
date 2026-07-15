@@ -29,6 +29,16 @@
       "owner": "cotest"
     },
     {
+      "kind": "known_answer_tests",
+      "execution_contract": "Recompute every declared cryptographic derivation and encoding from the fixture inputs and compare every intermediate and final byte value; copying fixture expected values without executing the algorithm is non-conformant.",
+      "owner": "cotest"
+    },
+    {
+      "kind": "identity_root_anchor_state_machine",
+      "execution_contract": "Execute the delegated-bootstrap, root-anchor exclusivity, device re-anchor, generation-fence, conflict-quarantine, recovery-secret-handoff, and recovery-policy signing/HPKE key-role separation state transitions in all declared arrival/crash variants.",
+      "owner": "cotest"
+    },
+    {
       "kind": "profile_discovery_coverage",
       "execution_contract": "Cross-check claimed and discovered profiles against conformance profile requirements and role metadata.",
       "owner": "in_tree_lint_and_cotest"

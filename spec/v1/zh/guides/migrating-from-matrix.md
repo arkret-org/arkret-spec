@@ -104,7 +104,7 @@ Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰�
 | --- | --- | --- |
 | Device Ed25519 fingerprint key | `ak:device:` 记录里的 `verify_key` (Ed25519) | Arkret 把 device 公钥写进 `ak:device:` 记录（详见 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §4），并由 `ak.device.authorize` Event 锚定到 principal DID，而非 homeserver 账号。 |
 | Device Curve25519 identity key | `ak:device:` 记录里的 `hpke_key` (X25519) | 用于 HPKE-based to-device 通道、KeyPackage init key 来源、加密 backup envelope 接收。Matrix Curve25519 用于 Olm 长期 DH，语义对等但用途窄一些。 |
-| (homeserver 账号绑定) | DID method controller / inception key | Arkret 在 master 密钥之上多一层：DID method 的初始控制材料（`did:webvh` entry-0 controller、`did:plc` rotation key、KERI inception 等）是身份根。principal signing key 的历史归属由 DID method history / key log 表达，而不是 homeserver 内部状态。详见 [`identity/key-management.md`](../identity/key-management.md) §5.0。 |
+| (homeserver 账号绑定) | DID method cold identity root | Arkret 在账号签名层之外另有一层冷身份根：例如 `did:webvh` 的逐代 `updateKeys`。它只做 DID 管理，并只签 PCR genesis / recovery re-anchor 两类锚事件；不成为 device key、principal signing key 或日常 Event key。根代际归属由 DID method history / key log 表达，而不是 homeserver 内部状态。详见 [`identity/key-management.md`](../identity/key-management.md) §3.3、§5.0。 |
 
 #### 4.5.2 Prekey 与会话引导
 
@@ -124,15 +124,15 @@ Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰�
 
 #### 4.5.4 Cross-Signing 与信任视图
 
-Arkret 沿用 Matrix 的三层 cross-signing 结构（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5）：
+Arkret 的 **A 模型（principal 自持 enrollment authority）**沿用 Matrix 的三层 cross-signing 结构（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5）；B 模型由外部 enrollment authority + device generation fence 取代该结构，不发布 SSK/USK：
 
 | 角色 | Matrix | Arkret |
 | --- | --- | --- |
-| 用户身份根 | Master key | `principal_signing_key`，轮换历史进入 DID method history / key log |
+| 用户签名根 | Master key | `principal_signing_key`（PSK），与冷 DID identity root 分离 |
 | 签名本账号所有设备 | Self-signing key | `self_signing_key`（存 secret storage，跨设备共享） |
 | 签名其他用户身份 key | User-signing key | `user_signing_key`（同上） |
 
-差异：Arkret `principal_signing_key` 的演进绑定到 DID method 链（`did:webvh` entry、`did:plc` operation 等），不是 homeserver 内部状态；`self_signing_key` / `user_signing_key` 在 cross-signing reset 时整条信任链置为 `needs_reverification`，后续恢复材料由 DID 控制证明、recovery 解锁、设备 quorum 签名或受信账户恢复服务签名表达。
+差异：A 模型的 PSK 在 DID Document `verificationMethod` / `assertionMethod` 中声明，但它与只存在于 method update authority 的冷 identity root 材料不同；`self_signing_key` / `user_signing_key` 在 cross-signing reset 时整条信任链置为 `needs_reverification`。B 模型不生成 PSK/SSK/USK cross-signing 链，恢复设备只走 DID-root `ak.device.reanchor` + enrollment-authority-signed replacement authorize 原子 unit。
 
 线级形态：SSK / USK 公钥与 PSK 绑定通过 `ak.cross_signing.publish`（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5.1）公布到 principal control stream；每条 `ak.device.authorize` 在 `content.cross_signing_binding` 中携带 SSK 对设备 `verify_key` 的签名（§5.2），并显式声明 `ssk_generation`。Reset 写 `ak.cross_signing.reset`（§14.1），`new_generation = previous_generation + 1`；publish 恢复窗口、device authorization 接受规则和 `cross_signing_reset` cancel code 由 device lifecycle 章节给出。
 
@@ -162,7 +162,7 @@ Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标
 - **Session key（`ak.session.grant`）**：浏览器、OIDC、SSO、远程执行环境的短期会话密钥。其 audience / origin / service / scope / 过期时间绑定和 DID control state 复验由 key-management 与 account lifecycle 章节定义。
 - **Agent key**：AI agent / bot / CI / automation 的一等密钥类型，带 scope、`expires_at`、accountable actor 绑定；高风险动作可由 proposal / approval 约束。Matrix bot 复用 user / appservice token，没有这一层 scope/审计结构。
 - **Applet delegated device key**：Applet 代表 Ghost Actor 或桥接用户参与 E2EE 时，使用受限的 delegated device 密钥；`device_id` 标记 `applet_id`，capability 限定 Realm / 协议 / 动作 / 有效期，delegated device 不签发新的人类 device。to-device 权限只覆盖其 namespace 内 actor。Matrix appservice 的 ghost user 没有 device-level 委托语义。
-- **Inception key**：DID method 层的初始控制密钥，是 principal control realm genesis 与首台 `ak.device.authorize` 的信任根。常见部署在使用后把它写入 DID method 轮换链并从首台设备销毁，或作为 recovery share 存入 secret storage；日常 device signing 使用独立设备密钥。
+- **冷 Identity Root 代际**：DID method 层的逐代控制密钥。`root_0` 只签客户端构造的 DID entry 0 controller proof 与 PCR genesis；首台 `ak.device.authorize` 始终由 entry 0 委派的独立 enrollment authority 签发。root、device key、PSK/SSK 与 enrollment key 材料必须分离，recovery secret / root seed 不上传、不进入 `secret_storage` wire backup；日常 Event 只由已授权 device key 签名。
 
 #### 4.5.8 验证 / 登录 / 设备授权的语义解耦
 

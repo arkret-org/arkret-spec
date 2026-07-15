@@ -3158,9 +3158,11 @@ Expected：
 - 第 2 步 MUST 返回 `cursor_revoked`，且不推进 subscription position（to-device 队列删除只由 `ak.self.device_messages.command.ack` 驱动，与 cursor 无关）。
 - 第 3 步 MUST 返回 `cursor_integrity_invalid`，不得泄露 revocation set 是否命中。
 
-### 10.9 Vector: Device Recovery Lifecycle
+### 10.9 Vector: Device Recovery Lifecycle（A 模型限定）
 
 `vector_id`: `ak.vector.device_recovery.lifecycle.v1`
+
+本 vector 仅适用于 `identity_model="cross_signing"` 的 A 模型 SSK 恢复，不得泛化到 B 模型。B 模型没有 `ssk_generation`；其 generation mismatch、re-anchor 原子 unit 与围栏错误由 §22.3 `ak.vector.identity.device_reanchor.v1` 及对应 `device_reanchor_*` / `device_generation_fenced` errors 覆盖。
 
 Steps：
 
@@ -4649,3 +4651,27 @@ Expected：
 ### 21.3 RRK eager seal before GC
 
 `ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1` 要求 `durability_policy.mode != none` 时，在每个配置的 `recovery_recipients[]` 对应 `ak.realm_key.share` accepted 前保留 `history_secret[N]`。未达到完整目标集即 GC MUST 返回 `failed_precondition` / `durability_seal_missing_before_gc`；恢复 verification method 非 active 或未由 `ArkretRealmHistoryRecoveryKey` 指定时 MUST 返回 `durability_recovery_recipient_unverified` 且不得换用其它 key。threshold 只控制恢复授权，不缩减 eager-seal 目标集。
+
+## 22. Identity Root、Delegated Bootstrap 与 Recovery Re-anchor 向量
+
+本节由 [`identity-recovery-kdf-fixture.json`](../../artifacts/fixtures/identity-recovery-kdf-fixture.json)、[`identity-root-anchor-fixture.json`](../../artifacts/fixtures/identity-root-anchor-fixture.json) 与 [`did-webvh-v1-fixture.json`](../../artifacts/fixtures/did-webvh-v1-fixture.json) 承载。runner MUST 实际执行密码学派生、DID history 验证、原子 admission 与 reducer 状态转换；只检查字段存在、直接信任 fixture 的中间值或用 first-seen 选择分叉均不算通过。
+
+### 22.1 Recovery-secret KDF KAT
+
+`ak.vector.identity.recovery_kdf.v1` 固定 BIP-39 24 词 + passphrase 与 32-byte raw secret 两条输入路径。实现 MUST 逐字节重算 HKDF PRK、`root_seed_0/1`、`recovery_proof_seed`、`backup_hpke_ikm`、Ed25519 raw public keys 与 multikey、RFC 9180 `DHKEM(X25519, HKDF-SHA256).DeriveKeyPair` 的 raw `derived_sk`、clamped serialized private key 与 public key，以及 `Base58BTC(multihash(sha2-256, UTF8(root_1_multikey)))` canonical `nextKeyHash`。fixture 中 raw-public-key SHA-256 只作为诊断值，不得写入 did:webvh `nextKeyHashes`。任何 salt/info 字节、`u64be(i)`、multicodec/multihash 编码、输入文本化、raw/clamped private-key 表示混淆或 Ed25519→X25519 key reuse 漂移都必须失败。
+
+`ak.vector.identity.recovery_key_role_separation.v1` 固定 recovery policy 的跨数组语义：`recovery_keys[]` 的 recovery-proof signing entry 必须用唯一 `key_agreement_ref` 配对同一 accepted policy 的一个 active `recovery_key_agreements[]` backup-HPKE entry；proof verification 只能使用前者，所有 `recovery_public_key` envelope 的 signed `recovery_policy_ref` / `recipient_key_ref` / `hpke_suite` 只能解析到后者。悬空或重复 ref、撤销/过期 entry、签名与 HPKE 复用 material、suite 不匹配、把 signing ref 当 recipient、或只在 DID Document 声明而未进入 session/envelope referenced policy 均 MUST reject。
+
+### 22.2 Root-anchor 排他性
+
+`ak.vector.identity.root_anchor_exclusivity.v1` 只允许 identity root 为自体 principal 的第一条 PCR `ak.realm.create`（唯一 critical `did_inception`）和 B 模型 `ak.device.reanchor` 启用 Event root-anchor 验签。原子 bootstrap 必须是 `[ak.realm.create, ak.device.authorize]` 且以 entry 0 delegation 验第二条；拆批、第二 PCR genesis、非 PCR Realm、actor/realm/DID 不匹配、缺失或非 critical ref、root 签任何普通 Event 均 fail closed。Agent PCR 不进入此路径。
+
+### 22.3 Re-anchor、generation fence 与冲突
+
+`ak.vector.identity.device_reanchor.v1` 同时覆盖零 Seal 与完整 accepted Seal frontier 两个正向入口、最终 authorize event id/digest 的无环双签构造、byte-identical 幂等重试和 accepted-at receipt 历史复验。负向必须覆盖 A 模型混入、live non-head、伪造 previous generation、过旧/不完整/CAS 失配 frontier、replacement event id/digest 不符、拆批、spent root、post-fence 旧 generation Event/Seal，以及首个新 generation Seal 的 predecessor/delta 不匹配。
+
+同 `(principal_id,did_version_number)` 的不同 versionId/digest 或同 entry 的不同 re-anchor unit 必须把全集置于 quarantine 并令 `device_generation_status="conflicted"`；不同到达顺序得到相同结果，禁止 first-seen winner。conflicted 期间普通 admission fail closed；只有下一预承诺 authority 的有效 resolution entry + re-anchor unit 可恢复 `active`。
+
+### 22.4 Recovery-secret 泄露 handoff
+
+`ak.vector.identity.recovery_secret_handoff.v1` 要求：没有预先存在的独立 guardian/witness/组织权威时，旧秘密泄露后的 same-DID 原地 handoff 必须拒绝并重铸 DID；存在独立权威时，只接受带 durable checkpoint 的两-entry 分阶段 handoff，并在 re-anchor、新 recovery policy、全部旧 backup-HPKE active envelope 新 series 重封装与 active-series pointer 推进完成后，最后撤销旧 policy key。runner MUST 覆盖任一阶段崩溃后的幂等续跑。

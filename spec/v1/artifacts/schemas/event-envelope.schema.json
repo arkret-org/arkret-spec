@@ -98,7 +98,7 @@
     },
     "refs": {
       "type": "array",
-      "description": "Semantic refs with role. Roles include: authorized_by, attestation, parent_event, after, audit_pair, recovery_capability, state_witness, inclusion_proof. audit_pair links a privacy-sensitive business event to its ak.audit.accessed record in the same ordered submit batch or an equivalent sealed control record; state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §7.",
+      "description": "Semantic refs with role. did_recovery_anchor is reserved exclusively for ak.device.reanchor and is enforced bidirectionally below; all other common roles remain open extension tokens.",
       "maxItems": 128,
       "items": {
         "$ref": "#/$defs/semantic_ref"
@@ -480,6 +480,7 @@
               "ak.cross_signing.publish",
               "ak.cross_signing.reset",
               "ak.device.authorize",
+              "ak.device.reanchor",
               "ak.device.list_update",
               "ak.device.revoke",
               "ak.did.proof",
@@ -654,6 +655,65 @@
             "properties": {
               "kind": {
                 "const": "ak.realm.create"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "seal_ref"
+                  ]
+                },
+                {
+                  "required": [
+                    "auth_context"
+                  ]
+                },
+                {
+                  "required": [
+                    "seal_basis"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "properties": {
+              "kind": {
+                "const": "ak.device.reanchor"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "seal_ref"
+                  ]
+                },
+                {
+                  "required": [
+                    "auth_context"
+                  ]
+                },
+                {
+                  "required": [
+                    "seal_basis"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "$comment": "ak.device.authorize may be the second item of the exact PCR bootstrap or device re-anchor atomic unit. JSON Schema permits the no-basis shape; batch admission MUST reject it anywhere else.",
+            "properties": {
+              "kind": {
+                "const": "ak.device.authorize"
               }
             },
             "required": [
@@ -2322,6 +2382,263 @@
       }
     },
     {
+      "$comment": "ak.device.reanchor is the only event allowed to carry did_recovery_anchor, and it must carry exactly one critical ref whose id has did:webvh versionId shape.",
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.device.reanchor"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/device_reanchor_payload"
+          },
+          "refs": {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[1-9][0-9]*-[^\\s]+$"
+                },
+                "role": {
+                  "const": "did_recovery_anchor"
+                },
+                "critical": {
+                  "const": true
+                }
+              },
+              "required": [
+                "id",
+                "role",
+                "critical"
+              ]
+            },
+            "minContains": 1,
+            "maxContains": 1,
+            "allOf": [
+              {
+                "$comment": "Count the reserved role independent of critical so one critical plus one non-critical duplicate cannot pass.",
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "role": {
+                      "const": "did_recovery_anchor"
+                    }
+                  },
+                  "required": [
+                    "role"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              }
+            ]
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "refs": {
+            "not": {
+              "contains": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "const": "did_recovery_anchor"
+                  }
+                },
+                "required": [
+                  "role"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "$comment": "Any Event carrying did_inception is confined to the closed self-principal PCR-genesis shape and carries exactly one critical ref. A delegated Agent PCR create intentionally carries no did_inception; batch/reducer admission distinguishes self-principal genesis from delegated Agent genesis by comparing actor_id, executed_by, authorization_ref, PCR binding and DID subject, which JSON Schema cannot express.",
+      "if": {
+        "properties": {
+          "refs": {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "role": {
+                  "const": "did_inception"
+                }
+              },
+              "required": [
+                "role"
+              ]
+            }
+          }
+        },
+        "required": [
+          "refs"
+        ]
+      },
+      "then": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.create"
+          },
+          "payload": {
+            "type": "object",
+            "properties": {
+              "object": {
+                "type": "object",
+                "properties": {
+                  "fields": {
+                    "type": "object",
+                    "properties": {
+                      "purpose": {
+                        "const": "principal_control"
+                      }
+                    },
+                    "required": [
+                      "purpose"
+                    ]
+                  }
+                },
+                "required": [
+                  "fields"
+                ]
+              }
+            },
+            "required": [
+              "object"
+            ]
+          },
+          "refs": {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "role": {
+                  "const": "did_inception"
+                },
+                "critical": {
+                  "const": true
+                }
+              },
+              "required": [
+                "role",
+                "critical"
+              ]
+            },
+            "minContains": 1,
+            "maxContains": 1,
+            "allOf": [
+              {
+                "$comment": "Count the reserved role independently so a critical ref plus a non-critical duplicate cannot pass.",
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "role": {
+                      "const": "did_inception"
+                    }
+                  },
+                  "required": [
+                    "role"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              }
+            ]
+          }
+        },
+        "required": [
+          "kind",
+          "payload",
+          "refs"
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "executed_by"
+              ]
+            },
+            {
+              "required": [
+                "authorization_ref"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "$comment": "A principal_control Realm create without did_inception is syntactically reserved for delegated managed-principal genesis. Requiring the delegation pair prevents a self-principal caller from falling through to ordinary realm.create capability admission; the delegated_pcr_genesis verifier performs the actor/DID/service/realm comparisons that JSON Schema cannot express.",
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.create"
+          },
+          "payload": {
+            "type": "object",
+            "properties": {
+              "object": {
+                "type": "object",
+                "properties": {
+                  "fields": {
+                    "type": "object",
+                    "properties": {
+                      "purpose": {
+                        "const": "principal_control"
+                      }
+                    },
+                    "required": [
+                      "purpose"
+                    ]
+                  }
+                },
+                "required": [
+                  "fields"
+                ]
+              }
+            },
+            "required": [
+              "object"
+            ]
+          },
+          "refs": {
+            "not": {
+              "contains": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "const": "did_inception"
+                  }
+                },
+                "required": [
+                  "role"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "kind",
+          "payload",
+          "refs"
+        ]
+      },
+      "then": {
+        "required": [
+          "executed_by",
+          "authorization_ref"
+        ]
+      }
+    },
+    {
       "if": {
         "properties": {
           "kind": {
@@ -3522,7 +3839,7 @@
         "role": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "description": "Common roles include authorized_by, attestation, parent_event, after, audit_pair, recovery_capability, state_witness, inclusion_proof. audit_pair links a privacy-sensitive business event to its ak.audit.accessed record in the same ordered submit batch or an equivalent sealed control record; state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §7."
+          "description": "Common roles include authorized_by, attestation, parent_event, after, audit_pair, recovery_capability, state_witness, inclusion_proof, did_inception, and did_recovery_anchor. did_recovery_anchor is reserved to ak.device.reanchor by kind dispatch."
         },
         "critical": {
           "type": "boolean",
@@ -3582,7 +3899,7 @@
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "DID URL of the Event-signing key. For principal device proofs the fragment MUST be the full device_id (`ak:device:<uuidv7>`), so receivers can resolve `(actor_id, device_id)` through the device directory. Verifier MUST strip fragment/query only for controller comparison and MUST compare that controller DID bit-identically to actor_id or executed_by according to the accountability rules."
+          "description": "DID URL of the Event-signing key. For principal device proofs the fragment MUST be the full device_id (`ak:device:<uuidv7>`), so receivers can resolve `(actor_id, device_id)` through the device directory. Generic verification strips fragment/query only for controller comparison and compares that controller DID bit-identically to actor_id or executed_by. The sole exception is an Event whose selected admission variant is did_root_anchor: its closed verifier MUST instead require verification_method to equal an active controller-proof verification method from the one critical did_inception/did_recovery_anchor entry and verify the controller proof/update authority against that referenced did:webvh history; a root did:key controller is not rewritten to the principal actor_id. This exception cannot apply to any other Event."
         },
         "alg": {
           "type": "string",

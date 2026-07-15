@@ -193,7 +193,11 @@ Schema id: `ak.schema.realm.v1`
 
 ### 2.5 `ak.realm.create` Reducer Bootstrap（normative）
 
-`ak.realm.create` 是 Realm 生命周期的 genesis event，它同时承担“建 Realm metadata”、“为 `created_by` 引导首份成员资格”和“建立首份可撤销管理授权”三项职责。reducer MUST 把 create 与下述 founding grant 作为一个原子 bootstrap unit 校验 / commit，且 MUST 在评估同一 submit 批次中由同一 actor 发起的任何后续 event 之前完成：
+`ak.realm.create` 是 Realm 生命周期的 genesis event。普通 Realm 同时承担“建 Realm metadata”、“为 `created_by` 引导首份成员资格”和“建立首份可撤销管理授权”三项职责，reducer MUST 把 create 与下述 founding grant 原子校验/提交。
+
+**Principal Control Realm 分支（normative）**：当 create 同时满足 `fields.purpose="principal_control"`、PCR profile、`created_by=actor_id=principal DID` 与 [`identity/key-management.md` §5.0.1](../identity/key-management.md) 的唯一 critical `did_inception` root anchor 时，bootstrap unit 的第二条固定为首个 delegated `ak.device.authorize`，不是 `ak.capability.grant`。两条必须在同一 `ak.self.events.command.submit` batch 原子接受，均免 `seal_basis`；authority 必须来自 entry 0/document delegation。PCR 的自体控制权来自 root-anchored genesis，不建立普通 Realm founding grant。该分支不得用于 managed Agent PCR：Agent genesis 继续使用 controller device proof + accepted DID delegation，且不携带 `did_inception`。PCR allowlist 包含恢复专用 `ak.device.reanchor`，但该 kind 只能走 key-management §5.0.7 的独立原子 unit。
+
+以下步骤适用于普通非 PCR Realm，且 MUST 在评估同一批次后续 event 前完成：
 
 1. **物化 Realm metadata**：把 `payload.object` 写入 reducer 视图（schema 校验、`encryption_profile` / `security_class` / `notary_profile` / `digest_algorithm` 等 create-locked 字段固化）。
 2. **写入 `ak.component.member.state.v1` cell**（`subject=created_by`，state=`join`，hlc 取自 create event）。这 **不要求** 发起者额外提交一条 `ak.member.state{join}` event，event 本身的 `created_by == actor_id` 已经是 spec 规定的成员资格凭证（[`common-fields.md` §3](common-fields.md)、[`event-and-patch.md` §2.5](event-and-patch.md#25-create-类-event-的跨字段语义校验)）。
@@ -206,7 +210,7 @@ Schema id: `ak.schema.realm.v1`
 
 这条 founding grant 是普通 `ak.component.capability.grant.v1` OR-Set add，后续可由标准 `ak.capability.revoke` 撤销；它不是不可撤销的 creator 超级权限，也不是从普通 `join` membership 隐式推出 admin。创建者 membership 仍不为任何其它成员建立 baseline capability。reducer 只对这一个封闭 payload 应用一次性 genesis authority；它通过后，创建者才具有后续首发 grant 的 issuer 上界。create 缺少该紧邻 founding grant 时，整个 bootstrap unit MUST 原子拒绝（`failed_precondition`，`reason="realm_founding_grant_missing"`）；形态越界时整个 unit MUST 原子拒绝（`failed_precondition`，`reason="invalid_realm_founding_grant"`），不得只留下 Realm / membership 半成品。
 
-Realm bootstrap event set 以 `ak.realm.create` 开始，第二条固定为上述 founding grant。创建时没有可引用的 accepted Seal，因此 `ak.realm.create`、紧邻的封闭 founding grant，以及同一 `ak.self.events.command.submit` 批次中随后由同一 `actor_id` 写入同一 Realm 初始配置的 bootstrap follow-up event（`ak.realm.policy_components` / `ak.realm.join_rule` / `ak.realm.history_visibility` / `ak.realm.discovery` / `ak.realm.plaintext_visible_services` / 初始 invite 用 `ak.member.state`）MAY 携带 bootstrap `preconditions[]` / `effects[]` 而不携带 `seal_basis`。founding grant 的 bootstrap basis 是 create 已通过完整 unit 预校验；其余 follow-up event 的 bootstrap basis 是本批 create 与 founding grant已按 wire 顺序 accepted、对应 cell 尚无 accepted 值（常见 wire 形态为 `head_eq null`），以及 `payload.object.created_by == actor_id` 所建立的 creator membership。此例外只适用于同一 submit batch 的 Realm genesis 初始化；批次结束后，所有写 control plane cell 的 reducer-input event 仍按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#5-control-move) 携带非空 `seal_basis.leaves[]`。
+普通 Realm bootstrap event set 以 create 开始，第二条固定为 founding grant。创建时没有 accepted Seal，因此 create、founding grant 与同批同 actor 的封闭初始 facet follow-up MAY 免 `seal_basis`。PCR 则只允许上文 create + first-authorize 两项 shape；不得把普通 Realm follow-up 白名单或 founding grant混入 PCR bootstrap。批次结束后所有普通 Control Move 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#5-control-move) 携带 basis。
 
 Authz 含义：
 
@@ -214,7 +218,7 @@ Authz 含义：
 - `created_by` 对 bootstrap 白名单之外的 action 不因 creator / membership 身份获得隐式授权；其普通管理能力来自已显式写入并可撤销的 founding grant。founding grant 之后签发给自己或他人的任何 `ak.capability.grant` 均恢复适用 [`capabilities.md` §3.2](../authz/capabilities.md#32-首发-grant-的-issuer-自身权限上界normative) 的完整 issuer 上界校验。
 - `ak.realm.policy_components` payload MUST 携带单调递增的 `policy_revision`。初始 revision 为 `1`；后续更新必须满足 `new.policy_revision == previous.policy_revision + 1`，否则 reducer MUST `failed_precondition`，reason=`policy_revision_rollback` 或 `policy_revision_gap`。任何用于缓存、Policy Server decision、MLS governance binding 或 identity_link 的 `policy_frontier_digest` MUST 覆盖 `policy_revision`，不得只 hash policy 字段值集合。
 - **加密 floor 单向 ratchet（normative）**：Realm 的 effective `content_encryption_floor` 与 effective `metadata_encryption_floor` MUST 随时间单调非降。`ak.realm.policy_components` 若把 `content_encryption_floor` 从 `e2ee_required` 降回 `allow_plaintext`，reducer MUST `failed_precondition`，reason=`content_encryption_floor_downgrade`；若把 `metadata_encryption_floor` 降到更低等级（比较序 `allow_plaintext < e2ee_required`），reducer MUST `failed_precondition`，reason=`metadata_encryption_floor_downgrade`。收紧（抬高 floor）永远允许，只有降低被拒。该 ratchet 使"加密一旦开启不可撤销"成为治理层硬约束，并消除静默 downgrade 攻击面；Circle 级同一规则与 effective floor 计算见 [`circle.md` §7](./circle.md)。
-- 同一 submit 批次内的事件 reducer MUST 按 wire 顺序处理；create event 必须为第一条、封闭 founding grant 必须为第二条，随后才可出现 facet / initial-invite follow-up。顺序不符时 reducer MUST 返回 `out_of_order_bootstrap`，并原子拒绝整个 bootstrap unit。
+- 同一 submit 批次内 reducer MUST 按 wire 顺序处理。普通 Realm：create 第一、founding grant 第二；PCR：root-anchored create 第一、delegated first-authorize 第二且 unit 到此结束。顺序或形态不符以 `out_of_order_bootstrap` 原子拒绝。
 - 重新提交同一 Realm id 的 `ak.realm.create`（无论 `created_by` 是否相同）MUST `realm_already_exists` 拒绝；该规则与 create-locked 字段保护一致。
 
 Server 端实现合规要点：

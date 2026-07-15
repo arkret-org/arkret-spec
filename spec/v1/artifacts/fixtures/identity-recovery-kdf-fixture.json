@@ -1,0 +1,89 @@
+{
+  "suite": "identity_recovery_kdf",
+  "version": "2026-07-15",
+  "runner": {
+    "kind": "known_answer_tests",
+    "entrypoint": "cotest::conformance::identity_recovery_kdf"
+  },
+  "covers_vectors": [
+    "ak.vector.identity.recovery_kdf.v1"
+  ],
+  "contract": {
+    "extract": "HKDF-Extract(SHA-256, utf8(\"arkret-identity-recovery-kdf-v1\"), recovery_secret_bytes)",
+    "root_expand": "HKDF-Expand(PRK, utf8(\"arkret/did-update/root/v1\") || u64be(i), 32)",
+    "recovery_proof_expand": "HKDF-Expand(PRK, utf8(\"arkret/recovery-proof/v1\"), 32)",
+    "backup_hpke_expand": "HKDF-Expand(PRK, utf8(\"arkret/backup-hpke/v1\"), 32)",
+    "root_key_mapping": "Ed25519 seed",
+    "recovery_proof_key_mapping": "Ed25519 seed",
+    "backup_hpke_key_mapping": "RFC 9180 DHKEM(X25519, HKDF-SHA256).DeriveKeyPair; derived_sk is the raw LabeledExpand output and serialized_private_key is SerializePrivateKey(derived_sk) after RFC 7748 clamping",
+    "public_key_encoding": "Ed25519 multikey = Base58BTC(0xed01 || raw 32-byte public key)",
+    "next_key_hash": "Base58BTC(multihash(sha2-256, UTF8(root multikey)))"
+  },
+  "cases": [
+    {
+      "name": "bip39_24_words_with_passphrase",
+      "input": {
+        "kind": "bip39",
+        "mnemonic_utf8": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art",
+        "passphrase_utf8": "TREZOR",
+        "recovery_secret_bytes_hex": "bda85446c68413707090a52022edd26a1c9462295029f2e60cd7c4f2bbd3097170af7a4d73245cafa9c3cca8d561a7c3de6f5d4a10be8ed2a5e608d68f92fcc8"
+      },
+      "expected": {
+        "prk_hex": "ea4093da71b200d87080ba1cac7bb21881fd6ea0b8278181681c881a871c3d89",
+        "root_seed_0_hex": "7ff7ae2a20caa53098484b1327a7a7f342e6435499ec9be025c2cb640f4ed3ad",
+        "root_seed_1_hex": "fc87a5a0872114810f4fdf50a8e298a3aa671b0522d17b3f3e24ce20f3e7bffb",
+        "recovery_proof_seed_hex": "5c8be4e6273db48462fd9bbdf39c61b03e15495ceb299e04af198090f0171d42",
+        "backup_hpke_ikm_hex": "576d246fe84963831b11bfb6ea2de14759d384cfcc01bb7a8ccff54146fe4fd1",
+        "root_public_key_0_hex": "ec4157798183be05275e55a89947b801ebfa3fb11c612d172c0730427355866b",
+        "root_public_key_0_multikey": "z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ",
+        "root_public_key_1_hex": "7bf94b3b25288c1c973f40e2ed7baa776ea6e42b6b9353f3a742c094d98db793",
+        "root_public_key_1_multikey": "z6MknoCfkzmsoi3R98zoM8gNdsnQsouJQCaCYoeVJ6VkquSi",
+        "recovery_proof_public_key_hex": "891220be7a6f9cab8b5b473ea6d4d34f5795d8cace835e87b7302607f49dd8ff",
+        "recovery_proof_public_key_multikey": "z6MkogKw38hXxUkpMWitoBubBGHZzeGrQJ4oHF36iegUbmpA",
+        "backup_hpke_derived_sk_hex": "4192a3e60a3859ff3b8504dcba5e655e46426afe16b55390d283ab3e17e37cb8",
+        "backup_hpke_serialized_private_key_hex": "4092a3e60a3859ff3b8504dcba5e655e46426afe16b55390d283ab3e17e37c78",
+        "backup_hpke_public_key_hex": "df788d7169420382ba1358ff083c77f48a8d98cf4b6f08efdc2555af8f41b06f",
+        "backup_hpke_public_key_multikey": "z6LSriWhVBzW9Vz2PvqbieSz7Aa2hPLzTKJuDwXTMKFeomeW",
+        "root_public_key_1_sha256_hex_diagnostic_only": "a62f86916dff5f3861209e942d862708ed36c6faf6c148c570693bec14b97a51",
+        "root_1_next_key_hash": "QmRavXTE9UUsrZCFT7ofELiVmUTZksxGLeetVC2Zv4dapA"
+      }
+    },
+    {
+      "name": "raw_uniform_secret",
+      "input": {
+        "kind": "raw",
+        "recovery_secret_bytes_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+      },
+      "expected": {
+        "prk_hex": "5ff5f79aa72a247d0e3bbd5c2c66b4e0df32be9aa31fa18858e78d2db41f4565",
+        "root_seed_0_hex": "f0c2e49bfdf7b5f1e549fd02e5615c699214ce640c0e6662d0bb4a0436ceec08",
+        "root_seed_1_hex": "bdbc1938b4cc03522c2df7f989fce5f5680816cbcca94ef18030a2d448bd0cc8",
+        "recovery_proof_seed_hex": "89b49c82dd34e8dc2df97e0253adc64668f8ebe862f34e8afd65a4f96a9ac460",
+        "backup_hpke_ikm_hex": "d88f4ccfa46b377d6c3a69797fab007a198fc8799feffdff8d3115c155e562f1",
+        "root_public_key_0_hex": "3e814bc0e1e955b0ef2c69d0cdd17e2f2285b7fcc1fe61ae2c06b1676112243b",
+        "root_public_key_0_multikey": "z6MkifFfyDctvY9FahpFQUhpzfRq61pWRKL8L5NtZHS4teFL",
+        "root_public_key_1_hex": "32e707c4698a0bc0311ffaf220ccbce81d0f5e7069cd87b54196077a02849676",
+        "root_public_key_1_multikey": "z6MkhsxkjJkU3TE6qmVBz5vKvRLCTtsU24aef1fVYNXZRsUH",
+        "recovery_proof_public_key_hex": "20f51b3b92d8eebb48c173f3b731acf9977f723d0ddffa66f43590f8dd8b0ff4",
+        "recovery_proof_public_key_multikey": "z6Mkgfus8Z5Cz3Az7fthBXJnjyxGbXz5d6PhK6f74ydoH1W3",
+        "backup_hpke_derived_sk_hex": "a544154ac9fa66b100ef81aac4646cb2219d1b2d543267d655ee8f9a93983efe",
+        "backup_hpke_serialized_private_key_hex": "a044154ac9fa66b100ef81aac4646cb2219d1b2d543267d655ee8f9a93983e7e",
+        "backup_hpke_public_key_hex": "d6b62463f35e292735477b8bafa89e226fdfe445a136d46919a7606969664234",
+        "backup_hpke_public_key_multikey": "z6LSr8KVwSrjSa7Bj6KagU93mSi8zQM6VfmmUoTb8xXJFEr7",
+        "root_public_key_1_sha256_hex_diagnostic_only": "ec53a0e24d75972cf12dd9b632670e9979e022534019c49970c5d32f60b73bf6",
+        "root_1_next_key_hash": "QmPoFdu3Rs82D3zweenEWfX1TqsruL5bV9H5ynbp5NPKs3"
+      }
+    }
+  ],
+  "negative_mutations": [
+    "encode u64 root generation in little-endian",
+    "omit the eight-byte u64be root generation suffix",
+    "change any HKDF salt or info byte",
+    "hex/base64 encode recovery_secret_bytes before HKDF-Extract",
+    "hash the raw Ed25519 public key instead of the UTF-8 multikey when constructing nextKeyHashes",
+    "prefix a did:webvh nextKeyHashes value with sha256:",
+    "reuse an Ed25519 seed or convert an Ed25519 key into the X25519 backup key",
+    "treat backup_hpke_ikm as a raw X25519 private key instead of DHKEM DeriveKeyPair IKM"
+  ],
+  "expected_negative_decision": "reject"
+}

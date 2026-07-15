@@ -42,6 +42,18 @@
       "pattern": "^[A-Za-z0-9_-]{43}$",
       "description": "base64url(no padding) encoding of 256 bits from a CSPRNG. The value is single-use and bound to one recovery_session_id."
     },
+    "identity_model": {
+      "type": "string",
+      "enum": [
+        "cross_signing",
+        "enrollment_authority"
+      ],
+      "description": "A-model cross-signing or B-model external enrollment authority. Server derives and verifies this value from accepted DID/control state."
+    },
+    "did_version_id": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*-[^\\s]+$"
+    },
     "recovery_policy_ref": {
       "type": "object",
       "required": [
@@ -109,7 +121,7 @@
         "trust_domain",
         "policy_id",
         "policy_version",
-        "ssk_generation",
+        "identity_model",
         "challenge",
         "state",
         "expires_at",
@@ -140,10 +152,31 @@
           "type": "integer",
           "minimum": 1
         },
+        "identity_model": {
+          "$ref": "#/$defs/identity_model"
+        },
         "ssk_generation": {
           "type": "integer",
           "minimum": 1,
           "description": "Accepted cross-signing generation snapshotted when the session is created. Reducers MUST reject completion if the current accepted generation no longer equals this value."
+        },
+        "current_device_generation_ref": {
+          "$ref": "#/$defs/did_version_id",
+          "description": "B-model reducer-managed generation snapshotted at session creation."
+        },
+        "device_generation_status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "conflicted"
+          ]
+        },
+        "registry_head": {
+          "$ref": "#/$defs/hash",
+          "description": "Digest of the B-model accepted identity-registry head snapshot."
+        },
+        "accepted_seal_frontier": {
+          "$ref": "./event-payload.schema.json#/$defs/device_reanchor_payload/properties/pre_fence_basis"
         },
         "challenge": {
           "$ref": "#/$defs/challenge"
@@ -177,6 +210,60 @@
         }
       },
       "allOf": [
+        {
+          "if": {
+            "properties": {
+              "identity_model": {
+                "const": "cross_signing"
+              }
+            },
+            "required": [
+              "identity_model"
+            ]
+          },
+          "then": {
+            "required": [
+              "ssk_generation"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "current_device_generation_ref"
+                  ]
+                },
+                {
+                  "required": [
+                    "device_generation_status"
+                  ]
+                },
+              {
+                "required": [
+                  "registry_head"
+                ]
+              },
+              {
+                "required": [
+                  "accepted_seal_frontier"
+                ]
+              }
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "current_device_generation_ref",
+              "device_generation_status",
+              "registry_head",
+              "accepted_seal_frontier"
+            ],
+            "not": {
+              "required": [
+                "ssk_generation"
+              ]
+            }
+          }
+        },
         {
           "if": {
             "properties": {
@@ -222,8 +309,7 @@
       "required": [
         "principal_id",
         "requesting_device_id",
-        "trust_domain",
-        "ssk_generation"
+        "trust_domain"
       ],
       "properties": {
         "principal_id": {
@@ -234,10 +320,6 @@
         },
         "trust_domain": {
           "$ref": "#/$defs/trust_domain"
-        },
-        "ssk_generation": {
-          "type": "integer",
-          "minimum": 1
         },
         "expected_recovery_policy_ref": {
           "$ref": "#/$defs/recovery_policy_ref",
@@ -529,84 +611,47 @@
       },
       "additionalProperties": false
     },
-    "device_authorize_material": {
-      "type": "object",
-      "description": "A complete, client-signed ak.device.authorize payload used by the recovery strand. It MUST also validate against event-payload.schema.json#/$defs/device_authorize_payload. The recovering client unlocks the self-signing key (SSK) from the did_recovery backup during the proof/verify phase, signs the new device's cross_signing_binding with that SSK, signs device_signature with the new device identity private key over the ak.device-authorize-possession-v1 canonical input, submits the resulting ordinary Event Envelope to the principal control stream, and passes only the accepted authorization_event_id to recovery_session_complete_request_body. The server MUST verify before completing the recovery session: (a) device_id == session.requesting_device_id; (b) recovery_session_id == this session's id; (c) principal_id == session.principal_id; (d) cross_signing_binding.ssk_generation == session.ssk_generation (else device_recovery_ssk_generation_mismatch); (e) device_signature verifies with device_public_key. Recovery is never a bootstrap-first-device case, so cross_signing_binding (not bootstrap_binding) is required.",
-      "required": [
-        "principal_id",
-        "device_id",
-        "device_public_key",
-        "authorized_by",
-        "not_before",
-        "recovery_session_id",
-        "cross_signing_binding",
-        "device_signature"
-      ],
-      "properties": {
-        "principal_id": {
-          "$ref": "#/$defs/did"
-        },
-        "device_id": {
-          "$ref": "#/$defs/device_id"
-        },
-        "device_public_key": {
-          "type": "string",
-          "minLength": 1
-        },
-        "authorized_by": {
-          "type": "string",
-          "minLength": 1
-        },
-        "not_before": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "device_signature": {
-          "type": "string",
-          "minLength": 1,
-          "description": "New-device Ed25519/EdDSA signature proving possession of the private key corresponding to device_public_key. The signing input is ak.device-authorize-possession-v1, defined in crypto-media/device-lifecycle.md §5.2. Satisfies event-payload.schema.json device_authorize_payload's proof/device_signature anyOf."
-        },
-        "recovery_session_id": {
-          "$ref": "#/$defs/recovery_session_id"
-        },
-        "cross_signing_binding": {
-          "type": "object",
-          "required": [
-            "verification_method",
-            "alg",
-            "ssk_generation",
-            "signature"
-          ],
-          "properties": {
-            "verification_method": {
-              "$ref": "#/$defs/did_url"
-            },
-            "alg": {
-              "type": "string",
-              "minLength": 1
-            },
-            "ssk_generation": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "signature": {
-              "type": "string",
-              "pattern": "^[A-Za-z0-9_-]+$"
-            }
-          },
-          "additionalProperties": false
-        }
-      }
-    },
     "event_id": {
       "type": "string",
       "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "recovery_session_complete_request_body": {
       "type": "object",
-      "description": "The recovering client first submits, to POST /events on the principal control realm, (1) a `ak.device.authorize` (shape per $defs/device_authorize_material, also event-payload.schema.json device_authorize_payload) whose cross_signing_binding is signed with the SSK unlocked from the did_recovery backup and whose device_signature is signed with the new device identity private key, and (2) a `ak.device.list_update` for the new device — both as ordinary signed Event Envelopes carrying the next actor_seq on the principal control stream. Completion then REFERENCES the resulting durable event ids; the server resolves each from the event store and verifies it is the right kind, bound to this recovery_session_id + requesting_device_id, that its cross_signing_binding verifies against the accepted SSK, and that its device_signature verifies against device_public_key. The server does not author/sign control events on the principal's behalf.",
+      "description": "Recovery completion references only accepted artifacts; the server derives the identity model and snapshotted generation from recovery_session_state. A references accepted authorize/list-update events. B references the accepted atomic re-anchor/authorize unit and its batch receipt; isolated event-store presence is insufficient.",
       "required": [
-        "authorization_event_id",
-        "device_list_update_event_id"
+        "authorization_event_id"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "device_list_update_event_id"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "reanchor_event_id"
+                ]
+              },
+              {
+                "required": [
+                  "reanchor_batch_receipt_id"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "reanchor_event_id",
+            "reanchor_batch_receipt_id"
+          ],
+          "not": {
+            "required": [
+              "device_list_update_event_id"
+            ]
+          }
+        }
       ],
       "properties": {
         "authorization_event_id": {
@@ -616,6 +661,13 @@
         "device_list_update_event_id": {
           "$ref": "#/$defs/event_id",
           "description": "event_id of the client-submitted, accepted ak.device.list_update."
+        },
+        "reanchor_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "reanchor_batch_receipt_id": {
+          "type": "string",
+          "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "idempotency_key": {
           "type": "string",
@@ -631,8 +683,50 @@
         "recovery_session_id",
         "state",
         "device_id",
-        "authorization_event_id",
-        "device_list_update_event_id"
+        "identity_model",
+        "authorization_event_id"
+      ],
+      "oneOf": [
+        {
+          "properties": {
+            "identity_model": {
+              "const": "cross_signing"
+            }
+          },
+          "required": [
+            "device_list_update_event_id"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "reanchor_event_id"
+                ]
+              },
+              {
+                "required": [
+                  "reanchor_batch_receipt_id"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "identity_model": {
+              "const": "enrollment_authority"
+            }
+          },
+          "required": [
+            "reanchor_event_id",
+            "reanchor_batch_receipt_id"
+          ],
+          "not": {
+            "required": [
+              "device_list_update_event_id"
+            ]
+          }
+        }
       ],
       "properties": {
         "ok": {
@@ -647,6 +741,9 @@
         "device_id": {
           "$ref": "#/$defs/device_id"
         },
+        "identity_model": {
+          "$ref": "#/$defs/identity_model"
+        },
         "authorization_event_id": {
           "type": "string",
           "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
@@ -656,6 +753,13 @@
           "type": "string",
           "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Accepted ak.device.list_update event emitted to the principal control stream."
+        },
+        "reanchor_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "reanchor_batch_receipt_id": {
+          "type": "string",
+          "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       },
       "additionalProperties": false
@@ -671,7 +775,8 @@
         "policy_id",
         "policy_version",
         "recovery_session_id",
-        "ssk_generation",
+        "identity_model",
+        "model_generation_ref",
         "challenge",
         "expires_at",
         "created_at"
@@ -702,9 +807,20 @@
         "recovery_session_id": {
           "$ref": "#/$defs/recovery_session_id"
         },
-        "ssk_generation": {
-          "type": "integer",
-          "minimum": 1
+        "identity_model": {
+          "$ref": "#/$defs/identity_model"
+        },
+        "model_generation_ref": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "$ref": "#/$defs/did_version_id"
+            }
+          ],
+          "description": "SSK generation for cross_signing; DID versionId for enrollment_authority."
         },
         "challenge": {
           "$ref": "#/$defs/challenge"
@@ -731,7 +847,8 @@
         "policy_id",
         "policy_version",
         "recovery_session_id",
-        "ssk_generation",
+        "identity_model",
+        "model_generation_ref",
         "challenge",
         "expires_at",
         "created_at",
@@ -763,9 +880,19 @@
         "recovery_session_id": {
           "$ref": "#/$defs/recovery_session_id"
         },
-        "ssk_generation": {
-          "type": "integer",
-          "minimum": 1
+        "identity_model": {
+          "$ref": "#/$defs/identity_model"
+        },
+        "model_generation_ref": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "$ref": "#/$defs/did_version_id"
+            }
+          ]
         },
         "challenge": {
           "$ref": "#/$defs/challenge"

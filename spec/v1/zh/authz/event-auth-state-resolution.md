@@ -164,7 +164,12 @@ Event Batch Receipt 只证明"issuer 看见并承诺所列事件集合的 integr
 
 ## 5. Control Move
 
-Control Move 是写 control plane cell 的 Event。它仍使用 Event Envelope，但 MUST 携带 `seal_basis`，MUST NOT 携带 `seal_ref`。唯一例外是 [`ak.realm.create`](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 所属 Realm bootstrap event set：Realm 创建前不存在可引用的 accepted Seal，因此 create 及同一 submit batch 内由同一 actor 写入同一 Realm 初始配置的 bootstrap follow-up event MAY 携带 bootstrap `effects[]` / `preconditions[]` 而不携带 `seal_basis`；此例外不得推广到 batch 外或非 bootstrap Control Move。
+Control Move 是写 control plane cell 的 Event，通常 MUST 携带 `seal_basis` 且 MUST NOT 携带 `seal_ref`。v1 只有两个封闭 anchor-unit 例外：
+
+1. [`ak.realm.create`](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) bootstrap。普通 Realm 是 create + founding grant + 封闭 follow-up；自体 principal PCR 是 root-signed create + delegated first `ak.device.authorize`，两者互斥。
+2. B 模型 [`ak.device.reanchor`](../identity/key-management.md#507-b-模型-recovery-re-anchor-unit) + replacement authorize 原子 unit。它不携带 `seal_basis`，而在 payload 的 `pre_fence_basis` 固定完整当前 accepted Seal frontier，并由 admission transaction 对 frontier digest 做 CAS。授权 fence 在完整 unit 验证/提交后立即生效；治理 effects 由首个新-generation Seal 覆盖。
+
+这两个例外不得推广到 batch 外、普通设备入册或其他 Control Move。机器执行闭包分别由 `ak.vector.identity.root_anchor_exclusivity.v1` 与 `ak.vector.identity.device_reanchor.v1` 覆盖。
 
 ```text
 ControlMove {
@@ -335,7 +340,9 @@ Seal 被拒绝时，其 `delta[]` 内 Control Move 不因此有效。节点 MAY 
 
 #### 6.3.2 已 Seal Control Move 与后发现 fork 的衔接（normative）
 
-accepted Seal 的 `covered_set`、`control_event_set_root`、`completeness_root` 与 `state_root` 是不可追溯改写的签名承诺。某个已覆盖 Control Move 后续因同 `event_id` 双变体、单桶 over-fork 或跨桶累计 over-fork 被检出时，receiver MUST quarantine 全部原始 sibling bytes，但 MUST 保留已被 accepted Seal 覆盖的那个 digest 及其 effects 作为该历史 Seal 的输入；不得从已接受 Seal 重算并删除它。普通 quarantine 的 effects 移除只适用于 data plane Event 与尚未被任何 accepted Seal 覆盖的 pending Control Move。
+accepted Seal 的 `covered_set`、`control_event_set_root`、`completeness_root` 与 `state_root` 是不可追溯改写的签名承诺。某个已覆盖 Control Move 后续因同 `event_id` 双变体或 actor over-fork 被检出时，receiver MUST quarantine 全部原始 sibling bytes，但保留已被 accepted Seal 覆盖的 digest/effects 作为该历史 Seal 输入。
+
+唯一 DID-root recovery 例外：合法 `ak.device.reanchor` 的 `pre_fence_basis` predecessor closure 内的历史 Seal/Event 完整保留；closure 外、仅由旧 device generation 签发的 Event/Seal 保留原始 bytes 但进入 `fork_quarantine`，不得进入当前 joined view。该例外改变的是旧 generation 对**当前** view 的贡献，不改写 closure 内任何 accepted Seal 承诺。首个新-generation Seal 必须以 basis leaves 为精确 predecessors，delta 覆盖 re-anchor unit；不满足不得成为 accepted Seal。
 
 该状态下 receiver MUST 对受影响 `(actor_id, actor_seq)` 之后的 Control Move fail closed，直到有 fork-resolution capability 的主体按 federation §4.5 证据签发 recovery / fork-resolution compaction Seal。该 Seal MUST 显式列出冲突 sibling digest 集、选定 canonical digest 或“全部作废”的归一裁决、所依据 witness / operator authorization，并从 predecessor 已承诺状态写入后继归一结果；它不能声称旧 Seal 从未覆盖原 Move。notary 在签发普通 Seal 前 SHOULD 检查 `delta[]` 中每个 Move 的已知 sibling 桶和跨桶累计计数，已越界者 MUST NOT 纳入普通 Seal。
 

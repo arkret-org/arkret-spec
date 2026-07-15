@@ -311,6 +311,10 @@
       "type": "string",
       "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "seal_ref": {
+      "type": "string",
+      "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+    },
     "strand_id": {
       "type": "string",
       "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -811,26 +815,9 @@
       },
       "additionalProperties": false
     },
-    "device_bootstrap_binding": {
-      "type": "object",
-      "description": "Bootstrap-only binding for the first ak.device.authorize event signed by the DID inception key before any ak.cross_signing.publish exists. Receivers MUST accept this only under the inception bootstrap rules in zh/identity/key-management.md §5.0.1 and zh/crypto-media/device-lifecycle.md §5.3.",
-      "required": [
-        "kind",
-        "did_method_evidence_ref"
-      ],
-      "properties": {
-        "kind": {
-          "const": "inception_self_authorized"
-        },
-        "did_method_evidence_ref": {
-          "$ref": "#/$defs/non_empty_string"
-        }
-      },
-      "additionalProperties": false
-    },
     "device_enrollment_authority_binding": {
       "type": "object",
-      "description": "Delegated-authority binding for a ak.device.authorize event admitted as service_attested: the device_public_key, hpke_key and algorithms are attested for this principal by an enrollment authority designated in the principal's DID document (ArkretDeviceEnrollmentAuthority service, or a capabilityDelegation verification method). Used by the managed-DID (account-authority) onboarding path where no client-held self-signing key (SSK) or DID inception key signs the device binding. The cryptographic signer is the envelope proof (verification_method MUST map to executed_by); this object records the trust root for device-trust-chain consumers. Receivers MUST verify authority_did is the enrollment authority designated by the principal DID document resolved at this event's accepted-at, and that authorization_ref delegation covers device authorization. See zh/crypto-media/device-lifecycle.md §5.4 and zh/identity/key-management.md §5.0.6.",
+      "description": "Delegated-authority binding for a ak.device.authorize event admitted as service_attested: device_public_key, hpke_key and algorithms are attested by an enrollment authority designated in the principal DID document. Both the external-authority B model and the principal-owned A-model genesis use this shape; identity model is determined by whether authority_did equals principal_id, not by the binding name. Identity root keys MUST NOT sign this event.",
       "required": [
         "kind",
         "authority_did",
@@ -5581,13 +5568,22 @@
         },
         {
           "required": [
-            "bootstrap_binding"
-          ]
-        },
-        {
-          "required": [
             "enrollment_authority_binding"
           ]
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "recovery_session_id"
+            ]
+          },
+          "then": {
+            "required": [
+              "device_signature"
+            ]
+          }
         }
       ],
       "properties": {
@@ -5633,9 +5629,6 @@
         "cross_signing_binding": {
           "$ref": "#/$defs/device_cross_signing_binding"
         },
-        "bootstrap_binding": {
-          "$ref": "#/$defs/device_bootstrap_binding"
-        },
         "enrollment_authority_binding": {
           "$ref": "#/$defs/device_enrollment_authority_binding"
         },
@@ -5643,6 +5636,79 @@
           "type": "string",
           "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Present when this authorization was produced by a device recovery strand (crypto-media/device-lifecycle.md §15). Binds the event to the recovery_session_id used by the proof transcript, backup-decrypt proofs, and the recovery_receipt, so an auditor reading only the control stream can correlate authorization to receipt. Omitted for ordinary pairing-based authorizations. Not part of the cross_signing_binding signing input (§5.2)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_reanchor_payload": {
+      "type": "object",
+      "description": "Closed payload for the B-model DID-root recovery anchor. Fields are ordered identity, DID generation, accepted pre-fence basis, then the exact replacement authorization binding. Generation projection fields are reducer-managed and MUST NOT be added here.",
+      "required": [
+        "principal_id",
+        "did_version_id",
+        "previous_device_generation",
+        "new_device_generation",
+        "pre_fence_basis",
+        "replacement_authorize_event_id",
+        "replacement_authorize_digest"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "did_version_id": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*-[^\\s]+$",
+          "description": "Verified did:webvh entry versionId. Its numeric prefix defines the re-anchor conflict slot."
+        },
+        "previous_device_generation": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*-[^\\s]+$"
+        },
+        "new_device_generation": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*-[^\\s]+$",
+          "description": "MUST equal did_version_id."
+        },
+        "pre_fence_basis": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "required": [
+                "leaves",
+                "control_event_set_root",
+                "state_root"
+              ],
+              "properties": {
+                "leaves": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 64,
+                  "items": {
+                    "$ref": "#/$defs/seal_ref"
+                  },
+                  "uniqueItems": true
+                },
+                "control_event_set_root": {
+                  "$ref": "#/$defs/hash"
+                },
+                "state_root": {
+                  "$ref": "#/$defs/hash"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "replacement_authorize_event_id": {
+          "type": "string",
+          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "replacement_authorize_digest": {
+          "$ref": "#/$defs/hash"
         }
       },
       "additionalProperties": false

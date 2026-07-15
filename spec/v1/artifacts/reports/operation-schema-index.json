@@ -132,6 +132,7 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody",
         "schema_kind": "object",
         "required": [
+          "principal_id",
           "proof"
         ],
         "properties": [
@@ -3204,6 +3205,7 @@
           "device_quorum",
           "trusted_recovery_services",
           "recovery_keys",
+          "recovery_key_agreements",
           "approval_requirement",
           "audit",
           "issued_at",
@@ -3242,14 +3244,12 @@
         "required": [
           "principal_id",
           "requesting_device_id",
-          "trust_domain",
-          "ssk_generation"
+          "trust_domain"
         ],
         "properties": [
           "principal_id",
           "requesting_device_id",
           "trust_domain",
-          "ssk_generation",
           "expected_recovery_policy_ref"
         ],
         "closed": true
@@ -3265,7 +3265,7 @@
           "trust_domain",
           "policy_id",
           "policy_version",
-          "ssk_generation",
+          "identity_model",
           "challenge",
           "state",
           "expires_at",
@@ -3280,7 +3280,12 @@
           "trust_domain",
           "policy_id",
           "policy_version",
+          "identity_model",
           "ssk_generation",
+          "current_device_generation_ref",
+          "device_generation_status",
+          "registry_head",
+          "accepted_seal_frontier",
           "challenge",
           "state",
           "proof_summary",
@@ -3306,7 +3311,7 @@
           "trust_domain",
           "policy_id",
           "policy_version",
-          "ssk_generation",
+          "identity_model",
           "challenge",
           "state",
           "expires_at",
@@ -3321,7 +3326,12 @@
           "trust_domain",
           "policy_id",
           "policy_version",
+          "identity_model",
           "ssk_generation",
+          "current_device_generation_ref",
+          "device_generation_status",
+          "registry_head",
+          "accepted_seal_frontier",
           "challenge",
           "state",
           "proof_summary",
@@ -3371,12 +3381,13 @@
         "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
         "schema_kind": "object",
         "required": [
-          "authorization_event_id",
-          "device_list_update_event_id"
+          "authorization_event_id"
         ],
         "properties": [
           "authorization_event_id",
           "device_list_update_event_id",
+          "reanchor_event_id",
+          "reanchor_batch_receipt_id",
           "idempotency_key"
         ],
         "closed": true
@@ -3389,16 +3400,19 @@
           "recovery_session_id",
           "state",
           "device_id",
-          "authorization_event_id",
-          "device_list_update_event_id"
+          "identity_model",
+          "authorization_event_id"
         ],
         "properties": [
           "ok",
           "recovery_session_id",
           "state",
           "device_id",
+          "identity_model",
           "authorization_event_id",
-          "device_list_update_event_id"
+          "device_list_update_event_id",
+          "reanchor_event_id",
+          "reanchor_batch_receipt_id"
         ],
         "closed": true
       }
@@ -3775,7 +3789,8 @@
         "properties": [
           "device_keys",
           "failures",
-          "cross_signing"
+          "cross_signing",
+          "device_generations"
         ],
         "closed": true
       }

@@ -269,12 +269,12 @@
               "backup_version": "kb_1",
               "created_at": "2026-04-26T00:00:00Z",
               "item_types": [
-                "recovery_secret"
+                "private_account_state"
               ]
             },
             "nonce_salt_hex": "02020202020202020202020202020202",
             "nonce_salt_b64u": "AgICAgICAgICAgICAgICAg",
-            "plaintext_utf8": "{\"recovery_secret\":\"fixture-plaintext-one\"}"
+            "plaintext_utf8": "{\"private_account_state\":\"fixture-plaintext-one\"}"
           },
           "intermediate": {
             "root_key_hex": "a983c30032133eaee62e2ce9bb35d0f4f609da2cb1aeb14f09bac7acc4d5a6e0",
@@ -293,20 +293,20 @@
               }
             },
             "nonce_transcript_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"aead\":\"xchacha20_poly1305\",\"aead_profile\":\"ak.aead.xchacha20_poly1305.v1\",\"backup_class\":\"secret_storage\",\"backup_id\":\"ak:backup:01964137-0000-7000-8000-000000000000\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-04-26T00:00:00Z\",\"device_id\":null,\"nonce_salt\":\"AgICAgICAgICAgICAgICAg\"}",
-            "aead_aad_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"backup_class\":\"secret_storage\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-04-26T00:00:00Z\",\"device_id\":null,\"item_types\":[\"recovery_secret\"],\"schema\":\"ak.schema.key_backup.v1\"}"
+            "aead_aad_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"backup_class\":\"secret_storage\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-04-26T00:00:00Z\",\"device_id\":null,\"item_types\":[\"private_account_state\"],\"schema\":\"ak.schema.key_backup.v1\"}"
           },
           "expected": {
             "aead": "xchacha20_poly1305",
             "aead_profile": "ak.aead.xchacha20_poly1305.v1",
             "nonce_hex": "d8b72ab1d573cded7c8491bd2b6929c9f5143dbaad3cf9b8",
             "nonce_b64u": "2LcqsdVzze18hJG9K2kpyfUUPbqtPPm4",
-            "ciphertext_b64u": "frGWEnF6UZRnRLBVXqfSZz2gWZBRvSVXwqJVUYiBEcmkcyzQxfzg6MDMNsa7TXYJ7E0Tn33cRODpVrM",
-            "ciphertext_digest": "sha256:0f1cc9c4a7aac5609e865c257a03f20b04e04d4230a8c9b4c21db5c636b6b290",
+            "ciphertext_b64u": "frGUBXtjRoVwYo5FWKvVbD3dEMZWoDgBjfJWFYCZBdKvKjnE0Ljh8sCWP9rU62hvBNowj92VHb0B7I7_hBGOgm0",
+            "ciphertext_digest": "sha256:8fc89a38f750543a244ef79e309722a7b1e6fcd14dc7b730d284ef5b4b7f677f",
             "key_commitment": "sha256:072dc9c217ff50d8128c5ec261c28ffadd920635cc557a5f4ec43852e28827f4"
           }
         },
         {
-          "label": "did_recovery_with_device",
+          "label": "secret_storage_with_device",
           "input": {
             "passphrase_utf8": "pässwörd zwölf drüben",
             "argon2id": {
@@ -322,44 +322,44 @@
               "backup_id": "ak:backup:0196419b-0000-7000-8000-000000000201",
               "actor_id": "did:webvh:z6mkfixture:bob.example",
               "device_id": "ak:device:0196419b-0000-7000-8000-000000000002",
-              "backup_class": "did_recovery",
+              "backup_class": "secret_storage",
               "backup_version": "kb_1",
               "created_at": "2026-07-03T00:00:00Z",
               "item_types": [
-                "recovery_secret"
+                "self_signing_key"
               ]
             },
             "nonce_salt_hex": "a0a1a2a3a4a5a6a7a8a9aaabacadaeaf",
             "nonce_salt_b64u": "oKGio6SlpqeoqaqrrK2urw",
-            "plaintext_utf8": "{\"did_rotation_key\":\"fixture-plaintext-two\"}"
+            "plaintext_utf8": "{\"self_signing_key\":\"fixture-plaintext-two\"}"
           },
           "intermediate": {
             "root_key_hex": "9984698690db20b90f8c9c02b8739ca80f9b2950e9c3b6640eebc2f61930b667",
             "hkdf_sha256_subkeys": {
               "aead": {
-                "info": "arkret-key-backup/did_recovery/aead/v1",
-                "subkey_hex": "0583f497ea28d2cb2bc193e2fbc2d5f3afb83f3528b4219c5a2fa92e80b02777"
+                "info": "arkret-key-backup/secret_storage/aead/v1",
+                "subkey_hex": "63abc05cd98f7cacb708c24a1030d14a2f674cef77ef9bbd1f5bff255ea89cfa"
               },
               "nonce": {
                 "info": "arkret-key-backup-aead-nonce-v1",
                 "subkey_hex": "1aff4dfaf2236848ca0ea4c8f5aa38a1d152300bf06cf2a8d6bfc3294103ac2b"
               },
               "commitment": {
-                "info": "arkret-key-backup/did_recovery/commitment/v1",
-                "subkey_hex": "d6cfc5f19962188cefbb3931a4490957875d52a13bb463a31cfaf1c0b9613d1e"
+                "info": "arkret-key-backup/secret_storage/commitment/v1",
+                "subkey_hex": "5f9e5b0f7cda75a8cb76792abf2e7bbb7595857bb5a67cabba1067617df41eed"
               }
             },
-            "nonce_transcript_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:bob.example\",\"aead\":\"xchacha20_poly1305\",\"aead_profile\":\"ak.aead.xchacha20_poly1305.v1\",\"backup_class\":\"did_recovery\",\"backup_id\":\"ak:backup:0196419b-0000-7000-8000-000000000201\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-07-03T00:00:00Z\",\"device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"nonce_salt\":\"oKGio6SlpqeoqaqrrK2urw\"}",
-            "aead_aad_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:bob.example\",\"backup_class\":\"did_recovery\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-07-03T00:00:00Z\",\"device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"item_types\":[\"recovery_secret\"],\"schema\":\"ak.schema.key_backup.v1\"}"
+            "nonce_transcript_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:bob.example\",\"aead\":\"xchacha20_poly1305\",\"aead_profile\":\"ak.aead.xchacha20_poly1305.v1\",\"backup_class\":\"secret_storage\",\"backup_id\":\"ak:backup:0196419b-0000-7000-8000-000000000201\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-07-03T00:00:00Z\",\"device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"nonce_salt\":\"oKGio6SlpqeoqaqrrK2urw\"}",
+            "aead_aad_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:bob.example\",\"backup_class\":\"secret_storage\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-07-03T00:00:00Z\",\"device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"item_types\":[\"self_signing_key\"],\"schema\":\"ak.schema.key_backup.v1\"}"
           },
           "expected": {
             "aead": "xchacha20_poly1305",
             "aead_profile": "ak.aead.xchacha20_poly1305.v1",
-            "nonce_hex": "6c55f614ceab5f7624b595e353ee3365e13d78c60c6fc409",
-            "nonce_b64u": "bFX2FM6rX3YktZXjU-4zZeE9eMYMb8QJ",
-            "ciphertext_b64u": "FtnjqotEYaV5p8slylele2RaIGMiizl1R-WS7T_bkEouX1IUSNMqTo1Pc1Gdp61gM8XQqXoZcZEwySjM",
-            "ciphertext_digest": "sha256:25c66451503d0ef66cf3348463c228d70cffc33d51a2d2f64477ee609f303248",
-            "key_commitment": "sha256:7bd2163685a173eab2593980614e73b9feee8beaf182633e8822733d0a6c0d4a"
+            "nonce_hex": "8b198848b86f71fb5413b770ae2c873e715225830fbf8b79",
+            "nonce_b64u": "ixmISLhvcftUE7dwriyHPnFSJYMPv4t5",
+            "ciphertext_b64u": "1onrUsaF-GL3tWPYBvi8w0jH7HSBQZGqXV9GrSVHgpbX_lN8qtyd5ni7BJCcYkRd8yDwG3AQALfIpFu2",
+            "ciphertext_digest": "sha256:faf7f63c252295a756950b6f785334ddbac42a17613e68025367762b5caccaf4",
+            "key_commitment": "sha256:9f64fc5983a3412a117ef7c259c075d51d8da38350c083478bf423ca36393f5b"
           }
         }
       ],

@@ -75,7 +75,7 @@
     },
     "frontier_ref": {
       "type": "object",
-      "description": "Optional reference to the principal control stream frontier at envelope creation time. Improves rollback detection by sealing the envelope to a verifiable control-stream position.",
+      "description": "Optional reference to the principal control stream frontier at envelope creation time. Exactly one model generation is bound: ssk_generation for A-model cross-signing or device_generation_ref for B-model enrollment authority.",
       "required": [
         "frontier_digest"
       ],
@@ -89,9 +89,35 @@
         },
         "ssk_generation": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 1
+        },
+        "device_generation_ref": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*-[^\\s]+$"
         }
       },
+      "oneOf": [
+        {
+          "required": [
+            "ssk_generation"
+          ],
+          "not": {
+            "required": [
+              "device_generation_ref"
+            ]
+          }
+        },
+        {
+          "required": [
+            "device_generation_ref"
+          ],
+          "not": {
+            "required": [
+              "ssk_generation"
+            ]
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "recovery_policy_ref": {
@@ -143,7 +169,8 @@
           ]
         },
         "recipient_key_ref": {
-          "type": "string"
+          "type": "string",
+          "description": "For recipient_method=recovery_public_key, this MUST resolve to a non-revoked recovery_key_agreements[].key_agreement_ref in the envelope's referenced accepted recovery policy, and the selected hpke_suite MUST appear in that entry's hpke_suites. DID Document-only key agreements are not an authorization source. A recovery_keys[].verification_method is a signing-key ref and MUST be rejected here."
         },
         "hpke_suite": {
           "type": "string",
@@ -532,7 +559,7 @@
               "recovery_key_share",
               "self_signing_key",
               "user_signing_key",
-              "recovery_secret",
+              "account_data_namespace_key",
               "mls_account_secret",
               "mls_private_plaintext",
               "mls_group_secrets_backup_key",
@@ -895,8 +922,44 @@
             }
           }
         },
-        "description": "mls_history backups MUST use secret_storage_key or recovery_public_key (key-management.md §7.5.2 / §7.5.3 and device-lifecycle.md §12); passphrase_kdf, threshold_recovery, hardware_wrapped_key, and the removed device_snapshot_secret are rejected. recovery_policy_ref MAY appear as a signed hint, but is not required for mls_history."
+        "description": "mls_history backups MUST use secret_storage_key or recovery_public_key (key-management.md §7.5.2 / §7.5.3 and device-lifecycle.md §12); passphrase_kdf, threshold_recovery, hardware_wrapped_key, and the removed device_snapshot_secret are rejected. Every recovery_public_key envelope, including mls_history, MUST carry a signed recovery_policy_ref."
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "encryption": {
+            "properties": {
+              "recipient_method": {
+                "const": "recovery_public_key"
+              }
+            },
+            "required": [
+              "recipient_method"
+            ]
+          }
+        },
+        "required": [
+          "encryption"
+        ]
+      },
+      "then": {
+        "required": [
+          "recovery_policy_ref"
+        ],
+        "properties": {
+          "auth_data": {
+            "properties": {
+              "signed_fields": {
+                "contains": {
+                  "const": "recovery_policy_ref"
+                }
+              }
+            }
+          }
+        }
+      },
+      "description": "Every recovery_public_key envelope is bound to one accepted recovery-policy version. The recipient_key_ref resolves only within that policy's recovery_key_agreements array, and recovery_policy_ref is signed even when backup_class is secret_storage or mls_history."
     },
     {
       "if": {
@@ -937,7 +1000,7 @@
             }
           }
         },
-        "description": "did_recovery backups MUST use recovery_public_key (key-management.md §5.0.1 first-backup gate), MUST carry recovery_policy_ref matching the active recovery policy, and MUST cover that field in auth_data.signed_fields. passphrase_kdf and secret_storage_key are forbidden for did_recovery; threshold_recovery and hardware_wrapped_key are recovery policy / proof-layer factors, not key-backup recipient methods."
+        "description": "did_recovery backups MUST use recovery_public_key (key-management.md §5.0.1 recovery-material gate), MUST carry recovery_policy_ref matching the active recovery policy, and MUST cover that field in auth_data.signed_fields. passphrase_kdf and secret_storage_key are forbidden for did_recovery; threshold_recovery and hardware_wrapped_key are recovery policy / proof-layer factors, not key-backup recipient methods."
       }
     },
     {
@@ -1119,6 +1182,46 @@
                   }
                 ]
               }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "auth_data": {
+            "required": [
+              "ssk_generation"
+            ]
+          }
+        },
+        "required": [
+          "auth_data",
+          "frontier_ref"
+        ]
+      },
+      "then": {
+        "properties": {
+          "frontier_ref": {
+            "required": [
+              "ssk_generation"
+            ]
+          }
+        }
+      },
+      "else": {
+        "if": {
+          "required": [
+            "frontier_ref"
+          ]
+        },
+        "then": {
+          "properties": {
+            "frontier_ref": {
+              "required": [
+                "device_generation_ref"
+              ]
             }
           }
         }
