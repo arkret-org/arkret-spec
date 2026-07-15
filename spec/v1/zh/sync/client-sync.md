@@ -133,6 +133,8 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 }
 ```
 
+容器形状相同不表示元素的 envelope class 相同：`state`、`state_after` 与 `account_data` 的 `events[]` 使用 durable / actor-private `Event`；per-Realm `ephemeral` 与顶层 `presence` 的 `events[]` 必须使用 `EphemeralEnvelope`。`ephemeral_event` kind 不得为了复用容器而包装成 durable `Event`，也不得恢复 `{type, actors}`、`{type, receipts}`、`{type, call_signals}` 等非规范聚合对象。
+
 顶层 `notifications` 与 `to_device` 都不是事件容器。`notifications` 使用 §3.1 的闭合 `{items: NotificationDelta[]}`；`to_device` 使用 `DeviceMessageEnvelope[]` 承载形态 `{messages, ack_token?, limited?, next_cursor?, lost?}`，schema 为 `account-subscribe-frame.schema.json#/$defs/device_message_container`。两者中的对象均不得作为 durable Event Envelope 处理。
 
 ### 2.2 连接管理与重连

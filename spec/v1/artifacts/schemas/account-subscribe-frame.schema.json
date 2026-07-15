@@ -47,7 +47,7 @@
       "description": "Account-scoped private data updates on `delta` frames."
     },
     "presence": {
-      "$ref": "#/$defs/event_container",
+      "$ref": "#/$defs/ephemeral_event_container",
       "description": "Presence updates on `delta` frames."
     },
     "notifications": {
@@ -87,6 +87,21 @@
         }
       },
       "additionalProperties": true
+    },
+    "ephemeral_event_container": {
+      "type": "object",
+      "required": [
+        "events"
+      ],
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "./ephemeral-envelope.schema.json"
+          }
+        }
+      },
+      "additionalProperties": false
     },
     "notification_container": {
       "type": "object",
@@ -370,7 +385,7 @@
           "$ref": "#/$defs/event_container"
         },
         "ephemeral": {
-          "$ref": "#/$defs/event_container"
+          "$ref": "#/$defs/ephemeral_event_container"
         },
         "account_data": {
           "$ref": "#/$defs/event_container"
