@@ -396,6 +396,30 @@ continuity / 迁移独有规则：
 4. Realm membership、capability grant、device/session control 和 MLS identity link 通过普通 Event 或 policy 流程重新绑定到新 DID。
 5. 客户端在 UI 中显示"已计划迁移"状态和原 DID 的验证历史，不把它当作无痕重命名。
 
+### 4.3 Identity Receipt 签名 transcript
+
+`identity-receipt.schema.json` 的 `signature` 是非 Event detached proof。其
+`payload_digest = sha256(canonical_json(receipt_without_signature))`；detached JWS 的输入必须是：
+
+```json
+{
+  "context": "ak.identity-receipt-proof-v1",
+  "payload_digest": "sha256:<64-hex>",
+  "registry_service_id": "did:webvh:<registry>",
+  "did": "did:webvh:<subject>",
+  "verification_method": "did:webvh:<registry>#<key-id>",
+  "created_at": "<canonical RFC3339 timestamp>"
+}
+```
+
+`domain` 与 `audience` 按该顺序在存在时追加。`context` 是 verifier 构造的固定对象族
+domain tag，不进入 receipt wire body。`signature.created_at` 必须与 receipt 顶层
+`created_at` 相等；`signature.verification_method` 必须是 `registry_service_id` 当前有效的
+assertion method。顶层 `audience` 与 proof `audience` 必须同时缺失，或同时为相同的单个
+字符串；此对象族禁止 array audience。Verifier 必须先重算并常量时间比较
+`payload_digest`，再构造上述 binding object 验证 JWS。直接签 receipt body、遗漏
+`context`、复用 `ak.event-proof-v1` 或只签 proof 字段都必须拒绝。
+
 ## 5. Resolver、Auth Server 与组织授权
 
 DID 解析、登录认证和组织数据授权是三个不同职责：
