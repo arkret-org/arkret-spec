@@ -67,6 +67,14 @@
       "description": "Canonical HPKE (RFC 9180) suite (KEM x KDF x AEAD) vocabulary for non-MLS application-layer public-key sealing (key-backup recovery_public_key, did_recovery, to-device ak.secret.send, member-application and file-transfer key envelopes); unregistered suites fail closed. Fourth algorithm-agility registry alongside signature-alg, digest-suite and mls-ciphersuite."
     },
     {
+      "name": "service_types",
+      "file": "registry/service-type-registry.json",
+      "kind": "service_type_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical service_type role vocabulary and its per-context validity (Service Describe, Realm sync endpoint, Realm join candidate, ServiceRegistrationKey, MIMI provider directory); replaces four drifted definitions."
+    },
+    {
       "name": "relation_kinds",
       "file": "registry/relation-kind-registry.json",
       "kind": "relation_kind_registry",
