@@ -5689,6 +5689,329 @@ def check_mls_pq_suite_registration(lint: Lint) -> None:
         lint.fail(path, "private MLS_128_XWING_AES128GCM_SHA256_Ed25519 alias is forbidden")
 
 
+def check_mls_governance_proof_fixture(lint: Lint) -> None:
+    path = ARTIFACTS / "fixtures" / "mls-governance-proof-fixture.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+
+    verifier_vector = "ak.vector.mls.governance_proof.verifier.v1"
+    materializer_vector = "ak.vector.mls.governance_proof.materializer.v1"
+    bounds_vector = "ak.vector.scalability.mls_governance_proof_bounds.v1"
+    profile_id = "ak.profile.mls_governance_binding.full.v1"
+    expected_vectors = {verifier_vector, materializer_vector}
+
+    if data.get("generated_by") != "tools/generate_mls_governance_proof_fixture.py":
+        lint.fail(path, "MLS governance proof fixture must name its deterministic generator")
+    if set(data.get("covers_vectors", [])) != expected_vectors:
+        lint.fail(path, "MLS governance proof fixture must cover the verifier and materializer vectors exactly")
+    if data.get("required_companion_vectors") != [bounds_vector]:
+        lint.fail(path, "MLS governance proof fixture must require the bounds companion vector")
+
+    expected_consumers = {
+        "sdk_proof_verifier": "cotest::conformance::mls_governance_proof_bundle::verify",
+        "server_materializer": "cotest::conformance::mls_governance_proof_bundle::materialize",
+    }
+    consumers = data.get("consumer_contracts")
+    actual_consumers = {
+        row.get("role"): row.get("entrypoint")
+        for row in consumers
+        if isinstance(row, dict)
+    } if isinstance(consumers, list) else {}
+    if actual_consumers != expected_consumers:
+        lint.fail(path, f"MLS governance proof consumer ownership mismatch: {actual_consumers}")
+    for row in consumers if isinstance(consumers, list) else []:
+        outputs = set(row.get("required_output_fields", [])) if isinstance(row, dict) else set()
+        if row.get("role") == "sdk_proof_verifier":
+            required_outputs = {
+                "case_name", "schema_result", "decision", "failure_stage", "reason_code",
+                "verified_bundle_digest", "epoch_advanced",
+            }
+        else:
+            required_outputs = {
+                "case_name", "decision", "error_code", "response_count", "bundle_digest",
+                "chunk_digests", "peak_buffer_bytes", "partial_manifest_emitted",
+            }
+        if outputs != required_outputs:
+            lint.fail(path, f"{row.get('role')} required output contract drifted: {sorted(outputs)}")
+
+    profile_path = ARTIFACTS / "profiles" / "conformance-profiles.json"
+    profiles = load_json(lint, profile_path)
+    requirement = (
+        profiles.get("profile_requirements", {}).get(profile_id, {})
+        if isinstance(profiles, dict)
+        else {}
+    )
+    required_profile_refs = {
+        "required_endpoints": "ak.self.events.query.mls_governance_proof",
+        "required_schemas": "ak.schema.mls_governance_proof_bundle.v1",
+        "required_fixtures": path.name,
+    }
+    for field, value in required_profile_refs.items():
+        if value not in requirement.get(field, []):
+            lint.fail(profile_path, f"{profile_id}.{field} must include {value}")
+
+    vector_path = ARTIFACTS / "registry" / "vector-registry.json"
+    vector_data = load_json(lint, vector_path)
+    rows = {
+        row.get("vector_id"): row
+        for row in vector_data.get("vectors", [])
+        if isinstance(row, dict)
+    } if isinstance(vector_data, dict) else {}
+    for vector_id in expected_vectors:
+        row = rows.get(vector_id, {})
+        if row.get("status") != "active" or row.get("applies_to_fixtures") != [path.name]:
+            lint.fail(vector_path, f"{vector_id} must be active and owned by {path.name}")
+    bounds_row = rows.get(bounds_vector, {})
+    if bounds_row.get("status") != "active" or bounds_row.get("applies_to_profiles") != [profile_id]:
+        lint.fail(vector_path, f"{bounds_vector} must apply directly to {profile_id}")
+
+    def raw_sha256(value: bytes) -> bytes:
+        return hashlib.sha256(value).digest()
+
+    def wire_sha256(value: bytes) -> str:
+        return "sha256:" + raw_sha256(value).hex()
+
+    def raw_digest(value: Any, label: str) -> bytes:
+        if not isinstance(value, str) or not SHA256_RE.fullmatch(value):
+            lint.fail(path, f"{label} must be a sha256 wire digest")
+            return b""
+        return bytes.fromhex(value.split(":", 1)[1])
+
+    def merkle_root(leaf_data: list[bytes]) -> str:
+        if not leaf_data:
+            return "sha256:" + raw_sha256(b"").hex()
+        level = [raw_sha256(b"\x00" + item) for item in leaf_data]
+        while len(level) > 1:
+            next_level: list[bytes] = []
+            for index in range(0, len(level), 2):
+                if index + 1 == len(level):
+                    next_level.append(level[index])
+                else:
+                    next_level.append(raw_sha256(b"\x01" + level[index] + level[index + 1]))
+            level = next_level
+        return "sha256:" + level[0].hex()
+
+    source = data.get("source_state", {})
+    events = source.get("covered_events", []) if isinstance(source, dict) else []
+    state = source.get("joined_control_state", []) if isinstance(source, dict) else []
+    seals = source.get("accepted_seals", []) if isinstance(source, dict) else []
+    known = data.get("known_answer", {})
+    if len(events) != 2 or len(state) != 2 or len(seals) != 1:
+        lint.fail(path, "base KAT must contain two Events, two state leaves and one Seal")
+        return
+    event_kats = known.get("event_steps", []) if isinstance(known, dict) else []
+    event_digests: list[str] = []
+    for index, event in enumerate(events):
+        if not isinstance(event, dict):
+            lint.fail(path, f"covered_events[{index}] must be an object")
+            continue
+        producer = {
+            key: value
+            for key, value in event.items()
+            if key not in {"proofs", "unsigned", "effective_scope", "actor_kind"}
+        }
+        producer_bytes = canonical_json(producer).encode("utf-8")
+        event_digest = wire_sha256(producer_bytes)
+        event_digests.append(event_digest)
+        proofs = event.get("proofs", [])
+        proof = proofs[0] if isinstance(proofs, list) and len(proofs) == 1 and isinstance(proofs[0], dict) else {}
+        if proof.get("event_digest") != event_digest:
+            lint.fail(path, f"covered_events[{index}] proof.event_digest does not match producer bytes")
+        binding = {
+            "context": "ak.event-proof-v1",
+            "event_digest": event_digest,
+            "actor_id": event.get("actor_id"),
+            "verification_method": proof.get("verification_method"),
+            "created_at": proof.get("created_at"),
+        }
+        kat = event_kats[index] if index < len(event_kats) and isinstance(event_kats[index], dict) else {}
+        expected_event_values = {
+            "event_id": event.get("event_id"),
+            "producer_event_canonical_bytes": len(producer_bytes),
+            "producer_event_digest": event_digest,
+            "proof_binding_canonical_bytes": len(canonical_json(binding).encode("utf-8")),
+            "proof_binding_sha256": wire_sha256(canonical_json(binding).encode("utf-8")),
+        }
+        if kat != expected_event_values:
+            lint.fail(path, f"covered_events[{index}] known-answer metadata drifted")
+
+    sorted_digests = sorted(event_digests)
+    if event_digests[0] == event_digests[1] or len(set(event_digests)) != 2:
+        lint.fail(path, "base KAT Event digests must be distinct")
+    control_root = merkle_root([raw_digest(value, "Event digest") for value in sorted_digests])
+    if known.get("control_event_set_root") != control_root:
+        lint.fail(path, "known_answer.control_event_set_root mismatch")
+    cells = [row.get("cell") for row in state if isinstance(row, dict)]
+    if cells != sorted(cells) or len(set(cells)) != len(cells):
+        lint.fail(path, "base KAT control_state must be canonical sorted and duplicate-free")
+    state_bytes = [canonical_json(row).encode("utf-8") for row in state]
+    state_root = merkle_root(state_bytes)
+    if known.get("state_root") != state_root:
+        lint.fail(path, "known_answer.state_root mismatch")
+    if known.get("state_leaf_canonical_bytes") != [len(value) for value in state_bytes]:
+        lint.fail(path, "known_answer.state_leaf_canonical_bytes mismatch")
+
+    completeness_leaf = {
+        "actor_id": events[0].get("actor_id"),
+        "from_seq": 0,
+        "to_seq": 1,
+        "event_digests": event_digests,
+    }
+    completeness_bytes = canonical_json(completeness_leaf).encode("utf-8")
+    completeness_root = merkle_root([completeness_bytes])
+    if known.get("completeness_root") != completeness_root or known.get("completeness_leaf_canonical_bytes") != len(completeness_bytes):
+        lint.fail(path, "known-answer completeness commitment mismatch")
+
+    seal = seals[0]
+    seal_body = {key: value for key, value in seal.items() if key not in {"id", "notary_signature"}}
+    seal_bytes = canonical_json(seal_body).encode("utf-8")
+    seal_digest = wire_sha256(seal_bytes)
+    signature = seal.get("notary_signature", {}) if isinstance(seal, dict) else {}
+    if seal.get("id") != "ak:seal:" + seal_digest or signature.get("payload_digest") != seal_digest:
+        lint.fail(path, "Seal id/signature payload digest does not match canonical Seal body")
+    if seal.get("delta") != sorted_digests:
+        lint.fail(path, "Seal delta must equal the canonical covered Event digest set")
+    expected_seal_fields = {
+        "control_event_set_root": control_root,
+        "state_root": state_root,
+        "completeness_root": completeness_root,
+    }
+    for field, expected in expected_seal_fields.items():
+        if seal.get(field) != expected:
+            lint.fail(path, f"Seal {field} mismatch")
+    if known.get("seal_digest") != seal_digest or known.get("seal_canonical_bytes") != len(seal_bytes):
+        lint.fail(path, "known-answer Seal commitment mismatch")
+
+    discussion_input = {"media_service_decrypts": False, "plaintext_visible_services": []}
+    discussion_bytes = canonical_json(discussion_input).encode("utf-8")
+    discussion_digest = wire_sha256(discussion_bytes)
+    if known.get("discussion_metadata_digest") != discussion_digest or known.get("discussion_input_canonical_bytes") != len(discussion_bytes):
+        lint.fail(path, "known-answer discussion metadata commitment mismatch")
+
+    proof_identity = source.get("proof_identity", {})
+    identity_bytes = canonical_json(proof_identity).encode("utf-8")
+    request_digest = wire_sha256(b"arkret-mls-governance-proof-request-v1\n" + identity_bytes)
+    if known.get("proof_request_digest") != request_digest or known.get("proof_identity_canonical_bytes") != len(identity_bytes):
+        lint.fail(path, "known-answer proof request commitment mismatch")
+
+    acquisition = data.get("expected_acquisition", {})
+    responses = acquisition.get("responses", []) if isinstance(acquisition, dict) else []
+    requests = data.get("requests", [])
+    if len(responses) != 4 or len(requests) != 4:
+        lint.fail(path, "base acquisition must contain exactly four requests and responses")
+        return
+    chunks = [row.get("chunk") for row in responses if isinstance(row, dict)]
+    expected_collections = ["seal_path", "covered_event_digests", "control_state", "frontier_events"]
+    if [chunk.get("collection") for chunk in chunks if isinstance(chunk, dict)] != expected_collections:
+        lint.fail(path, "base chunks must use the canonical four-collection order")
+    chunk_digests: list[str] = []
+    chunk_bytes_lengths: list[int] = []
+    for index, chunk in enumerate(chunks):
+        if not isinstance(chunk, dict):
+            continue
+        digest_input = {
+            "chunk_index": chunk.get("chunk_index"),
+            "collection": chunk.get("collection"),
+            "start_index": chunk.get("start_index"),
+            "items": chunk.get("items"),
+        }
+        digest_bytes = canonical_json(digest_input).encode("utf-8")
+        chunk_digest = wire_sha256(b"arkret-mls-governance-proof-chunk-v1\n" + digest_bytes)
+        chunk_digests.append(chunk_digest)
+        chunk_bytes_lengths.append(len(digest_bytes))
+        if chunk.get("chunk_index") != index or chunk.get("start_index") != 0 or chunk.get("chunk_digest") != chunk_digest:
+            lint.fail(path, f"chunk {index} index/start/digest commitment mismatch")
+        response = responses[index]
+        request = requests[index] if isinstance(requests[index], dict) else {}
+        if response.get("proof_request_digest") != request_digest or request.get("chunk_index") != index:
+            lint.fail(path, f"request/response {index} acquisition identity mismatch")
+        if index == 0 and "expected_bundle_digest" in request:
+            lint.fail(path, "chunk 0 request must not carry expected_bundle_digest")
+
+    chunks_root = merkle_root([raw_digest(value, "chunk digest") for value in chunk_digests])
+    manifests = [row.get("chunk_manifest") for row in responses if isinstance(row, dict)]
+    if any(manifest != manifests[0] for manifest in manifests[1:]):
+        lint.fail(path, "every response must repeat the same chunk_manifest")
+    manifest = manifests[0] if manifests and isinstance(manifests[0], dict) else {}
+    total_item_bytes = sum(
+        len(canonical_json(item).encode("utf-8"))
+        for chunk in chunks if isinstance(chunk, dict)
+        for item in chunk.get("items", [])
+    )
+    totals = {
+        chunk["collection"]: len(chunk.get("items", []))
+        for chunk in chunks if isinstance(chunk, dict)
+    }
+    if manifest.get("chunks_root") != chunks_root or manifest.get("total_item_bytes") != total_item_bytes or manifest.get("collection_totals") != totals:
+        lint.fail(path, "manifest root/item-byte/collection totals mismatch")
+    if known.get("chunk_digests") != chunk_digests or known.get("chunk_canonical_bytes") != chunk_bytes_lengths:
+        lint.fail(path, "known-answer chunk commitments mismatch")
+    if known.get("chunks_root") != chunks_root or known.get("total_item_bytes") != total_item_bytes:
+        lint.fail(path, "known-answer manifest commitment mismatch")
+
+    base_header = {key: value for key, value in responses[0].items() if key not in {"bundle_digest", "chunk"}}
+    header_bytes = canonical_json(base_header).encode("utf-8")
+    bundle_digest = wire_sha256(b"arkret-mls-governance-proof-bundle-v1\n" + header_bytes)
+    for index, response in enumerate(responses):
+        response_header = {key: value for key, value in response.items() if key not in {"bundle_digest", "chunk"}}
+        if response_header != base_header or response.get("bundle_digest") != bundle_digest:
+            lint.fail(path, f"response {index} Bundle header/digest mismatch")
+        request = requests[index]
+        if index and request.get("expected_bundle_digest") != bundle_digest:
+            lint.fail(path, f"request {index} must pin the base bundle_digest")
+    if known.get("bundle_digest") != bundle_digest or known.get("bundle_header_canonical_bytes") != len(header_bytes):
+        lint.fail(path, "known-answer Bundle commitment mismatch")
+
+    expected_verifier_cases = {
+        "valid_complete_bundle", "self_reported_anchor_is_not_trust", "broken_seal_path",
+        "forked_seal_path", "wrong_notary_authority", "missing_covered_digest",
+        "extra_covered_digest", "duplicate_covered_digest", "covered_digest_order",
+        "missing_state_leaf", "extra_state_leaf", "duplicate_state_leaf", "state_leaf_order",
+        "missing_frontier_event", "extra_frontier_event", "duplicate_frontier_event",
+        "frontier_event_order", "frontier_cross_realm_scope", "frontier_event_proof_invalid",
+        "chunks_root_mismatch", "missing_chunk", "duplicate_chunk", "chunk_order",
+        "binding_realm_mismatch", "binding_group_mismatch", "binding_previous_epoch_mismatch",
+        "binding_next_epoch_mismatch", "binding_profile_mismatch", "binding_reducer_mismatch",
+        "policy_root_mismatch", "capability_root_mismatch", "discussion_metadata_digest_mismatch",
+    }
+    verifier_cases = data.get("verifier_cases", [])
+    actual_verifier_cases = {
+        row.get("name") for row in verifier_cases if isinstance(row, dict)
+    } if isinstance(verifier_cases, list) else set()
+    if actual_verifier_cases != expected_verifier_cases:
+        lint.fail(path, f"verifier mutation matrix drifted: {sorted(actual_verifier_cases)}")
+    for row in verifier_cases if isinstance(verifier_cases, list) else []:
+        expected = row.get("expected", {}) if isinstance(row, dict) else {}
+        if row.get("name") != "valid_complete_bundle" and (
+            expected.get("verified_bundle_persisted") is not False
+            or expected.get("epoch_advanced") is not False
+            or not expected.get("failure_stage")
+            or not expected.get("reason_code")
+        ):
+            lint.fail(path, f"reject verifier case lacks fail-closed output: {row.get('name')}")
+
+    expected_materializer_cases = {
+        "valid_materialization", "unknown_anchor", "unreachable_anchor", "missing_seal_material",
+        "forked_seal_source", "unauthorized_notary_source", "missing_covered_event_source",
+        "bottom_control_cell_source", "scope_visibility_denied", "logical_bundle_over_bound",
+    }
+    materializer_cases = data.get("materializer_cases", [])
+    actual_materializer_cases = {
+        row.get("name") for row in materializer_cases if isinstance(row, dict)
+    } if isinstance(materializer_cases, list) else set()
+    if actual_materializer_cases != expected_materializer_cases:
+        lint.fail(path, f"materializer mutation matrix drifted: {sorted(actual_materializer_cases)}")
+    for row in materializer_cases if isinstance(materializer_cases, list) else []:
+        expected = row.get("expected", {}) if isinstance(row, dict) else {}
+        if row.get("name") != "valid_materialization" and (
+            expected.get("response_count") != 0
+            or expected.get("partial_manifest_emitted") is not False
+            or not expected.get("error_code")
+        ):
+            lint.fail(path, f"reject materializer case may emit partial output: {row.get('name')}")
+
+
 def check_mls_governance_proof_bounds(lint: Lint) -> None:
     """Bounded proof chunks and Service Describe limits must stay identical."""
     schema_path = ARTIFACTS / "schemas" / "mls-governance-proof-bundle.schema.json"
@@ -6073,6 +6396,7 @@ def main() -> int:
     check_model_required_field_table_coverage(lint)
     check_exporter_label_registry(lint)
     check_signature_algorithm_registry(lint)
+    check_mls_governance_proof_fixture(lint)
     check_mls_governance_proof_bounds(lint)
     check_mls_pq_suite_registration(lint)
     check_service_type_registry(lint)

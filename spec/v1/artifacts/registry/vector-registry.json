@@ -100,8 +100,8 @@
       "vector_id": "ak.vector.scalability.mls_governance_proof_bounds.v1",
       "status": "active",
       "domain": "scalability",
-      "applies_to_fixtures": [
-        "scalability-limits-fixture.json"
+      "applies_to_profiles": [
+        "ak.profile.mls_governance_binding.full.v1"
       ],
       "description": "Generated limit-1 / limit / limit+1 matrix for MLS Governance Proof response bytes, logical item bytes, chunk count, collection totals, per-chunk item counts, Merkle proof length and chunk request pinning semantics.",
       "source_refs": [
@@ -2419,6 +2419,32 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mls.governance_proof.verifier.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_fixtures": [
+        "mls-governance-proof-fixture.json"
+      ],
+      "description": "Byte-level complete_control_state_v1 acquisition KAT and SDK verifier mutations for trust anchors, Seal paths and authority, chunk commitments, covered/state/frontier completeness, Event signatures and scope, governance roots, and commit binding fields.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mls.governance_proof.materializer.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_fixtures": [
+        "mls-governance-proof-fixture.json"
+      ],
+      "description": "Server materializer KAT that reconstructs the exact bounded four-chunk proof acquisition and returns no partial manifest for unreachable anchors, missing/forked/unverifiable source state, Bottom, visibility denial, or limit overflow.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },

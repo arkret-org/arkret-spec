@@ -3387,7 +3387,8 @@
       "required_endpoints": [
         "ak.self.keys.keypackages.command.claim",
         "ak.self.keys.keypackages.command.consume",
-        "ak.self.events.query.scan"
+        "ak.self.events.query.scan",
+        "ak.self.events.query.mls_governance_proof"
       ],
       "required_event_kinds": [
         "ak.mls.commit",
@@ -3397,11 +3398,13 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.encrypted_envelope.v1",
-        "ak.schema.snapshot.v1"
+        "ak.schema.snapshot.v1",
+        "ak.schema.mls_governance_proof_bundle.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
-        "privacy-security-fixture.json"
+        "privacy-security-fixture.json",
+        "mls-governance-proof-fixture.json"
       ],
       "optional_extensions": [
         "aad_visibility_policy",
@@ -3413,7 +3416,8 @@
           "move_based_mls_commit",
           "covered_seals_cell",
           "mls_epoch_cell",
-          "governance_binding_profile_required"
+          "governance_binding_profile_required",
+          "mls_governance_proof_bundle"
         ],
         "unsupported_optional": "fail closed on root mismatch"
       },

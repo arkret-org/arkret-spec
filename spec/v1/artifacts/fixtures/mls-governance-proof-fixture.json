@@ -1,0 +1,1449 @@
+{
+  "profile": "ak.profile.mls_governance_binding.full.v1",
+  "version": "2026-07-15",
+  "suite": "mls_governance_proof_bundle",
+  "generated_by": "tools/generate_mls_governance_proof_fixture.py",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "cotest::conformance::mls_governance_proof_bundle"
+  },
+  "consumer_contracts": [
+    {
+      "role": "sdk_proof_verifier",
+      "entrypoint": "cotest::conformance::mls_governance_proof_bundle::verify",
+      "inputs": [
+        "trust_context",
+        "commit_context",
+        "expected_acquisition",
+        "verifier_cases"
+      ],
+      "required_output_fields": [
+        "case_name",
+        "schema_result",
+        "decision",
+        "failure_stage",
+        "reason_code",
+        "verified_bundle_digest",
+        "epoch_advanced"
+      ]
+    },
+    {
+      "role": "server_materializer",
+      "entrypoint": "cotest::conformance::mls_governance_proof_bundle::materialize",
+      "inputs": [
+        "source_state",
+        "requests",
+        "materializer_cases"
+      ],
+      "required_output_fields": [
+        "case_name",
+        "decision",
+        "error_code",
+        "response_count",
+        "bundle_digest",
+        "chunk_digests",
+        "peak_buffer_bytes",
+        "partial_manifest_emitted"
+      ]
+    }
+  ],
+  "covers_vectors": [
+    "ak.vector.mls.governance_proof.verifier.v1",
+    "ak.vector.mls.governance_proof.materializer.v1"
+  ],
+  "required_companion_vectors": [
+    "ak.vector.scalability.mls_governance_proof_bounds.v1"
+  ],
+  "schema_ref": "../schemas/mls-governance-proof-bundle.schema.json",
+  "trust_context": {
+    "trusted_anchor_seal_ids": [
+      "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93"
+    ],
+    "authorized_notary_methods": [
+      "did:webvh:zfixture:notary.example#key-1"
+    ],
+    "verification_keys": {
+      "did:webvh:zfixture:admin.example#key-1": {
+        "kty": "OKP",
+        "crv": "Ed25519",
+        "x": "0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzc",
+        "alg": "EdDSA",
+        "use": "sig",
+        "kid": "did:webvh:zfixture:admin.example#key-1"
+      },
+      "did:webvh:zfixture:notary.example#key-1": {
+        "kty": "OKP",
+        "crv": "Ed25519",
+        "x": "oJql9HpnWYAv-VX43C0qFKXJnSO-l_hkEn_5ODRVpPA",
+        "alg": "EdDSA",
+        "use": "sig",
+        "kid": "did:webvh:zfixture:notary.example#key-1"
+      }
+    },
+    "verification_time": "2026-07-15T00:00:03Z"
+  },
+  "commit_context": {
+    "transcript_authenticated_governance_binding": {
+      "binding_version": 1,
+      "encoding_profile": "cbor-deterministic-rfc8949-v1",
+      "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+      "effective_scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+      },
+      "mls_group_id": "Z3JvdXAtMDE",
+      "previous_epoch": 41,
+      "next_epoch": 42,
+      "membership_frontier": [
+        "ak:event:019809f4-a800-7000-8000-000000000101",
+        "ak:event:019809f4-a801-7000-8000-000000000102"
+      ],
+      "policy_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "capability_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "discussion_metadata_digest": "sha256:9610cd5decd573bbebbea8aa903d9cd282c75ea6aeddea78754e5d98db266306",
+      "binding_profile": "ak.profile.mls_governance_binding.full.v1",
+      "reducer_profile": "ak.reducer.core.v1"
+    },
+    "expected_realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+    "expected_effective_scope": {
+      "kind": "realm",
+      "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+    },
+    "expected_mls_group_id": "Z3JvdXAtMDE",
+    "expected_previous_epoch": 41,
+    "expected_next_epoch": 42,
+    "expected_binding_profile": "ak.profile.mls_governance_binding.full.v1",
+    "expected_reducer_profile": "ak.reducer.core.v1"
+  },
+  "source_state": {
+    "proof_identity": {
+      "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+      "effective_scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+      },
+      "mls_group_id": "Z3JvdXAtMDE",
+      "previous_epoch": 41,
+      "next_epoch": 42,
+      "binding_profile": "ak.profile.mls_governance_binding.full.v1",
+      "reducer_profile": "ak.reducer.core.v1",
+      "trusted_anchor_seal_id": "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93"
+    },
+    "accepted_seals": [
+      {
+        "id": "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93",
+        "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+        "predecessor_refs": [],
+        "delta": [
+          "sha256:9822113de3156a5df3c65d42e3db3a5aec21566b2bf4fadbcaefe435d1d6486c",
+          "sha256:db690e008d2766b679bb4077cd69bacd7d1be1428db91f425b3deff906dbe425"
+        ],
+        "covered_event_digests": [
+          "sha256:9822113de3156a5df3c65d42e3db3a5aec21566b2bf4fadbcaefe435d1d6486c",
+          "sha256:db690e008d2766b679bb4077cd69bacd7d1be1428db91f425b3deff906dbe425"
+        ],
+        "control_event_set_root": "sha256:bb7cbe7005613059ad4085f0368169d4e0135de08582aeb1cbc813ecccbda560",
+        "state_root": "sha256:6697c95a65a0c59add7ae722f62d732c722462f45ad9d9a7f74d46960cf17153",
+        "completeness_root": "sha256:f2080e1affb01f3303b24fd72299233de4ee8347bb49fc8366db109a743c9b4b",
+        "notary_seq": 0,
+        "sealed_at": "2026-07-15T00:00:02Z",
+        "hlc": "019809f4a802-0000-d4c3b2a1",
+        "notary_signature": {
+          "verification_method": "did:webvh:zfixture:notary.example#key-1",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93",
+          "created_at": "2026-07-15T00:00:02Z",
+          "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTpub3RhcnkuZXhhbXBsZSNrZXktMSJ9..Z-WCmhN5Dqxr-HZiSlcWLJkN4LtW7akxeqGmN9a6ZIXST58kEEgMQRJ_K0MFzZeWELMShfWMcFE-_XMjKh_iDg"
+        }
+      }
+    ],
+    "covered_events": [
+      {
+        "event_id": "ak:event:019809f4-a800-7000-8000-000000000101",
+        "kind": "ak.member.state",
+        "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+        "actor_id": "did:webvh:zfixture:admin.example",
+        "actor_seq": 0,
+        "created_at": "2026-07-15T00:00:00Z",
+        "hlc": "019809f4a800-0000-a1b2c3d4",
+        "prev_refs": [],
+        "refs": [],
+        "payload": {
+          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+          "actor_id": "did:webvh:zfixture:bob.example",
+          "membership": "join",
+          "delivery_status": "unroutable"
+        },
+        "effects": [
+          {
+            "cell": "ak:cell:ak.component.member.state.v1:did%3Awebvh%3Azfixture%3Abob.example",
+            "op": {
+              "kind": "transition",
+              "from": "leave",
+              "to": "join"
+            }
+          }
+        ],
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+        },
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:zfixture:admin.example#key-1",
+            "alg": "EdDSA",
+            "event_digest": "sha256:9822113de3156a5df3c65d42e3db3a5aec21566b2bf4fadbcaefe435d1d6486c",
+            "created_at": "2026-07-15T00:00:00Z",
+            "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTphZG1pbi5leGFtcGxlI2tleS0xIn0..VydmX6Llx7FaY_b8XEvVMjqh-lTOsLVT6xlk422_boGY9zp2Hhd2dIrDSsg-RQTUIkz8tIEQLnXB9pECT5eJAw"
+          }
+        ]
+      },
+      {
+        "event_id": "ak:event:019809f4-a801-7000-8000-000000000102",
+        "kind": "ak.member.state",
+        "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+        "actor_id": "did:webvh:zfixture:admin.example",
+        "actor_seq": 1,
+        "created_at": "2026-07-15T00:00:01Z",
+        "hlc": "019809f4a801-0000-a1b2c3d4",
+        "prev_refs": [
+          "ak:event:019809f4-a800-7000-8000-000000000101"
+        ],
+        "refs": [],
+        "payload": {
+          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+          "actor_id": "did:webvh:zfixture:carol.example",
+          "membership": "join",
+          "delivery_status": "unroutable"
+        },
+        "effects": [
+          {
+            "cell": "ak:cell:ak.component.member.state.v1:did%3Awebvh%3Azfixture%3Acarol.example",
+            "op": {
+              "kind": "transition",
+              "from": "leave",
+              "to": "join"
+            }
+          }
+        ],
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+        },
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:zfixture:admin.example#key-1",
+            "alg": "EdDSA",
+            "event_digest": "sha256:db690e008d2766b679bb4077cd69bacd7d1be1428db91f425b3deff906dbe425",
+            "created_at": "2026-07-15T00:00:01Z",
+            "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTphZG1pbi5leGFtcGxlI2tleS0xIn0..BWYZreZ6bo6eF8vniccq0nVvJZfWrske4kQ1jTLnKgzmmm8Heoz-DFDrjRjzy3pzMM0qIY8TSSZ5lxYOt9BIDA"
+          }
+        ]
+      }
+    ],
+    "joined_control_state": [
+      {
+        "cell": "ak:cell:ak.component.member.state.v1:did%3Awebvh%3Azfixture%3Abob.example",
+        "state": {
+          "value": "join"
+        }
+      },
+      {
+        "cell": "ak:cell:ak.component.member.state.v1:did%3Awebvh%3Azfixture%3Acarol.example",
+        "state": {
+          "value": "join"
+        }
+      }
+    ],
+    "bottom_diagnostics": [],
+    "scope_visibility": "authorized"
+  },
+  "requests": [
+    {
+      "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+      "effective_scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+      },
+      "mls_group_id": "Z3JvdXAtMDE",
+      "previous_epoch": 41,
+      "next_epoch": 42,
+      "binding_profile": "ak.profile.mls_governance_binding.full.v1",
+      "reducer_profile": "ak.reducer.core.v1",
+      "trusted_anchor_seal_id": "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93",
+      "chunk_index": 0
+    },
+    {
+      "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+      "effective_scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+      },
+      "mls_group_id": "Z3JvdXAtMDE",
+      "previous_epoch": 41,
+      "next_epoch": 42,
+      "binding_profile": "ak.profile.mls_governance_binding.full.v1",
+      "reducer_profile": "ak.reducer.core.v1",
+      "trusted_anchor_seal_id": "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93",
+      "chunk_index": 1,
+      "expected_bundle_digest": "sha256:21d9fc2a595397af2c8e4af751d57a2eefe964709e3e19341d71c5db097f44b2"
+    },
+    {
+      "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+      "effective_scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+      },
+      "mls_group_id": "Z3JvdXAtMDE",
+      "previous_epoch": 41,
+      "next_epoch": 42,
+      "binding_profile": "ak.profile.mls_governance_binding.full.v1",
+      "reducer_profile": "ak.reducer.core.v1",
+      "trusted_anchor_seal_id": "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93",
+      "chunk_index": 2,
+      "expected_bundle_digest": "sha256:21d9fc2a595397af2c8e4af751d57a2eefe964709e3e19341d71c5db097f44b2"
+    },
+    {
+      "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+      "effective_scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+      },
+      "mls_group_id": "Z3JvdXAtMDE",
+      "previous_epoch": 41,
+      "next_epoch": 42,
+      "binding_profile": "ak.profile.mls_governance_binding.full.v1",
+      "reducer_profile": "ak.reducer.core.v1",
+      "trusted_anchor_seal_id": "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93",
+      "chunk_index": 3,
+      "expected_bundle_digest": "sha256:21d9fc2a595397af2c8e4af751d57a2eefe964709e3e19341d71c5db097f44b2"
+    }
+  ],
+  "expected_acquisition": {
+    "responses": [
+      {
+        "bundle_version": 1,
+        "proof_request_digest": "sha256:924b7c2fe6d9356348e9a5ee0fcb8f3d8a8d2ada28116157764101d585d55198",
+        "materialization_profile": "complete_control_state_v1",
+        "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+        },
+        "reducer_profile": "ak.reducer.core.v1",
+        "governance_binding": {
+          "binding_version": 1,
+          "encoding_profile": "cbor-deterministic-rfc8949-v1",
+          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+          },
+          "mls_group_id": "Z3JvdXAtMDE",
+          "previous_epoch": 41,
+          "next_epoch": 42,
+          "membership_frontier": [
+            "ak:event:019809f4-a800-7000-8000-000000000101",
+            "ak:event:019809f4-a801-7000-8000-000000000102"
+          ],
+          "policy_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "capability_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "discussion_metadata_digest": "sha256:9610cd5decd573bbebbea8aa903d9cd282c75ea6aeddea78754e5d98db266306",
+          "binding_profile": "ak.profile.mls_governance_binding.full.v1",
+          "reducer_profile": "ak.reducer.core.v1"
+        },
+        "trusted_anchor_seal_id": "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93",
+        "accepted_seal_id": "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93",
+        "chunk_manifest": {
+          "manifest_version": 1,
+          "chunk_count": 4,
+          "chunks_root": "sha256:de90ef46e8c9177fb7196a2e2e5ebc74db07d4349e1be52b3d3ec793a5a02454",
+          "total_item_bytes": 3946,
+          "collection_totals": {
+            "seal_path": 1,
+            "covered_event_digests": 2,
+            "control_state": 2,
+            "frontier_events": 2
+          },
+          "max_response_bytes": 4194304,
+          "max_total_item_bytes": 268435456,
+          "max_items_per_chunk": {
+            "seal_path": 128,
+            "covered_event_digests": 8192,
+            "control_state": 1024,
+            "frontier_events": 32
+          }
+        },
+        "bundle_digest": "sha256:21d9fc2a595397af2c8e4af751d57a2eefe964709e3e19341d71c5db097f44b2",
+        "chunk": {
+          "chunk_index": 0,
+          "collection": "seal_path",
+          "start_index": 0,
+          "items": [
+            {
+              "id": "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93",
+              "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+              "predecessor_refs": [],
+              "delta": [
+                "sha256:9822113de3156a5df3c65d42e3db3a5aec21566b2bf4fadbcaefe435d1d6486c",
+                "sha256:db690e008d2766b679bb4077cd69bacd7d1be1428db91f425b3deff906dbe425"
+              ],
+              "covered_event_digests": [
+                "sha256:9822113de3156a5df3c65d42e3db3a5aec21566b2bf4fadbcaefe435d1d6486c",
+                "sha256:db690e008d2766b679bb4077cd69bacd7d1be1428db91f425b3deff906dbe425"
+              ],
+              "control_event_set_root": "sha256:bb7cbe7005613059ad4085f0368169d4e0135de08582aeb1cbc813ecccbda560",
+              "state_root": "sha256:6697c95a65a0c59add7ae722f62d732c722462f45ad9d9a7f74d46960cf17153",
+              "completeness_root": "sha256:f2080e1affb01f3303b24fd72299233de4ee8347bb49fc8366db109a743c9b4b",
+              "notary_seq": 0,
+              "sealed_at": "2026-07-15T00:00:02Z",
+              "hlc": "019809f4a802-0000-d4c3b2a1",
+              "notary_signature": {
+                "verification_method": "did:webvh:zfixture:notary.example#key-1",
+                "alg": "EdDSA",
+                "payload_digest": "sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93",
+                "created_at": "2026-07-15T00:00:02Z",
+                "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTpub3RhcnkuZXhhbXBsZSNrZXktMSJ9..Z-WCmhN5Dqxr-HZiSlcWLJkN4LtW7akxeqGmN9a6ZIXST58kEEgMQRJ_K0MFzZeWELMShfWMcFE-_XMjKh_iDg"
+              }
+            }
+          ],
+          "chunk_digest": "sha256:255d44bcfe2dd832c283dd0a3e03b5b572fbd06116117deaa36e546015b6f8e2",
+          "chunk_proof": [
+            "sha256:0deb5c8bf5d998a06a0fdb6803d5e0a0de02ae20ffcfdb5939c8d10d78666472",
+            "sha256:5f8d567f4276514b322c17519d9dfcc00598201cab0bae3e53b0452d7cef8b0c"
+          ]
+        }
+      },
+      {
+        "bundle_version": 1,
+        "proof_request_digest": "sha256:924b7c2fe6d9356348e9a5ee0fcb8f3d8a8d2ada28116157764101d585d55198",
+        "materialization_profile": "complete_control_state_v1",
+        "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+        },
+        "reducer_profile": "ak.reducer.core.v1",
+        "governance_binding": {
+          "binding_version": 1,
+          "encoding_profile": "cbor-deterministic-rfc8949-v1",
+          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+          },
+          "mls_group_id": "Z3JvdXAtMDE",
+          "previous_epoch": 41,
+          "next_epoch": 42,
+          "membership_frontier": [
+            "ak:event:019809f4-a800-7000-8000-000000000101",
+            "ak:event:019809f4-a801-7000-8000-000000000102"
+          ],
+          "policy_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "capability_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "discussion_metadata_digest": "sha256:9610cd5decd573bbebbea8aa903d9cd282c75ea6aeddea78754e5d98db266306",
+          "binding_profile": "ak.profile.mls_governance_binding.full.v1",
+          "reducer_profile": "ak.reducer.core.v1"
+        },
+        "trusted_anchor_seal_id": "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93",
+        "accepted_seal_id": "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93",
+        "chunk_manifest": {
+          "manifest_version": 1,
+          "chunk_count": 4,
+          "chunks_root": "sha256:de90ef46e8c9177fb7196a2e2e5ebc74db07d4349e1be52b3d3ec793a5a02454",
+          "total_item_bytes": 3946,
+          "collection_totals": {
+            "seal_path": 1,
+            "covered_event_digests": 2,
+            "control_state": 2,
+            "frontier_events": 2
+          },
+          "max_response_bytes": 4194304,
+          "max_total_item_bytes": 268435456,
+          "max_items_per_chunk": {
+            "seal_path": 128,
+            "covered_event_digests": 8192,
+            "control_state": 1024,
+            "frontier_events": 32
+          }
+        },
+        "bundle_digest": "sha256:21d9fc2a595397af2c8e4af751d57a2eefe964709e3e19341d71c5db097f44b2",
+        "chunk": {
+          "chunk_index": 1,
+          "collection": "covered_event_digests",
+          "start_index": 0,
+          "items": [
+            "sha256:9822113de3156a5df3c65d42e3db3a5aec21566b2bf4fadbcaefe435d1d6486c",
+            "sha256:db690e008d2766b679bb4077cd69bacd7d1be1428db91f425b3deff906dbe425"
+          ],
+          "chunk_digest": "sha256:da0dea1e48d14add10a7597a2e2cde2a06384e478ac947ca91bd18eb51664402",
+          "chunk_proof": [
+            "sha256:039ba1aee6964b38b01b61ef088079145fbb536eb205e0381495c72313c8a916",
+            "sha256:5f8d567f4276514b322c17519d9dfcc00598201cab0bae3e53b0452d7cef8b0c"
+          ]
+        }
+      },
+      {
+        "bundle_version": 1,
+        "proof_request_digest": "sha256:924b7c2fe6d9356348e9a5ee0fcb8f3d8a8d2ada28116157764101d585d55198",
+        "materialization_profile": "complete_control_state_v1",
+        "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+        },
+        "reducer_profile": "ak.reducer.core.v1",
+        "governance_binding": {
+          "binding_version": 1,
+          "encoding_profile": "cbor-deterministic-rfc8949-v1",
+          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+          },
+          "mls_group_id": "Z3JvdXAtMDE",
+          "previous_epoch": 41,
+          "next_epoch": 42,
+          "membership_frontier": [
+            "ak:event:019809f4-a800-7000-8000-000000000101",
+            "ak:event:019809f4-a801-7000-8000-000000000102"
+          ],
+          "policy_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "capability_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "discussion_metadata_digest": "sha256:9610cd5decd573bbebbea8aa903d9cd282c75ea6aeddea78754e5d98db266306",
+          "binding_profile": "ak.profile.mls_governance_binding.full.v1",
+          "reducer_profile": "ak.reducer.core.v1"
+        },
+        "trusted_anchor_seal_id": "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93",
+        "accepted_seal_id": "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93",
+        "chunk_manifest": {
+          "manifest_version": 1,
+          "chunk_count": 4,
+          "chunks_root": "sha256:de90ef46e8c9177fb7196a2e2e5ebc74db07d4349e1be52b3d3ec793a5a02454",
+          "total_item_bytes": 3946,
+          "collection_totals": {
+            "seal_path": 1,
+            "covered_event_digests": 2,
+            "control_state": 2,
+            "frontier_events": 2
+          },
+          "max_response_bytes": 4194304,
+          "max_total_item_bytes": 268435456,
+          "max_items_per_chunk": {
+            "seal_path": 128,
+            "covered_event_digests": 8192,
+            "control_state": 1024,
+            "frontier_events": 32
+          }
+        },
+        "bundle_digest": "sha256:21d9fc2a595397af2c8e4af751d57a2eefe964709e3e19341d71c5db097f44b2",
+        "chunk": {
+          "chunk_index": 2,
+          "collection": "control_state",
+          "start_index": 0,
+          "items": [
+            {
+              "cell": "ak:cell:ak.component.member.state.v1:did%3Awebvh%3Azfixture%3Abob.example",
+              "state": {
+                "value": "join"
+              }
+            },
+            {
+              "cell": "ak:cell:ak.component.member.state.v1:did%3Awebvh%3Azfixture%3Acarol.example",
+              "state": {
+                "value": "join"
+              }
+            }
+          ],
+          "chunk_digest": "sha256:38f9e2eac06ff6b2da5c6ec544178a06814863c38dcd0c0dc19773eba9c17b8e",
+          "chunk_proof": [
+            "sha256:2f2a8b5b268929edf8f8b222798bfd2146b298fa1b615e4e732d3349f8034c68",
+            "sha256:293ba6cb173b5a504a07b5cc0e265204c7622b4120551b4db6dbfb35f2bb9894"
+          ]
+        }
+      },
+      {
+        "bundle_version": 1,
+        "proof_request_digest": "sha256:924b7c2fe6d9356348e9a5ee0fcb8f3d8a8d2ada28116157764101d585d55198",
+        "materialization_profile": "complete_control_state_v1",
+        "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+        },
+        "reducer_profile": "ak.reducer.core.v1",
+        "governance_binding": {
+          "binding_version": 1,
+          "encoding_profile": "cbor-deterministic-rfc8949-v1",
+          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+          },
+          "mls_group_id": "Z3JvdXAtMDE",
+          "previous_epoch": 41,
+          "next_epoch": 42,
+          "membership_frontier": [
+            "ak:event:019809f4-a800-7000-8000-000000000101",
+            "ak:event:019809f4-a801-7000-8000-000000000102"
+          ],
+          "policy_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "capability_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "discussion_metadata_digest": "sha256:9610cd5decd573bbebbea8aa903d9cd282c75ea6aeddea78754e5d98db266306",
+          "binding_profile": "ak.profile.mls_governance_binding.full.v1",
+          "reducer_profile": "ak.reducer.core.v1"
+        },
+        "trusted_anchor_seal_id": "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93",
+        "accepted_seal_id": "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93",
+        "chunk_manifest": {
+          "manifest_version": 1,
+          "chunk_count": 4,
+          "chunks_root": "sha256:de90ef46e8c9177fb7196a2e2e5ebc74db07d4349e1be52b3d3ec793a5a02454",
+          "total_item_bytes": 3946,
+          "collection_totals": {
+            "seal_path": 1,
+            "covered_event_digests": 2,
+            "control_state": 2,
+            "frontier_events": 2
+          },
+          "max_response_bytes": 4194304,
+          "max_total_item_bytes": 268435456,
+          "max_items_per_chunk": {
+            "seal_path": 128,
+            "covered_event_digests": 8192,
+            "control_state": 1024,
+            "frontier_events": 32
+          }
+        },
+        "bundle_digest": "sha256:21d9fc2a595397af2c8e4af751d57a2eefe964709e3e19341d71c5db097f44b2",
+        "chunk": {
+          "chunk_index": 3,
+          "collection": "frontier_events",
+          "start_index": 0,
+          "items": [
+            {
+              "event_id": "ak:event:019809f4-a800-7000-8000-000000000101",
+              "kind": "ak.member.state",
+              "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+              "actor_id": "did:webvh:zfixture:admin.example",
+              "actor_seq": 0,
+              "created_at": "2026-07-15T00:00:00Z",
+              "hlc": "019809f4a800-0000-a1b2c3d4",
+              "prev_refs": [],
+              "refs": [],
+              "payload": {
+                "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+                "actor_id": "did:webvh:zfixture:bob.example",
+                "membership": "join",
+                "delivery_status": "unroutable"
+              },
+              "effects": [
+                {
+                  "cell": "ak:cell:ak.component.member.state.v1:did%3Awebvh%3Azfixture%3Abob.example",
+                  "op": {
+                    "kind": "transition",
+                    "from": "leave",
+                    "to": "join"
+                  }
+                }
+              ],
+              "effective_scope": {
+                "kind": "realm",
+                "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+              },
+              "proofs": [
+                {
+                  "kind": "detached_jws",
+                  "verification_method": "did:webvh:zfixture:admin.example#key-1",
+                  "alg": "EdDSA",
+                  "event_digest": "sha256:9822113de3156a5df3c65d42e3db3a5aec21566b2bf4fadbcaefe435d1d6486c",
+                  "created_at": "2026-07-15T00:00:00Z",
+                  "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTphZG1pbi5leGFtcGxlI2tleS0xIn0..VydmX6Llx7FaY_b8XEvVMjqh-lTOsLVT6xlk422_boGY9zp2Hhd2dIrDSsg-RQTUIkz8tIEQLnXB9pECT5eJAw"
+                }
+              ]
+            },
+            {
+              "event_id": "ak:event:019809f4-a801-7000-8000-000000000102",
+              "kind": "ak.member.state",
+              "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+              "actor_id": "did:webvh:zfixture:admin.example",
+              "actor_seq": 1,
+              "created_at": "2026-07-15T00:00:01Z",
+              "hlc": "019809f4a801-0000-a1b2c3d4",
+              "prev_refs": [
+                "ak:event:019809f4-a800-7000-8000-000000000101"
+              ],
+              "refs": [],
+              "payload": {
+                "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+                "actor_id": "did:webvh:zfixture:carol.example",
+                "membership": "join",
+                "delivery_status": "unroutable"
+              },
+              "effects": [
+                {
+                  "cell": "ak:cell:ak.component.member.state.v1:did%3Awebvh%3Azfixture%3Acarol.example",
+                  "op": {
+                    "kind": "transition",
+                    "from": "leave",
+                    "to": "join"
+                  }
+                }
+              ],
+              "effective_scope": {
+                "kind": "realm",
+                "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+              },
+              "proofs": [
+                {
+                  "kind": "detached_jws",
+                  "verification_method": "did:webvh:zfixture:admin.example#key-1",
+                  "alg": "EdDSA",
+                  "event_digest": "sha256:db690e008d2766b679bb4077cd69bacd7d1be1428db91f425b3deff906dbe425",
+                  "created_at": "2026-07-15T00:00:01Z",
+                  "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTphZG1pbi5leGFtcGxlI2tleS0xIn0..BWYZreZ6bo6eF8vniccq0nVvJZfWrske4kQ1jTLnKgzmmm8Heoz-DFDrjRjzy3pzMM0qIY8TSSZ5lxYOt9BIDA"
+                }
+              ]
+            }
+          ],
+          "chunk_digest": "sha256:e6df4cd18282c572361114e1f16aa256853b22dd07105f4bee36d95a6650de90",
+          "chunk_proof": [
+            "sha256:4b2194e6d6be61163986328d9e659e2cc0af888daa92fe7b0de7191f4ef886ec",
+            "sha256:293ba6cb173b5a504a07b5cc0e265204c7622b4120551b4db6dbfb35f2bb9894"
+          ]
+        }
+      }
+    ],
+    "accept_only_after_response_count": 4,
+    "cache_keys": {
+      "acquisition_index": [
+        "sha256:924b7c2fe6d9356348e9a5ee0fcb8f3d8a8d2ada28116157764101d585d55198",
+        "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93"
+      ],
+      "manifest": "sha256:21d9fc2a595397af2c8e4af751d57a2eefe964709e3e19341d71c5db097f44b2",
+      "chunks": [
+        "sha256:255d44bcfe2dd832c283dd0a3e03b5b572fbd06116117deaa36e546015b6f8e2",
+        "sha256:da0dea1e48d14add10a7597a2e2cde2a06384e478ac947ca91bd18eb51664402",
+        "sha256:38f9e2eac06ff6b2da5c6ec544178a06814863c38dcd0c0dc19773eba9c17b8e",
+        "sha256:e6df4cd18282c572361114e1f16aa256853b22dd07105f4bee36d95a6650de90"
+      ],
+      "forbidden_bundle_key": "ak:seal:sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93"
+    }
+  },
+  "known_answer": {
+    "empty_sha256_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "event_steps": [
+      {
+        "event_id": "ak:event:019809f4-a800-7000-8000-000000000101",
+        "producer_event_canonical_bytes": 617,
+        "producer_event_digest": "sha256:9822113de3156a5df3c65d42e3db3a5aec21566b2bf4fadbcaefe435d1d6486c",
+        "proof_binding_canonical_bytes": 265,
+        "proof_binding_sha256": "sha256:1a2d252410bcba477bd0b2b60003fd55c9627aaa8c834eb8a19500c59b786527"
+      },
+      {
+        "event_id": "ak:event:019809f4-a801-7000-8000-000000000102",
+        "producer_event_canonical_bytes": 668,
+        "producer_event_digest": "sha256:db690e008d2766b679bb4077cd69bacd7d1be1428db91f425b3deff906dbe425",
+        "proof_binding_canonical_bytes": 265,
+        "proof_binding_sha256": "sha256:90190bef19f6dc7209666df48894a32edbb47b54520bd1f7e3b6e02b2af12338"
+      }
+    ],
+    "control_event_set_root": "sha256:bb7cbe7005613059ad4085f0368169d4e0135de08582aeb1cbc813ecccbda560",
+    "state_leaf_canonical_bytes": [
+      109,
+      111
+    ],
+    "state_root": "sha256:6697c95a65a0c59add7ae722f62d732c722462f45ad9d9a7f74d46960cf17153",
+    "completeness_leaf_canonical_bytes": 237,
+    "completeness_root": "sha256:f2080e1affb01f3303b24fd72299233de4ee8347bb49fc8366db109a743c9b4b",
+    "discussion_input_canonical_bytes": 64,
+    "discussion_metadata_digest": "sha256:9610cd5decd573bbebbea8aa903d9cd282c75ea6aeddea78754e5d98db266306",
+    "seal_canonical_bytes": 779,
+    "seal_digest": "sha256:03a7227bf12785a0eb56b8131c4e3ed6c9a4d44f4d7974e4fe6f13effa71ba93",
+    "proof_identity_canonical_bytes": 427,
+    "proof_request_digest": "sha256:924b7c2fe6d9356348e9a5ee0fcb8f3d8a8d2ada28116157764101d585d55198",
+    "chunk_canonical_bytes": [
+      1342,
+      228,
+      294,
+      2383
+    ],
+    "chunk_digests": [
+      "sha256:255d44bcfe2dd832c283dd0a3e03b5b572fbd06116117deaa36e546015b6f8e2",
+      "sha256:da0dea1e48d14add10a7597a2e2cde2a06384e478ac947ca91bd18eb51664402",
+      "sha256:38f9e2eac06ff6b2da5c6ec544178a06814863c38dcd0c0dc19773eba9c17b8e",
+      "sha256:e6df4cd18282c572361114e1f16aa256853b22dd07105f4bee36d95a6650de90"
+    ],
+    "chunks_root": "sha256:de90ef46e8c9177fb7196a2e2e5ebc74db07d4349e1be52b3d3ec793a5a02454",
+    "total_item_bytes": 3946,
+    "bundle_header_canonical_bytes": 1828,
+    "bundle_digest": "sha256:21d9fc2a595397af2c8e4af751d57a2eefe964709e3e19341d71c5db097f44b2"
+  },
+  "verifier_cases": [
+    {
+      "name": "valid_complete_bundle",
+      "mutation": {
+        "operation": "none",
+        "parameters": {},
+        "recommit": "none"
+      },
+      "expected": {
+        "decision": "accept_epoch",
+        "failure_stage": null,
+        "reason_code": null,
+        "verified_bundle_persisted": true,
+        "epoch_advanced": true,
+        "verified_bundle_digest": "sha256:21d9fc2a595397af2c8e4af751d57a2eefe964709e3e19341d71c5db097f44b2"
+      }
+    },
+    {
+      "name": "self_reported_anchor_is_not_trust",
+      "mutation": {
+        "operation": "replace_anchor",
+        "parameters": {
+          "seal_id": "ak:seal:sha256:f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0"
+        },
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "anchor_trust",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "broken_seal_path",
+      "mutation": {
+        "operation": "break_seal_path",
+        "parameters": {},
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "seal_path",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "forked_seal_path",
+      "mutation": {
+        "operation": "fork_seal_path",
+        "parameters": {},
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "seal_path",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "wrong_notary_authority",
+      "mutation": {
+        "operation": "replace_notary_method",
+        "parameters": {},
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "seal_authority",
+        "reason_code": "signature_invalid",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "missing_covered_digest",
+      "mutation": {
+        "operation": "remove_collection_item",
+        "parameters": {
+          "collection": "covered_event_digests",
+          "index": 0
+        },
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "covered_set",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "extra_covered_digest",
+      "mutation": {
+        "operation": "append_collection_item",
+        "parameters": {
+          "collection": "covered_event_digests",
+          "value": "sha256:f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1"
+        },
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "covered_set",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "duplicate_covered_digest",
+      "mutation": {
+        "operation": "duplicate_collection_item",
+        "parameters": {
+          "collection": "covered_event_digests",
+          "index": 0
+        },
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "covered_set",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "covered_digest_order",
+      "mutation": {
+        "operation": "reverse_collection",
+        "parameters": {
+          "collection": "covered_event_digests"
+        },
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "covered_set",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "missing_state_leaf",
+      "mutation": {
+        "operation": "remove_collection_item",
+        "parameters": {
+          "collection": "control_state",
+          "index": 0
+        },
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "state_root",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "extra_state_leaf",
+      "mutation": {
+        "operation": "append_state_leaf",
+        "parameters": {},
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "state_root",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "duplicate_state_leaf",
+      "mutation": {
+        "operation": "duplicate_collection_item",
+        "parameters": {
+          "collection": "control_state",
+          "index": 0
+        },
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "state_root",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "state_leaf_order",
+      "mutation": {
+        "operation": "reverse_collection",
+        "parameters": {
+          "collection": "control_state"
+        },
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "state_root",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "missing_frontier_event",
+      "mutation": {
+        "operation": "remove_collection_item",
+        "parameters": {
+          "collection": "frontier_events",
+          "index": 0
+        },
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "membership_frontier",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "extra_frontier_event",
+      "mutation": {
+        "operation": "append_frontier_event",
+        "parameters": {
+          "event_id": "ak:event:019809f4-a802-7000-8000-000000000103"
+        },
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "membership_frontier",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "duplicate_frontier_event",
+      "mutation": {
+        "operation": "duplicate_collection_item",
+        "parameters": {
+          "collection": "frontier_events",
+          "index": 0
+        },
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "membership_frontier",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "frontier_event_order",
+      "mutation": {
+        "operation": "reverse_collection",
+        "parameters": {
+          "collection": "frontier_events"
+        },
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "membership_frontier",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "frontier_cross_realm_scope",
+      "mutation": {
+        "operation": "replace_frontier_effective_scope",
+        "parameters": {
+          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000099"
+        },
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "membership_frontier",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "frontier_event_proof_invalid",
+      "mutation": {
+        "operation": "flip_frontier_signature_bit",
+        "parameters": {},
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "membership_frontier",
+        "reason_code": "signature_invalid",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "chunks_root_mismatch",
+      "mutation": {
+        "operation": "flip_chunks_root_bit",
+        "parameters": {},
+        "recommit": "none"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "chunk_commitment",
+        "reason_code": "digest_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "missing_chunk",
+      "mutation": {
+        "operation": "remove_chunk",
+        "parameters": {
+          "chunk_index": 2
+        },
+        "recommit": "none"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "chunk_sequence",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "duplicate_chunk",
+      "mutation": {
+        "operation": "duplicate_chunk",
+        "parameters": {
+          "chunk_index": 1
+        },
+        "recommit": "none"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "chunk_sequence",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "chunk_order",
+      "mutation": {
+        "operation": "swap_chunks",
+        "parameters": {
+          "left": 1,
+          "right": 2
+        },
+        "recommit": "none"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "chunk_sequence",
+        "reason_code": "state_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "binding_realm_mismatch",
+      "mutation": {
+        "operation": "replace_binding_realm",
+        "parameters": {},
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "binding",
+        "reason_code": "governance_binding_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "binding_group_mismatch",
+      "mutation": {
+        "operation": "replace_binding_group",
+        "parameters": {},
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "binding",
+        "reason_code": "governance_binding_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "binding_previous_epoch_mismatch",
+      "mutation": {
+        "operation": "replace_binding_previous_epoch",
+        "parameters": {},
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "binding",
+        "reason_code": "governance_binding_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "binding_next_epoch_mismatch",
+      "mutation": {
+        "operation": "replace_binding_next_epoch",
+        "parameters": {},
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "binding",
+        "reason_code": "governance_binding_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "binding_profile_mismatch",
+      "mutation": {
+        "operation": "replace_binding_profile",
+        "parameters": {},
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "binding",
+        "reason_code": "profile_unsupported",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "binding_reducer_mismatch",
+      "mutation": {
+        "operation": "replace_binding_reducer",
+        "parameters": {},
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "binding",
+        "reason_code": "profile_unsupported",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "policy_root_mismatch",
+      "mutation": {
+        "operation": "replace_policy_root",
+        "parameters": {},
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "binding_roots",
+        "reason_code": "governance_binding_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "capability_root_mismatch",
+      "mutation": {
+        "operation": "replace_capability_root",
+        "parameters": {},
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "binding_roots",
+        "reason_code": "governance_binding_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    },
+    {
+      "name": "discussion_metadata_digest_mismatch",
+      "mutation": {
+        "operation": "replace_discussion_metadata_digest",
+        "parameters": {},
+        "recommit": "transport"
+      },
+      "expected": {
+        "decision": "reject_epoch",
+        "failure_stage": "binding_roots",
+        "reason_code": "governance_binding_mismatch",
+        "verified_bundle_persisted": false,
+        "epoch_advanced": false
+      }
+    }
+  ],
+  "materializer_cases": [
+    {
+      "name": "valid_materialization",
+      "source_mutation": {
+        "operation": "none",
+        "parameters": {}
+      },
+      "expected": {
+        "decision": "materialize",
+        "error_code": null,
+        "response_count": 4,
+        "partial_manifest_emitted": false
+      }
+    },
+    {
+      "name": "unknown_anchor",
+      "source_mutation": {
+        "operation": "replace_request_anchor",
+        "parameters": {
+          "seal_id": "ak:seal:sha256:f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0"
+        }
+      },
+      "expected": {
+        "decision": "reject_request",
+        "error_code": "mls_governance_anchor_unreachable",
+        "response_count": 0,
+        "partial_manifest_emitted": false
+      }
+    },
+    {
+      "name": "unreachable_anchor",
+      "source_mutation": {
+        "operation": "detach_anchor_from_ancestry",
+        "parameters": {}
+      },
+      "expected": {
+        "decision": "reject_request",
+        "error_code": "mls_governance_anchor_unreachable",
+        "response_count": 0,
+        "partial_manifest_emitted": false
+      }
+    },
+    {
+      "name": "missing_seal_material",
+      "source_mutation": {
+        "operation": "remove_accepted_seal",
+        "parameters": {}
+      },
+      "expected": {
+        "decision": "reject_request",
+        "error_code": "frontier_unavailable",
+        "response_count": 0,
+        "partial_manifest_emitted": false
+      }
+    },
+    {
+      "name": "forked_seal_source",
+      "source_mutation": {
+        "operation": "fork_accepted_seal",
+        "parameters": {}
+      },
+      "expected": {
+        "decision": "reject_request",
+        "error_code": "state_mismatch",
+        "response_count": 0,
+        "partial_manifest_emitted": false
+      }
+    },
+    {
+      "name": "unauthorized_notary_source",
+      "source_mutation": {
+        "operation": "revoke_notary_before_sealed_at",
+        "parameters": {}
+      },
+      "expected": {
+        "decision": "reject_request",
+        "error_code": "signature_invalid",
+        "response_count": 0,
+        "partial_manifest_emitted": false
+      }
+    },
+    {
+      "name": "missing_covered_event_source",
+      "source_mutation": {
+        "operation": "remove_covered_event",
+        "parameters": {}
+      },
+      "expected": {
+        "decision": "reject_request",
+        "error_code": "state_mismatch",
+        "response_count": 0,
+        "partial_manifest_emitted": false
+      }
+    },
+    {
+      "name": "bottom_control_cell_source",
+      "source_mutation": {
+        "operation": "insert_bottom_diagnostic",
+        "parameters": {}
+      },
+      "expected": {
+        "decision": "reject_request",
+        "error_code": "failed_bottom",
+        "response_count": 0,
+        "partial_manifest_emitted": false
+      }
+    },
+    {
+      "name": "scope_visibility_denied",
+      "source_mutation": {
+        "operation": "deny_scope_visibility",
+        "parameters": {}
+      },
+      "expected": {
+        "decision": "reject_request",
+        "error_code": "not_found",
+        "response_count": 0,
+        "partial_manifest_emitted": false
+      }
+    },
+    {
+      "name": "logical_bundle_over_bound",
+      "source_mutation": {
+        "operation": "delegate_companion_limit_plus_one",
+        "parameters": {}
+      },
+      "expected": {
+        "decision": "reject_request",
+        "error_code": "mls_governance_proof_bounds_exceeded",
+        "response_count": 0,
+        "partial_manifest_emitted": false
+      }
+    }
+  ],
+  "runner_rules": [
+    "Each response MUST pass the proof Bundle schema before semantic verification.",
+    "A verifier mutation with recommit=transport rebuilds chunk digests, proofs, chunks_root, manifest totals and bundle_digest so the named semantic stage, rather than stale transport bytes, is exercised.",
+    "A verifier mutation with recommit=none preserves the original commitments and MUST fail at the transport stage.",
+    "The materializer MUST reproduce every known-answer digest and all four response objects byte-for-byte after canonicalization.",
+    "No reject case may persist a verified Bundle, advance the MLS epoch, or emit a partial manifest.",
+    "The two required companion limit matrices MUST run in the same profile certification job; generated limit+1 cases MUST NOT allocate from declared sizes."
+  ]
+}

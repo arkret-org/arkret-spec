@@ -149,6 +149,10 @@
       "sha256": "acb60e56fdb0b132644664ecf561766c73c901a84a41556f74e3e0f3df8b844e"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
+      "sha256": "b23c909c2d1e7597af057e64ff6d68e755638ac1be9e0e37f555c8d8ba7e3ce0"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/mls-rfc9420-kat-fixture.json",
       "sha256": "6e5fd81a5e6e523bed1687a63f88675ad7ae908e0f5582512bf35e99c3432b3e"
     },

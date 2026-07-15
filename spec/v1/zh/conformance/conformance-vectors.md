@@ -862,7 +862,19 @@ Expected：
 - Receiver / reducer MUST reject 该 commit，且不得推进 `mls_epoch_cell` 或 `covered_seals_cell`。
 - `governance_binding.previous_epoch` / `next_epoch` MUST 与 payload 顶层 epoch 字段一致；不得只相信其中一侧。
 
-### 2.5.2 Vector: MLS Welcome KeyPackage Hash Binding
+### 2.5.2 Vector: MLS Governance Proof Bundle 双消费者闭环
+
+`vector_id`: `ak.vector.mls.governance_proof.verifier.v1`
+
+`vector_id`: `ak.vector.mls.governance_proof.materializer.v1`
+
+两条 active vector 共用 [`mls-governance-proof-fixture.json`](../../artifacts/fixtures/mls-governance-proof-fixture.json) 的同一份 byte-level KAT。`cotest::conformance::mls_governance_proof_bundle::materialize` MUST 从 fixture 的 accepted Seal、完整 covered Event 集与 joined control state 重建四个有界 chunk，逐字节复算 Event/Seal/请求/chunk/manifest/Bundle commitments，并与 `expected_acquisition.responses[]` 精确比较；`cotest::conformance::mls_governance_proof_bundle::verify` MUST 以相同 responses、commit transcript binding 与本地 trust context 执行 [`encryption-and-audit.md` §2.5.1.1](../crypto-media/encryption-and-audit.md#2511-accepted-seal-治理证明-bundlenormative) 的固定验证顺序。只加载 fixture、只做 schema validation、只检查 `governance_binding.previous_epoch/next_epoch` 或只返回一个总 pass 均不构成通过。
+
+Verifier mutation matrix MUST 在需要测试语义阶段时重算所有 transport commitments，覆盖：Bundle 自报但本地未信任的 anchor、断裂/分叉 Seal path、错误 notary authority；covered digest/state leaf/frontier Event 的缺失、多余、重复和乱序；frontier Event proof 与跨 Realm/scope；chunk root、缺块、重复块和乱序；Realm/group/epoch/profile/reducer binding，以及 `policy_root`、`capability_root`、`discussion_metadata_digest` 不匹配。任一 reject case 都不得持久化 verified Bundle 或推进 MLS epoch。
+
+Materializer matrix MUST 覆盖精确有效输出，以及 unknown/unreachable anchor、缺失或分叉 Seal material、撤销后的 notary、缺失 covered Event、control-cell Bottom、scope visibility denial 与总界超限；失败时 response count 必须为 0，不能输出 partial manifest。两条 runner 在同一 profile certification job 中还 MUST 执行 companion `ak.vector.scalability.mls_governance_proof_bounds.v1` 的全部 `limit-1 / limit / limit+1` 与 chunk acquisition cases，并记录每 case 的 stage、reason/error、response count、bundle/chunk digests、epoch transition 与 peak buffer bytes。
+
+### 2.5.3 Vector: MLS Welcome KeyPackage Hash Binding
 
 `vector_id`: `ak.vector.mls.welcome_keypackage_hash.v1`
 
@@ -877,7 +889,7 @@ Expected：
 - Receiver MUST reject before decrypting or accepting the Welcome。
 - `payload.keypackage_digest`、`payload.claim_ref.keypackage_digest`、claim record `keypackage_digest` 和已发布 `ak.mls.keypackage.payload.keypackage_digest` MUST 全部一致。
 
-### 2.5.3 Vector: RFC 9420 MTI Ciphersuite Byte-Level KAT
+### 2.5.4 Vector: RFC 9420 MTI Ciphersuite Byte-Level KAT
 
 `vector_id`: `ak.vector.mls.rfc9420_mti_kat.v1`
 
