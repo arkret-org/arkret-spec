@@ -1,7 +1,7 @@
 {
   "version": "2026-07-15",
   "source_of_truth": true,
-  "description": "Canonical service_type vocabulary. A service_type names the role a deployed service plays on the wire; it is the value space of Service Describe service_type, of the Realm sync_endpoint / join-candidate service class fields, and of the service_type half of a ServiceRegistrationKey. Before this registry the vocabulary was defined in four places that had drifted apart: service-describe.schema.json left it an unconstrained string (listing eight values in prose only), realm.schema.json inlined a seven-value enum, realm-join-candidate.schema.json inlined a three-value enum, and arkret-rust-sdk wire-base ServiceType carried sixteen variants. This file is now the single source; every consumer enum is asserted against it by tools/lint_artifacts.py.",
+  "description": "Canonical service_type vocabulary. A service_type names one deployed wire role. This registry is the single source of valid values and per-context eligibility for Service Describe, Realm sync endpoints, Realm join candidates, ServiceRegistrationKey, and the MIMI provider directory. Consumers MUST derive their closed value space from active rows whose valid_in includes the applicable context.",
   "registry_rules": [
     "A service_type id matches [a-z][a-z0-9_]* and is lowercase snake_case. Only ids present as rows in this registry exist; only status=active rows are valid on wire.",
     "Value spaces are NOT interchangeable. Each row declares valid_in, the set of contexts the id may legally appear in. A service_type valid for Service Describe is not thereby valid as a Realm sync endpoint class or as a ServiceRegistrationKey component. Consumers MUST derive their enum from the rows whose valid_in contains that consumer's context, never from the full row list.",
@@ -48,7 +48,7 @@
     },
     {
       "id": "service_registration_key",
-      "description": "The service_type half of a ServiceRegistrationKey (service_type + canonical public_base). Only roles that own a service DID under a public base belong here. The wire enum and arkret-rust-sdk constructor MUST both reject any service_type absent from this context.",
+      "description": "The service_type half of a ServiceRegistrationKey (service_type + canonical public_base). Only roles that own a service DID under a public base belong here. Producers and validators MUST reject any service_type absent from this context.",
       "consumers": [
         {
           "file": "schemas/service-operation-dtos.schema.json",
@@ -119,7 +119,7 @@
         "realm_sync_endpoint",
         "realm_join_candidate"
       ],
-      "description": "Seal / attestation notary. Registered from the realm.schema.json inline enum; was absent from both the Service Describe prose list and the SDK enum before this registry."
+      "description": "Seal and state-attestation notary surface."
     },
     {
       "canonical_id": "directory_service",
@@ -224,7 +224,7 @@
         "service_describe",
         "realm_sync_endpoint"
       ],
-      "description": "Search index surface. Registered from the realm.schema.json inline enum; was absent from the SDK enum before this registry."
+      "description": "Search indexing and query surface."
     },
     {
       "canonical_id": "archive_node",
@@ -233,7 +233,7 @@
         "service_describe",
         "realm_sync_endpoint"
       ],
-      "description": "Long-term archive surface. Registered from realm.schema.json and the Service Describe prose list; was absent from the SDK enum before this registry."
+      "description": "Long-term archive storage and retrieval surface."
     },
     {
       "canonical_id": "key_recovery_service",
@@ -242,7 +242,7 @@
         "service_describe",
         "realm_sync_endpoint"
       ],
-      "description": "Key backup / recovery surface. Registered from realm.schema.json and the Service Describe prose list; was absent from the SDK enum before this registry."
+      "description": "Cryptographic key backup and recovery surface."
     },
     {
       "canonical_id": "recovery_service",
@@ -251,7 +251,7 @@
         "service_describe",
         "realm_sync_endpoint"
       ],
-      "description": "Account recovery surface. Registered from realm.schema.json and the Service Describe prose list; was absent from the SDK enum before this registry."
+      "description": "Account recovery orchestration surface."
     },
     {
       "canonical_id": "mimi_provider_facade",

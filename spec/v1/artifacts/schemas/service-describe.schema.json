@@ -61,7 +61,7 @@
         "sync_node",
         "turn_service"
       ],
-      "description": "One logical role this service plays on the wire. Each ServiceDescribe document describes exactly one role; co-located roles sharing a public binding use separate role-scoped responses selected by GET /_arkret/describe?service_type=<registered-id>. The value space is registry/service-type-registry.json filtered to rows whose valid_in contains service_describe; tools/lint_artifacts.py check_service_type_registry keeps this enum in sync with that registry. Was an unconstrained string that listed only eight values in prose."
+      "description": "One logical role this service plays on the wire. Each ServiceDescribe document describes exactly one role; co-located roles sharing a public binding use separate role-scoped responses selected by GET /_arkret/describe?service_type=<registered-id>. The value space is registry/service-type-registry.json filtered to active rows whose valid_in contains service_describe."
     },
     "protocol_version": {
       "type": "string",

@@ -5539,6 +5539,33 @@ def check_service_type_registry(lint: Lint) -> None:
         lint.fail(path, "service_types must be a non-empty array")
         return
 
+    historical_description_markers = (
+        "before this registry",
+        "was absent",
+        "registered from",
+        "unconstrained string",
+        "inline enum",
+        "prose list",
+        "arkret-rust-sdk",
+        "tools/lint_artifacts.py",
+    )
+    description_sources: list[tuple[Path, Any]] = [(path, data)]
+    service_describe_path = ARTIFACTS / "schemas" / "service-describe.schema.json"
+    service_describe = load_json(lint, service_describe_path)
+    if isinstance(service_describe, dict):
+        description_sources.append((service_describe_path, service_describe))
+    for owner, source in description_sources:
+        for json_path, value, key in walk_json(source):
+            if key != "description" or not isinstance(value, str):
+                continue
+            lowered = value.lower()
+            for marker in historical_description_markers:
+                if marker in lowered:
+                    lint.fail(
+                        owner,
+                        f"{json_path} contains implementation history marker {marker!r}",
+                    )
+
     context_ids: set[str] = set()
     for index, context in enumerate(contexts):
         if not isinstance(context, dict):
