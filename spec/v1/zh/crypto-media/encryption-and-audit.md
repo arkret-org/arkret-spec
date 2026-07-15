@@ -456,23 +456,25 @@ Verifier MUST 从同一 Seal view 独立枚举 leaf 集并重算两个 root；pr
 
 full profile 的客户端不能只接收服务端声明的 `state_root` 或由服务端挑选的若干 inclusion branch。仅证明“给出的叶子确实在树中”不能证明服务端没有漏掉另一个 policy / capability / membership 叶子，因此 v1 首版使用 [`mls-governance-proof-bundle.schema.json`](../../artifacts/schemas/mls-governance-proof-bundle.schema.json) 的 `complete_control_state_v1` 完整物化形态：
 
-- `seal_path[]` 携带从 verifier 已信任锚点延伸到 `accepted_seal_id` 的 Seal；Bundle 自报的 `trust_anchor_seal_id` **不产生信任**。
+- 请求 MUST 携带 verifier 本地已信任的 `trusted_anchor_seal_id`；`seal_path[]` 只能从该精确锚点（或其直接 successor）延伸到 `accepted_seal_id`，响应同名字段 MUST 与请求逐字相同。Bundle 自报的锚点**不产生信任**，服务端不得静默替换锚点。Bootstrap 客户端只有在 Realm create/join、已验证 snapshot/compaction 或等价 authenticated bootstrap package 已建立信任后，才能把 genesis/compaction Seal 用作请求锚。
 - `covered_event_digests[]` 是目标 Seal 的完整递归 `covered_set`，按 wire 值 canonical 升序；verifier 用 §6.2.2 的 `H(0x00 || event_digest_raw)` / `H(0x01 || left || right)` 规则重算 `control_event_set_root`。
 - `control_state[]` 是目标 Seal 下全部 non-`⊥` joined control cell 的完整物化，按 cell id 升序；verifier 用 §6.2.1/§6.2.2 重算 `state_root`。`⊥` cell 不进入数组；binding 依赖的任何 family 存在 `⊥` 时仍必须 fail closed。
 - `frontier_events[]` 是 `membership_frontier` 指向的完整签名 Control Move Envelope 集；verifier 重算 Event digest、验证签名与 Realm/scope，确认 digest 属于完整 `covered_event_digests[]`，并确认 effect 命中当前 scope 注册的 membership / device trust / account lifecycle family。
 
-该形态比选择性 multiproof 大，但它是现有 `state_root` 与 `control_event_set_root` 承诺下能证明集合完备性的最小安全 bootstrap。服务端 SHOULD 以 `accepted_seal_id` 内容寻址缓存并允许客户端复用；只有后续规范注册了带范围完整性或等价 non-membership 证明的 compact profile，才可省略未揭示叶子。普通 Merkle audit path、服务端自报 leaf count 或“返回所有匹配前缀”的声明均不足以替代集合完备性证明。
+该形态比选择性 multiproof 大，但它是现有 `state_root` 与 `control_event_set_root` 承诺下能证明集合完备性的最小安全 bootstrap。`accepted_seal_id` 只标识目标 Seal，不能唯一标识 Bundle。请求 identity 固定为 RFC 8785 canonical `proof_request`（包含 `realm_id`、规范化 `effective_scope`、`mls_group_id`、epochs、profiles 与 `trusted_anchor_seal_id`），响应 `proof_request_digest=sha256(utf8("arkret-mls-governance-proof-request-v1\n") || canonical_json(proof_request))`。完整 Bundle 的内容地址为 `bundle_digest=sha256(utf8("arkret-mls-governance-proof-bundle-v1\n") || canonical_json(bundle_without_bundle_digest))`。域分隔字符串末尾均为单个 LF (`0a`)。服务端/客户端 MAY 以 `(proof_request_digest, accepted_seal_id)` 建 acquisition index，并 MUST 以 `bundle_digest` 作为内容存储/复用键；不得以 `accepted_seal_id` 单独缓存响应。只有后续规范注册了带范围完整性或等价 non-membership 证明的 compact profile，才可省略未揭示叶子。普通 Merkle audit path、服务端自报 leaf count 或“返回所有匹配前缀”的声明均不足以替代集合完备性证明。
+
+若服务端无法从请求的精确 `trusted_anchor_seal_id` 构造到目标 Seal 的已验证路径，MUST 返回 HTTP 409 `mls_governance_anchor_unreachable`，且不得在 error detail 中把服务端自选 Seal 表述为可信替代。客户端 MAY 仅用自己本地已信任的更旧 genesis/compaction/prior-success anchor 重试，或改向另一授权 proof service 请求；不得因服务端建议而把新 anchor 加入 trust store。暂时缺失本应可达的 Seal material 使用 `frontier_unavailable`，与“该 anchor 不在目标 ancestry/无法桥接”区分。
 
 验证顺序固定如下，任一步失败都不得构造、接受或持久化 full-profile MLS epoch：
 
-1. 校验 Bundle schema、`realm_id` / `effective_scope` / `reducer_profile` 与 commit 中 `governance_binding` 逐字段一致，拒绝未知 `materialization_profile`。
-2. 从本地已信任 `trust_anchor_seal_id` 出发，按拓扑顺序验证 `seal_path[]` 的 Seal id、predecessor closure、notary authorization、签名、时间与 fork 状态；末项必须为 `accepted_seal_id`。
+1. 校验 Bundle schema；以原始 request 重算 `proof_request_digest`，要求响应 `trusted_anchor_seal_id == request.trusted_anchor_seal_id`，并校验 `realm_id` / `effective_scope` / `reducer_profile` 与 commit 中 `governance_binding` 逐字段一致，拒绝未知 `materialization_profile`。
+2. 确认 request anchor 已在本地 trust store；从该 `trusted_anchor_seal_id` 出发，按拓扑顺序验证 `seal_path[]` 的 Seal id、predecessor closure、notary authorization、签名、时间与 fork 状态；末项必须为 `accepted_seal_id`。响应出现不同 anchor 即拒绝，不得尝试验证后“顺便信任”。
 3. 校验 `covered_event_digests[]` canonical 升序、去重且为完整 covered set，并重算目标 Seal 的 `control_event_set_root`。
 4. 校验 `frontier_events[]` 与 `membership_frontier` Event ID 集精确相等；对每个 Event 重算 producer digest、验证 proofs、确认 digest inclusion、控制面 family、Realm 与 scope。缺一项、多一项或跨 scope 重放都拒绝。
 5. 校验 `control_state[]` cell id canonical 升序且无重复，拒绝任何显式 Bottom 条目，重算并比对目标 Seal 的 `state_root`。
 6. 从完整控制状态按 §2.5.1 的过滤规则重算 `policy_root` 与 `capability_root`；不得使用目标 Seal 的全量 `state_root` 代替任一过滤 root。
 7. 从同一控制状态重算 `discussion_metadata_digest`：构造 `canonical_json({"media_service_decrypts":<bool>,"plaintext_visible_services":[<service DID>...]})`，服务 DID 按 Unicode code point 升序并去重；布尔值缺省为 `false`，集合缺省为空。结果为 `sha256(canonical_json_bytes)` 的 wire hash。来源只能是 `policy_root` 覆盖的 `ak.component.realm.policy_components.v1` / `ak.component.realm.plaintext_visible_services.v1` 有效值，不能读取服务端私有 projection 或 UI 状态。
-8. 将四类本地结果与 transcript-authenticated `governance_binding` 比较，并再校验 group id、previous/next epoch、binding profile 与 reducer profile；全部通过后才可把该 proof bundle 标为已验证并按 `accepted_seal_id` 缓存。
+8. 将四类本地结果与 transcript-authenticated `governance_binding` 比较，并再校验 group id、previous/next epoch、binding profile 与 reducer profile；随后以去掉 `bundle_digest` 的完整 canonical Bundle 重算并比对 `bundle_digest`。全部通过后才可把该 proof bundle 标为已验证，以 `(proof_request_digest, accepted_seal_id)` 建索引、以 `bundle_digest` 存储；单独 `accepted_seal_id` 命中不得返回缓存 Bundle。
 
 完整物化 Bundle 是轻客户端验证 signed state commitment 的载荷，不把轻客户端升级成全历史 verifier。持有全部 Control Move 的 full verifier 仍 MUST 按 §6.3 重放 Seal transition；两者若对同一目标 Seal 得出不同结果，必须拒绝并进入 fork / state mismatch 处理，不能以服务端物化覆盖本地重放结果。
 

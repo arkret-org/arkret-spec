@@ -1130,6 +1130,7 @@ components:
               - did_not_found
               - did_revoked
               - frontier_unavailable
+              - mls_governance_anchor_unreachable
               - handle_unverified
               - key_replay
               - keypackage_already_consumed
@@ -3732,7 +3733,10 @@ paths:
       description: |
         Returns a complete_control_state_v1 proof bundle for one caller-visible
         Realm/scope. The server derives the membership frontier and all roots
-        from one accepted Seal view; the request cannot supply either.
+        from one accepted Seal view; the request cannot supply either. The
+        request MUST name one locally trusted_anchor_seal_id. The response path
+        starts from that exact anchor, proof_request_digest binds the normalized
+        request, and bundle_digest (not accepted_seal_id) is the content address.
       requestBody:
         required: true
         content:
@@ -3746,6 +3750,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MlsGovernanceProofBundle'
+        '409':
+          description: No verified path can be constructed from the exact caller-trusted anchor (`mls_governance_anchor_unreachable`); retry only with another locally trusted anchor or authorized proof service.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
   /_arkret/peer/events/describe:
     get:
       operationId: ak.peer.events.query.describe

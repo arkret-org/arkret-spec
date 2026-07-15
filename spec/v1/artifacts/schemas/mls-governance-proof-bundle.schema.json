@@ -2,16 +2,18 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/mls-governance-proof-bundle.schema.json",
   "title": "Arkret MLS Governance Proof Bundle",
-  "description": "Complete-materialization proof bundle used by a light client to verify an MLS full-profile governance binding against an accepted Seal. v1 deliberately carries the complete covered-event digest manifest and every non-bottom control-state leaf: a selective proof over server-chosen leaves cannot prove that a policy, capability, membership, or metadata leaf was not omitted. The bundle is content-addressable and cacheable by accepted_seal_id; a future compact profile requires a separately registered completeness-proof construction.",
+  "description": "Complete-materialization proof bundle used by a light client to verify an MLS full-profile governance binding against an accepted Seal. v1 deliberately carries the complete covered-event digest manifest and every non-bottom control-state leaf: a selective proof over server-chosen leaves cannot prove that a policy, capability, membership, or metadata leaf was not omitted. proof_request_digest binds the normalized acquisition identity, including the verifier's trusted anchor; bundle_digest is the content address of the complete canonical bundle. accepted_seal_id alone is not a Bundle cache key. A future compact profile requires a separately registered completeness-proof construction.",
   "type": "object",
   "required": [
     "bundle_version",
+    "proof_request_digest",
+    "bundle_digest",
     "materialization_profile",
     "realm_id",
     "effective_scope",
     "reducer_profile",
     "governance_binding",
-    "trust_anchor_seal_id",
+    "trusted_anchor_seal_id",
     "accepted_seal_id",
     "seal_path",
     "covered_event_digests",
@@ -21,6 +23,14 @@
   "properties": {
     "bundle_version": {
       "const": 1
+    },
+    "proof_request_digest": {
+      "$ref": "./event-envelope.schema.json#/$defs/hash",
+      "description": "sha256(UTF-8('arkret-mls-governance-proof-request-v1\\n') || RFC 8785 canonical JSON bytes of the exact proof_request object). The verifier MUST recompute it from its request before using or caching the response."
+    },
+    "bundle_digest": {
+      "$ref": "./event-envelope.schema.json#/$defs/hash",
+      "description": "Content address: sha256(UTF-8('arkret-mls-governance-proof-bundle-v1\\n') || RFC 8785 canonical JSON bytes of this complete Bundle with bundle_digest omitted). A verifier MUST recompute it after schema and request binding checks."
     },
     "materialization_profile": {
       "const": "complete_control_state_v1",
@@ -39,9 +49,9 @@
     "governance_binding": {
       "$ref": "./event-payload.schema.json#/$defs/mls_governance_binding"
     },
-    "trust_anchor_seal_id": {
+    "trusted_anchor_seal_id": {
       "$ref": "./event-envelope.schema.json#/$defs/seal_ref",
-      "description": "Seal id the verifier already trusts through Realm bootstrap or prior successful verification. Presence in this bundle never makes an anchor trusted."
+      "description": "MUST equal proof_request.trusted_anchor_seal_id bit-for-bit. This is a Seal id the verifier already trusts through authenticated Realm bootstrap or prior successful verification. Presence in this bundle never makes an anchor trusted."
     },
     "accepted_seal_id": {
       "$ref": "./event-envelope.schema.json#/$defs/seal_ref",
@@ -90,7 +100,8 @@
         "previous_epoch",
         "next_epoch",
         "binding_profile",
-        "reducer_profile"
+        "reducer_profile",
+        "trusted_anchor_seal_id"
       ],
       "properties": {
         "realm_id": {
@@ -119,10 +130,14 @@
         "reducer_profile": {
           "type": "string",
           "pattern": "^ak\\.reducer(?:\\.[a-z0-9][a-z0-9_.-]*)?\\.v[0-9]+$"
+        },
+        "trusted_anchor_seal_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/seal_ref",
+          "description": "Seal id already trusted by this verifier. The service MUST construct seal_path from this exact anchor (or its direct successor) and MUST NOT silently substitute a newer, older, or service-selected anchor. A bootstrap client uses the Realm genesis/compaction Seal only after validating it through its authenticated Realm bootstrap, join, snapshot, or equivalent trust package."
         }
       },
       "additionalProperties": false,
-      "description": "Authenticated account-client query input. The service derives all governance roots and membership_frontier from one accepted Seal view; callers MUST NOT supply any root or frontier. Genesis requests MUST use previous_epoch=0 and next_epoch=0; commit requests MUST use next_epoch=previous_epoch+1."
+      "description": "Authenticated account-client query input. The service derives all governance roots and membership_frontier from one accepted Seal view; callers MUST NOT supply any root or frontier. The caller MUST name one locally trusted anchor. If the service cannot prove a path from that exact anchor to the target accepted Seal, it returns mls_governance_anchor_unreachable and MUST NOT suggest or substitute an untrusted anchor. Genesis requests MUST use previous_epoch=0 and next_epoch=0; commit requests MUST use next_epoch=previous_epoch+1."
     },
     "control_state_leaf": {
       "type": "object",

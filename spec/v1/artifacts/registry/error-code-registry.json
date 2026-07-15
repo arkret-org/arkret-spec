@@ -542,6 +542,12 @@
       "description": "The service cannot currently produce the requested frontier because required seal, reducer, or witness state is unavailable."
     },
     {
+      "code": "mls_governance_anchor_unreachable",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The MLS governance proof service cannot construct a verified Seal extension path from the exact trusted_anchor_seal_id supplied by the caller to the target accepted Seal. The service MUST NOT substitute or recommend an untrusted anchor. The caller MAY retry with another locally trusted older/genesis/compaction anchor or another authorized proof service."
+    },
+    {
       "code": "handle_unverified",
       "http_status": 403,
       "scope": "endpoint",

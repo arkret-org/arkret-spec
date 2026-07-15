@@ -2496,7 +2496,8 @@
           "previous_epoch",
           "next_epoch",
           "binding_profile",
-          "reducer_profile"
+          "reducer_profile",
+          "trusted_anchor_seal_id"
         ],
         "properties": [
           "realm_id",
@@ -2505,7 +2506,8 @@
           "previous_epoch",
           "next_epoch",
           "binding_profile",
-          "reducer_profile"
+          "reducer_profile",
+          "trusted_anchor_seal_id"
         ],
         "closed": true
       },
@@ -2514,12 +2516,14 @@
         "schema_kind": "object",
         "required": [
           "bundle_version",
+          "proof_request_digest",
+          "bundle_digest",
           "materialization_profile",
           "realm_id",
           "effective_scope",
           "reducer_profile",
           "governance_binding",
-          "trust_anchor_seal_id",
+          "trusted_anchor_seal_id",
           "accepted_seal_id",
           "seal_path",
           "covered_event_digests",
@@ -2528,12 +2532,14 @@
         ],
         "properties": [
           "bundle_version",
+          "proof_request_digest",
+          "bundle_digest",
           "materialization_profile",
           "realm_id",
           "effective_scope",
           "reducer_profile",
           "governance_binding",
-          "trust_anchor_seal_id",
+          "trusted_anchor_seal_id",
           "accepted_seal_id",
           "seal_path",
           "covered_event_digests",

@@ -5298,7 +5298,7 @@
         "http": "POST /_arkret/self/events/mls-governance-proof",
         "grpc": "SelfEvents/MlsGovernanceProof",
         "mq": "self.events.query.mls_governance_proof",
-        "notes": "Return a complete_control_state_v1 proof bundle for one authenticated, caller-visible Realm/scope. The service derives membership_frontier and all governance roots from one accepted Seal view; callers cannot supply roots. Implementations MUST enforce Realm/scope visibility before materialization and MUST fail closed when any covered Event, control state, Seal path, signature authority, or reducer profile cannot be reconstructed.",
+        "notes": "Return a complete_control_state_v1 proof bundle for one authenticated, caller-visible Realm/scope. The request MUST name an exact locally trusted_anchor_seal_id; the service MUST build from that anchor and return mls_governance_anchor_unreachable instead of substituting another anchor. The service derives membership_frontier and all governance roots from one accepted Seal view; callers cannot supply roots. Responses bind canonical acquisition identity with proof_request_digest and use bundle_digest, not accepted_seal_id, as the content address. Implementations MUST enforce Realm/scope visibility before materialization and MUST fail closed when any covered Event, control state, Seal path, signature authority, or reducer profile cannot be reconstructed.",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/proof_request",
         "response_schema_ref": "schemas/mls-governance-proof-bundle.schema.json"
