@@ -56,6 +56,8 @@ Issuer 约束是硬边界：
 
 `request_id` SHOULD 使用 `ak.contact.requested` 的 `event_id`。实现 MAY 用 `(holder, peer, outstanding_request)` 做幂等去重，但不得把重复 request 折叠成 consent grant。去重折叠多条等价 request 时，投影行与后续 respond MUST 以**最早未终结**的 `ak.contact.requested` 的 `event_id` 为 canonical `request_id`；对任一重复 request 的 accept / reject MUST 视为作用于该 canonical `request_id`，两端不得各自选边。
 
+**交叉请求（glare，normative）**：若 A 与 B 的 pending request 尚未终结，而任一方收到对方反向的 `ak.contact.requested`，两条 fact 均保留用于审计，但 effective contact row MUST 折叠为对按 canonical event ordering 较小的 request 的 `accepted`；较大 request 不得再独立 accept / reject。双方 operation layer MUST 以一个原子动作写该 canonical request 的 `ak.contact.accepted` 与所需 consent grants。相同 `(issuer, grantee, scope)` 的 contact-managed consent grants 按 active OR-set dot 合并为一个 effective scope，不得因两条交叉 request 在 UI 或授权判定中重复计数。若原子写入任一必需 consent grant 失败，整个折叠 MUST fail closed。
+
 ## 3. Contact 与 Consent
 
 Contact 负责关系状态：`pending_outgoing` / `pending_incoming` / `accepted` / `rejected` / `tombstoned`。Consent 负责 action gate：`direct_message` / `invite` / `voice_call` / `video_call` / `presence` 是否允许。

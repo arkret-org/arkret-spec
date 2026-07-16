@@ -167,7 +167,10 @@
         "request_canonical_digest": { "$ref": "#/$defs/sha256_digest" },
         "audience": { "$ref": "#/$defs/non_empty_string" },
         "issued_at": { "$ref": "#/$defs/timestamp" },
-        "expires_at": { "$ref": "#/$defs/timestamp" },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Lease expiry. Issued lifetime MUST be no greater than 15 minutes; 15 minutes is also the v1 default."
+        },
         "verification_method": { "$ref": "#/$defs/did_url" },
         "signature": { "$ref": "#/$defs/non_empty_string" }
       },
@@ -283,7 +286,10 @@
           "type": "integer",
           "minimum": 1
         },
-        "expires_at": { "$ref": "#/$defs/timestamp" },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Handoff expiry. Issued lifetime MUST be no greater than 1 hour; 1 hour is also the v1 default."
+        },
         "reserved_identity": { "$ref": "#/$defs/reserved_identity_creation" }
       },
       "additionalProperties": false

@@ -471,7 +471,7 @@ AvailabilityReceipt {
   event_id
   bytes_digest
   holder_id
-  retention_until
+  retention_expires_at
   signature
 }
 ```

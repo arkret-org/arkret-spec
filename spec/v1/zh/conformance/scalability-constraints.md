@@ -67,7 +67,8 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | delegation chain 深度 | 4 | canonical 上限；[`capabilities.md` §10.2](../authz/capabilities.md) DFS 深度上限与 `grant-constraint.schema.json` `max_delegation_depth` 的 `maximum` MUST 与此值一致。超过时 MUST deny；profile MAY 声明更低上限。 |
 | 单次授权判定展开 grant 数 | 1,024 | 超过时 MUST fail closed、使用已验证 snapshot，或返回 `soft_failed` / `temporarily_unavailable`。 |
 | 单个 grant 的 constraint 数 | 64 | 超过时 MUST reject。 |
-| 单个 resource selector AST 深度 | 16 | 超过时 MUST reject。 |
+| 单个 resource selector AST 深度 | 8 | 超过时 MUST reject；度量包含逗号、加号、引用与子 selector 嵌套，详见 [`resource-selector-grammar.md` §5](../authz/resource-selector-grammar.md)。 |
+| 单个 device pairing transcript 失败提交数 | 10 | 达到上限时 pairing code MUST 锁定并永久失效；不得重置计数继续猜测。 |
 | 高频路径 authz snapshot 最大重建延迟 | 5 秒（SHOULD，本地性能建议） | `chat_mvp`、`kanban_mvp`、`full_client` 和 `principal_server` 相关服务 SHOULD 满足。这是**本地性能 / SLA 建议**，非 wire interoperability bound——对端无法仅凭 wire object 核验本地重建是否 ≤5s，故不构成 §1 意义上的可互操作核验项。 |
 
 当 grant / revoke / claim status / policy component / membership frontier 变化时，受影响的 capability snapshot MUST 立即标记 stale。stale snapshot 不得继续用于新的写入 allow 决策。

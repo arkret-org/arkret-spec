@@ -89,12 +89,12 @@ see_also:
 | Range-bound Attestation | 范围完整性证明 | 携带 explicit range scope（per-actor seq interval、frontier 上下界）的签名证明，是 completeness 证明的载体。v1 已注册 active event kind `ak.attestation.range_completeness`（payload schema `ak.schema.range_completeness_attestation.v1`），详见 [`../sync/operations-sync.md` §6.4](../sync/operations-sync.md)。 |
 | Snapshot | 快照 | 恢复/同步起点对象，包含某时刻 Materialized State 与 frontier。 |
 | HLC | 混合逻辑时钟 | `HLC` 为 `clock` 排序标签，固定格式 `<unix_ms_hex(12)>-<logical_hex(4)>-<node_id_hash(8)>`（hex 字段宽度依次 12 / 4 / 8）；canonical 规则见 [`../conformance/encoding.md` §7](../conformance/encoding.md)。 |
-| Cursor | 同步游标 | 指定 frontier 的 `scope:realm\|actor\|query` 编码，用于增量同步与重放。 |
+| Cursor | 同步游标 | `ak:cursor:<base64url>` 形态的不透明 token，`purpose ∈ {stream, barrier}`；内部结构与验证规则的单一真相源见 [`../conformance/encoding.md` §8](../conformance/encoding.md)。 |
 | Canonical JSON | 规范 JSON | 确定性 JSON 序列化格式，所有签名/哈希/对账输入必须使用；要求 UTF-8、key 排序、无空白、唯一 number 表示。 |
 | View | 投影定义 | 查询 + kind + renderer + config 的共享可签名对象，定义“怎么看”。 |
 | View.kind | 投影族类 | `collection / timeline / graph / document / composite`。 |
 | Capability | 能力 | 授权语义与对象的绑定关系，授予 subject 执行特定 action。 |
-| Capability Grant | 能力授权对象 | `capability` 标准对象；记录谁在什么条件下可执行何动作。 |
+| Capability Grant | 能力授权对象 | `ak:grant:` 标准对象（schema `ak.schema.capability.v1`）；记录谁在什么条件下可执行何动作。它与 `ak:capability:` 抽象 capability definition 引用不同。 |
 | Policy | 策略 | 运行期约束对象，用于授权、密钥、留存、治理与安全边界。 |
 | Invite | 邀请 | 邀请主体加入 Realm 或授予特定能力的标准对象/事件 payload。 |
 | Principal Server | 主体服务 | 主体控制或委托入口服务，承载 events / account aggregate / snapshot / discovery 等核心 API。Realm 内实际投递目标由成员 `delivery_binding.recipient_service_id` 决定；DID Document 默认 Principal Server 只可作为 join / rebind 时被 policy 允许的 binding 来源，不是 Realm delivery fallback。 |
@@ -132,7 +132,7 @@ see_also:
 | MLS Governance Binding | MLS 治理绑定 | E2EE Realm 中把 MLS epoch 与 governance state（membership / policy / capability / Seal coverage）强绑定的机制（profile `ak.profile.mls_governance_binding.full.v1`，定义见 `crypto-media/encryption-and-audit.md §2.5`）。由两层 artifact 组成：commit 侧的 *Governance Binding Payload* (`governance_binding`) 提供证据，lattice 侧的 *Covered Seals Cell* (`covered_seals_cell`) 沉淀状态。 |
 | Governance Binding Payload | 治理绑定 payload | MLS Governance Binding 的 **commit-side proof**：每个 `ak.mls.commit` 携带的 `governance_binding` payload（MLS GroupContext extension `mls_governance_binding`，codepoint `0xF1C0`），哈希进 MLS transcript，覆盖 `membership_frontier`、`policy_root`、`capability_root`、`discussion_metadata_digest`。 |
 | Covered Seals | 已覆盖 Seal 集 | MLS Governance Binding 的 **lattice-side accumulator**：`covered_seals_cell`（cell family `ak.component.covered_seals.v1`，or_set，bottom=expose）当前值，累积已被 commit attest 的治理 Seal；E2EE DataEvent 用 `seal_ref` 指向已覆盖的治理基准。 |
-| MLS KeyPackage | MLS 密钥包（durable event payload） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生对象：actor 预先公布、供他人将其加入 MLS group 的单次使用公钥材料。在 Arkret 中作为可声明 / 领取 / 消费 / 撤销的 durable event payload（`ak.mls.keypackage` 等）落地，并被 Realm-scoped claim 生命周期约束。prose 用 `KeyPackage`（PascalCase），wire 字段用 `keypackage_` 前缀（如 `keypackage_id` / `keypackage_digest`）。详见 [`encryption-and-audit.md` §2.6](../crypto-media/encryption-and-audit.md)。 |
+| MLS KeyPackage | MLS 密钥包（durable event payload） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生对象：actor 预先公布、供他人将其加入 MLS group 的单次使用公钥材料。在 Arkret 中作为可声明 / 领取 / 消费 / 撤销的 durable event payload（`ak.mls.keypackage` 等）落地，并被 Realm-scoped claim 生命周期约束。prose 用 `KeyPackage`（PascalCase）；单个 KeyPackage 的 identity/content 属性使用 `keypackage_` 前缀（如 `keypackage_id` / `keypackage_ref` / `keypackage_digest`），集合容器与批量引用使用 `key_packages` / `key_package_refs`。详见 [`encryption-and-audit.md` §2.6](../crypto-media/encryption-and-audit.md)。 |
 | MLS Welcome | MLS 欢迎消息（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生消息，把新成员带入当前 epoch。Arkret 扩展：MUST 通过 durable `ak.mls.welcome` Event、durable encrypted pointer 或等价可 backfill 记录交付（Ephemeral Channel 不得是唯一路径）。prose 用 `Welcome`，wire 字段（如 `welcome_digest`）保持小写。详见 [`encryption-and-audit.md` §2.1](../crypto-media/encryption-and-audit.md)。 |
 | MLS Commit | MLS 提交（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生 epoch 推进消息。Arkret 扩展：作为 `ak.mls.commit` durable Event 进入 Realm history，并 MUST 携带 `governance_binding`（GroupContext extension `mls_governance_binding`）把 governance frontier 哈希进 MLS transcript（见 MLS Governance Binding 行）。详见 [`encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md)。 |
 | MLS Proposal | MLS 提案（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生提案消息（add / remove / update 等），由后续 Commit 落实。Arkret 中作为 `ak.mls.proposal` durable Event 传输；发送者 MUST 在事件自身 causal auth state 下满足对应 admin set 或成员 self-update 规则。详见 [`encryption-and-audit.md` §2.1](../crypto-media/encryption-and-audit.md)。 |
@@ -204,7 +204,7 @@ see_also:
 
 通用规则（本节 §3）：缩写在 prose 中 MUST 全大写（如 `E2EE`、`MLS`、`SFU`、`TURN`、`ICE`、`MCU`），在 wire 字段名 / profile ID / enum / schema key 中 MUST 保持 snake_case 小写。Arkret 服务角色专名（CC-05）在 prose 中 MUST 使用 PascalCase 专名；canonical 专名清单见下方 CC-05；泛指"某个 policy 服务"时小写普通名词可接受。
 
-- **KeyPackage（CC-01）**：prose 引用 MLS KeyPackage 时 MUST 写 `KeyPackage`（PascalCase）；wire 字段保留 `keypackage_` snake_case 前缀（如 `keypackage_id` / `keypackage_digest`）。prose 中 MUST NOT 写 `key package`（带空格）或 `keypackage`（全小写）。
+- **KeyPackage（CC-01）**：prose 引用 MLS KeyPackage 时 MUST 写 `KeyPackage`（PascalCase）。wire 命名是封闭的双层规则：单个 KeyPackage 的 identity/content 属性 MUST 使用 `keypackage_` 前缀（`keypackage_id` / `keypackage_ref` / `keypackage_digest`）；集合容器与批量引用 MUST 使用 `key_packages` / `key_package_refs`。不得创建其它 `keypackage_*` / `key_package_*` 变体。prose 中 MUST NOT 写 `key package`（带空格）或 `keypackage`（全小写）。
 - **Welcome（CC-02）**：prose 引用 MLS Welcome 消息时 MUST 写 `Welcome`；字段名（如 `welcome_digest`）MUST 保持小写。
 - **fail closed vs fail-closed（CC-03）**：动词短语用 `fail closed`（如 "Implementations MUST fail closed"）；形容词用连字符 `fail-closed`（如 "fail-closed default"）。
 - **E2EE vs e2ee（CC-04）**：prose MUST 用 `E2EE`；profile ID / enum / schema key 保留小写 `e2ee`（如 `ak.profile.e2ee_client.v1`、`encryption_profile` 取值）。

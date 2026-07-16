@@ -306,6 +306,14 @@
             "$ref": "#/$defs/content_block"
           }
         },
+        "attachments": {
+          "type": "array",
+          "maxItems": 32,
+          "description": "Profile-defined attachment hints. At most 32; canonical durable attachment relations SHOULD use Relation attached_to.",
+          "items": {
+            "type": "object"
+          }
+        },
         "reply_context": {
           "type": "object",
           "properties": {

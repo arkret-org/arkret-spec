@@ -1,14 +1,14 @@
 ---
 title: 当前模型说明
 status: candidate
-normative: true
+normative: false
 stability: v1
 updated: 2026-07-13
 ---
 
-## 0. 规范语言
+## 0. 文档定位
 
-本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
+本文是当前对象模型的非规范导览；所有约束均以所链接的对象专属文件为准。
 
 ## 1. 目标
 
@@ -18,12 +18,12 @@ updated: 2026-07-13
 
 Arkret 不是把某个产品的对象名搬进协议，而是把常见协作产品拆成更稳定的协议边界：
 
-| 产品 / 场景概念 | Arkret 中的落点 | 不应误读为 |
+| 产品 / 场景概念 | Arkret 中的落点 | 避免误读为 |
 | --- | --- | --- |
 | 聊天群、即时通讯群组、频道 | `Realm` 提供成员与历史边界；一个或多个 `Strand(tracks.discussion)` 承载对话 | `Message` 本身不是房间；`discussion` track 也不是独立 ACL。 |
 | 房间式协作场景 | 通常拆为 `Realm`（状态、成员与历史边界）+ `Strand/Message`（协作主题与消息）+ `View`（时间线 / 话题投影） | v1 core 不使用通用 `Room` 对象根。 |
 | Trello Board / List / Card | `Space(kind=board)` / `Space(kind=list)` / `Strand`，位置由 `ak.strand.move` 与派生 `contains` Relation 表达 | View renderer 不是对象真相；拖拽不能只改 View。 |
-| Jira issue / workflow status / issue links | `Strand` / `stage` + workflow profile / `Relation(depends_on, blocks, assigned_to, references...)` | Jira-style workflow status 不等于 `state`，也不应塞进 `metadata.fields.status` 作为互操作真相。 |
+| Jira issue / workflow status / issue links | `Strand` / `stage` + workflow profile / `Relation(depends_on, blocks, assigned_to, references...)` | Jira-style workflow status 不等于 `state`；`metadata.fields.status` 也不是互操作真相。 |
 | Watchers、订阅、勿扰 | `ak.strand.watch.set` cell + actor-private push rules / DND | Watch 不是访问权；静音不改变别人是否能读对象。 |
 | 小程序 / Bot / 集成服务 | Applet、Agent、Ghost Actor、Morph / Relation 扩展 | 安装一个客户端或插件不等于创建 protocol principal。 |
 
@@ -83,7 +83,7 @@ Realm membership、Strand 更新权限与 discussion timeline 可见性使用统
 MLS 加密可绑定到 Realm 或 Realm 内的 MLS-backed Circle:
 
 - 默认（`Strand.scope_circle_id=null`）：Strand 落在 Realm-default scope；若 Realm 为 MLS-backed，则该 Realm-default MLS group 覆盖此 Strand。
-- 独立 Strand access：`Strand.scope_circle_id` 指向某 Circle 时，整个 Strand 落在该 Circle 的独立成员 / 独立 history sharing / 投递裁剪；若 Circle 为 `mls_rfc9420`，则使用该 Circle 的独立 MLS group，Circle key MUST NOT 从 Realm-default key 派生。
+- 独立 Strand access：`Strand.scope_circle_id` 指向某 Circle 时，整个 Strand 落在该 Circle 的独立成员 / 独立 history sharing / 投递裁剪；若 Circle 为 `mls_rfc9420`，则使用该 Circle 的独立 MLS group。密钥派生禁令见 [`../models/circle.md` §10](../models/circle.md)。
 - MLS group 的 scope 绑定 `(realm_id, circle_id?)`：`scope=realm` 时承担 Realm-default 加密；`scope=circle` 时承担 MLS-backed Circle 加密。不存在 "track-internal MLS group"。
 - 详见 [`../models/circle.md` §10](../models/circle.md)（含 Realm-member-removal 触发的 MLS rotate amplification 与缓解策略）。
 
@@ -114,7 +114,7 @@ Arkret v1 的统一读法是：
 | 功能 | 推荐落点 | 说明 |
 | --- | --- | --- |
 | Checklist / subtask | 需要独立负责人、截止时间、评论或审计时用子 `Strand` + `Relation(contains / depends_on / blocks)`；仅作为正文清单时用 content / profile-defined Morph | 不新增通用 `ChecklistItem` core 对象，避免与 Strand/Morph 重叠。 |
-| 自定义字段 | `fields` + Realm schema/profile | 字段名、类型、必填性与迁移必须由 schema 声明；facet 只做 UI hint。 |
-| 自动化 / Butler / Jira automation | Applet / Agent / policy-bound automation profile | 自动化触发的共享变化仍必须落成 signed Event，不能只写投影缓存。 |
+| 自定义字段 | `fields` + Realm schema/profile | 字段名、类型、必填性与迁移由 schema 声明；facet 只做 UI hint。 |
+| 自动化 / Butler / Jira automation | Applet / Agent / policy-bound automation profile | 自动化触发的共享变化以 signed Event 落地，而不是只写投影缓存。 |
 | Saved filter / personal board view | 共享视图用 `View`；个人列宽、折叠、临时 filter 用 actor-private account data | View 是共享投影定义；个人偏好不进入 Realm 共享历史。 |
 | Watchers / assignment / mention | `ak.strand.watch.set`、`Relation(assigned_to)`、结构化 mention node | 访问权先由 Realm/Circle scope 判断，再叠加通知偏好。 |

@@ -149,6 +149,16 @@
       "pattern": "^[A-Za-z0-9._:-]{1,128}$",
       "description": "Deployment-local short-lived account/auth artifact id. It is not a ak:<kind> protocol object id."
     },
+    "pairing_secret": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{22,128}$",
+      "description": "One-time CSPRNG pairing secret carrying at least 128 bits of entropy. It is transmitted only in JSON bodies, never in URLs or logs."
+    },
+    "device_pairing_code": {
+      "type": "string",
+      "pattern": "^[A-HJ-NP-Z2-9]{8}$",
+      "description": "Eight-character human-readable Crockford-style code (40 bits before rejection sampling), bound to a short-lived SAS/QR transcript and protected by a ten-failure lockout."
+    },
     "proof": {
       "type": "object",
       "minProperties": 1,
@@ -305,7 +315,7 @@
           "$ref": "#/$defs/opaque_local_id"
         },
         "pairing_code": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "#/$defs/pairing_secret"
         },
         "pairing_expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -485,7 +495,7 @@
       ],
       "properties": {
         "pairing_code": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "#/$defs/device_pairing_code"
         },
         "new_device_pubkey": {
           "$ref": "#/$defs/public_key"
@@ -701,7 +711,7 @@
       ],
       "properties": {
         "pairing_code": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "#/$defs/pairing_secret"
         },
         "pairing_request_id": {
           "$ref": "#/$defs/opaque_local_id",
@@ -777,7 +787,7 @@
           "description": "Single-use pairing artifact id returned by agent_provision_outcome. Profile-local, short-lived and not a durable protocol object ref."
         },
         "pairing_code": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "#/$defs/pairing_secret"
         },
         "agent_id": {
           "$ref": "#/$defs/did"
@@ -891,7 +901,7 @@
           "$ref": "#/$defs/opaque_local_id"
         },
         "pairing_code": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "#/$defs/pairing_secret"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -952,7 +962,7 @@
           "$ref": "#/$defs/opaque_local_id"
         },
         "pairing_code": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "#/$defs/pairing_secret"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -986,7 +996,7 @@
           "$ref": "#/$defs/opaque_local_id"
         },
         "pairing_code": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "#/$defs/pairing_secret"
         },
         "pairing_expires_at": {
           "$ref": "#/$defs/timestamp"

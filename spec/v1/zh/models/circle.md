@@ -43,7 +43,7 @@ Schema id: `ak.schema.circle.v1`
 | `summary` | no | `string` | ≤2048 chars。 | 简短说明(渲染在 banner / 详情)。 |
 | `display` | yes | `object` | 见 §4。 | **跨客户端一致**的视觉身份字段；只对 `directory_visibility` 允许的 actor 投影。 |
 | `directory_visibility` | yes | `enum(members, realm_members)` | 必填；推荐初始值 `members`（客户端预填，非 wire 缺省）。 | Circle 元数据可发现性。`members` 时非成员不得看到 title / display / member_count;`realm_members` 仅披露目录元数据，不授予事件或历史访问。 |
-| `join_rule` | yes | `enum(invite, request, open)` | 必填；推荐初始值 `invite`（客户端预填，非 wire 缺省）。 | Circle 加入规则。`open` 仅允许父 Realm `join` 成员自助加入(`membership=join`);`request` 触发 `knock` 申请/批准流(见 §9.1 transition table);`invite` 只能由 Circle 管理员加入或邀请。 |
+| `join_rule` | yes | `enum(invite, knock, public)` | 必填；推荐初始值 `invite`（客户端预填，非 wire 缺省）。 | 与 Realm 入口模式共用词形。Circle 的 `public` 仅允许父 Realm `join` 成员自助加入(`membership=join`)，不改变全局 discoverability；`knock` 触发申请/批准流(见 §9.1 transition table)；`invite` 只能由 Circle 管理员加入或邀请。 |
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 必填；推荐初始值 `invited`（客户端预填，非 wire 缺省）。语义沿用 [`../governance/history-visibility.md`](../governance/history-visibility.md)。 | Circle 自己的历史可见性，但 effective visibility **不得宽于父 Realm 当前 policy floor**。 |
 | `content_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | 省略时继承父 Realm `content_encryption_floor`。effective = max(父 Realm, Circle)；只能收紧、不得放宽父 Realm floor，且 effective floor 是单向 ratchet(见 §7)。`e2ee_required` 仅在 `encryption_profile=mls_rfc9420` 时有意义；`encryption_profile=none` 的 Circle MUST 保持 `allow_plaintext`。 | Circle 内对象的 content 加密下限。 |
 | `metadata_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | 省略时继承父 Realm `metadata_encryption_floor`。effective = max(父 Realm, Circle)；只能收紧、不得放宽父 Realm floor，且 effective floor 是单向 ratchet(见 §7)。 | Circle 内对象的 metadata 加密下限，与 `content_encryption_floor` 对称；`e2ee_required` 时用户可读 metadata 进 `encrypted_metadata`。`encryption_profile=none` 时不得声明高于实际可执行能力的 metadata 加密保证。 |
@@ -82,7 +82,7 @@ Schema id: `ak.schema.circle.v1`
 | `ak.circle.archive` | yes | object_lifecycle_payload | active → archived。 |
 | `ak.circle.restore` | yes | object_lifecycle_payload | archived → active。 |
 | `ak.circle.tombstone` | yes | object_lifecycle_payload | terminal；触发 §8 cascade。 |
-| `ak.circle.member.state` | yes | `{circle_id, actor_id, membership: invite\|join\|knock\|leave\|ban, ...}` | 与 `ak.member.state` 复用同一 `membership_state` 枚举(`invite / join / knock / leave / ban`)，仅 scope 限定到 Circle；二者 wire 取值完全一致，不存在独立词形。reducer 先校验 actor 已是父 Realm `join` 成员；`knock` 仅在 `join_rule=request` 下允许(见 §9.1)。 |
+| `ak.circle.member.state` | yes | `{circle_id, actor_id, membership: invite\|join\|knock\|leave\|ban, ...}` | 与 `ak.member.state` 复用同一 `membership_state` 枚举(`invite / join / knock / leave / ban`)，仅 scope 限定到 Circle；二者 wire 取值完全一致，不存在独立词形。reducer 先校验 actor 已是父 Realm `join` 成员；`knock` 仅在 `join_rule=knock` 下允许(见 §9.1)。 |
 | `ak.circle.seal_commit` | no | `{circle_id, sub_seal_head_digest, epoch}` | reducer-derived:Circle sub-seal 按 profile cadence 周期性向 Realm Seal 提交不透明 commitment(§9)，由服务端 / seal service 发出，actor 不直接提交。 |
 
 ## 6. 对象 scope 表达
@@ -272,7 +272,7 @@ Capability actions:
 | --- | --- | --- | --- |
 | `ak.circle.create` | medium | `ak.circle.create` | 创建 Circle。**默认不**在普通成员 bundle 中(防止 Circle 滥用稀释 UX)。 |
 | `ak.circle.manage` | medium | `ak.circle.update`, `ak.circle.archive`, `ak.circle.restore`, `ak.circle.tombstone` | 管理已存在 Circle。 |
-| `ak.circle.member.add` | low | `ak.circle.member.state`(payload.actor_id == envelope.actor_id，且 transition 合法) | 用户接受邀请、加入 `join_rule=open` 的 Circle 或自助退出；不得自助解除 ban。 |
+| `ak.circle.member.add` | low | `ak.circle.member.state`(payload.actor_id == envelope.actor_id，且 transition 合法) | 用户接受邀请、加入 `join_rule=public` 的 Circle 或自助退出；不得自助解除 ban。 |
 | `ak.circle.member.manage` | medium | `ak.circle.member.state`(actor_id != envelope.actor_id) | 邀请/移除他人；Circle admin 持有。 |
 | `ak.circle.member.add.others` | high | 同上 + 强制带 `ak.audit.accessed` 配对(与 `ak.strand.watch.set.others` 同模式) | 跨成员代写(罕用)，审计配对。 |
 | `ak.circle.audit` | high | 空(read-only)，配对 `ak.audit.accessed` | 不属于 Circle 的 Realm admin 读取 Circle 元数据 / activity rollup 的审计权。 |
@@ -310,13 +310,13 @@ Membership transition table（`membership` 复用 `ak.member.state` 的 `members
 | from | to | writer |
 | --- | --- | --- |
 | leave | invite | `ak.circle.member.manage` |
-| leave | knock | target actor，仅当 `join_rule=request`(自助申请；申请正文 MUST NOT 进入该 Move，沿用 [`../governance/join-policy.md` §8](../governance/join-policy.md) 的加密 envelope 约定) |
+| leave | knock | target actor，仅当 `join_rule=knock`(自助申请；申请正文 MUST NOT 进入该 Move，沿用 [`../governance/join-policy.md` §8](../governance/join-policy.md) 的加密 envelope 约定) |
 | knock | invite | `ak.circle.member.manage`(批准申请转为邀请) |
 | knock | join | `ak.circle.member.manage`(直接批准加入) |
 | knock | leave | target actor(撤回)或 `ak.circle.member.manage`(拒绝) |
 | invite | join | target actor (`ak.circle.member.add`) 或 `ak.circle.member.manage` |
 | invite | leave | target actor(拒绝邀请)或 `ak.circle.member.manage`(撤销邀请) |
-| leave | join | target actor only when `join_rule=open`; otherwise `ak.circle.member.manage` |
+| leave | join | target actor only when `join_rule=public`; otherwise `ak.circle.member.manage` |
 | join | leave | target actor or `ak.circle.member.manage` |
 | invite / knock / join / leave | ban | `ak.circle.member.manage` |
 | ban | leave / invite | `ak.circle.member.manage` only; self-service MUST fail closed |

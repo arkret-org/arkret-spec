@@ -236,6 +236,54 @@
       "description": "A Realm, organization, account, holder-disclosure, agent, or deployment policy explicitly denied the requested operation after syntactic validation and authentication succeeded. Use a narrower code when a more specific registry entry applies."
     },
     {
+      "code": "verifier_not_authorized",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "A presentation verifier could not prove authority to represent its claimed organization or relying party."
+    },
+    {
+      "code": "consent_required",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "The holder requires explicit user consent before disclosing the requested presentation."
+    },
+    {
+      "code": "unsupported_proof_profile",
+      "http_status": 422,
+      "scope": "service_call",
+      "description": "Wallet and verifier have no mutually supported proof profile for the requested presentation."
+    },
+    {
+      "code": "transport_privacy_required",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "Effective holder policy requires a privacy-preserving transport mode that is unavailable for this presentation exchange."
+    },
+    {
+      "code": "credential_not_found",
+      "http_status": 404,
+      "scope": "service_call",
+      "description": "The holder has no credential matching the authorized presentation request."
+    },
+    {
+      "code": "credential_expired",
+      "http_status": 410,
+      "scope": "service_call",
+      "description": "A credential matching the presentation request exists but is expired."
+    },
+    {
+      "code": "status_unavailable",
+      "http_status": 503,
+      "scope": "service_call",
+      "description": "Required credential revocation or status material is temporarily unavailable."
+    },
+    {
+      "code": "overbroad_request",
+      "http_status": 422,
+      "scope": "service_call",
+      "description": "A presentation request asks for unrelated handles, credential identifiers, or global identifiers beyond its declared purpose."
+    },
+    {
       "code": "read_receipt_compliance_floor_violated",
       "http_status": 422,
       "scope": "both",

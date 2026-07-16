@@ -594,9 +594,8 @@
         },
         "pairing_code": {
           "type": "string",
-          "minLength": 1,
-          "maxLength": 128,
-          "description": "Short user-visible code bound into a same-principal device authorization transcript."
+          "pattern": "^[A-HJ-NP-Z2-9]{8}$",
+          "description": "Eight-character human-readable Crockford-style device-pairing code bound into a same-principal authorization transcript. It is short-lived, one-time, and locked after ten failed submissions."
         },
         "new_device_pubkey": {
           "type": "object",

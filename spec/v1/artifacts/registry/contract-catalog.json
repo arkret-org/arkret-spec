@@ -3233,7 +3233,7 @@
         "schema_id": "ak.schema.availability_receipt.v1",
         "file": "schemas/availability-receipt.schema.json",
         "status": "active",
-        "description": "Signed holder commitment that Event bytes are available until retention_until; used by CBA Seal availability_root."
+        "description": "Signed holder commitment that Event bytes are available until retention_expires_at; used by CBA Seal availability_root."
       },
       {
         "schema_id": "ak.schema.patch.v1",

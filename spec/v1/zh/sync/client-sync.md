@@ -320,6 +320,8 @@ Client Sync 的事件顺序是展示顺序和增量恢复顺序，不是授权�
 
 Canonical default timeline projection order（不输入 canonical state、授权判断或 winner 选择；请求未显式声明并协商其它 profile 排序时，服务器 MUST 使用本顺序）：
 
+该排序的 canonical 定义、`causal_depth` 边集、HLC 缺省值与 provisional 重排规则的单一真相源是 [`encoding.md` §7.3](../conformance/encoding.md)；本节只说明同步投影如何消费该顺序。
+
 ```text
 causal_depth ASC,
 hlc ASC,
@@ -328,11 +330,7 @@ actor_seq ASC,
 event_id ASC
 ```
 
-其中：
-
-- `causal_depth` 来自已知 DAG：`prev_refs ∪ refs[role="after"] ∪ causal_refs ∪ payload 物化的 reply/reference edge`。
-- `hlc` 用于近实时排序。
-- `actor_seq` 只在同一 actor 的已知因果路径内辅助排序；并发 sibling fork 仍由后续 tie-breaker 收敛。
+各键的精确定义与缺边时行为均以 `encoding.md` §7.3 为准；同步服务不得在本节另行扩展 `causal_depth` 边集或定义本地 tie-break。
 - `event_id` 是最终 tie-breaker。
 
 对于协议状态，客户端 MUST 使用 `event-auth-state-resolution.md` 的 CBA query basis 与 Lattice cell value 解释当前态，不得只取 timeline 中最后出现的同 kind Event。

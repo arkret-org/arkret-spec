@@ -18,7 +18,7 @@
     "created_at",
     "updated_hlc",
     "retention_expires_at",
-    "state"
+    "status"
   ],
   "properties": {
     "kind": {
@@ -71,7 +71,7 @@
     "retention_expires_at": {
       "$ref": "#/$defs/timestamp"
     },
-    "state": {
+    "status": {
       "type": "string",
       "enum": [
         "available",

@@ -176,6 +176,8 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 
 `questions[]` 正文 MUST NOT 出现在 hint 中；公开 question prompt 是 opt-in（每个 question 独立 `disclosed_in_directory: bool`）。
 
+`directory_hint` 是封闭对象：`summary` 为 1..512 chars；`expected_review_time` 为 ISO 8601 duration；`requires_human_review` 为 boolean；`challenge_kinds_displayed[]` 最多 16 项且仅取 `captcha` / `pow` / `attested_human` / `idp_oidc`。未知字段或未知 challenge kind MUST `schema_violation`。
+
 ### 3.3 `application_form.questions[]`
 
 ```json
@@ -198,6 +200,8 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 ```
 
 `auto_reject_if_choice_in` 让 reducer / 审核服务对明显错误答案直接生成 `decision=reject`，不进入人工队列。
+
+Question 是封闭对象，必填 `question_id`、`prompt_canonical`、`answer_kind`、`required`；`answer_kind` 封闭为 `text` / `single_choice` / `multi_choice` / `boolean`。`question_id` 在同一 gate 内 MUST 唯一；`choices[]` 仅用于 choice kind，choice `id` 在同一 question 内 MUST 唯一；`auto_reject_if_choice_in[]` 的每一项 MUST 引用同一 question 的 choice id。`min_chars <= max_chars`，且二者仅用于 `text`。违反字段组合、引用或唯一性约束 MUST `schema_violation`。
 
 单个 `application_form` gate 的 `questions[]` MUST ≤ 64 项（v1 wire 上限，见 [`../conformance/scalability-constraints.md` §5](../conformance/scalability-constraints.md)）；超过时 MUST `schema_violation`。
 

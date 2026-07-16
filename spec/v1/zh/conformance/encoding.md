@@ -44,7 +44,7 @@ Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs`、`unsigned` 与
   - 拒绝 mixed-script identifier（拉丁 + 西里尔 + 希腊 + …）；只允许 single-script，或 single-script + ASCII digit 组合。
   - 拒绝 TR 39 §5.1.1 列出的高风险 confusable 字符（如 `а`(U+0430 西里尔) 与 `a`(U+0061 拉丁) 同形）。
   - 拒绝纯不可见或控制字符序列（`U+200B…U+200F`、`U+202A…U+202E`、`U+2066…U+2069` 等 zero-width / bidi override）。
-  - 实现 MUST 暴露 confusable check 为可调用 utility（见 `conformance-vectors.md` confusable test set），让客户端在创建 handle / 显示名前预检。
+  - 实现 SHOULD 暴露 confusable check 为可调用 utility，让客户端在创建 handle / 显示名前预检；wire 拒绝行为由 `ak.vector.identity.reject_handle_homograph.v1` 与 `ak.vector.identity.reject_realm_alias_homograph.v1` 固定，SDK utility 形状不属于 wire conformance gate。
 
 什么字段需要走 NFKC + confusable check：
 
@@ -320,7 +320,7 @@ Hybrid Logical Clock 编码：
   - 等待直到本地可生成更大的 `unix_ms_hex`，然后以 `logical_hex=0000` 生成新 HLC。
   - 在生成 canonical bytes 之前以本地临时错误终止该次写入，例如 `hlc_logical_overflow`，由调用方稍后重试。
 - 生产者在等待或重试期间 MUST 保留原有 `prev_refs`、`refs[role=authorized_by]` 和 `actor_seq` 约束，MUST NOT 仅为了逃避 overflow 而伪造更大的 wall clock skew。
-- 消费者若观察到同一 producer 出现 `unix_ms` 不变、`logical_hex` 从 `ffff` 回绕到更小值且没有更大 `unix_ms`，MUST 将其视为无效 HLC，并以 `schema_violation`、`causal_conflict`、`soft_fail` 或 quarantine 处理；MUST NOT 把它当作正常排序值接受。
+- 消费者若观察到同一 producer 出现 `unix_ms` 不变、`logical_hex` 从 `ffff` 回绕到更小值且没有更大 `unix_ms`，MUST 将其视为无效 HLC：在 submit / command 入口发现时 MUST reject 为 `schema_violation`；在同步、backfill 或已接收历史复验中发现时 MUST quarantine 该 producer 的冲突分支并停止推进其 accepted frontier。两条路径均 MUST NOT 把该 tuple 当作正常排序值接受。
 
 v1 固定使用 4 位 `logical_hex`。该上限等价于单个 producer 每毫秒 65,536 个有序 HLC；超过该速率的批量写入应拆分到多个 actor/device producer、等待下一毫秒，或使用服务端批量入口排队。实现 MUST NOT 在 v1 中把 `logical_hex` 私自扩展到 6/8 位；需要更宽计数器时 MUST 声明新的 HLC version 与 schema profile。
 
@@ -367,7 +367,7 @@ function compare_hlc(hlc1, hlc2):
 
 实现 MUST：
 
-- 用正则 `^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$` 验证 HLC 格式。HLC **纯格式违例**（不匹配该正则、段长 / 字符集 / 大小写不合、`unix_ms_hex > ffffffffffff` 等单纯的 well-formedness 失败）MUST 返回 `schema_violation`（与 [`conformance-vectors.md` §1.10.1](./conformance-vectors.md) 钉定的单值一致）。`schema_violation` / `causal_conflict` / `soft_fail` / quarantine 的多选处置仅适用于 §7「溢出规则」中的语义回绕 / 单调性违例场景（格式合法但 `logical_hex` 从 `ffff` 回绕、复用 tuple 等），不适用于纯格式违例。
+- 用正则 `^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$` 验证 HLC 格式。HLC **纯格式违例**（不匹配该正则、段长 / 字符集 / 大小写不合、`unix_ms_hex > ffffffffffff` 等单纯的 well-formedness 失败）MUST 返回 `schema_violation`（与 [`conformance-vectors.md` §1.10.1](./conformance-vectors.md) 钉定的单值一致）。格式合法但发生 §7 语义回绕 / tuple 复用时，submit 路径同样返回 `schema_violation`，同步 / backfill 路径则 quarantine；不得选择其它错误码或 soft-fail 后继续该分支。
 - 按本节的两层 drift 模型验证物理时间：超 `hard_future_skew_ms` MUST reject / quarantine；超 `expected_future_skew_ms` SHOULD soft-fail / quarantine。这两个阈值的默认数值以规模上限登记表 [`scalability-constraints.md`](./scalability-constraints.md) §2 为单一真相源（本节不重复字面值，避免漂移）。该校验是 envelope freshness / DoS guard，不是授权、Lattice winner、Control Move precondition 或 Seal finality 输入；通过 drift 校验的 HLC 仍只可用于 timeline tie-breaker。
 - profile MAY 通过 `state_event_expected_future_skew_ms` 对 state event（capability / membership / policy / service binding / Realm upgrade / MLS commit 等）施加更严窗口；未声明时按 `expected_future_skew_ms` 处理。
 - 拒绝 `unix_ms_hex > ffffffffffff` 的 HLC 值（物理时间溢出，需未来扩展 HLC profile 才可使用）。

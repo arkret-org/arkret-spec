@@ -202,8 +202,8 @@ sidebar:
 | `ak.morph.update` | Morph patch |
 | `ak.morph.archive` | Morph archive |
 | `ak.morph.restore` | Morph restore |
-| `ak.container.move_item` | Facet container item move |
-| `ak.container.rebalance` | Facet container rank rebalance |
+| `ak.container.move_item` | Profile-declared container item move |
+| `ak.container.rebalance` | Profile-declared container rank rebalance |
 | `ak.message.create` | Message create |
 | `ak.message.revise` | Message edit patch |
 | `ak.message.redact` | Message-scoped redaction |

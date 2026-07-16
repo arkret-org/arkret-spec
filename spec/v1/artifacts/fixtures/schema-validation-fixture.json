@@ -2223,7 +2223,7 @@
       "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body",
       "expect_valid": true,
       "instance": {
-        "pairing_code": "PAIR-7H2K",
+        "pairing_code": "Q7m2Kf9T3vN8xL4pR6sW1a",
         "pairing_request_id": "pairing-request-01970e58",
         "agent_id": "did:webvh:z6mkfixture:agent.example",
         "verification_method": "did:webvh:z6mkfixture:agent.example#key-1",
@@ -2245,7 +2245,7 @@
       "expect_valid": false,
       "first_expected_error": "$: 'pairing_request_id' is a required property",
       "instance": {
-        "pairing_code": "PAIR-7H2K",
+        "pairing_code": "Q7m2Kf9T3vN8xL4pR6sW1a",
         "agent_id": "did:webvh:z6mkfixture:agent.example",
         "verification_method": "did:webvh:z6mkfixture:agent.example#key-1",
         "public_key": {

@@ -531,6 +531,8 @@ ak.vector.encoding.hlc_logical_overflow.v1
 - 通过伪造更大的 wall clock skew 逃避 overflow，同时破坏本地 HLC 单调性或 causal 约束。
 - 消费者把上述回绕值当作正常排序输入接受并推进 accepted history。
 
+消费者处置是封闭的：同一 producer 的格式合法回绕 tuple 在 submit / command 入口 MUST 以 `schema_violation` 拒绝；在同步、backfill 或历史复验中 MUST quarantine 该 producer 冲突分支且不得推进其 accepted frontier。返回其它错误码、仅记录 warning、soft-fail 后继续或按普通 HLC 排序均为失败。
+
 #### 1.10.1 Vector: Reject Malformed HLC Format
 
 向量名称：
@@ -2706,7 +2708,7 @@ Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `allow_unroutab
 期望：
 - 整个序列中 sender 解析投递目标 MUST 完全依赖 effective member cell 的 `delivery_binding`，DID Document service entry 永远不被 query。
 - `delivery_binding_frontier` 字段在所有 service-to-service push 中均存在；sender 端落后 frontier 收到 stale signal 后 MUST 切换、不重投。
-- 撤销后 sender 试图继续投递 MUST 收到 `member_not_in_space` 或 `capability_revoked`；MUST NOT 构造任何 "fallback to DID Document" 路径。
+- 撤销后 sender 试图继续投递 MUST 收到已登记的 `not_member`（membership 已撤销）或 `capability_denied`（投递 capability 已撤销）；MUST NOT 构造任何 "fallback to DID Document" 路径。
 
 ### 7.5.1 Vector: Policy Mismatch 拒绝
 

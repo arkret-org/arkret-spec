@@ -276,7 +276,7 @@ Realm 有两个终态 event，语义不同：
 3. **Successor / Tombstone 区分**：`ak.realm.tombstone` MUST 携带不同于自身的 `successor_realm_id`；`ak.realm.destroy` MUST NOT 携带该字段。Projection 对二者统一暴露 `realm_terminal_state`，并用 `terminal_kind=tombstone|destroy`（或逐字节等价的封闭枚举）区分迁移与永久退役。
 4. **Erasure Receipt 与 Legal Hold**：destroy 不自动触发 erasure。若部署进入 erasure 阶段，发布 `ak.audit.erasure_receipt`（schema `ak.schema.erasure_receipt.v1`），可能 `outcome=blocked_by_legal_hold`。Legal hold 优先于 destroy 的 GC 路径。
 5. **Federation Fanout**：终态 Event MUST 沿 federation 推送到所有曾持有该 Realm 状态的 peer Principal Server；peer 收到后 MUST 在 30 天内本地标记 `realm_terminal_state`、记录相同 `terminal_kind`，并停止接受该 Realm 的新 `ak.peer.events.command.submit`（包括 backfill 写入）。
-6. **Child Space / Strand cascade**：终态 accepted 后，home Realm 内所有 non-terminal Space、Strand placement 与 structural `contains` projection MUST NOT 作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为只读 locked projection（destroy 可用 `realm_destroyed_orphan`，tombstone 可用 `realm_tombstoned_orphan`）或自动 tombstone/archive；不得继续允许 `ak.strand.move`、`ak.space.parent`、`ak.space.update` 等普通写入复活它们。跨 Realm `parent_space_id` 指向终态 Realm 的 Space 时，引用方 MUST 在发现终态 frontier 后将该 edge 降级为 locked/lazy link，并在 policy 窗口内 reparent、archive 或 tombstone；不得传播终态 Realm 的 membership、capability、history 或 E2EE key material。
+6. **Child Space / Strand cascade**：终态 accepted 后，home Realm 内所有 non-terminal Space、Strand placement 与 structural `contains` projection MUST NOT 作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为只读 locked projection（destroy 可用 `realm_destroyed_orphan`，tombstone 可用 `realm_tombstoned_orphan`）或自动 tombstone/archive；不得继续允许 `ak.strand.move`、`ak.space.parent`、`ak.space.update` 等普通写入复活它们。跨 Realm `parent_space_id` 指向终态 Realm 的 Space 时，引用方 MUST 在发现终态 frontier 后将该 edge 降级为 locked/lazy link，并在 30 days 的 `terminal_parent_repair_window` 内 reparent、archive 或 tombstone；不得传播终态 Realm 的 membership、capability、history 或 E2EE key material。
 7. **Circle scope cascade**：Realm 内的 [Circle](./circle.md) 在父 Realm tombstone 或 destroy 时一并 tombstone（Circle 不持有独立 federation identity，无法独立存活）。对象 `scope_circle_id` 指向已 tombstone Circle 时，写入 MUST fail closed（`failed_precondition`, `reason_code=scope_unavailable`）；projection MAY 显示同名 `scope_unavailable` 状态标记；`scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md) lifecycle cascade 表。
 
 #### 2.6.2 跨 Principal Server Erasure Receipt Fanout（normative）
@@ -309,12 +309,14 @@ Realm 有两个终态 event，语义不同：
 | `invite` | `leave` | target actor，inviter，或 `ak.realm.admin` | 拒绝 / 撤销邀请。 |
 | `knock` | `invite` | reviewer / `ak.realm.join.review` 或 `ak.realm.admin` | 批准申请并转为邀请。 |
 | `knock` | `join` | reviewer / `ak.realm.join.review` 或 `ak.realm.admin` | 直接批准加入。 |
-| `knock` | `leave` | target actor，reviewer，或 `ak.realm.admin` | 撤回、拒绝或 TTL 到期。 |
+| `knock` | `leave` | target actor，reviewer，或 `ak.realm.admin` | 显式撤回或拒绝。base v1 的 bare knock 无自动 TTL 转换。 |
 | `join` | `join` | target actor 或 rebind-authorized service，且只更新 delivery binding / membership metadata | 成员保持加入状态的投递绑定迁移；不得借此改变 join gate 结果。 |
 | `join` | `leave` | target actor 或 `ak.realm.admin` | 主动离开或管理员移除。 |
 | `leave` / `invite` / `knock` / `join` | `ban` | `ak.realm.admin` | 封禁；同时触发投递、MLS remove 与 Circle cascade。 |
 | `ban` | `leave` | `ak.realm.admin` | 解封为非成员。 |
 | `ban` | `invite` | `ak.realm.admin` | 解封并重新邀请。 |
+
+`invite` 与 base v1 bare `knock` 的过期只影响 operation eligibility，不会由本地计时器自动改写共享 member cell。超时清理必须由上表列出的 authorized writer 提交显式 `leave`；receiver MUST NOT 根据本地墙钟合成 reducer-derived member event。Join Policy `member.application` 的 `application_ttl` 是独立 candidate workflow，不得反向解释为 bare knock TTL。
 
 未列出的 transition MUST `failed_precondition`，reason=`invalid_membership_transition` 或更具体的 join / delivery-binding reason。`join -> invite`、`ban -> join`、`invite -> knock`、`leave -> leave` 等均非法；需要重试时 producer 必须基于当前 state 重新提交合法 transition。父 Realm `join -> leave/ban` 的 cascade 对 Circle membership 的影响见 [`circle.md` §9.1](./circle.md)。
 

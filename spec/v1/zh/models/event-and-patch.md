@@ -47,7 +47,7 @@ Schema id: `ak.schema.event.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `event_id` | yes | `id:event` | 事件稳定 typed ID。事件 canonical digest / proof hash 见 `conformance-vectors.md`。 | 事件 ID。 |
-| `kind` | yes | `string` | 标准 effect kind SHOULD 使用 `ak.` 前缀。Registry 可声明 `cell_family`、`cell_subject`、`lattice` 和 `bottom`，供 CBA reducer 使用。 | 事件 kind。 |
+| `kind` | yes | `string` | MUST 匹配 `^ak\.[a-z0-9_]+(\.[a-z0-9_]+)*$`；标准 kind MUST 登记于 `event-kind-registry.json`。Registry 可声明 `cell_family`、`cell_subject`、`lattice` 和 `bottom`，供 CBA reducer 使用。 | 事件 kind。 |
 | `realm_id` | yes | `id:realm` | Realm create 可在 payload 中建立。 | 所属 Realm。 |
 | `effective_scope` | reducer-stamped | `object` | Reducer 接受 Event 时从 Realm/Circle scope 物化并 immutable 写入 accepted envelope；进入 Seal/sub-seal leaves、E2EE AAD 与 MLS governance binding input。Actor-supplied submit payload MUST NOT 携带该字段，reducer MUST `schema_violation` (`reason=effective_scope_reducer_managed`)。该 reducer-stamped 字段不参与 producer proof 的 `event_digest` 输入（见 §3），其完整性由接受后的 envelope、Seal/sub-seal/AAD 承诺和存储回放规则承担。 | 事件有效作用域。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链(`executed_by` 缺失时);`executed_by` 存在时 proof 控制链对齐 `executed_by`。 | 事件归属的 principal of record。 |
@@ -80,20 +80,26 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
 ```json schema=schemas/event-envelope.schema.json
 {
   "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
+  "kind": "ak.strand.update",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 4,
-  "kind": "ak.strand.update",
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [
     "ak:event:019640ed-0000-7000-8000-000000000000"
   ],
+  "refs": [
+    { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+  ],
   "causal_refs": [
     "sha256:3333333333333333333333333333333333333333333333333333333333333333"
   ],
-  "refs": [
-    { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+  "effects": [
+    {
+      "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
+      "op": { "kind": "set", "value": { "metadata": { "fields": { "review_status": "approved" } } } }
+    }
   ],
   "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
   "auth_context": {
@@ -104,12 +110,6 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
       "ak:grant:0196410c-0000-7000-8000-000000000000"
     ]
   },
-  "effects": [
-    {
-      "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
-      "op": { "kind": "set", "value": { "metadata": { "fields": { "review_status": "approved" } } } }
-    }
-  ],
   "payload": {
     "target_ref": "ak:strand:019640c6-8000-7000-8000-000000000000",
     "patch": {
@@ -164,7 +164,7 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 - Producer SHOULD 为同一 `(realm_id, actor_id)` 维护单调本地链，避免主动产生同高 sibling fork。一个 actor 在不同 Realm 的相同 `actor_seq` 是正常事件，不构成 fork，也不得互相写入 `prev_refs`。
 - 同一 `(realm_id, actor_id)` 的非 genesis event MUST 在 `prev_refs` 中引用至少一个该 actor 在同一 Realm 的 accepted predecessor；该 predecessor 的最大 `actor_seq` 必须是当前 `actor_seq - 1`。跨 Realm predecessor MUST `schema_violation`。唯一 identity recovery 例外是 B 模型 Principal Control Realm 内的 `ak.device.reanchor`：其 `prev_refs` 精确等于该 PCR 的 `pre_fence_basis` preserved closure 加 genesis anchor set 中该 actor 的 canonical heads，`actor_seq=1+max(preserved actor_seq)`；紧随的 replacement authorize 只引用 re-anchor id 且 sequence 加一。未被 basis 保留的 pending/unsealed sibling 不进入新 generation，也不能以更高 sequence 阻塞恢复。
 - 相同 `(realm_id, actor_id, actor_seq)` 的多个 event 是 sibling fork。它们没有隐含先后顺序；展示排序可使用 HLC，但协议状态生效必须使用 DataEvent / Control Move 验证、Seal coverage 与 Lattice join。
-- 实现 MUST 对同一 `(realm_id, actor_id, actor_seq, prev_frontier_digest)` 接受的 sibling 数量设置上限；v1 public profile 的单桶上限为 16。同一 `(realm_id, actor_id, actor_seq)` 跨全部 `prev_frontier_digest` 桶的合法签名 sibling 累计上限为 64；任一上限被超过时 MUST quarantine 或要求 actor chain repair。累计候选集合只由已验证 canonical Event 集合决定，不依赖到达顺序。
+- 实现 MUST 对同一 `(realm_id, actor_id, actor_seq, prev_frontier_digest)` 接受的 sibling 数量设置上限；v1 的单桶上限为 16。同一 `(realm_id, actor_id, actor_seq)` 跨全部 `prev_frontier_digest` 桶的合法签名 sibling 累计上限为 64；任一上限被超过时 MUST quarantine 或要求 actor chain repair。累计候选集合只由已验证 canonical Event 集合决定，不依赖到达顺序。两项均是无条件 v1 上限，单一数值真相源见 [`scalability-constraints.md` §2](../conformance/scalability-constraints.md)。
 - Realm 隔离、同 Realm sibling 与跨 Realm predecessor 拒绝由 `ak.vector.actor_chain.realm_scope.v1` 固定。
 - 被判定为 rejected 的 fork 不推进 actor accepted frontier，也不得作为后续 accepted event 的 predecessor。
 - **over-fork repair 终局（normative）**：当某 `(realm_id, actor_id, actor_seq, prev_frontier_digest)` 桶内合法签名 sibling 数超过上限时，「quarantine 或要求 actor chain repair」的收敛终局复用 [`../sync/federation.md` §4.5](../sync/federation.md) 定义的 fork resolution 机制，而非各实现自定义：(a) receiver MUST 把整个 over-fork 桶（该桶内全部 sibling，含上限内已 accepted 者）标为 quarantine，MUST NOT 把其中任何 sibling 推进为 actor accepted frontier；(b) 重新归一只能由 federation §4.5 的 `raw replay` / `quorum witness` / `operator-approved fork resolution` 三条终局路径之一产生一个 canonical 归一结果，由有 recovery / fork-resolution capability 的主体写入；(c) 在归一结果产生前，所有 receiver 对同一 over-fork 桶 MUST 一致地拒绝推进 frontier（即 quarantine 子集 = 整桶，跨 receiver 确定相同），避免不同 receiver quarantine 不同子集导致 accepted frontier 跨 receiver 分歧。over-fork 桶不适用 §2.6 的分桶限流容忍语义（限流只针对未超限的合法分叉计数）。追溯进入 quarantine 的 sibling 的 effects MUST 从所有 data/control cell 的 join 输入集中移除，并按"非 quarantine accepted set 的纯函数"确定性重算 projection；以这些 sibling 作为 `prev_refs`、`refs[role=authorized_by]`、critical ref 或 payload-level critical causal ref 的后续 Event MUST 转为 `dependency_missing` / pending，不得继续使用被 quarantine 的 predecessor 维持 accepted 状态。
@@ -316,16 +316,22 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
   "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
+  "kind": "ak.strand.update",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 5,
-  "kind": "ak.strand.update",
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": ["ak:event:019640ed-7000-7000-8000-000000000000"],
-  "causal_refs": ["sha256:3333333333333333333333333333333333333333333333333333333333333333"],
   "refs": [
     { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+  ],
+  "causal_refs": ["sha256:3333333333333333333333333333333333333333333333333333333333333333"],
+  "effects": [
+    {
+      "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
+      "op": { "kind": "set", "value": { "metadata": { "fields": { "review_status": "approved", "due_date": "2026-06-01" } } } }
+    }
   ],
   "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
   "auth_context": {
@@ -336,12 +342,6 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
       "ak:grant:0196410c-0000-7000-8000-000000000000"
     ]
   },
-  "effects": [
-    {
-      "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
-      "op": { "kind": "set", "value": { "metadata": { "fields": { "review_status": "approved", "due_date": "2026-06-01" } } } }
-    }
-  ],
   "payload": {
     "target_ref": "ak:strand:019640c6-8000-7000-8000-000000000000",
     "patch": {
@@ -417,11 +417,12 @@ Schema id: `ak.schema.event_batch_receipt.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
+| `schema` | yes | `string` | 固定为 `ak.schema.event_batch_receipt.v1`。 | Receipt schema id。 |
 | `receipt_id` | yes | `id:receipt` |  | Receipt ID。 |
 | `issuer` | yes | `did` | 必须控制签名 key。 | 签发者，可以是 principal、Principal Server 或 witness。 |
-| `scope` | yes | `object` | SHOULD 包含 `actor_id`、`realm_id` 或查询范围 hash。 | receipt 覆盖范围。 |
-| `frontier` | yes | `object` | SHOULD 包含 `actor_seq`、`event_id` / event hash、HLC 或 Realm frontier。 | 签发时前沿。 |
-| `events` | yes | `array<id:event \| hash \| receipt-item>` | canonical set：每项以 `canonical_json(item)` 的 UTF-8 bytes 为排序键严格升序，禁止重复。 | 被 receipt 覆盖的 Event Envelope 引用；数组位置没有业务语义。 |
+| `scope` | yes | `object` | MUST 至少包含 `actor_id`、`realm_id` 或查询范围 hash 之一；Realm-scoped receipt MUST 包含 `realm_id`。 | receipt 覆盖范围。 |
+| `frontier` | yes | `object` | MUST 至少包含 `actor_seq`、`event_id` / `event_digest`、HLC 或 Realm frontier 之一。 | 签发时前沿。 |
+| `events` | yes | `array<hash \| receipt-item>` | canonical set：每项以 `canonical_json(item)` 的 UTF-8 bytes 为排序键严格升序，禁止重复。裸 `event_id` 不绑定内容，MUST NOT 出现。 | 被 receipt 覆盖的 Event canonical digest；数组位置没有业务语义。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `proofs` | yes | `array<Proof>` |  | Receipt proof。 |
 

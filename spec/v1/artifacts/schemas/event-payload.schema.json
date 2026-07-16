@@ -489,6 +489,14 @@
             "$ref": "#/$defs/content_block"
           }
         },
+        "attachments": {
+          "type": "array",
+          "maxItems": 32,
+          "description": "Profile-defined attachment hints. At most 32; canonical durable attachment relations SHOULD use Relation attached_to.",
+          "items": {
+            "type": "object"
+          }
+        },
         "reply_context": {
           "type": "object",
           "properties": {
@@ -1248,7 +1256,8 @@
           "$ref": "#/$defs/timestamp"
         },
         "expires_at": {
-          "$ref": "#/$defs/nullable_timestamp"
+          "$ref": "#/$defs/nullable_timestamp",
+          "description": "Administrative review/renewal hint only. It does not auto-transition account status; a later explicit ak.account.status event is required and remains subject to supersedes and terminal rules."
         },
         "supersedes_statement_id": {
           "$ref": "#/$defs/non_empty_string"
@@ -2065,7 +2074,7 @@
     },
     "circle_member_state_payload": {
       "type": "object",
-      "description": "Payload for ak.circle.member.state. Uses the same membership_state enum as ak.member.state (Realm), scoped to a Circle; reducer MUST verify actor_id is a `join` member of the parent Realm before any transition to `join`, MUST gate `knock` on Circle join_rule=request, and MUST reject self-unban/self-unremove paths.",
+      "description": "Payload for ak.circle.member.state. Uses the same membership_state enum as ak.member.state (Realm), scoped to a Circle; reducer MUST verify actor_id is a `join` member of the parent Realm before any transition to `join`, MUST gate `knock` on Circle join_rule=knock, and MUST reject self-unban/self-unremove paths.",
       "required": [
         "circle_id",
         "actor_id",
@@ -2747,7 +2756,7 @@
     },
     "membership_state": {
       "type": "string",
-      "description": "Canonical membership state enum shared by ak.member.state (Realm) and ak.circle.member.state (Circle). Single source of truth: Realm and Circle membership use the identical value set; they MUST NOT diverge. `knock` denotes a pending join request (Realm Join Policy / Circle join_rule=request); see governance/join-policy.md §9 and models/circle.md §9.1.",
+      "description": "Canonical membership state enum shared by ak.member.state (Realm) and ak.circle.member.state (Circle). Single source of truth: Realm and Circle membership use the identical value set; they MUST NOT diverge. `knock` denotes a pending join request (Realm Join Policy / Circle join_rule=knock); see governance/join-policy.md §9 and models/circle.md §9.1.",
       "enum": [
         "join",
         "invite",
@@ -3242,6 +3251,100 @@
                 "items": {
                   "$ref": "#/$defs/did"
                 }
+              },
+              "questions": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 64,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "question_id",
+                    "prompt_canonical",
+                    "answer_kind",
+                    "required"
+                  ],
+                  "properties": {
+                    "question_id": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+                    },
+                    "prompt_canonical": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 2000
+                    },
+                    "prompt_locales": {
+                      "type": "object",
+                      "maxProperties": 32,
+                      "additionalProperties": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 2000
+                      }
+                    },
+                    "answer_kind": {
+                      "type": "string",
+                      "enum": [
+                        "text",
+                        "single_choice",
+                        "multi_choice",
+                        "boolean"
+                      ]
+                    },
+                    "required": {
+                      "type": "boolean"
+                    },
+                    "min_chars": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 10000
+                    },
+                    "max_chars": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 10000
+                    },
+                    "choices": {
+                      "type": "array",
+                      "minItems": 1,
+                      "maxItems": 64,
+                      "uniqueItems": true,
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "label"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+                          },
+                          "label": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 256
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "auto_reject_if_choice_in": {
+                      "type": "array",
+                      "maxItems": 64,
+                      "uniqueItems": true,
+                      "items": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+                      }
+                    },
+                    "disclosed_in_directory": {
+                      "type": "boolean"
+                    }
+                  },
+                  "additionalProperties": false
+                }
               }
             },
             "additionalProperties": true
@@ -3315,7 +3418,36 @@
           ]
         },
         "directory_hint": {
-          "type": "object"
+          "type": "object",
+          "properties": {
+            "summary": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "expected_review_time": {
+              "type": "string",
+              "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
+            },
+            "requires_human_review": {
+              "type": "boolean"
+            },
+            "challenge_kinds_displayed": {
+              "type": "array",
+              "maxItems": 16,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "captcha",
+                  "pow",
+                  "attested_human",
+                  "idp_oidc"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": true,

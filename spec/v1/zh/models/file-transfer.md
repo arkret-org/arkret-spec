@@ -68,7 +68,7 @@ transfer_key = derive_account_data_key(transfer_id)
 | `created_at` | yes | 传输创建时间，RFC3339 UTC。 |
 | `updated_hlc` | yes | LWW 状态合并用 HLC。 |
 | `retention_expires_at` | yes | transfer record 最晚保留时间。 |
-| `state` | yes | `available` / `downloaded` / `dismissed` / `deleted`。 |
+| `status` | yes | `available` / `downloaded` / `dismissed` / `deleted`。 |
 
 Producer MUST NOT 写入任何明文文件 digest / hash 字段（例如 `plaintext_digest`、`plaintext_sha256`、`cleartext_sha256` 或任何同义明文字段）、裸 `sha256`、裸 `size` 或任何可枚举本地路径字段。Receiver 遇到这些字段 MUST fail closed；schema 的 `additionalProperties:false` 同样会拒绝未列入 `ak.schema.file_transfer.v1` 的同义字段，且 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json) 对这些字段名提供机器可检索的 hard reject 约束。
 
@@ -106,7 +106,7 @@ AAD MUST NOT 绑定 content-addressed `blob_ref`，因为这会让 `blob_ref = d
 
 每个 file-transfer item 是独立 account-data 值，MUST NOT 使用一个不断增长的大列表作为唯一真相源。
 
-状态更新（例如 `downloaded`、`dismissed`、`deleted`）写回同一个 `ak.file_transfer.v1:<transfer_key>`。三个非 terminal 状态 `available`、`downloaded`、`dismissed` 之间允许双向迁移：重新下载可写 `downloaded`，从 UI 收起可写 `dismissed`，重新发送到同一授权设备集合前可写回 `available`；它们之间的冲突按 `(actor, transfer_key)` 做 last-writer-wins，比较源为 `updated_hlc`。`deleted` 是该 `transfer_key` 的不可逆 terminal tombstone：任一副本一旦观察到 `state="deleted"`，同一 `transfer_key` 后续或并发的非 deleted 状态 MUST NOT 复活该 transfer；需要重新发送时必须生成新的 `transfer_id` 与新的 `transfer_key`。多个 deleted tombstone 之间 MAY 用较新的 `updated_hlc` 更新保留元数据。如果设备本地时钟或 HLC 来源不可信，客户端 SHOULD 保留本地冲突副本供用户恢复，但 shared reducer 不参与 file-transfer 合并。
+状态更新（例如 `downloaded`、`dismissed`、`deleted`）写回同一个 `ak.file_transfer.v1:<transfer_key>`。三个非 terminal 状态 `available`、`downloaded`、`dismissed` 之间允许双向迁移：重新下载可写 `downloaded`，从 UI 收起可写 `dismissed`，重新发送到同一授权设备集合前可写回 `available`；它们之间的冲突按 `(actor, transfer_key)` 做 last-writer-wins，比较源为 `updated_hlc`。`deleted` 是该 `transfer_key` 的不可逆 terminal tombstone：任一副本一旦观察到 `status="deleted"`，同一 `transfer_key` 后续或并发的非 deleted 状态 MUST NOT 复活该 transfer；需要重新发送时必须生成新的 `transfer_id` 与新的 `transfer_key`。多个 deleted tombstone 之间 MAY 用较新的 `updated_hlc` 更新保留元数据。如果设备本地时钟或 HLC 来源不可信，客户端 SHOULD 保留本地冲突副本供用户恢复，但 shared reducer 不参与 file-transfer 合并。
 
 客户端断线恢复 MUST 使用 `ak.self.account.stream.subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta；不得用 `ak.self.events.query.scan` 代替，因为 file-transfer account-data 和 to-device key messages 不属于裸 Realm Event 查询面。
 
@@ -118,7 +118,7 @@ Blob 服务对不可见或已删除 Blob SHOULD 返回与不存在一致的 `not
 
 ## 7. Retention 与 GC
 
-`retention_expires_at` 是 transfer record 的最晚保留时间。到期后客户端 SHOULD 写回同一 key 的 terminal tombstone（`state="deleted"`，更新 `updated_hlc`），而不是写入未定义的独立 tombstone 结构；仅本地 UI 投影可以物理删除。服务端 MAY 根据 encrypted account-data retention policy 在 tombstone 已同步并超过保留窗口后清理该 key。
+`retention_expires_at` 是 transfer record 的最晚保留时间。到期后客户端 SHOULD 写回同一 key 的 terminal tombstone（`status="deleted"`，更新 `updated_hlc`），而不是写入未定义的独立 tombstone 结构；仅本地 UI 投影可以物理删除。服务端 MAY 根据 encrypted account-data retention policy 在 tombstone 已同步并超过保留窗口后清理该 key。
 
 Blob GC 仍按 [media-and-blob.md](../crypto-media/media-and-blob.md) §8 执行：只有没有 live reference、grace period 已过、未处于 legal hold 且 policy 允许时，Blob MAY 被清理。删除 file-transfer account-data record 不自动证明 Blob 可硬删除；实现需要保留最小 receipt 或执行部署 policy 要求的引用扫描。
 

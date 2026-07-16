@@ -57,12 +57,9 @@
     },
     "events": {
       "type": "array",
-      "description": "Canonical set projection of covered Event references. Items MUST be strictly increasing by the UTF-8 bytes of canonical_json(item); producers sort and deduplicate before signing, and receivers reject a non-canonical wire array before digest verification.",
+      "description": "Canonical set projection of covered Event canonical digests. Bare event IDs are forbidden because they do not bind Event content. Items MUST be strictly increasing by the UTF-8 bytes of canonical_json(item); producers sort and deduplicate before signing, and receivers reject a non-canonical wire array before digest verification.",
       "items": {
         "oneOf": [
-          {
-            "$ref": "./event-envelope.schema.json#/$defs/event_ref"
-          },
           {
             "$ref": "./event-envelope.schema.json#/$defs/hash"
           },

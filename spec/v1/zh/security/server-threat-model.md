@@ -45,6 +45,7 @@ sidebar:
 
 8. **目录与枚举探测（Enumeration / Membership Probe）**
    利用返回时序、状态码差异推断隐私资源可见性、成员关系或组织结构。
+   **Consent / PSI oracle 细分**：PSI 命中位翻转时刻可泄露 grant/revoke 时序，跨 requester 稳定的裸 consent-state hash 可被离线枚举并关联 holder。防护以 [`identity/consent-model.md` §6.2.1 / §6.2.2](../identity/consent-model.md) 为权威：per-`(requester, holder)` 限速与 bucket 化、holder 可审计访问记录，以及 per-requester/session 加盐 HMAC 或 audience-bound opaque token。
 
 9. **队列与存储耗尽（Queue / Storage Exhaustion）**
    借助大对象、分页滑动、深分页、历史清单拉取导致资源占用失控。
@@ -78,6 +79,7 @@ sidebar:
 
 19. **加密状态回退与伪造（MLS Epoch Abuse）**
     通过 epoch 回退、非法 commit 顺序、已移除成员持有先前密钥继续参与解密相关流程。
+    **Last-resort KeyPackage 残余暴露**：复用 init/encryption key 会削弱 Welcome 阶段前向保密；私钥在轮换前泄露可解开此前由该包封装的 Welcome。边界与缓解以 [`crypto-media/encryption-and-audit.md` §2.6.2](../crypto-media/encryption-and-audit.md) 为权威：强制轮换、上线后对相关 group self-update、`expires_at` ≤ 30d，且 high-security / sovereign profile 禁用。
 
 20. **推送网关与通知元数据滥用（Push/Gateway Abuse）**
     攻击者利用未鉴权的 gateway 注册、metadata 推送接口、超频或伪造事件触发隐私侧信道或 DoS。
@@ -101,7 +103,7 @@ sidebar:
     攻击者污染 Directory 的发现 / 投影 ingest 写路径（与 [`discovery/discovery-directory.md` §8.10 / §11](../discovery/discovery-directory.md) 交叉引用）。具体向量:**announce replay**(重放过期 announce 让陈旧条目复活)、**`as_of` skew**(伪造 `as_of` 时间使旧状态看似最新)、**policy_revision rollback**(回退 policy_revision 绕过更严策略)、**DID hijack**(劫持 announce 来源 DID 冒名注入条目)、**source-ref 伪造**(伪造来源引用让未授权条目进入 directory)、**takedown spoofing**(伪造下架 / takedown 让合法条目被移除)。防护以 discovery-directory §8.10 / §11 的来源 DID 验签、`as_of` 单调 / 时间锚校验、policy_revision 单调、announce 一次性 / 过期窗口、source-ref 授权核验与 takedown 授权链为权威。
 
 26. **实时活动信号去匿名追踪（Real-time Activity-Signal Deanonymization）**
-    攻击者（外部 world-readable 观察者、受托 Sync Service 或共谋成员）订阅并关联实时活动信号——read receipt（`ak.receipt.read`）已读位置、typing（`ak.typing`）逐键活动、presence（`ak.presence` 的 `dnd` / `idle` / bucket 化 `last_active_at`）以及 push wakeup timing——以重建特定 actor 的活动时间序列、作息画像，甚至在 world-readable scope 下对外部观察者去匿名其阅读 / 输入行为。这些信号单独看是产品功能，关联后成为去匿名 timing oracle。防护以各自正文为权威：read receipt 的 world-readable / forced-public 组合 fail-closed 与 fanout 收口见 [`discovery/read-receipts.md` §2.5.1](../discovery/read-receipts.md)；typing 的 world_readable scope fail-closed 与 presence `dnd`/`idle` 对未授权观察者 MUST 降级见 [`discovery/profiles-presence.md` §3.4 / §3.5](../discovery/profiles-presence.md)；push wakeup 不得成为 presence timing oracle（bucket 化、默认 ≥60s 批处理）见 [`discovery/push-notifications.md` §2.4](../discovery/push-notifications.md)。
+    攻击者（外部 world-readable 观察者、受托 Sync Service 或共谋成员）订阅并关联实时活动信号——read receipt（`ak.receipt.read`）已读位置、typing（`ak.typing`）逐键活动、presence（`ak.presence` 的 `dnd` / `idle` / bucket 化 `last_active_at`）、push wakeup timing，以及 reaction / mention keyed routing tag 在同一 epoch 内的频率分布与 per-`(actor_id, tag)` 等值聚类——以重建特定 actor 的活动时间序列、作息画像，甚至去匿名其阅读 / 输入 / 反应 / 提及行为。这些信号单独看是产品功能，关联后成为去匿名 timing / equality oracle。防护以各自正文为权威：read receipt 的 world-readable / forced-public 组合 fail-closed 与 fanout 收口见 [`discovery/read-receipts.md` §2.5.1](../discovery/read-receipts.md)；typing 的 world_readable scope fail-closed 与 presence `dnd`/`idle` 对未授权观察者 MUST 降级见 [`discovery/profiles-presence.md` §3.4 / §3.5](../discovery/profiles-presence.md)；push wakeup bucket 化见 [`discovery/push-notifications.md` §2.4](../discovery/push-notifications.md)；reaction / mention tag 的 epoch lifetime ≤1h、到期 self-update 与无法轮换时关闭 routing metadata 见 [`crypto-media/encryption-and-audit.md` §2.9](../crypto-media/encryption-and-audit.md) 和 [`discovery/push-notifications.md` §4.5](../discovery/push-notifications.md)。
 
 27. **实时媒体 / SFU 信任边界滥用（Media-Plane Abuse）**
     恶意或被攻陷的 token issuer、SFU/MCU、TURN 服务或 recording/transcription backend 可能注入未授权 participant、伪造 `participant_identity` / frame-key 来源、静默把 `media_service_decrypts` 从 false 降级为 true、滥用短期 TURN credential、把 backend 明文产物绕过 Arkret blob pipeline，或通过 room join/leave timing 与包大小重建会议参与图谱。防护以 [`crypto-media/media-service-binding.md` §3/§7/§8](../crypto-media/media-service-binding.md)、[`crypto-media/webrtc-signaling.md` §3a/§5/§10](../crypto-media/webrtc-signaling.md) 与 [`crypto-media/call-state.md` §4/§5](../crypto-media/call-state.md) 为权威：participant admission 必须同时验证 membership/account/device/capability 与 signed binding；远端 SFU 默认不得获得 exporter key；任何 backend 明文访问必须通过三层 governance gate；TURN credential 必须短期、audience/focus/call 绑定；录制/转写只经 Arkret authenticated encrypted-blob pipeline。任一校验不可得 MUST fail closed。即使内容 E2EE，SFU/relay 仍可观察 room timing/size；实现 MUST 在 UI/policy 披露该残余元数据面，minimal-metadata profile SHOULD 做 bucket/padding/短留存。
