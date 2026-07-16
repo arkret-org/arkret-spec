@@ -410,8 +410,10 @@
     {
       "operation_id": "ak.self.device_messages.command.send",
       "http_alias": "POST /_arkret/self/device_messages",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
+      "operation_specific": [
+        "duplicate_conflict"
+      ],
+      "description": "Reusing the same sender-scoped DeviceMessageEnvelope.message_id with different canonical target content returns duplicate_conflict (reason message_id_conflict) and enqueues neither variant."
     },
     {
       "operation_id": "ak.self.device_messages.command.ack",

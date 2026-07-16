@@ -1707,17 +1707,19 @@
     {
       "code": "duplicate_conflict",
       "applies_to": [
-        "event_envelope"
+        "event_envelope",
+        "client_sync"
       ],
-      "description": "Two distinct canonical-byte events share the same event_id; reducer MUST quarantine and require operator action (see event-auth-state-resolution.md \u00a711)."
+      "description": "A stable protocol identity was reused with different canonical content. For Event Envelope event_id this is quarantined per event-auth-state-resolution.md \u00a711; for to-device message_id the send operation rejects the conflicting enqueue with reason message_id_conflict."
     },
     {
       "code": "message_id_conflict",
       "applies_to": [
         "event_envelope",
-        "scheduled_send"
+        "scheduled_send",
+        "client_sync"
       ],
-      "description": "A scheduled-send plan or retry reused the same planned_message_id / message_id with a different canonical message payload digest. Reducers MUST return duplicate_conflict with this reason_code and MUST NOT emit a replacement message."
+      "description": "A scheduled-send plan or to-device retry reused the same planned_message_id / message_id with different canonical content. The reducer or queue service MUST return duplicate_conflict with this reason_code and MUST NOT emit or enqueue a replacement message."
     },
     {
       "code": "state_mismatch",

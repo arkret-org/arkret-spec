@@ -5,6 +5,110 @@
   },
   "profile": "ak.vector_group.sync.v1",
   "version": "2026-07-10",
+  "schema_validation_cases": [
+    {
+      "name": "device_message_envelope_with_message_id_valid",
+      "schema_ref": "schemas/device-message.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "message_id": "ak:device_message:01964137-1000-7000-8000-000000000010",
+        "kind": "ak.key.verification.request",
+        "sender_principal_id": "did:webvh:z6mkfixture:alice.example",
+        "sender_device_id": "ak:device:01964137-1000-7000-8000-000000000011",
+        "recipient_principal_id": "did:webvh:z6mkfixture:alice.example",
+        "recipient_device_id": "ak:device:01964137-1000-7000-8000-000000000012",
+        "sent_at": "2026-07-16T08:00:00Z",
+        "expires_at": "2026-07-16T08:10:00Z",
+        "content": {
+          "transaction_id": "verification-fixture-1",
+          "from_device": "ak:device:01964137-1000-7000-8000-000000000011",
+          "methods": ["ak.sas.v1"],
+          "timestamp": "2026-07-16T08:00:00Z",
+          "expires_at": "2026-07-16T08:10:00Z"
+        }
+      }
+    },
+    {
+      "name": "device_message_envelope_missing_message_id_rejected",
+      "schema_ref": "schemas/device-message.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$: 'message_id' is a required property",
+      "instance": {
+        "kind": "ak.key.verification.request",
+        "sender_principal_id": "did:webvh:z6mkfixture:alice.example",
+        "sender_device_id": "ak:device:01964137-1000-7000-8000-000000000011",
+        "recipient_principal_id": "did:webvh:z6mkfixture:alice.example",
+        "recipient_device_id": "ak:device:01964137-1000-7000-8000-000000000012",
+        "sent_at": "2026-07-16T08:00:00Z",
+        "expires_at": "2026-07-16T08:10:00Z",
+        "content": {
+          "transaction_id": "verification-fixture-1",
+          "from_device": "ak:device:01964137-1000-7000-8000-000000000011",
+          "methods": ["ak.sas.v1"],
+          "timestamp": "2026-07-16T08:00:00Z",
+          "expires_at": "2026-07-16T08:10:00Z"
+        }
+      }
+    },
+    {
+      "name": "device_message_send_target_with_message_id_valid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessageTarget",
+      "expect_valid": true,
+      "instance": {
+        "message_id": "ak:device_message:01964137-1000-7000-8000-000000000010",
+        "kind": "ak.key.verification.request",
+        "expires_at": "2026-07-16T08:10:00Z",
+        "content": {"transaction_id": "verification-fixture-1"}
+      }
+    },
+    {
+      "name": "device_message_send_target_missing_message_id_rejected",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessageTarget",
+      "expect_valid": false,
+      "first_expected_error": "$: 'message_id' is a required property",
+      "instance": {
+        "kind": "ak.key.verification.request",
+        "expires_at": "2026-07-16T08:10:00Z",
+        "content": {"transaction_id": "verification-fixture-1"}
+      }
+    }
+  ],
+  "to_device_message_idempotency": {
+    "vector_id": "ak.vector.sync.to_device_message_idempotency.v1",
+    "runner": "cotest::conformance::sync::run_to_device_message_idempotency_vector",
+    "dedup_key": ["sender_principal_id", "sender_device_id", "message_id"],
+    "cases": [
+      {
+        "name": "unacked_redelivery_runs_handler_once",
+        "deliveries": [
+          "ak:device_message:01964137-1000-7000-8000-000000000010",
+          "ak:device_message:01964137-1000-7000-8000-000000000010"
+        ],
+        "canonical_envelope_equal": true,
+        "durable_handler_effect_count": 1,
+        "dedup_record_persisted_before_ack": true,
+        "expected": "accept_and_ack_after_contiguous_persistence"
+      },
+      {
+        "name": "same_message_id_different_content_rejected",
+        "message_id": "ak:device_message:01964137-1000-7000-8000-000000000010",
+        "canonical_envelope_equal": false,
+        "expected_error": "duplicate_conflict",
+        "expected_reason_code": "message_id_conflict",
+        "expected_queue_insertions": 0
+      },
+      {
+        "name": "different_message_ids_are_distinct",
+        "deliveries": [
+          "ak:device_message:01964137-1000-7000-8000-000000000010",
+          "ak:device_message:01964137-1000-7000-8000-000000000013"
+        ],
+        "business_content_equal": true,
+        "durable_handler_effect_count": 2,
+        "expected": "accept_both"
+      }
+    ]
+  },
   "collection_projection": {
     "projection": "collection",
     "renderer": "board",

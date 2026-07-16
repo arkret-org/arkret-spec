@@ -3048,22 +3048,28 @@
     "DeviceMessageTarget": {
       "type": "object",
       "required": [
+        "message_id",
         "kind",
         "expires_at",
         "content"
       ],
       "properties": {
+        "message_id": {
+          "type": "string",
+          "pattern": "^ak:device_message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Sender-assigned stable identity copied unchanged into DeviceMessageEnvelope.message_id. Reusing the same sender-scoped message_id with different canonical target content MUST fail with duplicate_conflict (reason message_id_conflict)."
+        },
         "kind": {
           "type": "string",
           "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
-        },
-        "content": {
-          "type": "object"
         },
         "expires_at": {
           "type": "string",
           "format": "date-time",
           "pattern": "Z$"
+        },
+        "content": {
+          "type": "object"
         }
       },
       "additionalProperties": false

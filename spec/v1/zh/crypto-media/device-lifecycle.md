@@ -514,6 +514,7 @@ To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `Eve
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
+| `message_id` | `id:device_message` | required | 发送方为一个逻辑消息分配的稳定 UUIDv7 typed ID；服务端在重试、分页和重投时 MUST 原样保留。接收端统一按 `(sender_principal_id, sender_device_id, message_id)` 去重。 |
 | `kind` | `string` | required | 消息 kind，例如 `ak.key.verification.request`。标准 `ak.*` to-device kind MUST 在 registry 中登记为 `ephemeral_event` 或由扩展 profile 声明。 |
 | `sender_principal_id` | `did` | required | 发送 principal。 |
 | `sender_device_id` | `id:device` | required | 发送设备。 |
@@ -524,7 +525,9 @@ To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `Eve
 | `content` | `object` | required | 类型相关内容；私密内容 SHOULD 端到端加密。 |
 | `device_proof` | `proof` | optional | 传输认证不能覆盖的场景 MAY 带 detached device proof。 |
 
-`recipient_principal_id` 和 `recipient_device_id` MUST 被签名、device proof 或加密 AAD 覆盖。发送接口使用 `messages.{principal_id}.{device_id}` 做批量路由时，服务端在入队前 MUST 把路径目标复制进 `DeviceMessageEnvelope`，且接收端 MUST 拒绝 envelope 目标与当前登录设备不一致的消息。
+`message_id`、`recipient_principal_id` 和 `recipient_device_id` MUST 被签名、device proof 或加密 AAD 覆盖。发送接口使用 `messages.{principal_id}.{device_id}` 做批量路由时，服务端在入队前 MUST 把发送请求的 `message_id` 与路径目标复制进 `DeviceMessageEnvelope`，且接收端 MUST 拒绝 envelope 目标与当前登录设备不一致的消息。
+
+发送方 MUST 在第一次构造逻辑消息时分配 `message_id`，应用重试、HTTP batch 重试和服务端重投都 MUST 沿用该值；重新分配 ID 表示新的逻辑消息，接收端 MUST 独立处理。服务端 MUST 以 `(sender_principal_id, sender_device_id, message_id)` 维护至少覆盖队列 TTL 与短 grace period 的幂等记录：相同 canonical target intent 重试返回既有入队结果且不得新增队列项；同 key 但 `kind`、recipient、`expires_at` 或 `content` 不同，MUST 以 `duplicate_conflict`（reason `message_id_conflict`）拒绝整个发送请求且不得入队任一冲突版本。canonical target intent 是 `{message_id, kind, sender_principal_id, sender_device_id, recipient_principal_id, recipient_device_id, expires_at, content}` 的 canonical JSON；不含服务端物化的 `sent_at`、`unsigned` 或 HTTP `Idempotency-Key`。
 
 To-device 消息是短期队列对象，不是长期 Event history。发送方 MUST 设置 `expires_at`；服务端 MUST 拒绝缺失 `expires_at`、已经过期、早于 `sent_at` 或超过当前 service / Realm / profile TTL 上限的消息。默认最大队列 TTL 为 24 小时；高安全 profile SHOULD 使用更短值。标准验证请求仍受第 8.2 节约束，`request.expires_at` MUST be no later than `timestamp + 10m`。过期消息 MUST 从投递队列中清除，`GET /_arkret/self/device_messages` 不得返回；服务 MAY 仅保留最小幂等记录和脱敏审计摘要到 `expires_at` 后的短 grace period。
 
@@ -546,6 +549,7 @@ Content-Type: application/json
 | `messages` | body | `object` | required | 收件人 principal 到 device 消息的映射。 |
 | `messages.{principal_id}` | body | `object` | required | 目标 principal DID。 |
 | `messages.{principal_id}.{device_id}` | body | `object` | required | 目标设备消息；`{device_id}` MUST 是完整 `id:device` wire key。 |
+| `messages.{principal_id}.{device_id}.message_id` | body | `id:device_message` | required | 发送方分配的稳定逻辑消息 ID；服务端 MUST 原样复制到 `DeviceMessageEnvelope.message_id`。 |
 | `messages.{principal_id}.{device_id}.kind` | body | `string` | required | to-device 消息 kind，例如 `ak.key.verification.request`。 |
 | `messages.{principal_id}.{device_id}.expires_at` | body | `datetime` | required | 队列过期时间；服务端物化 envelope 后必须复制到 `DeviceMessageEnvelope.expires_at`。 |
 | `messages.{principal_id}.{device_id}.content` | body | `object` | required | 消息内容；私密内容 SHOULD 端到端加密。 |
@@ -572,6 +576,7 @@ Content-Type: application/json
   "messages": {
     "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com": {
       "ak:device:01964137-0000-7000-8000-000000000000": {
+        "message_id": "ak:device_message:01964137-1000-7000-8000-000000000000",
         "kind": "ak.key.verification.request",
         "expires_at": "2026-04-26T00:10:00Z",
         "content": {
@@ -597,6 +602,7 @@ Content-Type: application/json
   "messages": {
     "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com": {
       "ak:device:01964136-8000-7000-8000-000000000000": {
+        "message_id": "ak:device_message:01964137-1000-7000-8000-000000000001",
         "kind": "ak.key.verification.request",
         "expires_at": "2026-04-26T00:10:00Z",
         "content": {
@@ -628,9 +634,9 @@ Content-Type: application/json
 
 接收旧设备 MUST 把 `purpose`、`pairing_code`、`new_device_pubkey.kid`、`challenge_signature`、`gate_audience` 和 `request_canonical_digest` 纳入用户确认与 SAS/QR transcript 绑定；不得只因收到该请求就把新设备标记为 trusted。用户确认后，旧设备通过 `ak.gate.account.command.pair_device` 完成授权落地；本规范不定义 `/_arkret/self/devices/pairing-requests*` 作为授权批准接口。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
 
-服务端 MUST 以 `(sender, Idempotency-Key)` 幂等。已投递消息的队列删除只由接收设备的显式确认（`ak.self.device_messages.command.ack`，见下文与 [`client-sync.md` §10.1](../sync/client-sync.md)）驱动；sync cursor 推进 MUST NOT 触发删除。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导。
+服务端 MUST 同时执行请求级 `(sender, Idempotency-Key)` 幂等与上述消息级 `(sender_principal_id, sender_device_id, message_id)` 幂等；前者识别同一批 HTTP command，后者识别跨批次、跨连接的同一逻辑消息。已投递消息的队列删除只由接收设备的显式确认（`ak.self.device_messages.command.ack`，见下文与 [`client-sync.md` §10.1](../sync/client-sync.md)）驱动；sync cursor 推进 MUST NOT 触发删除。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导。
 
-若 `content` 已端到端加密，加密 AAD MUST 至少覆盖 `kind`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id`、`sent_at` 和 `expires_at`。队列服务不得重写这些字段。`Idempotency-Key` 是 HTTP 层语义，不进入 envelope，也不参与 AAD。
+若 `content` 已端到端加密，加密 AAD MUST 至少覆盖 `message_id`、`kind`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id`、`sent_at` 和 `expires_at`。队列服务不得重写这些字段。`Idempotency-Key` 是 HTTP 层语义，不进入 envelope，也不参与 AAD。
 
 接收接口：
 
@@ -680,7 +686,7 @@ Content-Type: application/json
 | `ok` | `boolean` | required | 确认是否被接受（含旧令牌 no-op 的情况）。 |
 | `pruned_count` | `int` | optional | 本次实际删除的消息数。 |
 
-确认语义（normative，完整定义见 [`client-sync.md` §10.1](../sync/client-sync.md)）：确认是累计且单调的——服务端删除令牌覆盖位置（含）之前的全部已投递消息；重复 ack 或 ack 旧令牌返回 `{ok: true}` 且不得回退确认位置（天然幂等，无需 `Idempotency-Key`）。unknown / 过期 / cross-binding 令牌 MUST 返回 `invalid_param`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。客户端 MUST 在该批次密钥材料 / verification transcript / secret **持久化落盘之后**才 ack；未 ack 的消息在重连时由服务端重新投递，客户端按 `transaction_id` / `request_id` 幂等处理重复投递。
+确认语义（normative，完整定义见 [`client-sync.md` §10.1](../sync/client-sync.md)）：确认是累计且单调的——服务端删除令牌覆盖位置（含）之前的全部已投递消息；重复 ack 或 ack 旧令牌返回 `{ok: true}` 且不得回退确认位置（天然幂等，无需 `Idempotency-Key`）。unknown / 过期 / cross-binding 令牌 MUST 返回 `invalid_param`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。客户端 MUST 在该批次密钥材料 / verification transcript / secret **持久化落盘之后**才 ack；未 ack 的消息在重连时由服务端重新投递，客户端 MUST 先按 `(sender_principal_id, sender_device_id, message_id)` 查询 durable 去重记录：已成功持久化的消息不得再次执行副作用，但仍计入连续完成位点并允许累计 ack。kind-specific `transaction_id` / `request_id` 只用于业务 transcript 关联，不得替代 envelope 级去重键。
 
 ## 8. One-Time and Fallback Keys
 
@@ -1030,7 +1036,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 | `enc` | `string` | required | base64url HPKE（RFC 9180）封装密钥（KEM 输出）。 |
 | `ciphertext` | `string` | required | base64url HPKE AEAD 密文。HPKE AAD 见下方定义。 |
 
-HPKE AAD（本 kind 的具体绑定）MUST 是对以下字段的 canonical JSON（RFC 8785 JCS）：`kind`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id`、content 中的 `request_id`、content 中的 `secret_id`，以及把 `expires_at` 归一化为整数 Unix 秒后的字段 `expires_at_unix`。principal / device 字段为字符串、`request_id` / `secret_id` 为 content 中的原始字符串、`expires_at_unix` 为整数，在收发两端都可从 `DeviceMessageEnvelope` 与 `ak.secret.send.content` 确定性重建（归一化为整数避免 RFC3339 字符串在 `DateTime` 往返序列化中重排——如 `Z` 与 `+00:00`、小数秒——导致 AAD 不一致；队列服务 MUST NOT 重写这些字段）。把 `request_id` / `secret_id` 同时放入 AAD 与 sealed plaintext 可防止中间层替换外层关联字段后诱导接收方把同一 ciphertext 解释为另一项 pending secret。§7 的通用 AAD 最小集还要求覆盖 `sent_at`；由于 to-device 队列在物化时由服务端赋 `sent_at`，发送方在密封时无法预知它，因此本 kind 改由密封 plaintext 内携带并被 AAD 绑定的一次性 `request_id` 提供等价的抗重放/新鲜性绑定。
+HPKE AAD（本 kind 的具体绑定）MUST 是对以下字段的 canonical JSON（RFC 8785 JCS）：`message_id`、`kind`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id`、content 中的 `request_id`、content 中的 `secret_id`，以及把 `expires_at` 归一化为整数 Unix 秒后的字段 `expires_at_unix`。principal / device / message ID 字段为字符串、`request_id` / `secret_id` 为 content 中的原始字符串、`expires_at_unix` 为整数，在收发两端都可从 `DeviceMessageEnvelope` 与 `ak.secret.send.content` 确定性重建（归一化为整数避免 RFC3339 字符串在 `DateTime` 往返序列化中重排——如 `Z` 与 `+00:00`、小数秒——导致 AAD 不一致；队列服务 MUST NOT 重写这些字段）。把 `message_id` 与 `request_id` / `secret_id` 同时放入 AAD 可防止中间层替换外层幂等身份或业务关联字段。§7 的通用 AAD 最小集还要求覆盖 `sent_at`；由于 to-device 队列在物化时由服务端赋 `sent_at`，发送方在密封时无法预知它，因此本 kind 改由发送方分配的 `message_id` 与密封 plaintext 内的一次性 `request_id` 提供抗重放/新鲜性绑定。
 
 `ak.secret.send` 的 plaintext（仅 HPKE 解封后可见，不出现在 wire 任何明文字段）MUST 至少携带被请求 secret 本体、其版本号、`request_id` 与 `secret_id`；接收方解封后 MUST 校验内层 `request_id` / `secret_id` 与外层 content 一致、且 `request_id` 命中本端某个 pending 请求，否则丢弃。
 

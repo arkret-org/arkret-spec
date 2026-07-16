@@ -5072,7 +5072,7 @@
         "http": "POST /_arkret/self/device_messages",
         "grpc": "SelfDeviceMessages/Send",
         "mq": "self.device_messages.command.send",
-        "notes": "Enqueues caller-supplied DeviceMessageEnvelope targets into recipient device queues. HTTP binding is POST because the request is a batch command against a queue collection, deduplicated by (sender, Idempotency-Key), and does not replace a single URI-addressed message resource. Queue pruning is only via ak.self.device_messages.command.ack.",
+        "notes": "Enqueues caller-supplied DeviceMessageEnvelope targets into recipient device queues. Each target carries a sender-assigned message_id copied unchanged into the stored envelope; the service deduplicates logical messages by (sender_principal_id, sender_device_id, message_id), returning the existing outcome for identical canonical target content and duplicate_conflict/message_id_conflict for different content. HTTP batch replay is additionally deduplicated by (sender, Idempotency-Key). Queue pruning is only via ak.self.device_messages.command.ack.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,

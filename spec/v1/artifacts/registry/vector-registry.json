@@ -3439,6 +3439,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.sync.to_device_message_idempotency.v1",
+      "status": "active",
+      "domain": "sync",
+      "applies_to_fixtures": [
+        "sync-fixture.json"
+      ],
+      "description": "DeviceMessageEnvelope requires a sender-assigned message_id; unacknowledged byte-identical redelivery executes durable handler effects once, conflicting reuse fails with duplicate_conflict/message_id_conflict, and distinct ids remain distinct logical messages.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/sync-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.agent_auth.human_approval_required.v1",
       "status": "active",
       "domain": "agent_auth",

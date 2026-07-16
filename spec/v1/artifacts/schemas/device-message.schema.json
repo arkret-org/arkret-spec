@@ -4,6 +4,7 @@
   "title": "Arkret Device Message Envelope",
   "type": "object",
   "required": [
+    "message_id",
     "kind",
     "sender_principal_id",
     "sender_device_id",
@@ -14,6 +15,10 @@
     "content"
   ],
   "properties": {
+    "message_id": {
+      "$ref": "#/$defs/device_message_id",
+      "description": "Sender-assigned stable identity of one logical to-device message. Queue services MUST preserve it byte-for-byte across retries and redelivery. Receivers deduplicate by (sender_principal_id, sender_device_id, message_id)."
+    },
     "kind": {
       "type": "string",
       "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
@@ -303,6 +308,10 @@
     }
   ],
   "$defs": {
+    "device_message_id": {
+      "type": "string",
+      "pattern": "^ak:device_message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
     "did": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
@@ -399,7 +408,7 @@
         "ciphertext": {
           "type": "string",
           "minLength": 1,
-          "description": "base64url HPKE AEAD ciphertext over the secret plaintext. The plaintext MUST carry the requested secret body, version, request_id and secret_id. The HPKE AAD is the RFC 8785 JCS canonical JSON of {kind, sender_principal_id, sender_device_id, recipient_principal_id, recipient_device_id, request_id, secret_id, expires_at_unix} where request_id/secret_id are the outer ak.secret.send content fields and expires_at_unix is expires_at normalized to integer Unix seconds (device-lifecycle.md §10.7); both sides reconstruct it from the DeviceMessageEnvelope plus content. Freshness for sent_at (server-assigned) is bound by the one-time request_id authenticated inside the sealed plaintext and AAD."
+          "description": "base64url HPKE AEAD ciphertext over the secret plaintext. The plaintext MUST carry the requested secret body, version, request_id and secret_id. The HPKE AAD is the RFC 8785 JCS canonical JSON of {message_id, kind, sender_principal_id, sender_device_id, recipient_principal_id, recipient_device_id, request_id, secret_id, expires_at_unix} where message_id comes from DeviceMessageEnvelope, request_id/secret_id are the outer ak.secret.send content fields and expires_at_unix is expires_at normalized to integer Unix seconds (device-lifecycle.md §10.7). Freshness for server-assigned sent_at is bound by the sender-assigned message_id plus the one-time request_id authenticated inside the sealed plaintext and AAD."
         }
       },
       "additionalProperties": true

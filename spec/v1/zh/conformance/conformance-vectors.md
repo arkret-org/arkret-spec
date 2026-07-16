@@ -2298,6 +2298,25 @@ Expected：
 - 单帧均通过 JSON Schema、但整体顺序违反任一 case 的 trace，仍视为 conformance failure。
 - account 与 events stream 对相同控制帧不得采用不同 reconnect 规则。
 
+### 5.8 Vector: To-Device Message Envelope Idempotency
+
+`vector_id`: `ak.vector.sync.to_device_message_idempotency.v1`
+
+机器 fixture：`sync-fixture.json#to_device_message_idempotency`；runner：`cotest::conformance::sync::run_to_device_message_idempotency_vector`。本向量同时使用 fixture 顶层 `schema_validation_cases` 固化 `DeviceMessageEnvelope` 与发送 target 的 required `message_id` wire 形态。
+
+Steps：
+
+1. 发送一个带稳定 `ak:device_message:<uuidv7>` 的消息，不 ack，断开后从 account subscribe 或 device-message list 重投同一 stored envelope。
+2. receiver 在 handler 副作用前按 `(sender_principal_id, sender_device_id, message_id)` 查询 durable 去重记录，并在 handler 结果持久化后记录完成；第二次投递只恢复连续完成位点。
+3. 以同一 sender-scoped `message_id` 提交不同 canonical target intent；再以两个不同 `message_id` 提交相同业务 content。
+
+Expected：
+
+- 第 1/2 步的 durable handler effect 恰执行一次；重复 envelope 仍可计入累计 ack 的连续完成区间，不得永久阻塞队列清理。
+- 同 ID 不同内容 MUST 返回 `duplicate_conflict`、reason `message_id_conflict`，两个版本均不得新增队列项。
+- 不同 ID 是两个独立逻辑消息，即使业务 content 相同也各处理一次。
+- 缺少 `message_id` 的 envelope 或 send target MUST 在 handler 前以 schema violation 拒绝；kind-specific `transaction_id` / `request_id` 不得替代 envelope ID。
+
 ## 6. Space Lifecycle Vectors
 
 ### 6.1 目标
@@ -4399,7 +4418,7 @@ Steps：
 
 Expected：
 
-- **Case A**：实现重算结果 MUST 等于 `expected_digest`（`sha256:76135ead092ef4561f8e0b92ff49dd48a11184135859ce0a64b4238333a087fc`）；内容变异与 key-order 变异结果 MUST 分别符合 fixture。只摘要 `digest_input` 名称/路径列表即判失败。
+- **Case A**：实现重算结果 MUST 等于 `expected_digest`（`sha256:3d9e9e3a20dede18cd4687a39d59b187c1834478d73863992d2b1d6f70194808`）；内容变异与 key-order 变异结果 MUST 分别符合 fixture。只摘要 `digest_input` 名称/路径列表即判失败。
 - **Case B**：receiver MUST 整批拒绝并返回 `reducer_profile_mismatch`，MUST NOT partial accept；缺少 registry row、`profile_id` 未声明、canonicalization 不支持或 digest suite 非 active `sha256` 时同样 MUST fail closed。
 
 失败条件：
