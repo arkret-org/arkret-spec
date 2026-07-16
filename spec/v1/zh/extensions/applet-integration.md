@@ -92,7 +92,7 @@ did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example
 
 `#fragment` 只用于 DID URL 形式的 verification method（例如 `did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123#key-1`），不得作为 `actor_id` / `bot_actor_id` 的一部分。
 
-Ghost Actor MUST 带有 `accountable_principal_ids`（指向 Applet controller 与外部 service DID），外部网络来源（protocol / network id / user id）记录在 `profile_fields.external_ref`。问责字段以 actor-profile schema 的 `accountable_principal_ids` 为唯一权威形态（见 [`applet-schema.md`](./applet-schema.md) 与 §9）；旧的 `accountability` 嵌套对象不是合法 wire 形态。
+Ghost Actor MUST 带有 `accountable_principal_ids`（指向 Applet controller 与外部 service DID），外部网络来源（protocol / network id / user id）记录在 `profile_fields.external_ref`。问责字段以 actor-profile schema 的 `accountable_principal_ids` 为唯一权威形态（见 [`applet-schema.md`](./applet-schema.md) 与 §9）；`accountability` 嵌套对象不是合法 wire 形态。
 
 #### 3.4.1 Ghost Actor vs Native Personal Agent 边界
 

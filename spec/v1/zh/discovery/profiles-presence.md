@@ -118,7 +118,7 @@ Profile 初始状态通过 `ak.profile.create` Move / compatible Event 提交到
 }
 ```
 
-Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。该 payload 使用 `object_patch_payload`；Move 使用 `payload.target_ref` 与 `ak.profile.create` 共用同一 profile cell。变更字段放在 `payload.patch`，不得使用旧的顶层 `actor` / `body` 形态：
+Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。该 payload 使用 `object_patch_payload`；Move 使用 `payload.target_ref` 与 `ak.profile.create` 共用同一 profile cell。变更字段放在 `payload.patch`，不得使用顶层 `actor` / `body` 形态：
 
 ```json
 {

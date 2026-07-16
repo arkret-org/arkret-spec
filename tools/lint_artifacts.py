@@ -6690,6 +6690,65 @@ def check_non_normative_frontmatter(lint: Lint) -> None:
         )
 
 
+def check_normative_prose_role_names(lint: Lint) -> None:
+    """Keep normative prose bound to protocol roles rather than implementations."""
+    zh_root = SPEC_ROOT / "zh"
+    if not zh_root.exists():
+        return
+    forbidden = {
+        "cotest::": "private runner module path",
+        "cotest scanner": "implementation-specific scanner role",
+        "teabay Directory": "implementation-specific Directory Service role",
+    }
+    files = sorted(set(zh_root.rglob("*.md")) | set(zh_root.rglob("*.mdx")))
+    for path in files:
+        text = path.read_text(encoding="utf-8")
+        frontmatter, body = _parse_frontmatter_block(text)
+        if not isinstance(frontmatter, dict) or frontmatter.get("normative") is not True:
+            continue
+        for token, label in forbidden.items():
+            if token in body:
+                lint.fail(path, f"normative prose contains {label}: {token!r}")
+
+
+def check_device_messages_cursor_binding(lint: Lint) -> None:
+    """Keep the to-device queue continuation parameter canonical across surfaces."""
+    openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
+    openapi = load_yaml(lint, openapi_path)
+    operation = (
+        openapi.get("paths", {}).get("/_arkret/self/device_messages", {}).get("get", {})
+        if isinstance(openapi, dict)
+        else {}
+    )
+    parameters = operation.get("parameters", []) if isinstance(operation, dict) else []
+    query_names = {
+        row.get("name")
+        for row in parameters
+        if isinstance(row, dict) and row.get("in") == "query" and isinstance(row.get("name"), str)
+    }
+    for required in ("after", "limit"):
+        if required not in query_names:
+            lint.fail(openapi_path, f"device_messages GET missing canonical query parameter {required!r}")
+    for forbidden in ("from", "start_at"):
+        if forbidden in query_names:
+            lint.fail(openapi_path, f"device_messages GET exposes forbidden cursor alias {forbidden!r}")
+
+    legacy_patterns = (
+        re.compile(r"self/device_messages\?from="),
+        re.compile(r"device_messages(?:\.query\.list)?\?from="),
+        re.compile(r"query\.from"),
+        re.compile(r"device_messages from="),
+    )
+    for root in (SPEC_ROOT / "zh", ARTIFACTS):
+        for path in sorted(root.rglob("*")):
+            if not path.is_file() or path.suffix.lower() not in {".json", ".md", ".yaml", ".yml"}:
+                continue
+            text = path.read_text(encoding="utf-8")
+            for pattern in legacy_patterns:
+                if pattern.search(text):
+                    lint.fail(path, f"device_messages uses forbidden cursor alias: {pattern.pattern}")
+
+
 def check_proof_context_registry(lint: Lint) -> None:
     path = ARTIFACTS / "registry" / "proof-context-registry.json"
     data = load_json(lint, path)
@@ -6835,6 +6894,8 @@ def main() -> int:
     check_service_type_registry(lint)
     check_action_reference_closure(lint)
     check_non_normative_frontmatter(lint)
+    check_normative_prose_role_names(lint)
+    check_device_messages_cursor_binding(lint)
 
     if lint.warnings:
         print("Artifact registry lint warnings:", file=sys.stderr)

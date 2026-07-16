@@ -26,7 +26,7 @@ Shared pin 是进入 Realm reducer 的共享投影事实，用于把 Message、S
 
 ## 2. Pin Scope
 
-Pin payload 使用 `pin_scope`，MUST NOT 使用裸 `scope` 或旧的 scope-reference 字段。`pin_scope` 的形态为 `{ kind, id }`，`kind` 取 `strand`、`realm`、`circle` 或 `space`。
+Pin payload 使用 `pin_scope`，MUST NOT 使用裸 `scope` 或 scope-reference 字段。`pin_scope` 的形态为 `{ kind, id }`，`kind` 取 `strand`、`realm`、`circle` 或 `space`。
 
 `pin_scope` 是 projection home，不是安全边界。`kind=space` 时，reducer MUST 解析 Space metadata 的 effective scope；Space 不因此获得独立 membership、policy、history visibility 或 MLS boundary。
 

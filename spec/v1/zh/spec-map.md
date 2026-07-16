@@ -31,7 +31,7 @@ see_also:
 
 ### 1.2 Current-wire artifact map
 
-`artifacts/registry/registry-manifest.json` 索引 current v1 的机器可读源。实现、SDK、cotest 与 transport adapter 应优先消费这些 artifact，而不是从 Markdown 表格手抄定义：
+`artifacts/registry/registry-manifest.json` 索引 current v1 的机器可读源。实现、SDK、Conformance Verifier 与 transport adapter 应优先消费这些 artifact，而不是从 Markdown 表格手抄定义：
 
 - `artifacts/registry/contract-catalog.json`：event、schema、typed id、operation contract 的 canonical catalog。
 - `artifacts/registry/operation-registry.json`、`event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json`：从 canonical catalog 生成的 current-wire 视图。
@@ -177,7 +177,7 @@ see_also:
 | `authz/event-auth-state-resolution.md` | Move、Seal、Lattice、bottom diagnostics、auth refs、membership、policy cells、history sharing 与 E2EE covered Seals。 |
 | `authz/policy-server.md` | Policy Server 风险判断与签名决策。 |
 | `governance/join-policy.md` | Join Rule、邀请、knock / restricted / approval 流程和 history visibility 联动。 |
-| `governance/member-delivery-binding.md` | 成员 effective delivery binding：接受准则、`binding_source`、`ak.realm.delivery_binding_policy`、路由不可降级、rebind 过渡、单 binding + 多设备策略与隐私边界（与 join gate 正交，从 join-policy.md 拆出）。 |
+| `governance/member-delivery-binding.md` | 成员 effective delivery binding：接受准则、`binding_source`、`ak.realm.delivery_binding_policy`、路由不可降级、rebind 过渡、单 binding + 多设备策略与隐私边界（与 join gate 正交）。 |
 | `governance/history-visibility.md` | `world_readable` / `shared` / `invited` / `joined` / `restricted` 的精确定义、preview / peek policy、public plaintext Realm 与 E2EE history key share。 |
 | `governance/content-moderation.md` | 举报、E2EE franking、Realm/Organization 审核策略、个人屏蔽入口。 |
 | `security/server-threat-model.md` | 服务端攻击模型与反滥用规则；物理位于 `security/` 安全分析专项目录。 |
@@ -240,7 +240,7 @@ see_also:
 | 文档 | 内容 |
 | --- | --- |
 | `conformance/README.md` | conformance 目录入口、阅读顺序和 artifact/向量使用说明。 |
-| `conformance/normative-language.md` | RFC 2119 / 8174 规范关键字（`MUST` / `SHOULD` / `MAY` 等）的 canonical 定义与中英对照；几乎所有文档 §0 与 frontmatter `see_also` 引用。 |
+| `conformance/normative-language.md` | RFC 2119 / 8174 规范关键字（`MUST` / `SHOULD` / `MAY` 等）的 canonical 定义与中英对照；几乎所有文档在 §0 引用，若干总览类文档亦在 frontmatter `see_also` 登记。 |
 | `conformance/encoding.md` | Canonical JSON、ID、hash、signature、cursor、HLC、rank。 |
 | `conformance/conformance-vectors.md` | 一致性测试向量的人类阅读入口；完整 active vector 集合以 `artifacts/registry/vector-registry.json` 及其 `source_refs` 为准。 |
 | `conformance/schema-registry.md` | 标准 schema / event type registry。 |

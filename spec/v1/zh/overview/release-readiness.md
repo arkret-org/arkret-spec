@@ -104,7 +104,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 - 站点构建产物与线上 `$id` URL MUST 以 raw JSON 发布所有 registry 声明的 JSON Schema artifact，Content-Type SHOULD 为 `application/schema+json`，至少为 `application/json`；MUST NOT 让 schema `$id` 解析到 HTML 文档。
 - Public catalog snapshot MUST 与发布状态一致：stable promotion 前 `site/src/lib/site-meta.ts#specReleaseTag` 固定为 `v1.0.0-candidate`，构建时只生成 `site/public/v1/contract-catalog-1.0.0-candidate.json`；promotion 变更必须在所有 gate 通过后原子切换为 `v1.0.0` 并生成对应 snapshot。snapshot 必须与 `artifacts/registry/contract-catalog.json` byte-identical，且不提交到仓库。
 - Circle stable gate MUST 闭合 `effective_scope` submit-input / reducer-output schema 角色、DataEvent / Seal output shape、Seal canonical bytes、`content_encryption_floor` 机器契约、`confidential_discussion_of` Relation 契约，以及 Circle/effective-scope conformance vector cluster；否则 release notes 必须明确 de-scope，且 MUST NOT 把这些项当作 v1.0 wire contract 宣布。
-- 英文 mirror 完成前，`/en/v1/...` fallback 页面 MUST NOT 作为英文 normative 文本发布；权威 prose 仍是 `spec/v1/zh/`。
+- `/en/v1/...` 页面 MUST NOT 作为英文 normative 文本发布；权威 prose 仍是 `spec/v1/zh/`。除非未来另行接受新的语言政策提案，本规范不承诺提供完整英文版。
 - 站点生产依赖 MUST NOT 存在未处理的 high / moderate `npm audit` finding；如需例外，必须在 release-readiness report 中记录影响面与补偿措施。
 
 ### 5.2 `v1-interop-preview` 实现互操作预览

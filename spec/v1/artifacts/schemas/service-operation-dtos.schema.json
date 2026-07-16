@@ -970,7 +970,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 1024,
-          "description": "Server-issued opaque acknowledgement token, REQUIRED whenever messages[] is non-empty. Covers this page plus all previously delivered messages for the authenticated device. Queue deletion happens only through ak.self.device_messages.command.ack with this token, never through the from= read cursor (client-sync.md §10.1)."
+          "description": "Server-issued opaque acknowledgement token, REQUIRED whenever messages[] is non-empty. Covers this page plus all previously delivered messages for the authenticated device. Queue deletion happens only through ak.self.device_messages.command.ack with this token, never through the after= read cursor (client-sync.md §10.1)."
         },
         "next_cursor": {
           "type": "string",

@@ -134,7 +134,7 @@ Schema id: `ak.schema.realm.v1`
 - 组织作为 notary、notary controller、RRK 接收方或 delivery binding authority，必须分别由 `notary` / notary control move、`durability_policy`、`ak.realm.delivery_binding_policy` 等字段和事件明确表示；不得从 `owning_organizations` 或 `ak.realm.organization` 自动继承。
 - Realm admin 单方面把某个组织 DID 写入 `owning_organizations`，如果没有对应 active `ak.realm.organization` 组织侧证明，接收方 MUST 把它视为未验证声明。
 
-被授权读取 Realm 的客户端通过 self-surface 操作 `ak.self.realm_organization.query.list`（`GET /_arkret/self/realms/{realm_id}/organizations`，response schema `schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list`）取回该 Realm 的 `ak.realm.organization` 关系投影（active / revoked / expired，latest-per-`(organization_id, relationship)`，由 reducer 派生 `lifecycle_phase`）以及无验证语句的 `declared_organization_hints`。客户端 MUST 仅在 `lifecycle_phase=verified_active` 时显示官方 / 治理 / 背书状态，并 MUST 把 `declared_organization_hints` 渲染为未验证声明。public discovery 路径（teabay Directory 的 `ak.find.directory.query.resolve_realm` / `resolve_organization`）受 anti-enumeration 约束，不替代成员 / admin 侧的本操作。
+被授权读取 Realm 的客户端通过 self-surface 操作 `ak.self.realm_organization.query.list`（`GET /_arkret/self/realms/{realm_id}/organizations`，response schema `schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list`）取回该 Realm 的 `ak.realm.organization` 关系投影（active / revoked / expired，latest-per-`(organization_id, relationship)`，由 reducer 派生 `lifecycle_phase`）以及无验证语句的 `declared_organization_hints`。客户端 MUST 仅在 `lifecycle_phase=verified_active` 时显示官方 / 治理 / 背书状态，并 MUST 把 `declared_organization_hints` 渲染为未验证声明。public discovery 路径（Directory Service 的 `ak.find.directory.query.resolve_realm` / `resolve_organization`）受 anti-enumeration 约束，不替代成员 / admin 侧的本操作。
 
 ### 2.3.1 `durability_policy`（Realm 恢复密钥 / RRK，normative）
 
@@ -505,13 +505,16 @@ value shape := { "list_space_id": id:space, "rank": string } | null
 
 **Plane 裁决（normative，CBA）**：`ak.component.strand.position.v1` 是非治理强一致对象，按 [`event-auth-state-resolution.md` §9.4](../authz/event-auth-state-resolution.md) 三选一。**默认裁决是选项 2（`sealed=true` 升控制面）**——这保留上表 cas_register / bottom=reject / `expected_position` CAS basis 的全部既有语义不变，`ak.strand.move` / `ak.strand.reorder` 因此是 Control Move（携带 `seal_basis`，由 Seal 裁决）。Realm schema MAY 改声明为选项 1（data plane `mv_register` + user-pick：并发拖动暴露多 heads，任何有写权限者一笔写收敛、无协议 `⊥`）或选项 3（per-object sequencer）；改声明后 `expected_position` 退化为诊断字段。看板拖动延迟敏感、且 Realm 接受多值短暂并存的部署 SHOULD 评估选项 1。
 
-`ak.strand.move` payload 字段：
+`ak.strand.move` payload 是 closed object（未知字段 MUST `schema_violation`）：
 
-- `strand_id`
-- `board_space_id`
-- `target_space_id`
-- `rank`
-- `expected_position`
+| 字段 | 必填 | 类型 | 语义 |
+| --- | --- | --- | --- |
+| `board_space_id` | yes | `id:space`（Board） | position edge 的所属 Board；与 `strand_id` 共同构成去重 key。 |
+| `strand_id` | yes | `id:strand` | 被移动的 Strand。 |
+| `from_space_id` | no | `id:space`（List） | 源 List；省略时 reducer 从当前 active edge 推导。 |
+| `target_space_id` | yes | `id:space`（List） | 移动后的目标 List；payload 不得另带 `list_space_id`。 |
+| `rank` | yes | `string` | 目标 List 内 canonical rank。 |
+| `expected_position` | no | `object{space_id?: id:space, rank?: string, relation_id?: id:relation}` | 可选 CAS 诊断前像；字段集封闭。 |
 
 默认规则：workflow placement MUST resolve to the same effective Realm as the Strand unless a profile explicitly declares a cross-Realm reference relation. 跨 Realm 展示可以通过 Relation / View 聚合完成，但不得把目标 Realm 的读权隐式带入源 Realm。
 

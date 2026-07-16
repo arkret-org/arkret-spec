@@ -5424,6 +5424,20 @@ paths:
       operationId: ak.self.device_messages.query.list
       security:
       - bearerAuth: []
+      parameters:
+      - name: after
+        in: query
+        required: false
+        description: Return queued device messages strictly after this read-only continuation cursor. Pair with response `next_cursor`; advancing it never acknowledges or deletes messages.
+        schema:
+          $ref: '#/components/schemas/Cursor'
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of queued device messages to return; the server MAY enforce an upper bound.
+        schema:
+          type: integer
+          minimum: 1
       responses:
         '200':
           description: Device message fetch

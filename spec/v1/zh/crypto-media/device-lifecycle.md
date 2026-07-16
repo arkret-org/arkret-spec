@@ -641,7 +641,7 @@ Content-Type: application/json
 接收接口：
 
 ```http
-GET /_arkret/self/device_messages?from=<cursor>&limit=<n>
+GET /_arkret/self/device_messages?after=<cursor>&limit=<n>
 Authorization: Bearer <token>
 ```
 

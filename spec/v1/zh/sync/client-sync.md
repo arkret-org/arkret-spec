@@ -575,7 +575,7 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 `ak.self.account.stream.subscribe` 是 full client / E2EE client 的主接收路径。客户端维护长连接后，服务端 SHOULD 在 `delta.to_device.messages[]` 中推送当前设备的验证请求、SAS/QR 交换、secret sharing、device-list 相关私有消息；客户端 MUST 把这里收到的 `DeviceMessageEnvelope` 交给与 `ak.self.device_messages.query.list` 相同的 to-device dispatcher，并在持久化处理完成后按 §10.1 使用 `ack_token` 显式确认。
 
-`GET /_arkret/self/device_messages?from=<cursor>&limit=n` 是补拉 / 轮询路径，只用于下列情况：
+`GET /_arkret/self/device_messages?after=<cursor>&limit=n` 是补拉 / 轮询路径，只用于下列情况：
 
 1. `delta.to_device.limited=true` 时，用 `delta.to_device.next_cursor` 继续分页读取队列。
 2. 客户端本地 dispatcher 崩溃、account subscribe 暂未建立、或前台验证小流程尚未启动完整账号同步时，用于补拉未确认消息。
@@ -585,14 +585,14 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 ### 10.1 显式投递确认 (normative)
 
-To-device 队列删除由**显式 ack** 驱动，与 stream cursor 解耦；任何 cursor（`after=` / `from=`）都 **MUST NOT** 触发队列删除：
+To-device 队列删除由**显式 ack** 驱动，与 stream cursor 解耦；account stream 与 to-device queue 使用的 `after=` cursor 都 **MUST NOT** 触发队列删除：
 
 1. **`ack_token` 签发**：服务端在每个携带非空 `to_device.messages` 的 `delta` frame 中 MUST 附带 `to_device.ack_token`；`GET /_arkret/self/device_messages` 的每个非空响应页同样 MUST 携带顶层 `ack_token`。`ack_token` 是 server-issued 不透明确认令牌，绑定 `(principal_id, device_id, 该批次的队列高水位)`，覆盖该批次及其之前所有已投递消息。它**不是 cursor**：不使用 `ak:cursor:` wire 形态，不进入 cursor schema / TTL / purpose 体系；客户端 MUST 把它当作不透明字符串原样回传。令牌 MUST 不可伪造：不可猜测（解码后熵 ≥ 128 bit）或等价的服务端查表绑定。**wire 形态（normative）**：`ack_token` MUST 是单个 UTF-8 字符串，且 MUST NOT 超过 1024 字节；客户端按不透明字符串原样回传、不解析其内部结构，服务端 MUST 拒绝超长或非 UTF-8 的 token（`invalid_param`）。该上界保证跨实现可移植，避免无界 token。
 2. **显式 ack**：客户端仅在该 `ack_token` 覆盖位置（含）之前的**所有已投递消息**都已持久化处理完成（密钥材料、verification transcript、secret 已落盘）后，MUST 调用 `ak.self.device_messages.command.ack`（`POST /_arkret/self/device_messages/ack`，body `{ack_token}`）。确认是**累计且单调**的：服务端删除该令牌覆盖位置（含）之前的全部已投递消息；ack 一个早于当前确认位置的令牌是合法 no-op，返回 `{ok: true}` 且 MUST NOT 回退确认位置。并行 dispatcher MUST 维护"最高已连续持久化队列位点"，MUST NOT ack 覆盖位置晚于任何未持久化消息的 token。该操作天然幂等，不需要 `Idempotency-Key`。
 3. **ack 校验**：服务端 MUST 校验 `ack_token` 绑定与当前 authenticated `(principal_id, device_id)` 匹配；unknown / 过期 / cross-binding 令牌 MUST 返回 `invalid_param`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。
-4. **cursor 只读与 envelope 幂等**：`/_arkret/self/account/subscribe` 的 `after=` 与 `GET /_arkret/self/device_messages` 的 `from=` 只决定读取 / 续传位置。客户端建立新的 subscribe 连接时（无论 `after=` 位置），服务端 MUST 重新投递所有未确认、未过期的 to-device 消息，并原样保留 `DeviceMessageEnvelope.message_id`。客户端 MUST 在执行 handler 副作用前查询 durable `(sender_principal_id, sender_device_id, message_id)` 去重记录；同 key 且已成功持久化的消息只恢复完成位点、不得再次执行 handler，随后仍可参与累计 ack。kind-specific `transaction_id` / `request_id` 只关联验证、secret 或其它业务 transcript，不得作为通用 envelope 去重键。相同 `message_id` 但 envelope canonical 内容不同视为协议冲突，MUST fail closed，不得覆盖既有去重记录。
+4. **cursor 只读与 envelope 幂等**：`/_arkret/self/account/subscribe` 与 `GET /_arkret/self/device_messages` 的 `after=` 都只决定读取 / 续传位置。客户端建立新的 subscribe 连接时（无论 `after=` 位置），服务端 MUST 重新投递所有未确认、未过期的 to-device 消息，并原样保留 `DeviceMessageEnvelope.message_id`。客户端 MUST 在执行 handler 副作用前查询 durable `(sender_principal_id, sender_device_id, message_id)` 去重记录；同 key 且已成功持久化的消息只恢复完成位点、不得再次执行 handler，随后仍可参与累计 ack。kind-specific `transaction_id` / `request_id` 只关联验证、secret 或其它业务 transcript，不得作为通用 envelope 去重键。相同 `message_id` 但 envelope canonical 内容不同视为协议冲突，MUST fail closed，不得覆盖既有去重记录。
 5. **过期与丢失信号**：未确认消息仍受 `DeviceMessageEnvelope.expires_at` 与 [`device-lifecycle.md` §7](../crypto-media/device-lifecycle.md) 队列 TTL 约束，过期 MUST 清除。服务端自该设备上次确认位置以来因过期或容量约束丢弃过未确认消息时，SHOULD 在下一个含 `to_device` 的响应中设置 `to_device.lost=true`；客户端收到后 SHOULD 触发密钥恢复路径（key backup / key re-request），MUST NOT 静默假设队列完整。**E2EE client profile 升级（normative）**：对声明 `ak.profile.e2ee_client.v1` 的客户端及其服务对端，由于丢弃的未确认 to-device 消息可能承载不可再生的 MLS Welcome / secret share / key material，上述两个 SHOULD 升为 **MUST**——服务端丢弃过该设备未确认消息时 **MUST** 设置 `to_device.lost=true`；客户端见到 `to_device.lost=true` 时 **MUST** 进入 key re-request / key backup 恢复路径，**MUST NOT** 静默把队列当作完整，以免 E2EE 密钥材料永久丢失而不被检出。
-6. **`ack_token` 独立于 stream cursor 生命周期（normative）**：`dropped` / `resync_required` frame、`cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized` 失效、以及任何清空本地 cursor 缓存的恢复动作，均 **MUST NOT** 使既有未确认的 `ack_token` 失效。`ack_token` 绑定的是 `(principal_id, device_id, to-device 队列高水位)`，与 stream cursor（`after=` / `from=`）的 wire 形态、TTL、purpose 和 revocation 体系完全独立（见 §10.1 第 1 条与 §12）。客户端在 cursor 失效 / dropped / resync 后重建订阅时，仍 MAY 用先前持有的有效 `ack_token` 确认已持久化处理的批次；服务端 MUST 仍按 §10.1 第 3 条校验该 token 的 `(principal_id, device_id)` 绑定并执行累计删除，不得仅因 stream cursor 已被重置就把该 token 当作 unknown / cross-binding 拒绝。该口径与 §12.2.1（cursor revoke 不影响已签发 `ack_token`）一致。
+6. **`ack_token` 独立于 stream cursor 生命周期（normative）**：`dropped` / `resync_required` frame、`cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized` 失效、以及任何清空本地 cursor 缓存的恢复动作，均 **MUST NOT** 使既有未确认的 `ack_token` 失效。`ack_token` 绑定的是 `(principal_id, device_id, to-device 队列高水位)`，与 stream cursor 的 wire 形态、TTL、purpose 和 revocation 体系完全独立（见 §10.1 第 1 条与 §12）。客户端在 cursor 失效 / dropped / resync 后重建订阅时，仍 MAY 用先前持有的有效 `ack_token` 确认已持久化处理的批次；服务端 MUST 仍按 §10.1 第 3 条校验该 token 的 `(principal_id, device_id)` 绑定并执行累计删除，不得仅因 stream cursor 已被重置就把该 token 当作 unknown / cross-binding 拒绝。该口径与 §12.2.1（cursor revoke 不影响已签发 `ack_token`）一致。
 
 > Rationale: cursor 前进表达的是「客户端收到了 frame」，安全删除需要的是「客户端已把载荷持久化」。把删除绑在 cursor 推进上（Matrix `/sync` 的隐式 ack 模型）会留下崩溃窗口：客户端收到 frame、cursor 已推进、但 MLS Welcome / secret share 尚未落盘即崩溃 → 消息被服务端删除、密钥材料永久丢失。显式 ack 把两个语义拆开后，cursor 不再是 to-device 不可逆删除的闸门；§12 的 cursor 完整性校验仍然原样保留——它防护的是伪造 / 跨绑定位点导致的静默缺口（含 `device_lists` 缺口的 E2EE 后果）、barrier 存在性预言机与 catch-up 成本放大，而非 to-device 删除。
 
@@ -601,10 +601,10 @@ To-device 队列删除由**显式 ack** 驱动，与 stream cursor 解耦；任�
 To-device 队列过长时，服务器 MAY 在 account subscribe `delta.to_device` 容器中返回 `limited=true`。当 `delta.to_device.limited=true` 时，服务端 MUST 同时返回 `delta.to_device.next_cursor`，客户端 MUST 用该 cursor 调用：
 
 ```http
-GET /_arkret/self/device_messages?from=<cursor>&limit=...
+GET /_arkret/self/device_messages?after=<cursor>&limit=...
 ```
 
-该 endpoint 的 `from` cursor 同样 MUST 通过 §12 完整性校验后才能用作读取位置；该读取位置是只读的，MUST NOT 触发队列删除（删除只经 §10.1 显式 ack）。`from=` 是 `ak.self.device_messages.query.list` 的历史例外命名（见 [`api-conventions.md` §7.1](./api-conventions.md)）；新增接口 MUST 用 `before` / `after`，不得把 `from=` 当作推荐形态。客户端 MUST NOT 把 account subscribe 顶层 `cursor` 当成 to-device 队列分页 cursor；顶层 `cursor` 只用于 account stream resume，to-device 队列分页只使用 `delta.to_device.next_cursor`。
+该 endpoint 的 `after` cursor 同样 MUST 通过 §12 完整性校验后才能用作读取位置；该读取位置是只读的，MUST NOT 触发队列删除（删除只经 §10.1 显式 ack）。`after=` 表示从该队列位置之后继续读取，并与响应 `next_cursor` 配对；`from=` / `start_at=` 均不是该 operation 的合法别名。客户端 MUST NOT 把 account subscribe 顶层 `cursor` 当成 to-device 队列分页 cursor；顶层 `cursor` 只用于 account stream resume，to-device 队列分页只使用 `delta.to_device.next_cursor`。
 
 ## 11. Filters
 

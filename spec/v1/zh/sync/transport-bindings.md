@@ -34,7 +34,7 @@ libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供
 
 ### 1.1 Stream frame 序列约束的机读锚点（normative）
 
-`ak.self.account.stream.subscribe` 与 `ak.self.events.stream.subscribe` 的 NDJSON 多帧序列由 registered vector `ak.vector.sync.stream_frame_sequence.v1` 机读固化（fixture `sync-fixture.json#stream_frame_sequence`，runner `cotest::conformance::sync::run_stream_frame_sequence_vector`）。两类 stream 的输出和客户端 reconnect 状态机都 MUST 通过同一组完整 trace 断言；逐帧 JSON Schema validation 不能替代序列测试：
+`ak.self.account.stream.subscribe` 与 `ak.self.events.stream.subscribe` 的 NDJSON 多帧序列由 registered vector `ak.vector.sync.stream_frame_sequence.v1` 机读固化（fixture `sync-fixture.json#stream_frame_sequence`；执行入口以 fixture `runner` 元数据为准）。两类 stream 的输出和客户端 reconnect 状态机都 MUST 通过同一组完整 trace 断言；逐帧 JSON Schema validation 不能替代序列测试：
 
 - 必须固化并执行的 frame 序列约束（散文真相源见 client-sync.md，本节集中列举其 testable 形式）：
   1. `catchup=true` 时，`catchup_complete` 之前 MUST 至少出现一个 `delta` frame（baseline / catch-up delta）；`catchup=false` 时 MUST NOT 出现 `catchup_complete`。

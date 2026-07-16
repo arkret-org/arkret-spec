@@ -5084,7 +5084,7 @@
         "http": "POST /_arkret/self/device_messages/ack",
         "grpc": "SelfDeviceMessages/Ack",
         "mq": "self.device_messages.command.ack",
-        "notes": "Explicit, cumulative, monotonic to-device delivery acknowledgement (client-sync.md §10.1). Queue deletion happens only here; stream cursor advancement (account subscribe after=, device_messages from=) is read-only and MUST NOT prune the queue. Re-acking the same or an older token is a legal no-op. Unknown / expired / cross-bound tokens are rejected with invalid_param (reason invalid_ack_token) without deleting anything.",
+        "notes": "Explicit, cumulative, monotonic to-device delivery acknowledgement (client-sync.md §10.1). Queue deletion happens only here; stream cursor advancement (account subscribe after=, device_messages after=) is read-only and MUST NOT prune the queue. Re-acking the same or an older token is a legal no-op. Unknown / expired / cross-bound tokens are rejected with invalid_param (reason invalid_ack_token) without deleting anything.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,

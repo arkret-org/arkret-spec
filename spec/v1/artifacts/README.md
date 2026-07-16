@@ -70,7 +70,6 @@ updated: 2026-05-25
 ```bash
 python tools/artifact_pipeline.py generate   # 重新生成派生 registry view
 python tools/regenerate_fixture_digests.py   # 从 canonical input 单向重算 SHA-256 KAT
-python tools/fix_crypto_signature_fixture.py # 重算签名 fixture（需要 cryptography + dilithium-py）
 python tools/artifact_pipeline.py check      # 对照 catalog 检查派生视图 + 调用 lint_artifacts.py
 ```
 

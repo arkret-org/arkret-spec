@@ -871,7 +871,7 @@ Expected：
 
 `vector_id`: `ak.vector.mls.governance_proof.materializer.v1`
 
-两条 active vector 共用 [`mls-governance-proof-fixture.json`](../../artifacts/fixtures/mls-governance-proof-fixture.json) 的同一份 byte-level KAT。`cotest::conformance::mls_governance_proof_bundle::materialize` MUST 从 fixture 的 accepted Seal、完整 covered Event 集与 joined control state 重建四个有界 chunk，逐字节复算 Event/Seal/请求/chunk/manifest/Bundle commitments，并与 `expected_acquisition.responses[]` 精确比较；`cotest::conformance::mls_governance_proof_bundle::verify` MUST 以相同 responses、commit transcript binding 与本地 trust context 执行 [`encryption-and-audit.md` §2.5.1.1](../crypto-media/encryption-and-audit.md#2511-accepted-seal-治理证明-bundlenormative) 的固定验证顺序。只加载 fixture、只做 schema validation、只检查 `governance_binding.previous_epoch/next_epoch` 或只返回一个总 pass 均不构成通过。
+两条 active vector 共用 [`mls-governance-proof-fixture.json`](../../artifacts/fixtures/mls-governance-proof-fixture.json) 的同一份 byte-level KAT。server-consumer runner MUST 从 fixture 的 accepted Seal、完整 covered Event 集与 joined control state 重建四个有界 chunk，逐字节复算 Event/Seal/请求/chunk/manifest/Bundle commitments，并与 `expected_acquisition.responses[]` 精确比较；SDK-consumer runner MUST 以相同 responses、commit transcript binding 与本地 trust context 执行 [`encryption-and-audit.md` §2.5.1.1](../crypto-media/encryption-and-audit.md#2511-accepted-seal-治理证明-bundlenormative) 的固定验证顺序。具体执行入口以 fixture `runner` 元数据为准。只加载 fixture、只做 schema validation、只检查 `governance_binding.previous_epoch/next_epoch` 或只返回一个总 pass 均不构成通过。
 
 Verifier mutation matrix MUST 在需要测试语义阶段时重算所有 transport commitments，覆盖：Bundle 自报但本地未信任的 anchor、断裂/分叉 Seal path、错误 notary authority；covered digest/state leaf/frontier Event 的缺失、多余、重复和乱序；frontier Event proof 与跨 Realm/scope；chunk root、缺块、重复块和乱序；Realm/group/epoch/profile/reducer binding，以及 `policy_root`、`capability_root`、`discussion_metadata_digest` 不匹配。任一 reject case 都不得持久化 verified Bundle 或推进 MLS epoch。
 
@@ -1598,7 +1598,7 @@ ak.vector.redaction.snapshot_pruning_stub.v1
 ak.vector.snapshot.inclusion_challenge.v1
 ```
 
-本向量固化 [`snapshot-schema.md`](./snapshot-schema.md) §6 `event_set_commitment` 的 inclusion-challenge 采样与 merkle branch 校验规则，使 high-assurance bootstrap 不依赖单一实现的私有判断。该向量已在 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 中注册为 active，并由 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_inclusion_challenge` 机器 fixture 与 `cotest::conformance::sync` runner 承载。实现 MUST 执行该 fixture-backed gate，并按本节 prose 与 fixture 固化的规则校验 high-assurance bootstrap。
+本向量固化 [`snapshot-schema.md`](./snapshot-schema.md) §6 `event_set_commitment` 的 inclusion-challenge 采样与 merkle branch 校验规则，使 high-assurance bootstrap 不依赖单一实现的私有判断。该向量已在 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 中注册为 active，并由 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_inclusion_challenge` 机器 fixture 及其 registered runner 承载。实现 MUST 执行该 fixture-backed gate，并按本节 prose 与 fixture 固化的规则校验 high-assurance bootstrap。
 
 输入：
 
@@ -2313,7 +2313,7 @@ ak.vector.disappearing.on_last_read_offline_window.v1
 
 `vector_id`: `ak.vector.sync.stream_frame_sequence.v1`
 
-机器 fixture：`sync-fixture.json#stream_frame_sequence`；runner：`cotest::conformance::sync::run_stream_frame_sequence_vector`。Runner MUST 对 `ak.self.account.stream.subscribe` 与 `ak.self.events.stream.subscribe` 各执行同一组完整 frame trace，而不是把 frame 拆成互不关联的 schema cases。
+机器 fixture：`sync-fixture.json#stream_frame_sequence`；执行入口以 fixture `runner` 元数据为准。Runner MUST 对 `ak.self.account.stream.subscribe` 与 `ak.self.events.stream.subscribe` 各执行同一组完整 frame trace，而不是把 frame 拆成互不关联的 schema cases。
 
 Cases：
 
@@ -2333,7 +2333,7 @@ Expected：
 
 `vector_id`: `ak.vector.sync.to_device_message_idempotency.v1`
 
-机器 fixture：`sync-fixture.json#to_device_message_idempotency`；runner：`cotest::conformance::sync::run_to_device_message_idempotency_vector`。本向量同时使用 fixture 顶层 `schema_validation_cases` 固化 `DeviceMessageEnvelope` 与发送 target 的 required `message_id` wire 形态。
+机器 fixture：`sync-fixture.json#to_device_message_idempotency`；执行入口以 fixture `runner` 元数据为准。本向量同时使用 fixture 顶层 `schema_validation_cases` 固化 `DeviceMessageEnvelope` 与发送 target 的 required `message_id` wire 形态。
 
 Steps：
 
@@ -3053,7 +3053,7 @@ Expected：
 
 `vector_id`: `ak.vector.identity_link.minimal_metadata_author_credential.v1`
 
-机器 fixture：`privacy-security-fixture.json` 中同名 case；runner：`cotest::conformance::privacy_security::run_minimal_metadata_author_credential_vector`。
+机器 fixture：`privacy-security-fixture.json` 中同名 case；执行入口以 fixture `runner` 元数据为准。
 
 Preconditions：
 
@@ -4465,26 +4465,26 @@ Expected：
 
 `vector_id`: `ak.vector.blob.stream_aead_roundtrip.v1`
 
-本向量固化 §3.3.1 切分、§3.3.2 nonce 构造、§3.3.3 AAD 绑定、§3.3.5 整体 `ciphertext_digest` 语义与 §3.3.6 解密验证的正路径：明文按 `segment_size` 切成有序 segment（末段长度在 `1 .. segment_size`，可短于 `segment_size`），逐段独立 AEAD 加密、可分段下载并逐段增量校验，最终整体 `ciphertext_digest` 重算比对通过。
+本向量固化 [`media-and-blob.md` §3.3.1](../crypto-media/media-and-blob.md) 切分、同文 §3.3.2 nonce 构造、§3.3.3 AAD 绑定、§3.3.5 整体 `ciphertext_digest` 语义与 §3.3.6 解密验证的正路径：明文按 `segment_size` 切成有序 segment（末段长度在 `1 .. segment_size`，可短于 `segment_size`），逐段独立 AEAD 加密、可分段下载并逐段增量校验，最终整体 `ciphertext_digest` 重算比对通过。
 
 Steps：
 
 1. 取一份明文，长度使 `segment_count == ceil(plaintext_size / segment_size)` 且末段严格短于 `segment_size`（含短末段路径）；envelope 走 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 `ak.blob.stream_aead.v1` 分支，声明 `scheme`、`nonce_prefix`（per-object 随机，长度 `N_AEAD - 5`）、`segment_size`、`segment_count`、`ciphertext_digest`。
-2. 对每个 segment 用同一 content key、nonce = `nonce_prefix || u32_be(segment_index) || last_segment_flag` 加密，并把 `segment_index` / `last_segment_flag`（及 §3.3.3 要求字段）纳入 AAD；末段 `last_segment_flag = 0x01` 且 `segment_index == segment_count - 1`。
+2. 对每个 segment 用同一 content key、nonce = `nonce_prefix || u32_be(segment_index) || last_segment_flag` 加密，并把 `segment_index` / `last_segment_flag`（及 `media-and-blob.md` §3.3.3 要求字段）纳入 AAD；末段 `last_segment_flag = 0x01` 且 `segment_index == segment_count - 1`。
 3. 接收方按 `segment_index` 从 `0` 起严格升序分段下载（SHOULD 按 `segment_size` 整数倍偏移做 Range），逐段做 per-segment AEAD tag 校验并安全释放对应明文。
-4. 全部 segment 接收完毕后，按 §3.3.5 对全部 segment 密文（每段含其 AEAD tag）按 `segment_index` 升序拼接重算 `ciphertext_digest`，与 envelope 声明值比对。
+4. 全部 segment 接收完毕后，按 `media-and-blob.md` §3.3.5 对全部 segment 密文（每段含其 AEAD tag）按 `segment_index` 升序拼接重算 `ciphertext_digest`，与 envelope 声明值比对。
 
 Expected：
 
 - 逐段 AEAD tag 校验全部通过，整体 `ciphertext_digest` 重算等于 envelope 声明值；接收方还原出 byte-for-byte 等于原明文的内容，并仅在见到合法末段（`last_segment_flag=0x01` 且 `segment_index==segment_count-1`）后才标记附件完整。
 - per-segment 增量校验提供边下边验，顶层 `ciphertext_digest` 提供整体完整性；二者都 MUST 校验通过才允许最终持久化 / 标记完整。
-- 反例（顺带覆盖）：将任一 segment 密文整体替换为另一份相同 segment_index 的合法密文，使 per-segment tag 仍可能通过但拼接后整体 digest 不符时，§3.3.6 步骤 7 MUST 以 `digest_mismatch`（与 §5 一致）拒绝、丢弃全部明文、不渲染不持久化。
+- 反例（顺带覆盖）：将任一 segment 密文整体替换为另一份相同 segment_index 的合法密文，使 per-segment tag 仍可能通过但拼接后整体 digest 不符时，`media-and-blob.md` §3.3.6 步骤 7 MUST 以 `digest_mismatch`（与该文 §5 一致）拒绝、丢弃全部明文、不渲染不持久化。
 
 ### 16.2 Vector: Streaming AEAD Truncation Rejected
 
 `vector_id`: `ak.vector.blob.stream_aead_truncation_rejected.v1`
 
-本向量固化 §3.3.6 步骤 4「缺末段拒绝」MUST：流在未出现合法末段时即终止（连接中断、`segment_count` 段已耗尽但末段 flag 仍为 `0x00`，或声明 `segment_count` 与实际不符）MUST 拒绝（`segment_stream_truncated`），并丢弃已释放 / 缓冲明文，不得把已得明文当作完整文件。
+本向量固化 `media-and-blob.md` §3.3.6 步骤 4「缺末段拒绝」MUST：流在未出现合法末段时即终止（连接中断、`segment_count` 段已耗尽但末段 flag 仍为 `0x00`，或声明 `segment_count` 与实际不符）MUST 拒绝（`segment_stream_truncated`），并丢弃已释放 / 缓冲明文，不得把已得明文当作完整文件。
 
 Steps：
 
@@ -4494,13 +4494,13 @@ Steps：
 Expected：
 
 - **Case A / Case B**：接收方 MUST 以 `segment_stream_truncated` 拒绝，丢弃已释放 / 缓冲明文，MUST NOT 把已通过 per-segment 校验的部分明文当作完整文件持久化或标记完整。
-- 在见到合法末段前接收方 MUST NOT 把附件视为已完整接收（§3.3.6 步骤 3）；Range / 流式播放下允许消费已通过 per-segment 校验的明文段，但最终持久化或标记完整前 MUST 完成整体 digest 校验（此处因末段缺失永不达成）。
+- 在见到合法末段前接收方 MUST NOT 把附件视为已完整接收（`media-and-blob.md` §3.3.6 步骤 3）；Range / 流式播放下允许消费已通过 per-segment 校验的明文段，但最终持久化或标记完整前 MUST 完成整体 digest 校验（此处因末段缺失永不达成）。
 
 ### 16.3 Vector: Streaming AEAD Reorder / Replay Rejected
 
 `vector_id`: `ak.vector.blob.stream_aead_reorder_rejected.v1`
 
-本向量固化 §3.3.6 步骤 1「按序处理」与步骤 5「重复拒绝」MUST：`segment_index` 跳变 / 乱序 / 出现空洞 MUST 拒绝（`segment_sequence_invalid`）并丢弃已缓冲明文；同一 `segment_index` 出现多次 MUST 拒绝（`segment_replay`）。
+本向量固化 `media-and-blob.md` §3.3.6 步骤 1「按序处理」与步骤 5「重复拒绝」MUST：`segment_index` 跳变 / 乱序 / 出现空洞 MUST 拒绝（`segment_sequence_invalid`）并丢弃已缓冲明文；同一 `segment_index` 出现多次 MUST 拒绝（`segment_replay`）。
 
 Steps：
 
@@ -4511,7 +4511,7 @@ Expected：
 
 - **Case A**：MUST 以 `segment_sequence_invalid` 拒绝，并丢弃已缓冲明文，不得按到达顺序拼接 / 释放越序段。
 - **Case B**：MUST 以 `segment_replay` 拒绝重复段。
-- 两个 case 中，因 `segment_index` / `last_segment_flag` 同时进入 nonce 与 AAD（§3.3.2 / §3.3.3），重排、截断与末段伪造在 AEAD 层即应被拒绝（tag 校验失败）；conformance 判定以稳定 `reason_code` 为准。
+- 两个 case 中，因 `segment_index` / `last_segment_flag` 同时进入 nonce 与 AAD（`media-and-blob.md` §3.3.2 / §3.3.3），重排、截断与末段伪造在 AEAD 层即应被拒绝（tag 校验失败）；conformance 判定以稳定 `reason_code` 为准。
 
 ### 16.4 Vector: Streaming AEAD Scheme Closure
 
