@@ -262,6 +262,8 @@ artifact。
 
 - **I-3 显式 first-provisioning 门仅适用于 B 类**："持久层无 service identity" 对自身就是 Provider 的部署可能是真正首次部署，也可能是数据灾难；没有外部权威能区分两者。因此 B 类生产部署仅在显式一次性 `first-provisioning` 信号存在时 MAY 创建新 DID。开发模式 MAY 自动 provision。B 类有可验证 bundle 时 MUST 恢复原 DID；无 bundle、无记录、无信号时 MUST fail closed。A 类不使用该信号：它先按 `ServiceRegistrationKey {service_type, public_base}` 查询外部 Provider，mapping 存在则校验本地 control/signing key binding 后回填原 DID，明确 not-found 才提交 client-signed inception，传输失败时进入 waiting 且绝不 mint。
 
+- **I-4 强制 service pre-rotation**：service DID inception 与每次 rotation MUST 同时持有恰好一把 active update key 和一把本服务预生成的 next update key。`updateKeys` 与 `nextKeyHashes` 均恰含一项；`nextKeyHashes[0]` MUST 是 next update key Multikey 文本按 [`key-management.md` §5.0.1](./key-management.md) 相同的 sha2-256 multihash + Base58BTC 规则所得承诺。Provider / resolver 接受后继 entry 前 MUST 验证其 `updateKeys[0]` 命中前一 entry 的 `nextKeyHashes[0]`，并将被替换 key 标为 spent；缺少承诺、数量不为一或 commitment 不匹配 MUST fail closed 为 `service_registration_rejected` / reason=`service_prerotation_invalid`。Provider 不得生成、接收或托管 next private key。
+
 Service Identity Provider 的标准操作是：
 
 - `ak.root.identity.service_registration.command.ensure` → `POST /_arkret/root/identity/service-registrations:ensure`；
@@ -269,16 +271,16 @@ Service Identity Provider 的标准操作是：
 
 注册键由 registry 限定的 `service_type` 与 canonical `public_base` 组成。同一个注册键 MUST 永远映射到同一个 DID；普通 ensure、重启、数据库重连和 key rotation 都不得改变它。Provider MUST 验证 client-signed `did:webvh` inception 内声明的 service type / endpoint 与注册键完全相等，MUST 以 `UNIQUE(service_type, public_base)` 和单事务先查后建保证并发幂等，并且在 mapping 行缺失时扫描现存托管 DID Document：任何 document 已声明同一注册键都必须返回 `service_identity_conflict`，不得创建第二 DID。`idempotency_key` 只用于审计关联，不是并发正确性的来源。
 
-`ServiceRegistrationReceipt` 的 `proof` MUST 使用 `eddsa-jcs-2022`，且 transcript 只能按下列步骤构造，Provider 与 SDK 不得各自解释签名输入：
+`ServiceRegistrationReceipt` 采用 Arkret 统一 detached JWS，不引入 Data Integrity cryptosuite 例外。transcript 只能按下列步骤构造：
 
-1. 令 `receipt_claims` 为不含 `receipt_id` 与 `proof` 的对象 `{registration_key, service_id, version_id, log_head_digest, control_key_digest, issued_at, provider_service_id}`；`receipt_id` MUST 匹配 `ServiceRegistrationReceipt` schema 的固定前缀，并以 `SHA-256(JCS(receipt_claims))` 的 64 位小写十六进制作为后缀。
-2. 令 `proof_config` 为不含 `proofValue` 的对象 `{type: "DataIntegrityProof", cryptosuite: "eddsa-jcs-2022", verificationMethod, proofPurpose: "assertionMethod"}`；令 `document` 为包含 `receipt_id`、但删除整个 `proof` 后的完整 receipt。
-3. Ed25519 签名输入 MUST 精确等于 `SHA-256(JCS(proof_config)) || SHA-256(JCS(document))`，`proofValue` MUST 为该 64-byte signature 的 base58btc multibase（`z...`）。
-4. `verificationMethod` MUST 由 `provider_service_id` 控制，并在 receipt 签发时属于 Provider DID Document 的 `assertionMethod`。消费者 MUST 解析 Provider 的可验证 `did:webvh` 历史、检查该授权关系并验证签名；transport bearer、mTLS、HTTPS 成功或 proof 的结构校验均不得替代密码学验证。identity bundle 的离线恢复同样 MUST 完成上述验证，不能只检查 receipt 字段形状。
+1. 令 `receipt_claims` 为不含 `registration_receipt_id` 与 `proof` 的对象 `{registration_key, service_id, version_id, log_head_digest, control_key_digest, issued_at, provider_service_id}`；`registration_receipt_id = "ak:service_registration_receipt:" || hex(SHA-256(canonical_json(receipt_claims)))`。
+2. 令 `document` 为包含 `registration_receipt_id`、但删除整个 `proof` 后的完整 receipt；`payload_digest = "sha256:" || hex(SHA-256(canonical_json(document)))`。
+3. detached JWS MUST 签 `canonical_json({context:"ak.service-registration-receipt-proof-v1", payload_digest, provider_service_id, registration_receipt_id, verification_method, created_at, domain?, audience?})`。`created_at` MUST 等于 receipt `issued_at`；代码块 / 对象书写顺序不构成 byte order，key 顺序唯一由 [`encoding.md` §2](../conformance/encoding.md) 决定。
+4. `provider_service_id` MUST 是 `did:webvh`；`verification_method` MUST 在 receipt 签发时属于其 `assertionMethod`。消费者 MUST 解析该 DID 的可验证历史并验证签名；transport bearer、mTLS、HTTPS 成功或 proof 结构校验均不得替代密码学验证。identity bundle 的离线恢复同样 MUST 完成上述验证。
 
-Provider 是 hosting 方而非控制者。transport bearer、mTLS 或内网凭据只认证部署通道；inception、rotation、endpoint update 与 registration-key migration 仍 MUST 由服务持有的 WebVH control/update key 签名。Provider 不得生成、接收或托管调用方私钥。服务自身持久化 active signing key ref、control key ref、version/receipt；B 类若要求数据库灾难后保持 DID，MUST 另有可验证 identity bundle backend。
+Provider 是 hosting 方而非控制者。transport bearer、mTLS 或内网凭据只认证部署通道；inception、rotation、endpoint update 与 registration-key migration 仍 MUST 由服务持有的 WebVH control/update key 签名。Provider 不得生成、接收或托管调用方私钥。服务自身必须持久化 active signing key ref、active control key ref、**next control key material**、version 与 receipt；B 类若要求数据库灾难后保持 DID，其可验证 identity bundle backend MUST 同时保存当前与下一代 control key material，否则不得声称可保持 DID。
 
-运行时状态至少区分 `Ready`、`DegradedStored`、`WaitingProvider`、`RegistrationKeyDrift` 与 `Faulted`。已有并验证过的本地记录在 Provider 短暂不可用时 MAY 以 `DegradedStored` 提供普通签发/验证流程，但 MUST 禁止身份变更；本地为空且 Provider 不可达时进入 `WaitingProvider`，readiness=false，Service Describe 返回 `503 service_identity_unavailable` 与 `Retry-After`，Provider 恢复后自动重试，无需重启。`public_base` 漂移进入 `RegistrationKeyDrift`，继续用原 DID 服务但不得静默 ensure；只有 control-key-signed `migrate-base` 可以原子重绑同一 DID。
+运行时状态至少区分 `Ready`、`DegradedStored`、`WaitingProvider`、`RegistrationKeyDrift`、`RotationMaterialLost` 与 `Faulted`。已有并验证过的本地记录在 Provider 短暂不可用时 MAY 以 `DegradedStored` 提供普通签发/验证流程，但 MUST 禁止身份变更；本地为空且 Provider 不可达时进入 `WaitingProvider`，readiness=false，Service Describe 返回 `503 service_identity_unavailable` 与 `Retry-After`，Provider 恢复后自动重试，无需重启。`public_base` 漂移进入 `RegistrationKeyDrift`，继续用原 DID 服务但不得静默 ensure；只有 control-key-signed `migrate-base` 可以原子重绑同一 DID。已验证当前 DID 但 next control key material 丢失时进入 `RotationMaterialLost`：普通签发 / 验证可继续且 readiness 保持，所有 rotation、endpoint update 与 registration-key migration MUST 禁止并持续告警，直到从可验证 bundle 恢复匹配承诺的 key；不得生成新 key 绕过既有承诺。
 
 Profile 分层（承接 §3.4 的 witness 要求，不新增语义）：
 
@@ -428,6 +430,10 @@ assertion method。顶层 `audience` 与 proof `audience` 必须同时缺失，�
 `context`、复用 `ak.event-proof-v1` 或只签 proof 字段都必须拒绝。
 
 ## 5. Resolver、Auth Server 与组织授权
+
+### 5.0.6 Key transparency 与 IETF KEYTRANS 的边界
+
+`ak.profile.key_transparency.v1` / `ak.schema.key_transparency.v1` 是 Arkret 自有的 log-head、inclusion、consistency 与 witness evidence 格式，不是 IETF KEYTRANS wire protocol。实现 MUST NOT 仅凭该 profile 声明 KEYTRANS 兼容。需要 KEYTRANS 互操作时，适配器 MUST 另行声明版本化 profile，并精确钉定 `draft-ietf-keytrans-protocol-05`；Arkret evidence 与 KEYTRANS monitoring proof 之间的每个字段、hash suite、tree position 和 auditor/witness trust mapping 都必须在该 profile 中登记并有向量覆盖。由于该 IETF 文档仍为活跃 Internet-Draft，本 v1 不把其易变 wire shape 合并进核心 schema。
 
 DID 解析、登录认证和组织数据授权是三个不同职责：
 

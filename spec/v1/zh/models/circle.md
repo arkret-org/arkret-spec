@@ -94,8 +94,7 @@ Strand.scope_circle_id          : id:circle | null   # null = Realm-default scop
 Message.effective_scope       : reducer-stamped, immutable tagged scope
 Event.effective_scope         : reducer-stamped, immutable tagged scope，进入 envelope/sub-seal；MLS-backed scope 中也进入 AAD/governance binding
 Space.scope_circle_id         : id:circle | null   # Space 自身 metadata / scoped structural relation 的可见性 scope
-Space.default_scope_circle_id : id:circle | null   # 在该 Space 新建 Strand 的默认 scope(hint，非强制；属于 effective default_realm_id)
-Space.child_scope_policy      : object             # 子资源 placement/encryption floor，见 §7
+Space.child_scope_policy      : object             # 子资源 placement 约束，见 §7
 Morph.scope_circle_id         : id:circle | null
 Relation.scope_circle_id      : id:circle | null
 Relation.effective_scope      : reducer-stamped, immutable tagged scope
@@ -172,10 +171,9 @@ Conformance fixture 见 `artifacts/fixtures/circle-scope-fixture.json`，覆盖 
 | 字段 | 影响对象 | 强制性 | 说明 |
 | --- | --- | --- | --- |
 | `Space.scope_circle_id` | Space 对象自身的 metadata 与 structural relation facts | reducer-enforced | Space 自身的 title / parent / rank / contains 事实落在该 Circle scope;**不**使 Space 成为独立 Realm 边界，Space 仍是 authorization-transparent 容器，只是它的 metadata 被该 Circle 的投递 / history / encryption profile 约束。 |
-| `Space.default_scope_circle_id` | 在该 Space 下**新建**的子 Strand / 子 Space | hint(可被显式覆盖) | 客户端默认填入该值，actor 仍可在 create payload 中显式提供另一 `scope_circle_id`。该 Circle 必须属于子资源 effective `default_realm_id`，而不是任意 Space metadata home Realm。不强制。 |
 | `Space.child_scope_policy` | 任何 placement / move 进入该 Space 的子对象 | reducer-enforced | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id` 之一，见 §7。是真正的"该 Space 只接受这种 scope 的子对象"硬约束。 |
 
-实现常见错误:把 `default_scope_circle_id` 当成约束，或把 `scope_circle_id` 与 `default_scope_circle_id` 混用。三者各司其职，**不可**互相替代。
+实现必须区分 `scope_circle_id`（Space 自身 metadata scope）与 `child_scope_policy`（子对象 placement 硬约束），二者不可互相替代。
 
 ## 7. Realm-default scope、Circle scope 与加密覆盖范围
 
@@ -193,7 +191,7 @@ Realm **不会**自动创建默认 Circle。Realm-default scope 是 Realm 自身
 | policy field | enum | 说明 |
 | --- | --- | --- |
 | `content_encryption_floor` | `allow_plaintext` / `e2ee_required` | 取值为 `e2ee_required` 时，Strand / Message / Morph / Blob content 的 `effective_scope` MUST 是 MLS-backed：Realm-default MLS 或 Circle MLS；这些写入不得落在 plaintext Circle。 |
-| `metadata_encryption_floor` | `allow_plaintext` / `e2ee_required` | Realm-wide metadata 加密下限，与 `content_encryption_floor` 对称；不得被 Circle、Space 或对象 profile 放宽。缺省规则：MLS 或 `content_encryption_floor=e2ee_required` Realm 为 `e2ee_required`，其他 Realm 为 `allow_plaintext`。 |
+| `metadata_encryption_floor` | `allow_plaintext` / `e2ee_required` | Realm-wide metadata 加密下限，与 `content_encryption_floor` 对称；不得被 Circle 或对象 profile 放宽。缺省规则：MLS 或 `content_encryption_floor=e2ee_required` Realm 为 `e2ee_required`，其他 Realm 为 `allow_plaintext`。 |
 
 Circle encryption compatibility rules:
 
@@ -215,7 +213,7 @@ Circle encryption compatibility rules:
 
 Effective content floor = max（parent Realm `content_encryption_floor`，Circle `content_encryption_floor` if present）。比较顺序为 `allow_plaintext < e2ee_required`；`e2ee_required` 时该 scope 的 Strand / Message / Morph / Blob content `effective_scope` MUST 为 MLS-backed，plaintext content 写入 MUST `failed_precondition`（`reason=content_encryption_floor_violation`）。
 
-Effective metadata floor = max（parent Realm `metadata_encryption_floor`，Circle `metadata_encryption_floor` if present，Space `child_scope_policy.metadata_encryption_floor` if in placement context，object profile requirement）。比较顺序为 `allow_plaintext < e2ee_required`；任何写入若低于 effective floor MUST `failed_precondition`（`reason=metadata_encryption_floor_violation`）。
+Effective metadata floor = max（parent Realm `metadata_encryption_floor`，Circle `metadata_encryption_floor` if present，object profile requirement）。比较顺序为 `allow_plaintext < e2ee_required`；任何写入若低于 effective floor MUST `failed_precondition`（`reason=metadata_encryption_floor_violation`）。Space 是 authorization-transparent placement 容器，不承载第三套 floor 值。
 
 **单向 ratchet（normative）**：任一 scope（Realm-default 或 Circle）的 effective content floor 与 effective metadata floor MUST 随时间**单调非降**。任何 `ak.realm.policy_components` / `ak.circle.update` 若使某 scope 的 effective content floor 从 `e2ee_required` 降回 `allow_plaintext`，MUST `failed_precondition`（`reason=content_encryption_floor_downgrade`）；若使 effective metadata floor 降到更低等级，MUST `failed_precondition`（`reason=metadata_encryption_floor_downgrade`）。ratchet 约束的是 effective floor：抬高父 Realm floor（收紧）永远允许，只有**降低**被拒。该规则把 “前期不加密、后期加密、不可撤销” 做成密码学 / 治理双重不可逆，并堵住静默 downgrade 攻击面。对应负向向量 `ak.vector.e2ee.content_floor_downgrade_rejected.v1`、`ak.vector.e2ee.metadata_floor_downgrade_rejected.v1`、`ak.vector.circle.content_floor_below_realm_rejected.v1`，正向向量 `ak.vector.e2ee.in_place_enable.v1`。
 
@@ -227,7 +225,6 @@ Space 不拥有 membership / Policy Server / MLS group;`Space.scope_circle_id` �
 | --- | --- | --- |
 | `child_scope_policy.kind` | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id` | 子资源 scope 约束。 |
 | `child_scope_policy.scope_circle_id` | `id:circle` | `kind=require_scope_circle_id` 时必填。 |
-| `child_scope_policy.metadata_encryption_floor` | `allow_plaintext` / `e2ee_required` | 可选，对该 Space 下新建 / 移入对象施加更严格 metadata floor。 |
 
 Reducer MUST 在 `ak.strand.create`、`ak.strand.move`、`ak.space.parent`、structural `contains` projection 写入时检查 effective child scope policy:
 
@@ -236,7 +233,7 @@ Reducer MUST 在 `ak.strand.create`、`ak.strand.move`、`ak.space.parent`、str
 - `require_same_scope`:子资源 `effective_scope` 必须等于 Space 自身 `effective_scope`。
 - `require_scope_circle_id`:子资源 `scope_circle_id` 必须等于指定 Circle。
 
-`Space.default_scope_circle_id` 只是创建默认值，不是强制约束；强制约束必须用 `child_scope_policy` 表达。
+客户端创建子资源时必须显式选择 `scope_circle_id`；需要强制约束时使用 `child_scope_policy` 表达，不存在 reducer 无法验证的 Space 级默认 hint。
 
 ### 7.2 "宽 synthesis + 窄 discussion" 场景如何表达
 

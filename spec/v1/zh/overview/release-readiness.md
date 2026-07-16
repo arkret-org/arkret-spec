@@ -30,9 +30,9 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 
 | Registry | 计数（CI 校验，与 registry 精确一致） | Canonical 文件 |
 | --- | --- | --- |
-| Event kind（active） | 186 | `artifacts/registry/event-kind-registry.json` |
+| Event kind（active） | 188 | `artifacts/registry/event-kind-registry.json` |
 | Schema | 120 | `artifacts/registry/schema-registry.json` |
-| Typed ID kind | 46 | `artifacts/registry/id-kind-registry.json` |
+| Typed ID kind | 48 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 185 | `artifacts/registry/operation-registry.json` |
 | Claimable conformance profile | 65 | `artifacts/profiles/conformance-profiles.json` |
 | Profile id references | 90 | `artifacts/profiles/conformance-profiles.json` |
@@ -43,7 +43,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 
 `conformance-profiles.json` 另含一组 `profile_requirements` block（78）与 `profile_tiers` 分组（3）；这两个计数同样由 pipeline 精确校验（非自由近似值），权威计数以该文件为准，这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `ak.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
 
-> `python tools/artifact_pipeline.py check` 输出按实现 / 部署 / vector / hardening 四类 profile 直接汇总 claimable profile；`tools/lint_artifacts.py` 同时校验 registry graph 中所有 `ak.profile.*` 引用，防止 profile requirement、继承或候选 profile 文本漂移。
+> `python tools/artifact_pipeline.py check` 输出按实现 / 部署 / hardening 三类 profile 汇总可声明（claimable）profile；`vector-group`（第 16 组）只用于组织测试向量，不是可声明 profile。`tools/lint_artifacts.py` 同时校验 registry graph 中所有 `ak.profile.*` 引用，防止 profile requirement、继承或候选 profile 文本漂移。
 
 执行 `python tools/artifact_pipeline.py check` 时，CLI 输出与上表必须一致；任何不一致都说明 canonical catalog 或派生工件出现 drift，必须在合并前修复。每次新增或删除 registry 项，MUST 在同一变更中刷新本表。上表计数是当前 candidate v1 canonical tree 的受检快照；其权威性始终以 Canonical 文件与 `artifact_pipeline.py check` 输出为准。未发布阶段不维护历史迁移清单或兼容登记表。
 

@@ -67,7 +67,7 @@ updated: 2026-07-03
 | `avatar_blob_ref` | id:blob | 可选 | 头像图片的 Blob 引用。 |
 | `status` | enum | 可选 | `active`、`suspended`、`deactivated` 或 `deleted`。 |
 | `accountable_principal_ids` | did[] | 可选 | agent / service / 托管账号的责任主体。 |
-| `profile_fields` | object | 可选 | 代词、时区、locale、状态消息、组织自定义字段等扩展展示字段。其中子字段 `status_message` MUST ≤ 256 字符（Unicode code point 计），与 presence 广播的 `status_message`（§3.3）受同一长度与规范化约束。 |
+| `profile_fields` | object | 可选 | 个人简介的 canonical 落点是 `profile_fields.bio`；此外可承载代词、时区、locale、状态消息与组织自定义展示字段。`bio` 与 `status_message` 各 MUST ≤ 256 字符（Unicode code point 计），并受 §3.3 相同的 NFC / 控制字符约束。`avatar_url` 不是协议字段；头像必须先保存为 Blob，再写入顶层 `avatar_blob_ref`。 |
 | `created_at` | timestamp | MUST | 创建时间。 |
 | `updated_by` | did | 可选 | 最近更新者；由 profile update Event actor 派生。 |
 | `updated_at` | timestamp | 可选 | 最近更新时间。 |

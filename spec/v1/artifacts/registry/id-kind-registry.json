@@ -42,6 +42,20 @@
       "description": "Realm-scoped pseudonymous credential reference; validated by the E2EE profile. v1 core uses Realm as the boundary; Matrix-style Room terminology is only allowed in MIMI/Matrix interop modules."
     },
     {
+      "kind": "plan",
+      "wire_form": "ak:plan:<base64url>",
+      "status": "active",
+      "storage_recommendation": "Store as an opaque install-plan token; do not parse it as UUIDv7.",
+      "description": "Applet install-plan identifier. The suffix is an opaque non-empty base64url token."
+    },
+    {
+      "kind": "service_registration_receipt",
+      "wire_form": "ak:service_registration_receipt:<sha256-hex>",
+      "status": "active",
+      "storage_recommendation": "Store the 32-byte receipt-claims digest or the complete typed content-addressed identifier.",
+      "description": "Content-addressed ServiceRegistrationReceipt identifier derived from canonical receipt claims."
+    },
+    {
       "kind": "seal",
       "wire_form": "ak:seal:sha256:<digest>",
       "status": "active",
@@ -185,6 +199,13 @@
         "read_cursor_scope_ref"
       ],
       "description": "Circle object ID — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. See zh/models/circle.md."
+    },
+    {
+      "kind": "consent",
+      "category": "identity_authz",
+      "status": "active",
+      "wire_form": "ak:consent:<uuid>",
+      "description": "Consent grant/revoke/request identifier shared by Arkret consent events and MIMI interop DTOs."
     },
     {
       "kind": "strand",
@@ -399,6 +420,13 @@
         "read_cursor_scope_ref"
       ],
       "description": "Space object ID — structural grouping object inside a Realm (board, list, swimlane, calendar bucket, etc.). Authorization-transparent: never carries its own membership / policy / E2EE group; resolves to the containing Realm."
+    },
+    {
+      "kind": "subscription",
+      "category": "discovery",
+      "status": "active",
+      "wire_form": "ak:subscription:<uuid>",
+      "description": "Directory notification subscription identifier."
     },
     {
       "kind": "realm",

@@ -554,6 +554,7 @@
               "ak.realm.destroy",
               "ak.realm.disappearing_policy",
               "ak.realm.discovery",
+              "ak.realm.digest_suite_transition",
               "ak.realm.freeze",
               "ak.realm.history_sharing_policy",
               "ak.realm.history_visibility",
@@ -562,6 +563,7 @@
               "ak.realm.link",
               "ak.realm.media_service",
               "ak.realm.moderation_policy",
+              "ak.realm.notary",
               "ak.realm.organization",
               "ak.realm.plaintext_visible_services",
               "ak.realm.policy",
@@ -846,6 +848,44 @@
                 "$comment": "MUST contain at least one inclusion_proof ref"
               }
             ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.notary"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_notary_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.digest_suite_transition"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_digest_suite_transition_payload"
           }
         }
       }

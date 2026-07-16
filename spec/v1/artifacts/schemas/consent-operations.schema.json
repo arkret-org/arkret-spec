@@ -68,7 +68,7 @@
         },
         "cell_id": {
           "type": "string",
-          "pattern": "^ak:cell:ak\\.component\\.consent\\.grant\\.v1:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$",
+          "pattern": "^ak:cell:ak\\.component\\.consent\\.grant\\.v1:ak:consent:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Consent cell id (ak:cell:ak.component.consent.grant.v1:<consent_id>)."
         },
         "holder_did": {

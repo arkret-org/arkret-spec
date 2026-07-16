@@ -27,6 +27,7 @@
     },
     "predecessor_refs": {
       "type": "array",
+      "maxItems": 128,
       "items": {
         "$ref": "#/$defs/seal_ref"
       },
@@ -76,6 +77,7 @@
     },
     "covered_event_digests": {
       "type": "array",
+      "maxItems": 1048576,
       "description": "Optional compaction materialization of the full recursive covered_set(S), canonical bytewise-sorted and duplicate-free. When present, receivers MUST verify it equals set(delta) union all predecessor covered sets and that control_event_set_root is computed over this exact set. Non-compaction Seals normally omit it.",
       "items": {
         "$ref": "#/$defs/event_digest"
@@ -84,7 +86,7 @@
     },
     "previous_state_root": {
       "$ref": "#/$defs/hash",
-      "description": "Hash-algorithm transition only: present iff this Seal is a Transition Seal under ak.profile.hash_transition.v1. When present, MUST be computed with the previous digest_algorithm algorithm over the same recursive covered_set as state_root, and MUST equal the receiver-recomputed root under that algorithm before the new state_root is accepted. See event-auth-state-resolution.md §9.3.2."
+      "description": "Hash-algorithm transition only: present iff this Seal is a Transition Seal under ak.profile.hash_transition.v1. It commits the governance view before the transition Move is applied, computed with previous_digest_algorithm. state_root commits the post-transition governance view with the new suite. See event-auth-state-resolution.md §9.3.2."
     },
     "previous_digest_algorithm": {
       "type": "string",
@@ -109,7 +111,7 @@
       "type": "string",
       "format": "date-time",
       "pattern": "Z$",
-      "description": "Normative notary commit timestamp covered by the Seal signature transcript. It is the time input for revocation_freshness_window_ms, recovery_witness_freshness_window_ms, receipt_sla_ms, and reducer-derived projection timestamps. It MUST be >= every predecessor Seal.sealed_at and MUST NOT exceed verifier wall time by more than hard_future_skew_ms. It is never a lattice winner input."
+      "description": "Normative notary commit timestamp covered by the Seal signature transcript. It is the time input for revocation_freshness_window_ms, recovery_witness_freshness_window_ms, receipt_sla_ms, and reducer-derived projection timestamps. It MUST be >= every predecessor Seal.sealed_at. A value beyond verifier wall time + hard_future_skew_ms produces non-terminal seal_deferred_future_skew and MUST be retried as the clock advances; it is not a permanent rejection or a lattice winner input."
     },
     "hlc": {
       "$ref": "#/$defs/hlc"

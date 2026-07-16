@@ -40,11 +40,11 @@ Calendar event 是一个带 `ak.profile.calendar_event.v1` 的 Strand profile，
 
 ## 3. Recurrence
 
-v1 recurrence 使用 RRULE 子集：`FREQ`、`INTERVAL`、`BYDAY`、`COUNT`、`UNTIL`。wire schema 使用协议命名字段 `frequency`、`interval`、`by_day`、`count`、`expires_at`；`by_day[]` 是无序集合，只允许 `MO`、`TU`、`WE`、`TH`、`FR`、`SA`、`SU` 且不得重复，不支持 `1MO`、`-1FR` 等带序数 BYDAY。实现 MUST 按 `timezone` 做 wall-clock 展开；跨 DST 时，同一 local time 的会议不得因为 UTC offset 改变而漂移。
+v1 recurrence 是 RFC 8984 JSCalendar `RecurrenceRule` 的 snake_case 子集：`frequency`、`interval`、`by_day`、`by_month`、`by_month_day`、`by_set_position`、`first_day_of_week`、`count`、`until`。字段逐一映射到 JSCalendar 的同名 camelCase 字段；没有 Arkret 自创的 RRULE 语义。`frequency` 使用 JSCalendar 小写值 `daily | weekly | monthly | yearly`。`by_day[]` 是 `NDay[]`：每项包含小写 `day`（`mo`..`su`）和可选非零 `nth_of_period`，因此 `1MO` / `-1FR` 分别写作 `{day:"mo",nth_of_period:1}` / `{day:"fr",nth_of_period:-1}`。实现 MUST 按 `timezone` 做 wall-clock 展开；跨 DST 时，同一 local time 的会议不得因为 UTC offset 改变而漂移。
 
-`count` 与 `expires_at` MUST NOT 同时出现；二者均省略表示无协议层终止条件，但实现仍必须受 [`../conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) 的单次展开上限约束。`count` 的最大值为 10000；projection、查询和通知展开单次最多返回 10000 个 occurrence，超过时 MUST 分页或返回 `limit_exceeded`。未知 RRULE 字段 MUST 触发 schema / profile reject，而不是静默忽略。
+`count` 与 `until` MUST NOT 同时出现；二者均省略表示无协议层终止条件，但实现仍必须受 [`../conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) 的单次展开上限约束。`count` 的最大值为 10000；projection、查询和通知展开单次最多返回 10000 个 occurrence，超过时 MUST 分页或返回 `limit_exceeded`。未知 RecurrenceRule 字段 MUST 触发 schema / profile reject，而不是静默忽略。
 
-`expires_at` 是 UTC instant。每个 occurrence 先按事件 `timezone` 和 local wall-clock 起点展开，再把该 local start 转换成 instant 与 `expires_at` 比较；`occurrence_start_instant <= expires_at` 的实例包含在 series 中，晚于 `expires_at` 的实例排除。`all_day=true` 时，展开锚点是事件 `timezone` 的 local midnight；跨 DST 时仍以 local date / local time 为主，UTC offset 只在比较 `expires_at` 与生成 instance key 时使用。
+`until` 是 RFC 8984 `LocalDateTime`（无 `Z`、无 UTC offset），按事件 `timezone` 解释；最后一个 occurrence 的 local start MUST 小于或等于 `until`。`all_day=true` 时，展开锚点是事件 `timezone` 的 local midnight；跨 DST 时仍以 local date / local time 为主。需要与外部 UTC deadline 比较的实现必须先按 RFC 8984 的 discontinuity 规则把 local occurrence 转成 instant，不得把 `until` 当 UTC timestamp。
 
 ## 4. Attendees
 
@@ -64,6 +64,6 @@ RSVP projection 按 actor 对 `(event_ref, occurrence)` 做 LWW 收敛。`occurr
 
 ## 6. Schedule notification
 
-Calendar schedule 变更通过 `ak.strand.update` 修改 §2 字段。实现 MUST 按 [`private-objects.md` §3.6](./private-objects.md#36-schedule-notification-派生) 派生 `notification_type=schedule`，并只通知当前有访问权且未被 muted / DND / push rule 抑制的 receiver。
+仅当实现同时声明 `ak.profile.calendar_event.v1` 与 notification 派生能力时，Calendar schedule 变更才通过 `ak.strand.update` 修改 §2 字段，并额外把 `metadata.fields.start` / `end` / `timezone` / `all_day` / `recurrence` / `location` / `call_id` / `attendees` 视为 schedule-relevant；这组 calendar 字段不属于 core notification。实现 MUST 按 [`private-objects.md` §3.6](./private-objects.md#36-schedule-notification-派生) 生成 `notification_type=schedule`，并把当前 `attendees[].actor_id` 加入 receiver 候选集合；最终只通知有访问权且未被 muted / DND / push rule 抑制的 receiver。同一 patch 同时改变多项时只产生一条 notification。
 
 Calendar attendees 是 schedule notification 的 receiver set 输入，不是访问权真源；无 Realm / Circle 读取权的 attendee MUST 不收到 notification 或 push wakeup。RSVP 变更默认不产生 schedule notification；RSVP 自身的 UI 状态由 RSVP projection 展示。

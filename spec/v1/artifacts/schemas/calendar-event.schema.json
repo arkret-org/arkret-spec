@@ -81,10 +81,10 @@
         "frequency": {
           "type": "string",
           "enum": [
-            "DAILY",
-            "WEEKLY",
-            "MONTHLY",
-            "YEARLY"
+            "daily",
+            "weekly",
+            "monthly",
+            "yearly"
           ]
         },
         "interval": {
@@ -94,28 +94,53 @@
         "by_day": {
           "type": "array",
           "items": {
-            "type": "string",
-            "enum": [
-              "MO",
-              "TU",
-              "WE",
-              "TH",
-              "FR",
-              "SA",
-              "SU"
-            ]
+            "$ref": "#/$defs/n_day"
           },
           "uniqueItems": true
+        },
+        "by_month": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^(?:[1-9]|1[0-2])$"
+          },
+          "uniqueItems": true
+        },
+        "by_month_day": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "integer",
+            "minimum": -31,
+            "maximum": 31,
+            "not": { "const": 0 }
+          },
+          "uniqueItems": true
+        },
+        "by_set_position": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "integer",
+            "minimum": -366,
+            "maximum": 366,
+            "not": { "const": 0 }
+          },
+          "uniqueItems": true
+        },
+        "first_day_of_week": {
+          "$ref": "#/$defs/week_day"
         },
         "count": {
           "type": "integer",
           "minimum": 1,
           "maximum": 10000
         },
-        "expires_at": {
+        "until": {
           "type": "string",
-          "format": "date-time",
-          "pattern": "Z$"
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?$",
+          "description": "RFC 8984 LocalDateTime interpreted in the calendar event timezone; no UTC offset or Z suffix is allowed."
         }
       },
       "additionalProperties": false,
@@ -124,11 +149,29 @@
           "not": {
             "required": [
               "count",
-              "expires_at"
+              "until"
             ]
           }
         }
       ]
+    },
+    "week_day": {
+      "type": "string",
+      "enum": ["mo", "tu", "we", "th", "fr", "sa", "su"]
+    },
+    "n_day": {
+      "type": "object",
+      "required": ["day"],
+      "properties": {
+        "day": { "$ref": "#/$defs/week_day" },
+        "nth_of_period": {
+          "type": "integer",
+          "minimum": -366,
+          "maximum": 366,
+          "not": { "const": 0 }
+        }
+      },
+      "additionalProperties": false
     },
     "calendar_location": {
       "type": "object",

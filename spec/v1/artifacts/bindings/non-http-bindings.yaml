@@ -4,6 +4,12 @@
 # 仅在显式声明对应 binding profile 的部署中适用；v1 core 实现不要求实现这些 binding。
 version: "2026-05-08"
 operation_registry: ../registry/operation-registry.json
+coverage: complete_except_http_only
+coverage_contract: >-
+  Every registered operation that is not marked http_only_variant=true MUST appear
+  at least once in this binding artifact. Operations marked http_only_variant=true
+  MUST NOT appear here. tools/lint_artifacts.py enforces both directions after
+  parsing this file as YAML.
 frame_schemas:
   websocket:
     required:
@@ -169,9 +175,9 @@ grpc:
       Get: ak.self.events.resource.get
       Query: ak.self.events.query.scan
       Resolve: ak.self.events.query.resolve
-        Subscribe: ak.self.events.stream.subscribe
-        Submit: ak.self.events.command.submit
-        SubmitSeal: ak.self.events.command.submit_seal
+      Subscribe: ak.self.events.stream.subscribe
+      Submit: ak.self.events.command.submit
+      SubmitSeal: ak.self.events.command.submit_seal
     PeerEvents:
       Describe: ak.peer.events.query.describe
       Frontier: ak.peer.events.query.frontier

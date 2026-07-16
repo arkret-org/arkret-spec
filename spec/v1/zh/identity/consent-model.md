@@ -120,7 +120,7 @@ Payload-only schema 示例：
 
 ```json schema=schemas/event-payload.schema.json#/$defs/consent_grant_payload
 {
-  "consent_id": "consent-alice-bob-invite-001",
+  "consent_id": "ak:consent:019640ed-6000-7000-8000-000000000001",
   "peer": "did:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip:bob.example.com",
   "consent_scope": "invite",
   "not_before": "2026-05-07T00:00:00Z",
@@ -171,7 +171,7 @@ Payload-only schema 示例：
 
 ```json schema=schemas/event-payload.schema.json#/$defs/consent_revoke_payload
 {
-  "consent_id": "consent-alice-bob-invite-001",
+  "consent_id": "ak:consent:019640ed-6000-7000-8000-000000000001",
   "observed_dots": [
     "ak:event:019640ed-7000-7000-8000-000000000001:0"
   ],
@@ -199,7 +199,7 @@ Payload `observed_dots[]` MUST 与 Control Move effect 中的 `observed_dots` �
 | `presence` | peer 可观察 holder presence |
 | `any` | 全部 scope（覆盖所有上述类型）|
 
-`consent_scope=any` 是便利值，等价于显式 grant 所有具体 consent_scope。撤销 `any` consent 同时撤销所有具体 consent_scope；撤销具体 consent_scope 不影响其他 scope。
+`consent_scope=any` 是宽授权 dot：在查询任一具体 scope 时，它与该具体 scope 的 active dot 都可独立满足 gate；它**不等价于**在 lattice 中隐式生成全部具体 scope dot。撤销永远只移除 `observed_dots[]` 显式列出的 dot；要完全撤销同一 `(consent_id, peer)` 的全部授权，客户端必须按 §4.1.1 枚举全部 active dot。
 
 `consent_scope=invite`(或 `any`)的 active grant dot 可作为 Realm 邀请的高信任引入证据:邀请者出示该 grant 的 `consent_grant_ref`,接收方按 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) §2 的 `consent_grant` evidence 校验。撤销该 dot 后,§4.1.2 的 invite gate cache 失效，后续以该 dot 为证据的 invite delivery MUST 在接收方降级为低信任 `explicit_address`。这条不改变 consent lattice 语义，只说明 grant dot 的对外引用用途。
 
@@ -243,8 +243,8 @@ Consent cell 是 or_set lattice（dot-based observed-remove，详见 [`event-aut
 
 - `active_dots(cell) = { (dot, value) ∈ or_set.adds | dot ∉ or_set.observed_dots }`
 - `effective_grants(cell) = group active_dots(cell) by value.intent` —— projection 把同 intent 的多 active dot 折叠成一条 effective consent。
-- 一个 (consent_id, peer, consent_scope) 的 grant 当前生效（即 invite / contact 路径上 gate 放行）当且仅当：
-  - `active_dots(cell)` 中存在 ≥1 条 `value.intent == (consent_id, peer, consent_scope)` 的 dot；
+- 一个 (consent_id, peer, concrete_scope) 的 grant 当前生效（即 invite / contact 路径上 gate 放行）当且仅当：
+  - `active_dots(cell)` 中存在 ≥1 条 `value.intent == (consent_id, peer, concrete_scope)` **或** `value.intent == (consent_id, peer, "any")` 的 dot；
   - 当前时间 ∈ `[not_before, expires_at]`（窗口字段缺省视为 `(-∞, +∞)`）。
 - 不同 consent_id 是独立 cell；查询 `(holder, peer, consent_scope)` 时 invite / contact service 遍历该 holder 全部 consent cell 匹配。
 - 同一 CBA basis 内并发 grant 与 revoke 在 or_set join 后唯一确定（add dot 集合与 observed_dots 集合各自取并集，dot 之间没有先后），不产生 ⊥。审计 / admin 视图可暴露并发的 add / remove dot 序列以提示决策不连续，但 invite gate 仍按 `active_dots` 集合判定。

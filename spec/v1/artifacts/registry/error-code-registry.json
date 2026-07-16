@@ -368,6 +368,18 @@
       "description": "Encrypted content or MLS epoch is bound to an application state root that cannot be verified against accepted state."
     },
     {
+      "code": "seal_signer_unauthorized",
+      "http_status": 403,
+      "scope": "both",
+      "description": "The submitted Seal signature does not satisfy the predecessor governance state's ak.component.notary.v1 membership and threshold rules. Visibility or ownership of the signing device is never sufficient."
+    },
+    {
+      "code": "seal_deferred_future_skew",
+      "http_status": 425,
+      "scope": "both",
+      "description": "The Seal is cryptographically eligible but sealed_at is temporarily beyond verifier wall time plus hard_future_skew_ms. This is non-terminal: retain and retry after the clock advances; do not reject descendants solely for this condition."
+    },
+    {
       "code": "audit_receipt_invalidated",
       "http_status": 409,
       "scope": "both",
@@ -3856,7 +3868,7 @@
         "schema_validation",
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when a write would expose metadata below the effective metadata_encryption_floor floor (max of parent Realm floor, Circle metadata_encryption_floor, Space child_scope_policy.metadata_encryption_floor, object profile requirement). See zh/models/circle.md \u00a77."
+      "description": "Sub-reason for failed_precondition when a write would expose metadata below the effective metadata_encryption_floor floor (max of parent Realm floor, Circle metadata_encryption_floor and object profile requirement). See zh/models/circle.md \u00a77."
     },
     {
       "code": "series_chain_broken",
@@ -4582,6 +4594,14 @@
         "identity_resolution"
       ],
       "description": "A minimal-metadata content Event proof could not be bound to exactly one active MLS LeafNode whose basic credential identity equals Event.actor_id and whose signature_key matches proof.verification_method at the encrypted envelope epoch/group-state reference. The receiver MUST fail closed without querying a principal-scoped device directory. See zh/crypto-media/encryption-and-audit.md §2.10.3."
+    },
+    {
+      "code": "service_prerotation_invalid",
+      "applies_to": [
+        "identity_resolution",
+        "service_call"
+      ],
+      "description": "A service did:webvh inception or rotation omitted the sole next-key commitment, supplied more than one update/next key, or failed to open the previous nextKeyHashes commitment. Providers and resolvers MUST fail closed as service_registration_rejected."
     }
   ]
 }

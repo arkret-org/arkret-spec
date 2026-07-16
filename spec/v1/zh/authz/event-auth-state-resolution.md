@@ -237,7 +237,7 @@ Seal {
 }
 ```
 
-`completeness_root` 是控制面 per-actor 区间承诺，MUST 使用 §6.2.2 的统一 Seal Merkle 组合规则。leaf 集合为当前 `covered_set(S)` 中每个 control-plane actor 的连续 actor_seq 覆盖区间；每个 leaf 的 `leaf_data = canonical_json({ "actor_id": <did>, "from_seq": <integer>, "to_seq": <integer>, "event_digests": [<digest>...] })` 的 UTF-8 字节，其中 `event_digests[]` 是该 actor 在 `[from_seq,to_seq]` 内按 `actor_seq ASC, event_digest ASC` 排列的控制面 Event digest。leaf 按 `(actor_id, from_seq, to_seq)` canonical code point / integer 顺序排列。对同一 actor，相邻 Seal 的 interval set MUST 单调：已承诺区间不得收缩、不得产生未解释的 gap，`to_seq` 只能非降；compaction Seal MAY 合并相邻连续区间，但合并后覆盖的 digest 集合必须逐字节等价。空控制面覆盖集的 `completeness_root` 为 §6.2.2 空树 root。Auditor 的 `completeness_monotonic` 即按该 interval 偏序验证每个 actor 的覆盖区间非缩、无回退、无重写。
+`completeness_root` 是控制面 per-actor 区间承诺，MUST 使用 §6.2.2 的统一 Seal Merkle 组合规则。leaf 集合为当前 `covered_set(S)` 中每个 control-plane actor 的连续 actor_seq 覆盖区间；每个 leaf 的 `leaf_data = canonical_json({ "actor_id": <did>, "from_seq": <integer>, "to_seq": <integer>, "event_digests": [<digest>...] })` 的 UTF-8 字节，其中 `event_digests[]` 是该 actor 在 `[from_seq,to_seq]` 内按 `actor_seq ASC, event_digest ASC` 排列的控制面 Event digest。leaf 按 `(actor_id, from_seq, to_seq)` canonical code point / integer 顺序排列。对同一 actor，任一 Seal 相对其**每个 predecessor** 的 interval set MUST 单调：已承诺区间不得收缩、不得产生未解释的 gap，`to_seq` 只能非降；DAG 上互不可达的并发 leaf 之间不要求可比。compaction Seal MAY 合并相邻连续区间，但合并后覆盖的 digest 集合必须逐字节等价。空控制面覆盖集的 `completeness_root` 为 §6.2.2 空树 root。Auditor 的 `completeness_monotonic` 沿每条 Seal predecessor edge 验证该 interval 偏序，不得按 transparency `log_index` 相邻项误作线性比较。
 
 ### 6.1 Seal id 与签名 transcript
 
@@ -303,13 +303,15 @@ inclusion proof 使用 Merkle audit path，non-membership 使用 sorted-neighbor
 ```text
 apply_seal(A):
   1. 校验 predecessor_refs 均已知、同 Realm、且不是 fork_quarantine。
-  2. 校验 notary_seq 单调性和 notary_signature；`sealed_at` MUST 不早于全部 predecessor 的 `sealed_at`，且不得晚于 verifier 当前时钟加 `hard_future_skew_ms`。
+  2. 校验 notary_seq 单调性和 notary_signature；`sealed_at` MUST 不早于全部 predecessor 的 `sealed_at`。若 `sealed_at` 晚于 verifier 当前时钟加 `hard_future_skew_ms`，进入非终态 `seal_deferred_future_skew`，等待本地时钟推进后从 step 1 重判，不得终态拒绝该 Seal 或其后继。
+  2b. 在 predecessor joined governance state 的 `ak.component.notary.v1` cell 上校验 signer authority：`single_did` 必须由 `notary.did` 控制的方法签名；`threshold` 必须由 `members[]` 中至少 `threshold` 个互异成员形成有效门限签名；`open_set` 必须由 `members[]` 中合法 slot signer 签名；`mixed` 普通 Seal 必须由 primary `did` 签名，只有 §7.2 / §9.5 定义的 recovery 条件成立时才可由 `recovery_members[]` 签 recovery Seal。genesis Seal 的 `predecessor_refs=[]` 例外从本 Seal `delta[]` 中唯一且完整的 Realm anchor unit 的 `ak.realm.create.payload.object.notary` 求值。不满足时 MUST `rejected_seal`，服务层 reason=`seal_signer_unauthorized`。
   3. 校验 delta[] canonical 升序去重。
   4. 校验 delta[] 与所有 predecessor covered_set 不相交。
   5. 校验 delta[] 每项都是已知、签名有效、且未被本 Seal predecessor closure 覆盖的 Control Move digest；若 effective `availability_policy.applies_to` 含 `seal_include`，还 MUST 验证每项有满足 holder 数、role 与 retention 下限的 AvailabilityReceipt
      （"尚未 sealed" 的判定范围见下方并发 leaf 规则）。
   6. 计算 covered_set(A) = delta(A) union predecessor covered sets。
   7. 校验 control_event_set_root == root(covered_set(A)).
+  7b. 从 covered_set(A) 按 §6 的 per-actor interval 规则重建 leaf 集，使用 §6.2.2 重算 completeness_root 并逐字节比对；不匹配则拒绝该 Seal。
   8. 在 predecessor joined governance state 下批量 verify_control_move(delta[])
      （"批量"= delta[] 内每个 Move 的 preconditions[] 均对**同一冻结 predecessor 基线**求值，
       同批前序 Move 的 effect MUST NOT 提前进入后续 Move 的 precondition 基线；与 §6.3.1 step 3 同一 frozen-baseline 规则）。
@@ -319,6 +321,8 @@ apply_seal(A):
 ```
 
 Seal 被拒绝时，其 `delta[]` 内 Control Move 不因此有效。节点 MAY 保留这些 Move 作为 pending / diagnostic 输入，但 MUST NOT 让它们推进 query 或授权。
+
+`apply_seal` 对给定已验证依赖集合的终态结果 MUST 是纯函数。本地墙钟只决定 `seal_deferred_future_skew` 何时重新求值，不得把同一个 cryptographically valid Seal 永久分成“某 receiver 接受、另一 receiver 拒绝”两种终态。
 
 **并发 leaf 覆盖同一 pending Control Move（normative）**：步骤 5 中 "尚未 sealed" 的判定范围**只**是本 Seal 的 predecessor closure，即步骤 6 递归并集所得的 predecessor `covered_set`——等价于步骤 4 的不相交校验；receiver **MUST NOT** 以自身全局已接受 Seal 集合作为判定范围。特别地，`open_set` profile 下某 Control Move 已被另一个**并发**（不在本 Seal predecessor closure 内的）已接受 Seal leaf 覆盖时，receiver **MUST NOT** 因此拒绝本 Seal；否则接受结果将随 leaf 到达顺序变化，产生永久分叉，违反 §6.3.1 "`J(L)` 是 `L` 的纯函数、与到达顺序无关" 的收敛保证。同一 Control Move 被多个并发 leaf 覆盖是合法状态：`covered(L)` 按 Control Move digest 内容寻址取并集，重复覆盖自然去重，join 结果不受影响。
 
@@ -373,6 +377,10 @@ KeyView {
 - 未进入 `data_view_root` / `data_event_set_root` 的 DataEvent 不因此无效。
 - `observed` query grade 只表示某个 seal 见过并承诺过该局部结果；未来未观测的有效并发 DataEvent MAY 改变该 data cell 的 join。
 - Receiver MUST NOT 用 observational roots 拒绝有效 DataEvent。
+
+### 6.5 Notary control cell（normative）
+
+每个 Realm 恰有一个 protocol-singleton cell `ak:cell:ak.component.notary.v1:<realm_id>`，其 canonical value shape 与 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) `properties.notary` 完全相同，lattice=`cas_register`、bottom=`reject`、plane=`control`。genesis value 来自 `ak.realm.create.payload.object.notary`；后继值只能由 `ak.realm.notary` Control Move 写入，并且该 Move 必须以当前 cell head 作 CAS precondition、由当前 notary authority 按 §6.3 step 2b 最终签 Seal。并发 rotation 产生 `⊥` 时普通 Seal finality fail closed，只能走 §9.5 recovery。实现不得通过未登记 event kind、部署私有管理端点或直接数据库写入改变该 cell。
 
 ## 7. 问责、审查与 transparency
 
@@ -442,7 +450,7 @@ Wire schema：[`inclusion-list.schema.json`](../../artifacts/schemas/inclusion-l
 
 ### 7.4 Seal transparency
 
-Seal tuple SHOULD 发布到 append-only transparency log。独立 auditor 验证 append-only、`control_event_set_root` 单调、`completeness_root` 单调和签名有效性，并签发 attestation。客户端接受 `grade=witnessed` 前 MUST 验证 policy 要求的 witness / auditor attestation。
+Seal tuple SHOULD 发布到 append-only transparency log。独立 auditor 验证 append-only、Seal DAG 每条 predecessor edge 上 `control_event_set_root` extension 与 `completeness_root` interval 非缩、以及签名有效性，并签发 attestation。`log_index` 相邻但 DAG 互不可达的并发 entry 不参与单调性比较。客户端接受 `grade=witnessed` 前 MUST 验证 policy 要求的 witness / auditor attestation。
 
 Wire schema：[`seal-transparency.schema.json`](../../artifacts/schemas/seal-transparency.schema.json)（`ak.schema.seal_transparency.v1`）定义两个对象：
 
@@ -538,7 +546,7 @@ Realm 的 `digest_algorithm` 只能通过控制面 suite-transition Control Move
 
 1. transition Move 的 payload MUST 声明 `from_digest_algorithm`、`to_digest_algorithm`、`transition_snapshot_ref` 与 `snapshot_commitment`；`from_digest_algorithm` MUST 等于当前 Realm live suite，`to_digest_algorithm` MUST 是 digest-suite registry 的 active row，且不得违反 registry 的 no-downgrade strength order。
 2. Transition Seal body MUST 携带 `previous_state_root`，其 suite prefix 等于 `from_digest_algorithm`，并继续携带普通 `state_root`，其 suite prefix 等于 `to_digest_algorithm`。`previous_state_root` 是 §3.3 Realm 级 suite 排他的唯一豁免字段。
-3. Verifier MUST 用旧 suite 重算 transition 前治理 view 的 `previous_state_root`，用新 suite 重算 transition 后治理 view 的 `state_root`，并验证 `snapshot_commitment` 对同一 control/data frontier 的 inclusion。任一 root、snapshot commitment 或 suite strength 判定不匹配时，Transition Seal MUST `rejected_seal`。
+3. Verifier MUST 用旧 suite 重算 transition **前**治理 view 的 `previous_state_root`，用新 suite 重算应用 transition Move **后**治理 view 的 `state_root`，并验证 `snapshot_commitment` 对同一 control/data frontier 的 inclusion。`previous_digest_algorithm` MUST 等于 transition Move 的 `from_digest_algorithm`。任一 root、snapshot commitment、suite identity 或 suite strength 判定不匹配时，Transition Seal MUST `rejected_seal`。
 4. Transition Seal 接受后，该 Realm 内所有后续 Event digest、Seal id、state_root、Merkle leaf 与 receipt digest MUST 使用 `to_digest_algorithm`；旧 suite 只可出现在历史对象和该 Transition Seal 的 `previous_state_root` 中。
 
 ### 9.4 非治理强一致对象
@@ -626,10 +634,11 @@ E2EE message 不等待数据面 seal；它只等待其 `seal_ref` 对应的 MLS 
 | `failed_plane` | Event 跨 plane 写入或 data schema 使用禁止的硬性 invariant。 |
 | `failed_bottom` | Control Move 依赖 `bottom=reject` 的 control cell。 |
 | `rejected_seal` | Seal 签名、slot、delta、root、batch 或 `state_root` 校验失败。 |
+| `seal_deferred_future_skew` | Seal 的 `sealed_at` 暂时超过本地时钟允许的 future skew；非终态，receiver MUST hold 并随时钟推进重判。 |
 | `fork_quarantine` | 控制面分叉已被证明，相关 Seal 不得进入普通 joined view。 |
 | `stale_seal_ref` | DataEvent 的 `seal_ref` 相对已知撤销 seal 超出 freshness window。 |
 
-实现 MAY 在 API 层继续使用兼容错误码，但必须映射到本表语义。
+本表是 reducer 判定状态；其到服务 error code 的映射以 [`operations-error-mapping.json`](../../artifacts/registry/operations-error-mapping.json) 为准，实现 MUST NOT 引入未登记错误码。
 
 ## 14. 规模上限
 

@@ -120,25 +120,14 @@ Assignment 只影响通知订阅与 inbox 派生，不扩大 Strand 访问权；
 
 ### 3.6 Schedule notification 派生
 
-当 accepted `ak.strand.update` 的 patch 改变下列任一路径时，notification dispatcher MUST 视为 schedule-relevant change：
-
-- `metadata.fields.due_at`
-- `metadata.fields.start`
-- `metadata.fields.end`
-- `metadata.fields.timezone`
-- `metadata.fields.all_day`
-- `metadata.fields.recurrence`
-- `metadata.fields.location`
-- `metadata.fields.call_id`
-- `metadata.fields.attendees`
+core notification 只把 accepted `ak.strand.update` 对 `metadata.fields.due_at` 的改变视为 schedule-relevant change。扩展 profile 的额外 schedule 字段由该 profile 自己登记；core 实现不得因本节而被迫识别 calendar 字段。
 
 Schedule notification 的 receiver set 是下列集合的并集，并在生成前按 access check、history visibility、`level=muted`、blocklist、DND 与 push rule 覆盖过滤：
 
 - 该 Strand 当前 active `assigned_to` Relation 的 `to_ref` actors。
-- Calendar event profile 中 `attendees[].actor_id` actors。
 - 对该 Strand 显式选择 `watch=all` 的 watchers。
 
-默认 `mentions_only` / 隐含 `participating` 不因普通 schedule field 变更自动通知；但 actor 同时处于上述 receiver set（例如 assignee 或 attendee）时，dispatcher SHOULD 将 push-rule EventContext 标记为 target-directed，以避免被普通消息规则错误过滤。发送者默认不通知自己，除非私有 push rule 显式 opt-in。
+默认 `mentions_only` / 隐含 `participating` 不因普通 schedule field 变更自动通知；但 actor 同时处于上述 receiver set（例如 assignee）时，dispatcher SHOULD 将 push-rule EventContext 标记为 target-directed，以避免被普通消息规则错误过滤。发送者默认不通知自己，除非私有 push rule 显式 opt-in。
 
 派生 notification 的 `notification_type` MUST 是 `schedule`，`source_event_id` MUST 是该 `ak.strand.update` 的 Event id，`source_ref` SHOULD 是被更新的 Strand id，`strand_id` MUST 是被更新的 Strand id。对同一 `(actor_id, source_event_id, notification_type=schedule)` MUST 去重；一次 patch 同时改 due date 和 calendar fields 也只生成一条 schedule notification。
 

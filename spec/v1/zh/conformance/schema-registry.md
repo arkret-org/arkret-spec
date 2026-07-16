@@ -304,7 +304,7 @@ OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical 
 - 已发布旧实现对新值按 `schema_violation` 硬拒是**合规行为**，不是互操作缺陷；发起方在对端未声明新 schema 版本前 MUST NOT 发送新值（能力交集原则）。
 - 生成代码 MAY 用封闭 enum 类型（无 Unknown 兜底）表达闭集值；闭集枚举值导致的反序列化失败不违反 a 条的"未知值保留"义务——该义务只适用于开放注册集。
 
-**c. `status` 字段与新增 / 弃用纪律**——registry 条目 `status` 的当前值域为 `active`（标准条目，可产生、可按各 registry 规则接受；event-kind / schema registry 的全部条目现均为 `active`）与 `profile_extension`（仅在声明对应 profile 时有效；现用于 `id-kind-registry.json` 的 `special_forms`）。
+**c. `status` 字段与新增 / 弃用纪律**——registry 条目 `status` 的当前值域为 `active`（标准条目，可产生、可按各 registry 规则接受）、`deprecated`（只保留历史解释）与 `profile_extension`（仅在声明对应 profile 时有效；现用于 `id-kind-registry.json` 的 `special_forms`）。为兼容最初的 v1 schema catalog，`schema-registry.json` 中省略 `status` 的既有行按 `active` 解释；新增或修改 schema 行 MUST 显式写出 `status`。这一默认值由 schema registry 的 `registry_rules` 机读声明，不允许消费者自行猜测。
 
 - 新增条目 MUST 以 `active`（或 `profile_extension`）登记进 canonical 真源（generated registry 一律经 `contract-catalog.json` → pipeline 再生成，见 §1）。
 - 弃用不删行：条目退出标准面时 MUST 将 `status` 置为 `deprecated` 并保留该行，保证历史 event / backfill 可解释。`deprecated` 条目 MUST NOT 用于新产生的 wire 写入；接收侧处置遵循各 registry 自身 `registry_rules`（例如 event-kind registry 规定 Events API / durable history / federation / reducer 只接受 `active` 条目——即 event kind 一旦 deprecated，新 admission 被拒绝；已 accepted 的历史事件不受追溯影响）。

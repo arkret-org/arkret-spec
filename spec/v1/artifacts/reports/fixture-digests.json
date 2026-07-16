@@ -162,7 +162,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/operation_registry_coverage_fixture.json",
-      "sha256": "1098ee0a24ca9fbeb36f58ceacb23251972e8f216cd89de0835f561ef49c0238"
+      "sha256": "94a06bab816e3168eabffa9a779a7dbb29a59005e712a6ed1307521c3b09607e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/policy-server-fixture.json",
@@ -199,6 +199,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
       "sha256": "51ee1c66c9ffd29821b3be39ce10974344b60e7af2c8ab4559c43ad622ba93f9"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/seal-submit-fixture.json",
+      "sha256": "718ab26fd30dad98529e706b07ab64c13f248a63dbd763b9c1be8816498724e5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-vectors.json",

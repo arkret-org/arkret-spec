@@ -4,6 +4,10 @@
   "generated_at": "2026-07-13T00:00:00Z",
   "generated_from": "registry/contract-catalog.json",
   "generated_by": "tools/artifact_pipeline.py",
+  "registry_rules": [
+    "A schema row with omitted status is active for backward compatibility with the original v1 catalog. New or edited rows MUST spell status explicitly.",
+    "Allowed status values are active and deprecated. Deprecated rows remain resolvable for historical data but MUST NOT be produced by new writes."
+  ],
   "schemas": [
     {
       "schema_id": "ak.schema.realm.v1",

@@ -691,9 +691,11 @@
       "operation_specific": [
         "device_generation_fenced",
         "frontier_unavailable",
+        "seal_deferred_future_skew",
+        "seal_signer_unauthorized",
         "state_mismatch"
       ],
-      "description": "Client-signed Seal submission. The receiver recomputes coverage/state roots and rejects stale generation, signer/session mismatch, partial bootstrap coverage, or frontier races."
+      "description": "Client-signed Seal submission. The receiver recomputes coverage, completeness and state roots; verifies signer authority against the predecessor notary cell; rejects stale generation, partial bootstrap coverage or frontier races; and holds future-skewed Seals for retry instead of permanently rejecting them."
     },
     {
       "operation_id": "ak.peer.events.query.describe",

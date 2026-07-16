@@ -3,7 +3,7 @@
   "$id": "https://arkret.org/v1/schemas/key-transparency.schema.json",
   "x-arkret-conformance-vector": "ak.vector.identity.key_transparency_proofs.v1",
   "title": "Arkret Key Transparency Evidence",
-  "description": "Canonical evidence for ak.profile.key_transparency.v1 and the log-backed witness requirement of high-security/sovereign profiles.",
+  "description": "Canonical Arkret-specific evidence for ak.profile.key_transparency.v1 and high-security/sovereign log-backed witness requirements. This wire object is not an implementation of IETF KEYTRANS and MUST NOT be advertised as such; interop with draft-ietf-keytrans-protocol-05 requires a separately registered adapter/profile.",
   "type": "object",
   "additionalProperties": false,
   "required": [

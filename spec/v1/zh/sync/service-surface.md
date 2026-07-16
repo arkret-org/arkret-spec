@@ -487,7 +487,7 @@ POST /_arkret/self/events
 - 服务 MUST 验证 Event 签名、actor DID、device/session、capability、Realm policy、`actor_seq` 和因果依赖。
 - 服务 SHOULD 返回 accepted event、当前 actor frontier、Realm frontier 以及 read-your-writes barrier `cursor`（schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)，purpose=`barrier`）。
 
-当请求体包含 `events[]` 时，服务 MUST 按数组顺序逐项处理。前一项已接受的 Event 可以满足后一项的 bytes / Event ID / actor chain / `prev_refs` / `causal_refs` / payload-level causal reference 解析；同批中尚未处理、已拒绝或进入 quarantine 的 Event 不能作为已解析依赖。授权基准不得被同批提前推进：DataEvent 必须按自身 `seal_ref` 验证，Control Move 必须按自身 `seal_basis` 验证。同批前一项创建、delegate、恢复、扩权或 revoke 的 grant / policy 不得授权后一项写入；依赖方必须等控制面 Seal 更新后重新提交，或在当前批次被拒绝/隔离。批处理中单项失败不得回滚已接受项：成功项进入 `accepted[]`，重复幂等项进入 `duplicate[]`，失败项进入 `rejected[]` 或 `quarantine[]`。若后续 Event 依赖同批失败或缺失 Event，服务 MUST 以 `dependency_missing`、`causal_conflict`、`soft_failed` 或等价原因拒绝/隔离该后续 Event，而不是隐式接受。
+批量提交的处理顺序、依赖可见性、frozen authorization basis 与 partial-accept 原子边界统一以 [`operations-sync.md` §5](./operations-sync.md) 为准；本 surface 只声明该 operation 属于 Events Surface。
 
 ### 4.3 获取单个 Event
 
@@ -537,7 +537,7 @@ Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视�
 本节定义 account 与 snapshot 两类操作（事件流读取请到 Events Surface）：
 
 - `GET /_arkret/self/account/viewer`：当前 holder 的账号主体自读（`ak.self.account.query.viewer`）。响应使用 signed handle claim / ref / digest，不把未签名裸 `handle` 作为账号权威字段。
-- `POST /_arkret/self/account/profile`：当前账号 profile 更新（`ak.self.account.command.update_profile`）。patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；个人简介 MUST 写入 `profile_fields.bio`（规范强度见 [`service-http-binding.md` §5.1](service-http-binding.md)）。
+- `POST /_arkret/self/account/profile`：当前账号 profile 更新（`ak.self.account.command.update_profile`）。patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；字段语义以 [`profiles-presence.md` §2.2](../discovery/profiles-presence.md) 为准。
 - `GET /_arkret/self/account/subscribe`：客户端账号视角聚合同步（`ak.self.account.stream.subscribe`），见 `client-sync.md`。
 - `GET /_arkret/self/account/describe`：account aggregate service describe（`ak.self.account.query.describe`）。
 - `POST /_arkret/self/account/cursor/revoke`：撤销账号聚合订阅 cursor（`ak.self.account.command.revoke_cursor`）。

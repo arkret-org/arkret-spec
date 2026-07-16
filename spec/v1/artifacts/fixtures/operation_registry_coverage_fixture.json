@@ -6,7 +6,8 @@
     "inputs": [
       "registry/contract-catalog.json",
       "registry/operation-registry.json",
-      "openapi/arkret-service-api.openapi.yaml"
+      "openapi/arkret-service-api.openapi.yaml",
+      "bindings/non-http-bindings.yaml"
     ]
   },
   "assertions": [
@@ -17,6 +18,10 @@
     {
       "id": "registry_openapi_bijection",
       "rule": "Every operation-registry operation_id appears exactly once as an OpenAPI operationId and no extra operationId exists."
+    },
+    {
+      "id": "registry_binding_coverage",
+      "rule": "Every operation not marked http_only_variant=true appears in the parsed non-HTTP binding artifact; every http_only_variant operation is absent."
     },
     {
       "id": "schema_refs_resolve",

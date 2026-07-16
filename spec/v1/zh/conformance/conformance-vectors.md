@@ -959,7 +959,7 @@ ak.vector.cba_lattice.seal_canonical_no_self_reference.v1
 
 输入与期望（多 case 矩阵）：
 
-1. **Base case**：构造 Seal body fields `{realm_id, predecessor_refs, delta, control_event_set_root, state_root, sealed_at, hlc}`；按 [`encoding.md`](../conformance/encoding.md) §2 编码为 `seal_canonical_bytes`；`id = "ak:seal:sha256:" || hex(H(seal_canonical_bytes))`；`notary_signature.payload_digest == H(seal_canonical_bytes)`。Verifier MUST accept。
+1. **Base case**：构造 Seal body fields `{realm_id, predecessor_refs, delta, control_event_set_root, state_root, completeness_root, notary_seq, sealed_at, hlc}`；按 [`encoding.md`](../conformance/encoding.md) §2 编码为 `seal_canonical_bytes`；`id = "ak:seal:sha256:" || hex(H(seal_canonical_bytes))`；`notary_signature.payload_digest == H(seal_canonical_bytes)`。Verifier MUST 重算 coverage、completeness 与 state 三类 root 后 accept。
 2. **id-in-canonical-bytes attack**：若 producer 把 `id` 字段也塞进 `seal_canonical_bytes` 重新计算 H，得到的 hash 与原始 `id` 内容不同；verifier 重算后 `digest_mismatch`，MUST reject。该向量证明实现没有把 `id` 当成 transcript field。
 3. **sig-in-canonical-bytes attack**：若 producer 把 `notary_signature` 也进入 canonical bytes，`payload_digest` 重算与 `id` 重算都会失败；verifier MUST reject。证明 signature 不签自己。
 4. **key reorder attack**：取 valid Seal，把 canonical JSON key 顺序打乱（例如 `delta` 放在 `realm_id` 之前）；canonical JSON 规则（key 字典序）下重新编码 → 与原 bytes 相同 → hash 一致 → accept。若 verifier 未按 canonical 规则重新编码就直接 hash wire bytes，attack 会让 `digest_mismatch` 假阴性。本 case 检查 verifier 走 canonical re-encode，不是按收到的 bytes 直接 hash。

@@ -491,7 +491,7 @@
         "blake3"
       ],
       "default": "sha256",
-      "description": "Create-locked digest suite (canonicalization x hash tuple) used for DataEvent ids, Control Move ids, Seal ids, state_root, and Merkle leaves within this Realm. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; migration uses a control-plane suite-transition Control Move finalized by Seal, see event-auth-state-resolution.md §9.3.2."
+      "description": "Digest suite (canonicalization x hash tuple) used for DataEvent ids, Control Move ids, Seal ids, state_root, and Merkle leaves within this Realm. It is locked at create except for ak.realm.digest_suite_transition under ak.profile.hash_transition.v1. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; migration uses the control-plane transition Move and dual-root Seal defined by event-auth-state-resolution.md §9.3.2."
     },
     "notary": {
       "type": "object",

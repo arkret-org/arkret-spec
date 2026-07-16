@@ -1126,6 +1126,57 @@
       },
       "additionalProperties": false
     },
+    "realm_notary_payload": {
+      "type": "object",
+      "description": "Payload for ak.realm.notary. The enclosing Control Move MUST CAS the current ak.component.notary.v1 head and the current notary authority MUST finalize the containing Seal.",
+      "required": [
+        "realm_id",
+        "notary"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "notary": {
+          "$ref": "./realm.schema.json#/properties/notary"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_digest_suite_transition_payload": {
+      "type": "object",
+      "description": "Payload for ak.realm.digest_suite_transition under ak.profile.hash_transition.v1. The containing Transition Seal commits the pre-transition governance view with previous_state_root and the post-transition view with state_root.",
+      "required": [
+        "from_digest_algorithm",
+        "to_digest_algorithm",
+        "transition_snapshot_ref",
+        "snapshot_commitment"
+      ],
+      "properties": {
+        "from_digest_algorithm": {
+          "type": "string",
+          "enum": [
+            "sha256",
+            "blake3"
+          ]
+        },
+        "to_digest_algorithm": {
+          "type": "string",
+          "enum": [
+            "sha256",
+            "blake3"
+          ]
+        },
+        "transition_snapshot_ref": {
+          "type": "string",
+          "pattern": "^ak:snapshot:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "snapshot_commitment": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
     "realm_organization_payload": {
       "type": "object",
       "description": "Organization-side endorsement or revocation for a Realm relationship. Reducer validation MUST require realm_id to match the top-level Event.realm_id, organization_id to resolve to an Organization principal, the Realm-side writer to hold ak.realm.admin, and authorization to verify against the organization DID control state or a delegated service whose purpose covers this relationship and control_scopes.",
@@ -5000,6 +5051,7 @@
       "properties": {
         "consent_id": {
           "type": "string",
+          "pattern": "^ak:consent:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Stable identifier; used as the cell_subject of the consent cell. ak.consent.revoke MUST reference the same consent_id."
         },
         "peer": {
@@ -5052,6 +5104,7 @@
       "properties": {
         "consent_id": {
           "type": "string",
+          "pattern": "^ak:consent:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "MUST equal the consent_id of the ak.consent.grant being revoked."
         },
         "observed_dots": {

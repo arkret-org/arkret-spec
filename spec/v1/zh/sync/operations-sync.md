@@ -39,6 +39,7 @@ Reducer-input Event 分为两类，二者 wire shape 互斥：
 | --- | --- | --- | --- |
 | DataEvent | `effects[]`、`seal_ref`、`auth_context` | `preconditions`、`seal_basis` | 只写 data plane cell；签名、actor chain、授权、capability 与 Lattice 验证通过即可本地接受。 |
 | Control Move | `effects[]`、`seal_basis` | `seal_ref`、`auth_context` | 只写 control plane cell；进入 pending control set，直到被有效 Seal 覆盖才 `sealed`。 |
+| Anchor Unit | `effects[]`；kind 仅限 `ak.realm.create` genesis bootstrap 与 `ak.device.reanchor` recovery unit | `seal_ref`、`auth_context`、`seal_basis` | 封闭例外；必须按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md) 的 batch 原子性与 anchor 证明规则验证。 |
 
 `preconditions[]` 仅属于 Control Move。DataEvent 不使用全局 CAS precondition；需要强单值、硬配额、跨 cell 原子性或不可自动合并语义的对象，MUST 在 Realm schema 中声明为 control plane（或使用专门 per-object sequencer），不得伪装成轻量数据面写入。
 
@@ -111,7 +112,7 @@ DataEvent 的安全问题主要是签名伪造、授权过期、写入不属于 
 
 接收方 MUST：
 
-1. 确认 Event 携带 `effects[]`、`seal_basis`，且不携带 `seal_ref` 或 `auth_context`。
+1. 对非 anchor-unit 的 Control Move，确认 Event 携带 `effects[]`、`seal_basis`，且不携带 `seal_ref` 或 `auth_context`。
 2. 确认 `seal_basis.leaves[]` 均为已接受 Seal，且合成 view 的 `control_event_set_root` 与 `state_root` 与 Event 内声明一致。
 3. 在该 control basis 下验证 signer、capability、policy、membership 与 Realm lifecycle。
 4. 求值 `preconditions[]`；任一 predicate 不成立则拒绝该 Control Move。
@@ -119,6 +120,10 @@ DataEvent 的安全问题主要是签名伪造、授权过期、写入不属于 
 6. 将该 Control Move 放入控制面 pending set，等待 Seal 覆盖。
 
 Control Move 被有效 Seal 覆盖后，接收方重放控制面覆盖集，计算 control cell Lattice 与 `state_root`。root 匹配则该 Move 进入 `sealed`；root 不匹配或 Seal 签名、slot、delta、root、batch 验证失败，则拒绝该 Seal 并产生问责证据。
+
+#### 3.2.1 Anchor Unit 验证
+
+无 `seal_basis` 的 reducer-input Event MUST 先进入封闭 anchor-unit 分支，不能按普通 Control Move 拒绝。receiver MUST 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md) 验证：kind / batch 组合白名单、同批原子性、`ak.realm.create` 的 critical `refs[role=did_inception]` 与 bootstrap follow-up 完整覆盖，或 `ak.device.reanchor` 的 `refs[role=did_recovery_anchor]`、`pre_fence_basis` 全 frontier CAS 与 replacement authorize 原子 unit。任一 unit 缺项、跨 Realm、重复或携带 `seal_basis` 均 MUST fail closed。
 
 ### 3.3 Seal 验证
 

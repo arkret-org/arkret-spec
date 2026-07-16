@@ -63,7 +63,7 @@
   "$defs": {
     "auditor_attestation": {
       "type": "object",
-      "description": "Signed statement by an independent auditor (peer Realm or third party) that it verified the log range [from_index, to_index]: append-only consistency, Seal signature validity, control_event_set_root extension monotonicity, and completeness_root per-actor monotonicity. Clients accept grade=witnessed only when deployment policy's required attestation count is met.",
+      "description": "Signed statement by an independent auditor (peer Realm or third party) that it verified the log range [from_index, to_index]: append-only consistency, Seal signature validity, and control/completeness monotonicity along every Seal DAG predecessor edge represented in the range. Log-index-adjacent concurrent leaves are not compared. Clients accept grade=witnessed only when deployment policy's required attestation count is met.",
       "required": [
         "log_id",
         "realm_id",
@@ -104,6 +104,7 @@
           "required": [
             "append_only",
             "seal_signatures",
+            "dag_edges_verified",
             "set_root_monotonic",
             "completeness_monotonic"
           ],
@@ -114,6 +115,9 @@
             "seal_signatures": {
               "const": true
             },
+            "dag_edges_verified": {
+              "const": true
+            },
             "set_root_monotonic": {
               "const": true
             },
@@ -122,7 +126,7 @@
             }
           },
           "additionalProperties": false,
-          "description": "All checks MUST be true; an auditor that cannot assert a check MUST NOT issue the attestation."
+          "description": "All checks MUST be true. dag_edges_verified means monotonic checks were performed along every represented predecessor edge, not by log_index adjacency; an auditor that cannot assert a check MUST NOT issue the attestation."
         },
         "attested_at": {
           "$ref": "#/$defs/timestamp"

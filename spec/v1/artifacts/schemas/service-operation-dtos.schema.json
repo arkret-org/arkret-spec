@@ -1318,6 +1318,7 @@
         },
         "updateKeys": {
           "type": "array",
+          "description": "Exactly one active service-controlled update key. On a rotation entry it MUST open the previous entry's sole nextKeyHashes commitment; spent keys MUST NOT be reused.",
           "minItems": 1,
           "maxItems": 1,
           "uniqueItems": true,
@@ -1328,6 +1329,7 @@
         },
         "nextKeyHashes": {
           "type": "array",
+          "description": "Exactly one sha2-256 multihash/Base58BTC commitment to a next update key generated and durably held by the service. Missing or mismatched commitments fail closed as service_prerotation_invalid.",
           "minItems": 1,
           "maxItems": 1,
           "uniqueItems": true,
@@ -1404,10 +1406,10 @@
     },
     "ServiceRegistrationReceipt": {
       "type": "object",
-      "description": "Provider-signed stable service-registration receipt. receipt_id is ak:service_registration_receipt:<lowercase hex SHA-256(JCS({registration_key,service_id,version_id,log_head_digest,control_key_digest,issued_at,provider_service_id}))>. proof is eddsa-jcs-2022 over SHA-256(JCS(proof config without proofValue)) || SHA-256(JCS(the complete receipt without proof)); verificationMethod MUST be an assertionMethod controlled by provider_service_id and consumers MUST cryptographically verify it against the Provider DID history.",
+      "description": "Provider-signed stable service-registration receipt. registration_receipt_id is ak:service_registration_receipt:<lowercase hex SHA-256(canonical_json(receipt claims))>. proof is a detached JWS over the ak.service-registration-receipt-proof-v1 binding object; provider_service_id is did:webvh so consumers can verify signing-time assertionMethod authority against Provider DID history.",
       "additionalProperties": false,
       "required": [
-        "receipt_id",
+        "registration_receipt_id",
         "registration_key",
         "service_id",
         "version_id",
@@ -1418,7 +1420,7 @@
         "proof"
       ],
       "properties": {
-        "receipt_id": {
+        "registration_receipt_id": {
           "type": "string",
           "pattern": "^ak:service_registration_receipt:[0-9a-f]{64}$"
         },
@@ -1439,7 +1441,8 @@
         },
         "control_key_digest": {
           "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Digest of the active control/update public key at version_id; this is not the next-key commitment or private recovery material."
         },
         "issued_at": {
           "type": "string",
@@ -1447,10 +1450,11 @@
         },
         "provider_service_id": {
           "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "pattern": "^did:webvh:[^\\s#?]+$"
         },
         "proof": {
-          "$ref": "#/$defs/ServiceWebvhDataIntegrityProof"
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.service-registration-receipt-proof-v1', payload_digest, provider_service_id, registration_receipt_id, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at and verification_method MUST be a signing-time assertionMethod of provider_service_id."
         }
       }
     },

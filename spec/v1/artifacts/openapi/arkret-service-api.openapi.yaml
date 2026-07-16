@@ -1118,6 +1118,8 @@ components:
               - payload_digest_mismatch
               - key_unavailable
               - state_mismatch
+              - seal_signer_unauthorized
+              - seal_deferred_future_skew
               - audit_receipt_invalidated
               - unknown_did
               - quota_exceeded

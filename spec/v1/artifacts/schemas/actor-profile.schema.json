@@ -75,7 +75,18 @@
       }
     },
     "profile_fields": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "bio": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "status_message": {
+          "type": "string",
+          "maxLength": 256
+        }
+      },
+      "additionalProperties": true
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"

@@ -459,7 +459,6 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
     "parent_ref": "parent_space_id",
     "default_realm_ref": "default_realm_id",
     "scope_ref": "scope_circle_id",
-    "default_scope_ref": "default_scope_circle_id",
     "metadata_encryption_profile": "metadata_encryption_floor",
     "retention_policy_ref": "retention_policy_id",
     "disclosure_policy_ref": "disclosure_policy_id",
@@ -602,7 +601,6 @@ FORBIDDEN_NAMING_STRING_ALIASES = {
     "parent_ref": "parent_space_id",
     "default_realm_ref": "default_realm_id",
     "scope_ref": "scope_circle_id",
-    "default_scope_ref": "default_scope_circle_id",
     "require_scope_ref": "require_scope_circle_id",
     "retention_policy_ref": "retention_policy_id",
     "disclosure_policy_ref": "disclosure_policy_id",
@@ -1234,6 +1232,23 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     operation_path,
                     f"{operation_id} is a write operation and must declare retry_safe as a boolean",
                 )
+            canonical_hash_input = row.get("canonical_hash_input")
+            if idempotency_mechanism == "canonical_hash":
+                if not isinstance(canonical_hash_input, str) or not canonical_hash_input:
+                    lint.fail(
+                        operation_path,
+                        f"{operation_id} uses canonical_hash and must declare canonical_hash_input",
+                    )
+                elif canonical_hash_input != "full_body" and not canonical_hash_input.startswith("/"):
+                    lint.fail(
+                        operation_path,
+                        f"{operation_id} canonical_hash_input must be full_body or an RFC 6901 JSON Pointer",
+                    )
+            elif canonical_hash_input is not None:
+                lint.fail(
+                    operation_path,
+                    f"{operation_id} may declare canonical_hash_input only with idempotency_mechanism=canonical_hash",
+                )
             uncertain_outcome = row.get("uncertain_outcome")
             if retry_safe is False:
                 if not isinstance(uncertain_outcome, dict):
@@ -1633,6 +1648,7 @@ def check_fixture_runner_contract(lint: Lint) -> None:
         "operation_registry_coverage_fixture": {
             "catalog_registry_bijection",
             "registry_openapi_bijection",
+            "registry_binding_coverage",
             "schema_refs_resolve",
             "write_retry_contract",
             "read_retry_contract",
@@ -2337,6 +2353,11 @@ def check_operation_surfaces(lint: Lint, known: dict[str, set[str]]) -> None:
             )
 
     binding_path = ARTIFACTS / "bindings" / "non-http-bindings.yaml"
+    binding = load_yaml(lint, binding_path)
+    if not isinstance(binding, dict):
+        return
+    if binding.get("coverage") != "complete_except_http_only":
+        lint.fail(binding_path, "non-HTTP binding coverage must be complete_except_http_only")
     binding_text = binding_path.read_text(encoding="utf-8")
     binding_operation_ids = set(EVENT_KIND_TOKEN_RE.findall(binding_text))
     http_only_operation_ids = known.get("http_only_operation_ids", set())
@@ -6311,6 +6332,56 @@ def check_non_normative_frontmatter(lint: Lint) -> None:
         )
 
 
+def check_proof_context_registry(lint: Lint) -> None:
+    path = ARTIFACTS / "registry" / "proof-context-registry.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict) or data.get("source_of_truth") is not True:
+        lint.fail(path, "proof context registry must be a source_of_truth object")
+        return
+    rows = data.get("contexts")
+    if not isinstance(rows, list) or not rows:
+        lint.fail(path, "proof context registry must contain non-empty contexts[]")
+        return
+    contexts: set[str] = set()
+    families: set[str] = set()
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            lint.fail(path, f"contexts[{index}] must be an object")
+            continue
+        context = row.get("context")
+        family = row.get("object_family")
+        fields = row.get("binding_fields")
+        schema_ref = row.get("schema_ref")
+        if not isinstance(context, str) or not re.fullmatch(r"ak\.[a-z0-9-]+-proof-v1", context):
+            lint.fail(path, f"contexts[{index}].context is not a canonical proof context")
+        elif context in contexts:
+            lint.fail(path, f"duplicate proof context {context}")
+        else:
+            contexts.add(context)
+        if not isinstance(family, str) or not family:
+            lint.fail(path, f"contexts[{index}].object_family must be a non-empty string")
+        elif family in families:
+            lint.fail(path, f"duplicate proof object_family {family}")
+        else:
+            families.add(family)
+        if not isinstance(fields, list) or not fields or not all(isinstance(item, str) and item for item in fields):
+            lint.fail(path, f"contexts[{index}].binding_fields must be a non-empty string array")
+        if not isinstance(schema_ref, str) or not schema_ref.startswith("schemas/"):
+            lint.fail(path, f"contexts[{index}].schema_ref must point into artifacts/schemas")
+        else:
+            schema_path = ARTIFACTS / schema_ref.split("#", 1)[0]
+            if not schema_path.is_file():
+                lint.fail(path, f"contexts[{index}].schema_ref does not resolve: {schema_ref}")
+
+    token_re = re.compile(r"ak\.[a-z0-9-]+-proof-v1")
+    used: set[str] = set()
+    for scan_path in SPEC_ROOT.rglob("*"):
+        if scan_path.is_file() and scan_path.suffix.lower() in {".json", ".md", ".yaml", ".yml"}:
+            used.update(token_re.findall(scan_path.read_text(encoding="utf-8")))
+    for token in sorted(used - contexts):
+        lint.fail(path, f"proof context literal is not registered: {token}")
+
+
 def main() -> int:
     lint = Lint()
     check_text_files_utf8_no_nul(lint)
@@ -6335,6 +6406,7 @@ def main() -> int:
         return 1
 
     check_registry_manifest(lint)
+    check_proof_context_registry(lint)
     known = check_registries(lint)
     check_schema_refs(lint, known)
     check_profile_requirements(lint, known)

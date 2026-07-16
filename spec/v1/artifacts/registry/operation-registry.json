@@ -32,7 +32,7 @@
     "operation_id values MUST end with <kind>.<action>. The kind segment MUST be one of query, stream, resource, command, upload, or exchange; the action segment MUST describe protocol semantics and MUST NOT be an HTTP method name.",
     "resource.replace operations MUST bind to HTTP PUT; resource.delete operations MUST bind to HTTP DELETE; command, upload, exchange, and complex query body operations SHOULD bind to HTTP POST unless their operation notes define a stricter resource URI replacement contract.",
     "Every write operation (kind command/upload/exchange, and resource.replace / resource.delete) MUST declare idempotency_mechanism (one of idempotency_key, object_id, request_id, canonical_hash, protocol_sequence, none) and retry_safe (boolean). Read-only operations (query/stream/resource.get/resource.head) MUST NOT declare these fields.",
-    "idempotency_mechanism is the machine-readable source of truth for which idempotency mechanism from api-conventions.md section 6 an operation uses. retry_safe=true means a byte-identical full retry of the same request cannot produce duplicate side effects: it returns the original outcome, an equivalent idempotent no-op, or a deterministic conflict. retry_safe=false means blind retries MAY duplicate side effects or consume one-time material; clients MUST NOT retry such operations without out-of-band reconciliation."
+    "idempotency_mechanism is the machine-readable source of truth for which idempotency mechanism from api-conventions.md section 6 an operation uses. canonical_hash operations MUST also declare canonical_hash_input as either full_body or an RFC 6901 JSON Pointer. retry_safe=true means a byte-identical full retry of the same request cannot produce duplicate side effects: it returns the original outcome, an equivalent idempotent no-op, or a deterministic conflict. retry_safe=false means blind retries MAY duplicate side effects or consume one-time material; clients MUST NOT retry such operations without out-of-band reconciliation."
   ],
   "capability_tiers": {
     "core": "Base interoperable surfaces implied by claiming Arkret v1 protocol support (service discovery, identity registry, events/account aggregate).",
@@ -426,6 +426,7 @@
       "notes": "Canonical account creation/binding operation. In the account-first identity_creation branch the caller MUST present Authorization: DPoP <account_handoff_grant> plus matching DPoP, the current lease/fence, the exact reserved DID inception operation, and a fresh identity-root control proof over the persisted challenge transcript. For did:webvh inception the verifier takes parameters.updateKeys[0] from the operation itself (the root is not a DID Document verificationMethod) and requires verification_key_multibase to match it exactly. The Account Authority CAS-validates account/holder/lease/fence/reservation, consumes the challenge, submits the DID operation internally, accepts only accepted or byte-identical duplicate with a verified head digest, and writes the service-account binding. The (account, principal_id, operation_digest) result is idempotent; published-but-not-yet-bound state is durably completed for that same account and can never be rebound to another account. The operation never accepts recovery words, seed material, or identity-root private keys.",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "full_body",
       "retry_safe": true,
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_request_body",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_outcome"
@@ -925,6 +926,7 @@
       "mq": "self.blob.upload.create",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "full_body",
       "retry_safe": true,
       "request_schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_request_body",
       "response_schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_outcome"
@@ -1442,9 +1444,10 @@
       "http": "POST /_arkret/self/events/seals",
       "grpc": "SelfEvents/SubmitSeal",
       "mq": "self.events.command.submit_seal",
-      "notes": "Submit a client-signed Seal for a visible Realm. B-model principal-control Seals are signed by the active authorized device; the first Seal must be signed by bootstrap device #1 and cover the complete bootstrap unit. The receiver recomputes the Seal id, coverage roots, state root, device generation and signature.",
+      "notes": "Submit a client-signed Seal. Except for the canonical genesis exception, the signature MUST satisfy the predecessor governance state's ak.component.notary.v1 membership and threshold rules; Realm visibility or device ownership is insufficient. The receiver recomputes the Seal id, recursive coverage, completeness_root, state_root, signer authority and signature.",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "/id",
       "retry_safe": true,
       "request_schema_ref": "schemas/seal.schema.json",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventSealSubmitOutcome"

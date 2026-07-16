@@ -33,10 +33,6 @@
       "$ref": "./common-ids.schema.json#/$defs/circle_id",
       "description": "Optional Circle scope for this Space object's own metadata and scoped structural relation facts. Space still does not own a security boundary; it only places its metadata into an existing Circle scope. Omitted means Realm-default scope."
     },
-    "default_scope_circle_id": {
-      "$ref": "./common-ids.schema.json#/$defs/circle_id",
-      "description": "Optional default Circle scope for newly created child resources. MUST belong to the Space's effective default_realm_id for those child resources (which may be inherited); it is not necessarily the Space metadata home Realm when cross-Realm defaults are configured. This is a creation hint, not an authorization or placement constraint; use child_scope_policy for reducer-enforced requirements."
-    },
     "child_scope_policy": {
       "$ref": "#/$defs/child_scope_policy",
       "description": "Reducer-enforced placement/encryption policy for child resources created in or moved into this Space."
@@ -149,13 +145,6 @@
       "format": "date-time",
       "pattern": "Z$"
     },
-    "metadata_encryption_floor": {
-      "type": "string",
-      "enum": [
-        "allow_plaintext",
-        "e2ee_required"
-      ]
-    },
     "child_scope_policy": {
       "type": "object",
       "required": [
@@ -173,9 +162,6 @@
         },
         "scope_circle_id": {
           "$ref": "./common-ids.schema.json#/$defs/circle_id"
-        },
-        "metadata_encryption_floor": {
-          "$ref": "#/$defs/metadata_encryption_floor"
         }
       },
       "allOf": [

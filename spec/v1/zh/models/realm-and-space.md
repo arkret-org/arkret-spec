@@ -92,12 +92,12 @@ Schema id: `ak.schema.realm.v1`
 | `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | create-locked 的**能力轴**：只声明加密**机制**(有没有 MLS group)，不声明哪些 Arkret 字段进入密文，也不是"内容是否加密"的开关。`none` 是 bridge / 公开广播等"结构上永不 E2EE"scope 的诚实 opt-out；将来可能加密的协作 Realm SHOULD 以 `mls_rfc9420` + `content_encryption_floor=allow_plaintext` 创建，以便后期原地启用加密。完整语义见 [`circle.md` §7](./circle.md)。 | 加密机制声明。 |
 | `content_scheme` | no | `enum(mls-rfc9420, mls-exporter-aead-v1)` | reducer 派生（Realm policy 字段，经 `ak.realm.policy_components` 写入并纳入 MLS governance binding `policy_root`）。仅当 `encryption_profile=mls_rfc9420` 时适用；缺省为 `mls-rfc9420`。`mls-rfc9420` 使用 MLS PrivateMessage，join 前历史不可被后加入者解密，故只能配 `history_visibility=joined` / `restricted`；`mls-exporter-aead-v1` 使用 per-epoch `history_secret`，可在 history sharing policy 授权下经 `ak.realm_key.share` 交付，但不自动打开 pre-join delivery。切换只对后续 epoch 生效，完整语义见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10。 | MLS-backed content envelope scheme。 |
 | `content_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH）。这是 Realm 真正的"内容加密开关"：`e2ee_required` 时 Strand / Message / Morph / Blob content 的 `effective_scope` MUST 为 MLS-backed，plaintext content reducer MUST `failed_precondition`（reason=`content_encryption_floor_violation`）。缺省 `allow_plaintext`。**单向 ratchet**：一旦 effective 值达到 `e2ee_required`，后续降回 `allow_plaintext` 的写入 MUST `failed_precondition`（reason=`content_encryption_floor_downgrade`）。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 content 加密下限。 |
-| `metadata_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH），与 `content_encryption_floor` 对称。比较序 `allow_plaintext < e2ee_required`；effective 值取父 Realm / Circle / Space `child_scope_policy` / 对象 profile 的最大值，低于 effective 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_violation`），MUST NOT 被 Circle / Space / 对象 profile 放宽。**单向 ratchet**：一旦 effective 值达到 `e2ee_required`，后续降回 `allow_plaintext` 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_downgrade`）。缺省：`mls_rfc9420` 或 `content_encryption_floor=e2ee_required` 的 Realm 为 `e2ee_required`，否则 `allow_plaintext`。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 metadata 加密下限。 |
+| `metadata_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH），与 `content_encryption_floor` 对称。比较序 `allow_plaintext < e2ee_required`；effective 值取父 Realm / Circle / 对象 profile 的最大值，低于 effective 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_violation`），MUST NOT 被 Circle 或对象 profile 放宽。**单向 ratchet**：一旦 effective 值达到 `e2ee_required`，后续降回 `allow_plaintext` 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_downgrade`）。缺省：`mls_rfc9420` 或 `content_encryption_floor=e2ee_required` 的 Realm 为 `e2ee_required`，否则 `allow_plaintext`。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 metadata 加密下限。 |
 | `durability_policy` | no | `object` | reducer 派生（Realm policy 字段，经 `ak.realm.policy_components` 写入，非直接 PATCH）。仅当 `content_scheme=mls-exporter-aead-v1` 时 `mode != none` 才有效（见 §2.3.1）。 | Realm 恢复密钥（RRK）持久化策略。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
 | `sync_endpoints` | no | `array<ServiceBinding>` | Realm-level shared notary / Sync Service / mirror / federation 服务绑定；不是成员级 delivery binding。详见 [`../sync/federation.md`](../sync/federation.md)。 | Realm 委托同步与联邦入口。 |
 | `notary_profile` | yes | `enum(single_did, threshold, open_set, mixed)` | create-locked。 | Seal finality profile。 |
-| `digest_algorithm` | no | `enum(digest-suite-registry active ids；v1: sha256, blake3)` | create-locked，默认 `sha256`。 | Digest suite（canonicalization × hash 注册元组，见 [`encoding.md` §3.1–§3.3](../conformance/encoding.md)）：裸 id = canonical JSON 归一化，点分 id（如 reserved 的 `cbor.sha256`）= 备用归一化编码 suite。Realm 内单一 suite 排他；切换走控制面 suite transition Seal（[`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。 |
+| `digest_algorithm` | no | `enum(digest-suite-registry active ids；v1: sha256, blake3)` | create 时锁定，唯一例外是 `ak.realm.digest_suite_transition`（默认 `sha256`）。 | Digest suite（canonicalization × hash 注册元组，见 [`encoding.md` §3.1–§3.3](../conformance/encoding.md)）：裸 id = canonical JSON 归一化，点分 id（如 reserved 的 `cbor.sha256`）= 备用归一化编码 suite。Realm 内单一 suite 排他；切换走控制面 suite transition Seal（[`event-auth-state-resolution.md` §9.3.2](../authz/event-auth-state-resolution.md)）。 |
 | `notary` | yes | `object` | Genesis notary control cell 初值；其 `type` MUST 与 `notary_profile` 同源并满足对应 profile 的条件必填子字段。其 discriminator 子字段为 `type`（取值与 `notary_profile` 枚举同源：`single_did` / `threshold` / `open_set` / `mixed`）。**这是协议内 discriminator 默认用 `kind` 约定的已登记例外**（schema `realm.schema.json` 锁定 `notary.type`），见 [`common-fields.md` §2](./common-fields.md)。 | 当前 Seal 签发规则。 |
 | `availability_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_components` 写入；缺省为 1 个 notary holder，仅约束 Seal include。 | bytes availability receipt 门槛。 |
 | `audit_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_components` 写入；缺省时不得声称 `grade=witnessed`。 | completeness / transparency witness policy。 |
@@ -199,7 +199,7 @@ Schema id: `ak.schema.realm.v1`
 
 以下步骤适用于普通非 PCR Realm，且 MUST 在评估同一批次后续 event 前完成：
 
-1. **物化 Realm metadata**：把 `payload.object` 写入 reducer 视图（schema 校验、`encryption_profile` / `security_class` / `notary_profile` / `digest_algorithm` 等 create-locked 字段固化）。
+1. **物化 Realm metadata**：把 `payload.object` 写入 reducer 视图（schema 校验、`encryption_profile` / `security_class` / `notary_profile` 等 create-locked 字段固化；`digest_algorithm` 仅可由 [`ak.realm.digest_suite_transition`](../authz/event-auth-state-resolution.md#932-digest-suite-transition-sealnormative) 后续改变）。
 2. **写入 `ak.component.member.state.v1` cell**（`subject=created_by`，state=`join`，hlc 取自 create event）。这 **不要求** 发起者额外提交一条 `ak.member.state{join}` event，event 本身的 `created_by == actor_id` 已经是 spec 规定的成员资格凭证（[`common-fields.md` §3](common-fields.md)、[`event-and-patch.md` §2.5](event-and-patch.md#25-create-类-event-的跨字段语义校验)）。
 3. **写入 `ak.component.realm.create.v1` cell**（ordered_log，bottom=expose，genesis singleton）。该 cell 记录 accepted create 条目用于审计 / backfill；reducer 仍 MUST 把同一 Realm id 的第二条 create 拒绝为 `realm_already_exists`，不得把 duplicate create 作为普通 log append 接受。
 4. **接受显式 founding grant**：同一 ordered submit batch 中紧随 create 的下一条 Event MUST 是一条 `ak.capability.grant`，其 envelope `actor_id` 与 payload `issuer`（若 payload 形态显式承载 issuer）均等于 `payload.object.created_by`，且 grant 必须逐字满足以下封闭形态：
@@ -421,8 +421,7 @@ Schema id: `ak.schema.space.v1`
 | `realm_id` | yes | `id:realm` | MUST 指向 `ak:realm:`。 | Space metadata 的 home Realm。 |
 | `default_realm_id` | no | `id:realm` | MUST 指向 `ak:realm:`。 | 子资源默认 Realm；省略时继承。 |
 | `scope_circle_id` | no | `id:circle` | MUST 指向 Space metadata home Realm 的 Circle。 | Space 自身 metadata 与 structural relation facts 的 effective scope；省略表示 Realm-default。 |
-| `default_scope_circle_id` | no | `id:circle` | MUST 指向该 Space 子资源 effective `default_realm_id` 所在 Realm 的 Circle。 | 在该 Space 下新建子资源的默认 Circle scope；hint，不强制。若 `default_realm_id` 继承，先解析 effective target Realm 再校验该 Circle。 |
-| `child_scope_policy` | no | `object` | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id`。 | 子资源 placement / encryption floor 的 reducer-enforced 约束。 |
+| `child_scope_policy` | no | `object` | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id`。 | 子资源 placement 的 reducer-enforced 约束。 |
 | `parent_space_id` | no | `id:space` | MAY 指向任意 Space；跨 Realm parent 仅表示导航，不级联权限。 | 结构层级父。 |
 | `kind` | yes | `string` | v1 标准 kind 包括 `space`、`project`、`folder`、`board`、`list`；profile 可注册新 kind。 | Space 类型。 |
 | `title` | yes | `string` | 1..256 chars。 | 显示名。 |
@@ -447,15 +446,14 @@ Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器�
 - **同步与联邦**：Space metadata 跟随 home Realm 同步。跨 Realm parent 只是可验证引用，不把 child metadata 合并到 source Realm 的 event frontier。
 - **加密 / scope**：Space 没有自己的 membership、Policy Server 或 MLS group。Space metadata 默认取决于 home Realm 的 scope、`encryption_profile` 与 metadata profile；若 `scope_circle_id` 指向 Circle，则 Space metadata 与对应 structural relation facts 落在该 Circle 的 existing scope，并继承该 Circle 的投递 / 查询裁剪与 encryption profile。
 - **导航**：Space hierarchy 是产品结构树 / DAG。遍历每个 Space 节点时 MUST 独立校验该节点 home Realm 的可见性。
-- **默认资源边界**：创建 Strand / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id`，并 MAY 从目标 Space 的 effective `default_realm_id` / `default_scope_circle_id` 推导初值。`default_scope_circle_id` 的 Circle MUST 属于该 effective `default_realm_id`；如果 Space tree 的 home Realm 与默认子资源 Realm 不同，不能用 home Realm 的 Circle 作为子资源默认 scope。
-- **子边界升级**：若 Space subtree 或单个 Strand 只需要 Realm 内的子事件 / 子消息边界，创建 Circle 并把 `scope_circle_id` / `default_scope_circle_id` / `child_scope_policy` 指向该 Circle；若还需要密码学隔离，则该 Circle 必须 MLS-backed。只有需要独立 federation / Policy Server / capability registry 时才创建新的 Realm。
+- **默认资源边界**：创建 Strand / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id` 与需要的 `scope_circle_id`；`default_realm_id` 只提供 Realm 初值。若 Space tree 的 home Realm 与默认子资源 Realm 不同，不能用 home Realm 的 Circle 作为子资源 scope。
+- **子边界升级**：若 Space subtree 或单个 Strand 只需要 Realm 内的子事件 / 子消息边界，创建 Circle，并让子资源显式写入 `scope_circle_id`，必要时用 `child_scope_policy` 强制指向该 Circle；若还需要密码学隔离，则该 Circle 必须 MLS-backed。只有需要独立 federation / Policy Server / capability registry 时才创建新的 Realm。
 
-**三字段速查表（normative）**：Space 上三个 scope 相关字段语义不同，分别由不同主体强制：
+**两字段速查表（normative）**：Space 上两个 scope 相关字段语义不同，分别由 reducer 强制：
 
 | 字段 | 语义 | 谁强制 |
 | --- | --- | --- |
 | `Space.scope_circle_id` | 本 Space 自身的 effective scope | reducer（写本 Space 时校验） |
-| `Space.default_scope_circle_id` | 在该 Space 内新建子资源时的 *客户端 hint* 默认 scope；Circle 属于 effective `default_realm_id` | 客户端 UI（reducer 不强制） |
 | `Space.child_scope_policy.require_scope_circle_id` | 子资源 scope 的 reducer-enforced 约束 | reducer（写子资源时校验） |
 
 三字段不是冗余：自身 scope ≠ 默认 hint ≠ 子资源约束，实现 MUST 分别消费。

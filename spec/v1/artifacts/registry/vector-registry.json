@@ -4,6 +4,14 @@
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
+      "vector_id": "ak.vector.events.submit_seal_admission.v1",
+      "status": "active",
+      "domain": "events",
+      "applies_to_fixtures": ["seal-submit-fixture.json"],
+      "source_refs": ["spec/v1/artifacts/fixtures/seal-submit-fixture.json"],
+      "description": "Service-level submit_seal admission covers genesis completeness, current device generation, recomputed roots, predecessor notary authority and non-terminal future-clock deferral."
+    },
+    {
       "vector_id": "ak.vector.cross_signing.subordinate_key_binding.v1",
       "status": "active",
       "domain": "cross_signing",

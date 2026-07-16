@@ -51,6 +51,14 @@
       "description": "Canonical signature algorithm vocabulary for proof alg and raw signature_algorithm schema enums."
     },
     {
+      "name": "proof_contexts",
+      "file": "registry/proof-context-registry.json",
+      "kind": "proof_context_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical domain-separation contexts and binding fields for Event and non-Event detached proof object families."
+    },
+    {
       "name": "mls_ciphersuites",
       "file": "registry/mls-ciphersuite-registry.json",
       "kind": "mls_ciphersuite_registry",

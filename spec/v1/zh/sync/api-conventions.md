@@ -325,19 +325,17 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 
 每个写接口 MUST 在 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 中声明幂等机制与重试安全性。只有 `retry_safe=true` 的 operation 承诺可对逐字节相同的完整请求执行自动幂等重试；`retry_safe=false` 的 operation 不作该承诺，客户端必须走 operation-specific outcome 查询、恢复流程或人工确认。
 
-`retry_safe=true` 且 `idempotency_mechanism != "none"` 的写入请求 MUST 携带或内生以下至少一种稳定 request identity；`retry_safe=false` 的 operation 仅在其 registry 行声明了对应机制时才使用该机制。少数使用 command binding 但语义为纯计算 / 只读判定的 operation MAY 声明 `none/true`，前提是任何重复执行都不持久化状态、不消费一次性材料且不产生外部副作用：
+`retry_safe=true` 且 `idempotency_mechanism != "none"` 的写入请求 MUST 携带或内生由 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 同行声明的稳定 request identity；`retry_safe=false` 的 operation 仅在其 registry 行声明了对应机制时才使用该机制。少数使用 command binding 但语义为纯计算 / 只读判定的 operation MAY 声明 `none/true`，前提是任何重复执行都不持久化状态、不消费一次性材料且不产生外部副作用。
 
-- `event_id`
-- `request_id`
-- endpoint-specific `idempotency_key`
+**机读真相源（normative）**：每个 operation 实际采用哪种幂等机制（§2.5 所列 `idempotency_key` / `object_id` / `request_id` / `canonical_hash` / `protocol_sequence`），以 operation registry 的 `idempotency_mechanism` 字段为准；配套 `retry_safe` 布尔字段声明"逐字节相同的全量重试是否不产生重复副作用"（`true` = 重试返回原 outcome、等价幂等 no-op 或确定性冲突；`false` = 盲目重试可能重复副作用或消费一次性材料）。客户端 MUST NOT 对 `retry_safe=false` 的 operation 在未带外确认首次请求效果的情况下自动重试。
 
-**机读真相源（normative）**：每个 operation 实际采用哪种幂等机制（§2.5 所列 `Idempotency-Key` / 对象 id / request id / canonical hash / protocol sequence），以 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 中该 operation 的 `idempotency_mechanism` 字段为机读真相源；配套 `retry_safe` 布尔字段声明"逐字节相同的全量重试是否不产生重复副作用"（`true` = 重试返回原 outcome、等价幂等 no-op 或确定性冲突；`false` = 盲目重试可能重复副作用或消费一次性材料）。客户端 MUST NOT 对 `retry_safe=false` 的 operation 在未带外确认首次请求效果的情况下自动重试。
+`canonical_hash` 的默认 identity 是 `sha256:` 加 `canonical_json(完整请求体)` 的小写十六进制摘要，去重作用域是 `(authenticated principal, operation_id, canonical_hash)`。若 operation registry 同行声明 `canonical_hash_input`，其值 MUST 是 RFC 6901 JSON Pointer；接收方以该 pointer 选中的值计算 identity，同时仍须保存完整请求体的 canonical hash。同一 identity 对应不同完整请求体 MUST 返回 `duplicate_conflict`。因此 pointer 只能指向内容派生且协议定义为稳定身份的字段，不能把可碰撞的客户端标签当成内容摘要。
 
 对请求级 identity 机制（`idempotency_key` / `request_id` / `canonical_hash`，以及以 `event_id` 作为 request identity 的事件提交）适用以下规则。self 面的 `Idempotency-Key` 去重作用域 MUST 至少绑定 `(authenticated principal, operation_id, Idempotency-Key)`；不同 principal 或不同 operation 复用同一字符串不构成重复：
 
 - 相同幂等键 + 相同 canonical request body MUST 返回与首次请求语义等价的结果。
 - 相同幂等键 + 不同 canonical request body MUST 返回 `duplicate_conflict`。
-- 服务端 SHOULD 记录幂等键与 canonical request hash；联邦与服务间写入 MUST 将该 hash 纳入签名 transcript 或 transaction replay cache。
+- 服务端 SHOULD 记录 request identity 与完整 canonical request hash；联邦与服务间写入 MUST 将完整 hash 纳入签名 transcript 或 transaction replay cache。
 - `object_id` 与 `protocol_sequence` 是资源/协议状态 identity，不是请求级幂等键。逐字节相同的合法重放按 registry 的 `retry_safe` 承诺返回原 outcome 或等价 no-op；同一对象或序列上的不同 canonical body 是普通后继写，受 CAS、frontier、版本或状态机规则约束，MUST NOT 仅因 identity 相同返回 `duplicate_conflict`。
 - `idempotency_mechanism="none"` 与 `retry_safe=false` 同时出现时，该 operation MUST 在 binding 文档中给出超时后的 outcome 查询、一次性材料重新签发或人工确认路径；客户端 MUST NOT 把传输失败解释为“服务端未执行”并盲目重放。`none/true` 只表示重复执行纯计算等价，不产生需要去重的 write outcome。
 

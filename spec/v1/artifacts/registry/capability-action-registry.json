@@ -804,6 +804,8 @@
         "ak.realm.join_rule",
         "ak.realm.history_visibility",
         "ak.realm.discovery",
+        "ak.realm.digest_suite_transition",
+        "ak.realm.notary",
         "ak.realm.preview_policy",
         "ak.realm.policy_server",
         "ak.realm.policy_components",
