@@ -62,7 +62,7 @@
         "$ref": "./event-envelope.schema.json#/$defs/proof"
       },
       "minItems": 1,
-      "description": "Controller proofs over this entry. payload_digest = canonical_digest(entry without `proofs`); the detached JWS signs the canonical binding object {payload_digest, did, verification_method, created_at, domain?, audience?} defined in zh/sync/service-surface.md §3.1.3. verification_method MUST be a controller key authorized for this operation at the previous accepted entry's state; the registry host MUST NOT substitute its own key."
+      "description": "Controller proofs over this entry. payload_digest = canonical_digest(entry without `proofs`); the detached proof signs the canonical binding object {context:'ak.did-key-log-entry-proof-v1',payload_digest,did,seq,verification_method,created_at,domain?,audience?} defined in zh/identity/identity-did.md §4.4 and proof-context-registry.json. verification_method MUST be a controller key authorized for this operation at the previous accepted entry's state; the registry host MUST NOT substitute its own key."
     }
   },
   "allOf": [

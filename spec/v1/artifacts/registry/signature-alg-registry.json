@@ -3,8 +3,8 @@
   "source_of_truth": true,
   "description": "Canonical signature algorithm vocabulary for v1 proof alg and raw signature_algorithm fields.",
   "registry_rules": [
-    "Schema enum values for proof alg fields MUST be generated from active rows' proof_alg.",
-    "Schema enum values for raw signature_algorithm fields MUST be generated from active rows' signature_algorithm.",
+    "Schema enum values for proof alg fields MUST be generated from active rows' proof_alg only when publishing a new schema version, then frozen for that schema version.",
+    "Schema enum values for raw signature_algorithm fields MUST be generated from active rows' signature_algorithm only when publishing a new schema version, then frozen for that schema version. Activating a reserved/new algorithm requires a new schema version and profile negotiation; registry activation MUST NOT expand an existing schema enum in place (zh/conformance/schema-registry.md §6.1 b.1).",
     "Algorithms not present as active rows MUST fail closed with unsupported_signature_alg on critical proofs."
   ],
   "algorithms": [

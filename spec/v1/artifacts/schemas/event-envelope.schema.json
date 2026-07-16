@@ -3860,9 +3860,36 @@
         },
         "issuer_seq": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Required only for kind=append. Zero-based sequence scoped to (effect.cell, envelope.actor_id); see event-auth-state-resolution.md §9.3.1."
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "append"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "issuer_seq"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "issuer_seq"
+              ]
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "semantic_ref": {

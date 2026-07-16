@@ -8,6 +8,7 @@
   },
   "covers_vectors": [
     "ak.vector.patch.atomic_application.v1",
+    "ak.vector.patch.effects_prestate_binding.v1",
     "ak.vector.state_root.incremental.v1",
     "ak.vector.strand_tracks_update.atomic.v1"
   ],
@@ -249,6 +250,131 @@
               "tombstone_cell_remains": "ak:cell:ak.component.state_root.fixture.v1:cell.002",
               "final_cell_count": 9
             }
+          }
+        ]
+      }
+    },
+    {
+      "vector_id": "ak.vector.patch.effects_prestate_binding.v1",
+      "assertions": [
+        "strand_patch_plane_and_subject_match_registry",
+        "data_patch_prestate_is_loaded_only_from_referenced_base_head",
+        "receiver_local_head_does_not_change_acceptance",
+        "missing_dependency_remains_pending",
+        "missing_or_multiple_base_refs_fail_closed",
+        "wire_effect_mismatch_rejects_entire_event"
+      ],
+      "input": {
+        "registry_expectations": [
+          {
+            "event_kind": "ak.strand.update",
+            "plane": "data",
+            "sealed": false,
+            "lattice": "mv_register",
+            "cell_subject_field": "payload.target_ref"
+          },
+          {
+            "event_kind": "ak.strand.tracks.update",
+            "plane": "data",
+            "sealed": false,
+            "lattice": "mv_register",
+            "cell_subject_field": "payload.target_ref"
+          },
+          {
+            "event_kind": "ak.strand.stage.set",
+            "plane": "control",
+            "sealed": true,
+            "lattice": "cas_register",
+            "cell_subject_field": "payload.strand_id"
+          }
+        ],
+        "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:0196419b-0000-7000-8000-000000000901",
+        "base_event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "base_post_state": {
+          "metadata": {
+            "fields": {
+              "review_status": "pending"
+            }
+          }
+        },
+        "patch": {
+          "metadata.fields.review_status": {
+            "$op": "set",
+            "value": "approved"
+          }
+        },
+        "derived_effect": {
+          "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:0196419b-0000-7000-8000-000000000901",
+          "op": {
+            "kind": "set",
+            "value": {
+              "metadata": {
+                "fields": {
+                  "review_status": "approved"
+                }
+              }
+            }
+          }
+        },
+        "cases": [
+          {
+            "name": "referenced_base_accepts",
+            "causal_refs": [
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            ],
+            "receiver_current_heads": [
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            ],
+            "wire_effect_variant": "derived_effect",
+            "expected": "accept"
+          },
+          {
+            "name": "different_receiver_head_still_accepts",
+            "causal_refs": [
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            ],
+            "receiver_current_heads": [
+              "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+            ],
+            "wire_effect_variant": "derived_effect",
+            "expected": "accept_as_concurrent_head"
+          },
+          {
+            "name": "base_dependency_missing",
+            "causal_refs": [
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            ],
+            "available_event_digests": [],
+            "expected": "dependency_missing"
+          },
+          {
+            "name": "base_ref_missing",
+            "causal_refs": [],
+            "expected": "effects_payload_mismatch"
+          },
+          {
+            "name": "multiple_base_refs",
+            "causal_refs": [
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+            ],
+            "expected": "effects_payload_mismatch"
+          },
+          {
+            "name": "partial_wire_effect_rejected",
+            "causal_refs": [
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            ],
+            "wire_effect": {
+              "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:0196419b-0000-7000-8000-000000000901",
+              "op": {
+                "kind": "set",
+                "value": {
+                  "metadata.fields.review_status": "approved"
+                }
+              }
+            },
+            "expected": "effects_payload_mismatch"
           }
         ]
       }

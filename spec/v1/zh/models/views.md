@@ -159,7 +159,8 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 | `end_field` | no | `string` |  | 时间窗口终点字段。 |
 | `rows_by` / `columns_by` | conditional | `string` | `mode="matrix"` 时必填。 | 矩阵双轴字段。 |
 | `hidden_count_policy` | no | `enum(omit, authorized_estimate, authorized_exact)` | 默认 `omit`。 | 分组计数授权策略。 |
-| `wip_limit_enforcement` | no | `enum(warn, reject, require_review)` | 默认 `warn`。 | 分组 WIP enforcement；只影响 reducer / review policy，不由 renderer 决定。 |
+
+`CollectionGrouping` 只定义读取与呈现分组，不承载写入 policy。WIP 上限及其 `warn | reject | require_review` enforcement 的唯一真相源是目标 `Space(kind=list).fields`，见 [`space-hierarchy.md` §6](./space-hierarchy.md)。View 不得携带 `wip_limit_enforcement`；renderer 可以展示目标 List 的 effective policy，但不得从 View 配置生成、覆盖或放宽写入判定。
 
 ### 3.4 完整示例
 

@@ -170,7 +170,7 @@ Direct conversation binding 是 pair 到 `(realm_id, main_strand_id)` 的 princi
 
 Binding facts 与 contact facts 一样需要在双方之间交换 / 镜像并以原签名 envelope 参与 projection；否则 Alice 与 Bob 可能各自只看到自己的 binding fact，无法用同一 tie-break 算出相同 canonical Realm。Binding 只有在引用的 DM Realm、双方 active membership、DM main Strand 与 accepted contact refs 都可验证时才可成为 canonical。
 
-并发创建同一 pair 时，实现 MUST 以 deterministic tie-break 选择 canonical binding（例如 first accepted binding by causal order / event id），并把 loser 标为 duplicate / non-canonical；`ak.self.direct_conversation.command.resolve` 不得随机返回两个不同 Realm。
+并发创建同一 pair 时，实现 MUST 按 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的统一 canonical 全序选择 canonical binding：先删除不可验证的候选，再删除因果上被同一 pair 的后继 binding 明确取代的候选；剩余候选若互不可达，取承载 binding fact 的 Event `event_digest` 按 unsigned-byte lexicographic order 最大者。不得使用 `event_id`、接收时间、墙钟或本地数据库顺序作 tie-break。loser 标为 duplicate / non-canonical；`ak.self.direct_conversation.command.resolve` 不得随机返回两个不同 Realm。
 
 ## 7. DM Realm Well-Known 形态
 
@@ -184,7 +184,16 @@ DM Realm MUST：
 - `default_join_rule` 为 `closed` 或等价 fail-closed policy；第三方 invite / member_add MUST 被拒绝。
 - 对同一 unordered participant pair 至多保留一个 active canonical DM Realm。
 
-Pair key canonical encoding 是 direct conversation 的关键 normative 依赖。编码 MUST 基于稳定 subject / pairwise DID 与 trust domain，不得把 handle 字符串作为权威输入。pairwise DID 场景下，编码必须能把 pairwise DID 映射回可验证的稳定 subject，或显式声明不能跨 pairwise identity 合并；否则同一用户会被拆成多个 canonical pair。
+Pair key canonical encoding 是 direct conversation 的关键 normative 依赖，唯一算法如下：
+
+1. 对双方输入分别完成 DID method 的 canonical string normalization，并验证其代表当前 contact fact 中的稳定 subject DID。若交互使用 pairwise DID，producer MUST 先用已验证、由双方 contact fact 绑定的映射还原到稳定 subject DID；无法还原时 MUST `failed_precondition` / `direct_conversation_unavailable`，不得用 pairwise DID 临时生成另一个 pair key。
+2. 把两个稳定 subject DID 的 UTF-8 bytes 按 unsigned-byte lexicographic order 升序排列为 `participants`；两值相同 MUST `schema_violation`。
+3. 构造恰含两个键的对象 `{"participants":[p0,p1],"trust_domain":realm_trust_domain}`。`realm_trust_domain` MUST 等于目标 DM Realm create-locked 的 `trust_domain`，不得使用 handle domain、服务 hostname 或请求来源字符串替代。
+4. `pair_key = "sha256:" || lowercase_hex(SHA-256(JCS(object)))`。JCS 与 UTF-8 规则见 [`../conformance/encoding.md` §2](../conformance/encoding.md)。
+
+`participants_unordered[]` 在线上仍承载上述两个稳定 subject DID；其集合、排序后结果与 `pair_key` 前像 MUST 完全一致。receiver MUST 重算并逐字比较 `pair_key`，不一致时以 `schema_violation` 拒绝。handle 字符串、显示名、contact request id、Realm id 与 Strand id 均不得进入前像。
+
+字节级 KAT 与反序输入规则由 `ak.vector.direct_conversation.pair_key.v1` 固定。
 
 DM Realm MAY 为 push / server-side rule 暴露最小 `is_direct_message` projection。该 projection 可由 direct conversation profile + active member count 派生，不得要求 server 解密用户内容。
 

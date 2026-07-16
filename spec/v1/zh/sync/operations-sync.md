@@ -258,7 +258,7 @@ AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifact
 }
 ```
 
-leaf 顺序按 `(actor_id code point ASC, actor_seq ASC, event_id ASC, event_digest ASC)` 排列；Merkle 组合 MUST 使用 [`event-auth-state-resolution.md` §6.2.2](../authz/event-auth-state-resolution.md) 的 Seal Merkle 组合规则（`leaf = H(0x00 || leaf_data)`、`node = H(0x01 || left || right)`、空集合 root 为 `H("")`），`H` 取该 Realm 的 `digest_algorithm`。`count` MUST 等于 leaf 数；`root` MUST 等于该 leaf 集重算结果。
+在当前 attestation 绑定的单一 `realm_id` 内，leaf 顺序按 `(actor_id code point ASC, actor_seq ASC, event_id ASC, event_digest ASC)` 排列；`actor_seq_ranges[]` 只描述该 Realm 的 `(actor_id, actor_seq)` 链，其他 Realm 的合法序号不形成本 Realm gap。跨 Realm Event 混入 range MUST `range_completeness_actor_seq_gap` 并 fail closed。Merkle 组合 MUST 使用 [`event-auth-state-resolution.md` §6.2.2](../authz/event-auth-state-resolution.md) 的 Seal Merkle 组合规则（`leaf = H(0x00 || leaf_data)`、`node = H(0x01 || left || right)`、空集合 root 为 `H("")`），`H` 取该 Realm 的 `digest_algorithm`。`count` MUST 等于 leaf 数；`root` MUST 等于该 leaf 集重算结果。
 
 #### 6.4.2 Quorum 语义（normative）
 

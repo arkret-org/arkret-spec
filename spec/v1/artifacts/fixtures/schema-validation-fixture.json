@@ -574,6 +574,7 @@
             "cell": "ak:cell:ak.component.realm.create.v1:principal_control",
             "op": {
               "kind": "append",
+              "issuer_seq": 0,
               "value": "ak:realm:0196419b-0000-7000-8000-000000000010"
             }
           }
@@ -643,6 +644,7 @@
             "cell": "ak:cell:ak.component.realm.create.v1:managed_agent_principal_control",
             "op": {
               "kind": "append",
+              "issuer_seq": 0,
               "value": "ak:realm:0196419b-0000-7000-8000-000000000011"
             }
           }
@@ -716,6 +718,7 @@
             "cell": "ak:cell:ak.component.realm.create.v1:principal_control",
             "op": {
               "kind": "append",
+              "issuer_seq": 0,
               "value": "ak:realm:0196419b-0000-7000-8000-000000000012"
             }
           }
@@ -789,6 +792,7 @@
             "cell": "ak:cell:ak.component.realm.create.v1:collaboration",
             "op": {
               "kind": "append",
+              "issuer_seq": 0,
               "value": "ak:realm:0196419b-0000-7000-8000-000000000013"
             }
           }

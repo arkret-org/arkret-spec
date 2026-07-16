@@ -381,11 +381,11 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
   "refs": [
     { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
-  "causal_refs": [],
+  "causal_refs": ["sha256:3333333333333333333333333333333333333333333333333333333333333333"],
   "effects": [
     {
       "cell": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
-      "op": { "kind": "append", "value": { "message_id": "ak:message:019640ed-8000-7000-8000-000000000000" } }
+      "op": { "kind": "append", "issuer_seq": 0, "value": { "message_id": "ak:message:019640ed-8000-7000-8000-000000000000" } }
     }
   ],
   "seal_ref": "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
@@ -432,7 +432,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
   "effects": [
     {
       "cell": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
-      "op": { "kind": "append", "value": { "message_id": "ak:message:019640ed-9000-7000-8000-000000000000" } }
+      "op": { "kind": "append", "issuer_seq": 1, "value": { "message_id": "ak:message:019640ed-9000-7000-8000-000000000000" } }
     }
   ],
   "seal_ref": "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
@@ -772,7 +772,11 @@ POST /_arkret/self/events
       "op": {
         "kind": "set",
         "value": {
-          "metadata.fields.review_status": "approved"
+          "metadata": {
+            "fields": {
+              "review_status": "approved"
+            }
+          }
         }
       }
     }

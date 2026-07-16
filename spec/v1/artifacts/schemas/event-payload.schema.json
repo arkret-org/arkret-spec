@@ -5280,8 +5280,9 @@
       ],
       "properties": {
         "pair_key": {
-          "$ref": "#/$defs/non_empty_string",
-          "description": "Canonical unordered pair key; must be based on stable subject/pairwise DID normalization and trust domain, never on handle strings."
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Canonical unordered pair key: sha256(JCS({participants:[p0,p1],trust_domain})) where p0/p1 are canonical stable subject DIDs sorted by unsigned UTF-8 byte order. Receivers MUST recompute it exactly as contact-and-direct-conversation.md §7 defines; handles and unresolved pairwise DIDs are forbidden inputs."
         },
         "participants_unordered": {
           "type": "array",

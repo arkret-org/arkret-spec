@@ -78,7 +78,27 @@
     },
     "fields": {
       "type": "object",
-      "description": "Space kind-specific fields, e.g., { 'wip_limit': 5 } for kind=list, { 'view_id': 'ak:view:...' } for kind=board's default view. MUST NOT contain a 'rank' key (rank is a top-level Space field; see relation.md §2 for the symmetric Relation constraint and forbidden-wire-fields.json `fields.rank/space_payload`).",
+      "description": "Space kind-specific fields. For kind=list, wip_limit is an integer 1..100000 and wip_limit_enforcement is required with enum warn|reject|require_review whenever wip_limit is present; these are the sole write-policy source and MUST NOT be read from View. For kind=board, view_id may identify a default presentation. MUST NOT contain a 'rank' key (rank is a top-level Space field; see relation.md §2 for the symmetric Relation constraint and forbidden-wire-fields.json `fields.rank/space_payload`).",
+      "properties": {
+        "wip_limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000
+        },
+        "wip_limit_enforcement": {
+          "type": "string",
+          "enum": [
+            "warn",
+            "reject",
+            "require_review"
+          ]
+        }
+      },
+      "dependentRequired": {
+        "wip_limit": [
+          "wip_limit_enforcement"
+        ]
+      },
       "not": {
         "required": [
           "rank"
@@ -136,6 +156,40 @@
         "required": [
           "state_changed_at"
         ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "not": {
+              "const": "list"
+            }
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "fields": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "wip_limit"
+                  ]
+                },
+                {
+                  "required": [
+                    "wip_limit_enforcement"
+                  ]
+                }
+              ]
+            }
+          }
+        }
       }
     }
   ],

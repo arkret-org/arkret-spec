@@ -56,7 +56,7 @@ Schema id: `ak.schema.event.v1`
 | `applet_id` | conditional | `id:applet` | Applet、Ghost Actor、bridge 或 delegated applet 路径引入 Event 时必填。进入 canonical bytes 与 event digest；出现时 MUST 同时出现 `authorization_ref`。 | signed Applet provenance。 |
 | `external_ref` | no | `object` | 外部网络 provenance。若用于回环防护、外部消息幂等、审计或用户可见出处，MUST 放在 Event Envelope 顶层并由签名覆盖；出现时 MUST 同时出现 `applet_id`。不得包含未授权外部正文明文。 | signed external provenance。 |
 | `actor_kind` | reducer-stamped | `enum(user, org, team, agent, service, integration)` | 不含 `device`（设备非 actor 主体，见 [`actor.md` §2](./actor.md)）。Reducer 在接受时从 `actor_id` 的 Actor Profile 解析并 immutable 写入 accepted envelope。**Actor-supplied submit payload MUST NOT 携带**,reducer MUST `schema_violation` (`reason=actor_kind_reducer_managed`)。该 reducer-stamped 字段不参与 producer proof 的 `event_digest` 输入（见 §3）。 | 审计 / 离线读取的 actor 类型 projection。 |
-| `actor_seq` | yes | `integer` | 同一 actor 因果路径上严格递增；并发 sibling fork 可出现相同高度。 | Actor 链高度 / 防回退索引。 |
+| `actor_seq` | yes | `integer` | 同一 `(realm_id, actor_id)` 因果路径上严格递增；actor 在每个 Realm 各有独立链，首个事件从 `0` 开始；并发 sibling fork 可出现相同高度。 | Realm-scoped Actor 链高度 / 防回退索引。 |
 | `created_at` | yes | `timestamp` | 不能单独决定因果。 | 创建时间。 |
 | `hlc` | no | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。**Advisory 字段** — 进入 canonical bytes 与签名以防被中间方重写，但语义上只是 timeline display tie-breaker，不参与 authorization、Lattice join、Control Move precondition 或 Seal finality。详见 `encoding.md` §7。 | HLC（advisory）。 |
 | `prev_refs` | yes | `array<id:event>` | 可为空。仅承载 actor event chain causal predecessors。 | Actor event chain 前序。 |
@@ -89,7 +89,9 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
   "prev_refs": [
     "ak:event:019640ed-0000-7000-8000-000000000000"
   ],
-  "causal_refs": [],
+  "causal_refs": [
+    "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+  ],
   "refs": [
     { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
@@ -105,7 +107,7 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
   "effects": [
     {
       "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
-      "op": { "kind": "set", "value": { "metadata.fields.review_status": "approved" } }
+      "op": { "kind": "set", "value": { "metadata": { "fields": { "review_status": "approved" } } } }
     }
   ],
   "payload": {
@@ -151,16 +153,17 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 
 ### 2.6 `actor_seq` fork 约束
 
-- Producer SHOULD 为同一 `actor_id` 维护单调本地链，避免主动产生同高 sibling fork。
-- 同一 `actor_id` 的非 genesis event MUST 在 `prev_refs` 中引用至少一个该 actor 的 accepted predecessor；该 predecessor 的最大 `actor_seq` 必须是当前 `actor_seq - 1`。唯一 identity recovery 例外是 B 模型 `ak.device.reanchor`：其 `prev_refs` 精确等于 `pre_fence_basis` preserved closure 加 genesis anchor set 中该 actor 的 canonical heads，`actor_seq=1+max(preserved actor_seq)`；紧随的 replacement authorize 只引用 re-anchor id 且 sequence 加一。未被 basis 保留的 pending/unsealed sibling 不进入新 generation，也不能以更高 sequence 阻塞恢复。
-- 相同 `(actor_id, actor_seq)` 的多个 event 是 sibling fork。它们没有隐含先后顺序；展示排序可使用 HLC，但协议状态生效必须使用 DataEvent / Control Move 验证、Seal coverage 与 Lattice join。
-- 实现 MUST 对同一 `(actor_id, actor_seq, prev_frontier_digest)` 接受的 sibling 数量设置上限；v1 public profile 的单桶上限为 16。同一 `(actor_id, actor_seq)` 跨全部 `prev_frontier_digest` 桶的合法签名 sibling 累计上限为 64；任一上限被超过时 MUST quarantine 或要求 actor chain repair。累计候选集合只由已验证 canonical Event 集合决定，不依赖到达顺序。
+- Producer SHOULD 为同一 `(realm_id, actor_id)` 维护单调本地链，避免主动产生同高 sibling fork。一个 actor 在不同 Realm 的相同 `actor_seq` 是正常事件，不构成 fork，也不得互相写入 `prev_refs`。
+- 同一 `(realm_id, actor_id)` 的非 genesis event MUST 在 `prev_refs` 中引用至少一个该 actor 在同一 Realm 的 accepted predecessor；该 predecessor 的最大 `actor_seq` 必须是当前 `actor_seq - 1`。跨 Realm predecessor MUST `schema_violation`。唯一 identity recovery 例外是 B 模型 Principal Control Realm 内的 `ak.device.reanchor`：其 `prev_refs` 精确等于该 PCR 的 `pre_fence_basis` preserved closure 加 genesis anchor set 中该 actor 的 canonical heads，`actor_seq=1+max(preserved actor_seq)`；紧随的 replacement authorize 只引用 re-anchor id 且 sequence 加一。未被 basis 保留的 pending/unsealed sibling 不进入新 generation，也不能以更高 sequence 阻塞恢复。
+- 相同 `(realm_id, actor_id, actor_seq)` 的多个 event 是 sibling fork。它们没有隐含先后顺序；展示排序可使用 HLC，但协议状态生效必须使用 DataEvent / Control Move 验证、Seal coverage 与 Lattice join。
+- 实现 MUST 对同一 `(realm_id, actor_id, actor_seq, prev_frontier_digest)` 接受的 sibling 数量设置上限；v1 public profile 的单桶上限为 16。同一 `(realm_id, actor_id, actor_seq)` 跨全部 `prev_frontier_digest` 桶的合法签名 sibling 累计上限为 64；任一上限被超过时 MUST quarantine 或要求 actor chain repair。累计候选集合只由已验证 canonical Event 集合决定，不依赖到达顺序。
+- Realm 隔离、同 Realm sibling 与跨 Realm predecessor 拒绝由 `ak.vector.actor_chain.realm_scope.v1` 固定。
 - 被判定为 rejected 的 fork 不推进 actor accepted frontier，也不得作为后续 accepted event 的 predecessor。
-- **over-fork repair 终局（normative）**：当某 `(actor_id, actor_seq, prev_frontier_digest)` 桶内合法签名 sibling 数超过上限时，「quarantine 或要求 actor chain repair」的收敛终局复用 [`../sync/federation.md` §4.5](../sync/federation.md) 定义的 fork resolution 机制，而非各实现自定义：(a) receiver MUST 把整个 over-fork 桶（该桶内全部 sibling，含上限内已 accepted 者）标为 quarantine，MUST NOT 把其中任何 sibling 推进为 actor accepted frontier；(b) 重新归一只能由 federation §4.5 的 `raw replay` / `quorum witness` / `operator-approved fork resolution` 三条终局路径之一产生一个 canonical 归一结果，由有 recovery / fork-resolution capability 的主体写入；(c) 在归一结果产生前，所有 receiver 对同一 over-fork 桶 MUST 一致地拒绝推进 frontier（即 quarantine 子集 = 整桶，跨 receiver 确定相同），避免不同 receiver quarantine 不同子集导致 accepted frontier 跨 receiver 分歧。over-fork 桶不适用 §2.6 的分桶限流容忍语义（限流只针对未超限的合法分叉计数）。追溯进入 quarantine 的 sibling 的 effects MUST 从所有 data/control cell 的 join 输入集中移除，并按"非 quarantine accepted set 的纯函数"确定性重算 projection；以这些 sibling 作为 `prev_refs`、`refs[role=authorized_by]`、critical ref 或 payload-level critical causal ref 的后续 Event MUST 转为 `dependency_missing` / pending，不得继续使用被 quarantine 的 predecessor 维持 accepted 状态。
+- **over-fork repair 终局（normative）**：当某 `(realm_id, actor_id, actor_seq, prev_frontier_digest)` 桶内合法签名 sibling 数超过上限时，「quarantine 或要求 actor chain repair」的收敛终局复用 [`../sync/federation.md` §4.5](../sync/federation.md) 定义的 fork resolution 机制，而非各实现自定义：(a) receiver MUST 把整个 over-fork 桶（该桶内全部 sibling，含上限内已 accepted 者）标为 quarantine，MUST NOT 把其中任何 sibling 推进为 actor accepted frontier；(b) 重新归一只能由 federation §4.5 的 `raw replay` / `quorum witness` / `operator-approved fork resolution` 三条终局路径之一产生一个 canonical 归一结果，由有 recovery / fork-resolution capability 的主体写入；(c) 在归一结果产生前，所有 receiver 对同一 over-fork 桶 MUST 一致地拒绝推进 frontier（即 quarantine 子集 = 整桶，跨 receiver 确定相同），避免不同 receiver quarantine 不同子集导致 accepted frontier 跨 receiver 分歧。over-fork 桶不适用 §2.6 的分桶限流容忍语义（限流只针对未超限的合法分叉计数）。追溯进入 quarantine 的 sibling 的 effects MUST 从所有 data/control cell 的 join 输入集中移除，并按"非 quarantine accepted set 的纯函数"确定性重算 projection；以这些 sibling 作为 `prev_refs`、`refs[role=authorized_by]`、critical ref 或 payload-level critical causal ref 的后续 Event MUST 转为 `dependency_missing` / pending，不得继续使用被 quarantine 的 predecessor 维持 accepted 状态。
 
 `prev_frontier_digest` 的 canonical 计算为 `sha256:` + hex(SHA-256(JCS(sort_unique(prev_refs))))；`prev_refs` 先按 bytewise UTF-8 升序排序并去重，输入为空数组时编码为 `[]`。若 Realm 的 `digest_algorithm` 不是 `sha256`，同一结构使用该 Realm 声明的 digest algorithm，并把算法名前缀写入结果。该 digest 只用于 sibling fork 计数分桶，不参与 winner 选择。
 
-跨桶累计超过 64 时，上述“整桶”扩展为同一 `(actor_id, actor_seq)` 的全部 sibling：receiver MUST quarantine 该高度的全部候选，并沿用相同三条归一终局。对已经被 accepted Seal 覆盖的 Control Move，追溯规则存在唯一例外：其 effects 与 digest MUST 保留在该 Seal 的 `covered_set` / `state_root` 输入中，不得改写已接受 Seal；该 actor 后续控制面 Move 在显式 fork-resolution compaction Seal 归一前 fail closed。数据面 sibling 与尚未被任何 accepted Seal 覆盖的 pending Control Move 仍按上段移除 effects。完整衔接见 [`event-auth-state-resolution.md` §6.3.2](../authz/event-auth-state-resolution.md)。
+跨桶累计超过 64 时，上述“整桶”扩展为同一 `(realm_id, actor_id, actor_seq)` 的全部 sibling：receiver MUST quarantine 该高度的全部候选，并沿用相同三条归一终局。对已经被 accepted Seal 覆盖的 Control Move，追溯规则存在唯一例外：其 effects 与 digest MUST 保留在该 Seal 的 `covered_set` / `state_root` 输入中，不得改写已接受 Seal；该 actor 后续控制面 Move 在显式 fork-resolution compaction Seal 归一前 fail closed。数据面 sibling 与尚未被任何 accepted Seal 覆盖的 pending Control Move 仍按上段移除 effects。完整衔接见 [`event-auth-state-resolution.md` §6.3.2](../authz/event-auth-state-resolution.md)。
 
 `ak.device.reanchor` 另使用独立冲突槽 `(principal_id,did_version_number)`，version number 必须从已验证 DID versionId 解析。did_version_id、re-anchor digest 与 replacement-authorize digest 全相同才是幂等重试；同槽任一不同即把全部候选 unit 及后继 generation Seal quarantine，禁止 first-seen winner。reducer 保留最后未冲突的 current generation ref、将状态置 `conflicted` 并关闭普通 Event/Seal admission；只有更高 version、由下一预承诺 authority 签发且在 registry/witness policy 下成为 canonical head 的 re-anchor 可以解除。该规则优先于普通 actor sibling 容量/限流规则，不能用唯一约束丢弃第二份证据。
 
@@ -288,7 +291,7 @@ reducer MUST 在 patch path 命中 redactable field + `$op="unset"` 时返回 `s
 
 ### 4.3 在 Event 中的位置
 
-Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.target_ref`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。`ak.strand.update` 使用 `payload.target_ref` 指向目标 Strand；`ak.strand.tracks.update` 等专用 track 事件仍使用自身 schema 声明的目标字段。接收、去重与 reducer 验证见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §3 / §12。
+Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.target_ref`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。`ak.strand.update` 与 `ak.strand.tracks.update` 均使用 `payload.target_ref` 指向目标 Strand，并共享 `strand_patch_payload` 的字段契约。接收、去重与 reducer 验证见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §3 / §12。
 
 下面是一个 `ak.strand.update` event 中携带 `payload.patch` 字段 delta 的典型示例，覆盖直接 `set` 值（`metadata.fields.review_status` 标量字段）、对象形态 `set`（`metadata.fields.due_date`）与 `unset`（`metadata.fields.dropped_field`）三类 op：
 
@@ -312,7 +315,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": ["ak:event:019640ed-7000-7000-8000-000000000000"],
-  "causal_refs": [],
+  "causal_refs": ["sha256:3333333333333333333333333333333333333333333333333333333333333333"],
   "refs": [
     { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
@@ -357,9 +360,18 @@ Reducer MUST 按 §4.4 原子性规则评估整个 `payload.patch` map（全部�
 
 `effects[]` 是 CBA 物化与 conflict-domain 的唯一输入；`payload.patch` 是 producer 签名的更新指令，二者不得独立表达两个结果。对任何携带 `payload.patch` 的 reducer-input Event，producer 与 receiver MUST 在该 Event 的冻结 pre-state 上执行同一纯函数 `derive_patch_effects(kind, target_ref, patch, pre_state)`，并要求输出与 wire `effects[]` 逐字节 canonical 等价；不一致 MUST 以 `schema_violation`、`reason_code=effects_payload_mismatch` 拒绝整个 Event。receiver MUST 重算，不能信 producer 的 effects。
 
+冻结 pre-state 的唯一求值规则：
+
+- Control Move 的 pre-state 是 `seal_basis` 所承诺的目标 cell settled value，按 CBA frozen-baseline 规则读取。
+- 携带 patch 的 DataEvent MUST 在 `causal_refs[]` 中为每个目标 cell 精确引用一个 accepted base-head event digest；该 digest 对应 Event 的 effect 必须写同一 cell。receiver 从该 base head 的完整 post-state cell value恢复 pre-state，不读取本地当前 head、到达顺序或墙钟。base 依赖尚未取得时 Event 保持 `dependency_missing` pending，不得报 `effects_payload_mismatch`；依赖取得后再重算。
+- 目标 cell 当前已有多个并发 head 不影响某个基于旧 head 的 DataEvent 被验证：它形成新的并发 head并由 `mv_register` 暴露。producer 若要显式收敛多个 head，MUST 使用该 cell family 注册的 resolution Event / per-object sequencer；通用 patch 不得任意选择本地 winner。create 类无 pre-state 的 Event 不使用本 patch 规则。
+- `causal_refs[]` 中没有命中目标 cell 的 base、命中多个 base、base Event 未写该 cell，或引用的 base post-state 无法按 registry/schema 重建时，receiver MUST `schema_violation` / `effects_payload_mismatch`；不得回退到 receiver 当前 state。
+
+上述 patch 路由、冻结 pre-state 与失败分支由 `ak.vector.patch.effects_prestate_binding.v1` 固定。
+
 派生函数按以下封闭规则工作：
 
-1. 先按 §4.2 / §4.4 验证并原子应用 patch，得到完整 post-state；命中 redactable 或 reducer-managed 路径时在产生 effects 前即拒绝，因此不能经 effects 绕过保护。
+1. 先按上述冻结规则取得唯一 pre-state，再按 §4.2 / §4.4 验证并原子应用 patch，得到完整 post-state；命中 redactable 或 reducer-managed 路径时在产生 effects 前即拒绝，因此不能经 effects 绕过保护。
 2. 目标 cell family、cell subject、plane 与 lattice 只从 event-kind registry 和 kind payload schema 派生，producer 不得用 `effects[].cell` 改写目标。
 3. `mv_register` / `cas_register` 产生单个 `op.kind="set"`，`op.value` 是完整 post-state cell value，不是 partial patch。`or_set` 只允许 patch `add` / `remove`，逐项产生同名 lattice op；`counter` 只允许 schema 登记的增减字段并产生 `inc` / `dec`；`fsm` 只允许领域 transition Event，MUST NOT 用通用 patch 改状态。其它 lattice 若无本节或领域文档的显式映射，携带 patch MUST fail closed。
 4. 派生 effects 按 cell id、op kind、tag / element id 的 canonical tuple 升序排列；相同 tuple 重复、patch 父子路径冲突或一个 patch 需要跨 plane 写入时 MUST 拒绝，不能靠数组顺序消歧。

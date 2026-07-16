@@ -117,6 +117,7 @@
             "cell": "ak:cell:ak.component.strand.discussion.timeline.v1:ak.strand.019640c6-8000-7000-8000-000000000000",
             "op": {
               "kind": "append",
+              "issuer_seq": 0,
               "value": {
                 "message_id": "ak:message:019640ed-8000-7000-8000-000000000000"
               }
@@ -787,6 +788,72 @@
         }
       ],
       "vector_id": "ak.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1"
+    },
+    {
+      "name": "actor_chain_realm_scope",
+      "description": "Actor sequence and sibling detection are scoped to (realm_id, actor_id); equal actor_seq values in different Realms do not create a fork.",
+      "actor_id": "did:webvh:z6mkfixture:alice.example",
+      "cases": [
+        {
+          "name": "same_actor_and_seq_across_realms",
+          "events": [
+            {
+              "realm_id": "ak:realm:019641d2-3000-7000-8000-000000000001",
+              "actor_seq": 7,
+              "event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            },
+            {
+              "realm_id": "ak:realm:019641d2-3000-7000-8000-000000000002",
+              "actor_seq": 7,
+              "event_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+            }
+          ],
+          "expected": {
+            "sibling_fork": false,
+            "sequence_counters_are_independent": true
+          }
+        },
+        {
+          "name": "same_actor_and_seq_in_one_realm",
+          "events": [
+            {
+              "realm_id": "ak:realm:019641d2-3000-7000-8000-000000000001",
+              "actor_seq": 8,
+              "prev_refs": [
+                "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              ],
+              "event_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+            },
+            {
+              "realm_id": "ak:realm:019641d2-3000-7000-8000-000000000001",
+              "actor_seq": 8,
+              "prev_refs": [
+                "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              ],
+              "event_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+            }
+          ],
+          "expected": {
+            "sibling_fork": true,
+            "bucket_key": [
+              "realm_id",
+              "actor_id",
+              "actor_seq",
+              "prev_refs_digest"
+            ]
+          }
+        },
+        {
+          "name": "cross_realm_predecessor",
+          "event_realm_id": "ak:realm:019641d2-3000-7000-8000-000000000001",
+          "predecessor_realm_id": "ak:realm:019641d2-3000-7000-8000-000000000002",
+          "expected": {
+            "result": "reject",
+            "reason": "schema_violation"
+          }
+        }
+      ],
+      "vector_id": "ak.vector.actor_chain.realm_scope.v1"
     },
     {
       "name": "conflict_recovery_move",

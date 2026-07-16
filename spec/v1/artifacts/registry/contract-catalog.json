@@ -1100,12 +1100,12 @@
         "cell_family": "ak.component.strand.metadata.v1",
         "cell_subject": {
           "type": "id:strand",
-          "field": "payload.strand_id"
+          "field": "payload.target_ref"
         },
-        "lattice": "cas_register",
-        "bottom": "reject",
-        "plane": "control",
-        "sealed": true
+        "lattice": "mv_register",
+        "bottom": "expose",
+        "plane": "data",
+        "sealed": false
       },
       {
         "event_kind": "ak.strand.archive",
@@ -1152,12 +1152,12 @@
         "cell_family": "ak.component.strand.tracks.v1",
         "cell_subject": {
           "type": "id:strand",
-          "field": "payload.strand_id"
+          "field": "payload.target_ref"
         },
-        "lattice": "cas_register",
-        "bottom": "reject",
-        "plane": "control",
-        "sealed": true
+        "lattice": "mv_register",
+        "bottom": "expose",
+        "plane": "data",
+        "sealed": false
       },
       {
         "event_kind": "ak.strand.move",

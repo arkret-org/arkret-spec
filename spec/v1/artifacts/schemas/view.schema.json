@@ -1083,15 +1083,6 @@
             "authorized_exact"
           ],
           "default": "omit"
-        },
-        "wip_limit_enforcement": {
-          "type": "string",
-          "enum": [
-            "warn",
-            "reject",
-            "require_review"
-          ],
-          "default": "warn"
         }
       },
       "allOf": [

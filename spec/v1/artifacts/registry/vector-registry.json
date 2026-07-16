@@ -179,6 +179,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.patch.effects_prestate_binding.v1",
+      "status": "active",
+      "domain": "patch",
+      "applies_to_fixtures": [
+        "state-reducer-hardening-fixture.json"
+      ],
+      "description": "Pins strand update/tracks update to data-plane mv_register target_ref routing while stage.set remains control CAS; data-plane patch effects are recomputed from the single causal_refs base head, remain independent of receiver-local current heads, hold on missing dependencies, and reject missing/multiple bases or non-canonical full post-state effects with effects_payload_mismatch.",
+      "source_refs": [
+        "spec/v1/zh/models/event-and-patch.md",
+        "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.scalability.circle_count_limit.v1",
       "status": "active",
       "domain": "scalability",
@@ -3548,6 +3561,32 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.pair_key.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
+      "description": "Canonical direct-conversation pair_key KAT over sorted stable subject DIDs and the Realm trust domain, including order-independence and unresolved-pairwise-DID rejection rules.",
+      "source_refs": [
+        "spec/v1/zh/identity/contact-and-direct-conversation.md",
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.actor_chain.realm_scope.v1",
+      "status": "active",
+      "domain": "actor_chain",
+      "applies_to_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
+      "description": "Actor-chain sequence and sibling buckets are Realm-scoped; cross-Realm equal sequence values are independent, while same-Realm conflicting siblings fork and cross-Realm predecessor references fail.",
+      "source_refs": [
+        "spec/v1/zh/models/event-and-patch.md",
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
     },
     {

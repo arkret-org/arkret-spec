@@ -1106,5 +1106,5 @@ Delegated grant MUST 等于或窄于 parent grant。`max_delegation_depth`、
   和可移入的列 / collection。
 - `allowed_view_ids` 限定授权适用的 View；同一个 Strand item 出现在多个 View
   时不得自动继承移动权。
-- `wip_limit_override=false` 时，若目标列 `wip_limit_enforcement` 为 `reject`
+- `wip_limit_override=false` 时，若目标 `Space(kind=list).fields.wip_limit_enforcement` 为 `reject`
   或 `require_review`，移动必须失败或进入审批路径。

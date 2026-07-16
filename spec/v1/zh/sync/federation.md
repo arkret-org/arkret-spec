@@ -289,6 +289,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest
           "cell": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:0196419b-3000-7000-8000-000000000003",
           "op": {
             "kind": "append",
+            "issuer_seq": 0,
             "value": {
               "message_id": "ak:message:0196419b-3000-7000-8000-000000000001",
               "strand_id": "ak:strand:0196419b-3000-7000-8000-000000000003",

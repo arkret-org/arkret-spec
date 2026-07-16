@@ -304,6 +304,13 @@ OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical 
 - 已发布旧实现对新值按 `schema_violation` 硬拒是**合规行为**，不是互操作缺陷；发起方在对端未声明新 schema 版本前 MUST NOT 发送新值（能力交集原则）。
 - 生成代码 MAY 用封闭 enum 类型（无 Unknown 兜底）表达闭集值；闭集枚举值导致的反序列化失败不违反 a 条的"未知值保留"义务——该义务只适用于开放注册集。
 
+**b.1 registry-backed schema selector（算法 agility 的唯一分类）**——signature、digest、HPKE 与 MLS ciphersuite registry 是算法 token 与参数元组的唯一机器词表，但具体 canonical object schema 中的 selector 仍是**按 schema 版本冻结的闭集**，不属于 a 类开放注册集。"enum 由 active rows 生成"只允许发生在创建或 bump 该 canonical schema 版本时；registry release 不得原地扩写已发布 schema 的 enum。
+
+- reserved 算法行翻为 active 前，MUST 先发布包含该值的新 schema 版本、更新 profile `required_schemas` / capability negotiation，并满足 registry 的全部 activation requirements；旧 schema 的 enum 与签名字节保持不变。
+- producer 只有在对端声明新 schema 版本与相应算法 profile 后才可发送新 selector。旧 schema receiver 拒绝该新值是合规的版本协商结果。
+- 已选定 schema 版本后，selector 不在该版本 enum 内时，receiver MUST fail closed。对已知算法 selector 字段，错误映射优先使用对应稳定码 `unsupported_digest_algorithm` / `unsupported_signature_alg` / `unsupported_hpke_suite` / `unsupported_ciphersuite`；对象其它闭集 enum 违例仍使用 `schema_violation`。预解析器 MAY 保留原始字符串用于形成该错误，但不得把 Unknown 变体交给 reducer 或密码学库执行。
+- SDK/codegen 对这些 selector MUST 生成 per-schema-version 的封闭类型；可在 transport diagnostic 层提供 `Unknown(String)` 以承载稳定错误，但该值不得构造为已通过 schema 验证的 canonical object。registry consumer 不得把"registry 中 active"误解为"所有旧 schema 自动接受"。
+
 **c. `status` 字段与新增 / 弃用纪律**——registry 条目 `status` 的当前值域为 `active`（标准条目，可产生、可按各 registry 规则接受）、`deprecated`（只保留历史解释）与 `profile_extension`（仅在声明对应 profile 时有效；现用于 `id-kind-registry.json` 的 `special_forms`）。为兼容最初的 v1 schema catalog，`schema-registry.json` 中省略 `status` 的既有行按 `active` 解释；新增或修改 schema 行 MUST 显式写出 `status`。这一默认值由 schema registry 的 `registry_rules` 机读声明，不允许消费者自行猜测。
 
 - 新增条目 MUST 以 `active`（或 `profile_extension`）登记进 canonical 真源（generated registry 一律经 `contract-catalog.json` → pipeline 再生成，见 §1）。

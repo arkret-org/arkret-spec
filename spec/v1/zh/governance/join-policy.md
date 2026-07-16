@@ -333,7 +333,7 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 `request_changes` 与 quorum 的聚合规则（normative）：
 
 1. 任一在当前 application revision 上有效的 `request_changes` 立即把 application 投影置为 `changes_requested`，并暂停该 revision 的 quorum 计数；同批存在 `reject` 时 `reject` 优先并进入终态。
-2. Application 的每个提交/修订 MUST 计算 `application_revision_digest = sha256(JCS({answers, gate_proofs, requested_role, policy_version_digest}))`。每条 review receipt MUST 签名绑定该 digest；缺失或不等的 accept/request_changes/reject 不得作用于当前 revision。
+2. Application 的每个提交/修订 MUST 计算 `application_revision_digest = sha256(JCS({answers, gate_proofs, policy_version_digest}))`。对象恰含这三个键；条件字段未提供时，`answers` 或 `gate_proofs` 仍以空数组进入前像，禁止省略键或写 `null`。每条 review receipt MUST 签名绑定该 digest；缺失或不等的 accept/request_changes/reject 不得作用于当前 revision。
 3. Applicant 提交修订后，旧 digest 上全部 accept 与 request_changes 保留审计事实但 MUST NOT 计入新 revision 的 threshold。新 revision 的 accept 从零重新累计；实现 MUST NOT 复用 reviewer 对旧正文的同意。
 4. 同一 reviewer 对同一 revision 的多个决定按其因果后继取最新；并发不同决定为冲突，不计入 quorum，直到 reviewer 在新 basis 上显式收敛。不同 reviewer 的 accept 按集合并集计数。
 

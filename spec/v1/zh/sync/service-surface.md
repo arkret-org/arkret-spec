@@ -390,22 +390,7 @@ GET /_arkret/root/identity/log?did=<did>&cursor=<cursor>&limit=<n>
 
 默认情况下，返回的每个 log entry MUST validate as `did-key-log-entry.schema.json`：`seq=0` 表示 inception 且不得携带 `prev_event_digest`；`seq>0` 必须携带 `prev_event_digest`，并且该值必须等于前一条 accepted entry 的 `head_event_digest`。`operation` 是规范化操作 kind；DID-method-specific 原始操作对象放在 `operation_body`，不得使用通用 JSON Patch 形态。
 
-generic 形态的 digest 与 proof 字节语义（normative；与 [`../conformance/encoding.md`](../conformance/encoding.md) §6 event proof binding 同构，digest 字段使用非 Event 形态的 `payload_digest`）：
-
-- `head_event_digest` 是 entry 的自身 digest：从 entry 中移除 `proofs` 与 `head_event_digest` 两个字段，按 [`../conformance/encoding.md`](../conformance/encoding.md) §2 canonical JSON 编码，按 §3.1 wire 形态取 hash。hash chain 由此闭合：`seq>0` entry 的 `prev_event_digest` MUST 等于前一条 accepted entry 按本规则重算的 `head_event_digest`；identity receipt（`ak.schema.identity_receipt.v1`）见证的 `head_event_digest` 同样指本规则的值。
-- `proofs[]` 使用 generic detached proof（[`event-envelope.schema.json#/$defs/proof`](../../artifacts/schemas/event-envelope.schema.json)），其 `payload_digest = canonical_digest(entry_without_proofs)`——仅移除 `proofs`，保留已按上一条计算并写入的 `head_event_digest`。
-- `detached_jws` 的 payload segment MUST 为空（compact serialization），被签名字节 MUST 是 canonical proof binding object（实际字节顺序由 §2 JCS key 排序决定，下方列举顺序仅为可读性）：
-
-```json
-{
-  "payload_digest": "sha256:<canonical entry hash>",
-  "did": "<entry.did>",
-  "verification_method": "<proof.verification_method>",
-  "created_at": "<proof.created_at>",
-  "domain": "<proof.domain if present>",
-  "audience": "<proof.audience if present>"
-}
-```
+generic 形态的 digest、hash chain 与 proof transcript 的唯一规范定义在 [`../identity/identity-did.md` §4.4](../identity/identity-did.md)。本 transport surface MUST 原样返回符合该节与 `did-key-log-entry.schema.json` 的 entry，不得删除 proof binding 的 `context` / `seq`，也不得另定义 transport-specific transcript。
 
 - Verifier 顺序固定：先重算并 constant-time 比对 `head_event_digest` 与 `proof.payload_digest`，再构造 binding object 并验证 detached JWS；任一步失败 MUST 拒绝该 entry 及其后续链段。实现 MUST NOT 用字段拼接字符串、裸 hex 或任何非 canonical JSON 形态替代上述 transcript。
 - 签名者授权：`proofs[]` 的 `verification_method` MUST 按该 DID method 的原生控制规则验证；不得把“上一 entry 的 key 验下一 entry”当成通用规则。`seq=0` 由该 entry 声明的 cold identity root 自签。对启用 pre-rotation 的 did:webvh，entry N 的 proof 必须由 **entry N 当前显式 `updateKeys`** 验证，且当前 key 的 canonical multikey hash 必须命中 entry N-1 的 `nextKeyHashes`；省略当前 `updateKeys`、沿用 previous key、复用 spent key均拒绝。其它 method 依其注册 adapter 的 update/recovery 规则。registry host MUST NOT 以自身 key 代替 controller 签名；registry / witness 对 head 状态的背书走 identity receipt，不进入 entry `proofs[]`。

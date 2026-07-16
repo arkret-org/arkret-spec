@@ -234,6 +234,7 @@
             "cell": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:01964137-0000-7000-8000-000000000000",
             "op": {
               "kind": "append",
+              "issuer_seq": 0,
               "value": {
                 "strand_id": "ak:strand:01964137-0000-7000-8000-000000000000",
                 "message_id": "ak:message:019640ed-8000-7000-8000-000000000000",
@@ -261,8 +262,8 @@
           }
         }
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"actor_seq\":1,\"auth_context\":{\"capability_refs\":[\"ak:grant:0196410c-0000-7000-8000-000000000000\"],\"did\":\"did:webvh:z6mkfixture:alice.example\",\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00Z\",\"effects\":[{\"cell\":\"ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:01964137-0000-7000-8000-000000000000\",\"op\":{\"kind\":\"append\",\"value\":{\"message_id\":\"ak:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ak:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ak:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"message_id\":\"ak:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ak:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[],\"seal_ref\":\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
-      "expected_digest": "sha256:1fff3e5887d9daaef534ac83d2016799a3028efdf490f21dad6be53c31dc153d",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"actor_seq\":1,\"auth_context\":{\"capability_refs\":[\"ak:grant:0196410c-0000-7000-8000-000000000000\"],\"did\":\"did:webvh:z6mkfixture:alice.example\",\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00Z\",\"effects\":[{\"cell\":\"ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:01964137-0000-7000-8000-000000000000\",\"op\":{\"issuer_seq\":0,\"kind\":\"append\",\"value\":{\"message_id\":\"ak:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ak:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ak:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"message_id\":\"ak:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ak:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[],\"seal_ref\":\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
+      "expected_digest": "sha256:274b5dfea3305ca487fc205f2c5f28a7d622af18a8e76e614320cc0793ba28df",
       "rules": [
         "event digest MUST be derived from canonical bytes after stripping proofs and unsigned, before redaction",
         "event_id MUST appear inside the digest input but does not replace the digest",
@@ -636,6 +637,25 @@
         "base binding fields follow ak.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
         "domain and audience MAY be combined; audience MAY be an array of DIDs whose order is preserved verbatim in the canonical bytes",
         "absent optional fields MUST be omitted from the canonical binding object entirely; a null placeholder changes the canonical bytes and MUST NOT be emitted"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.pair_key.v1",
+      "kind": "canonical_json_digest",
+      "input": {
+        "participants": [
+          "did:webvh:z6mkfixture:alice.example",
+          "did:webvh:z6mkfixture:bob.example"
+        ],
+        "trust_domain": "ak:trust_domain:example.test"
+      },
+      "expected_canonical_bytes_utf8": "{\"participants\":[\"did:webvh:z6mkfixture:alice.example\",\"did:webvh:z6mkfixture:bob.example\"],\"trust_domain\":\"ak:trust_domain:example.test\"}",
+      "expected_digest": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
+      "rules": [
+        "resolve every participant identifier to its stable subject DID before constructing the input; an unresolved pairwise DID fails closed",
+        "sort the two normalized stable subject DIDs by unsigned UTF-8 byte order before constructing participants",
+        "canonicalize exactly {participants:[p0,p1],trust_domain:realm_trust_domain} with JCS and compute SHA-256; the resulting sha256:<lowercase-hex> value is pair_key",
+        "reversing the caller-supplied participant order MUST yield the same pair_key after the required sort"
       ]
     }
   ],

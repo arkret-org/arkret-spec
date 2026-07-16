@@ -74,6 +74,11 @@
       },
       "minItems": 1
     },
+    "capability_action_registry_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "JCS SHA-256 digest of the complete canonical capability-action-registry.json snapshot used to expand aggregate_admin actions. Required by the reducer whenever actions[] contains an action whose registry row has event_mapping_kind=aggregate_admin; optional and audit-only otherwise. Unknown or unavailable snapshots fail closed with capability_registry_basis_unavailable."
+    },
     "constraints": {
       "type": "array",
       "items": {

@@ -131,7 +131,7 @@ Schema id: `ak.schema.strand.v1`
 {
   "kind": "ak.strand.stage.set",
   "payload": {
-    "strand_id": "ak:strand:...",
+    "target_ref": "ak:strand:...",
     "stage": "blocked",
     "expected_stage": "in_progress"
   }
@@ -291,7 +291,7 @@ Track 写入路径只有一个 event kind: **`ak.strand.tracks.update`**(注意�
 }
 ```
 
-整个变更作为**原子 Move** 在同一 cell precondition / effect 中完成，避免中间态被其它 actor 抢写。
+整个变更作为单个原子 DataEvent effect 写入同一 `mv_register` cell；并发更新暴露多 head，后续写入按 [`event-and-patch.md` §4.3.1](./event-and-patch.md) 引用一个明确 base head，不得依赖接收顺序静默覆盖。
 
 **Capability**: `ak.strand.tracks.update` 一个 action 覆盖该 event。
 

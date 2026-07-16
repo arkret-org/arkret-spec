@@ -429,6 +429,30 @@ assertion method。顶层 `audience` 与 proof `audience` 必须同时缺失，�
 `payload_digest`，再构造上述 binding object 验证 JWS。直接签 receipt body、遗漏
 `context`、复用 `ak.event-proof-v1` 或只签 proof 字段都必须拒绝。
 
+### 4.4 DID key-log entry digest 与 proof transcript
+
+`did-key-log-entry.schema.json` 的 generic log entry 使用本节作为 digest、hash chain 与 proof binding 的唯一规范真源；transport 文档只引用本节，不得复述或改写前像。
+
+1. `head_event_digest` 是 entry 的自身 digest：从 entry 中移除 `proofs` 与 `head_event_digest` 两个字段，按 [`../conformance/encoding.md` §2](../conformance/encoding.md) 的 canonical JSON 编码，再按该 entry 所选 active digest suite 计算 typed digest。
+2. `seq > 0` 时，`prev_event_digest` MUST 等于前一条 accepted entry 按步骤 1 重算的 `head_event_digest`；`seq = 0` 时禁止该字段。Identity Receipt 所见证的 `head_event_digest` 同样指步骤 1 的值。
+3. 每条 proof 的 `payload_digest = canonical_digest(entry_without_proofs)`：只移除整个 `proofs` 字段，保留已写入的 `head_event_digest`。
+4. `detached_jws` payload segment MUST 为空。被签字节 MUST 是下列对象的 JCS bytes；可选键只在 proof 携带对应非空值时出现：
+
+```json
+{
+  "context": "ak.did-key-log-entry-proof-v1",
+  "payload_digest": "sha256:<canonical entry hash>",
+  "did": "<entry.did>",
+  "seq": 0,
+  "verification_method": "<proof.verification_method>",
+  "created_at": "<proof.created_at>",
+  "domain": "<proof.domain if present>",
+  "audience": "<proof.audience if present>"
+}
+```
+
+`context` 固定为 `proof-context-registry.json` 登记的 `ak.did-key-log-entry-proof-v1`，`seq` MUST 逐值等于 entry `seq`。缺失、额外或不相等的 binding 字段、未知 context、payload digest 不匹配均 MUST 在 controller 签名验证前 fail closed。`verification_method` 必须是该 operation 在前一 accepted entry 状态下授权的 controller key；registry host 不得替换为自身 key。
+
 ## 5. Resolver、Auth Server 与组织授权
 
 ### 5.0.6 Key transparency 与 IETF KEYTRANS 的边界

@@ -92,7 +92,7 @@ Arkret 所有 hash wire value MUST 形如：
 
 ### 3.2 Digest Suite / Hash Agility Set
 
-digest suite 的 canonical 机器来源是 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json)（与 §6.1 Signature Suite registry 对称）；schema 中 digest-suite 选择字段（如 Realm `digest_algorithm`）的 enum MUST 由 registry active rows 生成。下表是 v1 active 且 canonicalization = canonical JSON 的 suite 集合的规范阅读视图：
+digest suite 的 canonical 机器来源是 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json)（与 §6.1 Signature Suite registry 对称）；schema 中 digest-suite 选择字段（如 Realm `digest_algorithm`）的 enum MUST 在该 schema 版本发布时由当时 registry active rows 生成并冻结。后续 suite 激活必须按 [`schema-registry.md` §6.1(b.1)](./schema-registry.md) 发布新 schema 版本，不得原地扩写旧 enum。下表是 v1 active 且 canonicalization = canonical JSON 的 suite 集合的规范阅读视图：
 
 | Algo | Digest 长度 | v1 角色 | 抗量子 / future-ready 评估 |
 | --- | ---: | --- | --- |
@@ -265,9 +265,9 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned` 与 redu
 
 ### 6.1 Signature Suite registered set
 
-签名算法的 canonical 机器来源是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json)(与 §3.2 Hash registered set 对称)，下表是其规范阅读视图。proof `alg` 字段 MUST 取自 registry active row 的 `proof_alg`；raw / non-JWS `signature_algorithm` 字段 MUST 取自 active row 的 `signature_algorithm`。散落于各 schema 的签名算法 enum MUST 由该 registry 校验，MUST NOT 在 schema 中私自引入未登记算法。`detached_jws` 形态的 `alg` 使用 JWS 标准标识(`EdDSA` 对应 Ed25519)；非 JWS 形态(如 raw detached signature)按 registry 的 raw `signature_algorithm` 标识。
+签名算法的 canonical 机器来源是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json)(与 §3.2 Hash registered set 对称)，下表是其规范阅读视图。proof `alg` 字段 MUST 取自所声明 schema 版本冻结 enum 对应的 registry active row `proof_alg`；raw / non-JWS `signature_algorithm` 同理取 `signature_algorithm`。散落于各 schema 的签名算法 enum MUST 在 schema 版本发布时由该 registry 生成并冻结，MUST NOT 私自引入未登记算法或随 registry release 原地扩写。`detached_jws` 形态的 `alg` 使用 JWS 标准标识(`EdDSA` 对应 Ed25519)；非 JWS 形态(如 raw detached signature)按 registry 的 raw `signature_algorithm` 标识。
 
-对称地，**非-MLS 应用层公钥封装**（key-backup `recovery_public_key` / `did_recovery` envelope、to-device `ak.secret.send`、member-application 与 file-transfer key envelope）的 KEM/KDF/AEAD 算法 agility 由 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)（HPKE，RFC 9180）承载，与签名、digest、MLS-ciphersuite 并列为第四个算法 agility 面；其 `hpke_suite` / envelope `scheme` 选择字段的 enum MUST 由 registry active rows 生成，未登记 suite MUST fail closed（`unsupported_hpke_suite`）。MLS 群组消息的 HPKE 内核仍由 [`mls-ciphersuite-registry.json`](../../artifacts/registry/mls-ciphersuite-registry.json) 承载，不在该 registry 范围内。
+对称地，**非-MLS 应用层公钥封装**（key-backup `recovery_public_key` / `did_recovery` envelope、to-device `ak.secret.send`、member-application 与 file-transfer key envelope）的 KEM/KDF/AEAD 算法 agility 由 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)（HPKE，RFC 9180）承载，与签名、digest、MLS-ciphersuite 并列为第四个算法 agility 面；其 `hpke_suite` / envelope `scheme` 选择字段的 enum MUST 在对应 schema 版本发布时由 registry active rows 生成并冻结，未被该 schema 版本接受的 suite MUST fail closed（`unsupported_hpke_suite`）。MLS 群组消息的 HPKE 内核仍由 [`mls-ciphersuite-registry.json`](../../artifacts/registry/mls-ciphersuite-registry.json) 承载，不在该 registry 范围内。四个算法 registry 的 activation / schema bump 纪律统一见 [`schema-registry.md` §6.1(b.1)](./schema-registry.md)。
 
 表列与 registry active row 字段一一对应:`canonical_id`(下表 `Algo`)、`proof_alg`(JWS `alg`，detached_jws 形态用)、`signature_algorithm`(raw / non-JWS detached signature 形态用)。`Ed25519` 行的 `proof_alg`(`EdDSA`)与 `signature_algorithm`(`Ed25519`)不同，二者 MUST 分别取自对应列，不可互相替代。
 

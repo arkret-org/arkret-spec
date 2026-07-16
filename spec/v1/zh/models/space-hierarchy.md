@@ -82,6 +82,15 @@ Effective default Realm 解析 MUST NOT 跨 `ak.realm.link` 跳转。`default_re
 
 `kind=board` / `kind=list` 也是 Space。Strand 位置仍由 `ak.strand.move` / `ak.strand.reorder` 的 cas_register cell 维护；position cell 的 `cell_id` / value shape（`{ list_space_id, rank } | null`）与去重 / 唯一性规则的单一真源是 [`realm-and-space.md` §3.6](./realm-and-space.md#36-strand-位置)，本节不重复定义，只补充跨 Realm placement 约束。
 
+`Space(kind=list).fields` 可承载下列写入 policy；它们是 List 容器状态的一部分，由 `ak.space.create` / `ak.space.update` 的控制面 basis 版本化，不属于 View：
+
+| 字段 | 必填 | 类型 | 语义 |
+| --- | --- | --- | --- |
+| `wip_limit` | no | `integer`，1..100000 | 目标 List 允许的 active Strand 数上限；省略表示不设置协议级 WIP 上限。 |
+| `wip_limit_enforcement` | conditional | `enum(warn, reject, require_review)` | `wip_limit` 存在时必填。`warn` 允许写入但产生稳定诊断；`reject` 以 `failed_precondition` 拒绝；`require_review` 要求写入引用 accepted review / approval proof。 |
+
+`ak.strand.move` / `ak.strand.reorder` 必须在其 `seal_basis` 对应的目标 List state 上计算 effective WIP，计数只包含同一 Board 下 position cell 当前指向该 List 且 Strand 非终态的 distinct Strand。写入授权缓存键 MUST 至少包含 `(realm_id, frontier_digest, target_list_space_id)`；不得包含 View id，也不得读取 `View.grouping.wip_limit_enforcement`。`wip_limit_override=true` 只允许持有相应 override capability 的 actor 绕过目标 List policy；缺少 override 时按上述 enforcement 收口。
+
 默认情况下，workflow placement MUST resolve to the same effective Realm as the Strand：
 
 - Strand `realm_id = R`
