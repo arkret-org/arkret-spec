@@ -5241,6 +5241,75 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
     )
 
 
+def check_event_batch_receipt_normalization_vector(lint: Lint) -> None:
+    fixture_path = ARTIFACTS / "fixtures" / "encoding-fixture.json"
+    fixture = load_json(lint, fixture_path)
+    if not isinstance(fixture, dict):
+        return
+    vector = next(
+        (
+            item
+            for item in fixture.get("vectors", [])
+            if isinstance(item, dict)
+            and item.get("vector_id") == "ak.vector.encoding.event_batch_receipt_digest.v1"
+        ),
+        None,
+    )
+    if not isinstance(vector, dict):
+        lint.fail(fixture_path, "missing Event Batch Receipt digest vector")
+        return
+    receipt = vector.get("input")
+    expected_digest = vector.get("expected_digest")
+    if not isinstance(receipt, dict) or not isinstance(expected_digest, str):
+        lint.fail(fixture_path, "Event Batch Receipt vector must declare input and expected_digest")
+        return
+
+    def normalize_events(events: Any) -> list[Any] | None:
+        if not isinstance(events, list) or not events:
+            return None
+        by_key: dict[bytes, Any] = {}
+        for event in events:
+            key = canonical_json(event).encode("utf-8")
+            by_key[key] = event
+        return [by_key[key] for key in sorted(by_key)]
+
+    baseline_events = receipt.get("events")
+    normalized_baseline = normalize_events(baseline_events)
+    if normalized_baseline is None or baseline_events != normalized_baseline:
+        lint.fail(fixture_path, "Event Batch Receipt vector events must already be canonical and unique")
+
+    cases = vector.get("normalization_cases")
+    if not isinstance(cases, list) or len(cases) < 3:
+        lint.fail(fixture_path, "Event Batch Receipt vector must cover normalize, unsorted, and duplicate cases")
+        return
+    for index, case in enumerate(cases):
+        if not isinstance(case, dict):
+            lint.fail(fixture_path, f"normalization_cases[{index}] must be an object")
+            continue
+        if "input_events" in case:
+            normalized = normalize_events(case.get("input_events"))
+            if normalized != case.get("expected_events"):
+                lint.fail(fixture_path, f"normalization_cases[{index}] expected_events mismatch")
+                continue
+            normalized_receipt = copy.deepcopy(receipt)
+            normalized_receipt["events"] = normalized
+            normalized_digest = sha256_text(canonical_json(normalized_receipt))
+            if normalized_digest != case.get("expected_digest") or normalized_digest != expected_digest:
+                lint.fail(fixture_path, f"normalization_cases[{index}] digest mismatch")
+        if "wire_events" in case:
+            wire_events = case.get("wire_events")
+            if normalize_events(wire_events) == wire_events:
+                lint.fail(fixture_path, f"normalization_cases[{index}] negative wire is canonical")
+            if case.get("expected") != "schema_violation_before_digest_verification":
+                lint.fail(fixture_path, f"normalization_cases[{index}] must reject before digest verification")
+
+    schema_path = ARTIFACTS / "schemas" / "event-batch-receipt.schema.json"
+    schema = load_json(lint, schema_path)
+    events_schema = schema.get("properties", {}).get("events", {}) if isinstance(schema, dict) else {}
+    if events_schema.get("uniqueItems") is not True:
+        lint.fail(schema_path, "Event Batch Receipt events must set uniqueItems=true")
+
+
 def check_reducer_profile_digest_closure(lint: Lint) -> None:
     path = ARTIFACTS / "registry" / "reducer-profile-registry.json"
     registry = load_json(lint, path)
@@ -6644,6 +6713,7 @@ def main() -> int:
     check_cross_doc_anchors(lint)
     check_openapi_no_floating_number(lint)
     check_canonical_digest_fixtures(lint)
+    check_event_batch_receipt_normalization_vector(lint)
     check_reducer_profile_digest_closure(lint)
     check_field_order(lint)
     check_model_required_field_table_coverage(lint)

@@ -282,18 +282,51 @@
           "actor_id": "did:webvh:z6mkfixture:alice.example"
         },
         "frontier": {
-          "actor_seq": 1,
-          "event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          "actor_seq": 2,
+          "event_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
         "events": [
-          "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         ],
         "created_at": "2026-04-26T00:00:00Z"
       },
-      "expected_canonical_bytes_utf8": "{\"created_at\":\"2026-04-26T00:00:00Z\",\"events\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"],\"frontier\":{\"actor_seq\":1,\"event_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"issuer\":\"did:webvh:z6mkfixture:alice.example\",\"receipt_id\":\"ak:receipt:01964186-0000-7000-8000-000000000000\",\"schema\":\"ak.schema.event_batch_receipt.v1\",\"scope\":{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\"}}",
-      "expected_digest": "sha256:b4dc8f9ec3ef7fbc1c27a3216fa655521218a115670da91e17121544fb3d3042",
+      "expected_canonical_bytes_utf8": "{\"created_at\":\"2026-04-26T00:00:00Z\",\"events\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"],\"frontier\":{\"actor_seq\":2,\"event_digest\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"},\"issuer\":\"did:webvh:z6mkfixture:alice.example\",\"receipt_id\":\"ak:receipt:01964186-0000-7000-8000-000000000000\",\"schema\":\"ak.schema.event_batch_receipt.v1\",\"scope\":{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\"}}",
+      "expected_digest": "sha256:3cb4e27faaa5fca6c7e4bbf9a5a73c31d589e57b7f4b274139d1e35701c524ef",
+      "normalization_cases": [
+        {
+          "name": "reverse_and_duplicate_normalizes_to_same_set",
+          "input_events": [
+            "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          ],
+          "expected_events": [
+            "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          ],
+          "expected_digest": "sha256:3cb4e27faaa5fca6c7e4bbf9a5a73c31d589e57b7f4b274139d1e35701c524ef"
+        },
+        {
+          "name": "unsorted_signed_wire_rejected",
+          "wire_events": [
+            "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          ],
+          "expected": "schema_violation_before_digest_verification"
+        },
+        {
+          "name": "duplicate_signed_wire_rejected",
+          "wire_events": [
+            "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          ],
+          "expected": "schema_violation_before_digest_verification"
+        }
+      ],
       "fail_conditions": [
-        "events array sorted or deduplicated before hashing",
+        "producer hashes events before canonical set normalization",
+        "receiver accepts an unsorted or duplicate signed wire events array",
         "proof field included in receipt digest",
         "issuer/scope/frontier/schema excluded from digest",
         "receipt_id case-folded by implementation"

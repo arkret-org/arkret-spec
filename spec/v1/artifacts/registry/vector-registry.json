@@ -1572,6 +1572,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
+      "description": "Event Batch Receipt events[] is a canonical set projection sorted by UTF8(canonical_json(item)) with duplicates removed before signing; receivers reject unsorted or duplicate signed wire arrays before digest verification.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"

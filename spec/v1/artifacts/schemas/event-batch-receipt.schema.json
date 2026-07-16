@@ -57,6 +57,7 @@
     },
     "events": {
       "type": "array",
+      "description": "Canonical set projection of covered Event references. Items MUST be strictly increasing by the UTF-8 bytes of canonical_json(item); producers sort and deduplicate before signing, and receivers reject a non-canonical wire array before digest verification.",
       "items": {
         "oneOf": [
           {
@@ -70,7 +71,8 @@
           }
         ]
       },
-      "minItems": 1
+      "minItems": 1,
+      "uniqueItems": true
     },
     "created_at": {
       "$ref": "./event-envelope.schema.json#/$defs/timestamp"
@@ -86,7 +88,7 @@
   },
   "allOf": [
     {
-      "$comment": "A device re-anchor receipt is closed over exactly [reanchor, replacement authorize] in that order. The issuer MUST additionally compare scope.reanchor_digest and scope.replacement_authorize_digest byte-for-byte with events[0].event_digest and events[1].event_digest before signing; this relational equality is semantic because JSON Schema cannot compare sibling values.",
+      "$comment": "A device re-anchor receipt is a canonical set containing exactly one reanchor and one replacement authorize item. The issuer compares scope.reanchor_digest with the item whose kind is ak.device.reanchor and scope.replacement_authorize_digest with the item whose kind is ak.device.authorize; array position has no domain meaning.",
       "if": {
         "properties": {
           "scope": {
@@ -101,39 +103,47 @@
         "properties": {
           "events": {
             "type": "array",
-            "prefixItems": [
-              {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/event_receipt_item"
-                  },
-                  {
-                    "properties": {
-                      "kind": {
-                        "const": "ak.device.reanchor"
-                      }
-                    }
-                  }
-                ]
-              },
-              {
-                "allOf": [
-                  {
-                    "$ref": "#/$defs/event_receipt_item"
-                  },
-                  {
-                    "properties": {
-                      "kind": {
-                        "const": "ak.device.authorize"
-                      }
-                    }
-                  }
-                ]
-              }
-            ],
             "minItems": 2,
             "maxItems": 2,
-            "items": false
+            "uniqueItems": true,
+            "allOf": [
+              {
+                "contains": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/event_receipt_item"
+                    },
+                    {
+                      "properties": {
+                        "kind": {
+                          "const": "ak.device.reanchor"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/event_receipt_item"
+                    },
+                    {
+                      "properties": {
+                        "kind": {
+                          "const": "ak.device.authorize"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              }
+            ]
           }
         }
       }
@@ -188,11 +198,11 @@
         },
         "reanchor_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/hash",
-          "description": "MUST equal events[0].event_digest."
+          "description": "MUST equal event_digest of the unique events[] item whose kind is ak.device.reanchor."
         },
         "replacement_authorize_digest": {
           "$ref": "./event-envelope.schema.json#/$defs/hash",
-          "description": "MUST equal events[1].event_digest."
+          "description": "MUST equal event_digest of the unique events[] item whose kind is ak.device.authorize."
         }
       },
       "additionalProperties": false

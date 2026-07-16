@@ -74,7 +74,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "d39178c467b4c1d63c926209aaca2395114f0821d51f3794d907a7767d56cb80"
+      "sha256": "894d285c81313f48516810d820a67e28e71caa46453517fdbd6c10155e4c09d5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error_code_registry_coverage_fixture.json",
@@ -94,7 +94,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "5afb438279ceaa7fc6313faa95466a5f1cf43a76e3f3c442f0c8028a1baa27d6"
+      "sha256": "0124ad038d0ba9ea92b5de2d02cd39bae95fb9ced3d5e0718589af3133d88cf7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",

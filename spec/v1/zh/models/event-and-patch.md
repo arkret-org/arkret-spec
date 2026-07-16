@@ -421,9 +421,11 @@ Schema id: `ak.schema.event_batch_receipt.v1`
 | `issuer` | yes | `did` | 必须控制签名 key。 | 签发者，可以是 principal、Principal Server 或 witness。 |
 | `scope` | yes | `object` | SHOULD 包含 `actor_id`、`realm_id` 或查询范围 hash。 | receipt 覆盖范围。 |
 | `frontier` | yes | `object` | SHOULD 包含 `actor_seq`、`event_id` / event hash、HLC 或 Realm frontier。 | 签发时前沿。 |
-| `events` | yes | `array<id:event \| hash>` | 数组顺序参与 hash。 | 被 receipt 覆盖的 Event Envelope 引用。 |
+| `events` | yes | `array<id:event \| hash \| receipt-item>` | canonical set：每项以 `canonical_json(item)` 的 UTF-8 bytes 为排序键严格升序，禁止重复。 | 被 receipt 覆盖的 Event Envelope 引用；数组位置没有业务语义。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `proofs` | yes | `array<Proof>` |  | Receipt proof。 |
+
+签发方 MUST 在计算 `receipt_digest` 前按上述排序键对 `events[]` 排序并去重，并把规范化后的数组作为实际 wire 值签发；接收方 MUST 在验签前确认相邻排序键严格递增。非升序或含重复项的 receipt MUST 以 `schema_violation` 拒绝，不得通过本地静默重排后接受。对于 `scope.kind="device_reanchor_unit"`，数组仍是 canonical set：实现按 item 的 `kind` 找到唯一 `ak.device.reanchor` 与唯一 `ak.device.authorize`，分别与 `scope.reanchor_digest` / `scope.replacement_authorize_digest` 比对，不得依赖 `[0]` / `[1]` 位置。
 
 ## 6. Reducer 总则
 

@@ -217,7 +217,9 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 }
 ```
 
-`receipt_digest = sha256(canonical_json(receipt_without_proofs))`。`issuer`、`scope`、`frontier`、`events`、`schema` 必须进入 digest，防止 receipt 被跨 actor、跨 Realm 或跨前沿重放。Event Batch Receipt proof 的 detached bytes MUST 是 canonical binding object `{context:"ak.receipt-proof-v1", payload_digest:receipt_digest, issuer, verification_method, created_at, domain?, audience?}`；`context` 是固定 signing-context domain tag，不在 receipt wire body 中单独携带。
+`events[]` 是 set-bound receipt 的 canonical set projection。令 `event_sort_key(x) = UTF8(canonical_json(x))`；签发方 MUST 先按该 byte string 升序排列并删除完全相同的 key，再把结果写回 wire `events[]`。接收方 MUST 在验签前确认相邻 `event_sort_key` 严格递增；否则以 `schema_violation` 拒绝，不得静默归一化一个已签 wire object。
+
+`receipt_digest = sha256(canonical_json(receipt_without_proofs))`。这里的 `receipt_without_proofs.events` MUST 已是上述规范形态。`issuer`、`scope`、`frontier`、`events`、`schema` 必须进入 digest，防止 receipt 被跨 actor、跨 Realm 或跨前沿重放。Event Batch Receipt proof 的 detached bytes MUST 是 canonical binding object `{context:"ak.receipt-proof-v1", payload_digest:receipt_digest, issuer, verification_method, created_at, domain?, audience?}`；`context` 是固定 signing-context domain tag，不在 receipt wire body 中单独携带。
 
 ## 6. Signature
 

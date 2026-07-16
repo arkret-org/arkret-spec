@@ -380,11 +380,12 @@ ak.vector.encoding.event_batch_receipt_digest.v1
     "actor_id": "did:webvh:z6mkfixture:alice.example"
   },
   "frontier": {
-    "actor_seq": 1,
-    "event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    "actor_seq": 2,
+    "event_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
   },
   "events": [
-    "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "sha256:2222222222222222222222222222222222222222222222222222222222222222"
   ],
   "created_at": "2026-04-26T00:00:00Z"
 }
@@ -393,18 +394,19 @@ ak.vector.encoding.event_batch_receipt_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_digest":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:webvh:z6mkfixture:alice.example","receipt_id":"ak:receipt:01964186-0000-7000-8000-000000000000","schema":"ak.schema.event_batch_receipt.v1","scope":{"actor_id":"did:webvh:z6mkfixture:alice.example"}}
+{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111","sha256:2222222222222222222222222222222222222222222222222222222222222222"],"frontier":{"actor_seq":2,"event_digest":"sha256:2222222222222222222222222222222222222222222222222222222222222222"},"issuer":"did:webvh:z6mkfixture:alice.example","receipt_id":"ak:receipt:01964186-0000-7000-8000-000000000000","schema":"ak.schema.event_batch_receipt.v1","scope":{"actor_id":"did:webvh:z6mkfixture:alice.example"}}
 ```
 
 期望 digest：
 
 ```text
-sha256:71c78811d4d74c64d975c6fb53dbaa33a2a24507d80c090593c89927ef0f5a6a
+sha256:3cb4e27faaa5fca6c7e4bbf9a5a73c31d589e57b7f4b274139d1e35701c524ef
 ```
 
 失败条件：
 
-- `events` 数组被排序或去重后再 hash。
+- producer 未先按 `UTF8(canonical_json(item))` 排序去重，或 receiver 接受了非严格升序 / 含重复项的 signed wire 数组。
+- fixture 的 reversed+duplicate constructor input 未规范化为与主向量相同的 `events[]` 与 digest。
 - proof 字段被包含进 receipt digest。
 - `issuer`、`scope`、`frontier` 或 `schema` 被排除在 digest 外。
 - `receipt_id` 大小写被实现私自改写。
@@ -4418,7 +4420,7 @@ Steps：
 
 Expected：
 
-- **Case A**：实现重算结果 MUST 等于 `expected_digest`（`sha256:3d9e9e3a20dede18cd4687a39d59b187c1834478d73863992d2b1d6f70194808`）；内容变异与 key-order 变异结果 MUST 分别符合 fixture。只摘要 `digest_input` 名称/路径列表即判失败。
+- **Case A**：实现重算结果 MUST 等于 `expected_digest`（`sha256:f15a7570718fb4b6b0d1eefc0d932b4e62a6d5a12a4a1dbfe5bf4fb9e1049236`）；内容变异与 key-order 变异结果 MUST 分别符合 fixture。只摘要 `digest_input` 名称/路径列表即判失败。
 - **Case B**：receiver MUST 整批拒绝并返回 `reducer_profile_mismatch`，MUST NOT partial accept；缺少 registry row、`profile_id` 未声明、canonicalization 不支持或 digest suite 非 active `sha256` 时同样 MUST fail closed。
 
 失败条件：
