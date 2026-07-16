@@ -10,6 +10,100 @@
   "description": "Generated DTO index for registered operations with request_schema_ref/response_schema_ref. JSON Schema files remain the canonical source; this report is a machine-readable summary for SDK/conformance tooling and prose drift review.",
   "operations": [
     {
+      "operation_id": "ak.gate.account.exchange.create_handoff",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_handoff_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "proof"
+        ],
+        "properties": [
+          "request_id",
+          "proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/account_handoff_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "account_handoff_grant",
+          "expires_at",
+          "allowed_operations",
+          "binding"
+        ],
+        "properties": [
+          "request_id",
+          "account_handoff_grant",
+          "expires_at",
+          "allowed_operations",
+          "binding"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.gate.account.command.issue_identity_binding_challenge",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_binding_challenge_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "lease_id",
+          "lease_fence",
+          "did_operation"
+        ],
+        "properties": [
+          "request_id",
+          "lease_id",
+          "lease_fence",
+          "did_operation"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_binding_challenge_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "challenge_id",
+          "challenge",
+          "purpose",
+          "principal_id",
+          "operation_digest",
+          "lease_id",
+          "lease_fence",
+          "dpop_jkt",
+          "audience",
+          "origin",
+          "trust_domain",
+          "issued_at",
+          "expires_at"
+        ],
+        "properties": [
+          "request_id",
+          "challenge_id",
+          "challenge",
+          "purpose",
+          "principal_id",
+          "operation_digest",
+          "lease_id",
+          "lease_fence",
+          "dpop_jkt",
+          "audience",
+          "origin",
+          "trust_domain",
+          "issued_at",
+          "expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.gate.account.command.register",
       "success_shape_kind": "typed_response",
       "request": {
@@ -23,6 +117,7 @@
           "display_name",
           "device_id",
           "proof",
+          "identity_creation",
           "policy_evidence"
         ],
         "closed": true
@@ -43,7 +138,8 @@
           "primary_handle_claim_ref",
           "handle_claim_digests",
           "profile",
-          "registration_audit"
+          "registration_audit",
+          "binding_receipt"
         ],
         "closed": true
       }

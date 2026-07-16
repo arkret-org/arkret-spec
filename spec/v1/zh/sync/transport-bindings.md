@@ -3,7 +3,7 @@ title: Transport Bindings
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-16
 ---
 
 ## 0. 规范语言
@@ -95,7 +95,9 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `ak.self.account.query.viewer` | 当前 holder 的账号主体自读；响应使用 signed handle claim / ref / digest。 |
 | `ak.self.account.command.update_profile` | 当前账号 profile 更新；`bio` 映射到 `profile_fields.bio`。 |
 | `ak.self.account.stream.subscribe` | 客户端账号视角聚合同步入口；HTTP binding 使用 `AccountSubscribeFrame` NDJSON account-aggregate frame stream。 |
-| `ak.gate.account.command.register` | 注册 / account binding；request 使用 `principal_id`，不接受旧 `did` 或裸 `handle` 字段。 |
+| `ak.gate.account.exchange.create_handoff` | OIDC code 换 DPoP-bound account handoff，并返回 binding / identity-creation lease 状态；不是 session grant。 |
+| `ak.gate.account.command.issue_identity_binding_challenge` | 为当前 handoff lease 保留完整 DID operation，并签发服务端持久化的一次性 root-control challenge。 |
+| `ak.gate.account.command.register` | 注册 / account binding；account-first 分支内部发布客户端签名的 DID inception 并按 account/principal/operation digest 幂等绑定；不接受裸 `handle` 或 root secret。 |
 | `ak.gate.account.command.revoke_session` | 撤销 session grant；不撤销 device authorization。 |
 | `ak.find.directory.query.search_realms` / `ak.find.directory.query.search_organizations` / `ak.find.directory.query.search_actors` / `ak.find.directory.query.search_users` | 授权搜索 Realm / Organization / Actor，以及用户目录条目（actor profile / handle 视图）。 |
 | `ak.find.directory.query.resolve_realm` / `ak.find.directory.query.resolve_organization` / `ak.find.directory.query.resolve_handle` / `ak.find.directory.query.resolve_agent_selector` / `ak.find.directory.query.list_handles_for_subject` | 精确解析 Realm / Organization / handle / controller-scoped agent selector，以及列出已知 subject 的当前可见 handle claims。 |

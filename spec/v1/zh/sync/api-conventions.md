@@ -3,7 +3,7 @@ title: HTTP/JSON Binding 通用约定
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-07-16
 ---
 
 ## 0. 规范语言
@@ -233,6 +233,22 @@ Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失�
 该模型对齐 Matrix [MSC3861](https://github.com/matrix-org/matrix-spec-proposals/pull/3861)（Auth Server 签发凭据 + Resource Server 内省）的方向，并在其上叠加 DPoP sender-constraining(比 Matrix 的裸 bearer 更强)。
 
 **其它仍合法的入站凭据**:除 grant + DPoP 外，Principal Server MAY 在 development mode 保留本地开发凭据回退；生产客户端默认且规范化的 self-path 出示路径是 grant + DPoP。Auth Server 的 OIDC/OAuth 结果 MUST 先进入 Account Authority 的 `SessionGrantOutcome`，不得作为 Principal Server 的 self-path 直接凭据。
+
+### 3.4 Account handoff + DPoP（normative，pre-registration 路径）
+
+[`account-lifecycle.md` §2.1.2](../identity/account-lifecycle.md) 的 `account_handoff_grant` 是 Account Authority 的临时 sender-constrained 凭据，不是 `ak.session.grant` 或 OAuth bearer。创建 handoff 时尚无 credential 可计算 `ath`：客户端对 `POST /_arkret/gate/account/authentication-handoffs` 发送不带 Authorization 的 DPoP proof，proof JWT header 中的 public JWK 建立候选 holder；该 JWK MUST 是 Ed25519，body `AccountHandoffAuthenticationProof.signature` MUST 由同一 key 按 canonical schema transcript 签名。Account Authority 必须验证两处 key 一致后，才把其 RFC 7638 thumbprint写入 handoff `cnf.jkt`。
+
+后续 challenge、register 与 `proof_kind="pre_registration_handoff"` session-grant 请求使用：
+
+```http
+POST /_arkret/gate/account/identity-binding-challenges
+Authorization: DPoP <account_handoff_grant>
+DPoP: <DPoP proof JWT>
+```
+
+Account Authority MUST 验证 DPoP signature key thumbprint 等于 handoff `cnf.jkt`，`htm` / `htu` 精确绑定当前 method 与外部完整 endpoint URI，`ath` 等于所出示 handoff 的 hash，`jti` 未使用，`iat` 在新鲜度窗口内，handoff 未过期/撤销且当前 operation 位于其闭合 `allowed_operations`。外部 URI 重建与受信代理规则完全复用 §3.3；不得 path-only 比对。任一失败均 `unauthenticated` 或该 operation 登记的 `proof_invalid`，且不得进入 lease、challenge、DID publish、binding 或 grant 副作用。
+
+DPoP 本身不覆盖 request body。`create_handoff` 的 body 完整性由上述 holder signature覆盖；`register(identity_creation)` 的身份关键字段由 root-signed control proof 与 reserved operation digest覆盖。高安全部署 MAY 额外要求 §3.2 RFC 9421 `content-digest`，但不得因此省略 DPoP holder 校验或 root control proof。
 
 ## 4. 标准响应 envelope
 

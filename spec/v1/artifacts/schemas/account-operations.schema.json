@@ -2,9 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/account-operations.schema.json",
   "title": "Arkret Account Self-Service Operation DTOs",
-  "description": "Closed request and response DTOs for account self-service operations: viewer, register, profile update, and session revocation.",
+  "description": "Closed request and response DTOs for account self-service operations: viewer, account-authentication handoff, identity-binding challenge, register, profile update, and session revocation.",
   "anyOf": [
     { "$ref": "#/$defs/account_view" },
+    { "$ref": "#/$defs/account_handoff_request_body" },
+    { "$ref": "#/$defs/account_handoff_outcome" },
+    { "$ref": "#/$defs/identity_binding_challenge_request_body" },
+    { "$ref": "#/$defs/identity_binding_challenge_outcome" },
     { "$ref": "#/$defs/account_register_request_body" },
     { "$ref": "#/$defs/account_register_outcome" },
     { "$ref": "#/$defs/account_update_profile_request_body" },
@@ -55,6 +59,19 @@
     "sha256_digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^ak:request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "opaque_registration_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{22,128}$"
+    },
+    "dpop_jkt": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{43}$",
+      "description": "RFC 7638 SHA-256 JWK thumbprint of the holder key, encoded base64url without padding."
     },
     "timestamp": {
       "type": "string",
@@ -153,6 +170,385 @@
         "expires_at": { "$ref": "#/$defs/timestamp" },
         "verification_method": { "$ref": "#/$defs/did_url" },
         "signature": { "$ref": "#/$defs/non_empty_string" }
+      },
+      "additionalProperties": false
+    },
+    "account_registration_control_proof": {
+      "description": "Control proof for binding an already-published DID through account register. OIDC, passkey, or agent authentication alone is insufficient to establish DID control; account-first inception instead uses identity_creation_control_proof.",
+      "allOf": [
+        { "$ref": "#/$defs/account_lifecycle_proof" },
+        {
+          "properties": {
+            "proof_kind": {
+              "type": "string",
+              "enum": [
+                "did_bound_signature",
+                "paired_device_proof"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "account_handoff_authentication_proof": {
+      "type": "object",
+      "description": "OIDC authorization-code exchange proof used only to create a DPoP-bound account handoff. The signature is made by the same Ed25519 holder key as the request DPoP proof over utf8('ak.account-handoff-authentication-proof-v1\\n') || RFC8785_JCS(this object with signature omitted).",
+      "required": [
+        "proof_kind",
+        "challenge",
+        "request_canonical_digest",
+        "audience",
+        "issuer",
+        "client_id",
+        "redirect_uri",
+        "state",
+        "nonce",
+        "authorization_code",
+        "code_verifier",
+        "signature"
+      ],
+      "properties": {
+        "proof_kind": { "const": "oidc_code_exchange" },
+        "challenge": {
+          "type": "string",
+          "minLength": 16,
+          "description": "Account Authority-generated challenge persisted with the OIDC authorization transaction and consumed by this exchange."
+        },
+        "request_canonical_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "sha256:<lowercase-hex> of SHA-256 over RFC 8785 JCS bytes of the complete account_handoff_request_body with proof.request_canonical_digest and proof.signature omitted."
+        },
+        "audience": { "$ref": "#/$defs/did" },
+        "issuer": {
+          "type": "string",
+          "format": "uri"
+        },
+        "client_id": { "$ref": "#/$defs/non_empty_string" },
+        "redirect_uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "state": {
+          "type": "string",
+          "minLength": 16
+        },
+        "nonce": {
+          "type": "string",
+          "minLength": 16
+        },
+        "authorization_code": { "$ref": "#/$defs/non_empty_string" },
+        "code_verifier": {
+          "type": "string",
+          "minLength": 43,
+          "maxLength": 128
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$",
+          "description": "64-byte Ed25519 signature encoded base64url without padding."
+        }
+      },
+      "additionalProperties": false
+    },
+    "reserved_identity_creation": {
+      "type": "object",
+      "description": "Public, server-persisted identity-creation checkpoint. It contains the exact unpublished or already-published DID operation, never recovery words, seed material, private keys, or an encrypted root export.",
+      "required": [
+        "principal_id",
+        "operation_digest",
+        "did_operation"
+      ],
+      "properties": {
+        "principal_id": { "$ref": "#/$defs/did" },
+        "operation_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "sha256:<lowercase-hex> of SHA-256 over RFC 8785 JCS bytes of the complete did_operation object."
+        },
+        "did_operation": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody"
+        }
+      },
+      "additionalProperties": false
+    },
+    "identity_creation_lease": {
+      "type": "object",
+      "required": [
+        "lease_id",
+        "fence",
+        "expires_at"
+      ],
+      "properties": {
+        "lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "fence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "expires_at": { "$ref": "#/$defs/timestamp" },
+        "reserved_identity": { "$ref": "#/$defs/reserved_identity_creation" }
+      },
+      "additionalProperties": false
+    },
+    "account_handoff_binding": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "state",
+            "identity_creation_lease"
+          ],
+          "properties": {
+            "state": { "const": "identity_creation_active" },
+            "identity_creation_lease": { "$ref": "#/$defs/identity_creation_lease" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "state",
+            "retry_after_ms"
+          ],
+          "properties": {
+            "state": { "const": "identity_creation_busy" },
+            "retry_after_ms": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "state",
+            "principal_id"
+          ],
+          "properties": {
+            "state": { "const": "bound" },
+            "principal_id": { "$ref": "#/$defs/did" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "account_handoff_request_body": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "proof"
+      ],
+      "properties": {
+        "request_id": { "$ref": "#/$defs/request_id" },
+        "proof": { "$ref": "#/$defs/account_handoff_authentication_proof" }
+      },
+      "additionalProperties": false
+    },
+    "account_handoff_outcome": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "account_handoff_grant",
+        "expires_at",
+        "allowed_operations",
+        "binding"
+      ],
+      "properties": {
+        "request_id": { "$ref": "#/$defs/request_id" },
+        "account_handoff_grant": {
+          "type": "string",
+          "minLength": 32,
+          "description": "Opaque, short-lived credential bound to the request DPoP key. It is not ak.session.grant and has no refresh-token semantics."
+        },
+        "expires_at": { "$ref": "#/$defs/timestamp" },
+        "allowed_operations": {
+          "const": [
+            "ak.gate.account.command.issue_identity_binding_challenge",
+            "ak.gate.account.command.register",
+            "ak.gate.account.command.issue_session_grant"
+          ]
+        },
+        "binding": { "$ref": "#/$defs/account_handoff_binding" }
+      },
+      "additionalProperties": false
+    },
+    "identity_binding_challenge_request_body": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "lease_id",
+        "lease_fence",
+        "did_operation"
+      ],
+      "properties": {
+        "request_id": { "$ref": "#/$defs/request_id" },
+        "lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "lease_fence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "did_operation": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody"
+        }
+      },
+      "additionalProperties": false
+    },
+    "identity_binding_challenge_outcome": {
+      "type": "object",
+      "description": "Persisted, single-use server challenge. The client copies every field from challenge_id through expires_at into identity_creation_control_proof, adds proof_kind and verification_key_multibase, and signs that complete proof object with signature omitted. request_id is idempotency metadata and is not part of the root-control transcript.",
+      "required": [
+        "request_id",
+        "challenge_id",
+        "challenge",
+        "purpose",
+        "principal_id",
+        "operation_digest",
+        "lease_id",
+        "lease_fence",
+        "dpop_jkt",
+        "audience",
+        "origin",
+        "trust_domain",
+        "issued_at",
+        "expires_at"
+      ],
+      "properties": {
+        "request_id": { "$ref": "#/$defs/request_id" },
+        "challenge_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "challenge": {
+          "type": "string",
+          "minLength": 22
+        },
+        "purpose": { "const": "account_binding" },
+        "principal_id": { "$ref": "#/$defs/did" },
+        "operation_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "sha256:<lowercase-hex> of SHA-256 over RFC 8785 JCS bytes of the complete request did_operation object."
+        },
+        "lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "lease_fence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "dpop_jkt": { "$ref": "#/$defs/dpop_jkt" },
+        "audience": { "$ref": "#/$defs/did" },
+        "origin": {
+          "type": "string",
+          "format": "uri"
+        },
+        "trust_domain": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "issued_at": { "$ref": "#/$defs/timestamp" },
+        "expires_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "identity_creation_control_proof": {
+      "type": "object",
+      "description": "Fresh proof signed by the did:webvh inception operation's parameters.updateKeys[0] identity root. The verifier selects that key from did_operation and MUST NOT treat a request-supplied key or a DID Document verificationMethod as authority. Signature covers every field except signature as canonical JSON with domain separator ak.identity-creation-control-proof-v1.",
+      "required": [
+        "proof_kind",
+        "challenge_id",
+        "challenge",
+        "purpose",
+        "principal_id",
+        "operation_digest",
+        "lease_id",
+        "lease_fence",
+        "dpop_jkt",
+        "audience",
+        "origin",
+        "trust_domain",
+        "issued_at",
+        "expires_at",
+        "verification_key_multibase",
+        "signature"
+      ],
+      "properties": {
+        "proof_kind": { "const": "did_webvh_inception_update_key" },
+        "challenge_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "challenge": {
+          "type": "string",
+          "minLength": 22
+        },
+        "purpose": { "const": "account_binding" },
+        "principal_id": { "$ref": "#/$defs/did" },
+        "operation_digest": { "$ref": "#/$defs/sha256_digest" },
+        "lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "lease_fence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "dpop_jkt": { "$ref": "#/$defs/dpop_jkt" },
+        "audience": { "$ref": "#/$defs/did" },
+        "origin": {
+          "type": "string",
+          "format": "uri"
+        },
+        "trust_domain": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "issued_at": { "$ref": "#/$defs/timestamp" },
+        "expires_at": { "$ref": "#/$defs/timestamp" },
+        "verification_key_multibase": {
+          "type": "string",
+          "pattern": "^z[1-9A-HJ-NP-Za-km-z]+$"
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$",
+          "description": "64-byte Ed25519 identity-root signature encoded base64url without padding."
+        }
+      },
+      "additionalProperties": false
+    },
+    "identity_creation_registration": {
+      "type": "object",
+      "required": [
+        "lease_id",
+        "lease_fence",
+        "did_operation",
+        "control_proof"
+      ],
+      "properties": {
+        "lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "lease_fence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "did_operation": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody"
+        },
+        "control_proof": { "$ref": "#/$defs/identity_creation_control_proof" }
+      },
+      "additionalProperties": false
+    },
+    "account_binding_receipt": {
+      "type": "object",
+      "required": [
+        "binding_state",
+        "lease_id",
+        "lease_fence",
+        "operation_status",
+        "operation_digest",
+        "head_event_digest"
+      ],
+      "properties": {
+        "binding_state": { "const": "bound" },
+        "lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "lease_fence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "operation_status": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "duplicate"
+          ]
+        },
+        "operation_digest": { "$ref": "#/$defs/sha256_digest" },
+        "head_event_digest": { "$ref": "#/$defs/sha256_digest" }
       },
       "additionalProperties": false
     },
@@ -327,8 +723,15 @@
         "principal_id": { "$ref": "#/$defs/did" },
         "display_name": { "$ref": "#/$defs/display_name" },
         "device_id": { "$ref": "#/$defs/device_id" },
-        "proof": { "$ref": "#/$defs/account_lifecycle_proof" },
+        "proof": { "$ref": "#/$defs/account_registration_control_proof" },
+        "identity_creation": { "$ref": "#/$defs/identity_creation_registration" },
         "policy_evidence": { "$ref": "#/$defs/account_registration_policy_evidence" }
+      },
+      "not": {
+        "required": [
+          "proof",
+          "identity_creation"
+        ]
       },
       "additionalProperties": false
     },
@@ -347,7 +750,8 @@
         "primary_handle_claim_ref": { "$ref": "#/$defs/handle_claim_ref" },
         "handle_claim_digests": { "$ref": "#/$defs/handle_claim_digests" },
         "profile": { "$ref": "./actor-profile.schema.json" },
-        "registration_audit": { "$ref": "#/$defs/account_registration_audit" }
+        "registration_audit": { "$ref": "#/$defs/account_registration_audit" },
+        "binding_receipt": { "$ref": "#/$defs/account_binding_receipt" }
       },
       "not": {
         "required": [

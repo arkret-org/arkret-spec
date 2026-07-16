@@ -3,7 +3,7 @@ title: 实现 Profile 与一致性要求
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-07-16
 sidebar:
   label: 实现 Profile
 ---
@@ -311,13 +311,14 @@ SHOULD 支持：
 
 - session-grant introspection 与 revocation
 - `ak.gate.account.command.issue_session_grant` 规范化 HTTP binding
+- 采用 account-first onboarding 时，完整实现 `ak.gate.account.exchange.create_handoff` → `ak.gate.account.command.issue_identity_binding_challenge` → `ak.gate.account.command.register`；不得以私有 endpoint、普通 OAuth bearer 或进程内 challenge store 替代
 - `ak.self.policy.query.check`（`PolicyCheckOutcome`）
 - 多 principal-server delegation target 配置
 - DID binding / claim attestation
 
 Auth Server MUST NOT 声明 `ak.profile.identity_registry.v1`、`ak.profile.principal_server.v1` 或 `ak.profile.directory_service.v1`。任何 DID document / key-log 表面 MUST 通过 `compat_surfaces[]` 以 `delegated_resolver` 形式声明，而非自我声称 canonical 权威。
 
-Auth Server MUST NOT 把成功的 OIDC / SSO / password 验证直接当作 DID 控制证明；下游资源服务器仍 MUST 重新验证 DID control state（见 `guides/migrating-from-matrix.md`）。
+Auth Server MUST NOT 把成功的 OIDC / SSO / password 验证直接当作 DID 控制证明。Account-first inception binding 必须按 [`../identity/account-lifecycle.md` §2.1.2](../identity/account-lifecycle.md) 验证由 entry 0 method-native control key 签发的 fresh proof；普通已发布 DID binding 与下游资源服务器仍 MUST 重新验证 DID control state（见 `guides/migrating-from-matrix.md`）。
 
 `development_mode=true` 时，`verified_profiles[]` MUST 为 `[]`（见 `sync/service-surface.md` §3.0）；cotest 在 verified-profile suite 通过后才能写入 verified entry。
 

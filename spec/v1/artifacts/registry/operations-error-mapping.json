@@ -13,14 +13,35 @@
   },
   "operations": [
     {
+      "operation_id": "ak.gate.account.exchange.create_handoff",
+      "http_alias": "POST /_arkret/gate/account/authentication-handoffs",
+      "operation_specific": [
+        "proof_invalid",
+        "duplicate_conflict"
+      ],
+      "description": "OIDC code exchange for a DPoP-bound account_handoff_grant. proof_invalid covers issuer/discovery/state/nonce/redirect_uri/PKCE/body-holder/DPoP binding failures; duplicate_conflict covers reuse of request_id with different canonical request bytes. A live lease owned by another holder is a typed identity_creation_busy outcome, not an error reply."
+    },
+    {
+      "operation_id": "ak.gate.account.command.issue_identity_binding_challenge",
+      "http_alias": "POST /_arkret/gate/account/identity-binding-challenges",
+      "operation_specific": [
+        "proof_invalid",
+        "failed_precondition",
+        "duplicate_conflict"
+      ],
+      "description": "Reserves the complete DID inception operation and issues a durable single-use challenge. proof_invalid covers handoff/DPoP holder mismatch; failed_precondition covers stale or non-holder lease/fence and an operation that does not derive the claimed principal; duplicate_conflict covers request_id reuse or an attempt to replace an existing reserved operation with different bytes."
+    },
+    {
       "operation_id": "ak.gate.account.command.register",
       "http_alias": "POST /_arkret/gate/account/register",
       "operation_specific": [
         "proof_invalid",
+        "challenge_expired",
+        "cross_domain_replay_rejected",
         "duplicate_conflict",
         "failed_precondition"
       ],
-      "description": "Account registration creates or binds a deployment-local account record to principal_id. The request uses principal_id rather than did, does not accept handle, and handle evidence can only be returned as signed ak.schema.handle_claim.v1 data or digest/ref."
+      "description": "Account registration creates or binds a deployment-local account record to principal_id. The account-first identity_creation branch validates the current handoff holder, lease/fence, durable single-use challenge, exact reserved DID operation and did:webvh inception update-key proof before the Account Authority internally publishes and binds it. challenge_expired covers stale challenge state; cross_domain_replay_rejected covers audience/origin/trust-domain transcript mismatch; duplicate_conflict covers a non-identical operation for an existing reservation/binding. The request never accepts handle or identity-root secret material."
     },
     {
       "operation_id": "ak.gate.account.command.pair_device",
@@ -48,7 +69,7 @@
         "accountability_grant_missing",
         "agent_requested_scope_commitment_invalid"
       ],
-      "description": "Account Authority session grant issuance. `principal_unknown` is returned when the required principal_id has no verified account binding; the authority must not derive or mint a DID as a fallback. Shared by human user_session and agent runtime branches: when `proof.proof_kind=\"oidc_code_exchange\"`, `proof_invalid` covers issuer/discovery/state/nonce/redirect_uri/code_verifier/principal/device/audience binding failures; when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures of the agent_key_proof, `verification_method_principal_mismatch` when the verification_method DID does not match `principal_id`, `agent_paused` / `agent_deactivated` for lifecycle-gated rejections of the target agent principal, `agent_key_authorization_expired` when the effective authorization declares an elapsed expires_at, and `accountability_grant_missing` when the controller's accountability grant over the agent has been revoked or lapsed its freshness window so the agent is no longer eligible to receive a session grant (zh/identity/account-lifecycle.md §9.1)."
+      "description": "Account Authority session grant issuance. `principal_unknown` is returned when the required principal_id has no verified account binding; the authority must not derive or mint a DID as a fallback. Shared by human user_session and agent runtime branches: when `proof.proof_kind=\"oidc_code_exchange\"`, `proof_invalid` covers issuer/discovery/state/nonce/redirect_uri/code_verifier/principal/device/audience binding failures; when `proof.proof_kind=\"pre_registration_handoff\"`, proof_invalid covers handoff/DPoP mismatch or a handoff account not matching principal_id; when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures, `verification_method_principal_mismatch` when verification_method DID does not match `principal_id`, lifecycle errors for the target agent, and authorization/accountability errors for stale authority (zh/identity/account-lifecycle.md §2.1.2 / §9.1)."
     },
     {
       "operation_id": "ak.gate.account.command.revoke_session",

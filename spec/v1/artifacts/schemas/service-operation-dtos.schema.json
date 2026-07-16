@@ -2586,7 +2586,7 @@
         "principal_id": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-          "description": "Existing principal DID the grant is requested for. REQUIRED for every proof_kind, including oidc_code_exchange. Account Authorities MUST NOT derive or mint a principal DID from an OIDC subject. A first-time OIDC flow may establish only a pre-registration browser session until the client has completed cold-root custody, submitted a client-signed inception, and registered the resulting principal_id."
+          "description": "Existing principal DID the grant is requested for. REQUIRED for every proof_kind, including oidc_code_exchange and pre_registration_handoff. Account Authorities MUST NOT derive or mint a principal DID from an OIDC subject. A first-time OIDC flow may create only a DPoP-bound account_handoff_grant until the client has completed cold-root custody, submitted a client-signed inception through account register, and established the verified principal_id binding."
         },
         "device_id": {
           "type": "string",
@@ -2661,6 +2661,7 @@
                 "paired_device_proof",
                 "passkey_assertion",
                 "oidc_code_exchange",
+                "pre_registration_handoff",
                 "agent_key_proof"
               ]
             },
@@ -2723,7 +2724,8 @@
             },
             "signature": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "description": "Proof-kind authority signature over the canonical request transcript. For pre_registration_handoff it MUST be produced by the same holder key as the Authorization credential's cnf.jkt and the request DPoP proof."
             }
           }
         }
@@ -2807,7 +2809,7 @@
           }
         },
         {
-          "description": "Machine-enforceable OIDC code exchange branch. Account Authority, not the client, exchanges the authorization code at the issuer token_endpoint and validates issuer, state, nonce, redirect_uri, the REQUIRED existing principal_id binding, device binding and request canonical digest before issuing SessionGrantOutcome. OIDC identity alone never creates a principal DID.",
+          "description": "Machine-enforceable OIDC code exchange branch. Account Authority, not the client, exchanges the authorization code at the issuer token_endpoint and validates issuer, state, nonce, redirect_uri, the REQUIRED existing principal_id binding, device binding and request canonical digest before issuing SessionGrantOutcome. OIDC identity alone never creates a principal DID. proof_kind=pre_registration_handoff instead authenticates with Authorization: DPoP <account_handoff_grant> plus a matching DPoP header; the body MUST omit all OIDC exchange fields, and grant issuance still requires the requested principal_id to be the handoff account's verified binding.",
           "if": {
             "properties": {
               "proof": {

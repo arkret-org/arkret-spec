@@ -134,6 +134,16 @@ components:
         auth material for S2S federation / inter-service calls — those MUST
         also satisfy the httpMessageSignature + sourceServiceId +
         destinationServiceId AND group (see service-http-binding.md §2.2).
+    accountHandoffAuth:
+      type: http
+      scheme: DPoP
+      description: |
+        Opaque, short-lived account-authentication handoff returned by
+        ak.gate.account.exchange.create_handoff. The Authorization scheme on
+        the wire is `DPoP`, not `Bearer`, and the credential MUST co-occur with
+        dpopProof whose key thumbprint matches the handoff's cnf.jkt. It is not
+        ak.session.grant and is accepted only by the three operations listed in
+        AccountHandoffOutcome.allowed_operations.
     httpMessageSignature:
       type: apiKey
       in: header
@@ -221,13 +231,15 @@ components:
       in: header
       name: DPoP
       description: |
-        RFC 9449 DPoP proof JWS signed by the device holder key whose RFC 7638
-        thumbprint is bound into the session grant's cnf.jkt. Carries htm / htu
-        (this exact endpoint) and ath = hash of the presented grant. For
-        grant-body operations the grant is grant_jwt in the JSON body and DPoP
-        is the sole transport authentication; for account hard logout the grant
-        is the Authorization bearer and DPoP MUST co-occur with bearerAuth.
-        See account-lifecycle §4.1 and device-lifecycle §3.3.
+        RFC 9449 DPoP proof JWS signed by the holder key. On account-handoff
+        issuance it establishes the cnf.jkt binding and omits ath because no
+        credential exists yet. On account-handoff or session-grant use, it
+        carries htm / htu for the exact endpoint and ath for the presented
+        credential. For grant-body operations the grant is grant_jwt in the
+        JSON body and DPoP is the sole transport authentication; for account
+        hard logout the grant is the Authorization bearer and DPoP MUST
+        co-occur with bearerAuth. See account-lifecycle §2.1.2 / §4.1 and
+        device-lifecycle §3.3.
     mutualTls:
       type: mutualTLS
       description: |
@@ -277,6 +289,10 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome
     AccountDevicePairRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body
+    AccountHandoffOutcome:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_handoff_outcome
+    AccountHandoffRequestBody:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_handoff_request_body
     AccountId:
       type: string
       pattern: ^[A-Za-z0-9._:-]{1,128}$
@@ -1683,6 +1699,10 @@ components:
       additionalProperties: false
     HandleClaim:
       $ref: ../schemas/handle-claim.schema.json
+    IdentityBindingChallengeOutcome:
+      $ref: ../schemas/account-operations.schema.json#/$defs/identity_binding_challenge_outcome
+    IdentityBindingChallengeRequestBody:
+      $ref: ../schemas/account-operations.schema.json#/$defs/identity_binding_challenge_request_body
     IdentityDocumentView:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityDocumentView
     IdentityLogListOutcome:
@@ -7365,6 +7385,90 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MediaIceConfigRequestBody'
+  /_arkret/gate/account/authentication-handoffs:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ak.gate.account.exchange.create_handoff
+      security:
+      - dpopProof: []
+      x-arkret-auth:
+        public_metadata: false
+        proof_in_body: true
+        proof_field: proof
+        notes: The OIDC code-exchange proof and request DPoP proof MUST resolve to the same holder key. The Account Authority binds the returned account_handoff_grant to that key's RFC 7638 thumbprint.
+      summary: Exchange account authentication for a holder-bound onboarding handoff.
+      description: |
+        Exchanges an OIDC authorization code at the issuer token endpoint and
+        returns an opaque short-lived account_handoff_grant. The handoff is not
+        ak.session.grant and has no refresh-token semantics. It can be used only
+        at the operations in allowed_operations.
+
+        For an unbound service account this operation atomically acquires or
+        renews the current holder's identity-creation lease. A different holder
+        receives identity_creation_busy while the lease is live. After expiry,
+        a newly authenticated holder for the same service account fences the old
+        lease and inherits any public reserved DID-operation checkpoint. For a
+        bound account the response carries principal_id so the handoff can be
+        exchanged at /session-grants.
+      responses:
+        '200':
+          description: Holder-bound account handoff and current binding/lease state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountHandoffOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountHandoffRequestBody'
+  /_arkret/gate/account/identity-binding-challenges:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ak.gate.account.command.issue_identity_binding_challenge
+      security:
+      - accountHandoffAuth: []
+        dpopProof: []
+      x-arkret-auth:
+        public_metadata: false
+        holder_bound_authorization: true
+        notes: Authorization is `DPoP <account_handoff_grant>` and MUST match the DPoP header key, current lease holder, and lease fence.
+      summary: Reserve a DID inception operation and issue a fresh root-control challenge.
+      description: |
+        Validates the complete unpublished DID operation, derives principal_id
+        and its canonical digest, persists the public operation checkpoint, and
+        issues a server-generated single-use challenge with a freshness window
+        no longer than 300 seconds. Challenge state is durable shared state and
+        binds the authenticated service account, handoff holder key, lease and
+        fence, principal, operation digest, audience, origin, trust domain,
+        purpose, and expiry.
+
+        Repeating the same request_id returns the same unconsumed challenge.
+        Reissuing with a new request_id invalidates any older unconsumed
+        challenge for the same lease/fence without changing the reserved DID
+        operation.
+      responses:
+        '200':
+          description: Persisted identity-binding challenge transcript.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityBindingChallengeOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdentityBindingChallengeRequestBody'
   /_arkret/gate/account/register:
     servers:
     - url: https://{host}
@@ -7373,18 +7477,30 @@ paths:
           default: localhost
     post:
       operationId: ak.gate.account.command.register
-      security: []
+      security:
+      - {}
+      - accountHandoffAuth: []
+        dpopProof: []
       x-arkret-auth:
         public_metadata: false
         proof_in_body: true
         proof_field: proof
-        notes: Request is unauthenticated at the transport bearer layer when bootstrapping, but the body proof or an equivalent holder-bound Authorization/DPoP/HTTP Message Signature MUST bind principal_id, device_id, audience, request canonical digest, challenge, issued_at and expires_at.
+        notes: Generic DID-first registration may use the closed body proof branch. Account-first identity_creation MUST use `DPoP <account_handoff_grant>` plus matching DPoP and the current lease/fence; the root control proof binds the persisted challenge transcript and exact DID operation digest.
       summary: Bind or create a deployment-local account record for a principal.
       description: |
         Auth Server lifecycle operation. The request uses principal_id rather
         than did and never accepts a bare handle. display_name is only a
         bootstrap display field; if persisted it lands in Actor Profile
         display_name via the canonical profile path.
+
+        In the account-first identity_creation branch, the client sends the
+        exact reserved unpublished DID operation. The Account Authority verifies
+        the current holder/lease/fence and a fresh proof signed by the
+        did:webvh entry-0 parameters.updateKeys[0] root, then submits the DID
+        operation internally and writes the service-account binding only after
+        accepted or byte-identical duplicate resolution. Identity root material
+        is never accepted. The operation is idempotent by account, principal_id,
+        and canonical operation digest.
 
         Register MAY return signed handle-claim evidence or digest/ref in the
         AccountRegisterOutcome, but handle issuance, approval, assignment, re-signing,
@@ -7410,12 +7526,20 @@ paths:
           default: localhost
     post:
       operationId: ak.gate.account.command.issue_session_grant
-      security: []
+      security:
+      - {}
+      - accountHandoffAuth: []
+        dpopProof: []
       x-arkret-auth:
         public_metadata: false
         proof_in_body: true
         proof_field: proof
-        notes: Request is unauthenticated at the transport bearer layer, but the body MUST carry passkey/OIDC/device/agent proof bound to the request canonical digest and audience. For oidc_code_exchange the Account Authority exchanges the authorization code at the issuer token_endpoint and returns the single client-visible SessionGrantOutcome; Principal session provisioning is internal.
+        notes: |
+          DID/passkey/OIDC/device/agent branches authenticate in the body.
+          proof_kind=pre_registration_handoff instead requires `Authorization:
+          DPoP <account_handoff_grant>` plus matching DPoP; the handoff account
+          MUST already be bound to the required principal_id. Principal session
+          provisioning is internal.
       responses:
         '200':
           description: Session grant issued from passkey/OIDC/device proof. This is the single client-visible login result.

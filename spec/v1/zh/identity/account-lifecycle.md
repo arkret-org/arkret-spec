@@ -3,7 +3,7 @@ title: Account Lifecycle
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-16
 ---
 
 ## 0. 规范语言
@@ -46,6 +46,29 @@ account-first DID 分支必须执行 [`key-management.md` §5.0.1](./key-managem
 未绑定 DID 的 session MAY 执行注册、风险检查、邀请预览、邮箱验证、设备初始化等 pre-registration 操作；MUST NOT 作为最终 actor 提交 Realm Event、capability grant、MLS membership、service delegation 或 federation transaction。
 
 如果用户后续改用自有 DID、pairwise DID 或组织私有 DID，服务 MAY 根据 policy 迁移 handle、service account binding、credential 或后续写入身份。历史 Event 的 `actor_id` 和 grant `subject` MUST NOT 被改写；需要表达迁移时，应发布显式 claim、attestation、profile update 或 account binding record。
+
+### 2.1.2 Account handoff 与首次 DID 绑定
+
+采用 §2.1.1 account-first DID 分支的 Account Authority MUST 实现本节的 holder-bound handoff；不得把普通 OAuth access token、OIDC `id_token`、可续期 refresh token 或未绑定 holder 的 browser cookie 直接当作 Arkret 注册权限。Canonical HTTP binding 与 DTO 见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md) 和 `account-operations.schema.json`。
+
+`service_account -> principal_id` binding record 仍是 Account Authority 的部署本地状态，不进入 federation，也不成为跨部署 canonical identity fact。本节升格为 canonical 的是**客户端与 Account Authority 之间的绑定仪式**：holder constraint、lease/fence、challenge transcript、DID control proof、幂等与错误语义必须跨实现一致，客户端不能为每个 Account Authority 私有适配一条安全边界不同的 endpoint。实现可自由选择本地表结构，但不得把 canonical ceremony 降级回 `/_<impl>/*` 私有客户端协议。
+
+流程固定为：
+
+1. 客户端对 `ak.gate.account.exchange.create_handoff` 提交 OIDC authorization code exchange proof，并同时提交 RFC 9449 DPoP proof。Account Authority 必须在 authorize transaction 中预先生成并持久化 body proof challenge，换码时一并校验和消费；Account Authority 自己向 issuer `token_endpoint` 换码、验证 issuer / client / redirect / state / nonce / PKCE，并要求 body proof 的 holder signature 与 DPoP JWK 是同一把 Ed25519 key。
+2. Account Authority 返回短期 opaque `account_handoff_grant`。该凭据 MUST 绑定 service account、Account Authority audience 与 `cnf.jkt`，MUST NOT 是 `ak.session.grant`，MUST NOT 有 refresh-token 语义，且允许的 operation 集 MUST 精确为 `ak.gate.account.command.issue_identity_binding_challenge`、`ak.gate.account.command.register`、`ak.gate.account.command.issue_session_grant`。它不得认证任何 `/_arkret/self/*`、`/_arkret/root/*`、Realm Event、capability、MLS、service delegation 或 federation 写入。
+3. 未绑定账号在同一原子步骤取得 `identity_creation_lease`。租约至少持久化 `(service_account, audience, lease_id, holder_jkt, fence, expires_at, reserved_principal_id?, reserved_operation_digest?, state)`；一个 `(service_account, audience)` 同时最多一个未过期 holder。相同 holder 可续租；不同 holder 在租约未过期时只能得到 `identity_creation_busy` 状态，不得取得 fence 或 challenge。
+4. 客户端只在本地生成 recovery secret、identity root、next root 与 entry 0 draft，并在发布前完成 custody confirmation；只有 gate 通过后才用 `root_0` 产生 entry 0 method-native controller proof，得到完整签名 DID operation。客户端随后以 handoff + DPoP 调用 `ak.gate.account.command.issue_identity_binding_challenge`，提交这份完整但尚未由客户端直接发布的 operation。Account Authority MUST 验证 operation 形态与 method-native controller proof、从 operation 导出 `principal_id` 与 canonical `operation_digest`，并持久化这份**公开** checkpoint；`operation_digest` 固定为 `sha256:` + `lowercase_hex(SHA-256(RFC8785_JCS(did_operation)))`。checkpoint MUST NOT 包含恢复词、seed、identity-root private key、HKDF PRK 或其可逆封装。
+5. Account Authority 生成并持久化一次性 challenge。challenge transcript MUST 绑定 `purpose="account_binding"`、service account（只需服务端状态持有，不得暴露可关联的本地 account id）、`principal_id`、`operation_digest`、`lease_id`、`lease_fence`、`holder_jkt`、Account Authority audience、origin、trust domain、`issued_at`、`expires_at` 与不可预测 nonce；`expires_at - issued_at` MUST ≤ 300 秒。challenge 状态 MUST 位于所有实例共享的 durable store，不能只放进程内 memory；同一 challenge 成功消费一次后，任何重放都 MUST fail closed。
+6. 客户端用 entry 0 的 method-native inception control key 签 `identity_creation_control_proof`。对 v1 默认 `did:webvh`，验证 key MUST 是所提交 entry 0 `parameters.updateKeys[0]`，并与 proof 的 `verification_key_multibase` byte-identical；root 不在 DID Document `verificationMethod` 中，验证器不得把“解析已发布 DID 再选 authentication VM”的普通 DID proof 路径误用于此次 inception proof，也不得信任请求另带的任意公钥。
+7. 客户端以同一 handoff + DPoP 调用 canonical `ak.gate.account.command.register`，携带当前 lease/fence、原样 DID operation 与 control proof。Account Authority MUST 先 CAS 校验 account / holder / lease / fence / reservation / challenge，再验证 root signature；随后由 Account Authority 内部调用 identity registry 提交 DID operation。只有返回 `accepted`，或返回 `duplicate` 且 canonical operation bytes 与已接受 entry 完全相同、`head_event_digest` 可验证时，才可写 `service_account -> principal_id` verified binding。客户端在该 account-first strand 中 MUST NOT 绕过 register 直接发布 entry 0。
+8. 绑定完成后，同一未过期 handoff MAY 以 `SessionGrantRequestBody.proof.proof_kind="pre_registration_handoff"` 调用 `issue_session_grant`。请求仍 MUST 明示已经 verified binding 的 `principal_id`，Authorization 必须是 `DPoP <account_handoff_grant>` 并携带匹配 DPoP proof；Account Authority 必须比较 handoff 所属 service account 与该 binding。handoff 过期时客户端重新认证；不得把 handoff 扩成长期 refresh credential。
+
+`register` 的 identity-creation 分支 MUST 按 `(service_account, principal_id, operation_digest)` 幂等。服务端至少持久化 `reserved -> published -> bound` 进度：registry 已接受但本地 binding 尚未提交时，只能为原 service account 重试完成同一个 binding，不能回滚成“未发布”、不能改绑另一账号，也不能允许新租约改选另一 `principal_id`。相同完整请求重放必须返回已存 outcome 或等价 `duplicate` receipt；challenge 的单次消费与最终 binding commit 必须由同一 durable saga / transaction fence 保护。
+
+如果客户端丢失 handoff holder key，未过期租约不会转让。租约过期后，同一 service account 的新认证 holder MAY 原子递增 fence、取得新 lease，并继承已保留的 `principal_id`、operation digest 与公开 DID operation；旧 fence 从此永久失效。新 holder 仍 MUST 用相同 identity root 对新 challenge 产生 fresh control proof，才能完成 register。只有恢复词而没有旧 DPoP key 的用户因此仍能续跑，但不能用新 holder 改选另一 DID 来覆盖已预留身份。
+
+Account Authority 与客户端 UI MUST 把 service-account 认证凭据（密码、passkey、OIDC/SSO session）和 principal recovery secret 说明为两套正交凭据：重置账号密码只恢复 service account 访问，不恢复、轮换或导出 DID root；输入 recovery secret 只证明或恢复 principal 控制，不重置 service-account 密码。UI 不得用同一个“恢复密钥/恢复账号”标签把两类权力合并描述。
 
 当 service account 已绑定到某个 `principal_id` 时，DID proof MAY 作为恢复该 service account 访问的强证据。恢复服务 SHOULD 通过一次性 challenge 验证用户当前控制该 `principal_id`，再允许重设 service account 密码、重新绑定 passkey / WebAuthn 凭据、解除 `soft_logged_out`，或签发短期 session grant。该 DID proof MUST 按 DID method 和本地 trust policy 验证 DID Document、key log / method history、当前 authentication key 或授权 device key、challenge audience、origin、过期时间和重放状态。
 

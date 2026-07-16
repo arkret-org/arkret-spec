@@ -2014,6 +2014,9 @@
       ],
       "optional_extensions": [
         "ak.gate.account.command.issue_session_grant",
+        "ak.gate.account.exchange.create_handoff",
+        "ak.gate.account.command.issue_identity_binding_challenge",
+        "ak.gate.account.command.register",
         "ak.self.policy.query.check",
         "session_grant_introspection",
         "session_grant_revocation",
