@@ -1277,6 +1277,35 @@ ak.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1
 
 失败条件：用 `seal_ref` 单分支接受并发撤销后的 DataEvent；把并发撤销套入后继距离窗口；轻客户端无法验证 joined view 时仍接受。
 
+### 2.19.1 Vector: Circle lifecycle basis 与 archive freshness
+
+向量名称：
+
+```text
+ak.vector.circle.lifecycle_basis_and_archive_freshness.v1
+```
+
+本向量固化 [`circle.md`](../models/circle.md) §6.1 与 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3：Circle `state=active` 是事件 CBA 基线中的授权输入，不能读取 receiver 当前 projection 代替；线性 archive、并发 archive、tombstone 与 restore barrier 必须得到唯一分类。
+
+输入（fixture：[`circle-scope-fixture.json`](../../artifacts/fixtures/circle-scope-fixture.json) `lifecycle_basis_cases`）：
+
+- **Case A — 基线内 inactive**：DataEvent 的 `seal_ref` view 或 Control Move 的 `seal_basis` joined view 中 Circle 已 archived。
+- **Case B — 线性 archive**：DataEvent 的 `seal_ref` view 中 Circle active，后继 Seal 覆盖 archive；分别构造窗口内与超窗距离。
+- **Case C — 并发 archive**：`open_set` 两个互不可达 leaf 分别承载 DataEvent 基线与 Circle archive，joined lifecycle 为 archived。
+- **Case D — tombstone**：`seal_ref` 后继 Seal 覆盖 Circle tombstone，即使距离仍在普通 freshness window 内。
+- **Case E — restore barrier**：`seal_ref` 位于 archive 前，receiver 当前 view 已经过 archive → restore 并重新 active。
+- **Case F — Control Move**：分别在 active / archived 的 `seal_basis` joined view admission，并登记 Seal step 8 的冻结 predecessor 重验基线。
+
+期望：
+
+- Case A：MUST `failed_precondition`，reason=`circle_not_active`；不得用 receiver 较新的 projection 改写结果。
+- Case B：窗口内只进入 `stale_eligible`，若接受 query grade MUST 为 `stale`；超窗 MUST 拒绝或隐藏，reason=`stale_seal_ref`。后继 archive 不得被误报为基线内 `circle_not_active`。
+- Case C / D：MUST 立即拒绝或隐藏，reason=`stale_seal_ref`，`freshness_window_applies=false`；轻客户端无法验证 joined view 时只能 pending 或 fail closed。
+- Case E：restore MUST NOT 追溯恢复旧 `seal_ref`；producer 必须换用包含 restore 的新 active 基线。
+- Case F：admission 与 Seal 重验都只读取登记的 CBA 基线，不读取本地当前 projection。
+
+失败条件：相同事件因 receiver 当前 Circle projection 不同而一方接受、一方 `circle_not_active`；并发 archive 获得 freshness window；tombstone 获得宽限；restore 后接受 archive 前的旧基线；Control Move 不在 `seal_basis` / Seal frozen predecessor view 中重验。
+
 ### 2.20 Vector: conflict-recovery Move
 
 向量名称：
@@ -4420,7 +4449,7 @@ Steps：
 
 Expected：
 
-- **Case A**：实现重算结果 MUST 等于 `expected_digest`（`sha256:85804d3f98ac7183bff062426d4c4671ffd456882197fb794cb23a40240bf977`）；内容变异与 key-order 变异结果 MUST 分别符合 fixture。只摘要 `digest_input` 名称/路径列表即判失败。
+- **Case A**：实现重算结果 MUST 等于 `expected_digest`（`sha256:be4fc9d757a41f8829790b098b52394af89bbe6dfb18a0ce11dd5516adf70de0`）；内容变异与 key-order 变异结果 MUST 分别符合 fixture。只摘要 `digest_input` 名称/路径列表即判失败。
 - **Case B**：receiver MUST 整批拒绝并返回 `reducer_profile_mismatch`，MUST NOT partial accept；缺少 registry row、`profile_id` 未声明、canonicalization 不支持或 digest suite 非 active `sha256` 时同样 MUST fail closed。
 
 失败条件：

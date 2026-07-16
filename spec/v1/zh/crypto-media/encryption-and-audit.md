@@ -935,7 +935,7 @@ Arkret 提供 **"透明留痕审计 (Transparent Audit Trail)"** 机制。审计
 
 两者**不是强弱不同的同一保证**，而是不同 family 的保证。任何把两者混称为 "Auditable E2EE"
 或暗示二者等价的措辞都不符合本规范——禁止措辞清单与 join warning canonical 文案见
-[`audited-e2ee.md` §6](./audited-e2ee.md) 与 §2.1。
+[`audited-e2ee.md` §7 与 §3.3](./audited-e2ee.md)。
 
 v1 core 互操作 **不要求** 实现这两个 profile；只有在 Realm / Circle 显式存在 active Audit Applet Binding 且对应 activation frontier 已被 MLS commit 覆盖后才启用。需要审计 / 合规能力的部署可以按所在 audit profile 声明 RYW receipt、release service attestation、阶段性通知和 sealed historical release。普通 E2EE Realm 不进入该 profile 时，不得产生 `ak.audit.applet_binding`、`ak.audit.session.*` 或 `ak.audit.release`；进入 profile 前已经加密的消息也不得被后续 binding 追溯 release。
 

@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-15",
+  "version": "2026-07-17",
   "source_of_truth": true,
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
@@ -41,6 +41,19 @@
         "circle-scope-fixture.json"
       ],
       "source_refs": [
+        "spec/v1/artifacts/fixtures/circle-scope-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.circle.lifecycle_basis_and_archive_freshness.v1",
+      "status": "active",
+      "domain": "circle",
+      "applies_to_fixtures": [
+        "circle-scope-fixture.json"
+      ],
+      "description": "Circle lifecycle is evaluated at the Event CBA basis; linear archive uses the revocation freshness window, tombstone and concurrent archive fail closed immediately, and restore never rehabilitates a pre-archive basis.",
+      "source_refs": [
+        "spec/v1/zh/models/circle.md",
         "spec/v1/artifacts/fixtures/circle-scope-fixture.json"
       ]
     },

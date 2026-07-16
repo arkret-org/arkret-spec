@@ -150,6 +150,8 @@ else:
 
 **高风险 capability 的撤销即时性（normative）**：对 `risk_tier=high` capability（`risk_tier` 的权威源是 [`capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json)，散文镜像见 [`capabilities.md`](./capabilities.md)）授权的 DataEvent，撤销**不享受**新鲜度窗口宽限：receiver 一旦观察到覆盖该 capability 的撤销 Seal `R`，MUST 对 `seal_ref` 早于 `R` 的此类 DataEvent fail closed（等效 `revocation_freshness_window_ms = 0`），无论 `distance`；承载此类 capability 授权判定的 cell family SHOULD 声明 `sealed=true` 升控制面。中低风险 DataEvent 仍按上面的窗口判定。此外，producer 在本地已观察到 `R` 后仍用早于 `R` 的 `seal_ref` 继续签发 DataEvent，虽不构成可证明 fault，receiver / audit **SHOULD** 将其记录为 audit-loggable 可疑信号（stale-after-observed），供事后问责——这与"不可证明 fault"不矛盾：不自动惩罚，但留痕。需要强撤销即时性的 Realm SHOULD 缩短 `revocation_freshness_window_ms`，或将相关 cell family 声明为 `sealed=true`。
 
+**Scope lifecycle 也是授权输入（normative）**：Realm / Circle lifecycle 与 capability 撤销使用同一 CBA 基线纪律。Circle-scoped DataEvent 的 `state=active` 必须在事件 `seal_ref` view 中求值；不得以 receiver 当前 projection 替代。基线后的线性 Circle archive 复用上述 `distance` / `revocation_freshness_window_ms`，tombstone 与 `open_set` 并发 archive / tombstone 等效 window=0；后续 restore 不追溯恢复跨过 archive barrier 的旧 `seal_ref`。Control Move 在其 `seal_basis` joined view admission，并由 `apply_seal` step 8 在冻结 predecessor joined governance state 重验。完整错误映射与 restore barrier 见 [`../models/circle.md` §6.1](../models/circle.md)。
+
 Grant 晚于 producer 最新 seal 签发时，producer MUST 等下一个控制面 seal 后再签 data write。治理低频，等待 seal 是可接受成本。
 
 ### 4.4 数据面传播与 Event Batch Receipt

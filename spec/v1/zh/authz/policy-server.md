@@ -331,7 +331,7 @@ Frontier 比较必须区分“本地落后”和“本地更新”。若本地 a
 
 接收方 MUST NOT 把"无法逐字重算 `auth_state_digest`"解释为"digest 校验通过"或"授权通过"——这正是 [`capabilities.md` §18.1](./capabilities.md) 对 opaque digest 的 verifier 纪律。只有同 issuer 自缓存路径可逐字比 `auth_state_digest`；跨 issuer 路径的安全判定 MUST 来自 frontier digest 比较或本地重跑。该规则与 §9「MUST NOT 因 origin policy allow 而跳过本地 capability/auth 验证」一致。
 
-**CBA basis 例外（normative）**：reducer 评估 Event 时，DataEvent 只读取自身 `seal_ref` 指向的控制面 view，Control Move 只读取自身 `seal_basis` 指向的控制面 view；同一 ordered submit batch 的前序 Event 不会提前推进后续 Event 的授权基准。若同批内 revoke + 依赖该 grant 的 Event 同时到达，Policy Server fast-path cache MUST 按该 Event 的 CBA basis 评估，不得用同批后置 revoke 直接 deny；跨 Seal 延迟 revoke 仍按 §18 freshness fail closed。
+**CBA basis 例外（normative）**：reducer 评估 Event 时，DataEvent 只读取自身 `seal_ref` 指向的控制面 view，Control Move 只读取自身 `seal_basis` 指向的控制面 view；同一 ordered submit batch 的前序 Event 不会提前推进后续 Event 的授权基准。若同批内 revoke + 依赖该 grant 的 Event 同时到达，Policy Server fast-path cache MUST 按该 Event 的 CBA basis 评估，不得用同批后置 revoke 直接 deny；跨 Seal 延迟 revoke 仍按 [`capabilities.md` §18](./capabilities.md) 的 freshness 规则 fail closed。
 
 > **取舍与残留风险（informative）**：上述例外意味着同一 CBA basis 下的并发 in-flight 操作不会被同批后置 revoke 阻断——actor 若能把"撤销前最后一批写入"与撤销自身塞进同一 batch / 同一 basis，这些写入会按撤销前 basis 通过。对依赖**即时**撤销的高风险 grant（如紧急吊销被盗 agent key），紧急 revoke 不能跨越本例外立即生效；此类场景 SHOULD 把相关 cell family 声明为 `sealed=true` 或走 sealed control override / fork quarantine 路径，使紧急 revoke 跨越 CBA basis 例外立即生效。该残留风险与 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md) 的撤销新鲜度窗口取舍同源。
 

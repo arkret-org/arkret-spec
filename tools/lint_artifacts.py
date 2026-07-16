@@ -3188,6 +3188,115 @@ def check_circle_membership_enum_single_source(lint: Lint) -> None:
             )
 
 
+def check_circle_lifecycle_basis_vector(lint: Lint) -> None:
+    """Pin Circle lifecycle evaluation to the Event CBA basis and freshness rules."""
+    path = ARTIFACTS / "fixtures" / "circle-scope-fixture.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+
+    vector_id = "ak.vector.circle.lifecycle_basis_and_archive_freshness.v1"
+    covers = data.get("covers_vectors", [])
+    if not isinstance(covers, list) or vector_id not in covers:
+        lint.fail(path, f"covers_vectors must include {vector_id}")
+
+    rows = data.get("lifecycle_basis_cases")
+    if not isinstance(rows, list):
+        lint.fail(path, "lifecycle_basis_cases must be an array")
+        return
+    cases = {
+        row.get("name"): row
+        for row in rows
+        if isinstance(row, dict) and isinstance(row.get("name"), str)
+    }
+    required_names = {
+        "data_event_basis_already_archived",
+        "linear_archive_within_freshness_window",
+        "linear_archive_beyond_freshness_window",
+        "open_set_concurrent_archive",
+        "tombstone_is_immediate",
+        "restore_does_not_rehabilitate_pre_archive_basis",
+        "control_move_basis_active",
+        "control_move_basis_archived",
+    }
+    missing = sorted(required_names - cases.keys())
+    if missing:
+        lint.fail(path, f"missing Circle lifecycle basis case(s): {missing}")
+        return
+
+    archived = cases["data_event_basis_already_archived"]
+    if archived.get("evaluation_basis") != "seal_ref" or archived.get("circle_state_at_basis") != "archived":
+        lint.fail(path, "data_event_basis_already_archived must evaluate archived state at seal_ref")
+    if archived.get("expected") != {"result": "failed_precondition", "reason": "circle_not_active"}:
+        lint.fail(path, "an inactive Circle in the Event basis must reject with circle_not_active")
+
+    within = cases["linear_archive_within_freshness_window"]
+    within_expected = within.get("expected", {})
+    if not isinstance(within_expected, dict) or within_expected.get("eligibility") != "stale_eligible":
+        lint.fail(path, "linear archive within the freshness window must be stale_eligible")
+    within_distance = within.get("distance_ms")
+    within_window = within.get("revocation_freshness_window_ms")
+    if not isinstance(within_distance, int) or not isinstance(within_window, int) or within_distance > within_window:
+        lint.fail(path, "within-window Circle archive case exceeds its freshness window")
+    if within_expected.get("accepted_query_grade") != "stale":
+        lint.fail(path, "accepted within-window Circle archive must use stale query grade")
+    if set(within_expected.get("allowed_results", [])) != {"accept_stale", "reject"}:
+        lint.fail(path, "within-window Circle archive must allow only accept_stale or reject")
+    if within_expected.get("must_not_reason") != "circle_not_active":
+        lint.fail(path, "post-basis archive must not be reclassified as basis-time circle_not_active")
+
+    beyond = cases["linear_archive_beyond_freshness_window"]
+    beyond_distance = beyond.get("distance_ms")
+    beyond_window = beyond.get("revocation_freshness_window_ms")
+    if not isinstance(beyond_distance, int) or not isinstance(beyond_window, int) or beyond_distance <= beyond_window:
+        lint.fail(path, "beyond-window Circle archive case must exceed its freshness window")
+    if beyond.get("expected") != {"result": "reject_or_hide", "reason": "stale_seal_ref"}:
+        lint.fail(path, "beyond-window Circle archive must reject or hide with stale_seal_ref")
+
+    concurrent = cases["open_set_concurrent_archive"]
+    concurrent_expected = concurrent.get("expected", {})
+    if concurrent.get("notary_profile") != "open_set" or concurrent.get("evaluation_basis") != "joined_control_view":
+        lint.fail(path, "concurrent Circle archive must evaluate the open_set joined control view")
+    if not isinstance(concurrent_expected, dict) or concurrent_expected.get("reason") != "stale_seal_ref":
+        lint.fail(path, "concurrent Circle archive must fail closed with stale_seal_ref")
+    if concurrent_expected.get("freshness_window_applies") is not False:
+        lint.fail(path, "concurrent Circle archive must not receive a freshness window")
+
+    tombstone = cases["tombstone_is_immediate"]
+    tombstone_expected = tombstone.get("expected", {})
+    if tombstone.get("observed_lifecycle_move") != "ak.circle.tombstone":
+        lint.fail(path, "tombstone_is_immediate must use ak.circle.tombstone")
+    if (
+        not isinstance(tombstone_expected, dict)
+        or tombstone_expected.get("reason") != "stale_seal_ref"
+        or tombstone_expected.get("freshness_window_applies") is not False
+    ):
+        lint.fail(path, "Circle tombstone must fail closed without a freshness window")
+
+    restore = cases["restore_does_not_rehabilitate_pre_archive_basis"]
+    restore_expected = restore.get("expected", {})
+    if restore.get("seal_ref_position") != "before_archive":
+        lint.fail(path, "restore barrier case must use a pre-archive seal_ref")
+    if not isinstance(restore_expected, dict) or restore_expected.get("reason") != "stale_seal_ref":
+        lint.fail(path, "restore must not rehabilitate a pre-archive seal_ref")
+    if restore_expected.get("requires_new_basis_containing") != "ak.circle.restore":
+        lint.fail(path, "post-restore writes must require a basis containing ak.circle.restore")
+
+    control_active = cases["control_move_basis_active"]
+    control_archived = cases["control_move_basis_archived"]
+    control_active_expected = control_active.get("expected", {})
+    if control_active.get("evaluation_basis") != "seal_basis_joined_view":
+        lint.fail(path, "active Control Move case must evaluate seal_basis joined view")
+    if (
+        not isinstance(control_active_expected, dict)
+        or control_active_expected.get("seal_revalidation_basis")
+        != "frozen_predecessor_joined_governance_state"
+    ):
+        lint.fail(path, "Control Move must be revalidated at the Seal frozen predecessor state")
+    if control_archived.get("expected") != {"result": "failed_precondition", "reason": "circle_not_active"}:
+        lint.fail(path, "archived Circle in Control Move basis must reject with circle_not_active")
+
+
 def check_did_and_device_constraints(lint: Lint) -> None:
     """Reject ambiguous DID/DID URL and device_id constraints in machine artifacts."""
     openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
@@ -6676,6 +6785,7 @@ def main() -> int:
     check_signed_object_closure(lint)
     check_reducer_payload_closure(lint)
     check_circle_membership_enum_single_source(lint)
+    check_circle_lifecycle_basis_vector(lint)
     check_did_and_device_constraints(lint)
     check_operation_binding_metadata(lint)
     check_binding_completeness_index(lint)

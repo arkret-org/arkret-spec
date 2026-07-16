@@ -233,7 +233,7 @@ sidebar:
 
 通话可以 P2P 起步（`mode="p2p"`），但当并发参与者人数 **> 2** 时 MUST 从 P2P 收敛到 SFU。
 
-**并发升级收敛性（normative）**：分布式下各设备对"将达 3 人"的本地观测可能不同步，因而多台设备可能并发发起升级。这**不**产生 split-brain：升级 MUST 复用 §5 的 deterministic, no-vote focus 选举（由 oldest_membership 的 `foci_preferred[0]` 确定性选出 `session_focus`），且 `session_focus` 为 write-once（§6 第 5 条 / §4.1），任意子集设备并发发起的升级最终都被同一 `session_focus` 值吸收——首个被服务端接受的 `session_focus` 写入定锚，其余并发写入按 write-once 收敛到同值或被拒为 `session_focus_already_committed`。因此并发升级收敛到同一 SFU focus，不依赖各设备观测同步，也不引入投票或 leader 选举。
+**并发升级收敛性（normative）**：分布式下各设备对"将达 3 人"的本地观测可能不同步，因而多台设备可能并发发起升级。这**不**产生 split-brain：升级 MUST 复用 [`media-service-binding.md` §5](./media-service-binding.md) 的 deterministic, no-vote focus 选举（由 oldest_membership 的 `foci_preferred[0]` 确定性选出 `session_focus`），且 `session_focus` 为 write-once（本文 §6 第 5 条 / §4.1），任意子集设备并发发起的升级最终都被同一 `session_focus` 值吸收——首个被服务端接受的 `session_focus` 写入定锚，其余并发写入按 write-once 收敛到同值或被拒为 `session_focus_already_committed`。因此并发升级收敛到同一 SFU focus，不依赖各设备观测同步，也不引入投票或 leader 选举。
 
 触发与协商规则:
 
@@ -243,7 +243,7 @@ sidebar:
 4. **`mode` 写入**:升级落定后，下一条 `ak.call.state` 的 `mode` MUST 写 `sfu`,且一旦 `session_focus` committed 即不可在本生命周期内回退到 `p2p`(回退 P2P 需新 call)。
 5. **单调性**:`session_focus` 一经 committed 即 write-once(改写 MUST `session_focus_already_committed`,见 §4.1);升级到 SFU 后人数回落到 2 人 MUST NOT 自动降级回 P2P。
 6. **升级失败 / 迁移中断（normative）**:升级编排可能在三处失败——focus 不可达(选举出的 `session_focus` 无法建立媒体)、某设备 `focus_join` 中途失败、原 P2P leg 已拆除但 SFU leg 未建成的部分迁移态。处置规则:
-   - **focus 不可达且无可选 focus**:发起方 MUST 保留旧 P2P/mesh leg(尚未拆除时)继续承载已有媒体，并 SHOULD 在新的 accepted basis 上以下一候选 focus 重试 §6.2 选举(基于剩余 `foci_preferred`)；候选耗尽后，通话整体 MUST 转 `state="failed"`(`reason_code="call_state_transition_invalid"` 不适用——这是终态推进，按 §4.2 `active → failed` 合法转换)，不得停留在"已拆 P2P 又无 SFU"的不可解释悬挂态。
+   - **focus 不可达且无可选 focus**:发起方 MUST 保留旧 P2P/mesh leg(尚未拆除时)继续承载已有媒体，并 SHOULD 在新的 accepted basis 上以下一候选 focus 重试 [`media-service-binding.md` §5.1](./media-service-binding.md) 的选举(基于剩余 `foci_preferred`)；候选耗尽后，通话整体 MUST 转 `state="failed"`(`reason_code="call_state_transition_invalid"` 不适用——这是终态推进，按 §4.2 `active → failed` 合法转换)，不得停留在"已拆 P2P 又无 SFU"的不可解释悬挂态。
    - **单设备 `focus_join` 失败**:不影响其它已迁移设备；该设备 SHOULD 重试 `focus_join`，持续失败则按本地策略以 `ak.call.signal{signal_type=leave}` 退出本通话，通话 `state` 不因单设备迁移失败而回退。
    - **迁移期间不得丢媒体**:在所有参与者完成 `focus_join` **之前**,原 leg MUST NOT 被拆除(§6 第 3 条);若实现因故已提前拆除且 SFU 未建成,MUST 视为升级失败并按上面第一条处置(重试 focus 或转 `failed`),MUST NOT 静默丢弃通话状态。
    - `session_focus` 一旦 committed 即 write-once:升级失败重试只能在 `session_focus` 尚未 committed 时切换候选 focus;已 committed 后 focus 不可达只能转 `failed` 并由用户新建通话(§6 第 4 条回退 P2P 需新 call 同理)。

@@ -101,8 +101,8 @@ Control Move 的签名、actor chain、basis、precondition 和授权验证通�
 
 1. 确认 Event 携带 `effects[]`、`seal_ref`、`auth_context`，且不携带 `preconditions` 或 `seal_basis`。
 2. 确认 `seal_ref` 指向本 Realm 已接受的 Seal。
-3. 在该 Seal 的控制面 `state_root` / KeyView 下验证 DID、key epoch、credential epoch、capability refs、policy、membership、Realm lifecycle 与 object scope。
-4. 按 Realm 的 `revocation_freshness_window_ms` 判定该 `seal_ref` 是否仍可作为数据面授权基准；无法确认撤销新鲜度的高风险写入 MUST fail closed。
+3. 在该 Seal 的控制面 `state_root` / KeyView 下验证 DID、key epoch、credential epoch、capability refs、policy、membership、Realm lifecycle、Circle lifecycle 与 object scope；Circle `state=active` MUST 在该 `seal_ref` view 中求值，不得读取 receiver 当前 projection。
+4. 按 Realm 的 `revocation_freshness_window_ms` 判定该 `seal_ref` 是否仍可作为数据面授权基准；Circle archive 复用该框架，Circle tombstone 与 `open_set` 并发 archive / tombstone 不享受窗口，具体见 [`circle.md` §6.1](../models/circle.md)。无法确认撤销新鲜度的高风险写入 MUST fail closed。
 5. 确认每个 effect 只写 data plane cell，且 cell family 的 Lattice 操作合法。
 6. 将 DataEvent 纳入本地 data accepted set，并按 cell Lattice join 重算数据面 projection。
 
@@ -114,7 +114,7 @@ DataEvent 的安全问题主要是签名伪造、授权过期、写入不属于 
 
 1. 对非 anchor-unit 的 Control Move，确认 Event 携带 `effects[]`、`seal_basis`，且不携带 `seal_ref` 或 `auth_context`。
 2. 确认 `seal_basis.leaves[]` 均为已接受 Seal，且合成 view 的 `control_event_set_root` 与 `state_root` 与 Event 内声明一致。
-3. 在该 control basis 下验证 signer、capability、policy、membership 与 Realm lifecycle。
+3. 在该 control basis 下验证 signer、capability、policy、membership、Realm lifecycle、Circle lifecycle 与 object scope；Circle `state=active` MUST 在 `seal_basis.leaves[]` 合成的 joined control view 中求值，并在 Seal 接受时由 `apply_seal` step 8 对冻结 predecessor joined governance state 重验。
 4. 求值 `preconditions[]`；任一 predicate 不成立则拒绝该 Control Move。
 5. 确认每个 effect 只写 control plane cell。
 6. 将该 Control Move 放入控制面 pending set，等待 Seal 覆盖。

@@ -50,7 +50,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
-      "sha256": "a6042abbd3b330ed643774d52a434cd21206ee40fa97be52b6292bdf11ec2525"
+      "sha256": "927683df1253dbdee991e662f542403e9c35c67b549288b5293f3fac3633afa5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cross-signing-binding-fixture.json",
@@ -94,7 +94,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "315f5aefc75b28c75d3cedddf62480b29d6297dd114aab9cccfcf591d4986051"
+      "sha256": "83970c6b4d5ef2bc2185a0a8b8cb9ddf64c486ff5ac88ede14aeaa7f107dc078"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",

@@ -455,7 +455,7 @@ assertion method。顶层 `audience` 与 proof `audience` 必须同时缺失，�
 
 ## 5. Resolver、Auth Server 与组织授权
 
-### 5.0.6 Key transparency 与 IETF KEYTRANS 的边界
+### 5.0 Key transparency 与 IETF KEYTRANS 的边界
 
 `ak.profile.key_transparency.v1` / `ak.schema.key_transparency.v1` 是 Arkret 自有的 log-head、inclusion、consistency 与 witness evidence 格式，不是 IETF KEYTRANS wire protocol。实现 MUST NOT 仅凭该 profile 声明 KEYTRANS 兼容。需要 KEYTRANS 互操作时，适配器 MUST 另行声明版本化 profile，并精确钉定 `draft-ietf-keytrans-protocol-05`；Arkret evidence 与 KEYTRANS monitoring proof 之间的每个字段、hash suite、tree position 和 auditor/witness trust mapping 都必须在该 profile 中登记并有向量覆盖。由于该 IETF 文档仍为活跃 Internet-Draft，本 v1 不把其易变 wire shape 合并进核心 schema。
 
@@ -755,10 +755,10 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 规则：
 
 - RRK 的 HPKE 公钥 MUST 以标准 `verificationMethod`（`type=Multikey`）承载，并 MUST 同时被 `keyAgreement` 关系引用（它用于 encryption-to / 密钥协商）。`ArkretRealmHistoryRecoveryKey` service entry 的 `serviceEndpoint.verificationMethod` MUST 指向该 VM，`serviceEndpoint.domain` MUST 为 `mls_history`。
-- **域隔离（MUST）**：RRK MUST 独立于该主体 `did_recovery` 域的恢复钥匙（[`key-management.md` §7.1`](./key-management.md)）。同一把 key MUST NOT 既作 `did_recovery` 又作 `ArkretRealmHistoryRecoveryKey`；攻破"能解 Realm 历史"MUST NOT 等于"能改该主体身份"。
+- **域隔离（MUST）**：RRK MUST 独立于该主体 `did_recovery` 域的恢复钥匙（[`key-management.md` §7.1](./key-management.md)）。同一把 key MUST NOT 既作 `did_recovery` 又作 `ArkretRealmHistoryRecoveryKey`；攻破"能解 Realm 历史"MUST NOT 等于"能改该主体身份"。
 - **引用校验**：Realm `durability_policy.recovery_recipients[].verification_method` MUST 等于某个 `principal_id` 当前 DID Document 中、被一条 active `ArkretRealmHistoryRecoveryKey` service entry 指定的 VM；解析不到、已撤销或未被该 service entry 指定时，封存方 MUST fail closed（`durability_recovery_recipient_unverified`），MUST NOT 回退到任意 key。
-- **轮换按时点解析**:RRK 轮换进入 DID method 可验证历史；receiver 复验历史 RRK 封存的 `ak.realm_key.share` 时 MUST 按封存 Event 的 accepted-at 对该主体 DID 做按时点解析，用当时 active 的 RRK 验证，与 §4.2 / [`key-management.md` §5.0.6`](./key-management.md) 的按时点解析纪律一致。
-- RRK 私钥的离线保管、门限拆分与释放走 [`key-management.md` §8`](./key-management.md) recovery policy（24 词 / threshold / hardware），subject 为该 principal、域为 history-recovery。
+- **轮换按时点解析**:RRK 轮换进入 DID method 可验证历史；receiver 复验历史 RRK 封存的 `ak.realm_key.share` 时 MUST 按封存 Event 的 accepted-at 对该主体 DID 做按时点解析，用当时 active 的 RRK 验证，与 §4.2 / [`key-management.md` §5.0.6](./key-management.md) 的按时点解析纪律一致。
+- RRK 私钥的离线保管、门限拆分与释放走 [`key-management.md` §8](./key-management.md) recovery policy（24 词 / threshold / hardware），subject 为该 principal、域为 history-recovery。
 
 ## 9. 验证规则
 

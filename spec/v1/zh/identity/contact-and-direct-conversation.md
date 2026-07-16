@@ -161,7 +161,7 @@ Resolver MUST：
 4. 若 `create=false` 且不存在 binding，返回 `not_found`。
 5. 若 `create=true`，走既有 KeyPackage claim、Realm create / member add、MLS group create、Strand create，然后写 direct conversation binding fact。该编排的失败路径 MUST 返回如下终态错误，且 MUST NOT 把半成品 Realm 作为 canonical binding 返回：
    - **对端 principal 不可解析**（peer DID 无法解析到有效 principal / control state）：返回 `failed_precondition` / `peer_unresolvable`，不发起 KeyPackage claim 或 Realm create。
-   - **对端无可用 KeyPackage**（KeyPackage claim 全部失败，对端无 active KeyPackage 或全部过期 / 撤销）：返回 `failed_precondition` / `keypackage_unknown`（与 §9 KeyPackage claim 路径的反枚举错误口径一致，不泄露对端设备存在性 / 数量）。
+   - **对端无可用 KeyPackage**（KeyPackage claim 全部失败，对端无 active KeyPackage 或全部过期 / 撤销）：返回 `failed_precondition` / `keypackage_unknown`（与 [`device-lifecycle.md` §9](../crypto-media/device-lifecycle.md) KeyPackage claim 路径的反枚举错误口径一致，不泄露对端设备存在性 / 数量）。
    - **create 编排中途失败**（Realm / membership / MLS group / Strand 任一步已创建但后续步骤或 binding fact 未写成）：返回 `temporarily_unavailable`（可重试）；已创建的 Realm 按下文 orphan / non-canonical 规则处理，MUST NOT 作为默认聊天入口返回。重试 MAY 在 participants / membership / main Strand / contact refs 完全匹配后补写 binding，否则创建新候选并由 deterministic canonical selection 收敛。
 
 Resolver create 是多步编排，不是单个 reducer 原子操作。若 Realm / membership / Strand 已创建但 binding fact 未写成，该 Realm 只能作为 orphan / non-canonical 候选存在；重试 MAY 在验证其 participants、membership、main Strand、contact refs 与请求 pair 完全匹配后补写 binding，否则必须创建新的候选并让 deterministic canonical selection 收敛。没有 binding 的 orphan Realm 不得作为默认聊天入口返回。

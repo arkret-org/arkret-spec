@@ -370,7 +370,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 
 | `purpose` | 用途 | 出现位置 |
 | --- | --- | --- |
-| `stream` | 增量同步 / 列表分页的位置承诺。回传方向取决于出现位置（见右列），并非任意位置都支持全部四向。 | **account 聚合流**：`/_arkret/self/account/subscribe` frame 的 `cursor` **仅**作为重连 `after=` 参数回传，是单向 catch-up 起点，**不支持** `before` / `prev_cursor`（account stream 不可反向，见 §7.0 与 [`client-sync.md`](./client-sync.md) §2 / §7.0）。**Realm timeline / 列表分页 / 查询**：`timeline.prev_cursor` / `next_cursor`、列表分页 `prev_cursor` / `next_cursor`、`ak.self.events.query.scan` 与 federation peer `ak.peer.events.query.scan`（`GET /_arkret/peer/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段——这些位置才支持 `before` / `prev_cursor` 反向延续。 |
+| `stream` | 增量同步 / 列表分页的位置承诺。回传方向取决于出现位置（见右列），并非任意位置都支持全部四向。 | **account 聚合流**：`/_arkret/self/account/subscribe` frame 的 `cursor` **仅**作为重连 `after=` 参数回传，是单向 catch-up 起点，**不支持** `before` / `prev_cursor`（account stream 不可反向，见本文 §7.0 与 [`client-sync.md` §2](./client-sync.md)）。**Realm timeline / 列表分页 / 查询**：`timeline.prev_cursor` / `next_cursor`、列表分页 `prev_cursor` / `next_cursor`、`ak.self.events.query.scan` 与 federation peer `ak.peer.events.query.scan`（`GET /_arkret/peer/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段——这些位置才支持 `before` / `prev_cursor` 反向延续。 |
 | `barrier` | 读己之所写（RYW）：要求 reader 在 frontier 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Arkret-Wait-For` header。 |
 
 ### 7.0 `prev_cursor` / `next_cursor` 含义（绝对方向）
@@ -384,7 +384,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 
 绝对方向与请求时所用的参数（`before` / `after` / `order`）和 selector 无关；服务端 MUST 始终按上述含义填充。客户端因此**不**需要记录"上一次请求的 direction"才能正确解释响应 cursor。
 
-HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_arkret/self/account/subscribe` 的 `after=`、`ak.self.events.query.scan` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Arkret-Wait-For` header，或 §7.2 列出的等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `invalid_param`。
+HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_arkret/self/account/subscribe` 的 `after=`、`ak.self.events.query.scan` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在本文 §8 定义的 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Arkret-Wait-For` header 或等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `invalid_param`。
 
 规则：
 

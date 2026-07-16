@@ -897,7 +897,7 @@ Arkret v1 的首次加入流程：
 
 ### 14.1 存储责任与 Blob Quota
 - **成本归属**：Realm 的整体数据大小、历史 Event 数量及附属的 Blob 存储成本，逻辑上必须绑定到 Realm 的 `owner` 或负责托管的 `responsible_actor_id`。
-- **拒绝写入**：当 Blob 服务或 Principal Server 评估该 Realm 占用的资源已超出预设的 Policy 配额 (Quota) 时，MUST 返回明确的协议错误语义（例如 `quota_exceeded`、`payload_too_large` 或 profile 注册的付费/资源门槛错误），并拒收新写入的 Event 或大文件 Blob。HTTP status 映射属于 binding 层，见 [`api-conventions.md` §4.1](./api-conventions.md) 与 [`service-http-binding.md`](./service-http-binding.md)。
+- **拒绝写入**：当 Blob 服务或 Principal Server 评估该 Realm 占用的资源已超出预设的 Policy 配额 (Quota) 时，MUST 返回明确的协议错误语义（例如 `quota_exceeded`、`payload_too_large` 或 profile 注册的付费/资源门槛错误），并拒收新写入的 Event 或大文件 Blob。HTTP status 映射属于 binding 层，见 [`api-conventions.md` §5.1](./api-conventions.md) 与 [`service-http-binding.md`](./service-http-binding.md)。
 
 ### 14.2 写频率控制 (Rate Limiting)
 - Events API 和 Sync Service 节点 SHOULD 基于 `actor_id` 与 `realm_id` 实施严格的并发和频率限制。

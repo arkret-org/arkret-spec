@@ -5,11 +5,12 @@
   },
   "suite": "circle_scope",
   "profile": "ak.profile.circle_conformance.v1",
-  "version": "2026-05-29",
+  "version": "2026-07-17",
   "covers_vectors": [
-    "ak.vector.circle.scope_rebind_and_admission.v1"
+    "ak.vector.circle.scope_rebind_and_admission.v1",
+    "ak.vector.circle.lifecycle_basis_and_archive_freshness.v1"
   ],
-  "description": "Machine-contract fixture for Circle effective_scope semantics. Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope and materialized object). Covers None->None, same-scope->same-scope, None->Some, Some->None, Some(A)->Some(B) rebind transitions plus negative cases. negative_cases also pin the accepted-Event / materialized-object closure: accepted Circle-scoped DataEvents MUST carry effective_scope, effective_scope MUST agree with scope_circle_id, the signed event_digest binds effective_scope, and content_encryption_floor=e2ee_required rejects plaintext content. See spec/v1/zh/models/circle.md §6.1 / §6.2 / §7 / §10.2.",
+  "description": "Machine-contract fixture for Circle effective_scope semantics and lifecycle basis evaluation. Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope and materialized object). Covers rebind transitions, DataEvent seal_ref and Control Move seal_basis evaluation, linear and concurrent archive, tombstone, restore barriers, and negative cases. See spec/v1/zh/models/circle.md §6.1 / §6.2 / §7 / §9.2 / §10.2.",
   "submit_payload_shape": {
     "description": "Actor-supplied input on ak.strand.create / ak.message.create / ak.morph.create / ak.relation.create / ak.space.* writes. MUST carry only scope_circle_id (id:circle | null). MUST NOT carry effective_scope.",
     "schema": {
@@ -192,6 +193,119 @@
       "expect_reducer_result": "failed_precondition",
       "reason": "scope_rebind_forbidden",
       "rebind_classification": "cross_circle"
+    }
+  ],
+  "lifecycle_basis_cases": [
+    {
+      "name": "data_event_basis_already_archived",
+      "event_plane": "data",
+      "evaluation_basis": "seal_ref",
+      "circle_state_at_basis": "archived",
+      "receiver_current_circle_state": "archived",
+      "expected": {
+        "result": "failed_precondition",
+        "reason": "circle_not_active"
+      }
+    },
+    {
+      "name": "linear_archive_within_freshness_window",
+      "event_plane": "data",
+      "evaluation_basis": "seal_ref",
+      "circle_state_at_basis": "active",
+      "observed_lifecycle_move": "ak.circle.archive",
+      "lifecycle_seal_relation": "descendant",
+      "distance_ms": 30000,
+      "revocation_freshness_window_ms": 60000,
+      "expected": {
+        "eligibility": "stale_eligible",
+        "allowed_results": [
+          "accept_stale",
+          "reject"
+        ],
+        "accepted_query_grade": "stale",
+        "must_not_reason": "circle_not_active"
+      }
+    },
+    {
+      "name": "linear_archive_beyond_freshness_window",
+      "event_plane": "data",
+      "evaluation_basis": "seal_ref",
+      "circle_state_at_basis": "active",
+      "observed_lifecycle_move": "ak.circle.archive",
+      "lifecycle_seal_relation": "descendant",
+      "distance_ms": 60001,
+      "revocation_freshness_window_ms": 60000,
+      "expected": {
+        "result": "reject_or_hide",
+        "reason": "stale_seal_ref"
+      }
+    },
+    {
+      "name": "open_set_concurrent_archive",
+      "event_plane": "data",
+      "notary_profile": "open_set",
+      "evaluation_basis": "joined_control_view",
+      "circle_state_at_seal_ref": "active",
+      "observed_lifecycle_move": "ak.circle.archive",
+      "lifecycle_seal_relation": "concurrent",
+      "joined_circle_state": "archived",
+      "expected": {
+        "result": "reject_or_hide",
+        "reason": "stale_seal_ref",
+        "freshness_window_applies": false
+      }
+    },
+    {
+      "name": "tombstone_is_immediate",
+      "event_plane": "data",
+      "evaluation_basis": "seal_ref",
+      "circle_state_at_basis": "active",
+      "observed_lifecycle_move": "ak.circle.tombstone",
+      "lifecycle_seal_relation": "descendant",
+      "distance_ms": 1,
+      "revocation_freshness_window_ms": 60000,
+      "expected": {
+        "result": "reject_or_hide",
+        "reason": "stale_seal_ref",
+        "freshness_window_applies": false
+      }
+    },
+    {
+      "name": "restore_does_not_rehabilitate_pre_archive_basis",
+      "event_plane": "data",
+      "evaluation_basis": "seal_ref",
+      "circle_state_at_basis": "active",
+      "observed_lifecycle_sequence": [
+        "ak.circle.archive",
+        "ak.circle.restore"
+      ],
+      "seal_ref_position": "before_archive",
+      "receiver_current_circle_state": "active",
+      "expected": {
+        "result": "reject_or_hide",
+        "reason": "stale_seal_ref",
+        "requires_new_basis_containing": "ak.circle.restore"
+      }
+    },
+    {
+      "name": "control_move_basis_active",
+      "event_plane": "control",
+      "evaluation_basis": "seal_basis_joined_view",
+      "circle_state_at_basis": "active",
+      "expected": {
+        "admission_result": "pending",
+        "seal_revalidation_basis": "frozen_predecessor_joined_governance_state"
+      }
+    },
+    {
+      "name": "control_move_basis_archived",
+      "event_plane": "control",
+      "evaluation_basis": "seal_basis_joined_view",
+      "circle_state_at_basis": "archived",
+      "expected": {
+        "result": "failed_precondition",
+        "reason": "circle_not_active"
+      }
     }
   ],
   "negative_cases": [

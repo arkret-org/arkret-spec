@@ -423,7 +423,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 
    **无 history-resolution method 的入册权威(normative，inline 快照 + controller proof)**:当入册权威 DID 是**无可验证历史 method**(典型 `did:web`——它只反映"当前 DID Document",一旦入册密钥轮换或 hosting domain 被劫持回填，旧 `ak.device.authorize` 既无法按时点解析当时的 verification method、也可被替换后的当前文档伪造复验)时，按时点解析不可用。此时设备授权事件 MUST 在 `enrollment_authority_binding` 中 **inline 携带签发时刻的 verification method 快照**(签名公钥 multibase / JWK + 其在入册权威 DID 文档中的 method id)以及**该 key 的 controller proof**(由入册权威 DID 当时的 controller key 对"该 verification method 属于本 DID 且获授签发设备授权"的签名)，使历史复验**只依赖事件内自带的快照 + controller proof**、不依赖对 `did:web` 当前文档的在线解析。receiver 复验时 MUST：(a) 用 inline 快照中的公钥验 `proofs[]`;(b) 验 controller proof 把该快照公钥链接到入册权威 DID 的 controller 集；(c) 校验 binding 的 `authority_did` / `authorization_ref` 与快照一致。缺失 inline 快照或 controller proof 的、由无 history-resolution method 入册权威签发的 `ak.device.authorize` MUST `reject`(reason `device_enrollment_authority_snapshot_missing`)。
 
-   作为该 inline-快照要求的替代，deployment policy MAY 直接**禁止 `did:web` 等无历史 method 作入册权威轮换**——要求入册权威在轮换前先按 [`identity-did.md` §4.2.2 / §5.0.5](./identity-did.md) 升级到 `did:webvh`,使按时点解析重新可用。v1 推荐前者(inline 快照 + controller proof)，因为它不强制所有托管 DID 部署升级 method。
+   作为该 inline-快照要求的替代，deployment policy MAY 直接**禁止 `did:web` 等无历史 method 作入册权威轮换**——要求入册权威在轮换前先按 [`identity-did.md` §4.2.2](./identity-did.md) 与本文 §5.0.5 升级到 `did:webvh`,使按时点解析重新可用。v1 推荐前者(inline 快照 + controller proof)，因为它不强制所有托管 DID 部署升级 method。
 
    > **schema 落地状态**：上述 inline 快照 + controller proof 已在 `device_enrollment_authority_binding`（[`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) `$defs/device_enrollment_authority_binding`）落地为可选字段 `authority_verification_method_snapshot {method_id, public_key_multibase|public_key_jwk, alg}` 与 `authority_controller_proof {controller_method_id, signature, signed_at}`；对应 fail-closed reason_code `device_enrollment_authority_snapshot_missing` 已登记于 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)。正文语义与 schema / error-code 均已同步。
 5. **provenance**:每条设备授权记录 MUST 记录其入册权威与来源(文档锚定 / 仅策略);联邦只采信文档锚定者。
@@ -936,6 +936,8 @@ E2EE Realm（effective `content_encryption_floor` 或 `metadata_encryption_floor
 - `ak.profile.personal_node.v1` MAY 允许用户在明确告知"丢失本设备将永久丢失该 Realm 内容"后**显式跳过**，并维持 / 标记 `single_point_of_failure=true`、持续提醒；`small_team` 及以上 deployment profile SHOULD 阻断创建 / 加入，直至 recovery policy 配置完成。
 - `ak.profile.personal_agent_provisioning.v1` 对 Native Personal Agent 收紧上一条例外：即使部署同时声明 `ak.profile.personal_node.v1`，controller 没有 accepted recovery policy 时 `ak.self.agent.command.provision` MUST 在产生 Agent DID / PCR / grant 副作用前 fail closed；Agent PCR bootstrap 后、§7.5.6 首份 controller-owned recovery envelope accepted 前，Agent 只能保持 `pending_runtime_key` 且 pairing commit MUST `agent_pcr_recovery_not_ready`。不得以 `single_point_of_failure=true`、服务端托管 MLS secret 或为 Agent 生成另一套助记词绕过。
 - 该前置门是客户端编排义务，不替代服务端的 floor ratchet 与 PCR 校验；它针对的是"加密材料先于恢复路径产生"的时间窗，而非加密本身是否启用。
+
+## 8. Recovery Policy
 
 高价值账号 SHOULD 支持门限恢复。Recovery policy 的规范形态由 `ak.schema.recovery_policy.v1`（`artifacts/schemas/recovery-policy.schema.json`）固定；本节内联 JSON 仅作示意，wire 实现 MUST 以 schema 为准。
 
