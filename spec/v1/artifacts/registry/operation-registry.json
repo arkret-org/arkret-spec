@@ -74,6 +74,7 @@
       "operations": [
         "ak.self.events.query.describe",
         "ak.self.events.command.submit",
+        "ak.self.events.command.submit_seal",
         "ak.self.events.resource.get",
         "ak.self.events.query.resolve",
         "ak.self.events.query.scan",
@@ -1413,6 +1414,18 @@
       "retry_safe": true,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome"
+    },
+    {
+      "operation_id": "ak.self.events.command.submit_seal",
+      "http": "POST /_arkret/self/events/seals",
+      "grpc": "SelfEvents/SubmitSeal",
+      "mq": "self.events.command.submit_seal",
+      "notes": "Submit a client-signed Seal for a visible Realm. B-model principal-control Seals are signed by the active authorized device; the first Seal must be signed by bootstrap device #1 and cover the complete bootstrap unit. The receiver recomputes the Seal id, coverage roots, state root, device generation and signature.",
+      "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "canonical_hash",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/seal.schema.json",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventSealSubmitOutcome"
     },
     {
       "operation_id": "ak.peer.events.query.describe",

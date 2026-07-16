@@ -2110,6 +2110,34 @@
       },
       "additionalProperties": false
     },
+    "EventSealSubmitOutcome": {
+      "type": "object",
+      "description": "Result of ak.self.events.command.submit_seal after full Seal and active-device verification.",
+      "required": [
+        "seal_id",
+        "accepted_event_digests",
+        "post_state_root"
+      ],
+      "properties": {
+        "seal_id": {
+          "type": "string",
+          "pattern": "^ak:seal:sha256:[0-9a-f]{64}$"
+        },
+        "accepted_event_digests": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "uniqueItems": true
+        },
+        "post_state_root": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
     "GrantList": {
       "type": "object",
       "properties": {

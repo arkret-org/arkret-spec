@@ -103,6 +103,7 @@
           "hpke_key",
           "algorithms",
           "actor_seq",
+          "bootstrap_create_event_id",
           "not_before"
         ],
         "closed": true
@@ -2679,6 +2680,63 @@
           "realm_frontier",
           "cursor",
           "original_outcome"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.events.command.submit_seal",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/seal.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "id",
+          "realm_id",
+          "predecessor_refs",
+          "delta",
+          "control_event_set_root",
+          "state_root",
+          "completeness_root",
+          "notary_seq",
+          "notary_signature",
+          "sealed_at",
+          "hlc"
+        ],
+        "properties": [
+          "id",
+          "realm_id",
+          "predecessor_refs",
+          "delta",
+          "control_event_set_root",
+          "state_root",
+          "completeness_root",
+          "notary_seq",
+          "data_view_root",
+          "data_event_set_root",
+          "availability_root",
+          "coverage_scope",
+          "covered_event_digests",
+          "previous_state_root",
+          "previous_digest_algorithm",
+          "notary_signature",
+          "sealed_at",
+          "hlc"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventSealSubmitOutcome",
+        "schema_kind": "object",
+        "required": [
+          "seal_id",
+          "accepted_event_digests",
+          "post_state_root"
+        ],
+        "properties": [
+          "seal_id",
+          "accepted_event_digests",
+          "post_state_root"
         ],
         "closed": true
       }

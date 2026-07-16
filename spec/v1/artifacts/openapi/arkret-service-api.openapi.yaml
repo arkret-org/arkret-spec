@@ -3805,6 +3805,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsFrontierState'
+  /_arkret/self/events/seals:
+    post:
+      operationId: ak.self.events.command.submit_seal
+      security:
+      - bearerAuth: []
+      summary: Submit a current-device-signed Seal for a visible Realm.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/seal.schema.json
+      responses:
+        '200':
+          description: Seal accepted or idempotently observed
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventSealSubmitOutcome
   /_arkret/self/events/mls-governance-proof:
     post:
       operationId: ak.self.events.query.mls_governance_proof

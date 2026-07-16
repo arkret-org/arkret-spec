@@ -561,13 +561,43 @@
         },
         "actor_seq": {
           "type": "integer",
-          "minimum": 0,
+          "minimum": 1,
           "description": "Next actor_seq on the principal control stream (highest accepted + 1), observed by the client."
+        },
+        "bootstrap_create_event_id": {
+          "$ref": "#/$defs/event_id",
+          "description": "Event id of the root-signed ak.realm.create that immediately precedes the authority-signed authorize in the atomic first-device bootstrap unit. REQUIRED when actor_seq is 1 and MUST be omitted otherwise; the authority copies it as the authorize Event's sole prev_refs entry."
         },
         "not_before": {
           "$ref": "#/$defs/timestamp"
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "actor_seq": {
+                "const": 1
+              }
+            },
+            "required": [
+              "actor_seq"
+            ]
+          },
+          "then": {
+            "required": [
+              "bootstrap_create_event_id"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "bootstrap_create_event_id"
+              ]
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "account_device_enroll_outcome": {

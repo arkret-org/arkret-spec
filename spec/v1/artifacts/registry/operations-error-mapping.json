@@ -665,6 +665,16 @@
       "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these codes. ak.invite.claim-specific reducer reasons remain internal/audit-facing when exposed through non-enumerable invite claim flows."
     },
     {
+      "operation_id": "ak.self.events.command.submit_seal",
+      "http_alias": "POST /_arkret/self/events/seals",
+      "operation_specific": [
+        "device_generation_fenced",
+        "frontier_unavailable",
+        "state_mismatch"
+      ],
+      "description": "Client-signed Seal submission. The receiver recomputes coverage/state roots and rejects stale generation, signer/session mismatch, partial bootstrap coverage, or frontier races."
+    },
+    {
       "operation_id": "ak.peer.events.query.describe",
       "http_alias": "GET /_arkret/peer/events/describe",
       "operation_specific": [],
