@@ -12,6 +12,7 @@ are no longer copied into the prose tree. The site renders them directly.
 
 from __future__ import annotations
 
+import copy
 import json
 import base64
 import hashlib
@@ -20,6 +21,8 @@ import sys
 import warnings
 from pathlib import Path
 from typing import Any, Iterable
+
+from reducer_profile_digest import content_digest, materialize_registry
 
 try:
     import yaml
@@ -5238,6 +5241,99 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
     )
 
 
+def check_reducer_profile_digest_closure(lint: Lint) -> None:
+    path = ARTIFACTS / "registry" / "reducer-profile-registry.json"
+    registry = load_json(lint, path)
+    if not isinstance(registry, dict):
+        return
+    try:
+        expected = materialize_registry(registry)
+    except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+        lint.fail(path, f"cannot resolve reducer profile semantic closure: {exc}")
+        return
+    if registry != expected:
+        lint.fail(path, "generated reducer profile semantic closure is stale")
+        return
+    rows = registry.get("profiles", [])
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            continue
+        resolved = row.get("resolved_digest_input")
+        digest = row.get("reducer_profile_digest")
+        if not isinstance(resolved, dict) or digest != content_digest(resolved):
+            lint.fail(path, f"profiles[{index}] reducer_profile_digest does not bind resolved_digest_input")
+
+    fixture_path = ARTIFACTS / "fixtures" / "federation-fixture.json"
+    fixture = load_json(lint, fixture_path)
+    if not isinstance(fixture, dict):
+        return
+    cases = fixture.get("cases", [])
+    digest_case = next(
+        (
+            case
+            for case in cases
+            if isinstance(case, dict)
+            and case.get("vector_id") == "ak.vector.federation.reducer_profile_digest.v1"
+            and case.get("name") == "reducer_profile_digest_federation_minimal"
+        ),
+        None,
+    )
+    profile_row = next(
+        (
+            row
+            for row in rows
+            if isinstance(row, dict)
+            and row.get("profile_id") == "ak.profile.federation_minimal.v1"
+        ),
+        None,
+    )
+    if not isinstance(digest_case, dict) or not isinstance(profile_row, dict):
+        lint.fail(fixture_path, "missing federation-minimal reducer profile digest vector case")
+        return
+    baseline = profile_row.get("resolved_digest_input")
+    baseline_digest = profile_row.get("reducer_profile_digest")
+    if digest_case.get("expected_digest") != baseline_digest:
+        lint.fail(fixture_path, "reducer profile vector expected_digest differs from generated registry")
+    if not isinstance(baseline, dict) or not isinstance(baseline_digest, str):
+        return
+
+    event_mutation = copy.deepcopy(baseline)
+    event_contracts = event_mutation.get("event_kind_contracts", [])
+    event_row = next(
+        (item for item in event_contracts if item.get("event_kind") == "ak.realm.create"),
+        None,
+    )
+    schema_mutation = copy.deepcopy(baseline)
+    schema_contracts = schema_mutation.get("schema_contracts", [])
+    schema_row = next(
+        (item for item in schema_contracts if item.get("schema_id") == "ak.schema.event.v1"),
+        None,
+    )
+    zero_digest = "sha256:" + "0" * 64
+    if not isinstance(event_row, dict) or not isinstance(schema_row, dict):
+        lint.fail(fixture_path, "reducer profile mutation targets do not resolve")
+        return
+    event_row["content_digest"] = zero_digest
+    schema_row["document_digest"] = zero_digest
+    if content_digest(event_mutation) == baseline_digest:
+        lint.fail(fixture_path, "event-kind contract mutation did not change reducer profile digest")
+    if content_digest(schema_mutation) == baseline_digest:
+        lint.fail(fixture_path, "schema document mutation did not change reducer profile digest")
+
+    def reverse_object_order(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {
+                key: reverse_object_order(value[key])
+                for key in reversed(list(value.keys()))
+            }
+        if isinstance(value, list):
+            return [reverse_object_order(item) for item in value]
+        return value
+
+    if content_digest(reverse_object_order(baseline)) != baseline_digest:
+        lint.fail(fixture_path, "canonical object key reordering changed reducer profile digest")
+
+
 def check_text_files_utf8_no_nul(lint: Lint) -> None:
     """Reject binary-corrupted text contract files.
 
@@ -6548,6 +6644,7 @@ def main() -> int:
     check_cross_doc_anchors(lint)
     check_openapi_no_floating_number(lint)
     check_canonical_digest_fixtures(lint)
+    check_reducer_profile_digest_closure(lint)
     check_field_order(lint)
     check_model_required_field_table_coverage(lint)
     check_exporter_label_registry(lint)

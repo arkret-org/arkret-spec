@@ -233,17 +233,24 @@ Signature: sig1=:base64...:
 | `service_binding_ref.delivery_binding_frontier` | body | `id[]` | required | 发送方解析投递目标时所依据的 member delivery binding 因果前沿。接收方 MUST 校验该前沿在自己的 Realm 视图中可达，且对应到当前 effective `delivery_binding.recipient_service_id = Destination-Service-ID`。前沿落后于当前接收方 binding（接收方已收到 rebind handover frontier `F` 而 sender 仍按旧 binding 投递）时，接收方 MUST 返回 `delivery_binding_stale` 并在响应中带回 `new_recipient_service_id` 与 `handover_frontier`，sender 切到新目标后重试。 |
 | `service_binding_ref.delivery_binding_diagnostics` | body | `object` | optional | 纯诊断字段。可携带 `basis: ["member_delivery_binding"\|"realm_sync_endpoint"]` 等本次投递的来源标签，便于排查；不得替代接收方独立校验。 |
 | `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
-| `service_binding_ref.reducer_profile_digest` | body | `sha256:<hash>` | required | 发送方在此 Realm 使用的 reducer profile canonical digest。计算规则见下文 `reducer_profile_digest` 计算规则，输入对象来自 [`reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json) 对应 `profile_id` 的 `digest_input`。接收方 MUST 与自己的 reducer profile digest 比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免了同一 Event 在两端 reducer 下产生不同 cell 状态、state_root 或 covered_seals，进而被 idempotent 接受却不可重放的隐性失败。 |
+| `service_binding_ref.reducer_profile_digest` | body | `sha256:<hash>` | required | 发送方在此 Realm 使用的 reducer profile 内容寻址摘要。计算规则见下文；输入对象是从 [`reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json) 对应 `profile_id` 的声明及本地 reducer 契约内容独立重建的 `resolved_digest_input`。接收方 MUST 独立重建并比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免同一 Event 因 registry、schema、fixture 或 lattice/reducer 规范内容不同而在两端产生不同 cell 状态、state_root 或 covered_seals。 |
 
 #### `reducer_profile_digest` 计算规则（normative）
 
-`reducer_profile_digest` 的唯一机器可读源是 [`artifacts/registry/reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json)。发送方 MUST 选取目标 Realm 声明的 reducer profile `profile_id` 对应 registry row，并只对该 row 的 `digest_input` 对象计算 digest：
+`reducer_profile_digest` 的 profile 声明源是 [`artifacts/registry/reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json)。发送方与接收方 MUST 选取目标 Realm 声明的 `profile_id`，从该 row 的 `digest_input` 声明独立重建 `resolved_digest_input`，不得直接信任 registry 中预生成的内容摘要。重建算法如下：
+
+1. 递归展开 `inherits[]`，按 `profile_id` 排序收集传递闭包内的完整 profile 声明；外部 conformance profile 从 `conformance-profiles.json#/profile_requirements` 解析。
+2. 对闭包中 `required_event_kinds[]` 的每个 kind，取本地 `event-kind-registry.json` 完整 row 的 canonical JSON SHA-256；这会绑定 `plane`、`cell_writes[]`、lattice、bottom 与 admission 元数据，而不是只绑定 kind 名。
+3. 对闭包中 `required_schemas[]` 的每个 schema，同时摘要本地 `schema-registry.json` row 与其 `file` 指向的完整 JSON Schema canonical 内容。
+4. 对 `required_fixtures[]` 摘要 fixture 的 canonical 语义投影。为避免自引用，投影 MUST 移除 `vector_id = ak.vector.federation.reducer_profile_digest.v1` 的 case，以及键名包含 `reducer_profile_digest` 的输出字段；其余内容 MUST 保留。
+5. 对 `reducer_contract_refs[]` 去重排序并摘要实际引用内容：JSON 引用按 JSON Pointer 选中值后 canonicalize；Markdown 按 UTF-8、LF 换行摘要。为避免生成输出自引用，仅在含 `reducer_profile_digest` 字样的行内把 `sha256:<64 lowercase hex>` 规范化为字面量 `sha256:<digest>`；其他 SHA-256 字面量仍属于被绑定内容。`event-kind-registry.json` 裸引用由第 2 步的 required-kind 精确投影替代，避免无关 kind 改动改变本 profile。
+6. `resolved_digest_input` MUST 恰由 `profile_id`、`profile_declarations[]`、`event_kind_contracts[]`、`schema_contracts[]`、`fixture_contracts[]`、`reducer_contracts[]` 六个字段组成；各集合按其稳定标识符升序排列。registry row 中的同名对象与 `reducer_profile_digest` 是生成的审计缓存，接收方仍 MUST 从本地内容重建后再使用。
 
 ```text
-reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest_input)))
+reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolved_digest_input)))
 ```
 
-其中 `canonical_json` 是 [`encoding.md` §2](../conformance/encoding.md) 的 Arkret canonical JSON。`digest_input` 对象本身包含 profile 继承、required / rejected event-kind 集、schema / fixture / lattice 约束以及对应规范源引用；实现不得改用本地配置对象、ServiceDescribe 摘要或手写 `{domain, profile}` 对象来计算此字段。
+其中 `canonical_json` 是 [`encoding.md` §2](../conformance/encoding.md) 的 Arkret canonical JSON。实现不得只摘要名称/路径列表，也不得改用本地配置对象、ServiceDescribe 摘要或手写 `{domain, profile}` 对象。
 
 接收方 MUST 用同一 registry 规则重算自己在该 Realm 上实际执行的 reducer profile digest，并与请求字段逐字节比对。缺少 registry row、profile_id 未声明、canonicalization 不支持、digest suite 不是 active `sha256`，或重算结果不一致，均 MUST fail closed；对于 `POST /_arkret/peer/events`，失败结果是整批拒绝并返回 `reducer_profile_mismatch`，不得 partial accept。
 
@@ -265,7 +272,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest
       "basis": ["member_delivery_binding"]
     },
     "destination_service_type": "principal_server",
-    "reducer_profile_digest": "sha256:d7a0d88d075240c9faf28c87b54708788cde1c6a1c4e68c45ee6c8b7e4d3c651"
+    "reducer_profile_digest": "sha256:76135ead092ef4561f8e0b92ff49dd48a11184135859ce0a64b4238333a087fc"
   },
   "events": [
     {

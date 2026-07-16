@@ -4390,21 +4390,21 @@ Expected：
 
 `vector_id`: `ak.vector.federation.reducer_profile_digest.v1`
 
-本向量固化 [`federation.md`](../sync/federation.md) §4.1.1 的 `service_binding_ref.reducer_profile_digest` 计算规则与不一致时的整批拒绝语义。计算物唯一来源是 [`reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json) 对应 `profile_id` row 的 `digest_input` 对象；canonical 编码按 [`encoding.md`](encoding.md) §2 的 Arkret canonical JSON。执行数据见 [`federation-fixture.json`](../../artifacts/fixtures/federation-fixture.json) 的 `reducer_profile_digest_federation_minimal` 与 `reducer_profile_mismatch` 两个 case。
+本向量固化 [`federation.md`](../sync/federation.md) §4.1.1 的内容寻址 `service_binding_ref.reducer_profile_digest` 计算规则与不一致时的整批拒绝语义。计算物是从本地 profile 声明、event-kind row、schema、fixture 语义投影及 reducer contract 实际内容独立重建的 `resolved_digest_input`；canonical 编码按 [`encoding.md`](encoding.md) §2。执行数据见 [`federation-fixture.json`](../../artifacts/fixtures/federation-fixture.json) 的两个 case。
 
 Steps：
 
-- **Case A — 计算正路径**：取 fixture case `reducer_profile_digest_federation_minimal` 的 `canonical_input`（即 registry 中 `ak.profile.federation_minimal.v1` row 的 `digest_input`），计算 `"sha256:" || lowercase_hex(sha256(canonical_json(digest_input)))`，与 `expected_digest` 逐字节比对。
+- **Case A — 计算与内容变异**：按 `resolved_digest_input_source` 从本地契约重建 `ak.profile.federation_minimal.v1` 的闭包，计算 `"sha256:" || lowercase_hex(sha256(canonical_json(resolved_digest_input)))`。随后逐项执行 `mutation_cases[]`：改变 required event-kind row 摘要或 required schema 文档摘要 MUST 改变结果；只改变对象插入顺序 MUST 不改变结果。
 - **Case B — 不一致整批拒绝**：按 fixture case `reducer_profile_mismatch` 构造 `POST /_arkret/peer/events` 批次，sender 声明的 `service_binding_ref.reducer_profile_digest` 与 receiver 对同一 Realm 重算结果不一致。
 
 Expected：
 
-- **Case A**：实现重算结果 MUST 等于 `expected_digest`（`sha256:1fa83b8ca1719c604c298d83e89b0456f3af5ed1382cf8dcb025b074a34e0109`）；实现 MUST 以 registry row 的 `digest_input` 为唯一计算物，不得改用本地配置对象、ServiceDescribe 摘要或手写 `{domain, profile}` 对象。
+- **Case A**：实现重算结果 MUST 等于 `expected_digest`（`sha256:76135ead092ef4561f8e0b92ff49dd48a11184135859ce0a64b4238333a087fc`）；内容变异与 key-order 变异结果 MUST 分别符合 fixture。只摘要 `digest_input` 名称/路径列表即判失败。
 - **Case B**：receiver MUST 整批拒绝并返回 `reducer_profile_mismatch`，MUST NOT partial accept；缺少 registry row、`profile_id` 未声明、canonicalization 不支持或 digest suite 非 active `sha256` 时同样 MUST fail closed。
 
 失败条件：
 
-- Case A 重算值与 `expected_digest` 不符，或实现以非 registry `digest_input` 的对象作为计算物仍得到"匹配"结论。
+- Case A 重算值与 `expected_digest` 不符，内容变异未改变摘要、key-order 变异改变摘要，或实现未从本地契约内容独立重建闭包。
 - Case B 出现 partial accept，或拒绝时返回 `reducer_profile_mismatch` 之外的可区分错误形态。
 
 ## 16. Streaming Chunked AEAD Attachment Vectors

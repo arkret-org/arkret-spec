@@ -37,6 +37,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from reducer_profile_digest import materialize_registry
+
 ROOT = Path(__file__).resolve().parents[1]
 SPEC_ROOT = ROOT / "spec" / "v1"
 ARTIFACTS = SPEC_ROOT / "artifacts"
@@ -50,6 +52,7 @@ COMPLETENESS_REPORT_SCRIPT = Path(__file__).with_name("gen_operation_completenes
 SITE_META_PATH = ROOT / "site" / "src" / "lib" / "site-meta.ts"
 PUBLIC_V1 = ROOT / "site" / "public" / "v1"
 OPERATION_SCHEMA_INDEX_PATH = ARTIFACTS / "reports" / "operation-schema-index.json"
+REDUCER_PROFILE_REGISTRY_PATH = REGISTRY / "reducer-profile-registry.json"
 
 
 def load_json(path: Path) -> Any:
@@ -315,6 +318,15 @@ def write_operation_schema_index() -> None:
     print(f"updated {OPERATION_SCHEMA_INDEX_PATH.relative_to(ROOT).as_posix()}")
 
 
+def write_reducer_profile_registry() -> None:
+    current = load_json(REDUCER_PROFILE_REGISTRY_PATH)
+    materialized = materialize_registry(current)
+    REDUCER_PROFILE_REGISTRY_PATH.write_text(
+        dump_json(materialized), encoding="utf-8", newline="\n"
+    )
+    print(f"updated {REDUCER_PROFILE_REGISTRY_PATH.relative_to(ROOT).as_posix()}")
+
+
 def write_public_catalog_snapshot() -> None:
     canonical_bytes = CONTRACT_CATALOG_PATH.read_bytes()
     PUBLIC_V1.mkdir(parents=True, exist_ok=True)
@@ -356,6 +368,19 @@ def check_operation_schema_index() -> list[str]:
     return errors
 
 
+def check_reducer_profile_registry() -> list[str]:
+    current = load_json(REDUCER_PROFILE_REGISTRY_PATH)
+    expected = dump_json(materialize_registry(current))
+    actual = REDUCER_PROFILE_REGISTRY_PATH.read_text(encoding="utf-8")
+    if actual == expected:
+        return []
+    return [
+        "reducer profile digest closure drift: "
+        f"{REDUCER_PROFILE_REGISTRY_PATH.relative_to(ROOT).as_posix()} "
+        "(run python tools/artifact_pipeline.py generate)"
+    ]
+
+
 def run_lint() -> int:
     result = subprocess.run([sys.executable, str(LINT_SCRIPT)], cwd=ROOT)
     return result.returncode
@@ -381,6 +406,7 @@ def run_operation_completeness_report(mode: str) -> int:
 def cmd_generate(_: argparse.Namespace) -> int:
     write_generated_registries()
     write_operation_schema_index()
+    write_reducer_profile_registry()
     completeness_status = run_operation_completeness_report("generate")
     print_contract_status()
     return completeness_status
@@ -389,6 +415,7 @@ def cmd_generate(_: argparse.Namespace) -> int:
 def cmd_check(_: argparse.Namespace) -> int:
     errors = check_generated_registries()
     errors.extend(check_operation_schema_index())
+    errors.extend(check_reducer_profile_registry())
     if errors:
         for error in errors:
             print(error, file=sys.stderr)

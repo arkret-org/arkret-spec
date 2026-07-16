@@ -1,10 +1,10 @@
 {
-  "version": "2026-06-11",
+  "version": "2026-07-16",
   "source_of_truth": true,
-  "description": "Canonical reducer profile definitions used to compute federation service_binding_ref.reducer_profile_digest. Each digest is SHA-256 over the Arkret canonical JSON bytes of the row's digest_input object.",
+  "description": "Canonical reducer profile declarations and generated content-addressed semantic closures used for federation service_binding_ref.reducer_profile_digest.",
   "canonicalization": "json_jcs",
   "digest_suite": "sha256",
-  "digest_input_rule": "Resolve the row whose profile_id equals the Realm reducer profile, take digest_input exactly as published in this registry, canonicalize it with zh/conformance/encoding.md section 2 canonical JSON, hash the resulting UTF-8 bytes with SHA-256, and encode as sha256:<lowercase_hex>.",
+  "digest_input_rule": "Resolve the selected profile and its transitive inherits closure; independently rebuild resolved_digest_input from the declared event kinds, schemas, fixtures, and reducer contract references using tools/reducer_profile_digest.py semantics; canonicalize that resolved object with Arkret canonical JSON; hash its UTF-8 bytes with SHA-256; encode as sha256:<lowercase_hex>.",
   "profiles": [
     {
       "profile_id": "ak.profile.core_event_store.v1",
@@ -60,7 +60,143 @@
           "counter",
           "ordered_log"
         ]
-      }
+      },
+      "resolved_digest_input": {
+        "profile_id": "ak.profile.core_event_store.v1",
+        "profile_declarations": [
+          {
+            "profile_id": "ak.profile.core_event_store.v1",
+            "inherits": [],
+            "required_event_kinds": [
+              "ak.realm.create",
+              "ak.member.state"
+            ],
+            "rejected_event_kind_scopes": [
+              "wire_scope:actor_private_event",
+              "wire_scope:ephemeral_event"
+            ],
+            "required_schemas": [
+              "ak.schema.event.v1",
+              "ak.schema.event_payload.v1",
+              "ak.schema.event_batch_receipt.v1",
+              "ak.schema.availability_receipt.v1",
+              "ak.schema.cursor.v1",
+              "ak.schema.seal.v1"
+            ],
+            "required_constraint_types": [
+              "temporal",
+              "field_access",
+              "type_restriction",
+              "scope_limitation",
+              "delegation_control",
+              "quota"
+            ],
+            "required_constraint_subtypes": [
+              "rate"
+            ],
+            "required_fixtures": [
+              "encoding-fixture.json",
+              "crypto-signature-fixture.json",
+              "event-envelope-negative-fixture.json",
+              "sync-fixture.json"
+            ],
+            "reducer_contract_refs": [
+              "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.core_event_store.v1",
+              "artifacts/registry/event-kind-registry.json",
+              "artifacts/registry/capability-action-registry.json",
+              "zh/authz/event-auth-state-resolution.md",
+              "zh/conformance/encoding.md"
+            ],
+            "lattice_types": [
+              "or_set",
+              "mv_register",
+              "cas_register",
+              "fsm",
+              "counter",
+              "ordered_log"
+            ]
+          }
+        ],
+        "event_kind_contracts": [
+          {
+            "event_kind": "ak.member.state",
+            "content_digest": "sha256:8cf9ca7d6b41fe44403429d001582a5151b14b90d379542bd0a6b28b8f3077f0"
+          },
+          {
+            "event_kind": "ak.realm.create",
+            "content_digest": "sha256:e9dc8ceaac180af4a59886263dadc3018997b8ce04a313cf3dbcf6b3994a9b12"
+          }
+        ],
+        "schema_contracts": [
+          {
+            "schema_id": "ak.schema.availability_receipt.v1",
+            "registry_row_digest": "sha256:927852e3eb162e89db0caab8857b8495d10e2d5cae6bcf60debabe556b08db73",
+            "document_digest": "sha256:e1b2732aaaca6d9699845f3d296cc1e901057f862f2c4eff3e0a6e6b762be93e"
+          },
+          {
+            "schema_id": "ak.schema.cursor.v1",
+            "registry_row_digest": "sha256:e607ed52043b09d7e385bded7acf2bc7fc9164214a7d91beb338e97e04c9d34a",
+            "document_digest": "sha256:9b1264f131cce0a51b2dfd0f5c3cd0de3370619c315fbe6097bc24485f46a6ad"
+          },
+          {
+            "schema_id": "ak.schema.event.v1",
+            "registry_row_digest": "sha256:9be92d949aef947b3cbb58b6dcf953491e9226f1403416b9fc9cc347a79e288e",
+            "document_digest": "sha256:41baf0dcfe0d42f6435f37df6641609659b2136d26ae0ae7c8e5d22c644ac4c1"
+          },
+          {
+            "schema_id": "ak.schema.event_batch_receipt.v1",
+            "registry_row_digest": "sha256:bfd37162eab6705beb1f7b26a690ee884fae1bdfc7e52f434e91753ecdb951fd",
+            "document_digest": "sha256:b5b86d4ec4180942aa5ae8bddd9c62183761eb11e45071fc732a141cfa1a600f"
+          },
+          {
+            "schema_id": "ak.schema.event_payload.v1",
+            "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
+            "document_digest": "sha256:8caf1afec377be3b019335cae9ec4e4297d3c236a45e9676b18429401b05b4d5"
+          },
+          {
+            "schema_id": "ak.schema.seal.v1",
+            "registry_row_digest": "sha256:4b17c3950e8f30d97177ce299279f03acfdf2ba76f756c136763a76b48977b98",
+            "document_digest": "sha256:58660b4711d9f7fde32bd4ebe9585138d237e87ddd437ce36cd3e5c68de2f7b6"
+          }
+        ],
+        "fixture_contracts": [
+          {
+            "fixture": "crypto-signature-fixture.json",
+            "semantic_projection_digest": "sha256:337edd29d2a71543659e76eb4b06900409594800f58308f6f56b581f7eea6524"
+          },
+          {
+            "fixture": "encoding-fixture.json",
+            "semantic_projection_digest": "sha256:c88ac917fcb68a5bf9f60d94d78a7dd08ed4b5410738b4ac314c17be58890aab"
+          },
+          {
+            "fixture": "event-envelope-negative-fixture.json",
+            "semantic_projection_digest": "sha256:0838c657cab2006eedd13376e50502de2b44fc5bbf890eec275cbfc4f499db47"
+          },
+          {
+            "fixture": "sync-fixture.json",
+            "semantic_projection_digest": "sha256:b1cd174dfa6af6a5221ac0007afe89f5e97cd849e1ab39cb1b7e6002d63e0f7b"
+          }
+        ],
+        "reducer_contracts": [
+          {
+            "ref": "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.core_event_store.v1",
+            "content_digest": "sha256:bfdd65102c01a7a958b5358d9ac206d4eb1794102d7c40132e5c86fdca35de4b"
+          },
+          {
+            "ref": "artifacts/registry/capability-action-registry.json",
+            "content_digest": "sha256:95136215ae3e88a8859cc0fe4499f1010659be341af38db92efa3818e531f603"
+          },
+          {
+            "ref": "zh/authz/event-auth-state-resolution.md",
+            "content_digest": "sha256:4e0663cc9d91ff0171ba11d3e91aacfa3d373e0828c3f6cc73ab1b0d3635d84f"
+          },
+          {
+            "ref": "zh/conformance/encoding.md",
+            "content_digest": "sha256:df58ea6707e7c6095cba4c4b912ecc7404ccb786961af35b3d049f290f565bec"
+          }
+        ]
+      },
+      "reducer_profile_digest": "sha256:7c8a399f958b2e1b276ca8a49219dc0c8c01af32488743e2b2e34cf4bf9b2711"
     },
     {
       "profile_id": "ak.profile.chat_mvp.v1",
@@ -116,7 +252,275 @@
           "fsm",
           "ordered_log"
         ]
-      }
+      },
+      "resolved_digest_input": {
+        "profile_id": "ak.profile.chat_mvp.v1",
+        "profile_declarations": [
+          {
+            "profile_id": "ak.profile.chat_mvp.v1",
+            "inherits": [
+              "ak.profile.core_event_store.v1"
+            ],
+            "required_event_kinds": [
+              "ak.realm.create",
+              "ak.member.state",
+              "ak.strand.create",
+              "ak.message.create",
+              "ak.message.revise",
+              "ak.message.redact",
+              "ak.reaction.add",
+              "ak.reaction.remove",
+              "ak.redaction"
+            ],
+            "rejected_event_kind_scopes": [],
+            "required_schemas": [
+              "ak.schema.realm.v1",
+              "ak.schema.strand.v1",
+              "ak.schema.message.v1",
+              "ak.schema.account_subscribe_frame.v1"
+            ],
+            "required_constraint_types": [
+              "temporal"
+            ],
+            "required_constraint_subtypes": [
+              "edit_window"
+            ],
+            "required_fixtures": [
+              "sync-fixture.json",
+              "redaction-fixture.json",
+              "reaction-fixture.json",
+              "cba-lattice-fixture.json",
+              "privacy-security-fixture.json"
+            ],
+            "reducer_contract_refs": [
+              "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.chat_mvp.v1",
+              "artifacts/registry/event-kind-registry.json",
+              "artifacts/registry/capability-action-registry.json",
+              "artifacts/registry/relation-kind-registry.json",
+              "zh/models/strand-and-message.md",
+              "zh/conformance/conformance-vectors.md"
+            ],
+            "lattice_types": [
+              "or_set",
+              "mv_register",
+              "cas_register",
+              "fsm",
+              "ordered_log"
+            ]
+          },
+          {
+            "profile_id": "ak.profile.core_event_store.v1",
+            "inherits": [],
+            "required_event_kinds": [
+              "ak.realm.create",
+              "ak.member.state"
+            ],
+            "rejected_event_kind_scopes": [
+              "wire_scope:actor_private_event",
+              "wire_scope:ephemeral_event"
+            ],
+            "required_schemas": [
+              "ak.schema.event.v1",
+              "ak.schema.event_payload.v1",
+              "ak.schema.event_batch_receipt.v1",
+              "ak.schema.availability_receipt.v1",
+              "ak.schema.cursor.v1",
+              "ak.schema.seal.v1"
+            ],
+            "required_constraint_types": [
+              "temporal",
+              "field_access",
+              "type_restriction",
+              "scope_limitation",
+              "delegation_control",
+              "quota"
+            ],
+            "required_constraint_subtypes": [
+              "rate"
+            ],
+            "required_fixtures": [
+              "encoding-fixture.json",
+              "crypto-signature-fixture.json",
+              "event-envelope-negative-fixture.json",
+              "sync-fixture.json"
+            ],
+            "reducer_contract_refs": [
+              "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.core_event_store.v1",
+              "artifacts/registry/event-kind-registry.json",
+              "artifacts/registry/capability-action-registry.json",
+              "zh/authz/event-auth-state-resolution.md",
+              "zh/conformance/encoding.md"
+            ],
+            "lattice_types": [
+              "or_set",
+              "mv_register",
+              "cas_register",
+              "fsm",
+              "counter",
+              "ordered_log"
+            ]
+          }
+        ],
+        "event_kind_contracts": [
+          {
+            "event_kind": "ak.member.state",
+            "content_digest": "sha256:8cf9ca7d6b41fe44403429d001582a5151b14b90d379542bd0a6b28b8f3077f0"
+          },
+          {
+            "event_kind": "ak.message.create",
+            "content_digest": "sha256:1b451438667e319678307c8fefd2620d9f4d8a9fe91d79e8ecfc5335e3204db9"
+          },
+          {
+            "event_kind": "ak.message.redact",
+            "content_digest": "sha256:dc4edb76aeed6c6df95e85b7cb43d594270543ed182bc752a7ff1647bcbaf1aa"
+          },
+          {
+            "event_kind": "ak.message.revise",
+            "content_digest": "sha256:31f2e5139d00f57190fce118c42259109ec8703f9f1c038134f7465939fed58b"
+          },
+          {
+            "event_kind": "ak.reaction.add",
+            "content_digest": "sha256:4e4c996c9c99ac1980cec1c4bf9bdcf510f8544c8634ba92497a7279925a80f6"
+          },
+          {
+            "event_kind": "ak.reaction.remove",
+            "content_digest": "sha256:c7b2b21d6e6c0c7d46cc8f143414a2285bf74d4163dcaa3b28ef71c9d6ed7975"
+          },
+          {
+            "event_kind": "ak.realm.create",
+            "content_digest": "sha256:e9dc8ceaac180af4a59886263dadc3018997b8ce04a313cf3dbcf6b3994a9b12"
+          },
+          {
+            "event_kind": "ak.redaction",
+            "content_digest": "sha256:fbe4c703ec76fc45dbd0d1017c3fdd90393c4508440e194ecd35027baaf1d83a"
+          },
+          {
+            "event_kind": "ak.strand.create",
+            "content_digest": "sha256:00853cdab74641fd3522f27fb932cb0ab8201a25920a10810f4c753c94b908c7"
+          }
+        ],
+        "schema_contracts": [
+          {
+            "schema_id": "ak.schema.account_subscribe_frame.v1",
+            "registry_row_digest": "sha256:a0e273117f740d49131509230c5c92d0d77d394f67df25e33d0b07032af6245e",
+            "document_digest": "sha256:1c4f9cc83d78cae6c50ce948cb0ce181ca6c7c9832248c73e27810fe7153db28"
+          },
+          {
+            "schema_id": "ak.schema.availability_receipt.v1",
+            "registry_row_digest": "sha256:927852e3eb162e89db0caab8857b8495d10e2d5cae6bcf60debabe556b08db73",
+            "document_digest": "sha256:e1b2732aaaca6d9699845f3d296cc1e901057f862f2c4eff3e0a6e6b762be93e"
+          },
+          {
+            "schema_id": "ak.schema.cursor.v1",
+            "registry_row_digest": "sha256:e607ed52043b09d7e385bded7acf2bc7fc9164214a7d91beb338e97e04c9d34a",
+            "document_digest": "sha256:9b1264f131cce0a51b2dfd0f5c3cd0de3370619c315fbe6097bc24485f46a6ad"
+          },
+          {
+            "schema_id": "ak.schema.event.v1",
+            "registry_row_digest": "sha256:9be92d949aef947b3cbb58b6dcf953491e9226f1403416b9fc9cc347a79e288e",
+            "document_digest": "sha256:41baf0dcfe0d42f6435f37df6641609659b2136d26ae0ae7c8e5d22c644ac4c1"
+          },
+          {
+            "schema_id": "ak.schema.event_batch_receipt.v1",
+            "registry_row_digest": "sha256:bfd37162eab6705beb1f7b26a690ee884fae1bdfc7e52f434e91753ecdb951fd",
+            "document_digest": "sha256:b5b86d4ec4180942aa5ae8bddd9c62183761eb11e45071fc732a141cfa1a600f"
+          },
+          {
+            "schema_id": "ak.schema.event_payload.v1",
+            "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
+            "document_digest": "sha256:8caf1afec377be3b019335cae9ec4e4297d3c236a45e9676b18429401b05b4d5"
+          },
+          {
+            "schema_id": "ak.schema.message.v1",
+            "registry_row_digest": "sha256:4d724e388d015e47b5fb12439498c8145eb7ce71be9be745ca929e17997a4b5c",
+            "document_digest": "sha256:49ef03345fd238db155e81e0e4e1bf45082eede6e7d8ba97e2f8317ecf23cdc3"
+          },
+          {
+            "schema_id": "ak.schema.realm.v1",
+            "registry_row_digest": "sha256:2ff03e9141d22bd758188fff95da4914fce65f690793f86720fcb3eb3c03e1ac",
+            "document_digest": "sha256:c33ec4d098063c259912f1f3ffac14bb957196a5bdc33dd0126052535f2d75fc"
+          },
+          {
+            "schema_id": "ak.schema.seal.v1",
+            "registry_row_digest": "sha256:4b17c3950e8f30d97177ce299279f03acfdf2ba76f756c136763a76b48977b98",
+            "document_digest": "sha256:58660b4711d9f7fde32bd4ebe9585138d237e87ddd437ce36cd3e5c68de2f7b6"
+          },
+          {
+            "schema_id": "ak.schema.strand.v1",
+            "registry_row_digest": "sha256:22812185f36c799fed9b5292eb36a578c84b2d5e7e961d0387f91c2ea1c64536",
+            "document_digest": "sha256:5506b2d6dde74b781ecf00efad31e92c1ae78440e4378cecf5341cbba7c368c1"
+          }
+        ],
+        "fixture_contracts": [
+          {
+            "fixture": "cba-lattice-fixture.json",
+            "semantic_projection_digest": "sha256:1d76fb7d59e6cbc3282a7f79441dba5413063ec1c1e8c17bc60b40fa754669c9"
+          },
+          {
+            "fixture": "crypto-signature-fixture.json",
+            "semantic_projection_digest": "sha256:337edd29d2a71543659e76eb4b06900409594800f58308f6f56b581f7eea6524"
+          },
+          {
+            "fixture": "encoding-fixture.json",
+            "semantic_projection_digest": "sha256:c88ac917fcb68a5bf9f60d94d78a7dd08ed4b5410738b4ac314c17be58890aab"
+          },
+          {
+            "fixture": "event-envelope-negative-fixture.json",
+            "semantic_projection_digest": "sha256:0838c657cab2006eedd13376e50502de2b44fc5bbf890eec275cbfc4f499db47"
+          },
+          {
+            "fixture": "privacy-security-fixture.json",
+            "semantic_projection_digest": "sha256:c3eadf1f540e8770ec612985897f8c41056df5bfb462fcd5e0bf9630f56af838"
+          },
+          {
+            "fixture": "reaction-fixture.json",
+            "semantic_projection_digest": "sha256:cadfdd80cdf28eb73a6fcc655bf5f891389963721a69fe2a85ae6c7b1d1cffc9"
+          },
+          {
+            "fixture": "redaction-fixture.json",
+            "semantic_projection_digest": "sha256:a8dc51ba1c29612171cf1ca380f459d7d5764731475f7ae2c49e9b90c7606200"
+          },
+          {
+            "fixture": "sync-fixture.json",
+            "semantic_projection_digest": "sha256:b1cd174dfa6af6a5221ac0007afe89f5e97cd849e1ab39cb1b7e6002d63e0f7b"
+          }
+        ],
+        "reducer_contracts": [
+          {
+            "ref": "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.chat_mvp.v1",
+            "content_digest": "sha256:515dda85ac59c9ee6b39816b9df4d864463c73510eb8c40594336e2ed123f81b"
+          },
+          {
+            "ref": "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.core_event_store.v1",
+            "content_digest": "sha256:bfdd65102c01a7a958b5358d9ac206d4eb1794102d7c40132e5c86fdca35de4b"
+          },
+          {
+            "ref": "artifacts/registry/capability-action-registry.json",
+            "content_digest": "sha256:95136215ae3e88a8859cc0fe4499f1010659be341af38db92efa3818e531f603"
+          },
+          {
+            "ref": "artifacts/registry/relation-kind-registry.json",
+            "content_digest": "sha256:1da63b9888763cf0a23ab663d33c4448af0c82bea745232f9adf3635db96fefb"
+          },
+          {
+            "ref": "zh/authz/event-auth-state-resolution.md",
+            "content_digest": "sha256:4e0663cc9d91ff0171ba11d3e91aacfa3d373e0828c3f6cc73ab1b0d3635d84f"
+          },
+          {
+            "ref": "zh/conformance/conformance-vectors.md",
+            "content_digest": "sha256:ac8d7bbe28d6dcd604a3ff2c6a5be8479da0998239174e012b38f7ffe9f05e59"
+          },
+          {
+            "ref": "zh/conformance/encoding.md",
+            "content_digest": "sha256:df58ea6707e7c6095cba4c4b912ecc7404ccb786961af35b3d049f290f565bec"
+          },
+          {
+            "ref": "zh/models/strand-and-message.md",
+            "content_digest": "sha256:f2e6c4a368e1ed1f29709a562de431a5ef608527a1d28bdb1005f630553a3925"
+          }
+        ]
+      },
+      "reducer_profile_digest": "sha256:454918a7e4cf07fa19f3fa9dd6b42d9648edcccade7c9edf21f3bffbeae1f46e"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -164,7 +568,255 @@
           "cas_register",
           "ordered_log"
         ]
-      }
+      },
+      "resolved_digest_input": {
+        "profile_id": "ak.profile.kanban_mvp.v1",
+        "profile_declarations": [
+          {
+            "profile_id": "ak.profile.core_event_store.v1",
+            "inherits": [],
+            "required_event_kinds": [
+              "ak.realm.create",
+              "ak.member.state"
+            ],
+            "rejected_event_kind_scopes": [
+              "wire_scope:actor_private_event",
+              "wire_scope:ephemeral_event"
+            ],
+            "required_schemas": [
+              "ak.schema.event.v1",
+              "ak.schema.event_payload.v1",
+              "ak.schema.event_batch_receipt.v1",
+              "ak.schema.availability_receipt.v1",
+              "ak.schema.cursor.v1",
+              "ak.schema.seal.v1"
+            ],
+            "required_constraint_types": [
+              "temporal",
+              "field_access",
+              "type_restriction",
+              "scope_limitation",
+              "delegation_control",
+              "quota"
+            ],
+            "required_constraint_subtypes": [
+              "rate"
+            ],
+            "required_fixtures": [
+              "encoding-fixture.json",
+              "crypto-signature-fixture.json",
+              "event-envelope-negative-fixture.json",
+              "sync-fixture.json"
+            ],
+            "reducer_contract_refs": [
+              "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.core_event_store.v1",
+              "artifacts/registry/event-kind-registry.json",
+              "artifacts/registry/capability-action-registry.json",
+              "zh/authz/event-auth-state-resolution.md",
+              "zh/conformance/encoding.md"
+            ],
+            "lattice_types": [
+              "or_set",
+              "mv_register",
+              "cas_register",
+              "fsm",
+              "counter",
+              "ordered_log"
+            ]
+          },
+          {
+            "profile_id": "ak.profile.kanban_mvp.v1",
+            "inherits": [
+              "ak.profile.core_event_store.v1"
+            ],
+            "required_event_kinds": [
+              "ak.realm.create",
+              "ak.member.state",
+              "ak.strand.create",
+              "ak.strand.update",
+              "ak.strand.move",
+              "ak.strand.reorder",
+              "ak.relation.create",
+              "ak.container.rebalance"
+            ],
+            "rejected_event_kind_scopes": [],
+            "required_schemas": [
+              "ak.schema.realm.v1",
+              "ak.schema.strand.v1",
+              "ak.schema.relation.v1",
+              "ak.schema.view.v1"
+            ],
+            "required_constraint_types": [
+              "scope_limitation"
+            ],
+            "required_constraint_subtypes": [],
+            "required_fixtures": [
+              "sync-fixture.json",
+              "cba-lattice-fixture.json"
+            ],
+            "reducer_contract_refs": [
+              "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.kanban_mvp.v1",
+              "artifacts/registry/event-kind-registry.json",
+              "artifacts/registry/relation-kind-registry.json",
+              "zh/models/realm-and-space.md",
+              "zh/models/strand-and-message.md",
+              "zh/models/relation.md"
+            ],
+            "lattice_types": [
+              "or_set",
+              "cas_register",
+              "ordered_log"
+            ]
+          }
+        ],
+        "event_kind_contracts": [
+          {
+            "event_kind": "ak.container.rebalance",
+            "content_digest": "sha256:d30733831b8687521700e340395254dfdaaa8506f589186dbac6070132d4f3e9"
+          },
+          {
+            "event_kind": "ak.member.state",
+            "content_digest": "sha256:8cf9ca7d6b41fe44403429d001582a5151b14b90d379542bd0a6b28b8f3077f0"
+          },
+          {
+            "event_kind": "ak.realm.create",
+            "content_digest": "sha256:e9dc8ceaac180af4a59886263dadc3018997b8ce04a313cf3dbcf6b3994a9b12"
+          },
+          {
+            "event_kind": "ak.relation.create",
+            "content_digest": "sha256:792dfdf65d61290886718f13939a076b8fda4a57202c7134b555936e80e11234"
+          },
+          {
+            "event_kind": "ak.strand.create",
+            "content_digest": "sha256:00853cdab74641fd3522f27fb932cb0ab8201a25920a10810f4c753c94b908c7"
+          },
+          {
+            "event_kind": "ak.strand.move",
+            "content_digest": "sha256:80494c44c27d732de676a00deb848ec2c9a9de6d7c33f7096ce80ac85497bacc"
+          },
+          {
+            "event_kind": "ak.strand.reorder",
+            "content_digest": "sha256:59951298f22b9201d425ce8f60e88781051fdeb640ee55d5b5c13cf9fb4a18a9"
+          },
+          {
+            "event_kind": "ak.strand.update",
+            "content_digest": "sha256:5cc95acb58eb0789df02ae46df5bf58a77b16816eca5088af1ff08249cc806fc"
+          }
+        ],
+        "schema_contracts": [
+          {
+            "schema_id": "ak.schema.availability_receipt.v1",
+            "registry_row_digest": "sha256:927852e3eb162e89db0caab8857b8495d10e2d5cae6bcf60debabe556b08db73",
+            "document_digest": "sha256:e1b2732aaaca6d9699845f3d296cc1e901057f862f2c4eff3e0a6e6b762be93e"
+          },
+          {
+            "schema_id": "ak.schema.cursor.v1",
+            "registry_row_digest": "sha256:e607ed52043b09d7e385bded7acf2bc7fc9164214a7d91beb338e97e04c9d34a",
+            "document_digest": "sha256:9b1264f131cce0a51b2dfd0f5c3cd0de3370619c315fbe6097bc24485f46a6ad"
+          },
+          {
+            "schema_id": "ak.schema.event.v1",
+            "registry_row_digest": "sha256:9be92d949aef947b3cbb58b6dcf953491e9226f1403416b9fc9cc347a79e288e",
+            "document_digest": "sha256:41baf0dcfe0d42f6435f37df6641609659b2136d26ae0ae7c8e5d22c644ac4c1"
+          },
+          {
+            "schema_id": "ak.schema.event_batch_receipt.v1",
+            "registry_row_digest": "sha256:bfd37162eab6705beb1f7b26a690ee884fae1bdfc7e52f434e91753ecdb951fd",
+            "document_digest": "sha256:b5b86d4ec4180942aa5ae8bddd9c62183761eb11e45071fc732a141cfa1a600f"
+          },
+          {
+            "schema_id": "ak.schema.event_payload.v1",
+            "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
+            "document_digest": "sha256:8caf1afec377be3b019335cae9ec4e4297d3c236a45e9676b18429401b05b4d5"
+          },
+          {
+            "schema_id": "ak.schema.realm.v1",
+            "registry_row_digest": "sha256:2ff03e9141d22bd758188fff95da4914fce65f690793f86720fcb3eb3c03e1ac",
+            "document_digest": "sha256:c33ec4d098063c259912f1f3ffac14bb957196a5bdc33dd0126052535f2d75fc"
+          },
+          {
+            "schema_id": "ak.schema.relation.v1",
+            "registry_row_digest": "sha256:ef60485f5e6cba1c2b7b75198a69570f13f6974cad55c033fc0dd1903d63936b",
+            "document_digest": "sha256:ccfa1490a3dcfa45f4839aa9b315cdf911d729ffc9f492b51bfa3dd6207166e5"
+          },
+          {
+            "schema_id": "ak.schema.seal.v1",
+            "registry_row_digest": "sha256:4b17c3950e8f30d97177ce299279f03acfdf2ba76f756c136763a76b48977b98",
+            "document_digest": "sha256:58660b4711d9f7fde32bd4ebe9585138d237e87ddd437ce36cd3e5c68de2f7b6"
+          },
+          {
+            "schema_id": "ak.schema.strand.v1",
+            "registry_row_digest": "sha256:22812185f36c799fed9b5292eb36a578c84b2d5e7e961d0387f91c2ea1c64536",
+            "document_digest": "sha256:5506b2d6dde74b781ecf00efad31e92c1ae78440e4378cecf5341cbba7c368c1"
+          },
+          {
+            "schema_id": "ak.schema.view.v1",
+            "registry_row_digest": "sha256:33e33bd9b874bf41dbebdcbd7c759b00bcc2cbd9339c8da1c3ea7a82a1d54cc4",
+            "document_digest": "sha256:f1632453be289ac8f34f5d5858445cea4b88eacfb9c3aae6281c574b251f8bdf"
+          }
+        ],
+        "fixture_contracts": [
+          {
+            "fixture": "cba-lattice-fixture.json",
+            "semantic_projection_digest": "sha256:1d76fb7d59e6cbc3282a7f79441dba5413063ec1c1e8c17bc60b40fa754669c9"
+          },
+          {
+            "fixture": "crypto-signature-fixture.json",
+            "semantic_projection_digest": "sha256:337edd29d2a71543659e76eb4b06900409594800f58308f6f56b581f7eea6524"
+          },
+          {
+            "fixture": "encoding-fixture.json",
+            "semantic_projection_digest": "sha256:c88ac917fcb68a5bf9f60d94d78a7dd08ed4b5410738b4ac314c17be58890aab"
+          },
+          {
+            "fixture": "event-envelope-negative-fixture.json",
+            "semantic_projection_digest": "sha256:0838c657cab2006eedd13376e50502de2b44fc5bbf890eec275cbfc4f499db47"
+          },
+          {
+            "fixture": "sync-fixture.json",
+            "semantic_projection_digest": "sha256:b1cd174dfa6af6a5221ac0007afe89f5e97cd849e1ab39cb1b7e6002d63e0f7b"
+          }
+        ],
+        "reducer_contracts": [
+          {
+            "ref": "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.core_event_store.v1",
+            "content_digest": "sha256:bfdd65102c01a7a958b5358d9ac206d4eb1794102d7c40132e5c86fdca35de4b"
+          },
+          {
+            "ref": "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.kanban_mvp.v1",
+            "content_digest": "sha256:a9d6f012076896b8f09b479ee44a5baa7b734e6d42a0833b551b90b4fdb0fd8c"
+          },
+          {
+            "ref": "artifacts/registry/capability-action-registry.json",
+            "content_digest": "sha256:95136215ae3e88a8859cc0fe4499f1010659be341af38db92efa3818e531f603"
+          },
+          {
+            "ref": "artifacts/registry/relation-kind-registry.json",
+            "content_digest": "sha256:1da63b9888763cf0a23ab663d33c4448af0c82bea745232f9adf3635db96fefb"
+          },
+          {
+            "ref": "zh/authz/event-auth-state-resolution.md",
+            "content_digest": "sha256:4e0663cc9d91ff0171ba11d3e91aacfa3d373e0828c3f6cc73ab1b0d3635d84f"
+          },
+          {
+            "ref": "zh/conformance/encoding.md",
+            "content_digest": "sha256:df58ea6707e7c6095cba4c4b912ecc7404ccb786961af35b3d049f290f565bec"
+          },
+          {
+            "ref": "zh/models/realm-and-space.md",
+            "content_digest": "sha256:2f166f7a7b7dcd341cc604e0ef9f4764c447e3dba289904e4c89c7725e169e70"
+          },
+          {
+            "ref": "zh/models/relation.md",
+            "content_digest": "sha256:19c41724e2e5bd472707a0950715e221ea5e4ae3d89ea4814d3cdbb2862a9838"
+          },
+          {
+            "ref": "zh/models/strand-and-message.md",
+            "content_digest": "sha256:f2e6c4a368e1ed1f29709a562de431a5ef608527a1d28bdb1005f630553a3925"
+          }
+        ]
+      },
+      "reducer_profile_digest": "sha256:64dd66c8cea72a371403c40b0203d358fca74bb83fdfe4b9471f2ca2007b00ae"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -241,7 +893,559 @@
           "counter",
           "ordered_log"
         ]
-      }
+      },
+      "resolved_digest_input": {
+        "profile_id": "ak.profile.principal_server.v1",
+        "profile_declarations": [
+          {
+            "profile_id": "ak.profile.chat_mvp.v1",
+            "inherits": [
+              "ak.profile.core_event_store.v1"
+            ],
+            "required_event_kinds": [
+              "ak.realm.create",
+              "ak.member.state",
+              "ak.strand.create",
+              "ak.message.create",
+              "ak.message.revise",
+              "ak.message.redact",
+              "ak.reaction.add",
+              "ak.reaction.remove",
+              "ak.redaction"
+            ],
+            "rejected_event_kind_scopes": [],
+            "required_schemas": [
+              "ak.schema.realm.v1",
+              "ak.schema.strand.v1",
+              "ak.schema.message.v1",
+              "ak.schema.account_subscribe_frame.v1"
+            ],
+            "required_constraint_types": [
+              "temporal"
+            ],
+            "required_constraint_subtypes": [
+              "edit_window"
+            ],
+            "required_fixtures": [
+              "sync-fixture.json",
+              "redaction-fixture.json",
+              "reaction-fixture.json",
+              "cba-lattice-fixture.json",
+              "privacy-security-fixture.json"
+            ],
+            "reducer_contract_refs": [
+              "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.chat_mvp.v1",
+              "artifacts/registry/event-kind-registry.json",
+              "artifacts/registry/capability-action-registry.json",
+              "artifacts/registry/relation-kind-registry.json",
+              "zh/models/strand-and-message.md",
+              "zh/conformance/conformance-vectors.md"
+            ],
+            "lattice_types": [
+              "or_set",
+              "mv_register",
+              "cas_register",
+              "fsm",
+              "ordered_log"
+            ]
+          },
+          {
+            "profile_id": "ak.profile.core_event_store.v1",
+            "inherits": [],
+            "required_event_kinds": [
+              "ak.realm.create",
+              "ak.member.state"
+            ],
+            "rejected_event_kind_scopes": [
+              "wire_scope:actor_private_event",
+              "wire_scope:ephemeral_event"
+            ],
+            "required_schemas": [
+              "ak.schema.event.v1",
+              "ak.schema.event_payload.v1",
+              "ak.schema.event_batch_receipt.v1",
+              "ak.schema.availability_receipt.v1",
+              "ak.schema.cursor.v1",
+              "ak.schema.seal.v1"
+            ],
+            "required_constraint_types": [
+              "temporal",
+              "field_access",
+              "type_restriction",
+              "scope_limitation",
+              "delegation_control",
+              "quota"
+            ],
+            "required_constraint_subtypes": [
+              "rate"
+            ],
+            "required_fixtures": [
+              "encoding-fixture.json",
+              "crypto-signature-fixture.json",
+              "event-envelope-negative-fixture.json",
+              "sync-fixture.json"
+            ],
+            "reducer_contract_refs": [
+              "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.core_event_store.v1",
+              "artifacts/registry/event-kind-registry.json",
+              "artifacts/registry/capability-action-registry.json",
+              "zh/authz/event-auth-state-resolution.md",
+              "zh/conformance/encoding.md"
+            ],
+            "lattice_types": [
+              "or_set",
+              "mv_register",
+              "cas_register",
+              "fsm",
+              "counter",
+              "ordered_log"
+            ]
+          },
+          {
+            "profile_id": "ak.profile.kanban_mvp.v1",
+            "inherits": [
+              "ak.profile.core_event_store.v1"
+            ],
+            "required_event_kinds": [
+              "ak.realm.create",
+              "ak.member.state",
+              "ak.strand.create",
+              "ak.strand.update",
+              "ak.strand.move",
+              "ak.strand.reorder",
+              "ak.relation.create",
+              "ak.container.rebalance"
+            ],
+            "rejected_event_kind_scopes": [],
+            "required_schemas": [
+              "ak.schema.realm.v1",
+              "ak.schema.strand.v1",
+              "ak.schema.relation.v1",
+              "ak.schema.view.v1"
+            ],
+            "required_constraint_types": [
+              "scope_limitation"
+            ],
+            "required_constraint_subtypes": [],
+            "required_fixtures": [
+              "sync-fixture.json",
+              "cba-lattice-fixture.json"
+            ],
+            "reducer_contract_refs": [
+              "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.kanban_mvp.v1",
+              "artifacts/registry/event-kind-registry.json",
+              "artifacts/registry/relation-kind-registry.json",
+              "zh/models/realm-and-space.md",
+              "zh/models/strand-and-message.md",
+              "zh/models/relation.md"
+            ],
+            "lattice_types": [
+              "or_set",
+              "cas_register",
+              "ordered_log"
+            ]
+          },
+          {
+            "profile_id": "ak.profile.principal_server.v1",
+            "inherits": [
+              "ak.profile.principal_server_events_api.v1",
+              "ak.profile.chat_mvp.v1",
+              "ak.profile.kanban_mvp.v1"
+            ],
+            "required_event_kinds": [
+              "ak.realm.create",
+              "ak.member.state",
+              "ak.strand.create",
+              "ak.message.create",
+              "ak.invite.create",
+              "ak.invite.accept",
+              "ak.invite.third_party",
+              "ak.invite.claim",
+              "ak.invite.revoke",
+              "ak.capability.grant",
+              "ak.capability.revoke"
+            ],
+            "rejected_event_kind_scopes": [],
+            "required_schemas": [
+              "ak.schema.account_subscribe_frame.v1",
+              "ak.schema.snapshot.v1",
+              "ak.schema.invite.v1",
+              "ak.schema.capability.v1",
+              "ak.schema.grant_constraint.v1"
+            ],
+            "required_constraint_types": [
+              "temporal",
+              "scope_limitation",
+              "delegation_control",
+              "quota"
+            ],
+            "required_constraint_subtypes": [
+              "rate"
+            ],
+            "required_fixtures": [
+              "event-envelope-negative-fixture.json",
+              "sync-fixture.json",
+              "cba-lattice-fixture.json",
+              "capability-fixture.json",
+              "privacy-security-fixture.json",
+              "security-closure-vectors.json"
+            ],
+            "reducer_contract_refs": [
+              "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.principal_server.v1",
+              "artifacts/registry/event-kind-registry.json",
+              "artifacts/registry/capability-action-registry.json",
+              "artifacts/registry/operations-error-mapping.json",
+              "zh/sync/service-surface.md",
+              "zh/sync/client-sync.md",
+              "zh/sync/third-party-invites.md",
+              "zh/authz/capabilities.md",
+              "zh/conformance/conformance-vectors.md"
+            ],
+            "reducer_invariants": [
+              "ak.invite.claim is accepted only by the destination Realm reducer",
+              "token_commitment must match a pending unexpired ak.invite.third_party invite",
+              "verification_service_id allowlist is re-evaluated against current effective Realm policy",
+              "(invite_id, claim_nonce) and token_commitment are one-time reducer state constraints",
+              "successful claim atomically transitions invite pending -> claimed and materializes a subject-bound membership proposal",
+              "expired third-party invites are cleaned before claim acceptance"
+            ],
+            "lattice_types": [
+              "or_set",
+              "mv_register",
+              "cas_register",
+              "fsm",
+              "counter",
+              "ordered_log"
+            ]
+          },
+          {
+            "profile_id": "ak.profile.principal_server_events_api.v1",
+            "inherits": [
+              "ak.profile.core_event_store.v1"
+            ],
+            "required_endpoints": [
+              "ak.self.events.query.describe",
+              "ak.self.events.command.submit",
+              "ak.self.events.resource.get",
+              "ak.self.events.query.resolve",
+              "ak.self.events.query.scan",
+              "ak.self.events.query.frontier"
+            ],
+            "required_event_kinds": [
+              "ak.realm.create",
+              "ak.member.state"
+            ],
+            "rejected_event_kinds": [
+              "wire_scope:actor_private_event",
+              "wire_scope:ephemeral_event"
+            ],
+            "required_schemas": [
+              "ak.schema.event.v1",
+              "ak.schema.event_payload.v1",
+              "ak.schema.cursor.v1",
+              "ak.schema.seal.v1"
+            ],
+            "required_fixtures": [
+              "crypto-signature-fixture.json",
+              "event-envelope-negative-fixture.json",
+              "sync-fixture.json"
+            ],
+            "optional_extensions": [
+              "event_batch_receipt",
+              "witness_receipt"
+            ],
+            "feature_discovery": {
+              "required": [
+                "supported_event_schemas",
+                "supported_signatures",
+                "limits"
+              ],
+              "unsupported_optional": "return unsupported_feature"
+            }
+          }
+        ],
+        "event_kind_contracts": [
+          {
+            "event_kind": "ak.capability.grant",
+            "content_digest": "sha256:424ac5e739a7afa308c09a2aef03b8795bd97ddad06dccc598fe19eb082fd963"
+          },
+          {
+            "event_kind": "ak.capability.revoke",
+            "content_digest": "sha256:89077cc8c9779573a1b46f3ca8913f28ef739eb955cb0795fa9f3d324d3d7fcb"
+          },
+          {
+            "event_kind": "ak.container.rebalance",
+            "content_digest": "sha256:d30733831b8687521700e340395254dfdaaa8506f589186dbac6070132d4f3e9"
+          },
+          {
+            "event_kind": "ak.invite.accept",
+            "content_digest": "sha256:33526c83179760ec3849455385af878b90724a4867c7e043ae23b3dc8406bc53"
+          },
+          {
+            "event_kind": "ak.invite.claim",
+            "content_digest": "sha256:336c5bb82eadc98e8e90144319ea0ae078e3812a6684f5797d6dd8189fefb218"
+          },
+          {
+            "event_kind": "ak.invite.create",
+            "content_digest": "sha256:7b4a061926ecf734ea89ab9259abcad8b0a1f6a0541b995caa514a7b40f93107"
+          },
+          {
+            "event_kind": "ak.invite.revoke",
+            "content_digest": "sha256:e93ea1f8745b0c00a008864ed8e9542cce90a2dc2029fb9464afd83985d931e7"
+          },
+          {
+            "event_kind": "ak.invite.third_party",
+            "content_digest": "sha256:0ea0c653dbc621b8df9f218926363b0f0e189a889c351cd123f6e6617c4c70a0"
+          },
+          {
+            "event_kind": "ak.member.state",
+            "content_digest": "sha256:8cf9ca7d6b41fe44403429d001582a5151b14b90d379542bd0a6b28b8f3077f0"
+          },
+          {
+            "event_kind": "ak.message.create",
+            "content_digest": "sha256:1b451438667e319678307c8fefd2620d9f4d8a9fe91d79e8ecfc5335e3204db9"
+          },
+          {
+            "event_kind": "ak.message.redact",
+            "content_digest": "sha256:dc4edb76aeed6c6df95e85b7cb43d594270543ed182bc752a7ff1647bcbaf1aa"
+          },
+          {
+            "event_kind": "ak.message.revise",
+            "content_digest": "sha256:31f2e5139d00f57190fce118c42259109ec8703f9f1c038134f7465939fed58b"
+          },
+          {
+            "event_kind": "ak.reaction.add",
+            "content_digest": "sha256:4e4c996c9c99ac1980cec1c4bf9bdcf510f8544c8634ba92497a7279925a80f6"
+          },
+          {
+            "event_kind": "ak.reaction.remove",
+            "content_digest": "sha256:c7b2b21d6e6c0c7d46cc8f143414a2285bf74d4163dcaa3b28ef71c9d6ed7975"
+          },
+          {
+            "event_kind": "ak.realm.create",
+            "content_digest": "sha256:e9dc8ceaac180af4a59886263dadc3018997b8ce04a313cf3dbcf6b3994a9b12"
+          },
+          {
+            "event_kind": "ak.redaction",
+            "content_digest": "sha256:fbe4c703ec76fc45dbd0d1017c3fdd90393c4508440e194ecd35027baaf1d83a"
+          },
+          {
+            "event_kind": "ak.relation.create",
+            "content_digest": "sha256:792dfdf65d61290886718f13939a076b8fda4a57202c7134b555936e80e11234"
+          },
+          {
+            "event_kind": "ak.strand.create",
+            "content_digest": "sha256:00853cdab74641fd3522f27fb932cb0ab8201a25920a10810f4c753c94b908c7"
+          },
+          {
+            "event_kind": "ak.strand.move",
+            "content_digest": "sha256:80494c44c27d732de676a00deb848ec2c9a9de6d7c33f7096ce80ac85497bacc"
+          },
+          {
+            "event_kind": "ak.strand.reorder",
+            "content_digest": "sha256:59951298f22b9201d425ce8f60e88781051fdeb640ee55d5b5c13cf9fb4a18a9"
+          },
+          {
+            "event_kind": "ak.strand.update",
+            "content_digest": "sha256:5cc95acb58eb0789df02ae46df5bf58a77b16816eca5088af1ff08249cc806fc"
+          }
+        ],
+        "schema_contracts": [
+          {
+            "schema_id": "ak.schema.account_subscribe_frame.v1",
+            "registry_row_digest": "sha256:a0e273117f740d49131509230c5c92d0d77d394f67df25e33d0b07032af6245e",
+            "document_digest": "sha256:1c4f9cc83d78cae6c50ce948cb0ce181ca6c7c9832248c73e27810fe7153db28"
+          },
+          {
+            "schema_id": "ak.schema.availability_receipt.v1",
+            "registry_row_digest": "sha256:927852e3eb162e89db0caab8857b8495d10e2d5cae6bcf60debabe556b08db73",
+            "document_digest": "sha256:e1b2732aaaca6d9699845f3d296cc1e901057f862f2c4eff3e0a6e6b762be93e"
+          },
+          {
+            "schema_id": "ak.schema.capability.v1",
+            "registry_row_digest": "sha256:a0d907c823a2cb25558e0054410f278414ecaa049c28d7467f24312cd9bd06b4",
+            "document_digest": "sha256:0d186ec22ddda78606d9c3ce3e215a302ad24b8e590e12feeb65d5a295808f53"
+          },
+          {
+            "schema_id": "ak.schema.cursor.v1",
+            "registry_row_digest": "sha256:e607ed52043b09d7e385bded7acf2bc7fc9164214a7d91beb338e97e04c9d34a",
+            "document_digest": "sha256:9b1264f131cce0a51b2dfd0f5c3cd0de3370619c315fbe6097bc24485f46a6ad"
+          },
+          {
+            "schema_id": "ak.schema.event.v1",
+            "registry_row_digest": "sha256:9be92d949aef947b3cbb58b6dcf953491e9226f1403416b9fc9cc347a79e288e",
+            "document_digest": "sha256:41baf0dcfe0d42f6435f37df6641609659b2136d26ae0ae7c8e5d22c644ac4c1"
+          },
+          {
+            "schema_id": "ak.schema.event_batch_receipt.v1",
+            "registry_row_digest": "sha256:bfd37162eab6705beb1f7b26a690ee884fae1bdfc7e52f434e91753ecdb951fd",
+            "document_digest": "sha256:b5b86d4ec4180942aa5ae8bddd9c62183761eb11e45071fc732a141cfa1a600f"
+          },
+          {
+            "schema_id": "ak.schema.event_payload.v1",
+            "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
+            "document_digest": "sha256:8caf1afec377be3b019335cae9ec4e4297d3c236a45e9676b18429401b05b4d5"
+          },
+          {
+            "schema_id": "ak.schema.grant_constraint.v1",
+            "registry_row_digest": "sha256:aab22a798871a440ca0e79f101d3066b9199e591a9097b0e65e9fbd35197a6d3",
+            "document_digest": "sha256:c4945c1db0fad62dd5c9d774a2bb4f3c6811f529e77d492b96a60a29b54c3652"
+          },
+          {
+            "schema_id": "ak.schema.invite.v1",
+            "registry_row_digest": "sha256:da736f6d6d1a5a26fc344515a3d8f38008ef9f198ae9d67d1ba79ebd4426ba89",
+            "document_digest": "sha256:3f659d5d2d203c28b752ca139df5d1a2b5b837df0fa0704a95201eaaac1411ae"
+          },
+          {
+            "schema_id": "ak.schema.message.v1",
+            "registry_row_digest": "sha256:4d724e388d015e47b5fb12439498c8145eb7ce71be9be745ca929e17997a4b5c",
+            "document_digest": "sha256:49ef03345fd238db155e81e0e4e1bf45082eede6e7d8ba97e2f8317ecf23cdc3"
+          },
+          {
+            "schema_id": "ak.schema.realm.v1",
+            "registry_row_digest": "sha256:2ff03e9141d22bd758188fff95da4914fce65f690793f86720fcb3eb3c03e1ac",
+            "document_digest": "sha256:c33ec4d098063c259912f1f3ffac14bb957196a5bdc33dd0126052535f2d75fc"
+          },
+          {
+            "schema_id": "ak.schema.relation.v1",
+            "registry_row_digest": "sha256:ef60485f5e6cba1c2b7b75198a69570f13f6974cad55c033fc0dd1903d63936b",
+            "document_digest": "sha256:ccfa1490a3dcfa45f4839aa9b315cdf911d729ffc9f492b51bfa3dd6207166e5"
+          },
+          {
+            "schema_id": "ak.schema.seal.v1",
+            "registry_row_digest": "sha256:4b17c3950e8f30d97177ce299279f03acfdf2ba76f756c136763a76b48977b98",
+            "document_digest": "sha256:58660b4711d9f7fde32bd4ebe9585138d237e87ddd437ce36cd3e5c68de2f7b6"
+          },
+          {
+            "schema_id": "ak.schema.snapshot.v1",
+            "registry_row_digest": "sha256:abc4a07d379ea2aa2ee636ac30408d8110287a45a7ed563db542940fb073580a",
+            "document_digest": "sha256:5076b1a8d919e7fa953baa3eec583e953b6881bae4888095e4842a8283b87fdb"
+          },
+          {
+            "schema_id": "ak.schema.strand.v1",
+            "registry_row_digest": "sha256:22812185f36c799fed9b5292eb36a578c84b2d5e7e961d0387f91c2ea1c64536",
+            "document_digest": "sha256:5506b2d6dde74b781ecf00efad31e92c1ae78440e4378cecf5341cbba7c368c1"
+          },
+          {
+            "schema_id": "ak.schema.view.v1",
+            "registry_row_digest": "sha256:33e33bd9b874bf41dbebdcbd7c759b00bcc2cbd9339c8da1c3ea7a82a1d54cc4",
+            "document_digest": "sha256:f1632453be289ac8f34f5d5858445cea4b88eacfb9c3aae6281c574b251f8bdf"
+          }
+        ],
+        "fixture_contracts": [
+          {
+            "fixture": "capability-fixture.json",
+            "semantic_projection_digest": "sha256:a2e6a184672014509793fcdd5a3531985f09b72236097a8fea47ec0c704f384a"
+          },
+          {
+            "fixture": "cba-lattice-fixture.json",
+            "semantic_projection_digest": "sha256:1d76fb7d59e6cbc3282a7f79441dba5413063ec1c1e8c17bc60b40fa754669c9"
+          },
+          {
+            "fixture": "crypto-signature-fixture.json",
+            "semantic_projection_digest": "sha256:337edd29d2a71543659e76eb4b06900409594800f58308f6f56b581f7eea6524"
+          },
+          {
+            "fixture": "encoding-fixture.json",
+            "semantic_projection_digest": "sha256:c88ac917fcb68a5bf9f60d94d78a7dd08ed4b5410738b4ac314c17be58890aab"
+          },
+          {
+            "fixture": "event-envelope-negative-fixture.json",
+            "semantic_projection_digest": "sha256:0838c657cab2006eedd13376e50502de2b44fc5bbf890eec275cbfc4f499db47"
+          },
+          {
+            "fixture": "privacy-security-fixture.json",
+            "semantic_projection_digest": "sha256:c3eadf1f540e8770ec612985897f8c41056df5bfb462fcd5e0bf9630f56af838"
+          },
+          {
+            "fixture": "reaction-fixture.json",
+            "semantic_projection_digest": "sha256:cadfdd80cdf28eb73a6fcc655bf5f891389963721a69fe2a85ae6c7b1d1cffc9"
+          },
+          {
+            "fixture": "redaction-fixture.json",
+            "semantic_projection_digest": "sha256:a8dc51ba1c29612171cf1ca380f459d7d5764731475f7ae2c49e9b90c7606200"
+          },
+          {
+            "fixture": "security-closure-vectors.json",
+            "semantic_projection_digest": "sha256:85a9274e8981e4e1cdbbadffe7a5bd642243173de0750a25a78855fe52b1e074"
+          },
+          {
+            "fixture": "sync-fixture.json",
+            "semantic_projection_digest": "sha256:b1cd174dfa6af6a5221ac0007afe89f5e97cd849e1ab39cb1b7e6002d63e0f7b"
+          }
+        ],
+        "reducer_contracts": [
+          {
+            "ref": "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.chat_mvp.v1",
+            "content_digest": "sha256:515dda85ac59c9ee6b39816b9df4d864463c73510eb8c40594336e2ed123f81b"
+          },
+          {
+            "ref": "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.core_event_store.v1",
+            "content_digest": "sha256:bfdd65102c01a7a958b5358d9ac206d4eb1794102d7c40132e5c86fdca35de4b"
+          },
+          {
+            "ref": "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.kanban_mvp.v1",
+            "content_digest": "sha256:a9d6f012076896b8f09b479ee44a5baa7b734e6d42a0833b551b90b4fdb0fd8c"
+          },
+          {
+            "ref": "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.principal_server.v1",
+            "content_digest": "sha256:97d31e141fd921abc0cf78ed94d3836512586cae43a64d8088c7bc71c7aa6d44"
+          },
+          {
+            "ref": "artifacts/registry/capability-action-registry.json",
+            "content_digest": "sha256:95136215ae3e88a8859cc0fe4499f1010659be341af38db92efa3818e531f603"
+          },
+          {
+            "ref": "artifacts/registry/operations-error-mapping.json",
+            "content_digest": "sha256:04f0bf9dc390da65f880171ddfac9e76299e87e7c96d5e1d27651f8878db9f37"
+          },
+          {
+            "ref": "artifacts/registry/relation-kind-registry.json",
+            "content_digest": "sha256:1da63b9888763cf0a23ab663d33c4448af0c82bea745232f9adf3635db96fefb"
+          },
+          {
+            "ref": "zh/authz/capabilities.md",
+            "content_digest": "sha256:8d9f5bd634ec7ae432fa0f0b1fbac707dc254f81a898bf14713a901e08f37aef"
+          },
+          {
+            "ref": "zh/authz/event-auth-state-resolution.md",
+            "content_digest": "sha256:4e0663cc9d91ff0171ba11d3e91aacfa3d373e0828c3f6cc73ab1b0d3635d84f"
+          },
+          {
+            "ref": "zh/conformance/conformance-vectors.md",
+            "content_digest": "sha256:ac8d7bbe28d6dcd604a3ff2c6a5be8479da0998239174e012b38f7ffe9f05e59"
+          },
+          {
+            "ref": "zh/conformance/encoding.md",
+            "content_digest": "sha256:df58ea6707e7c6095cba4c4b912ecc7404ccb786961af35b3d049f290f565bec"
+          },
+          {
+            "ref": "zh/models/realm-and-space.md",
+            "content_digest": "sha256:2f166f7a7b7dcd341cc604e0ef9f4764c447e3dba289904e4c89c7725e169e70"
+          },
+          {
+            "ref": "zh/models/relation.md",
+            "content_digest": "sha256:19c41724e2e5bd472707a0950715e221ea5e4ae3d89ea4814d3cdbb2862a9838"
+          },
+          {
+            "ref": "zh/models/strand-and-message.md",
+            "content_digest": "sha256:f2e6c4a368e1ed1f29709a562de431a5ef608527a1d28bdb1005f630553a3925"
+          },
+          {
+            "ref": "zh/sync/client-sync.md",
+            "content_digest": "sha256:c870672ce62e5e1e978caf54b9b186ad0f7b6f89f8beffd482f189a486eb6b73"
+          },
+          {
+            "ref": "zh/sync/service-surface.md",
+            "content_digest": "sha256:b4d596171c80caa32aed0222e6fdad73c61f7726f4703e75fe4b10a0dc2d9721"
+          },
+          {
+            "ref": "zh/sync/third-party-invites.md",
+            "content_digest": "sha256:979fa968d9a52381013efa6deead35367267a2bb6eb1763d1ff1016d9e5d91ac"
+          }
+        ]
+      },
+      "reducer_profile_digest": "sha256:08cc1e27775bbe5cdec5928ce22b705a668940d9726c0d37fe721b0220230904"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -290,7 +1494,212 @@
           "counter",
           "ordered_log"
         ]
-      }
+      },
+      "resolved_digest_input": {
+        "profile_id": "ak.profile.federation_minimal.v1",
+        "profile_declarations": [
+          {
+            "profile_id": "ak.profile.core_event_store.v1",
+            "inherits": [],
+            "required_event_kinds": [
+              "ak.realm.create",
+              "ak.member.state"
+            ],
+            "rejected_event_kind_scopes": [
+              "wire_scope:actor_private_event",
+              "wire_scope:ephemeral_event"
+            ],
+            "required_schemas": [
+              "ak.schema.event.v1",
+              "ak.schema.event_payload.v1",
+              "ak.schema.event_batch_receipt.v1",
+              "ak.schema.availability_receipt.v1",
+              "ak.schema.cursor.v1",
+              "ak.schema.seal.v1"
+            ],
+            "required_constraint_types": [
+              "temporal",
+              "field_access",
+              "type_restriction",
+              "scope_limitation",
+              "delegation_control",
+              "quota"
+            ],
+            "required_constraint_subtypes": [
+              "rate"
+            ],
+            "required_fixtures": [
+              "encoding-fixture.json",
+              "crypto-signature-fixture.json",
+              "event-envelope-negative-fixture.json",
+              "sync-fixture.json"
+            ],
+            "reducer_contract_refs": [
+              "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.core_event_store.v1",
+              "artifacts/registry/event-kind-registry.json",
+              "artifacts/registry/capability-action-registry.json",
+              "zh/authz/event-auth-state-resolution.md",
+              "zh/conformance/encoding.md"
+            ],
+            "lattice_types": [
+              "or_set",
+              "mv_register",
+              "cas_register",
+              "fsm",
+              "counter",
+              "ordered_log"
+            ]
+          },
+          {
+            "profile_id": "ak.profile.federation_minimal.v1",
+            "inherits": [
+              "ak.profile.core_event_store.v1"
+            ],
+            "required_event_kinds": [
+              "ak.realm.create",
+              "ak.member.state"
+            ],
+            "rejected_event_kind_scopes": [
+              "wire_scope:actor_private_event",
+              "wire_scope:ephemeral_event"
+            ],
+            "required_schemas": [
+              "ak.schema.event.v1",
+              "ak.schema.event_payload.v1",
+              "ak.schema.cursor.v1",
+              "ak.schema.seal.v1"
+            ],
+            "required_constraint_types": [
+              "temporal",
+              "scope_limitation"
+            ],
+            "required_constraint_subtypes": [],
+            "required_fixtures": [
+              "federation-fixture.json",
+              "crypto-signature-fixture.json",
+              "sync-fixture.json"
+            ],
+            "reducer_contract_refs": [
+              "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.federation_minimal.v1",
+              "artifacts/registry/event-kind-registry.json",
+              "artifacts/registry/operation-registry.json",
+              "zh/sync/federation.md",
+              "zh/sync/service-http-binding.md"
+            ],
+            "lattice_types": [
+              "or_set",
+              "mv_register",
+              "cas_register",
+              "fsm",
+              "counter",
+              "ordered_log"
+            ]
+          }
+        ],
+        "event_kind_contracts": [
+          {
+            "event_kind": "ak.member.state",
+            "content_digest": "sha256:8cf9ca7d6b41fe44403429d001582a5151b14b90d379542bd0a6b28b8f3077f0"
+          },
+          {
+            "event_kind": "ak.realm.create",
+            "content_digest": "sha256:e9dc8ceaac180af4a59886263dadc3018997b8ce04a313cf3dbcf6b3994a9b12"
+          }
+        ],
+        "schema_contracts": [
+          {
+            "schema_id": "ak.schema.availability_receipt.v1",
+            "registry_row_digest": "sha256:927852e3eb162e89db0caab8857b8495d10e2d5cae6bcf60debabe556b08db73",
+            "document_digest": "sha256:e1b2732aaaca6d9699845f3d296cc1e901057f862f2c4eff3e0a6e6b762be93e"
+          },
+          {
+            "schema_id": "ak.schema.cursor.v1",
+            "registry_row_digest": "sha256:e607ed52043b09d7e385bded7acf2bc7fc9164214a7d91beb338e97e04c9d34a",
+            "document_digest": "sha256:9b1264f131cce0a51b2dfd0f5c3cd0de3370619c315fbe6097bc24485f46a6ad"
+          },
+          {
+            "schema_id": "ak.schema.event.v1",
+            "registry_row_digest": "sha256:9be92d949aef947b3cbb58b6dcf953491e9226f1403416b9fc9cc347a79e288e",
+            "document_digest": "sha256:41baf0dcfe0d42f6435f37df6641609659b2136d26ae0ae7c8e5d22c644ac4c1"
+          },
+          {
+            "schema_id": "ak.schema.event_batch_receipt.v1",
+            "registry_row_digest": "sha256:bfd37162eab6705beb1f7b26a690ee884fae1bdfc7e52f434e91753ecdb951fd",
+            "document_digest": "sha256:b5b86d4ec4180942aa5ae8bddd9c62183761eb11e45071fc732a141cfa1a600f"
+          },
+          {
+            "schema_id": "ak.schema.event_payload.v1",
+            "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
+            "document_digest": "sha256:8caf1afec377be3b019335cae9ec4e4297d3c236a45e9676b18429401b05b4d5"
+          },
+          {
+            "schema_id": "ak.schema.seal.v1",
+            "registry_row_digest": "sha256:4b17c3950e8f30d97177ce299279f03acfdf2ba76f756c136763a76b48977b98",
+            "document_digest": "sha256:58660b4711d9f7fde32bd4ebe9585138d237e87ddd437ce36cd3e5c68de2f7b6"
+          }
+        ],
+        "fixture_contracts": [
+          {
+            "fixture": "crypto-signature-fixture.json",
+            "semantic_projection_digest": "sha256:337edd29d2a71543659e76eb4b06900409594800f58308f6f56b581f7eea6524"
+          },
+          {
+            "fixture": "encoding-fixture.json",
+            "semantic_projection_digest": "sha256:c88ac917fcb68a5bf9f60d94d78a7dd08ed4b5410738b4ac314c17be58890aab"
+          },
+          {
+            "fixture": "event-envelope-negative-fixture.json",
+            "semantic_projection_digest": "sha256:0838c657cab2006eedd13376e50502de2b44fc5bbf890eec275cbfc4f499db47"
+          },
+          {
+            "fixture": "federation-fixture.json",
+            "semantic_projection_digest": "sha256:094b1ad218a7dc6b1f5c56b2e7979ecc2c2459a31d1e58381d0308fa4a200922"
+          },
+          {
+            "fixture": "sync-fixture.json",
+            "semantic_projection_digest": "sha256:b1cd174dfa6af6a5221ac0007afe89f5e97cd849e1ab39cb1b7e6002d63e0f7b"
+          }
+        ],
+        "reducer_contracts": [
+          {
+            "ref": "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.core_event_store.v1",
+            "content_digest": "sha256:bfdd65102c01a7a958b5358d9ac206d4eb1794102d7c40132e5c86fdca35de4b"
+          },
+          {
+            "ref": "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.federation_minimal.v1",
+            "content_digest": "sha256:01df5d3ea2d6cbeda3bc9e04788957fb749d570cac67b5fa4a78098f72ed6dc1"
+          },
+          {
+            "ref": "artifacts/registry/capability-action-registry.json",
+            "content_digest": "sha256:95136215ae3e88a8859cc0fe4499f1010659be341af38db92efa3818e531f603"
+          },
+          {
+            "ref": "artifacts/registry/operation-registry.json",
+            "content_digest": "sha256:98c629dedef5761bdf931d11a4365eea8f063db78552c3c76a9eab84c357eaf5"
+          },
+          {
+            "ref": "zh/authz/event-auth-state-resolution.md",
+            "content_digest": "sha256:4e0663cc9d91ff0171ba11d3e91aacfa3d373e0828c3f6cc73ab1b0d3635d84f"
+          },
+          {
+            "ref": "zh/conformance/encoding.md",
+            "content_digest": "sha256:df58ea6707e7c6095cba4c4b912ecc7404ccb786961af35b3d049f290f565bec"
+          },
+          {
+            "ref": "zh/sync/federation.md",
+            "content_digest": "sha256:9bc89a1e6cf7cc5b9fedbcd07c547fe24d9857e2c3b77f6af89c9fbf67fa50f0"
+          },
+          {
+            "ref": "zh/sync/service-http-binding.md",
+            "content_digest": "sha256:62fd4ab811fd9fc04e7c6077669f664efb2371b5ac110454d74c3e5870d6e5a3"
+          }
+        ]
+      },
+      "reducer_profile_digest": "sha256:76135ead092ef4561f8e0b92ff49dd48a11184135859ce0a64b4238333a087fc"
     }
+  ],
+  "generated_fields": [
+    "profiles[].resolved_digest_input",
+    "profiles[].reducer_profile_digest"
   ]
 }

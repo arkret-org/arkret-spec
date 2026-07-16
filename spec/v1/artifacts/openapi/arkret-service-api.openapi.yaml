@@ -1603,7 +1603,7 @@ components:
           minLength: 1
         reducer_profile_digest:
           type: string
-          description: SHA-256 over the Arkret canonical JSON bytes of the matching digest_input object in artifacts/registry/reducer-profile-registry.json. Receivers recompute from their effective Realm reducer profile and reject the whole federation batch with reducer_profile_mismatch on mismatch.
+          description: SHA-256 over the Arkret canonical JSON bytes of the locally rebuilt content-addressed resolved_digest_input closure declared by artifacts/registry/reducer-profile-registry.json. Receivers independently resolve local event-kind, schema, fixture, and reducer-contract content and reject the whole federation batch with reducer_profile_mismatch on mismatch.
           pattern: ^sha256:[0-9a-f]{64}$
       additionalProperties: false
     FieldFilter:

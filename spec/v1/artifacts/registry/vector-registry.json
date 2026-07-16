@@ -1829,7 +1829,7 @@
       "applies_to_fixtures": [
         "federation-fixture.json"
       ],
-      "description": "service_binding_ref.reducer_profile_digest is computed per federation.md section 4.1.1 from the reducer-profile-registry.json digest_input row (Arkret canonical JSON, sha256); receiver recomputes and byte-compares, rejecting the whole batch with reducer_profile_mismatch on any divergence.",
+      "description": "service_binding_ref.reducer_profile_digest is computed per federation.md section 4.1.1 from a locally rebuilt content-addressed resolved_digest_input closure; event-kind or schema content mutation changes the digest, canonical key reordering does not, and the receiver rejects the whole batch with reducer_profile_mismatch on divergence.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/federation-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
