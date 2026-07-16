@@ -91,7 +91,7 @@
     "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Seal coverage, governance state_root, or reducer state.",
     "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
     "Every active lifecycle event kind MUST declare lifecycle_modality. Use reversible for a reversible lifecycle facet or either member of an archive/restore pair, and terminal for an irreversible transition that cannot be restored. Reducers and SDKs MUST NOT infer modality from event-kind spelling or the presence of a sibling event.",
-    "Reducer-input durable kinds MAY declare cell_family, cell_subject, plane, sealed, lattice, bottom, and (cas_register only) initial_value. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used for lattices such as or_set whose join cannot produce Bottom. initial_value declares the value the cas_register reports before any DataEvent or Control Move effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Control Move predicates implements singleton-once-set cells.",
+    "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell contract. A single-target kind MAY use the legacy cell_family/cell_subject/lattice/bottom shorthand. cell_writes[] is the general authority and is REQUIRED for multi-target kinds; each entry declares cell_family, cell_subject, lattice, bottom, and optional initial_value. The generator materializes the single-target shorthand when cell_writes[] has one entry. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an envelope/payload field path, a coalesce descriptor, or a composite descriptor. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
     "Protocol-singleton cells MAY take their genesis value from a create payload, but every subsequent write MUST use a registered event_kind. ak.component.notary.v1 is canonically defined in zh/authz/event-auth-state-resolution.md section 6.5; its genesis value comes from ak.realm.create and subsequent writes use ak.realm.notary.",
     "Lattice MUST be one of the fully specified core types: or_set, mv_register, cas_register, fsm, counter, ordered_log. A new lattice type cannot become active until its join, bottom, op schema, profile gate, and conformance vectors are all registered.",
     "State convergence is defined by CBA: DataEvent effects are locally accepted against seal_ref, Control Move effects are finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
@@ -168,7 +168,21 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Realm patch"
+      "payload": "Realm patch",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.realm.metadata.v1",
+          "cell_subject": null,
+          "lattice": "cas_register",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.realm.metadata.v1",
+      "cell_subject": null,
+      "lattice": "cas_register",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.realm.upgrade",
@@ -669,7 +683,27 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Circle patch (ak.patch.v1 with path NOT containing realm_id / encryption_profile). Modifies title / summary / display / directory_visibility / join_rule / history_visibility."
+      "payload": "Circle patch (ak.patch.v1 with path NOT containing realm_id / encryption_profile). Modifies title / summary / display / directory_visibility / join_rule / history_visibility.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.circle.metadata.v1",
+          "cell_subject": {
+            "type": "id:circle",
+            "field": "payload.circle_id"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.circle.metadata.v1",
+      "cell_subject": {
+        "type": "id:circle",
+        "field": "payload.circle_id"
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.circle.archive",
@@ -678,7 +712,27 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Circle archive lifecycle facet (active -> archived).",
-      "lifecycle_modality": "reversible"
+      "lifecycle_modality": "reversible",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.circle.lifecycle.v1",
+          "cell_subject": {
+            "type": "id:circle",
+            "field": "payload.circle_id"
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.circle.lifecycle.v1",
+      "cell_subject": {
+        "type": "id:circle",
+        "field": "payload.circle_id"
+      },
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.circle.restore",
@@ -687,7 +741,27 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Circle restore lifecycle facet (archived -> active).",
-      "lifecycle_modality": "reversible"
+      "lifecycle_modality": "reversible",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.circle.lifecycle.v1",
+          "cell_subject": {
+            "type": "id:circle",
+            "field": "payload.circle_id"
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.circle.lifecycle.v1",
+      "cell_subject": {
+        "type": "id:circle",
+        "field": "payload.circle_id"
+      },
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.circle.tombstone",
@@ -739,7 +813,27 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Organization discoverability state"
+      "payload": "Organization discoverability state",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.organization.discovery.v1",
+          "cell_subject": {
+            "type": "did",
+            "field": "payload.organization_did"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.organization.discovery.v1",
+      "cell_subject": {
+        "type": "did",
+        "field": "payload.organization_did"
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.actor.discovery",
@@ -748,7 +842,27 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Actor discoverability state"
+      "payload": "Actor discoverability state",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.actor.discovery.v1",
+          "cell_subject": {
+            "type": "did",
+            "field": "payload.resource_id"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.actor.discovery.v1",
+      "cell_subject": {
+        "type": "did",
+        "field": "payload.resource_id"
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.applet.discovery",
@@ -757,7 +871,27 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "service_attested",
-      "payload": "Applet discoverability state"
+      "payload": "Applet discoverability state",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.applet.discovery.v1",
+          "cell_subject": {
+            "type": "typed_id",
+            "field": "payload.resource_id"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.applet.discovery.v1",
+      "cell_subject": {
+        "type": "typed_id",
+        "field": "payload.resource_id"
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.handle.discovery",
@@ -766,7 +900,27 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Handle discoverability state"
+      "payload": "Handle discoverability state",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.handle.discovery.v1",
+          "cell_subject": {
+            "type": "string",
+            "field": "payload.resource_id"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.handle.discovery.v1",
+      "cell_subject": {
+        "type": "string",
+        "field": "payload.resource_id"
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.organization.moderation_policy",
@@ -778,7 +932,33 @@
       "admission_capabilities": [
         "ak.policy.manage"
       ],
-      "payload": "Organization moderation policy state"
+      "payload": "Organization moderation policy state",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.organization.moderation_policy.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.organization_did",
+              "payload.organization_id"
+            ]
+          },
+          "lattice": "cas_register",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.organization.moderation_policy.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.organization_did",
+          "payload.organization_id"
+        ]
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.did.proof",
@@ -787,7 +967,27 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "DID proof object or event"
+      "payload": "DID proof object or event",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.identity.proof_log.v1",
+          "cell_subject": {
+            "type": "did",
+            "field": "payload.did"
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.identity.proof_log.v1",
+      "cell_subject": {
+        "type": "did",
+        "field": "payload.did"
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.identity.disclosure_policy",
@@ -796,7 +996,27 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Identity disclosure policy"
+      "payload": "Identity disclosure policy",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.identity.disclosure_policy.v1",
+          "cell_subject": {
+            "type": "typed_id",
+            "field": "payload.policy_id"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.identity.disclosure_policy.v1",
+      "cell_subject": {
+        "type": "typed_id",
+        "field": "payload.policy_id"
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.identity.disclosure_receipt",
@@ -805,7 +1025,27 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Identity disclosure receipt"
+      "payload": "Identity disclosure receipt",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.identity.disclosure_receipt.v1",
+          "cell_subject": {
+            "type": "did",
+            "field": "payload.holder_did"
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.identity.disclosure_receipt.v1",
+      "cell_subject": {
+        "type": "did",
+        "field": "payload.holder_did"
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.identity.presentation_request",
@@ -814,7 +1054,27 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Presentation request"
+      "payload": "Presentation request",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.identity.presentation.v1",
+          "cell_subject": {
+            "type": "typed_id",
+            "field": "payload.request_id"
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.identity.presentation.v1",
+      "cell_subject": {
+        "type": "typed_id",
+        "field": "payload.request_id"
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.identity.presentation_response",
@@ -823,7 +1083,27 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Presentation response"
+      "payload": "Presentation response",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.identity.presentation.v1",
+          "cell_subject": {
+            "type": "typed_id",
+            "field": "payload.request_id"
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.identity.presentation.v1",
+      "cell_subject": {
+        "type": "typed_id",
+        "field": "payload.request_id"
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.identity.accountability_grant",
@@ -832,7 +1112,35 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Issuer-signed endorsement that a subject DID (typically an agent / service / hosted actor) is accountable_principal_ids the issuer for a declared scope (employment / contracted_service / agent_operator / etc.). Required to verify `Actor Profile.accountable_principal_ids[]` entries; reducer strips unverified DIDs from accountable_principal_ids. See zh/models/actor.md §3.3.1. expires_at is optional; absent means non-expiring, governed by grant_status revocation and controller lifecycle cascade.",
-      "payload_schema_ref": "schemas/accountability-grant.schema.json"
+      "payload_schema_ref": "schemas/accountability-grant.schema.json",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.identity.accountability.v1",
+          "cell_subject": {
+            "type": "composite",
+            "components": [
+              "payload.issuer",
+              "payload.subject",
+              "payload.accountability_scope"
+            ]
+          },
+          "lattice": "cas_register",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.identity.accountability.v1",
+      "cell_subject": {
+        "type": "composite",
+        "components": [
+          "payload.issuer",
+          "payload.subject",
+          "payload.accountability_scope"
+        ]
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.schema.define",
@@ -840,7 +1148,29 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Schema definition"
+      "payload": "Schema definition",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.schema.definition.v1",
+          "cell_subject": {
+            "type": "string",
+            "field": "payload.schema_id"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "initial_value": "__unset__"
+        }
+      ],
+      "cell_family": "ak.component.schema.definition.v1",
+      "cell_subject": {
+        "type": "string",
+        "field": "payload.schema_id"
+      },
+      "lattice": "cas_register",
+      "bottom": "reject",
+      "initial_value": "__unset__"
     },
     {
       "event_kind": "ak.schema.update",
@@ -848,7 +1178,29 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Schema patch"
+      "payload": "Schema patch",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.schema.definition.v1",
+          "cell_subject": {
+            "type": "string",
+            "field": "payload.schema_id"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "initial_value": "__unset__"
+        }
+      ],
+      "cell_family": "ak.component.schema.definition.v1",
+      "cell_subject": {
+        "type": "string",
+        "field": "payload.schema_id"
+      },
+      "lattice": "cas_register",
+      "bottom": "reject",
+      "initial_value": "__unset__"
     },
     {
       "event_kind": "ak.policy.set",
@@ -856,7 +1208,27 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Policy object set"
+      "payload": "Policy object set",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.policy.definition.v1",
+          "cell_subject": {
+            "type": "typed_id",
+            "field": "payload.policy_id"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.policy.definition.v1",
+      "cell_subject": {
+        "type": "typed_id",
+        "field": "payload.policy_id"
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.policy.rule",
@@ -881,7 +1253,35 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Policy-gated action proposal or execution"
+      "payload": "Policy-gated action proposal or execution",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.policy.action_log.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.policy_id",
+              "payload.action_id",
+              "id"
+            ]
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.policy.action_log.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.policy_id",
+          "payload.action_id",
+          "id"
+        ]
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.notary.fault.equivocation",
@@ -1056,7 +1456,27 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Strand create"
+      "payload": "Strand create",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.strand.object.v1",
+          "cell_subject": {
+            "type": "id:strand",
+            "field": "payload.object.id"
+          },
+          "lattice": "mv_register",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.strand.object.v1",
+      "cell_subject": {
+        "type": "id:strand",
+        "field": "payload.object.id"
+      },
+      "lattice": "mv_register",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.strand.update",
@@ -1082,7 +1502,33 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Strand archive",
-      "lifecycle_modality": "reversible"
+      "lifecycle_modality": "reversible",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.strand.lifecycle.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.strand_id",
+              "payload.target_ref"
+            ]
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.strand.lifecycle.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.strand_id",
+          "payload.target_ref"
+        ]
+      },
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.strand.restore",
@@ -1091,7 +1537,33 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Strand restore",
-      "lifecycle_modality": "reversible"
+      "lifecycle_modality": "reversible",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.strand.lifecycle.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.strand_id",
+              "payload.target_ref"
+            ]
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.strand.lifecycle.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.strand_id",
+          "payload.target_ref"
+        ]
+      },
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.strand.stage.set",
@@ -1217,7 +1689,27 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space create (board / list / swimlane / calendar bucket / etc.)"
+      "payload": "Space create (board / list / swimlane / calendar bucket / etc.)",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.space.metadata.v1",
+          "cell_subject": {
+            "type": "id:space",
+            "field": "payload.object.id"
+          },
+          "lattice": "mv_register",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.space.metadata.v1",
+      "cell_subject": {
+        "type": "id:space",
+        "field": "payload.object.id"
+      },
+      "lattice": "mv_register",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.space.update",
@@ -1225,7 +1717,33 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space metadata update (title, rank, kind-specific fields)"
+      "payload": "Space metadata update (title, rank, kind-specific fields)",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.space.metadata.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.space_id",
+              "payload.target_ref"
+            ]
+          },
+          "lattice": "mv_register",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.space.metadata.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.space_id",
+          "payload.target_ref"
+        ]
+      },
+      "lattice": "mv_register",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.space.parent",
@@ -1251,7 +1769,33 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Space archive (UI-level grouping archive; contained Strands MUST be relocated or follow archive)",
-      "lifecycle_modality": "reversible"
+      "lifecycle_modality": "reversible",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.space.lifecycle.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.space_id",
+              "payload.target_ref"
+            ]
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.space.lifecycle.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.space_id",
+          "payload.target_ref"
+        ]
+      },
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.space.restore",
@@ -1260,7 +1804,33 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Space restore (transition state archived -> active; only valid when current state == archived; tombstoned Spaces MUST NOT be restored)",
-      "lifecycle_modality": "reversible"
+      "lifecycle_modality": "reversible",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.space.lifecycle.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.space_id",
+              "payload.target_ref"
+            ]
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.space.lifecycle.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.space_id",
+          "payload.target_ref"
+        ]
+      },
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.space.tombstone",
@@ -1269,7 +1839,33 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Space tombstone (irreversible; contained Strands MUST be relocated before)",
-      "lifecycle_modality": "terminal"
+      "lifecycle_modality": "terminal",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.space.lifecycle.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.space_id",
+              "payload.target_ref"
+            ]
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.space.lifecycle.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.space_id",
+          "payload.target_ref"
+        ]
+      },
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.message.create",
@@ -1294,7 +1890,35 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Message edit patch"
+      "payload": "Message edit patch",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.message.revision.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.message_id",
+              "payload.target_ref",
+              "payload.revision_of"
+            ]
+          },
+          "lattice": "mv_register",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.message.revision.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.message_id",
+          "payload.target_ref",
+          "payload.revision_of"
+        ]
+      },
+      "lattice": "mv_register",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.message.redact",
@@ -1302,7 +1926,37 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Message-scoped redaction; does not grant generic redaction authority"
+      "payload": "Message-scoped redaction; does not grant generic redaction authority",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.object.redaction.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.message_id",
+              "payload.target_ref",
+              "payload.event_id",
+              "payload.target_event_id"
+            ]
+          },
+          "lattice": "or_set",
+          "bottom": "inert"
+        }
+      ],
+      "cell_family": "ak.component.object.redaction.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.message_id",
+          "payload.target_ref",
+          "payload.event_id",
+          "payload.target_event_id"
+        ]
+      },
+      "lattice": "or_set",
+      "bottom": "inert"
     },
     {
       "event_kind": "ak.reaction.add",
@@ -1345,7 +1999,35 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Calendar event RSVP set",
-      "payload_schema": "ak.schema.rsvp.v1"
+      "payload_schema": "ak.schema.rsvp.v1",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.calendar.rsvp.v1",
+          "cell_subject": {
+            "type": "composite",
+            "components": [
+              "payload.event_ref",
+              "payload.occurrence",
+              "actor_id"
+            ]
+          },
+          "lattice": "mv_register",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.calendar.rsvp.v1",
+      "cell_subject": {
+        "type": "composite",
+        "components": [
+          "payload.event_ref",
+          "payload.occurrence",
+          "actor_id"
+        ]
+      },
+      "lattice": "mv_register",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.pin.add",
@@ -1408,7 +2090,35 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Generic redaction envelope for non-message objects/events and profile-declared content trimming",
-      "lifecycle_modality": "terminal"
+      "lifecycle_modality": "terminal",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.object.redaction.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.target_ref",
+              "payload.event_id",
+              "payload.target_event_id"
+            ]
+          },
+          "lattice": "or_set",
+          "bottom": "inert"
+        }
+      ],
+      "cell_family": "ak.component.object.redaction.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.target_ref",
+          "payload.event_id",
+          "payload.target_event_id"
+        ]
+      },
+      "lattice": "or_set",
+      "bottom": "inert"
     },
     {
       "event_kind": "ak.morph.create",
@@ -1416,7 +2126,27 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Morph create"
+      "payload": "Morph create",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.morph.v1",
+          "cell_subject": {
+            "type": "id:morph",
+            "field": "payload.object.id"
+          },
+          "lattice": "mv_register",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.morph.v1",
+      "cell_subject": {
+        "type": "id:morph",
+        "field": "payload.object.id"
+      },
+      "lattice": "mv_register",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.morph.update",
@@ -1424,7 +2154,27 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Morph patch"
+      "payload": "Morph patch",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.morph.v1",
+          "cell_subject": {
+            "type": "id:morph",
+            "field": "payload.target_ref"
+          },
+          "lattice": "mv_register",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.morph.v1",
+      "cell_subject": {
+        "type": "id:morph",
+        "field": "payload.target_ref"
+      },
+      "lattice": "mv_register",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.morph.archive",
@@ -1433,7 +2183,33 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Morph archive",
-      "lifecycle_modality": "reversible"
+      "lifecycle_modality": "reversible",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.morph.lifecycle.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.morph_id",
+              "payload.target_ref"
+            ]
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.morph.lifecycle.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.morph_id",
+          "payload.target_ref"
+        ]
+      },
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.morph.restore",
@@ -1442,7 +2218,33 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Morph restore",
-      "lifecycle_modality": "reversible"
+      "lifecycle_modality": "reversible",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.morph.lifecycle.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.morph_id",
+              "payload.target_ref"
+            ]
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.morph.lifecycle.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.morph_id",
+          "payload.target_ref"
+        ]
+      },
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.morph.schema_migrate",
@@ -1450,7 +2252,27 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability ak.morph.schema_migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares ak.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
+      "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability ak.morph.schema_migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares ak.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.morph.schema.v1",
+          "cell_subject": {
+            "type": "id:morph",
+            "field": "payload.morph_id"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.morph.schema.v1",
+      "cell_subject": {
+        "type": "id:morph",
+        "field": "payload.morph_id"
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.morph.stage.set",
@@ -1475,7 +2297,27 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Relation create"
+      "payload": "Relation create",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.relation.v1",
+          "cell_subject": {
+            "type": "id:relation",
+            "field": "payload.object.id"
+          },
+          "lattice": "mv_register",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.relation.v1",
+      "cell_subject": {
+        "type": "id:relation",
+        "field": "payload.object.id"
+      },
+      "lattice": "mv_register",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.relation.update",
@@ -1483,7 +2325,27 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Relation patch"
+      "payload": "Relation patch",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.relation.v1",
+          "cell_subject": {
+            "type": "id:relation",
+            "field": "payload.target_ref"
+          },
+          "lattice": "mv_register",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.relation.v1",
+      "cell_subject": {
+        "type": "id:relation",
+        "field": "payload.target_ref"
+      },
+      "lattice": "mv_register",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.relation.tombstone",
@@ -1492,7 +2354,33 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Relation tombstone",
-      "lifecycle_modality": "terminal"
+      "lifecycle_modality": "terminal",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.relation.lifecycle.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.relation_id",
+              "payload.target_ref"
+            ]
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.relation.lifecycle.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.relation_id",
+          "payload.target_ref"
+        ]
+      },
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.container.move_item",
@@ -1500,7 +2388,33 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Profile-declared container item move"
+      "payload": "Profile-declared container item move",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.container.position.v1",
+          "cell_subject": {
+            "type": "composite",
+            "components": [
+              "payload.container_ref",
+              "payload.item_ref"
+            ]
+          },
+          "lattice": "cas_register",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.container.position.v1",
+      "cell_subject": {
+        "type": "composite",
+        "components": [
+          "payload.container_ref",
+          "payload.item_ref"
+        ]
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.container.rebalance",
@@ -1508,7 +2422,27 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Profile-declared container rank rebalance"
+      "payload": "Profile-declared container rank rebalance",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.container.order.v1",
+          "cell_subject": {
+            "type": "string",
+            "field": "payload.container_ref"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.container.order.v1",
+      "cell_subject": {
+        "type": "string",
+        "field": "payload.container_ref"
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.view.create",
@@ -2010,7 +2944,33 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Realm-scoped profile override. payload.target_realm_id is the target Realm and no Space boundary is created."
+      "payload": "Realm-scoped profile override. payload.target_realm_id is the target Realm and no Space boundary is created.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.profile.realm_override.v1",
+          "cell_subject": {
+            "type": "composite",
+            "components": [
+              "payload.target_realm_id",
+              "payload.profile_id"
+            ]
+          },
+          "lattice": "cas_register",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.profile.realm_override.v1",
+      "cell_subject": {
+        "type": "composite",
+        "components": [
+          "payload.target_realm_id",
+          "payload.profile_id"
+        ]
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.device.authorize",
@@ -2278,7 +3238,27 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "MLS proposal"
+      "payload": "MLS proposal",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.mls.proposal.v1",
+          "cell_subject": {
+            "type": "string",
+            "field": "payload.mls_group_id"
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.mls.proposal.v1",
+      "cell_subject": {
+        "type": "string",
+        "field": "payload.mls_group_id"
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.mls.genesis",
@@ -2286,7 +3266,40 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "MLS group genesis"
+      "payload": "MLS group genesis",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.mls.epoch.v1",
+          "cell_subject": {
+            "type": "string",
+            "field": "payload.mls_group_id"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "initial_value": "__unset__"
+        },
+        {
+          "cell_family": "ak.component.mls.key_schedule.v1",
+          "cell_subject": {
+            "type": "string",
+            "field": "payload.mls_group_id"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "initial_value": "__unset__"
+        },
+        {
+          "cell_family": "ak.component.covered_seals.v1",
+          "cell_subject": {
+            "type": "string",
+            "field": "payload.mls_group_id"
+          },
+          "lattice": "or_set",
+          "bottom": "inert"
+        }
+      ]
     },
     {
       "event_kind": "ak.mls.commit",
@@ -2294,7 +3307,38 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "MLS commit"
+      "payload": "MLS commit",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.mls.epoch.v1",
+          "cell_subject": {
+            "type": "string",
+            "field": "payload.mls_group_id"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject"
+        },
+        {
+          "cell_family": "ak.component.mls.key_schedule.v1",
+          "cell_subject": {
+            "type": "string",
+            "field": "payload.mls_group_id"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject"
+        },
+        {
+          "cell_family": "ak.component.covered_seals.v1",
+          "cell_subject": {
+            "type": "string",
+            "field": "payload.mls_group_id"
+          },
+          "lattice": "or_set",
+          "bottom": "inert"
+        }
+      ]
     },
     {
       "event_kind": "ak.mls.commit_failed",
@@ -2302,7 +3346,27 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "MLS commit or Welcome processing failure diagnostic"
+      "payload": "MLS commit or Welcome processing failure diagnostic",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.mls.failure_log.v1",
+          "cell_subject": {
+            "type": "string",
+            "field": "payload.mls_group_id"
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.mls.failure_log.v1",
+      "cell_subject": {
+        "type": "string",
+        "field": "payload.mls_group_id"
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.mls.welcome",
@@ -2310,7 +3374,35 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "MLS welcome reference"
+      "payload": "MLS welcome reference",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.mls.welcome.v1",
+          "cell_subject": {
+            "type": "composite",
+            "components": [
+              "payload.mls_group_id",
+              "payload.recipient_principal_id",
+              "payload.recipient_device_id"
+            ]
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.mls.welcome.v1",
+      "cell_subject": {
+        "type": "composite",
+        "components": [
+          "payload.mls_group_id",
+          "payload.recipient_principal_id",
+          "payload.recipient_device_id"
+        ]
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.mls.keypackage",
@@ -2318,7 +3410,35 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "MLS KeyPackage publication"
+      "payload": "MLS KeyPackage publication",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.mls.keypackage.v1",
+          "cell_subject": {
+            "type": "composite",
+            "components": [
+              "payload.principal_id",
+              "payload.device_id",
+              "payload.keypackage_ref"
+            ]
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.mls.keypackage.v1",
+      "cell_subject": {
+        "type": "composite",
+        "components": [
+          "payload.principal_id",
+          "payload.device_id",
+          "payload.keypackage_ref"
+        ]
+      },
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.realm_key.request",
@@ -2335,7 +3455,35 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "crypto_verifiable",
-      "payload": "Realm key share: member-device history key delivery or RRK durability seal"
+      "payload": "Realm key share: member-device history key delivery or RRK durability seal",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.realm_key.delivery.v1",
+          "cell_subject": {
+            "type": "composite",
+            "components": [
+              "payload.recipient_principal_id",
+              "payload.recipient_device_id",
+              "payload.key_scope"
+            ]
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.realm_key.delivery.v1",
+      "cell_subject": {
+        "type": "composite",
+        "components": [
+          "payload.recipient_principal_id",
+          "payload.recipient_device_id",
+          "payload.key_scope"
+        ]
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.realm_key.withheld",
@@ -2344,7 +3492,35 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "crypto_verifiable",
-      "payload": "Realm key withheld notice"
+      "payload": "Realm key withheld notice",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.realm_key.delivery.v1",
+          "cell_subject": {
+            "type": "composite",
+            "components": [
+              "payload.recipient_principal_id",
+              "payload.recipient_device_id",
+              "payload.key_scope"
+            ]
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.realm_key.delivery.v1",
+      "cell_subject": {
+        "type": "composite",
+        "components": [
+          "payload.recipient_principal_id",
+          "payload.recipient_device_id",
+          "payload.key_scope"
+        ]
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.realm_key.share_audit",
@@ -2353,7 +3529,27 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "service_attested",
-      "payload": "Auditable history key share marker"
+      "payload": "Auditable history key share marker",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.realm_key.audit.v1",
+          "cell_subject": {
+            "type": "string",
+            "field": "payload.share_event_ref"
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.realm_key.audit.v1",
+      "cell_subject": {
+        "type": "string",
+        "field": "payload.share_event_ref"
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.audit.accessed",
@@ -2361,7 +3557,35 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Auditable access marker for privileged reads or privacy-sensitive paired writes. E2EE compliance release uses ak.audit.release; ak.audit.accessed remains for non-release audit pairs such as Circle metadata audit, watch_set_others, late recovery, and policy reads."
+      "payload": "Auditable access marker for privileged reads or privacy-sensitive paired writes. E2EE compliance release uses ak.audit.release; ak.audit.accessed remains for non-release audit pairs such as Circle metadata audit, watch_set_others, late recovery, and policy reads.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.audit.access_log.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.target_ref",
+              "payload.target_cell_id",
+              "payload.paired_event_id"
+            ]
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.audit.access_log.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.target_ref",
+          "payload.target_cell_id",
+          "payload.paired_event_id"
+        ]
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.audit.applet_binding",
@@ -2686,7 +3910,27 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Moderation report"
+      "payload": "Moderation report",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.moderation.report.v1",
+          "cell_subject": {
+            "type": "string",
+            "field": "payload.target_ref"
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.moderation.report.v1",
+      "cell_subject": {
+        "type": "string",
+        "field": "payload.target_ref"
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.moderation.franking_proof",
@@ -2695,7 +3939,35 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "crypto_verifiable",
-      "payload": "Moderation franking proof"
+      "payload": "Moderation franking proof",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.moderation.franking_proof.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.report_id",
+              "payload.target_ref",
+              "id"
+            ]
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.moderation.franking_proof.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.report_id",
+          "payload.target_ref",
+          "id"
+        ]
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.moderation.decision",
@@ -2821,7 +4093,35 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Invite create. Directed v1 invite payloads carry invitee plus invite_delivery_target and introduction_evidence_digest; raw locator tokens and invite_receive_policy state are private and MUST NOT enter the durable Realm event."
+      "payload": "Invite create. Directed v1 invite payloads carry invitee plus invite_delivery_target and introduction_evidence_digest; raw locator tokens and invite_receive_policy state are private and MUST NOT enter the durable Realm event.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.invite.lifecycle.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.invite.id",
+              "payload.invite_id",
+              "id"
+            ]
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.invite.lifecycle.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.invite.id",
+          "payload.invite_id",
+          "id"
+        ]
+      },
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.invite.cancel",
@@ -2829,7 +4129,27 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Invite cancel"
+      "payload": "Invite cancel",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.invite.lifecycle.v1",
+          "cell_subject": {
+            "type": "typed_id",
+            "field": "payload.invite_id"
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.invite.lifecycle.v1",
+      "cell_subject": {
+        "type": "typed_id",
+        "field": "payload.invite_id"
+      },
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.invite.accept",
@@ -2837,7 +4157,29 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Invite accept"
+      "payload": "Invite accept",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.invite.lifecycle.v1",
+          "cell_subject": {
+            "type": "typed_id",
+            "field": "payload.invite_id"
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        },
+        {
+          "cell_family": "ak.component.member.state.v1",
+          "cell_subject": {
+            "type": "did",
+            "field": "actor_id"
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        }
+      ]
     },
     {
       "event_kind": "ak.invite.third_party",
@@ -2845,7 +4187,35 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Third-party identifier pending invite"
+      "payload": "Third-party identifier pending invite",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.invite.lifecycle.v1",
+          "cell_subject": {
+            "type": "coalesce",
+            "fields": [
+              "payload.invite.id",
+              "payload.invite_id",
+              "id"
+            ]
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.invite.lifecycle.v1",
+      "cell_subject": {
+        "type": "coalesce",
+        "fields": [
+          "payload.invite.id",
+          "payload.invite_id",
+          "id"
+        ]
+      },
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.invite.claim",
@@ -2866,6 +4236,31 @@
         "ak.vector.invite.claim_reducer_state_machine.v1",
         "ak.vector.invite.consumed_token_resubject_rejected.v1",
         "ak.vector.invite.failure_indistinguishable.v1"
+      ],
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.invite.lifecycle.v1",
+          "cell_subject": {
+            "type": "typed_id",
+            "field": "payload.invite_id"
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        },
+        {
+          "cell_family": "ak.component.invite.membership_proposal.v1",
+          "cell_subject": {
+            "type": "composite",
+            "components": [
+              "payload.invite_id",
+              "payload.subject_id"
+            ]
+          },
+          "lattice": "or_set",
+          "bottom": "inert"
+        }
       ]
     },
     {
@@ -2874,7 +4269,27 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Third-party invite revoke"
+      "payload": "Third-party invite revoke",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.invite.lifecycle.v1",
+          "cell_subject": {
+            "type": "typed_id",
+            "field": "payload.invite_id"
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.invite.lifecycle.v1",
+      "cell_subject": {
+        "type": "typed_id",
+        "field": "payload.invite_id"
+      },
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.applet.bridge_error",
@@ -2883,7 +4298,27 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "service_attested",
-      "payload": "Bridge failure"
+      "payload": "Bridge failure",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.applet.bridge_error.v1",
+          "cell_subject": {
+            "type": "typed_id",
+            "field": "payload.applet_id"
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose"
+        }
+      ],
+      "cell_family": "ak.component.applet.bridge_error.v1",
+      "cell_subject": {
+        "type": "typed_id",
+        "field": "payload.applet_id"
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.applet.registration",
@@ -2892,7 +4327,27 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "service_attested",
-      "payload": "Applet registration"
+      "payload": "Applet registration",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.applet.registration.v1",
+          "cell_subject": {
+            "type": "typed_id",
+            "field": "payload.applet_id"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.applet.registration.v1",
+      "cell_subject": {
+        "type": "typed_id",
+        "field": "payload.applet_id"
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.mimi.room_binding",
@@ -3034,7 +4489,27 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Call recording / transcript capture start"
+      "payload": "Call recording / transcript capture start",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.call.recording.v1",
+          "cell_subject": {
+            "type": "typed_id",
+            "field": "payload.call_id"
+          },
+          "lattice": "fsm",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.call.recording.v1",
+      "cell_subject": {
+        "type": "typed_id",
+        "field": "payload.call_id"
+      },
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.call.summary",
@@ -3060,7 +4535,27 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Sovereign DID resolver policy state"
+      "payload": "Sovereign DID resolver policy state",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.sovereign.did_policy.v1",
+          "cell_subject": {
+            "type": "string",
+            "field": "payload.trust_domain"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject"
+        }
+      ],
+      "cell_family": "ak.component.sovereign.did_policy.v1",
+      "cell_subject": {
+        "type": "string",
+        "field": "payload.trust_domain"
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
     }
   ]
 }

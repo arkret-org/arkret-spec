@@ -141,6 +141,14 @@ Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State converge
 - `actor_kind` 是 reducer-stamped 投影，由 reducer 在接受 Event 时从 `actor_id` 的 Actor Profile 解析得到 immutable 值；它让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可判断该 Event 是 agent 行为(`actor_kind="agent"`) 还是 controller 行为。Actor 提交侧 MUST NOT 携带该字段。
 - 启用 `ak.profile.mls.minimal_metadata_realm.v1` 时，`actor_id` MAY 是 Realm / Strand track scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `ak.schema.identity_link.v1` payload（`ak.identity_link` application message / MLS private extension）、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
 
+#### 2.4.1 Event kind cell contract（normative）
+
+每个 `status=active && reducer_input=true` 的 durable Event kind MUST 在 `event-kind-registry.json` 声明完整 cell contract。`plane` / `sealed` 固定整个 Event 的 CBA 路由；`cell_writes[]` 是一般形态，每项固定 `cell_family`、`cell_subject` 派生式、`lattice`、`bottom` 与可选 `initial_value`。单目标 kind MAY 同时暴露等价的 `cell_family` / `cell_subject` / `lattice` / `bottom` 简写；两者不一致时 registry 无效，发布门禁 MUST 失败。
+
+Producer MUST 为 `cell_writes[]` 的每个目标生成且只生成一个对应 `effects[]` 项；receiver MUST 从 Event Envelope 与 payload 按登记的 `cell_subject` 纯函数派生完整 cell id，并逐项验证 family、subject、lattice op 与 Event plane。缺少已登记目标、额外写入未登记目标、把 data/control plane 写反，或用 `effects[].cell` 改写派生结果，分别以 `effects_payload_mismatch` 或 `plane_cross_write` 拒绝整个 Event。多目标 Event 的所有 effects 在同一原子 reducer transaction 内成功或全部失败；数组顺序不产生业务语义，canonical 比较按完整 cell id 的 UTF-8 byte order 排序。
+
+`ak.mls.genesis` / `ak.mls.commit` 的三目标合约固定为 MLS epoch、key schedule 与 covered-seals；`ak.invite.accept` 固定为 invite lifecycle 与 member state；`ak.invite.claim` 固定为 invite lifecycle 与 subject-bound membership proposal。generic/message redaction 写入单调 `ak.component.object.redaction.v1` fact；对象的 effective terminal/redacted 状态由该 fact 与对象 lifecycle cell 联合派生，不允许用到达顺序选择是否清除内容。闭包与正负路径由 `ak.vector.event_kind.cell_contract_closure.v1` 固定。
+
 ### 2.5 Create 类 Event 的跨字段语义校验
 
 Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire validation，但接收方在进入 accepted set 前还必须执行跨字段语义校验：
@@ -372,7 +380,7 @@ Reducer MUST 按 §4.4 原子性规则评估整个 `payload.patch` map（全部�
 派生函数按以下封闭规则工作：
 
 1. 先按上述冻结规则取得唯一 pre-state，再按 §4.2 / §4.4 验证并原子应用 patch，得到完整 post-state；命中 redactable 或 reducer-managed 路径时在产生 effects 前即拒绝，因此不能经 effects 绕过保护。
-2. 目标 cell family、cell subject、plane 与 lattice 只从 event-kind registry 和 kind payload schema 派生，producer 不得用 `effects[].cell` 改写目标。
+2. 目标 cell family、cell subject、plane 与 lattice 只从 event-kind registry 的单目标简写或 `cell_writes[]` 以及 kind payload schema 派生，producer 不得用 `effects[].cell` 改写目标；多目标 kind 必须与 §2.4.1 的目标集合逐项完全相等。
 3. `mv_register` / `cas_register` 产生单个 `op.kind="set"`，`op.value` 是完整 post-state cell value，不是 partial patch。`or_set` 只允许 patch `add` / `remove`，逐项产生同名 lattice op；`counter` 只允许 schema 登记的增减字段并产生 `inc` / `dec`；`fsm` 只允许领域 transition Event，MUST NOT 用通用 patch 改状态。其它 lattice 若无本节或领域文档的显式映射，携带 patch MUST fail closed。
 4. 派生 effects 按 cell id、op kind、tag / element id 的 canonical tuple 升序排列；相同 tuple 重复、patch 父子路径冲突或一个 patch 需要跨 plane 写入时 MUST 拒绝，不能靠数组顺序消歧。
 

@@ -192,6 +192,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.event_kind.cell_contract_closure.v1",
+      "status": "active",
+      "domain": "event_kind",
+      "applies_to_fixtures": [
+        "state-reducer-hardening-fixture.json"
+      ],
+      "description": "Requires every active reducer-input kind to have a complete machine-readable cell contract and pins exact multi-target atomicity, missing/extra effect rejection, and data/control plane-cross-write rejection.",
+      "source_refs": [
+        "spec/v1/zh/models/event-and-patch.md",
+        "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.scalability.circle_count_limit.v1",
       "status": "active",
       "domain": "scalability",

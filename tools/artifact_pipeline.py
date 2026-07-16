@@ -27,6 +27,7 @@ them inside Markdown or under zh/ is no longer needed.
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import re
@@ -123,6 +124,48 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
         section_payload = catalog.get(section)
         if not isinstance(section_payload, dict):
             raise SystemExit(f"contract catalog missing section {section}")
+        section_payload = copy.deepcopy(section_payload)
+        if section == "event_kind_registry":
+            cell_contracts = section_payload.pop("cell_contracts", None)
+            if not isinstance(cell_contracts, dict):
+                raise SystemExit("event_kind_registry missing cell_contracts object")
+            event_rows = section_payload.get("event_kinds")
+            if not isinstance(event_rows, list):
+                raise SystemExit("event_kind_registry.event_kinds must be an array")
+            known_kinds = {
+                event_row.get("event_kind")
+                for event_row in event_rows
+                if isinstance(event_row, dict)
+            }
+            unknown_contracts = sorted(set(cell_contracts) - known_kinds)
+            if unknown_contracts:
+                raise SystemExit(
+                    "cell_contracts references unknown event kinds: "
+                    + ", ".join(unknown_contracts)
+                )
+            for event_row in event_rows:
+                if not isinstance(event_row, dict):
+                    continue
+                event_kind = event_row.get("event_kind")
+                contract = cell_contracts.get(event_kind)
+                if contract is None:
+                    continue
+                if not isinstance(contract, dict):
+                    raise SystemExit(f"cell contract for {event_kind} must be an object")
+                overlapping = sorted(set(event_row) & set(contract))
+                if overlapping:
+                    raise SystemExit(
+                        f"cell contract for {event_kind} overlaps inline fields: "
+                        + ", ".join(overlapping)
+                    )
+                event_row.update(copy.deepcopy(contract))
+                writes = contract.get("cell_writes")
+                if isinstance(writes, list) and len(writes) == 1 and isinstance(writes[0], dict):
+                    # Preserve the v1 single-target shorthand for existing consumers while
+                    # making cell_writes[] the general machine authority.
+                    for field in ("cell_family", "cell_subject", "lattice", "bottom", "initial_value"):
+                        if field in writes[0]:
+                            event_row[field] = copy.deepcopy(writes[0][field])
         payloads[ARTIFACTS / file_ref] = {
             "version": version,
             "source_of_truth": False,

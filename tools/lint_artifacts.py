@@ -1130,6 +1130,90 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                 lint.fail(event_path, f"{kind} cell_family row must declare sealed boolean")
             elif (plane == "control") != sealed:
                 lint.fail(event_path, f"{kind} sealed must be true iff plane=control")
+        cell_writes = row.get("cell_writes")
+        if cell_writes is not None:
+            if not isinstance(cell_writes, list) or not cell_writes:
+                lint.fail(event_path, f"{kind} cell_writes must be a non-empty array")
+                cell_writes = []
+            seen_writes: set[str] = set()
+            for index, write in enumerate(cell_writes):
+                write_ref = f"{kind} cell_writes[{index}]"
+                if not isinstance(write, dict):
+                    lint.fail(event_path, f"{write_ref} must be an object")
+                    continue
+                write_family = write.get("cell_family")
+                if not isinstance(write_family, str) or CELL_FAMILY_RE.fullmatch(write_family) is None:
+                    lint.fail(
+                        event_path,
+                        f"{write_ref}.cell_family must use canonical ak.component.<facet-path>.v<n> form",
+                    )
+                if "cell_subject" not in write:
+                    lint.fail(event_path, f"{write_ref} must declare cell_subject (null is allowed)")
+                else:
+                    subject = write.get("cell_subject")
+                    if subject is not None and not isinstance(subject, (str, dict)):
+                        lint.fail(event_path, f"{write_ref}.cell_subject must be null, string, or object")
+                    elif isinstance(subject, dict):
+                        subject_type = subject.get("type")
+                        if not isinstance(subject_type, str) or not subject_type:
+                            lint.fail(event_path, f"{write_ref}.cell_subject.type must be a non-empty string")
+                        if subject_type in {"composite", "coalesce"}:
+                            list_field = "components" if subject_type == "composite" else "fields"
+                            parts = subject.get(list_field)
+                            if (
+                                not isinstance(parts, list)
+                                or not parts
+                                or any(not isinstance(part, str) or not part for part in parts)
+                            ):
+                                lint.fail(
+                                    event_path,
+                                    f"{write_ref}.cell_subject.{list_field} must be a non-empty string array",
+                                )
+                        elif subject_type == "tuple":
+                            parts = subject.get("components")
+                            if not isinstance(parts, list) or not parts:
+                                lint.fail(event_path, f"{write_ref}.cell_subject.components must be non-empty")
+                            elif any(
+                                not isinstance(part, dict)
+                                or not isinstance(part.get("field"), str)
+                                or not part.get("field")
+                                for part in parts
+                            ):
+                                lint.fail(event_path, f"{write_ref} tuple components must declare field")
+                        elif not isinstance(subject.get("field"), str) or not subject.get("field"):
+                            lint.fail(event_path, f"{write_ref}.cell_subject must declare field")
+                write_lattice = write.get("lattice")
+                if write_lattice not in REGISTRY_LATTICES:
+                    lint.fail(event_path, f"{write_ref} has unknown lattice {write_lattice!r}")
+                write_bottom = write.get("bottom")
+                if write_bottom not in REGISTRY_BOTTOMS:
+                    lint.fail(event_path, f"{write_ref} has unknown bottom {write_bottom!r}")
+                write_key = json.dumps(
+                    [write_family, write.get("cell_subject")],
+                    sort_keys=True,
+                    ensure_ascii=False,
+                )
+                if write_key in seen_writes:
+                    lint.fail(event_path, f"{write_ref} duplicates another cell target")
+                seen_writes.add(write_key)
+            plane = row.get("plane")
+            sealed = row.get("sealed")
+            if plane not in REGISTRY_PLANES:
+                lint.fail(event_path, f"{kind} cell_writes row must declare plane=data|control")
+            if not isinstance(sealed, bool):
+                lint.fail(event_path, f"{kind} cell_writes row must declare sealed boolean")
+            elif (plane == "control") != sealed:
+                lint.fail(event_path, f"{kind} sealed must be true iff plane=control")
+            if len(cell_writes) == 1 and isinstance(cell_writes[0], dict):
+                for field in ("cell_family", "cell_subject", "lattice", "bottom", "initial_value"):
+                    if field in cell_writes[0] and row.get(field) != cell_writes[0].get(field):
+                        lint.fail(event_path, f"{kind} single-target shorthand {field} differs from cell_writes[0]")
+        if row.get("status") == "active" and row.get("reducer_input") is True:
+            if cell_family is None and cell_writes is None:
+                lint.fail(
+                    event_path,
+                    f"{kind} active reducer-input kind must declare cell_family or cell_writes",
+                )
     schema_rows = schema_registry.get("schemas", [])
     schema_ids = unique_values(lint, schema_path, schema_rows, "schema_id")
     for row in schema_rows if isinstance(schema_rows, list) else []:

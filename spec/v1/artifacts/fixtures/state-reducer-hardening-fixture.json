@@ -7,12 +7,73 @@
     "entrypoint": "cotest::conformance::state_reducer_hardening"
   },
   "covers_vectors": [
+    "ak.vector.event_kind.cell_contract_closure.v1",
     "ak.vector.patch.atomic_application.v1",
     "ak.vector.patch.effects_prestate_binding.v1",
     "ak.vector.state_root.incremental.v1",
     "ak.vector.strand_tracks_update.atomic.v1"
   ],
   "cases": [
+    {
+      "vector_id": "ak.vector.event_kind.cell_contract_closure.v1",
+      "registry_expectations": {
+        "selector": "status=active && reducer_input=true",
+        "missing_cell_contract_count": 0,
+        "single_target_shorthand_must_equal_cell_writes_0": true,
+        "plane_sealed_equivalence": "sealed == (plane == control)",
+        "multi_target_kinds": {
+          "ak.mls.genesis": 3,
+          "ak.mls.commit": 3,
+          "ak.invite.accept": 2,
+          "ak.invite.claim": 2
+        }
+      },
+      "cases": [
+        {
+          "name": "mls_commit_exact_registered_targets",
+          "event_kind": "ak.mls.commit",
+          "effect_families": [
+            "ak.component.mls.epoch.v1",
+            "ak.component.mls.key_schedule.v1",
+            "ak.component.covered_seals.v1"
+          ],
+          "expected": {
+            "decision": "accept_if_all_ops_and_basis_are_valid",
+            "atomic_cell_writes": 3
+          }
+        },
+        {
+          "name": "mls_commit_missing_covered_seals",
+          "event_kind": "ak.mls.commit",
+          "remove_effect_family": "ak.component.covered_seals.v1",
+          "expected": {
+            "decision": "reject",
+            "reason": "effects_payload_mismatch",
+            "applied_cell_writes": 0
+          }
+        },
+        {
+          "name": "invite_accept_extra_unregistered_target",
+          "event_kind": "ak.invite.accept",
+          "inject_effect_family": "ak.component.realm.policy.v1",
+          "expected": {
+            "decision": "reject",
+            "reason": "plane_cross_write",
+            "applied_cell_writes": 0
+          }
+        },
+        {
+          "name": "data_kind_attempts_control_cell",
+          "event_kind": "ak.message.revise",
+          "replace_effect_family": "ak.component.message.revision.v1",
+          "with_effect_family": "ak.component.member.state.v1",
+          "expected": {
+            "decision": "reject",
+            "reason": "plane_cross_write"
+          }
+        }
+      ]
+    },
     {
       "vector_id": "ak.vector.state_root.incremental.v1",
       "assertions": [
