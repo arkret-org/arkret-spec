@@ -218,7 +218,8 @@ GET /_arkret/describe
   "auth_metadata": {
     "account_authority": {
       "origin": "https://alice.example.net",
-      "gate_account_base": "https://alice.example.net/_arkret/gate/account"
+      "gate_account_base": "https://alice.example.net/_arkret/gate/account",
+      "enrollment_authority_did": "did:key:z6MkenrollmentAuthority"
     },
     "methods": [
       {

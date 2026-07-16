@@ -934,6 +934,10 @@
           "format": "uri",
           "pattern": "/_arkret/gate/account/?$",
           "description": "Absolute base URL from which all client-visible /_arkret/gate/account/* endpoints MUST be derived."
+        },
+        "enrollment_authority_did": {
+          "$ref": "#/$defs/did",
+          "description": "Deployment-pinned authority DID delegated to sign B-model first-device enrollment. REQUIRED when this Account Authority offers account-first onboarding; clients MUST use this pin rather than trusting the Account Authority response being authenticated."
         }
       }
     },
