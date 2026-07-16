@@ -299,16 +299,32 @@ DID 是 Arkret 的主体标识，不是普通协作对象 ID。标准协作对�
 | `witness` | 叙述性角色名词 | [glossary `Witness`](../overview/glossary.md)；[`federation.md`](../sync/federation.md)；[`operations-sync.md`](../sync/operations-sync.md)；[`identity-did.md`](../identity/identity-did.md) | 对 frontier、range completeness、DID key-log 头部或 handover frontier 签发 attestation / receipt 的受信背书主体；不替代 Event 自身签名、Seal finality 或 reducer 验证。 |
 | `controller` | 叙述性角色名词 | [`identity-did.md`](../identity/identity-did.md)（DID controller proof）；[`actor.md` §3.3](./actor.md)（Native Personal Agent controller） | DID 控制主体（method history 中以 controller proof 证明控制权），或受 holder / principal 显式授权代为写入 / provision 的控制方。 |
 
-### 4.4 `agent_participation` wire 形态归一（normative）
+### 4.4 `agent_participation` wire 形态（normative）
 
-`agent_participation` ceiling 在 `deployment ⊇ Realm ⊇ Circle ⊇ Strand` 单调收紧链上的 wire 形态**不对称**，这是有意取舍，本节是该归一映射的单一权威源，三处对象文件（[`realm-and-space.md` §2.2](./realm-and-space.md#22-realm-与-mls-group)、[`circle.md` §3](./circle.md)、[`strand-and-message.md` §3](./strand-and-message.md)）交叉引用本节，不另行声明各自的比较口径：
+`agent_participation` ceiling 在 `deployment ⊇ Realm ⊇ Circle ⊇ Strand` 四层统一使用 `{ native_agent: { reply, accept_third_party_mention, act_on_behalf } }`。外层轴名为未来 applet / ghost actor 等参与轴保留；不同 actor family MUST 使用独立 sibling key，不得合并进 `native_agent`。
 
-- **Realm（及 deployment）侧**使用**带轴包裹**的形态 `{ native_agent: { reply, accept_third_party_mention, act_on_behalf: boolean } }`。外层 `native_agent` 键为未来的 applet / ghost actor 等其它参与轴预留命名空间（这些轴 MUST 各自独立声明、不得合并进 `native_agent`，见 [`realm-and-space.md` §2.2](./realm-and-space.md#22-realm-与-mls-group)）。
-- **Circle / Strand 侧**使用**扁平三位**形态 `{ reply, accept_third_party_mention, act_on_behalf: boolean }`（native-agent-only，无外层包裹），因为内层 scope 在 v1 只承载 native agent 这一根轴。
+Reducer 逐层比较相同 `native_agent` 子对象的同名 bit：内层为 true MUST 蕴含父层对应位为 true，违反 MUST `failed_precondition`（`reason="agent_participation_ceiling_widen"`）。字段缺失按该位继承父层；整个 object 缺失按全对象继承。最终 participation 仍与 Agent immutable provision-derived ceiling 求交：`effective = provision-derived ceiling ∩ governance ceiling ∩ selection`；详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)。旧扁平 Circle/Strand 形态不是 v1 wire，MUST `schema_violation`，不得运行时归一。
 
-**归一映射（reducer tighten-only 比较 MUST 按此执行）**：比较内层 scope 与外层 scope 的 ceiling 时，取外层（Realm / deployment）的 `native_agent` 子对象与内层（Circle / Strand）扁平三位**逐位对齐**（`reply ↔ reply`、`accept_third_party_mention ↔ accept_third_party_mention`、`act_on_behalf ↔ act_on_behalf`），逐位执行 tighten-only 校验：内层每一位为真 MUST 蕴含外层对应位为真，违反 MUST `failed_precondition`（`reason="agent_participation_ceiling_widen"`）。实现 MUST NOT 把 Realm 侧的 `native_agent` 外层包裹当作与 Circle/Strand 扁平形态**结构不可比**而跳过校验，也 MUST NOT 把扁平三位误当作某个隐含轴的子对象；逐位对齐后两侧语义完全一致，包裹差异只是 wire 形态。逐 scope 的最终 participation 还必须与 Agent immutable provision-derived ceiling 求交，`effective = provision-derived ceiling ∩ governance ceiling ∩ selection`；详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)。
+### 4.5 参数化 membership FSM（normative）
 
-Conformance vector `ak.vector.agent.participation.wire_shape_normalization.v1` 固化上述 wrapped↔flat 正向归一与结构错配不得跳过收紧校验的负例。
+Realm 与 Circle membership 共用本节唯一的状态图。`initial_state=leave`，wire 枚举固定为 `invite / join / knock / leave / ban`；不存在 `none`。实例参数 `delivery_binding_rebind` 仅控制 `join -> join`：Realm 为 `true`，Circle 为 `false`。除该参数化边外，任何未列边与任何 same-state transition 均非法，MUST `failed_precondition`（`reason=invalid_membership_transition`）。
+
+| from | to | Realm guard / writer | Circle guard / writer |
+| --- | --- | --- | --- |
+| `leave` | `invite` | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
+| `leave` | `knock` | target actor，且 Join Rule / Join Policy 允许 | target actor，且 `join_rule=knock` |
+| `leave` | `join` | target actor 通过 public/restricted gate，或 `ak.realm.admin`；Native Personal Agent carve-out 见 Realm 文档 | target actor 仅当 `join_rule=public`，否则 `ak.circle.member.manage` |
+| `invite` | `join` | target actor 或 `ak.realm.admin` | target actor（`ak.circle.member.add`）或 `ak.circle.member.manage` |
+| `invite` | `leave` | target actor、inviter 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
+| `knock` | `invite` | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
+| `knock` | `join` | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
+| `knock` | `leave` | target actor、reviewer 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
+| `join` | `join` | 仅当 `delivery_binding_rebind=true`：target actor 或 rebind-authorized service，且只更新 delivery binding / membership metadata | 不可用（`delivery_binding_rebind=false`） |
+| `join` | `leave` | target actor 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
+| `leave` / `invite` / `knock` / `join` | `ban` | `ak.realm.admin` | `ak.circle.member.manage` |
+| `ban` | `leave` / `invite` | `ak.realm.admin` | `ak.circle.member.manage`；self-service fail closed |
+
+实现 MUST 以 `(scope_kind, delivery_binding_rebind)` 选择 FSM 实例，再按上表对应 scope 列求值 writer/guard，不得分别硬编码两套 transition graph。Bare knock / invite 的本地计时器不产生隐式边；任何过期清理仍须由该 scope 对应列授权的 writer 显式提交 `leave`。
 
 ## 5. State 枚举对齐
 

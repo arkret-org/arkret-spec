@@ -4,7 +4,7 @@
   "suite": "call_state_media_lifecycle",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::call_state_media_lifecycle"
+    "entrypoint": "ak.suite.call.media_lifecycle.v1"
   },
   "covers_vectors": [
     "ak.vector.call_state.recording_retention_lock.v1",

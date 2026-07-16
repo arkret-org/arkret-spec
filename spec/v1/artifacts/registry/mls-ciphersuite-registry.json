@@ -27,6 +27,21 @@
       "security_note": "RFC 9420 mandatory-to-implement suite; classical X25519 KEM (not post-quantum). Conformance pins the MLS WG byte-level vector corpus at commit cfd450286d1bfd9cd2519b95c80f9771f94a5b1a; implementations MUST run all cases for ciphersuite 0x0001 in the listed files."
     },
     {
+      "canonical_id": "MLS_128_DHKEMX25519_CHACHA20POLY1305_SHA256_Ed25519",
+      "rfc9420_id": "0x0003",
+      "status": "reserved",
+      "role": "reserved_software_friendly_interop",
+      "profile_gate": "ak.profile.mls_ciphersuite.chacha20poly1305.v1",
+      "kat_source": "https://github.com/mlswg/mls-implementations/tree/cfd450286d1bfd9cd2519b95c80f9771f94a5b1a/test-vectors",
+      "kat_files": ["crypto-basics.json", "key-schedule.json", "messages.json", "welcome.json", "treekem.json"],
+      "activation_requirements": [
+        "Publish and pin byte-level KAT digests for every ciphersuite 0x0003 case in the listed MLS WG corpus",
+        "Publish an active conformance vector covering KeyPackage negotiation, Welcome/Commit processing and mixed-member unsupported-suite fail-closed behavior",
+        "Publish a new negotiated schema/describe contract release whose ciphersuite vocabulary includes this canonical_id; do not widen a frozen enum in place"
+      ],
+      "security_note": "Reserved RFC 9420 suite for software-only devices without constant-time AES acceleration. It is not on wire until activation; receivers MUST fail closed on 0x0003 before the profile gate and contract release are active."
+    },
+    {
       "canonical_id": "MLS_128_MLKEM768X25519_AES128GCM_SHA256_Ed25519",
       "rfc9420_id": null,
       "mls_draft": "draft-ietf-mls-pq-ciphersuites-05",

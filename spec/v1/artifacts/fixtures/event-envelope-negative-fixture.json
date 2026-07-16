@@ -1,7 +1,7 @@
 {
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::event_envelope"
+    "entrypoint": "ak.suite.events.envelope_negative.v1"
   },
   "suite": "event_envelope_negative",
   "profile": "ak.profile.core_event_store.v1",

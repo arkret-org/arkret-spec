@@ -4,7 +4,7 @@
   "version": "2026-07-13",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::mls_rfc9420_kat"
+    "entrypoint": "ak.suite.mls.rfc9420_kat.v1"
   },
   "covers_vectors": [
     "ak.vector.mls.rfc9420_mti_kat.v1"

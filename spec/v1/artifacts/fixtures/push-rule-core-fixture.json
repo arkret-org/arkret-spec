@@ -1,7 +1,7 @@
 {
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "arkret-rust-sdk::core::push_rule_core_fixture"
+    "entrypoint": "ak.suite.push.rule_core.v1"
   },
   "suite": "push_rule_core_consistency",
   "profile": "ak.profile.push_gateway.blind_wakeup.v1",

@@ -73,6 +73,8 @@ Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询�
 
 标准 `relation_kind` 词汇表的机器可读 source of truth 是 [`relation-kind-registry.json`](../../artifacts/registry/relation-kind-registry.json)（kind 清单、默认基数类别、truth-source 类别、可写性）；本节与 §3.2 表是其规范阅读视图，详细去重键、作用域与冲突语义以本文为权威。v1 active 集合：
 
+对 `truth_source_class="shape_dependent"` 的 kind，SDK / producer MUST 先按 `(canonical_id, from object type/kind, to object type/kind)` 选择 registry 中最具体的 shape，再读取 `writability` 与 `write_path`；只有无具体 shape 匹配时才使用 `* -> *` fallback。这样 `contains` 的派生 placement 与直接 Relation 构造可在 builder 阶段机械区分，不能先构造 `ak.relation.create` 再依赖服务端运行时猜测。
+
 ```text
 contains, belongs_to, replies_to, depends_on, blocks, mentions,
 assigned_to, references, derived_from, attached_to, has_default_view,

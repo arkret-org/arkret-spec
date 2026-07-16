@@ -4,7 +4,7 @@
   "suite": "state_reducer_hardening",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::state_reducer_hardening"
+    "entrypoint": "ak.suite.reducer.hardening.v1"
   },
   "covers_vectors": [
     "ak.vector.event_kind.cell_contract_closure.v1",

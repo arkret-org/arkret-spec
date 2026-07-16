@@ -5,7 +5,8 @@
   "registry_rules": [
     "Schema enum values for proof alg fields MUST be generated from active rows' proof_alg only when publishing a new schema version, then frozen for that schema version.",
     "Schema enum values for raw signature_algorithm fields MUST be generated from active rows' signature_algorithm only when publishing a new schema version, then frozen for that schema version. Activating a reserved/new algorithm requires a new schema version and profile negotiation; registry activation MUST NOT expand an existing schema enum in place (zh/conformance/schema-registry.md §6.1 b.1).",
-    "Algorithms not present as active rows MUST fail closed with unsupported_signature_alg on critical proofs."
+    "Algorithms not present as active rows MUST fail closed with unsupported_signature_alg on critical proofs.",
+    "A reserved hybrid row is a single negotiated verification policy over two independent proof entries, not a new unregistered compact signature encoding. Both components MUST bind the same canonical payload and proof purpose; accepting a stripped single component as hybrid-verified is forbidden."
   ],
   "algorithms": [
     {
@@ -56,6 +57,24 @@
         "raw_detached_signature"
       ],
       "security_note": "NIST FIPS 204 ML-DSA category 3 suite for post-quantum hardening profiles. JOSE/JWK serialization follows RFC 9964: alg=ML-DSA-65, kty=AKP, required pub, optional private seed in priv, and empty ML-DSA context."
+    },
+    {
+      "canonical_id": "Ed25519+ML-DSA-65",
+      "proof_alg": null,
+      "signature_algorithm": null,
+      "components": ["Ed25519", "ML-DSA-65"],
+      "composition": "two_independent_proof_entries_all_required",
+      "status": "reserved",
+      "role": "reserved_hybrid_signature_policy",
+      "profile_gate": "ak.profile.signature.pqc.v1",
+      "proof_kinds": ["detached_jws", "raw_detached_signature"],
+      "activation_requirements": [
+        "Publish canonical proof-set ordering and duplicate-component rejection rules",
+        "Publish anti-stripping vectors proving that both components bind identical canonical payload bytes and proof purpose and that either missing/invalid component fails hybrid verification",
+        "Define verifier capability tiers and downgrade display semantics without ever reporting a single-component result as hybrid verified",
+        "Publish a new negotiated proof contract release; reserved policy MUST NOT widen frozen proof_alg or signature_algorithm enums in place"
+      ],
+      "security_note": "Reserved hybrid verification policy. Before activation, the canonical_id itself is not a wire alg and MUST fail closed if presented as one; active Ed25519 and ML-DSA-65 proofs retain their independent existing semantics."
     }
   ]
 }

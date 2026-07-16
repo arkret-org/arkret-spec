@@ -5,12 +5,12 @@
   "generated_by": "tools/generate_mls_governance_proof_fixture.py",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::mls_governance_proof_bundle"
+    "entrypoint": "ak.suite.mls.governance_proof_bundle.v1"
   },
   "consumer_contracts": [
     {
       "role": "sdk_proof_verifier",
-      "entrypoint": "cotest::conformance::mls_governance_proof_bundle::verify",
+      "entrypoint": "ak.suite.mls.governance_proof_bundle.verify.v1",
       "inputs": [
         "trust_context",
         "commit_context",
@@ -29,7 +29,7 @@
     },
     {
       "role": "server_materializer",
-      "entrypoint": "cotest::conformance::mls_governance_proof_bundle::materialize",
+      "entrypoint": "ak.suite.mls.governance_proof_bundle.materialize.v1",
       "inputs": [
         "source_state",
         "requests",

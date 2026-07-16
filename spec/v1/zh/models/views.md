@@ -134,7 +134,7 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 
 JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `timeline` / `graph` / `document` / `composite` 分别只允许携带对应的 `collection` / `timeline` / `graph` / `document` / `dashboard` 配置。`kind="composite"` 的 `dashboard.widgets[]` 至少包含一个 widget；若携带 `renderer`，只能是 `dashboard` 或 profile-defined `custom`。
 
-若某个 UI 操作改变 Strand 所属 List、Strand rank、List rank、Strand discussion Message、Relation 或对象字段，必须使用对应对象 Event；只有改变共享 filter、sort、grouping、visible fields、renderer 或 layout 时才修改 View。个人偏好、临时排序、列宽、折叠状态和本地 pin MUST 使用 actor-private account data 或等价私有 Event。
+若某个 UI 操作改变 Strand 所属 List、Strand rank、List rank、Strand discussion Message、Relation 或对象字段，必须使用对应对象 Event；只有改变共享 filter、sort、grouping、visible fields、renderer 或 layout 时才修改 View。个人偏好、临时排序、列宽、折叠状态、本地 pin、选择模式与分页大小 MUST 使用 actor-private account data 或等价私有 Event。
 
 ### 3.2 `CollectionConfig`
 
@@ -142,13 +142,13 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 | --- | --- | --- | --- | --- |
 | `item_object_types` | conditional | `array<string>` | 可由 `item_facets` 替代；至少 1 项。 | 按对象类型过滤可投影为 item/card/row/message 的对象。 |
 | `item_facets` | conditional | `array<FacetName>` | 可替代 `item_object_types`；至少 1 项。 | 按声明 hint 选择 item，例如 `rankable`、`reviewable`、`replyable`。 |
-| `item_render` | yes | `enum(card, row, tile, compact, badge, message)` | 看板式展示 SHOULD 为 `card`。 | 默认展示面。 |
+| `item_render` | no | `enum(card, row, tile, compact, badge, message)` | 仅为共享 presentation hint；缺省时 renderer 按终端形态与可用能力推导，不改变投影结果。看板式展示 SHOULD 为 `card`。 | 建议展示面。 |
 | `item_order_by` | yes | `array<SortSpec>` | 至少 1 项。 | item 稳定排序；拖拽类 collection SHOULD 使用 rank。 |
 | `display_fields` | no | `array<DisplayColumn>` | dot path。 | 展示字段与格式。 |
 | `grouping` | yes | `CollectionGrouping` |  | 分组/列/时间桶/矩阵配置。 |
-| `selection_policy` | no | `enum(none, single, multiple)` | 默认 `multiple`。 | UI 选择策略。 |
 | `count_policy` | no | `enum(omit, authorized_estimate, authorized_exact)` | 默认 `omit`。 | 集合级计数策略。 |
-| `page_size` | no | `integer` | 1..1000。 | 默认分页大小。 |
+
+`selection_policy` 与 `page_size` 是终端/用户私有 presentation 偏好，不是 canonical `CollectionConfig` 字段；客户端 MUST 存入 actor-private account data 或仅保存在本地。Producer 不得把这两个键写入共享 View；closed schema 将其拒绝为 `schema_violation`。
 
 ### 3.3 `CollectionGrouping`
 

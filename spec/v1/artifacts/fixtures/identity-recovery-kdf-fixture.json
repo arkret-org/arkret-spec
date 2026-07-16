@@ -3,7 +3,7 @@
   "version": "2026-07-15",
   "runner": {
     "kind": "known_answer_tests",
-    "entrypoint": "cotest::conformance::identity_recovery_kdf"
+    "entrypoint": "ak.suite.identity.recovery_kdf.v1"
   },
   "covers_vectors": [
     "ak.vector.identity.recovery_kdf.v1"

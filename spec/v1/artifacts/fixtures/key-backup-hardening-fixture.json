@@ -4,7 +4,7 @@
   "suite": "key_backup_hardening",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::key_backup_hardening"
+    "entrypoint": "ak.suite.crypto.key_backup_hardening.v1"
   },
   "covers_vectors": [
     "ak.vector.key_backup.kdf_floor_rejected.v1",

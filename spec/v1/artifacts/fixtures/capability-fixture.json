@@ -1,7 +1,7 @@
 {
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::capability"
+    "entrypoint": "ak.suite.authz.capability.v1"
   },
   "profile": "ak.vector_group.capability.v1",
   "version": "2026-05-02",

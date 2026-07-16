@@ -1,7 +1,7 @@
 {
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::federation"
+    "entrypoint": "ak.suite.federation.core.v1"
   },
   "suite": "federation",
   "profile": "ak.vector_group.federation.v1",
@@ -50,7 +50,7 @@
         "field": "resolved_digest_input",
         "recompute_from_local_contracts": true
       },
-      "expected_digest": "sha256:97e2ddb15c0ec958bee486343abff4f906ab991b0476a7684cab31b1b6157f60",
+      "expected_digest": "sha256:56942fe4d4786ea635277188f89a459d58b4f395164fefe1b1d8dcbaa3e935ac",
       "mutation_cases": [
         {
           "name": "event_kind_contract_content_changes",

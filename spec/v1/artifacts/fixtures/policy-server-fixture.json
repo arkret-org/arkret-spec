@@ -1,7 +1,7 @@
 {
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::policy_server"
+    "entrypoint": "ak.suite.policy.server.v1"
   },
   "suite": "policy_server",
   "cases": [

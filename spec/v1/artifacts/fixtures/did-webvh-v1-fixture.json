@@ -5,7 +5,7 @@
   "runner": {
     "kind": "did_method_adapter_cases",
     "method": "did:webvh:1.0",
-    "entrypoint": "cotest::conformance::did_webvh_v1"
+    "entrypoint": "ak.suite.identity.did_webvh.v1"
   },
   "covers_vectors": [
     "ak.vector.identity.did_webvh_v1_adapter.v1"

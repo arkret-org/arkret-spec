@@ -4,7 +4,7 @@
   "profile": "ak.profile.mimi_interop.v1",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::mimi_interop"
+    "entrypoint": "ak.suite.interop.mimi.v1"
   },
   "covers_vectors": [
     "ak.vector.mimi.provider_directory_draft_pinning.v1",

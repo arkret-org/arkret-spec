@@ -4,7 +4,7 @@
   "suite": "applet_registration_epoch",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "arkret_core::applet::registration_epoch"
+    "entrypoint": "ak.suite.applet.registration_epoch.v1"
   },
   "covers_vectors": [
     "ak.vector.applet.registration_epoch_transcript.v1"

@@ -1,7 +1,7 @@
 {
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "arkret-rust-sdk::core::redaction_fixture"
+    "entrypoint": "ak.suite.events.redaction.v1"
   },
   "suite": "redaction",
   "cases": [

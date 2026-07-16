@@ -92,7 +92,10 @@
     "ak.profile.signature.pqc.v1",
     "ak.profile.hpke.p256.v1",
     "ak.profile.kem.hybrid_xwing.v1",
-    "ak.profile.ucan_interop.v1"
+    "ak.profile.ucan_interop.v1",
+    "ak.profile.federation.rbsr.negentropy.v1",
+    "ak.profile.crdt.text.v1",
+    "ak.profile.mls_ciphersuite.chacha20poly1305.v1"
   ],
   "edges": [
     { "from": "ak.profile.chat_mvp.v1", "to": "ak.profile.core_event_store.v1", "kind": "inherits" },

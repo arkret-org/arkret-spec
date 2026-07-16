@@ -3735,12 +3735,6 @@ Expected:
 - 变体 A、B MUST fail closed(`failed_precondition`, `reason="agent_participation_ceiling_widen"`)，与 [`../models/circle.md` §7](../models/circle.md) 的 floor downgrade 同形。
 - 未显式声明 `agent_participation` 的内层 scope 继承父级 ceiling(不放宽)；effective ceiling 以从 Strand→Circle→Realm→deployment 逐级按位 AND 求值，对违反不变量的历史数据 fail closed。
 
-#### 11.12.1 Vector: Participation Wire-Shape Normalization
-
-`vector_id`: `ak.vector.agent.participation.wire_shape_normalization.v1`
-
-Runner MUST 将 Realm/deployment 的 `{native_agent:{...}}` 与 Circle/Strand 的扁平 `{...}` 同时送入 reducer。去掉外层轴名后逐位相同的输入 MUST 等价；Circle 把父级 false 位写成 true MUST `failed_precondition` + `agent_participation_ceiling_widen`。Realm 缺失 `native_agent`、字段缺失或类型错误时 MUST fail closed 为全 false / schema reject，MUST NOT 因结构不同而跳过比较。
-
 ### 11.13 Vector: Participation Effective = Ceiling ∩ Selection
 
 `vector_id`: `ak.vector.agent.participation.effective_intersection.v1`

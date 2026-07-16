@@ -1,7 +1,7 @@
 {
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "arkret-rust-sdk::core::member_delivery_binding_fixture"
+    "entrypoint": "ak.suite.membership.delivery_binding.v1"
   },
   "suite": "membership_delivery_binding_vectors",
   "profile": "ak.vector_group.privacy_security.v1",

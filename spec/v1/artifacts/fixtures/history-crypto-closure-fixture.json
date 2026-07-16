@@ -4,7 +4,7 @@
   "suite": "history_crypto_closure",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::history_crypto_closure"
+    "entrypoint": "ak.suite.crypto.history_closure.v1"
   },
   "covers_vectors": [
     "ak.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1",

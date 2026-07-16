@@ -8,7 +8,7 @@
   "suite": "audit_release",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::audit_release"
+    "entrypoint": "ak.suite.audit.release.v1"
   },
   "covers_vectors": [
     "ak.vector.audit.binding_fsm.v1",

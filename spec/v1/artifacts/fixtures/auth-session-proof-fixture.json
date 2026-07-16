@@ -4,7 +4,7 @@
   "suite": "auth_session_proof",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::auth_session_proof"
+    "entrypoint": "ak.suite.auth.session_proof.v1"
   },
   "covers_vectors": [
     "ak.vector.auth.session_grant_audience_binding.v1",

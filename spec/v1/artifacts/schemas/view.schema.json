@@ -1200,7 +1200,6 @@
     "collection_config": {
       "type": "object",
       "required": [
-        "item_render",
         "item_order_by",
         "grouping"
       ],
@@ -1245,16 +1244,6 @@
           },
           "description": "Display columns (dot path + format); see models/views.md §3.2."
         },
-        "selection_policy": {
-          "type": "string",
-          "enum": [
-            "none",
-            "single",
-            "multiple"
-          ],
-          "default": "multiple",
-          "description": "UI selection policy; see models/views.md §3.2."
-        },
         "count_policy": {
           "type": "string",
           "enum": [
@@ -1267,11 +1256,6 @@
         },
         "grouping": {
           "$ref": "#/$defs/collection_grouping"
-        },
-        "page_size": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 1000
         }
       },
       "anyOf": [

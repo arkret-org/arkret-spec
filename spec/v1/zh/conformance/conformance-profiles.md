@@ -101,6 +101,8 @@ Profile 正文中的 prose MUST 项必须能映射到 `artifacts/profiles/confor
 
 SDK 侧构建期守卫的具体实现形态（feature 矩阵测试、声明常量的 cfg 拼装等）属实现审查范畴，本文不规定唯一做法。
 
+发布单一预编译构建时，顶层 `sdk_artifact.digest` 已唯一绑定该构建。发布源码包或同一 release 下存在多个可裁剪构建时，SDK conformance claim MUST 使用 `build_variants[]` 声明被认证的每个变体：稳定 `variant_id`、规范化 feature/configuration 集的 `feature_set_digest`，以及该变体实际导出的 `claimed_profiles[]`；可读的 `features[]` 只是对 digest 的审计投影。未列变体不在该 claim 的认证范围内。AK-SDK-015 的证据 MUST 引用 `build_variant_inventory`，验证器 MUST 对 variant id 唯一性、profile id 已登记性及 inventory digest 做校验。
+
 ## 2.2 场景化 Profile
 
 以下 profile 用于把 v1 启动范围降到可实现的产品子集。它们不是 `minimal_client` 的替代品，而是面向具体产品形态的互操作声明。声明 `ak.profile.chat_mvp.v1` 或 `ak.profile.kanban_mvp.v1` 时，仅实现一个闭环的实现 SHOULD 在 `rejected_event_kinds` 中列出本实现拒绝的另一闭环 wire scope。
@@ -954,6 +956,8 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 
 **本节定位（normative for grading and claims）**：本节不新增 profile、不新增 wire MUST、不扩展部署用途的 `profile_requirements`；表中条款全部是既有条款的重述，其覆盖映射仍在各原始定义位置（§2.1.1 的悬空禁令不因本节复述而重复计数）。`conformance-profiles.json#sdk_conformance_contract` 为这些条款提供独立机读 claim 面：稳定 `clause_id`、V/A/U 等级、证据类型和 claim 必填字段。SDK 声明不得复用 deployment profile 字段，也不得以易漂移的表格行号代替 clause ID。
 
+**收录规则（normative）**：任何约束客户端/SDK 内部行为、公开 API 形状或自动网络行为，且部署黑盒 profile 不能完整证明的 MUST / MUST NOT，MUST 在本节分配稳定 clause ID；新增或修改此类条款时 reviewer MUST 同步评估并更新 `sdk_conformance_contract`。未列入本契约的 prose 条款不在 SDK claim 的签名覆盖范围内，但其规范力不因此降低；不得用未知私有 clause ID扩展封闭 claim。
+
 ### 23.1 可测性三级
 
 | 等级 | 名称 | 含义 | 核查手段 |
@@ -985,6 +989,11 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 | <a id="ak-sdk-015"></a>15 | 裁剪构建若移除任一已声明 profile 的 MUST 能力，MUST 同时移除该 profile claim；构建产物的 capability inventory 与 claim 必须对账 | 本文 §2.1.2 | **U**（构建配置审计）；辅以 A（公开 API / capability inventory） |
 | <a id="ak-sdk-016"></a>16 | 开放注册集中的未知值 MUST 在反序列化时原样保留，不得因本地 registry 快照较旧而使整个对象解码失败 | schema-registry §6.1 | **V**（`ak.vector.encoding.open_registry_unknown_roundtrip.v1`）；辅以 A（非封闭 enum API 形状） |
 | <a id="ak-sdk-017"></a>17 | schema 明示的 `x_*` 与 `critical_extensions[].parameters` 未识别内容 MUST 在 decode/encode、存储、联邦转发与 backfill 后逐字节保留，且继续进入 canonical bytes | 本文 §20；schema-registry §6 | **V**（`ak.vector.encoding.extension_slot_roundtrip.v1`）；内部存储/转发路径为 U |
+| <a id="ak-sdk-018"></a>18 | `ack_token` MUST 作为不透明字符串原样回传，SDK MUST NOT 解析其内部结构 | client-sync §10.1 | **A**（不暴露结构化解码 API） |
+| <a id="ak-sdk-019"></a>19 | `retry_safe=false` 的 operation MUST NOT 自动全量重试；请求内容改变时 MUST 换 request key | api-conventions §6.2 | **A/U**（重试 API 与配置审计） |
+| <a id="ak-sdk-020"></a>20 | 客户端 MUST 优先遵循 `Retry-After`，不得按本地上限截断后提前重试 | api-conventions §9 | **V/U**（注入时钟与出向请求观测） |
+| <a id="ak-sdk-021"></a>21 | 客户端 MUST 仅按 `has_more` 决定是否继续分页 | api-conventions §7.1 | **V/A**（分页响应向量与 paginator API） |
+| <a id="ak-sdk-022"></a>22 | SDK MUST 暴露 canonical confusable check 为可调用 utility | encoding §2.1 | **V/A**（confusable test set 与 public API inventory） |
 
 ### 23.3 "仅 API 形状可保证"类的 SDK 实现指引
 
@@ -995,6 +1004,8 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 - SHOULD 采用"验证即构造"（parse, don't validate）类型形态：未通过 envelope schema + proof 验证的字节不产出可直接消费的 Event 值类型（对应条款 1、2）。
 - SHOULD 把 fail-closed 判定（causal / revoked / proof 失效、未知 critical feature）实现为默认路径；任何放宽行为 SHOULD 是显式、可审计的 opt-in，而非默认参数（对应条款 3、4、13）。
 - SHOULD 将开放注册集建模为可保留未知字符串的 non-exhaustive 类型，并为 schema 明示扩展位保留 raw canonical value；不得用封闭 enum 或丢弃未知字段的通用反序列化默认破坏条款 16、17。
+- SHOULD 将 cursor 与 `ack_token` 都建模为 opaque newtype，并让 paginator 只消费 `has_more`；自动重试器必须显式消费 operation 的 `retry_safe` 与服务端 `Retry-After`（对应条款 18–21）。
+- SHOULD 提供不依赖 UI 的 confusable-check public utility，并以 canonical test set 固定输出（对应条款 22）。
 
 声明遵循本节的 SDK MUST 发布符合 [`sdk-conformance-claim.schema.json`](../../artifacts/schemas/sdk-conformance-claim.schema.json)（`ak.schema.sdk_conformance_claim.v1`）的 machine-readable claim；`ak.vector.sdk_conformance.claim_validation.v1` 与 `sdk-conformance-claim-fixture.json` 是其可执行证据。SDK 为每个适用 `AK-SDK-NNN` clause 提供一个 `clause_claims[]` 条目，至少给出 `result` 与不可变 `evidence[]` 引用；每条 evidence 都 MUST 携带非零 content digest。V 级证据引用向量结果，A级引用 public API inventory，U 级引用代码 / 配置 / 数据流审计；`not_applicable` 必须携带机器可读理由。SDK release 必须以 `sdk_artifact.uri + sdk_artifact.digest` 绑定确切发布物，同时钉定非零 `spec_revision` 与 `sdk_conformance_contract` 的 canonical digest，防止用新条款解释旧证据或把一份结果移植到另一产物。claim 必须声明 `issued_at`、issuer DID 与 verification method；`proof.signature` 覆盖 UTF-8 `"arkret-sdk-conformance-claim-v1\n"` 加移除顶层 `proof` 后对象的 RFC 8785 JCS bytes，`proof.kid` 必须等于 `issuer.verification_method`。验证器除执行 JSON Schema 外，MUST 验证发布物、证据与 contract digest，解析 spec revision，验证 issuer 当前授权及签名，并执行 clause ID 唯一性与已知 clause 集合检查；任一步失败都不得接受 conformance 声明，重复 clause MUST `duplicate_clause_claim`。
 

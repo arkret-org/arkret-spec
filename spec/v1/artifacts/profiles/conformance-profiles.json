@@ -26,6 +26,7 @@
     "evidence_kinds": [
       "vector_result",
       "public_api_inventory",
+      "build_variant_inventory",
       "code_audit",
       "config_audit",
       "data_flow_audit"
@@ -224,7 +225,8 @@
         "summary": "Reconcile trimmed build capabilities with every published profile claim",
         "required_evidence": [
           "config_audit",
-          "public_api_inventory"
+          "public_api_inventory",
+          "build_variant_inventory"
         ]
       },
       {
@@ -252,6 +254,41 @@
           "vector_result",
           "data_flow_audit"
         ]
+      },
+      {
+        "clause_id": "AK-SDK-018",
+        "grades": ["A"],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-018",
+        "summary": "Model ack_token as opaque and expose no structured decode API",
+        "required_evidence": ["public_api_inventory"]
+      },
+      {
+        "clause_id": "AK-SDK-019",
+        "grades": ["A", "U"],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-019",
+        "summary": "Do not automatically replay retry_safe=false operations and rotate the request key when content changes",
+        "required_evidence": ["public_api_inventory", "config_audit"]
+      },
+      {
+        "clause_id": "AK-SDK-020",
+        "grades": ["V", "U"],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-020",
+        "summary": "Honor Retry-After without clamping it into an earlier retry",
+        "required_evidence": ["vector_result", "config_audit"]
+      },
+      {
+        "clause_id": "AK-SDK-021",
+        "grades": ["V", "A"],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-021",
+        "summary": "Continue pagination only when has_more is true",
+        "required_evidence": ["vector_result", "public_api_inventory"]
+      },
+      {
+        "clause_id": "AK-SDK-022",
+        "grades": ["V", "A"],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-022",
+        "summary": "Expose the canonical confusable check as a callable SDK utility",
+        "required_evidence": ["vector_result", "public_api_inventory"]
       }
     ]
   },
@@ -424,7 +461,9 @@
     "ak.profile.constraint.visibility_control.v1",
     "ak.profile.constraint.resource_limit.v1"
   ],
-  "lattice_extension_profiles": [],
+  "lattice_extension_profiles": [
+    "ak.profile.crdt.text.v1"
+  ],
   "interop_compat_profiles": [
     "ak.profile.matrix_compat.v1"
   ],
@@ -443,6 +482,9 @@
   "kem_extension_profiles": [
     "ak.profile.hpke.p256.v1",
     "ak.profile.kem.hybrid_xwing.v1"
+  ],
+  "mls_ciphersuite_extension_profiles": [
+    "ak.profile.mls_ciphersuite.chacha20poly1305.v1"
   ],
   "candidate_profiles": [
     "ak.profile.candidate.join_policy.v1",
@@ -518,6 +560,8 @@
     "ak.profile.hpke.p256.v1": "admin",
     "ak.profile.signature.ecdsa_p256.v1": "admin",
     "ak.profile.signature.pqc.v1": "admin",
+    "ak.profile.crdt.text.v1": "interop",
+    "ak.profile.mls_ciphersuite.chacha20poly1305.v1": "interop",
     "ak.profile.candidate.join_policy.v1": "admin",
     "ak.profile.ucan_interop.v1": "interop",
     "ak.profile.mls_governance_binding.full.v1": "admin",
@@ -625,7 +669,8 @@
         "ak.schema.resource_selector.v1"
       ],
       "required_fixtures": [
-        "capability-fixture.json"
+        "capability-fixture.json",
+        "protocol-edge-cases-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -705,7 +750,7 @@
         "event-envelope-negative-fixture.json",
         "scalability-limits-fixture.json"
       ],
-      "required_cotest_suites": [
+      "required_runner_suites": [
         {
           "suite": "event_envelope_fixture",
           "artifact_fixture": "event-envelope-negative-fixture.json"
@@ -729,7 +774,7 @@
       "required_fixtures": [
         "discovery_profile_fixture.json"
       ],
-      "required_cotest_suites": [
+      "required_runner_suites": [
         {
           "suite": "discovery_profile_fixture",
           "artifact_fixture": "discovery_profile_fixture.json"
@@ -753,7 +798,7 @@
       "required_fixtures": [
         "event_kind_lattice_dispatch_fixture.json"
       ],
-      "required_cotest_suites": [
+      "required_runner_suites": [
         {
           "suite": "event_kind_lattice_dispatch_fixture",
           "artifact_fixture": "event_kind_lattice_dispatch_fixture.json"
@@ -780,7 +825,7 @@
       "required_fixtures": [
         "event_kind_payload_coverage_fixture.json"
       ],
-      "required_cotest_suites": [
+      "required_runner_suites": [
         {
           "suite": "event_kind_payload_coverage_fixture",
           "artifact_fixture": "event_kind_payload_coverage_fixture.json"
@@ -802,7 +847,7 @@
       "required_fixtures": [
         "operation_registry_coverage_fixture.json"
       ],
-      "required_cotest_suites": [
+      "required_runner_suites": [
         {
           "suite": "operation_registry_coverage_fixture",
           "artifact_fixture": "operation_registry_coverage_fixture.json"
@@ -824,7 +869,7 @@
       "required_fixtures": [
         "error_code_registry_coverage_fixture.json"
       ],
-      "required_cotest_suites": [
+      "required_runner_suites": [
         {
           "suite": "error_code_registry_coverage_fixture",
           "artifact_fixture": "error_code_registry_coverage_fixture.json"
@@ -967,7 +1012,8 @@
         "ak.schema.snapshot.v1"
       ],
       "required_fixtures": [
-        "sync-fixture.json"
+        "sync-fixture.json",
+        "protocol-edge-cases-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -1222,7 +1268,8 @@
         "crypto-signature-fixture.json",
         "event-envelope-negative-fixture.json",
         "scalability-limits-fixture.json",
-        "sync-fixture.json"
+        "sync-fixture.json",
+        "protocol-edge-cases-fixture.json"
       ],
       "optional_extensions": [
         "event_batch_receipt",
@@ -4320,6 +4367,162 @@
         "unsupported_optional": "return unsupported_feature unless Realm search_policy explicitly enables ak.profile.search.forward_private.v1 and leakage_class=forward_private"
       }
     },
+    "ak.profile.constraint.approval_workflow.v1": {
+      "description": "Constraint extension gate for approval workflows.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": ["capability-fixture.json"],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": ["constraint.approval_workflow"],
+        "unsupported_optional": "do not claim ak.profile.constraint.approval_workflow.v1 unless this build implements and tests the declared profile"
+      }
+    },
+    "ak.profile.constraint.claim_based.v1": {
+      "description": "Constraint extension gate for claim-based authorization.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": ["capability-fixture.json"],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": ["constraint.claim_based"],
+        "unsupported_optional": "do not claim ak.profile.constraint.claim_based.v1 unless this build implements and tests the declared profile"
+      }
+    },
+    "ak.profile.constraint.encryption_requirement.v1": {
+      "description": "Constraint extension gate for encryption requirements.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": ["capability-fixture.json"],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": ["constraint.encryption_requirement"],
+        "unsupported_optional": "do not claim ak.profile.constraint.encryption_requirement.v1 unless this build implements and tests the declared profile"
+      }
+    },
+    "ak.profile.constraint.resource_limit.v1": {
+      "description": "Constraint extension gate for resource limits.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": ["capability-fixture.json"],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": ["constraint.resource_limit"],
+        "unsupported_optional": "do not claim ak.profile.constraint.resource_limit.v1 unless this build implements and tests the declared profile"
+      }
+    },
+    "ak.profile.constraint.visibility_control.v1": {
+      "description": "Constraint extension gate for visibility controls.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": ["capability-fixture.json"],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": ["constraint.visibility_control"],
+        "unsupported_optional": "do not claim ak.profile.constraint.visibility_control.v1 unless this build implements and tests the declared profile"
+      }
+    },
+    "ak.profile.encoding.cbor.v1": {
+      "description": "Reserved canonical CBOR encoding transition gate.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": ["encoding-fixture.json"],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": ["encoding.cbor"],
+        "unsupported_optional": "do not claim ak.profile.encoding.cbor.v1 unless this build implements and tests the declared profile"
+      }
+    },
+    "ak.profile.encoding.multihash.v1": {
+      "description": "Optional multihash reading-format interoperability gate.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": ["encoding-fixture.json"],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": ["encoding.multihash"],
+        "unsupported_optional": "do not claim ak.profile.encoding.multihash.v1 unless this build implements and tests the declared profile"
+      }
+    },
+    "ak.profile.federation.rbsr.negentropy.v1": {
+      "description": "Candidate range-based set reconciliation federation gate.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": ["sync-fixture.json"],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": ["federation.rbsr.negentropy"],
+        "unsupported_optional": "do not claim ak.profile.federation.rbsr.negentropy.v1 unless this build implements and tests the declared profile"
+      }
+    },
+    "ak.profile.hash.blake3.v1": {
+      "description": "Active BLAKE3 digest-suite interoperability gate.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": ["encoding-fixture.json"],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": ["hash_suite.blake3"],
+        "unsupported_optional": "do not claim ak.profile.hash.blake3.v1 unless this build implements and tests the declared profile"
+      }
+    },
+    "ak.profile.hash_transition.v1": {
+      "description": "Digest-suite Transition Seal interoperability gate.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": ["hash-transition-fixture.json"],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": ["hash_transition"],
+        "unsupported_optional": "do not claim ak.profile.hash_transition.v1 unless this build implements and tests the declared profile"
+      }
+    },
+    "ak.profile.kem.hybrid_xwing.v1": {
+      "description": "Reserved X-Wing hybrid KEM gate.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": ["hpke-suite-fixture.json"],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": ["kem.hybrid_xwing"],
+        "unsupported_optional": "do not claim ak.profile.kem.hybrid_xwing.v1 unless this build implements and tests the declared profile"
+      }
+    },
+    "ak.profile.ucan_interop.v1": {
+      "description": "Candidate UCAN interoperability gate.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": ["capability-fixture.json"],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": ["ucan_interop"],
+        "unsupported_optional": "do not claim ak.profile.ucan_interop.v1 unless this build implements and tests the declared profile"
+      }
+    },
     "ak.profile.signature.ecdsa_p256.v1": {
       "description": "Optional ES256 detached-JWS interoperability suite.",
       "required_endpoints": [],
@@ -4352,6 +4555,32 @@
           "signature_suite.ML-DSA-65"
         ],
         "unsupported_optional": "do not claim ak.profile.signature.pqc.v1 and reject ML-DSA-65 proofs as unsupported"
+      }
+    },
+    "ak.profile.crdt.text.v1": {
+      "description": "Reserved interoperability slot for operation-based collaborative plain/rich text. It is not active v1 wire until the algorithm, operation encoding, E2EE carriage and convergence vectors are pinned by a registry release.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [],
+        "unsupported_optional": "do not claim ak.profile.crdt.text.v1; reject profile-tagged CRDT operations as unsupported until the reserved profile is activated"
+      }
+    },
+    "ak.profile.mls_ciphersuite.chacha20poly1305.v1": {
+      "description": "Reserved RFC 9420 ciphersuite 0x0003 interoperability gate for software-friendly ChaCha20-Poly1305 MLS groups.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [],
+        "unsupported_optional": "do not claim this reserved profile and reject MLS ciphersuite 0x0003 until registry activation and a new negotiated contract release"
       }
     },
     "ak.profile.hpke.p256.v1": {

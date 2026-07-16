@@ -25,7 +25,7 @@ see_also:
 
 ## 2. 私有 key 派生
 
-账户数据 key 不得泄露原始目标引用、集合名称或字段路径。实现 MUST 使用 [`client-preferences.md` §2.2](../discovery/client-preferences.md) 定义的 `account_data_namespace_key` / `derive_account_data_key` 派生稳定、不透明的 key 片段：
+账户数据 key 不得泄露原始目标引用、集合名称或字段路径。实现 MUST 使用 [`account-data.md` §2](./account-data.md) 定义的 `account_data_namespace_key` / `derive_account_data_key` 派生稳定、不透明的 key 片段：
 
 - `target_key = derive_account_data_key(canonical_target_ref)`
 - `collection_key = derive_account_data_key(normalized_collection_title)`

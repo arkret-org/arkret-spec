@@ -1,7 +1,7 @@
 {
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "arkret-rust-sdk::core::cursor_negative_fixture"
+    "entrypoint": "ak.suite.encoding.cursor_negative.v1"
   },
   "profile": "ak.vector_group.encoding.v1",
   "version": "2026-07-03",

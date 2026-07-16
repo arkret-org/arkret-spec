@@ -1682,9 +1682,9 @@ def check_sdk_conformance_contract(lint: Lint) -> None:
         source_anchor = clause.get("source_anchor")
         if not isinstance(source_anchor, str) or not source_anchor.startswith("spec/v1/zh/") or "#" not in source_anchor:
             lint.fail(path, f"{label}.source_anchor must reference a stable zh/ heading")
-    expected_ids = {f"AK-SDK-{index:03d}" for index in range(1, 18)}
+    expected_ids = {f"AK-SDK-{index:03d}" for index in range(1, 23)}
     if seen != expected_ids:
-        lint.fail(path, "sdk_conformance_contract must define exactly AK-SDK-001 through AK-SDK-017")
+        lint.fail(path, "sdk_conformance_contract must define exactly AK-SDK-001 through AK-SDK-022")
 
     schema_path = ARTIFACTS / "schemas" / "sdk-conformance-claim.schema.json"
     fixture_path = ARTIFACTS / "fixtures" / "sdk-conformance-claim-fixture.json"
@@ -1722,8 +1722,10 @@ def check_fixture_runner_contract(lint: Lint) -> None:
             continue
         if not isinstance(row.get("execution_contract"), str) or not row["execution_contract"].strip():
             lint.fail(runner_registry_path, f"runner kind {row.get('kind')!r} lacks execution_contract")
-        if row.get("owner") not in {"in_tree_lint", "cotest", "in_tree_lint_and_cotest"}:
+        if row.get("owner") not in {"protocol", "in_tree_lint", "cotest", "in_tree_lint_and_cotest"}:
             lint.fail(runner_registry_path, f"runner kind {row.get('kind')!r} has invalid owner")
+        if row.get("execution_status") != "contract_published":
+            lint.fail(runner_registry_path, f"runner kind {row.get('kind')!r} must publish its execution contract")
     executable_registry_assertions = {
         "error_code_registry_coverage_fixture": {
             "unique_top_level_codes",
@@ -1770,8 +1772,8 @@ def check_fixture_runner_contract(lint: Lint) -> None:
             continue
         if kind == "named_suite":
             entrypoint = runner.get("entrypoint")
-            if not isinstance(entrypoint, str) or not re.fullmatch(r"[a-z0-9_-]+(?:::[a-z0-9_-]+)+", entrypoint):
-                lint.fail(path, "runner.kind=named_suite requires a canonical namespace entrypoint")
+            if not isinstance(entrypoint, str) or not re.fullmatch(r"ak\.suite\.[a-z0-9_.-]+\.v1", entrypoint):
+                lint.fail(path, "runner.kind=named_suite requires a tool-neutral ak.suite.*.v1 entrypoint")
         if kind == "registry_coverage":
             inputs = runner.get("inputs")
             if not isinstance(inputs, list) or not inputs:
@@ -6088,8 +6090,8 @@ def check_mls_governance_proof_fixture(lint: Lint) -> None:
         lint.fail(path, "MLS governance proof fixture must require the bounds companion vector")
 
     expected_consumers = {
-        "sdk_proof_verifier": "cotest::conformance::mls_governance_proof_bundle::verify",
-        "server_materializer": "cotest::conformance::mls_governance_proof_bundle::materialize",
+        "sdk_proof_verifier": "ak.suite.mls.governance_proof_bundle.verify.v1",
+        "server_materializer": "ak.suite.mls.governance_proof_bundle.materialize.v1",
     }
     consumers = data.get("consumer_contracts")
     actual_consumers = {

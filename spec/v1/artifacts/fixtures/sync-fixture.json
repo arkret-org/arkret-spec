@@ -1,7 +1,7 @@
 {
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::sync"
+    "entrypoint": "ak.suite.sync.core.v1"
   },
   "profile": "ak.vector_group.sync.v1",
   "version": "2026-07-10",

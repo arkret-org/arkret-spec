@@ -52,20 +52,14 @@ Effective default Realm 解析：
 
 ```text
 effective_default_realm(space):
-  if space already appears in current resolution stack:
-    fail closed (space_parent_cycle)
   if space.default_realm_id exists:
     return space.default_realm_id
-  if space.parent_space_id exists and parent is readable:
-    return effective_default_realm(parent)
-  if space.parent_space_id exists and parent is not readable:
-    fail closed (space_parent_unreadable)
   return space.realm_id
 ```
 
 客户端从某个 Space 创建 Strand / Morph / View 时，MUST 把解析结果显式写入新资源的 `realm_id`。服务端 / reducer 不得在签名后根据当前 tree 状态隐式改写资源 Realm。
 
-Effective default Realm 解析 MUST NOT 跨 `ak.realm.link` 跳转。`default_realm_id` 指到哪个 Realm，新资源就只能默认落到该 Realm；即使该 Realm 与其它 Realm 存在 `governed_by`、`discoverable_from`、`confidential_extension_of` 或 migration link（`split_from` / `replaces`），也不得自动 fallback 到 link 邻居。若解析得到的 Realm 已 tombstoned、destroyed、不可达或当前 actor 对其没有创建目标对象的 capability，新写入 MUST `failed_precondition`，`reason_code=realm_unavailable` 或更具体的 terminal / capability reason；客户端只能要求用户显式选择新的 Realm 或执行被授权的 migration/reparent 流程。
+Effective default Realm 解析是非递归的，MUST NOT 读取 parent，也 MUST NOT 跨 `ak.realm.link` 跳转。`default_realm_id` 指到哪个 Realm，新资源就只能默认落到该 Realm；即使该 Realm 与其它 Realm 存在 `governed_by`、`discoverable_from`、`confidential_extension_of` 或 migration link（`split_from` / `replaces`），也不得自动 fallback 到 link 邻居。若解析得到的 Realm 已 tombstoned、destroyed、不可达或当前 actor 对其没有创建目标对象的 capability，新写入 MUST `failed_precondition`，`reason_code=realm_unavailable` 或更具体的 terminal / capability reason；客户端只能要求用户显式选择新的 Realm 或执行被授权的 migration/reparent 流程。
 
 ## 5. Cross-Realm Navigation
 
@@ -74,7 +68,7 @@ Effective default Realm 解析 MUST NOT 跨 `ak.realm.link` 跳转。`default_re
 - 父 Space 所在 Realm 的成员不会自动成为子 Space home Realm 的成员。
 - 子 Space home Realm 的成员不会自动读取父 Space。
 - Parent Space archive / tombstone 不自动改变 child Space lifecycle。
-- Parent Space 的 `default_realm_id` 只作为 child 省略 `default_realm_id` 时的默认解析输入；它不授予访问目标 Realm 的能力。
+- Parent Space 的 `default_realm_id` 不被 child 自动继承。客户端若希望沿用 parent 默认值，MUST 在创建 child 时读取、校验并把该值显式写入 child `default_realm_id`；之后 parent 改值不追溯改变 child。
 
 如果跨 Realm parent 暴露过多 metadata，实现 SHOULD 使用 minimal metadata profile 或把敏感 child Space 放到不可枚举 parent 下，仅通过授权后的 Relation / View 显示。
 

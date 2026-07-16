@@ -29,7 +29,7 @@ see_also:
 
 ## 2. Client Encrypted Index
 
-客户端加密索引的 manifest 写入 `ak.search.index_manifest.v1:<realm_key>`。`realm_key` 等于对 canonical `realm_id` 调用 [`client-preferences.md` §2.2](../discovery/client-preferences.md) 的 `derive_account_data_key`。manifest plaintext shape 使用 `realm_id`，并在 account-data value 中加密；`shard_key` 不得由 plaintext term、object ref、message id 或 strand id 直接派生。
+客户端加密索引的 manifest 写入 `ak.search.index_manifest.v1:<realm_key>`。`realm_key` 等于对 canonical `realm_id` 调用 [`account-data.md` §2](../models/account-data.md) 的 `derive_account_data_key`。manifest plaintext shape 使用 `realm_id`，并在 account-data value 中加密；`shard_key` 不得由 plaintext term、object ref、message id 或 strand id 直接派生。
 
 托管服务只能返回 encrypted shard / manifest bytes，MUST NOT 返回 hit、ref、snippet、score 或 term-level metadata。客户端解密后仍必须按当前 Realm policy、history visibility、redaction、expiry 和 local capability state 过滤。
 

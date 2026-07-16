@@ -325,6 +325,8 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 
 ## 6. 幂等
 
+请求级幂等行为的 active 认证入口是 `ak.vector.api.request_idempotency.v1`（`protocol-edge-cases-fixture.json`）；runner MUST 覆盖同键同 body、同键异 body、跨 principal/operation 复用、`canonical_hash_input` 指针和 24 小时保留临界点。
+
 每个写接口 MUST 在 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 中声明幂等机制与重试安全性。只有 `retry_safe=true` 的 operation 承诺可对逐字节相同的完整请求执行自动幂等重试；`retry_safe=false` 的 operation 不作该承诺，客户端必须走 operation-specific outcome 查询、恢复流程或人工确认。
 
 `retry_safe=true` 且 `idempotency_mechanism != "none"` 的写入请求 MUST 携带或内生由 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 同行声明的稳定 request identity；`retry_safe=false` 的 operation 仅在其 registry 行声明了对应机制时才使用该机制。少数使用 command binding 但语义为纯计算 / 只读判定的 operation MAY 声明 `none/true`，前提是任何重复执行都不持久化状态、不消费一次性材料且不产生外部副作用。

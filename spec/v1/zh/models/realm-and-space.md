@@ -60,7 +60,7 @@ Realm 与 MLS group 不是同义词：
 
 - `encryption_profile` 是 Realm 的 create-locked 基线。
 - 同一 Realm 内不允许把普通 Strand 任意混合成"有的 E2EE、有的非 E2EE"的保密等级拼盘；加密覆盖范围由 Realm `content_encryption_floor` 与 `metadata_encryption_floor` 声明（二者均为 Realm 对象顶层的 policy 字段，权威定义见 §2.3 字段表），Circle 不得放宽父 Realm floor（详见 [`circle.md` §7](./circle.md)）。
-- Realm policy component `agent_participation` 声明 native personal agent 在该 Realm 内被允许的治理参与上限（ceiling），结构为 `{ native_agent: { reply, accept_third_party_mention, act_on_behalf } }`，由持有 `ak.realm.admin` 的 principal 通过 `ak.realm.policy_components` 写入。它与 deployment、Circle、Strand 同名 ceiling 构成 `deployment ⊇ Realm ⊇ Circle ⊇ Strand` 的单调收紧链：内层每一位为真 MUST 蕴含外层对应位为真，reducer 拒绝放宽（`failed_precondition`，`reason="agent_participation_ceiling_widen"`），与 `content_encryption_floor` 的 tighten-only ratchet 同框架。未声明时继承父级 ceiling；deployment 顶层默认全 `false`（与 `ak.profile.sovereign_deployment.v1` 的 deny-default agent 一致）。controller 的逐 scope selection 还受 Agent 创建时 immutable `requested_scope` 派生的全局 ceiling 约束，`effective = provision-derived ceiling ∩ governance ceiling ∩ selection`；任何 Realm policy 都不得补回 provision 未允许的位。详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)。native agent 与 Applet / Ghost Actor 的参与策略 MUST 分别声明，不得合并为单一开关。Realm 侧 `{ native_agent: {...} }` 带轴包裹与 Circle / Strand 侧扁平三位之间的 wire 归一映射（reducer tighten-only 逐位对齐口径）见 [`common-fields.md` §4.4](./common-fields.md#44-agent_participation-wire-形态归一normative)。
+- Realm policy component `agent_participation` 声明 native personal agent 在该 Realm 内被允许的治理参与上限（ceiling），结构为 `{ native_agent: { reply, accept_third_party_mention, act_on_behalf } }`，由持有 `ak.realm.admin` 的 principal 通过 `ak.realm.policy_components` 写入。它与 deployment、Circle、Strand 同名 ceiling 构成 `deployment ⊇ Realm ⊇ Circle ⊇ Strand` 的单调收紧链：内层每一位为真 MUST 蕴含外层对应位为真，reducer 拒绝放宽（`failed_precondition`，`reason="agent_participation_ceiling_widen"`），与 `content_encryption_floor` 的 tighten-only ratchet 同框架。未声明时继承父级 ceiling；deployment 顶层默认全 `false`（与 `ak.profile.sovereign_deployment.v1` 的 deny-default agent 一致）。controller 的逐 scope selection 还受 Agent 创建时 immutable `requested_scope` 派生的全局 ceiling 约束，`effective = provision-derived ceiling ∩ governance ceiling ∩ selection`；任何 Realm policy 都不得补回 provision 未允许的位。详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)。native agent 与 Applet / Ghost Actor 的参与策略 MUST 分别声明，不得合并为单一开关。Realm、Circle、Strand 均使用同一 `{ native_agent: {...} }` 带轴 wire 形态；逐位继承与 tighten-only 规则见 [`common-fields.md` §4.4](./common-fields.md#44-agent_participation-wire-形态normative)。
 - Realm policy component `account_deactivation` 声明：当某 principal 进入 account `deactivated` 时，其在本 Realm 的 membership 如何处置。其子字段 `account_deactivation.member_action` 是封闭枚举（`leave_self_initiated`（默认）/ `retain_membership` / `leave_all`），同样由持有 `ak.realm.admin` 的 principal 经 `ak.realm.policy_components` 写入，未识别取值按未知 policy 字段 fail closed。**该字段的封闭枚举与处置语义的单一权威源是 [`../identity/account-lifecycle.md` §7.1](../identity/account-lifecycle.md)**；本处仅登记它属于 Realm policy component（经 `ak.realm.policy_components` 承载、随 `policy_revision` 推进），不重复定义取值。
 - 若某个 Strand / artifact 需要 Realm 内的子事件 / 子消息边界（子集成员、独立 history、投递 / 查询裁剪，必要时独立 MLS group），创建一个 [Circle](./circle.md) 并把对象的 `scope_circle_id` 指向该 Circle。仅当跨 federation/policy/capability registry 边界时才升级到另一个独立 Realm，并通过 `ak.realm.link` 显式引用连接。
 - `history_visibility` 的五个值只定义历史读取资格；是否能发现 Realm、能否加入、是否能解密旧 E2EE epoch、以及服务是否可接收明文，分别由 discoverability、join rule、history sharing policy / key share、`plaintext_visible_services` 决定。完整语义见 [`../governance/history-visibility.md`](../governance/history-visibility.md)。
@@ -298,27 +298,11 @@ Realm 有两个终态 event，语义不同：
 
 ### 2.7 Realm Membership FSM（normative）
 
-`ak.member.state` 写入 `ak.component.member.state.v1:<actor_id>`，lattice 为 `fsm`、`bottom=reject`。Realm membership FSM 的 `initial_state` 为 `leave`；wire 枚举仅使用 `invite / join / knock / leave / ban`，不存在单独的 `none` wire 值。`ak.realm.create` bootstrap 例外见 §2.5：它直接把 `created_by` 的 member cell 初始化为 `join`。
-
-| from | to | writer / capability | 语义 |
-| --- | --- | --- | --- |
-| `leave` | `invite` | `ak.realm.join.review` 或 `ak.realm.admin` | 发出邀请或重新邀请。 |
-| `leave` | `knock` | target actor，且当前 join rule / Join Policy 允许 knock | 申请加入；申请正文不得放入 member state Move。 |
-| `leave` | `join` | target actor 通过 public / restricted gate，或 `ak.realm.admin` | 直接加入或管理员加入。 |
-| `invite` | `join` | target actor，或 `ak.realm.admin` | 接受邀请或管理员完成加入。 |
-| `invite` | `leave` | target actor，inviter，或 `ak.realm.admin` | 拒绝 / 撤销邀请。 |
-| `knock` | `invite` | reviewer / `ak.realm.join.review` 或 `ak.realm.admin` | 批准申请并转为邀请。 |
-| `knock` | `join` | reviewer / `ak.realm.join.review` 或 `ak.realm.admin` | 直接批准加入。 |
-| `knock` | `leave` | target actor，reviewer，或 `ak.realm.admin` | 显式撤回或拒绝。base v1 的 bare knock 无自动 TTL 转换。 |
-| `join` | `join` | target actor 或 rebind-authorized service，且只更新 delivery binding / membership metadata | 成员保持加入状态的投递绑定迁移；不得借此改变 join gate 结果。 |
-| `join` | `leave` | target actor 或 `ak.realm.admin` | 主动离开或管理员移除。 |
-| `leave` / `invite` / `knock` / `join` | `ban` | `ak.realm.admin` | 封禁；同时触发投递、MLS remove 与 Circle cascade。 |
-| `ban` | `leave` | `ak.realm.admin` | 解封为非成员。 |
-| `ban` | `invite` | `ak.realm.admin` | 解封并重新邀请。 |
+`ak.member.state` 写入 `ak.component.member.state.v1:<actor_id>`，lattice 为 `fsm`、`bottom=reject`。Realm 使用 [`common-fields.md` §4.5](./common-fields.md#45-参数化-membership-fsmnormative) 的共享 membership FSM，实例参数为 `scope_kind=realm`、`delivery_binding_rebind=true`；writer/guard 以该表 Realm 列为准。`ak.realm.create` bootstrap 例外见 §2.5：它直接把 `created_by` 的 member cell 初始化为 `join`。`join -> join` 仅用于成员保持加入状态时迁移 delivery binding / membership metadata，不得借此改变 join gate 结果。
 
 `invite` 与 base v1 bare `knock` 的过期只影响 operation eligibility，不会由本地计时器自动改写共享 member cell。超时清理必须由上表列出的 authorized writer 提交显式 `leave`；receiver MUST NOT 根据本地墙钟合成 reducer-derived member event。Join Policy `member.application` 的 `application_ttl` 是独立 candidate workflow，不得反向解释为 bare knock TTL。
 
-未列出的 transition MUST `failed_precondition`，reason=`invalid_membership_transition` 或更具体的 join / delivery-binding reason。`join -> invite`、`ban -> join`、`invite -> knock`、`leave -> leave` 等均非法；需要重试时 producer 必须基于当前 state 重新提交合法 transition。父 Realm `join -> leave/ban` 的 cascade 对 Circle membership 的影响见 [`circle.md` §9.1](./circle.md)。
+共享表未列出的 transition MUST `failed_precondition`，reason=`invalid_membership_transition` 或更具体的 join / delivery-binding reason。`join -> invite`、`ban -> join`、`invite -> knock`、`leave -> leave` 等均非法；需要重试时 producer 必须基于当前 state 重新提交合法 transition。父 Realm `join -> leave/ban` 的 cascade 对 Circle membership 的影响见 [`circle.md` §9.1](./circle.md)。
 
 上表 `leave -> join` 另有一个封闭的 Native Personal Agent controller carve-out：当 writer 是 target agent 的已验证 controller、writer 自身在目标 Realm 为 active `join`、target agent lifecycle 为 `active`，且 accountability / Realm native-agent policy / Join Policy / MLS admission 全部通过时，controller MAY 直接写入 target agent 的 `join`。该写入不产生 invite，也不需要 agent runtime 接受。该 carve-out 不授予 writer 通用 `ak.realm.admin`，不得用于其他 principal。反向约束同样是强制的：controller 从 `join` 转为 `leave` / `ban` 时，其在该 Realm 内仍为 `join` 的 Native Personal Agents MUST 级联为 `leave`（reason=`controller_membership_ended`）；已为 `ban` 的 agent 保持 `ban`，不得被 cascade 降级。
 
@@ -408,7 +392,7 @@ Space 是用户和产品层可见的结构容器。它可以表达：
 Space **不**拥有自己的 membership、policy、history visibility、E2EE group 或 federation policy。它通过 `realm_id` 和可选 `default_realm_id` 解析到 Realm：
 
 - `realm_id`：该 Space 对象自身 metadata 的 home Realm。创建、更新、archive、tombstone 该 Space 的事件写入这个 Realm。
-- `default_realm_id`：该 Space 下新建资源默认落入的 Realm。省略时继承最近 ancestor Space 的 `default_realm_id`，再退回自身 `realm_id`。
+- `default_realm_id`：该 Space 下新建资源默认落入的 Realm。省略时直接取自身 `realm_id`；协议不递归继承 ancestor 默认值。
 
 这允许 UI 上的同一个 Space tree 跨越多个 Realm。例如 `/Acme/Projects` 下面的普通项目、机密项目和 HR 项目可以是兄弟 Space，但各自 `default_realm_id` 不同。
 
@@ -421,7 +405,7 @@ Schema id: `ak.schema.space.v1`
 | `id` | yes | `id:space` | 以 `ak:space:` 开头。 | Space ID。 |
 | `schema` | yes | `ak.schema.space.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | MUST 指向 `ak:realm:`。 | Space metadata 的 home Realm。 |
-| `default_realm_id` | no | `id:realm` | MUST 指向 `ak:realm:`。 | 子资源默认 Realm；省略时继承。 |
+| `default_realm_id` | no | `id:realm` | MUST 指向 `ak:realm:`。 | 子资源默认 Realm；省略时直接取本 Space `realm_id`。 |
 | `scope_circle_id` | no | `id:circle` | MUST 指向 Space metadata home Realm 的 Circle。 | Space 自身 metadata 与 structural relation facts 的 effective scope；省略表示 Realm-default。 |
 | `child_scope_policy` | no | `object` | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id`。 | 子资源 placement 的 reducer-enforced 约束。 |
 | `parent_space_id` | no | `id:space` | MAY 指向任意 Space；跨 Realm parent 仅表示导航，不级联权限。 | 结构层级父。 |

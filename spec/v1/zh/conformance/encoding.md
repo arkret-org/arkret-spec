@@ -287,7 +287,7 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned` 与 redu
 - 在 `server/describe.crypto` 暴露支持的签名 algo 集合(与 hash algo 集合并列),client 据此选择写入算法。
 - MUST NOT "算法升级"已签名的 canonical bytes:一旦 proof 用某 `alg` 发布，verify 路径永远按该 algo 重验；新算法走新 proof，不重写历史签名字节。
 
-**后量子 / hybrid 前瞻(未来)**:hybrid composite 签名(例如 `Ed25519+ML-DSA-65`，经典 + 后量子双签以在迁移期同时满足两类验证者)登记为 `ak.profile.signature.pqc.v1` 的扩展槽位。它复用本节"不重写历史签名字节、新算法走新 proof"原则——hybrid proof 作为追加的新 proof entry 出现，经典验证者验经典分量、后量子验证者验 ML-DSA 分量，历史 Ed25519 proof bytes 不被改写。该槽位在 v1 不强制，记为未来。
+**后量子 / hybrid 前瞻（reserved）**：`signature-alg-registry.json` 以 `Ed25519+ML-DSA-65` reserved row 钉定双独立 proof entry、两分量同 payload/purpose 且全部必验的路线。它复用本节“不重写历史签名字节、新算法走新 proof”原则；缺失或剥离任一分量不得显示为 hybrid verified。该 row 在 activation requirements、反 stripping 向量和新 proof contract release 完成前不是 wire alg，receiver MUST `unsupported_signature_alg` fail closed。
 
 ## 7. HLC
 

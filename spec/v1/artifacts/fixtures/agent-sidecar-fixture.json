@@ -4,7 +4,7 @@
   "suite": "sidecar_vectors",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::sidecar_vectors"
+    "entrypoint": "ak.suite.agent.sidecar.v1"
   },
   "covers_vectors": [
     "ak.vector.sidecar.ensure_idempotent.v1",

@@ -4,7 +4,7 @@
   "suite": "media_binding",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::media_binding"
+    "entrypoint": "ak.suite.media.binding.v1"
   },
   "covers_vectors": [
     "ak.vector.media_binding.focus_selection_oldest_membership.v1",

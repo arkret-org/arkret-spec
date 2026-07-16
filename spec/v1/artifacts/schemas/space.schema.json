@@ -27,7 +27,7 @@
     },
     "default_realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id",
-      "description": "Optional default Realm for resources created under this Space. Omitted means inherit from the nearest ancestor Space with default_realm_id, falling back to realm_id. This field does not grant membership or decryption rights."
+      "description": "Optional default Realm for resources created under this Space. Omitted means this Space's own realm_id; ancestor defaults are not inherited. This field does not grant membership or decryption rights."
     },
     "scope_circle_id": {
       "$ref": "./common-ids.schema.json#/$defs/circle_id",

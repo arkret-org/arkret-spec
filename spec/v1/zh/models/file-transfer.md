@@ -44,7 +44,7 @@ see_also:
 transfer_key = derive_account_data_key(transfer_id)
 ```
 
-`derive_account_data_key` 与 `account_data_namespace_key` 的密钥归属见 [`client-preferences.md` §2.2](../discovery/client-preferences.md)；服务端不得获得该 namespace key。
+`derive_account_data_key` 与 `account_data_namespace_key` 的密钥归属见 [`account-data.md` §2](./account-data.md)；服务端不得获得该 namespace key。
 
 `transfer_key` 只用于 account-data key。原始 `transfer_id`、`blob_ref`、文件名、MIME、目标设备 id 和任何明文 hash MUST NOT 出现在 account-data key 中。
 

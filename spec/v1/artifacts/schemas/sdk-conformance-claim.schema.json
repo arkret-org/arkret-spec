@@ -31,6 +31,13 @@
       "maxItems": 256,
       "items": { "$ref": "#/$defs/clause_claim" }
     },
+    "build_variants": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "items": { "$ref": "#/$defs/build_variant" },
+      "description": "Optional per-build profile inventory for source or multi-variant SDK distributions. Variant IDs MUST be unique and each feature_set_digest binds the exact normalized feature/configuration set used to produce that variant."
+    },
     "proof": { "$ref": "#/$defs/proof" }
   },
   "$defs": {
@@ -43,6 +50,27 @@
       "properties": {
         "uri": { "type": "string", "pattern": "^(https|oci|git|urn):.+$", "maxLength": 2048 },
         "digest": { "$ref": "#/$defs/nonzero_digest" }
+      }
+    },
+    "build_variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["variant_id", "feature_set_digest", "claimed_profiles"],
+      "properties": {
+        "variant_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$" },
+        "feature_set_digest": { "$ref": "#/$defs/nonzero_digest" },
+        "features": {
+          "type": "array",
+          "maxItems": 512,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._+:/-]{0,127}$" }
+        },
+        "claimed_profiles": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^ak\\.profile\\.[a-z0-9_.-]+\\.v1$" }
+        }
       }
     },
     "issuer": {
@@ -69,7 +97,7 @@
       "additionalProperties": false,
       "required": ["kind", "evidence_ref", "digest"],
       "properties": {
-        "kind": { "enum": ["vector_result", "public_api_inventory", "code_audit", "config_audit", "data_flow_audit"] },
+        "kind": { "enum": ["vector_result", "public_api_inventory", "build_variant_inventory", "code_audit", "config_audit", "data_flow_audit"] },
         "evidence_ref": { "type": "string", "minLength": 1, "maxLength": 2048 },
         "digest": { "$ref": "#/$defs/nonzero_digest" }
       }

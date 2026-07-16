@@ -6,6 +6,7 @@
     "relation.schema.json relation_kind stays a free string so extension profiles can introduce new kinds; kinds listed here are the v1 standard vocabulary and MUST follow their registered row.",
     "A relation_kind not present here and not declared by an extension profile is an unregistered kind: implementations SHOULD preserve it as an opaque edge marked unknown_relation_kind in projections and MUST NOT infer container, dependency, or visibility semantics from it (relation.md section 3.1).",
     "Rows (or shapes) with truth_source_class=derived_projection MUST NOT be written via ak.relation.create / update / delete; the listed write_path Move or durable event is the only truth source and direct Relation writes MUST be rejected with schema_violation.",
+    "Every shape_dependent row MUST declare per-shape writability=derived_only or direct. SDK constructors MUST resolve the most-specific matching (canonical_id,from,to) shape before selecting an event path; wildcard fallback applies only when no specific shape matches.",
     "weak_semantic=true rows are non-structural, non-cascading reference edges; they never imply containment, lifecycle coupling, or visibility changes.",
     "Relations not declared multi-edge dedupe on the full tuple (realm_id, relation_kind, from_ref, to_ref); concurrent duplicate creation resolves per relation.md section 6 deterministic_winner unless the relation profile declares another on_conflict value."
   ],
@@ -21,6 +22,7 @@
           "to": "space(kind=list)",
           "cardinality": "one_to_many; single active board parent per list",
           "truth_source_class": "derived_projection",
+          "writability": "derived_only",
           "write_path": "ak.space.parent"
         },
         {
@@ -28,6 +30,7 @@
           "to": "strand",
           "cardinality": "one_to_many; board-exclusive target (board_space_id, strand_id)",
           "truth_source_class": "derived_projection",
+          "writability": "derived_only",
           "write_path": "ak.strand.move / ak.strand.reorder"
         },
         {
@@ -35,6 +38,7 @@
           "to": "*",
           "cardinality": "many_to_many unless profiled",
           "truth_source_class": "canonical",
+          "writability": "direct",
           "write_path": "ak.relation.create"
         }
       ]

@@ -1,7 +1,7 @@
 {
   "runner": {
     "kind": "arkret_private_kdf_and_durability",
-    "entrypoint": "cotest::conformance::arkret_private_kdf_and_durability"
+    "entrypoint": "ak.suite.crypto.arkret_private_kdf_and_durability.v1"
   },
   "suite": "arkret_private_kdf_and_durability",
   "version": "2026-07-13",

@@ -30,7 +30,9 @@ sidebar:
 
 **向量适用性闭包（normative）**：[`vector-registry.json`](../../artifacts/registry/vector-registry.json) 中每个 active vector MUST 恰好声明一个适用性 selector：`scope="universal"`、`applies_to_profiles[]`、`applies_to_vector_groups[]` 或 `applies_to_fixtures[]`。单值 `profile` 字段禁止出现。某 profile 的认证集合等于：（a）`scope="universal"`；（b）直接列出该 profile 的向量；（c）该 claim 明确包含的 vector group 向量；（d）该 profile 及其全部 `inherits[]` 的 `required_fixtures[]` 所映射向量的并集。runner MUST 先计算继承后的 fixture closure，再按集合去重；未命中该闭包的 vector 不得被实现或认证器自行猜测为必测或免测。fixture selector 只是适用性索引，`source_refs[]` 仍必须包含同一 fixture，二者由 lint 逐字校验。
 
-**Fixture runner 归属（normative）**：随件 fixture 顶层 `runner.kind` 是执行层的机读入口，其封闭词表、执行契约摘要与 owner 以 [`runner-kind-registry.json`](../../artifacts/registry/runner-kind-registry.json) 为唯一真源；未知 kind MUST 在 lint 与 conformance 加载阶段 fail closed。`json_schema_validation_cases` runner MUST 逐 case 解析 `schema_ref`、用声明的 JSON Schema dialect 校验 `instance`，并将结果与 `expect_valid` 精确比较；`json_schema_and_semantic_cases` 在完成同一 schema 步骤后，还 MUST 把 `semantic_outcome` 与 `expected_reason_code` 交给 reducer/validator 断言。`required_cotest_suites[*].artifact_fixture` MUST 指向 `artifacts/fixtures/` 中存在的随件文件；runner 不得把缺失的本地私有夹具当作 profile 已满足。
+**Fixture runner 归属（normative）**：随件 fixture 顶层 `runner.kind` 是执行层的机读入口，其封闭词表、执行契约摘要与 contract owner 以 [`runner-kind-registry.json`](../../artifacts/registry/runner-kind-registry.json) 为唯一真源；owner 只维护协议执行契约，不指定验证工具。未知 kind MUST 在 lint 与 conformance 加载阶段 fail closed。`named_suite.runner.entrypoint` 是工具中立 suite id，MUST 匹配 `^ak\.suite\.[a-z0-9_.-]+\.v1$`；验证器自行映射到本地实现，未知、语法无效或未映射 suite id MUST fail closed。`json_schema_validation_cases` runner MUST 逐 case 解析 `schema_ref`、用声明的 JSON Schema dialect 校验 `instance`，并将结果与 `expect_valid` 精确比较；`json_schema_and_semantic_cases` 在完成同一 schema 步骤后，还 MUST 把 `semantic_outcome` 与 `expected_reason_code` 交给 reducer/validator 断言。`required_runner_suites[*].artifact_fixture` MUST 指向 `artifacts/fixtures/` 中存在的随件文件；runner 不得把缺失的本地私有夹具当作 profile 已满足。
+
+`runner-kind-registry.json#runner_kinds[*].execution_status` 是执行契约发布状态。`active` vector 表示“规范要求执行”，不表示任何外部参考仓库已经实现；它只有在所有 `applies_to_fixtures` 的 runner kind 均为 `contract_published` 时才可登记。认证器必须实际执行本地映射并保存逐 case 结果；仅看到 `active` 或 `contract_published` 不得声称 gate 已通过。`planned` / 未知状态的 runner 不得进入 `v1-conformance-certified` 闭包。
 
 Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-profiles.md) §6 与 `conformance-profiles.json` 的 `role` 为准）:**实现 profile**（声明实现承担的角色与能力集合）与 **hardening profile**（在某实现 profile 之上叠加的安全加固 overlay,`role=admin`,不单独作为可声明的实现角色）。
 
@@ -137,7 +139,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 - `ak.vector.capability.approval_constraint.v1`
   - high risk action 未满足 approval 时应软拒绝或进入 proposal 流程。
 
-**Capability coverage plan（normative gate plan）**：进入 `v1-conformance-certified` 前，capability fixture / runner MUST 增加并执行下列负向与正向覆盖；在对应 `ak.vector.*` 行进入 `vector-registry.json` active 状态前，实现不得声称这些行为已通过 vector gate：
+**Capability semantic coverage（normative gate）**：下列行为已由 `protocol-edge-cases-fixture.json` 的 active 向量固化：`ak.vector.capability.issuer_authority_bound.v1`、`ak.vector.capability.validity_window.v1`、`ak.vector.capability.delegation_expiry_seal.v1`、`ak.vector.capability.delegation_cycle.v1`、`ak.vector.capability.moderation_dependency.v1`、`ak.vector.capability.freshness_risk_matrix.v1`、`ak.vector.capability.global_decision_merge.v1`。进入 `v1-conformance-certified` 前，capability runner MUST 执行其全部正负例并保存逐 case 结果：
 
 规模型授权上限已由 active `ak.vector.scalability.capability_limits.v1` 与 `scalability-limits-fixture.json` 的生成式 runner 固化：delegation chain 深度 5、单次展开 1,025 grants、单 grant 65 constraints、selector AST 深度 17 均必须 fail closed；这些 case 与下列语义型 capability coverage 同属认证闭包，不得只运行其一。
 
@@ -151,7 +153,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 
 ### 4.5 Client Sync coverage plan
 
-进入 `v1-conformance-certified` 前，sync fixture / runner MUST 增加并执行下列覆盖；在对应 `ak.vector.*` 行进入 `vector-registry.json` active 状态前，实现不得声称这些行为已通过 vector gate：
+进入 `v1-conformance-certified` 前，sync runner MUST 执行 `protocol-edge-cases-fixture.json` 中 active 的 `ak.vector.sync.delivery_ack.v1`、`ak.vector.sync.cursor_binding.v1` 与 `ak.vector.sync.state_at_window_start.v1` 全部覆盖：
 
 - explicit delivery ack：`ack_token` 签发、累计单调 ack、cross-binding 校验、invalid ack 拒绝，以及服务端丢弃未确认 to-device 消息后 `to_device.lost=true` 的升级路径。
 - cursor binding：`filter_digest` canonical 计算、query-scope digest 绑定、跨 scope 回传 cursor 时返回 `cursor_integrity_invalid`。

@@ -74,16 +74,16 @@
     },
     "agent_participation": {
       "type": "object",
-      "description": "Optional agent participation ceiling for this Strand: the maximum native personal agent behavior permitted in this Strand. When omitted, inherits the enclosing Circle ceiling (or Realm-default ceiling when scope_circle_id is unset). Each bit MAY only tighten, never widen, the parent ceiling (reducer rejects a widening write with agent_participation_ceiling_widen). See zh/models/strand-and-message.md.",
+      "description": "Optional wrapped agent participation ceiling for this Strand: { native_agent: { reply, accept_third_party_mention, act_on_behalf } }. When omitted, inherits the enclosing Circle ceiling (or Realm-default ceiling when scope_circle_id is unset). Each bit MAY only tighten, never widen, the parent ceiling (reducer rejects a widening write with agent_participation_ceiling_widen). The legacy flat three-bit shape is invalid v1 wire. See zh/models/strand-and-message.md.",
       "properties": {
-        "reply": {
-          "type": "boolean"
-        },
-        "accept_third_party_mention": {
-          "type": "boolean"
-        },
-        "act_on_behalf": {
-          "type": "boolean"
+        "native_agent": {
+          "type": "object",
+          "properties": {
+            "reply": {"type": "boolean"},
+            "accept_third_party_mention": {"type": "boolean"},
+            "act_on_behalf": {"type": "boolean"}
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

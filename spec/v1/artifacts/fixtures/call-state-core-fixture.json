@@ -4,7 +4,7 @@
   "suite": "call_state_core",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::call_state_core"
+    "entrypoint": "ak.suite.call.state_core.v1"
   },
   "covers_vectors": [
     "ak.vector.call_state.participant_binding_invalid.v1",

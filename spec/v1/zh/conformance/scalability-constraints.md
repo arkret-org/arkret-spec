@@ -75,6 +75,8 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 单个 selector term 字段值 | 1,024 bytes | 超过时 MUST `selector_too_complex`。 |
 | 单个 grant 未注册字段总数 | 256 | 超过时 MUST `selector_too_complex`；未知字段仍计入 64 KiB 总量。 |
 | `requires_claims[]` 项数 | 32 | 超过时 MUST reject；canonical schema 同步 `maxItems: 32`。 |
+
+上述 cursor / selector / policy-array 边界由 active `ak.vector.scalability.cursor_selector_limits.v1` 在 `scalability-limits-fixture.json` 中执行。
 | 单个 claim 的 `trusted_issuers[]` / `roles[]` 项数 | 16 | 超过时 MUST reject；canonical schema 同步 `maxItems: 16`。 |
 | Constraint object 内嵌套层级 | 4 | 超过时 MUST reject；与 selector AST 深度分别计量。 |
 | 单个 device pairing transcript 失败提交数 | 10 | 达到上限时 pairing code MUST 锁定并永久失效；不得重置计数继续猜测。 |
@@ -181,6 +183,8 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 ### 6.1 身份、邀请与推送隐私窗口
 
 下表登记会触发拒绝、fail-closed、隐私 zeroize 或跨实现 replay 判定的 identity / invite / push 窗口。领域文档仍定义完整状态机；本文登记 wire interoperability bound 和 conformance 入口。
+
+本节与上一表的边界由 active `ak.vector.scalability.protocol_window_limits.v1` / `protocol-edge-cases-fixture.json` 统一执行：数组上限使用 `limit-1 / limit / limit+1`，时间窗使用 runner 注入时钟覆盖临界点前、临界点和临界点后；runner MUST 断言拒绝码、不得截断、状态推进与过期后物理删除义务。
 
 | 项 | v1 默认上限 / 下限 | 规则 |
 | --- | ---: | --- |

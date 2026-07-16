@@ -4,7 +4,7 @@
   "suite": "visibility_policy",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::visibility_policy"
+    "entrypoint": "ak.suite.visibility.policy.v1"
   },
   "covers_vectors": [
     "ak.vector.e2ee.content_floor_downgrade_rejected.v1",

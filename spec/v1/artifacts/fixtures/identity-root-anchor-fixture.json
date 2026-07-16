@@ -3,7 +3,7 @@
   "version": "2026-07-15",
   "runner": {
     "kind": "identity_root_anchor_state_machine",
-    "entrypoint": "cotest::conformance::identity_root_anchor_and_device_reanchor"
+    "entrypoint": "ak.suite.identity.root_anchor_and_device_reanchor.v1"
   },
   "covers_vectors": [
     "ak.vector.identity.root_anchor_exclusivity.v1",

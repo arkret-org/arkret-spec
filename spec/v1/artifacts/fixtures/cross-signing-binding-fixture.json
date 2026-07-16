@@ -4,7 +4,7 @@
   "version": "2026-07-13",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::cross_signing_binding_golden"
+    "entrypoint": "ak.suite.identity.cross_signing_binding.v1"
   },
   "covers_vectors": [
     "ak.vector.cross_signing.subordinate_key_binding.v1",

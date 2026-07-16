@@ -1,0 +1,33 @@
+{
+  "profile": "ak.profile.hash_transition.v1",
+  "version": "2026-07-17",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.encoding.hash_transition.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.hash_transition.dual_root_recompute.v1",
+    "ak.vector.hash_transition.fail_closed.v1"
+  ],
+  "cases": [
+    {
+      "name": "dual_root_recompute",
+      "vector_id": "ak.vector.hash_transition.dual_root_recompute.v1",
+      "old_suite": "json_jcs.sha256",
+      "new_suite": "json_jcs.blake3",
+      "snapshot_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "expected": {
+        "previous_state_root_recomputed_with": "json_jcs.sha256",
+        "state_root_recomputed_with": "json_jcs.blake3",
+        "both_roots_required": true,
+        "decision": "accept"
+      }
+    },
+    {
+      "name": "transition_fail_closed_matrix",
+      "vector_id": "ak.vector.hash_transition.fail_closed.v1",
+      "variants": ["missing_previous_state_root", "previous_root_wrong_suite", "new_root_wrong_suite", "snapshot_commitment_mismatch", "suite_identity_mismatch", "strength_downgrade", "previous_state_root_on_non_transition_seal", "old_suite_digest_after_transition"],
+      "expected": {"decision": "rejected_seal", "atomic": true, "state_unchanged": true}
+    }
+  ]
+}

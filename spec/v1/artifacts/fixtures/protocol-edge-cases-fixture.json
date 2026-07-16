@@ -1,0 +1,138 @@
+{
+  "profile": "ak.vector_group.protocol_edge_cases.v1",
+  "version": "2026-07-17",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.protocol.edge_cases.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.capability.issuer_authority_bound.v1",
+    "ak.vector.capability.validity_window.v1",
+    "ak.vector.capability.delegation_expiry_seal.v1",
+    "ak.vector.capability.delegation_cycle.v1",
+    "ak.vector.capability.moderation_dependency.v1",
+    "ak.vector.capability.freshness_risk_matrix.v1",
+    "ak.vector.capability.global_decision_merge.v1",
+    "ak.vector.sync.delivery_ack.v1",
+    "ak.vector.sync.cursor_binding.v1",
+    "ak.vector.sync.state_at_window_start.v1",
+    "ak.vector.scalability.protocol_window_limits.v1",
+    "ak.vector.api.request_idempotency.v1",
+    "ak.vector.sdk.retry_after.v1",
+    "ak.vector.sdk.pagination_has_more.v1",
+    "ak.vector.encoding.confusable_check.v1"
+  ],
+  "cases": [
+    {
+      "name": "issuer_authority_bound",
+      "vector_id": "ak.vector.capability.issuer_authority_bound.v1",
+      "variants": ["action_outside_effective_authority", "resource_outside_effective_authority", "freshness_unknown"],
+      "expected": {"decision": "reject", "reason_code": "grant_exceeds_issuer_authority"},
+      "assertions": ["no grant is materialized", "freshness unknown never widens issuer authority"]
+    },
+    {
+      "name": "effective_validity_window",
+      "vector_id": "ak.vector.capability.validity_window.v1",
+      "variants": ["not_before_equal_expires_at", "not_before_after_expires_at", "non_empty_intersection"],
+      "expected": {"empty_window_reason": "grant_validity_window_empty", "non_empty_window": "accept"}
+    },
+    {
+      "name": "delegation_expiry_seal",
+      "vector_id": "ak.vector.capability.delegation_expiry_seal.v1",
+      "variants": ["redelegate_same_bound", "redelegate_shorter_bound", "redelegate_widened_bound", "fixed_seal_replay"],
+      "expected": {"widened_reason": "delegation_expiry_widening", "expiry_seal_rotated": false}
+    },
+    {
+      "name": "delegation_cycle",
+      "vector_id": "ak.vector.capability.delegation_cycle.v1",
+      "variants": ["direct_cycle", "multi_hop_cycle", "revoke_then_redelegate_cycle", "same_batch_cycle"],
+      "expected": {"decision": "reject", "reason_code": "delegation_cycle", "batch_atomic": true}
+    },
+    {
+      "name": "moderation_dependency_static_lint",
+      "vector_id": "ak.vector.capability.moderation_dependency.v1",
+      "variants": ["required_true_present", "required_true_missing", "explicit_false"],
+      "expected": {"missing_or_false": "schema_violation", "present": "accept"}
+    },
+    {
+      "name": "freshness_risk_matrix",
+      "vector_id": "ak.vector.capability.freshness_risk_matrix.v1",
+      "matrix": [
+        {"risk": "high", "freshness": "stale", "decision": "deny"},
+        {"risk": "high", "freshness": "unknown", "decision": "deny"},
+        {"risk": "medium", "freshness": "unknown", "decision": "deny"},
+        {"risk": "low", "freshness": "unknown", "tier": "local_pending", "decision": "pending_local_only"}
+      ],
+      "assertions": ["pending_local_only is never synchronized or federated"]
+    },
+    {
+      "name": "global_decision_merge",
+      "vector_id": "ak.vector.capability.global_decision_merge.v1",
+      "matched_grant_decisions": ["allow", "deny", "quarantine", "require_review"],
+      "expected": {"allow_plus_deny": "deny", "allow_plus_quarantine": "quarantine", "allow_plus_require_review": "require_review"},
+      "assertions": ["an allow from one grant never short-circuits a stronger global outcome"]
+    },
+    {
+      "name": "explicit_delivery_ack",
+      "vector_id": "ak.vector.sync.delivery_ack.v1",
+      "variants": ["opaque_token_round_trip", "monotonic_cumulative_ack", "cross_binding_token", "invalid_token", "unacked_drop"],
+      "expected": {"cross_binding": "cursor_integrity_invalid", "invalid": "invalid_param", "unacked_drop_lost": true}
+    },
+    {
+      "name": "cursor_binding",
+      "vector_id": "ak.vector.sync.cursor_binding.v1",
+      "variants": ["canonical_filter_digest", "query_scope_digest", "same_scope_round_trip", "cross_scope_replay", "filter_mutation"],
+      "expected": {"cross_scope_or_mutated": "cursor_integrity_invalid"}
+    },
+    {
+      "name": "limited_timeline_state_at_window_start",
+      "vector_id": "ak.vector.sync.state_at_window_start.v1",
+      "basis": "first_limited_event.prev_refs causal closure joined at nearest reachable Seal",
+      "variants": ["deterministic_join", "unreachable_basis", "conflicting_heads"],
+      "expected": {"deterministic_join": "emit_state", "unreachable_basis": "safe_omission", "conflicting_heads": "safe_omission"},
+      "assertions": ["current state is never substituted for window-start state"]
+    },
+    {
+      "name": "protocol_window_and_wire_limits",
+      "vector_id": "ak.vector.scalability.protocol_window_limits.v1",
+      "limit_cases": [
+        {"field": "seal.predecessor_refs", "limit": 128, "test": [127, 128, 129], "overflow": "payload_too_large", "must_not_truncate": true},
+        {"field": "compaction_seal.covered_event_digests", "limit": 1048576, "test": [1048575, 1048576, 1048577], "overflow": "payload_too_large", "must_not_truncate": true},
+        {"field": "device_message.expires_at", "max_ttl_ms": 86400000, "negative": ["missing", "expired", "before_sent_at", "over_limit"]},
+        {"field": "push_routes", "limit": 16, "test": [15, 16, 17], "overflow": "push_route_limit_exceeded"},
+        {"field": "contact_request_pending_ttl", "clock_injection": true, "after_window": "failed_precondition"},
+        {"field": "erasure_propagation_window_ms", "clock_injection": true, "after_window": "timed_out_and_incomplete"},
+        {"field": "deactivation_propagation_window_ms", "clock_injection": true, "after_window": "timed_out"},
+        {"field": "mls_deactivation_grace_ms", "clock_injection": true, "after_window": "remove_required"},
+        {"field": "call_empty_timeout_ms", "clock_injection": true, "after_window": "active_to_ended"},
+        {"field": "push_target_mapping_retention_ms", "limit": 86400000, "after_window": "physically_deleted"},
+        {"field": "third_party_invite_replay_ttl", "clock_injection": true, "during_window": "replay_rejected"}
+      ]
+    },
+    {
+      "name": "request_idempotency",
+      "vector_id": "ak.vector.api.request_idempotency.v1",
+      "variants": ["same_key_same_body", "same_key_different_body", "same_key_other_principal", "same_key_other_operation", "canonical_hash_input_pointer", "retention_just_before_24h", "retention_at_24h"],
+      "expected": {"same_body": "original_outcome", "different_body": "duplicate_conflict", "other_scope": "independent", "minimum_retention_ms": 86400000}
+    },
+    {
+      "name": "retry_after",
+      "vector_id": "ak.vector.sdk.retry_after.v1",
+      "variants": ["retry_after_shorter_than_local_backoff", "retry_after_longer_than_local_cap", "retry_after_date"],
+      "expected": {"earliest_retry": "not_before_server_retry_after", "long_value_clamped": false}
+    },
+    {
+      "name": "pagination_has_more",
+      "vector_id": "ak.vector.sdk.pagination_has_more.v1",
+      "variants": ["empty_items_has_more_true", "full_page_has_more_false", "short_page_has_more_true"],
+      "expected": {"continue_only_when_has_more": true}
+    },
+    {
+      "name": "confusable_check",
+      "vector_id": "ak.vector.encoding.confusable_check.v1",
+      "inputs": ["alice", "a\u043bice", "paypa\u04cf", "admin\u200d", "Ａlice"],
+      "expected_classes": ["safe_ascii", "mixed_script_confusable", "mixed_script_confusable", "invisible_code_point", "compatibility_confusable"],
+      "assertions": ["the SDK exposes this exact check as a callable utility", "the utility does not silently normalize before reporting"]
+    }
+  ]
+}

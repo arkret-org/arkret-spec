@@ -4,7 +4,7 @@
   "suite": "keypackage_lifecycle",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::keypackage_lifecycle"
+    "entrypoint": "ak.suite.crypto.keypackage_lifecycle.v1"
   },
   "covers_vectors": [
     "ak.vector.keypackage.exhaustion_claim_limits.v1",

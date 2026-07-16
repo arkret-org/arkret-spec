@@ -47,7 +47,7 @@ Schema id: `ak.schema.circle.v1`
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 必填；推荐初始值 `invited`（客户端预填，非 wire 缺省）。语义沿用 [`../governance/history-visibility.md`](../governance/history-visibility.md)。 | Circle 自己的历史可见性，但 effective visibility **不得宽于父 Realm 当前 policy floor**。 |
 | `content_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | 省略时继承父 Realm `content_encryption_floor`。effective = max(父 Realm, Circle)；只能收紧、不得放宽父 Realm floor，且 effective floor 是单向 ratchet(见 §7)。`e2ee_required` 仅在 `encryption_profile=mls_rfc9420` 时有意义；`encryption_profile=none` 的 Circle MUST 保持 `allow_plaintext`。 | Circle 内对象的 content 加密下限。 |
 | `metadata_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | 省略时继承父 Realm `metadata_encryption_floor`。effective = max(父 Realm, Circle)；只能收紧、不得放宽父 Realm floor，且 effective floor 是单向 ratchet(见 §7)。 | Circle 内对象的 metadata 加密下限，与 `content_encryption_floor` 对称；`e2ee_required` 时用户可读 metadata 进 `encrypted_metadata`。`encryption_profile=none` 时不得声明高于实际可执行能力的 metadata 加密保证。 |
-| `agent_participation` | no | `object{reply, accept_third_party_mention, act_on_behalf: boolean}` | 整个 object 省略时继承父 Realm `agent_participation` ceiling。**逐位继承（normative）**：object 存在但某些 bool 位省略时，每个**省略的位**独立取父 Realm 对应位的值（按位继承，不是「object 一旦存在则缺省位取 false」）；只有**显式给出**的位才参与 Circle 自身声明。Circle ceiling 每一位（无论显式给出还是按位继承得来）只能收紧、不得放宽父 Realm ceiling（与 floor 同框架的 tighten-only 校验，违反返回 `failed_precondition`，`reason="agent_participation_ceiling_widen"`，见 §7）。它再被内层 Strand `agent_participation` 进一步收紧。Circle 侧扁平三位与父 Realm 侧 `{ native_agent: {...} }` 带轴包裹之间的 wire 归一映射（reducer tighten-only 逐位对齐口径）见 [`common-fields.md` §4.4](./common-fields.md#44-agent_participation-wire-形态归一normative)。详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)。 | native personal agent 在该 Circle scope 内的参与上限。 |
+| `agent_participation` | no | `object{native_agent:{reply, accept_third_party_mention, act_on_behalf: boolean}}` | 整个 object 省略时继承父 Realm `agent_participation` ceiling。`native_agent` 存在但某些 bool 位省略时，每个省略位独立继承父 Realm 对应位；只有显式位参与 Circle 自身声明。每一位只能收紧、不得放宽父 Realm ceiling（违反返回 `failed_precondition`，`reason="agent_participation_ceiling_widen"`，见 §7），并可由内层 Strand 继续收紧。Realm、Circle、Strand 使用同一带轴 wire 形态；旧扁平三位不是 v1 wire，见 [`common-fields.md` §4.4](./common-fields.md#44-agent_participation-wire-形态normative)。详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)。 | native personal agent 在该 Circle scope 内的参与上限。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420)` | create-locked。父 Realm `encryption_profile=mls_rfc9420` 或 effective `content_encryption_floor=e2ee_required` 时 MUST 为 `mls_rfc9420`；父 Realm 允许明文时 MAY 为 `none`。未来 MLS 版本 / PQ-MLS / external provider 必须显式扩展 schema。 | Circle 内容加密形态。 |
 | `mls_group_ref` | conditional | `ref:mls` | 条件 `encryption_profile=mls_rfc9420`：满足时由 `ak.circle.create` reducer 派生、scope 绑定 `(realm_id, circle_id)`，`encryption_profile=none` 时 MUST NOT exist。**reducer 派生，actor MUST NOT 携带**（actor-supplied create payload 出现该字段 reducer MUST `schema_violation`）。字段使用 `_ref` 是因为 `ak:mls:<profile>:<profile_id>` 是 profile-scoped typed reference；MLS 标准 payload 内的原始 group id 继续命名为 `mls_group_id`。 | 独立 MLS group 引用。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 [`common-fields.md` §5](./common-fields.md);tombstoned 不可逆。 | 生命周期。 |
@@ -305,25 +305,9 @@ Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` s
 3. **Circle 平面化，不允许嵌套**。需要交叉成员关系时，actor 同时属于多个 Circle 即可。
 4. Circle admin / moderator 不是 Realm admin 的隐式子集。需要 Circle-local 管理时，必须通过 Circle-scoped admin cell 或带 `circle_id` / `allowed_circle_ids` selector 的 capability grant 表达；v1 不注册单独的 `ak.circle.admin` action。Realm admin transfer 不改变本条不变量：接手者不是自动 Circle member，也不是自动 Circle-local manager。
 
-Membership transition table（`membership` 复用 `ak.member.state` 的 `membership_state` 枚举 `invite / join / knock / leave / ban`）:
+Circle membership 使用 [`common-fields.md` §4.5](./common-fields.md#45-参数化-membership-fsmnormative) 的共享 membership FSM，实例参数为 `scope_kind=circle`、`delivery_binding_rebind=false`；writer/guard 以该表 Circle 列为准。申请正文 MUST NOT 进入 member-state Move，沿用 [`../governance/join-policy.md` §8](../governance/join-policy.md) 的加密 envelope 约定。
 
-| from | to | writer |
-| --- | --- | --- |
-| leave | invite | `ak.circle.member.manage` |
-| leave | knock | target actor，仅当 `join_rule=knock`(自助申请；申请正文 MUST NOT 进入该 Move，沿用 [`../governance/join-policy.md` §8](../governance/join-policy.md) 的加密 envelope 约定) |
-| knock | invite | `ak.circle.member.manage`(批准申请转为邀请) |
-| knock | join | `ak.circle.member.manage`(直接批准加入) |
-| knock | leave | target actor(撤回)或 `ak.circle.member.manage`(拒绝) |
-| invite | join | target actor (`ak.circle.member.add`) 或 `ak.circle.member.manage` |
-| invite | leave | target actor(拒绝邀请)或 `ak.circle.member.manage`(撤销邀请) |
-| leave | join | target actor only when `join_rule=public`; otherwise `ak.circle.member.manage` |
-| join | leave | target actor or `ak.circle.member.manage` |
-| invite / knock / join / leave | ban | `ak.circle.member.manage` |
-| ban | leave / invite | `ak.circle.member.manage` only; self-service MUST fail closed |
-
-> **枚举统一（normative）**：Circle membership 与 Realm `ak.member.state` 共用 schema `$defs/membership_state`（`invite / join / knock / leave / ban`），是单一真源，二者 MUST NOT 出现取值分叉。v1 wire MUST 仅使用 canonical 值。Circle membership 同样以 `leave` 为 initial_state（非成员初始态），**不存在单独的 `none` wire 值**；上表以 `leave` 表达"尚未加入 / 已离开"的起点。
-
-> **Same-state 重复提交（normative）**：上表未列出的 transition（含任意 same-state 自转换 `invite -> invite`、`knock -> knock`、`join -> join`、`leave -> leave`、`ban -> ban`）MUST `failed_precondition`，`reason=invalid_membership_transition`。**与 Realm FSM 的差异（normative）**：[`realm-and-space.md` §2.7](./realm-and-space.md) 的 Realm membership FSM **显式允许** `join -> join`（成员保持加入状态下的 delivery binding / membership metadata 迁移），而 Circle membership **不复用** Realm 的该 delivery-binding 迁移语义——Circle 不承载成员级 delivery binding（投递裁剪由 Circle membership 集合直接决定，见 §9.3），没有 "保持成员但迁移绑定" 的合法用途，故 Circle `join -> join` **非法**。Circle 与 Realm 一致之处仅在于把 `leave -> leave`、`ban -> ban` 等无语义自转换列为非法；本条不应被读作 "Circle 完全复用 Realm §2.7 的合法转换集"。membership 是独立于物理 lifecycle state(active/archived) 的轴，复用 `membership_state` 枚举但**不**受 [`common-fields.md` §5.1](./common-fields.md) 的 lifecycle same-state 规则覆盖；本节是 Circle membership same-state 行为的权威归属。需要幂等重试的 producer MUST 基于当前 membership state 重新提交合法 transition，而非重放 same-state 写入。
+Circle 与 Realm 共用 `$defs/membership_state` 单一枚举真源和同一 transition graph；差异由实例参数与 guard 列表达，不再维护第二张转换表。Circle 不承载成员级 delivery binding，因此 `join -> join` 与其余 same-state transition 一样非法。membership 与物理 lifecycle state 正交，不受 [`common-fields.md` §5.1](./common-fields.md) 的 lifecycle same-state 规则覆盖。需要幂等重试的 producer MUST 基于当前 membership state 重新提交合法 transition，而非重放 same-state 写入。
 
 ### 9.2 Lifecycle cascade
 

@@ -4,7 +4,7 @@
   "suite": "final_conformance_closure",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::final_conformance_closure"
+    "entrypoint": "ak.suite.conformance.final_closure.v1"
   },
   "covers_vectors": [
     "ak.vector.applet.transaction_source_signature_anchor.v1",

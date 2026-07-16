@@ -1,7 +1,7 @@
 {
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::encoding"
+    "entrypoint": "ak.suite.encoding.core.v1"
   },
   "profile": "ak.vector_group.encoding.v1",
   "version": "2026-07-03",

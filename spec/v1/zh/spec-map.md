@@ -157,6 +157,8 @@ see_also:
 | `models/actor.md` | Actor 与 Actor Profile、`actor_kind`、accountability。 |
 | `models/governance-objects.md` | Schema、Policy、Capability Grant、Invite 治理对象。 |
 | `models/private-objects.md` | Read Cursor、Notification、actor-private account data 引导。 |
+| `models/account-data.md` | principal/actor-private Account Data 的存储、namespace key、value encryption、HKDF/AAD transcript 与文档放置规则单一真相源。 |
+| `models/crdt-text-extension.md` | 实时协同文本 CRDT 的 reserved profile、默认 revision 关系与激活门槛。 |
 | `models/personal-productivity.md` | principal-private reminders、scheduled send、snooze、saved items 与 draft sync account-data key 规则。 |
 | `models/file-transfer.md` | principal-private 跨设备文件传输：encrypted account-data transfer record、Blob ciphertext、to-device key delivery、retention 与共享附件边界。 |
 | `models/event-and-patch.md` | Event Envelope、Proof、Field Patch (`ak.patch.v1`)、Event Batch Receipt、reducer 总则。 |
@@ -267,5 +269,6 @@ see_also:
 - 改变身份、DID、handle、claim 的内容，放入身份与隐私组。
 - 改变共享状态有效性的内容，放入授权、治理与状态组。
 - 改变服务 API 或 transport 的内容，放入同步、服务与联邦组。
+- principal/actor-private data type 的基础存储、寻址、加密与 merge primitive 放入 `models/account-data.md`；具体字段语义留在功能域消费方文档，并统一登记 `account-data-type-registry.json`。
 - 新业务能力优先做 profile，例如 Agent、Applet、WebRTC。
 - 不要把服务部署角色写成身份主体；不要把 UI 投影写成真相源。

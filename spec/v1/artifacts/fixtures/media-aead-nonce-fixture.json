@@ -4,7 +4,7 @@
   "suite": "media_aead_nonce",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::media_aead_nonce"
+    "entrypoint": "ak.suite.media.aead_nonce.v1"
   },
   "covers_vectors": [
     "ak.vector.media.aead_nonce_sender_domain_collision.v1",

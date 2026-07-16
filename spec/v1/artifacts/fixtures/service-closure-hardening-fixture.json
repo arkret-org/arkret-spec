@@ -4,7 +4,7 @@
   "suite": "service_closure_hardening",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::service_closure_hardening"
+    "entrypoint": "ak.suite.service.closure_hardening.v1"
   },
   "covers_vectors": [
     "ak.vector.invite.consumed_token_resubject_rejected.v1",

@@ -1,7 +1,7 @@
 {
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::cba_lattice"
+    "entrypoint": "ak.suite.authz.cba_lattice.v1"
   },
   "profile": "ak.vector_group.cba_lattice.v1",
   "version": "2026-06-11",
@@ -11,8 +11,8 @@
     "Cell ids follow ak:cell:ak.component.<facet-path>.v<n>:<subject>; subject placeholders use dot-safe strings to keep examples unambiguous."
   ],
   "lattice_round_trip": {
-    "description": "SDK lattice round-trip runner coverage for CBA lattice family vectors whose semantics are exercised directly through arkret_core::lattice implementations.",
-    "runner": "cotest::conformance::run_lattice_round_trip_suite",
+    "description": "SDK lattice round-trip runner coverage for CBA lattice family vectors exercised through any conforming local lattice implementation.",
+    "runner": "ak.suite.authz.cba_lattice.round_trip.v1",
     "covers_vectors": [
       "ak.vector.lattice.mv_register_join.v1",
       "ak.vector.lattice.counter_join.v1",

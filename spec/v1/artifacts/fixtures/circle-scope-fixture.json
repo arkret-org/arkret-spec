@@ -1,7 +1,7 @@
 {
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::circle_scope"
+    "entrypoint": "ak.suite.scope.circle.v1"
   },
   "suite": "circle_scope",
   "profile": "ak.profile.circle_conformance.v1",

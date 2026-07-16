@@ -4,7 +4,7 @@
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
-    "entrypoint": "cotest::conformance::agent_vectors"
+    "entrypoint": "ak.suite.agent.vectors.v1"
   },
   "covers_vectors": [
     "ak.vector.agent.provision.v1",
