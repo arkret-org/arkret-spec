@@ -654,7 +654,7 @@ Arkret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 
 
 FIPS-only 部署若不能批准 Argon2id，MUST 使用显式降级 profile（例如 `fips_pbkdf2` key backup profile），并声明其安全级别低于默认 memory-hard backup profile。该 profile 至少要求 FIPS 批准的 KDF、强口令策略、在线恢复限速、失败审计和备份 metadata 中的 `degraded_profile_reason`；它不得作为公共网络默认 key backup profile。
 
-每个 `ak.schema.key_backup.v1` envelope MUST 携带顶层 `domain_separation`，并在 `auth_data.signed_fields` 中覆盖该字段。`domain_separation.hkdf_info` MUST 等于 `arkret-key-backup/<backup_class>/<subdomain>/v1`，`domain_separation.aead_aad` MUST 绑定 `schema`、`actor_id`、`device_id`、`backup_class`、`backup_version`、`created_at` 与 `contents[].item_type`；存在 §7.5.6 managed Agent PCR item 时还 MUST 绑定全部 `managed_principal_binding` canonical set。接收方 MUST 用该对象的 canonical JSON 作为 AEAD/HPKE AAD，并验证它与外层 envelope 及解密后 keybag 字段逐字节一致；服务端不得生成、修改或补全该对象。
+每个 `ak.schema.key_backup.v1` envelope MUST 携带顶层 `domain_separation`，并在 `auth_data.signed_fields` 中覆盖该字段。`domain_separation.hkdf_info` MUST 等于 `arkret-key-backup/<backup_class>/<subdomain>/v1`，`domain_separation.aead_aad` MUST 绑定 `schema`、`actor_id`、`device_id`、`backup_class`、`backup_version`、`created_at` 与 `contents[].item_type`；存在 §7.5.6 managed Agent PCR item 时还 MUST 绑定全部 `managed_principal_binding` canonical set。顶层 `device_id` 是可选字段：envelope 若无发起设备，`aead_aad.device_id` MUST 绑定 `null`，MUST NOT 省略该键，也 MUST NOT 代之以空字符串——AAD transcript 的字段集恒定，sealer 与 opener 才能逐字节重建同一个对象（KAT 见 `artifacts/fixtures/key-backup-hardening-fixture.json` 的 `secret_storage_no_device` 用例）。接收方 MUST 用该对象的 canonical JSON 作为 AEAD/HPKE AAD，并验证它与外层 envelope 及解密后 keybag 字段逐字节一致；服务端不得生成、修改或补全该对象。
 
 `key_commitment` 的推荐构造（`commitment` 是 §7.1 `arkret-key-backup/<backup_class>/<subdomain>/v1` 体系下的一个 subdomain，因此 commitment 天然按 `backup_class` 域隔离，不会跨域复用）：
 

@@ -486,8 +486,12 @@
               "$ref": "./common-ids.schema.json#/$defs/did"
             },
             "device_id": {
-              "type": "string",
-              "minLength": 1
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "description": "The envelope's device_id bound into the AEAD AAD. The top-level device_id is optional, so an envelope sealed without an originating device MUST bind null here rather than omitting the key or substituting an empty string: the AAD transcript keeps a fixed field set so sealer and opener reconstruct it byte-identically (key-management.md §7.2). See the secret_storage_no_device KAT case in fixtures/key-backup-hardening-fixture.json."
             },
             "backup_class": {
               "type": "string",
