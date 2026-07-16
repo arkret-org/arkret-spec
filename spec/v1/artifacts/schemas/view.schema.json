@@ -47,6 +47,19 @@
       ],
       "description": "View sharing visibility. Private views are actor-private account data; shared views are canonical Realm objects."
     },
+    "state": {
+      "type": "string",
+      "enum": [
+        "active",
+        "tombstoned"
+      ],
+      "default": "active",
+      "description": "View lifecycle. Absent means active for compatibility. Shared View removal is an ak.view.update patch to tombstoned; tombstoned is terminal."
+    },
+    "state_changed_at": {
+      "$ref": "#/$defs/timestamp",
+      "description": "Reducer-derived timestamp of the ak.view.update that transitioned state to tombstoned. Actor-supplied values MUST be rejected."
+    },
     "query": {
       "$ref": "#/$defs/query"
     },
@@ -303,6 +316,30 @@
                 "document"
               ]
             }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "tombstoned"
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "required": [
+          "state_changed_at"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "state_changed_at"
           ]
         }
       }

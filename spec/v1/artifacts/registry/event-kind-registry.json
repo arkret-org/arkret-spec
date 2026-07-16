@@ -2388,7 +2388,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Profile-declared container item move",
+      "payload": "Profile-declared generic container item move; payload validates as container_move_item_payload. The authoritative profile contract is zh/models/morph.md §5.2.",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -2422,7 +2422,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Profile-declared container rank rebalance",
+      "payload": "Profile-declared generic container rank rebalance; payload validates as container_rebalance_payload. The authoritative profile contract is zh/models/morph.md §5.2.",
       "plane": "control",
       "sealed": true,
       "cell_writes": [

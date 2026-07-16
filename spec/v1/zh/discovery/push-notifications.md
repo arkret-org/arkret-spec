@@ -193,6 +193,8 @@ POST /_arkret/edge/push/unregister-device
 
 **`is_direct_message` / `member_count` 在 E2EE / 高隐私 Realm 的侧信道收口（normative）**：这两个 server-side 条件要求 Sync Service 读取精确成员数与"是否双人私聊"，在 E2EE Realm 中构成成员数与私聊存在性的侧信道（叠加 push timing 可近似重建"谁在和谁私聊"关系图）。因此：`member_count` 在 E2EE / `minimal-metadata` / 高隐私 Realm 中 MUST 仅对 server-side 规则暴露 bucket 化值（与 discovery §3 成员数 bucket+迟滞同口径），MUST NOT 暴露精确 `<= N` 比较所需的精确值；`is_direct_message` 的 server-side 投影 MUST 受 Realm policy gate，`minimal-metadata` Realm MUST 关闭该 server-side 条件并降级为 §4.5 的 client-side 评估。Realm policy 未授权时，实现 MUST NOT 在 E2EE Realm 用这两个条件做 server-side 匹配。
 
+对 bucket 值求比较时，注册方 MUST 先把数值谓词映射为整数集合，并逐 bucket 检查：与 bucket 区间无交集则该 bucket 求值 `false`；bucket 全部落入谓词集合则求值 `true`；只部分相交属于不确定规则，MUST 在规则注册 / 更新时以 `invalid_param` 拒绝，不能按精确成员数补算。开放上界 bucket 同样按区间集合处理。因此 E2EE / 高隐私 Realm 的 `member_count` 阈值 MUST 对齐 bucket 边界；示例 `<= 5` 在默认 `1-10` grid 上非法，调用方应改用 `<= 10` 或 client-side 评估。
+
 #### 4.3.1 `strand_track` 与 per-track 通知
 
 Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.md` §4](../models/strand-and-message.md)），但用户对不同 track 的关注度不同——例如想接收某个 Strand 的 `synthesis` 全部更新，但 `discussion` 只关心 @ 自己。`strand_track` condition 用于在通知层表达这种偏好，不影响访问控制。

@@ -228,6 +228,14 @@ Facets 是 schema-declared **UI / projection hints**，不是对象身份，也�
 
 如此 facet 在 UI / hints 域与 RelationProfile 在 normative 域分工明确，避免两套来源静默互相覆盖。
 
+### 5.2 Profile-declared generic container events（normative）
+
+`ak.container.move_item` / `ak.container.rebalance` 是 Realm profile 明确启用的通用容器 Control Move，不由 `container` facet 激活。Profile MUST 声明允许的 `(container object type, item object type, relation_kind)` 三元组；未声明三元组 MUST `unsupported_feature`，facet 出现与否不改变结果。标准 Space(board/list) → Strand placement 继续使用 `ak.strand.move` / `ak.strand.reorder`，MUST NOT 同时启用 generic container event，以避免双 truth source；generic 事件只服务 profile-defined Morph/Strand 等非标准容器。
+
+`ak.container.move_item` payload 为封闭 `container_move_item_payload`：`item_ref`、目标 `container_ref`、`relation_kind`、`rank` 必填，`from_container_ref` 与 `expected_position_digest` 可选。它写 `ak.component.container.position.v1:(container_ref,item_ref)` 的 `cas_register + bottom=reject` cell；同一 item 在 profile 声明 exclusive 时，reducer MUST 原子移除旧 container position 并写新位置。`expected_position_digest` 若存在，必须等于当前 position cell canonical digest，否则 `failed_precondition` `cas_conflict`。排序按 [`../conformance/encoding.md`](../conformance/encoding.md) rank + canonical tie-break；不得由 facet、HLC 或到达顺序选 winner。
+
+`ak.container.rebalance` payload 为封闭 `container_rebalance_payload`：`container_ref`、`relation_kind`、`positions[]`、`expected_order_digest` 必填。`positions[].item_ref` MUST 唯一，rank MUST 唯一且符合 canonical rank grammar；整批原子写 `ak.component.container.order.v1:<container_ref>` 的 `cas_register + bottom=reject` cell。`expected_order_digest` 不匹配时整个 Move `cas_conflict`，不得部分改 rank。单次最多 10,000 positions；更大容器必须分层或由 profile 提供独立分页 rebalance 方案。
+
 ## 6. Schema Evolution
 
 Morph `schema_refs[]` 的 per-event 版本绑定与受控迁移规则见 [§4.1](#41-schema-refs-evolution-policy-normative)。本节列出 evolution 的其余通用约束：

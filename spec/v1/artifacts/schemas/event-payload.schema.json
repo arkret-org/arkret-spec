@@ -4260,29 +4260,76 @@
       },
       "additionalProperties": false
     },
-    "container_position_payload": {
+    "container_move_item_payload": {
       "type": "object",
       "required": [
-        "source_ref",
-        "target_ref",
+        "item_ref",
         "container_ref",
+        "relation_kind",
         "rank"
       ],
       "properties": {
-        "source_ref": {
+        "item_ref": {
           "$ref": "#/$defs/object_ref"
         },
-        "target_ref": {
+        "from_container_ref": {
           "$ref": "#/$defs/object_ref"
         },
         "container_ref": {
           "$ref": "#/$defs/object_ref"
         },
         "relation_kind": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
         },
         "rank": {
           "$ref": "#/$defs/rank"
+        },
+        "expected_position_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "container_rebalance_payload": {
+      "type": "object",
+      "required": [
+        "container_ref",
+        "relation_kind",
+        "positions",
+        "expected_order_digest"
+      ],
+      "properties": {
+        "container_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "relation_kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "positions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": {
+            "type": "object",
+            "required": [
+              "item_ref",
+              "rank"
+            ],
+            "properties": {
+              "item_ref": {
+                "$ref": "#/$defs/object_ref"
+              },
+              "rank": {
+                "$ref": "#/$defs/rank"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "expected_order_digest": {
+          "$ref": "#/$defs/hash"
         }
       },
       "additionalProperties": false
@@ -8553,7 +8600,7 @@
               "description": "Canonical artifact metadata for recording_state=ready. It binds the Arkret blob, recording exporter context, retention policy and deletion audit surface."
             },
             "failure_reason_code": {
-              "$ref": "#/$defs/non_empty_string",
+              "$ref": "#/$defs/call_capture_failure_reason_code",
               "description": "Machine reason for recording_state=failed."
             },
             "failure_message": {
@@ -8594,6 +8641,10 @@
             },
             "transcript_start_event_id": {
               "$ref": "#/$defs/event_ref"
+            },
+            "failure_reason_code": {
+              "$ref": "#/$defs/call_capture_failure_reason_code",
+              "description": "Machine reason for transcript_state=failed."
             }
           },
           "additionalProperties": false
@@ -8603,6 +8654,26 @@
     },
     "call_recording_retention": {
       "$ref": "./call-recording-artifact.schema.json#/$defs/call_recording_retention"
+    },
+    "call_capture_failure_reason_code": {
+      "oneOf": [
+        {
+          "enum": [
+            "media_negotiation_timeout",
+            "permission_denied",
+            "backend_unavailable",
+            "media_source_unavailable",
+            "storage_failed",
+            "policy_revoked",
+            "consent_withdrawn",
+            "integrity_failed"
+          ]
+        },
+        {
+          "type": "string",
+          "pattern": "^x_[a-z0-9_]{1,62}$"
+        }
+      ]
     },
     "call_summary_payload": {
       "type": "object",
@@ -8688,7 +8759,8 @@
       "required": [
         "call_id",
         "recording_id",
-        "recording_agent"
+        "recording_agent",
+        "mode"
       ],
       "properties": {
         "call_id": {

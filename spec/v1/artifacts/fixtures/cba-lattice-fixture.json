@@ -936,6 +936,26 @@
         }
       ],
       "vector_id": "ak.vector.cba_lattice.conflict_recovery_move.v1"
+    },
+    {
+      "name": "same_seal_bottom_reject_serialization",
+      "description": "Notary admission serializes mutually exclusive writes to one bottom=reject cell within a single proposed Seal, while preserving bottom semantics across unreachable Seal leaves.",
+      "cell": {
+        "id": "ak:cell:ak.component.realm.policy.v1:ak.realm.fixture",
+        "lattice": "cas_register",
+        "bottom": "reject",
+        "frozen_predecessor_value": {"revision": 7}
+      },
+      "moves": [
+        {"id": "move-a", "precondition": {"head_eq": 7}, "set": {"revision": 8}},
+        {"id": "move-b", "precondition": {"head_eq": 7}, "set": {"revision": 9}}
+      ],
+      "cases": [
+        {"name": "one_included_one_rejected", "same_seal_included": ["move-a"], "signed_rejected": [{"id": "move-b", "reason_code": "cas_conflict"}], "expected": "accept_seal"},
+        {"name": "both_in_same_seal", "same_seal_included": ["move-a", "move-b"], "expected": "rejected_seal"},
+        {"name": "moves_on_unreachable_seal_leaves", "unreachable_leaf_included": [["move-a"], ["move-b"]], "expected": "bottom_conflict"}
+      ],
+      "vector_id": "ak.vector.seal.same_batch_bottom_reject_serialization.v1"
     }
   ]
 }

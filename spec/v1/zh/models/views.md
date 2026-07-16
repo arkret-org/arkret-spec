@@ -26,7 +26,7 @@ Arkret 必须对人类友好，因此协议必须允许对象自然投影为：
 
 ### 2.1 View 有定义真相，但不是对象真相
 
-View 的 `title`、`query`、`kind`、`renderer`、`visible_fields`、`layout`、typed config 和共享可见性属于 View 自身的 canonical state。它们可以通过 `ak.view.create` / `ak.view.update` 修改、签名、审计和同步。
+View 的 `title`、`query`、`kind`、`renderer`、`visible_fields`、`layout`、typed config、共享可见性与 lifecycle `state` 属于 View 自身的 canonical state。它们可以通过 `ak.view.create` / `ak.view.update` 修改、签名、审计和同步。
 
 View 不承载被投影对象的 canonical state。Board Space / List Space / Strand / Message / Morph / Relation 的当前态必须由对应对象事件和 reducer 得到。任何 View projection 输出都必须能追溯到 signed Event、reducer profile 和 causal frontier。
 
@@ -94,6 +94,7 @@ View 展示 Strand、Message 或跨 Realm Relation 时，必须先按对象 home
 | 修改 Board Space / List Space 元数据 | `ak.space.update` |
 | 发送、编辑、撤回 discussion 消息 | `ak.message.create` / `ak.message.revise` / `ak.message.redact` |
 | 改变共享 View filter / sort / group / columns / layout | `ak.view.update` |
+| 移除共享 View | `ak.view.update` patch `state="tombstoned"` |
 | 改变个人 View 偏好、临时 filter、列宽、折叠状态 | actor-private account data |
 
 ## 3. View 对象
@@ -113,6 +114,8 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 | `renderer` | no | `enum(board, list, table, calendar, gantt, timeline, thread, chat, forum, graph, tree, document, dashboard, custom)` | 不参与真相归约。 | 展示面提示；交互能力仍由对象类型、显式 schema/profile、capability 与 typed config 决定。 |
 | `title` | no | `string` |  | View 名称。 |
 | `visibility` | no | `enum(private, shared)` |  | View 共享可见性。 |
+| `state` | no | `enum(active, tombstoned)` | 缺省 `active`；`tombstoned` terminal。 | View lifecycle。 |
+| `state_changed_at` | conditional | `timestamp` | `state=tombstoned` 时 reducer-derived 必填。 | 终态 accepted 时间。 |
 | `query` | yes | `Query` | 见 [`../conformance/query-schema.md`](../conformance/query-schema.md)。 | 数据查询。 |
 | `visible_fields` | no | `array<string>` | dot path。 | 展示字段。 |
 | `layout` | no | `object` | UI hint，不是权限。 | 布局配置。 |
@@ -126,6 +129,8 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
+
+**共享 View 终态（normative）**：共享 View 的协议级移除复用 `ak.view.update`：owner 或持有 `ak.view.update` capability 的 actor 提交 patch `set.state="tombstoned"`。Reducer MUST 以 accepted update 的 canonical lifecycle timestamp 写 `state_changed_at`；actor MUST NOT 自报该字段。`tombstoned` 是 terminal：后续任何 update / reconcile 或尝试恢复 `active` MUST `failed_precondition`，`reason_code="view_already_terminal"`。Query / projection MUST 默认排除 tombstoned View；审计或显式 `include_terminal=true` 查询 MAY 返回保留定义的 stub。Private View 可由 owner-private account-data 删除，但一旦以 shared View 发布，移除必须走上述 durable update，不能仅做带外删除。
 
 JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `timeline` / `graph` / `document` / `composite` 分别只允许携带对应的 `collection` / `timeline` / `graph` / `document` / `dashboard` 配置。`kind="composite"` 的 `dashboard.widgets[]` 至少包含一个 widget；若携带 `renderer`，只能是 `dashboard` 或 profile-defined `custom`。
 

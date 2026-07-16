@@ -3362,6 +3362,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.seal.same_batch_bottom_reject_serialization.v1",
+      "status": "active",
+      "domain": "seal",
+      "applies_to_vector_groups": [
+        "ak.vector_group.cba_lattice.v1"
+      ],
+      "description": "A proposed Seal may include at most one mutually exclusive write to the same bottom=reject cell; apply_seal rejects a violating Seal, while unreachable Seal leaves retain ordinary bottom conflict semantics.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.lattice.ordered_log_gap.v1",
       "status": "active",
       "domain": "lattice",

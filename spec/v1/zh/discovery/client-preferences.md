@@ -18,21 +18,7 @@ updated: 2026-07-02
 
 ## 2. 存储模型
 
-### 2.1 存储在私有 Account Data
-
-由于 Arkret 采用 signed Event 和 per-actor event chain 作为信任根，账户私有数据 SHOULD 作为加密 account data 或 actor-private Event 保存。
-
-这些私有数据只有用户本人的受信任设备有权限读写。Sync Service 节点仅负责存储加密或不透明的二进制块，并不解析其中的明文。
-
-### 2.2 数据寻址
-
-所有的偏好数据以 Key-Value 字典的形式组织。每次修改是对某个 Key 的全量覆盖（使用 `ak.account_data.set` 操作）。
-
-**Account-data namespace key（normative）**：需要从私有对象引用、集合名、搜索索引 shard 或其它敏感输入派生 account-data key 片段时，producer MUST 使用同一 principal 的 `account_data_namespace_key`。该密钥是 client-local `secret_storage` 域材料，存储于 `secret_storage/account_data_namespace/v1` 子域，并按 [`../identity/key-management.md` §7.1](../identity/key-management.md) / §7.10 进入备份与轮换流程；服务端、Directory、Search 或 relay MUST NOT 看到该密钥。标准派生 primitive 为 `derive_account_data_key(input) = base64url(HMAC-SHA256(account_data_namespace_key, input))`，其中 `input` MUST 是 canonical JSON、typed id 或本规范逐项定义的规范化字节串。不同 principal 的 namespace key MUST 独立；namespace key 轮换后，客户端 MUST 以新的 account-data key 重写对应 encrypted value，并在同一更新事务中 tombstone 旧 key 或保留只读迁移索引，避免把同一私有对象长期映射到两个可链接 key。
-
-**Account-data value encryption（normative）**：registry 中 `storage="encrypted_account_data"` 的 value MUST 使用 `ak.schema.account_data_encrypted_value.v1`，不得使用摘要、固定字符串或其它不可解密占位符冒充 ciphertext。该 envelope 使用 `ak.aead.xchacha20_poly1305.v1`；每次写入 MUST 产生新的 24-byte 随机 nonce。AEAD key 由同一 principal 的 32-byte account secret 通过 HKDF-SHA256 派生，salt=`arkret-account-data-value-hkdf-v1`，info=`canonical_json({schema:"ak.schema.account_data_encrypted_value.v1",actor_id,data_type})`。account secret 属于 `secret_storage` 域，MUST 进入 §7 key-backup / recovery 生命周期；不同 principal 或不同 `data_type` 的派生 key MUST 域隔离。
-
-AEAD AAD 是 envelope `aad` 的 canonical JSON；`aad` MUST 精确包含 `actor_id`、`data_type`、`schema` 与 `version`。`aad_digest` 是该 canonical JSON 的 `sha256:` digest，`ciphertext_digest` 是解码后 ciphertext bytes 的 `sha256:` digest。consumer MUST 在解密前验证闭合 schema、AAD 的 actor/path data type 绑定以及两个 digest；任一不匹配都 MUST fail closed，且不得用失败结果覆盖本地已验证状态。Sync/Principal Server MAY 重算 digest 和验证 envelope 结构，但 MUST NOT 获得 account secret、派生 key 或明文。
+Account Data 的存储、namespace key、`derive_account_data_key`、value encryption、HKDF/AAD transcript 与轮换规则的单一真相源是 [`../models/account-data.md`](../models/account-data.md)。本文只定义客户端偏好 data type 与服务端 policy projection 协商，不重复基础原语。
 
 ```json
 {
@@ -45,9 +31,9 @@ AEAD AAD 是 envelope `aad` 的 canonical JSON；`aad` MUST 精确包含 `actor_
 }
 ```
 
-### 2.3 服务端 policy projection 能力协商（normative）
+### 2.1 服务端 policy projection 能力协商（normative）
 
-account data 默认是 holder-private 加密数据，Sync Service 只存不透明密文（§2.1）。但部分 policy 投影（如 `ak.presence.visibility` 的 `presence_visibility` enum、`ak.account.blocklist` 的最小 data_class）需要服务端在执行 presence / typing fanout gate（[`profiles-presence.md` §3.4`](./profiles-presence.md)）或代表用户做 blocklist 过滤（§3.5）时读取。"account data 加密"与"服务端执行 policy"之间存在张力：若服务端完全无法读取最小 policy projection，它无法在服务端可靠 gate；若它能读，则突破了 holder-private 边界。v1 通过**显式能力协商**消解，而非让实现各自假定：
+account data 默认是 holder-private 加密数据，Sync Service 只存不透明密文（[`../models/account-data.md` §1](../models/account-data.md)）。但部分 policy 投影（如 `ak.presence.visibility` 的 `presence_visibility` enum、`ak.account.blocklist` 的最小 data_class）需要服务端在执行 presence / typing fanout gate（[`profiles-presence.md` §3.4`](./profiles-presence.md)）或代表用户做 blocklist 过滤（§3.5）时读取。"account data 加密"与"服务端执行 policy"之间存在张力：若服务端完全无法读取最小 policy projection，它无法在服务端可靠 gate；若它能读，则突破了 holder-private 边界。v1 通过**显式能力协商**消解，而非让实现各自假定：
 
 - 服务端 MUST 在 `ak.server.query.describe`（`ServiceDescribe`）中声明它能否读取最小 policy projection，至少覆盖 `presence_visibility` 与 `blocklist` 两个 data_class（例如通过 `plaintext_visible_services.data_classes` 或等价 `policy_projection_readable[]` 声明）。未声明即视为**不能读取**（fail-closed 默认）。
 - 客户端据该声明选择执行位置：

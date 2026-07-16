@@ -38,7 +38,7 @@ Arkret 是联邦化、端到端加密（MLS）、事件溯源协议。客户端�
 
 v1 内部演进采用以下加性方式：
 
-- 新增 optional 字段、event kind、schema、operation、profile、feature 或 extension point；
+- 新增 event kind、schema id、operation、profile、feature 或已预先声明的 extension point；closed schema / payload 上新增 optional 字段仍是 wire-breaking，不属于可独立部署的加性变更；
 - 新增能力必须登记到相应单一真相源：contract catalog、schema registry、profile matrix、operation registry、error-code registry、OpenAPI binding 或对应 domain registry；
 - 任何进入签名语义的字段，一旦被当前 v1 接受，其 canonical bytes 与语义不得原地改变；
 - 需要改变对象模型或状态机语义时，必须新增可协商的 schema/profile/kind，并明确与既有 current-v1 语义的边界；
@@ -50,7 +50,7 @@ Profile 命名采用 `ak.profile.<name>.v1`。current-v1 树不得预注册其�
 
 当前规范尚未稳定发布，因此破坏性修订 MUST 在一个原子变更中直接更新 canonical event kind、schema、field、profile、OpenAPI、fixture 与 vector，并删除被替代形态。current-v1 树不得保留 rename alias、migration manifest、旧 parser 分支、新旧双写或未来 major profile。修订完成后，只有更新后的 canonical 形态存在；任何缺席于当前 registry/schema 的输入都按 `unknown_kind`、`unknown_field`、`schema_violation` 或对应稳定错误 fail closed。
 
-稳定发布后的跨版本兼容策略不属于本 candidate 规范树；在发布前不得用兼容叙述限制正确的 current-v1 模型收敛。
+stable v1 发布包一旦冻结，其 registry/schema/reducer release 即为不可变 lockstep 单元。closed schema、既有 kind payload 或 reducer contract 的任何修订必须通过新的 schema id / event kind / 显式 profile 发布；不得原地给 stable closed schema 增加 optional 字段。联邦双方 release digest 不同期间，`reducer_profile_mismatch` 整批 fail closed 是预期行为；self surface 对未知 kind / field 逐事件 fail closed。Producer 只能在双方已声明的 schema/kind/profile 交集内发送，不存在“已知加性超集”自动降级。混版本部署必须先升级所有参与节点的声明能力，再启用新 profile；旧 profile 的 wire bytes 与语义保持不变。
 
 ## 4. Profile / capability 协商
 

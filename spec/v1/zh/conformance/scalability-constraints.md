@@ -22,6 +22,8 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 
 凡会导致实现 MUST reject、MUST quarantine、MUST fail closed 或影响跨实现验证结果的 wire 上限，MUST 在本文登记或从本文显式引用的 profile 参数派生；纯本地性能/SLA 建议可以留在领域文档，但不得作为对端可验证的 v1 互操作上限。
 
+字段级 `maxLength` / `maxItems` / TTL 若已由 canonical JSON Schema 或领域字段表逐字段静态承载，视为由本文通过对应 schema / 领域表统一引用，不要求在本文件逐项复制；此豁免仅适用于单字段局部边界。解码后大小、canonical 总量、跨字段总量、递归深度、状态机时间窗以及无法由 schema 表达的语义上限仍 MUST 在本文件显式登记。发生冲突时，以本文件的聚合 / 语义上限与 canonical schema 中更严格者为准。
+
 ## 2. 通用 Wire 上限
 
 | 项 | v1 默认上限 | 规则 |
@@ -30,6 +32,7 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 单个 HTTP header value | 8 KiB（但专用 header 可更小） | 入口 MUST 在解析/复制到业务对象前拒绝超限值。`Idempotency-Key` 与 `X-Arkret-Request-Id` 的专用上限均为 128 ASCII chars；cursor / causal wait token header 的专用上限为 4 KiB。 |
 | HTTP header aggregate | 32 KiB | request line 之外全部 header name/value 的编码总量；超限 MUST 在认证、签名 transcript 构造和幂等缓存分配前以 `payload_too_large` 拒绝。反向代理可声明更小上限，但不得接受超过本上限的请求。 |
 | HTTP path + query | 8 KiB | 按接收的 UTF-8/percent-encoded octets 计；超限 MUST `payload_too_large`，不得先展开为无界对象。大型 selector 必须使用已注册的 POST query-body variant。 |
+| cursor base64url 解码后的 canonical payload | 64 KiB | 见 [encoding.md](./encoding.md) §8.6；超限 MUST `invalid_param`，不得在验证大小前构造无界 JSON 对象。header 形态仍同时受 4 KiB 专用 header 上限约束。 |
 | `Idempotency-Key` | 1..128 ASCII chars | canonical alphabet `[A-Za-z0-9._~-]`；空值、非 ASCII、超长或其它字符 MUST `invalid_param`，不得进入 replay cache key。 |
 | 单次 `/_arkret/self/events` 批量提交的 Event 数 | 1,000 | 超过时 MUST 拆分请求；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单个 federation transaction 的 Event 数 | 500 | 超过时 MUST 拆分 transaction；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
@@ -68,6 +71,12 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 单次授权判定展开 grant 数 | 1,024 | 超过时 MUST fail closed、使用已验证 snapshot，或返回 `soft_failed` / `temporarily_unavailable`。 |
 | 单个 grant 的 constraint 数 | 64 | 超过时 MUST reject。 |
 | 单个 resource selector AST 深度 | 8 | 超过时 MUST reject；度量包含逗号、加号、引用与子 selector 嵌套，详见 [`resource-selector-grammar.md` §5](../authz/resource-selector-grammar.md)。 |
+| 单个 resource selector canonical JSON 总量 | 64 KiB | 未注册字段也计入；超过时 MUST `selector_too_complex`。 |
+| 单个 selector term 字段值 | 1,024 bytes | 超过时 MUST `selector_too_complex`。 |
+| 单个 grant 未注册字段总数 | 256 | 超过时 MUST `selector_too_complex`；未知字段仍计入 64 KiB 总量。 |
+| `requires_claims[]` 项数 | 32 | 超过时 MUST reject；canonical schema 同步 `maxItems: 32`。 |
+| 单个 claim 的 `trusted_issuers[]` / `roles[]` 项数 | 16 | 超过时 MUST reject；canonical schema 同步 `maxItems: 16`。 |
+| Constraint object 内嵌套层级 | 4 | 超过时 MUST reject；与 selector AST 深度分别计量。 |
 | 单个 device pairing transcript 失败提交数 | 10 | 达到上限时 pairing code MUST 锁定并永久失效；不得重置计数继续猜测。 |
 | 高频路径 authz snapshot 最大重建延迟 | 5 秒（SHOULD，本地性能建议） | `chat_mvp`、`kanban_mvp`、`full_client` 和 `principal_server` 相关服务 SHOULD 满足。这是**本地性能 / SLA 建议**，非 wire interoperability bound——对端无法仅凭 wire object 核验本地重建是否 ≤5s，故不构成 §1 意义上的可互操作核验项。 |
 
@@ -119,6 +128,8 @@ CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
 | 单 Realm active Space 数 | 5,000 | 超过时 Realm projection MUST paginate；建议拆分为多个 Realm 或使用嵌套 Space。 |
+| 单个 Space `labels[]` | 64 项；每项 128 chars | 超过时 MUST `schema_violation`；items MUST 去重。 |
+| 单个 Message ContentBlock `attachments[]` | 32 项 | 超过时 MUST `schema_violation`；大附件使用 Blob，durable 关联优先使用 Relation `attached_to`。 |
 | 单个 Board Space active List Space 数 | 500 | 超过时 Board projection MUST paginate 或 require filtered View。 |
 | 单个 List Space active Strand item 数 | 10,000 | Projection MUST paginate；drag / reorder 仍按 rank + deterministic tie-break。 |
 | Space 嵌套深度 | 8 | 超过时 reducer MUST reject `ak.space.parent`；防止任意深度的容器树拖累查询性能。 |
@@ -131,6 +142,7 @@ CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 
 | 单次 recurrence expansion 返回 occurrence 数 | 10,000 | 超过时 MUST paginate、截断为带 cursor 的 page，或返回 `limit_exceeded`；不得无界展开 RRULE。 |
 | 单个 File Transfer `recipient_device_ids` 数 | 1,000 | 超过时 MUST reject 或拆分 transfer；每个 device key wrap 必须保持独立可验证。 |
 | 单条 `ak.call.state` 的 `payload.participants[]` 数 | 1,000 | 超过时 MUST reject（`schema_violation`）或改用采样 / 摘要写入；schema 已声明 `maxItems: 1000`。见 [call-state.md](../crypto-media/call-state.md) §4.1。 |
+| `ring_timeout_ms` / `scheduled_start_grace_ms` / `connecting_timeout_ms` | 60,000 / 300,000 / 120,000 ms（默认且最大） | 见 [call-state.md](../crypto-media/call-state.md) §4.2；超时由 focus / token issuer / Principal Server 基于当前 accepted head 显式推进，不能由本地计时器直接改写 reducer。 |
 
 | join policy 单个 `application_form` gate 的 `questions[]` 数 | 64 | 超过时 MUST reject（`schema_violation`）。见 [join-policy.md](../governance/join-policy.md) §3.3。 |
 | `member.application` 的 `answers[]` 数 | 64 | 与 `questions[]` 上限对齐；超过时 MUST reject（`schema_violation`）。见 [join-policy.md](../governance/join-policy.md) §7.2。 |
@@ -176,6 +188,9 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | 第三方 invite `(invite_id, claim_nonce)` replay set TTL | `invite.expires_at + 24h`（下限） | 验证服务 / 接收 Sync Service MUST 至少保留到该窗口结束；窗口内重复 claim MUST 在 reducer 仲裁前拒绝。replay key SHOULD 以 HMAC / hash 存储，不得持久化明文 invite token。 |
 | expired invite token secret zeroize | 24h 内 | `expires_at <= now` 后，服务端 MUST 在 24h 内 zeroize `token_salt` / lookup pepper material，并 GC active commitment 记录；claim 路径返回 `expired_invite_token` 或等价不可枚举错误。 |
 | `contact_request_pending_ttl` | 默认且最大 14 days | 见 [contact-and-direct-conversation.md](../identity/contact-and-direct-conversation.md) §3。双方分别从 accepted request 的 canonical `created_at` 计时；超窗的 accept/respond MUST fail closed，不得由本地配置放宽。 |
+| `identity_creation_lease` TTL | 默认且最大 15 minutes | 见 [account-lifecycle.md](../identity/account-lifecycle.md) §2.1.2；超过时 Account Authority MUST refuse issuance。 |
+| `account_handoff_grant` TTL | 默认且最大 1 hour | 见 [account-lifecycle.md](../identity/account-lifecycle.md) §2.1.2；无 refresh 语义，过期后必须重新认证。 |
+| `terminal_parent_repair_window` | 30 days | 跨 Realm parent 指向 terminal Realm 时，引用方 MUST 在窗口内 reparent、archive 或 tombstone；见 [realm-and-space.md](../models/realm-and-space.md) §2.6.1。 |
 | `erasure_propagation_window_ms` | 默认且最大 604,800,000 ms（7 days） | 见 [realm-and-space.md](../models/realm-and-space.md) §2.6.2。超窗未回执的 peer MUST 标 `timed_out`，issuing receipt 的 `fanout_status` MUST 为 `incomplete`。 |
 | `deactivation_propagation_window_ms` | 最大 600,000 ms（10 min） | 见 [federation.md](../sync/federation.md) §4.4.1。超窗 MUST 标 `deactivation_federation_incomplete`，并暂停受影响主体的新 onboard / grant / KeyPackage 路径。 |
 | `mls_deactivation_grace_ms` | 默认且最大 600,000 ms（10 min） | 见 [account-lifecycle.md](../identity/account-lifecycle.md) §7.1。超窗未完成 MLS remove 的成员 MUST 标 `unverifiable_member`，并拒收其新 epoch 消息。 |

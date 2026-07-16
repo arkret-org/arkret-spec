@@ -2682,6 +2682,46 @@
       "description": "A `ak.call.state` event requested a `state` transition from a non-terminal state that is not listed in the legal-successor table (transitions out of a terminal state use `call_state_terminal` instead). The reducer MUST `failed_precondition`. See zh/crypto-media/call-state.md \u00a74.2."
     },
     {
+      "code": "media_negotiation_timeout",
+      "applies_to": ["event_envelope", "state_resolution"],
+      "description": "Call connection or capture media negotiation exceeded the registered timeout."
+    },
+    {
+      "code": "permission_denied",
+      "applies_to": ["event_envelope", "service_call"],
+      "description": "A recording or transcription backend could not obtain the required media permission."
+    },
+    {
+      "code": "backend_unavailable",
+      "applies_to": ["event_envelope", "service_call"],
+      "description": "The selected recording or transcription backend was unavailable."
+    },
+    {
+      "code": "media_source_unavailable",
+      "applies_to": ["event_envelope", "service_call"],
+      "description": "The source media required for recording or transcription was unavailable."
+    },
+    {
+      "code": "storage_failed",
+      "applies_to": ["event_envelope", "service_call"],
+      "description": "Capture artifact persistence or deletion failed in the Arkret blob pipeline."
+    },
+    {
+      "code": "policy_revoked",
+      "applies_to": ["event_envelope", "state_resolution"],
+      "description": "The Realm policy authorizing capture was revoked while the capture lifecycle was active."
+    },
+    {
+      "code": "consent_withdrawn",
+      "applies_to": ["event_envelope", "state_resolution"],
+      "description": "Required recording or transcription consent was withdrawn."
+    },
+    {
+      "code": "integrity_failed",
+      "applies_to": ["event_envelope", "service_call"],
+      "description": "A recording or transcription artifact failed digest, encryption-context, or integrity verification."
+    },
+    {
       "code": "recording_state_transition_invalid",
       "applies_to": [
         "event_envelope"
@@ -4442,6 +4482,22 @@
         "state_resolution"
       ],
       "description": "A task-state transition effect on an fsm lattice cell declared a from -> to pair that is not a legal transition of the declared task state machine, or whose from does not match the cell's current state. The reducer MUST reject the Move instead of coercing the state machine. See zh/authz/event-auth-state-resolution.md \u00a79."
+    },
+    {
+      "code": "invalid_appeal_fsm_transition",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "A moderation appeal Move requested an unlisted, out-of-order, from-state-mismatched, or post-closed transition. The reducer MUST reject it with failed_precondition. See zh/governance/content-moderation.md \u00a75.5.2."
+    },
+    {
+      "code": "view_already_terminal",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "An ak.view.update or ak.view.reconcile targeted a View whose accepted lifecycle state is tombstoned, or attempted to restore that View to active. Tombstoned shared Views are terminal. See zh/models/views.md \u00a73.1."
     },
     {
       "code": "audit_agent_key_destruction_attestation_missing",

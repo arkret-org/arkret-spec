@@ -291,8 +291,24 @@
           "$ref": "#/$defs/audit_ref"
         },
         "failure_reason_code": {
-          "type": "string",
-          "minLength": 1
+          "oneOf": [
+            {
+              "enum": [
+                "media_negotiation_timeout",
+                "permission_denied",
+                "backend_unavailable",
+                "media_source_unavailable",
+                "storage_failed",
+                "policy_revoked",
+                "consent_withdrawn",
+                "integrity_failed"
+              ]
+            },
+            {
+              "type": "string",
+              "pattern": "^x_[a-z0-9_]{1,62}$"
+            }
+          ]
         }
       },
       "additionalProperties": false

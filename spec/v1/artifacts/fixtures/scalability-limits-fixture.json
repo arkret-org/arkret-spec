@@ -17,6 +17,7 @@
     "ak.vector.scalability.sibling_fork_limits.v1",
     "ak.vector.scalability.object_control_limits.v1",
     "ak.vector.scalability.capability_limits.v1",
+    "ak.vector.scalability.cursor_selector_limits.v1",
     "ak.vector.scalability.mls_governance_proof_bounds.v1"
   ],
   "cases": [
@@ -625,6 +626,28 @@
         "limit_plus_one": "reject_without_truncation",
         "must_not_allocate_declared_cardinality": true,
         "must_not_return_partial_manifest": true
+      }
+    },
+    {
+      "name": "cursor_and_selector_decoded_bounds_matrix",
+      "vector_id": "ak.vector.scalability.cursor_selector_limits.v1",
+      "input": {
+        "generator": {
+          "kind": "decoded_canonical_size_matrix",
+          "cases": [
+            {"field": "cursor_payload", "limit_bytes": 65536, "values": [65535, 65536, 65537], "over_error_code": "invalid_param"},
+            {"field": "resource_selector", "limit_bytes": 65536, "values": [65535, 65536, 65537], "over_error_code": "selector_too_complex"},
+            {"field": "resource_selector.unknown_field_count", "limit": 256, "values": [255, 256, 257], "over_error_code": "selector_too_complex"},
+            {"field": "resource_selector.requires_claims", "limit": 32, "values": [31, 32, 33], "over_error_code": "schema_violation"},
+            {"field": "resource_selector.requires_claims[].trusted_issuers", "limit": 16, "values": [15, 16, 17], "over_error_code": "schema_violation"}
+          ]
+        }
+      },
+      "expected": {
+        "limit_minus_one": "accept",
+        "limit": "accept",
+        "limit_plus_one": "reject_without_partial_parse",
+        "unknown_fields_count_toward_canonical_bytes": true
       }
     },
     {

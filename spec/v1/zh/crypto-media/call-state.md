@@ -194,6 +194,7 @@ sidebar:
 要求：
 
 - 需要 `ak.call.record` capability。`ak.call.recording.start` 通过 `capture_kind`(`recording` / `transcript`,缺省 `recording`)区分录制与转写两条平行生命周期(转写见 §5.1)。
+- `payload.mode` MUST 显式携带，封闭为 `audio` / `audio_video`；无缺省值，缺失 MUST `schema_violation`。
 - 客户端 MUST 对所有参会者显示录制中。
 - `payload.recording_id` MUST 是该录制 artifact lifecycle 的稳定 opaque string，并进入 recording key exporter Context；缺失时 recording start event MUST `schema_violation` reject。它不是 `ak:*` typed ID；最终持久化产物仍通过 Arkret blob / Morph / artifact 引用暴露。由于 `recording_id` 是跨实现密钥派生输入（进入 §5 第 3 步的 `Context`），其 canonical 形态 MUST 由 `ak.call.state` recording start event 一次性固定并逐字节保留：取值 MUST 为 ASCII 子集 `[A-Za-z0-9._-]`、长度 1–128 字节；发送方写入后该字符串即为 canonical，**接收方 MUST NOT 做任何 normalize**（大小写折叠、Unicode NFC/NFKC、trim、re-encode 等），并 MUST 在所有引用该录制的 event / key 派生中逐字节复用 start event 的原值。任何对 `recording_id` 的本地规范化都会令派生出的 recording key 与发送方分裂、导致解密失败。
 - 手动停止录制不注册独立 `ak.call.recording.stop` event；holder of `ak.call.record` 通过 `ak.call.state` 写 `recording_state="stopped"`，并在 `recording_result.recording_start_event_id` 指向被停止的 `ak.call.recording.start`。`stopped` 是该录制段的终态，不要求产生 artifact；若 backend 已经产出可用 artifact，后续 MAY 以同一 `recording_start_event_id` 写 `ready`，否则保持 `stopped`。
@@ -206,6 +207,8 @@ sidebar:
   4. 入库后通过 `ak.call.state` 发布 lifecycle state，引用 content digest、duration、media type、retention policy、`recording_start_event_id` 与 `recording_result.artifact`。
   绕过该 pipeline（如 backend 直接对外暴露 recording URL）MUST 被客户端拒绝并报 `recording_artifact_pipeline_bypassed`。这保证 backend 是 "录制执行单元" 而非 "录制档案库"。
 - 录制结果 MUST 通过已注册的 `ak.call.state` 写入**独立的 `recording_state` 字段**（`recording_state="ready"` / `recording_state="failed"` / `recording_state="stopped"`，与通话 `state` 正交，见 §4.2），并在 `recording_result` 中引用 `recording_start_event_id`。`recording_state="ready"` 时，`recording_result.artifact` MUST 符合 [`call-recording-artifact.schema.json`](../../artifacts/schemas/call-recording-artifact.schema.json)，其 `schema` MUST 为 `ak.schema.call_recording_artifact.v1`，且 MUST 绑定同一 `realm_id` / `call_id` / `recording_id` / `recording_start_event_id`、`blob_ref`、`content_digest`、`ciphertext_digest`、`duration_ms`、`media_type`、`encryption.exporter_label="ak.rtc-recording-key/v1"`、`encryption.context`、`retention`、`produced_by` 与 `recording_initiator_capability_ref`。`recording_result.content_digest` / `duration_ms` / `media_type` / `retention_policy_id` / `retention` 是便于投影和查询的镜像字段；若与 `recording_result.artifact` 同名事实不一致，reducer / consumer MUST fail closed `schema_violation`。`recording_state="failed"` 时 SHOULD 携带 `failure_reason_code`，MUST NOT 携带 backend 直出 URL、明文路径或明文片段。v1 不注册独立的 `ak.call.recording.result` 或 `ak.call.recording.stop` event kind；实现不得把这些裸名写入 Event Envelope。
+录制与转写的 `failure_reason_code` 共用封闭 core 集：`media_negotiation_timeout` / `permission_denied` / `backend_unavailable` / `media_source_unavailable` / `storage_failed` / `policy_revoked` / `consent_withdrawn` / `integrity_failed`。扩展值 MUST 使用 `x_` 前缀并匹配 `^x_[a-z0-9_]{1,62}$`；其它值 MUST `schema_violation`。
+
 - 转写需要 `ak.call.transcribe`，转写文本应作为 Morph 或 Artifact，并遵守同一 Realm policy。
 
 ### 5.1 转写生命周期（normative）

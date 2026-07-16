@@ -2062,10 +2062,7 @@
       "if": {
         "properties": {
           "kind": {
-            "enum": [
-              "ak.container.move_item",
-              "ak.container.rebalance"
-            ]
+            "const": "ak.container.move_item"
           }
         },
         "required": [
@@ -2075,7 +2072,26 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/container_position_payload"
+            "$ref": "./event-payload.schema.json#/$defs/container_move_item_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.container.rebalance"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/container_rebalance_payload"
           }
         }
       }
