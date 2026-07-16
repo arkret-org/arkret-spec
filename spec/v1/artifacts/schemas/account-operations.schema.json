@@ -347,6 +347,7 @@
       "type": "object",
       "required": [
         "request_id",
+        "account_handle",
         "account_handoff_grant",
         "expires_at",
         "allowed_operations",
@@ -354,6 +355,10 @@
       ],
       "properties": {
         "request_id": { "$ref": "#/$defs/request_id" },
+        "account_handle": {
+          "$ref": "./handle-claim.schema.json#/properties/handle",
+          "description": "Canonical handle of the authenticated service account. This unsigned UX hint is only for display and local artifact naming; it MUST NOT be treated as principal identity evidence, authorization, or a service-account-to-principal binding."
+        },
         "account_handoff_grant": {
           "type": "string",
           "minLength": 32,

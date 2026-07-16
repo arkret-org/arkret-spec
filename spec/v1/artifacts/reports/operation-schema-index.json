@@ -30,6 +30,7 @@
         "schema_kind": "object",
         "required": [
           "request_id",
+          "account_handle",
           "account_handoff_grant",
           "expires_at",
           "allowed_operations",
@@ -37,6 +38,7 @@
         ],
         "properties": [
           "request_id",
+          "account_handle",
           "account_handoff_grant",
           "expires_at",
           "allowed_operations",

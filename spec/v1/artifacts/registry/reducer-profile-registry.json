@@ -508,7 +508,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:d1403bb8613faf7faf714ce6c29343977a30c7c581c9aea073ce9ba32a17facd"
+            "content_digest": "sha256:95b351d423f3fd9d56de50271c240e52037dea99caccd4ad0541b0c44ed07326"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -520,7 +520,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:f125e2cddb0bef645374359a0411c809f722560f9ae74c457db8b0d54b5717dd"
+      "reducer_profile_digest": "sha256:4123074de34ad978cd954cb50c15605e4ca157325c0786f34ff4dac55df42176"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -1413,7 +1413,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:d1403bb8613faf7faf714ce6c29343977a30c7c581c9aea073ce9ba32a17facd"
+            "content_digest": "sha256:95b351d423f3fd9d56de50271c240e52037dea99caccd4ad0541b0c44ed07326"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -1445,7 +1445,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:a2a761189aaf2673d597c6ff3ca70221c7e3957cee5e3ea1ddce85cfb0ee9e63"
+      "reducer_profile_digest": "sha256:91a1ad9c5e7342e254a2f10211b45f8c7689464c1bb90768a33289129fa3c732"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1691,11 +1691,11 @@
           },
           {
             "ref": "zh/sync/service-http-binding.md",
-            "content_digest": "sha256:62fd4ab811fd9fc04e7c6077669f664efb2371b5ac110454d74c3e5870d6e5a3"
+            "content_digest": "sha256:cf7f8c1625dac81a4ed01f0e88a473ba606ac5f41c153c8f5185366cc3f0ad13"
           }
         ]
       },
-      "reducer_profile_digest": "sha256:f15a7570718fb4b6b0d1eefc0d932b4e62a6d5a12a4a1dbfe5bf4fb9e1049236"
+      "reducer_profile_digest": "sha256:85804d3f98ac7183bff062426d4c4671ffd456882197fb794cb23a40240bf977"
     }
   ],
   "generated_fields": [
