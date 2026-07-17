@@ -63,7 +63,7 @@
   "$defs": {
     "auditor_attestation": {
       "type": "object",
-      "description": "Signed statement by an independent auditor (peer Realm or third party) that it verified the log range [from_index, to_index]: append-only consistency, Seal signature validity, and control/completeness monotonicity along every Seal DAG predecessor edge represented in the range. Log-index-adjacent concurrent leaves are not compared. Clients accept grade=witnessed only when deployment policy's required attestation count is met.",
+      "description": "Signed statement by an independent auditor (peer Realm or third party) that it verified the log range [from_index, to_index]: append-only consistency, Seal signature validity, and control/completeness monotonicity along every Seal DAG predecessor edge represented in the range. Log-index-adjacent concurrent leaves are not compared. A client accepts this as verified v1 evidence only when a concrete operation/profile carries it and the deployment policy's required attestation count is met.",
       "required": [
         "log_id",
         "realm_id",

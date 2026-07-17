@@ -371,9 +371,7 @@ KeyView {
 - `data_view_root` = 按 `cell_id` Unicode code point 升序排列的 KeyView 记录的 root；每个 leaf 的 `leaf_data` 为 `canonical_json(KeyView)` 的 UTF-8 字节。
 - `data_event_set_root` = 该 seal 窗口内 notary 观察到的数据面 `event_digest` 集合（按 wire 值 canonical 升序）的 root；每个 leaf 的 `leaf_data` 为对应 digest 去 `sha256:` 前缀解码后的 raw bytes。
 - `availability_root` = 该 seal 窗口内 notary 接受的 AvailabilityReceipt 的 canonical bytes 摘要集合（canonical 升序）的 root；leaf_data 同上为 raw digest bytes。
-- 三者的 inclusion proof 一律使用 Merkle audit path，non-membership 一律使用 sorted-neighbor proof——与 §6.2 `control_event_set_root`、§6.2.1 `state_root` 的证明形态一致，实现共用 §6.2.2 同一套 Merkle 代码与 conformance vector 形状。
-
-轻客户端对单个 data cell 的标准查询凭证是 **KeyViewProof**（wire schema：[`key-view-proof.schema.json`](../../artifacts/schemas/key-view-proof.schema.json)）：`{realm_id, seal_id, data_view_root, key_view, audit_path[]}`，verifier 重算 leaf 并沿 audit path 收敛到该 Seal 签名覆盖的 `data_view_root`。
+- 三者的 inclusion proof 使用 Merkle audit path，non-membership 使用 sorted-neighbor proof——与 §6.2 `control_event_set_root`、§6.2.1 `state_root` 的证明形态一致，实现可共用 §6.2.2 的 Merkle 代码。v1 core 只规定 root 的计算语义；若 deployment profile 或具体 operation 需要传输观测证明，必须由该 profile / operation 另行登记 wire schema 与验证规则，不存在跨所有 query 响应通用的观测证明对象。
 
 这些字段是 observational：
 
@@ -453,14 +451,14 @@ Wire schema：[`inclusion-list.schema.json`](../../artifacts/schemas/inclusion-l
 
 ### 7.4 Seal transparency
 
-Seal tuple SHOULD 发布到 append-only transparency log。独立 auditor 验证 append-only、Seal DAG 每条 predecessor edge 上 `control_event_set_root` extension 与 `completeness_root` interval 非缩、以及签名有效性，并签发 attestation。`log_index` 相邻但 DAG 互不可达的并发 entry 不参与单调性比较。客户端接受 `grade=witnessed` 前 MUST 验证 policy 要求的 witness / auditor attestation。
+Seal tuple SHOULD 发布到 append-only transparency log。独立 auditor 验证 append-only、Seal DAG 每条 predecessor edge 上 `control_event_set_root` extension 与 `completeness_root` interval 非缩、以及签名有效性，并签发 attestation。`log_index` 相邻但 DAG 互不可达的并发 entry 不参与单调性比较。具体 operation / profile 若把该 attestation 绑定为响应证据，客户端 MUST 验证 policy 要求的 witness / auditor attestation；v1 core 不据此引入跨 query 通用的等级字段。
 
 Wire schema：[`seal-transparency.schema.json`](../../artifacts/schemas/seal-transparency.schema.json)（`ak.schema.seal_transparency.v1`）定义两个对象：
 
 - **log entry**：`{log_id, log_index, realm_id, seal_id, control_event_set_root, completeness_root, state_root, prev_entry_digest, logged_at, log_signature}`——`log_index` append-only，`prev_entry_digest` 形成 hash 链。同一 `(log_id, log_index)` 出现两个签名不同的 entry 即构成**可证明的 log fork**：split-view 攻击者要么一致发布、要么留下可出示的分叉证据。
 - **auditor attestation**（`#/$defs/auditor_attestation`）：`{log_id, realm_id, from_index, to_index, head_entry_digest, auditor_id, checks{append_only, seal_signatures, set_root_monotonic, completeness_monotonic}, attested_at, signature}`——四项 checks 全部为 true 才可签发；auditor 无法断言任一项时 MUST NOT 出具。
 
-`grade=witnessed` 的判定标准即“该 Seal 被至少 `Realm.audit_policy.witnessed_min_attestations` 份、且满足 `witness_independence` 的独立 auditor attestation 的已验证范围覆盖”。`audit_policy` 缺失时客户端 MUST NOT 返回或展示 `grade=witnessed`。
+采信 Seal transparency attestation 的判定标准是“该 Seal 被至少 `Realm.audit_policy.witnessed_min_attestations` 份、且满足 `witness_independence` 的独立 auditor attestation 的已验证范围覆盖”。`audit_policy` 缺失时客户端 MUST NOT 把该 attestation 作为 v1 已验证证据；具体 operation / profile 还必须显式登记承载字段及验证规则。
 
 ## 8. AvailabilityReceipt
 
@@ -581,34 +579,9 @@ conflict-recovery Move 不是新 event kind，而是一条**针对该 cell 的 C
 
 ## 10. 查询语义
 
-任何 query / projection 响应 MUST 携带：
+v1 不定义跨所有 query / search / projection 响应通用的 `basis` / `grade` 包装。每个可互操作响应的字段以 operation registry 的 `response_schema_ref` 及其 OpenAPI binding 为准；实现不得自行附加未登记的通用证明类型，并把它解释为 core 互操作契约。
 
-```text
-basis {
-  seal_ref
-  key_view_ref?
-  grade
-}
-```
-
-| grade | 语义 |
-| --- | --- |
-| `local` | 本地已知 data DAG 或 control cache 的结果，无外部承诺。 |
-| `seen` | 相关 DataEvent 被至少一个服务或 witness 签发的 Event Batch Receipt 覆盖，但未被 seal 观测承诺。 |
-| `observed` | 数据面结果进入某个 seal 的 `data_view_root` / `data_event_set_root`；这是观测承诺，不是 finality。 |
-| `sealed` | Control Move 被已接受 Seal 覆盖并进入治理 `state_root`；仅控制面使用。 |
-| `witnessed` | 对应 seal 另有 policy 要求的 witness / auditor attestation。 |
-| `forked` | 查询依赖的控制面分支处于 `fork_quarantine`。 |
-| `stale` | `seal_ref` / 撤销信息仍在 freshness window 内但需要刷新控制面后才能提升等级的降级接受结果；一旦撤销缺口或 seal freshness 超出 hard limit，结果 MUST 拒绝或隐藏（`stale_seal_ref`），不得以 `grade=stale` 返回。 |
-
-轻客户端验证 query 结果时 MUST 验：
-
-1. 从自己上一个 accepted Seal 到响应 Seal 的 extension path；
-2. policy 要求的 witness / auditor signature；
-3. 自己关心的 control cell state proof 或 data KeyViewProof（[`key-view-proof.schema.json`](../../artifacts/schemas/key-view-proof.schema.json)，验证规则见 §6.4）；
-4. 自己持有 receipt 的 inclusion / rejection / defer 证明。
-
-轻客户端不验证全局 state transition。
+需要可验证结果的 operation / profile 必须显式登记其响应中的 Seal extension path、control state proof、observational proof、witness attestation 或 receipt proof 字段，并给出对应 schema 与验证规则。未登记这些字段时，响应只具有该 operation 已声明的读取语义，不得声称额外的 `observed`、`sealed` 或 `witnessed` 等级。
 
 ## 11. E2EE 与 MLS
 
@@ -653,7 +626,7 @@ Move / DataEvent / Seal / Lattice 必须受 [`scalability-constraints.md`](../co
 - 单个 Event 的 `preconditions + effects` 默认不超过 256。
 - 单个 Seal 新增 Control Move 默认不超过 1,000。
 - Seal `delta[]` 是本批新增控制面 digest；累计覆盖集由 predecessor 递归定义。实现 MAY 在达到 deployment 上限前生成 compaction Seal，但 compaction MUST 保留 `control_event_set_root`、`state_root`、notary signature chain 与 receipt obligation 证明。
-- 单次 Lattice join 超预算时，节点 MUST 返回可恢复错误或要求更窄 KeyViewProof；MUST NOT 用本地接收顺序替代。
+- 单次 Lattice join 超预算时，节点 MUST 返回可恢复错误，或要求缩小已登记 operation 的查询 / projection 范围；MUST NOT 用本地接收顺序替代。
 
 ## 15. 规范性引用
 

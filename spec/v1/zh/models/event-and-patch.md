@@ -400,7 +400,7 @@ Patch path 之间若同时写入父子路径、同一路径重复写入、或一
 
 Event Batch Receipt 是可选审计/同步加速对象，**不是 canonical history**，也**不是 reducer input**。缺少 receipt 不得导致格式、签名、授权和因果均有效的 Event 被拒绝，除非 deployment profile 额外要求 witness。
 
-单事件确认是 `events[]` 单元素的退化形态：relay / notary / witness 对某个数据面 Event 签发"已看见"回执（驱动查询等级 `local → seen`）时，签发的就是一个 `events = [<event_digest>]`、`scope.realm_id` 就位的 Event Batch Receipt。协议只定义这一种 set-bound receipt 结构。
+单事件确认是 `events[]` 单元素的退化形态：relay / notary / witness 对某个数据面 Event 签发"已看见"回执时，签发的就是一个 `events = [<event_digest>]`、`scope.realm_id` 就位的 Event Batch Receipt。协议只定义这一种 set-bound receipt 结构；具体 operation / profile 必须显式登记承载字段后，才能把该 receipt 作为响应证据。
 
 Receipt 的覆盖语义是 **set-bound**：`events[]` 列出 issuer *选择* 承诺的 event 集合。它提供该集合的 *integrity*（未被中间人篡改），不提供该 `scope` 下的 *completeness*（issuer 未静默丢弃属于该范围的其他 event）。即便实现额外叠加 Merkle / set commitment，恶意 issuer 仍可只承诺自己愿意承诺的子集——所以 batch receipt MUST NOT 被实现解释为 range completeness 证明。range completeness 由已注册的 active attestation event `ak.attestation.range_completeness`（payload schema `ak.schema.range_completeness_attestation.v1`）承担，其 `event_range` 必须有显式 range 语义（per-actor seq interval + frontier 上下界）+ witness quorum 或独立 seal 背书。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §6.4 与 [`../overview/glossary.md`](../overview/glossary.md) *integrity vs completeness*。
 
