@@ -3,7 +3,7 @@ title: Encoding, IDs, Hashes, Signatures
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-07-17
 sidebar:
   label: Encoding & IDs
 ---
@@ -27,7 +27,7 @@ Arkret canonical JSON MUST 使用：
 - 无 insignificant whitespace。
 - JSON object 中的重复 key MUST reject，MUST NOT 采用“最后一个 wins”或“第一个 wins”。
 - number MUST 使用 RFC 8785 / JCS 等价的唯一 decimal serialization；NaN、Infinity、-Infinity、`-0`、无法精确往返的 number、超出 JSON safe integer 范围 `[-9007199254740991, 9007199254740991]` 的 number MUST reject。**v1 wire MUST NOT 使用非整数 number**：所有签名 canonical object 的 number 字段 MUST 是 JSON integer。需要超过 safe integer 范围的计数器、偏移或大整数 MUST 编码为带显式格式约束的 string（例如 fixed-width hex / decimal string），MUST NOT 作为 JSON number 进入 canonical bytes。比例、置信度、进度等小数值 MUST 编码为整数 + 显式 scale（推荐字段后缀 `_basis_points` 表示万分数 0..10000，或 `_x1000`、`_x1000000` 等明确比例）；`confidence_basis_points: 7500` 表示 75.00%。这条收紧规则取消了"何时允许 number canonicalization"的可选语义，使签名输入 100% 确定。
-- timestamp 使用 RFC 3339 UTC，尾部 `Z`；签名输入 MUST NOT 接受本地时区、隐式时区或 leap-second 变体。v1 producer 生成的 Event Envelope 顶层 `created_at`、Event detached proof 的 `proof.created_at` 与 Agent pairing transcript 时间统一固定为毫秒精度 `YYYY-MM-DDTHH:MM:SS.sssZ`：三位小数 MUST 始终存在，整秒写为 `.000Z`；微秒或纳秒输入 MUST 在构造 Event、proof binding 或 pairing digest **之前**向下截断到毫秒。接收方 MUST 拒绝无小数的整秒简写、非三位小数、`+00:00` 数字 offset 及更细精度，避免同一逻辑时刻进入签名 canonical bytes 时出现多种字符串。历史已签名 bytes 不得在验证或回放时重写；跨旧 profile 读取必须按其原 profile 验证，新的 v1 producer 不得继续产生旧精度。
+- timestamp 使用 RFC 3339 UTC，尾部 `Z`；签名输入 MUST NOT 接受本地时区、隐式时区或 leap-second 变体。v1 producer 生成的 Event Envelope 顶层 `created_at`、Event detached proof 的 `proof.created_at` 与 Agent pairing transcript 时间统一固定为毫秒精度 `YYYY-MM-DDTHH:MM:SS.sssZ`：三位小数 MUST 始终存在，整秒写为 `.000Z`；微秒或纳秒输入 MUST 在构造 Event、proof binding 或 pairing digest **之前**向下截断到毫秒。实现使用通用日期时间 serializer 时 MUST 覆盖任何“零小数时省略 fraction”的默认行为；wire serializer 即使面对毫秒值为零的 typed timestamp，也 MUST 明确输出 `.000Z`。接收方 MUST 拒绝无小数的整秒简写、非三位小数、`+00:00` 数字 offset 及更细精度，避免同一逻辑时刻进入签名 canonical bytes 时出现多种字符串。历史已签名 bytes 不得在验证或回放时重写；跨旧 profile 读取必须按其原 profile 验证，新的 v1 producer 不得继续产生旧精度。
 - 字段名使用 snake_case。
 
 Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs`、`unsigned` 与 **reducer-stamped 顶层字段**（v1 当前为 `effective_scope`、`actor_kind`）后的 canonical JSON bytes，并且 MUST 保留 `event_id`。`unsigned` 是传输/本地附加信息，MUST NOT 影响 event digest 或 proof `event_digest`。reducer-stamped 字段由 producer 提交时 MUST NOT 携带、reducer 接受时才 immutable 写入，因此**不进入 producer `proof.event_digest`**（否则联邦 peer 独立重算 digest 必与 producer 签名失配）；它们经 accepted envelope 存储、Seal / sub-seal observational 承诺与（MLS-backed scope 下的）E2EE AAD / MLS governance binding input 单独承诺，权威定义见 [`../models/event-and-patch.md` §2.2](../models/event-and-patch.md) 与 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)。实现 MUST NOT 对已经签名的 bytes 做大小写规范化、ID 前缀补全、字段默认值补写、key 重排以外的语义改写。签名字节的不可变性是协议演进的根约束——升级 MUST NOT 改写历史签名 bytes，而是用重放/投影重建派生视图，详见 [overview/evolution-and-compatibility.md](../overview/evolution-and-compatibility.md)。
