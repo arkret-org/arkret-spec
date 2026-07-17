@@ -3,7 +3,7 @@ title: Client Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-07-17
 ---
 
 ## 0. 规范语言
@@ -12,7 +12,7 @@ updated: 2026-07-13
 
 ## 1. 目标
 
-Client Sync 是客户端 **账号视角聚合** 同步协议。它在 Events API 之上提供跨 Realm 的稳定 delta 视图（包含 to_device、account_data、device_lists、presence、unread / notification counts），由服务端通过 `ak.self.account.stream.subscribe` 的长连接 frame stream 按需推送。它不是裸事件读取——逐 Realm 的事件查询和实时订阅请使用 `ak.self.events.query.scan` / `ak.self.events.stream.subscribe`。
+Client Sync 是客户端 **账号视角聚合** 同步协议。它在 Events API 之上提供跨 Realm 的稳定 delta 视图（包含 to_device、account_data、device_lists、presence、unread / notification counts），由服务端通过 `ak.self.account.stream.subscribe` 的有界长轮询按需返回。它不是裸事件读取——逐 Realm 的事件查询和实时订阅请使用 `ak.self.events.query.scan` / `ak.self.events.stream.subscribe`。
 
 `ak.self.account.stream.subscribe` 与 `ak.self.events.stream.subscribe` 是对称的两类 streaming 订阅:
 - `ak.self.events.stream.subscribe` 是**逐 Realm / actor 的事件流**(selector 范围内的每条 Event)
@@ -32,11 +32,11 @@ Authorization: Bearer <ak.session.grant>
 Accept: application/x-ndjson
 ```
 
-上面是 **initial account sync** 的 canonical frame stream 调用：不带 `after`，显式设置 `catchup=true`。这里的 `catchup` 不是"返回全部历史记录"，而是要求服务端先发送当前账号 baseline（有限 timeline + 必要 state + account-scoped 当前位置），再发送 `catchup_complete`。常规网络重连使用 `GET /_arkret/self/account/subscribe?after=<cursor>&catchup=true` 补齐断线期间的账号 delta；收到 `dropped` frame 后的补洞重连使用同一方式。
+上面是 **initial account sync** 的 canonical frame 调用：不带 `after`，显式设置 `catchup=true`。这里的 `catchup` 不是"返回全部历史记录"，而是要求服务端先发送当前账号 baseline（有限 timeline + 必要 state + account-scoped 当前位置），再发送 `catchup_complete`。后续请求使用 `GET /_arkret/self/account/subscribe?after=<cursor>&catchup=true` 进入有界长轮询；收到 `dropped` frame 后的补洞重连使用同一方式。
 
-该端点对应 `ak.self.account.stream.subscribe`，HTTP binding 只返回 `application/x-ndjson` 的 `AccountSubscribeFrame` 长连接流；`catchup=true` 时 baseline / catch-up delta 后发送 `catchup_complete`，然后可继续进入实时推送。客户端 MUST 把 cursor-bearing frame 的 `cursor` 作为下一次 `after=` 起点。该端点聚合跨 Realm delta、to_device、account_data、device_lists、presence；不同于 `GET /_arkret/self/events/subscribe`(按 selector 的事件流订阅)和 `GET /_arkret/self/events?before=...` / `?after=...`(按 selector 的双向历史查询)。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `ak.self.account.*`，snapshot 入口在 `ak.self.snapshot.*`，事件读取在 `ak.self.events.*`（权威 operation namespace 以 [`../../artifacts/registry/operation-registry.json`](../../artifacts/registry/operation-registry.json) 为准，canonical 均带 `ak.self.*` 信任面前缀；`ak.account.*` / `ak.snapshot.*` / `ak.events.*` 只是 surface-group 口语简称，不是 wire operation_id）。
+该端点对应 `ak.self.account.stream.subscribe`，HTTP binding 返回 `application/x-ndjson` 的 `AccountSubscribeFrame` 有界响应。Initial sync 立即返回；带 `after` 的请求若已有可见 delta 也立即返回；否则服务端 MUST 等待数据或部署默认窗口（v1 默认 30 秒）到期，期间不得先发送空 `delta` / `catchup_complete` 使客户端误判本轮已完成。数据到达时返回 delta；窗口到期仍无数据时返回仅推进 cursor 的 `frontier`。`catchup=true` 时本轮数据 frame 后发送 `catchup_complete`，随后关闭本轮响应；客户端持久化 cursor 后立即发起下一轮长轮询。客户端 MUST 把 cursor-bearing frame 的 `cursor` 作为下一次 `after=` 起点。该端点聚合跨 Realm delta、to_device、account_data、device_lists、presence；不同于 `GET /_arkret/self/events/subscribe`(按 selector 的事件流订阅)和 `GET /_arkret/self/events?before=...` / `?after=...`(按 selector 的双向历史查询)。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `ak.self.account.*`，snapshot 入口在 `ak.self.snapshot.*`，事件读取在 `ak.self.events.*`（权威 operation namespace 以 [`../../artifacts/registry/operation-registry.json`](../../artifacts/registry/operation-registry.json) 为准，canonical 均带 `ak.self.*` 信任面前缀；`ak.account.*` / `ak.snapshot.*` / `ak.events.*` 只是 surface-group 口语简称，不是 wire operation_id）。
 
-Account subscribe 的服务边界是当前 authenticated session 绑定的 Principal Server service DID。若同一 principal DID 同时在个人 Principal Server 与组织 Principal Server 上有账号/设备上下文，客户端必须分别维护 session、cursor、to-device queue 和 push registration,并对每个上下文建立独立的 `/_arkret/self/account/subscribe` 长连接。某个 Realm 的 timeline / notification delta 只应出现在该成员 effective `delivery_binding.recipient_service_id` 指向的服务上;DID Document 中的默认 Principal Server 不得把其它 Realm-scoped delivery binding 的 delta 聚合进自己的 `/_arkret/self/account/subscribe` 流。
+Account subscribe 的服务边界是当前 authenticated session 绑定的 Principal Server service DID。若同一 principal DID 同时在个人 Principal Server 与组织 Principal Server 上有账号/设备上下文，客户端必须分别维护 session、cursor、to-device queue 和 push registration,并对每个上下文建立独立的 `/_arkret/self/account/subscribe` 长轮询序列。某个 Realm 的 timeline / notification delta 只应出现在该成员 effective `delivery_binding.recipient_service_id` 指向的服务上;DID Document 中的默认 Principal Server 不得把其它 Realm-scoped delivery binding 的 delta 聚合进自己的 `/_arkret/self/account/subscribe` 流。
 
 ### 2.1 Delivery Binding UX 指引（SHOULD）
 
@@ -63,7 +63,7 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 | --- | --- | --- | --- | --- |
 | `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前 principal / device。 |
 | `after` | query | `cursor` | optional | 订阅起点 cursor(purpose=`stream`,排除语义),从此 cursor *之后* 开始接收 frame。缺省表示没有可恢复账号 cursor。 |
-| `catchup` | query | `boolean` | optional | 默认 `false`。`after` 存在时,`true` 表示服务端先回放 `after=` 之后到当前 frontier 的账号聚合 delta,再发 `catchup_complete` frame,然后切到实时尾部；这不是全量历史。`after` 缺省且 `catchup=true` 是 **initial account sync**:服务端 MUST 先发送覆盖当前账号 baseline 的 `delta` frame(Realm 摘要、必要首屏 state、device list baseline、to_device/account_data/notification 当前位置),再发送 `catchup_complete`。完整历史必须通过 `ak.self.events.query.scan` 分页/区间读取。 |
+| `catchup` | query | `boolean` | optional | 默认 `false`。`after` 存在时,`true` 表示服务端返回 `after=` 之后到当前 frontier 的账号聚合 delta,再发 `catchup_complete` frame并结束本轮响应；这不是全量历史。`after` 缺省且 `catchup=true` 是 **initial account sync**:服务端 MUST 先发送覆盖当前账号 baseline 的 `delta` frame(Realm 摘要、必要首屏 state、device list baseline、to_device/account_data/notification 当前位置),再发送 `catchup_complete`。完整历史必须通过 `ak.self.events.query.scan` 分页/区间读取。 |
 | `filter` | query (deepObject) | `object` | optional | 过滤条件。语义同 self.events.stream.subscribe。 |
 | `filter.realms` | query | `id[]` | optional | 限制返回 Realm。 |
 | `filter.timeline_limit` | query | `int` | optional | 每个 Realm timeline 数量上限(per-frame)。 |
@@ -79,8 +79,8 @@ NDJSON 响应 frame 形态(`application/x-ndjson`,每行一个 JSON 对象):
 | `kind` | 是否含 `cursor` | 含义 |
 | --- | --- | --- |
 | `delta` | required | 一次 account-aggregate 增量推送(realms / to_device / account_data / device_lists / presence / notifications)。客户端 MUST 把 `cursor` 作为下次重连的 `after=` 起点。 |
-| `catchup_complete` | required | catch-up replay 或 initial baseline 完成，后续 frame 是实时推送。`catchup=true` 才会出现;`catchup=false` 时不会出现。 |
-| `frontier` | required | 仅推进 cursor,不带数据；用于服务端在 quiescent 期周期性确认订阅仍连通。 |
+| `catchup_complete` | required | catch-up replay 或 initial baseline 完成；本轮有界响应随后结束。`catchup=true` 才会出现;`catchup=false` 时不会出现。 |
+| `frontier` | required | 仅推进 cursor,不带数据；用于带 `after` 的长轮询在默认 30 秒窗口无变化时完成本轮响应。 |
 | `heartbeat` | absent | 防中间层断流的 keepalive。 |
 | `dropped` | required | 服务端无法从当前 cursor 继续推送(buffer 溢出 / 服务重启等),`cursor` 是建议的 account catch-up 起点。`dropped` frame 的 `cursor` 为 REQUIRED;服务端没有可用补齐 cursor 时 MUST 改发 `resync_required`,不得发送无 cursor 的 `dropped`。客户端 MUST 重新建立 `ak.self.account.stream.subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta;若重放后的某个 Realm timeline 仍标记 `limited=true`,再用 `ak.self.events.query.scan` 按该 Realm 的 `prev_cursor` / `next_cursor` 补齐裸 Event 缺口。MAY 携带 `reconnect_after_ms`。 |
 | `resync_required` | absent | 服务端无法定位任何可用 catch-up 起点(本地状态彻底失效)。客户端 MUST 清空本地 cursor 缓存，从零重新建立订阅。MAY 携带 `reconnect_after_ms`。 |
@@ -139,10 +139,10 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 
 ### 2.2 连接管理与重连
 
-客户端 MUST 维护一个长期存在的 `/_arkret/self/account/subscribe` 连接，并:
+客户端 MUST 维护一个连续的 `/_arkret/self/account/subscribe` 有界长轮询序列，并:
 
 1. **原子持久化 frame 与 cursor**: 客户端 MUST 在同一本地事务中持久化 frame payload(timeline 事件、state、account_data、device_lists 等)与该 frame 的 `cursor`,之后才把它用作重连 `after=` 起点;MUST NOT 在 payload 落盘前单独推进本地 cursor 高水位。"先存 cursor、后落数据"的实现会在崩溃时产生本地静默缺口——其中 `device_lists` 缺口只能靠重做 initial sync 恢复。to-device 消息的投递安全由 §10.1 显式 ack 在协议层保证，不依赖本条；但 SHOULD 同样与 cursor 同事务落盘以减少重连后的重复处理。仅带 cursor 不带数据的 frame(`frontier` / `catchup_complete`)直接更新本地高水位即可。
-2. **网络断开**: 若没有服务端 `reconnect_after_ms` 或 HTTP `Retry-After` 指令，立即用最近 `cursor` 作为 `after=` 重连，并设置 `catchup=true`,确保断线期间的账号聚合 delta 不被跳过。若服务端返回 `cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized`,按 §12.3 恢复。
+2. **正常续轮与网络断开**: 正常收到 `delta` / `frontier` 并完成本轮响应后，若没有服务端 `reconnect_after_ms` 或 HTTP `Retry-After` 指令，MUST 立即用最近 `cursor` 作为 `after=` 发起下一轮请求，并设置 `catchup=true`；网络断开时使用相同规则重连，确保断线期间的账号聚合 delta 不被跳过。若服务端返回 `cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized`,按 §12.3 恢复。客户端 MUST NOT 在服务端 30 秒等待窗口之外再固定 sleep 5 秒，否则会平白增加实时延迟。
 3. **`dropped` frame**: 用 frame 自带的 `cursor` 重新建立 `GET /_arkret/self/account/subscribe?after=<cursor>&catchup=true`,让服务端重放账号聚合 delta；若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。不得只用 `ak.self.events.query.scan` 恢复，因为 `to_device`、`account_data`、`device_lists`、presence 与 notifications 不属于裸 Realm Event 查询面。
 4. **`resync_required` frame**: 清空本地 cursor 缓存，重新建立连接(`after=` 缺省 + `catchup=true`)执行 initial account sync;若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。大型 Realm 的当前态可走 snapshot bootstrap,见 §12.3 与 §13。
 5. **`unauthorized` frame**: 关闭连接，触发 session 刷新或退出登录。
@@ -571,7 +571,7 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 `/_arkret/self/account/subscribe` 与 `GET /_arkret/self/device_messages` 暴露的是同一个 per-device to-device 队列的两种读取形态；二者不代表两套消息源，也不允许客户端把同一 kind 分流到两套互不一致的处理器。
 
-`ak.self.account.stream.subscribe` 是 full client / E2EE client 的主接收路径。客户端维护长连接后，服务端 SHOULD 在 `delta.to_device.messages[]` 中推送当前设备的验证请求、SAS/QR 交换、secret sharing、device-list 相关私有消息；客户端 MUST 把这里收到的 `DeviceMessageEnvelope` 交给与 `ak.self.device_messages.query.list` 相同的 to-device dispatcher，并在持久化处理完成后按 §10.1 使用 `ack_token` 显式确认。
+`ak.self.account.stream.subscribe` 是 full client / E2EE client 的主接收路径。客户端维护连续长轮询后，服务端 SHOULD 在 `delta.to_device.messages[]` 中返回当前设备的验证请求、SAS/QR 交换、secret sharing、device-list 相关私有消息；客户端 MUST 把这里收到的 `DeviceMessageEnvelope` 交给与 `ak.self.device_messages.query.list` 相同的 to-device dispatcher，并在持久化处理完成后按 §10.1 使用 `ack_token` 显式确认。
 
 `GET /_arkret/self/device_messages?after=<cursor>&limit=n` 是补拉 / 轮询路径，只用于下列情况：
 
@@ -731,7 +731,7 @@ GET /_arkret/self/account/subscribe?catchup=true
 Accept: application/x-ndjson
 ```
 
-也就是不带 `after`,并显式请求 `catchup=true`。服务器 MUST 先发送至少一个 `delta` frame 作为账号 baseline,再发送 `catchup_complete`,然后 MAY 继续保持连接进入实时推送。Baseline 不是完整历史记录；它只覆盖客户端首屏与账号状态恢复所需的当前视图。Baseline `delta` SHOULD：
+也就是不带 `after`,并显式请求 `catchup=true`。服务器 MUST 先发送至少一个 `delta` frame 作为账号 baseline,再发送 `catchup_complete` 并结束本轮响应；客户端随后使用该 cursor 发起有界长轮询。Baseline 不是完整历史记录；它只覆盖客户端首屏与账号状态恢复所需的当前视图。Baseline `delta` SHOULD：
 
 - 返回用户当前 joined/invited/knocked Realms 的摘要。
 - 对活跃 Realm 返回有限 timeline。
