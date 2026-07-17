@@ -1691,11 +1691,11 @@
           },
           {
             "ref": "zh/sync/service-http-binding.md",
-            "content_digest": "sha256:d3f4bb7a30d62a5e8513897f81acd29b6ff311aa7579905d256e181f437b671e"
+            "content_digest": "sha256:61d18426ead4a527ee8536421afe1f8cb1cf0422f7c4f908675ddbb92ceacc41"
           }
         ]
       },
-      "reducer_profile_digest": "sha256:56942fe4d4786ea635277188f89a459d58b4f395164fefe1b1d8dcbaa3e935ac"
+      "reducer_profile_digest": "sha256:503c1d299c96e604d4d52fc8435a94eec657666fc06010ce8051188609912ad1"
     }
   ],
   "generated_fields": [
