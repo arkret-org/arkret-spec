@@ -163,36 +163,9 @@ Projection 只减少返回字段，不提升权限。
 
 ## 8. Response
 
-```json
-{
-  "items": [],
-  "next_cursor": "ak:cursor:...",
-  "has_more": true,
-  "basis": {
-    "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
-    "key_view_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-    "grade": "observed"
-  },
-  "frontier": {
-    "barrier_cursor": "ak:cursor:...",
-    "max_hlc": "01970e589d21-0004-a13f9c2e"
-  }
-}
-```
+[`query.schema.json`](../../artifacts/schemas/query.schema.json) 只定义可复用的 query / search **请求**形状，不定义通用响应 envelope。每个 URL endpoint 的响应必须以 operation registry 的 `response_schema_ref` 与 OpenAPI binding 为准；v1 没有要求所有查询响应携带 `basis` / `grade`，也没有登记跨 operation 通用的 `key_view_ref` 字段。
 
-`barrier_cursor` 是 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 中 `purpose=barrier` 的 cursor，可作为后续读接口的 `X-Arkret-Wait-For` 来等待 frontier 覆盖目标 event。
-
-`basis` 是 REQUIRED。`grade` 的合法值与语义如下：
-
-| grade | 语义 |
-| --- | --- |
-| `local` | 本地已知 data DAG 或 control cache 的结果，无外部承诺。 |
-| `seen` | 相关 DataEvent 被至少一个服务或 witness 签发的 Event Batch Receipt 覆盖，但未被 seal 观测承诺。 |
-| `observed` | 数据面结果进入某个 seal 的 `data_view_root` / `data_event_set_root`；这是观测承诺，不是 finality。 |
-| `sealed` | Control Move 被已接受 Seal 覆盖并进入治理 `state_root`；仅控制面使用。 |
-| `witnessed` | 对应 seal 另有 policy 要求的 witness / auditor attestation。 |
-| `forked` | 查询依赖的控制面分支处于 `fork_quarantine`。 |
-| `stale` | `seal_ref` 超 freshness window、seal 超期或撤销缺口超限。 |
+若某个 operation 需要 `frontier`、barrier cursor、Seal basis 或可验证 proof，必须在该 operation 的 response schema 中逐字段登记。实现不得把私有响应扩展描述成 v1 core 的通用响应契约。
 
 ## 9. 安全规则
 

@@ -25,7 +25,7 @@ Arkret v1 采用 **CBA**（Control-plane Basis-committed Sealing）：
 
 - 数据面事件（DataEvent）解决普通协作写入：消息、reaction、read cursor 的持久投影、协作对象字段、排序、计数等。DataEvent 由 actor 签名、按 `seal_ref` 验证授权，通过 cell Lattice / CRDT 收敛；它不等待 Seal 才成为本地可接受事实。
 - 控制面事件（Control Move）解决治理写入：membership、capability、policy、notary、lifecycle、MLS epoch、密钥治理，以及 schema 明确声明 `sealed=true` 的对象。Control Move 由 Seal 覆盖后才取得 `sealed` finality。
-- Seal 只对控制面给出 finality；它可以携带数据面的观测承诺（例如 `data_view_root` / `data_event_set_root` / `availability_root`），但这些根只产生 `observed` 查询等级，不把数据面升级为控制面 finality。
+- Seal 只对控制面给出 finality；它可以携带数据面的观测承诺（例如 `data_view_root` / `data_event_set_root` / `availability_root`），但这些根只证明对应 observation，不把数据面升级为控制面 finality。
 
 同步层必须支持 actor 侧可验证发布、append-only 审计日志、离线写入、跨服务传播、选择性同步、最终一致投影、以及控制面问责。
 
@@ -217,13 +217,13 @@ Event 是 canonical history；receipt、attestation、snapshot 与 Seal observat
 
 ### 6.1 Event Batch Receipt
 
-Event Batch Receipt（schema [`event-batch-receipt.schema.json`](../../artifacts/schemas/event-batch-receipt.schema.json)，`ak.schema.event_batch_receipt.v1`，字段与概念分层见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md)）是 best-effort RYW / 加速 / 审计 hint：issuer（服务、客户端或 witness）证明已看到并承诺 `events[]` 所列 Event 集合的 integrity。它可用于 read-your-writes（驱动查询等级 `local → seen`，§8）、跨服务对账、轻客户端同步与 censorship 诊断；它不证明 Event 已进入控制面 finality，只对 issuer 选择承诺的集合提供 integrity，不提供范围 completeness。接收方 MUST 能在没有 batch receipt 的情况下验证单个 Event。
+Event Batch Receipt（schema [`event-batch-receipt.schema.json`](../../artifacts/schemas/event-batch-receipt.schema.json)，`ak.schema.event_batch_receipt.v1`，字段与概念分层见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md)）是 best-effort RYW / 加速 / 审计 hint：issuer（服务、客户端或 witness）证明已看到并承诺 `events[]` 所列 Event 集合的 integrity。它可用于 read-your-writes、跨服务对账、轻客户端同步与 censorship 诊断；它不证明 Event 已进入控制面 finality，只对 issuer 选择承诺的集合提供 integrity，不提供范围 completeness。接收方 MUST 能在没有 batch receipt 的情况下验证单个 Event。
 
 单事件确认是 `events[]` 单元素的退化形态；协议只定义 Event Batch Receipt 这一种 set-bound receipt 结构。多事件 receipt 的 `events[]` MUST 使用 [`encoding.md` §5](../conformance/encoding.md) 的 canonical set 顺序并去重；数组位置不表达到达顺序、因果顺序或签发优先级。
 
 ### 6.2 AvailabilityReceipt
 
-AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifacts/schemas/availability-receipt.schema.json)）证明 holder 在某 retention window 内承诺保存指定 Event bytes 或 blob bytes。它可被 Seal 的 `availability_root` 观测，查询等级为 `observed` 或 `witnessed`，但不替代事件签名、授权验证或 Lattice 收敛。
+AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifacts/schemas/availability-receipt.schema.json)）证明 holder 在某 retention window 内承诺保存指定 Event bytes 或 blob bytes。它可被 Seal 的 `availability_root` 观测，但不替代事件签名、授权验证或 Lattice 收敛；具体 operation / profile 若要返回该观测证明，必须显式登记响应字段、schema 与验证规则。
 
 ### 6.3 Audit RYW Receipt
 
@@ -309,21 +309,11 @@ AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifact
 
 Strand Sync MUST NOT 因 actor 可读 Strand synthesis 就自动展开不可读 discussion timeline 或 Morph 内容。所有同步面都 MUST 先按 Realm、Circle、object scope、history visibility、E2EE availability 与 caller capability 裁剪。
 
-## 8. 查询等级
+## 8. 查询响应证据
 
-查询响应 MUST 携带 `basis`，说明结果基于哪个 Seal 与何种等级；字段形态与等级语义的权威定义见 [`event-auth-state-resolution.md` §10](../authz/event-auth-state-resolution.md) 和 [`query-schema.md`](../conformance/query-schema.md)。
+v1 不定义跨所有查询响应通用的 `basis` / `grade` 包装。operation registry 的 `response_schema_ref` 与 OpenAPI binding 是各响应字段的机器真源；receipt、Seal observational root、range-completeness attestation 或 transparency attestation 只有在具体 operation / profile 显式登记承载字段、schema 与验证规则时，才构成该响应的可互操作证据。
 
-| grade | 语义 |
-| --- | --- |
-| `local` | 本地尚未获得外部 receipt 或观测。 |
-| `seen` | 至少一个服务或 witness 签发的 Event Batch Receipt 覆盖该 Event（§6.1）。 |
-| `observed` | DataEvent 或 availability material 被 Seal 的观测 root 覆盖。 |
-| `sealed` | Control Move 被有效 Seal 覆盖并进入控制面 `state_root`；仅控制面使用。 |
-| `witnessed` | 独立 witness quorum 对范围、frontier 或可用性签发证明。 |
-| `forked` | 同一 actor chain、notary sequence、control frontier 或 object invariant 出现可证明分叉。 |
-| `stale` | 查询基准落后于 freshness policy，需要刷新控制面或降级显示。 |
-
-实现 MUST NOT 把数据面 `observed` 标为 `sealed`。
+实现不得用私有等级字符串替代已登记证明，也不得把数据面 observation 表述为控制面 Seal finality。未登记证据字段的响应只具有对应 operation 已声明的读取语义。
 
 ## 9. 冲突与收敛
 

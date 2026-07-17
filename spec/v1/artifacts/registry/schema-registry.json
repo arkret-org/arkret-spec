@@ -567,12 +567,6 @@
       "description": "Seal transparency append-only log entry and independent auditor attestation wire schema"
     },
     {
-      "schema_id": "ak.schema.key_view_proof.v1",
-      "file": "schemas/key-view-proof.schema.json",
-      "status": "active",
-      "description": "KeyView inclusion proof against a Seal data_view_root for light-client data-plane queries"
-    },
-    {
       "schema_id": "ak.schema.agent_operations.v1",
       "file": "schemas/agent-operations.schema.json",
       "status": "active",

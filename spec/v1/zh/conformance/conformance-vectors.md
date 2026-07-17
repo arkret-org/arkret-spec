@@ -810,7 +810,7 @@ ak.vector.cba_lattice.data_event_observation_does_not_seal.v1
 
 期望：
 
-- DataEvent 的查询等级最多为 `data_observed`，不得升级为 `control_sealed`。
+- DataEvent 的证据状态最多为 `data_observed`，不得升级为 `control_sealed`。
 - 客户端不得用观察性 data root 满足 Control Move `seal_basis` 或治理 freshness。
 - `data_observed` 可用于可用性、range completeness 或轻客户端提示，但不是控制面 finality。
 
