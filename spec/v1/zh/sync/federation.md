@@ -281,7 +281,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
       "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
       "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
       "actor_seq": 42,
-      "created_at": "2026-04-26T00:00:00Z",
+      "created_at": "2026-04-26T00:00:00.000Z",
       "prev_refs": [],
       "refs": [],
       "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
@@ -320,7 +320,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
           "alg": "EdDSA",
           "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
           "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-          "created_at": "2026-04-26T00:00:00Z",
+          "created_at": "2026-04-26T00:00:00.000Z",
           "jws": "a..b"
         }
       ]

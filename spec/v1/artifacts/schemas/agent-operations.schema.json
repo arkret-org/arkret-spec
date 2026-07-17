@@ -318,15 +318,14 @@
           "$ref": "#/$defs/pairing_secret"
         },
         "pairing_expires_at": {
-          "$ref": "#/$defs/timestamp"
+          "$ref": "#/$defs/timestamp",
+          "description": "Authoritative pairing expiry instant. This projection may preserve RFC 3339 sub-millisecond precision; consumers MUST NOT hash its raw JSON spelling. For ak.agent.key_pairing_request_binding.v1, parse this value and normalize expires_at to UTC with exactly three fractional digits (YYYY-MM-DDTHH:mm:ss.SSSZ), discarding sub-millisecond precision, before canonical JSON hashing."
         },
         "approval_request_id": {
           "$ref": "#/$defs/opaque_local_id"
         },
         "pending_runtime_key_request": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": true
+          "$ref": "#/$defs/agent_runtime_approval_controller_projection"
         },
         "approval_requested_at": {
           "$ref": "#/$defs/timestamp"
@@ -716,6 +715,38 @@
         "pairing_request_id": {
           "$ref": "#/$defs/opaque_local_id",
           "description": "Single-use pairing artifact id returned by agent_provision_outcome. Profile-local, short-lived and not a durable protocol object ref."
+        },
+        "agent_id": {
+          "$ref": "#/$defs/did"
+        },
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
+        },
+        "public_key": {
+          "$ref": "#/$defs/public_key"
+        },
+        "proof_of_possession": {
+          "$ref": "#/$defs/proof"
+        },
+        "runtime_attestation": {
+          "$ref": "#/$defs/runtime_attestation"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_runtime_approval_controller_projection": {
+      "type": "object",
+      "description": "Authenticated controller-safe projection of the pending runtime key request. It is deliberately not agent_runtime_approval_request_body and not agent_key_pair_request_body: pairing_code is exposed only by the sibling controller key_state field, while requested_scope_disclosure and authorize_event do not exist until the controller approves. Services MUST also omit any other runtime secret or unregistered field.",
+      "required": [
+        "pairing_request_id",
+        "agent_id",
+        "verification_method",
+        "public_key",
+        "proof_of_possession"
+      ],
+      "properties": {
+        "pairing_request_id": {
+          "$ref": "#/$defs/opaque_local_id"
         },
         "agent_id": {
           "$ref": "#/$defs/did"

@@ -57,7 +57,7 @@ Schema id: `ak.schema.event.v1`
 | `external_ref` | no | `object` | 外部网络 provenance。若用于回环防护、外部消息幂等、审计或用户可见出处，MUST 放在 Event Envelope 顶层并由签名覆盖；出现时 MUST 同时出现 `applet_id`。不得包含未授权外部正文明文。 | signed external provenance。 |
 | `actor_kind` | reducer-stamped | `enum(user, org, team, agent, service, integration)` | 不含 `device`（设备非 actor 主体，见 [`actor.md` §2](./actor.md)）。Reducer 在接受时从 `actor_id` 的 Actor Profile 解析并 immutable 写入 accepted envelope。**Actor-supplied submit payload MUST NOT 携带**,reducer MUST `schema_violation` (`reason=actor_kind_reducer_managed`)。该 reducer-stamped 字段不参与 producer proof 的 `event_digest` 输入（见 §3）。 | 审计 / 离线读取的 actor 类型 projection。 |
 | `actor_seq` | yes | `integer` | 同一 `(realm_id, actor_id)` 因果路径上严格递增；actor 在每个 Realm 各有独立链，首个事件从 `0` 开始；并发 sibling fork 可出现相同高度。 | Realm-scoped Actor 链高度 / 防回退索引。 |
-| `created_at` | yes | `timestamp` | 不能单独决定因果。 | 创建时间。 |
+| `created_at` | yes | `timestamp` | MUST 使用 canonical RFC 3339 UTC 毫秒精度 `YYYY-MM-DDTHH:MM:SS.sssZ`（整秒也写 `.000Z`）；微秒/纳秒输入必须在计算 Event digest 与签名之前截断到毫秒，不得使用 `+00:00`；不能单独决定因果。 | 创建时间。 |
 | `hlc` | no | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。**Advisory 字段** — 进入 canonical bytes 与签名以防被中间方重写，但语义上只是 timeline display tie-breaker，不参与 authorization、Lattice join、Control Move precondition 或 Seal finality。详见 `encoding.md` §7。 | HLC（advisory）。 |
 | `prev_refs` | yes | `array<id:event>` | 可为空。仅承载 actor event chain causal predecessors。 | Actor event chain 前序。 |
 | `causal_refs` | no | `array<hash>` | DataEvent 语义因果前驱 event digest；只表达业务依赖，不提供完整性证明。 | 数据面因果前驱。 |
@@ -84,7 +84,7 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 4,
-  "created_at": "2026-04-26T00:00:00Z",
+  "created_at": "2026-04-26T00:00:00.000Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [
     "ak:event:019640ed-0000-7000-8000-000000000000"
@@ -122,7 +122,7 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
       "alg": "EdDSA",
       "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
       "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-      "created_at": "2026-04-26T00:00:00Z",
+      "created_at": "2026-04-26T00:00:00.000Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..signature"
     }
   ]
@@ -191,7 +191,7 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 | `alg` | yes | `string` | 初版默认 `EdDSA`。 | 签名算法。 |
 | `verification_method` | yes | `string` | DID URL。 | 公钥/设备方法。 |
 | `event_digest` | yes | `hash` | MUST 等价于 `canonical_digest(envelope_without_proofs_unsigned_reducer_stamps)`：hash 输入是去除 `proofs`、`unsigned` 与 reducer-stamped 顶层字段（当前为 `effective_scope`、`actor_kind`）之后的 canonical Event envelope（含 `event_id`、`kind`、`actor_id`、`executed_by`、`authorization_ref`、`applet_id`、`external_ref`、`payload`、`refs`、`causal_refs`、`preconditions`、`effects`、`seal_ref`、`auth_context`、`seal_basis`、`requirements`、`hlc` 等）。 | producer-signed canonical Event digest。 |
-| `created_at` | yes | `timestamp` |  | 签名时间。 |
+| `created_at` | yes | `timestamp` | MUST 使用 canonical RFC 3339 UTC 毫秒精度 `YYYY-MM-DDTHH:MM:SS.sssZ`（整秒也写 `.000Z`）；微秒/纳秒输入必须在生成 proof binding 与签名之前截断到毫秒，不得使用 `+00:00`。 | 签名时间。 |
 | `domain` | no | `string` | 同一 trust domain 内 SHOULD 设置；跨服务、跨 trust domain 或 federation profile 下 MUST 设置。 | 域绑定。 |
 | `audience` | no | `string` 或 `array<string>` | 同一 service audience 内 SHOULD 设置；跨域/服务调用、多受众调用或 federation profile 下 MUST 设置。 | 受众绑定。 |
 | `jws` | yes | `string` | detached JWS。 | 签名值。 |
@@ -320,7 +320,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 5,
-  "created_at": "2026-04-26T00:00:00Z",
+  "created_at": "2026-04-26T00:00:00.000Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": ["ak:event:019640ed-7000-7000-8000-000000000000"],
   "refs": [
@@ -355,7 +355,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
       "alg": "EdDSA",
       "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
       "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-      "created_at": "2026-04-26T00:00:00Z",
+      "created_at": "2026-04-26T00:00:00.000Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..signature"
     }
   ]

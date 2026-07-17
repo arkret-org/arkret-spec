@@ -375,7 +375,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 4,
   "kind": "ak.message.create",
-  "created_at": "2026-04-26T00:00:00Z",
+  "created_at": "2026-04-26T00:00:00.000Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": ["ak:event:019640ed-0000-7000-8000-000000000000"],
   "refs": [
@@ -406,7 +406,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
       "alg": "EdDSA",
       "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
       "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-      "created_at": "2026-04-26T00:00:00Z",
+      "created_at": "2026-04-26T00:00:00.000Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..signature"
     }
   ]
@@ -422,7 +422,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
   "actor_id": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
   "actor_seq": 7,
   "kind": "ak.message.create",
-  "created_at": "2026-04-26T00:01:00Z",
+  "created_at": "2026-04-26T00:01:00.000Z",
   "hlc": "01970e589d34-0001-c00ff00f",
   "prev_refs": ["ak:event:019640ed-8500-7000-8000-000000000000"],
   "refs": [
@@ -453,7 +453,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
       "alg": "EdDSA",
       "verification_method": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example#device-1",
       "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-      "created_at": "2026-04-26T00:01:00Z",
+      "created_at": "2026-04-26T00:01:00.000Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..signature"
     }
   ]
@@ -473,7 +473,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
   "actor_id": "did:webvh:zCELkEydSckveKumo1eHsfN2G:carol.example",
   "actor_seq": 12,
   "kind": "ak.reaction.add",
-  "created_at": "2026-04-26T00:02:00Z",
+  "created_at": "2026-04-26T00:02:00.000Z",
   "hlc": "01970e589d40-0002-c00fbeef",
   "prev_refs": ["ak:event:019640ed-9000-7000-8000-000000000000"],
   "refs": [
@@ -504,7 +504,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
       "alg": "EdDSA",
       "verification_method": "did:webvh:zCELkEydSckveKumo1eHsfN2G:carol.example#device-2",
       "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-      "created_at": "2026-04-26T00:02:00Z",
+      "created_at": "2026-04-26T00:02:00.000Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..signature"
     }
   ]

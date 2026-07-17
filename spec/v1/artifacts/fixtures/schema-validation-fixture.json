@@ -463,7 +463,7 @@
         "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 1,
-        "created_at": "2026-05-20T00:00:00Z",
+        "created_at": "2026-05-20T00:00:00.000Z",
         "hlc": "01970e589d21-0001-a13f9c2e",
         "prev_refs": [],
         "refs": [],
@@ -490,7 +490,7 @@
             "alg": "EdDSA",
             "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
             "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "created_at": "2026-05-20T00:00:00Z",
+            "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b"
           }
         ]
@@ -507,7 +507,7 @@
         "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:z6mkfixture:erasure.example",
         "actor_seq": 1,
-        "created_at": "2026-05-20T00:00:00Z",
+        "created_at": "2026-05-20T00:00:00.000Z",
         "hlc": "01970e589d21-0001-a13f9c2e",
         "prev_refs": [],
         "refs": [],
@@ -543,7 +543,7 @@
             "alg": "EdDSA",
             "verification_method": "did:webvh:z6mkfixture:erasure.example#key-1",
             "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-            "created_at": "2026-05-20T00:00:00Z",
+            "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b"
           }
         ]
@@ -559,7 +559,7 @@
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000010",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 0,
-        "created_at": "2026-05-20T00:00:00Z",
+        "created_at": "2026-05-20T00:00:00.000Z",
         "hlc": "01970e589d21-0001-a13f9c2e",
         "prev_refs": [],
         "refs": [
@@ -605,7 +605,7 @@
             "fields": {
               "purpose": "principal_control"
             },
-            "created_at": "2026-05-20T00:00:00Z",
+            "created_at": "2026-05-20T00:00:00.000Z",
             "security_class": "high_assurance",
             "content_encryption_floor": "e2ee_required",
             "metadata_encryption_floor": "e2ee_required"
@@ -617,7 +617,7 @@
             "alg": "EdDSA",
             "verification_method": "did:key:z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ#z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ",
             "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "created_at": "2026-05-20T00:00:00Z",
+            "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b"
           }
         ]
@@ -635,7 +635,7 @@
         "executed_by": "did:webvh:z6mkfixture:alice.example",
         "authorization_ref": "did:webvh:z6mkfixture:agent.example#controller-alice",
         "actor_seq": 0,
-        "created_at": "2026-05-20T00:00:00Z",
+        "created_at": "2026-05-20T00:00:00.000Z",
         "hlc": "01970e589d21-0001-a13f9c2e",
         "prev_refs": [],
         "refs": [],
@@ -675,7 +675,7 @@
             "fields": {
               "purpose": "principal_control"
             },
-            "created_at": "2026-05-20T00:00:00Z",
+            "created_at": "2026-05-20T00:00:00.000Z",
             "security_class": "high_assurance",
             "content_encryption_floor": "e2ee_required",
             "metadata_encryption_floor": "e2ee_required"
@@ -687,7 +687,7 @@
             "alg": "EdDSA",
             "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a6aa0-7100-7000-8000-000000000000",
             "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-            "created_at": "2026-05-20T00:00:00Z",
+            "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b"
           }
         ]
@@ -704,7 +704,7 @@
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000012",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 0,
-        "created_at": "2026-05-20T00:00:00Z",
+        "created_at": "2026-05-20T00:00:00.000Z",
         "prev_refs": [],
         "refs": [
           {
@@ -749,7 +749,7 @@
             "fields": {
               "purpose": "principal_control"
             },
-            "created_at": "2026-05-20T00:00:00Z",
+            "created_at": "2026-05-20T00:00:00.000Z",
             "security_class": "high_assurance",
             "content_encryption_floor": "e2ee_required",
             "metadata_encryption_floor": "e2ee_required"
@@ -761,7 +761,7 @@
             "alg": "EdDSA",
             "verification_method": "did:key:z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ#z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ",
             "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-            "created_at": "2026-05-20T00:00:00Z",
+            "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b"
           }
         ]
@@ -778,7 +778,7 @@
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000013",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 0,
-        "created_at": "2026-05-20T00:00:00Z",
+        "created_at": "2026-05-20T00:00:00.000Z",
         "prev_refs": [],
         "refs": [
           {
@@ -829,7 +829,7 @@
             "alg": "EdDSA",
             "verification_method": "did:key:z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ#z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ",
             "event_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-            "created_at": "2026-05-20T00:00:00Z",
+            "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b"
           }
         ]
@@ -846,7 +846,7 @@
         "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:z6mkfixture:audit.example",
         "actor_seq": 1,
-        "created_at": "2026-06-04T00:00:00Z",
+        "created_at": "2026-06-04T00:00:00.000Z",
         "hlc": "01970e589d21-0001-a13f9c2e",
         "prev_refs": [],
         "refs": [],
@@ -892,7 +892,7 @@
             "alg": "EdDSA",
             "verification_method": "did:webvh:z6mkfixture:audit.example#key-1",
             "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-            "created_at": "2026-06-04T00:00:00Z",
+            "created_at": "2026-06-04T00:00:00.000Z",
             "jws": "a..b"
           }
         ]

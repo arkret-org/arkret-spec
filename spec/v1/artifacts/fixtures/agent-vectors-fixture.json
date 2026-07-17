@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.personal_agent_provisioning.v1",
-  "version": "2026-07-12",
+  "version": "2026-07-17",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -19,6 +19,69 @@
     "ak.vector.agent.act_on_behalf.v1",
     "ak.vector.agent.session_grant.replay.v1",
     "ak.vector.agent_auth.human_approval_required.v1"
+  ],
+  "schema_validation_cases": [
+    {
+      "name": "agent_runtime_approval_controller_projection_valid",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_controller_projection",
+      "expect_valid": true,
+      "instance": {
+        "pairing_request_id": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
+        "agent_id": "did:webvh:z6mkagent:agent.example",
+        "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+        "public_key": {
+          "alg": "EdDSA",
+          "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "kid": "did:webvh:z6mkagent:agent.example#runtime-1",
+          "kty": "OKP"
+        },
+        "proof_of_possession": {
+          "challenge": "agent_pairing_request:01964137-0000-7000-8000-000000000000"
+        }
+      }
+    },
+    {
+      "name": "agent_runtime_approval_controller_projection_rejects_pairing_code",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_controller_projection",
+      "expect_valid": false,
+      "first_expected_error": "contains:pairing_code",
+      "instance": {
+        "pairing_request_id": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
+        "agent_id": "did:webvh:z6mkagent:agent.example",
+        "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+        "public_key": {
+          "alg": "EdDSA",
+          "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "kid": "did:webvh:z6mkagent:agent.example#runtime-1",
+          "kty": "OKP"
+        },
+        "proof_of_possession": {
+          "challenge": "agent_pairing_request:01964137-0000-7000-8000-000000000000"
+        },
+        "pairing_code": "forbidden-controller-projection-secret"
+      }
+    },
+    {
+      "name": "agent_runtime_approval_controller_projection_rejects_controller_material",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_controller_projection",
+      "expect_valid": false,
+      "first_expected_error": "contains:requested_scope_disclosure",
+      "instance": {
+        "pairing_request_id": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
+        "agent_id": "did:webvh:z6mkagent:agent.example",
+        "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+        "public_key": {
+          "alg": "EdDSA",
+          "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "kid": "did:webvh:z6mkagent:agent.example#runtime-1",
+          "kty": "OKP"
+        },
+        "proof_of_possession": {
+          "challenge": "agent_pairing_request:01964137-0000-7000-8000-000000000000"
+        },
+        "requested_scope_disclosure": {}
+      }
+    }
   ],
   "cases": [
     {
@@ -141,12 +204,33 @@
       "expected_public_key_digest": "sha256:7bfcb9251367ab71fd32c19fc23c11b46ddbc371b52fcb5a75eaa1a79f5f463b",
       "expected_attestation_digest": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
       "expected_binding_digest": "sha256:1dd1a4f03dfc6086a43ae3f0e1eca877c9040c25fd95fc48d1b278568306fb06",
+      "pairing_request_binding_input": {
+        "controller_id": "did:webvh:z6mkcontroller:controller.example",
+        "agent_id": "did:webvh:z6mkagent:agent.example",
+        "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+        "pairing_request_id": "pairing_request:01964137-0000-7000-8000-000000000000",
+        "pairing_code": "fixture-pairing-code",
+        "pairing_expires_at_inputs": [
+          "2026-07-17T13:50:07.734Z",
+          "2026-07-17T13:50:07.734997Z",
+          "2026-07-17T21:50:07.734+08:00"
+        ],
+        "audience": "https://pair.example/_arkret/gate/account/agent-key-pair"
+      },
+      "canonical_pairing_expires_at": "2026-07-17T13:50:07.734Z",
+      "canonical_pairing_request_binding_json": "{\"agent_id\":\"did:webvh:z6mkagent:agent.example\",\"audience\":\"https://pair.example/_arkret/gate/account/agent-key-pair\",\"controller_id\":\"did:webvh:z6mkcontroller:controller.example\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"ak.agent.key_pairing_request_binding.v1\",\"operation_id\":\"ak.gate.account.command.pair_agent_key\",\"pairing_code\":\"fixture-pairing-code\",\"pairing_request_id\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"runtime_public_key_digest\":\"sha256:7bfcb9251367ab71fd32c19fc23c11b46ddbc371b52fcb5a75eaa1a79f5f463b\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
+      "expected_pairing_request_binding_digest": "sha256:efa5a4362f7e9da83f03aaa986faeac77140d8b15e8e62c8842d4a78c5eb6661",
       "assertions": [
         "same stable binding retry retains approval_request_id and notification id and emits action update",
+        "a runtime persists and reuses one local key binding for an open pairing_request_id across process restart and channel delete/recreate",
+        "a runtime that loses the bound key stops and renews pairing instead of overwriting the pending request with a different key",
         "different stable binding on one open pairing_request_id fails with HTTP 409 agent_runtime_request_conflict without replacement",
         "final approval recomputes the current stable binding and full ak.agent.key_pairing_request_binding.v1 digest from persistence",
+        "pairing request binding expiry is parsed and normalized to UTC RFC 3339 with exactly three fractional digits before hashing",
+        "microsecond and offset spellings that normalize to the same UTC millisecond produce the same pairing request binding digest",
         "a stale controller approval fails closed",
-        "pairing code, proof of possession and attestation bytes never appear in the account notification delta"
+        "pairing code, proof of possession and attestation bytes never appear in the account notification delta",
+        "the authenticated pending_runtime_key_request controller projection is closed and omits pairing_code, requested_scope_disclosure and authorize_event"
       ]
     },
     {

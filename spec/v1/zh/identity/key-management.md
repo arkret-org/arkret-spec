@@ -3,7 +3,7 @@ title: Key Management
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-17
 ---
 
 ## 0. 规范语言
@@ -198,9 +198,15 @@ Conformance vector：`ak.vector.agent.runtime_key_binding.v1`。
 
 每个 open `pairing_request_id` 同时最多一个 pending runtime key binding。服务端 MUST 以 canonical JSON 对象计算稳定 digest，kind 固定为 `ak.agent.runtime_key_binding.v1`，对象字段为 `{kind, agent_id, pairing_request_id, verification_method, public_key_digest, attestation_digest}`；`public_key_digest` 与 `attestation_digest` 分别对 `agent_runtime_approval_request_body.public_key` 和 `runtime_attestation`（缺省时为 JSON `null`）的 canonical JSON bytes 计算 SHA-256 typed digest。外层 binding 对象再按同一规则计算 SHA-256 typed digest。pairing code、过期时间、PoP challenge/signature 等 freshness proof 不得进入这份稳定身份。canonical helper 只能由 arkret-rust-sdk 定义并供实现复用。
 
+Runtime MUST 在首次提交前持久化本地 key seed/private key，并在同一 open `pairing_request_id` 的整个生命周期内跨进程重启、配置重载和同名 channel 删除/重建复用同一 key binding；发现已有合法 key 时不得用新 seed 覆盖。若原 key 已丢失、损坏或无法访问，runtime MUST 停止重试并要求 controller 执行 `renew-pairing`，取得新 handle 后才能生成新 key。Runtime 不得把服务端的 `agent_runtime_request_conflict` 当成“以新 key 覆盖旧 pending request”的许可。
+
 该 digest 与 controller `ak.agent.key.authorize.payload.approval_evidence.request_canonical_digest` 使用的 `ak.agent.key_pairing_request_binding.v1` 不同：后者绑定 pairing handle、当前完整 request 与 freshness 字段，是 controller 批准的证据。最终 `ak.gate.account.command.pair_agent_key` MUST 从数据库当前持久化的完整 runtime request 重新计算二者，并与 controller 签名证据、提交 body 和当前 stable binding 比较；不得只比较提交 body 与 pairing handle。过期 prompt 或任一不一致必须 fail closed，客户端重新读取。
 
+`ak.agent.key_pairing_request_binding.v1.expires_at` 的 canonical 拼写固定为 UTC RFC 3339 毫秒精度 `YYYY-MM-DDTHH:mm:ss.SSSZ`。构造方 MUST 先解析权威 `pairing_expires_at`，换算到 UTC，丢弃（不得四舍五入）微秒/纳秒部分，再以恰好三位小数和大写 `Z` 序列化；例如 `2026-07-17T13:50:07.734997Z` 与 `2026-07-17T21:50:07.734+08:00` 都规范化为 `2026-07-17T13:50:07.734Z`。Agent projection MAY 按通用 timestamp 规则保留更高小数精度，因此 controller、service 与 runtime MUST NOT 把投影中的原始时间字符串直接放入摘要。`arkret-rust-sdk` 的 canonical helper MUST 内建该解析与规范化，非法 RFC 3339 输入必须 fail closed；调用方不得各自选择秒、毫秒或微秒精度。
+
 首次合法请求生成一个稳定 `approval_request_id` 和 `ak:notification:*` id，并在创建 pairing record 的 account context 中物化 `agent_runtime_approval action=add`。相同 stable binding 的重试是幂等的：允许刷新 PoP 和完整 request，但保留两项 id，并物化 `action=update`。已有 pending 时，不同 stable binding MUST 返回 HTTP 409 `agent_runtime_request_conflict`，不得替换 controller 当前看到的请求。
+
+Runtime 提交体、controller 投影与最终批准体是三个不同的闭合 DTO，不得互相反序列化替代：runtime 向 open endpoint 提交 `agent_runtime_approval_request_body`（含 `pairing_code`，不含 controller disclosure/Event）；authenticated `key_state.pending_runtime_key_request` MUST 精确匹配 `agent_runtime_approval_controller_projection`，只含 `{pairing_request_id, agent_id, verification_method, public_key, proof_of_possession, runtime_attestation?}`，不得含 `pairing_code`、`requested_scope_disclosure`、`authorize_event` 或额外字段；controller 核对 sibling `key_state.pairing_code` 后，MUST 使用当前 controller signer、权威 verifier/audience/challenge 与不超过 5 分钟的 freshness window 新建 `requested_scope_disclosure` 和 `ak.agent.key.authorize`，再组装 `agent_key_pair_request_body`。Account notification 仅携 [`../sync/client-sync.md` §3.1](../sync/client-sync.md) 的最小发现字段；客户端收到通知后读取一次 authenticated Agent projection，不得假定 notification 自身包含完整审批请求。
 
 Pairing record 与 account notification projection 的 add/update/remove MUST 同一数据库事务提交。只有 durable `ak.agent.key.authorize` 被 accepted 后才能消费 pairing handle并发 `remove(reason=approved)`；expiry、renew-pairing、deactivate 与 supersede 也必须发对应 remove。Authorization Event/activation projection 与该消费必须共享事务，或者以 `authorized_event_ref` 为键提供启动时和请求时均可幂等执行的 reconciler；崩溃不得使 accepted authorization 永久显示 pending。Notification 只负责 controller 发现，不是 durable 审批事实。
 
