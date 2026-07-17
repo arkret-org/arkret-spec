@@ -224,10 +224,6 @@
   ],
   "additionalProperties": false,
   "$defs": {
-    "did": {
-      "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
-    },
     "hash": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
