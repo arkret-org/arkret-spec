@@ -277,7 +277,7 @@ Content-Type: application/json
     "alg": "EdDSA",
     "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#ak:device:01964137-0000-7000-8000-000000000000",
     "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-    "created_at": "2026-04-26T00:00:00Z",
+    "created_at": "2026-04-26T00:00:00.000Z",
     "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJl"
   }
 }
