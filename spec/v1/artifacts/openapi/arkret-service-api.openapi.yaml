@@ -1731,6 +1731,16 @@ components:
       $ref: ../schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome
     InviteDeliveryRequest:
       $ref: ../schemas/invite-delivery-request.schema.json
+    InviteLocatorIssueOutcome:
+      $ref: ../schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome
+    InviteLocatorIssueRequestBody:
+      $ref: ../schemas/principal-locator.schema.json#/$defs/invite_locator_issue_request_body
+    InviteLocatorRevokeOutcome:
+      $ref: ../schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_outcome
+    InviteLocatorRevokeRequestBody:
+      $ref: ../schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_request_body
+    InviteLocatorRotateRequestBody:
+      $ref: ../schemas/principal-locator.schema.json#/$defs/invite_locator_rotate_request_body
     InviteReceivePolicy:
       $ref: ../schemas/invite-receive-policy.schema.json
     KeyPackagesClaimOutcome:
@@ -4781,6 +4791,76 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InviteReceivePolicy'
+  /_arkret/self/invite-locators:
+    post:
+      operationId: ak.self.invite_locator.command.issue
+      security:
+      - bearerAuth: []
+        dpopProof: []
+      summary: Issue an opaque online invite locator for the authenticated principal.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteLocatorIssueRequestBody'
+      responses:
+        '200':
+          description: Fresh locator token returned exactly once.
+          headers:
+            Cache-Control:
+              description: Prevent storage of the bearer secret by clients and intermediaries.
+              schema:
+                const: private, no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteLocatorIssueOutcome'
+  /_arkret/self/invite-locators/rotate:
+    post:
+      operationId: ak.self.invite_locator.command.rotate
+      security:
+      - bearerAuth: []
+        dpopProof: []
+      summary: Atomically revoke an old locator and issue a fresh one.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteLocatorRotateRequestBody'
+      responses:
+        '200':
+          description: Replacement locator token returned exactly once.
+          headers:
+            Cache-Control:
+              description: Prevent storage of the bearer secret by clients and intermediaries.
+              schema:
+                const: private, no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteLocatorIssueOutcome'
+  /_arkret/self/invite-locators/revoke:
+    post:
+      operationId: ak.self.invite_locator.command.revoke
+      security:
+      - bearerAuth: []
+        dpopProof: []
+      summary: Revoke an authenticated-principal-owned invite locator.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteLocatorRevokeRequestBody'
+      responses:
+        '200':
+          description: Locator revoked or already revoked by the same principal.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteLocatorRevokeOutcome'
   /_arkret/self/direct-conversations/resolve:
     post:
       operationId: ak.self.direct_conversation.command.resolve

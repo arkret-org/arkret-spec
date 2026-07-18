@@ -139,6 +139,9 @@
         "ak.self.contact.command.tombstone",
         "ak.self.invite_receive_policy.resource.get",
         "ak.self.invite_receive_policy.resource.replace",
+        "ak.self.invite_locator.command.issue",
+        "ak.self.invite_locator.command.rotate",
+        "ak.self.invite_locator.command.revoke",
         "ak.self.direct_conversation.command.resolve"
       ]
     },
@@ -1053,6 +1056,50 @@
       "retry_safe": true,
       "request_schema_ref": "schemas/invite-receive-policy.schema.json",
       "response_schema_ref": "schemas/invite-receive-policy.schema.json"
+    },
+    {
+      "operation_id": "ak.self.invite_locator.command.issue",
+      "http": "POST /_arkret/self/invite-locators",
+      "grpc": "SelfInviteLocator/Issue",
+      "mq": "self.invite_locator.command.issue",
+      "notes": "Issues a fresh opaque locator for the authenticated principal. subject_id and recipient_service_id are server-derived; the raw bearer token is returned exactly once and MUST NOT be persisted.",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "reissue_material",
+        "operation_id": "ak.self.invite_locator.command.issue",
+        "requires_fresh_request_identity": true
+      },
+      "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_request_body",
+      "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome"
+    },
+    {
+      "operation_id": "ak.self.invite_locator.command.rotate",
+      "http": "POST /_arkret/self/invite-locators/rotate",
+      "grpc": "SelfInviteLocator/Rotate",
+      "mq": "self.invite_locator.command.rotate",
+      "notes": "Atomically revokes one authenticated-principal-owned locator and issues a new opaque token. The old token becomes indistinguishable from unknown tokens before success is returned. After an uncertain transport outcome, the client MUST first idempotently revoke the old locator_id and only then issue fresh material; directly issuing without that revocation can leave the old token active.",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "manual_confirmation"
+      },
+      "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_rotate_request_body",
+      "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome"
+    },
+    {
+      "operation_id": "ak.self.invite_locator.command.revoke",
+      "http": "POST /_arkret/self/invite-locators/revoke",
+      "grpc": "SelfInviteLocator/Revoke",
+      "mq": "self.invite_locator.command.revoke",
+      "notes": "Idempotently revokes one locator owned by the authenticated principal. A same-principal retry returns the original revoked_at. Unknown, consumed, or cross-principal locator ids return not_found.",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_request_body",
+      "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_outcome"
     },
     {
       "operation_id": "ak.self.direct_conversation.command.resolve",

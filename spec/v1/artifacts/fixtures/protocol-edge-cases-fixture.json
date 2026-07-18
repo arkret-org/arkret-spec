@@ -96,6 +96,8 @@
       "name": "protocol_window_and_wire_limits",
       "vector_id": "ak.vector.scalability.protocol_window_limits.v1",
       "limit_cases": [
+        {"field": "invite_locator.ttl_seconds", "minimum": 60, "maximum": 3600, "test": [59, 60, 3600, 3601], "outside": "schema_violation"},
+        {"field": "invite_locator.active_per_principal", "limit": 16, "test": [15, 16, 17], "overflow": ["failed_precondition", "rate_limited"], "rotate_at_limit": "success"},
         {"field": "seal.predecessor_refs", "limit": 128, "test": [127, 128, 129], "overflow": "payload_too_large", "must_not_truncate": true},
         {"field": "compaction_seal.covered_event_digests", "limit": 1048576, "test": [1048575, 1048576, 1048577], "overflow": "payload_too_large", "must_not_truncate": true},
         {"field": "device_message.expires_at", "max_ttl_ms": 86400000, "negative": ["missing", "expired", "before_sent_at", "over_limit"]},

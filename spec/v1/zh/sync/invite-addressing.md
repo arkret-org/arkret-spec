@@ -67,6 +67,24 @@ base v1 invite **MUST NOT** 依赖 `ak.find.directory.query.resolve_handle(inten
 
 二维码 / 链接默认承载在线 locator ref，不承载完整 signed locator。
 
+### 3.1 认证发行、轮换与撤销
+
+locator 只能由 subject 当前 Principal Server 的认证 self surface 管理；客户端不得自行铸造 token。v1 定义：
+
+| operation | HTTP binding | 语义 |
+| --- | --- | --- |
+| `ak.self.invite_locator.command.issue` | `POST /_arkret/self/invite-locators` | 为 session actor 发行新 locator。body 可含 `ttl_seconds`（默认 900，范围 60..3600）、`one_time_use`（默认 false）与可选 `display_hint`。`subject_id` 与 `recipient_service_id` 均由服务端从认证 session 和本机 service identity 推导，MUST NOT 由客户端提交。 |
+| `ak.self.invite_locator.command.rotate` | `POST /_arkret/self/invite-locators/rotate` | 在同一 durable transaction 中撤销 `locator_id` 指向的旧 locator 并返回全新 locator/token。旧 locator 不存在、已撤销、已消费或不属于 session actor 时 MUST 返回 `not_found`，不得替调用方泄露归属或状态。 |
+| `ak.self.invite_locator.command.revoke` | `POST /_arkret/self/invite-locators/revoke` | 撤销属于 session actor 的 locator；对同一已撤销 locator 的重复请求是 idempotent success。不存在、不属于 actor 或已消费的 locator 返回 `not_found`。 |
+
+issue / rotate 的成功响应是 `principal-locator.schema.json#/$defs/invite_locator_issue_outcome`，其中 `locator_token` 是以 CSPRNG 生成、至少含 192 bit 熵且只返回一次的 bearer secret；响应 MUST 携带 `Cache-Control: private, no-store`，服务端 MUST NOT 持久化 raw token，任何中间层也不得缓存响应体。revoke 成功响应是 `#/$defs/invite_locator_revoke_outcome`；同一 principal 对已撤销 locator 的重试 MUST 返回首次撤销记录的原始 `revoked_at`，不得用重试时刻改写它。这些 self operation 使用普通 session + PoP 写认证；locator 归属绑定 principal account，而不是某个 device/session，因此同一 principal 的其它有效 session MAY 轮换或撤销它。
+
+服务端 durable locator record MUST 至少保存：`locator_id`、`token_digest`（唯一索引）、`subject_id`、`recipient_service_id`、`issued_at`、`expires_at`、`one_time_use`、`display_hint?`、`revoked_at?`、`consumed_at?`。`token_digest` MUST 使用 `sha256:<lowercase_hex>`，raw token MUST NOT 出现在数据库、audit log、analytics、crash report 或 durable event。resolve 成功时，返回的签名 `principal_locator.locator_ref_digest` MUST 精确等于该 record 的 `token_digest`，且 `subject_id`、`recipient_service_id`、有效期与 `display_hint?` 必须从同一 record 派生，不得信任 resolve 调用方输入这些字段。每个 subject 同时 active locator 的 v1 上限为 16；达到上限时 issue MUST fail closed（`rate_limited` 或 `failed_precondition`），不得隐式撤销调用方未指定的 locator。
+
+rotate 必须是“发行新 token + 原子撤销旧 token”，不另设 refresh alias；客户端点击刷新时调用 rotate，并用返回的新 token 替换进程内显示值。rotate 省略 `ttl_seconds` 时 MUST 保留旧 record 的已授予 lifetime（`expires_at - issued_at`），省略 `one_time_use` 时 MUST 保留旧值，省略 `display_hint` 时 MUST 保留旧 hint；仅显式 `display_hint:null` 清除 hint，避免普通刷新静默扩大可用性或丢失展示信息。若 rotate 的 transport outcome 不确定，客户端 MUST NOT 直接调用 issue：它必须先对旧 `locator_id` 调用幂等 revoke，取得成功或可确认的终态，使旧 token 确定失效，再以 fresh request 调用 issue；首次 rotate 若已提交但响应丢失，其不可恢复的新 token 只作为短 TTL orphan 等待过期。`one_time_use=true` 时，resolve 在读取 record、检查 TTL/撤销/策略并准备成功响应的同一原子操作中写入 `consumed_at`；并发 resolve 最多一个成功。消费是 resolve 的内部状态迁移，不定义独立公开 consume operation。
+
+### 3.2 OOB handoff 与 resolve
+
 推荐 QR / link 文本：
 
 ```text
@@ -290,6 +308,9 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Principal Se
 
 支持 invite addressing 的 Principal Server SHOULD 在 `ServiceDescribe.supported_operations` 中声明：
 
+- `ak.self.invite_locator.command.issue`
+- `ak.self.invite_locator.command.rotate`
+- `ak.self.invite_locator.command.revoke`
 - `ak.open.invite_locator.query.resolve`
 - `ak.peer.invites.command.submit`
 

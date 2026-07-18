@@ -144,6 +144,138 @@
         }
       },
       "additionalProperties": false
+    },
+    "invite_locator_issue_request_body": {
+      "type": "object",
+      "properties": {
+        "ttl_seconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 3600,
+          "default": 900,
+          "description": "Requested locator lifetime. The Principal Server MAY shorten it but MUST NOT exceed the v1 one-hour ceiling."
+        },
+        "one_time_use": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, the first successful resolve atomically consumes the locator."
+        },
+        "display_hint": {
+          "$ref": "#/$defs/display_hint"
+        }
+      },
+      "additionalProperties": false
+    },
+    "invite_locator_rotate_request_body": {
+      "type": "object",
+      "required": [
+        "locator_id"
+      ],
+      "properties": {
+        "locator_id": {
+          "$ref": "#/$defs/locator_id"
+        },
+        "ttl_seconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 3600,
+          "description": "Requested replacement-locator lifetime. When omitted, preserve the old locator's granted lifetime (old expires_at minus old issued_at). The Principal Server MAY shorten it but MUST NOT exceed the v1 one-hour ceiling."
+        },
+        "one_time_use": {
+          "type": "boolean",
+          "description": "Whether the first successful resolve atomically consumes the replacement locator. When omitted, preserve the old locator's one_time_use value."
+        },
+        "display_hint": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/display_hint"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Replacement display hint. When omitted, preserve the old hint; null explicitly clears it."
+        }
+      },
+      "additionalProperties": false
+    },
+    "invite_locator_revoke_request_body": {
+      "type": "object",
+      "required": [
+        "locator_id"
+      ],
+      "properties": {
+        "locator_id": {
+          "$ref": "#/$defs/locator_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "invite_locator_issue_outcome": {
+      "type": "object",
+      "required": [
+        "locator_id",
+        "locator_token",
+        "expires_at",
+        "one_time_use"
+      ],
+      "properties": {
+        "locator_id": {
+          "$ref": "#/$defs/locator_id"
+        },
+        "locator_token": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{32,512}$",
+          "description": "Fresh opaque bearer secret generated from at least 192 bits of CSPRNG entropy and returned exactly once. Clients MUST keep it out of logs, analytics, caches, and ordinary durable local state; an explicit user-directed out-of-band handoff is permitted and inherits the token's TTL and revocation risks."
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "one_time_use": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "invite_locator_revoke_outcome": {
+      "type": "object",
+      "required": [
+        "locator_id",
+        "status",
+        "revoked_at"
+      ],
+      "properties": {
+        "locator_id": {
+          "$ref": "#/$defs/locator_id"
+        },
+        "status": {
+          "const": "revoked"
+        },
+        "revoked_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "locator_id": {
+      "type": "string",
+      "pattern": "^ak:invite_locator:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Non-secret administrative identifier used only on the authenticated self surface."
+    },
+    "display_hint": {
+      "type": "object",
+      "description": "UI-only display hint. It is not identity authority and MUST NOT be used for authorization.",
+      "properties": {
+        "display_name_hint": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "avatar_blob_ref": {
+          "type": "string",
+          "pattern": "^ak:blob:[A-Za-z0-9._:-]+$"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

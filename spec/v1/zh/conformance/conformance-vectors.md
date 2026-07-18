@@ -2927,14 +2927,20 @@ Expected：
 
 Steps：
 
-1. 对 third-party claim endpoint 分别触发 token 不存在、过期、已撤销、已消费、audience 不匹配、邀请者已离开 Realm、policy gate 不满足七类失败。
-2. 对 `POST /_arkret/open/invite-locators/resolve` 分别触发 locator token 不存在、过期、已撤销、策略拒绝四类失败。
-3. 分别在两个 endpoint surface 内记录 HTTP status、response body、headers 和响应时间；不同 endpoint 之间不要求响应 body 相同，但同一 endpoint 的各失败原因 MUST 不可区分。
+1. 认证 principal 调用 `ak.self.invite_locator.command.issue`，确认响应 token 至少 192 bit 熵、响应含 `Cache-Control: private, no-store`、服务端仅持久化 digest；分别发行 reusable 与 `one_time_use=true` locator。
+2. 分别对 reusable 与 one-time locator 省略可选项调用 rotate，确认响应同样禁止缓存、旧 token 在 rotate 成功后立即失效、新 token 可 resolve，且 granted lifetime、`one_time_use`、`display_hint` 均继承旧 record；resolve outcome 的 `locator_ref_digest` 必须等于新 record 的 `token_digest`。对 revoke 重试两次，确认同 actor 的第二次调用返回相同 `revoked_at`。
+3. 注入 rotate 已提交但响应丢失的 transport fault；客户端必须先 revoke 旧 `locator_id`，再 fresh issue，且不得在确认旧 token 失效前直接 issue。
+4. 并发两次 resolve one-time locator，确认最多一次成功；随后把该 token 与不存在、过期、已撤销、策略拒绝 token 一起提交 `POST /_arkret/open/invite-locators/resolve`。
+5. 用另一 principal 的 session 对 locator_id 调用 rotate / revoke，确认与未知 locator_id 同样返回 `not_found` 且不改变原 record。
+6. 对 third-party claim endpoint 分别触发 token 不存在、过期、已撤销、已消费、audience 不匹配、邀请者已离开 Realm、policy gate 不满足七类失败。
+7. 分别在 claim、locator resolve 与 self locator-management endpoint surface 内记录 HTTP status、response body、headers 和响应时间；不同 endpoint 之间不要求响应 body 相同，但同一 endpoint 的不可枚举失败原因 MUST 不可区分。
 
 Expected：
 
 - 每个 endpoint surface 内的对外响应 MUST byte-identical 或等价不可区分；仅服务端 audit log 可记录具体 reason_code。
 - timing 差异 SHOULD ≤ 50ms；高安全 profile MUST 对该窗口做 jitter / padding。
+- raw locator token MUST NOT 出现在 durable record、audit log 或 Realm Event；record 必须包含唯一 `token_digest`、TTL、撤销/消费状态与 subject/service binding。
+- rotate 的旧-token 撤销与新-record insert MUST 原子；one-time resolve 并发最多一个成功。
 
 ### 9.7.1 Vector: Invite Claim Reducer State Machine
 

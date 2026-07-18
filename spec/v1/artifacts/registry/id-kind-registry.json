@@ -293,6 +293,13 @@
       "description": "Invite object ID"
     },
     {
+      "kind": "invite_locator",
+      "category": "account_private",
+      "status": "active",
+      "wire_form": "ak:invite_locator:<uuid>",
+      "description": "Non-secret Principal Server administrative ID for one account-owned online invite locator. The ID is exposed only on the authenticated self management surface and is distinct from the opaque bearer locator_token."
+    },
+    {
       "kind": "key_event",
       "category": "identity",
       "status": "active",

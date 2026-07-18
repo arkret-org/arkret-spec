@@ -241,6 +241,10 @@ grpc:
       RuntimeKeyRequestStatus: ak.open.agent_pairing.query.runtime_key_request_status
     OpenInviteLocator:
       Resolve: ak.open.invite_locator.query.resolve
+    SelfInviteLocator:
+      Issue: ak.self.invite_locator.command.issue
+      Rotate: ak.self.invite_locator.command.rotate
+      Revoke: ak.self.invite_locator.command.revoke
     SelfModeration:
       Report: ak.self.moderation.command.report
     SelfPolicy:

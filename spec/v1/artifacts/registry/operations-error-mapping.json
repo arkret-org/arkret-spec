@@ -472,6 +472,31 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
+      "operation_id": "ak.self.invite_locator.command.issue",
+      "http_alias": "POST /_arkret/self/invite-locators",
+      "operation_specific": [
+        "failed_precondition",
+        "rate_limited"
+      ],
+      "description": "Issue fails closed when the authenticated principal reaches the active-locator limit or the requested TTL violates deployment policy."
+    },
+    {
+      "operation_id": "ak.self.invite_locator.command.rotate",
+      "http_alias": "POST /_arkret/self/invite-locators/rotate",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Unknown, consumed, revoked, or cross-principal locator ids are not enumerable and return not_found."
+    },
+    {
+      "operation_id": "ak.self.invite_locator.command.revoke",
+      "http_alias": "POST /_arkret/self/invite-locators/revoke",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Repeated revocation by the same principal is idempotent; unknown, consumed, or cross-principal locator ids return not_found."
+    },
+    {
       "operation_id": "ak.self.direct_conversation.command.resolve",
       "http_alias": "POST /_arkret/self/direct-conversations/resolve",
       "operation_specific": [

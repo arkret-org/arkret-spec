@@ -18,13 +18,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 185,
+    "total_operations": 188,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 173
+      "typed_schema": 176
     },
     "by_tier_and_class": {
       "core": {
@@ -39,7 +39,7 @@
         "binary_or_redirect": 2,
         "no_request_body": 1,
         "service_describe": 2,
-        "typed_schema": 115
+        "typed_schema": 118
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -2007,6 +2007,48 @@
       "openapi_component_refs": {},
       "completeness_class": "streaming_frame_schema",
       "reason": "NDJSON event/account frame stream; frame contract lives in a dedicated frame schema, not a single DTO."
+    },
+    {
+      "operation_id": "ak.self.invite_locator.command.issue",
+      "tier": "extension",
+      "http": "POST /_arkret/self/invite-locators",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_request_body",
+      "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/InviteLocatorIssueRequestBody",
+        "response": "#/components/schemas/InviteLocatorIssueOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.invite_locator.command.revoke",
+      "tier": "extension",
+      "http": "POST /_arkret/self/invite-locators/revoke",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_request_body",
+      "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/InviteLocatorRevokeRequestBody",
+        "response": "#/components/schemas/InviteLocatorRevokeOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.invite_locator.command.rotate",
+      "tier": "extension",
+      "http": "POST /_arkret/self/invite-locators/rotate",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_rotate_request_body",
+      "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/InviteLocatorRotateRequestBody",
+        "response": "#/components/schemas/InviteLocatorIssueOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.invite_receive_policy.resource.get",

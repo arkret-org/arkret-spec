@@ -1630,6 +1630,103 @@
       }
     },
     {
+      "operation_id": "ak.self.invite_locator.command.issue",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_request_body",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "ttl_seconds",
+          "one_time_use",
+          "display_hint"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome",
+        "schema_kind": "object",
+        "required": [
+          "locator_id",
+          "locator_token",
+          "expires_at",
+          "one_time_use"
+        ],
+        "properties": [
+          "locator_id",
+          "locator_token",
+          "expires_at",
+          "one_time_use"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.invite_locator.command.rotate",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_rotate_request_body",
+        "schema_kind": "object",
+        "required": [
+          "locator_id"
+        ],
+        "properties": [
+          "locator_id",
+          "ttl_seconds",
+          "one_time_use",
+          "display_hint"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome",
+        "schema_kind": "object",
+        "required": [
+          "locator_id",
+          "locator_token",
+          "expires_at",
+          "one_time_use"
+        ],
+        "properties": [
+          "locator_id",
+          "locator_token",
+          "expires_at",
+          "one_time_use"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.invite_locator.command.revoke",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_request_body",
+        "schema_kind": "object",
+        "required": [
+          "locator_id"
+        ],
+        "properties": [
+          "locator_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_outcome",
+        "schema_kind": "object",
+        "required": [
+          "locator_id",
+          "status",
+          "revoked_at"
+        ],
+        "properties": [
+          "locator_id",
+          "status",
+          "revoked_at"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.self.direct_conversation.command.resolve",
       "success_shape_kind": "typed_response",
       "request": {

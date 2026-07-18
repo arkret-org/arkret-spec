@@ -188,6 +188,8 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 
 | 项 | v1 默认上限 / 下限 | 规则 |
 | --- | ---: | --- |
+| invite locator `ttl_seconds` | 60..3,600 seconds（默认 900） | 见 [invite-addressing.md](../sync/invite-addressing.md) §3.1；小于下限或超过硬上限 MUST `schema_violation`，部署 MAY 在此范围内缩短实际 TTL。 |
+| 单 principal 同时 active invite locator 数 | 16 | issue 若将 active 数增加到 17 MUST fail closed（`rate_limited` 或 `failed_precondition`），不得隐式撤销未指定 locator；expired、revoked、consumed record 不计入 active。rotate 在同一事务中以一换一，不得因边界值 16 被拒绝。 |
 | `ak.invite.third_party.expires_at` base-profile 硬上限 | 7 days | 见 [third-party-invites.md](../sync/third-party-invites.md) §6。超过 base-profile 上限的第三方 invite MUST reject 或要求声明扩展 profile + revalidation proof；高安全 / audited / enterprise Realm 的硬上限为 24 hours。 |
 | 第三方 invite `(invite_id, claim_nonce)` replay set TTL | `invite.expires_at + 24h`（下限） | 验证服务 / 接收 Sync Service MUST 至少保留到该窗口结束；窗口内重复 claim MUST 在 reducer 仲裁前拒绝。replay key SHOULD 以 HMAC / hash 存储，不得持久化明文 invite token。 |
 | expired invite token secret zeroize | 24h 内 | `expires_at <= now` 后，服务端 MUST 在 24h 内 zeroize `token_salt` / lookup pepper material，并 GC active commitment 记录；claim 路径返回 `expired_invite_token` 或等价不可枚举错误。 |
