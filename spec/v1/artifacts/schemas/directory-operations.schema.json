@@ -1137,16 +1137,31 @@
       },
       "additionalProperties": false
     },
-    "psi_base64url_bytes": {
+    "psi_ristretto255_element": {
       "type": "string",
-      "description": "Unpadded base64url-encoded bytes (RFC 4648 §5, no '=' padding).",
-      "pattern": "^[A-Za-z0-9_-]+$",
-      "minLength": 1
+      "description": "Canonical unpadded base64url encoding of one 32-byte RFC 9497 ristretto255 element. Decoders MUST additionally reject non-canonical group encodings and the identity element.",
+      "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$"
+    },
+    "psi_voprf_proof": {
+      "type": "string",
+      "description": "Canonical unpadded base64url encoding of one 64-byte RFC 9497 batched DLEQ proof (two 32-byte scalars).",
+      "pattern": "^[A-Za-z0-9_-]{85}[AQgw]$"
+    },
+    "psi_derived_prefix_16": {
+      "type": "string",
+      "description": "Canonical unpadded base64url encoding of the v1 fixed 16-byte derived digest prefix.",
+      "pattern": "^[A-Za-z0-9_-]{21}[AQgw]$"
+    },
+    "psi_response_padding": {
+      "type": "string",
+      "description": "ASCII SP padding. The origin serializes the complete response with RFC 8785 JCS as UTF-8, omits Content-Encoding and applies no content coding, and chooses this value so the HTTP entity body Content-Length exactly equals the phase bucket declared by ServiceDescribe.private_contact_discovery.",
+      "pattern": "^ *$",
+      "maxLength": 262144
     },
     "psi_batch_id": {
       "type": "string",
-      "description": "Client-generated typed batch id correlating the blind and match rounds of one logical PSI query (charged once against the PSI quota).",
-      "pattern": "^ak:batch:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+      "description": "Client-generated UUIDv7 typed batch id correlating the blind and match rounds of one logical PSI query. It is unique within the authenticated device credential and is bound to canonical request digests for replay-safe quota charging.",
+      "pattern": "^ak:batch:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "psi_profile": {
       "const": "ak.private_contact_discovery.v1"
@@ -1174,9 +1189,9 @@
         },
         "ciphersuite": {
           "type": "string",
-          "description": "RFC 9497 OPRF ciphersuite identifier; v1 core requires at least OPRF-ristretto255-SHA512.",
+          "description": "Exact RFC 9497 ciphersuite identifier. The ak.private_contact_discovery.v1 profile fixes the separate RFC protocol mode to modeVOPRF (0x01).",
           "enum": [
-            "OPRF-ristretto255-SHA512"
+            "ristretto255-SHA512"
           ]
         },
         "key_epoch": {
@@ -1185,8 +1200,9 @@
         },
         "blinded_elements": {
           "type": "array",
+          "description": "Client-padded batch. Cardinality MUST equal ServiceDescribe.private_contact_discovery.batch_size; real and dummy elements are indistinguishable to the provider.",
           "items": {
-            "$ref": "#/$defs/psi_base64url_bytes"
+            "$ref": "#/$defs/psi_ristretto255_element"
           },
           "minItems": 1,
           "maxItems": 1024
@@ -1196,7 +1212,7 @@
     },
     "psi_match_request_body": {
       "type": "object",
-      "description": "Round 2 of the §6.2 two-round PSI: the client submits fixed-length derived digest prefixes for the batch admitted at the blind round. An admitted batch_id MUST NOT be quota-denied at this phase.",
+      "description": "Round 2 of the §6.2 two-round PSI: the client submits one fixed 16-byte derived digest prefix for every element of the admitted blind batch, preserving cardinality and order. An admitted batch_id MUST NOT be quota-denied at this phase.",
       "required": [
         "profile",
         "phase",
@@ -1220,9 +1236,9 @@
         },
         "derived_prefixes": {
           "type": "array",
-          "description": "Each entry is the fixed-length prefix (derived_prefix_bytes, declared in the blind outcome) of the unblinded OPRF output digest.",
+          "description": "Each entry is the fixed 16-byte prefix of the corresponding unblinded VOPRF output digest. Cardinality and order MUST equal the admitted blind request.",
           "items": {
-            "$ref": "#/$defs/psi_base64url_bytes"
+            "$ref": "#/$defs/psi_derived_prefix_16"
           },
           "minItems": 1,
           "maxItems": 1024
@@ -1277,7 +1293,8 @@
           ]
         },
         "state_digest": {
-          "$ref": "#/$defs/non_empty_string",
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
           "description": "If present, MUST be salted per requester/session or replaced by an audience-bound opaque token per consent-model.md §6.2."
         },
         "next_step": {
@@ -1297,7 +1314,7 @@
     },
     "psi_blind_outcome": {
       "type": "object",
-      "description": "Round 1 success outcome: OPRF evaluations over the submitted blinded elements plus the declared fixed prefix length for round 2. evaluated_elements MUST be same-length and same-order as the request's blinded_elements.",
+      "description": "Round 1 success outcome: VOPRF evaluations over the fixed-size submitted batch plus one RFC 9497 batched proof. evaluated_elements MUST be same-length and same-order as the request's blinded_elements.",
       "required": [
         "profile",
         "phase",
@@ -1306,7 +1323,8 @@
         "key_epoch",
         "evaluated_elements",
         "evaluation_proofs",
-        "derived_prefix_bytes"
+        "derived_prefix_bytes",
+        "padding"
       ],
       "properties": {
         "profile": {
@@ -1321,7 +1339,7 @@
         "ciphersuite": {
           "type": "string",
           "enum": [
-            "OPRF-ristretto255-SHA512"
+            "ristretto255-SHA512"
           ]
         },
         "key_epoch": {
@@ -1331,25 +1349,27 @@
         "evaluated_elements": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/psi_base64url_bytes"
+            "$ref": "#/$defs/psi_ristretto255_element"
           },
           "minItems": 1,
           "maxItems": 1024
         },
         "evaluation_proofs": {
           "type": "array",
-          "description": "RFC 9497 VOPRF evaluate proof(s): either one batched proof or one per element; the shape MUST be declared in server/describe.discovery and stay fixed per key epoch.",
+          "description": "Exactly one RFC 9497 batched VOPRF DLEQ proof covering the entire fixed-size evaluated_elements array. The client verifies it with the public key for this key_epoch from ServiceDescribe.private_contact_discovery.",
           "items": {
-            "$ref": "#/$defs/psi_base64url_bytes"
+            "$ref": "#/$defs/psi_voprf_proof"
           },
           "minItems": 1,
-          "maxItems": 1024
+          "maxItems": 1
         },
         "derived_prefix_bytes": {
           "type": "integer",
-          "description": "Fixed byte length of each round-2 derived_prefixes entry.",
-          "minimum": 4,
-          "maximum": 64
+          "description": "Fixed byte length of every round-2 derived_prefixes entry in the v1 profile.",
+          "const": 16
+        },
+        "padding": {
+          "$ref": "#/$defs/psi_response_padding"
         }
       },
       "additionalProperties": false
@@ -1362,7 +1382,8 @@
         "phase",
         "batch_id",
         "key_epoch",
-        "hit_bitmap"
+        "hit_bitmap",
+        "padding"
       ],
       "properties": {
         "profile": {
@@ -1384,7 +1405,7 @@
             "type": "boolean"
           },
           "minItems": 1,
-          "maxItems": 4096
+          "maxItems": 1024
         },
         "handoff_stubs": {
           "type": "array",
@@ -1393,7 +1414,10 @@
             "$ref": "#/$defs/invite_consent_handoff_stub"
           },
           "minItems": 1,
-          "maxItems": 4096
+          "maxItems": 1024
+        },
+        "padding": {
+          "$ref": "#/$defs/psi_response_padding"
         }
       },
       "additionalProperties": false

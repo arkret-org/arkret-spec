@@ -80,7 +80,8 @@
           "ak.profile.directory_service.v1"
         ],
         "supported_operations": [
-          "ak.find.directory.query.describe"
+          "ak.find.directory.query.describe",
+          "ak.find.directory.query.private_contact_discovery"
         ],
         "supported_bindings": [
           {
@@ -107,8 +108,36 @@
           "handle"
         ],
         "discovery_profiles": [
-          "ak.profile.directory_service.v1"
+          "ak.profile.directory_service.v1",
+          "ak.private_contact_discovery.v1"
         ],
+        "private_contact_discovery": {
+          "profile": "ak.private_contact_discovery.v1",
+          "oprf_mode": "VOPRF",
+          "ciphersuite": "ristretto255-SHA512",
+          "public_key": "yAPizGsF_BUGRUm1kgZZykp3ssym8E9rNXAJM1R2rU4",
+          "key_epoch": 14,
+          "batch_size": 4,
+          "derived_prefix_bytes": 16,
+          "proof_shape": "single_batched_dleq",
+          "handoff_stubs_mode": "always",
+          "response_size_buckets_bytes": [
+            4096,
+            16384,
+            65536,
+            262144
+          ],
+          "blind_response_bucket_bytes": 4096,
+          "match_response_bucket_bytes": 4096,
+          "batch_completion_ttl_seconds": 3600,
+          "max_psi_queries_per_window": 1,
+          "quota_window_seconds": 86400,
+          "anti_enumeration_delay": {
+            "minimum_ms": 100,
+            "jitter_ms": 50,
+            "distribution": "uniform"
+          }
+        },
         "restricted_query_proof": true,
         "ingest_modes": [
           "push",

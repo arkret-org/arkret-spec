@@ -94,7 +94,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "6575c12ea955bf533ef643ff04300632d6344347bd3c81ac8c8b9ac8563617eb"
+      "sha256": "64c4e3e7ac05399fc4360f6c99ba7d7c695da4c3fd533d9f21d6dcd6db6228a1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -174,7 +174,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "6533d0622c43e3c1707d0bb725a6396280b798a97f8754c068f5f2b348aa9cae"
+      "sha256": "1b948ba2613103815cc86364512731480677b739963f93ba1dd1b59b64136e3c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -202,7 +202,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "803eef7f1c9971ffc0a9a3bbbb9bdb518bcefb9a5ef7805dde2e73897963f634"
+      "sha256": "210bedf7f8b0ae8776f8f0f208399c33b747eabc4cef21740ac6500bdac99e86"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

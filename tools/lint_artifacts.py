@@ -3930,6 +3930,12 @@ def check_operation_dto_closure(lint: Lint) -> None:
     index = load_json(lint, index_path)
     if not isinstance(index, dict):
         return
+    def summaries(dto: dict[str, Any]):
+        yield dto
+        for variant in dto.get("variants", []):
+            if isinstance(variant, dict):
+                yield from summaries(variant)
+
     for operation in index.get("operations", []):
         if not isinstance(operation, dict):
             continue
@@ -3938,19 +3944,20 @@ def check_operation_dto_closure(lint: Lint) -> None:
             dto = operation.get(role)
             if not isinstance(dto, dict):
                 continue
-            if dto.get("schema_kind") != "object" or dto.get("closed") is True:
-                continue
-            schema_ref = dto.get("schema_ref") or ""
-            source = _resolve_dto_object(schema_ref)
-            marked = isinstance(source, dict) and (
-                source.get("x_extension_surface") is True or bool(source.get("$comment"))
-            )
-            if not marked:
-                lint.fail(
-                    index_path,
-                    f"{operation_id} {role} DTO is type:object but not closed: {schema_ref} "
-                    "MUST declare additionalProperties:false or be marked open (x_extension_surface / $comment)",
+            for summary in summaries(dto):
+                if summary.get("schema_kind") != "object" or summary.get("closed") is True:
+                    continue
+                schema_ref = summary.get("schema_ref") or ""
+                source = _resolve_dto_object(schema_ref)
+                marked = isinstance(source, dict) and (
+                    source.get("x_extension_surface") is True or bool(source.get("$comment"))
                 )
+                if not marked:
+                    lint.fail(
+                        index_path,
+                        f"{operation_id} {role} DTO is not closed: {schema_ref} "
+                        "MUST close every object/oneOf variant or be marked open (x_extension_surface / $comment)",
+                    )
 
 
 def check_text_reference_targets(lint: Lint) -> None:

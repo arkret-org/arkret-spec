@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-10",
+  "version": "2026-07-18",
   "codes": [
     {
       "code": "bad_json",
@@ -458,10 +458,16 @@
       "description": "The caller exceeded the current rate limit policy."
     },
     {
+      "code": "psi_batch_unavailable",
+      "http_status": 410,
+      "scope": "both",
+      "description": "The private-contact-discovery batch is unavailable for match or replay because it is unknown, belongs to another authenticated device credential, or exceeded batch_completion_ttl_seconds (after which its pinned VOPRF epoch may be released). These causes intentionally share one response. A conforming provider MUST retain the pinned epoch for the full completion TTL. Returned as a padded PSI Class B ErrorEnvelope; callers must start a new blind batch, subject to the existing PSI quota. See zh/discovery/discovery-directory.md §6.4."
+    },
+    {
       "code": "psi_quota_exhausted",
       "http_status": 429,
       "scope": "both",
-      "description": "The authenticated device exhausted `max_psi_queries_per_window` for private contact discovery in the current quota window. Returned only at the PSI blind phase, before any target is evaluated; an admitted batch_id's match request MUST NOT be quota-denied. The response is a standard ErrorEnvelope padded to the same size bucket and anti-enumeration delay class as the success path (Class B), and MUST carry a `Retry-After` header quantized up to a multiple of 300s. Distinct from the generic `rate_limited` transport throttle (this code is the per-device PSI window quota with its own reset rules) and from `quota_exceeded` (403 storage/bandwidth/compute quota, which is not window-scoped). See zh/discovery/discovery-directory.md §6.3/§6.4."
+      "description": "The authenticated device exhausted `max_psi_queries_per_window` for private contact discovery in the current quota window. Returned only at first blind admission, before any target is evaluated; admitted match and exact retries MUST NOT be quota-denied. The response is a PSI Class B ErrorEnvelope with required top-level ASCII-SP padding, exact phase Content-Length bucket, no Content-Encoding/content coding, and the advertised anti-enumeration delay distribution. It MUST carry a decimal-seconds `Retry-After` rounded up to a 300s multiple (minimum 300). Distinct from generic `rate_limited` and from 403 `quota_exceeded`. See zh/discovery/discovery-directory.md §6.3/§6.4."
     },
     {
       "code": "timeout",
