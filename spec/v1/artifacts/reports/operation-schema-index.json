@@ -2169,32 +2169,17 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body",
-        "schema_kind": "object",
-        "required": [
-          "requester",
-          "contacts"
-        ],
-        "properties": [
-          "requester",
-          "contacts",
-          "proofs",
-          "privacy_profile",
-          "padding"
-        ],
-        "closed": true
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
       },
       "response": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_outcome",
-        "schema_kind": "object",
-        "required": [
-          "matches"
-        ],
-        "properties": [
-          "matches",
-          "proofs",
-          "retry_after_ms"
-        ],
-        "closed": true
+        "schema_kind": null,
+        "required": [],
+        "properties": [],
+        "closed": false
       }
     },
     {
