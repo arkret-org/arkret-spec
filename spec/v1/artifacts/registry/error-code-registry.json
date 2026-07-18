@@ -458,6 +458,12 @@
       "description": "The caller exceeded the current rate limit policy."
     },
     {
+      "code": "psi_quota_exhausted",
+      "http_status": 429,
+      "scope": "both",
+      "description": "The authenticated device exhausted `max_psi_queries_per_window` for private contact discovery in the current quota window. Returned only at the PSI blind phase, before any target is evaluated; an admitted batch_id's match request MUST NOT be quota-denied. The response is a standard ErrorEnvelope padded to the same size bucket and anti-enumeration delay class as the success path (Class B), and MUST carry a `Retry-After` header quantized up to a multiple of 300s. Distinct from the generic `rate_limited` transport throttle (this code is the per-device PSI window quota with its own reset rules) and from `quota_exceeded` (403 storage/bandwidth/compute quota, which is not window-scoped). See zh/discovery/discovery-directory.md §6.3/§6.4."
+    },
+    {
       "code": "timeout",
       "http_status": 504,
       "scope": "both",

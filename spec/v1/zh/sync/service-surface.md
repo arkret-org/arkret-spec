@@ -796,7 +796,7 @@ Actor / handle directory MUST NOT return pairwise DID、private DID、private ha
 POST /_arkret/find/directory/private-contact-discovery
 ```
 
-该操作用于 `ak.private_contact_discovery.v1`。请求 MUST 使用 blinded / padded connection identifier batch，响应只返回 PSI set-membership 命中位图与最小 invite/consent handoff stub；MUST NOT 返回 contact request handoff token、time-bound reachability proof、原始 connection identifier、完整 profile、成员列表、Realm membership 或关系图谱。联系人请求与 direct conversation resolver 的正式语义见 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md)。
+该操作用于 `ak.private_contact_discovery.v1`。请求 MUST 使用 blinded / padded connection identifier batch，响应只返回 PSI set-membership 命中位图与最小 invite/consent handoff stub；MUST NOT 返回 contact request handoff token、time-bound reachability proof、原始 connection identifier、完整 profile、成员列表、Realm membership 或关系图谱。PSI window quota 只在 blind 阶段执行，超额返回 429 `psi_quota_exhausted`（标准 ErrorEnvelope + 量化 `Retry-After`，与成功路径同大小桶、同延迟档），不得伪装成 200 no-match；逐目标失败情形一律编码为固定 cardinality 命中位图中的未命中位（[`../discovery/discovery-directory.md` §6.4](../discovery/discovery-directory.md)）。联系人请求与 direct conversation resolver 的正式语义见 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md)。
 
 ## 9. MIMI Provider Facade Surface（extension profile）
 

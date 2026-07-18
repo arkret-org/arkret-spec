@@ -309,7 +309,7 @@ OPRF 选择：
 - Provider OPRF secret key MUST 周期轮换（默认 ≥ 7 天 / ≤ 90 天）；轮换后客户端持有的 derived 缓存自动失效，避免长期跨域关联。
 - Provider MUST 在 `server/describe.discovery` 暴露当前 ciphersuite、key epoch、batch size / padding 上限。
 
-### 6.3 请求形态（非完整 schema）
+### 6.3 请求 / 响应形态（非完整 schema）
 
 第一轮（blind）：
 
@@ -336,14 +336,73 @@ OPRF 选择：
 }
 ```
 
+第一轮响应（blind outcome）：
+
+```json
+{
+  "profile": "ak.private_contact_discovery.v1",
+  "phase": "blind",
+  "batch_id": "ak:batch:0196429a-0000-7000-8000-000000000000",
+  "ciphersuite": "OPRF-ristretto255-SHA512",
+  "key_epoch": 14,
+  "evaluated_elements": ["base64url...", "base64url..."],
+  "evaluation_proofs": ["base64url..."],
+  "derived_prefix_bytes": 16
+}
+```
+
+- `evaluated_elements` MUST 与请求的 `blinded_elements` 等长且同序。
+- `evaluation_proofs` 是 RFC 9497 VOPRF evaluate proof；provider MAY 返回单条批量证明或逐元素证明，但形态 MUST 在 `server/describe.discovery` 声明且对同一 key epoch 固定。
+- `derived_prefix_bytes` 声明第二轮 `derived_prefixes` 每条的固定前缀字节长度（§6.2 Round 2）。
+
+第二轮响应（match outcome）：
+
+```json
+{
+  "profile": "ak.private_contact_discovery.v1",
+  "phase": "match",
+  "batch_id": "ak:batch:0196429a-0000-7000-8000-000000000000",
+  "key_epoch": 14,
+  "hit_bitmap": [false, true, false, false],
+  "handoff_stubs": [
+    { "kind": "consent", "state": "unknown", "next_step": "no_action" },
+    { "kind": "consent", "state": "no_consent", "next_step": "request_consent" },
+    { "kind": "consent", "state": "unknown", "next_step": "no_action" },
+    { "kind": "consent", "state": "unknown", "next_step": "no_action" }
+  ]
+}
+```
+
+- `hit_bitmap` 的 cardinality 由 provider 按 policy 固定（dummy padding 到强制 `batch_size`），与命中数无关。
+- `handoff_stubs` 可选；若出现则 MUST 与 `hit_bitmap` 等长，且未命中位置 MUST 携带 dummy stub（如 `state="unknown"`），保持字段形态一致。
+
+quota denial（blind 阶段，HTTP 429 + `Retry-After` header）：
+
+```json
+{
+  "ok": false,
+  "error": {
+    "code": "psi_quota_exhausted",
+    "message": "psi quota exhausted for this device in the current quota window"
+  },
+  "request_id": "req_0196429a0000700080000000000000aa"
+}
+```
+
+- 这是 §6.4 Class B 失败形态：标准 ErrorEnvelope + canonical 错误码 `psi_quota_exhausted`，MUST 填充到与成功响应相同的大小桶并经过同档延迟预算；`Retry-After` 取值规则见 §6.4。
+- quota denial 只在 blind 阶段出现；已被接纳的 `batch_id` 的 match 请求 MUST NOT 再因 quota 被拒。
+
 ### 6.4 规则
 
 - Raw email、phone number、address-book label、local contact name 和未加盐低熵 hash MUST NOT 被发送给公共 Directory，包括第一轮的 OPRF input（OPRF Blind 已经做了 unlinkable 化，但实现仍 MUST 在客户端先做 normalization + canonical encoding，杜绝把明文写入 audit log）。
-- Provider MUST 对 batch 大小、dummy padding、失败响应、计时和 result cardinality 做反枚举处理；不存在、不可发现、policy-denied 和 OPRF mismatch 在 wire 上 MUST 保持相同响应形态与延迟分布。客户端提交的 padding hint（若 profile 扩展保留该字段）只能作为上限内的偏好，Provider MUST 按自身 policy 重写为固定 `batch_size`。
+- Provider MUST 对 batch 大小、dummy padding、失败响应、计时和 result cardinality 做反枚举处理。**不可区分性分两类界定（normative）**：
+  - **Class A（逐目标 outcome）**：目标不存在、不可发现、逐目标 policy-denied 与 OPRF mismatch MUST 统一编码为固定 cardinality 成功 outcome（`hit_bitmap`）中的未命中位，在 HTTP status、字段集合与字节形态上逐目标不可区分；MUST NOT 通过专用错误码、额外字段或逐目标延迟差暴露上述任何一种情形。
+  - **Class B（整请求级失败）**：quota 耗尽与 batch 级 policy 拒绝（如 requester 被封禁、profile 未启用）MUST 使用统一的标准 ErrorEnvelope 失败形态，MUST 填充到与成功响应相同的响应大小桶，且 MUST 经过与成功路径同档的反枚举延迟预算；其内容只允许描述 requester 自身状态，MUST NOT 携带任何逐目标信息。Class B 失败按定义发生在评估任何目标之前（blind 阶段准入），因此不构成逐目标侧信道。
+  - 客户端提交的 padding hint（若 profile 扩展保留该字段）只能作为上限内的偏好，Provider MUST 按自身 policy 重写为固定 `batch_size`。
 - Provider MUST NOT 在第二轮返回 contact request handoff token、reachability proof、handle verified claim、完整 profile、组织成员资格、Realm membership 或读取权限。这些声明只能通过后续 contact / invite + consent 流程获得。既有最小 invite/consent handoff stub 只可声明 consent state hash、grant/revoke 状态或下一步引导，不得成为可直接创建 contact relation 的凭据。
 - Private discovery 结果**仅** 证明"在 provider 当前可联系集合中存在 OPRF derived 与某项匹配的条目"——不证明该条目对应的真实身份、handle、活跃度或意愿。客户端 UI MUST 把它表述为"可能可联系"而不是"已确认存在"。
 - 高隐私客户端 SHOULD 为每个 provider 或关系使用 pairwise DID，并在 consent 完成前避免披露全局 public persona DID。
-- 实现 MUST NOT 在同一 quota window 内允许同一 quota key 提交超过 `max_psi_queries_per_window`（默认 1）次 batch；默认 quota window 为 24h，且 MUST 与 OPRF key epoch 解耦。**quota key 单位（normative）**：quota 以**已认证 device credential**为主键（per-device），使合法的换设备、新设备登录或本地 derived 缓存失效后能在该设备上重新发现联系人，不被另一设备的用尽配额连带锁死；provider MAY 额外施加 per-principal 聚合上界与 IP 维度作为**反滥用上限**(只能更严、不能放宽 per-device 配额),但单一 IP MUST NOT 作为唯一 quota key。**计数单位（normative）**：一次完整 PSI query 含 §6.2 的 blind + match 两轮独立请求，二者按同一 `batch_id` 关联，**整体计 1 次**(不得把 blind 与 match 各计 1 次，否则默认值 1 将使 blind 用尽配额、match 被拒，永远无法完成一次查询)。超过后 provider 返回与其它 policy-denied 情况等形态的 `psi_quota_exhausted`。IP 只能作为辅助限速维度，不能作为唯一 quota key。新 OPRF key epoch 不得单独重置 quota；只有 quota window 滚动或 operator 明确的反滥用解封才能重置。
+- 实现 MUST NOT 在同一 quota window 内允许同一 quota key 提交超过 `max_psi_queries_per_window`（默认 1）次 batch；默认 quota window 为 24h，且 MUST 与 OPRF key epoch 解耦。**quota key 单位（normative）**：quota 以**已认证 device credential**为主键（per-device），使合法的换设备、新设备登录或本地 derived 缓存失效后能在该设备上重新发现联系人，不被另一设备的用尽配额连带锁死；provider MAY 额外施加 per-principal 聚合上界与 IP 维度作为**反滥用上限**(只能更严、不能放宽 per-device 配额),但单一 IP MUST NOT 作为唯一 quota key。**计数单位（normative）**：一次完整 PSI query 含 §6.2 的 blind + match 两轮独立请求，二者按同一 `batch_id` 关联，**整体计 1 次**(不得把 blind 与 match 各计 1 次，否则默认值 1 将使 blind 用尽配额、match 被拒，永远无法完成一次查询)。**超额响应（normative）**：quota MUST 在 blind 阶段（第一轮）准入时执行——已被接纳的 `batch_id` 对应的 match 请求 MUST NOT 再因 quota 被拒（否则既与"整体计 1 次"矛盾，也浪费已完成的 OPRF 计算）。超额时 provider MUST 返回 HTTP 429 + canonical 错误码 `psi_quota_exhausted`（登记于 `artifacts/registry/error-code-registry.json`）的标准 ErrorEnvelope，按 Class B 要求填充到与成功响应相同的大小桶并经过同档延迟预算；MUST 携带 `Retry-After` header，取值为距 quota window 滚动的剩余秒数**向上量化到 300s 的整数倍**（避免精确暴露服务端窗口边界与调度）。provider MUST NOT 把 quota denial 伪装成 200 no-match 成功响应：quota 是 requester 自身状态而非任何目标的秘密，伪装会向诚实客户端注入可被长期缓存的假阴性（默认 quota 下 24h 内无法自我纠正），而枚举攻击者只需在 batch 中放入一个自控 canary identifier 即可识破，得不到真实防护收益。新 OPRF key epoch 不得单独重置 quota；只有 quota window 滚动或 operator 明确的反滥用解封才能重置。
 
 ## 7. Directory Service Role
 
@@ -874,4 +933,4 @@ Directory-capable implementations MUST test：
 
 - `ak.vector.psi.oprf_two_round_shape.v1`：private contact discovery MUST use the §6.2 two-round OPRF set-membership strand。
 - `ak.vector.psi.padding_and_cardinality.v1`：batch size、dummy padding、result cardinality、failure response shape and timing do not reveal match count。
-- `ak.vector.psi.quota_blinded_denial.v1`：`max_psi_queries_per_window` denial has the same wire shape / delay class as policy-denied or no-match cases。
+- `ak.vector.psi.quota_blinded_denial.v1`：`max_psi_queries_per_window` denial is enforced at the blind phase and returns HTTP 429 `psi_quota_exhausted` in the standard ErrorEnvelope with a quantized `Retry-After`, padded to the same response size bucket and anti-enumeration delay class as the success path and batch-level policy-denied failures (§6.4 Class B)；it MUST NOT be disguised as a 200 no-match outcome，and per-target outcomes stay byte-indistinguishable inside the fixed-cardinality `hit_bitmap`（§6.4 Class A）。

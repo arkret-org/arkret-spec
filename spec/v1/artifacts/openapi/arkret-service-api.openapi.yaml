@@ -1125,6 +1125,7 @@ components:
               - quota_exceeded
               - limit_exceeded
               - rate_limited
+              - psi_quota_exhausted
               - timeout
               - stale_frontier
               - authorized_grant_revoked
@@ -3138,6 +3139,22 @@ components:
             $ref: '#/components/schemas/Problem'
     RateLimited:
       description: Rate limited.
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    PsiQuotaExhausted:
+      description: >-
+        PSI window quota exhausted (error code psi_quota_exhausted), returned
+        only at the blind phase of private contact discovery. The envelope MUST
+        be padded to the same response size bucket and pass through the same
+        anti-enumeration delay class as the success path; Retry-After is the
+        remaining time until the quota window rolls, quantized up to a multiple
+        of 300 seconds. It MUST NOT be disguised as a 200 no-match outcome. See
+        zh/discovery/discovery-directory.md §6.4.
       headers:
         Retry-After:
           $ref: '#/components/headers/RetryAfter'
@@ -5223,6 +5240,12 @@ paths:
   /_arkret/find/directory/private-contact-discovery:
     post:
       operationId: ak.find.directory.query.private_contact_discovery
+      description: >-
+        Two-round OPRF set-membership PSI (zh/discovery/discovery-directory.md
+        §6.2/§6.3); the request/response phase field discriminates the blind and
+        match rounds correlated by batch_id. Per-target conditions are encoded
+        as unmatched bits inside the fixed-cardinality hit_bitmap and never
+        surface as error codes.
       security:
       - bearerAuth: []
       requestBody:
@@ -5233,11 +5256,15 @@ paths:
               $ref: '#/components/schemas/DirectoryPrivateContactDiscoveryRequestBody'
       responses:
         '200':
-          description: Time-bound private contact discovery result
+          description: >-
+            Phase-discriminated PSI success outcome (blind evaluations or
+            fixed-cardinality match hit bitmap)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DirectoryPrivateContactDiscoveryOutcome'
+        '429':
+          $ref: '#/components/responses/PsiQuotaExhausted'
   /_arkret/self/blob/upload:
     post:
       operationId: ak.self.blob.upload.create

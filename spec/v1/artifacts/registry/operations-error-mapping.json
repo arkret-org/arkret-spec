@@ -531,7 +531,10 @@
     {
       "operation_id": "ak.find.directory.query.private_contact_discovery",
       "http_alias": "POST /_arkret/find/directory/private-contact-discovery",
-      "operation_specific": []
+      "operation_specific": [
+        "psi_quota_exhausted"
+      ],
+      "description": "psi_quota_exhausted (429) is the only operation-specific failure: blind-phase PSI window quota denial in a standard ErrorEnvelope, padded to the success-path size bucket and delay class, with quantized Retry-After. Per-target conditions (nonexistent, undiscoverable, per-target policy-denied, OPRF mismatch) MUST NOT surface as error codes; they are encoded as unmatched bits inside the fixed-cardinality hit_bitmap. See zh/discovery/discovery-directory.md §6.4."
     },
     {
       "operation_id": "ak.find.directory.query.resolve_handle",

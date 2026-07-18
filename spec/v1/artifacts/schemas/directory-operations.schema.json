@@ -1137,65 +1137,109 @@
       },
       "additionalProperties": false
     },
-    "blinded_contact": {
+    "psi_base64url_bytes": {
+      "type": "string",
+      "description": "Unpadded base64url-encoded bytes (RFC 4648 §5, no '=' padding).",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "minLength": 1
+    },
+    "psi_batch_id": {
+      "type": "string",
+      "description": "Client-generated typed batch id correlating the blind and match rounds of one logical PSI query (charged once against the PSI quota).",
+      "pattern": "^ak:batch:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "psi_profile": {
+      "const": "ak.private_contact_discovery.v1"
+    },
+    "psi_blind_request_body": {
       "type": "object",
+      "description": "Round 1 of the §6.2 two-round OPRF set-membership PSI: the client submits blinded connection identifiers. PSI window quota is enforced here; denial is HTTP 429 psi_quota_exhausted in the standard ErrorEnvelope, never a 200 outcome.",
       "required": [
-        "contact_ref",
-        "identifier_commitment"
+        "profile",
+        "phase",
+        "batch_id",
+        "ciphersuite",
+        "key_epoch",
+        "blinded_elements"
       ],
       "properties": {
-        "contact_ref": {
-          "$ref": "#/$defs/non_empty_string"
+        "profile": {
+          "$ref": "#/$defs/psi_profile"
         },
-        "identifier_kind": {
+        "phase": {
+          "const": "blind"
+        },
+        "batch_id": {
+          "$ref": "#/$defs/psi_batch_id"
+        },
+        "ciphersuite": {
           "type": "string",
+          "description": "RFC 9497 OPRF ciphersuite identifier; v1 core requires at least OPRF-ristretto255-SHA512.",
           "enum": [
-            "phone",
-            "email",
-            "handle",
-            "did",
-            "opaque"
+            "OPRF-ristretto255-SHA512"
           ]
         },
-        "identifier_commitment": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
+        "key_epoch": {
+          "type": "integer",
+          "minimum": 0
         },
-        "padding": {
-          "type": "object"
+        "blinded_elements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/psi_base64url_bytes"
+          },
+          "minItems": 1,
+          "maxItems": 1024
+        }
+      },
+      "additionalProperties": false
+    },
+    "psi_match_request_body": {
+      "type": "object",
+      "description": "Round 2 of the §6.2 two-round PSI: the client submits fixed-length derived digest prefixes for the batch admitted at the blind round. An admitted batch_id MUST NOT be quota-denied at this phase.",
+      "required": [
+        "profile",
+        "phase",
+        "batch_id",
+        "key_epoch",
+        "derived_prefixes"
+      ],
+      "properties": {
+        "profile": {
+          "$ref": "#/$defs/psi_profile"
+        },
+        "phase": {
+          "const": "match"
+        },
+        "batch_id": {
+          "$ref": "#/$defs/psi_batch_id"
+        },
+        "key_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "derived_prefixes": {
+          "type": "array",
+          "description": "Each entry is the fixed-length prefix (derived_prefix_bytes, declared in the blind outcome) of the unblinded OPRF output digest.",
+          "items": {
+            "$ref": "#/$defs/psi_base64url_bytes"
+          },
+          "minItems": 1,
+          "maxItems": 1024
         }
       },
       "additionalProperties": false
     },
     "directory_private_contact_discovery_request_body": {
-      "type": "object",
-      "required": [
-        "requester",
-        "contacts"
-      ],
-      "properties": {
-        "requester": {
-          "$ref": "#/$defs/did"
+      "description": "Two-round OPRF set-membership PSI request (zh/discovery/discovery-directory.md §6.2/§6.3); the phase field discriminates the round.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/psi_blind_request_body"
         },
-        "contacts": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/blinded_contact"
-          },
-          "minItems": 1,
-          "maxItems": 1000
-        },
-        "proofs": {
-          "$ref": "#/$defs/proofs"
-        },
-        "privacy_profile": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "padding": {
-          "type": "object"
+        {
+          "$ref": "#/$defs/psi_match_request_body"
         }
-      },
-      "additionalProperties": false
+      ]
     },
     "invite_consent_handoff_stub": {
       "type": "object",
@@ -1251,63 +1295,119 @@
       },
       "additionalProperties": false
     },
-    "private_contact_match": {
+    "psi_blind_outcome": {
       "type": "object",
+      "description": "Round 1 success outcome: OPRF evaluations over the submitted blinded elements plus the declared fixed prefix length for round 2. evaluated_elements MUST be same-length and same-order as the request's blinded_elements.",
       "required": [
-        "contact_ref",
-        "match_kind"
+        "profile",
+        "phase",
+        "batch_id",
+        "ciphersuite",
+        "key_epoch",
+        "evaluated_elements",
+        "evaluation_proofs",
+        "derived_prefix_bytes"
       ],
       "properties": {
-        "contact_ref": {
-          "$ref": "#/$defs/non_empty_string"
+        "profile": {
+          "$ref": "#/$defs/psi_profile"
         },
-        "match_kind": {
+        "phase": {
+          "const": "blind"
+        },
+        "batch_id": {
+          "$ref": "#/$defs/psi_batch_id"
+        },
+        "ciphersuite": {
           "type": "string",
           "enum": [
-            "handle",
-            "subject",
-            "organization"
+            "OPRF-ristretto255-SHA512"
           ]
         },
-        "handle": {
-          "$ref": "#/$defs/handle"
+        "key_epoch": {
+          "type": "integer",
+          "minimum": 0
         },
-        "subject": {
-          "$ref": "#/$defs/did"
+        "evaluated_elements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/psi_base64url_bytes"
+          },
+          "minItems": 1,
+          "maxItems": 1024
         },
-        "organization_did": {
-          "$ref": "#/$defs/did"
+        "evaluation_proofs": {
+          "type": "array",
+          "description": "RFC 9497 VOPRF evaluate proof(s): either one batched proof or one per element; the shape MUST be declared in server/describe.discovery and stay fixed per key epoch.",
+          "items": {
+            "$ref": "#/$defs/psi_base64url_bytes"
+          },
+          "minItems": 1,
+          "maxItems": 1024
         },
-        "source_refs": {
-          "$ref": "#/$defs/source_refs"
+        "derived_prefix_bytes": {
+          "type": "integer",
+          "description": "Fixed byte length of each round-2 derived_prefixes entry.",
+          "minimum": 4,
+          "maximum": 64
+        }
+      },
+      "additionalProperties": false
+    },
+    "psi_match_outcome": {
+      "type": "object",
+      "description": "Round 2 success outcome: fixed-cardinality hit bitmap (dummy-padded to the provider-enforced batch_size). Per-target conditions (nonexistent, undiscoverable, per-target policy-denied, OPRF mismatch) are encoded as unmatched bits and MUST NOT surface as distinct fields, codes, or timing (§6.4 Class A).",
+      "required": [
+        "profile",
+        "phase",
+        "batch_id",
+        "key_epoch",
+        "hit_bitmap"
+      ],
+      "properties": {
+        "profile": {
+          "$ref": "#/$defs/psi_profile"
         },
-        "handoff_stub": {
-          "$ref": "#/$defs/invite_consent_handoff_stub"
+        "phase": {
+          "const": "match"
+        },
+        "batch_id": {
+          "$ref": "#/$defs/psi_batch_id"
+        },
+        "key_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "hit_bitmap": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          },
+          "minItems": 1,
+          "maxItems": 4096
+        },
+        "handoff_stubs": {
+          "type": "array",
+          "description": "Optional minimal invite/consent handoff stubs. If present, MUST have the same cardinality as hit_bitmap, with dummy stubs (e.g. state=\"unknown\") at unmatched positions so the field shape does not reveal hits.",
+          "items": {
+            "$ref": "#/$defs/invite_consent_handoff_stub"
+          },
+          "minItems": 1,
+          "maxItems": 4096
         }
       },
       "additionalProperties": false
     },
     "directory_private_contact_discovery_outcome": {
-      "type": "object",
-      "required": [
-        "matches"
-      ],
-      "properties": {
-        "matches": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/private_contact_match"
-          }
+      "description": "Two-round PSI success outcomes, discriminated by phase. PSI quota denial is NOT an outcome shape: it is HTTP 429 psi_quota_exhausted in the standard ErrorEnvelope at the blind phase, padded to the success-path size bucket and delay class (§6.4 Class B).",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/psi_blind_outcome"
         },
-        "proofs": {
-          "$ref": "#/$defs/proofs"
-        },
-        "retry_after_ms": {
-          "type": "integer",
-          "minimum": 1
+        {
+          "$ref": "#/$defs/psi_match_outcome"
         }
-      },
-      "additionalProperties": false
+      ]
     },
     "directory_push_register_request_body": {
       "type": "object",
