@@ -139,7 +139,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A per-delivery RFC 9421 HTTP Message Signature failed verification, Content-Digest did not cover the canonical body, or source_service_id disagreed with the Source-Service-ID header / signature transcript. See zh/extensions/applet-integration.md \u00a77.3.1."
+      "description": "A per-delivery RFC 9421 HTTP Message Signature failed verification; the Content-Digest header profile, exact-content digest, or canonical-JSON wire check failed; or source_service_id disagreed with the Source-Service-ID header / signature transcript. See zh/extensions/applet-integration.md \u00a77.3.1."
     },
     {
       "code": "signature_window_invalid",

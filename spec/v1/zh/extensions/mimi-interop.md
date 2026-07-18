@@ -213,7 +213,7 @@ MIMI facade 至少定义以下 canonical operation：
 HTTP Message Signature profile（适用于 provider-to-provider 写入）：
 
 - 请求 MUST 携带 `Signature`、`Signature-Input`、`Content-Digest`、`Request-Canonical-Digest`、`Source-Service-ID`、`Destination-Service-ID` 和 `Provider-ID`；room-scoped endpoint 还 MUST 携带 `MIMI-Room-URI`。
-- `Content-Digest` MUST 是 RFC 9530 `sha-256=:base64(sha256(canonical_json(request_body))):`；`Request-Canonical-Digest` MUST 是同一 canonical request body 的 Arkret `sha256:<hex>` digest。
+- sender MUST 按 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md) 把 `canonical_json(request_body)` 的结果逐字节作为 exact HTTP message content，且不得应用 `Content-Encoding`；`Content-Digest` MUST 是 RFC 9530 `sha-256=:base64(SHA-256(exact_http_content_bytes)):`，`Request-Canonical-Digest` MUST 是同一组 bytes 的 Arkret `sha256:<lowercase-hex>` digest。receiver MUST 先对收到的 exact content bytes 校验二者，再严格解析并确认 wire 本身就是 canonical JSON；MUST NOT parse arbitrary JSON 后仅对 canonicalized value 求 digest。
 - `Signature-Input` 的 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`request-canonical-digest`、`source-service-id`、`destination-service-id`、`provider-id`；room-scoped endpoint MUST additionally cover `mimi-room-uri`。`created`、`expires`、`keyid` 和 `alg="ed25519"` 参数 MUST 存在，且 `expires-created <= 300s`、`created` 在接收方时钟 ±30s 内、`expires` 未过期。
 - `keyid` MUST 是 `Source-Service-ID` 所控制的 Ed25519 verification method；接收方 MUST 用 DID resolution 或已配置信任根解析它。HTTP signature 只认证 provider service source，不替代 Actor DID/device 签名、MLS transcript、capability 或 Realm policy 校验。
 

@@ -453,13 +453,13 @@ transaction push 是 service↔service 调用，**两个方向**都 MUST 携带*
 **覆盖 header 集（MUST，与 [`../sync/federation.md` §3.2](../sync/federation.md) service-to-service 签名对称）**：签名 transcript MUST 覆盖以下 RFC 9421 derived components 与 header：
 
 - `@method`、`@target-uri`、`@authority`
-- `content-digest`（覆盖 canonical request body；transaction push 总是带 body，故 MUST 携带 `Content-Digest`）
+- `content-digest`（按 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md) 覆盖 exact canonical HTTP content bytes；transaction push 总是带 body，故 MUST 携带唯一 `sha-256` member 的 `Content-Digest`）
 - `source-service-id`（header `Source-Service-ID`，等于 body `source_service_id`）
 - `destination-service-id`（header `Destination-Service-ID`，等于接收方 service DID）
 - `idempotency-key`（header `Idempotency-Key`；参与幂等 / replay key，MUST 进入 transcript）
 - 签名 parameters MUST 含 `created` 与 `expires`；时效窗口判据沿用 [`../sync/federation.md` §3.2](../sync/federation.md)（`expires - created` ≤ 300s、`created` ±30s skew、`expires` 未过期），落在窗口外的逐字节重放即便 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝。
 
-接收方 MUST 在验签前先校验 body 实际 hash 与 `Content-Digest` 一致，再验证签名 transcript；body 内 `source_service_id` MUST 与 header `Source-Service-ID` 及签名 transcript 一致。
+接收方 MUST 在 JSON 业务解析与验签前按 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md) 对 exact HTTP content bytes 重算并校验 `Content-Digest`，再严格解析并确认收到的 wire 本身就是 canonical JSON，最后验证签名 transcript；MUST NOT parse arbitrary JSON 后仅对 canonicalized value 求 digest。body 内 `source_service_id` MUST 与 header `Source-Service-ID` 及签名 transcript 一致。
 
 **来源签名锚点（normative）**：接收方在验签通过后 MUST 形成不可伪造的 `source_signature_anchor` audit value，并把它写入 transaction 幂等 / replay 记录；该值不是 request body 字段。锚点 canonical tuple 至少包含：
 
@@ -476,7 +476,7 @@ transaction push 是 service↔service 调用，**两个方向**都 MUST 携带*
 **失败码（normative）**：
 
 - 缺 `Signature` / 纯 bearer：`unauthorized`（401，reason=`http_signature_required`）。
-- 签名验证失败、`content-digest` 不覆盖 body、`source_service_id` 与 header / transcript 不一致：`unauthorized`（401，reason=`http_signature_invalid`）。
+- 签名验证失败、`Content-Digest` header profile 不符合 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md)、digest 不覆盖 exact HTTP content bytes、wire 本身不是 canonical JSON，或 `source_service_id` 与 header / transcript 不一致：`unauthorized`（401，reason=`http_signature_invalid`）。
 - `created` / `expires` 超出时效窗口（含 replay cache evict 后的窗口外重放）：`unauthorized`（401，reason=`signature_window_invalid`）。
 - inbound 方向 `Source-Service-ID` 无 active effective install 或与 registration service DID 不一致：fail closed，reason=`applet_registration_unauthorized`（与 §4 / §4b 同门槛）。
 - 幂等 identity 已存在但 canonical body digest 或 `source_signature_anchor` 不一致：认证成功后 MUST 返回 `duplicate_conflict`；认证未通过时 MUST 优先返回对应认证失败 reason，避免泄露历史 transaction 状态。

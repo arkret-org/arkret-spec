@@ -50,7 +50,7 @@
         "field": "resolved_digest_input",
         "recompute_from_local_contracts": true
       },
-      "expected_digest": "sha256:064b3d1d3e0af6d1047e89372e93f4b20f79338e0b3b18273d5a15cda17f6a15",
+      "expected_digest": "sha256:edc5cf70fbafc2df4d1616a0c009146f3bbfc221392e87ae6b45ff41b699327e",
       "mutation_cases": [
         {
           "name": "event_kind_contract_content_changes",
@@ -88,9 +88,67 @@
         "method": "POST",
         "target_uri": "https://server-beta.example/_arkret/peer/events",
         "operation_id": "ak.peer.events.command.submit",
-        "content_digest_matches_canonical_body": true
+        "content_type": "application/json",
+        "content_encoding": null,
+        "content_digest_placement": "header",
+        "content_digest_algorithm_key": "sha-256",
+        "content_digest_member_count": 1,
+        "exact_http_content_is_arkret_canonical_json": true,
+        "content_digest_input": "exact_http_content_bytes",
+        "request_canonical_digest_input": "same_exact_http_content_bytes"
       },
-      "expected": "canonical_request_hash_matches_signature_input"
+      "mutation_cases": [
+        {
+          "name": "sha256_alias_rejected",
+          "content_digest_algorithm_key": "sha256",
+          "otherwise_valid_signature": true,
+          "expected": "rejected"
+        },
+        {
+          "name": "extra_digest_member_rejected",
+          "content_digest_algorithm_key": "sha-256",
+          "additional_content_digest_member": "sha-512",
+          "otherwise_valid_signature": true,
+          "expected": "rejected"
+        },
+        {
+          "name": "digest_member_parameter_rejected",
+          "content_digest_algorithm_key": "sha-256",
+          "content_digest_member_parameter": "profile=test",
+          "otherwise_valid_signature": true,
+          "expected": "rejected"
+        },
+        {
+          "name": "noncanonical_wire_with_canonical_digest_rejected",
+          "json_value_unchanged": true,
+          "exact_http_content_is_arkret_canonical_json": false,
+          "content_digest_input": "canonicalized_json_bytes",
+          "otherwise_valid_signature": true,
+          "expected": "content_digest_mismatch"
+        },
+        {
+          "name": "noncanonical_wire_with_raw_digest_rejected",
+          "json_value_unchanged": true,
+          "exact_http_content_is_arkret_canonical_json": false,
+          "content_digest_input": "exact_http_content_bytes",
+          "otherwise_valid_signature": true,
+          "expected": "noncanonical_http_content_rejected"
+        },
+        {
+          "name": "trailer_only_content_digest_rejected",
+          "content_digest_placement": "trailer",
+          "otherwise_valid_signature": true,
+          "expected": "rejected"
+        },
+        {
+          "name": "content_coding_rejected",
+          "content_encoding": "gzip",
+          "content_digest_input": "exact_gzip_content_bytes",
+          "otherwise_valid_signature": true,
+          "expected": "rejected"
+        }
+      ],
+      "expected": "exact_canonical_content_digests_match_signature_input"
     },
     {
       "name": "source_destination_service_id_mismatch",

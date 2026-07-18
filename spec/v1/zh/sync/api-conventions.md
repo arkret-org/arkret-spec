@@ -194,7 +194,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 **PoP 出示形态（RFC 9421，与联邦面同栈）**：客户端用 `session_public_key` 对应私钥对请求签名，`Signature-Input` covered components 与联邦 service-to-service 出示对齐（见 [`federation.md` §3.2](./federation.md) 与 [`service-http-binding.md` §2.5](./service-http-binding.md)），至少覆盖：
 
 - `@method`、`@target-uri`、`@authority`（绑定动词、目标 URI 与 host，防止跨 endpoint / 跨 host 复用）；
-- `content-digest`（带 body 的请求必填，编码遵循 RFC 9530，覆盖 canonical request body）；
+- `content-digest`（带 body 的请求必填；exact HTTP content bytes、canonical JSON 要求、RFC 9530 唯一 `sha-256` token 与验签前校验顺序遵循 [`service-http-binding.md` §2.5.1](./service-http-binding.md)）；
 - 关键 header：`Idempotency-Key`（若参与幂等 / replay key）、`X-Arkret-Wait-For`（若出现）；
 - 签名 parameters MUST 包含 `created` 与 `expires`（不得用 `Date` 替代）。
 

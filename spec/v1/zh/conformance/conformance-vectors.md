@@ -4618,18 +4618,22 @@ Expected：
 
 `vector_id`: `ak.vector.session.pop_presentation.v1`
 
-本向量固化 §3.2 / §2.5 的 PoP 出示与 transcript 绑定 MUST：客户端用 `ak.session.grant` 委托的 `session_public_key` 对应私钥做 RFC 9421 HTTP Message Signature，covered components MUST 至少覆盖 `@method`、`@target-uri`、`@authority`，带 body 请求 MUST 含 `content-digest`（RFC 9530，覆盖 canonical request body，接收方 MUST 在验签前先校验 body 实际 hash 与 header 一致）；签名 `kid` MUST 指向当前 grant 的 `session_public_key`；出示是否被接受由签名 transcript 而非裸 token 决定。
+本向量固化 §3.2 / §2.5 的 PoP 出示与 transcript 绑定 MUST：客户端用 `ak.session.grant` 委托的 `session_public_key` 对应私钥做 RFC 9421 HTTP Message Signature，covered components MUST 至少覆盖 `@method`、`@target-uri`、`@authority`，带 body 请求 MUST 含 `content-digest`；request wire MUST 自身为 Arkret canonical JSON，RFC 9530 `Content-Digest` MUST 使用唯一 `sha-256` member 并覆盖 exact HTTP content bytes，接收方 MUST 按 [`service-http-binding.md` §2.5.1](../sync/service-http-binding.md) 在 JSON 业务解析与验签前完成 raw-byte digest 与 canonical-byte equality 校验。签名 `kid` MUST 指向当前 grant 的 `session_public_key`；出示是否被接受由签名 transcript 而非裸 token 决定。
 
 Steps：
 
-- **Case A — 合法 PoP 写请求**：对常规写 endpoint（如 `POST /_arkret/self/events`）提交，`Signature-Input` covered components 含 `@method` / `@target-uri` / `@authority` / `content-digest`（及参与幂等的 `idempotency-key`），`keyid` 指向当前 grant 委托的 `session_public_key` kid，`created` / `expires` 在 replay window 内，body 实际 hash 与 `Content-Digest` header 一致。
-- **Case B — transcript / digest 不一致**：(a) 用对 method `M1` / path `P1` / body `B1` 生成的签名出示到 method / path 不同或 body 改为 `B2` 的请求（covered component 实际值与签名 transcript 不符）；(b) `Content-Digest` header 与 body 实际 hash 不一致。
+- **Case A — 合法 PoP 写请求**：对常规写 endpoint（如 `POST /_arkret/self/events`）提交，request body exact bytes 是 Arkret canonical JSON，`Content-Encoding` absent，`Content-Digest` 为覆盖这些 bytes 的单 member `sha-256=:...:`；`Signature-Input` covered components 含 `@method` / `@target-uri` / `@authority` / `content-digest`（及参与幂等的 `idempotency-key`），`keyid` 指向当前 grant 委托的 `session_public_key` kid，`created` / `expires` 在 replay window 内。
+- **Case B — transcript / digest 不一致**：(a) 用对 method `M1` / path `P1` / body `B1` 生成的签名出示到 method / path 不同或 body 改为 `B2` 的请求（covered component 实际值与签名 transcript 不符）；(b) `Content-Digest` 与 exact HTTP content bytes 的实际 SHA-256 不一致。
+- **Case C — 等价但非 canonical 的 JSON wire**：把 Case A body 改成 parse 后 JSON value 相同、但含额外 whitespace、尾随 LF 或不同 member order 的 bytes，并分别尝试 (a) 保留 canonical body 的 digest；(b) 改为覆盖非 canonical exact bytes 的 RFC 9530 digest，并用合法 session key 对更新后的 header transcript 重新签名，使除 canonical-wire 检查外的认证条件均有效。
+- **Case D — 错误 dictionary profile / placement / content coding**：分别把 `Content-Digest` 改为 `sha256=:...:`、增加额外 `sha-512` member、给 `sha-256` member 增加 parameter、把正确 `Content-Digest` 只放在 trailer section，或对 canonical JSON 应用 gzip 并携带 `Content-Encoding: gzip`。每个 mutation 都 MUST 按其实际 content/header 重算 digest（适用时）并重新签名，使其它 transcript 与认证条件有效。
 
 Expected：
 
 - **Case A**：验签通过，grant 的 principal / device / audience / origin 约束与请求一致，请求被接受；PoP 只把「持有 token」升级为「持有绑定密钥」，协议层权限判断仍回到 actor DID / capability / Realm policy。
 - **Case B(a)**：`@method` / `@target-uri` / `@authority` / `content-digest` 任一与重算结果不符时验签失败，MUST 拒绝（grant 已撤销 / 过期 / audience / origin 不匹配同样 MUST 以 `unauthenticated` 拒绝）。
-- **Case B(b)**：接收方 MUST 在验签前先校验 body 实际 hash 与 `Content-Digest` header 一致，不一致 MUST 拒绝，不得仅凭 header 自报 digest 通过。
+- **Case B(b)**：接收方 MUST 在 JSON 业务解析与验签前先校验 exact HTTP content bytes 的实际 hash 与 `Content-Digest` 一致，不一致 MUST 拒绝，不得仅凭 header 自报 digest 通过。
+- **Case C(a)**：MUST 因 raw-byte digest mismatch 拒绝；**Case C(b)** 即使 RFC 9530 digest 覆盖 raw bytes 也 MUST 因 wire 不是 Arkret canonical JSON 拒绝。两者都不得通过 parse-then-canonicalize 接受。
+- **Case D**：`sha256=:` 不是 `sha-256` alias，额外 member / member parameter、trailer placement 与 gzip content 也分别违反 §2.5.1 的单一无参数 Byte Sequence member、header-section-only 与无 content coding 规则；全部 MUST fail closed。
 
 ### 18.2 Vector: Bare Bearer Rejected On Protected Endpoints
 
@@ -4679,9 +4683,9 @@ Expected：
 
 Steps：
 
-- **Case A — 合法 app/bridge→arkret inbound**：已安装 Applet registration `service_id=did:webvh:z6mkfixture:bridge.example`，`registration_epoch=sha256:<R>`，`webhook_auth.key_ref=did:webvh:z6mkfixture:bridge.example#tx-1`，install active。Applet 提交 `POST /_arkret/edge/applet/transactions`，header `Source-Service-ID=did:webvh:z6mkfixture:bridge.example`、`Destination-Service-ID=did:webvh:z6mkfixture:principal.example`、`Idempotency-Key=tx-001`、`Content-Digest` 与 body 一致；`Signature-Input` 覆盖 required components，`keyid=did:webvh:z6mkfixture:bridge.example#tx-1`，`created` / `expires` 在窗口内；body `source_service_id` 与 header 一致，`events[]` 中的 `applet_id`、`authorization_ref`、`proofs[]` 与 actor namespace / capability grant 均有效。
+- **Case A — 合法 app/bridge→arkret inbound**：已安装 Applet registration `service_id=did:webvh:z6mkfixture:bridge.example`，`registration_epoch=sha256:<R>`，`webhook_auth.key_ref=did:webvh:z6mkfixture:bridge.example#tx-1`，install active。Applet 提交 `POST /_arkret/edge/applet/transactions`，body exact bytes 是 Arkret canonical JSON、`Content-Encoding` absent，header `Source-Service-ID=did:webvh:z6mkfixture:bridge.example`、`Destination-Service-ID=did:webvh:z6mkfixture:principal.example`、`Idempotency-Key=tx-001`、`Content-Digest=sha-256=:...:` 且覆盖 exact body bytes；`Signature-Input` 覆盖 required components，`keyid=did:webvh:z6mkfixture:bridge.example#tx-1`，`created` / `expires` 在窗口内；body `source_service_id` 与 header 一致，`events[]` 中的 `applet_id`、`authorization_ref`、`proofs[]` 与 actor namespace / capability grant 均有效。
 - **Case B — 缺签名 / 纯 bearer**：同一 body 只携带 `Authorization: Bearer` 或完全缺少 `Signature` / `Signature-Input`。
-- **Case C — transcript / source 混淆**：签名覆盖的 `source-service-id`、header `Source-Service-ID` 或 body `source_service_id` 三者任一不同；或 `Destination-Service-ID` 不等于实际接收服务；或 `Content-Digest` 与 body 不一致。
+- **Case C — transcript / source / content 混淆**：签名覆盖的 `source-service-id`、header `Source-Service-ID` 或 body `source_service_id` 三者任一不同；或 `Destination-Service-ID` 不等于实际接收服务；或 `Content-Digest` 与 exact body bytes 不一致；或 body 是语义等价但非 canonical 的 JSON wire；或使用 `sha256=:` alias、trailer-only `Content-Digest` / `Content-Encoding`。对非 canonical wire、alias、trailer 与 content-coding mutation，sender MUST 重算适用的 digest 并用有效 Applet service key 重新签名，使 receiver 必须由相应 profile 规则而非偶然 signature mismatch 拒绝。
 - **Case D — idempotency replay**：重复 Case A 的相同 headers/body/signature anchor；随后再次使用同一 `(operation_id, direction, Source-Service-ID, Destination-Service-ID, Idempotency-Key)`，但改变 body digest、`webhook_auth.key_ref` / `keyid`、`registration_epoch` 或 actor namespace。
 - **Case E — 无 active install / actor namespace 混淆**：`Source-Service-ID` 可验签但没有 active effective install，或 `events[]` 中 actor / `executed_by` 不属于该 Applet registration 的 service / bot / ghost actor namespace，或 `authorization_ref` 指向另一 Applet 的 grant。
 
@@ -4689,7 +4693,7 @@ Expected：
 
 - **Case A**：MUST 接受或按事件级规则返回 partial outcome，并持久化 `source_signature_anchor`（绑定 operation、方向、source/destination、verification method、registration_epoch、`Idempotency-Key`、body digest、covered components、`created` / `expires`）与幂等 outcome。
 - **Case B**：MUST fail closed，HTTP 401，reason=`http_signature_required`；纯 bearer 不满足 transaction push 的 service-to-service 来源认证。
-- **Case C**：MUST 在处理任何 Event / 副作用前 fail closed，reason=`http_signature_invalid`；`Content-Digest` MUST 在验签前重算，source/destination DID mismatch 不得进入业务逻辑。
+- **Case C**：MUST 在处理任何 Event / 副作用前 fail closed，reason=`http_signature_invalid`；`Content-Digest` MUST 在 JSON 业务解析与验签前对 exact bytes 重算，header placement 与 wire canonical equality MUST 独立校验，source/destination DID mismatch 不得进入业务逻辑。parse-then-canonicalize、`sha256=:` alias、trailer-only digest 或 content coding 均不得通过。
 - **Case D**：完全相同的 replay MUST 返回原 outcome 或等价成功且不得重复副作用；同一幂等 identity 但 body digest 或 `source_signature_anchor` 不一致时 MUST fail closed，认证已通过时 reason=`duplicate_conflict`，认证未通过时使用相应认证失败 reason。
 - **Case E**：无 active install MUST fail closed，reason=`applet_registration_unauthorized`；actor / namespace / grant 混淆 MUST fail closed（`applet_namespace_mismatch`、`capability_denied` 或 `applet_registration_unauthorized`），不得把来源 service 签名当成 native actor 授权。
 

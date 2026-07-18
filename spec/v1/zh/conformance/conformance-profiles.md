@@ -494,7 +494,7 @@ SHOULD 支持：
 - `ak.profile.sovereign_deployment.v1`（`ak.profile.sovereign_enclave.v1` 经 `inherits` 继承）
 - `ak.profile.isolated_sovereign_network.v1`（经 `inherits` 同时继承上述两者，无需重复声明）
 
-这些 profile 下，对常规写（任何推进 `actor_seq` / Realm frontier 或产生持久副作用的请求）与敏感读，实现 MUST 要求 RFC 9421 PoP 出示：签名密钥为 `ak.session.grant` 委托的 `session_public_key`，覆盖 `@method` / `@target-uri` / `@authority`、`content-digest`（带 body 时）与参与幂等的 `Idempotency-Key`，`created` / `expires` 落在既有 replay window 内（量级见 [`../sync/federation.md` §3.2](../sync/federation.md) 与 [`encoding.md` §6](./encoding.md)）。纯 `Authorization: Bearer`（无 DPoP / `Signature` / mTLS 绑定）对任何生产 current-v1 受保护 endpoint MUST 被拒绝；公开 metadata surface 若返回 public response，必须按未认证请求处理，不得授予 session / capability 语义。header 形态见 [`../sync/service-http-binding.md` §2.5](../sync/service-http-binding.md)。
+这些 profile 下，对常规写（任何推进 `actor_seq` / Realm frontier 或产生持久副作用的请求）与敏感读，实现 MUST 要求 RFC 9421 PoP 出示：签名密钥为 `ak.session.grant` 委托的 `session_public_key`，覆盖 `@method` / `@target-uri` / `@authority`、`content-digest`（带 body 时）与参与幂等的 `Idempotency-Key`，`created` / `expires` 落在既有 replay window 内（量级见 [`../sync/federation.md` §3.2](../sync/federation.md) 与 [`encoding.md` §6](./encoding.md)）。带 body 请求的 exact canonical HTTP content bytes、唯一 RFC 9530 `sha-256` token 与 raw-byte verification MUST 遵循 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md)。纯 `Authorization: Bearer`（无 DPoP / `Signature` / mTLS 绑定）对任何生产 current-v1 受保护 endpoint MUST 被拒绝；公开 metadata surface 若返回 public response，必须按未认证请求处理，不得授予 session / capability 语义。PoP header 形态见 [`../sync/service-http-binding.md` §2.5.2](../sync/service-http-binding.md)。
 
 ## 16. Sovereign Client
 

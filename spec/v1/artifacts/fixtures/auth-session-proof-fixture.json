@@ -121,6 +121,12 @@
       "authority": "service.example.com",
       "path": "/_arkret/self/events",
       "body": "{\"hello\":\"world\"}",
+      "content_type": "application/json",
+      "content_encoding": null,
+      "content_digest_placement": "header",
+      "content_digest_algorithm_key": "sha-256",
+      "content_digest_member_count": 1,
+      "exact_http_content_is_arkret_canonical_json": true,
       "idempotency_key": "idem-pop-0001",
       "key_id": "did:webvh:z6mkfixture:alice.example#session-key-1",
       "created": 1716000000,
@@ -135,11 +141,22 @@
       "expected": {
         "valid_write": "accepted",
         "tampered_transcript_reason": "unauthenticated",
-        "tampered_digest_reason": "unauthenticated"
+        "tampered_digest_reason": "unauthenticated",
+        "sha256_alias": "rejected",
+        "extra_digest_member": "rejected",
+        "digest_member_parameter": "rejected",
+        "noncanonical_wire_with_canonical_digest": "rejected",
+        "noncanonical_wire_with_raw_digest_and_valid_signature": "rejected",
+        "trailer_only_content_digest": "rejected",
+        "content_coding_with_valid_signature": "rejected"
       },
       "assertions": [
         "valid self write PoP covers method, target-uri, authority, and content-digest",
-        "Content-Digest is recomputed against the actual body before trusting the signature",
+        "Content-Digest uses one parameter-free sha-256 Byte Sequence member in the HTTP header section",
+        "Content-Digest is recomputed against exact HTTP content bytes before trusting the signature",
+        "exact HTTP content bytes equal Arkret canonical JSON bytes",
+        "parse-then-canonicalize verification is rejected even when the signature is otherwise valid",
+        "Content-Encoding and trailer-only Content-Digest are rejected",
         "method, path, or body transcript mismatch rejects the request"
       ]
     },

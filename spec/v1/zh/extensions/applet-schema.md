@@ -251,7 +251,7 @@ Idempotency-Key: <opaque-string>
 | `Idempotency-Key` | header | `string` | required | 发送方生成的幂等 / nonce 键，长度 1..128；接收方 MUST 以 `(operation_id, direction, Source-Service-ID, Destination-Service-ID, Idempotency-Key)` 定位幂等记录，并绑定 canonical body digest 与 `source_signature_anchor`；重复键但 body digest 或签名锚点不同 MUST fail closed。 |
 | `Source-Service-ID` | header | `did` | required | 推送来源 service DID；MUST 等于 body `source_service_id`，并进入 HTTP Message Signature transcript。 |
 | `Destination-Service-ID` | header | `did` | required | 接收方 service DID；MUST 等于实际接收服务 identity，并进入 HTTP Message Signature transcript。 |
-| `Content-Digest` | header | `sha256=:...:` | required | 覆盖 canonical request body；接收方 MUST 在验签前重算 body hash。 |
+| `Content-Digest` | header | `sha-256=:...:` | required | 按 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md) 覆盖 exact canonical HTTP content bytes；接收方 MUST 在 JSON 业务解析与验签前对 exact bytes 重算，拒绝 `sha256=:` alias、非 canonical JSON wire 与 parse-then-canonicalize verification。 |
 | `Signature-Input` | header | `string` | required | RFC 9421 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`idempotency-key`，并带 `created` / `expires`。 |
 | `Signature` | header | `string` | required | 来源 service DID 的逐次 HTTP Message Signature；纯 bearer 不满足 transaction push 认证。 |
 | `source_service_id` | body | `did` | required | 推送来源 service DID。 |
@@ -376,4 +376,3 @@ GET /_arkret/edge/applet/protocols/{protocol}
 | `retry_after_ms` | `int` | optional | 建议重试延迟，仅当 `retriable=true` 时有意义。 |
 
 `ak.applet.bridge_error` MUST 绑定 `realm_id`、`failed_transaction_ref`、`retriable` 和 `visibility_scope`；缺少任一 required 字段的 bridge error event MUST 被以 `schema_violation` 拒绝。该 event MUST NOT 泄露未授权外部正文（与 [`applet-integration.md` §16](./applet-integration.md) 一致）。
-

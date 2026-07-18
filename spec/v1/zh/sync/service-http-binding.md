@@ -715,7 +715,22 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 | `ak.gate.account.exchange.complete_oidc` | `state: string`; `code: string` | `nonce: string`; `redirect_uri: url` | `redirect_url: url` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome。部署可选的 browser redirect landing / handoff；MUST 校验 state、nonce、服务端配置的 issuer binding，并且 MUST NOT 返回 `SessionGrantOutcome` 或 `ak.session.grant`。 |
 | `ak.self.media.query.ice_config` | `realm_id: id`; `call_id: id`; `actor_id: did`; `device_id: id`; `mode: enum(p2p,sfu,turn)` | 无 | `ttl_seconds: int`; `refresh_lead_seconds: int`; `issued_at: datetime`; `issued_at_bucket: datetime`; `bucket_seconds: int`; `ice_servers: object[]`; `constraints: object?`; `signature: signature` | request_schema_ref=schemas/media-operations.schema.json#/$defs/media_ice_config_request_body; response_schema_ref=schemas/ice-config-response.schema.json。actor 必须有 call/media capability；Realtime Media Server 必须被委托；TURN pseudonym bucket 固定 300s。 |
 
-### 2.5 Sender-constrained 会话出示（RFC 9421 PoP）
+### 2.5 签名 JSON content bytes 与 Sender-constrained 会话出示
+
+#### 2.5.1 签名 JSON content bytes 与双摘要绑定（normative）
+
+任何携带 `Content-Digest` 的 Arkret v1 JSON 请求（包括 client PoP 写、service-to-service federation、Applet transaction push 与 MIMI provider-to-provider 写）MUST 使用同一套 byte-level 规则；各业务章节不得另行定义 parse-then-canonicalize 变体：
+
+1. sender MUST 按 [`../conformance/encoding.md` §2](../conformance/encoding.md) 将完整 request body 序列化为 Arkret canonical JSON，记为 `canonical_bytes`；HTTP message content MUST 与 `canonical_bytes` 逐字节相等，不得添加前后空白、尾随换行、不同 member order 或其它等价 JSON spelling。
+2. 该请求 MUST 使用 `Content-Type: application/json`，MUST NOT 应用 content coding，`Content-Encoding` MUST absent。HTTP transfer coding / framing 不属于 content bytes；移除 transfer framing 后交付给应用的 HTTP message content bytes 必须就是 `canonical_bytes`。
+3. Arkret v1 `Content-Digest` MUST 出现在 HTTP header section，MUST NOT 延迟到 trailer section；receiver MUST 把完整 field value 解析为 RFC 9530 Structured Fields dictionary，并要求它恰好包含一个 key 为 `sha-256`、value 为无 parameters Byte Sequence 的 member。sender 的 canonical emission MUST 是 `sha-256=:<base64(SHA-256(canonical_bytes))>:`。额外 dictionary member、member parameter、非 Byte Sequence value 与 `sha256` key 均不属于该 profile；`sha256` 不是 `sha-256` 的 alias，receiver MUST reject。
+4. 要求 `Request-Canonical-Digest` 的 surface MUST 在 HTTP header section 同时发送 `sha256:<lowercase_hex(SHA-256(canonical_bytes))>`，MUST NOT 使用 trailer。这里的 Arkret digest suite id `sha256` 与 RFC 9530 algorithm key `sha-256` 属不同 wire namespace，不得相互改写。两个 header 对同一组 `canonical_bytes` 求同一个 SHA-256，仅输出编码不同。
+5. receiver MUST 在既有 request-size / resource bounds 内、JSON 业务解析或任何副作用前保留 exact HTTP message content bytes，先拒绝不符合第 2–4 项的 content coding / header profile，再对这些 exact bytes 重算、校验 `Content-Digest`；随后按 Arkret strict JSON 规则解析（包括拒绝 malformed UTF-8、BOM、重复 key、非法 number / string），重新生成 `canonical_bytes`，并要求其与收到的 exact content bytes 逐字节相等。raw content 不是 canonical JSON 时，即使 parse 后的 JSON value 与某份 canonical JSON 语义等价，也 MUST 以 `schema_violation` 或该 surface 规定的统一认证失败形态 fail closed。
+6. 要求 `Request-Canonical-Digest` 的 surface 还 MUST 用同一组 exact / canonical-equal bytes 重算并校验该 header，之后才验证覆盖 `content-digest` / `request-canonical-digest` 的 RFC 9421 signature transcript。receiver MUST NOT 仅对已解析 JSON value 重新 canonicalize 后计算 `Content-Digest`，因为该做法没有验证 RFC 9530 所覆盖的实际 HTTP message content。
+
+无 body 的请求是否携带这两个 header 由各 surface 规定；例如无 body 的 federation `GET` pull 按 [`federation.md` §3.2](./federation.md) MUST NOT 携带或签名绑定二者。
+
+#### 2.5.2 Sender-constrained 会话出示（RFC 9421 PoP）
 
 会话出示的推荐序、SHOULD 默认规则与高安全 profile MUST 升级见 [`api-conventions.md` §3 / §3.2](./api-conventions.md)。`/_arkret/self/*` 的默认会话凭据是 `ak.session.grant` + `DPoP`（[`api-conventions.md` §3.3](./api-conventions.md)）；本节固定的 RFC 9421 PoP header 形状用于在该默认之上为带 body 写与敏感读叠加 HTTP Message Signature。
 
@@ -724,7 +739,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 ```http
 POST /_arkret/self/events
 Authorization: Bearer <ak.session.grant>
-Content-Digest: sha256=:<base64>:
+Content-Digest: sha-256=:<base64>:
 Idempotency-Key: <opaque-key>
 Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "idempotency-key");created=...;expires=...;keyid="<session_public_key kid>"
 Signature: sig1=:base64...:
@@ -732,7 +747,7 @@ Signature: sig1=:base64...:
 
 header 规则：
 
-- `Signature-Input` 的 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`；带 body 的请求 MUST 包含 `content-digest`（编码遵循 RFC 9530，覆盖 canonical request body，接收方 MUST 在验签前先校验 body 实际 hash 与 header 一致）。
+- `Signature-Input` 的 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`；带 body 的请求 MUST 包含 `content-digest`，其 exact content bytes、canonical JSON、唯一 `sha-256` token 与验签前校验顺序 MUST 遵循 §2.5.1。
 - 参与幂等 / replay key 的 `Idempotency-Key` MUST 进入签名 transcript；出现 `X-Arkret-Wait-For` 时 SHOULD 一并覆盖，避免被替换。
 - 签名 parameters MUST 包含 `created` 与 `expires`；`keyid` MUST 指向当前会话 `ak.session.grant` 委托的 `session_public_key` kid。
 - 接收方 MUST 校验签名密钥与 grant 绑定的 principal / device / audience / origin 一致，并按既有 replay window（签名时效窗口，量级见 `federation.md` §3.2 / `encoding.md` §6）拒绝过窗或重放出示；时效窗口外的逐字节重放即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝。
