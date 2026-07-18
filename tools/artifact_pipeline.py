@@ -195,39 +195,86 @@ def resolve_schema_pointer(document: Any, fragment: str) -> Any:
     return current
 
 
-def schema_summary(schema_ref: str) -> dict[str, Any]:
-    file_ref, _, fragment = schema_ref.partition("#")
-    schema_path = ARTIFACTS / file_ref
-    document = load_json(schema_path)
-    schema = resolve_schema_pointer(document, f"#{fragment}" if fragment else "#")
-    seen: set[tuple[str, str]] = set()
-    while (
-        isinstance(schema, dict)
-        and isinstance(schema.get("$ref"), str)
-        and set(schema.keys()) == {"$ref"}
-    ):
-        ref = schema["$ref"]
-        key = (schema_path.as_posix(), ref)
-        if key in seen:
-            break
-        seen.add(key)
-        ref_file, _, ref_fragment = ref.partition("#")
-        if ref_file:
-            schema_path = (schema_path.parent / ref_file).resolve()
-            document = load_json(schema_path)
-        schema = resolve_schema_pointer(document, f"#{ref_fragment}" if ref_fragment else "#")
+def _absolute_artifact_schema_ref(schema_path: Path, ref: str) -> tuple[Path, str, str]:
+    ref_file, _, ref_fragment = ref.partition("#")
+    target_path = (schema_path.parent / ref_file).resolve() if ref_file else schema_path.resolve()
+    target_ref = target_path.relative_to(ARTIFACTS.resolve()).as_posix()
+    if ref_fragment:
+        target_ref += f"#{ref_fragment}"
+    return target_path, ref_fragment, target_ref
+
+
+def _schema_summary_node(
+    schema_path: Path,
+    document: Any,
+    schema: Any,
+    display_ref: str,
+    seen: set[tuple[str, str]],
+) -> dict[str, Any]:
     if not isinstance(schema, dict):
         schema = {}
+    if isinstance(schema.get("$ref"), str) and set(schema.keys()) == {"$ref"}:
+        ref = schema["$ref"]
+        target_path, ref_fragment, target_ref = _absolute_artifact_schema_ref(schema_path, ref)
+        key = (target_path.as_posix(), ref_fragment)
+        if key not in seen:
+            target_document = document if target_path == schema_path.resolve() else load_json(target_path)
+            target_schema = resolve_schema_pointer(
+                target_document,
+                f"#{ref_fragment}" if ref_fragment else "#",
+            )
+            return _schema_summary_node(
+                target_path,
+                target_document,
+                target_schema,
+                target_ref,
+                seen | {key},
+            )
+
+    one_of = schema.get("oneOf")
+    if isinstance(one_of, list) and one_of:
+        variants = [
+            _schema_summary_node(schema_path, document, variant, display_ref, seen)
+            for variant in one_of
+        ]
+        property_names: list[str] = []
+        for variant in variants:
+            for field in variant.get("properties", []):
+                if field not in property_names:
+                    property_names.append(field)
+        required_sets = [set(variant.get("required", [])) for variant in variants]
+        common_required = [
+            field
+            for field in property_names
+            if required_sets and all(field in required for required in required_sets)
+        ]
+        return {
+            "schema_ref": display_ref,
+            "schema_kind": "oneOf",
+            "required": common_required,
+            "properties": property_names,
+            "closed": all(variant.get("closed") is True for variant in variants),
+            "variants": variants,
+        }
+
     properties = schema.get("properties")
     required = schema.get("required")
     additional_properties = schema.get("additionalProperties")
     return {
-        "schema_ref": schema_ref,
+        "schema_ref": display_ref,
         "schema_kind": schema.get("type") if isinstance(schema.get("type"), str) else None,
         "required": [field for field in required if isinstance(field, str)] if isinstance(required, list) else [],
         "properties": list(properties.keys()) if isinstance(properties, dict) else [],
         "closed": additional_properties is False,
     }
+
+
+def schema_summary(schema_ref: str) -> dict[str, Any]:
+    file_ref, _, fragment = schema_ref.partition("#")
+    schema_path = (ARTIFACTS / file_ref).resolve()
+    document = load_json(schema_path)
+    schema = resolve_schema_pointer(document, f"#{fragment}" if fragment else "#")
+    return _schema_summary_node(schema_path, document, schema, schema_ref, set())
 
 
 def operation_schema_index_payload(catalog: dict[str, Any]) -> dict[str, Any]:

@@ -537,6 +537,142 @@
       "minItems": 1,
       "uniqueItems": true
     },
+    "private_contact_discovery": {
+      "type": "object",
+      "description": "Complete machine-readable configuration for ak.private_contact_discovery.v1. Required when supported_operations contains ak.find.directory.query.private_contact_discovery; clients MUST fail closed if any field is absent or unsupported.",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "oprf_mode",
+        "ciphersuite",
+        "public_key",
+        "key_epoch",
+        "batch_size",
+        "derived_prefix_bytes",
+        "proof_shape",
+        "handoff_stubs_mode",
+        "response_size_buckets_bytes",
+        "blind_response_bucket_bytes",
+        "match_response_bucket_bytes",
+        "batch_completion_ttl_seconds",
+        "max_psi_queries_per_window",
+        "quota_window_seconds",
+        "anti_enumeration_delay"
+      ],
+      "properties": {
+        "profile": {
+          "const": "ak.private_contact_discovery.v1"
+        },
+        "oprf_mode": {
+          "const": "VOPRF",
+          "description": "RFC 9497 modeVOPRF (0x01), distinct from the ciphersuite identifier."
+        },
+        "ciphersuite": {
+          "const": "ristretto255-SHA512",
+          "description": "Exact RFC 9497 §4.1 ciphersuite identifier."
+        },
+        "public_key": {
+          "type": "string",
+          "description": "Canonical unpadded base64url encoding of the active 32-byte ristretto255 VOPRF public key. Decoders additionally validate the group encoding and reject the identity element.",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$"
+        },
+        "key_epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Epoch accepted for new blind requests. A batch admitted under an older epoch remains bound to its pinned key and cached outcome until its advertised completion TTL expires."
+        },
+        "batch_size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1024,
+          "description": "Exact cardinality required for blinded_elements, evaluated_elements, derived_prefixes, hit_bitmap and, when enabled, handoff_stubs. Clients create indistinguishable dummy elements before sending the blind request."
+        },
+        "derived_prefix_bytes": {
+          "const": 16
+        },
+        "proof_shape": {
+          "const": "single_batched_dleq",
+          "description": "One 64-byte RFC 9497 batched DLEQ proof covers the entire fixed-size batch."
+        },
+        "handoff_stubs_mode": {
+          "type": "string",
+          "enum": [
+            "always",
+            "never"
+          ],
+          "description": "Shape is fixed for the advertised key epoch. always means handoff_stubs is present at every match position with dummy entries where necessary; never means the field is absent for every match outcome."
+        },
+        "response_size_buckets_bytes": {
+          "const": [
+            4096,
+            16384,
+            65536,
+            262144
+          ],
+          "description": "Allowed exact RFC 8785 JCS UTF-8 HTTP entity-body Content-Length buckets for PSI success and Class B failures. The phase uses the smallest bucket that can hold its maximal response shape for the advertised batch_size."
+        },
+        "blind_response_bucket_bytes": {
+          "type": "integer",
+          "enum": [
+            4096,
+            16384,
+            65536,
+            262144
+          ],
+          "description": "Precomputed smallest allowed bucket that holds the largest RFC 8785 JCS body among the maximal legal blind success outcome and every allowed blind-phase Class B error projection for this configuration."
+        },
+        "match_response_bucket_bytes": {
+          "type": "integer",
+          "enum": [
+            4096,
+            16384,
+            65536,
+            262144
+          ],
+          "description": "Precomputed smallest allowed bucket that holds the largest RFC 8785 JCS body among the maximal legal match success outcome and every allowed match-phase Class B error projection for this batch_size and handoff_stubs_mode."
+        },
+        "batch_completion_ttl_seconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 86400,
+          "description": "Exact acceptance interval measured from successful blind admission. The provider retains the pinned key epoch, request bindings and cached outcomes throughout this interval; at or after admission_time + this value it rejects the batch as psi_batch_unavailable."
+        },
+        "max_psi_queries_per_window": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quota_window_seconds": {
+          "type": "integer",
+          "minimum": 300,
+          "maximum": 604800
+        },
+        "anti_enumeration_delay": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "minimum_ms",
+            "jitter_ms",
+            "distribution"
+          ],
+          "properties": {
+            "minimum_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000
+            },
+            "jitter_ms": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            },
+            "distribution": {
+              "const": "uniform"
+            }
+          },
+          "description": "Origin-side delay distribution shared by success and Class B paths for the same phase, sampled only after authentication and syntax validation."
+        }
+      }
+    },
     "restricted_query_proof": {
       "type": "boolean",
       "description": "Whether the directory requires holder-approved proof for restricted or privacy-sensitive query classes."
@@ -768,6 +904,32 @@
         "properties": {
           "verified_profiles": {
             "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "supported_operations": {
+            "contains": {
+              "const": "ak.find.directory.query.private_contact_discovery"
+            }
+          }
+        },
+        "required": [
+          "supported_operations"
+        ]
+      },
+      "then": {
+        "required": [
+          "private_contact_discovery"
+        ],
+        "properties": {
+          "discovery_profiles": {
+            "contains": {
+              "const": "ak.private_contact_discovery.v1"
+            }
           }
         }
       }

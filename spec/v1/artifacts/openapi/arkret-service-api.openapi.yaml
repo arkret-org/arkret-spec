@@ -1125,6 +1125,7 @@ components:
               - quota_exceeded
               - limit_exceeded
               - rate_limited
+              - psi_batch_unavailable
               - psi_quota_exhausted
               - timeout
               - stale_frontier
@@ -2188,6 +2189,73 @@ components:
           - string
           - 'null'
           format: date-time
+    PsiPaddedErrorEnvelope:
+      type: object
+      description: >-
+        Closed PSI Class B projection of the standard ErrorEnvelope with the
+        required padding extension. Details and retry_after_ms are intentionally
+        absent so the maximal semantic body size is bounded.
+      required: [ok, error, request_id, padding]
+      additionalProperties: false
+      properties:
+        ok:
+          const: false
+        error:
+          type: object
+          required: [code, message]
+          additionalProperties: false
+          properties:
+            code:
+              type: string
+              enum:
+              - duplicate_conflict
+              - policy_denied
+              - psi_batch_unavailable
+              - psi_quota_exhausted
+            message:
+              type: string
+              minLength: 1
+              maxLength: 256
+        request_id:
+          type: string
+          minLength: 1
+          maxLength: 128
+        padding:
+          $ref: '#/components/schemas/PsiResponsePadding'
+    PsiPaddedProblem:
+      type: object
+      description: >-
+        Closed RFC 9457 projection of PsiPaddedErrorEnvelope. padding is an RFC
+        9457 extension member and the only extension allowed on this surface.
+      required: [type, status, detail, instance, padding]
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          maxLength: 128
+        title:
+          type: string
+          maxLength: 128
+        status:
+          type: integer
+          enum: [403, 409, 410, 429]
+        detail:
+          type: string
+          maxLength: 256
+        instance:
+          type: string
+          minLength: 1
+          maxLength: 128
+        padding:
+          $ref: '#/components/schemas/PsiResponsePadding'
+    PsiResponsePadding:
+      type: string
+      pattern: '^ *$'
+      maxLength: 262144
+      description: >-
+        ASCII-SP padding chosen so the RFC 8785 JCS UTF-8 JSON HTTP entity body
+        has exactly the phase Content-Length bucket advertised by
+        ServiceDescribe.private_contact_discovery.
     PushNotifyOutcome:
       $ref: ../schemas/push-operations.schema.json#/$defs/push_notify_outcome
     PushNotifyRequestBody:
@@ -2627,6 +2695,8 @@ components:
             `service_type=directory_service`.
           items:
             type: string
+        private_contact_discovery:
+          $ref: ../schemas/service-describe.schema.json#/properties/private_contact_discovery
         restricted_query_proof:
           type: boolean
           description: Whether restricted or privacy-sensitive queries require holder-approved proof.
@@ -3149,19 +3219,118 @@ components:
     PsiQuotaExhausted:
       description: >-
         PSI window quota exhausted (error code psi_quota_exhausted), returned
-        only at the blind phase of private contact discovery. The envelope MUST
-        be padded to the same response size bucket and pass through the same
-        anti-enumeration delay class as the success path; Retry-After is the
-        remaining time until the quota window rolls, quantized up to a multiple
-        of 300 seconds. It MUST NOT be disguised as a 200 no-match outcome. See
-        zh/discovery/discovery-directory.md §6.4.
+        only at first blind admission. The body has the exact blind-phase
+        Content-Length bucket and advertised delay distribution. Retry-After is
+        decimal seconds until quota-window roll, rounded up to a 300-second
+        multiple with minimum 300. See discovery-directory.md §6.4.
       headers:
         Retry-After:
-          $ref: '#/components/headers/RetryAfter'
+          description: Decimal seconds, a positive multiple of 300.
+          schema:
+            type: string
+            pattern: '^[1-9][0-9]*$'
+        Cache-Control:
+          schema:
+            type: string
+            const: no-store, no-transform
+        Content-Length:
+          schema:
+            type: integer
+            enum: [4096, 16384, 65536, 262144]
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorEnvelope'
+            allOf:
+            - $ref: '#/components/schemas/PsiPaddedErrorEnvelope'
+            - properties:
+                error:
+                  properties:
+                    code: {const: psi_quota_exhausted}
+        application/problem+json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/PsiPaddedProblem'
+            - properties:
+                type: {const: 'urn:arkret:error:psi_quota_exhausted'}
+                status: {const: 429}
+    PsiPolicyDenied:
+      description: >-
+        Requester/batch-level policy denial (error code policy_denied). This is
+        a PSI Class B failure and uses the request phase's exact body bucket and
+        advertised delay distribution; it contains no per-target information.
+      headers:
+        Cache-Control:
+          schema: {type: string, const: 'no-store, no-transform'}
+        Content-Length:
+          schema: {type: integer, enum: [4096, 16384, 65536, 262144]}
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/PsiPaddedErrorEnvelope'
+            - properties:
+                error:
+                  properties:
+                    code: {const: policy_denied}
+        application/problem+json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/PsiPaddedProblem'
+            - properties:
+                type: {const: 'urn:arkret:error:policy_denied'}
+                status: {const: 403}
+    PsiDuplicateConflict:
+      description: >-
+        The device-scoped batch_id was reused with different canonical blind or
+        match bytes (error code duplicate_conflict). No evaluation is performed.
+      headers:
+        Cache-Control:
+          schema: {type: string, const: 'no-store, no-transform'}
+        Content-Length:
+          schema: {type: integer, enum: [4096, 16384, 65536, 262144]}
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/PsiPaddedErrorEnvelope'
+            - properties:
+                error:
+                  properties:
+                    code: {const: duplicate_conflict}
+        application/problem+json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/PsiPaddedProblem'
+            - properties:
+                type: {const: 'urn:arkret:error:duplicate_conflict'}
+                status: {const: 409}
+    PsiBatchUnavailable:
+      description: >-
+        The match batch is unknown, belongs to another device, or expired
+        (error code psi_batch_unavailable). Causes are intentionally merged and
+        use the match-phase Class B shape. The pinned epoch is retained for the
+        full advertised completion TTL.
+      headers:
+        Cache-Control:
+          schema: {type: string, const: 'no-store, no-transform'}
+        Content-Length:
+          schema: {type: integer, enum: [4096, 16384, 65536, 262144]}
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/PsiPaddedErrorEnvelope'
+            - properties:
+                error:
+                  properties:
+                    code: {const: psi_batch_unavailable}
+        application/problem+json:
+          schema:
+            allOf:
+            - $ref: '#/components/schemas/PsiPaddedProblem'
+            - properties:
+                type: {const: 'urn:arkret:error:psi_batch_unavailable'}
+                status: {const: 410}
     TemporarilyUnavailable:
       description: Temporarily unavailable.
       headers:
@@ -5258,11 +5427,23 @@ paths:
         '200':
           description: >-
             Phase-discriminated PSI success outcome (blind evaluations or
-            fixed-cardinality match hit bitmap)
+            fixed-cardinality match hit bitmap), padded to the exact advertised
+            phase Content-Length bucket
+          headers:
+            Cache-Control:
+              schema: {type: string, const: 'no-store, no-transform'}
+            Content-Length:
+              schema: {type: integer, enum: [4096, 16384, 65536, 262144]}
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DirectoryPrivateContactDiscoveryOutcome'
+        '403':
+          $ref: '#/components/responses/PsiPolicyDenied'
+        '409':
+          $ref: '#/components/responses/PsiDuplicateConflict'
+        '410':
+          $ref: '#/components/responses/PsiBatchUnavailable'
         '429':
           $ref: '#/components/responses/PsiQuotaExhausted'
   /_arkret/self/blob/upload:

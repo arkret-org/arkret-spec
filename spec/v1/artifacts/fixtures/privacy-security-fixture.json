@@ -189,15 +189,40 @@
       "name": "private_contact_discovery_padding_and_cardinality",
       "operation_id": "ak.find.directory.query.private_contact_discovery",
       "input": {
+        "local_real_identifier_count": 2,
+        "private_contact_discovery_config": {
+          "profile": "ak.private_contact_discovery.v1",
+          "oprf_mode": "VOPRF",
+          "ciphersuite": "ristretto255-SHA512",
+          "public_key": "yAPizGsF_BUGRUm1kgZZykp3ssym8E9rNXAJM1R2rU4",
+          "key_epoch": 14,
+          "batch_size": 4,
+          "derived_prefix_bytes": 16,
+          "proof_shape": "single_batched_dleq",
+          "handoff_stubs_mode": "always",
+          "response_size_buckets_bytes": [4096, 16384, 65536, 262144],
+          "blind_response_bucket_bytes": 4096,
+          "match_response_bucket_bytes": 4096,
+          "batch_completion_ttl_seconds": 3600,
+          "max_psi_queries_per_window": 1,
+          "quota_window_seconds": 86400,
+          "anti_enumeration_delay": {
+            "minimum_ms": 100,
+            "jitter_ms": 50,
+            "distribution": "uniform"
+          }
+        },
         "blind_request": {
           "profile": "ak.private_contact_discovery.v1",
           "phase": "blind",
           "batch_id": "ak:batch:0196429a-0000-7000-8000-000000000000",
-          "ciphersuite": "OPRF-ristretto255-SHA512",
+          "ciphersuite": "ristretto255-SHA512",
           "key_epoch": 14,
           "blinded_elements": [
-            "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqk",
-            "u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7s"
+            "hj8zDMGhJZ7VpZmKI6z9N_tDUaeTpbPAkLZC3cQ5uUU",
+            "kKAUXqnaKSVMOla-T-GFRl67O_KhgB9xJLu62sdR5lQ",
+            "zAsqNQEBiB2KTLpMgCQddPt9y_3kph_eL5FEPCv57ww",
+            "YJoK5owVo89pA3ZkYTB-XIuy-V5-ZVDh_6LcmeQSgDw"
           ]
         },
         "match_request": {
@@ -206,19 +231,26 @@
           "batch_id": "ak:batch:0196429a-0000-7000-8000-000000000000",
           "key_epoch": 14,
           "derived_prefixes": [
-            "zMzMzMzMzMzMzMzMzMzMzA",
-            "3d3d3d3d3d3d3d3d3d3d3Q"
+            "ABEiM0RVZneImaq7zN3u_w",
+            "ECEyQ1RldoeYqbrL3O3-Dw",
+            "IDFCU2R1hpeoucrb7P0OHw",
+            "MEFSY3SFlqe4ydrr_A0eLw"
           ]
-        },
-        "provider_enforced_batch_size": 128
+        }
       },
       "expected": {
+        "wire_batch_cardinality_equals_advertised_batch_size": 4,
+        "wire_batch_cardinality_does_not_equal_real_identifier_count": true,
         "evaluated_elements_same_length_and_order_as_blinded_elements": true,
-        "hit_bitmap_cardinality_is_provider_enforced_batch_size": true,
+        "derived_prefixes_and_hit_bitmap_same_length_and_order": true,
+        "single_batched_dleq_proof_verified_with_described_public_key": true,
         "result_count_does_not_reveal_match_count": true,
         "no_raw_connection_identifier": true,
         "handoff_stubs_if_present_same_cardinality_dummy_padded": true,
-        "per_target_policy_denied_and_no_match_byte_indistinguishable_in_hit_bitmap": true
+        "per_target_policy_denied_and_no_match_byte_indistinguishable_in_hit_bitmap": true,
+        "success_content_length_bytes": 4096,
+        "content_encoding_header_absent": true,
+        "cache_control": "no-store, no-transform"
       }
     },
     {
@@ -226,6 +258,28 @@
       "name": "private_contact_discovery_quota_blind_phase_denial",
       "operation_id": "ak.find.directory.query.private_contact_discovery",
       "input": {
+        "private_contact_discovery_config": {
+          "profile": "ak.private_contact_discovery.v1",
+          "oprf_mode": "VOPRF",
+          "ciphersuite": "ristretto255-SHA512",
+          "public_key": "yAPizGsF_BUGRUm1kgZZykp3ssym8E9rNXAJM1R2rU4",
+          "key_epoch": 14,
+          "batch_size": 4,
+          "derived_prefix_bytes": 16,
+          "proof_shape": "single_batched_dleq",
+          "handoff_stubs_mode": "always",
+          "response_size_buckets_bytes": [4096, 16384, 65536, 262144],
+          "blind_response_bucket_bytes": 4096,
+          "match_response_bucket_bytes": 4096,
+          "batch_completion_ttl_seconds": 3600,
+          "max_psi_queries_per_window": 1,
+          "quota_window_seconds": 86400,
+          "anti_enumeration_delay": {
+            "minimum_ms": 100,
+            "jitter_ms": 50,
+            "distribution": "uniform"
+          }
+        },
         "quota_state": {
           "max_psi_queries_per_window": 1,
           "queries_already_charged_in_window": 1,
@@ -236,12 +290,22 @@
           "profile": "ak.private_contact_discovery.v1",
           "phase": "blind",
           "batch_id": "ak:batch:0196429a-0000-7000-8000-000000000001",
-          "ciphersuite": "OPRF-ristretto255-SHA512",
+          "ciphersuite": "ristretto255-SHA512",
           "key_epoch": 14,
           "blinded_elements": [
-            "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqk"
+            "hj8zDMGhJZ7VpZmKI6z9N_tDUaeTpbPAkLZC3cQ5uUU",
+            "kKAUXqnaKSVMOla-T-GFRl67O_KhgB9xJLu62sdR5lQ",
+            "zAsqNQEBiB2KTLpMgCQddPt9y_3kph_eL5FEPCv57ww",
+            "YJoK5owVo89pA3ZkYTB-XIuy-V5-ZVDh_6LcmeQSgDw"
           ]
-        }
+        },
+        "replay_cases": [
+          "same_blind_digest",
+          "different_blind_digest_same_batch_id",
+          "same_match_digest",
+          "different_match_digest_same_batch_id",
+          "unknown_wrong_device_or_expired_batch"
+        ]
       },
       "expected": {
         "denial_phase": "blind",
@@ -251,15 +315,23 @@
           "ok",
           "error.code",
           "error.message",
-          "request_id"
+          "request_id",
+          "padding"
         ],
         "retry_after_seconds": 3300,
         "retry_after_quantum_seconds": 300,
-        "same_size_bucket_as_success_path": true,
-        "same_delay_class_as_success_path": true,
+        "content_length_bytes": 4096,
+        "content_encoding_header_absent": true,
+        "cache_control": "no-store, no-transform",
+        "same_advertised_delay_distribution_as_success_path": true,
         "not_disguised_as_no_match_outcome": true,
         "admitted_batch_match_request_not_quota_denied": true,
-        "no_per_target_information_in_denial": true
+        "no_per_target_information_in_denial": true,
+        "exact_blind_retry_not_recharged_and_returns_cached_outcome": true,
+        "exact_match_retry_returns_cached_outcome": true,
+        "different_digest_same_batch_id_error_code": "duplicate_conflict",
+        "unknown_wrong_device_or_expired_batch_error_code": "psi_batch_unavailable",
+        "pinned_epoch_retained_for_full_completion_ttl": true
       }
     },
     {

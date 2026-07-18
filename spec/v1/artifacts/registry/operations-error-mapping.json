@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-07-05",
+  "version": "2026-07-18",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -532,9 +532,12 @@
       "operation_id": "ak.find.directory.query.private_contact_discovery",
       "http_alias": "POST /_arkret/find/directory/private-contact-discovery",
       "operation_specific": [
-        "psi_quota_exhausted"
+        "psi_quota_exhausted",
+        "psi_batch_unavailable",
+        "duplicate_conflict",
+        "policy_denied"
       ],
-      "description": "psi_quota_exhausted (429) is the only operation-specific failure: blind-phase PSI window quota denial in a standard ErrorEnvelope, padded to the success-path size bucket and delay class, with quantized Retry-After. Per-target conditions (nonexistent, undiscoverable, per-target policy-denied, OPRF mismatch) MUST NOT surface as error codes; they are encoded as unmatched bits inside the fixed-cardinality hit_bitmap. See zh/discovery/discovery-directory.md §6.4."
+      "description": "psi_quota_exhausted (429) is first-blind PSI window quota denial; psi_batch_unavailable (410) merges unknown/wrong-device/expired match state; duplicate_conflict (409) rejects reuse of a device-scoped batch_id with different canonical blind or match bytes; policy_denied (403) is only for requester/batch-level Class B policy. These failures use the phase's exact padded body bucket and advertised delay distribution. Per-target conditions MUST NOT surface as error codes and remain unmatched bits in the fixed-cardinality hit_bitmap. See zh/discovery/discovery-directory.md §6.4."
     },
     {
       "operation_id": "ak.find.directory.query.resolve_handle",
