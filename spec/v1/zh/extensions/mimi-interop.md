@@ -219,6 +219,29 @@ HTTP Message Signature profile（适用于 provider-to-provider 写入）：
 
 Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Arkret DataEvent、Control Move 或 to-device message。MIMI 传输签名只证明 provider 来源，不替代 Actor DID / device 签名、MLS transcript、capability 或 Realm policy。
 
+### 5.1 MIMI operation actor proof（normative）
+
+MIMI DTO 中名为 `signature` 的字段是 Actor DID/device 对具体操作的 detached payload proof，不是 Event Envelope proof。它 MUST 使用 `payload_digest`，MUST NOT 使用只适用于 Event Envelope 的 `event_digest`。proof envelope 由 `mimi-operations.schema.json#/$defs/signature` 定义；`domain` MUST 等于接收部署的 `trust_domain`，`audience` MUST 覆盖接收 Principal Server service DID。
+
+对 `ak.open.mimi.command.update_consent`，发送方 MUST 先从 request body 移除顶层 `signature` 字段，对剩余完整对象计算 `payload_digest = sha256(canonical_json(unsigned_request_body))`，再以 canonical JSON 编码并签署下列 transcript：
+
+```json
+{
+  "context": "ak.mimi-operation-proof-v1",
+  "payload_digest": "sha256:<lowercase-hex>",
+  "issuer": "<request.actor_id>",
+  "operation_id": "ak.open.mimi.command.update_consent",
+  "verification_method": "<signature.verification_method>",
+  "created_at": "<signature.created_at>",
+  "domain": "<destination trust_domain>",
+  "audience": "<destination Principal Server service DID>"
+}
+```
+
+字段顺序不影响 canonical JSON；`audience` 也可为至少覆盖目标 service DID 的非空无重复字符串数组。接收方 MUST 重算 unsigned body digest，验证 `issuer == actor_id`、当前 DID Document 授权的 `verification_method`、`kind=detached_jws`、`alg=EdDSA`、精确的 operation/domain/audience 绑定和 JWS。`created_at` MUST 位于接收方当前时钟前后 300 秒内；接收方 MUST 在该窗口内以 `(actor_id, payload_digest, jws)` 作为一次性凭据拒绝逐字节重放。proof 失败或重放 MUST 在写 consent state 之前拒绝。
+
+Bearer user session 只证明当前调用会话；它 MUST 与 `actor_id` 一致，并且仍 MUST 验证上述 actor proof。跨 provider 调用还 MUST 同时通过本节的 HTTP Message Signature：provider transport proof 与 actor operation proof 缺一不可，任何一层都不得替代另一层。
+
 ## 6. Key Material
 
 `ak.open.mimi.exchange.request_key_material` MUST 使用 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) 的 KeyPackage claim API。请求必须包含：

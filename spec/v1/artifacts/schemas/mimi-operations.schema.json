@@ -124,7 +124,56 @@
       "minItems": 1
     },
     "signature": {
-      "$ref": "#/$defs/proof"
+      "type": "object",
+      "required": [
+        "kind",
+        "verification_method",
+        "alg",
+        "payload_digest",
+        "created_at",
+        "domain",
+        "audience",
+        "jws"
+      ],
+      "properties": {
+        "kind": {
+          "const": "detached_jws"
+        },
+        "verification_method": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "alg": {
+          "const": "EdDSA"
+        },
+        "payload_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "domain": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "audience": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/non_empty_string"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          ]
+        },
+        "jws": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
     },
     "opaque_payload": {
       "type": "object",
