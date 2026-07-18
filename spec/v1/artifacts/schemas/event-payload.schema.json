@@ -1768,8 +1768,7 @@
           "$ref": "#/$defs/did"
         },
         "body": {
-          "type": "object",
-          "additionalProperties": true
+          "description": "Caller-supplied opaque account-data value. Any JSON value."
         },
         "encrypted_payload": {
           "type": "object",
