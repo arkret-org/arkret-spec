@@ -1100,6 +1100,7 @@
       "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
       "expect_valid": true,
       "instance": {
+        "phase": "prepare",
         "slug": "summary",
         "requested_scope": {
           "actions": [
@@ -1121,6 +1122,7 @@
       "expect_valid": false,
       "first_expected_error": "$: 'requested_scope' is a required property",
       "instance": {
+        "phase": "prepare",
         "slug": "summary"
       }
     },
@@ -1129,6 +1131,7 @@
       "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
       "expect_valid": true,
       "instance": {
+        "phase": "prepare",
         "slug": "circle-summary",
         "requested_scope": {
           "actions": [
@@ -1150,6 +1153,7 @@
       "expect_valid": false,
       "first_expected_error": "contains:should not be valid under",
       "instance": {
+        "phase": "prepare",
         "slug": "ambiguous-service-scope",
         "requested_scope": {
           "actions": [
@@ -1163,6 +1167,73 @@
             }
           ]
         }
+      }
+    },
+    {
+      "name": "agent_provision_commit_missing_events_rejected",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "instance": {
+        "phase": "commit",
+        "agent_id": "did:webvh:z6mkfixture:agent.example",
+        "principal_control_realm_id": "ak:realm:019a7360-0000-7000-8000-000000000010",
+        "slug": "summary",
+        "requested_scope": {
+          "actions": [
+            "ak.event.read"
+          ],
+          "resources": []
+        }
+      }
+    },
+    {
+      "name": "agent_provision_prepare_outcome_valid",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+      "expect_valid": true,
+      "instance": {
+        "status": "awaiting_controller_events",
+        "agent_id": "did:webvh:z6mkfixture:agent.example",
+        "principal_control_realm_id": "ak:realm:019a7360-0000-7000-8000-000000000010",
+        "controller_realm_id": "ak:realm:019a7360-0000-7000-8000-000000000011",
+        "controller_authorization_ref": "did:webvh:z6mkfixture:agent.example#controller-delegation",
+        "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "name": "agent_provision_complete_outcome_valid",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+      "expect_valid": true,
+      "instance": {
+        "status": "complete",
+        "agent_id": "did:webvh:z6mkfixture:agent.example",
+        "principal_control_realm_id": "ak:realm:019a7360-0000-7000-8000-000000000010",
+        "controller_authorization_ref": "did:webvh:z6mkfixture:agent.example#controller-delegation",
+        "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "pcr_recovery": {
+          "status": "pending"
+        },
+        "pairing_request_id": "pairing-request-001",
+        "expires_at": "2026-05-20T00:05:00Z"
+      }
+    },
+    {
+      "name": "agent_provision_complete_outcome_with_controller_realm_rejected",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "instance": {
+        "status": "complete",
+        "agent_id": "did:webvh:z6mkfixture:agent.example",
+        "principal_control_realm_id": "ak:realm:019a7360-0000-7000-8000-000000000010",
+        "controller_realm_id": "ak:realm:019a7360-0000-7000-8000-000000000011",
+        "controller_authorization_ref": "did:webvh:z6mkfixture:agent.example#controller-delegation",
+        "requested_scope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "pcr_recovery": {
+          "status": "pending"
+        },
+        "pairing_request_id": "pairing-request-001",
+        "expires_at": "2026-05-20T00:05:00Z"
       }
     },
     {

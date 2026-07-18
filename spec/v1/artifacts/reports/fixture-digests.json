@@ -10,7 +10,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "4006e99eb1fe226be353ff7b94b1d1da99574a5343eb57675e3f8102f3d6fce0"
+      "sha256": "63f73d1289e8c97936857c6c1e77d9210cd9e4791313007311f0ba631bbe95d9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
@@ -94,7 +94,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "7a36aa7217540f9e06be9908bca7988ff540bd1d685ad9e24cdade408910a998"
+      "sha256": "94a3c5740292e37320e8c8c8b65edbecd4c3b1e60b600e0ae54ab4fb9768a1d2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -202,7 +202,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "3d6b080a1d57bbe36ebbc2972f527da4acac0c7731fe5ec6672038b1dedde0cd"
+      "sha256": "803eef7f1c9971ffc0a9a3bbbb9bdb518bcefb9a5ef7805dde2e73897963f634"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

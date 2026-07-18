@@ -7865,12 +7865,12 @@ paths:
                 $ref: '#/components/schemas/AgentList'
     post:
       operationId: ak.self.agent.command.provision
-      description: Allocate a native personal Agent DID and Principal Control Realm binding plus controller-owned accountability/selector facts and a pairing request. requested_scope is required and becomes the immutable global Agent ceiling; only its domain-separated requested_scope_digest is fixed in the public Agent DID accepted inception history, while the complete scope stays controller-private and is disclosed later through a signed verifier-bound presentation. It is not a grant, and later key scopes, Realm grants, participation and sessions may narrow but never exceed it. Provisioning creates no Agent profile, key authorization or Realm capability grant. Returns requested_scope_digest and pcr_recovery.status=pending; the controller E2EE client must verify the digest, then locally bootstrap and back up Agent PCR MLS state before pairing can commit.
+      description: Two-phase native personal Agent provisioning. phase=prepare validates prerequisites and returns an Agent DID/PCR allocation, controller PCR, delegation ref, and requested_scope_digest without publishing durable Agent state. The controller verifies the digest and uses the Arkret SDK canonical authoring API to create exactly one controller-signed ak.identity.accountability_grant Event and one controller-signed ak.agent.selector_claim Event. phase=commit carries the same allocation, private requested_scope, and closed Event pair; the service admits both through the ordinary Event pipeline before publishing the Agent DID binding and pairing handle. requested_scope is the immutable global Agent ceiling, not a grant. Provisioning creates no Agent profile, key authorization, Realm capability grant, or Agent PCR MLS private state; after status=complete, the controller E2EE client locally bootstraps and backs up the Agent PCR before pairing can commit.
       security:
       - bearerAuth: []
       responses:
         '200':
-          description: Agent provisioning accepted; pending runtime key pairing returned.
+          description: Prepare returns status=awaiting_controller_events and an allocation; commit returns status=complete with pending PCR recovery and the runtime pairing handle.
           content:
             application/json:
               schema:

@@ -486,15 +486,19 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
         "schema_kind": "object",
         "required": [
+          "phase",
           "slug",
           "requested_scope"
         ],
         "properties": [
+          "phase",
+          "agent_id",
+          "principal_control_realm_id",
           "display_name",
           "slug",
           "avatar_blob_ref",
           "requested_scope",
-          "accountability",
+          "provision_events",
           "pairing_ttl_ms"
         ],
         "closed": true
@@ -503,17 +507,17 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
         "schema_kind": "object",
         "required": [
+          "status",
           "agent_id",
           "principal_control_realm_id",
           "controller_authorization_ref",
-          "requested_scope_digest",
-          "pcr_recovery",
-          "pairing_request_id",
-          "expires_at"
+          "requested_scope_digest"
         ],
         "properties": [
+          "status",
           "agent_id",
           "principal_control_realm_id",
+          "controller_realm_id",
           "controller_authorization_ref",
           "requested_scope_digest",
           "pcr_recovery",

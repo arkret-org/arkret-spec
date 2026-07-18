@@ -568,12 +568,8 @@
       "grpc": "SelfAgent/Provision",
       "mq": "self.agent.command.provision",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "none",
-      "retry_safe": false,
-      "uncertain_outcome": {
-        "strategy": "query_operation",
-        "operation_id": "ak.self.agent.query.list"
-      },
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome"
     },

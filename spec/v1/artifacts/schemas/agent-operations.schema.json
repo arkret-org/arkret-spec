@@ -858,12 +858,26 @@
     },
     "agent_provision_request_body": {
       "type": "object",
-      "description": "Creates an Agent principal with a required immutable requested_scope global ceiling. Provisioning emits only controller-owned accountability and selector facts; it never creates an Agent profile, key authorization or Realm capability grant.",
+      "description": "Two-phase controller-authored Agent provisioning. prepare validates prerequisites and allocates the Agent DID and Agent PCR id without publishing durable Agent state. The controller recomputes requested_scope_digest, uses the Arkret SDK to author the closed controller-signed Event pair, and returns the same allocation in commit. The service validates and admits both Events before publishing the pairing handle. Provisioning never creates an Agent profile, key authorization or Realm capability grant.",
       "required": [
+        "phase",
         "slug",
         "requested_scope"
       ],
       "properties": {
+        "phase": {
+          "enum": [
+            "prepare",
+            "commit"
+          ]
+        },
+        "agent_id": {
+          "$ref": "#/$defs/did"
+        },
+        "principal_control_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Service-allocated Principal Control Realm id for the new Agent. It is distinct from the controller PCR in provision_events."
+        },
         "display_name": {
           "$ref": "#/$defs/non_empty_string"
         },
@@ -877,9 +891,8 @@
           "$ref": "#/$defs/agent_key_scope",
           "description": "Required immutable global Agent key/session ceiling, not a grant. Later key scopes, Realm grants, participation selections and session requests MAY narrow it but MUST NOT exceed its actions, resource selectors or mandatory constraints. An omitted action can never be added later. Provisioning never materializes content grants from this field. Operation/service resources constrain the service surface; explicit content resource selectors only further narrow later grants."
         },
-        "accountability": {
-          "type": "object",
-          "additionalProperties": true
+        "provision_events": {
+          "$ref": "#/$defs/agent_provision_events"
         },
         "pairing_ttl_ms": {
           "type": "integer",
@@ -887,25 +900,108 @@
           "maximum": 43200000
         }
       },
+      "oneOf": [
+        {
+          "properties": {
+            "phase": {
+              "const": "prepare"
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": ["agent_id"]
+              },
+              {
+                "required": ["principal_control_realm_id"]
+              },
+              {
+                "required": ["provision_events"]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "agent_id",
+            "principal_control_realm_id",
+            "provision_events"
+          ],
+          "properties": {
+            "phase": {
+              "const": "commit"
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "agent_provision_events": {
+      "type": "object",
+      "description": "Closed, controller-signed fan-out plan authored through the Arkret SDK. Both envelopes use the authenticated controller as actor_id and its PCR as realm_id, carry ordinary Event proofs, and pass the standard Event admission pipeline. The selector source_refs binds the accountability Event id.",
+      "required": [
+        "accountability_grant",
+        "selector_claim"
+      ],
+      "properties": {
+        "accountability_grant": {
+          "allOf": [
+            {
+              "$ref": "./event-envelope.schema.json"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "ak.identity.accountability_grant"
+                }
+              },
+              "required": ["kind"]
+            }
+          ]
+        },
+        "selector_claim": {
+          "allOf": [
+            {
+              "$ref": "./event-envelope.schema.json"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "ak.agent.selector_claim"
+                }
+              },
+              "required": ["kind"]
+            }
+          ]
+        }
+      },
       "additionalProperties": false
     },
     "agent_provision_outcome": {
       "type": "object",
       "required": [
+        "status",
         "agent_id",
         "principal_control_realm_id",
         "controller_authorization_ref",
-        "requested_scope_digest",
-        "pcr_recovery",
-        "pairing_request_id",
-        "expires_at"
+        "requested_scope_digest"
       ],
       "properties": {
+        "status": {
+          "enum": [
+            "awaiting_controller_events",
+            "complete"
+          ]
+        },
         "agent_id": {
           "$ref": "#/$defs/did"
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "controller_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Authenticated controller PCR in which both provision Events must be authored. Present only while status is awaiting_controller_events."
         },
         "controller_authorization_ref": {
           "$ref": "#/$defs/did_url"
@@ -938,6 +1034,47 @@
           "$ref": "#/$defs/timestamp"
         }
       },
+      "oneOf": [
+        {
+          "properties": {
+            "status": {
+              "const": "awaiting_controller_events"
+            }
+          },
+          "required": ["controller_realm_id"],
+          "not": {
+            "anyOf": [
+              {
+                "required": ["pcr_recovery"]
+              },
+              {
+                "required": ["pairing_request_id"]
+              },
+              {
+                "required": ["pairing_code"]
+              },
+              {
+                "required": ["expires_at"]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "pcr_recovery",
+            "pairing_request_id",
+            "expires_at"
+          ],
+          "properties": {
+            "status": {
+              "const": "complete"
+            }
+          },
+          "not": {
+            "required": ["controller_realm_id"]
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "agent_renew_pairing_request_body": {
