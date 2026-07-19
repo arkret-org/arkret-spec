@@ -648,9 +648,12 @@
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pause_request_body",
         "schema_kind": "object",
-        "required": [],
+        "required": [
+          "lifecycle_event"
+        ],
         "properties": [
-          "reason"
+          "reason",
+          "lifecycle_event"
         ],
         "closed": true
       },
@@ -674,9 +677,12 @@
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_resume_request_body",
         "schema_kind": "object",
-        "required": [],
+        "required": [
+          "lifecycle_event"
+        ],
         "properties": [
-          "sidecar_exposure_ack"
+          "sidecar_exposure_ack",
+          "lifecycle_event"
         ],
         "closed": true
       },

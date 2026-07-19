@@ -312,7 +312,16 @@
           "description": "sha256 digest of the domain-separated Agent requested_scope commitment fixed in the accepted Agent DID ArkretPrincipalControlRealm service entry; the public entry does not contain the complete scope."
         },
         "pairing_request_id": {
-          "$ref": "#/$defs/opaque_local_id"
+          "$ref": "#/$defs/opaque_local_id",
+          "description": "Current unconsumed, unexpired pairing handle. Its presence means pairing is open. Services MUST omit this field and its pairing_mode / pairing_code / pairing_expires_at siblings immediately after the handle is consumed or expires."
+        },
+        "pairing_mode": {
+          "type": "string",
+          "enum": [
+            "bootstrap",
+            "replacement"
+          ],
+          "description": "Durable branch discriminator for the current open handle. bootstrap is valid for pending_runtime_key; replacement is valid only while paused."
         },
         "pairing_code": {
           "$ref": "#/$defs/pairing_secret"
@@ -339,6 +348,25 @@
             "$ref": "#/$defs/agent_key_authorization_state"
           }
         }
+      },
+      "dependentRequired": {
+        "pairing_request_id": [
+          "pairing_mode",
+          "pairing_expires_at"
+        ],
+        "pairing_mode": [
+          "pairing_request_id",
+          "pairing_expires_at"
+        ],
+        "pairing_code": [
+          "pairing_request_id",
+          "pairing_mode",
+          "pairing_expires_at"
+        ],
+        "pairing_expires_at": [
+          "pairing_request_id",
+          "pairing_mode"
+        ]
       },
       "additionalProperties": false
     },
@@ -1079,7 +1107,7 @@
     },
     "agent_renew_pairing_request_body": {
       "type": "object",
-      "description": "Re-open pairing on any non-terminal agent. The service issues a fresh one-time pairing_request_id + pairing_code; every previously issued pairing handle for the agent becomes permanently unresolvable. pending_runtime_key / pairing_expired re-open bootstrap pairing; active / paused perform runtime replacement re-pairing (existing keys stay valid until the new controller-signed authorization with an exact supersedes set is accepted atomically). deactivated rejects.",
+      "description": "Re-open bootstrap pairing or replace the runtime of an explicitly paused agent. The service issues a fresh one-time pairing_request_id + pairing_code; every previously issued pairing handle for the agent becomes permanently unresolvable. pending_runtime_key / pairing_expired re-open bootstrap pairing; paused performs runtime replacement re-pairing (existing keys stay valid until the new controller-signed authorization with an exact supersedes set is accepted atomically). active must pause first; deactivated rejects.",
       "properties": {
         "pairing_ttl_ms": {
           "type": "integer",
@@ -1238,18 +1266,32 @@
     },
     "agent_pause_request_body": {
       "type": "object",
+      "required": [
+        "lifecycle_event"
+      ],
       "properties": {
         "reason": {
           "$ref": "#/$defs/non_empty_string"
+        },
+        "lifecycle_event": {
+          "$ref": "./event-envelope.schema.json",
+          "description": "Closed ak.self.agent.pause Event authored in the Agent PCR and executed/signed by the authenticated controller delegation. The service submits these exact bytes through ordinary Event admission and never synthesizes an Agent-authored Event."
         }
       },
       "additionalProperties": false
     },
     "agent_resume_request_body": {
       "type": "object",
+      "required": [
+        "lifecycle_event"
+      ],
       "properties": {
         "sidecar_exposure_ack": {
           "$ref": "#/$defs/sidecar_exposure_ack"
+        },
+        "lifecycle_event": {
+          "$ref": "./event-envelope.schema.json",
+          "description": "Closed ak.self.agent.resume Event authored in the Agent PCR and executed/signed by the authenticated controller delegation. Its sidecar_exposure_ack, when present, must equal the request sidecar exactly."
         }
       },
       "additionalProperties": false

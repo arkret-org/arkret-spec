@@ -3522,8 +3522,8 @@ Preconditions:
 
 Steps:
 
-1. Controller 调用 `ak.self.agent.command.renew_pairing`(agent 状态 `active`),得到新一次性 `pairing_request_id` + `pairing_code`、`pairing_mode="replacement"` 与未被重置的当前 `pcr_recovery` 投影。
-2. 在新 pairing 完成前,runtime 用 `K1` 正常签发 session 并执行 capability action。
+1. Controller 先提交 controller-signed delegated `ak.self.agent.pause`，再调用 `ak.self.agent.command.renew_pairing`，得到新一次性 `pairing_request_id` + `pairing_code`、`pairing_mode="replacement"` 与未被重置的当前 `pcr_recovery` 投影；直接在 `active` 调用的变体 MUST `failed_precondition`。
+2. Agent 保持 `paused`；旧 key `K1` 与既有 grants 尚未被 replacement 撤销，但服务端不得签发新的 agent session grant 或执行新的 capability action。Controller 在 replacement 完成前调用 resume 的变体 MUST `failed_precondition`。
 3. 新 runtime 生成 key `K2` 提交 runtime-key-request；controller 签 `ak.agent.key.authorize`(K2)，其 payload 带 `supersedes=[{key_id: K1, authorized_event_ref: <K1 authorize Event>}]`，再调用 `ak.gate.account.command.pair_agent_key` 完成配对。
 4. 用 `K1` 再次请求 `agent_key_proof` session grant;`S1` 在 freshness window 后被使用。
 5. 变体 A:第 1 步的 handle 过期，未走到第 3 步。
@@ -3531,11 +3531,11 @@ Steps:
 
 Expected:
 
-- 第 1 步 MUST NOT 改变 agent status、既有 key、grant 或 `pcr_recovery`；响应分支是 `pairing_mode="replacement"`，此前所有 pairing handle 永久不可解析。
-- 第 2 步 MUST 成功(零停机:replacement 期间旧 key 有效)。
+- 第 1 步的 pause 之外，renew_pairing MUST NOT 改变 agent status、既有 key、grant 或 `pcr_recovery`；响应分支是 `pairing_mode="replacement"`，此前所有 pairing handle 永久不可解析。active 直调不得创建 handle。
+- 第 2 步的新 session / capability action 与 open replacement 期间的 resume MUST fail closed；已存在 key/grant 的保留只用于原子 supersede 与审计，不等于 paused 状态可继续执行。
 - 第 3 步 MUST 以单一 controller-signed `ak.agent.key.authorize`(K2) Event 原子 remove `supersedes[]` 指定的 K1 authorization dot（reason=`superseded_by_repairing`）并 add K2 dot；不得伪造第二条 controller-authored revoke Event；capability grants 不受影响。遗漏 K1、加入不存在/已撤销 authorization，或引用错误 `authorized_event_ref` 的变体 MUST conflict / fail closed 且不改变任何 key。
 - 第 4 步 MUST fail closed:`K1` 的新 session 请求拒绝;`S1` MUST 在 revocation freshness window 内 fail closed,MUST NOT 自然存活到原 TTL。
-- 变体 A:无任何副作用,agent 保持 `active`、`K1` 有效;`pairing_expired` MUST NOT 出现在曾持钥 agent 上。
+- 变体 A:无任何配对副作用,agent 保持 `paused`、`K1` 有效;`pairing_expired` MUST NOT 出现在曾持钥 agent 上；handle 过期后 open-handle 投影必须清除，显式 resume 再次可用。
 - 变体 B:MUST `agent_deactivated`(terminal 状态拒绝续期)。
 
 ### 11.2.5 Vector: Longevity-safe Authorization Chain(No Expiry Cliffs)

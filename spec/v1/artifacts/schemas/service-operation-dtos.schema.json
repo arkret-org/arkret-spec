@@ -3105,7 +3105,7 @@
     },
     "EventsFrontierAccountClientState": {
       "type": "object",
-      "description": "Account-client ak.self.events.query.frontier response.",
+      "description": "Account-client ak.self.events.query.frontier response. For a managed Agent PCR whose accepted Events are ahead of its accepted Seal, frontier remains the last accepted controller-device-signed Seal and receipts includes `{kind: ak.managed_agent_pcr.seal_head.v1, seal: Seal}` so the controller can author the successor; the service must never synthesize that device Seal.",
       "required": [
         "frontier"
       ],
@@ -3117,8 +3117,25 @@
         "receipts": {
           "type": "array",
           "items": {
-            "type": "object"
+            "$ref": "#/$defs/ManagedAgentPcrSealHeadReceipt"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ManagedAgentPcrSealHeadReceipt": {
+      "type": "object",
+      "description": "Accepted controller-device-signed managed Agent PCR Seal head returned when accepted Events are ahead of Seal coverage. The service relays this exact Seal and MUST NOT synthesize or sign it.",
+      "required": [
+        "kind",
+        "seal"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ak.managed_agent_pcr.seal_head.v1"
+        },
+        "seal": {
+          "$ref": "./seal.schema.json"
         }
       },
       "additionalProperties": false

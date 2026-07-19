@@ -314,9 +314,9 @@ Native personal agent(`actor_kind="agent"`,`accountable_principal_ids` 指向 co
 - **Controller lifecycle 传播**:Controller 进入 `deactivated` / `suspended` 时，其 accountable native agents 的 active sessions MUST 通过本节 revocation 链失效，后续 agent session grant MUST fail closed。Accountability grant 失效同样使 agent 进入 ineligible 状态。
 - **Controller Realm membership 传播**：Native Personal Agent 不能作为无主成员留在 Collaboration Realm。controller 在某 Realm 的 `ak.member.state` 从 `join` 转为 `leave` / `ban` 时，该 Realm 中所有仍为 `join` 且经 active accountability / provisioning 证明归属于该 controller 的 Native Personal Agents MUST 强制级联为 `leave`，并触发 Circle、delivery route 与 MLS Remove；不得因 agent runtime 不在线、未响应或未同意而延迟。controller 重新加入不自动恢复这些 agent membership。
 - **Pairing expiry**:仅适用于从未完成首次 key 授权的 agent:`pairing.expires_at` 到达且未完成 pairing 时，agent status 转 `pairing_expired`，但不得因此创建、撤销或改写任何 Realm grant；controller 可重新发起 pairing 或显式 revoke 进入 `deactivated`。
-- **Runtime replacement re-pairing**:controller MAY 对 `active` / `paused` 的 agent 经 `ak.self.agent.command.renew_pairing` 重开 pairing(runtime 迁移、key 丢失恢复、例行换钥)。重开 pairing 不是状态迁移:status、既有 key 与 grant 在新配对完成前保持不变；新配对完成时全部旧 key 以 reason=`superseded_by_repairing` 原子撤销;handle 过期无副作用。详见 [`key-management.md` §3.6.1](./key-management.md)。
+- **Runtime replacement re-pairing**:controller MUST 先把 `active` agent pause，再对 `paused` agent 经 `ak.self.agent.command.renew_pairing` 重开 pairing(runtime 迁移、key 丢失恢复、例行换钥)。重开 pairing 不是状态迁移:agent 保持 paused，既有 key 与 grant 在新配对完成前保持不变；新配对完成时全部旧 key 以 reason=`superseded_by_repairing` 原子撤销，且仍须显式 resume；handle 过期无副作用。详见 [`key-management.md` §3.6.1](./key-management.md)。
 
-**合法迁移表（normative）**：上述闭合枚举的合法 (from → to) 转换如下；表中未列出的转换 MUST 拒绝（`failed_precondition`，非法 agent provisioning 转换）。`deactivated` 是 terminal 状态（无出边）。`pairing_expired` 只描述从未完成首次配对的 agent;`active` / `paused` 上的 open re-pairing handle 是属性而非状态。
+**合法迁移表（normative）**：上述闭合枚举的合法 (from → to) 转换如下；表中未列出的转换 MUST 拒绝（`failed_precondition`，非法 agent provisioning 转换）。`deactivated` 是 terminal 状态（无出边）。`pairing_expired` 只描述从未完成首次配对的 agent；仅 `paused` 可带 open replacement handle，该 handle 是属性而非状态。
 
 | from \ to | `pending_runtime_key` | `active` | `pairing_expired` | `paused` | `deactivated` |
 | --- | --- | --- | --- | --- | --- |
