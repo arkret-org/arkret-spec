@@ -2857,7 +2857,7 @@
       "applies_to": [
         "event_envelope"
       ],
-      "description": "A capability grant whose subject is an agent/service principal is missing a typed constraint listed in the action's capability-action-registry required_constraints (for example allowed_strand_ids on ak.agent.sidecar_thread.write). The reducer rejects with failed_precondition."
+      "description": "A capability grant whose subject is an agent/service principal is missing a typed constraint listed in the action's capability-action-registry required_constraints (for example allowed_strand_ids on ak.agent.sidecar.write). The reducer rejects with failed_precondition."
     },
     {
       "code": "agent_key_authorization_expired",
@@ -3348,13 +3348,22 @@
       "description": "Realm alias registration or conflict check failed wire-level NFC / UTS#39 confusable-skeleton / mixed-script constraints within the realm-alias namespace. Registries MUST reject instead of treating homograph variants as distinct aliases. Cross-namespace (handle vs realm alias) homographs are disambiguated by sigil, not namespace uniqueness. See zh/discovery/object-addressing.md \u00a73.3."
     },
     {
+      "code": "reserved_circle_short_name",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution",
+        "service_call"
+      ],
+      "description": "Ordinary Circle create/update attempted to use the SC- short-name prefix reserved for reducer-managed Agent Sidecar backing Circles. The write is rejected as schema_violation. See zh/models/circle.md \u00a74 and zh/models/sidecar.md \u00a75."
+    },
+    {
       "code": "circle_short_name_taken",
       "applies_to": [
         "schema_validation",
         "state_resolution",
         "service_call"
       ],
-      "description": "Non-sidecar Circle creation or display update failed the reducer-enforced case-insensitive uniqueness of display.short_name within (realm_id, short_name). Returned as a failed_precondition for ordinary Circle short_name collisions; sidecar Circle short_name collisions use sidecar_create_denied to avoid existence side channels. See zh/models/circle.md \u00a74."
+      "description": "Ordinary Circle creation or display update failed the reducer-enforced case-insensitive uniqueness of display.short_name within (realm_id, short_name). Sidecar backing Circle names are reducer-derived and any collision is hidden behind sidecar_create_denied. See zh/models/circle.md \u00a74."
     },
     {
       "code": "sidecar_create_denied",
@@ -3363,7 +3372,7 @@
         "state_resolution",
         "service_call"
       ],
-      "description": "Agent sidecar Circle creation was denied without revealing whether the derived short_name or target sidecar already exists. Returned as a generic failed_precondition sub-reason to avoid existence side channels. See zh/models/circle.md \u00a711."
+      "description": "Agent Sidecar ensure was denied without revealing whether the Sidecar, backing scope, context-private Strand, or a derived internal name already exists. Returned as a generic failed_precondition sub-reason to avoid existence side channels. See zh/models/sidecar.md \u00a73 and \u00a77."
     },
     {
       "code": "sidecar_exposure_ack_required",
@@ -3372,7 +3381,7 @@
         "state_resolution",
         "service_call"
       ],
-      "description": "ak.self.agent.command.resume was rejected because the agent gained eligibility for one or more ak.profile.agent_sidecar_thread.v1 sidecar Circles created or joined during pause, and the controller has not yet supplied the matching sidecar_exposure_ack re-disclosure. Returned as a failed_precondition sub-reason; the controller MUST re-read the sidecar exposure disclosure and resubmit resume with the acknowledgement before the agent silently inherits access. See zh/identity/key-management.md \u00a73.6.1."
+      "description": "ak.self.agent.command.resume was rejected because the Agent entered the desired-exposure set of one or more Agent Sidecar objects while paused, and the controller has not supplied the matching sidecar_exposure_ack re-disclosure. The controller MUST re-read the disclosure and resubmit; effective access still waits for backing-scope and MLS reconciliation. See zh/identity/key-management.md \u00a73.6.1."
     },
     {
       "code": "webvh_cache_too_stale",

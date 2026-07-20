@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-13",
+  "version": "2026-07-20",
   "source_of_truth": true,
-  "generated_at": "2026-07-13T00:00:00Z",
+  "generated_at": "2026-07-20T00:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "generated_registries": [
     {
@@ -758,6 +758,20 @@
         "cell_subject": null,
         "lattice": "ordered_log",
         "bottom": "expose",
+        "plane": "control",
+        "sealed": true
+      },
+      {
+        "event_kind": "ak.sidecar.create",
+        "category": "sidecar",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Full ak.schema.agent_sidecar.v1 object. Accepted only inside the atomic ak.self.agent.sidecar.command.ensure aggregate after its reducer-derived backing Circle exists. The canonical Event materializes backing_circle_id and is stamped into that Circle effective scope; raw ensure callers cannot supply it. See zh/models/sidecar.md §2-§5.",
+        "cell_family": "ak.component.sidecar.create.v1",
+        "cell_subject": null,
+        "lattice": "ordered_log",
+        "bottom": "reject",
         "plane": "control",
         "sealed": true
       },
@@ -3096,6 +3110,12 @@
         "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. see zh/models/circle.md."
       },
       {
+        "schema_id": "ak.schema.agent_sidecar.v1",
+        "file": "schemas/agent-sidecar.schema.json",
+        "status": "active",
+        "description": "Controller-owned private AI workspace with derived Agent access and a reducer-managed backing Circle/MLS scope. It is not a Circle profile. See zh/models/sidecar.md."
+      },
+      {
         "schema_id": "ak.schema.strand.v1",
         "file": "schemas/strand.schema.json"
       },
@@ -3895,6 +3915,13 @@
         "description": "Circle object ID — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. See zh/models/circle.md."
       },
       {
+        "kind": "sidecar",
+        "category": "core_object",
+        "status": "active",
+        "wire_form": "ak:sidecar:<uuid>",
+        "description": "Agent Sidecar object ID — controller-owned private AI workspace, singleton per (realm_id, controller_id), with derived eligible-Agent access. See zh/models/sidecar.md."
+      },
+      {
         "kind": "consent",
         "category": "identity_authz",
         "status": "active",
@@ -4551,7 +4578,9 @@
           "ak.self.agent.command.deactivate",
           "ak.self.agent.grant.command.attach",
           "ak.self.agent.grant.resource.delete",
-          "ak.self.agent.sidecar_thread.command.ensure",
+          "ak.self.agent.sidecar.command.ensure",
+          "ak.self.agent.sidecar.resource.get",
+          "ak.self.agent.sidecar.query.list",
           "ak.self.agent.participation.resource.replace",
           "ak.self.agent.participation.resource.get"
         ]
@@ -4799,15 +4828,33 @@
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome"
       },
       {
-        "operation_id": "ak.self.agent.sidecar_thread.command.ensure",
-        "http": "POST /_arkret/self/agent-sidecar-threads:ensure",
-        "grpc": "SelfAgent/SidecarThreadEnsure",
-        "mq": "self.agent.sidecar_thread.command.ensure",
+        "operation_id": "ak.self.agent.sidecar.command.ensure",
+        "http": "POST /_arkret/self/agent-sidecars:ensure",
+        "grpc": "SelfAgent/SidecarEnsure",
+        "mq": "self.agent.sidecar.command.ensure",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
-        "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_outcome"
+        "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_request_body",
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_outcome"
+      },
+      {
+        "operation_id": "ak.self.agent.sidecar.resource.get",
+        "http": "GET /_arkret/self/agent-sidecars/{sidecar_id}",
+        "grpc": "SelfAgent/SidecarGet",
+        "mq": "self.agent.sidecar.resource.get",
+        "notes": "Controller-only dedicated Sidecar read surface. Returns the typed Sidecar plus desired/effective Agent access and reconciliation readiness. Unauthorized, nonexistent, and foreign-controller IDs use one indistinguishable not_found envelope. The backing Circle is included only as the Sidecar object's reducer-managed security binding and never as an ordinary Circle resource.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_view"
+      },
+      {
+        "operation_id": "ak.self.agent.sidecar.query.list",
+        "http": "GET /_arkret/self/agent-sidecars",
+        "grpc": "SelfAgent/SidecarList",
+        "mq": "self.agent.sidecar.query.list",
+        "notes": "Controller-only paginated Sidecar list, optionally filtered by realm_id. Returns only Sidecars owned by the authenticated controller and never ordinary Circles or another controller's existence stubs.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_list"
       },
       {
         "operation_id": "ak.self.agent.participation.resource.replace",
@@ -7763,22 +7810,23 @@
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ak.self.agent.sidecar_thread.command.ensure",
+        "action": "ak.self.agent.sidecar.command.ensure",
         "category": "management",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
+          "ak.sidecar.create",
           "ak.circle.create",
           "ak.circle.member.state",
           "ak.strand.create",
           "ak.relation.create"
         ],
-        "profile": "ak.profile.agent_sidecar_thread.v1",
+        "profile": "ak.profile.agent_sidecar.v1",
         "migration_group": "ak._0009_sidecar_ensure",
         "event_mapping_kind": "aggregate_admin"
       },
       {
-        "action": "ak.agent.sidecar_thread.write",
+        "action": "ak.agent.sidecar.write",
         "category": "general",
         "risk_tier": "low",
         "required_constraints": [
@@ -7787,11 +7835,11 @@
         "target_event_kinds": [
           "ak.message.create"
         ],
-        "profile": "ak.profile.agent_sidecar_thread.v1",
+        "profile": "ak.profile.agent_sidecar.v1",
         "event_mapping_kind": "scope_suffix_variant"
       },
       {
-        "action": "ak.agent.sidecar_thread.publish",
+        "action": "ak.agent.sidecar.publish",
         "category": "management",
         "risk_tier": "high",
         "required_constraints": [
@@ -7801,7 +7849,7 @@
         "target_event_kinds": [
           "ak.message.create"
         ],
-        "profile": "ak.profile.agent_sidecar_thread.v1",
+        "profile": "ak.profile.agent_sidecar.v1",
         "event_mapping_kind": "scope_suffix_variant"
       },
       {

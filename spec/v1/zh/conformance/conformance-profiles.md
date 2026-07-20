@@ -619,7 +619,7 @@ MUST 支持:
 - Event Envelope `executed_by` / `authorization_ref` / reducer-stamped `actor_kind` projection
 - Pause/Resume/Deactivate 语义(见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
 - Controller deactivate / suspend 时,accountable native agents 的 active sessions revocation 链失效
-- Sidecar exposure 披露:激活新 agent 前 UI MUST 显式披露其将获得现有 sidecar 访问权(联动 `ak.profile.agent_sidecar_thread.v1`)
+- Sidecar exposure 披露：激活新 Agent 前 UI MUST 显式披露其在完成 access/MLS reconciliation 后将获得现有 Sidecar 未来内容访问权（联动 `ak.profile.agent_sidecar.v1`）
 
 MUST NOT:
 - 为 provisioning 引入独立 durable `ak.self.agent.command.provision` Event，或在 provision fan-out 中加入 Agent Profile、Agent key authorization、Realm capability grant；`ak.self.agent.command.provision` 只作为 aggregate operation id 存在，其 durable outputs 仅为 controller PCR 中既有 accountability / selector Event
@@ -661,24 +661,24 @@ MUST NOT:
 - 让 agent 自动继承 controller 在 Realm 内的最大权限
 - 把 `act_on_behalf_allowed` 当作 constraint;它由 attribution + capability + approval 组合表达
 
-### 18.4 Agent Sidecar Thread
+### 18.4 Agent Sidecar
 
-`ak.profile.agent_sidecar_thread.v1` 注册 controller 与 controller 的 native AI agents 之间的私聊上下文线程。依赖 Circle profile 与 personal agent provisioning / auth profiles。
+`ak.profile.agent_sidecar.v1` 注册独立 `ak.schema.agent_sidecar.v1` 对象及其 controller-owned private AI workspace 行为。它依赖 Circle backing-scope、MLS、personal agent provisioning 与 auth profiles，但 Sidecar 本身不是 Circle profile。
 
 MUST 支持:
-- `POST /_arkret/self/agent-sidecar-threads:ensure` (`ak.self.agent.sidecar_thread.command.ensure`) idempotent operation,返回 `{ok, private_circle_id, private_strand_id, private_relation_id, pending_member_reconciliations?}`
+- `POST /_arkret/self/agent-sidecars:ensure`（`ak.self.agent.sidecar.command.ensure`）幂等返回 `{ok, sidecar_id, private_strand_id, private_relation_id, access_readiness, pending_access_reconciliations}`；pending 数组始终存在
+- `GET /_arkret/self/agent-sidecars/{sidecar_id}` 与 list query 作为唯一 canonical read surface，返回强类型 Sidecar + desired/effective access；普通 Circle API 不得代替
 - `context_ref` polymorphic descriptor(`relation_id` 单独 / `strand_id` 加可选 `track_name` + 可选 seal)
 - Closed request schema(reject unknown top-level fields)
-- Fixed reuse:Strand `(controller_id, normalized_context_ref)`、Circle `(realm_id, controller_id)`
-- 派生 `controller_agent_circle_key`(canonical realm_id + canonical DID + UTF-8 + SHA-256 + base32 + 24 字符小写)
-- Sidecar Circle `display.short_name = "AI-" + controller_agent_circle_key[:12].upper()`,short_name 碰撞且 caller 非 member 时 generic `failed_precondition` `reason=sidecar_create_denied`
-- `eligible_sidecar_agent(realm, controller, agent)` predicate;Circle membership 主动 fan-out `ak.circle.member.state`(不被动 reconcile)
-- Eligibility / Circle membership / encryption-readiness 三态(eligible+active / pending join 或 pending key material / not eligible)
+- Fixed reuse：Sidecar `(realm_id, controller_id)`；private Strand `(sidecar_id, normalized_context_ref)`
+- `ak.sidecar.create`、backing Circle、初始 access、private Strand 与 Relation 原子建立；caller 不提供 Circle shape/ID
+- `eligible_sidecar_agent(realm, controller, agent)` 派生 desired access；backing Circle membership/MLS state 只由 reducer/service 主动 fan-out
+- desired access、effective access、backing membership、MLS/device readiness 分离投影；发送只在安全交集 ready 后开放
 - `addressed_agent_ids[]` per-ensure ephemeral(服务端不持久化);MUST NOT 包含 controller 自身
-- 历史 backfill 经由 application-level resend(显式 plaintext 披露)；MLS-backed Circle 中不得使用 MLS exporter secret / past commit secret
-- Cross-Realm fan-out:agent deactivate 只影响该 agent 实际所在的 sidecar Circles
+- 历史 backfill 经由 application-level resend（显式 plaintext 披露）；不得使用 MLS exporter secret / past commit secret
+- Cross-Realm fan-out：Agent deactivate 只影响该 Agent 实际进入 desired access 的 Sidecars 及其 backing scopes
 - `agent_sidecar_of` relation kind(weak-semantic、non-structural、non-cascading);`fields` 不含 `target_realm_id`
-- Sidecar private Strand 不出现在 Realm-wide navigation / board / list / public search(profile-specific reducer rule:`scope_circle_id` 指向 sidecar Circle 的 Strand 过滤)
+- Sidecar 及其 backing Circle/private Strand 不出现在普通 Circle、Realm-wide navigation、board/list、public search 或 scope picker
 - 多 agent publish 时 `actor_id` / `executed_by` MUST 是单一签发 agent principal
 - Retention 继承目标 Realm,profile 可收紧不可放宽
 - `ak.agent.sidecar_projection.v1` controller-private encrypted account-data SHOULD 注册(跨设备 UI 一致性)
@@ -686,8 +686,8 @@ MUST 支持:
 MUST NOT:
 - 在目标公开 Strand 写 target-side reverse `agent_sidecar_of` relation
 - 修改目标 Strand `tracks` map 或写入 target-side metadata / Relation / watch / unread / search / notification state
-- 接受 `participant_model` 等替代 reuse 字段;invariant 9 是 v1 取舍
-- 为单个 sidecar 静默创建第二个 Circle 以绕开 invariant 9
+- 接受 caller-provided `participant_model`、member list、Circle title/display/join rule 或 backing Circle id
+- 为同一 `(realm_id, controller_id)` 创建第二个 non-tombstoned Sidecar 或第二个 active backing Circle
 
 ### 18.5 Agent Participation Policy
 

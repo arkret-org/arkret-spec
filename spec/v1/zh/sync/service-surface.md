@@ -828,7 +828,7 @@ POST /_arkret/self/authz/check
 
 ## 10.1 Personal Agent Surface
 
-Native personal agent 的 management、pairing、session grant 与 sidecar operations 属于 self / gate trust surface 上的语义操作；canonical HTTP path、request/response schema 与 binding completeness index 由 [`service-http-binding.md` §2.4.1](./service-http-binding.md) 维护，本文只声明语义边界。实现 MUST 使用 operation catalog 中登记的 `ak.self.agent.*`、`ak.gate.account.*` 与 `ak.self.agent.sidecar_thread.*` 操作名，不得从本节散文推导额外路径、profile id 或快捷授权。
+Native personal agent 的 management、pairing、session grant 与 Sidecar operations 属于 self / gate trust surface 上的语义操作；canonical HTTP path、request/response schema 与 binding completeness index 由 [`service-http-binding.md` §2.4.1](./service-http-binding.md) 维护，本文只声明语义边界。实现 MUST 使用 operation catalog 中登记的 `ak.self.agent.*`、`ak.gate.account.*` 与 `ak.self.agent.sidecar.*` 操作名，不得从本节散文推导额外路径、profile id 或快捷授权。
 
 约束:
 

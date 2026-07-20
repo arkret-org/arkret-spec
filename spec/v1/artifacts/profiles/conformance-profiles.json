@@ -366,7 +366,7 @@
     "ak.profile.media_service_binding.v1",
     "ak.profile.media_service_binding.livekit.v1",
     "ak.profile.media_service_binding.arkret_native.v1",
-    "ak.profile.agent_sidecar_thread.v1",
+    "ak.profile.agent_sidecar.v1",
     "ak.profile.agent_participation_policy.v1",
     "ak.profile.mimi_interop.v1",
     "ak.profile.sovereign_client.v1",
@@ -531,7 +531,7 @@
     "ak.profile.personal_agent_provisioning.v1": "server",
     "ak.profile.agent_auth.v1": "server",
     "ak.profile.agent_delegation_policy.v1": "server",
-    "ak.profile.agent_sidecar_thread.v1": "server",
+    "ak.profile.agent_sidecar.v1": "server",
     "ak.profile.agent_participation_policy.v1": "server",
     "ak.profile.mimi_interop.v1": "interop",
     "ak.profile.franking.v1": "server",
@@ -2695,17 +2695,20 @@
         "unsupported_optional": "fail closed; do not inherit controller permissions"
       }
     },
-    "ak.profile.agent_sidecar_thread.v1": {
+    "ak.profile.agent_sidecar.v1": {
       "inherits": [
         "ak.profile.personal_agent_provisioning.v1",
         "ak.profile.circle_conformance.v1"
       ],
       "required_endpoints": [
-        "ak.self.agent.sidecar_thread.command.ensure",
+        "ak.self.agent.sidecar.command.ensure",
+        "ak.self.agent.sidecar.resource.get",
+        "ak.self.agent.sidecar.query.list",
         "ak.self.events.command.submit",
         "ak.self.events.query.scan"
       ],
       "required_event_kinds": [
+        "ak.sidecar.create",
         "ak.circle.create",
         "ak.circle.member.state",
         "ak.strand.create",
@@ -2714,6 +2717,7 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
+        "ak.schema.agent_sidecar.v1",
         "ak.schema.circle.v1",
         "ak.schema.strand.v1",
         "ak.schema.relation.v1"
@@ -2726,17 +2730,19 @@
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "controller_agent_circle_key_derivation",
+          "sidecar_singleton_identity",
           "eligible_sidecar_agent_predicate",
-          "circle_encryption_profile_floor_check",
-          "pending_member_reconciliations",
+          "backing_circle_always_mls",
+          "backing_circle_canonical_shape",
+          "desired_effective_access_separation",
+          "pending_access_reconciliations",
           "addressed_agents_not_a_boundary",
           "agent_sidecar_of_relation",
           "navigation_visibility_scope_only",
           "existence_privacy_invariants",
           "single_executed_by_on_publish"
         ],
-        "unsupported_optional": "fail closed; do not split into multiple sidecar Circles"
+        "unsupported_optional": "fail closed; do not create multiple Sidecars or backing Circles for one (realm_id, controller_id)"
       }
     },
     "ak.profile.agent_participation_policy.v1": {

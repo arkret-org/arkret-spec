@@ -3591,7 +3591,7 @@ Expected:
 
 - A 的 active session `S` MUST 在 revocation freshness window(≤ session TTL)内 fail closed。
 - A 后续任何 `ak.gate.account.command.issue_session_grant` MUST fail closed。
-- A 在已加入的 sidecar Circle 中由 reducer 主动 fan-out `ak.circle.member.state -> leave`；若该 Circle 为 MLS-backed，MLS group 进入新 epoch。
+- A MUST 立即离开相关 Sidecar desired access；服务端停止投递，并对每个 backing Circle 主动 fan-out `ak.circle.member.state -> leave` 与 MLS remove/epoch rotation。
 
 ### 11.5 Vector: Act-on-behalf Attribution
 
@@ -3650,27 +3650,29 @@ Expected:
 - Realm public seal 只暴露固定 cadence 的 opaque commitment，不得反映真实 Circle 活动频率。
 - M MAY 看到 policy 允许的 Circle metadata，但不得改变 V 的不可区分性要求。
 
-### 11.8 Vector: Sidecar Circle Idempotent Ensure
+### 11.8 Vector: Agent Sidecar Idempotent Ensure
 
 `vector_id`: `ak.vector.sidecar.ensure_idempotent.v1`
 
 Steps:
 
-1. Alice 的两台设备并发调用 `ak.self.agent.sidecar_thread.command.ensure` 同一 `context_ref`。
+1. Alice 的两台设备并发调用 `ak.self.agent.sidecar.command.ensure` 同一 `context_ref`。
 2. 同一 Alice 第三次调用 `ensure`(同样 context_ref),`addressed_agent_ids` 列表不同。
 3. Alice 在另一 context_ref 调用 ensure(同 Realm)。
 
 Expected:
 
-- 第 1 步并发 MUST 收敛到单一 sidecar Circle 与单一 sidecar private Strand；两个请求返回 bit-identical typed IDs；不出现 `failed_precondition`。
-- 第 2 步 MUST 复用既有 Circle 与 Strand,addressed list 不持久化到 Circle/Strand/Relation；只影响本次 notification fanout。
-- 第 3 步 MUST 复用既有 Circle(per_realm_controller_agent_pool)，创建新 sidecar private Strand。
+- 第 1 步并发 MUST 收敛到单一 `sidecar_id`、单一 reducer-managed backing Circle 与单一 private Strand；两个 response 的公开 typed IDs bit-identical，且不返回 `private_circle_id`。
+- `ak.sidecar.create` MUST 与 backing Circle/initial access/Strand/Relation 在同一 atomic batch 中，并以 `effective_scope.circle_id=backing_circle_id` 投递；任一子事件失败时不得留下部分对象。
+- backing Circle shape MUST 与 `sidecar.md` §5 bit-identical；普通 Circle create/update 使用 `SC-` short-name 前缀 MUST 以 `reserved_circle_short_name` 拒绝。
+- 第 2 步 MUST 复用既有 Sidecar 与 Strand；addressed list 不改变 desired/effective access 或 Strand/Relation identity，只影响本次 exchange fanout。
+- 第 3 步 MUST 复用 `(realm_id, controller_id)` Sidecar 与 backing Circle，创建新的 context-private Strand。
 
 ### 11.9 Vector: Existence Privacy
 
 `vector_id`: `ak.vector.sidecar.existence_privacy.v1`
 
-Steps(均以 non-sidecar-member 视角):
+Steps（均以 Sidecar access 之外 caller 视角）:
 
 1. `ak.self.events.stream.subscribe` / `ak.self.events.query.scan` 目标 Realm。
 2. 对 `to_ref=<target_message_id>` 的 relation query。
@@ -3680,28 +3682,28 @@ Steps(均以 non-sidecar-member 视角):
 
 Expected:
 
-- 第 1 步返回 zero events referencing sidecar Circle / Strand / Relation。
+- 第 1 步返回 zero events referencing Sidecar / backing Circle / private Strand / private Relation。
 - 第 2 步看不到 `agent_sidecar_of` 边。
-- 第 3 步 zero hits for sidecar Circle title / display / short_name / member_count。
+- 第 3 步对 `sidecar_id`、backing Circle title/display/short_name/member_count 均 zero hits。
 - 第 4 步 sidecar 内 `ak.message.create` 不触发任何 target Strand member 的 notification。
 - 第 5 步 sidecar `effective_scope=circle` event 不出现在 default seal leaf 明文中；只能作为 opaque commitment。
 
-### 11.10 Vector: Eligibility 三态 + Revocation 闭环
+### 11.10 Vector: Desired/Effective Access + Revocation 闭环
 
 `vector_id`: `ak.vector.sidecar.eligibility_states.v1`
 
 Steps:
 
-1. Alice 有 agents `{S, R}`。S 已 paired (`active`),R 未发布 KeyPackage(eligible but pending join)。
+1. Alice 有 Agents `{S, R}`。S 已 paired/MLS-ready；R 满足 eligibility 但未发布 KeyPackage。
 2. Alice 调用 ensure。
 3. R 发布 KeyPackage，服务端 async reconcile。
 4. Alice 调用 `ak.self.agent.command.deactivate` 对 R。
 
 Expected:
 
-- 第 2 步 ensure SHOULD succeed。MLS-backed sidecar Circle 的 response 携带 `pending_member_reconciliations: [{agent_id: R, reason: missing_mls_keypackage}]`；plaintext sidecar Circle 不需要 KeyPackage，但仍必须等待 Circle membership active。
-- 第 3 步在 MLS-backed sidecar Circle 中，R 通过 MLS Welcome 加入，得到 join 之后的 future epoch keys(MUST NOT 获得 join 之前的 epoch keys)；plaintext sidecar Circle 中，R 只获得从 membership active frontier 之后的投递 / 查询资格。
-- 第 4 步 reducer 主动 fan-out `ak.circle.member.state` 把 R 标记为 `leave`；若该 Circle 为 MLS-backed，MLS group 进入新 epoch。后续 R 的 `agent_key_proof` MUST fail closed,sidecar 写入全部拒绝。
+- 第 2 步 ensure SHOULD succeed，返回 `access_readiness=key_material_pending` 与 `pending_access_reconciliations: [{agent_id: R, stage: device_key_material, reason: missing_mls_keypackage}]`。R 在 desired access 中、尚不在 effective access，不能收取或解密消息。Sidecar 不存在 plaintext 分支。
+- 第 3 步 R 经 backing Circle MLS Welcome 加入，只获得 join 后 future epoch keys（MUST NOT 获得 join 前 epoch keys）；reconciliation 完成后才进入 effective access。
+- 第 4 步 R 立即离开 desired access并停止投递；reducer/service 主动 fan-out backing `ak.circle.member.state=leave`、MLS remove 与 epoch rotation。后续 R 的 proof、Sidecar write 与 query MUST fail closed。
 
 ### 11.11 Vector: Multi-Agent Publish Attribution
 
@@ -3709,7 +3711,7 @@ Expected:
 
 Steps:
 
-1. Sidecar Circle 含 Alice + `{S, R}`。S 与 R 都在 sidecar private Strand 中产生协作内容。
+1. Sidecar desired/effective access 为 Alice + `{S, R}`，且 S/R 都在 private Strand 中产生协作内容。
 2. S 调用 publish capability action，生成目标 Strand `ak.message.create`,attribution 设 `executed_by=S` + `authorization_ref=G_S`。
 3. R 同时尝试 publish 含 S 部分内容的另一条消息。
 

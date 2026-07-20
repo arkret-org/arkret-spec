@@ -213,15 +213,29 @@
       "description": "not_found is returned for nonexistent grant_id and for grants not attached to this agent (uniform failure surface)."
     },
     {
-      "operation_id": "ak.self.agent.sidecar_thread.command.ensure",
-      "http_alias": "POST /_arkret/self/agent-sidecar-threads:ensure",
+      "operation_id": "ak.self.agent.sidecar.command.ensure",
+      "http_alias": "POST /_arkret/self/agent-sidecars:ensure",
       "operation_specific": [
         "sidecar_create_denied",
         "agent_paused",
         "agent_deactivated",
         "failed_precondition"
       ],
-      "description": "Idempotent ensure: server-derived dedupe keys are `(realm_id, controller_id)` for the sidecar Circle and `(controller_id, normalized_context_ref)` for the private Strand / reuse identity — `agent_id` is NOT part of either key, so all eligible agents of the same controller share one sidecar per Realm. Clients MUST NOT supply Idempotency-Key. sidecar_create_denied is a deliberately generic precondition that hides whether a sidecar with the same derived short_name already exists (existence privacy)."
+      "description": "Idempotent ensure: server-derived dedupe keys are `(realm_id, controller_id)` for the Agent Sidecar and `(sidecar_id, normalized_context_ref)` for the private Strand. `agent_id` is not part of either key. The backing Circle is reducer-derived and never caller-selected or returned as a normal Circle. Clients MUST NOT supply Idempotency-Key. sidecar_create_denied is a deliberately generic existence-privacy precondition."
+    },
+    {
+      "operation_id": "ak.self.agent.sidecar.resource.get",
+      "http_alias": "GET /_arkret/self/agent-sidecars/{sidecar_id}",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Nonexistent, foreign-controller, and unauthorized Sidecar identifiers return the same not_found envelope and timing bucket."
+    },
+    {
+      "operation_id": "ak.self.agent.sidecar.query.list",
+      "http_alias": "GET /_arkret/self/agent-sidecars",
+      "operation_specific": [],
+      "description": "Returns only authenticated-controller-owned Sidecars; another controller's objects do not appear as locked stubs or distinguishable omissions."
     },
     {
       "operation_id": "ak.self.agent.participation.resource.replace",

@@ -71,10 +71,16 @@
       "$ref": "#/$defs/agent_grant_detach_outcome"
     },
     {
-      "$ref": "#/$defs/agent_sidecar_thread_ensure_request_body"
+      "$ref": "#/$defs/agent_sidecar_ensure_request_body"
     },
     {
-      "$ref": "#/$defs/agent_sidecar_thread_ensure_outcome"
+      "$ref": "#/$defs/agent_sidecar_ensure_outcome"
+    },
+    {
+      "$ref": "#/$defs/agent_sidecar_view"
+    },
+    {
+      "$ref": "#/$defs/agent_sidecar_list"
     }
   ],
   "$defs": {
@@ -1420,7 +1426,7 @@
       ],
       "additionalProperties": false
     },
-    "agent_sidecar_thread_ensure_request_body": {
+    "agent_sidecar_ensure_request_body": {
       "type": "object",
       "required": [
         "controller_id",
@@ -1443,15 +1449,26 @@
       },
       "additionalProperties": false
     },
-    "pending_member_reconciliation_item": {
+    "pending_sidecar_access_reconciliation_item": {
       "type": "object",
       "required": [
         "agent_id",
+        "stage",
         "reason"
       ],
       "properties": {
         "agent_id": {
           "$ref": "#/$defs/did"
+        },
+        "stage": {
+          "type": "string",
+          "enum": [
+            "backing_scope_membership",
+            "mls_welcome",
+            "mls_remove",
+            "epoch_rotation",
+            "device_key_material"
+          ]
         },
         "reason": {
           "$ref": "#/$defs/non_empty_string"
@@ -1459,21 +1476,34 @@
       },
       "additionalProperties": false
     },
-    "agent_sidecar_thread_ensure_outcome": {
+    "agent_sidecar_access_readiness": {
+      "type": "string",
+      "enum": [
+        "opening",
+        "access_reconciliation_pending",
+        "key_material_pending",
+        "epoch_update_required",
+        "ready",
+        "failed"
+      ]
+    },
+    "agent_sidecar_ensure_outcome": {
       "type": "object",
       "required": [
         "ok",
-        "private_circle_id",
+        "sidecar_id",
         "private_strand_id",
-        "private_relation_id"
+        "private_relation_id",
+        "access_readiness",
+        "pending_access_reconciliations"
       ],
       "properties": {
         "ok": {
           "type": "boolean",
           "const": true
         },
-        "private_circle_id": {
-          "$ref": "./common-ids.schema.json#/$defs/circle_id"
+        "sidecar_id": {
+          "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
         },
         "private_strand_id": {
           "$ref": "#/$defs/strand_id"
@@ -1481,11 +1511,73 @@
         "private_relation_id": {
           "$ref": "#/$defs/relation_id"
         },
-        "pending_member_reconciliations": {
+        "access_readiness": {
+          "$ref": "#/$defs/agent_sidecar_access_readiness"
+        },
+        "pending_access_reconciliations": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/pending_member_reconciliation_item"
+            "$ref": "#/$defs/pending_sidecar_access_reconciliation_item"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_sidecar_view": {
+      "type": "object",
+      "required": [
+        "sidecar",
+        "desired_agent_ids",
+        "effective_agent_ids",
+        "access_readiness",
+        "pending_access_reconciliations"
+      ],
+      "properties": {
+        "sidecar": {
+          "$ref": "./agent-sidecar.schema.json"
+        },
+        "desired_agent_ids": {
+          "type": "array",
+          "description": "Eligible owned Agent principals in the Sidecar desired access set. The controller is represented by sidecar.controller_id and is not duplicated here.",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "effective_agent_ids": {
+          "type": "array",
+          "description": "Agent principals whose backing-scope membership and current MLS readiness have completed. Reducer/service MUST enforce this set is a subset of desired_agent_ids. The controller is represented by sidecar.controller_id and is not duplicated in either Agent array.",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "access_readiness": {
+          "$ref": "#/$defs/agent_sidecar_access_readiness"
+        },
+        "pending_access_reconciliations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/pending_sidecar_access_reconciliation_item"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_sidecar_list": {
+      "type": "object",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/agent_sidecar_view"
+          }
+        },
+        "next_cursor": {
+          "$ref": "#/$defs/non_empty_string"
         }
       },
       "additionalProperties": false

@@ -469,6 +469,7 @@
               "ak.circle.restore",
               "ak.circle.tombstone",
               "ak.circle.update",
+              "ak.sidecar.create",
               "ak.consent.grant",
               "ak.consent.revoke",
               "ak.contact.accepted",
@@ -1294,6 +1295,25 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/circle_create_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.sidecar.create"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/sidecar_create_payload"
           }
         }
       }

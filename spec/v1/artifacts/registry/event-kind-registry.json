@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-13",
+  "version": "2026-07-20",
   "source_of_truth": false,
-  "generated_at": "2026-07-13T00:00:00Z",
+  "generated_at": "2026-07-20T00:00:00Z",
   "generated_from": "registry/contract-catalog.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -674,6 +674,20 @@
       "cell_subject": null,
       "lattice": "ordered_log",
       "bottom": "expose",
+      "plane": "control",
+      "sealed": true
+    },
+    {
+      "event_kind": "ak.sidecar.create",
+      "category": "sidecar",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Full ak.schema.agent_sidecar.v1 object. Accepted only inside the atomic ak.self.agent.sidecar.command.ensure aggregate after its reducer-derived backing Circle exists. The canonical Event materializes backing_circle_id and is stamped into that Circle effective scope; raw ensure callers cannot supply it. See zh/models/sidecar.md §2-§5.",
+      "cell_family": "ak.component.sidecar.create.v1",
+      "cell_subject": null,
+      "lattice": "ordered_log",
+      "bottom": "reject",
       "plane": "control",
       "sealed": true
     },

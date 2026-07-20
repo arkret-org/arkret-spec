@@ -1,6 +1,6 @@
 {
-  "profile": "ak.profile.agent_sidecar_thread.v1",
-  "version": "2026-06-19",
+  "profile": "ak.profile.agent_sidecar.v1",
+  "version": "2026-07-20",
   "suite": "sidecar_vectors",
   "runner": {
     "kind": "named_suite",
@@ -18,9 +18,11 @@
       "vector_id": "ak.vector.sidecar.ensure_idempotent.v1",
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_ensure_idempotent_vector",
       "assertions": [
-        "ensure operation id remains ak.self.agent.sidecar_thread.command.ensure",
+        "ensure operation id remains ak.self.agent.sidecar.command.ensure",
         "ensure capability action matches the operation id",
-        "sidecar profile id remains ak.profile.agent_sidecar_thread.v1"
+        "ensure returns sidecar_id and never private_circle_id",
+        "backing Circle canonical shape and reserved SC- prefix remain enforced",
+        "sidecar profile id remains ak.profile.agent_sidecar.v1"
       ]
     },
     {
@@ -28,8 +30,9 @@
       "vector_id": "ak.vector.sidecar.eligibility_states.v1",
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_eligibility_states_vector",
       "assertions": [
-        "paused agents fail sidecar ensure with agent_paused",
-        "deactivated agents fail sidecar ensure with agent_deactivated",
+        "paused agents are excluded from desired sidecar access",
+        "deactivated agents are excluded and trigger backing-scope MLS removal",
+        "desired and effective access remain distinct until reconciliation completes",
         "default home policy remains context_realm_preferred"
       ]
     },
@@ -39,7 +42,7 @@
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_existence_privacy_vector",
       "assertions": [
         "callers without sidecar ensure capability receive sidecar_create_denied",
-        "sidecar existence is not disclosed via a not_found branch"
+        "sidecar and backing Circle existence are not disclosed via distinct branches"
       ]
     },
     {
@@ -47,7 +50,7 @@
       "vector_id": "ak.vector.sidecar.multi_agent_publish.v1",
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_multi_agent_publish_vector",
       "assertions": [
-        "ensure, write, and publish capability actions all remain sidecar-thread scoped",
+        "ensure, write, and publish capability actions all remain Agent Sidecar scoped",
         "the sidecar capability action trio contains no duplicates"
       ]
     }

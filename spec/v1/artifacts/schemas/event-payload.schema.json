@@ -1425,6 +1425,19 @@
       },
       "additionalProperties": false
     },
+    "sidecar_create_payload": {
+      "type": "object",
+      "description": "Create payload uses the Agent Sidecar object schema. It is emitted only by the atomic ak.self.agent.sidecar.command.ensure aggregate after the reducer/service derives and creates backing_circle_id; raw ensure callers never construct or submit this Event directly. The reducer MUST enforce one non-tombstoned Sidecar per (realm_id, controller_id), controller equality with the authenticated principal, exact same-batch backing Circle binding, and effective_scope=circle with circle_id equal to backing_circle_id.",
+      "required": [
+        "object"
+      ],
+      "properties": {
+        "object": {
+          "$ref": "./agent-sidecar.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
     "morph_create_payload": {
       "type": "object",
       "description": "Create payload uses the full Morph object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance.",
@@ -4840,7 +4853,7 @@
     },
     "agent_sidecar_exposure_ack": {
       "type": "object",
-      "description": "Controller acknowledgement of sidecar Circles that became newly visible or eligible while the agent was paused.",
+      "description": "Controller acknowledgement of Agent Sidecar objects that entered the Agent's derived exposure set while the Agent was paused. This acknowledgement changes desired access only; effective access still requires backing-scope and MLS reconciliation.",
       "required": [
         "acknowledged_at",
         "acknowledged_by",
@@ -4857,7 +4870,7 @@
           "type": "array",
           "minItems": 1,
           "items": {
-            "$ref": "#/$defs/object_ref"
+            "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
           },
           "uniqueItems": true,
           "maxItems": 128

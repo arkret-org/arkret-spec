@@ -142,7 +142,7 @@ Read marker 与个人通知偏好、saved view personalization、列宽 / 折叠
 三类 controller-owned encrypted account data 类型在 `ak.agent.*` 命名空间下:
 
 - **`ak.agent.draft.v1`**:agent 通过 `ak.agent.draft.propose` / `ak.agent.action_request`(actor_private_event)提议候选内容,Principal Server 通过 capability / policy / accountability / risk check 后,materialize 为 controller-owned `ak.agent.draft.v1` account-data。Key pattern 建议 `ak.agent.draft.v1:<agent_id>:<draft_id>`,声明 `encrypted_at_rest=true`、tombstone 与 retention 规则。Draft MUST NOT 作为 `ak.message.create` / `ak.strand.create` 或任何 `wire_scope=durable_event` 进入目标 Realm 共享历史。Draft 引用目标 `realm_id` / `strand_id` / `message_id` 不授予目标 Realm 成员读取 draft 内容的权利。
-- **`ak.agent.sidecar_projection.v1`**:controller-private UI projection,跨设备同步 "My AI" tab 顺序、pin / 折叠状态、addressed agents list 等。Key pattern `ak.agent.sidecar_projection.v1:<controller_id>:<target_realm_id>:<target_strand_id>`。它**不**修改目标 Strand `tracks` map,不写入 target metadata / target-side Relation / watch cell / unread cell / search index / notification state。
+- **`ak.agent.sidecar_projection.v1`**：controller-private UI projection，跨设备同步独立 Sidecar workspace 顺序、pin/折叠状态、source overlay、exchange origin/anchor、addressed Agents、access readiness 等。Key pattern `ak.agent.sidecar_projection.v1:<controller_id>:<target_realm_id>:<target_strand_id>`。它引用 `sidecar_id`，但不得把 backing Circle 当作产品身份；它**不**修改目标 Strand `tracks` map，不写入 target metadata / target-side Relation / watch cell / unread cell / search index / notification state。
 - **`ak.agent.participation.v1`**:controller-owned 的逐 scope agent 参与选择 `{reply, accept_third_party_mention, act_on_behalf}`。Key pattern `ak.agent.participation.v1:<agent_id>:<scope_key>`,`scope_key` 为 `realm:<realm_uuid>` / `circle:<realm_uuid>:<circle_uuid>` / `strand:<realm_uuid>:<strand_uuid>`,声明 `encrypted_at_rest=true`。它经 `ak.self.agent.participation.resource.replace` 物化；服务端先把 Agent 创建时 immutable `requested_scope` 派生的全局 ceiling 与 deployment/Realm/Circle/Strand governance ceiling 做 AND，再校验 `selection ⊆ effective_ceiling`。治理 policy 不得补回 provision 时未允许的位。`reply` / `act_on_behalf` effective 为真时进一步物化为 `ak.capability.grant`,`accept_third_party_mention` 驱动 [`strand-and-message.md` §9.4.5](./strand-and-message.md) 的第三方 mention 投递 gate。它是 controller-private state,不进入目标 Realm 共享历史。
 
 三者 key 前缀不同、key 第二段语义不同(`draft` / `participation` 为 agent_id,`sidecar_projection` 为 controller_id),不会在 `ak.agent.*` 命名空间下冲突。注册时 MUST 在 `account-data-type-registry.json` 显式声明 key pattern 与 owner principal,reducer 据此做归属校验。
@@ -156,7 +156,7 @@ Read marker 与个人通知偏好、saved view personalization、列宽 / 折叠
 - `ak.self.account.stream.subscribe` 只能把 controller-owned approval draft / sidecar projection 返回给 controller principal 的授权 session,以及 scope 明确包含该 account-data 访问权的 agent runtime。
 - 若服务端存储明文，该 deployment MUST 把"明文可见服务"写入 profile / policy 并向 controller 披露；默认语义 SHOULD 是服务端只保存 encrypted account data。
 - Draft 发布到目标 Strand 时,shared event MAY 通过 `refs[].role="draft_source"` 携带 opaque digest,但明文 draft id、private metadata、scratchpad、private prompt 或历史版本 MUST NOT 泄露到共享历史。
-- Sidecar 发布到目标 Strand 时,MUST NOT 泄露 sidecar `private_strand_id`、`private_circle_id`、private messages、scratchpad 或 draft history。
+- Sidecar 发布到目标 Strand 时，MUST NOT 泄露 `sidecar_id`、`backing_circle_id`、`private_strand_id`、private Relation id、private messages、scratchpad 或 draft history。
 
 ## 5. 规范性引用
 

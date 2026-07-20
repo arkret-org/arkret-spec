@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-13",
+  "version": "2026-07-20",
   "source_of_truth": false,
-  "generated_at": "2026-07-13T00:00:00Z",
+  "generated_at": "2026-07-20T00:00:00Z",
   "generated_from": "registry/contract-catalog.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -392,7 +392,9 @@
         "ak.self.agent.command.deactivate",
         "ak.self.agent.grant.command.attach",
         "ak.self.agent.grant.resource.delete",
-        "ak.self.agent.sidecar_thread.command.ensure",
+        "ak.self.agent.sidecar.command.ensure",
+        "ak.self.agent.sidecar.resource.get",
+        "ak.self.agent.sidecar.query.list",
         "ak.self.agent.participation.resource.replace",
         "ak.self.agent.participation.resource.get"
       ]
@@ -678,15 +680,33 @@
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome"
     },
     {
-      "operation_id": "ak.self.agent.sidecar_thread.command.ensure",
-      "http": "POST /_arkret/self/agent-sidecar-threads:ensure",
-      "grpc": "SelfAgent/SidecarThreadEnsure",
-      "mq": "self.agent.sidecar_thread.command.ensure",
+      "operation_id": "ak.self.agent.sidecar.command.ensure",
+      "http": "POST /_arkret/self/agent-sidecars:ensure",
+      "grpc": "SelfAgent/SidecarEnsure",
+      "mq": "self.agent.sidecar.command.ensure",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
       "retry_safe": true,
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_outcome"
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_outcome"
+    },
+    {
+      "operation_id": "ak.self.agent.sidecar.resource.get",
+      "http": "GET /_arkret/self/agent-sidecars/{sidecar_id}",
+      "grpc": "SelfAgent/SidecarGet",
+      "mq": "self.agent.sidecar.resource.get",
+      "notes": "Controller-only dedicated Sidecar read surface. Returns the typed Sidecar plus desired/effective Agent access and reconciliation readiness. Unauthorized, nonexistent, and foreign-controller IDs use one indistinguishable not_found envelope. The backing Circle is included only as the Sidecar object's reducer-managed security binding and never as an ordinary Circle resource.",
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_view"
+    },
+    {
+      "operation_id": "ak.self.agent.sidecar.query.list",
+      "http": "GET /_arkret/self/agent-sidecars",
+      "grpc": "SelfAgent/SidecarList",
+      "mq": "self.agent.sidecar.query.list",
+      "notes": "Controller-only paginated Sidecar list, optionally filtered by realm_id. Returns only Sidecars owned by the authenticated controller and never ordinary Circles or another controller's existence stubs.",
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_list"
     },
     {
       "operation_id": "ak.self.agent.participation.resource.replace",

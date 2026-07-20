@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-13",
+  "version": "2026-07-20",
   "source_of_truth": false,
-  "generated_at": "2026-07-13T00:00:00Z",
+  "generated_at": "2026-07-20T00:00:00Z",
   "generated_from": [
     "registry/contract-catalog.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,13 +18,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 188,
+    "total_operations": 190,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 176
+      "typed_schema": 178
     },
     "by_tier_and_class": {
       "core": {
@@ -39,7 +39,7 @@
         "binary_or_redirect": 2,
         "no_request_body": 1,
         "service_describe": 2,
-        "typed_schema": 118
+        "typed_schema": 120
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -1388,18 +1388,44 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ak.self.agent.sidecar_thread.command.ensure",
+      "operation_id": "ak.self.agent.sidecar.command.ensure",
       "tier": "extension",
-      "http": "POST /_arkret/self/agent-sidecar-threads:ensure",
+      "http": "POST /_arkret/self/agent-sidecars:ensure",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_outcome",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_outcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/AgentSidecarThreadEnsureRequestBody",
-        "response": "#/components/schemas/AgentSidecarThreadEnsureOutcome"
+        "request": "#/components/schemas/AgentSidecarEnsureRequestBody",
+        "response": "#/components/schemas/AgentSidecarEnsureOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.agent.sidecar.query.list",
+      "tier": "extension",
+      "http": "GET /_arkret/self/agent-sidecars",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_list",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/AgentSidecarList"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.self.agent.sidecar.resource.get",
+      "tier": "extension",
+      "http": "GET /_arkret/self/agent-sidecars/{sidecar_id}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_view",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/AgentSidecarView"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ak.self.applet.command.install",

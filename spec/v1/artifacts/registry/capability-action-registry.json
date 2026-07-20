@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-13",
+  "version": "2026-07-20",
   "source_of_truth": false,
-  "generated_at": "2026-07-13T00:00:00Z",
+  "generated_at": "2026-07-20T00:00:00Z",
   "generated_from": "registry/contract-catalog.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1171,22 +1171,23 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.self.agent.sidecar_thread.command.ensure",
+      "action": "ak.self.agent.sidecar.command.ensure",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
+        "ak.sidecar.create",
         "ak.circle.create",
         "ak.circle.member.state",
         "ak.strand.create",
         "ak.relation.create"
       ],
-      "profile": "ak.profile.agent_sidecar_thread.v1",
+      "profile": "ak.profile.agent_sidecar.v1",
       "migration_group": "ak._0009_sidecar_ensure",
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ak.agent.sidecar_thread.write",
+      "action": "ak.agent.sidecar.write",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [
@@ -1195,11 +1196,11 @@
       "target_event_kinds": [
         "ak.message.create"
       ],
-      "profile": "ak.profile.agent_sidecar_thread.v1",
+      "profile": "ak.profile.agent_sidecar.v1",
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "ak.agent.sidecar_thread.publish",
+      "action": "ak.agent.sidecar.publish",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [
@@ -1209,7 +1210,7 @@
       "target_event_kinds": [
         "ak.message.create"
       ],
-      "profile": "ak.profile.agent_sidecar_thread.v1",
+      "profile": "ak.profile.agent_sidecar.v1",
       "event_mapping_kind": "scope_suffix_variant"
     },
     {

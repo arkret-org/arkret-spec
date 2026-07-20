@@ -369,10 +369,14 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome
     AgentRuntimeApprovalStatusRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body
-    AgentSidecarThreadEnsureOutcome:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_outcome
-    AgentSidecarThreadEnsureRequestBody:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_request_body
+    AgentSidecarEnsureOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_outcome
+    AgentSidecarEnsureRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_request_body
+    AgentSidecarList:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_list
+    AgentSidecarView:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_view
     AgentView:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_view
     AppletActorView:
@@ -8337,35 +8341,77 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentGrantDetachOutcome'
-  /_arkret/self/agent-sidecar-threads:ensure:
+  /_arkret/self/agent-sidecars:ensure:
     post:
-      operationId: ak.self.agent.sidecar_thread.command.ensure
+      operationId: ak.self.agent.sidecar.command.ensure
       description: |
-        Idempotently ensure the controller-agent sidecar Circle, Strand, and relation.
-        The wire-level idempotency keys are **server-derived**: the sidecar Circle is keyed by
-        `(realm_id, controller_id)` and the sidecar private Strand / reuse identity by
-        `(controller_id, normalized_context_ref)`. Note that `agent_id` is NOT part of
-        either key — a single sidecar Circle is shared across all eligible agents owned by the same controller
-        in a given Realm. Clients MUST NOT supply an `Idempotency-Key` header and MUST NOT retry with a different
-        body to "force" creation. Concurrent ensure calls converge to the same sidecar refs; repeated calls
-        after creation return the existing refs. Existence-privacy failures surface as `sidecar_create_denied`
-        (a deliberately generic precondition that hides whether a sidecar with the same derived short_name
-        already exists).
+        Idempotently ensure the controller-owned Agent Sidecar object, one context-private Strand, and its private relation.
+        The wire-level idempotency keys are server-derived: Sidecar identity is keyed by
+        `(realm_id, controller_id)` and private Strand reuse by `(sidecar_id, normalized_context_ref)`.
+        `agent_id` is not part of either key; addressed_agent_ids affects only the current exchange.
+        The reducer atomically creates and binds the system-managed backing Circle/MLS scope, which is not returned
+        as a normal Circle resource. Clients MUST NOT supply Circle metadata, membership, IDs, or an Idempotency-Key
+        to force a second object. Existence-privacy failures use the generic `sidecar_create_denied` precondition.
       security:
       - bearerAuth: []
       responses:
         '200':
-          description: Sidecar thread ensured
+          description: Agent Sidecar and context Strand ensured
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentSidecarThreadEnsureOutcome'
+                $ref: '#/components/schemas/AgentSidecarEnsureOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentSidecarThreadEnsureRequestBody'
+              $ref: '#/components/schemas/AgentSidecarEnsureRequestBody'
+  /_arkret/self/agent-sidecars/{sidecar_id}:
+    get:
+      operationId: ak.self.agent.sidecar.resource.get
+      description: Return one Agent Sidecar owned by the authenticated controller, including desired/effective Agent access and readiness. Foreign, unauthorized, and nonexistent IDs are indistinguishable.
+      security:
+      - bearerAuth: []
+      parameters:
+      - in: path
+        name: sidecar_id
+        required: true
+        schema:
+          type: string
+          pattern: '^ak:sidecar:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+      responses:
+        '200':
+          description: Agent Sidecar view
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentSidecarView'
+  /_arkret/self/agent-sidecars:
+    get:
+      operationId: ak.self.agent.sidecar.query.list
+      description: List Agent Sidecars owned by the authenticated controller. An optional realm_id filter narrows the result without exposing other controllers' objects.
+      security:
+      - bearerAuth: []
+      parameters:
+      - in: query
+        name: realm_id
+        required: false
+        schema:
+          type: string
+          pattern: '^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+      - in: query
+        name: cursor
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Agent Sidecar list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentSidecarList'
   /_arkret/self/agents/{agent_id}/participation:
     put:
       operationId: ak.self.agent.participation.resource.replace
