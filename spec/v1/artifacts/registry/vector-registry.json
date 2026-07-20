@@ -3071,6 +3071,18 @@
       ]
     },
     {
+      "vector_id": "ak.vector.sidecar.hosted_projection.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.sidecar.multi_agent_publish.v1",
       "status": "active",
       "domain": "sidecar",

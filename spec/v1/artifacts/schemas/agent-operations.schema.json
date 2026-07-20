@@ -1368,6 +1368,7 @@
     },
     "agent_sidecar_context_ref": {
       "type": "object",
+      "description": "Canonical Strand-level Sidecar context identity. Track and Message coordinates are exchange/projection sub-keys and MUST NOT participate in private Strand reuse.",
       "required": [
         "realm_id"
       ],
@@ -1377,12 +1378,6 @@
         },
         "strand_id": {
           "$ref": "#/$defs/strand_id"
-        },
-        "track_name": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "message_id": {
-          "$ref": "#/$defs/message_id"
         },
         "relation_id": {
           "$ref": "#/$defs/relation_id"
@@ -1404,22 +1399,8 @@
             "relation_id"
           ],
           "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "strand_id"
-                ]
-              },
-              {
-                "required": [
-                  "message_id"
-                ]
-              },
-              {
-                "required": [
-                  "track_name"
-                ]
-              }
+            "required": [
+              "strand_id"
             ]
           }
         }

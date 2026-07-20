@@ -54,7 +54,7 @@ ensure MUST：
 1. 以 `(context_ref.realm_id, controller_id)` 作为 Sidecar singleton key。
 2. 并发请求幂等收敛到同一 `sidecar_id`。
 3. 在首次需要时按同一原子 batch 建立系统管理的 backing Circle、初始 access、`ak.sidecar.create`、private Strand 与 `agent_sidecar_of` Relation；`ak.sidecar.create` 必须位于 backing Circle 建立之后并以它作为 effective scope。任一步失败，整个 batch 不可见且不得留下可枚举的部分对象。
-4. 以 `(sidecar_id, normalized_context_ref)` 作为 private Strand reuse key。
+4. 以 `(sidecar_id, normalized_context_ref)` 作为 private Strand reuse key；`normalized_context_ref` 只包含 Realm 与 Strand（或 profile 明确允许的 Relation）级身份，MUST NOT 包含 `track_name`、Message id、timeline anchor 或当前 UI route。
 5. 只接受由服务端派生的 backing Circle shape；caller 不得提供 Circle title、display、join rule、membership、encryption profile 或 ID。
 6. 返回 Sidecar、private Strand、private Relation 与 access/readiness 投影；不得把 backing Circle 暴露成普通 Circle 资源。
 
@@ -131,11 +131,45 @@ Sidecar private Strand MUST：
 
 `addressed_agent_ids` 是 exchange/message 级寻址集合，MUST 是当前 desired/effective access 中 eligible Agent 的子集；它不是 membership，也不改变 Sidecar access。
 
+同一个来源 Strand 的全部 Track 共享一条 Sidecar private Strand。`track_name` 只选择主 Strand与 private Strand 各自的 Track projection/write target，MUST NOT 进入 private Strand reuse key。来源 Message id 只可作为 routed exchange 的 actor-private timeline anchor，MUST NOT 产生另一条 private Strand。客户端不得以当前 URL、组件树、标题或激活的 Track 反推 context identity。
+
+Sidecar private Strand 是完整 Strand，可拥有来源 Strand 对应的 `synthesis`、`discussion` 与 profile-defined future Tracks。Track 可在首次 private write 时惰性建立；未建立的 private Track 表示 private empty state，客户端 MUST NOT 因缺少 private Track 而回退显示或写入来源 shared Track。
+
 `agent_sidecar_of` 是 weak-semantic、non-structural、non-cascading private Relation。其 effective scope 使用 backing Circle；目标公共对象不得保存反向 relation 或可枚举 Sidecar locator。
 
-## 7. Projection、发布与存在性隐私
+## 7. Controller-private projection、寄宿显示与回显
 
-controller-private `ak.agent.sidecar_projection.v1` 可保存 UI 顺序、context overlay、exchange origin、source anchor、addressed Agents、readiness 与私有回显。它不得修改目标 Strand tracks/metadata/Relation/watch/unread/search/notification state。
+Sidecar 没有独立用户可见页面、route、drawer workspace、导航项或 private Strand deep link。客户端必须在 `normalized_context_ref` 对应的主 Strand shell 内显示 Sidecar，始终保留来源 Strand的 title、breadcrumb 与 Track tabs，并在 Strand header 与 Track tabs 之间持续显示 private-context bar、E2EE/仅本人可见状态、当前 write target 与退出入口。Sidecar 不得表现为第四个 Track Tab 或普通 Circle。
+
+controller-private projection 分成两个加密 account-data plaintext schema：
+
+- `ak.schema.agent_sidecar_view_state.v1` 使用 key `ak.agent.sidecar_view_state.v1:<controller_id>:<target_realm_id>:<target_strand_id>`，按 context 保存 `display_mode`、pin/折叠状态与跨设备 HLC。`display_mode` 只有 `context_merged` 与 `sidecar_only`；首次激活默认 `context_merged`。
+- `ak.schema.agent_sidecar_exchange_projection.v1` 使用 key `ak.agent.sidecar_projection.v1:<controller_id>:<target_realm_id>:<target_strand_id>:<exchange_id>`，每个 source-routed exchange 独立一条记录。它保存强类型 `origin=source_track_routed`、Track sub-key、anchor、HLC、stable order key、addressed/participating Agents、private request Event、显式 user-facing response Events 与状态。每 exchange 独立记录使 account stream 可增量 fold，客户端 MUST NOT 在每次更新时解密、重写或重放该 context 的完整 echo 历史。
+
+上述 key 中的 controller/Realm/Strand/exchange components MUST 与解密后的 schema 字段 bit-identical；owner、key binding、schema 与 AEAD AAD 任一不匹配 MUST fail closed。两类 projection 只可从 actor-private account stream 返回给 controller 及明确获得该 account-data scope 的 Agent runtime。它们不得修改目标 Strand `tracks`、metadata、Relation、watch、unread、search、notification 或 shared history state。
+
+### 7.1 显示模式与多 Track projection
+
+`display_mode` 是 Strand-level private view state，切换 Track 后保持生效：
+
+- `context_merged`：显示当前 Track 的来源 shared projection 与 Sidecar private projection。Timeline Track 使用 `(causal position, HLC, event id)` 的确定性增量 interleave；若 schema/profile 没有注册 merge adapter，文档/状态 Track MUST 渲染只读 shared base + private overlay，不得猜测性字段合并。
+- `sidecar_only`：只显示当前 private Track projection；private Track 缺失时显示 private empty state，不得回退 shared 内容。
+
+两种模式下，只要 Sidecar active，全部 Track write target 都固定为 private Strand 的对应 Track，shared projection 只读。切换 mode 不得创建/迁移 Event，不得改变 access、MLS scope、read/unread、watch、notification、search 或来源 Strand state。退出 Sidecar 后，客户端恢复该 Track 原 shared scroll/editor/draft；private draft 不得进入 shared editor。
+
+所有 merged content 必须持续显示 shared/private provenance 与当前 editor destination。若同一 private request Event 已由 `ak.agent.sidecar_projection.v1` 作为来源 echo 合并进当前 timeline，private Track fold MUST 按 Event id 去重，只显示一次，不得依赖本地数组下标或 DOM identity。
+
+### 7.2 Routed exchange 与 timeline anchor
+
+`source_track_routed` 表示 controller 在 shared Track 提交前由客户端拦截的 owned-Agent selector 请求。该请求 MUST 只在 Sidecar private Track 创建真实加密 Event，随后以相同 `exchange_id` 幂等写入 exchange projection；来源 shared Track MUST NOT 创建 Message/Event。`sidecar_native` 表示 Sidecar active 时直接写入 private Track 的 Event，只存在于 private Strand，MUST NOT 创建 source echo projection。
+
+exchange projection 的 `source_frontier_anchor` 是发送时 controller 已看到的最新 shared Event，可在没有已见 Event 时省略；`source_hlc` 与 `client_order_key` 始终必填。同一 anchor 后的 echoes 按 `(source_hlc, exchange_id)` 字节序稳定排序。anchor 尚未同步时 projection 暂存；anchor 到达后归位。anchor 被 retention 删除时，在对应日期的 actor-private 区域显示并标注来源位置不可用。客户端本地数组下标、接收时间与数据库自增 id 不得参与跨设备排序。
+
+echo 只渲染 controller 的 private request Event、明确列入 `user_facing_response_event_ids` 的本 exchange 用户可见回复，以及失败/重试状态。Agent-to-Agent 内部消息、chain-of-thought、scratchpad、tool raw output、draft history、其它 exchange 与任何 private locator 均不得回显。每个 echo 持续显示 controller-only Private Sidecar 可见性标识，不能只在 hover 时披露。
+
+private Event 成功但 projection 写入失败时，客户端/服务端用同一 `exchange_id` 从已接受的 private request Event 重建 projection，不得再次投递 Agent 请求。projection 成功但响应丢失时，同一 key 幂等返回。account stream 重连只增量 fold 变更记录；不得要求来源 Realm 重放 private Event。
+
+### 7.3 显式 Publish 与存在性隐私
 
 Sidecar 发布到共享 Strand 必须由 controller 显式确认，只创建符合目标 scope 的正常 shared event。shared event、日志、URL、push preview 与公开 telemetry MUST NOT 携带 `sidecar_id`、`backing_circle_id`、private Strand/Relation id、private messages、scratchpad 或 draft history；只可携带规范允许的 opaque digest。
 
@@ -143,8 +177,8 @@ Sidecar 发布到共享 Strand 必须由 controller 显式确认，只创建符�
 
 ## 8. UI 安全不变量
 
-1. Sidecar MUST 使用专用产品 surface，不得进入 Circle 目录、Circle 创建器、Circle 成员管理或 Strand Track tabs。
-2. 从 Realm 或 Circle shared surface 打开 Sidecar 时，客户端 MUST 明确显示进入“仅 controller 与其 AI Agents 可访问”的个人私有 scope，并提供返回来源 context 的入口。
+1. Sidecar MUST 使用主 Strand 寄宿 surface，不得进入 Circle 目录、Circle 创建器、Circle 成员管理、独立页面/route/drawer/navigation 或 Strand Track tabs。
+2. 从 shared surface 激活 Sidecar 时，客户端 MUST 留在同一主 Strand shell，明确显示进入“仅 controller 与其 AI Agents 可访问”的个人私有 scope，并提供退出 Sidecar 的入口。
 3. Access 面板 MUST 展示 controller、desired Agents、effective access、Agent lifecycle 与 MLS readiness；不得提供邀请/移除 human 的控件。
 4. Mention picker 只显示 active eligible owned Agents，并在提交前由服务端再次 fail-closed 校验。
 5. `addressed`、`working`、`replied` 与完整 desired/effective access 必须使用不同文案，不得把一次呼叫伪装成固定 1:1 成员关系。

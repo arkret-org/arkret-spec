@@ -10,6 +10,7 @@
     "ak.vector.sidecar.ensure_idempotent.v1",
     "ak.vector.sidecar.eligibility_states.v1",
     "ak.vector.sidecar.existence_privacy.v1",
+    "ak.vector.sidecar.hosted_projection.v1",
     "ak.vector.sidecar.multi_agent_publish.v1"
   ],
   "cases": [
@@ -43,6 +44,19 @@
       "assertions": [
         "callers without sidecar ensure capability receive sidecar_create_denied",
         "sidecar and backing Circle existence are not disclosed via distinct branches"
+      ]
+    },
+    {
+      "name": "sidecar_hosted_projection",
+      "vector_id": "ak.vector.sidecar.hosted_projection.v1",
+      "runner": "cotest::conformance::sidecar_vectors::run_sidecar_hosted_projection_vector",
+      "assertions": [
+        "track_name and message_id are rejected in ensure context_ref",
+        "one private Strand is reused across all source Strand Tracks",
+        "display mode is encrypted per-context view state and defaults to context_merged",
+        "each source-routed exchange has an independent projection record and stable anchor order",
+        "sidecar-native events create no source echo",
+        "merged projection deduplicates the private request Event by Event id"
       ]
     },
     {

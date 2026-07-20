@@ -668,7 +668,7 @@ MUST NOT:
 MUST 支持:
 - `POST /_arkret/self/agent-sidecars:ensure`（`ak.self.agent.sidecar.command.ensure`）幂等返回 `{ok, sidecar_id, private_strand_id, private_relation_id, access_readiness, pending_access_reconciliations}`；pending 数组始终存在
 - `GET /_arkret/self/agent-sidecars/{sidecar_id}` 与 list query 作为唯一 canonical read surface，返回强类型 Sidecar + desired/effective access；普通 Circle API 不得代替
-- `context_ref` polymorphic descriptor(`relation_id` 单独 / `strand_id` 加可选 `track_name` + 可选 seal)
+- `context_ref` polymorphic descriptor（`relation_id` 或 `strand_id` 的 Strand-level identity）；Track/Message coordinate MUST NOT 进入 private Strand reuse key
 - Closed request schema(reject unknown top-level fields)
 - Fixed reuse：Sidecar `(realm_id, controller_id)`；private Strand `(sidecar_id, normalized_context_ref)`
 - `ak.sidecar.create`、backing Circle、初始 access、private Strand 与 Relation 原子建立；caller 不提供 Circle shape/ID
@@ -681,11 +681,14 @@ MUST 支持:
 - Sidecar 及其 backing Circle/private Strand 不出现在普通 Circle、Realm-wide navigation、board/list、public search 或 scope picker
 - 多 agent publish 时 `actor_id` / `executed_by` MUST 是单一签发 agent principal
 - Retention 继承目标 Realm,profile 可收紧不可放宽
-- `ak.agent.sidecar_projection.v1` controller-private encrypted account-data SHOULD 注册(跨设备 UI 一致性)
+- `ak.agent.sidecar_view_state.v1` 与 per-exchange `ak.agent.sidecar_projection.v1` controller-private encrypted account-data MUST 注册并按 closed plaintext schema/key binding 校验
+- 主 Strand 寄宿 surface、`context_merged|sidecar_only` Strand-level mode、多 Track private write target、timeline deterministic merge/source-anchor 与 Event-id 去重
 
 MUST NOT:
 - 在目标公开 Strand 写 target-side reverse `agent_sidecar_of` relation
 - 修改目标 Strand `tracks` map 或写入 target-side metadata / Relation / watch / unread / search / notification state
+- 建立独立 Sidecar route/page/drawer/deep link，或把 Sidecar 呈现为 Strand Track Tab/普通 Circle
+- 因 private Track 尚未建立而回退读取或写入来源 shared Track
 - 接受 caller-provided `participant_model`、member list、Circle title/display/join rule 或 backing Circle id
 - 为同一 `(realm_id, controller_id)` 创建第二个 non-tombstoned Sidecar 或第二个 active backing Circle
 

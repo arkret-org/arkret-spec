@@ -2718,6 +2718,8 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.agent_sidecar.v1",
+        "ak.schema.agent_sidecar_view_state.v1",
+        "ak.schema.agent_sidecar_exchange_projection.v1",
         "ak.schema.circle.v1",
         "ak.schema.strand.v1",
         "ak.schema.relation.v1"
@@ -2739,6 +2741,12 @@
           "addressed_agents_not_a_boundary",
           "agent_sidecar_of_relation",
           "navigation_visibility_scope_only",
+          "hosted_strand_sidecar_surface",
+          "strand_level_context_identity",
+          "sidecar_display_modes",
+          "multi_track_private_write_target",
+          "source_anchor_deterministic_merge",
+          "private_event_echo_deduplication",
           "existence_privacy_invariants",
           "single_executed_by_on_publish"
         ],

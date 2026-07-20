@@ -95,6 +95,8 @@ sidebar:
 | `ak.schema.agent_selector_claim.v1` | Controller-scoped native personal agent selector claim |
 | `ak.schema.circle.v1` | Circle (intra-Realm scoped event/message boundary; see [`../models/circle.md`](../models/circle.md)) |
 | `ak.schema.agent_sidecar.v1` | Agent Sidecar (controller-owned private AI workspace; see [`../models/sidecar.md`](../models/sidecar.md)) |
+| `ak.schema.agent_sidecar_view_state.v1` | Controller-private encrypted per-context Sidecar display/view state (see [`../models/sidecar.md` §7](../models/sidecar.md)) |
+| `ak.schema.agent_sidecar_exchange_projection.v1` | Controller-private encrypted source-routed exchange/echo projection (see [`../models/sidecar.md` §7](../models/sidecar.md)) |
 | `ak.schema.strand.v1` | Strand |
 | `ak.schema.message.v1` | Message |
 | `ak.schema.content_block_poll.v1` | Poll Content Block |

@@ -3705,6 +3705,27 @@ Expected:
 - 第 3 步 R 经 backing Circle MLS Welcome 加入，只获得 join 后 future epoch keys（MUST NOT 获得 join 前 epoch keys）；reconciliation 完成后才进入 effective access。
 - 第 4 步 R 立即离开 desired access并停止投递；reducer/service 主动 fan-out backing `ak.circle.member.state=leave`、MLS remove 与 epoch rotation。后续 R 的 proof、Sidecar write 与 query MUST fail closed。
 
+### 11.10.1 Vector: Hosted Multi-Track Projection and Private Echo
+
+`vector_id`: `ak.vector.sidecar.hosted_projection.v1`
+
+Steps:
+
+1. Alice 在来源 Strand `F` 的 `discussion` Track 以 owned-Agent selector 提交 routed request，当前已见 shared frontier 为 Event `E0`。
+2. 客户端以 `{realm_id, strand_id=F}` ensure Sidecar；分别以额外 `track_name` 与 `message_id` 构造两个 negative ensure request。
+3. private request Event `P1` 被接受后，客户端写入 key suffix 为同一 `exchange_id=X1` 的 `ak.schema.agent_sidecar_exchange_projection.v1`；模拟 account-data response 丢失并重试。
+4. Alice 激活主 Strand 寄宿 Sidecar，在 `context_merged` 下依次切换 `discussion`、`synthesis`，再切换为 `sidecar_only`；`synthesis` private Track 尚未建立。
+5. Agent 在同一 exchange 产生内部协作 Event `I1` 与明确 user-facing response Event `R1`；随后 Alice 在 active Sidecar 内直接创建 native Event `N1`。
+6. 第二设备从 actor-private account stream 增量恢复 view state 与 exchange projection。
+
+Expected:
+
+- 第 2 步所有合法 Track 共用同一 private Strand；带 `track_name`/`message_id` 的 ensure request closed-schema reject，不能创建第二条 private Strand。
+- 第 3 步重试只幂等返回 `X1` projection，不重复 private request/Agent execution；echo 位于 `E0` 后，同 anchor 按 `(source_hlc, exchange_id)` 排序。
+- 第 4 步主 Strand title/breadcrumb/Track tabs 保持可见，scope bar 位于 header 与 tabs 之间；两种 mode 对后续 Track 生效，所有 active writes 指向 private Track。缺失 private `synthesis` 显示 private empty state，不回退 shared write/read。
+- merged `discussion` 按 private Event id 去重，`P1` 不因 private fold 与 echo projection 重复显示；shared/private provenance 与 controller-only 可见性标识持续可见。
+- 只有 `P1` 与 `R1` 可进入 echo；`I1` 与 `N1` 不创建 source echo。第二设备得到相同排序、状态与去重结果，且无需来源 Realm 重放 private Event。
+
 ### 11.11 Vector: Multi-Agent Publish Attribution
 
 `vector_id`: `ak.vector.sidecar.multi_agent_publish.v1`

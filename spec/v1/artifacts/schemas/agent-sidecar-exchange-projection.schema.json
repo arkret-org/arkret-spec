@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/agent-sidecar-exchange-projection.schema.json",
+  "title": "Arkret Agent Sidecar Exchange Projection",
+  "description": "Controller-private encrypted account-data plaintext for one source-routed Sidecar exchange. One record per exchange permits incremental account-stream folding without rewriting or replaying the context's full echo history.",
+  "type": "object",
+  "required": [
+    "schema",
+    "controller_id",
+    "sidecar_id",
+    "private_strand_id",
+    "exchange_id",
+    "origin",
+    "source_track_ref",
+    "source_hlc",
+    "client_order_key",
+    "addressed_agent_ids",
+    "private_request_event_id",
+    "status",
+    "updated_hlc"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.agent_sidecar_exchange_projection.v1"
+    },
+    "controller_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "sidecar_id": {
+      "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+    },
+    "private_strand_id": {
+      "$ref": "#/$defs/strand_id"
+    },
+    "exchange_id": {
+      "$ref": "#/$defs/exchange_id"
+    },
+    "origin": {
+      "const": "source_track_routed"
+    },
+    "source_track_ref": {
+      "$ref": "#/$defs/source_track_ref"
+    },
+    "source_frontier_anchor": {
+      "$ref": "#/$defs/event_id"
+    },
+    "source_hlc": {
+      "$ref": "#/$defs/hlc"
+    },
+    "client_order_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._~=-]{1,128}$"
+    },
+    "addressed_agent_ids": {
+      "type": "array",
+      "items": {
+        "$ref": "./common-ids.schema.json#/$defs/did"
+      },
+      "uniqueItems": true
+    },
+    "participating_agent_ids": {
+      "type": "array",
+      "items": {
+        "$ref": "./common-ids.schema.json#/$defs/did"
+      },
+      "uniqueItems": true
+    },
+    "private_request_event_id": {
+      "$ref": "#/$defs/event_id"
+    },
+    "user_facing_response_event_ids": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/event_id"
+      },
+      "uniqueItems": true
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "delivered",
+        "responding",
+        "complete",
+        "failed"
+      ]
+    },
+    "failure_code": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    "updated_hlc": {
+      "$ref": "#/$defs/hlc"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "failed"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "failure_code"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "complete"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "user_facing_response_event_ids"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "strand_id": {
+      "type": "string",
+      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "exchange_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._~=-]{22,128}$",
+      "description": "Opaque controller-private idempotency identity; it is not a Sidecar locator and MUST NOT be copied into shared events."
+    },
+    "hlc": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
+    },
+    "track_name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    "source_track_ref": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "strand_id",
+        "track_name"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
+        },
+        "track_name": {
+          "$ref": "#/$defs/track_name"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

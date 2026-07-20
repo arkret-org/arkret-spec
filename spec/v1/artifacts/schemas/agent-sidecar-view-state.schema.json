@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/agent-sidecar-view-state.schema.json",
+  "title": "Arkret Agent Sidecar View State",
+  "description": "Controller-private encrypted account-data plaintext for one hosted Sidecar context. It changes only private presentation and never mutates either Strand, Track, access, read state, notifications, search, or event ownership.",
+  "type": "object",
+  "required": [
+    "schema",
+    "controller_id",
+    "sidecar_id",
+    "context_ref",
+    "display_mode",
+    "updated_hlc",
+    "origin_device_id"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.agent_sidecar_view_state.v1"
+    },
+    "controller_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "sidecar_id": {
+      "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+    },
+    "context_ref": {
+      "$ref": "#/$defs/strand_context_ref"
+    },
+    "display_mode": {
+      "$ref": "#/$defs/display_mode"
+    },
+    "pinned": {
+      "type": "boolean"
+    },
+    "collapsed": {
+      "type": "boolean"
+    },
+    "updated_hlc": {
+      "$ref": "#/$defs/hlc"
+    },
+    "origin_device_id": {
+      "$ref": "./common-ids.schema.json#/$defs/device_id"
+    }
+  },
+  "$defs": {
+    "strand_context_ref": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "strand_id"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "strand_id": {
+          "type": "string",
+          "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "display_mode": {
+      "type": "string",
+      "enum": [
+        "context_merged",
+        "sidecar_only"
+      ]
+    },
+    "hlc": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
+    }
+  },
+  "additionalProperties": false
+}
