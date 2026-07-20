@@ -205,6 +205,7 @@ Schema id: `ak.schema.realm.v1`
 4. **接受显式 founding grant**：同一 ordered submit batch 中紧随 create 的下一条 Event MUST 是一条 `ak.capability.grant`，其 envelope `actor_id` 与 payload `issuer`（若 payload 形态显式承载 issuer）均等于 `payload.object.created_by`，且 grant 必须逐字满足以下封闭形态：
    - `subject == payload.object.created_by`；
    - `actions[]` 作为集合恰为 `{ "ak.realm.admin", "ak.capability.grant", "ak.capability.revoke" }`，不得增加、缺少或用聚合别名替代；
+   - `capability_action_registry_digest` MUST 存在，并按 [`capabilities.md` §3.2](../authz/capabilities.md#32-首发-grant-的-issuer-自身权限上界normative) 绑定 receiver 可取得且 JCS 重算一致的完整 `capability-action-registry.json` snapshot；founding grant 的一次性 genesis authority 只豁免 issuer 既有上界，不豁免聚合 admin registry basis；
    - `resources[]` 恰含一个 `{ "kind": "realm", "realm_id": <新 Realm id>, "match_scope": "realm_wide" }` selector；
    - 不得携带 `parent_grant_id`，不得携带放宽上述边界的 constraint / extension 字段；`grant_id` 仍按普通 typed-id 与唯一性规则生成。
 

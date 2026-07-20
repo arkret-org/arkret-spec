@@ -2160,6 +2160,46 @@
         "restricted"
       ]
     },
+    "realm_join_rule_payload": {
+      "type": "object",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "type": "string",
+          "enum": [
+            "public",
+            "invite",
+            "knock",
+            "restricted",
+            "knock_restricted",
+            "closed"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_discovery_payload": {
+      "type": "object",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "type": "string",
+          "enum": [
+            "public",
+            "listed",
+            "restricted",
+            "unlisted",
+            "invite_only",
+            "secret"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "history_visibility_payload": {
       "type": "object",
       "required": [

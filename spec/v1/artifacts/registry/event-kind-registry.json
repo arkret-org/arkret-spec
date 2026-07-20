@@ -324,7 +324,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Realm join rule (public/invite/knock/restricted/closed)",
+      "payload": "Realm join rule (public/invite/knock/restricted/knock_restricted/closed)",
       "cell_family": "ak.component.realm.join_rule.v1",
       "cell_subject": null,
       "lattice": "cas_register",
