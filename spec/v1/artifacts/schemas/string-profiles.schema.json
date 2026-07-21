@@ -50,7 +50,7 @@
     "single_line_display_text": {
       "type": "string",
       "minLength": 1,
-      "pattern": "^(?=.*\\S)[^\\u0000-\\u001F\\u007F-\\u009F\\u202A-\\u202E\\u2066-\\u2069\\uFEFF]*$",
+      "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F\\u202A-\\u202E\\u2066-\\u2069\\uFEFF]*[^\\s\\u0000-\\u001F\\u007F-\\u009F\\u202A-\\u202E\\u2066-\\u2069\\uFEFF][^\\u0000-\\u001F\\u007F-\\u009F\\u202A-\\u202E\\u2066-\\u2069\\uFEFF]*$",
       "format": "arkret-single-line-display-text",
       "description": "NFC multilingual single-line display text; mixed scripts, emoji, and symbols are allowed."
     },

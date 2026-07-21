@@ -287,7 +287,7 @@
       "code": "read_receipt_compliance_floor_violated",
       "http_status": 422,
       "scope": "both",
-      "description": "A child Realm's read-receipt policy attempted to cross the parent's compliance floor (parent disclosure='required' \u2192 child 'optional' or 'disabled') without the parent explicitly setting allow_child_privacy_tightening_against_required=true. Reducer MUST reject the offending ak.realm.read_receipt_policy Move with this wire code. See zh/discovery/read-receipts.md \u00a72.5."
+      "description": "A child Realm's read-receipt policy attempted to cross the parent's compliance floor (parent disclosure='required' \u2192 child 'optional' or 'disabled') without the parent explicitly setting receipt_compliance_opt_in.child_privacy_tightening_against_required=true. Reducer MUST reject the offending ak.realm.read_receipt_policy Move with this wire code. See zh/discovery/read-receipts.md \u00a72.5."
     },
     {
       "code": "ephemeral_kind_not_permitted",
@@ -4502,7 +4502,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Reducer rejected a read-receipt policy whose effective combination is `disclosure='required'` AND `visibility='public'` on a `world_readable` scope \u2014 forced emission of publicly-pullable read positions with no member opt-out (forced de-anonymized activity tracking) \u2014 unless the policy payload also sets the second explicit opt-in `allow_forced_public_world_readable_receipts=true`. See zh/discovery/read-receipts.md \u00a72.5.1."
+      "description": "Reducer rejected a read-receipt policy whose effective combination is `disclosure='required'` AND `visibility='public'` on a `world_readable` scope \u2014 forced emission of publicly-pullable read positions with no member opt-out (forced de-anonymized activity tracking) \u2014 unless the policy payload also sets the second explicit opt-in `receipt_compliance_opt_in.forced_public_world_readable_receipts=true`. See zh/discovery/read-receipts.md \u00a72.5.1."
     },
     {
       "code": "mimi_observer_write_forbidden",

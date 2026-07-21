@@ -4981,7 +4981,7 @@ def check_error_code_closure(lint: Lint) -> None:
         r"_unknown|_incomplete)$"
     )
     non_error_code_tokens = {
-        "allow_child_privacy_tightening_against_required",
+        "child_privacy_tightening_against_required",
         "on_conflict",
         # Sync stream frame.kind tokens, not reason codes. Their endpoint-layer
         # error codes are stream_dropped / stream_resync_required (client-sync.md
