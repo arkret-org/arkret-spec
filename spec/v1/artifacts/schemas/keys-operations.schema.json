@@ -65,8 +65,7 @@
       "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "non_empty_string": {
       "type": "string",

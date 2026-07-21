@@ -980,9 +980,7 @@
       "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "recovery_recipient": {
       "type": "object",

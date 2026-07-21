@@ -92,7 +92,7 @@ ID 语义：
     {
       "constraint_type": "temporal",
       "effect": "allow",
-      "expires_at": "2026-04-30T00:00:00Z"
+      "expires_at": "2026-04-30T00:00:00.000Z"
     },
     {
       "constraint_type": "field_access",
@@ -106,7 +106,7 @@ ID 语义：
       "alg": "EdDSA",
       "verification_method": "did:webvh:z6qRDFWgaBgTY3UGDLivJztno:acme.example.com#device-1",
       "payload_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-      "created_at": "2026-04-26T00:00:00Z",
+      "created_at": "2026-04-26T00:00:00.000Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..signature"
     }
   ]

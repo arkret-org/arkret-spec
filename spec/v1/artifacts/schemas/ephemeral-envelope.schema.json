@@ -39,15 +39,11 @@
       "description": "Originating device. Required for all broadcast ephemeral signals; proof.verification_method fragment MUST equal this full device_id."
     },
     "sent_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$",
+      "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Wall-clock send time. Diagnostic only — ephemeral signals do not participate in HLC ordering."
     },
     "expires_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$",
+      "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Server / client MUST drop the signal at or after this time. Per-kind soft caps (recommended): presence ≤ 60s, typing ≤ 15s, receipt.read ≤ 30s, call.signal ≤ 30s. Signals with expires_at > sent_at + 5 minutes MUST be dropped by receivers (`invalid_param`)."
     },
     "payload": {
@@ -229,9 +225,7 @@
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "ephemeral_proof": {
       "type": "object",

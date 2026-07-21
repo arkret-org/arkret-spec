@@ -25,9 +25,7 @@
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "media_type": {
       "type": "string",

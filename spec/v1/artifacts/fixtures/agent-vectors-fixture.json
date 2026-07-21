@@ -156,15 +156,15 @@
         "verifier_did": "did:webvh:z6mkverifier:pair.example",
         "audience": "https://pair.example/_arkret/gate/account/agent-key-pair",
         "challenge": "ak.challenge.01964137000070008000000000000000",
-        "issued_at": "2026-04-26T00:00:00Z",
-        "expires_at": "2026-04-26T00:04:00Z",
+        "issued_at": "2026-04-26T00:00:00.000Z",
+        "expires_at": "2026-04-26T00:04:00.000Z",
         "proofs": [
           {
             "kind": "detached_jws",
             "verification_method": "did:webvh:z6mkcontroller:controller.example#device-1",
             "alg": "EdDSA",
             "payload_digest": "sha256:282240ee276be70b94f5c6046cb0b828d8e031fc2015a4feaf44c9f1767ba37e",
-            "created_at": "2026-04-26T00:00:00Z",
+            "created_at": "2026-04-26T00:00:00.000Z",
             "audience": "https://pair.example/_arkret/gate/account/agent-key-pair",
             "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
           }

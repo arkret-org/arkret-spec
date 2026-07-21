@@ -200,7 +200,12 @@
           "derived_prefix_bytes": 16,
           "proof_shape": "single_batched_dleq",
           "handoff_stubs_mode": "always",
-          "response_size_buckets_bytes": [4096, 16384, 65536, 262144],
+          "response_size_buckets_bytes": [
+            4096,
+            16384,
+            65536,
+            262144
+          ],
           "blind_response_bucket_bytes": 4096,
           "match_response_bucket_bytes": 4096,
           "batch_completion_ttl_seconds": 3600,
@@ -268,7 +273,12 @@
           "derived_prefix_bytes": 16,
           "proof_shape": "single_batched_dleq",
           "handoff_stubs_mode": "always",
-          "response_size_buckets_bytes": [4096, 16384, 65536, 262144],
+          "response_size_buckets_bytes": [
+            4096,
+            16384,
+            65536,
+            262144
+          ],
           "blind_response_bucket_bytes": 4096,
           "match_response_bucket_bytes": 4096,
           "batch_completion_ttl_seconds": 3600,
@@ -553,7 +563,7 @@
               "realm_id": "ak:realm:01970e58-9d26-7000-8000-000000000001",
               "title": "Launch calendar",
               "summary": "Public discovery metadata only",
-              "as_of": "2026-05-02T00:00:00Z",
+              "as_of": "2026-05-02T00:00:00.000Z",
               "source_refs": [
                 "ak:event:01970e58-9d26-7000-8000-000000000101"
               ],
@@ -717,12 +727,53 @@
         }
       },
       "cases": [
-        {"name": "active_unique_leaf", "mutation": "none", "expected": {"result": "accept_pairwise_author"}},
-        {"name": "duplicate_pairwise_identity", "mutation": "duplicate_active_leaf_identity", "expected": {"result": "reject", "reason_code": "minimal_metadata_author_credential_invalid"}},
-        {"name": "removed_leaf", "mutation": "leaf_removed_at_epoch", "expected": {"result": "reject", "reason_code": "minimal_metadata_author_credential_invalid"}},
-        {"name": "group_state_rollback", "mutation": "group_state_ref_not_winning_for_epoch", "expected": {"result": "reject", "reason_code": "minimal_metadata_author_credential_invalid"}},
-        {"name": "signature_key_mismatch", "mutation": "proof_key_differs_from_leaf_signature_key", "expected": {"result": "reject", "reason_code": "minimal_metadata_author_credential_invalid"}},
-        {"name": "principal_directory_fallback", "mutation": "attempt_keys_query_principal_lookup", "expected": {"result": "reject", "principal_directory_queries": 0}}
+        {
+          "name": "active_unique_leaf",
+          "mutation": "none",
+          "expected": {
+            "result": "accept_pairwise_author"
+          }
+        },
+        {
+          "name": "duplicate_pairwise_identity",
+          "mutation": "duplicate_active_leaf_identity",
+          "expected": {
+            "result": "reject",
+            "reason_code": "minimal_metadata_author_credential_invalid"
+          }
+        },
+        {
+          "name": "removed_leaf",
+          "mutation": "leaf_removed_at_epoch",
+          "expected": {
+            "result": "reject",
+            "reason_code": "minimal_metadata_author_credential_invalid"
+          }
+        },
+        {
+          "name": "group_state_rollback",
+          "mutation": "group_state_ref_not_winning_for_epoch",
+          "expected": {
+            "result": "reject",
+            "reason_code": "minimal_metadata_author_credential_invalid"
+          }
+        },
+        {
+          "name": "signature_key_mismatch",
+          "mutation": "proof_key_differs_from_leaf_signature_key",
+          "expected": {
+            "result": "reject",
+            "reason_code": "minimal_metadata_author_credential_invalid"
+          }
+        },
+        {
+          "name": "principal_directory_fallback",
+          "mutation": "attempt_keys_query_principal_lookup",
+          "expected": {
+            "result": "reject",
+            "principal_directory_queries": 0
+          }
+        }
       ],
       "assertions": [
         "credential identity equals Event.actor_id byte for byte",

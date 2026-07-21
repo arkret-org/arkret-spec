@@ -278,7 +278,7 @@ GET /_arkret/describe
     {
       "profile_id": "ak.profile.principal_server.v1",
       "claim_kind": "self_claimed",
-      "claimed_at": "2026-05-02T00:00:00Z"
+      "claimed_at": "2026-05-02T00:00:00.000Z"
     }
   ],
   "verified_profiles": [
@@ -290,7 +290,7 @@ GET /_arkret/describe
       "artifact_ref": "https://verifier.example/log/verify-2026-05-02T000000Z",
       "verifier_did": "did:webvh:zC72cg8H1bJUTB6ZngzxP68BJ:verifier.example",
       "signature": "base64url:...",
-      "timestamp": "2026-05-02T00:00:00Z"
+      "timestamp": "2026-05-02T00:00:00.000Z"
     }
   ],
   "experimental_features": [],

@@ -3,9 +3,7 @@
   "$id": "https://arkret.org/v1/schemas/snapshot.schema.json",
   "$defs": {
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     }
   },
   "title": "Arkret Snapshot Manifest",
@@ -219,9 +217,7 @@
       "description": "DID of the snapshot issuer (server / Realm notary / federation witness). Required because the snapshot signature transcript binds this field via x-canonical-bytes-include."
     },
     "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$",
+      "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Issuer-local timestamp when the snapshot manifest was sealed. RFC 3339 UTC, MUST end with 'Z'. Required because the snapshot signature transcript binds this field via x-canonical-bytes-include."
     },
     "authority_binding": {

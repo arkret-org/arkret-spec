@@ -13,9 +13,7 @@
     "start": {
       "oneOf": [
         {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "Z$"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         {
           "type": "string",
@@ -26,9 +24,7 @@
     "end": {
       "oneOf": [
         {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "Z$"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         {
           "type": "string",

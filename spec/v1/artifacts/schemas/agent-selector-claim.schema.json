@@ -101,9 +101,7 @@
       "$ref": "string-profiles.schema.json#/$defs/agent_slug"
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     }
   },
   "additionalProperties": false

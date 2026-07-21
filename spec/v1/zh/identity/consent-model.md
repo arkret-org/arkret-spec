@@ -123,8 +123,8 @@ Payload-only schema 示例：
   "consent_id": "ak:consent:019640ed-6000-7000-8000-000000000001",
   "peer": "did:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip:bob.example.com",
   "consent_scope": "invite",
-  "not_before": "2026-05-07T00:00:00Z",
-  "expires_at": "2026-12-31T00:00:00Z",
+  "not_before": "2026-05-07T00:00:00.000Z",
+  "expires_at": "2026-12-31T00:00:00.000Z",
   "evidence_ref": "ak:event:019640e0-0000-7000-8000-000000000002",
   "reason": "Bob completed verified contact discovery"
 }
@@ -175,7 +175,7 @@ Payload-only schema 示例：
   "observed_dots": [
     "ak:event:019640ed-7000-7000-8000-000000000001:0"
   ],
-  "revoked_at": "2026-06-15T10:00:00Z",
+  "revoked_at": "2026-06-15T10:00:00.000Z",
   "reason": "Bob harassment incident #4711"
 }
 ```

@@ -23,7 +23,7 @@
     "sdk_artifact": { "$ref": "#/$defs/artifact_subject" },
     "spec_revision": { "type": "string", "pattern": "^[0-9a-f]{40}$", "not": { "pattern": "^0{40}$" } },
     "contract_digest": { "$ref": "#/$defs/nonzero_digest" },
-    "issued_at": { "type": "string", "format": "date-time" },
+    "issued_at": {"$ref": "./time.schema.json#/$defs/timestamp"},
     "issuer": { "$ref": "#/$defs/issuer" },
     "clause_claims": {
       "type": "array",

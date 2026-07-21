@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/time.schema.json",
+  "title": "Arkret Time Primitives",
+  "description": "Defs-only shared time primitives. Arkret-owned absolute instants use the single fixed UTC millisecond spelling YYYY-MM-DDTHH:MM:SS.sssZ. Duration, external-protocol NumericDate, local wall time, and algorithm-internal epoch values are different semantic types and do not reference this definition.",
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$",
+      "description": "Canonical Arkret-owned absolute instant. UTC Z form with exactly three millisecond digits. Whole seconds MUST use .000Z; offsets, missing/finer fractions, lowercase separators, leap seconds, and invalid Gregorian calendar dates are forbidden. Shape validation by this pattern is supplemented by semantic date validation."
+    },
+    "nullable_timestamp": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  }
+}

@@ -4480,7 +4480,7 @@ Steps：
 
 Expected：
 
-- **Case A**：实现重算结果 MUST 等于 `expected_digest`（`sha256:5d13b7bebc378b71419c4cb05697d10846c391d94c674a49cace9606dfd00194`）；内容变异与 key-order 变异结果 MUST 分别符合 fixture。只摘要 `digest_input` 名称/路径列表即判失败。
+- **Case A**：实现重算结果 MUST 等于 fixture 的 `expected_digest`；内容变异与 key-order 变异结果 MUST 分别符合 fixture。只摘要 `digest_input` 名称/路径列表即判失败。摘要字面量只在机器 fixture 与生成 registry 中维护，prose 不复制生成值。
 - **Case B**：receiver MUST 整批拒绝并返回 `reducer_profile_mismatch`，MUST NOT partial accept；缺少 registry row、`profile_id` 未声明、canonicalization 不支持或 digest suite 非 active `sha256` 时同样 MUST fail closed。
 
 失败条件：

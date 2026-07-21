@@ -733,7 +733,7 @@ Profile 规则：
   "mls_group_id": "mls-group-019a7360",
   "mls_leaf_index": 0,
   "mls_epoch": 1,
-  "effective_at": "2026-05-20T00:00:00Z",
+  "effective_at": "2026-05-20T00:00:00.000Z",
   "proof": {
     "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#key-1",
     "signature_algorithm": "Ed25519",

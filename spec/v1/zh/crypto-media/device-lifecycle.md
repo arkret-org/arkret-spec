@@ -252,7 +252,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
   },
   "expected_previous_generation": 0,
   "generation": 1,
-  "issued_at": "2026-04-26T00:00:00Z"
+  "issued_at": "2026-04-26T00:00:00.000Z"
 }
 ```
 
@@ -1036,7 +1036,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 | `enc` | `string` | required | base64url HPKE（RFC 9180）封装密钥（KEM 输出）。 |
 | `ciphertext` | `string` | required | base64url HPKE AEAD 密文。HPKE AAD 见下方定义。 |
 
-HPKE AAD（本 kind 的具体绑定）MUST 是对以下字段的 canonical JSON（RFC 8785 JCS）：`message_id`、`kind`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id`、content 中的 `request_id`、content 中的 `secret_id`，以及把 `expires_at` 归一化为整数 Unix 秒后的字段 `expires_at_unix`。principal / device / message ID 字段为字符串、`request_id` / `secret_id` 为 content 中的原始字符串、`expires_at_unix` 为整数，在收发两端都可从 `DeviceMessageEnvelope` 与 `ak.secret.send.content` 确定性重建（归一化为整数避免 RFC3339 字符串在 `DateTime` 往返序列化中重排——如 `Z` 与 `+00:00`、小数秒——导致 AAD 不一致；队列服务 MUST NOT 重写这些字段）。把 `message_id` 与 `request_id` / `secret_id` 同时放入 AAD 可防止中间层替换外层幂等身份或业务关联字段。§7 的通用 AAD 最小集还要求覆盖 `sent_at`；由于 to-device 队列在物化时由服务端赋 `sent_at`，发送方在密封时无法预知它，因此本 kind 改由发送方分配的 `message_id` 与密封 plaintext 内的一次性 `request_id` 提供抗重放/新鲜性绑定。
+HPKE AAD（本 kind 的具体绑定）MUST 是对以下字段的 canonical JSON（RFC 8785 JCS）：`message_id`、`kind`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id`、content 中的 `request_id`、content 中的 `secret_id`，以及 envelope 中已经通过 [`time.schema.json#/$defs/timestamp`](../../artifacts/schemas/time.schema.json) 验证的原字段 `expires_at`。`expires_at` 在 AAD 中仍是逐字相同的 `.sssZ` string；MUST NOT 另派生 `expires_at_unix` / `expires_at_unix_ms`，也不得宽松解析后重排。principal / device / message ID 与 `request_id` / `secret_id` 都使用外层原始 canonical string，在收发两端从 `DeviceMessageEnvelope` 与 `ak.secret.send.content` 确定性重建。把 `message_id` 与 `request_id` / `secret_id` 同时放入 AAD 可防止中间层替换外层幂等身份或业务关联字段。§7 的通用 AAD 最小集还要求覆盖 `sent_at`；由于 to-device 队列在物化时由服务端赋 `sent_at`，发送方在密封时无法预知它，因此本 kind 改由发送方分配的 `message_id` 与密封 plaintext 内的一次性 `request_id` 提供抗重放/新鲜性绑定。
 
 `ak.secret.send` 的 plaintext（仅 HPKE 解封后可见，不出现在 wire 任何明文字段）MUST 至少携带被请求 secret 本体、其版本号、`request_id` 与 `secret_id`；接收方解封后 MUST 校验内层 `request_id` / `secret_id` 与外层 content 一致、且 `request_id` 命中本端某个 pending 请求，否则丢弃。
 
@@ -1363,7 +1363,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
     "alg": "EdDSA",
     "signature": "c2ln"
   },
-  "issued_at": "2026-04-26T00:00:00Z"
+  "issued_at": "2026-04-26T00:00:00.000Z"
 }
 ```
 

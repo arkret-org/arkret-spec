@@ -100,9 +100,7 @@
       "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "handle": {
       "$ref": "string-profiles.schema.json#/$defs/canonical_handle"

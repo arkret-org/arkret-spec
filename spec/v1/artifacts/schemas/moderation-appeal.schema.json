@@ -37,9 +37,7 @@
       "description": "The original moderation target (message, strand, member, blob, etc.) — same typed-id form as the appealed decision's target."
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "evidence_visibility": {
       "type": "string",

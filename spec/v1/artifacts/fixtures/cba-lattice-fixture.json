@@ -70,17 +70,48 @@
         "lattice": "fsm",
         "bottom": "reject",
         "parameters": {
-          "initial_states": ["active", "rejected", "tombstoned"],
-          "states": ["active", "rejected", "tombstoned"],
-          "terminal_states": ["tombstoned"],
+          "initial_states": [
+            "active",
+            "rejected",
+            "tombstoned"
+          ],
+          "states": [
+            "active",
+            "rejected",
+            "tombstoned"
+          ],
+          "terminal_states": [
+            "tombstoned"
+          ],
           "allowed_transitions": [
-            ["active", "active"],
-            ["active", "rejected"],
-            ["active", "tombstoned"],
-            ["rejected", "rejected"],
-            ["rejected", "active"],
-            ["rejected", "tombstoned"],
-            ["tombstoned", "tombstoned"]
+            [
+              "active",
+              "active"
+            ],
+            [
+              "active",
+              "rejected"
+            ],
+            [
+              "active",
+              "tombstoned"
+            ],
+            [
+              "rejected",
+              "rejected"
+            ],
+            [
+              "rejected",
+              "active"
+            ],
+            [
+              "rejected",
+              "tombstoned"
+            ],
+            [
+              "tombstoned",
+              "tombstoned"
+            ]
           ]
         },
         "assertions": [
@@ -320,7 +351,7 @@
         ],
         "control_event_set_root": "sha256:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
         "state_root": "sha256:efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef",
-        "sealed_at": "2026-06-11T00:00:00Z",
+        "sealed_at": "2026-06-11T00:00:00.000Z",
         "hlc": "2026-06-11T00:00:00Z/0000000000000001"
       },
       "expected": {
@@ -552,13 +583,13 @@
           "sha256:7777777777777777777777777777777777777777777777777777777777777777"
         ],
         "expiry_seal_count": 1,
-        "created_at": "2026-06-11T00:00:00Z",
+        "created_at": "2026-06-11T00:00:00.000Z",
         "signature": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixture:notary-signer.example#key-1",
           "alg": "EdDSA",
           "payload_digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
-          "created_at": "2026-06-11T00:00:00Z",
+          "created_at": "2026-06-11T00:00:00.000Z",
           "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
         }
       },
@@ -944,16 +975,64 @@
         "id": "ak:cell:ak.component.realm.policy.v1:ak.realm.fixture",
         "lattice": "cas_register",
         "bottom": "reject",
-        "frozen_predecessor_value": {"revision": 7}
+        "frozen_predecessor_value": {
+          "revision": 7
+        }
       },
       "moves": [
-        {"id": "move-a", "precondition": {"head_eq": 7}, "set": {"revision": 8}},
-        {"id": "move-b", "precondition": {"head_eq": 7}, "set": {"revision": 9}}
+        {
+          "id": "move-a",
+          "precondition": {
+            "head_eq": 7
+          },
+          "set": {
+            "revision": 8
+          }
+        },
+        {
+          "id": "move-b",
+          "precondition": {
+            "head_eq": 7
+          },
+          "set": {
+            "revision": 9
+          }
+        }
       ],
       "cases": [
-        {"name": "one_included_one_rejected", "same_seal_included": ["move-a"], "signed_rejected": [{"id": "move-b", "reason_code": "cas_conflict"}], "expected": "accept_seal"},
-        {"name": "both_in_same_seal", "same_seal_included": ["move-a", "move-b"], "expected": "rejected_seal"},
-        {"name": "moves_on_unreachable_seal_leaves", "unreachable_leaf_included": [["move-a"], ["move-b"]], "expected": "bottom_conflict"}
+        {
+          "name": "one_included_one_rejected",
+          "same_seal_included": [
+            "move-a"
+          ],
+          "signed_rejected": [
+            {
+              "id": "move-b",
+              "reason_code": "cas_conflict"
+            }
+          ],
+          "expected": "accept_seal"
+        },
+        {
+          "name": "both_in_same_seal",
+          "same_seal_included": [
+            "move-a",
+            "move-b"
+          ],
+          "expected": "rejected_seal"
+        },
+        {
+          "name": "moves_on_unreachable_seal_leaves",
+          "unreachable_leaf_included": [
+            [
+              "move-a"
+            ],
+            [
+              "move-b"
+            ]
+          ],
+          "expected": "bottom_conflict"
+        }
       ],
       "vector_id": "ak.vector.seal.same_batch_bottom_reject_serialization.v1"
     }

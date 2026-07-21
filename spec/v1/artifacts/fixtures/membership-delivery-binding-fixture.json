@@ -55,7 +55,7 @@
               "push",
               "key_packages"
             ],
-            "resolved_at": "2026-05-19T10:00:00Z",
+            "resolved_at": "2026-05-19T10:00:00.000Z",
             "service_acceptance_ref": "ak:event:7d000001-0000-7000-8000-000000000000"
           },
           "gate_proofs": [
@@ -106,7 +106,7 @@
               "push",
               "key_packages"
             ],
-            "resolved_at": "2026-05-19T10:00:00Z",
+            "resolved_at": "2026-05-19T10:00:00.000Z",
             "did_document_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
           }
         }
@@ -216,7 +216,7 @@
               "events",
               "sync"
             ],
-            "resolved_at": "2026-05-19T10:00:00Z",
+            "resolved_at": "2026-05-19T10:00:00.000Z",
             "service_acceptance_ref": "ak:event:7d000002-0000-7000-8000-000000000000"
           }
         }
@@ -267,7 +267,7 @@
                   "events",
                   "sync"
                 ],
-                "resolved_at": "2026-05-19T10:00:00Z",
+                "resolved_at": "2026-05-19T10:00:00.000Z",
                 "service_acceptance_ref": "ak:event:7d000003-0000-7000-8000-000000000000"
               }
             }

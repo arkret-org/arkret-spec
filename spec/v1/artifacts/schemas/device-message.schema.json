@@ -333,9 +333,7 @@
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "transaction_id": {
       "type": "string",
@@ -408,7 +406,7 @@
         "ciphertext": {
           "type": "string",
           "minLength": 1,
-          "description": "base64url HPKE AEAD ciphertext over the secret plaintext. The plaintext MUST carry the requested secret body, version, request_id and secret_id. The HPKE AAD is the RFC 8785 JCS canonical JSON of {message_id, kind, sender_principal_id, sender_device_id, recipient_principal_id, recipient_device_id, request_id, secret_id, expires_at_unix} where message_id comes from DeviceMessageEnvelope, request_id/secret_id are the outer ak.secret.send content fields and expires_at_unix is expires_at normalized to integer Unix seconds (device-lifecycle.md §10.7). Freshness for server-assigned sent_at is bound by the sender-assigned message_id plus the one-time request_id authenticated inside the sealed plaintext and AAD."
+          "description": "base64url HPKE AEAD ciphertext over the secret plaintext. The plaintext MUST carry the requested secret body, version, request_id and secret_id. The HPKE AAD is the RFC 8785 JCS canonical JSON of {message_id, kind, sender_principal_id, sender_device_id, recipient_principal_id, recipient_device_id, request_id, secret_id, expires_at}; expires_at is the exact already-validated canonical Arkret UTC millisecond string from DeviceMessageEnvelope and MUST NOT be converted to a second epoch field. Freshness for server-assigned sent_at is bound by the sender-assigned message_id plus the one-time request_id authenticated inside the sealed plaintext and AAD."
         }
       },
       "additionalProperties": true

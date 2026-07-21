@@ -43,15 +43,15 @@
         "control_scopes": [
           "official_badge"
         ],
-        "issued_at": "2026-05-01T00:00:00Z",
-        "not_before": "2026-05-01T00:00:00Z",
+        "issued_at": "2026-05-01T00:00:00.000Z",
+        "not_before": "2026-05-01T00:00:00.000Z",
         "expires_at": null,
         "realm_frontier_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "authorization": {
           "issuer": "did:webvh:z6mkfixture:acme.example",
           "issuer_role": "organization_did",
           "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
-          "signed_at": "2026-05-01T00:00:00Z",
+          "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
       }
@@ -74,12 +74,12 @@
           "realm_admin",
           "moderation_policy"
         ],
-        "issued_at": "2026-05-01T00:00:00Z",
+        "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
           "issuer": "did:webvh:z6mkfixture:gov.acme.example",
           "issuer_role": "governance_service",
           "verification_method": "did:webvh:z6mkfixture:gov.acme.example#gov-signing-key-1",
-          "signed_at": "2026-05-01T00:00:00Z",
+          "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
       }
@@ -100,7 +100,7 @@
           "realm_admin",
           "moderation_policy"
         ],
-        "issued_at": "2026-05-01T00:00:00Z",
+        "issued_at": "2026-05-01T00:00:00.000Z",
         "organization_policy_ref": "did:webvh:z6mkfixture:acme.example/governance/policy-1",
         "authorization": {
           "issuer": "did:webvh:z6mkfixture:gov.acme.example",
@@ -108,7 +108,7 @@
           "verification_method": "did:webvh:z6mkfixture:gov.acme.example#gov-signing-key-1",
           "delegation_ref": "did:webvh:z6mkfixture:acme.example/delegations/governance-service-1",
           "executed_by": "did:webvh:z6mkfixture:admin.acme.example",
-          "signed_at": "2026-05-01T00:00:00Z",
+          "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
       }
@@ -130,12 +130,12 @@
         "control_scopes": [
           "official_badge"
         ],
-        "issued_at": "2026-05-01T00:00:00Z",
+        "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
           "issuer": "did:webvh:z6mkfixture:aa.acme.example",
           "issuer_role": "account_authority",
           "verification_method": "did:webvh:z6mkfixture:aa.acme.example#aa-signing-key-1",
-          "signed_at": "2026-05-01T00:00:00Z",
+          "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
       }
@@ -155,13 +155,13 @@
         "control_scopes": [
           "official_badge"
         ],
-        "issued_at": "2026-05-01T00:00:00Z",
+        "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
           "issuer": "did:webvh:z6mkfixture:aa.acme.example",
           "issuer_role": "account_authority",
           "verification_method": "did:webvh:z6mkfixture:aa.acme.example#aa-signing-key-1",
           "delegation_ref": "did:webvh:z6mkfixture:acme.example/delegations/account-authority-1",
-          "signed_at": "2026-05-01T00:00:00Z",
+          "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
       }
@@ -183,12 +183,12 @@
         "control_scopes": [
           "official_badge"
         ],
-        "issued_at": "2026-06-01T00:00:00Z",
+        "issued_at": "2026-06-01T00:00:00.000Z",
         "authorization": {
           "issuer": "did:webvh:z6mkfixture:acme.example",
           "issuer_role": "organization_did",
           "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
-          "signed_at": "2026-06-01T00:00:00Z",
+          "signed_at": "2026-06-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
       }
@@ -208,13 +208,13 @@
         "control_scopes": [
           "official_badge"
         ],
-        "issued_at": "2026-06-01T00:00:00Z",
+        "issued_at": "2026-06-01T00:00:00.000Z",
         "revokes_statement_id": "org-stmt-00000001",
         "authorization": {
           "issuer": "did:webvh:z6mkfixture:acme.example",
           "issuer_role": "organization_did",
           "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
-          "signed_at": "2026-06-01T00:00:00Z",
+          "signed_at": "2026-06-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
       }
@@ -236,12 +236,12 @@
         "control_scopes": [
           "official_badge"
         ],
-        "issued_at": "2026-05-01T00:00:00Z",
+        "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
           "issuer": "did:webvh:z6mkfixture:acme.example",
           "issuer_role": "organization_did",
           "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
-          "signed_at": "2026-05-01T00:00:00Z"
+          "signed_at": "2026-05-01T00:00:00.000Z"
         }
       }
     },
@@ -262,12 +262,12 @@
         "control_scopes": [
           "official_badge"
         ],
-        "issued_at": "2026-05-01T00:00:00Z",
+        "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
           "issuer": "did:webvh:z6mkfixture:acme.example",
           "issuer_role": "realm_admin",
           "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
-          "signed_at": "2026-05-01T00:00:00Z",
+          "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
       }
@@ -289,12 +289,12 @@
         "control_scopes": [
           "official_badge"
         ],
-        "issued_at": "2026-05-01T00:00:00Z",
+        "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
           "issuer": "did:webvh:z6mkfixture:acme.example",
           "issuer_role": "organization_did",
           "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
-          "signed_at": "2026-05-01T00:00:00Z",
+          "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
       }
@@ -316,14 +316,14 @@
         "control_scopes": [
           "official_badge"
         ],
-        "issued_at": "2026-01-01T00:00:00Z",
-        "not_before": "2026-01-01T00:00:00Z",
-        "expires_at": "2026-02-01T00:00:00Z",
+        "issued_at": "2026-01-01T00:00:00.000Z",
+        "not_before": "2026-01-01T00:00:00.000Z",
+        "expires_at": "2026-02-01T00:00:00.000Z",
         "authorization": {
           "issuer": "did:webvh:z6mkfixture:acme.example",
           "issuer_role": "organization_did",
           "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
-          "signed_at": "2026-01-01T00:00:00Z",
+          "signed_at": "2026-01-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
       }
@@ -345,14 +345,14 @@
         "control_scopes": [
           "official_badge"
         ],
-        "issued_at": "2026-12-01T00:00:00Z",
-        "not_before": "2027-01-01T00:00:00Z",
+        "issued_at": "2026-12-01T00:00:00.000Z",
+        "not_before": "2027-01-01T00:00:00.000Z",
         "expires_at": null,
         "authorization": {
           "issuer": "did:webvh:z6mkfixture:acme.example",
           "issuer_role": "organization_did",
           "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
-          "signed_at": "2026-12-01T00:00:00Z",
+          "signed_at": "2026-12-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
       }
@@ -375,13 +375,13 @@
           "policy_server",
           "notary_control"
         ],
-        "issued_at": "2026-05-01T00:00:00Z",
+        "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
           "issuer": "did:webvh:z6mkfixture:gov.acme.example",
           "issuer_role": "governance_service",
           "verification_method": "did:webvh:z6mkfixture:gov.acme.example#gov-signing-key-1",
           "delegation_ref": "did:webvh:z6mkfixture:acme.example/delegations/badge-only-1",
-          "signed_at": "2026-05-01T00:00:00Z",
+          "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
       }
@@ -403,12 +403,12 @@
         "control_scopes": [
           "official_badge"
         ],
-        "issued_at": "2026-05-01T00:00:00Z",
+        "issued_at": "2026-05-01T00:00:00.000Z",
         "authorization": {
           "issuer": "did:webvh:z6mkfixture:acme.example",
           "issuer_role": "organization_did",
           "verification_method": "did:webvh:z6mkfixture:acme.example#org-signing-key-1",
-          "signed_at": "2026-05-01T00:00:00Z",
+          "signed_at": "2026-05-01T00:00:00.000Z",
           "proof": "signature-base64url-placeholder"
         }
       }

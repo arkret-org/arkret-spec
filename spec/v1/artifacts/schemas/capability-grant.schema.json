@@ -3,9 +3,7 @@
   "$id": "https://arkret.org/v1/schemas/capability-grant.schema.json",
   "$defs": {
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     }
   },
   "title": "Arkret Capability Grant",
@@ -92,21 +90,15 @@
       "pattern": "^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "issued_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$",
+      "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Grant issuance time — carries the 'creation time' semantics for a Capability Grant in place of the generic created_at (models/common-fields.md §3.2). Retention / audit / ordering queries MUST use issued_at / expires_at / revoked_at rather than falling back to created_at."
     },
     "not_before": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$",
+      "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Top-level grant validity start. Authorization evaluates this together with temporal constraints: effective_not_before = max(not_before, every temporal.not_before present)."
     },
     "expires_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$",
+      "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Top-level grant validity end. Authorization evaluates this together with temporal constraints: effective_expires_at = min(expires_at, every temporal.expires_at present). Delegated grants MUST not extend beyond the parent's effective_expires_at."
     },
     "updated_by": {
@@ -115,9 +107,7 @@
       "description": "Reducer-derived actor that produced the most recent grant lifecycle update. Ordinary grant body fields remain immutable; revocation still uses revoked_by/revoked_at."
     },
     "updated_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$",
+      "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Reducer-derived timestamp for the most recent grant lifecycle update. Ordinary grant body fields remain immutable; revocation still uses revoked_by/revoked_at."
     },
     "revoked_by": {

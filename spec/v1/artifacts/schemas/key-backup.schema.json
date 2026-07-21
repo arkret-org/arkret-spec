@@ -140,12 +140,7 @@
       "additionalProperties": false
     },
     "expires_at": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/nullable_timestamp"
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
@@ -782,12 +777,7 @@
       "type": "object",
       "properties": {
         "delete_after": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "format": "date-time",
-          "pattern": "Z$"
+          "$ref": "./time.schema.json#/$defs/nullable_timestamp"
         },
         "legal_hold": {
           "type": "boolean"
@@ -1291,9 +1281,7 @@
       "additionalProperties": false
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "hash": {
       "type": "string",

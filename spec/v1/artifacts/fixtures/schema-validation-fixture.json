@@ -14,6 +14,99 @@
   },
   "schema_validation_cases": [
     {
+      "name": "timestamp_profile_millisecond_valid",
+      "schema_ref": "schemas/time.schema.json#/$defs/timestamp",
+      "expect_valid": true,
+      "instance": "2026-07-21T10:00:00.734Z"
+    },
+    {
+      "name": "timestamp_profile_whole_second_value_valid",
+      "schema_ref": "schemas/time.schema.json#/$defs/timestamp",
+      "expect_valid": true,
+      "instance": "2026-07-21T10:00:00.000Z"
+    },
+    {
+      "name": "timestamp_profile_leap_day_valid",
+      "schema_ref": "schemas/time.schema.json#/$defs/timestamp",
+      "expect_valid": true,
+      "instance": "2024-02-29T23:59:59.999Z"
+    },
+    {
+      "name": "timestamp_profile_pre_epoch_valid",
+      "schema_ref": "schemas/time.schema.json#/$defs/timestamp",
+      "expect_valid": true,
+      "instance": "1969-12-31T23:59:59.999Z"
+    },
+    {
+      "name": "timestamp_profile_max_year_valid",
+      "schema_ref": "schemas/time.schema.json#/$defs/timestamp",
+      "expect_valid": true,
+      "instance": "9999-12-31T23:59:59.999Z"
+    },
+    {
+      "name": "timestamp_profile_missing_fraction_rejected",
+      "schema_ref": "schemas/time.schema.json#/$defs/timestamp",
+      "expect_valid": false,
+      "first_expected_error": "contains:2026-07-21T10:00:00Z",
+      "instance": "2026-07-21T10:00:00Z"
+    },
+    {
+      "name": "timestamp_profile_short_fraction_rejected",
+      "schema_ref": "schemas/time.schema.json#/$defs/timestamp",
+      "expect_valid": false,
+      "first_expected_error": "contains:2026-07-21T10:00:00.7Z",
+      "instance": "2026-07-21T10:00:00.7Z"
+    },
+    {
+      "name": "timestamp_profile_long_fraction_rejected",
+      "schema_ref": "schemas/time.schema.json#/$defs/timestamp",
+      "expect_valid": false,
+      "first_expected_error": "contains:2026-07-21T10:00:00.734000Z",
+      "instance": "2026-07-21T10:00:00.734000Z"
+    },
+    {
+      "name": "timestamp_profile_offset_rejected",
+      "schema_ref": "schemas/time.schema.json#/$defs/timestamp",
+      "expect_valid": false,
+      "first_expected_error": "contains:2026-07-21T18:00:00.734+08:00",
+      "instance": "2026-07-21T18:00:00.734+08:00"
+    },
+    {
+      "name": "timestamp_profile_lowercase_rejected",
+      "schema_ref": "schemas/time.schema.json#/$defs/timestamp",
+      "expect_valid": false,
+      "first_expected_error": "contains:2026-07-21t10:00:00.734z",
+      "instance": "2026-07-21t10:00:00.734z"
+    },
+    {
+      "name": "timestamp_profile_leap_second_rejected",
+      "schema_ref": "schemas/time.schema.json#/$defs/timestamp",
+      "expect_valid": false,
+      "first_expected_error": "contains:2016-12-31T23:59:60.000Z",
+      "instance": "2016-12-31T23:59:60.000Z"
+    },
+    {
+      "name": "timestamp_profile_invalid_calendar_date_rejected",
+      "schema_ref": "schemas/time.schema.json#/$defs/timestamp",
+      "expect_valid": false,
+      "first_expected_error": "contains:2026-02-29T10:00:00.000Z",
+      "instance": "2026-02-29T10:00:00.000Z"
+    },
+    {
+      "name": "timestamp_profile_whitespace_rejected",
+      "schema_ref": "schemas/time.schema.json#/$defs/timestamp",
+      "expect_valid": false,
+      "first_expected_error": "contains:2026-07-21T10:00:00.000Z",
+      "instance": " 2026-07-21T10:00:00.000Z"
+    },
+    {
+      "name": "timestamp_profile_unix_number_rejected",
+      "schema_ref": "schemas/time.schema.json#/$defs/timestamp",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not of type 'string'",
+      "instance": 1784628000734
+    },
+    {
       "name": "service_describe_valid",
       "schema_ref": "schemas/service-describe.schema.json",
       "expect_valid": true,
@@ -294,7 +387,7 @@
             "did:webvh:z6mkfixture:recovery-org.example"
           ]
         },
-        "created_at": "2026-04-26T00:00:00Z"
+        "created_at": "2026-04-26T00:00:00.000Z"
       }
     },
     {
@@ -330,7 +423,7 @@
         "fields": {
           "purpose": "principal_control"
         },
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "content_encryption_floor": "e2ee_required",
         "metadata_encryption_floor": "e2ee_required"
       }
@@ -368,7 +461,7 @@
         "fields": {
           "purpose": "principal_control"
         },
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "content_encryption_floor": "e2ee_required",
         "metadata_encryption_floor": "e2ee_required"
       },
@@ -391,7 +484,7 @@
         "default_join_rule": "invite",
         "history_visibility": "joined",
         "encryption_profile": "mls_rfc9420",
-        "created_at": "2026-04-26T00:00:00Z"
+        "created_at": "2026-04-26T00:00:00.000Z"
       }
     },
     {
@@ -453,7 +546,7 @@
         },
         "decision": "allow",
         "reason_code": "ok",
-        "expires_at": "2026-04-26T00:05:00Z",
+        "expires_at": "2026-04-26T00:05:00.000Z",
         "auth_state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "policy_frontier_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "membership_frontier_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
@@ -472,7 +565,7 @@
         "request_id": "polreq_01",
         "decision": "allow",
         "reason_code": "ok",
-        "expires_at": "2026-04-26T00:05:00Z",
+        "expires_at": "2026-04-26T00:05:00.000Z",
         "auth_state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "policy_frontier_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "membership_frontier_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
@@ -511,7 +604,7 @@
             "event_id": "ak:event:019a6aa0-4000-7000-8000-000000000000",
             "hlc": "01970e589d21-0001-a13f9c2e"
           },
-          "updated_at": "2026-05-20T00:00:00Z"
+          "updated_at": "2026-05-20T00:00:00.000Z"
         },
         "proofs": [
           {
@@ -557,7 +650,7 @@
             "account_private_state"
           ],
           "retained_stub_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "completed_at": "2026-05-20T00:00:00Z",
+          "completed_at": "2026-05-20T00:00:00.000Z",
           "proofs": [
             {
               "verification_method": "did:webvh:z6mkfixture:erasure.example#key-1",
@@ -849,7 +942,7 @@
               ]
             },
             "fields": {},
-            "created_at": "2026-05-20T00:00:00Z"
+            "created_at": "2026-05-20T00:00:00.000Z"
           }
         },
         "proofs": [
@@ -913,7 +1006,7 @@
             "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000"
           },
           "stage": "close",
-          "occurred_at": "2026-06-04T00:00:00Z"
+          "occurred_at": "2026-06-04T00:00:00.000Z"
         },
         "proofs": [
           {
@@ -970,7 +1063,7 @@
             "alg": "EdDSA",
             "verification_method": "did:webvh:z6mkfixture:owner.example#key-1",
             "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "created_at": "2026-05-20T00:00:00Z",
+            "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b"
           }
         ]
@@ -995,10 +1088,10 @@
           "alg": "EdDSA",
           "verification_method": "did:webvh:z6mkfixture:notary.example#key-1",
           "payload_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-          "created_at": "2026-05-20T00:00:00Z",
+          "created_at": "2026-05-20T00:00:00.000Z",
           "jws": "a..b"
         },
-        "sealed_at": "2026-05-20T00:00:00Z",
+        "sealed_at": "2026-05-20T00:00:00.000Z",
         "hlc": "01970e589d21-0001-a13f9c2e"
       }
     },
@@ -1009,8 +1102,8 @@
       "instance": {
         "v": "1",
         "purpose": "stream",
-        "t": "2026-05-20T00:00:00Z",
-        "x": 1798761599000,
+        "issued_at": "2026-05-20T00:00:00.000Z",
+        "expires_at": "2026-12-31T23:59:59.000Z",
         "h": "abcdefghijklmnopqrstuv"
       }
     },
@@ -1023,8 +1116,8 @@
       "instance": {
         "v": "1",
         "purpose": "stream",
-        "t": "2026-05-20T00:00:00Z",
-        "x": 1798761599000
+        "issued_at": "2026-05-20T00:00:00.000Z",
+        "expires_at": "2026-12-31T23:59:59.000Z"
       }
     },
     {
@@ -1080,14 +1173,14 @@
           "method": "webvh",
           "rotate_to": "did:webvh:z6mkfixture:alice.example#key-2"
         },
-        "created_at": "2026-05-20T00:00:00Z",
+        "created_at": "2026-05-20T00:00:00.000Z",
         "proofs": [
           {
             "kind": "detached_jws",
             "alg": "EdDSA",
             "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
             "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-            "created_at": "2026-05-20T00:00:00Z",
+            "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b"
           }
         ]
@@ -1116,8 +1209,8 @@
         "audience": [
           "ak.agent.action_request"
         ],
-        "issued_at": "2026-05-20T00:00:00Z",
-        "expires_at": "2026-05-21T00:00:00Z",
+        "issued_at": "2026-05-20T00:00:00.000Z",
+        "expires_at": "2026-05-21T00:00:00.000Z",
         "approval_evidence": {
           "kind": "capability_grant",
           "evidence_ref": "ak:grant:019a6aa0-0000-7000-8000-000000000000"
@@ -1243,7 +1336,7 @@
           "status": "pending"
         },
         "pairing_request_id": "pairing-request-001",
-        "expires_at": "2026-05-20T00:05:00Z"
+        "expires_at": "2026-05-20T00:05:00.000Z"
       }
     },
     {
@@ -1262,7 +1355,7 @@
           "status": "pending"
         },
         "pairing_request_id": "pairing-request-001",
-        "expires_at": "2026-05-20T00:05:00Z"
+        "expires_at": "2026-05-20T00:05:00.000Z"
       }
     },
     {
@@ -1285,9 +1378,9 @@
           "max_claims": 1
         },
         "join_rule_snapshot": {},
-        "expires_at": "2026-05-21T00:00:00Z",
+        "expires_at": "2026-05-21T00:00:00.000Z",
         "state": "pending",
-        "created_at": "2026-05-20T00:00:00Z"
+        "created_at": "2026-05-20T00:00:00.000Z"
       }
     },
     {
@@ -1303,7 +1396,7 @@
         "trust_domain": "ak:trust_domain:did.webvh.example",
         "mls_leaf_index": 0,
         "mls_epoch": 1,
-        "effective_at": "2026-05-20T00:00:00Z",
+        "effective_at": "2026-05-20T00:00:00.000Z",
         "proof": {
           "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
           "signature_algorithm": "Ed25519",
@@ -1325,7 +1418,7 @@
         "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
         "mls_leaf_index": 0,
         "mls_epoch": 1,
-        "effective_at": "2026-05-20T00:00:00Z",
+        "effective_at": "2026-05-20T00:00:00.000Z",
         "proof": {
           "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
           "signature_algorithm": "Ed25519",
@@ -1364,20 +1457,20 @@
         },
         "verification_method": "did:webvh:z6mkfixture:audit.example#attestation-1",
         "validity": {
-          "not_before": "2026-05-20T00:00:00Z",
-          "expires_at": "2026-06-20T00:00:00Z"
+          "not_before": "2026-05-20T00:00:00.000Z",
+          "expires_at": "2026-06-20T00:00:00.000Z"
         },
         "operator_did": "did:webvh:z6mkfixture:operator.example",
         "audit_purpose": "internal_policy_audit",
         "audit_policy_version_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "created_at": "2026-05-20T00:00:00Z",
+        "created_at": "2026-05-20T00:00:00.000Z",
         "proofs": [
           {
             "kind": "detached_jws",
             "alg": "EdDSA",
             "verification_method": "did:webvh:z6mkfixture:operator.example#key-1",
             "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-            "created_at": "2026-05-20T00:00:00Z",
+            "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b"
           }
         ]
@@ -1414,20 +1507,20 @@
         },
         "verification_method": "did:webvh:z6mkfixture:audit.example#attestation-1",
         "validity": {
-          "not_before": "2026-05-20T00:00:00Z",
-          "expires_at": "2026-06-20T00:00:00Z"
+          "not_before": "2026-05-20T00:00:00.000Z",
+          "expires_at": "2026-06-20T00:00:00.000Z"
         },
         "operator_did": "did:webvh:z6mkfixture:operator.example",
         "audit_purpose": "internal_policy_audit",
         "audit_policy_version_digest": "blake3:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "created_at": "2026-05-20T00:00:00Z",
+        "created_at": "2026-05-20T00:00:00.000Z",
         "proofs": [
           {
             "kind": "detached_jws",
             "alg": "EdDSA",
             "verification_method": "did:webvh:z6mkfixture:operator.example#key-1",
             "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-            "created_at": "2026-05-20T00:00:00Z",
+            "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b"
           }
         ]
@@ -1469,7 +1562,7 @@
           }
         },
         "generation": 1,
-        "issued_at": "2026-05-20T00:00:00Z"
+        "issued_at": "2026-05-20T00:00:00.000Z"
       }
     },
     {
@@ -1486,7 +1579,7 @@
           "ak.device.hpke.x25519_hkdf_sha256.v1"
         ],
         "authorized_by": "ak:device:019a6aa0-1000-7000-8000-000000000000",
-        "not_before": "2026-05-20T00:00:00Z",
+        "not_before": "2026-05-20T00:00:00.000Z",
         "expires_at": null,
         "cross_signing_binding": {
           "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
@@ -1515,7 +1608,7 @@
           "ak.device.hpke.x25519_hkdf_sha256.v1"
         ],
         "authorized_by": "did:webvh:z6mkfixture:authority.example",
-        "not_before": "2026-05-20T00:00:00Z",
+        "not_before": "2026-05-20T00:00:00.000Z",
         "enrollment_authority_binding": {
           "kind": "service_attested",
           "authority_did": "did:webvh:z6mkfixture:authority.example",
@@ -1538,8 +1631,8 @@
         "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "device_id": "ak:device:019a6aa0-0000-7000-8000-000000000000",
-        "sent_at": "2026-05-20T00:00:00Z",
-        "expires_at": "2026-05-20T00:00:30Z",
+        "sent_at": "2026-05-20T00:00:00.000Z",
+        "expires_at": "2026-05-20T00:00:30.000Z",
         "payload": {
           "call_id": "ak:call:019a7360-0000-7000-8000-000000000001",
           "signal_type": "invite",
@@ -1579,19 +1672,19 @@
         },
         "retention_policy_id": "ak:policy:019a7360-0000-7000-8000-000000000005",
         "retention": {
-          "retention_expires_at": "2026-06-20T00:00:00Z",
+          "retention_expires_at": "2026-06-20T00:00:00.000Z",
           "deletion_trigger": "retention_expiry",
           "audit_lock": false,
           "consent_confirmed": true
         },
         "produced_by": "did:webvh:z6mkfixture:recorder.example",
         "recording_initiator_capability_ref": "ak:grant:019a7360-0000-7000-8000-000000000006",
-        "created_at": "2026-06-19T00:00:00Z",
+        "created_at": "2026-06-19T00:00:00.000Z",
         "deletion_audit": {
           "trigger": "retention_expiry",
           "outcome": "completed",
-          "requested_at": "2026-06-20T00:00:00Z",
-          "completed_at": "2026-06-20T00:00:01Z",
+          "requested_at": "2026-06-20T00:00:00.000Z",
+          "completed_at": "2026-06-20T00:00:01.000Z",
           "erasure_receipt_ref": "ak:receipt:019a7360-0000-7000-8000-000000000007"
         }
       }
@@ -1628,14 +1721,14 @@
         },
         "retention_policy_id": "ak:policy:019a7360-0000-7000-8000-000000000005",
         "retention": {
-          "retention_expires_at": "2026-06-20T00:00:00Z",
+          "retention_expires_at": "2026-06-20T00:00:00.000Z",
           "deletion_trigger": "retention_expiry",
           "audit_lock": false,
           "consent_confirmed": true
         },
         "produced_by": "did:webvh:z6mkfixture:recorder.example",
         "recording_initiator_capability_ref": "ak:grant:019a7360-0000-7000-8000-000000000006",
-        "created_at": "2026-06-19T00:00:00Z"
+        "created_at": "2026-06-19T00:00:00.000Z"
       },
       "first_expected_error": "$.encryption.exporter_label: 'ak.rtc-recording-key/v1' was expected"
     },
@@ -1655,9 +1748,9 @@
         "ssk_generation": 1,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "state": "pending",
-        "created_at": "2026-05-30T00:00:00Z",
-        "updated_at": "2026-05-30T00:00:00Z",
-        "expires_at": "2026-05-30T00:15:00Z"
+        "created_at": "2026-05-30T00:00:00.000Z",
+        "updated_at": "2026-05-30T00:00:00.000Z",
+        "expires_at": "2026-05-30T00:15:00.000Z"
       }
     },
     {
@@ -1675,9 +1768,9 @@
         "identity_model": "cross_signing",
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "state": "pending",
-        "created_at": "2026-05-30T00:00:00Z",
-        "updated_at": "2026-05-30T00:00:00Z",
-        "expires_at": "2026-05-30T00:15:00Z"
+        "created_at": "2026-05-30T00:00:00.000Z",
+        "updated_at": "2026-05-30T00:00:00.000Z",
+        "expires_at": "2026-05-30T00:15:00.000Z"
       },
       "first_expected_error": "$: 'ssk_generation' is a required property"
     },
@@ -1700,9 +1793,9 @@
         "accepted_seal_frontier": null,
         "challenge": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
         "state": "pending",
-        "created_at": "2026-05-30T00:00:00Z",
-        "updated_at": "2026-05-30T00:00:00Z",
-        "expires_at": "2026-05-30T00:15:00Z"
+        "created_at": "2026-05-30T00:00:00.000Z",
+        "updated_at": "2026-05-30T00:00:00.000Z",
+        "expires_at": "2026-05-30T00:15:00.000Z"
       }
     },
     {
@@ -1721,9 +1814,9 @@
         "ssk_generation": 1,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "state": "verified",
-        "created_at": "2026-05-30T00:00:00Z",
-        "updated_at": "2026-05-30T00:00:00Z",
-        "expires_at": "2026-05-30T00:15:00Z"
+        "created_at": "2026-05-30T00:00:00.000Z",
+        "updated_at": "2026-05-30T00:00:00.000Z",
+        "expires_at": "2026-05-30T00:15:00.000Z"
       },
       "first_expected_error": "$: 'proof_summary' is a required property"
     },
@@ -1827,8 +1920,8 @@
         "identity_model": "cross_signing",
         "model_generation_ref": 1,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-        "created_at": "2026-05-30T00:00:00Z",
-        "expires_at": "2026-05-30T00:15:00Z"
+        "created_at": "2026-05-30T00:00:00.000Z",
+        "expires_at": "2026-05-30T00:15:00.000Z"
       }
     },
     {
@@ -1863,8 +1956,8 @@
         ],
         "welcome_count": 0,
         "outcome": "completed",
-        "started_at": "2026-05-30T00:00:00Z",
-        "completed_at": "2026-05-30T00:00:01Z",
+        "started_at": "2026-05-30T00:00:00.000Z",
+        "completed_at": "2026-05-30T00:00:01.000Z",
         "auth_data": {
           "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a6aa0-0000-7000-8000-000000000099",
           "signature_algorithm": "Ed25519",
@@ -1919,8 +2012,8 @@
         "backup_classes_unlocked": [],
         "welcome_count": 0,
         "outcome": "completed",
-        "started_at": "2026-05-30T00:00:00Z",
-        "completed_at": "2026-05-30T00:00:01Z",
+        "started_at": "2026-05-30T00:00:00.000Z",
+        "completed_at": "2026-05-30T00:00:01.000Z",
         "auth_data": {
           "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a6aa0-0000-7000-8000-000000000098",
           "signature_algorithm": "Ed25519",
@@ -1974,8 +2067,8 @@
         },
         "welcome_count": 0,
         "outcome": "completed",
-        "started_at": "2026-05-30T00:00:00Z",
-        "completed_at": "2026-05-30T00:00:01Z",
+        "started_at": "2026-05-30T00:00:00.000Z",
+        "completed_at": "2026-05-30T00:00:01.000Z",
         "auth_data": {
           "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a6aa0-0000-7000-8000-000000000099",
           "signature_algorithm": "Ed25519",
@@ -2066,13 +2159,13 @@
         },
         "package_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "created_at": "2026-05-20T00:00:00Z",
+        "created_at": "2026-05-20T00:00:00.000Z",
         "proof": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixture:vendor.example#key-1",
           "alg": "EdDSA",
           "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-          "created_at": "2026-05-20T00:00:00Z",
+          "created_at": "2026-05-20T00:00:00.000Z",
           "jws": "a..b"
         }
       }
@@ -2137,7 +2230,7 @@
         },
         "package_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "created_at": "2026-05-20T00:00:00Z",
+        "created_at": "2026-05-20T00:00:00.000Z",
         "proof": {
           "signature": "c2ln"
         }
@@ -2203,13 +2296,13 @@
         },
         "package_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "created_at": "2026-05-20T00:00:00Z",
+        "created_at": "2026-05-20T00:00:00.000Z",
         "proof": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixture:vendor.example#key-1",
           "alg": "EdDSA",
           "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-          "created_at": "2026-05-20T00:00:00Z",
+          "created_at": "2026-05-20T00:00:00.000Z",
           "jws": "a..b"
         }
       }
@@ -2307,13 +2400,13 @@
         },
         "package_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "created_at": "2026-05-20T00:00:00Z",
+        "created_at": "2026-05-20T00:00:00.000Z",
         "proof": {
           "kind": "detached_jws",
           "verification_method": "did:webvh:z6mkfixture:vendor.example#key-1",
           "alg": "EdDSA",
           "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-          "created_at": "2026-05-20T00:00:00Z",
+          "created_at": "2026-05-20T00:00:00.000Z",
           "jws": "a..b"
         }
       }

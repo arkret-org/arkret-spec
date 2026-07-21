@@ -774,13 +774,9 @@ components:
           type: string
           const: time_bucket
         start:
-          type: string
-          format: date-time
-          pattern: Z$
+          $ref: ../schemas/time.schema.json#/$defs/timestamp
         end:
-          type: string
-          format: date-time
-          pattern: Z$
+          $ref: ../schemas/time.schema.json#/$defs/timestamp
         timezone:
           type: string
           minLength: 1
@@ -796,14 +792,9 @@ components:
           type: string
           const: time_window
         start:
-          type: string
-          format: date-time
-          pattern: Z$
+          $ref: ../schemas/time.schema.json#/$defs/timestamp
         end:
-          type:
-          - string
-          - 'null'
-          format: date-time
+          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
         timezone:
           type: string
           minLength: 1
@@ -925,9 +916,7 @@ components:
         content:
           type: object
         expires_at:
-          type: string
-          format: date-time
-          pattern: Z$
+          $ref: ../schemas/time.schema.json#/$defs/timestamp
       additionalProperties: false
     DidOperationSubmitOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome
@@ -2010,20 +1999,11 @@ components:
           - string
           - 'null'
         created_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
+          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
         updated_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
+          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
         state_changed_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
+          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
     ProjectionObject:
       type: object
       required:
@@ -2096,24 +2076,15 @@ components:
           - string
           - 'null'
         created_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
+          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
         updated_by:
           type:
           - string
           - 'null'
         updated_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
+          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
         state_changed_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
+          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
     ProjectionStrandList:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList
     ProjectionStrandRow:
@@ -2137,10 +2108,7 @@ components:
           - archived
           - redacted
         state_changed_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
+          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
         title:
           type:
           - string
@@ -2184,15 +2152,9 @@ components:
           - string
           - 'null'
         created_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
+          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
         updated_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
+          $ref: ../schemas/time.schema.json#/$defs/nullable_timestamp
     PsiPaddedErrorEnvelope:
       type: object
       description: >-
@@ -2835,11 +2797,9 @@ components:
                 minLength: 1
                 description: Signature over profile_id, verification_run_id, artifact_digest, artifact_ref, verifier and timestamp.
               timestamp:
-                type: string
-                format: date-time
+                $ref: ../schemas/time.schema.json#/$defs/timestamp
               expires_at:
-                type: string
-                format: date-time
+                $ref: ../schemas/time.schema.json#/$defs/timestamp
         experimental_features:
           type: array
           description: |
@@ -2923,8 +2883,7 @@ components:
           type: string
           description: DID of the snapshot issuer; bound by the manifest signature transcript.
         created_at:
-          type: string
-          format: date-time
+          $ref: ../schemas/time.schema.json#/$defs/timestamp
           description: RFC 3339 UTC timestamp ending in 'Z' when the manifest was sealed; bound by the manifest signature transcript.
         authority_binding:
           type: object
@@ -3120,9 +3079,7 @@ components:
         actor_id:
           type: string
         created_at:
-          type: string
-          format: date-time
-          pattern: Z$
+          $ref: ../schemas/time.schema.json#/$defs/timestamp
         sort_key:
           type: string
           minLength: 1

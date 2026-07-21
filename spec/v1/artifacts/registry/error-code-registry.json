@@ -509,7 +509,7 @@
       "code": "cursor_integrity_invalid",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "Cursor integrity check failed for the v1 stateful opaque handle (client-sync \u00a712.1, canonical body `{v, purpose, t, x, h}`): the `h` handle is unknown / revoked / expired / cross-bound, or its stored binding (principal, device, service, filter_digest, purpose) does not match the authenticated request. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Client MUST clear local cursor cache and restart from initial /account/subscribe."
+      "description": "Cursor integrity check failed for the v1 stateful opaque handle (client-sync \u00a712.1, canonical body `{v, purpose, issued_at, expires_at, h}`): the `h` handle is unknown / revoked / expired / cross-bound, or its stored binding (principal, device, service, filter_digest, purpose) does not match the authenticated request. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Client MUST clear local cursor cache and restart from initial /account/subscribe."
     },
     {
       "code": "cursor_revoked",

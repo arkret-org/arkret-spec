@@ -93,7 +93,7 @@
           "claim_id": "mls-keypackage-claim-mimi-interop-1",
           "keypackage_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "device_binding": "ak:device:0110c853-1d09-7044-b214-c74240110c85",
-          "expires_at": "2026-04-30T01:00:00Z",
+          "expires_at": "2026-04-30T01:00:00.000Z",
           "supported_capabilities": [
             "mls-rfc9420"
           ],

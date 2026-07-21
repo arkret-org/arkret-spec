@@ -222,14 +222,10 @@
           "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "requested_at": {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "Z$"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "expires_at": {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "Z$"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
       "additionalProperties": false

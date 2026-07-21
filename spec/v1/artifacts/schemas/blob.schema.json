@@ -3,9 +3,7 @@
   "$id": "https://arkret.org/v1/schemas/blob.schema.json",
   "$defs": {
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "encrypted_attachment": {
       "type": "object",

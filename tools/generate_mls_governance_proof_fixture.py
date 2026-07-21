@@ -125,7 +125,7 @@ def build_event(
         "realm_id": realm_id,
         "actor_id": actor_did,
         "actor_seq": actor_seq,
-        "created_at": f"2026-07-15T00:00:0{actor_seq}Z",
+        "created_at": f"2026-07-15T00:00:0{actor_seq}.000Z",
         "hlc": f"019809f4a80{actor_seq}-0000-a1b2c3d4",
         "prev_refs": [] if previous_event_id is None else [previous_event_id],
         "refs": [],
@@ -312,7 +312,7 @@ def build_fixture() -> dict[str, Any]:
         "state_root": state_root,
         "completeness_root": completeness_root,
         "notary_seq": 0,
-        "sealed_at": "2026-07-15T00:00:02Z",
+        "sealed_at": "2026-07-15T00:00:02.000Z",
         "hlc": "019809f4a802-0000-d4c3b2a1",
     }
     seal_digest = wire_digest(canonical_bytes(seal_body))
@@ -482,12 +482,12 @@ def build_fixture() -> dict[str, Any]:
         "generated_by": "tools/generate_mls_governance_proof_fixture.py",
         "runner": {
             "kind": "named_suite",
-            "entrypoint": "cotest::conformance::mls_governance_proof_bundle",
+            "entrypoint": "ak.suite.mls.governance_proof_bundle.v1",
         },
         "consumer_contracts": [
             {
                 "role": "sdk_proof_verifier",
-                "entrypoint": "cotest::conformance::mls_governance_proof_bundle::verify",
+                "entrypoint": "ak.suite.mls.governance_proof_bundle.verify.v1",
                 "inputs": ["trust_context", "commit_context", "expected_acquisition", "verifier_cases"],
                 "required_output_fields": [
                     "case_name",
@@ -501,7 +501,7 @@ def build_fixture() -> dict[str, Any]:
             },
             {
                 "role": "server_materializer",
-                "entrypoint": "cotest::conformance::mls_governance_proof_bundle::materialize",
+                "entrypoint": "ak.suite.mls.governance_proof_bundle.materialize.v1",
                 "inputs": ["source_state", "requests", "materializer_cases"],
                 "required_output_fields": [
                     "case_name",
@@ -530,7 +530,7 @@ def build_fixture() -> dict[str, Any]:
                 actor_vm: public_jwk(actor_key, actor_vm),
                 notary_vm: public_jwk(notary_key, notary_vm),
             },
-            "verification_time": "2026-07-15T00:00:03Z",
+            "verification_time": "2026-07-15T00:00:03.000Z",
         },
         "commit_context": {
             "transcript_authenticated_governance_binding": governance_binding,

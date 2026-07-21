@@ -187,7 +187,7 @@ Schema id: `ak.schema.realm.v1`
     "recovery_controller_organizations": ["did:webvh:zGnKWC3QoYaXLNsfmH6VfPke4:recovery-org.example"]
   },
   "created_by": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
-  "created_at": "2026-04-26T00:00:00Z"
+  "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```
 
@@ -520,7 +520,7 @@ Project Space：
   "kind": "project",
   "title": "Website Redesign",
   "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-  "created_at": "2026-04-26T00:00:00Z"
+  "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```
 
@@ -536,7 +536,7 @@ Confidential sibling Space：
   "kind": "project",
   "title": "Pricing Strategy",
   "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-  "created_at": "2026-04-26T00:00:00Z"
+  "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```
 

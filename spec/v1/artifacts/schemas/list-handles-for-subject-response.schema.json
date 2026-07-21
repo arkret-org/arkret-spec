@@ -28,9 +28,7 @@
       "description": "Optional canonical primary handle selected from claims[] by identity-handles.md section 3.2.1 for the same context/as_of. The @ mention sigil is not part of this field."
     },
     "as_of": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$",
+      "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "As-of timestamp used to build the visible claim set and primary handle selection."
     },
     "next_cursor": {

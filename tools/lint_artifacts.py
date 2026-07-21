@@ -19,6 +19,7 @@ import hashlib
 import re
 import sys
 import warnings
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -32,9 +33,10 @@ except ImportError:  # pragma: no cover - CI installs the dependency.
 try:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", DeprecationWarning)
-        from jsonschema import Draft202012Validator, RefResolver
+        from jsonschema import Draft202012Validator, FormatChecker, RefResolver
 except ImportError:  # pragma: no cover - CI installs the dependency.
     Draft202012Validator = None
+    FormatChecker = None
     RefResolver = None
 
 
@@ -4696,6 +4698,21 @@ def jsonschema_errors(lint: Lint, owner: Path, schema_ref: str, instance: Any) -
         return []
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", DeprecationWarning)
+        format_checker = FormatChecker()
+
+        @format_checker.checks("date-time", raises=(TypeError, ValueError))
+        def strict_rfc3339_date_time(value: object) -> bool:
+            if not isinstance(value, str):
+                return True
+            if not re.fullmatch(
+                r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
+                r"(?:\.[0-9]+)?(?:Z|[+-][0-9]{2}:[0-9]{2})",
+                value,
+            ):
+                return False
+            datetime.fromisoformat(value.removesuffix("Z") + ("+00:00" if value.endswith("Z") else ""))
+            return True
+
         resolver = RefResolver(
             base_uri=schema_path.as_uri(),
             referrer=schema_document,
@@ -4703,7 +4720,11 @@ def jsonschema_errors(lint: Lint, owner: Path, schema_ref: str, instance: Any) -
                 "https": load_json_schema_for_uri,
             },
         )
-        validator = Draft202012Validator(schema, resolver=resolver)
+        validator = Draft202012Validator(
+            schema,
+            resolver=resolver,
+            format_checker=format_checker,
+        )
         errors = sorted(validator.iter_errors(instance), key=lambda error: list(error.path))
     formatted: list[str] = []
     for error in errors:
@@ -6808,6 +6829,58 @@ def check_proof_context_registry(lint: Lint) -> None:
         lint.fail(path, f"proof context literal is not registered: {token}")
 
 
+def check_timestamp_profile_single_source(lint: Lint) -> None:
+    """Keep Arkret-owned absolute instants on the shared fixed-millisecond profile."""
+    schema_root = ARTIFACTS / "schemas"
+    time_path = schema_root / "time.schema.json"
+    time_schema = load_json(lint, time_path)
+    timestamp = ((time_schema or {}).get("$defs") or {}).get("timestamp")
+    expected_pattern = (
+        r"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+        r"T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\.[0-9]{3}Z$"
+    )
+    if not isinstance(timestamp, dict) or timestamp.get("type") != "string":
+        lint.fail(time_path, "$defs.timestamp must be a string schema")
+    elif timestamp.get("format") != "date-time" or timestamp.get("pattern") != expected_pattern:
+        lint.fail(time_path, "$defs.timestamp must define the fixed YYYY-MM-DDTHH:MM:SS.sssZ profile")
+
+    external_allowlist = {
+        ("service-operation-dtos.schema.json", "/$defs/ServiceWebvhInceptionOperation/properties/versionTime"),
+    }
+
+    def walk(path: Path, value: Any, pointer: str = "") -> None:
+        if isinstance(value, dict):
+            if value.get("format") == "date-time":
+                key = (path.name, pointer)
+                if path == time_path and pointer == "/$defs/timestamp":
+                    pass
+                elif key in external_allowlist:
+                    if value.get("type") != "string":
+                        lint.fail(path, f"external date-time allowlist entry must remain a string at {pointer}")
+                else:
+                    lint.fail(
+                        path,
+                        f"date-time at {pointer} must reference ./time.schema.json#/$defs/timestamp "
+                        "(or be explicitly classified in the external/local allowlist)",
+                    )
+            for name, child in value.items():
+                escaped = name.replace("~", "~0").replace("/", "~1")
+                walk(path, child, f"{pointer}/{escaped}")
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                walk(path, child, f"{pointer}/{index}")
+
+    for path in sorted(schema_root.glob("*.json")):
+        data = load_json(lint, path)
+        if data is not None:
+            walk(path, data)
+
+    for path in sorted((ARTIFACTS / "openapi").glob("*.y*ml")):
+        data = load_yaml(lint, path)
+        if data is not None:
+            walk(path, data)
+
+
 def main() -> int:
     lint = Lint()
     check_text_files_utf8_no_nul(lint)
@@ -6832,6 +6905,7 @@ def main() -> int:
         return 1
 
     check_registry_manifest(lint)
+    check_timestamp_profile_single_source(lint)
     check_proof_context_registry(lint)
     known = check_registries(lint)
     check_schema_refs(lint, known)

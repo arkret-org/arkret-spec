@@ -32,8 +32,8 @@
       "expired_claim": {
         "claim_id": "mls-keypackage-claim-expired",
         "keypackage_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-        "expires_at": "2026-06-19T00:00:00Z",
-        "consume_at": "2026-06-19T00:01:00Z"
+        "expires_at": "2026-06-19T00:00:00.000Z",
+        "consume_at": "2026-06-19T00:01:00.000Z"
       },
       "expected": {
         "available_count_visible": true,

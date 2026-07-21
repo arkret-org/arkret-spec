@@ -74,9 +74,7 @@
       "description": "RFC 7638 SHA-256 JWK thumbprint of the holder key, encoded base64url without padding."
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "non_empty_string": {
       "type": "string",

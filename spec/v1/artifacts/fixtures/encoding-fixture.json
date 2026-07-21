@@ -225,7 +225,7 @@
         "realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 1,
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "hlc": "01970e589d21-0004-a13f9c2e",
         "prev_refs": [],
         "refs": [],
@@ -262,8 +262,8 @@
           }
         }
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"actor_seq\":1,\"auth_context\":{\"capability_refs\":[\"ak:grant:0196410c-0000-7000-8000-000000000000\"],\"did\":\"did:webvh:z6mkfixture:alice.example\",\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00Z\",\"effects\":[{\"cell\":\"ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:01964137-0000-7000-8000-000000000000\",\"op\":{\"issuer_seq\":0,\"kind\":\"append\",\"value\":{\"message_id\":\"ak:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ak:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ak:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"message_id\":\"ak:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ak:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[],\"seal_ref\":\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
-      "expected_digest": "sha256:274b5dfea3305ca487fc205f2c5f28a7d622af18a8e76e614320cc0793ba28df",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"actor_seq\":1,\"auth_context\":{\"capability_refs\":[\"ak:grant:0196410c-0000-7000-8000-000000000000\"],\"did\":\"did:webvh:z6mkfixture:alice.example\",\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00.000Z\",\"effects\":[{\"cell\":\"ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:01964137-0000-7000-8000-000000000000\",\"op\":{\"issuer_seq\":0,\"kind\":\"append\",\"value\":{\"message_id\":\"ak:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ak:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ak:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"message_id\":\"ak:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ak:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[],\"seal_ref\":\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
+      "expected_digest": "sha256:dfb6b1a1ac018bbd55353733817cb6202d5779e7a118224fa5deb0840e341448",
       "rules": [
         "event digest MUST be derived from canonical bytes after stripping proofs and unsigned, before redaction",
         "event_id MUST appear inside the digest input but does not replace the digest",
@@ -289,10 +289,10 @@
           "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         ],
-        "created_at": "2026-04-26T00:00:00Z"
+        "created_at": "2026-04-26T00:00:00.000Z"
       },
-      "expected_canonical_bytes_utf8": "{\"created_at\":\"2026-04-26T00:00:00Z\",\"events\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"],\"frontier\":{\"actor_seq\":2,\"event_digest\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"},\"issuer\":\"did:webvh:z6mkfixture:alice.example\",\"receipt_id\":\"ak:receipt:01964186-0000-7000-8000-000000000000\",\"schema\":\"ak.schema.event_batch_receipt.v1\",\"scope\":{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\"}}",
-      "expected_digest": "sha256:3cb4e27faaa5fca6c7e4bbf9a5a73c31d589e57b7f4b274139d1e35701c524ef",
+      "expected_canonical_bytes_utf8": "{\"created_at\":\"2026-04-26T00:00:00.000Z\",\"events\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"],\"frontier\":{\"actor_seq\":2,\"event_digest\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"},\"issuer\":\"did:webvh:z6mkfixture:alice.example\",\"receipt_id\":\"ak:receipt:01964186-0000-7000-8000-000000000000\",\"schema\":\"ak.schema.event_batch_receipt.v1\",\"scope\":{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\"}}",
+      "expected_digest": "sha256:6290fb640270b7b093d9d5dff525f810ef59399e09cf8490570187b3ba7b0671",
       "normalization_cases": [
         {
           "name": "reverse_and_duplicate_normalizes_to_same_set",
@@ -305,7 +305,7 @@
             "sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "sha256:2222222222222222222222222222222222222222222222222222222222222222"
           ],
-          "expected_digest": "sha256:3cb4e27faaa5fca6c7e4bbf9a5a73c31d589e57b7f4b274139d1e35701c524ef"
+          "expected_digest": "sha256:6290fb640270b7b093d9d5dff525f810ef59399e09cf8490570187b3ba7b0671"
         },
         {
           "name": "unsorted_signed_wire_rejected",
@@ -338,12 +338,12 @@
       "input": {
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "event_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
         "context": "ak.event-proof-v1"
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"context\":\"ak.event-proof-v1\",\"created_at\":\"2026-04-26T00:00:00Z\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
-      "expected_digest": "sha256:34d552e875303a3b904b134a1667418327292d93e5e75f2604ef4c05a5224e0b",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"context\":\"ak.event-proof-v1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
+      "expected_digest": "sha256:1c96cd013daa1c74d148228845071d22d9f1e6409dd96371bfa2c5ecabb376f6",
       "rules": [
         "proof MUST bind event_digest, actor DID, verification_method, and created_at",
         "cross-service / cross-domain verification SHOULD additionally bind domain or audience",
@@ -391,20 +391,20 @@
     {
       "vector_id": "ak.vector.encoding.cursor_opaque.core.v1",
       "kind": "cursor_opaqueness",
-      "input_cursor": "ak:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjA5OS0xMi0zMFQyMzo1OTo1OVoiLCJ2IjoiMSIsIngiOjQxMDI0NDQ3OTkwMDB9",
-      "decoded_payload_canonical_bytes_utf8": "{\"h\":\"abcdefghijklmnopqrstuv\",\"purpose\":\"stream\",\"t\":\"2099-12-30T23:59:59Z\",\"v\":\"1\",\"x\":4102444799000}",
-      "fixture_freshness_note": "Timestamps are fixed at year 2099 deliberately so the static vector cannot expire during normal spec lifetime. Implementations generating their own conformance cursors MUST use fresh `t`/`x` matching their authority's clock; do NOT reuse this fixture's `t`/`x` on the wire.",
+      "input_cursor": "ak:cursor:eyJleHBpcmVzX2F0IjoiMjA5OS0xMi0zMVQyMzo1OTo1OS4wMDBaIiwiaCI6ImFiY2RlZmdoaWprbG1ub3BxcnN0dXYiLCJpc3N1ZWRfYXQiOiIyMDk5LTEyLTMwVDIzOjU5OjU5LjAwMFoiLCJwdXJwb3NlIjoic3RyZWFtIiwidiI6IjEifQ",
+      "decoded_payload_canonical_bytes_utf8": "{\"expires_at\":\"2099-12-31T23:59:59.000Z\",\"h\":\"abcdefghijklmnopqrstuv\",\"issued_at\":\"2099-12-30T23:59:59.000Z\",\"purpose\":\"stream\",\"v\":\"1\"}",
+      "fixture_freshness_note": "Timestamps are fixed at year 2099 deliberately so the static vector cannot expire during normal spec lifetime. Implementations generating their own conformance cursors MUST use fresh `issued_at`/`expires_at` matching their authority's clock; do NOT reuse this fixture's timestamps on the wire.",
       "client_rules": [
         "MUST treat cursor as an opaque string and round-trip it verbatim",
-        "MUST NOT parse v / purpose / t / h / x to construct the next page request",
+        "MUST NOT parse v / purpose / issued_at / expires_at / h to construct the next page request",
         "MUST handle cursor decode failure by treating cursor as opaque, not by aborting the protocol"
       ],
       "server_rules": [
-        "MUST validate v, purpose, x, the full core cursor schema, and h handle binding before honouring cursor",
+        "MUST validate v, purpose, issued_at, expires_at, the full core cursor schema, and h handle binding before honouring cursor",
         "syntax validation failure MUST return invalid_param with reason_code invalid_cursor; TTL failure MUST return cursor_expired; handle lookup or binding failure MUST return cursor_integrity_invalid"
       ],
       "fail_conditions": [
-        "client parses h/x and rebuilds a request",
+        "client parses h/expiry and rebuilds a request",
         "core server accepts a cursor body without h"
       ]
     },
@@ -618,12 +618,12 @@
         "event_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "domain": "sync.service.example",
         "context": "ak.event-proof-v1"
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"context\":\"ak.event-proof-v1\",\"created_at\":\"2026-04-26T00:00:00Z\",\"domain\":\"sync.service.example\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
-      "expected_digest": "sha256:df2c53956685ea44db4d8d49d96529ed2a3a829f516499ce0054c885976ff9a5",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"context\":\"ak.event-proof-v1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"domain\":\"sync.service.example\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
+      "expected_digest": "sha256:d32fd7c751fca4ded8c1eb5819252f7153c6774600a06496c0729ab2834ead42",
       "rules": [
         "base binding fields follow ak.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
         "cross-domain verification binds the target service domain via the optional domain field; the canonical bytes sort it between created_at and event_digest",
@@ -637,12 +637,12 @@
         "event_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "audience": "did:webvh:z6mkfixture:sync.example",
         "context": "ak.event-proof-v1"
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"audience\":\"did:webvh:z6mkfixture:sync.example\",\"context\":\"ak.event-proof-v1\",\"created_at\":\"2026-04-26T00:00:00Z\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
-      "expected_digest": "sha256:e8ee6fb8b2617402500c2da672b1c1a7cb3e295daff54a9ecd0d7d163cd8419d",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"audience\":\"did:webvh:z6mkfixture:sync.example\",\"context\":\"ak.event-proof-v1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
+      "expected_digest": "sha256:c8dbcd775d48c875973c43cbd52e7cd71851a66025b6cb325c19a2ccada250ef",
       "rules": [
         "base binding fields follow ak.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
         "audience-constrained verification binds a single audience DID via the optional audience field",
@@ -656,7 +656,7 @@
         "event_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "domain": "sync.service.example",
         "audience": [
           "did:webvh:z6mkfixture:sync.example",
@@ -664,8 +664,8 @@
         ],
         "context": "ak.event-proof-v1"
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"audience\":[\"did:webvh:z6mkfixture:sync.example\",\"did:webvh:z6mkfixture:media.example\"],\"context\":\"ak.event-proof-v1\",\"created_at\":\"2026-04-26T00:00:00Z\",\"domain\":\"sync.service.example\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
-      "expected_digest": "sha256:722cda2ef85e149092f5ee081de55c8bca346ec2f1a0de96725c512cadab2add",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"audience\":[\"did:webvh:z6mkfixture:sync.example\",\"did:webvh:z6mkfixture:media.example\"],\"context\":\"ak.event-proof-v1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"domain\":\"sync.service.example\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
+      "expected_digest": "sha256:c51c7a2bef23f70b49dc8b7990243b3bad39fdbd51bd3ca9b581c654ce09447a",
       "rules": [
         "base binding fields follow ak.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
         "domain and audience MAY be combined; audience MAY be an array of DIDs whose order is preserved verbatim in the canonical bytes",
