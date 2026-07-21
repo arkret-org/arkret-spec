@@ -355,8 +355,8 @@
         "hlc": "2026-06-11T00:00:00Z/0000000000000001"
       },
       "expected": {
-        "id": "ak:seal:sha256:86d1e9325f053679bf38c0a6fe760fd1c872f5e44a3018d691f70e67c74a727f",
-        "notary_signature_payload_digest": "sha256:86d1e9325f053679bf38c0a6fe760fd1c872f5e44a3018d691f70e67c74a727f",
+        "id": "ak:seal:sha256:1ddba8bd4cd964078422035c9550edf7a370e4e07950e66551432efe11177959",
+        "notary_signature_payload_digest": "sha256:1ddba8bd4cd964078422035c9550edf7a370e4e07950e66551432efe11177959",
         "valid_result": "accept"
       },
       "attacks": [

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://arkret.org/spec/v1/artifacts/schemas/string-profiles.schema.json",
+  "$id": "https://arkret.org/v1/schemas/string-profiles.schema.json",
   "title": "Arkret String Profiles",
   "description": "Shared coarse-grained JSON Schema shapes for Arkret v1 string profiles. Custom format validation and UTF-8 octet limits are normative and require the SDK validator; JSON Schema patterns do not implement PRECIS, IDNA, or UTS #39.",
   "type": "object",

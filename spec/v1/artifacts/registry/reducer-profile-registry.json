@@ -454,7 +454,7 @@
         "fixture_contracts": [
           {
             "fixture": "cba-lattice-fixture.json",
-            "semantic_projection_digest": "sha256:7c397f38f1d5359ad4b9022db7fa86aea92cae0b2987ef85d34425c87ad2afc2"
+            "semantic_projection_digest": "sha256:f2dbb3c0f1751b776c1cf87205071c5f03e9ae8299c7c771225384d285af5ad8"
           },
           {
             "fixture": "crypto-signature-fixture.json",
@@ -520,7 +520,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:844afe84b12a57646c8f542b587096ad807a0dc02f95f031ce4341f679e2b119"
+      "reducer_profile_digest": "sha256:6181008c602ca367d4b142ecd3887cb62d9192e4bfd36dc5397ab6dd9316583c"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -758,7 +758,7 @@
         "fixture_contracts": [
           {
             "fixture": "cba-lattice-fixture.json",
-            "semantic_projection_digest": "sha256:7c397f38f1d5359ad4b9022db7fa86aea92cae0b2987ef85d34425c87ad2afc2"
+            "semantic_projection_digest": "sha256:f2dbb3c0f1751b776c1cf87205071c5f03e9ae8299c7c771225384d285af5ad8"
           },
           {
             "fixture": "crypto-signature-fixture.json",
@@ -816,7 +816,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:16a161eccc71526f3236f6e734bb96ebbe91f7e116c448d3fbcff6682fd2e1e7"
+      "reducer_profile_digest": "sha256:e6d28ab0b1df5b388fef62efa6af3cf9fca08e8b873354ed510165f153413cfe"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1339,7 +1339,7 @@
           },
           {
             "fixture": "cba-lattice-fixture.json",
-            "semantic_projection_digest": "sha256:7c397f38f1d5359ad4b9022db7fa86aea92cae0b2987ef85d34425c87ad2afc2"
+            "semantic_projection_digest": "sha256:f2dbb3c0f1751b776c1cf87205071c5f03e9ae8299c7c771225384d285af5ad8"
           },
           {
             "fixture": "crypto-signature-fixture.json",
@@ -1445,7 +1445,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:dda09f08d8b1e8941efc17a0104d650434554a26c413f9e35d4fde4c78999f6e"
+      "reducer_profile_digest": "sha256:dcee98e8d4cf8ef918ef7058bb82137641571670dbf82530aabeca7b1ecf15b2"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",

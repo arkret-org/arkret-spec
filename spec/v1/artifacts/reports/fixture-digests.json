@@ -46,7 +46,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "e462aa37532da7cfd80d341816aa8e3273baaaf0b3dce69b7239eb5d33f0c558"
+      "sha256": "358fdb8074b563106253a3fa415b4ddd2141b45eb6c5028f24e47fedb7a25644"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
