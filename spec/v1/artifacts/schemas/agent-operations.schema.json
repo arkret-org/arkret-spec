@@ -1502,12 +1502,64 @@
       },
       "additionalProperties": false
     },
+    "agent_sidecar_mls_context": {
+      "type": "object",
+      "required": [
+        "desired_access_digest",
+        "control_frontier",
+        "current_controller_device_ready"
+      ],
+      "properties": {
+        "desired_access_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "control_frontier": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "UTF-8 byte-lexicographically sorted accepted control refs that materialize the Sidecar and exact desired backing membership."
+        },
+        "mls_group_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "genesis_event_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "current_controller_device_ready": {
+          "type": "boolean",
+          "description": "True only when the authenticated controller session device is the accepted genesis creator device or has completed matching Welcome and KeyPackage consume evidence."
+        }
+      },
+      "dependentRequired": {
+        "mls_group_id": [
+          "epoch",
+          "genesis_event_ref"
+        ],
+        "epoch": [
+          "mls_group_id",
+          "genesis_event_ref"
+        ],
+        "genesis_event_ref": [
+          "mls_group_id",
+          "epoch"
+        ]
+      },
+      "additionalProperties": false
+    },
     "agent_sidecar_view": {
       "type": "object",
       "required": [
         "sidecar",
         "desired_agent_ids",
         "effective_agent_ids",
+        "mls_context",
         "access_readiness",
         "pending_access_reconciliations"
       ],
@@ -1530,6 +1582,9 @@
             "$ref": "#/$defs/did"
           },
           "uniqueItems": true
+        },
+        "mls_context": {
+          "$ref": "#/$defs/agent_sidecar_mls_context"
         },
         "access_readiness": {
           "$ref": "#/$defs/agent_sidecar_access_readiness"

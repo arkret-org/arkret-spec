@@ -3711,6 +3711,24 @@ Expected:
 - 第 2 步 MUST 复用既有 Sidecar 与 Strand；addressed list 不改变 desired/effective access 或 Strand/Relation identity，只影响本次 exchange fanout。
 - 第 3 步 MUST 复用 `(realm_id, controller_id)` Sidecar 与 backing Circle，创建新的 context-private Strand。
 
+### 11.8.1 Vector: Sidecar MLS Bootstrap Binding
+
+`vector_id`: `ak.vector.sidecar.mls_bootstrap_binding.v1`
+
+Steps:
+
+1. Alice ensure 一个包含 eligible Agent A 的 Sidecar，读取服务端派生的 `mls_context.{desired_access_digest,control_frontier}`。
+2. Alice 当前设备用真实 OpenMLS state 创建 Circle-scoped `ak.mls.genesis`，提交前持久化 `(sidecar_id, genesis_event_id, mls_group_id, provisional_snapshot)`，并在 governance binding 中携带精确 `sidecar_binding`。
+3. 第二设备并发提交另一 `mls_group_id` 的 genesis；再分别变异 `sidecar_id`、digest、frontier 顺序/成员、backing Circle 与 creator device proof。
+4. 模拟第一设备在 Event response 返回前崩溃并重启。
+
+Expected:
+
+- fixture transcript 的 RFC 8785 JCS digest MUST 为 `sha256:3eac506d0d13e5b10e602f103c626904c8a9ee3fa4a8ada1303de205ca10d04d`；controller 必须包含在排序去重的 principal set 中。
+- 只有一个 genesis 通过标准 Event admission/CAS 成为 canonical winner；服务端不得生成 MLS private state、伪造 GroupInfo/ratchet-tree digest 或提供绕过 Event proof 的 bootstrap endpoint。
+- 所有 binding 变异 MUST fail closed；Sidecar backing Circle 缺失 `sidecar_binding`、普通 Realm/Circle 携带该字段也必须拒绝。
+- 崩溃恢复重放 bit-identical Event id/bytes，并把已接受 provisional snapshot 激活；loser snapshot 必须销毁并通过 winner group 的 KeyPackage/Welcome 加入。
+
 ### 11.9 Vector: Existence Privacy
 
 `vector_id`: `ak.vector.sidecar.existence_privacy.v1`
@@ -3746,9 +3764,27 @@ Expected:
 
 - 第 2 步 ensure SHOULD succeed，返回 `access_readiness=key_material_pending` 与 `pending_access_reconciliations: [{agent_id: R, stage: device_key_material, reason: missing_mls_keypackage}]`。R 在 desired access 中、尚不在 effective access，不能收取或解密消息。Sidecar 不存在 plaintext 分支。
 - 第 3 步 R 经 backing Circle MLS Welcome 加入，只获得 join 后 future epoch keys（MUST NOT 获得 join 前 epoch keys）；reconciliation 完成后才进入 effective access。
-- 第 4 步 R 立即离开 desired access并停止投递；reducer/service 主动 fan-out backing `ak.circle.member.state=leave`、MLS remove 与 epoch rotation。后续 R 的 proof、Sidecar write 与 query MUST fail closed。
+- 第 4 步 R 立即离开 desired access并停止投递；reducer/service 在同一 control apply 中生成 backing `ak.circle.member.state=leave` 与 durable pending MLS removal obligation，eligible controller/key-service committer 随后提交真实 remove/rotation。后续 R 的 proof、Sidecar write 与 query MUST fail closed。
 
-### 11.10.1 Vector: Hosted Multi-Track Projection and Private Echo
+### 11.10.1 Vector: Sidecar MLS Effective Access Evidence
+
+`vector_id`: `ak.vector.sidecar.mls_effective_access.v1`
+
+Steps:
+
+1. A 已有 backing Circle membership，但尚无 Add Commit/Welcome/consume；随后分别只补齐其中一部分证据。
+2. 对 A 的 active device D 提交 accepted Add Commit、引用该 Commit 且 binding 匹配的 accepted Welcome，并由 D 的 authenticated session consume 同一 claim/KeyPackage。
+3. 对 controller 的第二设备重复 join；随后撤销 A eligibility，使 backing membership leave 与 pending removal obligation accepted，但暂不提交 Remove Commit。
+4. eligible committer drain obligation 并提交真实 Remove proposal/Commit；再用旧 Welcome/consume 记录尝试恢复 A effective 状态。
+
+Expected:
+
+- 第 1 步任何不完整组合均保持 pending；Circle membership、delivered Welcome 或 claimed KeyPackage 单独都不是 effective 证据。
+- 第 2 步 D 成为有效设备，A 进入 `effective_agent_ids`；同 principal 的其它设备不会自动拿到密钥。controller 当前 session device readiness 独立计算。
+- 第 3 步服务端立即停止 A 的寻址/投递并移除 desired/effective access，且只产生 durable removal obligation；不持有 MLS private state的 Principal Server 不得伪造 Commit。新发送保持 fail closed。
+- 第 4 步真实 Remove Commit 推进 epoch；旧 Welcome/consume 不能使已移除设备复活。
+
+### 11.10.2 Vector: Hosted Multi-Track Projection and Private Echo
 
 `vector_id`: `ak.vector.sidecar.hosted_projection.v1`
 

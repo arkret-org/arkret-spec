@@ -530,7 +530,7 @@ Arkret v1 定义以下 MLS GroupContext extension 绑定形状；codepoint 以 `
 | ExtensionType（数值 codepoint） | `0xF1C0` ∈ MLS GroupContext **private-use range `0xF000`–`0xFFFF`**（RFC 9420 §17.6 / IANA MLS registry）。**Arkret v1 wire 形态固定（pinned）为 `0xF1C0`,任何实现 MUST 使用该 codepoint;deployment policy MUST NOT 用其他 codepoint 覆盖该 binding。** `ak.profile.mls_governance_binding.full.v1` MUST 使用 `0xF1C0`。所有 Arkret 私有 MLS 扩展 codepoint 集中登记在 `artifacts/registry/mls-extension-registry.json`。 |
 | ExtensionData | `governance_binding` 对象的 CBOR 编码 |
 
-CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)。字段顺序按 lexicographic key 排列；条件字段不满足出现条件时 **MUST 从 CBOR map 整体省略该 key，MUST NOT 写入 null 占位**——`circle_id` 只在 Circle scope 出现，`capability_root` / `discussion_metadata_digest` 在 full profile 必填、仅在显式 `ak.profile.e2ee_relaxed.v1` 降级时可省略。deterministic CBOR 下 null 占位会改变 canonical 字节序，导致不同实现对同一 governance binding 得出不一致编码；lexicographic key 排序只对实际存在（present）的 key 生效。下表中的字段顺序仅为可读性展示，实际 wire 顺序以 present key 的 lexicographic 排序为准：
+CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)。字段顺序按 lexicographic key 排列；条件字段不满足出现条件时 **MUST 从 CBOR map 整体省略该 key，MUST NOT 写入 null 占位**——`circle_id` 只在 Circle scope 出现，`sidecar_binding` 只在 effective scope 是 reducer-managed Sidecar backing Circle 时出现，`capability_root` / `discussion_metadata_digest` 在 full profile 必填、仅在显式 `ak.profile.e2ee_relaxed.v1` 降级时可省略。deterministic CBOR 下 null 占位会改变 canonical 字节序，导致不同实现对同一 governance binding 得出不一致编码；lexicographic key 排序只对实际存在（present）的 key 生效。下表中的字段顺序仅为可读性展示，实际 wire 顺序以 present key 的 lexicographic 排序为准：
 
 ```text
 {
@@ -547,7 +547,12 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
   "policy_root":         bstr,
   "previous_epoch":      uint,
   "realm_id":            tstr,
-  "reducer_profile":     tstr
+  "reducer_profile":     tstr,
+  "sidecar_binding": {              ; required only for a Sidecar backing Circle
+    "control_frontier": [+ tstr],
+    "desired_access_digest": bstr,
+    "sidecar_id": tstr
+  }?
 }
 ```
 
@@ -561,6 +566,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 | `effective_scope` / `realm_id` / `circle_id` | **否**（Arkret-specific，MLS 不知道 Realm / Circle 概念） | **必须**：`effective_scope` 是把 MLS group 锚定到 Arkret governance state 的核心绑定；Realm-default group 使用 `{kind:"realm", realm_id}`，Circle group 使用 `{kind:"circle", realm_id, circle_id}`。`realm_id` 与可选 `circle_id` 是离线审计冗余字段，MUST 与 `effective_scope` 一致；缺失或不一致会使 governance_binding 可能被错误重绑定到不同 Realm/Circle 的 commit。 |
 | `policy_root` / `capability_root` / `membership_frontier` / `discussion_metadata_digest` | 否 | **必须**：governance state 的核心证据，本规范的根本目的。 |
 | `binding_profile` / `reducer_profile` | 否 | **必须**：profile id 决定接收方如何解释 root hash 与 frontier 集合；不能从 MLS transcript 推导。 |
+| `sidecar_binding` | 否 | **条件必须**：仅对 reducer-managed Sidecar backing Circle 出现，把独立 Sidecar identity、规范 desired-access digest 与 accepted control frontier 锁入 transcript；普通 Realm/Circle scope 携带该字段或 Sidecar scope 缺失该字段都必须拒绝。 |
 
 简言之：MLS-redundant 字段（`mls_group_id` / `previous_epoch` / `next_epoch`）以约 ~50 字节的 wire 代价换取 binding payload 的离线自含性；非冗余字段是 governance binding 真正承载的事实。
 

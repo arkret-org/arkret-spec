@@ -3122,6 +3122,32 @@
       ]
     },
     {
+      "vector_id": "ak.vector.sidecar.mls_bootstrap_binding.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/models/sidecar.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sidecar.mls_effective_access.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/models/sidecar.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.sidecar.multi_agent_publish.v1",
       "status": "active",
       "domain": "sidecar",

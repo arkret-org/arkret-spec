@@ -53,7 +53,7 @@ ensure MUST：
 
 1. 以 `(context_ref.realm_id, controller_id)` 作为 Sidecar singleton key。
 2. 并发请求幂等收敛到同一 `sidecar_id`。
-3. 在首次需要时按同一原子 batch 建立系统管理的 backing Circle、初始 access、`ak.sidecar.create`、private Strand 与 `agent_sidecar_of` Relation；`ak.sidecar.create` 必须位于 backing Circle 建立之后并以它作为 effective scope。任一步失败，整个 batch 不可见且不得留下可枚举的部分对象。
+3. 在首次需要时按同一原子 batch 建立系统管理的 backing Circle、初始 backing membership、`ak.sidecar.create`、private Strand 与 `agent_sidecar_of` Relation；`ak.sidecar.create` 必须位于 backing Circle 建立之后并以它作为 effective scope。任一步失败，整个 batch 不可见且不得留下可枚举的部分对象。真实 MLS genesis 不属于该服务端 aggregate；它按 §5.1 由 controller 设备在本地持久化 provisional OpenMLS state 后通过标准 Event admission 提交。在 genesis accepted 之前 aggregate 保持 `key_material_pending` 且不可发送。
 4. 以 `(sidecar_id, normalized_context_ref)` 作为 private Strand reuse key；`normalized_context_ref` 只包含 Realm 与 Strand（或 profile 明确允许的 Relation）级身份，MUST NOT 包含 `track_name`、Message id、timeline anchor 或当前 UI route。
 5. 只接受由服务端派生的 backing Circle shape；caller 不得提供 Circle title、display、join rule、membership、encryption profile 或 ID。
 6. 返回 Sidecar、private Strand、private Relation 与 access/readiness 投影；不得把 backing Circle 暴露成普通 Circle 资源。
@@ -64,7 +64,7 @@ ensure MUST：
 
 ### 3.2 专用读取
 
-Sidecar 的 canonical read surface 是 `ak.self.agent.sidecar.resource.get` 与 `ak.self.agent.sidecar.query.list`。两者只返回 authenticated controller 自己的 Sidecar，以及分离的 desired/effective Agent access、readiness 与 pending reconciliation。普通 Circle get/list、Realm directory、scope picker 或通用 event query MUST NOT 代替该 surface。
+Sidecar 的 canonical read surface 是 `ak.self.agent.sidecar.resource.get` 与 `ak.self.agent.sidecar.query.list`。两者只返回 authenticated controller 自己的 Sidecar，以及分离的 desired/effective Agent access、readiness、pending reconciliation 与 `mls_context`。普通 Circle get/list、Realm directory、scope picker 或通用 event query MUST NOT 代替该 surface。
 
 get 对 nonexistent、foreign-controller 与 unauthorized `sidecar_id` MUST 返回相同 `not_found` envelope 与 timing bucket。list 不返回其他 controller 的 locked stub、计数空洞或 backing Circle。Sidecar view MAY 包含 `backing_circle_id` 供专用 MLS/scope 处理，但客户端不得把它注册为普通 Circle route 或用户可管理资源。
 
@@ -100,8 +100,25 @@ desired_sidecar_access(S) = { S.controller_id }
 
 `desired_access` 是从已接受 control frontier 派生的规范集合；`effective_access` 是已经完成 backing Circle delivery binding 与当前 MLS epoch 加入/移除的操作集合。两者 MUST 分开投影。
 
-- 新 Agent 进入 desired access 后，在 backing Circle membership、MLS Welcome/commit 与 device readiness 全部完成前不得接收 Sidecar payload。
-- Agent 离开 desired access 时，服务端 MUST 立即停止寻址/投递，并主动生成 backing membership remove 与 MLS remove/rotate；不得等待被动 reconcile。
+`desired_access_digest` 的 byte-exact transcript 为 RFC 8785 JCS canonical JSON：
+
+```json
+{
+  "kind": "ak.sidecar.desired_access.v1",
+  "sidecar_id": "ak:sidecar:...",
+  "realm_id": "ak:realm:...",
+  "controller_id": "did:...",
+  "principal_ids": ["did:..."]
+}
+```
+
+`principal_ids` MUST 等于完整 `desired_sidecar_access(S)`（包含 controller），按 DID UTF-8 byte lexicographic 升序排列且去重；digest 为 `sha256:<lowercase-hex(SHA-256(JCS bytes))>`。任何实现不得使用 UI 顺序、Circle member 顺序、设备 id、display name、到达时间或本地数据库 id 参与该 digest。
+
+`mls_context.control_frontier` 是服务端当前用于物化 Sidecar 与 backing membership 的 accepted control refs：MUST 包含 effective `ak.sidecar.create` ref、controller backing join ref，以及每个 desired Agent 当前 backing join ref；按 ref UTF-8 byte lexicographic 升序排列且去重。Admission 还 MUST 以当前 accepted eligibility/control state 重新计算 desired set；control frontier 与 digest 都匹配也不能绕过 freshness、revocation 或 policy 检查。
+
+- 新 Agent 进入 desired access 后，在 backing Circle membership、Add Commit accepted、匹配的 `ak.mls.welcome` accepted、目标设备成功 consume 同一 KeyPackage claim 全部完成前不得接收 Sidecar payload。一个 Agent principal 至少有一个仍 active/authorized、未被 remove 的设备满足上述证据时进入 `effective_agent_ids`；其它设备不会因 principal 已 effective 自动获得密钥。
+- controller 当前调用设备只在它是 accepted genesis 的 `creator_device_id`，或已完成同样的 Welcome/consume 证据时视为 device-ready。`access_readiness=ready` 要求当前 controller 设备 ready，且每个 `desired_agent_ids` principal 都已 effective；因此同一 Sidecar 在 controller 的不同设备上 MAY 暂时呈现不同 readiness，但 `desired_agent_ids`/`effective_agent_ids` 必须一致。
+- Agent 离开 desired access 时，服务端 MUST 在同一 control-state apply 中立即停止寻址/投递、移除 backing membership 并产生 durable pending MLS removal obligation。持有该 backing Circle 当前 MLS snapshot 的 controller 设备或 policy-authorized key service MUST 通过普通 `ak.mls.proposal` + `ak.mls.commit` 完成 remove/rotate；普通 Principal Server 不得伪造 Commit。没有 eligible committer 时发送保持 fail closed，obligation 保留并允许 §5.3 takeover。
 - reconciliation 期间新消息 MUST 阻塞或仅发给已经证明符合当前 desired/effective access 的安全交集；不得因旧 MLS key 仍存在而继续投递。
 - `pending_access_reconciliations=[]` 本身不证明 controller 设备或 addressed Agent 已 MLS-ready。
 
@@ -119,6 +136,42 @@ desired_sidecar_access(S) = { S.controller_id }
 - backing Circle 与 Sidecar 必须在同一原子 operation/batch 中建立绑定。无法证明绑定的 reserved/private Circle 不得被客户端猜测为 Sidecar，也不得被普通 Circle surface 显示。
 
 MLS governance binding 继续使用 backing Circle 的 `{kind:"circle", realm_id, circle_id}` effective scope，并额外绑定 `sidecar_id`、Sidecar desired-access digest 与对应 control frontier。任何字段不匹配 MUST fail closed。Sidecar key MUST NOT 从 Realm-default MLS group 派生。
+
+### 5.1 Client-authored bootstrap 与崩溃恢复
+
+Sidecar MLS bootstrap 复用标准 `ak.mls.genesis` Event 与 `POST /_arkret/self/events`，不注册可绕过普通 Event proof/Seal/CAS 的私有 bootstrap endpoint：
+
+1. controller 读取专用 Sidecar view 的 `sidecar.backing_circle_id` 与 `mls_context.{desired_access_digest,control_frontier}`。
+2. controller 当前设备在本地创建真实 OpenMLS group，构造 Circle effective-scope genesis，并把完整 §5.2 `sidecar_binding` 写入 governance binding/GroupContext extension。
+3. 提交前客户端 MUST 将 `(sidecar_id, genesis_event_id, mls_group_id, provisional_snapshot)` 持久化到设备保护存储。Event accepted 后把 provisional snapshot 标记 active；确定 rejected/loser 后销毁该 snapshot。
+4. 服务端按 `(effective_scope, mls_group_id)` genesis CAS、Sidecar singleton、当前 desired digest/frontier 与 authenticated controller/device proof 一并校验。成功后 `mls_context.mls_group_id`、`epoch=0`、`genesis_event_ref` 可见，且该 creator device ready。
+5. 崩溃恢复 MUST 重放 exact same Event id/bytes 或读取 Sidecar view 判断它是否 accepted，不得另造 Event。多 controller 设备并发 genesis 时只有 canonical accepted winner 可激活；loser 必须销毁 provisional snapshot，并通过 winner group 的 KeyPackage/Welcome 正常加入。
+
+服务端、Account Authority 与普通同步服务 MUST NOT 生成、暂存或备份明文 MLS private state。客户端若选择跨设备恢复，必须使用既有 controller-owned encrypted key-backup 机制，不得把 snapshot 放入 Sidecar view 或普通 Event payload。
+
+### 5.2 Sidecar MLS binding
+
+`mls_governance_binding.sidecar_binding` 是 closed object，仅在 effective scope 对应一个 Sidecar backing Circle 时必填，在普通 Realm/Circle MLS group 中 MUST 省略：
+
+```json
+{
+  "sidecar_id": "ak:sidecar:...",
+  "desired_access_digest": "sha256:...",
+  "control_frontier": ["ak:event-or-operation-ref:..."]
+}
+```
+
+字段顺序不参与 JSON 语义，但 deterministic CBOR 必须按 RFC 8949 deterministic map-key ordering；SDK 是唯一编码实现。Genesis、每次 Sidecar Add/Remove/self-update Commit及对应 Welcome MUST 携带同一个由其 base control view 计算的 binding。Sidecar application DataEvent 不重复携带完整 binding；它必须引用已由当前 GroupContext binding 约束的 group/epoch，并按 [`encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md#25-mls-governance-binding) 通过 `seal_ref`/`covered_seals_cell` gate。服务端在 admission 时必须重新计算 current Sidecar/binding；`sidecar_id`、backing Circle、desired digest、frontier、Realm、group 或 epoch 任一不匹配都 fail closed。历史 Event 保留其创建时 binding，不因后续 desired set 变化重写。
+
+### 5.3 Effective roster 证据
+
+服务端从已有标准事实机械派生 device roster，不新增由服务端代签的 join Event：
+
+- genesis creator row：accepted Sidecar-bound `ak.mls.genesis` 的 `(creator_principal_id, creator_device_id, epoch=0, genesis_event_ref)`；
+- admitted device row：accepted Add Commit、引用该 Commit 的 accepted `ak.mls.welcome`、与 Welcome 相同的 `(group, recipient principal, recipient device, keypackage_ref)`，以及目标设备 authenticated consume 成功；
+- removed row：effective Remove Commit 引用匹配 target principal/device 的 remove proposal 后，自 `next_epoch` 起不再 effective；backing membership/desired access 先行移除时投递已立即停止，不等待 Commit。
+
+Welcome durable projection MUST 保留 `epoch`、`commit_ref`、KeyPackage ref 与完整 Sidecar binding identity；KeyPackage consume MUST 只接受与调用 session device、claimed group 和 matching accepted Welcome 一致的 claim。仅 delivered、仅 claimed、仅 Circle member、仅存在旧 Welcome、或没有 target-device consume 都不能产生 effective row。
 
 ## 6. Private Strand 与 context
 

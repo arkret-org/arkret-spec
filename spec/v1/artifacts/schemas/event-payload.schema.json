@@ -6855,6 +6855,32 @@
       },
       "additionalProperties": false
     },
+    "sidecar_mls_binding": {
+      "type": "object",
+      "required": [
+        "sidecar_id",
+        "desired_access_digest",
+        "control_frontier"
+      ],
+      "properties": {
+        "sidecar_id": {
+          "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+        },
+        "desired_access_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "control_frontier": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Sorted accepted control refs that materialize the Sidecar and exact desired backing membership. Semantic validation requires UTF-8 byte-lexicographic order and equality with the current server-derived Sidecar MLS context."
+        }
+      },
+      "additionalProperties": false
+    },
     "mls_governance_binding": {
       "type": "object",
       "required": [
@@ -6917,6 +6943,10 @@
         "discussion_metadata_digest": {
           "$ref": "#/$defs/hash"
         },
+        "sidecar_binding": {
+          "$ref": "#/$defs/sidecar_mls_binding",
+          "description": "Required by semantic admission when effective_scope is the reducer-managed backing Circle of an Agent Sidecar; forbidden for all other MLS scopes."
+        },
         "binding_profile": {
           "type": "string",
           "pattern": "^ak\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$",
@@ -6929,6 +6959,27 @@
         }
       },
       "allOf": [
+        {
+          "if": {
+            "required": [
+              "sidecar_binding"
+            ]
+          },
+          "then": {
+            "properties": {
+              "effective_scope": {
+                "properties": {
+                  "kind": {
+                    "const": "circle"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          }
+        },
         {
           "if": {
             "properties": {
