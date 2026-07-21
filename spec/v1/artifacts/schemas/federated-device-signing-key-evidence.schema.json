@@ -32,9 +32,7 @@
       "description": "Ed25519 device signing public key. The multibase suffix MUST equal device_authorize_event.payload.device_public_key."
     },
     "authorization_accepted_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$",
+      "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Source authority's server-sealed acceptance time for device_authorize_event. The destination uses this time for historical DID/enrollment-authority resolution; it MUST be no earlier than the Event created_at and no later than the source service attestation time."
     },
     "device_authorize_event": {
