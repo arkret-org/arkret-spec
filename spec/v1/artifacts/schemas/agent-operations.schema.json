@@ -141,8 +141,7 @@
       "minLength": 1
     },
     "agent_slug": {
-      "type": "string",
-      "pattern": "^[a-z0-9](?:[a-z0-9_-]{0,62}[a-z0-9])?$",
+      "$ref": "string-profiles.schema.json#/$defs/agent_slug",
       "description": "Required controller-scoped native personal agent selector slug. Used only as the right-hand component of @<controller-handle>/<agent_slug>; not a global handle or authorization subject. Provisioning services MUST issue or update a ak.schema.agent_selector_claim.v1."
     },
     "base64url": {
@@ -201,7 +200,7 @@
       "type": "object",
       "properties": {
         "display_name": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "platform": {
           "$ref": "#/$defs/non_empty_string"
@@ -237,7 +236,7 @@
           "$ref": "#/$defs/did"
         },
         "display_name": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "slug": {
           "$ref": "#/$defs/agent_slug"
@@ -537,7 +536,7 @@
           "$ref": "#/$defs/base64url"
         },
         "display_name": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "device_metadata": {
           "$ref": "#/$defs/device_metadata"
@@ -913,7 +912,7 @@
           "description": "Service-allocated Principal Control Realm id for the new Agent. It is distinct from the controller PCR in provision_events."
         },
         "display_name": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "slug": {
           "$ref": "#/$defs/agent_slug"

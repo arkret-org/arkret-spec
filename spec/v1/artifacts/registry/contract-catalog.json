@@ -3083,6 +3083,12 @@
         "file": "schemas/space.schema.json"
       },
       {
+        "schema_id": "ak.schema.string_profiles.v1",
+        "file": "schemas/string-profiles.schema.json",
+        "status": "active",
+        "description": "Shared coarse JSON Schema shapes for Arkret human identifiers, IDNA domains, handles, acct URIs, and human-readable text profiles."
+      },
+      {
         "schema_id": "ak.schema.actor_profile.v1",
         "file": "schemas/actor-profile.schema.json"
       },

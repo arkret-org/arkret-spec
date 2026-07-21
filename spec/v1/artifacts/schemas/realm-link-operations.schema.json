@@ -76,8 +76,7 @@
           "$ref": "#/$defs/link_status"
         },
         "label": {
-          "type": "string",
-          "maxLength": 256
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "commitment": {
           "type": "string",
@@ -110,8 +109,7 @@
           "default": "active"
         },
         "label": {
-          "type": "string",
-          "maxLength": 256
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "commitment": {
           "type": "string"

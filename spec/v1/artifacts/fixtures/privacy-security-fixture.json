@@ -38,8 +38,8 @@
     "ak.vector.search.blind_index_stale_posting_fail_closed.v1",
     "ak.vector.search.result_not_authz_proof.v1",
     "ak.vector.search.surface_separation_no_plaintext_leakage.v1",
-    "ak.vector.identity.reject_handle_homograph.v1",
-    "ak.vector.identity.reject_realm_alias_homograph.v1",
+    "ak.vector.identity.internationalized_identifier_profiles.v1",
+    "ak.vector.identity.authority_local_skeleton_collision.v1",
     "ak.vector.identity_link.minimal_metadata_author_credential.v1"
   ],
   "cases": [
@@ -611,46 +611,88 @@
       }
     },
     {
-      "vector_id": "ak.vector.identity.reject_handle_homograph.v1",
-      "name": "reject_handle_homograph_before_idna",
+      "vector_id": "ak.vector.identity.internationalized_identifier_profiles.v1",
+      "name": "prepare_and_validate_internationalized_identifiers",
       "input": {
-        "existing_u_label": "paypal.example",
-        "candidates": [
-          "раypal.example",
-          "аcme.example",
-          "ab--cd.example"
+        "accepted_canonical_handles": [
+          "小明:domain.xn--fiqs8s",
+          "用户123:example.com",
+          "δοκιμή:example.com"
+        ],
+        "accepted_agent_slugs": [
+          "总结助手",
+          "要約bot"
+        ],
+        "accepted_single_line_display_text": [
+          "中文标题 🚀 / R&D（第二阶段）",
+          "👩‍💻 开发者社区",
+          "مشروع Arkret 2026"
+        ],
+        "accepted_acct_alias": "acct:%E5%B0%8F%E6%98%8E@domain.xn--fiqs8s",
+        "input_to_canonical": [
+          {
+            "input": "@小明:domain.中国",
+            "canonical": "小明:domain.xn--fiqs8s"
+          },
+          {
+            "input": "ＡＬＩＣＥ:Example.COM",
+            "canonical": "alice:example.com"
+          }
+        ],
+        "rejected_identifiers": [
+          "éxample:example.com",
+          "bad/name:example.com",
+          "bad@name:example.com",
+          "bad\u202ename:example.com",
+          "alice:example.com.",
+          "alice:xn--a.example",
+          "alice:ab--cd.example"
+        ],
+        "rejected_single_line_display_text": [
+          "éxample",
+          "line\nbreak",
+          "only\u202eoverride",
+          "   "
+        ],
+        "external_identifier_pairs_not_generically_equal": [
+          [
+            "did:example:AbC",
+            "did:example:abc"
+          ],
+          [
+            "User@example.com",
+            "user@example.com"
+          ]
         ]
       },
       "expected": {
-        "accepted": false,
-        "error_code": "failed_precondition",
-        "reason_code": "handle_homograph_forbidden",
         "checks": [
-          "uts39_confusable_skeleton_collision",
-          "mixed_script_label",
-          "hyphen_disallowed_position"
-        ]
+          "rfc8265_username_case_mapped",
+          "canonical_receiver_rejects_noncanonical_wire",
+          "uts46_nontransitional_std3_bidi_joiner_hyphen_dns_length",
+          "unicode_code_point_and_utf8_octet_limits",
+          "single_line_text_nfc_controls_and_whitespace",
+          "external_identifier_comparison_is_profile_specific",
+          "rfc7565_utf8_percent_encoding_without_port"
+        ],
+        "unicode_data_upgrade": "rebuild_derived_collision_index_without_rewriting_canonical_values"
       }
     },
     {
-      "vector_id": "ak.vector.identity.reject_realm_alias_homograph.v1",
-      "name": "reject_realm_alias_homograph_before_canonical_alias",
+      "vector_id": "ak.vector.identity.authority_local_skeleton_collision.v1",
+      "name": "uts39_skeleton_is_authority_local_derived_state",
       "input": {
-        "existing_u_label": "acme-workspace",
-        "candidates": [
-          "аcme-workspace",
-          "acme--workspace"
-        ]
+        "registered": "paypal:example.com",
+        "confusable_candidate": "раураl:example.com",
+        "same_skeleton_other_authority": "раураl:other.example",
+        "same_string_realm_alias_namespace": "paypal:example.com"
       },
       "expected": {
-        "accepted": false,
-        "error_code": "failed_precondition",
-        "reason_code": "realm_alias_homograph_forbidden",
-        "checks": [
-          "uts39_confusable_skeleton_collision",
-          "mixed_script_label",
-          "hyphen_disallowed_position"
-        ]
+        "same_authority_handle_registration": "handle_homograph_forbidden",
+        "other_authority_handle_registration": "not_a_collision",
+        "realm_alias_registration": "not_a_cross_namespace_collision",
+        "canonical_equality_uses_skeleton": false,
+        "skeleton_enters_wire_or_proof": false
       }
     },
     {

@@ -341,7 +341,8 @@
           ]
         },
         "description": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/short_text",
+          "maxLength": 2048
         }
       },
       "patternProperties": {

@@ -3168,11 +3168,13 @@ Expected：
 - 第 4 步 MUST 因 audience/origin mismatch 或 freshness window 超限拒绝；服务端不得裁剪有效期后继续接受同一 proof。
 - 第 5 步 MUST 拒绝；默认 skew 上限 SHOULD ≤ 300s。
 
-### 10.4.2 Vector: Handle / Realm Alias Homograph Rejection
+### 10.4.2 Vector：国际化标识符 profile 与 authority-local 冲突索引
 
-`vector_id`: `ak.vector.identity.reject_handle_homograph.v1`、`ak.vector.identity.reject_realm_alias_homograph.v1`
+`vector_id`: `ak.vector.identity.internationalized_identifier_profiles.v1`、`ak.vector.identity.authority_local_skeleton_collision.v1`
 
-Runner 必须把 fixture 中的 Unicode U-label 原样交给注册 / 解析前置校验，不得先做 IDNA ToASCII。Handle 与 Realm alias 两条路径都必须拒绝：(a) Latin/Cyrillic 混排；(b) 与既有名称 UTS#39 skeleton 冲突；(c) hyphen-disallowed-position。Handle 返回 `failed_precondition` + `handle_homograph_forbidden`，Realm alias 返回 `failed_precondition` + `realm_alias_homograph_forbidden`。仅执行 NFC 或仅依赖最终 ASCII schema pattern 不算通过。
+Runner 必须分别测试“用户输入 preparation”和“canonical receiver validation”：前者可把 width/case 与 domain U-label 转为 canonical 值，后者必须拒绝任何仍需改写的 wire 值。localpart / Agent slug 使用登记版本的 RFC 8265 derived profile；domain 使用 UTS #46 Nontransitional + STD3/Bidi/Joiner/hyphen/DNS-length/round-trip 完整校验。`title` 等单行显示文本必须允许多语言、emoji 与合理混合脚本，同时拒绝 non-NFC、CR/LF、C0/C1、BOM、bidi format control 和纯空白。
+
+UTS #39 skeleton 只在同一 authority、同一 namespace 的注册事务中作为派生冲突索引。同一 authority 的 handle skeleton 冲突返回 `failed_precondition` + `handle_homograph_forbidden`；不同 authority 或 handle/realm-alias 跨 namespace 不得冲突。Runner 必须断言 skeleton 不参与 canonical equality、签名或 wire 编码；Unicode/UTS #39 数据升级只重建派生索引，不得改写既有 canonical 标识符。DID 和 email local-part 的比较仍由各自 method/provider profile 决定，不得被 Arkret generic normalizer 合并。
 
 ### 10.5 Vector: Session Grant Audience Binding
 
@@ -4478,7 +4480,7 @@ Steps：
 
 Expected：
 
-- **Case A**：实现重算结果 MUST 等于 `expected_digest`（`sha256:be4fc9d757a41f8829790b098b52394af89bbe6dfb18a0ce11dd5516adf70de0`）；内容变异与 key-order 变异结果 MUST 分别符合 fixture。只摘要 `digest_input` 名称/路径列表即判失败。
+- **Case A**：实现重算结果 MUST 等于 `expected_digest`（`sha256:5d13b7bebc378b71419c4cb05697d10846c391d94c674a49cace9606dfd00194`）；内容变异与 key-order 变异结果 MUST 分别符合 fixture。只摘要 `digest_input` 名称/路径列表即判失败。
 - **Case B**：receiver MUST 整批拒绝并返回 `reducer_profile_mismatch`，MUST NOT partial accept；缺少 registry row、`profile_id` 未声明、canonicalization 不支持或 digest suite 非 active `sha256` 时同样 MUST fail closed。
 
 失败条件：

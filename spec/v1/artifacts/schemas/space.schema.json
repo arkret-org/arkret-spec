@@ -61,12 +61,10 @@
       "description": "Optional schema/profile references that further constrain this Space's contained Strand types, fields, or position invariants."
     },
     "title": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 256
+      "$ref": "string-profiles.schema.json#/$defs/display_text_256"
     },
     "summary": {
-      "type": "string",
+      "$ref": "string-profiles.schema.json#/$defs/short_text",
       "maxLength": 2048
     },
     "labels": {

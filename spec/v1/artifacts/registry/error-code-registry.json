@@ -3379,7 +3379,7 @@
         "schema_validation",
         "service_call"
       ],
-      "description": "Handle registration or issuer conflict check failed wire-level NFC / UTS#39 confusable-skeleton / mixed-script constraints. Registries MUST reject instead of treating homograph variants as distinct identities. See zh/identity/identity-handles.md \u00a717."
+      "description": "Handle registration collided with the same authority-local handle-namespace UTS #39 skeleton index or failed the authority's declared Highly Restrictive registration policy. This is registration policy, not canonical equality; the skeleton never enters wire or proof bytes. See zh/identity/identity-handles.md \u00a717."
     },
     {
       "code": "realm_alias_homograph_forbidden",
@@ -3387,7 +3387,7 @@
         "schema_validation",
         "service_call"
       ],
-      "description": "Realm alias registration or conflict check failed wire-level NFC / UTS#39 confusable-skeleton / mixed-script constraints within the realm-alias namespace. Registries MUST reject instead of treating homograph variants as distinct aliases. Cross-namespace (handle vs realm alias) homographs are disambiguated by sigil, not namespace uniqueness. See zh/discovery/object-addressing.md \u00a73.3."
+      "description": "Realm alias registration collided with the same authority-local realm-alias-namespace UTS #39 skeleton index or failed its declared Highly Restrictive registration policy. Skeletons do not define canonical equality; cross-namespace handle/realm-alias homographs are disambiguated by sigil and type context. See zh/discovery/object-addressing.md \u00a73.3."
     },
     {
       "code": "reserved_circle_short_name",

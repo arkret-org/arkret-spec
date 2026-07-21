@@ -819,7 +819,8 @@
           "$ref": "#/$defs/opaque_payload"
         },
         "description": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/short_text",
+          "maxLength": 4096
         }
       },
       "additionalProperties": false

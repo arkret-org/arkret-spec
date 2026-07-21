@@ -23,15 +23,13 @@
       "description": "Principal DID of the addressee. Materialised as payload.actor_id / cell subject in ak.member.state{membership=join}."
     },
     "handle": {
-      "type": "string",
-      "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
+      "$ref": "string-profiles.schema.json#/$defs/canonical_handle",
       "description": "Arkret canonical handle string: <localpart>:<domain>. acct: aliases and @ mention spelling are rejected here."
     },
     "handle_aliases": {
       "type": "array",
       "items": {
-        "type": "string",
-        "pattern": "^acct:[a-z0-9._+~-]{1,128}@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:[0-9]{1,5})?$"
+        "$ref": "string-profiles.schema.json#/$defs/acct_uri"
       },
       "uniqueItems": true,
       "description": "Optional interop aliases (RFC 7565 acct:). Never used for cache keys, signature transcripts, or delivery_binding materialisation."

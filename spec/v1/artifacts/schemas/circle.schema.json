@@ -35,12 +35,10 @@
       "description": "Optional create-locked Circle semantic profile discriminator. Ordinary Circles omit it. Profile-specific creation paths MUST persist their registered profile id. Agent Sidecar is a separate ak.schema.agent_sidecar.v1 object and MUST NOT be represented by this field."
     },
     "title": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 256
+      "$ref": "string-profiles.schema.json#/$defs/display_text_256"
     },
     "summary": {
-      "type": "string",
+      "$ref": "string-profiles.schema.json#/$defs/short_text",
       "maxLength": 2048
     },
     "display": {

@@ -409,8 +409,7 @@
       "pattern": "^(ak\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
     },
     "agent_slug": {
-      "type": "string",
-      "pattern": "^[a-z0-9](?:[a-z0-9_-]{0,62}[a-z0-9])?$",
+      "$ref": "string-profiles.schema.json#/$defs/agent_slug",
       "description": "Controller-scoped native personal agent selector slug used by @<controller-handle>/<agent_slug>. Not a global handle or authorization subject."
     },
     "mention_node": {
@@ -2546,7 +2545,7 @@
           "$ref": "#/$defs/hierarchy_link_status"
         },
         "label": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "commitment": {
           "$ref": "#/$defs/hash"
@@ -3374,9 +3373,7 @@
                             "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
                           },
                           "label": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 256
+                            "$ref": "string-profiles.schema.json#/$defs/display_text_256"
                           }
                         },
                         "additionalProperties": false
@@ -3473,7 +3470,7 @@
           "type": "object",
           "properties": {
             "summary": {
-              "type": "string",
+              "$ref": "string-profiles.schema.json#/$defs/short_text",
               "minLength": 1,
               "maxLength": 512
             },
@@ -5084,7 +5081,7 @@
           "$ref": "#/$defs/timestamp"
         },
         "summary": {
-          "type": "string",
+          "$ref": "string-profiles.schema.json#/$defs/short_text",
           "maxLength": 2048
         },
         "account_data_key": {
@@ -7473,7 +7470,8 @@
           ]
         },
         "description": {
-          "type": "string"
+          "$ref": "string-profiles.schema.json#/$defs/short_text",
+          "maxLength": 4096
         },
         "reporter": {
           "$ref": "#/$defs/did"

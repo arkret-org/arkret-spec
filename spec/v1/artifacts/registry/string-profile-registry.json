@@ -1,0 +1,57 @@
+{
+  "version": "2026-07-21",
+  "source_of_truth": true,
+  "canonical_schema": "schemas/string-profiles.schema.json",
+  "data_versions": {
+    "unicode_normalization_and_script": "17.0.0",
+    "precis": "RFC 8264 derived-property tables at Unicode 6.3.0 plus RFC 8265 UsernameCaseMapped; mapping, normalization, and bidi tables at Unicode 17.0.0",
+    "uts39": "Unicode 16.0.0 security data",
+    "uts46": "Unicode 17.0.0 data; Nontransitional Processing"
+  },
+  "reference_implementation": {
+    "precis_profiles": "0.1.13",
+    "idna": "1.1.0",
+    "idna_adapter": "1.2.2",
+    "unicode_security": "0.1.2"
+  },
+  "upgrade_rule": "Changing Unicode, PRECIS, UTS #39, or UTS #46 data is a reviewed v1 artifact update. Existing canonical identifiers and signed bytes are never rewritten. UTS #39 upgrades rebuild authority-local derived collision indexes; newly assigned code points are rejected by receivers whose pinned profile does not yet recognize them.",
+  "profiles": [
+    {
+      "name": "arkret_human_identifier",
+      "schema_ref": "schemas/string-profiles.schema.json#/$defs/human_identifier_localpart",
+      "canonical_equality": "exact prepared Unicode code point sequence",
+      "authorization": "may be uniquely indexed but is not a principal identifier",
+      "registration_collision": "optional authority-local UTS #39 Highly Restrictive assessment and skeleton index; never canonical equality"
+    },
+    {
+      "name": "arkret_single_line_display_text",
+      "schema_ref": "schemas/string-profiles.schema.json#/$defs/single_line_display_text",
+      "canonical_equality": "not defined",
+      "authorization": "forbidden"
+    },
+    {
+      "name": "arkret_short_text",
+      "schema_ref": "schemas/string-profiles.schema.json#/$defs/short_text",
+      "canonical_equality": "not defined",
+      "authorization": "forbidden"
+    },
+    {
+      "name": "arkret_content_text",
+      "schema_ref": "schemas/string-profiles.schema.json#/$defs/content_text",
+      "canonical_equality": "not defined",
+      "authorization": "forbidden"
+    },
+    {
+      "name": "arkret_protocol_token",
+      "schema_ref": null,
+      "canonical_equality": "field-specific ASCII byte equality",
+      "authorization": "field-specific"
+    },
+    {
+      "name": "arkret_external_string",
+      "schema_ref": null,
+      "canonical_equality": "delegated to external standard, DID method, or provider profile",
+      "authorization": "Arkret-wide NFKC or case folding is forbidden"
+    }
+  ]
+}

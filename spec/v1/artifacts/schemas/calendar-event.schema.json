@@ -178,8 +178,7 @@
       "minProperties": 1,
       "properties": {
         "title": {
-          "type": "string",
-          "minLength": 1
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "address": {
           "type": "string",

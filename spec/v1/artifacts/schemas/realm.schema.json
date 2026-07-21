@@ -32,12 +32,10 @@
       "const": "ak.schema.realm.v1"
     },
     "title": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 256
+      "$ref": "string-profiles.schema.json#/$defs/display_text_256"
     },
     "summary": {
-      "type": "string",
+      "$ref": "string-profiles.schema.json#/$defs/short_text",
       "maxLength": 2048
     },
     "security_class": {

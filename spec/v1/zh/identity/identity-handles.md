@@ -107,11 +107,13 @@ Handle 分两层：**显示形态**面向用户，**canonical handle** 面向协
 | 形态 | 角色 | normative 用途 |
 | --- | --- | --- |
 | `<localpart>:<domain>` | **主形态** | DID Document `alsoKnownAs` 比对、claim proof 输入、Directory 缓存键、`handle` 字段 |
-| `acct:<localpart>@<domain>(:<port>)?` | 互通别名（RFC 7565） | 跨 Fediverse / WebFinger 边界对接；只能出现在 `handle_aliases[]`，不作为本协议内部 canonical 比对 |
+| `acct:<localpart>@<domain>` | 互通别名（RFC 7565） | 跨 Fediverse / WebFinger 边界对接；只能出现在 `handle_aliases[]`，不作为本协议内部 canonical 比对 |
 
 每个 handle 都有唯一的 `user:domain` 形态。`acct:` MAY 在 claim 的 `handle_aliases[]` 中作为附加字段出现，但 **alsoKnownAs 比对、Directory 缓存键、Realm `delivery_binding` 物化** 一律 MUST 使用 `user:domain` 形态。verifier 收到只含 `acct:` 而无对应 `user:domain` 的 claim 时，MUST 把它视为外部互通别名，不得用它作 Arkret 内部权威 binding。
 
-`handle` 的 wire 形态由 [`artifacts/schemas/handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) 强制：必须匹配 `<localpart>:<domain>`，且 `<localpart>` 已 canonicalize 为小写。`@<localpart>:<domain>`、`<localpart>@<domain>`、`acct:`、裸 host 等其它形态在 `handle` 中被 schema 拒绝；客户端 MAY 接受这种字符串作为输入捷径，但 normalize 前 MUST NOT 出现在签名 transcript、`alsoKnownAs`、缓存键或 Directory query 中。`acct:` 互通别名只能进入 `handle_aliases[]`。
+`handle` 的 wire 形态由 [`string-profiles.schema.json`](../../artifacts/schemas/string-profiles.schema.json) 与 [`handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) 共同约束：必须是 `<prepared-localpart>:<lowercase-A-label-domain>`。localpart 是 `arkret_human_identifier` 的 Unicode canonical value，不是 IDNA label；domain 才执行 UTS #46。`@<localpart>:<domain>`、`<localpart>@<domain>`、`acct:`、裸 host、U-label domain 与任何可转换但尚未 canonical 的字符串在 `handle` wire 字段中都 MUST 被拒绝。客户端 MAY 在 input preparation API 接受这些输入并向用户回显转换结果，但 canonical receiver / verifier MUST 只验证，不能先改写再验签。
+
+`acct:` alias 按 RFC 7565 构造：prepared localpart 以 UTF-8 编码，对 URI 中非直接允许的 octet 做大写十六进制 percent-encoding；host 使用 canonical A-label；不得携带 port。比较遵循 RFC 3986 的 scheme / host case 与 percent-encoding normalization，不参与 Arkret canonical handle equality。
 
 **与 realm alias 的关系（normative）**：handle 的 `@` sigil 与 realm alias 的 `#` sigil（见 [`discovery/object-addressing.md` §3.3](../discovery/object-addressing.md)）构成同一套人类短地址体系：两者 canonical 形态同为 `<localpart>:<domain>`（不含 sigil），但占据**不相交命名空间**——handle 经 `resolve_handle` 解析为 holder / principal DID，realm alias 经 `resolve_realm` 解析为 `ak:realm:<uuid>`。同一 `<localpart>:<domain>` MAY 同时是一个 handle 与一个 realm alias；协议**不要求**二者全局唯一，sigil 在显示 / 输入期区分类型，线上字段凭其类型上下文消歧。`@` 与 `#` 均为展示 + 输入路由 affordance，strip 后才进 wire。
 
@@ -373,7 +375,7 @@ Handle 按 holder 披露意图分两类：
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `subject_id` | DID | MUST | 被寻址主体的 principal DID；最终物化为 `payload.actor_id` / cell subject。 |
-| `handle` | canonical handle | MUST | `<localpart>:<domain>`，`<localpart>` 已 lowercase。`acct:` / 显示形态 / 裸 host 一律拒绝。 |
+| `handle` | canonical handle | MUST | `<localpart>:<domain>`，`<localpart>` 已完成登记版本 RFC 8265 profile preparation。`acct:` / 显示形态 / 裸 host 一律拒绝。 |
 | `handle_aliases[]` | `acct:` URI 数组 | MAY | 仅互通别名；不参与权威比对、缓存键或 `delivery_binding` 物化。 |
 | `member_delivery_binding` | object | MUST | 与 [`handle-claim.schema.json#/properties/member_delivery_binding`](../../artifacts/schemas/handle-claim.schema.json) 同形，`binding_source` ∈ `explicit` / `invite` / `join_policy` / `organization_policy` / `realm_policy`；MUST NOT 为 `did_document_default`。 |
 | `issuer_service_id` | DID | MUST | 实际签发该 candidate 的服务 DID（Directory / Principal Server / Organization service DID）。 |
@@ -419,7 +421,7 @@ payload.delivery_binding.binding_source = join-policy §5.1.2.1 决策树输出
 verifier 收到 candidate 时 MUST 按下列顺序失败 closed：
 
 1. **schema 合规**：所有 MUST 字段存在；`additionalProperties: false` 不放过未知字段。
-2. **`handle` canonical**：必须匹配 `<localpart>:<domain>` 主形态，且 `<localpart>` 已 lowercase。verifier 不得在签名 transcript 中接受任何非 canonical 形态；`acct:` 出现在 `handle` 即拒绝。
+2. **`handle` canonical**：必须匹配 `<localpart>:<domain>` 主形态，且 `<localpart>` 已完成登记版本 RFC 8265 profile preparation。verifier 不得在签名 transcript 中接受任何非 canonical 形态；`acct:` 出现在 `handle` 即拒绝。
 3. **audience match**：`audience` MUST 等于当前 invocation 上下文（目标 `target_realm_id` / `realm_id` 绑定的 audience，或邀请方 service DID）；不一致 MUST 返回与 "无可披露 claim" 不可区分的统一拒绝。
 4. **expiry**：`expires_at` 严格大于当前时间；过期 candidate MUST NOT 进入 builder。
 5. **proof 验证**：`proofs[]` 中至少一条由 `issuer_service_id`（或受 issuer 委派的 verification method）签名，且 binding transcript 覆盖 `handle`、`subject_id`、`member_delivery_binding.recipient_service_id`、`audience`、`issuer_service_id`、`issued_at`、`expires_at` 与 `claim_digest`（如有）。任何 transcript 漏掉 `issued_at` 或 `issued_at > expires_at` MUST fail closed，避免 MITM 通过重写时间窗口实施重放。
@@ -1205,9 +1207,11 @@ Verifier MUST：
 
 ## 17. v1 互操作要求
 
-- Handle 的 canonical wire form 是 `<localpart>:<domain>`，其中 `<localpart>` 在 wire 上必须是 lowercase canonical form；`acct:<localpart>@<domain>(:<port>)?` 为 `handle_aliases[]` 中的互通别名。handle ABNF 必须限制为可规范化、大小写明确、禁止控制字符和混淆分隔符的字符串；`<domain>` 使用 IDNA 处理后再验证。**Wire-level canonical 比较(normative)**：issuer / registry / resolver 在做 handle 注册、claim 校验、§13 跨 issuer 冲突检测时，MUST 先对 `<localpart>` 与 `<domain>` 应用 Unicode NFC normalization，再应用 [UTS#39](https://www.unicode.org/reports/tr39/) confusable skeleton 折叠；比较与冲突判定 MUST 在折叠后的形态上执行。issuer / registry MUST 拒绝 *script-mixed* handle（同一 label 内同时含 Latin 与 Cyrillic / Greek / Armenian 等不同 script 字符，例如 `аcme.example` U+0430 + Latin 混排），以及 `hyphen-disallowed-position` 形态；违反者注册请求 `failed_precondition` `reason="handle_homograph_forbidden"`。显示层防混淆仍 MUST 实现，但不能替代 wire-level 检测。
-
-  **NFC / UTS#39 检测的作用层与 schema ASCII pattern 的关系(normative，消歧)**：上述 NFC normalization 与 UTS#39 confusable / script-mixing 检测 MUST 作用于 IDNA 转换**之前**的 **U-label**(用户可见的 Unicode 形态，可能含非 ASCII 字符)——这是 homograph 攻击的实际载体。检测通过后，`<domain>` MUST 经 IDNA2008(ToASCII)转为 **A-label**(punycode,`xn--` 前缀的纯 ASCII),`<localpart>` 经本节 lowercase canonical 规则归一为受限 ASCII；只有该 ASCII canonical 形态才是进入 `ak.schema.handle_claim.v1` 等 wire claim `handle` 字段、并由 [`handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) ASCII-only pattern 校验的值。因此 schema pattern 是 ASCII-only **不是**与 §17 检测矛盾，而是有意分层:UTS#39 confusable 折叠在 U-label 上做(schema 校验不到、也不应在 wire canonical handle 上重复执行),schema pattern 只兜底"进入 wire 的 handle 已是受限 ASCII canonical 形态"。实现 MUST NOT 把含非 ASCII 字符的 U-label 直接作为 wire `handle` 提交(会被 schema 拒绝)，亦 MUST NOT 因 schema 通过就跳过 U-label 阶段的 NFC / UTS#39 检测。Handle 与 Realm alias 两条负例分别由 `ak.vector.identity.reject_handle_homograph.v1`、`ak.vector.identity.reject_realm_alias_homograph.v1` 固化。
+- Handle canonical wire form 是 `<localpart>:<domain>`。`<localpart>` MUST 是 [`encoding.md` §2.1](../conformance/encoding.md) `arkret_human_identifier` 的 RFC 8265 `UsernameCaseMapped` enforcement 结果：width mapping、Unicode lowercase 与 NFC 后，排除至少 `: @ / # ? \\`、空白、控制字符、noncharacter 与其它 PRECIS disallowed code point；结果 1..128 Unicode code points 且不超过 512 UTF-8 octets。`.`、`_`、`+`、`~`、`-` 保持可用。canonical equality 是 prepared localpart code point sequence + lowercase A-label domain 的精确相等，MUST NOT 使用 confusable skeleton 定义相等。
+- `<domain>` MUST 使用 [`encoding.md` §2.1.1](../conformance/encoding.md) 的 UTS #46 Nontransitional profile；canonical wire 只接受 lowercase A-label。`domain.中国` 是合法 input / display domain，对应 canonical `domain.xn--fiqs8s`；因此 `@小明:domain.中国` 可准备为 `小明:domain.xn--fiqs8s`。canonical receiver 必须拒绝原始 U-label domain、uppercase A-label、trailing dot、无效 `xn--`、超 DNS 长度或 round-trip 失败。
+- 对应 conformance vectors 为 `ak.vector.identity.internationalized_identifier_profiles.v1` 与 `ak.vector.identity.authority_local_skeleton_collision.v1`；前者验证 preparation / canonical receiver 分层，后者验证 skeleton 只属于 authority-local、namespace-local 派生索引。
+- registrar MAY 在同一 issuing authority 的 handle namespace 内要求 UTS #39 `Highly Restrictive` 并建立 `(authority, skeleton)` collision index。skeleton 只用于注册冲突 / 风险提示：碰撞可返回 `failed_precondition` `reason="handle_homograph_forbidden"`，但不得写入 wire、proof 或 equality。不同 authority 的相同 skeleton 不冲突。Unicode / PRECIS / UTS #39 数据版本与升级规则由 [`string-profile-registry.json`](../../artifacts/registry/string-profile-registry.json) 钉定。
+- `acct:<percent-encoded-localpart>@<A-label-domain>` 是 `handle_aliases[]` 中的 RFC 7565 alias，不含 port；它不是 canonical handle，也不参与 Arkret 内部唯一性比较。
 - **Handle 字符串的 wire-level 作用域**（normative）：handle 字符串作为 wire-level **权威字段**（actor reference、authorization subject、audit attribution、解析输入）MUST 只在以下三类位置出现：
   1. **Handle claim lifecycle 对象与 issuer / Auth Server 本地管理请求**：`ak.schema.handle_claim.v1`、issuer / Auth Server 定义的申请、审批、重签、撤销、Directory withdraw、handle reassignment 等显式管理 handle 生命周期的请求、响应、签名 claim 与 audit receipt。这些管理 API 不属于 Arkret v1 core，但一旦在 Arkret wire 上作为 claim evidence 被消费，必须产出可验证的 `ak.schema.handle_claim.v1` 或明确的 revocation / audit evidence。
   2. **Discovery / Directory query 请求与响应**：`/.well-known/arkret/handle?localpart=...`、`POST /_arkret/find/directory/resolve-handle`、`POST /_arkret/find/directory/list-handles-for-subject` 等解析路径的输入与输出。

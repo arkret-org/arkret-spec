@@ -36,31 +36,33 @@ Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs`、`unsigned` 与
 
 生产者 MUST 在所有 v1 签名对象中使用 JSON integer 表示数值。Schema 要求小数语义的字段（如概率、进度、置信度）MUST 使用整数 + scale（见上文 `_basis_points` 等约定），生产者和消费者按预定义 scale 解释，无须做 number canonicalization。任何进入签名 / canonical wire bytes 的 v1 schema MUST NOT 出现 `type: number`（非整数）字段；该约束在 OpenAPI 镜像上由 lint 强制。唯一例外是**派生的 read / projection 响应**中承载「被投影字段运行时类型」的 filter 值（例如 `view.schema.json#/$defs/collection_projection_view` 分组 source 的 `value`、OpenAPI `CollectionFieldValueGroupSource.value`）：它们不进入 canonical Event bytes、不参与签名，MAY 保留 `type: number`，且在 OpenAPI 镜像中 MUST 以 `# lint-waiver(type:number): <理由>` 标注；后续 wire 修订可将需要小数的字段类型迁移为 `{integer, scale}` 信封。
 
-### 2.1 String 字段的 Unicode 收紧
+### 2.1 String profile 与 Unicode 处理
 
-字符串 field 的 wire 形态 MUST 满足以下约束，否则 receiver MUST `schema_violation` 拒绝：
+字符串 MUST 先按其协议角色选择 profile；实现 MUST NOT 对 DID、URI、email、phone、display text 与 Arkret human identifier 套用同一个 NFKC / case-fold normalizer。所有进入 canonical JSON 的 string value 仍 MUST 是 NFC；receiver MUST 验证而不得在验签阶段静默改写非 NFC wire bytes。
 
-- **NFC 正规化**：所有 string value MUST 在写入 canonical JSON 前完成 Unicode NFC（Canonical Composition）正规化。生产者发送已 NFC 化字节；receiver MUST NOT 在 verify 阶段做隐式 NFC 化——若收到非 NFC 字符串，按 schema_violation 拒绝。这一条避免"看起来一样的字符串"在 hash / signature 比较时出现 false positive 或 false negative（同一可见字符可能由 precomposed 或 decomposed 序列表示）。
-- **身份相关字段进一步走 NFKC**：DID URI、handle、connection identifier、display name 用于精确匹配 / blocklist / capability subject 解析的字段 MUST 在比较前归约为 NFKC（Compatibility Composition），并对结果再做 case folding（`toCaseFold` / Unicode default case folding）。NFKC 把 compatibility-equivalent 字符（如 `ｄｉｄ：` 全角 vs `did:` 半角，`Ⅰ` vs `I`，`℗` vs `(P)`）合并到同一表示。比较 / 索引 / 黑名单匹配 MUST 在 NFKC + case folding 之后进行；wire 上仍传 NFC 原始字节。
-- **Confusables 拒绝**：handle、DID method-specific identifier、organization handle 这类与品牌 / 身份相关的 string field MUST 拒绝包含 Unicode TR 39 高风险 confusable 字符的输入。受规范的字段 MUST 使用 `IdentifierStatus=Restricted` 或更严策略：
-  - 拒绝 mixed-script identifier（拉丁 + 西里尔 + 希腊 + …）；只允许 single-script，或 single-script + ASCII digit 组合。
-  - 拒绝 TR 39 §5.1.1 列出的高风险 confusable 字符（如 `а`(U+0430 西里尔) 与 `a`(U+0061 拉丁) 同形）。
-  - 拒绝纯不可见或控制字符序列（`U+200B…U+200F`、`U+202A…U+202E`、`U+2066…U+2069` 等 zero-width / bidi override）。
-  - 实现 SHOULD 暴露 confusable check 为可调用 utility，让客户端在创建 handle / 显示名前预检；wire 拒绝行为由 `ak.vector.identity.reject_handle_homograph.v1` 与 `ak.vector.identity.reject_realm_alias_homograph.v1` 固定，SDK utility 形状不属于 wire conformance gate。
+v1 的 machine-readable profile 与版本钉定见 [`string-profile-registry.json`](../../artifacts/registry/string-profile-registry.json)，共享 schema 定义见 [`string-profiles.schema.json`](../../artifacts/schemas/string-profiles.schema.json)：
 
-什么字段需要走 NFKC + confusable check：
-
-| 字段 | NFC（必）| NFKC + case fold（比较时）| Confusable 拒绝 |
+| Profile | 适用字段 | preparation / 验证 | 比较与授权语义 |
 | --- | --- | --- | --- |
-| DID URI | ✓ | ✓ | ✓（method-specific identifier 部分）|
-| Handle（canonical `handle` / display form） | ✓ | ✓ | ✓ |
-| Connection identifier（email / phone canonical 形态） | ✓ | ✓ | ✓（local part）|
-| Organization name | ✓ | ✓ | ✓ |
-| Display name | ✓ | ✓ | 仅 SHOULD（默认开启 confusable warning，用户 opt-out）|
-| Title / summary / content body 等正文字段 | ✓ | — | — |
-| Schema id / event kind / cell family 等 protocol identifier | ✓ | ASCII-only（schema 已 enforce） | — |
+| `arkret_human_identifier` | handle / realm alias localpart、native personal Agent selector `slug` | RFC 8265 `UsernameCaseMapped` enforcement（width mapping、Unicode lowercase、NFC）后排除 Arkret 结构分隔符；长度同时按 code point 与 UTF-8 octet 限制 | prepared code point sequence 精确相等；可建立唯一索引 |
+| `arkret_single_line_display_text` | `title`、`display_name`、`label` | NFC；允许多语言、emoji、数学符号和混合脚本；拒绝 CR/LF、C0/C1、BOM、bidi embedding / override / isolate；不得仅为空白 | 永不用于主体相等、授权、ACL 或签名者判定 |
+| `arkret_short_text` | `summary`、短 `description` | NFC；允许 LF 换行；拒绝 CR、其它 C0/C1、BOM 与 bidi embedding / override；字段 schema 决定 code-point 上限 | 非权威全文 |
+| `arkret_content_text` | message / content / body | NFC；允许正常 bidi 与 emoji 序列；拒绝 BOM 与非文本控制字符；renderer 负责转义和方向隔离 | 内容；不参与 identifier 比较 |
+| `arkret_protocol_token` | kind、schema/profile ID、action、enum、algorithm、base64url / hex | 字段专属 ASCII grammar | byte-exact 或字段专属比较 |
+| `arkret_external_string` | DID、DID URL、URI、email、phone、provider identifier | 委托对应外部标准、DID method 或已登记 provider profile | 禁止 Arkret 全局 NFKC / case folding |
 
-为什么把 NFKC + confusable 限定在身份相关字段而不是全字段：正文（Strand.content、Message.content）允许任何脚本混排是合理的（中文夹拉丁、阿拉伯夹希伯来），不能强制 single-script。但身份相关字段是 trust UI 决策点，必须 reject 同形字攻击。
+外部字符串的具体规则：
+
+- generic DID parser 只验证 DID Core 语法；method name 按 DID Core 为小写 ASCII，method-specific-id 与 DID URL components 保留原值并按对应 DID method / URI 规则比较。只有 resolver 提供的 `canonicalId` / `equivalentId` 才能建立强等价，Arkret MUST NOT 因全串大小写折叠而合并 DID。
+- email 保留 local-part；domain 使用 §2.1.1 的 IDNA profile。mailbox issuer / provider 决定 local-part comparison；非 ASCII local-part 的 SMTP 投递还要求 RFC 6531 `SMTPUTF8`。
+- phone 使用 E.164 或声明的 provider profile；`acct:` 使用 RFC 7565 / RFC 3986；opaque provider identifier 按 bytes 保留。
+- organization `display_name` 与个人 display name 都是 display text，不是 organization handle；混合脚本最多触发 UI warning，不得因中文夹英文、品牌名夹数字而拒绝。
+
+UTS #39 skeleton 只是 registration authority 在**同一 namespace**内使用的派生 collision index，不是 canonical value、wire 字段、proof transcript 或协议 equality。authority MAY 要求 `Highly Restrictive` restriction level；skeleton 数据版本升级时 MUST 重建派生索引但 MUST NOT 改写既有 canonical identifier。不同 authority 或 handle / realm-alias 两个不相交 namespace 的 skeleton 相同，不建立协议等价。
+
+#### 2.1.1 IDNA domain profile
+
+面向用户的 domain 输入 MAY 是 U-label；canonical wire、签名、缓存键和唯一索引 MUST 使用 UTS #46 Nontransitional Processing 得到的小写 A-label，并启用 `CheckHyphens=true`、`CheckBidi=true`、`CheckJoiners=true`、`UseSTD3ASCIIRules=true`、`VerifyDnsLength=true`。实现 MUST 拒绝 trailing dot、空 label、单 label domain、超过 63 octets 的 label、超过 253 octets 的 domain、无效 `xn--` 与不能通过 ToUnicode → ToASCII round-trip 的 A-label。JSON Schema 的 ASCII pattern 只做粗粒度 shape 检查，不能替代该 normative validator。
 
 ### 2.2 备用 canonical encoding (profile-gated)
 
@@ -580,7 +582,7 @@ rank_between(left, right):
   cell_subject = base64url_nopad(sha256(canonical_json(components_array)))
   ```
 
-  其中 `components_array` 是按本规范声明的固定顺序排列的 JSON array，所有 string element 已经 normalize 过（NFC、小写 typed ID、规范 DID）。身份类 sub-component（DID URI、handle、connection identifier 等 §2.1 列举的身份字段）在进入 `components_array` 前 MUST 先应用 §2.1 的 NFKC + case folding（与该字段用于 cell subject 派生的"比较 / 索引 / 黑名单匹配"语义一致），再纳入 hash 输入；否则仅 compatibility-equivalent 或大小写不同的两条 DID 会 hash 出不同 cell subject，造成同一主体的 device authorization cell 分裂（正是 §2.1 要防的同形 / 兼容字符攻击面）。
+  其中 `components_array` 是按本规范声明的固定顺序排列的 JSON array。每个 string element MUST 使用该字段自己的 canonical profile：typed ID 使用 schema 规定的小写 canonical 形态；DID 保留 DID method 定义的 canonical bytes，MUST NOT 做 Arkret 全串 NFKC / case folding；handle 使用已准备 localpart + 小写 A-label domain；connection identifier 使用其 kind / provider profile。复合 subject producer 与 verifier 必须消费同一 typed value，不得用通用 Unicode normalizer猜测外部标识符等价。
 - 实现 MUST NOT 直接使用 `a|b|c` 这种管道分隔字符串作为复合 subject。canonical cell id、签名输入、state map 索引 MUST 使用 hash 形态。
 - 复合 subject 的 sub-component 必须存在于 DataEvent / Control Move effect value 或兼容 Event payload 的具名字段中。
 - 同一 standard cell family 的 `components_array` schema 由本规范固定，profile MUST NOT 擅自增删字段或重新排序。

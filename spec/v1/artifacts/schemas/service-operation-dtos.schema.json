@@ -3478,16 +3478,25 @@
           "format": "date-time"
         },
         "title": {
-          "type": [
-            "string",
-            "null"
+          "oneOf": [
+            {
+              "$ref": "string-profiles.schema.json#/$defs/display_text_512"
+            },
+            {
+              "type": "null"
+            }
           ],
           "description": "Derived display title from plaintext-visible Strand metadata.title; null when metadata is encrypted or hidden from the service profile."
         },
         "summary": {
-          "type": [
-            "string",
-            "null"
+          "oneOf": [
+            {
+              "$ref": "string-profiles.schema.json#/$defs/short_text",
+              "maxLength": 2048
+            },
+            {
+              "type": "null"
+            }
           ],
           "description": "Derived display summary from plaintext-visible Strand metadata.summary; null when metadata is encrypted or hidden from the service profile."
         },
@@ -3582,9 +3591,13 @@
           "type": "string"
         },
         "title": {
-          "type": [
-            "string",
-            "null"
+          "oneOf": [
+            {
+              "$ref": "string-profiles.schema.json#/$defs/display_text_512"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
         "state": {
@@ -3647,7 +3660,7 @@
           "description": "Space kind such as `board`, `list`, `folder`, or a profile-registered kind."
         },
         "title": {
-          "type": "string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "parent_space_id": {
           "type": [

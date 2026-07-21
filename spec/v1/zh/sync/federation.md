@@ -272,7 +272,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
       "basis": ["member_delivery_binding"]
     },
     "destination_service_type": "principal_server",
-    "reducer_profile_digest": "sha256:be4fc9d757a41f8829790b098b52394af89bbe6dfb18a0ce11dd5516adf70de0"
+    "reducer_profile_digest": "sha256:5d13b7bebc378b71419c4cb05697d10846c391d94c674a49cace9606dfd00194"
   },
   "events": [
     {

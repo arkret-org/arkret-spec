@@ -24,8 +24,7 @@
       "description": "Current context-visible signed handle claims. Each item MUST have subject equal to the top-level subject; mismatches MUST be dropped or fail the response closed."
     },
     "primary_handle": {
-      "type": "string",
-      "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
+      "$ref": "string-profiles.schema.json#/$defs/canonical_handle",
       "description": "Optional canonical primary handle selected from claims[] by identity-handles.md section 3.2.1 for the same context/as_of. The @ mention sigil is not part of this field."
     },
     "as_of": {

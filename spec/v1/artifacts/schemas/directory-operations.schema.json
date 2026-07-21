@@ -105,12 +105,10 @@
       "pattern": "Z$"
     },
     "handle": {
-      "type": "string",
-      "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$"
+      "$ref": "string-profiles.schema.json#/$defs/canonical_handle"
     },
     "agent_slug": {
-      "type": "string",
-      "pattern": "^[a-z0-9](?:[a-z0-9_-]{0,62}[a-z0-9])?$"
+      "$ref": "string-profiles.schema.json#/$defs/agent_slug"
     },
     "non_empty_string": {
       "type": "string",
@@ -298,7 +296,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "title": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "avatar_blob_ref": {
           "$ref": "./blob.schema.json#/properties/blob_ref"
@@ -329,7 +327,8 @@
           ]
         },
         "summary": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/short_text",
+          "maxLength": 2048
         },
         "owning_organizations": {
           "type": "array",
@@ -387,7 +386,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "display_name": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "avatar_blob_ref": {
           "$ref": "./blob.schema.json#/properties/blob_ref"
@@ -448,7 +447,7 @@
           "$ref": "#/$defs/handle"
         },
         "display_name": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "organization_did": {
           "$ref": "#/$defs/did"
@@ -509,7 +508,8 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "summary": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/short_text",
+          "maxLength": 2048
         },
         "as_of": {
           "$ref": "#/$defs/timestamp"
@@ -902,7 +902,7 @@
           "$ref": "#/$defs/did"
         },
         "display_name": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "avatar_blob_ref": {
           "$ref": "./blob.schema.json#/properties/blob_ref"

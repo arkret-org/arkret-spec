@@ -74,8 +74,8 @@ web+arkret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
 
 **Realm alias canonical grammar**：realm alias 的 canonical 形态是 `<localpart>:<domain>`，与 [`identity/identity-handles.md` §3.1/§17](../identity/identity-handles.md) 定义的 handle canonical 形态**同语法**：
 
-- `<localpart>`：post-IDNA ASCII，字符集 `a-z` / `0-9` / `. _ + ~ -`，长度 1–128，MUST 已 canonicalize 为小写（与 handle localpart 同字母表）。
-- `<domain>`：运营该 alias 的部署 / 组织（realm alias 的 issuer）的权威域，至少两个 label，每 label 的字符规则与 handle `<domain>`（见 [`identity/identity-handles.md` §17](../identity/identity-handles.md)）一致，IDN 经 IDNA2008 ToASCII 转 A-label 后验证。
+- `<localpart>`：与 handle localpart 相同的 `arkret_human_identifier`，即 RFC 8265 `UsernameCaseMapped` enforcement 后的 Unicode canonical value；它不是 domain label，MUST NOT 使用 IDNA。长度 1..128 Unicode code points 且不超过 512 UTF-8 octets。
+- `<domain>`：运营该 alias 的部署 / 组织（realm alias issuer）的权威域，至少两个 label；用户输入 MAY 是 U-label，canonical wire MUST 是按 [`conformance/encoding.md` §2.1.1](../conformance/encoding.md) 得到的小写 A-label。
 - canonical alias **不含** sigil。`#general:acme.example`、`general@acme.example`、裸 `general` 等形态 MUST NOT 作为 canonical alias 出现在 `web+arkret:` path 段、缓存键或 `resolve_*` 规范化结果中（带 sigil 形态仅可作为 §下文「输入路由」的解析输入）。
 
 **人类短地址与 sigil（display + 输入路由）**：面向人的短地址用前导 sigil 标注目标类型：
@@ -100,7 +100,9 @@ sigil 是展示与输入层 affordance，**不是 wire 的一部分**：strip �
 
 **命名空间不相交，无全局唯一约束（normative）**：handle 与 realm alias 占据**两个不相交的命名空间**，分别由 `resolve_handle` 解析为 holder / principal DID、由 `resolve_realm` 解析为 `ak:realm:<uuid>`。协议 **MUST NOT** 要求两命名空间间全局唯一：同一 `<localpart>:<domain>` MAY 同时是一个 handle 与一个 realm alias，由 sigil 在显示 / 输入期区分，线上字段（自带类型上下文）无歧义。同一 `<domain>` 的 issuer **MAY** 选择在两命名空间间保留 / 对齐同名（本地治理策略），但这不是协议强制约束，实现 MUST NOT 因此在两命名空间间引入跨注册表唯一性检查。
 
-**混淆防护（normative）**：realm alias 注册 / 解析 MUST 复用 handle §17 的 wire-level canonical 比较纪律——先 NFC normalization、再 UTS#39 confusable skeleton 折叠，并拒绝 script-mixed label 与 hyphen-disallowed-position 形态——但在 **realm alias 命名空间内**做冲突检测，错误形态 registration 返回 `failed_precondition` `reason="realm_alias_homograph_forbidden"`。跨命名空间（handle vs realm alias）的同形不由命名空间唯一性消解，而由 sigil 区分与上述 issuer 可选保留策略处理。
+**混淆防护（normative）**：realm alias 的 canonical equality 是 prepared localpart + lowercase A-label domain 的精确相等。registrar MAY 按 handle §17 在同一 authority 的 **realm-alias namespace** 内建立 UTS #39 skeleton collision index并要求 `Highly Restrictive`；碰撞返回 `failed_precondition` `reason="realm_alias_homograph_forbidden"`。skeleton 不得进入 wire equality。handle 与 realm alias namespace 不相交，跨 namespace skeleton 相同不构成冲突，由 sigil 与类型上下文消歧。
+
+**Native personal Agent selector slug（normative）**：`@<controller-handle>/<agent_slug>` 的 `agent_slug` 复用 `arkret_human_identifier` preparation，长度 1..64 Unicode code points且不超过 256 UTF-8 octets；`/`、`@`、`:`、`#`、`?`、`\\`、空白与控制字符均禁止。`总结助手` 是合法 canonical slug。slug 只在 controller namespace 内唯一，是可变、可撤销、非授权的用户标签；若实现需要 URL path / machine-only ASCII token，必须定义独立字段，不能收窄 `agent_slug`。
 
 ## 4. Link 类型与授权 token
 

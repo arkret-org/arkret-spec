@@ -37,7 +37,7 @@
       ]
     },
     "description": {
-      "type": "string",
+      "$ref": "string-profiles.schema.json#/$defs/short_text",
       "maxLength": 4096
     },
     "reporter": {

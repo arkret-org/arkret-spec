@@ -35,9 +35,7 @@
       ],
       "properties": {
         "display_name": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "avatar_blob_ref": {
           "type": "string",
