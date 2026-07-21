@@ -372,9 +372,11 @@ Direct Conversation Realm 是 Collaboration Realm 的受约束形态，不是新
 Direct Conversation Realm MUST：
 
 - 使用 `encryption_profile="mls_rfc9420"`；`mls_dm` 不得作为 Realm `encryption_profile` 枚举值出现。
-- 声明已注册的 direct conversation profile，并使用已注册的 direct-conversation discriminator；不得复用 `fields.purpose="direct_message"`，因为 `fields.purpose` 已用于 Principal Control Realm。
+- `content_encryption_floor="e2ee_required"` 且 `metadata_encryption_floor="e2ee_required"`。
+- `schema_refs` 同时包含 `ak.schema.realm.v1` 与 `ak.profile.direct_conversation_realm.v1`，并设置 `fields.collaboration_role="direct_conversation"`；两者受 schema 双向 guard 约束。不得复用 `fields.purpose="direct_message"`，因为 `fields.purpose` 已用于 Principal Control Realm。
 - active member count 等于 2；向 active DM Realm 加第三人 MUST 被拒绝。升级多人聊天必须创建新的普通 Realm / Strand，再用 Relation 或 Message 引用旧 DM 内容。
 - `default_join_rule` 为 `closed` 或等价 fail-closed policy；第三方 invite / member_add MUST 被拒绝。
+- `ak.space.*` Event MUST 以 `direct_conversation_space_forbidden` 拒绝；额外普通 Strand MAY 存在，但不改变 binding 指定的默认 main Strand。
 - 通过 principal-scoped `ak.direct_conversation.bound` fact 绑定 unordered participant pair、`realm_id` 与 `main_strand_id`。同一 pair 至多一个 active canonical DM Realm；并发 duplicate 必须用 deterministic tie-break 收敛。
 
 任一参与方主动离开或被移出 DM Realm 后，该 Realm 立即失去 active canonical DM 资格。Resolver MUST NOT 为了继续同一个私聊把退出方重新加入旧 Realm；后续 `ak.self.direct_conversation.command.resolve(create=true)` MUST 创建新的 DM Realm、main Strand 与 binding。旧 Realm MAY 作为历史归档存在，但不得接收新的默认聊天消息。

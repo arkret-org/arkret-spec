@@ -276,7 +276,7 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
   },
   "state_at_window_start": {
     "actor_profiles": {"did:webvh:...": {"display_name": "...", "avatar_blob_ref": "..."}},
-    "realm_metadata": {"title": "...", "summary": "...", "join_rule": "..."},
+    "realm_metadata": {"title": "...", "summary": "...", "join_rule": "...", "collaboration_role": "direct_conversation"},
     "e2ee_epoch": {"epoch": 17, "key_ref": "ak:mls:..."}
   }
 }
@@ -284,7 +284,7 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
 
 - 该字段是 **派生 projection-only 字段**，不参与 state hash / frontier 计算，不进入因果图。
 - 字段范围仅限三类 context：`actor_profiles`（window 内出现的 actor）、`realm_metadata`（Realm-level Lattice cell value at window start）、`e2ee_epoch`（window 起点的 MLS epoch hint）。
-- 三个字段都必须出现；`actor_profiles` 只允许 `display_name` / `avatar_blob_ref`，`realm_metadata` 只允许 `title` / `summary` / `join_rule`，`e2ee_epoch` 必须为 `null` 或 `{epoch: non-negative integer, key_ref: non-empty string}`。各层对象均为 closed DTO，未知字段必须按 `schema_violation` 拒绝。
+- 三个字段都必须出现；`actor_profiles` 只允许 `display_name` / `avatar_blob_ref`，`realm_metadata` 只允许 `title` / `summary` / `join_rule` / `collaboration_role`。`collaboration_role` 仅在服务端已验证注册 profile 与 Realm genesis discriminator 后输出，v1 唯一值为 `direct_conversation`；客户端不得从 title、category、tag 或成员数重建该字段。`e2ee_epoch` 必须为 `null` 或 `{epoch: non-negative integer, key_ref: non-empty string}`。各层对象均为 closed DTO，未知字段必须按 `schema_violation` 拒绝。
 - 客户端 SHOULD 在渲染 window 内事件时优先用 `state_at_window_start` 而非"当前查询 basis"。
 - 服务端可以沿 Seal DAG 回溯控制面 basis，并按 DataEvent 因果闭包或观察性 `data_event_set_root` 定位 window 起点，再按各 Lattice 的 deterministic join 取 cell value 派生该状态；不可用时退路径 (b)。HLC 只能作为定位候选历史 view 的非权威索引 hint，MUST NOT 作为 cell value 选择键或状态判断依据。
 - **单一 canonical 定位规则（normative）**：上一条提到 window 起点可由 DataEvent 因果闭包或观察性 `data_event_set_root` 定位，但这两条路径对同一 limited timeline 的 window 起点**可能定位到不同的 cell view**（渲染层 display name / `realm_metadata` / `e2ee_epoch` 错位），"是否分歧"本身没有确定判据。为消除双路径歧义，凡实现选择给出 `state_at_window_start` 确定值，**MUST**（不再是 SHOULD）使用唯一 canonical 定位规则：**以该 limited timeline 首事件的 `prev_refs` 因果闭包在最近 Seal basis 下的 deterministic join 取 cell value**。该规则是确定性算法，对同一输入跨实现产出同一渲染投影，因此不存在"两条路径产出不同 cell view"的合法分歧。由于本字段是 projection-only、不入协议状态，实现仍 MUST NOT 把它当作权威 cell value 对外承诺；当实现无法按上述 canonical 规则计算出确定值（例如缺 Seal basis 或缺首事件因果闭包）时，MUST 回退到路径 (b)（`preview_only=true`），不得输出非 canonical 定位规则得出的 `state_at_window_start`。

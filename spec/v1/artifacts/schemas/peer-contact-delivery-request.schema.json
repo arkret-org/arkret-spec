@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/peer-contact-delivery-request.schema.json",
-  "title": "Arkret Peer Contact Delivery Request",
-  "description": "Private service-to-service request used by an issuer-side Principal Server to deliver a signed contact fact (ak.contact.requested / ak.contact.accepted / ak.contact.rejected / ak.contact.tombstoned) to the target holder's Principal Server. The recipient projects the original signed envelope into the target holder's contact projection (pending_incoming / accepted / rejected / tombstoned); it MUST NOT re-sign the fact as its own. Contact facts are principal-scoped and cross-Realm, so this carrier is the federation delivery path for the contact fact log, separate from invite delivery.",
+  "title": "Arkret Peer Contact and Direct Conversation Fact Delivery Request",
+  "description": "Private service-to-service request used by an issuer-side Principal Server to deliver an original signed contact fact or ak.direct_conversation.bound fact to the other participant's Principal Server. The recipient verifies and projects the original signed envelope without re-signing it. These facts are principal-scoped and cross-Realm, so this carrier is distinct from shared Realm Event federation and invite delivery.",
   "type": "object",
   "required": [
     "schema",
@@ -17,7 +17,7 @@
     },
     "contact_event": {
       "$ref": "./event-envelope.schema.json",
-      "description": "The issuer-signed contact fact EventEnvelope being delivered with its original signature, so the recipient can verify and project it without re-signing."
+      "description": "The issuer-signed contact or direct-conversation binding EventEnvelope being delivered with its original signature, so the recipient can verify and project it without re-signing."
     },
     "contact_address": {
       "$ref": "#/$defs/contact_address"
@@ -28,9 +28,10 @@
         "ak.contact.requested",
         "ak.contact.accepted",
         "ak.contact.rejected",
-        "ak.contact.tombstoned"
+        "ak.contact.tombstoned",
+        "ak.direct_conversation.bound"
       ],
-      "description": "The contact fact kind carried by contact_event. MUST equal contact_event.kind."
+      "description": "The principal-scoped fact kind carried by contact_event. MUST equal contact_event.kind."
     },
     "introduction_evidence": {
       "$ref": "#/$defs/contact_introduction_evidence",

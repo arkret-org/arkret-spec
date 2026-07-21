@@ -68,12 +68,18 @@
     },
     "fields": {
       "type": "object",
-      "description": "Product/profile fields. Security-relevant discriminators such as purpose=principal_control are schema constrained below; other product fields remain extension-defined.",
+      "description": "Product/profile fields. Security-relevant discriminators such as purpose=principal_control and collaboration_role=direct_conversation are schema constrained below; other product fields remain extension-defined.",
       "properties": {
         "purpose": {
           "type": "string",
           "enum": [
             "principal_control"
+          ]
+        },
+        "collaboration_role": {
+          "type": "string",
+          "enum": [
+            "direct_conversation"
           ]
         }
       },
@@ -655,6 +661,10 @@
         ]
       },
       "then": {
+        "required": [
+          "content_encryption_floor",
+          "metadata_encryption_floor"
+        ],
         "properties": {
           "federation_policy": {
             "enum": [
@@ -835,6 +845,115 @@
             ]
           }
         }
+      }
+    },
+    {
+      "$comment": "Direct Conversation Realms are ordinary Collaboration Realms with a closed machine role. The discriminator and profile must appear together; create-locked Realm security fields are pinned here while the exact-two membership, participant identity, no-Space and main-Strand rules are reducer/profile invariants.",
+      "if": {
+        "properties": {
+          "fields": {
+            "properties": {
+              "collaboration_role": {
+                "const": "direct_conversation"
+              }
+            },
+            "required": [
+              "collaboration_role"
+            ]
+          }
+        },
+        "required": [
+          "fields"
+        ]
+      },
+      "then": {
+        "required": [
+          "content_encryption_floor",
+          "metadata_encryption_floor"
+        ],
+        "properties": {
+          "schema_refs": {
+            "contains": {
+              "const": "ak.profile.direct_conversation_realm.v1"
+            }
+          },
+          "encryption_profile": {
+            "const": "mls_rfc9420"
+          },
+          "default_join_rule": {
+            "const": "closed"
+          },
+          "content_encryption_floor": {
+            "const": "e2ee_required"
+          },
+          "metadata_encryption_floor": {
+            "const": "e2ee_required"
+          }
+        }
+      }
+    },
+    {
+      "$comment": "The inverse Direct Conversation guard prevents a profile-tagged ordinary Realm from omitting its collaboration role discriminator.",
+      "if": {
+        "properties": {
+          "schema_refs": {
+            "contains": {
+              "const": "ak.profile.direct_conversation_realm.v1"
+            }
+          }
+        },
+        "required": [
+          "schema_refs"
+        ]
+      },
+      "then": {
+        "required": [
+          "encryption_profile",
+          "default_join_rule",
+          "fields",
+          "content_encryption_floor",
+          "metadata_encryption_floor"
+        ],
+        "properties": {
+          "encryption_profile": {
+            "const": "mls_rfc9420"
+          },
+          "default_join_rule": {
+            "const": "closed"
+          },
+          "content_encryption_floor": {
+            "const": "e2ee_required"
+          },
+          "metadata_encryption_floor": {
+            "const": "e2ee_required"
+          },
+          "fields": {
+            "properties": {
+              "collaboration_role": {
+                "const": "direct_conversation"
+              }
+            },
+            "required": [
+              "collaboration_role"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "$comment": "Principal Control and Direct Conversation are mutually exclusive Realm roles.",
+      "not": {
+        "properties": {
+          "fields": {
+            "required": [
+              "purpose",
+              "collaboration_role"
+            ]
+          }
+        },
+        "required": [
+          "fields"
+        ]
       }
     },
     {

@@ -3234,6 +3234,48 @@
       "description": "The resolved member delivery binding source, recipient_service_id, endorsement set, unroutable-membership status, or selected source priority conflicts with the Realm delivery_binding_policy allowlist / priority rules. Reducers MUST NOT fall through to a lower-priority binding source after this mismatch. See zh/governance/member-delivery-binding.md \u00a72 and \u00a73.1."
     },
     {
+      "code": "direct_conversation_invite_forbidden",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An invite operation targeted a Realm carrying ak.profile.direct_conversation_realm.v1. Direct Conversation membership is established only by the resolver's verified two-participant bootstrap; all invite flows fail closed."
+    },
+    {
+      "code": "direct_conversation_space_forbidden",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A Space create/update/parent/archive/restore/tombstone operation targeted a Realm carrying ak.profile.direct_conversation_realm.v1. Space containers are not permitted in this constrained Realm role."
+    },
+    {
+      "code": "direct_conversation_member_count_invalid",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "state_resolution"
+      ],
+      "description": "A Direct Conversation binding or membership projection does not resolve to exactly two distinct active principal participants. The Realm cannot be returned as an active canonical DM and policy evaluation fails closed."
+    },
+    {
+      "code": "direct_conversation_binding_invalid",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "state_resolution"
+      ],
+      "description": "An authored Direct Conversation binding fact has an invalid issuer, pair key, referenced contact facts, Realm role, membership set, main Strand, retirement target, or other canonical verification input."
+    },
+    {
+      "code": "direct_conversation_third_party_member_forbidden",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An invite or join attempted to add a principal that is not one of the two stable subject DIDs in the active canonical Direct Conversation binding. Group-chat expansion requires a new ordinary Collaboration Realm."
+    },
+    {
       "code": "principal_control_event_kind_forbidden",
       "applies_to": [
         "event_envelope",

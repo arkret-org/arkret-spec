@@ -168,11 +168,17 @@ Resolver MUST：
 
 Resolver create 是多步编排，不是单个 reducer 原子操作。若 Realm / membership / Strand 已创建但 binding fact 未写成，该 Realm 只能作为 orphan / non-canonical 候选存在；重试 MAY 在验证其 participants、membership、main Strand、contact refs 与请求 pair 完全匹配后补写 binding，否则必须创建新的候选并让 deterministic canonical selection 收敛。没有 binding 的 orphan Realm 不得作为默认聊天入口返回。
 
-Direct conversation binding 是 pair 到 `(realm_id, main_strand_id)` 的 principal-scoped signed fact / projection，不是 server 私有表。`ak.direct_conversation.bound` 的 issuer MUST 是参与 pair 的一方，字段至少包含 `participants_unordered[]`, `realm_id`, `main_strand_id`, `contact_refs[]`, `member_event_refs[]`, `main_strand_create_ref` 与 `created_at`。
+当 resolver 负责分配 Realm/Strand/MLS 资源但调用方设备持有 participant signing key 时，响应 MAY 携带 `binding_event` unsigned Event draft；此时 state MUST 为 **authoring_required**，且 `created` MUST 为 `false`。客户端 MUST 使用当前参与者设备签名并经 `ak.self.events.command.submit` 提交；只有随后 resolver 返回 `found`，客户端才可把 `(realm_id, main_strand_id)` 当作 active 默认入口。Principal Server 在 canonical acceptance 前 MUST 只把该候选保存为 pending materialized state，不得把它投影为 active，也不得用服务签名或占位 proof 伪造 participant issuer。
 
-Binding facts 与 contact facts 一样需要在双方之间交换 / 镜像并以原签名 envelope 参与 projection；否则 Alice 与 Bob 可能各自只看到自己的 binding fact，无法用同一 tie-break 算出相同 canonical Realm。Binding 只有在引用的 DM Realm、双方 active membership、DM main Strand 与 accepted contact refs 都可验证时才可成为 canonical。
+Direct conversation binding 是 pair 到 `(realm_id, main_strand_id)` 的 principal-scoped signed fact / projection，不是 server 私有表。`ak.direct_conversation.bound` 的 issuer MUST 是参与 pair 的一方，字段至少包含 `pair_key`, `binding_state`, `participants_unordered[]`, `realm_id`, `main_strand_id`, `contact_refs[]`, `member_event_refs[]`, `main_strand_create_ref` 与 `created_at`。线上可签发的 `binding_state` 只有 `active|retired`；`duplicate|non_canonical` 是 reducer 对有效候选的派生投影状态，不得作为 authored payload 伪造。`retired` fact MUST 通过 `supersedes_binding_ref` 引用被退役的 active binding Event。
+
+Binding facts 与 contact facts 一样需要在双方之间交换 / 镜像并以原签名 envelope 参与 projection；跨 Principal Server 时使用 `ak.peer.contacts.command.submit` / `POST /_arkret/peer/contacts` 投递 `fact_kind="ak.direct_conversation.bound"`，接收方 MUST 验证并保留原 Event proof，不得重签。否则 Alice 与 Bob 可能各自只看到自己的 binding fact，无法用同一 tie-break 算出相同 canonical Realm。Binding 只有在引用的 DM Realm、双方 active membership、DM main Strand 与 accepted contact refs 都可验证时才可成为 canonical。
 
 并发创建同一 pair 时，实现 MUST 按 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的统一 canonical 全序选择 canonical binding：先删除不可验证的候选，再删除因果上被同一 pair 的后继 binding 明确取代的候选；剩余候选若互不可达，取承载 binding fact 的 Event `event_digest` 按 unsigned-byte lexicographic order 最大者。不得使用 `event_id`、接收时间、墙钟或本地数据库顺序作 tie-break。loser 标为 duplicate / non-canonical；`ak.self.direct_conversation.command.resolve` 不得随机返回两个不同 Realm。
+
+v1 resolver 只在两个 participant 的已验证 Principal Server locator 属于同一个 `trust_domain` 时创建 DM。两人可以由不同 Principal Server 托管，但这些服务器必须处于同一 federation trust domain；不同 trust domain 的 pair MUST 统一返回 `failed_precondition` / `direct_conversation_unavailable`，不得创建两个不可收敛的 `pair_key`。跨 trust-domain DM 若将来启用，必须另行注册 profile、host selection 与 consent handoff 规则。
+
+同 trust domain、跨 Principal Server 的候选 Realm 可以由任一 participant 的 resolver 所在服务器托管。Realm create/member/main-Strand/MLS/binding 原签名 Event 通过 `ak.peer.events.command.submit` 与上述 principal-fact delivery 面传播；双方服务器 MUST 投影同一个 Realm id、main Strand id、participant set 与 binding winner。并发各建一个候选时，因为 pair key 的 trust domain 相同，双方对同一候选集合执行相同 event-digest tie-break。loser Realm 只能作为 non-canonical orphan/history 存在。后续写入按 winner Realm 的可验证 member delivery binding 路由到其 home service，不得在对端创建影子本地账号。
 
 ## 7. DM Realm Well-Known 形态
 
@@ -181,9 +187,12 @@ Binding facts 与 contact facts 一样需要在双方之间交换 / 镜像并以
 DM Realm MUST：
 
 - 使用 `encryption_profile="mls_rfc9420"`。不得把 `mls_dm` 注册为 Realm `encryption_profile` 新枚举。
-- 声明已注册的 direct conversation profile，并在 Realm `fields` 中使用已注册的 direct-conversation discriminator。不得使用 `fields.purpose="direct_message"`，因为 `fields.purpose` 已被 Principal Control Realm 语义占用。
+- `content_encryption_floor="e2ee_required"` 且 `metadata_encryption_floor="e2ee_required"`；Direct Conversation 不存在 plaintext metadata/content 降级路径。
+- `schema_refs` MUST 同时包含 `ak.schema.realm.v1` 与 `ak.profile.direct_conversation_realm.v1`，并设置 `fields.collaboration_role="direct_conversation"`。profile/discriminator 必须双向同时出现；缺任一项均为 `schema_violation`。不得使用 `fields.purpose="direct_message"`，因为 `fields.purpose` 已被 Principal Control Realm 语义占用。
+- 承载 `ak.realm.create` 的 Event MUST 在 `requirements.schema[]` 声明 `ak.profile.direct_conversation_realm.v1`，并在 `requirements.critical_extensions[]` 声明 `{id:"ak.feature.direct_conversation_realm_role.v1", extension_scope:"payload", fail_closed:true, schema_ref:"ak.profile.direct_conversation_realm.v1"}`。不支持该角色的 receiver MUST `unsupported_feature` reject/quarantine，不得降级为普通 Collaboration Realm。
 - active member count 等于 2（wire bound，登记于 [`../conformance/scalability-constraints.md` §6.1](../conformance/scalability-constraints.md)）。不得向 active DM Realm 加第三人；升级多人聊天必须创建新的普通 Realm / Strand，再用 Relation 或 Message 引用旧 DM 内容。
 - `default_join_rule` 为 `closed` 或等价 fail-closed policy；第三方 invite / member_add MUST 被拒绝。
+- 所有 `ak.space.*` Event MUST 以 `direct_conversation_space_forbidden` 拒绝。DM Realm 保持扁平对话边界；它仍 MAY 包含额外普通 Strand。
 - 对同一 unordered participant pair 至多保留一个 active canonical DM Realm。
 
 Pair key canonical encoding 是 direct conversation 的关键 normative 依赖，唯一算法如下：
@@ -209,6 +218,8 @@ Resolver MUST NOT 为了"继续同一个私聊"把退出方重新加入旧 DM Re
 
 旧 DM Realm MAY 继续作为历史归档存在，其可读性按离开时的 Realm history visibility、retention、redaction 与本地备份策略决定。它不得接收新的默认聊天消息。
 
+以下结构终态与 member leave/ban 等价，MUST 退役 active binding：Realm tombstone/destroy、canonical main Strand archive/tombstone。Contact tombstone 或 `direct_message` consent revoke 只阻止 resolver 成功与新的默认消息发送；它们不改写已接受 Event 历史，也不单独退役结构仍完整的 binding。若 contact/consent 后续重新满足且双方 membership/Realm/main Strand 均仍 active，resolver MAY 返回原 canonical binding；一旦发生上述结构退役条件，则永远不得复用旧 Realm。
+
 ## 8. DM 主 Strand Well-Known 形态
 
 消息必须挂在 Strand 的 `discussion` track 上，所以 direct conversation binding 必须同时绑定 `main_strand_id`。
@@ -222,3 +233,5 @@ DM 主 Strand MUST：
 - 通过 direct conversation binding 标识为该 Realm 的 main Strand。`discussion.is_primary=true` 只是 Strand 内默认入口，不能单独证明"这是 DM 主 Strand"。
 
 同一 DM Realm 至多一个 active canonical main Strand。DM Realm 内 MAY 有其它普通 Strand，用于把某个话题升级成独立议题；默认聊天消息必须写入 binding 指向的 main Strand。
+
+本节 Realm shape、binding lifecycle 与并发候选折叠分别由 `ak.vector.direct_conversation.realm_shape.v1`、`ak.vector.direct_conversation.binding_lifecycle.v1`、`ak.vector.direct_conversation.canonical_candidate.v1` 固定；pair-key 字节 KAT 继续由 `ak.vector.direct_conversation.pair_key.v1` 固定。

@@ -504,7 +504,12 @@
           "properties": {
             "title": { "type": "string", "maxLength": 256 },
             "summary": { "type": "string", "maxLength": 4096 },
-            "join_rule": { "type": "string", "minLength": 1, "maxLength": 128 }
+            "join_rule": { "type": "string", "minLength": 1, "maxLength": 128 },
+            "collaboration_role": {
+              "type": "string",
+              "enum": ["direct_conversation"],
+              "description": "Projection-only strong Realm role, emitted only after the server validates the registered Realm profile and discriminator."
+            }
           },
           "additionalProperties": false
         },

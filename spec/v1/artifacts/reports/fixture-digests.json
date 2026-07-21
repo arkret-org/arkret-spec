@@ -69,6 +69,10 @@
       "sha256": "e43f708b46f4616e8df3ab19161fe285521aa42c2a937e2300d38c03ec1e14d3"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
+      "sha256": "8b09e09cc59d7f7d3febb4cac9238f8f5d69e98b20bf7f176a68013e7db5e427"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/discovery_profile_fixture.json",
       "sha256": "81db3d246707a91c9128295daf2a1cd20d05b91f6bc27b3257cb948def8337a5"
     },
@@ -94,7 +98,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "34d794db4ab5bf5bcc4b97ae48d957fb9a21dfc00b53f3d7c152e2c1a3dde234"
+      "sha256": "67bc5e7d603d2681444712512205dc8cf543ed7ab58e92ea05ce5bb6aff1f939"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",

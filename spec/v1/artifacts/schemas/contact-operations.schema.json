@@ -452,7 +452,7 @@
           "type": "string",
           "enum": [
             "found",
-            "created",
+            "authoring_required",
             "not_found",
             "retired",
             "non_canonical"
@@ -469,6 +469,22 @@
         },
         "created": {
           "type": "boolean"
+        },
+        "binding_event": {
+          "type": "object",
+          "required": ["event_id", "kind", "realm_id", "actor_id", "actor_seq", "hlc", "payload", "proofs"],
+          "properties": {
+            "event_id": { "$ref": "#/$defs/event_id" },
+            "kind": { "const": "ak.direct_conversation.bound" },
+            "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
+            "actor_id": { "$ref": "./common-ids.schema.json#/$defs/did" },
+            "actor_seq": { "type": "integer", "minimum": 0 },
+            "hlc": { "type": "string", "minLength": 1 },
+            "payload": { "$ref": "./event-payload.schema.json#/$defs/direct_conversation_bound_payload" },
+            "proofs": { "type": "array", "maxItems": 0 }
+          },
+          "additionalProperties": true,
+          "description": "Unsigned ak.direct_conversation.bound Event draft. Its presence requires state=authoring_required. The authenticated participant signs and submits it through ak.self.events.command.submit before using the binding as an active entry."
         }
       },
       "additionalProperties": false

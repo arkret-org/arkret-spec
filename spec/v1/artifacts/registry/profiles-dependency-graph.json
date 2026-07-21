@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-05-26",
+  "version": "2026-07-21",
   "kind": "profiles_dependency_graph",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -30,6 +30,7 @@
     "ak.profile.public_network_identity.v1",
     "ak.profile.org_high_assurance_identity.v1",
     "ak.profile.principal_control_realm.v1",
+    "ak.profile.direct_conversation_realm.v1",
     "ak.profile.blob_node.v1",
     "ak.profile.push_gateway.v1",
     "ak.profile.push_gateway.blind_wakeup.v1",

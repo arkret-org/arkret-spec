@@ -1,0 +1,242 @@
+{
+  "suite": "direct_conversation_realm_conformance",
+  "fixture_kind": "schema_and_semantic",
+  "profile": "ak.profile.direct_conversation_realm.v1",
+  "covers_vectors": [
+    "ak.vector.direct_conversation.realm_shape.v1",
+    "ak.vector.direct_conversation.binding_lifecycle.v1",
+    "ak.vector.direct_conversation.canonical_candidate.v1"
+  ],
+  "version": "2026-07-21",
+  "spec_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#7-dm-realm-well-known-形态",
+  "source_refs": [
+    "spec/v1/zh/identity/contact-and-direct-conversation.md",
+    "spec/v1/artifacts/schemas/realm.schema.json",
+    "spec/v1/artifacts/schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
+    "spec/v1/artifacts/profiles/conformance-profiles.json#profile_requirements"
+  ],
+  "description": "Schema and reducer decision vectors for the Direct Conversation Realm role, authored binding lifecycle, exact-two membership, no-Space policy, deterministic candidate selection and leave/recreate boundary.",
+  "runner": {
+    "kind": "json_schema_and_semantic_cases",
+    "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "schema_assertion_fields": [
+      "schema_ref",
+      "expect_valid",
+      "instance"
+    ],
+    "semantic_assertion_fields": [
+      "semantic_outcome",
+      "expected_reason_code"
+    ]
+  },
+  "schema_validation_cases": [
+    {
+      "name": "direct_conversation_realm_role_valid",
+      "schema_ref": "schemas/realm.schema.json",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "schema": "ak.schema.realm.v1",
+        "title": "Direct conversation",
+        "created_by": "did:webvh:z6mkfixture:alice.example",
+        "trust_domain": "ak:trust_domain:example.test",
+        "schema_refs": [
+          "ak.schema.realm.v1",
+          "ak.profile.direct_conversation_realm.v1"
+        ],
+        "fields": {
+          "collaboration_role": "direct_conversation"
+        },
+        "default_discoverability": "invite_only",
+        "default_join_rule": "closed",
+        "history_visibility": "joined",
+        "encryption_profile": "mls_rfc9420",
+        "content_encryption_floor": "e2ee_required",
+        "metadata_encryption_floor": "e2ee_required",
+        "notary_profile": "single_did",
+        "notary": {
+          "type": "single_did",
+          "did": "did:webvh:z6mkfixture:alice.example",
+          "recovery_members": [
+            "did:webvh:z6mkfixture:alice-recovery.example"
+          ],
+          "controller_organization": "did:webvh:z6mkfixture:alice-org.example",
+          "recovery_controller_organizations": [
+            "did:webvh:z6mkfixture:alice-recovery-org.example"
+          ]
+        },
+        "created_at": "2026-07-21T00:00:00Z"
+      }
+    },
+    {
+      "name": "direct_conversation_profile_without_discriminator_rejected",
+      "schema_ref": "schemas/realm.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$: 'fields' is a required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "id": "ak:realm:0196419b-0000-7000-8000-000000000102",
+        "schema": "ak.schema.realm.v1",
+        "title": "Direct conversation",
+        "created_by": "did:webvh:z6mkfixture:alice.example",
+        "trust_domain": "ak:trust_domain:example.test",
+        "schema_refs": [
+          "ak.schema.realm.v1",
+          "ak.profile.direct_conversation_realm.v1"
+        ],
+        "default_discoverability": "invite_only",
+        "default_join_rule": "closed",
+        "history_visibility": "joined",
+        "encryption_profile": "mls_rfc9420",
+        "content_encryption_floor": "e2ee_required",
+        "metadata_encryption_floor": "e2ee_required",
+        "notary_profile": "single_did",
+        "notary": {
+          "type": "single_did",
+          "did": "did:webvh:z6mkfixture:alice.example",
+          "recovery_members": [
+            "did:webvh:z6mkfixture:alice-recovery.example"
+          ],
+          "controller_organization": "did:webvh:z6mkfixture:alice-org.example",
+          "recovery_controller_organizations": [
+            "did:webvh:z6mkfixture:alice-recovery-org.example"
+          ]
+        },
+        "created_at": "2026-07-21T00:00:00Z"
+      }
+    },
+    {
+      "name": "direct_conversation_discriminator_without_profile_rejected",
+      "schema_ref": "schemas/realm.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.schema_refs: ['ak.schema.realm.v1'] does not contain items matching the given schema",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "id": "ak:realm:0196419b-0000-7000-8000-000000000103",
+        "schema": "ak.schema.realm.v1",
+        "title": "Direct conversation",
+        "created_by": "did:webvh:z6mkfixture:alice.example",
+        "trust_domain": "ak:trust_domain:example.test",
+        "schema_refs": [
+          "ak.schema.realm.v1"
+        ],
+        "fields": {
+          "collaboration_role": "direct_conversation"
+        },
+        "default_discoverability": "invite_only",
+        "default_join_rule": "closed",
+        "history_visibility": "joined",
+        "encryption_profile": "mls_rfc9420",
+        "content_encryption_floor": "e2ee_required",
+        "metadata_encryption_floor": "e2ee_required",
+        "notary_profile": "single_did",
+        "notary": {
+          "type": "single_did",
+          "did": "did:webvh:z6mkfixture:alice.example",
+          "recovery_members": [
+            "did:webvh:z6mkfixture:alice-recovery.example"
+          ],
+          "controller_organization": "did:webvh:z6mkfixture:alice-org.example",
+          "recovery_controller_organizations": [
+            "did:webvh:z6mkfixture:alice-recovery-org.example"
+          ]
+        },
+        "created_at": "2026-07-21T00:00:00Z"
+      }
+    },
+    {
+      "name": "active_binding_fact_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
+        "binding_state": "active",
+        "participants_unordered": [
+          "did:webvh:z6mkfixture:alice.example",
+          "did:webvh:z6mkfixture:bob.example"
+        ],
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "contact_refs": [
+          "ak:event:0196419b-0000-7000-8000-000000000301"
+        ],
+        "member_event_refs": [
+          "ak:event:0196419b-0000-7000-8000-000000000302",
+          "ak:event:0196419b-0000-7000-8000-000000000303"
+        ],
+        "main_strand_create_ref": "ak:event:0196419b-0000-7000-8000-000000000304",
+        "created_at": "2026-07-21T00:00:00Z"
+      }
+    },
+    {
+      "name": "retired_binding_requires_superseded_active_ref",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
+      "expect_valid": false,
+      "first_expected_error": "$: 'supersedes_binding_ref' is a required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "pair_key": "sha256:a97a411daac39d8fe9c29755109c5785e86b83e9f966c65363bafcf02654790b",
+        "binding_state": "retired",
+        "participants_unordered": [
+          "did:webvh:z6mkfixture:alice.example",
+          "did:webvh:z6mkfixture:bob.example"
+        ],
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "contact_refs": [
+          "ak:event:0196419b-0000-7000-8000-000000000301"
+        ],
+        "member_event_refs": [
+          "ak:event:0196419b-0000-7000-8000-000000000302",
+          "ak:event:0196419b-0000-7000-8000-000000000303"
+        ],
+        "main_strand_create_ref": "ak:event:0196419b-0000-7000-8000-000000000304",
+        "created_at": "2026-07-21T01:00:00Z"
+      }
+    }
+  ],
+  "semantic_cases": [
+    {
+      "name": "third_member_join_rejected",
+      "precondition": "active canonical binding participants are Alice and Bob",
+      "action": "ak.member.state join for Carol",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "direct_conversation_third_party_member_forbidden"
+    },
+    {
+      "name": "space_create_rejected",
+      "precondition": "Realm role is direct_conversation",
+      "action": "ak.space.create",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "direct_conversation_space_forbidden"
+    },
+    {
+      "name": "leave_retires_and_recreate_changes_boundary",
+      "precondition": "active canonical binding exists",
+      "action": "participant leaves, then resolver create=true",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "old binding is retired",
+        "new realm_id differs",
+        "new main_strand_id differs",
+        "new MLS group differs"
+      ]
+    },
+    {
+      "name": "concurrent_candidates_choose_digest_max",
+      "precondition": "two valid causally-unreachable active candidates exist for the same pair_key",
+      "action": "fold candidates",
+      "semantic_outcome": "accept",
+      "assertions": [
+        "unsigned-byte lexicographically greatest event_digest is canonical",
+        "loser projects as duplicate",
+        "receive time and event_id do not affect the result"
+      ]
+    }
+  ]
+}

@@ -5501,6 +5501,7 @@
       "description": "Principal-scoped signed binding from an unordered participant pair to the canonical DM Realm and main Strand. Issuer MUST be one of the participants; the original signed envelope may be mirrored by the other participant.",
       "required": [
         "pair_key",
+        "binding_state",
         "participants_unordered",
         "realm_id",
         "main_strand_id",
@@ -5547,17 +5548,34 @@
           "type": "string",
           "enum": [
             "active",
-            "retired",
-            "duplicate",
-            "non_canonical"
+            "retired"
           ],
-          "default": "active"
+          "description": "Authored fact state. duplicate and non_canonical are derived projection states selected by the canonical candidate reducer and are never authored on wire."
         },
         "supersedes_binding_ref": {
           "$ref": "#/$defs/event_ref"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "binding_state": {
+                "const": "retired"
+              }
+            },
+            "required": [
+              "binding_state"
+            ]
+          },
+          "then": {
+            "required": [
+              "supersedes_binding_ref"
+            ]
+          }
+        }
+      ]
     },
     "session_grant_payload": {
       "type": "object",

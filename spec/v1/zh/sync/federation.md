@@ -180,7 +180,7 @@ Fail-closed 条件：
 
 ### 4.0.2 Principal-private peer 投递面（invite / contact）不是共享 Event 接收轨（normative）
 
-`/_arkret/peer/invites`（`ak.peer.invites.command.submit`）与 `/_arkret/peer/contacts`（`ak.peer.contacts.command.submit`）是 Principal-private 事实投递面：它们只承载目标 holder 的 invite / contact command submit envelope，用于把邀请、联系人请求 / 响应 / tombstone 等 principal-scoped fact 投递到对端 Principal Server。它们 **MUST NOT** 接受任意 Realm durable Event，**MUST NOT** 推进共享 Realm reducer、Seal、CBA frontier 或 state root，也 **MUST NOT** 被实现当作 `/_arkret/peer/events` 的并行替代 fanout 通道。
+`/_arkret/peer/invites`（`ak.peer.invites.command.submit`）与 `/_arkret/peer/contacts`（`ak.peer.contacts.command.submit`）是 Principal-private 事实投递面：前者承载目标 holder 的 invite command submit envelope；后者承载联系人请求 / 响应 / tombstone 与 `ak.direct_conversation.bound` 原签名 envelope，用于把 principal-scoped fact 投递到对端 Principal Server。它们 **MUST NOT** 接受共享 Realm durable Event，**MUST NOT** 推进共享 Realm reducer、Seal、CBA frontier 或 state root，也 **MUST NOT** 被实现当作 `/_arkret/peer/events` 的并行替代 fanout 通道。Direct Conversation 的 Realm/member/Strand/MLS Event 仍只能走 `/_arkret/peer/events`；`/_arkret/peer/contacts` 只镜像 binding fact。
 
 这两个 endpoint 仍属于 `/_arkret/peer/*` 联邦协议面，因而 MUST 复用 §3 的 service-to-service HTTP Message Signature、trust-domain、destination binding、body digest、最小披露错误和 replay 防护。接收方只把其 payload 投影进目标 holder 的 principal control / account-private 处理路径，并按 [`identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 与 [`identity/consent-model.md`](../identity/consent-model.md) 的 consent / contact gate 处理；任何尝试在这两个 endpoint 中夹带共享 Realm Event Envelope 的请求 MUST fail closed（`schema_violation` 或 `capability_denied`，对外仍遵守最小披露）。
 

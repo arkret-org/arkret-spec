@@ -91,6 +91,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `ak.peer.events.query.scan` | federation peer 按 Realm / actor / cursor 拉取或回填 Event。 |
 | `ak.peer.events.query.scan_body` | `ak.peer.events.query.scan` 的 HTTP POST/body binding variant。 |
 | `ak.peer.events.query.frontier` | federation peer 查询 Realm frontier 以检测 fork / stale peer。 |
+| `ak.peer.contacts.command.submit` | federation peer 投递原签名 `ak.contact.*` 或 `ak.direct_conversation.bound` principal-scoped fact；不得承载共享 Realm Event。 |
 | `ak.peer.snapshot.query.manifest_head` | federation peer 获取 snapshot-assisted bootstrap 的 manifest head。 |
 | `ak.self.account.query.viewer` | 当前 holder 的账号主体自读；响应使用 signed handle claim / ref / digest。 |
 | `ak.self.account.command.update_profile` | 当前账号 profile 更新；`bio` 映射到 `profile_fields.bio`。 |

@@ -3628,6 +3628,45 @@
       ]
     },
     {
+      "vector_id": "ak.vector.direct_conversation.realm_shape.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-fixture.json"
+      ],
+      "description": "Direct Conversation Realm profile/discriminator bidirectional schema guard, MLS and closed-join shape, exact-two membership, no-Space policy and main-Strand invariants.",
+      "source_refs": [
+        "spec/v1/zh/identity/contact-and-direct-conversation.md",
+        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.binding_lifecycle.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-fixture.json"
+      ],
+      "description": "Authored active/retired binding facts and the participant-leave, Realm-terminal and main-Strand-terminal retirement boundary that forces fresh Realm, Strand and MLS identifiers.",
+      "source_refs": [
+        "spec/v1/zh/identity/contact-and-direct-conversation.md",
+        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.canonical_candidate.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-fixture.json"
+      ],
+      "description": "Valid candidate filtering, causal supersession and unsigned-byte event_digest maximum selection for concurrent Direct Conversation bindings.",
+      "source_refs": [
+        "spec/v1/zh/identity/contact-and-direct-conversation.md",
+        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.actor_chain.realm_scope.v1",
       "status": "active",
       "domain": "actor_chain",

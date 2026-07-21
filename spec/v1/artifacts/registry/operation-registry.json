@@ -1590,7 +1590,7 @@
       "http": "POST /_arkret/peer/contacts",
       "grpc": "PeerContacts/Submit",
       "mq": "peer.contacts.command.submit",
-      "notes": "Private Principal Server to Principal Server contact fact delivery. Requires service-to-service authentication, Destination-Service-ID equal to contact_address.recipient_service_id, and a signed ak.contact.* envelope the recipient projects into the target holder's contact projection without re-signing.",
+      "notes": "Private Principal Server to Principal Server contact and Direct Conversation binding fact delivery. Requires service-to-service authentication, Destination-Service-ID equal to contact_address.recipient_service_id, and an original signed ak.contact.* or ak.direct_conversation.bound envelope that the recipient projects without re-signing.",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,

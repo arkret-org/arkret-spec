@@ -443,6 +443,7 @@
     "ak.profile.public_network_identity.v1",
     "ak.profile.org_high_assurance_identity.v1",
     "ak.profile.principal_control_realm.v1",
+    "ak.profile.direct_conversation_realm.v1",
     "ak.profile.key_transparency.v1"
   ],
   "deployment_profiles": [
@@ -546,6 +547,7 @@
     "ak.profile.sovereign_deployment.v1": "admin",
     "ak.profile.sovereign_enclave.v1": "admin",
     "ak.profile.principal_control_realm.v1": "admin",
+    "ak.profile.direct_conversation_realm.v1": "admin",
     "ak.profile.constraint.approval_workflow.v1": "admin",
     "ak.profile.constraint.claim_based.v1": "admin",
     "ak.profile.constraint.encryption_requirement.v1": "admin",
@@ -1078,6 +1080,80 @@
     }
   },
   "profile_requirements": {
+    "ak.profile.direct_conversation_realm.v1": {
+      "role": "admin",
+      "description": "Fail-closed Realm role profile for the canonical two-principal Direct Conversation Collaboration Realm. The role is identified only by schema_refs containing this profile together with fields.collaboration_role=direct_conversation.",
+      "required_endpoints": [
+        "ak.self.direct_conversation.command.resolve",
+        "ak.self.events.command.submit",
+        "ak.peer.contacts.command.submit",
+        "ak.peer.events.command.submit",
+        "ak.peer.events.query.scan",
+        "ak.peer.events.query.resolve"
+      ],
+      "required_event_kinds": [
+        "ak.realm.create",
+        "ak.member.state",
+        "ak.strand.create",
+        "ak.message.create",
+        "ak.direct_conversation.bound",
+        "ak.mls.genesis",
+        "ak.mls.welcome",
+        "ak.mls.commit"
+      ],
+      "rejected_event_kinds": [
+        "ak.space.create",
+        "ak.space.update",
+        "ak.space.parent",
+        "ak.space.archive",
+        "ak.space.restore",
+        "ak.space.tombstone",
+        "ak.invite.create",
+        "ak.invite.cancel",
+        "ak.invite.accept",
+        "ak.invite.third_party",
+        "ak.invite.claim",
+        "ak.invite.revoke"
+      ],
+      "required_schemas": [
+        "ak.schema.realm.v1",
+        "ak.schema.strand.v1",
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1"
+      ],
+      "required_fixtures": [
+        "schema-validation-fixture.json",
+        "encoding-fixture.json",
+        "direct-conversation-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "direct_conversation_realm_role",
+          "direct_conversation_binding_reducer",
+          "direct_conversation_membership_retirement"
+        ],
+        "unsupported_optional": "not applicable: a receiver that cannot enforce this role MUST reject or quarantine the Realm create as unsupported_feature and MUST NOT treat it as an ordinary Collaboration Realm"
+      },
+      "realm_defaults": {
+        "default_discoverability": "invite_only",
+        "default_join_rule": "closed",
+        "history_visibility": "joined",
+        "encryption_profile": "mls_rfc9420",
+        "content_encryption_floor": "e2ee_required",
+        "metadata_encryption_floor": "e2ee_required"
+      },
+      "binding_invariants": [
+        "schema_refs MUST contain ak.profile.direct_conversation_realm.v1 and fields.collaboration_role MUST equal direct_conversation; either marker without the other is schema_violation.",
+        "content_encryption_floor and metadata_encryption_floor MUST both equal e2ee_required.",
+        "The ak.realm.create Event requirements.schema MUST contain ak.profile.direct_conversation_realm.v1 and requirements.critical_extensions MUST contain fail_closed=true id ak.feature.direct_conversation_realm_role.v1 for payload scope.",
+        "Exactly the two stable subject DIDs in the canonical active binding may be active Realm principal members; any third-party join or invite MUST be rejected.",
+        "Space events are forbidden in a Direct Conversation Realm with direct_conversation_space_forbidden; additional ordinary Strands remain allowed.",
+        "The canonical main Strand MUST be active, belong to the Realm, have no Circle scope, and expose an active primary discussion track.",
+        "A participant leave or ban, Realm tombstone or destroy, or main Strand archive or tombstone retires the active binding and requires a fresh Realm, main Strand and MLS group for the next create=true resolution.",
+        "Contact tombstone and direct_message consent revoke block new resolver success and default message send but do not by themselves rewrite Realm history or retire an otherwise structurally active binding."
+      ]
+    },
     "ak.profile.principal_control_realm.v1": {
       "role": "admin",
       "description": "Realm profile for a principal-scoped durable control stream (the Principal Control Realm role; see zh/models/realm-and-space.md §2.7). It is an ordinary Collaboration Realm at the envelope level, but reducers MUST treat fields.purpose=principal_control + this schema_ref as an allowlist-bound control stream, not as a user collaboration space.",

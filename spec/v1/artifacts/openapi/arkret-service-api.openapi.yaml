@@ -4337,16 +4337,16 @@ paths:
         destinationTrustDomain: []
         requestCanonicalDigest: []
         contentDigest: []
-      summary: Private Principal Server contact fact delivery.
+      summary: Private Principal Server contact and Direct Conversation binding fact delivery.
       description: |
-        Delivers a signed ak.contact.* fact (requested / accepted / rejected /
-        tombstoned) from the issuer-side Principal Server to the target holder's
-        Principal Server. The recipient validates the signed contact event, the
+        Delivers a signed ak.contact.* fact or ak.direct_conversation.bound fact
+        from the issuer-side Principal Server to the target holder's Principal
+        Server. The recipient validates the signed fact event, the
         explicit contact_address, the destination service DID, and the holder's
         receive policy, then projects the original signed envelope into the
-        target holder's contact projection (pending_incoming / accepted /
-        rejected / tombstoned) without re-signing it. This is the federation
-        delivery path for the principal-scoped contact fact log
+        target holder's contact or Direct Conversation binding projection
+        without re-signing it. This is the federation delivery path for the
+        principal-scoped contact/binding fact log
         (contact-and-direct-conversation.md §2), distinct from the Realm invite
         delivery on /_arkret/peer/invites.
       requestBody:

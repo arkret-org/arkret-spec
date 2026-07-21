@@ -1839,7 +1839,8 @@
           "realm_id",
           "main_strand_id",
           "binding_event_ref",
-          "created"
+          "created",
+          "binding_event"
         ],
         "closed": true
       }
