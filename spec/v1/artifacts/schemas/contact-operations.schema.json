@@ -438,8 +438,32 @@
         },
         "idempotency_key": {
           "$ref": "#/$defs/non_empty_string"
+        },
+        "peer_claim_request": {
+          "$ref": "./keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body",
+          "description": "Requester-signed peer KeyPackage claim returned from the preceding remote_keypackage_claim authoring step. It is accepted only for create=true and must exactly match the reserved draft."
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "peer_claim_request"
+            ]
+          },
+          "then": {
+            "required": [
+              "create",
+              "idempotency_key"
+            ],
+            "properties": {
+              "create": {
+                "const": true
+              }
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "direct_conversation_resolve_outcome": {
@@ -470,24 +494,165 @@
         "created": {
           "type": "boolean"
         },
-        "binding_event": {
+        "authoring_kind": {
+          "type": "string",
+          "enum": [
+            "remote_keypackage_claim",
+            "direct_conversation_materialization"
+          ]
+        },
+        "claim_authorization_draft": {
+          "$ref": "./keypackage-operations.schema.json#/$defs/peer_key_packages_claim_authorization_draft",
+          "description": "Immutable peer claim request and explicit service/trust-domain transport binding reserved by the source service. The participant signs the canonical authorization transcript and resubmits draft.request plus requester_authorization as peer_claim_request."
+        },
+        "materialization_draft": {
           "type": "object",
-          "required": ["event_id", "kind", "realm_id", "actor_id", "actor_seq", "hlc", "payload", "proofs"],
+          "required": [
+            "materialization_id",
+            "claim_nonce",
+            "mls_group_id",
+            "mls_genesis_event_ref",
+            "mls_commit_event_ref",
+            "mls_welcome_event_ref",
+            "claimed_keypackage",
+            "realm_event",
+            "founding_grant_event",
+            "peer_member_event",
+            "main_strand_event",
+            "binding_event",
+            "expires_at"
+          ],
           "properties": {
-            "event_id": { "$ref": "#/$defs/event_id" },
-            "kind": { "const": "ak.direct_conversation.bound" },
-            "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
-            "actor_id": { "$ref": "./common-ids.schema.json#/$defs/did" },
-            "actor_seq": { "type": "integer", "minimum": 0 },
-            "hlc": { "type": "string", "minLength": 1 },
-            "payload": { "$ref": "./event-payload.schema.json#/$defs/direct_conversation_bound_payload" },
-            "proofs": { "type": "array", "maxItems": 0 }
+            "materialization_id": { "$ref": "#/$defs/non_empty_string" },
+            "claim_nonce": { "$ref": "./keypackage-operations.schema.json#/$defs/base64url" },
+            "mls_group_id": { "$ref": "#/$defs/non_empty_string" },
+            "mls_genesis_event_ref": { "$ref": "#/$defs/event_id" },
+            "mls_commit_event_ref": { "$ref": "#/$defs/event_id" },
+            "mls_welcome_event_ref": { "$ref": "#/$defs/event_id" },
+            "claimed_keypackage": { "$ref": "./keypackage-operations.schema.json#/$defs/keypackage_claim_record" },
+            "claim_receipt": { "$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt" },
+            "realm_event": { "$ref": "#/$defs/unsigned_direct_materialization_event" },
+            "founding_grant_event": { "$ref": "#/$defs/unsigned_direct_materialization_event" },
+            "peer_member_event": { "$ref": "#/$defs/unsigned_direct_materialization_event" },
+            "main_strand_event": { "$ref": "#/$defs/unsigned_direct_materialization_event" },
+            "binding_event": { "$ref": "#/$defs/unsigned_direct_materialization_event" },
+            "expires_at": { "$ref": "#/$defs/timestamp" }
           },
-          "additionalProperties": true,
-          "description": "Unsigned ak.direct_conversation.bound Event draft. Its presence requires state=authoring_required. The authenticated participant signs and submits it through ak.self.events.command.submit before using the binding as an active entry."
+          "additionalProperties": false,
+          "description": "Immutable client-side materialization plan issued only after a KeyPackage claim is final. The participant submits realm_event, founding_grant_event, and peer_member_event as the atomic ordinary-Realm bootstrap unit, authors real MLS genesis/add-commit/Welcome objects from claimed_keypackage, then submits the post-bootstrap Realm Events before binding_event in the participant PCR. No service may synthesize participant Event proofs or MLS ciphertext."
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "authoring_required"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "authoring_kind",
+              "created"
+            ],
+            "properties": {
+              "created": {
+                "const": false
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "authoring_kind"
+                  ]
+                },
+                {
+                  "required": [
+                    "claim_authorization_draft"
+                  ]
+                },
+                {
+                  "required": [
+                    "materialization_draft"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "authoring_kind": {
+                "const": "remote_keypackage_claim"
+              }
+            },
+            "required": [
+              "authoring_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "claim_authorization_draft"
+            ],
+            "not": {
+              "required": ["materialization_draft"]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "authoring_kind": {
+                "const": "direct_conversation_materialization"
+              }
+            },
+            "required": [
+              "authoring_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "materialization_draft"
+            ],
+            "not": {
+              "required": [
+                "claim_authorization_draft"
+              ]
+            }
+          }
+        }
+      ],
       "additionalProperties": false
+    },
+    "unsigned_direct_materialization_event": {
+      "type": "object",
+      "required": ["event_id", "kind", "realm_id", "actor_id", "actor_seq", "hlc", "payload", "proofs"],
+      "properties": {
+        "event_id": { "$ref": "#/$defs/event_id" },
+        "kind": {
+          "enum": [
+            "ak.realm.create",
+            "ak.member.state",
+            "ak.strand.create",
+            "ak.direct_conversation.bound"
+          ]
+        },
+        "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
+        "actor_id": { "$ref": "./common-ids.schema.json#/$defs/did" },
+        "actor_seq": { "type": "integer", "minimum": 0 },
+        "hlc": { "type": "string", "minLength": 1 },
+        "payload": { "type": "object" },
+        "proofs": { "type": "array", "maxItems": 0 }
+      },
+      "additionalProperties": true
     }
   }
 }

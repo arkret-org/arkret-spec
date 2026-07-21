@@ -3134,6 +3134,47 @@ Expected：
 - 超限 claim 对外仍保持反枚举失败，不泄露目标是否存在；内部审计 reason 为 `keypackage_claim_rate_limited`。
 - 过期 claimed package MUST 转为 revoked / unusable，不得回到 `published`，迟到 consume MUST 被拒绝。
 
+### 10.3.1 Vector: Peer KeyPackage Claim Atomic Idempotency
+
+`vector_id`: `ak.vector.keypackage.peer_claim_atomic_idempotency.v1`
+
+Steps：
+
+1. source PS 以 `(Source-Service-ID=S, claim_request_id=R, request_digest=H)` 发起 peer claim；目标 authority 已完成 CAS 与 ledger commit，但成功响应丢失。
+2. source 按协议先调用 claim query `(R,H)`；另模拟网络层重复投递完全相同的原 command。
+3. source 复用 `R` 但改用另一 canonical digest `H2`。
+
+Expected：
+
+- KeyPackage 的 `published → claimed` CAS、ledger 与序列化 outcome MUST 只有一个线性化点，CAS 次数恰为 1。
+- query MUST 返回 `state=claimed` 与同一签名 outcome；同 `(S,R,H)` 的重复 transport delivery 仍必须返回 byte-identical 原 outcome，但 caller 不得以此替代不确定结果查询。
+- `(S,R,H2)` MUST `duplicate_conflict`，不得领取第二个 KeyPackage 或覆盖 ledger。
+
+### 10.3.2 Vector: Peer Claim Double Authorization And Privacy
+
+`vector_id`: `ak.vector.keypackage.peer_claim_double_authorization_privacy.v1`
+
+对有效 Direct Conversation claim 分别施加以下单点变异：移除 / 过期 participant authorization、替换 participant signature 所绑定 destination、让 source 不是 requester home authority、破坏外层 service signature、移除 accepted contact / target consent、扩大 required capability，或令 `allow_last_resort=true`。
+
+Expected：
+
+- 每个变异都 MUST 在 CAS 前失败，目标 KeyPackage 状态不变；participant 与 service 两层授权不可互相替代。
+- 已通过外层 service authentication 的所有 participant / target / policy 业务失败对 peer caller 均为同一 `claim_failed` 外观；响应不得带 `available_count`、逐设备 `failures[]` 或 last-resort record。外层 service signature 变异必须在读取 target 前返回 target-independent `unauthenticated` / `invalid_signature`。
+- Resolver draft 必须显式携带 `{request,transport_binding}`；participant signature 必须绑定 source/destination service 与双方 trust domain，客户端不得从本地配置猜测这些值。
+- Direct Conversation request 必须同时绑定 pair key、Realm、main Strand 与 MLS group，且不得启用 last-resort。
+
+### 10.3.3 Vector: Direct Conversation Loser Claim Revocation
+
+`vector_id`: `ak.vector.keypackage.peer_claim_loser_revocation.v1`
+
+两个 PS 为同一 pair 并发创建候选 A/B，各领取不同 single-use KeyPackage；binding event-digest 全序选择 B 为 canonical winner。
+
+Expected：
+
+- 只有 B 的 Welcome 可激活，且只有 B 的 claim 可 consume。
+- A 的 Welcome MUST quarantine / ignore，不得建立可发送 MLS state。
+- A 的 claim 在 expiry 前保持 `claimed`（或经授权提前 `revoked`），到期 MUST 为 `revoked`；任何时刻都不得释放回 `published`。
+
 ### 10.4 Vector: Soft Logout DID Proof Required
 
 `vector_id`: `ak.vector.auth.soft_logout_did_proof.v1`

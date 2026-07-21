@@ -37,6 +37,14 @@
       "$ref": "#/$defs/contact_introduction_evidence",
       "description": "Required when fact_kind is ak.contact.requested. Explains why the requester may attempt first contact; the recipient applies its subject-private receive policy and deployment constraints before notifying the holder."
     },
+    "signer_key_evidence": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "$ref": "./federated-device-signing-key-evidence.schema.json"
+      },
+      "description": "Transport-only source-service attestation used to verify an original participant device proof without changing contact_event. Covered by the outer HTTP Message Signature."
+    },
     "idempotency_key": {
       "type": "string",
       "minLength": 1,
@@ -80,6 +88,9 @@
     "event_ref": {
       "type": "string",
       "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "device_id": {
+      "$ref": "./common-ids.schema.json#/$defs/device_id"
     },
     "contact_address": {
       "type": "object",

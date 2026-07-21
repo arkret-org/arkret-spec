@@ -1160,6 +1160,7 @@ components:
               - key_replay
               - keypackage_already_consumed
               - keypackage_unknown
+              - claim_failed
               - one_time_keys_exhausted
               - policy_stale
               - policy_unavailable
@@ -1348,6 +1349,12 @@ components:
           minItems: 1
           items:
             $ref: '#/components/schemas/EventSubmitEnvelope'
+        signer_key_evidence:
+          type: array
+          maxItems: 64
+          items:
+            $ref: '#/components/schemas/FederatedDeviceSigningKeyEvidence'
+          description: Source-Principal-Server attestation of active participant device keys needed to verify original Event proofs. Transport-only and covered by the outer HTTP Message Signature.
       additionalProperties: false
     EventsSubmitOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome
@@ -1571,6 +1578,8 @@ components:
       - notifiable
       - documentable
       - renderable
+    FederatedDeviceSigningKeyEvidence:
+      $ref: ../schemas/federated-device-signing-key-evidence.schema.json
     FederationServiceBindingRef:
       type: object
       description: |
@@ -1886,6 +1895,14 @@ components:
     ObjectRef:
       type: string
       pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+    PeerKeyPackagesClaimOutcome:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_outcome
+    PeerKeyPackagesClaimQueryOutcome:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_query_outcome
+    PeerKeyPackagesClaimQueryRequestBody:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_query_request_body
+    PeerKeyPackagesClaimRequestBody:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body
     PolicyCheckOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome
     PolicyCheckRequestBody:
@@ -4362,6 +4379,81 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/peer-contact-delivery-request.schema.json#/$defs/peer_contact_delivery_outcome
+  /_arkret/peer/keys/keypackages/claim:
+    post:
+      operationId: ak.peer.keys.keypackages.command.claim
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        requestCanonicalDigest: []
+        contentDigest: []
+      summary: Atomically claim destination-owned KeyPackages for a federated participant.
+      description: |
+        The destination KeyPackage authority is the sole compare-and-swap
+        authority. It validates both the requesting participant's detached
+        authorization and the outer source-service HTTP Message Signature.
+        Idempotency is scoped by (Source-Service-ID, claim_request_id), with the
+        exact canonical request digest bound into the ledger and both signatures.
+        Direct Conversation claims require pair_key and strand_id and forbid
+        last-resort KeyPackages. Failures are externally collapsed to claim_failed.
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        description: |
+          MUST equal body.claim_request_id and be covered by the HTTP Message
+          Signature. Reuse with a different Request-Canonical-Digest is a
+          duplicate conflict and never performs a second claim.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PeerKeyPackagesClaimRequestBody'
+      responses:
+        '200':
+          description: Signed destination-authority claim outcome without inventory or per-device failure leakage.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeerKeyPackagesClaimOutcome'
+  /_arkret/peer/keys/keypackages/claims/query:
+    post:
+      operationId: ak.peer.keys.keypackages.query.claim
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        requestCanonicalDigest: []
+        contentDigest: []
+      summary: Recover a peer KeyPackage claim outcome after an uncertain response.
+      description: |
+        Read-only lookup in the destination authority's durable claim ledger.
+        The caller MUST be the same Source-Service-ID and provide the exact
+        request_digest recorded for claim_request_id. The response reveals only
+        an opaque state and, when a claim existed, the original signed outcome.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PeerKeyPackagesClaimQueryRequestBody'
+      responses:
+        '200':
+          description: Opaque claim-ledger state and recoverable original outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeerKeyPackagesClaimQueryOutcome'
   /_arkret/self/ephemeral:
     post:
       operationId: ak.self.ephemeral.command.send
@@ -5060,7 +5152,10 @@ paths:
       description: |
         Requires accepted contact projection and active direct_message consent.
         With create=true, creates or repairs the canonical DM Realm, main Strand,
-        and direct conversation binding.
+        and direct conversation binding. Cross-Principal-Server creation exposes
+        two explicit authoring_required stages: the client first signs the
+        reserved peer KeyPackage claim draft, then signs the binding Event draft.
+        Only state=found identifies an active default entry.
       requestBody:
         required: true
         content:

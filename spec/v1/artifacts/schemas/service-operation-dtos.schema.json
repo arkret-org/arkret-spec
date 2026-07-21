@@ -3374,6 +3374,14 @@
           "items": {
             "$ref": "#/$defs/EventSubmitEnvelope"
           }
+        },
+        "signer_key_evidence": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "./federated-device-signing-key-evidence.schema.json"
+          },
+          "description": "Source-Principal-Server attestation of active participant device keys needed to verify original Event proofs. This transport-only evidence is covered by the outer HTTP Message Signature and never changes the Event envelope."
         }
       },
       "additionalProperties": false

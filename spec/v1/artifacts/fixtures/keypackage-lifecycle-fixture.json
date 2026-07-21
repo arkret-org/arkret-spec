@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.mls_governance_binding.full.v1",
-  "version": "2026-06-19",
+  "version": "2026-07-21",
   "suite": "keypackage_lifecycle",
   "runner": {
     "kind": "named_suite",
@@ -11,6 +11,9 @@
     "ak.vector.keypackage.last_resort_claim_and_reuse.v1",
     "ak.vector.keypackage.last_resort_forced_rotation.v1",
     "ak.vector.keypackage.last_resort_affinity_and_optionality.v1",
+    "ak.vector.keypackage.peer_claim_atomic_idempotency.v1",
+    "ak.vector.keypackage.peer_claim_double_authorization_privacy.v1",
+    "ak.vector.keypackage.peer_claim_loser_revocation.v1",
     "ak.vector.mls.welcome_keypackage_hash.v1"
   ],
   "cases": [
@@ -134,6 +137,114 @@
         "servers that do not advertise the feature must not return last_resort=true packages",
         "a missing Realm-local last-resort entry fails closed instead of reusing another Realm's package",
         "high-security and sovereign Realms forbid ak.feature.mls_last_resort_keypackage.v1 and fail closed on last_resort=true claim records"
+      ]
+    },
+    {
+      "name": "peer_claim_atomic_idempotency",
+      "vector_id": "ak.vector.keypackage.peer_claim_atomic_idempotency.v1",
+      "kind": "peer_claim_linearization_and_recovery",
+      "source_service_id": "did:webvh:z6mkfixture:server-alpha.example",
+      "destination_service_id": "did:webvh:z6mkfixture:server-beta.example",
+      "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
+      "idempotency_key": "AAAAAAAAAAAAAAAAAAAAAQ",
+      "request_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "conflicting_request_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "selected_keypackage_ref": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "sequence": [
+        "command_commits_but_response_is_lost",
+        "query_original_claim_request_id_and_digest",
+        "duplicate_transport_delivery_of_the_original_command",
+        "reuse_claim_request_id_with_conflicting_digest"
+      ],
+      "expected": {
+        "published_to_claimed_cas_count": 1,
+        "replay_response": "byte_identical_original_outcome",
+        "query_state": "claimed",
+        "query_claim_ref_matches_original": true,
+        "conflicting_digest_error": "duplicate_conflict",
+        "second_keypackage_claimed": false
+      },
+      "assertions": [
+        "claim ledger uniqueness is scoped by source_service_id and claim_request_id",
+        "claim CAS and the serialized success outcome commit at one linearization boundary",
+        "an uncertain caller queries the original request instead of issuing a fresh claim",
+        "same request id with another canonical digest cannot mutate KeyPackage state"
+      ]
+    },
+    {
+      "name": "peer_claim_double_authorization_privacy",
+      "vector_id": "ak.vector.keypackage.peer_claim_double_authorization_privacy.v1",
+      "kind": "peer_claim_authorization_and_anti_enumeration",
+      "claim_purpose": "direct_conversation",
+      "source_service_id": "did:webvh:z6mkfixture:server-alpha.example",
+      "destination_service_id": "did:webvh:z6mkfixture:server-beta.example",
+      "source_trust_domain": "ak:trust_domain:fixture.example",
+      "destination_trust_domain": "ak:trust_domain:fixture.example",
+      "requester": "did:webvh:z6mkfixture:alice.example",
+      "target_principal_id": "did:webvh:z6mkfixture:bob.example",
+      "pair_key": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "intended_realm_id": "ak:realm:0196419b-0000-7000-8000-000000000010",
+      "strand_id": "ak:strand:0196419b-0000-7000-8000-000000000011",
+      "mls_group_id": "fixture-dm-group-1",
+      "allow_last_resort": false,
+      "negative_mutations": [
+        "missing_requester_authorization",
+        "stale_requester_authorization",
+        "requester_signature_transport_destination_mismatch",
+        "source_service_not_requester_home_authority",
+        "outer_service_signature_invalid",
+        "contact_not_accepted",
+        "target_consent_missing",
+        "required_capability_not_in_keypackage",
+        "allow_last_resort_true"
+      ],
+      "expected": {
+        "authenticated_business_mutations_external_error": "claim_failed",
+        "outer_service_signature_invalid_error": "unauthenticated",
+        "outer_auth_error_target_independent": true,
+        "keypackage_state_unchanged_on_failure": true,
+        "response_forbidden_fields": [
+          "available_count",
+          "failures"
+        ],
+        "last_resort_record_returned": false
+      },
+      "assertions": [
+        "participant authorization and outer service authorization are both mandatory",
+        "the participant signature binds the exact request and service/trust-domain destination",
+        "the destination independently enforces contact, consent, capability and authority gates",
+        "Direct Conversation peer claim never falls back to a last-resort KeyPackage",
+        "business failures do not expose target inventory or per-device reasons"
+      ]
+    },
+    {
+      "name": "peer_claim_loser_revocation",
+      "vector_id": "ak.vector.keypackage.peer_claim_loser_revocation.v1",
+      "kind": "direct_conversation_concurrent_candidate_cleanup",
+      "pair_key": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "candidate_a": {
+        "binding_event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "claim_id": "peer-claim-candidate-a",
+        "keypackage_ref": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+      },
+      "candidate_b": {
+        "binding_event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "claim_id": "peer-claim-candidate-b",
+        "keypackage_ref": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+      },
+      "expected": {
+        "canonical_winner": "candidate_b",
+        "winner_welcome": "activated",
+        "winner_keypackage_state": "consumed",
+        "loser_welcome": "quarantined_or_ignored",
+        "loser_state_before_expiry": "claimed",
+        "loser_state_after_expiry": "revoked",
+        "loser_ever_returns_to_published": false
+      },
+      "assertions": [
+        "only the canonical binding winner may activate Welcome and consume its claim",
+        "a loser Welcome never activates MLS state",
+        "an unconsumed loser claim expires to revoked and is never released to published"
       ]
     },
     {

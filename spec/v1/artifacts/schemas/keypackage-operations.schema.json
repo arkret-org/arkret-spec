@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/keypackage-operations.schema.json",
   "title": "Arkret MLS KeyPackage Operation DTOs",
-  "description": "Closed request and response DTOs for ak.keys.keypackages.{upload,claim,consume,revoke}. Individual OpenAPI components reference the $defs entries in this bundle.",
+  "description": "Closed request and response DTOs for self and peer MLS KeyPackage upload, claim, claim-status query, consume, and revoke operations. Individual OpenAPI components reference the $defs entries in this bundle.",
   "oneOf": [
     {
       "$ref": "#/$defs/key_packages_upload_request_body"
@@ -15,6 +15,18 @@
     },
     {
       "$ref": "#/$defs/key_packages_claim_outcome"
+    },
+    {
+      "$ref": "#/$defs/peer_key_packages_claim_request_body"
+    },
+    {
+      "$ref": "#/$defs/peer_key_packages_claim_outcome"
+    },
+    {
+      "$ref": "#/$defs/peer_key_packages_claim_query_request_body"
+    },
+    {
+      "$ref": "#/$defs/peer_key_packages_claim_query_outcome"
     },
     {
       "$ref": "#/$defs/key_packages_consume_request_body"
@@ -420,6 +432,528 @@
           "minimum": 0
         }
       },
+      "additionalProperties": false
+    },
+    "requester_authorization": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "signed_at",
+        "signature"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "ssk_generation"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "requester_device_id"
+                ]
+              },
+              {
+                "required": [
+                  "device_authorize_event_id"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "requester_device_id",
+            "device_authorize_event_id"
+          ],
+          "not": {
+            "required": [
+              "ssk_generation"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "verification_method": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "requester_device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "ssk_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "device_authorize_event_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "signed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "signature": {
+          "$ref": "#/$defs/signature"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Detached authorization by the requesting participant. The signature transcript, verification-method ownership, freshness, and exact request binding are normative in device-lifecycle.md section 9.2."
+    },
+    "peer_key_packages_claim_unsigned_request": {
+      "type": "object",
+      "required": [
+        "claim_request_id",
+        "target_principal_id",
+        "requester",
+        "intended_realm_id",
+        "mls_group_id",
+        "claim_purpose",
+        "required_capabilities",
+        "claim_nonce",
+        "expires_at"
+      ],
+      "properties": {
+        "claim_request_id": {
+          "$ref": "#/$defs/base64url",
+          "minLength": 22,
+          "maxLength": 128
+        },
+        "target_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "requester": {
+          "$ref": "#/$defs/did"
+        },
+        "intended_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "mls_group_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "claim_purpose": {
+          "type": "string",
+          "enum": [
+            "realm_membership",
+            "direct_conversation"
+          ]
+        },
+        "required_capabilities": {
+          "$ref": "#/$defs/string_list"
+        },
+        "claim_nonce": {
+          "$ref": "#/$defs/base64url",
+          "minLength": 22
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "target_device_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/device_id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "minimal_metadata_allowed": {
+          "type": "boolean"
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
+        },
+        "pair_key": {
+          "$ref": "#/$defs/hash"
+        },
+        "allow_last_resort": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "claim_purpose": {
+                "const": "direct_conversation"
+              }
+            },
+            "required": [
+              "claim_purpose"
+            ]
+          },
+          "then": {
+            "required": [
+              "strand_id",
+              "pair_key"
+            ],
+            "properties": {
+              "allow_last_resort": {
+                "const": false
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false,
+      "description": "Server-prepared immutable peer claim request fields before requester_authorization is attached. claim_request_id carries at least 128 bits of entropy and equals the Idempotency-Key value on the peer command."
+    },
+    "peer_key_packages_claim_transport_binding": {
+      "type": "object",
+      "required": [
+        "source_service_id",
+        "destination_service_id",
+        "source_trust_domain",
+        "destination_trust_domain"
+      ],
+      "properties": {
+        "source_service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "destination_service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "source_trust_domain": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "destination_trust_domain": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        }
+      },
+      "additionalProperties": false
+    },
+    "peer_key_packages_claim_authorization_draft": {
+      "type": "object",
+      "required": [
+        "request",
+        "transport_binding"
+      ],
+      "properties": {
+        "request": {
+          "$ref": "#/$defs/peer_key_packages_claim_unsigned_request"
+        },
+        "transport_binding": {
+          "$ref": "#/$defs/peer_key_packages_claim_transport_binding"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Complete server-reserved object shown to the participant before signing. The signature transcript binds both the immutable request fields and the explicit service/trust-domain transport destination; the client MUST NOT infer transport_binding from local configuration."
+    },
+    "peer_key_packages_claim_request_body": {
+      "type": "object",
+      "required": [
+        "claim_request_id",
+        "target_principal_id",
+        "requester",
+        "intended_realm_id",
+        "mls_group_id",
+        "claim_purpose",
+        "required_capabilities",
+        "claim_nonce",
+        "expires_at",
+        "requester_authorization"
+      ],
+      "properties": {
+        "claim_request_id": {
+          "$ref": "#/$defs/base64url",
+          "minLength": 22,
+          "maxLength": 128
+        },
+        "target_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "requester": {
+          "$ref": "#/$defs/did"
+        },
+        "intended_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "mls_group_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "claim_purpose": {
+          "type": "string",
+          "enum": [
+            "realm_membership",
+            "direct_conversation"
+          ]
+        },
+        "required_capabilities": {
+          "$ref": "#/$defs/string_list"
+        },
+        "claim_nonce": {
+          "$ref": "#/$defs/base64url",
+          "minLength": 22
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "target_device_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/device_id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "minimal_metadata_allowed": {
+          "type": "boolean"
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
+        },
+        "pair_key": {
+          "$ref": "#/$defs/hash"
+        },
+        "allow_last_resort": {
+          "type": "boolean",
+          "default": false
+        },
+        "requester_authorization": {
+          "$ref": "#/$defs/requester_authorization"
+        },
+        "requester_signing_key_evidence": {
+          "$ref": "./federated-device-signing-key-evidence.schema.json",
+          "description": "Transport-only portable authorization evidence appended by the authenticated source Principal Server for the requester_device_id model. It is excluded from the participant authorization transcript. The peer command receiver requires it unless the same accepted device authorization is already present in a locally verified requester projection."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "claim_purpose": {
+                "const": "direct_conversation"
+              }
+            },
+            "required": [
+              "claim_purpose"
+            ]
+          },
+          "then": {
+            "required": [
+              "strand_id",
+              "pair_key"
+            ],
+            "properties": {
+              "allow_last_resort": {
+                "const": false
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "peer_keypackage_claim_receipt": {
+      "type": "object",
+      "required": [
+        "claim_request_id",
+        "request_digest",
+        "claims_digest",
+        "source_service_id",
+        "destination_service_id",
+        "request",
+        "claimed_at",
+        "expires_at",
+        "signature"
+      ],
+      "properties": {
+        "claim_request_id": {
+          "$ref": "#/$defs/base64url",
+          "minLength": 22,
+          "maxLength": 128
+        },
+        "request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "claims_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "source_service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "destination_service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "request": {
+          "$ref": "#/$defs/peer_key_packages_claim_unsigned_request",
+          "description": "The exact participant-authorized unsigned request fields. Together with request_digest, this lets the destination bind a later Welcome and Direct Conversation binding to the durable claim without trusting source-service assertions."
+        },
+        "claimed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "signature": {
+          "$ref": "#/$defs/signature"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Destination-service-signed durable receipt. source_service_id and request are covered by the receipt signature; request_digest additionally binds the complete transport command, including participant authorization and portable signer evidence."
+    },
+    "peer_key_packages_claim_outcome": {
+      "type": "object",
+      "required": [
+        "claim_request_id",
+        "claims",
+        "claim_receipt"
+      ],
+      "properties": {
+        "claim_request_id": {
+          "$ref": "#/$defs/base64url",
+          "minLength": 22,
+          "maxLength": 128
+        },
+        "claims": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/keypackage_claim_record"
+          },
+          "minItems": 1
+        },
+        "claim_receipt": {
+          "$ref": "#/$defs/peer_keypackage_claim_receipt"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Privacy-preserving peer success response. It intentionally omits inventory counts and per-device failure information."
+    },
+    "peer_key_packages_claim_query_request_body": {
+      "type": "object",
+      "required": [
+        "claim_request_id",
+        "request_digest"
+      ],
+      "properties": {
+        "claim_request_id": {
+          "$ref": "#/$defs/base64url",
+          "minLength": 22,
+          "maxLength": 128
+        },
+        "request_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "peer_key_packages_claim_query_outcome": {
+      "type": "object",
+      "required": [
+        "claim_request_id",
+        "state"
+      ],
+      "properties": {
+        "claim_request_id": {
+          "$ref": "#/$defs/base64url",
+          "minLength": 22,
+          "maxLength": 128
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "unknown",
+            "pending",
+            "claimed",
+            "claim_failed",
+            "expired",
+            "revoked"
+          ]
+        },
+        "claim_outcome": {
+          "$ref": "#/$defs/peer_key_packages_claim_outcome"
+        },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "error_code": {
+          "const": "claim_failed"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "claimed",
+                  "expired",
+                  "revoked"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "claim_outcome"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "claim_outcome"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "claim_failed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "error_code"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "error_code"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "pending"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "retry_after_ms"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "retry_after_ms"
+              ]
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "key_packages_consume_request_body": {

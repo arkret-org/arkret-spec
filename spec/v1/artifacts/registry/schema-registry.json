@@ -612,7 +612,7 @@
       "schema_id": "ak.schema.keypackage_operations.v1",
       "file": "schemas/keypackage-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for ak.self.keys.keypackages.upload.create, claim, consume, and revoke."
+      "description": "Closed request/response DTO bundle for self KeyPackage upload/claim/consume/revoke and atomic peer claim/outcome-query operations."
     },
     {
       "schema_id": "ak.schema.keys_operations.v1",
@@ -631,6 +631,12 @@
       "file": "schemas/common-ids.schema.json",
       "status": "active",
       "description": "Defs-only shared typed-ID patterns (e.g. circle_id) referenced cross-file by morph and relation schemas so a single id-form change propagates without inline drift. Not an object/event schema. See zh/models/common-fields.md §6."
+    },
+    {
+      "schema_id": "ak.schema.federated_device_signing_key_evidence.v1",
+      "file": "schemas/federated-device-signing-key-evidence.schema.json",
+      "status": "active",
+      "description": "Portable service-attested device authorization evidence reused by peer Event, contact fact, and KeyPackage claim transports. The original ak.device.authorize Event anchors the key in the DID-designated enrollment authority; the source Principal Server attests current lifecycle freshness."
     },
     {
       "schema_id": "ak.schema.delivery_binding_stale.v1",

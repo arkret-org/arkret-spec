@@ -178,11 +178,11 @@ Fail-closed 条件：
 
 上述失败 MUST 在接收方推进本地 Realm frontier 前处理：写入型 push 返回 reject/quarantine 或 `temporarily_unavailable`，pull/backfill 结果保持未验证，不得清除 `state_mismatch`，snapshot/frontier witness 也不得把该 MLS epoch 标为可用。错误对外仍遵守 §3.2 / §8.3 的最小披露原则；内部 audit reason 可以记录为 `profile_unsupported`、`mls_send_pause_advisory_requires_e2ee_relaxed_profile`、`conflicting_e2ee_profiles`、`e2ee_relaxed_federation_policy_unsupported`、`mls_governance_binding_stale` 或对应 binding mismatch 族。
 
-### 4.0.2 Principal-private peer 投递面（invite / contact）不是共享 Event 接收轨（normative）
+### 4.0.2 Principal-private peer 投递与 KeyPackage command 不是共享 Event 接收轨（normative）
 
-`/_arkret/peer/invites`（`ak.peer.invites.command.submit`）与 `/_arkret/peer/contacts`（`ak.peer.contacts.command.submit`）是 Principal-private 事实投递面：前者承载目标 holder 的 invite command submit envelope；后者承载联系人请求 / 响应 / tombstone 与 `ak.direct_conversation.bound` 原签名 envelope，用于把 principal-scoped fact 投递到对端 Principal Server。它们 **MUST NOT** 接受共享 Realm durable Event，**MUST NOT** 推进共享 Realm reducer、Seal、CBA frontier 或 state root，也 **MUST NOT** 被实现当作 `/_arkret/peer/events` 的并行替代 fanout 通道。Direct Conversation 的 Realm/member/Strand/MLS Event 仍只能走 `/_arkret/peer/events`；`/_arkret/peer/contacts` 只镜像 binding fact。
+`/_arkret/peer/invites`（`ak.peer.invites.command.submit`）与 `/_arkret/peer/contacts`（`ak.peer.contacts.command.submit`）是 Principal-private 事实投递面：前者承载目标 holder 的 invite command submit envelope；后者承载联系人请求 / 响应 / tombstone 与 `ak.direct_conversation.bound` 原签名 envelope，用于把 principal-scoped fact 投递到对端 Principal Server。`/_arkret/peer/keys/keypackages/claim` 与 `/_arkret/peer/keys/keypackages/claims/query` 则是目标 KeyPackage authority 的原子 command / outcome-query 面，不承载 Event。三类 surface **MUST NOT** 接受共享 Realm durable Event，**MUST NOT** 推进共享 Realm reducer、Seal、CBA frontier 或 state root，也 **MUST NOT** 被实现当作 `/_arkret/peer/events` 的并行替代 fanout 通道。Direct Conversation 的 Realm/member/Strand/MLS Event 仍只能走 `/_arkret/peer/events`；`/_arkret/peer/contacts` 只镜像 binding fact；KeyPackage surface 只改变目标 authority 的 KeyPackage lifecycle 与幂等 ledger。
 
-这两个 endpoint 仍属于 `/_arkret/peer/*` 联邦协议面，因而 MUST 复用 §3 的 service-to-service HTTP Message Signature、trust-domain、destination binding、body digest、最小披露错误和 replay 防护。接收方只把其 payload 投影进目标 holder 的 principal control / account-private 处理路径，并按 [`identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 与 [`identity/consent-model.md`](../identity/consent-model.md) 的 consent / contact gate 处理；任何尝试在这两个 endpoint 中夹带共享 Realm Event Envelope 的请求 MUST fail closed（`schema_violation` 或 `capability_denied`，对外仍遵守最小披露）。
+这些 endpoint 仍属于 `/_arkret/peer/*` 联邦协议面，因而 MUST 复用 §3 的 service-to-service HTTP Message Signature、trust-domain、destination binding、body digest、最小披露错误和 replay 防护。invite / contact 接收方只把 payload 投影进目标 holder 的 principal control / account-private 处理路径；KeyPackage authority 还 MUST 执行 [`../crypto-media/device-lifecycle.md` §9.2](../crypto-media/device-lifecycle.md) 的 participant authorization、唯一 CAS、幂等 ledger 与反枚举 gate。任何尝试在这些 endpoint 中夹带共享 Realm Event Envelope 的请求 MUST fail closed（`schema_violation` 或 `capability_denied`，对外仍遵守最小披露）。
 
 ### 4.1 推送模式 (Push)
 
@@ -226,6 +226,7 @@ Signature: sig1=:base64...:
 | `Signature` | header | `string` | required | 来源 service DID 的 HTTP Message Signature。 |
 | `Content-Digest` | header | `sha-256=:...:` | conditional | 仅有 body 请求携带（`POST /_arkret/peer/events` required）；MUST 按 [`service-http-binding.md` §2.5.1](./service-http-binding.md) 覆盖 exact canonical HTTP content bytes。接收方 MUST 在 JSON 业务解析与验签前对 exact bytes 重算并校验，且 MUST 拒绝 `sha256=:` alias、非 canonical JSON wire 与 parse-then-canonicalize verification。无 body 的 `GET` pull MUST NOT 携带该 header，`Signature-Input` 也 MUST NOT 绑定 `content-digest`。 |
 | `events` | body | `object[]` | required | Event Envelope 数组；每项 MUST 是完整签名 `ak.schema.event.v1`。复用 §3 client write 同一 schema，不引入第二套形态。 |
+| `signer_key_evidence` | body | `FederatedDeviceSigningKeyEvidence[]` | optional | 原 Event proof 所用 active device signing key 的 portable authorization evidence。每项 `verification_method` MUST 精确等于 `actor_id + "#" + device_id`、必须出现在同请求某个 Event proof 中，`device_signing_key` MUST 是 Ed25519 `did:key`；`device_authorize_event` MUST 是来源 authority 当前 active projection 所引用的原始、已接受、`service_attested` `ak.device.authorize` Event，且其 payload 必须逐字绑定同一 actor/device/key。该数组被外层 HTTP Message Signature 覆盖，不进入被投递 Event digest、Realm reducer、Seal 或 timeline。 |
 | `service_binding_ref` | body | `object` | required | 接收方服务绑定快照（v1 联邦特有的请求级元数据；client write 时省略）。 |
 | `service_binding_ref.realm_id` | body | `id` | required | 受影响的 Realm。在多 Realm 批量推送中，发送方 SHOULD 把不同 Realm 的 events 拆成独立请求；单请求 MUST 至少携带一个 `realm_id`。 |
 | `service_binding_ref.realm_policy_digest` | body | `sha256:<hash>` | required | 发送方用于判定接收方委托关系的 Realm policy hash。 |
@@ -253,6 +254,8 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
 其中 `canonical_json` 是 [`encoding.md` §2](../conformance/encoding.md) 的 Arkret canonical JSON。实现不得只摘要名称/路径列表，也不得改用本地配置对象、ServiceDescribe 摘要或手写 `{domain, profile}` 对象。
 
 接收方 MUST 用同一 registry 规则重算自己在该 Realm 上实际执行的 reducer profile digest，并与请求字段逐字节比对。缺少 registry row、profile_id 未声明、canonicalization 不支持、digest suite 不是 active `sha256`，或重算结果不一致，均 MUST fail closed；对于 `POST /_arkret/peer/events`，失败结果是整批拒绝并返回 `reducer_profile_mismatch`，不得 partial accept。
+
+`signer_key_evidence` 只解决「目标 Realm host 尚无来源 principal 的本地 device directory projection」时的原 Event 验签，不扩大来源服务的代言范围。接收方只能在外层 RFC 9421 请求已认证、actor 与来源 service authority / 已验证 Realm membership / 本节规定的初始 Direct Conversation authority 之一绑定成功后使用该证据；还必须：(1) 重算 `device_authorize_event` digest 与 proof transcript；(2) 按其 accepted-at 时点独立解析 principal DID 的 enrollment delegation 与 `executed_by` authority DID，验证原 authority proof；(3) 确认 authorization Event 的 actor/device/key 与 evidence 逐字一致；(4) 用该 key 验证被投递 Event 的原 JWS。来源服务只为“该已验证 authorization 当前仍 active”背书，裸 key 断言绝不是 participant trust root。证据缺失、authorization Event 不可独立验证、actor/device/method/key 不匹配或任一 JWS 失败均 MUST fail closed。接收方不得持久化一个被证据改写的 Event；持久化的 canonical envelope 必须与 sender 的 `events[]` 项 byte-identical。
 
 
 请求示例（`Source-Service-ID` / `Destination-Service-ID` 由 header 承载，不重复在 body 中）：
@@ -347,7 +350,9 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
 
 错误响应 MUST 使用 `api-conventions.md` 中的标准 JSON error envelope。批量请求中，单条 Event 的拒绝 SHOULD 进入 `rejected[]`；整个请求无法认证、目的地不匹配、schema 解析失败或被限流时 SHOULD 返回对应 HTTP 错误。`rate_limited` 和可预期恢复的 `temporarily_unavailable` SHOULD 携带 `Retry-After`。
 
-Arkret v1 的联邦批量传播采用依赖感知的 partial accept：最小原子单元是单个 Event 及其已接受依赖，而不是整个请求数组。接收方已经 accepted 的 Event 不因后续 Event 失败而回滚；后续 Event 若依赖同批失败项，必须拒绝或隔离并暴露依赖诊断。需要 all-or-nothing 批处理的部署必须通过 profile / critical extension 显式协商。
+Arkret v1 的普通联邦批量传播采用依赖感知的 partial accept：默认最小原子单元是单个 Event 及其已接受依赖，而不是整个请求数组。接收方已经 accepted 的 Event 不因后续 Event 失败而回滚；后续 Event 若依赖同批失败项，必须拒绝或隔离并暴露依赖诊断。
+
+已由 core profile 注册为原子协议单元的批次是例外，不能由 transport 拆分或 partial accept。普通 Realm founding unit `ak.realm.create → creator founding ak.capability.grant → closed bootstrap facets` MUST 保持为一个 `events[]` 请求、按原顺序整体验证并在一个持久化事务中提交；sender 不得为其中每个 Event 建独立 outbox 项，receiver 不得先提交 create 再等待 founding grant。该 unit 任一项失败时整组均不得推进 reducer / projection；依赖尚未到达或 Realm founding unit 正在乱序恢复时，receiver MUST 返回 retryable HTTP 503（`temporarily_unavailable` / `federation_dependencies_pending`）而不是 HTTP 200 partial，使 sender 以相同 canonical body 与同一 `Idempotency-Key` 重试。其它需要 all-or-nothing 的批处理必须由 profile / critical extension 显式注册，不能由部署私自推断。
 
 `events[]` MUST 按数组顺序处理。同批中已接受的 Event 仅可作为**解析材料**（resolution-only）出现在后续 Event 中：可以满足 `prev_refs` 的 byte / event-id 解析、actor event chain 链接、`causal_refs` 或 payload-level causal reference 等结构性引用；但**不得**作为同批后续 Event 的授权基准。DataEvent MUST 按自身 `seal_ref` 验证；Control Move MUST 按自身 `seal_basis` 验证。同批前序 Event 创建、delegate、恢复、扩权或 revoke 的 grant / policy **不**对后续 Event 提前生效，依赖方必须等待控制面 Seal 更新后重交，否则当前批 MUST 以 `dependency_missing` / `stale_seal_ref` / `capability_denied` 拒绝或隔离（与 [`service-http-binding.md`](./service-http-binding.md) §`POST /_arkret/peer/events` 同批授权可见性规则、[`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 的 CBA basis 模型一致）。同批中尚未处理、已拒绝或隔离的 Event 不能被视为已接受依赖。单条 Event 失败不得回滚同批已接受 Event；响应 MUST 将成功项放入 `accepted[]`，失败项放入 `rejected[]`，需要异步校验的项放入 `quarantine[]`。依赖同批失败或缺失 Event 的后续项 MUST 以 `dependency_missing`、`causal_conflict` 或等价原因拒绝/隔离。
 

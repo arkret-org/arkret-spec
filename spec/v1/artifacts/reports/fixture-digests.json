@@ -70,7 +70,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
-      "sha256": "8b09e09cc59d7f7d3febb4cac9238f8f5d69e98b20bf7f176a68013e7db5e427"
+      "sha256": "4febde88374b14aafe3702685da3ef3f54ab0324bd173d985a3d24733ba01a88"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery_profile_fixture.json",
@@ -98,7 +98,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "67bc5e7d603d2681444712512205dc8cf543ed7ab58e92ea05ce5bb6aff1f939"
+      "sha256": "ef99d6ca46044a06886e8d20dc26f055b03dec0593d499f51efa03e7ced6b126"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -138,7 +138,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "139040c1ccf6daeb2d6573ef8eb1469c1cab50f9bc36101c39f1ca62049aee75"
+      "sha256": "cd56b793ba2878a6ca97b38938ced7669bff78f2de82d436f0465ad9de3e2d2c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/media-aead-nonce-fixture.json",

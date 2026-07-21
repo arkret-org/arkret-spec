@@ -2117,6 +2117,45 @@
       ]
     },
     {
+      "vector_id": "ak.vector.keypackage.peer_claim_atomic_idempotency.v1",
+      "status": "active",
+      "domain": "keypackage",
+      "applies_to_fixtures": [
+        "keypackage-lifecycle-fixture.json"
+      ],
+      "description": "Cross-Principal-Server KeyPackage claim linearization and uncertain-outcome recovery: claim CAS, request ledger and serialized result commit atomically; same source/id/digest replays byte-identically; another digest conflicts without a second claim; query recovers the original outcome.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.keypackage.peer_claim_double_authorization_privacy.v1",
+      "status": "active",
+      "domain": "keypackage",
+      "applies_to_fixtures": [
+        "keypackage-lifecycle-fixture.json"
+      ],
+      "description": "Peer KeyPackage claim requires both a participant signature bound to the exact request/service destination and the source-service HTTP Message Signature. Destination authority, contact, consent, capability, freshness and Direct Conversation no-last-resort gates fail closed behind one claim_failed surface without inventory leakage.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.keypackage.peer_claim_loser_revocation.v1",
+      "status": "active",
+      "domain": "keypackage",
+      "applies_to_fixtures": [
+        "keypackage-lifecycle-fixture.json"
+      ],
+      "description": "Concurrent Direct Conversation candidates may claim different single-use KeyPackages, but only the canonical binding winner activates Welcome and consumes; the loser Welcome is quarantined and its unconsumed claim expires to revoked, never published.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.late_key_recovery.removed_actor.v1",
       "status": "active",
       "domain": "late_key_recovery",

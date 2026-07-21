@@ -650,6 +650,12 @@
       "description": "The referenced MLS KeyPackage is unknown, expired, revoked, or not visible to the caller under the active claim policy."
     },
     {
+      "code": "claim_failed",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "An atomic one-time key, pre-key, or KeyPackage claim failed. On privacy-sensitive claim surfaces this code deliberately collapses target absence, visibility, inventory, consent, policy, capability, freshness, and abuse-control failures into one non-enumerable outward result."
+    },
+    {
       "code": "one_time_keys_exhausted",
       "http_status": 409,
       "scope": "endpoint",
@@ -2221,14 +2227,6 @@
         "auth_decision"
       ],
       "description": "An event violates a declared relation / cell cardinality constraint."
-    },
-    {
-      "code": "claim_failed",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "Atomic claim of a one-time key / pre-key / KeyPackage failed because it was already consumed, revoked, or not present (crypto-media/device-lifecycle.md KeyPackage claim path)."
     },
     {
       "code": "conflicting_e2ee_profiles",

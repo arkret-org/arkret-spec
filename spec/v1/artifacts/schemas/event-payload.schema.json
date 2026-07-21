@@ -5508,6 +5508,10 @@
         "contact_refs",
         "member_event_refs",
         "main_strand_create_ref",
+        "mls_group_id",
+        "mls_genesis_event_ref",
+        "mls_commit_event_ref",
+        "mls_welcome_event_ref",
         "created_at"
       ],
       "properties": {
@@ -5540,6 +5544,23 @@
         },
         "main_strand_create_ref": {
           "$ref": "#/$defs/event_ref"
+        },
+        "mls_group_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "MLS group bound to this DM Realm candidate."
+        },
+        "mls_genesis_event_ref": {
+          "$ref": "#/$defs/event_ref",
+          "description": "Accepted ak.mls.genesis Event for mls_group_id in realm scope."
+        },
+        "mls_commit_event_ref": {
+          "$ref": "#/$defs/event_ref",
+          "description": "Accepted epoch-0 Add Commit Event that admits the peer KeyPackage."
+        },
+        "mls_welcome_event_ref": {
+          "$ref": "#/$defs/event_ref",
+          "description": "Accepted Welcome Event paired with mls_commit_event_ref."
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"
@@ -6527,6 +6548,10 @@
             }
           },
           "additionalProperties": false
+        },
+        "peer_claim_receipt": {
+          "$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt",
+          "description": "Required when the KeyPackage was claimed through the peer claim protocol. The receiving destination Principal Server validates this signed receipt against its durable claim ledger before accepting the Welcome."
         },
         "welcome_ref": {
           "$ref": "#/$defs/object_ref"

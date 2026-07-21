@@ -18,13 +18,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 190,
+    "total_operations": 192,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 178
+      "typed_schema": 180
     },
     "by_tier_and_class": {
       "core": {
@@ -39,7 +39,7 @@
         "binary_or_redirect": 2,
         "no_request_body": 1,
         "service_describe": 2,
-        "typed_schema": 120
+        "typed_schema": 122
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -913,6 +913,34 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/InviteDeliveryRequest",
         "response": "#/components/schemas/InviteDeliveryOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.keys.keypackages.command.claim",
+      "tier": "extension",
+      "http": "POST /_arkret/peer/keys/keypackages/claim",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/PeerKeyPackagesClaimRequestBody",
+        "response": "#/components/schemas/PeerKeyPackagesClaimOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.keys.keypackages.query.claim",
+      "tier": "extension",
+      "http": "POST /_arkret/peer/keys/keypackages/claims/query",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_query_request_body",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_query_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/PeerKeyPackagesClaimQueryRequestBody",
+        "response": "#/components/schemas/PeerKeyPackagesClaimQueryOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

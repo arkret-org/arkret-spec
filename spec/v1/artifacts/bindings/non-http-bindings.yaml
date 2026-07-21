@@ -190,6 +190,9 @@ grpc:
       Submit: ak.peer.invites.command.submit
     PeerContacts:
       Submit: ak.peer.contacts.command.submit
+    PeerKeys:
+      KeyPackagesClaim: ak.peer.keys.keypackages.command.claim
+      KeyPackagesClaimQuery: ak.peer.keys.keypackages.query.claim
     PeerSnapshot:
       Head: ak.peer.snapshot.query.manifest_head
     SelfEphemeral:
@@ -309,6 +312,8 @@ mq:
     peer.events.query.scan.frontier: ak.peer.events.query.frontier
     peer.invites.command.submit: ak.peer.invites.command.submit
     peer.contacts.command.submit: ak.peer.contacts.command.submit
+    peer.keys.keypackages.command.claim: ak.peer.keys.keypackages.command.claim
+    peer.keys.keypackages.query.claim: ak.peer.keys.keypackages.query.claim
     peer.snapshot.query.manifest_head: ak.peer.snapshot.query.manifest_head
     self.ephemeral.command.send: ak.self.ephemeral.command.send
     self.call.media.exchange.issue_token: ak.self.call.media.exchange.issue_token

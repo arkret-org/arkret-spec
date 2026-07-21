@@ -113,6 +113,10 @@ ID 语义：
 }
 ```
 
+### 3.0.1 Grant proof transcript 与验签（normative）
+
+`CapabilityGrant.proofs[]` 不是 Event envelope proof 的替代品，两层证明都必须独立成立。每条 grant proof 的 `payload_digest` 固定为 `sha256(RFC8785-JCS(grant body 删除 proofs 字段))`；签名输入固定为 RFC 8785 JCS：`{context:"ak.capability-grant-proof-v1", payload_digest, issuer, subject, verification_method, created_at, domain?, audience?}`，再按 v1 detached JWS profile 生成 `base64url({"alg":"EdDSA"})..signature`。`verification_method` MUST 由 `issuer` 控制；`proof_purpose` 若存在 MUST 为 `issuer_attestation`。Receiver MUST 重算 digest、重建 transcript、按 accepted-at 有效 issuer key 验证每条 proof，并拒绝空 proof、purpose 越界、verification method 非 issuer 所有、digest 不一致或 JWS 不成立的 grant。只验证承载它的 Event proof、只检查 `proofs` 非空，或由 service 代签 / 补造 grant proof，均不合规。
+
 ### 3.1 条件化 Grant
 
 Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。

@@ -819,6 +819,25 @@
       ]
     },
     {
+      "operation_id": "ak.peer.keys.keypackages.command.claim",
+      "http_alias": "POST /_arkret/peer/keys/keypackages/claim",
+      "operation_specific": [
+        "claim_failed",
+        "duplicate_conflict",
+        "failed_precondition"
+      ],
+      "description": "The destination KeyPackage authority exposes all target-, device-, inventory-, consent-, capability-, policy-, freshness-, and abuse-related business failures as claim_failed. duplicate_conflict covers claim_request_id reuse with another digest; failed_precondition is limited to a non-secret protocol-state violation that cannot reveal target inventory."
+    },
+    {
+      "operation_id": "ak.peer.keys.keypackages.query.claim",
+      "http_alias": "POST /_arkret/peer/keys/keypackages/claims/query",
+      "operation_specific": [
+        "claim_failed",
+        "duplicate_conflict"
+      ],
+      "description": "Read-only uncertain-outcome recovery. claim_failed is the opaque stored terminal failure; duplicate_conflict covers a known claim_request_id queried with a different request digest without returning target details."
+    },
+    {
       "operation_id": "ak.peer.snapshot.query.manifest_head",
       "http_alias": "GET /_arkret/peer/snapshot/head",
       "operation_specific": [],

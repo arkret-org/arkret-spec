@@ -1087,6 +1087,8 @@
         "ak.self.direct_conversation.command.resolve",
         "ak.self.events.command.submit",
         "ak.peer.contacts.command.submit",
+        "ak.peer.keys.keypackages.command.claim",
+        "ak.peer.keys.keypackages.query.claim",
         "ak.peer.events.command.submit",
         "ak.peer.events.query.scan",
         "ak.peer.events.query.resolve"
@@ -1150,6 +1152,7 @@
         "Exactly the two stable subject DIDs in the canonical active binding may be active Realm principal members; any third-party join or invite MUST be rejected.",
         "Space events are forbidden in a Direct Conversation Realm with direct_conversation_space_forbidden; additional ordinary Strands remain allowed.",
         "The canonical main Strand MUST be active, belong to the Realm, have no Circle scope, and expose an active primary discussion track.",
+        "Cross-Principal-Server creation MUST complete the participant-authorized peer KeyPackage claim authoring step before the binding authoring step; Direct Conversation claims MUST bind pair_key, intended Realm, main Strand and MLS group and MUST NOT use a last-resort KeyPackage.",
         "A participant leave or ban, Realm tombstone or destroy, or main Strand archive or tombstone retires the active binding and requires a fresh Realm, main Strand and MLS group for the next create=true resolution.",
         "Contact tombstone and direct_message consent revoke block new resolver success and default message send but do not by themselves rewrite Realm history or retire an otherwise structurally active binding."
       ]

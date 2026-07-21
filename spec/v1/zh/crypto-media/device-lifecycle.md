@@ -799,7 +799,7 @@ POST /_arkret/self/keys/claim
 
 MLS KeyPackage 使用独立的 single-use claim API，而不是复用 one-time prekey 语义。
 
-本节四个 HTTP operation 的闭合 DTO schema 见 [`schemas/keypackage-operations.schema.json`](../../artifacts/schemas/keypackage-operations.schema.json)。OpenAPI 与 `sync/service-http-binding.md` 的字段表 MUST 引用同一 schema fragment；不得再以开放 `OperationRequest` / `OperationResult` 作为这些安全敏感路径的 generated-SDK 契约。
+本节 self 与 peer HTTP operation 的闭合 DTO schema 见 [`schemas/keypackage-operations.schema.json`](../../artifacts/schemas/keypackage-operations.schema.json)。OpenAPI 与 `sync/service-http-binding.md` 的字段表 MUST 引用同一 schema fragment；不得再以开放 `OperationRequest` / `OperationResult` 作为这些安全敏感路径的 generated-SDK 契约。
 
 推荐操作：
 
@@ -808,6 +808,8 @@ POST /_arkret/self/keys/keypackages/upload
 POST /_arkret/self/keys/keypackages/claim
 POST /_arkret/self/keys/keypackages/consume
 POST /_arkret/self/keys/keypackages/revoke
+POST /_arkret/peer/keys/keypackages/claim
+POST /_arkret/peer/keys/keypackages/claims/query
 ```
 
 `upload` 请求字段：
@@ -831,7 +833,7 @@ POST /_arkret/self/keys/keypackages/revoke
 | `minimal_metadata_allowed` | `boolean` | optional | 是否允许 pseudonymous credential。 |
 | `claim_nonce` | `string` | required | 防重放随机数。 |
 | `expires_at` | `datetime` | required | claim 有效期。 |
-| `proofs` | `proof[]` | required | requester / service / device proof。 |
+| `proofs` | `proof[]` | optional | self surface 的 requester / service / device proof；peer surface 不复用此开放字段，而使用 §9.2 的闭合 `requester_authorization`。 |
 
 `claim` 响应字段：
 
@@ -840,7 +842,7 @@ POST /_arkret/self/keys/keypackages/revoke
 | `claims` | `object[]` | required | 每个 claimed KeyPackage 的 `claim_id`、`keypackage_ref`、`keypackage_digest`、device binding、expiry、capabilities 和 `capabilities_digest = sha256(JCS(capabilities))`。 |
 | `failures` | `object[]` | optional | 不可领取设备与原因；不得泄露不可见用户或设备。 |
 
-`consume` request MUST validate `schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body`，并由 Welcome 接收方或授权发送方在 Welcome 成功处理后调用，绑定 `key_package_refs[]`、`consumer_device_id`、`signature`，以及可选 `claim_ids[]`、`welcome_ref`、`realm_id`、`strand_id`、`mls_group_id`、`epoch`。`revoke` request MUST validate `#/$defs/revoke_request`，可由设备、principal controller 或 policy 授权服务发起。
+`consume` request MUST validate `schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body`，并由 Welcome 接收方或授权发送方在 Welcome 成功处理后调用，绑定 `key_package_refs[]`、`consumer_device_id`、`signature`，以及可选 `claim_ids[]`、`welcome_ref`、`realm_id`、`strand_id`、`mls_group_id`、`epoch`。`revoke` request MUST validate `#/$defs/key_packages_revoke_request_body`，可由设备、principal controller 或 policy 授权服务发起。
 
 规则：
 
@@ -851,7 +853,7 @@ POST /_arkret/self/keys/keypackages/revoke
 - Device / Key Server 在 claim 成功响应中返回的每条 claim MUST 包含 `keypackage_digest = canonical_digest(KeyPackage bytes)`、`capabilities_digest = sha256(JCS(capabilities))`，并携带 claimed 设备的 trust binding。cross-signing 设备携带当前 accepted `ssk_generation`；§5.4 service-attested / enrollment-authority 设备携带该设备 accepted `ak.device.authorize` 的 `device_authorize_event_id`。二者 MUST 精确二选一。`ak.mls.welcome` MUST 回填同一 KeyPackage hash 到顶层 `payload.keypackage_digest` 和 `payload.claim_ref.keypackage_digest`，回填同一 digest 到 `payload.claim_ref.capabilities_digest`，并把 claim record 的 trust binding 原样回填到 `payload.claim_ref`；Welcome 接收端在解密前必须比对这些值与本地 claim 记录，并确认该 trust binding 仍指向 claimed 设备当前 accepted state，防止 group manager 或中间服务在 Welcome 阶段替换 KeyPackage、扩大 KeyPackage 能力集合、复用旧 SSK generation 或旧设备授权事件的 claim。
 - `payload.claim_envelope` 是 requester 对本次 Welcome 的独立签名 transcript，签名身份绑定 requester 而不是被 claim 的设备。cross-signing requester MUST 在 envelope 中携带 requester 当前 accepted `ssk_generation`，并用该 generation 的 SSK 签名；service-attested / enrollment-authority requester MUST 在 envelope 中携带 `requester_device_id`，并用该设备当前 accepted `ak.device.authorize.payload.device_public_key` 对 envelope canonical bytes 签名。二者 MUST 精确二选一。服务端和接收端 MUST 校验 envelope 的 `requester_did`、`requester_device_id`（若存在）、signature `kid` 与当前未撤销设备投影一致；不得把 claim/claim_ref 中属于 recipient KeyPackage 的 `device_authorize_event_id` 当作 requester 签名身份使用。
 - `claim` 失败响应 MUST 对不存在、不可见、无可用设备和 policy denied 做反枚举处理。对外错误码合并为单一不透明错误码 `claim_failed`：通用部署 SHOULD 合并，**声明 `ak.profile.e2ee_client.v1` 的服务端 MUST 合并**——即在 `e2ee_client` profile 下，subset-rule 违反（§上条 `keypackage_capability_overreach`）、不存在、不可见、无可用设备、policy denied、过期 / 撤销等**所有**失败原因 MUST 对外返回同一 `claim_failed`，不得让 subset-rule 违反与其它失败产生可区分响应，否则攻击者可借响应差异探测目标 KeyPackage 的 capability 指纹（哪些 capability 被声明 / 未声明）。任何 profile 下都不得返回可区分失败原因的 error message。服务端 SHOULD 使用统一状态码、最小响应体、限速和延迟填充降低时序侧信道；实现不得故意让不同失败原因产生稳定可测的响应差异。
-- 设备 SHOULD 维持 `keypackage_min_available` 低水位，默认 8。Device / Key Server 的 claim / query 响应 SHOULD 返回调用方可见的 `available_count`；客户端发现可用 KeyPackage 低于低水位时，MUST 在下一次 sync / device maintenance 周期补充上传，避免邀请路径因耗尽而失败。
+- 设备 SHOULD 维持 `keypackage_min_available` 低水位，默认 8。Device / Key Server 的 **self / owning-device 可见** upload、claim 或 maintenance query 响应 SHOULD 返回 `available_count`；peer claim / outcome-query MUST NOT 返回该字段。客户端发现可用 KeyPackage 低于低水位时，MUST 在下一次 sync / device maintenance 周期补充上传，避免邀请路径因耗尽而失败。
 - claimed 但未 consume 的 KeyPackage 到达 claim `expires_at` 后 MUST 转为 revoked / unusable 状态；服务不得把它自动放回 `published`，也不得接受迟到的 consume。设备需要重新发布新的 KeyPackage。
 - Device / Key Server MUST 维护过期扫描或等价触发：KeyPackage `expires_at`、claim `expires_at`、device revoke、principal control state 失效、capability revoke 或 Realm policy 变更任一发生时，后续 `query` / `claim` MUST NOT 返回该 KeyPackage；后台清理不得是唯一防线。扫描周期 SHOULD ≤ 60s，且每次 `claim` 路径必须先做同步 freshness 判定。
 - KeyPackage claim MUST 对 `(requester_service_id, target_principal_id)` 做限速，默认窗口为 60s 内最多 5 次 claim 尝试。超过限额时对外仍使用反枚举响应（`claim_failed` 或通用 rate-limited envelope，不泄露目标存在性）；服务端内部审计 reason 记录为 `keypackage_claim_rate_limited`。
@@ -875,6 +877,86 @@ POST /_arkret/self/keys/keypackages/revoke
 - **`claimed` 不回 `published`**：claimed 但未 consume 的 KeyPackage 到达 claim `expires_at` 后 MUST 转 `revoked`，服务 MUST NOT 自动放回 `published`，也 MUST NOT 接受迟到的 consume。
 - **终态集合**：`{ consumed, revoked, retired }` 均为 terminal，任何转出 MUST 被拒绝。`published` / `claimed` 的过期或吊销一律收敛到 `revoked`（claim 路径同步 freshness 判定，扫描周期 SHOULD ≤ 60s，见上）。
 - **`retired`**：仅 account deactivation fanout（[`../identity/account-lifecycle.md` §7.1](../identity/account-lifecycle.md)）把 unused（`published`）KeyPackage 标 `retired`；已 `claimed` / `consumed` 的不改写。新邀请 MUST NOT 从 `retired` / `revoked` / `consumed` 的 KeyPackage 选取。
+
+### 9.2 跨 Principal Server 原子 claim（normative）
+
+当 requester 与 target 由不同 Principal Server 托管时，来源服务不得调用目标服务的 `/_arkret/self/*`，也不得把 KeyPackage 领取伪装成 durable Event。v1 唯一 wire surface 为：
+
+| operation | HTTP | request / response schema |
+| --- | --- | --- |
+| `ak.peer.keys.keypackages.command.claim` | `POST /_arkret/peer/keys/keypackages/claim` | `peer_key_packages_claim_request_body` / `peer_key_packages_claim_outcome` |
+| `ak.peer.keys.keypackages.query.claim` | `POST /_arkret/peer/keys/keypackages/claims/query` | `peer_key_packages_claim_query_request_body` / `peer_key_packages_claim_query_outcome` |
+
+目标 KeyPackage authority 是 `published → claimed` 的**唯一 CAS 权威**。来源服务只能请求领取并验证目标服务签发的 receipt；不得在本地镜像池上先行标记、推测成功，或用 `ak.peer.events.command.submit` 替代该原子操作。claim 成功只是生成 MLS Welcome 的必要前置条件，不创建 Realm、membership、Strand 或 binding；这些 durable facts 仍必须由其规范 Event 与原签名 proof 创建并经 peer Event / principal-fact 通道投递。
+
+#### 9.2.1 双重授权与签名 transcript
+
+peer claim MUST 同时满足两层授权，任一层缺失或失效都 MUST fail closed：
+
+1. **participant authorization**：requester 对 `requester_authorization` 作 detached signature。签名输入精确为 UTF-8 domain separator `` `ak.peer-keypackage-claim-authorization-v1\n` `` 后接下列对象的 JCS bytes：
+
+   ```json
+   {
+     "authorization": {
+       "device_authorize_event_id": "<present only for service-attested model>",
+       "requester_device_id": "<present only for service-attested model>",
+       "signed_at": "<RFC3339>",
+       "ssk_generation": "<present only for cross-signing model>",
+       "verification_method": "<kid>"
+     },
+     "request": "<the exact claim_authorization_draft.request object>",
+     "transport_binding": {
+       "destination_service_id": "<Destination-Service-ID>",
+       "destination_trust_domain": "<Destination-Trust-Domain>",
+       "source_service_id": "<Source-Service-ID>",
+       "source_trust_domain": "<Source-Trust-Domain>"
+     }
+   }
+   ```
+
+   `claim_authorization_draft` MUST 是闭合的 `{request, transport_binding}` 对象；`transport_binding` 明确携带 `source_service_id`、`destination_service_id`、`source_trust_domain` 与 `destination_trust_domain`。客户端 MUST 对 resolver 返回的这些值作 UI / account-context 一致性校验后原样签名，MUST NOT 从本地 endpoint 配置猜测或替换它们。`signature.kid` MUST 等于 `verification_method`。cross-signing 模型必须且只能携带当前 accepted `ssk_generation`，并由该代 SSK 签名；§5.4 service-attested / enrollment-authority 模型必须且只能携带 `requester_device_id + device_authorize_event_id`，并由该 accepted、未撤销设备的 `device_public_key` 签名。目标服务 MUST 独立解析 requester DID / accepted generation / device authorization，不得信任来源服务对 participant key 的裸断言。
+
+   对 service-attested device model，客户端签名后，来源 Principal Server MUST 在发往 peer command 的 body 追加 `requester_signing_key_evidence`（schema `federated-device-signing-key-evidence.schema.json`）。该字段不进入 participant authorization transcript，也不得由客户端自报：其中 `device_authorize_event` 必须是来源当前 active device projection 所引用的原始 accepted `ak.device.authorize` Event。目标服务 MUST 重算该 Event digest / proof transcript，按 Event accepted-at 时点从 requester DID 独立验证 enrollment delegation 与 authority proof，并逐字核对 actor、device、`device_public_key` 和 `device_authorize_event_id` 后，才可用该 key 验证 participant authorization。外层来源服务签名只证明该已验证授权当前仍 active；它不能把裸 key 升格成 participant trust root。cross-signing model 不使用此 evidence；目标必须能从已验证的 requester cross-signing state 独立解析指定 generation，否则 peer claim fail closed。
+2. **service authorization**：外层请求 MUST 使用 RFC 9421 HTTP Message Signature，绑定 `@method`、`@target-uri`、`@authority`、`Content-Digest`、`Request-Canonical-Digest`、`Source-Service-ID`、`Destination-Service-ID`、`Source-Trust-Domain`、`Destination-Trust-Domain` 与 `Idempotency-Key`。`Idempotency-Key` MUST 逐字等于 body `claim_request_id`。
+
+`claim_request_id` 与 `claim_nonce` 各自 MUST 含至少 128 bits 不可预测熵。`requester_authorization.signed_at` 不得在接收方当前时间未来 60 秒以上；`expires_at` MUST 晚于 `signed_at` 且 `expires_at - signed_at <= 300s`。外层 HTTP signature 的 `created` / `expires` 窗口同样 MUST 不超过 300 秒。两层签名均绑定 source / destination / trust-domain，可阻断可信来源服务把授权转发给另一目标或另一部署重放。
+
+#### 9.2.2 目标 authority 的独立准入
+
+在触碰 KeyPackage 状态前，目标服务 MUST 独立验证：
+
+- `Source-Service-ID` 是 requester 当前已验证 Principal Server locator / home authority，`Destination-Service-ID` 是 `target_principal_id` 当前 KeyPackage authority，且两端与请求中的 trust domain 均属于允许此次 Realm 建立的同一 trust domain；
+- participant authorization 的 requester、verification method、generation / device authorization、freshness 与 exact request/transport binding 全部有效；
+- target 当前 active device、KeyPackage expiry / revocation / capability 均有效，并满足 `required_capabilities ⊆ capabilities`；
+- `claim_purpose=direct_conversation` 时，request MUST 携带 `pair_key` 与 main `strand_id`；目标服务按 [`../identity/contact-and-direct-conversation.md` §7](../identity/contact-and-direct-conversation.md) 重算 pair key，并验证双方 accepted contact、target 对 requester 的 active `direct_message|any` consent、预留 Realm / Strand / MLS group 的一致性；
+- `(Source-Service-ID, target_principal_id)` 的限速与 abuse policy 通过。
+
+`claim_purpose=direct_conversation` 时 `allow_last_resort` MUST 缺省或为 `false`，目标服务 MUST NOT 返回 last-resort KeyPackage。一般 `realm_membership` claim 只有在双方 feature negotiation 均声明 `ak.feature.mls_last_resort_keypackage.v1` 且请求显式 `allow_last_resort=true` 时才可返回 last-resort record；否则 single-use pool 耗尽即失败。
+
+#### 9.2.3 原子幂等 ledger 与不确定结果
+
+目标 authority MUST 持久化以 `(Source-Service-ID, claim_request_id)` 唯一索引的 claim ledger，并将 `Request-Canonical-Digest` 记为 `request_digest`。下列动作必须处于同一事务 / 等价线性化边界：
+
+1. 核对已由唯一索引保护的 request reservation 与 digest；
+2. 选择仍为 `published` 且通过 freshness / capability gate 的 KeyPackage；
+3. 对 single-use KeyPackage 执行 CAS `published → claimed`；
+4. 写入 claim record、把 ledger 从 `pending` 变为终态，并写入已序列化的成功 outcome bytes。
+
+实现 MAY 在最终事务前先提交只含 `(Source-Service-ID, claim_request_id, request_digest, state=pending)` 的唯一 reservation，以串行化并发 duplicate；该 reservation 不得选择、锁定或泄露 KeyPackage。上述 1–4 的**最终化**必须在同一事务完成，因而不得出现 KeyPackage 已 `claimed` 但 ledger 无 outcome、或 ledger 已成功但 CAS 未发生的可观察状态。crash 后 recovery worker 只能按原 digest 恢复 / 最终化同一 reservation，不能改用新的请求身份。
+
+同一 source、同一 `claim_request_id`、同一 digest 的 duplicate transport delivery / replay MUST 返回 byte-identical 成功 outcome，且不得第二次领取；这项 receiver 安全性不把 operation 变成可跳过恢复查询的 caller retry-safe。同一 key 携带不同 digest MUST 返回 `duplicate_conflict` 且不得改变任何 KeyPackage。响应丢失、超时或来源服务在 durable dispatch marker 与实际 network send 之间 crash 后，来源服务 MUST 先调用 `ak.peer.keys.keypackages.query.claim`，携带原 `claim_request_id + request_digest`，不得先重发 command，也不得换 nonce 盲目重新 claim。query 只接受原 Source-Service-ID 与 exact digest，返回 `unknown|pending|claimed|claim_failed|expired|revoked`；`unknown` 明确证明目标尚无该 request identity 的 reservation，调用方此时 MAY 重放 exact same canonical command（同 source、claim_request_id、digest、nonce 与 evidence），不得生成新请求；`pending` 表示 reservation 已存在但最终化事务尚未提交，调用方只可按 `retry_after_ms` 再查；`claimed|expired|revoked` MUST 携带原签名 `claim_outcome`，`claim_failed` 只携带不透明 `error_code=claim_failed`。
+
+成功 outcome 的 `claim_receipt.signature` 由目标服务对 `` `ak.peer-keypackage-claim-receipt-v1\n` `` + JCS(receipt 除 `signature` 外全部字段) 签名；receipt MUST 携带并签名覆盖 `source_service_id`、`destination_service_id` 与原 participant-authorized `request`（即不含 authorization / transport-only evidence 的 unsigned request 字段），`request_digest` 绑定完整 peer command，`claims_digest` 绑定 `claims[]` canonical bytes。`claim_request_id`、receipt.request 内同名字段与 outcome 同名字段必须一致。ledger 的可查询 outcome MUST 至少保留到 claim `expires_at + 10 minutes`；其后实现 MAY 只保留符合隐私 / 审计策略的 hash replay tombstone，不得长期保留可关联 private Realm 的不必要明文。
+
+通过 peer claim 生成的 `ak.mls.welcome` MUST 原样携带 `payload.peer_claim_receipt`。目标 Principal Server 在接受该 Welcome 前 MUST：验证 receipt 目标服务签名；以外层认证的 `Source-Service-ID` 精确匹配 `source_service_id`；查询 `(source_service_id, claim_request_id)` durable ledger 并逐字匹配 `request_digest` 与 stored outcome；验证 request 的 requester / target principal / intended Realm / MLS group / claim nonce 与 Event actor、recipient、Realm、Welcome group / `claim_envelope` 一致；验证 stored claim 与 Welcome 的 claim id、KeyPackage ref / digest、recipient device 一致。缺 receipt、ledger 未就绪或任一绑定不一致时均须 fail closed；ledger 尚未可见属于 retryable dependency，不得把未经认领的 Welcome 降级接受。Direct Conversation binding 成为 canonical 前还 MUST 将 receipt.request 的 `pair_key` 与 `strand_id` 精确匹配 binding payload。
+
+所有目标不存在、contact/consent 不满足、设备不可见、KeyPackage 耗尽、capability 不满足、policy denied、participant authorization 失效和限速失败，对**已通过外层服务认证**的 peer caller 必须收敛为同一 `claim_failed` 外观；不得返回 `available_count`、目标设备列表或逐设备 `failures[]`。外层 RFC 9421 signature / source service identity 无法通过时，接收方在读取 target 状态前返回通用 `unauthenticated` / `invalid_signature`；该响应必须只由 transport authentication 决定，对任意 `target_principal_id` 完全相同。
+
+#### 9.2.4 Welcome、consume 与并发 loser
+
+目标设备只有在以下条件全部成立后才可激活 Welcome 并通过其 own Principal Server 的 `ak.self.keys.keypackages.command.consume` 消费 claim：Welcome / claim-ref 校验通过、对应 Realm/member/main-Strand/MLS Event 均可验证、且双方已对同一 `pair_key` 收敛到包含该 Welcome 的 canonical binding winner。peer surface 不提供 consume 代理；来源服务不得代表目标设备把 claim 标为 consumed。
+
+并发 resolver 可能各自领取不同 KeyPackage 并生成不同候选 Realm。loser candidate 的 Welcome MUST 被隔离或忽略，不得激活 MLS state，也不得 consume 对应 KeyPackage；该 single-use claim 到期后按 §9.1 转为 `revoked`，**绝不得回到 `published`**。只有 canonical binding winner 对应的 Welcome 可激活 / consume。实现 MAY 在确定 loser 后提前用授权 revoke 路径终止其 claim，但不得用“释放领取”实现复用。
 
 ## 10. Verification Strands
 
@@ -1479,7 +1561,7 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 6. **MLS 与 ready**：B 模型把 pre-fence epoch key 视为可能泄露，必须推进到新 epoch；A 模型 Welcome generation 必须等于当前 SSK generation。secret storage、device state、关键 Welcome/history share 未完成前只可显示 `recovery_pending`。
 7. **Finalize/audit**：正式 recovery receipt 只能由已接受的新设备 key 签，绑定 session、policy、identity model、`previous_model_generation_ref`（session snapshot）、`result_model_generation_ref`（完成后的 accepted generation）、proof digest、B 模型 batch receipt/re-anchor refs（A 模型则绑定 authorize/list refs）、所有解锁 backup summaries、Welcome summary、outcome 与时间。A 模型未 reset 时前后 generation 相等；B 模型 result 必须等于 re-anchor DID versionId。相同 session 的重复 receipt reject；授权前失败只写 server outcome/audit evidence，不得伪造 device-signed receipt。
 
-KeyPackage low-water refresh：claim 失败后 KeyPackage 不得自动放回；服务端响应 SHOULD 返回 `available_count`、`low_watermark` 和 `suggested_publish_count`。当 `available_count < low_watermark` 时，设备 SHOULD 发布新的 KeyPackage；若低水位持续低于 Realm policy 的最小值，发送方 MAY 延迟新设备 Welcome 并返回 `keypackage_refresh_required`。同一 device 多个 KeyPackage 的选择 MUST 使用服务端返回的最早 unclaimed package 或 deterministic order，不得按本地随机重试导致重复 claim。
+KeyPackage low-water refresh：claim 失败后 KeyPackage 不得自动放回；**self / owning-device maintenance** 响应 SHOULD 返回 `available_count`、`low_watermark` 和 `suggested_publish_count`，peer surface 不得返回这些库存字段。当 `available_count < low_watermark` 时，设备 SHOULD 发布新的 KeyPackage；若低水位持续低于 Realm policy 的最小值，发送方 MAY 延迟新设备 Welcome 并返回 `keypackage_refresh_required`。同一 device 多个 KeyPackage 的选择 MUST 使用服务端返回的最早 unclaimed package 或 deterministic order，不得按本地随机重试导致重复 claim。
 
 ## 16. Applet Device Delegation
 

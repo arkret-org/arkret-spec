@@ -104,6 +104,8 @@
         "ak.peer.events.query.frontier",
         "ak.peer.invites.command.submit",
         "ak.peer.contacts.command.submit",
+        "ak.peer.keys.keypackages.command.claim",
+        "ak.peer.keys.keypackages.query.claim",
         "ak.peer.snapshot.query.manifest_head"
       ]
     },
@@ -1126,9 +1128,9 @@
       "http": "POST /_arkret/self/direct-conversations/resolve",
       "grpc": "SelfDirectConversation/Resolve",
       "mq": "self.direct_conversation.command.resolve",
-      "notes": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates canonical DM Realm, main Strand, and binding.",
+      "notes": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent. Cross-Principal-Server create=true uses two participant-authoring stages: a reserved remote KeyPackage claim draft is signed and resubmitted before the binding Event draft; only found is an active success state.",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "object_id",
+      "idempotency_mechanism": "idempotency_key",
       "retry_safe": true,
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome"
@@ -1596,6 +1598,32 @@
       "retry_safe": true,
       "request_schema_ref": "schemas/peer-contact-delivery-request.schema.json",
       "response_schema_ref": "schemas/peer-contact-delivery-request.schema.json#/$defs/peer_contact_delivery_outcome"
+    },
+    {
+      "operation_id": "ak.peer.keys.keypackages.command.claim",
+      "http": "POST /_arkret/peer/keys/keypackages/claim",
+      "grpc": "PeerKeys/KeyPackagesClaim",
+      "mq": "peer.keys.keypackages.command.claim",
+      "notes": "Atomic cross-Principal-Server KeyPackage claim. The destination KeyPackage authority is the sole CAS authority and MUST validate both the requester participant authorization and the outer source-service HTTP Message Signature. Idempotency is scoped by (Source-Service-ID, claim_request_id) and binds the canonical request digest; duplicate transport delivery returns the original outcome, but callers MUST use the query operation rather than replaying the command after an uncertain outcome. Success omits inventory counts and per-device failures.",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "query_operation",
+        "operation_id": "ak.peer.keys.keypackages.query.claim"
+      },
+      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_outcome"
+    },
+    {
+      "operation_id": "ak.peer.keys.keypackages.query.claim",
+      "http": "POST /_arkret/peer/keys/keypackages/claims/query",
+      "grpc": "PeerKeys/KeyPackagesClaimQuery",
+      "mq": "peer.keys.keypackages.query.claim",
+      "notes": "Read-only recovery of the destination authority's durable peer-claim ledger after an uncertain command outcome. It requires the same authenticated source service and exact request_digest and returns only opaque claim state plus the original signed success outcome when one exists.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_query_request_body",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_query_outcome"
     },
     {
       "operation_id": "ak.peer.snapshot.query.manifest_head",

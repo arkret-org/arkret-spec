@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/federated-device-signing-key-evidence.schema.json",
+  "title": "Arkret Federated Device Signing Key Evidence",
+  "description": "Portable device-key authorization evidence. The original accepted service-attested ak.device.authorize Event cryptographically binds the key to the principal's DID-designated enrollment authority; the authenticated source Principal Server attests only that the authorization is current and active. Transport-only: this object never enters another Event digest, Realm reducer, Seal, or timeline.",
+  "type": "object",
+  "required": [
+    "actor_id",
+    "device_id",
+    "verification_method",
+    "device_signing_key",
+    "authorization_accepted_at",
+    "device_authorize_event"
+  ],
+  "properties": {
+    "actor_id": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "device_id": {
+      "$ref": "./common-ids.schema.json#/$defs/device_id"
+    },
+    "verification_method": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "description": "MUST equal actor_id + '#' + device_id."
+    },
+    "device_signing_key": {
+      "type": "string",
+      "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
+      "description": "Ed25519 device signing public key. The multibase suffix MUST equal device_authorize_event.payload.device_public_key."
+    },
+    "authorization_accepted_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "description": "Source authority's server-sealed acceptance time for device_authorize_event. The destination uses this time for historical DID/enrollment-authority resolution; it MUST be no earlier than the Event created_at and no later than the source service attestation time."
+    },
+    "device_authorize_event": {
+      "$ref": "./event-envelope.schema.json",
+      "description": "Original accepted ak.device.authorize Event. It MUST target actor_id/device_id, carry enrollment_authority_binding.kind=service_attested, bind device_signing_key, and have portable proofs with no service-specific domain or audience. The destination independently verifies its proof against the DID-designated enrollment authority."
+    }
+  },
+  "additionalProperties": false
+}

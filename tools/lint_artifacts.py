@@ -6579,7 +6579,7 @@ def check_action_reference_closure(lint: Lint) -> None:
 # Files that declare `normative: false` yet legitimately surface RFC 2119
 # keywords (informative guides quoting requirements, the spec map, the OpenAPI
 # view) are waived here. Each entry records why the exemption exists so the
-# waiver list can shrink as the underlying _spec_review findings are resolved.
+# waiver list can shrink as the underlying arkret-work/review/spec findings are resolved.
 NON_NORMATIVE_KEYWORD_WAIVERS: dict[str, str] = {
     # Informative migration/consumption/reference guides that quote the wire
     # contract's MUST/SHOULD requirements as reading aids, not as the

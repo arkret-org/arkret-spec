@@ -1824,7 +1824,8 @@
         "properties": [
           "peer",
           "create",
-          "idempotency_key"
+          "idempotency_key",
+          "peer_claim_request"
         ],
         "closed": true
       },
@@ -1840,7 +1841,9 @@
           "main_strand_id",
           "binding_event_ref",
           "created",
-          "binding_event"
+          "authoring_kind",
+          "claim_authorization_draft",
+          "materialization_draft"
         ],
         "closed": true
       }
@@ -3057,7 +3060,8 @@
         "required": [],
         "properties": [
           "events",
-          "service_binding_ref"
+          "service_binding_ref",
+          "signer_key_evidence"
         ],
         "closed": false,
         "variants": [
@@ -3088,7 +3092,8 @@
             ],
             "properties": [
               "service_binding_ref",
-              "events"
+              "events",
+              "signer_key_evidence"
             ],
             "closed": true
           }
@@ -3299,7 +3304,8 @@
         ],
         "properties": [
           "service_binding_ref",
-          "events"
+          "events",
+          "signer_key_evidence"
         ],
         "closed": true
       },
@@ -3380,6 +3386,7 @@
           "contact_address",
           "fact_kind",
           "introduction_evidence",
+          "signer_key_evidence",
           "idempotency_key"
         ],
         "closed": true
@@ -3395,6 +3402,94 @@
           "disclosed_outcome",
           "received_at",
           "retry_after_ms"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.keys.keypackages.command.claim",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body",
+        "schema_kind": "object",
+        "required": [
+          "claim_request_id",
+          "target_principal_id",
+          "requester",
+          "intended_realm_id",
+          "mls_group_id",
+          "claim_purpose",
+          "required_capabilities",
+          "claim_nonce",
+          "expires_at",
+          "requester_authorization"
+        ],
+        "properties": [
+          "claim_request_id",
+          "target_principal_id",
+          "requester",
+          "intended_realm_id",
+          "mls_group_id",
+          "claim_purpose",
+          "required_capabilities",
+          "claim_nonce",
+          "expires_at",
+          "target_device_ids",
+          "minimal_metadata_allowed",
+          "timeout_ms",
+          "strand_id",
+          "pair_key",
+          "allow_last_resort",
+          "requester_authorization",
+          "requester_signing_key_evidence"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_outcome",
+        "schema_kind": "object",
+        "required": [
+          "claim_request_id",
+          "claims",
+          "claim_receipt"
+        ],
+        "properties": [
+          "claim_request_id",
+          "claims",
+          "claim_receipt"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.keys.keypackages.query.claim",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_query_request_body",
+        "schema_kind": "object",
+        "required": [
+          "claim_request_id",
+          "request_digest"
+        ],
+        "properties": [
+          "claim_request_id",
+          "request_digest"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_query_outcome",
+        "schema_kind": "object",
+        "required": [
+          "claim_request_id",
+          "state"
+        ],
+        "properties": [
+          "claim_request_id",
+          "state",
+          "claim_outcome",
+          "retry_after_ms",
+          "error_code"
         ],
         "closed": true
       }
