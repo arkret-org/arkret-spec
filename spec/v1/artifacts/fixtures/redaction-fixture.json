@@ -41,7 +41,7 @@
         "realm_id": "ak:realm:01970e58-0004-7000-8000-000000000001",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "sender_actor_id": "did:webvh:z6mkfixture:alice.example",
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "payload": {
           "strand_id": "ak:strand:01970e58-0004-7000-8000-000000000002",
           "content": {
@@ -82,7 +82,7 @@
             "event_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
             "redaction_authorization_ref": "ak:event:01970e58-0004-7000-8000-0000000005a2",
             "receipt_id": "ak:receipt:01970e58-0004-7000-8000-0000000005a3",
-            "completed_at": "2026-04-26T00:05:00Z"
+            "completed_at": "2026-04-26T00:05:00.000Z"
           }
         }
       },
@@ -91,7 +91,7 @@
         "kind": "ak.message.create",
         "realm_id": "ak:realm:01970e58-0004-7000-8000-000000000001",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "redacted_because": {
           "code": "retention_pruning",
           "note": "payload pruned after snapshot frontier per retention policy"
@@ -127,7 +127,7 @@
         "realm_id": "ak:realm:01970e58-0004-7000-8000-000000000001",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "sender_actor_id": "did:webvh:z6mkfixture:alice.example",
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "payload": {
           "strand_id": "ak:strand:01970e58-0004-7000-8000-000000000002",
           "content": {
@@ -177,11 +177,11 @@
           "event_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
           "redaction_authorization_ref": "ak:event:01970e58-0004-7000-8000-0000000004b2",
           "receipt_id": "ak:receipt:01970e58-0004-7000-8000-0000000004b3",
-          "completed_at": "2026-04-26T00:05:00Z"
+          "completed_at": "2026-04-26T00:05:00.000Z"
         },
         "legal_hold_ref": null,
-        "completed_at": "2026-04-26T00:05:00Z",
-        "issued_at": "2026-04-26T00:05:00Z",
+        "completed_at": "2026-04-26T00:05:00.000Z",
+        "issued_at": "2026-04-26T00:05:00.000Z",
         "proofs": [
           {
             "verification_method": "did:webvh:z6mkfixture:soland.example#federation-fanout-key",
@@ -195,7 +195,7 @@
         "kind": "ak.message.create",
         "realm_id": "ak:realm:01970e58-0004-7000-8000-000000000001",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "redacted_because": {
           "code": "hard_erasure",
           "receipt_id": "ak:receipt:01970e58-0004-7000-8000-0000000004b3"

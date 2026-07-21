@@ -180,11 +180,11 @@ Content-Type: application/json
   },
   "decision": "allow",
   "reason_code": "ok",
-  "expires_at": "2026-04-26T00:05:00Z",
+  "expires_at": "2026-04-26T00:05:00.000Z",
   "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "policy_frontier_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
   "membership_frontier_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-  "next_retry_at": "2026-04-26T00:05:30Z",
+  "next_retry_at": "2026-04-26T00:05:30.000Z",
   "obligations": [
     {"type": "rate_limit", "bucket": "message", "remaining": 20}
   ],

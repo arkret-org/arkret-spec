@@ -19,9 +19,7 @@
   ],
   "$defs": {
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "hlc": {
       "type": "string",

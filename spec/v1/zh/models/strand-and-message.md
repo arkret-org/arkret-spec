@@ -87,7 +87,7 @@ Schema id: `ak.schema.strand.v1`
     "fields": {
       "component": "payments",
       "priority": "high",
-      "due_at": "2026-05-01T00:00:00Z"
+      "due_at": "2026-05-01T00:00:00.000Z"
     }
   },
   "content": {
@@ -104,7 +104,7 @@ Schema id: `ak.schema.strand.v1`
   "state": "active",
   "stage": "in_progress",
   "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-  "created_at": "2026-04-26T00:00:00Z"
+  "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```
 
@@ -606,7 +606,7 @@ Schema id: `ak.schema.message.v1`
   },
   "state": "active",
   "revision_root": "ak:message:0196414c-8000-7000-8000-000000000000",
-  "created_at": "2026-04-26T00:00:00Z"
+  "created_at": "2026-04-26T00:00:00.000Z"
 }
 ```
 

@@ -38,7 +38,7 @@ sidebar:
 
 6. **钓鱼与品牌仿冒（Phishing / Social Engineering）**
    通过目录、邀请、授权提示、签名展示链条进行误导，引导用户执行高风险动作。
-   **Realm alias 同形 / 抢注细分（与 [`discovery/object-addressing.md` §3.3](../discovery/object-addressing.md) 交叉引用）**:攻击者注册与目标 Realm alias 视觉同形（homograph / confusable）或抢注的 `<localpart>:<domain>` realm alias，借 `web+arkret:` 短地址 / `#alias` 分享链接诱导用户进入冒名 Realm。防护以 object-addressing §3.3「混淆防护」为权威——realm alias 注册 / 解析 MUST 复用 handle §17 的 wire-level canonical 比较纪律（NFC normalization、UTS#39 confusable skeleton 折叠、拒绝 script-mixed label 与 hyphen-disallowed-position 形态），在 realm alias 命名空间内做冲突检测，错误形态 registration 返回 `failed_precondition` `reason="realm_alias_homograph_forbidden"`；且 landing / handler 域名不是信任锚（object-addressing §5.1），客户端 MUST 以解析后的 canonical `realm_id` 为唯一信任锚。
+   **Realm alias 同形 / 抢注细分（与 [`discovery/object-addressing.md` §3.3](../discovery/object-addressing.md) 交叉引用）**:攻击者注册与目标 Realm alias 视觉同形（homograph / confusable）或抢注的 `<localpart>:<domain>` realm alias，借 `web+arkret:` 短地址 / `#alias` 分享链接诱导用户进入冒名 Realm。防护以 object-addressing §3.3「混淆防护」为权威——canonical equality 只比较 prepared localpart + lowercase A-label domain；registration authority 在自己的 realm-alias namespace 内使用固定版本 UTS #39 restriction-level / skeleton collision index，碰撞返回 `failed_precondition` `reason="realm_alias_homograph_forbidden"`，但 skeleton 不进入 wire equality。landing / handler 域名不是信任锚（object-addressing §5.1），客户端 MUST 以解析后的 canonical `realm_id` 为唯一信任锚。
 
 7. **恶意附件与链接传播（Malware / Unsafe Media）**
    上传/分享高风险附件、链接、可疑 blob，诱导后续执行或传播。

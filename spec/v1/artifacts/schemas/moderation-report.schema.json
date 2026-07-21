@@ -37,7 +37,7 @@
       ]
     },
     "description": {
-      "type": "string",
+      "$ref": "string-profiles.schema.json#/$defs/short_text",
       "maxLength": 4096
     },
     "reporter": {
@@ -126,9 +126,7 @@
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "event_ref": {
       "type": "string",

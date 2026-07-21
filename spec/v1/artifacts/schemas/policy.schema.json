@@ -84,9 +84,7 @@
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "policy_effect": {
       "type": "string",

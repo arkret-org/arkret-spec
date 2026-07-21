@@ -264,8 +264,8 @@ Content-Type: application/json
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-  "sent_at": "2026-04-26T00:00:00Z",
-  "expires_at": "2026-04-26T00:00:30Z",
+  "sent_at": "2026-04-26T00:00:00.000Z",
+  "expires_at": "2026-04-26T00:00:30.000Z",
   "payload": {
     "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
     "signal_type": "invite",

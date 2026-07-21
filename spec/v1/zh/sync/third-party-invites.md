@@ -61,11 +61,11 @@ updated: 2026-07-02
     "join_rule_snapshot": {
       "join_rule": "invite"
     },
-    "expires_at": "2026-05-05T00:00:00Z",
+    "expires_at": "2026-05-05T00:00:00.000Z",
     "state": "pending",
-    "created_at": "2026-04-28T00:00:00Z"
+    "created_at": "2026-04-28T00:00:00.000Z"
   },
-  "expires_at": "2026-05-05T00:00:00Z"
+  "expires_at": "2026-05-05T00:00:00.000Z"
 }
 ```
 
@@ -140,7 +140,7 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
     "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "audience": "arkret.invite.claim",
     "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",
-    "expires_at": "2026-05-05T00:00:00Z",
+    "expires_at": "2026-05-05T00:00:00.000Z",
     "signature": "c2ln"
   },
   "subject_proof": {

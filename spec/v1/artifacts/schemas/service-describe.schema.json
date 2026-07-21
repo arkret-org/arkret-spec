@@ -385,20 +385,17 @@
                 "minLength": 1
               },
               "next_retry_at": {
-                "type": "string",
-                "format": "date-time"
+                "$ref": "./time.schema.json#/$defs/timestamp"
               }
             },
             "additionalProperties": true
           }
         },
         "effective_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "expires_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "cache_ttl_seconds": {
           "type": "integer",
@@ -778,8 +775,7 @@
             "enum": ["self_claimed"]
           },
           "claimed_at": {
-            "type": "string",
-            "format": "date-time"
+            "$ref": "./time.schema.json#/$defs/timestamp"
           },
           "notes": {
             "type": "string"
@@ -837,12 +833,10 @@
             "description": "Signature over profile_id, verification_run_id, artifact_digest, artifact_ref, verifier and timestamp."
           },
           "timestamp": {
-            "type": "string",
-            "format": "date-time"
+            "$ref": "./time.schema.json#/$defs/timestamp"
           },
           "expires_at": {
-            "type": "string",
-            "format": "date-time"
+            "$ref": "./time.schema.json#/$defs/timestamp"
           }
         }
       },
@@ -1065,9 +1059,7 @@
       ]
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "cidr": {
       "type": "string",

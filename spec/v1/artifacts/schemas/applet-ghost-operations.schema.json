@@ -77,7 +77,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "display_name": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "realm_id": {
           "$ref": "#/$defs/realm_id"
@@ -111,7 +111,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "display_name": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         }
       },
       "additionalProperties": false

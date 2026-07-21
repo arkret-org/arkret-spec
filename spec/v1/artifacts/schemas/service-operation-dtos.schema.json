@@ -216,12 +216,10 @@
           "description": "MUST equal the session grant audience."
         },
         "issued_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "expires_at": {
-          "type": "string",
-          "format": "date-time",
+          "$ref": "./time.schema.json#/$defs/timestamp",
           "description": "MUST be after issued_at and no more than 300 seconds later."
         },
         "signature": {
@@ -262,8 +260,7 @@
           "description": "JWK the rotated grant is bound to (the device holder key)."
         },
         "expires_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "audience": {
           "type": "string",
@@ -303,8 +300,7 @@
           "description": "Optional digest of the validated client-visible account /logout request that caused this S2S sub-operation."
         },
         "validated_at": {
-          "type": "string",
-          "format": "date-time",
+          "$ref": "./time.schema.json#/$defs/timestamp",
           "description": "When the Account Authority validated the client-visible account /logout request."
         },
         "reason_code": {
@@ -471,12 +467,10 @@
           }
         },
         "expires_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "revoked_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "revocation_ref": {
           "type": "string"
@@ -549,8 +543,7 @@
           "type": "boolean"
         },
         "expires_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
       "additionalProperties": false
@@ -691,9 +684,7 @@
           "description": "Coarse status of the notary/frontier source used to diagnose stale or unknown revocation freshness."
         },
         "cache_expires_at": {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "Z$"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "reason_code": {
           "type": "string",
@@ -759,8 +750,7 @@
           "description": "Fully-qualified URL clients can pass to browser primitives. Contains the `presign` query parameter, `blob_ref`, and a presign envelope bound to `realm_id` for Realm-owned blobs."
         },
         "expires_at": {
-          "type": "string",
-          "format": "date-time",
+          "$ref": "./time.schema.json#/$defs/timestamp",
           "description": "Server-determined expiry; SHOULD be earlier than `now() + max_age_seconds`."
         },
         "purpose": {
@@ -911,12 +901,10 @@
               "pattern": "^ak:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
             "issued_at": {
-              "type": "string",
-              "format": "date-time"
+              "$ref": "./time.schema.json#/$defs/timestamp"
             },
             "expires_at": {
-              "type": "string",
-              "format": "date-time"
+              "$ref": "./time.schema.json#/$defs/timestamp"
             },
             "issuer_kid": {
               "type": "string",
@@ -929,8 +917,7 @@
           }
         },
         "expires_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "service_signature": {
           "type": "object",
@@ -1445,8 +1432,7 @@
           "description": "Digest of the active control/update public key at version_id; this is not the next-key commitment or private recovery material."
         },
         "issued_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "provider_service_id": {
           "type": "string",
@@ -1573,8 +1559,7 @@
           }
         },
         "as_of": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "principal_server_did": {
           "$ref": "#/$defs/ServiceId"
@@ -1604,16 +1589,14 @@
           "pattern": "^ak:announce:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "indexed_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "effective_ttl_seconds": {
           "type": "integer",
           "minimum": 1
         },
         "next_revalidation_after": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "warnings": {
           "type": "array",
@@ -1656,8 +1639,7 @@
           "additionalProperties": true
         },
         "effective_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         }
       }
     },
@@ -1675,8 +1657,7 @@
           "pattern": "^withdrawal:[A-Za-z0-9._:-]{1,128}$"
         },
         "acked_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         }
       }
     },
@@ -1731,8 +1712,7 @@
           ]
         },
         "created_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "governance_proof": {
           "type": "object",
@@ -1757,8 +1737,7 @@
           "pattern": "^appeal:[A-Za-z0-9._:-]{1,128}$"
         },
         "received_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "decision_receipt": {
           "type": "object",
@@ -1797,8 +1776,7 @@
           "description": "Optional implementation hint for fanout recipients queued locally."
         },
         "server_received_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
       "additionalProperties": false
@@ -2181,8 +2159,7 @@
           "description": "Method-specific proof material (e.g. did:webvh history head, witness signatures)."
         },
         "cached_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
       "additionalProperties": false
@@ -2432,8 +2409,7 @@
           "type": "string"
         },
         "expires_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "auth_state_digest": {
           "type": "string",
@@ -2451,8 +2427,7 @@
           "description": "Membership / role frontier digest used when producing the decision."
         },
         "next_retry_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "obligations": {
           "type": "array",
@@ -2682,8 +2657,7 @@
               "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
             },
             "expires_at": {
-              "type": "string",
-              "format": "date-time"
+              "$ref": "./time.schema.json#/$defs/timestamp"
             },
             "issuer": {
               "type": "string",
@@ -2975,8 +2949,7 @@
           "description": "Short-lived bearer/session grant bound to the requested principal, device and audience."
         },
         "expires_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "grant_id": {
           "$ref": "./common-ids.schema.json#/$defs/grant_id",
@@ -3064,9 +3037,7 @@
           "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
         },
         "expires_at": {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "Z$"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "content": {
           "type": "object"
@@ -3187,9 +3158,7 @@
           "description": "Optional witness or receipt-service attestations over the observed frontier."
         },
         "observed_at": {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "Z$"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "issuer": {
           "$ref": "#/$defs/ServiceId"
@@ -3243,9 +3212,7 @@
           "$ref": "#/$defs/RealmId"
         },
         "created_at": {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "Z$"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "event_digest": {
           "type": "string",
@@ -3479,23 +3446,28 @@
           ]
         },
         "state_changed_at": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/nullable_timestamp"
         },
         "title": {
-          "type": [
-            "string",
-            "null"
+          "oneOf": [
+            {
+              "$ref": "string-profiles.schema.json#/$defs/display_text_512"
+            },
+            {
+              "type": "null"
+            }
           ],
           "description": "Derived display title from plaintext-visible Strand metadata.title; null when metadata is encrypted or hidden from the service profile."
         },
         "summary": {
-          "type": [
-            "string",
-            "null"
+          "oneOf": [
+            {
+              "$ref": "string-profiles.schema.json#/$defs/short_text",
+              "maxLength": 2048
+            },
+            {
+              "type": "null"
+            }
           ],
           "description": "Derived display summary from plaintext-visible Strand metadata.summary; null when metadata is encrypted or hidden from the service profile."
         },
@@ -3544,11 +3516,7 @@
           ]
         },
         "created_at": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/nullable_timestamp"
         },
         "updated_by": {
           "type": [
@@ -3557,11 +3525,7 @@
           ]
         },
         "updated_at": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/nullable_timestamp"
         },
         "is_default": {
           "type": "boolean",
@@ -3590,9 +3554,13 @@
           "type": "string"
         },
         "title": {
-          "type": [
-            "string",
-            "null"
+          "oneOf": [
+            {
+              "$ref": "string-profiles.schema.json#/$defs/display_text_512"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
         "state": {
@@ -3604,11 +3572,7 @@
           ]
         },
         "state_changed_at": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/nullable_timestamp"
         },
         "created_by": {
           "type": [
@@ -3617,18 +3581,10 @@
           ]
         },
         "created_at": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/nullable_timestamp"
         },
         "updated_at": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/nullable_timestamp"
         }
       }
     },
@@ -3655,7 +3611,7 @@
           "description": "Space kind such as `board`, `list`, `folder`, or a profile-registered kind."
         },
         "title": {
-          "type": "string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "parent_space_id": {
           "type": [
@@ -3678,11 +3634,7 @@
           ]
         },
         "state_changed_at": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/nullable_timestamp"
         },
         "created_by": {
           "type": [
@@ -3691,18 +3643,10 @@
           ]
         },
         "created_at": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/nullable_timestamp"
         },
         "updated_at": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/nullable_timestamp"
         }
       }
     },
@@ -3746,8 +3690,7 @@
           "description": "DID of the snapshot issuer; bound by the manifest signature transcript."
         },
         "created_at": {
-          "type": "string",
-          "format": "date-time",
+          "$ref": "./time.schema.json#/$defs/timestamp",
           "description": "RFC 3339 UTC timestamp ending in 'Z' when the manifest was sealed; bound by the manifest signature transcript."
         },
         "authority_binding": {

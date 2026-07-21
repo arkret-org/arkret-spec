@@ -19,9 +19,7 @@
   ],
   "$defs": {
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "link_kind": {
       "type": "string",
@@ -76,8 +74,7 @@
           "$ref": "#/$defs/link_status"
         },
         "label": {
-          "type": "string",
-          "maxLength": 256
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "commitment": {
           "type": "string",
@@ -110,8 +107,7 @@
           "default": "active"
         },
         "label": {
-          "type": "string",
-          "maxLength": 256
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "commitment": {
           "type": "string"

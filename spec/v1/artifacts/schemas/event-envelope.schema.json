@@ -3653,14 +3653,10 @@
       "additionalProperties": true
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "canonical_event_timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$",
+      "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Canonical Event Envelope/proof timestamp. UTC Z form with exactly three millisecond digits; whole-second shorthand, finer fractions, and numeric offsets are forbidden."
     },
     "hash": {

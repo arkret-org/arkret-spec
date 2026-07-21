@@ -98,13 +98,10 @@
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "agent_slug": {
-      "type": "string",
-      "pattern": "^[a-z0-9](?:[a-z0-9_-]{0,62}[a-z0-9])?$"
+      "$ref": "string-profiles.schema.json#/$defs/agent_slug"
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     }
   },
   "additionalProperties": false

@@ -23,15 +23,13 @@
       "description": "Principal DID of the addressee. Materialised as payload.actor_id / cell subject in ak.member.state{membership=join}."
     },
     "handle": {
-      "type": "string",
-      "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
+      "$ref": "string-profiles.schema.json#/$defs/canonical_handle",
       "description": "Arkret canonical handle string: <localpart>:<domain>. acct: aliases and @ mention spelling are rejected here."
     },
     "handle_aliases": {
       "type": "array",
       "items": {
-        "type": "string",
-        "pattern": "^acct:[a-z0-9._+~-]{1,128}@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:[0-9]{1,5})?$"
+        "$ref": "string-profiles.schema.json#/$defs/acct_uri"
       },
       "uniqueItems": true,
       "description": "Optional interop aliases (RFC 7565 acct:). Never used for cache keys, signature transcripts, or delivery_binding materialisation."
@@ -97,15 +95,11 @@
       "description": "Target Realm ID or inviting service DID. Verifier MUST reject candidates whose audience does not match the current invocation context."
     },
     "issued_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$",
+      "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "RFC 3339 UTC timestamp marking when the issuer signed the candidate. Required: paired with expires_at to give verifiers a replay-protection window and to detect retro-dated candidates. issued_at MUST be <= expires_at."
     },
     "expires_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$",
+      "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "RFC 3339 UTC timestamp. Expired candidates MUST NOT enter the builder."
     },
     "source_refs": {

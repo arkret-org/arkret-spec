@@ -74,17 +74,14 @@
       "description": "RFC 7638 SHA-256 JWK thumbprint of the holder key, encoded base64url without padding."
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "non_empty_string": {
       "type": "string",
       "minLength": 1
     },
     "display_name": {
-      "type": "string",
-      "minLength": 1,
+      "$ref": "string-profiles.schema.json#/$defs/single_line_display_text",
       "maxLength": 128
     },
     "account_state": {

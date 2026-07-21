@@ -281,12 +281,10 @@
       "description": "Extensible user-readable Strand metadata. In MLS / E2EE realms this object is encrypted as encrypted_metadata unless the Realm explicitly opts into plaintext metadata.",
       "properties": {
         "title": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 512
+          "$ref": "string-profiles.schema.json#/$defs/display_text_512"
         },
         "summary": {
-          "type": "string",
+          "$ref": "string-profiles.schema.json#/$defs/short_text",
           "maxLength": 2048
         },
         "fields": {
@@ -526,9 +524,7 @@
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     }
   },
   "unevaluatedProperties": false

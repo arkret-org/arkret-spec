@@ -3,19 +3,17 @@
   "$id": "https://arkret.org/v1/schemas/cursor.schema.json",
   "$defs": {
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     }
   },
   "title": "Arkret Cursor",
-  "description": "Single opaque cursor type. Used as both stream continuation token (incremental sync, list pagination — 'after', 'before', 'prev_cursor', 'next_cursor') and barrier token (read-your-writes wait — 'X-Arkret-Wait-For'). Wire form is always ak:cursor:<base64url(canonical_json)>. Clients MUST treat the wire form as opaque; only the issuing server reads the inner structure.\n\nIntegrity contract (normative, see client-sync.md §12 and encoding.md §8 / §8.3.1): v1 core uses the stateful opaque-handle form only — body is {v, purpose, t, x, h} where 'h' is an unguessable server-side handle that the issuing server resolves to the bound (principal_id, device_id, service_id, filter_digest, purpose, positions, target?, expiry) tuple. Server-side handle lookup IS the integrity check; there is no inline transcript binding to verify on the client side. Servers MUST reject unknown / expired / cross-binding handles with cursor_integrity_invalid.",
+  "description": "Single opaque cursor type. Used as both stream continuation token (incremental sync, list pagination — 'after', 'before', 'prev_cursor', 'next_cursor') and barrier token (read-your-writes wait — 'X-Arkret-Wait-For'). Wire form is always ak:cursor:<base64url(canonical_json)>. Clients MUST treat the wire form as opaque; only the issuing server reads the inner structure.\n\nIntegrity contract (normative, see client-sync.md §12 and encoding.md §8 / §8.3.1): v1 core uses the stateful opaque-handle form only — body is {v, purpose, issued_at, expires_at, h} where 'h' is an unguessable server-side handle that the issuing server resolves to the bound (principal_id, device_id, service_id, filter_digest, purpose, positions, target?, expiry) tuple. Server-side handle lookup IS the integrity check; there is no inline transcript binding to verify on the client side. Servers MUST reject unknown / expired / cross-binding handles with cursor_integrity_invalid.",
   "type": "object",
   "required": [
     "v",
     "purpose",
-    "t",
-    "x",
+    "issued_at",
+    "expires_at",
     "h"
   ],
   "not": {
@@ -44,11 +42,13 @@
       ],
       "description": "Cursor purpose. 'stream' = continuation cursor for incremental sync / list pagination. Used as 'after' on /account/subscribe, 'before' / 'after' on ak.self.events.query.scan and ak.peer.events.query.scan (including its service-to-service federation pull form GET /_arkret/peer/events?before=<cursor>), and as response 'prev_cursor' (older direction) / 'next_cursor' (newer direction). prev_cursor / next_cursor carry absolute directional meaning regardless of how the request was issued — see api-conventions.md §7.0. 'barrier' = read-your-writes / wait-for-event cursor (use in X-Arkret-Wait-For header to block until local frontier covers target.event_id). The handle binding (resolved server-side) carries positions for 'stream' or target for 'barrier'; the wire body does not."
     },
-    "t": { "$ref": "#/$defs/timestamp" },
-    "x": {
-      "type": "integer",
-      "minimum": 0,
-      "description": "Expiration timestamp (Unix ms). MUST be in the future when the cursor is issued. TTL upper bounds (cursor lifetime = x - t_ms): barrier cursors MUST have TTL ≤ 3,600,000 ms (1 hour); stream cursors MUST have TTL ≤ 604,800,000 ms (7 days). Issuing a cursor exceeding these caps is a producer error; receivers MUST reject with `invalid_param`. Reasoning: barrier cursors only gate read-your-writes wait latency and become meaningless once the global frontier has long covered the target event. Stream cursors lose causal alignment value over weeks of activity."
+    "issued_at": {
+      "$ref": "#/$defs/timestamp",
+      "description": "Cursor issuance instant in the canonical Arkret UTC millisecond profile."
+    },
+    "expires_at": {
+      "$ref": "#/$defs/timestamp",
+      "description": "Cursor expiration instant. MUST be in the future when issued. TTL upper bounds (expires_at - issued_at): barrier cursors MUST have TTL ≤ 3,600,000 ms (1 hour); stream cursors MUST have TTL ≤ 604,800,000 ms (7 days)."
     },
     "h": {
       "type": "string",

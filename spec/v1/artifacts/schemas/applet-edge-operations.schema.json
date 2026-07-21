@@ -74,7 +74,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "display_name": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "url": {
           "type": "string",
@@ -132,7 +132,8 @@
           "uniqueItems": true
         },
         "description": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/short_text",
+          "maxLength": 2048
         }
       },
       "additionalProperties": false
@@ -148,7 +149,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "display_name": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "external_ref": {
           "$ref": "#/$defs/external_ref"
@@ -245,7 +246,7 @@
           "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "display_name": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "external_ref": {
           "$ref": "#/$defs/external_ref"
@@ -266,7 +267,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "title": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "external_ref": {
           "$ref": "#/$defs/external_ref"
@@ -286,7 +287,7 @@
           "$ref": "#/$defs/protocol"
         },
         "display_name": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "icon_blob_ref": {
           "$ref": "#/$defs/blob_ref"

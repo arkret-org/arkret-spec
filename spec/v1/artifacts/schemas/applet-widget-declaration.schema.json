@@ -59,8 +59,7 @@
           }
         },
         "expires_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "max_ttl_seconds": {
           "type": "integer",

@@ -57,15 +57,11 @@
       "description": "Minimum lead time before ttl expiry at which the client SHOULD initiate refresh. refresh_lead_seconds MUST be strictly less than ttl_seconds (servers MUST NOT issue refresh_lead_seconds >= ttl_seconds, otherwise the client would judge the credential stale at issuance and storm refresh). Defaults SHOULD be ttl_seconds / 4. The recommended floor (60s) applies only when ttl_seconds is large enough that floor < ttl_seconds still holds; for small ttl (e.g. the 60s minimum) the server MUST shrink refresh_lead_seconds below ttl_seconds (see webrtc-signaling.md §4.2). Required so all clients refresh at consistent cadence and servers can plan secret rotation grace windows."
     },
     "issued_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$",
+      "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Server-issued timestamp (RFC 3339 UTC). Bound into the ICE config signature."
     },
     "issued_at_bucket": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$",
+      "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Coarse UTC bucket start used for TURN pseudonym derivation. MUST equal floor(issued_at / bucket_seconds) * bucket_seconds. Bound into the signature so TURN usernames cannot be correlated across buckets by rewriting metadata."
     },
     "bucket_seconds": {
@@ -74,9 +70,7 @@
       "description": "TURN pseudonym bucket size in seconds. v1 fixes the default and interoperable value at 300s; clients SHOULD refresh before crossing the next bucket."
     },
     "expires_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$",
+      "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Convenience field equal to issued_at + ttl_seconds. MUST match within signature validation."
     },
     "force_turn": {
@@ -104,9 +98,7 @@
       "additionalProperties": false
     },
     "next_retry_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$",
+      "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Set when the response is a soft failure (e.g. turn_credential_expired). Clients MUST NOT retry before this time."
     },
     "signature": {

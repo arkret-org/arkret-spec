@@ -3,9 +3,7 @@
   "$id": "https://arkret.org/v1/schemas/handle-claim.schema.json",
   "$defs": {
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     }
   },
   "title": "Arkret Handle Claim",
@@ -25,15 +23,12 @@
       "description": "Canonical schema discriminator. Aligned with schema-registry.json; lets validators / contract-catalog consumers disambiguate this claim from other DID-bearing envelopes."
     },
     "handle": {
-      "type": "string",
-      "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
-      "description": "Arkret canonical handle string: <localpart>:<domain>. The @ mention sigil and acct: alias are not part of this field. This pattern is intentionally ASCII-only: it validates the post-IDNA canonical form, where <domain> is the A-label (punycode, xn-- prefix) and <localpart> is the lowercase restricted-ASCII canonical form. Unicode NFC normalization and UTS#39 confusable / script-mixing homograph detection (see zh/identity/identity-handles.md §17) MUST be applied to the U-label BEFORE IDNA conversion; they are not (and cannot be) re-enforced by this ASCII pattern."
+      "$ref": "string-profiles.schema.json#/$defs/canonical_handle"
     },
     "handle_aliases": {
       "type": "array",
       "items": {
-        "type": "string",
-        "pattern": "^acct:[a-z0-9._+~-]{1,128}@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:[0-9]{1,5})?$"
+        "$ref": "string-profiles.schema.json#/$defs/acct_uri"
       },
       "uniqueItems": true,
       "description": "Interop aliases such as RFC 7565 acct:. Aliases are never canonical; verifiers MUST normalize to handle before cache lookup, proof comparison, or delivery_binding construction."

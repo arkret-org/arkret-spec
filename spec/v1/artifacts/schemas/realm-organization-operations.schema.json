@@ -18,14 +18,10 @@
       "minLength": 1
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "nullable_timestamp": {
-      "type": ["string", "null"],
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/nullable_timestamp"
     },
     "hash": {
       "type": "string",

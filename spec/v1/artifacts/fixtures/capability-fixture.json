@@ -454,8 +454,8 @@
               {
                 "constraint_type": "temporal",
                 "effect": "allow",
-                "not_before": "2026-04-20T00:00:00Z",
-                "expires_at": "2026-05-20T00:00:00Z"
+                "not_before": "2026-04-20T00:00:00.000Z",
+                "expires_at": "2026-05-20T00:00:00.000Z"
               },
               {
                 "constraint_type": "quota",
@@ -521,7 +521,7 @@
         "actor_id": "did:webvh:z6mkfixture:intern.example.com",
         "action": "ak.invite.create",
         "resource": "ak:realm:0196414c-8000-7000-8000-000000000000",
-        "request_time": "2026-04-26T01:00:00Z",
+        "request_time": "2026-04-26T01:00:00.000Z",
         "request_audience": "did:webvh:z6mkfixture:vendor.example"
       },
       "expected": {
@@ -546,7 +546,7 @@
         {
           "event_id": "ak:event:01964101-2800-7000-8000-000000000000",
           "kind": "ak.capability.grant",
-          "created_at": "2026-04-26T00:00:00Z",
+          "created_at": "2026-04-26T00:00:00.000Z",
           "payload": {
             "grant_id": "ak:grant:01964101-2800-7000-8000-000000000000",
             "subject": "did:webvh:z6mkfixture:alice.example.com",
@@ -558,7 +558,7 @@
         {
           "event_id": "ak:event:01964181-2800-7000-8000-000000000000",
           "kind": "ak.capability.revoke",
-          "created_at": "2026-04-26T00:00:01Z",
+          "created_at": "2026-04-26T00:00:01.000Z",
           "payload": {
             "grant_id": "ak:grant:01964101-2800-7000-8000-000000000000"
           }
@@ -566,7 +566,7 @@
         {
           "event_id": "ak:event:019641d1-2800-7000-8000-000000000000",
           "kind": "ak.member.state",
-          "created_at": "2026-04-26T00:00:02Z",
+          "created_at": "2026-04-26T00:00:02.000Z",
           "payload": {
             "actor_id": "did:webvh:z6mkfixture:alice.example.com",
             "membership": "leave"
@@ -576,7 +576,7 @@
           "event_id": "ak:event:0196414c-c04a-7000-8000-000000000000",
           "kind": "ak.message.create",
           "actor_id": "did:webvh:z6mkfixture:alice.example.com",
-          "created_at": "2026-04-26T00:00:03Z",
+          "created_at": "2026-04-26T00:00:03.000Z",
           "payload": {
             "strand_id": "ak:strand:0196418d-cc00-7000-8000-000000000000",
             "content": {
@@ -792,39 +792,39 @@
         "effect": "allow",
         "message_edit_window": "PT15M"
       },
-      "target_created_at": "2026-04-26T00:00:00Z",
+      "target_created_at": "2026-04-26T00:00:00.000Z",
       "cases": [
         {
           "name": "matching_action_inside_window",
           "action": "ak.message.revise.own",
-          "verification_time": "2026-04-26T00:10:00Z",
+          "verification_time": "2026-04-26T00:10:00.000Z",
           "expected_matches": true
         },
         {
           "name": "matching_action_outside_window",
           "action": "ak.message.revise.own",
-          "verification_time": "2026-04-26T00:21:00Z",
+          "verification_time": "2026-04-26T00:21:00.000Z",
           "hard_future_skew_ms": 300000,
           "expected_matches": false
         },
         {
           "name": "unrelated_action_is_neutral_for_allow",
           "action": "ak.message.create",
-          "verification_time": "2026-04-27T00:00:00Z",
+          "verification_time": "2026-04-27T00:00:00.000Z",
           "expected_matches": true
         },
         {
           "name": "unrelated_action_does_not_match_deny",
           "override_effect": "deny",
           "action": "ak.message.create",
-          "verification_time": "2026-04-26T00:10:00Z",
+          "verification_time": "2026-04-26T00:10:00.000Z",
           "expected_matches": false
         },
         {
           "name": "missing_verified_target_created_at_fails_closed",
           "action": "ak.message.revise.own",
           "target_created_at": null,
-          "verification_time": "2026-04-26T00:10:00Z",
+          "verification_time": "2026-04-26T00:10:00.000Z",
           "expected_matches": false
         }
       ]

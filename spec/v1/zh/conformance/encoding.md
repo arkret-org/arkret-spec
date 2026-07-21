@@ -3,7 +3,7 @@ title: Encoding, IDs, Hashes, Signatures
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-17
+updated: 2026-07-21
 sidebar:
   label: Encoding & IDs
 ---
@@ -27,7 +27,9 @@ Arkret canonical JSON MUST 使用：
 - 无 insignificant whitespace。
 - JSON object 中的重复 key MUST reject，MUST NOT 采用“最后一个 wins”或“第一个 wins”。
 - number MUST 使用 RFC 8785 / JCS 等价的唯一 decimal serialization；NaN、Infinity、-Infinity、`-0`、无法精确往返的 number、超出 JSON safe integer 范围 `[-9007199254740991, 9007199254740991]` 的 number MUST reject。**v1 wire MUST NOT 使用非整数 number**：所有签名 canonical object 的 number 字段 MUST 是 JSON integer。需要超过 safe integer 范围的计数器、偏移或大整数 MUST 编码为带显式格式约束的 string（例如 fixed-width hex / decimal string），MUST NOT 作为 JSON number 进入 canonical bytes。比例、置信度、进度等小数值 MUST 编码为整数 + 显式 scale（推荐字段后缀 `_basis_points` 表示万分数 0..10000，或 `_x1000`、`_x1000000` 等明确比例）；`confidence_basis_points: 7500` 表示 75.00%。这条收紧规则取消了"何时允许 number canonicalization"的可选语义，使签名输入 100% 确定。
-- timestamp 使用 RFC 3339 UTC，尾部 `Z`；签名输入 MUST NOT 接受本地时区、隐式时区或 leap-second 变体。v1 producer 生成的 Event Envelope 顶层 `created_at`、Event detached proof 的 `proof.created_at` 与 Agent pairing transcript 时间统一固定为毫秒精度 `YYYY-MM-DDTHH:MM:SS.sssZ`：三位小数 MUST 始终存在，整秒写为 `.000Z`；微秒或纳秒输入 MUST 在构造 Event、proof binding 或 pairing digest **之前**向下截断到毫秒。实现使用通用日期时间 serializer 时 MUST 覆盖任何“零小数时省略 fraction”的默认行为；wire serializer 即使面对毫秒值为零的 typed timestamp，也 MUST 明确输出 `.000Z`。接收方 MUST 拒绝无小数的整秒简写、非三位小数、`+00:00` 数字 offset 及更细精度，避免同一逻辑时刻进入签名 canonical bytes 时出现多种字符串。历史已签名 bytes 不得在验证或回放时重写；跨旧 profile 读取必须按其原 profile 验证，新的 v1 producer 不得继续产生旧精度。
+- **Arkret 自有绝对时刻只有一个 wire profile**：固定 UTC 毫秒 `YYYY-MM-DDTHH:MM:SS.sssZ`。三位小数 MUST 始终存在，整秒写为 `.000Z`；微秒或纳秒输入 MUST 在构造 typed wire object、transcript 或 digest **之前**按 Unix 时间向负无穷方向 floor 到毫秒，MUST NOT 四舍五入。接收方 MUST 在 digest/signature/AAD 重建之前拒绝无小数、非三位小数、`+00:00` 或其他 offset、小写 `t`/`z`、leap second、非法 Gregorian 日期及首尾空白，MUST NOT 宽松解析后正规化再验签。共享机器定义是 [`time.schema.json#/$defs/timestamp`](../../artifacts/schemas/time.schema.json)。隐私或业务降精度只截断时间**值**，不改变 spelling；秒/分钟/hour bucket 仍以 `.000Z` 结尾。
+- 时间表示按语义而不是按使用位置分类：duration/latency/age/window/timeout 使用带单位的 integer（如 `*_ms`），不是绝对时刻；JWT/DPoP/OIDC `NumericDate`、TURN expiry、did:webvh `versionTime` 等外部字段严格遵循其外部协议并由 adapter 隔离；HLC physical component 与 UUIDv7 timestamp bits 是算法内部 Unix 毫秒编码；calendar local date/time 是带 zone/calendar 的 wall time。上述类型均不得冒充 Arkret timestamp，Arkret 自有公开 JSON 也 MUST NOT 派生并行 `*_unix` / `*_unix_ms` instant。
+- whole-object digest/signature 对通过 schema 的 `.sssZ` 字符串原样 canonicalize。独立 transcript/AAD 绑定已有 Arkret timestamp 时 MUST 使用相同字段名和相同 canonical 字符串；“参与密码学”本身不是转成 epoch integer 的理由。producer 必须先构造 typed canonical timestamp，receiver 必须先严格验证 wire spelling，再重建 canonical bytes。
 - 字段名使用 snake_case。
 
 Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs`、`unsigned` 与 **reducer-stamped 顶层字段**（v1 当前为 `effective_scope`、`actor_kind`）后的 canonical JSON bytes，并且 MUST 保留 `event_id`。`unsigned` 是传输/本地附加信息，MUST NOT 影响 event digest 或 proof `event_digest`。reducer-stamped 字段由 producer 提交时 MUST NOT 携带、reducer 接受时才 immutable 写入，因此**不进入 producer `proof.event_digest`**（否则联邦 peer 独立重算 digest 必与 producer 签名失配）；它们经 accepted envelope 存储、Seal / sub-seal observational 承诺与（MLS-backed scope 下的）E2EE AAD / MLS governance binding input 单独承诺，权威定义见 [`../models/event-and-patch.md` §2.2](../models/event-and-patch.md) 与 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)。实现 MUST NOT 对已经签名的 bytes 做大小写规范化、ID 前缀补全、字段默认值补写、key 重排以外的语义改写。签名字节的不可变性是协议演进的根约束——升级 MUST NOT 改写历史签名 bytes，而是用重放/投影重建派生视图，详见 [overview/evolution-and-compatibility.md](../overview/evolution-and-compatibility.md)。
@@ -36,33 +38,52 @@ Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs`、`unsigned` 与
 
 生产者 MUST 在所有 v1 签名对象中使用 JSON integer 表示数值。Schema 要求小数语义的字段（如概率、进度、置信度）MUST 使用整数 + scale（见上文 `_basis_points` 等约定），生产者和消费者按预定义 scale 解释，无须做 number canonicalization。任何进入签名 / canonical wire bytes 的 v1 schema MUST NOT 出现 `type: number`（非整数）字段；该约束在 OpenAPI 镜像上由 lint 强制。唯一例外是**派生的 read / projection 响应**中承载「被投影字段运行时类型」的 filter 值（例如 `view.schema.json#/$defs/collection_projection_view` 分组 source 的 `value`、OpenAPI `CollectionFieldValueGroupSource.value`）：它们不进入 canonical Event bytes、不参与签名，MAY 保留 `type: number`，且在 OpenAPI 镜像中 MUST 以 `# lint-waiver(type:number): <理由>` 标注；后续 wire 修订可将需要小数的字段类型迁移为 `{integer, scale}` 信封。
 
-### 2.1 String 字段的 Unicode 收紧
+### 2.1 时间语义 inventory 与最小例外表
 
-字符串 field 的 wire 形态 MUST 满足以下约束，否则 receiver MUST `schema_violation` 拒绝：
+实现和 machine contract MUST 先按下表分类，再选择编码；字段位于签名、digest、AAD、cursor、数据库或 UI 中不是分类依据。外部例外只有外部 owner 仍拥有该 wire 字段时才成立，adapter 转换出的 Arkret 自有字段立即回到固定 `.sssZ` profile。
 
-- **NFC 正规化**：所有 string value MUST 在写入 canonical JSON 前完成 Unicode NFC（Canonical Composition）正规化。生产者发送已 NFC 化字节；receiver MUST NOT 在 verify 阶段做隐式 NFC 化——若收到非 NFC 字符串，按 schema_violation 拒绝。这一条避免"看起来一样的字符串"在 hash / signature 比较时出现 false positive 或 false negative（同一可见字符可能由 precomposed 或 decomposed 序列表示）。
-- **身份相关字段进一步走 NFKC**：DID URI、handle、connection identifier、display name 用于精确匹配 / blocklist / capability subject 解析的字段 MUST 在比较前归约为 NFKC（Compatibility Composition），并对结果再做 case folding（`toCaseFold` / Unicode default case folding）。NFKC 把 compatibility-equivalent 字符（如 `ｄｉｄ：` 全角 vs `did:` 半角，`Ⅰ` vs `I`，`℗` vs `(P)`）合并到同一表示。比较 / 索引 / 黑名单匹配 MUST 在 NFKC + case folding 之后进行；wire 上仍传 NFC 原始字节。
-- **Confusables 拒绝**：handle、DID method-specific identifier、organization handle 这类与品牌 / 身份相关的 string field MUST 拒绝包含 Unicode TR 39 高风险 confusable 字符的输入。受规范的字段 MUST 使用 `IdentifierStatus=Restricted` 或更严策略：
-  - 拒绝 mixed-script identifier（拉丁 + 西里尔 + 希腊 + …）；只允许 single-script，或 single-script + ASCII digit 组合。
-  - 拒绝 TR 39 §5.1.1 列出的高风险 confusable 字符（如 `а`(U+0430 西里尔) 与 `a`(U+0061 拉丁) 同形）。
-  - 拒绝纯不可见或控制字符序列（`U+200B…U+200F`、`U+202A…U+202E`、`U+2066…U+2069` 等 zero-width / bidi override）。
-  - 实现 SHOULD 暴露 confusable check 为可调用 utility，让客户端在创建 handle / 显示名前预检；wire 拒绝行为由 `ak.vector.identity.reject_handle_homograph.v1` 与 `ak.vector.identity.reject_realm_alias_homograph.v1` 固定，SDK utility 形状不属于 wire conformance gate。
+| 类别 | 当前字段/边界 | owner 与规范依据 | wire / internal 表示 | 删除条件 |
+| --- | --- | --- | --- | --- |
+| Arkret absolute instant | 所有 Arkret schema 中的 `created_at`、`updated_at`、`issued_at`、`expires_at`、Event `timestamp`、cursor 时间 | Arkret v1；本节与 `time.schema.json#/$defs/timestamp` | JSON fixed `.sssZ`；transcript/AAD 保持原字段名与原字符串 | 不可列入例外；字段删除时随合同删除 |
+| Duration / latency / age / window / timeout | `ttl_ms`、`timeout_ms`、`retry_after_ms`、`max_age_ms` 等 | Arkret 字段语义和单位后缀 | JSON non-negative integer；不是 instant | 字段不再表示量时必须重命名并重新分类，禁止原名改义 |
+| JWT / DPoP / OIDC NumericDate | JWT claim `iat`、`nbf`、`exp` | [RFC 7519](https://www.rfc-editor.org/rfc/rfc7519)；DPoP 另由 [RFC 9449](https://www.rfc-editor.org/rfc/rfc9449) 继承 JWT | 外部 token 中为 epoch seconds；Arkret producer 输出整数，external verifier 依适用 profile | token 不再是 JWT/DPoP/OIDC 或 claim 离开外部 token 时立即删除例外 |
+| TURN REST credential | TURN username 中的 expiry prefix | TURN REST credential provider contract（[draft-uberti-rtcweb-turn-rest](https://datatracker.ietf.org/doc/draft-uberti-rtcweb-turn-rest/)） | adapter 最末边界的 Unix seconds；Arkret ICE response 自有 `expires_at` 仍为 `.sssZ` | provider 不再使用该 credential contract 时删除 |
+| did:webvh | canonical DID log / operation 的 `versionTime` | [did:webvh v1.0 method specification](https://identity.foundation/didwebvh/v1.0/) | method-owned ISO 8601 UTC spelling；不得由 Arkret formatter 重写 | 字段离开 canonical DID log、成为 Arkret 投影时删除例外并使用 `.sssZ` |
+| Algorithmic epoch | HLC physical component、UUIDv7 timestamp bits | 各算法的规范位布局 | internal Unix milliseconds / bits；不是并行 JSON instant | 算法替换或该值被公开为业务时间字段时删除例外 |
+| Local wall time / date | calendar local date、recurrence occurrence key、zone-aware local start | 对应 calendar / recurrence schema | 独立 local date/time + explicit zone/calendar；不是 UTC instant | 一旦语义改为绝对时刻，删除例外并使用 `.sssZ` |
+| Internal storage / computation | DB epoch column、clock arithmetic、TTL comparison | 实现内部，无 wire owner | MAY 使用 Unix milliseconds；跨 wire 前必须转换 | 值进入公开 JSON、transcript 或跨服务合同即删除例外 |
 
-什么字段需要走 NFKC + confusable check：
+Schema source lint 的当前外部 `format: date-time` allowlist 只有 did:webvh `ServiceWebvhInceptionOperation.versionTime`；JWT/DPoP/OIDC 与 TURN 使用数值或复合字符串，因此不得伪装成 `date-time` allowlist 项。新增例外 MUST 同时登记 owner、规范链接、精确字段路径和删除条件，并增加互操作测试；无法分类的字段 MUST 先修改本规范，不得从现有 fixture 反推合同。
 
-| 字段 | NFC（必）| NFKC + case fold（比较时）| Confusable 拒绝 |
+### 2.2 String profile 与 Unicode 处理
+
+字符串 MUST 先按其协议角色选择 profile；实现 MUST NOT 对 DID、URI、email、phone、display text 与 Arkret human identifier 套用同一个 NFKC / case-fold normalizer。所有进入 canonical JSON 的 string value 仍 MUST 是 NFC；receiver MUST 验证而不得在验签阶段静默改写非 NFC wire bytes。
+
+v1 的 machine-readable profile 与版本钉定见 [`string-profile-registry.json`](../../artifacts/registry/string-profile-registry.json)，共享 schema 定义见 [`string-profiles.schema.json`](../../artifacts/schemas/string-profiles.schema.json)：
+
+| Profile | 适用字段 | preparation / 验证 | 比较与授权语义 |
 | --- | --- | --- | --- |
-| DID URI | ✓ | ✓ | ✓（method-specific identifier 部分）|
-| Handle（canonical `handle` / display form） | ✓ | ✓ | ✓ |
-| Connection identifier（email / phone canonical 形态） | ✓ | ✓ | ✓（local part）|
-| Organization name | ✓ | ✓ | ✓ |
-| Display name | ✓ | ✓ | 仅 SHOULD（默认开启 confusable warning，用户 opt-out）|
-| Title / summary / content body 等正文字段 | ✓ | — | — |
-| Schema id / event kind / cell family 等 protocol identifier | ✓ | ASCII-only（schema 已 enforce） | — |
+| `arkret_human_identifier` | handle / realm alias localpart、native personal Agent selector `slug` | RFC 8265 `UsernameCaseMapped` enforcement（width mapping、Unicode lowercase、NFC）后排除 Arkret 结构分隔符；长度同时按 code point 与 UTF-8 octet 限制 | prepared code point sequence 精确相等；可建立唯一索引 |
+| `arkret_single_line_display_text` | `title`、`display_name`、`label` | NFC；允许多语言、emoji、数学符号和混合脚本；拒绝 CR/LF、C0/C1、BOM、bidi embedding / override / isolate；不得仅为空白 | 永不用于主体相等、授权、ACL 或签名者判定 |
+| `arkret_short_text` | `summary`、短 `description` | NFC；允许 LF 换行；拒绝 CR、其它 C0/C1、BOM 与 bidi embedding / override；字段 schema 决定 code-point 上限 | 非权威全文 |
+| `arkret_content_text` | message / content / body | NFC；允许正常 bidi 与 emoji 序列；拒绝 BOM 与非文本控制字符；renderer 负责转义和方向隔离 | 内容；不参与 identifier 比较 |
+| `arkret_protocol_token` | kind、schema/profile ID、action、enum、algorithm、base64url / hex | 字段专属 ASCII grammar | byte-exact 或字段专属比较 |
+| `arkret_external_string` | DID、DID URL、URI、email、phone、provider identifier | 委托对应外部标准、DID method 或已登记 provider profile | 禁止 Arkret 全局 NFKC / case folding |
 
-为什么把 NFKC + confusable 限定在身份相关字段而不是全字段：正文（Strand.content、Message.content）允许任何脚本混排是合理的（中文夹拉丁、阿拉伯夹希伯来），不能强制 single-script。但身份相关字段是 trust UI 决策点，必须 reject 同形字攻击。
+外部字符串的具体规则：
 
-### 2.2 备用 canonical encoding (profile-gated)
+- generic DID parser 只验证 DID Core 语法；method name 按 DID Core 为小写 ASCII，method-specific-id 与 DID URL components 保留原值并按对应 DID method / URI 规则比较。只有 resolver 提供的 `canonicalId` / `equivalentId` 才能建立强等价，Arkret MUST NOT 因全串大小写折叠而合并 DID。
+- email 保留 local-part；domain 使用 §2.2.1 的 IDNA profile。mailbox issuer / provider 决定 local-part comparison；非 ASCII local-part 的 SMTP 投递还要求 RFC 6531 `SMTPUTF8`。
+- phone 使用 E.164 或声明的 provider profile；`acct:` 使用 RFC 7565 / RFC 3986；opaque provider identifier 按 bytes 保留。
+- organization `display_name` 与个人 display name 都是 display text，不是 organization handle；混合脚本最多触发 UI warning，不得因中文夹英文、品牌名夹数字而拒绝。
+
+UTS #39 skeleton 只是 registration authority 在**同一 namespace**内使用的派生 collision index，不是 canonical value、wire 字段、proof transcript 或协议 equality。authority MAY 要求 `Highly Restrictive` restriction level；skeleton 数据版本升级时 MUST 重建派生索引但 MUST NOT 改写既有 canonical identifier。不同 authority 或 handle / realm-alias 两个不相交 namespace 的 skeleton 相同，不建立协议等价。
+
+#### 2.2.1 IDNA domain profile
+
+面向用户的 domain 输入 MAY 是 U-label；canonical wire、签名、缓存键和唯一索引 MUST 使用 UTS #46 Nontransitional Processing 得到的小写 A-label，并启用 `CheckHyphens=true`、`CheckBidi=true`、`CheckJoiners=true`、`UseSTD3ASCIIRules=true`、`VerifyDnsLength=true`。实现 MUST 拒绝 trailing dot、空 label、单 label domain、超过 63 octets 的 label、超过 253 octets 的 domain、无效 `xn--` 与不能通过 ToUnicode → ToASCII round-trip 的 A-label。JSON Schema 的 ASCII pattern 只做粗粒度 shape 检查，不能替代该 normative validator。
+
+### 2.3 备用 canonical encoding (profile-gated)
 
 v1 wire format 锁定为 canonical JSON。需要更紧凑或更适合受限设备的 binding 时，profile MAY 引入备用 canonical encoding：
 
@@ -103,7 +124,7 @@ digest suite 的 canonical 机器来源是 [`digest-suite-registry.json`](../../
 
 v1 active 集合刻意保持最小（`sha256` + `blake3`）。需要 algorithm diversity（如 SHA-3 / Keccak 家族对冲 SHA-2 结构性风险）或抗量子 hash 时，按 registry 规则**加法注册**新行（新 hash profile + conformance vector），wire 形态无需重写；不预注册无实际使用场景的算法。
 
-除上表 active rows 外，registry 还以 **reserved** 状态登记了备用归一化编码 suite（当前为 `cbor.sha256`，deterministic CBOR + SHA-256，gate 为 `ak.profile.encoding.cbor.v1`，见 §2.2）。reserved suite 钉定 wire 前缀与 gate，但在其 `activation_requirements`（编码细则 + CDDL + 类型映射 + conformance vectors）全部满足并在 registry release 中翻为 active 之前，**MUST NOT 出现在 wire 上**——接收方按未识别 suite 前缀 fail closed 处理即可，无需特判。
+除上表 active rows 外，registry 还以 **reserved** 状态登记了备用归一化编码 suite（当前为 `cbor.sha256`，deterministic CBOR + SHA-256，gate 为 `ak.profile.encoding.cbor.v1`，见 §2.3）。reserved suite 钉定 wire 前缀与 gate，但在其 `activation_requirements`（编码细则 + CDDL + 类型映射 + conformance vectors）全部满足并在 registry release 中翻为 active 之前，**MUST NOT 出现在 wire 上**——接收方按未识别 suite 前缀 fail closed 处理即可，无需特判。
 
 扩展 profile MAY 通过新 hash profile 加入抗量子 hash（如 SLH-DSA hash family、SHAKE256 派生），也 MAY 通过新 encoding profile 注册备用归一化 suite；v1 wire 形态 `<suite>:<hex>` 已经为这两类加法准备好——**无需重写 wire**。
 
@@ -582,7 +603,7 @@ rank_between(left, right):
   cell_subject = base64url_nopad(sha256(canonical_json(components_array)))
   ```
 
-  其中 `components_array` 是按本规范声明的固定顺序排列的 JSON array，所有 string element 已经 normalize 过（NFC、小写 typed ID、规范 DID）。身份类 sub-component（DID URI、handle、connection identifier 等 §2.1 列举的身份字段）在进入 `components_array` 前 MUST 先应用 §2.1 的 NFKC + case folding（与该字段用于 cell subject 派生的"比较 / 索引 / 黑名单匹配"语义一致），再纳入 hash 输入；否则仅 compatibility-equivalent 或大小写不同的两条 DID 会 hash 出不同 cell subject，造成同一主体的 device authorization cell 分裂（正是 §2.1 要防的同形 / 兼容字符攻击面）。
+  其中 `components_array` 是按本规范声明的固定顺序排列的 JSON array。每个 string element MUST 使用该字段自己的 canonical profile：typed ID 使用 schema 规定的小写 canonical 形态；DID 保留 DID method 定义的 canonical bytes，MUST NOT 做 Arkret 全串 NFKC / case folding；handle 使用已准备 localpart + 小写 A-label domain；connection identifier 使用其 kind / provider profile。复合 subject producer 与 verifier 必须消费同一 typed value，不得用通用 Unicode normalizer猜测外部标识符等价。
 - 实现 MUST NOT 直接使用 `a|b|c` 这种管道分隔字符串作为复合 subject。canonical cell id、签名输入、state map 索引 MUST 使用 hash 形态。
 - 复合 subject 的 sub-component 必须存在于 DataEvent / Control Move effect value 或兼容 Event payload 的具名字段中。
 - 同一 standard cell family 的 `components_array` schema 由本规范固定，profile MUST NOT 擅自增删字段或重新排序。

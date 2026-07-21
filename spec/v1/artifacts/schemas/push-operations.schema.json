@@ -45,8 +45,7 @@
       "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "non_empty_string": {
       "type": "string",
@@ -374,13 +373,13 @@
           "$ref": "#/$defs/message_id"
         },
         "sender_actor_display_name": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "strand_title": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_512"
         },
         "realm_title": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "user_is_target": {
           "type": "boolean"
@@ -441,7 +440,7 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "display_name": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
         },
         "recipient_service_id": {
           "$ref": "#/$defs/did"

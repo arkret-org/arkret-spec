@@ -36,9 +36,7 @@
       "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "circle_state": {
       "type": "string",
@@ -83,7 +81,7 @@
           "maxLength": 256
         },
         "summary": {
-          "type": "string",
+          "$ref": "string-profiles.schema.json#/$defs/short_text",
           "maxLength": 2048
         },
         "display": {
@@ -192,7 +190,7 @@
           "maxLength": 256
         },
         "summary": {
-          "type": "string",
+          "$ref": "string-profiles.schema.json#/$defs/short_text",
           "maxLength": 2048
         },
         "directory_visibility": {

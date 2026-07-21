@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/spec/v1/artifacts/schemas/string-profiles.schema.json",
+  "title": "Arkret String Profiles",
+  "description": "Shared coarse-grained JSON Schema shapes for Arkret v1 string profiles. Custom format validation and UTF-8 octet limits are normative and require the SDK validator; JSON Schema patterns do not implement PRECIS, IDNA, or UTS #39.",
+  "type": "object",
+  "maxProperties": 0,
+  "additionalProperties": false,
+  "$defs": {
+    "human_identifier_localpart": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[^\\s:@/#?\\\\]+$",
+      "format": "arkret-human-identifier",
+      "description": "Canonical RFC 8265 UsernameCaseMapped-derived localpart. Maximum 128 Unicode code points and 512 UTF-8 octets."
+    },
+    "agent_slug": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[^\\s:@/#?\\\\]+$",
+      "format": "arkret-agent-slug",
+      "description": "Canonical controller-scoped native personal Agent selector slug. Maximum 64 Unicode code points and 256 UTF-8 octets."
+    },
+    "canonical_domain": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 253,
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$",
+      "format": "arkret-idna-a-label-domain",
+      "description": "Lowercase UTS #46 Nontransitional A-label domain with at least two labels; normative validation includes STD3, Bidi, Joiner, hyphen, DNS-length, and round-trip checks."
+    },
+    "canonical_handle": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 382,
+      "pattern": "^[^\\s:@/#?\\\\]+:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$",
+      "format": "arkret-canonical-handle",
+      "description": "Canonical <prepared-localpart>:<lowercase-A-label-domain> handle or realm alias. The localpart maximum is 128 Unicode code points / 512 UTF-8 octets; the domain maximum is 253 ASCII octets."
+    },
+    "acct_uri": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 1808,
+      "pattern": "^acct:(?:[A-Za-z0-9._~+!-]|%[0-9A-F]{2})+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$",
+      "format": "arkret-acct-uri",
+      "description": "RFC 7565 acct URI with UTF-8 localpart octets percent-encoded using uppercase hex when required, canonical A-label host, and no port."
+    },
+    "single_line_display_text": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?=.*\\S)[^\\u0000-\\u001F\\u007F-\\u009F\\u202A-\\u202E\\u2066-\\u2069\\uFEFF]*$",
+      "format": "arkret-single-line-display-text",
+      "description": "NFC multilingual single-line display text; mixed scripts, emoji, and symbols are allowed."
+    },
+    "display_text_256": {
+      "$ref": "#/$defs/single_line_display_text",
+      "maxLength": 256,
+      "description": "Single-line display text limited to 256 Unicode code points and 1024 UTF-8 octets."
+    },
+    "display_text_512": {
+      "$ref": "#/$defs/single_line_display_text",
+      "maxLength": 512,
+      "description": "Single-line display text limited to 512 Unicode code points and 2048 UTF-8 octets."
+    },
+    "short_text": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[^\\u0000-\\u0009\\u000B-\\u001F\\u007F-\\u009F\\u202A-\\u202E\\uFEFF]*$",
+      "format": "arkret-short-text",
+      "description": "NFC multilingual short text. LF is allowed; CR, other C0/C1 controls, BOM, and bidi embedding/override controls are rejected."
+    },
+    "content_text": {
+      "type": "string",
+      "pattern": "^[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+      "format": "arkret-content-text",
+      "description": "NFC multilingual content text; rendering contexts must escape markup and apply bidi isolation."
+    }
+  }
+}

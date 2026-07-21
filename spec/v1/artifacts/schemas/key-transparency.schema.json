@@ -79,8 +79,7 @@
           "$ref": "#/$defs/digest"
         },
         "issued_at": {
-          "type": "string",
-          "format": "date-time"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         }
       }
     },

@@ -222,14 +222,10 @@
           "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "requested_at": {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "Z$"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "expires_at": {
-          "type": "string",
-          "format": "date-time",
-          "pattern": "Z$"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
       "additionalProperties": false
@@ -491,7 +487,9 @@
             "^did:[a-z0-9]+:[^\\s#?]+$": {
               "type": "object",
               "properties": {
-                "display_name": { "type": "string", "maxLength": 256 },
+                "display_name": {
+                  "$ref": "string-profiles.schema.json#/$defs/display_text_256"
+                },
                 "avatar_blob_ref": { "type": "string", "minLength": 1, "maxLength": 2048 }
               },
               "additionalProperties": false
@@ -502,8 +500,13 @@
         "realm_metadata": {
           "type": "object",
           "properties": {
-            "title": { "type": "string", "maxLength": 256 },
-            "summary": { "type": "string", "maxLength": 4096 },
+            "title": {
+              "$ref": "string-profiles.schema.json#/$defs/display_text_256"
+            },
+            "summary": {
+              "$ref": "string-profiles.schema.json#/$defs/short_text",
+              "maxLength": 4096
+            },
             "join_rule": { "type": "string", "minLength": 1, "maxLength": 128 },
             "collaboration_role": {
               "type": "string",

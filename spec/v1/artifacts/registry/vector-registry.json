@@ -1924,13 +1924,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.identity.reject_handle_homograph.v1",
+      "vector_id": "ak.vector.identity.internationalized_identifier_profiles.v1",
       "status": "active",
       "domain": "identity",
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "Handle issuer/registry rejects mixed-script U-labels, UTS#39 skeleton collisions, and hyphen-disallowed-position inputs before IDNA conversion.",
+      "description": "RFC 8265 human-identifier preparation, canonical-receiver rejection, Unicode localparts and Agent slugs, UTS #46 A-label conversion, and dual code-point/octet limits.",
       "source_refs": [
         "spec/v1/zh/identity/identity-handles.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -1938,13 +1938,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.identity.reject_realm_alias_homograph.v1",
+      "vector_id": "ak.vector.identity.authority_local_skeleton_collision.v1",
       "status": "active",
       "domain": "identity",
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "Realm alias registry applies the same mixed-script, confusable-skeleton, and hyphen-position rejection discipline as handles.",
+      "description": "UTS #39 skeleton collision state is scoped to one registration authority and one namespace and never defines canonical equality or wire bytes.",
       "source_refs": [
         "spec/v1/zh/identity/identity-handles.md",
         "spec/v1/zh/conformance/conformance-vectors.md",

@@ -38,13 +38,10 @@
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "handle": {
-      "type": "string",
-      "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$"
+      "$ref": "string-profiles.schema.json#/$defs/canonical_handle"
     },
     "hash": {
       "type": "string",

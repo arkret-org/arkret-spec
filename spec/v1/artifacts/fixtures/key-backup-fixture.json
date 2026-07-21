@@ -26,7 +26,7 @@
         "backup_version": "kb_1",
         "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 0,
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
           "kdf": {
@@ -55,7 +55,7 @@
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_1",
-            "created_at": "2026-04-26T00:00:00Z",
+            "created_at": "2026-04-26T00:00:00.000Z",
             "item_types": [
               "self_signing_key",
               "user_signing_key"
@@ -112,7 +112,7 @@
           "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
         },
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "encryption": {
           "recipient_method": "secret_storage_key",
           "recipient_key_ref": "mls_group_secrets_backup_key",
@@ -131,7 +131,7 @@
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "mls_history",
             "backup_version": "kb_1",
-            "created_at": "2026-04-26T00:00:00Z",
+            "created_at": "2026-04-26T00:00:00.000Z",
             "item_types": [
               "mls_group_state"
             ]
@@ -185,7 +185,7 @@
           "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
         },
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
           "kdf": {
@@ -213,7 +213,7 @@
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "mls_history",
             "backup_version": "kb_1",
-            "created_at": "2026-04-26T00:00:00Z",
+            "created_at": "2026-04-26T00:00:00.000Z",
             "item_types": [
               "mls_group_state"
             ]
@@ -267,7 +267,7 @@
           "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
         },
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "encryption": {
           "recipient_method": "device_snapshot_secret",
           "recipient_key_ref": "ak:device:01964137-0000-7000-8000-000000000000",
@@ -285,7 +285,7 @@
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "mls_history",
             "backup_version": "kb_1",
-            "created_at": "2026-04-26T00:00:00Z",
+            "created_at": "2026-04-26T00:00:00.000Z",
             "item_types": [
               "mls_group_state"
             ]
@@ -337,7 +337,7 @@
           "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
         },
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "encryption": {
           "recipient_method": "recovery_public_key",
           "recipient_key_ref": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery",
@@ -356,7 +356,7 @@
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "mls_history",
             "backup_version": "kb_1",
-            "created_at": "2026-04-26T00:00:00Z",
+            "created_at": "2026-04-26T00:00:00.000Z",
             "item_types": [
               "mls_group_state"
             ]
@@ -410,7 +410,7 @@
           "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
         },
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "encryption": {
           "recipient_method": "recovery_public_key",
           "recipient_key_ref": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery",
@@ -428,7 +428,7 @@
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "mls_history",
             "backup_version": "kb_1",
-            "created_at": "2026-04-26T00:00:00Z",
+            "created_at": "2026-04-26T00:00:00.000Z",
             "item_types": [
               "mls_group_state"
             ]
@@ -481,7 +481,7 @@
           "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
         },
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
           "kdf": {
@@ -509,7 +509,7 @@
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "did_recovery",
             "backup_version": "kb_1",
-            "created_at": "2026-04-26T00:00:00Z",
+            "created_at": "2026-04-26T00:00:00.000Z",
             "item_types": [
               "recovery_key_share"
             ]
@@ -563,7 +563,7 @@
           "frontier_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
           "ssk_generation": 2
         },
-        "created_at": "2026-04-27T00:00:00Z",
+        "created_at": "2026-04-27T00:00:00.000Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
           "kdf": {
@@ -592,7 +592,7 @@
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_2",
-            "created_at": "2026-04-27T00:00:00Z",
+            "created_at": "2026-04-27T00:00:00.000Z",
             "item_types": [
               "self_signing_key",
               "user_signing_key"
@@ -648,7 +648,7 @@
         "backup_class": "secret_storage",
         "backup_version": "kb_1",
         "series_seq": 0,
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
           "kdf": {
@@ -675,7 +675,7 @@
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_1",
-            "created_at": "2026-04-26T00:00:00Z",
+            "created_at": "2026-04-26T00:00:00.000Z",
             "item_types": [
               "self_signing_key"
             ]
@@ -723,7 +723,7 @@
         "backup_version": "kb_1",
         "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "supersedes": null,
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
           "kdf": {
@@ -750,7 +750,7 @@
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_1",
-            "created_at": "2026-04-26T00:00:00Z",
+            "created_at": "2026-04-26T00:00:00.000Z",
             "item_types": [
               "self_signing_key"
             ]
@@ -799,7 +799,7 @@
         "backup_version": "kb_1",
         "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 0,
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
           "kdf": {
@@ -825,7 +825,7 @@
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_1",
-            "created_at": "2026-04-26T00:00:00Z",
+            "created_at": "2026-04-26T00:00:00.000Z",
             "item_types": [
               "self_signing_key"
             ]
@@ -873,7 +873,7 @@
         "backup_version": "kb_1",
         "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 0,
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
           "kdf": {
@@ -900,7 +900,7 @@
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_1",
-            "created_at": "2026-04-26T00:00:00Z",
+            "created_at": "2026-04-26T00:00:00.000Z",
             "item_types": [
               "self_signing_key"
             ]
@@ -948,7 +948,7 @@
         "backup_version": "kb_1",
         "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 0,
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
           "kdf": {
@@ -974,7 +974,7 @@
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_1",
-            "created_at": "2026-04-26T00:00:00Z",
+            "created_at": "2026-04-26T00:00:00.000Z",
             "item_types": [
               "self_signing_key"
             ]
@@ -1023,7 +1023,7 @@
         "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 1,
         "supersedes": "ak:backup:01964137-0000-7000-8000-000000000000",
-        "created_at": "2026-04-27T00:00:00Z",
+        "created_at": "2026-04-27T00:00:00.000Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
           "kdf": {
@@ -1050,7 +1050,7 @@
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_2",
-            "created_at": "2026-04-27T00:00:00Z",
+            "created_at": "2026-04-27T00:00:00.000Z",
             "item_types": [
               "self_signing_key"
             ]
@@ -1100,7 +1100,7 @@
         "backup_version": "kb_mixed",
         "series_id": "ak:backup_series:01964137-2000-7000-8000-000000000000",
         "series_seq": 0,
-        "created_at": "2026-04-26T00:00:00Z",
+        "created_at": "2026-04-26T00:00:00.000Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
           "kdf": {
@@ -1127,7 +1127,7 @@
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_mixed",
-            "created_at": "2026-04-26T00:00:00Z",
+            "created_at": "2026-04-26T00:00:00.000Z",
             "item_types": [
               "self_signing_key",
               "mls_group_secrets_backup_key"
@@ -1205,7 +1205,7 @@
             }
           ]
         },
-        "issued_at": "2026-04-26T00:00:00Z",
+        "issued_at": "2026-04-26T00:00:00.000Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
           "signature_algorithm": "Ed25519",
@@ -1245,7 +1245,7 @@
             "ak:device:01964138-0000-7000-8000-000000000000"
           ]
         },
-        "issued_at": "2026-04-27T00:00:00Z",
+        "issued_at": "2026-04-27T00:00:00.000Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
           "signature_algorithm": "Ed25519",
@@ -1284,8 +1284,8 @@
             "public_key_multibase": "z6MkogKw38hXxUkpMWitoBubBGHZzeGrQJ4oHF36iegUbmpA",
             "key_agreement_ref": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#backup-hpke-1",
             "alg": "Ed25519",
-            "not_before": "2026-04-26T00:00:00Z",
-            "expires_at": "2036-04-26T00:00:00Z",
+            "not_before": "2026-04-26T00:00:00.000Z",
+            "expires_at": "2036-04-26T00:00:00.000Z",
             "revoked_at": null
           }
         ],
@@ -1299,12 +1299,12 @@
               "ak.hpke_x25519_aead_aes256gcm.v1"
             ],
             "use": "backup_hpke",
-            "not_before": "2026-04-26T00:00:00Z",
-            "expires_at": "2036-04-26T00:00:00Z",
+            "not_before": "2026-04-26T00:00:00.000Z",
+            "expires_at": "2036-04-26T00:00:00.000Z",
             "revoked_at": null
           }
         ],
-        "issued_at": "2026-04-26T00:00:00Z",
+        "issued_at": "2026-04-26T00:00:00.000Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
@@ -1345,11 +1345,11 @@
             "public_key_multibase": "z6MkogKw38hXxUkpMWitoBubBGHZzeGrQJ4oHF36iegUbmpA",
             "key_agreement_ref": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#backup-hpke-1",
             "alg": "Ed25519",
-            "not_before": "2026-04-26T00:00:00Z",
-            "expires_at": "2036-04-26T00:00:00Z"
+            "not_before": "2026-04-26T00:00:00.000Z",
+            "expires_at": "2036-04-26T00:00:00.000Z"
           }
         ],
-        "issued_at": "2026-04-26T00:00:00Z",
+        "issued_at": "2026-04-26T00:00:00.000Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
@@ -1381,8 +1381,8 @@
         "supersedes": "ak:policy:01964140-0000-7000-8000-000000000000",
         "trust_domain": "ak:trust_domain:did.webvh.example",
         "allowed_proof_kinds": [],
-        "expires_at": "2026-04-27T00:00:00Z",
-        "issued_at": "2026-04-27T00:00:00Z",
+        "expires_at": "2026-04-27T00:00:00.000Z",
+        "issued_at": "2026-04-27T00:00:00.000Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
           "signature_algorithm": "Ed25519",
@@ -1417,9 +1417,9 @@
         "ssk_generation": 2,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "state": "pending",
-        "created_at": "2026-04-27T00:00:00Z",
-        "updated_at": "2026-04-27T00:00:00Z",
-        "expires_at": "2026-04-27T00:15:00Z"
+        "created_at": "2026-04-27T00:00:00.000Z",
+        "updated_at": "2026-04-27T00:00:00.000Z",
+        "expires_at": "2026-04-27T00:15:00.000Z"
       }
     },
     {
@@ -1438,8 +1438,8 @@
         "identity_model": "cross_signing",
         "model_generation_ref": 2,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-        "created_at": "2026-04-27T00:00:00Z",
-        "expires_at": "2026-04-27T00:15:00Z"
+        "created_at": "2026-04-27T00:00:00.000Z",
+        "expires_at": "2026-04-27T00:15:00.000Z"
       }
     },
     {
@@ -1479,8 +1479,8 @@
         ],
         "welcome_count": 0,
         "outcome": "completed",
-        "started_at": "2026-04-27T00:00:00Z",
-        "completed_at": "2026-04-27T00:05:00Z",
+        "started_at": "2026-04-27T00:00:00.000Z",
+        "completed_at": "2026-04-27T00:05:00.000Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964139",
           "signature_algorithm": "Ed25519",
@@ -1546,8 +1546,8 @@
         ],
         "welcome_count": 0,
         "outcome": "completed",
-        "started_at": "2026-04-27T00:00:00Z",
-        "completed_at": "2026-04-27T00:05:00Z",
+        "started_at": "2026-04-27T00:00:00.000Z",
+        "completed_at": "2026-04-27T00:05:00.000Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964139",
           "signature_algorithm": "Ed25519",
@@ -1597,7 +1597,7 @@
           "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 2
         },
-        "created_at": "2026-07-13T00:00:00Z",
+        "created_at": "2026-07-13T00:00:00.000Z",
         "encryption": {
           "recipient_method": "recovery_public_key",
           "recipient_key_ref": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery-2",
@@ -1616,7 +1616,7 @@
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "mls_history",
             "backup_version": "kb_1",
-            "created_at": "2026-07-13T00:00:00Z",
+            "created_at": "2026-07-13T00:00:00.000Z",
             "item_types": [
               "mls_group_state"
             ],
@@ -1734,7 +1734,7 @@
           "frontier_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
           "ssk_generation": 2
         },
-        "issued_at": "2026-04-27T00:00:00Z",
+        "issued_at": "2026-04-27T00:00:00.000Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
           "signature_algorithm": "Ed25519",
@@ -1768,7 +1768,7 @@
         "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
         "proof_kind": "threshold_recovery",
         "proof_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
-        "issued_at": "2026-04-27T00:04:00Z",
+        "issued_at": "2026-04-27T00:04:00.000Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964139",
           "signature_algorithm": "Ed25519",

@@ -37,7 +37,7 @@
       "$ref": "#/$defs/view_renderer"
     },
     "title": {
-      "type": "string"
+      "$ref": "string-profiles.schema.json#/$defs/display_text_512"
     },
     "visibility": {
       "type": "string",
@@ -351,9 +351,7 @@
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "field_path": {
       "type": "string",
@@ -464,7 +462,7 @@
           "uniqueItems": true
         },
         "title": {
-          "type": "string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_512"
         },
         "fields": {
           "type": "object"
@@ -754,8 +752,7 @@
           "minLength": 1
         },
         "title": {
-          "type": "string",
-          "minLength": 1
+          "$ref": "string-profiles.schema.json#/$defs/display_text_512"
         },
         "rank": {
           "type": "string",
@@ -912,7 +909,7 @@
               "type": "string"
             },
             "title": {
-              "type": "string"
+              "$ref": "string-profiles.schema.json#/$defs/display_text_512"
             },
             "state": {
               "type": "string"
@@ -1323,7 +1320,7 @@
                 "$ref": "#/$defs/query"
               },
               "title": {
-                "type": "string"
+                "$ref": "string-profiles.schema.json#/$defs/display_text_512"
               },
               "layout": {
                 "type": "object",

@@ -147,8 +147,7 @@
       "pattern": "^sha256:[0-9a-f]{64}$"
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "non_empty_string": {
       "type": "string",
@@ -341,7 +340,8 @@
           ]
         },
         "description": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "string-profiles.schema.json#/$defs/short_text",
+          "maxLength": 2048
         }
       },
       "patternProperties": {

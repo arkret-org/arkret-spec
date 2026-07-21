@@ -54,9 +54,7 @@
       "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
     },
     "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
+      "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "non_empty_string": {
       "type": "string",
@@ -154,8 +152,7 @@
           "minLength": 1
         },
         "agent_slug": {
-          "type": "string",
-          "pattern": "^[a-z0-9](?:[a-z0-9_-]{0,62}[a-z0-9])?$"
+          "$ref": "string-profiles.schema.json#/$defs/agent_slug"
         },
         "avatar_blob_ref": {
           "$ref": "#/$defs/blob_ref"
