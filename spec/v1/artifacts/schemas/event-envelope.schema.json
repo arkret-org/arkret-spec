@@ -1754,7 +1754,6 @@
               "ak.identity.disclosure_receipt",
               "ak.identity.presentation_request",
               "ak.identity.presentation_response",
-              "ak.identity.accountability_grant",
               "ak.schema.define",
               "ak.schema.update",
               "ak.policy.set",
@@ -2135,6 +2134,25 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/view_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.identity.accountability_grant"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./accountability-grant.schema.json"
           }
         }
       }

@@ -141,7 +141,7 @@
           {
             "schema_id": "ak.schema.event.v1",
             "registry_row_digest": "sha256:9be92d949aef947b3cbb58b6dcf953491e9226f1403416b9fc9cc347a79e288e",
-            "document_digest": "sha256:50f5d578e1822ed7ff1379799b390e09c28a0d4237c1efe1538680a554f155ac"
+            "document_digest": "sha256:5b02282fc87225b25ce8fbe0374817b4e06558a8dc34799e7aa9d13f230eefac"
           },
           {
             "schema_id": "ak.schema.event_batch_receipt.v1",
@@ -196,7 +196,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:9bc94be5e96e213119c2e3176ee8d25b9d1895d7a8d209c7aeb38d31301ec8bf"
+      "reducer_profile_digest": "sha256:605b350a4d253ea57e930c51f5690041b79d49cd570fe21bbb2a35c804977da3"
     },
     {
       "profile_id": "ak.profile.chat_mvp.v1",
@@ -418,7 +418,7 @@
           {
             "schema_id": "ak.schema.event.v1",
             "registry_row_digest": "sha256:9be92d949aef947b3cbb58b6dcf953491e9226f1403416b9fc9cc347a79e288e",
-            "document_digest": "sha256:50f5d578e1822ed7ff1379799b390e09c28a0d4237c1efe1538680a554f155ac"
+            "document_digest": "sha256:5b02282fc87225b25ce8fbe0374817b4e06558a8dc34799e7aa9d13f230eefac"
           },
           {
             "schema_id": "ak.schema.event_batch_receipt.v1",
@@ -520,7 +520,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:e45cd05d2d8e8d719d0801d624be44bb88c0f2f8381e9cd55ce40a3c77dfef6a"
+      "reducer_profile_digest": "sha256:844afe84b12a57646c8f542b587096ad807a0dc02f95f031ce4341f679e2b119"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -717,7 +717,7 @@
           {
             "schema_id": "ak.schema.event.v1",
             "registry_row_digest": "sha256:9be92d949aef947b3cbb58b6dcf953491e9226f1403416b9fc9cc347a79e288e",
-            "document_digest": "sha256:50f5d578e1822ed7ff1379799b390e09c28a0d4237c1efe1538680a554f155ac"
+            "document_digest": "sha256:5b02282fc87225b25ce8fbe0374817b4e06558a8dc34799e7aa9d13f230eefac"
           },
           {
             "schema_id": "ak.schema.event_batch_receipt.v1",
@@ -816,7 +816,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:8f11d995c8799c9d452675240930deb17396432029865eb3c6dec4df97d0a166"
+      "reducer_profile_digest": "sha256:16a161eccc71526f3236f6e734bb96ebbe91f7e116c448d3fbcff6682fd2e1e7"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1274,7 +1274,7 @@
           {
             "schema_id": "ak.schema.event.v1",
             "registry_row_digest": "sha256:9be92d949aef947b3cbb58b6dcf953491e9226f1403416b9fc9cc347a79e288e",
-            "document_digest": "sha256:50f5d578e1822ed7ff1379799b390e09c28a0d4237c1efe1538680a554f155ac"
+            "document_digest": "sha256:5b02282fc87225b25ce8fbe0374817b4e06558a8dc34799e7aa9d13f230eefac"
           },
           {
             "schema_id": "ak.schema.event_batch_receipt.v1",
@@ -1445,7 +1445,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:b311957f04bffd48aa6968093baff0bc3cc6eab08c2291e8e5e3d6da46158590"
+      "reducer_profile_digest": "sha256:dda09f08d8b1e8941efc17a0104d650434554a26c413f9e35d4fde4c78999f6e"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1620,7 +1620,7 @@
           {
             "schema_id": "ak.schema.event.v1",
             "registry_row_digest": "sha256:9be92d949aef947b3cbb58b6dcf953491e9226f1403416b9fc9cc347a79e288e",
-            "document_digest": "sha256:50f5d578e1822ed7ff1379799b390e09c28a0d4237c1efe1538680a554f155ac"
+            "document_digest": "sha256:5b02282fc87225b25ce8fbe0374817b4e06558a8dc34799e7aa9d13f230eefac"
           },
           {
             "schema_id": "ak.schema.event_batch_receipt.v1",
@@ -1695,7 +1695,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:6a5a70685da06086eaf62508b1c5de07f8590f31bf4482d5c9586f90714eb0d0"
+      "reducer_profile_digest": "sha256:fe7b320b94f96214842464efa9bdc9f99c54359a8bd9b98a18f24dde04f7426d"
     }
   ],
   "generated_fields": [
