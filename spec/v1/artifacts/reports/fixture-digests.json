@@ -50,7 +50,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "358fdb8074b563106253a3fa415b4ddd2141b45eb6c5028f24e47fedb7a25644"
+      "sha256": "a47bef159d3136165a10e11e40d11f6ffbd430f803547e1c1636bf6ffb1eb053"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -102,7 +102,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "efa03fbf6e80f2a35ce0d7b558fd5fd4c13127c3cc42ae92e66dc78f55a819e7"
+      "sha256": "6c976def1a0b41ec2e21b351b137e83356e3e0152e76099887f4a3035621ede3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -143,6 +143,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
       "sha256": "129f4e600bd297d9b7528b07c60639aafb3fcb15b880ad833e990b1fdb8e7578"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
+      "sha256": "0ff911931dc3bfc56e6492d174712ac1f40de30be20f6a9dfed404e38273975b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/media-aead-nonce-fixture.json",

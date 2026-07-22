@@ -520,6 +520,20 @@
       "description": "Native Agent MLS KeyPackages bind exclusively to the current accepted ak.agent.key.authorize Event and its runtime signing key, never to a controller delegated-device authorization; stale, mixed, cross-principal, revoked, superseded, expired, or key-mismatched bindings fail closed."
     },
     {
+      "vector_id": "ak.vector.crypto.keypackage_write_transcripts.v1",
+      "status": "active",
+      "domain": "crypto",
+      "applies_to_fixtures": [
+        "keypackage-write-transcript-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/crypto-media/device-lifecycle.md",
+        "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json"
+      ],
+      "description": "KeyPackage upload, entry upload, consume, and revoke signatures use one byte-exact operation-id domain plus typed unsigned-request JCS transcript shared by ordinary devices and Native Agent runtimes."
+    },
+    {
       "vector_id": "ak.vector.agent.participation.ceiling_tighten.v1",
       "status": "active",
       "domain": "agent",

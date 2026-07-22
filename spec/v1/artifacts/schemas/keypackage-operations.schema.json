@@ -185,7 +185,8 @@
           "$ref": "#/$defs/timestamp"
         },
         "device_signature": {
-          "$ref": "#/$defs/signature"
+          "$ref": "#/$defs/signature",
+          "description": "Optional defense-in-depth entry signature over the upload entry transcript registered by device-lifecycle.md section 9.0. It never replaces the required request-level batch signature."
         },
         "last_resort": {
           "type": "boolean",
@@ -349,7 +350,8 @@
           "minItems": 1
         },
         "device_signature": {
-          "$ref": "#/$defs/signature"
+          "$ref": "#/$defs/signature",
+          "description": "Required authoritative batch signature over the typed upload request with the top-level signature and all entry signatures omitted, using the ak.self.keys.keypackages.upload.create domain. Ordinary devices and Native Agent runtimes share the same transcript."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -1011,7 +1013,8 @@
           "$ref": "#/$defs/device_id"
         },
         "signature": {
-          "$ref": "#/$defs/signature"
+          "$ref": "#/$defs/signature",
+          "description": "Signature over the typed consume request with this field omitted, using the ak.self.keys.keypackages.command.consume domain."
         },
         "claim_ids": {
           "type": "array",
@@ -1073,7 +1076,8 @@
           "$ref": "#/$defs/device_id"
         },
         "signature": {
-          "$ref": "#/$defs/signature"
+          "$ref": "#/$defs/signature",
+          "description": "Signature over the typed revoke request with this field omitted, using the ak.self.keys.keypackages.command.revoke domain."
         },
         "reason": {
           "$ref": "#/$defs/non_empty_string"

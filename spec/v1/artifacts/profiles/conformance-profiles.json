@@ -2618,7 +2618,10 @@
         "ak.server.query.describe",
         "ak.self.events.command.submit",
         "ak.self.events.query.scan",
-        "ak.self.authz.query.check"
+        "ak.self.authz.query.check",
+        "ak.self.keys.keypackages.upload.create",
+        "ak.self.keys.keypackages.command.consume",
+        "ak.self.keys.keypackages.command.revoke"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2628,7 +2631,9 @@
       "required_fixtures": [
         "capability-fixture.json",
         "privacy-security-fixture.json",
-        "agent-vectors-fixture.json"
+        "agent-vectors-fixture.json",
+        "agent-mls-keypackage-authorization-fixture.json",
+        "keypackage-write-transcript-fixture.json"
       ],
       "optional_extensions": [
         "tool_execution",
