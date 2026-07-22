@@ -875,6 +875,31 @@
           }
         },
         {
+          "name": "realm_bootstrap_transaction_chain",
+          "events": [
+            {
+              "event_id": "ak:event:019641d2-3000-7000-8000-000000000101",
+              "realm_id": "ak:realm:019641d2-3000-7000-8000-000000000003",
+              "kind": "ak.realm.create",
+              "actor_seq": 0,
+              "prev_refs": []
+            },
+            {
+              "event_id": "ak:event:019641d2-3000-7000-8000-000000000102",
+              "realm_id": "ak:realm:019641d2-3000-7000-8000-000000000003",
+              "kind": "ak.capability.grant",
+              "actor_seq": 1,
+              "prev_refs": [
+                "ak:event:019641d2-3000-7000-8000-000000000101"
+              ]
+            }
+          ],
+          "expected": {
+            "result": "accept",
+            "authoring_basis": "genesis_then_same_transaction"
+          }
+        },
+        {
           "name": "cross_realm_predecessor",
           "event_realm_id": "ak:realm:019641d2-3000-7000-8000-000000000001",
           "predecessor_realm_id": "ak:realm:019641d2-3000-7000-8000-000000000002",
