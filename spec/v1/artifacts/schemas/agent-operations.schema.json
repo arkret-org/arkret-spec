@@ -1305,8 +1305,43 @@
       "properties": {
         "reason": {
           "$ref": "#/$defs/non_empty_string"
+        },
+        "membership_frontier": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Required only for mls_remove. UTF-8 byte-lexicographically sorted accepted membership/control refs that triggered the durable Sidecar removal obligation."
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "stage": {
+                "const": "mls_remove"
+              }
+            },
+            "required": [
+              "stage"
+            ]
+          },
+          "then": {
+            "required": [
+              "membership_frontier"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "membership_frontier"
+              ]
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "agent_lifecycle_state": {

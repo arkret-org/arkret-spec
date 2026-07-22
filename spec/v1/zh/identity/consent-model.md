@@ -297,7 +297,7 @@ policy MAY 声明 `ak.realm.policy_components` 中的 `preauth` component 包含
 
 WebRTC `ak.call.signal{signal_type=invite}` 在服务端投递与目标客户端展示前都 MUST 校验 `voice_call` / `video_call` consent；无 consent 的 invite MUST 被丢弃或进入 profile 声明的 quarantine，且不得产生 VoIP push / ringing UI。Presence subscription / fanout 由 Sync Service 在每次订阅建立和每次 fanout 前校验 holder 对 observer 的 `presence` consent；无 consent 时不得泄露在线、离线、last active bucket 或订阅是否存在。
 
-`ak.self.direct_conversation.command.resolve` 是联系人私聊入口；它 MUST 同时检查 accepted contact projection 与目标 holder 对 requester 的 active `direct_message` / `any` consent。任一条件不成立时，对 requester 统一 fail closed（`failed_precondition` / `direct_conversation_unavailable`），响应状态、body 与时序不得泄露究竟是 contact 缺失还是 holder 私有 consent 缺失；细分原因只可写 holder-private 审计。非联系人但基于 consent 发起的一次性 DM profile 若未来需要，必须另行注册 operation，不得复用该 resolver。
+`ak.self.direct_conversation.command.resolve` 的普通联系人分支 MUST 同时检查 accepted contact projection 与目标 holder 对 requester 的 active `direct_message` / `any` consent。它还允许一个不伪造 contact/consent 的窄化分支：requester 是目标 active Native Personal Agent 的 immutable controller，且 provisioning/controller binding 与 runtime-key authorization 均可验证。任一分支的条件不成立时，对 requester 统一 fail closed（`failed_precondition` / `direct_conversation_unavailable`），响应状态、body 与时序不得泄露究竟是 contact、consent 或 Agent lifecycle/binding 缺失；细分原因只可写 holder-private 审计。其它非联系人但基于 consent 发起的一次性 DM profile 若未来需要，必须另行注册 operation，不得复用该 resolver。
 
 `ak.private_contact_discovery.v1` 返回 PSI set-membership 命中位图时，MAY 附带 holder 当前 consent state hash 或最小 invite/consent handoff stub（不暴露具体 consent 内容，只声明 grant/revoke 状态与下一步引导），让发起方在尝试联系前判断是否需要先请求 consent。该响应 MUST NOT 包含 contact request handoff token、reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。
 

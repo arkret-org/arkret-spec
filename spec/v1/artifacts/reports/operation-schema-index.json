@@ -708,7 +708,8 @@
         "schema_kind": "object",
         "required": [],
         "properties": [
-          "reason"
+          "reason",
+          "membership_frontier"
         ],
         "closed": true
       },

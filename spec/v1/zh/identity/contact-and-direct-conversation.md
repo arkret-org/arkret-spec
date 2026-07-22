@@ -17,7 +17,7 @@ see_also:
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [`../conformance/normative-language.md`](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
-本文定义 Arkret v1 中"加联系人 -> 找他聊天"的协议级生命周期。它不是 UI 联系人列表说明，也不是对 consent、Realm 或 Strand 的别名重述，而是把联系人关系、action consent gate、direct conversation binding 与消息载体明确分层。
+本文定义 Arkret v1 中 principal 与另一个 principal 建立 1:1 私聊的协议级生命周期。它不是 UI 联系人列表说明，也不是对 consent、Realm 或 Strand 的别名重述，而是把联系人关系、managed Agent controller binding、action consent gate、direct conversation binding 与消息载体明确分层。
 
 ## 1. 真相源分层
 
@@ -149,7 +149,7 @@ v1 规范采用窄读：private contact discovery 响应 MAY 在 PSI set-members
 
 ## 6. Direct Conversation Resolver
 
-联系人 accepted 后，客户端不应手工拼 Realm / Strand。`ak.self.direct_conversation.command.resolve` 是 pair 到 canonical 1:1 DM 入口的幂等 resolver。
+联系人 accepted 后，或用户从自己的 Native Personal Agent 入口发起私聊时，客户端不应手工拼 Realm / Strand。`ak.self.direct_conversation.command.resolve` 是 pair 到 canonical 1:1 DM 入口的幂等 resolver。联系人侧栏中的 owned-Agent 行属于本节的直接会话入口；它不需要当前 Collaboration Realm/Strand 上下文，也不得调用 Sidecar ensure。
 
 | operation | HTTP | Body / Response | 说明 |
 | --- | --- | --- | --- |
@@ -157,8 +157,10 @@ v1 规范采用窄读：private contact discovery 响应 MAY 在 PSI set-members
 
 Resolver MUST：
 
-1. 验证 requester 与 peer 的 contact projection 为 `accepted`，且 requester 未 tombstone 该 contact。若没有 accepted contact，对 requester 统一返回 `failed_precondition` / `direct_conversation_unavailable`。本 resolver 是"联系人私聊入口"；只想基于 consent 发起非联系人 DM 的 profile 必须另行注册 operation。
-2. 验证目标 holder 对 requester 有 active `consent_scope=direct_message` 或 `any`。若没有，对 requester 同样返回 `failed_precondition` / `direct_conversation_unavailable`。服务端 MAY 在 holder-private 审计中区分 contact/consent 原因，但响应状态、body 与时序 MUST 不可区分。
+1. Resolver MUST 建立下列恰好一种 authorization basis：
+   - `accepted_contact`：requester 与 peer 的 contact projection 为 `accepted`，requester 未 tombstone 该 contact；
+   - `managed_agent_controller`：peer 是 lifecycle `active`、runtime key 已授权的 Native Personal Agent，且其 immutable controller binding bit-identical 指向 requester。
+2. `accepted_contact` basis 还 MUST 验证目标 holder 对 requester 有 active `consent_scope=direct_message` 或 `any`。`managed_agent_controller` basis 的 provisioning/controller binding 是该 controller 发起专属 Agent 私聊的授权根，不额外伪造 contact 或 consent fact；非 controller、paused/deactivated/unpaired Agent 均不得使用该分支。任一 basis 不成立时，对 requester 统一返回 `failed_precondition` / `direct_conversation_unavailable`。服务端 MAY 在 holder-private 审计中区分具体原因，但响应状态、body 与时序 MUST 不可区分。只想基于 consent 发起其它非联系人 DM 的 profile 必须另行注册 operation。
 3. 查询 direct conversation binding。若已有 active canonical binding，返回其 `realm_id` 与 `main_strand_id`。
 4. 若 `create=false` 且不存在 binding，返回 `not_found`。
 5. 若 `create=true`，先确定 KeyPackage claim，再向参与者返回不可变 materialization draft；真正的 Realm create / member add / Strand create、MLS group create / add-commit / Welcome 与 binding 必须由参与者设备完成签名并经 canonical Event rail 接受。同 Principal Server 可使用 self KeyPackage claim；跨 Principal Server MUST 使用 [`device-lifecycle.md` §9.2](../crypto-media/device-lifecycle.md) 的 participant-authorized peer claim，不得调用对端 `/_arkret/self/*` 或以 Event push 模拟 claim。Principal Server 不持有参与者设备私钥，也不得直接调用 reducer 伪装这些事实已经成为 Event。该编排的失败路径 MUST 返回如下终态错误，且 MUST NOT 把半成品 Realm 作为 canonical binding 返回：
@@ -177,7 +179,7 @@ Resolver create 是多步编排，不是单个 reducer 原子操作。若 Realm 
 
 跨 PS materialization 的 `ak.mls.welcome.payload.peer_claim_receipt` MUST 是目标服务对本次 peer claim 的原签名 receipt；其签名覆盖的 `request` 必须精确绑定该 binding 的 `pair_key`、`realm_id`、`main_strand_id`、`mls_group_id`、creator requester 与 peer recipient，且 `allow_last_resort` 不得为 true。目标 PS 在 Welcome ingress 对 durable claim ledger 验证 receipt，在 binding projection 阶段再次对上述 Direct Conversation 引用做闭环验证；任一不一致的候选不得成为 active/canonical。
 
-Direct conversation binding 是 pair 到 `(realm_id, main_strand_id, mls_group_id)` 的 principal-scoped signed fact / projection，不是 server 私有表。`ak.direct_conversation.bound` 的 issuer MUST 是参与 pair 的一方，字段至少包含 `pair_key`, `binding_state`, `participants_unordered[]`, `realm_id`, `main_strand_id`, `contact_refs[]`, `member_event_refs[]`, `main_strand_create_ref`, `mls_group_id`, `mls_genesis_event_ref`, `mls_commit_event_ref`, `mls_welcome_event_ref` 与 `created_at`。active binding 的所有引用 MUST 指向已 accepted、同 Realm、同 MLS group 的精确 canonical Events；服务端 MUST 校验 genesis 为 epoch 0、commit 的 metadata 为 epoch 0 → 1、Welcome 的 metadata/`commit_ref`/recipient/claim envelope 精确对应 draft。由于 canonical Event rail 不解析 opaque MLS ciphertext，recipient MLS 实现还 MUST 解密 Welcome 并验证 RFC 9420 authenticated transcript 确实把被 claim KeyPackage 作为 Add leaf 纳入该 Commit；验证失败时 MUST 隔离该候选且不得把 binding 投影为可用会话。只检查 Realm/member/Strand projection 或只相信 MLS metadata，均不足以建立可用 active binding。线上可签发的 `binding_state` 只有 `active|retired`；`duplicate|non_canonical` 是 reducer 对有效候选的派生投影状态，不得作为 authored payload 伪造。`retired` fact MUST 通过 `supersedes_binding_ref` 引用被退役的 active binding Event。
+Direct conversation binding 是 pair 到 `(realm_id, main_strand_id, mls_group_id)` 的 principal-scoped signed fact / projection，不是 server 私有表。`ak.direct_conversation.bound` 的 issuer MUST 是参与 pair 的一方，字段至少包含 `pair_key`, `binding_state`, `participants_unordered[]`, `realm_id`, `main_strand_id`, `authorization_basis`, `member_event_refs[]`, `main_strand_create_ref`, `mls_group_id`, `mls_genesis_event_ref`, `mls_commit_event_ref`, `mls_welcome_event_ref` 与 `created_at`。`authorization_basis.kind` 只能是 `accepted_contact|managed_agent_controller`，其 `event_refs[]` MUST 精确引用创建时已验证的 contact request/accept facts，或 managed Agent provisioning、controller binding 与 active runtime-key facts；不得使用显示名、sidebar 来源或服务私有行代替。active binding 的所有引用 MUST 指向已 accepted、同 Realm、同 MLS group 的精确 canonical Events；服务端 MUST 校验 genesis 为 epoch 0、commit 的 metadata 为 epoch 0 → 1、Welcome 的 metadata/`commit_ref`/recipient/claim envelope 精确对应 draft。由于 canonical Event rail 不解析 opaque MLS ciphertext，recipient MLS 实现还 MUST 解密 Welcome 并验证 RFC 9420 authenticated transcript 确实把被 claim KeyPackage 作为 Add leaf 纳入该 Commit；验证失败时 MUST 隔离该候选且不得把 binding 投影为可用会话。只检查 Realm/member/Strand projection 或只相信 MLS metadata，均不足以建立可用 active binding。线上可签发的 `binding_state` 只有 `active|retired`；`duplicate|non_canonical` 是 reducer 对有效候选的派生投影状态，不得作为 authored payload 伪造。`retired` fact MUST 通过 `supersedes_binding_ref` 引用被退役的 active binding Event。
 
 Binding facts 与 contact facts 一样需要在双方之间交换 / 镜像并以原签名 envelope 参与 projection；跨 Principal Server 时使用 `ak.peer.contacts.command.submit` / `POST /_arkret/peer/contacts` 投递 `fact_kind="ak.direct_conversation.bound"`，接收方 MUST 验证并保留原 Event proof 与 canonical Event digest，不得重签。若原 proof 使用来源 principal 的 typed device method且接收方尚无该 device directory，request MAY 携带 federation `signer_key_evidence`；接收方只有在 outer service signature 与 accepted contact 的 `peer_service_id` 均精确绑定来源服务后才能使用，并必须按 [`../sync/federation.md` §4](../sync/federation.md) 独立验证其中原始 `service_attested` `ak.device.authorize` Event 的 DID enrollment-authority proof，再验证 binding 原 JWS；不得把来源服务给出的裸 key 当作 participant trust root。否则 Alice 与 Bob 可能各自只看到自己的 binding fact，无法用同一 tie-break 算出相同 canonical Realm。Binding 只有在引用的 DM Realm、双方 active membership、DM main Strand、MLS genesis / Add Commit / Welcome 与 accepted contact refs 都可验证时才可成为 canonical。Realm Event 与 principal-scoped binding 可经不同 durable outbox 独立到达；若 binding 先到而任一被引用 Event 尚不可解析，接收方 MUST 返回 retryable / `temporarily_unavailable`（或持久化为 pending 后自动重验），不得把它永久判成 `schema_violation`，发送方 MUST 保持同一原签名 binding Event 重试。
 
@@ -235,6 +237,8 @@ DM 主 Strand MUST：
 
 - 位于 DM Realm 内。
 - `scope_circle_id=null`，继承 DM Realm 的 Realm-default MLS group。DM 主 Strand MUST NOT 再套 Circle；双人 Realm 的 Circle 子集切不出更窄隐私边界。
+
+用户与其 owned Native Personal Agent 的直接私聊同样使用上述双成员 DM Realm，participants 恰为 `{controller, agent}`。这条会话与任何来源 Collaboration Realm 无关，不使用 Sidecar backing Circle，也不因用户当前位于某个 Strand 而改变 canonical pair。Agent Sidecar 只处理既有 Realm/Strand 内的 context-routed 私有协作（例如 shared Track 中的 `@owned-agent`）；它不是联系人侧栏直接私聊的会话载体。
 - 声明 `tracks.discussion.is_primary=true`，且 discussion track active。
 - `stage` MAY 省略；若携带，MUST 是当前 v1 Strand schema 的合法枚举值。推荐使用 `stage="in_progress"` 作为 wire 兼容值；direct conversation UI MUST NOT 把 DM 主 Strand 的 `stage` 当成待办进度展示，也 SHOULD 禁用普通 `ak.strand.stage.set` 控件。
 - 通过 direct conversation binding 标识为该 Realm 的 main Strand。`discussion.is_primary=true` 只是 Strand 内默认入口，不能单独证明"这是 DM 主 Strand"。
