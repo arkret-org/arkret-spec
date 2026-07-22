@@ -1,6 +1,10 @@
 {
   "files": [
     {
+      "path": "spec/v1/artifacts/fixtures/agent-mls-keypackage-authorization-fixture.json",
+      "sha256": "aa18f4227fa2ac4fad883ce5b8c2f58b25c2687d989d250e2c2c9843efeb2099"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
       "sha256": "f28f01549ff43ef7cda75bee2bf7559b87f79ec40b6126193f6b45f94ca22876"
     },

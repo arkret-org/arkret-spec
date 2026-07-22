@@ -1,0 +1,124 @@
+{
+  "profile": "ak.profile.agent_runtime.v1",
+  "version": "2026-07-22",
+  "suite": "agent_mls_keypackage_authorization",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.agent.mls_keypackage_authorization.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.agent.mls_keypackage_authorization.v1"
+  ],
+  "cases": [
+    {
+      "name": "current_agent_authorization_is_accepted",
+      "expected": "accepted",
+      "agent_id": "did:webvh:z6mkagent:agent.example",
+      "claim_principal_id": "did:webvh:z6mkagent:agent.example",
+      "current_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+      "claim_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+      "current_verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+      "leaf_signature_key": "did:webvh:z6mkagent:agent.example#runtime-1",
+      "leaf_signature_valid": true,
+      "authorization_status": "active"
+    },
+    {
+      "name": "delegated_device_binding_is_rejected",
+      "expected": "rejected",
+      "agent_id": "did:webvh:z6mkagent:agent.example",
+      "claim_principal_id": "did:webvh:z6mkagent:agent.example",
+      "current_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+      "claim_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+      "device_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000002",
+      "current_verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+      "leaf_signature_key": "did:webvh:z6mkagent:agent.example#runtime-1",
+      "leaf_signature_valid": true,
+      "authorization_status": "active"
+    },
+    {
+      "name": "ssk_generation_binding_is_rejected",
+      "expected": "rejected",
+      "agent_id": "did:webvh:z6mkagent:agent.example",
+      "claim_principal_id": "did:webvh:z6mkagent:agent.example",
+      "current_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+      "claim_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+      "ssk_generation": 3,
+      "current_verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+      "leaf_signature_key": "did:webvh:z6mkagent:agent.example#runtime-1",
+      "leaf_signature_valid": true,
+      "authorization_status": "active"
+    },
+    {
+      "name": "stale_authorize_event_is_rejected",
+      "expected": "rejected",
+      "agent_id": "did:webvh:z6mkagent:agent.example",
+      "claim_principal_id": "did:webvh:z6mkagent:agent.example",
+      "current_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000003",
+      "claim_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+      "current_verification_method": "did:webvh:z6mkagent:agent.example#runtime-2",
+      "leaf_signature_key": "did:webvh:z6mkagent:agent.example#runtime-1",
+      "leaf_signature_valid": true,
+      "authorization_status": "superseded"
+    },
+    {
+      "name": "cross_principal_binding_is_rejected",
+      "expected": "rejected",
+      "agent_id": "did:webvh:z6mkagent:agent.example",
+      "claim_principal_id": "did:webvh:z6mkother:other-agent.example",
+      "current_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+      "claim_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+      "current_verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+      "leaf_signature_key": "did:webvh:z6mkagent:agent.example#runtime-1",
+      "leaf_signature_valid": true,
+      "authorization_status": "active"
+    },
+    {
+      "name": "revoked_authorization_is_rejected",
+      "expected": "rejected",
+      "agent_id": "did:webvh:z6mkagent:agent.example",
+      "claim_principal_id": "did:webvh:z6mkagent:agent.example",
+      "current_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+      "claim_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+      "current_verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+      "leaf_signature_key": "did:webvh:z6mkagent:agent.example#runtime-1",
+      "leaf_signature_valid": true,
+      "authorization_status": "revoked"
+    },
+    {
+      "name": "expired_authorization_is_rejected",
+      "expected": "rejected",
+      "agent_id": "did:webvh:z6mkagent:agent.example",
+      "claim_principal_id": "did:webvh:z6mkagent:agent.example",
+      "current_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+      "claim_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+      "current_verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+      "leaf_signature_key": "did:webvh:z6mkagent:agent.example#runtime-1",
+      "leaf_signature_valid": true,
+      "authorization_status": "expired"
+    },
+    {
+      "name": "leaf_signature_key_mismatch_is_rejected",
+      "expected": "rejected",
+      "agent_id": "did:webvh:z6mkagent:agent.example",
+      "claim_principal_id": "did:webvh:z6mkagent:agent.example",
+      "current_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+      "claim_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+      "current_verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+      "leaf_signature_key": "did:webvh:z6mkagent:agent.example#runtime-forged",
+      "leaf_signature_valid": true,
+      "authorization_status": "active"
+    },
+    {
+      "name": "invalid_leaf_signature_is_rejected",
+      "expected": "rejected",
+      "agent_id": "did:webvh:z6mkagent:agent.example",
+      "claim_principal_id": "did:webvh:z6mkagent:agent.example",
+      "current_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+      "claim_agent_key_authorize_event_id": "ak:event:01964137-0000-7000-8000-000000000001",
+      "current_verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+      "leaf_signature_key": "did:webvh:z6mkagent:agent.example#runtime-1",
+      "leaf_signature_valid": false,
+      "authorization_status": "active"
+    }
+  ]
+}
