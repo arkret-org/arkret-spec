@@ -377,6 +377,13 @@ event_id ASC
 
 为给客户端列表视图（成员侧栏、participant 标识、@mention 自动补全初始集）提供一份轻量 roster，服务端 MAY 在每个 Realm 响应里附带 `members[]` 字段。`members[]` 是 `ak.member.state` cell、当前 effective `ak.member.identity.update` set 和当前可见 handle-claim set 的派生 hint，不参与 state hash / frontier 计算，也不替代逐事件验证。`members[]` MUST NOT 把 display name 或裸 handle 字符串直接作为 roster 字段回填；若返回 handle，MUST 作为完整签名 `ak.schema.handle_claim.v1` evidence 或其 digest/ref 返回。
 
+`members[]` 的协议安全边界如下：
+
+- 客户端 MAY 用正向 roster entry 驱动成员 UI、未知 actor backfill、KeyPackage claim / MLS admission 的**重试调度**；但 roster entry 本身不授予 membership、KeyPackage delivery、MLS Add / Remove 或 application send 权限。每个不可逆服务操作仍 MUST 由服务端按当前 accepted auth state 独立授权；MLS producer 在构造 / 提交 Commit 前仍 MUST 取得并验证覆盖目标 membership frontier 的 governance proof。
+- `members_limited=false` 只证明服务端声明本次 roster 完整。客户端 MAY 把“完整 roster 与本地 MLS group 不一致”用作保守的 `encryption_transition_pending` 信号；“两者一致”不得单独清除由 accepted membership Event / Seal 产生的 `epoch_update_required`，后者只能由满足 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.4.1 / §2.5 的 winning Commit 与 verified governance binding 清除。
+- `members_limited=true` 或字段缺失时，客户端 MUST NOT 从 actor 缺席推断 leave / ban，也不得据此移除 MLS leaf 或解除发送暂停。正向 entry 仍可触发幂等的查询 / reconciliation；服务端拒绝、proof 缺失或 authoritative Event 与 hint 冲突时 MUST fail closed，并 backfill `ak.member.state` / refresh baseline。
+- 服务端生成 roster 时 MUST 使用同一响应 frontier 下的 effective membership cells；不得把尚未 accepted、已 leave / ban 或来自不同 frontier 的 actor 标成 `join`。客户端若同时拥有可验证的 authoritative membership state，MUST 以该 state 为准并把矛盾 roster 视为同步完整性错误，而不是覆盖本地 accepted state。
+
 成员展示信息由两类 source 合成：
 
 - `ak.member.identity.update`：Realm-scoped display/subject projection。它表达 `actor_id -> subject_id` 披露、display name、avatar 等 UI profile 信息；它不是 handle lifecycle 的权威源。
@@ -738,6 +745,8 @@ Accept: application/x-ndjson
 - 返回足够 `required_state` 让客户端首屏可渲染。
 - 返回 device list delta 的完整 baseline。
 - 把当前 account context 下全部仍 open 的 `agent_runtime_approval` notification 作为 `action=add` 的权威完整集合返回；即使其它 notification 历史受限也不得截断该子集。
+
+对当前 membership 为 `join` 且 `encryption_profile=mls_rfc9420` 的 Realm，baseline 还 MUST 提供可验证的**当前安全控制基线**：至少包含 current accepted `ak.realm.create`、effective `ak.realm.policy_components` singleton state（若该 cell 尚无值，则提供同一 frontier 下可验证的缺省/空值证明），以及足以验证当前 membership / MLS governance frontier 的 state/proof material；这些材料可直接位于 `state.events`，或由已验证 snapshot + 可 backfill refs 等价提供。`history_visibility` 只裁剪 data-plane timeline 和调用者无权读取的历史正文，不得裁掉客户端验证当前写入、选择 `content_scheme`、处理 Welcome 或判断 `epoch_update_required` 所必需的当前 control/security state。该义务不要求泄露 join 前旧 policy revisions 或其它不可见历史；只要求当前 effective singleton/control evidence。客户端在基线完整前 MUST 保持 `encryption_policy_pending` / `encryption_transition_pending`，不得把字段缺失解释为 policy 缺省或 membership 未发生变化。
 
 大型账户 MAY 使用 sliding window subscriptions，避免一次性返回所有 Realm。
 
