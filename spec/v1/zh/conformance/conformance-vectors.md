@@ -3603,6 +3603,29 @@ Expected:
 - 第 5 步 MUST 在同一 Control Move 中 observe-remove 全部已观察 authorize dots 并 add 一个 replacement dot；接受后该 cell 只有一个 active authorize dot，新边界生效。
 - 变体 A join 后的 effective authorization MUST 对 scope / audience 取交集、对 `expires_at` 取最早有限值（缺省按 `+infinity`）；MUST NOT 按到达顺序选 winner。
 
+### 11.2.6 Vector: Native Agent KeyPackage Authorization Binding
+
+`vector_id`: `ak.vector.agent.mls_keypackage_authorization.v1`
+
+Preconditions:
+
+- Native Agent `A` 已完成 pairing；当前 active accepted `ak.agent.key.authorize` Event 为 `E1`，其 `verification_method=K1`，runtime 持有 K1 私钥与独立 MLS endpoint id `D1`。
+- `A` 不是 controller 的 delegated device，且不存在 `(A,D1)` 的 `ak.device.authorize`。
+
+Steps:
+
+1. Runtime 用 K1 作为 MLS LeafNode signature key 生成 KeyPackage，并用 K1 签署发布 transcript；服务端从当前 accepted Agent key projection 写入 `agent_key_authorize_event_id=E1`。
+2. Requester claim 该 KeyPackage，并把返回的 `agent_key_authorize_event_id=E1` 原样写入 Welcome `claim_ref`。
+3. Receiver 在解密 Welcome 前 resolve E1，校验 E1 仍是 A 的 active accepted authorization，`verification_method=K1`，并校验发布 `device_signature.kid` 与 MLS LeafNode signature key 都绑定 K1。
+4. 负向变体依次为：同时携带 `ssk_generation` / `device_authorize_event_id` 中任一字段；把 E1 填入 `device_authorize_event_id`；Event ref 属于另一 Agent；`device_signature.kid` 或 MLS LeafNode signature key 为 K2；E1 被 revoke、被 replacement `supersedes[]` 替换或可选 `expires_at` 已到期；只有 service-local Agent row 而无 accepted E1。
+5. E1 被 E2 replacement 后，以 K2 发布新 KeyPackage并重新 claim，得到新 `claim_id` 与 `agent_key_authorize_event_id=E2`。
+
+Expected:
+
+- Steps 1–3 MUST 接受；D1 只作为 A 的 MLS endpoint / Welcome 投递实例，不创建或推断 `ak.device.authorize`，A 仍是独立 MLS member。
+- Step 4 全部 MUST fail closed：wire 形状混合时 `schema_violation`；accepted trust state、principal、lifecycle 或 key material 不匹配时 `claim_generation_mismatch`。实现不得 fallback 到 controller device、service-local row、过期 authorization 或任一其它 trust branch。
+- Step 5 MUST 接受；E1 下所有未消费 claim 永远失效且不得改写，新 Welcome 只能使用重新 claim 得到的 E2 binding。
+
 ### 11.3 Vector: Agent Session Grant Replay Protection
 
 `vector_id`: `ak.vector.agent.session_grant.replay.v1`

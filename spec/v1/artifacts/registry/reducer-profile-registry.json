@@ -151,7 +151,7 @@
           {
             "schema_id": "ak.schema.event_payload.v1",
             "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
-            "document_digest": "sha256:99ee8ab43cdd85e532aeca3ace452120e8bb468bd4d0801902188d4aa2d1835a"
+            "document_digest": "sha256:fd700a8d9ba1cd4fe9d592b5ed3815d84b3cda050382d85c32fb6197fccd5bcb"
           },
           {
             "schema_id": "ak.schema.seal.v1",
@@ -196,7 +196,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:f97640e0003bc28821e8ceea606186d4d65316ca8c68e9cd90df69eae8f3ef0a"
+      "reducer_profile_digest": "sha256:e5a94190e2dbf6f00de7bce4941765272b5d043c2ef208bc5bfb5caf9d2ff842"
     },
     {
       "profile_id": "ak.profile.chat_mvp.v1",
@@ -428,7 +428,7 @@
           {
             "schema_id": "ak.schema.event_payload.v1",
             "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
-            "document_digest": "sha256:99ee8ab43cdd85e532aeca3ace452120e8bb468bd4d0801902188d4aa2d1835a"
+            "document_digest": "sha256:fd700a8d9ba1cd4fe9d592b5ed3815d84b3cda050382d85c32fb6197fccd5bcb"
           },
           {
             "schema_id": "ak.schema.message.v1",
@@ -508,7 +508,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:578aacf3cb1391e8759d8e3ec1f1c92ae647cf1698835679df0762913044972b"
+            "content_digest": "sha256:6e50430585d9062a4ea456185691c537a369021af473170892ea00369b611d36"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -520,7 +520,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:37e6f51d92a780a360b5ee3896d8e6160e3fd178e8c13ae71e6a8ff4c30ab60d"
+      "reducer_profile_digest": "sha256:fe2477de2561f0413729c98d98765d75e271a2c4147830b33887f20429f44786"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -727,7 +727,7 @@
           {
             "schema_id": "ak.schema.event_payload.v1",
             "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
-            "document_digest": "sha256:99ee8ab43cdd85e532aeca3ace452120e8bb468bd4d0801902188d4aa2d1835a"
+            "document_digest": "sha256:fd700a8d9ba1cd4fe9d592b5ed3815d84b3cda050382d85c32fb6197fccd5bcb"
           },
           {
             "schema_id": "ak.schema.realm.v1",
@@ -816,7 +816,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:ae6a8ed6b45944adaa59fa502308d1376a8a806c226c7ab3c0438997af4e5b3d"
+      "reducer_profile_digest": "sha256:9adde3a73aa5a07ffb6250ac1231ce6bc60defd5ab97b866dee2c313fcc049fc"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1284,7 +1284,7 @@
           {
             "schema_id": "ak.schema.event_payload.v1",
             "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
-            "document_digest": "sha256:99ee8ab43cdd85e532aeca3ace452120e8bb468bd4d0801902188d4aa2d1835a"
+            "document_digest": "sha256:fd700a8d9ba1cd4fe9d592b5ed3815d84b3cda050382d85c32fb6197fccd5bcb"
           },
           {
             "schema_id": "ak.schema.grant_constraint.v1",
@@ -1413,7 +1413,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:578aacf3cb1391e8759d8e3ec1f1c92ae647cf1698835679df0762913044972b"
+            "content_digest": "sha256:6e50430585d9062a4ea456185691c537a369021af473170892ea00369b611d36"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -1445,7 +1445,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:9d75664db4a4ad7f423d0d86e6777be2e44e6f26015d01e5f482604271b931fa"
+      "reducer_profile_digest": "sha256:039364c98ace47b29faee7ff9938340f71926a8b645844ee5a936dbe06cb5429"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1630,7 +1630,7 @@
           {
             "schema_id": "ak.schema.event_payload.v1",
             "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
-            "document_digest": "sha256:99ee8ab43cdd85e532aeca3ace452120e8bb468bd4d0801902188d4aa2d1835a"
+            "document_digest": "sha256:fd700a8d9ba1cd4fe9d592b5ed3815d84b3cda050382d85c32fb6197fccd5bcb"
           },
           {
             "schema_id": "ak.schema.seal.v1",
@@ -1695,7 +1695,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:816e613b78e0afa0f86107ebc9e2c50e4e67ad222f7bbc9124a690b20423eabe"
+      "reducer_profile_digest": "sha256:952a4c29fd910fa0f002602d983e621dfbd0b8bce085c8e0030a530290b92d72"
     }
   ],
   "generated_fields": [

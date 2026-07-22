@@ -6465,7 +6465,7 @@
         },
         "claim_ref": {
           "type": "object",
-          "description": "KeyPackage claim binding used by the receiver before decrypting the Welcome. claim_id, keypackage_ref, and keypackage_digest must match the top-level fields; capabilities_digest is sha256(JCS(claimed_capabilities)) from the single-use claim response. Exactly one trust binding is present: ssk_generation for cross-signing devices, or device_authorize_event_id for service-attested enrollment-authority devices.",
+          "description": "KeyPackage claim binding used by the receiver before decrypting the Welcome. claim_id, keypackage_ref, and keypackage_digest must match the top-level fields; capabilities_digest is sha256(JCS(claimed_capabilities)) from the single-use claim response. Exactly one trust binding is present: ssk_generation for cross-signing devices, device_authorize_event_id for service-attested enrollment-authority devices, or agent_key_authorize_event_id for an independently authorized Native Agent runtime.",
           "required": [
             "claim_id",
             "keypackage_ref",
@@ -6478,8 +6478,17 @@
                 "ssk_generation"
               ],
               "not": {
-                "required": [
-                  "device_authorize_event_id"
+                "anyOf": [
+                  {
+                    "required": [
+                      "device_authorize_event_id"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "agent_key_authorize_event_id"
+                    ]
+                  }
                 ]
               }
             },
@@ -6488,8 +6497,36 @@
                 "device_authorize_event_id"
               ],
               "not": {
-                "required": [
-                  "ssk_generation"
+                "anyOf": [
+                  {
+                    "required": [
+                      "ssk_generation"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "agent_key_authorize_event_id"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "required": [
+                "agent_key_authorize_event_id"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "ssk_generation"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "device_authorize_event_id"
+                    ]
+                  }
                 ]
               }
             }
@@ -6513,6 +6550,10 @@
             },
             "device_authorize_event_id": {
               "$ref": "#/$defs/non_empty_string"
+            },
+            "agent_key_authorize_event_id": {
+              "$ref": "#/$defs/non_empty_string",
+              "description": "Accepted active ak.agent.key.authorize Event for the claimed Native Agent runtime key."
             }
           },
           "additionalProperties": false

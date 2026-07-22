@@ -505,6 +505,21 @@
       ]
     },
     {
+      "vector_id": "ak.vector.agent.mls_keypackage_authorization.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_profiles": [
+        "ak.profile.agent_runtime.v1",
+        "ak.profile.personal_agent_provisioning.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/identity/key-management.md",
+        "spec/v1/zh/crypto-media/encryption-and-audit.md"
+      ],
+      "description": "Native Agent MLS KeyPackages bind exclusively to the current accepted ak.agent.key.authorize Event and its runtime signing key, never to a controller delegated-device authorization; stale, mixed, cross-principal, revoked, superseded, expired, or key-mismatched bindings fail closed."
+    },
+    {
       "vector_id": "ak.vector.agent.participation.ceiling_tighten.v1",
       "status": "active",
       "domain": "agent",

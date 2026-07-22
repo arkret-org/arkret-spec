@@ -98,7 +98,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "ac20158173cf03b4e62ef55a02c35acbb4dbc3e6483c8ae5bd09ac33b35e4040"
+      "sha256": "e2538a95b99f6a583764ebd749aeb03a16a7f0453394104f99bb19092d850b02"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
