@@ -823,7 +823,7 @@ POST /_arkret/peer/keys/keypackages/claims/query
 
 ### 9.0 KeyPackage 写路径签名 transcript（normative）
 
-`upload`、`consume` 与 `revoke` 的 detached signature MUST 使用本节唯一的 byte-exact canonical input。普通 device 与独立 Native Agent runtime 使用完全相同的 canonical bytes；身份分支只决定验签所用的 current accepted key 与落库 trust binding，不得改变 domain、字段集合或缺省规则。实现 MUST 调用 `arkret-rust-sdk` 的 typed canonical helper，不得从开放 `serde_json::Value`、本地 principal 类型或 HTTP handler 参数重新拼装 transcript。
+`upload`、`consume` 与 `revoke` 的 detached signature MUST 使用本节唯一的 byte-exact canonical input。普通 device 与独立 Native Agent runtime 使用完全相同的 canonical bytes；身份分支只决定验签所用的 current accepted key 与落库 trust binding，不得改变 domain、字段集合或缺省规则。Rust 实现 MUST 复用 `arkret-rust-sdk` 的共享 typed canonical helper；其它语言实现 MUST 使用与本节闭合 typed request projection 等价的 canonical helper，并通过本节登记的 byte-exact conformance vector。任何实现都不得从开放 JSON value、本地 principal 类型或 HTTP handler 参数临时拼装 transcript。
 
 三条 batch signing input 分别为：
 
