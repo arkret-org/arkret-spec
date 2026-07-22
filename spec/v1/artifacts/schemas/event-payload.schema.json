@@ -5374,6 +5374,74 @@
       "minItems": 1,
       "uniqueItems": true
     },
+    "direct_conversation_authorization_basis": {
+      "type": "object",
+      "description": "Canonical authorization basis for creating a Direct Conversation. accepted_contact references the accepted contact facts; managed_agent_controller references the accepted managed-Agent provisioning/controller/runtime-key facts that bind the peer Agent to the requester controller.",
+      "required": [
+        "kind",
+        "event_refs"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "accepted_contact",
+            "managed_agent_controller"
+          ]
+        },
+        "event_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_ref"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "accepted_contact"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "event_refs": {
+                "minItems": 2,
+                "maxItems": 2
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "managed_agent_controller"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "event_refs": {
+                "minItems": 3,
+                "maxItems": 3
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
     "contact_requested_payload": {
       "type": "object",
       "description": "Principal-scoped contact request fact. Issuer is the requester; target is the holder being asked to accept. This fact lives in the requester's Principal Control Realm and may be mirrored by the target as the original signed envelope.",
@@ -5495,7 +5563,7 @@
         "participants_unordered",
         "realm_id",
         "main_strand_id",
-        "contact_refs",
+        "authorization_basis",
         "member_event_refs",
         "main_strand_create_ref",
         "mls_group_id",
@@ -5525,8 +5593,8 @@
         "main_strand_id": {
           "$ref": "#/$defs/strand_id"
         },
-        "contact_refs": {
-          "$ref": "#/$defs/contact_event_refs"
+        "authorization_basis": {
+          "$ref": "#/$defs/direct_conversation_authorization_basis"
         },
         "member_event_refs": {
           "$ref": "#/$defs/contact_event_refs",

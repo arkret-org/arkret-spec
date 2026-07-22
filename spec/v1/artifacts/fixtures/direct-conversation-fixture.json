@@ -15,7 +15,7 @@
     "spec/v1/artifacts/schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
     "spec/v1/artifacts/profiles/conformance-profiles.json#profile_requirements"
   ],
-  "description": "Schema and reducer decision vectors for the Direct Conversation Realm role, authored binding lifecycle, exact-two membership, no-Space policy, deterministic candidate selection and leave/recreate boundary.",
+  "description": "Schema and reducer decision vectors for the Direct Conversation Realm role, accepted-contact and managed-Agent-controller authorization bases, authored binding lifecycle, exact-two membership, no-Space policy, deterministic candidate selection and leave/recreate boundary.",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -161,9 +161,13 @@
         ],
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
         "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
-        "contact_refs": [
-          "ak:event:0196419b-0000-7000-8000-000000000301"
-        ],
+        "authorization_basis": {
+          "kind": "accepted_contact",
+          "event_refs": [
+            "ak:event:0196419b-0000-7000-8000-000000000301",
+            "ak:event:0196419b-0000-7000-8000-000000000308"
+          ]
+        },
         "member_event_refs": [
           "ak:event:0196419b-0000-7000-8000-000000000302",
           "ak:event:0196419b-0000-7000-8000-000000000303"
@@ -174,6 +178,40 @@
         "mls_commit_event_ref": "ak:event:0196419b-0000-7000-8000-000000000306",
         "mls_welcome_event_ref": "ak:event:0196419b-0000-7000-8000-000000000307",
         "created_at": "2026-07-21T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "managed_agent_controller_binding_fact_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/direct_conversation_bound_payload",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "pair_key": "sha256:0ccb8b24ba6e4631c598e55d82090ce8dcafa9d357cc5e86e5464ad368fd09b0",
+        "binding_state": "active",
+        "participants_unordered": [
+          "did:webvh:z6mkfixture:alice.example",
+          "did:web:agents.example:assistant"
+        ],
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000111",
+        "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000211",
+        "authorization_basis": {
+          "kind": "managed_agent_controller",
+          "event_refs": [
+            "ak:event:0196419b-0000-7000-8000-000000000311",
+            "ak:event:0196419b-0000-7000-8000-000000000312",
+            "ak:event:0196419b-0000-7000-8000-000000000313"
+          ]
+        },
+        "member_event_refs": [
+          "ak:event:0196419b-0000-7000-8000-000000000314",
+          "ak:event:0196419b-0000-7000-8000-000000000315"
+        ],
+        "main_strand_create_ref": "ak:event:0196419b-0000-7000-8000-000000000316",
+        "mls_group_id": "AZZBmwAAAACAAAAAAAAAAg",
+        "mls_genesis_event_ref": "ak:event:0196419b-0000-7000-8000-000000000317",
+        "mls_commit_event_ref": "ak:event:0196419b-0000-7000-8000-000000000318",
+        "mls_welcome_event_ref": "ak:event:0196419b-0000-7000-8000-000000000319",
+        "created_at": "2026-07-21T00:05:00.000Z"
       }
     },
     {
@@ -192,9 +230,13 @@
         ],
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
         "main_strand_id": "ak:strand:0196419b-0000-7000-8000-000000000201",
-        "contact_refs": [
-          "ak:event:0196419b-0000-7000-8000-000000000301"
-        ],
+        "authorization_basis": {
+          "kind": "accepted_contact",
+          "event_refs": [
+            "ak:event:0196419b-0000-7000-8000-000000000301",
+            "ak:event:0196419b-0000-7000-8000-000000000308"
+          ]
+        },
         "member_event_refs": [
           "ak:event:0196419b-0000-7000-8000-000000000302",
           "ak:event:0196419b-0000-7000-8000-000000000303"

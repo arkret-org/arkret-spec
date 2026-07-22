@@ -151,7 +151,7 @@
           {
             "schema_id": "ak.schema.event_payload.v1",
             "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
-            "document_digest": "sha256:088b862997818f17d5d634f39545e0911c57b3dc65ea666cb6925ec6a79066de"
+            "document_digest": "sha256:99ee8ab43cdd85e532aeca3ace452120e8bb468bd4d0801902188d4aa2d1835a"
           },
           {
             "schema_id": "ak.schema.seal.v1",
@@ -196,7 +196,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:6f2d710e0c8e9803a4f3152d8165de0491784518728775f00bb47954a4e99c1e"
+      "reducer_profile_digest": "sha256:f97640e0003bc28821e8ceea606186d4d65316ca8c68e9cd90df69eae8f3ef0a"
     },
     {
       "profile_id": "ak.profile.chat_mvp.v1",
@@ -428,7 +428,7 @@
           {
             "schema_id": "ak.schema.event_payload.v1",
             "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
-            "document_digest": "sha256:088b862997818f17d5d634f39545e0911c57b3dc65ea666cb6925ec6a79066de"
+            "document_digest": "sha256:99ee8ab43cdd85e532aeca3ace452120e8bb468bd4d0801902188d4aa2d1835a"
           },
           {
             "schema_id": "ak.schema.message.v1",
@@ -520,7 +520,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:b9a87eed2338bea5b6c47ddf45ddfd35d64832ad5c81dc84326501d5449f9d6a"
+      "reducer_profile_digest": "sha256:c39f1be6eb2f567148819b999a1492e53683af7ff21acb694bc306d046df0f93"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -727,7 +727,7 @@
           {
             "schema_id": "ak.schema.event_payload.v1",
             "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
-            "document_digest": "sha256:088b862997818f17d5d634f39545e0911c57b3dc65ea666cb6925ec6a79066de"
+            "document_digest": "sha256:99ee8ab43cdd85e532aeca3ace452120e8bb468bd4d0801902188d4aa2d1835a"
           },
           {
             "schema_id": "ak.schema.realm.v1",
@@ -816,7 +816,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:f50c7a501a4baf45589d6bd87e58b6bcaa678e93f911bbe44ba84cdfbe18e9b3"
+      "reducer_profile_digest": "sha256:ae6a8ed6b45944adaa59fa502308d1376a8a806c226c7ab3c0438997af4e5b3d"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1284,7 +1284,7 @@
           {
             "schema_id": "ak.schema.event_payload.v1",
             "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
-            "document_digest": "sha256:088b862997818f17d5d634f39545e0911c57b3dc65ea666cb6925ec6a79066de"
+            "document_digest": "sha256:99ee8ab43cdd85e532aeca3ace452120e8bb468bd4d0801902188d4aa2d1835a"
           },
           {
             "schema_id": "ak.schema.grant_constraint.v1",
@@ -1445,7 +1445,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:c544880e92729bfbf91497ab1a27ee8617886c08ba9548b04a506e6cebfba452"
+      "reducer_profile_digest": "sha256:6ecf88e0d233a061f7066464b44e2b762f525b122d1289375076272ce3ace5ca"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1630,7 +1630,7 @@
           {
             "schema_id": "ak.schema.event_payload.v1",
             "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
-            "document_digest": "sha256:088b862997818f17d5d634f39545e0911c57b3dc65ea666cb6925ec6a79066de"
+            "document_digest": "sha256:99ee8ab43cdd85e532aeca3ace452120e8bb468bd4d0801902188d4aa2d1835a"
           },
           {
             "schema_id": "ak.schema.seal.v1",
@@ -1695,7 +1695,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:37589f1e787732f17720b9bba2c63be69aa7ca62bd8847c95a9e902a081a5daf"
+      "reducer_profile_digest": "sha256:816e613b78e0afa0f86107ebc9e2c50e4e67ad222f7bbc9124a690b20423eabe"
     }
   ],
   "generated_fields": [

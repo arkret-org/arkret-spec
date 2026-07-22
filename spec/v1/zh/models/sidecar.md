@@ -14,6 +14,8 @@ updated: 2026-07-20
 
 **Agent Sidecar**（`ak:sidecar:`）是绑定到一个 `(realm_id, controller_id)` 的个人 AI 私有工作区。它是一等协议对象，不是 Circle profile、普通 Circle、Direct Conversation、Strand Track 或某个 Agent 的 1:1 会话。
 
+用户从 Contacts/Direct Messages 产品面点击自己的 Native Personal Agent 时，客户端 MUST 使用 [`ak.self.direct_conversation.command.resolve`](../identity/contact-and-direct-conversation.md#6-direct-conversation-resolver) 建立或复用 `{controller, agent}` 的独立双成员 Direct Conversation Realm。该入口不得调用 Sidecar ensure、不得要求当前 Realm/Strand context，也不得把 backing Circle 暴露成私聊会话。Sidecar 仅用于既有 Realm/Strand 内的 context-routed 私有协作。
+
 Sidecar 与 Circle 的职责不同：
 
 | 对象 | 身份与生命周期 | 访问集合 | 用户创建/管理 |
@@ -114,11 +116,13 @@ desired_sidecar_access(S) = { S.controller_id }
 
 `principal_ids` MUST 等于完整 `desired_sidecar_access(S)`（包含 controller），按 DID UTF-8 byte lexicographic 升序排列且去重；digest 为 `sha256:<lowercase-hex(SHA-256(JCS bytes))>`。任何实现不得使用 UI 顺序、Circle member 顺序、设备 id、display name、到达时间或本地数据库 id 参与该 digest。
 
-`mls_context.control_frontier` 是服务端当前用于物化 Sidecar 与 backing membership 的 accepted control refs：MUST 包含 effective `ak.sidecar.create` ref、controller backing join ref，以及每个 desired Agent 当前 backing join ref；按 ref UTF-8 byte lexicographic 升序排列且去重。Admission 还 MUST 以当前 accepted eligibility/control state 重新计算 desired set；control frontier 与 digest 都匹配也不能绕过 freshness、revocation 或 policy 检查。
+`mls_context.control_frontier` 是服务端当前用于物化 Sidecar 与**已落地** backing membership 的 accepted control refs：MUST 包含 effective `ak.sidecar.create` ref、controller backing join ref，以及每个已经完成 backing membership reconciliation 的 desired Agent 当前 backing join ref；尚未落地的 desired Agent 不得伪造 join ref，view 同时以 `backing_scope_membership` pending 明示缺口。按 ref UTF-8 byte lexicographic 升序排列且去重。Sidecar MLS Event admission 还 MUST 要求 backing members 已与 `{controller} ∪ desired agents` 精确相等，并以当前 accepted eligibility/control state 重新计算 desired set；control frontier 与 digest 都匹配也不能绕过 membership reconciliation、freshness、revocation 或 policy 检查。
 
 - 新 Agent 进入 desired access 后，在 backing Circle membership、Add Commit accepted、匹配的 `ak.mls.welcome` accepted、目标设备成功 consume 同一 KeyPackage claim 全部完成前不得接收 Sidecar payload。一个 Agent principal 至少有一个仍 active/authorized、未被 remove 的设备满足上述证据时进入 `effective_agent_ids`；其它设备不会因 principal 已 effective 自动获得密钥。
 - controller 当前调用设备只在它是 accepted genesis 的 `creator_device_id`，或已完成同样的 Welcome/consume 证据时视为 device-ready。`access_readiness=ready` 要求当前 controller 设备 ready，且每个 `desired_agent_ids` principal 都已 effective；因此同一 Sidecar 在 controller 的不同设备上 MAY 暂时呈现不同 readiness，但 `desired_agent_ids`/`effective_agent_ids` 必须一致。
 - Agent 离开 desired access 时，服务端 MUST 在同一 control-state apply 中立即停止寻址/投递、移除 backing membership 并产生 durable pending MLS removal obligation。持有该 backing Circle 当前 MLS snapshot 的 controller 设备或 policy-authorized key service MUST 通过普通 `ak.mls.proposal` + `ak.mls.commit` 完成 remove/rotate；普通 Principal Server 不得伪造 Commit。没有 eligible committer 时发送保持 fail closed，obligation 保留并允许 §5.3 takeover。
+
+  专用 Sidecar view MUST 为每个尚未完成的 obligation 返回 `stage="mls_remove"` 的 `pending_access_reconciliations` item；该 item 的 `agent_id` 是已移除的 Agent，且 `membership_frontier` 是触发该 obligation 的 accepted membership/control refs，按 UTF-8 byte lexicographic 升序排列且去重。`membership_frontier` 对 `mls_remove` 必填且非空，对其它 stage 必须省略。这样 controller/key service 无需也不得通过普通 Circle surface 枚举 backing Circle，即可构造带当前 `sidecar_binding` 的 Remove Proposal/Commit。Commit accepted 后服务端清除对应 obligation；客户端仅在 accepted 后持久化 post-commit snapshot。
 - reconciliation 期间新消息 MUST 阻塞或仅发给已经证明符合当前 desired/effective access 的安全交集；不得因旧 MLS key 仍存在而继续投递。
 - `pending_access_reconciliations=[]` 本身不证明 controller 设备或 addressed Agent 已 MLS-ready。
 
@@ -168,7 +172,7 @@ Sidecar MLS bootstrap 复用标准 `ak.mls.genesis` Event 与 `POST /_arkret/sel
 服务端从已有标准事实机械派生 device roster，不新增由服务端代签的 join Event：
 
 - genesis creator row：accepted Sidecar-bound `ak.mls.genesis` 的 `(creator_principal_id, creator_device_id, epoch=0, genesis_event_ref)`；
-- admitted device row：accepted Add Commit、引用该 Commit 的 accepted `ak.mls.welcome`、与 Welcome 相同的 `(group, recipient principal, recipient device, keypackage_ref)`，以及目标设备 authenticated consume 成功；
+- admitted device row：accepted Add Commit、引用该 Commit 的 accepted `ak.mls.welcome`、与 Welcome 相同的 `(group, recipient principal, recipient device, keypackage_ref)`，以及目标设备 authenticated consume 成功；该 Welcome 的 Sidecar control frontier MUST 包含该 principal 当前 backing join ref。后续加入其它 Agent 不会废止该设备证据，但 principal 被移除后重新加入会产生新 join ref，旧 Welcome 因而不能复用；当前 group epoch 的 governance binding 仍 MUST 与当前完整 Sidecar binding 精确一致；
 - removed row：effective Remove Commit 引用匹配 target principal/device 的 remove proposal 后，自 `next_epoch` 起不再 effective；backing membership/desired access 先行移除时投递已立即停止，不等待 Commit。
 
 Welcome durable projection MUST 保留 `epoch`、`commit_ref`、KeyPackage ref 与完整 Sidecar binding identity；KeyPackage consume MUST 只接受与调用 session device、claimed group 和 matching accepted Welcome 一致的 claim。仅 delivered、仅 claimed、仅 Circle member、仅存在旧 Welcome、或没有 target-device consume 都不能产生 effective row。
