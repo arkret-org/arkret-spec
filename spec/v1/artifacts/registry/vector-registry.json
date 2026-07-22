@@ -3129,7 +3129,6 @@
         "agent-sidecar-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/zh/models/sidecar.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
       ]
@@ -3142,7 +3141,6 @@
         "agent-sidecar-fixture.json"
       ],
       "source_refs": [
-        "spec/v1/zh/models/sidecar.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
       ]

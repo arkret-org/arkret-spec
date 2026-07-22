@@ -21,7 +21,7 @@
       "vector_id": "ak.vector.sidecar.mls_bootstrap_binding.v1",
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_mls_bootstrap_binding_vector",
       "desired_access_transcript": {
-        "kind": "ak.sidecar.desired_access.v1",
+        "domain": "ak.sidecar.desired_access.v1",
         "sidecar_id": "ak:sidecar:01964137-0000-7000-8000-000000000020",
         "realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
         "controller_id": "did:webvh:z6mkfixture:alice.example",
@@ -30,7 +30,7 @@
           "did:webvh:z6mkfixture:assistant.agents.example"
         ]
       },
-      "expected_desired_access_digest": "sha256:3eac506d0d13e5b10e602f103c626904c8a9ee3fa4a8ada1303de205ca10d04d",
+      "expected_desired_access_digest": "sha256:a8c91fc896c6c19179770fdd629ca3fd24acbb8a3d824b0d76c6ad77f3a5767a",
       "assertions": [
         "desired access transcript includes the controller and is sorted and unique",
         "the SDK canonical helper is the only producer of desired_access_digest",

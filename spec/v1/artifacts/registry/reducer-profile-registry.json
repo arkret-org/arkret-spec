@@ -508,7 +508,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:0d2c83f9af1ec94ebab1bdd6afbcdb0f8b538cb8d0ae73ab0e12eb6fc3810462"
+            "content_digest": "sha256:578aacf3cb1391e8759d8e3ec1f1c92ae647cf1698835679df0762913044972b"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -520,7 +520,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:c39f1be6eb2f567148819b999a1492e53683af7ff21acb694bc306d046df0f93"
+      "reducer_profile_digest": "sha256:37e6f51d92a780a360b5ee3896d8e6160e3fd178e8c13ae71e6a8ff4c30ab60d"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -1413,7 +1413,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:0d2c83f9af1ec94ebab1bdd6afbcdb0f8b538cb8d0ae73ab0e12eb6fc3810462"
+            "content_digest": "sha256:578aacf3cb1391e8759d8e3ec1f1c92ae647cf1698835679df0762913044972b"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -1445,7 +1445,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:6ecf88e0d233a061f7066464b44e2b762f525b122d1289375076272ce3ace5ca"
+      "reducer_profile_digest": "sha256:9d75664db4a4ad7f423d0d86e6777be2e44e6f26015d01e5f482604271b931fa"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",

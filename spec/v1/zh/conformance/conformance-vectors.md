@@ -3724,7 +3724,7 @@ Steps:
 
 Expected:
 
-- fixture transcript 的 RFC 8785 JCS digest MUST 为 `sha256:3eac506d0d13e5b10e602f103c626904c8a9ee3fa4a8ada1303de205ca10d04d`；controller 必须包含在排序去重的 principal set 中。
+- fixture transcript 的 RFC 8785 JCS digest MUST 为 `sha256:a8c91fc896c6c19179770fdd629ca3fd24acbb8a3d824b0d76c6ad77f3a5767a`；controller 必须包含在排序去重的 principal set 中。
 - 只有一个 genesis 通过标准 Event admission/CAS 成为 canonical winner；服务端不得生成 MLS private state、伪造 GroupInfo/ratchet-tree digest 或提供绕过 Event proof 的 bootstrap endpoint。
 - 所有 binding 变异 MUST fail closed；Sidecar backing Circle 缺失 `sidecar_binding`、普通 Realm/Circle 携带该字段也必须拒绝。
 - 崩溃恢复重放 bit-identical Event id/bytes，并把已接受 provisional snapshot 激活；loser snapshot 必须销毁并通过 winner group 的 KeyPackage/Welcome 加入。

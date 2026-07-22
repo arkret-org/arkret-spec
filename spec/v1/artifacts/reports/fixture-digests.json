@@ -6,7 +6,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json",
-      "sha256": "e396dd0b7e8f60052163f8a23dd73df828f6c661d929f2e24f1088cd108349d8"
+      "sha256": "64f8449191926a6aac78cc6aa8693ba85e537e05dbbe89d0c87e1bdcb6650766"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
@@ -98,7 +98,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "ead0d3734e9187e1a766ea946beb106b226d2ce64f9ec00aca16135f11c0c7eb"
+      "sha256": "ac20158173cf03b4e62ef55a02c35acbb4dbc3e6483c8ae5bd09ac33b35e4040"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",

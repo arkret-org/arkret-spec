@@ -106,7 +106,7 @@ desired_sidecar_access(S) = { S.controller_id }
 
 ```json
 {
-  "kind": "ak.sidecar.desired_access.v1",
+  "domain": "ak.sidecar.desired_access.v1",
   "sidecar_id": "ak:sidecar:...",
   "realm_id": "ak:realm:...",
   "controller_id": "did:...",
