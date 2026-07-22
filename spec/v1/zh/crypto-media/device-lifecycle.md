@@ -821,6 +821,42 @@ POST /_arkret/peer/keys/keypackages/claims/query
 | `key_packages` | `object[]` | required | MLS KeyPackage 与 metadata；每项 MUST 带 unique `keypackage_id` 和 `keypackage_ref`。 |
 | `device_signature` | `signature` | required | 当前设备签名，MUST 链接到 self-signing / principal key。 |
 
+### 9.0 KeyPackage 写路径签名 transcript（normative）
+
+`upload`、`consume` 与 `revoke` 的 detached signature MUST 使用本节唯一的 byte-exact canonical input。普通 device 与独立 Native Agent runtime 使用完全相同的 canonical bytes；身份分支只决定验签所用的 current accepted key 与落库 trust binding，不得改变 domain、字段集合或缺省规则。实现 MUST 调用 `arkret-rust-sdk` 的 typed canonical helper，不得从开放 `serde_json::Value`、本地 principal 类型或 HTTP handler 参数重新拼装 transcript。
+
+三条 batch signing input 分别为：
+
+```text
+UTF8("ak.self.keys.keypackages.upload.create\n")
++ JCS(upload request 删除顶层 device_signature，并删除每个 key_packages[] entry 的 device_signature)
+
+UTF8("ak.self.keys.keypackages.command.consume\n")
++ JCS(consume request 删除 signature)
+
+UTF8("ak.self.keys.keypackages.command.revoke\n")
++ JCS(revoke request 删除 signature)
+```
+
+JCS 对象保留 typed request 中所有 required 字段，并只保留 wire body **实际存在**的 optional 字段。缺省字段必须省略；producer 不得把缺省改写成 JSON `null`。SDK DTO 以 `skip_serializing_if` 省略的空 optional collection 同样不进入 transcript。domain separator 后直接拼接 JCS bytes，不插入空格、额外换行、BOM 或 NUL terminator。
+
+upload 顶层 `device_signature` 始终 required，是整个 request 的 authoritative batch authorization。每个 `keypackage_upload_entry.device_signature` 是 optional defense-in-depth signature；其 signing input 为：
+
+```text
+UTF8("ak.self.keys.keypackages.upload.create\n")
++ JCS({
+     "principal_id": <request principal_id>,
+     "device_id": <request device_id>,
+     "key_package": <该 entry 删除 device_signature>
+   })
+```
+
+entry signature 不覆盖、替代或降级 batch signature。batch signature 无效时整个 request MUST 在任何 KeyPackage 状态写入前拒绝。batch 有效但 present entry signature 无效时，只能拒绝对应 entry；entry signature 缺省时，已验证的 batch authorization覆盖该 entry。接收方不得尝试 `ak.keypackage-upload-v1`、只覆盖 `{device_id,key_packages}` 的旧 transcript或任何实现私有 fallback。
+
+签名算法 v1 为 Ed25519；`signature.alg` MAY 使用注册别名 `Ed25519` 或 `EdDSA`，`signature.kid` MUST 指向同一 accepted signing key。普通 device 从 current accepted device authorization/cross-signing state解析该 key；Native Agent 从 current accepted `ak.agent.key.authorize.verification_method` 解析该 key，并且该 key MUST 同时等于 MLS LeafNode signature key。三条 batch签名与 present entry签名都必须在解析或改变 KeyPackage状态前验证。
+
+upload、consume、revoke 的 byte-exact正向与负向向量由 `ak.vector.crypto.keypackage_write_transcripts.v1` 固化。SDK helper输出与该 fixture不一致时实现 MUST fail closed；不得以当前 server或client实现为兼容依据。
+
 `claim` 请求字段：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
@@ -842,7 +878,7 @@ POST /_arkret/peer/keys/keypackages/claims/query
 | `claims` | `object[]` | required | 每个 claimed KeyPackage 的 `claim_id`、`keypackage_ref`、`keypackage_digest`、device binding、expiry、capabilities 和 `capabilities_digest = sha256(JCS(capabilities))`。 |
 | `failures` | `object[]` | optional | 不可领取设备与原因；不得泄露不可见用户或设备。 |
 
-`consume` request MUST validate `schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body`，并由 Welcome 接收方或授权发送方在 Welcome 成功处理后调用，绑定 `key_package_refs[]`、`consumer_device_id`、`signature`，以及可选 `claim_ids[]`、`welcome_ref`、`realm_id`、`strand_id`、`mls_group_id`、`epoch`。`revoke` request MUST validate `#/$defs/key_packages_revoke_request_body`，可由设备、principal controller 或 policy 授权服务发起。
+`consume` request MUST validate `schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body`，并由 Welcome 接收方或授权发送方在 Welcome 成功处理且新的 MLS group state 已 durable 持久化后调用，绑定 `key_package_refs[]`、`consumer_device_id`、`signature`，以及可选 `claim_ids[]`、`welcome_ref`、`realm_id`、`strand_id`、`mls_group_id`、`epoch`。若持久化失败，runtime MUST NOT 调用 consume；若 consume响应丢失，必须以同一 signed typed request幂等重试。`revoke` request MUST validate `#/$defs/key_packages_revoke_request_body`，可由设备、principal controller 或 policy授权服务发起。
 
 规则：
 

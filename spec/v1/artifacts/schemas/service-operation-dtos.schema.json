@@ -782,7 +782,8 @@
         },
         "device_id": {
           "type": "string",
-          "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Stable protocol endpoint identifier. REQUIRED for agent_key_proof and covered by request_canonical_digest; the Account Authority MUST persist and return the same value in the issued grant so Principal Servers can bind MLS KeyPackage ownership, Welcome routing, consume/revoke operations, refresh, and restart recovery to one endpoint. It MUST NOT be derived from a session or grant id."
         },
         "focus_id": {
           "type": "string",
@@ -2716,7 +2717,7 @@
       },
       "allOf": [
         {
-          "description": "Machine-enforceable agent_key_proof branch selector. When `proof.proof_kind` is\n`agent_key_proof`, the request MUST carry the `ak.profile.agent_auth.v1` overlay\nfields (`agent_key_authorization_ref`, `agent_scope_request`, `dpop_binding_proof`,\n`proof.verification_method`) and MAY carry a private requested_scope_disclosure\nwhen the verifier has no accepted cache; when it is any other enum value, agent-only fields\nMUST be absent. SDKs and server-side validators MUST reject violations at\nschema-validation time, not at proof-validator time.\n",
+          "description": "Machine-enforceable agent_key_proof branch selector. When `proof.proof_kind` is\n`agent_key_proof`, the request MUST carry stable `device_id` plus the `ak.profile.agent_auth.v1` overlay\nfields (`agent_key_authorization_ref`, `agent_scope_request`, `dpop_binding_proof`,\n`proof.verification_method`) and MAY carry a private requested_scope_disclosure\nwhen the verifier has no accepted cache; when it is any other enum value, agent-only fields\nMUST be absent. SDKs and server-side validators MUST reject violations at\nschema-validation time, not at proof-validator time.\n",
           "if": {
             "properties": {
               "proof": {
@@ -2736,6 +2737,7 @@
           },
           "then": {
             "required": [
+              "device_id",
               "agent_key_authorization_ref",
               "agent_scope_request",
               "dpop_binding_proof"

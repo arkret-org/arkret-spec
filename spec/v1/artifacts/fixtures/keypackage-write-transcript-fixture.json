@@ -1,0 +1,136 @@
+{
+  "profile": "ak.profile.agent_runtime.v1",
+  "version": "2026-07-22",
+  "suite": "keypackage_write_transcripts",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.crypto.keypackage_write_transcripts.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.crypto.keypackage_write_transcripts.v1"
+  ],
+  "test_key": {
+    "alg": "Ed25519",
+    "kid": "did:webvh:z6mkfixture:agent.example#runtime-1",
+    "private_key_seed": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+    "public_key": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+    "note": "Public conformance test key only. Production profiles MUST reject this test DID/key domain."
+  },
+  "cases": [
+    {
+      "name": "upload_batch_required_fields",
+      "operation_id": "ak.self.keys.keypackages.upload.create",
+      "domain": "ak.self.keys.keypackages.upload.create\n",
+      "unsigned_request": {
+        "principal_id": "did:webvh:z6mkfixture:agent.example",
+        "device_id": "ak:device:01964137-0000-7000-8000-00000000000d",
+        "key_packages": [
+          {
+            "keypackage_id": "keypackage-fixture-001",
+            "keypackage_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "keypackage_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "key_package": "AA",
+            "cipher_suites": [
+              "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
+            ],
+            "capabilities": [
+              "mimi.content.v1",
+              "ak.content.v1"
+            ],
+            "expires_at": "2026-07-29T00:00:00.000Z",
+            "created_at": "2026-07-22T00:00:00.000Z"
+          }
+        ]
+      },
+      "canonical_jcs": "{\"device_id\":\"ak:device:01964137-0000-7000-8000-00000000000d\",\"key_packages\":[{\"capabilities\":[\"mimi.content.v1\",\"ak.content.v1\"],\"cipher_suites\":[\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\"],\"created_at\":\"2026-07-22T00:00:00.000Z\",\"expires_at\":\"2026-07-29T00:00:00.000Z\",\"key_package\":\"AA\",\"keypackage_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"keypackage_id\":\"keypackage-fixture-001\",\"keypackage_ref\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"}],\"principal_id\":\"did:webvh:z6mkfixture:agent.example\"}",
+      "signing_input_base64url": "YWsuc2VsZi5rZXlzLmtleXBhY2thZ2VzLnVwbG9hZC5jcmVhdGUKeyJkZXZpY2VfaWQiOiJhazpkZXZpY2U6MDE5NjQxMzctMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMDBkIiwia2V5X3BhY2thZ2VzIjpbeyJjYXBhYmlsaXRpZXMiOlsibWltaS5jb250ZW50LnYxIiwiYWsuY29udGVudC52MSJdLCJjaXBoZXJfc3VpdGVzIjpbIk1MU18xMjhfREhLRU1YMjU1MTlfQUVTMTI4R0NNX1NIQTI1Nl9FZDI1NTE5Il0sImNyZWF0ZWRfYXQiOiIyMDI2LTA3LTIyVDAwOjAwOjAwLjAwMFoiLCJleHBpcmVzX2F0IjoiMjAyNi0wNy0yOVQwMDowMDowMC4wMDBaIiwia2V5X3BhY2thZ2UiOiJBQSIsImtleXBhY2thZ2VfZGlnZXN0Ijoic2hhMjU2OjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiLCJrZXlwYWNrYWdlX2lkIjoia2V5cGFja2FnZS1maXh0dXJlLTAwMSIsImtleXBhY2thZ2VfcmVmIjoic2hhMjU2OjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEifV0sInByaW5jaXBhbF9pZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphZ2VudC5leGFtcGxlIn0",
+      "signature": "X_6u0CdrnrTOs8h41Uo7X-0hFFravb4Pn_lN_IudanvDsX-e3XgRp0C3X8WiRZDS98FR4XvgEQfFDBjqqXR0CQ"
+    },
+    {
+      "name": "upload_entry_signature",
+      "operation_id": "ak.self.keys.keypackages.upload.create",
+      "domain": "ak.self.keys.keypackages.upload.create\n",
+      "unsigned_request": {
+        "principal_id": "did:webvh:z6mkfixture:agent.example",
+        "device_id": "ak:device:01964137-0000-7000-8000-00000000000d",
+        "key_package": {
+          "keypackage_id": "keypackage-fixture-001",
+          "keypackage_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "keypackage_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "key_package": "AA",
+          "cipher_suites": [
+            "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
+          ],
+          "capabilities": [
+            "mimi.content.v1",
+            "ak.content.v1"
+          ],
+          "expires_at": "2026-07-29T00:00:00.000Z",
+          "created_at": "2026-07-22T00:00:00.000Z"
+        }
+      },
+      "canonical_jcs": "{\"device_id\":\"ak:device:01964137-0000-7000-8000-00000000000d\",\"key_package\":{\"capabilities\":[\"mimi.content.v1\",\"ak.content.v1\"],\"cipher_suites\":[\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\"],\"created_at\":\"2026-07-22T00:00:00.000Z\",\"expires_at\":\"2026-07-29T00:00:00.000Z\",\"key_package\":\"AA\",\"keypackage_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"keypackage_id\":\"keypackage-fixture-001\",\"keypackage_ref\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"principal_id\":\"did:webvh:z6mkfixture:agent.example\"}",
+      "signing_input_base64url": "YWsuc2VsZi5rZXlzLmtleXBhY2thZ2VzLnVwbG9hZC5jcmVhdGUKeyJkZXZpY2VfaWQiOiJhazpkZXZpY2U6MDE5NjQxMzctMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMDBkIiwia2V5X3BhY2thZ2UiOnsiY2FwYWJpbGl0aWVzIjpbIm1pbWkuY29udGVudC52MSIsImFrLmNvbnRlbnQudjEiXSwiY2lwaGVyX3N1aXRlcyI6WyJNTFNfMTI4X0RIS0VNWDI1NTE5X0FFUzEyOEdDTV9TSEEyNTZfRWQyNTUxOSJdLCJjcmVhdGVkX2F0IjoiMjAyNi0wNy0yMlQwMDowMDowMC4wMDBaIiwiZXhwaXJlc19hdCI6IjIwMjYtMDctMjlUMDA6MDA6MDAuMDAwWiIsImtleV9wYWNrYWdlIjoiQUEiLCJrZXlwYWNrYWdlX2RpZ2VzdCI6InNoYTI1NjoxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExIiwia2V5cGFja2FnZV9pZCI6ImtleXBhY2thZ2UtZml4dHVyZS0wMDEiLCJrZXlwYWNrYWdlX3JlZiI6InNoYTI1NjoxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExIn0sInByaW5jaXBhbF9pZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphZ2VudC5leGFtcGxlIn0",
+      "signature": "hFLx-N2BvNAzO2KIm8JBr3MHlb2WwEDMdJQhZsmtSoNXBATyYepsYBxQzEKfoBO_kKNJEJH1gxoRSf_Xacf2Bg"
+    },
+    {
+      "name": "consume_all_optional_fields",
+      "operation_id": "ak.self.keys.keypackages.command.consume",
+      "domain": "ak.self.keys.keypackages.command.consume\n",
+      "unsigned_request": {
+        "key_package_refs": [
+          "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ],
+        "consumer_device_id": "ak:device:01964137-0000-7000-8000-00000000000d",
+        "claim_ids": [
+          "claim-fixture-001"
+        ],
+        "welcome_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "realm_id": "ak:realm:01964137-0000-7000-8000-00000000000f",
+        "strand_id": "ak:strand:01964137-0000-7000-8000-00000000000e",
+        "mls_group_id": "mls-fixture-group",
+        "epoch": 1
+      },
+      "canonical_jcs": "{\"claim_ids\":[\"claim-fixture-001\"],\"consumer_device_id\":\"ak:device:01964137-0000-7000-8000-00000000000d\",\"epoch\":1,\"key_package_refs\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"],\"mls_group_id\":\"mls-fixture-group\",\"realm_id\":\"ak:realm:01964137-0000-7000-8000-00000000000f\",\"strand_id\":\"ak:strand:01964137-0000-7000-8000-00000000000e\",\"welcome_ref\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
+      "signing_input_base64url": "YWsuc2VsZi5rZXlzLmtleXBhY2thZ2VzLmNvbW1hbmQuY29uc3VtZQp7ImNsYWltX2lkcyI6WyJjbGFpbS1maXh0dXJlLTAwMSJdLCJjb25zdW1lcl9kZXZpY2VfaWQiOiJhazpkZXZpY2U6MDE5NjQxMzctMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMDBkIiwiZXBvY2giOjEsImtleV9wYWNrYWdlX3JlZnMiOlsic2hhMjU2OjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiXSwibWxzX2dyb3VwX2lkIjoibWxzLWZpeHR1cmUtZ3JvdXAiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOjAxOTY0MTM3LTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwZiIsInN0cmFuZF9pZCI6ImFrOnN0cmFuZDowMTk2NDEzNy0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMGUiLCJ3ZWxjb21lX3JlZiI6InNoYTI1NjoyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyIn0",
+      "signature": "DFjD45oyL3fyCzHBbrbWnYQI9BZa7P3k_ExQDY49GCtLPCUKo7kx5hpjnbFl7KFf08tvRhv3CLvljSZDQ4zbAA"
+    },
+    {
+      "name": "revoke_with_reason",
+      "operation_id": "ak.self.keys.keypackages.command.revoke",
+      "domain": "ak.self.keys.keypackages.command.revoke\n",
+      "unsigned_request": {
+        "key_package_refs": [
+          "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ],
+        "device_id": "ak:device:01964137-0000-7000-8000-00000000000d",
+        "reason": "authorization_superseded"
+      },
+      "canonical_jcs": "{\"device_id\":\"ak:device:01964137-0000-7000-8000-00000000000d\",\"key_package_refs\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"],\"reason\":\"authorization_superseded\"}",
+      "signing_input_base64url": "YWsuc2VsZi5rZXlzLmtleXBhY2thZ2VzLmNvbW1hbmQucmV2b2tlCnsiZGV2aWNlX2lkIjoiYWs6ZGV2aWNlOjAxOTY0MTM3LTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwZCIsImtleV9wYWNrYWdlX3JlZnMiOlsic2hhMjU2OjExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEiXSwicmVhc29uIjoiYXV0aG9yaXphdGlvbl9zdXBlcnNlZGVkIn0",
+      "signature": "ppUSC9bLl-DUCa9Wdtq4Lzjjk3oZVcS8RcdcpiYfpLThhyrXWx3IGn3hcqdd5AaONUAbzOYtR5lWCdW9Jo3pCA"
+    }
+  ],
+  "negative_cases": [
+    {
+      "name": "legacy_inkson_domain_rejected",
+      "mutation": "replace upload domain with ak.keypackage-upload-v1 newline",
+      "expected": "device_signature_invalid"
+    },
+    {
+      "name": "upload_omits_principal_id_rejected",
+      "mutation": "remove principal_id from upload unsigned request",
+      "expected": "device_signature_invalid"
+    },
+    {
+      "name": "optional_field_null_is_not_omission",
+      "mutation": "insert null mls_group_id instead of omitting it",
+      "expected": "device_signature_invalid"
+    },
+    {
+      "name": "entry_signature_does_not_replace_batch",
+      "mutation": "supply a valid entry signature with an invalid batch signature",
+      "expected": "device_signature_invalid"
+    }
+  ]
+}

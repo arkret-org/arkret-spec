@@ -3626,6 +3626,24 @@ Expected:
 - Step 4 全部 MUST fail closed：wire 形状混合时 `schema_violation`；accepted trust state、principal、lifecycle 或 key material 不匹配时 `claim_generation_mismatch`。实现不得 fallback 到 controller device、service-local row、过期 authorization 或任一其它 trust branch。
 - Step 5 MUST 接受；E1 下所有未消费 claim 永远失效且不得改写，新 Welcome 只能使用重新 claim 得到的 E2 binding。
 
+### 11.2.7 Vector: KeyPackage write canonical transcripts
+
+`vector_id`: `ak.vector.crypto.keypackage_write_transcripts.v1`
+
+fixture：`spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json`
+
+Steps:
+
+1. 用 fixture 的 typed upload request删除顶层与 entry signatures，通过 SDK `keypackages_upload_signing_input`生成 bytes；另对单 entry调用 `keypackage_upload_entry_signing_input`。
+2. 用 typed consume/revoke request分别删除其 `signature`，通过 SDK helper生成 bytes。
+3. 对每条 bytes比较 fixture `canonical_jcs`、`signing_input_base64url`，并以 fixture Ed25519 test key验证 `signature`。
+4. 负向依次替换为旧 `ak.keypackage-upload-v1` domain、从 upload移除 `principal_id`、把缺省 optional字段写成 `null`、仅保留合法 entry signature但破坏 batch signature。
+
+Expected:
+
+- Steps 1–3 MUST byte-identical通过；普通 device与 Native Agent runtime不得产生不同 bytes。
+- Step 4 全部 MUST fail closed。entry signature不替代 required batch signature，服务端不得尝试旧 transcript或本地 principal-type fallback。
+
 ### 11.3 Vector: Agent Session Grant Replay Protection
 
 `vector_id`: `ak.vector.agent.session_grant.replay.v1`
