@@ -3251,6 +3251,18 @@
       ]
     },
     {
+      "vector_id": "ak.vector.actor_frontier.realm_scoped.v1",
+      "status": "active",
+      "domain": "actor_frontier",
+      "applies_to_fixtures": [
+        "sync-fixture.json"
+      ],
+      "description": "Realm-scoped actor frontiers bind realm_id and actor_id, start at actor_seq 0, retain the complete sorted sibling head set, and hash the closed realm_actor transcript deterministically.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/sync-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.sync.range_completeness_client_query.v1",
       "status": "active",
       "domain": "sync",

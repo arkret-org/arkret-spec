@@ -335,7 +335,7 @@
       "code": "cas_conflict",
       "http_status": 409,
       "scope": "both",
-      "description": "An optimistic concurrency precondition failed."
+      "description": "An optimistic concurrency precondition failed. For ordinary Event actor-chain authoring, this code is returned only after duplicate-id checks and only when the accepted (realm_id, actor_id) sequence has strictly advanced beyond the submitted signed Event. Authenticated visible callers receive closed details {accepted:false,current_frontier:RealmActorFrontierView}; only that explicit result permits semantic re-author with a new event_id."
     },
     {
       "code": "causal_conflict",
@@ -612,6 +612,12 @@
       "http_status": 503,
       "scope": "endpoint",
       "description": "The service cannot currently produce the requested frontier because required seal, reducer, or witness state is unavailable."
+    },
+    {
+      "code": "frontier_sequence_exhausted",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The requested Realm-scoped actor frontier has accepted actor_seq u64::MAX, so no valid next_actor_seq exists. Producers MUST NOT wrap, reset, or author another Event for that chain."
     },
     {
       "code": "mls_governance_anchor_unreachable",

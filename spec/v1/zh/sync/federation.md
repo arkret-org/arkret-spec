@@ -342,8 +342,8 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
 | `rejected` | `object[]` | optional | 被拒绝项；每项 SHOULD 包含 `id`、`reason_code` 和可审计说明。为空或省略表示本批无单项拒绝。 |
 | `quarantine` | `id[]` | optional | 进入隔离队列等待人工或异步验证的 Event ID。 |
 | `original_outcome` | `object` | conditional | 仅 `status=historical_only` 时出现；保留原始提交的 accepted / duplicate / rejected / quarantine 摘要，防止历史重放被误解为本次新接受。 |
-| `actor_frontier` | `object[]` | optional | 接收方可披露的 actor frontier hint；不得跨 visibility boundary 泄露。 |
-| `realm_frontier` | `object` | optional | 接收方可披露的 Realm Seal / frontier hint；不得跨 visibility boundary 泄露。 |
+| `realm_actor_frontiers` | `RealmActorFrontierView[]` | optional | 接收方可披露的 Realm-scoped actor frontier；每项独立通过 visibility gate，不得跨边界泄露。 |
+| `realm_frontiers` | `RealmSealFrontierView[]` | optional | 接收方可披露的 Realm Seal frontier；不得跨 visibility boundary 泄露。 |
 | `cursor` | `string` | conditional | `accepted[]` 非空时 MUST 返回 `purpose=barrier` 的 opaque cursor，语义与 `operations-sync.md` §5 完全一致：只用于等待本批 accepted Event 对调用方可见，不得传给 scan 的 `before` / `after`，也不能被解释为权限证明。批量 retry 使用幂等键和逐项结果，不复用该 barrier cursor。 |
 
 4. `server-beta.com` 独立验证每个 Event 的 Actor 签名、Realm policy、服务委托、接收方服务绑定和因果链，然后决定是否接受

@@ -317,6 +317,8 @@ components:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_update_profile_request_body
     AccountView:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_view
+    ActorAggregateFrontierView:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ActorAggregateFrontierView
     ActorDid:
       type: string
       pattern: ^did:[a-z0-9]+:[^\s#?]+$
@@ -1143,6 +1145,7 @@ components:
               - did_not_found
               - did_revoked
               - frontier_unavailable
+              - frontier_sequence_exhausted
               - mls_governance_anchor_unreachable
               - mls_governance_proof_bounds_exceeded
               - handle_unverified
@@ -1279,29 +1282,10 @@ components:
     EventId:
       type: string
       pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+    EventsActorCasConflictDetails:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsActorCasConflictDetails
     EventsFrontierAccountClientState:
-      type: object
-      description: Account-client ak.self.events.query.frontier response.
-      required:
-      - frontier
-      properties:
-        frontier:
-          type: object
-          description: |
-            Either an actor frontier (`{actor_id, actor_seq, event_id}`) or a
-            Realm frontier (`{realm_id, seal_id, control_event_set_root,
-            state_root, hlc?}`) shape depending on which selector was passed;
-            servers MUST NOT leak frontiers across visibility boundaries.
-            The Realm shape is the registered account-client source for
-            minting a single-leaf Control Move `seal_basis`
-            (`leaves=[seal_id]`) and a DataEvent `seal_ref`; for the caller's
-            own principal control realm the Principal Server MUST serve it.
-            Clients MUST fail closed when this source is unavailable.
-        receipts:
-          type: array
-          items:
-            type: object
-      additionalProperties: false
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierAccountClientState
     EventsFrontierFederationPeerState:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState
     EventsFrontierState:
@@ -2286,6 +2270,8 @@ components:
       $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list
     ReadMarkerOutcome:
       $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome
+    RealmActorFrontierView:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/RealmActorFrontierView
     RealmArchivePayload:
       $ref: ../schemas/event-payload.schema.json#/$defs/realm_archive_payload
     RealmDestroyPayload:
@@ -2319,6 +2305,8 @@ components:
       $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_replace_request_body
     RealmPolicyServerView:
       $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view
+    RealmSealFrontierView:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/RealmSealFrontierView
     RealmTombstonePayload:
       $ref: ../schemas/event-payload.schema.json#/$defs/realm_tombstone_payload
     ReferenceProjectionStatus:

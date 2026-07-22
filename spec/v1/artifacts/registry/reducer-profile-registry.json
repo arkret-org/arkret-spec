@@ -174,7 +174,7 @@
           },
           {
             "fixture": "sync-fixture.json",
-            "semantic_projection_digest": "sha256:b976bf5d5acff8edc97468d6f0cdf6fa19776f6a5fb500f96e7f60c0b836b3cf"
+            "semantic_projection_digest": "sha256:be6599946d36cdae49f303090c076bb528f4b15f242a2951e80eada7af26bb5a"
           }
         ],
         "reducer_contracts": [
@@ -196,7 +196,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:e5a94190e2dbf6f00de7bce4941765272b5d043c2ef208bc5bfb5caf9d2ff842"
+      "reducer_profile_digest": "sha256:ae84808f90f1bd966e07ca00ba8c4a6e307ae06778178b92d1df6f5aa8285fd9"
     },
     {
       "profile_id": "ak.profile.chat_mvp.v1",
@@ -482,7 +482,7 @@
           },
           {
             "fixture": "sync-fixture.json",
-            "semantic_projection_digest": "sha256:b976bf5d5acff8edc97468d6f0cdf6fa19776f6a5fb500f96e7f60c0b836b3cf"
+            "semantic_projection_digest": "sha256:be6599946d36cdae49f303090c076bb528f4b15f242a2951e80eada7af26bb5a"
           }
         ],
         "reducer_contracts": [
@@ -520,7 +520,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:fe2477de2561f0413729c98d98765d75e271a2c4147830b33887f20429f44786"
+      "reducer_profile_digest": "sha256:96fc168b2b4fba5080339864372bdc7d9e189721618d368a5f3192bd12370319"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -774,7 +774,7 @@
           },
           {
             "fixture": "sync-fixture.json",
-            "semantic_projection_digest": "sha256:b976bf5d5acff8edc97468d6f0cdf6fa19776f6a5fb500f96e7f60c0b836b3cf"
+            "semantic_projection_digest": "sha256:be6599946d36cdae49f303090c076bb528f4b15f242a2951e80eada7af26bb5a"
           }
         ],
         "reducer_contracts": [
@@ -816,7 +816,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:9adde3a73aa5a07ffb6250ac1231ce6bc60defd5ab97b866dee2c313fcc049fc"
+      "reducer_profile_digest": "sha256:5b827695db748bd6f51e831261b45c8a7f2085ff691876145d50d70179e6ef29"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1371,7 +1371,7 @@
           },
           {
             "fixture": "sync-fixture.json",
-            "semantic_projection_digest": "sha256:b976bf5d5acff8edc97468d6f0cdf6fa19776f6a5fb500f96e7f60c0b836b3cf"
+            "semantic_projection_digest": "sha256:be6599946d36cdae49f303090c076bb528f4b15f242a2951e80eada7af26bb5a"
           }
         ],
         "reducer_contracts": [
@@ -1445,7 +1445,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:039364c98ace47b29faee7ff9938340f71926a8b645844ee5a936dbe06cb5429"
+      "reducer_profile_digest": "sha256:e2bd2d6cd5b6c50277e366fffb4f61f2d26dd8f49cb8996c3792f7d2bdf636c6"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1657,7 +1657,7 @@
           },
           {
             "fixture": "sync-fixture.json",
-            "semantic_projection_digest": "sha256:b976bf5d5acff8edc97468d6f0cdf6fa19776f6a5fb500f96e7f60c0b836b3cf"
+            "semantic_projection_digest": "sha256:be6599946d36cdae49f303090c076bb528f4b15f242a2951e80eada7af26bb5a"
           }
         ],
         "reducer_contracts": [
@@ -1687,15 +1687,15 @@
           },
           {
             "ref": "zh/sync/federation.md",
-            "content_digest": "sha256:337d736362c79f39a0651e2c7ef74b9d2c08bbbf7c11b3607386f5b8f19e5002"
+            "content_digest": "sha256:661e7ab4807f38bacaea72648ef1c6b2722d739bb2e2262ab1236d7debd8388d"
           },
           {
             "ref": "zh/sync/service-http-binding.md",
-            "content_digest": "sha256:364ae06eae29fead0132abe2ec4aead8feb44d2c4e51efba9f57315ca31d6417"
+            "content_digest": "sha256:2c860c693efc53c687ba0609ee4efd987ee435af16e68da6a8f5c1fe4170706e"
           }
         ]
       },
-      "reducer_profile_digest": "sha256:952a4c29fd910fa0f002602d983e621dfbd0b8bce085c8e0030a530290b92d72"
+      "reducer_profile_digest": "sha256:bc6c5c55fa7d83625c91f6a9fdcc35bd60843eeabd6300ceb6b5f7242ec0106c"
     }
   ],
   "generated_fields": [

@@ -3115,8 +3115,8 @@
           "duplicate",
           "rejected",
           "quarantine",
-          "actor_frontier",
-          "realm_frontier",
+          "realm_actor_frontiers",
+          "realm_frontiers",
           "cursor",
           "original_outcome"
         ],
@@ -3325,8 +3325,8 @@
           "duplicate",
           "rejected",
           "quarantine",
-          "actor_frontier",
-          "realm_frontier",
+          "realm_actor_frontiers",
+          "realm_frontiers",
           "cursor",
           "original_outcome"
         ],

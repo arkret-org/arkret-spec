@@ -79,6 +79,60 @@
           "transaction_id": "verification-fixture-1"
         }
       }
+    },
+    {
+      "name": "realm_actor_frontier_empty_chain_valid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/RealmActorFrontierView",
+      "expect_valid": true,
+      "instance": {
+        "kind": "realm_actor",
+        "realm_id": "ak:realm:01904100-0000-7000-8000-000000000001",
+        "actor_id": "did:web:alice.example",
+        "next_actor_seq": 0,
+        "frontier_event_ids": [],
+        "frontier_digest": "sha256:4e14285bf450dff49220316ffa2ef2258c2be1a389e09aae86d26a797d894233"
+      }
+    },
+    {
+      "name": "realm_actor_frontier_sibling_set_valid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/RealmActorFrontierView",
+      "expect_valid": true,
+      "instance": {
+        "kind": "realm_actor",
+        "realm_id": "ak:realm:01904100-0000-7000-8000-000000000001",
+        "actor_id": "did:web:alice.example",
+        "next_actor_seq": 43,
+        "frontier_event_ids": [
+          "ak:event:01904100-0000-7000-8000-000000000001",
+          "ak:event:01904100-0000-7000-8000-000000000002"
+        ],
+        "frontier_digest": "sha256:4f928af58951a0a04f532b272fe6c45b371d33e932d0a15a8df84725a5efe1cf"
+      }
+    },
+    {
+      "name": "realm_actor_frontier_old_singular_shape_rejected",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierView",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "instance": {
+        "actor_id": "did:web:alice.example",
+        "actor_seq": 42,
+        "event_id": "ak:event:01904100-0000-7000-8000-000000000001"
+      }
+    },
+    {
+      "name": "realm_actor_frontier_nonempty_sequence_requires_heads",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/RealmActorFrontierView",
+      "expect_valid": false,
+      "first_expected_error": "contains:should be non-empty",
+      "instance": {
+        "kind": "realm_actor",
+        "realm_id": "ak:realm:01904100-0000-7000-8000-000000000001",
+        "actor_id": "did:web:alice.example",
+        "next_actor_seq": 1,
+        "frontier_event_ids": [],
+        "frontier_digest": "sha256:4e14285bf450dff49220316ffa2ef2258c2be1a389e09aae86d26a797d894233"
+      }
     }
   ],
   "to_device_message_idempotency": {
@@ -1008,6 +1062,13 @@
       }
     }
   ],
+  "actor_frontier_digest": {
+    "vector_id": "ak.vector.actor_frontier.realm_scoped.v1",
+    "transcript_label_utf8_nul": "ak-realm-actor-frontier-v1\u0000",
+    "digest_algorithm": "sha256",
+    "canonical_json": "{\"actor_id\":\"did:web:alice.example\",\"frontier_event_ids\":[\"ak:event:01904100-0000-7000-8000-000000000001\",\"ak:event:01904100-0000-7000-8000-000000000002\"],\"kind\":\"realm_actor\",\"next_actor_seq\":43,\"realm_id\":\"ak:realm:01904100-0000-7000-8000-000000000001\"}",
+    "expected_digest": "sha256:4f928af58951a0a04f532b272fe6c45b371d33e932d0a15a8df84725a5efe1cf"
+  },
   "e2ee_decryption_pending": {
     "event_id": "ak:event:01964140-8000-7000-8000-000000000000",
     "strand_id": "ak:strand:01964180-0000-7000-8000-000000000000",

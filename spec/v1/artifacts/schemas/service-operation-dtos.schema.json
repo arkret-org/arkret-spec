@@ -2073,13 +2073,19 @@
           },
           "description": "Event IDs deferred to async / human verification."
         },
-        "actor_frontier": {
-          "type": "object",
-          "description": "Per-actor frontier after this submit (subset of full frontier visible to caller)."
+        "realm_actor_frontiers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RealmActorFrontierView"
+          },
+          "description": "Post-submit authoring frontiers for accepted or duplicate Events, sorted and unique by (realm_id, actor_id)."
         },
-        "realm_frontier": {
-          "type": "object",
-          "description": "Per-Realm frontier after this submit. In v1 the replication/security boundary is the Realm, not an in-Realm Space container; the `space_frontier` field name is forbidden on the wire."
+        "realm_frontiers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RealmSealFrontierView"
+          },
+          "description": "Visible post-submit Realm Seal frontiers sorted and unique by realm_id."
         },
         "cursor": {
           "type": "string",
@@ -3074,6 +3080,166 @@
         }
       ]
     },
+    "RealmActorFrontierView": {
+      "type": "object",
+      "description": "Deterministic authoring frontier for exactly one (realm_id, actor_id) chain. frontier_event_ids is the complete sorted sibling set at next_actor_seq - 1.",
+      "required": [
+        "kind",
+        "realm_id",
+        "actor_id",
+        "next_actor_seq",
+        "frontier_event_ids",
+        "frontier_digest"
+      ],
+      "properties": {
+        "kind": {
+          "const": "realm_actor"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "next_actor_seq": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "frontier_event_ids": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/EventId"
+          },
+          "description": "Bytewise UTF-8 sorted, duplicate-free complete accepted sibling set at the highest actor sequence."
+        },
+        "frontier_digest": {
+          "type": "string",
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "next_actor_seq": {
+                "const": 0
+              }
+            },
+            "required": [
+              "next_actor_seq"
+            ]
+          },
+          "then": {
+            "properties": {
+              "frontier_event_ids": {
+                "maxItems": 0
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "frontier_event_ids": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "RealmSealFrontierView": {
+      "type": "object",
+      "description": "Current accepted Realm Seal head used only for seal_basis and seal_ref authoring.",
+      "required": [
+        "kind",
+        "realm_id",
+        "seal_id",
+        "control_event_set_root",
+        "state_root"
+      ],
+      "properties": {
+        "kind": {
+          "const": "realm_seal"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "seal_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "control_event_set_root": {
+          "type": "string",
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+        },
+        "state_root": {
+          "type": "string",
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+        },
+        "hlc": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ActorAggregateFrontierView": {
+      "type": "object",
+      "description": "Read-only actor history aggregate. It has no single sequence or head and cannot be used for Event authoring.",
+      "required": [
+        "kind",
+        "actor_id",
+        "realms"
+      ],
+      "properties": {
+        "kind": {
+          "const": "actor_aggregate"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "realms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RealmActorFrontierView"
+          },
+          "description": "Visible Realm frontiers sorted by realm_id with no duplicate realm_id."
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventsFrontierView": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/RealmActorFrontierView"
+        },
+        {
+          "$ref": "#/$defs/RealmSealFrontierView"
+        },
+        {
+          "$ref": "#/$defs/ActorAggregateFrontierView"
+        }
+      ]
+    },
+    "EventsActorCasConflictDetails": {
+      "type": "object",
+      "description": "Closed details for an authenticated, visible actor-chain cas_conflict that proves the submitted Event was not accepted and its signed basis is stale.",
+      "required": [
+        "accepted",
+        "current_frontier"
+      ],
+      "properties": {
+        "accepted": {
+          "const": false
+        },
+        "current_frontier": {
+          "$ref": "#/$defs/RealmActorFrontierView"
+        }
+      },
+      "additionalProperties": false
+    },
     "EventsFrontierAccountClientState": {
       "type": "object",
       "description": "Account-client ak.self.events.query.frontier response. For a managed Agent PCR whose accepted Events are ahead of its accepted Seal, frontier remains the last accepted controller-device-signed Seal and receipts includes `{kind: ak.managed_agent_pcr.seal_head.v1, seal: Seal}` so the controller can author the successor; the service must never synthesize that device Seal.",
@@ -3082,8 +3248,7 @@
       ],
       "properties": {
         "frontier": {
-          "type": "object",
-          "description": "Either an actor frontier (`{actor_id, actor_seq, event_id?}`) or a\nRealm Seal view (`{realm_id, seal_id, control_event_set_root,\nstate_root, hlc?}`) shape depending on which selector was passed;\nservers MUST NOT leak frontiers across visibility boundaries. An actor with\nno visible Events is represented as `{actor_id, actor_seq: 0}` without\n`event_id`, including unknown or invisible actors, so genesis discovery does\nnot use an expected `not_found` response or disclose actor existence. A\nnon-empty actor frontier has actor_seq >= 1 and MUST include event_id.\nThe Realm shape is the registered account-client source for minting\na single-leaf Control Move `seal_basis` (`leaves=[seal_id]`) and a\nDataEvent `seal_ref`; for the caller's own principal control realm\nthe Principal Server MUST serve it (an initialized Realm always has\nat least its genesis Seal). Clients MUST fail closed when this\nsource is unavailable instead of fabricating a basis.\n"
+          "$ref": "#/$defs/EventsFrontierView"
         },
         "receipts": {
           "type": "array",
