@@ -36,12 +36,15 @@
       "A": "Verifiable by the public SDK API shape and inventory; no implementation-private inspection is required.",
       "U": "Verifiable only by implementation, configuration, or data-flow audit evidence."
     },
+    "evidence_coverage_semantics": "acceptable_set",
+    "evidence_coverage_semantics_note": "A clause's required_evidence enumerates the ACCEPTABLE evidence kinds for that clause (acceptable-set semantics), not a mandate that every listed kind be present. For a clause claim with result=pass or result=fail: at least one evidence entry MUST be present (already required by the schema when result != not_applicable), and every evidence[].kind MUST be a member of that clause's required_evidence set in this contract. Evidence whose kind falls outside the clause's required_evidence set MUST NOT be accepted as substantiation for that clause. result=not_applicable is exempt from evidence-kind coverage but MUST carry a machine-readable rationale.",
     "rules": [
       "Each SDK release claiming Arkret v1 conformance MUST publish one claim object against this exact contract digest.",
       "The claim MUST bind the exact SDK artifact digest and spec revision, and MUST carry an issuer signature over the domain-separated RFC 8785 JCS claim bytes with proof omitted.",
       "Every evidence reference MUST carry a non-zero immutable content digest; consumers MUST verify all digests and the issuer verification method before accepting the claim.",
       "Every applicable clause MUST appear exactly once; not_applicable MUST include a machine-readable rationale.",
       "Evidence references MUST be content-addressed or carry an immutable CI run identifier.",
+      "A verifier MUST enforce evidence_coverage_semantics: for every clause claim whose result is pass or fail, it MUST reject the claim unless at least one evidence entry is present and every evidence[].kind is a member of that clause's required_evidence set. A pass/fail clause substantiated only by evidence kinds outside its required_evidence set MUST be rejected. This check is independent of, and applied in addition to, the digest and signature checks above.",
       "Section numbers and table row numbers are not clause identifiers; only clause_id is stable."
     ],
     "clauses": [

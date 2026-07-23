@@ -448,12 +448,12 @@
       }
     },
     {
-      "name": "reject_resource_selector_depth_17",
+      "name": "reject_resource_selector_depth_9",
       "vector_id": "ak.vector.scalability.capability_limits.v1",
       "input": {
         "generator": {
           "kind": "resource_selector_ast",
-          "depth": 17
+          "depth": 9
         }
       },
       "expected": {

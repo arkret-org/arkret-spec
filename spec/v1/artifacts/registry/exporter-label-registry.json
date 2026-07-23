@@ -5,6 +5,7 @@
   "labels": [
     {
       "label": "ak.rtc-frame-key/v1",
+      "primitive": "MLS-Exporter",
       "purpose": "SFrame per-sender media frame key (E2EE media frames)",
       "defined_in": "zh/crypto-media/media-service-binding.md §8.1",
       "context_fields": [
@@ -15,6 +16,7 @@
         "participant_identity",
         "device_id"
       ],
+      "context_encoding": "canonical JSON (RFC 8785 JCS) bytes of the context_fields object {realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}; empty or epoch-only Context MUST fail closed",
       "output_length": 32,
       "applies_to_profiles": [
         "ak.profile.media_service_binding.v1"
@@ -29,6 +31,7 @@
     },
     {
       "label": "ak.rtc-recording-key/v1",
+      "primitive": "MLS-Exporter",
       "purpose": "Backend-generated recording artifact encryption key",
       "defined_in": "zh/crypto-media/call-state.md §5 and zh/crypto-media/media-service-binding.md §8.1",
       "context_fields": [
@@ -39,6 +42,7 @@
         "media_service_id",
         "recording_start_event_id"
       ],
+      "context_encoding": "canonical JSON (RFC 8785 JCS) bytes of the context_fields object {realm_id, call_id, focus_id, recording_id, media_service_id, recording_start_event_id}; empty Context MUST fail closed",
       "output_length": 32,
       "applies_to_profiles": [
         "ak.profile.media_service_binding.v1"
@@ -53,6 +57,7 @@
     },
     {
       "label": "ak.rtc-transcript-key/v1",
+      "primitive": "MLS-Exporter",
       "purpose": "Encryption key for a call transcription artifact (transcribe pipeline, distinct from media frame and recording keys)",
       "defined_in": "zh/crypto-media/call-state.md §5.1",
       "context_fields": [
@@ -63,6 +68,7 @@
         "media_service_id",
         "transcript_start_event_id"
       ],
+      "context_encoding": "canonical JSON (RFC 8785 JCS) bytes of the context_fields object {realm_id, call_id, focus_id, recording_id, media_service_id, transcript_start_event_id}; empty Context MUST fail closed",
       "output_length": 32,
       "applies_to_profiles": [
         "ak.profile.media_service_binding.v1"
@@ -77,11 +83,13 @@
     },
     {
       "label": "arkret-reaction-routing-v1",
+      "primitive": "MLS-Exporter",
       "purpose": "Keyed-HMAC key for the plaintext reaction routing tag in E2EE Realms (reaction_routing_hmac_v1 = HMAC-SHA256(key, utf8(canonical_emoji)); the exporter output is the HMAC key)",
       "defined_in": "zh/crypto-media/encryption-and-audit.md (reaction visibility rules, reaction_routing_hmac_v1)",
       "context_fields": [
         "realm_id"
       ],
+      "context_encoding": "realm_id UTF-8 bytes exactly as serialized in the enclosing Realm id string",
       "output_length": 32,
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1",
@@ -96,11 +104,13 @@
     },
     {
       "label": "arkret-mention-routing-v1",
+      "primitive": "MLS-Exporter",
       "purpose": "Keyed-HMAC key for the opt-in mention routing sidecar tag in E2EE Realms (mention_routing_hmac_v1 = HMAC-SHA256(key, utf8(mentioned_did)); the exporter output is the HMAC key; Sync Service MUST NOT derive, receive or persist the exporter secret)",
       "defined_in": "zh/discovery/push-notifications.md (mention sidecar hint, mention_routing_hmac_v1)",
       "context_fields": [
         "realm_id"
       ],
+      "context_encoding": "realm_id UTF-8 bytes exactly as serialized in the enclosing Realm id string",
       "output_length": 32,
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1"
@@ -114,6 +124,7 @@
     },
     {
       "label": "arkret-aead-sender-nonce-prefix-v1",
+      "primitive": "MLS-Exporter",
       "purpose": "Per-sender AEAD nonce prefix for every AEAD-bearing v1 envelope (nonce = sender_nonce_prefix || device_nonce_counter_be64); canonical derivation defined once in encoding.md, domain documents only declare their `purpose` value",
       "defined_in": "zh/conformance/encoding.md §10.1 (AEAD nonce uniqueness)",
       "context_fields": [

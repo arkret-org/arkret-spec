@@ -810,6 +810,10 @@ E2EE Realm 的同步必须把“事件顺序”和“密钥可用性”分开处
 
 **`first_pending_at` 计时基准（normative）**：`first_pending_at` MUST 取该 pending 事件自身的因果时间——`hlc`（首选）或 `created_at`，而 **MUST NOT** 取 per-device 本地墙钟"首次见到该事件"的时刻。这使 `decryption_pending_timeout` 在 **account 维度单调**：同一事件在不同设备、重启或重新 initial sync 后重新进入 pending 时，timeout deadline（`first_pending_at + decryption_pending_timeout`）保持稳定，不会因换设备或重启而把 7 天窗口刷新重置。若实现需要跨设备协调 pending 诊断状态，SHOULD 通过 account-data 同步 `first_pending_at`（取各设备记录中**最早**的因果时间），使 timeout 判定不被任何单设备的较晚墙钟首见时刻推后。
 
+> 此处对 `hlc` / `created_at` 的使用**不越** [`../conformance/encoding.md` §7](../conformance/encoding.md) 的 HLC advisory 边界：它只驱动**客户端本地**的解密诊断 UI（何时把某消息从 `decryption_pending` 标为 `decryption_failed`），不进入授权决策、Lattice 收敛、Control Move precondition 或 Seal finality。由于基准取自 producer 可控字段，实现 **MUST** 依赖 [`../conformance/encoding.md` §7](../conformance/encoding.md) 的 HLC drift 校验所界定的 `hard_future_skew` 上界钳制 deadline，使异常 producer 无法把某消息的 `decryption_failed` 判定推向远未来而长期滞留无诊断 pending。
+
+
+
 在 timeout 前，客户端 SHOULD 按以下顺序恢复：
 
 1. 拉取缺失的 `ak.mls.*` state event、winner `ak.mls.commit`、Welcome 和 `governance_binding` 依赖。

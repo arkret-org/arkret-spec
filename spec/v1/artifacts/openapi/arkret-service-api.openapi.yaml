@@ -1103,6 +1103,14 @@ components:
               - causal_conflict
               - dependency_missing
               - discussion_track_disabled
+              - track_disabled
+              - selector_too_complex
+              - device_generation_fenced
+              - recovery_policy_mismatch
+              - device_reanchor_entry_not_head
+              - device_reanchor_frontier_mismatch
+              - device_reanchor_authorize_mismatch
+              - device_reanchor_conflict
               - epoch_mismatch
               - duplicate_conflict
               - rank_exhausted

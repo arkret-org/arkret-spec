@@ -63,6 +63,8 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 
 其余 wire 上限按语义族由 `ak.vector.scalability.event_ref_role_limits.v1`、`ak.vector.scalability.batch_page_limits.v1`、`ak.vector.scalability.sibling_fork_limits.v1`、`ak.vector.scalability.object_control_limits.v1` 与 `ak.vector.scalability.capability_limits.v1` 固化；统一生成式输入与期望结果见 `scalability-limits-fixture.json`。
 
+**字符串标识符 octet 臂的独立性与可测性（normative）**：handle / realm alias localpart、agent `slug`、`title` / `display_name` 等字段的 UTF-8 octet 上限均为其 code-point 上限的 4 倍。由于 UTF-8 单码点至多 4 字节，对**原始输入**"code-point 数 ≤ 上限"必然蕴含"octet 数 ≤ octet 上限"；因此 octet 臂只在 **preparation（RFC 8265 PRECIS / IDNA / Unicode NFC 归一）扩展了输入**时才独立于 code-point 臂生效——即存在这样的输入：其 code-point 数 ≤ code-point 上限，但其 **prepared 形态**的 UTF-8 octet 数 > octet 上限。normative validator MUST 在 **prepared 形态**上同时执行两个上限，任一超限 MUST reject（JSON Schema `maxLength` 只能表达 code-point 上限，octet 臂 MUST 由 SDK / normative validator 另行执行，见 §2 各行）。该 octet 臂 MUST 由可执行**负例**覆盖：一个 code-point 数 ≤ 上限、但 prepared UTF-8 octet 数 > 上限的字符串 MUST 被 reject。此类字节精确负例（含触发 preparation 扩展的具体码点输入）由 string-profile conformance fixtures 承载，MUST 存在且可执行，不得只在本表 prose 声明 octet 上限而缺可执行向量。
+
 [^hlc-throughput]: informative：换算约 65.5 M events/s（精确 65,536,000 events/s）单 actor 上限，仅为 65,536/ms × 1000 的派生值，**非 normative 吞吐保证**，实现 MUST NOT 以此作为容量承诺。
 
 [^hlc-logical-width]: informative：logical 段宽度的潜在扩展属未来评估方向，不构成 v1 规范要求。
@@ -140,8 +142,8 @@ CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 
 | 单个 List Space active Strand item 数 | 10,000 | Projection MUST paginate；drag / reorder 仍按 rank + deterministic tie-break。 |
 | Space 嵌套深度 | 8 | 超过时 reducer MUST reject `ak.space.parent`；防止任意深度的容器树拖累查询性能。 |
 | 单个对象 active Relation 数 | 10,000 | Projection executor MUST paginate，不能要求客户端一次性拉全。 |
-| 单 Realm active Circle 数 | 1,000 | 超过时 reducer MUST reject `ak.circle.create`（`reason=circle_count_exceeded`）。这是 normative 安全上界，约束 cascade / delivery fanout 最坏情况；产品 SHOULD 远低于此（见 [`../models/circle.md` §10.3](../models/circle.md) / §11 的"Circle 少而稳定"软上限例如 ≤64）。 |
-| 单 actor 所属 active **MLS-backed** Circle 数 | 256 | 超过时 reducer MUST reject 把该 actor 加入新 MLS-backed Circle（`reason=circle_count_exceeded`）。该上限直接绑定 [`../models/circle.md` §10.3](../models/circle.md) 的踢人放大 `M+R`（M = 该 actor 所在 MLS-backed Circle 数）:封顶 M 即封顶单次 membership 变更触发的最坏 MLS group rotation 次数，使实现可对最坏密码学工作量与 DoS 抵抗做有界推理。Plaintext Circle 不计入本上限（不产生 MLS rotate）。 |
+| 单 Realm active Circle 数 | 1,000 | 超过时 reducer MUST reject `ak.circle.create`（`reason=circle_count_exceeded`）。这是 normative 安全上界，约束 cascade / delivery fanout 最坏情况；产品 SHOULD 远低于此（见 [`../models/circle.md` §10.3](../models/circle.md) / §11 的"Circle 少而稳定"软上限例如 ≤64）。Agent Sidecar 的 backing Circle **计入**本上限（每个 Sidecar 一个 backing Circle，`(realm_id, controller_id)` singleton）；reducer 计数时纳入，即使普通 Circle API 按 [`../models/circle.md` §11.1](../models/circle.md) 将其排除。 |
+| 单 actor 所属 active **MLS-backed** Circle 数 | 256 | 超过时 reducer MUST reject 把该 actor 加入新 MLS-backed Circle（`reason=circle_count_exceeded`）。该上限直接绑定 [`../models/circle.md` §10.3](../models/circle.md) 的踢人放大 `M+R`（M = 该 actor 所在 MLS-backed Circle 数）:封顶 M 即封顶单次 membership 变更触发的最坏 MLS group rotation 次数，使实现可对最坏密码学工作量与 DoS 抵抗做有界推理。Plaintext Circle 不计入本上限（不产生 MLS rotate）。**Agent Sidecar backing Circle 计入本上限**：Sidecar 的 backing Circle 是 `mls_rfc9420` MLS-backed Circle，agent membership 变更会触发 MLS rotate，因此对其 controller 与 eligible agent 均**计入** M；reducer MUST 在计数时纳入 backing Circle（即使普通 Circle API 按 [`../models/circle.md` §11.1](../models/circle.md) 将其从 list/get 排除），否则 §10.3 的最坏 rotation 上界 M+R 会被低估。 |
 | 单个 View projection page | 1,000 items | View cursor MUST 绑定 authorization context 和 frontier。 |
 | rank 长度 | 128 chars | 超过时 MUST reject，见 `encoding.md`。 |
 | 单个 Calendar Event attendees 数 | 1,000 | 超过时 MUST reject 或要求拆分会议 / 日程实例；attendees 必须按 actor / handle / resource key 去重。 |
