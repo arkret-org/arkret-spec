@@ -193,7 +193,8 @@
           "device_public_key",
           "hpke_key",
           "algorithms",
-          "actor_seq"
+          "actor_seq",
+          "bootstrap_create_event_id"
         ],
         "properties": [
           "device_id",
