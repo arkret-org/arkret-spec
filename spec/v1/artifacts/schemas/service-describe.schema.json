@@ -75,6 +75,26 @@
       },
       "uniqueItems": true
     },
+    "profile_bindings": {
+      "type": "object",
+      "description": "Profile-specific carrier declarations keyed by profile id. A profile that mandates one interoperable private carrier must bind it here rather than relying on a product-local route.",
+      "propertyNames": {
+        "pattern": "^ak\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "carrier"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "carrier": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
     "supported_operations": {
       "type": "array",
       "description": "operation_ids that this endpoint can actually be invoked with. Element format SHOULD match the canonical operation_registry ids (e.g. `ak.self.events.command.submit`).",

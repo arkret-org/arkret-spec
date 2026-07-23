@@ -2443,6 +2443,17 @@ components:
           type: array
           items:
             type: string
+        profile_bindings:
+          type: object
+          description: Profile-specific carrier declarations keyed by profile id.
+          additionalProperties:
+            type: object
+            required:
+            - carrier
+            additionalProperties: false
+            properties:
+              carrier:
+                type: string
         supported_operations:
           type: array
           items:
