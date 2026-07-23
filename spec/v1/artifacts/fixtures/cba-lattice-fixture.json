@@ -855,7 +855,17 @@
                 "order_independent": true
               }
             }
-          ]
+          ],
+          "expected": {
+            "final_data_event_result": "reject_or_hide",
+            "final_reason": "stale_seal_ref",
+            "data_cell_x_effect_retroactively_removed": true,
+            "final_state_equals_from_start_joiner_of_leaf_set": [
+              "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            ],
+            "order_independent": true
+          }
         }
       ],
       "vector_id": "ak.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1"

@@ -454,7 +454,7 @@
         "fixture_contracts": [
           {
             "fixture": "cba-lattice-fixture.json",
-            "semantic_projection_digest": "sha256:c69c56b379a93d07604e7dcd97bb9d7751e4511349b2ddfb726bb0fbb64681d5"
+            "semantic_projection_digest": "sha256:1b00353242fc71868773fd145f2f4c3b90c58bdb005189e1fadfcad72875671b"
           },
           {
             "fixture": "crypto-signature-fixture.json",
@@ -470,7 +470,7 @@
           },
           {
             "fixture": "privacy-security-fixture.json",
-            "semantic_projection_digest": "sha256:2000eccc4d90cd28392bb97c3992dc07070e95f3ce49794cfa7a72deb2361ada"
+            "semantic_projection_digest": "sha256:de54a80860650c3e24f97eaf58046a0d768a64dcef2b898cfcd521954f571f22"
           },
           {
             "fixture": "reaction-fixture.json",
@@ -520,7 +520,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:1673fb2e87f8738e8cda9ca28ac3a8e9e71ea8ae18556411bf2e1e95ad10a0ed"
+      "reducer_profile_digest": "sha256:8582cc21223c50ad40a3cfff01ef535fc46a2edafb9bf8efa0b61232237627e0"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -758,7 +758,7 @@
         "fixture_contracts": [
           {
             "fixture": "cba-lattice-fixture.json",
-            "semantic_projection_digest": "sha256:c69c56b379a93d07604e7dcd97bb9d7751e4511349b2ddfb726bb0fbb64681d5"
+            "semantic_projection_digest": "sha256:1b00353242fc71868773fd145f2f4c3b90c58bdb005189e1fadfcad72875671b"
           },
           {
             "fixture": "crypto-signature-fixture.json",
@@ -816,7 +816,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:1bcc5ee38ea1eed351a2dbe3878fa08a3361054c951c885900846bd1f9c3ad21"
+      "reducer_profile_digest": "sha256:da26a662faae1c1dbbcbb2255ff9f02816adf8c3cb57f78c8e9c4f7a3886a398"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1339,7 +1339,7 @@
           },
           {
             "fixture": "cba-lattice-fixture.json",
-            "semantic_projection_digest": "sha256:c69c56b379a93d07604e7dcd97bb9d7751e4511349b2ddfb726bb0fbb64681d5"
+            "semantic_projection_digest": "sha256:1b00353242fc71868773fd145f2f4c3b90c58bdb005189e1fadfcad72875671b"
           },
           {
             "fixture": "crypto-signature-fixture.json",
@@ -1355,7 +1355,7 @@
           },
           {
             "fixture": "privacy-security-fixture.json",
-            "semantic_projection_digest": "sha256:2000eccc4d90cd28392bb97c3992dc07070e95f3ce49794cfa7a72deb2361ada"
+            "semantic_projection_digest": "sha256:de54a80860650c3e24f97eaf58046a0d768a64dcef2b898cfcd521954f571f22"
           },
           {
             "fixture": "reaction-fixture.json",
@@ -1433,7 +1433,7 @@
           },
           {
             "ref": "zh/sync/client-sync.md",
-            "content_digest": "sha256:d3ce234829b4daa07c6e2163d11aeaae3bc14b43608c45d1cebad31616cdeee9"
+            "content_digest": "sha256:8730ef7d3cd85b8d6849ff942457fea27b12d8ea48ca72b73f1b950074cf8911"
           },
           {
             "ref": "zh/sync/service-surface.md",
@@ -1445,7 +1445,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:82f916d97db131193cff07c3b39784b88c2f7a21a6347be2b08e915056539006"
+      "reducer_profile_digest": "sha256:93b05523cf1bebe350a9a3b190c6a0108bf369508d503cdeed987f3647c0545e"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1687,7 +1687,7 @@
           },
           {
             "ref": "zh/sync/federation.md",
-            "content_digest": "sha256:449e72d9c3bffffe39eeeddab3f726f307b52fa86b05fa6b1341c516117b1c8f"
+            "content_digest": "sha256:0f3abd9ebab37819ccefcb0435a80c7de0fd15dd8db4b9da46f97dabfdef551c"
           },
           {
             "ref": "zh/sync/service-http-binding.md",
@@ -1695,7 +1695,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:2cecab2d80a0f751debcb12fe0b3a57163e3c336c416b9b52fb0d757f340de79"
+      "reducer_profile_digest": "sha256:3dc21fd9295d434b0dc73ef6fb81c21a26d7b265e332bf11b077cee12077f507"
     }
   ],
   "generated_fields": [

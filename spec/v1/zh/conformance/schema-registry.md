@@ -295,7 +295,7 @@ OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical 
 
 上文覆盖字段级演进；本节回答**值集级**演进：event kind、error code、闭集枚举等新增合法值时的兼容级别，以及已发布实现的处置义务。判定的第一步是区分值集的权威承载形态（与 §1.2 的机读归属规则同源）；同一 token 不得同时以两种承载形态声明。
 
-**a. 开放注册集（open registry set）**——以独立 registry JSON 承载的字符串值集合：event kind（`event-kind-registry.json`）、error `code` / `reason_code`（`error-code-registry.json`）、relation kind（`relation-kind-registry.json`）、capability action、feature id 等。
+**a. 开放注册集（open registry set）**——以独立 registry JSON 承载的字符串值集合：event kind（`event-kind-registry.json`）、error `code` / `reason_code`（`error-code-registry.json`）、relation kind（`relation-kind-registry.json`）、capability action、typed id kind（`id-kind-registry.json`——typed ID 前缀为 wire 字符串值集，新增 kind 向后兼容，与同源 generated 的 event kind / capability action 同类）、feature id 等。
 
 - 新增条目是**向后兼容演进**（minor）：只体现在 registry 的 `version` / `generated_at` 推进，不要求新 schema 版本，也不要求 schema profile bump。
 - 已发布实现遇到不在其本地 registry 快照中的值时，MUST 按**未知值保留**处理：不得因此让整个对象 / 信封反序列化失败。反序列化层保留之后的语义处置按各消费面既有规则执行——未知值保留**不等于**语义接受：写入权威接收方对未声明支持的标准 event kind 仍按 [conformance-profiles.md §2.1](./conformance-profiles.md) 返回 `unsupported_feature` / `unsupported_event_kind` / `schema_violation` 或 quarantine；未注册 relation kind 按 relation-kind-registry `registry_rules` 保留为 opaque edge 且不得推断语义；fail-closed 门（未知 critical feature、授权判定）照常适用。

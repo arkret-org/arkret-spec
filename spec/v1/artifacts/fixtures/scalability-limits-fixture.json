@@ -157,13 +157,12 @@
       "vector_id": "ak.vector.scalability.circle_count_limit.v1",
       "given_state": {
         "generator": {
-          "kind": "active_circle_count",
-          "realm_active_circle_count": 1000,
+          "kind": "active_circle_count_by_composition",
           "count_composition": {
             "ordinary_active_circles": 999,
             "sidecar_backing_circles": 1
           },
-          "counting_rule": "Agent Sidecar backing Circles ARE counted toward realm_active_circle_count even though ordinary Circle create/list/get APIs exclude them (models/circle.md 11.1). A reducer that omits the hidden backing Circle would see only 999 and wrongly accept."
+          "counting_rule": "The realm's active-Circle count MUST be materialized by building 999 ordinary Circles plus 1 real Agent Sidecar backing Circle (via the ensure path), NOT from a pre-summed scalar. Agent Sidecar backing Circles ARE counted toward the 1000 per-Realm limit even though ordinary Circle create/list/get APIs exclude them (models/circle.md 11.1). A reducer that omits the hidden backing Circle would count only 999 and wrongly accept the next ak.circle.create; a conforming reducer counts 1000 and rejects."
         }
       },
       "input": {
@@ -184,13 +183,12 @@
       "vector_id": "ak.vector.scalability.circle_count_limit.v1",
       "given_state": {
         "generator": {
-          "kind": "actor_active_mls_circle_memberships",
-          "count": 256,
+          "kind": "actor_active_mls_circle_memberships_by_composition",
           "count_composition": {
             "ordinary_mls_circle_memberships": 255,
             "sidecar_backing_circle_memberships": 1
           },
-          "counting_rule": "The actor is controller (or eligible agent) of a Sidecar; its MLS-backed backing Circle membership occupies one of the 256 per-actor slots that bound the section 10.3 M+R kick-amplification. A reducer that omits the hidden backing Circle would see only 255 and wrongly accept the 256th ordinary membership."
+          "counting_rule": "The actor's MLS-backed Circle-membership count MUST be materialized as 255 ordinary MLS Circle memberships plus 1 real Agent Sidecar backing Circle membership (the actor is controller/eligible agent of a Sidecar; via the ensure path), NOT from a pre-summed scalar. That backing membership occupies one of the 256 per-actor slots that bound the section 10.3 M+R kick-amplification. A reducer that omits the hidden backing Circle would count only 255 and wrongly accept the 256th ordinary MLS membership; a conforming reducer counts 256 and rejects."
         }
       },
       "input": {
