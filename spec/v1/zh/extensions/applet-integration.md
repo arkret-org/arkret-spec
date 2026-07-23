@@ -92,7 +92,7 @@ did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example
 
 `#fragment` 只用于 DID URL 形式的 verification method（例如 `did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123#key-1`），不得作为 `actor_id` / `bot_actor_id` 的一部分。
 
-Ghost Actor MUST 带有 `accountable_principal_ids`（指向 Applet controller 与外部 service DID），外部网络来源（protocol / network id / user id）记录在 `profile_fields.external_ref`。问责字段以 actor-profile schema 的 `accountable_principal_ids` 为唯一权威形态（见 [`applet-schema.md`](./applet-schema.md) 与 §9）；`accountability` 嵌套对象不是合法 wire 形态。
+Ghost Actor MUST 带有 `accountable_principal_ids`，且本节 provisioning aggregate 创建的初始 Profile MUST 只包含提交并签署同请求 `accountability_grant_event` 的外部 service DID。Applet controller 与 Ghost 的生命周期关系由 active Applet registration / install 记录表达，不得在缺少 controller 自己签发的 active `ak.identity.accountability_grant` 时把 controller DID 复制进该数组；后续若要增加 controller，必须先独立提交该 controller 的 grant，再按普通 Profile update 规则更新。外部网络来源（protocol / network id / user id）记录在 `profile_fields.external_ref`。问责字段以 actor-profile schema 的 `accountable_principal_ids` 为唯一权威形态（见 [`applet-schema.md`](./applet-schema.md) 与 §9）；`accountability` 嵌套对象不是合法 wire 形态。
 
 #### 3.4.1 Ghost Actor vs Native Personal Agent 边界
 
@@ -103,7 +103,7 @@ Native personal AI agent(由 controller 通过 `ak.self.agent.command.provision`
 | 维度 | Native personal agent | Applet-managed Ghost Actor |
 | --- | --- | --- |
 | 创建路径 | `ak.self.agent.command.provision` 分配 Agent DID/PCR binding，并在 controller PCR 只 fan-out `ak.identity.accountability_grant` / `ak.agent.selector_claim`；必填 `requested_scope` 只建立 immutable 全局 ceiling，无论是否含内容 selector 都不生成 pending/active `ak.capability.grant`。controller E2EE client 随后本地生成并提交 Agent PCR genesis/Profile 与恢复备份，首次 `ak.agent.key.authorize` 只在 pairing commit 时提交；Realm grant 必须在之后独立签发且不得超过 provision ceiling | `ak.applet.registration` + Applet bot/Ghost Actor 注册 |
-| `accountable_principal_ids` | 指向 controller principal，显式 `ak.identity.accountability_grant` | 指向 Applet controller / 外部系统 |
+| `accountable_principal_ids` | 指向 controller principal，显式 `ak.identity.accountability_grant` | 初始 Profile 指向签署同一 aggregate accountability grant 的外部 service DID；Applet controller 关系由 registration / install 表达 |
 | Runtime credential | 通过 `POST /_arkret/gate/account/agent-key-pair` pairing 得到 `ak.agent.key.authorize` 绑定的 key | Applet 管辖，通常是 Applet service DID + HTTP signature |
 | Session 路径 | `POST /_arkret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"` | Applet `ak.edge.applet.command.transaction` 与 Applet 的 delegated session |
 | 撤销 | `ak.self.agent.command.pause` / `ak.self.agent.command.deactivate` + fan-out key/grant revoke | Applet registration 撤销；Ghost Actor 跟随 Applet 生命周期(经 §4b Revoke,`remove_ghost_membership` 需 active ghost projection 完整否则 MUST fail closed) |
@@ -648,7 +648,6 @@ Ghost Actor profile SHOULD 包含（以下为 schema 合法形态；字段与约
   "actor_kind": "integration",
   "display_name": "Alice on Slack",
   "accountable_principal_ids": [
-    "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
     "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example"
   ],
   "profile_fields": {
@@ -663,7 +662,7 @@ Ghost Actor profile SHOULD 包含（以下为 schema 合法形态；字段与约
 }
 ```
 
-`actor-profile.schema.json` 是 `additionalProperties:false` 的封闭 schema:`id`、`schema`、`principal_id`、`actor_kind`、`display_name`、`created_at` 为 required；问责只能通过 `accountable_principal_ids`(controller principal + 外部 service DID)表达；Applet 托管标记 `managed_by_applet` 与外部网络来源 `external_ref` MUST 放入开放容器 `profile_fields`，不得作为顶层字段(否则被 schema `schema_violation` 拒绝)。与 §3.4 / §3.4.1 一致，不存在 `accountability` 嵌套对象 wire 形态。
+`actor-profile.schema.json` 是 `additionalProperties:false` 的封闭 schema:`id`、`schema`、`principal_id`、`actor_kind`、`display_name`、`created_at` 为 required；问责只能通过 `accountable_principal_ids` 表达。本节初始 Profile 只列同一请求中 service-signed grant 已背书的外部 service DID；不得用 Applet registration 替代 controller 自己的 accountability grant 后把 controller DID 填入数组。Applet 托管标记 `managed_by_applet` 与外部网络来源 `external_ref` MUST 放入开放容器 `profile_fields`，不得作为顶层字段(否则被 schema `schema_violation` 拒绝)。与 §3.4 / §3.4.1 一致，不存在 `accountability` 嵌套对象 wire 形态。
 
 Ghost Actor MUST NOT 被静默合并到 native DID，除非 native holder 显式声明并完成绑定。
 
@@ -681,7 +680,7 @@ Idempotency-Key: <opaque-string>
 规则：
 
 - 调用方 MUST 以 applet registration 的 service DID 认证；服务端 MUST 校验 `applet_id` 存在 active install、caller service DID 与 registration 一致、`ghost_actor_id` 命中 registration 的 actor namespace、`realm_id` 在 effective scope 内。任一不满足 MUST fail closed（`applet_namespace_mismatch` / `applet_registration_unauthorized`）。
-- **Caller-signed proof contract（normative）**：Principal Server MUST NOT 构造、重建或以自身 notary key 代签任一 Event / payload proof。`accountability_grant_event` MUST 是由 `service_id` 签名的完整 `ak.identity.accountability_grant` Event，envelope `actor_id=service_id`，payload `issuer=service_id`、`subject=ghost_actor_id`、`accountability_scope=contracted_service`、`grant_status=active`，且 payload 内 detached proof 也必须解析并验证到同一 service DID 的 active registration-epoch key。`profile_event` MUST 是完整 `ak.profile.create` Event，`actor_id=ghost_actor_id`、`executed_by=service_id`、`applet_id` 与请求一致，并由 `service_id` 的 active registration-epoch key 署名；其 profile 必须逐字匹配请求身份坐标、§9 actor-profile 封闭形态与 `external_ref`，`refs[]` 还 MUST 以 critical `role="accountability"` 指向同请求的 `accountability_grant_event.event_id`。
+- **Caller-signed proof contract（normative）**：Principal Server MUST NOT 构造、重建或以自身 notary key 代签任一 Event / payload proof。`accountability_grant_event` MUST 是由 `service_id` 签名的完整 `ak.identity.accountability_grant` Event，envelope `actor_id=service_id`，payload `issuer=service_id`、`subject=ghost_actor_id`、`accountability_scope=contracted_service`、`grant_status=active`，且 payload 内 detached proof 也必须解析并验证到同一 service DID 的 active registration-epoch key。`profile_event` MUST 是完整 `ak.profile.create` Event，`actor_id=ghost_actor_id`、`executed_by=service_id`、`applet_id` 与请求一致，并由 `service_id` 的 active registration-epoch key 署名；其初始 `accountable_principal_ids` MUST 恰为 `[service_id]`，profile 的其余字段必须逐字匹配请求身份坐标、§9 actor-profile 封闭形态与 `external_ref`，`refs[]` 还 MUST 以 critical `role="accountability"` 指向同请求的 `accountability_grant_event.event_id`。
 - 两条 Event 的 `authorization_ref` MUST 相同并指向 active install 为 `service_id` 签发、覆盖 `ak.applet.ghost.provision` 与目标 Realm 的 capability grant；accountability grant 只记录责任关系，**不是**后续 ghost Event 的授权。后续 ghost 署名 Event 仍必须携带覆盖其具体 action / resource 的 active capability grant（见 §8、§11）。
 - 服务端 MUST 对两条 Event 执行 production DID key resolution、完整 Event proof / payload proof、`actor_seq` / `prev_refs` / dependency、registration epoch、membership substitute 与 reducer preflight 校验。仅该闭合 aggregate MAY 用 active Applet install 作为普通 Realm membership 的内部 admission substitute；该 substitute 必须绑定精确 `applet_id`、`service_id`、`realm_id`、两个 `event_id` 与固定 kind，不能供通用 Event submit 重用。
 - **失败原子性（normative）**：两条 Event、其 projection、Ghost provisioning record 与幂等结果 MUST 在同一 durable transaction 中提交。任何一条 proof / frontier / reducer / persistence 校验失败时两条 Event 与 Ghost record 均不得可见；禁止先落 accountability 再尝试 profile 的逐条提交。
