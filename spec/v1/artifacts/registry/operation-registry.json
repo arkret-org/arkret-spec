@@ -191,6 +191,18 @@
       ]
     },
     {
+      "surface": "candidate_join_policy",
+      "tier": "extension",
+      "operations": [
+        "ak.self.realm.join_application.command.submit",
+        "ak.self.realm.join_application.command.review",
+        "ak.self.realm.join_application.command.cancel",
+        "ak.self.realm.join_application.query.list",
+        "ak.self.realm.join_application.resource.get",
+        "ak.self.realm.join_application.audit.query.list"
+      ]
+    },
+    {
       "surface": "consent_management",
       "tier": "extension",
       "operations": [
@@ -2368,6 +2380,69 @@
       "retry_safe": true,
       "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document"
+    },
+    {
+      "operation_id": "ak.self.realm.join_application.command.submit",
+      "http": "POST /_arkret/self/realms/{realm_id}/join-applications",
+      "grpc": "SelfRealmJoinApplication/Submit",
+      "mq": "self.realm.join_application.command.submit",
+      "notes": "Candidate-profile private application intake. The applicant-signed receipt binds the accepted knock, policy/revision/private-body digests and applicant DID. The receipt and private body commit atomically and never enter shared Realm history.",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_submit_request",
+      "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome"
+    },
+    {
+      "operation_id": "ak.self.realm.join_application.command.review",
+      "http": "POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/reviews",
+      "grpc": "SelfRealmJoinApplication/Review",
+      "mq": "self.realm.join_application.command.review",
+      "notes": "Candidate-profile private reviewer decision. The reviewer-signed receipt binds the exact application revision and a capability grant/frontier proof; stale, expired or unauthorized decisions fail closed.",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_review_request",
+      "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome"
+    },
+    {
+      "operation_id": "ak.self.realm.join_application.command.cancel",
+      "http": "POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/cancel",
+      "grpc": "SelfRealmJoinApplication/Cancel",
+      "mq": "self.realm.join_application.command.cancel",
+      "notes": "Candidate-profile private applicant cancellation. The caller and detached receipt signer must both be the original applicant.",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_cancel_request",
+      "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome"
+    },
+    {
+      "operation_id": "ak.self.realm.join_application.query.list",
+      "http": "GET /_arkret/self/realms/{realm_id}/join-applications",
+      "grpc": "SelfRealmJoinApplication/List",
+      "mq": "self.realm.join_application.query.list",
+      "notes": "Lists candidate application metadata. Reviewers and each matching applicant receive the protected body; other Realm members receive only application_pending placeholders.",
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_list_outcome"
+    },
+    {
+      "operation_id": "ak.self.realm.join_application.resource.get",
+      "http": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}",
+      "grpc": "SelfRealmJoinApplication/Get",
+      "mq": "self.realm.join_application.resource.get",
+      "notes": "Reads one candidate application for its applicant or an eligible reviewer. Every successful private-body read emits ak.audit.accessed.",
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_get_outcome"
+    },
+    {
+      "operation_id": "ak.self.realm.join_application.audit.query.list",
+      "http": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit",
+      "grpc": "SelfRealmJoinApplication/ListAudit",
+      "mq": "self.realm.join_application.audit.query.list",
+      "notes": "Reads only the profile-private submit/read/review/cancel/invite-consume audit trail for one application. Applicant, eligible reviewer, or explicitly authorized Realm auditor only.",
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_audit_outcome"
     },
     {
       "operation_id": "ak.self.consent.query.list",

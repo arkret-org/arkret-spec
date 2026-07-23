@@ -3997,11 +3997,20 @@
       "inherits": [],
       "tier": "candidate",
       "status": "candidate",
-      "description": "Candidate profile pairing the still-unregistered join-policy workflow concept/action names (`realm.join_policy`, `member.application`, `member.application.review`, `member.application.cancel`; see zh/conformance/schema-registry.md §4.1) with the gating capability action `ak.realm.join.review`. These bare names are not v1 wire Event.kind values. The action remains in the canonical capability registry so prose can reference it stably, but receivers that do not implement this profile MUST treat `ak.realm.join.review` as unknown (capability-action-registry.json registry_rules: 'Receivers without the named profile MUST treat the action as unknown (risk_tier=high default)'). Claiming the profile commits the implementation to the candidate join-policy workflow surface defined in zh/governance/join-policy.md. This profile is not part of v1 active conformance; it will be promoted with registered `ak.*` Event.kind values when join-policy is formally registered.",
-      "required_endpoints": [],
+      "description": "Candidate profile pairing the still-unregistered join-policy workflow concept/action names (`realm.join_policy`, `member.application`, `member.application.review`, `member.application.cancel`; see zh/conformance/schema-registry.md §4.1) with the gating capability action `ak.realm.join.review`. These bare names remain forbidden as v1 wire Event.kind values. Claiming this profile commits the implementation to the complete profile-private HTTP receipt carrier in governance/join-policy.md §7.1.1; partial intake/review/read surfaces are non-conformant. Receivers that do not implement this profile MUST treat `ak.realm.join.review` as unknown and omit the profile claim.",
+      "required_endpoints": [
+        "ak.self.realm.join_application.command.submit",
+        "ak.self.realm.join_application.command.review",
+        "ak.self.realm.join_application.command.cancel",
+        "ak.self.realm.join_application.query.list",
+        "ak.self.realm.join_application.resource.get",
+        "ak.self.realm.join_application.audit.query.list"
+      ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
-      "required_schemas": [],
+      "required_schemas": [
+        "ak.schema.join_policy_operations.v1"
+      ],
       "required_fixtures": [],
       "optional_extensions": [],
       "required_capability_actions": [
@@ -4010,7 +4019,8 @@
       "feature_discovery": {
         "required": [
           "candidate_join_policy_reviewer",
-          "candidate_member_application_intake"
+          "candidate_member_application_intake",
+          "profile_private_http_receipt_v1"
         ],
         "unsupported_optional": "omit profile claim (and reject member.application.* events as unknown)"
       }

@@ -18,13 +18,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 192,
+    "total_operations": 198,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 180
+      "typed_schema": 186
     },
     "by_tier_and_class": {
       "core": {
@@ -39,7 +39,7 @@
         "binary_or_redirect": 2,
         "no_request_body": 1,
         "service_describe": 2,
-        "typed_schema": 122
+        "typed_schema": 128
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -2434,6 +2434,87 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.realm.join_application.audit.query.list",
+      "tier": "extension",
+      "http": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_audit_outcome",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/JoinApplicationAuditOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.self.realm.join_application.command.cancel",
+      "tier": "extension",
+      "http": "POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/cancel",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_cancel_request",
+      "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/JoinApplicationCancelRequest",
+        "response": "#/components/schemas/JoinApplicationMutationOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.realm.join_application.command.review",
+      "tier": "extension",
+      "http": "POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/reviews",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_review_request",
+      "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/JoinApplicationReviewRequest",
+        "response": "#/components/schemas/JoinApplicationMutationOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.realm.join_application.command.submit",
+      "tier": "extension",
+      "http": "POST /_arkret/self/realms/{realm_id}/join-applications",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_submit_request",
+      "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/JoinApplicationSubmitRequest",
+        "response": "#/components/schemas/JoinApplicationMutationOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.realm.join_application.query.list",
+      "tier": "extension",
+      "http": "GET /_arkret/self/realms/{realm_id}/join-applications",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_list_outcome",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/JoinApplicationListOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.self.realm.join_application.resource.get",
+      "tier": "extension",
+      "http": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_get_outcome",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/JoinApplicationGetOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ak.self.realm.moderation_policy.query.effective",

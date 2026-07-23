@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-16",
+  "version": "2026-07-24",
   "source_of_truth": true,
   "description": "Canonical domain-separation contexts for Arkret detached proofs. Context is part of the canonical signing binding object and is not a wire field in the generic proof shape.",
   "registry_rules": [
@@ -31,6 +31,9 @@
     {"context":"ak.member-delivery-binding-candidate-proof-v1","object_family":"member_delivery_binding_candidate","binding_fields":["payload_digest","subject_id","recipient_service_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/governance/member-delivery-binding.md","schema_ref":"schemas/member-delivery-binding-candidate.schema.json"},
     {"context":"ak.mimi-operation-proof-v1","object_family":"mimi_operation","binding_fields":["payload_digest","issuer","operation_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/extensions/mimi-interop.md","schema_ref":"schemas/mimi-operations.schema.json"},
     {"context":"ak.principal-locator-proof-v1","object_family":"principal_locator","binding_fields":["payload_digest","subject_id","recipient_service_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/identity/identity-handles.md","schema_ref":"schemas/principal-locator.schema.json"},
-    {"context":"ak.realm-join-candidate-proof-v1","object_family":"realm_join_candidate","binding_fields":["payload_digest","realm_id","subject_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/governance/join-policy.md","schema_ref":"schemas/realm-join-candidate.schema.json"}
+    {"context":"ak.realm-join-candidate-proof-v1","object_family":"realm_join_candidate","binding_fields":["payload_digest","realm_id","subject_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/governance/join-policy.md","schema_ref":"schemas/realm-join-candidate.schema.json"},
+    {"context":"ak.join-application-receipt-proof-v1","object_family":"join_application_receipt","binding_fields":["receipt_digest","realm_id","actor_id","verification_method","created_at"],"defined_in":"zh/governance/join-policy.md#711-candidate-profile-的唯一承载normative","schema_ref":"schemas/join-policy-operations.schema.json#/$defs/application_receipt"},
+    {"context":"ak.join-application-review-receipt-proof-v1","object_family":"join_application_review_receipt","binding_fields":["receipt_digest","realm_id","application_ref","application_revision_digest","actor_id","verification_method","created_at"],"defined_in":"zh/governance/join-policy.md#711-candidate-profile-的唯一承载normative","schema_ref":"schemas/join-policy-operations.schema.json#/$defs/review_receipt"},
+    {"context":"ak.join-application-cancel-receipt-proof-v1","object_family":"join_application_cancel_receipt","binding_fields":["receipt_digest","realm_id","application_ref","actor_id","verification_method","created_at"],"defined_in":"zh/governance/join-policy.md#711-candidate-profile-的唯一承载normative","schema_ref":"schemas/join-policy-operations.schema.json#/$defs/cancel_receipt"}
   ]
 }

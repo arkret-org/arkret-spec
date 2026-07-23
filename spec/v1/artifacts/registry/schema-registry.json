@@ -553,6 +553,12 @@
       "description": "Closed request/response DTO bundle for ak.self.applet.ghost.command.provision (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
     },
     {
+      "schema_id": "ak.schema.join_policy_operations.v1",
+      "file": "schemas/join-policy-operations.schema.json",
+      "status": "candidate",
+      "description": "Closed profile-private request/response and signed receipt DTO bundle for ak.profile.candidate.join_policy.v1. Candidate receipts never become Event.kind values or shared Realm history."
+    },
+    {
       "schema_id": "ak.schema.audit_ryw_receipt.v1",
       "file": "schemas/audit-ryw-receipt.schema.json"
     },

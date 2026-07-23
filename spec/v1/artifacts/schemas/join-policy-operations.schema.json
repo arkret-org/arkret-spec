@@ -1,0 +1,631 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/join-policy-operations.schema.json",
+  "title": "Arkret Candidate Join Policy Operation DTOs",
+  "description": "Closed profile-private DTOs for ak.profile.candidate.join_policy.v1. These objects are carried only by the registered join-application HTTP operations; candidate_kind is never an Event.kind and none of these receipts enter shared Realm history.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/application_submit_request"
+    },
+    {
+      "$ref": "#/$defs/application_review_request"
+    },
+    {
+      "$ref": "#/$defs/application_cancel_request"
+    },
+    {
+      "$ref": "#/$defs/application_mutation_outcome"
+    },
+    {
+      "$ref": "#/$defs/application_list_outcome"
+    },
+    {
+      "$ref": "#/$defs/application_get_outcome"
+    },
+    {
+      "$ref": "#/$defs/application_audit_outcome"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "realm_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+    },
+    "event_ref": {
+      "type": "string",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "grant_id": {
+      "$ref": "./common-ids.schema.json#/$defs/grant_id"
+    },
+    "hash": {
+      "$ref": "./event-envelope.schema.json#/$defs/hash"
+    },
+    "timestamp": {
+      "$ref": "./event-envelope.schema.json#/$defs/timestamp"
+    },
+    "proof": {
+      "$ref": "./event-envelope.schema.json#/$defs/proof"
+    },
+    "answer_value": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true
+        },
+        {
+          "type": "boolean"
+        }
+      ]
+    },
+    "answer": {
+      "type": "object",
+      "required": [
+        "question_id",
+        "value"
+      ],
+      "properties": {
+        "question_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+        },
+        "value": {
+          "$ref": "#/$defs/answer_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "server_protected_body": {
+      "type": "object",
+      "description": "Private record for a non-E2EE Realm. The service MUST encrypt this object at rest and authorize every read; it is never copied to shared Realm history or ordinary sync.",
+      "required": [
+        "mode",
+        "answers"
+      ],
+      "properties": {
+        "mode": {
+          "const": "server_protected"
+        },
+        "answers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/answer"
+          },
+          "maxItems": 64
+        },
+        "gate_proofs": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "maxItems": 16
+        },
+        "applicant_note": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      },
+      "additionalProperties": false
+    },
+    "envelope_recipient": {
+      "type": "object",
+      "required": [
+        "reviewer_did",
+        "device_id",
+        "recipient_hpke_kid",
+        "enc",
+        "wrapped_key"
+      ],
+      "properties": {
+        "reviewer_did": {
+          "$ref": "#/$defs/did"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "recipient_hpke_kid": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s?#]+#[^\\s]+$"
+        },
+        "enc": {
+          "type": "string",
+          "pattern": "^base64url:[A-Za-z0-9_-]+$"
+        },
+        "wrapped_key": {
+          "type": "string",
+          "pattern": "^base64url:[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "reviewer_encryption_envelope": {
+      "type": "object",
+      "required": [
+        "scheme",
+        "ciphertext",
+        "recipients"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "ak.hpke_x25519_aead_chacha20poly1305.v1"
+        },
+        "ciphertext": {
+          "type": "string",
+          "pattern": "^base64url:[A-Za-z0-9_-]+$"
+        },
+        "recipients": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/envelope_recipient"
+          },
+          "minItems": 1,
+          "maxItems": 64
+        }
+      },
+      "additionalProperties": false
+    },
+    "reviewer_envelope_body": {
+      "type": "object",
+      "description": "Opaque E2EE application body encrypted to eligible reviewer devices. The server validates recipient capability/device bindings but cannot inspect plaintext answers.",
+      "required": [
+        "mode",
+        "encryption_envelope"
+      ],
+      "properties": {
+        "mode": {
+          "const": "reviewer_envelope"
+        },
+        "encryption_envelope": {
+          "$ref": "#/$defs/reviewer_encryption_envelope"
+        }
+      },
+      "additionalProperties": false
+    },
+    "private_application_body": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/server_protected_body"
+        },
+        {
+          "$ref": "#/$defs/reviewer_envelope_body"
+        }
+      ]
+    },
+    "application_receipt": {
+      "type": "object",
+      "description": "Applicant-signed application receipt. application_receipt_digest is sha256:JCS of this object with application_receipt_digest and proof omitted. proof signs the ak.join-application-receipt-proof-v1 transcript.",
+      "required": [
+        "candidate_kind",
+        "realm_id",
+        "applicant_did",
+        "knock_ref",
+        "policy_version_digest",
+        "application_revision_digest",
+        "private_body_digest",
+        "submitted_at",
+        "application_receipt_digest",
+        "proof"
+      ],
+      "properties": {
+        "candidate_kind": {
+          "const": "member.application"
+        },
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "applicant_did": {
+          "$ref": "#/$defs/did"
+        },
+        "knock_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "policy_version_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "application_revision_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "private_body_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "submitted_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "application_receipt_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "proof": {
+          "$ref": "#/$defs/proof"
+        }
+      },
+      "additionalProperties": false
+    },
+    "application_submit_request": {
+      "type": "object",
+      "required": [
+        "receipt",
+        "private_body"
+      ],
+      "properties": {
+        "receipt": {
+          "$ref": "#/$defs/application_receipt"
+        },
+        "private_body": {
+          "$ref": "#/$defs/private_application_body"
+        }
+      },
+      "additionalProperties": false
+    },
+    "reviewer_capability_proof": {
+      "type": "object",
+      "required": [
+        "grant_id",
+        "frontier_digest"
+      ],
+      "properties": {
+        "grant_id": {
+          "$ref": "#/$defs/grant_id"
+        },
+        "frontier_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "review_receipt": {
+      "type": "object",
+      "description": "Reviewer-signed decision receipt. review_receipt_digest is sha256:JCS of this object with review_receipt_digest and proof omitted. proof signs the ak.join-application-review-receipt-proof-v1 transcript.",
+      "required": [
+        "candidate_kind",
+        "realm_id",
+        "application_ref",
+        "application_revision_digest",
+        "reviewer_did",
+        "decision",
+        "reviewer_capability_proof",
+        "reviewed_at",
+        "review_receipt_digest",
+        "proof"
+      ],
+      "properties": {
+        "candidate_kind": {
+          "const": "member.application.review"
+        },
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "application_ref": {
+          "$ref": "#/$defs/hash"
+        },
+        "application_revision_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "reviewer_did": {
+          "$ref": "#/$defs/did"
+        },
+        "decision": {
+          "enum": [
+            "accept",
+            "reject",
+            "request_changes"
+          ]
+        },
+        "reason_code": {
+          "enum": [
+            "ok",
+            "incomplete_answers",
+            "policy_violation",
+            "claim_invalid",
+            "challenge_failed",
+            "duplicate",
+            "ttl_expired",
+            "other"
+          ]
+        },
+        "reason_text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hash"
+          },
+          "maxItems": 64,
+          "uniqueItems": true
+        },
+        "reviewer_capability_proof": {
+          "$ref": "#/$defs/reviewer_capability_proof"
+        },
+        "reviewed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "review_receipt_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "proof": {
+          "$ref": "#/$defs/proof"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "enum": [
+                  "reject",
+                  "request_changes"
+                ]
+              }
+            },
+            "required": [
+              "decision"
+            ]
+          },
+          "then": {
+            "required": [
+              "reason_code"
+            ]
+          }
+        }
+      ]
+    },
+    "application_review_request": {
+      "type": "object",
+      "required": [
+        "receipt"
+      ],
+      "properties": {
+        "receipt": {
+          "$ref": "#/$defs/review_receipt"
+        }
+      },
+      "additionalProperties": false
+    },
+    "cancel_receipt": {
+      "type": "object",
+      "description": "Applicant-signed cancellation receipt. cancel_receipt_digest is sha256:JCS of this object with cancel_receipt_digest and proof omitted. proof signs the ak.join-application-cancel-receipt-proof-v1 transcript.",
+      "required": [
+        "candidate_kind",
+        "realm_id",
+        "application_ref",
+        "cancelled_by",
+        "cancelled_at",
+        "cancel_receipt_digest",
+        "proof"
+      ],
+      "properties": {
+        "candidate_kind": {
+          "const": "member.application.cancel"
+        },
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "application_ref": {
+          "$ref": "#/$defs/hash"
+        },
+        "cancelled_by": {
+          "$ref": "#/$defs/did"
+        },
+        "cancelled_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "reason_text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "cancel_receipt_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "proof": {
+          "$ref": "#/$defs/proof"
+        }
+      },
+      "additionalProperties": false
+    },
+    "application_cancel_request": {
+      "type": "object",
+      "required": [
+        "receipt"
+      ],
+      "properties": {
+        "receipt": {
+          "$ref": "#/$defs/cancel_receipt"
+        }
+      },
+      "additionalProperties": false
+    },
+    "application_status": {
+      "enum": [
+        "awaiting_review",
+        "changes_requested",
+        "accepted",
+        "rejected",
+        "canceled",
+        "expired",
+        "consumed"
+      ]
+    },
+    "application_mutation_outcome": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "application_ref",
+        "status"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "application_ref": {
+          "$ref": "#/$defs/hash"
+        },
+        "receipt_ref": {
+          "$ref": "#/$defs/hash"
+        },
+        "status": {
+          "$ref": "#/$defs/application_status"
+        }
+      },
+      "additionalProperties": false
+    },
+    "application_entry": {
+      "type": "object",
+      "required": [
+        "application_ref",
+        "realm_id",
+        "applicant_did",
+        "application_revision_digest",
+        "policy_version_digest",
+        "submitted_at",
+        "status"
+      ],
+      "properties": {
+        "application_ref": {
+          "$ref": "#/$defs/hash"
+        },
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "applicant_did": {
+          "$ref": "#/$defs/did"
+        },
+        "application_revision_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "policy_version_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "submitted_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "status": {
+          "$ref": "#/$defs/application_status"
+        },
+        "private_body": {
+          "$ref": "#/$defs/private_application_body"
+        },
+        "application_pending": {
+          "const": true
+        },
+        "latest_review_ref": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "application_list_outcome": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "viewer_is_reviewer",
+        "applications"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "viewer_is_reviewer": {
+          "type": "boolean"
+        },
+        "applications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/application_entry"
+          },
+          "maxItems": 200
+        },
+        "next_cursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        }
+      },
+      "additionalProperties": false
+    },
+    "application_get_outcome": {
+      "type": "object",
+      "required": [
+        "application"
+      ],
+      "properties": {
+        "application": {
+          "$ref": "#/$defs/application_entry"
+        }
+      },
+      "additionalProperties": false
+    },
+    "application_audit_entry": {
+      "type": "object",
+      "required": [
+        "action",
+        "actor_id",
+        "occurred_at",
+        "receipt_ref"
+      ],
+      "properties": {
+        "action": {
+          "enum": [
+            "submitted",
+            "read",
+            "reviewed",
+            "canceled",
+            "invite_consumed"
+          ]
+        },
+        "actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "occurred_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "receipt_ref": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "application_audit_outcome": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "application_ref",
+        "entries"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "application_ref": {
+          "$ref": "#/$defs/hash"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/application_audit_entry"
+          },
+          "maxItems": 1000
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

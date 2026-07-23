@@ -134,6 +134,13 @@ grpc:
       Export: ak.self.realm.query.export
       ModerationPolicyEffective: ak.self.realm.moderation_policy.query.effective
       ModerationPolicySet: ak.self.realm.moderation_policy.resource.replace
+    SelfRealmJoinApplication:
+      Submit: ak.self.realm.join_application.command.submit
+      Review: ak.self.realm.join_application.command.review
+      Cancel: ak.self.realm.join_application.command.cancel
+      List: ak.self.realm.join_application.query.list
+      Get: ak.self.realm.join_application.resource.get
+      ListAudit: ak.self.realm.join_application.audit.query.list
     SelfConsent:
       List: ak.self.consent.query.list
       Get: ak.self.consent.resource.get
@@ -370,6 +377,12 @@ mq:
     self.realm.query.export: ak.self.realm.query.export
     self.realm.moderation_policy.query.effective: ak.self.realm.moderation_policy.query.effective
     self.realm.moderation_policy.resource.replace: ak.self.realm.moderation_policy.resource.replace
+    self.realm.join_application.command.submit: ak.self.realm.join_application.command.submit
+    self.realm.join_application.command.review: ak.self.realm.join_application.command.review
+    self.realm.join_application.command.cancel: ak.self.realm.join_application.command.cancel
+    self.realm.join_application.query.list: ak.self.realm.join_application.query.list
+    self.realm.join_application.resource.get: ak.self.realm.join_application.resource.get
+    self.realm.join_application.audit.query.list: ak.self.realm.join_application.audit.query.list
     self.consent.query.list: ak.self.consent.query.list
     self.consent.resource.get: ak.self.consent.resource.get
     self.consent.command.grant: ak.self.consent.command.grant

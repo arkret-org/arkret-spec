@@ -1739,6 +1739,20 @@ components:
       $ref: ../schemas/principal-locator.schema.json#/$defs/invite_locator_rotate_request_body
     InviteReceivePolicy:
       $ref: ../schemas/invite-receive-policy.schema.json
+    JoinApplicationAuditOutcome:
+      $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_audit_outcome
+    JoinApplicationCancelRequest:
+      $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_cancel_request
+    JoinApplicationGetOutcome:
+      $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_get_outcome
+    JoinApplicationListOutcome:
+      $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_list_outcome
+    JoinApplicationMutationOutcome:
+      $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome
+    JoinApplicationReviewRequest:
+      $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_review_request
+    JoinApplicationSubmitRequest:
+      $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_submit_request
     KeyPackagesClaimOutcome:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_outcome
     KeyPackagesClaimRequestBody:
@@ -7489,6 +7503,194 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmModerationPolicyDocument'
+  /_arkret/self/realms/{realm_id}/join-applications:
+    post:
+      operationId: ak.self.realm.join_application.command.submit
+      security:
+      - bearerAuth: []
+      summary: Submit a profile-private signed join application.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 255
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinApplicationSubmitRequest'
+      responses:
+        '200':
+          description: Application receipt durably accepted or replayed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinApplicationMutationOutcome'
+    get:
+      operationId: ak.self.realm.join_application.query.list
+      security:
+      - bearerAuth: []
+      summary: List viewer-scoped profile-private join applications.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: cursor
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: limit
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 200
+      responses:
+        '200':
+          description: Viewer-scoped application metadata and authorized private bodies.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinApplicationListOutcome'
+  /_arkret/self/realms/{realm_id}/join-applications/{application_ref}:
+    get:
+      operationId: ak.self.realm.join_application.resource.get
+      security:
+      - bearerAuth: []
+      summary: Read one authorized profile-private join application.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: application_ref
+        required: true
+        schema:
+          type: string
+          pattern: ^sha256:[0-9a-f]{64}$
+      responses:
+        '200':
+          description: Authorized application view; a private-body read is audited.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinApplicationGetOutcome'
+  /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/reviews:
+    post:
+      operationId: ak.self.realm.join_application.command.review
+      security:
+      - bearerAuth: []
+      summary: Submit a reviewer-signed profile-private decision receipt.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: application_ref
+        required: true
+        schema:
+          type: string
+          pattern: ^sha256:[0-9a-f]{64}$
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 255
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinApplicationReviewRequest'
+      responses:
+        '200':
+          description: Review receipt durably accepted or replayed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinApplicationMutationOutcome'
+  /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/cancel:
+    post:
+      operationId: ak.self.realm.join_application.command.cancel
+      security:
+      - bearerAuth: []
+      summary: Submit an applicant-signed cancellation receipt.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: application_ref
+        required: true
+        schema:
+          type: string
+          pattern: ^sha256:[0-9a-f]{64}$
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 255
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinApplicationCancelRequest'
+      responses:
+        '200':
+          description: Cancellation receipt durably accepted or replayed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinApplicationMutationOutcome'
+  /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit:
+    get:
+      operationId: ak.self.realm.join_application.audit.query.list
+      security:
+      - bearerAuth: []
+      summary: Read the authorized audit trail for one join application.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: application_ref
+        required: true
+        schema:
+          type: string
+          pattern: ^sha256:[0-9a-f]{64}$
+      responses:
+        '200':
+          description: Submit/read/review/cancel/invite-consume audit entries.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinApplicationAuditOutcome'
   /_arkret/self/consent/cells:
     get:
       operationId: ak.self.consent.query.list

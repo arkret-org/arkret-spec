@@ -1456,6 +1456,61 @@
       "description": "A policy override that relaxes an action forbidden by inherited organization policy returns top-level failed_precondition with reason_code=requires_organization_approval unless the document embeds a valid organization approval."
     },
     {
+      "operation_id": "ak.self.realm.join_application.command.submit",
+      "http_alias": "POST /_arkret/self/realms/{realm_id}/join-applications",
+      "operation_specific": [
+        "proof_invalid",
+        "duplicate_conflict",
+        "failed_precondition",
+        "gate_check_failed"
+      ],
+      "description": "proof_invalid covers a bad applicant receipt digest/signature or signer/session mismatch; duplicate_conflict binds Idempotency-Key to the first canonical request; failed_precondition covers absent/stale knock, cooldown, max-open or policy mismatch; gate_check_failed is the intentionally non-enumerating external gate failure."
+    },
+    {
+      "operation_id": "ak.self.realm.join_application.command.review",
+      "http_alias": "POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/reviews",
+      "operation_specific": [
+        "proof_invalid",
+        "duplicate_conflict",
+        "failed_precondition",
+        "ttl_expired",
+        "reviewer_capability_revoked"
+      ],
+      "description": "Review receipt signatures and exact revision binding fail as proof_invalid/failed_precondition; expired applications use ttl_expired; a stale reviewer/device capability binding uses reviewer_capability_revoked."
+    },
+    {
+      "operation_id": "ak.self.realm.join_application.command.cancel",
+      "http_alias": "POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/cancel",
+      "operation_specific": [
+        "proof_invalid",
+        "duplicate_conflict",
+        "failed_precondition"
+      ],
+      "description": "proof_invalid covers signer/session/applicant mismatch; failed_precondition covers a terminal, consumed or otherwise non-cancellable application."
+    },
+    {
+      "operation_id": "ak.self.realm.join_application.query.list",
+      "http_alias": "GET /_arkret/self/realms/{realm_id}/join-applications",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface; unauthorized bodies are redacted rather than leaked through distinguishable errors."
+    },
+    {
+      "operation_id": "ak.self.realm.join_application.resource.get",
+      "http_alias": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Unknown and unauthorized application refs are both returned as not_found to avoid applicant/reviewer enumeration."
+    },
+    {
+      "operation_id": "ak.self.realm.join_application.audit.query.list",
+      "http_alias": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Unknown and unauthorized application audit refs are both returned as not_found; the response never includes another application's body."
+    },
+    {
       "operation_id": "ak.self.consent.query.list",
       "http_alias": "GET /_arkret/self/consent/cells",
       "operation_specific": [],

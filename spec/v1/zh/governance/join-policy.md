@@ -299,7 +299,42 @@ reducer MUST NOT 在自动解析路径上隐式生成 application / review Contr
 | 3. 审核决策 | `member.application.review` | reviewer（持 `review_capability`） |
 | 4. 接受邀请（隐式） | `ak.invite.create` + `ak.invite.accept` | reviewer 与 applicant |
 
-reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOULD 把它们打包到同一 Seal request 以减少 round trip。
+stage 1 是公开 Control Move，stage 2 是 profile-private receipt，二者不得伪装成同一 Event batch。client MUST 先取得已接受 stage 1 的 `event_id`，再把它作为 `knock_ref` 提交 stage 2；server 在写入 private record 的同一事务内 MUST 重新确认该 knock 仍有效。
+
+### 7.1.1 Candidate profile 的唯一承载（normative）
+
+声明 `ak.profile.candidate.join_policy.v1` 的实现 MUST 实现下表 profile-private operation；这些 operation 是该 candidate profile 的唯一可互操作承载，不得再把 `application` / `application_review` / `application_cancel` 扩展字段塞入闭合的 `ak.member.state` payload，也不得把裸名 candidate concept 当作 Event envelope `kind`：
+
+| operation id | HTTP binding | caller / 可见性 | 用途 |
+| --- | --- | --- | --- |
+| `ak.self.realm.join_application.command.submit` | `POST /_arkret/self/realms/{realm_id}/join-applications` | applicant | 提交或修订 applicant-signed application receipt 与独立 private body。`Idempotency-Key` 必填。 |
+| `ak.self.realm.join_application.command.review` | `POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/reviews` | 当前持有 `review_capability` 的 reviewer | 提交 reviewer-signed review receipt。`Idempotency-Key` 必填。 |
+| `ak.self.realm.join_application.command.cancel` | `POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/cancel` | 原 applicant | 提交 applicant-signed cancel receipt。`Idempotency-Key` 必填。 |
+| `ak.self.realm.join_application.query.list` | `GET /_arkret/self/realms/{realm_id}/join-applications` | Realm member / applicant；正文仍按下文授权裁剪 | 分页列出最小化 metadata；reviewer 与对应 applicant 可见 private body，其他 Realm member 只见 `{application_pending:true}`。 |
+| `ak.self.realm.join_application.resource.get` | `GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}` | reviewer 或对应 applicant | 读取一条申请；每次成功读取 private body MUST 产生 `ak.audit.accessed`。 |
+| `ak.self.realm.join_application.audit.query.list` | `GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit` | reviewer、对应 applicant 或持有 Realm audit capability 的主体 | 读取 submit/read/review/cancel/invite-consume 审计轨迹；不得返回其它申请正文。 |
+
+所有 `{realm_id}` / `{application_ref}` path 参数 MUST 与 body receipt 内对应字段逐字一致。`application_ref` 是 `application_receipt_digest`（`sha256:<lowercase hex>`），path 中按普通 URL segment percent-encode。write operation 的 `Idempotency-Key` 与完整 canonical request digest 绑定：相同 key + 相同 body 返回原结果；相同 key + 不同 body MUST `duplicate_conflict`，不得覆盖首个 receipt / private body。
+
+这组 operation 只在部署的 `ak.server.query.describe` 与 `ak.self.account.query.describe` 同时声明：
+
+- `supported_profiles` 含 `ak.profile.candidate.join_policy.v1`；
+- `supported_operations` 含上表全部 operation；
+- feature set 含 `candidate_join_policy_reviewer` 与 `candidate_member_application_intake`；
+- `profile_bindings["ak.profile.candidate.join_policy.v1"].carrier` 恰为 `"profile_private_http_receipt_v1"`。
+
+否则 client / conformance runner MUST 视为未启用并跳过 candidate 流程；server MUST 以 `unsupported_feature` / 404 fail closed，不得只暴露部分 write/read surface。HTTP request / response 的闭合 DTO 以 `ak.schema.join_policy_operations.v1`（`join-policy-operations.schema.json`）为准。
+
+**receipt digest 与签名 transcript（normative）**：
+
+1. application / review / cancel receipt 分别计算 `sha256:JCS(receipt without {application_receipt_digest|review_receipt_digest|cancel_receipt_digest, proof})`；wire 中必须回填该小写十六进制 digest。receiver MUST 重算并 constant-time 比较。
+2. `proof` 必须是 `kind="detached_jws"`，`verification_method` 必须解析为对应 `applicant_did` / `reviewer_did` / `cancelled_by` 在提交 basis 上的 active device/actor key；仅有 bearer session 而 receipt proof 无效 MUST 拒绝。
+3. application proof 签名 JCS `{context:"ak.join-application-receipt-proof-v1",receipt_digest,realm_id,actor_id,verification_method,created_at}`；其中 `actor_id=applicant_did`、`created_at=submitted_at`。
+4. review proof 签名 JCS `{context:"ak.join-application-review-receipt-proof-v1",receipt_digest,realm_id,application_ref,application_revision_digest,actor_id,verification_method,created_at}`；其中 `actor_id=reviewer_did`、`created_at=reviewed_at`。
+5. cancel proof 签名 JCS `{context:"ak.join-application-cancel-receipt-proof-v1",receipt_digest,realm_id,application_ref,actor_id,verification_method,created_at}`；其中 `actor_id=cancelled_by`、`created_at=cancelled_at`。
+6. request 中的 private body 不进入共享 receipt；receipt 的 `private_body_digest` MUST 等于该 body 的 `sha256:JCS(private_body)`。`application_revision_digest` 仍按 §7.3 的固定 `{answers,gate_proofs,policy_version_digest}` 前像计算：`server_protected` 模式由 server 重算；`reviewer_envelope` 模式由 client 在加密前计算并由 reviewer 解密后复核，server 只验证 receipt / ciphertext body digest 与 recipient capability binding。
+
+receipt 与 private body MUST 在同一 durable transaction 中写入；任一 schema、签名、policy、knock、cooldown、TTL、capability、recipient 或幂等校验失败时均不得留下半条记录。application/review/cancel receipt 属于 profile-private durable record，可以跨重启读取与审计，但 MUST NOT 出现在普通 Realm event query、sync timeline、federation event push/pull 或 Seal `control_event_set_root` 中。
 
 ### 7.2 `member.application`
 
@@ -311,12 +346,14 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 | `applicant_did` | yes | `did` | 等于 envelope `actor_id`。 |
 | `knock_ref` | yes | `event_ref` | 引用 stage 1 的 `ak.member.state{knock}` event id。 |
 | `policy_version_digest` | yes | `hash` | 提交时 `realm.join_policy` cell value 的 canonical digest；reducer 校验 reviewer 决策时是否仍是同一 policy。 |
-| `answers` | conditional | `array<Answer>` | 任一 `application_form` gate 存在时必填，覆盖该 gate 所有 `required=true` 的 question_id。 |
-| `gate_proofs` | conditional | `array<GateProof>` | 任一可自动解析 gate 存在时按需提供（与自动解析路径同形）。 |
-| `applicant_note` | no | `string` | 1..2000 chars 自由文本备注。 |
-| `encryption_envelope` | conditional | `object` | E2EE Realm 必填；见 §8。 |
+| `private_body_digest` | yes | `hash` | 对本次 profile-private body 的 `sha256:JCS`；receipt 只绑定 digest，不复制正文。 |
+| `application_revision_digest` | yes | `hash` | 按 §7.3 固定前像计算，review 必须绑定同一 revision。 |
+| `answers` | conditional | `array<Answer>` | 位于 `private_body{mode="server_protected"}`；任一 `application_form` gate 存在时必填，覆盖该 gate 所有 `required=true` 的 question_id。 |
+| `gate_proofs` | conditional | `array<GateProof>` | 位于 `private_body{mode="server_protected"}`；任一可自动解析 gate 存在时按需提供（与自动解析路径同形）。 |
+| `applicant_note` | no | `string` | 位于 private body，1..2000 chars 自由文本备注。 |
+| `encryption_envelope` | conditional | `object` | 位于 `private_body{mode="reviewer_envelope"}`；E2EE Realm 必填，见 §8。 |
 
-`Answer` 形态：`{question_id, value: string|string[]|boolean}`；reducer 仅做存在性 / shape 校验，语义评估留给 reviewer。`answers[]` MUST ≤ 64 项（与 §3.3 `questions[]` 上限对齐）、`gate_proofs[]` MUST ≤ 16 项（与 §3 `gates` 1..16 上限对齐）；超过时 MUST `schema_violation`（v1 wire 上限，见 [`../conformance/scalability-constraints.md` §5](../conformance/scalability-constraints.md)）。
+`Answer` 形态：`{question_id, value: string|string[]|boolean}`；reducer 仅做存在性 / shape 校验，语义评估留给 reviewer。`answers[]` MUST ≤ 64 项（与 §3.3 `questions[]` 上限对齐）、`gate_proofs[]` MUST ≤ 16 项（与 §3 `gates` 1..16 上限对齐）；超过时 MUST `schema_violation`（v1 wire 上限，见 [`../conformance/scalability-constraints.md` §5](../conformance/scalability-constraints.md)）。非 E2EE Realm 使用 `server_protected` private record；E2EE Realm 使用 reviewer envelope。两种 body 都只经 §7.1.1 私有 operation 传输，不进入 `ak.member.state`。
 
 ### 7.3 `member.application.review`
 
