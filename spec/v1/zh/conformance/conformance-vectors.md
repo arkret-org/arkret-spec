@@ -604,10 +604,22 @@ cursor base64url 解码后对应 canonical JSON：
 ak.vector.encoding.encrypted_envelope_digest.v1
 ```
 
+同一向量先固定 `routing_digest` 的 wire-breaking AAD 引用摘要：
+
+```text
+domain_separator = ak.aad-event-ref-v1
+event_id         = ak:event:01964148-0000-7000-8000-000000000000
+realm_id         = ak:realm:0196419b-0000-7000-8000-000000000000
+digest_input_hex = 616b2e6161642d6576656e742d7265662d763100616b3a6576656e743a30313936343134382d303030302d373030302d383030302d30303030303030303030303000616b3a7265616c6d3a30313936343139622d303030302d373030302d383030302d303030303030303030303030
+event_ref_digest = sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3
+```
+
+`digest_input_hex` 必须逐字节等于 `utf8(domain_separator) || 0x00 || utf8(event_id) || 0x00 || utf8(realm_id)`。机器向量另含“省略两个 `0x00`”“交换 `event_id` / `realm_id`”“追加尾部 `0x00`”三个 mutation case；三者都必须产生各自固定的不同摘要，不能被实现接受为有效输入。
+
 `payload_metadata` canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"aad":{"event_kind":"ak.message.create","event_ref_digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","realm_id":"ak:realm:0196419b-0000-7000-8000-000000000000"},"aad_visibility_event_id":"routing_digest","content_type":"application/json","epoch":12,"group_id":"Z3JvdXAtMDAx","key_ref":{"algorithm":"MLS","group_state_ref":"ak:event:01964148-0000-7000-8000-000000000000"},"scheme":"mls-rfc9420","version":"1.0"}
+{"aad":{"event_kind":"ak.message.create","event_ref_digest":"sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3","realm_id":"ak:realm:0196419b-0000-7000-8000-000000000000"},"aad_visibility_event_id":"routing_digest","content_type":"application/json","epoch":12,"group_id":"Z3JvdXAtMDAx","key_ref":{"algorithm":"MLS","group_state_ref":"ak:event:01964148-0000-7000-8000-000000000000"},"scheme":"mls-rfc9420","version":"1.0"}
 ```
 
 `ciphertext` 的 base64url wire 值与解码后 UTF-8 测试表示：
@@ -620,7 +632,7 @@ ciphertext-example-001
 期望 digest：
 
 ```text
-sha256:fa4d70fb617f745133f88062dace64f909c370027191f6f8c04b143c3258a4a8
+sha256:6aa6a93aff69fc6505207e409c07f33940037e549c47542f261197c0c872052c
 ```
 
 判定规则：
@@ -1274,14 +1286,16 @@ ak.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1
 - **Case A**：两个并发 Seal leaf 中，一个覆盖 capability grant，另一个覆盖同一 grant 的 revoke；DataEvent 的 `seal_ref` 指向 grant leaf。
 - **Case B**：承载授权判定的 control cell 在并发 join 后进入 `⊥`，且 `bottom=reject`。
 - **Case C**：轻客户端只持有单 leaf 视图，无法独立验证 multi-leaf union basis。
+- **Case D**：receiver 先接受 DataEvent `E` 并物化 cell X effect，再接受以 `E` 为 critical causal dependency 的 DataEvent `D` 并物化 cell Y effect；随后并发撤销 leaf `R` 迟到。
 
 期望：
 
 - Case A：receiver MUST 按 joined control view 判定该 capability 已撤销，DataEvent MUST fail closed（`stale_seal_ref`）；并发分支不计算 `distance`，不享受新鲜度窗口。
 - Case B：依赖该 cell 的 DataEvent 与 Control Move MUST fail closed（`cell_in_bottom_state` / `failed_bottom`）。
 - Case C：轻客户端 MUST hold pending 或 fail closed，MUST NOT 用单 leaf 授权结论接受该 DataEvent。
+- Case D：join `R` 后 `E` MUST `stale_seal_ref`，其 cell X effect MUST 被追溯移除；`D` 与所有直接 / 间接依赖 `E` 的 accepted 后继 MUST 转为 `result=pending, reason=dependency_missing`，其 effects（含 cell Y）同步移除。最终 accepted set 与 projection MUST 等于从一开始就持有 `{S0,R}` 的 receiver，且与到达顺序无关。
 
-失败条件：用 `seal_ref` 单分支接受并发撤销后的 DataEvent；把并发撤销套入后继距离窗口；轻客户端无法验证 joined view 时仍接受。
+失败条件：用 `seal_ref` 单分支接受并发撤销后的 DataEvent；把并发撤销套入后继距离窗口；轻客户端无法验证 joined view 时仍接受；只移除 `E` 而保留依赖 `E` 的 `D` / 后继 effects，导致先接受后撤销与先撤销后接收的 projection 不同。
 
 ### 2.19.1 Vector: Circle lifecycle basis 与 archive freshness
 

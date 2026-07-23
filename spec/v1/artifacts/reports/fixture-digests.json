@@ -50,7 +50,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "060041110dc2b2a01662a2bebe3c904c4232c4f2e11cf964b1b743b680168b7e"
+      "sha256": "8d74353c505d20374c4a1641ffc44fa453bc0ece29da97c0a28d5b417fa27952"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -82,7 +82,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "a74b36c6aee14594675e169b0ebb1a35716b2a148bd9cbe5768aca4ff5b71e14"
+      "sha256": "b7c4916b7aa91ac5cddca4def6c346ea71fa96edea180690471eccf739fbb40b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error_code_registry_coverage_fixture.json",
@@ -102,7 +102,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "c736f9efacd8e85c3e7585fb18f3f6787190299feecf8cac84696f9028499d1f"
+      "sha256": "3409f32988cccbada7e07d64706a54af12f6d982cb1c54081cc2e9c404ed9892"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",

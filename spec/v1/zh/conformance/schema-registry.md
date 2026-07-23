@@ -35,13 +35,14 @@ sidebar:
 
 ### 1.1 schema id ↔ 文件名映射例外（normative）
 
-下游 SDK / IDE 插件不得用 "schema id 去掉前缀 + 换分隔符" 这种机械推导拿文件名；MUST 从 `schema-registry.json` 读取每条 `{schema_id, file, 可选 fragment}` 三元组。**effective schema reference = `file` + 可选 `fragment`**：某行带 `fragment`（RFC 6901 JSON Pointer，如 `#/$defs/agent_pairing_bootstrap`）时，消费者 MUST 解析 `file#fragment` 处的子 schema，MUST NOT 把该 `schema_id` 绑定到 `file` 的顶层文档；`fragment` 省略时 effective reference 即 `file` 顶层文档。两个 `schema_id` 映射同一 `file` 时 MUST 靠 `fragment` 区分（或其一省略 `fragment` 表示整包）；忽略 `fragment`、对带 fragment 的行加载顶层文档的实现**不合规**。`fragment` 不可解析、或共用同一 `file` 的多行都省略 `fragment`（整包映射歧义）时，消费者 MUST fail closed，不得静默择一。该规则的机读声明见 `schema-registry.json` 的 `registry_rules`。当前 v1 已知的不能机械推导的对应关系（含 `ak.schema.agent_pairing_bootstrap.v1` 经 `fragment` 指向 `agent-operations.schema.json#/$defs/agent_pairing_bootstrap` 子 schema）：
+下游 SDK / IDE 插件不得用 "schema id 去掉前缀 + 换分隔符" 这种机械推导拿文件名；MUST 从 `schema-registry.json` 读取每条 `{schema_id, file, 可选 fragment}` 三元组。**effective schema reference = `file` + 可选 `fragment` 的逐字拼接**：`fragment` 自身已带前导 `#`，消费者不得再插入分隔符。例如 `file="schemas/agent-operations.schema.json"` 与 `fragment="#/$defs/agent_pairing_bootstrap"` 的结果精确为 `schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap`。`fragment` 是 RFC 6901 JSON Pointer 的 URI-fragment 表示；消费者 MUST 解析其指向的子 schema，MUST NOT 把该 `schema_id` 绑定到 `file` 的顶层文档。`fragment` 省略时 effective reference 即 `file` 顶层文档。两个 `schema_id` 映射同一 `file` 时 MUST 靠 `fragment` 区分（或其一省略 `fragment` 表示整包）；忽略 `fragment`、对带 fragment 的行加载顶层文档的实现**不合规**。`fragment` 不可解析、或共用同一 `file` 的多行都省略 `fragment`（整包映射歧义）时，消费者 MUST fail closed，不得静默择一。该规则的机读声明见 `schema-registry.json` 的 `registry_rules`。当前 v1 已知的不能机械推导的对应关系：
 
-| schema id | canonical 文件 | 说明 |
+| schema id | canonical effective reference | 说明 |
 | --- | --- | --- |
 | `ak.schema.event.v1` | `schemas/event-envelope.schema.json` | schema id 用 `event` 保持协议对象名，文件名用 `event-envelope` 对齐 wire envelope 术语；不得机械推导为 `event.schema.json`。 |
 | `ak.schema.capability.v1` | `schemas/capability-grant.schema.json` | id 简化为 `capability`，文件保留 `capability-grant` 以区别于其他 capability 相关 schema（grant-constraint、resource-selector 等）。 |
 | `ak.schema.morph.customer_risk.v1` | `schemas/morph-customer-risk.schema.json` | id 用 dot 分段（`morph.customer_risk`），文件用 dash（`morph-customer-risk`）；对应规则是 "schema id 里的每段都换成 dash"。其它 dotted-id schema 适用同一规则。 |
+| `ak.schema.agent_pairing_bootstrap.v1` | `schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap` | 与 `ak.schema.agent_operations.v1` 共用文件，但必须解析 `fragment` 指向的六字段 bootstrap 子 schema，不得加载顶层 DTO `oneOf` bundle。 |
 
 新增 schema 时如果出现不能机械推导的命名，必须把对应关系登记到 `contract-catalog.json` 的 `schemas[]` 条目，并在此表格补充一行；不得只改文件名。
 

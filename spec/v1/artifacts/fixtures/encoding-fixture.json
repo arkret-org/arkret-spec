@@ -421,19 +421,46 @@
         "aad": {
           "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
           "event_kind": "ak.message.create",
-          "event_ref_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "event_ref_digest": "sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3"
         },
         "key_ref": {
           "algorithm": "MLS",
           "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
         }
       },
-      "expected_metadata_canonical_bytes_utf8": "{\"aad\":{\"event_kind\":\"ak.message.create\",\"event_ref_digest\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"realm_id\":\"ak:realm:0196419b-0000-7000-8000-000000000000\"},\"aad_visibility_event_id\":\"routing_digest\",\"content_type\":\"application/json\",\"epoch\":12,\"group_id\":\"Z3JvdXAtMDAx\",\"key_ref\":{\"algorithm\":\"MLS\",\"group_state_ref\":\"ak:event:01964148-0000-7000-8000-000000000000\"},\"scheme\":\"mls-rfc9420\",\"version\":\"1.0\"}",
+      "event_ref_digest_kat": {
+        "domain_separator_utf8": "ak.aad-event-ref-v1",
+        "event_id": "ak:event:01964148-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "digest_input_hex": "616b2e6161642d6576656e742d7265662d763100616b3a6576656e743a30313936343134382d303030302d373030302d383030302d30303030303030303030303000616b3a7265616c6d3a30313936343139622d303030302d373030302d383030302d303030303030303030303030",
+        "expected_digest": "sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3",
+        "mutation_cases": [
+          {
+            "name": "omit_nul_separators",
+            "digest_input_hex": "616b2e6161642d6576656e742d7265662d7631616b3a6576656e743a30313936343134382d303030302d373030302d383030302d303030303030303030303030616b3a7265616c6d3a30313936343139622d303030302d373030302d383030302d303030303030303030303030",
+            "expected_digest": "sha256:09833467e54fb56f0e06983d323303cfdf804a314789acebbc457e5dfc5cb59f",
+            "must_not_equal_valid": true
+          },
+          {
+            "name": "swap_event_id_and_realm_id",
+            "digest_input_hex": "616b2e6161642d6576656e742d7265662d763100616b3a7265616c6d3a30313936343139622d303030302d373030302d383030302d30303030303030303030303000616b3a6576656e743a30313936343134382d303030302d373030302d383030302d303030303030303030303030",
+            "expected_digest": "sha256:3a323f00b9fe1406b9aeb67a345acd14a3ae8dd26ed8d016873e347355fdbf6a",
+            "must_not_equal_valid": true
+          },
+          {
+            "name": "append_trailing_nul",
+            "digest_input_hex": "616b2e6161642d6576656e742d7265662d763100616b3a6576656e743a30313936343134382d303030302d373030302d383030302d30303030303030303030303000616b3a7265616c6d3a30313936343139622d303030302d373030302d383030302d30303030303030303030303000",
+            "expected_digest": "sha256:b0b6324da3c15cf907c32f15acbc143613305cb4f87a601c4d592d8cad4103da",
+            "must_not_equal_valid": true
+          }
+        ]
+      },
+      "expected_metadata_canonical_bytes_utf8": "{\"aad\":{\"event_kind\":\"ak.message.create\",\"event_ref_digest\":\"sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3\",\"realm_id\":\"ak:realm:0196419b-0000-7000-8000-000000000000\"},\"aad_visibility_event_id\":\"routing_digest\",\"content_type\":\"application/json\",\"epoch\":12,\"group_id\":\"Z3JvdXAtMDAx\",\"key_ref\":{\"algorithm\":\"MLS\",\"group_state_ref\":\"ak:event:01964148-0000-7000-8000-000000000000\"},\"scheme\":\"mls-rfc9420\",\"version\":\"1.0\"}",
       "ciphertext_base64url": "Y2lwaGVydGV4dC1leGFtcGxlLTAwMQ",
       "ciphertext_bytes_utf8": "ciphertext-example-001",
       "digest_input_rule": "sha256(canonical_json(payload_metadata) || base64url_decode(ciphertext))",
-      "aad_digest": "sha256:c6c8e4087953d8396a8b0b434d990fb2752772065c2dba0970b6bcdcaec704f5",
-      "expected_digest": "sha256:0916208f55147ef7ece7719915091f1a7623bebdd28730fbbf1d9deb2afc6644",
+      "aad_digest": "sha256:444a07e27e86cefb4b50ac885413b6b9ea43e7576b943812d5243d73701b7c8a",
+      "expected_digest": "sha256:6aa6a93aff69fc6505207e409c07f33940037e549c47542f261197c0c872052c",
       "rules": [
         "implementations MUST NOT hash plaintext payload",
         "implementations MUST NOT omit payload metadata required for routing/decryption; otherwise sync service cannot safely dedupe or audit envelopes"

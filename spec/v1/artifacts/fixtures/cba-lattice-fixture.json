@@ -819,7 +819,13 @@
         },
         {
           "name": "late_revocation_leaf_retroactive_removal",
-          "description": "Ordered sequence, not a single joined-view snapshot: E is first accepted and its effect materialized into data cell X under the initial joined view that has NOT yet joined the revoke leaf R; R arrives later, and once joined the seal_ref authorization for E is no longer live, so E's effect MUST be retroactively removed from all data/control cell join inputs and the projection deterministically recomputed. The final state MUST equal that of a receiver that joined {S0,R} from the start, independent of arrival order.",
+          "description": "Ordered sequence, not a single joined-view snapshot: E is first accepted and its effect materialized into data cell X under the initial joined view that has NOT yet joined the revoke leaf R. Dependent event D is then accepted with E as a critical causal dependency and materializes an effect into data cell Y. R arrives later; once joined, E loses seal_ref authorization, so E and the complete direct/indirect dependency closure rooted at E MUST leave accepted projection inputs. The final state MUST equal that of a receiver that joined {S0,R} from the start, independent of arrival order.",
+          "dependent_data_event": {
+            "id": "ak:event:019641d2-0001-7000-8000-000000000000",
+            "plane": "data",
+            "critical_causal_ref": "ak:event:019641d2-0000-7000-8000-000000000000",
+            "effect_cell": "data_cell_y"
+          },
           "sequence": [
             {
               "step": "accept_before_revocation",
@@ -832,7 +838,9 @@
               },
               "expected": {
                 "data_event_result": "accept",
-                "data_cell_x_contains_event_effect": true
+                "data_cell_x_contains_event_effect": true,
+                "dependent_event_result": "accept",
+                "data_cell_y_contains_dependent_effect": true
               }
             },
             {
@@ -850,6 +858,10 @@
                 "data_event_result": "reject_or_hide",
                 "reason": "stale_seal_ref",
                 "data_cell_x_effect_retroactively_removed": true,
+                "dependent_event_result": "pending",
+                "dependent_event_reason": "dependency_missing",
+                "dependent_event_effect_retroactively_removed": true,
+                "recursive_dependency_closure_revalidated": true,
                 "projection_recomputed": true,
                 "converges_with_from_start_joiner": true,
                 "order_independent": true
@@ -860,6 +872,10 @@
             "final_data_event_result": "reject_or_hide",
             "final_reason": "stale_seal_ref",
             "data_cell_x_effect_retroactively_removed": true,
+            "dependent_event_final_result": "pending",
+            "dependent_event_final_reason": "dependency_missing",
+            "data_cell_y_dependent_effect_retroactively_removed": true,
+            "accepted_set_is_authorized_dependency_closed": true,
             "final_state_equals_from_start_joiner_of_leaf_set": [
               "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
               "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"

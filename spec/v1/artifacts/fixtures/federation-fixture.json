@@ -37,7 +37,7 @@
         "ak:event:01964145-8000-7000-8000-000000000001"
       ],
       "destination_service_type": "principal_server",
-      "reducer_profile_digest": "sha256:be4fc9d757a41f8829790b098b52394af89bbe6dfb18a0ce11dd5516adf70de0"
+      "reducer_profile_digest": "sha256:394494ff6570ce0a84c0b772ecbafcf0d32d4dad221f722e3019dbb73214961e"
     }
   },
   "cases": [
@@ -50,7 +50,7 @@
         "field": "resolved_digest_input",
         "recompute_from_local_contracts": true
       },
-      "expected_digest": "sha256:3dc21fd9295d434b0dc73ef6fb81c21a26d7b265e332bf11b077cee12077f507",
+      "expected_digest": "sha256:394494ff6570ce0a84c0b772ecbafcf0d32d4dad221f722e3019dbb73214961e",
       "mutation_cases": [
         {
           "name": "event_kind_contract_content_changes",
@@ -76,7 +76,7 @@
     {
       "name": "reducer_profile_mismatch",
       "vector_id": "ak.vector.federation.reducer_profile_digest.v1",
-      "sender_reducer_profile_digest": "sha256:be4fc9d757a41f8829790b098b52394af89bbe6dfb18a0ce11dd5516adf70de0",
+      "sender_reducer_profile_digest": "sha256:394494ff6570ce0a84c0b772ecbafcf0d32d4dad221f722e3019dbb73214961e",
       "receiver_reducer_profile_digest": "sha256:9acf68105ee4698368137d3ea070548556bfd6f6ad7771df0fdc77f8c97a5e09",
       "expected": "whole_batch_rejected_with_reducer_profile_mismatch"
     },

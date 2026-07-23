@@ -166,7 +166,7 @@
           },
           {
             "fixture": "encoding-fixture.json",
-            "semantic_projection_digest": "sha256:cf71f87732d41e60c22a348e8a3dbb358ba00f991fbba154a2ac53a99ea9c492"
+            "semantic_projection_digest": "sha256:cb647395ae3ae347c17ee3596c0b27a24bce1f1479bcc6b491d2a78f884fe030"
           },
           {
             "fixture": "event-envelope-negative-fixture.json",
@@ -188,7 +188,7 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:0e820fdccbe2337d0a77b19ecaa5b71a8f17cf85011599501442a47ad03b4241"
+            "content_digest": "sha256:339ce74a273e2d69e73ef6f1f70374eb15484520865cbdc1801b8b4f3b4de2d3"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -196,7 +196,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:0e09d48e389f868ea852e02d9e4825adf24e4abc9145db2b308df9dc21f6b305"
+      "reducer_profile_digest": "sha256:ddb42eefdac0291067b5225b7dda7438880b00d4dd3453e88921fc328570aede"
     },
     {
       "profile_id": "ak.profile.chat_mvp.v1",
@@ -454,7 +454,7 @@
         "fixture_contracts": [
           {
             "fixture": "cba-lattice-fixture.json",
-            "semantic_projection_digest": "sha256:1b00353242fc71868773fd145f2f4c3b90c58bdb005189e1fadfcad72875671b"
+            "semantic_projection_digest": "sha256:05bb3e48792de9f096b7cdc7a4859894c7d4f454fc473c914ee7c797c0b8a652"
           },
           {
             "fixture": "crypto-signature-fixture.json",
@@ -462,7 +462,7 @@
           },
           {
             "fixture": "encoding-fixture.json",
-            "semantic_projection_digest": "sha256:cf71f87732d41e60c22a348e8a3dbb358ba00f991fbba154a2ac53a99ea9c492"
+            "semantic_projection_digest": "sha256:cb647395ae3ae347c17ee3596c0b27a24bce1f1479bcc6b491d2a78f884fe030"
           },
           {
             "fixture": "event-envelope-negative-fixture.json",
@@ -504,11 +504,11 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:0e820fdccbe2337d0a77b19ecaa5b71a8f17cf85011599501442a47ad03b4241"
+            "content_digest": "sha256:339ce74a273e2d69e73ef6f1f70374eb15484520865cbdc1801b8b4f3b4de2d3"
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:b7948824c54b9e92005a013d550221282963cc43a8320a60ced876755f3d9139"
+            "content_digest": "sha256:36f5d6cdf774743c1757ccb79b4114888c980d7d7651205bb4e3d80b5e10a460"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -520,7 +520,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:8582cc21223c50ad40a3cfff01ef535fc46a2edafb9bf8efa0b61232237627e0"
+      "reducer_profile_digest": "sha256:29b2adfe98f71b063971df52204c198da7e7f633953d84708ed11f7f32450208"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -758,7 +758,7 @@
         "fixture_contracts": [
           {
             "fixture": "cba-lattice-fixture.json",
-            "semantic_projection_digest": "sha256:1b00353242fc71868773fd145f2f4c3b90c58bdb005189e1fadfcad72875671b"
+            "semantic_projection_digest": "sha256:05bb3e48792de9f096b7cdc7a4859894c7d4f454fc473c914ee7c797c0b8a652"
           },
           {
             "fixture": "crypto-signature-fixture.json",
@@ -766,7 +766,7 @@
           },
           {
             "fixture": "encoding-fixture.json",
-            "semantic_projection_digest": "sha256:cf71f87732d41e60c22a348e8a3dbb358ba00f991fbba154a2ac53a99ea9c492"
+            "semantic_projection_digest": "sha256:cb647395ae3ae347c17ee3596c0b27a24bce1f1479bcc6b491d2a78f884fe030"
           },
           {
             "fixture": "event-envelope-negative-fixture.json",
@@ -796,7 +796,7 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:0e820fdccbe2337d0a77b19ecaa5b71a8f17cf85011599501442a47ad03b4241"
+            "content_digest": "sha256:339ce74a273e2d69e73ef6f1f70374eb15484520865cbdc1801b8b4f3b4de2d3"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -816,7 +816,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:da26a662faae1c1dbbcbb2255ff9f02816adf8c3cb57f78c8e9c4f7a3886a398"
+      "reducer_profile_digest": "sha256:f32dde28d9053cf093ccbae785186183b8b81f79b55f75d869cf9b5d8d14b281"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1339,7 +1339,7 @@
           },
           {
             "fixture": "cba-lattice-fixture.json",
-            "semantic_projection_digest": "sha256:1b00353242fc71868773fd145f2f4c3b90c58bdb005189e1fadfcad72875671b"
+            "semantic_projection_digest": "sha256:05bb3e48792de9f096b7cdc7a4859894c7d4f454fc473c914ee7c797c0b8a652"
           },
           {
             "fixture": "crypto-signature-fixture.json",
@@ -1347,7 +1347,7 @@
           },
           {
             "fixture": "encoding-fixture.json",
-            "semantic_projection_digest": "sha256:cf71f87732d41e60c22a348e8a3dbb358ba00f991fbba154a2ac53a99ea9c492"
+            "semantic_projection_digest": "sha256:cb647395ae3ae347c17ee3596c0b27a24bce1f1479bcc6b491d2a78f884fe030"
           },
           {
             "fixture": "event-envelope-negative-fixture.json",
@@ -1409,11 +1409,11 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:0e820fdccbe2337d0a77b19ecaa5b71a8f17cf85011599501442a47ad03b4241"
+            "content_digest": "sha256:339ce74a273e2d69e73ef6f1f70374eb15484520865cbdc1801b8b4f3b4de2d3"
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:b7948824c54b9e92005a013d550221282963cc43a8320a60ced876755f3d9139"
+            "content_digest": "sha256:36f5d6cdf774743c1757ccb79b4114888c980d7d7651205bb4e3d80b5e10a460"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -1445,7 +1445,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:93b05523cf1bebe350a9a3b190c6a0108bf369508d503cdeed987f3647c0545e"
+      "reducer_profile_digest": "sha256:886f70a3778828ea32f2207e73970de964a4b3b4df10265c226758b54fab05d6"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1645,7 +1645,7 @@
           },
           {
             "fixture": "encoding-fixture.json",
-            "semantic_projection_digest": "sha256:cf71f87732d41e60c22a348e8a3dbb358ba00f991fbba154a2ac53a99ea9c492"
+            "semantic_projection_digest": "sha256:cb647395ae3ae347c17ee3596c0b27a24bce1f1479bcc6b491d2a78f884fe030"
           },
           {
             "fixture": "event-envelope-negative-fixture.json",
@@ -1679,7 +1679,7 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:0e820fdccbe2337d0a77b19ecaa5b71a8f17cf85011599501442a47ad03b4241"
+            "content_digest": "sha256:339ce74a273e2d69e73ef6f1f70374eb15484520865cbdc1801b8b4f3b4de2d3"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -1687,7 +1687,7 @@
           },
           {
             "ref": "zh/sync/federation.md",
-            "content_digest": "sha256:0f3abd9ebab37819ccefcb0435a80c7de0fd15dd8db4b9da46f97dabfdef551c"
+            "content_digest": "sha256:01354036a5d260f8dab01f800d927f8a04963ef713799a073b5173132fe7d3e9"
           },
           {
             "ref": "zh/sync/service-http-binding.md",
@@ -1695,7 +1695,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:3dc21fd9295d434b0dc73ef6fb81c21a26d7b265e332bf11b077cee12077f507"
+      "reducer_profile_digest": "sha256:394494ff6570ce0a84c0b772ecbafcf0d32d4dad221f722e3019dbb73214961e"
     }
   ],
   "generated_fields": [
