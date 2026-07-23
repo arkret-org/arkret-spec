@@ -1179,7 +1179,9 @@
           "tenant",
           "external_user_id",
           "realm_id",
-          "external_ref"
+          "external_ref",
+          "accountability_grant_event",
+          "profile_event"
         ],
         "properties": [
           "schema",
@@ -1191,7 +1193,9 @@
           "external_user_id",
           "display_name",
           "realm_id",
-          "external_ref"
+          "external_ref",
+          "accountability_grant_event",
+          "profile_event"
         ],
         "closed": true
       },

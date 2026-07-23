@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/applet-ghost-operations.schema.json",
   "title": "Arkret Applet Ghost Actor Operation DTOs",
-  "description": "Closed request/response DTOs for ak.self.applet.ghost.command.provision. An installed Applet service / bridge asks the Principal Server to provision (or idempotently re-validate) an Applet-managed Ghost Actor profile plus accountability grant for one external user. The server MUST re-check applet_id / service_id / realm_id / ghost namespace against the active registration before minting anything.",
+  "description": "Closed request/response DTOs for ak.self.applet.ghost.command.provision. An installed Applet service / bridge submits a complete service-signed accountability Event and delegated Ghost profile Event for one external user. The Principal Server MUST re-check their applet / service / realm / namespace / capability bindings and commit the pair atomically; it MUST NOT mint either proof with a server notary key.",
   "oneOf": [
     {
       "$ref": "#/$defs/ghost_actor_provision_request_body"
@@ -51,7 +51,9 @@
         "tenant",
         "external_user_id",
         "realm_id",
-        "external_ref"
+        "external_ref",
+        "accountability_grant_event",
+        "profile_event"
       ],
       "properties": {
         "schema": {
@@ -84,13 +86,21 @@
         },
         "external_ref": {
           "$ref": "#/$defs/external_ref"
+        },
+        "accountability_grant_event": {
+          "description": "Complete ak.identity.accountability_grant Event signed by the installed Applet service DID. Its nested accountability proof MUST be signed by the same service identity.",
+          "$ref": "./event-envelope.schema.json"
+        },
+        "profile_event": {
+          "description": "Complete ak.profile.create Event for ghost_actor_id, delegated and signed by service_id. authorization_ref MUST identify the active ak.applet.ghost.provision capability grant and refs MUST bind the accountability Event.",
+          "$ref": "./event-envelope.schema.json"
         }
       },
       "additionalProperties": false
     },
     "ghost_actor_provision_outcome": {
       "type": "object",
-      "description": "Response for ak.self.applet.ghost.command.provision. Carries the durable event refs the Principal Server minted (or re-confirmed on idempotent re-provision): the Ghost Actor ak.profile.create ref and the ak.identity.accountability_grant ref, the latter also surfaced as the authorization_ref the bridge MUST place on subsequent ghost-authored Event Envelopes.",
+      "description": "Response for ak.self.applet.ghost.command.provision. Carries the durable event refs the Principal Server atomically accepted (or re-confirmed on an identical idempotent replay). authorization_ref is the active Applet provisioning capability grant used by the submitted pair; the accountability grant is not an authorization grant for later Ghost actions.",
       "required": [
         "ghost_actor_id",
         "profile_event_ref",

@@ -1397,7 +1397,7 @@
           },
           {
             "ref": "artifacts/registry/operations-error-mapping.json",
-            "content_digest": "sha256:94d72d0f37785d9131890108e30c061686d6467ef0a37f54fa535edc041ae5f1"
+            "content_digest": "sha256:4013ce83d6174e380ee703d70ab97a8e044cc6954944f212e7c092c84908d433"
           },
           {
             "ref": "artifacts/registry/relation-kind-registry.json",
@@ -1445,7 +1445,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:1c8d67439233544832195cf1ab894104edd3cbb49c7a98014b63f7e507e17878"
+      "reducer_profile_digest": "sha256:d57af1a37646becc807cdb0917163f17e91a460b67b238d1e47ba69156405764"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1691,11 +1691,11 @@
           },
           {
             "ref": "zh/sync/service-http-binding.md",
-            "content_digest": "sha256:95b7884234cba23fdb31cdd9cd8b1b432535fdee71a7efefe75d6ce6d2f4b109"
+            "content_digest": "sha256:f0df97a70c1de5c54c28cc06b92b8352e2946afbf19ffe35b3c877ac6d8e08a2"
           }
         ]
       },
-      "reducer_profile_digest": "sha256:ae439c77823c21b3a96f914f3fb697e7f890846c80e8efff193f0377877397cc"
+      "reducer_profile_digest": "sha256:3da24aa2dd685b8a88fbc69d11c8df0dde5ca3b8f159e935eebe0b5d7a9a9dd6"
     }
   ],
   "generated_fields": [

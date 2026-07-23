@@ -325,7 +325,7 @@
         "applet_namespace_mismatch",
         "applet_registration_unauthorized"
       ],
-      "description": "Ghost Actor provisioning mints (or idempotently re-confirms) the external user's Ghost Actor ak.profile.create and ak.identity.accountability_grant. The server fails closed when the caller service DID does not match the applet_id registration, the install is not active, the realm_id is outside effective scope (applet_registration_unauthorized), or ghost_actor_id falls outside the registration's actor namespace (applet_namespace_mismatch). See zh/extensions/applet-integration.md §9.1."
+      "description": "Ghost Actor provisioning atomically accepts (or idempotently re-confirms) the caller-signed ak.profile.create and ak.identity.accountability_grant Event pair. The server never signs for the Applet service or Ghost. It fails closed on invalid proofs/frontiers, a caller service DID that does not match the active applet registration, a realm outside effective scope (applet_registration_unauthorized), or a ghost_actor_id outside the registered actor namespace (applet_namespace_mismatch). See zh/extensions/applet-integration.md §9.1."
     },
     {
       "operation_id": "ak.edge.applet.third_party_locations.query.list",

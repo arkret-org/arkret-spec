@@ -363,7 +363,7 @@ Base URL 来自 registration 的 `base_url`。
 | `ak.self.applet.install.command.preview` | self（管理员→Principal Server） | `applet_package`; `effective_scope`; `approval_request`（字段见 [`applet-schema.md` §1b](./applet-schema.md)） | 无 | `InstallPlan` + `plan_digest`（契约 `applet-install-plan.schema.json`） | 只读预览；字段定义见 §4b 与 `applet-schema.md` §1b。 |
 | `ak.self.applet.command.install` | self（管理员→Principal Server） | `Idempotency-Key`; `plan_digest`; `applet_package`; `effective_scope`; `approval_request`（见 [`applet-schema.md` §1b](./applet-schema.md)） | 无 | install / commit response 的完整 required 字段集合以 [`applet-schema.md` §1b](./applet-schema.md) 与契约 `applet-install-operations.schema.json` 为权威源（本表不再部分罗列） | 提交安装；字段定义见 §4b 与 `applet-schema.md` §1b。 |
 | `ak.self.applet.command.revoke` | self（管理员→Principal Server） | `path.applet_id`; `effective_scope` | 无 | revoke 结果（撤销的 grant / membership / token refs） | 撤销 effective install；见 §4b。 |
-| `ak.self.applet.ghost.command.provision` | self（已安装 Applet service→Principal Server） | `header.Idempotency-Key`; `path.applet_id`; `schema`; `applet_id`; `service_id`; `ghost_actor_id`; `protocol`; `tenant`; `external_user_id`; `realm_id`; `external_ref` | `display_name` | `ghost_actor_id: did`; `profile_event_ref: ref`; `accountability_grant_ref: ref`; `authorization_ref: ref`; `display_name: string?` | bridge Applet 为单个外部用户 provision Ghost Actor；字段与幂等规则见 §9.1，契约 `applet-ghost-operations.schema.json`。 |
+| `ak.self.applet.ghost.command.provision` | self（已安装 Applet service→Principal Server） | `header.Idempotency-Key`; `path.applet_id`; `schema`; `applet_id`; `service_id`; `ghost_actor_id`; `protocol`; `tenant`; `external_user_id`; `realm_id`; `external_ref`; `accountability_grant_event: Event`; `profile_event: Event` | `display_name` | `ghost_actor_id: did`; `profile_event_ref: ref`; `accountability_grant_ref: ref`; `authorization_ref: ref`; `display_name: string?` | bridge Applet 为单个外部用户提交闭合的 caller-signed Event 对并原子 provision Ghost Actor；字段、proof 与幂等规则见 §9.1，契约 `applet-ghost-operations.schema.json`。 |
 
 ### 7.1 Ping
 
@@ -589,7 +589,7 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
 
 `authorization_ref` 的取值按事件签署主体区分：
 
-- **Delegated-ghost / masquerading 事件**（`actor_id` 为 ghost / bot / delegated native actor，即 Applet 代表已授权 actor 署名的常见情形）：`authorization_ref` MUST 指向该 ghost 的 `ak.identity.accountability_grant`（见 [§9.1](#91-ghost-actor-provisioningakselfappletghostcommandprovisionnormative) 与 [§11](#11-masquerading-与-delegated-agent)），表达“Applet 以委托授权身份代表该 actor 行事”的委托链。
+- **Delegated-ghost / masquerading 事件**（`actor_id` 为 ghost / bot / delegated native actor，即 Applet 代表已授权 actor 署名的常见情形）：`authorization_ref` MUST 指向覆盖该 Event action / resource 的 active `ak.capability.grant`（见 [§9.1](#91-ghost-actor-provisioningakselfappletghostcommandprovisionnormative) 与 [§11](#11-masquerading-与-delegated-agent)）；`ak.identity.accountability_grant` 只证明责任归属，MUST NOT 被解释为 action authorization。
 - **Service-actor 自署事件**（`actor_id` 为 Applet 自身的 service DID，如 portal strand 创建、`ak.applet.bridge_error` 审计等运维 / 审计事件，非委托 ghost）：此类事件不存在委托关系，`authorization_ref` MUST 指向该 Applet 的 registration grant（[§4](#4-applet-registration) Applet Registration 安装授权）而非某个 ghost 的 accountability_grant；若部署未为 Applet registration 铸造独立的 grant ref，service-actor 自署事件 MAY 省略 `authorization_ref`（签名的 `applet_id` 与 service-ID `actor_id` 已承载 provenance）。两类事件的 `applet_id` 均 MUST 携带。
 
 示例：
@@ -676,13 +676,17 @@ POST /_arkret/self/applets/{applet_id}/ghosts/provision
 Idempotency-Key: <opaque-string>
 ```
 
-请求 Principal Server 为该外部用户铸造 Ghost Actor。请求/响应契约以 [`applet-ghost-operations.schema.json`](../../artifacts/schemas/applet-ghost-operations.schema.json) 为权威（封闭 schema）；请求 `schema` 固定为 `ak.applet.ghost_actor.provision_request.v1`。
+请求 Principal Server 为该外部用户接受一个闭合的 Ghost Actor provisioning 单元。请求/响应契约以 [`applet-ghost-operations.schema.json`](../../artifacts/schemas/applet-ghost-operations.schema.json) 为权威（封闭 schema）；请求 `schema` 固定为 `ak.applet.ghost_actor.provision_request.v1`，并携带调用方构造的完整 `accountability_grant_event` 与 `profile_event`。
 
 规则：
 
 - 调用方 MUST 以 applet registration 的 service DID 认证；服务端 MUST 校验 `applet_id` 存在 active install、caller service DID 与 registration 一致、`ghost_actor_id` 命中 registration 的 actor namespace、`realm_id` 在 effective scope 内。任一不满足 MUST fail closed（`applet_namespace_mismatch` / `applet_registration_unauthorized`）。
-- 成功时服务端铸造并返回 durable refs：Ghost Actor 的 `ak.profile.create`（按 §9 的 actor-profile 封闭形态，`accountable_principal_ids` 指向 Applet controller 与外部 service DID）与 `ak.identity.accountability_grant`；`authorization_ref` 是后续该 ghost 署名 Event Envelope 顶层 MUST 携带的授权引用（见 §8、§11）。
-- **幂等（normative）**：同一 `(applet_id, protocol, tenant, external_user_id)` 的重复 provision MUST 返回既有 refs，不得重复铸造 profile / grant；`Idempotency-Key` 语义与 §7.3 相同。
+- **Caller-signed proof contract（normative）**：Principal Server MUST NOT 构造、重建或以自身 notary key 代签任一 Event / payload proof。`accountability_grant_event` MUST 是由 `service_id` 签名的完整 `ak.identity.accountability_grant` Event，envelope `actor_id=service_id`，payload `issuer=service_id`、`subject=ghost_actor_id`、`accountability_scope=contracted_service`、`grant_status=active`，且 payload 内 detached proof 也必须解析并验证到同一 service DID 的 active registration-epoch key。`profile_event` MUST 是完整 `ak.profile.create` Event，`actor_id=ghost_actor_id`、`executed_by=service_id`、`applet_id` 与请求一致，并由 `service_id` 的 active registration-epoch key 署名；其 profile 必须逐字匹配请求身份坐标、§9 actor-profile 封闭形态与 `external_ref`，`refs[]` 还 MUST 以 critical `role="accountability"` 指向同请求的 `accountability_grant_event.event_id`。
+- 两条 Event 的 `authorization_ref` MUST 相同并指向 active install 为 `service_id` 签发、覆盖 `ak.applet.ghost.provision` 与目标 Realm 的 capability grant；accountability grant 只记录责任关系，**不是**后续 ghost Event 的授权。后续 ghost 署名 Event 仍必须携带覆盖其具体 action / resource 的 active capability grant（见 §8、§11）。
+- 服务端 MUST 对两条 Event 执行 production DID key resolution、完整 Event proof / payload proof、`actor_seq` / `prev_refs` / dependency、registration epoch、membership substitute 与 reducer preflight 校验。仅该闭合 aggregate MAY 用 active Applet install 作为普通 Realm membership 的内部 admission substitute；该 substitute 必须绑定精确 `applet_id`、`service_id`、`realm_id`、两个 `event_id` 与固定 kind，不能供通用 Event submit 重用。
+- **失败原子性（normative）**：两条 Event、其 projection、Ghost provisioning record 与幂等结果 MUST 在同一 durable transaction 中提交。任何一条 proof / frontier / reducer / persistence 校验失败时两条 Event 与 Ghost record 均不得可见；禁止先落 accountability 再尝试 profile 的逐条提交。
+- 成功时服务端返回调用方所提交的 Ghost Actor `ak.profile.create` 与 `ak.identity.accountability_grant` durable refs；响应 `authorization_ref` 回显上述 provisioning capability grant，不得回显 accountability ref 冒充授权。
+- **幂等（normative）**：同一 `(applet_id, protocol, tenant, external_user_id)` 与同一 `Idempotency-Key` 的 exact replay（包含两条 Event 的 canonical bytes）MUST 返回既有 refs，不得重复提交。相同 tuple 或 key 携带不同 Event bytes / event ids MUST `duplicate_conflict`；`Idempotency-Key` 的保存必须与原子提交同事务。语义与 §7.3 相同。
 - provision 不隐含任何 Realm membership 或 MLS 入组：ghost 加入 portal Realm 走常规 membership 流程，加入 E2EE group 还需 §12 的独立 E2EE 加入授权。
 
 ## 10. Portal Realm
