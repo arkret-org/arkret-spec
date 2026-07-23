@@ -356,6 +356,54 @@
       "description": "The target Strand discussion track is disabled."
     },
     {
+      "code": "track_disabled",
+      "http_status": 409,
+      "scope": "both",
+      "description": "The target Strand track has enabled=false and does not accept new writes (synthesis edits or track-scoped patches). Generic freeze code for any track; discussion_track_disabled is the discussion-track-specific specialization for ak.message.* writes. See zh/models/strand-and-message.md §4.1 / §4.7."
+    },
+    {
+      "code": "selector_too_complex",
+      "http_status": 422,
+      "scope": "both",
+      "description": "Resource selector or constraint exceeds parser hard limits defined in resource-selector-grammar.md §3.3 (string length, resources[] length, token count, nesting depth, single-field length, requires_claims item count, constraint nesting). Dual-registered as a service code and a reason_code (see reason_codes[]) so it can be emitted as a top-level error and audit / abuse-detection can separate suspected parser-DoS attempts from ordinary format errors. See zh/authz/resource-selector-grammar.md §5."
+    },
+    {
+      "code": "device_generation_fenced",
+      "http_status": 409,
+      "scope": "both",
+      "description": "A normal Event or Seal was signed by a device whose authorized_generation_ref does not equal the active current_device_generation_ref, or the principal generation state is conflicted. Dual-registered as a service code and a reason_code (see reason_codes[]). See zh/identity/key-management.md and zh/authz/event-auth-state-resolution.md §4.3."
+    },
+    {
+      "code": "recovery_policy_mismatch",
+      "http_status": 409,
+      "scope": "both",
+      "description": "A recovery session or proof does not satisfy the principal's declared recovery policy. Dual-registered as a service code and a reason_code (see reason_codes[]). See zh/identity/key-management.md §9.5."
+    },
+    {
+      "code": "device_reanchor_entry_not_head",
+      "http_status": 409,
+      "scope": "both",
+      "description": "A device re-anchor completion references a DID key-log entry that is not the current head. Dual-registered as a service code and a reason_code (see reason_codes[])."
+    },
+    {
+      "code": "device_reanchor_frontier_mismatch",
+      "http_status": 409,
+      "scope": "both",
+      "description": "A device re-anchor completion carries a frontier that does not match the recomputed device frontier. Dual-registered as a service code and a reason_code (see reason_codes[])."
+    },
+    {
+      "code": "device_reanchor_authorize_mismatch",
+      "http_status": 409,
+      "scope": "both",
+      "description": "A device re-anchor completion authorization does not match the expected re-anchor authorization. Dual-registered as a service code and a reason_code (see reason_codes[])."
+    },
+    {
+      "code": "device_reanchor_conflict",
+      "http_status": 409,
+      "scope": "both",
+      "description": "Concurrent device re-anchor completions conflict on the same principal generation state. Dual-registered as a service code and a reason_code (see reason_codes[])."
+    },
+    {
       "code": "epoch_mismatch",
       "http_status": 409,
       "scope": "both",
@@ -2083,7 +2131,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "Resource selector or constraint exceeds parser hard limits defined in resource-selector-grammar.md \u00a73.3 (string length, resources[] length, token count, nesting depth, single-field length, requires_claims item count, constraint nesting). Distinct from invalid_param so audit / abuse-detection can separate suspected parser-DoS attempts from ordinary format errors."
+      "description": "Resource selector or constraint exceeds parser hard limits defined in resource-selector-grammar.md \u00a73.3 (string length, resources[] length, token count, nesting depth, single-field length, requires_claims item count, constraint nesting). Distinct from invalid_param so audit / abuse-detection can separate suspected parser-DoS attempts from ordinary format errors. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
       "code": "inception_upgrade_evidence_insufficient",
@@ -2124,7 +2172,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "Live B-model re-anchor references a verified DID entry that is not the registry head at admission time. Historical replay uses the accepted batch receipt instead of this live-head check."
+      "description": "Live B-model re-anchor references a verified DID entry that is not the registry head at admission time. Historical replay uses the accepted batch receipt instead of this live-head check. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
       "code": "device_reanchor_frontier_mismatch",
@@ -2133,7 +2181,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "The re-anchor pre_fence_basis is null despite an accepted Seal, omits or adds frontier leaves, has unreconstructable roots, or lost the admission-time frontier compare-and-swap race."
+      "description": "The re-anchor pre_fence_basis is null despite an accepted Seal, omits or adds frontier leaves, has unreconstructable roots, or lost the admission-time frontier compare-and-swap race. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
       "code": "device_reanchor_authorize_mismatch",
@@ -2142,7 +2190,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "The atomic replacement ak.device.authorize id/digest, prev_refs, principal, device, session, or enrollment-authority proof does not exactly match the binding in ak.device.reanchor."
+      "description": "The atomic replacement ak.device.authorize id/digest, prev_refs, principal, device, session, or enrollment-authority proof does not exactly match the binding in ak.device.reanchor. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
       "code": "device_reanchor_conflict",
@@ -2151,7 +2199,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "More than one non-identical re-anchor unit occupies the same (principal_id, did_version_number) slot. Every candidate and successor generation is quarantined; first-seen selection is forbidden."
+      "description": "More than one non-identical re-anchor unit occupies the same (principal_id, did_version_number) slot. Every candidate and successor generation is quarantined; first-seen selection is forbidden. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
       "code": "device_generation_fenced",
@@ -2159,7 +2207,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A normal Event or Seal was signed by a device whose authorized_generation_ref does not equal the active current_device_generation_ref, or the principal generation state is conflicted."
+      "description": "A normal Event or Seal was signed by a device whose authorized_generation_ref does not equal the active current_device_generation_ref, or the principal generation state is conflicted. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
       "code": "audit_release_binding_missing",
@@ -2496,7 +2544,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Proof / event signature `alg` is not in the conformance signature-algorithm allowlist. See zh/conformance/encoding.md."
+      "description": "Proof / event signature `alg` is not in the conformance signature-algorithm allowlist. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/conformance/encoding.md."
     },
     {
       "code": "unsupported_hpke_suite",
@@ -2504,7 +2552,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "HPKE suite id on an application-layer sealed surface (key-backup recipient_method=recovery_public_key, ak.secret.send, member-application encryption_envelope, file-transfer key_envelope) is not an active row in artifacts/registry/hpke-suite-registry.json (unknown, inactive, or reserved-but-not-activated). Receivers MUST fail closed rather than infer suite parameters from the AEAD name. See zh/identity/key-management.md \u00a77.5.2."
+      "description": "HPKE suite id on an application-layer sealed surface (key-backup recipient_method=recovery_public_key, ak.secret.send, member-application encryption_envelope, file-transfer key_envelope) is not an active row in artifacts/registry/hpke-suite-registry.json (unknown, inactive, or reserved-but-not-activated). Receivers MUST fail closed rather than infer suite parameters from the AEAD name. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/identity/key-management.md \u00a77.5.2."
     },
     {
       "code": "claim_rate_limited",
@@ -3552,7 +3600,7 @@
         "state_resolution",
         "federation_transaction"
       ],
-      "description": "Two overlapping-scope witness attestations (or peers) disagree on the event_id / event_digest for the same (actor_id, actor_seq), or return irreconcilable frontier_root / range-completeness root for the same range. The verifier MUST quarantine the affected range / peer and fail closed: the attestation MUST NOT be used to display 'history complete', clear an E2EE state mismatch, accept a snapshot, or submit a recovery Move. Recovery requires raw Event replay, a higher quorum, or operator-approved fork resolution. See zh/sync/operations-sync.md \u00a76.4.2 / \u00a76.4.4 step 7 and zh/sync/federation.md \u00a74.5.1."
+      "description": "Confirmed fork/witness evidence: the same event_id resolves to different event_digest values; a validated per-actor sibling set exceeds the registered single-bucket or per-position limit; a profile declares the observed sibling combination non-joinable; or witnesses required to sign the same complete (realm_id, from_frontier, to_frontier, actor_seq_ranges, root, count) attestation payload return inconsistent values. Different event_id/hash values at the same (realm_id, actor_id, actor_seq) are not by themselves disagreement: event-and-patch.md \u00a72.6 permits a bounded legal sibling set, which peers MUST reconcile by validated set union. Raw frontier_root / heads / range-root differences across different replication, disclosure, or attestation scopes also are not disagreement. The verifier MUST quarantine only the affected evidence scope and fail closed; recovery requires raw replay, an aligned same-scope quorum, or operator-approved fork resolution. See zh/sync/operations-sync.md \u00a76.4.2 / \u00a76.4.4 step 7 and zh/sync/federation.md \u00a74.5.1."
     },
     {
       "code": "relaxed_window_exceeds_ceiling",
@@ -4058,7 +4106,7 @@
         "device_recovery",
         "state_resolution"
       ],
-      "description": "A key-backup envelope or recovery proof references a `recovery_policy.policy_id` / `policy_version` that is not the currently accepted policy for the principal. Recovery strands MUST surface this to the user as 'update recovery policy' rather than silently continuing. See zh/identity/key-management.md \u00a77.5.4 / \u00a77.7 and zh/crypto-media/device-lifecycle.md \u00a715."
+      "description": "A key-backup envelope or recovery proof references a `recovery_policy.policy_id` / `policy_version` that is not the currently accepted policy for the principal. Recovery strands MUST surface this to the user as 'update recovery policy' rather than silently continuing. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/identity/key-management.md \u00a77.5.4 / \u00a77.7 and zh/crypto-media/device-lifecycle.md \u00a715."
     },
     {
       "code": "recovery_policy_version_not_monotonic",
@@ -4548,7 +4596,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "A task-state transition effect on an fsm lattice cell declared a from -> to pair that is not a legal transition of the declared task state machine, or whose from does not match the cell's current state. The reducer MUST reject the Move instead of coercing the state machine. See zh/authz/event-auth-state-resolution.md \u00a79."
+      "description": "A transition effect on a profile-declared task/workflow fsm lattice cell declared a from -> to pair that is not a legal transition of that profile-declared state machine, or whose from does not match the cell's current state. v1 core defines no task object; the task/workflow FSM is declared by a Realm profile (e.g. a Jira-style issue-workflow profile) and evaluated by the generic fsm lattice type. The reducer MUST reject the Move instead of coercing the state machine. See zh/authz/event-auth-state-resolution.md \u00a79."
     },
     {
       "code": "invalid_appeal_fsm_transition",

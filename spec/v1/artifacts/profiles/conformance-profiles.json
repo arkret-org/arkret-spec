@@ -36,12 +36,15 @@
       "A": "Verifiable by the public SDK API shape and inventory; no implementation-private inspection is required.",
       "U": "Verifiable only by implementation, configuration, or data-flow audit evidence."
     },
+    "evidence_coverage_semantics": "acceptable_set",
+    "evidence_coverage_semantics_note": "A clause's required_evidence enumerates the ACCEPTABLE evidence kinds for that clause (acceptable-set semantics), not a mandate that every listed kind be present. For a clause claim with result=pass or result=fail: at least one evidence entry MUST be present (already required by the schema when result != not_applicable), and every evidence[].kind MUST be a member of that clause's required_evidence set in this contract. Evidence whose kind falls outside the clause's required_evidence set MUST NOT be accepted as substantiation for that clause. result=not_applicable is exempt from evidence-kind coverage but MUST carry a machine-readable rationale.",
     "rules": [
       "Each SDK release claiming Arkret v1 conformance MUST publish one claim object against this exact contract digest.",
       "The claim MUST bind the exact SDK artifact digest and spec revision, and MUST carry an issuer signature over the domain-separated RFC 8785 JCS claim bytes with proof omitted.",
       "Every evidence reference MUST carry a non-zero immutable content digest; consumers MUST verify all digests and the issuer verification method before accepting the claim.",
       "Every applicable clause MUST appear exactly once; not_applicable MUST include a machine-readable rationale.",
       "Evidence references MUST be content-addressed or carry an immutable CI run identifier.",
+      "A verifier MUST enforce evidence_coverage_semantics: for every clause claim whose result is pass or fail, it MUST reject the claim unless at least one evidence entry is present and every evidence[].kind is a member of that clause's required_evidence set. A pass/fail clause substantiated only by evidence kinds outside its required_evidence set MUST be rejected. This check is independent of, and applied in addition to, the digest and signature checks above.",
       "Section numbers and table row numbers are not clause identifiers; only clause_id is stable."
     ],
     "clauses": [
@@ -2071,8 +2074,8 @@
       "additional_requirements": {
         "frontier_probe_capability_must": "Peer MUST expose capability-gated frontier probe endpoint per federation.md §4.5.1.",
         "proactive_exchange_must": "Per federation-visible Realm, per authorized peer, frontier probe interval MUST be <= 3600 seconds.",
-        "fail_state_must": "Three consecutive probe failures (peer unreachable, signature failure, frontier_root divergence beyond fork-resolution threshold) MUST mark the peer as 'stale_peer' for that Realm.",
-        "stale_peer_behavior_must": "While a peer is in 'stale_peer' state: MUST quarantine its push payloads (no local frontier advancement); MUST surface state via operator alarm channel; MAY refuse to fanout new Events to that peer. Stale status MUST clear after successful fork resolution (head reconvergence or quorum witness attestation alignment)."
+        "fail_state_must": "Three consecutive probe failures (peer unreachable or signature failure) MUST mark the peer as 'stale_peer' for that Realm. Separately, an aggregate-commitment difference MUST first be reduced via per-actor challenge/backfill on the intersection of replicated actors, comparing each (realm_id, actor_id, actor_seq) as a canonical sibling SET of (event_id,event_digest,prev_frontier_digest), not as a single hash. Different event_id/hash siblings at one actor_seq are legal within the event-and-patch.md §2.6 limits and MUST converge by validated set union. A same-event_id/different-digest conflict, an over-limit sibling set, a profile-declared non-joinable sibling conflict, or inconsistent witness payloads for the same complete attestation scope MUST quarantine the affected increments on the FIRST confirmed occurrence and MUST NOT be folded into the three-consecutive-failure window. Raw frontier_root/heads/range-root differences across different scopes, and incomplete subsets of a legal sibling set, MUST NOT alone count as probe failure or witness_disagreement.",
+        "stale_peer_behavior_must": "While a peer is in 'stale_peer' state: MUST quarantine its push payloads for the affected evidence scope (no local frontier advancement from that scope); MUST surface state via operator alarm channel; MAY refuse to fanout new Events to that peer. Stale status MUST clear after the original evidence is resolved: the disputed event id/digest or over-fork/non-joinable sibling bucket has an authorized canonical resolution and the peer matches that canonical sibling set, or witnesses for the same complete attestation scope again sign one consistent payload. Scope-different peers MUST NOT be required to have globally identical heads."
       }
     },
     "ak.profile.identity_registry.v1": {

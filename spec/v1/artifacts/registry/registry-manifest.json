@@ -1,6 +1,7 @@
 {
   "version": "2026-05-08",
   "source_of_truth": true,
+  "value_set_evolution_note": "Per zh/conformance/schema-registry.md §6.1: entries carrying value_set_evolution='open' are open registry sets (adding a value is a backward-compatible minor; codegen SHOULD use non-exhaustive Unknown(String) fallback). value_set_evolution='schema_selector' registries are algorithm-agility token sources whose canonical-object selectors are frozen per schema version (codegen MUST generate per-schema-version closed types; adding an active value requires a schema version bump). Registries WITHOUT this field are simply not classified here (they may be structural sources such as the contract catalog or manifest, or value sets not yet classified); consumers MUST consult §6.1 and the registry's own registry_rules rather than assuming a registry is or is not a codegen value-set source from the mere absence of this field.",
   "registries": [
     {
       "name": "contract_catalog",
@@ -14,6 +15,7 @@
       "name": "error_codes",
       "file": "registry/error-code-registry.json",
       "kind": "error_code_registry",
+      "value_set_evolution": "open",
       "source_role": "canonical",
       "source_of_truth": true,
       "description": "Standard service-level and per-item error code registry."
@@ -46,6 +48,7 @@
       "name": "signature_algorithms",
       "file": "registry/signature-alg-registry.json",
       "kind": "signature_algorithm_registry",
+      "value_set_evolution": "schema_selector",
       "source_role": "canonical",
       "source_of_truth": true,
       "description": "Canonical signature algorithm vocabulary for proof alg and raw signature_algorithm schema enums."
@@ -62,6 +65,7 @@
       "name": "mls_ciphersuites",
       "file": "registry/mls-ciphersuite-registry.json",
       "kind": "mls_ciphersuite_registry",
+      "value_set_evolution": "schema_selector",
       "source_role": "canonical",
       "source_of_truth": true,
       "description": "Canonical MLS ciphersuite vocabulary for KeyPackage cipher_suites[] negotiation; unregistered suites fail closed."
@@ -70,6 +74,7 @@
       "name": "hpke_suites",
       "file": "registry/hpke-suite-registry.json",
       "kind": "hpke_suite_registry",
+      "value_set_evolution": "schema_selector",
       "source_role": "canonical",
       "source_of_truth": true,
       "description": "Canonical HPKE (RFC 9180) suite (KEM x KDF x AEAD) vocabulary for non-MLS application-layer public-key sealing (key-backup recovery_public_key, did_recovery, to-device ak.secret.send, member-application and file-transfer key envelopes); unregistered suites fail closed. Fourth algorithm-agility registry alongside signature-alg, digest-suite and mls-ciphersuite."
@@ -94,6 +99,7 @@
       "name": "relation_kinds",
       "file": "registry/relation-kind-registry.json",
       "kind": "relation_kind_registry",
+      "value_set_evolution": "open",
       "source_role": "canonical",
       "source_of_truth": true,
       "description": "Canonical machine index of the v1 standard relation_kind vocabulary (kind list, cardinality class, truth-source class, writability); detailed semantics stay in zh/models/relation.md."
@@ -102,6 +108,7 @@
       "name": "digest_suites",
       "file": "registry/digest-suite-registry.json",
       "kind": "digest_suite_registry",
+      "value_set_evolution": "schema_selector",
       "source_role": "canonical",
       "source_of_truth": true,
       "description": "Canonical digest suite (canonicalization x hash tuple) vocabulary for typed digest wire prefixes and the Realm digest_algorithm value space."
@@ -118,6 +125,7 @@
       "name": "event_kinds",
       "file": "registry/event-kind-registry.json",
       "kind": "event_kind_registry",
+      "value_set_evolution": "open",
       "source_role": "generated",
       "source_of_truth": false,
       "generated_from": "registry/contract-catalog.json",
@@ -127,6 +135,7 @@
       "name": "id_kinds",
       "file": "registry/id-kind-registry.json",
       "kind": "id_kind_registry",
+      "value_set_evolution": "open",
       "source_role": "generated",
       "source_of_truth": false,
       "generated_from": "registry/contract-catalog.json",
@@ -145,6 +154,7 @@
       "name": "capability_actions",
       "file": "registry/capability-action-registry.json",
       "kind": "capability_action_registry",
+      "value_set_evolution": "open",
       "source_role": "generated",
       "source_of_truth": false,
       "generated_from": "registry/contract-catalog.json",

@@ -1221,11 +1221,13 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                 )
     schema_rows = schema_registry.get("schemas", [])
     schema_ids = unique_values(lint, schema_path, schema_rows, "schema_id")
+    schema_refs_by_file: dict[str, set[str]] = {}
     for row in schema_rows if isinstance(schema_rows, list) else []:
         if not isinstance(row, dict):
             continue
         schema_id = row.get("schema_id")
         file_ref = row.get("file")
+        fragment = row.get("fragment")
         if isinstance(schema_id, str) and not SCHEMA_ID_RE.fullmatch(schema_id):
             lint.fail(schema_path, f"schema_id has invalid format: {schema_id}")
         if not isinstance(file_ref, str) or not file_ref:
@@ -1238,7 +1240,27 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         if not target.exists():
             lint.fail(schema_path, f"{schema_id} file does not exist: {file_ref}")
         elif target.suffix == ".json":
-            load_json(lint, target)
+            document = load_json(lint, target)
+            if fragment is not None:
+                if not isinstance(fragment, str) or not fragment.startswith("#/"):
+                    lint.fail(schema_path, f"{schema_id} fragment must start with '#/': {fragment!r}")
+                elif document is not None:
+                    try:
+                        resolved = resolve_json_pointer(document, fragment)
+                    except (KeyError, TypeError, ValueError):
+                        lint.fail(schema_path, f"{schema_id} fragment does not resolve in {file_ref}: {fragment}")
+                    else:
+                        if not isinstance(resolved, (dict, bool)):
+                            lint.fail(schema_path, f"{schema_id} fragment must resolve to an object or boolean schema")
+        if isinstance(fragment, str) or fragment is None:
+            effective_fragment = fragment or ""
+            seen_fragments = schema_refs_by_file.setdefault(file_ref, set())
+            if effective_fragment in seen_fragments:
+                lint.fail(
+                    schema_path,
+                    f"{schema_id} duplicates effective schema reference {file_ref}{effective_fragment}",
+                )
+            seen_fragments.add(effective_fragment)
 
     id_rows = id_registry.get("id_kinds", [])
     id_kinds = unique_values(lint, id_path, id_rows, "kind")
@@ -5040,23 +5062,27 @@ def check_error_code_closure(lint: Lint) -> None:
 
 
 def check_error_code_registry_uniqueness(lint: Lint) -> None:
-    """Reject duplicate code strings within each error registry section.
+    """Reject duplicates and asymmetric explicit dual-registration metadata.
 
     Top-level ``codes`` and item-level ``reason_codes`` may intentionally reuse
-    a string during a migration window, but a duplicate inside the same section
-    has no stable first/last-wins semantics for SDK generation or catalog UI.
+    a string under the dual-registration model, but a duplicate inside the same
+    section has no stable first/last-wins semantics for SDK generation or
+    catalog UI. If either side explicitly labels a row dual-registered, the
+    matching row and reciprocal label are required on the other side.
     """
     path = ARTIFACTS / "registry" / "error-code-registry.json"
     data = load_json(lint, path)
     if not isinstance(data, dict):
         return
 
+    rows_by_section: dict[str, dict[str, dict[str, Any]]] = {}
     for section in ("codes", "reason_codes"):
         rows = data.get(section, [])
         if not isinstance(rows, list):
             lint.fail(path, f"{section} must be a list")
             continue
         seen: dict[str, int] = {}
+        rows_by_section[section] = {}
         for index, row in enumerate(rows):
             if not isinstance(row, dict):
                 lint.fail(path, f"{section}[{index}] must be an object")
@@ -5072,6 +5098,20 @@ def check_error_code_registry_uniqueness(lint: Lint) -> None:
                     f"duplicate error code {code!r} inside {section} at rows {previous} and {index}",
                 )
             seen[code] = index
+            rows_by_section[section][code] = row
+
+    top_level_rows = rows_by_section.get("codes", {})
+    reason_rows = rows_by_section.get("reason_codes", {})
+    for code in sorted(set(top_level_rows) | set(reason_rows)):
+        top_description = top_level_rows.get(code, {}).get("description", "")
+        reason_description = reason_rows.get(code, {}).get("description", "")
+        top_declares_dual = isinstance(top_description, str) and "dual-registered" in top_description.lower()
+        reason_declares_dual = (
+            isinstance(reason_description, str) and "dual-registered" in reason_description.lower()
+        )
+        if top_declares_dual != reason_declares_dual:
+            missing_side = "reason_codes" if top_declares_dual else "codes"
+            lint.fail(path, f"{code!r} dual-registration description missing reciprocal label in {missing_side}")
 
 
 def check_operations_error_mapping_closure(lint: Lint) -> None:
@@ -5447,6 +5487,103 @@ def check_event_batch_receipt_normalization_vector(lint: Lint) -> None:
     events_schema = schema.get("properties", {}).get("events", {}) if isinstance(schema, dict) else {}
     if events_schema.get("uniqueItems") is not True:
         lint.fail(schema_path, "Event Batch Receipt events must set uniqueItems=true")
+
+
+def check_encrypted_envelope_digest_vector(lint: Lint) -> None:
+    fixture_path = ARTIFACTS / "fixtures" / "encoding-fixture.json"
+    fixture = load_json(lint, fixture_path)
+    if not isinstance(fixture, dict):
+        return
+    vector = next(
+        (
+            item
+            for item in fixture.get("vectors", [])
+            if isinstance(item, dict)
+            and item.get("vector_id") == "ak.vector.encoding.encrypted_envelope_digest.v1"
+        ),
+        None,
+    )
+    if not isinstance(vector, dict):
+        lint.fail(fixture_path, "missing Encrypted Envelope digest vector")
+        return
+
+    kat = vector.get("event_ref_digest_kat")
+    metadata = vector.get("payload_metadata")
+    if not isinstance(kat, dict) or not isinstance(metadata, dict):
+        lint.fail(fixture_path, "Encrypted Envelope vector must declare payload_metadata and event_ref_digest_kat")
+        return
+    domain = kat.get("domain_separator_utf8")
+    event_id = kat.get("event_id")
+    realm_id = kat.get("realm_id")
+    if not all(isinstance(value, str) for value in (domain, event_id, realm_id)):
+        lint.fail(fixture_path, "event_ref_digest_kat inputs must be strings")
+        return
+    digest_input = domain.encode("utf-8") + b"\x00" + event_id.encode("utf-8") + b"\x00" + realm_id.encode("utf-8")
+    expected_ref_digest = "sha256:" + hashlib.sha256(digest_input).hexdigest()
+    if kat.get("digest_input_hex") != digest_input.hex():
+        lint.fail(fixture_path, "event_ref_digest_kat digest_input_hex does not match canonical input")
+    if kat.get("expected_digest") != expected_ref_digest:
+        lint.fail(fixture_path, "event_ref_digest_kat expected_digest does not match canonical input")
+    aad = metadata.get("aad")
+    if not isinstance(aad, dict) or aad.get("realm_id") != realm_id or aad.get("event_ref_digest") != expected_ref_digest:
+        lint.fail(fixture_path, "payload_metadata.aad is not bound to event_ref_digest_kat")
+
+    mutations = kat.get("mutation_cases")
+    expected_mutations = {
+        "omit_nul_separators": domain.encode("utf-8") + event_id.encode("utf-8") + realm_id.encode("utf-8"),
+        "swap_event_id_and_realm_id": (
+            domain.encode("utf-8") + b"\x00" + realm_id.encode("utf-8") + b"\x00" + event_id.encode("utf-8")
+        ),
+        "append_trailing_nul": digest_input + b"\x00",
+    }
+    if not isinstance(mutations, list) or len(mutations) != len(expected_mutations):
+        lint.fail(fixture_path, "event_ref_digest_kat must cover separator, field-order, and trailing-byte mutations")
+    else:
+        seen_mutation_names: set[str] = set()
+        for index, mutation in enumerate(mutations):
+            if not isinstance(mutation, dict):
+                lint.fail(fixture_path, f"event_ref_digest_kat mutation_cases[{index}] must be an object")
+                continue
+            mutation_name = mutation.get("name")
+            if (
+                not isinstance(mutation_name, str)
+                or mutation_name not in expected_mutations
+                or mutation_name in seen_mutation_names
+            ):
+                lint.fail(fixture_path, f"event_ref_digest_kat mutation_cases[{index}] has unknown or duplicate name")
+                continue
+            seen_mutation_names.add(mutation_name)
+            try:
+                mutated_input = bytes.fromhex(mutation.get("digest_input_hex", ""))
+            except (TypeError, ValueError):
+                lint.fail(fixture_path, f"event_ref_digest_kat mutation_cases[{index}] has invalid hex")
+                continue
+            if mutated_input != expected_mutations[mutation_name]:
+                lint.fail(fixture_path, f"event_ref_digest_kat mutation_cases[{index}] input does not match its name")
+            mutated_digest = "sha256:" + hashlib.sha256(mutated_input).hexdigest()
+            if mutation.get("expected_digest") != mutated_digest:
+                lint.fail(fixture_path, f"event_ref_digest_kat mutation_cases[{index}] digest mismatch")
+            if mutation.get("must_not_equal_valid") is not True or mutated_digest == expected_ref_digest:
+                lint.fail(fixture_path, f"event_ref_digest_kat mutation_cases[{index}] is not a strict negative")
+
+    canonical_metadata = canonical_json(metadata)
+    if vector.get("expected_metadata_canonical_bytes_utf8") != canonical_metadata:
+        lint.fail(fixture_path, "Encrypted Envelope canonical payload_metadata bytes mismatch")
+    if isinstance(aad, dict) and vector.get("aad_digest") != sha256_text(canonical_json(aad)):
+        lint.fail(fixture_path, "Encrypted Envelope aad_digest mismatch")
+    ciphertext_base64url = vector.get("ciphertext_base64url")
+    if not isinstance(ciphertext_base64url, str):
+        lint.fail(fixture_path, "Encrypted Envelope ciphertext_base64url must be a string")
+        return
+    try:
+        padded = ciphertext_base64url + "=" * (-len(ciphertext_base64url) % 4)
+        ciphertext = base64.urlsafe_b64decode(padded)
+    except (ValueError, base64.binascii.Error):
+        lint.fail(fixture_path, "Encrypted Envelope ciphertext_base64url is invalid")
+        return
+    expected_digest = "sha256:" + hashlib.sha256(canonical_metadata.encode("utf-8") + ciphertext).hexdigest()
+    if vector.get("expected_digest") != expected_digest:
+        lint.fail(fixture_path, "Encrypted Envelope expected_digest mismatch")
 
 
 def check_reducer_profile_digest_closure(lint: Lint) -> None:
@@ -6966,6 +7103,7 @@ def main() -> int:
     check_openapi_no_floating_number(lint)
     check_canonical_digest_fixtures(lint)
     check_event_batch_receipt_normalization_vector(lint)
+    check_encrypted_envelope_digest_vector(lint)
     check_reducer_profile_digest_closure(lint)
     check_field_order(lint)
     check_model_required_field_table_coverage(lint)

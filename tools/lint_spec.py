@@ -72,6 +72,7 @@ OLD_CHINESE_NORMATIVE_DISCLAIMER_RE = re.compile(r"中文.*(?:不构成规范要
 REQUIRED_CHINESE_NORMATIVE_ROWS = {
     "必须 / 要求": "`MUST` / `REQUIRED`",
     "只能 / 仅限": "`MUST`",
+    "一律 / 一律不": "`MUST` / `MUST NOT`",
     "不得 / 禁止 / 不允许 / 不可": "`MUST NOT`",
     "不能": "`MUST NOT`",
     "应当 / 建议 / 推荐": "`SHOULD` / `RECOMMENDED`",
@@ -81,11 +82,11 @@ REQUIRED_CHINESE_NORMATIVE_ROWS = {
 NORMATIVE_KEYWORD_PATTERNS = {
     "MUST NOT": [
         re.compile(r"\bMUST NOT\b"),
-        re.compile(r"不得|禁止|不允许|不可|不能"),
+        re.compile(r"不得|禁止|不允许|不可|不能|一律不"),
     ],
     "MUST": [
         re.compile(r"\bMUST\b(?!\s+NOT)|\bREQUIRED\b|\bSHALL\b(?!\s+NOT)"),
-        re.compile(r"必须|要求|只能|仅限"),
+        re.compile(r"必须|要求|只能|仅限|一律(?!不)"),
     ],
     "SHOULD NOT": [
         re.compile(r"\b(?:SHOULD NOT|NOT RECOMMENDED)\b"),

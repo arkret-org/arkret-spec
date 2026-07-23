@@ -35,13 +35,14 @@ sidebar:
 
 ### 1.1 schema id ↔ 文件名映射例外（normative）
 
-下游 SDK / IDE 插件不得用 "schema id 去掉前缀 + 换分隔符" 这种机械推导拿文件名；MUST 从 `schema-registry.json` 读取每条 `{schema_id, file}` 对。当前 v1 已知的不能机械推导的对应关系：
+下游 SDK / IDE 插件不得用 "schema id 去掉前缀 + 换分隔符" 这种机械推导拿文件名；MUST 从 `schema-registry.json` 读取每条 `{schema_id, file, 可选 fragment}` 三元组。**effective schema reference = `file` + 可选 `fragment` 的逐字拼接**：`fragment` 自身已带前导 `#`，消费者不得再插入分隔符。例如 `file="schemas/agent-operations.schema.json"` 与 `fragment="#/$defs/agent_pairing_bootstrap"` 的结果精确为 `schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap`。`fragment` 是 RFC 6901 JSON Pointer 的 URI-fragment 表示；消费者 MUST 解析其指向的子 schema，MUST NOT 把该 `schema_id` 绑定到 `file` 的顶层文档。`fragment` 省略时 effective reference 即 `file` 顶层文档。两个 `schema_id` 映射同一 `file` 时 MUST 靠 `fragment` 区分（或其一省略 `fragment` 表示整包）；忽略 `fragment`、对带 fragment 的行加载顶层文档的实现**不合规**。`fragment` 不可解析、或共用同一 `file` 的多行都省略 `fragment`（整包映射歧义）时，消费者 MUST fail closed，不得静默择一。该规则的机读声明见 `schema-registry.json` 的 `registry_rules`。当前 v1 已知的不能机械推导的对应关系：
 
-| schema id | canonical 文件 | 说明 |
+| schema id | canonical effective reference | 说明 |
 | --- | --- | --- |
 | `ak.schema.event.v1` | `schemas/event-envelope.schema.json` | schema id 用 `event` 保持协议对象名，文件名用 `event-envelope` 对齐 wire envelope 术语；不得机械推导为 `event.schema.json`。 |
 | `ak.schema.capability.v1` | `schemas/capability-grant.schema.json` | id 简化为 `capability`，文件保留 `capability-grant` 以区别于其他 capability 相关 schema（grant-constraint、resource-selector 等）。 |
 | `ak.schema.morph.customer_risk.v1` | `schemas/morph-customer-risk.schema.json` | id 用 dot 分段（`morph.customer_risk`），文件用 dash（`morph-customer-risk`）；对应规则是 "schema id 里的每段都换成 dash"。其它 dotted-id schema 适用同一规则。 |
+| `ak.schema.agent_pairing_bootstrap.v1` | `schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap` | 与 `ak.schema.agent_operations.v1` 共用文件，但必须解析 `fragment` 指向的六字段 bootstrap 子 schema，不得加载顶层 DTO `oneOf` bundle。 |
 
 新增 schema 时如果出现不能机械推导的命名，必须把对应关系登记到 `contract-catalog.json` 的 `schemas[]` 条目，并在此表格补充一行；不得只改文件名。
 
@@ -295,7 +296,7 @@ OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical 
 
 上文覆盖字段级演进；本节回答**值集级**演进：event kind、error code、闭集枚举等新增合法值时的兼容级别，以及已发布实现的处置义务。判定的第一步是区分值集的权威承载形态（与 §1.2 的机读归属规则同源）；同一 token 不得同时以两种承载形态声明。
 
-**a. 开放注册集（open registry set）**——以独立 registry JSON 承载的字符串值集合：event kind（`event-kind-registry.json`）、error `code` / `reason_code`（`error-code-registry.json`）、relation kind（`relation-kind-registry.json`）、capability action、feature id 等。
+**a. 开放注册集（open registry set）**——以独立 registry JSON 承载的字符串值集合：event kind（`event-kind-registry.json`）、error `code` / `reason_code`（`error-code-registry.json`）、relation kind（`relation-kind-registry.json`）、capability action、typed id kind（`id-kind-registry.json`——typed ID 前缀为 wire 字符串值集，新增 kind 向后兼容，与同源 generated 的 event kind / capability action 同类）、feature id 等。
 
 - 新增条目是**向后兼容演进**（minor）：只体现在 registry 的 `version` / `generated_at` 推进，不要求新 schema 版本，也不要求 schema profile bump。
 - 已发布实现遇到不在其本地 registry 快照中的值时，MUST 按**未知值保留**处理：不得因此让整个对象 / 信封反序列化失败。反序列化层保留之后的语义处置按各消费面既有规则执行——未知值保留**不等于**语义接受：写入权威接收方对未声明支持的标准 event kind 仍按 [conformance-profiles.md §2.1](./conformance-profiles.md) 返回 `unsupported_feature` / `unsupported_event_kind` / `schema_violation` 或 quarantine；未注册 relation kind 按 relation-kind-registry `registry_rules` 保留为 opaque edge 且不得推断语义；fail-closed 门（未知 critical feature、授权判定）照常适用。
@@ -314,7 +315,7 @@ OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical 
 - 已选定 schema 版本后，selector 不在该版本 enum 内时，receiver MUST fail closed。对已知算法 selector 字段，错误映射优先使用对应稳定码 `unsupported_digest_algorithm` / `unsupported_signature_alg` / `unsupported_hpke_suite` / `unsupported_ciphersuite`；对象其它闭集 enum 违例仍使用 `schema_violation`。预解析器 MAY 保留原始字符串用于形成该错误，但不得把 Unknown 变体交给 reducer 或密码学库执行。
 - SDK/codegen 对这些 selector MUST 生成 per-schema-version 的封闭类型；可在 transport diagnostic 层提供 `Unknown(String)` 以承载稳定错误，但该值不得构造为已通过 schema 验证的 canonical object。registry consumer 不得把"registry 中 active"误解为"所有旧 schema 自动接受"。
 
-**c. `status` 字段与新增 / 弃用纪律**——registry 条目 `status` 的当前值域为 `active`（标准条目，可产生、可按各 registry 规则接受）、`deprecated`（只保留历史解释）与 `profile_extension`（仅在声明对应 profile 时有效；现用于 `id-kind-registry.json` 的 `special_forms`）。为兼容最初的 v1 schema catalog，`schema-registry.json` 中省略 `status` 的既有行按 `active` 解释；新增或修改 schema 行 MUST 显式写出 `status`。这一默认值由 schema registry 的 `registry_rules` 机读声明，不允许消费者自行猜测。
+**c. `status` 字段与新增 / 弃用纪律**——registry 条目 `status` 的当前值域为 `active`（标准条目，可产生、可按各 registry 规则接受）、`deprecated`（只保留历史解释）与 `profile_extension`（仅在声明对应 profile 时有效；现用于 `id-kind-registry.json` 的 `special_forms`）。`schema-registry.json` 中省略 `status` 的行默认按 `active` 解释；新增或修改 schema 行 MUST 显式写出 `status`。这一默认值由 schema registry 的 `registry_rules` 机读声明，不允许消费者自行猜测。
 
 - 新增条目 MUST 以 `active`（或 `profile_extension`）登记进 canonical 真源（generated registry 一律经 `contract-catalog.json` → pipeline 再生成，见 §1）。
 - 弃用不删行：条目退出标准面时 MUST 将 `status` 置为 `deprecated` 并保留该行，保证历史 event / backfill 可解释。`deprecated` 条目 MUST NOT 用于新产生的 wire 写入；接收侧处置遵循各 registry 自身 `registry_rules`（例如 event-kind registry 规定 Events API / durable history / federation / reducer 只接受 `active` 条目——即 event kind 一旦 deprecated，新 admission 被拒绝；已 accepted 的历史事件不受追溯影响）。

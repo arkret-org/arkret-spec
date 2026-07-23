@@ -77,6 +77,18 @@ get 对 nonexistent、foreign-controller 与 unauthorized `sidecar_id` MUST 返�
 - controller 永久离开 Realm、account 被不可逆删除或显式执行合规删除时，Sidecar MUST `tombstoned`；该状态不可逆，并级联停止 private Strand 写入、移除 backing Circle access、完成 MLS remove/rotate 与 retention/tombstone policy。
 - 用户不得通过普通 Circle archive/restore/tombstone 操作间接改变 Sidecar 生命周期。
 
+**合法 / 非法迁移（normative）**：`state` 由下表封闭定义，全部由派生条件触发，无 actor-authored 迁移入口；表外任何迁移非法，reducer MUST NOT 物化。
+
+| 源 state | 目标 state | 触发派生条件 |
+| --- | --- | --- |
+| `active` | `suspended` | controller 暂时失去 Realm access / account 临时冻结 / 密钥恢复未 ready |
+| `active` | `tombstoned` | controller 永久离开 Realm / account 不可逆删除 / 显式合规删除 |
+| `suspended` | `active` | 上述暂时性条件全部解除（controller 重获 Realm active membership 且 policy gate 允许） |
+| `suspended` | `tombstoned` | 暂停期间发生上一行的任一永久性条件 |
+| `tombstoned` | —（终态） | 不可逆；无出边 |
+
+`active` 与 `suspended` 是非终态，`tombstoned` 是唯一终态。`active -> active` / `suspended -> suspended` 的同态派生不是迁移，reducer MUST NOT 因此更新 `state_changed_at`。因 `state` 是 reducer-derived projection（无 actor-authored state event 可拒绝），"非法迁移拒绝"体现为 reducer MUST NOT 物化任何不在上表的 (源, 目标) 对，而非返回错误码。
+
 `state` 是由已接受的 controller account/Realm membership/lifecycle frontier 派生的 canonical projection，不提供 actor-authored `ak.sidecar.update/archive/restore`。`state_changed_at` 使用触发派生转换的已接受 Event timestamp；同一 control frontier 在所有 conforming reducer 上 MUST 得到同一状态。Backing Circle lifecycle 是 Sidecar state cascade 的执行结果，不是反向决定 Sidecar state 的真相源。
 
 ## 4. 派生访问集合

@@ -154,7 +154,7 @@ Realm policy MUST 通过 `ak.realm.policy_components.metadata_encryption_floor` 
 | `aad.realm_id` | id:realm | 是 | 路由与授权的 Realm。 |
 | `aad.event_kind` | string | 是 | 路由 event kind。 |
 | `aad.event_id` | id:event | 条件 | `aad_visibility_event_id="opaque_id"` 时必填。 |
-| `aad.event_ref_digest` | hash | 条件 | `aad_visibility_event_id="routing_digest"` 时必填；hash 输入由 profile 固定（推荐 `sha256("ak.aad-event-ref-v1" \|\| event_id \|\| realm_id \|\| policy_nonce)`）。 |
+| `aad.event_ref_digest` | hash | 条件 | `aad_visibility_event_id="routing_digest"` 时必填；构造 MUST 按下方 `routing_digest` 条目的 canonical 公式（域分隔常量 `ak.aad-event-ref-v1`），实现 MUST NOT 使用其它输入或顺序。 |
 | `aad.causal_refs` | array | 条件 | 可见因果依赖；高隐私 profile 可改用 `causal_ref_digests`。 |
 | `aad.causal_ref_digests` | array&lt;hash&gt; | 条件 | `causal_refs` 的摘要化形态，高隐私 profile 用以替代明文 `causal_refs`；二者 MUST NOT 同时出现。 |
 | `key_ref.algorithm` | string | 条件 | `mls-rfc9420` scheme 为 `MLS`；`mls-exporter-aead-v1` scheme 为 `MLS-EXPORTER-AEAD`；其他 scheme 必须注册自己的值。 |
@@ -172,7 +172,15 @@ AAD 字段集合受 Realm 的 `aad_visibility` policy 约束。隐私优先 Real
 `aad_visibility_event_id` 是 schema discriminator，控制 `aad.event_id` 与 `aad.event_ref_digest`：
 
 - `opaque_id`：AAD MUST 包含 `event_id` 且不得包含 `event_ref_digest`，用于跨 provider 投递确认和精确去重。
-- `routing_digest`：AAD MUST 使用 `event_ref_digest`，不得暴露稳定 `event_id`。
+- `routing_digest`：AAD MUST 使用 `event_ref_digest`，不得暴露稳定 `event_id`。构造 **MUST**（canonical，normative）为：
+
+  ```
+  event_ref_digest = "sha256:" || hex(
+      SHA-256( utf8("ak.aad-event-ref-v1") || 0x00 || utf8(event_id) || 0x00 || utf8(realm_id) )
+  )
+  ```
+
+  其中 `ak.aad-event-ref-v1` 是固定的 ASCII 域分隔常量（逐字节等于该字符串），字段间以单字节 `0x00` 分隔以消除拼接歧义；`event_id` / `realm_id` 取其 canonical typed-id 字符串（`ak:event:<uuidv7>` / `ak:realm:<uuidv7>`）的 UTF-8 字节，二者都是已在 wire 上、双方可逐字节获得的权威字段。输入**只有**这两个 typed id 与域分隔常量：`event_id` 的 UUIDv7 含约 74-bit 随机段（其余为可预测的时间戳位），该随机段足以使 digest 无法被离线**盲枚举**反查回 `event_id`（2^74 量级不可行，无需额外 nonce）；`realm_id` 绑定 Realm 阻止跨 Realm 重放。**诚实边界**：本 digest 是 `(event_id, realm_id)` 的**确定性无密钥函数**，因此它是**稳定伪名**——任何已持有候选 `event_id` 的一方都可逐字节重算并据此确认 / 链接该事件；本机制只提供对"未知 `event_id` 的盲枚举"的抗性，**不**提供对"已知 `event_id` 的确认 / 链接"的保密（后者需 keyed 构造，v1 在此不引入）。v1 **不**在本 digest 引入任何未在 registry / schema 定义 canonical wire 来源的额外 nonce 输入。该常量与公式是 wire-breaking 的安全域分隔参数，实现 MUST 逐字节一致构造，MUST NOT 引入私有前缀、额外输入、改变字段顺序或省略 `0x00` 分隔；逐字节 KAT 与 mutation case 固化在 [conformance-vectors.md](../conformance/conformance-vectors.md) §1.12。**接收方语义**：`event_ref_digest` 是明文但受外层 AEAD 认证的字段——AEAD 解密本身直接使用 wire 字节、不重算该 digest；需要做反欺骗绑定校验或跨 provider 去重的 router / verifier **MAY** 按上式重算并与 wire 值 bytewise 比对，不一致时 **MUST** 视为绑定失效并拒绝据其路由 / 去重。
 - `hidden`：AAD MUST 同时省略 `event_id` 与 `event_ref_digest`；去重只能依赖外层 Event Envelope、transport receipt 或 receiver-local cache。
 
 AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：

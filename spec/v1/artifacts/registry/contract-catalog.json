@@ -3070,8 +3070,10 @@
   },
   "schema_registry": {
     "registry_rules": [
-      "A schema row with omitted status is active for backward compatibility with the original v1 catalog. New or edited rows MUST spell status explicitly.",
-      "Allowed status values are active and deprecated. Deprecated rows remain resolvable for historical data but MUST NOT be produced by new writes."
+      "A schema row with omitted status defaults to active. New or edited rows MUST spell status explicitly.",
+      "Allowed status values are active and deprecated. Deprecated rows remain resolvable for historical data but MUST NOT be produced by new writes.",
+      "The effective schema reference of a row is the literal concatenation (file + optional fragment): fragment already includes its leading '#', so consumers MUST NOT insert another separator. For example file='schemas/agent-operations.schema.json' plus fragment='#/$defs/agent_pairing_bootstrap' resolves to exactly 'schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap'. Consumers MUST resolve that URI-fragment JSON Pointer and MUST NOT bind schema_id to the top-level document of file. When fragment is absent, the effective reference is the top-level document of file. Two schema_id rows mapping to the same file MUST be distinguished by fragment (or one MUST omit fragment to denote the whole document); a consumer that ignores fragment and loads the top-level document for a fragment-bearing row is non-conforming.",
+      "fragment, when present, MUST be a non-empty RFC 6901 JSON Pointer in URI-fragment representation starting with '#/'. If the pointer does not resolve within file, or a row that shares a file with another row omits fragment while that other row also omits fragment (ambiguous whole-document mapping), consumers MUST fail closed rather than silently pick a schema."
     ],
     "schemas": [
       {
@@ -3664,8 +3666,9 @@
       {
         "schema_id": "ak.schema.agent_pairing_bootstrap.v1",
         "file": "schemas/agent-operations.schema.json",
+        "fragment": "#/$defs/agent_pairing_bootstrap",
         "status": "active",
-        "description": "One-time bootstrap DTO for personal agent runtime pairing. Defined as agent-operations.schema.json#/$defs/agent_pairing_bootstrap."
+        "description": "One-time bootstrap DTO for personal agent runtime pairing. Resolves to the sub-schema at file + fragment (agent-operations.schema.json#/$defs/agent_pairing_bootstrap), not the top-level oneOf DTO bundle that ak.schema.agent_operations.v1 maps to."
       },
       {
         "schema_id": "ak.schema.applet_edge_operations.v1",

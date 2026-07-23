@@ -269,7 +269,7 @@ AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifact
 1. `witnesses[].issuer`、`verification_method`、`controlling_organization` 在 quorum 内 pairwise distinct 到 policy 要求的最小独立性；
 2. 每个 witness 均在 Realm policy `audit.range_completeness_witnesses[]` 或等价 profile-declared witness 集合内；
 3. witness proof 覆盖同一 canonical payload digest；
-4. 任意两个 witness 对同一 range 给出不同 `root`、`count` 或 `actor_seq_ranges[]` 时，verifier MUST 标记 `witness_disagreement`，quarantine 该 range / peer，并 fail closed，不得把任一方结果展示为完整。
+4. quorum 中的 witness 必须签署**同一完整 canonical payload**，即 `(realm_id, from_frontier, to_frontier, actor_seq_ranges, root, count)` 全部逐字节一致。若它们被要求见证该同一完整 scope 却给出不同 `root`、`count` 或 `actor_seq_ranges[]`，verifier MUST 标记 `witness_disagreement`，quarantine 该 attestation / range，并 fail closed，不得把任一方结果展示为完整。反之，`actor_seq_ranges[]` 或 frontier 边界不同的独立 attestation 是不同 scope 的证明，不能仅因 root 不同互判 `witness_disagreement`；consumer 只能分别在各自 scope 内验证，若需要组成 quorum，必须先请求 witness 对同一完整 payload 重新签署。
 
 声明 `security_class=high_assurance` 或 `ak.profile.federation.high_assurance.v1` 的 Realm，解除 completeness 关注时 MUST 只接受 `federation_witness_attested`；`single_source` 只能作为诊断输入。
 
