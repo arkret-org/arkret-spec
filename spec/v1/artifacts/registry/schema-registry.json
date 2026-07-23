@@ -6,7 +6,9 @@
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
     "A schema row with omitted status defaults to active. New or edited rows MUST spell status explicitly.",
-    "Allowed status values are active and deprecated. Deprecated rows remain resolvable for historical data but MUST NOT be produced by new writes."
+    "Allowed status values are active and deprecated. Deprecated rows remain resolvable for historical data but MUST NOT be produced by new writes.",
+    "The effective schema reference of a row is (file + optional fragment): when a row carries a fragment, consumers MUST resolve the schema at file#fragment (an RFC 6901 JSON Pointer, e.g. #/$defs/agent_pairing_bootstrap) and MUST NOT bind schema_id to the top-level document of file. When fragment is absent, the effective reference is the top-level document of file. Two schema_id rows mapping to the same file MUST be distinguished by fragment (or one MUST omit fragment to denote the whole document); a consumer that ignores fragment and loads the top-level document for a fragment-bearing row is non-conforming.",
+    "fragment, when present, MUST be a non-empty RFC 6901 JSON Pointer starting with '#/'. If the pointer does not resolve within file, or a row that shares a file with another row omits fragment while that other row also omits fragment (ambiguous whole-document mapping), consumers MUST fail closed rather than silently pick a schema."
   ],
   "schemas": [
     {

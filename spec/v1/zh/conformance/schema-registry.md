@@ -35,7 +35,7 @@ sidebar:
 
 ### 1.1 schema id ↔ 文件名映射例外（normative）
 
-下游 SDK / IDE 插件不得用 "schema id 去掉前缀 + 换分隔符" 这种机械推导拿文件名；MUST 从 `schema-registry.json` 读取每条 `{schema_id, file}` 对。当前 v1 已知的不能机械推导的对应关系：
+下游 SDK / IDE 插件不得用 "schema id 去掉前缀 + 换分隔符" 这种机械推导拿文件名；MUST 从 `schema-registry.json` 读取每条 `{schema_id, file, 可选 fragment}` 三元组。**effective schema reference = `file` + 可选 `fragment`**：某行带 `fragment`（RFC 6901 JSON Pointer，如 `#/$defs/agent_pairing_bootstrap`）时，消费者 MUST 解析 `file#fragment` 处的子 schema，MUST NOT 把该 `schema_id` 绑定到 `file` 的顶层文档；`fragment` 省略时 effective reference 即 `file` 顶层文档。两个 `schema_id` 映射同一 `file` 时 MUST 靠 `fragment` 区分（或其一省略 `fragment` 表示整包）；忽略 `fragment`、对带 fragment 的行加载顶层文档的实现**不合规**。`fragment` 不可解析、或共用同一 `file` 的多行都省略 `fragment`（整包映射歧义）时，消费者 MUST fail closed，不得静默择一。该规则的机读声明见 `schema-registry.json` 的 `registry_rules`。当前 v1 已知的不能机械推导的对应关系（含 `ak.schema.agent_pairing_bootstrap.v1` 经 `fragment` 指向 `agent-operations.schema.json#/$defs/agent_pairing_bootstrap` 子 schema）：
 
 | schema id | canonical 文件 | 说明 |
 | --- | --- | --- |

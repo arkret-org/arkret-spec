@@ -153,6 +153,61 @@
       }
     },
     {
+      "name": "reject_realm_active_circle_count_over_limit_sidecar_backing_counted",
+      "vector_id": "ak.vector.scalability.circle_count_limit.v1",
+      "given_state": {
+        "generator": {
+          "kind": "active_circle_count",
+          "realm_active_circle_count": 1000,
+          "count_composition": {
+            "ordinary_active_circles": 999,
+            "sidecar_backing_circles": 1
+          },
+          "counting_rule": "Agent Sidecar backing Circles ARE counted toward realm_active_circle_count even though ordinary Circle create/list/get APIs exclude them (models/circle.md 11.1). A reducer that omits the hidden backing Circle would see only 999 and wrongly accept."
+        }
+      },
+      "input": {
+        "event_kind": "ak.circle.create",
+        "circle_visibility": "realm_visible"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition",
+        "reason_code": "circle_count_exceeded",
+        "limit": "active circles per Realm <= 1000 (Sidecar backing Circles counted)",
+        "state_unchanged": true,
+        "reducer_must_count_hidden_sidecar_backing_circle": true
+      }
+    },
+    {
+      "name": "reject_actor_mls_circle_count_over_limit_sidecar_backing_counted",
+      "vector_id": "ak.vector.scalability.circle_count_limit.v1",
+      "given_state": {
+        "generator": {
+          "kind": "actor_active_mls_circle_memberships",
+          "count": 256,
+          "count_composition": {
+            "ordinary_mls_circle_memberships": 255,
+            "sidecar_backing_circle_memberships": 1
+          },
+          "counting_rule": "The actor is controller (or eligible agent) of a Sidecar; its MLS-backed backing Circle membership occupies one of the 256 per-actor slots that bound the section 10.3 M+R kick-amplification. A reducer that omits the hidden backing Circle would see only 255 and wrongly accept the 256th ordinary membership."
+        }
+      },
+      "input": {
+        "event_kind": "ak.circle.member.state",
+        "target_actor_id": "did:webvh:z6mkfixture:alice.example",
+        "target_circle_encryption_mode": "mls"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition",
+        "reason_code": "circle_count_exceeded",
+        "limit": "active MLS-backed Circle memberships per actor <= 256 (Sidecar backing Circles counted)",
+        "state_unchanged": true,
+        "reducer_must_count_hidden_sidecar_backing_circle": true
+      }
+    },
+    {
       "name": "accept_causal_refs_at_limit",
       "vector_id": "ak.vector.scalability.event_ref_role_limits.v1",
       "input": {

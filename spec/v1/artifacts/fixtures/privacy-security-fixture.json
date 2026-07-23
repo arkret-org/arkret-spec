@@ -673,6 +673,38 @@
             "User@example.com",
             "user@example.com"
           ]
+        ],
+        "rejected_octet_over_codepoint_under": [
+          {
+            "field": "realm_alias_localpart",
+            "code_point_limit": 128,
+            "octet_limit": 512,
+            "generator": {
+              "kind": "octet_arm_over_codepoint_under",
+              "construction": "Build a localpart whose RAW code-point count is <= 128 (so the code-point arm passes) but whose RFC 8265 / IDNA / NFC-prepared form has a UTF-8 octet length > 512. Because raw UTF-8 is at most 4 bytes per code point, the octet arm can only bind independently when preparation expands the input; use code points that expand under the profile's mapping/normalization so that prepared_octet_count > 512 while raw_code_point_count <= 128. The runner MUST prepare the string per the field's profile and measure the prepared form's octet length."
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "prepared UTF-8 octet count exceeds octet_limit though raw code-point count is within code_point_limit",
+              "isolates_octet_arm": true,
+              "code_point_arm_alone_would_accept": true
+            }
+          },
+          {
+            "field": "agent_slug",
+            "code_point_limit": 64,
+            "octet_limit": 256,
+            "generator": {
+              "kind": "octet_arm_over_codepoint_under",
+              "construction": "Same construction as above for the native personal Agent selector slug: raw code-point count <= 64, prepared UTF-8 octet count > 256 via preparation-time expansion. Reject on the octet arm."
+            },
+            "expected": {
+              "decision": "reject",
+              "reason": "prepared UTF-8 octet count exceeds octet_limit though raw code-point count is within code_point_limit",
+              "isolates_octet_arm": true,
+              "code_point_arm_alone_would_accept": true
+            }
+          }
         ]
       },
       "expected": {
@@ -681,6 +713,7 @@
           "canonical_receiver_rejects_noncanonical_wire",
           "uts46_nontransitional_std3_bidi_joiner_hyphen_dns_length",
           "unicode_code_point_and_utf8_octet_limits",
+          "octet_arm_binds_independently_of_codepoint_arm_via_preparation_expansion",
           "single_line_text_nfc_controls_and_whitespace",
           "external_identifier_comparison_is_profile_specific",
           "rfc7565_utf8_percent_encoding_without_port"

@@ -816,6 +816,46 @@
             "must_not_fanout": true,
             "must_not_treat_seal_ref_as_sufficient": true
           }
+        },
+        {
+          "name": "late_revocation_leaf_retroactive_removal",
+          "description": "Ordered sequence, not a single joined-view snapshot: E is first accepted and its effect materialized into data cell X under the initial joined view that has NOT yet joined the revoke leaf R; R arrives later, and once joined the seal_ref authorization for E is no longer live, so E's effect MUST be retroactively removed from all data/control cell join inputs and the projection deterministically recomputed. The final state MUST equal that of a receiver that joined {S0,R} from the start, independent of arrival order.",
+          "sequence": [
+            {
+              "step": "accept_before_revocation",
+              "joined_leaf_set": [
+                "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              ],
+              "joined_control_view": {
+                "capability_grant_live": true,
+                "cell_status": "value"
+              },
+              "expected": {
+                "data_event_result": "accept",
+                "data_cell_x_contains_event_effect": true
+              }
+            },
+            {
+              "step": "revocation_leaf_arrives_late",
+              "newly_joined_leaf": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "joined_leaf_set": [
+                "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              ],
+              "joined_control_view": {
+                "capability_grant_live": false,
+                "cell_status": "value"
+              },
+              "expected": {
+                "data_event_result": "reject_or_hide",
+                "reason": "stale_seal_ref",
+                "data_cell_x_effect_retroactively_removed": true,
+                "projection_recomputed": true,
+                "converges_with_from_start_joiner": true,
+                "order_independent": true
+              }
+            }
+          ]
         }
       ],
       "vector_id": "ak.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1"

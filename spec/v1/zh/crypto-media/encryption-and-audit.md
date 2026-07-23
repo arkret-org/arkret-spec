@@ -176,11 +176,11 @@ AAD 字段集合受 Realm 的 `aad_visibility` policy 约束。隐私优先 Real
 
   ```
   event_ref_digest = "sha256:" || hex(
-      SHA-256( utf8("ak.aad-event-ref-v1") || 0x00 || utf8(event_id) || 0x00 || utf8(realm_id) || 0x00 || policy_nonce )
+      SHA-256( utf8("ak.aad-event-ref-v1") || 0x00 || utf8(event_id) || 0x00 || utf8(realm_id) )
   )
   ```
 
-  其中 `ak.aad-event-ref-v1` 是固定的 ASCII 域分隔常量（逐字节等于该字符串），字段间以单字节 `0x00` 分隔以消除拼接歧义；`event_id` / `realm_id` 取其 canonical typed-id 字符串的 UTF-8 字节；`policy_nonce` 是 Realm policy 固定的 per-Realm nonce 字节。该常量与公式是 wire-breaking 的安全域分隔参数，实现 MUST 逐字节一致构造，MUST NOT 引入私有前缀、改变字段顺序或省略 `0x00` 分隔。**接收方语义**：`event_ref_digest` 是明文但受外层 AEAD 认证的字段——AEAD 解密本身直接使用 wire 字节、不重算该 digest；需要做反欺骗绑定校验或跨 provider 去重的 router / verifier **MAY** 按上式重算并与 wire 值 bytewise 比对，不一致时 **MUST** 视为绑定失效并拒绝据其路由 / 去重。
+  其中 `ak.aad-event-ref-v1` 是固定的 ASCII 域分隔常量（逐字节等于该字符串），字段间以单字节 `0x00` 分隔以消除拼接歧义；`event_id` / `realm_id` 取其 canonical typed-id 字符串（`ak:event:<uuidv7>` / `ak:realm:<uuidv7>`）的 UTF-8 字节，二者都是已在 wire 上、双方可逐字节获得的权威字段。输入**只有**这两个 typed id 与域分隔常量：`event_id` 是 128-bit UUIDv7，其高熵使 digest 不可被离线枚举反查（无需额外 nonce），`realm_id` 绑定 Realm 阻止跨 Realm 重放；v1 **不**在本 digest 引入任何未在 registry / schema 定义 canonical wire 来源的额外 nonce 输入。该常量与公式是 wire-breaking 的安全域分隔参数，实现 MUST 逐字节一致构造，MUST NOT 引入私有前缀、额外输入、改变字段顺序或省略 `0x00` 分隔。**接收方语义**：`event_ref_digest` 是明文但受外层 AEAD 认证的字段——AEAD 解密本身直接使用 wire 字节、不重算该 digest；需要做反欺骗绑定校验或跨 provider 去重的 router / verifier **MAY** 按上式重算并与 wire 值 bytewise 比对，不一致时 **MUST** 视为绑定失效并拒绝据其路由 / 去重。
 - `hidden`：AAD MUST 同时省略 `event_id` 与 `event_ref_digest`；去重只能依赖外层 Event Envelope、transport receipt 或 receiver-local cache。
 
 AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：

@@ -2074,7 +2074,7 @@
       "additional_requirements": {
         "frontier_probe_capability_must": "Peer MUST expose capability-gated frontier probe endpoint per federation.md §4.5.1.",
         "proactive_exchange_must": "Per federation-visible Realm, per authorized peer, frontier probe interval MUST be <= 3600 seconds.",
-        "fail_state_must": "Three consecutive probe failures (peer unreachable, signature failure, frontier_root divergence beyond fork-resolution threshold) MUST mark the peer as 'stale_peer' for that Realm.",
+        "fail_state_must": "Three consecutive probe failures (peer unreachable or signature failure) MUST mark the peer as 'stale_peer' for that Realm. Separately, an irreconcilable divergence on the scope-invariant Realm-global heads[] (or on a range-completeness root evaluated at identical attestation scope) that persists after per-actor backfill MUST quarantine the peer's increments and be treated as a fork suspect on the FIRST occurrence; it MUST NOT be folded into the three-consecutive-failure window. A frontier_root or range-completeness root difference between two peers whose disclosure or attestation scope differs MUST NOT by itself count as a probe failure or as witness_disagreement (see zh/sync/federation.md 4.5.1 / 4.5.3).",
         "stale_peer_behavior_must": "While a peer is in 'stale_peer' state: MUST quarantine its push payloads (no local frontier advancement); MUST surface state via operator alarm channel; MAY refuse to fanout new Events to that peer. Stale status MUST clear after successful fork resolution (head reconvergence or quorum witness attestation alignment)."
       }
     },

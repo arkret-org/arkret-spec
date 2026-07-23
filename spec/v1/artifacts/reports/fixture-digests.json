@@ -50,7 +50,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "a47bef159d3136165a10e11e40d11f6ffbd430f803547e1c1636bf6ffb1eb053"
+      "sha256": "97865e13e696a3e79c4af1a6b5c671fafe32ebb919d395081da2412c52baf65e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -102,7 +102,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "f53f81332baf0511354de3f08763f82f8678bc64b15e2f29528e8410246f0b74"
+      "sha256": "85a9d160e05f2eb5d31e17f8417529a4bd36487d8a07f4993946dc037fd0476b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -186,7 +186,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "66856375f538a200cd86b2092173f051383650d6c55f4f1700888629c9f3e327"
+      "sha256": "74970c4bfdffdbd7645df93bb8badeaefb8763a7983b957868a7e46ec224d58b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -210,7 +210,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
-      "sha256": "6ad23d57a4bace97bc732d1f84613c52ea866b28b9924031612305391e6d7d1d"
+      "sha256": "e9087504d12ef788f166802a55e53c6f807a0b926645b69c929c7971ed2e648f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
