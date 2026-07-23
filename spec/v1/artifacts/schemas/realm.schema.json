@@ -1129,7 +1129,7 @@
         },
         "sealed": {
           "type": "boolean",
-          "description": "Opt-in control-plane finality for an otherwise data-like cell family. When true, plane MUST be control."
+          "description": "Opt-in control-plane finality for an otherwise data-like cell family. When true, plane MUST be control. A data-like family reused as an authorization input for any risk_tier=high capability MUST set sealed=true; ordinary authorization_root declarations are already required to use plane=control."
         },
         "parameters": {
           "type": "object"

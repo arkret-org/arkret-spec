@@ -488,7 +488,8 @@
     "ak.profile.kem.hybrid_xwing.v1"
   ],
   "mls_ciphersuite_extension_profiles": [
-    "ak.profile.mls_ciphersuite.chacha20poly1305.v1"
+    "ak.profile.mls_ciphersuite.chacha20poly1305.v1",
+    "ak.profile.mls_ciphersuite.pq_auth.v1"
   ],
   "candidate_profiles": [
     "ak.profile.candidate.join_policy.v1",
@@ -567,6 +568,7 @@
     "ak.profile.signature.pqc.v1": "admin",
     "ak.profile.crdt.text.v1": "interop",
     "ak.profile.mls_ciphersuite.chacha20poly1305.v1": "interop",
+    "ak.profile.mls_ciphersuite.pq_auth.v1": "interop",
     "ak.profile.candidate.join_policy.v1": "admin",
     "ak.profile.ucan_interop.v1": "interop",
     "ak.profile.mls_governance_binding.full.v1": "admin",
@@ -4682,6 +4684,19 @@
       "feature_discovery": {
         "required": [],
         "unsupported_optional": "do not claim this reserved profile and reject MLS ciphersuite 0x0003 until registry activation and a new negotiated contract release"
+      }
+    },
+    "ak.profile.mls_ciphersuite.pq_auth.v1": {
+      "description": "Reserved MLS WG PQ/T hybrid KEM plus ML-DSA-44 authentication ciphersuite gate.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [],
+        "unsupported_optional": "do not claim this reserved profile and reject MLS_128_MLKEM768X25519_CHACHA20POLY1305_SHA384_MLDSA44 until IANA assignment, byte-level vectors, registry activation and a new negotiated contract release"
       }
     },
     "ak.profile.hpke.p256.v1": {

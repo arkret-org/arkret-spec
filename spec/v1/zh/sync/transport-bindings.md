@@ -138,7 +138,7 @@ HTTP binding 的 canonical 路径和请求/响应 shape SHOULD 遵循 `service-h
 
 ## 6. Non-HTTP Binding Extensions
 
-gRPC、WebSocket / SSE、Message Queue (Kafka / NATS / Pulsar / AMQP) 与 P2P / libp2p binding **不是 v1 core
+gRPC、WebSocket / SSE、WebTransport over HTTP/3、Message Queue (Kafka / NATS / Pulsar / AMQP) 与 P2P / libp2p binding **不是 v1 core
 互操作 surface**。本规范不为它们定义 normative wire format、operation mapping、stream framing
 或 discovery 字段；这些 transport 名称仅作为 extension profile slot 保留。
 
@@ -151,7 +151,7 @@ gRPC、WebSocket / SSE、Message Queue (Kafka / NATS / Pulsar / AMQP) 与 P2P / 
 - 服务发现如何在 `supported_bindings` 中声明该 binding 与其能力。
 
 未声明对应 binding profile 的实现 MUST NOT 接受非 HTTP/JSON 流量，也不得要求对端支持。
-v1.0 conformance suite 不测试任何非 HTTP binding；gRPC / WS / MQ / libp2p 等
+v1.0 conformance suite 不测试任何非 HTTP binding；gRPC / WS / WebTransport / MQ / libp2p 等
 transport MUST 各自通过 binding profile 单独 normative 化。
 
 ### 6.1 Per-operation HTTP 伴生 binding（normative）
@@ -182,7 +182,7 @@ transport MUST 各自通过 binding profile 单独 normative 化。
 }
 ```
 
-其他 binding（gRPC / WebSocket / SSE / MQ / libp2p）是 extension profile，需声明对应 binding profile id 后才可出现在此处；v1 core 仅要求 `http_json`。§6.1 的 per-operation HTTP 伴生 binding（如 `kind="tus"`）以 `extension_profile_required: null` + 对应 `ak.feature.*` 声明出现，不需要 binding profile id。
+其他 binding（gRPC / WebSocket / SSE / WebTransport / MQ / libp2p）是 extension profile，需声明对应 binding profile id 后才可出现在此处；v1 core 仅要求 `http_json`。WebTransport profile 必须精确钉定所用 `draft-ietf-webtrans-http3` revision、stream/datagram 对 canonical operation 与 stream-frame 的映射、Origin 校验、session authentication 与 reconnect/cursor 语义，不得仅因底层运行在 HTTP/3 就当作 `http_json`。§6.1 的 per-operation HTTP 伴生 binding（如 `kind="tus"`）以 `extension_profile_required: null` + 对应 `ak.feature.*` 声明出现，不需要 binding profile id。
 
 客户端 MUST 根据 `supported_bindings` 选择 transport，不得假设所有服务都有 REST path。
 

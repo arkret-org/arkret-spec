@@ -333,7 +333,7 @@ Frontier 比较必须区分“本地落后”和“本地更新”。若本地 a
 
 **CBA basis 例外（normative）**：reducer 评估 Event 时，DataEvent 只读取自身 `seal_ref` 指向的控制面 view，Control Move 只读取自身 `seal_basis` 指向的控制面 view；同一 ordered submit batch 的前序 Event 不会提前推进后续 Event 的授权基准。若同批内 revoke + 依赖该 grant 的 Event 同时到达，Policy Server fast-path cache MUST 按该 Event 的 CBA basis 评估，不得用同批后置 revoke 直接 deny；跨 Seal 延迟 revoke 仍按 [`capabilities.md` §18](./capabilities.md) 的 freshness 规则 fail closed。
 
-> **取舍与残留风险（informative）**：上述例外意味着同一 CBA basis 下的并发 in-flight 操作不会被同批后置 revoke 阻断——actor 若能把"撤销前最后一批写入"与撤销自身塞进同一 batch / 同一 basis，这些写入会按撤销前 basis 通过。对依赖**即时**撤销的高风险 grant（如紧急吊销被盗 agent key），紧急 revoke 不能跨越本例外立即生效；此类场景 SHOULD 把相关 cell family 声明为 `sealed=true` 或走 sealed control override / fork quarantine 路径，使紧急 revoke 跨越 CBA basis 例外立即生效。该残留风险与 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md) 的撤销新鲜度窗口取舍同源。
+> **取舍与残留风险（informative）**：上述例外意味着同一旧 CBA basis 下的并发 in-flight 操作不会被同批 revoke 追溯阻断；这不是按数组顺序可消除的“后置写入绕过”，而是协议拒绝把接收顺序伪装成因果顺序的结果。高风险授权 cell 按 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md) 必须位于 control plane（data-like 复用还必须 `sealed=true`），但 sealing 只提供可验证 finality：它不会把 revoke 前/并发的旧 basis 改写成包含 revoke 的新 basis。所谓 window=0 只从撤销 Seal `R` 已进入 receiver 可验证控制面视图时开始。被盗 agent key 等运行时 kill-switch 场景必须同时使用 session/introspection pause、ingress deny 或 sealed control override；后续 Event 必须改用包含 `R` 的 basis，继续使用旧 basis 才按 stale-after-observed 规则 fail closed / 留痕。
 
 ## 6. Failure Mode
 

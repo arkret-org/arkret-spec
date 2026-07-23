@@ -296,7 +296,7 @@
         "accountability grant without expires_at is accepted and verifies accountable_principal_ids",
         "low and medium risk agent grants without temporal constraints are accepted",
         "session issuance long after provisioning succeeds while the chain is unrevoked",
-        "pause fails closed new sessions and invalidates issued sessions within the freshness window",
+        "pause fails closed new sessions and invalidates issued sessions within an independent freshness window of at most 60 seconds",
         "high risk agent grants without expires_at fail with failed_precondition"
       ]
     },

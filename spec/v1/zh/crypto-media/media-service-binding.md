@@ -68,7 +68,7 @@ sidebar:
 字段语义（normative）：
 
 - `foci[].focus_id`：focus 在该 Realm media service 内的稳定 ID；进入签名 canonical bytes 与 `session_focus` 选举（见 [`call-state.md` §4.1](./call-state.md)）。
-- `foci[].type`：backend binding 标识。v1 注册值：`livekit`、`mediasoup`、`janus`、`arkret-native`、`moq-relay`（实验保留位，v1 周期内不提供 normative binding）。客户端遇到未知或 unsupported `type` MUST fail closed（错误码 `unknown_focus_type`），不得尝试把 token 交给任意 SDK。
+- `foci[].type`：backend binding 标识。v1 注册值：`livekit`、`mediasoup`、`janus`、`arkret-native`、`moq-relay`（实验保留位，v1 周期内不提供 normative binding）。`moq-relay` 在激活前必须由独立 binding 精确钉定 `draft-ietf-moq-transport` revision、Arkret participant/session/track 到 MOQT namespace/track/object 的映射、relay authorization、SFrame / secure-object 绑定、resume 与错误语义；草案 revision 变化按新 binding profile release 处理，不得原地漂移。客户端遇到未知或 unsupported `type` MUST fail closed（错误码 `unknown_focus_type`），不得尝试把 token 交给任意 SDK。
 - `foci[].token_endpoint`：token 兑换端点；所有 backend 共用同一抽象（见 §3），差异只在 `backend_token` 形态。
 - `foci[].connect_url`：backend 连接入口；具体协议由 type-specific 附录定义。
 - `foci[].capabilities[]`：该 focus 支持的能力子集，用于客户端能力协商。

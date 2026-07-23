@@ -3612,7 +3612,7 @@ Expected:
 
 - 第 1 步 reducer MUST 接受:缺省 `expires_at` 的 key authorization / accountability grant / 低风险 agent grant 均合法(revocation-governed),MUST NOT 以 `failed_precondition` reason=缺失过期拒绝;Actor Profile `accountable_principal_ids` 校验把无 `expires_at` 的 active grant 判为 verified。
 - 第 2 步 MUST 成功:授权链上没有任何静默定时器;session 签发仍逐次校验未撤销 / status / scope / audience。
-- 第 3 步后新 session MUST 拒绝，已签发 session 在 freshness window(SHOULD ≤ 60s)内 fail closed——kill switch 是唯一失效路径的证明。
+- 第 3 步后新 session MUST 拒绝，已签发 session 在独立于 session TTL、且 MUST ≤ 60s 的 pause freshness window 内 fail closed；把窗口设为 session 最大 TTL 的实现 MUST 判失败——kill switch 是唯一失效路径的证明。
 - 第 4 步 reducer MUST `failed_precondition`:高风险 action 的 grant 仍然强制有限 `expires_at`(§8 风险分层硬约束不因 longevity 放宽)。
 - 第 5 步 MUST 在同一 Control Move 中 observe-remove 全部已观察 authorize dots 并 add 一个 replacement dot；接受后该 cell 只有一个 active authorize dot，新边界生效。
 - 变体 A join 后的 effective authorization MUST 对 scope / audience 取交集、对 `expires_at` 取最早有限值（缺省按 `+infinity`）；MUST NOT 按到达顺序选 winner。

@@ -4304,7 +4304,7 @@
         "authz",
         "service_call"
       ],
-      "description": "A presigned blob URL was requested for a Realm whose policy sets direct_download_allowed=false. The service MUST deny presign and require access through the authenticated media proxy."
+      "description": "A presigned blob URL was requested for a Realm-owned blob whose current effective asset policy does not explicitly set direct_download_allowed=true. Missing, unverifiable, non-effective, omitted, or false policy state all fail closed. The service MUST deny presign and require authenticated fetch or an authorized proxy path."
     },
     {
       "code": "minimal_metadata_presign_forbidden",

@@ -213,6 +213,17 @@ Circle encryption compatibility rules:
 - Circle `encryption_profile=none` 时，`mls_group_ref` MUST NOT exist，`ak.mls.genesis` / `ak.mls.commit` / MLS Welcome 不适用于该 Circle。任何声明 `metadata_encryption_floor=e2ee_required` 的 plaintext Circle MUST 同时有可执行的 profile 说明如何加密对应 metadata；否则 reducer MUST reject。
 - Circle `encryption_profile=mls_rfc9420` 时，`mls_group_ref` 由 reducer 派生，Circle key MUST NOT 从 Realm-default MLS group 或其他 Circle key 派生。
 
+**组合速查（informative，规则仍以上文为准）**：
+
+| `encryption_profile` | effective `content_encryption_floor` | content 结果 |
+| --- | --- | --- |
+| `none` | `allow_plaintext` | 合法；该 scope 不建立 MLS group，content 可为明文。 |
+| `none` | `e2ee_required` | 非法；无 MLS-backed effective scope 承载必需密文。 |
+| `mls_rfc9420` | `allow_plaintext` | 合法；先建 MLS group、content 暂可明文，后续可原地单向抬高 floor。 |
+| `mls_rfc9420` | `e2ee_required` | 合法；content 必须按 MLS-backed scope 加密。 |
+
+`metadata_encryption_floor` 与 content 轴独立：`allow_plaintext` 允许用户可读 metadata 明文；`e2ee_required` 只在该 scope 有可执行的 metadata 加密 profile 时合法。父 Realm floor、Circle floor 与对象 profile requirement 仍按下文取 `max`，表中不得据此绕过继承或单向 ratchet。
+
 `metadata_encryption_floor` 语义:
 
 | value | 明文允许范围 | 必须加密范围 |
@@ -382,7 +393,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 - **短名**:`short_name`(如 `HR-Conf`)相比裸 Circle ID（如 `ak:circle:01964...`）更易人工识别；客户端 SHOULD 显示 `short_name` 以辅助 scope 识别。
 - **符号 / glyph**:无障碍 / 色盲场景的第二信号。
 
-以下不变量只适用于**向人类用户呈现写入、回复、转发、引用、mention、邀请或导航入口的客户端 surface**。纯 headless SDK、webhook worker、自动化 agent runtime 若不向人类呈现这些入口，则本节呈现义务不适用；但它们向上层 UI 暴露 Circle 数据时 MUST 原样提供 `display` 与 effective scope，使实际呈现方能够履行本节。适用的客户端实现 MUST 满足以下可测试不变量。具体控件布局、文案与视觉形式是实现自由。
+本节是 **client-presentation safety conformance**，不是 Circle wire shape 或 headless reducer contract。以下不变量只适用于**向人类用户呈现写入、回复、转发、引用、mention、邀请或导航入口的客户端 surface**。纯 headless SDK、webhook worker、自动化 agent runtime 若不向人类呈现这些入口，则本节呈现义务不适用；但它们向上层 UI 暴露 Circle 数据时 MUST 原样提供 `display` 与 effective scope，使实际呈现方能够履行本节。适用的客户端实现 MUST 满足以下可测试不变量。具体控件布局、文案与视觉形式是实现自由。
 
 1. 在任何会导致写入、回复、转发、引用、mention 或发送通知的入口，当前 effective scope MUST 可被用户区分；Circle scope 至少呈现 `display.color_token`、`display.symbol` 与 `display.short_name` 中的两个互补信号。
 2. Plaintext Circle MUST 使用不会暗示 E2EE 的 glyph、标签或披露语义；MLS-backed Circle MAY 使用 lock/shield 类语义，但不得让 plaintext scope 与 E2EE scope 看起来等价。

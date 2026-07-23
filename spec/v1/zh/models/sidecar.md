@@ -246,6 +246,8 @@ Sidecar 发布到共享 Strand 必须由 controller 显式确认，只创建符�
 
 ## 8. UI 安全不变量
 
+本节是 **client-presentation safety conformance**，只约束向人类呈现 Sidecar 激活、写入、访问状态或导航入口的客户端 surface；不向人类呈现 UI 的 headless SDK、service worker 与 agent runtime 不承担控件/布局义务，但向上层 UI 暴露 Sidecar projection 时 MUST 原样提供 private/shared provenance、effective access、MLS readiness 与 write target，使实际呈现方能够履行下列不变量。具体控件布局与文案可由实现选择，不得改变每条可测试安全结果。
+
 1. Sidecar MUST 使用主 Strand 寄宿 surface，不得进入 Circle 目录、Circle 创建器、Circle 成员管理、独立页面/route/drawer/navigation 或 Strand Track tabs。
 2. 从 shared surface 激活 Sidecar 时，客户端 MUST 留在同一主 Strand shell，明确显示进入“仅 controller 与其 AI Agents 可访问”的个人私有 scope，并提供退出 Sidecar 的入口。
 3. Access 面板 MUST 展示 controller、desired Agents、effective access、Agent lifecycle 与 MLS readiness；不得提供邀请/移除 human 的控件。

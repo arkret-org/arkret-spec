@@ -495,7 +495,7 @@ Cache-Control: public, immutable, max-age=31536000
 
    实现不得以"性能"为由把 legal-hold / erasure 降级为有界 staleness，也不得对普通 redaction 引入无界 staleness 使已 redact 内容在 presign 整个 TTL 内持续可取。
 10. **blob 状态与签发者校验**：签发时服务端 MUST 已确认请求方有权为该 `blob_ref` mint presign；响应时只能重新确认 envelope 绑定的 Realm / blob 仍一致、blob 未被 redacted / erased / banned / legal hold、issuer service DID 仍被部署信任。v1 bearer presign 无法在响应阶段证明当前请求者属于某个 audience。
-11. **Realm presign 资格实时重判（normative）**：服务端在响应阶段 MUST 重判该 `blob_ref` 所属 Realm 当前是否已收紧为 minimal-metadata（声明 `ak.profile.mls.minimal_metadata_realm.v1` 或 `routing_unlinkability_required=true`）或在 `ak.realm.asset_privacy_policy`（§6）中声明 `direct_download_allowed=false`；命中任一 MUST 拒绝（`not_found`，audit `minimal_metadata_presign_forbidden` / `direct_download_disallowed_presign_forbidden`），不得仅凭签发时该 Realm 尚未收紧就放行。这闭合"签发时 Realm 非 minimal-metadata / 允许 direct download、签发后 policy 收紧、已发 presign 仍在 TTL 内被拉取从而绕过新 policy"的竞态，与 §5.4.4.1 签发侧的同名禁令构成两侧闭合。
+11. **Realm presign 资格实时重判（normative）**：服务端在响应阶段 MUST 重判该 `blob_ref` 所属 Realm 当前是否已收紧为 minimal-metadata（声明 `ak.profile.mls.minimal_metadata_realm.v1` 或 `routing_unlinkability_required=true`），并重判 `ak.realm.asset_privacy_policy`（§6）是否仍**显式**声明 `direct_download_allowed=true`。minimal-metadata 命中，或 asset policy 缺失、不可验证、未进入 effective `policy_components`、字段缺失、字段为 false 时，MUST 拒绝（`not_found`，audit `minimal_metadata_presign_forbidden` / `direct_download_disallowed_presign_forbidden`），不得仅凭签发时该 Realm 尚未收紧或曾允许 direct download 就放行。这闭合"签发时允许、签发后 policy 收紧/移除、已发 presign 仍在 TTL 内被拉取"的竞态，与 §5.4.4.1 签发侧的同名禁令构成两侧闭合。
 
 任何校验失败 MUST 返回 `not_found`（不区分 envelope 无效 vs blob 不可见，避免暴露存在性）；服务端 MAY 在 audit log 中记录具体 `reason_code` 如 `presign_invalid` / `presign_expired` / `presign_scope_mismatch`。
 
@@ -537,7 +537,8 @@ Cache-Control: public, immutable, max-age=31536000
   - **redacted blob** — `ak.redaction` 已生效 / `ak.audit.erasure_receipt` 已发布的 blob MUST 立即拒绝 presign 请求与已签发但 TTL 未到的 presign 请求（`blob_redacted`）。
   - **private attachment 私有附件**（`visibility=actor_private` 或附 `ak.actor_private` policy 标签）— MUST NOT 走 presign 路径（`private_attachment`）。该类 blob 只允许 issuing actor 本人通过 header auth fetch。
   - **minimal-metadata Realm-owned blob** — blob metadata 绑定的 Realm 声明 `ak.profile.mls.minimal_metadata_realm.v1`，或 Realm asset policy 声明 `routing_unlinkability_required=true` 时，服务端 MUST NOT 签发 bearer presign URL（`minimal_metadata_presign_forbidden`）。该类 Realm 的下载必须走 header auth、`provider_proxy`、`ohttp_relay` 或等价的不把 `blob_ref` / bearer envelope 暴露到可转发 URL 的路径。只有 deployment-public/global blob（无 Realm 绑定，且 policy 明确允许 public direct download）可继续使用 presign。
-  - **`direct_download_allowed=false` Realm-owned blob** — blob metadata 绑定的 Realm 在 `ak.realm.asset_privacy_policy`（§6）中声明 `direct_download_allowed=false` 时，服务端 MUST NOT 签发 bearer presign URL（`direct_download_disallowed_presign_forbidden`），即便该 Realm 不是 minimal-metadata Realm、即便申请方持有 `ak.self.blob.command.presign` capability。presign 产出的就是一个可转发的 bearer download URL，与 §6 "`direct_download_allowed=false` 时客户端 MUST NOT 绕过代理直接访问 `Location` 或外部 URL"是同一条禁令的两侧；放行 presign 等于用 presign 通道绕过该 Realm 的强制代理边界。该类 Realm 的媒体必须走 `download_mode` 声明的 `provider_proxy` / `ohttp_relay` / `client_mirror` 路径。只有 `direct_download_allowed=true`（或无 asset privacy policy 且 deployment policy 允许 direct）的 Realm-owned blob 与 deployment-public/global blob 才可继续使用 presign。
+  - **未显式允许 direct download 的 Realm-owned blob** — blob metadata 绑定的 Realm 只有在当前 effective `ak.realm.asset_privacy_policy`（§6）中显式声明 `direct_download_allowed=true` 时，服务端才 MAY 继续评估 bearer presign；policy 缺失、不可验证、未进入 effective `policy_components`、字段缺失或字段为 false，一律按 `direct_download_allowed=false` fail closed，MUST NOT 签发 bearer presign URL（`direct_download_disallowed_presign_forbidden`），即便该 Realm 不是 minimal-metadata Realm、即便申请方持有 `ak.self.blob.command.presign` capability。presign 产出的就是一个可转发的 bearer download URL；缺省放行会把成员限定读取权降格为“持链接即可读取”。该类 Realm 的媒体必须走 authenticated header fetch 或 `download_mode` 声明的 `provider_proxy` / `ohttp_relay` / `client_mirror` 路径。只有 effective policy 显式 `direct_download_allowed=true` 的 Realm-owned blob，以及 deployment-public/global 白名单中的 realm-less blob，才可继续评估 presign 的其余 gate。
+- **最小 conformance matrix（normative）**：实现 MUST 覆盖四个 case：(a) Realm-owned blob 无 asset policy → 拒绝；(b) `direct_download_allowed=false` → 拒绝；(c) policy 已进入 effective `policy_components` 且显式为 true → 仅在本节其它 gate 全部通过时允许；(d) URL 签发后 policy 被移除、失去 effective 引用或改为 false → 后续 GET / HEAD / Range 立即按步骤 11 拒绝。测试不得把 deployment-public/global realm-less 白名单分支当作 Realm-owned blob 的缺省回退。
 - **future audience-bound 机制**（未来评估方向，不属于 v1）：若未来需要真正绑定 audience，方案有 (a) 把 presign 升级为 cookie-bound URL（依赖 `__Host-` cookie + SameSite=Strict + presign 校验 cookie binding），(b) 通过 session-bound token 把 presign 换给 client 后只在该 session 内可用。两条都需要客户端配合，不属于 v1 范围。
 
 #### 5.4.4.2 Bearer URL 泄漏面控制（normative）
@@ -569,7 +570,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 ## 6. Asset Privacy Policy
 
-私有附件下载本身会暴露元数据，例如调用方 IP、在线时间、服务域名关系、blob 大小和下载频率。Realm SHOULD 使用 `ak.realm.asset_privacy_policy` 声明媒体上传、下载和代理隐私要求：
+私有附件下载本身会暴露元数据，例如调用方 IP、在线时间、服务域名关系、blob 大小和下载频率。Realm SHOULD 使用 `ak.realm.asset_privacy_policy` 声明媒体上传、下载和代理隐私要求；无论 Realm 的 discoverability、join rule、history visibility 或 encryption profile 如何，Realm-owned blob 的 bearer presign 资格都采用 fail-closed 缺省：只有 effective policy 显式 `direct_download_allowed=true` 才可签发，缺失 policy 不等于允许。
 
 ```json
 {
@@ -611,6 +612,7 @@ Cache-Control: public, immutable, max-age=31536000
 规则：
 
 - 私有 Realm、E2EE 附件和高隐私 minimal-metadata Realm 默认 SHOULD 使用 `provider_proxy` 或 `ohttp_relay`，不得默认 direct download。对 `ak.profile.mls.minimal_metadata_realm.v1` Realm-owned blob，§5.4.4.1 的 presign hard reject 优先于本节的 `download_mode=direct`；deployment 不得用 direct download policy 绕过 minimal-metadata bearer URL 禁令。
+- `direct_download_allowed` 的 presign 缺省值是 false：只有本 policy 已进入 current effective `ak.realm.policy_components` 且字段逐字为 true 才允许继续评估 presign。policy 缺失、不可验证、未被 effective policy 引用或字段省略都 MUST 按 false 处理；deployment-wide “允许 direct”不得覆盖 Realm-owned blob 的该缺省。
 - `direct_download_allowed=false` 时，客户端 MUST NOT 绕过代理直接访问 `Location` 或外部 URL；服务端也不得返回强制 direct 的 redirect。该约束同样禁止 bearer presign：服务端 MUST NOT 为 `direct_download_allowed=false` Realm-owned blob 签发 `ak.self.blob.command.presign` URL（§5.4.4.1 `direct_download_disallowed_presign_forbidden`），因为 presign 就是一个可转发的 direct bearer URL。
 - Proxy 服务不因参与下载而获得正文解密权。E2EE 附件必须保持密文，proxy 只能处理密文字节、size bucket、content hash 和授权 envelope。
 - `max_plaintext_metadata` 控制服务可见 metadata。高隐私 Realm SHOULD 使用 bucketed size、MIME family，而不是精确文件名、精确字节数或完整 MIME。

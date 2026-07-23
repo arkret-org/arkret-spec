@@ -189,7 +189,7 @@ reducer 在两种 path 下都 MUST 校验 `from_schema_refs[]`（或 `ak.morph.u
 
 ## 5. 标准 Facets
 
-Facets 是 schema-declared **UI / projection hints**，不是对象身份，也不是任何 normative 行为的依据。标准对象 MAY 暴露 schema/profile 已声明的 facets 来辅助展示或查询；Morph MAY 使用 facets 帮助 View、本地搜索、UI 和插件做过滤、降级展示和默认 renderer 选择。
+Facets 是 schema-declared **UI / projection hints**，不是对象身份，也不是任何 normative 行为的依据。标准对象 MAY 暴露 schema/profile 已声明的 facets 来辅助展示或查询；Morph MAY 使用 facets 帮助 View、本地搜索、UI 和插件做过滤、降级展示和默认 renderer 选择。Strand `track.profile`（[`strand-and-message.md` §4.3](./strand-and-message.md)）是同一 declared UI-hint 纪律在 track 上的窄投影；两者承载对象不同，但都不得改变授权、状态机、reducer 或 wire 互操作。
 
 **Facets 不参与的决策**（与 §4.0 决策矩阵保持一致，本节只重申以避免实现误读）：
 

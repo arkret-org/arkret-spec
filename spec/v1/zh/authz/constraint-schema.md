@@ -823,7 +823,7 @@ function matches_field_access(operation, constraint):
         return any(field in deny for field in fields)
 
     # allow/quarantine/review constraints retain subset semantics. For allow,
-    # every touched field must be admitted and no denied field may be touched.
+    # every touched field MUST be admitted and denied fields MUST NOT be touched.
     for field in fields:
         if field in deny:
             return false

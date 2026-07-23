@@ -542,6 +542,8 @@ Normalized principal view SHOULD 包含：
 - `method_evidence`
 - `limitations`
 
+**Method-portability invariant（normative）**：除 DID method adapter / resolver policy / method-specific operation 层外，Arkret Event、capability、membership、MLS identity link、service binding 与 audit 语义 MUST 只依赖上述 normalized view 中的稳定语义字段，不得分支读取 `did:webvh` 的 SCID、entry hash chain、witness、versionId 等 method-private 字段。Method-private 证据只能保留在 `method_evidence` / `raw_history_ref` 并由对应 adapter 验证。替换默认 DID method 或执行 §4.2 continuity migration 时，历史 `actor_id` 与 proof bytes 保持不变，新 method 只产生新的 normalized view / continuity evidence / re-grant；MUST NOT 要求修改 core Event schema 或 reducer 语义。若某项 core 决策无法只凭 normalized view 与显式 policy 完成，实现 MUST fail closed，并把缺失能力登记为 method adapter limitation，而不是把 `did:webvh` 解析细节渗入 core。
+
 Arkret MUST NOT：
 
 - 把外部 DID 文档重写成伪私有 DID

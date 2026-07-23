@@ -68,6 +68,33 @@
         "Coverage-priority alignment recorded: activates only after the non-MLS HPKE row for the same MLKEM768-X25519/X-Wing construction (hpke-suite-registry.json ak.hpke_xwing_aead_chacha20poly1305.v1) — static ciphertext backups are the primary Harvest-Now-Decrypt-Later target, MLS group KEM is the second wave"
       ],
       "security_note": "Reserved MLS WG post-quantum hybrid suite using MLKEM768-X25519, AES-128-GCM, SHA256 and classical Ed25519 signatures. The CFRG concrete construction is identical to X-Wing, retained only as a supplemental KEM reference; MLS naming and activation track draft-ietf-mls-pq-ciphersuites. This suite targets post-quantum confidentiality, not post-quantum authentication. Not on wire until activated; receivers MUST fail closed on this suite before activation."
+    },
+    {
+      "canonical_id": "MLS_128_MLKEM768X25519_CHACHA20POLY1305_SHA384_MLDSA44",
+      "rfc9420_id": null,
+      "mls_draft": "draft-ietf-mls-pq-ciphersuites-05",
+      "mls_reference_url": "https://datatracker.ietf.org/doc/html/draft-ietf-mls-pq-ciphersuites-05",
+      "kem_draft": "draft-ietf-hpke-pq-05",
+      "kem_hpke_id": "0x647A",
+      "kem_reference_url": "https://datatracker.ietf.org/doc/html/draft-ietf-hpke-pq-05",
+      "kdf_hpke_id": "0x0011",
+      "aead_hpke_id": "0x0003",
+      "transcript_hash": "SHA384",
+      "signature_scheme": "mldsa44",
+      "signature_draft": "draft-ietf-tls-mldsa-04",
+      "signature_reference_url": "https://datatracker.ietf.org/doc/html/draft-ietf-tls-mldsa-04",
+      "ietf_recommended": true,
+      "status": "reserved",
+      "role": "reserved_pqc_hybrid_authentication",
+      "profile_gate": "ak.profile.mls_ciphersuite.pq_auth.v1",
+      "activation_requirements": [
+        "The exact suite mapping MUST match draft-ietf-mls-pq-ciphersuites-05: MLKEM768-X25519 KEM 0x647A, SHAKE256 KDF 0x0011, ChaCha20-Poly1305 AEAD 0x0003, SHA384 transcript hash and ML-DSA-44 signature; any incompatible draft change requires an explicit registry release and refreshed KAT digest",
+        "IETF/IANA MLS ciphersuite code point assigned for MLS_128_MLKEM768X25519_CHACHA20POLY1305_SHA384_MLDSA44 and recorded here as rfc9420_id; receivers MUST NOT improvise a private code point",
+        "Per-suite byte-level MLS conformance vectors published for KeyPackage encoding, credential and LeafNode signatures, Welcome/Commit KEM operations, group key schedule, invalid ML-DSA-44 signatures and mixed-member unsupported-suite fail-closed behavior",
+        "Publish a new negotiated schema/describe contract release whose ciphersuite vocabulary includes this canonical_id; do not widen a frozen enum in place",
+        "Document the full-PQ claim boundary: this suite covers MLS KEM confidentiality and MLS credential/LeafNode/KeyPackage authentication, but does not automatically replace Arkret Event, receipt or capability proof profiles"
+      ],
+      "security_note": "Reserved MLS WG suite following the standard PQ/T hybrid KEM plus ML-DSA-44 authentication route. It is distinct from ak.profile.signature.pqc.v1 and is not on wire until every activation requirement is met; receivers MUST fail closed on this suite before activation."
     }
   ]
 }
