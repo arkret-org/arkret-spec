@@ -137,24 +137,25 @@ E2EE / plaintext policy 不允许服务端读取 schedule fields 时，服务端
 
 Read marker 与个人通知偏好、saved view personalization、列宽 / 折叠等本地状态都属于 **actor-private account data** 类别。完整 account data 模型、私有标签、个人 blocklist 见 [`../discovery/client-preferences.md`](../discovery/client-preferences.md)。
 
-### 4.1 Agent draft、sidecar projection 与 participation account data
+### 4.1 Agent draft、Sidecar view 与 participation account data
 
 三类 controller-owned encrypted account data 类型在 `ak.agent.*` 命名空间下:
 
 - **`ak.agent.draft.v1`**:agent 通过 `ak.agent.draft.propose` / `ak.agent.action_request`(actor_private_event)提议候选内容,Principal Server 通过 capability / policy / accountability / risk check 后,materialize 为 controller-owned `ak.agent.draft.v1` account-data。Key pattern 建议 `ak.agent.draft.v1:<agent_id>:<draft_id>`,声明 `encrypted_at_rest=true`、tombstone 与 retention 规则。Draft MUST NOT 作为 `ak.message.create` / `ak.strand.create` 或任何 `wire_scope=durable_event` 进入目标 Realm 共享历史。Draft 引用目标 `realm_id` / `strand_id` / `message_id` 不授予目标 Realm 成员读取 draft 内容的权利。
 - **`ak.agent.sidecar_view_state.v1`**：controller-private context view state，使用 `ak.schema.agent_sidecar_view_state.v1` plaintext。Key pattern `ak.agent.sidecar_view_state.v1:<controller_id>:<target_realm_id>:<target_strand_id>`；保存 Sidecar 寄宿显示的 `display_mode=context_merged|sidecar_only`、pin/折叠与跨设备 HLC。它引用 `sidecar_id`，但不得把 backing Circle 当作产品身份。
-- **`ak.agent.sidecar_projection.v1`**：controller-private routed exchange projection，使用 `ak.schema.agent_sidecar_exchange_projection.v1` plaintext。Key pattern `ak.agent.sidecar_projection.v1:<controller_id>:<target_realm_id>:<target_strand_id>:<exchange_id>`；每个 exchange 独立记录 origin、Track sub-key、timeline anchor、addressed/participating Agents、private request Event、允许回显的 user-facing response Events 与状态，支持 account stream 增量 fold。不得把某 context 的全部 echo history 存成单条每次重写的数组。
 - **`ak.agent.participation.v1`**:controller-owned 的逐 scope agent 参与选择 `{reply, accept_third_party_mention, act_on_behalf}`。Key pattern `ak.agent.participation.v1:<agent_id>:<scope_key>`,`scope_key` 为 `realm:<realm_uuid>` / `circle:<realm_uuid>:<circle_uuid>` / `strand:<realm_uuid>:<strand_uuid>`,声明 `encrypted_at_rest=true`。它经 `ak.self.agent.participation.resource.replace` 物化；服务端先把 Agent 创建时 immutable `requested_scope` 派生的全局 ceiling 与 deployment/Realm/Circle/Strand governance ceiling 做 AND，再校验 `selection ⊆ effective_ceiling`。治理 policy 不得补回 provision 时未允许的位。`reply` / `act_on_behalf` effective 为真时进一步物化为 `ak.capability.grant`,`accept_third_party_mention` 驱动 [`strand-and-message.md` §9.4.5](./strand-and-message.md) 的第三方 mention 投递 gate。它是 controller-private state,不进入目标 Realm 共享历史。
 
-上述类型 key 前缀不同、key 第二段语义不同（`draft` / `participation` 为 agent_id，Sidecar view/projection 为 controller_id），不会在 `ak.agent.*` 命名空间下冲突。注册时 MUST 在 `account-data-type-registry.json` 显式声明 key pattern、plaintext schema 与 owner principal，reducer/client 据此做归属、key/content binding 与 closed-schema 校验。
+上述类型 key 前缀不同、key 第二段语义不同（`draft` / `participation` 为 agent_id，Sidecar view 为 controller_id），不会在 `ak.agent.*` 命名空间下冲突。注册时 MUST 在 `account-data-type-registry.json` 显式声明 key pattern、plaintext schema 与 owner principal，reducer/client 据此做归属、key/content binding 与 closed-schema 校验。
+
+`ak.schema.agent_sidecar_exchange_projection.v1` 不属于本节 Account Data：它只是 controller 设备从 Sidecar private Event history 生成的本地可删除 cache/SDK DTO，不注册 account-data key，不进入 account stream，也不跨设备合并。真相源与恢复规则见 [`sidecar.md`](./sidecar.md) §7.2。
 
 ### 4.2 隐私边界(normative)
 
 针对上述 agent-attributed private state:
 
 - 存储 MUST 使用 `wire_scope=actor_private_event` 通道(encrypted account data 或 actor-private stream);不得进入 shared Realm data-plane history 或 control-plane Seal history。
-- 目标 Realm 的 `ak.self.events.stream.subscribe` / `ak.self.events.query.scan` / shared reducer / Realm search index / notification fanout / push preview MUST NOT 返回 draft 或 sidecar projection 内容。
-- `ak.self.account.stream.subscribe` 只能把 controller-owned approval draft / sidecar projection 返回给 controller principal 的授权 session,以及 scope 明确包含该 account-data 访问权的 agent runtime。
+- 目标 Realm 的 `ak.self.events.stream.subscribe` / `ak.self.events.query.scan` / shared reducer / Realm search index / notification fanout / push preview MUST NOT 返回 draft、Sidecar view state 或本地 exchange cache 内容。
+- `ak.self.account.stream.subscribe` 只能把 controller-owned approval draft / Sidecar view state 返回给 controller principal 的授权 session。Agent runtime MUST NOT 接收上述 controller-owned encrypted account data：其 value 以 controller account secret 派生密钥加密（[`account-data.md`](./account-data.md) §3），不同 principal 的 account secret 强制隔离，不存在也不得新增向 Agent runtime 分发该 secret 的机制。Agent runtime 所需的 Sidecar exchange identity 经 [`sidecar.md`](./sidecar.md) §7.2.1 的加密 exchange binding 在 Event 内传递。
 - 若服务端存储明文，该 deployment MUST 把"明文可见服务"写入 profile / policy 并向 controller 披露；默认语义 SHOULD 是服务端只保存 encrypted account data。
 - Draft 发布到目标 Strand 时,shared event MAY 通过 `refs[].role="draft_source"` 携带 opaque digest,但明文 draft id、private metadata、scratchpad、private prompt 或历史版本 MUST NOT 泄露到共享历史。
 - Sidecar 发布到目标 Strand 时，MUST NOT 泄露 `sidecar_id`、`backing_circle_id`、`private_strand_id`、private Relation id、private messages、scratchpad 或 draft history。

@@ -2802,13 +2802,16 @@
         "ak.circle.member.state",
         "ak.strand.create",
         "ak.relation.create",
-        "ak.message.create"
+        "ak.message.create",
+        "ak.agent.sidecar.exchange.control"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.agent_sidecar.v1",
         "ak.schema.agent_sidecar_view_state.v1",
         "ak.schema.agent_sidecar_exchange_projection.v1",
+        "ak.schema.agent_sidecar_event_exchange_binding.v1",
+        "ak.schema.agent_sidecar_exchange_control.v1",
         "ak.schema.circle.v1",
         "ak.schema.strand.v1",
         "ak.schema.relation.v1"
@@ -2836,6 +2839,10 @@
           "multi_track_private_write_target",
           "source_anchor_deterministic_merge",
           "private_event_echo_deduplication",
+          "exchange_binding_closed_loop",
+          "exchange_control_event_truth",
+          "exchange_coordinator_completion",
+          "exchange_projection_local_fold_cache",
           "existence_privacy_invariants",
           "single_executed_by_on_publish"
         ],

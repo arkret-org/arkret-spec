@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/agent-sidecar-exchange-control.schema.json",
+  "title": "Arkret Agent Sidecar Exchange Control",
+  "description": "Closed plaintext encrypted inside the payload of ak.agent.sidecar.exchange.control. Only the Sidecar controller may author this durable private-Strand Event. It is the sole source of coordinator reassignment and terminal exchange state.",
+  "type": "object",
+  "required": [
+    "schema",
+    "exchange_id",
+    "request_event_id",
+    "basis_event_ids",
+    "action"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.agent_sidecar_exchange_control.v1"
+    },
+    "exchange_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._~=-]{22,128}$"
+    },
+    "request_event_id": {
+      "$ref": "#/$defs/event_id"
+    },
+    "basis_event_ids": {
+      "type": "array",
+      "description": "Canonical UTF-8 byte-order sorted maximal causal heads of exchange facts observed when this control was authored. The outer Event refs MUST contain role=after for every id, and the request Event must be causally covered.",
+      "items": {
+        "$ref": "#/$defs/event_id"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "close",
+        "cancel",
+        "fail",
+        "reassign_coordinator"
+      ]
+    },
+    "response_event_ids": {
+      "type": "array",
+      "description": "Exact canonical set of validated user-facing response Event ids causally covered by basis_event_ids. Required for every terminal action, including an empty array.",
+      "items": {
+        "$ref": "#/$defs/event_id"
+      },
+      "uniqueItems": true
+    },
+    "failure_code": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,63}$",
+      "description": "Required only for action=fail. close/cancel derive empty-response failure codes controller_closed_empty/controller_cancelled."
+    },
+    "expected_coordinator_agent_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "coordinator_agent_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did",
+      "description": "New coordinator for action=reassign_coordinator. It MUST be addressed by the request and eligible at authoring time."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "enum": [
+              "close",
+              "cancel",
+              "fail"
+            ]
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "then": {
+        "required": [
+          "response_event_ids"
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "expected_coordinator_agent_id"
+              ]
+            },
+            {
+              "required": [
+                "coordinator_agent_id"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "fail"
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "then": {
+        "required": [
+          "failure_code"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "failure_code"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "reassign_coordinator"
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "then": {
+        "required": [
+          "expected_coordinator_agent_id",
+          "coordinator_agent_id"
+        ],
+        "not": {
+          "required": [
+            "response_event_ids"
+          ]
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    }
+  },
+  "additionalProperties": false
+}

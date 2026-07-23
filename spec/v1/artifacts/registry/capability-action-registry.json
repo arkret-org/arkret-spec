@@ -1200,6 +1200,19 @@
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
+      "action": "ak.agent.sidecar.exchange.control",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [
+        "allowed_strand_ids"
+      ],
+      "target_event_kinds": [
+        "ak.agent.sidecar.exchange.control"
+      ],
+      "profile": "ak.profile.agent_sidecar.v1",
+      "event_mapping_kind": "same_name"
+    },
+    {
       "action": "ak.agent.sidecar.publish",
       "category": "management",
       "risk_tier": "high",

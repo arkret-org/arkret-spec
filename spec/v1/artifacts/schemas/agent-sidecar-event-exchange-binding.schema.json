@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/agent-sidecar-event-exchange-binding.schema.json",
+  "title": "Arkret Agent Sidecar Event Exchange Binding",
+  "description": "Closed typed binding that ties one Sidecar-scoped Message event to one source-routed exchange. It is legal only inside the encrypted metadata plaintext (message_metadata.sidecar_exchange_binding) of an event whose effective scope is the Sidecar backing Circle. It is the only normative way to declare an explicit user-facing response; any event without a valid binding, with an unknown role, or with a schema mismatch MUST be treated as non-echo. See zh/models/sidecar.md §7.2.",
+  "type": "object",
+  "required": [
+    "schema",
+    "exchange_id",
+    "role"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.agent_sidecar_event_exchange_binding.v1"
+    },
+    "exchange_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._~=-]{22,128}$",
+      "description": "Opaque controller-private idempotency identity copied verbatim from the request binding. It is not a Sidecar locator and MUST NOT appear in shared events, plaintext metadata, publish output, push previews, notifications, public telemetry, account-data keys, or any public/shared surface."
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "request",
+        "user_facing_response",
+        "internal"
+      ],
+      "description": "Closed disposition. request: the controller's private request event itself. user_facing_response: an Agent response the controller MAY echo after validation. internal: exchange-scoped Agent collaboration/tool output that MUST NOT be echoed. Consumers MUST fail closed to non-echo on any value not listed here."
+    },
+    "request_event_id": {
+      "type": "string",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Accepted Event id of the private request event of the same exchange. Event id is the only canonical reference form; Message ids MUST NOT be used here."
+    },
+    "completes_exchange": {
+      "const": true,
+      "description": "Optional coordinator completion request; legal only with role=user_facing_response. It does not itself make the exchange terminal. A controller device validates the actor against coordinator_assignment_event_id and, on success, authors a durable ak.agent.sidecar.exchange.control Event with action=close."
+    },
+    "coordinator_assignment_event_id": {
+      "type": "string",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Request Event id for the initial coordinator assignment, or the accepted reassign_coordinator control Event id. Required only when completes_exchange=true."
+    },
+    "request_context": {
+      "$ref": "#/$defs/request_context"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "role": {
+            "const": "request"
+          }
+        },
+        "required": [
+          "role"
+        ]
+      },
+      "then": {
+        "required": [
+          "request_context"
+        ],
+        "not": {
+          "required": [
+            "request_event_id"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "role": {
+            "enum": [
+              "user_facing_response",
+              "internal"
+            ]
+          }
+        },
+        "required": [
+          "role"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "request_context"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "role": {
+            "enum": [
+              "user_facing_response",
+              "internal"
+            ]
+          }
+        },
+        "required": [
+          "role"
+        ]
+      },
+      "then": {
+        "required": [
+          "request_event_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "role": {
+            "enum": [
+              "request",
+              "internal"
+            ]
+          }
+        },
+        "required": [
+          "role"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "completes_exchange"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "completes_exchange": {
+            "const": true
+          }
+        },
+        "required": [
+          "completes_exchange"
+        ]
+      },
+      "then": {
+        "properties": {
+          "role": {
+            "const": "user_facing_response"
+          }
+        },
+        "required": [
+          "coordinator_assignment_event_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "not": {
+          "properties": {
+            "completes_exchange": {
+              "const": true
+            }
+          },
+          "required": [
+            "completes_exchange"
+          ]
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "coordinator_assignment_event_id"
+          ]
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "request_context": {
+      "type": "object",
+      "description": "Write-once exchange identity carried only on role=request. It is the single durable source of the projection's write-once fields: any controller device rebuilding the projection copies these values verbatim, so cross-device bit-identity is anchored to the accepted request event instead of device-local state. Forbidden on response/internal roles.",
+      "required": [
+        "source_track_ref",
+        "source_hlc",
+        "client_order_key",
+        "addressed_agent_ids",
+        "completion_policy"
+      ],
+      "properties": {
+        "source_track_ref": {
+          "type": "object",
+          "required": [
+            "realm_id",
+            "strand_id",
+            "track_name"
+          ],
+          "properties": {
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            },
+            "strand_id": {
+              "type": "string",
+              "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "track_name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,63}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "source_hlc": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
+        },
+        "client_order_key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._~=-]{1,128}$"
+        },
+        "addressed_agent_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/did"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "completion_policy": {
+          "const": "coordinator",
+          "description": "Closed v1 completion policy. Only the effective coordinator may ask the controller to close the exchange."
+        },
+        "coordinator_agent_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did",
+          "description": "Initial coordinator. It MUST be one of addressed_agent_ids. It MAY be omitted only when addressed_agent_ids contains exactly one item, in which case that sole item is implied."
+        },
+        "source_frontier_anchor": {
+          "type": "string",
+          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "addressed_agent_ids": {
+                "minItems": 2
+              }
+            },
+            "required": [
+              "addressed_agent_ids"
+            ]
+          },
+          "then": {
+            "required": [
+              "coordinator_agent_id"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

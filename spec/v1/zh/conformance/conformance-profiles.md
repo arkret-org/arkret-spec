@@ -681,14 +681,17 @@ MUST 支持:
 - Sidecar 及其 backing Circle/private Strand 不出现在普通 Circle、Realm-wide navigation、board/list、public search 或 scope picker
 - 多 agent publish 时 `actor_id` / `executed_by` MUST 是单一签发 agent principal
 - Retention 继承目标 Realm,profile 可收紧不可放宽
-- `ak.agent.sidecar_view_state.v1` 与 per-exchange `ak.agent.sidecar_projection.v1` controller-private encrypted account-data MUST 注册并按 closed plaintext schema/key binding 校验
+- `ak.agent.sidecar_view_state.v1` 是唯一 Sidecar controller-private Account Data；`ak.schema.agent_sidecar_exchange_projection.v1` 只能作为设备本地 Event-fold cache/SDK DTO，不得注册 account-data key、上传或进入 account stream
 - 主 Strand 寄宿 surface、`context_merged|sidecar_only` Strand-level mode、多 Track private write target、timeline deterministic merge/source-anchor 与 Event-id 去重
+- Routed exchange 走 Event-truth 闭环（[`sidecar.md`](../models/sidecar.md) §7.2.1–§7.2.5）：request/Agent Message 使用 typed binding；coordinator/reassign/terminal state 使用 controller-authored `ak.agent.sidecar.exchange.control`；projection 只从 accepted private history 确定性 fold
+- binding 只能位于 Sidecar-scoped Event 的 encrypted metadata plaintext；明文/共享 scope 出现按 `forbidden-wire-fields.json` hard reject
 
 MUST NOT:
 - 在目标公开 Strand 写 target-side reverse `agent_sidecar_of` relation
 - 修改目标 Strand `tracks` map 或写入 target-side metadata / Relation / watch / unread / search / notification state
 - 建立独立 Sidecar route/page/drawer/deep link，或把 Sidecar 呈现为 Strand Track Tab/普通 Circle
 - 因 private Track 尚未建立而回退读取或写入来源 shared Track
+- 以 `reply_to`、到达顺序、actor kind、内容或超时推断回显资格/exchange 状态，把本地 exchange projection 当作 wire truth，或向 Agent runtime 返回 controller-owned Sidecar Account Data
 - 接受 caller-provided `participant_model`、member list、Circle title/display/join rule 或 backing Circle id
 - 为同一 `(realm_id, controller_id)` 创建第二个 non-tombstoned Sidecar 或第二个 active backing Circle
 

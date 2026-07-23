@@ -1430,6 +1430,23 @@
       },
       "additionalProperties": false
     },
+    "agent_sidecar_exchange_control_payload": {
+      "type": "object",
+      "description": "Outer payload for ak.agent.sidecar.exchange.control. The service-visible strand_id routes the Event inside the Sidecar backing Circle; encrypted_payload plaintext MUST validate as agent-sidecar-exchange-control.schema.json. Admission MUST require that the effective scope is the matching Sidecar backing Circle and actor_id is that Sidecar's controller.",
+      "required": [
+        "strand_id",
+        "encrypted_payload"
+      ],
+      "properties": {
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
+        },
+        "encrypted_payload": {
+          "$ref": "#/$defs/encrypted_payload"
+        }
+      },
+      "additionalProperties": false
+    },
     "morph_create_payload": {
       "type": "object",
       "description": "Create payload uses the full Morph object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance.",

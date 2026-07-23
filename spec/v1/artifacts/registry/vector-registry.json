@@ -3187,6 +3187,45 @@
       ]
     },
     {
+      "vector_id": "ak.vector.sidecar.exchange_binding_closed_loop.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
+      "description": "Explicit response closed loop with runtime addressed/self eligibility and restart dedupe gates, coordinator completion policy, causal request refs, controller validation, fail-closed non-echo handling, and controller-authored durable close control.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sidecar.exchange_projection_recovery.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
+      "description": "Event-fold and local-cache recovery: rebuild from accepted private history, causal folded-frontier validation, no Account Data merge, controller control ordering/sibling resolution, terminal absorption, reassignment, action-by-response-set mapping, and projection schema state invariants.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sidecar.exchange_binding_containment.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
+      "description": "Containment: plaintext or shared-scope occurrences of exchange binding/control schema ids or exchange_id are hard rejects/invalid; publish output, Account Data, and public/shared surfaces carry no exchange material.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.session.pop_presentation.v1",
       "status": "active",
       "domain": "session",

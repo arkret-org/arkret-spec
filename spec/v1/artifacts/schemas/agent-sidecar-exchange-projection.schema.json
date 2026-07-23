@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/agent-sidecar-exchange-projection.schema.json",
   "title": "Arkret Agent Sidecar Exchange Projection",
-  "description": "Controller-private encrypted account-data plaintext for one source-routed Sidecar exchange. One record per exchange permits incremental account-stream folding without rewriting or replaying the context's full echo history.",
+  "description": "Disposable controller-device-local cache for one source-routed Sidecar exchange. Every field is a deterministic fold of accepted private-Strand Events. This object is not wire truth, is not Account Data, is never merged across devices, and may always be deleted and rebuilt.",
   "type": "object",
   "required": [
     "schema",
@@ -15,9 +15,14 @@
     "source_hlc",
     "client_order_key",
     "addressed_agent_ids",
+    "completion_policy",
+    "coordinator_agent_id",
+    "coordinator_assignment_event_id",
+    "participating_agent_ids",
     "private_request_event_id",
+    "user_facing_response_event_ids",
     "status",
-    "updated_hlc"
+    "folded_frontier"
   ],
   "properties": {
     "schema": {
@@ -56,7 +61,17 @@
       "items": {
         "$ref": "./common-ids.schema.json#/$defs/did"
       },
-      "uniqueItems": true
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "completion_policy": {
+      "const": "coordinator"
+    },
+    "coordinator_agent_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "coordinator_assignment_event_id": {
+      "$ref": "#/$defs/event_id"
     },
     "participating_agent_ids": {
       "type": "array",
@@ -78,7 +93,6 @@
     "status": {
       "type": "string",
       "enum": [
-        "pending",
         "delivered",
         "responding",
         "complete",
@@ -89,8 +103,12 @@
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,63}$"
     },
-    "updated_hlc": {
-      "$ref": "#/$defs/hlc"
+    "terminal_event_id": {
+      "$ref": "#/$defs/event_id",
+      "description": "Controller-authored ak.agent.sidecar.exchange.control Event that produced complete or failed."
+    },
+    "folded_frontier": {
+      "$ref": "#/$defs/folded_frontier"
     }
   },
   "allOf": [
@@ -107,8 +125,41 @@
       },
       "then": {
         "required": [
-          "failure_code"
+          "failure_code",
+          "terminal_event_id"
+        ],
+        "properties": {
+          "user_facing_response_event_ids": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "responding",
+              "complete"
+            ]
+          }
+        },
+        "required": [
+          "status"
         ]
+      },
+      "then": {
+        "properties": {
+          "user_facing_response_event_ids": {
+            "minItems": 1
+          }
+        },
+        "not": {
+          "required": [
+            "failure_code"
+          ]
+        }
       }
     },
     {
@@ -124,8 +175,60 @@
       },
       "then": {
         "required": [
-          "user_facing_response_event_ids"
+          "terminal_event_id"
         ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "delivered"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "user_facing_response_event_ids": {
+            "maxItems": 0
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "failure_code"
+              ]
+            },
+            {
+              "required": [
+                "terminal_event_id"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "responding"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "terminal_event_id"
+          ]
+        }
       }
     }
   ],
@@ -146,6 +249,36 @@
     "hlc": {
       "type": "string",
       "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    },
+    "folded_frontier": {
+      "type": "object",
+      "description": "Local cache coverage. event_ids are the canonical sorted maximal causal heads of all contributing accepted exchange facts. event_set_digest commits to the canonical sorted complete contributing Event-id set. max_hlc is display/cache metadata only and never proves causal dominance.",
+      "required": [
+        "event_ids",
+        "event_set_digest",
+        "max_hlc"
+      ],
+      "properties": {
+        "event_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "event_set_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "max_hlc": {
+          "$ref": "#/$defs/hlc"
+        }
+      },
+      "additionalProperties": false
     },
     "track_name": {
       "type": "string",

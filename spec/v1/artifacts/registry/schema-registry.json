@@ -68,7 +68,19 @@
       "schema_id": "ak.schema.agent_sidecar_exchange_projection.v1",
       "file": "schemas/agent-sidecar-exchange-projection.schema.json",
       "status": "active",
-      "description": "Controller-private encrypted account-data plaintext for one source-routed Sidecar exchange and stable echo projection."
+      "description": "Disposable controller-device-local Event-fold cache for one source-routed Sidecar exchange. Not Account Data or wire truth."
+    },
+    {
+      "schema_id": "ak.schema.agent_sidecar_event_exchange_binding.v1",
+      "file": "schemas/agent-sidecar-event-exchange-binding.schema.json",
+      "status": "active",
+      "description": "Closed exchange binding inside the encrypted metadata plaintext of Sidecar-scoped Message events. Sole normative declaration of explicit user-facing/internal response disposition. Never legal in plaintext metadata or shared Realm/Circle events. See zh/models/sidecar.md section 7.2.1."
+    },
+    {
+      "schema_id": "ak.schema.agent_sidecar_exchange_control.v1",
+      "file": "schemas/agent-sidecar-exchange-control.schema.json",
+      "status": "active",
+      "description": "Closed plaintext encrypted by ak.agent.sidecar.exchange.control. Sole durable source of Sidecar exchange coordinator reassignment and terminal state."
     },
     {
       "schema_id": "ak.schema.strand.v1",

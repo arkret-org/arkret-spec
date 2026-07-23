@@ -273,21 +273,6 @@
       ]
     },
     {
-      "key_pattern": "ak.agent.sidecar_projection.v1:<controller_id>:<target_realm_id>:<target_strand_id>:<exchange_id>",
-      "status": "active",
-      "scope": "controller_private_state",
-      "storage": "encrypted_account_data",
-      "owner_principal": "controller",
-      "plaintext_schema": "ak.schema.agent_sidecar_exchange_projection.v1",
-      "write_event_kinds": [
-        "ak.account_data.set"
-      ],
-      "description": "One controller-private source-routed Sidecar exchange projection per key. Carries typed origin, Track sub-key, stable source anchor/order, addressed/participating Agents, private request Event, user-facing response Events, and status for incremental account-stream folding. It never modifies shared target state.",
-      "source_refs": [
-        "spec/v1/zh/models/private-objects.md"
-      ]
-    },
-    {
       "key_pattern": "ak.agent.participation.v1:<agent_id>:<scope_key>",
       "status": "active",
       "scope": "controller_private_state",

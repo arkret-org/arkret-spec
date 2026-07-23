@@ -383,6 +383,10 @@
       "properties": {
         "fields": {
           "$ref": "#/$defs/metadata_fields"
+        },
+        "sidecar_exchange_binding": {
+          "$ref": "./agent-sidecar-event-exchange-binding.schema.json",
+          "description": "Agent Sidecar exchange binding. Legal only inside encrypted_metadata plaintext of an event whose effective scope is the Sidecar backing Circle; forbidden in plaintext metadata and in shared Realm/Circle events (see forbidden-wire-fields.json and zh/models/sidecar.md §7.2)."
         }
       },
       "not": {

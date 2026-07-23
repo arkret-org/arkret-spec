@@ -510,6 +510,7 @@
               "ak.key_backup.active_series",
               "ak.member.identity.update",
               "ak.member.state",
+              "ak.agent.sidecar.exchange.control",
               "ak.message.create",
               "ak.message.redact",
               "ak.message.revise",
@@ -1874,6 +1875,29 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/message_create_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.agent.sidecar.exchange.control"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "hlc",
+          "refs"
+        ],
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_sidecar_exchange_control_payload"
           }
         }
       }

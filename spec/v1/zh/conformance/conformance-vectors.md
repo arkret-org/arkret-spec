@@ -3847,18 +3847,78 @@ Steps:
 
 1. Alice 在来源 Strand `F` 的 `discussion` Track 以 owned-Agent selector 提交 routed request，当前已见 shared frontier 为 Event `E0`。
 2. 客户端以 `{realm_id, strand_id=F}` ensure Sidecar；分别以额外 `track_name` 与 `message_id` 构造两个 negative ensure request。
-3. private request Event `P1` 被接受后，客户端写入 key suffix 为同一 `exchange_id=X1` 的 `ak.schema.agent_sidecar_exchange_projection.v1`；模拟 account-data response 丢失并重试。
+3. private request Event `P1` 被接受后，客户端 fold 出 `exchange_id=X1` 的本地 `ak.schema.agent_sidecar_exchange_projection.v1` cache；删除该 cache 后从 private history 重建。
 4. Alice 激活主 Strand 寄宿 Sidecar，在 `context_merged` 下依次切换 `discussion`、`synthesis`，再切换为 `sidecar_only`；`synthesis` private Track 尚未建立。
-5. Agent 在同一 exchange 产生内部协作 Event `I1` 与明确 user-facing response Event `R1`；随后 Alice 在 active Sidecar 内直接创建 native Event `N1`。
-6. 第二设备从 actor-private account stream 增量恢复 view state 与 exchange projection。
+5. Agent 在同一 exchange 产生内部协作 Event `I1`（binding `role=internal`）与明确 user-facing response Event `R1`（binding `role=user_facing_response`，`request_event_id=P1`）；随后 Alice 在 active Sidecar 内直接创建 native Event `N1`（无 binding）。
+6. 第二设备从 account stream 恢复 view state，并从 Sidecar private Event history 独立 fold exchange projection。
 
 Expected:
 
 - 第 2 步所有合法 Track 共用同一 private Strand；带 `track_name`/`message_id` 的 ensure request closed-schema reject，不能创建第二条 private Strand。
-- 第 3 步重试只幂等返回 `X1` projection，不重复 private request/Agent execution；echo 位于 `E0` 后，同 anchor 按 `(source_hlc, exchange_id)` 排序。
+- 第 3 步 cache 删除/重建不重复 private request 或 Agent execution；echo 位于 `E0` 后，同 anchor 按 `(source_hlc, exchange_id)` 排序。
 - 第 4 步主 Strand title/breadcrumb/Track tabs 保持可见，scope bar 位于 header 与 tabs 之间；两种 mode 对后续 Track 生效，所有 active writes 指向 private Track。缺失 private `synthesis` 显示 private empty state，不回退 shared write/read。
 - merged `discussion` 按 private Event id 去重，`P1` 不因 private fold 与 echo projection 重复显示；shared/private provenance 与 controller-only 可见性标识持续可见。
 - 只有 `P1` 与 `R1` 可进入 echo；`I1` 与 `N1` 不创建 source echo。第二设备得到相同排序、状态与去重结果，且无需来源 Realm 重放 private Event。
+
+### 11.10.3 Vector: Sidecar Exchange Binding Closed Loop
+
+`vector_id`: `ak.vector.sidecar.exchange_binding_closed_loop.v1`
+
+Steps:
+
+1. Alice 提交 routed request：`P1` 携带 `role=request` binding，`addressed_agent_ids=[S,T]`、`completion_policy=coordinator`、`coordinator_agent_id=S`。非 addressed backing member U 同样解密到 `P1`。
+2. S 通过 runtime 消费门后产生 `I1` 与 user-facing `R1`；runtime 重启并再次收到 `P1`。controller 又 author 不同 request Event `P_dup` 复用同一 `exchange_id=X1`。T 产生 user-facing `R_noncoord` 且错误声明 `completes_exchange=true`；U 尝试执行同一 request。
+3. 构造变异响应：wrong exchange/request/private Strand、actor U、unknown role、missing binding、缺少顶层 `refs[role=after]`、以及 `ak:message:` shaped request id；另由 T 发送携带 `role=request` 的 Event `F1`。
+4. `R1` 重复投递同一设备两次。
+5. S 发送 `R2`（`role=user_facing_response`, `completes_exchange=true`, `coordinator_assignment_event_id=P1`）；controller 验证后 author `C1=ak.agent.sidecar.exchange.control{action=close,response_event_ids=[R1,R_noncoord,R2]}`。
+
+Expected:
+
+- 第 1 步 runtime 只从 `P1` binding 获得 `X1`；不存在 Account Data projection 读写路径。S/T 可继续消费，U 必须把 request 当作不存在。
+- 第 2 步 runtime 持久化 `X1 → P1`，restart 不得重复执行；`P_dup` 即使拥有不同 Event id 也因复用 `X1` fail closed。已接受的 canonical `P1` 已处于 delivered，`I1` 只推进 participating 且不改变状态；`R1` 推进 responding；T 的正文可回显，但非 coordinator completion 请求不得产生 control Event；U 不执行。
+- 第 3 步全部变异 fail closed 为 non-echo；missing binding 是安全缺省而不是 schema error；`R_msgid` 是 closed-schema reject；wrong Strand/actor/ref 不进入 fold；`F1` 因 actor 非 controller 整体无效。
+- 第 4 步重复到达幂等：`user_facing_response_event_ids` 只含一次 `R1`。
+- 第 5 步 `R2` 本身仍只推进 responding；accepted `C1` 才推进 complete。response 集按 `(Event HLC, Event id)` 排序且至少一项；不得由时间流逝、Event 缺席或内容直接推断终态。
+
+### 11.10.4 Vector: Sidecar Exchange Event Fold, Control and Cache Recovery
+
+`vector_id`: `ak.vector.sidecar.exchange_projection_recovery.v1`
+
+Steps:
+
+1. `P1` accepted 后本地 cache 与 intent 都丢失；重启扫描 private Strand history，从 controller-authored request binding 重建。
+2. Alice 全部设备离线期间，S 发送 user-facing responses `R1`、`R2`。设备 D1 重连并验证追加；随后 D2 独立重连重放同一流程。
+3. D1 暂时只见 `R1`，D2 只见 `R2`，两者 `folded_frontier` 不可比较；随后各自补齐 history。
+4. 分别 author terminal controls：`close+[R1]`、`cancel+[R1]`、`close+[]`、`cancel+[]`、`fail(agent_deactivated)+[]`。验证每个 action × response-set 组合。
+5. 同一 controller `actor_seq` 上产生 concurrent `close`/`cancel` siblings，并在更高 sequence 产生 `reassign_coordinator`；另一个非终态 exchange 先以 matching expected coordinator reassign，再由新 coordinator请求完成。
+
+Expected:
+
+- 第 1 步 projection 的 identity 字段来自 request/context/accepted scope，不依赖设备本地状态，不重复投递；服务端不参与 fold。Agent-authored request binding 被排除。
+- 第 2 步 D1/D2 独立得到 bit-identical 的 response 集合、`(Event HLC, Event id)` 规范排序与状态，不要求来源 Realm 重放 private Event。
+- 第 3 步任何设备都不得用 HLC/LWW 覆盖不可比较 cache；补齐后从联合 accepted history 得到同一 Event set digest、最大 causal heads、max HLC 与 `{R1,R2}`。
+- 第 4 步 `close/cancel + 非空 response` 都 complete；`close+[]` failed/controller_closed_empty；`cancel+[]` failed/controller_cancelled；`fail+[]` failed/agent_deactivated。complete 的 responses minItems=1，failed responses empty 且 failure_code 必填。
+- 第 5 步同 sequence 只取 event-digest bytewise 最大 sibling，第一条有效 terminal 吸收后续 reassign；非终态 matching reassign 生效并更新 assignment Event id，旧 coordinator 的 completion 请求不关单，新 coordinator 可触发 controller close。
+- 与 winning terminal 并发但未被其 `basis_event_ids` causal closure 覆盖、或因果上晚于 terminal 的 Agent/control Events 保留为私有审计历史，但不得进入 terminal projection 或改变响应集/状态。
+- cache 不上传、不进入 account stream；cache frontier 未被本地已验证 history 支配时必须丢弃，不能回退内存/UI fold。
+
+### 11.10.5 Vector: Sidecar Exchange Binding Containment
+
+`vector_id`: `ak.vector.sidecar.exchange_binding_containment.v1`
+
+Steps:
+
+1. 构造明文 `metadata.sidecar_exchange_binding` 的 Sidecar `ak.message.create`。
+2. 构造 shared Realm/Circle scope 的 `ak.message.create` binding，以及 shared scope 的 `ak.agent.sidecar.exchange.control`/control schema plaintext。
+3. Alice 从 Sidecar 显式 publish 一条内容到目标 shared Strand。
+4. 扫描 publish 产物、shared history、push preview、notification 与公开 telemetry surface。
+
+Expected:
+
+- 第 1 步 wire 上明文出现 `sidecar_exchange_binding` key / binding schema id / `exchange_id` MUST `schema_violation` hard reject（见 `forbidden-wire-fields.json`）。
+- 第 2 步明文携带按第 1 步拒绝；加密材料解密后因 scope 不匹配而无效，不得渲染或进入 fold。
+- 第 3 步 publish 产物是普通 shared event，不携带 binding、`exchange_id`、`sidecar_id` 或任何 private locator；只允许规范允许的 opaque digest。
+- 第 4 步全部 shared/公开/Account Data surface 对 `exchange_id`、binding schema id 与 control schema id zero hits；不存在 account-data key 例外。
 
 ### 11.11 Vector: Multi-Agent Publish Attribution
 

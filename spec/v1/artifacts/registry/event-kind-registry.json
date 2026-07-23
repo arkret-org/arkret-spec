@@ -1899,6 +1899,23 @@
       "sealed": false
     },
     {
+      "event_kind": "ak.agent.sidecar.exchange.control",
+      "category": "agent",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Controller-authored durable Sidecar exchange control. The outer payload exposes only private Strand routing plus an MLS encrypted payload whose plaintext validates as ak.schema.agent_sidecar_exchange_control.v1. It is accepted only in the matching Sidecar backing Circle from that Sidecar controller and is the sole truth source for coordinator reassignment and terminal exchange state.",
+      "cell_family": "ak.component.strand.discussion.timeline.v1",
+      "cell_subject": {
+        "type": "id:strand",
+        "field": "payload.strand_id"
+      },
+      "lattice": "ordered_log",
+      "bottom": "expose",
+      "plane": "data",
+      "sealed": false
+    },
+    {
       "event_kind": "ak.message.revise",
       "category": "message",
       "status": "active",

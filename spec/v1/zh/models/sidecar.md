@@ -210,12 +210,9 @@ Sidecar private Strand 是完整 Strand，可拥有来源 Strand 对应的 `synt
 
 Sidecar 没有独立用户可见页面、route、drawer workspace、导航项或 private Strand deep link。客户端必须在 `normalized_context_ref` 对应的主 Strand shell 内显示 Sidecar，始终保留来源 Strand的 title、breadcrumb 与 Track tabs，并在 Strand header 与 Track tabs 之间持续显示 private-context bar、E2EE/仅本人可见状态、当前 write target 与退出入口。Sidecar 不得表现为第四个 Track Tab 或普通 Circle。
 
-controller-private projection 分成两个加密 account-data plaintext schema：
+controller-private 状态只有 `ak.schema.agent_sidecar_view_state.v1` 属于 encrypted Account Data：它使用 key `ak.agent.sidecar_view_state.v1:<controller_id>:<target_realm_id>:<target_strand_id>`，按 context 保存 `display_mode`、pin/折叠状态与跨设备 HLC。`display_mode` 只有 `context_merged` 与 `sidecar_only`；首次激活默认 `context_merged`。key 中的 controller/Realm/Strand components MUST 与解密后的 schema 字段 bit-identical；owner、key binding、schema 与 AEAD AAD 任一不匹配 MUST fail closed。
 
-- `ak.schema.agent_sidecar_view_state.v1` 使用 key `ak.agent.sidecar_view_state.v1:<controller_id>:<target_realm_id>:<target_strand_id>`，按 context 保存 `display_mode`、pin/折叠状态与跨设备 HLC。`display_mode` 只有 `context_merged` 与 `sidecar_only`；首次激活默认 `context_merged`。
-- `ak.schema.agent_sidecar_exchange_projection.v1` 使用 key `ak.agent.sidecar_projection.v1:<controller_id>:<target_realm_id>:<target_strand_id>:<exchange_id>`，每个 source-routed exchange 独立一条记录。它保存强类型 `origin=source_track_routed`、Track sub-key、anchor、HLC、stable order key、addressed/participating Agents、private request Event、显式 user-facing response Events 与状态。每 exchange 独立记录使 account stream 可增量 fold，客户端 MUST NOT 在每次更新时解密、重写或重放该 context 的完整 echo 历史。
-
-上述 key 中的 controller/Realm/Strand/exchange components MUST 与解密后的 schema 字段 bit-identical；owner、key binding、schema 与 AEAD AAD 任一不匹配 MUST fail closed。两类 projection 只可从 actor-private account stream 返回给 controller 及明确获得该 account-data scope 的 Agent runtime。它们不得修改目标 Strand `tracks`、metadata、Relation、watch、unread、search、notification 或 shared history state。
+`ak.schema.agent_sidecar_exchange_projection.v1` **不是 Account Data 或 wire object**，只是 controller 设备本地可删除的 Event-fold cache/SDK DTO。Exchange 的 request、response、coordinator 与 terminal state 全部以 §7.2 的 Sidecar private Strand Event 为真相源；设备不得上传、跨设备合并或通过 account stream 分发 exchange projection。Agent runtime 既不接收 projection，也不接触 controller account secret。view state 与本地 exchange cache 均不得修改目标 Strand `tracks`、metadata、Relation、watch、unread、search、notification 或 shared history state。
 
 ### 7.1 显示模式与多 Track projection
 
@@ -226,17 +223,90 @@ controller-private projection 分成两个加密 account-data plaintext schema�
 
 两种模式下，只要 Sidecar active，全部 Track write target 都固定为 private Strand 的对应 Track，shared projection 只读。切换 mode 不得创建/迁移 Event，不得改变 access、MLS scope、read/unread、watch、notification、search 或来源 Strand state。退出 Sidecar 后，客户端恢复该 Track 原 shared scroll/editor/draft；private draft 不得进入 shared editor。
 
-所有 merged content 必须持续显示 shared/private provenance 与当前 editor destination。若同一 private request Event 已由 `ak.agent.sidecar_projection.v1` 作为来源 echo 合并进当前 timeline，private Track fold MUST 按 Event id 去重，只显示一次，不得依赖本地数组下标或 DOM identity。
+所有 merged content 必须持续显示 shared/private provenance 与当前 editor destination。若同一 private request Event 已由本地 exchange fold 作为来源 echo 合并进当前 timeline，private Track fold MUST 按 Event id 去重，只显示一次，不得依赖本地数组下标或 DOM identity。
 
 ### 7.2 Routed exchange 与 timeline anchor
 
-`source_track_routed` 表示 controller 在 shared Track 提交前由客户端拦截的 owned-Agent selector 请求。该请求 MUST 只在 Sidecar private Track 创建真实加密 Event，随后以相同 `exchange_id` 幂等写入 exchange projection；来源 shared Track MUST NOT 创建 Message/Event。`sidecar_native` 表示 Sidecar active 时直接写入 private Track 的 Event，只存在于 private Strand，MUST NOT 创建 source echo projection。
+`source_track_routed` 表示 controller 在 shared Track 提交前由客户端拦截的 owned-Agent selector 请求。该请求 MUST 只在 Sidecar private Track 创建真实加密 Event，其 encrypted metadata plaintext MUST 携带 §7.2.1 定义的 `role=request` exchange binding；来源 shared Track MUST NOT 创建 Message/Event。`sidecar_native` 表示 Sidecar active 时直接写入 private Track 的 Event，只存在于 private Strand，MUST NOT 携带 exchange binding，也不进入 source echo fold。
 
-exchange projection 的 `source_frontier_anchor` 是发送时 controller 已看到的最新 shared Event，可在没有已见 Event 时省略；`source_hlc` 与 `client_order_key` 始终必填。同一 anchor 后的 echoes 按 `(source_hlc, exchange_id)` 字节序稳定排序。anchor 尚未同步时 projection 暂存；anchor 到达后归位。anchor 被 retention 删除时，在对应日期的 actor-private 区域显示并标注来源位置不可用。客户端本地数组下标、接收时间与数据库自增 id 不得参与跨设备排序。
+request binding 的 `source_frontier_anchor` 是发送时 controller 已看到的最新 shared Event，可在没有已见 Event 时省略；`source_hlc` 与 `client_order_key` 始终必填。同一 anchor 后的 echoes 按 `(source_hlc, exchange_id)` 字节序稳定排序。anchor 尚未同步时本地 fold 暂存；anchor 到达后归位。anchor 被 retention 删除时，在对应日期的 actor-private 区域显示并标注来源位置不可用。客户端本地数组下标、接收时间与数据库自增 id 不得参与跨设备排序。
 
-echo 只渲染 controller 的 private request Event、明确列入 `user_facing_response_event_ids` 的本 exchange 用户可见回复，以及失败/重试状态。Agent-to-Agent 内部消息、chain-of-thought、scratchpad、tool raw output、draft history、其它 exchange 与任何 private locator 均不得回显。每个 echo 持续显示 controller-only Private Sidecar 可见性标识，不能只在 hover 时披露。
+echo 只渲染 controller 的 private request Event、明确列入 `user_facing_response_event_ids` 的本 exchange 用户可见回复，以及失败/重试状态。`user_facing_response_event_ids` 的唯一合法追加路径是 §7.2.2 的 controller 设备验证；实现 MUST NOT 由 `reply_to`、Event 到达顺序、actor kind、content kind、正文前缀、工具运行状态或"exchange 后第一条/最后一条 Agent Message"推断回显资格。Agent-to-Agent 内部消息、chain-of-thought、scratchpad、tool raw output、draft history、其它 exchange 与任何 private locator 均不得回显。每个 echo 持续显示 controller-only Private Sidecar 可见性标识，不能只在 hover 时披露。
 
-private Event 成功但 projection 写入失败时，客户端/服务端用同一 `exchange_id` 从已接受的 private request Event 重建 projection，不得再次投递 Agent 请求。projection 成功但响应丢失时，同一 key 幂等返回。account stream 重连只增量 fold 变更记录；不得要求来源 Realm 重放 private Event。
+本地 cache 写入失败或丢失不影响 exchange。controller 设备从已接受的 private request Event 与后续 exchange Events 重建，不得再次投递 Agent 请求；服务端不参与 fold，也不解密任何 Sidecar 明文。
+
+### 7.2.1 Exchange binding（producer 语义）
+
+`ak.schema.agent_sidecar_event_exchange_binding.v1`（[`agent-sidecar-event-exchange-binding.schema.json`](../../artifacts/schemas/agent-sidecar-event-exchange-binding.schema.json)）是把一条 Sidecar Event 绑定到一个 source-routed exchange 的唯一 closed 机制。它只能出现在 effective scope 为该 Sidecar backing Circle 的 Message Event 的 `encrypted_metadata` plaintext（`message_metadata.sidecar_exchange_binding`）中：
+
+- 明文 `metadata` 携带该 key、或任何 shared Realm/Circle Event payload 在 wire 上携带该 key/schema id/`exchange_id`，MUST 以 `schema_violation` 拒绝（见 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。
+- 从非 Sidecar scope 解密得到的 binding，客户端 MUST 视为 non-echo 并不得渲染其存在。
+
+producer 义务按角色闭合；所有 exchange Event MUST 携带顶层 `hlc`。binding 内对 request 的引用一律使用 accepted **Event id**（`request_event_id`），Message id 不是合法引用形式：
+
+1. **Controller（`role=request`）**：提交 routed request Event 时写入 `exchange_id` 与完整 `request_context`（`source_track_ref`、`source_hlc`、`client_order_key`、`addressed_agent_ids`、`completion_policy=coordinator`、可选 `coordinator_agent_id`/`source_frontier_anchor`）。当 addressed 集合只有一个 Agent 时，`coordinator_agent_id` MAY 省略并隐含为该 Agent；集合大于一个时该字段必填。无论是否省略，coordinator MUST 属于 `addressed_agent_ids`。`request` binding MUST NOT 携带 `request_event_id`。
+2. **Agent runtime（`role=user_facing_response`）**：真正面向用户的响应 Event MUST 携带同一 `exchange_id`、`request_event_id=` accepted request Event id，并在顶层 `refs[role=after]` 引用该 request。`completes_exchange=true` 只是 coordinator 的完成请求，不直接改变终态；此时还 MUST 携带 `coordinator_assignment_event_id`（初始 assignment 使用 request Event id，重分配后使用对应 control Event id）。
+3. **Agent runtime（`role=internal`）**：由该 exchange 触发的 Agent-to-Agent 协作、tool 输出等内部 Event MUST 显式携带 `role=internal` 与同一 `exchange_id`/`request_event_id`，并在顶层 `refs[role=after]` 引用 request。省略 binding 的 Event 按下段规则安全地视为 non-echo；schema 无法证明一个本应属于 exchange 的 producer Event 是否漏标，SDK typed builder 与 conformance runner MUST 捕获该 producer 缺陷。
+4. 与任何 exchange 无关的 Event（含全部 `sidecar_native` 写入）MUST NOT 携带 binding。
+
+未携带 binding、schema 不匹配、role 未知或字段校验失败的 Event 一律 fail closed 为 non-echo；这是缺省结果，不是错误状态。Agent runtime 从收到的 request Event binding 获得 exchange identity，MUST NOT 从 projection、`reply_to`、消息正文或到达顺序推断。
+
+`role=request` binding 有消费侧验证：仅当携带它的 Event actor 是该 Sidecar controller、effective scope 是 backing Circle、`strand_id` 是该 context private Strand、coordinator 规则成立且 request Event 已 accepted 时有效。非 controller actor 携带的 request binding 整体无效。
+
+`exchange_id` 的幂等域是 `(controller_id, private_strand_id, exchange_id)`。同一域出现多个不同的有效 request Event 时，canonical request 是 controller accepted actor chain 中 `actor_seq` 最小的 surviving Event；同 sequence sibling 先按 §7.2.3 相同的 `event_digest` bytewise-max 规则决胜。更高 sequence 的同 id request 是 retry duplicate，即使正文或 `request_context` 不同也不得执行或进入 fold；实现 MAY 记录 controller-local equivocation 诊断。Agent runtime MUST 持久化 `exchange_id → canonical request_event_id`，同一 `exchange_id` 再出现不同 request Event id 时 fail closed，不能因 tuple 不同而执行第二次。
+
+### 7.2.2 Runtime 消费门与 controller response 验证
+
+Agent runtime 执行 request 前 MUST 同时验证：§7.2.1 的 request binding 有效且 Event 是该 `exchange_id` 的 canonical request；runtime 自身 principal 位于 `request_context.addressed_agent_ids`；自身当前为 active、eligible、effective-access 且目标设备 MLS-ready；本地尚未消费该 `exchange_id`；持久映射不存在不同 request Event id；exchange 未被 §7.2.3 的有效 terminal control 关闭。任一失败都把 request 当作不存在，不执行、不报 shared 错误。非 addressed backing-Circle 成员即使能解密也 MUST fail closed；它只能经 addressed Agent 显式 A2A 委托参与 internal 协作。
+
+controller 客户端解密候选 Agent Event 后，MUST 全部通过下列检查才可把其 Event id 纳入本地 fold 的 `user_facing_response_event_ids`：
+
+1. Event 的 effective scope 是该 Sidecar backing Circle，且 Event 的 `strand_id` == projection 的 `private_strand_id`（backing Circle 可承载多个 context 的 private Strand，缺少 Strand 绑定会造成跨 context 回显串扰）；
+2. binding 通过 `ak.schema.agent_sidecar_event_exchange_binding.v1` closed 校验；
+3. `binding.exchange_id` 与 projection 的 `exchange_id` 逐字一致；
+4. `binding.request_event_id` == projection 的 `private_request_event_id`；
+5. Event actor 是该 exchange `addressed_agent_ids` 中的 Agent principal（echo 资格只授予 addressed Agent；MUST NOT 是 controller 本人）；
+6. `binding.role == user_facing_response`；
+7. 顶层 `refs[role=after]` 包含 `binding.request_event_id`，且该 Event id 尚未在 fold 中出现（重复到达幂等）。
+
+`user_facing_response_event_ids` 按 `(response Event HLC, Event id)` 字节序升序；Event HLC 只用于显示排序，不参与授权或 causal dominance。
+
+`participating_agent_ids` 是 controller 设备的记账集合，不授予 echo 资格：非 controller 的 Event actor 通过检查 1–4 且 `role ∈ {internal, user_facing_response}` 时（即检查 5/6/7 之外全部通过），controller 设备把该 actor 并入集合（集合并集、幂等），用于呈现 working/参与状态。非 addressed Agent 的 `user_facing_response` 即使 binding 完全正确也保持 non-echo——多 Agent 协作的用户可见结论 MUST 由 addressed Agent 以自己的 `user_facing_response` Event 交付。
+
+任何一条不满足 → non-echo：不纳入 fold、不推进状态、不向 shared surface 报错；客户端 MAY 记录 controller-local 诊断。若 response 携带 `completes_exchange=true`，仅当 actor 等于该 `coordinator_assignment_event_id` 建立的有效 coordinator 时，controller 设备才可自动 author §7.2.3 的 `action=close` control Event，并把该 response 纳入 control 的 `response_event_ids`；非 coordinator 的 completion 请求被忽略，但通过上述检查的正文仍可回显。
+
+### 7.2.3 Durable control Event 与终态冲突
+
+`ak.agent.sidecar.exchange.control` 是独立的 durable private-Strand Event。外层 payload 只有 `strand_id` 与 MLS `encrypted_payload`；解密明文 MUST 通过 `ak.schema.agent_sidecar_exchange_control.v1`（[`agent-sidecar-exchange-control.schema.json`](../../artifacts/schemas/agent-sidecar-exchange-control.schema.json)）。服务端 admission 与 consumer 都 MUST 验证 effective scope 是对应 backing Circle、`strand_id` 匹配、actor 是 Sidecar controller；Agent-authored control 一律无效。consumer 还 MUST 验证明文 `request_event_id` 是同一 `exchange_id` 的 canonical request。外层 `refs` MUST 为明文 `basis_event_ids` 的每一项携带 `role=after`，canonical request Event 必须被该 causal frontier 覆盖；`response_event_ids` 必须恰好是该 basis 覆盖且通过 §7.2.2 的 user-facing response 集合，并按 `(HLC, Event id)` 排序。
+
+同一 exchange 的 control 只按 controller 的 accepted actor chain 排序：先按 `actor_seq` 升序；同一 sequence 出现合法 sibling 时，只有 `event_digest` bytewise 最大者进入 control fold，其余保留为可审计 conflict loser。数据库到达顺序、Sync 返回顺序、HLC 与本地时间不得决胜。按该顺序处理：
+
+- `reassign_coordinator` 仅在非终态有效；`expected_coordinator_agent_id` 必须等于当前 coordinator，`coordinator_agent_id` 必须与 expected 值不同、属于 request 的 `addressed_agent_ids` 且 authoring 时 eligible。成功后该 control Event id 成为新的 `coordinator_assignment_event_id`。
+- `close`、`cancel`、`fail` 都是 terminal action。第一条有效 terminal control 吸收终态；其后的全部 control（含 reassign）忽略，不得改变 projection。
+- terminal action 的 `response_event_ids` 非空时统一落 `complete`。这明确覆盖 `cancel + response`、`fail + response`：已交付的响应不是失败。
+- `response_event_ids=[]` 时：`close` 落 `failed/controller_closed_empty`；`cancel` 落 `failed/controller_cancelled`；`fail` 落 `failed/<failure_code>`。因此 complete 始终至少一个 response，failed 始终没有 response。
+
+Agent pause/deactivate、MLS removal、超时、Event 缺席都不会隐式改变 exchange。非 coordinator Agent 失效不影响终态；coordinator 失效后 exchange 保持非终态，直到 controller 写入 reassign、cancel 或 fail control。controller 自动化 MAY 因已验证 lifecycle 事实 author `fail/failure_code=agent_deactivated`，但该 control Event 本身才是可重放真相。
+
+### 7.2.4 确定性 fold、本地 cache 与恢复
+
+fold 输入只包含有效 controller request Event、通过 §7.2.2 的 Agent binding Events，以及按 §7.2.3 决胜后的有效 control Events。没有 terminal control 时，纳入当前已验证 history 中的全部上述 exchange Events；存在 terminal control 时，只纳入该 terminal 的 `basis_event_ids` causal closure 覆盖的 Agent binding Events，以及 control fold 中截至该 terminal（含本 Event）的有效前缀。与 terminal 并发但未被其 basis 覆盖、或因果上晚于 terminal 的 Agent/control Events 一律保留为私有审计历史但不进入 exchange projection。status 是纯函数：
+
+- 仅有已接受的 request，或存在 internal/其它合法 Agent binding 但无 response：`delivered`；
+- 存在 response、但无 terminal control：`responding`；
+- terminal control 按 §7.2.3 映射为 `complete` 或 `failed`。
+
+`AgentSidecarExchangeProjection` 只可写入 controller 设备本地缓存。其 write-once 字段来自 request binding/accepted Event scope；coordinator 字段来自 request 与有效 reassign；response/terminal 字段来自上述 fold。`folded_frontier.event_ids` 是所有参与 fold Event 的**最大 causal head 集合**，按 Event id UTF-8 字节序排序；它不是“最后一个 Event”。`event_set_digest = sha256(canonical_json(<全部参与 fold Event id 的排序去重数组>))`；`max_hlc` 是参与 Event HLC 的最大值，只用于显示与缓存诊断，不证明因果覆盖。
+
+设备只有在本地已验证 Event frontier 与 cache frontier 相等，或本地 frontier causally dominates cache 的全部 heads 时，才可使用/增量推进 cache；两者不可比较时 MUST 补齐缺失 Event 并从联合 history 重新 fold，禁止用 HLC/LWW 选择赢家。cache 永远不得覆盖或回退当前内存中的已验证 fold/UI；不满足校验时立即丢弃。由于 cache 不上传、不进入 account stream，不存在密文合并、远端 stale writer 或 Account Data CAS 问题。
+
+controller 离线时 response/control 留在 private history。新设备或 cache 丢失时扫描对应 private Strand 中 controller-authored request binding，验证后重放相关 Agent/control Events；不得再次投递请求。给定相同 accepted Event 集，所有 conforming 设备 MUST 得到 bit-identical projection、frontier digest、response 顺序与 terminal outcome。
+
+request Event 提交被拒时没有 durable exchange；失败呈现属于 client-local pending-submission state，同一 intent 重试使用相同 `exchange_id`。实现 MUST NOT 由时间流逝、Event 缺席、内容或本地任务状态推断 `failed`/`complete`。
+
+### 7.2.5 信任边界
+
+binding 把“Agent 声明 user-facing/internal”与“controller 写入控制事实”分离。验证保证绑定、归属、scope、coordinator 与幂等，不保证内容语义适合用户；被攻陷的 addressed Agent 最多造成 controller-private 回显污染，不能突破既有 Sidecar MLS 可见性。服务端不解密 Message binding、control plaintext 或本地 projection；controller account secret 不共享给 Agent principal。
 
 ### 7.3 显式 Publish 与存在性隐私
 
