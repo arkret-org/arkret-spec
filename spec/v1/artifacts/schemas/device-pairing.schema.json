@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/device-pairing.schema.json",
+  "title": "Arkret Device Pairing Short-Link DTOs",
+  "description": "Closed request and response DTOs for the server-mediated device-pairing short-link handoff (device-lifecycle.md §2.1.1). These endpoints are unauthenticated: staging mints an account-less pending record, and resolve/status exchange the short handle for pairing material without binding or granting anything until an authenticated device authorizes the pairing.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/device_pairing_stage_request_body"
+    },
+    {
+      "$ref": "#/$defs/device_pairing_stage_outcome"
+    },
+    {
+      "$ref": "#/$defs/device_pairing_resolve_request_body"
+    },
+    {
+      "$ref": "#/$defs/device_pairing_bootstrap"
+    },
+    {
+      "$ref": "#/$defs/device_pairing_state"
+    },
+    {
+      "$ref": "#/$defs/device_pairing_status_request_body"
+    },
+    {
+      "$ref": "#/$defs/device_pairing_status_outcome"
+    }
+  ],
+  "$defs": {
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "base64url": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "minLength": 1
+    },
+    "timestamp": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "device_pairing_request_id": {
+      "$ref": "./agent-operations.schema.json#/$defs/device_pairing_request_id"
+    },
+    "device_pairing_code": {
+      "$ref": "./agent-operations.schema.json#/$defs/device_pairing_code"
+    },
+    "device_id": {
+      "type": "string",
+      "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "public_key": {
+      "$ref": "./agent-operations.schema.json#/$defs/public_key",
+      "description": "Canonical PublicKey shape shared with agent-operations. For a staged device the key material is carried in `key` and `kid` is the target `ak:device:<uuid>` id."
+    },
+    "device_metadata": {
+      "$ref": "./agent-operations.schema.json#/$defs/device_metadata"
+    },
+    "device_pairing_state": {
+      "type": "string",
+      "description": "Lifecycle state of a staged device-pairing short-link record. A staged record starts pending_authorization, flips to authorized once an authenticated device completes ak.gate.account.command.pair_device, and reports expired once its bounded TTL has elapsed.",
+      "enum": [
+        "pending_authorization",
+        "authorized",
+        "expired"
+      ]
+    },
+    "device_pairing_stage_request_body": {
+      "type": "object",
+      "description": "Unauthenticated stage request that mints a fresh account-less pending pairing record. The service returns a device_pairing_request_id and a short pairing_code; the record binds no principal and grants nothing until an authenticated device authorizes it.",
+      "required": [
+        "new_device_pubkey",
+        "challenge_signature"
+      ],
+      "properties": {
+        "new_device_pubkey": {
+          "$ref": "#/$defs/public_key"
+        },
+        "challenge_signature": {
+          "$ref": "#/$defs/base64url"
+        },
+        "display_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "device_metadata": {
+          "$ref": "#/$defs/device_metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_pairing_stage_outcome": {
+      "type": "object",
+      "description": "Result of staging a device-pairing short-link record. pairing_code is a short human-carryable secret; both device_pairing_request_id and pairing_code are the query credential for the resolve/status endpoints and MUST NOT be sent in URL path or query string.",
+      "required": [
+        "device_pairing_request_id",
+        "pairing_code",
+        "expires_at"
+      ],
+      "properties": {
+        "device_pairing_request_id": {
+          "$ref": "#/$defs/device_pairing_request_id"
+        },
+        "pairing_code": {
+          "$ref": "#/$defs/device_pairing_code"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_pairing_resolve_request_body": {
+      "type": "object",
+      "description": "Body-only resolver input for device-pairing short-link handoff. The token is obtained from a URL fragment or equivalent out-of-band channel and MUST NOT be sent in URL path or query.",
+      "required": [
+        "pairing_token"
+      ],
+      "properties": {
+        "pairing_token": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_pairing_bootstrap": {
+      "type": "object",
+      "description": "Pairing material handed to an already-authorized device after resolving a device-pairing short link. This is not a session grant, capability grant or long-term secret; the authorized device still drives ak.gate.account.command.pair_device to complete authorization.",
+      "required": [
+        "arkret_base_url",
+        "device_pairing_request_id",
+        "pairing_code",
+        "new_device_pubkey",
+        "challenge_signature",
+        "expires_at"
+      ],
+      "properties": {
+        "arkret_base_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "device_pairing_request_id": {
+          "$ref": "#/$defs/device_pairing_request_id"
+        },
+        "pairing_code": {
+          "$ref": "#/$defs/device_pairing_code"
+        },
+        "new_device_pubkey": {
+          "$ref": "#/$defs/public_key"
+        },
+        "challenge_signature": {
+          "$ref": "#/$defs/base64url"
+        },
+        "display_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "device_metadata": {
+          "$ref": "#/$defs/device_metadata"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_pairing_status_request_body": {
+      "type": "object",
+      "description": "Body-only poll for the authorization status of a staged device-pairing record. The device_pairing_request_id + pairing_code pair is the query credential and MUST be sent in the JSON body; a record miss and a pairing_code mismatch MUST be indistinguishable (both not_found).",
+      "required": [
+        "device_pairing_request_id",
+        "pairing_code"
+      ],
+      "properties": {
+        "device_pairing_request_id": {
+          "$ref": "#/$defs/device_pairing_request_id"
+        },
+        "pairing_code": {
+          "$ref": "#/$defs/device_pairing_code"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_pairing_status_outcome": {
+      "type": "object",
+      "description": "Authorization status for a staged device-pairing record. While the record is still open, state is pending_authorization. Once an authenticated device has authorized this pairing, state is authorized and device_id plus authorized_event_ref are present. An open record whose bounded TTL has elapsed reports state expired.",
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/device_pairing_state"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "authorized_event_ref": {
+          "$ref": "#/$defs/event_id"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "authorized"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "device_id",
+              "authorized_event_ref"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "device_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "authorized_event_ref"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  }
+}

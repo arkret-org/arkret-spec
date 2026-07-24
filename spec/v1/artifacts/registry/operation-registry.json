@@ -368,6 +368,15 @@
       ]
     },
     {
+      "surface": "device_pairing_handoff",
+      "tier": "extension",
+      "operations": [
+        "ak.open.device_pairing.command.stage",
+        "ak.open.device_pairing.query.resolve",
+        "ak.open.device_pairing.query.status"
+      ]
+    },
+    {
       "surface": "invite_locator_handoff",
       "tier": "extension",
       "operations": [
@@ -455,6 +464,7 @@
       "http": "POST /_arkret/gate/account/device-pair",
       "grpc": "GateAccount/DevicePair",
       "mq": "gate.account.command.pair_device",
+      "notes": "Authorizes a sibling device after the verified current device confirms the SAS/QR transcript. When device_pairing_request_id is present, the Account Authority MUST atomically require and consume the unexpired pending staged record whose pairing_code, new_device_pubkey and challenge_signature exactly match the request; a mismatch performs no device authorization.",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
@@ -2012,6 +2022,43 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome"
+    },
+    {
+      "operation_id": "ak.open.device_pairing.command.stage",
+      "http": "POST /_arkret/open/device-pairing/requests",
+      "grpc": "OpenDevicePairing/Stage",
+      "mq": "open.device_pairing.command.stage",
+      "notes": "Unauthenticated stage of a device-pairing short-link handoff (device-lifecycle.md §2.1.1). The new device submits new_device_pubkey and challenge_signature (plus optional display_name / device_metadata); the service mints a fresh device_pairing_request_id and an 8-character Crockford-style 40-bit CSPRNG pairing_code and stores a bounded-TTL account-less record in state pending_authorization. The staged record binds no principal and grants nothing until an authenticated device authorizes it. Stage, resolve and status are rate limited. Each call mints a fresh request, so blind retries duplicate staged records: not retry-safe.",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "reissue_material",
+        "operation_id": "ak.open.device_pairing.command.stage",
+        "requires_fresh_request_identity": true
+      },
+      "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_request_body",
+      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_outcome"
+    },
+    {
+      "operation_id": "ak.open.device_pairing.query.resolve",
+      "http": "POST /_arkret/open/device-pairing/resolve",
+      "grpc": "OpenDevicePairing/Resolve",
+      "mq": "open.device_pairing.query.resolve",
+      "notes": "Resolves a device-pairing short-link token carried out-of-band, usually as a URL fragment in a QR/link. The pairing token MUST be sent in the JSON body, never in URL path or query string; the response is the DevicePairingBootstrap. resolve MUST return a uniform not_found for unknown id, pairing_code mismatch, expiry, or a non-pending record so the failing condition is not enumerable. Authorization is unchanged: the returned bootstrap is only consumed by an authenticated device driving ak.gate.account.command.pair_device.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_resolve_request_body",
+      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_bootstrap"
+    },
+    {
+      "operation_id": "ak.open.device_pairing.query.status",
+      "http": "POST /_arkret/open/device-pairing/requests/status",
+      "grpc": "OpenDevicePairing/Status",
+      "mq": "open.device_pairing.query.status",
+      "notes": "Unauthenticated poll for the authorization status of a staged device-pairing record. The device_pairing_request_id + pairing_code pair is the query credential and MUST be sent in the JSON body, never in URL path or query string; a record miss and a pairing_code mismatch MUST be indistinguishable (both not_found). While the record is open the outcome carries only state pending_authorization; once an authenticated device has authorized the pairing the outcome carries state authorized plus required device_id and authorized_event_ref; an expired record reports only state expired during a bounded cleanup retention period and becomes not_found after deletion.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_request_body",
+      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_outcome"
     },
     {
       "operation_id": "ak.open.invite_locator.query.resolve",
