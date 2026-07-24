@@ -162,7 +162,8 @@
           "new_device_pubkey",
           "challenge_signature",
           "display_name",
-          "device_metadata"
+          "device_metadata",
+          "device_pairing_request_id"
         ],
         "closed": true
       },
@@ -4683,6 +4684,108 @@
           "authorized_event_ref",
           "authorized_verification_method",
           "authorized_public_key_digest"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.open.device_pairing.command.stage",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_request_body",
+        "schema_kind": "object",
+        "required": [
+          "new_device_pubkey",
+          "challenge_signature"
+        ],
+        "properties": [
+          "new_device_pubkey",
+          "challenge_signature",
+          "display_name",
+          "device_metadata"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_outcome",
+        "schema_kind": "object",
+        "required": [
+          "device_pairing_request_id",
+          "pairing_code",
+          "expires_at"
+        ],
+        "properties": [
+          "device_pairing_request_id",
+          "pairing_code",
+          "expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.open.device_pairing.query.resolve",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_resolve_request_body",
+        "schema_kind": "object",
+        "required": [
+          "pairing_token"
+        ],
+        "properties": [
+          "pairing_token"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_bootstrap",
+        "schema_kind": "object",
+        "required": [
+          "arkret_base_url",
+          "device_pairing_request_id",
+          "pairing_code",
+          "new_device_pubkey",
+          "challenge_signature",
+          "expires_at"
+        ],
+        "properties": [
+          "arkret_base_url",
+          "device_pairing_request_id",
+          "pairing_code",
+          "new_device_pubkey",
+          "challenge_signature",
+          "display_name",
+          "device_metadata",
+          "expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.open.device_pairing.query.status",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_request_body",
+        "schema_kind": "object",
+        "required": [
+          "device_pairing_request_id",
+          "pairing_code"
+        ],
+        "properties": [
+          "device_pairing_request_id",
+          "pairing_code"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_outcome",
+        "schema_kind": "object",
+        "required": [
+          "state"
+        ],
+        "properties": [
+          "state",
+          "device_id",
+          "authorized_event_ref"
         ],
         "closed": true
       }

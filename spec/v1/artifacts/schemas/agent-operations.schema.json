@@ -161,7 +161,11 @@
     "device_pairing_code": {
       "type": "string",
       "pattern": "^[A-HJ-NP-Z2-9]{8}$",
-      "description": "Eight-character human-readable Crockford-style code (40 bits before rejection sampling), bound to a short-lived SAS/QR transcript and protected by a ten-failure lockout."
+      "description": "Eight-character human-readable Crockford-style code carrying 40 CSPRNG bits, bound to a short-lived SAS/QR transcript and protected by a ten-failure lockout."
+    },
+    "device_pairing_request_id": {
+      "type": "string",
+      "pattern": "^device_pairing_request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "proof": {
       "type": "object",
@@ -556,6 +560,10 @@
         },
         "device_metadata": {
           "$ref": "#/$defs/device_metadata"
+        },
+        "device_pairing_request_id": {
+          "$ref": "#/$defs/device_pairing_request_id",
+          "description": "Optional server-mediated short-link request id. When present, the Account Authority MUST atomically authorize only the still-pending staged record whose pairing_code, new_device_pubkey and challenge_signature exactly match this request."
         }
       },
       "additionalProperties": false

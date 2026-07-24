@@ -18,13 +18,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 198,
+    "total_operations": 201,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 186
+      "typed_schema": 189
     },
     "by_tier_and_class": {
       "core": {
@@ -39,7 +39,7 @@
         "binary_or_redirect": 2,
         "no_request_body": 1,
         "service_describe": 2,
-        "typed_schema": 128
+        "typed_schema": 131
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -638,6 +638,48 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentRuntimeApprovalStatusRequestBody",
         "response": "#/components/schemas/AgentRuntimeApprovalStatusOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.open.device_pairing.command.stage",
+      "tier": "extension",
+      "http": "POST /_arkret/open/device-pairing/requests",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_request_body",
+      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DevicePairingStageRequestBody",
+        "response": "#/components/schemas/DevicePairingStageOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.open.device_pairing.query.resolve",
+      "tier": "extension",
+      "http": "POST /_arkret/open/device-pairing/resolve",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_resolve_request_body",
+      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_bootstrap",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DevicePairingResolveRequestBody",
+        "response": "#/components/schemas/DevicePairingBootstrap"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.open.device_pairing.query.status",
+      "tier": "extension",
+      "http": "POST /_arkret/open/device-pairing/requests/status",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_request_body",
+      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DevicePairingStatusRequestBody",
+        "response": "#/components/schemas/DevicePairingStatusOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

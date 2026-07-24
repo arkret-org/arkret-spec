@@ -920,6 +920,18 @@ components:
         expires_at:
           $ref: ../schemas/time.schema.json#/$defs/timestamp
       additionalProperties: false
+    DevicePairingBootstrap:
+      $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_bootstrap
+    DevicePairingResolveRequestBody:
+      $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_resolve_request_body
+    DevicePairingStageOutcome:
+      $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_stage_outcome
+    DevicePairingStageRequestBody:
+      $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_stage_request_body
+    DevicePairingStatusOutcome:
+      $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_status_outcome
+    DevicePairingStatusRequestBody:
+      $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_status_request_body
     DidOperationSubmitOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome
     DidOperationSubmitRequestBody:
@@ -6216,6 +6228,95 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentRuntimeApprovalStatusOutcome'
+  /_arkret/open/device-pairing/requests:
+    post:
+      operationId: ak.open.device_pairing.command.stage
+      security: []
+      x-arkret-auth:
+        public_metadata: false
+        proof_in_body: true
+      summary: Stage a device-pairing short-link record.
+      description: |
+        Unauthenticated stage of a device-pairing short-link handoff. The new
+        device submits new_device_pubkey and challenge_signature; the service
+        mints a fresh device_pairing_request_id and 8-character Crockford-style
+        40-bit CSPRNG pairing_code and
+        stores a bounded-TTL account-less record in state pending_authorization.
+        The staged record binds no principal and grants nothing until an
+        authenticated device authorizes it. Each call mints a fresh request, so
+        blind retries duplicate staged records.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevicePairingStageRequestBody'
+      responses:
+        '200':
+          description: Staged device-pairing short-link record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevicePairingStageOutcome'
+  /_arkret/open/device-pairing/resolve:
+    post:
+      operationId: ak.open.device_pairing.query.resolve
+      security: []
+      x-arkret-auth:
+        public_metadata: false
+        proof_in_body: true
+      summary: Resolve a device-pairing short-link token.
+      description: |
+        Resolves an out-of-band device-pairing token into a
+        DevicePairingBootstrap. The token is sent in the JSON body; QR/link
+        handoff SHOULD carry it in the URL fragment so HTTP servers, proxies,
+        and Referer logs do not receive the token in path or query string.
+        Unknown id, pairing_code mismatch, expiry, or a non-pending record all
+        return an indistinguishable not_found.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevicePairingResolveRequestBody'
+      responses:
+        '200':
+          description: Device pairing bootstrap.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevicePairingBootstrap'
+  /_arkret/open/device-pairing/requests/status:
+    post:
+      operationId: ak.open.device_pairing.query.status
+      security: []
+      x-arkret-auth:
+        public_metadata: false
+        proof_in_body: true
+      summary: Poll the authorization status of a staged device-pairing record.
+      description: |
+        Unauthenticated poll for the authorization status of a staged
+        device-pairing record. The device_pairing_request_id + pairing_code
+        pair is the query credential and is sent in the JSON body, never in the
+        URL path or query string; a record miss and a pairing_code mismatch are
+        indistinguishable (both not_found). Once an authenticated device has
+        authorized the pairing the outcome carries state authorized plus
+        required device_id and authorized_event_ref. A valid credential for an
+        expired record reports state expired during a bounded cleanup retention
+        period and becomes not_found after deletion.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevicePairingStatusRequestBody'
+      responses:
+        '200':
+          description: Current authorization status for the staged pairing record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevicePairingStatusOutcome'
   /_arkret/open/mimi/provider-directory:
     get:
       operationId: ak.open.mimi.query.provider_directory

@@ -624,6 +624,19 @@
       "description": "One-time bootstrap DTO for personal agent runtime pairing. Resolves to the sub-schema at file + fragment (agent-operations.schema.json#/$defs/agent_pairing_bootstrap), not the top-level oneOf DTO bundle that ak.schema.agent_operations.v1 maps to."
     },
     {
+      "schema_id": "ak.schema.device_pairing_operations.v1",
+      "file": "schemas/device-pairing.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for the server-mediated device-pairing short-link handoff (stage / resolve / status). See device-lifecycle.md §2.1.1."
+    },
+    {
+      "schema_id": "ak.schema.device_pairing_bootstrap.v1",
+      "file": "schemas/device-pairing.schema.json",
+      "fragment": "#/$defs/device_pairing_bootstrap",
+      "status": "active",
+      "description": "Pairing material DTO handed to an already-authorized device after resolving a device-pairing short link. Resolves to the sub-schema at file + fragment (device-pairing.schema.json#/$defs/device_pairing_bootstrap), not the top-level oneOf DTO bundle that ak.schema.device_pairing_operations.v1 maps to."
+    },
+    {
       "schema_id": "ak.schema.applet_edge_operations.v1",
       "file": "schemas/applet-edge-operations.schema.json",
       "status": "active",

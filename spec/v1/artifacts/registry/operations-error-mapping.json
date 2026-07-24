@@ -1108,6 +1108,24 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
+      "operation_id": "ak.open.device_pairing.command.stage",
+      "http_alias": "POST /_arkret/open/device-pairing/requests",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface. Each call mints a fresh account-less pending record; stage, resolve and status MUST be rate limited."
+    },
+    {
+      "operation_id": "ak.open.device_pairing.query.resolve",
+      "http_alias": "POST /_arkret/open/device-pairing/resolve",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface. Unknown id, pairing_code mismatch, expiry, or a non-pending record MUST all return an indistinguishable not_found."
+    },
+    {
+      "operation_id": "ak.open.device_pairing.query.status",
+      "http_alias": "POST /_arkret/open/device-pairing/requests/status",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface. A record miss and a pairing_code mismatch MUST be indistinguishable (both not_found)."
+    },
+    {
       "operation_id": "ak.open.invite_locator.query.resolve",
       "http_alias": "POST /_arkret/open/invite-locators/resolve",
       "operation_specific": [],

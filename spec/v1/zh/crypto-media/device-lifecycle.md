@@ -68,6 +68,17 @@ Arkret v1 把三件事分开处理：
 4. **状态下发**：主设备通过点对点信道或安全的 Sync Service，将必要的工作区快照、加密会话历史（通过 MLS Welcome / Commit 把新设备加入合适的 group）同步给新设备。
 5. **事件广播**：主设备向 principal control stream 广播 `ak.device.authorize` 事件；若封装为 Event Envelope，其 `realm_id` 是目标 principal 的 `principal_control_realm_id`。新设备获得的能力由该事件、session grant、Realm capability 和 policy 共同限制，不是自动获得 principal 的全部权限。
 
+#### 2.1.1 短链暂存与 resolve（server-mediated，normative）
+
+§2.1 步骤 1 的“临时连接信息”MAY 由 Principal Server 暂存并以短句柄承载，而非把设备公钥与配对材料整包放进二维码。采用该短链形态时 MUST 满足以下约束；它只改变“配对材料如何到达主设备”这一传输层，不改变 §2.1 步骤 3 的授权模型。
+
+1. **暂存（stage）**：新设备经**免认证**端点 `POST /_arkret/open/device-pairing/requests`（`ak.open.device_pairing.command.stage`）提交 `new_device_pubkey`（canonical `PublicKey`，`key` 为密钥材料、`kid` 为 `ak:device:<uuid>`）、`challenge_signature`，以及可选 `display_name` / `device_metadata`。Server 铸 `device_pairing_request_id`（`device_pairing_request:<uuidv7>`）与短 `pairing_code`，以有界 TTL（SHOULD ≤ 10 分钟）暂存一条 **account-less** 记录（state `pending_authorization`），返回 `{device_pairing_request_id, pairing_code, expires_at}`。暂存记录在被授权前**不绑定任何 principal、不授予任何东西**。
+2. **短链承载**：二维码承载短 deep-link `{arkret_base_url}/_arkret/open/device-pairing/resolve#token=<token>`，其中 `token = base64url_nopad(canonical_json({"r": device_pairing_request_id, "c": pairing_code}))`。`token` MUST 仅出现在 URL fragment 或请求 body，MUST NOT 进入 URL path 或 query（避免进入服务端/代理日志）。
+3. **resolve**：已授权设备经**免认证**、body-only 的 `POST /_arkret/open/device-pairing/resolve`（`ak.open.device_pairing.query.resolve`）以 `token` 换取 `DevicePairingBootstrap`（含 `arkret_base_url`、`device_pairing_request_id`、`pairing_code`、`new_device_pubkey`、`challenge_signature`、可选 `display_name`/`device_metadata`、`expires_at`）。随后按 §2.1 步骤 3 走 `ak.gate.account.command.pair_device` 授权：该授权端点仍要求授权方是**已验证设备**，server MUST NOT 因短链暂存本身改变设备集合或放宽授权前置。
+4. **回填与 status**：授权端点 MAY 携带 `device_pairing_request_id`。携带时，Account Authority MUST 要求该 id 对应的暂存记录仍为 `pending_authorization` 且未过期，并要求记录中的 `pairing_code`、`new_device_pubkey`、`challenge_signature` 与授权请求逐字段一致；验证与设备授权落库、暂存记录消费并翻为 `authorized`（记录 `device_id` 与 `authorized_event_ref`）MUST 原子完成，任一不匹配不得授权设备。新设备经**免认证**、body-only 的 `POST /_arkret/open/device-pairing/requests/status`（`ak.open.device_pairing.query.status`）以 `{device_pairing_request_id, pairing_code}` 轮询得到 `{state, device_id?, authorized_event_ref?}`。
+5. **防枚举（normative）**：`resolve` 对 {未知 id、`pairing_code` 不符、已过期、非 `pending_authorization`} MUST 返回统一 `not_found`。`status` 对 {未知 id、`pairing_code` 不符} MUST 返回同样的 `not_found`；凭证正确时可返回 `pending_authorization`、`authorized` 或 `expired`，其中 `authorized` MUST 同时携带 `device_id` 与 `authorized_event_ref`，其余状态 MUST 不携带这两个字段。不得通过错误形态泄露 id 是否存在或 code 是否正确。`pairing_code` MUST 使用 §7 定义的 8 位 Crockford-style CSPRNG code，并由暂存、resolve 与 status 端点限速兜底。
+6. **有界与清理（normative）**：免认证的 stage、resolve 与 status 端点 MUST 限速；过期暂存记录 MUST 对 `resolve` fail closed，`status` 在凭证正确且记录尚处于有界清理保留期时返回 `expired`，清理后返回 `not_found`。过期记录 SHOULD 被定期清理，Server MUST NOT 无界保留。
+
 ### 2.2 设备吊销
 当设备丢失时，用户可从任何其他已授权设备、DID 控制密钥或 recovery policy 允许的恢复服务发起吊销操作：发布 `ak.device.revoke`，停止接受该设备的新签名写入，并对受影响的 MLS 群组触发 `Remove` 与 Epoch 更新。若该设备曾被写入 DID Document，撤销流程还必须按 DID method 规则移除或失效对应 verification method。
 
@@ -632,7 +643,7 @@ Content-Type: application/json
 }
 ```
 
-接收旧设备 MUST 把 `purpose`、`pairing_code`、`new_device_pubkey.kid`、`challenge_signature`、`gate_audience` 和 `request_canonical_digest` 纳入用户确认与 SAS/QR transcript 绑定；不得只因收到该请求就把新设备标记为 trusted。`pairing_code` MUST 是 8 位 Crockford-style 大写字母数字串（字符集 `[A-HJ-NP-Z2-9]`，拒绝易混字符），由 CSPRNG rejection sampling 生成并提供 40-bit 搜索空间；它只在短 TTL、单次使用、audience-bound transcript 内有效。用户确认后，旧设备通过 `ak.gate.account.command.pair_device` 完成授权落地；本规范不定义 `/_arkret/self/devices/pairing-requests*` 作为授权批准接口。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
+接收旧设备 MUST 把 `purpose`、`pairing_code`、`new_device_pubkey.kid`、`challenge_signature`、`gate_audience` 和 `request_canonical_digest` 纳入用户确认与 SAS/QR transcript 绑定；不得只因收到该请求就把新设备标记为 trusted。`pairing_code` MUST 是 8 位 Crockford-style 大写字母数字串（字符集 `[A-HJ-NP-Z2-9]`，拒绝易混字符），由 CSPRNG 的 40 个均匀随机 bit 直接编码；它只在短 TTL、单次使用、audience-bound transcript 内有效。用户确认后，旧设备通过 `ak.gate.account.command.pair_device` 完成授权落地；本规范不定义 `/_arkret/self/devices/pairing-requests*` 作为授权批准接口。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
 
 服务端 MUST 同时执行请求级 `(sender, Idempotency-Key)` 幂等与上述消息级 `(sender_principal_id, sender_device_id, message_id)` 幂等；前者识别同一批 HTTP command，后者识别跨批次、跨连接的同一逻辑消息。已投递消息的队列删除只由接收设备的显式确认（`ak.self.device_messages.command.ack`，见下文与 [`client-sync.md` §10.1](../sync/client-sync.md)）驱动；sync cursor 推进 MUST NOT 触发删除。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导。
 
