@@ -632,11 +632,13 @@
         "schema_kind": "object",
         "required": [
           "agent",
-          "status"
+          "status",
+          "runtime_state"
         ],
         "properties": [
           "agent",
           "status",
+          "runtime_state",
           "grants",
           "key_state"
         ],
@@ -4670,11 +4672,13 @@
         "schema_kind": "object",
         "required": [
           "ok",
-          "status"
+          "status",
+          "runtime_state"
         ],
         "properties": [
           "ok",
           "status",
+          "runtime_state",
           "approval_request_id",
           "authorized_event_ref",
           "authorized_verification_method",

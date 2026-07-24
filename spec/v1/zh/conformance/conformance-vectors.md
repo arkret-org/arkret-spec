@@ -3499,7 +3499,7 @@ Steps:
 
 Expected:
 
-- 服务将 agent status 转为 `pairing_expired`，不得创建、撤销或改写任何 Realm grant。
+- 服务将 agent runtime_state 投影为 `pairing_expired`(lifecycle 意图不变)，不得创建、撤销或改写任何 Realm grant。
 - 重放 `ak.gate.account.command.pair_agent_key`(使用过期 pairing_request_id)MUST fail closed。
 - Controller 可通过 `ak.self.agent.command.renew_pairing` 对同一 agent principal 原地重开 bootstrap pairing，也可重新发起 `ak.self.agent.command.provision`;后者得到新 agent_id,旧 agent_id 与新 provisioning 不复用。两种操作都不得从 `requested_scope` 物化 Realm grant。
 
@@ -3592,7 +3592,7 @@ Expected:
 - 第 2 步的新 session / capability action 与 open replacement 期间的 resume MUST fail closed；已存在 key/grant 的保留只用于原子 supersede 与审计，不等于 paused 状态可继续执行。
 - 第 3 步 MUST 以单一 controller-signed `ak.agent.key.authorize`(K2) Event 原子 remove `supersedes[]` 指定的 K1 authorization dot（reason=`superseded_by_repairing`）并 add K2 dot；不得伪造第二条 controller-authored revoke Event；capability grants 不受影响。遗漏 K1、加入不存在/已撤销 authorization，或引用错误 `authorized_event_ref` 的变体 MUST conflict / fail closed 且不改变任何 key。
 - 第 4 步 MUST fail closed:`K1` 的新 session 请求拒绝;`S1` MUST 在 revocation freshness window 内 fail closed,MUST NOT 自然存活到原 TTL。
-- 变体 A:无任何配对副作用,agent 保持 `paused`、`K1` 有效;`pairing_expired` MUST NOT 出现在曾持钥 agent 上；handle 过期后 open-handle 投影必须清除，显式 resume 再次可用。
+- 变体 A:无任何配对副作用,agent lifecycle 保持 `paused`、`K1` 有效,runtime_state 回到 `ready`;`pairing_expired` MUST NOT 出现在曾持钥 agent 上；handle 过期后 open-handle 投影必须清除。pause / resume 是纯 lifecycle 意图写入，在 handle open 期间也不被阻塞。
 - 变体 B:MUST `agent_deactivated`(terminal 状态拒绝续期)。
 
 ### 11.2.5 Vector: Longevity-safe Authorization Chain(No Expiry Cliffs)
@@ -3998,7 +3998,7 @@ Steps:
 
 1. Controller 调用 `ak.self.agent.participation.resource.replace`，scope=`R`，selection=`{reply:true, accept_third_party_mention:true, act_on_behalf:false}`；虽然 Realm governance 允许第三方 mention，但 provision ceiling 不允许。
 2. 变体 A：调用方不是该 agent 的 controller。
-3. 变体 B：该 agent 非 active(`paused` / `deactivated` / `pairing_expired`)。
+3. 变体 B：该 agent lifecycle 非 active(`paused` / `deactivated`)或从未完成首次配对(runtime_state `pending_runtime_key` / `pairing_expired`)。
 4. 变体 C：scope 不可解析，或 controller 非该 Realm active member。
 
 Expected:

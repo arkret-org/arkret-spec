@@ -215,12 +215,21 @@
     },
     "agent_status": {
       "type": "string",
+      "description": "Controller lifecycle intent axis. Closed enum; only the controller's pause / resume / deactivate lifecycle events change it. It never encodes pairing progress: runtime key readiness is the orthogonal derived agent_runtime_state projection (key-management.md §3.6.1).",
       "enum": [
-        "pending_runtime_key",
         "active",
-        "pairing_expired",
         "paused",
         "deactivated"
+      ]
+    },
+    "agent_runtime_state": {
+      "type": "string",
+      "description": "Derived, read-only runtime key readiness axis (key-management.md §3.6.1). Services and clients MUST derive it from the same key/pairing facts and MUST NOT write it or treat it as a lifecycle transition target: no active accepted key authorization with an unexpired bootstrap handle is pending_runtime_key; no active key with the bootstrap handle expired is pairing_expired; an active key with no unconsumed replacement handle is ready; an active key with an unexpired replacement handle is replacing. Replacement handle expiry is side-effect free and returns the projection to ready.",
+      "enum": [
+        "pending_runtime_key",
+        "ready",
+        "replacing",
+        "pairing_expired"
       ]
     },
     "agent_projection": {
@@ -228,7 +237,8 @@
       "required": [
         "agent_id",
         "slug",
-        "status"
+        "status",
+        "runtime_state"
       ],
       "properties": {
         "agent_id": {
@@ -245,6 +255,9 @@
         },
         "status": {
           "$ref": "#/$defs/agent_status"
+        },
+        "runtime_state": {
+          "$ref": "#/$defs/agent_runtime_state"
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"
@@ -284,6 +297,7 @@
         "principal_control_realm_id",
         "controller_authorization_ref",
         "status",
+        "runtime_state",
         "pcr_recovery",
         "requested_scope",
         "requested_scope_digest"
@@ -303,6 +317,9 @@
         },
         "status": {
           "$ref": "#/$defs/agent_status"
+        },
+        "runtime_state": {
+          "$ref": "#/$defs/agent_runtime_state"
         },
         "pcr_recovery": {
           "$ref": "#/$defs/agent_pcr_recovery_state"
@@ -325,7 +342,7 @@
             "bootstrap",
             "replacement"
           ],
-          "description": "Durable branch discriminator for the current open handle. bootstrap is valid for pending_runtime_key; replacement is valid only while paused."
+          "description": "Durable branch discriminator for the current open handle. bootstrap is valid while runtime_state is pending_runtime_key / pairing_expired; replacement is valid for any agent holding an active authorized key (lifecycle active or paused) and projects runtime_state replacing while open."
         },
         "pairing_code": {
           "$ref": "#/$defs/pairing_secret"
@@ -835,10 +852,11 @@
     },
     "agent_runtime_approval_status_outcome": {
       "type": "object",
-      "description": "Controller-decision status for an agent runtime key pairing request. While the pairing is still open, status is pending_runtime_key and approval_request_id echoes the pending request, if any. Once the controller has approved, status reflects the agent lifecycle state and authorized_event_ref plus the authorized key binding fields are present; the runtime MUST compare authorized_public_key_digest against its own key and treat a mismatch as paired-by-another-runtime, not as its own approval. An open pairing whose pairing_expires_at has passed is reported as pairing_expired.",
+      "description": "Controller-decision status for an agent runtime key pairing request, projected on the two orthogonal axes (key-management.md §3.6.1). While the polled pairing is still open, runtime_state is pending_runtime_key (bootstrap) or replacing (replacement) and approval_request_id echoes the pending request, if any. Once the controller has approved this exact pairing, authorized_event_ref plus the authorized key binding fields are present; the runtime MUST compare authorized_public_key_digest against its own key and treat a mismatch as paired-by-another-runtime, not as its own approval. Presence and digest match of those fields — never status or runtime_state alone — is the approval signal. An open bootstrap pairing whose pairing_expires_at has passed is reported with runtime_state pairing_expired; an expired replacement handle reports runtime_state ready with no authorized fields for this request, which the runtime treats as expired.",
       "required": [
         "ok",
-        "status"
+        "status",
+        "runtime_state"
       ],
       "properties": {
         "ok": {
@@ -847,6 +865,9 @@
         },
         "status": {
           "$ref": "#/$defs/agent_status"
+        },
+        "runtime_state": {
+          "$ref": "#/$defs/agent_runtime_state"
         },
         "approval_request_id": {
           "$ref": "#/$defs/opaque_local_id"
@@ -1086,7 +1107,7 @@
     },
     "agent_renew_pairing_request_body": {
       "type": "object",
-      "description": "Re-open bootstrap pairing or replace the runtime of an explicitly paused agent. The service issues a fresh one-time pairing_request_id + pairing_code; every previously issued pairing handle for the agent becomes permanently unresolvable. pending_runtime_key / pairing_expired re-open bootstrap pairing; paused performs runtime replacement re-pairing (existing keys stay valid until the new controller-signed authorization with an exact supersedes set is accepted atomically). active must pause first; deactivated rejects.",
+      "description": "Re-open bootstrap pairing or replace an agent runtime. The service issues a fresh one-time pairing_request_id + pairing_code; every previously issued pairing handle for the agent becomes permanently unresolvable. runtime_state pending_runtime_key / pairing_expired re-opens bootstrap pairing; any agent holding an active authorized key (lifecycle active or paused) performs runtime replacement re-pairing: lifecycle intent, existing keys and grants stay untouched until the new controller-signed authorization with an exact supersedes set is accepted atomically, and completion preserves the lifecycle intent (an active agent needs no resume). deactivated rejects.",
       "properties": {
         "pairing_ttl_ms": {
           "type": "integer",
@@ -1222,7 +1243,8 @@
       "type": "object",
       "required": [
         "agent",
-        "status"
+        "status",
+        "runtime_state"
       ],
       "properties": {
         "agent": {
@@ -1230,6 +1252,9 @@
         },
         "status": {
           "$ref": "#/$defs/agent_status"
+        },
+        "runtime_state": {
+          "$ref": "#/$defs/agent_runtime_state"
         },
         "grants": {
           "type": "array",

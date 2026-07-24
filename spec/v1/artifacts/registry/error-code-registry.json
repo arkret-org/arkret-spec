@@ -2932,7 +2932,7 @@
         "auth_decision",
         "event_envelope"
       ],
-      "description": "Agent bootstrap pairing window elapsed before the first runtime key authorization completed, so the agent provisioning status projection reports pairing_expired. Pairing expiry does not create, revoke, or rewrite Realm grants. Never applies to previously keyed agents: an expired runtime replacement re-pairing handle has no side effects. See zh/identity/account-lifecycle.md §9.1 and zh/identity/key-management.md §3.6.1."
+      "description": "Agent bootstrap pairing window elapsed before the first runtime key authorization completed, so the derived agent runtime_state projection reports pairing_expired (the controller lifecycle intent axis is unaffected). Pairing expiry does not create, revoke, or rewrite Realm grants. Never applies to previously keyed agents: an expired runtime replacement re-pairing handle has no side effects and returns runtime_state to ready. See zh/identity/account-lifecycle.md §9.1 and zh/identity/key-management.md §3.6.1."
     },
     {
       "code": "pairing_request_expired",

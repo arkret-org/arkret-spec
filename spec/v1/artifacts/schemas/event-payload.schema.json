@@ -4976,11 +4976,10 @@
         },
         "previous_status": {
           "type": "string",
+          "description": "Controller lifecycle intent at deactivation time. Runtime key readiness is the orthogonal derived runtime_state projection and never appears here (key-management.md §3.6.1).",
           "enum": [
-            "pending_runtime_key",
             "active",
-            "paused",
-            "pairing_expired"
+            "paused"
           ]
         },
         "status_changed_at": {
