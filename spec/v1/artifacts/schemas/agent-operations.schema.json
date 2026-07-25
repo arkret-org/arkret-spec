@@ -1291,8 +1291,20 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "lifecycle_event": {
-          "$ref": "./event-envelope.schema.json",
-          "description": "Closed ak.self.agent.pause Event authored in the Agent PCR and executed/signed by the authenticated controller delegation. The service submits these exact bytes through ordinary Event admission and never synthesizes an Agent-authored Event."
+          "allOf": [
+            {
+              "$ref": "./event-envelope.schema.json"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "ak.self.agent.pause"
+                }
+              },
+              "required": ["kind"]
+            }
+          ],
+          "description": "Closed ak.self.agent.pause Event authored in the Agent PCR and executed/signed by the authenticated controller delegation. The service submits these exact bytes through ordinary Event admission and never synthesizes an Agent-authored Event. Its optional payload.reason MUST equal the request reason exactly (both absent or the same string)."
         }
       },
       "additionalProperties": false
@@ -1307,7 +1319,19 @@
           "$ref": "#/$defs/sidecar_exposure_ack"
         },
         "lifecycle_event": {
-          "$ref": "./event-envelope.schema.json",
+          "allOf": [
+            {
+              "$ref": "./event-envelope.schema.json"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "ak.self.agent.resume"
+                }
+              },
+              "required": ["kind"]
+            }
+          ],
           "description": "Closed ak.self.agent.resume Event authored in the Agent PCR and executed/signed by the authenticated controller delegation. Its sidecar_exposure_ack, when present, must equal the request sidecar exactly."
         }
       },
@@ -1325,22 +1349,58 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "lifecycle_event": {
-          "$ref": "./event-envelope.schema.json",
-          "description": "Closed ak.self.agent.deactivate Event authored in the Agent PCR and executed/signed by the authenticated controller delegation. The service admits it only after every required key and capability revocation has been accepted."
+          "allOf": [
+            {
+              "$ref": "./event-envelope.schema.json"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "ak.self.agent.deactivate"
+                }
+              },
+              "required": ["kind"]
+            }
+          ],
+          "description": "Closed ak.self.agent.deactivate Event authored in the Agent PCR and executed/signed by the authenticated controller delegation. The service admits it only after every required key and capability revocation has been accepted. Its optional payload.reason MUST equal the request reason exactly (both absent or the same string)."
         },
         "key_revocation_events": {
           "type": "array",
           "items": {
-            "$ref": "./event-envelope.schema.json"
+            "allOf": [
+              {
+                "$ref": "./event-envelope.schema.json"
+              },
+              {
+                "properties": {
+                  "kind": {
+                    "const": "ak.agent.key.revoke"
+                  }
+                },
+                "required": ["kind"]
+              }
+            ]
           },
-          "description": "Closed ak.agent.key.revoke Events for every currently active Agent key. Each Event is authored in the Agent PCR and executed/signed by the authenticated controller delegation."
+          "description": "Closed ak.agent.key.revoke Events covering every currently active Agent key. Each Event is authored in the Agent PCR and executed/signed by the authenticated controller delegation; its optional payload.reason MUST equal the request reason exactly. Empty is valid only when the authoritative projection has no active Agent key. Events sharing a (realm_id, actor_id) chain MUST appear in causal submission order."
         },
         "capability_revocation_events": {
           "type": "array",
           "items": {
-            "$ref": "./event-envelope.schema.json"
+            "allOf": [
+              {
+                "$ref": "./event-envelope.schema.json"
+              },
+              {
+                "properties": {
+                  "kind": {
+                    "const": "ak.capability.revoke"
+                  }
+                },
+                "required": ["kind"]
+              }
+            ]
           },
-          "description": "Closed controller-authored ak.capability.revoke Events covering every currently unrevoked grant held by the Agent, each written in the Realm that owns that grant."
+          "description": "Closed controller-authored ak.capability.revoke Events covering every currently unrevoked grant held by the Agent, each written in the Realm that owns that grant and carrying an optional payload.reason exactly equal to the request reason. Empty is valid only when the authoritative projection has no unrevoked Agent grant. Events sharing a (realm_id, actor_id) chain MUST appear in causal submission order."
         }
       },
       "additionalProperties": false

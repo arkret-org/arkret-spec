@@ -2627,7 +2627,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Agent lifecycle terminal state. MUST fan-out ak.agent.key.revoke for all active agent keys, ak.capability.revoke for all active grants, and runtime endpoint revocation. Terminal — no transition out.",
+      "payload": "Agent lifecycle terminal state. MUST fan-out ak.agent.key.revoke for all active agent keys, ak.capability.revoke for all unrevoked grants, and runtime endpoint revocation. Terminal — no transition out.",
       "cell_family": "ak.component.agent.status.v1",
       "cell_subject": {
         "type": "did",

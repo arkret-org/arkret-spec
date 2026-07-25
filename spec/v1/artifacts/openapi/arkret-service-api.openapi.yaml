@@ -1086,6 +1086,7 @@ components:
               - key_transparency_proof_missing
               - missing_param
               - invalid_param
+              - controller_signed_event_required
               - unauthenticated
               - auth_expired
               - grant_already_consumed

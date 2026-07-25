@@ -44,6 +44,12 @@
       "description": "A parameter value is syntactically or semantically invalid."
     },
     {
+      "code": "controller_signed_event_required",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "A managed-Agent operation that must preserve controller authorship omitted the required controller-signed durable Event proof. The service MUST NOT synthesize, service-sign, or directly project the missing controller fact. The controller must author and submit the exact closed Event required by the operation. See zh/identity/key-management.md §3.6.1 Lifecycle."
+    },
+    {
       "code": "invalid_response",
       "http_status": 400,
       "scope": "service_call",
@@ -2982,6 +2988,13 @@
         "event_envelope"
       ],
       "description": "A request targeted an agent principal whose current `ak.component.agent.status.v1` cell is `deactivated` (terminal). The endpoint MUST fail closed; no resume path exists, and `ak.agent.key.revoke` / `ak.capability.revoke` fan-out is expected to be complete or in progress. Callers MUST NOT treat this as a transient error. See zh/identity/key-management.md \u00a73.6 \u00a74.11."
+    },
+    {
+      "code": "agent_deactivation_revocations_incomplete",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Sub-reason for failed_precondition when ak.self.agent.command.deactivate does not supply revocation Events covering every authoritative active Agent key and unrevoked Agent grant, or when accepted revoke Events have not yet left both authoritative projections empty. The lifecycle Event MUST remain unaccepted and the Agent MUST remain non-terminal; after refreshing the authoritative projection, callers may replay every still-applicable signed Event id and add signed Events for newly observed residual facts. See zh/identity/key-management.md §3.6.1 Lifecycle."
     },
     {
       "code": "keypackage_welcome_envelope_mismatch",

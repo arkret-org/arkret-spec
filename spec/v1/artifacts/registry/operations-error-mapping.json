@@ -167,9 +167,10 @@
       "operation_specific": [
         "agent_paused",
         "agent_deactivated",
-        "failed_precondition"
+        "failed_precondition",
+        "controller_signed_event_required"
       ],
-      "description": "agent_paused is returned for idempotent re-pause; agent_deactivated is terminal."
+      "description": "agent_paused is returned for idempotent re-pause; agent_deactivated is terminal. A lifecycle Event without its required controller proof returns controller_signed_event_required."
     },
     {
       "operation_id": "ak.self.agent.command.resume",
@@ -178,18 +179,21 @@
         "agent_deactivated",
         "failed_precondition",
         "sidecar_exposure_ack_required",
-        "accountability_grant_missing"
+        "accountability_grant_missing",
+        "controller_signed_event_required"
       ],
-      "description": "Resume revalidates controller, agent key, capability, Realm policy, and accountability grant freshness; any stale precondition fails closed. Sidecar exposure re-disclosure failure surfaces as failed_precondition with reason=`sidecar_exposure_ack_required`."
+      "description": "Resume revalidates controller, agent key, capability, Realm policy, and accountability grant freshness; any stale precondition fails closed. Sidecar exposure re-disclosure failure surfaces as failed_precondition with reason=`sidecar_exposure_ack_required`. A lifecycle Event without its required controller proof returns controller_signed_event_required."
     },
     {
       "operation_id": "ak.self.agent.command.deactivate",
       "http_alias": "POST /_arkret/self/agents/{agent_id}/deactivate",
       "operation_specific": [
         "agent_deactivated",
-        "failed_precondition"
+        "failed_precondition",
+        "controller_signed_event_required",
+        "agent_deactivation_revocations_incomplete"
       ],
-      "description": "agent_deactivated is returned for idempotent re-deactivation of an already-terminal agent."
+      "description": "agent_deactivated is returned for idempotent re-deactivation of an already-terminal agent. Missing controller-authored Event proofs return controller_signed_event_required. Incomplete key/grant coverage or a non-empty post-revoke authoritative projection returns failed_precondition with reason_code=agent_deactivation_revocations_incomplete, and the lifecycle Event remains unaccepted."
     },
     {
       "operation_id": "ak.self.agent.grant.command.attach",
