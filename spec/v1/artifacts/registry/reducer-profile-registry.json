@@ -403,7 +403,7 @@
           {
             "schema_id": "ak.schema.account_subscribe_frame.v1",
             "registry_row_digest": "sha256:a0e273117f740d49131509230c5c92d0d77d394f67df25e33d0b07032af6245e",
-            "document_digest": "sha256:897e416901ef757dcc19022cedc0ce24ec8ed18158ba08521730c1527e6ec468"
+            "document_digest": "sha256:0948d5191f030181fa729a15c63ead33a57fecc131d2b26839408c46e2bd2b4f"
           },
           {
             "schema_id": "ak.schema.availability_receipt.v1",
@@ -520,7 +520,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:bd888c0c52952c0730be642128a6399623dfbabf87d5ab2228caa96e91005915"
+      "reducer_profile_digest": "sha256:e248d8149cd1e4c51bba1cc6c876c769f9d9383ad0fb2caa21b35ac80ff4dbd2"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -1254,7 +1254,7 @@
           {
             "schema_id": "ak.schema.account_subscribe_frame.v1",
             "registry_row_digest": "sha256:a0e273117f740d49131509230c5c92d0d77d394f67df25e33d0b07032af6245e",
-            "document_digest": "sha256:897e416901ef757dcc19022cedc0ce24ec8ed18158ba08521730c1527e6ec468"
+            "document_digest": "sha256:0948d5191f030181fa729a15c63ead33a57fecc131d2b26839408c46e2bd2b4f"
           },
           {
             "schema_id": "ak.schema.availability_receipt.v1",
@@ -1445,7 +1445,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:40ddfd868fd098a22ad5b20fd82c69691dc25571a56044ad137da0b891165a01"
+      "reducer_profile_digest": "sha256:c26b79b3a856fa9ae84dc2230bd46f400831b5ecc5876e4e88a355972f8e54a0"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",

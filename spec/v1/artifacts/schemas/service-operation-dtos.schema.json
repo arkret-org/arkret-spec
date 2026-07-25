@@ -3516,6 +3516,10 @@
             "$ref": "./federated-device-signing-key-evidence.schema.json"
           },
           "description": "Source-Principal-Server attestation of active participant device keys needed to verify original Event proofs. This transport-only evidence is covered by the outer HTTP Message Signature and never changes the Event envelope."
+        },
+        "agent_signer_evidence_bundle": {
+          "$ref": "./agent-signer-evidence-operations.schema.json#/$defs/sync_bundle",
+          "description": "Portable Native Agent signer evidence for transported Events. The bundle uses the same typed DTO as client sync and is covered by the outer HTTP Message Signature without changing Event canonical bytes."
         }
       },
       "additionalProperties": false

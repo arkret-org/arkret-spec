@@ -7,6 +7,7 @@
   "required": [
     "schema",
     "agent_id",
+    "agent_key_id",
     "verification_method",
     "public_key",
     "public_key_digest",
@@ -21,6 +22,12 @@
     },
     "agent_id": {
       "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "agent_key_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "description": "Exact payload.key_id of the bound ak.agent.key.authorize Event; used with agent_id to derive the authoritative agent-key cell subject."
     },
     "verification_method": {
       "type": "string",

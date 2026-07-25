@@ -14,7 +14,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json",
-      "sha256": "627832694a90358c9dc7959cf3fead525a6fe701eb9c6be14da460b7228be526"
+      "sha256": "63d524932cd1a62ac43a3f5da219aecb10fa492703a8175edba6dfcaf10d6a82"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",

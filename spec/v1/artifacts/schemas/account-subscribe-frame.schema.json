@@ -54,6 +54,10 @@
       "$ref": "#/$defs/notification_container",
       "description": "Account-private notification projection deltas on `delta` frames. These are not Realm Events and are authorized by the authenticated account context rather than realm_id visibility."
     },
+    "agent_signer_evidence_bundle": {
+      "$ref": "./agent-signer-evidence-operations.schema.json#/$defs/sync_bundle",
+      "description": "Bounded signer-evidence sidecar for Agent-authored Events in this delta. Clients MUST verify each evidence item before caching or using it."
+    },
     "partial": {
       "type": "boolean",
       "description": "When true on a `delta` frame, the per-Realm timelines are limited (truncated); client SHOULD backfill via ak.self.events.query.scan for any Realm whose timeline carries `limited=true`."
@@ -666,6 +670,11 @@
         {
           "required": [
             "notifications"
+          ]
+        },
+        {
+          "required": [
+            "agent_signer_evidence_bundle"
           ]
         },
         {

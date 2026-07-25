@@ -9,6 +9,7 @@
     "signing_key_binding",
     "authorization",
     "state_witness",
+    "seal_lineage",
     "freshness_attestation"
   ],
   "properties": {
@@ -24,6 +25,18 @@
     "state_witness": {
       "$ref": "#/$defs/state_witness"
     },
+    "transition_witness": {
+      "$ref": "#/$defs/transition_witness"
+    },
+    "seal_lineage": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4096,
+      "items": {
+        "$ref": "./seal.schema.json"
+      },
+      "description": "Complete duplicate-free predecessor closure from the authorization Seal through the freshness observed frontier. Consumers validate every Seal id/signature and derive authorization interval/freshness ordering from graph reachability; opaque frontier strings are never compared lexically."
+    },
     "freshness_attestation": {
       "$ref": "#/$defs/freshness_attestation"
     },
@@ -31,6 +44,58 @@
       "$ref": "#/$defs/transparency"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "authorization": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "revoked",
+                  "superseded"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "transition_witness"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "authorization": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "active",
+                  "expired"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "transition_witness"
+          ]
+        }
+      }
+    }
+  ],
   "additionalProperties": false,
   "$defs": {
     "authorization": {
@@ -78,6 +143,40 @@
           "$ref": "./event-envelope.schema.json#/$defs/event_ref"
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "revoked",
+                  "superseded"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "valid_until_frontier",
+              "transition_event_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "expired"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "expires_at"
+            ]
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "state_witness": {
@@ -89,7 +188,12 @@
         "accepted_frontier",
         "seal_id",
         "state_root",
+        "seal",
+        "cell_ref",
+        "cell_value",
         "leaf_digest",
+        "leaf_index",
+        "leaf_count",
         "inclusion_proof"
       ],
       "properties": {
@@ -111,8 +215,99 @@
         "state_root": {
           "$ref": "#/$defs/hash"
         },
+        "seal": {
+          "$ref": "./seal.schema.json"
+        },
+        "cell_ref": {
+          "type": "string",
+          "pattern": "^ak:cell:ak\\.component\\.agent\\.key\\.v1:"
+        },
+        "cell_value": {},
         "leaf_digest": {
           "$ref": "#/$defs/hash"
+        },
+        "leaf_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "leaf_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "inclusion_proof": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/hash"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "transition_witness": {
+      "type": "object",
+      "required": [
+        "component",
+        "agent_id",
+        "authorization_event_id",
+        "transition_event_id",
+        "transition_key_id",
+        "accepted_frontier",
+        "seal_id",
+        "state_root",
+        "seal",
+        "cell_ref",
+        "cell_value",
+        "leaf_digest",
+        "leaf_index",
+        "leaf_count",
+        "inclusion_proof"
+      ],
+      "properties": {
+        "component": {
+          "const": "ak.component.agent.key.v1"
+        },
+        "agent_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "authorization_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "transition_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "transition_key_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "accepted_frontier": {
+          "$ref": "#/$defs/frontier"
+        },
+        "seal_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+        },
+        "state_root": {
+          "$ref": "#/$defs/hash"
+        },
+        "seal": {
+          "$ref": "./seal.schema.json"
+        },
+        "cell_ref": {
+          "type": "string",
+          "pattern": "^ak:cell:ak\\.component\\.agent\\.key\\.v1:"
+        },
+        "cell_value": {},
+        "leaf_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "leaf_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "leaf_count": {
+          "type": "integer",
+          "minimum": 1
         },
         "inclusion_proof": {
           "type": "array",
@@ -131,7 +326,7 @@
         "observed_frontier",
         "issued_at",
         "expires_at",
-        "http_message_signature"
+        "source_proof"
       ],
       "properties": {
         "source_service_id": {
@@ -146,9 +341,26 @@
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "http_message_signature": {
-          "type": "string",
-          "minLength": 1
+        "source_proof": {
+          "type": "object",
+          "required": [
+            "kind",
+            "verification_method",
+            "jws"
+          ],
+          "properties": {
+            "kind": {
+              "const": "detached_jws"
+            },
+            "verification_method": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            },
+            "jws": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

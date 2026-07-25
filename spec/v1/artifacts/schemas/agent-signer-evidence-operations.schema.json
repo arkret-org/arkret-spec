@@ -4,6 +4,38 @@
   "title": "Arkret Agent Signer Evidence Operations",
   "description": "Authenticated, anti-enumeration query shapes for portable Native Agent signer evidence.",
   "$defs": {
+    "authorization_admission": {
+      "type": "object",
+      "required": [
+        "agent_id",
+        "verification_method",
+        "authorization_event_id",
+        "accepted_frontier",
+        "accepted_at"
+      ],
+      "properties": {
+        "agent_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "verification_method": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^did:[^#?]+#[^#?]+$"
+        },
+        "authorization_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "accepted_frontier": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
     "query_request": {
       "type": "object",
       "required": [

@@ -3082,7 +3082,8 @@
         "properties": [
           "events",
           "service_binding_ref",
-          "signer_key_evidence"
+          "signer_key_evidence",
+          "agent_signer_evidence_bundle"
         ],
         "closed": false,
         "variants": [
@@ -3114,7 +3115,8 @@
             "properties": [
               "service_binding_ref",
               "events",
-              "signer_key_evidence"
+              "signer_key_evidence",
+              "agent_signer_evidence_bundle"
             ],
             "closed": true
           }
@@ -3326,7 +3328,8 @@
         "properties": [
           "service_binding_ref",
           "events",
-          "signer_key_evidence"
+          "signer_key_evidence",
+          "agent_signer_evidence_bundle"
         ],
         "closed": true
       },

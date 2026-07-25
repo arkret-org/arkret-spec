@@ -8,12 +8,13 @@
   },
   "binding_vector": {
     "controller_public_key": "7UkoxijRwsbq6QM4kFmVYSlZJzpcY_k2NsFGFKyHN9E",
-    "canonical_without_jws": "{\"agent_id\":\"did:webvh:z6mkagent:agent.example\",\"agent_key_authorize_event_id\":\"ak:event:01964137-0000-7000-8000-000000000001\",\"controller_id\":\"did:webvh:z6mkcontroller:controller.example\",\"controller_proof\":{\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkcontroller:controller.example#ak:device:01964137-0000-7000-8000-000000000002\"},\"issued_at\":\"2026-07-25T00:00:00.000Z\",\"public_key\":{\"alg\":\"Ed25519\",\"key\":\"6kpsY-KcUgq-9VB7Ey7F-ZVHdq6-vnuSQh7qaRRG0iw\",\"kty\":\"OKP\"},\"public_key_digest\":\"sha256:bbeb7e8a892586b86114ab88cc60807dc588f3f5f29a428e69b46808f573bfa3\",\"schema\":\"ak.schema.agent_signing_key_binding.v1\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
-    "signing_input_base64url": "YWsuYWdlbnQtc2lnbmluZy1rZXktYmluZGluZy12MQp7ImFnZW50X2lkIjoiZGlkOndlYnZoOno2bWthZ2VudDphZ2VudC5leGFtcGxlIiwiYWdlbnRfa2V5X2F1dGhvcml6ZV9ldmVudF9pZCI6ImFrOmV2ZW50OjAxOTY0MTM3LTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMSIsImNvbnRyb2xsZXJfaWQiOiJkaWQ6d2Vidmg6ejZta2NvbnRyb2xsZXI6Y29udHJvbGxlci5leGFtcGxlIiwiY29udHJvbGxlcl9wcm9vZiI6eyJraW5kIjoiZGV0YWNoZWRfandzIiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rY29udHJvbGxlcjpjb250cm9sbGVyLmV4YW1wbGUjYWs6ZGV2aWNlOjAxOTY0MTM3LTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMiJ9LCJpc3N1ZWRfYXQiOiIyMDI2LTA3LTI1VDAwOjAwOjAwLjAwMFoiLCJwdWJsaWNfa2V5Ijp7ImFsZyI6IkVkMjU1MTkiLCJrZXkiOiI2a3BzWS1LY1VncS05VkI3RXk3Ri1aVkhkcTYtdm51U1FoN3FhUlJHMGl3Iiwia3R5IjoiT0tQIn0sInB1YmxpY19rZXlfZGlnZXN0Ijoic2hhMjU2OmJiZWI3ZThhODkyNTg2Yjg2MTE0YWI4OGNjNjA4MDdkYzU4OGYzZjVmMjlhNDI4ZTY5YjQ2ODA4ZjU3M2JmYTMiLCJzY2hlbWEiOiJhay5zY2hlbWEuYWdlbnRfc2lnbmluZ19rZXlfYmluZGluZy52MSIsInZlcmlmaWNhdGlvbl9tZXRob2QiOiJkaWQ6d2Vidmg6ejZta2FnZW50OmFnZW50LmV4YW1wbGUjcnVudGltZS0xIn0",
-    "binding_digest": "sha256:2bf3cb25763e2c50c42b4a5b71978fa79b17cc97162ca540d1fbc3e6ca05e724",
+    "canonical_without_jws": "{\"agent_id\":\"did:webvh:z6mkagent:agent.example\",\"agent_key_authorize_event_id\":\"ak:event:01964137-0000-7000-8000-000000000001\",\"agent_key_id\":\"did:webvh:z6mkagent:agent.example#runtime-1\",\"controller_id\":\"did:webvh:z6mkcontroller:controller.example\",\"controller_proof\":{\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkcontroller:controller.example#ak:device:01964137-0000-7000-8000-000000000002\"},\"issued_at\":\"2026-07-25T00:00:00.000Z\",\"public_key\":{\"alg\":\"Ed25519\",\"key\":\"6kpsY-KcUgq-9VB7Ey7F-ZVHdq6-vnuSQh7qaRRG0iw\",\"kty\":\"OKP\"},\"public_key_digest\":\"sha256:bbeb7e8a892586b86114ab88cc60807dc588f3f5f29a428e69b46808f573bfa3\",\"schema\":\"ak.schema.agent_signing_key_binding.v1\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
+    "signing_input_base64url": "YWsuYWdlbnQtc2lnbmluZy1rZXktYmluZGluZy12MQp7ImFnZW50X2lkIjoiZGlkOndlYnZoOno2bWthZ2VudDphZ2VudC5leGFtcGxlIiwiYWdlbnRfa2V5X2F1dGhvcml6ZV9ldmVudF9pZCI6ImFrOmV2ZW50OjAxOTY0MTM3LTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMSIsImFnZW50X2tleV9pZCI6ImRpZDp3ZWJ2aDp6Nm1rYWdlbnQ6YWdlbnQuZXhhbXBsZSNydW50aW1lLTEiLCJjb250cm9sbGVyX2lkIjoiZGlkOndlYnZoOno2bWtjb250cm9sbGVyOmNvbnRyb2xsZXIuZXhhbXBsZSIsImNvbnRyb2xsZXJfcHJvb2YiOnsia2luZCI6ImRldGFjaGVkX2p3cyIsInZlcmlmaWNhdGlvbl9tZXRob2QiOiJkaWQ6d2Vidmg6ejZta2NvbnRyb2xsZXI6Y29udHJvbGxlci5leGFtcGxlI2FrOmRldmljZTowMTk2NDEzNy0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDIifSwiaXNzdWVkX2F0IjoiMjAyNi0wNy0yNVQwMDowMDowMC4wMDBaIiwicHVibGljX2tleSI6eyJhbGciOiJFZDI1NTE5Iiwia2V5IjoiNmtwc1ktS2NVZ3EtOVZCN0V5N0YtWlZIZHE2LXZudVNRaDdxYVJSRzBpdyIsImt0eSI6Ik9LUCJ9LCJwdWJsaWNfa2V5X2RpZ2VzdCI6InNoYTI1NjpiYmViN2U4YTg5MjU4NmI4NjExNGFiODhjYzYwODA3ZGM1ODhmM2Y1ZjI5YTQyOGU2OWI0NjgwOGY1NzNiZmEzIiwic2NoZW1hIjoiYWsuc2NoZW1hLmFnZW50X3NpZ25pbmdfa2V5X2JpbmRpbmcudjEiLCJ2ZXJpZmljYXRpb25fbWV0aG9kIjoiZGlkOndlYnZoOno2bWthZ2VudDphZ2VudC5leGFtcGxlI3J1bnRpbWUtMSJ9",
+    "binding_digest": "sha256:6214dbe074a0a8ab5c15bf5621c1de7db7efc2136dbacab5ead55aeca88d3a30",
     "binding": {
       "schema": "ak.schema.agent_signing_key_binding.v1",
       "agent_id": "did:webvh:z6mkagent:agent.example",
+      "agent_key_id": "did:webvh:z6mkagent:agent.example#runtime-1",
       "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
       "public_key": {
         "kty": "OKP",
@@ -27,7 +28,7 @@
       "controller_proof": {
         "kind": "detached_jws",
         "verification_method": "did:webvh:z6mkcontroller:controller.example#ak:device:01964137-0000-7000-8000-000000000002",
-        "jws": "eyJhbGciOiJFZERTQSJ9..DXRrooFsRtGE_A6m3IGglWVK8-YI9PUi96fMbZ3DvObUwAHzWS74LCuJlPKNKFSJBA_PZfZikQsDsDMA8_5XCg"
+        "jws": "eyJhbGciOiJFZERTQSJ9..H4Oa3vvlPEV7ufZM_NgzfVWL17tQqeE9FnliAzjua66xfy5V7XSzSiyL4IcmqfsXo1ue2FfdMzaRzV1PYldPDA"
       }
     }
   },
@@ -104,6 +105,148 @@
       "realm_profile": "ak.profile.mls.minimal_metadata_realm.v1",
       "agent_evidence_queries": 0,
       "device_directory_queries": 0
+    },
+    {
+      "name": "binding_controller_mismatch_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch",
+      "controller_id": "did:webvh:z6mkother:controller.example"
+    },
+    {
+      "name": "binding_public_key_digest_mismatch_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch",
+      "public_key_digest_matches_raw_key": false
+    },
+    {
+      "name": "binding_controller_proof_invalid_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch",
+      "controller_proof_verified": false
+    },
+    {
+      "name": "binding_agent_key_id_mismatch_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch",
+      "agent_key_id_matches_authorize_payload": false
+    },
+    {
+      "name": "state_witness_agent_mismatch_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch",
+      "state_witness_agent_matches": false
+    },
+    {
+      "name": "state_witness_authorization_ref_mismatch_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch",
+      "state_witness_authorization_ref_matches": false
+    },
+    {
+      "name": "state_witness_frontier_mismatch_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch",
+      "state_witness_frontier_matches_authorization": false
+    },
+    {
+      "name": "freshness_signature_invalid_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch",
+      "freshness_signature_verified": false
+    },
+    {
+      "name": "freshness_frontier_conflict_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_authorization_conflicted",
+      "freshness_relation_to_event": "conflict"
+    },
+    {
+      "name": "cache_frontier_rollback_is_unresolved",
+      "expected": "unresolved",
+      "reason": "agent_signer_evidence_stale",
+      "freshness_relation_to_event": "behind"
+    },
+    {
+      "name": "revoked_historical_event_inside_interval_remains_verified",
+      "expected": "verified",
+      "authorization_status": "revoked",
+      "authorization_interval_relation": "contains"
+    },
+    {
+      "name": "revoked_old_key_new_event_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_authorization_inactive",
+      "authorization_status": "revoked",
+      "authorization_interval_relation": "after"
+    },
+    {
+      "name": "historical_transition_witness_missing_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_authorization_inactive",
+      "authorization_status": "superseded",
+      "transition_witness_present": false
+    },
+    {
+      "name": "historical_transition_witness_event_mismatch_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_signing_key_mismatch",
+      "authorization_status": "revoked",
+      "transition_witness_event_matches": false
+    },
+    {
+      "name": "expired_event_at_boundary_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_authorization_inactive",
+      "event_time_relation_to_expiry": "at_or_after"
+    },
+    {
+      "name": "missing_agent_leaf_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_mls_leaf_binding_mismatch",
+      "matching_basic_leaf_count": 0
+    },
+    {
+      "name": "agent_leaf_signature_key_mismatch_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_mls_leaf_binding_mismatch",
+      "leaf_signature_key_matches_evidence": false
+    },
+    {
+      "name": "agent_leaf_authorization_ref_mismatch_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_mls_leaf_binding_mismatch",
+      "leaf_authorization_ref_matches_evidence": false
+    },
+    {
+      "name": "wrong_mls_epoch_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_mls_leaf_binding_mismatch",
+      "group_epoch_matches_event": false
+    },
+    {
+      "name": "non_winning_group_state_is_rejected",
+      "expected": "rejected",
+      "reason": "agent_mls_leaf_binding_mismatch",
+      "group_state_ref_is_accepted_winner": false
+    },
+    {
+      "name": "high_assurance_missing_transparency_is_unresolved",
+      "expected": "unresolved",
+      "reason": "agent_signer_evidence_missing",
+      "required_profile": "ak.profile.key_transparency.v1",
+      "transparency_present": false
+    },
+    {
+      "name": "unknown_principal_does_not_enter_agent_regime",
+      "expected": "rejected",
+      "reason": "signer_regime_mismatch",
+      "verified_principal_type": "unknown"
+    },
+    {
+      "name": "ordinary_device_does_not_enter_agent_regime",
+      "expected": "verified_by_device_directory_only",
+      "verified_principal_type": "device",
+      "agent_evidence_queries": 0
     }
   ]
 }
