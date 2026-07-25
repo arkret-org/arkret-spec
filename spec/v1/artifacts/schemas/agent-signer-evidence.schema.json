@@ -1,0 +1,218 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/agent-signer-evidence.schema.json",
+  "title": "Arkret Agent Signer Evidence",
+  "description": "Portable, closed evidence used to verify a Native Agent Event signer at an accepted authorization frontier without consulting the ordinary device directory.",
+  "type": "object",
+  "required": [
+    "schema",
+    "signing_key_binding",
+    "authorization",
+    "state_witness",
+    "freshness_attestation"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.agent_signer_evidence.v1"
+    },
+    "signing_key_binding": {
+      "$ref": "./agent-signing-key-binding.schema.json"
+    },
+    "authorization": {
+      "$ref": "#/$defs/authorization"
+    },
+    "state_witness": {
+      "$ref": "#/$defs/state_witness"
+    },
+    "freshness_attestation": {
+      "$ref": "#/$defs/freshness_attestation"
+    },
+    "transparency": {
+      "$ref": "#/$defs/transparency"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "authorization": {
+      "type": "object",
+      "required": [
+        "status",
+        "authorized_event_id",
+        "accepted_frontier",
+        "accepted_at",
+        "valid_from_frontier",
+        "not_before"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "active",
+            "revoked",
+            "superseded",
+            "expired",
+            "conflicted"
+          ]
+        },
+        "authorized_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "accepted_frontier": {
+          "$ref": "#/$defs/frontier"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "valid_from_frontier": {
+          "$ref": "#/$defs/frontier"
+        },
+        "not_before": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "valid_until_frontier": {
+          "$ref": "#/$defs/frontier"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "transition_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "state_witness": {
+      "type": "object",
+      "required": [
+        "component",
+        "agent_id",
+        "authorization_event_id",
+        "accepted_frontier",
+        "seal_id",
+        "state_root",
+        "leaf_digest",
+        "inclusion_proof"
+      ],
+      "properties": {
+        "component": {
+          "const": "ak.component.agent.key.v1"
+        },
+        "agent_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "authorization_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "accepted_frontier": {
+          "$ref": "#/$defs/frontier"
+        },
+        "seal_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+        },
+        "state_root": {
+          "$ref": "#/$defs/hash"
+        },
+        "leaf_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "inclusion_proof": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/hash"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "freshness_attestation": {
+      "type": "object",
+      "required": [
+        "source_service_id",
+        "observed_frontier",
+        "issued_at",
+        "expires_at",
+        "http_message_signature"
+      ],
+      "properties": {
+        "source_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "observed_frontier": {
+          "$ref": "#/$defs/frontier"
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "http_message_signature": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "transparency": {
+      "type": "object",
+      "required": [
+        "profile",
+        "log_id",
+        "tree_size",
+        "root_hash",
+        "inclusion_proof",
+        "consistency_proof",
+        "witness_signatures"
+      ],
+      "properties": {
+        "profile": {
+          "const": "ak.profile.key_transparency.v1"
+        },
+        "log_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tree_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "root_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "inclusion_proof": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/hash"
+          }
+        },
+        "consistency_proof": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/hash"
+          }
+        },
+        "witness_signatures": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "frontier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[a-z0-9_.-]+:[A-Za-z0-9_-]+$"
+    }
+  }
+}

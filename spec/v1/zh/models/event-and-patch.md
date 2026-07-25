@@ -141,7 +141,26 @@ Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State converge
 - `actor_kind` 是 reducer-stamped 投影，由 reducer 在接受 Event 时从 `actor_id` 的 Actor Profile 解析得到 immutable 值；它让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可判断该 Event 是 agent 行为(`actor_kind="agent"`) 还是 controller 行为。Actor 提交侧 MUST NOT 携带该字段。
 - 启用 `ak.profile.mls.minimal_metadata_realm.v1` 时，`actor_id` MAY 是 Realm / Strand track scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `ak.schema.identity_link.v1` payload（`ak.identity_link` application message / MLS private extension）、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
 
-#### 2.4.1 Event kind cell contract（normative）
+#### 2.4.1 Signer regime 分派与 Agent delegated transcript（normative）
+
+Receiver MUST 在解析任何验签 key 前先确定唯一 signer regime，不得把“上一种 key 解析失败”作为进入下一种 regime 的条件。分派输入只能是 Realm profile、Event envelope、已验证 actor/principal 类型与已登记 registration evidence：
+
+1. `ak.profile.mls.minimal_metadata_realm.v1` 只进入 minimal-metadata regime；按 Event 所引 `(group_id, epoch, group_state_ref)` 的唯一 active BasicCredential leaf 验证，禁止 principal-scoped directory、Agent evidence 或 device directory query。
+2. ordinary device proof 的 method 必须精确为 ``{signer_id}#{ak:device:<uuidv7>}``，只走 device-set / `keys/query` 的 cross-signed 或 enrollment-authority evidence。
+3. ordinary Native Agent 必须由已验证 Agent principal 类型和 `ak.schema.agent_signer_evidence.v1` 共同确定；不得以 method fragment “不是 `ak:device:*`”推断。该分支禁止读取 device record。
+4. Applet、service 与 integration 必须走各自 registration epoch / service DID evidence，永不落入 Agent 分支。
+
+未知、零匹配或多重匹配一律 fail closed。统一算法固定为：
+
+- `binding_actor_id = event.actor_id`；
+- `signer_id = event.executed_by ?? event.actor_id`；
+- proof method 的 controller 必须等于 `signer_id`；
+- detached JWS proof binding 中的 `actor_id` 永远使用 `binding_actor_id`，不得在 delegated write 中改写为 signer；
+- `executed_by` 出现时，receiver 还必须独立验证 `authorization_ref` 覆盖该 act-on-behalf write。
+
+因此 native Agent write 与 `actor_id=controller, executed_by=agent` 使用同一 Agent verifier；区别仅是 `signer_id` 的选择。任何把 proof transcript 中 actor 改成 `executed_by`、按 controller key验 delegated Agent proof、或在 Agent evidence unresolved时改试MLS leaf/device directory的实现均不符合v1。
+
+#### 2.4.2 Event kind cell contract（normative）
 
 每个 `status=active && reducer_input=true` 的 durable Event kind MUST 在 `event-kind-registry.json` 声明完整 cell contract。`plane` / `sealed` 固定整个 Event 的 CBA 路由；`cell_writes[]` 是一般形态，每项固定 `cell_family`、`cell_subject` 派生式、`lattice`、`bottom` 与可选 `initial_value`。单目标 kind MAY 同时暴露等价的 `cell_family` / `cell_subject` / `lattice` / `bottom` 简写；两者不一致时 registry 无效，发布门禁 MUST 失败。
 

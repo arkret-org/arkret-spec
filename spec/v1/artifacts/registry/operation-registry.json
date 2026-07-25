@@ -274,6 +274,7 @@
         "ak.self.device_messages.command.ack",
         "ak.self.keys.upload.create",
         "ak.self.keys.query.lookup",
+        "ak.self.agent_signer_evidence.query",
         "ak.self.keys.command.claim",
         "ak.self.keys.keypackages.upload.create",
         "ak.self.keys.keypackages.command.claim",
@@ -1966,6 +1967,15 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_request_body",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome"
+    },
+    {
+      "operation_id": "ak.self.agent_signer_evidence.query",
+      "http": "POST /_arkret/self/agent-signer-evidence/query",
+      "grpc": "SelfAgentSignerEvidence/Query",
+      "mq": "self.agent_signer_evidence.query",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_request",
+      "response_schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_outcome"
     },
     {
       "operation_id": "ak.self.keys.upload.create",

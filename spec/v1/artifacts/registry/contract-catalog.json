@@ -3130,6 +3130,39 @@
         "description": "Controller-signed, verifier-bound private disclosure of a managed Agent's immutable requested_scope; the public Agent DID carries only its commitment digest."
       },
       {
+        "schema_id": "ak.schema.agent_signing_key_binding.v1",
+        "file": "schemas/agent-signing-key-binding.schema.json",
+        "status": "active",
+        "description": "Controller-signed minimal public binding from a Native Agent verification method to raw Ed25519 key material and one accepted Agent key authorization."
+      },
+      {
+        "schema_id": "ak.schema.agent_signer_evidence.v1",
+        "file": "schemas/agent-signer-evidence.schema.json",
+        "status": "active",
+        "description": "Portable Native Agent signer authorization, state-witness, and freshness evidence used outside the ordinary device directory."
+      },
+      {
+        "schema_id": "ak.schema.agent_signer_evidence_query_request.v1",
+        "file": "schemas/agent-signer-evidence-operations.schema.json",
+        "fragment": "#/$defs/query_request",
+        "status": "active",
+        "description": "Authenticated shared-context Agent signer evidence query request."
+      },
+      {
+        "schema_id": "ak.schema.agent_signer_evidence_query_outcome.v1",
+        "file": "schemas/agent-signer-evidence-operations.schema.json",
+        "fragment": "#/$defs/query_outcome",
+        "status": "active",
+        "description": "Closed outcome carrying portable Agent signer evidence or non-enumerating per-selector failures."
+      },
+      {
+        "schema_id": "ak.schema.agent_signer_evidence_bundle.v1",
+        "file": "schemas/agent-signer-evidence-operations.schema.json",
+        "fragment": "#/$defs/sync_bundle",
+        "status": "active",
+        "description": "Deduplicated transport-level Agent signer evidence bundle shared by sync, backfill, and federation."
+      },
+      {
         "schema_id": "ak.schema.circle.v1",
         "file": "schemas/circle.schema.json",
         "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. see zh/models/circle.md."
@@ -4541,6 +4574,7 @@
           "ak.self.device_messages.command.ack",
           "ak.self.keys.upload.create",
           "ak.self.keys.query.lookup",
+          "ak.self.agent_signer_evidence.query",
           "ak.self.keys.command.claim",
           "ak.self.keys.keypackages.upload.create",
           "ak.self.keys.keypackages.command.claim",
@@ -6108,6 +6142,15 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_request_body",
         "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome"
+      },
+      {
+        "operation_id": "ak.self.agent_signer_evidence.query",
+        "http": "POST /_arkret/self/agent-signer-evidence/query",
+        "grpc": "SelfAgentSignerEvidence/Query",
+        "mq": "self.agent_signer_evidence.query",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_request",
+        "response_schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_outcome"
       },
       {
       "operation_id": "ak.self.keys.upload.create",

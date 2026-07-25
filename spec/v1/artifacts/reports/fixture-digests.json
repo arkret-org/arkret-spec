@@ -13,6 +13,10 @@
       "sha256": "e6dda2ad9745a7dac1107c3ca4fc1ae06da1734b2e6da305f1d06aa7c82099dc"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json",
+      "sha256": "627832694a90358c9dc7959cf3fead525a6fe701eb9c6be14da460b7228be526"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
       "sha256": "997f8aa78b811a3128a815250b3bd5a699c77ecc553c29b6ce37976e352eb75b"
     },
@@ -102,7 +106,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "30b5f324a842c8186980f1657e49d80a38e56e73b9c5b9f83c882d070261d8b8"
+      "sha256": "f2e0552e70c3b39a0255173f7ecb6ef71a3ae43db522a8a75da8919782453713"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -214,7 +218,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "d05bf1685b775db7df9cf690adfd3191f95fe631d1bb46cbef9857505dcfbbd3"
+      "sha256": "f143ee502e24c81b57f434a254f2b8d899542f84f728f8917c69c56aca53cbb2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

@@ -20,6 +20,42 @@
       "description": "Parsed input does not satisfy the declared schema contract."
     },
     {
+      "code": "agent_signer_evidence_missing",
+      "http_status": 404,
+      "scope": "both",
+      "description": "Portable Native Agent signer evidence is unavailable for the authorized shared context. For callers without that context this response is indistinguishable from an unknown Agent or method. Consumers remain Unresolved and MUST NOT fall back to device directory or an ordinary-Realm MLS leaf."
+    },
+    {
+      "code": "agent_signer_evidence_stale",
+      "http_status": 409,
+      "scope": "both",
+      "description": "Agent signer evidence exists but its source freshness observation or state frontier is too old for the target Event admission. Consumers remain Unresolved/Stale and retry without promoting the Event to Verified."
+    },
+    {
+      "code": "agent_authorization_inactive",
+      "http_status": 422,
+      "scope": "both",
+      "description": "The target Event accepted-at lies outside the Agent key authorization validity interval because the authorization is revoked, superseded, or expired."
+    },
+    {
+      "code": "agent_authorization_conflicted",
+      "http_status": 409,
+      "scope": "both",
+      "description": "The accepted Agent key component contains conflicting active authorization state at the target frontier. The Event and signer evidence MUST be quarantined."
+    },
+    {
+      "code": "agent_signing_key_mismatch",
+      "http_status": 422,
+      "scope": "both",
+      "description": "The Agent proof method, disclosed raw key, public-key digest, signing-binding digest, authorization Event, or controller proof do not form one exact binding."
+    },
+    {
+      "code": "agent_mls_leaf_binding_mismatch",
+      "http_status": 422,
+      "scope": "both",
+      "description": "An ordinary encrypted Agent Event does not have exactly one historical active BasicCredential leaf whose identity, signature key, and admission authorization lineage match its Agent signer evidence."
+    },
+    {
       "code": "duplicate_clause_claim",
       "http_status": 422,
       "scope": "both",

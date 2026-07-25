@@ -468,6 +468,7 @@
           "public_key",
           "proof_of_possession",
           "requested_scope_disclosure",
+          "signing_key_binding",
           "authorize_event"
         ],
         "properties": [
@@ -478,6 +479,7 @@
           "proof_of_possession",
           "requested_scope_disclosure",
           "runtime_attestation",
+          "signing_key_binding",
           "authorize_event"
         ],
         "closed": true
@@ -487,11 +489,13 @@
         "schema_kind": "object",
         "required": [
           "ok",
-          "authorized_event_ref"
+          "authorized_event_ref",
+          "signing_key_binding"
         ],
         "properties": [
           "ok",
-          "authorized_event_ref"
+          "authorized_event_ref",
+          "signing_key_binding"
         ],
         "closed": true
       }
@@ -4491,6 +4495,35 @@
       }
     },
     {
+      "operation_id": "ak.self.agent_signer_evidence.query",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_request",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "queries"
+        ],
+        "properties": [
+          "realm_id",
+          "queries"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_outcome",
+        "schema_kind": "object",
+        "required": [
+          "evidence"
+        ],
+        "properties": [
+          "evidence",
+          "failures"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.self.keys.upload.create",
       "success_shape_kind": "typed_response",
       "request": {
@@ -4689,7 +4722,8 @@
           "approval_request_id",
           "authorized_event_ref",
           "authorized_verification_method",
-          "authorized_public_key_digest"
+          "authorized_public_key_digest",
+          "authorized_signing_key_binding"
         ],
         "closed": true
       }

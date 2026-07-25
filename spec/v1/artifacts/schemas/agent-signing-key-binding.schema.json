@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/agent-signing-key-binding.schema.json",
+  "title": "Arkret Agent Signing Key Binding",
+  "description": "Controller-authored minimal public binding between one Native Agent signing verification method, its raw Ed25519 key, and the accepted ak.agent.key.authorize Event. Private pairing, scope, PoP, attestation, and capability material MUST NOT appear in this object.",
+  "type": "object",
+  "required": [
+    "schema",
+    "agent_id",
+    "verification_method",
+    "public_key",
+    "public_key_digest",
+    "agent_key_authorize_event_id",
+    "issued_at",
+    "controller_id",
+    "controller_proof"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.agent_signing_key_binding.v1"
+    },
+    "agent_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "verification_method": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^did:[^#?]+#[^#?]+$"
+    },
+    "public_key": {
+      "$ref": "#/$defs/public_key"
+    },
+    "public_key_digest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "agent_key_authorize_event_id": {
+      "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+    },
+    "issued_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "expires_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp",
+      "description": "Present iff the authorization itself declares expires_at. JSON null is forbidden."
+    },
+    "controller_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "controller_proof": {
+      "$ref": "#/$defs/controller_proof"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "public_key": {
+      "type": "object",
+      "required": [
+        "kty",
+        "alg",
+        "key"
+      ],
+      "properties": {
+        "kty": {
+          "const": "OKP"
+        },
+        "alg": {
+          "const": "Ed25519"
+        },
+        "key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "description": "Base64url without padding of exactly 32 Ed25519 public-key bytes."
+        }
+      },
+      "additionalProperties": false
+    },
+    "controller_proof": {
+      "type": "object",
+      "required": [
+        "kind",
+        "verification_method",
+        "jws"
+      ],
+      "properties": {
+        "kind": {
+          "const": "detached_jws"
+        },
+        "verification_method": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^did:[^#?]+#[^#?]+$"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  }
+}

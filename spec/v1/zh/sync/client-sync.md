@@ -207,6 +207,14 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
 
 ## 4. Realm Buckets
 
+### 3.2 Agent signer evidence bundle（normative）
+
+声明 `ak.profile.agent_signer_evidence.v1` 的 sync producer MUST 在 sync response 顶层支持可选 `agent_signer_evidence_bundle`，其 shape为 `agent-signer-evidence-operations.schema.json#/$defs/sync_bundle`。bundle按完整 `(agent_id, verification_method, agent_key_authorize_event_id, state_witness.accepted_frontier)` 去重；Event不新增字段，也不得把transport evidence写进producer canonical bytes。Consumer从Event的 `executed_by ?? actor_id`、proof method、admission receipt中的authorization ref/frontier选择唯一evidence。
+
+服务端只可为requester与Agent当前共享Realm/session/contact/controller上下文的Event携带evidence；不得借initial sync枚举其他Agent或其私有scope。minimal-metadata Realm bucket禁止携带或触发Agent/device principal query。
+
+客户端cache key MUST包含上述四元组，frontier比较必须单调：更旧evidence不得覆盖更新frontier；相同selector出现不同binding/state root进入quarantine。evidence缺失或freshness过期只产生 `verification_pending` / `agent_signer_evidence_stale`，不得降级为device directory或ordinary MLS leaf-only Verified。backfill与live sync使用完全相同DTO和validator。
+
 `realms` 不按 membership 做外层分桶；它始终以 `ak:realm:*` 为 key。当前 membership 是每个 Realm bucket 内的状态字段 / `ak.member.state` projection，取值可为 `join`、`invite`、`knock`、`leave` 或 `ban`（完整枚举见 §2 首次定义），不得把这些值提升为 `realms` 的外层 key。
 
 每个 Realm 响应：

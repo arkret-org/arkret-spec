@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/agent-signer-evidence-operations.schema.json",
+  "title": "Arkret Agent Signer Evidence Operations",
+  "description": "Authenticated, anti-enumeration query shapes for portable Native Agent signer evidence.",
+  "$defs": {
+    "query_request": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "queries"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "queries": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/query_selector"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "query_selector": {
+      "type": "object",
+      "required": [
+        "agent_id",
+        "verification_method"
+      ],
+      "properties": {
+        "agent_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "verification_method": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^did:[^#?]+#[^#?]+$"
+        },
+        "agent_key_authorize_event_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/event_ref"
+        },
+        "event_accepted_frontier": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      },
+      "additionalProperties": false
+    },
+    "query_outcome": {
+      "type": "object",
+      "required": [
+        "evidence"
+      ],
+      "properties": {
+        "evidence": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "./agent-signer-evidence.schema.json"
+          }
+        },
+        "failures": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/query_failure"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "query_failure": {
+      "type": "object",
+      "required": [
+        "selector",
+        "reason"
+      ],
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/query_selector"
+        },
+        "reason": {
+          "enum": [
+            "agent_signer_evidence_missing",
+            "agent_signer_evidence_stale",
+            "agent_authorization_inactive",
+            "agent_authorization_conflicted"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "sync_bundle": {
+      "type": "object",
+      "required": [
+        "schema",
+        "evidence"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.agent_signer_evidence_bundle.v1"
+        },
+        "evidence": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "./agent-signer-evidence.schema.json"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

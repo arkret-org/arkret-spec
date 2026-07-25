@@ -343,6 +343,7 @@
     "ak.profile.minimal_client.v1",
     "ak.profile.full_client.v1",
     "ak.profile.e2ee_client.v1",
+    "ak.profile.agent_signer_evidence.v1",
     "ak.profile.e2ee_relaxed.v1",
     "ak.profile.enterprise_client.v1",
     "ak.profile.principal_server_events_api.v1",
@@ -395,6 +396,7 @@
       "ak.profile.minimal_client.v1",
       "ak.profile.full_client.v1",
       "ak.profile.e2ee_client.v1",
+      "ak.profile.agent_signer_evidence.v1",
       "ak.profile.enterprise_client.v1",
       "ak.profile.principal_server_events_api.v1",
       "ak.profile.principal_server.v1",
@@ -505,6 +507,7 @@
     "ak.profile.minimal_client.v1": "client",
     "ak.profile.full_client.v1": "client",
     "ak.profile.e2ee_client.v1": "client",
+    "ak.profile.agent_signer_evidence.v1": "interop",
     "ak.profile.e2ee_relaxed.v1": "client",
     "ak.profile.enterprise_client.v1": "client",
     "ak.profile.sovereign_client.v1": "client",
@@ -1649,6 +1652,7 @@
         "sync-fixture.json"
       ],
       "optional_extensions": [
+        "ak.profile.agent_signer_evidence.v1",
         "ak.profile.mls.minimal_metadata_realm.v1",
         "aad_visibility_policy"
       ],
@@ -1660,6 +1664,39 @@
           "encrypted_key_backup"
         ],
         "unsupported_optional": "preserve encrypted events and expose key_missing"
+      }
+    },
+    "ak.profile.agent_signer_evidence.v1": {
+      "tier": "extension_profile_implementation",
+      "description": "Portable ordinary-Realm Native Agent signer authorization evidence. Producers publish controller bindings, accepted state witnesses and freshness attestations; consumers independently verify them and cross-bind encrypted Events to the historical MLS leaf.",
+      "required_endpoints": [
+        "ak.self.agent_signer_evidence.query"
+      ],
+      "required_event_kinds": [
+        "ak.agent.key.authorize",
+        "ak.agent.key.revoke"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ak.schema.agent_signing_key_binding.v1",
+        "ak.schema.agent_signer_evidence.v1",
+        "ak.schema.agent_signer_evidence_query_request.v1",
+        "ak.schema.agent_signer_evidence_query_outcome.v1",
+        "ak.schema.agent_signer_evidence_bundle.v1"
+      ],
+      "required_fixtures": [
+        "agent-signer-evidence-fixture.json"
+      ],
+      "optional_extensions": [
+        "ak.profile.key_transparency.v1"
+      ],
+      "feature_discovery": {
+        "required": [
+          "agent_signer_evidence",
+          "agent_signer_evidence_historical_frontier",
+          "agent_mls_authorization_cross_binding"
+        ],
+        "unsupported_optional": "Do not mark ordinary Native Agent Events Verified. Preserve ciphertext or quarantined plaintext with verification_pending and never fall back to keys/query or ordinary MLS leaf-only trust."
       }
     },
     "ak.profile.e2ee_relaxed.v1": {

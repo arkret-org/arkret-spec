@@ -379,6 +379,10 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_list
     AgentSidecarView:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_view
+    AgentSignerEvidenceQueryOutcome:
+      $ref: ../schemas/agent-signer-evidence-operations.schema.json#/$defs/query_outcome
+    AgentSignerEvidenceQueryRequest:
+      $ref: ../schemas/agent-signer-evidence-operations.schema.json#/$defs/query_request
     AgentView:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_view
     AppletActorView:
@@ -1082,6 +1086,12 @@ components:
               - bad_json
               - bad_query
               - schema_violation
+              - agent_signer_evidence_missing
+              - agent_signer_evidence_stale
+              - agent_authorization_inactive
+              - agent_authorization_conflicted
+              - agent_signing_key_mismatch
+              - agent_mls_leaf_binding_mismatch
               - duplicate_clause_claim
               - key_transparency_proof_missing
               - missing_param
@@ -5911,6 +5921,28 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/KeysClaimRequestBody'
+  /_arkret/self/agent-signer-evidence/query:
+    post:
+      operationId: ak.self.agent_signer_evidence.query
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      responses:
+        '200':
+          description: Portable Native Agent signer evidence query result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentSignerEvidenceQueryOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentSignerEvidenceQueryRequest'
   /_arkret/self/keys/keypackages/upload:
     post:
       operationId: ak.self.keys.keypackages.upload.create

@@ -882,6 +882,14 @@ Signature: sig1=:<base64>:
 - 服务端 MUST 限流，并对不可见 actor 返回统一 `not_found` / `capability_denied` 语义，避免批量枚举 DID。
 - 响应只能作为缓存加速或诊断。接收方在接受事件、成员变更或设备绑定前，仍 MUST 独立验证 DID Document、key log、签名 transcript、capability 和 Realm policy。
 
+### 7.5 Portable Agent signer evidence（normative）
+
+peer接收 ordinary Native Agent Event时，MUST使用与本地sync完全相同的 `ak.schema.agent_signer_evidence.v1`，不得复用 `FederatedDeviceSigningKeyEvidence`、`keys/query` shape或peer自定义JSON。push/backfill response可携带deduplicated `agent_signer_evidence_bundle`；缺失时，已认证peer可调用登记的Agent evidence query binding，并提供目标Realm共享上下文证明。
+
+来源peer的HTTP Message Signature必须覆盖完整evidence content digest、request digest、source/destination service id与operation id。该签名只提供transport provenance/freshness，receiver仍须独立重算controller binding/digest、accepted state witness、authorization interval、Event proof JWS与ordinary MLS historical leaf equality。
+
+cache frontier rollback、同selector的binding/state-root分歧或transparency consistency失败必须quarantine并报告conflict；网络失败/过期是Unresolved，不得切换到device directory、当前leaf或任意DID method。high-assurance federation还必须要求 `transparency` inclusion/consistency/witness proof；baseline至少要求短期source-service freshness attestation。
+
 ## 8. 安全考量
 
 ### 8.1 反洪泛 (Anti-Flooding)

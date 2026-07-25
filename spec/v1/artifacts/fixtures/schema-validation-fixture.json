@@ -1194,6 +1194,8 @@
         "agent_id": "did:webvh:z6mkfixture:agent.example",
         "key_id": "did:webvh:z6mkfixture:agent.example#key-1",
         "verification_method": "did:webvh:z6mkfixture:agent.example#key-1",
+        "public_key_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "signing_key_binding_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "accountable_principal_id": "did:webvh:z6mkfixture:alice.example",
         "agent_key_scope": {
           "actions": [

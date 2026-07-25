@@ -1075,6 +1075,16 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
+      "operation_id": "ak.self.agent_signer_evidence.query",
+      "http_alias": "POST /_arkret/self/agent-signer-evidence/query",
+      "operation_specific": [
+        "agent_signer_evidence_missing",
+        "agent_signer_evidence_stale",
+        "agent_authorization_inactive",
+        "agent_authorization_conflicted"
+      ]
+    },
+    {
       "operation_id": "ak.self.keys.upload.create",
       "http_alias": "POST /_arkret/self/keys/upload",
       "operation_specific": [

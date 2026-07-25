@@ -781,6 +781,8 @@ POST /_arkret/self/keys/claim
 
 接收方验 envelope / signal proof 时 MUST 按 `verification_method` = `` `{actor}#{device_id}` ``（fragment 是完整 `ak:device:<uuidv7>`）经本目录解析 `device_signing_key` 得 verify_key；设备吊销或 generation fenced/conflicted（`device_status != active`、B 模型 generation 不等或目录省略 key）、目录缺失该 `(actor, device)`、cross-signing 链验证未通过、service-attested 投影锚缺失/不合法、或验签失败者 MUST **fail-closed**：丢弃信号，MUST NOT 触发 UI，持久消息 MUST 标为不可验证且不得当作已验证明文呈现。该规则同时适用于通话信令(详见 [`webrtc-signaling.md` §5.1](./webrtc-signaling.md))与持久消息接收路径。
 
+`keys/query` 是普通设备专用 `(principal_id, ak:device:<uuidv7>) → accepted ak.device.authorize` 投影。Native Agent runtime 的 stable `device_id` 仅用于 MLS endpoint、KeyPackage、Welcome 与 session binding，不产生 device authorization；服务端 MUST NOT 在 Agent principal 下返回 runtime `device_signing_key`，客户端 MUST NOT 向本 operation 查询 Agent runtime method。ordinary Agent 使用 [`../identity/key-management.md`](../identity/key-management.md) 的 `ak.schema.agent_signer_evidence.v1` operation；Applet/service 使用其注册 evidence。目录缺失后尝试 Agent/MLS key，或 Agent evidence unresolved后回退本目录，均属于禁止的跨-regime fallback。
+
 #### 8.3 客户端交叉签名链验证（Tier-2，normative）
 
 返回 Tier-2 字段时，客户端在接受 `device_signing_key` 为某 `(actor, device)` 的权威验签公钥前 MUST 执行 §5.2.1 链验证，且 **MUST NOT** 仅因服务端返回了 `device_signing_key` 就信任它：

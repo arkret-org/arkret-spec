@@ -18,13 +18,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 201,
+    "total_operations": 202,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 189
+      "typed_schema": 190
     },
     "by_tier_and_class": {
       "core": {
@@ -39,7 +39,7 @@
         "binary_or_redirect": 2,
         "no_request_body": 1,
         "service_describe": 2,
-        "typed_schema": 131
+        "typed_schema": 132
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -1496,6 +1496,20 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.self.agent_signer_evidence.query",
+      "tier": "extension",
+      "http": "POST /_arkret/self/agent-signer-evidence/query",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_request",
+      "response_schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AgentSignerEvidenceQueryRequest",
+        "response": "#/components/schemas/AgentSignerEvidenceQueryOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.applet.command.install",

@@ -4756,6 +4756,8 @@
         "agent_id",
         "key_id",
         "verification_method",
+        "public_key_digest",
+        "signing_key_binding_digest",
         "accountable_principal_id",
         "agent_key_scope",
         "audience",
@@ -4774,7 +4776,11 @@
         },
         "public_key_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Digest of the public key material behind verification_method. Required by high-assurance profiles when DID resolution is not pinned in the same seal batch."
+          "description": "Digest of the public key material behind verification_method. Native Agent authorization always commits this value; receivers compare it with the disclosed raw Ed25519 key."
+        },
+        "signing_key_binding_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "sha256 over the canonical ak.schema.agent_signing_key_binding.v1 object. This commitment makes the controller-authorized Event and the minimal public disclosure inseparable; a service MUST NOT substitute another disclosure."
         },
         "accountable_principal_id": {
           "$ref": "#/$defs/did"

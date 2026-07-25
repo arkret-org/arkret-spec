@@ -37,7 +37,7 @@
         "ak:event:01964145-8000-7000-8000-000000000001"
       ],
       "destination_service_type": "principal_server",
-      "reducer_profile_digest": "sha256:c3699f25a5384b83b83fd7f789fd7a5d1916e4bd8e972a4b279be5b81f9fd092"
+      "reducer_profile_digest": "sha256:7897050d2058ef16f6ccee9a069ac3da654fc8247fb5245550b3085bf26f0df7"
     }
   },
   "cases": [
@@ -50,7 +50,7 @@
         "field": "resolved_digest_input",
         "recompute_from_local_contracts": true
       },
-      "expected_digest": "sha256:c3699f25a5384b83b83fd7f789fd7a5d1916e4bd8e972a4b279be5b81f9fd092",
+      "expected_digest": "sha256:d2d9067549dcc8d43a42ab20915e5a34ed437934ebafbb66a785ba26d643cd19",
       "mutation_cases": [
         {
           "name": "event_kind_contract_content_changes",
