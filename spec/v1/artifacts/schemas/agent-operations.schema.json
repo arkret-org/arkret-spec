@@ -275,11 +275,16 @@
     "grant_snapshot": {
       "type": "object",
       "required": [
-        "grant_id"
+        "grant_id",
+        "realm_id"
       ],
       "properties": {
         "grant_id": {
           "$ref": "#/$defs/grant_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Realm that owns the capability grant cell and therefore the required ak.capability.revoke write surface."
         },
         "status": {
           "$ref": "#/$defs/non_empty_string"
@@ -1310,46 +1315,34 @@
     },
     "agent_deactivate_request_body": {
       "type": "object",
+      "required": [
+        "lifecycle_event",
+        "key_revocation_events",
+        "capability_revocation_events"
+      ],
       "properties": {
         "reason": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "membership_frontier": {
+        "lifecycle_event": {
+          "$ref": "./event-envelope.schema.json",
+          "description": "Closed ak.self.agent.deactivate Event authored in the Agent PCR and executed/signed by the authenticated controller delegation. The service admits it only after every required key and capability revocation has been accepted."
+        },
+        "key_revocation_events": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/non_empty_string"
+            "$ref": "./event-envelope.schema.json"
           },
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "Required only for mls_remove. UTF-8 byte-lexicographically sorted accepted membership/control refs that triggered the durable Sidecar removal obligation."
+          "description": "Closed ak.agent.key.revoke Events for every currently active Agent key. Each Event is authored in the Agent PCR and executed/signed by the authenticated controller delegation."
+        },
+        "capability_revocation_events": {
+          "type": "array",
+          "items": {
+            "$ref": "./event-envelope.schema.json"
+          },
+          "description": "Closed controller-authored ak.capability.revoke Events covering every currently unrevoked grant held by the Agent, each written in the Realm that owns that grant."
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "stage": {
-                "const": "mls_remove"
-              }
-            },
-            "required": [
-              "stage"
-            ]
-          },
-          "then": {
-            "required": [
-              "membership_frontier"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "membership_frontier"
-              ]
-            }
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "agent_lifecycle_state": {
