@@ -710,10 +710,16 @@
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body",
         "schema_kind": "object",
-        "required": [],
+        "required": [
+          "lifecycle_event",
+          "key_revocation_events",
+          "capability_revocation_events"
+        ],
         "properties": [
           "reason",
-          "membership_frontier"
+          "lifecycle_event",
+          "key_revocation_events",
+          "capability_revocation_events"
         ],
         "closed": true
       },
