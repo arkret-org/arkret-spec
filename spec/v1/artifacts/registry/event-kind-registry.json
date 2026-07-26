@@ -163,7 +163,13 @@
           "cell_subject": null,
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__"
+          "initial_value": "__unset__",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.object"
+            }
+          }
         },
         {
           "cell_family": "ak.component.member.state.v1",
@@ -172,20 +178,44 @@
             "field": "payload.object.created_by"
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "leave"
+            },
+            "to": {
+              "const": "join"
+            }
+          }
         },
         {
           "cell_family": "ak.component.realm.create.v1",
           "cell_subject": null,
           "lattice": "ordered_log",
-          "bottom": "inert"
+          "bottom": "inert",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "envelope_field": "realm_id"
+            },
+            "issuer_seq": {
+              "const": 0
+            }
+          }
         },
         {
           "cell_family": "ak.component.notary.v1",
           "cell_subject": null,
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__"
+          "initial_value": "__unset__",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.object.notary"
+            }
+          }
         }
       ]
     },
@@ -4656,6 +4686,15 @@
           },
           "lattice": "fsm",
           "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "leave"
+            },
+            "to": {
+              "const": "invite"
+            }
+          },
           "condition": {
             "kind": "any_field_present",
             "fields": [
@@ -4693,6 +4732,15 @@
           },
           "lattice": "fsm",
           "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "invite"
+            },
+            "to": {
+              "const": "leave"
+            }
+          },
           "condition": {
             "kind": "field_present",
             "field": "payload.invitee"
@@ -4726,7 +4774,16 @@
             "field": "envelope.actor_id"
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "invite"
+            },
+            "to": {
+              "const": "join"
+            }
+          }
         }
       ]
     },
@@ -4837,6 +4894,15 @@
           },
           "lattice": "fsm",
           "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "invite"
+            },
+            "to": {
+              "const": "leave"
+            }
+          },
           "condition": {
             "kind": "field_present",
             "field": "payload.invitee"

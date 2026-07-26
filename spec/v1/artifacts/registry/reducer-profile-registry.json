@@ -124,7 +124,7 @@
           },
           {
             "event_kind": "ak.realm.create",
-            "content_digest": "sha256:b76d134347a153c018e147e024688cb0b181274e923f2e6e4490e52c3cf28b24"
+            "content_digest": "sha256:43200ce722da112dbaa61cb98708b1fd7b8d4575b022d2d0bfc0b8839361d3c9"
           }
         ],
         "schema_contracts": [
@@ -196,7 +196,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:cc768b3f76966991195ba42d29c164bf9f7c63fa48d570fb53e1cc9cce963c08"
+      "reducer_profile_digest": "sha256:075c3996f4f3d923599e761f22238f2fbce311c93d19539f6c7c9cdbff4f6047"
     },
     {
       "profile_id": "ak.profile.chat_mvp.v1",
@@ -388,7 +388,7 @@
           },
           {
             "event_kind": "ak.realm.create",
-            "content_digest": "sha256:b76d134347a153c018e147e024688cb0b181274e923f2e6e4490e52c3cf28b24"
+            "content_digest": "sha256:43200ce722da112dbaa61cb98708b1fd7b8d4575b022d2d0bfc0b8839361d3c9"
           },
           {
             "event_kind": "ak.redaction",
@@ -520,7 +520,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:217af692f2b519b6d127fe0d6a8f25085fe7bd8df45a36b0c9b040c444055fb7"
+      "reducer_profile_digest": "sha256:81799ec28b1612d58bf04e2475a7585ca239b2cdbe00f5d7de309d3d4f76f249"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -680,7 +680,7 @@
           },
           {
             "event_kind": "ak.realm.create",
-            "content_digest": "sha256:b76d134347a153c018e147e024688cb0b181274e923f2e6e4490e52c3cf28b24"
+            "content_digest": "sha256:43200ce722da112dbaa61cb98708b1fd7b8d4575b022d2d0bfc0b8839361d3c9"
           },
           {
             "event_kind": "ak.relation.create",
@@ -816,7 +816,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:645a70b81adf7299777076d731f6b1f17dfc7f22d160f1cfa33acd5287061ad3"
+      "reducer_profile_digest": "sha256:a342a0f9d9d91a8b9afd8febb575e6f01c983917dcfda83ca6563a8998a83faa"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1179,7 +1179,7 @@
           },
           {
             "event_kind": "ak.invite.accept",
-            "content_digest": "sha256:0f3fdbb62cc04c0ece5e788d3df49a54f2aba6cffa0d98780ecb6bd510d60d7d"
+            "content_digest": "sha256:2d9eb0ae10b30d43a9de8a244efaf84808c131d037de5b9d94cd1aca13e2bb59"
           },
           {
             "event_kind": "ak.invite.claim",
@@ -1187,11 +1187,11 @@
           },
           {
             "event_kind": "ak.invite.create",
-            "content_digest": "sha256:ff0c805e1ef52279cce6e29028dc921e421c2955284e78fd39740b2ff581ba56"
+            "content_digest": "sha256:31ba960bb8598f950e22d270d062a9d8a9aa33bc224c7c387c1e592506d92747"
           },
           {
             "event_kind": "ak.invite.revoke",
-            "content_digest": "sha256:2b467b00a1fc2651b4b9f5b6a727c5fb4088f4bbc5475543dff36ab00888c2d2"
+            "content_digest": "sha256:2dbc2a2b32ec84aca619544a6a029c5fdf12c6ab9a63302a9880876c60c0b02d"
           },
           {
             "event_kind": "ak.invite.third_party",
@@ -1223,7 +1223,7 @@
           },
           {
             "event_kind": "ak.realm.create",
-            "content_digest": "sha256:b76d134347a153c018e147e024688cb0b181274e923f2e6e4490e52c3cf28b24"
+            "content_digest": "sha256:43200ce722da112dbaa61cb98708b1fd7b8d4575b022d2d0bfc0b8839361d3c9"
           },
           {
             "event_kind": "ak.redaction",
@@ -1445,7 +1445,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:568b33c81447268f28f8b9b1eabc7b14a78ea21457d681335901688ad847e585"
+      "reducer_profile_digest": "sha256:8d7832f39f70696712d279dbcd77b55fb1f2b4495bc5a00faec1144255063edc"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1603,7 +1603,7 @@
           },
           {
             "event_kind": "ak.realm.create",
-            "content_digest": "sha256:b76d134347a153c018e147e024688cb0b181274e923f2e6e4490e52c3cf28b24"
+            "content_digest": "sha256:43200ce722da112dbaa61cb98708b1fd7b8d4575b022d2d0bfc0b8839361d3c9"
           }
         ],
         "schema_contracts": [
@@ -1695,7 +1695,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:c0a80bc3cc9b8c3192f259de16c801ee0a1710c6f725c3ed01a055ee216478c6"
+      "reducer_profile_digest": "sha256:64b4282fd2cccf6149b4ef24fe5678ec22545cbdf4796cf35d5c169094dad36b"
     }
   ],
   "generated_fields": [

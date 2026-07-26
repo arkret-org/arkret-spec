@@ -1750,6 +1750,7 @@ def lint_effect_projection(
         "fsm": "transition",
         "mv_register": "set",
         "cas_register": "set",
+        "ordered_log": "append",
         "or_set": "or_set_delta",
     }.get(lattice)
     if expected_kind is None:
@@ -1779,6 +1780,27 @@ def lint_effect_projection(
             lint.fail(path, f"{ref}.value is required")
         else:
             lint_effect_source(lint, path, f"{ref}.value", projection["value"])
+        return
+    if projection_kind == "append":
+        unknown = set(projection) - {"kind", "value", "issuer_seq"}
+        if unknown:
+            lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
+        for member in ("value", "issuer_seq"):
+            if member not in projection:
+                lint.fail(path, f"{ref}.{member} is required")
+            else:
+                lint_effect_source(lint, path, f"{ref}.{member}", projection[member])
+        issuer_seq = projection.get("issuer_seq")
+        if (
+            isinstance(issuer_seq, dict)
+            and "const" in issuer_seq
+            and (
+                not isinstance(issuer_seq["const"], int)
+                or isinstance(issuer_seq["const"], bool)
+                or issuer_seq["const"] < 0
+            )
+        ):
+            lint.fail(path, f"{ref}.issuer_seq.const must be an unsigned integer")
         return
 
     unknown = set(projection) - {"kind", "selector", "branches"}

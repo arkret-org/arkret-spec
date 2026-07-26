@@ -169,16 +169,17 @@ Producer MUST 为 `cell_writes[]` 的每个目标生成且只生成一个对应 
 **精确 effect 投影（`effect_projection`，normative）**：当一个 cell write 的完整 lattice op 可由 schema-validated Event 纯函数派生时，该 write MUST 登记 `effect_projection`；producer MUST 使用投影结果作为 wire op，receiver MUST 重算并要求完整 op canonical 等价。只检查 `op.kind` 不足以满足本约束。投影是封闭语法：
 
 - source 对象必须且只能含 `field`（Event 根路径，例如 `payload.focus`）、`envelope_field`（顶层签名字段名）或 `const`（任意 JSON literal）之一；路径不得含数组下标、通配符或空段。
-- `{"type":"transition","from":source,"to":source}` 只用于 `fsm`，精确派生 `{"kind":"transition","from":...,"to":...}`。
-- `{"type":"set","value":source}` 只用于 `mv_register` / `cas_register`，精确派生 `{"kind":"set","value":...}`。
-- `{"type":"or_set_delta","selector":"payload.<path>","branches":{...}}` 只用于 `or_set`。selector 值必须精确命中一个 branch；每个 branch 的 `op` 只能为 `add` 或 `remove`。`add` 必须同时登记 `tag` 与 `value` source，`remove` 必须只登记 `tag` source；分别精确派生同名 op。
+- `{"kind":"transition","from":source,"to":source}` 只用于 `fsm`，精确派生 `{"kind":"transition","from":...,"to":...}`。
+- `{"kind":"set","value":source}` 只用于 `mv_register` / `cas_register`，精确派生 `{"kind":"set","value":...}`。
+- `{"kind":"append","value":source,"issuer_seq":source}` 只用于 `ordered_log`，精确派生 `{"kind":"append","value":...,"issuer_seq":...}`；`issuer_seq` 必须求值为无符号整数。
+- `{"kind":"or_set_delta","selector":"payload.<path>","branches":{...}}` 只用于 `or_set`。selector 值必须精确命中一个 branch；每个 branch 的 `op` 只能为 `add` 或 `remove`。`add` 必须同时登记 `tag` 与 `value` source，`remove` 必须只登记 `tag` source；分别精确派生同名 op。
 - projection 不声明的 `reason`、`issuer_seq`、`tag`、`value` 等 op 成员 MUST 缺省；wire op 擅自增加或省略任何成员均为 `effects_payload_mismatch`。source 路径不存在、selector 未命中或投影与 lattice 不兼容表示 registry / Event 无法求值，MUST fail closed，不得退化为只校验 op kind。
 
 `effect_projection` 与 `condition` 正交：先求值 `condition` 决定目标是否参与，仅对参与目标求值 projection。一个 payload delta 需要多个同 family op 时，必须拆成多个 Event；v1 不定义 batch-op projection，不能把数组元素顺序当作隐含 op 次序。
 
 **条件性 cell write（`condition`，normative）**：`cell_writes[]` 的某一项 MAY 携带可选 `condition`，表示该目标只在同一 Event 的特定 payload 形态下参与。`condition` 是**封闭语法**，只有四种形态，且求值 MUST 是对已通过 schema 校验的 payload 的纯函数：
 
-| `type` | 附加字段 | 命中条件 |
+| `kind` | 附加字段 | 命中条件 |
 | --- | --- | --- |
 | `field_present` | `field`（点分具名路径） | 该路径在 payload 中存在且值不是 JSON `null` |
 | `field_absent` | `field` | 该路径在 payload 中不存在，或值是 JSON `null` |
@@ -189,7 +190,7 @@ Producer MUST 为 `cell_writes[]` 的每个目标生成且只生成一个对应 
 
 - `condition` 命中时该目标**成为必需目标**，Event MUST 恰好携带一条对应 effect；未命中时该目标**MUST NOT** 出现在 `effects[]` 中。两个方向都以 `effects_payload_mismatch` 拒绝整个 Event，实现 MUST NOT 把"未命中的目标写成 same-value / no-op effect"当作等价做法——对 `fsm` cell 而言 same-state transition 本身非法（[`common-fields.md` §4.5](common-fields.md)）。
 - 无 `condition` 的目标是无条件必需目标。
-- 未知 `type`、缺 `field`、`field` 不是点分具名路径、`field_equals` 缺 `const` 或 `const` 不是标量，MUST fail closed（registry 无效，发布门禁失败）。
+- 未知 `kind`、缺 `field`、`field` 不是点分具名路径、`field_equals` 缺 `const` 或 `const` 不是标量，MUST fail closed（registry 无效，发布门禁失败）。
 - **`any_field_present` 的两种正当用途**：(i) 同一语义值在同 kind 的不同 payload 形态下落在不同路径（例如 invite 既可用 `payload.invite` 完整对象、也可用扁平字段承载）；(ii) 同一 cell 承载多个不同字段，其中任一字段出现即需写该 cell。
 - **subject 可派生性（normative）**：条件命中时该目标的 `cell_subject` MUST 可派生。用途 (i) 下 `cell_subject` 必然是 `coalesce`，其 `fields[]` MUST 与 `condition.fields[]` 逐项一致、同序——否则会出现「条件命中但 subject 无法派生」或反之的组合；该一致性由 `tools/lint_artifacts.py` 机械校验。用途 (ii) 下 `cell_subject` 取一个与条件字段无关的路径，该路径 MUST 是 payload 的无条件必填字段。
 - `condition` 只决定该目标**是否**参与，MUST NOT 改变 `cell_family`、`cell_subject` 派生式、`lattice` 或 `bottom`；需要在同一目标内按判别值切换取值字段时用 `cell_subject` 的 `select` component（[`../conformance/encoding.md` §9.5.1](../conformance/encoding.md)），不要用 `condition` 复制出两条同 family 目标。
