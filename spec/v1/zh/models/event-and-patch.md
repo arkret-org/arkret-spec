@@ -166,6 +166,16 @@ Receiver MUST 在解析任何验签 key 前先确定唯一 signer regime，不�
 
 Producer MUST 为 `cell_writes[]` 的每个目标生成且只生成一个对应 `effects[]` 项；receiver MUST 从 Event Envelope 与 payload 按登记的 `cell_subject` 纯函数派生完整 cell id，并逐项验证 family、subject、lattice op 与 Event plane。缺少已登记目标、额外写入未登记目标、把 data/control plane 写反，或用 `effects[].cell` 改写派生结果，分别以 `effects_payload_mismatch` 或 `plane_cross_write` 拒绝整个 Event。多目标 Event 的所有 effects 在同一原子 reducer transaction 内成功或全部失败；数组顺序不产生业务语义，canonical 比较按完整 cell id 的 UTF-8 byte order 排序。
 
+**精确 effect 投影（`effect_projection`，normative）**：当一个 cell write 的完整 lattice op 可由 schema-validated Event 纯函数派生时，该 write MUST 登记 `effect_projection`；producer MUST 使用投影结果作为 wire op，receiver MUST 重算并要求完整 op canonical 等价。只检查 `op.kind` 不足以满足本约束。投影是封闭语法：
+
+- source 对象必须且只能含 `field`（Event 根路径，例如 `payload.focus`）、`envelope_field`（顶层签名字段名）或 `const`（任意 JSON literal）之一；路径不得含数组下标、通配符或空段。
+- `{"type":"transition","from":source,"to":source}` 只用于 `fsm`，精确派生 `{"kind":"transition","from":...,"to":...}`。
+- `{"type":"set","value":source}` 只用于 `mv_register` / `cas_register`，精确派生 `{"kind":"set","value":...}`。
+- `{"type":"or_set_delta","selector":"payload.<path>","branches":{...}}` 只用于 `or_set`。selector 值必须精确命中一个 branch；每个 branch 的 `op` 只能为 `add` 或 `remove`。`add` 必须同时登记 `tag` 与 `value` source，`remove` 必须只登记 `tag` source；分别精确派生同名 op。
+- projection 不声明的 `reason`、`issuer_seq`、`tag`、`value` 等 op 成员 MUST 缺省；wire op 擅自增加或省略任何成员均为 `effects_payload_mismatch`。source 路径不存在、selector 未命中或投影与 lattice 不兼容表示 registry / Event 无法求值，MUST fail closed，不得退化为只校验 op kind。
+
+`effect_projection` 与 `condition` 正交：先求值 `condition` 决定目标是否参与，仅对参与目标求值 projection。一个 payload delta 需要多个同 family op 时，必须拆成多个 Event；v1 不定义 batch-op projection，不能把数组元素顺序当作隐含 op 次序。
+
 **条件性 cell write（`condition`，normative）**：`cell_writes[]` 的某一项 MAY 携带可选 `condition`，表示该目标只在同一 Event 的特定 payload 形态下参与。`condition` 是**封闭语法**，只有四种形态，且求值 MUST 是对已通过 schema 校验的 payload 的纯函数：
 
 | `type` | 附加字段 | 命中条件 |

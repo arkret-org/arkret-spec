@@ -42,11 +42,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-state-core-fixture.json",
-      "sha256": "0f390b62e23d566f2f8a37e19f4f5c799ebe206dd49470a1b0252bf47510b6f4"
+      "sha256": "ae249a0bb43a17b2c2401dee1eb71a2124bf0faf6d2c57bb4f7a7e15733d5dd8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json",
-      "sha256": "825987158214f43989f372ab346fcecb681bdd4d262fa9235670f1b1092034f6"
+      "sha256": "fa4908747c15bc7b2789c59c352f29c57c700de704bc0a378a9fa0556a58e239"
     },
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
@@ -106,7 +106,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "3c7cdf13c20e9c602c790fbbf132a38b7f85b7ee2cf3d9b906635e62d4a3301e"
+      "sha256": "92ec652b5d2edf667d4a3a875c3db439fae1e1d2f6826693fc1a1ed019456d19"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -158,7 +158,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/media-binding-fixture.json",
-      "sha256": "936f330b9b3de24aab2227242533f361fa23ae0037f62b57a3af4c3e4ea62622"
+      "sha256": "e32576f4ebffe1142deb5e0515f5be699cbf152f98a7efe126a6049ac2cd6263"
     },
     {
       "path": "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",

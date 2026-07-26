@@ -91,7 +91,7 @@
       "vector_id": "ak.vector.media_binding.participant_identity_unrecognised.v1",
       "runner": "cotest::conformance::media_binding::run_participant_identity_unrecognised_vector",
       "assertions": [
-        "backend-signalled participant identities must match ak.call.state.participants",
+        "backend-signalled participant identities must match the effective ak.component.call.roster.v1 OR-Set",
         "unknown rtc_participant identities fail closed with participant_identity_unrecognised"
       ]
     },

@@ -946,7 +946,7 @@
       "applies_to_profiles": [
         "ak.profile.media_service_binding.v1"
       ],
-      "description": "Recording retention: audit_lock blocks deletion (legal_hold_active) regardless of retention_expires_at, and entering a capturing recording_state without consent_confirmed fails with recording_consent_required.",
+      "description": "Recording retention: audit_lock blocks deletion (legal_hold_active) regardless of retention_expires_at, and ak.call.recording.start cannot enter a capturing state without an atomically persisted consent_confirmed result.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json"
@@ -985,7 +985,7 @@
       "applies_to_profiles": [
         "ak.profile.media_service_binding.v1"
       ],
-      "description": "Moderator kick/ban requires ak.call.moderate (call_moderation_unauthorised otherwise); removed_participants[] gates token re-issue with call_participant_removed.",
+      "description": "Moderator kick/ban requires ak.call.moderate (call_moderation_unauthorised otherwise); the call moderation effective OR-Set gates token re-issue with call_participant_removed.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json"

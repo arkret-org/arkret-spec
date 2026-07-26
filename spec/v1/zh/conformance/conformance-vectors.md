@@ -4171,7 +4171,7 @@ Expected:
 Steps:
 
 1. Token issuer 返回 response 缺失 `participant_binding`，或 `participant_binding.sig` 无效。
-2. Client 试图把它写入 `ak.call.state.participants[]`。
+2. Client 试图把它写入 `ak.call.state.roster_delta.participant`。
 
 Expected:
 
@@ -4203,7 +4203,7 @@ Steps:
 Expected:
 
 - Client MUST 拒绝该 key 并报 `e2ee_key_source_unauthorised`。
-- 唯一合法 key 来源是 MLS-Exporter（label `ak.rtc-frame-key/v1`, length=19 bytes, Context=`canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id})`, KDF.Nh=32 bytes），其中 `participant_identity` / `device_id` 取自已验证的 `ak.call.state.participants[]` 与 `participant_binding`。
+- 唯一合法 key 来源是 MLS-Exporter（label `ak.rtc-frame-key/v1`, length=19 bytes, Context=`canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id})`, KDF.Nh=32 bytes），其中 `participant_identity` / `device_id` 取自已验证的 call roster participant value 与 `participant_binding`。
 - 负向覆盖：以下派生 MUST 同样 fail closed 报 `e2ee_key_source_unauthorised`——(a) `Context=""`（空 Context）；(b) 缺少 sender 字段（`participant_identity` / `device_id`）；(c) 仅绑定 `epoch_id` 而不含完整 sender-bound Context。
 
 ### 12.8 Participant Identity — Cross-Check
@@ -4212,7 +4212,7 @@ Expected:
 
 Steps:
 
-1. Backend signal `ParticipantConnected` with `participant_identity=ak:rtc_participant:<unknown>`，无对应 `ak.call.state.participants[]` 项。
+1. Backend signal `ParticipantConnected` with `participant_identity=ak:rtc_participant:<unknown>`，无对应 call roster effective OR-Set 项。
 
 Expected:
 
@@ -4230,7 +4230,7 @@ Steps:
 Expected:
 
 - Client MUST 检测 Egress destination 不是 Arkret media service authenticated upload endpoint，fail closed `recording_artifact_pipeline_bypassed`。
-- 合法路径：Egress → Arkret blob upload → `ak.call.state` 写 `recording_state="ready"` + content digest。
+- 合法路径：Egress → Arkret blob upload → `ak.call.state` 写 `recording_transition.to="ready"` 及独立 result content digest。
 
 ### 12.9.1 Recording Exporter Label — Dedicated Recording Context
 
@@ -4253,7 +4253,7 @@ Expected:
 
 Steps:
 
-1. Producer 构造一个 schema 合法的 `ak.call.state` 事件（payload 通过 `call_state_payload` typed schema），其 `participants[0].participant_binding` 含全部必填字段。
+1. Producer 构造一个 schema 合法的 `ak.call.state` 事件（payload 通过 `call_state_payload` typed schema），其 `roster_delta.op="join"` 且 `roster_delta.participant.participant_binding` 含全部必填字段。
 2. 依次构造四个变体，每个仅破坏 §11.1 reducer 校验中的一项：
    - (a) `participant_binding.issuer_kid` 解析到的 service DID 不在当前 epoch `ak.realm.media_service.service_id`；
    - (b) `participant_binding` 的 `realm_id` / `call_id` / `focus_id` / `actor_id` / `device_id` / `participant_identity` 中某一项与该 participant entry 不一致；
@@ -4272,8 +4272,8 @@ Expected:
 
 Steps:
 
-1. 对同一新 `call_id` 分别提交首条 `ak.call.state`，`state` 为 `scheduled`、`ringing`、`connecting`。
-2. 对另两个新 `call_id` 分别提交首条 `ak.call.state`，`state` 为 `active` 与 `ended`。
+1. 对同一新 `call_id` 分别提交首条 `ak.call.state`，`state_transition` 为 `null -> scheduled`、`null -> ringing`、`null -> connecting`。
+2. 对另两个新 `call_id` 分别提交首条 `ak.call.state`，`state_transition` 为 `null -> active` 与 `null -> ended`。
 
 Expected:
 
@@ -4301,7 +4301,7 @@ Expected:
 Steps:
 
 1. 构造四个 call，使其 accepted head 分别为 `ended`、`missed`、`failed`、`cancelled`。
-2. 分别尝试从这些终态提交任何其它 `state`，包括另一个终态和非终态。
+2. 分别尝试从这些终态提交任何其它 `state_transition.to`，包括另一个终态和非终态。
 
 Expected:
 
@@ -4343,16 +4343,16 @@ Expected:
 
 Steps:
 
-1. Producer 提交 `ak.call.state`，`recording_state="ready"`，`recording_result.retention` 含 `retention_expires_at`（未来）、`deletion_trigger="retention_expiry"`、`audit_lock=true`。
+1. Producer 提交 `ak.call.state`，`recording_transition.to="ready"`，其 `result.retention` 含 `retention_expires_at`（未来）、`deletion_trigger="retention_expiry"`、`audit_lock=true`。
 2. 在 `retention_expires_at` 之前尝试删除 artifact。
 3. 在 `retention_expires_at` 之后但 `audit_lock` 未解除时再次尝试删除。
-4. 提交一条 `recording_state="recording"` 的 `ak.call.state`，其 `recording_result.retention.consent_confirmed` 缺失或为 false。
+4. 提交 `ak.call.recording.start`，其 `result.retention.consent_confirmed` 缺失或为 false；另尝试以 `ak.call.state.recording_transition.to="recording"` 绕过 start gate。
 
 Expected:
 
 - 第 2、3 步删除 MUST 被拒绝 `legal_hold_active`（audit_lock 优先于 TTL 与 capability）。
-- 第 4 步 MUST `failed_precondition` `reason_code=recording_consent_required`。
-- 反例（control）：`audit_lock=false` 且已过 `retention_expires_at`、`deletion_trigger=retention_expiry` 时删除 MAY accepted；`recording_state="recording"` 且 `consent_confirmed=true` 时写入 MUST accepted。
+- 第 4 步 start MUST `failed_precondition` `reason_code=recording_consent_required`，绕过形态 MUST `schema_violation`。
+- 反例（control）：`audit_lock=false` 且已过 `retention_expires_at`、`deletion_trigger=retention_expiry` 时删除 MAY accepted；start 的 result ref 等于本 Event `event_id` 且 `consent_confirmed=true` 时 FSM/result 两个 effect MUST 原子 accepted。
 
 ### 12.16.1 Call State — Recording Result Artifact Shape
 
@@ -4360,8 +4360,8 @@ Expected:
 
 Steps:
 
-1. Producer 提交 `ak.call.state`，`recording_state="ready"`，但 `recording_result.artifact` 缺失。
-2. Producer 提交 `recording_result.artifact`，但其中 `schema` 不是 `ak.schema.call_recording_artifact.v1`，或 `recording_id` / `recording_start_event_id` 与 `recording_result` 绑定不一致。
+1. Producer 提交 `ak.call.state`，`recording_transition.to="ready"`，但 `recording_transition.result.artifact` 缺失。
+2. Producer 提交 `recording_transition.result.artifact`，但其中 `schema` 不是 `ak.schema.call_recording_artifact.v1`，或 `recording_id` / `recording_start_event_id` 与 transition/result 绑定不一致。
 3. Producer 提交 artifact，`encryption.exporter_label` 不是 `"ak.rtc-recording-key/v1"`，或 `encryption.context` 缺少 `{realm_id, call_id, focus_id, recording_id, media_service_id, recording_start_event_id}` 中任一字段。
 4. Backend 尝试在 result / artifact 中携带直出 recording URL、S3/GCS/LiveKit Cloud destination，或缺失 `recording_initiator_capability_ref`。
 5. Retention 到期或 manual delete 触发删除，artifact `deletion_audit.trigger` 与 `retention.deletion_trigger` 不一致，或 `outcome="completed"` 但缺少 `erasure_receipt_ref`。
@@ -4381,7 +4381,7 @@ Steps:
 
 1. 不具 `ak.call.transcribe` 的 actor 发起 `ak.call.recording.start{capture_kind="transcript"}`。
 2. 具 `ak.call.transcribe` 的 actor 发起 transcript start，artifact 加密 key 声称来自 MLS exporter 但复用 SFrame label `"ak.rtc-frame-key/v1"` 或空 Context。
-3. 同一 artifact 改用 label `"ak.rtc-transcript-key/v1"`、`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_id, transcript_start_event_id})` 重新上传，并通过 `ak.call.state` 写 `transcript_state="ready"`。
+3. 同一 artifact 改用 label `"ak.rtc-transcript-key/v1"`、`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_id, transcript_start_event_id})` 重新上传，并通过 `ak.call.state` 写 `transcript_transition.to="ready"` 及独立 result。
 
 Expected:
 
@@ -4396,14 +4396,14 @@ Expected:
 Steps:
 
 1. 不具 `ak.call.moderate` 的 actor 发出 `ak.call.signal{signal_type=moderation, action=kick}`。
-2. 具 `ak.call.moderate` 的 moderator 对 `(target_actor_id, target_device_id)` 发 `kick`，并写 `ak.call.state.removed_participants[]`。
-3. moderator 对某 `target_actor_id` 发 `ban`（`removed_participants[]` 项省略 `device_id`）。
+2. 具 `ak.call.moderate` 的 moderator 对 `(target_actor_id, target_device_id)` 发 `kick`，并写 `ak.call.state.moderation_delta.op="remove_participant"`。
+3. moderator 对某 `target_actor_id` 发 `ban`（`moderation_delta.removal` 省略 `device_id`）。
 4. 被 ban 的 actor 重新向 token issuer 兑换 join token。
 
 Expected:
 
 - 第 1 步 MUST 拒绝 `call_moderation_unauthorised`。
-- 第 2 步被 kick 设备 MUST 拆除媒体；token issuer / SFU 据 `removed_participants[]` 拒绝其重接 `call_participant_removed`，但同 actor 重新发起新 join 不受阻。
+- 第 2 步被 kick 设备 MUST 拆除媒体；token issuer / SFU 据 moderation effective OR-Set 拒绝其重接 `call_participant_removed`，但同 actor 重新发起新 join 不受阻。
 - 第 4 步 token issuer MUST 拒绝 `call_participant_removed`，直到 ban 在本通话生命周期内被解除。
 
 ### 12.19 Call State — P2P→SFU Upgrade & Summary Gate
@@ -4414,7 +4414,7 @@ Steps:
 
 1. 以 `mode="p2p"` 起步的两人通话，第三个参与者将加入（active leg 达到 3）。
 2. 触发升级：按 media-service-binding §5 oldest_membership 选举 `session_focus`，各设备经 `ak.call.signal{signal_type=focus_join}` 迁移。
-3. 升级后提交 `ak.call.state.mode="sfu"`，随后人数回落到 2。
+3. 升级后提交 `ak.call.state.focus={mode:"sfu",session_focus}`，随后人数回落到 2。
 4. 通话到达终态 `ended` 后提交 `ak.call.summary{final_state="ended"}`；另对一个尚处 `active` 的 call 提交 `ak.call.summary`。
 
 Expected:
@@ -5113,19 +5113,21 @@ Expected:
 
 Steps:
 
-1. 两个 moderator 在同一 CBA basis 上并发 ban 不同目标。
-2. 在同一段捕获上并发写冲突的 `recording_state`，随后推进通话 `state` 到 `ended`。
-3. 提交只改动单一轴的 `ak.call.state`。
-4. 二次写入不同的 `session_focus`。
+1. 两个 moderator 在同一 CBA basis 上分别用单项 `moderation_delta` 并发 ban 不同目标。
+2. 在同一段捕获上并发写 `recording_transition` 的冲突 `to`，随后用 `state_transition` 推进通话主状态到 `ended`。
+3. 分别提交只携带一个 `roster_delta`、`moderation_delta` 或 `mute_override` 的 `ak.call.state`，并对每种 delta 篡改 wire effect 的 tag / value / op kind。
+4. 提交含 `recording_transition.result` 的 ready transition，并分别篡改 FSM transition effect 与独立 result-cell set effect。
+5. 二次写入不同的 `focus`，以及省略已 committed `session_focus` 的 focus mode 更新。
 
 Expected:
 
 - 并发 ban MUST 在 `ak.component.call.moderation.v1`（`or_set`）合并，不产生冲突，通话 `state` 轴完全不受影响。
-- 冲突的 `recording_state` 只把该段 `ak.component.call.recording.v1` 打入 `⊥` / `failed_bottom`；`ak.component.call.state.v1` 仍可接受 `active -> ended`。段 cell 的 subject 是 `[payload.call_id, payload.recording_result.recording_id]`，因此另一段捕获（不同 `recording_id`）完全不受影响（正例）。
-- 负例：`ak.call.state` 携带 `recording_state` 但缺 `recording_result`（或 `recording_result` 缺 `recording_id`）MUST `schema_violation`——段键缺失时目标 cell subject 不可派生。`transcript_state` 同理。
-- 负例：`ak.call.state` 的 `recording_result.recording_id` 与该段 `ak.call.recording.start` 的 `recording_id` 不逐字节相同时，写入落在另一个 cell，MUST 以 `recording_state_transition_invalid` 拒绝（不得静默新建一段捕获）。
+- 冲突的 `recording_transition.to` 只把该段 `ak.component.call.recording.v1` 打入 `⊥` / `failed_bottom`；`ak.component.call.state.v1` 仍可接受 `active -> ended`。段 cell 的 subject 是 `[payload.call_id, payload.recording_transition.recording_id]`，因此另一段捕获（不同 `recording_id`）完全不受影响（正例）。
+- `recording_transition` / `transcript_transition` 必须携带 `recording_id`；与该段 `ak.call.recording.start` 的 `recording_id` 不逐字节相同时，写入落在另一个 cell，MUST 以 `recording_state_transition_invalid` 拒绝（不得静默新建一段捕获）。
+- roster join / moderation remove 的 OR-Set add tag 必须精确等于 Event `event_id`，value 必须精确等于对应 payload value；leave / restore 的 remove tag 必须精确等于 `observed_tag`。mute override 必须精确 set 完整 `mute_override` 对象。任何篡改均 MUST `effects_payload_mismatch`。
+- capture lifecycle 与 result 是两个独立 target：FSM effect 只含精确 `from` / `to`，result effect 只 set 完整 result。不得把 result 塞入 transition op，也不得因一个目标冲突冻结另一个轴。
 - 未变更的轴 MUST NOT 出现在 `effects[]`；把未变更轴写成 same-value effect 视为不合规（负例）。
-- `session_focus` 二次写入不同值 MUST 以 `session_focus_already_committed` 失败（`ak.component.call.focus.v1` 的 CAS 负例）。
+- `focus` effect 必须 set 完整 focus 对象；`session_focus` 二次写入不同值或 mode 更新时省略已 committed focus 均 MUST 以 `session_focus_already_committed` 失败（`ak.component.call.focus.v1` 的 CAS 负例）。
 - 保留既有语义：同 basis 两条 `state` sibling 写不同 `to` MUST 落 `⊥` / `failed_bottom`。
 
 ### 23.6 Join gate 三轴正交性

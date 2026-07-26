@@ -166,7 +166,15 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
                 if isinstance(writes, list) and len(writes) == 1 and isinstance(writes[0], dict):
                     # Preserve the v1 single-target shorthand for existing consumers while
                     # making cell_writes[] the general machine authority.
-                    for field in ("cell_family", "cell_subject", "value_projection", "lattice", "bottom", "initial_value"):
+                    for field in (
+                        "cell_family",
+                        "cell_subject",
+                        "value_projection",
+                        "effect_projection",
+                        "lattice",
+                        "bottom",
+                        "initial_value",
+                    ):
                         if field in writes[0]:
                             event_row[field] = copy.deepcopy(writes[0][field])
         payloads[ARTIFACTS / file_ref] = {

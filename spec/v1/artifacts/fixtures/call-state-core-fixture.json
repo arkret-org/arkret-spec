@@ -84,10 +84,15 @@
       "assertions": [
         "two moderators banning different targets on the same basis merge in ak.component.call.moderation.v1 and never conflict",
         "the merged ban set leaves ak.component.call.state.v1 untouched",
-        "a conflicting recording_state only bottoms that capture segment cell",
+        "a conflicting recording_transition.to only bottoms that capture segment cell",
         "the call state axis still accepts active to ended while a capture segment is bottom",
+        "roster and moderation add tags equal event_id and their values equal the selected payload value",
+        "roster leave and moderation restore remove exactly the payload observed_tag",
+        "mute override CAS sets the complete per-leg payload value",
+        "capture lifecycle transition and capture result are projected into separate exact effects",
+        "any projected op kind, tag, value, from, or to mismatch fails with effects_payload_mismatch",
         "an unchanged axis produces no effect and a same-value effect is rejected",
-        "a second session_focus write fails with session_focus_already_committed",
+        "focus CAS sets the complete focus value and cannot omit or replace a committed session_focus",
         "same-basis state siblings writing different to values still produce Bottom conflict"
       ]
     }

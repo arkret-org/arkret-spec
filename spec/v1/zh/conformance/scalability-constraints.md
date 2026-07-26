@@ -149,7 +149,7 @@ CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 
 | 单个 Calendar Event attendees 数 | 1,000 | 超过时 MUST reject 或要求拆分会议 / 日程实例；attendees 必须按 actor / handle / resource key 去重。 |
 | 单次 recurrence expansion 返回 occurrence 数 | 10,000 | 超过时 MUST paginate、截断为带 cursor 的 page，或返回 `limit_exceeded`；不得无界展开 RRULE。 |
 | 单个 File Transfer `recipient_device_ids` 数 | 1,000 | 超过时 MUST reject 或拆分 transfer；每个 device key wrap 必须保持独立可验证。 |
-| 单条 `ak.call.state` 的 `payload.participants[]` 数 | 1,000 | 超过时 MUST reject（`schema_violation`）或改用采样 / 摘要写入；schema 已声明 `maxItems: 1000`。见 [call-state.md](../crypto-media/call-state.md) §4.1。 |
+| 单个 call 的 effective roster 数 | 1,000 | 接受会使 `ak.component.call.roster.v1` effective OR-Set 超过上限的 join MUST reject（`schema_violation`）；每条 `ak.call.state` 只携带一个 `roster_delta`。见 [call-state.md](../crypto-media/call-state.md) §4.1。 |
 | `ring_timeout_ms` / `scheduled_start_grace_ms` / `connecting_timeout_ms` | 60,000 / 300,000 / 120,000 ms（默认且最大） | 见 [call-state.md](../crypto-media/call-state.md) §4.2；超时由 focus / token issuer / Principal Server 基于当前 accepted head 显式推进，不能由本地计时器直接改写 reducer。 |
 
 | join policy 单个 `application_form` gate 的 `questions[]` 数 | 64 | 超过时 MUST reject（`schema_violation`）。见 [join-policy.md](../governance/join-policy.md) §3.3。 |

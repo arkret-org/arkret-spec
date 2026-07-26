@@ -8680,7 +8680,7 @@
     },
     "call_participant": {
       "type": "object",
-      "description": "A single participant entry in ak.call.state.payload.participants[]. See crypto-media/call-state.md §4/§4.1.",
+      "description": "A single participant value added by ak.call.state.payload.roster_delta. See crypto-media/call-state.md §4/§4.1.",
       "required": [
         "actor_id",
         "device_id",
@@ -8730,29 +8730,45 @@
     },
     "call_state_payload": {
       "type": "object",
-      "description": "Typed payload for ak.call.state (durable call lifecycle state). Each orthogonal axis lives in its own registered cell: state -> ak.component.call.state.v1 (fsm), session_focus/mode -> ak.component.call.focus.v1 (cas_register), recording_state -> ak.component.call.recording.v1 (per-segment fsm), transcript_state -> ak.component.call.transcript.v1 (per-segment fsm), moderation sets -> ak.component.call.moderation.v1 (or_set), participants -> ak.component.call.roster.v1 (or_set). An axis that is not being changed MUST be omitted so it produces no effect. See crypto-media/call-state.md sections 4, 4.1, 4.2 and 5.",
+      "description": "Typed delta payload for ak.call.state. Every present field maps to one or two explicit registered cell effects; omitted axes produce no effect.",
       "required": [
         "call_id"
       ],
       "anyOf": [
-        {"required": ["state"]},
-        {"required": ["session_focus"]},
-        {"required": ["mode"]},
-        {"required": ["recording_state"]},
-        {"required": ["transcript_state"]},
-        {"required": ["participants"]},
-        {"required": ["removed_participants"]},
-        {"required": ["removed_participant_tombstones"]},
-        {"required": ["participant_mute_overrides"]}
-      ],
-      "allOf": [
         {
-          "if": {"required": ["recording_state"]},
-          "then": {"required": ["recording_result"]}
+          "required": [
+            "state_transition"
+          ]
         },
         {
-          "if": {"required": ["transcript_state"]},
-          "then": {"required": ["transcript_result"]}
+          "required": [
+            "focus"
+          ]
+        },
+        {
+          "required": [
+            "recording_transition"
+          ]
+        },
+        {
+          "required": [
+            "transcript_transition"
+          ]
+        },
+        {
+          "required": [
+            "roster_delta"
+          ]
+        },
+        {
+          "required": [
+            "moderation_delta"
+          ]
+        },
+        {
+          "required": [
+            "mute_override"
+          ]
         }
       ],
       "properties": {
@@ -8760,257 +8776,478 @@
           "type": "string",
           "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "state": {
-          "type": "string",
-          "enum": [
-            "scheduled",
-            "ringing",
-            "connecting",
-            "active",
-            "ended",
-            "missed",
-            "failed",
-            "cancelled"
-          ]
+        "state_transition": {
+          "type": "object",
+          "required": [
+            "from",
+            "to"
+          ],
+          "properties": {
+            "from": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "scheduled",
+                    "ringing",
+                    "connecting",
+                    "active",
+                    "ended",
+                    "missed",
+                    "failed",
+                    "cancelled"
+                  ]
+                }
+              ]
+            },
+            "to": {
+              "type": "string",
+              "enum": [
+                "scheduled",
+                "ringing",
+                "connecting",
+                "active",
+                "ended",
+                "missed",
+                "failed",
+                "cancelled"
+              ]
+            }
+          },
+          "additionalProperties": false
         },
-        "mode": {
-          "type": "string",
-          "enum": [
-            "p2p",
-            "mesh",
-            "sfu",
-            "mcu"
-          ]
+        "focus": {
+          "type": "object",
+          "required": [
+            "mode"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": [
+                "p2p",
+                "mesh",
+                "sfu",
+                "mcu"
+              ]
+            },
+            "session_focus": {
+              "$ref": "#/$defs/non_empty_string"
+            }
+          },
+          "additionalProperties": false
         },
-        "session_focus": {
-          "$ref": "#/$defs/non_empty_string",
-          "description": "Single authoritative focus_id for this call. reducer write rule per crypto-media/call-state.md §4.1: committed once, any rewrite MUST failed_precondition reason=session_focus_already_committed."
-        },
-        "participants": {
-          "type": "array",
-          "maxItems": 1000,
-          "items": {
-            "$ref": "#/$defs/call_participant"
-          }
-        },
-        "removed_participants": {
-          "type": "array",
-          "maxItems": 1000,
-          "description": "Moderator kick / ban audit trail. Each entry records a participant removed by a ak.call.moderate holder. action=ban omits device_id (actor-wide ban); a banned actor MUST NOT be re-issued a join token (call_participant_removed). See crypto-media/webrtc-signaling.md §3a.",
-          "items": {
-            "type": "object",
-            "required": [
-              "removal_event_id",
-              "actor_id",
-              "action",
-              "removed_by",
-              "removed_at"
-            ],
-            "properties": {
-              "removal_event_id": {
-                "$ref": "#/$defs/event_ref",
-                "description": "Unique id of the durable moderation Event that added this OR-set dot."
+        "recording_transition": {
+          "type": "object",
+          "required": [
+            "recording_id",
+            "from",
+            "to"
+          ],
+          "properties": {
+            "recording_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._-]{1,128}$"
+            },
+            "from": {
+              "type": "string",
+              "enum": [
+                "recording",
+                "stopped",
+                "ready",
+                "failed"
+              ]
+            },
+            "to": {
+              "type": "string",
+              "enum": [
+                "stopped",
+                "ready",
+                "failed"
+              ]
+            },
+            "result": {
+              "type": "object",
+              "description": "Typed recording outcome for a stopped, ready, or failed segment. It is written to the independent recording result cell and never embedded in the FSM transition op.",
+              "properties": {
+                "content_digest": {
+                  "$ref": "#/$defs/hash"
+                },
+                "duration_ms": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "media_type": {
+                  "$ref": "#/$defs/non_empty_string"
+                },
+                "retention_policy_id": {
+                  "$ref": "#/$defs/object_ref"
+                },
+                "retention": {
+                  "$ref": "#/$defs/call_recording_retention"
+                },
+                "recording_start_event_id": {
+                  "$ref": "#/$defs/event_ref"
+                },
+                "artifact": {
+                  "$ref": "./call-recording-artifact.schema.json",
+                  "description": "Canonical artifact metadata for recording_transition.to=ready. It binds the Arkret blob, recording exporter context, retention policy and deletion audit surface."
+                },
+                "failure_reason_code": {
+                  "$ref": "#/$defs/call_capture_failure_reason_code",
+                  "description": "Machine reason for recording_state=failed."
+                },
+                "failure_message": {
+                  "$ref": "#/$defs/non_empty_string",
+                  "description": "Human-readable diagnostic for recording_state=failed. It MUST NOT contain recording plaintext or backend direct URLs."
+                }
               },
-              "actor_id": {
-                "$ref": "./common-ids.schema.json#/$defs/did"
-              },
-              "device_id": {
-                "$ref": "#/$defs/device_id"
-              },
-              "action": {
-                "type": "string",
-                "enum": [
-                  "kick",
-                  "ban"
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "to": {
+                    "const": "ready"
+                  }
+                },
+                "required": [
+                  "to"
                 ]
               },
-              "removed_at": {
-                "$ref": "#/$defs/timestamp"
-              },
-              "removed_by": {
-                "$ref": "./common-ids.schema.json#/$defs/did"
-              }
-            },
-            "additionalProperties": false,
-            "allOf": [
-              {
-                "if": {
-                  "properties": {
-                    "action": {
-                      "const": "kick"
-                    }
-                  },
-                  "required": [
-                    "action"
-                  ]
-                },
-                "then": {
-                  "required": [
-                    "device_id"
-                  ]
-                },
-                "else": {
-                  "not": {
+              "then": {
+                "required": [
+                  "result"
+                ],
+                "properties": {
+                  "result": {
                     "required": [
-                      "device_id"
+                      "recording_start_event_id",
+                      "retention",
+                      "artifact"
                     ]
                   }
                 }
               }
-            ]
-          }
+            }
+          ]
         },
-        "removed_participant_tombstones": {
-          "type": "array",
-          "maxItems": 1000,
-          "uniqueItems": true,
-          "description": "Observed-remove tombstone set for removed_participants[].removal_event_id. Active bans are ban entries whose id is absent here.",
-          "items": {
-            "$ref": "#/$defs/event_ref"
-          }
-        },
-        "participant_mute_overrides": {
-          "type": "array",
-          "maxItems": 1000,
-          "description": "Current durable moderator mute overrides. Each entry records the effective server-enforced audio/video send permission override for one call leg. SFU/token issuer MUST apply these overrides before issuing or accepting media send permissions; clients MUST mirror them locally. See crypto-media/webrtc-signaling.md §6.1.",
-          "items": {
-            "type": "object",
-            "required": [
-              "actor_id",
-              "device_id",
-              "audio_muted",
-              "video_muted",
-              "muted_by",
-              "muted_at"
-            ],
-            "properties": {
-              "actor_id": {
-                "$ref": "./common-ids.schema.json#/$defs/did"
+        "transcript_transition": {
+          "type": "object",
+          "required": [
+            "recording_id",
+            "from",
+            "to"
+          ],
+          "properties": {
+            "recording_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._-]{1,128}$"
+            },
+            "from": {
+              "type": "string",
+              "enum": [
+                "transcribing",
+                "stopped",
+                "ready",
+                "failed"
+              ]
+            },
+            "to": {
+              "type": "string",
+              "enum": [
+                "stopped",
+                "ready",
+                "failed"
+              ]
+            },
+            "result": {
+              "type": "object",
+              "description": "Typed transcription outcome for a stopped, ready, or failed segment. It is written to the independent transcript result cell and never embedded in the FSM transition op.",
+              "properties": {
+                "content_digest": {
+                  "$ref": "#/$defs/hash"
+                },
+                "media_type": {
+                  "$ref": "#/$defs/non_empty_string"
+                },
+                "language": {
+                  "$ref": "#/$defs/non_empty_string"
+                },
+                "retention_policy_id": {
+                  "$ref": "#/$defs/object_ref"
+                },
+                "retention": {
+                  "$ref": "#/$defs/call_recording_retention"
+                },
+                "transcript_start_event_id": {
+                  "$ref": "#/$defs/event_ref"
+                },
+                "failure_reason_code": {
+                  "$ref": "#/$defs/call_capture_failure_reason_code",
+                  "description": "Machine reason for transcript_state=failed."
+                }
               },
-              "device_id": {
-                "$ref": "#/$defs/device_id"
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "to": {
+                    "const": "ready"
+                  }
+                },
+                "required": [
+                  "to"
+                ]
               },
-              "audio_muted": {
-                "type": "boolean"
-              },
-              "video_muted": {
-                "type": "boolean"
-              },
-              "muted_by": {
-                "$ref": "./common-ids.schema.json#/$defs/did"
-              },
-              "muted_at": {
-                "$ref": "#/$defs/timestamp"
-              },
-              "reason": {
-                "$ref": "#/$defs/non_empty_string"
+              "then": {
+                "required": [
+                  "result"
+                ],
+                "properties": {
+                  "result": {
+                    "required": [
+                      "transcript_start_event_id",
+                      "retention"
+                    ]
+                  }
+                }
               }
+            }
+          ]
+        },
+        "roster_delta": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "op",
+                "participant"
+              ],
+              "properties": {
+                "op": {
+                  "const": "join"
+                },
+                "participant": {
+                  "$ref": "#/$defs/call_participant"
+                }
+              },
+              "additionalProperties": false
             },
-            "additionalProperties": false
-          }
+            {
+              "type": "object",
+              "required": [
+                "op",
+                "observed_tag",
+                "actor_id",
+                "device_id"
+              ],
+              "properties": {
+                "op": {
+                  "const": "leave"
+                },
+                "observed_tag": {
+                  "$ref": "#/$defs/event_ref"
+                },
+                "actor_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/did"
+                },
+                "device_id": {
+                  "$ref": "#/$defs/device_id"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
         },
-        "recording_state": {
-          "type": "string",
-          "enum": [
-            "recording",
-            "stopped",
-            "ready",
-            "failed"
-          ],
-          "description": "Recording lifecycle, orthogonal to `state` (the recording dimension of a call, independent of call lifecycle). Absent = no recording. 'recording' = capture in progress (after ak.call.recording.start); 'stopped' = recording manually stopped without requiring an artifact; 'ready' = artifact available via the Arkret blob pipeline; 'failed' = recording failed. recording_result SHOULD accompany recording_state ∈ {stopped, ready, failed}. See crypto-media/call-state.md §5."
+        "moderation_delta": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "op",
+                "removal"
+              ],
+              "properties": {
+                "op": {
+                  "const": "remove_participant"
+                },
+                "removal": {
+                  "type": "object",
+                  "required": [
+                    "actor_id",
+                    "action",
+                    "removed_by",
+                    "removed_at"
+                  ],
+                  "properties": {
+                    "actor_id": {
+                      "$ref": "./common-ids.schema.json#/$defs/did"
+                    },
+                    "device_id": {
+                      "$ref": "#/$defs/device_id"
+                    },
+                    "action": {
+                      "type": "string",
+                      "enum": [
+                        "kick",
+                        "ban"
+                      ]
+                    },
+                    "removed_by": {
+                      "$ref": "./common-ids.schema.json#/$defs/did"
+                    },
+                    "removed_at": {
+                      "$ref": "#/$defs/timestamp"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "allOf": [
+                    {
+                      "if": {
+                        "properties": {
+                          "action": {
+                            "const": "kick"
+                          }
+                        },
+                        "required": [
+                          "action"
+                        ]
+                      },
+                      "then": {
+                        "required": [
+                          "device_id"
+                        ]
+                      },
+                      "else": {
+                        "not": {
+                          "required": [
+                            "device_id"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "op",
+                "observed_tag",
+                "actor_id",
+                "restored_by",
+                "restored_at"
+              ],
+              "properties": {
+                "op": {
+                  "const": "restore_participant"
+                },
+                "observed_tag": {
+                  "$ref": "#/$defs/event_ref"
+                },
+                "actor_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/did"
+                },
+                "restored_by": {
+                  "$ref": "./common-ids.schema.json#/$defs/did"
+                },
+                "restored_at": {
+                  "$ref": "#/$defs/timestamp"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
         },
-        "recording_result": {
+        "mute_override": {
           "type": "object",
-          "description": "Typed recording outcome, present when recording_state ∈ {stopped, ready, failed}. See crypto-media/call-state.md §4.2 / §5: the durable ak.call.state carries recording_start_event_id for every terminal recording segment, and carries content digest, duration, media type, retention policy and a typed artifact when an artifact exists. All fields optional at schema level; prose defines state-specific requirements.",
           "required": [
-            "recording_id"
+            "status",
+            "actor_id",
+            "device_id",
+            "changed_by",
+            "changed_at"
           ],
           "properties": {
-            "recording_id": {
+            "status": {
               "type": "string",
-              "pattern": "^[A-Za-z0-9._-]{1,128}$",
-              "description": "Capture segment handle, byte-identical to the recording_id of the ak.call.recording.start that opened this segment. It is the second component of the ak.component.call.recording.v1 cell subject, so it MUST be present whenever recording_state is."
+              "enum": [
+                "active",
+                "cleared"
+              ]
             },
-            "content_digest": {
-              "$ref": "#/$defs/hash"
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did"
             },
-            "duration_ms": {
-              "type": "integer",
-              "minimum": 0
+            "device_id": {
+              "$ref": "#/$defs/device_id"
             },
-            "media_type": {
+            "audio_muted": {
+              "type": "boolean"
+            },
+            "video_muted": {
+              "type": "boolean"
+            },
+            "changed_by": {
+              "$ref": "./common-ids.schema.json#/$defs/did"
+            },
+            "changed_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "reason": {
               "$ref": "#/$defs/non_empty_string"
-            },
-            "retention_policy_id": {
-              "$ref": "#/$defs/object_ref"
-            },
-            "retention": {
-              "$ref": "#/$defs/call_recording_retention"
-            },
-            "recording_start_event_id": {
-              "$ref": "#/$defs/event_ref"
-            },
-            "artifact": {
-              "$ref": "./call-recording-artifact.schema.json",
-              "description": "Canonical artifact metadata for recording_state=ready. It binds the Arkret blob, recording exporter context, retention policy and deletion audit surface."
-            },
-            "failure_reason_code": {
-              "$ref": "#/$defs/call_capture_failure_reason_code",
-              "description": "Machine reason for recording_state=failed."
-            },
-            "failure_message": {
-              "$ref": "#/$defs/non_empty_string",
-              "description": "Human-readable diagnostic for recording_state=failed. It MUST NOT contain recording plaintext or backend direct URLs."
             }
           },
-          "additionalProperties": false
-        },
-        "transcript_state": {
-          "type": "string",
-          "enum": [
-            "transcribing",
-            "stopped",
-            "ready",
-            "failed"
-          ],
-          "description": "Transcription lifecycle, orthogonal to both `state` and `recording_state`. Absent = no transcription. 'transcribing' = capture in progress (after ak.call.transcribe.start); 'stopped' = manually stopped without requiring an artifact; 'ready' = encrypted transcript artifact available via the Arkret blob pipeline; 'failed' = transcription failed. transcript_result SHOULD accompany transcript_state ∈ {stopped, ready, failed}. See crypto-media/call-state.md §5.1."
-        },
-        "transcript_result": {
-          "type": "object",
-          "description": "Typed transcription outcome, present when transcript_state ∈ {stopped, ready, failed}. The transcript artifact is encrypted with the MLS-Exporter label ak.rtc-transcript-key/v1 (see exporter-label-registry.json) and strands through the same Arkret blob pipeline as recordings. transcript_start_event_id binds this segment to its ak.call.transcribe.start. All fields optional at schema level; prose defines state-specific requirements. See crypto-media/call-state.md §5.1.",
-          "required": [
-            "recording_id"
-          ],
-          "properties": {
-            "recording_id": {
-              "type": "string",
-              "pattern": "^[A-Za-z0-9._-]{1,128}$",
-              "description": "Capture segment handle, byte-identical to the recording_id of the ak.call.recording.start (capture_kind=transcript) that opened this segment. It is the second component of the ak.component.call.transcript.v1 cell subject, so it MUST be present whenever transcript_state is."
-            },
-            "content_digest": {
-              "$ref": "#/$defs/hash"
-            },
-            "media_type": {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            "language": {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            "retention_policy_id": {
-              "$ref": "#/$defs/object_ref"
-            },
-            "retention": {
-              "$ref": "#/$defs/call_recording_retention"
-            },
-            "transcript_start_event_id": {
-              "$ref": "#/$defs/event_ref"
-            },
-            "failure_reason_code": {
-              "$ref": "#/$defs/call_capture_failure_reason_code",
-              "description": "Machine reason for transcript_state=failed."
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "active"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              "then": {
+                "required": [
+                  "audio_muted",
+                  "video_muted"
+                ]
+              },
+              "else": {
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "audio_muted"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "video_muted"
+                      ]
+                    }
+                  ]
+                }
+              }
             }
-          },
-          "additionalProperties": false
+          ]
         }
       },
       "additionalProperties": false
@@ -9124,7 +9361,9 @@
         "recording_id",
         "recording_agent",
         "capture_kind",
-        "mode"
+        "mode",
+        "visible_notice",
+        "result"
       ],
       "properties": {
         "call_id": {
@@ -9155,11 +9394,86 @@
           ]
         },
         "visible_notice": {
-          "type": "boolean",
+          "const": true,
           "description": "Asserts the initiating client will display the capture-in-progress notice to all participants."
+        },
+        "result": {
+          "type": "object",
+          "description": "Initial immutable capture evidence. The start-event reference MUST equal this Event's event_id; retention.consent_confirmed=true closes the pre-capture consent gate before the FSM enters a capturing state.",
+          "required": [
+            "retention"
+          ],
+          "properties": {
+            "recording_start_event_id": {
+              "$ref": "#/$defs/event_ref"
+            },
+            "transcript_start_event_id": {
+              "$ref": "#/$defs/event_ref"
+            },
+            "retention": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/call_recording_retention"
+                },
+                {
+                  "required": [
+                    "consent_confirmed"
+                  ],
+                  "properties": {
+                    "consent_confirmed": {
+                      "const": true
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "capture_kind": {
+                "const": "recording"
+              }
+            },
+            "required": [
+              "capture_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "required": [
+                  "recording_start_event_id"
+                ],
+                "not": {
+                  "required": [
+                    "transcript_start_event_id"
+                  ]
+                }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "result": {
+                "required": [
+                  "transcript_start_event_id"
+                ],
+                "not": {
+                  "required": [
+                    "recording_start_event_id"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "strand_move_payload": {
       "type": "object",

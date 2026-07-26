@@ -1300,6 +1300,122 @@ def lint_value_projection(lint: Lint, path: Path, ref: str, projection: object) 
             lint.fail(path, f"{member_ref}.optional must be a boolean")
 
 
+EFFECT_PROJECTION_ENVELOPE_FIELDS = {
+    "event_id",
+    "kind",
+    "realm_id",
+    "actor_id",
+    "actor_seq",
+    "created_at",
+    "hlc",
+    "executed_by",
+    "authorization_ref",
+}
+
+
+def lint_effect_source(lint: Lint, path: Path, ref: str, source: object) -> None:
+    """Validate one closed source used to derive a lattice op member."""
+    if not isinstance(source, dict):
+        lint.fail(path, f"{ref} must be an object")
+        return
+    source_keys = [key for key in ("field", "envelope_field", "const") if key in source]
+    if len(source_keys) != 1 or len(source) != 1:
+        lint.fail(path, f"{ref} must declare exactly one of field/envelope_field/const")
+        return
+    source_key = source_keys[0]
+    if source_key == "field":
+        lint_field_path(lint, path, f"{ref}.field", source["field"])
+    elif source_key == "envelope_field":
+        value = source["envelope_field"]
+        if value not in EFFECT_PROJECTION_ENVELOPE_FIELDS:
+            lint.fail(
+                path,
+                f"{ref}.envelope_field must be one of "
+                f"{sorted(EFFECT_PROJECTION_ENVELOPE_FIELDS)}",
+            )
+
+
+def lint_effect_projection(
+    lint: Lint,
+    path: Path,
+    ref: str,
+    projection: object,
+    lattice: object,
+) -> None:
+    """Validate the closed payload-to-lattice-op projection grammar."""
+    if not isinstance(projection, dict):
+        lint.fail(path, f"{ref} must be an object")
+        return
+    projection_type = projection.get("type")
+    expected_type = {
+        "fsm": "transition",
+        "mv_register": "set",
+        "cas_register": "set",
+        "or_set": "or_set_delta",
+    }.get(lattice)
+    if expected_type is None:
+        lint.fail(path, f"{ref} is not defined for lattice {lattice!r}")
+        return
+    if projection_type != expected_type:
+        lint.fail(
+            path,
+            f"{ref}.type must be {expected_type!r} for lattice {lattice!r}",
+        )
+        return
+    if projection_type == "transition":
+        unknown = set(projection) - {"type", "from", "to"}
+        if unknown:
+            lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
+        for member in ("from", "to"):
+            if member not in projection:
+                lint.fail(path, f"{ref}.{member} is required")
+            else:
+                lint_effect_source(lint, path, f"{ref}.{member}", projection[member])
+        return
+    if projection_type == "set":
+        unknown = set(projection) - {"type", "value"}
+        if unknown:
+            lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
+        if "value" not in projection:
+            lint.fail(path, f"{ref}.value is required")
+        else:
+            lint_effect_source(lint, path, f"{ref}.value", projection["value"])
+        return
+
+    unknown = set(projection) - {"type", "selector", "branches"}
+    if unknown:
+        lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
+    lint_field_path(lint, path, f"{ref}.selector", projection.get("selector"))
+    branches = projection.get("branches")
+    if not isinstance(branches, dict) or not branches:
+        lint.fail(path, f"{ref}.branches must be a non-empty object")
+        return
+    for branch_name, branch in branches.items():
+        branch_ref = f"{ref}.branches[{branch_name}]"
+        if not isinstance(branch_name, str) or not branch_name:
+            lint.fail(path, f"{branch_ref} key must be a non-empty discriminator value")
+        if not isinstance(branch, dict):
+            lint.fail(path, f"{branch_ref} must be an object")
+            continue
+        op = branch.get("op")
+        if op not in {"add", "remove"}:
+            lint.fail(path, f"{branch_ref}.op must be add or remove")
+            continue
+        allowed = {"op", "tag", "value"} if op == "add" else {"op", "tag"}
+        unknown_branch = set(branch) - allowed
+        if unknown_branch:
+            lint.fail(path, f"{branch_ref} has unknown member(s) {sorted(unknown_branch)}")
+        if "tag" not in branch:
+            lint.fail(path, f"{branch_ref}.tag is required")
+        else:
+            lint_effect_source(lint, path, f"{branch_ref}.tag", branch["tag"])
+        if op == "add":
+            if "value" not in branch:
+                lint.fail(path, f"{branch_ref}.value is required for add")
+            else:
+                lint_effect_source(lint, path, f"{branch_ref}.value", branch["value"])
+
+
 def check_registries(lint: Lint) -> dict[str, set[str]]:
     event_path = ARTIFACTS / "registry" / "event-kind-registry.json"
     schema_path = ARTIFACTS / "registry" / "schema-registry.json"
@@ -1450,6 +1566,14 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     lint_value_projection(
                         lint, event_path, f"{write_ref}.value_projection", write["value_projection"]
                     )
+                if "effect_projection" in write:
+                    lint_effect_projection(
+                        lint,
+                        event_path,
+                        f"{write_ref}.effect_projection",
+                        write["effect_projection"],
+                        write.get("lattice"),
+                    )
                 if "condition" in write:
                     lint_cell_write_condition(
                         lint, event_path, f"{write_ref}.condition", write["condition"]
@@ -1501,7 +1625,15 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             elif (plane == "control") != sealed:
                 lint.fail(event_path, f"{kind} sealed must be true iff plane=control")
             if len(cell_writes) == 1 and isinstance(cell_writes[0], dict):
-                for field in ("cell_family", "cell_subject", "value_projection", "lattice", "bottom", "initial_value"):
+                for field in (
+                    "cell_family",
+                    "cell_subject",
+                    "value_projection",
+                    "effect_projection",
+                    "lattice",
+                    "bottom",
+                    "initial_value",
+                ):
                     if field in cell_writes[0] and row.get(field) != cell_writes[0].get(field):
                         lint.fail(event_path, f"{kind} single-target shorthand {field} differs from cell_writes[0]")
         if row.get("status") == "active" and row.get("reducer_input") is True:

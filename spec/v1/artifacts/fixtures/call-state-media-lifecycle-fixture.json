@@ -20,7 +20,7 @@
       "runner": "cotest::conformance::call_state_media_lifecycle::run_recording_retention_lock_vector",
       "assertions": [
         "audit_lock blocks recording deletion regardless of retention_expires_at",
-        "capture without consent_confirmed fails with recording_consent_required",
+        "recording start without an event-bound consent_confirmed result fails before capture with recording_consent_required",
         "unlocked expired retention permits deletion"
       ]
     },

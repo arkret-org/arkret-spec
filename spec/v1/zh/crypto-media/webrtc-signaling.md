@@ -74,7 +74,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 主持操作统一由 `ak.call.moderate` capability 授权(§3)。无该 capability 的 actor 发出任一主持信令 / 写任一主持字段，接收方与 reducer MUST 拒绝，错误码 `call_moderation_unauthorised`。
 
-主持动作通过 `ak.call.signal{signal_type=moderation}` 或 §6.1 的 `mute_state{by=moderator}` 表达瞬时控制，并在 durable `ak.call.state` 留痕：kick / ban 写入 `removed_participants[]`，end-for-all 写入终态 `state="ended"`，force-mute 写入 `participant_mute_overrides[]`。`moderation` payload `data` 形态:
+主持动作通过 `ak.call.signal{signal_type=moderation}` 或 §6.1 的 `mute_state{by=moderator}` 表达瞬时控制，并在 durable `ak.call.state` 留痕：kick / ban 写入 `moderation_delta`，end-for-all 写入 `state_transition.to="ended"`，force-mute 写入目标 leg 的 `mute_override`。`moderation` payload `data` 形态:
 
 ```json
 {
@@ -90,12 +90,12 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 }
 ```
 
-- `action` MUST 为 `kick` / `ban` / `end_for_all` 之一。强制静音走 §6.1 的 `mute_state{by=moderator}`，不复用本信令，但同样 MUST 由 `ak.call.moderate` 授权并落 `participant_mute_overrides[]`。
+- `action` MUST 为 `kick` / `ban` / `end_for_all` 之一。强制静音走 §6.1 的 `mute_state{by=moderator}`，不复用本信令，但同样 MUST 由 `ak.call.moderate` 授权并落目标 leg 的 `mute_override`。
 - `kick`:移除某 `(target_actor_id, target_device_id)` 的当前 call leg。被点名设备收到后 MUST 立即拆除媒体并退出；SFU 部署中 backend 同时按 token issuer 通知断开该 `participant_identity`。kick 不阻止该 actor 重新发起 join。
 - `ban`:移除某 `target_actor_id`(其全部设备)并在本通话生命周期内禁止其重新加入。被 ban 的 actor 重新兑换 join token 时，token issuer MUST 拒绝 `call_participant_removed`。
-- `end_for_all`:对全体结束通话。它由 `ak.call.moderate` 授权(v1 不注册独立的 `call.end_for_all`)，并 MUST 紧随一条把 `ak.call.state.state` 写入终态 `ended` 的 durable event；收到的客户端 MUST 全部挂断。
-- kick / ban MUST 在 `ak.call.state.removed_participants[]` 留痕(每项 `{ actor_id, device_id?, action, removed_at }`;`ban` 省略 `device_id` 表示按 actor 维度)。token issuer 与 SFU 在签发 / 接纳 participant 前 MUST 校验目标不在 `removed_participants[]` 的 ban 集合内，违反 `call_participant_removed`。
-- force-mute MUST 在 `ak.call.state.participant_mute_overrides[]` 留下当前覆盖集；token issuer 与 SFU 在签发 / 刷新 / 接纳 participant send permission 前 MUST 应用该覆盖集，禁止被静音 track 继续上行。客户端本地强制静音只是 UX 镜像，MUST NOT 是唯一 enforcement。
+- `end_for_all`:对全体结束通话。它由 `ak.call.moderate` 授权(v1 不注册独立的 `call.end_for_all`)，并 MUST 紧随一条携带 `ak.call.state.state_transition.to="ended"` 的 durable event；收到的客户端 MUST 全部挂断。
+- kick / ban MUST 以 `ak.call.state.moderation_delta.op="remove_participant"` 留痕(其 `removal` 为 `{ actor_id, device_id?, action, removed_by, removed_at }`;`ban` 省略 `device_id` 表示按 actor 维度)。token issuer 与 SFU 在签发 / 接纳 participant 前 MUST 校验目标不在 `ak.component.call.moderation.v1` effective OR-Set 的 ban 集合内，违反 `call_participant_removed`。
+- force-mute MUST 以 `ak.call.state.mute_override` 写入 `(call_id, actor_id, device_id)` 的当前覆盖值；token issuer 与 SFU 在签发 / 刷新 / 接纳 participant send permission 前 MUST 应用该值，禁止被静音 track 继续上行。客户端本地强制静音只是 UX 镜像，MUST NOT 是唯一 enforcement。
 - 所有主持信令受 §5 的 `seq` 单调性防回滚；`moderation` 帧 MUST 由具备 `ak.call.moderate` 的 actor 签名。
 
 ## 4. ICE Server Discovery
@@ -125,7 +125,7 @@ Content-Type: application/json
 | `call_id` | body | `id` | required | 通话 ID。 |
 | `actor_id` | body | `did` | required | 请求 ICE 配置的 Actor。 |
 | `device_id` | body | `id` | required | 请求设备。 |
-| `mode` | body | `enum(p2p,sfu,turn)` | required | **传输模式请求**，与 [`call-state.md` §2](./call-state.md) 的会议拓扑 `call_mode`（`{p2p,mesh,sfu,mcu}`）**不是同一枚举、不是同一概念**：本字段表达"客户端希望服务端为本次 ICE 协商返回何种传输面凭证"，`call_mode` 表达"整通会议在 §2 模型下的拓扑形态"。二者同名值（`p2p` / `sfu`）只是巧合，MUST NOT 互相推导或混用。各取值语义：`p2p` = 请求直连 / srflx candidate 优先的对等传输；`sfu` = 请求接入 SFU focus 所需的 ICE/TURN 凭证；`turn` = 请求纯 TURN 中继传输（强制经 TURN server 转发，不暴露 host/srflx candidate，等价于 `force_turn=true` 的传输诉求，用于高隐私 / 受限网络）。本字段不决定也不改写 `ak.call.state.mode`；会议拓扑的权威值始终是 `call-state.md` 的 `call_mode`。**call_mode → 传输 mode 映射（normative）**：`call_mode=mesh` 的各对等腿请求 `mode=p2p`（或受限网络下 `mode=turn`）；`call_mode=mcu` 与 `call_mode=sfu` 均请求 `mode=sfu`（接入 focus 的 ICE/TURN 凭证；纯中继诉求用 `mode=turn`）。即 `mesh` 映射到对等传输、`mcu`/`sfu` 映射到 focus 传输，不存在未覆盖的拓扑→传输空白。 |
+| `mode` | body | `enum(p2p,sfu,turn)` | required | **传输模式请求**，与 [`call-state.md` §2](./call-state.md) 的会议拓扑 `call_mode`（`{p2p,mesh,sfu,mcu}`）**不是同一枚举、不是同一概念**：本字段表达"客户端希望服务端为本次 ICE 协商返回何种传输面凭证"，`call_mode` 表达"整通会议在 §2 模型下的拓扑形态"。二者同名值（`p2p` / `sfu`）只是巧合，MUST NOT 互相推导或混用。各取值语义：`p2p` = 请求直连 / srflx candidate 优先的对等传输；`sfu` = 请求接入 SFU focus 所需的 ICE/TURN 凭证；`turn` = 请求纯 TURN 中继传输（强制经 TURN server 转发，不暴露 host/srflx candidate，等价于 `force_turn=true` 的传输诉求，用于高隐私 / 受限网络）。本字段不决定也不改写 `ak.call.state.focus.mode`；会议拓扑的权威值始终是 `call-state.md` 的 `call_mode`。**call_mode → 传输 mode 映射（normative）**：`call_mode=mesh` 的各对等腿请求 `mode=p2p`（或受限网络下 `mode=turn`）；`call_mode=mcu` 与 `call_mode=sfu` 均请求 `mode=sfu`（接入 focus 的 ICE/TURN 凭证；纯中继诉求用 `mode=turn`）。即 `mesh` 映射到对等传输、`mcu`/`sfu` 映射到 focus 传输，不存在未覆盖的拓扑→传输空白。 |
 
 请求示例（非完整 schema）：
 
@@ -440,7 +440,7 @@ Candidate payload:
 ```
 
 - `audio_muted` / `video_muted` 为 boolean，required。
-- `by` MUST 为 `self` 或 `moderator`。`by=moderator` MUST 由具备 `ak.call.moderate`（§3）的 actor 发出，并 MUST 携带 `target_actor_id` 与 `target_device_id` 指明被静音方；同一主持操作还 MUST 写入 durable `ak.call.state.participant_mute_overrides[]`，并由 SFU / token issuer 收紧该 call leg 的 audio/video send permission。被静音客户端收到后 MUST 本地强制静音并向用户显示来源；若客户端拒不配合，服务端媒体权限仍必须阻断其继续推送被静音 track。`by=self` 时 MUST NOT 携带 `target_*` 字段，且不写 `participant_mute_overrides[]`。
+- `by` MUST 为 `self` 或 `moderator`。`by=moderator` MUST 由具备 `ak.call.moderate`（§3）的 actor 发出，并 MUST 携带 `target_actor_id` 与 `target_device_id` 指明被静音方；同一主持操作还 MUST 写入 durable `ak.call.state.mute_override`，并由 SFU / token issuer 收紧该 call leg 的 audio/video send permission。被静音客户端收到后 MUST 本地强制静音并向用户显示来源；若客户端拒不配合，服务端媒体权限仍必须阻断其继续推送被静音 track。`by=self` 时 MUST NOT 携带 `target_*` 字段，且不写 `mute_override`。
 
 ```json
 {
@@ -481,10 +481,10 @@ Candidate payload:
 
 规则：
 
-- `answer` signaling frame 只是候选应答，不是 winner 真相。winner 必须由接收方的 call admission / media token issuer 写入并接受一条 durable `ak.call.state` participant entry 后才成立；只有该 winner 设备能获得 `participant_binding` 与 media send/receive token。
-- Admission service MUST 按 `(call_id, actor_id)` 串行化 accepted participant entry：若当前 accepted `ak.call.state.participants[]` 已存在同一 actor 的 active call leg，后续 answer MUST 拒绝 `call_already_answered`，并要求该设备停止响铃。
+- `answer` signaling frame 只是候选应答，不是 winner 真相。winner 必须由接收方的 call admission / media token issuer 接受一条 durable `ak.call.state.roster_delta.op="join"` 后才成立；只有该 winner 设备能获得 `participant_binding` 与 media send/receive token。
+- Admission service MUST 按 `(call_id, actor_id)` 串行化 accepted participant entry：若当前 accepted call roster effective OR-Set 已存在同一 actor 的 active call leg，后续 answer MUST 拒绝 `call_already_answered`，并要求该设备停止响铃。
 - 若同一 actor 的多个设备基于同一 prior call-state basis 并发 answer，reducer / admission service MUST 使用确定性 tiebreak，而不是本地接收顺序：按 `(device_id, proof.event_digest)` 字典序最小的候选成为唯一 winner；其它候选返回 `call_already_answered` 或发送 `reject{reason="call_already_answered"}`。该 tiebreak 只处理真正并发 sibling；非并发场景仍由已 accepted durable participant entry 吸收后续请求。
-- 发起端、其它接收端与 SFU MUST 以 accepted `ak.call.state.participants[]` 中的 participant entry 为权威，停止同 actor 其它设备的 ringing / offer-answer 流程；它们 MUST NOT 因先收到某个通过签名验证的 answer 就本地承认 winner。
+- 发起端、其它接收端与 SFU MUST 以 accepted `ak.component.call.roster.v1` effective OR-Set 中的 participant entry 为权威，停止同 actor 其它设备的 ringing / offer-answer 流程；它们 MUST NOT 因先收到某个通过签名验证的 answer 就本地承认 winner。
 - 被拒绝或超时的设备 SHOULD 发送 `reject`，reason 为 `call_already_answered` 或 `timeout`，但拒绝帧本身不改变 durable winner。
 
 ## 8. 屏幕共享

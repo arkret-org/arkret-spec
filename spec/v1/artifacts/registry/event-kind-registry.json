@@ -5029,9 +5029,18 @@
           },
           "lattice": "fsm",
           "bottom": "reject",
+          "effect_projection": {
+            "type": "transition",
+            "from": {
+              "field": "payload.state_transition.from"
+            },
+            "to": {
+              "field": "payload.state_transition.to"
+            }
+          },
           "condition": {
             "type": "field_present",
-            "field": "payload.state"
+            "field": "payload.state_transition"
           }
         },
         {
@@ -5043,12 +5052,15 @@
           "lattice": "cas_register",
           "bottom": "reject",
           "initial_value": "__unset__",
+          "effect_projection": {
+            "type": "set",
+            "value": {
+              "field": "payload.focus"
+            }
+          },
           "condition": {
-            "type": "any_field_present",
-            "fields": [
-              "payload.session_focus",
-              "payload.mode"
-            ]
+            "type": "field_present",
+            "field": "payload.focus"
           }
         },
         {
@@ -5057,14 +5069,45 @@
             "type": "composite",
             "components": [
               "payload.call_id",
-              "payload.recording_result.recording_id"
+              "payload.recording_transition.recording_id"
             ]
           },
           "lattice": "fsm",
           "bottom": "reject",
+          "effect_projection": {
+            "type": "transition",
+            "from": {
+              "field": "payload.recording_transition.from"
+            },
+            "to": {
+              "field": "payload.recording_transition.to"
+            }
+          },
           "condition": {
             "type": "field_present",
-            "field": "payload.recording_state"
+            "field": "payload.recording_transition"
+          }
+        },
+        {
+          "cell_family": "ak.component.call.recording_result.v1",
+          "cell_subject": {
+            "type": "composite",
+            "components": [
+              "payload.call_id",
+              "payload.recording_transition.recording_id"
+            ]
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "type": "set",
+            "value": {
+              "field": "payload.recording_transition.result"
+            }
+          },
+          "condition": {
+            "type": "field_present",
+            "field": "payload.recording_transition.result"
           }
         },
         {
@@ -5073,14 +5116,45 @@
             "type": "composite",
             "components": [
               "payload.call_id",
-              "payload.transcript_result.recording_id"
+              "payload.transcript_transition.recording_id"
             ]
           },
           "lattice": "fsm",
           "bottom": "reject",
+          "effect_projection": {
+            "type": "transition",
+            "from": {
+              "field": "payload.transcript_transition.from"
+            },
+            "to": {
+              "field": "payload.transcript_transition.to"
+            }
+          },
           "condition": {
             "type": "field_present",
-            "field": "payload.transcript_state"
+            "field": "payload.transcript_transition"
+          }
+        },
+        {
+          "cell_family": "ak.component.call.transcript_result.v1",
+          "cell_subject": {
+            "type": "composite",
+            "components": [
+              "payload.call_id",
+              "payload.transcript_transition.recording_id"
+            ]
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "type": "set",
+            "value": {
+              "field": "payload.transcript_transition.result"
+            }
+          },
+          "condition": {
+            "type": "field_present",
+            "field": "payload.transcript_transition.result"
           }
         },
         {
@@ -5091,13 +5165,30 @@
           },
           "lattice": "or_set",
           "bottom": "inert",
+          "effect_projection": {
+            "type": "or_set_delta",
+            "selector": "payload.moderation_delta.op",
+            "branches": {
+              "remove_participant": {
+                "op": "add",
+                "tag": {
+                  "envelope_field": "event_id"
+                },
+                "value": {
+                  "field": "payload.moderation_delta.removal"
+                }
+              },
+              "restore_participant": {
+                "op": "remove",
+                "tag": {
+                  "field": "payload.moderation_delta.observed_tag"
+                }
+              }
+            }
+          },
           "condition": {
-            "type": "any_field_present",
-            "fields": [
-              "payload.removed_participants",
-              "payload.removed_participant_tombstones",
-              "payload.participant_mute_overrides"
-            ]
+            "type": "field_present",
+            "field": "payload.moderation_delta"
           }
         },
         {
@@ -5108,9 +5199,53 @@
           },
           "lattice": "or_set",
           "bottom": "inert",
+          "effect_projection": {
+            "type": "or_set_delta",
+            "selector": "payload.roster_delta.op",
+            "branches": {
+              "join": {
+                "op": "add",
+                "tag": {
+                  "envelope_field": "event_id"
+                },
+                "value": {
+                  "field": "payload.roster_delta.participant"
+                }
+              },
+              "leave": {
+                "op": "remove",
+                "tag": {
+                  "field": "payload.roster_delta.observed_tag"
+                }
+              }
+            }
+          },
           "condition": {
             "type": "field_present",
-            "field": "payload.participants"
+            "field": "payload.roster_delta"
+          }
+        },
+        {
+          "cell_family": "ak.component.call.mute_override.v1",
+          "cell_subject": {
+            "type": "composite",
+            "components": [
+              "payload.call_id",
+              "payload.mute_override.actor_id",
+              "payload.mute_override.device_id"
+            ]
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "type": "set",
+            "value": {
+              "field": "payload.mute_override"
+            }
+          },
+          "condition": {
+            "type": "field_present",
+            "field": "payload.mute_override"
           }
         }
       ]
@@ -5136,6 +5271,38 @@
           },
           "lattice": "fsm",
           "bottom": "reject",
+          "effect_projection": {
+            "type": "transition",
+            "from": {
+              "const": null
+            },
+            "to": {
+              "const": "recording"
+            }
+          },
+          "condition": {
+            "type": "field_equals",
+            "field": "payload.capture_kind",
+            "const": "recording"
+          }
+        },
+        {
+          "cell_family": "ak.component.call.recording_result.v1",
+          "cell_subject": {
+            "type": "composite",
+            "components": [
+              "payload.call_id",
+              "payload.recording_id"
+            ]
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "type": "set",
+            "value": {
+              "field": "payload.result"
+            }
+          },
           "condition": {
             "type": "field_equals",
             "field": "payload.capture_kind",
@@ -5153,6 +5320,38 @@
           },
           "lattice": "fsm",
           "bottom": "reject",
+          "effect_projection": {
+            "type": "transition",
+            "from": {
+              "const": null
+            },
+            "to": {
+              "const": "transcribing"
+            }
+          },
+          "condition": {
+            "type": "field_equals",
+            "field": "payload.capture_kind",
+            "const": "transcript"
+          }
+        },
+        {
+          "cell_family": "ak.component.call.transcript_result.v1",
+          "cell_subject": {
+            "type": "composite",
+            "components": [
+              "payload.call_id",
+              "payload.recording_id"
+            ]
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "type": "set",
+            "value": {
+              "field": "payload.result"
+            }
+          },
           "condition": {
             "type": "field_equals",
             "field": "payload.capture_kind",

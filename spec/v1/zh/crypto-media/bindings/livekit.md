@@ -40,7 +40,7 @@ sidebar:
 
 Issuer MUST NOT 注入：
 
-- `metadata`：LiveKit 允许任意 JSON 字符串，但携带 `metadata` 会绕过 Arkret `participant_binding` 真源。Arkret participant metadata MUST 通过 `ak.call.state` 写入。
+- `metadata`：LiveKit 允许任意 JSON 字符串，但携带 `metadata` 会绕过 Arkret `participant_binding` 真源。Arkret participant metadata MUST 通过 `ak.call.state.roster_delta` 写入。
 - `video.canUpdateOwnMetadata`：禁止 client 改写 LiveKit metadata。
 
 ## 3. Connect Handshake
@@ -49,8 +49,8 @@ Issuer MUST NOT 注入：
 
 约束：
 
-- 客户端 SDK 接到 LiveKit `ParticipantConnected` 事件时，MUST 按 [`../media-service-binding.md` §7](../media-service-binding.md) 做 participant identity 交叉校验：以 LiveKit `participant.identity` 为索引在 `ak.call.state.participants[]` 找匹配项，验证 `participant_binding` 签名。未匹配或签名失败 → 拒绝建立媒体流，错误码 `participant_identity_unrecognised`。
-- 客户端 MUST NOT 信任 LiveKit SDK 透传的 `participant.name`、`metadata` 或其它字段作为 actor 身份判定来源；唯一权威来源是 `ak.call.state` + `participant_binding`。
+- 客户端 SDK 接到 LiveKit `ParticipantConnected` 事件时，MUST 按 [`../media-service-binding.md` §7](../media-service-binding.md) 做 participant identity 交叉校验：以 LiveKit `participant.identity` 为索引在 `ak.component.call.roster.v1` effective OR-Set 中找匹配项，验证 `participant_binding` 签名。未匹配或签名失败 → 拒绝建立媒体流，错误码 `participant_identity_unrecognised`。
+- 客户端 MUST NOT 信任 LiveKit SDK 透传的 `participant.name`、`metadata` 或其它字段作为 actor 身份判定来源；唯一权威来源是 `ak.component.call.roster.v1` effective OR-Set + `participant_binding`。
 
 ## 4. E2EE Key Injection
 
@@ -81,9 +81,9 @@ Arkret-LiveKit 部署 MAY 使用 LiveKit Egress 触发录制，但 Egress endpoi
 
 - Egress destination MUST 是 Arkret media service 的 authenticated upload endpoint；不得 LiveKit Cloud 直传 S3 / GCS。
 - 录制加密 key 来自 MLS exporter，label 固定为 ASCII 字符串 `"ak.rtc-recording-key/v1"`（与 SFrame `"ak.rtc-frame-key/v1"` 区分；`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_id, recording_start_event_id})`，`KDF.Nh=32`）。实现若复用 SFrame label、空 Context，或接受 LiveKit/KMS 自行生成的 recording key，MUST fail closed `e2ee_key_source_unauthorised`；LiveKit 不持久化明文。
-- 录制完成后通过 `ak.call.state` 发布 `recording_state="ready"` + content digest。
+- 录制完成后通过 `ak.call.state` 发布 `recording_transition.to="ready"` 及 `recording_transition.result` content digest。
 - 客户端检测到 LiveKit Egress 配置指向非 Arkret endpoint → fail closed `recording_artifact_pipeline_bypassed`。
-- 转写(`capture_kind="transcript"`)走同一 Egress / Arkret blob 路径，但加密 key label 固定为 `"ak.rtc-transcript-key/v1"`(`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_id, transcript_start_event_id})`,`KDF.Nh=32`),与录制 / SFrame label 区分；复用其它 label 或空 Context MUST fail closed `e2ee_key_source_unauthorised`；backend 自生成 transcript key 或绕过 Arkret artifact pipeline 才使用 `transcription_artifact_pipeline_bypassed`。转写完成后通过 `ak.call.state` 发布 `transcript_state="ready"`。见 [`../call-state.md` §5.1](../call-state.md)。
+- 转写(`capture_kind="transcript"`)走同一 Egress / Arkret blob 路径，但加密 key label 固定为 `"ak.rtc-transcript-key/v1"`(`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_id, transcript_start_event_id})`,`KDF.Nh=32`),与录制 / SFrame label 区分；复用其它 label 或空 Context MUST fail closed `e2ee_key_source_unauthorised`；backend 自生成 transcript key 或绕过 Arkret artifact pipeline 才使用 `transcription_artifact_pipeline_bypassed`。转写完成后通过 `ak.call.state` 发布 `transcript_transition.to="ready"` 及独立 result。见 [`../call-state.md` §5.1](../call-state.md)。
 
 ## 7. Cascading
 

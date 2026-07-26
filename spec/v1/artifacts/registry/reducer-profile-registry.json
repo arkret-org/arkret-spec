@@ -151,7 +151,7 @@
           {
             "schema_id": "ak.schema.event_payload.v1",
             "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
-            "document_digest": "sha256:fcb3350da28aa4452758fb88bf5cbe925a270cdbabe0634d0efc1a327067219b"
+            "document_digest": "sha256:95d64c2d0872037151356d4744f058f504b76c24592f4591a25c4789c7f25cd7"
           },
           {
             "schema_id": "ak.schema.seal.v1",
@@ -196,7 +196,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:4c647dda8147b896e90d4d05b93989083dd44ada50c60275f1dcdd47c9304609"
+      "reducer_profile_digest": "sha256:114681ed552b0e8d7e6445e3b5b25de765a9acaade55351f5a5555a4be417f53"
     },
     {
       "profile_id": "ak.profile.chat_mvp.v1",
@@ -428,7 +428,7 @@
           {
             "schema_id": "ak.schema.event_payload.v1",
             "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
-            "document_digest": "sha256:fcb3350da28aa4452758fb88bf5cbe925a270cdbabe0634d0efc1a327067219b"
+            "document_digest": "sha256:95d64c2d0872037151356d4744f058f504b76c24592f4591a25c4789c7f25cd7"
           },
           {
             "schema_id": "ak.schema.message.v1",
@@ -508,7 +508,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:aff4c0633f412deefb045c9dd6da79888ee9c8ce8005385b602266955de2d498"
+            "content_digest": "sha256:6063dbee5920b3540ff852b58de26ce2014ea44f0635a887aee0fe965f437413"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -520,7 +520,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:a24e1146d7e9512647e6c428303bb06ea979b508630aaad4627a46f2bddafdc3"
+      "reducer_profile_digest": "sha256:3ff907f12581f659e24d488aa7fa0d74a23abf4cf55426786286d6371dca858a"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -727,7 +727,7 @@
           {
             "schema_id": "ak.schema.event_payload.v1",
             "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
-            "document_digest": "sha256:fcb3350da28aa4452758fb88bf5cbe925a270cdbabe0634d0efc1a327067219b"
+            "document_digest": "sha256:95d64c2d0872037151356d4744f058f504b76c24592f4591a25c4789c7f25cd7"
           },
           {
             "schema_id": "ak.schema.realm.v1",
@@ -816,7 +816,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:a8ae1b01b7b1e63288591c8a7f4b0e1b2a8711df644045535079dcb114f9e4be"
+      "reducer_profile_digest": "sha256:2f217ff01bc27c8f28a61057982d6b8fabd460c95044d179b24c3f7f6e6ac37c"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1284,7 +1284,7 @@
           {
             "schema_id": "ak.schema.event_payload.v1",
             "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
-            "document_digest": "sha256:fcb3350da28aa4452758fb88bf5cbe925a270cdbabe0634d0efc1a327067219b"
+            "document_digest": "sha256:95d64c2d0872037151356d4744f058f504b76c24592f4591a25c4789c7f25cd7"
           },
           {
             "schema_id": "ak.schema.grant_constraint.v1",
@@ -1413,7 +1413,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:aff4c0633f412deefb045c9dd6da79888ee9c8ce8005385b602266955de2d498"
+            "content_digest": "sha256:6063dbee5920b3540ff852b58de26ce2014ea44f0635a887aee0fe965f437413"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -1445,7 +1445,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:21369a641aefc6704052358b02ba4f7179e3d5d0d9d748f743a8ccd9415ccb52"
+      "reducer_profile_digest": "sha256:ce4a6a7604c3af82a31032d58813db23cd088266c6fcd398e10a2dfa43a2f148"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1630,7 +1630,7 @@
           {
             "schema_id": "ak.schema.event_payload.v1",
             "registry_row_digest": "sha256:9c21a9c27c60a816879be70829653b3064dfb346f8022b95c894d54cb5b6025f",
-            "document_digest": "sha256:fcb3350da28aa4452758fb88bf5cbe925a270cdbabe0634d0efc1a327067219b"
+            "document_digest": "sha256:95d64c2d0872037151356d4744f058f504b76c24592f4591a25c4789c7f25cd7"
           },
           {
             "schema_id": "ak.schema.seal.v1",
@@ -1695,7 +1695,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:458f299222d69d9047358262ab45353d5e020f572055e71a83a8406546c79f82"
+      "reducer_profile_digest": "sha256:9271e784593586c64ad6cf2f5693c28f788f40c9088e49c2ef4210a6e1c19624"
     }
   ],
   "generated_fields": [
