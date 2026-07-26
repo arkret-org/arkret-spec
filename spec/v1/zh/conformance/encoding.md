@@ -631,6 +631,20 @@ rank_between(left, right):
 分支之间是否互斥由**各分支自己的 `forbidden_fields` 显式声明**，MUST NOT 由「未命中分支的 `field` 出现即歧义」这类通用规则推断：多个分支合法共享同一字段是常见形态（例如 `effective_scope` 的 `circle` 分支按 schema 必须同时携带 `realm_id` 与 `circle_id`，而 `realm_id` 正是 `realm` 分支的取值字段），通用禁止会把这类合法 payload 全部拒掉。`forbidden_fields` MUST 与该 payload schema 的互斥约束一致，只作为不经 schema 校验路径上的等价 fail-closed 复核，MUST NOT 声明 schema 允许共存的字段。
 
 下列任一情况 MUST fail closed（`schema_violation`）：`selector` 缺失或非字符串；判别值不在 `branches` 中；命中 branch 的 `field` 缺失；命中 branch 的某个 `forbidden_fields` 路径在 payload 中出现；取值不是该字段 schema 要求的 canonical 标量。实现 MUST NOT 用字段存在性 `coalesce` 或 payload 形状推断替代显式 `selector`。
+- **规范字符串集合摘要 `string_set_digest` component（normative）**：`components[]` 的元素 MAY 是固定形态 `{"kind":"string_set_digest","field":<字段路径>,"context":<ASCII context>}`。该 descriptor 只适用于 schema 已封闭为 `string | array<string>`、两种形态引用同一元素 schema、array 明确 `minItems >= 1` 且 `uniqueItems: true` 的字段；descriptor 只允许 `kind`、`field`、`context` 三个成员。若字段是 string，令集合序列 `S=[value]`；若为 array，复制其元素得到 `S`。求值器 MUST 在 schema 校验后再次确认 `S` 非空、所有元素均为 schema 允许的字符串且逐字无重复，然后按 JSON 解码后字符串的原始 UTF-8 bytes 升序排列；MUST NOT trim、case-fold、NFC/NFKC 归一化或使用 locale collation。component 输出为普通 JSON string：
+
+  ```text
+  string_set_component =
+    base64url_nopad(
+      sha256(
+        utf8(context)
+        || 0x0A
+        || canonical_json(S)
+      )
+    )
+  ```
+
+  `string_set_digest` 是 registry descriptor 的封闭派生类型，不把 array 加入通用 composite scalar 集合。内层固定使用 SHA-256，不跟随 Realm digest suite；context 后恰好一个 `0x0A`，不得加入 NUL、长度前缀或尾随换行。字段缺失、空集合、重复项、非字符串项、schema 不封闭、未知 descriptor 成员或非 ASCII/空 context 均 MUST fail closed（`schema_violation`）。
 - 同一 standard cell family 的 `components_array` schema 由本规范固定，profile MUST NOT 擅自增删字段或重新排序。
 
 ### 9.5.2 标准复合 Subject
@@ -641,6 +655,7 @@ rank_between(left, right):
 | `ak.component.device.authorization.v1` / `ak.device.revoke` | `[payload.principal_id, payload.device_id]` |
 | `ak.component.realm_key.delivery.v1` / `ak.realm_key.share`、`ak.realm_key.withheld` | `[payload.share_kind, payload.recipient_principal_id, select(payload.share_kind), select(payload.key_scope.effective_scope.kind)]` |
 | `ak.component.calendar.rsvp.v1` / `ak.rsvp.set` | `[payload.event_ref, payload.occurrence, envelope.actor_id]` |
+| `ak.component.identity.accountability.v1` / `ak.identity.accountability_grant` | `[payload.issuer, payload.subject, string_set_digest(payload.accountability_scope, "ak.accountability-scope-set-v1")]` |
 | `ak.component.call.recording.v1` / `ak.call.recording.start`（`capture_kind="recording"`）、`ak.call.state` | `[payload.call_id, payload.recording_id]` / `[payload.call_id, payload.recording_result.recording_id]` |
 | `ak.component.call.transcript.v1` / `ak.call.recording.start`（`capture_kind="transcript"`）、`ak.call.state` | `[payload.call_id, payload.recording_id]` / `[payload.call_id, payload.transcript_result.recording_id]` |
 
@@ -655,6 +670,8 @@ rank_between(left, right):
 - receiver MUST 独立校验 `effective_scope.realm_id` 等于 Event `realm_id`，Circle 分支还 MUST 校验该 `circle_id` 属于该 Realm。
 
 `ak.component.calendar.rsvp.v1` 的三元组固定 arity 3；`envelope.actor_id` 是 accountable responder，delegated execution 下不得改用 `executed_by`。实例级 RSVP 的 `payload.occurrence` 是 [`calendar-event.md` §5](../models/calendar-event.md) 的 canonical string；series 级 RSVP 的 digest preimage 固定保留 JSON null，例如 `["ak:strand:<uuidv7>",null,"did:..."]`。实现 MUST NOT 把 null 改写成字符串 `"null"`、空串或 `"series"` sentinel。payload 中即使出现同名 `actor_id` 也不得遮蔽 `envelope.actor_id`。
+
+`ak.component.identity.accountability.v1` 的第三个 component 固定使用 `context="ak.accountability-scope-set-v1"` 的 `string_set_digest`。`accountability_scope` 的 string 与 singleton-array 写法、以及同一合法 array 的任意排列，MUST 命中同一 cell；不同 exact scope set MUST 命中不同 cell。`active` 与 `revoked` 状态不进入 subject，因此同一 exact set 的撤销写回同一 `cas_register`。子集 revoke 只命中子集自己的 cell，不得对超集做隐式集合差；同一 issuer/subject 可同时有多个 active exact-set cell，其 projection scope 是所有当前 active cell 的集合并集。
 
 两个 call capture family 的第二个 component 固定取 **payload** 的 `recording_id`（start event 取 `payload.recording_id`，后续 `ak.call.state` 取 `payload.recording_result.recording_id` 或 `payload.transcript_result.recording_id`），不得改用 Event envelope 的 `event_id`。同一 `recording_id` 的 start 与状态更新因此落入同一 cell；不同 recording 不会共享 cell。`ak.call.recording.start.capture_kind` 决定写 recording 还是 transcript family；`ak.call.state` 只有在相应 `recording_state` / `transcript_state` 出现时才写对应 family。
 

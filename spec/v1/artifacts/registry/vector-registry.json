@@ -3560,6 +3560,18 @@
       ]
     },
     {
+      "vector_id": "ak.vector.identity.accountability_scope_set_subject.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
+      "description": "Accountability scope string/singleton-array and array permutations converge through a domain-separated canonical string-set digest before outer composite subject derivation; exact-set revocation remains isolated per cell.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.calendar.rsvp_composite_subject.v1",
       "status": "active",
       "domain": "calendar",

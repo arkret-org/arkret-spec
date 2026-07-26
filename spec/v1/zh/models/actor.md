@@ -103,13 +103,17 @@ Schema id: `ak.schema.actor_profile.v1`
 | --- | --- | --- |
 | `issuer` | did | 签发 accountability 担保的主体(`accountable_principal_ids[]` 中被声明的 DID) |
 | `subject` | did | 被担保的 actor principal(actor profile 的 `principal_id`) |
-| `accountability_scope` | string \| array | 担保范围(例如 `"employment"` / `"contracted_service"` / `"agent_operator"`);仅供 UI 与 governance 展示，不参与授权 |
+| `accountability_scope` | string \| array | 非空、无重复、无顺序语义的闭合集合（`employment` / `contracted_service` / `agent_operator`）；string 是 singleton set 的 wire 写法；仅供 UI 与 governance 展示，不参与授权 |
 | `not_before` | timestamp | 担保起始时间 |
 | `expires_at` | timestamp（可选） | 担保到期；过期后视作 unverified。缺省表示不设时间过期，由 `grant_status` 撤销与 controller lifecycle 级联治理;native personal agent 的 controller 自担保 SHOULD 缺省不声明 `expires_at`,避免静默失效悬崖（见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md)） |
 | `grant_status` | enum(active, revoked) | issuer 主动 revoke 改为 `revoked` |
 | `proof` | object | 由 `issuer` 的 active authentication key 签发 |
 
 完整机读形态由 [`accountability-grant.schema.json`](../../artifacts/schemas/accountability-grant.schema.json) 权威定义；payload 的 `schema` MUST 为 `ak.schema.accountability_grant.v1`。`proof.payload_digest` MUST 覆盖 `utf8("ak.accountability-grant-v1\n") || canonical_json(payload with proof omitted)`，且 verification method controller MUST 等于 `issuer`。
+
+`accountability_scope` 的 array 顺序不表达优先级、时间或授权强度；receiver MUST 接受合法 singleton array 与任意合法排列，且只在 cell subject 派生、领域相等比较和 projection 聚合时按 [`encoding.md` §9.5.1](../conformance/encoding.md) 的 canonical string-set 规则规范化，不得重写已签名 payload bytes。Canonical authoring API 对新 Event MUST 将单元素集合输出为 string，多元素集合按原始 UTF-8 bytes 升序输出为 array。
+
+Accountability 状态按 `(issuer, subject, normalized exact scope set)` 独立定址。同一 exact set 的 `active` 与 `revoked` 必须写入同一 cell；revoke 必须携带与被撤销 grant 完全相同的集合，子集 revoke 不表示从超集中做差集。若只需保留原集合的一部分，issuer 必须先 revoke 原 exact set，再签发目标 exact set。多个 exact-set cell 可同时 active；projection 展示的 active scopes 是这些 cell 的集合并集，撤销其中一个不得影响其它 cell。只要至少一个未过期的 active exact-set cell 存在，该 issuer/subject accountability 关系仍可验证。
 
 **UI / projection 责任**:
 

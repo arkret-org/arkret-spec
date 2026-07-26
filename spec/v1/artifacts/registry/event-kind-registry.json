@@ -1182,7 +1182,11 @@
             "components": [
               "payload.issuer",
               "payload.subject",
-              "payload.accountability_scope"
+              {
+                "kind": "string_set_digest",
+                "field": "payload.accountability_scope",
+                "context": "ak.accountability-scope-set-v1"
+              }
             ]
           },
           "lattice": "cas_register",
@@ -1195,7 +1199,11 @@
         "components": [
           "payload.issuer",
           "payload.subject",
-          "payload.accountability_scope"
+          {
+            "kind": "string_set_digest",
+            "field": "payload.accountability_scope",
+            "context": "ak.accountability-scope-set-v1"
+          }
         ]
       },
       "lattice": "cas_register",

@@ -719,6 +719,138 @@
       ]
     },
     {
+      "vector_id": "ak.vector.identity.accountability_scope_set_subject.v1",
+      "kind": "string_set_digest_composite_subject",
+      "source_descriptor": {
+        "event_kind": "ak.identity.accountability_grant",
+        "cell_family": "ak.component.identity.accountability.v1",
+        "components": [
+          "payload.issuer",
+          "payload.subject",
+          {
+            "kind": "string_set_digest",
+            "field": "payload.accountability_scope",
+            "context": "ak.accountability-scope-set-v1"
+          }
+        ]
+      },
+      "issuer": "did:web:issuer.example",
+      "subject": "did:web:subject.example",
+      "positive_cases": [
+        {
+          "name": "singleton_string",
+          "input": "employment",
+          "normalized_set": [
+            "employment"
+          ],
+          "scope_preimage_utf8": "ak.accountability-scope-set-v1\n[\"employment\"]",
+          "scope_set_component": "igkaAexYhN9e_4LvIFv7fkT5zisbmP8cTz82ES2TlIQ",
+          "cell_subject": "0oP6kgegqj97KeJlIQS1HqrKqOlrC05vv5FbjOt26UI"
+        },
+        {
+          "name": "singleton_array",
+          "input": [
+            "employment"
+          ],
+          "equivalent_to": "singleton_string",
+          "scope_set_component": "igkaAexYhN9e_4LvIFv7fkT5zisbmP8cTz82ES2TlIQ",
+          "cell_subject": "0oP6kgegqj97KeJlIQS1HqrKqOlrC05vv5FbjOt26UI"
+        },
+        {
+          "name": "two_element_reordered",
+          "input": [
+            "employment",
+            "agent_operator"
+          ],
+          "normalized_set": [
+            "agent_operator",
+            "employment"
+          ],
+          "scope_set_component": "GuBGA6Mm1pfBN0XAk4CD0zuPPBxC5HzVNM-AIdFZRnc",
+          "cell_subject": "mpsZQ7e16PpEpIx5EzhcWbP75zwSFLxWVUhUci1Q_JQ"
+        },
+        {
+          "name": "all_scopes",
+          "input": [
+            "employment",
+            "contracted_service",
+            "agent_operator"
+          ],
+          "normalized_set": [
+            "agent_operator",
+            "contracted_service",
+            "employment"
+          ],
+          "scope_set_component": "Adhn2J3Ht1drmR7yf03sMl6AQIUxyDM4wzqSvlGOLDo",
+          "cell_subject": "_45SQjX2ZreUoyarM5jKLRPu718MCunon-ruoXbTRBw"
+        }
+      ],
+      "negative_cases": [
+        {
+          "name": "empty_array",
+          "input": [],
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "duplicate_element",
+          "input": [
+            "employment",
+            "employment"
+          ],
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "unknown_scope",
+          "input": "administrator",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "non_string_element",
+          "input": [
+            1
+          ],
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "null_scope",
+          "input": null,
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "object_scope",
+          "input": {
+            "scope": "employment"
+          },
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "nested_array",
+          "input": [
+            [
+              "employment"
+            ]
+          ],
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "old_direct_scalar_subject",
+          "cell_subject": "q76kFdC2LNwLBlUed_ICSOysggmqrOXJbAtWHO49Woc",
+          "expected_error": "effects_payload_mismatch"
+        },
+        {
+          "name": "wrong_context",
+          "context": "ak.accountability-scope-set-v1-wrong",
+          "expected_error": "effects_payload_mismatch"
+        }
+      ],
+      "rules": [
+        "the scope-set component and outer composite subject always use SHA-256 and base64url without padding",
+        "sorting compares raw UTF-8 bytes after JSON decoding and performs no text normalization",
+        "active and revoked payloads with the same exact set derive the same cell",
+        "a subset revoke addresses only the subset cell and never mutates a superset cell"
+      ]
+    },
+    {
       "vector_id": "ak.vector.calendar.rsvp_composite_subject.v1",
       "kind": "typed_composite_subject",
       "source_descriptor": {
