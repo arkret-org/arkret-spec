@@ -40,7 +40,7 @@
     "circle_id": {
       "$ref": "./common-ids.schema.json#/$defs/circle_id"
     },
-    "object_type": {
+    "object_kind": {
       "type": "string"
     },
     "object_ref": {
@@ -60,7 +60,7 @@
       "type": "string",
       "pattern": "^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "morph_type": {
+    "morph_kind": {
       "type": "string"
     },
     "relation_kind": {

@@ -608,7 +608,7 @@
         "pair_key": {
           "$ref": "#/$defs/hash"
         },
-        "allow_last_resort": {
+        "last_resort_allowed": {
           "type": "boolean",
           "default": false
         }
@@ -631,7 +631,7 @@
               "pair_key"
             ],
             "properties": {
-              "allow_last_resort": {
+              "last_resort_allowed": {
                 "const": false
               }
             }
@@ -752,7 +752,7 @@
         "pair_key": {
           "$ref": "#/$defs/hash"
         },
-        "allow_last_resort": {
+        "last_resort_allowed": {
           "type": "boolean",
           "default": false
         },
@@ -782,7 +782,7 @@
               "pair_key"
             ],
             "properties": {
-              "allow_last_resort": {
+              "last_resort_allowed": {
                 "const": false
               }
             }

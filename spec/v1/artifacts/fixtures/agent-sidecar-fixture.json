@@ -140,7 +140,7 @@
         "close or cancel with a non-empty captured response set produces complete; close empty produces controller_closed_empty and cancel empty produces controller_cancelled",
         "agent or control events concurrent with and not causally covered by the winning terminal basis remain private audit history but do not enter the terminal projection",
         "same-sequence control siblings use event-digest bytewise maximum, the first effective terminal control absorbs later controls, and reassignment is valid only before terminal with a matching expected coordinator",
-        "delivered requires empty responses, responding/complete require non-empty responses, failed requires empty responses plus failure_code, and non-failed states forbid failure_code"
+        "delivered requires empty responses, responding/complete require non-empty responses, failed requires empty responses plus failure_reason_code, and non-failed states forbid failure_reason_code"
       ]
     },
     {

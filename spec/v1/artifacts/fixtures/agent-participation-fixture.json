@@ -95,8 +95,8 @@
         ],
         "constraints": [
           {
-            "constraint_type": "claim_based",
-            "subtype": "accountability",
+            "constraint_kind": "claim_based",
+            "constraint_subkind": "accountability",
             "effect": "allow",
             "accountability_required": true,
             "approval_relation": "controller",
@@ -164,8 +164,8 @@
             ],
             "constraints": [
               {
-                "constraint_type": "claim_based",
-                "subtype": "approval",
+                "constraint_kind": "claim_based",
+                "constraint_subkind": "approval",
                 "effect": "require_review",
                 "approval_required": true,
                 "applies_to_actions": [

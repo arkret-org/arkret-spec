@@ -519,7 +519,9 @@
       "description": "Realm seal_compaction_max_interval_ms is a structural obligation: valid full-coverage compaction enables bootstrap, mismatched coverage rejects, and overdue compaction raises health alarms.",
       "realm": {
         "id": "ak:realm:019641c6-8000-7000-8000-000000000000",
-        "notary_type": "open_set",
+        "notary": {
+          "kind": "open_set"
+        },
         "seal_compaction_max_interval_ms": 86400000
       },
       "cases": [
@@ -577,9 +579,9 @@
       "name": "inclusion_list_obligation",
       "description": "A multi-signer notary Seal must discharge valid inclusion-list obligations by inclusion, signed reject, or pre-state verification failure proof.",
       "notary_profile": {
-        "type": "threshold",
         "proposer_id": "did:webvh:z6mkfixture:notary-proposer.example",
-        "signer_id": "did:webvh:z6mkfixture:notary-signer.example"
+        "signer_id": "did:webvh:z6mkfixture:notary-signer.example",
+        "kind": "threshold"
       },
       "inclusion_list": {
         "realm_id": "ak:realm:019641c6-8000-7000-8000-000000000000",
@@ -692,7 +694,6 @@
         {
           "name": "n5_k3_quorum_intersection",
           "notary": {
-            "type": "threshold",
             "members": [
               "did:webvh:z6mkfixture:n1.example",
               "did:webvh:z6mkfixture:n2.example",
@@ -701,7 +702,8 @@
               "did:webvh:z6mkfixture:n5.example"
             ],
             "threshold": 3,
-            "forensic_attribution": "quorum_intersection"
+            "forensic_attribution": "quorum_intersection",
+            "kind": "threshold"
           },
           "expected": {
             "result": "accept"
@@ -710,7 +712,6 @@
         {
           "name": "n5_k3_waived_reject",
           "notary": {
-            "type": "threshold",
             "members": [
               "did:webvh:z6mkfixture:n1.example",
               "did:webvh:z6mkfixture:n2.example",
@@ -719,7 +720,8 @@
               "did:webvh:z6mkfixture:n5.example"
             ],
             "threshold": 3,
-            "forensic_attribution": "waived"
+            "forensic_attribution": "waived",
+            "kind": "threshold"
           },
           "expected": {
             "result": "reject",
@@ -729,7 +731,6 @@
         {
           "name": "n4_k2_quorum_intersection_reject",
           "notary": {
-            "type": "threshold",
             "members": [
               "did:webvh:z6mkfixture:n1.example",
               "did:webvh:z6mkfixture:n2.example",
@@ -737,7 +738,8 @@
               "did:webvh:z6mkfixture:n4.example"
             ],
             "threshold": 2,
-            "forensic_attribution": "quorum_intersection"
+            "forensic_attribution": "quorum_intersection",
+            "kind": "threshold"
           },
           "expected": {
             "result": "reject",
@@ -747,13 +749,13 @@
         {
           "name": "threshold_missing_forensic_attribution",
           "notary": {
-            "type": "threshold",
             "members": [
               "did:webvh:z6mkfixture:n1.example",
               "did:webvh:z6mkfixture:n2.example",
               "did:webvh:z6mkfixture:n3.example"
             ],
-            "threshold": 2
+            "threshold": 2,
+            "kind": "threshold"
           },
           "expected": {
             "result": "schema_violation"

@@ -1,0 +1,333 @@
+{
+  "version": 1,
+  "source_of_truth": false,
+  "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
+  "scope": [
+    "spec/v1/artifacts/schemas/*.json",
+    "spec/v1/artifacts/registry/*.json"
+  ],
+  "audited_occurrence_count": 57,
+  "registrations": [
+    {
+      "file": "account-operations.schema.json",
+      "key": "account_registration_evidence_summary",
+      "occurrences": 1,
+      "disposition": "derived_summary",
+      "reason": "Summarizes whether heterogeneous registration inputs were supplied without carrying the secret inputs."
+    },
+    {
+      "file": "account-operations.schema.json",
+      "key": "account_registration_policy_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation"],
+      "reason": "Carries possession proofs such as codes or invitation tokens and organization attestations."
+    },
+    {
+      "file": "account-operations.schema.json",
+      "key": "evidence",
+      "occurrences": 1,
+      "disposition": "derived_summary",
+      "reason": "Points to the registered non-secret registration evidence summary."
+    },
+    {
+      "file": "account-operations.schema.json",
+      "key": "policy_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation"],
+      "reason": "Carries the registered heterogeneous registration policy material."
+    },
+    {
+      "file": "account-subscribe-frame.schema.json",
+      "key": "agent_signer_evidence_bundle",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "commitment"],
+      "reason": "Bundles signer proofs, authorization attestations, and seal-lineage commitments."
+    },
+    {
+      "file": "agent-signer-evidence-operations.schema.json",
+      "key": "evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "commitment"],
+      "reason": "Returns the registered composite Agent signer evidence object."
+    },
+    {
+      "file": "contact-operations.schema.json",
+      "key": "introduction_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation"],
+      "reason": "Accepts possession, consent, shared-membership, handle-claim, and authenticated-service introduction material."
+    },
+    {
+      "file": "event-envelope.schema.json",
+      "key": "evidence_ref",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "receipt"],
+      "reason": "A critical extension may bind extension-specific proof, attestation, or receipt Events."
+    },
+    {
+      "file": "event-payload.schema.json",
+      "key": "agent_key_approval_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "receipt"],
+      "reason": "Discriminates durable grant, approval, proposal, or policy proof from a short-lived pairing approval receipt."
+    },
+    {
+      "file": "event-payload.schema.json",
+      "key": "approval_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "receipt"],
+      "reason": "Carries the registered heterogeneous Agent-key approval material."
+    },
+    {
+      "file": "event-payload.schema.json",
+      "key": "evidence_package",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "receipt"],
+      "reason": "Moderation evidence packages may contain content proofs, witness attestations, and handling receipts."
+    },
+    {
+      "file": "event-payload.schema.json",
+      "key": "evidence_ref",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "receipt"],
+      "reason": "The referenced authorization or consent material is selected by the enclosing discriminator and may be a proof, attestation, or receipt."
+    },
+    {
+      "file": "event-payload.schema.json",
+      "key": "evidence_refs",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "receipt"],
+      "reason": "Realm-link and moderation references admit multiple registered material families."
+    },
+    {
+      "file": "event-payload.schema.json",
+      "key": "introduction_evidence_digest",
+      "occurrences": 2,
+      "disposition": "qualifier",
+      "reason": "Names a digest of the heterogeneous introduction evidence container, not a material instance."
+    },
+    {
+      "file": "event-payload.schema.json",
+      "key": "migration_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation"],
+      "reason": "May carry governance proposal proofs or seal and witness attestations."
+    },
+    {
+      "file": "invite-delivery-request.schema.json",
+      "key": "introduction_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation"],
+      "reason": "The union spans possession, consent, shared-membership, handle-claim, and authenticated-service material; its single-category alternatives use basis names."
+    },
+    {
+      "file": "invite-delivery-request.schema.json",
+      "key": "consent_grant_evidence",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Names the closed consent-grant alternative within the heterogeneous introduction evidence schema; it is not itself a wire field."
+    },
+    {
+      "file": "invite-delivery-request.schema.json",
+      "key": "explicit_address_evidence",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Names the closed explicit-address alternative within the heterogeneous introduction evidence schema; it is not itself a wire field."
+    },
+    {
+      "file": "invite-delivery-request.schema.json",
+      "key": "handle_claim_evidence",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Names the closed handle-claim alternative within the heterogeneous introduction evidence schema; it is not itself a wire field."
+    },
+    {
+      "file": "invite-delivery-request.schema.json",
+      "key": "locator_ref_evidence",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Names the closed locator-reference alternative within the heterogeneous introduction evidence schema; it is not itself a wire field."
+    },
+    {
+      "file": "invite-delivery-request.schema.json",
+      "key": "same_principal_server_evidence",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Names the closed same-principal-server alternative within the heterogeneous introduction evidence schema; it is not itself a wire field."
+    },
+    {
+      "file": "invite-delivery-request.schema.json",
+      "key": "shared_realm_evidence",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Names the closed shared-Realm alternative within the heterogeneous introduction evidence schema; it is not itself a wire field."
+    },
+    {
+      "file": "invite.schema.json",
+      "key": "introduction_evidence_digest",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Names a digest of the heterogeneous introduction evidence container, not a material instance."
+    },
+    {
+      "file": "join-policy-operations.schema.json",
+      "key": "evidence_refs",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "receipt"],
+      "reason": "A review receipt may cite proofs, third-party attestations, and prior receipts."
+    },
+    {
+      "file": "keypackage-operations.schema.json",
+      "key": "requester_signing_key_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation"],
+      "reason": "Combines the original device authorization Event proof with the source Principal Server's active-key attestation."
+    },
+    {
+      "file": "mimi-operations.schema.json",
+      "key": "evidence_package",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "receipt"],
+      "reason": "The interop abuse package may carry content proofs, third-party attestations, and delivery receipts."
+    },
+    {
+      "file": "moderation-appeal.schema.json",
+      "key": "evidence_refs",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "receipt"],
+      "reason": "Appeals may cite message or blob proofs, witness attestations, and prior handling receipts."
+    },
+    {
+      "file": "moderation-appeal.schema.json",
+      "key": "evidence_visibility",
+      "occurrences": 2,
+      "disposition": "qualifier",
+      "reason": "Classifies the audience of a heterogeneous evidence container."
+    },
+    {
+      "file": "moderation-queue-item.schema.json",
+      "key": "evidence_policy",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Selects handling policy for heterogeneous moderation evidence."
+    },
+    {
+      "file": "moderation-report.schema.json",
+      "key": "evidence_package",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "receipt"],
+      "reason": "The encrypted package may contain content proofs, witness attestations, and handling receipts."
+    },
+    {
+      "file": "moderation-report.schema.json",
+      "key": "evidence_refs",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "receipt"],
+      "reason": "Report references may identify content proofs, witness attestations, or handling receipts."
+    },
+    {
+      "file": "operation-clause-registry.json",
+      "key": "missing_evidence",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Names a conformance diagnostic over the registry's heterogeneous evidence vocabulary."
+    },
+    {
+      "file": "operation-clause-registry.json",
+      "key": "required_evidence",
+      "occurrences": 8,
+      "disposition": "registry_contract",
+      "reason": "Declares conformance evidence kinds rather than a wire material instance."
+    },
+    {
+      "file": "peer-contact-delivery-request.schema.json",
+      "key": "contact_introduction_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation"],
+      "reason": "The union spans possession, consent, shared-membership, handle-claim, and authenticated-service material; its single-category alternatives use basis names."
+    },
+    {
+      "file": "peer-contact-delivery-request.schema.json",
+      "key": "introduction_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation"],
+      "reason": "Carries the registered contact introduction evidence union."
+    },
+    {
+      "file": "peer-contact-delivery-request.schema.json",
+      "key": "signer_key_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation"],
+      "reason": "Combines original device authorization Event proofs with source-service active-key attestations."
+    },
+    {
+      "file": "sdk-conformance-claim.schema.json",
+      "key": "evidence",
+      "occurrences": 3,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation"],
+      "reason": "Conformance clauses may attach executable proof artifacts or externally issued test attestations."
+    },
+    {
+      "file": "sdk-conformance-claim.schema.json",
+      "key": "evidence_ref",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation"],
+      "reason": "References either an executable proof artifact or an externally issued test attestation."
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
+      "key": "agent_signer_evidence_bundle",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "commitment"],
+      "reason": "Bundles signer proofs, authorization attestations, and seal-lineage commitments."
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
+      "key": "method_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "commitment"],
+      "reason": "DID methods may return history commitments, verification proofs, and witness attestations."
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
+      "key": "requested_evidence_kinds",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Selects material families from a heterogeneous evidence response."
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
+      "key": "signer_key_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation"],
+      "reason": "Combines original device authorization Event proofs with source-service active-key attestations."
+    }
+  ]
+}

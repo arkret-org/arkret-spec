@@ -119,7 +119,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Use 'External Collaboration Realm' (the role defined in zh/models/realm-and-space.md §2.7). The sovereign-deployment policy bundle that historically motivated the 'Controlled' prefix is now expressed as 'in sovereign deployment, External Collaboration Realm MUST satisfy …' and lives in zh/sync/sovereign-deployment.md §4 under ak.profile.sovereign_deployment.v1; it is not a Realm subtype. The infrastructure-isolation pattern 'Controlled Collaboration Enclave' is a separate, unchanged concept."
+      "notes": "Use 'External Collaboration Realm' (the role defined in zh/models/realm-and-space.md §2.7). The sovereign-deployment policy bundle that historically motivated the 'Controlled' prefix is now expressed as 'in sovereign deployment, External Collaboration Realm MUST satisfy …' and lives in zh/sync/sovereign-deployment.md §4 under ak.profile.sovereign_deployment.v1; it is not a Realm constraint_subkind. The infrastructure-isolation pattern 'Controlled Collaboration Enclave' is a separate, unchanged concept."
     },
     {
       "id": "受控协作 Realm",

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/service-describe.schema.json",
   "title": "Arkret Service Describe",
-  "description": "Canonical service describe response returned by ak.server.query.describe and per-surface describe operations. It combines stable service metadata (service_id, service_type, protocol_version, profiles, bindings, auth, limits, plaintext visibility and rate-limit policy) with claim-level partitions: implemented_features, claimed_profiles, verified_profiles, experimental_features and compat_surfaces. The `supported_operations` field MUST list endpoint-callable operation_ids. Constraint: when `development_mode=true`, the service MUST NOT advertise any `verified_profiles` entry, and clients MUST verify the referenced verification artifacts before treating verified_profiles as production conformance. See service-surface.md §3.0.",
+  "description": "Canonical service describe response returned by ak.server.query.describe and per-surface describe operations. It combines stable service metadata (service_id, service_kind, protocol_version, profiles, bindings, auth, limits, plaintext visibility and rate-limit policy) with claim-level partitions: implemented_features, claimed_profiles, verified_profiles, experimental_features and compat_surfaces. The `supported_operations` field MUST list endpoint-callable operation_ids. Constraint: when `development_mode=true`, the service MUST NOT advertise any `verified_profiles` entry, and clients MUST verify the referenced verification artifacts before treating verified_profiles as production conformance. See service-surface.md §3.0.",
   "type": "object",
   "patternProperties": {
     "^x_[a-z][a-z0-9_]{0,63}$": true
@@ -11,7 +11,7 @@
   "required": [
     "service_id",
     "trust_domain",
-    "service_type",
+    "service_kind",
     "protocol_version",
     "supported_profiles",
     "supported_operations",
@@ -36,7 +36,7 @@
       "$ref": "#/$defs/trust_domain",
       "description": "Deployment-scope trust domain for this service. Receivers use it as the canonical receive-context replay boundary for cross-deployment proofs and federation transactions."
     },
-    "service_type": {
+    "service_kind": {
       "type": "string",
       "enum": [
         "agent_runtime",
@@ -61,7 +61,7 @@
         "sync_node",
         "turn_service"
       ],
-      "description": "One logical role this service plays on the wire. Each ServiceDescribe document describes exactly one role; co-located roles sharing a public binding use separate role-scoped responses selected by GET /_arkret/describe?service_type=<registered-id>. The value space is registry/service-type-registry.json filtered to active rows whose valid_in contains service_describe."
+      "description": "One logical role this service plays on the wire. Each ServiceDescribe document describes exactly one role; co-located roles sharing a public binding use separate role-scoped responses selected by GET /_arkret/describe?service_kind=<registered-id>. The value space is registry/service-kind-registry.json filtered to active rows whose valid_in contains service_describe."
     },
     "protocol_version": {
       "type": "string",
@@ -535,9 +535,9 @@
       },
       "additionalProperties": false
     },
-    "resource_types": {
+    "resource_kinds": {
       "type": "array",
-      "description": "Directory-service resource classes indexed by ak.find.directory.query.describe. Required when service_type=directory_service.",
+      "description": "Directory-service resource classes indexed by ak.find.directory.query.describe. Required when service_kind=directory_service.",
       "items": {
         "$ref": "#/$defs/directory_resource_kind"
       },
@@ -546,7 +546,7 @@
     },
     "discovery_profiles": {
       "type": "array",
-      "description": "Directory discovery profiles and extension profile ids advertised by ak.find.directory.query.describe. Required when service_type=directory_service.",
+      "description": "Directory discovery profiles and extension profile ids advertised by ak.find.directory.query.describe. Required when service_kind=directory_service.",
       "items": {
         "type": "string",
         "minLength": 1
@@ -564,7 +564,7 @@
         "ciphersuite",
         "public_key",
         "key_epoch",
-        "batch_size",
+        "batch_item_count",
         "derived_prefix_bytes",
         "proof_shape",
         "handoff_stubs_mode",
@@ -598,7 +598,7 @@
           "minimum": 0,
           "description": "Epoch accepted for new blind requests. A batch admitted under an older epoch remains bound to its pinned key and cached outcome until its advertised completion TTL expires."
         },
-        "batch_size": {
+        "batch_item_count": {
           "type": "integer",
           "minimum": 1,
           "maximum": 1024,
@@ -626,7 +626,7 @@
             65536,
             262144
           ],
-          "description": "Allowed exact RFC 8785 JCS UTF-8 HTTP entity-body Content-Length buckets for PSI success and Class B failures. The phase uses the smallest bucket that can hold its maximal response shape for the advertised batch_size."
+          "description": "Allowed exact RFC 8785 JCS UTF-8 HTTP entity-body Content-Length buckets for PSI success and Class B failures. The phase uses the smallest bucket that can hold its maximal response shape for the advertised batch_item_count."
         },
         "blind_response_bucket_bytes": {
           "type": "integer",
@@ -646,7 +646,7 @@
             65536,
             262144
           ],
-          "description": "Precomputed smallest allowed bucket that holds the largest RFC 8785 JCS body among the maximal legal match success outcome and every allowed match-phase Class B error projection for this batch_size and handoff_stubs_mode."
+          "description": "Precomputed smallest allowed bucket that holds the largest RFC 8785 JCS body among the maximal legal match success outcome and every allowed match-phase Class B error projection for this batch_item_count and handoff_stubs_mode."
         },
         "batch_completion_ttl_seconds": {
           "type": "integer",
@@ -974,17 +974,17 @@
     {
       "if": {
         "properties": {
-          "service_type": {
+          "service_kind": {
             "const": "directory_service"
           }
         },
         "required": [
-          "service_type"
+          "service_kind"
         ]
       },
       "then": {
         "required": [
-          "resource_types",
+          "resource_kinds",
           "discovery_profiles",
           "ingest_modes",
           "accept_policy_kind",
@@ -1007,12 +1007,12 @@
     {
       "if": {
         "properties": {
-          "service_type": {
+          "service_kind": {
             "const": "push_gateway"
           }
         },
         "required": [
-          "service_type"
+          "service_kind"
         ]
       },
       "then": {
@@ -1031,12 +1031,12 @@
     {
       "if": {
         "properties": {
-          "service_type": {
+          "service_kind": {
             "const": "principal_server"
           }
         },
         "required": [
-          "service_type"
+          "service_kind"
         ]
       },
       "then": {

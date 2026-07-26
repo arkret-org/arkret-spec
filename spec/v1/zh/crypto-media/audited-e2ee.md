@@ -37,7 +37,7 @@ Arkret 的合规审计目标是：在不削弱默认 E2EE 的前提下，为明�
 
 | Profile | `audit_assurance_class` | 含义 |
 | --- | --- | --- |
-| `ak.profile.attested_audit.e2ee.v1` | `attested_hardware` | Release service / applet output MUST 由 TEE / HSM / 等价硬件约束：未见 accepted `ak.audit.release` 与有效 RYW receipt 时，不得输出 wrapped key material 或明文 evidence。Remote attestation evidence 使用 [`attestation-evidence.schema.json`](../../artifacts/schemas/attestation-evidence.schema.json)。 |
+| `ak.profile.attested_audit.e2ee.v1` | `attested_hardware` | Release service / applet output MUST 由 TEE / HSM / 等价硬件约束：未见 accepted `ak.audit.release` 与有效 RYW receipt 时，不得输出 wrapped key material 或明文 evidence。Remote attestation evidence 使用 [`audit-release-attestation.schema.json`](../../artifacts/schemas/audit-release-attestation.schema.json)。 |
 | `ak.profile.disclosed_audit.e2ee.v1` | `disclosed_policy` | 不要求硬件强制。部署公开声明审计 applet、审批和通知流程，但协议不能阻止恶意持有者私下复制其已经可见的明文。 |
 
 两者不是强弱不同的同一保证，而是不同 family。实现和 UI MUST 明确区分：`attested_hardware` 是受控输出保证；`disclosed_policy` 是流程性披露，不是密码学阻断。
@@ -53,7 +53,7 @@ Arkret 的合规审计目标是：在不削弱默认 E2EE 的前提下，为明�
 | `effective_scope` | yes | `{kind:"realm", realm_id}` 或 `{kind:"circle", realm_id, circle_id}`。Realm-scope binding 只覆盖 Realm-default history；Circle history MUST 有 Circle-scoped binding。 |
 | `applet_id` / `service_id` | yes | 审计 applet 与承载服务身份。 |
 | `status` | yes | `active` / `suspended` / `revoked`。只有 `active` 可授权新 session。 |
-| `purpose_classes` | yes | 允许的审计目的，例如 `legal_compliance`、`regulatory_audit`、`incident_investigation`。 |
+| `purpose_kinds` | yes | 允许的审计目的，例如 `legal_compliance`、`regulatory_audit`、`incident_investigation`。 |
 | `allowed_release_modes` | yes | 允许的 release mode；默认 SHOULD 仅含 `targeted_evidence_release`。 |
 | `audit_assurance_class` | yes | `attested_hardware` 或 `disclosed_policy`。 |
 | `notice_policy` | yes | session notice 的 audience、delay、是否要求成员通知或公告。 |
@@ -82,7 +82,7 @@ Binding 或 policy 的后续变更遵守同一规则：
 
 - 管理员 MAY 收窄 release window、暂停 / revoke binding、删除 release mode 或降低最大回看范围；收窄可以从新的 accepted policy frontier 起生效。
 - 管理员 MAY 扩大未来窗口（例如从 30 天改为 90 天），但扩大只适用于被该变更后的 `ak.mls.commit` 覆盖并在之后加密的消息；已经加密的消息继续使用其加密时的 eligibility snapshot。
-- 任何改变 `effective_scope`、`release_window_policy`、`allowed_release_modes`、`notice_policy`、`purpose_classes` 或 `audit_assurance_class` 的事件 MUST 对受影响 scope 的成员可见，并 MUST 触发新的 MLS epoch 覆盖；在覆盖前不得发送新的 application messages。
+- 任何改变 `effective_scope`、`release_window_policy`、`allowed_release_modes`、`notice_policy`、`purpose_kinds` 或 `audit_assurance_class` 的事件 MUST 对受影响 scope 的成员可见，并 MUST 触发新的 MLS epoch 覆盖；在覆盖前不得发送新的 application messages。
 
 因此，成员在某一天看到 Realm / Circle 没有 active Audit Applet Binding 时，该状态下发送的 E2EE 消息获得永久的协议级承诺：未来新增审计 applet 不得追溯审计这些消息。需要处理 binding 之前材料的政府 / 企业流程必须走协议外的 legal hold / export / enterprise archive 机制，不能用本 profile 的 `ak.audit.release` 表达。
 
@@ -117,7 +117,7 @@ Binding 或 policy 的后续变更遵守同一规则：
 - `realm_id`
 - `effective_scope`
 - `requested_by`
-- `purpose_class` / `legal_basis_ref`
+- `purpose_kind` / `legal_basis_ref`
 - `requested_epoch_range` 或 `target_refs`
 - `requested_release_mode`
 - `occurred_at`
@@ -166,7 +166,7 @@ Authorization 只授予一个有界 release 窗口，不是一次性永久凭证
 | `recipient_public_key_ref` | yes | release material 加密目标 key；MUST 等于 authorize payload 的 `approved_recipient_public_key_ref`，并解析为 `recipient_audit_actor_id` 授权的 audit release 接收 key。 |
 | `approver_actor_id` | yes | 授权者。 |
 | `notice_ref` | yes | 对应 `ak.audit.session.notice`。 |
-| `purpose_class` / `legal_basis_ref` | yes | 目的与依据。 |
+| `purpose_kind` / `legal_basis_ref` | yes | 目的与依据。 |
 | `policy_version_digest` | yes | 与 binding / authorize frontier 一致的 policy hash。 |
 | `eligibility_proof` | yes | 证明 release 范围未早于 binding activation frontier，且每个 target / epoch 在加密时允许该 release mode。 |
 | `sealed_by_commit_ref` | conditional | 若 release 涉及 MLS epoch，MUST 引用把 active epoch 推进后的 `ak.mls.commit`。 |
@@ -198,7 +198,7 @@ Session close 后不得追加新的 `ak.audit.release`；需要更多材料必�
 
 实现和 UI MUST 把该模式标为高风险合规 release，不得把它用于普通用户举报、moderation queue 或 Circle 日常治理。
 
-**与 `mls-exporter-aead-v1` per-epoch `history_secret` 的交叉约束（normative）**：在采用 [`encryption-and-audit.md` §2.10](./encryption-and-audit.md) `mls-exporter-aead-v1` 内容 scheme 的 Realm 上，`sealed_epoch_key_release` 释放的 sealed-epoch material 与该 epoch 的 `history_secret[N]` 是**同一把根**（`sealed_epoch_key_release` 释放的即是对该 epoch 内容解密所需的 epoch root）。两条治理门（§2.10 的历史共享门 与本 profile 的 audit binding release 门）因此 MUST 交叉约束，不得各自独立放行而互相绕过：
+**与 `mls_exporter_aead_v1` per-epoch `history_secret` 的交叉约束（normative）**：在采用 [`encryption-and-audit.md` §2.10](./encryption-and-audit.md) `mls_exporter_aead_v1` 内容 scheme 的 Realm 上，`sealed_epoch_key_release` 释放的 sealed-epoch material 与该 epoch 的 `history_secret[N]` 是**同一把根**（`sealed_epoch_key_release` 释放的即是对该 epoch 内容解密所需的 epoch root）。两条治理门（§2.10 的历史共享门 与本 profile 的 audit binding release 门）因此 MUST 交叉约束，不得各自独立放行而互相绕过：
 
 - `ak.realm_key.share` 经 [`encryption-and-audit.md` §2.10.4](./encryption-and-audit.md) 向接收主体交付 `history_secret` 时，其接收主体资格（key-share-source / recipient eligibility，见 [`device-lifecycle.md` §13](./device-lifecycle.md)）MUST 与 audit binding 的 release 限制**不冲突**——历史共享路径 MUST NOT 被用作绕过 audit binding `allowed_release_modes` / release window / `first_auditable_epoch` 限制、把本应经 audit session 才可释放的 epoch root 私下交付给审计相关主体的旁路。
 - 反向地，audit `sealed_epoch_key_release` 释放 `history_secret`（或其等价 sealed-epoch material）时 MUST 仍满足 [`encryption-and-audit.md` §2.10.5](./encryption-and-audit.md) 的 retention 边界（该 epoch root 已按 retention policy 删除时不存在可释放 material，release MUST 失败而非要求成员重新派生）与本 profile 的 `first_auditable_epoch` 边界（§4：`sealed_epoch_range.first_epoch < first_auditable_epoch` MUST 拒绝 `audit_release_retroactive_scope_forbidden`）。即"该 epoch 的 `history_secret` 仍被保留"不等于"该 epoch 对审计可释放"——两个条件 MUST 同时成立，缺一即拒绝。

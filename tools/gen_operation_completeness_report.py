@@ -2,7 +2,7 @@
 """Generate operation-completeness-report.json.
 
 This report covers every operation in the canonical operation registry
-(``registry/contract-catalog.json`` -> ``operation_registry``) and records, per
+(``registry/contract-registry.json`` -> ``operation_registry``) and records, per
 operation, the machine-readable schema-contract completeness state derived from
 three sources of truth:
 
@@ -50,7 +50,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
-CATALOG = ARTIFACTS / "registry" / "contract-catalog.json"
+CATALOG = ARTIFACTS / "registry" / "contract-registry.json"
 OPENAPI = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
 BINDING = ROOT / "spec" / "v1" / "zh" / "sync" / "service-http-binding.md"
 REPORT = ARTIFACTS / "reports" / "operation-completeness-report.json"
@@ -72,19 +72,19 @@ def dump_json(data: Any) -> str:
     return json.dumps(data, ensure_ascii=False, indent=2) + "\n"
 
 
-def catalog_generation_metadata(catalog: dict[str, Any]) -> tuple[str, str]:
+def registry_generation_metadata(catalog: dict[str, Any]) -> tuple[str, str]:
     version = catalog.get("version")
     generated_at = catalog.get("generated_at")
     if not isinstance(version, str) or not version:
-        raise SystemExit("contract catalog missing version")
+        raise SystemExit("contract registry missing version")
     if not isinstance(generated_at, str) or not generated_at:
-        raise SystemExit("contract catalog missing generated_at")
+        raise SystemExit("contract registry missing generated_at")
     try:
         datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
     except ValueError as exc:
-        raise SystemExit(f"contract catalog generated_at must be RFC3339: {generated_at}") from exc
+        raise SystemExit(f"contract registry generated_at must be RFC3339: {generated_at}") from exc
     if len(version) == 10 and generated_at[:10] != version:
-        raise SystemExit("contract catalog generated_at date must match version")
+        raise SystemExit("contract registry generated_at date must match version")
     return version, generated_at
 
 
@@ -264,18 +264,18 @@ def classify(
 
 def build_report() -> dict[str, Any]:
     catalog = load_json(CATALOG)
-    version, generated_at = catalog_generation_metadata(catalog)
+    version, generated_at = registry_generation_metadata(catalog)
     operation_registry = catalog.get("operation_registry") or {}
     operations = operation_registry.get("operations") or []
 
-    tier_by_op: dict[str, str] = {}
+    surface_class_by_op: dict[str, str] = {}
     for group in operation_registry.get("surface_groups", []) or []:
         if not isinstance(group, dict):
             continue
-        tier = group.get("tier")
+        surface_class = group.get("surface_class")
         for op_id in group.get("operations", []) or []:
-            if isinstance(op_id, str) and isinstance(tier, str):
-                tier_by_op[op_id] = tier
+            if isinstance(op_id, str) and isinstance(surface_class, str):
+                surface_class_by_op[op_id] = surface_class
 
     if yaml is None:
         raise SystemExit("PyYAML is required to read the OpenAPI document")
@@ -302,7 +302,7 @@ def build_report() -> dict[str, Any]:
         rows.append(
             {
                 "operation_id": operation_id,
-                "tier": tier_by_op.get(operation_id),
+                "surface_class": surface_class_by_op.get(operation_id),
                 "http": op.get("http"),
                 "success_shape_kind": op.get("success_shape_kind"),
                 "request_schema_ref": op.get("request_schema_ref"),
@@ -316,20 +316,22 @@ def build_report() -> dict[str, Any]:
     rows.sort(key=lambda r: r["operation_id"])
 
     class_counts: dict[str, int] = {}
-    tier_class_counts: dict[str, dict[str, int]] = {}
+    surface_class_counts: dict[str, dict[str, int]] = {}
     for r in rows:
         cc = r["completeness_class"]
         class_counts[cc] = class_counts.get(cc, 0) + 1
-        tier = r["tier"] or "unknown"
-        tier_class_counts.setdefault(tier, {})
-        tier_class_counts[tier][cc] = tier_class_counts[tier].get(cc, 0) + 1
+        surface_class = r["surface_class"] or "unknown"
+        surface_class_counts.setdefault(surface_class, {})
+        surface_class_counts[surface_class][cc] = (
+            surface_class_counts[surface_class].get(cc, 0) + 1
+        )
 
     return {
         "version": version,
         "source_of_truth": False,
         "generated_at": generated_at,
         "generated_from": [
-            "registry/contract-catalog.json",
+            "registry/contract-registry.json",
             "openapi/arkret-service-api.openapi.yaml",
         ],
         "generated_by": "tools/gen_operation_completeness_report.py",
@@ -351,9 +353,9 @@ def build_report() -> dict[str, Any]:
         "summary": {
             "total_operations": len(rows),
             "by_completeness_class": dict(sorted(class_counts.items())),
-            "by_tier_and_class": {
-                tier: dict(sorted(counts.items()))
-                for tier, counts in sorted(tier_class_counts.items())
+            "by_surface_class_and_completeness_class": {
+                surface_class: dict(sorted(counts.items()))
+                for surface_class, counts in sorted(surface_class_counts.items())
             },
         },
         "operations": rows,

@@ -10,7 +10,7 @@
     "principal_id",
     "requesting_device_id",
     "backup_id",
-    "backup_class",
+    "backup_kind",
     "series_id",
     "ciphertext_digest",
     "proof_kind",
@@ -34,8 +34,8 @@
     "backup_id": {
       "$ref": "#/$defs/backup_id"
     },
-    "backup_class": {
-      "$ref": "#/$defs/backup_class"
+    "backup_kind": {
+      "$ref": "#/$defs/backup_kind"
     },
     "series_id": {
       "$ref": "#/$defs/backup_series_id"
@@ -97,7 +97,7 @@
             { "contains": { "const": "principal_id" } },
             { "contains": { "const": "requesting_device_id" } },
             { "contains": { "const": "backup_id" } },
-            { "contains": { "const": "backup_class" } },
+            { "contains": { "const": "backup_kind" } },
             { "contains": { "const": "series_id" } },
             { "contains": { "const": "ciphertext_digest" } },
             { "contains": { "const": "proof_kind" } },
@@ -145,7 +145,7 @@
       "type": "string",
       "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "backup_class": {
+    "backup_kind": {
       "type": "string",
       "enum": [
         "did_recovery",

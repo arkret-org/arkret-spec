@@ -14,7 +14,7 @@ sidebar:
 
 ## 1. 目标与范围
 
-本文件定义 Arkret 多人会议的 **transport-agnostic 媒体服务 backend 绑定**：媒体服务发现（`ak.realm.media_service` 的 multi-focus 描述符）、token / participant binding 兑换、focus 选举与 session 持久化、SFU 权限与 participant identity 交叉校验，以及媒体 E2EE 帧密钥注入与治理绑定。LiveKit / mediasoup / Janus / arkret-native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
+本文件定义 Arkret 多人会议的 **transport-agnostic 媒体服务 backend 绑定**：媒体服务发现（`ak.realm.media_service` 的 multi-focus 描述符）、token / participant binding 兑换、focus 选举与 session 持久化、SFU 权限与 participant identity 交叉校验，以及媒体 E2EE 帧密钥注入与治理绑定。LiveKit / mediasoup / Janus / arkret_native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
 
 边界：
 
@@ -23,7 +23,7 @@ sidebar:
 
 ## 2. Realtime Media Server
 
-`ak.realm.media_service` 把媒体服务声明为 **multi-focus 列表 + transport-agnostic backend 描述符**。协议层永不规定 SFU 内部协议；LiveKit / mediasoup / Janus / arkret-native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
+`ak.realm.media_service` 把媒体服务声明为 **multi-focus 列表 + transport-agnostic backend 描述符**。协议层永不规定 SFU 内部协议；LiveKit / mediasoup / Janus / arkret_native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
 
 ```json
 {
@@ -68,7 +68,7 @@ sidebar:
 字段语义（normative）：
 
 - `foci[].focus_id`：focus 在该 Realm media service 内的稳定 ID；进入签名 canonical bytes 与 `session_focus` 选举（见 [`call-state.md` §4.1](./call-state.md)）。
-- `foci[].type`：backend binding 标识。v1 注册值：`livekit`、`mediasoup`、`janus`、`arkret-native`、`moq-relay`（实验保留位，v1 周期内不提供 normative binding）。`moq-relay` 在激活前必须由独立 binding 精确钉定 `draft-ietf-moq-transport` revision、Arkret participant/session/track 到 MOQT namespace/track/object 的映射、relay authorization、SFrame / secure-object 绑定、resume 与错误语义；草案 revision 变化按新 binding profile release 处理，不得原地漂移。客户端遇到未知或 unsupported `type` MUST fail closed（错误码 `unknown_focus_type`），不得尝试把 token 交给任意 SDK。
+- `foci[].type`：backend binding 标识。v1 注册值：`livekit`、`mediasoup`、`janus`、`arkret_native`、`moq_relay`（实验保留位，v1 周期内不提供 normative binding）。`moq_relay` 在激活前必须由独立 binding 精确钉定 `draft-ietf-moq-transport` revision、Arkret participant/session/track 到 MOQT namespace/track/object 的映射、relay authorization、SFrame / secure-object 绑定、resume 与错误语义；草案 revision 变化按新 binding profile release 处理，不得原地漂移。客户端遇到未知或 unsupported `type` MUST fail closed（错误码 `unknown_focus_type`），不得尝试把 token 交给任意 SDK。
 - `foci[].token_endpoint`：token 兑换端点；所有 backend 共用同一抽象（见 §3），差异只在 `backend_token` 形态。
 - `foci[].connect_url`：backend 连接入口；具体协议由 type-specific 附录定义。
 - `foci[].capabilities[]`：该 focus 支持的能力子集，用于客户端能力协商。
@@ -155,7 +155,7 @@ Content-Type: application/json
                        focus_id, participant_identity, realm_id })
     ```
 
-    第一段是固定 ASCII 域分隔 label（逐字节等于 `scheme` 值），随后单字节 `0x00` 分隔，再接 7 字段对象的 canonical JSON（RFC 8785 JCS：键按字母序、无多余空白，故字段书写顺序无关）。**签名仅覆盖这 7 个权威字段**；binding 对象另带的 `scheme` / `issuer_kid` / `issued_at` 是**未签名元数据**，MUST NOT 进入 `signing_input`。接收方据 wire 上的 7 个权威字段值重建 `signing_input` 再验签——故篡改任一权威字段都会令验签失败。任何 media service（arkret-native / LiveKit / 第三方）MUST 按此构造，任何客户端 / reducer MUST 按此验签；实现 MUST NOT 引入私有 domain 前缀，也 MUST NOT 把元数据字段并入签名输入，否则破坏跨 service 互通。
+    第一段是固定 ASCII 域分隔 label（逐字节等于 `scheme` 值），随后单字节 `0x00` 分隔，再接 7 字段对象的 canonical JSON（RFC 8785 JCS：键按字母序、无多余空白，故字段书写顺序无关）。**签名仅覆盖这 7 个权威字段**；binding 对象另带的 `scheme` / `issuer_kid` / `issued_at` 是**未签名元数据**，MUST NOT 进入 `signing_input`。接收方据 wire 上的 7 个权威字段值重建 `signing_input` 再验签——故篡改任一权威字段都会令验签失败。任何 media service（arkret_native / LiveKit / 第三方）MUST 按此构造，任何客户端 / reducer MUST 按此验签；实现 MUST NOT 引入私有 domain 前缀，也 MUST NOT 把元数据字段并入签名输入，否则破坏跨 service 互通。
   - **`service_signature`**：`service_signature.sig` 是 issuer 对**同一 `signing_input`**（label 与 7 元组与上完全一致）的 EdDSA 签名，承诺该次 token exchange 响应整体的 issuer 身份；`service_signature.kid` 与 `participant_binding.issuer_kid` 都 MUST 锚定当前 epoch `service_id`（见上「Token issuer DID 锚定」）。客户端在默认验证路径中 **MUST** 同时验 `service_signature.sig` 与 `participant_binding.sig` 通过后才使用该 token——二者任一验签失败即 `token_issuer_unauthorised` 拒绝，MUST NOT 把签名校验降级为可选的 SHOULD。
 
 Token issuer MUST 在签发前校验：
@@ -170,7 +170,7 @@ Token issuer MUST 在签发前校验：
 
 ### 3.1 签名 domain label 分离（normative）
 
-媒体路径上的每一类 **Ed25519 签名** MUST 以一个**独立的 ASCII domain 分隔 label** 前缀其 `signing_input`，再接单字节 `0x00` 分隔与该签名覆盖的 canonical bytes。该 label 是签名的安全域分离参数：它把"同一 issuer key 在不同用途上产生的签名"彼此隔离，使任一签名 MUST NOT 被验证方在另一用途下重新解释（cross-protocol / cross-purpose signature confusion）。任何 media service（arkret-native / LiveKit / 第三方）MUST 按本表构造签名，任何客户端 / reducer MUST 按对应 label 重建 `signing_input` 再验签；验证方 MUST 在重建时使用其**期望用途**对应的 label，签名方使用了不匹配 label 即视为验签失败。
+媒体路径上的每一类 **Ed25519 签名** MUST 以一个**独立的 ASCII domain 分隔 label** 前缀其 `signing_input`，再接单字节 `0x00` 分隔与该签名覆盖的 canonical bytes。该 label 是签名的安全域分离参数：它把"同一 issuer key 在不同用途上产生的签名"彼此隔离，使任一签名 MUST NOT 被验证方在另一用途下重新解释（cross-protocol / cross-purpose signature confusion）。任何 media service（arkret_native / LiveKit / 第三方）MUST 按本表构造签名，任何客户端 / reducer MUST 按对应 label 重建 `signing_input` 再验签；验证方 MUST 在重建时使用其**期望用途**对应的 label，签名方使用了不匹配 label 即视为验签失败。
 
 v1 Ed25519 媒体签名点与其 label 常量（逐字节 ASCII）：
 
@@ -194,8 +194,8 @@ v1 Ed25519 媒体签名点与其 label 常量（逐字节 ASCII）：
 SFU 在 v1 通过 [§2](#2-realtime-media-server) 的 `foci[]` 声明，每个 focus 通过 `type` 选择具体 backend binding：
 
 - `type="livekit"`：见 [`bindings/livekit.md`](./bindings/livekit.md)。
-- `type="arkret-native"`：见 [`bindings/arkret-native.md`](./bindings/arkret-native.md)（reference / conformance binding，不作为生产媒体后端）。
-- `type="mediasoup"` / `type="janus"` / `type="moq-relay"`：保留位，v1 周期内不提供 normative binding；客户端遇到 unsupported `type` MUST fail closed，错误码 `unknown_focus_type`。
+- `type="arkret_native"`：见 [`bindings/arkret-native.md`](./bindings/arkret-native.md)（reference / conformance binding，不作为生产媒体后端）。
+- `type="mediasoup"` / `type="janus"` / `type="moq_relay"`：保留位，v1 周期内不提供 normative binding；客户端遇到 unsupported `type` MUST fail closed，错误码 `unknown_focus_type`。
 
 不论 backend 类型，client→backend 媒体协商前 MUST 先完成 [§3 Token Exchange](#3-token-exchange-normative)；具体 `backend_token` 形态、connect handshake、SDP 协商由 type-specific 附录定义。下面的 §5 / §6 / §7 是跨 backend 通用约束。
 
@@ -211,7 +211,7 @@ SFU 在 v1 通过 [§2](#2-realtime-media-server) 的 `foci[]` 声明，每个 f
 
 ### 5.1 P2P→SFU 升级复用本节选举（normative）
 
-P2P 起步的通话在并发参与者 > 2 时 MUST 收敛到 SFU（normative 触发、信令与 `mode` 写入规则见 [`call-state.md` §6](./call-state.md)）。升级 MUST 直接复用本节的 deterministic, no-vote `session_focus` 选举：由 oldest_membership 的 `foci_preferred[0]` 选出 `session_focus`，各设备经 `ak.call.signal{signal_type=focus_join}`（见 [`webrtc-signaling.md` §5](./webrtc-signaling.md)）迁移媒体，原 P2P leg 在迁移完成后优雅拆除。升级不引入任何新的投票 / leader 选举路径，也不为升级新增 focus migration 例外——一旦 `session_focus` committed 即遵守第 1–5 条的 write-once 与 no-split-brain 规则。
+P2P 起步的通话在并发参与者 > 2 时 MUST 收敛到 SFU（normative 触发、信令与 `mode` 写入规则见 [`call-state.md` §6](./call-state.md)）。升级 MUST 直接复用本节的 deterministic, no-vote `session_focus` 选举：由 oldest_membership 的 `foci_preferred[0]` 选出 `session_focus`，各设备经 `ak.call.signal{signal_kind=focus_join}`（见 [`webrtc-signaling.md` §5](./webrtc-signaling.md)）迁移媒体，原 P2P leg 在迁移完成后优雅拆除。升级不引入任何新的投票 / leader 选举路径，也不为升级新增 focus migration 例外——一旦 `session_focus` committed 即遵守第 1–5 条的 write-once 与 no-split-brain 规则。
 
 ## 6. SFU 权限
 

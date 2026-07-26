@@ -38,9 +38,9 @@ base v1 invite **MUST NOT** 依赖 `ak.find.directory.query.resolve_handle(inten
 | --- | --- | --- | --- |
 | `subject_id` | DID | MUST | 被邀请的 principal / holder DID。v1 core 默认使用 `did:webvh`；`did:web` 仅在 `personal_node` deployment profile 或其它显式 method policy 允许时可作为 principal DID。 |
 | `recipient_service_id` | DID | MUST | 接收 invite delivery 的 Principal Server service DID。 |
-| `recipient_service_type` | const | MAY | 若出现，MUST 等于 `principal_server`；默认省略。 |
+| `recipient_service_kind` | const | MAY | 若出现，MUST 等于 `principal_server`；默认省略。 |
 
-`recipient_service_id` 在 v1 中只表示 Principal Server。它 **MUST NOT** 指向 notary、shared Sync Service、push gateway、Directory 或任意第三方服务。将来如果需要组织、群组或其它接收服务形态，必须定义独立 locator / delivery schema，不得把 `recipient_service_type` 扩成宽枚举后复用本 schema。
+`recipient_service_id` 在 v1 中只表示 Principal Server。它 **MUST NOT** 指向 notary、shared Sync Service、push gateway、Directory 或任意第三方服务。将来如果需要组织、群组或其它接收服务形态，必须定义独立 locator / delivery schema，不得把 `recipient_service_kind` 扩成宽枚举后复用本 schema。
 
 ## 2. Introduction Evidence
 
@@ -149,7 +149,7 @@ token 要求：
 验证规则：
 
 1. `subject_id` 是被邀请主体；`recipient_service_id` 是接收 invite delivery 的 Principal Server service DID。
-2. `recipient_service_type` 若出现 MUST 等于 `principal_server`。
+2. `recipient_service_kind` 若出现 MUST 等于 `principal_server`。
 3. `locator_ref_digest` 绑定私有 locator ref material；raw token 不得写入 Realm durable event。
 4. `proof.payload_digest` MUST 覆盖 `canonical_json(principal_locator_without_proofs)`。
 5. `proofs[]` MUST 至少包含 `recipient_service_acceptance`；高安全 / audited / enterprise 部署 SHOULD 同时要求 `subject_locator_authorization`。
@@ -165,7 +165,7 @@ token 要求：
 {
   "schema": "ak.schema.invite_receive_policy.v1",
   "subject_id": "did:webvh:z2dmjBobExample:users.bob.example:bob",
-  "allowed_introduction_kinds": [
+  "holder_allowed_introduction_kinds": [
     "locator_ref",
     "consent_grant",
     "shared_realm",
@@ -182,8 +182,8 @@ token 要求：
   "trusted_directory_services": [],
   "trusted_realm_ids": [],
   "trusted_principal_services": [],
-  "blocked_principal_services": [],
-  "blocked_subjects": [],
+  "denied_principal_services": [],
+  "denied_subjects": [],
   "disclosure": {
     "high_trust": "outcome",
     "discovery_trust": "opaque",
@@ -194,13 +194,13 @@ token 要求：
 
 规则：
 
-- **缺省 policy（subject 未发布 `invite_receive_policy` 时）MUST fail closed（normative）**：接收方 MUST 采用保守默认——`allowed_introduction_kinds` 仅含**高信任档** `{locator_ref, consent_grant, shared_realm}`;**发现信任档** `{handle_claim}` 与**低信任档** `{same_principal_server, explicit_address}` 默认 `quarantine`（SHOULD）或 `drop`，MUST NOT 仅凭 evidence 格式正确就触发用户通知。上方示例把 `handle_claim` 与 `same_principal_server` 列入 allowlist，是 subject / 部署的显式可达性配置，**不是协议默认**;`same_principal_server` 与 `explicit_address` 同属低信任档（§2），默认处置对称——不得让"同一 Principal Server 上的任意账户"仅凭同域承载即向同域任意 subject 发起会触发通知的邀请（同域无授权骚扰开口）。
-- `allowed_introduction_kinds` 是 allowlist；未列出的 evidence MUST NOT 触发用户通知。`consent_grant` 是受推荐的高信任 kind:把它加入 allowlist 即允许"已互授 invite consent 的联系人"直接邀请，而无需 locator URL。
+- **缺省 policy（subject 未发布 `invite_receive_policy` 时）MUST fail closed（normative）**：接收方 MUST 采用保守默认——`holder_allowed_introduction_kinds` 仅含**高信任档** `{locator_ref, consent_grant, shared_realm}`;**发现信任档** `{handle_claim}` 与**低信任档** `{same_principal_server, explicit_address}` 默认 `quarantine`（SHOULD）或 `drop`，MUST NOT 仅凭 evidence 格式正确就触发用户通知。上方示例把 `handle_claim` 与 `same_principal_server` 列入 allowlist，是 subject / 部署的显式可达性配置，**不是协议默认**;`same_principal_server` 与 `explicit_address` 同属低信任档（§2），默认处置对称——不得让"同一 Principal Server 上的任意账户"仅凭同域承载即向同域任意 subject 发起会触发通知的邀请（同域无授权骚扰开口）。
+- `holder_allowed_introduction_kinds` 是 allowlist；未列出的 evidence MUST NOT 触发用户通知。`consent_grant` 是受推荐的高信任 kind:把它加入 allowlist 即允许"已互授 invite consent 的联系人"直接邀请，而无需 locator URL。
 - `handle_claim_behavior` 取值为 `drop | quarantine | notify`；省略时 MUST 视为 `quarantine`。把 `handle_claim` 配为 `notify` 表示 holder 显式希望别人可通过已发布 handle 发起邀请通知；该选择仍受 §5.2 部署约束限制。实现 MUST NOT 把任何 connection identifier、未 verified handle、过期/revoked handle claim 或未授权 restricted handle 当成 `handle_claim` evidence。
 - `explicit_address_behavior` 取值为 `drop | quarantine | notify`；默认 SHOULD 是 `quarantine` 或 `drop`。把低信任档 evidence（`same_principal_server` / `explicit_address`）配为 `notify` 是部署对该档的显式放宽，MUST 经部署有意配置，不得作为缺省。
-- `blocked_handle_domains` 先于 allowlist 生效，命中时 MUST 按策略拒绝处理。`allowed_handle_domains` 若非空，`handle_claim.handle` 的 domain MUST 是列表中的 canonical IDNA A-label 精确域名；子域名不自动继承，必须显式列出。`trusted_handle_issuers` / `trusted_directory_services` 若非空，issuer 或 `resolved_by` MUST 命中对应 allowlist。
+- `denied_handle_domains` 先于 allowlist 生效，命中时 MUST 按策略拒绝处理。`allowed_handle_domains` 若非空，`handle_claim.handle` 的 domain MUST 是列表中的 canonical IDNA A-label 精确域名；子域名不自动继承，必须显式列出。`trusted_handle_issuers` / `trusted_directory_services` 若非空，issuer 或 `resolved_by` MUST 命中对应 allowlist。
 - `unknown_invites` 取值为 `drop | quarantine`；无 evidence 或不合规 evidence 不得默认 notify。
-- `blocked_subjects` 是按 peer subject DID 的黑名单(对等 `blocked_principal_services` 的服务粒度)。inviter 命中时，delivery MUST `drop`，且 §5.1 披露 MUST 强制为 `opaque`，以免黑名单经回包侧信道泄露。
+- `denied_subjects` 是按 peer subject DID 的黑名单(对等 `denied_principal_services` 的服务粒度)。inviter 命中时，delivery MUST `drop`，且 §5.1 披露 MUST 强制为 `opaque`，以免黑名单经回包侧信道泄露。
 - policy 是 subject/private state，不得写入目标 Realm event log。
 
 ### 5.1 分级披露(graded disclosure，normative)
@@ -214,13 +214,13 @@ token 要求：
 `disclosure_level` 语义:
 
 - `opaque`:`invite_delivery_outcome` 只返回 generic `status`(`accepted | duplicate | deferred`),MUST NOT 携带 `disclosed_outcome`，且对 exists / not-exists / quarantine / drop 各情形不可区分。这是反枚举 / 反侧信道的默认。
-- `outcome`:`invite_delivery_outcome` MAY 携带 `disclosed_outcome`,把真实处理结果告知邀请者。**`disclosed_outcome` 的封闭枚举只有 `delivered | blocked` 两值。**
+- `outcome`:`invite_delivery_outcome` MAY 携带 `disclosed_outcome`，把真实处理结果告知邀请者。**`disclosed_outcome` 的封闭枚举只有 `delivered | blocked` 两值。**
 
-**quarantine MUST NOT 被回送（normative）**：`disclosed_outcome` 的上界由 [`../identity/consent-model.md` §6.1.1](../identity/consent-model.md) 的不可区分 `MUST NOT` 决定。`delivered` 与 `blocked` 回答的是"这次投递是否被**接收方策略**放行"，属于本节设计意图内的反馈；而"invite 进入 holder quarantine inbox"回答的是 **holder 的 consent 决策尚未作出**——那是 consent-model §2.1 / §6.1.2 明确的 holder-private 状态，等价于回答"holder 未对该 requester 授予 active invite grant"。高信任档只说明 inviter 已知 holder 存在，泄露的不是 existence 而是 consent 状态，因此**不构成**可以回送的理由。
+**quarantine MUST NOT 被回送（normative）**：`disclosed_outcome` 的上界由 [`../identity/consent-model.md` §6.1.1](../identity/consent-model.md) 的不可区分 `MUST NOT` 决定。`delivered` 与 `blocked` 回答的是“这次投递是否被**接收方策略**放行”，属于本节设计意图内的反馈；而“invite 进入 holder quarantine inbox”回答的是 **holder 的 consent 决策尚未作出**——那是 consent-model §2.1 / §6.1.2 明确的 holder-private 状态，等价于回答“holder 未对该 requester 授予 active invite grant”。高信任档只说明 inviter 已知 holder 存在，泄露的不是 existence 而是 consent 状态，因此**不构成**可以回送的理由。
 
-**quarantine 的 wire 落点固定为 `status="deferred"` 且不携带 `disclosed_outcome`**：`deferred` 与"正在重试投递"、"holder 侧尚未处理"共用同一语义，因而不构成对 quarantine 的可区分指示。该映射在所有信任档、所有 `disclosure` 取值下一致，不因 `high_trust=outcome` 而改变。
+**quarantine 的 wire 落点固定为 `status="deferred"` 且不携带 `disclosed_outcome`**：`deferred` 与“正在重试投递”、“holder 侧尚未处理”共用同一语义，因而不构成对 quarantine 的可区分指示。该映射在所有信任档、所有 `disclosure` 取值下一致，不因 `high_trust=outcome` 而改变。
 
-设计意图:对**已建立信任的来源**(已互授 invite consent 的联系人、对方主动给的 locator、已同在 Realm)，邀请被接收方策略拒绝时能给邀请者明确反馈，避免"联系人加不进却不知为何"的 UX 黑洞；对**可发现但未建立关系的来源**(handle_claim)与**陌生人**(explicit_address)默认保持不可区分。`blocked_subjects` 命中者无论 disclosure 设置一律 `opaque`。`disclosure` 整体省略时按默认 `high_trust=outcome / discovery_trust=opaque / low_trust=opaque`。
+设计意图:对**已建立信任的来源**(已互授 invite consent 的联系人、对方主动给的 locator、已同在 Realm)，邀请被接收方策略拒绝时能给邀请者明确反馈，避免"联系人加不进却不知为何"的 UX 黑洞；对**可发现但未建立关系的来源**(handle_claim)与**陌生人**(explicit_address)默认保持不可区分。`denied_subjects` 命中者无论 disclosure 设置一律 `opaque`。`disclosure` 整体省略时按默认 `high_trust=outcome / discovery_trust=opaque / low_trust=opaque`。
 
 ### 5.2 部署接收约束（normative）
 
@@ -236,11 +236,11 @@ effective_receive_policy =
 约束规则：
 
 - 部署约束只能让 subject 更不容易被联系，MUST NOT 把 subject 从更隐私的设置强制放宽为可通知。若 subject 选择 `drop`，管理员不能通过约束把结果提升为 `quarantine` 或 `notify`。
-- `permitted_introduction_kinds` 与 `forbidden_introduction_kinds` 先于 subject allowlist 生效；任一约束拒绝的 evidence kind MUST 按 `drop` 或 indistinguishable policy denial 处理。
+- `deployment_allowed_introduction_kinds` 与 `deployment_denied_introduction_kinds` 先于 subject allowlist 生效；任一约束拒绝的 evidence kind MUST 按 `drop` 或 indistinguishable policy denial 处理。
 - 行为强度排序为 `drop < quarantine < notify`。`handle_claim_max_behavior`、`explicit_address_max_behavior` 与 `unknown_invites_max_behavior` 是上限；effective behavior 取 subject 行为与上限中更严格者。
-- `disclosure_max` 是部署 / 管理员对 §5.1 分级披露粒度的上限，按 §2 引入信任分档给出 `{high_trust_max, discovery_trust_max, low_trust_max}`，取值同 `disclosure_level` 枚举（`opaque < outcome`，opaque 更保守）。字段或某档省略表示该档不设部署级披露上限。**effective disclosure 取 subject `invite_receive_policy.disclosure` 与 `disclosure_max` 中更保守（更接近 `opaque`）者**，使部署可以把 subject 自愿设为 `outcome` 的披露强制收紧为 `opaque`（反枚举 / 反侧信道），但 MUST NOT 把 subject 设为 `opaque` 的披露放宽为 `outcome`。该交集与上面的行为交集独立计算：先按行为上限定 drop / quarantine / notify，再按 `disclosure_max` 定 outcome 是否可回送。`blocked_subjects` / `blocked_principal_services` 命中时仍无条件强制 `opaque`，不受 `disclosure_max` 影响。
+- `disclosure_max` 是部署 / 管理员对 §5.1 分级披露粒度的上限，按 §2 引入信任分档给出 `{high_trust_max, discovery_trust_max, low_trust_max}`，取值同 `disclosure_level` 枚举（`opaque < outcome`，opaque 更保守）。字段或某档省略表示该档不设部署级披露上限。**effective disclosure 取 subject `invite_receive_policy.disclosure` 与 `disclosure_max` 中更保守（更接近 `opaque`）者**，使部署可以把 subject 自愿设为 `outcome` 的披露强制收紧为 `opaque`（反枚举 / 反侧信道），但 MUST NOT 把 subject 设为 `opaque` 的披露放宽为 `outcome`。该交集与上面的行为交集独立计算：先按行为上限定 drop / quarantine / notify，再按 `disclosure_max` 定 outcome 是否可回送。`denied_subjects` / `denied_principal_services` 命中时仍无条件强制 `opaque`，不受 `disclosure_max` 影响。
 - `allowed_handle_domains`、`trusted_handle_issuers`、`trusted_directory_services`、`trusted_principal_services`、`accepted_subject_did_methods` 是部署级 allowlist；字段省略表示该维度不设部署级上限，字段存在且为空数组表示不接受该维度的任何候选。非空时必须命中。未命中 MUST 视为策略拒绝，不得通过响应区分“存在但被策略拒绝”和“不存在”。
-- `blocked_principal_services` 命中时 MUST `drop` 且强制 `opaque`。
+- `denied_principal_services` 命中时 MUST `drop` 且强制 `opaque`。
 
 示例：
 
@@ -248,7 +248,7 @@ effective_receive_policy =
 {
   "policy_version": "2026-06-21",
   "applies_to": ["invite_delivery", "contact_request"],
-  "permitted_introduction_kinds": [
+  "deployment_allowed_introduction_kinds": [
     "locator_ref",
     "consent_grant",
     "shared_realm",
@@ -283,7 +283,7 @@ Rules:
 
 - `payload.invitee` MUST equal `invite_address.subject_id`.
 - `payload.invite_delivery_target.recipient_service_id` MUST equal `invite_address.recipient_service_id`.
-- `payload.invite_delivery_target.recipient_service_type` MAY appear; if present, it MUST be `principal_server`.
+- `payload.invite_delivery_target.recipient_service_kind` MAY appear; if present, it MUST be `principal_server`.
 - `introduction_evidence_digest = digest(canonical_json(private_delivery_introduction_evidence))`，用于审计关联，不得泄露 raw locator token。
 - 普通定向邀请的取消 / 拒绝 MUST 使用 `ak.invite.cancel`，payload 使用 `invite_payload` 的引用形态：`invite_id`、与目标 invite 逐字节相等的 `invitee`，以及可选 `reason`。被邀请者本人提交时表示拒绝并写入 `rejected`；邀请者或 Realm 管理 actor 提交时表示撤销尚未接受的 pending invite 并写入 `revoked`。同一 Move MUST 同时携带 `member.state:<invitee>` 的 `invite -> leave` effect，见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)。
 - `ak.invite.revoke` MUST 用于第三方/token invite 的撤销或等价高风险撤销路径，payload 使用同一引用形态；指向定向 DID invite 时 `invitee` 必填并原子写入 `invite -> leave`，指向尚无 DID 主体的 3PID placeholder 时不得携带 `invitee`、也不得写 member cell。reducer MUST 将 live invite 写入对应终态，并清除可认领 token material。直接 DID 邀请不需要通过 `ak.invite.revoke` 才能从成员管理 UI 撤销。
@@ -305,8 +305,8 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Principal Se
 4. 验证 `invite_event.payload.invitee == invite_address.subject_id`。
 5. 验证 `invite_event.payload.invite_delivery_target.recipient_service_id == invite_address.recipient_service_id`。
 6. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。对 `consent_grant` evidence,MUST 按 §2 校验 `consent_grant_ref` 是被邀请方给 inviter 的 active `invite` / `any` grant dot；校验失败 MUST 降级为低信任 `explicit_address` 处理。对 `handle_claim` evidence,MUST 按 §2 校验 handle claim、issuer / Directory trust、domain allowlist、expiry、audience、handle claim 自带的 `member_delivery_binding`（若存在）和可选 `member_delivery_binding_candidate`；校验失败 MUST 降级为低信任 `explicit_address` 处理。
-7. 计算 effective receive policy:先取 subject 私有 `invite_receive_policy`，再与 §5.2 `receive_policy_constraints` 及适用组织 / Realm 约束求交集。随后查 `blocked_subjects`(命中 inviter 即 `drop` 且强制 opaque)与 `blocked_principal_services`；再按 effective `allowed_introduction_kinds`、`handle_claim_behavior`、`explicit_address_behavior`、`unknown_invites` 决定 drop / quarantine / notify。
-8. 返回 receive outcome:按 §5.1 分级披露。发现信任档、低信任档或 `blocked_subjects` 命中时默认返回 generic `status`(opaque),MUST NOT 通过响应泄露 subject 是否存在或策略如何处理；高信任档且 `disclosure.high_trust=outcome` 时 MAY 在 `disclosed_outcome` 回送真实结果(`delivered | blocked` 两值)。仅当 subject 与部署约束都允许 `disclosure.discovery_trust=outcome` 时，`handle_claim` MAY 回送真实结果。**invite 进入 holder quarantine inbox 时，无论信任档与 `disclosure` 取值，一律返回 `status="deferred"` 且 MUST NOT 携带 `disclosed_outcome`**，并与"限速静默丢弃 / 超时丢弃 / holder 不存在 / holder policy deny"落在同一响应与 timing 等价类（[`../identity/consent-model.md` §6.1.1](../identity/consent-model.md)）。
+7. 计算 effective receive policy:先取 subject 私有 `invite_receive_policy`，再与 §5.2 `receive_policy_constraints` 及适用组织 / Realm 约束求交集。随后查 `denied_subjects`(命中 inviter 即 `drop` 且强制 opaque)与 `denied_principal_services`；再按 effective `holder_allowed_introduction_kinds`、`handle_claim_behavior`、`explicit_address_behavior`、`unknown_invites` 决定 drop / quarantine / notify。
+8. 返回 receive outcome:按 §5.1 分级披露。发现信任档、低信任档或 `denied_subjects` 命中时默认返回 generic `status`(opaque),MUST NOT 通过响应泄露 subject 是否存在或策略如何处理；高信任档且 `disclosure.high_trust=outcome` 时 MAY 在 `disclosed_outcome` 回送真实结果(`delivered | blocked` 两值)。仅当 subject 与部署约束都允许 `disclosure.discovery_trust=outcome` 时，`handle_claim` MAY 回送真实结果。**invite 进入 holder quarantine inbox 时，无论信任档与 `disclosure` 取值，一律返回 `status="deferred"` 且 MUST NOT 携带 `disclosed_outcome`**，并与“限速静默丢弃 / 超时丢弃 / holder 不存在 / holder policy deny”落在同一响应与 timing 等价类（[`../identity/consent-model.md` §6.1.1](../identity/consent-model.md)）。
 
 ## 8. Describe Capabilities
 
@@ -338,7 +338,7 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Principal Se
   "receive_policy_constraints": {
     "policy_version": "2026-06-21",
     "applies_to": ["invite_delivery", "contact_request"],
-    "permitted_introduction_kinds": [
+    "deployment_allowed_introduction_kinds": [
       "locator_ref",
       "consent_grant",
       "shared_realm",

@@ -40,7 +40,7 @@
       "description": "Per-Realm binding of a member to a concrete delivery target service. Authoritative source for Realm-scoped event / sync / to-device / push / key-package delivery; sender MUST NOT consult the actor's DID Document service entry as an alternative resolution path when this binding is present. Pairwise / unlinkability use-cases are orthogonal — see identity-did.md and pairwise DID guidance.",
       "required": [
         "recipient_service_id",
-        "recipient_service_type",
+        "recipient_service_kind",
         "binding_scope",
         "binding_source",
         "delivery_modes",
@@ -51,7 +51,7 @@
           "$ref": "#/$defs/did",
           "description": "service DID of the recipient Principal Server for this member in this Realm."
         },
-        "recipient_service_type": {
+        "recipient_service_kind": {
           "const": "principal_server",
           "description": "v1 only allows principal_server. Notary / shared Sync Service are addressed by Realm-level sync_endpoints, not by member-level delivery_binding."
         },
@@ -220,7 +220,7 @@
           "type": "string",
           "description": "Optional echo of the Realm this policy governs; authoritative scope is the enclosing envelope realm_id."
         },
-        "allow_binding_sources": {
+        "allowed_binding_sources": {
           "type": "array",
           "uniqueItems": true,
           "items": {
@@ -236,7 +236,7 @@
           },
           "description": "Subset of binding_source values allowed to appear in an accepted binding. Default (when this policy event is absent) is [\"did_document_default\"] for personal / public Realms; organization Realms MUST narrow it explicitly."
         },
-        "allow_did_document_default": {
+        "did_document_default_allowed": {
           "type": "boolean",
           "description": "Whether binding_source=did_document_default is permitted. Defaults to false. Organization / compliance Realms MUST keep it false."
         },
@@ -270,7 +270,7 @@
           },
           "description": "When this array is non-empty, the recipient_service_id's service_acceptance_ref MUST be endorsed by one of these governance DIDs, regardless of allowed_recipient_services or the [\"*\"] sentinel. Empty array = no mandatory endorsement requirement."
         },
-        "allow_unroutable_membership": {
+        "unroutable_membership_allowed": {
           "type": "boolean",
           "description": "Whether delivery_status=\"unroutable\" members are permitted. Defaults to false."
         },
@@ -1956,7 +1956,7 @@
     },
     "morph_update_payload": {
       "type": "object",
-      "description": "Payload class for ak.morph.update. Patches ordinary Morph fields on the Morph identified by target_ref. morph_type is create-locked by ak.morph.create and MUST NOT appear in patch; stage and stage_changed_at are single-sourced by ak.morph.stage.set.",
+      "description": "Payload class for ak.morph.update. Patches ordinary Morph fields on the Morph identified by target_ref. morph_kind is create-locked by ak.morph.create and MUST NOT appear in patch; stage and stage_changed_at are single-sourced by ak.morph.stage.set.",
       "required": [
         "target_ref",
         "patch"
@@ -1974,7 +1974,7 @@
               "propertyNames": {
                 "not": {
                   "enum": [
-                    "morph_type",
+                    "morph_kind",
                     "stage",
                     "stage_changed_at"
                   ]
@@ -2290,7 +2290,7 @@
               "type": "string",
               "enum": [
                 "deny",
-                "allow_if_visibility_allows",
+                "visibility_condition_allowed",
                 "rule_only"
               ],
               "default": "deny"
@@ -2299,7 +2299,7 @@
               "type": "string",
               "enum": [
                 "deny",
-                "allow_t0_visible_with_current_policy"
+                "t0_visibility_with_current_policy_allowed"
               ],
               "default": "deny"
             },
@@ -3022,7 +3022,7 @@
             "type": "object",
             "required": [
               "service_id",
-              "service_type",
+              "service_kind",
               "data_classes",
               "purposes",
               "visibility"
@@ -3031,7 +3031,7 @@
               "service_id": {
                 "$ref": "#/$defs/did"
               },
-              "service_type": {
+              "service_kind": {
                 "type": "string",
                 "minLength": 1
               },
@@ -3488,7 +3488,7 @@
               "type": "string",
               "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
             },
-            "requires_human_review": {
+            "human_review_required": {
               "type": "boolean"
             },
             "challenge_kinds_displayed": {
@@ -3661,7 +3661,7 @@
             "$ref": "#/$defs/object_ref"
           }
         },
-        "mention_sidecar_hash": {
+        "mention_sidecar_digest": {
           "type": "array",
           "items": {
             "type": "string",
@@ -3914,7 +3914,7 @@
           "type": "integer",
           "minimum": 0
         },
-        "allow_plaintext_realms": {
+        "plaintext_realms_allowed": {
           "type": "boolean"
         }
       },
@@ -4855,7 +4855,7 @@
               "$ref": "#/$defs/hash",
               "description": "Optional digest of verifiable attestation material when kind is not self_asserted."
             },
-            "evidence_ref": {
+            "attestation_ref": {
               "$ref": "#/$defs/object_ref",
               "description": "Optional external verifiable attestation reference (TEE quote, SLSA provenance, etc.)."
             }
@@ -5076,9 +5076,6 @@
           "$ref": "#/$defs/object_ref"
         },
         "operation_id": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "account_data_type": {
           "$ref": "#/$defs/non_empty_string"
         },
         "account_data_key": {
@@ -6789,7 +6786,7 @@
     "realm_key_share_payload": {
       "type": "object",
       "required": [
-        "share_class",
+        "share_kind",
         "recipient_principal_id",
         "sender_device_id",
         "source_authorization_ref",
@@ -6800,7 +6797,7 @@
       "oneOf": [
         {
           "properties": {
-            "share_class": {
+            "share_kind": {
               "const": "member_device"
             }
           },
@@ -6824,7 +6821,7 @@
         },
         {
           "properties": {
-            "share_class": {
+            "share_kind": {
               "const": "realm_recovery_key"
             }
           },
@@ -6866,7 +6863,7 @@
         }
       ],
       "properties": {
-        "share_class": {
+        "share_kind": {
           "type": "string",
           "enum": [
             "member_device",
@@ -6880,28 +6877,28 @@
         },
         "recipient_device_id": {
           "$ref": "#/$defs/device_id",
-          "description": "Required only for share_class=member_device. The concrete authorized recipient device whose HPKE public key receives the sealed history_secret material."
+          "description": "Required only for share_kind=member_device. The concrete authorized recipient device whose HPKE public key receives the sealed history_secret material."
         },
         "recipient_verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s]+#[A-Za-z0-9._:-]+$",
-          "description": "Required only for share_class=realm_recovery_key. DID URL of the RRK HPKE public key, equal to durability_policy.recovery_recipients[].verification_method and designated by an active ArkretRealmHistoryRecoveryKey service entry in recipient_principal_id's DID Document."
+          "description": "Required only for share_kind=realm_recovery_key. DID URL of the RRK HPKE public key, equal to durability_policy.recovery_recipients[].verification_method and designated by an active ArkretRealmHistoryRecoveryKey service entry in recipient_principal_id's DID Document."
         },
         "recovery_recipient_id": {
           "type": "string",
           "minLength": 1,
-          "description": "Required only for share_class=realm_recovery_key. Stable durability_policy.recovery_recipients[].recipient_id covered by this RRK seal."
+          "description": "Required only for share_kind=realm_recovery_key. Stable durability_policy.recovery_recipients[].recipient_id covered by this RRK seal."
         },
         "sender_device_id": {
           "$ref": "#/$defs/device_id"
         },
         "source_authorization_ref": {
           "$ref": "#/$defs/event_ref",
-          "description": "Accepted policy/grant/source-authorisation Control Move proving that sender_device_id may deliver this share_class and key_scope to the named recipient at the Event CBA basis. It is covered by sender_device_signature and MUST be independently verified before installing history_secret material."
+          "description": "Accepted policy/grant/source-authorisation Control Move proving that sender_device_id may deliver this share_kind and key_scope to the named recipient at the Event CBA basis. It is covered by sender_device_signature and MUST be independently verified before installing history_secret material."
         },
         "sender_device_signature": {
           "$ref": "#/$defs/signature_material",
-          "description": "Detached device signature over the canonical share transcript fixed by crypto-media/device-lifecycle.md 13. The transcript carries context \"ak.realm-key-share-sender-proof-v1\" and binds share_class, sender_device_id, source_authorization_ref, recipient_principal_id, the selected variant target fields (recipient_device_id OR recipient_verification_method + recovery_recipient_id), key_scope, exactly one of ciphertext / encrypted_key_ref, aad_digest?, expires_at? and created_at. Unselected branch fields, the unselected material field and absent optional fields MUST be omitted from the transcript and MUST NOT be written as null."
+          "description": "Detached device signature over the canonical share transcript fixed by crypto-media/device-lifecycle.md 13. The transcript carries context \"ak.realm-key-share-sender-proof-v1\" and binds share_kind, sender_device_id, source_authorization_ref, recipient_principal_id, the selected variant target fields (recipient_device_id OR recipient_verification_method + recovery_recipient_id), key_scope, exactly one of ciphertext / encrypted_key_ref, aad_digest?, expires_at? and created_at. Unselected branch fields, the unselected material field and absent optional fields MUST be omitted from the transcript and MUST NOT be written as null."
         },
         "key_scope": {
           "$ref": "#/$defs/realm_key_scope"
@@ -6927,7 +6924,7 @@
     "realm_key_withheld_payload": {
       "type": "object",
       "required": [
-        "share_class",
+        "share_kind",
         "recipient_principal_id",
         "recipient_device_id",
         "sender_device_id",
@@ -6936,7 +6933,7 @@
         "withheld_reason_code"
       ],
       "properties": {
-        "share_class": {
+        "share_kind": {
           "type": "string",
           "enum": [
             "member_device"
@@ -7517,9 +7514,9 @@
           "$ref": "#/$defs/hash"
         },
         "webhook_auth": {
-          "type": "object",
           "description": "Transaction push HTTP signature policy copied from the Applet package. webhook_auth.key_ref is the Applet service DID URL used as the app/bridge->arkret inbound source signature anchor and is bound to this registration_epoch; node->Applet pushes verify the Arkret source service DID from Source-Service-ID instead.",
-          "additionalProperties": true
+          "additionalProperties": true,
+          "kind": "object"
         },
         "manifest": {
           "type": "object",
@@ -7882,7 +7879,7 @@
         "applet_id",
         "service_id",
         "status",
-        "purpose_classes",
+        "purpose_kinds",
         "allowed_release_modes",
         "audit_assurance_class",
         "notice_policy",
@@ -7924,7 +7921,7 @@
             "revoked"
           ]
         },
-        "purpose_classes": {
+        "purpose_kinds": {
           "$ref": "#/$defs/string_list"
         },
         "allowed_release_modes": {
@@ -7989,7 +7986,7 @@
               "minimum": 1,
               "description": "Optional cap on the number of sealed historical epochs a single session/release may cover."
             },
-            "allowed_target_classes": {
+            "allowed_target_kinds": {
               "type": "array",
               "items": {
                 "$ref": "#/$defs/non_empty_string"
@@ -8017,13 +8014,13 @@
     },
     "audit_session_payload": {
       "type": "object",
-      "description": "Shared payload class for ak.audit.session.request / authorize / notice / close. The stage field is the target state of the control-plane FSM cell ak.component.audit.session.v1 keyed by session_id. Initial state is request; legal main-path transitions are request->authorize->notice->close, with request->close and authorize->close allowed for aborted sessions. Close is terminal; same-basis conflicting siblings produce Bottom.",
+      "description": "Shared payload class for ak.audit.session.request / authorize / notice / close. The session_state field is the target state of the control-plane FSM cell ak.component.audit.session.v1 keyed by session_id. Initial state is request; legal main-path transitions are request->authorize->notice->close, with request->close and authorize->close allowed for aborted sessions. Close is terminal; same-basis conflicting siblings produce Bottom.",
       "required": [
         "session_id",
         "binding_id",
         "realm_id",
         "effective_scope",
-        "stage",
+        "session_state",
         "occurred_at"
       ],
       "properties": {
@@ -8039,7 +8036,7 @@
         "effective_scope": {
           "$ref": "#/$defs/effective_scope"
         },
-        "stage": {
+        "session_state": {
           "type": "string",
           "enum": [
             "request",
@@ -8079,7 +8076,7 @@
         "closer_actor_id": {
           "$ref": "#/$defs/did"
         },
-        "purpose_class": {
+        "purpose_kind": {
           "$ref": "#/$defs/non_empty_string"
         },
         "legal_basis_ref": {
@@ -8162,13 +8159,13 @@
         {
           "required": [
             "requested_by",
-            "purpose_class",
+            "purpose_kind",
             "legal_basis_ref",
             "requested_release_mode",
             "request_digest"
           ],
           "properties": {
-            "stage": {
+            "session_state": {
               "const": "request"
             }
           },
@@ -8203,7 +8200,7 @@
             "expires_at"
           ],
           "properties": {
-            "stage": {
+            "session_state": {
               "const": "authorize"
             }
           },
@@ -8231,13 +8228,13 @@
           "required": [
             "authorize_ref",
             "service_id",
-            "purpose_class",
+            "purpose_kind",
             "approved_release_mode",
             "approver_actor_id",
             "member_notice_digest"
           ],
           "properties": {
-            "stage": {
+            "session_state": {
               "const": "notice"
             }
           },
@@ -8268,7 +8265,7 @@
             "release_refs"
           ],
           "properties": {
-            "stage": {
+            "session_state": {
               "const": "close"
             }
           }
@@ -8292,7 +8289,7 @@
         "recipient_public_key_ref",
         "approver_actor_id",
         "notice_ref",
-        "purpose_class",
+        "purpose_kind",
         "legal_basis_ref",
         "policy_version_digest",
         "eligibility_proof",
@@ -8366,7 +8363,7 @@
         "notice_ref": {
           "$ref": "#/$defs/event_ref"
         },
-        "purpose_class": {
+        "purpose_kind": {
           "$ref": "#/$defs/non_empty_string"
         },
         "legal_basis_ref": {

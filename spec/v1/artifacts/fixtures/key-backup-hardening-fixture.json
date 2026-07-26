@@ -155,7 +155,7 @@
       "envelope": {
         "backup_id": "ak:backup:0196419b-0000-7000-8000-000000000200",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
-        "backup_class": "secret_storage",
+        "backup_kind": "secret_storage",
         "series_id": "ak:backup_series:0196419b-0000-7000-8000-000000000300",
         "series_seq": 4,
         "ciphertext_digest": "sha256:16c593213e181e423966db60c50aaa4389e45cfe538022b046e039476e8b6f90",
@@ -175,7 +175,7 @@
         "principal_id": "did:webvh:z6mkfixture:alice.example",
         "requesting_device_id": "ak:device:0196419b-0000-7000-8000-000000000002",
         "backup_id": "ak:backup:0196419b-0000-7000-8000-000000000200",
-        "backup_class": "secret_storage",
+        "backup_kind": "secret_storage",
         "series_id": "ak:backup_series:0196419b-0000-7000-8000-000000000300",
         "ciphertext_digest": "sha256:16c593213e181e423966db60c50aaa4389e45cfe538022b046e039476e8b6f90",
         "proof_kind": "recovery_unlock",
@@ -191,7 +191,7 @@
             "principal_id",
             "requesting_device_id",
             "backup_id",
-            "backup_class",
+            "backup_kind",
             "series_id",
             "ciphertext_digest",
             "proof_kind",
@@ -203,13 +203,13 @@
       "plaintext": {
         "schema": "ak.schema.key_backup_plaintext.v1",
         "backup_id": "ak:backup:0196419b-0000-7000-8000-000000000200",
-        "backup_class": "secret_storage",
+        "backup_kind": "secret_storage",
         "series_id": "ak:backup_series:0196419b-0000-7000-8000-000000000300",
         "series_seq": 4,
         "items": [
           {
             "secret_id": "mls_group_secrets_backup_key",
-            "item_type": "mls_group_secrets_backup_key",
+            "item_kind": "mls_group_secrets_backup_key",
             "secret_b64u": "c2VjcmV0"
           }
         ]
@@ -219,8 +219,8 @@
         "aead": "chacha20_poly1305",
         "key_b64u": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
         "nonce_b64u": "oKGio6Slpqeoqaqr",
-        "aad_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"backup_class\":\"secret_storage\",\"backup_id\":\"ak:backup:0196419b-0000-7000-8000-000000000200\",\"created_at\":\"2026-06-19T00:00:00Z\",\"recipient_method\":\"secret_storage_key\",\"schema\":\"ak.schema.key_backup.v1\",\"series_id\":\"ak:backup_series:0196419b-0000-7000-8000-000000000300\",\"series_seq\":4}",
-        "plaintext_canonical_json": "{\"backup_class\":\"secret_storage\",\"backup_id\":\"ak:backup:0196419b-0000-7000-8000-000000000200\",\"items\":[{\"item_type\":\"mls_group_secrets_backup_key\",\"secret_b64u\":\"c2VjcmV0\",\"secret_id\":\"mls_group_secrets_backup_key\"}],\"schema\":\"ak.schema.key_backup_plaintext.v1\",\"series_id\":\"ak:backup_series:0196419b-0000-7000-8000-000000000300\",\"series_seq\":4}",
+        "aad_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"backup_kind\":\"secret_storage\",\"backup_id\":\"ak:backup:0196419b-0000-7000-8000-000000000200\",\"created_at\":\"2026-06-19T00:00:00Z\",\"recipient_method\":\"secret_storage_key\",\"schema\":\"ak.schema.key_backup.v1\",\"series_id\":\"ak:backup_series:0196419b-0000-7000-8000-000000000300\",\"series_seq\":4}",
+        "plaintext_canonical_json": "{\"backup_kind\":\"secret_storage\",\"backup_id\":\"ak:backup:0196419b-0000-7000-8000-000000000200\",\"items\":[{\"item_kind\":\"mls_group_secrets_backup_key\",\"secret_b64u\":\"c2VjcmV0\",\"secret_id\":\"mls_group_secrets_backup_key\"}],\"schema\":\"ak.schema.key_backup_plaintext.v1\",\"series_id\":\"ak:backup_series:0196419b-0000-7000-8000-000000000300\",\"series_seq\":4}",
         "ciphertext_b64u": "d4kaPi6Nt93_bJ91j4nfwb8tttwxDxT8x6y0wxAFpi5AonTrzaKK-pmlkZ8ncxstcKYrW2J5G7sXZTJ2eBucqpzLV34IxKXAEsD_sT2AmVMwqT_TLIymkEsaerCs4ILS6CIK061hNo6NKRQH-Z9vjDinkW93PYbW94vSPMfg700aTo6b_dSkoWTWtEgK6nx84PAtywVNaSObA9iLj7GTJqKYfWAO914G-4uubLrCCC6F25YCbfuT6RbwtBBGLXd2V_Knd3W4eDMIY5FSAEyaR_B3LIvbsRSwURLsiuJkpfuIweYs7ZcGMNH2ERETObjqgwlh5qzwNMm1weK0_fdKvR_aQpoAJ_RlfxVCvizqsjTIu6Z6T0bgq5t1m3eEflNO2OIhIRjLzlXbursxdlrRuizKPNja1A_06KoxjHzPPWD1ifOdilP8UW8784ET1LqHLeFKa759wz4J",
         "tag_b64u": "W9EVZsCAgTqZvfKrrpDupQ",
         "ciphertext_and_tag_b64u": "d4kaPi6Nt93_bJ91j4nfwb8tttwxDxT8x6y0wxAFpi5AonTrzaKK-pmlkZ8ncxstcKYrW2J5G7sXZTJ2eBucqpzLV34IxKXAEsD_sT2AmVMwqT_TLIymkEsaerCs4ILS6CIK061hNo6NKRQH-Z9vjDinkW93PYbW94vSPMfg700aTo6b_dSkoWTWtEgK6nx84PAtywVNaSObA9iLj7GTJqKYfWAO914G-4uubLrCCC6F25YCbfuT6RbwtBBGLXd2V_Knd3W4eDMIY5FSAEyaR_B3LIvbsRSwURLsiuJkpfuIweYs7ZcGMNH2ERETObjqgwlh5qzwNMm1weK0_fdKvR_aQpoAJ_RlfxVCvizqsjTIu6Z6T0bgq5t1m3eEflNO2OIhIRjLzlXbursxdlrRuizKPNja1A_06KoxjHzPPWD1ifOdilP8UW8784ET1LqHLeFKa759wz4JW9EVZsCAgTqZvfKrrpDupQ",
@@ -236,7 +236,7 @@
       },
       "assertions": [
         "unlock proof is submitted in the request body and validates against ak.schema.key_backup_unlock_proof.v1",
-        "proof.backup_id, backup_class, series_id, ciphertext_digest, requesting_device_id, and proof_digest are matched against server state before ciphertext is returned",
+        "proof.backup_id, backup_kind, series_id, ciphertext_digest, requesting_device_id, and proof_digest are matched against server state before ciphertext is returned",
         "the fixture AEAD transcript opens to plaintext using crypto_transcript.key_b64u, nonce_b64u, and aad_canonical_json",
         "bearer-only access without a fresh device proof is rejected",
         "plaintext metadata must match the outer envelope after decrypt/open"
@@ -256,7 +256,7 @@
               "memory_kib": 65536,
               "iterations": 3,
               "parallelism": 4,
-              "output_len": 32,
+              "output_bytes": 32,
               "version": "0x13",
               "salt_hex": "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a",
               "salt_b64u": "KioqKioqKioqKioqKioqKg"
@@ -265,10 +265,10 @@
               "backup_id": "ak:backup:01964137-0000-7000-8000-000000000000",
               "actor_id": "did:webvh:z6mkfixture:alice.example",
               "device_id": null,
-              "backup_class": "secret_storage",
+              "backup_kind": "secret_storage",
               "backup_version": "kb_1",
               "created_at": "2026-04-26T00:00:00.000Z",
-              "item_types": [
+              "item_kinds": [
                 "private_account_state"
               ]
             },
@@ -292,8 +292,8 @@
                 "subkey_hex": "6b1360d8a7cf5f1c1c00d6792886c62fdf2204c9735f57aa871bd35f247dd3b0"
               }
             },
-            "nonce_transcript_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"aead\":\"xchacha20_poly1305\",\"aead_profile\":\"ak.aead.xchacha20_poly1305.v1\",\"backup_class\":\"secret_storage\",\"backup_id\":\"ak:backup:01964137-0000-7000-8000-000000000000\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"device_id\":null,\"nonce_salt\":\"AgICAgICAgICAgICAgICAg\"}",
-            "aead_aad_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"backup_class\":\"secret_storage\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"device_id\":null,\"item_types\":[\"private_account_state\"],\"schema\":\"ak.schema.key_backup.v1\"}"
+            "nonce_transcript_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"aead\":\"xchacha20_poly1305\",\"aead_profile\":\"ak.aead.xchacha20_poly1305.v1\",\"backup_kind\":\"secret_storage\",\"backup_id\":\"ak:backup:01964137-0000-7000-8000-000000000000\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"device_id\":null,\"nonce_salt\":\"AgICAgICAgICAgICAgICAg\"}",
+            "aead_aad_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"backup_kind\":\"secret_storage\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-04-26T00:00:00.000Z\",\"device_id\":null,\"item_kinds\":[\"private_account_state\"],\"schema\":\"ak.schema.key_backup.v1\"}"
           },
           "expected": {
             "aead": "xchacha20_poly1305",
@@ -313,7 +313,7 @@
               "memory_kib": 65536,
               "iterations": 3,
               "parallelism": 4,
-              "output_len": 32,
+              "output_bytes": 32,
               "version": "0x13",
               "salt_hex": "000102030405060708090a0b0c0d0e0f",
               "salt_b64u": "AAECAwQFBgcICQoLDA0ODw"
@@ -322,10 +322,10 @@
               "backup_id": "ak:backup:0196419b-0000-7000-8000-000000000201",
               "actor_id": "did:webvh:z6mkfixture:bob.example",
               "device_id": "ak:device:0196419b-0000-7000-8000-000000000002",
-              "backup_class": "secret_storage",
+              "backup_kind": "secret_storage",
               "backup_version": "kb_1",
               "created_at": "2026-07-03T00:00:00.000Z",
-              "item_types": [
+              "item_kinds": [
                 "self_signing_key"
               ]
             },
@@ -349,8 +349,8 @@
                 "subkey_hex": "5f9e5b0f7cda75a8cb76792abf2e7bbb7595857bb5a67cabba1067617df41eed"
               }
             },
-            "nonce_transcript_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:bob.example\",\"aead\":\"xchacha20_poly1305\",\"aead_profile\":\"ak.aead.xchacha20_poly1305.v1\",\"backup_class\":\"secret_storage\",\"backup_id\":\"ak:backup:0196419b-0000-7000-8000-000000000201\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-07-03T00:00:00.000Z\",\"device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"nonce_salt\":\"oKGio6SlpqeoqaqrrK2urw\"}",
-            "aead_aad_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:bob.example\",\"backup_class\":\"secret_storage\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-07-03T00:00:00.000Z\",\"device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"item_types\":[\"self_signing_key\"],\"schema\":\"ak.schema.key_backup.v1\"}"
+            "nonce_transcript_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:bob.example\",\"aead\":\"xchacha20_poly1305\",\"aead_profile\":\"ak.aead.xchacha20_poly1305.v1\",\"backup_kind\":\"secret_storage\",\"backup_id\":\"ak:backup:0196419b-0000-7000-8000-000000000201\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-07-03T00:00:00.000Z\",\"device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"nonce_salt\":\"oKGio6SlpqeoqaqrrK2urw\"}",
+            "aead_aad_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:bob.example\",\"backup_kind\":\"secret_storage\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-07-03T00:00:00.000Z\",\"device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"item_kinds\":[\"self_signing_key\"],\"schema\":\"ak.schema.key_backup.v1\"}"
           },
           "expected": {
             "aead": "xchacha20_poly1305",
@@ -365,7 +365,7 @@
       ],
       "rules": [
         "Argon2id parameters and salt are fixed test inputs; production implementations MUST use fresh random salts and MUST NOT trust these test values",
-        "HKDF-SHA256 info strings are domain-separated per backup_class as recorded in each case (aead / commitment) plus the class-independent nonce subkey",
+        "HKDF-SHA256 info strings are domain-separated per backup_kind as recorded in each case (aead / commitment) plus the class-independent nonce subkey",
         "the deterministic AEAD nonce MUST be derived from the canonical JSON nonce transcript exactly as recorded in nonce_transcript_canonical_json",
         "the AEAD AAD MUST be the canonical JSON binding recorded in aead_aad_canonical_json; key_commitment and ciphertext_digest MUST match byte-for-byte"
       ]

@@ -283,7 +283,7 @@
       "assertions": [
         "preview_token_returns_only_policy_allowed_fields",
         "forbidden_history_and_grant_fields_omitted",
-        "target_digest_and_link_type_scope_confusion_returns_not_found"
+        "target_digest_and_address_link_kind_scope_confusion_returns_not_found"
       ],
       "policy": {
         "mode": "stripped_state",
@@ -297,7 +297,7 @@
       "token": {
         "aud": "did:webvh:z6mkfixture:bob.example",
         "target_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "link_type": "preview",
+        "address_link_kind": "preview",
         "ttl_seconds": 300
       },
       "requests": [
@@ -305,7 +305,7 @@
           "name": "bob_preview",
           "caller": "did:webvh:z6mkfixture:bob.example",
           "target_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "link_type": "preview",
+          "address_link_kind": "preview",
           "expected": {
             "decision": "accept",
             "response_fields": [
@@ -321,17 +321,17 @@
           "name": "mallory_scope_confused_target",
           "caller": "did:webvh:z6mkfixture:mallory.example",
           "target_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-          "link_type": "preview",
+          "address_link_kind": "preview",
           "expected": {
             "decision": "reject",
             "public_error_shape": "not_found"
           }
         },
         {
-          "name": "link_type_rewritten_to_invite",
+          "name": "address_link_kind_rewritten_to_invite",
           "caller": "did:webvh:z6mkfixture:bob.example",
           "target_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "link_type": "invite",
+          "address_link_kind": "invite",
           "expected": {
             "decision": "reject",
             "public_error_shape": "not_found"
@@ -372,7 +372,7 @@
           "history_visibility": "shared",
           "history_sharing_policy": {
             "policy_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-            "pre_join_history": "allow_if_visibility_allows",
+            "pre_join_history": "visibility_condition_allowed",
             "allowed_key_sources": [
               "archive_node"
             ],
@@ -392,7 +392,7 @@
           "history_visibility": "shared",
           "history_sharing_policy": {
             "policy_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-            "pre_join_history": "allow_if_visibility_allows",
+            "pre_join_history": "visibility_condition_allowed",
             "allowed_key_sources": [
               "key_backup"
             ],

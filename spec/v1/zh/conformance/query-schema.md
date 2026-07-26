@@ -21,8 +21,8 @@ updated: 2026-07-02
 ```json
 {
   "realm_ids": ["ak:realm:0196419b-0000-7000-8000-000000000000"],
-  "object_types": ["strand", "message", "morph"],
-  "morph_types": ["customer_case"],
+  "object_kinds": ["strand", "message", "morph"],
+  "morph_kinds": ["customer_case"],
   "facets": ["assignable"],
   "context_ref": "ak:strand:019640c5-61a0-7000-8000-000000000000",
   "filters": [],
@@ -38,8 +38,8 @@ updated: 2026-07-02
 字段：
 
 - `realm_ids`: REQUIRED，查询范围。
-- `object_types`: OPTIONAL，限制标准对象类型，例如 `realm`、`space`、`strand`、`message`、`morph`、`relation`、`view`。对象类型只在这里表达；不得用 `filters.field=type` 作为别名。`card` 是 View `item_render`，不是 canonical object type；Board/List 容器必须表达为 `object_types=["space"]` + `filters` 限制 Space `kind`。Board/List 内部 item 查询仍按被投影对象表达，例如 `object_types=["strand"]` 并通过 `contains` relation 约束到目标 Space。
-- `morph_types`: OPTIONAL，当 `object_types` 包含 `morph` 时进一步限制开放对象类型。
+- `object_kinds`: OPTIONAL，限制标准对象类型，例如 `realm`、`space`、`strand`、`message`、`morph`、`relation`、`view`。对象类型只在这里表达；不得用 `filters.field=type` 作为别名。`card` 是 View `item_render`，不是 canonical object type；Board/List 容器必须表达为 `object_kinds=["space"]` + `filters` 限制 Space `kind`。Board/List 内部 item 查询仍按被投影对象表达，例如 `object_kinds=["strand"]` 并通过 `contains` relation 约束到目标 Space。
+- `morph_kinds`: OPTIONAL，当 `object_kinds` 包含 `morph` 时进一步限制开放对象类型。
 - `facets`: OPTIONAL，schema-declared capability hint 过滤。Facet 不替代对象类型，也不绕过授权、schema、policy、`allowed_tracks` action scope 或 E2EE 可见性；查询命中某 facet 不表示调用方获得该 facet 暗示的写入、排序、状态转换或 renderer 能力。
 - `context_ref`: OPTIONAL，`timeline` / `renderer="timeline"` 或 Strand context 的上下文对象引用；它指向业务上下文对象，不指向 Seal。
 - `filters`: OPTIONAL，过滤条件。

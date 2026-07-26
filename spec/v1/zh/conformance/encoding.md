@@ -192,7 +192,7 @@ v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中�
 - `ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`ak:blob:019640ba-0000-7000-8000-000000000000` 是 Blob metadata ID。二者 MUST NOT 混用。
 - `ak:seal:sha256:<digest>` 是内容寻址 Seal hash（active special form；见 `id-kind-registry.json`）。
 - `ak:cell:<component>:<subject>` 是 canonical cell tuple 引用（active special form；`component` MUST 是从 cell-component registry 取得并原样嵌入的完整 `ak.component.<facet-path>.v<n>` family 标识符，`subject` 是 cell 的 subject key）。subject 内来自 canonical URI / DID 的 percent-encoded octet MUST 保持 `%HH` 形态，不得因嵌入 cell tuple 再次编码或解码。因此标准实例形如 `ak:cell:ak.component.strand.position.v1:<subject>`；`ak:cell:component.*`、`ak:cell:<裸 family>`、旧命名空间 family、截断/非十六进制 percent escape 或任何未完整携带 `ak.component.*.v<n>` 的形态 MUST 拒绝。
-  - **Null subject（per-Realm / per-envelope 单例 cell，normative）**：catalog 中 `cell_subject` 声明为 JSON `null` 的 cell family，其 canonical wire subject 段固定为字面 ASCII 四字符 `null`，即 `ak:cell:<component>:null`。选定字面 `null` 而非空串或省略末段，是因为 `ak:cell:<component>:` 的空末段无法与"末段被截断"区分，而截断形态本身必须拒绝。这类 cell 由 Event envelope 的 `realm_id` 定位（Realm-scoped 单例）；实现 MUST NOT 把 `realm_id`、Realm 角色分类（`collaboration` / `principal_control` / `managed_agent_principal_control` 等 [`../models/realm-and-space.md` §2.8.3](../models/realm-and-space.md) 的 prose 层术语）或任何 payload 派生值写进该 subject 段，也 MUST NOT 从 payload 重复字段派生第二个 cell key。任何偏离字面 `null` 的写法 MUST 拒绝（`schema_violation`）——subject 既进入 `state_root` leaf preimage、又是 leaf 的排序键（[`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md)），编码分歧会直接导致跨实现 `rejected_seal`。若某个 family 确实需要区分同一 Realm 内的多个实例，它 MUST 在 catalog 中声明非 null 的 `cell_subject`，而不是把区分值塞进 null subject 段。
+  - **Null subject（per-Realm / per-envelope 单例 cell，normative）**：registry 中 `cell_subject` 声明为 JSON `null` 的 cell family，其 canonical wire subject 段固定为字面 ASCII 四字符 `null`，即 `ak:cell:<component>:null`。选定字面 `null` 而非空串或省略末段，是因为 `ak:cell:<component>:` 的空末段无法与“末段被截断”区分，而截断形态本身必须拒绝。这类 cell 由 Event envelope 的 `realm_id` 定位（Realm-scoped 单例）；实现 MUST NOT 把 `realm_id`、Realm 角色分类（`collaboration` / `principal_control` / `managed_agent_principal_control` 等 [`../models/realm-and-space.md` §2.8.3](../models/realm-and-space.md) 的 prose 层术语）或任何 payload 派生值写进该 subject 段，也 MUST NOT 从 payload 重复字段派生第二个 cell key。任何偏离字面 `null` 的写法 MUST 拒绝（`schema_violation`）——subject 既进入 `state_root` leaf preimage、又是 leaf 的排序键（[`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md)），编码分歧会直接导致跨实现 `rejected_seal`。若某个 family 确实需要区分同一 Realm 内的多个实例，它 MUST 在 registry 中声明非 null 的 `cell_subject`，而不是把区分值塞进 null subject 段。
 - `ak:mls:<profile>:<profile_id>`、`ak:pseudonym:<scope_id>:<random>` 等 profile-scoped form 必须由对应 profile 注册和校验。
 - `ak:trust_domain:<scope>` 是部署 / 联邦信任域 ref，不是 typed UUIDv7 object ID；`<scope>` 的 profile 与匹配规则由 Realm / federation policy 声明。
 
@@ -626,7 +626,7 @@ rank_between(left, right):
   其中 `components_array` 是按本规范声明的固定顺序排列的 JSON scalar array。每个 element MUST 保留 schema 校验后的 JSON 类型，只允许 string、integer、boolean，以及仅当该来源字段 schema 明确允许时出现的 JSON `null`；number 的小数/指数形态、object、array 一律 `schema_violation`。string element MUST 使用该字段自己的 canonical profile：typed ID 使用 schema 规定的小写 canonical 形态；DID 保留 DID method 定义的 canonical bytes，MUST NOT 做 Arkret 全串 NFKC / case folding；handle 使用已准备 localpart + 小写 A-label domain；connection identifier 使用其 kind / provider profile。复合 subject producer 与 verifier 必须消费同一 typed value，不得先把 integer / boolean / null 字符串化，也不得用通用 Unicode normalizer 猜测外部标识符等价。
 - 实现 MUST NOT 直接使用 `a|b|c` 这种管道分隔字符串作为复合 subject。canonical cell id、签名输入、state map 索引 MUST 使用 hash 形态。
 - cell subject 的 registry 字段来源必须显式命名：payload 来源写成 `payload.<具名路径>`，Event Envelope 来源写成 `envelope.<字段>`；裸字段名与“先查 payload、再查 envelope”的 fallback 求值一律未定义并 MUST `schema_violation`。v1 的 envelope 来源白名单只包含 `envelope.actor_id`；`envelope.event_id`、`envelope.realm_id`、`envelope.executed_by` 及其它未登记字段均不得用于 subject。registry 中的 payload 路径 MAY 是点分嵌套路径（如 `payload.key_scope.effective_scope.realm_id`），但每一段 MUST 是该对象的具名字段，且最终取值 MUST 是上一条定义的 JSON scalar；路径中出现数组下标、通配或非具名段一律 `schema_violation`。
-- **判别式 `select` component（normative）**：`components[]` 的元素 MAY 是一个 `select` 对象，用于在同一 cell family 内按显式判别值选择该 component 的取值字段。形态固定为 `{"type":"select","selector":<字段路径>,"branches":{<判别值>:{"field":<字段路径>,"forbidden_fields":[<字段路径>…]}}}`，`branches` 是封闭映射，`forbidden_fields` 可选。求值规则：读取 `selector` 指向的、已通过 schema 校验的**原始字符串**，与 branch key 逐字匹配，MUST NOT 做大小写折叠、Unicode 归一化或别名解析；命中 branch 后取其 `field` 的标量值作为该 component。`select` 只选择 component 的**取值**，MUST NOT 改变 `components_array` 的元素数目或顺序——同一 cell family 的所有分支共享同一 arity 与同一顺序。
+- **判别式 `select` component（normative）**：`components[]` 的元素 MAY 是一个 `select` 对象，用于在同一 cell family 内按显式判别值选择该 component 的取值字段。形态固定为 `{"kind":"select","selector":<字段路径>,"branches":{<判别值>:{"field":<字段路径>,"forbidden_fields":[<字段路径>…]}}}`，`branches` 是封闭映射，`forbidden_fields` 可选。求值规则：读取 `selector` 指向的、已通过 schema 校验的**原始字符串**，与 branch key 逐字匹配，MUST NOT 做大小写折叠、Unicode 归一化或别名解析；命中 branch 后取其 `field` 的标量值作为该 component。`select` 只选择 component 的**取值**，MUST NOT 改变 `components_array` 的元素数目或顺序——同一 cell family 的所有分支共享同一 arity 与同一顺序。
 
 分支之间是否互斥由**各分支自己的 `forbidden_fields` 显式声明**，MUST NOT 由「未命中分支的 `field` 出现即歧义」这类通用规则推断：多个分支合法共享同一字段是常见形态（例如 `effective_scope` 的 `circle` 分支按 schema 必须同时携带 `realm_id` 与 `circle_id`，而 `realm_id` 正是 `realm` 分支的取值字段），通用禁止会把这类合法 payload 全部拒掉。`forbidden_fields` MUST 与该 payload schema 的互斥约束一致，只作为不经 schema 校验路径上的等价 fail-closed 复核，MUST NOT 声明 schema 允许共存的字段。
 
@@ -639,7 +639,7 @@ rank_between(left, right):
 | --- | --- |
 | `ak.component.device.authorization.v1` / `ak.device.authorize` | `[payload.principal_id, payload.device_id]` |
 | `ak.component.device.authorization.v1` / `ak.device.revoke` | `[payload.principal_id, payload.device_id]` |
-| `ak.component.realm_key.delivery.v1` / `ak.realm_key.share`、`ak.realm_key.withheld` | `[payload.share_class, payload.recipient_principal_id, select(payload.share_class), select(payload.key_scope.effective_scope.kind)]` |
+| `ak.component.realm_key.delivery.v1` / `ak.realm_key.share`、`ak.realm_key.withheld` | `[payload.share_kind, payload.recipient_principal_id, select(payload.share_kind), select(payload.key_scope.effective_scope.kind)]` |
 | `ak.component.calendar.rsvp.v1` / `ak.rsvp.set` | `[payload.event_ref, payload.occurrence, envelope.actor_id]` |
 | `ak.component.call.recording.v1` / `ak.call.recording.start`（`capture_kind="recording"`）、`ak.call.state` | `[payload.call_id, payload.recording_id]` / `[payload.call_id, payload.recording_result.recording_id]` |
 | `ak.component.call.transcript.v1` / `ak.call.recording.start`（`capture_kind="transcript"`）、`ak.call.state` | `[payload.call_id, payload.recording_id]` / `[payload.call_id, payload.transcript_result.recording_id]` |
@@ -648,15 +648,15 @@ rank_between(left, right):
 
 `ak.component.realm_key.delivery.v1` 的四元组固定 arity 4，两个 Event kind 使用**逐字相同**的 registry descriptor，其中后两个 component 是 §9.5.1 的 `select`：
 
-- `share_class` 直接取 `payload.share_class`。它 MUST 进入 components 做**目标类型域分隔**：`recovery_recipient_id` 只是 Realm-local 非空字符串，可被构造成与某个 `ak:device:*` typed ID 相同的文本；缺少该 component 时 RRK recipient 与 member device 会落入同一 delivery cell。
-- `recipient_target_id` 按 `payload.share_class` 选择：`member_device` → `payload.recipient_device_id`；`realm_recovery_key` → `payload.recovery_recipient_id`。`recipient_verification_method` 是可轮换的 RRK 密钥引用，MUST NOT 进入 subject（它由 `sender_device_signature` 与接收方校验覆盖，见 [`../crypto-media/device-lifecycle.md` §13](../crypto-media/device-lifecycle.md)）；把它纳入定址会在 RRK 轮换后拆分同一 recovery recipient 的 ordered log。
+- `share_kind` 直接取 `payload.share_kind`。它 MUST 进入 components 做**目标类型域分隔**：`recovery_recipient_id` 只是 Realm-local 非空字符串，可被构造成与某个 `ak:device:*` typed ID 相同的文本；缺少该 component 时 RRK recipient 与 member device 会落入同一 delivery cell。
+- `recipient_target_id` 按 `payload.share_kind` 选择：`member_device` → `payload.recipient_device_id`；`realm_recovery_key` → `payload.recovery_recipient_id`。`recipient_verification_method` 是可轮换的 RRK 密钥引用，MUST NOT 进入 subject（它由 `sender_device_signature` 与接收方校验覆盖，见 [`../crypto-media/device-lifecycle.md` §13](../crypto-media/device-lifecycle.md)）；把它纳入定址会在 RRK 轮换后拆分同一 recovery recipient 的 ordered log。
 - `effective_scope_id` 按 `payload.key_scope.effective_scope.kind` 选择：`realm` → `realm_id`；`circle` → `circle_id`。完整 `key_scope`（`policy_digest`、membership frontier、epoch 区间）是单次交付/拒绝决定的证据，随策略与 epoch 变化，MUST NOT 进入稳定 subject。
 - `recovery_recipient_id` 作为 component 时 MUST 使用 payload 中经 JSON 解码得到的原始 Unicode scalar sequence，由 canonical JSON 负责转义；MUST NOT 做 NFKC / NFC、case folding 或 trim。
 - receiver MUST 独立校验 `effective_scope.realm_id` 等于 Event `realm_id`，Circle 分支还 MUST 校验该 `circle_id` 属于该 Realm。
 
 `ak.component.calendar.rsvp.v1` 的三元组固定 arity 3；`envelope.actor_id` 是 accountable responder，delegated execution 下不得改用 `executed_by`。实例级 RSVP 的 `payload.occurrence` 是 [`calendar-event.md` §5](../models/calendar-event.md) 的 canonical string；series 级 RSVP 的 digest preimage 固定保留 JSON null，例如 `["ak:strand:<uuidv7>",null,"did:..."]`。实现 MUST NOT 把 null 改写成字符串 `"null"`、空串或 `"series"` sentinel。payload 中即使出现同名 `actor_id` 也不得遮蔽 `envelope.actor_id`。
 
-两个 call capture family 的第二个 component 固定取 **payload** 的 `recording_id`（start event 取 `payload.recording_id`，后续 `ak.call.state` 取 `payload.recording_result.recording_id` / `payload.transcript_result.recording_id`），两侧 MUST 逐字节相同。选 `recording_id` 而非 start Event 的 `event_id`，是因为 v1 的封闭 envelope 来源白名单只登记 `envelope.actor_id`，不登记 `envelope.event_id`；`recording_id` 本身已是 required、已按 [`../crypto-media/call-state.md` §5](../crypto-media/call-state.md) 要求在同一通话内逐段唯一，且已是录制 / 转写 key exporter Context 的 member。
+两个 call capture family 的第二个 component 固定取 **payload** 的 `recording_id`（start event 取 `payload.recording_id`，后续 `ak.call.state` 取 `payload.recording_result.recording_id` 或 `payload.transcript_result.recording_id`），不得改用 Event envelope 的 `event_id`。同一 `recording_id` 的 start 与状态更新因此落入同一 cell；不同 recording 不会共享 cell。`ak.call.recording.start.capture_kind` 决定写 recording 还是 transcript family；`ak.call.state` 只有在相应 `recording_state` / `transcript_state` 出现时才写对应 family。
 
 非复合 cell（例如 member 用 actor DID、capability grant 用 grant id、Realm policy 用 Realm id）直接把规范化 subject 放入 `ak:cell:<component>:<subject>`，不需要 hash 化。
 
@@ -673,7 +673,6 @@ _Informative._ 本小节只做导航锚，不搬迁任何 normative 内容；各
 | `state_root` / Seal hash 的 wire 形态与 algo 固定规则 | 本文 §3.3 |
 | Hash wire 形态(`<suite>:<hex>`)与 Digest Suite registered set | 本文 §3.1 / §3.2 |
 | Cell tuple 引用形态(`ak:cell:<component>:<subject>`) | 本文 §4(special forms) |
-| Null subject 单例 cell 的 wire 形态(`ak:cell:<component>:null`) | 本文 §4(special forms) |
 
 ## 10. Encrypted Envelope Digest
 
@@ -687,7 +686,7 @@ encrypted_payload_bytes = base64url_decode(ciphertext)
 payload_digest = sha256(payload_metadata_bytes || encrypted_payload_bytes)
 ```
 
-上式产出 32 字节 raw digest；其 wire 形态 MUST 为 `sha256:<lowercase_hex>`，与 §3.1 一致。`payload_metadata` 的字段集合、缺失字段处理、`mls-rfc9420` 下不得携带 `authentication_tag` 的规则，以 [`crypto-media/encryption-and-audit.md` §2.3.3](../crypto-media/encryption-and-audit.md) 为唯一真源。
+上式产出 32 字节 raw digest；其 wire 形态 MUST 为 `sha256:<lowercase_hex>`，与 §3.1 一致。`payload_metadata` 的字段集合、缺失字段处理、`mls_rfc9420` 下不得携带 `authentication_tag` 的规则，以 [`crypto-media/encryption-and-audit.md` §2.3.3](../crypto-media/encryption-and-audit.md) 为唯一真源。
 
 `payload_metadata` 至少覆盖 `scheme`、`version`、`group_id`、`epoch`、`content_type`、`aad_visibility_event_id`、`aad` 与 `key_ref` 中实际出现在 envelope 的字段；字段缺失时必须省略，不得写入 `null`。实现 MUST NOT 使用明文 payload 作为 `payload_digest` 输入，也不得把 base64url ciphertext 字符串本身作为密文字节输入。
 

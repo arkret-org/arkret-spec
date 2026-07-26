@@ -14,7 +14,7 @@
         "action": "ak.message.create",
         "context": {
           "strand_id": "ak:strand:0196418d-cc00-7000-8000-000000000000",
-          "content_class": "text"
+          "content_kind": "text"
         }
       },
       "request_b2": {
@@ -23,7 +23,7 @@
         "action": "ak.message.create",
         "context": {
           "strand_id": "ak:strand:0196418d-cc00-7000-8000-000000000000",
-          "content_class": "attachment"
+          "content_kind": "attachment"
         }
       },
       "bound_to": {

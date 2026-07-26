@@ -392,7 +392,7 @@
       },
       "additionalProperties": false
     },
-    "backup_class": {
+    "backup_kind": {
       "type": "string",
       "enum": [
         "did_recovery",
@@ -405,7 +405,7 @@
       "required": [
         "backup_id",
         "actor_id",
-        "backup_class",
+        "backup_kind",
         "backup_version",
         "series_id",
         "series_seq",
@@ -423,8 +423,8 @@
         "device_id": {
           "$ref": "#/$defs/device_id"
         },
-        "backup_class": {
-          "$ref": "#/$defs/backup_class"
+        "backup_kind": {
+          "$ref": "#/$defs/backup_kind"
         },
         "backup_version": {
           "$ref": "#/$defs/non_empty_string"

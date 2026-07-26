@@ -108,7 +108,7 @@
       "name": "rrk_eager_seal_before_gc",
       "vector_id": "ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1",
       "input": {
-        "content_scheme": "mls-exporter-aead-v1",
+        "content_scheme": "mls_exporter_aead_v1",
         "epoch": 7,
         "durability_policy": {
           "mode": "threshold",
@@ -136,7 +136,7 @@
       "vector_id": "ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1",
       "input": {
         "verification_method_state": "revoked",
-        "did_service_type": "ArkretRealmHistoryRecoveryKey",
+        "did_service_kind": "ArkretRealmHistoryRecoveryKey",
         "requested_transition": "seal_history_secret"
       },
       "expected": {

@@ -75,13 +75,13 @@ export interface Operation {
   http: string;
   grpc: string;
   mq: string;
-  /** For interop_bridge tier ops, the in-spec operation this bridge mirrors. */
+  /** For interop_bridge surface-class ops, the in-spec operation this bridge mirrors. */
   bridges_to?: string;
 }
 
 export interface SurfaceGroup {
   surface: string;
-  tier: string;
+  surface_class: string;
   operations: string[];
 }
 
@@ -127,14 +127,14 @@ function pickSchema<T = unknown>(name: string): T {
   return schemaFiles[key] as T;
 }
 
-const contractCatalog = pickRegistry<Record<string, unknown>>("contract-catalog.json");
+const contractCatalog = pickRegistry<Record<string, unknown>>("contract-registry.json");
 const eventRegistry = pickRegistry<{ event_kinds: EventKind[] }>("event-kind-registry.json");
 const errorRegistry = pickRegistry<{ codes: ErrorCode[]; reason_codes?: ErrorCode[] }>("error-code-registry.json");
 const idRegistry = pickRegistry<{ id_kinds: IdKind[]; special_forms?: IdKind[] }>("id-kind-registry.json");
 const operationRegistry = pickRegistry<{
   operations: Operation[];
   surface_groups: SurfaceGroup[];
-  capability_tiers: Record<string, string>;
+  surface_classes: Record<string, string>;
 }>("operation-registry.json");
 const schemaRegistry = pickRegistry<{ schemas: SchemaEntry[] }>("schema-registry.json");
 const conformanceProfiles = pickProfile<ConformanceProfileMatrix>("conformance-profiles.json");
@@ -168,7 +168,7 @@ export const operations: Operation[] = operationRegistry.operations.slice().sort
 );
 
 export const surfaceGroups: SurfaceGroup[] = operationRegistry.surface_groups;
-export const capabilityTiers: Record<string, string> = operationRegistry.capability_tiers;
+export const surfaceClasses: Record<string, string> = operationRegistry.surface_classes;
 
 export const schemaEntries: SchemaEntry[] = schemaRegistry.schemas.slice().sort((a, b) =>
   a.schema_id.localeCompare(b.schema_id)

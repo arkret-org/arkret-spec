@@ -2,12 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/key-backup-active-series.schema.json",
   "title": "Arkret Key Backup Active Series Record",
-  "description": "Signed principal-control record selecting the canonical backup series for one (actor_id, backup_class). This closes the rollback gap when multiple series exist after compromise rotation or migration. Receivers MUST verify this record before choosing a series from list results.",
+  "description": "Signed principal-control record selecting the canonical backup series for one (actor_id, backup_kind). This closes the rollback gap when multiple series exist after compromise rotation or migration. Receivers MUST verify this record before choosing a series from list results.",
   "type": "object",
   "required": [
     "schema",
     "actor_id",
-    "backup_class",
+    "backup_kind",
     "active_series_id",
     "series_pointer_version",
     "previous_series_ids",
@@ -22,8 +22,8 @@
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/did"
     },
-    "backup_class": {
-      "$ref": "#/$defs/backup_class"
+    "backup_kind": {
+      "$ref": "#/$defs/backup_kind"
     },
     "active_series_id": {
       "$ref": "#/$defs/backup_series_id"
@@ -31,7 +31,7 @@
     "series_pointer_version": {
       "type": "integer",
       "minimum": 1,
-      "description": "Strictly monotonic per (actor_id, backup_class). The first record is 1 and every successor is previous+1; receivers reject rollback, gaps and same-version forks."
+      "description": "Strictly monotonic per (actor_id, backup_kind). The first record is 1 and every successor is previous+1; receivers reject rollback, gaps and same-version forks."
     },
     "previous_series_ids": {
       "type": "array",
@@ -93,7 +93,7 @@
             },
             {
               "contains": {
-                "const": "backup_class"
+                "const": "backup_kind"
               }
             },
             {
@@ -209,7 +209,7 @@
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
-    "backup_class": {
+    "backup_kind": {
       "type": "string",
       "enum": [
         "did_recovery",

@@ -450,7 +450,7 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
     "delivery_binding_hint": "member_delivery_binding",
     "frank": "franking_proof",
     "frank_id": "franking_proof_id",
-    "requires_frank_verification": "requires_franking_proof_verification",
+    "requires_frank_verification": "franking_proof_verification_required",
     "retention_until": "retention_expires_at",
     "queue_item_id": "id",
     "actor_did": "actor_id",
@@ -659,14 +659,274 @@ def check_legacy_wire_fields(lint: Lint) -> None:
 STRIKETHROUGH_RE = re.compile(r"~~[^~]+~~")
 
 
-def check_forbidden_naming_aliases(lint: Lint) -> None:
-    """Reject old names from the naming-normalization pass.
+NAMING_RULES_PATH = Path(__file__).with_name("naming-convention-rules.json")
+EVIDENCE_MATERIAL_AUDIT_PATH = Path(__file__).with_name("evidence-material-audit.json")
+COMMON_OBJECT_FIELD_MATRIX_PATH = Path(__file__).with_name("common-object-field-matrix.json")
+NAMING_RULE_MARKER_RE = re.compile(r"rule_id:\s*([A-Z0-9-]+)")
+STAGE_VALUES = {
+    "draft",
+    "proposed",
+    "planned",
+    "in_progress",
+    "blocked",
+    "done",
+    "cancelled",
+    "superseded",
+}
+
+
+def check_naming_predicates(lint: Lint) -> None:
+    """Apply naming predicates and retain exact aliases only as historical fallback.
 
     The drift registries and changelog intentionally mention legacy spellings;
     current schemas, fixtures, OpenAPI, and prose examples must not. This guard
-    catches schema/property-name regressions that JSON Schema alone cannot
-    detect, especially exact legacy keys inside examples.
+    is driven by ``naming-convention-rules.json`` and enforces the mechanically
+    decidable portion of common-fields.md §2.
     """
+
+    rules_data = load_json(lint, NAMING_RULES_PATH)
+    if not isinstance(rules_data, dict):
+        return
+    if rules_data.get("source_of_truth") is not False:
+        lint.fail(NAMING_RULES_PATH, "naming rules are a derived predicate table, not a truth source")
+    if rules_data.get("baseline") != []:
+        lint.fail(NAMING_RULES_PATH, "naming convention baseline must be empty at closure")
+    if rules_data.get("evidence_material_audit") != "tools/evidence-material-audit.json":
+        lint.fail(NAMING_RULES_PATH, "NC-EVIDENCE-001 must point to the exact-path evidence audit")
+    rules = rules_data.get("rules")
+    if not isinstance(rules, list):
+        lint.fail(NAMING_RULES_PATH, "rules must be an array")
+        return
+    rule_ids = [row.get("rule_id") for row in rules if isinstance(row, dict)]
+    if len(rule_ids) != len(set(rule_ids)) or any(not isinstance(item, str) for item in rule_ids):
+        lint.fail(NAMING_RULES_PATH, "rule_id values must be unique non-empty strings")
+    prose_path = SPEC_ROOT / "zh" / "models" / "common-fields.md"
+    prose_ids = NAMING_RULE_MARKER_RE.findall(prose_path.read_text(encoding="utf-8"))
+    if len(prose_ids) != len(set(prose_ids)):
+        lint.fail(prose_path, "naming rule markers must be unique")
+    if set(prose_ids) != set(rule_ids):
+        lint.fail(
+            NAMING_RULES_PATH,
+            f"narrative/predicate rule_id drift: prose-only={sorted(set(prose_ids) - set(rule_ids))}, "
+            f"json-only={sorted(set(rule_ids) - set(prose_ids))}",
+        )
+    for row in rules:
+        if not isinstance(row, dict):
+            lint.fail(NAMING_RULES_PATH, "every naming rule must be an object")
+            continue
+        for exception in row.get("exceptions", []):
+            if not isinstance(exception, dict) or not all(
+                exception.get(field) for field in ("id", "basis", "reason", "anchor")
+            ):
+                lint.fail(NAMING_RULES_PATH, f"{row.get('rule_id')} has an incomplete exception")
+                continue
+            if exception.get("basis") == "external_literal" and not exception.get("external_anchor"):
+                lint.fail(
+                    NAMING_RULES_PATH,
+                    f"{row.get('rule_id')} external_literal exception lacks external_anchor",
+                )
+
+    evidence_audit = load_json(lint, EVIDENCE_MATERIAL_AUDIT_PATH)
+    if isinstance(evidence_audit, dict):
+        if evidence_audit.get("source_of_truth") is not False:
+            lint.fail(
+                EVIDENCE_MATERIAL_AUDIT_PATH,
+                "the evidence audit is derived from schemas and registries, not a truth source",
+            )
+        registrations = evidence_audit.get("registrations")
+        expected_evidence_keys: dict[tuple[str, str], int] = {}
+        if not isinstance(registrations, list):
+            lint.fail(EVIDENCE_MATERIAL_AUDIT_PATH, "registrations must be an array")
+            registrations = []
+        allowed_dispositions = {
+            "polymorphic_container",
+            "derived_summary",
+            "qualifier",
+            "registry_contract",
+        }
+        material_family_names = {
+            "proof",
+            "attestation",
+            "receipt",
+            "commitment",
+            "transcript",
+        }
+        for index, registration in enumerate(registrations):
+            where = f"registrations[{index}]"
+            if not isinstance(registration, dict):
+                lint.fail(EVIDENCE_MATERIAL_AUDIT_PATH, f"{where} must be an object")
+                continue
+            file_name = registration.get("file")
+            key = registration.get("key")
+            occurrences = registration.get("occurrences")
+            disposition = registration.get("disposition")
+            reason = registration.get("reason")
+            if not isinstance(file_name, str) or not isinstance(key, str) or "evidence" not in key:
+                lint.fail(EVIDENCE_MATERIAL_AUDIT_PATH, f"{where} has an invalid file/key")
+                continue
+            pair = (file_name, key)
+            if pair in expected_evidence_keys:
+                lint.fail(EVIDENCE_MATERIAL_AUDIT_PATH, f"{where} duplicates {file_name}:{key}")
+            if not isinstance(occurrences, int) or occurrences < 1:
+                lint.fail(EVIDENCE_MATERIAL_AUDIT_PATH, f"{where}.occurrences must be positive")
+                continue
+            expected_evidence_keys[pair] = occurrences
+            if disposition not in allowed_dispositions:
+                lint.fail(EVIDENCE_MATERIAL_AUDIT_PATH, f"{where} has an unknown disposition")
+            if not isinstance(reason, str) or not reason.strip():
+                lint.fail(EVIDENCE_MATERIAL_AUDIT_PATH, f"{where} must explain the adjudication")
+            families = registration.get("material_families", [])
+            if disposition == "polymorphic_container":
+                if (
+                    not isinstance(families, list)
+                    or len(set(families)) < 2
+                    or any(family not in material_family_names for family in families)
+                ):
+                    lint.fail(
+                        EVIDENCE_MATERIAL_AUDIT_PATH,
+                        f"{where} must register at least two distinct material families",
+                    )
+            elif families:
+                lint.fail(
+                    EVIDENCE_MATERIAL_AUDIT_PATH,
+                    f"{where} may declare material_families only for a polymorphic container",
+                )
+
+        actual_evidence_keys: dict[tuple[str, str], int] = {}
+
+        def count_evidence_keys(file_name: str, node: Any) -> None:
+            if isinstance(node, dict):
+                for key, value in node.items():
+                    if "evidence" in key:
+                        pair = (file_name, key)
+                        actual_evidence_keys[pair] = actual_evidence_keys.get(pair, 0) + 1
+                    count_evidence_keys(file_name, value)
+            elif isinstance(node, list):
+                for value in node:
+                    count_evidence_keys(file_name, value)
+
+        evidence_scope = [
+            *(ARTIFACTS / "schemas").glob("*.json"),
+            *(ARTIFACTS / "registry").glob("*.json"),
+        ]
+        for evidence_path in sorted(evidence_scope):
+            evidence_data = load_json(lint, evidence_path)
+            if evidence_data is not None:
+                count_evidence_keys(evidence_path.name, evidence_data)
+        if actual_evidence_keys != expected_evidence_keys:
+            missing = sorted(set(actual_evidence_keys) - set(expected_evidence_keys))
+            stale = sorted(set(expected_evidence_keys) - set(actual_evidence_keys))
+            count_drift = sorted(
+                (pair, expected_evidence_keys[pair], actual_evidence_keys[pair])
+                for pair in set(expected_evidence_keys) & set(actual_evidence_keys)
+                if expected_evidence_keys[pair] != actual_evidence_keys[pair]
+            )
+            lint.fail(
+                EVIDENCE_MATERIAL_AUDIT_PATH,
+                f"evidence adjudication drift: unregistered={missing}, stale={stale}, "
+                f"count_drift={count_drift}",
+            )
+        actual_occurrence_count = sum(actual_evidence_keys.values())
+        if evidence_audit.get("audited_occurrence_count") != actual_occurrence_count:
+            lint.fail(
+                EVIDENCE_MATERIAL_AUDIT_PATH,
+                "audited_occurrence_count does not match the registered schema/registry key count",
+            )
+
+    allowed_hash_fields = {
+        "transcript_hash",
+        "confirmed_transcript_hash",
+        "nextKeyHashes",
+        "current_key_hash",
+        "current_key_hashes",
+        "next_key_hash",
+        "previous_next_key_hashes",
+        "matches_previous_next_key_hashes",
+        "hashes",
+    }
+    forbidden_boolean_prefixes = ("allow_", "require_", "requires_", "deny_", "force_")
+    forbidden_set_prefixes = ("permitted_", "forbidden_", "blocked_", "banned_")
+    forbidden_symbolic_literals = {
+        "mls-rfc9420",
+        "mls-exporter-aead-v1",
+        "feldman-vss-sha256",
+        "pedersen-vss-sha256",
+        "share-hash-sha256",
+        "share-hash-blake3",
+        "arkret-native",
+        "moq-relay",
+    }
+
+    def visit_schema(path: Path, node: Any, where: str = "$") -> None:
+        if not isinstance(node, dict):
+            if isinstance(node, list):
+                for index, item in enumerate(node):
+                    visit_schema(path, item, f"{where}[{index}]")
+            return
+        definitions = node.get("$defs")
+        if isinstance(definitions, dict) and path.name != "service-operation-dtos.schema.json":
+            for name in definitions:
+                if not re.fullmatch(r"[a-z][a-z0-9_]*", name):
+                    lint.fail(path, f"{where}.$defs key `{name}` must be snake_case")
+        properties = node.get("properties")
+        if isinstance(properties, dict):
+            for name, shape in properties.items():
+                property_where = f"{where}.properties.{name}"
+                is_boolean = isinstance(shape, dict) and shape.get("type") == "boolean"
+                if is_boolean and name.startswith(forbidden_boolean_prefixes):
+                    lint.fail(path, f"{property_where} violates NC-BOOL-001")
+                if (
+                    (name.endswith("_hash") or name.endswith("_hashes") or name in {"hash_profile", "hash_algorithm"})
+                    and name not in allowed_hash_fields
+                ):
+                    lint.fail(path, f"{property_where} violates NC-HASH-001")
+                if name.endswith(("_len", "_length", "_size")):
+                    lint.fail(path, f"{property_where} violates NC-COUNT-001")
+                if name in {"failure_code", "rejection_code"}:
+                    lint.fail(path, f"{property_where} violates NC-CODE-001")
+                if (
+                    isinstance(shape, dict)
+                    and shape.get("type") == "array"
+                    and name.startswith(forbidden_set_prefixes)
+                ):
+                    lint.fail(path, f"{property_where} violates NC-SET-001")
+                if name == "stage" and isinstance(shape, dict) and isinstance(shape.get("enum"), list):
+                    if set(shape["enum"]) != STAGE_VALUES:
+                        lint.fail(path, f"{property_where} reuses reserved stage outside the 8-value axis")
+                visit_schema(path, shape, property_where)
+        enum_values = node.get("enum")
+        if isinstance(enum_values, list):
+            for value in enum_values:
+                if value in forbidden_symbolic_literals:
+                    lint.fail(path, f"{where}.enum contains non-snake Arkret symbol `{value}`")
+        for key, value in node.items():
+            if key not in {"properties", "$defs", "enum"}:
+                visit_schema(path, value, f"{where}.{key}")
+
+    for schema_path in sorted((ARTIFACTS / "schemas").glob("*.json")):
+        schema_data = load_json(lint, schema_path)
+        if schema_data is not None:
+            visit_schema(schema_path, schema_data)
+
+    for artifact_path in raw_artifact_files():
+        if "_" in artifact_path.name:
+            lint.fail(artifact_path, "artifact filename violates NC-ARTIFACT-001 kebab-case rule")
+
+    openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
+    openapi_text = openapi_path.read_text(encoding="utf-8")
+    for match in re.finditer(r"^    ([A-Z][A-Za-z0-9]*Request):\s*$", openapi_text, re.MULTILINE):
+        lint.fail(openapi_path, f"schema component `{match.group(1)}` must use RequestBody")
+
+    negative_ids = {
+        row.get("rule_id")
+        for row in rules_data.get("negative_cases", [])
+        if isinstance(row, dict) and row.get("expected") == "reject"
+    }
+    required_negative_ids = {f"NC-{axis}-001" for axis in (
+        "BOOL", "COUNT", "ENUM", "TYPE", "CODE", "EVIDENCE", "ARTIFACT", "SET"
+    )}
+    if negative_ids != required_negative_ids:
+        lint.fail(NAMING_RULES_PATH, "R1-R8 negative cases must cover every predicate exactly")
 
     def check_key(path: Path, where: str, key: str | None) -> None:
         if not key:
@@ -744,6 +1004,108 @@ def check_forbidden_naming_aliases(lint: Lint) -> None:
                 continue
             line_no = text.count("\n", 0, match.start()) + 1
             check_json_value(path, data, f"json block line {line_no}")
+
+
+def check_profile_dependency_graph(lint: Lint) -> None:
+    """Keep the generated profile graph aligned with its canonical requirements."""
+
+    profiles_path = ARTIFACTS / "profiles" / "conformance-profiles.json"
+    graph_path = ARTIFACTS / "registry" / "profiles-dependency-graph.json"
+    profiles = load_json(lint, profiles_path)
+    graph = load_json(lint, graph_path)
+    if not isinstance(profiles, dict) or not isinstance(graph, dict):
+        return
+    requirements = profiles.get("profile_requirements")
+    if not isinstance(requirements, dict):
+        lint.fail(profiles_path, "profile_requirements must be an object")
+        return
+    expected_nodes = set(requirements)
+    expected_edges: set[tuple[str, str, str]] = set()
+    for profile_id, requirement in requirements.items():
+        if not isinstance(requirement, dict):
+            continue
+        for field, kind in (
+            ("inherits", "inherits"),
+            ("depends_on", "depends_on"),
+            ("mutually_exclusive_with", "mutually_exclusive_with"),
+        ):
+            for target in requirement.get(field, []):
+                if isinstance(target, str):
+                    expected_edges.add((profile_id, target, kind))
+    actual_nodes = set(graph.get("nodes", []))
+    actual_edges = {
+        (row.get("from"), row.get("to"), row.get("kind"))
+        for row in graph.get("edges", [])
+        if isinstance(row, dict)
+    }
+    if actual_nodes != expected_nodes:
+        lint.fail(graph_path, "generated profile graph nodes drift from profile_requirements")
+    if actual_edges != expected_edges:
+        lint.fail(graph_path, "generated profile graph edges drift from profile_requirements")
+    if graph.get("source_of_truth") is not False:
+        lint.fail(graph_path, "generated profile graph must not claim source_of_truth")
+
+
+def check_common_object_field_matrix(lint: Lint) -> None:
+    """Check the derived §3.1 matrix and its conditional View lifecycle cells."""
+
+    matrix = load_json(lint, COMMON_OBJECT_FIELD_MATRIX_PATH)
+    prose_path = SPEC_ROOT / "zh" / "models" / "common-fields.md"
+    if not isinstance(matrix, dict):
+        return
+    lines = prose_path.read_text(encoding="utf-8").splitlines()
+    try:
+        start = next(
+            index
+            for index, line in enumerate(lines)
+            if line.startswith("| 字段 | 组 | Realm | Circle |")
+        )
+    except StopIteration:
+        lint.fail(prose_path, "§3.1 matrix header is missing")
+        return
+    headers = [cell.strip() for cell in lines[start].strip("|").split("|")]
+    prose_rows: list[dict[str, str]] = []
+    for line in lines[start + 2 :]:
+        if not line.startswith("|"):
+            break
+        values = [cell.strip() for cell in line.strip("|").split("|")]
+        if len(values) != len(headers):
+            lint.fail(prose_path, f"§3.1 matrix row has {len(values)} cells, expected {len(headers)}")
+            continue
+        prose_rows.append(dict(zip(headers, values)))
+    if matrix.get("headers") != headers or matrix.get("rows") != prose_rows:
+        lint.fail(COMMON_OBJECT_FIELD_MATRIX_PATH, "derived matrix drifts from common-fields.md §3.1")
+
+    by_field = {row.get("字段"): row for row in prose_rows}
+    view_schema_path = ARTIFACTS / "schemas" / "view.schema.json"
+    view_schema = load_json(lint, view_schema_path)
+    if not isinstance(view_schema, dict):
+        return
+    view_properties = view_schema.get("properties", {})
+    for raw_field, row in by_field.items():
+        if not isinstance(raw_field, str) or not isinstance(row, dict):
+            continue
+        field = raw_field.strip("`")
+        cell = row.get("View", "")
+        present = field in view_properties
+        if cell.startswith("—") and present:
+            lint.fail(view_schema_path, f"§3.1 View.{field} is not applicable but schema declares it")
+        if not cell.startswith("—") and not present and "/" not in field:
+            lint.fail(view_schema_path, f"§3.1 View.{field} is applicable but schema omits it")
+    state_rule = next(
+        (
+            rule
+            for rule in view_schema.get("allOf", [])
+            if isinstance(rule, dict)
+            and ((rule.get("if") or {}).get("properties") or {}).get("state")
+            == {"const": "tombstoned"}
+        ),
+        None,
+    )
+    if not isinstance(state_rule, dict) or "state_changed_at" not in (
+        (state_rule.get("then") or {}).get("required") or []
+    ):
+        lint.fail(view_schema_path, "View.state_changed_at must be conditionally required for tombstoned")
 
 
 def check_event_proof_digest_shape(lint: Lint) -> None:
@@ -1026,9 +1388,7 @@ def check_registry_manifest(lint: Lint) -> None:
                 lint.fail(path, f"registries[{index}].generated_from must be a non-empty string")
             elif Path(generated_from).is_absolute() or ".." in Path(generated_from).parts:
                 lint.fail(path, f"registries[{index}].generated_from escapes artifacts/: {generated_from}")
-            elif not generated_from.startswith("registry/"):
-                lint.fail(path, f"registries[{index}].generated_from must stay inside artifacts/registry: {generated_from}")
-            elif not (ARTIFACTS / generated_from).exists():
+            elif not (ARTIFACTS / generated_from.split("#", 1)[0]).exists():
                 lint.fail(path, f"registries[{index}].generated_from does not exist: {generated_from}")
         if not isinstance(description, str) or not description.strip():
             lint.fail(path, f"registries[{index}].description must be a non-empty string")
@@ -1037,6 +1397,9 @@ def check_registry_manifest(lint: Lint) -> None:
         if row.get("source_role") != "generated":
             continue
         generated_from = row.get("generated_from")
+        source_file = generated_from.split("#", 1)[0] if isinstance(generated_from, str) else ""
+        if generated_from not in entries_by_file and source_file.startswith("profiles/"):
+            continue
         if generated_from not in entries_by_file:
             lint.fail(path, f"generated registry {file_ref} references unlisted source {generated_from!r}")
             continue
@@ -1092,7 +1455,7 @@ def lint_select_component(
     """Validate a discriminated `select` cell-subject component (encoding.md 9.5.1).
 
     A select component picks one scalar field path from a closed branch map keyed by
-    the literal value of a discriminator field. Unknown component types, missing
+    the literal value of a discriminator field. Unknown component kinds, missing
     selectors and empty or malformed branch maps are fail-closed lint errors so a
     registry can never leave a subject partially derivable.
     """
@@ -1101,9 +1464,9 @@ def lint_select_component(
     if not isinstance(component, dict):
         lint.fail(path, f"{ref} must be a select component object")
         return
-    component_type = component.get("type")
-    if component_type != "select":
-        lint.fail(path, f"{ref}.type must be 'select'; unknown component types are rejected")
+    component_kind = component.get("kind")
+    if component_kind != "select":
+        lint.fail(path, f"{ref}.kind must be 'select'; unknown component kinds are rejected")
         return
     lint_path = lint_subject_field_path if subject_source else lint_field_path
     lint_path(lint, path, f"{ref}.selector", component.get("selector"))
@@ -1135,7 +1498,7 @@ def lint_select_component(
         unknown_branch_keys = set(branch) - {"field", "forbidden_fields"}
         if unknown_branch_keys:
             lint.fail(path, f"{branch_ref} has unknown member(s) {sorted(unknown_branch_keys)}")
-    unknown_keys = set(component) - {"type", "selector", "branches"}
+    unknown_keys = set(component) - {"kind", "selector", "branches"}
     if unknown_keys:
         lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown_keys)}")
 
@@ -1193,13 +1556,13 @@ def lint_cell_write_condition(lint: Lint, path: Path, ref: str, condition: objec
     if not isinstance(condition, dict):
         lint.fail(path, f"{ref} must be an object")
         return
-    allowed_types = {"field_present", "field_absent", "field_equals", "any_field_present"}
-    condition_type = condition.get("type")
-    if condition_type not in allowed_types:
-        lint.fail(path, f"{ref}.type must be one of {sorted(allowed_types)}")
+    allowed_kinds = {"field_present", "field_absent", "field_equals", "any_field_present"}
+    condition_kind = condition.get("kind")
+    if condition_kind not in allowed_kinds:
+        lint.fail(path, f"{ref}.kind must be one of {sorted(allowed_kinds)}")
         return
-    if condition_type == "any_field_present":
-        unknown = set(condition) - {"type", "fields"}
+    if condition_kind == "any_field_present":
+        unknown = set(condition) - {"kind", "fields"}
         if unknown:
             lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
         fields = condition.get("fields")
@@ -1211,12 +1574,12 @@ def lint_cell_write_condition(lint: Lint, path: Path, ref: str, condition: objec
         if len(fields) != len({repr(field) for field in fields}):
             lint.fail(path, f"{ref}.fields must not repeat a path")
         return
-    allowed_keys = {"type", "field"} | ({"const"} if condition_type == "field_equals" else set())
+    allowed_keys = {"kind", "field"} | ({"const"} if condition_kind == "field_equals" else set())
     unknown = set(condition) - allowed_keys
     if unknown:
         lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
     lint_field_path(lint, path, f"{ref}.field", condition.get("field"))
-    if condition_type == "field_equals":
+    if condition_kind == "field_equals":
         if "const" not in condition:
             lint.fail(path, f"{ref}.const is required for field_equals")
         elif not isinstance(condition["const"], (str, int, float, bool)):
@@ -1233,11 +1596,11 @@ def lint_value_projection(lint: Lint, path: Path, ref: str, projection: object) 
     if not isinstance(projection, dict):
         lint.fail(path, f"{ref} must be an object")
         return
-    unknown_projection_keys = set(projection) - {"type", "members"}
+    unknown_projection_keys = set(projection) - {"kind", "members"}
     if unknown_projection_keys:
         lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown_projection_keys)}")
-    if projection.get("type") != "object":
-        lint.fail(path, f"{ref}.type must be 'object'")
+    if projection.get("kind") != "object":
+        lint.fail(path, f"{ref}.kind must be 'object'")
     members = projection.get("members")
     if not isinstance(members, list) or not members:
         lint.fail(path, f"{ref}.members must be a non-empty array")
@@ -1346,24 +1709,24 @@ def lint_effect_projection(
     if not isinstance(projection, dict):
         lint.fail(path, f"{ref} must be an object")
         return
-    projection_type = projection.get("type")
-    expected_type = {
+    projection_kind = projection.get("kind")
+    expected_kind = {
         "fsm": "transition",
         "mv_register": "set",
         "cas_register": "set",
         "or_set": "or_set_delta",
     }.get(lattice)
-    if expected_type is None:
+    if expected_kind is None:
         lint.fail(path, f"{ref} is not defined for lattice {lattice!r}")
         return
-    if projection_type != expected_type:
+    if projection_kind != expected_kind:
         lint.fail(
             path,
-            f"{ref}.type must be {expected_type!r} for lattice {lattice!r}",
+            f"{ref}.kind must be {expected_kind!r} for lattice {lattice!r}",
         )
         return
-    if projection_type == "transition":
-        unknown = set(projection) - {"type", "from", "to"}
+    if projection_kind == "transition":
+        unknown = set(projection) - {"kind", "from", "to"}
         if unknown:
             lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
         for member in ("from", "to"):
@@ -1372,8 +1735,8 @@ def lint_effect_projection(
             else:
                 lint_effect_source(lint, path, f"{ref}.{member}", projection[member])
         return
-    if projection_type == "set":
-        unknown = set(projection) - {"type", "value"}
+    if projection_kind == "set":
+        unknown = set(projection) - {"kind", "value"}
         if unknown:
             lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
         if "value" not in projection:
@@ -1382,7 +1745,7 @@ def lint_effect_projection(
             lint_effect_source(lint, path, f"{ref}.value", projection["value"])
         return
 
-    unknown = set(projection) - {"type", "selector", "branches"}
+    unknown = set(projection) - {"kind", "selector", "branches"}
     if unknown:
         lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
     lint_field_path(lint, path, f"{ref}.selector", projection.get("selector"))
@@ -1494,10 +1857,10 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     if subject is not None and not isinstance(subject, (str, dict)):
                         lint.fail(event_path, f"{write_ref}.cell_subject must be null, string, or object")
                     elif isinstance(subject, dict):
-                        subject_type = subject.get("type")
-                        if not isinstance(subject_type, str) or not subject_type:
-                            lint.fail(event_path, f"{write_ref}.cell_subject.type must be a non-empty string")
-                        if subject_type == "composite":
+                        subject_kind = subject.get("kind")
+                        if not isinstance(subject_kind, str) or not subject_kind:
+                            lint.fail(event_path, f"{write_ref}.cell_subject.kind must be a non-empty string")
+                        if subject_kind == "composite":
                             parts = subject.get("components")
                             if not isinstance(parts, list) or not parts:
                                 lint.fail(
@@ -1522,7 +1885,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                                             event_path,
                                             f"{part_ref} must be a field path string or a select component object",
                                         )
-                        elif subject_type == "coalesce":
+                        elif subject_kind == "coalesce":
                             parts = subject.get("fields")
                             if not isinstance(parts, list) or not parts:
                                 lint.fail(
@@ -1537,7 +1900,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                                         f"{write_ref}.cell_subject.fields[{part_index}]",
                                         part,
                                     )
-                        elif subject_type == "tuple":
+                        elif subject_kind == "tuple":
                             parts = subject.get("components")
                             if not isinstance(parts, list) or not parts:
                                 lint.fail(event_path, f"{write_ref}.cell_subject.components must be non-empty")
@@ -1591,10 +1954,10 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     subject = write.get("cell_subject")
                     if (
                         isinstance(condition, dict)
-                        and condition.get("type") == "any_field_present"
+                        and condition.get("kind") == "any_field_present"
                         and isinstance(condition.get("fields"), list)
                         and isinstance(subject, dict)
-                        and subject.get("type") == "coalesce"
+                        and subject.get("kind") == "coalesce"
                         and subject.get("fields") != condition["fields"]
                     ):
                         lint.fail(
@@ -1832,11 +2195,11 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     f"{operation_id} is read-only and must not declare idempotency_mechanism / retry_safe",
                 )
 
-    capability_tiers = operation_registry.get("capability_tiers")
+    surface_classes = operation_registry.get("surface_classes")
     surface_groups = operation_registry.get("surface_groups")
     assigned_operations: dict[str, str] = {}
-    if not isinstance(capability_tiers, dict) or not capability_tiers:
-        lint.fail(operation_path, "operation registry missing capability_tiers")
+    if not isinstance(surface_classes, dict) or not surface_classes:
+        lint.fail(operation_path, "operation registry missing surface_classes")
     if not isinstance(surface_groups, list) or not surface_groups:
         lint.fail(operation_path, "operation registry missing surface_groups")
     else:
@@ -1845,15 +2208,18 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                 lint.fail(operation_path, f"surface_groups[{index}] must be an object")
                 continue
             surface = row.get("surface")
-            tier = row.get("tier")
+            surface_class = row.get("surface_class")
             surface_operations = row.get("operations")
             if not isinstance(surface, str) or not surface:
                 lint.fail(operation_path, f"surface_groups[{index}].surface must be a non-empty string")
                 continue
-            if not isinstance(tier, str) or (
-                isinstance(capability_tiers, dict) and tier not in capability_tiers
+            if not isinstance(surface_class, str) or (
+                isinstance(surface_classes, dict) and surface_class not in surface_classes
             ):
-                lint.fail(operation_path, f"surface_groups[{index}] has unknown tier {tier!r}")
+                lint.fail(
+                    operation_path,
+                    f"surface_groups[{index}] has unknown surface_class {surface_class!r}",
+                )
             if not isinstance(surface_operations, list) or not surface_operations:
                 lint.fail(operation_path, f"surface_groups[{index}].operations must be a non-empty list")
                 continue
@@ -1897,12 +2263,12 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         constraint_schema.get("properties", {})
         if isinstance(constraint_schema, dict)
         else {}
-    ).get("constraint_type", {})
+    ).get("constraint_kind", {})
     enum_values = constraint_type_schema.get("enum") if isinstance(constraint_type_schema, dict) else None
     if isinstance(enum_values, list):
         constraint_types = {item for item in enum_values if isinstance(item, str)}
     if not constraint_types:
-        lint.fail(constraint_schema_path, "constraint_type enum must be non-empty")
+        lint.fail(constraint_schema_path, "constraint_kind enum must be non-empty")
 
     constraint_fields = set(
         constraint_schema.get("properties", {}).keys()
@@ -2067,9 +2433,9 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
             if schema_id not in known["schema_ids"]:
                 lint.fail(path, f"{profile_id} requires unknown schema: {schema_id}")
 
-        for constraint_type in requirement.get("required_constraint_types", []):
-            if constraint_type not in known["constraint_types"]:
-                lint.fail(path, f"{profile_id} requires invalid constraint_type: {constraint_type}")
+        for constraint_kind in requirement.get("required_constraint_kinds", []):
+            if constraint_kind not in known["constraint_types"]:
+                lint.fail(path, f"{profile_id} requires invalid constraint_kind: {constraint_kind}")
 
         for fixture in requirement.get("required_fixtures", []):
             if fixture not in fixture_files:
@@ -2262,7 +2628,7 @@ def check_fixture_runner_contract(lint: Lint) -> None:
                             continue
                         fields[target] = fields.pop(source)
                     elif rule_id == "ak.transform.type_widen.v1":
-                        if (rule.get("from_type"), rule.get("to_type")) != ("integer", "number") or not isinstance(fields.get(rule.get("field")), int):
+                        if (rule.get("from_kind"), rule.get("to_kind")) != ("integer", "number") or not isinstance(fields.get(rule.get("field")), int):
                             lint.fail(path, f"{vector.get('vector_id')} type widening precondition failed")
                     elif rule_id == "ak.transform.default_backfill.v1":
                         fields.setdefault(rule.get("to"), rule.get("value"))
@@ -2912,7 +3278,7 @@ def check_composite_subject_terminal_types(
         writes = row.get("cell_writes")
         for write_index, write in enumerate(writes if isinstance(writes, list) else []):
             subject = write.get("cell_subject") if isinstance(write, dict) else None
-            if not isinstance(subject, dict) or subject.get("type") not in {
+            if not isinstance(subject, dict) or subject.get("kind") not in {
                 "composite",
                 "tuple",
             }:
@@ -3252,7 +3618,7 @@ def check_service_describe_alignment(lint: Lint) -> None:
     if "trust_domain" not in (component.get("properties") or {}):
         lint.fail(openapi_path, "components.schemas.ServiceDescribe.properties.trust_domain missing")
     directory_fields = {
-        "resource_types",
+        "resource_kinds",
         "discovery_profiles",
         "restricted_query_proof",
         "ingest_modes",
@@ -3966,10 +4332,12 @@ def check_null_cell_subject_wire_form(lint: Lint) -> None:
     sort key, so any other spelling (realm id, Realm role classification, empty
     segment) forks state_root across implementations.
     """
-    catalog = load_json(lint, ARTIFACTS / "registry" / "contract-catalog.json")
-    if not isinstance(catalog, dict):
+    contract_registry = load_json(
+        lint, ARTIFACTS / "registry" / "contract-registry.json"
+    )
+    if not isinstance(contract_registry, dict):
         return
-    registry = catalog.get("event_kind_registry")
+    registry = contract_registry.get("event_kind_registry")
     if not isinstance(registry, dict):
         return
 
@@ -4318,14 +4686,14 @@ def check_operation_binding_metadata(lint: Lint) -> None:
     if not allowed_success_shapes:
         lint.fail(operation_path, "operation registry missing success_shape_kind_definitions")
 
-    tier_by_operation: dict[str, str] = {}
+    surface_class_by_operation: dict[str, str] = {}
     for group in operation_registry.get("surface_groups", []) if isinstance(operation_registry.get("surface_groups"), list) else []:
         if not isinstance(group, dict):
             continue
-        tier = group.get("tier")
+        surface_class = group.get("surface_class")
         for operation_id in group.get("operations", []) or []:
-            if isinstance(operation_id, str) and isinstance(tier, str):
-                tier_by_operation[operation_id] = tier
+            if isinstance(operation_id, str) and isinstance(surface_class, str):
+                surface_class_by_operation[operation_id] = surface_class
 
     openapi_facts = collect_openapi_operation_facts(lint, openapi_path)
     for row in operation_registry.get("operations", []) if isinstance(operation_registry.get("operations"), list) else []:
@@ -4365,8 +4733,11 @@ def check_operation_binding_metadata(lint: Lint) -> None:
                         f"but OpenAPI references {facts.get(fact_field)!r}",
                     )
         if uses_generic:
-            if tier_by_operation.get(operation_id) == "core":
-                lint.fail(operation_path, f"{operation_id} is core tier and must not use generic OpenAPI bindings")
+            if surface_class_by_operation.get(operation_id) == "core":
+                lint.fail(
+                    operation_path,
+                    f"{operation_id} has surface_class=core and must not use generic OpenAPI bindings",
+                )
             if not isinstance(generic_binding, dict):
                 lint.fail(operation_path, f"{operation_id} uses OperationRequest/OperationResult and must declare generic_binding")
                 continue
@@ -4384,7 +4755,7 @@ def check_operation_binding_metadata(lint: Lint) -> None:
 
 
 def check_binding_completeness_index(lint: Lint) -> None:
-    catalog_path = ARTIFACTS / "registry" / "contract-catalog.json"
+    catalog_path = ARTIFACTS / "registry" / "contract-registry.json"
     binding_path = SPEC_ROOT / "zh" / "sync" / "service-http-binding.md"
     catalog = load_json(lint, catalog_path)
     if not isinstance(catalog, dict):
@@ -4456,7 +4827,7 @@ def collect_operation_field_table_constraints(text: str) -> dict[str, str]:
 
 def check_operation_field_table_schema_refs(lint: Lint) -> None:
     """Operation field table rows must mention registry-declared schema refs."""
-    catalog_path = ARTIFACTS / "registry" / "contract-catalog.json"
+    catalog_path = ARTIFACTS / "registry" / "contract-registry.json"
     binding_path = SPEC_ROOT / "zh" / "sync" / "service-http-binding.md"
     catalog = load_json(lint, catalog_path)
     if not isinstance(catalog, dict):
@@ -4970,8 +5341,8 @@ def check_vector_registry(lint: Lint) -> None:
                 lint.fail(scan_path, f"references unregistered conformance vector id: {vector_id}")
 
 
-def check_account_data_type_registry(lint: Lint, known: dict[str, set[str]]) -> None:
-    path = ARTIFACTS / "registry" / "account-data-type-registry.json"
+def check_account_data_key_registry(lint: Lint, known: dict[str, set[str]]) -> None:
+    path = ARTIFACTS / "registry" / "account-data-key-registry.json"
     data = load_json(lint, path)
     if not isinstance(data, dict):
         return
@@ -4979,16 +5350,16 @@ def check_account_data_type_registry(lint: Lint, known: dict[str, set[str]]) -> 
     if data.get("source_of_truth") is not True:
         lint.fail(path, "source_of_truth must be true")
 
-    rows = data.get("account_data_types")
+    rows = data.get("account_data_key_patterns")
     if not isinstance(rows, list) or not rows:
-        lint.fail(path, "account_data_types must be a non-empty list")
+        lint.fail(path, "account_data_key_patterns must be a non-empty list")
         return
 
     seen: set[str] = set()
     allowed_status = {"active", "reserved", "deprecated"}
     allowed_storage = {"encrypted_account_data", "local_only", "encrypted_account_data_or_local"}
     for index, row in enumerate(rows):
-        label = f"account_data_types[{index}]"
+        label = f"account_data_key_patterns[{index}]"
         if not isinstance(row, dict):
             lint.fail(path, f"{label} must be an object")
             continue
@@ -5080,15 +5451,15 @@ def check_vector_reference_closure(lint: Lint) -> None:
                 lint.fail(path, f"references undefined conformance vector id: {vector_id}")
 
 
-def check_security_closure_vectors(lint: Lint) -> None:
-    path = ARTIFACTS / "fixtures" / "security-closure-vectors.json"
+def check_security_closure_fixture(lint: Lint) -> None:
+    path = ARTIFACTS / "fixtures" / "security-closure-fixture.json"
     data = load_json(lint, path)
     if not isinstance(data, dict):
         return
 
-    vectors = data.get("security_closure_vectors")
+    vectors = data.get("security_closure_fixture")
     if not isinstance(vectors, list) or not vectors:
-        lint.fail(path, "security_closure_vectors must be a non-empty array")
+        lint.fail(path, "security_closure_fixture must be a non-empty array")
         return
 
     conformance_path = SPEC_ROOT / "zh" / "conformance" / "conformance-vectors.md"
@@ -5100,7 +5471,7 @@ def check_security_closure_vectors(lint: Lint) -> None:
 
     seen: set[str] = set()
     for index, vector in enumerate(vectors):
-        label = f"security_closure_vectors[{index}]"
+        label = f"security_closure_fixture[{index}]"
         if not isinstance(vector, dict):
             lint.fail(path, f"{label} must be an object")
             continue
@@ -5246,8 +5617,8 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
             if key == "call" and ".recovery.call" in json_path and value.startswith("ak."):
                 if value not in known["operation_ids"]:
                     lint.fail(path, f"{json_path} references unregistered recovery operation_id: {value}")
-            if key == "constraint_type" and value not in known["constraint_types"]:
-                lint.fail(path, f"{json_path} uses invalid constraint_type: {value}")
+            if key == "constraint_kind" and value not in known["constraint_types"]:
+                lint.fail(path, f"{json_path} uses invalid constraint_kind: {value}")
 
             for match in TYPED_ID_TOKEN_RE.finditer(value):
                 check_typed_id_token(lint, path, json_path, match.group(1), match.group(2), known)
@@ -5406,8 +5777,8 @@ def check_markdown_json_value(lint: Lint, path: Path, json_path: str, value: Any
             if value not in known["operation_ids"]:
                 lint.fail(path, f"{json_path} markdown JSON references unregistered operation_id: {value}")
 
-        if key == "constraint_type" and value not in known["constraint_types"]:
-            lint.fail(path, f"{json_path} markdown JSON uses invalid constraint_type: {value}")
+        if key == "constraint_kind" and value not in known["constraint_types"]:
+            lint.fail(path, f"{json_path} markdown JSON uses invalid constraint_kind: {value}")
 
         for match in TYPED_ID_TOKEN_RE.finditer(value):
             kind, rest = match.group(1), match.group(2)
@@ -5704,10 +6075,10 @@ def check_release_readiness_counts(lint: Lint, known: dict[str, set[str]]) -> No
 
     profile_data = load_json(lint, ARTIFACTS / "profiles" / "conformance-profiles.json") or {}
     profile_requirements_count = len(profile_data.get("profile_requirements", []))
-    profile_tiers = profile_data.get("profile_tiers", {})
+    profile_sets = profile_data.get("profile_sets", {})
     profile_tiers_count = (
-        sum(1 for value in profile_tiers.values() if isinstance(value, list))
-        if isinstance(profile_tiers, dict)
+        sum(1 for value in profile_sets.values() if isinstance(value, list))
+        if isinstance(profile_sets, dict)
         else 0
     )
 
@@ -5719,7 +6090,7 @@ def check_release_readiness_counts(lint: Lint, known: dict[str, set[str]]) -> No
         "Claimable conformance profile": len(known["claimable_profiles"]),
         "Profile id references": len(known["profiles"]),
         "profile_requirements": profile_requirements_count,
-        "profile_tiers": profile_tiers_count,
+        "profile_sets": profile_tiers_count,
     }
 
     # Match table rows like "| Event kind（active） | 152 | `...` |"
@@ -5731,7 +6102,7 @@ def check_release_readiness_counts(lint: Lint, known: dict[str, set[str]]) -> No
             found[label] = int(match.group(2))
 
     for label, want in expected.items():
-        if label in {"profile_requirements", "profile_tiers"}:
+        if label in {"profile_requirements", "profile_sets"}:
             inline_patterns = [
                 rf"(\d+)\s*(?:个|组|block|blocks)?\s*`{label}`",
                 rf"`{label}`\s*(?:block|blocks|分组)?\s*[（(](\d+)[）)]",
@@ -6769,7 +7140,7 @@ def check_exporter_label_registry(lint: Lint) -> None:
     if not isinstance(labels, list) or not labels:
         lint.fail(path, "exporter-label-registry.json: labels MUST be a non-empty list")
         return
-    required = {"label", "context_fields", "output_length", "applies_to_profiles", "grandfathered"}
+    required = {"label", "context_fields", "output_bytes", "applies_to_profiles", "grandfathered"}
     seen: set[str] = set()
     for index, entry in enumerate(labels):
         if not isinstance(entry, dict):
@@ -6851,7 +7222,7 @@ def check_signature_algorithm_registry(lint: Lint) -> None:
         ("schemas/event-envelope.schema.json", "/$defs/proof/properties/alg/enum"),
         ("schemas/seal.schema.json", "/$defs/signature/properties/alg/enum"),
         ("schemas/ice-config-response.schema.json", "/$defs/signature/properties/alg/enum"),
-        ("schemas/attestation-evidence.schema.json", "/properties/attestation_key/properties/alg/enum"),
+        ("schemas/audit-release-attestation.schema.json", "/properties/attestation_key/properties/alg/enum"),
     ]
     raw_enum_locations = [
         ("schemas/member-identity.schema.json", "/properties/proof/properties/signature_algorithm/enum"),
@@ -6870,8 +7241,8 @@ def check_signature_algorithm_registry(lint: Lint) -> None:
             lint.fail(schema_path, f"{pointer} must match signature-alg-registry signature_algorithm values {expected_raw}")
 
 
-def check_service_type_registry(lint: Lint) -> None:
-    path = ARTIFACTS / "registry" / "service-type-registry.json"
+def check_service_kind_registry(lint: Lint) -> None:
+    path = ARTIFACTS / "registry" / "service-kind-registry.json"
     data = load_json(lint, path)
     if not isinstance(data, dict):
         return
@@ -6879,12 +7250,12 @@ def check_service_type_registry(lint: Lint) -> None:
         lint.fail(path, "source_of_truth must be true")
 
     contexts = data.get("contexts")
-    rows = data.get("service_types")
+    rows = data.get("service_kinds")
     if not isinstance(contexts, list) or not contexts:
         lint.fail(path, "contexts must be a non-empty array")
         return
     if not isinstance(rows, list) or not rows:
-        lint.fail(path, "service_types must be a non-empty array")
+        lint.fail(path, "service_kinds must be a non-empty array")
         return
 
     historical_description_markers = (
@@ -6931,7 +7302,7 @@ def check_service_type_registry(lint: Lint) -> None:
     by_context: dict[str, set[str]] = {context_id: set() for context_id in context_ids}
     canonical_ids: set[str] = set()
     for index, row in enumerate(rows):
-        label = f"service_types[{index}]"
+        label = f"service_kinds[{index}]"
         if not isinstance(row, dict):
             lint.fail(path, f"{label} must be an object")
             continue
@@ -6966,7 +7337,7 @@ def check_service_type_registry(lint: Lint) -> None:
             continue
         expected = sorted(by_context[context_id])
         if not expected:
-            lint.fail(path, f"context {context_id} has no active service_types")
+            lint.fail(path, f"context {context_id} has no active service_kinds")
             continue
         for consumer in context.get("consumers") or []:
             if not isinstance(consumer, dict):
@@ -6985,18 +7356,18 @@ def check_service_type_registry(lint: Lint) -> None:
                 if len(expected) != 1:
                     lint.fail(
                         schema_path,
-                        f"{pointer} is a const but context {context_id} has {len(expected)} active service_types",
+                        f"{pointer} is a const but context {context_id} has {len(expected)} active service_kinds",
                     )
                 elif actual != expected[0]:
                     lint.fail(
                         schema_path,
-                        f"{pointer} must match service-type-registry {context_id} value {expected[0]!r}",
+                        f"{pointer} must match service-kind-registry {context_id} value {expected[0]!r}",
                     )
                 continue
             if sorted(actual or []) != expected:
                 lint.fail(
                     schema_path,
-                    f"{pointer} must match service-type-registry {context_id} values {expected}",
+                    f"{pointer} must match service-kind-registry {context_id} values {expected}",
                 )
 
 
@@ -7466,7 +7837,7 @@ _PROSE_ACTION_TARGET_RE = re.compile(r"target=`([^`]+)`")
 def check_action_reference_closure(lint: Lint) -> None:
     """STR-002 / OPT-005: every action declared in capabilities.md §5 (动作集合)
     bullet lists MUST resolve in capability-action-registry.json (the canonical
-    action set generated from contract-catalog.json). Scope is deliberately
+    action set generated from contract-registry.json). Scope is deliberately
     restricted to the §5 action-declaration bullets (`- `ak.<...>``) so that
     event kinds, grandfathered old names in the §5.0 deviation table, and prose
     `ak.*` tokens elsewhere cannot produce false positives — closing the
@@ -7879,10 +8250,10 @@ def main() -> int:
     check_operation_dto_closure(lint)
     check_text_reference_targets(lint)
     check_cross_source_drift(lint, known)
-    check_account_data_type_registry(lint, known)
+    check_account_data_key_registry(lint, known)
     check_vector_registry(lint)
     check_vector_reference_closure(lint)
-    check_security_closure_vectors(lint)
+    check_security_closure_fixture(lint)
     check_fixtures(lint, known)
     check_fixture_runner_contract(lint)
     check_crypto_signature_fixture(lint)
@@ -7890,7 +8261,9 @@ def main() -> int:
     check_no_rule_marker_emoji(lint)
     check_markdown_examples(lint, known)
     check_legacy_wire_fields(lint)
-    check_forbidden_naming_aliases(lint)
+    check_naming_predicates(lint)
+    check_profile_dependency_graph(lint)
+    check_common_object_field_matrix(lint)
     check_event_proof_digest_shape(lint)
     check_legacy_announce_id_form(lint)
     check_directory_field_drift(lint)
@@ -7915,7 +8288,7 @@ def main() -> int:
     check_mls_governance_proof_fixture(lint)
     check_mls_governance_proof_bounds(lint)
     check_mls_pq_suite_registration(lint)
-    check_service_type_registry(lint)
+    check_service_kind_registry(lint)
     check_action_reference_closure(lint)
     check_non_normative_frontmatter(lint)
     check_normative_prose_role_names(lint)

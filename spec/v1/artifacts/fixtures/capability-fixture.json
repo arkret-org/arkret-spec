@@ -452,14 +452,14 @@
             ],
             "constraints": [
               {
-                "constraint_type": "temporal",
+                "constraint_kind": "temporal",
                 "effect": "allow",
                 "not_before": "2026-04-20T00:00:00.000Z",
                 "expires_at": "2026-05-20T00:00:00.000Z"
               },
               {
-                "constraint_type": "quota",
-                "subtype": "rate",
+                "constraint_kind": "quota",
+                "constraint_subkind": "rate",
                 "effect": "allow",
                 "rate_limit": "5/hour"
               }
@@ -493,13 +493,13 @@
             ],
             "constraints": [
               {
-                "constraint_type": "quota",
-                "subtype": "rate",
+                "constraint_kind": "quota",
+                "constraint_subkind": "rate",
                 "effect": "allow",
                 "rate_limit": "2/day"
               },
               {
-                "constraint_type": "scope_limitation",
+                "constraint_kind": "scope_limitation",
                 "effect": "allow",
                 "allowed_audiences": [
                   "did:webvh:z6mkfixture:partner.example",
@@ -731,8 +731,8 @@
       "name": "quota_linearizable_authority",
       "vector_id": "ak.vector.constraint.quota_linearizable_authority.v1",
       "constraint": {
-        "constraint_type": "quota",
-        "subtype": "rate",
+        "constraint_kind": "quota",
+        "constraint_subkind": "rate",
         "effect": "allow",
         "max_operations": 100,
         "period": "PT1H",
@@ -784,8 +784,8 @@
       "name": "temporal_action_window",
       "vector_id": "ak.vector.constraint.temporal_action_window.v1",
       "constraint": {
-        "constraint_type": "temporal",
-        "subtype": "edit_window",
+        "constraint_kind": "temporal",
+        "constraint_subkind": "edit_window",
         "applies_to_actions": [
           "ak.message.revise.own"
         ],
@@ -833,7 +833,7 @@
       "name": "sensitive_field_handling",
       "vector_id": "ak.vector.auth.sensitive_field_handling.v1",
       "constraint": {
-        "constraint_type": "field_access",
+        "constraint_kind": "field_access",
         "allowed_read_fields": [
           "profile.display_name",
           "profile.email",

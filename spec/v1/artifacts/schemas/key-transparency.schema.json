@@ -66,16 +66,16 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "tree_size",
-        "root_hash",
+        "leaf_count",
+        "tree_root",
         "issued_at"
       ],
       "properties": {
-        "tree_size": {
+        "leaf_count": {
           "type": "integer",
           "minimum": 1
         },
-        "root_hash": {
+        "tree_root": {
           "$ref": "#/$defs/digest"
         },
         "issued_at": {
@@ -88,7 +88,7 @@
       "additionalProperties": false,
       "required": [
         "leaf_index",
-        "tree_size",
+        "leaf_count",
         "audit_path"
       ],
       "properties": {
@@ -96,7 +96,7 @@
           "type": "integer",
           "minimum": 0
         },
-        "tree_size": {
+        "leaf_count": {
           "type": "integer",
           "minimum": 1
         },
@@ -113,16 +113,16 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "from_tree_size",
-        "to_tree_size",
+        "from_leaf_count",
+        "to_leaf_count",
         "audit_path"
       ],
       "properties": {
-        "from_tree_size": {
+        "from_leaf_count": {
           "type": "integer",
           "minimum": 0
         },
-        "to_tree_size": {
+        "to_leaf_count": {
           "type": "integer",
           "minimum": 1
         },

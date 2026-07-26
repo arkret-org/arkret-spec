@@ -14,7 +14,7 @@ updated: 2026-07-02
 
 本文集中定义 Arkret 协作图中的**治理对象**：
 
-- **Schema**：标准对象 / Morph type / facet / event 的结构与约束。
+- **Schema**：标准对象 / Morph kind / facet / event 的结构与约束。
 - **Policy**（`ak:policy:`）：access / encryption / retention / federation / moderation 等运行时策略。
 - **Capability Grant**（`ak:grant:`）：授权委派。
 - **Invite**（`ak:invite:`）：Realm 加入引导。
@@ -30,7 +30,7 @@ updated: 2026-07-02
 Schema 约束：
 
 - 标准对象类型
-- Morph type 和 facets
+- Morph kind 和 facets
 - `fields`
 - relation type
 - allowed actions
@@ -41,7 +41,7 @@ Schema 在 wire 上以 schema id（如 `ak.schema.strand.v1`、`ak.schema.messag
 
 ### 2.2 Schema Evolution
 
-Schema evolution MUST be additive by default。通用 evolution 约束（新字段优先 optional、既有字段不得静默改变语义、reducer 与客户端 MUST 保留 schema 允许的未识别字段、UI 遇未知 Morph type SHOULD 降级、标准对象不得阻止自定义 Morph type 等）以 [morph.md §6](./morph.md) 为单一权威源，本节不重复列举，避免漂移。
+Schema evolution MUST be additive by default。通用 evolution 约束（新字段优先 optional、既有字段不得静默改变语义、reducer 与客户端 MUST 保留 schema 允许的未识别字段、UI 遇未知 Morph kind SHOULD 降级、标准对象不得阻止自定义 Morph kind 等）以 [morph.md §6](./morph.md) 为单一权威源，本节不重复列举，避免漂移。
 
 完整迁移与兼容声明规则另见 [morph.md §6](./morph.md) 与 [`../conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)。
 
@@ -55,15 +55,15 @@ Schema 引用的写入路径：
 - Realm update：通过 `ak.realm.schema` state event 更新引用集合。
 - Morph：通过 `morph.schema_refs[]` 引用具体类型 schema（详见 [morph.md §4](./morph.md) 顺序 1）。
 
-Realm-scoped Morph type 收紧声明 `morph_type_profiles` 与 `schema_refs` 同载：由 `ak.realm.schema` state event 写入 `ak.component.realm.schema.v1` cell（writable_by 见 [`../../artifacts/registry/morph-type-decision-table.json`](../../artifacts/registry/morph-type-decision-table.json) order=2）。声明形态为 `map<morph_type, profile>`，每个 profile 至多包含四个收紧维度（与 decision table notes 一致，全部可选、只能收紧不得放宽 [morph.md §4](./morph.md) 顺序 1 的声明）：`allowed_facets[]`（可暴露 facet 子集）、`writable_fields[]`（可写字段子集）、`required_schema_refs[]`（必需 schema refs）、`required_capability_actions[]`（必需 capability action）。未声明某 `morph_type` 时按空收紧处理（纯顺序 1，不得自动放宽）；放宽尝试在 Realm accept 时 MUST `schema_violation` reason=`morph_profile_widens_schema_ref`。
+Realm-scoped Morph kind 收紧声明 `morph_kind_profiles` 与 `schema_refs` 同载：由 `ak.realm.schema` state event 写入 `ak.component.realm.schema.v1` cell（writable_by 见 [`../../artifacts/registry/morph-kind-decision-table.json`](../../artifacts/registry/morph-kind-decision-table.json) order=2）。声明形态为 `map<morph_kind, profile>`，每个 profile 至多包含四个收紧维度（与 decision table notes 一致，全部可选、只能收紧不得放宽 [morph.md §4](./morph.md) 顺序 1 的声明）：`allowed_facets[]`（可暴露 facet 子集）、`writable_fields[]`（可写字段子集）、`required_schema_refs[]`（必需 schema refs）、`required_capability_actions[]`（必需 capability action）。未声明某 `morph_kind` 时按空收紧处理（纯顺序 1，不得自动放宽）；放宽尝试在 Realm accept 时 MUST `schema_violation` reason=`morph_profile_widens_schema_ref`。
 
 ## 3. Policy
 
 ### 3.1 概念
 
-Policy 是 reducer 和服务节点判断请求是否可接受的输入。每个 Policy 对象的分类由 §3.2 `policy_type` 字段表达；下表把 `policy_type` enum 的每个取值与它所约束的维度对齐，概念列表与 enum 取值一一对应：
+Policy 是 reducer 和服务节点判断请求是否可接受的输入。每个 Policy 对象的分类由 §3.2 `policy_kind` 字段表达；下表把 `policy_kind` enum 的每个取值与它所约束的维度对齐，概念列表与 enum 取值一一对应：
 
-| `policy_type` | 约束维度 |
+| `policy_kind` | 约束维度 |
 | --- | --- |
 | `access` | capability requirement、object type / facet requirement 等访问准入条件 |
 | `encryption` | encryption profile / metadata 加密下限 |
@@ -78,7 +78,7 @@ Policy 是 reducer 和服务节点判断请求是否可接受的输入。每个 
 | `applet` | Applet 集成约束 |
 | `agent` | Agent 运行约束 |
 
-quota（速率 / 资源上限）不作为独立 `policy_type`，而是通过相关 policy（典型 `access` / `media`）的 `rules[]` 内 `quota` 约束表达。Policy 决策与 capability 决策的关系见 §3.3。
+quota（速率 / 资源上限）不作为独立 `policy_kind`，而是通过相关 policy（典型 `access` / `media`）的 `rules[]` 内 `quota` 约束表达。Policy 决策与 capability 决策的关系见 §3.3。
 
 ### 3.2 Schema 与字段
 
@@ -89,7 +89,7 @@ Schema id: `ak.schema.policy.v1`
 | `id` | yes | `id:policy` |  | Policy ID。 |
 | `schema` | yes | `ak.schema.policy.v1` |  | Schema ID。 |
 | `realm_id` | no | `id:realm` | 组织级 policy 可省略。 | 适用 Realm。 |
-| `policy_type` | yes | `enum(access, encryption, retention, federation, moderation, discoverability, join, history_visibility, plaintext_visibility, media, applet, agent)` |  | 策略类型。 |
+| `policy_kind` | yes | `enum(access, encryption, retention, federation, moderation, discoverability, join, history_visibility, plaintext_visibility, media, applet, agent)` |  | 策略类型。 |
 | `rules` | yes | non-empty `array<PolicyRule>` | `minItems=1`；每条规则必须有 `rule_id`、`kind`、`effect`；规则顶层 closed，profile 扩展必须使用 `kind=extension` + `schema_ref` / `profile_ref` + `params`。纯默认策略也必须显式写一条覆盖目标 scope 的规则，不接受空数组。 | 策略规则。 |
 | `default_effect` | yes | `enum(allow, deny, quarantine, require_review)` |  | 默认效果。 |
 | `priority` | no | `integer` | 数值大者优先；缺省视为 `0`。同 `priority` 冲突的确定性裁决见下方说明。 | 策略优先级。 |
@@ -133,10 +133,10 @@ Schema id: `ak.schema.capability.v1`
 | `schema` | yes | `ak.schema.capability.v1` |  | Schema ID。 |
 | `realm_id` | no | `id:realm` | 全局 grant 可省略但 SHOULD 避免。 | 作用域。 |
 | `issuer` | yes | `did` | 必须持有授予权限。 | 授权方。 |
-| `subject` | yes | `did` 或 `object` | 可为 DID 或 condition selector；condition selector 的结构与 `requires_claims` 等求值语义见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md)（claim/attestation 条件）与 [`../authz/capabilities.md` §2.4 / §7](../authz/capabilities.md)（DID 主体 + Claim 条件模型）。matching 失败 fail-closed（deny）。 | 被授权主体。 |
+| `subject` | yes | `did` 或 `object` | 可为 DID 或 condition selector；condition selector 的结构与 `required_claims` 等求值语义见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md)（claim/attestation 条件）与 [`../authz/capabilities.md` §2.4 / §7](../authz/capabilities.md)（DID 主体 + Claim 条件模型）。matching 失败 fail-closed（deny）。 | 被授权主体。 |
 | `actions` | yes | `array<string>` | 例如 `ak.strand.update`、`ak.message.create`；逐字命中、不接受 wildcard，见 [`../authz/capabilities.md` §5](../authz/capabilities.md)。 | 允许动作。 |
 | `resources` | yes | `array<object>` | 资源 selector array，其 kind 词表、canonical JSON 结构、匹配算法与求值时机由 [`../authz/resource-selector-grammar.md`](../authz/resource-selector-grammar.md) 与 [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) 权威定义；多个 `resources[]` 默认 OR。匹配失败 fail-closed（不命中即不授权）。 | 资源范围。 |
-| `constraints` | no | `array<object>` | 见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md) §20.3 grant 示例。委托控制 MUST 通过 `constraint_type=delegation_control` 的 `max_delegation_depth` 表达；缺省（无 delegation_control 约束）等价于 `max_delegation_depth=0`，即不可转授。 | 约束条件。 |
+| `constraints` | no | `array<object>` | 见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md) §20.3 grant 示例。委托控制 MUST 通过 `constraint_kind=delegation_control` 的 `max_delegation_depth` 表达；缺省（无 delegation_control 约束）等价于 `max_delegation_depth=0`，即不可转授。 | 约束条件。 |
 | `parent_grant_id` | no | `id:grant` | derived grant 必填；MUST 以 `ak:grant:` 开头，不得指向 `ak:capability:`。 | 父授权。 |
 | `capability_action_registry_digest` | conditional | `sha256:<64hex>` | `actions[]` 含 aggregate admin action 时必填；proof 覆盖，按 [`capabilities.md` §3/§5.0.1](../authz/capabilities.md) 固定签发时 registry snapshot。 | 防 registry 演进造成历史 grant 权限蠕变。 |
 | `issued_at` | no | `timestamp` | 承载 Grant 的"创建时间"语义，取代通用 `created_at`（见 [`common-fields.md` §3.2](./common-fields.md)）；retention / audit / 排序查询 MUST 用 `issued_at` / `expires_at` / `revoked_at`，不回退到通用 `created_at`。缺省时该 Grant 无创建时间真源，签发方 SHOULD 始终提供。 | 签发时间。 |
@@ -200,7 +200,7 @@ Schema id: `ak.schema.invite.v1`
   | `-> revoked`（inviter / 管理方撤销） | `ak.invite.cancel` / `ak.invite.revoke` | `invite -> leave` |
   | `-> expired` / `-> revoked_by_capability_loss` / `-> revoked_by_inviter_left` / `-> invalidated_by_rate_limit` | `ak.invite.revoke`（携带对应 `reason_code`） | `invite -> leave` |
 
-  两条 cell 的写入在 canonical [`contract-catalog.json`](../../artifacts/registry/contract-catalog.json) 中登记为 `ak.invite.create` / `ak.invite.cancel` / `ak.invite.revoke` 的第二条**条件性** `cell_writes[]`（条件语法见 [`event-and-patch.md` §2.4.2](event-and-patch.md)）：条件是 invitee 字段存在，即定向 DID 邀请分支。
+  两条 cell 的写入在 canonical [`contract-registry.json`](../../artifacts/registry/contract-registry.json) 中登记为 `ak.invite.create` / `ak.invite.cancel` / `ak.invite.revoke` 的第二条**条件性** `cell_writes[]`（条件语法见 [`event-and-patch.md` §2.4.2](event-and-patch.md)）：条件是 invitee 字段存在，即定向 DID 邀请分支。
 
   - **定向邀请的终态 Move MUST 携带 invitee**：`ak.invite.cancel` / `ak.invite.revoke` 指向一条定向 DID invite 时，payload MUST 携带 `invitee`，其值 MUST 与目标 invite cell 记录的 `invitee` 逐字节相等；缺失或不等 MUST `failed_precondition`（`reason_code="effects_payload_mismatch"`），MUST NOT 只推进 invite 流程轴而留下停在 `invite` 的 member cell。这与 [`realm-and-space.md` §2.7](realm-and-space.md) "超时清理必须由 authorized writer 提交显式 `leave`" 一致：写 `leave` 的 authorized writer 就是提交该终态 Event 的 actor，不是本地计时器。
   - **3PID 分支 MUST NOT 写 member cell**：`ak.invite.third_party` 创建的占位符邀请在 claim 前没有 `invitee`，其 `ak.invite.create` / `ak.invite.revoke` 条件不命中，MUST NOT 产生 `member.state` effect（多写同样以 `effects_payload_mismatch` 拒绝整个 Event）。3PID 主体的 `leave -> invite` 由 claim 之后针对 `subject_id` 签发的标准定向 `ak.invite.create` 建立，见 [`../sync/third-party-invites.md` §4.3](../sync/third-party-invites.md) step 7。

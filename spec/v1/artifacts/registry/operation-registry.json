@@ -2,10 +2,10 @@
   "version": "2026-07-20",
   "source_of_truth": false,
   "generated_at": "2026-07-20T00:00:00Z",
-  "generated_from": "registry/contract-catalog.json",
+  "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
-  "normative_source": "artifacts/registry/contract-catalog.json#operation_registry",
+  "normative_source": "artifacts/registry/contract-registry.json#operation_registry",
   "generated_views": [
     {
       "file": "registry/operation-registry.json",
@@ -24,7 +24,7 @@
     "New operation_id values MUST be added here before any OpenAPI, HTTP binding table, SDK generator, or alternative transport binding references them.",
     "Generated views MAY change shape, grouping, or field order, but MUST NOT introduce, rename, or remove operation_id values that are absent from this catalog.",
     "Supporting Arkret core does not imply support for every registered operation. Implementations MUST advertise supported_operations and supported_profiles explicitly.",
-    "Each surface_groups entry carries a tier (see capability_tiers); only the core tier is implied by claiming v1 protocol support. Extension, interop_bridge, and deployment_local surfaces require explicit advertisement.",
+    "Each surface_groups entry carries a tier (see surface_classes); only the core tier is implied by claiming v1 protocol support. Extension, interop_bridge, and deployment_local surfaces require explicit advertisement.",
     "Profile matrices in artifacts/profiles/conformance-profiles.json define role-level MUST/SHOULD requirements; the surface groups below define machine-readable capability families for discovery, docs, and lint.",
     "Each operation MUST declare success_shape_kind so SDKs can determine success handling without endpoint-name hard-coding.",
     "Operations with typed OpenAPI bodies SHOULD declare request_schema_ref and/or response_schema_ref. The referenced schema fragment is the source for generated DTO docs and MUST match the OpenAPI component referenced by the HTTP binding.",
@@ -34,7 +34,7 @@
     "Every write operation (kind command/upload/exchange, and resource.replace / resource.delete) MUST declare idempotency_mechanism (one of idempotency_key, object_id, request_id, canonical_hash, protocol_sequence, none) and retry_safe (boolean). Read-only operations (query/stream/resource.get/resource.head) MUST NOT declare these fields.",
     "idempotency_mechanism is the machine-readable source of truth for which idempotency mechanism from api-conventions.md section 6 an operation uses. canonical_hash operations MUST also declare canonical_hash_input as either full_body or an RFC 6901 JSON Pointer. retry_safe=true means a byte-identical full retry of the same request cannot produce duplicate side effects: it returns the original outcome, an equivalent idempotent no-op, or a deterministic conflict. retry_safe=false means blind retries MAY duplicate side effects or consume one-time material; clients MUST NOT retry such operations without out-of-band reconciliation."
   ],
-  "capability_tiers": {
+  "surface_classes": {
     "core": "Base interoperable surfaces implied by claiming Arkret v1 protocol support (service discovery, identity registry, events/account aggregate).",
     "extension": "Optional interoperable surfaces that are part of the Arkret specification but require explicit discovery/profile advertisement.",
     "interop_bridge": "Adapter surfaces that bridge Arkret to external protocols (MIMI Internet-Drafts, third-party Applet hosts). Implementations advertise these only when the external protocol is supported; bridge operations are not part of any core or extension profile and frequently mirror an in-spec operation via bridges_to.",
@@ -43,14 +43,13 @@
   "surface_groups": [
     {
       "surface": "service_discovery",
-      "tier": "core",
       "operations": [
         "ak.server.query.describe"
-      ]
+      ],
+      "surface_class": "core"
     },
     {
       "surface": "identity_registry",
-      "tier": "core",
       "operations": [
         "ak.root.identity.registry.query.describe",
         "ak.root.identity.query.resolve",
@@ -66,11 +65,11 @@
         "ak.root.identity.recovery_session.resource.get",
         "ak.root.identity.recovery_session.command.submit_proof",
         "ak.root.identity.recovery_session.command.complete"
-      ]
+      ],
+      "surface_class": "core"
     },
     {
       "surface": "events_sync",
-      "tier": "core",
       "operations": [
         "ak.self.events.query.describe",
         "ak.self.events.command.submit",
@@ -90,11 +89,11 @@
         "ak.self.ephemeral.command.send",
         "ak.self.snapshot.query.manifest_head",
         "ak.self.call.media.exchange.issue_token"
-      ]
+      ],
+      "surface_class": "core"
     },
     {
       "surface": "peer_federation",
-      "tier": "extension",
       "operations": [
         "ak.peer.events.query.describe",
         "ak.peer.events.command.submit",
@@ -107,11 +106,11 @@
         "ak.peer.keys.keypackages.command.claim",
         "ak.peer.keys.keypackages.query.claim",
         "ak.peer.snapshot.query.manifest_head"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "directory_discovery",
-      "tier": "extension",
       "operations": [
         "ak.find.directory.query.describe",
         "ak.find.directory.query.search_realms",
@@ -129,11 +128,11 @@
         "ak.find.directory.command.withdraw",
         "ak.find.directory.command.takedown_appeal",
         "ak.find.directory.push.command.register"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "contact_lifecycle",
-      "tier": "extension",
       "operations": [
         "ak.self.contact.command.request",
         "ak.self.contact.command.respond",
@@ -145,11 +144,11 @@
         "ak.self.invite_locator.command.rotate",
         "ak.self.invite_locator.command.revoke",
         "ak.self.direct_conversation.command.resolve"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "circle_management",
-      "tier": "extension",
       "operations": [
         "ak.self.circle.command.create",
         "ak.self.circle.query.list",
@@ -160,11 +159,11 @@
         "ak.self.circle.command.archive",
         "ak.self.circle.command.restore",
         "ak.self.circle.command.tombstone"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "realm_governance_links",
-      "tier": "extension",
       "operations": [
         "ak.self.realm_link.query.list",
         "ak.self.realm_link.command.create",
@@ -174,11 +173,11 @@
         "ak.self.realm_policy_server.resource.get",
         "ak.self.realm_policy_server.resource.replace",
         "ak.self.realm_policy_server.resource.delete"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "realm_read",
-      "tier": "extension",
       "operations": [
         "ak.self.realm.resource.get",
         "ak.self.realm.command.archive",
@@ -188,11 +187,11 @@
         "ak.self.realm.query.export",
         "ak.self.realm.moderation_policy.query.effective",
         "ak.self.realm.moderation_policy.resource.replace"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "candidate_join_policy",
-      "tier": "extension",
       "operations": [
         "ak.self.realm.join_application.command.submit",
         "ak.self.realm.join_application.command.review",
@@ -200,74 +199,74 @@
         "ak.self.realm.join_application.query.list",
         "ak.self.realm.join_application.resource.get",
         "ak.self.realm.join_application.audit.query.list"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "consent_management",
-      "tier": "extension",
       "operations": [
         "ak.self.consent.query.list",
         "ak.self.consent.resource.get",
         "ak.self.consent.command.grant",
         "ak.self.consent.command.revoke",
         "ak.self.consent.command.request"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "account_data",
-      "tier": "extension",
       "operations": [
         "ak.self.account_data.query.list",
         "ak.self.account_data.resource.get",
         "ak.self.account_data.resource.replace",
         "ak.self.account_data.resource.delete"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "read_cursor",
-      "tier": "extension",
       "operations": [
         "ak.self.read_cursor.command.advance",
         "ak.self.read_cursor.query.list"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "blob_storage",
-      "tier": "extension",
       "operations": [
         "ak.self.blob.upload.create",
         "ak.self.blob.resource.head",
         "ak.self.blob.resource.get",
         "ak.self.blob.command.presign"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "realtime_media",
-      "tier": "extension",
       "operations": [
         "ak.self.media.query.ice_config"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "authz_policy",
-      "tier": "extension",
       "operations": [
         "ak.self.authz.query.check",
         "ak.self.authz.grants.query.effective",
         "ak.self.authz.invites.query.list",
         "ak.self.policy.query.check"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "moderation_reports",
-      "tier": "extension",
       "operations": [
         "ak.self.moderation.command.report"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "device_and_keys",
-      "tier": "extension",
       "operations": [
         "ak.self.device_messages.command.send",
         "ak.self.device_messages.query.list",
@@ -284,37 +283,37 @@
         "ak.self.keys.backups.query.list",
         "ak.self.keys.backups.command.unlock",
         "ak.self.keys.backups.resource.delete"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "push",
-      "tier": "extension",
       "operations": [
         "ak.edge.push.command.register_device",
         "ak.edge.push.command.unregister_device",
         "ak.edge.push.command.notify"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "realm_object_read",
-      "tier": "extension",
       "operations": [
         "ak.self.space.query.list",
         "ak.self.strand.query.list",
         "ak.self.morph.query.list",
         "ak.self.morph.resource.get"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "view_projection",
-      "tier": "extension",
       "operations": [
         "ak.self.views.collection_projection.command.materialize"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "applet",
-      "tier": "interop_bridge",
       "operations": [
         "ak.edge.applet.query.ping",
         "ak.edge.applet.query.describe",
@@ -324,27 +323,27 @@
         "ak.edge.applet.query.protocol_metadata",
         "ak.edge.applet.third_party_users.query.list",
         "ak.edge.applet.third_party_locations.query.list"
-      ]
+      ],
+      "surface_class": "interop_bridge"
     },
     {
       "surface": "applet_install",
-      "tier": "extension",
       "operations": [
         "ak.self.applet.install.command.preview",
         "ak.self.applet.command.install",
         "ak.self.applet.command.revoke"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "applet_ghost",
-      "tier": "interop_bridge",
       "operations": [
         "ak.self.applet.ghost.command.provision"
-      ]
+      ],
+      "surface_class": "interop_bridge"
     },
     {
       "surface": "mimi_interop",
-      "tier": "interop_bridge",
       "operations": [
         "ak.open.mimi.query.provider_directory",
         "ak.open.mimi.query.group_info",
@@ -357,36 +356,36 @@
         "ak.open.mimi.command.notify",
         "ak.open.mimi.command.report_abuse",
         "ak.open.mimi.command.proxy_download"
-      ]
+      ],
+      "surface_class": "interop_bridge"
     },
     {
       "surface": "agent_pairing_handoff",
-      "tier": "extension",
       "operations": [
         "ak.open.agent_pairing.query.resolve",
         "ak.open.agent_pairing.command.submit_runtime_key_request",
         "ak.open.agent_pairing.query.runtime_key_request_status"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "device_pairing_handoff",
-      "tier": "extension",
       "operations": [
         "ak.open.device_pairing.command.stage",
         "ak.open.device_pairing.query.resolve",
         "ak.open.device_pairing.query.status"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "invite_locator_handoff",
-      "tier": "extension",
       "operations": [
         "ak.open.invite_locator.query.resolve"
-      ]
+      ],
+      "surface_class": "extension"
     },
     {
       "surface": "account_auth",
-      "tier": "deployment_local",
       "operations": [
         "ak.gate.account.exchange.create_handoff",
         "ak.gate.account.command.issue_identity_binding_challenge",
@@ -400,11 +399,11 @@
         "ak.gate.account.command.logout",
         "ak.gate.account.command.revoke_session",
         "ak.gate.account.exchange.complete_oidc"
-      ]
+      ],
+      "surface_class": "deployment_local"
     },
     {
       "surface": "agent_runtime",
-      "tier": "extension",
       "operations": [
         "ak.gate.account.command.pair_agent_key",
         "ak.self.agent.command.provision",
@@ -421,7 +420,8 @@
         "ak.self.agent.sidecar.query.list",
         "ak.self.agent.participation.resource.replace",
         "ak.self.agent.participation.resource.get"
-      ]
+      ],
+      "surface_class": "extension"
     }
   ],
   "operations": [
@@ -1095,7 +1095,7 @@
       "http": "PUT /_arkret/self/invite-receive-policy",
       "grpc": "SelfInviteReceivePolicy/Replace",
       "mq": "self.invite_receive_policy.resource.replace",
-      "notes": "Replace the authenticated subject's private invite-receive policy. The body MUST set subject_id equal to the session actor; the override shares the same store as ak.self.contact.command.tombstone(block_peer) blocked_subjects writes.",
+      "notes": "Replace the authenticated subject's private invite-receive policy. The body MUST set subject_id equal to the session actor; the override shares the same store as ak.self.contact.command.tombstone(block_peer) denied_subjects writes.",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
       "retry_safe": true,
@@ -1677,7 +1677,7 @@
       "http": "POST /_arkret/self/rtc/token",
       "grpc": "SelfCallMedia/TokenExchange",
       "mq": "self.call.media.exchange.issue_token",
-      "notes": "Media service token exchange operation. Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ak.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / arkret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
+      "notes": "Media service token exchange operation. Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ak.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / arkret_native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "none",
       "retry_safe": false,
@@ -1746,7 +1746,7 @@
       "http": "POST /_arkret/root/identity/service-registrations:ensure",
       "grpc": "RootIdentity/EnsureServiceRegistration",
       "mq": "root.identity.service_registration.command.ensure",
-      "notes": "Idempotently return or create the service DID bound to the canonical (service_type, public_base) registration key. The client supplies and controls a signed did:webvh inception operation; the Provider verifies the proof and endpoint binding and never receives private key material. Provider persistence MUST enforce UNIQUE(service_type, public_base) and MUST reject an existing hosted document that declares the same key even when the mapping row is absent.",
+      "notes": "Idempotently return or create the service DID bound to the canonical (service_kind, public_base) registration key. The client supplies and controls a signed did:webvh inception operation; the Provider verifies the proof and endpoint binding and never receives private key material. Provider persistence MUST enforce UNIQUE(service_kind, public_base) and MUST reject an existing hosted document that declares the same key even when the mapping row is absent.",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "object_id",
       "retry_safe": true,
@@ -1758,7 +1758,7 @@
       "http": "GET /_arkret/root/identity/service-registrations",
       "grpc": "RootIdentity/GetServiceRegistration",
       "mq": "root.identity.service_registration.resource.get",
-      "notes": "Read the service registration bound to the canonical (service_type, public_base) key without creating or mutating identity state.",
+      "notes": "Read the service registration bound to the canonical (service_kind, public_base) key without creating or mutating identity state.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome"
     },
@@ -2578,16 +2578,16 @@
     },
     {
       "operation_id": "ak.self.account_data.resource.get",
-      "http": "GET /_arkret/self/account_data/{data_type}",
+      "http": "GET /_arkret/self/account_data/{account_data_key}",
       "grpc": "SelfAccountData/Get",
       "mq": "self.account_data.resource.get",
-      "notes": "Reads one account_data entry by data_type key. Returns not_found when the key is unset.",
+      "notes": "Reads one account_data entry by account_data_key key. Returns not_found when the key is unset.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry"
     },
     {
       "operation_id": "ak.self.account_data.resource.replace",
-      "http": "PUT /_arkret/self/account_data/{data_type}",
+      "http": "PUT /_arkret/self/account_data/{account_data_key}",
       "grpc": "SelfAccountData/Replace",
       "mq": "self.account_data.resource.replace",
       "notes": "Builds a ak.account_data.set actor-private write. Controller-private registered types reject agent / applet / service principals. content is stored verbatim; clients own canonical encoding and (for sensitive keys) client-side encryption.",
@@ -2599,7 +2599,7 @@
     },
     {
       "operation_id": "ak.self.account_data.resource.delete",
-      "http": "DELETE /_arkret/self/account_data/{data_type}",
+      "http": "DELETE /_arkret/self/account_data/{account_data_key}",
       "grpc": "SelfAccountData/Delete",
       "mq": "self.account_data.resource.delete",
       "notes": "Deletes one account_data entry and fans out an actor-private update to the holder's other devices.",

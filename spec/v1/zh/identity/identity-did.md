@@ -260,16 +260,16 @@ artifact。
 
 - **I-2 持久身份与 Provider mapping 是真相源，config 不含 DID**：部署配置 MUST NOT 接受、复制或 pin 本服务的 `service_id`。运行时只从已验证的本地 `service_identity` 记录、外部 Service Identity Provider 的稳定 registration mapping，或可验证 identity bundle 恢复 DID。配置只声明网络 endpoint、Provider transport credential 和 key/bundle backend。所有 wire `service_id`、issuer 和 audience 均使用 SDK `Did` 强类型。
 
-- **I-3 显式 first-provisioning 门仅适用于 B 类**："持久层无 service identity" 对自身就是 Provider 的部署可能是真正首次部署，也可能是数据灾难；没有外部权威能区分两者。因此 B 类生产部署仅在显式一次性 `first-provisioning` 信号存在时 MAY 创建新 DID。开发模式 MAY 自动 provision。B 类有可验证 bundle 时 MUST 恢复原 DID；无 bundle、无记录、无信号时 MUST fail closed。A 类不使用该信号：它先按 `ServiceRegistrationKey {service_type, public_base}` 查询外部 Provider，mapping 存在则校验本地 control/signing key binding 后回填原 DID，明确 not-found 才提交 client-signed inception，传输失败时进入 waiting 且绝不 mint。
+- **I-3 显式 first-provisioning 门仅适用于 B 类**："持久层无 service identity" 对自身就是 Provider 的部署可能是真正首次部署，也可能是数据灾难；没有外部权威能区分两者。因此 B 类生产部署仅在显式一次性 `first-provisioning` 信号存在时 MAY 创建新 DID。开发模式 MAY 自动 provision。B 类有可验证 bundle 时 MUST 恢复原 DID；无 bundle、无记录、无信号时 MUST fail closed。A 类不使用该信号：它先按 `ServiceRegistrationKey {service_kind, public_base}` 查询外部 Provider，mapping 存在则校验本地 control/signing key binding 后回填原 DID，明确 not-found 才提交 client-signed inception，传输失败时进入 waiting 且绝不 mint。
 
 - **I-4 强制 service pre-rotation**：service DID inception 与每次 rotation MUST 同时持有恰好一把 active update key 和一把本服务预生成的 next update key。`updateKeys` 与 `nextKeyHashes` 均恰含一项；`nextKeyHashes[0]` MUST 是 next update key Multikey 文本按 [`key-management.md` §5.0.1](./key-management.md) 相同的 sha2-256 multihash + Base58BTC 规则所得承诺。Provider / resolver 接受后继 entry 前 MUST 验证其 `updateKeys[0]` 命中前一 entry 的 `nextKeyHashes[0]`，并将被替换 key 标为 spent；缺少承诺、数量不为一或 commitment 不匹配 MUST fail closed 为 `service_registration_rejected` / reason=`service_prerotation_invalid`。Provider 不得生成、接收或托管 next private key。
 
 Service Identity Provider 的标准操作是：
 
 - `ak.root.identity.service_registration.command.ensure` → `POST /_arkret/root/identity/service-registrations:ensure`；
-- `ak.root.identity.service_registration.resource.get` → `GET /_arkret/root/identity/service-registrations?service_type=...&public_base=...`。
+- `ak.root.identity.service_registration.resource.get` → `GET /_arkret/root/identity/service-registrations?service_kind=...&public_base=...`。
 
-注册键由 registry 限定的 `service_type` 与 canonical `public_base` 组成。同一个注册键 MUST 永远映射到同一个 DID；普通 ensure、重启、数据库重连和 key rotation 都不得改变它。Provider MUST 验证 client-signed `did:webvh` inception 内声明的 service type / endpoint 与注册键完全相等，MUST 以 `UNIQUE(service_type, public_base)` 和单事务先查后建保证并发幂等，并且在 mapping 行缺失时扫描现存托管 DID Document：任何 document 已声明同一注册键都必须返回 `service_identity_conflict`，不得创建第二 DID。`idempotency_key` 只用于审计关联，不是并发正确性的来源。
+注册键由 registry 限定的 `service_kind` 与 canonical `public_base` 组成。同一个注册键 MUST 永远映射到同一个 DID；普通 ensure、重启、数据库重连和 key rotation 都不得改变它。Provider MUST 验证 client-signed `did:webvh` inception 内声明的 service type / endpoint 与注册键完全相等，MUST 以 `UNIQUE(service_kind, public_base)` 和单事务先查后建保证并发幂等，并且在 mapping 行缺失时扫描现存托管 DID Document：任何 document 已声明同一注册键都必须返回 `service_identity_conflict`，不得创建第二 DID。`idempotency_key` 只用于审计关联，不是并发正确性的来源。
 
 `ServiceRegistrationReceipt` 采用 Arkret 统一 detached JWS，不引入 Data Integrity cryptosuite 例外。transcript 只能按下列步骤构造：
 
@@ -327,7 +327,7 @@ Resolver policy MUST 至少定义：
   "method_policy": {
     "did:webvh": {
       "role": ["principal", "organization"],
-      "require_history_chain": true,
+      "history_chain_required": true,
       "require_witness": "required",
       "witness_threshold": 1,
       "trusted_witnesses": [
@@ -339,8 +339,8 @@ Resolver policy MUST 至少定义：
     },
     "did:web": {
       "role": ["service", "personal_node_principal_optional"],
-      "require_https": true,
-      "allow_principal_for_profiles": ["personal_node"]
+      "https_required": true,
+      "principal_allowed_profiles": ["personal_node"]
     },
     "did:key": {
       "role": ["device", "test", "bootstrap"],
@@ -357,7 +357,7 @@ Resolver policy MUST 至少定义：
   "did:plc": {
     "role": ["interop_principal"],
     "directory": ["https://web.plc.directory"],
-    "require_operation_history": true,
+    "operation_history_required": true,
     "long_lived_principal": "interop_only"
   }
 }

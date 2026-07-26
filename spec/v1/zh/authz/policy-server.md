@@ -84,7 +84,7 @@ Content-Type: application/json
 | `device_id` | body | `id` | optional | 发起设备。 |
 | `source` | body | `object` | required | 调用来源摘要。 |
 | `source.service_id` | body | `did` | required | 调用服务 DID。 |
-| `source.service_type` | body | `string` | required | 调用服务类型。 |
+| `source.service_kind` | body | `string` | required | 调用服务类型。 |
 | `source.source_ip_digest` | body | `sha256:<hash>` | optional | 来源 IP 的 keyed 不可链接派生值；派生与轮换规则见 §3.1。MUST NOT 是对 IP 地址的裸 SHA-256。 |
 | `source.signed_transport` | body | `boolean` | required | 请求是否由签名 transport 保护。 |
 | `event_preview` | body | `object` | optional | 最小披露事件预览。 |
@@ -102,7 +102,7 @@ Content-Type: application/json
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "source": {
     "service_id": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
-    "service_type": "principal_server",
+    "service_kind": "principal_server",
     "source_ip_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "signed_transport": true
   },

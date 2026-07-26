@@ -78,24 +78,24 @@ ID 语义：
     {
       "kind": "object",
       "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-      "object_type": "strand",
+      "object_kind": "strand",
       "match_scope": "realm_wide"
     },
     {
       "kind": "morph",
       "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-      "morph_type": "document",
+      "morph_kind": "document",
       "match_scope": "realm_wide"
     }
   ],
   "constraints": [
     {
-      "constraint_type": "temporal",
+      "constraint_kind": "temporal",
       "effect": "allow",
       "expires_at": "2026-04-30T00:00:00.000Z"
     },
     {
-      "constraint_type": "field_access",
+      "constraint_kind": "field_access",
       "effect": "allow",
       "allowed_write_fields": ["metadata.title", "metadata.summary", "content", "metadata.fields.review_status"]
     }
@@ -177,7 +177,7 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 
 动作名称与标准 event kind / operation id 的语义对齐，使用 `ak.<domain>.<action>` 点分记法。Wire 层 `actions[]` 字段 MUST 是具体动作字符串；实现 **MUST NOT 接受任何 wildcard / segment 通配**（含 `*`、`ak.<domain>.*`、`ak.<domain>.<sub>.*`）。`capability-grant.schema.json` 已用 pattern 静态拒绝 wildcard。
 
-机器可读的 canonical 动作集（含 `risk_tier`、`required_constraints`、`required_evaluator_checks`、`target_event_kinds`、`event_mapping_kind`、`profile`）MUST 来自 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json)；本节的散文枚举只是该 registry 的 human-readable 镜像，新增 / 修改动作 MUST 先改 `contract-catalog.json` 的 `capability_action_registry` 节并跑 `tools/artifact_pipeline.py generate`，再回流到本节。
+机器可读的 canonical 动作集（含 `risk_tier`、`required_constraints`、`required_evaluator_checks`、`target_event_kinds`、`event_mapping_kind`、`profile`）MUST 来自 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json)；本节的散文枚举只是该 registry 的 human-readable 镜像，新增 / 修改动作 MUST 先改 `contract-registry.json` 的 `capability_action_registry` 节并跑 `tools/artifact_pipeline.py generate`，再回流到本节。
 
 **散文枚举 ↔ registry 一致性 gate（normative）**：本节 §5.1–§5.6 散文枚举的 action token 集合，及散文中标注的每个 action 的 `target_event_kinds` / `risk_tier` / `event_mapping_kind` / `profile`，**MUST** 与 `capability-action-registry.json` 对应字段**双向等价**——既不得有散文列出而 registry 缺失的 action（反之亦然），也不得有同一 action 在散文标注与 registry 声明之间的 `target_event_kinds` / `risk_tier` 不一致。该等价性 **MUST** 由 artifact lint gate(`tools/lint_artifacts.py` 的 registry 一致性校验，纳入 CI 强制)双向自动校验：任一方向的成员漂移或属性漂移 **MUST** 触发 conformance 失败，MUST NOT 仅靠人工 review 保证。该 gate 既覆盖 §5 整体动作集，也覆盖 §5.0 四类偏离与 §5.0.1 聚合 admin 覆盖集的 RFC 约束（散文新增 target_event_kinds 成员必须同步 registry 且经 RFC）。
 
@@ -200,7 +200,7 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 
 **聚合 admin 的覆盖语义仅作用于 event-kind 解析层，不改变授权层 `actions[]` 的逐字命中规则。** 例如 `ak.policy.manage` 在 §5.4 与具体的 `ak.policy.set` / `ak.policy.rule` / `ak.policy.action` 并列：持有 `ak.policy.manage` 的 grant 表示该 admin action 在 registry 中聚合覆盖 `ak.policy.*` 与 `ak.realm.policy_*` 系列对应的 **event kinds**（audit / reducer 据 `target_event_kinds` 解析），但它**不在授权层自动等价于持有 `ak.policy.set` / `ak.policy.rule` / `ak.policy.action` 这三个具体 action token**。授权判定仍 MUST 按 §5「`actions[]` MUST 逐字命中、MUST NOT wildcard / segment 通配」执行：要授予某具体 policy 子动作，grant 的 `actions[]` MUST 显式列出 `ak.policy.manage`（若 receiver 已声明并接受该 action 对相应 event kinds 的聚合覆盖）或对应的具体 action token，二者不可互相推断。
 
-新增动作 MUST 默认与 event kind 同名；只有上述四类之一的明确理由可以偏离，且必须在 `contract-catalog.json` 内显式声明 `target_event_kinds` 与 `event_mapping_kind`。**新增偏离类别 MUST 在 RFC 中讨论后才能加表项；MUST NOT 通过 lint 例外或注释方式悄悄引入新桥**。
+新增动作 MUST 默认与 event kind 同名；只有上述四类之一的明确理由可以偏离，且必须在 `contract-registry.json` 内显式声明 `target_event_kinds` 与 `event_mapping_kind`。**新增偏离类别 MUST 在 RFC 中讨论后才能加表项；MUST NOT 通过 lint 例外或注释方式悄悄引入新桥**。
 
 #### 5.0.1 聚合 admin 覆盖集防权限蠕变（normative）
 
@@ -252,14 +252,14 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 - `ak.view.update`
 - `ak.view.reconcile`
 - `ak.morph.read`
-- `ak.morph.create`(默认 required constraint:`allowed_morph_types`)
+- `ak.morph.create`(默认 required constraint:`allowed_morph_kinds`)
 - `ak.morph.update`(默认 required constraint:`allowed_write_fields`)
 
 Strand 权限只覆盖 Strand 自身字段、track 配置和 position / relation 管理。Message 正文权限按 Strand 的 effective scope 判断：`Strand.scope_circle_id=null` 时使用 Realm-default capability；`scope_circle_id` 指向 Circle 时使用该 [Circle](../models/circle.md) scope 的 capability + Circle membership 两层 AND（详见 [`circle.md` §8](../models/circle.md)）。
 
 若 Circle membership control cell 在当前 CBA basis 下为 `⊥`（`fsm, bottom=reject`），上述两层 AND 的 membership 分支 MUST fail closed：授权结果为 deny，后续依赖该 cell 的 DataEvent / Control Move MUST 返回 `failed_bottom`（`reason=cell_in_bottom_state`），而 `failed_precondition` 仅用于 predicate 本身不成立（cell 持有明确 value 但 predicate 求值为 false）的情形；实现 MUST NOT 把 `⊥` 当作非成员、空成员集或任一候选 membership 状态来继续授权。
 
-Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.morph.update` 对应 `ak.strand.read` / `ak.strand.create` / `ak.strand.update`),通过 `allowed_morph_types` constraint 进一步限定可创建或操作的 `morph_type`。
+Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.morph.update` 对应 `ak.strand.read` / `ak.strand.create` / `ak.strand.update`),通过 `allowed_morph_kinds` constraint 进一步限定可创建或操作的 `morph_kind`。
 
 ### 5.3 Discussion 与消息动作
 
@@ -391,7 +391,7 @@ Arkret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 - `not_before`
 - `message_edit_window`
 - `message_redact_window`
-- `allow_redact_after_window`
+- `redact_after_window_allowed`
 
 **field_access**
 
@@ -402,12 +402,12 @@ Arkret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 - `sensitive_fields`
 - `sensitive_handling`
 
-**type_restriction**
+**kind_restriction**
 
-- `allowed_object_types`
-- `denied_object_types`
-- `allowed_morph_types`
-- `denied_morph_types`
+- `allowed_object_kinds`
+- `denied_object_kinds`
+- `allowed_morph_kinds`
+- `denied_morph_kinds`
 - `allowed_space_kinds`
 - `denied_space_kinds`
 - `allowed_facets`
@@ -427,22 +427,22 @@ Arkret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 - `allowed_to_container_refs`（同上，kanban extension，profile-gated `ak.profile.kanban_mvp.v1`，fail closed）
 - `wip_limit_override`（同上，kanban extension）
 - `blob_presign_scope`
-- `allowed_data_classes`
+- `allowed_data_labels`
 - `allowed_endpoints`
 
-**delegation_control**（求值规则见 [`constraint-schema.md` §7.3](./constraint-schema.md)：`prohibit_subdelegation=true` ⇒ child `max_delegation_depth` MUST=0；`allow_scope_expansion=true` 在 v1 MUST 被 reducer 拒绝（`schema_violation`，与 §10.1 收窄不变量矛盾）；`delegation_scope` 三值 `narrowing_only`/`same_scope`/`custom` 各自校验规则）
+**delegation_control**（求值规则见 [`constraint-schema.md` §7.3](./constraint-schema.md)：`prohibit_subdelegation=true` ⇒ child `max_delegation_depth` MUST=0；`scope_expansion_allowed=true` 在 v1 MUST 被 reducer 拒绝（`schema_violation`，与 §10.1 收窄不变量矛盾）；`delegation_scope` 三值 `narrowing_only`/`same_scope`/`custom` 各自校验规则）
 
 - `max_delegation_depth`
 - `delegation_path`
 - `prohibit_subdelegation`
 - `delegation_scope`
-- `allow_scope_expansion`
-- `require_parent_reference`
+- `scope_expansion_allowed`
+- `parent_reference_required`
 
 **quota**
 
 - `rate_limit`（`max_operations` + `period` + `constraint_scope`，可选 `burst`）
-- `resource_limit`（`max_resources` + `resource_type` + `constraint_scope`，可选 `period`；见 [`constraint-schema.md` §8.2](./constraint-schema.md)）
+- `resource_limit`（`max_resources` + `resource_kind` + `constraint_scope`，可选 `period`；见 [`constraint-schema.md` §8.2](./constraint-schema.md)）
 - `blob_max_bytes`
 - `blob_presign_max_ttl_seconds`
 - `max_total_blob_bytes`
@@ -457,7 +457,7 @@ Arkret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 - `accountability_required`
 - `guardian_approval_required`
 - `controller_approval_required`
-- `requires_claims`
+- `required_claims`
 - `trusted_claim_issuers`
 - `claim_refresh_required`
 - `claim_max_age`
@@ -465,7 +465,7 @@ Arkret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 **confidentiality**
 
 - `allowed_history_visibility_values`
-- `deny_redacted_history`（命中即拒绝读取已 redact 的历史，属 `confidentiality` `subtype=visibility`）
+- `redacted_history_allowed`（命中即拒绝读取已 redact 的历史，属 `confidentiality` `constraint_subkind=visibility`）
 - `encryption_required`
 
 **moderation 缓存依赖标记**
@@ -485,7 +485,7 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 
 缺省的 lower bound 视为无下限；缺省的 upper bound 视为无上限，但高风险、agent、service、delegated grant 仍按本文风险规则 MUST 有有限 `effective_expires_at`。若归一化后 `effective_not_before >= effective_expires_at`，reducer MUST `failed_precondition`，`reason="grant_validity_window_empty"`。授权日志、缓存 key、delegation narrowing 和 revoke freshness 判断都 MUST 使用 effective window，MUST NOT 分别按顶层字段和 temporal constraint 做两次不一致判断。
 
-| 扁平名称 | Typed `constraint_type` | `subtype` | 对应字段 |
+| 扁平名称 | Typed `constraint_kind` | `constraint_subkind` | 对应字段 |
 |----------|------------------------|----------|----------|
 | `expires_at` | `temporal` | — | `expires_at` |
 | `not_before` | `temporal` | — | `not_before` |
@@ -495,14 +495,14 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 | `denied_read_fields` | `field_access` | — | `denied_read_fields`（读取面字段拒绝列表，[`constraint-schema.md` §16.2](./constraint-schema.md) 算法消费） |
 | `sensitive_fields` | `field_access` | — | `sensitive_fields`（读取时需特殊处理的敏感字段集） |
 | `sensitive_handling` | `field_access` | — | `sensitive_handling`（敏感字段处理方式：`redact` / `hash` / `omit`） |
-| `allowed_object_types` | `type_restriction` | — | `allowed_object_types` |
-| `denied_object_types` | `type_restriction` | — | `denied_object_types`（命中即拒绝该对象类型） |
-| `allowed_space_kinds` | `type_restriction` | — | `allowed_space_kinds`（限定 Space 的 kind，例如 board / list / swimlane）|
-| `denied_space_kinds` | `type_restriction` | — | `denied_space_kinds` |
-| `allowed_morph_types` | `type_restriction` | — | `allowed_morph_types` |
-| `denied_morph_types` | `type_restriction` | — | `denied_morph_types` |
-| `allowed_facets` | `type_restriction` | — | `allowed_facets` |
-| `denied_facets` | `type_restriction` | — | `denied_facets` |
+| `allowed_object_kinds` | `kind_restriction` | — | `allowed_object_kinds` |
+| `denied_object_kinds` | `kind_restriction` | — | `denied_object_kinds`（命中即拒绝该对象类型） |
+| `allowed_space_kinds` | `kind_restriction` | — | `allowed_space_kinds`（限定 Space 的 kind，例如 board / list / swimlane）|
+| `denied_space_kinds` | `kind_restriction` | — | `denied_space_kinds` |
+| `allowed_morph_kinds` | `kind_restriction` | — | `allowed_morph_kinds` |
+| `denied_morph_kinds` | `kind_restriction` | — | `denied_morph_kinds` |
+| `allowed_facets` | `kind_restriction` | — | `allowed_facets` |
+| `denied_facets` | `kind_restriction` | — | `denied_facets` |
 | `allowed_strand_ids` | `scope_limitation` | — | `allowed_strand_ids` |
 | `denied_strand_ids` | `scope_limitation` | — | `denied_strand_ids` |
 | `allowed_space_ids` | `scope_limitation` | — | `allowed_space_ids` |
@@ -520,25 +520,25 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 | `allowed_to_container_refs` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`，fail closed） | — | `allowed_to_container_refs` |
 | `wip_limit_override` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`） | — | `wip_limit_override`（看板容器 WIP 上限覆盖） |
 | `allowed_history_visibility_values` | `confidentiality` | `visibility` | `allowed_history_visibility_values` |
-| `deny_redacted_history` | `confidentiality` | `visibility` | `deny_redacted_history`（命中即拒绝读取已 redact 历史） |
+| `redacted_history_allowed` | `confidentiality` | `visibility` | `redacted_history_allowed`（命中即拒绝读取已 redact 历史） |
 | `blob_max_bytes` | `quota` | `resource` | `blob_max_bytes` |
 | `blob_presign_max_ttl_seconds` | `quota` | `resource` | `blob_presign_max_ttl_seconds` |
 | `max_artifact_bytes` | `quota` | `resource` | `max_artifact_bytes` |
 | `blob_presign_scope` | `scope_limitation` | — | `blob_presign_scope` |
-| `allowed_data_classes` | `scope_limitation` | — | `allowed_data_classes` |
+| `allowed_data_labels` | `scope_limitation` | — | `allowed_data_labels` |
 | `allowed_endpoints` | `scope_limitation` | — | `allowed_endpoints` |
 | `encryption_required` | `confidentiality` | `encryption` | `encryption_required` |
 | `message_edit_window` | `temporal` | `edit_window` | `message_edit_window` |
 | `message_redact_window` | `temporal` | `redact_window` | `message_redact_window` |
-| `allow_redact_after_window` | `temporal` | `edit_window` / `redact_window` | `allow_redact_after_window`（窗口修饰符，见 [`constraint-schema.md` §14.2](./constraint-schema.md)） |
+| `redact_after_window_allowed` | `temporal` | `edit_window` / `redact_window` | `redact_after_window_allowed`（窗口修饰符，见 [`constraint-schema.md` §14.2](./constraint-schema.md)） |
 | `max_delegation_depth` | `delegation_control` | — | `max_delegation_depth` |
 | `delegation_path` | `delegation_control` | — | `delegation_path`（委托链 DID 路径约束，见 [`constraint-schema.md` §7](./constraint-schema.md)） |
 | `prohibit_subdelegation` | `delegation_control` | — | `prohibit_subdelegation` |
 | `delegation_scope` | `delegation_control` | — | `delegation_scope`（`narrowing_only` / `same_scope` / `custom`） |
-| `allow_scope_expansion` | `delegation_control` | — | `allow_scope_expansion` |
-| `require_parent_reference` | `delegation_control` | — | `require_parent_reference` |
+| `scope_expansion_allowed` | `delegation_control` | — | `scope_expansion_allowed` |
+| `parent_reference_required` | `delegation_control` | — | `parent_reference_required` |
 | `rate_limit` | `quota` | `rate` | `max_operations`, `period`, `constraint_scope`, `burst` |
-| `resource_limit` | `quota` | `resource` | `max_resources`, `resource_type`, `constraint_scope`（scope 内累计资源数量上限） |
+| `resource_limit` | `quota` | `resource` | `max_resources`, `resource_kind`, `constraint_scope`（scope 内累计资源数量上限） |
 | `max_total_blob_bytes` | `quota` | `resource` | `max_total_blob_bytes`, `constraint_scope`（scope 内累计字节上限） |
 | `approval_required` | `claim_based` | `approval` | `approval_required` |
 | `approval_mode` | `claim_based` | `approval` | `approval_mode` |
@@ -547,7 +547,7 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 | `accountability_required` | `claim_based` | `accountability` | `accountability_required` |
 | `guardian_approval_required` | `claim_based` | `accountability` | `guardian_approval_required` |
 | `controller_approval_required` | `claim_based` | `accountability` | `controller_approval_required` |
-| `requires_claims` | `claim_based` | `claim` | `requires_claims` |
+| `required_claims` | `claim_based` | `claim` | `required_claims` |
 | `trusted_claim_issuers` | `claim_based` | `claim` | `trusted_claim_issuers` |
 | `claim_refresh_required` | `claim_based` | `claim` | `claim_refresh_required` |
 | `claim_max_age` | `claim_based` | `claim` | `claim_max_age` |
@@ -555,11 +555,11 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 
 ### 6.2 资源类型 / facet / claim 约束求值规则
 
-`discussion` 不是独立资源类型。需要限制 discussion track 时，使用 `allowed_object_types=["strand"]` 和 `allowed_tracks=["discussion"]`；MUST NOT 引入按 track profile 名称授权的 v1 grant 字段。`tracks.<name>.profile` 只是 Strand track 的语义/profile hint，MUST NOT 单独授予读取、发送或成员权限。
+`discussion` 不是独立资源类型。需要限制 discussion track 时，使用 `allowed_object_kinds=["strand"]` 和 `allowed_tracks=["discussion"]`；MUST NOT 引入按 track profile 名称授权的 v1 grant 字段。`tracks.<name>.profile` 只是 Strand track 的语义/profile hint，MUST NOT 单独授予读取、发送或成员权限。
 
-Facet 只在 grant 显式包含 `allowed_facets` / `denied_facets` 这类 typed constraint 时作为范围收窄条件参与第 7 步 constraints 判断；未声明 facet constraint 的 grant 不会因为目标对象具有 `stateful`、`assignable` 或其他 facet 而自动允许或自动拒绝。`facet=stateful` 不引入独立授权动作：修改 Morph `state` 仍 MUST 命中 `ak.morph.update` 或 profile 注册的更具体 action、目标 resource selector、`allowed_morph_types`、字段写约束、schema state transition policy 和其他有效 constraints。若 grant 允许 `ak.morph.update` 且没有字段/类型/策略拒绝，缺少 `allowed_facets=["stateful"]` 本身 MUST NOT 成为拒绝理由；若 grant 显式声明 `allowed_facets` 且目标 facets 不匹配，则 constraint 不满足。
+Facet 只在 grant 显式包含 `allowed_facets` / `denied_facets` 这类 typed constraint 时作为范围收窄条件参与第 7 步 constraints 判断；未声明 facet constraint 的 grant 不会因为目标对象具有 `stateful`、`assignable` 或其他 facet 而自动允许或自动拒绝。`facet=stateful` 不引入独立授权动作：修改 Morph `state` 仍 MUST 命中 `ak.morph.update` 或 profile 注册的更具体 action、目标 resource selector、`allowed_morph_kinds`、字段写约束、schema state transition policy 和其他有效 constraints。若 grant 允许 `ak.morph.update` 且没有字段/类型/策略拒绝，缺少 `allowed_facets=["stateful"]` 本身 MUST NOT 成为拒绝理由；若 grant 显式声明 `allowed_facets` 且目标 facets 不匹配，则 constraint 不满足。
 
-`requires_claims[]` 中每个 claim 条目 MUST 明确绑定 `issuer` 或 `trusted_issuers[]`；`subject_matches_actor` 未出现时按 `true` 求值。实现 MUST NOT 接受只有 `claim_type` 而无发行者边界的 claim grant。
+`required_claims[]` 中每个 claim 条目 MUST 明确绑定 `issuer` 或 `trusted_issuers[]`；`subject_matches_actor` 未出现时按 `true` 求值。实现 MUST NOT 接受只有 `claim_kind` 而无发行者边界的 claim grant。
 
 ## 7. Claim / Attestation
 

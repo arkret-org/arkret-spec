@@ -8,7 +8,7 @@
     "schema",
     "realm_id",
     "schema_refs",
-    "morph_type",
+    "morph_kind",
     "created_by",
     "created_at"
   ],
@@ -69,9 +69,9 @@
         "type": "string",
         "pattern": "^(ak\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*[A-Za-z0-9_.:-]*)$"
       },
-      "description": "Authoritative schema set for Morph fields and transition validation. Reducers MUST validate fields against exactly these refs; morph_type and facets are not a replacement for schema_refs."
+      "description": "Authoritative schema set for Morph fields and transition validation. Reducers MUST validate fields against exactly these refs; morph_kind and facets are not a replacement for schema_refs."
     },
-    "morph_type": {
+    "morph_kind": {
       "type": "string",
       "minLength": 1
     },
@@ -127,7 +127,7 @@
         "cancelled",
         "superseded"
       ],
-      "description": "Optional Morph business-progression stage. Orthogonal to top-level 'state' (physical lifecycle). A morph_type profile MAY require it; generic mirror/data Morphs may omit it. If absent, the first ak.morph.stage.set initializes the axis to any registered value; later changes follow the normal transition rules. ak.morph.update / ak.morph.schema_migrate patches on stage / stage_changed_at MUST be rejected. Stage transitions do not carry a reason/note; explanations belong in a referenced Message. See models/common-fields.md §5.3."
+      "description": "Optional Morph business-progression stage. Orthogonal to top-level 'state' (physical lifecycle). A morph_kind profile MAY require it; generic mirror/data Morphs may omit it. If absent, the first ak.morph.stage.set initializes the axis to any registered value; later changes follow the normal transition rules. ak.morph.update / ak.morph.schema_migrate patches on stage / stage_changed_at MUST be rejected. Stage transitions do not carry a reason/note; explanations belong in a referenced Message. See models/common-fields.md §5.3."
     },
     "stage_changed_at": {
       "$ref": "#/$defs/timestamp",
@@ -227,7 +227,7 @@
           },
           {
             "required": [
-              "morph_type"
+              "morph_kind"
             ]
           },
           {

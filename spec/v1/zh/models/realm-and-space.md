@@ -83,22 +83,22 @@ Schema id: `ak.schema.realm.v1`
 | `trust_domain` | yes | `id:trust_domain` | create-locked；必须匹配部署 `ServiceDescribe.trust_domain` 与 Realm receive context。 | 跨 deployment replay boundary。 |
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal；仅是 create/update 中的声明或投影，已验证归属必须有 active `ak.realm.organization`。 | 官方或治理组织。 |
 | `schema_refs` | yes | `array<string>` | MUST 包含 `ak.schema.realm.v1`。 | 启用 schema / profile。 |
-| `relation_profiles` | no | `array<RelationProfile>` | 同一 `(relation_kind, from_type, to_type, scope)` 至多一个 active profile。 | Relation 基数、去重和冲突规则。 |
+| `relation_profiles` | no | `array<RelationProfile>` | 同一 `(relation_kind, from_kind, to_kind, scope)` 至多一个 active profile。 | Relation 基数、去重和冲突规则。 |
 | `policy_id` | no | `id:policy` | reducer 派生。 | 当前 Realm access policy 引用。 |
 | `default_discoverability` | yes | `enum(public, listed, restricted, unlisted, invite_only, secret)` | reducer 派生。 | 默认可发现性。 |
 | `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | reducer 派生。 | 默认加入规则。 |
-| `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | reducer 派生。`world_readable` / `shared` / `invited` 在 MLS-backed Realm 上要求 effective `content_scheme=mls-exporter-aead-v1`；`mls-rfc9420` 只能与 `joined` / `restricted` 同用。 | 历史可见性。 |
+| `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | reducer 派生。`world_readable` / `shared` / `invited` 在 MLS-backed Realm 上要求 effective `content_scheme=mls_exporter_aead_v1`；`mls_rfc9420` 只能与 `joined` / `restricted` 同用。 | 历史可见性。 |
 | `preview_policy_id` | no | `id:policy` | reducer 派生或投影字段；canonical 写入路径为 `ak.realm.preview_policy`。 | 加入前 / token-scoped preview 的 policy 引用或摘要。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | create-locked 的**能力轴**：只声明加密**机制**(有没有 MLS group)，不声明哪些 Arkret 字段进入密文，也不是"内容是否加密"的开关。`none` 是 bridge / 公开广播等"结构上永不 E2EE"scope 的诚实 opt-out；将来可能加密的协作 Realm SHOULD 以 `mls_rfc9420` + `content_encryption_floor=allow_plaintext` 创建，以便后期原地启用加密。完整语义见 [`circle.md` §7](./circle.md)。 | 加密机制声明。 |
-| `content_scheme` | no | `enum(mls-rfc9420, mls-exporter-aead-v1)` | reducer 派生（Realm policy 字段，经 `ak.realm.policy_components` 写入并纳入 MLS governance binding `policy_root`）。仅当 `encryption_profile=mls_rfc9420` 时适用；缺省为 `mls-rfc9420`。`mls-rfc9420` 使用 MLS PrivateMessage，join 前历史不可被后加入者解密，故只能配 `history_visibility=joined` / `restricted`；`mls-exporter-aead-v1` 使用 per-epoch `history_secret`，可在 history sharing policy 授权下经 `ak.realm_key.share` 交付，但不自动打开 pre-join delivery。切换只对后续 epoch 生效，完整语义见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10。 | MLS-backed content envelope scheme。 |
+| `content_scheme` | no | `enum(mls_rfc9420, mls_exporter_aead_v1)` | reducer 派生（Realm policy 字段，经 `ak.realm.policy_components` 写入并纳入 MLS governance binding `policy_root`）。仅当 `encryption_profile=mls_rfc9420` 时适用；缺省为 `mls_rfc9420`。`mls_rfc9420` 使用 MLS PrivateMessage，join 前历史不可被后加入者解密，故只能配 `history_visibility=joined` / `restricted`；`mls_exporter_aead_v1` 使用 per-epoch `history_secret`，可在 history sharing policy 授权下经 `ak.realm_key.share` 交付，但不自动打开 pre-join delivery。切换只对后续 epoch 生效，完整语义见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10。 | MLS-backed content envelope scheme。 |
 | `content_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH）。这是 Realm 真正的"内容加密开关"：`e2ee_required` 时 Strand / Message / Morph / Blob content 的 `effective_scope` MUST 为 MLS-backed，plaintext content reducer MUST `failed_precondition`（reason=`content_encryption_floor_violation`）。缺省 `allow_plaintext`。**单向 ratchet**：一旦 effective 值达到 `e2ee_required`，后续降回 `allow_plaintext` 的写入 MUST `failed_precondition`（reason=`content_encryption_floor_downgrade`）。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 content 加密下限。 |
 | `metadata_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH），与 `content_encryption_floor` 对称。比较序 `allow_plaintext < e2ee_required`；effective 值取父 Realm / Circle / 对象 profile 的最大值，低于 effective 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_violation`），MUST NOT 被 Circle 或对象 profile 放宽。**单向 ratchet**：一旦 effective 值达到 `e2ee_required`，后续降回 `allow_plaintext` 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_downgrade`）。缺省：`mls_rfc9420` 或 `content_encryption_floor=e2ee_required` 的 Realm 为 `e2ee_required`，否则 `allow_plaintext`。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 metadata 加密下限。 |
-| `durability_policy` | no | `object` | reducer 派生（Realm policy 字段，经 `ak.realm.policy_components` 写入，非直接 PATCH）。仅当 `content_scheme=mls-exporter-aead-v1` 时 `mode != none` 才有效（见 §2.3.1）。 | Realm 恢复密钥（RRK）持久化策略。 |
+| `durability_policy` | no | `object` | reducer 派生（Realm policy 字段，经 `ak.realm.policy_components` 写入，非直接 PATCH）。仅当 `content_scheme=mls_exporter_aead_v1` 时 `mode != none` 才有效（见 §2.3.1）。 | Realm 恢复密钥（RRK）持久化策略。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
 | `sync_endpoints` | no | `array<ServiceBinding>` | Realm-level shared notary / Sync Service / mirror / federation 服务绑定；不是成员级 delivery binding。详见 [`../sync/federation.md`](../sync/federation.md)。 | Realm 委托同步与联邦入口。 |
 | `notary_profile` | yes | `enum(single_did, threshold, open_set, mixed)` | create-locked。 | Seal finality profile。 |
 | `digest_algorithm` | no | `enum(digest-suite-registry active ids；v1: sha256, blake3)` | create 时锁定，唯一例外是 `ak.realm.digest_suite_transition`（默认 `sha256`）。 | Digest suite（canonicalization × hash 注册元组，见 [`encoding.md` §3.1–§3.3](../conformance/encoding.md)）：裸 id = canonical JSON 归一化，点分 id（如 reserved 的 `cbor.sha256`）= 备用归一化编码 suite。Realm 内单一 suite 排他；切换走控制面 suite transition Seal（[`event-auth-state-resolution.md` §9.3.2](../authz/event-auth-state-resolution.md)）。 |
-| `notary` | yes | `object` | Genesis notary control cell 初值；其 `type` MUST 与 `notary_profile` 同源并满足对应 profile 的条件必填子字段。其 discriminator 子字段为 `type`（取值与 `notary_profile` 枚举同源：`single_did` / `threshold` / `open_set` / `mixed`）。**这是协议内 discriminator 默认用 `kind` 约定的已登记例外**（schema `realm.schema.json` 锁定 `notary.type`），见 [`common-fields.md` §2](./common-fields.md)。 | 当前 Seal 签发规则。 |
+| `notary` | yes | `object` | Genesis notary control cell 初值；其 `type` MUST 与 `notary_profile` 同源并满足对应 profile 的条件必填子字段。其 discriminator 子字段为 `type`（取值与 `notary_profile` 枚举同源：`single_did` / `threshold` / `open_set` / `mixed`）。**这是协议内 discriminator 默认用 `kind` 约定的已登记例外**（schema `realm.schema.json` 锁定 `notary.kind`），见 [`common-fields.md` §2](./common-fields.md)。 | 当前 Seal 签发规则。 |
 | `availability_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_components` 写入；缺省为 1 个 notary holder，仅约束 Seal include。 | bytes availability receipt 门槛。 |
 | `audit_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_components` 写入；缺省时不得采信 range-completeness / transparency witness attestation。 | completeness / transparency witness policy。 |
 | `revocation_freshness_window_ms` | no | `integer` | 默认 24h；用于 DataEvent `seal_ref` 和 Control Move `seal_basis` 的撤销新鲜度判定。高风险写入 MAY 按 [`capabilities.md` §18.2](../authz/capabilities.md) 要求更短窗口。 | CBA 授权基准 freshness 上限。 |
@@ -114,7 +114,7 @@ Schema id: `ak.schema.realm.v1`
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-跨字段约束（normative）：`encryption_profile=mls_rfc9420` 的 Realm 若 effective `history_visibility ∈ {world_readable, shared, invited}`，effective `content_scheme` MUST 为 `mls-exporter-aead-v1`。若 effective `content_scheme=mls-rfc9420`（含缺省），effective `history_visibility` MUST 为 `joined` 或 `restricted`。任何 create/bootstrap 或 facet update 造成非法组合时，reducer MUST `failed_precondition`，reason=`history_visibility_requires_history_capable_scheme`。
+跨字段约束（normative）：`encryption_profile=mls_rfc9420` 的 Realm 若 effective `history_visibility ∈ {world_readable, shared, invited}`，effective `content_scheme` MUST 为 `mls_exporter_aead_v1`。若 effective `content_scheme=mls_rfc9420`（含缺省），effective `history_visibility` MUST 为 `joined` 或 `restricted`。任何 create/bootstrap 或 facet update 造成非法组合时，reducer MUST `failed_precondition`，reason=`history_visibility_requires_history_capable_scheme`。
 
 ### 2.3.0 Realm 组织归属与治理同意（normative）
 
@@ -163,7 +163,7 @@ Schema id: `ak.schema.realm.v1`
 - **域隔离**：`verification_method` 指向的 RRK MUST 是 history-recovery 域专用 key，独立于 `principal_id` 的 `did_recovery` 域钥匙（[`../identity/key-management.md` §7.1](../identity/key-management.md)）；攻破"能解 Realm 历史"MUST NOT 等于"能改组织身份"。
 - **成员可见**：`mode != none` 时客户端 MUST 按 [`../crypto-media/encryption-and-audit.md` §2.10.8](../crypto-media/encryption-and-audit.md) 披露义务向成员展示恢复方可验证身份与 mode。
 - **写入路径**：`durability_policy` 经 `ak.realm.policy_components` 写入（不新增 event kind），随 `policy_revision` 单调推进；变更 MUST 由后续 `ak.mls.commit` 覆盖 frontier 后对新 epoch 的封存义务生效。
-- **scheme 约束**：`mode != none` 仅在 `content_scheme=mls-exporter-aead-v1` 时有效；在 `mls-rfc9420` Realm 上声明 `mode != none` MUST `failed_precondition`（reason=`durability_scheme_incompatible`），因为后者无可交付 `history_secret`。
+- **scheme 约束**：`mode != none` 仅在 `content_scheme=mls_exporter_aead_v1` 时有效；在 `mls_rfc9420` Realm 上声明 `mode != none` MUST `failed_precondition`（reason=`durability_scheme_incompatible`），因为后者无可交付 `history_secret`。
 
 ### 2.4 最小示例
 
@@ -180,7 +180,7 @@ Schema id: `ak.schema.realm.v1`
   "encryption_profile": "mls_rfc9420",
   "notary_profile": "single_did",
   "notary": {
-    "type": "single_did",
+    "kind": "single_did",
     "did": "did:webvh:zAKD7rB7Tn8G84VgUBAjn8p2h:notary.acme.example",
     "recovery_members": ["did:webvh:z8wtK7VwY3xTRFNPwZixinUFx:recovery-notary.example"],
     "controller_organization": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
@@ -199,7 +199,7 @@ Schema id: `ak.schema.realm.v1`
 
 以下步骤 MUST 在评估同一批次后续 event 前完成。其中步骤 1–4 是 `ak.realm.create` **自身的 effect 集合，对全部 bootstrap 分支（普通 Collaboration Realm、PCR、Direct Conversation Realm）一致适用**；只有步骤 5（founding grant）限于普通非 PCR Realm，PCR 按上文分支以 delegated `ak.device.authorize` 取代。
 
-`ak.realm.create` 的前四项职责 MUST 由该 Event **自身 `effects[]` 中的显式 Control Move effect** 承担，缺一不可。全部 effect 在 canonical [`contract-catalog.json`](../../artifacts/registry/contract-catalog.json) 的 `ak.realm.create` `cell_writes[]` 中登记，顺序固定：
+`ak.realm.create` 的前四项职责 MUST 由该 Event **自身 `effects[]` 中的显式 Control Move effect** 承担，缺一不可。全部 effect 在 canonical [`contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `ak.realm.create` `cell_writes[]` 中登记，顺序固定：
 
 1. **物化 Realm metadata**：effect 写入 `ak.component.realm.metadata.v1`（`cas_register`，`bottom=reject`，`cell_subject=null`，与 `ak.realm.update` 同一 cell），初值为 `payload.object`（schema 校验、`encryption_profile` / `security_class` / `notary_profile` 等 create-locked 字段固化；`digest_algorithm` 仅可由 [`ak.realm.digest_suite_transition`](../authz/event-auth-state-resolution.md#932-digest-suite-transition-sealnormative) 后续改变）。该 cell MUST 在 genesis Seal 即存在；"metadata cell 只在首次 `ak.realm.update` 之后才出现在 `state_root` leaf 集合中"是不合规实现。
 2. **写入 `ak.component.member.state.v1` cell**：effect 的 `cell_subject` 取 `payload.object.created_by`，transition 为 `leave -> join`，hlc 取自 create event。这 **不要求** 发起者额外提交一条 `ak.member.state{join}` event——effect 就在这条 create Event 内部，wire 上仍然只有一条 Event；`created_by == actor_id` 的跨字段校验见 [`common-fields.md` §3](common-fields.md)、[`event-and-patch.md` §2.5](event-and-patch.md#25-create-类-event-的跨字段语义校验)。

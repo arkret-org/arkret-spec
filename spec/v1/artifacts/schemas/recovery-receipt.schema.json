@@ -126,7 +126,7 @@
           "$ref": "#/$defs/hash",
           "description": "Canonical-JSON digest of the proof transcript used to satisfy the active recovery policy. Auditors recompute against the originating proof event to verify."
         },
-        "quorum_size": {
+        "quorum_participant_count": {
           "type": "integer",
           "minimum": 1,
           "description": "Required for device_quorum and threshold_recovery; equals the number of participating members / shares."
@@ -151,13 +151,13 @@
       "items": {
         "type": "object",
         "required": [
-          "backup_class",
+          "backup_kind",
           "backup_id",
           "series_id",
           "ciphertext_digest"
         ],
         "properties": {
-          "backup_class": {
+          "backup_kind": {
             "type": "string",
             "enum": [
               "did_recovery",
@@ -384,7 +384,7 @@
         "properties": {
           "proof_summary": {
             "required": [
-              "quorum_size",
+              "quorum_participant_count",
               "share_ids"
             ]
           }
@@ -413,7 +413,7 @@
         "properties": {
           "proof_summary": {
             "required": [
-              "quorum_size"
+              "quorum_participant_count"
             ]
           }
         }

@@ -2,7 +2,7 @@
   "version": "2026-07-20",
   "source_of_truth": false,
   "generated_at": "2026-07-20T00:00:00Z",
-  "generated_from": "registry/contract-catalog.json",
+  "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
   "risk_tier_definitions": {
@@ -292,7 +292,7 @@
       "category": "morph",
       "risk_tier": "medium",
       "required_constraints": [
-        "allowed_morph_types"
+        "allowed_morph_kinds"
       ],
       "target_event_kinds": [
         "ak.morph.create"

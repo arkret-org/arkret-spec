@@ -472,7 +472,7 @@ event_id ASC
   ],
   "identity_payload": {
     "encrypted_payload": {
-      "scheme": "mls-rfc9420",
+      "scheme": "mls_rfc9420",
       "version": "1.0",
       "group_id": "base64url",
       "epoch": 12,
@@ -561,7 +561,7 @@ Handle claim 获取与刷新规则：
 
 `account_data` 是 principal 或 device 私有状态，不进入 Realm canonical state。标准类型：
 
-标准 Account Data key/pattern 的机器索引是 [`account-data-type-registry.json`](../../artifacts/registry/account-data-type-registry.json)。当前标准集包括：
+标准 Account Data key/pattern 的机器索引是 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)。当前标准集包括：
 
 - `ak.tags.realm.<realm_id>`
 - `ak.push_rules`

@@ -16,13 +16,13 @@ sidebar:
 
 > **本文是 documentation view，不是 schema/event 真源。**
 > 下方 §2 schema id 表与 §4 event kind 表是**人工维护的阅读节选**，并非穷尽清单；两者与机器 registry 不一致时一律 **以 JSON registry 为准**。"本文定义"的措辞仅指文档级别的展示视图。穷尽且 canonical 的清单是 `artifacts/registry/*.json`（站点经 MDX 组件 `<EventKindTable/>` / `<SchemaViewer/>` 等直接渲染这些 JSON）。
-> 修改流程:`contract-catalog.json` → `tools/artifact_pipeline.py generate` → 刷新各 `*-registry.json`。pipeline 不改写本文 md 表；新增 / 改名概念时如需在本节节选表体现，MUST 手工同步对应行，但本节表的滞后**不**改变「JSON registry 为唯一真源」这一结论。
+> 修改流程:`contract-registry.json` → `tools/artifact_pipeline.py generate` → 刷新各 `*-registry.json`。pipeline 不改写本文 md 表；新增 / 改名概念时如需在本节节选表体现，MUST 手工同步对应行，但本节表的滞后**不**改变「JSON registry 为唯一真源」这一结论。
 
 字段级结构定义见 `../models/common-fields.md` 及各对象专属文件（`realm-and-space.md` / `strand-and-message.md` / `morph.md` / `relation.md` / `actor.md` / `governance-objects.md` / `private-objects.md` / `event-and-patch.md`）。
 
 机器可读真源(authoritative，本文表格只是其投影):
 
-- `artifacts/registry/contract-catalog.json`
+- `artifacts/registry/contract-registry.json`
 - `artifacts/registry/schema-registry.json`
 - `artifacts/registry/id-kind-registry.json`
 - `artifacts/registry/event-kind-registry.json`
@@ -44,7 +44,7 @@ sidebar:
 | `ak.schema.morph.customer_risk.v1` | `schemas/morph-customer-risk.schema.json` | id 用 dot 分段（`morph.customer_risk`），文件用 dash（`morph-customer-risk`）；对应规则是 "schema id 里的每段都换成 dash"。其它 dotted-id schema 适用同一规则。 |
 | `ak.schema.agent_pairing_bootstrap.v1` | `schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap` | 与 `ak.schema.agent_operations.v1` 共用文件，但必须解析 `fragment` 指向的六字段 bootstrap 子 schema，不得加载顶层 DTO `oneOf` bundle。 |
 
-新增 schema 时如果出现不能机械推导的命名，必须把对应关系登记到 `contract-catalog.json` 的 `schemas[]` 条目，并在此表格补充一行；不得只改文件名。
+新增 schema 时如果出现不能机械推导的命名，必须把对应关系登记到 `contract-registry.json` 的 `schemas[]` 条目，并在此表格补充一行；不得只改文件名。
 
 ### 1.1.1 error code 命名空间例外（normative）
 
@@ -319,6 +319,6 @@ OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical 
 
 **c. `status` 字段与新增 / 弃用纪律**——registry 条目 `status` 的当前值域为 `active`（标准条目，可产生、可按各 registry 规则接受）、`deprecated`（只保留历史解释）与 `profile_extension`（仅在声明对应 profile 时有效；现用于 `id-kind-registry.json` 的 `special_forms`）。`schema-registry.json` 中省略 `status` 的行默认按 `active` 解释；新增或修改 schema 行 MUST 显式写出 `status`。这一默认值由 schema registry 的 `registry_rules` 机读声明，不允许消费者自行猜测。
 
-- 新增条目 MUST 以 `active`（或 `profile_extension`）登记进 canonical 真源（generated registry 一律经 `contract-catalog.json` → pipeline 再生成，见 §1）。
+- 新增条目 MUST 以 `active`（或 `profile_extension`）登记进 canonical 真源（generated registry 一律经 `contract-registry.json` → pipeline 再生成，见 §1）。
 - 弃用不删行：条目退出标准面时 MUST 将 `status` 置为 `deprecated` 并保留该行，保证历史 event / backfill 可解释。`deprecated` 条目 MUST NOT 用于新产生的 wire 写入；接收侧处置遵循各 registry 自身 `registry_rules`（例如 event-kind registry 规定 Events API / durable history / federation / reducer 只接受 `active` 条目——即 event kind 一旦 deprecated，新 admission 被拒绝；已 accepted 的历史事件不受追溯影响）。
 - 物理删除 registry 行只允许用于从未在任何发布版本出现过的条目。v1 当前没有 `deprecated` 条目；引入首个 `deprecated` 条目时 MUST 同步检查各消费方 lint / 生成器对该 status 值的处理。

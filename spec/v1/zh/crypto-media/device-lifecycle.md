@@ -1053,7 +1053,7 @@ peer claim MUST 同时满足两层授权，任一层缺失或失效都 MUST fail
 - `claim_purpose=direct_conversation` 时，request MUST 携带 `pair_key` 与 main `strand_id`；目标服务按 [`../identity/contact-and-direct-conversation.md` §7](../identity/contact-and-direct-conversation.md) 重算 pair key，并验证双方 accepted contact、target 对 requester 的 active `direct_message|any` consent、预留 Realm / Strand / MLS group 的一致性；
 - `(Source-Service-ID, target_principal_id)` 的限速与 abuse policy 通过。
 
-`claim_purpose=direct_conversation` 时 `allow_last_resort` MUST 缺省或为 `false`，目标服务 MUST NOT 返回 last-resort KeyPackage。一般 `realm_membership` claim 只有在双方 feature negotiation 均声明 `ak.feature.mls_last_resort_keypackage.v1` 且请求显式 `allow_last_resort=true` 时才可返回 last-resort record；否则 single-use pool 耗尽即失败。
+`claim_purpose=direct_conversation` 时 `last_resort_allowed` MUST 缺省或为 `false`，目标服务 MUST NOT 返回 last-resort KeyPackage。一般 `realm_membership` claim 只有在双方 feature negotiation 均声明 `ak.feature.mls_last_resort_keypackage.v1` 且请求显式 `last_resort_allowed=true` 时才可返回 last-resort record；否则 single-use pool 耗尽即失败。
 
 #### 9.2.3 原子幂等 ledger 与不确定结果
 
@@ -1269,16 +1269,16 @@ Secret storage 用于保存：
 
 Device / Key Server 的 `ak.keys.backups.*` endpoint MUST 只接受 `ak.schema.key_backup.v1` wire envelope。任何不符合 `ak.schema.key_backup.v1` 顶层 `required`（含 `series_id` / `series_seq`）的请求体 MUST 返回 `schema_violation`，原因码 `key_backup_wire_schema_required`。Client-local `ak.secret_storage.v1` 存储不受影响，但 MUST NOT 通过 `PUT /_arkret/self/keys/backups/{backup_id}` 同步。
 
-任何同步到 Device / Key Server 或其它远端服务的 secret，MUST 使用 §12 的 `ak.schema.key_backup.v1` envelope，并设置对应 `backup_class`：
+任何同步到 Device / Key Server 或其它远端服务的 secret，MUST 使用 §12 的 `ak.schema.key_backup.v1` envelope，并设置对应 `backup_kind`：
 
-| Secret 类别 | `backup_class` |
+| Secret 类别 | `backup_kind` |
 | --- | --- |
 | DID 恢复材料 | `did_recovery` |
 | `self_signing_key`、`user_signing_key` 等账户级 secret | `secret_storage` |
 | MLS epoch / Realm history secret | `mls_history` |
 | 外部托管或 profile 自定义 account secret | `secret_storage` |
 
-每个 `backup_class` MUST 使用独立 HKDF info 字符串派生 commitment / wrap key，禁止跨 class 共享密钥材料。规范权威表述见 [`../identity/key-management.md` §7.1](../identity/key-management.md)：HKDF info 形如 `arkret-key-backup/<backup_class>/<subdomain>/v1`（`/` 分隔，含 subdomain 维度）。任何 v1 wire 实现 MUST 跟随 `identity/key-management.md` 的 canonical 形式，本节描述只作为引导。
+每个 `backup_kind` MUST 使用独立 HKDF info 字符串派生 commitment / wrap key，禁止跨 class 共享密钥材料。规范权威表述见 [`../identity/key-management.md` §7.1](../identity/key-management.md)：HKDF info 形如 `arkret-key-backup/<backup_kind>/<subdomain>/v1`（`/` 分隔，含 subdomain 维度）。任何 v1 wire 实现 MUST 跟随 `identity/key-management.md` 的 canonical 形式，本节描述只作为引导。
 
 recovery secret、identity root seed、HKDF PRK 与完整派生 private key 不属于上表任何 wire 类别；即使本地 `ak.secret_storage.v1` 降级缓存允许持有 recovery secret，也 MUST NOT 把该 item 映射为 `ak.schema.key_backup.v1`、`ak.secret.send` 或任意远端同步对象。
 
@@ -1288,14 +1288,14 @@ Client-local secret storage 的存储格式仍可使用本节的 `ak.secret_stor
 
 Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当前 actor 已经通过 membership、history visibility 和 Realm policy 获得的历史范围，不是给未来新成员预先保留历史 secret 的机制。唯一的 managed-principal 托管分支是 [`../identity/key-management.md` §7.5.6](../identity/key-management.md)：Native Personal Agent controller 可把其依当前 Agent DID delegation 合法持有的 Agent PCR MLS state 写入 **controller-owned** `mls_history` envelope；外层 `actor_id` 与 caller 仍是 controller，不放宽跨 actor backup 访问。
 
-备份单元使用 `ak.schema.key_backup.v1`，并设置 `backup_class="mls_history"`。示例：
+备份单元使用 `ak.schema.key_backup.v1`，并设置 `backup_kind="mls_history"`。示例：
 
 ```json
 {
   "backup_id": "ak:backup:01964138-8000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-  "backup_class": "mls_history",
+  "backup_kind": "mls_history",
   "backup_version": "kb_1",
   "series_id": "ak:backup_series:01964138-1000-7000-8000-000000000000",
   "series_seq": 0,
@@ -1317,15 +1317,15 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
       "schema": "ak.schema.key_backup.v1",
       "actor_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
       "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-      "backup_class": "mls_history",
+      "backup_kind": "mls_history",
       "backup_version": "kb_1",
       "created_at": "2026-04-26T00:00:00Z",
-      "item_types": ["mls_epoch_secret"]
+      "item_kinds": ["mls_epoch_secret"]
     }
   },
   "contents": [
     {
-      "item_type": "mls_epoch_secret",
+      "item_kind": "mls_epoch_secret",
       "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
       "mls_group_id": "base64url",
       "epoch": 42,
@@ -1343,7 +1343,7 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
     "signed_fields": [
       "backup_id",
       "actor_id",
-      "backup_class",
+      "backup_kind",
       "backup_version",
       "series_id",
       "series_seq",
@@ -1368,14 +1368,14 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
 规则：
 
 - 备份 metadata MUST 绑定 actor DID、device id、backup id、backup class、created_at、ciphertext digest 和加密参数。
-- `backup_class="did_recovery"` 的 wire envelope MUST 使用 `recipient_method="recovery_public_key"`。任何 backup class 只要使用 `recovery_public_key`，就 MUST 携带顶层 `recovery_policy_ref{policy_id, policy_version}` 并由 `auth_data.signed_fields` 覆盖；`recipient_key_ref` 只能解析到该 accepted policy 的 `recovery_key_agreements[]`。`did_recovery` 的 ref 必须等于当前 active policy；`mls_history` / `secret_storage` 仍须按 accepted policy history、active-series 与轮换规则拒绝回滚。不一致 MUST `recovery_policy_mismatch`。只有 `secret_storage_key` 等非 recovery-public-key 方法携带的 `recovery_policy_ref` 才是可选 hint；任何 policy ref 都不得替代 active-series record、frontier_ref 或 Realm/MLS 授权校验。
-- 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名，并精确携带一种设备信任锚：A 模型为当前 `auth_data.ssk_generation`，B 模型为当前 generation 设备的 `auth_data.device_authorize_event_id`；同时出现或同时缺失均拒绝。携带 `frontier_ref` 时也必须精确绑定对应 A 的 `ssk_generation` 或 B 的 `device_generation_ref`。`auth_data.signed_fields` MUST 至少覆盖 `backup_id`、`actor_id`、`backup_class`、`backup_version`、`series_id`、`series_seq`、`supersedes`、`encryption`、`contents` 与 `ciphertext_digest`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`，携带 `recovery_policy_ref` 时还 MUST 覆盖 `recovery_policy_ref`。签名链必须链接到当前 principal 的 A/B device trust state。
+- `backup_kind="did_recovery"` 的 wire envelope MUST 使用 `recipient_method="recovery_public_key"`。任何 backup class 只要使用 `recovery_public_key`，就 MUST 携带顶层 `recovery_policy_ref{policy_id, policy_version}` 并由 `auth_data.signed_fields` 覆盖；`recipient_key_ref` 只能解析到该 accepted policy 的 `recovery_key_agreements[]`。`did_recovery` 的 ref 必须等于当前 active policy；`mls_history` / `secret_storage` 仍须按 accepted policy history、active-series 与轮换规则拒绝回滚。不一致 MUST `recovery_policy_mismatch`。只有 `secret_storage_key` 等非 recovery-public-key 方法携带的 `recovery_policy_ref` 才是可选 hint；任何 policy ref 都不得替代 active-series record、frontier_ref 或 Realm/MLS 授权校验。
+- 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名，并精确携带一种设备信任锚：A 模型为当前 `auth_data.ssk_generation`，B 模型为当前 generation 设备的 `auth_data.device_authorize_event_id`；同时出现或同时缺失均拒绝。携带 `frontier_ref` 时也必须精确绑定对应 A 的 `ssk_generation` 或 B 的 `device_generation_ref`。`auth_data.signed_fields` MUST 至少覆盖 `backup_id`、`actor_id`、`backup_kind`、`backup_version`、`series_id`、`series_seq`、`supersedes`、`encryption`、`contents` 与 `ciphertext_digest`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`，携带 `recovery_policy_ref` 时还 MUST 覆盖 `recovery_policy_ref`。签名链必须链接到当前 principal 的 A/B device trust state。
 - 服务端 MUST 只允许同一 actor 的当前授权设备、满足 recovery policy 的恢复流程，或 policy 明确授权的组织恢复服务读取备份密文。
 - 含 Agent PCR managed item 的 envelope MUST 使用 `recovery_public_key`，携带 controller 当前 `recovery_policy_ref`，并让 public index、plaintext keybag 与 AEAD AAD 对同一 `managed_principal_binding` canonical set 达成逐字一致；服务端在接受上传前 MUST 按 envelope `created_at` 验证 Agent DID/PCR/controller/delegation binding。该验证只证明 controller 当时有权托管密钥，不让服务端获得解密能力，也不让历史解密能力替代当前 Agent DID authoring authorization。
 - 服务端返回备份列表时 SHOULD 最小化 metadata；不得向无关 caller 暴露 Realm membership、MLS group id 或历史范围。
 - 删除备份只删除服务端密文和 metadata；它不撤销 DID 控制权，也不改变 Realm membership。需要吊销设备或轮换 MLS epoch 时必须发布相应事件。
 - 被撤销设备上传的新备份 MUST 被拒绝。撤销前上传的备份 MAY 继续保留，但恢复使用时必须重新验证当前 recovery policy、device revocation state 和 Realm history visibility。
-- **Series & freshness**：所有 wire envelope MUST 满足 `identity/key-management.md` §7.6 的 series 链规则（`series_id` / `series_seq` / `supersedes` / `supersedes_digest`）。Receiver 在恢复或读取时 MUST 先用 `ak.key_backup.active_series` / `ak.schema.key_backup_active_series.v1` signed active-series record 确认 canonical `series_id`（当同一 `(actor_id, backup_class)` 存在多个 series 时），再重建链并仅使用尾部 envelope；服务端 MUST NOT 重写、改写或省略已上传 envelope 的链字段，除非按 §12.2 retention 流程整组迁移。
+- **Series & freshness**：所有 wire envelope MUST 满足 `identity/key-management.md` §7.6 的 series 链规则（`series_id` / `series_seq` / `supersedes` / `supersedes_digest`）。Receiver 在恢复或读取时 MUST 先用 `ak.key_backup.active_series` / `ak.schema.key_backup_active_series.v1` signed active-series record 确认 canonical `series_id`（当同一 `(actor_id, backup_kind)` 存在多个 series 时），再重建链并仅使用尾部 envelope；服务端 MUST NOT 重写、改写或省略已上传 envelope 的链字段，除非按 §12.2 retention 流程整组迁移。
 
 ### 12.1 Backup API
 
@@ -1392,7 +1392,7 @@ DELETE /_arkret/self/keys/backups/{backup_id}
 
 `PUT` 还 MUST：(a) 校验 `series_seq` 严格大于该 series 已有的最大 sequence（首条 MUST `series_seq=0`）；(b) 校验 `supersedes` 引用的前一条 envelope 存在、`actor_id` / `series_id` 匹配，并由当前 caller 可见；(c) 校验 `supersedes_digest` 等于服务端持有的前一条 canonical_json digest（排除 `auth_data.signature`）；任一失败 MUST 返回 `409 Conflict`，reason 分别为 `series_seq_not_monotonic` / `series_predecessor_not_found` / `series_chain_broken`。
 
-`GET /_arkret/self/keys/backups` 支持 `?series_id=<series_id>` 与 `?backup_class=<class>` 过滤；响应 MUST 按 `series_seq` 升序返回该 series 的全部 envelope metadata，便于 client 重建链。当仅按 `backup_class` 查询且返回多个 series 时，server / client MUST NOT 用返回顺序、最大 `series_seq` 或最新 `created_at` 推断 active series；恢复方 MUST 使用 `identity/key-management.md` §7.6 的 `ak.key_backup.active_series` / `ak.schema.key_backup_active_series.v1` signed active-series record。`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints；不得越过 `identity/key-management.md` §7.8 的限速。
+`GET /_arkret/self/keys/backups` 支持 `?series_id=<series_id>` 与 `?backup_kind=<class>` 过滤；响应 MUST 按 `series_seq` 升序返回该 series 的全部 envelope metadata，便于 client 重建链。当仅按 `backup_kind` 查询且返回多个 series 时，server / client MUST NOT 用返回顺序、最大 `series_seq` 或最新 `created_at` 推断 active series；恢复方 MUST 使用 `identity/key-management.md` §7.6 的 `ak.key_backup.active_series` / `ak.schema.key_backup_active_series.v1` signed active-series record。`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints；不得越过 `identity/key-management.md` §7.8 的限速。
 
 `unlock` 返回完整 encrypted backup object：request body MUST 携带 `ak.schema.key_backup_unlock_proof.v1`（见 `identity/key-management.md` §7.7.1），并受 §7.8 的 fresh device proof 与 rate limit 约束。`delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明；active series 内的非尾部 envelope MUST NOT 被单独删除，删除链尾部 envelope MUST 同时附 §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）并写入高风险审计。
 
@@ -1416,7 +1416,7 @@ DELETE /_arkret/self/keys/backups/{backup_id}
 
 ## 13. Realm Key Share and Withholding
 
-Arkret 使用 `ak.realm_key.share` 共享历史解密材料。`share_class="member_device"` 是普通成员设备历史交付路径；共享前发送设备 MUST 检查：
+Arkret 使用 `ak.realm_key.share` 共享历史解密材料。`share_kind="member_device"` 是普通成员设备历史交付路径；共享前发送设备 MUST 检查：
 
 - 接收设备属于目标 principal。
 - 设备未撤销。
@@ -1424,13 +1424,13 @@ Arkret 使用 `ak.realm_key.share` 共享历史解密材料。`share_class="memb
 - history visibility 允许该 principal 获取目标历史范围，且判定时点使用目标 Event range 的 deterministic `T0`，不得使用本地到达顺序或 wall clock。
 - effective `ak.realm.history_sharing_policy` 允许该 receiver class、scope、epoch range 和 key source；当 Realm / Circle history visibility 为 `restricted` 时，必须命中 `restricted_rules[]`，且本次请求所用 key 来源 MUST 在命中 rule 的 `key_sources` 内（命中 read rule 但来源不在 `key_sources` 时只放行读取、不交付 key），否则 MUST withhold。
 - `key_scope.policy_digest` 绑定本次判定使用的 Realm policy / MLS governance policy root；如判定依赖 membership frontier，`key_scope.membership_frontier_digest` SHOULD 同时写入。
-- `sender_device_signature` MUST 覆盖 `share_class`、发送设备、接收 principal/device、`key_scope`、`aad_digest?`、`ciphertext` 或 `encrypted_key_ref` 与 `created_at`。接收方 MUST 验证该签名链接到当前有效 sender device key，且不得只依赖传输层认证。
+- `sender_device_signature` MUST 覆盖 `share_kind`、发送设备、接收 principal/device、`key_scope`、`aad_digest?`、`ciphertext` 或 `encrypted_key_ref` 与 `created_at`。接收方 MUST 验证该签名链接到当前有效 sender device key，且不得只依赖传输层认证。
 - 对 `history_visibility=joined` 的 scope，join 前 epoch key MUST 被拒绝；对 `invited`，share range MUST be no earlier than receiver 的有效 invite frontier；对 `shared`，join 前 history key share 仍需要 policy 明确允许；对 `world_readable`，E2EE key 不因 public history 自动公开。
 - current safety policy（redaction / erasure / retention / ban·remove / legal hold）未禁止继续向该 principal / device 交付。
 - audit profile 要求的 `ak.realm_key.share_audit` / `ak.audit.accessed` 已满足。
 - Archive Node、Key Recovery Service、Recovery Service 或 peer 不能因为持有备份副本就绕过上述检查；服务端 operator 权限不是 key share 授权。
 
-`share_class="realm_recovery_key"` 是 Realm `durability_policy` 的 RRK 持久化封存路径（[`encryption-and-audit.md` §2.10.8](./encryption-and-audit.md)）。它 MUST 携带 `recipient_verification_method` 与 `recovery_recipient_id`，MUST NOT 携带 `recipient_device_id`，且 `sender_device_signature` MUST 覆盖 `share_class`、发送设备、`recipient_principal_id`、`recipient_verification_method`、`recovery_recipient_id`、`key_scope`、`aad_digest?`、`ciphertext` 或 `encrypted_key_ref` 与 `created_at`。发送方 MUST 按 §2.10.8 校验 RRK DID service 绑定与 effective `durability_policy`，不得复用本节的成员设备资格校验来替代 RRK 校验。
+`share_kind="realm_recovery_key"` 是 Realm `durability_policy` 的 RRK 持久化封存路径（[`encryption-and-audit.md` §2.10.8](./encryption-and-audit.md)）。它 MUST 携带 `recipient_verification_method` 与 `recovery_recipient_id`，MUST NOT 携带 `recipient_device_id`，且 `sender_device_signature` MUST 覆盖 `share_kind`、发送设备、`recipient_principal_id`、`recipient_verification_method`、`recovery_recipient_id`、`key_scope`、`aad_digest?`、`ciphertext` 或 `encrypted_key_ref` 与 `created_at`。发送方 MUST 按 §2.10.8 校验 RRK DID service 绑定与 effective `durability_policy`，不得复用本节的成员设备资格校验来替代 RRK 校验。
 
 本节是 key-share 资格校验的 **canonical 来源**；history-visibility、late key recovery 等处对发送侧前置校验的引用以本节为准，不再各自重述。
 
@@ -1443,20 +1443,20 @@ Arkret 使用 `ak.realm_key.share` 共享历史解密材料。`share_class="memb
 - `policy_denied`
 - `unknown_session`
 
-`ak.realm_key.withheld` 与 share 共用同一 delivery cell family，因此它同样 MUST 携带 `share_class`（v1 仅 `member_device`）、`key_scope` 与 `source_authorization_ref`。withheld 虽不携带 secret，但 `not_member` / `history_not_visible` 等 reason 会产生主体级终态语义；仅有任意设备的 Event 签名不足以授权它向目标 delivery cell 写入拒绝记录。缺失或不覆盖该决定的 source authorization MUST 以 `late_recovery_share_not_authorized` 拒绝整个 Event，MUST NOT 把未授权 withheld 投影为终态。
+`ak.realm_key.withheld` 与 share 共用同一 delivery cell family，因此它同样 MUST 携带 `share_kind`（v1 仅 `member_device`）、`key_scope` 与 `source_authorization_ref`。withheld 虽不携带 secret，但 `not_member` / `history_not_visible` 等 reason 会产生主体级终态语义；仅有任意设备的 Event 签名不足以授权它向目标 delivery cell 写入拒绝记录。缺失或不覆盖该决定的 source authorization MUST 以 `late_recovery_share_not_authorized` 拒绝整个 Event，MUST NOT 把未授权 withheld 投影为终态。
 
 withheld 的 `key_scope.policy_digest` 是**来源方作出该拒绝判定时实际求值的** effective Realm/Circle policy root，它钉住拒绝所依据的 policy snapshot，不表示该 share 曾获授权：`not_member` / `history_not_visible` / `policy_denied` 绑定作出相应 membership、visibility 或 sharing-policy 判定时的 root；`unverified_device` / `blacklisted_device` / `unknown_session` 绑定此次拒绝所依据的 effective device/session eligibility policy root。设备、session 与 membership 事实仍由 Event CBA、引用与领域校验提供，MUST NOT 用 `policy_digest` 自证。receiver MUST 在同一 Event CBA / T₀ basis 上重算并逐字比较该 root。来源方若无法在 canonical basis 上解析出唯一 effective policy root，MUST NOT 生成 canonical durable withheld，只能 fail closed 并走领域登记的非 Event / pending 错误路径，MUST NOT 填零值、接收时当前最新 root 或实现私有占位。
 
 ### 13.0 Delivery cell identity 与 sender-device transcript（normative）
 
-`ak.realm_key.share` 与 `ak.realm_key.withheld` 写入同一 `ak.component.realm_key.delivery.v1` cell family。其 cell subject 是固定 arity 4 的判别式复合 subject，canonical 定义与 `select` 求值规则以 [`../conformance/encoding.md` §9.5](../conformance/encoding.md) 为唯一真源：`[share_class, recipient_principal_id, recipient_target_id, effective_scope_id]`。两个 Event kind 使用逐字相同的 registry descriptor。实现 MUST 按 registry 纯函数重算 `effects[].cell`，MUST NOT 信任 producer 自选的 cell。
+`ak.realm_key.share` 与 `ak.realm_key.withheld` 写入同一 `ak.component.realm_key.delivery.v1` cell family。其 cell subject 是固定 arity 4 的判别式复合 subject，canonical 定义与 `select` 求值规则以 [`../conformance/encoding.md` §9.5](../conformance/encoding.md) 为唯一真源：`[share_kind, recipient_principal_id, recipient_target_id, effective_scope_id]`。两个 Event kind 使用逐字相同的 registry descriptor。实现 MUST 按 registry 纯函数重算 `effects[].cell`，MUST NOT 信任 producer 自选的 cell。
 
 `sender_device_signature` 的 canonical transcript 由本节固定，schema description 与任何 SDK 方法都不构成替代真源。签名对象为：
 
 ```text
 {
   context: "ak.realm-key-share-sender-proof-v1",
-  share_class,
+  share_kind,
   sender_device_id,
   source_authorization_ref,
   recipient_principal_id,
@@ -1482,7 +1482,7 @@ delivery cell 的 lattice 是 `ordered_log`，每个 accepted Event 产生恰好
 | member | 来源 |
 | --- | --- |
 | `delivery_outcome` | 字面量 `"shared"` |
-| `share_class` | `payload.share_class` |
+| `share_kind` | `payload.share_kind` |
 | `recipient_principal_id` | `payload.recipient_principal_id` |
 | `recipient_target_id` | 与 cell subject 同一 `select`：`member_device` → `payload.recipient_device_id`；`realm_recovery_key` → `payload.recovery_recipient_id` |
 | `effective_scope_id` | 与 cell subject 同一 `select`：`realm` → `payload.key_scope.effective_scope.realm_id`；`circle` → `payload.key_scope.effective_scope.circle_id` |
@@ -1532,14 +1532,14 @@ delivery cell 的 lattice 是 `ordered_log`，每个 accepted Event 产生恰好
 | `recipient_principal_id` | yes | 接收主体 DID（MUST == 请求签名者，§13.2 校验 1）。 |
 | `recipient_device_id` | yes | 接收设备 id。 |
 | `recipient_hpke_public_key` | yes | 用于封装 `history_secret` 的接收设备公钥（KeyPackage init key 或等价设备公钥）。 |
-| `requested_source_class` | yes | 本次面向的来源类别，取 `own_device` / `verified_member_device` / `archive_node` / `recovery_service`。**不含 `key_backup`**——它走 `ak.self.keys.backups.command.unlock`、不经本请求。 |
+| `requested_source_kind` | yes | 本次面向的来源类别，取 `own_device` / `verified_member_device` / `archive_node` / `recovery_service`。**不含 `key_backup`**——它走 `ak.self.keys.backups.command.unlock`、不经本请求。 |
 | `target_source_ref` | yes | 本请求路由到的**具体来源**：peer（`own_device` / `verified_member_device`）为目标 `device_id`，service（`archive_node` / `recovery_service`）为 service DID。若 service 复用本 to-device kind，`DeviceMessageEnvelope.recipient_principal_id` MUST 等于该 service DID，`recipient_device_id` MUST 是该 service 在 describe 中暴露的具体队列 / 设备目标；未暴露时 MUST 走服务专有 operation。无该字段则 relay / service 路由与审计无法定位来源。 |
 
 **触发**：接收方在某 Event 处于 `decryption_pending` 且自身在该 Event 的 `T0` read-eligible（[`../governance/history-visibility.md`](../governance/history-visibility.md) §3）时 MAY 发起；对 `decryption_failed` 的 late recovery 同样适用（§2.3.5）。`ak.realm_key.request` 只是发起信号，不降低任何授权要求——被请求来源 MUST 独立执行 §13 canonical 校验后才交付。
 
 **两类场景的来源不同（normative）**：
 
-- **同 principal 恢复**——已是成员、在新设备上恢复或丢设备后恢复**自己已有权读取**的历史。来源为 `own_device`（同 principal 另一台在线设备）或 `key_backup`（**接收方本人的** `mls_history` key backup，加密于其本人 recovery key 之下、经 unlock 取回；见 [`../identity/key-management.md`](../identity/key-management.md) §7.7 与 `backup_class="mls_history"`）。`mls_history` backup 只装"用户已有权读取的"历史，故 `key_backup` 只适用本场景。
+- **同 principal 恢复**——已是成员、在新设备上恢复或丢设备后恢复**自己已有权读取**的历史。来源为 `own_device`（同 principal 另一台在线设备）或 `key_backup`（**接收方本人的** `mls_history` key backup，加密于其本人 recovery key 之下、经 unlock 取回；见 [`../identity/key-management.md`](../identity/key-management.md) §7.7 与 `backup_kind="mls_history"`）。`mls_history` backup 只装"用户已有权读取的"历史，故 `key_backup` 只适用本场景。
 - **跨 principal 新成员**——首次加入、获取 join 前**从未持有**的历史。来源为 `verified_member_device`（现有成员重新分享其保留的 `history_secret`）、`archive_node` 或 `recovery_service`。**`own_device` / `key_backup` 不适用**：新成员从未有权读取这些 epoch，其本人 backup 里也不会有它们。
 
 **来源选择 = 三层求交（normative）**：接收方选择来源 MUST 同时满足——
@@ -1554,7 +1554,7 @@ delivery cell 的 lattice 是 `ordered_log`，每个 accepted Event 产生恰好
 - `ak.feature.realm_key.peer_relay.v1`：中继 peer 的 `ak.realm_key.request`（device-to-device，经 device message 队列投递）；授权后的 `ak.realm_key.share` / `ak.realm_key.withheld` 仍是 durable event，队列 MAY 只投递其 event ref / 通知。
 - `ak.feature.realm_key.archive_retrieval.v1`：作为 archive_node 服务历史 key。
 
-`archive_node` / `recovery_service` / `key_recovery_service` 是独立 `service_type`（service-surface §3 注册值），其取回 endpoint 由 Realm policy 点名的 service DID 各自 describe 暴露。
+`archive_node` / `recovery_service` / `key_recovery_service` 是独立 `service_kind`（service-surface §3 注册值），其取回 endpoint 由 Realm policy 点名的 service DID 各自 describe 暴露。
 
 **每来源的请求 / 取回映射**：
 
@@ -1738,7 +1738,7 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 - **终态请求**：对处于终态（`completed` / `rejected` / `expired`）的 session 调用 `submit_proof` 或 `complete`，服务端 MUST 返回 `failed_precondition`，reason_code=`recovery_session_terminal`。
 
 1. **Recovery policy 与模型快照**：新设备只声明 `principal_id`、`requesting_device_id` 与 trust domain；create request 不携带 `identity_model` 或 generation。coordinator MUST 从 accepted control state 推导模型，不能信任客户端自报；创建 session 时 snapshot `(policy_id, policy_version)`，并且 A 模型 snapshot `ssk_generation`，B 模型 snapshot `current_device_generation_ref`、`device_generation_status`、DID registry head 与 accepted Seal frontier。B 模型状态不是 `active` 时只允许满足 [`identity/key-management.md` §5.0.7](../identity/key-management.md) 的冲突解除形态。challenge 是单 session、单次使用的 256-bit CSPRNG 值；默认 TTL 900s，可缩短不可任意延长。
-2. **Recovery proof**：proof kind 仍由 accepted recovery policy 选择。使用用户 recovery secret 时，签名 key MUST 是 [`identity/key-management.md` §3.3](../identity/key-management.md) 的 Ed25519 `recovery-proof` 子键，不是 identity root，也不是 X25519 backup-HPKE key。所有 proof transcript 必须从 stored session 重建并绑定 `{type, kind, identity_model, principal_id, requesting_device_id, trust_domain, policy_id, policy_version, recovery_session_id, model_generation_ref, challenge, expires_at, created_at, proof_body?}`；`type="ak.identity.recovery_proof.v1"`。A 的 `model_generation_ref` 是 decimal SSK generation；B 是当前 DID versionId。客户端复制的 policy/model metadata 不得成为权威输入。
+2. **Recovery proof**：proof kind 仍由 accepted recovery policy 选择。使用用户 recovery secret 时，签名 key MUST 是 [`identity/key-management.md` §3.3](../identity/key-management.md) 的 Ed25519 `recovery-proof` 子键，不是 identity root，也不是 X25519 backup-HPKE key。所有 proof transcript 必须从 stored session 重建并绑定 `{schema, kind, identity_model, principal_id, requesting_device_id, trust_domain, policy_id, policy_version, recovery_session_id, model_generation_ref, challenge, expires_at, created_at, proof_body?}`；`schema="ak.identity.recovery_proof.v1"`。A 的 `model_generation_ref` 是 decimal SSK generation；B 是当前 DID versionId。客户端复制的 policy/model metadata 不得成为权威输入。
 
    `recovery_unlock` 的 `recovery_secret_ref` 必须解析到 session created-at 时 authoritative 的 policy entry，`verification_method` 必须等于该 entry 对应的 recovery-proof public key。signature 覆盖 generic transcript；`unlock_commitment` 继续使用 `ak.recovery-session-unlock-binding-v1\n` 域并绑定同一 transcript。root 或 backup-HPKE key 签名 MUST reject。
 3. **A 模型完成出口**：仅 A 模型可在 proof verified 后用 backup-HPKE key打开承载 SSK 的 recovery-directed envelope，以 snapshot generation 的 SSK 签 `cross_signing_binding`，提交 `ak.device.authorize` 后提交 `ak.device.list_update`。`/complete` 接受 `authorization_event_id` 与 `device_list_update_event_id`，并从 event store复验 principal/device/session/generation/actor chain。generation 不符为 `device_recovery_ssk_generation_mismatch`。

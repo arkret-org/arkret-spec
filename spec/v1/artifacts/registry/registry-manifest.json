@@ -1,12 +1,12 @@
 {
   "version": "2026-05-08",
   "source_of_truth": true,
-  "value_set_evolution_note": "Per zh/conformance/schema-registry.md §6.1: entries carrying value_set_evolution='open' are open registry sets (adding a value is a backward-compatible minor; codegen SHOULD use non-exhaustive Unknown(String) fallback). value_set_evolution='schema_selector' registries are algorithm-agility token sources whose canonical-object selectors are frozen per schema version (codegen MUST generate per-schema-version closed types; adding an active value requires a schema version bump). Registries WITHOUT this field are simply not classified here (they may be structural sources such as the contract catalog or manifest, or value sets not yet classified); consumers MUST consult §6.1 and the registry's own registry_rules rather than assuming a registry is or is not a codegen value-set source from the mere absence of this field.",
+  "value_set_evolution_note": "Per zh/conformance/schema-registry.md §6.1: entries carrying value_set_evolution='open' are open registry sets (adding a value is a backward-compatible minor; codegen SHOULD use non-exhaustive Unknown(String) fallback). value_set_evolution='schema_selector' registries are algorithm-agility token sources whose canonical-object selectors are frozen per schema version (codegen MUST generate per-schema-version closed types; adding an active value requires a schema version bump). Registries WITHOUT this field are simply not classified here (they may be structural sources such as the contract registry or manifest, or value sets not yet classified); consumers MUST consult §6.1 and the registry's own registry_rules rather than assuming a registry is or is not a codegen value-set source from the mere absence of this field.",
   "registries": [
     {
-      "name": "contract_catalog",
-      "file": "registry/contract-catalog.json",
-      "kind": "contract_catalog",
+      "name": "contract_registry",
+      "file": "registry/contract-registry.json",
+      "kind": "contract_registry",
       "source_role": "canonical",
       "source_of_truth": true,
       "description": "Canonical catalog for generated event/schema/id/operation registry views."
@@ -21,9 +21,9 @@
       "description": "Standard service-level and per-item error code registry."
     },
     {
-      "name": "account_data_types",
-      "file": "registry/account-data-type-registry.json",
-      "kind": "account_data_type_registry",
+      "name": "account_data_key_patterns",
+      "file": "registry/account-data-key-registry.json",
+      "kind": "account_data_key_registry",
       "source_role": "canonical",
       "source_of_truth": true,
       "description": "Canonical Account Data key-pattern registry for actor/private account state."
@@ -80,12 +80,12 @@
       "description": "Canonical HPKE (RFC 9180) suite (KEM x KDF x AEAD) vocabulary for non-MLS application-layer public-key sealing (key-backup recovery_public_key, did_recovery, to-device ak.secret.send, member-application and file-transfer key envelopes); unregistered suites fail closed. Fourth algorithm-agility registry alongside signature-alg, digest-suite and mls-ciphersuite."
     },
     {
-      "name": "service_types",
-      "file": "registry/service-type-registry.json",
-      "kind": "service_type_registry",
+      "name": "service_kinds",
+      "file": "registry/service-kind-registry.json",
+      "kind": "service_kind_registry",
       "source_role": "canonical",
       "source_of_truth": true,
-      "description": "Canonical service_type role vocabulary and its per-context validity (Service Describe, Realm sync endpoint, Realm join candidate, ServiceRegistrationKey, MIMI provider directory); replaces four drifted definitions."
+      "description": "Canonical service_kind role vocabulary and its per-context validity (Service Describe, Realm sync endpoint, Realm join candidate, ServiceRegistrationKey, MIMI provider directory); replaces four drifted definitions."
     },
     {
       "name": "string_profiles",
@@ -128,7 +128,7 @@
       "value_set_evolution": "open",
       "source_role": "generated",
       "source_of_truth": false,
-      "generated_from": "registry/contract-catalog.json",
+      "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for standard ak.* Event.kind values and wire scopes."
     },
     {
@@ -138,7 +138,7 @@
       "value_set_evolution": "open",
       "source_role": "generated",
       "source_of_truth": false,
-      "generated_from": "registry/contract-catalog.json",
+      "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for ak:<kind>: typed ID prefixes and storage/wire rules."
     },
     {
@@ -147,7 +147,7 @@
       "kind": "operation_registry",
       "source_role": "generated",
       "source_of_truth": false,
-      "generated_from": "registry/contract-catalog.json",
+      "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for service operation IDs across HTTP, gRPC, and message-queue surfaces."
     },
     {
@@ -157,7 +157,7 @@
       "value_set_evolution": "open",
       "source_role": "generated",
       "source_of_truth": false,
-      "generated_from": "registry/contract-catalog.json",
+      "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for canonical capability action vocabulary, risk tiers, required constraints, and event_kind targets."
     },
     {
@@ -182,16 +182,24 @@
       "kind": "schema_registry",
       "source_role": "generated",
       "source_of_truth": false,
-      "generated_from": "registry/contract-catalog.json",
+      "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for active schema IDs and schema file locations."
     },
     {
-      "name": "morph_type_decision_table",
-      "file": "registry/morph-type-decision-table.json",
+      "name": "morph_kind_decision_table",
+      "file": "registry/morph-kind-decision-table.json",
       "kind": "decision_table",
       "source_role": "canonical",
       "source_of_truth": true,
-      "description": "Canonical merge precedence + conflict rules for the four Morph type declaration sources (schema_refs, realm morph_type_profiles, morph_type, facets). Referenced normatively from zh/models/morph.md §4."
+      "description": "Canonical merge precedence + conflict rules for the four Morph kind declaration sources (schema_refs, realm morph_kind_profiles, morph_kind, facets). Referenced normatively from zh/models/morph.md §4."
+    },
+    {
+      "name": "classification_fields",
+      "file": "registry/classification-field-registry.json",
+      "kind": "classification_field_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Exact-context machine authority for Arkret kind/type/class/tier naming-axis validation."
     },
     {
       "name": "forbidden_wire_fields",
@@ -237,9 +245,11 @@
       "name": "profiles_dependency_graph",
       "file": "registry/profiles-dependency-graph.json",
       "kind": "profiles_dependency_graph",
-      "source_role": "canonical",
-      "source_of_truth": true,
-      "description": "Canonical DAG view of profile inherits / depends_on / mutually_exclusive_with edges, mirroring profile_requirements[<id>] relations in profiles/conformance-profiles.json. Rendered as a visualization aid in zh/conformance/conformance-profiles.md §2.1. Must be kept in sync when profile inheritance changes; conformance-profiles.json remains the source-of-truth for individual profile shape."
+      "source_role": "generated",
+      "source_of_truth": false,
+      "generated_from": "profiles/conformance-profiles.json#/profile_requirements",
+      "generated_by": "tools/lint_artifacts.py#check_profile_dependency_graph",
+      "description": "Generated DAG view of profile inherits / depends_on / mutually_exclusive_with edges from profile_requirements[<id>] in profiles/conformance-profiles.json. Rendered as a visualization aid in zh/conformance/conformance-profiles.md §2.1."
     }
   ]
 }

@@ -260,38 +260,66 @@
       },
       {
         "clause_id": "AK-SDK-018",
-        "grades": ["A"],
+        "grades": [
+          "A"
+        ],
         "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-018",
         "summary": "Model ack_token as opaque and expose no structured decode API",
-        "required_evidence": ["public_api_inventory"]
+        "required_evidence": [
+          "public_api_inventory"
+        ]
       },
       {
         "clause_id": "AK-SDK-019",
-        "grades": ["A", "U"],
+        "grades": [
+          "A",
+          "U"
+        ],
         "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-019",
         "summary": "Do not automatically replay retry_safe=false operations and rotate the request key when content changes",
-        "required_evidence": ["public_api_inventory", "config_audit"]
+        "required_evidence": [
+          "public_api_inventory",
+          "config_audit"
+        ]
       },
       {
         "clause_id": "AK-SDK-020",
-        "grades": ["V", "U"],
+        "grades": [
+          "V",
+          "U"
+        ],
         "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-020",
         "summary": "Honor Retry-After without clamping it into an earlier retry",
-        "required_evidence": ["vector_result", "config_audit"]
+        "required_evidence": [
+          "vector_result",
+          "config_audit"
+        ]
       },
       {
         "clause_id": "AK-SDK-021",
-        "grades": ["V", "A"],
+        "grades": [
+          "V",
+          "A"
+        ],
         "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-021",
         "summary": "Continue pagination only when has_more is true",
-        "required_evidence": ["vector_result", "public_api_inventory"]
+        "required_evidence": [
+          "vector_result",
+          "public_api_inventory"
+        ]
       },
       {
         "clause_id": "AK-SDK-022",
-        "grades": ["V", "A"],
+        "grades": [
+          "V",
+          "A"
+        ],
         "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-022",
         "summary": "Expose the canonical confusable check as a callable SDK utility",
-        "required_evidence": ["vector_result", "public_api_inventory"]
+        "required_evidence": [
+          "vector_result",
+          "public_api_inventory"
+        ]
       }
     ]
   },
@@ -388,7 +416,7 @@
     "ak.profile.search.blind_index.v1",
     "ak.profile.search.forward_private.v1"
   ],
-  "profile_tiers": {
+  "profile_sets": {
     "v1_profile_catalog": [
       "ak.profile.core_event_store.v1",
       "ak.profile.chat_mvp.v1",
@@ -437,12 +465,12 @@
       "ak.profile.search.blind_index.v1",
       "ak.profile.search.forward_private.v1"
     ],
-    "tier_rules": {
+    "test_build_stance_rule": "Test/conformance builds are marked solely by the canonical development_mode=true flag on the ServiceDescribe (see zh/sync/service-http-binding.md §2.1.2 and zh/sync/service-surface.md §3.0), which gates the test-only /_arkret/_conformance/* debug namespace and forces verified_profiles=[]. There is no separate ak.profile.* test-build profile: a test build is a deployment stance, not a negotiated interop capability.",
+    "profile_set_rules": {
       "v1_profile_catalog": "Profiles that belong to the v1 stable catalog. This is not a bundle requirement; implementations MUST claim only the profiles, event kinds, schemas, and operations they actually support.",
       "v1_minimal_interop_floor": "Minimum profile for claiming v1 Event Store interop. Higher-level client, service, federation, blob, push, identity, and sovereign profiles remain independently claimable.",
       "extension_profile_implementation": "Optional. Tracks implementation profiles outside the v1 minimal interop floor, including evolving external standards (MIMI Internet-Drafts; A2A/ACP/MCP unstandardized agent protocols; Applet registry/audit SLA) and opt-in product/privacy features such as productivity, disappearing messages, calendar events, pins, and search. Implementations claiming v1 core MAY omit these entirely; implementations MUST claim only entries they actually support. When an underlying external standard matures, a replacement profile with stable version pinning can supersede that entry."
-    },
-    "test_build_stance_rule": "Test/conformance builds are marked solely by the canonical development_mode=true flag on the ServiceDescribe (see zh/sync/service-http-binding.md §2.1.2 and zh/sync/service-surface.md §3.0), which gates the test-only /_arkret/_conformance/* debug namespace and forces verified_profiles=[]. There is no separate ak.profile.* test-build profile: a test build is a deployment stance, not a negotiated interop capability."
+    }
   },
   "identity_extension_profiles": [
     "ak.profile.public_network_identity.v1",
@@ -782,12 +810,12 @@
       "rejected_event_kinds": [],
       "required_schemas": [],
       "required_fixtures": [
-        "discovery_profile_fixture.json"
+        "discovery-profile-fixture.json"
       ],
       "required_runner_suites": [
         {
           "suite": "discovery_profile_fixture",
-          "artifact_fixture": "discovery_profile_fixture.json"
+          "artifact_fixture": "discovery-profile-fixture.json"
         }
       ],
       "optional_extensions": [],
@@ -806,12 +834,12 @@
       "rejected_event_kinds": [],
       "required_schemas": [],
       "required_fixtures": [
-        "event_kind_lattice_dispatch_fixture.json"
+        "event-kind-lattice-dispatch-fixture.json"
       ],
       "required_runner_suites": [
         {
           "suite": "event_kind_lattice_dispatch_fixture",
-          "artifact_fixture": "event_kind_lattice_dispatch_fixture.json"
+          "artifact_fixture": "event-kind-lattice-dispatch-fixture.json"
         }
       ],
       "optional_extensions": [],
@@ -833,12 +861,12 @@
         "ak.schema.event_payload.v1"
       ],
       "required_fixtures": [
-        "event_kind_payload_coverage_fixture.json"
+        "event-kind-payload-coverage-fixture.json"
       ],
       "required_runner_suites": [
         {
           "suite": "event_kind_payload_coverage_fixture",
-          "artifact_fixture": "event_kind_payload_coverage_fixture.json"
+          "artifact_fixture": "event-kind-payload-coverage-fixture.json"
         }
       ],
       "optional_extensions": [],
@@ -855,12 +883,12 @@
       "rejected_event_kinds": [],
       "required_schemas": [],
       "required_fixtures": [
-        "operation_registry_coverage_fixture.json"
+        "operation-registry-coverage-fixture.json"
       ],
       "required_runner_suites": [
         {
           "suite": "operation_registry_coverage_fixture",
-          "artifact_fixture": "operation_registry_coverage_fixture.json"
+          "artifact_fixture": "operation-registry-coverage-fixture.json"
         }
       ],
       "optional_extensions": [],
@@ -877,12 +905,12 @@
       "rejected_event_kinds": [],
       "required_schemas": [],
       "required_fixtures": [
-        "error_code_registry_coverage_fixture.json"
+        "error-code-registry-coverage-fixture.json"
       ],
       "required_runner_suites": [
         {
           "suite": "error_code_registry_coverage_fixture",
-          "artifact_fixture": "error_code_registry_coverage_fixture.json"
+          "artifact_fixture": "error-code-registry-coverage-fixture.json"
         }
       ],
       "optional_extensions": [],
@@ -938,7 +966,7 @@
         "privacy-security-fixture.json",
         "push-rule-core-fixture.json",
         "realm-organization-fixture.json",
-        "security-closure-vectors.json"
+        "security-closure-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -1178,10 +1206,10 @@
         "ak.self.keys.keypackages.command.revoke"
       ],
       "required_event_kinds": [
-      "ak.realm.create",
-      "ak.device.authorize",
-      "ak.device.reanchor",
-      "ak.device.revoke",
+        "ak.realm.create",
+        "ak.device.authorize",
+        "ak.device.reanchor",
+        "ak.device.revoke",
         "ak.device.list_update",
         "ak.session.grant",
         "ak.cross_signing.publish",
@@ -1209,9 +1237,9 @@
       "required_schemas": [
         "ak.schema.realm.v1",
         "ak.schema.event.v1",
-      "ak.schema.event_payload.v1",
-      "ak.schema.device_reanchor.v1",
-      "ak.schema.capability.v1",
+        "ak.schema.event_payload.v1",
+        "ak.schema.device_reanchor.v1",
+        "ak.schema.capability.v1",
         "ak.schema.key_backup.v1",
         "ak.schema.cross_signing_publish.v1",
         "ak.schema.cross_signing_reset.v1"
@@ -1236,10 +1264,10 @@
       "realm_event_kind_policy": {
         "allowlist_only": true,
         "allowed_event_kinds": [
-        "ak.realm.create",
-        "ak.device.authorize",
-        "ak.device.reanchor",
-        "ak.device.revoke",
+          "ak.realm.create",
+          "ak.device.authorize",
+          "ak.device.reanchor",
+          "ak.device.revoke",
           "ak.device.list_update",
           "ak.session.grant",
           "ak.cross_signing.publish",
@@ -1339,15 +1367,15 @@
         "ak.schema.cursor.v1",
         "ak.schema.seal.v1"
       ],
-      "required_constraint_types": [
+      "required_constraint_kinds": [
         "temporal",
         "field_access",
-        "type_restriction",
+        "kind_restriction",
         "scope_limitation",
         "delegation_control",
         "quota"
       ],
-      "required_constraint_subtypes": [
+      "required_constraint_subkinds": [
         "rate"
       ],
       "required_fixtures": [
@@ -1398,10 +1426,10 @@
         "ak.schema.message.v1",
         "ak.schema.account_subscribe_frame.v1"
       ],
-      "required_constraint_types": [
+      "required_constraint_kinds": [
         "temporal"
       ],
-      "required_constraint_subtypes": [
+      "required_constraint_subkinds": [
         "edit_window"
       ],
       "required_fixtures": [
@@ -1478,7 +1506,7 @@
         "ak.schema.relation.v1",
         "ak.schema.view.v1"
       ],
-      "required_constraint_types": [
+      "required_constraint_kinds": [
         "scope_limitation"
       ],
       "required_fixtures": [
@@ -1667,7 +1695,6 @@
       }
     },
     "ak.profile.agent_signer_evidence.v1": {
-      "tier": "extension_profile_implementation",
       "description": "Portable ordinary-Realm Native Agent signer authorization evidence. Producers publish controller bindings, accepted state witnesses and freshness attestations; consumers independently verify them and cross-bind encrypted Events to the historical MLS leaf.",
       "required_endpoints": [
         "ak.self.agent_signer_evidence.query"
@@ -1697,10 +1724,10 @@
           "agent_mls_authorization_cross_binding"
         ],
         "unsupported_optional": "Do not mark ordinary Native Agent Events Verified. Preserve ciphertext or quarantined plaintext with verification_pending and never fall back to keys/query or ordinary MLS leaf-only trust."
-      }
+      },
+      "profile_set": "extension_profile_implementation"
     },
     "ak.profile.e2ee_relaxed.v1": {
-      "tier": "extension_profile_implementation",
       "depends_on": [
         "ak.profile.e2ee_client.v1"
       ],
@@ -1723,7 +1750,7 @@
       "required_constraint_kinds": [],
       "required_cell_namespaces": [],
       "required_fixtures": [
-        "security-closure-vectors.json"
+        "security-closure-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -1777,7 +1804,8 @@
         "governance_binding.binding_profile missing, unsupported, or inconsistent with the Realm downgrade declaration",
         "receiver old-epoch decrypt gap exceeds relaxed_window_max_ms or the absolute hard ceiling of 300000 ms"
       ],
-      "compliance_unfit": "Compliance / regulatory contexts that require 'kick-out is immediately effective' MUST NOT use this profile. Use non-E2EE Realm (encryption_profile=\"none\") + enclave channels instead. Spec deliberately does not allow further relaxation than this profile; deployments needing more leniency are out of v1 E2EE scope."
+      "compliance_unfit": "Compliance / regulatory contexts that require 'kick-out is immediately effective' MUST NOT use this profile. Use non-E2EE Realm (encryption_profile=\"none\") + enclave channels instead. Spec deliberately does not allow further relaxation than this profile; deployments needing more leniency are out of v1 E2EE scope.",
+      "profile_set": "extension_profile_implementation"
     },
     "ak.profile.enterprise_client.v1": {
       "inherits": [
@@ -1861,7 +1889,7 @@
       "feature_discovery": {
         "required": [
           "service_id",
-          "resource_types",
+          "resource_kinds",
           "discovery_profiles",
           "ingest_modes",
           "accept_policy_kind",
@@ -1958,7 +1986,7 @@
         "cba-lattice-fixture.json",
         "capability-fixture.json",
         "privacy-security-fixture.json",
-        "security-closure-vectors.json"
+        "security-closure-fixture.json"
       ],
       "optional_extensions": [
         "ak.profile.federation_minimal.v1",
@@ -3119,20 +3147,37 @@
       },
       "transformation_rules_v1_grammar": {
         "ak.transform.identity.v1": {
-          "required_fields": ["rule"],
+          "required_fields": [
+            "rule"
+          ],
           "effect": "Preserve every input field and value byte-for-byte under canonical JSON."
         },
         "ak.transform.rename.v1": {
-          "required_fields": ["rule", "from", "to"],
+          "required_fields": [
+            "rule",
+            "from",
+            "to"
+          ],
           "effect": "Move the value at from to to; fail if from is absent or to is already present."
         },
         "ak.transform.type_widen.v1": {
-          "required_fields": ["rule", "field", "from_type", "to_type"],
-          "allowed_pairs": ["integer:number"],
+          "required_fields": [
+            "rule",
+            "field",
+            "from_kind",
+            "to_kind"
+          ],
+          "allowed_pairs": [
+            "integer:number"
+          ],
           "effect": "Preserve the JSON numeric value while widening its declared schema type."
         },
         "ak.transform.default_backfill.v1": {
-          "required_fields": ["rule", "to", "value"],
+          "required_fields": [
+            "rule",
+            "to",
+            "value"
+          ],
           "effect": "Insert value only when to is absent; never overwrite an existing value."
         }
       }
@@ -3154,7 +3199,7 @@
       ],
       "optional_extensions": [
         "sfu_sframe",
-        "force_turn",
+        "turn_required",
         "per_tenant_turn_isolation"
       ],
       "feature_discovery": {
@@ -3169,7 +3214,7 @@
     },
     "ak.profile.media_service_binding.v1": {
       "role": "server",
-      "description": "Transport-agnostic media backend binding framework. Requires ak.realm.media_service to declare a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label ak.rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / arkret-native) declare an additional sub-profile. See zh/crypto-media/media-service-binding.md §2 / §3 / §5–§8 and zh/crypto-media/call-state.md §4.",
+      "description": "Transport-agnostic media backend binding framework. Requires ak.realm.media_service to declare a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label ak.rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / arkret_native) declare an additional sub-profile. See zh/crypto-media/media-service-binding.md §2 / §3 / §5–§8 and zh/crypto-media/call-state.md §4.",
       "depends_on": [
         "ak.profile.webrtc_media.v1"
       ],
@@ -3722,63 +3767,63 @@
         "unsupported_optional": "fail closed before claiming traffic metadata hardening"
       },
       "profile_parameters": {
-        "federation_batch_min_size": {
-          "type": "integer",
+        "federation_batch_min_item_count": {
           "minimum": 2,
           "default": 8,
-          "description": "Minimum outbound federation batch size before padding. Empty/padded batches count toward the observable batch size."
+          "description": "Minimum outbound federation batch size before padding. Empty/padded batches count toward the observable batch size.",
+          "value_shape": "integer"
         },
         "welcome_padding_buckets_bytes": {
-          "type": "array",
           "items": {
-            "type": "integer",
-            "minimum": 4096
+            "minimum": 4096,
+            "value_shape": "integer"
           },
           "default": [
             4096,
             16384,
             65536
           ],
-          "description": "Allowed padded Welcome / GroupInfo blob sizes. Sender MUST round up to the smallest bucket that fits and MUST NOT leak exact leaf count by raw ciphertext length."
+          "description": "Allowed padded Welcome / GroupInfo blob sizes. Sender MUST round up to the smallest bucket that fits and MUST NOT leak exact leaf count by raw ciphertext length.",
+          "value_shape": "array"
         },
         "send_jitter_ms": {
-          "type": "object",
           "required": [
             "min",
             "max"
           ],
           "properties": {
             "min": {
-              "type": "integer",
               "minimum": 0,
-              "default": 250
+              "default": 250,
+              "value_shape": "integer"
             },
             "max": {
-              "type": "integer",
               "minimum": 1,
-              "default": 3000
+              "default": 3000,
+              "value_shape": "integer"
             }
           },
-          "description": "Bounded randomized delay added before federation fanout and retry scheduling. Implementations MUST NOT encode activity by selecting deterministic edge values."
+          "description": "Bounded randomized delay added before federation fanout and retry scheduling. Implementations MUST NOT encode activity by selecting deterministic edge values.",
+          "value_shape": "object"
         },
         "push_wakeup_mode": {
-          "type": "string",
           "enum": [
             "blind_wakeup",
             "batch_wakeup",
             "no_notification"
           ],
           "default": "batch_wakeup",
-          "description": "High-privacy push default. visible_notification is incompatible unless Realm policy explicitly opts out of this hardening profile for that recipient route."
+          "description": "High-privacy push default. visible_notification is incompatible unless Realm policy explicitly opts out of this hardening profile for that recipient route.",
+          "value_shape": "string"
         },
         "relay_requirement": {
-          "type": "string",
           "enum": [
             "ohttp",
             "trusted_relay",
             "decoy_traffic"
           ],
-          "description": "At least one relay/indirection/decoy mechanism MUST be enabled for cross-domain high-privacy routes."
+          "description": "At least one relay/indirection/decoy mechanism MUST be enabled for cross-domain high-privacy routes.",
+          "value_shape": "string"
         }
       }
     },
@@ -4032,7 +4077,6 @@
     },
     "ak.profile.candidate.join_policy.v1": {
       "inherits": [],
-      "tier": "candidate",
       "status": "candidate",
       "description": "Candidate profile pairing the still-unregistered join-policy workflow concept/action names (`realm.join_policy`, `member.application`, `member.application.review`, `member.application.cancel`; see zh/conformance/schema-registry.md §4.1) with the gating capability action `ak.realm.join.review`. These bare names remain forbidden as v1 wire Event.kind values. Claiming this profile commits the implementation to the complete profile-private HTTP receipt carrier in governance/join-policy.md §7.1.1; partial intake/review/read surfaces are non-conformant. Receivers that do not implement this profile MUST treat `ak.realm.join.review` as unknown and omit the profile claim.",
       "required_endpoints": [
@@ -4060,7 +4104,8 @@
           "profile_private_http_receipt_v1"
         ],
         "unsupported_optional": "omit profile claim (and reject member.application.* events as unknown)"
-      }
+      },
+      "profile_set": "candidate"
     },
     "ak.profile.key_backup.memory_hard.v1": {
       "inherits": [],
@@ -4530,10 +4575,14 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": ["capability-fixture.json"],
+      "required_fixtures": [
+        "capability-fixture.json"
+      ],
       "optional_extensions": [],
       "feature_discovery": {
-        "required": ["constraint.approval_workflow"],
+        "required": [
+          "constraint.approval_workflow"
+        ],
         "unsupported_optional": "do not claim ak.profile.constraint.approval_workflow.v1 unless this build implements and tests the declared profile"
       }
     },
@@ -4543,10 +4592,14 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": ["capability-fixture.json"],
+      "required_fixtures": [
+        "capability-fixture.json"
+      ],
       "optional_extensions": [],
       "feature_discovery": {
-        "required": ["constraint.claim_based"],
+        "required": [
+          "constraint.claim_based"
+        ],
         "unsupported_optional": "do not claim ak.profile.constraint.claim_based.v1 unless this build implements and tests the declared profile"
       }
     },
@@ -4556,10 +4609,14 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": ["capability-fixture.json"],
+      "required_fixtures": [
+        "capability-fixture.json"
+      ],
       "optional_extensions": [],
       "feature_discovery": {
-        "required": ["constraint.encryption_requirement"],
+        "required": [
+          "constraint.encryption_requirement"
+        ],
         "unsupported_optional": "do not claim ak.profile.constraint.encryption_requirement.v1 unless this build implements and tests the declared profile"
       }
     },
@@ -4569,10 +4626,14 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": ["capability-fixture.json"],
+      "required_fixtures": [
+        "capability-fixture.json"
+      ],
       "optional_extensions": [],
       "feature_discovery": {
-        "required": ["constraint.resource_limit"],
+        "required": [
+          "constraint.resource_limit"
+        ],
         "unsupported_optional": "do not claim ak.profile.constraint.resource_limit.v1 unless this build implements and tests the declared profile"
       }
     },
@@ -4582,10 +4643,14 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": ["capability-fixture.json"],
+      "required_fixtures": [
+        "capability-fixture.json"
+      ],
       "optional_extensions": [],
       "feature_discovery": {
-        "required": ["constraint.visibility_control"],
+        "required": [
+          "constraint.visibility_control"
+        ],
         "unsupported_optional": "do not claim ak.profile.constraint.visibility_control.v1 unless this build implements and tests the declared profile"
       }
     },
@@ -4595,10 +4660,14 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": ["encoding-fixture.json"],
+      "required_fixtures": [
+        "encoding-fixture.json"
+      ],
       "optional_extensions": [],
       "feature_discovery": {
-        "required": ["encoding.cbor"],
+        "required": [
+          "encoding.cbor"
+        ],
         "unsupported_optional": "do not claim ak.profile.encoding.cbor.v1 unless this build implements and tests the declared profile"
       }
     },
@@ -4608,10 +4677,14 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": ["encoding-fixture.json"],
+      "required_fixtures": [
+        "encoding-fixture.json"
+      ],
       "optional_extensions": [],
       "feature_discovery": {
-        "required": ["encoding.multihash"],
+        "required": [
+          "encoding.multihash"
+        ],
         "unsupported_optional": "do not claim ak.profile.encoding.multihash.v1 unless this build implements and tests the declared profile"
       }
     },
@@ -4621,10 +4694,14 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": ["sync-fixture.json"],
+      "required_fixtures": [
+        "sync-fixture.json"
+      ],
       "optional_extensions": [],
       "feature_discovery": {
-        "required": ["federation.rbsr.negentropy"],
+        "required": [
+          "federation.rbsr.negentropy"
+        ],
         "unsupported_optional": "do not claim ak.profile.federation.rbsr.negentropy.v1 unless this build implements and tests the declared profile"
       }
     },
@@ -4634,10 +4711,14 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": ["encoding-fixture.json"],
+      "required_fixtures": [
+        "encoding-fixture.json"
+      ],
       "optional_extensions": [],
       "feature_discovery": {
-        "required": ["hash_suite.blake3"],
+        "required": [
+          "hash_suite.blake3"
+        ],
         "unsupported_optional": "do not claim ak.profile.hash.blake3.v1 unless this build implements and tests the declared profile"
       }
     },
@@ -4647,10 +4728,14 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": ["hash-transition-fixture.json"],
+      "required_fixtures": [
+        "hash-transition-fixture.json"
+      ],
       "optional_extensions": [],
       "feature_discovery": {
-        "required": ["hash_transition"],
+        "required": [
+          "hash_transition"
+        ],
         "unsupported_optional": "do not claim ak.profile.hash_transition.v1 unless this build implements and tests the declared profile"
       }
     },
@@ -4660,10 +4745,14 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": ["hpke-suite-fixture.json"],
+      "required_fixtures": [
+        "hpke-suite-fixture.json"
+      ],
       "optional_extensions": [],
       "feature_discovery": {
-        "required": ["kem.hybrid_xwing"],
+        "required": [
+          "kem.hybrid_xwing"
+        ],
         "unsupported_optional": "do not claim ak.profile.kem.hybrid_xwing.v1 unless this build implements and tests the declared profile"
       }
     },
@@ -4673,10 +4762,14 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [],
-      "required_fixtures": ["capability-fixture.json"],
+      "required_fixtures": [
+        "capability-fixture.json"
+      ],
       "optional_extensions": [],
       "feature_discovery": {
-        "required": ["ucan_interop"],
+        "required": [
+          "ucan_interop"
+        ],
         "unsupported_optional": "do not claim ak.profile.ucan_interop.v1 unless this build implements and tests the declared profile"
       }
     },

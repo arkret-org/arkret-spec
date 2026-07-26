@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "source_of_truth": false,
+  "narrative_source": "spec/v1/zh/models/common-fields.md#2-类型记法",
+  "classification_registry": "spec/v1/artifacts/registry/classification-field-registry.json",
+  "evidence_material_audit": "tools/evidence-material-audit.json",
+  "baseline": [],
+  "rules": [
+    {
+      "rule_id": "NC-BOOL-001",
+      "axis": "boolean_permission_obligation",
+      "applies_to": ["wire_property"],
+      "predicate": "permission booleans end _allowed; obligation booleans end _required; reject allow_/require_/requires_/deny_/force_",
+      "narrative_section": "R1",
+      "exceptions": [
+        {
+          "id": "registration-evidence-presence-summary",
+          "basis": "internal_semantics",
+          "reason": "The summary records presence without echoing secret material.",
+          "anchor": "spec/v1/artifacts/schemas/account-registration-evidence.schema.json"
+        }
+      ]
+    },
+    {
+      "rule_id": "NC-COUNT-001",
+      "axis": "count_and_length",
+      "applies_to": ["wire_property", "registry_semantic_field", "fixture_assertion_field"],
+      "predicate": "counts use _count, bytes use _bytes; reject _len, _length, and _size",
+      "narrative_section": "R2",
+      "exceptions": []
+    },
+    {
+      "rule_id": "NC-ENUM-001",
+      "axis": "symbolic_enum_literal",
+      "applies_to": ["symbolic_enum_value"],
+      "predicate": "Arkret-owned symbolic enum literals use snake_case",
+      "narrative_section": "R3",
+      "exceptions": [
+        {
+          "id": "external-symbolic-literals",
+          "basis": "external_literal",
+          "reason": "External literals must round-trip byte-for-byte.",
+          "anchor": "spec/v1/artifacts/registry/classification-field-registry.json",
+          "external_anchor": "The external specification or codepoint recorded by the owning suite registry"
+        }
+      ]
+    },
+    {
+      "rule_id": "NC-TYPE-001",
+      "axis": "type_name",
+      "applies_to": ["json_schema_defs_key", "openapi_schema_component"],
+      "predicate": "$defs use snake_case; OpenAPI components use PascalCase and registered structural wrapper suffixes",
+      "narrative_section": "R4",
+      "exceptions": [
+        {
+          "id": "service-operation-dto-mirror",
+          "basis": "internal_structure",
+          "reason": "This schema mirrors OpenAPI PascalCase component names one-for-one.",
+          "anchor": "spec/v1/artifacts/schemas/service-operation-dtos.schema.json"
+        }
+      ]
+    },
+    {
+      "rule_id": "NC-CODE-001",
+      "axis": "machine_reason_code",
+      "applies_to": ["wire_property"],
+      "predicate": "machine reasons use reason_code or <domain>_reason_code; protocol errors use error_code",
+      "narrative_section": "R5",
+      "exceptions": []
+    },
+    {
+      "rule_id": "NC-EVIDENCE-001",
+      "axis": "evidence_material_noun",
+      "applies_to": ["wire_property", "type_name"],
+      "predicate": "evidence is reserved for a polymorphic container spanning at least two material families",
+      "narrative_section": "R6",
+      "exceptions": []
+    },
+    {
+      "rule_id": "NC-ARTIFACT-001",
+      "axis": "artifact_filename_and_provenance",
+      "applies_to": ["artifact_filename", "artifact_provenance"],
+      "predicate": "artifact filenames are kebab-case and category/provenance match actual data shape and generation flow",
+      "narrative_section": "R7",
+      "exceptions": []
+    },
+    {
+      "rule_id": "NC-SET-001",
+      "axis": "set_prefix",
+      "applies_to": ["wire_property", "fixture_wire_specimen"],
+      "predicate": "allowlist/denylist arrays use allowed_/denied_; scope differences use role prefixes",
+      "narrative_section": "R8",
+      "exceptions": []
+    },
+    {
+      "rule_id": "NC-HASH-001",
+      "axis": "hash_vocabulary",
+      "applies_to": ["wire_property"],
+      "predicate": "reject Arkret wire fields ending _hash/_hashes or using hash_profile/hash_algorithm",
+      "narrative_section": "existing-hash-rule",
+      "exceptions": [
+        {
+          "id": "rfc9420-transcript-hash",
+          "basis": "external_literal",
+          "reason": "RFC 9420 GroupContext fields are projected without renaming.",
+          "anchor": "spec/v1/artifacts/schemas/mls-governance.schema.json",
+          "external_anchor": "RFC 9420 §8.2 GroupContext"
+        },
+        {
+          "id": "did-webvh-key-hashes",
+          "basis": "external_literal",
+          "reason": "did:webvh fields and their explicit normalized projections retain the external term.",
+          "anchor": "spec/v1/artifacts/schemas/did-webvh.schema.json",
+          "external_anchor": "did:webvh specification parameters and DID log entry fields"
+        }
+      ]
+    },
+    {
+      "rule_id": "NC-CLASSIFICATION-001",
+      "axis": "classification_suffix",
+      "applies_to": ["wire_property", "registry_semantic_field"],
+      "predicate": "delegate to classification-field-registry.json",
+      "narrative_section": "four-axis-classification",
+      "exceptions": []
+    }
+  ],
+  "negative_cases": [
+    {"rule_id": "NC-BOOL-001", "candidate": "allow_export", "expected": "reject"},
+    {"rule_id": "NC-COUNT-001", "candidate": "output_len", "expected": "reject"},
+    {"rule_id": "NC-ENUM-001", "candidate": "arkret-native", "expected": "reject"},
+    {"rule_id": "NC-TYPE-001", "candidate": "RelationConflictCandidate", "expected": "reject"},
+    {"rule_id": "NC-CODE-001", "candidate": "failure_code", "expected": "reject"},
+    {"rule_id": "NC-EVIDENCE-001", "candidate": "single_signature_evidence", "expected": "reject"},
+    {"rule_id": "NC-ARTIFACT-001", "candidate": "bad_fixture.json", "expected": "reject"},
+    {"rule_id": "NC-SET-001", "candidate": "permitted_kinds", "expected": "reject"}
+  ]
+}

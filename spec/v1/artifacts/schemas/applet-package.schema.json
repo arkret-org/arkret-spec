@@ -275,20 +275,13 @@
       "additionalProperties": false
     },
     "webhook_auth": {
-      "type": "object",
       "description": "HTTP message signature verification seal for transaction push. key_ref is the Applet service DID URL used as the app/bridge->arkret inbound source signature anchor; its DID part MUST equal service_id and it is bound to the effective registration_epoch. accepted_algs pins the acceptable RFC 9421 signature algorithms.",
       "required": [
-        "type",
+        "kind",
         "key_ref",
         "accepted_algs"
       ],
       "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "http_message_signature"
-          ]
-        },
         "key_ref": {
           "$ref": "#/$defs/did_url",
           "description": "DID URL under the Applet service_id. For app/bridge->arkret inbound transaction push, Signature-Input keyid MUST equal this value. Node->Applet pushes verify the Arkret source service DID key from Source-Service-ID, not this field."
@@ -303,12 +296,19 @@
         },
         "signature_header": {
           "$ref": "#/$defs/non_empty_string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "http_message_signature"
+          ]
         }
       },
       "patternProperties": {
         "^x_[a-z][a-z0-9_]{0,63}$": true
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "kind": "object"
     },
     "endpoint_entry": {
       "type": "object",

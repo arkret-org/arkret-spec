@@ -6,11 +6,11 @@
   "$comment": "Logical schema id is ak.schema.morph.customer_risk.v1 (dotted, used in schema_refs[]); the artifact file name uses hyphens (morph-customer-risk.schema.json). Do not derive the id from the file name.",
   "type": "object",
   "required": [
-    "morph_type",
+    "morph_kind",
     "fields"
   ],
   "properties": {
-    "morph_type": {
+    "morph_kind": {
       "const": "customer_risk"
     },
     "fields": {

@@ -1198,7 +1198,7 @@
         },
         "blinded_elements": {
           "type": "array",
-          "description": "Client-padded batch. Cardinality MUST equal ServiceDescribe.private_contact_discovery.batch_size; real and dummy elements are indistinguishable to the provider.",
+          "description": "Client-padded batch. Cardinality MUST equal ServiceDescribe.private_contact_discovery.batch_item_count; real and dummy elements are indistinguishable to the provider.",
           "items": {
             "$ref": "#/$defs/psi_ristretto255_element"
           },
@@ -1374,7 +1374,7 @@
     },
     "psi_match_outcome": {
       "type": "object",
-      "description": "Round 2 success outcome: fixed-cardinality hit bitmap (dummy-padded to the provider-enforced batch_size). Per-target conditions (nonexistent, undiscoverable, per-target policy-denied, OPRF mismatch) are encoded as unmatched bits and MUST NOT surface as distinct fields, codes, or timing (§6.4 Class A).",
+      "description": "Round 2 success outcome: fixed-cardinality hit bitmap (dummy-padded to the provider-enforced batch_item_count). Per-target conditions (nonexistent, undiscoverable, per-target policy-denied, OPRF mismatch) are encoded as unmatched bits and MUST NOT surface as distinct fields, codes, or timing (§6.4 Class A).",
       "required": [
         "profile",
         "phase",

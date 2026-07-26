@@ -102,24 +102,12 @@
       },
       "additionalProperties": false
     },
-    "field_type": {
+    "field_definition": {
       "type": "object",
       "required": [
-        "type"
+        "value_kind"
       ],
       "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "string",
-            "number",
-            "boolean",
-            "datetime",
-            "external_ref",
-            "url",
-            "enum"
-          ]
-        },
         "required": {
           "type": "boolean"
         },
@@ -134,6 +122,18 @@
         "description": {
           "$ref": "string-profiles.schema.json#/$defs/short_text",
           "maxLength": 2048
+        },
+        "value_kind": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "datetime",
+            "external_ref",
+            "url",
+            "enum"
+          ]
         }
       },
       "additionalProperties": false
@@ -280,7 +280,7 @@
       "required": [
         "protocol",
         "display_name",
-        "field_types"
+        "field_definitions"
       ],
       "properties": {
         "protocol": {
@@ -292,11 +292,11 @@
         "icon_blob_ref": {
           "$ref": "#/$defs/blob_ref"
         },
-        "field_types": {
+        "field_definitions": {
           "type": "object",
           "minProperties": 1,
           "additionalProperties": {
-            "$ref": "#/$defs/field_type"
+            "$ref": "#/$defs/field_definition"
           }
         },
         "instances": {

@@ -2,7 +2,7 @@
   "version": "2026-07-03",
   "source_of_truth": true,
   "description": "Canonical registry of standard Account Data key patterns. Account Data is actor/private state written through ak.account_data.set unless a row explicitly lists another actor-private event kind.",
-  "account_data_types": [
+  "account_data_key_patterns": [
     {
       "key_pattern": "ak.tags.realm.<realm_id>",
       "status": "active",
@@ -287,7 +287,6 @@
       ]
     },
     {
-      "type": "ak.account.invite_quarantine",
       "status": "active",
       "scope": "actor_private",
       "key_pattern": "ak.account.invite_quarantine",

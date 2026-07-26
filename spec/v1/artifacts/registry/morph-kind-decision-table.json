@@ -14,7 +14,7 @@
     },
     {
       "order": 2,
-      "source": "realm.schema.morph_type_profiles[<morph_type>]",
+      "source": "realm.schema.morph_kind_profiles[<morph_kind>]",
       "role": "realm_scoped_tightening",
       "writable_by": ["ak.realm.schema"],
       "consumed_by": ["reducer.field_validation", "capability.required_action_check"],
@@ -23,11 +23,11 @@
     },
     {
       "order": 3,
-      "source": "morph.morph_type (string)",
+      "source": "morph.morph_kind (string)",
       "role": "business_label_and_discoverability_key",
       "writable_by": ["ak.morph.create"],
       "create_locked": true,
-      "consumed_by": ["capability.allowed_morph_types_match", "resource_selector.match", "query.filter"],
+      "consumed_by": ["capability.allowed_morph_kinds_match", "resource_selector.match", "query.filter"],
       "notes": "Wire-stable string key. Create-locked so capability grant selectors do not silently break."
     },
     {
@@ -72,7 +72,7 @@
       "rationale": "Facet is a hint, not a contract."
     },
     {
-      "case": "morph_type_unknown_in_realm_schema",
+      "case": "morph_kind_unknown_in_realm_schema",
       "result": "order2_treated_as_empty_tightening",
       "MUST_NOT": "auto_widen_to_all_fields_allowed"
     },
@@ -86,7 +86,7 @@
   "conformance_must_test": [
     "Reading order-4 facets to decide authorization → MUST fail.",
     "Reducer field validation that ignores order-2 tightening → MUST fail.",
-    "Mutating morph_type after create → MUST fail with `morph_type_immutable`.",
-    "Order-2 morph_type_profile that widens order-1 schema → MUST be rejected at Realm accept time with `schema_violation` / `morph_profile_widens_schema_ref`."
+    "Mutating morph_kind after create → MUST fail with `morph_kind_immutable`.",
+    "Order-2 morph_kind_profile that widens order-1 schema → MUST be rejected at Realm accept time with `schema_violation` / `morph_profile_widens_schema_ref`."
   ]
 }

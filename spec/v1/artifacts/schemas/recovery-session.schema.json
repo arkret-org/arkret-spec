@@ -235,16 +235,16 @@
                     "device_generation_status"
                   ]
                 },
-              {
-                "required": [
-                  "registry_head"
-                ]
-              },
-              {
-                "required": [
-                  "accepted_seal_frontier"
-                ]
-              }
+                {
+                  "required": [
+                    "registry_head"
+                  ]
+                },
+                {
+                  "required": [
+                    "accepted_seal_frontier"
+                  ]
+                }
               ]
             }
           },
@@ -765,7 +765,7 @@
     "principal_signing_transcript": {
       "type": "object",
       "required": [
-        "type",
+        "schema",
         "kind",
         "principal_id",
         "requesting_device_id",
@@ -780,9 +780,6 @@
         "created_at"
       ],
       "properties": {
-        "type": {
-          "const": "ak.identity.recovery_proof.v1"
-        },
         "kind": {
           "const": "principal_signing"
         },
@@ -829,6 +826,9 @@
         "created_at": {
           "$ref": "#/$defs/timestamp",
           "description": "Session creation/signing time, not client proof creation time."
+        },
+        "schema": {
+          "const": "ak.identity.recovery_proof.v1"
         }
       },
       "additionalProperties": false
@@ -837,7 +837,7 @@
       "type": "object",
       "description": "Canonical transcript field set shared by recovery_unlock, device_quorum, trusted_recovery_service, and threshold_recovery proofs before adding kind-specific proof_body. Producers and receivers MUST bind exactly this session tuple.",
       "required": [
-        "type",
+        "schema",
         "kind",
         "principal_id",
         "requesting_device_id",
@@ -853,9 +853,6 @@
         "proof_body"
       ],
       "properties": {
-        "type": {
-          "const": "ak.identity.recovery_proof.v1"
-        },
         "kind": {
           "$ref": "#/$defs/proof_kind"
         },
@@ -904,6 +901,9 @@
         "proof_body": {
           "type": "object",
           "description": "The selected proof object with signature bytes omitted where the kind-specific verification rule says so."
+        },
+        "schema": {
+          "const": "ak.identity.recovery_proof.v1"
         }
       },
       "additionalProperties": false

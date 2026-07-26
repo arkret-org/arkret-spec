@@ -31,17 +31,17 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 | Registry | 计数（CI 校验，与 registry 精确一致） | Canonical 文件 |
 | --- | --- | --- |
 | Event kind（active） | 190 | `artifacts/registry/event-kind-registry.json` |
-| Schema | 136 | `artifacts/registry/schema-registry.json` |
+| Schema | 137 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 50 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 202 | `artifacts/registry/operation-registry.json` |
 | Claimable conformance profile | 66 | `artifacts/profiles/conformance-profiles.json` |
 | Profile id references | 95 | `artifacts/profiles/conformance-profiles.json` |
 
-上表的 `Schema` 是 **registered schema id** 计数（136）。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数为 132；bundle schema id 可登记到现有 schema artifact 的 `$defs`，因此 registered schema id 数可大于 raw file 数。以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 精确校验；其中 `ak.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body 所在文件，不另占独立文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
+上表的 `Schema` 是 **registered schema id** 计数（137）。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数为 133；bundle schema id 可登记到现有 schema artifact 的 `$defs`，因此 registered schema id 数可大于 raw file 数。以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 精确校验；其中 `ak.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body 所在文件，不另占独立文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
 
 当前候选基线包含三项 wire 约束：(1) `ak.schema.handle_claim.v1.claim_kind` 的合法取值不含服务 / 资源可读名（服务 / 资源可读名使用独立的服务 / 资源 schema；组织分配给用户或 principal 的 handle 使用 `organization_handle`）；(2) `ak.member.identity.update` payload 使用 `identity_payload_digest` 作为 payload 摘要字段，与 roster `member_display_state_digest` 区分；(3) 直接 DID 邀请（`ak.schema.invite.v1` 中出现 `invitee` 且不属于 `third_party_id` 分支）MUST 携带 `invite_delivery_target` 与 `introduction_evidence_digest`，使 base invite 不依赖 handle resolve 作为投递授权。current parser 只接受当前 registry/schema 中存在的 canonical 形态，不运行草案迁移层。
 
-`conformance-profiles.json` 另含一组 `profile_requirements` block（95）与 `profile_tiers` 分组（3）；这两个计数同样由 pipeline 精确校验（非自由近似值），权威计数以该文件为准，这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `ak.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
+`conformance-profiles.json` 另含一组 `profile_requirements` block（95）与 `profile_sets` 分组（3）；这两个计数同样由 pipeline 精确校验（非自由近似值），权威计数以该文件为准，这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `ak.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
 
 > `python tools/artifact_pipeline.py check` 输出按实现 / 部署 / hardening 三类 profile 汇总可声明（claimable）profile；`vector-group`（第 16 组）只用于组织测试向量，不是可声明 profile。`tools/lint_artifacts.py` 同时校验 registry graph 中所有 `ak.profile.*` 引用，防止 profile requirement、继承或候选 profile 文本漂移。
 
@@ -67,13 +67,13 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 
 ## 3. 工件矩阵
 
-> 「对应工件」列同时列出规范正文与机读工件，权威性按领域划分而不是按扩展名划分：标识符集合、字段形状、operation binding 与 profile membership 以 registry / schema / `contract-catalog.json` 为 canonical；状态机、授权、因果、失败恢复与安全语义以 `normative: true` 的中文正文为 canonical；生成的 catalog、站点视图与报告只作 informative 镜像。跨领域不一致必须阻断发布并修复两个来源，不得以“机器文件总是覆盖正文”掩盖语义冲突。
+> 「对应工件」列同时列出规范正文与机读工件，权威性按领域划分而不是按扩展名划分：标识符集合、字段形状、operation binding 与 profile membership 以 registry / schema / `contract-registry.json` 为 canonical；状态机、授权、因果、失败恢复与安全语义以 `normative: true` 的中文正文为 canonical；生成的 catalog、站点视图与报告只作 informative 镜像。跨领域不一致必须阻断发布并修复两个来源，不得以“机器文件总是覆盖正文”掩盖语义冲突。
 
 | 主题 | 对应工件 | 当前要求 |
 | --- | --- | --- |
 | 唯一事实 envelope | `zh/sync/operations-sync.md`, `artifacts/schemas/event-envelope.schema.json`, `artifacts/schemas/event-payload.schema.json` | Event Envelope 是唯一共享 wire fact；Operation 只用于服务 operation 或 SDK 内部构造路径。 |
 | Event kind 与 payload | `artifacts/registry/event-kind-registry.json`, `artifacts/schemas/event-payload.schema.json` | active 标准 kind 必须选择对应 payload class，失败即 `schema_violation`。 |
-| 服务 operation 映射 | `artifacts/registry/contract-catalog.json`, `artifacts/registry/operation-registry.json`, `artifacts/reports/operation-schema-index.json`, `artifacts/openapi/arkret-service-api.openapi.yaml`, `artifacts/bindings/non-http-bindings.yaml` | `contract-catalog.json#operation_registry` 是 operation 的 canonical source；`operation-schema-index.json` 是由 schema refs 生成的 DTO 字段集合索引。 |
+| 服务 operation 映射 | `artifacts/registry/contract-registry.json`, `artifacts/registry/operation-registry.json`, `artifacts/reports/operation-schema-index.json`, `artifacts/openapi/arkret-service-api.openapi.yaml`, `artifacts/bindings/non-http-bindings.yaml` | `contract-registry.json#operation_registry` 是 operation 的 canonical source；`operation-schema-index.json` 是由 schema refs 生成的 DTO 字段集合索引。 |
 | Schema registry | `artifacts/registry/schema-registry.json`, `zh/conformance/schema-registry.md` | 对象、Event、snapshot、moderation、MIMI 等 schema 已注册。 |
 | Typed ID prefix | `artifacts/registry/id-kind-registry.json` | 标准 `ak:<kind>:` prefix 以机器注册表为准。 |
 | Profile 矩阵 | `zh/conformance/conformance-profiles.md`, `artifacts/profiles/conformance-profiles.json` | `core_event_store`、`chat_mvp`、`kanban_mvp` 与客户端/服务角色可独立声明。 |
@@ -102,7 +102,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 - OpenAPI MUST NOT 包含未发布生成器报告、占位 body 说明或 operation-level 非法字段
 - fixture 与 Markdown JSON 示例 MUST NOT 使用非 active wire 字段、未注册 Event kind 或任何 schema-invalid wire shape。所有标记为正向的 fixture / vector MUST 先通过本地 JSON Schema resolver 校验；负向 fixture MUST 先满足基础 envelope shape，并在声明的目标错误处失败，MUST NOT 被更早的 schema 错误掩盖。
 - 站点构建产物与线上 `$id` URL MUST 以 raw JSON 发布所有 registry 声明的 JSON Schema artifact，Content-Type SHOULD 为 `application/schema+json`，至少为 `application/json`；MUST NOT 让 schema `$id` 解析到 HTML 文档。
-- Public catalog snapshot MUST 与发布状态一致：stable promotion 前 `site/src/lib/site-meta.ts#specReleaseTag` 固定为 `v1.0.0-candidate`，构建时只生成 `site/public/v1/contract-catalog-1.0.0-candidate.json`；promotion 变更必须在所有 gate 通过后原子切换为 `v1.0.0` 并生成对应 snapshot。snapshot 必须与 `artifacts/registry/contract-catalog.json` byte-identical，且不提交到仓库。
+- Public catalog snapshot MUST 与发布状态一致：stable promotion 前 `site/src/lib/site-meta.ts#specReleaseTag` 固定为 `v1.0.0-candidate`，构建时只生成 `site/public/v1/contract-registry-1.0.0-candidate.json`；promotion 变更必须在所有 gate 通过后原子切换为 `v1.0.0` 并生成对应 snapshot。snapshot 必须与 `artifacts/registry/contract-registry.json` byte-identical，且不提交到仓库。
 - Circle stable gate MUST 闭合 `effective_scope` submit-input / reducer-output schema 角色、DataEvent / Seal output shape、Seal canonical bytes、`content_encryption_floor` 机器契约、`confidential_discussion_of` Relation 契约，以及 Circle/effective-scope conformance vector cluster；否则 release notes 必须明确 de-scope，且 MUST NOT 把这些项当作 v1.0 wire contract 宣布。
 - `/en/v1/...` 页面 MUST NOT 作为英文 normative 文本发布；权威 prose 仍是 `spec/v1/zh/`。除非未来另行接受新的语言政策提案，本规范不承诺提供完整英文版。
 - 站点生产依赖 MUST NOT 存在未处理的 high / moderate `npm audit` finding；如需例外，必须在 release-readiness report 中记录影响面与补偿措施。

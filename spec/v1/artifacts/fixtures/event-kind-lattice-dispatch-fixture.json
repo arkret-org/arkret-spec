@@ -4,7 +4,7 @@
   "runner": {
     "kind": "registry_coverage",
     "inputs": [
-      "registry/contract-catalog.json",
+      "registry/contract-registry.json",
       "registry/event-kind-registry.json",
       "registry/reducer-profile-registry.json",
       "fixtures/cba-lattice-fixture.json"

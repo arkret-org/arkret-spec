@@ -59,7 +59,23 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 - `summary` / `description` 命名约定：canonical object 或 projection row 的短摘要、列表预览、聚合摘要使用 `summary`；Strand 的用户可读短摘要放在 `metadata.summary` 或 `encrypted_metadata`，不得作为顶层 `summary`。原因说明、补充说明、长说明或 schema / registry 元数据说明使用 `description`。OpenAPI 自身标准关键字 `summary` / `description` 按 OpenAPI 语义使用。若字段承载人类可读名称，canonical object 默认使用 `title`；Strand 使用 `metadata.title` 或 `encrypted_metadata`，Actor / user-facing identity profile 使用 `display_name`；`name` 只用于外部协议、加密算法、service surface 或 registry 内部 label，不作为 Realm / Space / Strand 等 canonical object 的显示名。
 - Projection row 若表达 canonical object 的同一概念，MUST 沿用 canonical 字段名（例如 `title`、`summary`、`avatar_blob_ref`、`owning_organizations`），MUST NOT 另起 `name`、`avatar`、`official_organizations` 等别名。若服务需要返回渲染友好的派生对象，字段名 MUST 明确带 projection 语义并有 schema；v1 默认不定义通用 `avatar` projection，头像引用使用 `avatar_blob_ref`。
 - `_id` / `_ref` / `_did` 后缀约定见 §2.1。简要规则：单一具体 protocol object kind 与 service identity 使用 `_id`；因果 / proof / schema-profile / content-addressed / polymorphic reference 使用 `_ref` / `_refs`；其它必须保留 DID ecosystem 术语的原始 material 使用 `_did`。字段后缀表达协议语义角色，不单独决定 wire value 类型，也不表达授权、同步、保留或加密是否级联；这些语义 MUST 由 role prefix、schema description 与对象专属章节定义。
-- `kind` / `type` 命名约定：`kind` 用于协议内 discriminator、routing、registry event/object family、lattice/reducer 分派和 Relation/View 等 canonical 分类；`type` 用于外部标准 taxonomy、媒体类型、服务分类或不参与 reducer routing 的领域分类。Event Envelope 顶层 `kind` 是唯一 event discriminator；payload 不得用 `type` 重复 event kind。Morph 的 `morph_type` 是 Realm schema-defined 的开放领域分类，不参与 reducer event routing，故使用 `_type` 后缀且字段名固定为 `morph_type`，不得使用裸 `type`；Relation/View 等协议 registry 分类使用 `kind`。MLS `proposal_type` 属于外部 MLS taxonomy，保留 `type`。Genesis `notary` 对象的 finality-profile discriminator 是已登记的 `type` 例外（schema `realm.schema.json` 锁定 `notary.type`，取值与 `notary_profile` 枚举同源），不改名为 `kind`。Handle Claim 自身的封闭协议分类使用 `claim_kind`；authorization/VC selector 中选择外部 credential taxonomy 的字段可继续使用 `claim_type`。
+- 分类字段使用以下四条互斥命名轴；机器许可与精确上下文以 [`classification-field-registry.json`](../../artifacts/registry/classification-field-registry.json) 为准：
+
+  | 轴 | 规范语义 | 命名要求 |
+  | --- | --- | --- |
+  | `kind` | Arkret 自有 discriminator、routing 维度、registry family、互斥 shape 选择与 reducer/lattice 分派。开放或闭合 value set 均可；是否开放由 schema/registry 另行声明。 | 裸 `kind` 或 `*_kind` / `*_kinds`。Arkret 自有分类默认使用此轴。 |
+  | `type` | 仅用于直接继承 IANA/HTTP、W3C DID/VC/Data Integrity、MLS、WebRTC 等外部标准的字段名、值集和分派语义。Arkret 不得添加私有值、改写含义或把它变为 Arkret 主分派轴。 | 裸 `type` 或 `*_type` / `*_types`；每个使用点必须在 classification registry 以精确 schema/doc path 登记外部锚点。 |
+  | `class` | 有限、无序、闭合，且不选择互不兼容对象 shape 的分类。 | `*_class` / `*_classes`；必须可解析到 finite enum/const，不能表示自由标签或开放 registry。 |
+  | `tier` | 有限且存在严格全序，比较结果会改变协议判定的等级。 | `*_tier`；必须登记完整顺序与比较语义。v1 当前仅保留 `risk_tier`，顺序为 `low < medium < high`。 |
+
+  四条硬判据（normative）：
+
+  1. **Selector 判据**：任何 wire 字段若被可执行 artifact 的 `{"kind":"select","selector":"<path>"}` 引用，作为主 cell subject 分类维度，或在 discriminated schema 分支中选择互斥 Arkret shape，其字段名 MUST 为 `kind` / `*_kind` / `*_kinds`。
+  2. **闭集判据**：`*_class` / `*_classes` MUST 直接或经 `$ref` 解析到有限 enum/const；registry/fixture-only context MUST 在 classification registry 明列 `allowed_values`。自由字符串、开放 registry 或 `additionalProperties` taxonomy 不得使用 class 轴。
+  3. **外部锚点判据**：wire、normative canonical JSON 与 Arkret 可执行 artifact DSL 中的 `type` 轴字段 MUST 有逐路径外部锚点，且 `dispatch_authority="external_standard"`、`arkret_extensions_allowed=false`。真正的 JSON Schema `type` vocabulary keyword 由 parser 上下文排除；Arkret mini-schema 的值形状声明使用 `value_shape`。
+  4. **同轴与顺序判据**：同一概念不得并存不同后缀轴；无法从 stem 判断的正交概念必须用 `semantic_axis` / `distinct_from` 显式声明。任何 tier 字段必须有有限值、严格全序和比较语义。
+
+  因而 Event Envelope 的唯一事件 discriminator 是 `kind`；`morph_kind`、`service_kind`、`claim_kind` 与 `notary.kind` 均为 Arkret 自有分派。MLS `proposal_type`、WebRTC session description `type`、W3C DID/Data Integrity raw object `type` 与 IANA/HTTP `media_type` / `content_type` 只在 registry 登记的精确路径保留，不形成全局例外。
 - 时间边界命名约定：有效期下界统一使用 `not_before`，有效期上界统一使用 `expires_at`；缓存或派生结果的失效时间使用带领域前缀的 `cache_expires_at`。新增 wire 字段不得使用 `valid_from`、`valid_until` 或 `not_after` 作为同义别名。**已登记复用例外**：[`calendar-event.md` §3](./calendar-event.md) 的 `recurrence.expires_at` 复用本字段名，但语义不是 "对象级有效期上界"，而是 RRULE 重复展开的终止 instant（`UNTIL`，表示重复展开最后一个 occurrence 的截止 UTC instant，晚于它的 occurrence 排除）。该字段处于 `recurrence` 子结构内、与对象顶层有效期字段不同层，语义重载是有意取舍，保留字段名即可，不改名。新增字段 MUST NOT 在对象顶层以 `expires_at` 承载 "recurrence 截止" 之外的非有效期语义。**已登记 interop 命名例外**：设备验证 to-device 消息族 `ak.key.verification.*`（schema [`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json) 的 `key_verification_content`）沿用 Matrix `m.key.verification` interop 的裸字段名 `timestamp` 表示请求签发 instant，是对齐外部验证协议 transcript 的有意例外，不改名为 `issued_at`；新增的非 interop date-time wire 字段仍 MUST 使用 `_at` 形态。
 - `state` / `status` / `stage` 命名约定：`state` 表示 canonical object 的物理生命周期；`stage` 表示 Strand / Morph 等业务进度轴；`status` 只用于账号、session、delivery、外部过程或 registry 条目状态，不用于表达 object lifecycle 目标值。对象 lifecycle payload 若需要携带目标状态，字段名使用 `target_state`。
 - `created_by` / `creator_*` 命名约定：materialized object metadata 使用 `created_by` / `updated_by`，由 reducer 从 Event `actor_id` 派生。`creator_*` 只用于外部协议或加密 transcript 自身的创建者 tuple（例如 MLS group creator），不得作为 object 创建主体字段的别名。
@@ -75,6 +91,19 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
   - **`ak.<entity>.<verb>` 是默认形态**，对应 `target_event_kinds` 中的一个或多个 reducer-input event kind。新增 action 默认 MUST 与被授权 event kind 同名；只有 [`authz/capabilities.md` §5.0](../authz/capabilities.md#50-action--event-kind-偏离类别normative-reference) 登记的偏离类别允许不同名。授权、IAM 工具、SDK 生成和 audit 解析 MUST 读取 capability-action-registry 的 `target_event_kinds`，不得从 action 字符串拆解推断 event kind。
   - **通用 `ak.object.<verb>`**（如 `ak.object.read` / `ak.object.archive` / `ak.object.restore` / `ak.object.stage.set`) 只允许在 Realm-wide admin 或跨实体审计 grant 中使用 (`match_scope` 不限定单一实体 ID); 对单一实体的常规授权 MUST 使用专属 `ak.<entity>.<verb>` (例如 `ak.strand.archive`)。这是为了让 grant author 在最小作用域内表达意图, 同时保留 admin 路径使用通用 action 的能力。
   - **后缀 `.own` / `.others`**: 不带后缀的 action 默认作用域不限定 "creator = grantee"; 加 `.own` 表示 "仅 actor 自己创建的对象" (例如 `ak.message.revise.own`, `ak.message.redact.own`); 加 `.others` 表示 "允许操作他人创建的对象", 通常 risk_tier=high。三种形态 MUST 在 capability-action-registry 中分别登记, 不得当作通配等价。历史命名 `manage_others` 已收敛为 `.others` 后缀（例如 `ak.strand.watch.set.others`）。
+
+#### 2.0.1 全域命名判据（normative）
+
+- <!-- rule_id: NC-BOOL-001 --> **R1 布尔许可与义务**：许可字段 MUST 使用 `<axis>_allowed`，强制义务 MUST 使用 `<axis>_required`；wire boolean MUST NOT 使用 `allow_*`、`require_*`、`requires_*`、`deny_*`、`force_*` 或负极性 `no_*` / `disallow_*`。`include_*` 只用于请求侧投影开关；`*_present` 只用于 fixture/诊断，或逐路径登记的不回显原材料审计摘要。
+- <!-- rule_id: NC-COUNT-001 --> **R2 计数与长度**：元素个数 MUST 使用 `_count`，字节数 MUST 使用 `_bytes`，字符/码位数 MUST 使用 `_chars` / `_code_points`；Arkret wire、registry 语义字段与 fixture 断言 MUST NOT 使用 `_len`、`_length` 或 `_size`。`cardinality` 只用于 registry 的关系基数元数据。
+- <!-- rule_id: NC-ENUM-001 --> **R3 符号枚举值**：Arkret 自有符号型枚举 MUST 使用 snake_case。只有外部规范定义了该字面值且 Arkret 必须逐字节往返时才可例外，并须登记外部章节/codepoint；数值区间、URI 与 media type 按各自词法。
+- <!-- rule_id: NC-TYPE-001 --> **R4 类型名**：JSON Schema `$defs` 键 MUST 使用 snake_case；OpenAPI schema component MUST 使用 PascalCase。承担结构包装角色的末词只能是 `RequestBody`、`Outcome`、`View`、`Row`、`List`、`Envelope`、`Ref`、`Problem`；领域主语不受包装词封闭表约束。`service-operation-dtos.schema.json` 作为 OpenAPI DTO 镜像是已登记结构例外。
+- <!-- rule_id: NC-CODE-001 --> **R5 机器原因码**：机器可枚举原因 MUST 使用 `reason_code` / `<domain>_reason_code`，协议标准错误码 MUST 使用 `error_code`；`failure_code` / `rejection_code` 等中间形态禁止。
+- <!-- rule_id: NC-EVIDENCE-001 --> **R6 证据材料名词**：`proof` 是可独立验证的密码学命题材料；`attestation` 是第三方对范围/状态的签发断言；`receipt` 是请求状态回执；`witness` 是背书角色；`commitment` 是集合/树承诺；`transcript` 是签名/KDF 的规范输入。`evidence` 仅用于可容纳至少两类上述材料的多态容器。
+- <!-- rule_id: NC-ARTIFACT-001 --> **R7 artifact 文件与 provenance**：artifact 文件名 MUST 为 kebab-case。类别词按数据形态使用：`registry`、`table`、`graph`、`report`、`index`、`digests`、`fixture`、`manifest`、`probes`；provenance 由真实数据流决定，canonical artifact 使用 `source_of_truth: true`，派生 artifact 使用 `source_of_truth: false` 且声明非空 `generated_from` / `generated_by`。
+- <!-- rule_id: NC-SET-001 --> **R8 集合前缀**：allowlist/denylist array/set 的唯一反义词对是 `allowed_` / `denied_`；`permitted_` / `forbidden_` / `blocked_` / `banned_` 禁止用于这类集合。scope 差异 MUST 进入 role prefix；`supported_`、`accepted_`、`advertised_`、`declared_` 分别表示实现能力、运行时接受、对外通告、profile 声明，不得同域混用。
+- <!-- rule_id: NC-HASH-001 --> **既有 hash 词汇判据**：`_hash` / `_hashes`、`hash_profile`、`hash_algorithm` 在 Arkret wire 中禁止；RFC 9420 / did:webvh 等逐字面外部字段只按登记的精确路径保留。
+- <!-- rule_id: NC-CLASSIFICATION-001 --> **四轴分类后缀**：`kind` / `type` / `class` / `tier` 的逐字段许可、闭集与异轴声明由 [`classification-field-registry.json`](../../artifacts/registry/classification-field-registry.json) 唯一登记，轴级判据表只引用该 registry，不复制条目。
 
 ### 2.1 Identifier 字段命名约定（normative）
 
@@ -97,7 +126,7 @@ expected_<role>_<kind>_id
 
 - canonical materialized object 自身 primary identity 字段 MUST 使用 `id`，不得写成 `strand_id` / `message_id` / `actor_profile_id` 等带对象名前缀的字段。Actor / user-facing identity 在 v1 中由 Actor Profile 表达：Profile 对象自身仍使用 `id`，其授权主体 DID 另用 `principal_id`。
 - Snapshot manifest 自身也使用 `id`；`snapshot_ref` 只在其他对象、chunk payload、challenge 或 API hint 指向该 manifest 时使用。
-- Event Envelope、Receipt、Attestation / Evidence、Key Backup、Applet 等协议 artifact 或非通用 materialized object MAY 使用 `<artifact>_id` 作为自身标识（例如 `event_id`、`receipt_id`、`attestation_id`、`evidence_id`、`backup_id`、`applet_id`），因为这些对象经常与 `realm_id`、`actor_id`、`policy_id`、`device_id` 等并列并进入签名 transcript，需要在混合上下文中消歧。该例外不得反向用于 Realm / Space / Strand / Message / Morph / Relation / View / Policy / Actor Profile 等普通 canonical object。
+- Event Envelope、Receipt、Attestation、Key Backup、Applet 等协议 artifact 或非通用 materialized object MAY 使用 `<artifact>_id` 作为自身标识（例如 `event_id`、`receipt_id`、`attestation_id`、`backup_id`、`applet_id`），因为这些对象经常与 `realm_id`、`actor_id`、`policy_id`、`device_id` 等并列并进入签名 transcript，需要在混合上下文中消歧。该例外不得反向用于 Realm / Space / Strand / Message / Morph / Relation / View / Policy / Actor Profile 等普通 canonical object。
 - 单一具体 kind MUST 在字段名中出现 kind slug，例如 `space_id`、`parent_space_id`、`default_realm_id`、`scope_circle_id`、`policy_id`、`retention_policy_id`。
 - protocol responsibility subject 使用 `_id`，即使 wire value 是 DID，例如 `actor_id`、`principal_id`、`subject_id`、`agent_id`、`controller_id`、`watcher_actor_id`。角色词是限定词时不得再插入额外的 `principal` 限定词；`principal_id` 本身以 principal 为中心词，继续保留。
 - Event payload 若写入某个 materialized object / projection 字段的值，payload 字段名 MUST 与该物化字段同名。操作目标、CAS expected head、audit target、selector target 等事件操作角色 MAY 加 role prefix，例如 `space_id` 与 `expected_parent_space_id`。
@@ -182,8 +211,8 @@ Service identity 字段统一使用 `service_id` / `<role>_service_id`，即使 
 | `created_at` | Authorship | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | —（见 `issued_at`，§3.2） | Y | —（仅 `updated_at`，见 §3.2） | Y | Y | Y |
 | `updated_by` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | — | — | O | — |
 | `updated_at` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | Y | O | O | O |
-| `state` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | Y | O | O | Y | O | O | — | — | — | — | Y（流程状态轴，见附注） | — | Y（特例语义，见附注） | — (see `status`，mirrors account status) | Y（特例轴，含 `suspended`，见附注） |
-| `state_changed_at` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | — | — | — | — | — | — | — | — | R when state≠active |
+| `state` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | Y | O | O | Y | O | O | O | — | — | — | Y（流程状态轴，见附注） | — | Y（特例语义，见附注） | — (see `status`，mirrors account status) | Y（特例轴，含 `suspended`，见附注） |
+| `state_changed_at` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | — | — | — | — | — | — | — | R when state≠active |
 | `stage` | Progress | — | — | — | O | — | O | — | — | — | — | — | — | — | — | — | — |
 | `stage_changed_at` | Progress | — | — | — | R per `ak.strand.stage.set` | — | R per `ak.morph.stage.set` | — | — | — | — | — | — | — | — | — | — |
 | `labels` | Universal | — | — | O | — | — | — | — | — | — | — | — | — | — | — | — | — |
@@ -432,7 +461,7 @@ Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们�
 | 对象 | 是否声明 `stage` | 必填语义 | 触发 event |
 | --- | --- | --- | --- |
 | `Strand` | yes | 可选；`ak.strand.create` MAY 省略，普通业务 Strand SHOULD 填写，DM 主 Strand MAY 省略或选填合法值 | `ak.strand.stage.set` |
-| `Morph` | yes | 可选；generic mirror/data Morph MAY 省略，需要进度轴的 morph_type profile MAY 收紧为 create 必填 | `ak.morph.stage.set` |
+| `Morph` | yes | 可选；generic mirror/data Morph MAY 省略，需要进度轴的 morph_kind profile MAY 收紧为 create 必填 | `ak.morph.stage.set` |
 | Realm / Space / Message / Relation / View / Policy / ... | no | — | — |
 
 适用对象自己的 schema MUST 显式枚举允许值；`strand.schema.json` 与 `morph.schema.json` MUST 把 `stage` 声明为可选字段，且 `stage_changed_at` MUST NOT 在缺少 `stage` 时单独出现。Morph 缺失 stage 时，首条 `ak.morph.stage.set` 是初始化而非从某个隐含默认值迁移；可取任一注册值，之后才应用普通转换规则。不适用对象 MUST NOT 暴露 `stage` 顶层字段。**未来如有新对象需要 stage 轴**,扩展时 MUST 同步在本节登记。

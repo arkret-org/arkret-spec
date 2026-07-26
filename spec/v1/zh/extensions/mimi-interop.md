@@ -58,7 +58,7 @@ MIMI facade 不是新的真相源。Arkret native 侧的 canonical truth 是 sig
 
 ```json
 {
-  "service_type": "mimi_provider_facade",
+  "service_kind": "mimi_provider_facade",
   "supported_profiles": ["ak.profile.mimi_interop.v1"],
   "mimi": {
     "protocol_draft": "draft-ietf-mimi-protocol-06",

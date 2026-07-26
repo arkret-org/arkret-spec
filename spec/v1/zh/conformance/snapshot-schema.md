@@ -278,7 +278,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 
 ```json
 {
-  "scheme": "mls-rfc9420",
+  "scheme": "mls_rfc9420",
   "version": "1.0",
   "group_id": "base64url",
   "epoch": 42,

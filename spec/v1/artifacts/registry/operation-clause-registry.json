@@ -16,7 +16,7 @@
       "selector": {
         "kind": "all_operations"
       },
-      "requirement": "The canonical operation id and every advertised HTTP binding shape MUST match contract-catalog, generated operation-registry, OpenAPI and operation schema index.",
+      "requirement": "The canonical operation id and every advertised HTTP binding shape MUST match contract-registry, generated operation-registry, OpenAPI and operation schema index.",
       "required_evidence": [
         "artifact_pipeline",
         "openapi_contract_check"
@@ -55,7 +55,7 @@
       ],
       "source_refs": [
         "spec/v1/zh/sync/api-conventions.md#6-幂等",
-        "spec/v1/artifacts/fixtures/operation_registry_coverage_fixture.json"
+        "spec/v1/artifacts/fixtures/operation-registry-coverage-fixture.json"
       ]
     },
     {
@@ -86,7 +86,7 @@
       ],
       "source_refs": [
         "spec/v1/zh/sync/service-http-binding.md#10-标准错误码",
-        "spec/v1/artifacts/fixtures/error_code_registry_coverage_fixture.json"
+        "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json"
       ]
     },
     {

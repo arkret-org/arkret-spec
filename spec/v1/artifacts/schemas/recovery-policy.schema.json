@@ -1050,10 +1050,10 @@
             "algorithm": {
               "type": "string",
               "enum": [
-                "feldman-vss-sha256",
-                "pedersen-vss-sha256",
-                "share-hash-sha256",
-                "share-hash-blake3"
+                "feldman_vss_sha256",
+                "pedersen_vss_sha256",
+                "share_hash_sha256",
+                "share_hash_blake3"
               ]
             },
             "commitment_b64u": {

@@ -82,7 +82,7 @@ DID Document SHOULD 只负责：
 
 ### 2.5 实际服务器与服务面组合
 
-实际部署中的“服务器”是一个或多个服务面的组合，不是协议真相源。实现可以合并服务器，但每个 `ServiceDescribe` MUST 只描述一个逻辑角色，并明确该角色的 `service_type`、`supported_operations`、认证方式、限制、plaintext visibility 和 profile；不得把多角色聚合成一个 compound `service_type`，也不得把其它角色的 operation 或明文边界混入当前响应。多个角色共享同一 public binding 时，部署 MUST 为每个角色支持 `GET /_arkret/describe?service_type=<registered-id>` 的 role-scoped 响应；查询值、响应 `service_type` 和该角色的 DID/service binding 必须一致。查询省略规则和错误语义见 [`service-http-binding.md` §2.3](./service-http-binding.md)。
+实际部署中的“服务器”是一个或多个服务面的组合，不是协议真相源。实现可以合并服务器，但每个 `ServiceDescribe` MUST 只描述一个逻辑角色，并明确该角色的 `service_kind`、`supported_operations`、认证方式、限制、plaintext visibility 和 profile；不得把多角色聚合成一个 compound `service_kind`，也不得把其它角色的 operation 或明文边界混入当前响应。多个角色共享同一 public binding 时，部署 MUST 为每个角色支持 `GET /_arkret/describe?service_kind=<registered-id>` 的 role-scoped 响应；查询值、响应 `service_kind` 和该角色的 DID/service binding 必须一致。查询省略规则和错误语义见 [`service-http-binding.md` §2.3](./service-http-binding.md)。
 
 协议层统一使用 **Principal Server** 表示 principal 控制或委托的受控入口。登录与账号准入另有一个客户端可见的 **Account Authority** 角色：客户端从 Principal Server 的 `/_arkret/describe` 发现它，之后所有客户端可见的 `/_arkret/gate/account/*` 请求都只发往该 Account Authority。部署内部 S2S 子操作只可由 Account Authority 按对应 operation 契约调用，不能由客户端派生。不同部署形态的差异由 deployment profile、支持的 operation、是否内置 Auth / Account、Policy、Events API、Blob、Identity Resolution 等能力表达。
 
@@ -144,7 +144,7 @@ GET /_arkret/describe
 {
   "service_id": "did:webvh:zCm2ZfnfjnNcgaUrSkWyf5UtD:alice.example.net",
   "trust_domain": "ak:trust_domain:did.webvh.alice.example",
-  "service_type": "principal_server",
+  "service_kind": "principal_server",
   "protocol_version": "1.0",
   "supported_profiles": [
     "ak.profile.principal_server.v1"
@@ -208,7 +208,7 @@ GET /_arkret/describe
   "receive_policy_constraints": {
     "policy_version": "2026-06-21",
     "applies_to": ["invite_delivery", "contact_request"],
-    "permitted_introduction_kinds": [
+    "deployment_allowed_introduction_kinds": [
       "locator_ref",
       "consent_grant",
       "shared_realm",
@@ -301,22 +301,22 @@ GET /_arkret/describe
 
 能力发现示例（normative 指引）：客户端判断服务端是否支持某项**可选传输能力**时，MUST 以 describe 的 `supported_features` / `supported_bindings` / `limits` 为权威发现面，而不是对猜测 endpoint 直接探测。以可续传 Blob 上传为例，服务端支持时 MUST 同时声明 `supported_features` 含 `ak.feature.blob.resumable_upload.tus.v1`、`supported_bindings` 含一条 `kind="tus"` 的 binding，并在 `limits` 暴露续传上限；客户端据此发现后再用 tus `OPTIONS`（`Tus-Resumable` / `Tus-Version` / `Tus-Extension`）做 endpoint 级线上确认。完整 binding 语义、内容寻址不变式与隐私约束见 [`crypto-media/media-and-blob.md` §2.1](../crypto-media/media-and-blob.md)。
 
-本规范登记的标准 `supported_features` 还包括：`ak.feature.realm_key.peer_relay.v1`（中继 to-device `ak.realm_key.request`）、`ak.feature.realm_key.backup_retrieval.v1`（托管 `mls_history` key backup unlock）、`ak.feature.realm_key.archive_retrieval.v1`（archive node 历史 key 取回）、`ak.feature.mls_exporter_aead.v1`（接受并同步 `content_scheme=mls-exporter-aead-v1` Realm；见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10）与 `ak.feature.agent_runtime_approval_notifications.v1`（通过 account subscribe 的闭合 notification delta 投递 Agent runtime 审批；见 [`client-sync.md` §3.1](./client-sync.md)）。客户端依赖这些能力时 MUST 以 describe 声明为准，未声明时 fail closed 或选择规范明确允许的 fallback。
+本规范登记的标准 `supported_features` 还包括：`ak.feature.realm_key.peer_relay.v1`（中继 to-device `ak.realm_key.request`）、`ak.feature.realm_key.backup_retrieval.v1`（托管 `mls_history` key backup unlock）、`ak.feature.realm_key.archive_retrieval.v1`（archive node 历史 key 取回）、`ak.feature.mls_exporter_aead.v1`（接受并同步 `content_scheme=mls_exporter_aead_v1` Realm；见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10）与 `ak.feature.agent_runtime_approval_notifications.v1`（通过 account subscribe 的闭合 notification delta 投递 Agent runtime 审批；见 [`client-sync.md` §3.1](./client-sync.md)）。客户端依赖这些能力时 MUST 以 describe 声明为准，未声明时 fail closed 或选择规范明确允许的 fallback。
 
 服务类型命名规则：
 
 - DID Document `service.type` 使用协议注册名，例如 `ArkretPrincipalServer`、`ArkretDirectory`。
-- describe 响应的 `service_type` 使用 [`service-type-registry.json`](../../artifacts/registry/service-type-registry.json) 中 `status=active` 且 `valid_in` 包含 `service_describe` 的小写注册值；正文不复制该闭集。其它 context 的值不得进入 Describe：例如 `mimi_provider_facade` 只用于 `mimi_provider_directory` descriptor，不是 `ServiceDescribe.service_type`。`sync_node` 同时被 registry 允许用于 Realm sync endpoint / join candidate，但只有当 Realm policy 授权对应 submission / delivery binding 时才能用于这些 Realm 字段（见 [`realm-join-candidate.schema.json`](../../artifacts/schemas/realm-join-candidate.schema.json)）。
+- describe 响应的 `service_kind` 使用 [`service-kind-registry.json`](../../artifacts/registry/service-kind-registry.json) 中 `status=active` 且 `valid_in` 包含 `service_describe` 的小写注册值；正文不复制该闭集。其它 context 的值不得进入 Describe：例如 `mimi_provider_facade` 只用于 `mimi_provider_directory` descriptor，不是 `ServiceDescribe.service_kind`。`sync_node` 同时被 registry 允许用于 Realm sync endpoint / join candidate，但只有当 Realm policy 授权对应 submission / delivery binding 时才能用于这些 Realm 字段（见 [`realm-join-candidate.schema.json`](../../artifacts/schemas/realm-join-candidate.schema.json)）。
 - conformance profile 使用 `ak.profile.*` 标识，例如 `ak.profile.principal_server.v1`。
-- 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_type 与 conformance profile 混用。
+- 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_kind 与 conformance profile 混用。
 
 ### 3.0 Describe response claim levels
 
 `server/describe`（以及结构等价的 `identity/describe` / `events/describe` / `sync/describe` /
-`directory/describe` / `applet/describe`）响应 MUST 使用同一个 canonical `ServiceDescribe` shape。除 `service_id`、`trust_domain`、`service_type`、`protocol_version`、`supported_profiles`、`supported_operations`、`supported_bindings`、`supported_features`、`auth_metadata`、`limits`、`plaintext_visibility` 和 `rate_limit_policy` / `rate_limit_policy_id` 之外，响应还 MUST 按 **claim level** 区分以下字段；schema 见
+`directory/describe` / `applet/describe`）响应 MUST 使用同一个 canonical `ServiceDescribe` shape。除 `service_id`、`trust_domain`、`service_kind`、`protocol_version`、`supported_profiles`、`supported_operations`、`supported_bindings`、`supported_features`、`auth_metadata`、`limits`、`plaintext_visibility` 和 `rate_limit_policy` / `rate_limit_policy_id` 之外，响应还 MUST 按 **claim level** 区分以下字段；schema 见
 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json)（`ak.schema.service_describe.v1`）：
 
-当 `service_type=directory_service` 时，`ak.find.directory.query.describe` 还 MUST 按 [`discovery-directory.md` §8.9](../discovery/discovery-directory.md#89-akfinddirectoryquerydescribe-扩展) 暴露已登记在 `ServiceDescribe` schema 中的 directory-specific 裸字段（例如 `resource_types[]`、`discovery_profiles[]`、`ingest_modes`、`accept_policy_kind`、TTL 与 `rate_limits` 字段）；这些字段不是 vendor-specific `x_*` 扩展。
+当 `service_kind=directory_service` 时，`ak.find.directory.query.describe` 还 MUST 按 [`discovery-directory.md` §8.9](../discovery/discovery-directory.md#89-akfinddirectoryquerydescribe-扩展) 暴露已登记在 `ServiceDescribe` schema 中的 directory-specific 裸字段（例如 `resource_kinds[]`、`discovery_profiles[]`、`ingest_modes`、`accept_policy_kind`、TTL 与 `rate_limits` 字段）；这些字段不是 vendor-specific `x_*` 扩展。
 
 - `supported_operations: operation_id[]` — 该 endpoint 可被实际调用的 operation_id。仅表示 wire 可达，
   不构成 profile claim。元素 SHOULD 命中 `operation-registry.json` 注册项。
@@ -616,8 +616,8 @@ Arkret v1 不定义必需的远端索引或应用视图服务面。当前态查�
 
 若客户端、SDK 或可选受托服务对外暴露可互操作查询语义，SHOULD 复用 `query-schema.md` 中的 Query 形状：
 
-- `object_types`：标准对象类型，例如 `realm`、`space`、`strand`、`message`、`morph`（Space 通过 `space.kind` 区分 board/list/...；Strand 默认入口通过 track primary 解析规则得到）
-- `morph_types`：当 `object_types` 包含 `morph` 时，可进一步限定开放对象类型
+- `object_kinds`：标准对象类型，例如 `realm`、`space`、`strand`、`message`、`morph`（Space 通过 `space.kind` 区分 board/list/...；Strand 默认入口通过 track primary 解析规则得到）
+- `morph_kinds`：当 `object_kinds` 包含 `morph` 时，可进一步限定开放对象类型
 - `facets`：schema-declared capability hint 选择器，只用于 Morph 或声明支持 facets 的标准对象；不得作为授权、状态机、排序或 reducer 语义的唯一来源
 - `relation`
 - 过滤条件
@@ -645,8 +645,8 @@ Inbox 和 notification 可以由客户端从本地 Event、read cursor、mention
 {
   "query": "legal review",
   "realm_ids": ["ak:realm:0196419b-0000-7000-8000-000000000000"],
-  "object_types": ["message", "strand", "morph"],
-  "morph_types": ["comment"],
+  "object_kinds": ["message", "strand", "morph"],
+  "morph_kinds": ["comment"],
   "sender_actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "time_range": {
     "after": "2026-04-01T00:00:00Z",
@@ -796,7 +796,7 @@ Actor / handle directory MUST NOT return pairwise DID、private DID、private ha
 POST /_arkret/find/directory/private-contact-discovery
 ```
 
-该操作用于 `ak.private_contact_discovery.v1`。Directory advertise 本操作时 MUST 同时提供闭合的 `ServiceDescribe.private_contact_discovery`（RFC 9497 modeVOPRF、公钥 / epoch、固定 batch、proof shape、response buckets、completion TTL、quota 与 delay distribution）。客户端在发送前把 blinded batch 填充到精确 `batch_size`；blind / match / outcome 数组保持等长同序。响应只返回 PSI 命中位图与按 describe 固定为 always / never 的最小 invite/consent handoff stub；MUST NOT 返回 contact request token、reachability proof、原始 identifier、完整 profile、成员列表、Realm membership 或关系图谱。PSI quota 只在首次 blind 准入时执行；超额返回 padded 429 `psi_quota_exhausted` + 量化 `Retry-After`，不得伪装成 200 no-match。完全相同的 blind / match 重试不重复计数并返回缓存 outcome；同 batch_id 不同 canonical body 返回 `duplicate_conflict`，未知 / wrong-device / expired batch 统一返回 `psi_batch_unavailable`，pinned epoch 必须保留完整 completion TTL。逐目标失败一律编码为固定 cardinality 位图中的未命中位；精确 entity-body bucket 与 delay 规则见 [`../discovery/discovery-directory.md` §6.4](../discovery/discovery-directory.md)。联系人请求与 direct conversation resolver 的正式语义见 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md)。
+该操作用于 `ak.private_contact_discovery.v1`。Directory advertise 本操作时 MUST 同时提供闭合的 `ServiceDescribe.private_contact_discovery`（RFC 9497 modeVOPRF、公钥 / epoch、固定 batch、proof shape、response buckets、completion TTL、quota 与 delay distribution）。客户端在发送前把 blinded batch 填充到精确 `batch_item_count`；blind / match / outcome 数组保持等长同序。响应只返回 PSI 命中位图与按 describe 固定为 always / never 的最小 invite/consent handoff stub；MUST NOT 返回 contact request token、reachability proof、原始 identifier、完整 profile、成员列表、Realm membership 或关系图谱。PSI quota 只在首次 blind 准入时执行；超额返回 padded 429 `psi_quota_exhausted` + 量化 `Retry-After`，不得伪装成 200 no-match。完全相同的 blind / match 重试不重复计数并返回缓存 outcome；同 batch_id 不同 canonical body 返回 `duplicate_conflict`，未知 / wrong-device / expired batch 统一返回 `psi_batch_unavailable`，pinned epoch 必须保留完整 completion TTL。逐目标失败一律编码为固定 cardinality 位图中的未命中位；精确 entity-body bucket 与 delay 规则见 [`../discovery/discovery-directory.md` §6.4](../discovery/discovery-directory.md)。联系人请求与 direct conversation resolver 的正式语义见 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md)。
 
 ## 9. MIMI Provider Facade Surface（extension profile）
 
@@ -930,7 +930,7 @@ Arkret v1 固定：
 
 - Directory search result MUST 使用 `query-schema.md` 的分页、过滤和 `visibility_explanation` 约束；对不可见或不可枚举资源，错误形态 MUST 与不存在一致。
 - Authz check response MUST 返回 `decision`、`matched_grants`、`applied_constraints`、`policy_results`、`missing_proofs`、`frontier` 和 `cache_expires_at`；`decision` 只能是 `allow`、`soft_deny`、`hard_deny`、`quarantine` 或 `require_review`。
-- Service describe MUST 声明 `service_id`、`trust_domain`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_id`、`plaintext_visibility` 与 `development_mode`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{kind: "http_json", ...}`);单数字段名 `binding` 不出现在 describe response 顶层。客户端 MUST 拒绝 service DID、trust_domain、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
+- Service describe MUST 声明 `service_id`、`trust_domain`、`service_kind`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_id`、`plaintext_visibility` 与 `development_mode`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{kind: "http_json", ...}`);单数字段名 `binding` 不出现在 describe response 顶层。客户端 MUST 拒绝 service DID、trust_domain、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
 - Service describe 响应 MUST 同时按 §3.0 区分 `supported_operations` / `implemented_features` / `claimed_profiles` / `verified_profiles` / `experimental_features` / `compat_surfaces` 六个 claim level 字段，schema 见 `ak.schema.service_describe.v1`。当 `development_mode=true` 时 `verified_profiles` MUST 为空；当 `development_mode=false` 且声明 `verified_profiles` 时，客户端仍 MUST 通过 `artifact_ref` / transparency log 获取并校验对应 verification artifact、verifier 签名和 hash 后才把它作为生产 conformance 依据。
 - Sync cursor recovery MUST 按 `conformance-vectors.md` 执行：cursor 是 opaque token；过期或缺口时返回可恢复错误，并提供 backfill 起点或 snapshot frontier。
 - Event source consistency MUST 按 `conformance-vectors.md` 执行：重复 Event 幂等，冲突 Event 拒绝，event order、hash、签名和 `actor_seq` 必须可复现验证。

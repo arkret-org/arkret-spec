@@ -73,7 +73,7 @@
       "$ref": "./time.schema.json#/$defs/timestamp",
       "description": "Convenience field equal to issued_at + ttl_seconds. MUST match within signature validation."
     },
-    "force_turn": {
+    "turn_required": {
       "type": "boolean",
       "default": false,
       "description": "When true, clients MUST disable host/srflx ICE candidates and only relay through TURN. Used by high-privacy Realms to prevent IP leakage."
@@ -82,15 +82,15 @@
       "type": "object",
       "description": "Optional server-suggested ICE policy.",
       "properties": {
-        "allow_udp": {
+        "udp_allowed": {
           "type": "boolean",
           "default": true
         },
-        "allow_tcp": {
+        "tcp_allowed": {
           "type": "boolean",
           "default": true
         },
-        "allow_ipv6": {
+        "ipv6_allowed": {
           "type": "boolean",
           "default": true
         }

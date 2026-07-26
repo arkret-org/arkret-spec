@@ -255,7 +255,7 @@
         "renderer": {
           "$ref": "#/$defs/view_renderer"
         },
-        "object_types": {
+        "object_kinds": {
           "type": "array",
           "minItems": 1,
           "items": {
@@ -263,7 +263,7 @@
             "minLength": 1
           }
         },
-        "morph_types": {
+        "morph_kinds": {
           "type": "array",
           "minItems": 1,
           "items": {
@@ -384,13 +384,13 @@
             "$ref": "./common-ids.schema.json#/$defs/realm_id"
           }
         },
-        "object_types": {
+        "object_kinds": {
           "type": "array",
           "items": {
             "type": "string"
           }
         },
-        "morph_types": {
+        "morph_kinds": {
           "type": "array",
           "items": {
             "type": "string"

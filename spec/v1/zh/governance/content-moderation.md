@@ -391,7 +391,7 @@ Realm MAY 使用 `ak.realm.moderation_policy` state event 声明黑名单、允�
 | `domain` | `domain`，可选 `match_subdomains` | 规范化 DNS A-label domain；只按 label 边界匹配。 |
 | `trust_domain` | `trust_domain` | 部署级 trust domain。 |
 | `organization` | `did` | Organization DID 或其签发的治理链。 |
-| `claim_selector` | `claim_type` / `issuer` | 由声明、VC 或组织关系选择一组主体。 |
+| `claim_selector` | `claim_kind` / `issuer` | 由声明、VC 或组织关系选择一组主体。 |
 | `media_digest` | `digest` | 媒体或 blob 内容 digest。 |
 | `content_label` | `label` | 分类器或审核标签。 |
 
@@ -597,7 +597,7 @@ Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核�
     {
       "target": {
         "kind": "claim_selector",
-        "claim_type": "org_membership",
+        "claim_kind": "org_membership",
         "issuer": "did:webvh:zCJLLNnZDTQJWQp7tztodmPUc:untrusted.example"
       },
       "action": "deny_restricted_join"

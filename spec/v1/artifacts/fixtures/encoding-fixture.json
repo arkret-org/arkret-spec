@@ -203,7 +203,7 @@
           "expected_error": "invalid_encoding"
         }
       ],
-      "rejected_input_classes": [
+      "rejected_input_categories": [
         "malformed UTF-8",
         "duplicate JSON object keys at the same level",
         "lone surrogate or ambiguous escape sequence",
@@ -412,7 +412,7 @@
       "vector_id": "ak.vector.encoding.encrypted_envelope_digest.v1",
       "kind": "canonical_json_with_ciphertext_digest",
       "payload_metadata": {
-        "scheme": "mls-rfc9420",
+        "scheme": "mls_rfc9420",
         "version": "1.0",
         "group_id": "Z3JvdXAtMDAx",
         "epoch": 12,
@@ -455,12 +455,12 @@
           }
         ]
       },
-      "expected_metadata_canonical_bytes_utf8": "{\"aad\":{\"event_kind\":\"ak.message.create\",\"event_ref_digest\":\"sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3\",\"realm_id\":\"ak:realm:0196419b-0000-7000-8000-000000000000\"},\"aad_visibility_event_id\":\"routing_digest\",\"content_type\":\"application/json\",\"epoch\":12,\"group_id\":\"Z3JvdXAtMDAx\",\"key_ref\":{\"algorithm\":\"MLS\",\"group_state_ref\":\"ak:event:01964148-0000-7000-8000-000000000000\"},\"scheme\":\"mls-rfc9420\",\"version\":\"1.0\"}",
+      "expected_metadata_canonical_bytes_utf8": "{\"aad\":{\"event_kind\":\"ak.message.create\",\"event_ref_digest\":\"sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3\",\"realm_id\":\"ak:realm:0196419b-0000-7000-8000-000000000000\"},\"aad_visibility_event_id\":\"routing_digest\",\"content_type\":\"application/json\",\"epoch\":12,\"group_id\":\"Z3JvdXAtMDAx\",\"key_ref\":{\"algorithm\":\"MLS\",\"group_state_ref\":\"ak:event:01964148-0000-7000-8000-000000000000\"},\"scheme\":\"mls_rfc9420\",\"version\":\"1.0\"}",
       "ciphertext_base64url": "Y2lwaGVydGV4dC1leGFtcGxlLTAwMQ",
       "ciphertext_bytes_utf8": "ciphertext-example-001",
       "digest_input_rule": "sha256(canonical_json(payload_metadata) || base64url_decode(ciphertext))",
       "aad_digest": "sha256:444a07e27e86cefb4b50ac885413b6b9ea43e7576b943812d5243d73701b7c8a",
-      "expected_digest": "sha256:6aa6a93aff69fc6505207e409c07f33940037e549c47542f261197c0c872052c",
+      "expected_digest": "sha256:e0dd316ae6c08f2b27d037543d97abde582ab329ef14d702fd3e13d3e7f9facd",
       "rules": [
         "implementations MUST NOT hash plaintext payload",
         "implementations MUST NOT omit payload metadata required for routing/decryption; otherwise sync service cannot safely dedupe or audit envelopes"

@@ -1,8 +1,8 @@
-// Build/deploy-time generator for the published, version-pinned contract catalog
-// snapshot served at /v1/contract-catalog-<version>.json.
+// Build/deploy-time generator for the published, version-pinned contract registry
+// snapshot served at /v1/contract-registry-<version>.json.
 //
 // The snapshot is a byte-for-byte copy of the canonical source
-// spec/v1/artifacts/registry/contract-catalog.json. It is generated here (and
+// spec/v1/artifacts/registry/contract-registry.json. It is generated here (and
 // copied into dist/ by astro build) rather than committed to git, so there is a
 // single source of truth. Run automatically via the `prebuild` / `predev`
 // package.json hooks.
@@ -26,9 +26,9 @@ if (!tag.startsWith("v")) {
 }
 const version = tag.slice(1);
 
-const source = resolve(repoRoot, "spec/v1/artifacts/registry/contract-catalog.json");
+const source = resolve(repoRoot, "spec/v1/artifacts/registry/contract-registry.json");
 const outDir = resolve(siteRoot, "public/v1");
-const outFile = resolve(outDir, `contract-catalog-${version}.json`);
+const outFile = resolve(outDir, `contract-registry-${version}.json`);
 
 mkdirSync(outDir, { recursive: true });
 writeFileSync(outFile, readFileSync(source));

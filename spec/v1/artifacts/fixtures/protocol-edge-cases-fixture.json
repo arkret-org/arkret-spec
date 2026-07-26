@@ -121,8 +121,8 @@
         {
           "risk": "low",
           "freshness": "unknown",
-          "tier": "local_pending",
-          "decision": "pending_local_only"
+          "decision": "pending_local_only",
+          "processing_kind": "local_pending"
         }
       ],
       "assertions": [
@@ -358,7 +358,7 @@
         "admin‍",
         "Ａlice"
       ],
-      "expected_classes": [
+      "expected_confusable_classes": [
         "safe_ascii",
         "mixed_script_confusable",
         "mixed_script_confusable",

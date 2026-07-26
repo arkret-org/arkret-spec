@@ -33,8 +33,8 @@ Schema id: `ak.schema.morph.v1`
 | `id` | yes | `id:morph` | 以 `ak:morph:` 开头。 | Morph ID。 |
 | `schema` | yes | `ak.schema.morph.v1` | const。 | 容器 self-schema。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
-| `schema_refs` | yes | `array<string>` | 至少 1 项，唯一。 | `fields` 与 transition validation 的权威 schema 集合；`morph_type` / `facets` 不能替代。 |
-| `morph_type` | yes | `string` | 标准值见业务 profile，扩展不得使用未注册 `ak.` 前缀。**create-locked**，禁止后续修改。 | 开放类型 / 业务标签。 |
+| `schema_refs` | yes | `array<string>` | 至少 1 项，唯一。 | `fields` 与 transition validation 的权威 schema 集合；`morph_kind` / `facets` 不能替代。 |
+| `morph_kind` | yes | `string` | 标准值见业务 profile，扩展不得使用未注册 `ak.` 前缀。**create-locked**，禁止后续修改。 | 开放类型 / 业务标签。 |
 | `facets` | no | `map<FacetConfig>` | 未知 facet 必须由 Realm schema / Morph profile 声明。`facets` map 的总 canonical size **计入** Morph 对象的 256 KiB 上限（与 `fields` 同一 budget，见 [`../conformance/scalability-constraints.md` §2](../conformance/scalability-constraints.md)）；不另设独立 facet 条数上限，超出对象总上限 MUST reject（`payload_too_large` / `schema_violation`）。 | Morph 暴露哪些已声明能力 hint。 |
 | `metadata` | no | `object` | MAY 携带 `title` / `summary` 及 profile 定义的展示 metadata。与 `encrypted_metadata` 至多一个且不得并存（mutually exclusive, optional）。effective `metadata_encryption_floor` 要求加密对应 metadata 时 MUST 省略（改用 `encrypted_metadata`）。 | 用户可读 Morph metadata；Morph 业务字段仍在顶层 `fields`。MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
 | `encrypted_metadata` | no | `EncryptedPayload` | 与 `metadata` 至多一个且不得并存（mutually exclusive, optional）；plaintext 是同一个 Morph metadata object。effective `metadata_encryption_floor` 要求加密 Morph metadata（E2EE profile）时 MUST 提供本字段；不要求时二者皆可省（Morph 无用户可读 metadata 时允许都不写）。 | E2EE 场景下包裹 Morph metadata。 |
@@ -44,7 +44,7 @@ Schema id: `ak.schema.morph.v1`
 | `scope_circle_id` | no | `id:circle` | create 时 MUST 指向同一 Realm 的 Circle；reducer 校验 `scope_circle_id.realm_id == realm_id`，并把 immutable `effective_scope` 写入接受的 Event。**rebind 规则**：`ak.morph.update` 的 patch path `scope_circle_id` 默认 MUST 被 reducer 拒绝（`failed_precondition`，`reason=scope_rebind_forbidden`），与 [`circle.md` §6.1](./circle.md) 的通用 scope rebind 约束一致；只有显式声明允许 rebind 的 profile MAY 接受，且 MUST audit-paired high-risk update，并按 §6.1 保留已存在内容写入时的 `effective_scope` 与历史 / key eligibility（旧内容不重解释，仅新内容进新 scope）。 | 将 Morph 落入窄于 Realm 的 [Circle](./circle.md) scope。 |
 | `state` | no | `enum(active, archived, redacted)` | 状态转换必须有事件来源。`archived` 是**可逆中间态**（可经 `ak.morph.restore` 回到 `active`），不是终态；唯一不可逆终态是 `redacted`。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`ak.morph.archive` MUST 来自 `active`（否则 `morph_not_active`）；`ak.morph.restore` MUST 来自 `archived`（否则 `morph_not_archived`）；`ak.redaction` 指向 Morph 时 MUST 来自 `{active, archived}`（否则 `morph_already_terminal`）；进入 `redacted` 后 MUST NOT 被任何 lifecycle event 修改。same-state self-transition MUST fail。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
-| `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | generic Morph 可省略；需要进度轴的 `morph_type` profile MAY 将其收紧为 create 必填。缺失时首条 `ak.morph.stage.set` 可初始化为任一合法值，此后按 [common-fields.md §5.3](./common-fields.md) 转换。变更只能通过 `ak.morph.stage.set`；`ak.morph.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时由附加在 Morph 上的讨论性对象承担。 | 可选业务进度阶段（与 `state` 正交）。 |
+| `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | generic Morph 可省略；需要进度轴的 `morph_kind` profile MAY 将其收紧为 create 必填。缺失时首条 `ak.morph.stage.set` 可初始化为任一合法值，此后按 [common-fields.md §5.3](./common-fields.md) 转换。变更只能通过 `ak.morph.stage.set`；`ak.morph.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时由附加在 Morph 上的讨论性对象承担。 | 可选业务进度阶段（与 `state` 正交）。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived**：每次 `stage` 实际变更时由 reducer 用触发 event 的 `created_at` 覆盖写入；same-value self-transition 不更新本字段。 | 最近一次 stage 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -59,8 +59,8 @@ Schema id: `ak.schema.morph.v1`
 
 | event kind | reducer_input | payload 形态 | capability action | 前置 / 说明 |
 | --- | --- | --- | --- | --- |
-| `ak.morph.create` | yes | full object | `ak.morph.create` | 创建 Morph；`morph_type` create-locked，`stage` 可选（profile 可收紧），`schema_refs[]` ≥1。reducer 固化 `effective_scope`（见 §6.1 / [circle.md §6](./circle.md)）。 |
-| `ak.morph.update` | yes | `ak.patch.v1` | `ak.morph.update` | 改 `fields` / `metadata` / `facets` / `content` / `schema_refs[]`（schema_refs 变更收窄为 additive-only fast path，见 §4.1）。patch path `morph_type` / `stage` / `stage_changed_at` MUST `schema_violation`。 |
+| `ak.morph.create` | yes | full object | `ak.morph.create` | 创建 Morph；`morph_kind` create-locked，`stage` 可选（profile 可收紧），`schema_refs[]` ≥1。reducer 固化 `effective_scope`（见 §6.1 / [circle.md §6](./circle.md)）。 |
+| `ak.morph.update` | yes | `ak.patch.v1` | `ak.morph.update` | 改 `fields` / `metadata` / `facets` / `content` / `schema_refs[]`（schema_refs 变更收窄为 additive-only fast path，见 §4.1）。patch path `morph_kind` / `stage` / `stage_changed_at` MUST `schema_violation`。 |
 | `ak.morph.stage.set` | yes | stage transition payload | `ak.morph.stage.set` | 唯一改 / 初始化 `stage` 的路径；缺失轴的首写可取任一合法值，`stage_changed_at` reducer-derived；后续转换合法性见 [common-fields.md §5.3](./common-fields.md)。 |
 | `ak.morph.archive` | yes | object_lifecycle_payload | `ak.morph.archive` | `active → archived`（可逆中间态，非终态）；源状态非 `active` 时 `morph_not_active`。 |
 | `ak.morph.restore` | yes | object_lifecycle_payload | `ak.morph.restore` | `archived → active`；源状态非 `archived` 时 `morph_not_archived`。 |
@@ -75,7 +75,7 @@ Schema id: `ak.schema.morph.v1`
   "schema": "ak.schema.morph.v1",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "schema_refs": ["ak.schema.morph.customer_risk.v1"],
-  "morph_type": "customer_risk",
+  "morph_kind": "customer_risk",
   "metadata": {
     "title": "ACME procurement risk"
   },
@@ -97,54 +97,54 @@ Schema id: `ak.schema.morph.v1`
 }
 ```
 
-> **示例规则**：顶层 `schema` 必须是容器 self-schema `ak.schema.morph.v1`，它仅定义 Morph 容器形态；`schema_refs[]` 是 §4 顺序 1 的"结构 / 验证真源"，必须列出**业务字段** schema id——上例使用配套的参考业务 schema [`ak.schema.morph.customer_risk.v1`](../../artifacts/schemas/morph-customer-risk.schema.json)，它声明 `fields.status` / `fields.severity` 两个业务字段的允许取值集合（structural validation 部分）。本参考 schema 不附带 transition 规则；真实部署若需要 transition validation，SHOULD 在 Realm schema 的 `morph_type_profiles[<morph_type>].transition_rules` 中声明（顺序 2 收紧来源），或注册一个独立 `ak.profile.morph.<type>.v1` profile 承载 state-machine 表，并由 reducer 按 §4.0 第 5 行"状态机 transition 合法性"读取。同名容器 schema `ak.schema.morph.v1` MUST NOT 被列入 `schema_refs[]` 当作业务 schema：容器 schema 不验证 `fields.*` 业务字段，二者职责不可混用。
+> **示例规则**：顶层 `schema` 必须是容器 self-schema `ak.schema.morph.v1`，它仅定义 Morph 容器形态；`schema_refs[]` 是 §4 顺序 1 的"结构 / 验证真源"，必须列出**业务字段** schema id——上例使用配套的参考业务 schema [`ak.schema.morph.customer_risk.v1`](../../artifacts/schemas/morph-customer-risk.schema.json)，它声明 `fields.status` / `fields.severity` 两个业务字段的允许取值集合（structural validation 部分）。本参考 schema 不附带 transition 规则；真实部署若需要 transition validation，SHOULD 在 Realm schema 的 `morph_kind_profiles[<morph_kind>].transition_rules` 中声明（顺序 2 收紧来源），或注册一个独立 `ak.profile.morph.<kind>.v1` profile 承载 state-machine 表，并由 reducer 按 §4.0 第 5 行"状态机 transition 合法性"读取。同名容器 schema `ak.schema.morph.v1` MUST NOT 被列入 `schema_refs[]` 当作业务 schema：容器 schema 不验证 `fields.*` 业务字段，二者职责不可混用。
 
 Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。Morph 可以通过 schema/profile 声明的 facets 参与 Board、Timeline、Graph、Strand track projection 或 Document View，但这些 facets 只作为查询、投影和降级展示提示；标准对象的主语义必须保留在对应标准类型上。
 
 ## 4. Morph 类型系统合并优先级
 
-> Machine-readable canonical: [`artifacts/registry/morph-type-decision-table.json`](../../artifacts/registry/morph-type-decision-table.json) 。下表与该 artifact 双向同步；有歧义时以 artifact 为准，本表为人类可读视图。
+> Machine-readable canonical: [`artifacts/registry/morph-kind-decision-table.json`](../../artifacts/registry/morph-kind-decision-table.json) 。下表与该 artifact 双向同步；有歧义时以 artifact 为准，本表为人类可读视图。
 
 ### 4.0 决策矩阵 (Normative summary)
 
-在进入 4 源合并表之前，先列出 Morph 上每类决策问题应当从**唯一来源**读取——所有 reducer / projection / authz / UI 实现 MUST 按下表选源，**禁止跨源混合或回退**。不在表内的决策问题 SHOULD 抑制（不读 morph_type / facets 当作业务行为依据）。
+在进入 4 源合并表之前，先列出 Morph 上每类决策问题应当从**唯一来源**读取——所有 reducer / projection / authz / UI 实现 MUST 按下表选源，**禁止跨源混合或回退**。不在表内的决策问题 SHOULD 抑制（不读 morph_kind / facets 当作业务行为依据）。
 
 | 决策问题 | 唯一来源 | 不得读取 |
 | --- | --- | --- |
-| 字段是否合法 / 是否必填 / 类型正确 | §4 顺序 1 (`schema_refs[]`) ∩ 顺序 2 (`morph_type_profiles`) | morph_type, facets |
-| capability `allowed_morph_types` / resource selector 匹配 | §4 顺序 3 (`morph_type` 字符串) | schema_refs, facets |
-| 默认 renderer / `query.item_facets` / `graph.node_facets` 过滤 / UI 降级 hint | §4 顺序 4 (`facets`) | schema_refs, morph_type |
-| 是否可调用某 capability action | capability grant + Realm policy（reducer-input event 自身的 capability 校验） | morph_type, facets, schema_refs |
-| 状态机 transition 合法性 | §4 顺序 1 + 顺序 2 声明的 transition rules | morph_type, facets |
-| Schema 演进（schema_refs[] 变更） | §4.1 S2 / S3（schema-evolution policy + `ak.morph.schema_migrate`） | 任何 facet / morph_type 推断 |
+| 字段是否合法 / 是否必填 / 类型正确 | §4 顺序 1 (`schema_refs[]`) ∩ 顺序 2 (`morph_kind_profiles`) | morph_kind, facets |
+| capability `allowed_morph_kinds` / resource selector 匹配 | §4 顺序 3 (`morph_kind` 字符串) | schema_refs, facets |
+| 默认 renderer / `query.item_facets` / `graph.node_facets` 过滤 / UI 降级 hint | §4 顺序 4 (`facets`) | schema_refs, morph_kind |
+| 是否可调用某 capability action | capability grant + Realm policy（reducer-input event 自身的 capability 校验） | morph_kind, facets, schema_refs |
+| 状态机 transition 合法性 | §4 顺序 1 + 顺序 2 声明的 transition rules | morph_kind, facets |
+| Schema 演进（schema_refs[] 变更） | §4.1 S2 / S3（schema-evolution policy + `ak.morph.schema_migrate`） | 任何 facet / morph_kind 推断 |
 
-任何实现违反本表（典型错误：UI 按 `facets.assignable` 显示 assign 按钮**且**绕过 capability 检查，或 reducer 按 `morph_type` 决定字段验证集合）即为实现 bug，conformance 套件 MUST 覆盖反例。
+任何实现违反本表（典型错误：UI 按 `facets.assignable` 显示 assign 按钮**且**绕过 capability 检查，或 reducer 按 `morph_kind` 决定字段验证集合）即为实现 bug，conformance 套件 MUST 覆盖反例。
 
 同一 Morph 对象的"类型"信息可能来自四个声明源；任意 reducer / projection / capability 路径在求"该 Morph 是什么 / 允许什么"时必须按下表合并，不得自行选边。优先级数字越低越优先，冲突时高优先级值整体替换低优先级值（不部分混合）：
 
 | 顺序 | 来源 | 作用 | 谁可写 |
 | --- | --- | --- | --- |
 | 1 | Morph object 的 `schema_refs[]` | **结构 / 验证真源**：决定 `fields` 的 schema、必填性、类型与 transition 规则。 | Morph create / `ak.morph.update` |
-| 2 | Realm schema `morph_type_profiles[<morph_type>]` | **Realm-scoped 收紧**：声明该 `morph_type` 在本 Realm 中可暴露的 facets、可写字段子集、必需 schema_refs、必需 capability action。本层 **只能收紧** §1 声明的范围，不得放宽。 | `ak.realm.schema` state event（写入 `ak.component.realm.schema.v1` cell，与 `schema_refs` 同载；声明形态见 [governance-objects.md §2.3](./governance-objects.md)） |
-| 3 | Morph object 的 `morph_type` (string) | **业务标签 / discoverability key**：用于 query / view / capability `allowed_morph_types` 匹配；不引入 reducer 行为。 | Morph create（**create-locked**，禁止后续修改） |
+| 2 | Realm schema `morph_kind_profiles[<morph_kind>]` | **Realm-scoped 收紧**：声明该 `morph_kind` 在本 Realm 中可暴露的 facets、可写字段子集、必需 schema_refs、必需 capability action。本层 **只能收紧** §1 声明的范围，不得放宽。 | `ak.realm.schema` state event（写入 `ak.component.realm.schema.v1` cell，与 `schema_refs` 同载；声明形态见 [governance-objects.md §2.3](./governance-objects.md)） |
+| 3 | Morph object 的 `morph_kind` (string) | **业务标签 / discoverability key**：用于 query / view / capability `allowed_morph_kinds` 匹配；不引入 reducer 行为。 | Morph create（**create-locked**，禁止后续修改） |
 | 4 | Morph object 的 `facets` (map) | **UI / projection hint**：选择默认 renderer、查询过滤、降级展示；MUST NOT 影响授权、状态机、reducer、wire 互操作。 | Morph create / `ak.morph.update` |
 
 合并规则：
 
 - **结构验证**只读取顺序 1 + 2：reducer / schema 校验 `fields` 时合并 §1 声明的字段集合与 §2 在该 Realm 中收紧后的子集；§3 / §4 不参与字段验证。
-- **类型匹配（capability 的 `allowed_morph_types`、resource selector）**只读取顺序 3：`morph_type` 是 wire-stable 字符串 key。它 create-locked 是为了避免授权错位（一旦改 `morph_type`，旧 grant 的 selector 立即失效，是常见漏洞源）。
+- **类型匹配（capability 的 `allowed_morph_kinds`、resource selector）**只读取顺序 3：`morph_kind` 是 wire-stable 字符串 key。它 create-locked 是为了避免授权错位（一旦改 `morph_kind`，旧 grant 的 selector 立即失效，是常见漏洞源）。
 - **Facets**只在以下三处生效：默认 renderer / view 选择、查询 `item_facets` / `node_facets` 过滤、降级 UI 提示。任何 reducer 行为、状态机、授权判定 MUST NOT 读取 §4。
 - **冲突处理**：
   - §1 与 §2 字段集冲突 → §2 胜（Realm-scoped 收紧）；§2 试图放宽 §1 → `schema_violation`，Realm schema accept 时静态拒绝。
   - `facets` 声明的 hint 字段在 §1/§2 中不存在 → 该 facet 在该 Morph 上 inactive，但 Morph 本身仍合法（facet 是 hint，不是 contract）。
-  - `morph_type` 在 Realm schema `morph_type_profiles` 中未声明 → §2 取空收紧（即纯 §1）；不得自动放宽到 "all fields allowed"。
+  - `morph_kind` 在 Realm schema `morph_kind_profiles` 中未声明 → §2 取空收紧（即纯 §1）；不得自动放宽到 "all fields allowed"。
   - 同一信息（例如 "可被分配"）同时由 §1 schema field、§2 必需 capability、§4 `assignable` facet 表达 → §1+§2 是真相，§4 仅作为查询提示；UI MUST NOT 仅凭 §4 决定能否调用 assign 操作。
 
 声明者须在四层之间保持一致；只有顺序 1 与 2 是规范来源，§3/§4 的存在不构成"已声明能力"。Reducer / capability / wire 验证路径如违反本表（例如读取 §4 facet 决定授权），即为实现 bug，conformance 套件 MUST 覆盖。
 
 ### 4.1 Schema Refs Evolution Policy (Normative)
 
-`morph_type` create-locked（见 §4 顺序 3）防止授权错位，但 `schema_refs[]` 不能 freeze——Morph 的本质就是 evolvable schema。然而 `schema_refs[]` 也不能裸 update：它决定字段验证、transition 规则与历史事件解释，静默替换会导致旧事件按错误 schema 重放、reducer 行为漂移、capability 范围隐性扩张。本节定义 schema 演进的三条 normative 规则：S1 per-event schema 版本绑定；S2 `ak.morph.update` 中 schema_refs[] 变更的 capability gate；S3 完整 schema migration（含 additive / breaking / transformation 兼容声明）由一等 event `ak.morph.schema_migrate` 承担。
+`morph_kind` create-locked（见 §4 顺序 3）防止授权错位，但 `schema_refs[]` 不能 freeze——Morph 的本质就是 evolvable schema。然而 `schema_refs[]` 也不能裸 update：它决定字段验证、transition 规则与历史事件解释，静默替换会导致旧事件按错误 schema 重放、reducer 行为漂移、capability 范围隐性扩张。本节定义 schema 演进的三条 normative 规则：S1 per-event schema 版本绑定；S2 `ak.morph.update` 中 schema_refs[] 变更的 capability gate；S3 完整 schema migration（含 additive / breaking / transformation 兼容声明）由一等 event `ak.morph.schema_migrate` 承担。
 
 **S1. Schema 版本绑定（per-event）**：每个针对该 Morph 的 reducer-input event（`ak.morph.create` / `ak.morph.update` / `ak.morph.schema_migrate` / 自定义 Morph kind）**MUST** 在 `requirements.schema[]` 中列出该事件写入时实际遵循的 Morph `schema_refs[]` 全集（即 Morph object 在该 event 生效后 §4 顺序 1 的真源）。`requirements.schema[]` 已进入 canonical bytes 与 event digest（见 [`event-and-patch.md` §2.7](./event-and-patch.md)），任何篡改会破坏签名。
 
@@ -160,7 +160,7 @@ Reader 决策规则：
 
 Reducer-input event 若未在 `requirements.schema[]` 中绑定生效 schema 版本，reducer **MUST** 返回 `schema_violation` reason=`morph_schema_version_binding_missing`。
 
-任何 `ak.morph.update` 或 Realm `morph_type_profiles` 更新若试图通过 profile 放宽、替换或扩张已创建 Morph 的 `schema_refs[]` 解释范围，reducer MUST 拒绝并返回 `schema_violation` reason=`morph_profile_widens_schema_ref`。任何写入路径试图修改已创建 Morph 的 `morph_type`，reducer MUST 拒绝并返回 `failed_precondition` 或 `schema_violation` reason=`morph_type_immutable`；`morph_type` 只允许在 `ak.morph.create` 时确定。
+任何 `ak.morph.update` 或 Realm `morph_kind_profiles` 更新若试图通过 profile 放宽、替换或扩张已创建 Morph 的 `schema_refs[]` 解释范围，reducer MUST 拒绝并返回 `schema_violation` reason=`morph_profile_widens_schema_ref`。任何写入路径试图修改已创建 Morph 的 `morph_kind`，reducer MUST 拒绝并返回 `failed_precondition` 或 `schema_violation` reason=`morph_kind_immutable`；`morph_kind` 只允许在 `ak.morph.create` 时确定。
 
 **S3. Schema Migration 一等 event**：`ak.morph.schema_migrate` 是 schema_refs[] 演进的一等事件，payload 形态由 `ak.schema.event_payload.v1#/$defs/morph_schema_migrate_payload` 定义。该 event 显式声明 `from_schema_refs[]` / `to_schema_refs[]` / `compatibility_class` ∈ {`additive`, `breaking`, `transformation`}，并通过高 tier capability action `ak.morph.schema_migrate` 鉴权（capability 缺失 reducer MUST `capability_denied`）。规则：
 
@@ -185,7 +185,7 @@ Reducer-input event 若未在 `requirements.schema[]` 中绑定生效 schema 版
 
 reducer 在两种 path 下都 MUST 校验 `from_schema_refs[]`（或 `ak.morph.update` 写入前 Morph 的当前 `schema_refs[]`）与实际状态 set-equal；不一致 `failed_precondition`（reason `morph_schema_refs_precondition_mismatch`，使客户端能把这种乐观并发 CAS 落空与本节其他 `morph_schema_*` 授权 / 变换失败区分）。
 
-> Rationale：static `schema_refs[]` freeze 会扼杀 Morph 的 evolvability；裸 update 会让 capability `allowed_morph_types` 通过 schema 漂移获得隐性扩张。v1 用 per-event `requirements.schema[]` 绑定 + `ak.morph.schema_migrate` 一等 event + schema-evolution capability gate 在两端之间取中：写入时绑定证据，验证时按写入版本解释；变更走显式 audit / capability，breaking / transformation 走 opt-in `ak.profile.morph.schema_migration_transformations.v1` profile。
+> Rationale：static `schema_refs[]` freeze 会扼杀 Morph 的 evolvability；裸 update 会让 capability `allowed_morph_kinds` 通过 schema 漂移获得隐性扩张。v1 用 per-event `requirements.schema[]` 绑定 + `ak.morph.schema_migrate` 一等 event + schema-evolution capability gate 在两端之间取中：写入时绑定证据，验证时按写入版本解释；变更走显式 audit / capability，breaking / transformation 走 opt-in `ak.profile.morph.schema_migration_transformations.v1` profile。
 
 ## 5. 标准 Facets
 
@@ -193,7 +193,7 @@ Facets 是 schema-declared **UI / projection hints**，不是对象身份，也�
 
 **Facets 不参与的决策**（与 §4.0 决策矩阵保持一致，本节只重申以避免实现误读）：
 
-- 授权（capability check、capability `allowed_morph_types`、resource selector）
+- 授权（capability check、capability `allowed_morph_kinds`、resource selector）
 - 状态机 transition
 - 排序 / Lattice join / Control Move precondition
 - reducer 行为（接受 / 拒绝 / soft fail）
@@ -204,14 +204,14 @@ Facets 是 schema-declared **UI / projection hints**，不是对象身份，也�
 
 | Facet | 说明 | 典型字段/关系 |
 | --- | --- | --- |
-| `container` | 提示对象可按显式 relation/profile 作为容器投影。 | `child_object_types`, `relation_kinds`, `ordering`, `exclusive_scope`。 |
-| `replyable` | 提示对象可按声明的 reply relation 被回复，形成 thread/discussion。 | `reply_object_types`, `reply_relation_kind`, `time_field`, `redaction_policy`。 |
+| `container` | 提示对象可按显式 relation/profile 作为容器投影。 | `child_object_kinds`, `relation_kinds`, `ordering`, `exclusive_scope`。 |
+| `replyable` | 提示对象可按声明的 reply relation 被回复，形成 thread/discussion。 | `reply_object_kinds`, `reply_relation_kind`, `time_field`, `redaction_policy`。 |
 | `schedulable` | 提示对象有声明的时间窗口，可进入 calendar/gantt 投影。 | `start_field`, `end_field`, `timezone_field`, `dependency_relation_kinds`。 |
 | `assignable` | 提示对象有声明的分配字段或关系。 | `assignee_relation_kind` 或 `assignee_field`。 |
 | `stateful` | 提示对象有显式 profile 定义的受控状态机。 | `state_field`, `states`, `transition_policy`。 |
 | `rankable` | 提示对象有声明的稳定手动排序 rank。 | `rank_field`, `rank_profile`, `collision_policy`。 |
 | `reviewable` | 提示对象有声明的审核/审阅状态。 | `review_state_field`, `reviewer_relation_kind`, `priority_field`。 |
-| `notifiable` | 提示对象可按声明的 notification profile 派生 notification/inbox/read state。 | `notification_types`, `read_state_policy`。 |
+| `notifiable` | 提示对象可按声明的 notification profile 派生 notification/inbox/read state。 | `notification_kinds`, `read_state_policy`。 |
 | `documentable` | 提示对象可按声明的 document profile 作为文档或 section root。 | `section_relation_kind`, `section_order_field`, `body_field`。 |
 | `renderable` | 提示对象声明允许的默认展示面。 | `renderers`, `title_field`, `summary_field`, `media_field`。 |
 
@@ -223,7 +223,7 @@ Facets 是 schema-declared **UI / projection hints**，不是对象身份，也�
 
 1. **RelationProfile / Schema / Event kind registry / Capability action 在所有 reducer 与 wire 层面胜出**（与 §4.0 决策矩阵一致）：reducer MUST 按这些权威声明评估 cardinality、required-ness、transition、precondition 与 wire 拒绝。
 2. **Facet 在冲突时降级为 UI 提示**：UI / View / Inbox / 客户端搜索 SHOULD 继续根据 facet 调整渲染或筛选，但 facet 中暗示的约束 MUST NOT 被反向用于授权、Control Move precondition、reducer 接受/拒绝或 wire 校验。
-3. **schema_refs[] 与 morph_type_profiles 的 facet 声明视为 schema-bound hint**：reducer 不在 facet 层强制相同 facet 在跨 schema / profile 间一致，但 conformance lint SHOULD 标记"facet 与 RelationProfile / Schema 冲突"，提示规范文档维护者澄清意图。
+3. **schema_refs[] 与 morph_kind_profiles 的 facet 声明视为 schema-bound hint**：reducer 不在 facet 层强制相同 facet 在跨 schema / profile 间一致，但 conformance lint SHOULD 标记"facet 与 RelationProfile / Schema 冲突"，提示规范文档维护者澄清意图。
 4. 实现 MUST NOT 把 facet 当作"沉默约束"——即 facet 不出现于 wire 上不代表约束被满足/不满足，约束只由 RelationProfile / Schema 决定。
 
 如此 facet 在 UI / hints 域与 RelationProfile 在 normative 域分工明确，避免两套来源静默互相覆盖。
@@ -243,8 +243,8 @@ Morph `schema_refs[]` 的 per-event 版本绑定与受控迁移规则见 [§4.1]
 - 新字段优先 optional。
 - 既有字段不得静默改变语义。
 - reducer 和客户端 MUST 保留 schema 允许但实现未识别的字段（Morph payload 由 Realm 注册 schema 定义；canonical envelope 层 schema 未声明的字段按 [event-and-patch.md](./event-and-patch.md) §2.2 拒绝）。
-- UI 遇到未知 Morph type SHOULD 降级为 generic Morph card。
-- 标准对象不得阻止 Realm 定义自定义 Morph type。
+- UI 遇到未知 Morph kind SHOULD 降级为 generic Morph card。
+- 标准对象不得阻止 Realm 定义自定义 Morph kind。
 - 实现遇到未知标准类型 SHOULD fail closed；遇到未知 Morph facet SHOULD 保留数据，但不得让未知 facet 绕过 schema、capability、policy 或 encryption 约束。
 - 跨 schema 版本的 Morph 历史事件 reader 解释规则见 §4.1 S1；完整 schema migration（含 `additive` / `breaking` / `transformation` 兼容声明）由一等 event `ak.morph.schema_migrate` 表达，breaking / transformation 类需 Realm 显式启用 `ak.profile.morph.schema_migration_transformations.v1` profile。
 
@@ -254,7 +254,7 @@ Morph `schema_refs[]` 的 per-event 版本绑定与受控迁移规则见 [§4.1]
 - Relation：[relation.md](./relation.md)。
 - View facets / projection：[views.md](./views.md)。
 - Morph schema：`artifacts/schemas/morph.schema.json`。
-- Morph type 合并决策表（canonical）：[`artifacts/registry/morph-type-decision-table.json`](../../artifacts/registry/morph-type-decision-table.json)。
+- Morph kind 合并决策表（canonical）：[`artifacts/registry/morph-kind-decision-table.json`](../../artifacts/registry/morph-kind-decision-table.json)。
 - Schema registry：[`../conformance/schema-registry.md`](../conformance/schema-registry.md)。
 - Stage 事件 payload：`artifacts/schemas/event-payload.schema.json#/$defs/morph_stage_set_payload`。
 - Stage 事件 / capability 注册：`artifacts/registry/event-kind-registry.json`、`artifacts/registry/capability-action-registry.json`。

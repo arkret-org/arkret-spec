@@ -4,7 +4,7 @@
   "runner": {
     "kind": "registry_coverage",
     "inputs": [
-      "registry/contract-catalog.json",
+      "registry/contract-registry.json",
       "registry/operation-registry.json",
       "openapi/arkret-service-api.openapi.yaml",
       "bindings/non-http-bindings.yaml"
@@ -13,7 +13,7 @@
   "assertions": [
     {
       "id": "catalog_registry_bijection",
-      "rule": "contract-catalog operations and generated operation-registry rows form a one-to-one mapping by operation_id."
+      "rule": "contract-registry operations and generated operation-registry rows form a one-to-one mapping by operation_id."
     },
     {
       "id": "registry_openapi_bijection",

@@ -307,7 +307,7 @@ presence 广播内的 `status_message` 是临时覆盖值，展示优先级高�
 
 用户可以控制 Presence 的可见范围：
 
-该策略的标准存储位置是 actor-private Account Data key `ak.presence.visibility`（见 [`account-data-type-registry.json`](../../artifacts/registry/account-data-type-registry.json)）。写入通过 `ak.account_data.set` 完成，payload MUST 是下列形态；缺省等价于 `{ "presence_visibility": "public" }`。
+该策略的标准存储位置是 actor-private Account Data key `ak.presence.visibility`（见 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)）。写入通过 `ak.account_data.set` 完成，payload MUST 是下列形态；缺省等价于 `{ "presence_visibility": "public" }`。
 
 ```json
 {
@@ -372,7 +372,7 @@ payload 形状由 [`ephemeral-envelope.schema.json`](../../artifacts/schemas/eph
 
 ### 3.6 手动状态偏好 (Manual Presence Preference)
 
-自动状态判定（前台活跃 → `online`、无操作超时 → `idle`、断连 / TTL 过期 → `offline`）覆盖大多数场景，但用户还需要能把自己的状态主动固定为某个值（例如切到 `dnd` 开会），且该选择要跨设备、跨重连生效。presence 广播本身是 ephemeral（§3.1），不承担持久化；手动偏好的标准存储位置是 actor-private Account Data key `ak.presence.preference`（见 [`account-data-type-registry.json`](../../artifacts/registry/account-data-type-registry.json)），通过 `ak.account_data.set` 写入，payload 形态：
+自动状态判定（前台活跃 → `online`、无操作超时 → `idle`、断连 / TTL 过期 → `offline`）覆盖大多数场景，但用户还需要能把自己的状态主动固定为某个值（例如切到 `dnd` 开会），且该选择要跨设备、跨重连生效。presence 广播本身是 ephemeral（§3.1），不承担持久化；手动偏好的标准存储位置是 actor-private Account Data key `ak.presence.preference`（见 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)），通过 `ak.account_data.set` 写入，payload 形态：
 
 ```json
 {

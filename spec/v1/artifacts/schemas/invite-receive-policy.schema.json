@@ -7,7 +7,7 @@
   "required": [
     "schema",
     "subject_id",
-    "allowed_introduction_kinds",
+    "holder_allowed_introduction_kinds",
     "explicit_address_behavior",
     "unknown_invites"
   ],
@@ -19,7 +19,7 @@
       "$ref": "#/$defs/did",
       "description": "Principal DID whose private invite receive policy this object configures. v1 core defaults principal DIDs to did:webvh; did:web is only valid for principal identity when an explicit deployment profile or resolver policy allows it."
     },
-    "allowed_introduction_kinds": {
+    "holder_allowed_introduction_kinds": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/introduction_kind"
@@ -61,7 +61,7 @@
       "uniqueItems": true,
       "description": "Optional subject-private allowlist for canonical handle domains accepted as handle_claim evidence. Empty or omitted means no subject-level domain restriction; deployment constraints may still restrict the effective set."
     },
-    "blocked_handle_domains": {
+    "denied_handle_domains": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/domain_name"
@@ -99,14 +99,14 @@
       },
       "uniqueItems": true
     },
-    "blocked_principal_services": {
+    "denied_principal_services": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/did"
       },
       "uniqueItems": true
     },
-    "blocked_subjects": {
+    "denied_subjects": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/did"
@@ -199,7 +199,7 @@
           "uniqueItems": true,
           "description": "Surfaces governed by this constraint object. Omitted means both invite_delivery and contact_request."
         },
-        "permitted_introduction_kinds": {
+        "deployment_allowed_introduction_kinds": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/introduction_kind"
@@ -207,7 +207,7 @@
           "uniqueItems": true,
           "description": "Maximum set of introduction evidence kinds this deployment permits. Omitted means no deployment-level kind cap."
         },
-        "forbidden_introduction_kinds": {
+        "deployment_denied_introduction_kinds": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/introduction_kind"
@@ -258,7 +258,7 @@
           },
           "uniqueItems": true
         },
-        "blocked_principal_services": {
+        "denied_principal_services": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/did"

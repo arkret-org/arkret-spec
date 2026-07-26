@@ -39,7 +39,7 @@ Arkret 是联邦化、端到端加密（MLS）、事件溯源协议。客户端�
 v1 内部演进采用以下加性方式：
 
 - 新增 event kind、schema id、operation、profile、feature 或已预先声明的 extension point；closed schema / payload 上新增 optional 字段仍是 wire-breaking，不属于可独立部署的加性变更；
-- 新增能力必须登记到相应单一真相源：contract catalog、schema registry、profile matrix、operation registry、error-code registry、OpenAPI binding 或对应 domain registry；
+- 新增能力必须登记到相应单一真相源：contract registry、schema registry、profile matrix、operation registry、error-code registry、OpenAPI binding 或对应 domain registry；
 - 任何进入签名语义的字段，一旦被当前 v1 接受，其 canonical bytes 与语义不得原地改变；
 - 需要改变对象模型或状态机语义时，必须新增可协商的 schema/profile/kind，并明确与既有 current-v1 语义的边界；
 - 新增 critical extension、required feature 或高风险 profile 时，未声明实现按 [conformance/conformance-profiles.md](../conformance/conformance-profiles.md) 与 `conformance-profiles.json` 的 unknown/unsupported 规则 fail closed。

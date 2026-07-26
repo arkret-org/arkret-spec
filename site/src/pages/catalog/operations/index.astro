@@ -6,7 +6,7 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
 
 <StarlightPage frontmatter={{ title: "Operations" }}>
   <p>
-    canonical: <code>spec/v1/artifacts/registry/contract-catalog.json#operation_registry</code>
+    canonical: <code>spec/v1/artifacts/registry/contract-registry.json#operation_registry</code>
     · catalog version <code>{catalogVersion}</code>
     · interactive HTTP shape: <a href="/openapi/">/openapi/</a>
   </p>
@@ -17,9 +17,9 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
       {
         surfaceGroups.map((group) => (
           <li>
-            <a href={`#surface-${group.surface}`} data-tier={group.tier}>
+            <a href={`#surface-${group.surface}`} data-surface-class={group.surface_class}>
               <code>{group.surface}</code>
-              <span class="ak.surface-tier">{group.tier}</span>
+              <span class="ak.surface-class">{group.surface_class}</span>
             </a>
           </li>
         ))
@@ -71,7 +71,7 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
     border-color: var(--sl-color-text-accent);
     color: var(--sl-color-text-accent);
   }
-  .ak-surface-jump .ak-surface-tier {
+  .ak-surface-jump .ak-surface-class {
     font-size: 0.72rem;
     padding: 0 0.35rem;
     border-radius: 999px;
@@ -80,15 +80,15 @@ import { catalogVersion, surfaceGroups } from "~/lib/artifacts";
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
-  .ak-surface-jump a[data-tier="extension"] .ak-surface-tier {
+  .ak-surface-jump a[data-surface-class="extension"] .ak-surface-class {
     background: color-mix(in srgb, #d97706 22%, transparent);
     color: #d97706;
   }
-  .ak-surface-jump a[data-tier="interop_bridge"] .ak-surface-tier {
+  .ak-surface-jump a[data-surface-class="interop_bridge"] .ak-surface-class {
     background: color-mix(in srgb, #0d9488 22%, transparent);
     color: #0d9488;
   }
-  .ak-surface-jump a[data-tier="deployment_local"] .ak-surface-tier {
+  .ak-surface-jump a[data-surface-class="deployment_local"] .ak-surface-class {
     background: color-mix(in srgb, #6b46c1 22%, transparent);
     color: #6b46c1;
   }

@@ -42,7 +42,7 @@
         "minLength": 1
       },
       "uniqueItems": true,
-      "description": "Optional list of intended verifier scopes (e.g. Realm IDs, registry service DIDs, or trust-domain identifiers) that this continuity proof is bound to. When present, verifiers outside the listed audiences MUST reject the proof to prevent cross-protocol / cross-Realm replay of an account migration claim. When absent, the proof is broadcast-style and verifiers fall back to checking signature_chain + transfer_evidence only. See zh/identity/identity-did.md §4.2."
+      "description": "Optional list of intended verifier scopes (e.g. Realm IDs, registry service DIDs, or trust-domain identifiers) that this continuity proof is bound to. When present, verifiers outside the listed audiences MUST reject the proof to prevent cross-protocol / cross-Realm replay of an account migration claim. When absent, the proof is broadcast-style and verifiers fall back to checking signature_chain + transfer_proof only. See zh/identity/identity-did.md §4.2."
     },
     "issued_at": {
       "$ref": "#/$defs/timestamp"
@@ -56,7 +56,7 @@
     "new_did_document_digest": {
       "$ref": "#/$defs/hash"
     },
-    "transfer_evidence": {
+    "transfer_proof": {
       "type": "object",
       "required": [
         "old_did_document_canonical_digest",
@@ -148,7 +148,7 @@
       "then": {
         "required": [
           "audience",
-          "transfer_evidence"
+          "transfer_proof"
         ],
         "properties": {
           "audience": {

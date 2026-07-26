@@ -12,7 +12,7 @@ updated: 2026-05-25
 
 ### 1.1 真实来源（Canonical）
 
-- `artifacts/registry/contract-catalog.json`
+- `artifacts/registry/contract-registry.json`
   - 事件 kind、schema、typed-ID 与 operation 的源定义。
 - `artifacts/registry/error-code-registry.json`
   - 错误码体系。
@@ -33,36 +33,36 @@ updated: 2026-05-25
 - `artifacts/deployment-probes.json`
   - 部署层机器探针，覆盖 TLS 握手、运维 posture 等不属于 object-model conformance vector 的可验收要求。
 - `artifacts/reports/*`
-  - 含两类性质不同的报告：(a) **协议契约派生报告**（如 `operation-schema-index.json`、`operation-completeness-report.json`、`fixture-digests.json`，头部带 `source_of_truth: false` + `generated_from` / `generated_by`，是从 `contract-catalog.json` 等契约真源派生的生成视图）；(b) **实现 / 发布 baseline 报告**（如 `teabay-*-baseline-*`、`release-readiness-*`，记录具体实现的本地 / CI conformance 证据与发布审计）。两类均不作为协议规范来源；(a) 类随契约真源由 pipeline 重生成，(b) 类用于发布前审计和实现成熟度追踪。
+  - 含两类性质不同的报告：(a) **协议契约派生报告**（如 `operation-schema-index.json`、`operation-completeness-report.json`、`fixture-digests.json`，头部带 `source_of_truth: false` + `generated_from` / `generated_by`，是从 `contract-registry.json` 等契约真源派生的生成视图）；(b) **实现 / 发布 baseline 报告**（如 `teabay-*-baseline-*`、`release-readiness-*`，记录具体实现的本地 / CI conformance 证据与发布审计）。两类均不作为协议规范来源；(a) 类随契约真源由 pipeline 重生成，(b) 类用于发布前审计和实现成熟度追踪。
 
 ### 1.2 生成视图（Generated）
 
-以下文件由 `contract-catalog.json` 派生，**不得直接手工编辑**：
+以下文件由 `contract-registry.json` 派生，**不得直接手工编辑**：
 
 - `artifacts/registry/event-kind-registry.json`
 - `artifacts/registry/schema-registry.json`
 - `artifacts/registry/id-kind-registry.json`
 - `artifacts/registry/operation-registry.json`
 
-派生关系由 `contract-catalog.json#generated_registries` 声明；任何 drift 会在 `python tools/artifact_pipeline.py check` 中阻塞 CI。
+派生关系由 `contract-registry.json#derived_registry_views` 声明；任何 drift 会在 `python tools/artifact_pipeline.py check` 中阻塞 CI。
 
 ### 1.3 同源生成 / 手工同步矩阵（normative）
 
-`event-payload.schema.json`、`event-envelope.schema.json`、`event-kind-registry.json`、`contract-catalog.json` 与 `schema-registry.md` 必须保持单一真源对齐，具体责任划分如下：
+`event-payload.schema.json`、`event-envelope.schema.json`、`event-kind-registry.json`、`contract-registry.json` 与 `schema-registry.md` 必须保持单一真源对齐，具体责任划分如下：
 
 | Artifact | 角色 | 真源 / 同步方式 |
 | --- | --- | --- |
-| `artifacts/registry/contract-catalog.json` | canonical | event kind / schema / typed-ID / operation 的唯一源定义（`source_of_truth: true`）。 |
-| `artifacts/registry/event-kind-registry.json` | generated | 由 `contract-catalog.json#event_kind_registry` 经 `artifact_pipeline.py generate` 派生；不得手工编辑。 |
-| `artifacts/registry/schema-registry.json` | generated | 由 `contract-catalog.json#schema_registry` 派生；schema_id → 文件位置的机器视图。 |
-| `artifacts/schemas/event-payload.schema.json` | canonical | 手工撰写的 JSON Schema（payload class 与各 `$defs/*_payload`）。新增 payload class 时必须同时在 `contract-catalog.json` 注册对应 `event_kind` + `schema_id`，使派生 registry 与 schema 文件互相覆盖。 |
+| `artifacts/registry/contract-registry.json` | canonical | event kind / schema / typed-ID / operation 的唯一源定义（`source_of_truth: true`）。 |
+| `artifacts/registry/event-kind-registry.json` | generated | 由 `contract-registry.json#event_kind_registry` 经 `artifact_pipeline.py generate` 派生；不得手工编辑。 |
+| `artifacts/registry/schema-registry.json` | generated | 由 `contract-registry.json#schema_registry` 派生；schema_id → 文件位置的机器视图。 |
+| `artifacts/schemas/event-payload.schema.json` | canonical | 手工撰写的 JSON Schema（payload class 与各 `$defs/*_payload`）。新增 payload class 时必须同时在 `contract-registry.json` 注册对应 `event_kind` + `schema_id`，使派生 registry 与 schema 文件互相覆盖。 |
 | `artifacts/schemas/event-envelope.schema.json` | canonical | 手工撰写的 Event Envelope JSON Schema；其 payload 取值空间通过 `event-kind-registry.json` 与 payload schema 的 `$defs` 闭合，而非在 envelope 内重复枚举。 |
 | `zh/conformance/schema-registry.md` | prose 镜像 | 是 `schema-registry.json` 的人类可读叙述视图；二者必须一致。`tools/artifact_pipeline.py check` + `tools/lint_artifacts.py` 对 schema_id 集合、文件路径与 `$ref` 完整性做交叉校验，drift 阻塞 CI。 |
 
 判定规则：
 
-- canonical artifact（schemas / contract-catalog）是手工真源；generated registry view 必须由 pipeline 重生成，绝不手工补丁。
-- 新增或修改某 `ak.*` event kind 时，`contract-catalog.json`、对应 payload schema `$defs`、由此派生的 `event-kind-registry.json` / `schema-registry.json` 与 `schema-registry.md` 必须在同一变更内一致更新；只改其一即视为 drift。
+- canonical artifact（schemas / contract-registry）是手工真源；generated registry view 必须由 pipeline 重生成，绝不手工补丁。
+- 新增或修改某 `ak.*` event kind 时，`contract-registry.json`、对应 payload schema `$defs`、由此派生的 `event-kind-registry.json` / `schema-registry.json` 与 `schema-registry.md` 必须在同一变更内一致更新；只改其一即视为 drift。
 - 任意一处的 schema_id / event_kind / typed-ID 出现而其余真源缺失，`artifact_pipeline.py check` 与 `lint_artifacts.py` 会拦截。
 
 ## 2. 维护与校验流水线
@@ -96,12 +96,12 @@ JSON Schema 只验证 wire object 的结构层。一个标准 Event 只有在同
 ## 3. CI 要求
 
 `.github/workflows/artifact-lint.yml` 在 PR 上以同一入口执行 `generate --check` 与 lint，
-保证仓库内协议契约与机器视图一致。任何 PR 修改 `contract-catalog.json`、schemas、fixtures、OpenAPI、profile 或 conformance vector 时，`python tools/artifact_pipeline.py check` 与 `node site/scripts/crossref-check.mjs` 都是发布门禁；不得以手工更新 generated registry 替代 pipeline。
+保证仓库内协议契约与机器视图一致。任何 PR 修改 `contract-registry.json`、schemas、fixtures、OpenAPI、profile 或 conformance vector 时，`python tools/artifact_pipeline.py check` 与 `node site/scripts/crossref-check.mjs` 都是发布门禁；不得以手工更新 generated registry 替代 pipeline。
 
 ### 3.1 下游同步约定（normative）
 
 下游仓库（SDK、soland、cotest 等）从本仓 artifact 同步时，MUST 保持与 §1.3 同源真源一致的 payload shape 与 lattice metadata：
 
-- 同步的真源是 `artifacts/` 下的 canonical schemas + `contract-catalog.json` 及其派生 registry view；下游不得引入自己的第二套 event kind / schema namespace。
+- 同步的真源是 `artifacts/` 下的 canonical schemas + `contract-registry.json` 及其派生 registry view；下游不得引入自己的第二套 event kind / schema namespace。
 - **禁止生成 `round*.rs` 一类“轮次文件”**：下游不得把每一次 spec 同步落成 `round1.rs` / `round2.rs` / `round_*.rs` 之类按导入轮次累加的文件。同步必须收敛为按对象 / 模块组织的稳定生成产物（每个 schema 或 registry 对应一个稳定命名的生成单元），使重复同步是幂等替换而非追加。
 - lattice / cell metadata（`event-kind-registry.json` 的 `lattice`、`bottom`、`cell_family`、`cell_subject`）是 reducer 行为的真源；下游 reducer 必须从该 registry 读取，不得在代码里另行硬编码与 registry 漂移的取值。

@@ -10,7 +10,7 @@ see_also:
   - ../sync/client-sync.md
   - ../../artifacts/schemas/personal-productivity.schema.json
   - ../../artifacts/schemas/draft-sync.schema.json
-  - ../../artifacts/registry/account-data-type-registry.json
+  - ../../artifacts/registry/account-data-key-registry.json
 ---
 
 ## 0. 规范语言
@@ -19,7 +19,7 @@ see_also:
 
 ## 1. 范围
 
-本文定义用户个人生产力状态：提醒、定时发送、稍后处理、收藏 / 保存以及跨设备草稿。它们默认是 principal-private 或 actor-private 状态，**MUST** 通过 `ak.account_data.set` 和 `account-data-type-registry.json` 中登记的 key pattern 表达，MUST NOT 写入共享 Realm history，除非某个功能最终产生一个已授权共享 Event。
+本文定义用户个人生产力状态：提醒、定时发送、稍后处理、收藏 / 保存以及跨设备草稿。它们默认是 principal-private 或 actor-private 状态，**MUST** 通过 `ak.account_data.set` 和 `account-data-key-registry.json` 中登记的 key pattern 表达，MUST NOT 写入共享 Realm history，除非某个功能最终产生一个已授权共享 Event。
 
 实现声明 `ak.profile.personal_productivity.v1` 时，MUST 支持本文 §2-§6 的账户私有状态。实现声明 `ak.profile.draft_sync.v1` 时，MUST 支持 §7 的草稿同步规则。
 

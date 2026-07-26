@@ -51,7 +51,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 ## 3. 权限模型
 
-标准 actions（canonical 命名以 capability registry / `contract-catalog.json` 为唯一真源；正文与实现 MUST 使用带 `ak.` 前缀的形态，MUST NOT 接受裸 `call.*` 名）：
+标准 actions（canonical 命名以 capability registry / `contract-registry.json` 为唯一真源；正文与实现 MUST 使用带 `ak.` 前缀的形态，MUST NOT 接受裸 `call.*` 名）：
 
 - `ak.call.join` —— 加入并发起 call。v1 不注册独立的 `call.start`：call 的发起由首个具备 `ak.call.join` 的 actor 写入首个 `ak.call.state` 完成。
 - `ak.call.signal.send` —— 发送 call signaling frame，含邀请（`ak.call.signal{kind=invite}`）。v1 不注册独立的 `call.invite`，邀请通过该 signaling action 表达。
@@ -67,19 +67,19 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 - `ak.call.screen_share` SHOULD 独立授权。
 - `ak.realm.media_service` 只应授予管理员或受信服务。
 - Actor 加入 call 的资格 MUST 按分层 predicate 校验，不得依赖泛化口语状态（如笼统的「被 ban / suspended」）：(a) 在目标 `realm_id` 的 Realm membership 必须为 `join`；(b) 若 call scoped 到某 Circle，该 actor 还必须是该 Circle 的活跃成员；(c) account lifecycle status MUST NOT 为 `suspended` / `deactivated` / `erasure_pending`；(d) 发起设备的 device grant MUST NOT 被 revoked，且其 `ak.call.join` capability grant 未被 revoke。任一条不满足 MUST NOT 加入。
-- `signal_type=invite` 还 MUST 通过 [`identity/consent-model.md` §6.2](../identity/consent-model.md) 的 `voice_call` / `video_call` consent gate；服务端投递、目标客户端响铃 UI 与 media token 签发都不得仅信任发起方 preflight。
+- `signal_kind=invite` 还 MUST 通过 [`identity/consent-model.md` §6.2](../identity/consent-model.md) 的 `voice_call` / `video_call` consent gate；服务端投递、目标客户端响铃 UI 与 media token 签发都不得仅信任发起方 preflight。
 - 外部 guest 加入必须通过 invite 或 meeting-specific guest grant。
 
 ### 3a. 主持 / 审核（kick / ban / end-for-all / force-mute，normative）
 
 主持操作统一由 `ak.call.moderate` capability 授权(§3)。无该 capability 的 actor 发出任一主持信令 / 写任一主持字段，接收方与 reducer MUST 拒绝，错误码 `call_moderation_unauthorised`。
 
-主持动作通过 `ak.call.signal{signal_type=moderation}` 或 §6.1 的 `mute_state{by=moderator}` 表达瞬时控制，并在 durable `ak.call.state` 留痕：kick / ban 写入 `moderation_delta`，end-for-all 写入 `state_transition.to="ended"`，force-mute 写入目标 leg 的 `mute_override`。`moderation` payload `data` 形态:
+主持动作通过 `ak.call.signal{signal_kind=moderation}` 或 §6.1 的 `mute_state{by=moderator}` 表达瞬时控制，并在 durable `ak.call.state` 留痕：kick / ban 写入 `moderation_delta`，end-for-all 写入 `state_transition.to="ended"`，force-mute 写入目标 leg 的 `mute_override`。`moderation` payload `data` 形态:
 
 ```json
 {
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
-  "signal_type": "moderation",
+  "signal_kind": "moderation",
   "seq": 30,
   "data": {
     "action": "kick",
@@ -158,8 +158,8 @@ Content-Type: application/json
 | `ice_servers[].username` | `string` | TURN 时 required | TURN 用户名（per-call pairwise pseudonym，REST-style: `<expiry-unix>:<pseudonym>`）。 |
 | `ice_servers[].credential` | `string` | TURN 时 required | 短期 TURN credential（HMAC-SHA256 of username）。 |
 | `ice_servers[].credential_type` | `string` | optional | credential 类型，例如 `password`。 |
-| `force_turn` | `boolean` | optional | 是否强制 TURN（高隐私 Realm）。 |
-| `constraints` | `object` | optional | 候选地址与传输策略（`allow_udp` / `allow_tcp` / `allow_ipv6`）。 |
+| `turn_required` | `boolean` | optional | 是否强制 TURN（高隐私 Realm）。 |
+| `constraints` | `object` | optional | 候选地址与传输策略（`udp_allowed` / `tcp_allowed` / `ipv6_allowed`）。 |
 | `next_retry_at` | `timestamp` | optional | 软失败（如 `turn_credential_expired`）时返回；客户端 MUST NOT 在此前重试。 |
 | `signature` | `signature` | required | Media Service DID 对 canonical bytes（去除 `signature` 自身）的 detached 签名。 |
 
@@ -187,11 +187,11 @@ Content-Type: application/json
       "credential_type": "password"
     }
   ],
-  "force_turn": false,
+  "turn_required": false,
   "constraints": {
-    "allow_udp": true,
-    "allow_tcp": true,
-    "allow_ipv6": true
+    "udp_allowed": true,
+    "tcp_allowed": true,
+    "ipv6_allowed": true
   },
   "signature": {
     "alg": "EdDSA",
@@ -229,7 +229,7 @@ Content-Type: application/json
     第一段是固定 ASCII 域分隔 label（逐字节等于 `ak.media.ice_config.v1`），随后单字节 `0x00` 分隔，再接去掉 `signature` 自身后的响应对象的 canonical JSON（RFC 8785 JCS：键按字母序、无多余空白，故字段书写顺序无关）。该 label MUST 与 [`media-service-binding.md` §3.1](./media-service-binding.md) 媒体签名 domain label 分离表登记的常量逐字节一致，且 MUST 区别于 `ak.media.participant_binding.v1`——这把 ICE config 签名与 participant binding 签名隔离，防止同一 issuer key 的签名被跨用途重解释。任何 media service MUST 按此构造，任何客户端 MUST 按此验签；实现 MUST NOT 引入私有 domain 前缀，也 MUST NOT 复用 participant_binding label。
   - `signature.signature_input` MUST 显式携带该固定 label（`ak.media.ice_config.v1`），`signature.payload_digest` MUST 等于 `sha256:` + SHA-256(canonical_json(响应对象去除顶层 `signature` 字段))。这两个字段用于调试、审计与跨实现互操作校验；它们不改变上面的签名字节定义，验签时仍只把顶层 `signature` 字段整体移除。
 - 客户端 MUST 尊重 `ttl_seconds`，过期后重新获取。
-- 高隐私 Realm MAY 设置 `force_turn=true`，禁止 host/srflx candidate 泄露本地或公网 IP。
+- 高隐私 Realm MAY 设置 `turn_required=true`，禁止 host/srflx candidate 泄露本地或公网 IP。
 
 ### 4.2 In-call Credential Refresh
 
@@ -238,7 +238,7 @@ Content-Type: application/json
 | 触发条件 | 客户端行为 |
 | --- | --- |
 | 当前剩余有效期 ≤ `max(ttl_seconds * 0.25, refresh_lead_seconds)`（响应中携带的 `refresh_lead_seconds` 为权威阈值；由于 §4.1 规定 `refresh_lead_seconds < ttl_seconds`，该阈值始终在 TTL 窗口内，不会触发签发即刷新的风暴) | 在不中断通话的情况下重新调用 ICE config endpoint，获取新一组 `ice_servers[]` 与 credential。 |
-| ICE agent 报告 TURN allocation refresh 失败、收到 `441 Wrong Credentials`、`438 Stale Nonce` 或等价错误 | 立即调用 ICE config endpoint，并对受影响 candidate 触发 ICE restart（`signaling.payload.signal_type = renegotiate`）。 |
+| ICE agent 报告 TURN allocation refresh 失败、收到 `441 Wrong Credentials`、`438 Stale Nonce` 或等价错误 | 立即调用 ICE config endpoint，并对受影响 candidate 触发 ICE restart（`signaling.payload.signal_kind = renegotiate`）。 |
 | ICE config endpoint 返回 `turn_credential_expired` | 客户端按服务器返回的 `next_retry_at` / `Retry-After` 退避；超过 30 秒仍无新 credential 时通过 `ak.call.signal` 发出 `error` payload 并以 graceful hangup 收尾。 |
 
 新 credential 应用规则：
@@ -268,7 +268,7 @@ Content-Type: application/json
   "expires_at": "2026-04-26T00:00:30.000Z",
   "payload": {
     "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
-    "signal_type": "invite",
+    "signal_kind": "invite",
     "seq": 12,
     "data": {}
   },
@@ -308,7 +308,7 @@ Content-Type: application/json
 
 接收方亦 MUST reject replay / rollback：`payload.seq` 在 `(realm_id, payload.call_id, actor_id, device_id)` 维度上 MUST 单调递增。
 
-`payload.signal_type`：
+`payload.signal_kind`：
 
 - `invite`
 - `answer`
@@ -327,14 +327,14 @@ Content-Type: application/json
 
 ## 6. 一对一通话
 
-以下示例给出 `ak.call.signal` 信令的 `payload` 对象（外层 ephemeral envelope 形态见 §5；`payload` 的封闭字段为 `call_id` / `signal_type` / `seq` / `data`，信令种类由 `payload.signal_type` 选择，取值见 §5）。
+以下示例给出 `ak.call.signal` 信令的 `payload` 对象（外层 ephemeral envelope 形态见 §5；`payload` 的封闭字段为 `call_id` / `signal_kind` / `seq` / `data`，信令种类由 `payload.signal_kind` 选择，取值见 §5）。
 
 Invite payload:
 
 ```json
 {
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
-  "signal_type": "invite",
+  "signal_kind": "invite",
   "seq": 12,
   "data": {
     "lifetime_ms": 60000,
@@ -357,7 +357,7 @@ Answer payload:
 ```json
 {
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
-  "signal_type": "answer",
+  "signal_kind": "answer",
   "seq": 13,
   "data": {
     "answer": {
@@ -377,7 +377,7 @@ Candidate payload:
 ```json
 {
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
-  "signal_type": "candidate",
+  "signal_kind": "candidate",
   "seq": 14,
   "data": {
     "candidates": [
@@ -402,7 +402,7 @@ Candidate payload:
 ```json
 {
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
-  "signal_type": "renegotiate",
+  "signal_kind": "renegotiate",
   "seq": 20,
   "data": {
     "reason": "add_track",
@@ -429,7 +429,7 @@ Candidate payload:
 ```json
 {
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
-  "signal_type": "mute_state",
+  "signal_kind": "mute_state",
   "seq": 21,
   "data": {
     "audio_muted": true,
@@ -445,7 +445,7 @@ Candidate payload:
 ```json
 {
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
-  "signal_type": "mute_state",
+  "signal_kind": "mute_state",
   "seq": 22,
   "data": {
     "audio_muted": true,
@@ -462,7 +462,7 @@ Candidate payload:
 ```json
 {
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
-  "signal_type": "speaking",
+  "signal_kind": "speaking",
   "seq": 23,
   "data": {
     "speaking": true,
@@ -496,7 +496,7 @@ Candidate payload:
   "kind": "ak.call.signal",
   "payload": {
     "call_id": "ak:call:...",
-    "signal_type": "media_state",
+    "signal_kind": "media_state",
     "seq": 7,
     "data": {
       "screen": {
@@ -517,7 +517,7 @@ Candidate payload:
 
 ## 9. 推送集成
 
-`ak.call.signal` 中 `signal_type=invite` SHOULD 触发 VoIP push。push 必须遵循 [`crypto-media/device-lifecycle.md` §5a Privacy-Preserving Push](./device-lifecycle.md) 的 pairwise pseudonym 规则；不得在投递给 APNs / FCM / Push Gateway 的 payload 中携带 principal DID、device DID URL、Realm id、call id 或 sender DID。
+`ak.call.signal` 中 `signal_kind=invite` SHOULD 触发 VoIP push。push 必须遵循 [`crypto-media/device-lifecycle.md` §5a Privacy-Preserving Push](./device-lifecycle.md) 的 pairwise pseudonym 规则；不得在投递给 APNs / FCM / Push Gateway 的 payload 中携带 principal DID、device DID URL、Realm id、call id 或 sender DID。
 
 脱敏 push payload（推送上游可见部分）:
 
@@ -532,11 +532,11 @@ Candidate payload:
 }
 ```
 
-设备本地 OS 收到唤醒后，App 拉起 P2P / Sync 通道，使用本地密钥解密 `ak.call.signal{signal_type=invite}` envelope，从签名 envelope 中获得真实 `realm_id`、`call_id`、`sender_actor_id` 等字段并展示来电 UI。Push 上游永远看不到这些字段。
+设备本地 OS 收到唤醒后，App 拉起 P2P / Sync 通道，使用本地密钥解密 `ak.call.signal{signal_kind=invite}` envelope，从签名 envelope 中获得真实 `realm_id`、`call_id`、`sender_actor_id` 等字段并展示来电 UI。Push 上游永远看不到这些字段。
 
 Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal DID、Realm id、call id 或明文会议标题；provider-facing body 的唯一权威形态是 [`discovery/push-notifications.md` §5.1](../discovery/push-notifications.md) 的 blind notification。WebRTC call invite 只允许使用 `notification.push_target_id`、`notification.wakeup_kind`、`notification.timing_profile_hint`、可选 `notification.push_hint="incoming_call"` 以及该节允许的本地化 / 计数字段；不得携带 `urgency`、`expires_at` 或任何未登记字段。其它一切信息必须通过本地解密获得。
 
-**Push wakeup 与 invite lifetime（normative）**: VoIP push wakeup 仅传 "incoming call" 信号，不携带 invite envelope；客户端唤醒后 MUST fresh fetch 当前 invite envelope。若本地 invite 已过期（超出 `lifetime_ms` = 60s 默认），客户端 MUST 拒绝复用 envelope，触发新的 `ak.call.signal{signal_type=invite}` 邀请流程。push wakeup 自身的 TTL（默认 24h）与 invite signaling lifetime 是不同语义，不构成死锁。
+**Push wakeup 与 invite lifetime（normative）**: VoIP push wakeup 仅传 "incoming call" 信号，不携带 invite envelope；客户端唤醒后 MUST fresh fetch 当前 invite envelope。若本地 invite 已过期（超出 `lifetime_ms` = 60s 默认），客户端 MUST 拒绝复用 envelope，触发新的 `ak.call.signal{signal_kind=invite}` 邀请流程。push wakeup 自身的 TTL（默认 24h）与 invite signaling lifetime 是不同语义，不构成死锁。
 
 ## 10. 安全与隐私
 
@@ -545,7 +545,7 @@ Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal D
 - 验证所有 signaling sender 的 membership 和 device validity。
 - 防止 replay、sequence rollback 和 stale invite。
 - 对 TURN credential 使用短期凭证。
-- 对高隐私 Realm 支持 `force_turn`。
+- 对高隐私 Realm 支持 `turn_required`。
 - 不把 SDP / ICE candidate 写入 durable public event。
 - 对 SFU/MCU/recording service 使用 service DID 和 policy allowlist。
 - 在 E2EE 降级、MCU 混流、录制、外部 PSTN bridge 时显示明确提示。

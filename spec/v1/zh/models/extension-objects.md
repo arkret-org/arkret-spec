@@ -36,7 +36,7 @@ Applet 是受注册、受授权、可审计的集成服务。它可以：
 - 把外部事件转换为 Arkret event
 - 在获得明确授权时以受托 agent / device 方式执行操作
 
-> **状态：extension profile**。Arkret v1 core 互操作 **不要求** 实现 Applet profile；声称 v1 core 的实现可以完全不接 Applet，仅通过 capability + actor 模型表达 bot / bridge / agent。`ak.profile.applet_service.v1` 视为可选 extension（见 `artifacts/profiles/conformance-profiles.json` 的 `profile_tiers.extension_profile_implementation`）。
+> **状态：extension profile**。Arkret v1 core 互操作 **不要求** 实现 Applet profile；声称 v1 core 的实现可以完全不接 Applet，仅通过 capability + actor 模型表达 bot / bridge / agent。`ak.profile.applet_service.v1` 视为可选 extension（见 `artifacts/profiles/conformance-profiles.json` 的 `profile_sets.extension_profile_implementation`）。
 
 ### 2.2 关键对象
 
@@ -61,7 +61,7 @@ Applet 是受注册、受授权、可审计的集成服务。它可以：
 - 整体架构、namespace 模型、事件交易、Ghost Actor / portal realm 设计：[`../extensions/applet-integration.md`](../extensions/applet-integration.md)。
 - Applet schema 与 OpenAPI binding：[`../extensions/applet-schema.md`](../extensions/applet-schema.md)。
 - MIMI Provider Facade（外部协议互通）：[`../extensions/mimi-interop.md`](../extensions/mimi-interop.md)。
-- Applet policy（`policy_type=applet`）：[governance-objects.md §3](./governance-objects.md)。
+- Applet policy（`policy_kind=applet`）：[governance-objects.md §3](./governance-objects.md)。
 
 ## 3. Agent
 
@@ -79,8 +79,8 @@ Agent 的对象身份与 Applet 类似（独立 DID 或受托 device DID），�
 
 - `actor_kind=agent` 的 Actor / Actor Profile（详见 [actor.md §3](./actor.md)）。
 - `ak.profile.agent_runtime.v1` extension profile（详见 [`../conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)）。
-- Agent policy（`policy_type=agent`）：见 [governance-objects.md §3](./governance-objects.md)。
-- `notification_type=agent`：见 [private-objects.md §3](./private-objects.md)。
+- Agent policy（`policy_kind=agent`）：见 [governance-objects.md §3](./governance-objects.md)。
+- `notification_kind=agent`：见 [private-objects.md §3](./private-objects.md)。
 
 ### 3.3 详细规范
 
@@ -111,7 +111,7 @@ Blob 在协作图中通过 typed blob ref 引用——内容寻址引用使用 `
 
 - Blob metadata、thumbnail、authenticated media、asset privacy policy：[`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md)。
 - Content Block 中的 blob 引用：[content-types.md](./content-types.md)。
-- Media policy（`policy_type=media`）：[governance-objects.md §3](./governance-objects.md)。
+- Media policy（`policy_kind=media`）：[governance-objects.md §3](./governance-objects.md)。
 
 ## 5. 规范性引用
 

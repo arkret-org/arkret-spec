@@ -1,28 +1,28 @@
 {
   "version": "2026-07-15",
   "source_of_truth": true,
-  "description": "Canonical service_type vocabulary. A service_type names one deployed wire role. This registry is the single source of valid values and per-context eligibility for Service Describe, Realm sync endpoints, Realm join candidates, ServiceRegistrationKey, and the MIMI provider directory. Consumers MUST derive their closed value space from active rows whose valid_in includes the applicable context.",
+  "description": "Canonical service_kind vocabulary. A service_kind names one deployed wire role. This registry is the single source of valid values and per-context eligibility for Service Describe, Realm sync endpoints, Realm join candidates, ServiceRegistrationKey, and the MIMI provider directory. Consumers MUST derive their closed value space from active rows whose valid_in includes the applicable context.",
   "registry_rules": [
-    "A service_type id matches [a-z][a-z0-9_]* and is lowercase snake_case. Only ids present as rows in this registry exist; only status=active rows are valid on wire.",
-    "Value spaces are NOT interchangeable. Each row declares valid_in, the set of contexts the id may legally appear in. A service_type valid for Service Describe is not thereby valid as a Realm sync endpoint class or as a ServiceRegistrationKey component. Consumers MUST derive their enum from the rows whose valid_in contains that consumer's context, never from the full row list.",
-    "Schema enum values for every service_type selector field MUST be generated from active rows filtered by valid_in; tools/lint_artifacts.py check_service_type_registry asserts each declared JSON pointer.",
+    "A service_kind id matches [a-z][a-z0-9_]* and is lowercase snake_case. Only ids present as rows in this registry exist; only status=active rows are valid on wire.",
+    "Value spaces are NOT interchangeable. Each row declares valid_in, the set of contexts the id may legally appear in. A service_kind valid for Service Describe is not thereby valid as a Realm sync endpoint class or as a ServiceRegistrationKey component. Consumers MUST derive their enum from the rows whose valid_in contains that consumer's context, never from the full row list.",
+    "Schema enum values for every service_kind selector field MUST be generated from active rows filtered by valid_in; tools/lint_artifacts.py check_service_kind_registry asserts each declared JSON pointer.",
     "service_registration_key is the most restrictive context: it admits only service types that are a standalone deployment owning a service DID under a canonical public base. Adding a row to this context means that service type can hold a service identity and appear in ak.root.identity.service_registration.* operations.",
     "The registry is additive. New service types enter as new rows with their own valid_in set; existing wire values never change meaning. Widening an existing row's valid_in is a registry release, not an implementation decision.",
-    "service_type is a role name, not a product name. Deployment or implementation identifiers (for example a binary called soland or starid) MUST NOT be registered. A single physical deployment MAY fill more than one role, but each ServiceDescribe document describes exactly one role. Co-located roles sharing a public binding are selected with GET /_arkret/describe?service_type=<registered-id>; each response advertises only that role's exact supported_operations, profiles, authentication metadata, limits and plaintext visibility. Compound service_type values are forbidden.",
-    "This registry governs service_type selector fields only. Adjacent value spaces that happen to use similar words, including the policy source_service_type attribution field, are separate and out of scope."
+    "service_kind is a role name, not a product name. Deployment or implementation identifiers (for example a binary called soland or starid) MUST NOT be registered. A single physical deployment MAY fill more than one role, but each ServiceDescribe document describes exactly one role. Co-located roles sharing a public binding are selected with GET /_arkret/describe?service_kind=<registered-id>; each response advertises only that role's exact supported_operations, profiles, authentication metadata, limits and plaintext visibility. Compound service_kind values are forbidden.",
+    "This registry governs service_kind selector fields, including the policy source_service_kind attribution field."
   ],
   "contexts": [
     {
       "id": "service_describe",
-      "description": "Top-level service_type of a Service Describe document (schemas/service-describe.schema.json). Every deployable role may describe itself.",
+      "description": "Top-level service_kind of a Service Describe document (schemas/service-describe.schema.json). Every deployable role may describe itself.",
       "consumers": [
         {
           "file": "schemas/service-describe.schema.json",
-          "pointer": "/properties/service_type/enum"
+          "pointer": "/properties/service_kind/enum"
         },
         {
           "file": "openapi/arkret-service-api.openapi.yaml",
-          "pointer": "/components/schemas/ServiceDescribe/properties/service_type/enum"
+          "pointer": "/components/schemas/ServiceDescribe/properties/service_kind/enum"
         }
       ]
     },
@@ -32,7 +32,7 @@
       "consumers": [
         {
           "file": "schemas/realm.schema.json",
-          "pointer": "/$defs/sync_endpoint/properties/service_type/enum"
+          "pointer": "/$defs/sync_endpoint/properties/service_kind/enum"
         }
       ]
     },
@@ -42,21 +42,21 @@
       "consumers": [
         {
           "file": "schemas/realm-join-candidate.schema.json",
-          "pointer": "/properties/service_type/enum"
+          "pointer": "/properties/service_kind/enum"
         }
       ]
     },
     {
       "id": "service_registration_key",
-      "description": "The service_type half of a ServiceRegistrationKey (service_type + canonical public_base). Only roles that own a service DID under a public base belong here. Producers and validators MUST reject any service_type absent from this context.",
+      "description": "The service_kind half of a ServiceRegistrationKey (service_kind + canonical public_base). Only roles that own a service DID under a public base belong here. Producers and validators MUST reject any service_kind absent from this context.",
       "consumers": [
         {
           "file": "schemas/service-operation-dtos.schema.json",
-          "pointer": "/$defs/ServiceRegistrationKey/properties/service_type/enum"
+          "pointer": "/$defs/ServiceRegistrationKey/properties/service_kind/enum"
         },
         {
           "file": "schemas/service-operation-dtos.schema.json",
-          "pointer": "/$defs/ServiceDidEndpoint/properties/serviceType/enum"
+          "pointer": "/$defs/ServiceDidEndpoint/properties/serviceKind/enum"
         }
       ]
     },
@@ -66,12 +66,12 @@
       "consumers": [
         {
           "file": "schemas/mimi-interop.schema.json",
-          "pointer": "/$defs/provider_directory/properties/service_type/const"
+          "pointer": "/$defs/provider_directory/properties/service_kind/const"
         }
       ]
     }
   ],
-  "service_types": [
+  "service_kinds": [
     {
       "canonical_id": "principal_server",
       "status": "active",

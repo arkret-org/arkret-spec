@@ -14,7 +14,7 @@ const row = getEventKind(name);
 if (!row) {
   throw new Error(
     `<EventKind name="${name}"> does not exist in event-kind-registry.json. ` +
-      `Update spec/v1/artifacts/registry/contract-catalog.json or fix the reference.`
+      `Update spec/v1/artifacts/registry/contract-registry.json or fix the reference.`
   );
 }
 

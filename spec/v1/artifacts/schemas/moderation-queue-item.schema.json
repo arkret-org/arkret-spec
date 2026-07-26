@@ -60,13 +60,13 @@
       "type": "object",
       "required": [
         "plaintext_allowed",
-        "requires_franking_proof_verification"
+        "franking_proof_verification_required"
       ],
       "properties": {
         "plaintext_allowed": {
           "type": "boolean"
         },
-        "requires_franking_proof_verification": {
+        "franking_proof_verification_required": {
           "type": "boolean"
         },
         "retention_expires_at": { "$ref": "#/$defs/timestamp" },

@@ -20,7 +20,7 @@
   "properties": {
     "schema": {
       "const": "ak.schema.handle_claim.v1",
-      "description": "Canonical schema discriminator. Aligned with schema-registry.json; lets validators / contract-catalog consumers disambiguate this claim from other DID-bearing envelopes."
+      "description": "Canonical schema discriminator. Aligned with schema-registry.json; lets validators / contract-registry consumers disambiguate this claim from other DID-bearing envelopes."
     },
     "handle": {
       "$ref": "string-profiles.schema.json#/$defs/canonical_handle"
@@ -98,7 +98,7 @@
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
         },
-        "recipient_service_type": {
+        "recipient_service_kind": {
           "const": "principal_server"
         },
         "binding_source": {

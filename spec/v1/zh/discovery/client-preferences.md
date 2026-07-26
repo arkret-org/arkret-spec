@@ -44,7 +44,7 @@ account data 默认是 holder-private 加密数据，Sync Service 只存不透�
 ## 3. 标准账户数据类型
 
 为了保证不同客户端间的互操作性，本规范定义了以下标准 Key 命名空间：
-这些 key/pattern 的机器索引位于 [`account-data-type-registry.json`](../../artifacts/registry/account-data-type-registry.json)；新增标准 Account Data key 时 MUST 同步更新该 registry，并通过 `tools/artifact_pipeline.py check` 校验 source refs 与写入 Event.kind。
+这些 key/pattern 的机器索引位于 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)；新增标准 Account Data key 时 MUST 同步更新该 registry，并通过 `tools/artifact_pipeline.py check` 校验 source refs 与写入 Event.kind。
 
 ### 3.1 空间标签与分类 (Realm Tags)
 
@@ -327,7 +327,7 @@ account data 默认是 holder-private 加密数据，Sync Service 只存不透�
 
 虽然 account data 对外不公开，但用户自己的客户端或可信端侧节点会拉取并解密这些数据，并合并到本地查询结果中。
 
-例如：当客户端以 `object_types=["realm"]` 查询加入的 Realm 列表时，本地 projection 可以按 `realm_id` 同时 join `ak.tags.realm.*`（私有标签与排序）与 `ak.contacts.realm.*`（本地备注名、笔记、置顶），得到带 `local_name` 与 tag 的 Realm 列表，并在 `title` 重复时优先按 `local_name` 区分。
+例如：当客户端以 `object_kinds=["realm"]` 查询加入的 Realm 列表时，本地 projection 可以按 `realm_id` 同时 join `ak.tags.realm.*`（私有标签与排序）与 `ak.contacts.realm.*`（本地备注名、笔记、置顶），得到带 `local_name` 与 tag 的 Realm 列表，并在 `title` 重复时优先按 `local_name` 区分。
 
 ## 5. 安全与隐私
 

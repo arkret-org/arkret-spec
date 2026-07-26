@@ -80,7 +80,7 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 单个 resource selector canonical JSON 总量 | 64 KiB | 未注册字段也计入；超过时 MUST `selector_too_complex`。 |
 | 单个 selector term 字段值 | 1,024 bytes | 超过时 MUST `selector_too_complex`。 |
 | 单个 grant 未注册字段总数 | 256 | 超过时 MUST `selector_too_complex`；未知字段仍计入 64 KiB 总量。 |
-| `requires_claims[]` 项数 | 32 | 超过时 MUST reject；canonical schema 同步 `maxItems: 32`。 |
+| `required_claims[]` 项数 | 32 | 超过时 MUST reject；canonical schema 同步 `maxItems: 32`。 |
 
 上述 cursor / selector / policy-array 边界由 active `ak.vector.scalability.cursor_selector_limits.v1` 在 `scalability-limits-fixture.json` 中执行。
 | 单个 claim 的 `trusted_issuers[]` / `roles[]` 项数 | 16 | 超过时 MUST reject；canonical schema 同步 `maxItems: 16`。 |
@@ -179,8 +179,8 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | to-device 队列 TTL | 24 hours（默认最大值） | `DeviceMessageEnvelope.expires_at` 不得晚于当前 service / Realm / profile TTL 上限；服务端 MUST 拒绝缺失、已过期、早于 `sent_at` 或超限的消息。高安全 profile SHOULD 声明更短 TTL。 |
 | KeyPackage claim 限速 | 60 seconds 内最多 5 次 / `(requester_service_id, target_principal_id)` | 超过限额时对外仍使用反枚举响应（`claim_failed` 或通用 rate-limited envelope），不得泄露目标存在性；服务端内部审计 reason 记录为 `keypackage_claim_rate_limited`。 |
 | 单次 to-device page | 1,000 | 服务端 MUST enforce。 |
-| 分块流式 AEAD 附件 `segment_size` 取值范围 | 1 KiB（1,024）– 8 MiB（8,388,608），默认 256 KiB（262,144） | 见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3。超出范围 MUST reject（`schema_violation`）；`segment_size` 越界或与 `segment_count`、`size_bytes` 不自洽时接收方 MUST fail closed。 |
-| 分块流式 AEAD 附件 `segment_count` 上限 | 1,048,576（2^20） | 见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3。`segment_index` 为 `u32`（硬上界 2^32），但 v1 wire 互操作上限为 2^20；超过时 MUST reject（`schema_violation`）。`segment_count` MUST 等于 `ceil(size_bytes_plaintext / segment_size)` 并与实际段数一致，否则接收方 MUST 拒绝（`segment_bounds_invalid` / `segment_sequence_invalid`）。声明字段越界 / 不自洽负例见 [conformance-vectors.md](./conformance-vectors.md) §16.5（`ak.vector.blob.stream_aead_bounds_rejected.v1`）。 |
+| 分块流式 AEAD 附件 `segment_bytes` 取值范围 | 1 KiB（1,024）– 8 MiB（8,388,608），默认 256 KiB（262,144） | 见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3。超出范围 MUST reject（`schema_violation`）；`segment_bytes` 越界或与 `segment_count`、`size_bytes` 不自洽时接收方 MUST fail closed。 |
+| 分块流式 AEAD 附件 `segment_count` 上限 | 1,048,576（2^20） | 见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3。`segment_index` 为 `u32`（硬上界 2^32），但 v1 wire 互操作上限为 2^20；超过时 MUST reject（`schema_violation`）。`segment_count` MUST 等于 `ceil(size_bytes_plaintext / segment_bytes)` 并与实际段数一致，否则接收方 MUST 拒绝（`segment_bounds_invalid` / `segment_sequence_invalid`）。声明字段越界 / 不自洽负例见 [conformance-vectors.md](./conformance-vectors.md) §16.5（`ak.vector.blob.stream_aead_bounds_rejected.v1`）。 |
 
 声明 `ak.self.events.query.mls_governance_proof` 的 Service Describe MUST 在 `limits.mls_governance_proof` 暴露上述固定 v1 bounds；该对象的 schema 使用 `const` 防止服务声称同一 operation 却采用不同互操作边界。Chunk 0 请求不得携带 `expected_bundle_digest`；取得 manifest 后，chunk 1..N-1 请求 MUST 携带 chunk 0 的 `bundle_digest`。若该 manifest 已不可用，server 返回 `frontier_unavailable`，caller 只能从 chunk 0 重新开始，不能把另一 manifest 的 chunk 混入。`chunk_index >= chunk_manifest.chunk_count` 使用 `invalid_param`。任何超总界响应、丢块后继续接受、服务器自报 total 替代最终 root 重算，或按本地更高上限绕过本表，均不符合 v1。
 

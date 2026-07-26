@@ -254,10 +254,10 @@
     "capability_constraint": {
       "type": "object",
       "required": [
-        "constraint_type"
+        "constraint_kind"
       ],
       "properties": {
-        "constraint_type": {
+        "constraint_kind": {
           "$ref": "#/$defs/non_empty_string"
         },
         "params": {
@@ -294,11 +294,11 @@
     "e2ee_effect": {
       "type": "object",
       "required": [
-        "requires_mls_join",
+        "mls_join_required",
         "plaintext_access"
       ],
       "properties": {
-        "requires_mls_join": {
+        "mls_join_required": {
           "type": "boolean"
         },
         "plaintext_access": {
@@ -322,10 +322,10 @@
     "widget_effect": {
       "type": "object",
       "required": [
-        "allow_widget"
+        "widget_allowed"
       ],
       "properties": {
-        "allow_widget": {
+        "widget_allowed": {
           "type": "boolean"
         },
         "policy_event_ref": {

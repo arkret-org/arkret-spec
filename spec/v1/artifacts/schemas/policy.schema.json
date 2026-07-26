@@ -6,7 +6,7 @@
   "required": [
     "id",
     "schema",
-    "policy_type",
+    "policy_kind",
     "rules",
     "default_effect",
     "created_by",
@@ -23,7 +23,7 @@
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
-    "policy_type": {
+    "policy_kind": {
       "type": "string",
       "enum": [
         "access",

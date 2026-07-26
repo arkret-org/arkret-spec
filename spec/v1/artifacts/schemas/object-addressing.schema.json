@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/object-addressing.schema.json",
+  "title": "Arkret Object Addressing",
+  "description": "Canonical target descriptors and signed authorization-token claims for object-address links.",
+  "$ref": "#/$defs/address_link_target_descriptor",
+  "$defs": {
+    "address_link_kind": {
+      "type": "string",
+      "enum": [
+        "reference",
+        "invite",
+        "preview"
+      ],
+      "description": "Closed URL-resolution classification. Signed authorization tokens use only invite or preview."
+    },
+    "token_address_link_kind": {
+      "type": "string",
+      "enum": [
+        "invite",
+        "preview"
+      ]
+    },
+    "address_link_target_descriptor": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "address_link_kind"
+      ],
+      "properties": {
+        "realm_id": {
+          "type": "string",
+          "pattern": "^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "strand_id": {
+          "type": "string",
+          "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "message_id": {
+          "type": "string",
+          "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "address_link_kind": {
+          "$ref": "#/$defs/token_address_link_kind"
+        }
+      },
+      "dependentRequired": {
+        "message_id": [
+          "strand_id"
+        ]
+      },
+      "additionalProperties": false
+    },
+    "signed_address_link_token_claims": {
+      "type": "object",
+      "required": [
+        "aud",
+        "exp",
+        "nonce",
+        "target_descriptor",
+        "target_digest",
+        "address_link_kind"
+      ],
+      "properties": {
+        "aud": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exp": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "nonce": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_descriptor": {
+          "$ref": "#/$defs/address_link_target_descriptor"
+        },
+        "target_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "address_link_kind": {
+          "$ref": "#/$defs/token_address_link_kind"
+        },
+        "preview_policy_digest": {
+          "type": "string",
+          "pattern": "^(?:sha256|blake3):[0-9a-f]{64}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "address_link_kind": {
+                "const": "preview"
+              }
+            },
+            "required": [
+              "address_link_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "preview_policy_digest"
+            ]
+          }
+        },
+        {
+          "properties": {
+            "target_descriptor": {
+              "properties": {
+                "address_link_kind": {
+                  "$ref": "#/$defs/token_address_link_kind"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  }
+}

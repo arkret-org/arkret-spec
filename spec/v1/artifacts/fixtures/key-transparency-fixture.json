@@ -30,20 +30,20 @@
         "principal_id": "did:webvh:z6mkfixture:alice.example",
         "key_material_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "log_head": {
-          "tree_size": 8,
-          "root_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "leaf_count": 8,
+          "tree_root": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "issued_at": "2026-07-11T00:00:00.000Z"
         },
         "inclusion_proof": {
           "leaf_index": 7,
-          "tree_size": 8,
+          "leaf_count": 8,
           "audit_path": [
             "sha256:2222222222222222222222222222222222222222222222222222222222222222"
           ]
         },
         "consistency_proof": {
-          "from_tree_size": 4,
-          "to_tree_size": 8,
+          "from_leaf_count": 4,
+          "to_leaf_count": 8,
           "audit_path": [
             "sha256:3333333333333333333333333333333333333333333333333333333333333333"
           ]
@@ -75,13 +75,13 @@
         "principal_id": "did:webvh:z6mkfixture:alice.example",
         "key_material_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
         "log_head": {
-          "tree_size": 8,
-          "root_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "leaf_count": 8,
+          "tree_root": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "issued_at": "2026-07-11T00:00:00.000Z"
         },
         "inclusion_proof": {
           "leaf_index": 7,
-          "tree_size": 8,
+          "leaf_count": 8,
           "audit_path": []
         },
         "witness_signatures": [

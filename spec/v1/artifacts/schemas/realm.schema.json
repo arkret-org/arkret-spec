@@ -97,10 +97,10 @@
             "type": "string",
             "pattern": "^[a-z][a-z0-9_]{0,127}$"
           },
-          "from_type": {
+          "from_kind": {
             "type": "string"
           },
-          "to_type": {
+          "to_kind": {
             "type": "string"
           },
           "relation_scope": {
@@ -218,10 +218,10 @@
     "content_scheme": {
       "type": "string",
       "enum": [
-        "mls-rfc9420",
-        "mls-exporter-aead-v1"
+        "mls_rfc9420",
+        "mls_exporter_aead_v1"
       ],
-      "description": "Content-envelope encryption scheme for MLS-backed Realms (crypto-media/encryption-and-audit.md §2.10). Orthogonal to encryption_profile, which only declares whether an MLS group exists. mls-rfc9420 = MLS PrivateMessage (per-message forward secrecy, NOT shareable to later joiners; only valid with history_visibility=joined/restricted on MLS-backed Realms). mls-exporter-aead-v1 = MLS-Exporter-derived per-epoch history_secret AEAD (history shareable to authorized later joiners via ak.realm_key.share; per-epoch forward secrecy; does not itself force pre-join delivery). MUST be carried in the MLS governance binding policy_root so receivers can determine, per epoch T0, which scheme applies. Absent: mls-rfc9420 for encryption_profile=mls_rfc9420 Realms; not applicable when encryption_profile=none/external."
+      "description": "Content-envelope encryption scheme for MLS-backed Realms (crypto-media/encryption-and-audit.md §2.10). Orthogonal to encryption_profile, which only declares whether an MLS group exists. mls_rfc9420 = MLS PrivateMessage (per-message forward secrecy, NOT shareable to later joiners; only valid with history_visibility=joined/restricted on MLS-backed Realms). mls_exporter_aead_v1 = MLS-Exporter-derived per-epoch history_secret AEAD (history shareable to authorized later joiners via ak.realm_key.share; per-epoch forward secrecy; does not itself force pre-join delivery). MUST be carried in the MLS governance binding policy_root so receivers can determine, per epoch T0, which scheme applies. Absent: mls_rfc9420 for encryption_profile=mls_rfc9420 Realms; not applicable when encryption_profile=none/external."
     },
     "content_encryption_floor": {
       "type": "string",
@@ -263,7 +263,7 @@
     },
     "durability_policy": {
       "type": "object",
-      "description": "Realm Recovery Key (RRK) durability policy (models/realm-and-space.md §2.3.1, crypto-media/encryption-and-audit.md §2.10.8). Declares who can recover Realm history after all member devices are lost or all members leave. Confidentiality-axis durability, orthogonal to notary / notary.recovery_* (finality axis: who signs Seals). Recovery recipients are offline HPKE public keys, NOT MLS members. Only effective (mode != none) when content_scheme=mls-exporter-aead-v1; declaring mode != none on an mls-rfc9420 Realm MUST failed_precondition (durability_scheme_incompatible). Granularity = organization composition (point a sensitive Realm's owning_organizations at a finer org), not a per-Realm knob; parent-org retention = list the parent org RRK in recovery_recipients (explicit, member-visible). Written via ak.realm.policy_components.",
+      "description": "Realm Recovery Key (RRK) durability policy (models/realm-and-space.md §2.3.1, crypto-media/encryption-and-audit.md §2.10.8). Declares who can recover Realm history after all member devices are lost or all members leave. Confidentiality-axis durability, orthogonal to notary / notary.recovery_* (finality axis: who signs Seals). Recovery recipients are offline HPKE public keys, NOT MLS members. Only effective (mode != none) when content_scheme=mls_exporter_aead_v1; declaring mode != none on an mls_rfc9420 Realm MUST failed_precondition (durability_scheme_incompatible). Granularity = organization composition (point a sensitive Realm's owning_organizations at a finer org), not a per-Realm knob; parent-org retention = list the parent org RRK in recovery_recipients (explicit, member-visible). Written via ak.realm.policy_components.",
       "required": [
         "mode"
       ],
@@ -397,14 +397,14 @@
       "uniqueItems": true
     },
     "notary_profile": {
-      "type": "string",
       "enum": [
         "single_did",
         "threshold",
         "open_set",
         "mixed"
       ],
-      "description": "Create-locked Seal finality profile. single_did and threshold deployments require signed Seal single-chain uniqueness; open_set deployments allow multiple Seal leaves and deterministic joined control views; mixed deployments use a primary notary plus fallback recovery notary."
+      "description": "Create-locked Seal finality profile. single_did and threshold deployments require signed Seal single-chain uniqueness; open_set deployments allow multiple Seal leaves and deterministic joined control views; mixed deployments use a primary notary plus fallback recovery notary.",
+      "kind": "string"
     },
     "availability_policy": {
       "type": "object",
@@ -498,21 +498,11 @@
       "description": "Digest suite (canonicalization x hash tuple) used for DataEvent ids, Control Move ids, Seal ids, state_root, and Merkle leaves within this Realm. It is locked at create except for ak.realm.digest_suite_transition under ak.profile.hash_transition.v1. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; migration uses the control-plane transition Move and dual-root Seal defined by event-auth-state-resolution.md §9.3.2."
     },
     "notary": {
-      "type": "object",
       "description": "Genesis value for the Realm notary cell. Subsequent changes are Control Moves finalized by the previous notary. For single_did profiles, recovery_members and controller organization evidence are required so reducer/authz can reject single-organization recovery setups.",
       "required": [
-        "type"
+        "kind"
       ],
       "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "single_did",
-            "threshold",
-            "open_set",
-            "mixed"
-          ]
-        },
         "did": {
           "$ref": "#/$defs/did"
         },
@@ -557,9 +547,19 @@
           "minItems": 1,
           "uniqueItems": true,
           "description": "Organization DIDs controlling recovery_members. Reducer MUST verify at least one differs from controller_organization for single_did profile."
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "single_did",
+            "threshold",
+            "open_set",
+            "mixed"
+          ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "kind": "object"
     },
     "revocation_freshness_window_ms": {
       "type": "integer",
@@ -690,11 +690,11 @@
         "properties": {
           "notary": {
             "required": [
-              "type",
+              "kind",
               "did"
             ],
             "properties": {
-              "type": {
+              "kind": {
                 "const": "single_did"
               }
             },
@@ -733,12 +733,12 @@
         "properties": {
           "notary": {
             "properties": {
-              "type": {
+              "kind": {
                 "const": "threshold"
               }
             },
             "required": [
-              "type"
+              "kind"
             ]
           }
         },
@@ -750,7 +750,7 @@
         "properties": {
           "notary": {
             "required": [
-              "type",
+              "kind",
               "members",
               "threshold",
               "forensic_attribution"
@@ -1015,7 +1015,7 @@
         "did",
         "endpoint",
         "role",
-        "service_type",
+        "service_kind",
         "plaintext_visible"
       ],
       "properties": {
@@ -1037,7 +1037,7 @@
             "federation_peer"
           ]
         },
-        "service_type": {
+        "service_kind": {
           "type": "string",
           "enum": [
             "principal_server",

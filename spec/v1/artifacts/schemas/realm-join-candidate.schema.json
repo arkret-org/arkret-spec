@@ -7,7 +7,7 @@
   "required": [
     "realm_id",
     "service_id",
-    "service_type",
+    "service_kind",
     "role",
     "operations",
     "join_methods",
@@ -25,7 +25,7 @@
       "$ref": "#/$defs/did",
       "description": "Service DID that can receive or relay join-side submissions for this Realm."
     },
-    "service_type": {
+    "service_kind": {
       "type": "string",
       "enum": [
         "principal_server",

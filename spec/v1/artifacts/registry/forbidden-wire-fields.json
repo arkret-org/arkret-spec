@@ -474,7 +474,11 @@
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "Relation(relation_kind=assigned_to, from_ref=<strand_id>, to_ref=<actor DID>)",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Strand assignment is single-sourced by the standard assigned_to Relation. metadata.fields.assignee would create a second truth source and MUST be rejected; UI labels may say Assignee but wire writes create/tombstone assigned_to Relation edges."
     },
     {
@@ -483,7 +487,11 @@
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "Relation(relation_kind=assigned_to, from_ref=<strand_id>, to_ref=<actor DID>)",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Plural spelling of the Strand assignment field alias is forbidden for the same reason as metadata.fields.assignee. Multiple assignees are represented by multiple active assigned_to Relation edges."
     },
     {
@@ -492,7 +500,11 @@
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "Relation(relation_kind=assigned_to, from_ref=<strand_id>, to_ref=<actor DID>)",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "assigned_to is already the standard Relation kind and MUST NOT be reused as a Strand metadata field."
     },
     {
@@ -501,7 +513,11 @@
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "read-only projection assigned_actor_ids derived from assigned_to Relations",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "assigned_actor_ids is a derived projection field, not Strand object state. Writers MUST NOT persist it under metadata.fields."
     },
     {
@@ -601,7 +617,11 @@
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "ak.relation.create / ak.relation.tombstone with relation_kind=assigned_to",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "ak.strand.update MUST NOT patch assignment through Strand metadata. Assignment writes create or tombstone assigned_to Relation edges."
     },
     {
@@ -610,7 +630,11 @@
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "ak.relation.create / ak.relation.tombstone with relation_kind=assigned_to",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Plural assignment metadata patch alias is forbidden; multiple assignees are multiple assigned_to Relation edges."
     },
     {
@@ -619,7 +643,11 @@
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "ak.relation.create / ak.relation.tombstone with relation_kind=assigned_to",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "assigned_to is a Relation kind, not a Strand metadata patch path."
     },
     {
@@ -628,7 +656,11 @@
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "read-only projection assigned_actor_ids derived from assigned_to Relations",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "assigned_actor_ids is projection-only and MUST NOT be written through ak.strand.update."
     },
     {
@@ -637,7 +669,11 @@
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "ak.relation.create / ak.relation.tombstone with relation_kind=assigned_to",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Legacy Strand fields.* patch paths are not the canonical metadata path; assignment is Relation-sourced regardless of spelling."
     },
     {
@@ -646,7 +682,11 @@
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "ak.relation.create / ak.relation.tombstone with relation_kind=assigned_to",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "Legacy plural assignment patch alias is forbidden; multiple assignees are multiple assigned_to Relation edges."
     },
     {
@@ -655,7 +695,11 @@
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "ak.relation.create / ak.relation.tombstone with relation_kind=assigned_to",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "assigned_to is a Relation kind, not a Strand metadata patch path."
     },
     {
@@ -664,7 +708,11 @@
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "read-only projection assigned_actor_ids derived from assigned_to Relations",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
       "notes": "assigned_actor_ids is projection-only and MUST NOT be written through legacy fields.* patch paths."
     },
     {
@@ -681,7 +729,7 @@
       "notes": "ak.morph.update / ak.morph.schema_migrate payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ak.morph.stage.set may mutate these fields. See zh/models/common-fields.md §5.3.3 reducer hard constraint 6 and zh/models/morph.md §2."
     },
     {
-      "id": "patch:morph_type",
+      "id": "patch:morph_kind",
       "context": "morph_update_payload",
       "since_revision": "2026-06-22",
       "rejection_level": "hard_reject",
@@ -691,7 +739,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "ak.morph.update payload's patch MUST NOT include path 'morph_type'. morph_type is create-locked by ak.morph.create; attempts to mutate it after create fail closed with reason morph_type_immutable."
+      "notes": "ak.morph.update payload's patch MUST NOT include path 'morph_kind'. morph_kind is create-locked by ak.morph.create; attempts to mutate it after create fail closed with reason morph_kind_immutable."
     },
     {
       "id": "valid_from",
@@ -1374,7 +1422,7 @@
       "context": "moderation_queue_item.evidence_policy",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "requires_franking_proof_verification",
+      "replacement": "franking_proof_verification_required",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -1669,7 +1717,7 @@
       "notes": "Agent lifecycle payloads mutate the status axis; the transition timestamp must name that axis."
     },
     {
-      "id": "claim_type",
+      "id": "claim_kind",
       "context": "handle_claim_top_level",
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
@@ -1679,7 +1727,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Handle Claim's closed protocol discriminator uses claim_kind. claim_type remains valid in external credential selector contexts."
+      "notes": "Handle Claim's closed protocol discriminator uses claim_kind. claim_kind remains valid in external credential selector contexts."
     },
     {
       "id": "notary_sig",
@@ -1696,7 +1744,7 @@
     },
     {
       "id": "inception_pubkey_fingerprint",
-      "context": "did_continuity_proof.transfer_evidence",
+      "context": "did_continuity_proof.transfer_proof",
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
       "replacement": "inception_public_key_fingerprint",
@@ -1836,6 +1884,1374 @@
         "negative_test"
       ],
       "notes": "Human-readable policy duration wire values use ISO 8601 (PT24H, P30D, P1Y). The self-invented compact form ^[0-9]+(ms|s|m|h|d)$ (e.g. 24h, 7d, 15m) MUST NOT appear on the wire; see common-fields.md §3.0.2 and constraint-schema.md §3. Machine timing fields continue to use integer _ms / _seconds."
+    },
+    {
+      "id": "content_class",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "content_kind / plaintext_data_class (context-specific)",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "risk_class",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "risk_tier",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "rejected_input_classes",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "rejected_input_categories",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "same_timing_class",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "timing_equivalence_group",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "range_request_same_error_class",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "range_request_same_error_contract",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "expected_classes",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "expected_confusable_classes",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "share_class",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "share_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "backup_class",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "backup_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "purpose_class",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "purpose_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "purpose_classes",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "purpose_kinds",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "requested_source_class",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "requested_source_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "allowed_target_classes",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "allowed_target_kinds",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "allowed_data_classes",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "allowed_data_labels",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "capability_tiers",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "surface_classes",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "profile_tiers",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "profile_sets",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "by_tier_and_class",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "by_surface_class_and_completeness_class",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "verified_principal_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "actor_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "notary_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "notary.kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "account_data_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "account_data_key",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "account_data_types",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "account_data_key_patterns",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "data_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "account_data_key",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "constraint_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "constraint_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "required_constraint_types",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "required_constraint_kinds",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "required_constraint_subtypes",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "required_constraint_subkinds",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "type_restriction",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "kind_restriction",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "op_target_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "op_target_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "subtype",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "constraint_subkind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "allowed_object_types",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "allowed_object_kinds",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "denied_object_types",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "denied_object_kinds",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "object_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "object_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "object_types",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "object_kinds",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "item_object_types",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "item_object_kinds",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "allowed_morph_types",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "allowed_morph_kinds",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "denied_morph_types",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "denied_morph_kinds",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "morph_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "morph_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "morph_types",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "morph_kinds",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "proposal_morph_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "proposal_morph_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "service_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "service_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "service_types",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "service_kinds",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "recipient_service_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "recipient_service_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "destination_service_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "destination_service_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "serviceType",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "serviceKind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "did_service_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "did_service_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "claim_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "claim_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "device_key_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "device_key_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "field_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "field_definition",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "field_types",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "field_definitions",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "signal_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "signal_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "notification_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "notification_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "receipt_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "receipt_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "policy_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "policy_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "item_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "item_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "item_types",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "item_kinds",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "lattice_types",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "supported_lattices",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "to_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "to_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "from_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "from_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "resource_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "resource_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "resource_types",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "resource_kinds",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "link_type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "address_link_kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "surface group tier",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "surface_class",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "notary.type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "notary.kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "webhook_auth.type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "webhook_auth.kind",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "recovery transcript type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "schema",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "artifact DSL type",
+      "context": "all_arkret_owned_wire_canonical_json_and_executable_artifact_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "kind / value_shape",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide kind/type/class/tier naming-axis closure. External-standard fields named type are allowed only at exact paths registered in classification-field-registry.json."
+    },
+    {
+      "id": "root_hash",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "tree_root",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "mention_sidecar_hash",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "mention_sidecar_digest",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "segment_size",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "segment_bytes",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "tree_size",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "leaf_count",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "from_tree_size",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "from_leaf_count",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "to_tree_size",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "to_leaf_count",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "quorum_size",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "quorum_participant_count",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "batch_size",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "batch_item_count",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "failure_code",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "failure_reason_code",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "rejection_code",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "rejection_reason_code",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_mls_join",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "mls_join_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "requires_mls_join",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "mls_join_required",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_ghost_actors",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "ghost_actors_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_delegated_native_actors",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "delegated_native_actors_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_e2ee_join",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "e2ee_join_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_widget",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "widget_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "requires_consent",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "consent_required",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "requires_human_review",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "human_review_required",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "requires_franking_proof_verification",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "franking_proof_verification_required",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_plaintext_realms",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "plaintext_realms_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_plaintext_fallback",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "plaintext_fallback_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_redact_after_window",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "redact_after_window_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_scope_expansion",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "scope_expansion_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "require_parent_reference",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "parent_reference_required",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "require_audit_trail",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "audit_trail_required",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "require_key_backup",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "key_backup_required",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "force_turn",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "turn_required",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_udp",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "udp_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_tcp",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "tcp_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_ipv6",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "ipv6_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_binding_sources",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "allowed_binding_sources",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_did_document_default",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "did_document_default_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_unroutable_membership",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "unroutable_membership_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_if_visibility_allows",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "visibility_condition_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_t0_visible_with_current_policy",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "t0_visibility_with_current_policy_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allow_last_resort",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "last_resort_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "requires_claims",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "required_claims",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "override_requires_organization_approval",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "override_organization_approval_required",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "deny_redacted_history",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "redacted_history_allowed",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "allowed_introduction_kinds",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "holder_allowed_introduction_kinds",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "permitted_introduction_kinds",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "deployment_allowed_introduction_kinds",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "forbidden_introduction_kinds",
+      "context": "all_arkret_owned_wire_contexts",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "deployment_denied_introduction_kinds",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+    },
+    {
+      "id": "blocked_handle_domains",
+      "context": "invite_receive_policy_constraints",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "denied_handle_domains",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Denylist collections use the closed `denied_` prefix."
+    },
+    {
+      "id": "blocked_subjects",
+      "context": "directory_query_policy",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "denied_subjects",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Denylist collections use the closed `denied_` prefix."
+    },
+    {
+      "id": "blocked_principal_services",
+      "context": "directory_query_policy",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "denied_principal_services",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Denylist collections use the closed `denied_` prefix."
+    },
+    {
+      "id": "evidence_id",
+      "context": "audit_release_attestation",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "attestation_id",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The object carries one audit-release attestation, so the identifier uses the concrete material noun."
+    },
+    {
+      "id": "transfer_evidence",
+      "context": "did_continuity_proof",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "transfer_proof",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The transfer material is a single independently verifiable cryptographic proof."
+    },
+    {
+      "id": "evidence_ref",
+      "context": "agent_key_authorize_runtime_attestation",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "attestation_ref",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The runtime branch resolves exactly one attestation material family."
+    },
+    {
+      "id": "stage",
+      "context": "pending_sidecar_access_reconciliation_item",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "provisioning_phase",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The reserved stage field is limited to the protocol 8-value Strand/Morph progress axis."
+    },
+    {
+      "id": "stage",
+      "context": "audit_session_payload",
+      "since_revision": "2026-07-26",
+      "rejection_level": "hard_reject",
+      "replacement": "session_state",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The reserved stage field is limited to the protocol 8-value Strand/Morph progress axis."
     }
   ]
 }

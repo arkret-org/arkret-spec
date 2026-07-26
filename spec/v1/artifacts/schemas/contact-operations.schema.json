@@ -389,7 +389,7 @@
         "block_peer": {
           "type": "boolean",
           "default": false,
-          "description": "When true, additionally add the peer DID to the holder invite_receive_policy.blocked_subjects, so future invite delivery from this peer is dropped and disclosed opaquely. Models a hard block (\"拉黑\") on top of contact tombstone."
+          "description": "When true, additionally add the peer DID to the holder invite_receive_policy.denied_subjects, so future invite delivery from this peer is dropped and disclosed opaquely. Models a hard block (\"拉黑\") on top of contact tombstone."
         },
         "peer_service_id": {
           "$ref": "#/$defs/did",

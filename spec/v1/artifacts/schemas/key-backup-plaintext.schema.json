@@ -7,7 +7,7 @@
   "required": [
     "schema",
     "backup_id",
-    "backup_class",
+    "backup_kind",
     "series_id",
     "series_seq",
     "items"
@@ -19,8 +19,8 @@
     "backup_id": {
       "$ref": "#/$defs/backup_id"
     },
-    "backup_class": {
-      "$ref": "#/$defs/backup_class"
+    "backup_kind": {
+      "$ref": "#/$defs/backup_kind"
     },
     "series_id": {
       "$ref": "#/$defs/backup_series_id"
@@ -50,7 +50,7 @@
       "type": "string",
       "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "backup_class": {
+    "backup_kind": {
       "type": "string",
       "enum": [
         "did_recovery",
@@ -58,7 +58,7 @@
         "mls_history"
       ]
     },
-    "item_type": {
+    "item_kind": {
       "type": "string",
       "enum": [
         "recovery_key_share",
@@ -77,13 +77,13 @@
     "plaintext_item": {
       "type": "object",
       "required": [
-        "item_type",
+        "item_kind",
         "secret_id",
         "secret_b64u"
       ],
       "properties": {
-        "item_type": {
-          "$ref": "#/$defs/item_type"
+        "item_kind": {
+          "$ref": "#/$defs/item_kind"
         },
         "secret_id": {
           "type": "string",
@@ -92,7 +92,7 @@
         "secret_b64u": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+$",
-          "description": "base64url(no padding) encoded secret bytes. The item_type and metadata define how receivers import the bytes."
+          "description": "base64url(no padding) encoded secret bytes. The item_kind and metadata define how receivers import the bytes."
         },
         "secret_generation": {
           "type": "integer",
@@ -134,7 +134,7 @@
               "realm_id"
             ],
             "properties": {
-              "item_type": {
+              "item_kind": {
                 "enum": [
                   "mls_group_state",
                   "mls_epoch_secret",

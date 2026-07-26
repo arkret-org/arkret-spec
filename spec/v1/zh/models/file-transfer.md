@@ -10,7 +10,7 @@ see_also:
   - ../crypto-media/media-and-blob.md
   - ../sync/client-sync.md
   - ../../artifacts/schemas/file-transfer.schema.json
-  - ../../artifacts/registry/account-data-type-registry.json
+  - ../../artifacts/registry/account-data-key-registry.json
 ---
 
 ## 0. 规范语言
@@ -76,7 +76,7 @@ Producer MUST NOT 写入任何明文文件 digest / hash 字段（例如 `plaint
 
 文件传输默认是服务端不可读内容。Producer MUST 对每个 transfer 生成 fresh content key，并使用 `ak.aead.xchacha20_poly1305.v1` 加密文件明文。除非 profile 后续显式定义可证明安全的 key-reuse 形态，content key MUST NOT 在多个 transfer 间复用。
 
-大文件 SHOULD 使用分块流式 AEAD 形态（`ak.blob.stream_aead.v1`，见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3），使接收设备能边下边验、内存有界，并在收到合法末段并通过整体 `ciphertext_digest` 校验前不把文件视为完整。选用该形态时，transfer record 的 `encryption` descriptor 与 `ak.file_transfer.key.v1` 的 key envelope MUST 按该 scheme 携带 `nonce_prefix` / `segment_size` / `segment_count`（而非整文件形态的单 `nonce`）；§4.2 的字段一致性校验相应比对 `key_message.nonce_prefix == record.encryption.nonce_prefix`、segment 参数一致。小文件与缩略图 MAY 继续使用整文件形态（`ak.blob.whole_file_aead.v1`）。无论形态如何，`content_digest` 仍是 Blob 密文字节摘要的唯一字段。
+大文件 SHOULD 使用分块流式 AEAD 形态（`ak.blob.stream_aead.v1`，见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3），使接收设备能边下边验、内存有界，并在收到合法末段并通过整体 `ciphertext_digest` 校验前不把文件视为完整。选用该形态时，transfer record 的 `encryption` descriptor 与 `ak.file_transfer.key.v1` 的 key envelope MUST 按该 scheme 携带 `nonce_prefix` / `segment_bytes` / `segment_count`（而非整文件形态的单 `nonce`）；§4.2 的字段一致性校验相应比对 `key_message.nonce_prefix == record.encryption.nonce_prefix`、segment 参数一致。小文件与缩略图 MAY 继续使用整文件形态（`ak.blob.whole_file_aead.v1`）。无论形态如何，`content_digest` 仍是 Blob 密文字节摘要的唯一字段。
 
 AEAD AAD MUST 至少绑定：
 
@@ -98,7 +98,7 @@ AAD MUST NOT 绑定 content-addressed `blob_ref`，因为这会让 `blob_ref = d
 
 当 `access.visibility="device_bound"` 时，`access.recipient_device_ids` 是目标设备集合的唯一真相源，且 `encryption.key_delivery.method` MUST 是 `to_device_wrapped_key`。Producer MUST 为 `access.recipient_device_ids` 中的每个目标设备发送一条 `kind="ak.file_transfer.key.v1"` 的 to-device message；message `content` MUST validate as `ak.schema.file_transfer.v1#/$defs/file_transfer_key_message`。
 
-`ak.file_transfer.key.v1` 的 `key_envelope` MUST 使用接收设备的 HPKE / device key 加密 content key。服务端只可转发该 envelope，不得看到 content key 明文。Receiver MUST 校验 to-device message 中的字段与 account-data transfer record 的对应字段完全一致：`key_message.transfer_id == record.transfer_id`、`key_message.blob_ref == record.blob_ref`、`key_message.aead_profile == record.encryption.aead_profile`、`key_message.content_digest == record.content_digest`。若 `record.encryption.scheme == "ak.blob.whole_file_aead.v1"`，还 MUST 校验 `key_message.nonce == record.encryption.nonce`，且两侧均不得携带 stream 字段；若 `record.encryption.scheme == "ak.blob.stream_aead.v1"`，则 MUST 校验 `key_message.nonce_prefix == record.encryption.nonce_prefix`、`key_message.segment_size == record.encryption.segment_size`、`key_message.segment_count == record.encryption.segment_count`，且两侧均不得携带 whole-file `nonce`。不一致 MUST 拒绝该 key envelope。
+`ak.file_transfer.key.v1` 的 `key_envelope` MUST 使用接收设备的 HPKE / device key 加密 content key。服务端只可转发该 envelope，不得看到 content key 明文。Receiver MUST 校验 to-device message 中的字段与 account-data transfer record 的对应字段完全一致：`key_message.transfer_id == record.transfer_id`、`key_message.blob_ref == record.blob_ref`、`key_message.aead_profile == record.encryption.aead_profile`、`key_message.content_digest == record.content_digest`。若 `record.encryption.scheme == "ak.blob.whole_file_aead.v1"`，还 MUST 校验 `key_message.nonce == record.encryption.nonce`，且两侧均不得携带 stream 字段；若 `record.encryption.scheme == "ak.blob.stream_aead.v1"`，则 MUST 校验 `key_message.nonce_prefix == record.encryption.nonce_prefix`、`key_message.segment_bytes == record.encryption.segment_bytes`、`key_message.segment_count == record.encryption.segment_count`，且两侧均不得携带 whole-file `nonce`。不一致 MUST 拒绝该 key envelope。
 
 未列入 `recipient_device_ids` 的设备即使收到了 account-data record，也 MUST 把该 transfer 视为不可解密，不得尝试从其它本地缓存或历史消息中恢复 key。
 

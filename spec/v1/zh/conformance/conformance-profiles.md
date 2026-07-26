@@ -43,7 +43,7 @@ ak.profile.<name>.v<major>
 
 ## 2.1 v1 MVP 分层
 
-为降低实现复杂度，v1 profile 分为三个声明层。`artifacts/profiles/conformance-profiles.json.profile_tiers` 是机器可读来源；`v1_profile_catalog` 不是 bundle requirement，实现只声明自己实际支持的 profile、event kind、schema 和 operation。
+为降低实现复杂度，v1 profile 分为三个声明层。`artifacts/profiles/conformance-profiles.json.profile_sets` 是机器可读来源；`v1_profile_catalog` 不是 bundle requirement，实现只声明自己实际支持的 profile、event kind、schema 和 operation。
 
 | 层级 | 含义 | 典型内容 |
 | --- | --- | --- |
@@ -64,7 +64,7 @@ v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 
 `minimal_client`、`full_client`、`principal_server` 等实现 profile 通过声明所支持的闭环（`chat_mvp` / `kanban_mvp`）表达能力；未声明的闭环不得被对端视为默认可用。希望仅做聊天产品而不实现 board/list 的客户端，应声明 `chat_mvp` 而不实现 `kanban_mvp`，并在 `rejected_event_kinds` 中明确拒绝 board/list 相关 kind。
 
-`chat_mvp` 与 `kanban_mvp` 不要求实现任意 Morph renderer、任意 facet reducer 或插件 UI。它们只需要按声明 profile 保留未知 Morph / facet 字段、同步相关 Event、执行 schema/capability 校验，并在必须展示时提供 generic Morph fallback。任何依赖特定 `morph_type` 或 facet 的交互能力 MUST 由额外 profile 显式声明。
+`chat_mvp` 与 `kanban_mvp` 不要求实现任意 Morph renderer、任意 facet reducer 或插件 UI。它们只需要按声明 profile 保留未知 Morph / facet 字段、同步相关 Event、执行 schema/capability 校验，并在必须展示时提供 generic Morph fallback。任何依赖特定 `morph_kind` 或 facet 的交互能力 MUST 由额外 profile 显式声明。
 
 Profile 不支持某个标准能力时的默认行为：
 
@@ -606,7 +606,7 @@ SHOULD 支持：
 
 MUST 支持:
 - `POST /_arkret/self/agents` (`ak.self.agent.command.provision`) 分配 managed Agent DID / Agent PCR binding，在 Agent DID accepted inception history 的唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 只固定域分离 `requested_scope_digest`，完整 `requested_scope` 保持 controller-private，在 controller PCR 仅写 `ak.identity.accountability_grant` + selector claim；必填且 immutable 的 `requested_scope` 记录 Agent key/session 的全局权限硬上限，但 provisioning 不得物化任何 Realm grant；后续 Agent key scope、Realm grant、participation 与 session request 可更窄但不得超过该上限；返回 `requested_scope_digest`、`pcr_recovery.status=pending` + pairing request，controller 必须重算 digest 后再继续，并通过 verifier/audience/challenge-bound 的 `ak.schema.agent_requested_scope_disclosure.v1` 私有出示完整 scope；controller E2EE client 再本地生成并提交 Agent PCR MLS/genesis/Profile state，服务端不得生成 MLS private state
-- controller-owned `backup_class=mls_history` active series 按 [`../identity/key-management.md` §7.5.6](../identity/key-management.md) 备份 Agent PCR state：managed binding 进入 public index、plaintext keybag 与 AAD，使用 controller `recovery_public_key` / current recovery policy；Agent runtime private key 永不备份，也不为 Agent 生成独立 24 词
+- controller-owned `backup_kind=mls_history` active series 按 [`../identity/key-management.md` §7.5.6](../identity/key-management.md) 备份 Agent PCR state：managed binding 进入 public index、plaintext keybag 与 AAD，使用 controller `recovery_public_key` / current recovery policy；Agent runtime private key 永不备份，也不为 Agent 生成独立 24 词
 - `POST /_arkret/gate/account/agent-key-pair` (`ak.gate.account.command.pair_agent_key`) 必须先验证 `pcr_recovery.status=ready`，再校验 `verification_method` 与 `agent_id` 一致性并写入 `ak.agent.key.authorize`；agent 已有 active key 时(runtime replacement re-pairing)以单一 controller-signed authorize Event 的精确 `supersedes[]` 原子替换全部既有 active authorization
 - Agent 投影双轴:lifecycle 意图 `status` 枚举 `active` / `paused` / `deactivated`(仅 controller 写入)+ 派生只读 `runtime_state` 枚举 `pending_runtime_key` / `ready` / `replacing` / `pairing_expired`(`pairing_expired` 仅描述从未完成首次配对的 agent；已持钥 agent(lifecycle `active` / `paused`)均可带 open replacement handle,open handle 投影 `runtime_state=replacing`,是属性而非 lifecycle 状态)
 - Pairing expiry 仅把尚未首次配对的 agent 投影为 `runtime_state=pairing_expired`，不得创建、撤销或改写任何 Realm grant,也不得改变 lifecycle 意图；runtime replacement handle 过期无副作用,runtime_state 回到 `ready`
@@ -652,7 +652,7 @@ MUST NOT:
 
 MUST 支持:
 - Effective permission rule:`controller-approved grant AND controller's own delegable authority AND Realm policy AND resource selector / constraints AND agent key scope AND requested session scope AND current revocation / freshness state`,默认拒绝 wildcard
-- Canonical constraint vocabulary:`allowed_tracks` / `allowed_strand_ids` / `allowed_data_classes` / `allowed_endpoints` / `rate_limit` / `approval_required` / `controller_approval_required` / `accountability_required`
+- Canonical constraint vocabulary:`allowed_tracks` / `allowed_strand_ids` / `allowed_data_labels` / `allowed_endpoints` / `rate_limit` / `approval_required` / `controller_approval_required` / `accountability_required`
 - Reply-as-agent 与 act-on-behalf wire(`actor_id` / `executed_by` / `authorization_ref`)与双重署名渲染
 - act-on-behalf 默认 fresh approval 粒度 `(action, target_strand)` + 短期 temporal window
 - Realm policy 必须能分别控制 native personal agent 与 Applet / Ghost Actor
@@ -704,7 +704,7 @@ MUST 支持:
 - `ak.self.agent.participation.resource.get`
 - deployment ⊇ Realm ⊇ Circle ⊇ Strand 的 tighten-only ceiling 校验
 - effective participation = provision-derived global ceiling ∩ deployment/Realm/Circle/Strand governance ceiling ∩ controller selection；`reply` 要求 provision actions 同时含 `ak.message.create` 与 `ak.reaction.add`，`accept_third_party_mention` 要求 `ak.event.read`，`act_on_behalf` 要求 `ak.message.create` 加适用的 controller approval / accountability constraints
-- provision-derived participation ceiling MUST 从完整 `requested_scope` 现场派生，不得由调用方直接提供预计算三位；缺 `ak.reaction.add` 时 `reply=false`，缺适用于 `ak.message.create` 的 `claim_based{subtype=approval|accountability}` mandatory constraint 时 `act_on_behalf=false`
+- provision-derived participation ceiling MUST 从完整 `requested_scope` 现场派生，不得由调用方直接提供预计算三位；缺 `ak.reaction.add` 时 `reply=false`，缺适用于 `ak.message.create` 的 `claim_based{constraint_subkind=approval|accountability}` mandatory constraint 时 `act_on_behalf=false`
 - 第三方 mention gate：`accept_third_party_mention=false` 时不得向该 agent 派生 mention notification、inbox row、push wakeup 或 agent subscribe 投影；gate 在 message event fanout 时一次性求值，participation 之后翻转不追溯补发或撤销既有派生（[strand-and-message.md §9.4.5](../models/strand-and-message.md)）
 - `scope_details.participation[]` session overlay，形态与 `agent-operations.schema.json#/$defs/agent_participation_entry` 对齐
 
@@ -805,7 +805,7 @@ MUST 支持：
 - TURN shared secret 周期轮换（默认 ≤ 24 小时）；轮换时同时接受新旧 secret，grace ≥ `ttl_seconds`，避免 in-call 集体失败。
 - in-call credential refresh：客户端在剩余有效期 ≤ `ttl_seconds * 0.25` 时调用 refresh；server 必须在不中断现有 allocation 的前提下下发新 credential。
 - `turn_credential_expired` / `441 Wrong Credentials` / `438 Stale Nonce` 等错误的 `next_retry_at` 响应。
-- 高隐私 Realm 的 `force_turn=true` mode（禁止 host/srflx candidate 泄露 IP）。
+- 高隐私 Realm 的 `turn_required=true` mode（禁止 host/srflx candidate 泄露 IP）。
 - ICE config 响应签名（service DID detached signature 或 authenticated TLS + service DID 绑定）。
 
 MUST NOT：
@@ -916,7 +916,7 @@ MIMI Interop profile MUST 额外提供：
 ```json
 {
   "service_id": "did:webvh:z6h868X7rdVapSQTt7ehsQB8v:server.example.com",
-  "service_type": "principal_server",
+  "service_kind": "principal_server",
   "protocol_version": "1.0",
   "supported_profiles": [
     "ak.profile.principal_server.v1"

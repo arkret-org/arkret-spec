@@ -3,7 +3,7 @@
   "source_of_truth": false,
   "generated_at": "2026-07-20T00:00:00Z",
   "generated_from": [
-    "registry/contract-catalog.json",
+    "registry/contract-registry.json",
     "schemas/*.schema.json"
   ],
   "generated_by": "tools/artifact_pipeline.py",
@@ -1105,13 +1105,13 @@
         "required": [
           "protocol",
           "display_name",
-          "field_types"
+          "field_definitions"
         ],
         "properties": [
           "protocol",
           "display_name",
           "icon_blob_ref",
-          "field_types",
+          "field_definitions",
           "instances"
         ],
         "closed": true
@@ -1659,25 +1659,25 @@
         "required": [
           "schema",
           "subject_id",
-          "allowed_introduction_kinds",
+          "holder_allowed_introduction_kinds",
           "explicit_address_behavior",
           "unknown_invites"
         ],
         "properties": [
           "schema",
           "subject_id",
-          "allowed_introduction_kinds",
+          "holder_allowed_introduction_kinds",
           "explicit_address_behavior",
           "handle_claim_behavior",
           "unknown_invites",
           "allowed_handle_domains",
-          "blocked_handle_domains",
+          "denied_handle_domains",
           "trusted_handle_issuers",
           "trusted_directory_services",
           "trusted_realm_ids",
           "trusted_principal_services",
-          "blocked_principal_services",
-          "blocked_subjects",
+          "denied_principal_services",
+          "denied_subjects",
           "disclosure"
         ],
         "closed": true
@@ -1692,25 +1692,25 @@
         "required": [
           "schema",
           "subject_id",
-          "allowed_introduction_kinds",
+          "holder_allowed_introduction_kinds",
           "explicit_address_behavior",
           "unknown_invites"
         ],
         "properties": [
           "schema",
           "subject_id",
-          "allowed_introduction_kinds",
+          "holder_allowed_introduction_kinds",
           "explicit_address_behavior",
           "handle_claim_behavior",
           "unknown_invites",
           "allowed_handle_domains",
-          "blocked_handle_domains",
+          "denied_handle_domains",
           "trusted_handle_issuers",
           "trusted_directory_services",
           "trusted_realm_ids",
           "trusted_principal_services",
-          "blocked_principal_services",
-          "blocked_subjects",
+          "denied_principal_services",
+          "denied_subjects",
           "disclosure"
         ],
         "closed": true
@@ -1721,25 +1721,25 @@
         "required": [
           "schema",
           "subject_id",
-          "allowed_introduction_kinds",
+          "holder_allowed_introduction_kinds",
           "explicit_address_behavior",
           "unknown_invites"
         ],
         "properties": [
           "schema",
           "subject_id",
-          "allowed_introduction_kinds",
+          "holder_allowed_introduction_kinds",
           "explicit_address_behavior",
           "handle_claim_behavior",
           "unknown_invites",
           "allowed_handle_domains",
-          "blocked_handle_domains",
+          "denied_handle_domains",
           "trusted_handle_issuers",
           "trusted_directory_services",
           "trusted_realm_ids",
           "trusted_principal_services",
-          "blocked_principal_services",
-          "blocked_subjects",
+          "denied_principal_services",
+          "denied_subjects",
           "disclosure"
         ],
         "closed": true
@@ -3475,7 +3475,7 @@
           "timeout_ms",
           "strand_id",
           "pair_key",
-          "allow_last_resort",
+          "last_resort_allowed",
           "requester_authorization",
           "requester_signing_key_evidence"
         ],
@@ -3645,7 +3645,7 @@
         "schema_kind": "object",
         "required": [
           "focus_id",
-          "type",
+          "backend_kind",
           "connect_url",
           "backend_token",
           "participant_identity",
@@ -3655,13 +3655,13 @@
         ],
         "properties": [
           "focus_id",
-          "type",
           "connect_url",
           "backend_token",
           "participant_identity",
           "participant_binding",
           "expires_at",
-          "service_signature"
+          "service_signature",
+          "backend_kind"
         ],
         "closed": true
       }
@@ -3791,13 +3791,13 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationEnsureRequestBody",
         "schema_kind": "object",
         "required": [
-          "service_type",
+          "service_kind",
           "public_base",
           "inception_operation",
           "idempotency_key"
         ],
         "properties": [
-          "service_type",
+          "service_kind",
           "public_base",
           "inception_operation",
           "idempotency_key",
@@ -4213,7 +4213,7 @@
         "required": [
           "backup_id",
           "actor_id",
-          "backup_class",
+          "backup_kind",
           "backup_version",
           "series_id",
           "series_seq",
@@ -4229,7 +4229,7 @@
           "backup_id",
           "actor_id",
           "device_id",
-          "backup_class",
+          "backup_kind",
           "mixed_secret_storage",
           "backup_version",
           "series_id",
@@ -4288,7 +4288,7 @@
         "required": [
           "backup_id",
           "actor_id",
-          "backup_class",
+          "backup_kind",
           "backup_version",
           "series_id",
           "series_seq",
@@ -4304,7 +4304,7 @@
           "backup_id",
           "actor_id",
           "device_id",
-          "backup_class",
+          "backup_kind",
           "mixed_secret_storage",
           "backup_version",
           "series_id",
@@ -4619,7 +4619,7 @@
           "issued_at_bucket",
           "bucket_seconds",
           "expires_at",
-          "force_turn",
+          "turn_required",
           "constraints",
           "next_retry_at",
           "signature"
@@ -4883,7 +4883,7 @@
           "schema",
           "subject_id",
           "recipient_service_id",
-          "recipient_service_type",
+          "recipient_service_kind",
           "issued_at",
           "expires_at",
           "locator_ref_digest",
@@ -5754,7 +5754,7 @@
           "organization_policy_layers",
           "realm_policy",
           "effective_rules",
-          "override_requires_organization_approval"
+          "override_organization_approval_required"
         ],
         "closed": false
       }
@@ -6138,12 +6138,12 @@
         "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry",
         "schema_kind": "object",
         "required": [
-          "data_type",
+          "account_data_key",
           "content",
           "updated_at"
         ],
         "properties": [
-          "data_type",
+          "account_data_key",
           "content",
           "updated_at"
         ],
@@ -6168,12 +6168,12 @@
         "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry",
         "schema_kind": "object",
         "required": [
-          "data_type",
+          "account_data_key",
           "content",
           "updated_at"
         ],
         "properties": [
-          "data_type",
+          "account_data_key",
           "content",
           "updated_at"
         ],
@@ -6188,11 +6188,11 @@
         "schema_kind": "object",
         "required": [
           "ok",
-          "data_type"
+          "account_data_key"
         ],
         "properties": [
           "ok",
-          "data_type"
+          "account_data_key"
         ],
         "closed": true
       }

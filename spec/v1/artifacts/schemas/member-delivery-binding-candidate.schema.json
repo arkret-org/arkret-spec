@@ -45,7 +45,7 @@
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
         },
-        "recipient_service_type": {
+        "recipient_service_kind": {
           "const": "principal_server"
         },
         "binding_source": {

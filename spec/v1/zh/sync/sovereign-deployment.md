@@ -226,7 +226,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
       "federation_policy": "restricted",
       "notary_profile": "single_did",
       "notary": {
-        "type": "single_did",
+        "kind": "single_did",
         "did": "did:webvh:zCnzAMiBV2XXjoWzmojUF2YbL:server.defense.example"
       },
       "revocation_freshness_window_ms": 86400000,
@@ -275,7 +275,7 @@ Sovereign 部署默认采用 **single_did Notary profile**：每个 Realm 由组
 
 ```json
 {
-  "claim_type": "external_org_authorization",
+  "claim_kind": "external_org_authorization",
   "issuer": "did:webvh:zGsmzvyUSDby8As5bHG3kAtWL:defense.example",
   "subject": "did:webvh:zGTog8Hi4N3h8YrvWRQ2Lr3RP:contractor.example",
   "claim_scope": {
@@ -322,7 +322,7 @@ Sovereign deployment 下的 External Collaboration Realm SHOULD 默认：
 
 - `via_applet_id`
 - `allowed_protocols`
-- `allowed_data_classes`
+- `allowed_data_labels`
 - `human_approval_required`
 - `audit_mode`
 - `egress_policy`

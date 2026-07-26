@@ -10,7 +10,7 @@
  *   matching public catalog snapshot to be byte-identical to the canonical
  *   registry catalog.
  *
- * Anything that lives inside `contract-catalog.json` (catalog version,
+ * Anything that lives inside `contract-registry.json` (catalog version,
  * registry counts, ...) stays in `lib/artifacts.ts`; this file is for
  * meta that no machine artifact owns.
  */
@@ -28,7 +28,7 @@ export function specFileUrl(relPath: string): string {
  * The current v1 publication state shown by the site.
  *
  * Keep the pre-release suffix until the stable promotion gate passes. The published
- * `site/public/v1/contract-catalog-<version>.json` snapshot is generated from
+ * `site/public/v1/contract-registry-<version>.json` snapshot is generated from
  * this tag at build time (scripts/gen-public-catalog.mjs) and is not committed.
  */
 export const specReleaseTag = "v1.0.0-candidate";

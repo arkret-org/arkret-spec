@@ -15,7 +15,7 @@ sidebar:
 
 ## 1. 范围与定位
 
-本附录定义 `ak.realm.media_service.foci[].type = "arkret-native"` 的 backend binding，承载 Arkret 自定义信令，作为：
+本附录定义 `ak.realm.media_service.foci[].type = "arkret_native"` 的 backend binding，承载 Arkret 自定义信令，作为：
 
 1. **Reference impl**：协议自洽性测试与教学用途；
 2. **Conformance baseline**：不依赖任何外部 backend SDK 即可跑完 binding-framework 全套 vector。
@@ -134,6 +134,6 @@ Arkret-native reference impl **不实现** SFU-to-SFU cascading；同一 `cascad
 实现声明 `ak.profile.media_service_binding.arkret_native.v1` 时，至少通过：
 
 - 上游 `ak.profile.media_service_binding.v1` 的 9 个核心 vector（focus_selection / session_focus / token_exchange / token_issuer_unauthorised / participant_binding / unknown_type / e2ee_key_source / participant_identity / recording_artifact）。
-- arkret-native-specific：实现自由附加，但 wire 不得引入 v1 周期内 unregistered 字段。
+- arkret_native-specific：实现自由附加，但 wire 不得引入 v1 周期内 unregistered 字段。
 
 具体向量编排见 [`../../../artifacts/registry/vector-registry.json`](../../../artifacts/registry/vector-registry.json)。

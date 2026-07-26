@@ -96,7 +96,7 @@
       "name": "applet_does_not_enter_agent_regime",
       "expected": "rejected",
       "reason": "signer_regime_mismatch",
-      "verified_principal_type": "integration",
+      "actor_kind": "integration",
       "proof_verification_method": "did:webvh:z6mkapplet:applet.example#service-key"
     },
     {
@@ -240,12 +240,12 @@
       "name": "unknown_principal_does_not_enter_agent_regime",
       "expected": "rejected",
       "reason": "signer_regime_mismatch",
-      "verified_principal_type": "unknown"
+      "actor_kind": "unknown"
     },
     {
       "name": "ordinary_device_does_not_enter_agent_regime",
       "expected": "verified_by_device_directory_only",
-      "verified_principal_type": "device",
+      "actor_kind": "device",
       "agent_evidence_queries": 0
     }
   ]

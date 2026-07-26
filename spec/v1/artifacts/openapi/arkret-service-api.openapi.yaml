@@ -3,9 +3,9 @@ info:
   title: Arkret Service API
   version: 1.0.0
   summary: Canonical Arkret service surface and admin/account bindings
-  description: 'Authoritative source for operations and error codes is the contract catalog at
+  description: 'Authoritative source for operations and error codes is the contract registry at
 
-    `artifacts/registry/contract-catalog.json` and the error registry at
+    `artifacts/registry/contract-registry.json` and the error registry at
 
     `artifacts/registry/error-code-registry.json`.
 
@@ -275,12 +275,12 @@ components:
   schemas:
     AccountDataDeleteOutcome:
       $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome
-    AccountDataEntry:
-      $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_entry
     AccountDataList:
       $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_list
     AccountDataReplaceRequestBody:
       $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_replace_request_body
+    AccountDataRow:
+      $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_entry
     AccountDeviceEnrollOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome
     AccountDeviceEnrollRequestBody:
@@ -333,7 +333,7 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body
     AgentGrantDetachOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome
-    AgentHumanApprovalErrorDetails:
+    AgentHumanApprovalProblem:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_human_approval_error_details
     AgentKeyPairOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome
@@ -381,7 +381,7 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_view
     AgentSignerEvidenceQueryOutcome:
       $ref: ../schemas/agent-signer-evidence-operations.schema.json#/$defs/query_outcome
-    AgentSignerEvidenceQueryRequest:
+    AgentSignerEvidenceQueryRequestBodyBody:
       $ref: ../schemas/agent-signer-evidence-operations.schema.json#/$defs/query_request
     AgentView:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_view
@@ -605,7 +605,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/ProjectionItem'
+            $ref: '#/components/schemas/ProjectionRow'
         next_cursor:
           oneOf:
           - type: string
@@ -639,7 +639,7 @@ components:
               type: array
               items:
                 allOf:
-                - $ref: '#/components/schemas/ProjectionItem'
+                - $ref: '#/components/schemas/ProjectionRow'
                 - type: object
                   required:
                   - position
@@ -662,7 +662,7 @@ components:
               type: array
               items:
                 allOf:
-                - $ref: '#/components/schemas/ProjectionItem'
+                - $ref: '#/components/schemas/ProjectionRow'
                 - type: object
                   required:
                   - position
@@ -685,7 +685,7 @@ components:
               type: array
               items:
                 allOf:
-                - $ref: '#/components/schemas/ProjectionItem'
+                - $ref: '#/components/schemas/ProjectionRow'
                 - type: object
                   required:
                   - position
@@ -708,7 +708,7 @@ components:
               type: array
               items:
                 allOf:
-                - $ref: '#/components/schemas/ProjectionItem'
+                - $ref: '#/components/schemas/ProjectionRow'
                 - type: object
                   required:
                   - position
@@ -1245,7 +1245,7 @@ components:
               - session_revoke_selector_conflict
               - not_member
               - morph_profile_widens_schema_ref
-              - morph_type_immutable
+              - morph_kind_immutable
               - applet_already_registered
               - applet_effective_scope_mismatch
               - applet_install_projection_incomplete
@@ -1313,8 +1313,8 @@ components:
     EventId:
       type: string
       pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-    EventsActorCasConflictDetails:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsActorCasConflictDetails
+    EventsActorCasConflictProblem:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsActorCasConflictProblem
     EventsFrontierAccountClientState:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierAccountClientState
     EventsFrontierFederationPeerState:
@@ -1595,7 +1595,7 @@ components:
       - realm_policy_digest
       - membership_frontier
       - delivery_binding_frontier
-      - destination_service_type
+      - destination_service_kind
       - reducer_profile_digest
       properties:
         realm_id:
@@ -1617,7 +1617,7 @@ components:
         delivery_binding_diagnostics:
           type: object
           additionalProperties: true
-        destination_service_type:
+        destination_service_kind:
           type: string
           minLength: 1
         reducer_profile_digest:
@@ -1740,7 +1740,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/ProjectionItem'
+            $ref: '#/components/schemas/ProjectionRow'
         next_cursor:
           type: string
         frontier:
@@ -1748,7 +1748,7 @@ components:
       additionalProperties: false
     InviteDeliveryOutcome:
       $ref: ../schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome
-    InviteDeliveryRequest:
+    InviteDeliveryRequestBodyBody:
       $ref: ../schemas/invite-delivery-request.schema.json
     InviteLocatorIssueOutcome:
       $ref: ../schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome
@@ -1764,7 +1764,7 @@ components:
       $ref: ../schemas/invite-receive-policy.schema.json
     JoinApplicationAuditOutcome:
       $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_audit_outcome
-    JoinApplicationCancelRequest:
+    JoinApplicationCancelRequestBodyBody:
       $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_cancel_request
     JoinApplicationGetOutcome:
       $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_get_outcome
@@ -1772,9 +1772,9 @@ components:
       $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_list_outcome
     JoinApplicationMutationOutcome:
       $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome
-    JoinApplicationReviewRequest:
+    JoinApplicationReviewRequestBodyBody:
       $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_review_request
-    JoinApplicationSubmitRequest:
+    JoinApplicationSubmitRequestBodyBody:
       $ref: ../schemas/join-policy-operations.schema.json#/$defs/application_submit_request
     KeyPackagesClaimOutcome:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_outcome
@@ -1858,7 +1858,7 @@ components:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body
     MlsGovernanceProofBundle:
       $ref: ../schemas/mls-governance-proof-bundle.schema.json
-    MlsGovernanceProofRequest:
+    MlsGovernanceProofRequestBodyBody:
       $ref: ../schemas/mls-governance-proof-bundle.schema.json#/$defs/proof_request
     ModerationQueueView:
       type: object
@@ -1976,41 +1976,6 @@ components:
           type: string
           pattern: ^did:[a-z0-9]+:[^\s#?]+$
       description: Read-model edge backing a Strand assigned_to Relation. relation_id is needed by clients to tombstone the assignment; actor_id mirrors the Relation to_ref.
-    ProjectionItem:
-      type: object
-      required:
-      - object
-      properties:
-        object:
-          $ref: '#/components/schemas/ProjectionObject'
-        render:
-          type: string
-          enum:
-          - card
-          - row
-          - tile
-          - compact
-          - badge
-          - message
-        display:
-          type: object
-        position:
-          oneOf:
-          - $ref: '#/components/schemas/CollectionFieldValuePosition'
-          - $ref: '#/components/schemas/CollectionRelationPosition'
-          - $ref: '#/components/schemas/CollectionTimeWindowPosition'
-          - $ref: '#/components/schemas/CollectionCrosstabPosition'
-          - type: object
-            required:
-            - sort_key
-            properties:
-              sort_key:
-                type: string
-                minLength: 1
-            additionalProperties: false
-        state:
-          type: object
-      additionalProperties: false
     ProjectionMorphList:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList
     ProjectionMorphRow:
@@ -2019,7 +1984,7 @@ components:
       required:
       - morph_id
       - realm_id
-      - morph_type
+      - morph_kind
       - state
       properties:
         morph_id:
@@ -2028,7 +1993,7 @@ components:
         realm_id:
           type: string
           pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        morph_type:
+        morph_kind:
           type: string
         state:
           type: string
@@ -2068,7 +2033,7 @@ components:
           - strand
           - message
           - morph
-        morph_type:
+        morph_kind:
           type: string
         facets:
           type: array
@@ -2078,6 +2043,41 @@ components:
         title:
           type: string
         fields:
+          type: object
+      additionalProperties: false
+    ProjectionRow:
+      type: object
+      required:
+      - object
+      properties:
+        object:
+          $ref: '#/components/schemas/ProjectionObject'
+        render:
+          type: string
+          enum:
+          - card
+          - row
+          - tile
+          - compact
+          - badge
+          - message
+        display:
+          type: object
+        position:
+          oneOf:
+          - $ref: '#/components/schemas/CollectionFieldValuePosition'
+          - $ref: '#/components/schemas/CollectionRelationPosition'
+          - $ref: '#/components/schemas/CollectionTimeWindowPosition'
+          - $ref: '#/components/schemas/CollectionCrosstabPosition'
+          - type: object
+            required:
+            - sort_key
+            properties:
+              sort_key:
+                type: string
+                minLength: 1
+            additionalProperties: false
+        state:
           type: object
       additionalProperties: false
     ProjectionSpaceList:
@@ -2354,7 +2354,7 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/RealmSealFrontierView
     RealmTombstonePayload:
       $ref: ../schemas/event-payload.schema.json#/$defs/realm_tombstone_payload
-    ReferenceProjectionStatus:
+    ReferenceProjectionState:
       type: string
       description: Projection-only status for cross-Realm references. It maps Relation/View/Space hierarchy responses to accessible, lazy link, or locked anti-enumeration stubs.
       enum:
@@ -2408,7 +2408,7 @@ components:
         rule from `zh/overview/architecture.md` §2.3.
       required:
       - protocol_version
-      - service_type
+      - service_kind
       - service_id
       - trust_domain
       - supported_profiles
@@ -2432,7 +2432,7 @@ components:
       properties:
         protocol_version:
           type: string
-        service_type:
+        service_kind:
           type: string
           enum:
           - agent_runtime
@@ -2700,12 +2700,12 @@ components:
               type: boolean
             redirect_recheck:
               type: boolean
-        resource_types:
+        resource_kinds:
           type: array
           description: |
             Directory-service resource classes indexed by
             `ak.find.directory.query.describe`. Required when
-            `service_type=directory_service`.
+            `service_kind=directory_service`.
           items:
             type: string
             enum:
@@ -2719,7 +2719,7 @@ components:
           description: |
             Directory discovery profiles and extension profile ids advertised by
             `ak.find.directory.query.describe`. Required when
-            `service_type=directory_service`.
+            `service_kind=directory_service`.
           items:
             type: string
         private_contact_discovery:
@@ -2966,13 +2966,13 @@ components:
           type: string
           pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         edge_status:
-          $ref: '#/components/schemas/SpaceHierarchyEdgeStatus'
+          $ref: '#/components/schemas/SpaceHierarchyEdgeState'
         accessible:
           type: boolean
         lazy_link:
           type: boolean
         reference_projection_status:
-          $ref: '#/components/schemas/ReferenceProjectionStatus'
+          $ref: '#/components/schemas/ReferenceProjectionState'
         summary:
           type: object
       additionalProperties: false
@@ -2990,11 +2990,11 @@ components:
           type: string
           pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         edge_status:
-          $ref: '#/components/schemas/SpaceHierarchyEdgeStatus'
+          $ref: '#/components/schemas/SpaceHierarchyEdgeState'
         relation_kind:
           type: string
       additionalProperties: false
-    SpaceHierarchyEdgeStatus:
+    SpaceHierarchyEdgeState:
       type: string
       description: Derived status of a parent-child hierarchy edge.
       enum:
@@ -3101,7 +3101,7 @@ components:
         entries:
           type: array
           items:
-            $ref: '#/components/schemas/TimelineProjectionEntry'
+            $ref: '#/components/schemas/TimelineProjectionRow'
         messages:
           type: array
           items:
@@ -3114,7 +3114,7 @@ components:
     StrandId:
       type: string
       pattern: ^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-    TimelineProjectionEntry:
+    TimelineProjectionRow:
       type: object
       required:
       - id
@@ -3176,7 +3176,7 @@ components:
         entries:
           type: array
           items:
-            $ref: '#/components/schemas/TimelineProjectionEntry'
+            $ref: '#/components/schemas/TimelineProjectionRow'
         next_cursor:
           oneOf:
           - type: string
@@ -3368,7 +3368,7 @@ paths:
       operationId: ak.server.query.describe
       security: []
       parameters:
-      - name: service_type
+      - name: service_kind
         in: query
         required: false
         description: >-
@@ -3377,7 +3377,7 @@ paths:
           exactly the selected role. Omission on a multi-role binding returns
           missing_param; an illegal or unavailable role returns invalid_param.
         schema:
-          $ref: '#/components/schemas/ServiceDescribe/properties/service_type'
+          $ref: '#/components/schemas/ServiceDescribe/properties/service_kind'
       responses:
         '200':
           description: Service description
@@ -3388,7 +3388,7 @@ paths:
         '400':
           description: >-
             missing_param when a shared multi-role binding requires
-            service_type; invalid_param for an illegal or unavailable role.
+            service_kind; invalid_param for an illegal or unavailable role.
         '404':
           $ref: '#/components/responses/NotFound'
         '405':
@@ -3528,7 +3528,7 @@ paths:
         sourceServiceId: []
         destinationServiceId: []
       parameters:
-      - name: service_type
+      - name: service_kind
         in: query
         required: true
         schema:
@@ -4086,7 +4086,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MlsGovernanceProofRequest'
+              $ref: '#/components/schemas/MlsGovernanceProofRequestBodyBody'
       responses:
         '200':
           description: One bounded, manifest-committed accepted-Seal governance proof chunk
@@ -4336,7 +4336,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/InviteDeliveryRequest'
+              $ref: '#/components/schemas/InviteDeliveryRequestBodyBody'
       responses:
         '200':
           description: Generic invite delivery receive outcome.
@@ -4507,7 +4507,7 @@ paths:
         joining a focus declared in `ak.realm.media_service.foci[]`.
 
         Same wire across all backend types (livekit / mediasoup / janus /
-        arkret-native); only `backend_token` shape is type-specific and opaque
+        arkret_native); only `backend_token` shape is type-specific and opaque
         to the protocol layer (parsed by backend SDK only).
 
         Token issuer MUST be one of the Realm-authorized media service DIDs;
@@ -5059,7 +5059,7 @@ paths:
       summary: Replace the authenticated subject's invite-receive policy.
       description: |
         The request body MUST set subject_id equal to the session actor. The
-        override shares the same store as the blocked_subjects written by
+        override shares the same store as the denied_subjects written by
         ak.self.contact.command.tombstone(block_peer).
       requestBody:
         required: true
@@ -5416,7 +5416,7 @@ paths:
       summary: Read a single document Morph projection.
       description: |
         Optional extension read surface for a single Morph with
-        morph_type=document. Returns authorized body, versions, relations,
+        morph_kind=document. Returns authorized body, versions, relations,
         comments, and cursor-presence read-model data. Canonical truth remains
         the accepted Morph, Relation, Message, and cursor Event history.
       parameters:
@@ -5942,7 +5942,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentSignerEvidenceQueryRequest'
+              $ref: '#/components/schemas/AgentSignerEvidenceQueryRequestBodyBody'
   /_arkret/self/keys/keypackages/upload:
     post:
       operationId: ak.self.keys.keypackages.upload.create
@@ -6116,7 +6116,7 @@ paths:
           type: string
           pattern: ^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       - in: query
-        name: backup_class
+        name: backup_kind
         required: false
         description: Filter by key-backup class.
         schema:
@@ -7673,7 +7673,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/JoinApplicationSubmitRequest'
+              $ref: '#/components/schemas/JoinApplicationSubmitRequestBodyBody'
       responses:
         '200':
           description: Application receipt durably accepted or replayed.
@@ -7766,7 +7766,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/JoinApplicationReviewRequest'
+              $ref: '#/components/schemas/JoinApplicationReviewRequestBodyBody'
       responses:
         '200':
           description: Review receipt durably accepted or replayed.
@@ -7804,7 +7804,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/JoinApplicationCancelRequest'
+              $ref: '#/components/schemas/JoinApplicationCancelRequestBodyBody'
       responses:
         '200':
           description: Cancellation receipt durably accepted or replayed.
@@ -7968,7 +7968,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AccountDataList'
-  /_arkret/self/account_data/{data_type}:
+  /_arkret/self/account_data/{account_data_key}:
     get:
       operationId: ak.self.account_data.resource.get
       security:
@@ -7976,7 +7976,7 @@ paths:
       summary: Read one account_data entry.
       parameters:
       - in: path
-        name: data_type
+        name: account_data_key
         required: true
         schema:
           type: string
@@ -7986,7 +7986,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountDataEntry'
+                $ref: '#/components/schemas/AccountDataRow'
     put:
       operationId: ak.self.account_data.resource.replace
       security:
@@ -7994,7 +7994,7 @@ paths:
       summary: Set an account_data entry.
       parameters:
       - in: path
-        name: data_type
+        name: account_data_key
         required: true
         schema:
           type: string
@@ -8010,7 +8010,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountDataEntry'
+                $ref: '#/components/schemas/AccountDataRow'
     delete:
       operationId: ak.self.account_data.resource.delete
       security:
@@ -8018,7 +8018,7 @@ paths:
       summary: Delete an account_data entry.
       parameters:
       - in: path
-        name: data_type
+        name: account_data_key
         required: true
         schema:
           type: string
@@ -8269,7 +8269,7 @@ paths:
                         code:
                           const: claim_required
                         details:
-                          $ref: '#/components/schemas/AgentHumanApprovalErrorDetails'
+                          $ref: '#/components/schemas/AgentHumanApprovalProblem'
       requestBody:
         required: true
         content:

@@ -17,7 +17,7 @@
         "device_id"
       ],
       "context_encoding": "canonical JSON (RFC 8785 JCS) bytes of the context_fields object {realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}; empty or epoch-only Context MUST fail closed",
-      "output_length": 32,
+      "output_bytes": 32,
       "applies_to_profiles": [
         "ak.profile.media_service_binding.v1"
       ],
@@ -43,7 +43,7 @@
         "recording_start_event_id"
       ],
       "context_encoding": "canonical JSON (RFC 8785 JCS) bytes of the context_fields object {realm_id, call_id, focus_id, recording_id, media_service_id, recording_start_event_id}; empty Context MUST fail closed",
-      "output_length": 32,
+      "output_bytes": 32,
       "applies_to_profiles": [
         "ak.profile.media_service_binding.v1"
       ],
@@ -69,7 +69,7 @@
         "transcript_start_event_id"
       ],
       "context_encoding": "canonical JSON (RFC 8785 JCS) bytes of the context_fields object {realm_id, call_id, focus_id, recording_id, media_service_id, transcript_start_event_id}; empty Context MUST fail closed",
-      "output_length": 32,
+      "output_bytes": 32,
       "applies_to_profiles": [
         "ak.profile.media_service_binding.v1"
       ],
@@ -90,7 +90,7 @@
         "realm_id"
       ],
       "context_encoding": "realm_id UTF-8 bytes exactly as serialized in the enclosing Realm id string",
-      "output_length": 32,
+      "output_bytes": 32,
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1",
         "ak.profile.mls.minimal_metadata_realm.v1"
@@ -111,7 +111,7 @@
         "realm_id"
       ],
       "context_encoding": "realm_id UTF-8 bytes exactly as serialized in the enclosing Realm id string",
-      "output_length": 32,
+      "output_bytes": 32,
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1"
       ],
@@ -135,7 +135,7 @@
         "aead_profile"
       ],
       "context_encoding": "canonical-bytes of the JSON object {\"key_ref\", \"epoch\", \"device_id\", \"purpose\", \"aead_profile\"} (not a bare string)",
-      "output_length": "N_AEAD - 8 (16 for XChaCha20-Poly1305, 4 for AES-GCM)",
+      "output_bytes": "N_AEAD - 8 (16 for XChaCha20-Poly1305, 4 for AES-GCM)",
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1"
       ],
@@ -147,13 +147,13 @@
     {
       "label": "ak.history-v1",
       "primitive": "MLS-Exporter",
-      "purpose": "Per-epoch history_secret root for mls-exporter-aead-v1 content encryption; may be retained and re-sealed to authorized later joiners via ak.realm_key.share",
+      "purpose": "Per-epoch history_secret root for mls_exporter_aead_v1 content encryption; may be retained and re-sealed to authorized later joiners via ak.realm_key.share",
       "defined_in": "zh/crypto-media/encryption-and-audit.md §2.10.1",
       "context_fields": [
         "realm_id"
       ],
       "context_encoding": "realm_id UTF-8 bytes exactly as serialized in the enclosing Realm id string",
-      "output_length": "KDF.Nh for the active MLS ciphersuite",
+      "output_bytes": "KDF.Nh for the active MLS ciphersuite",
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1"
       ],
@@ -171,11 +171,11 @@
       "label": "ak.content-v1",
       "primitive": "ExpandWithLabel",
       "parent_label": "ak.history-v1",
-      "purpose": "Per-epoch content AEAD key derived from history_secret for mls-exporter-aead-v1",
+      "purpose": "Per-epoch content AEAD key derived from history_secret for mls_exporter_aead_v1",
       "defined_in": "zh/crypto-media/encryption-and-audit.md §2.10.1",
       "context_fields": [],
       "context_encoding": "empty byte string, exactly as specified by the registered ExpandWithLabel derivation",
-      "output_length": "AEAD.Nk for the active MLS ciphersuite",
+      "output_bytes": "AEAD.Nk for the active MLS ciphersuite",
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1"
       ],

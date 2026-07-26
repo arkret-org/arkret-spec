@@ -3,7 +3,7 @@
   "source_of_truth": false,
   "generated_at": "2026-07-20T00:00:00Z",
   "generated_from": [
-    "registry/contract-catalog.json",
+    "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
   ],
   "generated_by": "tools/gen_operation_completeness_report.py",
@@ -26,7 +26,7 @@
       "streaming_frame_schema": 2,
       "typed_schema": 190
     },
-    "by_tier_and_class": {
+    "by_surface_class_and_completeness_class": {
       "core": {
         "service_describe": 4,
         "streaming_frame_schema": 2,
@@ -50,7 +50,7 @@
   "operations": [
     {
       "operation_id": "ak.edge.applet.actor.query.resolve",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "GET /_arkret/edge/applet/actors/{actor_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -63,7 +63,7 @@
     },
     {
       "operation_id": "ak.edge.applet.command.transaction",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "POST /_arkret/edge/applet/transactions",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
@@ -77,7 +77,7 @@
     },
     {
       "operation_id": "ak.edge.applet.query.describe",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "GET /_arkret/edge/applet/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
@@ -90,7 +90,7 @@
     },
     {
       "operation_id": "ak.edge.applet.query.ping",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "GET /_arkret/edge/applet/ping",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -103,7 +103,7 @@
     },
     {
       "operation_id": "ak.edge.applet.query.protocol_metadata",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "GET /_arkret/edge/applet/protocols/{protocol}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -116,7 +116,7 @@
     },
     {
       "operation_id": "ak.edge.applet.realm.query.resolve",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "GET /_arkret/edge/applet/realms/{realm_id_or_alias}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -129,7 +129,7 @@
     },
     {
       "operation_id": "ak.edge.applet.third_party_locations.query.list",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "GET /_arkret/edge/applet/third_party/locations",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -142,7 +142,7 @@
     },
     {
       "operation_id": "ak.edge.applet.third_party_users.query.list",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "GET /_arkret/edge/applet/third_party/users",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -155,7 +155,7 @@
     },
     {
       "operation_id": "ak.edge.push.command.notify",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/edge/push/notify",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_request_body",
@@ -169,7 +169,7 @@
     },
     {
       "operation_id": "ak.edge.push.command.register_device",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/edge/push/register-device",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_request_body",
@@ -183,7 +183,7 @@
     },
     {
       "operation_id": "ak.edge.push.command.unregister_device",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/edge/push/unregister-device",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body",
@@ -197,7 +197,7 @@
     },
     {
       "operation_id": "ak.find.directory.command.announce",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/find/directory/announce",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody",
@@ -211,7 +211,7 @@
     },
     {
       "operation_id": "ak.find.directory.command.takedown_appeal",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/find/directory/takedown/appeal",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody",
@@ -225,7 +225,7 @@
     },
     {
       "operation_id": "ak.find.directory.command.withdraw",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/find/directory/withdraw",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody",
@@ -239,7 +239,7 @@
     },
     {
       "operation_id": "ak.find.directory.push.command.register",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/find/directory/push/register",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body",
@@ -253,7 +253,7 @@
     },
     {
       "operation_id": "ak.find.directory.query.describe",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/find/directory/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
@@ -266,7 +266,7 @@
     },
     {
       "operation_id": "ak.find.directory.query.list_handles_for_subject",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/find/directory/list-handles-for-subject",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body",
@@ -280,7 +280,7 @@
     },
     {
       "operation_id": "ak.find.directory.query.private_contact_discovery",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/find/directory/private-contact-discovery",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body",
@@ -294,7 +294,7 @@
     },
     {
       "operation_id": "ak.find.directory.query.resolve_agent_selector",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/find/directory/resolve-agent-selector",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body",
@@ -308,7 +308,7 @@
     },
     {
       "operation_id": "ak.find.directory.query.resolve_handle",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/find/directory/resolve-handle",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body",
@@ -322,7 +322,7 @@
     },
     {
       "operation_id": "ak.find.directory.query.resolve_organization",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/find/directory/resolve-organization",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body",
@@ -336,7 +336,7 @@
     },
     {
       "operation_id": "ak.find.directory.query.resolve_realm",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/find/directory/resolve-realm",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body",
@@ -350,7 +350,7 @@
     },
     {
       "operation_id": "ak.find.directory.query.resolve_target",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/find/directory/resolve-target",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body",
@@ -364,7 +364,7 @@
     },
     {
       "operation_id": "ak.find.directory.query.search_actors",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/find/directory/search-actors",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_actors_request_body",
@@ -378,7 +378,7 @@
     },
     {
       "operation_id": "ak.find.directory.query.search_organizations",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/find/directory/search-organizations",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_organizations_request_body",
@@ -392,7 +392,7 @@
     },
     {
       "operation_id": "ak.find.directory.query.search_realms",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/find/directory/search-realms",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_realms_request_body",
@@ -406,7 +406,7 @@
     },
     {
       "operation_id": "ak.find.directory.query.search_users",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/find/directory/search-users",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_users_request_body",
@@ -420,7 +420,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.enroll_device",
-      "tier": "deployment_local",
+      "surface_class": "deployment_local",
       "http": "POST /_arkret/gate/account/device-enroll",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_request_body",
@@ -434,7 +434,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.introspect_session_grant",
-      "tier": "deployment_local",
+      "surface_class": "deployment_local",
       "http": "POST /_arkret/gate/account/session-grants/introspect",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody",
@@ -448,7 +448,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.issue_identity_binding_challenge",
-      "tier": "deployment_local",
+      "surface_class": "deployment_local",
       "http": "POST /_arkret/gate/account/identity-binding-challenges",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_binding_challenge_request_body",
@@ -462,7 +462,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.issue_session_grant",
-      "tier": "deployment_local",
+      "surface_class": "deployment_local",
       "http": "POST /_arkret/gate/account/session-grants",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody",
@@ -476,7 +476,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.logout",
-      "tier": "deployment_local",
+      "surface_class": "deployment_local",
       "http": "POST /_arkret/gate/account/logout",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody",
@@ -490,7 +490,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.logout_auth_session",
-      "tier": "deployment_local",
+      "surface_class": "deployment_local",
       "http": "POST /_arkret/gate/account/auth-sessions/logout",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutRequestBody",
@@ -504,7 +504,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.pair_agent_key",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/gate/account/agent-key-pair",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body",
@@ -518,7 +518,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.pair_device",
-      "tier": "deployment_local",
+      "surface_class": "deployment_local",
       "http": "POST /_arkret/gate/account/device-pair",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
@@ -532,7 +532,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.refresh_session_grant",
-      "tier": "deployment_local",
+      "surface_class": "deployment_local",
       "http": "POST /_arkret/gate/account/session-grants/refresh",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
@@ -546,7 +546,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.register",
-      "tier": "deployment_local",
+      "surface_class": "deployment_local",
       "http": "POST /_arkret/gate/account/register",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_request_body",
@@ -560,7 +560,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.revoke_session",
-      "tier": "deployment_local",
+      "surface_class": "deployment_local",
       "http": "POST /_arkret/gate/account/session-grants/revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_request_body",
@@ -574,7 +574,7 @@
     },
     {
       "operation_id": "ak.gate.account.exchange.complete_oidc",
-      "tier": "deployment_local",
+      "surface_class": "deployment_local",
       "http": "POST /_arkret/gate/account/oidc/callback",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
@@ -588,7 +588,7 @@
     },
     {
       "operation_id": "ak.gate.account.exchange.create_handoff",
-      "tier": "deployment_local",
+      "surface_class": "deployment_local",
       "http": "POST /_arkret/gate/account/authentication-handoffs",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_handoff_request_body",
@@ -602,7 +602,7 @@
     },
     {
       "operation_id": "ak.open.agent_pairing.command.submit_runtime_key_request",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/open/agent-pairing/runtime-key-requests",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body",
@@ -616,7 +616,7 @@
     },
     {
       "operation_id": "ak.open.agent_pairing.query.resolve",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/open/agent-pairing/resolve",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pairing_resolve_request_body",
@@ -630,7 +630,7 @@
     },
     {
       "operation_id": "ak.open.agent_pairing.query.runtime_key_request_status",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/open/agent-pairing/runtime-key-requests/status",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body",
@@ -644,7 +644,7 @@
     },
     {
       "operation_id": "ak.open.device_pairing.command.stage",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/open/device-pairing/requests",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_request_body",
@@ -658,7 +658,7 @@
     },
     {
       "operation_id": "ak.open.device_pairing.query.resolve",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/open/device-pairing/resolve",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_resolve_request_body",
@@ -672,7 +672,7 @@
     },
     {
       "operation_id": "ak.open.device_pairing.query.status",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/open/device-pairing/requests/status",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_request_body",
@@ -686,7 +686,7 @@
     },
     {
       "operation_id": "ak.open.invite_locator.query.resolve",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/open/invite-locators/resolve",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body",
@@ -700,7 +700,7 @@
     },
     {
       "operation_id": "ak.open.mimi.command.notify",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "POST /_arkret/open/mimi/strands/{strand_id}/notify",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_request_body",
@@ -714,7 +714,7 @@
     },
     {
       "operation_id": "ak.open.mimi.command.proxy_download",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "POST /_arkret/open/mimi/proxy-download",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_request_body",
@@ -728,7 +728,7 @@
     },
     {
       "operation_id": "ak.open.mimi.command.report_abuse",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "POST /_arkret/open/mimi/report-abuse",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body",
@@ -742,7 +742,7 @@
     },
     {
       "operation_id": "ak.open.mimi.command.request_consent",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "POST /_arkret/open/mimi/consent/request",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body",
@@ -756,7 +756,7 @@
     },
     {
       "operation_id": "ak.open.mimi.command.submit_message",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "POST /_arkret/open/mimi/strands/{strand_id}/messages",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_request_body",
@@ -770,7 +770,7 @@
     },
     {
       "operation_id": "ak.open.mimi.command.update_consent",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "POST /_arkret/open/mimi/consent/update",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body",
@@ -784,7 +784,7 @@
     },
     {
       "operation_id": "ak.open.mimi.command.update_room",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "POST /_arkret/open/mimi/strands/{strand_id}/update",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body",
@@ -798,7 +798,7 @@
     },
     {
       "operation_id": "ak.open.mimi.exchange.request_key_material",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "POST /_arkret/open/mimi/key-material",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",
@@ -812,7 +812,7 @@
     },
     {
       "operation_id": "ak.open.mimi.query.group_info",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "GET /_arkret/open/mimi/strands/{strand_id}/group-info",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -825,7 +825,7 @@
     },
     {
       "operation_id": "ak.open.mimi.query.identifiers",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "POST /_arkret/open/mimi/identifiers/query",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_request_body",
@@ -839,7 +839,7 @@
     },
     {
       "operation_id": "ak.open.mimi.query.provider_directory",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "GET /_arkret/open/mimi/provider-directory",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": null,
@@ -852,7 +852,7 @@
     },
     {
       "operation_id": "ak.peer.contacts.command.submit",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/peer/contacts",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/peer-contact-delivery-request.schema.json",
@@ -866,7 +866,7 @@
     },
     {
       "operation_id": "ak.peer.events.command.submit",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/peer/events",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody",
@@ -880,7 +880,7 @@
     },
     {
       "operation_id": "ak.peer.events.query.describe",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/peer/events/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
@@ -893,7 +893,7 @@
     },
     {
       "operation_id": "ak.peer.events.query.frontier",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/peer/events/frontier",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -906,7 +906,7 @@
     },
     {
       "operation_id": "ak.peer.events.query.resolve",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/peer/events/resolve",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
@@ -920,7 +920,7 @@
     },
     {
       "operation_id": "ak.peer.events.query.scan",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/peer/events",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -933,7 +933,7 @@
     },
     {
       "operation_id": "ak.peer.events.query.scan_body",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/peer/events/query",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
@@ -947,13 +947,13 @@
     },
     {
       "operation_id": "ak.peer.invites.command.submit",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/peer/invites",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/invite-delivery-request.schema.json",
       "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/InviteDeliveryRequest",
+        "request": "#/components/schemas/InviteDeliveryRequestBodyBody",
         "response": "#/components/schemas/InviteDeliveryOutcome"
       },
       "completeness_class": "typed_schema",
@@ -961,7 +961,7 @@
     },
     {
       "operation_id": "ak.peer.keys.keypackages.command.claim",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/peer/keys/keypackages/claim",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body",
@@ -975,7 +975,7 @@
     },
     {
       "operation_id": "ak.peer.keys.keypackages.query.claim",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/peer/keys/keypackages/claims/query",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_query_request_body",
@@ -989,7 +989,7 @@
     },
     {
       "operation_id": "ak.peer.snapshot.query.manifest_head",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/peer/snapshot/head",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": null,
@@ -1002,7 +1002,7 @@
     },
     {
       "operation_id": "ak.root.identity.command.submit_did_operation",
-      "tier": "core",
+      "surface_class": "core",
       "http": "POST /_arkret/root/identity/submit-did-operation",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody",
@@ -1016,7 +1016,7 @@
     },
     {
       "operation_id": "ak.root.identity.document.resource.get",
-      "tier": "core",
+      "surface_class": "core",
       "http": "GET /_arkret/root/identity/document",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1029,7 +1029,7 @@
     },
     {
       "operation_id": "ak.root.identity.log.query.list",
-      "tier": "core",
+      "surface_class": "core",
       "http": "GET /_arkret/root/identity/log",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1042,7 +1042,7 @@
     },
     {
       "operation_id": "ak.root.identity.query.resolve",
-      "tier": "core",
+      "surface_class": "core",
       "http": "POST /_arkret/root/identity/resolve",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequestBody",
@@ -1056,7 +1056,7 @@
     },
     {
       "operation_id": "ak.root.identity.receipts.query.list",
-      "tier": "core",
+      "surface_class": "core",
       "http": "GET /_arkret/root/identity/receipts",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1069,7 +1069,7 @@
     },
     {
       "operation_id": "ak.root.identity.recovery_policy.command.publish",
-      "tier": "core",
+      "surface_class": "core",
       "http": "POST /_arkret/root/identity/recovery-policy",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/recovery-policy.schema.json",
@@ -1083,7 +1083,7 @@
     },
     {
       "operation_id": "ak.root.identity.recovery_policy.resource.get",
-      "tier": "core",
+      "surface_class": "core",
       "http": "GET /_arkret/root/identity/recovery-policy",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": null,
@@ -1096,7 +1096,7 @@
     },
     {
       "operation_id": "ak.root.identity.recovery_session.command.complete",
-      "tier": "core",
+      "surface_class": "core",
       "http": "POST /_arkret/root/identity/recovery-sessions/{recovery_session_id}/complete",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
@@ -1110,7 +1110,7 @@
     },
     {
       "operation_id": "ak.root.identity.recovery_session.command.create",
-      "tier": "core",
+      "surface_class": "core",
       "http": "POST /_arkret/root/identity/recovery-sessions",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
@@ -1124,7 +1124,7 @@
     },
     {
       "operation_id": "ak.root.identity.recovery_session.command.submit_proof",
-      "tier": "core",
+      "surface_class": "core",
       "http": "POST /_arkret/root/identity/recovery-sessions/{recovery_session_id}/proofs",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body",
@@ -1138,7 +1138,7 @@
     },
     {
       "operation_id": "ak.root.identity.recovery_session.resource.get",
-      "tier": "core",
+      "surface_class": "core",
       "http": "GET /_arkret/root/identity/recovery-sessions/{recovery_session_id}",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": null,
@@ -1151,7 +1151,7 @@
     },
     {
       "operation_id": "ak.root.identity.registry.query.describe",
-      "tier": "core",
+      "surface_class": "core",
       "http": "GET /_arkret/root/identity/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
@@ -1164,7 +1164,7 @@
     },
     {
       "operation_id": "ak.root.identity.service_registration.command.ensure",
-      "tier": "core",
+      "surface_class": "core",
       "http": "POST /_arkret/root/identity/service-registrations:ensure",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationEnsureRequestBody",
@@ -1178,7 +1178,7 @@
     },
     {
       "operation_id": "ak.root.identity.service_registration.resource.get",
-      "tier": "core",
+      "surface_class": "core",
       "http": "GET /_arkret/root/identity/service-registrations",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1191,7 +1191,7 @@
     },
     {
       "operation_id": "ak.self.account.command.revoke_cursor",
-      "tier": "core",
+      "surface_class": "core",
       "http": "POST /_arkret/self/account/cursor/revoke",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequestBody",
@@ -1205,7 +1205,7 @@
     },
     {
       "operation_id": "ak.self.account.command.update_profile",
-      "tier": "core",
+      "surface_class": "core",
       "http": "POST /_arkret/self/account/profile",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_request_body",
@@ -1219,7 +1219,7 @@
     },
     {
       "operation_id": "ak.self.account.query.describe",
-      "tier": "core",
+      "surface_class": "core",
       "http": "GET /_arkret/self/account/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
@@ -1232,7 +1232,7 @@
     },
     {
       "operation_id": "ak.self.account.query.viewer",
-      "tier": "core",
+      "surface_class": "core",
       "http": "GET /_arkret/self/account/viewer",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1245,7 +1245,7 @@
     },
     {
       "operation_id": "ak.self.account.stream.subscribe",
-      "tier": "core",
+      "surface_class": "core",
       "http": "GET /_arkret/self/account/subscribe",
       "success_shape_kind": "event_stream",
       "request_schema_ref": null,
@@ -1256,7 +1256,7 @@
     },
     {
       "operation_id": "ak.self.account_data.query.list",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/account_data",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1269,8 +1269,8 @@
     },
     {
       "operation_id": "ak.self.account_data.resource.delete",
-      "tier": "extension",
-      "http": "DELETE /_arkret/self/account_data/{data_type}",
+      "surface_class": "extension",
+      "http": "DELETE /_arkret/self/account_data/{account_data_key}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome",
@@ -1282,34 +1282,34 @@
     },
     {
       "operation_id": "ak.self.account_data.resource.get",
-      "tier": "extension",
-      "http": "GET /_arkret/self/account_data/{data_type}",
+      "surface_class": "extension",
+      "http": "GET /_arkret/self/account_data/{account_data_key}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry",
       "openapi_component_refs": {
-        "response": "#/components/schemas/AccountDataEntry"
+        "response": "#/components/schemas/AccountDataRow"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ak.self.account_data.resource.replace",
-      "tier": "extension",
-      "http": "PUT /_arkret/self/account_data/{data_type}",
+      "surface_class": "extension",
+      "http": "PUT /_arkret/self/account_data/{account_data_key}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_replace_request_body",
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry",
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountDataReplaceRequestBody",
-        "response": "#/components/schemas/AccountDataEntry"
+        "response": "#/components/schemas/AccountDataRow"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.agent.command.deactivate",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/agents/{agent_id}/deactivate",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body",
@@ -1323,7 +1323,7 @@
     },
     {
       "operation_id": "ak.self.agent.command.pause",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/agents/{agent_id}/pause",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pause_request_body",
@@ -1337,7 +1337,7 @@
     },
     {
       "operation_id": "ak.self.agent.command.provision",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/agents",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
@@ -1351,7 +1351,7 @@
     },
     {
       "operation_id": "ak.self.agent.command.renew_pairing",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/agents/{agent_id}/renew-pairing",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_request_body",
@@ -1365,7 +1365,7 @@
     },
     {
       "operation_id": "ak.self.agent.command.resume",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/agents/{agent_id}/resume",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_resume_request_body",
@@ -1379,7 +1379,7 @@
     },
     {
       "operation_id": "ak.self.agent.grant.command.attach",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/agents/{agent_id}/grants",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body",
@@ -1393,7 +1393,7 @@
     },
     {
       "operation_id": "ak.self.agent.grant.resource.delete",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "DELETE /_arkret/self/agents/{agent_id}/grants/{grant_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1406,7 +1406,7 @@
     },
     {
       "operation_id": "ak.self.agent.participation.resource.get",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/agents/{agent_id}/participation",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1419,7 +1419,7 @@
     },
     {
       "operation_id": "ak.self.agent.participation.resource.replace",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "PUT /_arkret/self/agents/{agent_id}/participation",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_replace_request_body",
@@ -1433,7 +1433,7 @@
     },
     {
       "operation_id": "ak.self.agent.query.list",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/agents",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1446,7 +1446,7 @@
     },
     {
       "operation_id": "ak.self.agent.resource.get",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/agents/{agent_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1459,7 +1459,7 @@
     },
     {
       "operation_id": "ak.self.agent.sidecar.command.ensure",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/agent-sidecars:ensure",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_request_body",
@@ -1473,7 +1473,7 @@
     },
     {
       "operation_id": "ak.self.agent.sidecar.query.list",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/agent-sidecars",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1486,7 +1486,7 @@
     },
     {
       "operation_id": "ak.self.agent.sidecar.resource.get",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/agent-sidecars/{sidecar_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1499,13 +1499,13 @@
     },
     {
       "operation_id": "ak.self.agent_signer_evidence.query",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/agent-signer-evidence/query",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_request",
       "response_schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_outcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/AgentSignerEvidenceQueryRequest",
+        "request": "#/components/schemas/AgentSignerEvidenceQueryRequestBodyBody",
         "response": "#/components/schemas/AgentSignerEvidenceQueryOutcome"
       },
       "completeness_class": "typed_schema",
@@ -1513,7 +1513,7 @@
     },
     {
       "operation_id": "ak.self.applet.command.install",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/applets/install",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_request_body",
@@ -1527,7 +1527,7 @@
     },
     {
       "operation_id": "ak.self.applet.command.revoke",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/applets/{applet_id}/revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body",
@@ -1541,7 +1541,7 @@
     },
     {
       "operation_id": "ak.self.applet.ghost.command.provision",
-      "tier": "interop_bridge",
+      "surface_class": "interop_bridge",
       "http": "POST /_arkret/self/applets/{applet_id}/ghosts/provision",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
@@ -1555,7 +1555,7 @@
     },
     {
       "operation_id": "ak.self.applet.install.command.preview",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/applets/install/preview",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body",
@@ -1569,7 +1569,7 @@
     },
     {
       "operation_id": "ak.self.authz.grants.query.effective",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/authz/effective-grants",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1582,7 +1582,7 @@
     },
     {
       "operation_id": "ak.self.authz.invites.query.list",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/authz/invites",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1595,7 +1595,7 @@
     },
     {
       "operation_id": "ak.self.authz.query.check",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/authz/check",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequestBody",
@@ -1609,7 +1609,7 @@
     },
     {
       "operation_id": "ak.self.blob.command.presign",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/blob/presign",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequestBody",
@@ -1623,7 +1623,7 @@
     },
     {
       "operation_id": "ak.self.blob.resource.get",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/blob/get",
       "success_shape_kind": "binary_stream",
       "request_schema_ref": null,
@@ -1634,7 +1634,7 @@
     },
     {
       "operation_id": "ak.self.blob.resource.head",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "HEAD /_arkret/self/blob/get",
       "success_shape_kind": "metadata_headers",
       "request_schema_ref": null,
@@ -1645,7 +1645,7 @@
     },
     {
       "operation_id": "ak.self.blob.upload.create",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/blob/upload",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_request_body",
@@ -1659,7 +1659,7 @@
     },
     {
       "operation_id": "ak.self.call.media.exchange.issue_token",
-      "tier": "core",
+      "surface_class": "core",
       "http": "POST /_arkret/self/rtc/token",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody",
@@ -1673,7 +1673,7 @@
     },
     {
       "operation_id": "ak.self.circle.command.archive",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/circles/{circle_id}/archive",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
@@ -1687,7 +1687,7 @@
     },
     {
       "operation_id": "ak.self.circle.command.create",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/circles",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_create_request_body",
@@ -1701,7 +1701,7 @@
     },
     {
       "operation_id": "ak.self.circle.command.restore",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/circles/{circle_id}/restore",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
@@ -1715,7 +1715,7 @@
     },
     {
       "operation_id": "ak.self.circle.command.rotate_scope",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/circles/{circle_id}/scope-rotate",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1728,7 +1728,7 @@
     },
     {
       "operation_id": "ak.self.circle.command.tombstone",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/circles/{circle_id}/tombstone",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
@@ -1742,7 +1742,7 @@
     },
     {
       "operation_id": "ak.self.circle.member.command.add",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/circles/{circle_id}/members",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_request_body",
@@ -1756,7 +1756,7 @@
     },
     {
       "operation_id": "ak.self.circle.member.resource.delete",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1769,7 +1769,7 @@
     },
     {
       "operation_id": "ak.self.circle.query.list",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/circles",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1782,7 +1782,7 @@
     },
     {
       "operation_id": "ak.self.circle.resource.get",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/circles/{circle_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1795,7 +1795,7 @@
     },
     {
       "operation_id": "ak.self.consent.command.grant",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/consent/cells/{holder_did}/grant",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
@@ -1809,7 +1809,7 @@
     },
     {
       "operation_id": "ak.self.consent.command.request",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/consent/request",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
@@ -1823,7 +1823,7 @@
     },
     {
       "operation_id": "ak.self.consent.command.revoke",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/consent/cells/{holder_did}/revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
@@ -1837,7 +1837,7 @@
     },
     {
       "operation_id": "ak.self.consent.query.list",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/consent/cells",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1850,7 +1850,7 @@
     },
     {
       "operation_id": "ak.self.consent.resource.get",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/consent/cells/{holder_did}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1863,7 +1863,7 @@
     },
     {
       "operation_id": "ak.self.contact.command.request",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/contacts/request",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_request_body",
@@ -1877,7 +1877,7 @@
     },
     {
       "operation_id": "ak.self.contact.command.respond",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/contacts/respond",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request_body",
@@ -1891,7 +1891,7 @@
     },
     {
       "operation_id": "ak.self.contact.command.tombstone",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/contacts/tombstone",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body",
@@ -1905,7 +1905,7 @@
     },
     {
       "operation_id": "ak.self.contact.query.list",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/contacts",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1918,7 +1918,7 @@
     },
     {
       "operation_id": "ak.self.device_messages.command.ack",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/device_messages/ack",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckRequestBody",
@@ -1932,7 +1932,7 @@
     },
     {
       "operation_id": "ak.self.device_messages.command.send",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/device_messages",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendRequestBody",
@@ -1946,7 +1946,7 @@
     },
     {
       "operation_id": "ak.self.device_messages.query.list",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/device_messages",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -1959,7 +1959,7 @@
     },
     {
       "operation_id": "ak.self.direct_conversation.command.resolve",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/direct-conversations/resolve",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body",
@@ -1973,7 +1973,7 @@
     },
     {
       "operation_id": "ak.self.ephemeral.command.send",
-      "tier": "core",
+      "surface_class": "core",
       "http": "POST /_arkret/self/ephemeral",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/ephemeral-envelope.schema.json",
@@ -1987,7 +1987,7 @@
     },
     {
       "operation_id": "ak.self.events.command.submit",
-      "tier": "core",
+      "surface_class": "core",
       "http": "POST /_arkret/self/events",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody",
@@ -2001,7 +2001,7 @@
     },
     {
       "operation_id": "ak.self.events.command.submit_seal",
-      "tier": "core",
+      "surface_class": "core",
       "http": "POST /_arkret/self/events/seals",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/seal.schema.json",
@@ -2015,7 +2015,7 @@
     },
     {
       "operation_id": "ak.self.events.query.describe",
-      "tier": "core",
+      "surface_class": "core",
       "http": "GET /_arkret/self/events/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
@@ -2028,7 +2028,7 @@
     },
     {
       "operation_id": "ak.self.events.query.frontier",
-      "tier": "core",
+      "surface_class": "core",
       "http": "GET /_arkret/self/events/frontier",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2041,13 +2041,13 @@
     },
     {
       "operation_id": "ak.self.events.query.mls_governance_proof",
-      "tier": "core",
+      "surface_class": "core",
       "http": "POST /_arkret/self/events/mls-governance-proof",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/proof_request",
       "response_schema_ref": "schemas/mls-governance-proof-bundle.schema.json",
       "openapi_component_refs": {
-        "request": "#/components/schemas/MlsGovernanceProofRequest",
+        "request": "#/components/schemas/MlsGovernanceProofRequestBodyBody",
         "response": "#/components/schemas/MlsGovernanceProofBundle"
       },
       "completeness_class": "typed_schema",
@@ -2055,7 +2055,7 @@
     },
     {
       "operation_id": "ak.self.events.query.resolve",
-      "tier": "core",
+      "surface_class": "core",
       "http": "POST /_arkret/self/events/resolve",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
@@ -2069,7 +2069,7 @@
     },
     {
       "operation_id": "ak.self.events.query.scan",
-      "tier": "core",
+      "surface_class": "core",
       "http": "GET /_arkret/self/events",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2082,7 +2082,7 @@
     },
     {
       "operation_id": "ak.self.events.query.scan_body",
-      "tier": "core",
+      "surface_class": "core",
       "http": "POST /_arkret/self/events/query",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
@@ -2096,7 +2096,7 @@
     },
     {
       "operation_id": "ak.self.events.resource.get",
-      "tier": "core",
+      "surface_class": "core",
       "http": "GET /_arkret/self/events/{event_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2109,7 +2109,7 @@
     },
     {
       "operation_id": "ak.self.events.stream.subscribe",
-      "tier": "core",
+      "surface_class": "core",
       "http": "GET /_arkret/self/events/subscribe",
       "success_shape_kind": "event_stream",
       "request_schema_ref": null,
@@ -2120,7 +2120,7 @@
     },
     {
       "operation_id": "ak.self.invite_locator.command.issue",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/invite-locators",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_request_body",
@@ -2134,7 +2134,7 @@
     },
     {
       "operation_id": "ak.self.invite_locator.command.revoke",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/invite-locators/revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_request_body",
@@ -2148,7 +2148,7 @@
     },
     {
       "operation_id": "ak.self.invite_locator.command.rotate",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/invite-locators/rotate",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_rotate_request_body",
@@ -2162,7 +2162,7 @@
     },
     {
       "operation_id": "ak.self.invite_receive_policy.resource.get",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/invite-receive-policy",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2175,7 +2175,7 @@
     },
     {
       "operation_id": "ak.self.invite_receive_policy.resource.replace",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "PUT /_arkret/self/invite-receive-policy",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/invite-receive-policy.schema.json",
@@ -2189,7 +2189,7 @@
     },
     {
       "operation_id": "ak.self.keys.backups.command.unlock",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/keys/backups/{backup_id}/unlock",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body",
@@ -2203,7 +2203,7 @@
     },
     {
       "operation_id": "ak.self.keys.backups.query.list",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/keys/backups",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2216,7 +2216,7 @@
     },
     {
       "operation_id": "ak.self.keys.backups.resource.delete",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "DELETE /_arkret/self/keys/backups/{backup_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body",
@@ -2230,7 +2230,7 @@
     },
     {
       "operation_id": "ak.self.keys.backups.resource.replace",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "PUT /_arkret/self/keys/backups/{backup_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/key-backup.schema.json",
@@ -2244,7 +2244,7 @@
     },
     {
       "operation_id": "ak.self.keys.command.claim",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/keys/claim",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_request_body",
@@ -2258,7 +2258,7 @@
     },
     {
       "operation_id": "ak.self.keys.keypackages.command.claim",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/keys/keypackages/claim",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
@@ -2272,7 +2272,7 @@
     },
     {
       "operation_id": "ak.self.keys.keypackages.command.consume",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/keys/keypackages/consume",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body",
@@ -2286,7 +2286,7 @@
     },
     {
       "operation_id": "ak.self.keys.keypackages.command.revoke",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/keys/keypackages/revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_request_body",
@@ -2300,7 +2300,7 @@
     },
     {
       "operation_id": "ak.self.keys.keypackages.upload.create",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/keys/keypackages/upload",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_request_body",
@@ -2314,7 +2314,7 @@
     },
     {
       "operation_id": "ak.self.keys.query.lookup",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/keys/query",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_request_body",
@@ -2328,7 +2328,7 @@
     },
     {
       "operation_id": "ak.self.keys.upload.create",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/keys/upload",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_request_body",
@@ -2342,7 +2342,7 @@
     },
     {
       "operation_id": "ak.self.media.query.ice_config",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/rtc/ice-config",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/media-operations.schema.json#/$defs/media_ice_config_request_body",
@@ -2356,7 +2356,7 @@
     },
     {
       "operation_id": "ak.self.moderation.command.report",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/moderation/report",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/moderation-report.schema.json",
@@ -2370,7 +2370,7 @@
     },
     {
       "operation_id": "ak.self.morph.query.list",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/morphs",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2383,7 +2383,7 @@
     },
     {
       "operation_id": "ak.self.morph.resource.get",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2396,7 +2396,7 @@
     },
     {
       "operation_id": "ak.self.policy.query.check",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/policy/check",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody",
@@ -2410,7 +2410,7 @@
     },
     {
       "operation_id": "ak.self.read_cursor.command.advance",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/read-cursors",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_advance_request_body",
@@ -2424,7 +2424,7 @@
     },
     {
       "operation_id": "ak.self.read_cursor.query.list",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/read-cursors",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2437,7 +2437,7 @@
     },
     {
       "operation_id": "ak.self.realm.command.archive",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/realms/{realm_id}/archive",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
@@ -2451,7 +2451,7 @@
     },
     {
       "operation_id": "ak.self.realm.command.destroy",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/realms/{realm_id}/destroy",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
@@ -2465,7 +2465,7 @@
     },
     {
       "operation_id": "ak.self.realm.command.freeze",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/realms/{realm_id}/freeze",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
@@ -2479,7 +2479,7 @@
     },
     {
       "operation_id": "ak.self.realm.command.tombstone",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/realms/{realm_id}/tombstone",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
@@ -2493,7 +2493,7 @@
     },
     {
       "operation_id": "ak.self.realm.join_application.audit.query.list",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/audit",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2506,13 +2506,13 @@
     },
     {
       "operation_id": "ak.self.realm.join_application.command.cancel",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/cancel",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_cancel_request",
       "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/JoinApplicationCancelRequest",
+        "request": "#/components/schemas/JoinApplicationCancelRequestBodyBody",
         "response": "#/components/schemas/JoinApplicationMutationOutcome"
       },
       "completeness_class": "typed_schema",
@@ -2520,13 +2520,13 @@
     },
     {
       "operation_id": "ak.self.realm.join_application.command.review",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/realms/{realm_id}/join-applications/{application_ref}/reviews",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_review_request",
       "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/JoinApplicationReviewRequest",
+        "request": "#/components/schemas/JoinApplicationReviewRequestBodyBody",
         "response": "#/components/schemas/JoinApplicationMutationOutcome"
       },
       "completeness_class": "typed_schema",
@@ -2534,13 +2534,13 @@
     },
     {
       "operation_id": "ak.self.realm.join_application.command.submit",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/realms/{realm_id}/join-applications",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_submit_request",
       "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/JoinApplicationSubmitRequest",
+        "request": "#/components/schemas/JoinApplicationSubmitRequestBodyBody",
         "response": "#/components/schemas/JoinApplicationMutationOutcome"
       },
       "completeness_class": "typed_schema",
@@ -2548,7 +2548,7 @@
     },
     {
       "operation_id": "ak.self.realm.join_application.query.list",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/join-applications",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2561,7 +2561,7 @@
     },
     {
       "operation_id": "ak.self.realm.join_application.resource.get",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/join-applications/{application_ref}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2574,7 +2574,7 @@
     },
     {
       "operation_id": "ak.self.realm.moderation_policy.query.effective",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/moderation-policy/effective",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2587,7 +2587,7 @@
     },
     {
       "operation_id": "ak.self.realm.moderation_policy.resource.replace",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "PUT /_arkret/self/realms/{realm_id}/moderation-policy",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body",
@@ -2601,7 +2601,7 @@
     },
     {
       "operation_id": "ak.self.realm.query.export",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/export",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2614,7 +2614,7 @@
     },
     {
       "operation_id": "ak.self.realm.resource.get",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2627,7 +2627,7 @@
     },
     {
       "operation_id": "ak.self.realm_link.command.create",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/realms/{realm_id}/links",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body",
@@ -2641,7 +2641,7 @@
     },
     {
       "operation_id": "ak.self.realm_link.query.effective_policy",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/effective-policy",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2654,7 +2654,7 @@
     },
     {
       "operation_id": "ak.self.realm_link.query.list",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/links",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2667,7 +2667,7 @@
     },
     {
       "operation_id": "ak.self.realm_link.resource.delete",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "DELETE /_arkret/self/realms/{realm_id}/links/{target_realm_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2680,7 +2680,7 @@
     },
     {
       "operation_id": "ak.self.realm_organization.query.list",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/organizations",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2693,7 +2693,7 @@
     },
     {
       "operation_id": "ak.self.realm_policy_server.resource.delete",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "DELETE /_arkret/self/realms/{realm_id}/policy-server",
       "success_shape_kind": "empty_response",
       "request_schema_ref": null,
@@ -2704,7 +2704,7 @@
     },
     {
       "operation_id": "ak.self.realm_policy_server.resource.get",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/policy-server",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2717,7 +2717,7 @@
     },
     {
       "operation_id": "ak.self.realm_policy_server.resource.replace",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "PUT /_arkret/self/realms/{realm_id}/policy-server",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_replace_request_body",
@@ -2731,7 +2731,7 @@
     },
     {
       "operation_id": "ak.self.snapshot.query.manifest_head",
-      "tier": "core",
+      "surface_class": "core",
       "http": "GET /_arkret/self/snapshot/head",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": null,
@@ -2744,7 +2744,7 @@
     },
     {
       "operation_id": "ak.self.space.query.list",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/spaces",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2757,7 +2757,7 @@
     },
     {
       "operation_id": "ak.self.strand.query.list",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/strands",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
@@ -2770,7 +2770,7 @@
     },
     {
       "operation_id": "ak.self.views.collection_projection.command.materialize",
-      "tier": "extension",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/views/{view_id}/projection",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/view.schema.json#/$defs/view_projection_request_body",
@@ -2784,7 +2784,7 @@
     },
     {
       "operation_id": "ak.server.query.describe",
-      "tier": "core",
+      "surface_class": "core",
       "http": "GET /_arkret/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,

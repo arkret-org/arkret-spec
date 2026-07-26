@@ -83,7 +83,7 @@
       "schema_ref": "schemas/applet-package.schema.json"
     },
     {
-      "context": "ak.attestation-evidence-proof-v1",
+      "context": "ak.audit-release-attestation-proof-v1",
       "object_family": "attestation_evidence",
       "binding_fields": [
         "payload_digest",
@@ -95,7 +95,7 @@
         "audience?"
       ],
       "defined_in": "zh/crypto-media/audited-e2ee.md",
-      "schema_ref": "schemas/attestation-evidence.schema.json"
+      "schema_ref": "schemas/audit-release-attestation.schema.json"
     },
     {
       "context": "ak.audit-ryw-receipt-proof-v1",
@@ -365,7 +365,7 @@
       "context": "ak.realm-key-share-sender-proof-v1",
       "object_family": "realm_key_share_sender_transcript",
       "binding_fields": [
-        "share_class",
+        "share_kind",
         "sender_device_id",
         "source_authorization_ref",
         "recipient_principal_id",

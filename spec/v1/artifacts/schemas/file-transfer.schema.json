@@ -248,7 +248,7 @@
         "nonce_prefix": {
           "$ref": "#/$defs/base64url"
         },
-        "segment_size": {
+        "segment_bytes": {
           "type": "integer",
           "minimum": 1024,
           "maximum": 8388608
@@ -292,7 +292,7 @@
               },
               {
                 "required": [
-                  "segment_size"
+                  "segment_bytes"
                 ]
               },
               {
@@ -312,7 +312,7 @@
           },
           "required": [
             "nonce_prefix",
-            "segment_size",
+            "segment_bytes",
             "segment_count"
           ],
           "not": {
@@ -414,7 +414,7 @@
         "nonce_prefix": {
           "$ref": "#/$defs/base64url"
         },
-        "segment_size": {
+        "segment_bytes": {
           "type": "integer",
           "minimum": 1024,
           "maximum": 8388608
@@ -449,7 +449,7 @@
               },
               {
                 "required": [
-                  "segment_size"
+                  "segment_bytes"
                 ]
               },
               {
@@ -464,7 +464,7 @@
           "$comment": "streaming file-transfer key message: nonce_prefix and fixed segment parameters, no whole-file nonce",
           "required": [
             "nonce_prefix",
-            "segment_size",
+            "segment_bytes",
             "segment_count"
           ],
           "not": {

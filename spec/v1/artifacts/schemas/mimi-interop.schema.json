@@ -34,7 +34,7 @@
     "provider_directory": {
       "type": "object",
       "required": [
-        "service_type",
+        "service_kind",
         "supported_profiles",
         "mimi"
       ],
@@ -45,7 +45,7 @@
         "service_id": {
           "$ref": "#/$defs/did"
         },
-        "service_type": {
+        "service_kind": {
           "const": "mimi_provider_facade"
         },
         "supported_profiles": {

@@ -340,7 +340,7 @@
       "request": {
         "operation_id": "ak.gate.account.command.issue_session_grant",
         "proof_kind": "agent_key_proof",
-        "risk_class": "high",
+        "risk_tier": "high",
         "requested_scope_requires_controller_approval": true
       },
       "expected_error": {

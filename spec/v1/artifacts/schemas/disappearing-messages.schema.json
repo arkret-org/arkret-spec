@@ -76,7 +76,7 @@
           "type": "integer",
           "minimum": 0
         },
-        "allow_plaintext_realms": {
+        "plaintext_realms_allowed": {
           "type": "boolean"
         }
       },

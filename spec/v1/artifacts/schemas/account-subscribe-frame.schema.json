@@ -126,17 +126,13 @@
       "type": "object",
       "required": [
         "id",
-        "type",
+        "notification_kind",
         "action"
       ],
       "properties": {
         "id": {
           "type": "string",
           "pattern": "^ak:notification:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "type": {
-          "const": "agent",
-          "description": "Closed notification type. Agent runtime approvals reuse the registered notification type `agent`."
         },
         "action": {
           "type": "string",
@@ -155,6 +151,10 @@
               "$ref": "#/$defs/agent_runtime_approval_notification_removal_data"
             }
           ]
+        },
+        "notification_kind": {
+          "const": "agent",
+          "description": "Closed notification type. Agent runtime approvals reuse the registered notification type `agent`."
         }
       },
       "allOf": [
@@ -259,17 +259,24 @@
     },
     "device_list_changes": {
       "type": "object",
-      "required": ["changed", "left"],
+      "required": [
+        "changed",
+        "left"
+      ],
       "properties": {
         "changed": {
           "type": "array",
-          "items": { "$ref": "./common-ids.schema.json#/$defs/did" },
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/did"
+          },
           "uniqueItems": true,
           "maxItems": 10000
         },
         "left": {
           "type": "array",
-          "items": { "$ref": "./common-ids.schema.json#/$defs/did" },
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/did"
+          },
           "uniqueItems": true,
           "maxItems": 10000
         }
@@ -483,7 +490,11 @@
     "state_at_window_start": {
       "type": "object",
       "description": "Derived projection-only state at the timeline window start. NOT part of state hash, frontier, or causal graph.",
-      "required": ["actor_profiles", "realm_metadata", "e2ee_epoch"],
+      "required": [
+        "actor_profiles",
+        "realm_metadata",
+        "e2ee_epoch"
+      ],
       "properties": {
         "actor_profiles": {
           "type": "object",
@@ -494,7 +505,11 @@
                 "display_name": {
                   "$ref": "string-profiles.schema.json#/$defs/display_text_256"
                 },
-                "avatar_blob_ref": { "type": "string", "minLength": 1, "maxLength": 2048 }
+                "avatar_blob_ref": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2048
+                }
               },
               "additionalProperties": false
             }
@@ -511,10 +526,16 @@
               "$ref": "string-profiles.schema.json#/$defs/short_text",
               "maxLength": 4096
             },
-            "join_rule": { "type": "string", "minLength": 1, "maxLength": 128 },
+            "join_rule": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
             "collaboration_role": {
               "type": "string",
-              "enum": ["direct_conversation"],
+              "enum": [
+                "direct_conversation"
+              ],
               "description": "Projection-only strong Realm role, emitted only after the server validates the registered Realm profile and discriminator."
             }
           },
@@ -522,13 +543,25 @@
         },
         "e2ee_epoch": {
           "oneOf": [
-            { "type": "null" },
+            {
+              "type": "null"
+            },
             {
               "type": "object",
-              "required": ["epoch", "key_ref"],
+              "required": [
+                "epoch",
+                "key_ref"
+              ],
               "properties": {
-                "epoch": { "type": "integer", "minimum": 0 },
-                "key_ref": { "type": "string", "minLength": 1, "maxLength": 2048 }
+                "epoch": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "key_ref": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2048
+                }
               },
               "additionalProperties": false
             }
@@ -540,11 +573,19 @@
     "realm_summary": {
       "type": "object",
       "properties": {
-        "joined_member_count": { "type": "integer", "minimum": 0 },
-        "invited_member_count": { "type": "integer", "minimum": 0 },
+        "joined_member_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "invited_member_count": {
+          "type": "integer",
+          "minimum": 0
+        },
         "heroes": {
           "type": "array",
-          "items": { "$ref": "./common-ids.schema.json#/$defs/did" },
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/did"
+          },
           "uniqueItems": true,
           "maxItems": 20
         }
@@ -554,8 +595,14 @@
     "unread_notification_counts": {
       "type": "object",
       "properties": {
-        "notification_count": { "type": "integer", "minimum": 0 },
-        "highlight_count": { "type": "integer", "minimum": 0 }
+        "notification_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "highlight_count": {
+          "type": "integer",
+          "minimum": 0
+        }
       },
       "additionalProperties": false
     },

@@ -156,7 +156,7 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "RelationConflictDiagnostic": {
+    "relation_conflict_diagnostic": {
       "type": "object",
       "description": "Projection-only conflict diagnostic emitted for deterministic_winner losers and require_review output. reducer_input MUST be false; MUST NOT be treated as canonical event bytes or dedupe authority. See zh/models/relation.md §6.",
       "required": [
@@ -170,7 +170,7 @@
           "description": "Canonical projection of the dedupe key under which these candidates collided."
         },
         "winner": {
-          "$ref": "#/$defs/RelationConflictCandidate",
+          "$ref": "#/$defs/relation_conflict_candidate",
           "description": "The deterministic winner (event_digest bytewise-greatest per the single canonical tie-break rule, zh/conformance/encoding.md §4.2), or omitted-equivalent for require_review where no canonical winner is projected."
         },
         "losers": {
@@ -178,13 +178,13 @@
           "description": "Conflict losers retained for audit and explicit repair. Bounded by the conflict fanout limit (v1 public profile: 16 total candidates including the winner).",
           "maxItems": 15,
           "items": {
-            "$ref": "#/$defs/RelationConflictCandidate"
+            "$ref": "#/$defs/relation_conflict_candidate"
           }
         }
       },
       "additionalProperties": false
     },
-    "RelationConflictCandidate": {
+    "relation_conflict_candidate": {
       "type": "object",
       "required": [
         "event_id",

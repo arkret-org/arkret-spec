@@ -3,7 +3,7 @@
   "source_of_truth": true,
   "generated_at": "2026-07-20T00:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
-  "generated_registries": [
+  "derived_registry_views": [
     {
       "name": "event_kinds",
       "file": "registry/event-kind-registry.json",
@@ -57,64 +57,64 @@
       "selector_semantics": "All selector fields in one non-otherwise when object are ANDed. payload_path is relative to Event.payload; const uses exact JSON value equality, while not_const matches inequality or an absent path. top_level_fields_present requires every listed Event Envelope field. ref_* selectors evaluate Event.refs after schema validation. Unknown selectors, missing companion selectors, multiple matching non-otherwise variants, or evaluation errors are fail-closed.",
       "non_otherwise_selectors": {
         "payload_path": {
-          "type": "string",
           "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
           "requires_one_of": [
             "const",
             "not_const"
-          ]
+          ],
+          "value_shape": "string"
         },
         "const": {
-          "type": "json_scalar",
           "requires": [
             "payload_path"
           ],
           "exclusive_with": [
             "not_const"
-          ]
+          ],
+          "value_shape": "json_scalar"
         },
         "not_const": {
-          "type": "json_scalar",
           "requires": [
             "payload_path"
           ],
           "exclusive_with": [
             "const"
           ],
-          "absent_path_matches": true
+          "absent_path_matches": true,
+          "value_shape": "json_scalar"
         },
         "ref_role": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "value_shape": "string"
         },
         "ref_critical": {
-          "type": "boolean",
           "requires": [
             "ref_role"
-          ]
+          ],
+          "value_shape": "boolean"
         },
         "ref_exact_count": {
-          "type": "integer",
           "minimum": 0,
           "requires": [
             "ref_role"
-          ]
+          ],
+          "value_shape": "integer"
         },
         "top_level_fields_present": {
-          "type": "array",
           "minItems": 1,
           "uniqueItems": true,
           "items_enum": [
             "executed_by",
             "authorization_ref"
-          ]
+          ],
+          "value_shape": "array"
         }
       },
       "otherwise_selector": {
-        "type": "boolean",
         "const": true,
         "exclusive": true,
-        "position": "final"
+        "position": "final",
+        "value_shape": "boolean"
       }
     },
     "registry_rules": [
@@ -123,7 +123,7 @@
       "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Seal coverage, governance state_root, or reducer state.",
       "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
       "Every active lifecycle event kind MUST declare lifecycle_modality. Use reversible for a reversible lifecycle facet or either member of an archive/restore pair, and terminal for an irreversible transition that cannot be restored. Reducers and SDKs MUST NOT infer modality from event-kind spelling or the presence of a sibling event.",
-      "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell contract. A single-target kind MAY use the legacy cell_family/cell_subject/lattice/bottom shorthand. cell_writes[] is the general authority and is REQUIRED for multi-target kinds; each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional: it uses the closed grammar {type: field_present|field_absent|field_equals|any_field_present, field: <dot-path>, const?: <scalar>, fields?: [<dot-path>...]} evaluated as a pure function of the schema-validated payload. When the condition holds the target is required and the Event MUST carry exactly one matching effect; when it does not hold the Event MUST NOT carry that effect. See zh/models/event-and-patch.md section 2.4.2. The generator materializes the single-target shorthand when cell_writes[] has one entry. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a coalesce descriptor, or a composite descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
+      "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell contract. A single-target kind MAY use the legacy cell_family/cell_subject/lattice/bottom shorthand. cell_writes[] is the general authority and is REQUIRED for multi-target kinds; each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional: it uses the closed grammar {kind: field_present|field_absent|field_equals|any_field_present, field: <dot-path>, const?: <scalar>, fields?: [<dot-path>...]} evaluated as a pure function of the schema-validated payload. When the condition holds the target is required and the Event MUST carry exactly one matching effect; when it does not hold the Event MUST NOT carry that effect. See zh/models/event-and-patch.md section 2.4.2. The generator materializes the single-target shorthand when cell_writes[] has one entry. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a coalesce descriptor, or a composite descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
       "Protocol-singleton cells MAY take their genesis value from a create payload, but every subsequent write MUST use a registered event_kind. ak.component.notary.v1 is canonically defined in zh/authz/event-auth-state-resolution.md section 6.5; its genesis value comes from ak.realm.create and subsequent writes use ak.realm.notary.",
       "Lattice MUST be one of the fully specified core types: or_set, mv_register, cas_register, fsm, counter, ordered_log. A new lattice type cannot become active until its join, bottom, op schema, profile gate, and conformance vectors are all registered.",
       "State convergence is defined by CBA: DataEvent effects are locally accepted against seal_ref, Control Move effects are finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
@@ -138,72 +138,72 @@
       "non_critical_extension_rule": "Unknown non-critical payload fields are preserved in canonical bytes and MAY be ignored by reducers. Unknown critical payload semantics MUST be declared in Event.requirements.critical_extensions and fail closed when unsupported."
     },
     "cell_contracts": {
-      "ak.realm.create": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.realm.metadata.v1", "cell_subject": null, "lattice": "cas_register", "bottom": "reject", "initial_value": "__unset__"}, {"cell_family": "ak.component.member.state.v1", "cell_subject": {"type": "did", "field": "payload.object.created_by"}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.realm.create.v1", "cell_subject": null, "lattice": "ordered_log", "bottom": "inert"}, {"cell_family": "ak.component.notary.v1", "cell_subject": null, "lattice": "cas_register", "bottom": "reject", "initial_value": "__unset__"}]},
+      "ak.realm.create": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.realm.metadata.v1", "cell_subject": null, "lattice": "cas_register", "bottom": "reject", "initial_value": "__unset__"}, {"cell_family": "ak.component.member.state.v1", "cell_subject": {"kind": "did", "field": "payload.object.created_by"}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.realm.create.v1", "cell_subject": null, "lattice": "ordered_log", "bottom": "inert"}, {"cell_family": "ak.component.notary.v1", "cell_subject": null, "lattice": "cas_register", "bottom": "reject", "initial_value": "__unset__"}]},
       "ak.realm.update": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.realm.metadata.v1", "cell_subject": null, "lattice": "cas_register", "bottom": "reject"}]},
-      "ak.circle.update": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.circle.metadata.v1", "cell_subject": {"type": "id:circle", "field": "payload.circle_id"}, "lattice": "cas_register", "bottom": "reject"}]},
-      "ak.circle.archive": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.circle.lifecycle.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.circle_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
-      "ak.circle.restore": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.circle.lifecycle.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.circle_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
-      "ak.organization.discovery": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.organization.discovery.v1", "cell_subject": {"type": "did", "field": "payload.organization_did"}, "lattice": "cas_register", "bottom": "reject"}]},
-      "ak.actor.discovery": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.actor.discovery.v1", "cell_subject": {"type": "did", "field": "payload.resource_id"}, "lattice": "cas_register", "bottom": "reject"}]},
-      "ak.applet.discovery": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.applet.discovery.v1", "cell_subject": {"type": "typed_id", "field": "payload.resource_id"}, "lattice": "cas_register", "bottom": "reject"}]},
-      "ak.handle.discovery": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.handle.discovery.v1", "cell_subject": {"type": "string", "field": "payload.resource_id"}, "lattice": "cas_register", "bottom": "reject"}]},
-      "ak.organization.moderation_policy": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.organization.moderation_policy.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.organization_did", "payload.organization_id"]}, "lattice": "cas_register", "bottom": "reject"}]},
-      "ak.did.proof": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.identity.proof_log.v1", "cell_subject": {"type": "did", "field": "payload.did"}, "lattice": "ordered_log", "bottom": "expose"}]},
-      "ak.identity.disclosure_policy": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.identity.disclosure_policy.v1", "cell_subject": {"type": "typed_id", "field": "payload.policy_id"}, "lattice": "cas_register", "bottom": "reject"}]},
-      "ak.identity.disclosure_receipt": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.identity.disclosure_receipt.v1", "cell_subject": {"type": "did", "field": "payload.holder_did"}, "lattice": "ordered_log", "bottom": "expose"}]},
-      "ak.identity.presentation_request": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.identity.presentation.v1", "cell_subject": {"type": "typed_id", "field": "payload.request_id"}, "lattice": "ordered_log", "bottom": "expose"}]},
-      "ak.identity.presentation_response": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.identity.presentation.v1", "cell_subject": {"type": "typed_id", "field": "payload.request_id"}, "lattice": "ordered_log", "bottom": "expose"}]},
-      "ak.identity.accountability_grant": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.identity.accountability.v1", "cell_subject": {"type": "composite", "components": ["payload.issuer", "payload.subject", "payload.accountability_scope"]}, "lattice": "cas_register", "bottom": "reject"}]},
-      "ak.schema.define": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.schema.definition.v1", "cell_subject": {"type": "string", "field": "payload.schema_id"}, "lattice": "cas_register", "bottom": "reject", "initial_value": "__unset__"}]},
-      "ak.schema.update": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.schema.definition.v1", "cell_subject": {"type": "string", "field": "payload.schema_id"}, "lattice": "cas_register", "bottom": "reject", "initial_value": "__unset__"}]},
-      "ak.policy.set": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.policy.definition.v1", "cell_subject": {"type": "typed_id", "field": "payload.policy_id"}, "lattice": "cas_register", "bottom": "reject"}]},
-      "ak.policy.action": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.policy.action_log.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.policy_id", "payload.action_id"]}, "lattice": "ordered_log", "bottom": "expose"}]},
-      "ak.strand.create": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.strand.object.v1", "cell_subject": {"type": "id:strand", "field": "payload.object.id"}, "lattice": "mv_register", "bottom": "expose"}]},
-      "ak.strand.archive": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.strand.lifecycle.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.strand_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
-      "ak.strand.restore": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.strand.lifecycle.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.strand_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
-      "ak.space.create": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.space.metadata.v1", "cell_subject": {"type": "id:space", "field": "payload.object.id"}, "lattice": "mv_register", "bottom": "expose"}]},
-      "ak.space.update": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.space.metadata.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.space_id", "payload.target_ref"]}, "lattice": "mv_register", "bottom": "expose"}]},
-      "ak.space.archive": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.space.lifecycle.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.space_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
-      "ak.space.restore": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.space.lifecycle.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.space_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
-      "ak.space.tombstone": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.space.lifecycle.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.space_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
-      "ak.message.revise": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.message.revision.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.message_id", "payload.target_ref", "payload.revision_of"]}, "lattice": "mv_register", "bottom": "expose"}]},
-      "ak.message.redact": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.object.redaction.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.message_id", "payload.target_ref", "payload.event_id", "payload.target_event_id"]}, "lattice": "or_set", "bottom": "inert"}]},
-      "ak.rsvp.set": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.calendar.rsvp.v1", "cell_subject": {"type": "composite", "components": ["payload.event_ref", "payload.occurrence", "envelope.actor_id"]}, "lattice": "mv_register", "bottom": "expose"}]},
-      "ak.redaction": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.object.redaction.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.target_ref", "payload.event_id", "payload.target_event_id"]}, "lattice": "or_set", "bottom": "inert"}]},
-      "ak.morph.create": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.morph.v1", "cell_subject": {"type": "id:morph", "field": "payload.object.id"}, "lattice": "mv_register", "bottom": "expose"}]},
-      "ak.morph.update": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.morph.v1", "cell_subject": {"type": "id:morph", "field": "payload.target_ref"}, "lattice": "mv_register", "bottom": "expose"}]},
-      "ak.morph.archive": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.morph.lifecycle.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.morph_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
-      "ak.morph.restore": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.morph.lifecycle.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.morph_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
-      "ak.morph.schema_migrate": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.morph.schema.v1", "cell_subject": {"type": "id:morph", "field": "payload.morph_id"}, "lattice": "cas_register", "bottom": "reject"}]},
-      "ak.relation.create": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.relation.v1", "cell_subject": {"type": "id:relation", "field": "payload.object.id"}, "lattice": "mv_register", "bottom": "expose"}]},
-      "ak.relation.update": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.relation.v1", "cell_subject": {"type": "id:relation", "field": "payload.target_ref"}, "lattice": "mv_register", "bottom": "expose"}]},
-      "ak.relation.tombstone": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.relation.lifecycle.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.relation_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
-      "ak.container.move_item": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.container.position.v1", "cell_subject": {"type": "composite", "components": ["payload.container_ref", "payload.item_ref"]}, "lattice": "cas_register", "bottom": "reject"}]},
-      "ak.container.rebalance": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.container.order.v1", "cell_subject": {"type": "string", "field": "payload.container_ref"}, "lattice": "cas_register", "bottom": "reject"}]},
-      "ak.profile.realm_override": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.profile.realm_override.v1", "cell_subject": {"type": "composite", "components": ["payload.target_realm_id", "payload.profile_id"]}, "lattice": "cas_register", "bottom": "reject"}]},
-      "ak.mls.proposal": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.mls.proposal.v1", "cell_subject": {"type": "string", "field": "payload.mls_group_id"}, "lattice": "ordered_log", "bottom": "expose"}]},
-      "ak.mls.genesis": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.mls.epoch.v1", "cell_subject": {"type": "string", "field": "payload.mls_group_id"}, "lattice": "cas_register", "bottom": "reject", "initial_value": "__unset__"}, {"cell_family": "ak.component.mls.key_schedule.v1", "cell_subject": {"type": "string", "field": "payload.mls_group_id"}, "lattice": "cas_register", "bottom": "reject", "initial_value": "__unset__"}, {"cell_family": "ak.component.covered_seals.v1", "cell_subject": {"type": "string", "field": "payload.mls_group_id"}, "lattice": "or_set", "bottom": "inert"}]},
-      "ak.mls.commit": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.mls.epoch.v1", "cell_subject": {"type": "string", "field": "payload.mls_group_id"}, "lattice": "cas_register", "bottom": "reject"}, {"cell_family": "ak.component.mls.key_schedule.v1", "cell_subject": {"type": "string", "field": "payload.mls_group_id"}, "lattice": "cas_register", "bottom": "reject"}, {"cell_family": "ak.component.covered_seals.v1", "cell_subject": {"type": "string", "field": "payload.mls_group_id"}, "lattice": "or_set", "bottom": "inert"}]},
-      "ak.mls.commit_failed": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.mls.failure_log.v1", "cell_subject": {"type": "string", "field": "payload.mls_group_id"}, "lattice": "ordered_log", "bottom": "expose"}]},
-      "ak.mls.welcome": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.mls.welcome.v1", "cell_subject": {"type": "composite", "components": ["payload.mls_group_id", "payload.recipient_principal_id", "payload.recipient_device_id"]}, "lattice": "ordered_log", "bottom": "expose"}]},
-      "ak.mls.keypackage": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.mls.keypackage.v1", "cell_subject": {"type": "composite", "components": ["payload.principal_id", "payload.device_id", "payload.keypackage_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
-      "ak.realm_key.share": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.realm_key.delivery.v1", "cell_subject": {"type": "composite", "components": ["payload.share_class", "payload.recipient_principal_id", {"type": "select", "selector": "payload.share_class", "branches": {"member_device": {"field": "payload.recipient_device_id", "forbidden_fields": ["payload.recipient_verification_method", "payload.recovery_recipient_id"]}, "realm_recovery_key": {"field": "payload.recovery_recipient_id", "forbidden_fields": ["payload.recipient_device_id"]}}}, {"type": "select", "selector": "payload.key_scope.effective_scope.kind", "branches": {"realm": {"field": "payload.key_scope.effective_scope.realm_id"}, "circle": {"field": "payload.key_scope.effective_scope.circle_id"}}}]}, "value_projection": {"type": "object", "members": [{"name": "delivery_outcome", "literal": "shared"}, {"name": "share_class", "field": "payload.share_class"}, {"name": "recipient_principal_id", "field": "payload.recipient_principal_id"}, {"name": "recipient_target_id", "select": {"type": "select", "selector": "payload.share_class", "branches": {"member_device": {"field": "payload.recipient_device_id", "forbidden_fields": ["payload.recipient_verification_method", "payload.recovery_recipient_id"]}, "realm_recovery_key": {"field": "payload.recovery_recipient_id", "forbidden_fields": ["payload.recipient_device_id"]}}}}, {"name": "effective_scope_id", "select": {"type": "select", "selector": "payload.key_scope.effective_scope.kind", "branches": {"realm": {"field": "payload.key_scope.effective_scope.realm_id"}, "circle": {"field": "payload.key_scope.effective_scope.circle_id"}}}}, {"name": "policy_digest", "field": "payload.key_scope.policy_digest"}, {"name": "from_epoch", "field": "payload.key_scope.from_epoch", "optional": true}, {"name": "to_epoch", "field": "payload.key_scope.to_epoch", "optional": true}, {"name": "sender_device_id", "field": "payload.sender_device_id"}, {"name": "source_authorization_ref", "field": "payload.source_authorization_ref"}, {"name": "payload_digest", "digest_of": {"input": "event_payload_canonical_bytes"}}]}, "lattice": "ordered_log", "bottom": "expose"}]},
-      "ak.realm_key.withheld": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.realm_key.delivery.v1", "cell_subject": {"type": "composite", "components": ["payload.share_class", "payload.recipient_principal_id", {"type": "select", "selector": "payload.share_class", "branches": {"member_device": {"field": "payload.recipient_device_id", "forbidden_fields": ["payload.recipient_verification_method", "payload.recovery_recipient_id"]}, "realm_recovery_key": {"field": "payload.recovery_recipient_id", "forbidden_fields": ["payload.recipient_device_id"]}}}, {"type": "select", "selector": "payload.key_scope.effective_scope.kind", "branches": {"realm": {"field": "payload.key_scope.effective_scope.realm_id"}, "circle": {"field": "payload.key_scope.effective_scope.circle_id"}}}]}, "value_projection": {"type": "object", "members": [{"name": "delivery_outcome", "literal": "withheld"}, {"name": "share_class", "field": "payload.share_class"}, {"name": "recipient_principal_id", "field": "payload.recipient_principal_id"}, {"name": "recipient_target_id", "select": {"type": "select", "selector": "payload.share_class", "branches": {"member_device": {"field": "payload.recipient_device_id", "forbidden_fields": ["payload.recipient_verification_method", "payload.recovery_recipient_id"]}, "realm_recovery_key": {"field": "payload.recovery_recipient_id", "forbidden_fields": ["payload.recipient_device_id"]}}}}, {"name": "effective_scope_id", "select": {"type": "select", "selector": "payload.key_scope.effective_scope.kind", "branches": {"realm": {"field": "payload.key_scope.effective_scope.realm_id"}, "circle": {"field": "payload.key_scope.effective_scope.circle_id"}}}}, {"name": "policy_digest", "field": "payload.key_scope.policy_digest"}, {"name": "from_epoch", "field": "payload.key_scope.from_epoch", "optional": true}, {"name": "to_epoch", "field": "payload.key_scope.to_epoch", "optional": true}, {"name": "sender_device_id", "field": "payload.sender_device_id"}, {"name": "source_authorization_ref", "field": "payload.source_authorization_ref"}, {"name": "payload_digest", "digest_of": {"input": "event_payload_canonical_bytes"}}, {"name": "withheld_reason_code", "field": "payload.withheld_reason_code"}]}, "lattice": "ordered_log", "bottom": "expose"}]},
-      "ak.realm_key.share_audit": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.realm_key.audit.v1", "cell_subject": {"type": "string", "field": "payload.share_event_ref"}, "lattice": "ordered_log", "bottom": "expose"}]},
-      "ak.audit.accessed": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.audit.access_log.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.target_ref", "payload.target_cell_id", "payload.paired_event_id"]}, "lattice": "ordered_log", "bottom": "expose"}]},
-      "ak.self.moderation.report": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.moderation.report.v1", "cell_subject": {"type": "string", "field": "payload.target_ref"}, "lattice": "ordered_log", "bottom": "expose"}]},
-      "ak.moderation.franking_proof": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.moderation.franking_proof.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.report_id", "payload.target_ref"]}, "lattice": "ordered_log", "bottom": "expose"}]},
-      "ak.invite.create": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.invite.id", "payload.invite_id"]}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.member.state.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.invite.invitee", "payload.invitee"]}, "lattice": "fsm", "bottom": "reject", "condition": {"type": "any_field_present", "fields": ["payload.invite.invitee", "payload.invitee"]}}]},
-      "ak.invite.cancel": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"type": "typed_id", "field": "payload.invite_id"}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.member.state.v1", "cell_subject": {"type": "did", "field": "payload.invitee"}, "lattice": "fsm", "bottom": "reject", "condition": {"type": "field_present", "field": "payload.invitee"}}]},
-      "ak.invite.accept": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"type": "typed_id", "field": "payload.invite_id"}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.member.state.v1", "cell_subject": {"type": "did", "field": "envelope.actor_id"}, "lattice": "fsm", "bottom": "reject"}]},
-      "ak.invite.third_party": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.invite.id", "payload.invite_id"]}, "lattice": "fsm", "bottom": "reject"}]},
-      "ak.invite.claim": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"type": "typed_id", "field": "payload.invite_id"}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.invite.membership_proposal.v1", "cell_subject": {"type": "composite", "components": ["payload.invite_id", "payload.subject_id"]}, "lattice": "or_set", "bottom": "inert"}]},
-      "ak.invite.revoke": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"type": "typed_id", "field": "payload.invite_id"}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.member.state.v1", "cell_subject": {"type": "did", "field": "payload.invitee"}, "lattice": "fsm", "bottom": "reject", "condition": {"type": "field_present", "field": "payload.invitee"}}]},
-      "ak.applet.bridge_error": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.applet.bridge_error.v1", "cell_subject": {"type": "typed_id", "field": "payload.applet_id"}, "lattice": "ordered_log", "bottom": "expose"}]},
-      "ak.applet.registration": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.applet.registration.v1", "cell_subject": {"type": "typed_id", "field": "payload.applet_id"}, "lattice": "cas_register", "bottom": "reject"}]},
-      "ak.call.state": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.call.state.v1", "cell_subject": {"type": "typed_id", "field": "payload.call_id"}, "lattice": "fsm", "bottom": "reject", "effect_projection": {"type": "transition", "from": {"field": "payload.state_transition.from"}, "to": {"field": "payload.state_transition.to"}}, "condition": {"type": "field_present", "field": "payload.state_transition"}}, {"cell_family": "ak.component.call.focus.v1", "cell_subject": {"type": "typed_id", "field": "payload.call_id"}, "lattice": "cas_register", "bottom": "reject", "initial_value": "__unset__", "effect_projection": {"type": "set", "value": {"field": "payload.focus"}}, "condition": {"type": "field_present", "field": "payload.focus"}}, {"cell_family": "ak.component.call.recording.v1", "cell_subject": {"type": "composite", "components": ["payload.call_id", "payload.recording_transition.recording_id"]}, "lattice": "fsm", "bottom": "reject", "effect_projection": {"type": "transition", "from": {"field": "payload.recording_transition.from"}, "to": {"field": "payload.recording_transition.to"}}, "condition": {"type": "field_present", "field": "payload.recording_transition"}}, {"cell_family": "ak.component.call.recording_result.v1", "cell_subject": {"type": "composite", "components": ["payload.call_id", "payload.recording_transition.recording_id"]}, "lattice": "cas_register", "bottom": "reject", "effect_projection": {"type": "set", "value": {"field": "payload.recording_transition.result"}}, "condition": {"type": "field_present", "field": "payload.recording_transition.result"}}, {"cell_family": "ak.component.call.transcript.v1", "cell_subject": {"type": "composite", "components": ["payload.call_id", "payload.transcript_transition.recording_id"]}, "lattice": "fsm", "bottom": "reject", "effect_projection": {"type": "transition", "from": {"field": "payload.transcript_transition.from"}, "to": {"field": "payload.transcript_transition.to"}}, "condition": {"type": "field_present", "field": "payload.transcript_transition"}}, {"cell_family": "ak.component.call.transcript_result.v1", "cell_subject": {"type": "composite", "components": ["payload.call_id", "payload.transcript_transition.recording_id"]}, "lattice": "cas_register", "bottom": "reject", "effect_projection": {"type": "set", "value": {"field": "payload.transcript_transition.result"}}, "condition": {"type": "field_present", "field": "payload.transcript_transition.result"}}, {"cell_family": "ak.component.call.moderation.v1", "cell_subject": {"type": "typed_id", "field": "payload.call_id"}, "lattice": "or_set", "bottom": "inert", "effect_projection": {"type": "or_set_delta", "selector": "payload.moderation_delta.op", "branches": {"remove_participant": {"op": "add", "tag": {"envelope_field": "event_id"}, "value": {"field": "payload.moderation_delta.removal"}}, "restore_participant": {"op": "remove", "tag": {"field": "payload.moderation_delta.observed_tag"}}}}, "condition": {"type": "field_present", "field": "payload.moderation_delta"}}, {"cell_family": "ak.component.call.roster.v1", "cell_subject": {"type": "typed_id", "field": "payload.call_id"}, "lattice": "or_set", "bottom": "inert", "effect_projection": {"type": "or_set_delta", "selector": "payload.roster_delta.op", "branches": {"join": {"op": "add", "tag": {"envelope_field": "event_id"}, "value": {"field": "payload.roster_delta.participant"}}, "leave": {"op": "remove", "tag": {"field": "payload.roster_delta.observed_tag"}}}}, "condition": {"type": "field_present", "field": "payload.roster_delta"}}, {"cell_family": "ak.component.call.mute_override.v1", "cell_subject": {"type": "composite", "components": ["payload.call_id", "payload.mute_override.actor_id", "payload.mute_override.device_id"]}, "lattice": "cas_register", "bottom": "reject", "effect_projection": {"type": "set", "value": {"field": "payload.mute_override"}}, "condition": {"type": "field_present", "field": "payload.mute_override"}}]},
-      "ak.call.recording.start": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.call.recording.v1", "cell_subject": {"type": "composite", "components": ["payload.call_id", "payload.recording_id"]}, "lattice": "fsm", "bottom": "reject", "effect_projection": {"type": "transition", "from": {"const": null}, "to": {"const": "recording"}}, "condition": {"type": "field_equals", "field": "payload.capture_kind", "const": "recording"}}, {"cell_family": "ak.component.call.recording_result.v1", "cell_subject": {"type": "composite", "components": ["payload.call_id", "payload.recording_id"]}, "lattice": "cas_register", "bottom": "reject", "effect_projection": {"type": "set", "value": {"field": "payload.result"}}, "condition": {"type": "field_equals", "field": "payload.capture_kind", "const": "recording"}}, {"cell_family": "ak.component.call.transcript.v1", "cell_subject": {"type": "composite", "components": ["payload.call_id", "payload.recording_id"]}, "lattice": "fsm", "bottom": "reject", "effect_projection": {"type": "transition", "from": {"const": null}, "to": {"const": "transcribing"}}, "condition": {"type": "field_equals", "field": "payload.capture_kind", "const": "transcript"}}, {"cell_family": "ak.component.call.transcript_result.v1", "cell_subject": {"type": "composite", "components": ["payload.call_id", "payload.recording_id"]}, "lattice": "cas_register", "bottom": "reject", "effect_projection": {"type": "set", "value": {"field": "payload.result"}}, "condition": {"type": "field_equals", "field": "payload.capture_kind", "const": "transcript"}}]},
-      "ak.sovereign.did_policy": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.sovereign.did_policy.v1", "cell_subject": {"type": "string", "field": "payload.trust_domain"}, "lattice": "cas_register", "bottom": "reject"}]}
+      "ak.circle.update": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.circle.metadata.v1", "cell_subject": {"kind": "id:circle", "field": "payload.circle_id"}, "lattice": "cas_register", "bottom": "reject"}]},
+      "ak.circle.archive": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.circle.lifecycle.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.circle_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.circle.restore": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.circle.lifecycle.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.circle_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.organization.discovery": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.organization.discovery.v1", "cell_subject": {"kind": "did", "field": "payload.organization_did"}, "lattice": "cas_register", "bottom": "reject"}]},
+      "ak.actor.discovery": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.actor.discovery.v1", "cell_subject": {"kind": "did", "field": "payload.resource_id"}, "lattice": "cas_register", "bottom": "reject"}]},
+      "ak.applet.discovery": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.applet.discovery.v1", "cell_subject": {"kind": "typed_id", "field": "payload.resource_id"}, "lattice": "cas_register", "bottom": "reject"}]},
+      "ak.handle.discovery": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.handle.discovery.v1", "cell_subject": {"kind": "string", "field": "payload.resource_id"}, "lattice": "cas_register", "bottom": "reject"}]},
+      "ak.organization.moderation_policy": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.organization.moderation_policy.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.organization_did", "payload.organization_id"]}, "lattice": "cas_register", "bottom": "reject"}]},
+      "ak.did.proof": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.identity.proof_log.v1", "cell_subject": {"kind": "did", "field": "payload.did"}, "lattice": "ordered_log", "bottom": "expose"}]},
+      "ak.identity.disclosure_policy": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.identity.disclosure_policy.v1", "cell_subject": {"kind": "typed_id", "field": "payload.policy_id"}, "lattice": "cas_register", "bottom": "reject"}]},
+      "ak.identity.disclosure_receipt": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.identity.disclosure_receipt.v1", "cell_subject": {"kind": "did", "field": "payload.holder_did"}, "lattice": "ordered_log", "bottom": "expose"}]},
+      "ak.identity.presentation_request": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.identity.presentation.v1", "cell_subject": {"kind": "typed_id", "field": "payload.request_id"}, "lattice": "ordered_log", "bottom": "expose"}]},
+      "ak.identity.presentation_response": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.identity.presentation.v1", "cell_subject": {"kind": "typed_id", "field": "payload.request_id"}, "lattice": "ordered_log", "bottom": "expose"}]},
+      "ak.identity.accountability_grant": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.identity.accountability.v1", "cell_subject": {"kind": "composite", "components": ["payload.issuer", "payload.subject", "payload.accountability_scope"]}, "lattice": "cas_register", "bottom": "reject"}]},
+      "ak.schema.define": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.schema.definition.v1", "cell_subject": {"kind": "string", "field": "payload.schema_id"}, "lattice": "cas_register", "bottom": "reject", "initial_value": "__unset__"}]},
+      "ak.schema.update": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.schema.definition.v1", "cell_subject": {"kind": "string", "field": "payload.schema_id"}, "lattice": "cas_register", "bottom": "reject", "initial_value": "__unset__"}]},
+      "ak.policy.set": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.policy.definition.v1", "cell_subject": {"kind": "typed_id", "field": "payload.policy_id"}, "lattice": "cas_register", "bottom": "reject"}]},
+      "ak.policy.action": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.policy.action_log.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.policy_id", "payload.action_id"]}, "lattice": "ordered_log", "bottom": "expose"}]},
+      "ak.strand.create": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.strand.object.v1", "cell_subject": {"kind": "id:strand", "field": "payload.object.id"}, "lattice": "mv_register", "bottom": "expose"}]},
+      "ak.strand.archive": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.strand.lifecycle.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.strand_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.strand.restore": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.strand.lifecycle.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.strand_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.space.create": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.space.metadata.v1", "cell_subject": {"kind": "id:space", "field": "payload.object.id"}, "lattice": "mv_register", "bottom": "expose"}]},
+      "ak.space.update": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.space.metadata.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.space_id", "payload.target_ref"]}, "lattice": "mv_register", "bottom": "expose"}]},
+      "ak.space.archive": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.space.lifecycle.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.space_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.space.restore": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.space.lifecycle.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.space_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.space.tombstone": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.space.lifecycle.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.space_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.message.revise": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.message.revision.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.message_id", "payload.target_ref", "payload.revision_of"]}, "lattice": "mv_register", "bottom": "expose"}]},
+      "ak.message.redact": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.object.redaction.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.message_id", "payload.target_ref", "payload.event_id", "payload.target_event_id"]}, "lattice": "or_set", "bottom": "inert"}]},
+      "ak.rsvp.set": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.calendar.rsvp.v1", "cell_subject": {"kind": "composite", "components": ["payload.event_ref", "payload.occurrence", "envelope.actor_id"]}, "lattice": "mv_register", "bottom": "expose"}]},
+      "ak.redaction": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.object.redaction.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.target_ref", "payload.event_id", "payload.target_event_id"]}, "lattice": "or_set", "bottom": "inert"}]},
+      "ak.morph.create": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.morph.v1", "cell_subject": {"kind": "id:morph", "field": "payload.object.id"}, "lattice": "mv_register", "bottom": "expose"}]},
+      "ak.morph.update": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.morph.v1", "cell_subject": {"kind": "id:morph", "field": "payload.target_ref"}, "lattice": "mv_register", "bottom": "expose"}]},
+      "ak.morph.archive": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.morph.lifecycle.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.morph_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.morph.restore": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.morph.lifecycle.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.morph_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.morph.schema_migrate": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.morph.schema.v1", "cell_subject": {"kind": "id:morph", "field": "payload.morph_id"}, "lattice": "cas_register", "bottom": "reject"}]},
+      "ak.relation.create": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.relation.v1", "cell_subject": {"kind": "id:relation", "field": "payload.object.id"}, "lattice": "mv_register", "bottom": "expose"}]},
+      "ak.relation.update": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.relation.v1", "cell_subject": {"kind": "id:relation", "field": "payload.target_ref"}, "lattice": "mv_register", "bottom": "expose"}]},
+      "ak.relation.tombstone": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.relation.lifecycle.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.relation_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.container.move_item": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.container.position.v1", "cell_subject": {"kind": "composite", "components": ["payload.container_ref", "payload.item_ref"]}, "lattice": "cas_register", "bottom": "reject"}]},
+      "ak.container.rebalance": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.container.order.v1", "cell_subject": {"kind": "string", "field": "payload.container_ref"}, "lattice": "cas_register", "bottom": "reject"}]},
+      "ak.profile.realm_override": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.profile.realm_override.v1", "cell_subject": {"kind": "composite", "components": ["payload.target_realm_id", "payload.profile_id"]}, "lattice": "cas_register", "bottom": "reject"}]},
+      "ak.mls.proposal": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.mls.proposal.v1", "cell_subject": {"kind": "string", "field": "payload.mls_group_id"}, "lattice": "ordered_log", "bottom": "expose"}]},
+      "ak.mls.genesis": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.mls.epoch.v1", "cell_subject": {"kind": "string", "field": "payload.mls_group_id"}, "lattice": "cas_register", "bottom": "reject", "initial_value": "__unset__"}, {"cell_family": "ak.component.mls.key_schedule.v1", "cell_subject": {"kind": "string", "field": "payload.mls_group_id"}, "lattice": "cas_register", "bottom": "reject", "initial_value": "__unset__"}, {"cell_family": "ak.component.covered_seals.v1", "cell_subject": {"kind": "string", "field": "payload.mls_group_id"}, "lattice": "or_set", "bottom": "inert"}]},
+      "ak.mls.commit": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.mls.epoch.v1", "cell_subject": {"kind": "string", "field": "payload.mls_group_id"}, "lattice": "cas_register", "bottom": "reject"}, {"cell_family": "ak.component.mls.key_schedule.v1", "cell_subject": {"kind": "string", "field": "payload.mls_group_id"}, "lattice": "cas_register", "bottom": "reject"}, {"cell_family": "ak.component.covered_seals.v1", "cell_subject": {"kind": "string", "field": "payload.mls_group_id"}, "lattice": "or_set", "bottom": "inert"}]},
+      "ak.mls.commit_failed": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.mls.failure_log.v1", "cell_subject": {"kind": "string", "field": "payload.mls_group_id"}, "lattice": "ordered_log", "bottom": "expose"}]},
+      "ak.mls.welcome": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.mls.welcome.v1", "cell_subject": {"kind": "composite", "components": ["payload.mls_group_id", "payload.recipient_principal_id", "payload.recipient_device_id"]}, "lattice": "ordered_log", "bottom": "expose"}]},
+      "ak.mls.keypackage": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.mls.keypackage.v1", "cell_subject": {"kind": "composite", "components": ["payload.principal_id", "payload.device_id", "payload.keypackage_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.realm_key.share": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.realm_key.delivery.v1", "cell_subject": {"kind": "composite", "components": ["payload.share_kind", "payload.recipient_principal_id", {"kind": "select", "selector": "payload.share_kind", "branches": {"member_device": {"field": "payload.recipient_device_id", "forbidden_fields": ["payload.recipient_verification_method", "payload.recovery_recipient_id"]}, "realm_recovery_key": {"field": "payload.recovery_recipient_id", "forbidden_fields": ["payload.recipient_device_id"]}}}, {"kind": "select", "selector": "payload.key_scope.effective_scope.kind", "branches": {"realm": {"field": "payload.key_scope.effective_scope.realm_id"}, "circle": {"field": "payload.key_scope.effective_scope.circle_id"}}}]}, "value_projection": {"kind": "object", "members": [{"name": "delivery_outcome", "literal": "shared"}, {"name": "share_kind", "field": "payload.share_kind"}, {"name": "recipient_principal_id", "field": "payload.recipient_principal_id"}, {"name": "recipient_target_id", "select": {"kind": "select", "selector": "payload.share_kind", "branches": {"member_device": {"field": "payload.recipient_device_id", "forbidden_fields": ["payload.recipient_verification_method", "payload.recovery_recipient_id"]}, "realm_recovery_key": {"field": "payload.recovery_recipient_id", "forbidden_fields": ["payload.recipient_device_id"]}}}}, {"name": "effective_scope_id", "select": {"kind": "select", "selector": "payload.key_scope.effective_scope.kind", "branches": {"realm": {"field": "payload.key_scope.effective_scope.realm_id"}, "circle": {"field": "payload.key_scope.effective_scope.circle_id"}}}}, {"name": "policy_digest", "field": "payload.key_scope.policy_digest"}, {"name": "from_epoch", "field": "payload.key_scope.from_epoch", "optional": true}, {"name": "to_epoch", "field": "payload.key_scope.to_epoch", "optional": true}, {"name": "sender_device_id", "field": "payload.sender_device_id"}, {"name": "source_authorization_ref", "field": "payload.source_authorization_ref"}, {"name": "payload_digest", "digest_of": {"input": "event_payload_canonical_bytes"}}]}, "lattice": "ordered_log", "bottom": "expose"}]},
+      "ak.realm_key.withheld": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.realm_key.delivery.v1", "cell_subject": {"kind": "composite", "components": ["payload.share_kind", "payload.recipient_principal_id", {"kind": "select", "selector": "payload.share_kind", "branches": {"member_device": {"field": "payload.recipient_device_id", "forbidden_fields": ["payload.recipient_verification_method", "payload.recovery_recipient_id"]}, "realm_recovery_key": {"field": "payload.recovery_recipient_id", "forbidden_fields": ["payload.recipient_device_id"]}}}, {"kind": "select", "selector": "payload.key_scope.effective_scope.kind", "branches": {"realm": {"field": "payload.key_scope.effective_scope.realm_id"}, "circle": {"field": "payload.key_scope.effective_scope.circle_id"}}}]}, "value_projection": {"kind": "object", "members": [{"name": "delivery_outcome", "literal": "withheld"}, {"name": "share_kind", "field": "payload.share_kind"}, {"name": "recipient_principal_id", "field": "payload.recipient_principal_id"}, {"name": "recipient_target_id", "select": {"kind": "select", "selector": "payload.share_kind", "branches": {"member_device": {"field": "payload.recipient_device_id", "forbidden_fields": ["payload.recipient_verification_method", "payload.recovery_recipient_id"]}, "realm_recovery_key": {"field": "payload.recovery_recipient_id", "forbidden_fields": ["payload.recipient_device_id"]}}}}, {"name": "effective_scope_id", "select": {"kind": "select", "selector": "payload.key_scope.effective_scope.kind", "branches": {"realm": {"field": "payload.key_scope.effective_scope.realm_id"}, "circle": {"field": "payload.key_scope.effective_scope.circle_id"}}}}, {"name": "policy_digest", "field": "payload.key_scope.policy_digest"}, {"name": "from_epoch", "field": "payload.key_scope.from_epoch", "optional": true}, {"name": "to_epoch", "field": "payload.key_scope.to_epoch", "optional": true}, {"name": "sender_device_id", "field": "payload.sender_device_id"}, {"name": "source_authorization_ref", "field": "payload.source_authorization_ref"}, {"name": "payload_digest", "digest_of": {"input": "event_payload_canonical_bytes"}}, {"name": "withheld_reason_code", "field": "payload.withheld_reason_code"}]}, "lattice": "ordered_log", "bottom": "expose"}]},
+      "ak.realm_key.share_audit": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.realm_key.audit.v1", "cell_subject": {"kind": "string", "field": "payload.share_event_ref"}, "lattice": "ordered_log", "bottom": "expose"}]},
+      "ak.audit.accessed": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.audit.access_log.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.target_ref", "payload.target_cell_id", "payload.paired_event_id"]}, "lattice": "ordered_log", "bottom": "expose"}]},
+      "ak.self.moderation.report": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.moderation.report.v1", "cell_subject": {"kind": "string", "field": "payload.target_ref"}, "lattice": "ordered_log", "bottom": "expose"}]},
+      "ak.moderation.franking_proof": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.moderation.franking_proof.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.report_id", "payload.target_ref"]}, "lattice": "ordered_log", "bottom": "expose"}]},
+      "ak.invite.create": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.invite.id", "payload.invite_id"]}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.member.state.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.invite.invitee", "payload.invitee"]}, "lattice": "fsm", "bottom": "reject", "condition": {"kind": "any_field_present", "fields": ["payload.invite.invitee", "payload.invitee"]}}]},
+      "ak.invite.cancel": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"kind": "typed_id", "field": "payload.invite_id"}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.member.state.v1", "cell_subject": {"kind": "did", "field": "payload.invitee"}, "lattice": "fsm", "bottom": "reject", "condition": {"kind": "field_present", "field": "payload.invitee"}}]},
+      "ak.invite.accept": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"kind": "typed_id", "field": "payload.invite_id"}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.member.state.v1", "cell_subject": {"kind": "did", "field": "envelope.actor_id"}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.invite.third_party": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.invite.id", "payload.invite_id"]}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.invite.claim": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"kind": "typed_id", "field": "payload.invite_id"}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.invite.membership_proposal.v1", "cell_subject": {"kind": "composite", "components": ["payload.invite_id", "payload.subject_id"]}, "lattice": "or_set", "bottom": "inert"}]},
+      "ak.invite.revoke": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"kind": "typed_id", "field": "payload.invite_id"}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.member.state.v1", "cell_subject": {"kind": "did", "field": "payload.invitee"}, "lattice": "fsm", "bottom": "reject", "condition": {"kind": "field_present", "field": "payload.invitee"}}]},
+      "ak.applet.bridge_error": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.applet.bridge_error.v1", "cell_subject": {"kind": "typed_id", "field": "payload.applet_id"}, "lattice": "ordered_log", "bottom": "expose"}]},
+      "ak.applet.registration": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.applet.registration.v1", "cell_subject": {"kind": "typed_id", "field": "payload.applet_id"}, "lattice": "cas_register", "bottom": "reject"}]},
+      "ak.call.state": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.call.state.v1", "cell_subject": {"kind": "typed_id", "field": "payload.call_id"}, "lattice": "fsm", "bottom": "reject", "effect_projection": {"kind": "transition", "from": {"field": "payload.state_transition.from"}, "to": {"field": "payload.state_transition.to"}}, "condition": {"kind": "field_present", "field": "payload.state_transition"}}, {"cell_family": "ak.component.call.focus.v1", "cell_subject": {"kind": "typed_id", "field": "payload.call_id"}, "lattice": "cas_register", "bottom": "reject", "initial_value": "__unset__", "effect_projection": {"kind": "set", "value": {"field": "payload.focus"}}, "condition": {"kind": "field_present", "field": "payload.focus"}}, {"cell_family": "ak.component.call.recording.v1", "cell_subject": {"kind": "composite", "components": ["payload.call_id", "payload.recording_transition.recording_id"]}, "lattice": "fsm", "bottom": "reject", "effect_projection": {"kind": "transition", "from": {"field": "payload.recording_transition.from"}, "to": {"field": "payload.recording_transition.to"}}, "condition": {"kind": "field_present", "field": "payload.recording_transition"}}, {"cell_family": "ak.component.call.recording_result.v1", "cell_subject": {"kind": "composite", "components": ["payload.call_id", "payload.recording_transition.recording_id"]}, "lattice": "cas_register", "bottom": "reject", "effect_projection": {"kind": "set", "value": {"field": "payload.recording_transition.result"}}, "condition": {"kind": "field_present", "field": "payload.recording_transition.result"}}, {"cell_family": "ak.component.call.transcript.v1", "cell_subject": {"kind": "composite", "components": ["payload.call_id", "payload.transcript_transition.recording_id"]}, "lattice": "fsm", "bottom": "reject", "effect_projection": {"kind": "transition", "from": {"field": "payload.transcript_transition.from"}, "to": {"field": "payload.transcript_transition.to"}}, "condition": {"kind": "field_present", "field": "payload.transcript_transition"}}, {"cell_family": "ak.component.call.transcript_result.v1", "cell_subject": {"kind": "composite", "components": ["payload.call_id", "payload.transcript_transition.recording_id"]}, "lattice": "cas_register", "bottom": "reject", "effect_projection": {"kind": "set", "value": {"field": "payload.transcript_transition.result"}}, "condition": {"kind": "field_present", "field": "payload.transcript_transition.result"}}, {"cell_family": "ak.component.call.moderation.v1", "cell_subject": {"kind": "typed_id", "field": "payload.call_id"}, "lattice": "or_set", "bottom": "inert", "effect_projection": {"kind": "or_set_delta", "selector": "payload.moderation_delta.op", "branches": {"remove_participant": {"op": "add", "tag": {"envelope_field": "event_id"}, "value": {"field": "payload.moderation_delta.removal"}}, "restore_participant": {"op": "remove", "tag": {"field": "payload.moderation_delta.observed_tag"}}}}, "condition": {"kind": "field_present", "field": "payload.moderation_delta"}}, {"cell_family": "ak.component.call.roster.v1", "cell_subject": {"kind": "typed_id", "field": "payload.call_id"}, "lattice": "or_set", "bottom": "inert", "effect_projection": {"kind": "or_set_delta", "selector": "payload.roster_delta.op", "branches": {"join": {"op": "add", "tag": {"envelope_field": "event_id"}, "value": {"field": "payload.roster_delta.participant"}}, "leave": {"op": "remove", "tag": {"field": "payload.roster_delta.observed_tag"}}}}, "condition": {"kind": "field_present", "field": "payload.roster_delta"}}, {"cell_family": "ak.component.call.mute_override.v1", "cell_subject": {"kind": "composite", "components": ["payload.call_id", "payload.mute_override.actor_id", "payload.mute_override.device_id"]}, "lattice": "cas_register", "bottom": "reject", "effect_projection": {"kind": "set", "value": {"field": "payload.mute_override"}}, "condition": {"kind": "field_present", "field": "payload.mute_override"}}]},
+      "ak.call.recording.start": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.call.recording.v1", "cell_subject": {"kind": "composite", "components": ["payload.call_id", "payload.recording_id"]}, "lattice": "fsm", "bottom": "reject", "effect_projection": {"kind": "transition", "from": {"const": null}, "to": {"const": "recording"}}, "condition": {"kind": "field_equals", "field": "payload.capture_kind", "const": "recording"}}, {"cell_family": "ak.component.call.recording_result.v1", "cell_subject": {"kind": "composite", "components": ["payload.call_id", "payload.recording_id"]}, "lattice": "cas_register", "bottom": "reject", "effect_projection": {"kind": "set", "value": {"field": "payload.result"}}, "condition": {"kind": "field_equals", "field": "payload.capture_kind", "const": "recording"}}, {"cell_family": "ak.component.call.transcript.v1", "cell_subject": {"kind": "composite", "components": ["payload.call_id", "payload.recording_id"]}, "lattice": "fsm", "bottom": "reject", "effect_projection": {"kind": "transition", "from": {"const": null}, "to": {"const": "transcribing"}}, "condition": {"kind": "field_equals", "field": "payload.capture_kind", "const": "transcript"}}, {"cell_family": "ak.component.call.transcript_result.v1", "cell_subject": {"kind": "composite", "components": ["payload.call_id", "payload.recording_id"]}, "lattice": "cas_register", "bottom": "reject", "effect_projection": {"kind": "set", "value": {"field": "payload.result"}}, "condition": {"kind": "field_equals", "field": "payload.capture_kind", "const": "transcript"}}]},
+      "ak.sovereign.did_policy": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.sovereign.did_policy.v1", "cell_subject": {"kind": "string", "field": "payload.trust_domain"}, "lattice": "cas_register", "bottom": "reject"}]}
     },
     "event_kinds": [
       {
@@ -273,8 +273,8 @@
         "payload": "Realm version upgrade",
         "cell_family": "ak.component.realm.upgrade.v1",
         "cell_subject": {
-          "type": "profile_ref",
-          "field": "payload.target_reducer_profile"
+          "field": "payload.target_reducer_profile",
+          "kind": "profile_ref"
         },
         "lattice": "cas_register",
         "bottom": "reject",
@@ -290,19 +290,19 @@
         "payload": "Organization-authorized Realm relationship statement or revocation",
         "cell_family": "ak.component.realm.organization.v1",
         "cell_subject": {
-          "type": "tuple",
           "components": [
             {
               "name": "organization_id",
-              "type": "did",
-              "field": "payload.organization_id"
+              "field": "payload.organization_id",
+              "kind": "did"
             },
             {
               "name": "relationship",
-              "type": "string",
-              "field": "payload.relationship"
+              "field": "payload.relationship",
+              "kind": "string"
             }
-          ]
+          ],
+          "kind": "tuple"
         },
         "lattice": "cas_register",
         "bottom": "reject",
@@ -318,19 +318,19 @@
         "payload": "Typed Realm link graph edge. link_kind declares governance / discoverability / import-export / confidential-extension semantics; it is never generic parent/child containment and never implicitly propagates membership, capabilities, history, E2EE keys, retention, or federation policy.",
         "cell_family": "ak.component.realm.link.v1",
         "cell_subject": {
-          "type": "tuple",
           "components": [
             {
               "name": "target_realm_id",
-              "type": "id:realm",
-              "field": "payload.target_realm_id"
+              "field": "payload.target_realm_id",
+              "kind": "id:realm"
             },
             {
               "name": "link_kind",
-              "type": "string",
-              "field": "payload.link_kind"
+              "field": "payload.link_kind",
+              "kind": "string"
             }
-          ]
+          ],
+          "kind": "tuple"
         },
         "lattice": "fsm",
         "bottom": "reject",
@@ -675,8 +675,8 @@
         "payload": "Per-parent inheritance policy; one entry per source Realm",
         "cell_family": "ak.component.realm.inheritance_policy.v1",
         "cell_subject": {
-          "type": "id:realm",
-          "field": "payload.source_realm_id"
+          "field": "payload.source_realm_id",
+          "kind": "id:realm"
         },
         "lattice": "cas_register",
         "bottom": "reject",
@@ -807,11 +807,11 @@
         "lifecycle_modality": "terminal",
         "cell_family": "ak.component.circle.tombstone.v1",
         "cell_subject": {
-          "type": "coalesce",
           "fields": [
             "payload.circle_id",
             "payload.target_ref"
-          ]
+          ],
+          "kind": "coalesce"
         },
         "lattice": "cas_register",
         "bottom": "reject",
@@ -827,11 +827,11 @@
         "payload": "Circle membership state. Uses the same membership_state enum as ak.member.state (invite/join/knock/leave/ban), scoped to a Circle. Reducer MUST first validate the target actor is a parent Realm `join` member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
         "cell_family": "ak.component.circle.member.v1",
         "cell_subject": {
-          "type": "composite",
           "components": [
             "payload.circle_id",
             "payload.actor_id"
-          ]
+          ],
+          "kind": "composite"
         },
         "lattice": "cas_register",
         "bottom": "reject",
@@ -981,8 +981,8 @@
         "payload": "Policy rule state",
         "cell_family": "ak.component.policy.rule.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.rule_id"
+          "field": "payload.rule_id",
+          "kind": "string"
         },
         "lattice": "ordered_log",
         "bottom": "expose",
@@ -1006,14 +1006,14 @@
         "payload": "Notary equivocation evidence (Control Move). Payload carries signer_id plus the two conflicting Seal wire objects: same (realm_id, notary_seq) slot with different canonical bytes, or a notary_seq=k+1 Seal that does not descend from the same signer's notary_seq=k Seal (authz/event-auth-state-resolution.md section 7.1). Admission is verification-only: any Realm member MAY submit and the two conflicting notary signatures are the complete authorization; no capability grant is consulted and reducer MUST NOT require one. Reducer MUST re-verify both signatures and the slot rule, then add a per-signer fault record to the notary_fault cell. Once a fault record is accepted: receivers MUST reject later Seals signed by the fault signer, the two conflicting Seals and their descendants enter fork_quarantine, and Realm-wide pause applies only when no eligible signer remains.",
         "cell_family": "ak.component.notary_fault.v1",
         "cell_subject": {
-          "type": "tuple",
           "components": [
             {
               "name": "signer_id",
-              "type": "did",
-              "field": "payload.signer_id"
+              "field": "payload.signer_id",
+              "kind": "did"
             }
-          ]
+          ],
+          "kind": "tuple"
         },
         "lattice": "or_set",
         "bottom": "expose",
@@ -1030,14 +1030,14 @@
         "payload": "Notary censorship evidence (Control Move). Payload carries signer_id, the signed control-plane receipt, the seal_ref of the Seal that was obliged to include / signed-reject / defer the pending Control Move, a control_event_set_root non-membership proof for the censored event digest, and the missing rejection-or-defer proof (authz/event-auth-state-resolution.md section 7.2). Admission is verification-only: the receipt holder MAY submit; the receipt signature plus the non-membership proof are the complete authorization. This evidence does NOT automatically disqualify the notary: reducer adds an audit fault record that MUST raise governance alarms, feeds inclusion-list / recovery obligations, and is evaluated by governance or the genesis recovery path.",
         "cell_family": "ak.component.notary_fault.v1",
         "cell_subject": {
-          "type": "tuple",
           "components": [
             {
               "name": "signer_id",
-              "type": "did",
-              "field": "payload.signer_id"
+              "field": "payload.signer_id",
+              "kind": "did"
             }
-          ]
+          ],
+          "kind": "tuple"
         },
         "lattice": "or_set",
         "bottom": "expose",
@@ -1058,8 +1058,8 @@
         "payload": "Realm membership state",
         "cell_family": "ak.component.member.state.v1",
         "cell_subject": {
-          "type": "did",
-          "field": "payload.actor_id"
+          "field": "payload.actor_id",
+          "kind": "did"
         },
         "lattice": "fsm",
         "bottom": "reject",
@@ -1152,12 +1152,12 @@
         "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior ak.member.identity.update events via payload.replaces[] without overloading ak.profile.update patch semantics.",
         "cell_family": "ak.component.member.identity.v1",
         "cell_subject": {
-          "type": "composite",
           "components": [
             "payload.realm_id",
             "payload.actor_id",
             "payload.segment"
-          ]
+          ],
+          "kind": "composite"
         },
         "lattice": "ordered_log",
         "bottom": "expose",
@@ -1181,8 +1181,8 @@
         "payload": "Strand patch",
         "cell_family": "ak.component.strand.metadata.v1",
         "cell_subject": {
-          "type": "id:strand",
-          "field": "payload.target_ref"
+          "field": "payload.target_ref",
+          "kind": "id:strand"
         },
         "lattice": "mv_register",
         "bottom": "expose",
@@ -1216,8 +1216,8 @@
         "payload": "Strand business-progression stage transition. Single source of truth for mutating Strand.stage / Strand.stage_changed_at; ak.strand.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Strand's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=strand_already_terminal; state=archived yields strand_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. A per-Realm workflow profile MAY narrow which transitions are legal beyond these hard invariants.",
         "cell_family": "ak.component.strand.stage.v1",
         "cell_subject": {
-          "type": "id:strand",
-          "field": "payload.strand_id"
+          "field": "payload.strand_id",
+          "kind": "id:strand"
         },
         "lattice": "cas_register",
         "bottom": "reject",
@@ -1233,8 +1233,8 @@
         "payload": "Unified Strand tracks patch. payload.patch uses ak.patch.v1 against the Strand.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks.",
         "cell_family": "ak.component.strand.tracks.v1",
         "cell_subject": {
-          "type": "id:strand",
-          "field": "payload.target_ref"
+          "field": "payload.target_ref",
+          "kind": "id:strand"
         },
         "lattice": "mv_register",
         "bottom": "expose",
@@ -1250,19 +1250,19 @@
         "payload": "Strand move between Spaces (target_space_id in payload). Writes a cas_register cell keyed by (board_space_id, strand_id); the contains Relation list_space_id->strand_id is derived from cell value, not a separate truth source. Plane ruling (CBA): ak.component.strand.position.v1 defaults to sealed=true (control plane), so ak.strand.move is a Control Move carrying seal_basis; Realm schema MAY redeclare the cell family as data-plane mv_register + user-pick or per-object sequencer per authz/event-auth-state-resolution.md section 9.4 and models/realm-and-space.md section 3.6.",
         "cell_family": "ak.component.strand.position.v1",
         "cell_subject": {
-          "type": "tuple",
           "components": [
             {
               "name": "board_space_id",
-              "type": "id:space",
-              "field": "payload.board_space_id"
+              "field": "payload.board_space_id",
+              "kind": "id:space"
             },
             {
               "name": "strand_id",
-              "type": "id:strand",
-              "field": "payload.strand_id"
+              "field": "payload.strand_id",
+              "kind": "id:strand"
             }
-          ]
+          ],
+          "kind": "tuple"
         },
         "lattice": "cas_register",
         "bottom": "reject",
@@ -1278,19 +1278,19 @@
         "payload": "Strand reorder within Space. Writes the same cell as ak.strand.move; effect.list_space_id MUST equal head_eq.list_space_id (rank-only update). Plane ruling follows ak.strand.move: same cell family, same default sealed=true control-plane declaration (models/realm-and-space.md section 3.6).",
         "cell_family": "ak.component.strand.position.v1",
         "cell_subject": {
-          "type": "tuple",
           "components": [
             {
               "name": "board_space_id",
-              "type": "id:space",
-              "field": "payload.board_space_id"
+              "field": "payload.board_space_id",
+              "kind": "id:space"
             },
             {
               "name": "strand_id",
-              "type": "id:strand",
-              "field": "payload.strand_id"
+              "field": "payload.strand_id",
+              "kind": "id:strand"
             }
-          ]
+          ],
+          "kind": "tuple"
         },
         "lattice": "cas_register",
         "bottom": "reject",
@@ -1306,19 +1306,19 @@
         "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a cas_register cell keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ak.strand.watch.set.others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch ak.audit.accessed event with access_kind=watch_set_others. The watches Relation (actor --watches--> strand) is a derived projection of this cell, not a separate truth source — direct ak.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
         "cell_family": "ak.component.strand.watch.v1",
         "cell_subject": {
-          "type": "tuple",
           "components": [
             {
               "name": "strand_id",
-              "type": "id:strand",
-              "field": "payload.strand_id"
+              "field": "payload.strand_id",
+              "kind": "id:strand"
             },
             {
               "name": "watcher_actor_id",
-              "type": "did",
-              "field": "payload.watcher_actor_id"
+              "field": "payload.watcher_actor_id",
+              "kind": "did"
             }
-          ]
+          ],
+          "kind": "tuple"
         },
         "lattice": "cas_register",
         "bottom": "reject",
@@ -1350,8 +1350,8 @@
         "payload": "Space parent declaration. Parent is another ak:space: or null; cross-Realm parent is navigation only and never propagates Realm membership, capabilities, history, E2EE keys, retention, or federation policy.",
         "cell_family": "ak.component.space.parent.v1",
         "cell_subject": {
-          "type": "id:space",
-          "field": "payload.space_id"
+          "field": "payload.space_id",
+          "kind": "id:space"
         },
         "lattice": "cas_register",
         "bottom": "reject",
@@ -1394,8 +1394,8 @@
         "payload": "Message create",
         "cell_family": "ak.component.strand.discussion.timeline.v1",
         "cell_subject": {
-          "type": "id:strand",
-          "field": "payload.strand_id"
+          "field": "payload.strand_id",
+          "kind": "id:strand"
         },
         "lattice": "ordered_log",
         "bottom": "expose",
@@ -1411,8 +1411,8 @@
         "payload": "Controller-authored durable Sidecar exchange control. The outer payload exposes only private Strand routing plus an MLS encrypted payload whose plaintext validates as ak.schema.agent_sidecar_exchange_control.v1. It is accepted only in the matching Sidecar backing Circle from that Sidecar controller and is the sole truth source for coordinator reassignment and terminal exchange state.",
         "cell_family": "ak.component.strand.discussion.timeline.v1",
         "cell_subject": {
-          "type": "id:strand",
-          "field": "payload.strand_id"
+          "field": "payload.strand_id",
+          "kind": "id:strand"
         },
         "lattice": "ordered_log",
         "bottom": "expose",
@@ -1444,8 +1444,8 @@
         "payload": "Reaction add",
         "cell_family": "ak.component.message.reactions.v1",
         "cell_subject": {
-          "type": "id:message",
-          "field": "payload.target_ref"
+          "field": "payload.target_ref",
+          "kind": "id:message"
         },
         "lattice": "or_set",
         "bottom": "expose",
@@ -1461,8 +1461,8 @@
         "payload": "Reaction remove",
         "cell_family": "ak.component.message.reactions.v1",
         "cell_subject": {
-          "type": "id:message",
-          "field": "payload.target_ref"
+          "field": "payload.target_ref",
+          "kind": "id:message"
         },
         "lattice": "or_set",
         "bottom": "expose",
@@ -1488,8 +1488,8 @@
         "payload_schema": "ak.schema.pin.v1",
         "cell_family": "ak.component.pin.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.pin_scope.id"
+          "field": "payload.pin_scope.id",
+          "kind": "string"
         },
         "lattice": "or_set",
         "bottom": "expose",
@@ -1506,8 +1506,8 @@
         "payload_schema": "ak.schema.pin.v1",
         "cell_family": "ak.component.pin.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.pin_scope.id"
+          "field": "payload.pin_scope.id",
+          "kind": "string"
         },
         "lattice": "or_set",
         "bottom": "expose",
@@ -1524,8 +1524,8 @@
         "payload_schema": "ak.schema.pin.v1",
         "cell_family": "ak.component.pin.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.pin_scope.id"
+          "field": "payload.pin_scope.id",
+          "kind": "string"
         },
         "lattice": "or_set",
         "bottom": "expose",
@@ -1592,8 +1592,8 @@
         "payload": "Morph business-progression stage transition. Single source of truth for mutating Morph.stage / Morph.stage_changed_at; ak.morph.update / ak.morph.schema_migrate patches on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on an associated discussion track that 'references' this event. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=morph_already_terminal; state=archived yields morph_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at.",
         "cell_family": "ak.component.morph.stage.v1",
         "cell_subject": {
-          "type": "id:morph",
-          "field": "payload.morph_id"
+          "field": "payload.morph_id",
+          "kind": "id:morph"
         },
         "lattice": "cas_register",
         "bottom": "reject",
@@ -1650,8 +1650,8 @@
         "payload": "View create",
         "cell_family": "ak.component.view.create.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.view_id"
+          "field": "payload.view_id",
+          "kind": "string"
         },
         "lattice": "mv_register",
         "bottom": "expose",
@@ -1667,8 +1667,8 @@
         "payload": "View update",
         "cell_family": "ak.component.view.update.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.view_id"
+          "field": "payload.view_id",
+          "kind": "string"
         },
         "lattice": "mv_register",
         "bottom": "expose",
@@ -1684,8 +1684,8 @@
         "payload": "View schema or definition sync",
         "cell_family": "ak.component.view.reconcile.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.view_id"
+          "field": "payload.view_id",
+          "kind": "string"
         },
         "lattice": "mv_register",
         "bottom": "expose",
@@ -1701,11 +1701,11 @@
         "payload": "Agent signing key authorization. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_authorize_payload and bind agent_id, key_id, verification_method, accountable_principal_id, agent_key_scope, audience, issued_at, and approval_evidence; expires_at is optional (absent means non-expiring, revocation-governed). The agent-key cell is an observed-remove OR-Set. First authorization adds one authorization dot. Same-key re-authorization MUST atomically remove every active authorization dot visible at the Move seal_basis and add the replacement dot; it MUST NOT select a winner by arrival time. Concurrent replacement dots that survive the join are evaluated by the deterministic strictest fold: intersect agent_key_scope and audience, take the earliest finite expires_at (absence is +infinity), and fail closed if accountable_principal_id or verification_method disagree. Key replacement has no dedicated rotate kind: runtime replacement re-pairing authorizes the new key and revokes every prior active key (reason=superseded_by_repairing) in the same accepted transaction.",
         "cell_family": "ak.component.agent.key.v1",
         "cell_subject": {
-          "type": "composite",
           "components": [
             "payload.agent_id",
             "payload.key_id"
-          ]
+          ],
+          "kind": "composite"
         },
         "lattice": "or_set",
         "bottom": "expose",
@@ -1721,11 +1721,11 @@
         "payload": "Agent signing key revocation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_revoke_payload and bind agent_id, key_id, revoked_at, and revoked_by; the revocation's control-plane basis is the Control Move envelope seal_basis, and its cutoff is the accepted Seal covering the Move.",
         "cell_family": "ak.component.agent.key.v1",
         "cell_subject": {
-          "type": "composite",
           "components": [
             "payload.agent_id",
             "payload.key_id"
-          ]
+          ],
+          "kind": "composite"
         },
         "lattice": "or_set",
         "bottom": "expose",
@@ -1742,11 +1742,11 @@
         "payload_schema_ref": "schemas/agent-selector-claim.schema.json",
         "cell_family": "ak.component.agent.selector_claim.v1",
         "cell_subject": {
-          "type": "composite",
           "components": [
             "payload.controller_subject",
             "payload.agent_slug"
-          ]
+          ],
+          "kind": "composite"
         },
         "lattice": "mv_register",
         "bottom": "expose",
@@ -1762,8 +1762,8 @@
         "payload": "Agent lifecycle transition to paused state. Authorization basis is the Control Move envelope seal_basis; payload carries no independent frontier. Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within an independent pause revocation freshness window of at most 60 seconds, never merely the session maximum TTL. Reversible via ak.self.agent.resume.",
         "cell_family": "ak.component.agent.status.v1",
         "cell_subject": {
-          "type": "did",
-          "field": "payload.agent_id"
+          "field": "payload.agent_id",
+          "kind": "did"
         },
         "lattice": "fsm",
         "bottom": "reject",
@@ -1779,8 +1779,8 @@
         "payload": "Agent lifecycle transition from paused to active. Authorization basis is the Control Move envelope seal_basis; payload carries no independent frontier. At acceptance the reducer MUST use the accepted current control frontier to re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
         "cell_family": "ak.component.agent.status.v1",
         "cell_subject": {
-          "type": "did",
-          "field": "payload.agent_id"
+          "field": "payload.agent_id",
+          "kind": "did"
         },
         "lattice": "fsm",
         "bottom": "reject",
@@ -1796,8 +1796,8 @@
         "payload": "Agent lifecycle terminal state. MUST fan-out ak.agent.key.revoke for all active agent keys, ak.capability.revoke for all unrevoked grants, and runtime endpoint revocation. Terminal — no transition out.",
         "cell_family": "ak.component.agent.status.v1",
         "cell_subject": {
-          "type": "did",
-          "field": "payload.agent_id"
+          "field": "payload.agent_id",
+          "kind": "did"
         },
         "lattice": "fsm",
         "bottom": "reject",
@@ -1845,8 +1845,8 @@
         "payload": "Capability grant",
         "cell_family": "ak.component.capability.grant.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.grant_id"
+          "field": "payload.grant_id",
+          "kind": "string"
         },
         "lattice": "or_set",
         "bottom": "inert",
@@ -1862,8 +1862,8 @@
         "payload": "Capability delegation",
         "cell_family": "ak.component.capability.delegate.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.grant_id"
+          "field": "payload.grant_id",
+          "kind": "string"
         },
         "lattice": "or_set",
         "bottom": "inert",
@@ -1879,8 +1879,8 @@
         "payload": "Capability revocation",
         "cell_family": "ak.component.capability.grant.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.grant_id"
+          "field": "payload.grant_id",
+          "kind": "string"
         },
         "lattice": "or_set",
         "bottom": "inert",
@@ -1896,8 +1896,8 @@
         "payload": "Derived capability state",
         "cell_family": "ak.component.capability.derived.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.grant_id"
+          "field": "payload.grant_id",
+          "kind": "string"
         },
         "lattice": "or_set",
         "bottom": "inert",
@@ -1914,8 +1914,8 @@
         "payload": "Session grant",
         "cell_family": "ak.component.session.grant.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.grant_id"
+          "field": "payload.grant_id",
+          "kind": "string"
         },
         "lattice": "or_set",
         "bottom": "inert",
@@ -1932,8 +1932,8 @@
         "payload": "Holder-private consent declaration: 'I consent to receive <consent_scope> from <peer>'",
         "cell_family": "ak.component.consent.grant.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.consent_id"
+          "field": "payload.consent_id",
+          "kind": "string"
         },
         "lattice": "or_set",
         "bottom": "inert",
@@ -1950,8 +1950,8 @@
         "payload": "Revoke a previously granted consent (shares the ak.consent.grant cell; semantically a remove on the consent or_set)",
         "cell_family": "ak.component.consent.grant.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.consent_id"
+          "field": "payload.consent_id",
+          "kind": "string"
         },
         "lattice": "or_set",
         "bottom": "inert",
@@ -1968,8 +1968,8 @@
         "payload": "Principal-scoped contact request fact. Issuer is requester; target holder must respond with accepted/rejected.",
         "cell_family": "ak.component.contact.fact_log.v1",
         "cell_subject": {
-          "type": "did",
-          "field": "payload.target"
+          "field": "payload.target",
+          "kind": "did"
         },
         "lattice": "ordered_log",
         "bottom": "expose",
@@ -1986,8 +1986,8 @@
         "payload": "Principal-scoped contact acceptance fact. Issuer is original request target and MUST reference target-controlled consent grants.",
         "cell_family": "ak.component.contact.fact_log.v1",
         "cell_subject": {
-          "type": "did",
-          "field": "payload.requester"
+          "field": "payload.requester",
+          "kind": "did"
         },
         "lattice": "ordered_log",
         "bottom": "expose",
@@ -2004,8 +2004,8 @@
         "payload": "Principal-scoped contact rejection fact. Issuer is original request target and does not write consent.",
         "cell_family": "ak.component.contact.fact_log.v1",
         "cell_subject": {
-          "type": "did",
-          "field": "payload.requester"
+          "field": "payload.requester",
+          "kind": "did"
         },
         "lattice": "ordered_log",
         "bottom": "expose",
@@ -2022,8 +2022,8 @@
         "payload": "Principal-scoped contact tombstone fact. Issuer ends their own side of a contact and may revoke contact-managed consent dots.",
         "cell_family": "ak.component.contact.fact_log.v1",
         "cell_subject": {
-          "type": "did",
-          "field": "payload.peer"
+          "field": "payload.peer",
+          "kind": "did"
         },
         "lattice": "ordered_log",
         "bottom": "expose",
@@ -2040,8 +2040,8 @@
         "payload": "Principal-scoped binding from unordered participant pair to canonical DM Realm and main Strand.",
         "cell_family": "ak.component.direct_conversation.binding.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.pair_key"
+          "field": "payload.pair_key",
+          "kind": "string"
         },
         "lattice": "ordered_log",
         "bottom": "expose",
@@ -2058,8 +2058,8 @@
         "payload": "Signed account lifecycle status",
         "cell_family": "ak.component.account.status.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.account_id"
+          "field": "payload.account_id",
+          "kind": "string"
         },
         "lattice": "ordered_log",
         "bottom": "expose",
@@ -2108,8 +2108,8 @@
         "payload": "Actor profile create",
         "cell_family": "ak.component.profile.create.v1",
         "cell_subject": {
-          "type": "id:actor_profile",
-          "field": "payload.object.id"
+          "field": "payload.object.id",
+          "kind": "id:actor_profile"
         },
         "lattice": "mv_register",
         "bottom": "expose",
@@ -2126,8 +2126,8 @@
         "payload": "Actor profile update",
         "cell_family": "ak.component.profile.create.v1",
         "cell_subject": {
-          "type": "id:actor_profile",
-          "field": "payload.target_ref"
+          "field": "payload.target_ref",
+          "kind": "id:actor_profile"
         },
         "lattice": "mv_register",
         "bottom": "expose",
@@ -2153,11 +2153,11 @@
         "payload": "Device authorization",
         "cell_family": "ak.component.device.authorization.v1",
         "cell_subject": {
-          "type": "composite",
           "components": [
             "payload.principal_id",
             "payload.device_id"
-          ]
+          ],
+          "kind": "composite"
         },
         "lattice": "or_set",
         "bottom": "inert",
@@ -2175,8 +2175,8 @@
         "payload_schema": "ak.schema.device_reanchor.v1",
         "cell_family": "ak.component.device.reanchor.v1",
         "cell_subject": {
-          "type": "did",
-          "field": "payload.principal_id"
+          "field": "payload.principal_id",
+          "kind": "did"
         },
         "lattice": "ordered_log",
         "bottom": "reject",
@@ -2193,11 +2193,11 @@
         "payload": "Device revocation",
         "cell_family": "ak.component.device.authorization.v1",
         "cell_subject": {
-          "type": "composite",
           "components": [
             "payload.principal_id",
             "payload.device_id"
-          ]
+          ],
+          "kind": "composite"
         },
         "lattice": "or_set",
         "bottom": "inert",
@@ -2214,8 +2214,8 @@
         "payload": "Device list update",
         "cell_family": "ak.component.device.list_update.v1",
         "cell_subject": {
-          "type": "did",
-          "field": "payload.principal_id"
+          "field": "payload.principal_id",
+          "kind": "did"
         },
         "lattice": "or_set",
         "bottom": "inert",
@@ -2229,23 +2229,23 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Key backup active series selection for one principal and backup_class.",
+        "payload": "Key backup active series selection for one principal and backup_kind.",
         "payload_schema": "ak.schema.key_backup_active_series.v1",
         "cell_family": "ak.component.key_backup.active_series.v1",
         "cell_subject": {
-          "type": "tuple",
           "components": [
             {
               "name": "actor_id",
-              "type": "did",
-              "field": "payload.actor_id"
+              "field": "payload.actor_id",
+              "kind": "did"
             },
             {
-              "name": "backup_class",
-              "type": "string",
-              "field": "payload.backup_class"
+              "name": "backup_kind",
+              "field": "payload.backup_kind",
+              "kind": "string"
             }
-          ]
+          ],
+          "kind": "tuple"
         },
         "lattice": "cas_register",
         "bottom": "reject",
@@ -2261,13 +2261,13 @@
         "payload": "Push route binding for a (recipient_service_id, principal, device, push_route) tuple. Carries push_target_id, push_gateway_did, encryption_key, capabilities. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_id context.",
         "cell_family": "ak.component.device.push_route.v1",
         "cell_subject": {
-          "type": "composite",
           "components": [
             "payload.recipient_service_id",
             "payload.principal_id",
             "payload.device_id",
             "payload.push_route"
-          ]
+          ],
+          "kind": "composite"
         },
         "lattice": "cas_register",
         "bottom": "reject",
@@ -2285,19 +2285,19 @@
         "payload_schema": "ak.schema.cross_signing_publish.v1",
         "cell_family": "ak.component.cross_signing.publish.v1",
         "cell_subject": {
-          "type": "tuple",
           "components": [
             {
               "name": "principal_id",
-              "type": "did",
-              "field": "payload.principal_id"
+              "field": "payload.principal_id",
+              "kind": "did"
             },
             {
               "name": "expected_previous_generation",
-              "type": "integer",
-              "field": "payload.expected_previous_generation"
+              "field": "payload.expected_previous_generation",
+              "kind": "integer"
             }
-          ]
+          ],
+          "kind": "tuple"
         },
         "lattice": "cas_register",
         "bottom": "reject",
@@ -2315,8 +2315,8 @@
         "payload_schema": "ak.schema.cross_signing_reset.v1",
         "cell_family": "ak.component.cross_signing.reset.v1",
         "cell_subject": {
-          "type": "did",
-          "field": "payload.principal_id"
+          "field": "payload.principal_id",
+          "kind": "did"
         },
         "lattice": "ordered_log",
         "bottom": "reject",
@@ -2503,8 +2503,8 @@
         "payload": "Audit Applet Binding. Declares that an audit applet/service may request staged historical release sessions for a specific Realm or Circle effective_scope. Binding is control-plane only: it does not add the applet to MLS, does not subscribe it to realtime sync, and does not grant plaintext/history keys. Bindings are non-retroactive: activation_frontier_digest / first_auditable_epoch define the earliest eligible material, and later policy changes MUST NOT expand eligibility for already encrypted messages.",
         "cell_family": "ak.component.audit.binding.v1",
         "cell_subject": {
-          "type": "typed_id",
-          "field": "payload.binding_id"
+          "field": "payload.binding_id",
+          "kind": "typed_id"
         },
         "lattice": "fsm",
         "bottom": "reject",
@@ -2525,10 +2525,22 @@
           "idempotent_replay": "same_status_same_basis_noop",
           "concurrent_sibling_conflict": "bottom",
           "allowed_transitions": [
-            ["active", "suspended"],
-            ["active", "revoked"],
-            ["suspended", "active"],
-            ["suspended", "revoked"]
+            [
+              "active",
+              "suspended"
+            ],
+            [
+              "active",
+              "revoked"
+            ],
+            [
+              "suspended",
+              "active"
+            ],
+            [
+              "suspended",
+              "revoked"
+            ]
           ]
         }
       },
@@ -2541,25 +2553,49 @@
         "payload": "Audit release session request. Must reference an active ak.audit.applet_binding and a bounded historical target range or target_refs.",
         "cell_family": "ak.component.audit.session.v1",
         "cell_subject": {
-          "type": "typed_id",
-          "field": "payload.session_id"
+          "field": "payload.session_id",
+          "kind": "typed_id"
         },
         "lattice": "fsm",
         "bottom": "reject",
         "plane": "control",
         "sealed": true,
         "parameters": {
-          "initial_states": ["request"],
-          "states": ["request", "authorize", "notice", "close"],
-          "terminal_states": ["close"],
+          "initial_states": [
+            "request"
+          ],
+          "states": [
+            "request",
+            "authorize",
+            "notice",
+            "close"
+          ],
+          "terminal_states": [
+            "close"
+          ],
           "idempotent_replay": "same_stage_same_basis_noop",
           "concurrent_sibling_conflict": "bottom",
           "allowed_transitions": [
-            ["request", "authorize"],
-            ["authorize", "notice"],
-            ["request", "close"],
-            ["authorize", "close"],
-            ["notice", "close"]
+            [
+              "request",
+              "authorize"
+            ],
+            [
+              "authorize",
+              "notice"
+            ],
+            [
+              "request",
+              "close"
+            ],
+            [
+              "authorize",
+              "close"
+            ],
+            [
+              "notice",
+              "close"
+            ]
           ]
         }
       },
@@ -2572,25 +2608,49 @@
         "payload": "Audit release session authorization by a scoped approver. Approves only the intersection of request, binding, policy, and effective_scope.",
         "cell_family": "ak.component.audit.session.v1",
         "cell_subject": {
-          "type": "typed_id",
-          "field": "payload.session_id"
+          "field": "payload.session_id",
+          "kind": "typed_id"
         },
         "lattice": "fsm",
         "bottom": "reject",
         "plane": "control",
         "sealed": true,
         "parameters": {
-          "initial_states": ["request"],
-          "states": ["request", "authorize", "notice", "close"],
-          "terminal_states": ["close"],
+          "initial_states": [
+            "request"
+          ],
+          "states": [
+            "request",
+            "authorize",
+            "notice",
+            "close"
+          ],
+          "terminal_states": [
+            "close"
+          ],
           "idempotent_replay": "same_stage_same_basis_noop",
           "concurrent_sibling_conflict": "bottom",
           "allowed_transitions": [
-            ["request", "authorize"],
-            ["authorize", "notice"],
-            ["request", "close"],
-            ["authorize", "close"],
-            ["notice", "close"]
+            [
+              "request",
+              "authorize"
+            ],
+            [
+              "authorize",
+              "notice"
+            ],
+            [
+              "request",
+              "close"
+            ],
+            [
+              "authorize",
+              "close"
+            ],
+            [
+              "notice",
+              "close"
+            ]
           ]
         }
       },
@@ -2603,25 +2663,49 @@
         "payload": "Member-visible notice for an audit release session. Circle-scoped notices are visible only to the target Circle audience and authorized moderators/admins.",
         "cell_family": "ak.component.audit.session.v1",
         "cell_subject": {
-          "type": "typed_id",
-          "field": "payload.session_id"
+          "field": "payload.session_id",
+          "kind": "typed_id"
         },
         "lattice": "fsm",
         "bottom": "reject",
         "plane": "control",
         "sealed": true,
         "parameters": {
-          "initial_states": ["request"],
-          "states": ["request", "authorize", "notice", "close"],
-          "terminal_states": ["close"],
+          "initial_states": [
+            "request"
+          ],
+          "states": [
+            "request",
+            "authorize",
+            "notice",
+            "close"
+          ],
+          "terminal_states": [
+            "close"
+          ],
           "idempotent_replay": "same_stage_same_basis_noop",
           "concurrent_sibling_conflict": "bottom",
           "allowed_transitions": [
-            ["request", "authorize"],
-            ["authorize", "notice"],
-            ["request", "close"],
-            ["authorize", "close"],
-            ["notice", "close"]
+            [
+              "request",
+              "authorize"
+            ],
+            [
+              "authorize",
+              "notice"
+            ],
+            [
+              "request",
+              "close"
+            ],
+            [
+              "authorize",
+              "close"
+            ],
+            [
+              "notice",
+              "close"
+            ]
           ]
         }
       },
@@ -2634,8 +2718,8 @@
         "payload": "Sealed audit release manifest. Appends to the session release log only while the session FSM head is notice. Records exactly which historical target_refs or sealed epochs were released, to whom, under which binding/session/notice/policy. Current active epoch release is forbidden; sealed epoch releases must reference sealed_by_commit_ref. Same-basis close dominates release and rejects the release.",
         "cell_family": "ak.component.audit.release.v1",
         "cell_subject": {
-          "type": "typed_id",
-          "field": "payload.session_id"
+          "field": "payload.session_id",
+          "kind": "typed_id"
         },
         "lattice": "ordered_log",
         "bottom": "reject",
@@ -2656,25 +2740,49 @@
         "payload": "Close an audit release session and freeze its final release_refs. release_refs MUST exactly equal the accepted ordered release log at the close seal_basis. Close is terminal; for same-basis close versus release, close wins and the competing release is rejected.",
         "cell_family": "ak.component.audit.session.v1",
         "cell_subject": {
-          "type": "typed_id",
-          "field": "payload.session_id"
+          "field": "payload.session_id",
+          "kind": "typed_id"
         },
         "lattice": "fsm",
         "bottom": "reject",
         "plane": "control",
         "sealed": true,
         "parameters": {
-          "initial_states": ["request"],
-          "states": ["request", "authorize", "notice", "close"],
-          "terminal_states": ["close"],
+          "initial_states": [
+            "request"
+          ],
+          "states": [
+            "request",
+            "authorize",
+            "notice",
+            "close"
+          ],
+          "terminal_states": [
+            "close"
+          ],
           "idempotent_replay": "same_stage_same_basis_noop",
           "concurrent_sibling_conflict": "bottom",
           "allowed_transitions": [
-            ["request", "authorize"],
-            ["authorize", "notice"],
-            ["request", "close"],
-            ["authorize", "close"],
-            ["notice", "close"]
+            [
+              "request",
+              "authorize"
+            ],
+            [
+              "authorize",
+              "notice"
+            ],
+            [
+              "request",
+              "close"
+            ],
+            [
+              "authorize",
+              "close"
+            ],
+            [
+              "notice",
+              "close"
+            ]
           ]
         }
       },
@@ -2729,8 +2837,8 @@
         "payload": "Sealed moderation decision (writes ak.component.moderation_state.v1 cell)",
         "cell_family": "ak.component.moderation_state.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.target_ref"
+          "field": "payload.target_ref",
+          "kind": "string"
         },
         "lattice": "or_set",
         "bottom": "expose",
@@ -2746,8 +2854,8 @@
         "payload": "Lift a previously sealed moderation decision (observed-remove/supersede the referenced decision in ak.component.moderation_state.v1)",
         "cell_family": "ak.component.moderation_state.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.target_ref"
+          "field": "payload.target_ref",
+          "kind": "string"
         },
         "lattice": "or_set",
         "bottom": "expose",
@@ -2763,8 +2871,8 @@
         "payload": "Submit an appeal against an existing ak.moderation.decision. Writes the appeal cell to state=submitted. Schema: ak.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal strand).",
         "cell_family": "ak.component.moderation.appeal.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.appeal_id"
+          "field": "payload.appeal_id",
+          "kind": "string"
         },
         "lattice": "fsm",
         "bottom": "reject",
@@ -2780,8 +2888,8 @@
         "payload": "Reviewer acknowledges the appeal and transitions cell state submitted → under_review. Identifies the reviewing actor and target appeal. Schema: ak.schema.moderation_appeal.v1.",
         "cell_family": "ak.component.moderation.appeal.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.appeal_id"
+          "field": "payload.appeal_id",
+          "kind": "string"
         },
         "lattice": "fsm",
         "bottom": "reject",
@@ -2797,8 +2905,8 @@
         "payload": "Reviewer's verdict on the appeal: uphold (decision stands) / overturn (decision reversed, emits ak.moderation.decision.lift) / modify (decision adjusted). Transitions cell state under_review → decided. Schema: ak.schema.moderation_appeal.v1.",
         "cell_family": "ak.component.moderation.appeal.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.appeal_id"
+          "field": "payload.appeal_id",
+          "kind": "string"
         },
         "lattice": "fsm",
         "bottom": "reject",
@@ -2814,8 +2922,8 @@
         "payload": "Closes the appeal from submitted / under_review / decided via reviewer close, appellant withdrawal, or a deployment's authorized close service. close is a manual/authorized action; the protocol does not mandate any auto-close timer or cool-off duration (deployment/Realm policy decides). Schema: ak.schema.moderation_appeal.v1.",
         "cell_family": "ak.component.moderation.appeal.v1",
         "cell_subject": {
-          "type": "string",
-          "field": "payload.appeal_id"
+          "field": "payload.appeal_id",
+          "kind": "string"
         },
         "lattice": "fsm",
         "bottom": "reject",
@@ -2931,8 +3039,8 @@
         "payload": "MIMI room binding state",
         "cell_family": "ak.component.mimi.room_binding.v1",
         "cell_subject": {
-          "type": "mimi_uri",
-          "field": "payload.mimi_room_uri"
+          "field": "payload.mimi_room_uri",
+          "kind": "mimi_uri"
         },
         "lattice": "mv_register",
         "bottom": "expose",
@@ -3059,8 +3167,8 @@
         "payload": "Durable end-of-call summary",
         "cell_family": "ak.component.call.summary.v1",
         "cell_subject": {
-          "type": "typed_id",
-          "field": "payload.call_id"
+          "field": "payload.call_id",
+          "kind": "typed_id"
         },
         "lattice": "cas_register",
         "bottom": "reject",
@@ -3474,7 +3582,7 @@
         "schema_id": "ak.schema.key_backup_active_series.v1",
         "file": "schemas/key-backup-active-series.schema.json",
         "status": "active",
-        "description": "Signed principal-control record selecting the active backup series for one (actor_id, backup_class)."
+        "description": "Signed principal-control record selecting the active backup series for one (actor_id, backup_kind)."
       },
       {
         "schema_id": "ak.schema.key_backup_plaintext.v1",
@@ -3615,8 +3723,8 @@
         "file": "schemas/moderation-appeal.schema.json"
       },
       {
-        "schema_id": "ak.schema.attestation_evidence.v1",
-        "file": "schemas/attestation-evidence.schema.json"
+        "schema_id": "ak.schema.audit_release_attestation.v1",
+        "file": "schemas/audit-release-attestation.schema.json"
       },
       {
         "schema_id": "ak.schema.applet.v1",
@@ -3827,6 +3935,12 @@
         "file": "schemas/key-transparency.schema.json",
         "status": "active",
         "description": "Canonical log head, inclusion proof, consistency proof and witness evidence for ak.profile.key_transparency.v1 and high-security log-backed identity checks."
+      },
+      {
+        "schema_id": "ak.schema.object_addressing.v1",
+        "file": "schemas/object-addressing.schema.json",
+        "status": "active",
+        "description": "Canonical address-link target descriptor and signed token claims."
       }
     ]
   },
@@ -3894,7 +4008,7 @@
         "wire_form": "ak:cell:ak.component.<facet-path>.v<n>:<subject>",
         "status": "active",
         "storage_recommendation": "Store canonical tuple fields separately when indexing cell state.",
-        "description": "Canonical protocol cell identifier. The complete ak.component.<facet-path>.v<n> family identifier is embedded unchanged after ak:cell:. When the catalog declares cell_subject: null for a family, the canonical subject segment is the literal ASCII string 'null' (ak:cell:<component>:null); the cell is located by the Event envelope realm_id and implementations MUST NOT encode realm_id, Realm role classification, or any payload-derived value into that segment. See spec/v1/zh/conformance/encoding.md section 4."
+        "description": "Canonical protocol cell identifier. The complete ak.component.<facet-path>.v<n> family identifier is embedded unchanged after ak:cell:. When the registry declares cell_subject: null for a family, the canonical subject segment is the literal ASCII string 'null' (ak:cell:<component>:null); the cell is located by the Event envelope realm_id and implementations MUST NOT encode realm_id, Realm role classification, or any payload-derived value into that segment. See spec/v1/zh/conformance/encoding.md section 4."
       },
       {
         "kind": "trust_domain",
@@ -3969,7 +4083,7 @@
         "category": "identity",
         "status": "active",
         "wire_form": "ak:backup_series:<uuid>",
-        "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_class). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ak.schema.key_backup.v1.series_id and recovery strands to detect rollback. See identity/key-management.md §7.6."
+        "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_kind). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ak.schema.key_backup.v1.series_id and recovery strands to detect rollback. See identity/key-management.md §7.6."
       },
       {
         "kind": "batch",
@@ -4304,7 +4418,7 @@
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",
-    "normative_source": "artifacts/registry/contract-catalog.json#operation_registry",
+    "normative_source": "artifacts/registry/contract-registry.json#operation_registry",
     "generated_views": [
       {
         "file": "registry/operation-registry.json",
@@ -4323,7 +4437,7 @@
       "New operation_id values MUST be added here before any OpenAPI, HTTP binding table, SDK generator, or alternative transport binding references them.",
       "Generated views MAY change shape, grouping, or field order, but MUST NOT introduce, rename, or remove operation_id values that are absent from this catalog.",
       "Supporting Arkret core does not imply support for every registered operation. Implementations MUST advertise supported_operations and supported_profiles explicitly.",
-      "Each surface_groups entry carries a tier (see capability_tiers); only the core tier is implied by claiming v1 protocol support. Extension, interop_bridge, and deployment_local surfaces require explicit advertisement.",
+      "Each surface_groups entry carries a tier (see surface_classes); only the core tier is implied by claiming v1 protocol support. Extension, interop_bridge, and deployment_local surfaces require explicit advertisement.",
       "Profile matrices in artifacts/profiles/conformance-profiles.json define role-level MUST/SHOULD requirements; the surface groups below define machine-readable capability families for discovery, docs, and lint.",
       "Each operation MUST declare success_shape_kind so SDKs can determine success handling without endpoint-name hard-coding.",
       "Operations with typed OpenAPI bodies SHOULD declare request_schema_ref and/or response_schema_ref. The referenced schema fragment is the source for generated DTO docs and MUST match the OpenAPI component referenced by the HTTP binding.",
@@ -4333,7 +4447,7 @@
       "Every write operation (kind command/upload/exchange, and resource.replace / resource.delete) MUST declare idempotency_mechanism (one of idempotency_key, object_id, request_id, canonical_hash, protocol_sequence, none) and retry_safe (boolean). Read-only operations (query/stream/resource.get/resource.head) MUST NOT declare these fields.",
       "idempotency_mechanism is the machine-readable source of truth for which idempotency mechanism from api-conventions.md section 6 an operation uses. canonical_hash operations MUST also declare canonical_hash_input as either full_body or an RFC 6901 JSON Pointer. retry_safe=true means a byte-identical full retry of the same request cannot produce duplicate side effects: it returns the original outcome, an equivalent idempotent no-op, or a deterministic conflict. retry_safe=false means blind retries MAY duplicate side effects or consume one-time material; clients MUST NOT retry such operations without out-of-band reconciliation."
     ],
-    "capability_tiers": {
+    "surface_classes": {
       "core": "Base interoperable surfaces implied by claiming Arkret v1 protocol support (service discovery, identity registry, events/account aggregate).",
       "extension": "Optional interoperable surfaces that are part of the Arkret specification but require explicit discovery/profile advertisement.",
       "interop_bridge": "Adapter surfaces that bridge Arkret to external protocols (MIMI Internet-Drafts, third-party Applet hosts). Implementations advertise these only when the external protocol is supported; bridge operations are not part of any core or extension profile and frequently mirror an in-spec operation via bridges_to.",
@@ -4342,14 +4456,13 @@
     "surface_groups": [
       {
         "surface": "service_discovery",
-        "tier": "core",
         "operations": [
           "ak.server.query.describe"
-        ]
+        ],
+        "surface_class": "core"
       },
       {
         "surface": "identity_registry",
-        "tier": "core",
         "operations": [
           "ak.root.identity.registry.query.describe",
           "ak.root.identity.query.resolve",
@@ -4365,11 +4478,11 @@
           "ak.root.identity.recovery_session.resource.get",
           "ak.root.identity.recovery_session.command.submit_proof",
           "ak.root.identity.recovery_session.command.complete"
-        ]
+        ],
+        "surface_class": "core"
       },
       {
         "surface": "events_sync",
-        "tier": "core",
         "operations": [
           "ak.self.events.query.describe",
           "ak.self.events.command.submit",
@@ -4389,11 +4502,11 @@
           "ak.self.ephemeral.command.send",
           "ak.self.snapshot.query.manifest_head",
           "ak.self.call.media.exchange.issue_token"
-        ]
+        ],
+        "surface_class": "core"
       },
       {
         "surface": "peer_federation",
-        "tier": "extension",
         "operations": [
           "ak.peer.events.query.describe",
           "ak.peer.events.command.submit",
@@ -4406,11 +4519,11 @@
           "ak.peer.keys.keypackages.command.claim",
           "ak.peer.keys.keypackages.query.claim",
           "ak.peer.snapshot.query.manifest_head"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "directory_discovery",
-        "tier": "extension",
         "operations": [
           "ak.find.directory.query.describe",
           "ak.find.directory.query.search_realms",
@@ -4428,11 +4541,11 @@
           "ak.find.directory.command.withdraw",
           "ak.find.directory.command.takedown_appeal",
           "ak.find.directory.push.command.register"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "contact_lifecycle",
-        "tier": "extension",
         "operations": [
           "ak.self.contact.command.request",
           "ak.self.contact.command.respond",
@@ -4444,11 +4557,11 @@
           "ak.self.invite_locator.command.rotate",
           "ak.self.invite_locator.command.revoke",
           "ak.self.direct_conversation.command.resolve"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "circle_management",
-        "tier": "extension",
         "operations": [
           "ak.self.circle.command.create",
           "ak.self.circle.query.list",
@@ -4459,11 +4572,11 @@
           "ak.self.circle.command.archive",
           "ak.self.circle.command.restore",
           "ak.self.circle.command.tombstone"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "realm_governance_links",
-        "tier": "extension",
         "operations": [
           "ak.self.realm_link.query.list",
           "ak.self.realm_link.command.create",
@@ -4473,11 +4586,11 @@
           "ak.self.realm_policy_server.resource.get",
           "ak.self.realm_policy_server.resource.replace",
           "ak.self.realm_policy_server.resource.delete"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "realm_read",
-        "tier": "extension",
         "operations": [
           "ak.self.realm.resource.get",
           "ak.self.realm.command.archive",
@@ -4487,11 +4600,11 @@
           "ak.self.realm.query.export",
           "ak.self.realm.moderation_policy.query.effective",
           "ak.self.realm.moderation_policy.resource.replace"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "candidate_join_policy",
-        "tier": "extension",
         "operations": [
           "ak.self.realm.join_application.command.submit",
           "ak.self.realm.join_application.command.review",
@@ -4499,74 +4612,74 @@
           "ak.self.realm.join_application.query.list",
           "ak.self.realm.join_application.resource.get",
           "ak.self.realm.join_application.audit.query.list"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "consent_management",
-        "tier": "extension",
         "operations": [
           "ak.self.consent.query.list",
           "ak.self.consent.resource.get",
           "ak.self.consent.command.grant",
           "ak.self.consent.command.revoke",
           "ak.self.consent.command.request"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "account_data",
-        "tier": "extension",
         "operations": [
           "ak.self.account_data.query.list",
           "ak.self.account_data.resource.get",
           "ak.self.account_data.resource.replace",
           "ak.self.account_data.resource.delete"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "read_cursor",
-        "tier": "extension",
         "operations": [
           "ak.self.read_cursor.command.advance",
           "ak.self.read_cursor.query.list"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "blob_storage",
-        "tier": "extension",
         "operations": [
           "ak.self.blob.upload.create",
           "ak.self.blob.resource.head",
           "ak.self.blob.resource.get",
           "ak.self.blob.command.presign"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "realtime_media",
-        "tier": "extension",
         "operations": [
           "ak.self.media.query.ice_config"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "authz_policy",
-        "tier": "extension",
         "operations": [
           "ak.self.authz.query.check",
           "ak.self.authz.grants.query.effective",
           "ak.self.authz.invites.query.list",
           "ak.self.policy.query.check"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "moderation_reports",
-        "tier": "extension",
         "operations": [
           "ak.self.moderation.command.report"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "device_and_keys",
-        "tier": "extension",
         "operations": [
           "ak.self.device_messages.command.send",
           "ak.self.device_messages.query.list",
@@ -4583,37 +4696,37 @@
           "ak.self.keys.backups.query.list",
           "ak.self.keys.backups.command.unlock",
           "ak.self.keys.backups.resource.delete"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "push",
-        "tier": "extension",
         "operations": [
           "ak.edge.push.command.register_device",
           "ak.edge.push.command.unregister_device",
           "ak.edge.push.command.notify"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "realm_object_read",
-        "tier": "extension",
         "operations": [
           "ak.self.space.query.list",
           "ak.self.strand.query.list",
           "ak.self.morph.query.list",
           "ak.self.morph.resource.get"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "view_projection",
-        "tier": "extension",
         "operations": [
           "ak.self.views.collection_projection.command.materialize"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "applet",
-        "tier": "interop_bridge",
         "operations": [
           "ak.edge.applet.query.ping",
           "ak.edge.applet.query.describe",
@@ -4623,27 +4736,27 @@
           "ak.edge.applet.query.protocol_metadata",
           "ak.edge.applet.third_party_users.query.list",
           "ak.edge.applet.third_party_locations.query.list"
-        ]
+        ],
+        "surface_class": "interop_bridge"
       },
       {
         "surface": "applet_install",
-        "tier": "extension",
         "operations": [
           "ak.self.applet.install.command.preview",
           "ak.self.applet.command.install",
           "ak.self.applet.command.revoke"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "applet_ghost",
-        "tier": "interop_bridge",
         "operations": [
           "ak.self.applet.ghost.command.provision"
-        ]
+        ],
+        "surface_class": "interop_bridge"
       },
       {
         "surface": "mimi_interop",
-        "tier": "interop_bridge",
         "operations": [
           "ak.open.mimi.query.provider_directory",
           "ak.open.mimi.query.group_info",
@@ -4656,36 +4769,36 @@
           "ak.open.mimi.command.notify",
           "ak.open.mimi.command.report_abuse",
           "ak.open.mimi.command.proxy_download"
-        ]
+        ],
+        "surface_class": "interop_bridge"
       },
       {
         "surface": "agent_pairing_handoff",
-        "tier": "extension",
         "operations": [
           "ak.open.agent_pairing.query.resolve",
           "ak.open.agent_pairing.command.submit_runtime_key_request",
           "ak.open.agent_pairing.query.runtime_key_request_status"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "device_pairing_handoff",
-        "tier": "extension",
         "operations": [
           "ak.open.device_pairing.command.stage",
           "ak.open.device_pairing.query.resolve",
           "ak.open.device_pairing.query.status"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "invite_locator_handoff",
-        "tier": "extension",
         "operations": [
           "ak.open.invite_locator.query.resolve"
-        ]
+        ],
+        "surface_class": "extension"
       },
       {
         "surface": "account_auth",
-        "tier": "deployment_local",
         "operations": [
           "ak.gate.account.exchange.create_handoff",
           "ak.gate.account.command.issue_identity_binding_challenge",
@@ -4699,11 +4812,11 @@
           "ak.gate.account.command.logout",
           "ak.gate.account.command.revoke_session",
           "ak.gate.account.exchange.complete_oidc"
-        ]
+        ],
+        "surface_class": "deployment_local"
       },
       {
         "surface": "agent_runtime",
-        "tier": "extension",
         "operations": [
           "ak.gate.account.command.pair_agent_key",
           "ak.self.agent.command.provision",
@@ -4720,7 +4833,8 @@
           "ak.self.agent.sidecar.query.list",
           "ak.self.agent.participation.resource.replace",
           "ak.self.agent.participation.resource.get"
-        ]
+        ],
+        "surface_class": "extension"
       }
     ],
     "operations": [
@@ -4768,7 +4882,10 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.self.account.query.viewer"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.account.query.viewer"
+        },
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome"
       },
@@ -4781,7 +4898,10 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.self.account.query.viewer"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.account.query.viewer"
+        },
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_request_body",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome"
       },
@@ -4794,19 +4914,26 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"reissue_material","operation_id":"ak.gate.account.command.issue_session_grant","requires_fresh_request_identity":true},
+        "uncertain_outcome": {
+          "strategy": "reissue_material",
+          "operation_id": "ak.gate.account.command.issue_session_grant",
+          "requires_fresh_request_identity": true
+        },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome"
       },
       {
-      "operation_id": "ak.gate.account.command.revoke_session",
+        "operation_id": "ak.gate.account.command.revoke_session",
         "http": "POST /_arkret/gate/account/session-grants/revoke",
         "grpc": "GateAccount/SessionRevoke",
         "mq": "gate.account.command.revoke_session",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.gate.account.command.introspect_session_grant"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.gate.account.command.introspect_session_grant"
+        },
         "request_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_request_body",
         "response_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_outcome"
       },
@@ -4818,7 +4945,11 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"reissue_material","operation_id":"ak.gate.account.command.issue_session_grant","requires_fresh_request_identity":true},
+        "uncertain_outcome": {
+          "strategy": "reissue_material",
+          "operation_id": "ak.gate.account.command.issue_session_grant",
+          "requires_fresh_request_identity": true
+        },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome"
       },
@@ -4830,7 +4961,10 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.gate.account.command.introspect_session_grant"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.gate.account.command.introspect_session_grant"
+        },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome"
       },
@@ -4853,7 +4987,10 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.gate.account.command.introspect_session_grant"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.gate.account.command.introspect_session_grant"
+        },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome"
       },
@@ -4887,7 +5024,10 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.self.agent.resource.get"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.agent.resource.get"
+        },
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_request_body",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_outcome"
       },
@@ -4908,38 +5048,47 @@
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_view"
       },
       {
-      "operation_id": "ak.self.agent.command.pause",
+        "operation_id": "ak.self.agent.command.pause",
         "http": "POST /_arkret/self/agents/{agent_id}/pause",
         "grpc": "SelfAgent/Pause",
         "mq": "self.agent.command.pause",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.agent.resource.get"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.agent.resource.get"
+        },
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pause_request_body",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state"
       },
       {
-      "operation_id": "ak.self.agent.command.resume",
+        "operation_id": "ak.self.agent.command.resume",
         "http": "POST /_arkret/self/agents/{agent_id}/resume",
         "grpc": "SelfAgent/Resume",
         "mq": "self.agent.command.resume",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.agent.resource.get"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.agent.resource.get"
+        },
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_resume_request_body",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state"
       },
       {
-      "operation_id": "ak.self.agent.command.deactivate",
+        "operation_id": "ak.self.agent.command.deactivate",
         "http": "POST /_arkret/self/agents/{agent_id}/deactivate",
         "grpc": "SelfAgent/Deactivate",
         "mq": "self.agent.command.deactivate",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.agent.resource.get"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.agent.resource.get"
+        },
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state"
       },
@@ -4951,7 +5100,10 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.self.authz.grants.query.effective"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.authz.grants.query.effective"
+        },
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome"
       },
@@ -5022,7 +5174,9 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"manual_confirmation"},
+        "uncertain_outcome": {
+          "strategy": "manual_confirmation"
+        },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome"
       },
@@ -5243,7 +5397,11 @@
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"reissue_material","operation_id":"ak.self.blob.command.presign","requires_fresh_request_identity":true},
+        "uncertain_outcome": {
+          "strategy": "reissue_material",
+          "operation_id": "ak.self.blob.command.presign",
+          "requires_fresh_request_identity": true
+        },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignOutcome"
       },
@@ -5288,20 +5446,26 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.self.contact.query.list"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.contact.query.list"
+        },
         "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_request_body",
         "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_outcome"
       },
       {
-      "operation_id": "ak.self.contact.command.respond",
+        "operation_id": "ak.self.contact.command.respond",
         "http": "POST /_arkret/self/contacts/respond",
         "grpc": "SelfContact/Respond",
         "mq": "self.contact.command.respond",
         "notes": "Target-side accept/reject of a contact request. Accept writes target-controlled consent grants; reject writes no consent.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.contact.query.list"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.contact.query.list"
+        },
         "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request_body",
         "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_outcome"
       },
@@ -5315,15 +5479,18 @@
         "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list"
       },
       {
-      "operation_id": "ak.self.contact.command.tombstone",
+        "operation_id": "ak.self.contact.command.tombstone",
         "http": "POST /_arkret/self/contacts/tombstone",
         "grpc": "SelfContact/Tombstone",
         "mq": "self.contact.command.tombstone",
         "notes": "Holder-side contact tombstone. Default revocation is limited to contact-managed active consent dots.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.contact.query.list"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.contact.query.list"
+        },
         "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body",
         "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone"
       },
@@ -5341,7 +5508,7 @@
         "http": "PUT /_arkret/self/invite-receive-policy",
         "grpc": "SelfInviteReceivePolicy/Replace",
         "mq": "self.invite_receive_policy.resource.replace",
-        "notes": "Replace the authenticated subject's private invite-receive policy. The body MUST set subject_id equal to the session actor; the override shares the same store as ak.self.contact.command.tombstone(block_peer) blocked_subjects writes.",
+        "notes": "Replace the authenticated subject's private invite-receive policy. The body MUST set subject_id equal to the session actor; the override shares the same store as ak.self.contact.command.tombstone(block_peer) denied_subjects writes.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
@@ -5357,7 +5524,11 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"reissue_material","operation_id":"ak.self.invite_locator.command.issue","requires_fresh_request_identity":true},
+        "uncertain_outcome": {
+          "strategy": "reissue_material",
+          "operation_id": "ak.self.invite_locator.command.issue",
+          "requires_fresh_request_identity": true
+        },
         "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_request_body",
         "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome"
       },
@@ -5370,7 +5541,9 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"manual_confirmation"},
+        "uncertain_outcome": {
+          "strategy": "manual_confirmation"
+        },
         "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_rotate_request_body",
         "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome"
       },
@@ -5407,7 +5580,10 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.self.circle.query.list"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.circle.query.list"
+        },
         "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_create_request_body",
         "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
       },
@@ -5430,15 +5606,18 @@
         "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
       },
       {
-      "operation_id": "ak.self.circle.member.command.add",
+        "operation_id": "ak.self.circle.member.command.add",
         "http": "POST /_arkret/self/circles/{circle_id}/members",
         "grpc": "SelfCircle/MemberAdd",
         "mq": "self.circle.member.command.add",
         "notes": "Builds ak.circle.member.state. Activating another actor requires ak.circle.member.manage narrowed to this Circle, and the target MUST already be a joined parent-Realm member (strict-subset invariant); a self-join is gated by join_rule.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.circle.resource.get"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.circle.resource.get"
+        },
         "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_request_body",
         "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome"
       },
@@ -5462,45 +5641,57 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.self.circle.resource.get"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.circle.resource.get"
+        },
         "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome"
       },
       {
-      "operation_id": "ak.self.circle.command.archive",
+        "operation_id": "ak.self.circle.command.archive",
         "http": "POST /_arkret/self/circles/{circle_id}/archive",
         "grpc": "SelfCircle/Archive",
         "mq": "self.circle.command.archive",
         "notes": "Builds ak.circle.archive; transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_active).",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.circle.resource.get"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.circle.resource.get"
+        },
         "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
         "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
       },
       {
-      "operation_id": "ak.self.circle.command.restore",
+        "operation_id": "ak.self.circle.command.restore",
         "http": "POST /_arkret/self/circles/{circle_id}/restore",
         "grpc": "SelfCircle/Restore",
         "mq": "self.circle.command.restore",
         "notes": "Builds ak.circle.restore; transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_archived). Restore re-enables new writes after pending MLS membership removals are settled.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.circle.resource.get"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.circle.resource.get"
+        },
         "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
         "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
       },
       {
-      "operation_id": "ak.self.circle.command.tombstone",
+        "operation_id": "ak.self.circle.command.tombstone",
         "http": "POST /_arkret/self/circles/{circle_id}/tombstone",
         "grpc": "SelfCircle/Tombstone",
         "mq": "self.circle.command.tombstone",
         "notes": "Builds ak.circle.tombstone (terminal). Response surfaces the terminal state with empty members.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.circle.resource.get"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.circle.resource.get"
+        },
         "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
         "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
       },
@@ -5512,7 +5703,10 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.find.directory.query.resolve_target"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.find.directory.query.resolve_target"
+        },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome"
       },
@@ -5623,26 +5817,30 @@
         "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_user_search_outcome"
       },
       {
-      "operation_id": "ak.find.directory.push.command.register",
+        "operation_id": "ak.find.directory.push.command.register",
         "http": "POST /_arkret/find/directory/push/register",
         "grpc": "FindDirectory/PushRegister",
         "mq": "find.directory.push.command.register",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "manual_confirmation"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "manual_confirmation"
+        },
         "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body",
         "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_outcome"
       },
       {
-      "operation_id": "ak.find.directory.command.withdraw",
+        "operation_id": "ak.find.directory.command.withdraw",
         "http": "POST /_arkret/find/directory/withdraw",
         "grpc": "FindDirectory/Withdraw",
         "mq": "find.directory.command.withdraw",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "manual_confirmation"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "manual_confirmation"
+        },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome"
       },
@@ -5655,7 +5853,9 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"manual_confirmation"},
+        "uncertain_outcome": {
+          "strategy": "manual_confirmation"
+        },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome"
       },
@@ -5844,7 +6044,10 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.peer.keys.keypackages.query.claim"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.peer.keys.keypackages.query.claim"
+        },
         "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body",
         "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_outcome"
       },
@@ -5876,7 +6079,9 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"drop_unconfirmed"},
+        "uncertain_outcome": {
+          "strategy": "drop_unconfirmed"
+        },
         "request_schema_ref": "schemas/ephemeral-envelope.schema.json",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitOutcome"
       },
@@ -5885,11 +6090,15 @@
         "http": "POST /_arkret/self/rtc/token",
         "grpc": "SelfCallMedia/TokenExchange",
         "mq": "self.call.media.exchange.issue_token",
-        "notes": "Media service token exchange operation. Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ak.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / arkret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
+        "notes": "Media service token exchange operation. Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ak.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / arkret_native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"reissue_material","operation_id":"ak.self.call.media.exchange.issue_token","requires_fresh_request_identity":true},
+        "uncertain_outcome": {
+          "strategy": "reissue_material",
+          "operation_id": "ak.self.call.media.exchange.issue_token",
+          "requires_fresh_request_identity": true
+        },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome"
       },
@@ -5950,7 +6159,7 @@
         "http": "POST /_arkret/root/identity/service-registrations:ensure",
         "grpc": "RootIdentity/EnsureServiceRegistration",
         "mq": "root.identity.service_registration.command.ensure",
-        "notes": "Idempotently return or create the service DID bound to the canonical (service_type, public_base) registration key. The client supplies and controls a signed did:webvh inception operation; the Provider verifies the proof and endpoint binding and never receives private key material. Provider persistence MUST enforce UNIQUE(service_type, public_base) and MUST reject an existing hosted document that declares the same key even when the mapping row is absent.",
+        "notes": "Idempotently return or create the service DID bound to the canonical (service_kind, public_base) registration key. The client supplies and controls a signed did:webvh inception operation; the Provider verifies the proof and endpoint binding and never receives private key material. Provider persistence MUST enforce UNIQUE(service_kind, public_base) and MUST reject an existing hosted document that declares the same key even when the mapping row is absent.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
@@ -5962,7 +6171,7 @@
         "http": "GET /_arkret/root/identity/service-registrations",
         "grpc": "RootIdentity/GetServiceRegistration",
         "mq": "root.identity.service_registration.resource.get",
-        "notes": "Read the service registration bound to the canonical (service_type, public_base) key without creating or mutating identity state.",
+        "notes": "Read the service registration bound to the canonical (service_kind, public_base) key without creating or mutating identity state.",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome"
       },
@@ -5995,7 +6204,10 @@
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.root.identity.recovery_session.resource.get"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.root.identity.recovery_session.resource.get"
+        },
         "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
         "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state"
       },
@@ -6015,19 +6227,25 @@
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.root.identity.recovery_session.resource.get"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.root.identity.recovery_session.resource.get"
+        },
         "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body",
         "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome"
       },
       {
-      "operation_id": "ak.root.identity.recovery_session.command.complete",
+        "operation_id": "ak.root.identity.recovery_session.command.complete",
         "http": "POST /_arkret/root/identity/recovery-sessions/{recovery_session_id}/complete",
         "grpc": "RootIdentity/RecoverySessionComplete",
         "mq": "root.identity.recovery_session.command.complete",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.root.identity.recovery_session.resource.get"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.root.identity.recovery_session.resource.get"
+        },
         "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
         "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome"
       },
@@ -6039,7 +6257,10 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.self.keys.query.lookup"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.keys.query.lookup"
+        },
         "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_request_body",
         "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_outcome"
       },
@@ -6081,7 +6302,11 @@
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"reissue_material","operation_id":"ak.self.keys.backups.command.unlock","requires_fresh_request_identity":true},
+        "uncertain_outcome": {
+          "strategy": "reissue_material",
+          "operation_id": "ak.self.keys.backups.command.unlock",
+          "requires_fresh_request_identity": true
+        },
         "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body",
         "response_schema_ref": "schemas/key-backup.schema.json"
       },
@@ -6093,31 +6318,41 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"reissue_material","operation_id":"ak.self.keys.keypackages.command.claim","requires_fresh_request_identity":true},
+        "uncertain_outcome": {
+          "strategy": "reissue_material",
+          "operation_id": "ak.self.keys.keypackages.command.claim",
+          "requires_fresh_request_identity": true
+        },
         "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
         "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_outcome"
       },
       {
-      "operation_id": "ak.self.keys.keypackages.command.consume",
+        "operation_id": "ak.self.keys.keypackages.command.consume",
         "http": "POST /_arkret/self/keys/keypackages/consume",
         "grpc": "SelfKeys/KeyPackagesConsume",
         "mq": "self.keys.keypackages.command.consume",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.keys.query.lookup"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.keys.query.lookup"
+        },
         "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body",
         "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_outcome"
       },
       {
-      "operation_id": "ak.self.keys.keypackages.command.revoke",
+        "operation_id": "ak.self.keys.keypackages.command.revoke",
         "http": "POST /_arkret/self/keys/keypackages/revoke",
         "grpc": "SelfKeys/KeyPackagesRevoke",
         "mq": "self.keys.keypackages.command.revoke",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.keys.query.lookup"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.keys.query.lookup"
+        },
         "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_request_body",
         "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_outcome"
       },
@@ -6129,7 +6364,11 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"reissue_material","operation_id":"ak.self.keys.keypackages.upload.create","requires_fresh_request_identity":true},
+        "uncertain_outcome": {
+          "strategy": "reissue_material",
+          "operation_id": "ak.self.keys.keypackages.upload.create",
+          "requires_fresh_request_identity": true
+        },
         "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_request_body",
         "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_outcome"
       },
@@ -6152,14 +6391,17 @@
         "response_schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_outcome"
       },
       {
-      "operation_id": "ak.self.keys.upload.create",
+        "operation_id": "ak.self.keys.upload.create",
         "http": "POST /_arkret/self/keys/upload",
         "grpc": "SelfKeys/Upload",
         "mq": "self.keys.upload.create",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.keys.query.lookup"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.keys.query.lookup"
+        },
         "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_request_body",
         "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_outcome"
       },
@@ -6213,7 +6455,11 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"reissue_material","operation_id":"ak.open.device_pairing.command.stage","requires_fresh_request_identity":true},
+        "uncertain_outcome": {
+          "strategy": "reissue_material",
+          "operation_id": "ak.open.device_pairing.command.stage",
+          "requires_fresh_request_identity": true
+        },
         "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_request_body",
         "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_outcome"
       },
@@ -6272,7 +6518,10 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.open.mimi.query.group_info"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.open.mimi.query.group_info"
+        },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",
         "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome"
       },
@@ -6284,7 +6533,9 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"drop_unconfirmed"},
+        "uncertain_outcome": {
+          "strategy": "drop_unconfirmed"
+        },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_request_body",
         "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_outcome"
       },
@@ -6305,7 +6556,11 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"reissue_material","operation_id":"ak.open.mimi.command.proxy_download","requires_fresh_request_identity":true},
+        "uncertain_outcome": {
+          "strategy": "reissue_material",
+          "operation_id": "ak.open.mimi.command.proxy_download",
+          "requires_fresh_request_identity": true
+        },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_request_body",
         "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_outcome"
       },
@@ -6318,7 +6573,9 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"manual_confirmation"},
+        "uncertain_outcome": {
+          "strategy": "manual_confirmation"
+        },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body",
         "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_outcome"
       },
@@ -6330,7 +6587,10 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.self.consent.query.list"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.consent.query.list"
+        },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body",
         "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_outcome"
       },
@@ -6342,7 +6602,10 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.open.mimi.query.group_info"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.open.mimi.query.group_info"
+        },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body",
         "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome"
       },
@@ -6354,7 +6617,10 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.open.mimi.query.group_info"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.open.mimi.query.group_info"
+        },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_request_body",
         "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_outcome"
       },
@@ -6366,7 +6632,10 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.self.consent.query.list"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.consent.query.list"
+        },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body",
         "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome"
       },
@@ -6378,7 +6647,9 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"manual_confirmation"},
+        "uncertain_outcome": {
+          "strategy": "manual_confirmation"
+        },
         "request_schema_ref": "schemas/moderation-report.schema.json",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome"
       },
@@ -6402,15 +6673,18 @@
         "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_list"
       },
       {
-      "operation_id": "ak.self.realm_link.command.create",
+        "operation_id": "ak.self.realm_link.command.create",
         "http": "POST /_arkret/self/realms/{realm_id}/links",
         "grpc": "SelfRealmLink/Create",
         "mq": "self.realm_link.command.create",
         "notes": "Builds an ak.realm.link Control Move from realm_id -> target_realm_id. General directed cycles are valid and traversal uses a visited set; admission rejects only self-reference, invalid kind, invalid payload, or an illegal FSM transition. Self-reference returns schema_violation with reason_code realm_link_self_reference; an illegal transition returns failed_precondition with reason_code realm_link_invalid_transition.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.realm_link.query.list"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.realm_link.query.list"
+        },
         "request_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body",
         "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome"
       },
@@ -6484,54 +6758,66 @@
         "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
       },
       {
-      "operation_id": "ak.self.realm.command.archive",
+        "operation_id": "ak.self.realm.command.archive",
         "http": "POST /_arkret/self/realms/{realm_id}/archive",
         "grpc": "SelfRealm/Archive",
         "mq": "self.realm.command.archive",
         "notes": "Builds a ak.realm.archive Move. The archived facet changes when the lifecycle event is accepted into the Realm event log; archived=false clears the archived facet unless a terminal lifecycle state already applies.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.realm.resource.get"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.realm.resource.get"
+        },
         "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
         "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
       },
       {
-      "operation_id": "ak.self.realm.command.freeze",
+        "operation_id": "ak.self.realm.command.freeze",
         "http": "POST /_arkret/self/realms/{realm_id}/freeze",
         "grpc": "SelfRealm/Freeze",
         "mq": "self.realm.command.freeze",
         "notes": "Builds a ak.realm.freeze Move. The frozen facet changes when the lifecycle event is accepted into the Realm event log; frozen=true rejects ordinary non-exempt writes with realm_frozen and frozen=false clears the freeze facet unless a terminal lifecycle state already applies.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.realm.resource.get"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.realm.resource.get"
+        },
         "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
         "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
       },
       {
-      "operation_id": "ak.self.realm.command.tombstone",
+        "operation_id": "ak.self.realm.command.tombstone",
         "http": "POST /_arkret/self/realms/{realm_id}/tombstone",
         "grpc": "SelfRealm/Tombstone",
         "mq": "self.realm.command.tombstone",
         "notes": "Builds a terminal ak.realm.tombstone Move with a successor_realm_id. The tombstoned state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.realm.resource.get"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.realm.resource.get"
+        },
         "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
         "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
       },
       {
-      "operation_id": "ak.self.realm.command.destroy",
+        "operation_id": "ak.self.realm.command.destroy",
         "http": "POST /_arkret/self/realms/{realm_id}/destroy",
         "grpc": "SelfRealm/Destroy",
         "mq": "self.realm.command.destroy",
         "notes": "Builds a terminal ak.realm.destroy Move. The destroyed state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.realm.resource.get"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.realm.resource.get"
+        },
         "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
         "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
       },
@@ -6647,28 +6933,34 @@
         "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
       },
       {
-      "operation_id": "ak.self.consent.command.grant",
+        "operation_id": "ak.self.consent.command.grant",
         "http": "POST /_arkret/self/consent/cells/{holder_did}/grant",
         "grpc": "SelfConsent/Grant",
         "mq": "self.consent.command.grant",
         "notes": "Builds a ak.consent.grant Control Move on the holder's consent cell. The authenticated actor MUST be authorized to write the holder's consent (holder or an explicitly authorized controller/agent).",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.consent.query.list"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.consent.query.list"
+        },
         "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
         "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
       },
       {
-      "operation_id": "ak.self.consent.command.revoke",
+        "operation_id": "ak.self.consent.command.revoke",
         "http": "POST /_arkret/self/consent/cells/{holder_did}/revoke",
         "grpc": "SelfConsent/Revoke",
         "mq": "self.consent.command.revoke",
         "notes": "Builds a ak.consent.revoke Control Move enumerating the active grant dots for the (consent_id, peer, consent_scope). Revoking consent_scope=any cascades all concrete scopes; revoking a concrete scope leaves others intact.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "query_operation", "operation_id": "ak.self.consent.query.list"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.consent.query.list"
+        },
         "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
         "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
       },
@@ -6681,7 +6973,10 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.self.consent.query.list"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.consent.query.list"
+        },
         "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
         "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_outcome"
       },
@@ -6696,16 +6991,16 @@
       },
       {
         "operation_id": "ak.self.account_data.resource.get",
-        "http": "GET /_arkret/self/account_data/{data_type}",
+        "http": "GET /_arkret/self/account_data/{account_data_key}",
         "grpc": "SelfAccountData/Get",
         "mq": "self.account_data.resource.get",
-        "notes": "Reads one account_data entry by data_type key. Returns not_found when the key is unset.",
+        "notes": "Reads one account_data entry by account_data_key key. Returns not_found when the key is unset.",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry"
       },
       {
         "operation_id": "ak.self.account_data.resource.replace",
-        "http": "PUT /_arkret/self/account_data/{data_type}",
+        "http": "PUT /_arkret/self/account_data/{account_data_key}",
         "grpc": "SelfAccountData/Replace",
         "mq": "self.account_data.resource.replace",
         "notes": "Builds a ak.account_data.set actor-private write. Controller-private registered types reject agent / applet / service principals. content is stored verbatim; clients own canonical encoding and (for sensitive keys) client-side encryption.",
@@ -6717,7 +7012,7 @@
       },
       {
         "operation_id": "ak.self.account_data.resource.delete",
-        "http": "DELETE /_arkret/self/account_data/{data_type}",
+        "http": "DELETE /_arkret/self/account_data/{account_data_key}",
         "grpc": "SelfAccountData/Delete",
         "mq": "self.account_data.resource.delete",
         "notes": "Deletes one account_data entry and fans out an actor-private update to the holder's other devices.",
@@ -6807,26 +7102,30 @@
         "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome"
       },
       {
-      "operation_id": "ak.edge.push.command.register_device",
+        "operation_id": "ak.edge.push.command.register_device",
         "http": "POST /_arkret/edge/push/register-device",
         "grpc": "EdgePush/RegisterDevice",
         "mq": "edge.push.command.register_device",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "manual_confirmation"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "manual_confirmation"
+        },
         "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_request_body",
         "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_outcome"
       },
       {
-      "operation_id": "ak.edge.push.command.unregister_device",
+        "operation_id": "ak.edge.push.command.unregister_device",
         "http": "POST /_arkret/edge/push/unregister-device",
         "grpc": "EdgePush/UnregisterDevice",
         "mq": "edge.push.command.unregister_device",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
-      "retry_safe": false,
-      "uncertain_outcome": {"strategy": "manual_confirmation"},
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "manual_confirmation"
+        },
         "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body",
         "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_unregister_device_outcome"
       },
@@ -6862,7 +7161,10 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
-        "uncertain_outcome": {"strategy":"query_operation","operation_id":"ak.self.account.query.viewer"},
+        "uncertain_outcome": {
+          "strategy": "query_operation",
+          "operation_id": "ak.self.account.query.viewer"
+        },
         "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_request_body",
         "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_outcome"
       },
@@ -7197,7 +7499,7 @@
         "category": "morph",
         "risk_tier": "medium",
         "required_constraints": [
-          "allowed_morph_types"
+          "allowed_morph_kinds"
         ],
         "target_event_kinds": [
           "ak.morph.create"

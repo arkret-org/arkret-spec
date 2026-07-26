@@ -57,7 +57,6 @@
         "metadata_encryption_floor": "e2ee_required",
         "notary_profile": "single_did",
         "notary": {
-          "type": "single_did",
           "did": "did:webvh:z6mkfixture:alice.example",
           "recovery_members": [
             "did:webvh:z6mkfixture:alice-recovery.example"
@@ -65,7 +64,8 @@
           "controller_organization": "did:webvh:z6mkfixture:alice-org.example",
           "recovery_controller_organizations": [
             "did:webvh:z6mkfixture:alice-recovery-org.example"
-          ]
+          ],
+          "kind": "single_did"
         },
         "created_at": "2026-07-21T00:00:00.000Z"
       }
@@ -95,7 +95,6 @@
         "metadata_encryption_floor": "e2ee_required",
         "notary_profile": "single_did",
         "notary": {
-          "type": "single_did",
           "did": "did:webvh:z6mkfixture:alice.example",
           "recovery_members": [
             "did:webvh:z6mkfixture:alice-recovery.example"
@@ -103,7 +102,8 @@
           "controller_organization": "did:webvh:z6mkfixture:alice-org.example",
           "recovery_controller_organizations": [
             "did:webvh:z6mkfixture:alice-recovery-org.example"
-          ]
+          ],
+          "kind": "single_did"
         },
         "created_at": "2026-07-21T00:00:00.000Z"
       }
@@ -135,7 +135,6 @@
         "metadata_encryption_floor": "e2ee_required",
         "notary_profile": "single_did",
         "notary": {
-          "type": "single_did",
           "did": "did:webvh:z6mkfixture:alice.example",
           "recovery_members": [
             "did:webvh:z6mkfixture:alice-recovery.example"
@@ -143,7 +142,8 @@
           "controller_organization": "did:webvh:z6mkfixture:alice-org.example",
           "recovery_controller_organizations": [
             "did:webvh:z6mkfixture:alice-recovery-org.example"
-          ]
+          ],
+          "kind": "single_did"
         },
         "created_at": "2026-07-21T00:00:00.000Z"
       }

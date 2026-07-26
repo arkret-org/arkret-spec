@@ -102,7 +102,7 @@
           "items": {
             "type": "object"
           },
-          "description": "Operation dump rows {operation_id, realm_id, object_type, operation_type, payload, created_at}."
+          "description": "Operation dump rows {operation_id, realm_id, object_kind, operation_type, payload, created_at}."
         },
         "events": {
           "type": "array",
@@ -160,7 +160,7 @@
             "type": "object"
           }
         },
-        "override_requires_organization_approval": {
+        "override_organization_approval_required": {
           "type": "boolean"
         }
       },

@@ -407,7 +407,7 @@
       "code": "selector_too_complex",
       "http_status": 422,
       "scope": "both",
-      "description": "Resource selector or constraint exceeds parser hard limits defined in resource-selector-grammar.md §3.3 (string length, resources[] length, token count, nesting depth, single-field length, requires_claims item count, constraint nesting). Dual-registered as a service code and a reason_code (see reason_codes[]) so it can be emitted as a top-level error and audit / abuse-detection can separate suspected parser-DoS attempts from ordinary format errors. See zh/authz/resource-selector-grammar.md §5."
+      "description": "Resource selector or constraint exceeds parser hard limits defined in resource-selector-grammar.md §3.3 (string length, resources[] length, token count, nesting depth, single-field length, required_claims item count, constraint nesting). Dual-registered as a service code and a reason_code (see reason_codes[]) so it can be emitted as a top-level error and audit / abuse-detection can separate suspected parser-DoS attempts from ordinary format errors. See zh/authz/resource-selector-grammar.md §5."
     },
     {
       "code": "device_generation_fenced",
@@ -1225,10 +1225,10 @@
       "description": "Morph profile attempted to widen or replace schema_ref in a way that violates create-locked morph type rules."
     },
     {
-      "code": "morph_type_immutable",
+      "code": "morph_kind_immutable",
       "http_status": 422,
       "scope": "both",
-      "description": "A Morph update attempted to change an immutable morph_type after creation."
+      "description": "A Morph update attempted to change an immutable morph_kind after creation."
     },
     {
       "code": "applet_already_registered",
@@ -2173,7 +2173,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "Resource selector or constraint exceeds parser hard limits defined in resource-selector-grammar.md §3.3 (string length, resources[] length, token count, nesting depth, single-field length, requires_claims item count, constraint nesting). Distinct from invalid_param so audit / abuse-detection can separate suspected parser-DoS attempts from ordinary format errors. Dual-registered as a reason_code and a top-level service code (see codes[])."
+      "description": "Resource selector or constraint exceeds parser hard limits defined in resource-selector-grammar.md §3.3 (string length, resources[] length, token count, nesting depth, single-field length, required_claims item count, constraint nesting). Distinct from invalid_param so audit / abuse-detection can separate suspected parser-DoS attempts from ordinary format errors. Dual-registered as a reason_code and a top-level service code (see codes[])."
     },
     {
       "code": "inception_upgrade_evidence_insufficient",
@@ -2181,7 +2181,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Cross-method principal upgrade (e.g. personal_node `did:web` -> small_team `did:webvh`) is missing the OOB fingerprint confirmation evidence or any of the required `transfer_evidence` fields (key-management.md §5.0.5)."
+      "description": "Cross-method principal upgrade (e.g. personal_node `did:web` -> small_team `did:webvh`) is missing the OOB fingerprint confirmation evidence or any of the required `transfer_proof` fields (key-management.md §5.0.5)."
     },
     {
       "code": "inception_upgrade_signature_chain_invalid",
@@ -2741,7 +2741,7 @@
         "service_call",
         "schema_validation"
       ],
-      "description": "A `ak.realm.media_service.foci[].type` value is not in the v1 registered set (`livekit` / `mediasoup` / `janus` / `arkret-native` / `moq-relay`) or is registered but not supported by this client / issuer. Clients MUST fail closed instead of forwarding the token to an arbitrary SDK. See zh/crypto-media/media-service-binding.md §2."
+      "description": "A `ak.realm.media_service.foci[].type` value is not in the v1 registered set (`livekit` / `mediasoup` / `janus` / `arkret_native` / `moq_relay`) or is registered but not supported by this client / issuer. Clients MUST fail closed instead of forwarding the token to an arbitrary SDK. See zh/crypto-media/media-service-binding.md §2."
     },
     {
       "code": "token_issuer_unauthorised",
@@ -3109,7 +3109,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A grant or delegation set `allow_scope_expansion=true`. v1 does not permit a child to expand beyond the parent's resources/actions; the reducer MUST reject (schema_violation) because the field directly conflicts with the §10.1 `resources MUST ⊆ parent` invariant. See zh/authz/constraint-schema.md §7 / zh/authz/capabilities.md §10.1."
+      "description": "A grant or delegation set `scope_expansion_allowed=true`. v1 does not permit a child to expand beyond the parent's resources/actions; the reducer MUST reject (schema_violation) because the field directly conflicts with the §10.1 `resources MUST ⊆ parent` invariant. See zh/authz/constraint-schema.md §7 / zh/authz/capabilities.md §10.1."
     },
     {
       "code": "delegation_scope_mismatch",
@@ -3133,7 +3133,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A delegated grant whose parent carries `require_parent_reference=true` omitted the explicit `parent_grant_id` / `refs[role=authorized_by]` linkage back to the parent grant. The reducer MUST reject so the delegation chain stays explicitly anchored. See zh/authz/constraint-schema.md §7 / zh/authz/capabilities.md §10."
+      "description": "A delegated grant whose parent carries `parent_reference_required=true` omitted the explicit `parent_grant_id` / `refs[role=authorized_by]` linkage back to the parent grant. The reducer MUST reject so the delegation chain stays explicitly anchored. See zh/authz/constraint-schema.md §7 / zh/authz/capabilities.md §10."
     },
     {
       "code": "agent_participation_ceiling_unresolved",
@@ -3743,7 +3743,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Audit release service attestation evidence (ak.schema.attestation_evidence.v1) does not match the active ak.audit.applet_binding, ak.audit.release service_id, measurement, or policy digest. Reducer / verifier MUST reject. See zh/crypto-media/audited-e2ee.md §6."
+      "description": "Audit release service attestation evidence (ak.schema.audit_release_attestation.v1) does not match the active ak.audit.applet_binding, ak.audit.release service_id, measurement, or policy digest. Reducer / verifier MUST reject. See zh/crypto-media/audited-e2ee.md §6."
     },
     {
       "code": "audit_purpose_mismatch",
@@ -3868,7 +3868,7 @@
       "applies_to": [
         "audit_decision"
       ],
-      "description": "A key share or withheld decision is not covered by a verifiable source authorization. Covers three fail-closed cases. (a) A key backup / archive node / peer refused to deliver late key material because, on re-running the T₀ membership + policy check before sending, the current share policy no longer permits delivery to the requesting device (distinct from late_recovery_rejected_membership, which is the receiver-side T₀ non-membership case). (b) An ak.realm_key.share whose source_authorization_ref is missing or does not cover (source principal/device, recipient principal/device, key_scope, share_class) at the Event CBA basis; this includes an RRK-holder re-share whose source principal is not the active RecoveryRecipient, whose signer is not a real accepted undertaken device of that principal, or whose reference does not satisfy the effective history-sharing policy for the recovery_service key source. (c) An ak.realm_key.withheld whose required source_authorization_ref is missing or does not cover the refusal decision; an unauthorized withheld MUST NOT be projected as a terminal state. See zh/crypto-media/encryption-and-audit.md §2.3.5 / §2.10.8 and zh/crypto-media/device-lifecycle.md §13."
+      "description": "A key share or withheld decision is not covered by a verifiable source authorization. Covers three fail-closed cases. (a) A key backup / archive node / peer refused to deliver late key material because, on re-running the T₀ membership + policy check before sending, the current share policy no longer permits delivery to the requesting device (distinct from late_recovery_rejected_membership, which is the receiver-side T₀ non-membership case). (b) An ak.realm_key.share whose source_authorization_ref is missing or does not cover (source principal/device, recipient principal/device, key_scope, share_kind) at the Event CBA basis; this includes an RRK-holder re-share whose source principal is not the active RecoveryRecipient, whose signer is not a real accepted undertaken device of that principal, or whose reference does not satisfy the effective history-sharing policy for the recovery_service key source. (c) An ak.realm_key.withheld whose required source_authorization_ref is missing or does not cover the refusal decision; an unauthorized withheld MUST NOT be projected as a terminal state. See zh/crypto-media/encryption-and-audit.md §2.3.5 / §2.10.8 and zh/crypto-media/device-lifecycle.md §13."
     },
     {
       "code": "late_recovery_rejected_expired",
@@ -3938,7 +3938,7 @@
         "auth_decision",
         "identity_resolution"
       ],
-      "description": "Cross-method principal upgrade transfer_evidence.old_did_document_fetched_at is older than the maximum 168h evidence window. Receiver MUST reject instead of accepting stale did:web evidence. See zh/identity/key-management.md §5.0.5."
+      "description": "Cross-method principal upgrade transfer_proof.old_did_document_fetched_at is older than the maximum 168h evidence window. Receiver MUST reject instead of accepting stale did:web evidence. See zh/identity/key-management.md §5.0.5."
     },
     {
       "code": "gate_check_failed",
@@ -4048,14 +4048,14 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when a ak.realm.policy_components write declares durability_policy.mode != none on a Realm whose content_scheme is not mls-exporter-aead-v1. mls-rfc9420 Realms have no deliverable history_secret, so Realm Recovery Key (RRK) durability is structurally unavailable. See zh/models/realm-and-space.md §2.3.1 and zh/crypto-media/encryption-and-audit.md §2.10.8."
+      "description": "Sub-reason for failed_precondition when a ak.realm.policy_components write declares durability_policy.mode != none on a Realm whose content_scheme is not mls_exporter_aead_v1. mls_rfc9420 Realms have no deliverable history_secret, so Realm Recovery Key (RRK) durability is structurally unavailable. See zh/models/realm-and-space.md §2.3.1 and zh/crypto-media/encryption-and-audit.md §2.10.8."
     },
     {
       "code": "history_visibility_requires_history_capable_scheme",
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when an MLS-backed Realm sets history_visibility=world_readable/shared/invited while the effective content_scheme is not mls-exporter-aead-v1. mls-rfc9420 has per-message forward secrecy and no deliverable history_secret for later joiners; reducers MUST reject create/bootstrap or policy writes that would produce the invalid combination. See zh/models/realm-and-space.md §2.3 and zh/crypto-media/encryption-and-audit.md §2.10."
+      "description": "Sub-reason for failed_precondition when an MLS-backed Realm sets history_visibility=world_readable/shared/invited while the effective content_scheme is not mls_exporter_aead_v1. mls_rfc9420 has per-message forward secrecy and no deliverable history_secret for later joiners; reducers MUST reject create/bootstrap or policy writes that would produce the invalid combination. See zh/models/realm-and-space.md §2.3 and zh/crypto-media/encryption-and-audit.md §2.10."
     },
     {
       "code": "durability_recovery_recipient_unverified",
@@ -4465,7 +4465,7 @@
         "schema_validation",
         "service_call"
       ],
-      "description": "Streaming-chunked AEAD attachment: a segment index is out of range, a segment length violates `segment_size`, or `segment_count` disagrees with the observed stream. Receivers MUST reject. See zh/crypto-media/media-and-blob.md §3.3."
+      "description": "Streaming-chunked AEAD attachment: a segment index is out of range, a segment length violates `segment_bytes`, or `segment_count` disagrees with the observed stream. Receivers MUST reject. See zh/crypto-media/media-and-blob.md §3.3."
     },
     {
       "code": "last_resort_not_supported",
@@ -4693,7 +4693,7 @@
         "event_envelope",
         "audit_decision"
       ],
-      "description": "An Audit Agent lifecycle transition that ends its access to sealed epoch key material lacks the required key-destruction attestation for the epoch secrets the agent held. Receivers MUST fail closed rather than treat missing destruction evidence as destroyed. See zh/crypto-media/audited-e2ee.md and artifacts/schemas/attestation-evidence.schema.json."
+      "description": "An Audit Agent lifecycle transition that ends its access to sealed epoch key material lacks the required key-destruction attestation for the epoch secrets the agent held. Receivers MUST fail closed rather than treat missing destruction evidence as destroyed. See zh/crypto-media/audited-e2ee.md and artifacts/schemas/audit-release-attestation.schema.json."
     },
     {
       "code": "audit_agent_remove_requires_paired_destruction_attestation",
@@ -4717,7 +4717,7 @@
         "event_envelope",
         "audit_decision"
       ],
-      "description": "The key-destruction proof for an Audit Agent was not signed by the attested enclave (TEE / HSM) key bound in the agent's attestation evidence. Software- or operator-signed destruction claims MUST be rejected under attested_hardware profiles. See zh/crypto-media/audited-e2ee.md §2 and artifacts/schemas/attestation-evidence.schema.json."
+      "description": "The key-destruction proof for an Audit Agent was not signed by the attested enclave (TEE / HSM) key bound in the agent's attestation evidence. Software- or operator-signed destruction claims MUST be rejected under attested_hardware profiles. See zh/crypto-media/audited-e2ee.md §2 and artifacts/schemas/audit-release-attestation.schema.json."
     },
     {
       "code": "audit_agent_epoch_range_incomplete",
@@ -4733,7 +4733,7 @@
         "event_envelope",
         "audit_decision"
       ],
-      "description": "Audit Agent attestation evidence does not match the expected binding: realm_id, service_id, audit_service_actor_id, measurement, audit_purpose, policy digest, validity, or operator DID diverge from the registered audit binding. Join and release paths MUST fail closed. See zh/crypto-media/audited-e2ee.md §6 and artifacts/schemas/attestation-evidence.schema.json."
+      "description": "Audit Agent attestation evidence does not match the expected binding: realm_id, service_id, audit_service_actor_id, measurement, audit_purpose, policy digest, validity, or operator DID diverge from the registered audit binding. Join and release paths MUST fail closed. See zh/crypto-media/audited-e2ee.md §6 and artifacts/schemas/audit-release-attestation.schema.json."
     },
     {
       "code": "lite_profile_writes_disallowed_event_kind",

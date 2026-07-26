@@ -2,7 +2,7 @@
   "version": "2026-07-20",
   "source_of_truth": false,
   "generated_at": "2026-07-20T00:00:00Z",
-  "generated_from": "registry/contract-catalog.json",
+  "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
     "A schema row with omitted status defaults to active. New or edited rows MUST spell status explicitly.",
@@ -399,7 +399,7 @@
       "schema_id": "ak.schema.key_backup_active_series.v1",
       "file": "schemas/key-backup-active-series.schema.json",
       "status": "active",
-      "description": "Signed principal-control record selecting the active backup series for one (actor_id, backup_class)."
+      "description": "Signed principal-control record selecting the active backup series for one (actor_id, backup_kind)."
     },
     {
       "schema_id": "ak.schema.key_backup_plaintext.v1",
@@ -540,8 +540,8 @@
       "file": "schemas/moderation-appeal.schema.json"
     },
     {
-      "schema_id": "ak.schema.attestation_evidence.v1",
-      "file": "schemas/attestation-evidence.schema.json"
+      "schema_id": "ak.schema.audit_release_attestation.v1",
+      "file": "schemas/audit-release-attestation.schema.json"
     },
     {
       "schema_id": "ak.schema.applet.v1",
@@ -752,6 +752,12 @@
       "file": "schemas/key-transparency.schema.json",
       "status": "active",
       "description": "Canonical log head, inclusion proof, consistency proof and witness evidence for ak.profile.key_transparency.v1 and high-security log-backed identity checks."
+    },
+    {
+      "schema_id": "ak.schema.object_addressing.v1",
+      "file": "schemas/object-addressing.schema.json",
+      "status": "active",
+      "description": "Canonical address-link target descriptor and signed token claims."
     }
   ]
 }

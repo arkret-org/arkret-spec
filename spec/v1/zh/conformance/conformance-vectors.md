@@ -619,7 +619,7 @@ event_ref_digest = sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71
 `payload_metadata` canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"aad":{"event_kind":"ak.message.create","event_ref_digest":"sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3","realm_id":"ak:realm:0196419b-0000-7000-8000-000000000000"},"aad_visibility_event_id":"routing_digest","content_type":"application/json","epoch":12,"group_id":"Z3JvdXAtMDAx","key_ref":{"algorithm":"MLS","group_state_ref":"ak:event:01964148-0000-7000-8000-000000000000"},"scheme":"mls-rfc9420","version":"1.0"}
+{"aad":{"event_kind":"ak.message.create","event_ref_digest":"sha256:43a2d5664e7f0c51c4f3eccd369eeb19875561fedd71522fedbc71e77257a9c3","realm_id":"ak:realm:0196419b-0000-7000-8000-000000000000"},"aad_visibility_event_id":"routing_digest","content_type":"application/json","epoch":12,"group_id":"Z3JvdXAtMDAx","key_ref":{"algorithm":"MLS","group_state_ref":"ak:event:01964148-0000-7000-8000-000000000000"},"scheme":"mls_rfc9420","version":"1.0"}
 ```
 
 `ciphertext` 的 base64url wire 值与解码后 UTF-8 测试表示：
@@ -1736,14 +1736,14 @@ ak.vector.capability.delegate_chain.v1
         ],
         "constraints": [
           {
-            "constraint_type": "temporal",
+            "constraint_kind": "temporal",
             "effect": "allow",
             "not_before": "2026-04-20T00:00:00Z",
             "expires_at": "2026-05-20T00:00:00Z"
           },
           {
-            "constraint_type": "quota",
-            "subtype": "rate",
+            "constraint_kind": "quota",
+            "constraint_subkind": "rate",
             "effect": "allow",
             "rate_limit": "5/hour"
           }
@@ -1773,13 +1773,13 @@ ak.vector.capability.delegate_chain.v1
         ],
         "constraints": [
           {
-            "constraint_type": "quota",
-            "subtype": "rate",
+            "constraint_kind": "quota",
+            "constraint_subkind": "rate",
             "effect": "allow",
             "rate_limit": "2/day"
           },
           {
-            "constraint_type": "scope_limitation",
+            "constraint_kind": "scope_limitation",
             "effect": "allow",
             "allowed_audiences": [
               "did:webvh:z6mkfixture:partner.example",
@@ -1957,7 +1957,7 @@ ak.vector.capability.approval_constraint.v1
 ```json
 {
   "authorized": false,
-  "failure_code": "approval_required",
+  "failure_reason_code": "approval_required",
   "next_state": "proposal",
   "visible_to": ["initiator", "approvers"]
 }
@@ -1984,7 +1984,7 @@ ak.vector.capability.membership_is_not_baseline.v1
 ```json
 {
   "authorized": false,
-  "failure_code": "missing_capability"
+  "failure_reason_code": "missing_capability"
 }
 ```
 
@@ -2287,7 +2287,7 @@ ak.vector.disappearing.on_last_read_offline_window.v1
     }
   },
   "query": {
-    "object_types": [
+    "object_kinds": [
       "strand"
     ],
     "consistency": {
@@ -2676,7 +2676,7 @@ Input — `ak.member.state{membership="join"}` Control Move payload：
   "delivery_status": "routable",
   "delivery_binding": {
     "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
-    "recipient_service_type": "principal_server",
+    "recipient_service_kind": "principal_server",
     "binding_scope": "realm",
     "binding_source": "explicit",
     "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
@@ -2687,7 +2687,7 @@ Input — `ak.member.state{membership="join"}` Control Move payload：
 }
 ```
 
-预设：Realm policy `ak.realm.delivery_binding_policy` 声明 `allow_binding_sources` 包含 `explicit`、`allowed_recipient_services` 包含 `did:webvh:z6mkfixture:principal.acme.example`、`required_endorsers` 含 `did:webvh:z6mkfixture:acme.example`，`service_acceptance_ref` 引用的 Event 由 `did:webvh:z6mkfixture:principal.acme.example` 签发且 scope 覆盖该 Realm，并由 `required_endorsers` 中的 `did:webvh:z6mkfixture:acme.example` 背书。
+预设：Realm policy `ak.realm.delivery_binding_policy` 声明 `allowed_binding_sources` 包含 `explicit`、`allowed_recipient_services` 包含 `did:webvh:z6mkfixture:principal.acme.example`、`required_endorsers` 含 `did:webvh:z6mkfixture:acme.example`，`service_acceptance_ref` 引用的 Event 由 `did:webvh:z6mkfixture:principal.acme.example` 签发且 scope 覆盖该 Realm，并由 `required_endorsers` 中的 `did:webvh:z6mkfixture:acme.example` 背书。
 
 期望：
 - reducer 接受 join Control Move；写入成员 cell。
@@ -2697,7 +2697,7 @@ Input — `ak.member.state{membership="join"}` Control Move payload：
 
 `vector_id`: `ak.vector.membership.delivery_binding.did_document_default.v1`
 
-Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `allow_did_document_default=true`，其余字段未限制；Alice DID Document service `ArkretPrincipalServer` 指向 `did:webvh:z6mkfixture:personal.alice.example`，canonical hash `sha256:abc...`。
+Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `did_document_default_allowed=true`，其余字段未限制；Alice DID Document service `ArkretPrincipalServer` 指向 `did:webvh:z6mkfixture:personal.alice.example`，canonical hash `sha256:abc...`。
 
 客户端构造 join Control Move 时 MUST 先解析 DID Document 并物化进 binding：
 
@@ -2709,7 +2709,7 @@ Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `allow_did_docu
   "delivery_status": "routable",
   "delivery_binding": {
     "recipient_service_id": "did:webvh:z6mkfixture:personal.alice.example",
-    "recipient_service_type": "principal_server",
+    "recipient_service_kind": "principal_server",
     "binding_scope": "realm",
     "binding_source": "did_document_default",
     "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
@@ -2722,14 +2722,14 @@ Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `allow_did_docu
 期望：
 - reducer 接受 join Control Move（`did_document_digest` 与 `resolved_at` 满足 conditional required）。
 - 同形 Move 缺少 `did_document_digest` MUST 被 schema 拒绝（`schema_violation`），reducer 不进入验证流程。
-- 同形 Control Move 在 Realm policy `allow_did_document_default=false` 时 reducer MUST 返回 `delivery_binding_policy_mismatch`。
+- 同形 Control Move 在 Realm policy `did_document_default_allowed=false` 时 reducer MUST 返回 `delivery_binding_policy_mismatch`。
 - 一旦该 join 被接受，sender **不得**在后续投递时 re-resolve DID Document——即使 DID Document 已更新指向新服务，仍按 cell 内 `delivery_binding` 投递，直到一次合法 rebind。
 
 ### 7.4 Vector: `unroutable` 成员
 
 `vector_id`: `ak.vector.membership.delivery_binding.unroutable.v1`
 
-Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `allow_unroutable_membership=true`。Alice join Control Move 携带：
+Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `unroutable_membership_allowed=true`。Alice join Control Move 携带：
 
 ```json
 {
@@ -2746,7 +2746,7 @@ Input — Realm policy `ak.realm.delivery_binding_policy` 声明 `allow_unroutab
 - reducer 接受。
 - 任何 sender 计算"该 Realm S 应投递给 Alice"的目标集合时 MUST 跳过该成员；不得用 DID Document 推导 fallback。
 - 客户端对该成员的本地视图：只展示在 reducer state 与本地索引中，但不向其推送通知 / sync / push / to_device。
-- 同形 Control Move 在 Realm policy `allow_unroutable_membership=false` 时 reducer MUST 返回 `delivery_binding_policy_mismatch`。
+- 同形 Control Move 在 Realm policy `unroutable_membership_allowed=false` 时 reducer MUST 返回 `delivery_binding_policy_mismatch`。
 
 ### 7.5 Vector: Rebind Handover + 撤销后停止投递
 
@@ -2778,7 +2778,7 @@ Steps:
 1. Realm policy 不允许 `binding_source=explicit`，但 join Control Move 携带 explicit `delivery_binding`。
 2. Realm policy 声明 `allowed_recipient_services`，但 `delivery_binding.recipient_service_id` 不在集合内且没有满足 `required_endorsers` 的 proof。
 3. Realm policy 声明非空 `required_endorsers`，但 `service_acceptance_ref` 未被其中任一治理 DID 背书，即使 `recipient_service_id` 命中 `allowed_recipient_services` 或 `["*"]` 哨兵也一样。
-4. Realm policy 不允许 `allow_unroutable_membership`，但 join Control Move 携带 `delivery_status="unroutable"`。
+4. Realm policy 不允许 `unroutable_membership_allowed`，但 join Control Move 携带 `delivery_status="unroutable"`。
 
 Expected:
 
@@ -2791,8 +2791,8 @@ Expected:
 | --- | --- | --- | --- | --- |
 | Conditional required (`service_acceptance_ref`) | ✓ | — | — | ✓ |
 | Conditional required (`did_document_digest`) | — | ✓ | — | — |
-| Policy `allow_did_document_default=false` 拒绝 | — | ✓ | — | — |
-| Policy `allow_unroutable_membership=false` 拒绝 | — | — | ✓ | — |
+| Policy `did_document_default_allowed=false` 拒绝 | — | ✓ | — | — |
+| Policy `unroutable_membership_allowed=false` 拒绝 | — | — | ✓ | — |
 | 投递路径 ≡ binding，无 DID Document fallback | ✓ | ✓ | ✓ (skip) | ✓ |
 | Rebind handover frontier 切换 | — | — | — | ✓ |
 | 撤销后停止投递且无 fallback | — | — | — | ✓ |
@@ -2837,7 +2837,7 @@ Directory 返回 verified handle claim：
     "audience": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "member_delivery_binding": {
       "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
-      "recipient_service_type": "principal_server",
+      "recipient_service_kind": "principal_server",
       "binding_source": "organization_policy",
       "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
       "service_acceptance_ref": "ak:event:0196419b-0000-7000-8000-000000000001",
@@ -2857,7 +2857,7 @@ Directory 返回 verified handle claim：
   }],
   "member_delivery_binding": {
     "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
-    "recipient_service_type": "principal_server",
+    "recipient_service_kind": "principal_server",
     "binding_source": "organization_policy",
     "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
     "service_acceptance_ref": "ak:event:0196419b-0000-7000-8000-000000000001",
@@ -2884,7 +2884,7 @@ Negative cases：
 
 ## 9. Security Closure Vectors
 
-本节收拢跨章节引用的安全闭环向量。每个 `vector_id` 均为规范性引用目标；结构化覆盖位于 [`../../artifacts/fixtures/security-closure-vectors.json`](../../artifacts/fixtures/security-closure-vectors.json)，`tools/lint_artifacts.py` 会校验该 fixture 覆盖本节要求的 security closure vector set，并校验每个 step 暴露可由实现测试消费的 `runner.given_state` / `operation` / `transcript` / `expected_state_transition` / `expected_external_response` / `expected_audit_reason` 字段。实现不得把这些 ID 当成仅供说明的标签。
+本节收拢跨章节引用的安全闭环向量。每个 `vector_id` 均为规范性引用目标；结构化覆盖位于 [`../../artifacts/fixtures/security-closure-fixture.json`](../../artifacts/fixtures/security-closure-fixture.json)，`tools/lint_artifacts.py` 会校验该 fixture 覆盖本节要求的 security closure vector set，并校验每个 step 暴露可由实现测试消费的 `runner.given_state` / `operation` / `transcript` / `expected_state_transition` / `expected_external_response` / `expected_audit_reason` 字段。实现不得把这些 ID 当成仅供说明的标签。
 
 ### 9.1 Vector: Federation Replay After Key Revoke
 
@@ -3001,7 +3001,7 @@ Expected：
 
 `vector_id`: `ak.vector.invite.claim_reducer_state_machine.v1`
 
-本向量固化 [`third-party-invites.md`](../sync/third-party-invites.md) §4.3 的 Realm reducer 权威要求。机器可执行样本位于 [`../../artifacts/fixtures/security-closure-vectors.json`](../../artifacts/fixtures/security-closure-vectors.json)；runner MUST 同时消费 prose 与 fixture，不得只依赖验证服务或 Sync Service 入站预检。
+本向量固化 [`third-party-invites.md`](../sync/third-party-invites.md) §4.3 的 Realm reducer 权威要求。机器可执行样本位于 [`../../artifacts/fixtures/security-closure-fixture.json`](../../artifacts/fixtures/security-closure-fixture.json)；runner MUST 同时消费 prose 与 fixture，不得只依赖验证服务或 Sync Service 入站预检。
 
 Steps：
 
@@ -3209,7 +3209,7 @@ Expected：
 
 `vector_id`: `ak.vector.keypackage.peer_claim_double_authorization_privacy.v1`
 
-对有效 Direct Conversation claim 分别施加以下单点变异：移除 / 过期 participant authorization、替换 participant signature 所绑定 destination、让 source 不是 requester home authority、破坏外层 service signature、移除 accepted contact / target consent、扩大 required capability，或令 `allow_last_resort=true`。
+对有效 Direct Conversation claim 分别施加以下单点变异：移除 / 过期 participant authorization、替换 participant signature 所绑定 destination、让 source 不是 requester home authority、破坏外层 service signature、移除 accepted contact / target consent、扩大 required capability，或令 `last_resort_allowed=true`。
 
 Expected：
 
@@ -3596,7 +3596,7 @@ Preconditions:
 Steps:
 
 1. Controller E2EE client 本地生成 `PCR_A` MLS group state，提交 Agent PCR genesis / profile Event；服务端只接收 ciphertext/承诺，不接触 MLS private state。
-2. `C` 的授权设备向 `C` 自己的 `backup_class=mls_history` active series 尾部写入 `mls_group_state` item：外层 `actor_id=C`，`recipient_method=recovery_public_key`，`recovery_policy_ref=RP_C`；item 的 `realm_id=PCR_A`，`managed_principal_binding={managed_principal_id:A, controller_id:C, principal_control_realm_id:PCR_A, authorization_ref, managed_frontier_ref}`，AAD `managed_principal_bindings[]` 与 public/plaintext binding canonical set 完全一致。
+2. `C` 的授权设备向 `C` 自己的 `backup_kind=mls_history` active series 尾部写入 `mls_group_state` item：外层 `actor_id=C`，`recipient_method=recovery_public_key`，`recovery_policy_ref=RP_C`；item 的 `realm_id=PCR_A`，`managed_principal_binding={managed_principal_id:A, controller_id:C, principal_control_realm_id:PCR_A, authorization_ref, managed_frontier_ref}`，AAD `managed_principal_bindings[]` 与 public/plaintext binding canonical set 完全一致。
 3. 服务投影 `pcr_recovery.status=ready`，首次 `pair_agent_key` 针对 pre-commit frontier 通过门控并写入 Agent PCR 的 controller-signed `ak.agent.key.authorize`；该 Event 推进 frontier 后，投影转为 `stale`，producer 再追加覆盖 post-commit frontier 的 backup 尾部使其恢复 `ready`。
 4. 丢失 Agent runtime private key；新 runtime 生成 `K2`，controller 先确认 managed PCR backup 仍覆盖 current frontier，再走 replacement re-pairing。
 5. 丢失 controller 全部日常设备；controller 用自己的 24 词/门限/硬件恢复普通用户设备与 `mls_history` active series，解出 `PCR_A` group state，并依据当前 Agent DID delegation 继续管理 `A`。
@@ -3764,7 +3764,7 @@ Steps:
 
 Expected:
 
-- C 对 `R1` / `R2` 均只能看到 `ReferenceProjectionStatus.locked` 或等价 locked stub,wire 字段集合、error envelope、metadata 集合必须相同。
+- C 对 `R1` / `R2` 均只能看到 `ReferenceProjectionState.locked` 或等价 locked stub,wire 字段集合、error envelope、metadata 集合必须相同。
 - C 的视图 MUST NOT 泄露目标 `realm_id`、title、member_count、created_at、issuer set、preview 或任何能区分"目标存在 vs 不存在"的信息。
 - raw event / backfill / federation fanout 对 C MUST 返回同一类 redacted event view 或 locked stub，不得暴露完整 `from_ref` / `to_ref` canonical bytes。
 - 两类样本 p95 服务端耗时差异 SHOULD <= 50ms；声明高安全 profile 时 p99 MUST 落入同一 timing bucket。
@@ -3938,7 +3938,7 @@ Expected:
 - 第 1 步 projection 的 identity 字段来自 request/context/accepted scope，不依赖设备本地状态，不重复投递；服务端不参与 fold。Agent-authored request binding 被排除。
 - 第 2 步 D1/D2 独立得到 bit-identical 的 response 集合、`(Event HLC, Event id)` 规范排序与状态，不要求来源 Realm 重放 private Event。
 - 第 3 步任何设备都不得用 HLC/LWW 覆盖不可比较 cache；补齐后从联合 accepted history 得到同一 Event set digest、最大 causal heads、max HLC 与 `{R1,R2}`。
-- 第 4 步 `close/cancel + 非空 response` 都 complete；`close+[]` failed/controller_closed_empty；`cancel+[]` failed/controller_cancelled；`fail+[]` failed/agent_deactivated。complete 的 responses minItems=1，failed responses empty 且 failure_code 必填。
+- 第 4 步 `close/cancel + 非空 response` 都 complete；`close+[]` failed/controller_closed_empty；`cancel+[]` failed/controller_cancelled；`fail+[]` failed/agent_deactivated。complete 的 responses minItems=1，failed responses empty 且 failure_reason_code 必填。
 - 第 5 步同 sequence 只取 event-digest bytewise 最大 sibling，第一条有效 terminal 吸收后续 reassign；非终态 matching reassign 生效并更新 assignment Event id，旧 coordinator 的 completion 请求不关单，新 coordinator 可触发 controller close。
 - 与 winning terminal 并发但未被其 `basis_event_ids` causal closure 覆盖、或因果上晚于 terminal 的 Agent/control Events 保留为私有审计历史，但不得进入 terminal projection 或改变响应集/状态。
 - cache 不上传、不进入 account stream；cache frontier 未被本地已验证 history 支配时必须丢弃，不能回退内存/UI fold。
@@ -4007,7 +4007,7 @@ Expected:
 
 Preconditions:
 
-- Realm `R` 的 `native_agent` ceiling `{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。Agent `A` 为 controller `Alice` 的 active native personal agent；其 accepted-at DID binding 固定 digest，verifier-private controller disclosure 给出 `requested_scope.actions=[ak.message.create, ak.reaction.add]`，且 mandatory constraints 含一条适用于 `ak.message.create` 的 `claim_based{subtype=accountability}` controller constraint，因此现场派生 provision ceiling=`{reply:true, accept_third_party_mention:false, act_on_behalf:true}`。
+- Realm `R` 的 `native_agent` ceiling `{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。Agent `A` 为 controller `Alice` 的 active native personal agent；其 accepted-at DID binding 固定 digest，verifier-private controller disclosure 给出 `requested_scope.actions=[ak.message.create, ak.reaction.add]`，且 mandatory constraints 含一条适用于 `ak.message.create` 的 `claim_based{constraint_subkind=accountability}` controller constraint，因此现场派生 provision ceiling=`{reply:true, accept_third_party_mention:false, act_on_behalf:true}`。
 
 Steps:
 
@@ -4395,7 +4395,7 @@ Expected:
 
 Steps:
 
-1. 不具 `ak.call.moderate` 的 actor 发出 `ak.call.signal{signal_type=moderation, action=kick}`。
+1. 不具 `ak.call.moderate` 的 actor 发出 `ak.call.signal{signal_kind=moderation, action=kick}`。
 2. 具 `ak.call.moderate` 的 moderator 对 `(target_actor_id, target_device_id)` 发 `kick`，并写 `ak.call.state.moderation_delta.op="remove_participant"`。
 3. moderator 对某 `target_actor_id` 发 `ban`（`moderation_delta.removal` 省略 `device_id`）。
 4. 被 ban 的 actor 重新向 token issuer 兑换 join token。
@@ -4413,7 +4413,7 @@ Expected:
 Steps:
 
 1. 以 `mode="p2p"` 起步的两人通话，第三个参与者将加入（active leg 达到 3）。
-2. 触发升级：按 media-service-binding §5 oldest_membership 选举 `session_focus`，各设备经 `ak.call.signal{signal_type=focus_join}` 迁移。
+2. 触发升级：按 media-service-binding §5 oldest_membership 选举 `session_focus`，各设备经 `ak.call.signal{signal_kind=focus_join}` 迁移。
 3. 升级后提交 `ak.call.state.focus={mode:"sfu",session_focus}`，随后人数回落到 2。
 4. 通话到达终态 `ended` 后提交 `ak.call.summary{final_state="ended"}`；另对一个尚处 `active` 的 call 提交 `ak.call.summary`。
 
@@ -4449,7 +4449,7 @@ Expected:
 
 Setup:
 
-1. Realm R 的 discoverability 为 `invite_only`，但 Alice 给 Bob 发出 `lt=preview` token。token payload 绑定 `target_digest`、`link_type="preview"`、`preview_policy_digest`、`aud=Bob`、短 TTL。
+1. Realm R 的 discoverability 为 `invite_only`，但 Alice 给 Bob 发出 `lt=preview` token。token payload 绑定 `target_digest`、`address_link_kind="preview"`、`preview_policy_digest`、`aud=Bob`、短 TTL。
 2. Effective `ak.realm.preview_policy.value.mode = "stripped_state"`，fields 只包含 `title`、`summary`、`join_rule`、`member_count_bucket`。
 3. Bob 调用 `ak.find.directory.query.resolve_target`，携带 address 与 token。
 4. 攻击者 Mallory 把同一 token 放到另一个 Strand address，或把 URL `lt` 改为 `invite`。
@@ -4458,7 +4458,7 @@ Expected:
 
 - Bob MAY 收到 `realm_preview` / `object_preview` 中 policy 允许的 stripped fields。
 - 响应 MUST NOT 包含正文历史、成员列表、policy 原文、`join_candidates[]` 或任何 write / membership grant。
-- Mallory 的 scope-confused request MUST 返回与不存在不可区分的 `not_found`；resolver MUST 比对 token 内 `target_digest` 与 effective `link_type`，不得只校验 token 签名。
+- Mallory 的 scope-confused request MUST 返回与不存在不可区分的 `not_found`；resolver MUST 比对 token 内 `target_digest` 与 effective `address_link_kind`，不得只校验 token 签名。
 
 ### 13.3 E2EE Pre-Join Key Share Requires History Sharing Policy
 
@@ -4466,7 +4466,7 @@ Expected:
 
 Setup:
 
-1. Realm R 为 `encryption_profile="mls_rfc9420"`、`content_scheme="mls-exporter-aead-v1"`，`history_visibility.value = "shared"`。
+1. Realm R 为 `encryption_profile="mls_rfc9420"`、`content_scheme="mls_exporter_aead_v1"`，`history_visibility.value = "shared"`。
 2. Alice 在 epoch 7 发送 `E_before`。
 3. Bob 在 epoch 9 加入并成功处理 Welcome。
 4. Key source S 尝试向 Bob 发送覆盖 epoch 7 的 `ak.realm_key.share`。
@@ -4474,9 +4474,9 @@ Setup:
 Expected:
 
 - 若 effective `ak.realm.history_sharing_policy` 缺失，或 `pre_join_history="deny"` / `rule_only` 且无匹配 rule，S MUST withhold，reason SHOULD 为 `history_not_visible` 或 `policy_denied`。
-- 若 policy 明确允许 `pre_join_history="allow_if_visibility_allows"`、`allowed_key_sources` 包含 S 的来源类型、receiver state 合法且 audit 要求满足，S MAY 发送 key share；payload `key_scope.policy_digest` MUST 覆盖该 policy root，`membership_frontier_digest` SHOULD 覆盖 Bob join frontier。
+- 若 policy 明确允许 `pre_join_history="visibility_condition_allowed"`、`allowed_key_sources` 包含 S 的来源类型、receiver state 合法且 audit 要求满足，S MAY 发送 key share；payload `key_scope.policy_digest` MUST 覆盖该 policy root，`membership_frontier_digest` SHOULD 覆盖 Bob join frontier。
 - Bob 客户端 MUST NOT 因 `history_visibility=shared` 自行推断 epoch 7 key；没有合法 key share 时，`E_before` 保持 `decryption_pending` / `decryption_failed`。
-- 若 Realm R 的 epoch 7 effective `content_scheme="mls-rfc9420"`，S MUST NOT 为 join 前内容发送可用 key share；该 epoch 不存在可交付给后加入者的 `history_secret`。
+- 若 Realm R 的 epoch 7 effective `content_scheme="mls_rfc9420"`，S MUST NOT 为 join 前内容发送可用 key share；该 epoch 不存在可交付给后加入者的 `history_secret`。
 
 ## 14. Encryption Floor Ratchet Vectors
 
@@ -4642,12 +4642,12 @@ Expected：
 
 Steps：
 
-- **Case A — 正路径**：恢复设备在 recovery session 内提交符合 `ak.schema.key_backup_unlock_proof.v1` 的 proof（绑定 `recovery_session_id`、`principal_id`、`requesting_device_id`、`backup_id`、`backup_class`、`series_id`、`ciphertext_digest`、`proof_kind`、`proof_digest`、`issued_at`），服务端用当前 session state 重建 transcript 比对 `proof_digest` 后返回 ciphertext；客户端按机器 fixture `key-backup-hardening-fixture.json` 的 `crypto_transcript` 重算 AEAD open（`aead` / `key_b64u` / `nonce_b64u` / `aad_canonical_json` / `ciphertext_b64u` / `tag_b64u`），校验得到的明文符合 `ak.schema.key_backup_plaintext.v1`，且 `backup_id` / `backup_class` / `series_id` / `series_seq` byte-for-byte 等于外层 envelope。HPKE recipient 的端到端 transcript 由 HPKE suite 向量覆盖；本向量的机器正样本使用对称 AEAD transcript 固化 unlock proof 与 envelope / plaintext 绑定。
+- **Case A — 正路径**：恢复设备在 recovery session 内提交符合 `ak.schema.key_backup_unlock_proof.v1` 的 proof（绑定 `recovery_session_id`、`principal_id`、`requesting_device_id`、`backup_id`、`backup_kind`、`series_id`、`ciphertext_digest`、`proof_kind`、`proof_digest`、`issued_at`），服务端用当前 session state 重建 transcript 比对 `proof_digest` 后返回 ciphertext；客户端按机器 fixture `key-backup-hardening-fixture.json` 的 `crypto_transcript` 重算 AEAD open（`aead` / `key_b64u` / `nonce_b64u` / `aad_canonical_json` / `ciphertext_b64u` / `tag_b64u`），校验得到的明文符合 `ak.schema.key_backup_plaintext.v1`，且 `backup_id` / `backup_kind` / `series_id` / `series_seq` byte-for-byte 等于外层 envelope。HPKE recipient 的端到端 transcript 由 HPKE suite 向量覆盖；本向量的机器正样本使用对称 AEAD transcript 固化 unlock proof 与 envelope / plaintext 绑定。
 - **Case B — 绑定不符 / 凭证降级**：(a) proof 的 `ciphertext_digest` 指向另一 envelope，或 `requesting_device_id` 与本次 session 的新设备 key 不一致，或 `proof_digest` 与服务端重建的 transcript 不符；(b) 调用方仅携带 bearer token、无 fresh device proof 请求同一端点。
 
 Expected：
 
-- **Case A**：ciphertext 返回且明文校验通过；`items[].secret_id` / `item_type` 只作 keybag 内部路由，不得替代外层 envelope 的授权判断；明文 MUST 仅作本地瞬时材料，日志 / telemetry MUST NOT 记录 `secret_b64u`。
+- **Case A**：ciphertext 返回且明文校验通过；`items[].secret_id` / `item_kind` 只作 keybag 内部路由，不得替代外层 envelope 的授权判断；明文 MUST 仅作本地瞬时材料，日志 / telemetry MUST NOT 记录 `secret_b64u`。
 - **Case B(a)**：MUST fail closed，错误码取 `recovery_evidence_unbound` / `backup_frontier_stale` / `series_chain_broken` / `invalid_signature` 中对应稳定码；服务端 MUST NOT 采信客户端自报的 policy / session metadata。
 - **Case B(b)**：MUST 拒绝；跨 actor 请求（envelope `actor_id` ≠ caller）MUST 返回 `forbidden` 且不得通过 metadata 暴露 envelope 是否存在。
 
@@ -4672,7 +4672,7 @@ Expected：
 
 `vector_id`: `ak.vector.key_backup.passphrase_kdf_kat.v1`（来源：`key-backup-hardening-fixture.json` `passphrase_kdf_kat` case）
 
-本向量固化 [`key-management.md`](../identity/key-management.md) §7.2 passphrase_kdf 路径的端到端字节链：Argon2id（固定参数 + 固定盐）→ HKDF-SHA256 子密钥（aead / nonce / commitment，per-backup_class 域分隔）→ canonical nonce transcript 的确定性 XChaCha20-Poly1305 nonce → ciphertext、`ciphertext_digest` 与 `key_commitment`。这是跨设备 / 跨实现解锁互操作的生死线：任一中间值漂移都会造成"备份永远解不开"。
+本向量固化 [`key-management.md`](../identity/key-management.md) §7.2 passphrase_kdf 路径的端到端字节链：Argon2id（固定参数 + 固定盐）→ HKDF-SHA256 子密钥（aead / nonce / commitment，per-backup_kind 域分隔）→ canonical nonce transcript 的确定性 XChaCha20-Poly1305 nonce → ciphertext、`ciphertext_digest` 与 `key_commitment`。这是跨设备 / 跨实现解锁互操作的生死线：任一中间值漂移都会造成"备份永远解不开"。
 
 Steps：按 `kat_cases` 的 input（passphrase、Argon2id 参数与盐、binding、nonce_salt、明文）逐级派生，与 intermediate（root key、三个 HKDF 子密钥、canonical nonce transcript、AAD）及 expected（nonce、ciphertext、digest、commitment）比对。
 
@@ -4729,13 +4729,13 @@ Expected：
 
 `vector_id`: `ak.vector.blob.stream_aead_roundtrip.v1`
 
-本向量固化 [`media-and-blob.md` §3.3.1](../crypto-media/media-and-blob.md) 切分、同文 §3.3.2 nonce 构造、§3.3.3 AAD 绑定、§3.3.5 整体 `ciphertext_digest` 语义与 §3.3.6 解密验证的正路径：明文按 `segment_size` 切成有序 segment（末段长度在 `1 .. segment_size`，可短于 `segment_size`），逐段独立 AEAD 加密、可分段下载并逐段增量校验，最终整体 `ciphertext_digest` 重算比对通过。
+本向量固化 [`media-and-blob.md` §3.3.1](../crypto-media/media-and-blob.md) 切分、同文 §3.3.2 nonce 构造、§3.3.3 AAD 绑定、§3.3.5 整体 `ciphertext_digest` 语义与 §3.3.6 解密验证的正路径：明文按 `segment_bytes` 切成有序 segment（末段长度在 `1 .. segment_bytes`，可短于 `segment_bytes`），逐段独立 AEAD 加密、可分段下载并逐段增量校验，最终整体 `ciphertext_digest` 重算比对通过。
 
 Steps：
 
-1. 取一份明文，长度使 `segment_count == ceil(plaintext_size / segment_size)` 且末段严格短于 `segment_size`（含短末段路径）；envelope 走 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 `ak.blob.stream_aead.v1` 分支，声明 `scheme`、`nonce_prefix`（per-object 随机，长度 `N_AEAD - 5`）、`segment_size`、`segment_count`、`ciphertext_digest`。
+1. 取一份明文，长度使 `segment_count == ceil(plaintext_size / segment_bytes)` 且末段严格短于 `segment_bytes`（含短末段路径）；envelope 走 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 `ak.blob.stream_aead.v1` 分支，声明 `scheme`、`nonce_prefix`（per-object 随机，长度 `N_AEAD - 5`）、`segment_bytes`、`segment_count`、`ciphertext_digest`。
 2. 对每个 segment 用同一 content key、nonce = `nonce_prefix || u32_be(segment_index) || last_segment_flag` 加密，并把 `segment_index` / `last_segment_flag`（及 `media-and-blob.md` §3.3.3 要求字段）纳入 AAD；末段 `last_segment_flag = 0x01` 且 `segment_index == segment_count - 1`。
-3. 接收方按 `segment_index` 从 `0` 起严格升序分段下载（SHOULD 按 `segment_size` 整数倍偏移做 Range），逐段做 per-segment AEAD tag 校验并安全释放对应明文。
+3. 接收方按 `segment_index` 从 `0` 起严格升序分段下载（SHOULD 按 `segment_bytes` 整数倍偏移做 Range），逐段做 per-segment AEAD tag 校验并安全释放对应明文。
 4. 全部 segment 接收完毕后，按 `media-and-blob.md` §3.3.5 对全部 segment 密文（每段含其 AEAD tag）按 `segment_index` 升序拼接重算 `ciphertext_digest`，与 envelope 声明值比对。
 
 Expected：
@@ -4786,7 +4786,7 @@ Expected：
 Steps：
 
 - **Case A — 未知 scheme**：envelope 声明 `scheme` 为既非 `ak.blob.whole_file_aead.v1` 亦非 `ak.blob.stream_aead.v1` 的未知值（如 `example.invalid_blob_scheme`）。
-- **Case B — 形态字段混用**：单个 envelope 同时携带整文件形态字段 `nonce` 与分块形态字段 `nonce_prefix`（及 `segment_size` / `segment_count`），违反 `encrypted_attachment` 的 `oneOf`。
+- **Case B — 形态字段混用**：单个 envelope 同时携带整文件形态字段 `nonce` 与分块形态字段 `nonce_prefix`（及 `segment_bytes` / `segment_count`），违反 `encrypted_attachment` 的 `oneOf`。
 
 Expected：
 
@@ -4798,18 +4798,18 @@ Expected：
 
 `vector_id`: `ak.vector.blob.stream_aead_bounds_rejected.v1`
 
-本向量固化 [scalability-constraints.md](./scalability-constraints.md) §6 的 segment 声明上限 MUST：`segment_size` ∈ [1 KiB（1,024）, 8 MiB（8,388,608）]、`segment_count` ≤ 2^20（1,048,576），且 `segment_count` MUST 等于 `ceil(size_bytes / segment_size)`；越界或不自洽的 envelope MUST 在密钥派生 / 任何 segment 下载开始之前 reject / fail closed。所有 case 均为**声明字段负例**：判定只依据 envelope 声明的 `segment_size` / `segment_count` / `size_bytes` 数值本身，runner MUST NOT 真实构造对应体量的明文或密文。
+本向量固化 [scalability-constraints.md](./scalability-constraints.md) §6 的 segment 声明上限 MUST：`segment_bytes` ∈ [1 KiB（1,024）, 8 MiB（8,388,608）]、`segment_count` ≤ 2^20（1,048,576），且 `segment_count` MUST 等于 `ceil(size_bytes / segment_bytes)`；越界或不自洽的 envelope MUST 在密钥派生 / 任何 segment 下载开始之前 reject / fail closed。所有 case 均为**声明字段负例**：判定只依据 envelope 声明的 `segment_bytes` / `segment_count` / `size_bytes` 数值本身，runner MUST NOT 真实构造对应体量的明文或密文。
 
 Steps：
 
-- **Case A — `segment_count` 超上限**：envelope 声明 `segment_count = 1048577`（2^20 + 1），`segment_size = 262144`，`size_bytes` 与二者自洽。
-- **Case B1 — `segment_size` 低于下限**：envelope 声明 `segment_size = 1023`（< 1 KiB）。
-- **Case B2 — `segment_size` 高于上限**：envelope 声明 `segment_size = 8388609`（> 8 MiB）。
-- **Case C — `segment_count` 与 `size_bytes` 不自洽**：envelope 声明 `segment_size = 262144`、`segment_count = 4`，但 `size_bytes = 2621440`（需要 `ceil(2621440 / 262144) = 10` 段）。
+- **Case A — `segment_count` 超上限**：envelope 声明 `segment_count = 1048577`（2^20 + 1），`segment_bytes = 262144`，`size_bytes` 与二者自洽。
+- **Case B1 — `segment_bytes` 低于下限**：envelope 声明 `segment_bytes = 1023`（< 1 KiB）。
+- **Case B2 — `segment_bytes` 高于上限**：envelope 声明 `segment_bytes = 8388609`（> 8 MiB）。
+- **Case C — `segment_count` 与 `size_bytes` 不自洽**：envelope 声明 `segment_bytes = 262144`、`segment_count = 4`，但 `size_bytes = 2621440`（需要 `ceil(2621440 / 262144) = 10` 段）。
 
 Expected：
 
-- **Case A / B1 / B2**：MUST reject（`schema_violation`，`reason_code=segment_bounds_invalid`）；Case B1 / B2 亦不满足 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 已声明的 `segment_size` `minimum` / `maximum`。
+- **Case A / B1 / B2**：MUST reject（`schema_violation`，`reason_code=segment_bounds_invalid`）；Case B1 / B2 亦不满足 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 已声明的 `segment_bytes` `minimum` / `maximum`。
 - **Case C**：接收方 MUST fail closed（`schema_violation`，`reason_code=segment_bounds_invalid`）；不得先按声明值开始下载再在流中途发现不符。
 - 全部 case 中接收方 MUST NOT 依据未经校验的声明值预分配缓冲区、下载计划或段索引表；拒绝 MUST 发生在密钥派生与首段获取之前。
 
@@ -4994,7 +4994,7 @@ Expected：
 
 [`arkret-private-kdf-fixture.json`](../../artifacts/fixtures/arkret-private-kdf-fixture.json) 是本节三条 active 向量的字节级与状态机真源。Runner MUST 按 RFC 9420 §2.1.2、§8 与 §8.5 实际执行 HKDF-SHA256、最小宽度 varint、`ExpandWithLabel`、`MLS-Exporter`、NFC 与 HMAC-SHA256；MUST NOT 直接信任 fixture 中间值或只比较字符串。
 
-### 21.1 `mls-exporter-aead-v1` 内容键派生
+### 21.1 `mls_exporter_aead_v1` 内容键派生
 
 `ak.vector.mls_exporter_aead.content_key_derivation.v1` 固定 `exporter_secret` 与 `realm_id`，逐字节比较 `history_secret`、`ak.content-v1` 的完整 KDFLabel info 与 `K_content`。错误 label、空 Realm exporter context、给第二级派生加入非空 context、跨 epoch 复用内容键均 MUST 与金值不同或在加密前 fail closed。
 
@@ -5063,7 +5063,7 @@ Expected:
 Steps:
 
 1. 提交普通 Realm 的 bootstrap batch：`ak.realm.create` + 紧邻 founding grant。
-2. 两个独立实现各自按 `contract-catalog.json` 的 `ak.realm.create` `cell_writes[]` 应用 effects 并重算 genesis Seal 的治理 `state_root`。
+2. 两个独立实现各自按 `contract-registry.json` 的 `ak.realm.create` `cell_writes[]` 应用 effects 并重算 genesis Seal 的治理 `state_root`。
 
 Expected:
 

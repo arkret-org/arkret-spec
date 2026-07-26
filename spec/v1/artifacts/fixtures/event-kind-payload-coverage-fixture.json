@@ -4,7 +4,7 @@
   "runner": {
     "kind": "registry_coverage",
     "inputs": [
-      "registry/contract-catalog.json",
+      "registry/contract-registry.json",
       "registry/event-kind-registry.json",
       "schemas/event-envelope.schema.json",
       "schemas/event-payload.schema.json"
@@ -13,7 +13,7 @@
   "assertions": [
     {
       "id": "catalog_registry_bijection",
-      "rule": "contract-catalog event_kinds and generated event-kind-registry rows form a one-to-one mapping by kind."
+      "rule": "contract-registry event_kinds and generated event-kind-registry rows form a one-to-one mapping by kind."
     },
     {
       "id": "payload_schema_ref_resolves",

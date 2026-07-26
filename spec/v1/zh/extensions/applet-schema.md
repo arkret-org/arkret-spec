@@ -10,7 +10,7 @@ updated: 2026-07-02
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
-> **权威 schema / OpenAPI 来源**：本文是 Applet wire 对象与 HTTP 字段的人类可读参考；它**不**是机器可校验的权威定义。Applet registration / transaction / bridge-error 的权威 JSON Schema 见 `artifacts/schemas/applet.schema.json`，HTTP operation 的权威 OpenAPI 定义见 `artifacts/openapi/arkret-service-api.openapi.yaml`（两者由 artifact pipeline 从 contract catalog 生成）。本文与上述 artifacts 冲突时，**以 artifacts 为准**。
+> **权威 schema / OpenAPI 来源**：本文是 Applet wire 对象与 HTTP 字段的人类可读参考；它**不**是机器可校验的权威定义。Applet registration / transaction / bridge-error 的权威 JSON Schema 见 `artifacts/schemas/applet.schema.json`，HTTP operation 的权威 OpenAPI 定义见 `artifacts/openapi/arkret-service-api.openapi.yaml`（两者由 artifact pipeline 从 contract registry 生成）。本文与上述 artifacts 冲突时，**以 artifacts 为准**。
 
 ## 1. Applet Registration Schema
 
@@ -34,7 +34,7 @@ updated: 2026-07-02
   "requested_scopes": [],
   "registration_epoch": "sha256:<canonical-registration-epoch-hash>",
   "webhook_auth": {
-    "type": "http_message_signature",
+    "kind": "http_message_signature",
     "key_ref": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example#server-key-1"
   },
   "proof": {
@@ -150,7 +150,7 @@ Package -> registration 派生映射:
 | `proof` | `proof` | detached proof 覆盖 canonical package 或 derived registration object。 |
 | `created_at` | `created_at` | 原样复制。 |
 
-Widget declaration 的字段顺序与 schema 一致：`schema`、`widget_origin`、`csp`、`token_scope`、`requires_consent`。`token_scope` 是对象而非字符串数组，至少包含 `actions[]`、`resources[]` 与 `expires_at`；host / node 签发给 widget 的短期 token MUST 是该 scope 的子集，不能回退到用户 full session 权限。
+Widget declaration 的字段顺序与 schema 一致：`schema`、`widget_origin`、`csp`、`token_scope`、`consent_required`。`token_scope` 是对象而非字符串数组，至少包含 `actions[]`、`resources[]` 与 `expires_at`；host / node 签发给 widget 的短期 token MUST 是该 scope 的子集，不能回退到用户 full session 权限。
 
 ## 1b. Applet Install Operation Objects
 
@@ -165,10 +165,10 @@ Install preview request:
   },
   "approval_request": {
     "approve_actions": ["ak.message.create"],
-    "allow_ghost_actors": false,
-    "allow_delegated_native_actors": false,
-    "allow_e2ee_join": false,
-    "allow_widget": false
+    "ghost_actors_allowed": false,
+    "delegated_native_actors_allowed": false,
+    "e2ee_join_allowed": false,
+    "widget_allowed": false
   }
 }
 ```
@@ -197,10 +197,10 @@ Install commit request:
     "ghost_actor_mode": "disallowed"
   },
   "e2ee_policy": {
-    "allow_mls_join": false
+    "mls_join_allowed": false
   },
   "widget_policy": {
-    "allow_widget": false
+    "widget_allowed": false
   }
 }
 ```
@@ -209,12 +209,12 @@ Commit 响应 MUST 通过 [`schemas/applet-install-operations.schema.json#/$defs
 
 `effective_scope.kind="realm"` MUST 只包含 `kind` 与 `realm_id`。`effective_scope.kind="circle"` MUST 包含 `kind`、`realm_id` 与 `circle_id`。单次 install operation MUST 只作用于一个 effective_scope。recomputed plan `plan_digest` 不等于提交的 `plan_digest` 时 MUST fail closed，reason=`applet_install_plan_mismatch`。
 
-**preview `allow_ghost_actors` 与 commit `actor_policy.ghost_actor_mode` 一致性(normative)**:preview 的 `approval_request.allow_ghost_actors`(布尔)与 commit `actor_policy.ghost_actor_mode`(三值 `disallowed` / `controller_approved` / `policy_declared`)表达同一 ghost actor 准入意图,commit 时二者 MUST 语义一致，不一致 MUST fail closed:
+**preview `ghost_actors_allowed` 与 commit `actor_policy.ghost_actor_mode` 一致性(normative)**:preview 的 `approval_request.ghost_actors_allowed`(布尔)与 commit `actor_policy.ghost_actor_mode`(三值 `disallowed` / `controller_approved` / `policy_declared`)表达同一 ghost actor 准入意图,commit 时二者 MUST 语义一致，不一致 MUST fail closed:
 
-- `allow_ghost_actors=false` ↔ `ghost_actor_mode="disallowed"`;
-- `allow_ghost_actors=true` ↔ `ghost_actor_mode ∈ {controller_approved, policy_declared}`。
+- `ghost_actors_allowed=false` ↔ `ghost_actor_mode="disallowed"`;
+- `ghost_actors_allowed=true` ↔ `ghost_actor_mode ∈ {controller_approved, policy_declared}`。
 
-即 `allow_ghost_actors=false` 与 `ghost_actor_mode ∈ {controller_approved, policy_declared}` 冲突,`allow_ghost_actors=true` 与 `ghost_actor_mode="disallowed"` 冲突；任一冲突组合 MUST 被 commit 拒绝(fail closed,reason=`applet_install_plan_mismatch` 或更细 ghost-policy reason),不得静默取其一。
+即 `ghost_actors_allowed=false` 与 `ghost_actor_mode ∈ {controller_approved, policy_declared}` 冲突,`ghost_actors_allowed=true` 与 `ghost_actor_mode="disallowed"` 冲突；任一冲突组合 MUST 被 commit 拒绝(fail closed,reason=`applet_install_plan_mismatch` 或更细 ghost-policy reason),不得静默取其一。
 
 ## 2. Namespace Pattern
 
@@ -328,7 +328,7 @@ GET /_arkret/edge/applet/realms/{realm_id_or_alias}
 GET /_arkret/edge/applet/protocols/{protocol}
 ```
 
-响应字段：`protocol: string` required；`display_name: string` required；`icon_blob_ref: string` optional；`field_types: object` required；`instances: object[]` optional。
+响应字段：`protocol: string` required；`display_name: string` required；`icon_blob_ref: string` optional；`field_definitions: object` required；`instances: object[]` optional。
 
 响应示例（非完整 schema）：
 
@@ -336,7 +336,7 @@ GET /_arkret/edge/applet/protocols/{protocol}
 {
   "protocol": "slack",
   "display_name": "Slack",
-  "field_types": {},
+  "field_definitions": {},
   "instances": []
 }
 ```

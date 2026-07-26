@@ -73,7 +73,7 @@
             "type": "object",
             "required": [
               "call_id",
-              "signal_type",
+              "signal_kind",
               "seq"
             ],
             "properties": {
@@ -82,7 +82,7 @@
                 "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
                 "description": "Typed call/session identifier (ak:call:<uuidv7>) scoped to the Realm. Unified with ice-config-response and media-operations so cross-channel join cross-checks key on the same form."
               },
-              "signal_type": {
+              "signal_kind": {
                 "type": "string",
                 "enum": [
                   "invite",
@@ -115,12 +115,12 @@
               {
                 "if": {
                   "properties": {
-                    "signal_type": {
+                    "signal_kind": {
                       "const": "moderation"
                     }
                   },
                   "required": [
-                    "signal_type"
+                    "signal_kind"
                   ]
                 },
                 "then": {

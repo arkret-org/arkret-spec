@@ -6,7 +6,7 @@
   "required": [
     "backup_id",
     "actor_id",
-    "backup_class",
+    "backup_kind",
     "backup_version",
     "series_id",
     "series_seq",
@@ -30,7 +30,7 @@
       "type": "string",
       "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "backup_class": {
+    "backup_kind": {
       "type": "string",
       "enum": [
         "did_recovery",
@@ -50,7 +50,7 @@
     "series_id": {
       "type": "string",
       "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Stable identifier for one immutable chain of backup envelopes belonging to a single (actor_id, backup_class). A pair MAY have multiple series during compromise rotation or migration; active series selection is outside this envelope and MUST come from the signed active-series record in identity/key-management.md §7.6. Receivers use (actor_id, backup_class, series_id) to detect server-side rollback / withholding within the selected series."
+      "description": "Stable identifier for one immutable chain of backup envelopes belonging to a single (actor_id, backup_kind). A pair MAY have multiple series during compromise rotation or migration; active series selection is outside this envelope and MUST come from the signed active-series record in identity/key-management.md §7.6. Receivers use (actor_id, backup_kind, series_id) to detect server-side rollback / withholding within the selected series."
     },
     "series_seq": {
       "type": "integer",
@@ -122,7 +122,7 @@
     },
     "recovery_policy_ref": {
       "type": "object",
-      "description": "Required for backup_class=did_recovery and optional as a signed recovery-strand hint for other backup classes. Binds the backup envelope to the active recovery policy version under which it was produced. Receivers MUST compare this tuple to the currently accepted recovery policy before using a did_recovery envelope; when present on other classes, mismatch fails as recovery_policy_mismatch but the field does not replace active-series, frontier, Realm/MLS authorization, or device-state checks. This is intentionally separate from frontier_ref and ssk_generation: it binds the recovery authorization surface, not only the device trust generation or control-stream position.",
+      "description": "Required for backup_kind=did_recovery and optional as a signed recovery-strand hint for other backup classes. Binds the backup envelope to the active recovery policy version under which it was produced. Receivers MUST compare this tuple to the currently accepted recovery policy before using a did_recovery envelope; when present on other classes, mismatch fails as recovery_policy_mismatch but the field does not replace active-series, frontier, Realm/MLS authorization, or device-state checks. This is intentionally separate from frontier_ref and ssk_generation: it binds the recovery authorization surface, not only the device trust generation or control-stream position.",
       "required": [
         "policy_id",
         "policy_version"
@@ -341,7 +341,7 @@
             "nonce": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]+$",
-              "description": "base64url AEAD nonce. Required for the symmetric methods (passphrase_kdf / secret_storage_key). For recipient_method=passphrase_kdf this MUST equal HMAC-SHA256(HKDF(derived_key, info='arkret-key-backup-aead-nonce-v1'), canonical_json({backup_id, actor_id, device_id, backup_class, backup_version, created_at, aead.name, aead.aead_profile?, aead.nonce_salt}))[0:N_AEAD]; receivers recompute and reject mismatches. Absent for recovery_public_key (HPKE derives its nonce internally)."
+              "description": "base64url AEAD nonce. Required for the symmetric methods (passphrase_kdf / secret_storage_key). For recipient_method=passphrase_kdf this MUST equal HMAC-SHA256(HKDF(derived_key, info='arkret-key-backup-aead-nonce-v1'), canonical_json({backup_id, actor_id, device_id, backup_kind, backup_version, created_at, aead.name, aead.aead_profile?, aead.nonce_salt}))[0:N_AEAD]; receivers recompute and reject mismatches. Absent for recovery_public_key (HPKE derives its nonce internally)."
             },
             "nonce_salt": {
               "type": "string",
@@ -468,10 +468,10 @@
             "schema",
             "actor_id",
             "device_id",
-            "backup_class",
+            "backup_kind",
             "backup_version",
             "created_at",
-            "item_types"
+            "item_kinds"
           ],
           "properties": {
             "schema": {
@@ -488,7 +488,7 @@
               "minLength": 1,
               "description": "The envelope's device_id bound into the AEAD AAD. The top-level device_id is optional, so an envelope sealed without an originating device MUST bind null here rather than omitting the key or substituting an empty string: the AAD transcript keeps a fixed field set so sealer and opener reconstruct it byte-identically (key-management.md §7.2). See the secret_storage_no_device KAT case in fixtures/key-backup-hardening-fixture.json."
             },
-            "backup_class": {
+            "backup_kind": {
               "type": "string",
               "enum": [
                 "did_recovery",
@@ -503,7 +503,7 @@
             "created_at": {
               "$ref": "#/$defs/timestamp"
             },
-            "item_types": {
+            "item_kinds": {
               "type": "array",
               "items": {
                 "type": "string"
@@ -549,10 +549,10 @@
       "items": {
         "type": "object",
         "required": [
-          "item_type"
+          "item_kind"
         ],
         "properties": {
-          "item_type": {
+          "item_kind": {
             "type": "string",
             "enum": [
               "recovery_key_share",
@@ -613,7 +613,7 @@
                 "realm_id"
               ],
               "properties": {
-                "item_type": {
+                "item_kind": {
                   "enum": [
                     "mls_group_state",
                     "mls_epoch_secret",
@@ -694,7 +694,7 @@
             },
             {
               "contains": {
-                "const": "backup_class"
+                "const": "backup_kind"
               }
             },
             {
@@ -733,7 +733,7 @@
               }
             }
           ],
-          "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_class, backup_version, series_id, series_seq, encryption, domain_separation, contents, ciphertext_digest, and when present supersedes, supersedes_digest, frontier_ref, and recovery_policy_ref."
+          "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_kind, backup_version, series_id, series_seq, encryption, domain_separation, contents, ciphertext_digest, and when present supersedes, supersedes_digest, frontier_ref, and recovery_policy_ref."
         },
         "ssk_generation": {
           "type": "integer",
@@ -809,7 +809,7 @@
           "recovery_policy_ref"
         ],
         "properties": {
-          "backup_class": {
+          "backup_kind": {
             "const": "mls_history"
           },
           "encryption": {
@@ -843,12 +843,12 @@
             "contains": {
               "type": "object",
               "required": [
-                "item_type",
+                "item_kind",
                 "realm_id",
                 "managed_principal_binding"
               ],
               "properties": {
-                "item_type": {
+                "item_kind": {
                   "const": "mls_group_state"
                 }
               }
@@ -895,12 +895,12 @@
     {
       "if": {
         "properties": {
-          "backup_class": {
+          "backup_kind": {
             "const": "mls_history"
           }
         },
         "required": [
-          "backup_class"
+          "backup_kind"
         ]
       },
       "then": {
@@ -953,17 +953,17 @@
           }
         }
       },
-      "description": "Every recovery_public_key envelope is bound to one accepted recovery-policy version. The recipient_key_ref resolves only within that policy's recovery_key_agreements array, and recovery_policy_ref is signed even when backup_class is secret_storage or mls_history."
+      "description": "Every recovery_public_key envelope is bound to one accepted recovery-policy version. The recipient_key_ref resolves only within that policy's recovery_key_agreements array, and recovery_policy_ref is signed even when backup_kind is secret_storage or mls_history."
     },
     {
       "if": {
         "properties": {
-          "backup_class": {
+          "backup_kind": {
             "const": "did_recovery"
           }
         },
         "required": [
-          "backup_class"
+          "backup_kind"
         ]
       },
       "then": {

@@ -12,7 +12,7 @@
     "id",
     "schema",
     "actor_id",
-    "notification_type",
+    "notification_kind",
     "priority",
     "state",
     "created_at"
@@ -75,7 +75,7 @@
       "pattern": "^[a-z][a-z0-9_]{0,63}$",
       "description": "Optional Strand track key on the source Strand."
     },
-    "notification_type": {
+    "notification_kind": {
       "type": "string",
       "enum": [
         "message",
@@ -138,7 +138,7 @@
         "source_account_artifact"
       ],
       "properties": {
-        "notification_type": {
+        "notification_kind": {
           "const": "agent"
         }
       },

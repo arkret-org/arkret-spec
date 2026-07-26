@@ -19,7 +19,7 @@ see_also:
 
 ### 1.1 规范权威层级
 
-- `artifacts/registry/contract-catalog.json` 是 event/schema/id/operation contract 的 canonical catalog。
+- `artifacts/registry/contract-registry.json` 是 event/schema/id/operation contract 的 canonical catalog。
 - `artifacts/registry/event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json` 和 `operation-registry.json` 是从 canonical catalog 生成的机器视图；实现、SDK 和 lint 应消费这些生成物，而不是手抄 Markdown 表。
 - `artifacts/registry/error-code-registry.json` 是标准 service error 与逐项 `reason_code` 的 canonical registry。
 - `artifacts/openapi/arkret-service-api.openapi.yaml` 是 HTTP/OpenAPI binding shape；它描述 HTTP 形状，不替代抽象 `operation_id`、Event kind、typed ID 或 reducer 语义。
@@ -33,7 +33,7 @@ see_also:
 
 `artifacts/registry/registry-manifest.json` 索引 current v1 的机器可读源。实现、SDK、Conformance Verifier 与 transport adapter 应优先消费这些 artifact，而不是从 Markdown 表格手抄定义：
 
-- `artifacts/registry/contract-catalog.json`：event、schema、typed id、operation contract 的 canonical catalog。
+- `artifacts/registry/contract-registry.json`：event、schema、typed id、operation contract 的 canonical catalog。
 - `artifacts/registry/operation-registry.json`、`event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json`：从 canonical catalog 生成的 current-wire 视图。
 - `artifacts/registry/error-code-registry.json`：标准 service error 与 `reason_code` 的 canonical registry。
 - `artifacts/profiles/conformance-profiles.json`：profile、feature、unknown/unsupported 行为和 profile role 的机器矩阵。
@@ -153,7 +153,7 @@ see_also:
 | `models/calendar-event.md` | Calendar event Strand profile、schedule fields、RRULE v1 子集、attendees 与 `ak.rsvp.set` 收敛。 |
 | `models/circle.md` | Circle（intra-Realm 子事件 / 子消息边界）、`scope_circle_id` / `effective_scope`、Circle encryption profile 与父 Realm floor、`Circle.members ⊆ Realm.members`、Realm-default vs Circle scope、Space `child_scope_policy`、跨 scope Relation、`confidential_discussion_of` 模式、MLS-backed Circle rotate amplification 缓解、Circle UX 视觉一致性要求。 |
 | `models/sidecar.md` | Agent Sidecar 独立对象、singleton ensure、derived desired/effective access、reducer-managed backing Circle/MLS scope、private Strand、存在性隐私与专用 UI 不变量。 |
-| `models/morph.md` | Morph 开放对象、`morph_type` 合并优先级、标准 facets、schema evolution。 |
+| `models/morph.md` | Morph 开放对象、`morph_kind` 合并优先级、标准 facets、schema evolution。 |
 | `models/relation.md` | Relation 一等关系、标准 `relation_kind` 与基数、跨 Realm 规则、RelationProfile、冲突处理。 |
 | `models/actor.md` | Actor 与 Actor Profile、`actor_kind`、accountability。 |
 | `models/governance-objects.md` | Schema、Policy、Capability Grant、Invite 治理对象。 |
@@ -270,6 +270,6 @@ see_also:
 - 改变身份、DID、handle、claim 的内容，放入身份与隐私组。
 - 改变共享状态有效性的内容，放入授权、治理与状态组。
 - 改变服务 API 或 transport 的内容，放入同步、服务与联邦组。
-- principal/actor-private data type 的基础存储、寻址、加密与 merge primitive 放入 `models/account-data.md`；具体字段语义留在功能域消费方文档，并统一登记 `account-data-type-registry.json`。
+- principal/actor-private data type 的基础存储、寻址、加密与 merge primitive 放入 `models/account-data.md`；具体字段语义留在功能域消费方文档，并统一登记 `account-data-key-registry.json`。
 - 新业务能力优先做 profile，例如 Agent、Applet、WebRTC。
 - 不要把服务部署角色写成身份主体；不要把 UI 投影写成真相源。

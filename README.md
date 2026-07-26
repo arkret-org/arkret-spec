@@ -31,7 +31,7 @@ spec/v1/
 ├── zh/   en/                      # zh 为 normative prose；en 仅为说明性入口，不是英文版承诺
 ├── proposals/                     # Arkret Proposals (AKP) — 非 normative
 └── artifacts/
-    ├── registry/                  # contract-catalog (canonical) + 派生 view
+    ├── registry/                  # contract-registry (canonical) + 派生 view
     ├── profiles/                  # conformance-profiles.json
     ├── schemas/                   # JSON Schema *.schema.json
     ├── openapi/                   # arkret-service-api.openapi.yaml
@@ -47,7 +47,7 @@ tools/
 
 ## 规范权威层级
 
-- `spec/v1/artifacts/registry/contract-catalog.json` 是 event/schema/id/operation contract 的 canonical catalog。
+- `spec/v1/artifacts/registry/contract-registry.json` 是 event/schema/id/operation contract 的 canonical catalog。
 - `spec/v1/artifacts/registry/event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json`、`operation-registry.json` 是从 canonical catalog 生成的机器视图；实现、SDK、lint 应消费这些生成物，不要手抄 Markdown。
 - `spec/v1/artifacts/registry/error-code-registry.json` 是标准 service error 的 canonical registry。
 - `spec/v1/artifacts/openapi/arkret-service-api.openapi.yaml` 是 HTTP/OpenAPI binding shape。
@@ -58,8 +58,8 @@ tools/
 
 ## Public v1 artifact
 
-`spec/v1/artifacts/registry/contract-catalog.json` 是当前工作树的 canonical catalog。
-`site/public/v1/contract-catalog-1.0.0.json` 是 v1 当前唯一 public catalog snapshot。
+`spec/v1/artifacts/registry/contract-registry.json` 是当前工作树的 canonical catalog。
+`site/public/v1/contract-registry-1.0.0.json` 是 v1 当前唯一 public catalog snapshot。
 仓库不同时维护 rc / stable 两套 public catalog；`tools/artifact_pipeline.py generate`
 只刷新这个当前 v1 snapshot，`check` 用 count/hash gate 证明它与 canonical catalog 一致。
 

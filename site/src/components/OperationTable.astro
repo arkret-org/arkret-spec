@@ -1,16 +1,16 @@
 ---
-import { surfaceGroups, capabilityTiers, getOperation } from "~/lib/artifacts";
+import { surfaceGroups, surfaceClasses, getOperation } from "~/lib/artifacts";
 
 interface Props {
-  /** Filter to a specific tier (core / extension / interop_bridge / deployment_local). */
-  tier?: string;
+  /** Filter to a surface class (core / extension / interop_bridge / deployment_local). */
+  surfaceClass?: string;
   /** Filter to a specific surface (events_sync / blob_storage / mimi_interop / ...). */
   surface?: string;
 }
-const { tier, surface } = Astro.props;
+const { surfaceClass, surface } = Astro.props;
 
 const groups = surfaceGroups
-  .filter((g) => (tier ? g.tier === tier : true))
+  .filter((g) => (surfaceClass ? g.surface_class === surfaceClass : true))
   .filter((g) => (surface ? g.surface === surface : true));
 ---
 
@@ -19,9 +19,9 @@ const groups = surfaceGroups
     <section>
       <h3>
         <code>{group.surface}</code>{" "}
-        <small>· tier {group.tier}</small>
+        <small>· surface class {group.surface_class}</small>
       </h3>
-      <p>{capabilityTiers[group.tier]}</p>
+      <p>{surfaceClasses[group.surface_class]}</p>
       <table class="ak.table">
         <thead>
           <tr>

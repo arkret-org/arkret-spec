@@ -3,11 +3,11 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.security.closure.v1"
   },
-  "suite": "security_closure_vectors",
+  "suite": "security_closure_fixture",
   "profile": "ak.vector_group.privacy_security.v1",
   "version": "2026-05-20",
   "description": "Structured negative/edge-case fixtures for security vectors referenced by prose. tools/lint_artifacts.py validates vector_id closure and runner fields for implementation conformance tests.",
-  "security_closure_vectors": [
+  "security_closure_fixture": [
     {
       "vector_id": "ak.vector.federation.idempotency_after_key_revoke.v1",
       "steps": [

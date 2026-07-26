@@ -7,10 +7,10 @@
     }
   },
   "title": "Arkret Grant Constraint",
-  "$comment": "Property ordering is grouped by constraint family to match capabilities.md §6 (the human-readable family map): discriminator/meta, then temporal, field_access, type_restriction, scope_limitation, delegation_control, quota, claim_based, confidentiality, then the moderation cache-invalidation hint. Canonical JSON re-sorts keys lexicographically so this ordering is presentation-only and does not affect the wire (see C13-07).",
+  "$comment": "Property ordering is grouped by constraint family to match capabilities.md §6 (the human-readable family map): discriminator/meta, then temporal, field_access, kind_restriction, scope_limitation, delegation_control, quota, claim_based, confidentiality, then the moderation cache-invalidation hint. Canonical JSON re-sorts keys lexicographically so this ordering is presentation-only and does not affect the wire (see C13-07).",
   "type": "object",
   "required": [
-    "constraint_type",
+    "constraint_kind",
     "effect"
   ],
   "properties": {
@@ -18,19 +18,19 @@
       "type": "string",
       "description": "Optional stable identifier of this constraint within the grant; used for diagnostics and overrides."
     },
-    "constraint_type": {
+    "constraint_kind": {
       "type": "string",
       "enum": [
         "temporal",
         "field_access",
-        "type_restriction",
+        "kind_restriction",
         "scope_limitation",
         "delegation_control",
         "quota",
         "claim_based",
         "confidentiality"
       ],
-      "description": "Constraint family discriminator. v1 collapses what were 15 types into 8 by absorbing narrowly-scoped types into their conceptual parent: edit_window → temporal; container_move → scope_limitation; rate_limiting + resource_limit → quota; approval_workflow + accountability + device_session → claim_based (with subtype); encryption_requirement + visibility_control → confidentiality (with subtype). Use the optional 'subtype' field to indicate the original specialization where evaluation logic differs."
+      "description": "Constraint family discriminator. v1 collapses what were 15 types into 8 by absorbing narrowly-scoped types into their conceptual parent: edit_window → temporal; container_move → scope_limitation; rate_limiting + resource_limit → quota; approval_workflow + accountability + device_session → claim_based (with constraint_subkind); encryption_requirement + visibility_control → confidentiality (with constraint_subkind). Use the optional 'constraint_subkind' field to indicate the original specialization where evaluation logic differs."
     },
     "effect": {
       "type": "string",
@@ -49,11 +49,11 @@
         "realm_state",
         "external"
       ],
-      "description": "Cacheability/dependency hint for the authorization evaluator. stateless = pure function of (constraint, op, now); grant_local = depends on the grant object only; realm_state = depends on Realm frontier (membership, policy_version, etc.); external = depends on data outside the Realm causal frontier (claim revocation status, rate-limit history counts, async approval). Each constraint_type has a canonical evaluation_class declared in constraint-schema.md §2.3; implementations MAY tighten (e.g. grant_local → stateless) but MUST NOT loosen (e.g. external as stateless). Auth evaluators SHOULD use this hint to gate fast-path caching."
+      "description": "Cacheability/dependency hint for the authorization evaluator. stateless = pure function of (constraint, op, now); grant_local = depends on the grant object only; realm_state = depends on Realm frontier (membership, policy_version, etc.); external = depends on data outside the Realm causal frontier (claim revocation status, rate-limit history counts, async approval). Each constraint_kind has a canonical evaluation_class declared in constraint-schema.md §2.3; implementations MAY tighten (e.g. grant_local → stateless) but MUST NOT loosen (e.g. external as stateless). Auth evaluators SHOULD use this hint to gate fast-path caching."
     },
-    "subtype": {
+    "constraint_subkind": {
       "type": "string",
-      "description": "Optional discriminator within a constraint_type. Standard values: claim_based.{claim,approval,accountability}; quota.{rate,resource}; confidentiality.{encryption,visibility}; temporal.{window,edit_window,redact_window,session}. Per constraint-schema.md §2.2, device/session binding is NOT an independent subtype: it is the claim_based subtype=claim sub-case expressed via claim issuer = device cross-signing key. Implementations MAY require subtype for these families and fail closed on unknown values.",
+      "description": "Optional discriminator within a constraint_kind. Standard values: claim_based.{claim,approval,accountability}; quota.{rate,resource}; confidentiality.{encryption,visibility}; temporal.{window,edit_window,redact_window,session}. Per constraint-schema.md §2.2, device/session binding is NOT an independent constraint_subkind: it is the claim_based constraint_subkind=claim sub-case expressed via claim issuer = device cross-signing key. Implementations MAY require constraint_subkind for these families and fail closed on unknown values.",
       "enum": [
         "claim",
         "approval",
@@ -153,7 +153,7 @@
       "type": "string",
       "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
     },
-    "allow_redact_after_window": {
+    "redact_after_window_allowed": {
       "type": "boolean"
     },
     "condition": {
@@ -220,25 +220,25 @@
         "omit"
       ]
     },
-    "allowed_object_types": {
+    "allowed_object_kinds": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "denied_object_types": {
+    "denied_object_kinds": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "allowed_morph_types": {
+    "allowed_morph_kinds": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "denied_morph_types": {
+    "denied_morph_kinds": {
       "type": "array",
       "items": {
         "type": "string"
@@ -454,7 +454,7 @@
       ],
       "additionalProperties": false
     },
-    "allowed_data_classes": {
+    "allowed_data_labels": {
       "type": "array",
       "items": {
         "type": "string",
@@ -495,10 +495,10 @@
         "custom"
       ]
     },
-    "allow_scope_expansion": {
+    "scope_expansion_allowed": {
       "type": "boolean"
     },
-    "require_parent_reference": {
+    "parent_reference_required": {
       "type": "boolean"
     },
     "blob_max_bytes": {
@@ -549,7 +549,7 @@
       "type": "integer",
       "minimum": 0
     },
-    "resource_type": {
+    "resource_kind": {
       "type": "string"
     },
     "approval_required": {
@@ -587,7 +587,7 @@
     "auto_reject_on_timeout": {
       "type": "boolean"
     },
-    "proposal_morph_type": {
+    "proposal_morph_kind": {
       "type": "string"
     },
     "approval_threshold": {
@@ -615,14 +615,14 @@
     "controller_approval_required": {
       "type": "boolean"
     },
-    "requires_claims": {
+    "required_claims": {
       "type": "array",
       "maxItems": 32,
       "description": "Conditional claim requirements. resource-selector-grammar.md §3.3 caps this array at 32 entries as a normative DoS guard; the schema enforces maxItems:32 so condition-selector grants cannot smuggle in unbounded claim objects.",
       "items": {
         "type": "object",
         "required": [
-          "claim_type"
+          "claim_kind"
         ],
         "anyOf": [
           {
@@ -637,7 +637,7 @@
           }
         ],
         "properties": {
-          "claim_type": {
+          "claim_kind": {
             "type": "string"
           },
           "issuer": {
@@ -710,7 +710,7 @@
       },
       "uniqueItems": true
     },
-    "deny_redacted_history": {
+    "redacted_history_allowed": {
       "type": "boolean"
     },
     "encryption_required": {
@@ -723,15 +723,15 @@
         "mls_rfc9420",
         "external"
       ],
-      "description": "confidentiality(subtype=encryption) static floor: the minimum content-encryption mechanism the grant requires. Values mirror Realm/Circle encryption_profile. Pure static declaration evaluated as stateless unless cross-checked against the Realm's current encryption_profile (see constraint-schema.md §12)."
+      "description": "confidentiality(constraint_subkind=encryption) static floor: the minimum content-encryption mechanism the grant requires. Values mirror Realm/Circle encryption_profile. Pure static declaration evaluated as stateless unless cross-checked against the Realm's current encryption_profile (see constraint-schema.md §12)."
     },
-    "allow_plaintext_fallback": {
+    "plaintext_fallback_allowed": {
       "type": "boolean",
-      "description": "confidentiality(subtype=encryption) static flag: whether the grant permits plaintext when the encryption floor cannot be met. See constraint-schema.md §12."
+      "description": "confidentiality(constraint_subkind=encryption) static flag: whether the grant permits plaintext when the encryption floor cannot be met. See constraint-schema.md §12."
     },
-    "require_audit_trail": {
+    "audit_trail_required": {
       "type": "boolean",
-      "description": "confidentiality(subtype=encryption) static flag: whether the grant requires an audit trail (e.g. active Audit Applet Binding). See constraint-schema.md §12."
+      "description": "confidentiality(constraint_subkind=encryption) static flag: whether the grant requires an audit trail (e.g. active Audit Applet Binding). See constraint-schema.md §12."
     },
     "key_rotation_period": {
       "type": "string",
@@ -741,7 +741,7 @@
       "type": "string",
       "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
     },
-    "require_key_backup": {
+    "key_backup_required": {
       "type": "boolean"
     },
     "approved_key_issuers": {
@@ -758,10 +758,10 @@
   },
   "allOf": [
     {
-      "$comment": "constraint-schema.md §2.2 / §2.3: claim_based, confidentiality and quota families have NO valid no-subtype form — every row in the §2.3 evaluation_class table carries a subtype (claim/approval/accountability; encryption/visibility; rate/resource). Without this gate a {\"constraint_type\":\"claim_based\",\"effect\":\"allow\"} with no subtype passes schema validation, letting weak implementations cache an external (claim-revocation) constraint on the grant_local fast path (see C05-03 fail-open). temporal is intentionally excluded: a temporal constraint with no subtype is the valid ordinary time-window form.",
+      "$comment": "constraint-schema.md §2.2 / §2.3: claim_based, confidentiality and quota families have NO valid no-constraint_subkind form — every row in the §2.3 evaluation_class table carries a constraint_subkind (claim/approval/accountability; encryption/visibility; rate/resource). Without this gate a {\"constraint_kind\":\"claim_based\",\"effect\":\"allow\"} with no constraint_subkind passes schema validation, letting weak implementations cache an external (claim-revocation) constraint on the grant_local fast path (see C05-03 fail-open). temporal is intentionally excluded: a temporal constraint with no constraint_subkind is the valid ordinary time-window form.",
       "if": {
         "properties": {
-          "constraint_type": {
+          "constraint_kind": {
             "enum": [
               "claim_based",
               "confidentiality",
@@ -770,12 +770,12 @@
           }
         },
         "required": [
-          "constraint_type"
+          "constraint_kind"
         ]
       },
       "then": {
         "required": [
-          "subtype"
+          "constraint_subkind"
         ]
       }
     },
@@ -793,19 +793,19 @@
       }
     },
     {
-      "$comment": "quota subtype=rate is a complete hard-quota tuple; partial rate constraints are invalid.",
+      "$comment": "quota constraint_subkind=rate is a complete hard-quota tuple; partial rate constraints are invalid.",
       "if": {
         "properties": {
-          "constraint_type": {
+          "constraint_kind": {
             "const": "quota"
           },
-          "subtype": {
+          "constraint_subkind": {
             "const": "rate"
           }
         },
         "required": [
-          "constraint_type",
-          "subtype"
+          "constraint_kind",
+          "constraint_subkind"
         ]
       },
       "then": {
@@ -860,12 +860,12 @@
       "$comment": "Quota periods must have a fixed duration so all nodes derive the same UTC epoch-aligned window. Calendar years/months and zero/empty durations are not valid quota periods.",
       "if": {
         "properties": {
-          "constraint_type": {
+          "constraint_kind": {
             "const": "quota"
           }
         },
         "required": [
-          "constraint_type",
+          "constraint_kind",
           "period"
         ]
       },
@@ -898,19 +898,19 @@
       }
     },
     {
-      "$comment": "temporal subtype=edit_window requires the edit duration field.",
+      "$comment": "temporal constraint_subkind=edit_window requires the edit duration field.",
       "if": {
         "properties": {
-          "constraint_type": {
+          "constraint_kind": {
             "const": "temporal"
           },
-          "subtype": {
+          "constraint_subkind": {
             "const": "edit_window"
           }
         },
         "required": [
-          "constraint_type",
-          "subtype"
+          "constraint_kind",
+          "constraint_subkind"
         ]
       },
       "then": {
@@ -940,19 +940,19 @@
       }
     },
     {
-      "$comment": "temporal subtype=redact_window requires the redact duration field.",
+      "$comment": "temporal constraint_subkind=redact_window requires the redact duration field.",
       "if": {
         "properties": {
-          "constraint_type": {
+          "constraint_kind": {
             "const": "temporal"
           },
-          "subtype": {
+          "constraint_subkind": {
             "const": "redact_window"
           }
         },
         "required": [
-          "constraint_type",
-          "subtype"
+          "constraint_kind",
+          "constraint_subkind"
         ]
       },
       "then": {
@@ -962,10 +962,10 @@
       }
     },
     {
-      "$comment": "allow_redact_after_window modifies message_edit_window and is invalid without it.",
+      "$comment": "redact_after_window_allowed modifies message_edit_window and is invalid without it.",
       "if": {
         "required": [
-          "allow_redact_after_window"
+          "redact_after_window_allowed"
         ]
       },
       "then": {

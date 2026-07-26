@@ -10,7 +10,7 @@ updated: 2026-07-13
 > 注入流程仍在演进。Arkret v1 core 互操作 **不要求** 实现本 profile；声称 v1 core 的
 > 实现可以完全不接 Applet，仅通过 capability + actor 模型表达 bot / bridge / agent。
 > `ak.profile.applet_service.v1` 视为可选 extension（见 `artifacts/profiles/conformance-profiles.json`
-> 的 `profile_tiers.extension_profile_implementation`）。Applet v1 家族用继承关系分层:
+> 的 `profile_sets.extension_profile_implementation`）。Applet v1 家族用继承关系分层:
 > base bot-only 使用 `ak.profile.applet_service.v1`，bridge / delegated / E2EE join / widget
 > 分别通过 `ak.profile.applet_bridge.v1`、`ak.profile.applet_delegated.v1`、
 > `ak.profile.applet_e2ee_join.v1`、`ak.profile.applet_widget.v1` 叠加。
@@ -173,7 +173,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
   ],
   "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
   "webhook_auth": {
-    "type": "http_message_signature",
+    "kind": "http_message_signature",
     "key_ref": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example#server-key-1"
   },
   "proof": {
@@ -317,16 +317,16 @@ Handle namespace 适用于外部用户或 location 的人类入口。
   },
   "constraints": [
     {
-      "constraint_type": "scope_limitation",
+      "constraint_kind": "scope_limitation",
       "effect": "allow",
-      "allowed_data_classes": ["public", "internal"]
+      "allowed_data_labels": ["public", "internal"]
     }
   ],
   "expires_at": "2026-07-26T00:00:00Z"
 }
 ```
 
-constraint 内 MUST 只使用 [`authz/constraint-schema.md`](../authz/constraint-schema.md) 登记的 `scope_limitation` 字段（如 `allowed_data_classes` / `allowed_endpoints` / `allowed_*_container_refs` 等）。该 capability 与具体 applet 的绑定不写在 constraint 里，而是由 §5.1 registration 的 `namespaces.actors[].pattern`（声明可代理的 ghost actor 命名空间）与 §11 delegated agent 的 `applet_id` / `authorization_ref` 在 Event 层校验。
+constraint 内 MUST 只使用 [`authz/constraint-schema.md`](../authz/constraint-schema.md) 登记的 `scope_limitation` 字段（如 `allowed_data_labels` / `allowed_endpoints` / `allowed_*_container_refs` 等）。该 capability 与具体 applet 的绑定不写在 constraint 里，而是由 §5.1 registration 的 `namespaces.actors[].pattern`（声明可代理的 ghost actor 命名空间）与 §11 delegated agent 的 `applet_id` / `authorization_ref` 在 Event 层校验。
 
 除非 Applet 拥有 effective grant，或以委托授权身份显式代表已授权 actor 行事（此时 MUST 满足 [§11](#11-masquerading-与-delegated-agent) delegated agent 的全部字段 `executed_by` / `authorization_ref` / `applet_id` 与对应 reducer 校验），否则 Applet MUST NOT 向 Realm 写入。
 
@@ -357,7 +357,7 @@ Base URL 来自 registration 的 `base_url`。
 | `ak.edge.applet.command.transaction` | edge（节点→Applet） | `header.Idempotency-Key: string`; `source_service_id: did`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet MUST 验证来源 service DID、HTTP signature、event signature、namespace 和 capability。 |
 | `ak.edge.applet.actor.query.resolve` | edge（节点→Applet） | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 Applet actor namespace。 |
 | `ak.edge.applet.realm.query.resolve` | edge（节点→Applet） | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
-| `ak.edge.applet.query.protocol_metadata` | edge（节点→Applet） | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_types: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
+| `ak.edge.applet.query.protocol_metadata` | edge（节点→Applet） | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_definitions: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
 | `ak.edge.applet.third_party_users.query.list` | edge（节点→Applet） | `query.protocol: string`; 外部 ID query 字段 | 无 | `actor_id: did?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 registration namespace 内。 |
 | `ak.edge.applet.third_party_locations.query.list` | edge（节点→Applet） | `query.protocol: string`; 外部 ID query 字段 | 无 | `realm_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |
 | `ak.self.applet.install.command.preview` | self（管理员→Principal Server） | `applet_package`; `effective_scope`; `approval_request`（字段见 [`applet-schema.md` §1b](./applet-schema.md)） | 无 | `InstallPlan` + `plan_digest`（契约 `applet-install-plan.schema.json`） | 只读预览；字段定义见 §4b 与 `applet-schema.md` §1b。 |
@@ -544,7 +544,7 @@ GET /_arkret/edge/applet/protocols/{protocol}
   "protocol": "slack",
   "display_name": "Slack",
   "icon_blob_ref": "ak:blob:sha256:...",
-  "field_types": {
+  "field_definitions": {
     "team": {
       "label": "Workspace",
       "type": "string"
@@ -866,7 +866,7 @@ Applet v1 conformance 按 profile 继承拆分。实现声明某 profile 时 MUS
 | `widget_origin` | `string`（origin） | required | Widget 内容来源 origin（scheme + host + port）。host 客户端 MUST 在隔离 origin（iframe sandbox 或等价机制）内加载 widget，MUST NOT 在 host 客户端自身 origin 下执行 widget 代码。**出站目标校验（normative）**：`widget_origin` 的 scheme MUST 为 `https`（本地开发例外须 deployment policy 显式声明），且 host 客户端在加载前 MUST 对其 host 执行 [`../sync/api-conventions.md` §11.2](../sync/api-conventions.md) 的出站网络目标策略——命中 loopback / private / link-local / cloud-metadata（如 `169.254.169.254`）等禁止地址类别时 MUST NOT 加载该 widget。否则恶意 applet 可把 `widget_origin` 指向内网 / metadata 端点，借用户浏览器发起 client-side SSRF（内网存活探测、计时侧信道）。 |
 | `csp` | `string` | required | 适用于 widget 文档的 Content-Security-Policy。host 客户端 MUST 强制该 CSP，并 MUST NOT 放宽到允许 widget 访问 host 客户端的 DOM、storage 或 session。 |
 | `token_scope` | `object` | required | Widget 可用 token 的 capability scope（action / resource selector / realm_ids / expiry）。该 token MUST 是为 widget 单独签发的 scoped token，scope MUST NOT 超出本字段声明的范围。 |
-| `requires_consent` | `boolean` | required | 是否需要在加载前向用户展示 consent / capability 摘要。 |
+| `consent_required` | `boolean` | required | 是否需要在加载前向用户展示 consent / capability 摘要。 |
 
 约束（normative）：
 
@@ -874,4 +874,4 @@ Applet v1 conformance 按 profile 继承拆分。实现声明某 profile 时 MUS
 - **Token scoping**：host 客户端 MUST NOT 把 Arkret 用户的 session token 或 device key 传给 widget；widget 只能拿到为其单独签发、scope 收敛到 `token_scope` 的短期 capability token，且该 token MUST NOT 超出 widget 声明的 scope。
 - **History 读取不可越权**：widget MUST NOT 通过任何接口读取超出其 capability scope 的 Event history；host 客户端 MUST 以 widget 的 scoped capability 为准做 history 访问授权，未授权范围 MUST 拒绝。
 - **写入同样不可越权（防 confused-deputy）**：所有经 widget scoped token 发起的调用——无论 read 还是 write——node / host MUST 以该 scoped capability 授权，MUST NOT 回退到 host 用户的 full session 权限。任何经 widget scoped token 的 Event submit / 副作用写入，其授权范围 MUST 受 `token_scope` 约束并 MUST NOT 超出；若写入路径回退到 host 用户 full session，widget 即可借宿主越权写入，构成 confused-deputy，MUST 拒绝。
-- **Consent**：`requires_consent=true` 时，host 客户端 MUST 在加载 widget 前向用户展示其 origin 与请求 scope，未获 consent MUST NOT 加载。
+- **Consent**：`consent_required=true` 时，host 客户端 MUST 在加载 widget 前向用户展示其 origin 与请求 scope，未获 consent MUST NOT 加载。

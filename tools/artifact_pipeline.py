@@ -14,7 +14,7 @@ Layout (post-restructure):
 
 This pipeline owns two responsibilities only:
 
-  generate   regenerate derived registry views from contract-catalog.json
+  generate   regenerate derived registry views from contract-registry.json
   check      verify no drift, fixture digests, then run lint_artifacts.py
 
 The legacy "sync canonical files into zh/ mirrors" and "rewrite generated
@@ -43,7 +43,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SPEC_ROOT = ROOT / "spec" / "v1"
 ARTIFACTS = SPEC_ROOT / "artifacts"
 REGISTRY = ARTIFACTS / "registry"
-CONTRACT_CATALOG_PATH = REGISTRY / "contract-catalog.json"
+CONTRACT_REGISTRY_PATH = REGISTRY / "contract-registry.json"
 PROFILE_REGISTRY_PATH = ARTIFACTS / "profiles" / "conformance-profiles.json"
 LINT_SCRIPT = Path(__file__).with_name("lint_artifacts.py")
 PROSE_LINT_SCRIPT = Path(__file__).with_name("lint_spec.py")
@@ -53,6 +53,7 @@ SITE_META_PATH = ROOT / "site" / "src" / "lib" / "site-meta.ts"
 PUBLIC_V1 = ROOT / "site" / "public" / "v1"
 OPERATION_SCHEMA_INDEX_PATH = ARTIFACTS / "reports" / "operation-schema-index.json"
 REDUCER_PROFILE_REGISTRY_PATH = REGISTRY / "reducer-profile-registry.json"
+CLASSIFICATION_FIELD_REGISTRY_PATH = REGISTRY / "classification-field-registry.json"
 
 
 def load_json(path: Path) -> Any:
@@ -63,26 +64,26 @@ def dump_json(data: Any) -> str:
     return json.dumps(data, ensure_ascii=False, indent=2) + "\n"
 
 
-def load_contract_catalog() -> dict[str, Any]:
-    data = load_json(CONTRACT_CATALOG_PATH)
+def load_contract_registry() -> dict[str, Any]:
+    data = load_json(CONTRACT_REGISTRY_PATH)
     if not isinstance(data, dict):
-        raise SystemExit(f"invalid contract catalog: {CONTRACT_CATALOG_PATH}")
+        raise SystemExit(f"invalid contract registry: {CONTRACT_REGISTRY_PATH}")
     return data
 
 
-def catalog_generation_metadata(catalog: dict[str, Any]) -> tuple[str, str]:
+def registry_generation_metadata(catalog: dict[str, Any]) -> tuple[str, str]:
     version = catalog.get("version")
     generated_at = catalog.get("generated_at")
     if not isinstance(version, str) or not version:
-        raise SystemExit("contract catalog missing version")
+        raise SystemExit("contract registry missing version")
     if not isinstance(generated_at, str) or not generated_at:
-        raise SystemExit("contract catalog missing generated_at")
+        raise SystemExit("contract registry missing generated_at")
     try:
         datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
     except ValueError as exc:
-        raise SystemExit(f"contract catalog generated_at must be RFC3339: {generated_at}") from exc
+        raise SystemExit(f"contract registry generated_at must be RFC3339: {generated_at}") from exc
     if re.fullmatch(r"\d{4}-\d{2}-\d{2}", version) and not generated_at.startswith(version):
-        raise SystemExit("contract catalog generated_at date must match version")
+        raise SystemExit("contract registry generated_at date must match version")
     return version, generated_at
 
 
@@ -99,25 +100,25 @@ def current_release_tag() -> str:
     return tag
 
 
-def current_public_catalog_path() -> Path:
+def current_public_registry_path() -> Path:
     version = current_release_tag()[1:]
-    return PUBLIC_V1 / f"contract-catalog-{version}.json"
+    return PUBLIC_V1 / f"contract-registry-{version}.json"
 
 
-def public_catalog_paths() -> list[Path]:
-    return [current_public_catalog_path()]
+def public_registry_paths() -> list[Path]:
+    return [current_public_registry_path()]
 
 
 def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str, Any]]:
-    version, generated_at = catalog_generation_metadata(catalog)
-    generated = catalog.get("generated_registries")
+    version, generated_at = registry_generation_metadata(catalog)
+    generated = catalog.get("derived_registry_views")
     if not isinstance(generated, list) or not generated:
-        raise SystemExit("contract catalog missing generated_registries")
+        raise SystemExit("contract registry missing derived_registry_views")
 
     payloads: dict[Path, dict[str, Any]] = {}
     for row in generated:
         if not isinstance(row, dict):
-            raise SystemExit("generated_registries rows must be objects")
+            raise SystemExit("derived_registry_views rows must be objects")
         file_ref = row.get("file")
         section = row.get("section")
         if not isinstance(file_ref, str) or not file_ref:
@@ -126,7 +127,7 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
             raise SystemExit(f"generated registry {file_ref} missing section")
         section_payload = catalog.get(section)
         if not isinstance(section_payload, dict):
-            raise SystemExit(f"contract catalog missing section {section}")
+            raise SystemExit(f"contract registry missing section {section}")
         section_payload = copy.deepcopy(section_payload)
         if section == "event_kind_registry":
             cell_contracts = section_payload.pop("cell_contracts", None)
@@ -181,7 +182,7 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
             "version": version,
             "source_of_truth": False,
             "generated_at": generated_at,
-            "generated_from": "registry/contract-catalog.json",
+            "generated_from": "registry/contract-registry.json",
             "generated_by": "tools/artifact_pipeline.py",
             **section_payload,
         }
@@ -201,6 +202,327 @@ def resolve_schema_pointer(document: Any, fragment: str) -> Any:
         else:
             raise KeyError(fragment)
     return current
+
+
+def resolve_json_pointer(document: Any, pointer: str) -> Any:
+    """Resolve an RFC 6901 pointer used by classification-field-registry."""
+    if pointer == "":
+        return document
+    if not pointer.startswith("/"):
+        raise KeyError(pointer)
+    current = document
+    for token in pointer[1:].split("/"):
+        token = token.replace("~1", "/").replace("~0", "~")
+        if isinstance(current, dict) and token in current:
+            current = current[token]
+        elif isinstance(current, list) and token.isdigit() and int(token) < len(current):
+            current = current[int(token)]
+        else:
+            raise KeyError(pointer)
+    return current
+
+
+def classification_axis(field: str) -> tuple[str, str] | None:
+    """Return (semantic stem, axis) for classification-bearing field names."""
+    for suffix, axis in (
+        ("_kinds", "kind"),
+        ("_kind", "kind"),
+        ("_types", "type"),
+        ("_type", "type"),
+        ("_classes", "class"),
+        ("_class", "class"),
+        ("_tiers", "tier"),
+        ("_tier", "tier"),
+    ):
+        if field.endswith(suffix):
+            return field[: -len(suffix)], axis
+    if field in {"kind", "type", "class", "tier"}:
+        return "", field
+    return None
+
+
+def closed_schema_values(
+    schema_path: Path,
+    document: Any,
+    schema: Any,
+    seen: set[tuple[str, str]] | None = None,
+) -> set[Any] | None:
+    """Resolve a finite enum/const set through local or artifact-schema refs."""
+    if not isinstance(schema, dict):
+        return None
+    if "enum" in schema and isinstance(schema["enum"], list) and schema["enum"]:
+        return set(schema["enum"])
+    if "const" in schema:
+        return {schema["const"]}
+    if schema.get("type") == "array" and isinstance(schema.get("items"), dict):
+        return closed_schema_values(schema_path, document, schema["items"], seen)
+    ref = schema.get("$ref")
+    if isinstance(ref, str):
+        ref_file, _, fragment = ref.partition("#")
+        target_path = (schema_path.parent / ref_file).resolve() if ref_file else schema_path.resolve()
+        key = (target_path.as_posix(), fragment)
+        seen = seen or set()
+        if key in seen or not target_path.exists():
+            return None
+        seen.add(key)
+        target_document = load_json(target_path)
+        try:
+            target_schema = resolve_schema_pointer(
+                target_document, f"#{fragment}" if fragment else "#"
+            )
+        except KeyError:
+            return None
+        return closed_schema_values(target_path, target_document, target_schema, seen)
+    for combinator in ("oneOf", "anyOf"):
+        branches = schema.get(combinator)
+        if isinstance(branches, list) and branches:
+            values: set[Any] = set()
+            for branch in branches:
+                branch_values = closed_schema_values(schema_path, document, branch, seen)
+                if branch_values is None:
+                    return None
+                values.update(branch_values)
+            return values
+    return None
+
+
+def _walk_schema_properties(
+    node: Any, pointer: tuple[str, ...] = ()
+) -> list[tuple[str, str, Any, dict[str, Any]]]:
+    rows: list[tuple[str, str, Any, dict[str, Any]]] = []
+    if isinstance(node, dict):
+        properties = node.get("properties")
+        if isinstance(properties, dict):
+            axes: dict[str, set[str]] = {}
+            for field, field_schema in properties.items():
+                field_pointer = "/" + "/".join(
+                    part.replace("~", "~0").replace("/", "~1")
+                    for part in pointer + ("properties", field)
+                )
+                axis = classification_axis(field)
+                if axis is not None:
+                    stem, axis_name = axis
+                    axes.setdefault(stem, set()).add(axis_name)
+                    rows.append((field_pointer, field, field_schema, properties))
+            for stem, axis_names in axes.items():
+                if len(axis_names) > 1:
+                    rows.append(
+                        (
+                            "/" + "/".join(pointer + ("properties",)),
+                            f"@mixed_axis:{stem}",
+                            sorted(axis_names),
+                            properties,
+                        )
+                    )
+        for key, value in node.items():
+            rows.extend(_walk_schema_properties(value, pointer + (key,)))
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            rows.extend(_walk_schema_properties(value, pointer + (str(index),)))
+    return rows
+
+
+def classification_discipline_errors(
+    schema_documents: dict[str, Any],
+    executable_registries: dict[str, Any],
+    registry: dict[str, Any],
+) -> list[str]:
+    """Apply the four naming-axis hard criteria to parsed artifact contexts."""
+    errors: list[str] = []
+    external_rows = registry.get("external_type_fields")
+    class_rows = registry.get("closed_class_fields")
+    tier_rows = registry.get("ordered_tier_fields")
+    if not isinstance(external_rows, list):
+        return ["classification-field-registry.external_type_fields must be an array"]
+    if not isinstance(class_rows, list):
+        errors.append("classification-field-registry.closed_class_fields must be an array")
+        class_rows = []
+    if not isinstance(tier_rows, list):
+        errors.append("classification-field-registry.ordered_tier_fields must be an array")
+        tier_rows = []
+
+    external_schema_contexts: set[tuple[str, str]] = set()
+    for index, row in enumerate(external_rows):
+        ref = f"external_type_fields[{index}]"
+        if not isinstance(row, dict):
+            errors.append(f"{ref} must be an object")
+            continue
+        for required in (
+            "external_standard",
+            "external_field_path",
+            "round_trip_requirement",
+        ):
+            if not isinstance(row.get(required), str) or not row[required]:
+                errors.append(f"{ref}.{required} must be a non-empty string")
+        if row.get("dispatch_authority") != "external_standard":
+            errors.append(f"{ref}.dispatch_authority must be external_standard")
+        if row.get("arkret_extensions_allowed") is not False:
+            errors.append(f"{ref}.arkret_extensions_allowed must be false")
+        schema_ref = row.get("schema_ref")
+        pointer = row.get("json_pointer")
+        doc_ref = row.get("doc_ref")
+        if isinstance(schema_ref, str):
+            if not isinstance(pointer, str):
+                errors.append(f"{ref}.json_pointer is required for schema_ref")
+                continue
+            document = schema_documents.get(schema_ref)
+            if document is None:
+                errors.append(f"{ref}.schema_ref does not resolve: {schema_ref}")
+                continue
+            try:
+                resolve_json_pointer(document, pointer)
+            except KeyError:
+                errors.append(f"{ref}.json_pointer does not resolve: {schema_ref}#{pointer}")
+            external_schema_contexts.add((schema_ref, pointer))
+        elif isinstance(doc_ref, str):
+            for required in ("heading_anchor", "block_anchor", "json_pointer"):
+                if not isinstance(row.get(required), str) or not row[required]:
+                    errors.append(f"{ref}.{required} is required for doc_ref")
+        else:
+            errors.append(f"{ref} must declare schema_ref or doc_ref")
+
+    ordered_tiers: dict[str, dict[str, Any]] = {}
+    for index, row in enumerate(tier_rows):
+        if not isinstance(row, dict) or not isinstance(row.get("field"), str):
+            errors.append(f"ordered_tier_fields[{index}] must declare field")
+            continue
+        allowed = row.get("allowed_values")
+        order = row.get("strict_order")
+        if (
+            not isinstance(allowed, list)
+            or not allowed
+            or not isinstance(order, list)
+            or order != allowed
+            or len(set(order)) != len(order)
+            or not isinstance(row.get("comparison_semantics"), str)
+            or not row["comparison_semantics"]
+        ):
+            errors.append(
+                f"ordered_tier_fields[{index}] must declare one duplicate-free strict total order "
+                "and comparison_semantics"
+            )
+        ordered_tiers[row["field"]] = row
+
+    for schema_ref, document in schema_documents.items():
+        schema_path = ARTIFACTS / schema_ref
+        for pointer, field, field_schema, _ in _walk_schema_properties(document):
+            if field.startswith("@mixed_axis:"):
+                errors.append(
+                    f"{schema_ref}#{pointer} mixes classification axes for stem "
+                    f"{field.split(':', 1)[1]!r}: {field_schema}"
+                )
+                continue
+            axis = classification_axis(field)
+            if axis is None:
+                continue
+            _, axis_name = axis
+            if axis_name == "type" and (schema_ref, pointer) not in external_schema_contexts:
+                errors.append(
+                    f"{schema_ref}#{pointer} uses type axis without an exact external-standard entry"
+                )
+            elif axis_name == "class":
+                if closed_schema_values(schema_path, document, field_schema) is None:
+                    errors.append(
+                        f"{schema_ref}#{pointer} uses class axis without a finite closed value set"
+                    )
+            elif axis_name == "tier":
+                tier = ordered_tiers.get(field)
+                if tier is None:
+                    errors.append(
+                        f"{schema_ref}#{pointer} uses tier axis without strict-order metadata"
+                    )
+                else:
+                    values = closed_schema_values(schema_path, document, field_schema)
+                    if values is not None and values != set(tier["allowed_values"]):
+                        errors.append(
+                            f"{schema_ref}#{pointer} tier values do not match strict-order metadata"
+                        )
+
+    def walk_executable(value: Any, ref: str) -> None:
+        if isinstance(value, dict):
+            if value.get("kind") == "select":
+                selector = value.get("selector")
+                tail = selector.rsplit(".", 1)[-1] if isinstance(selector, str) else ""
+                if tail != "kind" and not tail.endswith(("_kind", "_kinds")):
+                    errors.append(
+                        f"{ref}.selector must end in kind/_kind/_kinds, got {selector!r}"
+                    )
+            if "type" in value:
+                errors.append(
+                    f"{ref}.type is an Arkret executable mini-schema/DSL field; use kind or value_shape"
+                )
+            for key, child in value.items():
+                walk_executable(child, f"{ref}/{key}")
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                walk_executable(child, f"{ref}/{index}")
+
+    for registry_ref, document in executable_registries.items():
+        walk_executable(document, registry_ref)
+    return errors
+
+
+def check_classification_discipline() -> list[str]:
+    registry = load_json(CLASSIFICATION_FIELD_REGISTRY_PATH)
+    schema_documents = {
+        f"schemas/{path.name}": load_json(path)
+        for path in sorted((ARTIFACTS / "schemas").glob("*.json"))
+    }
+    catalog = load_contract_registry()
+    executable = {
+        "registry/contract-registry.json#event_kind_registry": catalog.get(
+            "event_kind_registry", {}
+        )
+    }
+    errors = classification_discipline_errors(schema_documents, executable, registry)
+
+    # Four fail-closed negative probes keep each criterion executable rather
+    # than relying only on the current positive corpus.
+    probes = [
+        (
+            {"schemas/probe.schema.json": {"properties": {}}},
+            {"probe": {"kind": "select", "selector": "payload.share_class"}},
+            registry,
+            "selector must end",
+        ),
+        (
+            {
+                "schemas/probe.schema.json": {
+                    "properties": {"output_class": {"type": "string"}}
+                }
+            },
+            {},
+            registry,
+            "finite closed value set",
+        ),
+        (
+            {
+                "schemas/probe.schema.json": {
+                    "properties": {"policy_type": {"enum": ["a", "b"]}}
+                }
+            },
+            {},
+            registry,
+            "exact external-standard entry",
+        ),
+        (
+            {
+                "schemas/probe.schema.json": {
+                    "properties": {"priority_tier": {"enum": ["low", "high"]}}
+                }
+            },
+            {},
+            registry,
+            "strict-order metadata",
+        ),
+    ]
+    for probe_schemas, probe_executable, probe_registry, expected in probes:
+        probe_errors = classification_discipline_errors(
+            probe_schemas, probe_executable, probe_registry
+        )
+        if not any(expected in error for error in probe_errors):
+            errors.append(f"classification scanner negative probe did not reject {expected!r}")
+    return errors
 
 
 def _absolute_artifact_schema_ref(schema_path: Path, ref: str) -> tuple[Path, str, str]:
@@ -286,10 +608,10 @@ def schema_summary(schema_ref: str) -> dict[str, Any]:
 
 
 def operation_schema_index_payload(catalog: dict[str, Any]) -> dict[str, Any]:
-    version, generated_at = catalog_generation_metadata(catalog)
+    version, generated_at = registry_generation_metadata(catalog)
     operation_registry = catalog.get("operation_registry")
     if not isinstance(operation_registry, dict):
-        raise SystemExit("contract catalog missing operation_registry")
+        raise SystemExit("contract registry missing operation_registry")
 
     operations: list[dict[str, Any]] = []
     for row in operation_registry.get("operations", []):
@@ -316,7 +638,7 @@ def operation_schema_index_payload(catalog: dict[str, Any]) -> dict[str, Any]:
         "source_of_truth": False,
         "generated_at": generated_at,
         "generated_from": [
-            "registry/contract-catalog.json",
+            "registry/contract-registry.json",
             "schemas/*.schema.json"
         ],
         "generated_by": "tools/artifact_pipeline.py",
@@ -345,7 +667,7 @@ def profile_summary_text() -> str:
 
 
 def registry_diff_summary_text() -> str:
-    drifts = check_generated_registries()
+    drifts = check_derived_registry_views()
     if not drifts:
         return "registry diff: clean"
     return f"registry diff: {len(drifts)} generated artifact drift(s)"
@@ -357,8 +679,8 @@ def print_contract_status() -> None:
     print(registry_diff_summary_text())
 
 
-def write_generated_registries() -> None:
-    for path, payload in generated_registry_payloads(load_contract_catalog()).items():
+def write_derived_registry_views() -> None:
+    for path, payload in generated_registry_payloads(load_contract_registry()).items():
         path.write_text(dump_json(payload), encoding="utf-8", newline="\n")
         print(f"updated {path.relative_to(ROOT).as_posix()}")
 
@@ -366,7 +688,7 @@ def write_generated_registries() -> None:
 def write_operation_schema_index() -> None:
     OPERATION_SCHEMA_INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
     OPERATION_SCHEMA_INDEX_PATH.write_text(
-        dump_json(operation_schema_index_payload(load_contract_catalog())),
+        dump_json(operation_schema_index_payload(load_contract_registry())),
         encoding="utf-8",
         newline="\n",
     )
@@ -382,17 +704,17 @@ def write_reducer_profile_registry() -> None:
     print(f"updated {REDUCER_PROFILE_REGISTRY_PATH.relative_to(ROOT).as_posix()}")
 
 
-def write_public_catalog_snapshot() -> None:
-    canonical_bytes = CONTRACT_CATALOG_PATH.read_bytes()
+def write_public_registry_snapshot() -> None:
+    canonical_bytes = CONTRACT_REGISTRY_PATH.read_bytes()
     PUBLIC_V1.mkdir(parents=True, exist_ok=True)
-    for target in public_catalog_paths():
+    for target in public_registry_paths():
         target.write_bytes(canonical_bytes)
         print(f"updated {target.relative_to(ROOT).as_posix()}")
 
 
-def check_generated_registries() -> list[str]:
+def check_derived_registry_views() -> list[str]:
     errors: list[str] = []
-    for path, payload in generated_registry_payloads(load_contract_catalog()).items():
+    for path, payload in generated_registry_payloads(load_contract_registry()).items():
         expected = dump_json(payload)
         if not path.exists():
             errors.append(f"missing generated registry {path.relative_to(ROOT).as_posix()}")
@@ -407,7 +729,7 @@ def check_generated_registries() -> list[str]:
 
 def check_operation_schema_index() -> list[str]:
     errors: list[str] = []
-    expected = dump_json(operation_schema_index_payload(load_contract_catalog()))
+    expected = dump_json(operation_schema_index_payload(load_contract_registry()))
     if not OPERATION_SCHEMA_INDEX_PATH.exists():
         errors.append(
             f"missing operation schema index {OPERATION_SCHEMA_INDEX_PATH.relative_to(ROOT).as_posix()} "
@@ -459,7 +781,7 @@ def run_operation_completeness_report(mode: str) -> int:
 
 
 def cmd_generate(_: argparse.Namespace) -> int:
-    write_generated_registries()
+    write_derived_registry_views()
     write_operation_schema_index()
     write_reducer_profile_registry()
     completeness_status = run_operation_completeness_report("generate")
@@ -468,9 +790,10 @@ def cmd_generate(_: argparse.Namespace) -> int:
 
 
 def cmd_check(_: argparse.Namespace) -> int:
-    errors = check_generated_registries()
+    errors = check_derived_registry_views()
     errors.extend(check_operation_schema_index())
     errors.extend(check_reducer_profile_registry())
+    errors.extend(check_classification_discipline())
     if errors:
         for error in errors:
             print(error, file=sys.stderr)
@@ -487,7 +810,7 @@ def cmd_check(_: argparse.Namespace) -> int:
 
 
 def cmd_snapshot(_: argparse.Namespace) -> int:
-    write_public_catalog_snapshot()
+    write_public_registry_snapshot()
     return 0
 
 
@@ -497,7 +820,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     generate_parser = subparsers.add_parser(
         "generate",
-        help="regenerate derived registry views from contract-catalog.json",
+        help="regenerate derived registry views from contract-registry.json",
     )
     generate_parser.set_defaults(func=cmd_generate)
 

@@ -14,7 +14,7 @@
         "realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
         "delivery_binding_policy": {
-          "allow_binding_sources": [
+          "allowed_binding_sources": [
             "explicit"
           ],
           "allowed_recipient_services": [
@@ -45,7 +45,7 @@
           "delivery_status": "routable",
           "delivery_binding": {
             "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
-            "recipient_service_type": "principal_server",
+            "recipient_service_kind": "principal_server",
             "binding_scope": "realm",
             "binding_source": "explicit",
             "delivery_modes": [
@@ -78,10 +78,10 @@
         "realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
         "delivery_binding_policy": {
-          "allow_did_document_default": true
+          "did_document_default_allowed": true
         },
         "did_document_service": {
-          "service_type": "ArkretPrincipalServer",
+          "service_kind": "ArkretPrincipalServer",
           "recipient_service_id": "did:webvh:z6mkfixture:personal.alice.example",
           "canonical_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
         }
@@ -96,7 +96,7 @@
           "delivery_status": "routable",
           "delivery_binding": {
             "recipient_service_id": "did:webvh:z6mkfixture:personal.alice.example",
-            "recipient_service_type": "principal_server",
+            "recipient_service_kind": "principal_server",
             "binding_scope": "realm",
             "binding_source": "did_document_default",
             "delivery_modes": [
@@ -124,7 +124,7 @@
       "given_state": {
         "realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
         "delivery_binding_policy": {
-          "allow_unroutable_membership": true
+          "unroutable_membership_allowed": true
         }
       },
       "operation": "ak.self.events.command.submit",
@@ -191,7 +191,7 @@
       "given_state": {
         "realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
         "delivery_binding_policy": {
-          "allow_binding_sources": [
+          "allowed_binding_sources": [
             "organization_policy"
           ],
           "allowed_recipient_services": [
@@ -209,7 +209,7 @@
           "delivery_status": "routable",
           "delivery_binding": {
             "recipient_service_id": "did:webvh:z6mkfixture:untrusted.example",
-            "recipient_service_type": "principal_server",
+            "recipient_service_kind": "principal_server",
             "binding_scope": "realm",
             "binding_source": "explicit",
             "delivery_modes": [
@@ -232,7 +232,7 @@
           "given_state": {
             "realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
             "delivery_binding_policy": {
-              "allow_binding_sources": [
+              "allowed_binding_sources": [
                 "explicit"
               ],
               "allowed_recipient_services": [
@@ -260,7 +260,7 @@
               "delivery_status": "routable",
               "delivery_binding": {
                 "recipient_service_id": "did:webvh:z6mkfixture:principal.acme.example",
-                "recipient_service_type": "principal_server",
+                "recipient_service_kind": "principal_server",
                 "binding_scope": "realm",
                 "binding_source": "explicit",
                 "delivery_modes": [

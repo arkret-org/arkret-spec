@@ -113,7 +113,7 @@
       "instance": {
         "service_id": "did:webvh:z6mkfixture:alice.example.net",
         "trust_domain": "ak:trust_domain:did.webvh.alice.example",
-        "service_type": "principal_server",
+        "service_kind": "principal_server",
         "protocol_version": "1.0",
         "supported_profiles": [
           "ak.profile.principal_server.v1"
@@ -167,7 +167,7 @@
       "instance": {
         "service_id": "did:webvh:z6mkfixture:directory.example.net",
         "trust_domain": "ak:trust_domain:directory.example",
-        "service_type": "directory_service",
+        "service_kind": "directory_service",
         "protocol_version": "1.0",
         "supported_profiles": [
           "ak.profile.directory_service.v1"
@@ -193,7 +193,7 @@
         "experimental_features": [],
         "compat_surfaces": [],
         "development_mode": false,
-        "resource_types": [
+        "resource_kinds": [
           "realm",
           "organization",
           "actor",
@@ -210,7 +210,7 @@
           "ciphersuite": "ristretto255-SHA512",
           "public_key": "yAPizGsF_BUGRUm1kgZZykp3ssym8E9rNXAJM1R2rU4",
           "key_epoch": 14,
-          "batch_size": 4,
+          "batch_item_count": 4,
           "derived_prefix_bytes": 16,
           "proof_shape": "single_batched_dleq",
           "handoff_stubs_mode": "always",
@@ -264,7 +264,7 @@
       "instance": {
         "service_id": "did:webvh:z6mkfixture:alice.example.net",
         "trust_domain": "ak:trust_domain:did.webvh.alice.example",
-        "service_type": "principal_server",
+        "service_kind": "principal_server",
         "protocol_version": "1.0",
         "supported_profiles": [],
         "supported_operations": [
@@ -314,7 +314,7 @@
       "first_expected_error": "$: 'trust_domain' is a required property",
       "instance": {
         "service_id": "did:webvh:z6mkfixture:alice.example.net",
-        "service_type": "principal_server",
+        "service_kind": "principal_server",
         "protocol_version": "1.0",
         "supported_profiles": [],
         "supported_operations": [
@@ -377,7 +377,6 @@
         "encryption_profile": "mls_rfc9420",
         "notary_profile": "single_did",
         "notary": {
-          "type": "single_did",
           "did": "did:webvh:z6mkfixture:notary.acme.example",
           "recovery_members": [
             "did:webvh:z6mkfixture:recovery-notary.example"
@@ -385,7 +384,8 @@
           "controller_organization": "did:webvh:z6mkfixture:acme.example",
           "recovery_controller_organizations": [
             "did:webvh:z6mkfixture:recovery-org.example"
-          ]
+          ],
+          "kind": "single_did"
         },
         "created_at": "2026-04-26T00:00:00.000Z"
       }
@@ -410,7 +410,6 @@
         "encryption_profile": "mls_rfc9420",
         "notary_profile": "single_did",
         "notary": {
-          "type": "single_did",
           "did": "did:webvh:z6mkfixture:alice.example",
           "recovery_members": [
             "did:webvh:z6mkfixture:alice-recovery.example"
@@ -418,7 +417,8 @@
           "controller_organization": "did:webvh:z6mkfixture:alice-org.example",
           "recovery_controller_organizations": [
             "did:webvh:z6mkfixture:alice-recovery-org.example"
-          ]
+          ],
+          "kind": "single_did"
         },
         "fields": {
           "purpose": "principal_control"
@@ -448,7 +448,6 @@
         "encryption_profile": "none",
         "notary_profile": "single_did",
         "notary": {
-          "type": "single_did",
           "did": "did:webvh:z6mkfixture:alice.example",
           "recovery_members": [
             "did:webvh:z6mkfixture:alice-recovery.example"
@@ -456,7 +455,8 @@
           "controller_organization": "did:webvh:z6mkfixture:alice-org.example",
           "recovery_controller_organizations": [
             "did:webvh:z6mkfixture:alice-recovery-org.example"
-          ]
+          ],
+          "kind": "single_did"
         },
         "fields": {
           "purpose": "principal_control"
@@ -500,7 +500,7 @@
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "source": {
           "service_id": "did:webvh:z6mkfixture:server.example",
-          "service_type": "principal_server",
+          "service_kind": "principal_server",
           "source_ip_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "signed_transport": true
         },
@@ -526,7 +526,7 @@
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
         "source": {
           "service_id": "did:webvh:z6mkfixture:server.example",
-          "service_type": "principal_server",
+          "service_kind": "principal_server",
           "signed_transport": true
         }
       }
@@ -775,11 +775,11 @@
             "encryption_profile": "mls_rfc9420",
             "notary_profile": "single_did",
             "notary": {
-              "type": "single_did",
               "did": "did:webvh:z6mkfixture:alice.example",
               "recovery_members": [
                 "did:webvh:z6mkfixture:alice-recovery.example"
-              ]
+              ],
+              "kind": "single_did"
             },
             "fields": {
               "purpose": "principal_control"
@@ -902,11 +902,11 @@
             "encryption_profile": "mls_rfc9420",
             "notary_profile": "single_did",
             "notary": {
-              "type": "single_did",
               "did": "did:webvh:z6mkfixture:agent.example",
               "recovery_members": [
                 "did:webvh:z6mkfixture:alice.example"
-              ]
+              ],
+              "kind": "single_did"
             },
             "fields": {
               "purpose": "principal_control"
@@ -1033,11 +1033,11 @@
             "encryption_profile": "mls_rfc9420",
             "notary_profile": "single_did",
             "notary": {
-              "type": "single_did",
               "did": "did:webvh:z6mkfixture:alice.example",
               "recovery_members": [
                 "did:webvh:z6mkfixture:alice-recovery.example"
-              ]
+              ],
+              "kind": "single_did"
             },
             "fields": {
               "purpose": "principal_control"
@@ -1157,11 +1157,11 @@
             "encryption_profile": "mls_rfc9420",
             "notary_profile": "single_did",
             "notary": {
-              "type": "single_did",
               "did": "did:webvh:z6mkfixture:alice.example",
               "recovery_members": [
                 "did:webvh:z6mkfixture:alice-recovery.example"
-              ]
+              ],
+              "kind": "single_did"
             },
             "fields": {},
             "created_at": "2026-05-20T00:00:00.000Z"
@@ -1227,7 +1227,7 @@
             "kind": "realm",
             "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000"
           },
-          "stage": "close",
+          "session_state": "close",
           "occurred_at": "2026-06-04T00:00:00.000Z"
         },
         "proofs": [
@@ -1653,10 +1653,10 @@
     },
     {
       "name": "attestation_evidence_valid_realm_bound",
-      "schema_ref": "schemas/attestation-evidence.schema.json",
+      "schema_ref": "schemas/audit-release-attestation.schema.json",
       "expect_valid": true,
       "instance": {
-        "evidence_id": "ak:attestation:019a6aa0-0000-7000-8000-000000000000",
+        "attestation_id": "ak:attestation:019a6aa0-0000-7000-8000-000000000000",
         "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
         "audit_service_actor_id": "did:webvh:z6mkfixture:audit.example",
         "service_id": "did:webvh:z6mkfixture:audit.example",
@@ -1702,11 +1702,11 @@
     },
     {
       "name": "attestation_evidence_non_sha256_policy_hash_rejected",
-      "schema_ref": "schemas/attestation-evidence.schema.json",
+      "schema_ref": "schemas/audit-release-attestation.schema.json",
       "expect_valid": false,
       "first_expected_error": "$.audit_policy_version_digest: 'blake3:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' does not match '^sha256:[0-9a-f]{64}$'",
       "instance": {
-        "evidence_id": "ak:attestation:019a6aa0-0000-7000-8000-000000000000",
+        "attestation_id": "ak:attestation:019a6aa0-0000-7000-8000-000000000000",
         "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
         "audit_service_actor_id": "did:webvh:z6mkfixture:audit.example",
         "service_id": "did:webvh:z6mkfixture:audit.example",
@@ -1859,7 +1859,7 @@
         "expires_at": "2026-05-20T00:00:30.000Z",
         "payload": {
           "call_id": "ak:call:019a7360-0000-7000-8000-000000000001",
-          "signal_type": "invite",
+          "signal_kind": "invite",
           "seq": 1
         }
       }
@@ -2133,7 +2133,6 @@
       "schema_ref": "schemas/recovery-session.schema.json#/$defs/principal_signing_transcript",
       "expect_valid": true,
       "instance": {
-        "type": "ak.identity.recovery_proof.v1",
         "kind": "principal_signing",
         "principal_id": "did:webvh:z6mkfixture:alice.example",
         "requesting_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000099",
@@ -2145,7 +2144,8 @@
         "model_generation_ref": 1,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "created_at": "2026-05-30T00:00:00.000Z",
-        "expires_at": "2026-05-30T00:15:00.000Z"
+        "expires_at": "2026-05-30T00:15:00.000Z",
+        "schema": "ak.identity.recovery_proof.v1"
       }
     },
     {
@@ -2172,7 +2172,7 @@
         },
         "backup_classes_unlocked": [
           {
-            "backup_class": "did_recovery",
+            "backup_kind": "did_recovery",
             "backup_id": "ak:backup:019a6aa0-0000-7000-8000-0000000000dd",
             "series_id": "ak:backup_series:019a6aa0-0000-7000-8000-0000000000ee",
             "ciphertext_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -2358,11 +2358,11 @@
           ]
         },
         "webhook_auth": {
-          "type": "http_message_signature",
           "key_ref": "did:webvh:z6mkfixture:applet.example#webhook-1",
           "accepted_algs": [
             "EdDSA"
-          ]
+          ],
+          "kind": "http_message_signature"
         },
         "receive_events": true,
         "receive_ephemeral": false,
@@ -2431,11 +2431,11 @@
           ]
         },
         "webhook_auth": {
-          "type": "http_message_signature",
           "key_ref": "did:webvh:z6mkfixture:applet.example#webhook-1",
           "accepted_algs": [
             "EdDSA"
-          ]
+          ],
+          "kind": "http_message_signature"
         },
         "receive_events": true,
         "receive_ephemeral": false,
@@ -2497,11 +2497,11 @@
           ]
         },
         "webhook_auth": {
-          "type": "http_message_signature",
           "key_ref": "did:webvh:z6mkfixture:applet.example#webhook-1",
           "accepted_algs": [
             "RS256"
-          ]
+          ],
+          "kind": "http_message_signature"
         },
         "receive_events": true,
         "receive_ephemeral": false,
@@ -2603,11 +2603,11 @@
           ]
         },
         "webhook_auth": {
-          "type": "http_message_signature",
           "key_ref": "did:webvh:z6mkfixture:applet.example#webhook-1",
           "accepted_algs": [
             "EdDSA"
-          ]
+          ],
+          "kind": "http_message_signature"
         },
         "receive_events": true,
         "receive_ephemeral": false,

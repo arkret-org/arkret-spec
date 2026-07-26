@@ -22,7 +22,7 @@
         "backup_id": "ak:backup:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "backup_class": "secret_storage",
+        "backup_kind": "secret_storage",
         "backup_version": "kb_1",
         "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 0,
@@ -53,10 +53,10 @@
             "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-            "backup_class": "secret_storage",
+            "backup_kind": "secret_storage",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00.000Z",
-            "item_types": [
+            "item_kinds": [
               "self_signing_key",
               "user_signing_key"
             ]
@@ -64,11 +64,11 @@
         },
         "contents": [
           {
-            "item_type": "self_signing_key",
+            "item_kind": "self_signing_key",
             "secret_id": "self_signing_key"
           },
           {
-            "item_type": "user_signing_key",
+            "item_kind": "user_signing_key",
             "secret_id": "user_signing_key"
           }
         ],
@@ -83,7 +83,7 @@
           "signed_fields": [
             "backup_id",
             "actor_id",
-            "backup_class",
+            "backup_kind",
             "backup_version",
             "series_id",
             "series_seq",
@@ -104,7 +104,7 @@
         "backup_id": "ak:backup:01964138-0000-7000-8000-000000000010",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "backup_class": "mls_history",
+        "backup_kind": "mls_history",
         "backup_version": "kb_1",
         "series_id": "ak:backup_series:01964138-1000-7000-8000-000000000010",
         "series_seq": 0,
@@ -129,17 +129,17 @@
             "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-            "backup_class": "mls_history",
+            "backup_kind": "mls_history",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00.000Z",
-            "item_types": [
+            "item_kinds": [
               "mls_group_state"
             ]
           }
         },
         "contents": [
           {
-            "item_type": "mls_group_state",
+            "item_kind": "mls_group_state",
             "secret_id": "example_mls_snapshot"
           }
         ],
@@ -154,7 +154,7 @@
           "signed_fields": [
             "backup_id",
             "actor_id",
-            "backup_class",
+            "backup_kind",
             "backup_version",
             "series_id",
             "series_seq",
@@ -177,7 +177,7 @@
         "backup_id": "ak:backup:01964138-0000-7000-8000-000000000011",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "backup_class": "mls_history",
+        "backup_kind": "mls_history",
         "backup_version": "kb_1",
         "series_id": "ak:backup_series:01964138-1000-7000-8000-000000000011",
         "series_seq": 0,
@@ -211,17 +211,17 @@
             "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-            "backup_class": "mls_history",
+            "backup_kind": "mls_history",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00.000Z",
-            "item_types": [
+            "item_kinds": [
               "mls_group_state"
             ]
           }
         },
         "contents": [
           {
-            "item_type": "mls_group_state",
+            "item_kind": "mls_group_state",
             "secret_id": "example_mls_snapshot"
           }
         ],
@@ -236,7 +236,7 @@
           "signed_fields": [
             "backup_id",
             "actor_id",
-            "backup_class",
+            "backup_kind",
             "backup_version",
             "series_id",
             "series_seq",
@@ -259,7 +259,7 @@
         "backup_id": "ak:backup:01964138-0000-7000-8000-000000000012",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "backup_class": "mls_history",
+        "backup_kind": "mls_history",
         "backup_version": "kb_1",
         "series_id": "ak:backup_series:01964138-1000-7000-8000-000000000012",
         "series_seq": 0,
@@ -283,17 +283,17 @@
             "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-            "backup_class": "mls_history",
+            "backup_kind": "mls_history",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00.000Z",
-            "item_types": [
+            "item_kinds": [
               "mls_group_state"
             ]
           }
         },
         "contents": [
           {
-            "item_type": "mls_group_state",
+            "item_kind": "mls_group_state",
             "secret_id": "example_mls_snapshot"
           }
         ],
@@ -308,7 +308,7 @@
           "signed_fields": [
             "backup_id",
             "actor_id",
-            "backup_class",
+            "backup_kind",
             "backup_version",
             "series_id",
             "series_seq",
@@ -329,7 +329,7 @@
         "backup_id": "ak:backup:01964138-0000-7000-8000-000000000013",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "backup_class": "mls_history",
+        "backup_kind": "mls_history",
         "backup_version": "kb_1",
         "series_id": "ak:backup_series:01964138-1000-7000-8000-000000000013",
         "series_seq": 0,
@@ -354,17 +354,17 @@
             "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-            "backup_class": "mls_history",
+            "backup_kind": "mls_history",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00.000Z",
-            "item_types": [
+            "item_kinds": [
               "mls_group_state"
             ]
           }
         },
         "contents": [
           {
-            "item_type": "mls_group_state",
+            "item_kind": "mls_group_state",
             "secret_id": "example_mls_snapshot"
           }
         ],
@@ -379,7 +379,7 @@
           "signed_fields": [
             "backup_id",
             "actor_id",
-            "backup_class",
+            "backup_kind",
             "backup_version",
             "series_id",
             "series_seq",
@@ -402,7 +402,7 @@
         "backup_id": "ak:backup:01964138-0000-7000-8000-000000000014",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "backup_class": "mls_history",
+        "backup_kind": "mls_history",
         "backup_version": "kb_1",
         "series_id": "ak:backup_series:01964138-1000-7000-8000-000000000014",
         "series_seq": 0,
@@ -426,17 +426,17 @@
             "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-            "backup_class": "mls_history",
+            "backup_kind": "mls_history",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00.000Z",
-            "item_types": [
+            "item_kinds": [
               "mls_group_state"
             ]
           }
         },
         "contents": [
           {
-            "item_type": "mls_group_state",
+            "item_kind": "mls_group_state",
             "secret_id": "example_mls_snapshot"
           }
         ],
@@ -451,7 +451,7 @@
           "signed_fields": [
             "backup_id",
             "actor_id",
-            "backup_class",
+            "backup_kind",
             "backup_version",
             "series_id",
             "series_seq",
@@ -473,7 +473,7 @@
         "backup_id": "ak:backup:01964138-0000-7000-8000-000000000015",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "backup_class": "did_recovery",
+        "backup_kind": "did_recovery",
         "backup_version": "kb_1",
         "series_id": "ak:backup_series:01964138-1000-7000-8000-000000000015",
         "series_seq": 0,
@@ -507,17 +507,17 @@
             "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-            "backup_class": "did_recovery",
+            "backup_kind": "did_recovery",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00.000Z",
-            "item_types": [
+            "item_kinds": [
               "recovery_key_share"
             ]
           }
         },
         "contents": [
           {
-            "item_type": "recovery_key_share",
+            "item_kind": "recovery_key_share",
             "secret_id": "example_did_recovery_share"
           }
         ],
@@ -532,7 +532,7 @@
           "signed_fields": [
             "backup_id",
             "actor_id",
-            "backup_class",
+            "backup_kind",
             "backup_version",
             "series_id",
             "series_seq",
@@ -553,7 +553,7 @@
         "backup_id": "ak:backup:01964137-1000-7000-8000-000000000001",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "backup_class": "secret_storage",
+        "backup_kind": "secret_storage",
         "backup_version": "kb_2",
         "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 1,
@@ -590,10 +590,10 @@
             "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-            "backup_class": "secret_storage",
+            "backup_kind": "secret_storage",
             "backup_version": "kb_2",
             "created_at": "2026-04-27T00:00:00.000Z",
-            "item_types": [
+            "item_kinds": [
               "self_signing_key",
               "user_signing_key"
             ]
@@ -601,11 +601,11 @@
         },
         "contents": [
           {
-            "item_type": "self_signing_key",
+            "item_kind": "self_signing_key",
             "secret_id": "self_signing_key"
           },
           {
-            "item_type": "user_signing_key",
+            "item_kind": "user_signing_key",
             "secret_id": "user_signing_key"
           }
         ],
@@ -620,7 +620,7 @@
           "signed_fields": [
             "backup_id",
             "actor_id",
-            "backup_class",
+            "backup_kind",
             "backup_version",
             "series_id",
             "series_seq",
@@ -645,7 +645,7 @@
         "backup_id": "ak:backup:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "backup_class": "secret_storage",
+        "backup_kind": "secret_storage",
         "backup_version": "kb_1",
         "series_seq": 0,
         "created_at": "2026-04-26T00:00:00.000Z",
@@ -673,17 +673,17 @@
             "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-            "backup_class": "secret_storage",
+            "backup_kind": "secret_storage",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00.000Z",
-            "item_types": [
+            "item_kinds": [
               "self_signing_key"
             ]
           }
         },
         "contents": [
           {
-            "item_type": "self_signing_key",
+            "item_kind": "self_signing_key",
             "secret_id": "self_signing_key"
           }
         ],
@@ -698,7 +698,7 @@
           "signed_fields": [
             "backup_id",
             "actor_id",
-            "backup_class",
+            "backup_kind",
             "backup_version",
             "series_id",
             "series_seq",
@@ -719,7 +719,7 @@
         "backup_id": "ak:backup:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "backup_class": "secret_storage",
+        "backup_kind": "secret_storage",
         "backup_version": "kb_1",
         "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "supersedes": null,
@@ -748,17 +748,17 @@
             "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-            "backup_class": "secret_storage",
+            "backup_kind": "secret_storage",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00.000Z",
-            "item_types": [
+            "item_kinds": [
               "self_signing_key"
             ]
           }
         },
         "contents": [
           {
-            "item_type": "self_signing_key",
+            "item_kind": "self_signing_key",
             "secret_id": "self_signing_key"
           }
         ],
@@ -773,7 +773,7 @@
           "signed_fields": [
             "backup_id",
             "actor_id",
-            "backup_class",
+            "backup_kind",
             "backup_version",
             "series_id",
             "series_seq",
@@ -795,7 +795,7 @@
         "backup_id": "ak:backup:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "backup_class": "secret_storage",
+        "backup_kind": "secret_storage",
         "backup_version": "kb_1",
         "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 0,
@@ -823,17 +823,17 @@
             "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-            "backup_class": "secret_storage",
+            "backup_kind": "secret_storage",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00.000Z",
-            "item_types": [
+            "item_kinds": [
               "self_signing_key"
             ]
           }
         },
         "contents": [
           {
-            "item_type": "self_signing_key",
+            "item_kind": "self_signing_key",
             "secret_id": "self_signing_key"
           }
         ],
@@ -848,7 +848,7 @@
           "signed_fields": [
             "backup_id",
             "actor_id",
-            "backup_class",
+            "backup_kind",
             "backup_version",
             "series_id",
             "series_seq",
@@ -869,7 +869,7 @@
         "backup_id": "ak:backup:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "backup_class": "secret_storage",
+        "backup_kind": "secret_storage",
         "backup_version": "kb_1",
         "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 0,
@@ -898,17 +898,17 @@
             "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-            "backup_class": "secret_storage",
+            "backup_kind": "secret_storage",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00.000Z",
-            "item_types": [
+            "item_kinds": [
               "self_signing_key"
             ]
           }
         },
         "contents": [
           {
-            "item_type": "self_signing_key",
+            "item_kind": "self_signing_key",
             "secret_id": "self_signing_key"
           }
         ],
@@ -923,7 +923,7 @@
           "signed_fields": [
             "backup_id",
             "actor_id",
-            "backup_class",
+            "backup_kind",
             "backup_version",
             "series_id",
             "series_seq",
@@ -944,7 +944,7 @@
         "backup_id": "ak:backup:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "backup_class": "secret_storage",
+        "backup_kind": "secret_storage",
         "backup_version": "kb_1",
         "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 0,
@@ -972,17 +972,17 @@
             "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-            "backup_class": "secret_storage",
+            "backup_kind": "secret_storage",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00.000Z",
-            "item_types": [
+            "item_kinds": [
               "self_signing_key"
             ]
           }
         },
         "contents": [
           {
-            "item_type": "self_signing_key",
+            "item_kind": "self_signing_key",
             "secret_id": "self_signing_key"
           }
         ],
@@ -997,7 +997,7 @@
           "signed_fields": [
             "backup_id",
             "actor_id",
-            "backup_class",
+            "backup_kind",
             "backup_version",
             "series_id",
             "series_seq",
@@ -1018,7 +1018,7 @@
         "backup_id": "ak:backup:01964137-1000-7000-8000-000000000001",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "backup_class": "secret_storage",
+        "backup_kind": "secret_storage",
         "backup_version": "kb_2",
         "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 1,
@@ -1048,17 +1048,17 @@
             "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-            "backup_class": "secret_storage",
+            "backup_kind": "secret_storage",
             "backup_version": "kb_2",
             "created_at": "2026-04-27T00:00:00.000Z",
-            "item_types": [
+            "item_kinds": [
               "self_signing_key"
             ]
           }
         },
         "contents": [
           {
-            "item_type": "self_signing_key",
+            "item_kind": "self_signing_key",
             "secret_id": "self_signing_key"
           }
         ],
@@ -1073,7 +1073,7 @@
           "signed_fields": [
             "backup_id",
             "actor_id",
-            "backup_class",
+            "backup_kind",
             "backup_version",
             "series_id",
             "series_seq",
@@ -1095,7 +1095,7 @@
         "backup_id": "ak:backup:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "backup_class": "secret_storage",
+        "backup_kind": "secret_storage",
         "mixed_secret_storage": true,
         "backup_version": "kb_mixed",
         "series_id": "ak:backup_series:01964137-2000-7000-8000-000000000000",
@@ -1125,10 +1125,10 @@
             "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-            "backup_class": "secret_storage",
+            "backup_kind": "secret_storage",
             "backup_version": "kb_mixed",
             "created_at": "2026-04-26T00:00:00.000Z",
-            "item_types": [
+            "item_kinds": [
               "self_signing_key",
               "mls_group_secrets_backup_key"
             ]
@@ -1136,11 +1136,11 @@
         },
         "contents": [
           {
-            "item_type": "self_signing_key",
+            "item_kind": "self_signing_key",
             "secret_id": "self_signing_key"
           },
           {
-            "item_type": "mls_group_secrets_backup_key",
+            "item_kind": "mls_group_secrets_backup_key",
             "secret_id": "mls_group_secrets_backup_key"
           }
         ],
@@ -1155,7 +1155,7 @@
           "signed_fields": [
             "backup_id",
             "actor_id",
-            "backup_class",
+            "backup_kind",
             "backup_version",
             "series_id",
             "series_seq",
@@ -1190,7 +1190,7 @@
               "holder": "did:webvh:z6mkfixture:bob.example",
               "transport": "hpke_x25519",
               "share_commitment": {
-                "algorithm": "feldman-vss-sha256",
+                "algorithm": "feldman_vss_sha256",
                 "commitment_b64u": "commitment1"
               }
             },
@@ -1199,7 +1199,7 @@
               "holder": "did:webvh:z6mkfixture:carol.example",
               "transport": "hpke_x25519",
               "share_commitment": {
-                "algorithm": "feldman-vss-sha256",
+                "algorithm": "feldman_vss_sha256",
                 "commitment_b64u": "commitment2"
               }
             }
@@ -1427,7 +1427,6 @@
       "schema_ref": "schemas/recovery-session.schema.json#/$defs/principal_signing_transcript",
       "expect_valid": true,
       "instance": {
-        "type": "ak.identity.recovery_proof.v1",
         "kind": "principal_signing",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "requesting_device_id": "ak:device:01964139-0000-7000-8000-000000000000",
@@ -1439,7 +1438,8 @@
         "model_generation_ref": 2,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "created_at": "2026-04-27T00:00:00.000Z",
-        "expires_at": "2026-04-27T00:15:00.000Z"
+        "expires_at": "2026-04-27T00:15:00.000Z",
+        "schema": "ak.identity.recovery_proof.v1"
       }
     },
     {
@@ -1463,7 +1463,7 @@
         "proof_summary": {
           "kind": "threshold_recovery",
           "proof_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
-          "quorum_size": 2,
+          "quorum_participant_count": 2,
           "share_ids": [
             "s1",
             "s2"
@@ -1471,7 +1471,7 @@
         },
         "backup_classes_unlocked": [
           {
-            "backup_class": "secret_storage",
+            "backup_kind": "secret_storage",
             "backup_id": "ak:backup:01964137-1000-7000-8000-000000000001",
             "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
             "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
@@ -1531,7 +1531,7 @@
         "proof_summary": {
           "kind": "threshold_recovery",
           "proof_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
-          "quorum_size": 2,
+          "quorum_participant_count": 2,
           "share_ids": [
             "s1",
             "s2"
@@ -1539,7 +1539,7 @@
         },
         "backup_classes_unlocked": [
           {
-            "backup_class": "secret_storage",
+            "backup_kind": "secret_storage",
             "backup_id": "ak:backup:01964137-1000-7000-8000-000000000001",
             "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
           }
@@ -1584,7 +1584,7 @@
         "backup_id": "ak:backup:01964143-0000-7000-8000-000000000001",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-        "backup_class": "mls_history",
+        "backup_kind": "mls_history",
         "backup_version": "kb_1",
         "series_id": "ak:backup_series:01964143-1000-7000-8000-000000000001",
         "series_seq": 0,
@@ -1614,10 +1614,10 @@
             "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-            "backup_class": "mls_history",
+            "backup_kind": "mls_history",
             "backup_version": "kb_1",
             "created_at": "2026-07-13T00:00:00.000Z",
-            "item_types": [
+            "item_kinds": [
               "mls_group_state"
             ],
             "managed_principal_bindings": [
@@ -1639,7 +1639,7 @@
         },
         "contents": [
           {
-            "item_type": "mls_group_state",
+            "item_kind": "mls_group_state",
             "realm_id": "ak:realm:01964144-0000-7000-8000-000000000001",
             "managed_principal_binding": {
               "managed_principal_id": "did:webvh:QmAgent7p8K3pV4cXbKqL2nMsR9:agent.example",
@@ -1668,7 +1668,7 @@
           "signed_fields": [
             "backup_id",
             "actor_id",
-            "backup_class",
+            "backup_kind",
             "backup_version",
             "series_id",
             "series_seq",
@@ -1690,12 +1690,12 @@
       "instance": {
         "schema": "ak.schema.key_backup_plaintext.v1",
         "backup_id": "ak:backup:01964143-0000-7000-8000-000000000001",
-        "backup_class": "mls_history",
+        "backup_kind": "mls_history",
         "series_id": "ak:backup_series:01964143-1000-7000-8000-000000000001",
         "series_seq": 0,
         "items": [
           {
-            "item_type": "mls_group_state",
+            "item_kind": "mls_group_state",
             "secret_id": "managed_agent_pcr_state",
             "secret_b64u": "c2VjcmV0",
             "secret_generation": 1,
@@ -1724,7 +1724,7 @@
       "instance": {
         "schema": "ak.schema.key_backup_active_series.v1",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "backup_class": "secret_storage",
+        "backup_kind": "secret_storage",
         "active_series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_pointer_version": 1,
         "previous_series_ids": [
@@ -1742,7 +1742,7 @@
           "signed_fields": [
             "schema",
             "actor_id",
-            "backup_class",
+            "backup_kind",
             "active_series_id",
             "series_pointer_version",
             "previous_series_ids",
@@ -1763,7 +1763,7 @@
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "requesting_device_id": "ak:device:01964139-0000-7000-8000-000000000000",
         "backup_id": "ak:backup:01964137-1000-7000-8000-000000000001",
-        "backup_class": "secret_storage",
+        "backup_kind": "secret_storage",
         "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
         "proof_kind": "threshold_recovery",
@@ -1779,7 +1779,7 @@
             "principal_id",
             "requesting_device_id",
             "backup_id",
-            "backup_class",
+            "backup_kind",
             "series_id",
             "ciphertext_digest",
             "proof_kind",
@@ -1796,12 +1796,12 @@
       "instance": {
         "schema": "ak.schema.key_backup_plaintext.v1",
         "backup_id": "ak:backup:01964137-1000-7000-8000-000000000001",
-        "backup_class": "secret_storage",
+        "backup_kind": "secret_storage",
         "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 1,
         "items": [
           {
-            "item_type": "self_signing_key",
+            "item_kind": "self_signing_key",
             "secret_id": "self_signing_key",
             "secret_b64u": "c2VjcmV0",
             "secret_generation": 2

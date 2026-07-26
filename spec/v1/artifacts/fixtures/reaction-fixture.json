@@ -229,7 +229,7 @@
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000020",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
             "encrypted_payload": {
-              "scheme": "mls-rfc9420",
+              "scheme": "mls_rfc9420",
               "version": "1.0",
               "group_id": "Zm9vYmFy",
               "epoch": 7,
@@ -258,7 +258,7 @@
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000020",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
             "encrypted_payload": {
-              "scheme": "mls-rfc9420",
+              "scheme": "mls_rfc9420",
               "version": "1.0",
               "group_id": "Zm9vYmFy",
               "epoch": 7,
@@ -314,7 +314,7 @@
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000020",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
             "encrypted_payload": {
-              "scheme": "mls-rfc9420",
+              "scheme": "mls_rfc9420",
               "version": "1.0",
               "group_id": "Zm9vYmFy",
               "epoch": 7,
@@ -342,7 +342,7 @@
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000020",
             "key": "sha256:222222222222222222222222222222222222222222222222222222222222222b",
             "encrypted_payload": {
-              "scheme": "mls-rfc9420",
+              "scheme": "mls_rfc9420",
               "version": "1.0",
               "group_id": "Zm9vYmFy",
               "epoch": 8,
@@ -418,7 +418,7 @@
         "rejected_event_ids": [
           "ak:event:01964185-2400-7000-8000-000000000001"
         ],
-        "rejection_code": "capability_denied",
+        "rejection_reason_code": "capability_denied",
         "summary": [
           {
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000000",

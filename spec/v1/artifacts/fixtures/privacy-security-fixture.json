@@ -78,7 +78,7 @@
           "error.code",
           "request_id"
         ],
-        "same_timing_class": "privacy_not_found",
+        "timing_equivalence_group": "privacy_not_found",
         "must_not_include": [
           "realm_id",
           "title",
@@ -124,7 +124,7 @@
           "error.code",
           "request_id"
         ],
-        "same_timing_class": "directory_hidden_not_found",
+        "timing_equivalence_group": "directory_hidden_not_found",
         "must_not_include": [
           "subject",
           "issuer",
@@ -173,7 +173,7 @@
           "error.code",
           "request_id"
         ],
-        "same_timing_class": "directory_hidden_not_found",
+        "timing_equivalence_group": "directory_hidden_not_found",
         "must_not_include": [
           "agent_id",
           "controller_subject",
@@ -196,7 +196,7 @@
           "ciphersuite": "ristretto255-SHA512",
           "public_key": "yAPizGsF_BUGRUm1kgZZykp3ssym8E9rNXAJM1R2rU4",
           "key_epoch": 14,
-          "batch_size": 4,
+          "batch_item_count": 4,
           "derived_prefix_bytes": 16,
           "proof_shape": "single_batched_dleq",
           "handoff_stubs_mode": "always",
@@ -244,7 +244,7 @@
         }
       },
       "expected": {
-        "wire_batch_cardinality_equals_advertised_batch_size": 4,
+        "wire_batch_cardinality_equals_advertised_batch_item_count": 4,
         "wire_batch_cardinality_does_not_equal_real_identifier_count": true,
         "evaluated_elements_same_length_and_order_as_blinded_elements": true,
         "derived_prefixes_and_hit_bitmap_same_length_and_order": true,
@@ -269,7 +269,7 @@
           "ciphersuite": "ristretto255-SHA512",
           "public_key": "yAPizGsF_BUGRUm1kgZZykp3ssym8E9rNXAJM1R2rU4",
           "key_epoch": 14,
-          "batch_size": 4,
+          "batch_item_count": 4,
           "derived_prefix_bytes": 16,
           "proof_shape": "single_batched_dleq",
           "handoff_stubs_mode": "always",
@@ -400,12 +400,12 @@
       "input": {
         "service_id": "did:webvh:z6mkfixture:search.example",
         "event_kind": "ak.message.create",
-        "content_class": "private_plaintext",
+        "plaintext_data_class": "private_plaintext",
         "realm_policy": {
           "plaintext_visible_services": [
             {
               "service_id": "did:webvh:z6mkfixture:principal.example",
-              "service_type": "principal_server",
+              "service_kind": "principal_server",
               "data_classes": [
                 "message_content"
               ],
@@ -448,7 +448,7 @@
           "Accept-Ranges",
           "Digest"
         ],
-        "range_request_same_error_class": true
+        "range_request_same_error_contract": true
       }
     },
     {
@@ -593,7 +593,7 @@
             "operation_id": "ak.open.mimi.command.notify",
             "payload": {
               "room_id": "mimi-room-7d9e",
-              "notification_type": "message",
+              "notification_kind": "message",
               "target": "opaque-bridge-target",
               "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
             }

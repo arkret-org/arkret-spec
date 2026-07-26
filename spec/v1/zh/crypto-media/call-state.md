@@ -38,7 +38,7 @@ sidebar:
 
 ```json
 {
-  "morph_type": "call",
+  "morph_kind": "call",
   "realm_id": "ak:realm:...",
   "title": "Design review",
   "fields": {
@@ -116,7 +116,7 @@ sidebar:
 
 ### 4.1 字段语义（normative）
 
-**Cell 归属（normative）**：`ak.call.state` 的各个正交轴分别写入**各自独立、各自单 lattice 的 cell**，登记在 canonical [`contract-catalog.json`](../../artifacts/registry/contract-catalog.json) 的 `ak.call.state` `cell_writes[]` 中。一个 cell family 只有一个 `lattice` 与一个 cell 级 `bottom`（[`../authz/event-auth-state-resolution.md` §9 / §9.1.1](../authz/event-auth-state-resolution.md)），因此 v1 **不存在**"同一 cell 内 per-field 判定"或"per-field bottom"的语义：
+**Cell 归属（normative）**：`ak.call.state` 的各个正交轴分别写入**各自独立、各自单 lattice 的 cell**，登记在 canonical [`contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `ak.call.state` `cell_writes[]` 中。一个 cell family 只有一个 `lattice` 与一个 cell 级 `bottom`（[`../authz/event-auth-state-resolution.md` §9 / §9.1.1](../authz/event-auth-state-resolution.md)），因此 v1 **不存在**"同一 cell 内 per-field 判定"或"per-field bottom"的语义：
 
 | 承载字段 | cell family | cell_subject | lattice | bottom |
 | --- | --- | --- | --- | --- |
@@ -272,12 +272,12 @@ sidebar:
 
 1. **触发条件**:任一参与设备观察到当前 active 参与者(已 accepted answer 的 leg)将达到 3 人时,MUST 发起升级，不得继续以 P2P / full-mesh 承载 3 人以上(`mesh` 仅 SHOULD 用于 3–4 人且不作为默认，见 §2)。
 2. **focus 协商**:升级 MUST 复用 [`media-service-binding.md` §5](./media-service-binding.md) 的 deterministic, no-vote focus 选举——由 oldest_membership 的 `foci_preferred[0]` 选出 `session_focus` 并写入首个携带 `focus={mode:"sfu",session_focus}` 的 `ak.call.state`。升级**不**引入新的投票或 leader 选举路径。
-3. **加入信令**:各设备通过 `ak.call.signal{signal_type=focus_join}`(见 [`webrtc-signaling.md` §5](./webrtc-signaling.md))向选定 focus 迁移媒体；原 P2P leg 在所有参与者完成 `focus_join` 后 MUST 优雅拆除，迁移期间不得丢媒体(参照 §4.2 credential refresh 的"保留旧 allocation 直到迁移完成"原则)。
+3. **加入信令**:各设备通过 `ak.call.signal{signal_kind=focus_join}`(见 [`webrtc-signaling.md` §5](./webrtc-signaling.md))向选定 focus 迁移媒体；原 P2P leg 在所有参与者完成 `focus_join` 后 MUST 优雅拆除，迁移期间不得丢媒体(参照 §4.2 credential refresh 的"保留旧 allocation 直到迁移完成"原则)。
 4. **`mode` 写入**:升级落定后，下一条 `ak.call.state` 的 `focus.mode` MUST 写 `sfu`,且一旦 `session_focus` committed 即不可在本生命周期内回退到 `p2p`(回退 P2P 需新 call)。
 5. **单调性**:`session_focus` 一经 committed 即 write-once——由 `ak.component.call.focus.v1` 的 CAS precondition 强制，改写 MUST 以 `session_focus_already_committed` 失败(见 §4.1);升级到 SFU 后人数回落到 2 人 MUST NOT 自动降级回 P2P。
 6. **升级失败 / 迁移中断（normative）**:升级编排可能在三处失败——focus 不可达(选举出的 `session_focus` 无法建立媒体)、某设备 `focus_join` 中途失败、原 P2P leg 已拆除但 SFU leg 未建成的部分迁移态。处置规则:
    - **focus 不可达且无可选 focus**:发起方 MUST 保留旧 P2P/mesh leg(尚未拆除时)继续承载已有媒体，并 SHOULD 在新的 accepted basis 上以下一候选 focus 重试 [`media-service-binding.md` §5.1](./media-service-binding.md) 的选举(基于剩余 `foci_preferred`)；候选耗尽后，通话整体 MUST 提交 `state_transition={from:"active",to:"failed"}`(`reason_code="call_state_transition_invalid"` 不适用——这是终态推进，按 §4.2 `active → failed` 合法转换)，不得停留在"已拆 P2P 又无 SFU"的不可解释悬挂态。
-   - **单设备 `focus_join` 失败**:不影响其它已迁移设备；该设备 SHOULD 重试 `focus_join`，持续失败则按本地策略以 `ak.call.signal{signal_type=leave}` 退出本通话，通话 `state` 不因单设备迁移失败而回退。
+   - **单设备 `focus_join` 失败**:不影响其它已迁移设备；该设备 SHOULD 重试 `focus_join`，持续失败则按本地策略以 `ak.call.signal{signal_kind=leave}` 退出本通话，通话 `state` 不因单设备迁移失败而回退。
    - **迁移期间不得丢媒体**:在所有参与者完成 `focus_join` **之前**,原 leg MUST NOT 被拆除(§6 第 3 条);若实现因故已提前拆除且 SFU 未建成,MUST 视为升级失败并按上面第一条处置(重试 focus 或转 `failed`),MUST NOT 静默丢弃通话状态。
    - `session_focus` 一旦 committed 即 write-once:升级失败重试只能在 `session_focus` 尚未 committed 时切换候选 focus;已 committed 后 focus 不可达只能转 `failed` 并由用户新建通话(§6 第 4 条回退 P2P 需新 call 同理)。
 

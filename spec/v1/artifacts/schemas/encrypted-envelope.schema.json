@@ -33,8 +33,8 @@
   "properties": {
     "scheme": {
       "enum": [
-        "mls-rfc9420",
-        "mls-exporter-aead-v1"
+        "mls_rfc9420",
+        "mls_exporter_aead_v1"
       ]
     },
     "version": {
@@ -167,7 +167,7 @@
       "if": {
         "properties": {
           "scheme": {
-            "const": "mls-rfc9420"
+            "const": "mls_rfc9420"
           }
         },
         "required": [
@@ -190,7 +190,7 @@
       "if": {
         "properties": {
           "scheme": {
-            "const": "mls-exporter-aead-v1"
+            "const": "mls_exporter_aead_v1"
           }
         },
         "required": [

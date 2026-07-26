@@ -733,10 +733,10 @@ DID 暂时无法解析时按 [`identity/identity-handles.md` §3.8.2](../identit
 
 #### 9.4.2 普通 mention 的通知派生
 
-普通 mention 是面向单个主体的定向引用。Notification dispatcher 在从 Message 派生 `notification_type=mention` 时 MUST 使用下列规则：
+普通 mention 是面向单个主体的定向引用。Notification dispatcher 在从 Message 派生 `notification_kind=mention` 时 MUST 使用下列规则：
 
 - 目标 actor MUST 等于结构化 mention 节点的 `subject_id`，并且在 source event 的 causal frontier 下拥有该 Message 所在 effective scope 的读取权；否则不得产生通知，也不得把目标对象内容或 preview 泄露给该 actor。
-- 同一 Message / revision 中重复出现同一 `subject_id` MUST 去重；同一 `(actor_id, source_event_id, notification_type=mention)` 最多产生一个 notification projection。
+- 同一 Message / revision 中重复出现同一 `subject_id` MUST 去重；同一 `(actor_id, source_event_id, notification_kind=mention)` 最多产生一个 notification projection。
 - 默认情况下，发送者自己的 direct mention 不产生通知；用户可通过 actor-private push rule 显式 opt-in，但该 opt-in 不改变 shared history 或他人投影。
 - `level=muted`、个人 blocklist、DND 与更高优先级 `dont_notify` push rule MUST 覆盖 direct mention。
 - `ak.message.create` 可以产生 mention notification。`ak.message.revise` 只有在实现能证明某个 target 相比前一条 accepted visible revision 是**新增** mention 时，才 MAY 为该 revise event 派生新的 mention notification；无法证明差异时 MUST NOT 通知，避免通过反复编辑制造重复提醒。
@@ -889,9 +889,9 @@ v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective sc
 
 - Capability：`ak.reaction.add` / `ak.reaction.remove`（均 low risk_tier，admin 默认 bundle 给成员）。capability 撤销后，因果上位于 revoke frontier 之后的 add MUST 在 reducer 改状态前被拒（`capability_denied`）；revoke frontier 之前已接受的 reaction 保留在 OR-Set（见 fixture `capability_revoked_blocks_subsequent_add`）。
 - **Self-scoped**：actor 的 add/remove 只影响**它自己**的 OR-Set 成员；`ak.reaction.remove` 按 `(actor_id, target_ref, key)` 仅 tombstone 该 actor 自己的 add。v1 **不**定义"移除他人 reaction"的标准 action；清除他人滥用表态走 §9.8.5 的治理路径。
-- **限流**：Server MAY 对 `ak.reaction.add` 按 actor 限流；reducer MUST 把被限流事件归为 `rate_limited` / `quota_exceeded` / `quarantine` 之一，绝不可"接受后静默丢弃"（见 fixture `rate_limit_high_rate_reaction_burst`）。频率约束通过 `quota`(`subtype=rate`) constraint 表达。
+- **限流**：Server MAY 对 `ak.reaction.add` 按 actor 限流；reducer MUST 把被限流事件归为 `rate_limited` / `quota_exceeded` / `quarantine` 之一，绝不可"接受后静默丢弃"（见 fixture `rate_limit_high_rate_reaction_burst`）。频率约束通过 `quota`(`constraint_subkind=rate`) constraint 表达。
 - **允许的 key 集合**：非 E2EE Realm MAY 通过 profile 把允许的 `key` 限定为注册 emoji 集合 / 短 tag 白名单；未命中白名单的 add 按 profile 声明 `deny` / `quarantine` 处理。E2EE Realm 下 server 看不到真实 emoji，key 集合策略只能在客户端 / 解密后 enforce。
-- **每 target / 每 actor 的去重 key 上限**：Realm/profile MAY 通过 `quota`(`subtype=resource`) 约束单 target 的 distinct key 数与单 actor 的 distinct key 数，防止表态轰炸。
+- **每 target / 每 actor 的去重 key 上限**：Realm/profile MAY 通过 `quota`(`constraint_subkind=resource`) 约束单 target 的 distinct key 数与单 actor 的 distinct key 数，防止表态轰炸。
 
 #### 9.8.5 与 redaction / moderation 的关系
 
@@ -916,4 +916,4 @@ Reaction 不是 mention。`ak.reaction.add` / `ak.reaction.remove` 仅对 effect
 - Stage 事件 / capability 注册：`artifacts/registry/event-kind-registry.json`、`artifacts/registry/capability-action-registry.json`。
 - Stage 字段 forbidden-wire 规则：`artifacts/registry/forbidden-wire-fields.json`。
 - Reaction payload / 收敛向量：`artifacts/schemas/event-payload.schema.json#/$defs/reaction_payload`、`artifacts/fixtures/reaction-fixture.json`；E2EE 可见性见 [`../crypto-media/encryption-and-audit.md` §2.9](../crypto-media/encryption-and-audit.md)。
-- 编辑窗口 / 撤回窗口约束：[`../authz/constraint-schema.md` §14.2](../authz/constraint-schema.md)（`message_edit_window` / `message_redact_window` / `allow_redact_after_window`）。
+- 编辑窗口 / 撤回窗口约束：[`../authz/constraint-schema.md` §14.2](../authz/constraint-schema.md)（`message_edit_window` / `message_redact_window` / `redact_after_window_allowed`）。

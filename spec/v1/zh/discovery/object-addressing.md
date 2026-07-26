@@ -125,7 +125,7 @@ v1 定义三种 link 类型：
 - `lt=<reference|invite|preview>`，省略等价 `reference`。解析方遇到其它值时 MUST 按最严格的 `reference` 语义处理（不授予任何权限）。
 - `tok=<opaque-token>`，**当且仅当** `lt ∈ {invite, preview}` 出现；直接映射到 `ak.find.directory.query.resolve_target` 的 `token` 输入。
 - token 的内部类别（`invite_token` 风格 vs `signed_link` 风格）由签名 payload 自身表达，**不**靠 URL 参数名区分。
-- token 存在时，**权威 link_type 取自 token 签名 payload**；URL `lt` 仅是解析前的展示 hint，**MUST NOT** 用于放大权限，与 token 内声明矛盾时以 token 为准。
+- token 存在时，**权威 address_link_kind 取自 token 签名 payload**；URL `lt` 仅是解析前的展示 hint，**MUST NOT** 用于放大权限，与 token 内声明矛盾时以 token 为准。
 
 ### 4.2 Token 必须绑定 canonical target（normative）
 
@@ -133,23 +133,23 @@ v1 定义三种 link 类型：
 
 token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段。
 
-**Target descriptor canonical shape（确定性）**：`target_descriptor` 是**恰好**如下字段的对象；缺省的层级字段 **MUST 整键省略**（不得写 `null`——避免 JCS 因 `null` vs 省略产生不同 digest）：
+**Target descriptor canonical shape（确定性）**：`target_descriptor` 由 [`object-addressing.schema.json#/$defs/address_link_target_descriptor`](../../artifacts/schemas/object-addressing.schema.json) 定义，是**恰好**如下字段的对象；签名 token 公共 claims 使用同一 schema 的 `$defs/signed_address_link_token_claims`。缺省的层级字段 **MUST 整键省略**（不得写 `null`——避免 JCS 因 `null` vs 省略产生不同 digest）：
 
 ```json
 {
   "realm_id": "ak:realm:<uuid>",
   "strand_id": "ak:strand:<uuid>",
   "message_id": "ak:message:<uuid>",
-  "link_type": "invite"
+  "address_link_kind": "invite"
 }
 ```
 
-字段出现规则：`realm_id` 与 `link_type` 必含；`link_type` MUST 是 token 签名 payload 声明的 effective type（`invite` 或 `preview`）；`strand_id` 仅 strand / message 目标出现；`message_id` 仅 message 目标出现。
+字段出现规则：`realm_id` 与 `address_link_kind` 必含；`address_link_kind` MUST 是 token 签名 payload 声明的 effective type（`invite` 或 `preview`）；`strand_id` 仅 strand / message 目标出现；`message_id` 仅 message 目标出现。
 
 `target_digest = "sha256:" || hex(sha256(JCS(target_descriptor)))`，其中 `JCS` 是 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JSON Canonicalization Scheme。
 
 - `realm_id` / `strand_id` / `message_id` 字段值 MUST 使用 typed canonical ID（`ak:realm:<uuid>` 等），不得使用 path 中的裸 UUID 或 alias 原文；`realm_id` 必须是 alias 规范化（§3.1）后的 canonical Realm ID。
-- **`target_digest` 只覆盖身份元组（`realm` / `strand` / `m`）与 `link_type`**，**MUST NOT** 纳入 `action` / `tok` / `lt` 或任何其它 query hint。后果是确定的：路由提示刷新或 UI action 改变**不**使 token 失效；而换一个 Strand / Message、或把 `preview` token 当 `invite` token 使用，必然换 digest、token 不可挪用。白名单外字段 MUST NOT 进 digest——与 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) `claim_digest` 同纪律。
+- **`target_digest` 只覆盖身份元组（`realm` / `strand` / `m`）与 `address_link_kind`**，**MUST NOT** 纳入 `action` / `tok` / `lt` 或任何其它 query hint。后果是确定的：路由提示刷新或 UI action 改变**不**使 token 失效；而换一个 Strand / Message、或把 `preview` token 当 `invite` token 使用，必然换 digest、token 不可挪用。白名单外字段 MUST NOT 进 digest——与 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) `claim_digest` 同纪律。
 - 生命周期字段 `aud` / `exp` / `nonce` 在 token payload 内，但**不属于** target descriptor（它们是 token 自身有效性边界，不是被寻址对象的身份）。
 - 签发端与 `resolve_target` 端 MUST 用同一 shape 与省略规则，否则 digest 不可比对。
 
@@ -157,7 +157,7 @@ token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段�
 
 `invite` token 的签发 / 过期 / 吊销复用 [`governance/join-policy.md`](../governance/join-policy.md) 既有 `invite_token` / `signed_link` 生命周期，本文**不另发明** revocation 机制。`resolve_target` 在 §4.2 target descriptor 校验通过后，仍 MUST 走 join-policy 的 token 有效性 / 吊销检查。
 
-`preview` token 使用同一 target descriptor discipline，但生命周期由 `ak.realm.preview_policy` 约束。签名 payload MUST 至少包含 `aud`、`exp`、`nonce`、`target_digest`、`link_type="preview"`、`preview_policy_digest`，并 SHOULD 包含允许的 preview mode / max events 摘要。解析方 MUST 校验 `preview_policy_digest` 指向当前 effective preview policy，或指向 effective policy **显式枚举**的、仍接受的 previous digest；否则返回统一 `not_found`。
+`preview` token 使用同一 target descriptor discipline，但生命周期由 `ak.realm.preview_policy` 约束。签名 payload MUST 至少包含 `aud`、`exp`、`nonce`、`target_digest`、`address_link_kind="preview"`、`preview_policy_digest`，并 SHOULD 包含允许的 preview mode / max events 摘要。解析方 MUST 校验 `preview_policy_digest` 指向当前 effective preview policy，或指向 effective policy **显式枚举**的、仍接受的 previous digest；否则返回统一 `not_found`。
 
 **`preview_policy_digest` allowlist 边界（normative）**：为避免 "still-valid previous" 含义不清形成 policy downgrade 窗口（旧、已收紧前的 preview policy 被无限期接受），其边界 MUST 由 policy 自身显式声明，不得由解析方自行推断版本数 / 时间窗口：
 
@@ -197,7 +197,7 @@ HTTPS 落地链接中，`strand` / `m` / 尤其 `tok` **MUST** 放在 URL **frag
 
 - 响应 **MUST** 含 [`discovery-directory.md` §9.1](./discovery-directory.md) 全部通用字段，按该节定义直接继承——本节不重述或弱化各字段的强度。其中 `as_of`、`source_refs`、`policy_revision` 在所有 search / resolve 结果上均为 **MUST**（与 [`discovery-directory.md` §7.3](./discovery-directory.md) 不变量 3 一致）；`stale` / `divergent` 为可选诊断标记。realm target 在调用方有权得到 join 路由时 MUST 同时返回 `join_candidates[]`。
 - invite / restricted / secret 资源对未授权请求使用与不存在不可区分的统一 `not_found`（复用 `resolve_realm` 的 blinding）。
-- 携带 `token` 时，`resolve_target` MUST 按 §4.2 校验 token 的 target descriptor 与 `address` 解析出的 canonical 身份 `{realm_id, strand_id?, message_id?}` + 生效 link_type **逐级一致**（等价：重算 `target_digest` 比对），再按 §4.3 走 invite 或 preview 的有效性 / 吊销检查；任一不一致返回统一 `not_found`，不得只校验 token 自身有效性。
+- 携带 `token` 时，`resolve_target` MUST 按 §4.2 校验 token 的 target descriptor 与 `address` 解析出的 canonical 身份 `{realm_id, strand_id?, message_id?}` + 生效 address_link_kind **逐级一致**（等价：重算 `target_digest` 比对），再按 §4.3 走 invite 或 preview 的有效性 / 吊销检查；任一不一致返回统一 `not_found`，不得只校验 token 自身有效性。
 - `preview` token 校验通过时，响应 MUST 只包含 effective `ak.realm.preview_policy` 允许的 `realm_preview` / `object_preview` / stripped `history_preview` 字段。除非 caller 另行满足 join routing disclosure gate，响应 MUST 省略 `join_candidates[]`。
 - alias 解析失败、alias 与 token 绑定的 `realm_id` 不一致、或无法取得 canonical `realm_id` 时，均返回统一 `not_found`。
 
@@ -210,4 +210,4 @@ HTTPS 落地链接中，`strand` / `m` / 尤其 `tok` **MUST** 放在 URL **frag
 - Invite token / signed_link 生命周期：[`governance/join-policy.md`](../governance/join-policy.md)。
 - Digest 纪律（JCS + 字段白名单）：[`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md)。
 - 逻辑 ID grammar：[`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)。
-- Operation 注册 / HTTP binding：[`artifacts/registry/contract-catalog.json`](../../artifacts/registry/contract-catalog.json)、[`sync/service-http-binding.md` §2.3](../sync/service-http-binding.md)。
+- Operation 注册 / HTTP binding：[`artifacts/registry/contract-registry.json`](../../artifacts/registry/contract-registry.json)、[`sync/service-http-binding.md` §2.3](../sync/service-http-binding.md)。

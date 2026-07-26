@@ -72,7 +72,7 @@ Arkret 是去中心化协议，不同用户或组织各自运行受控 Principal
 }
 ```
 
-其中 DID Document 的 `service.type` 使用协议注册名（如 `ArkretPrincipalServer`），服务 describe 响应中的 `service_type` 使用运行时注册值（如 `principal_server`）。联邦鉴权 MUST 校验两者的绑定关系，不得只凭域名或 URL 接受请求。
+其中 DID Document 的 `service.type` 使用协议注册名（如 `ArkretPrincipalServer`），服务 describe 响应中的 `service_kind` 使用运行时注册值（如 `principal_server`）。联邦鉴权 MUST 校验两者的绑定关系，不得只凭域名或 URL 接受请求。
 
 ### 3.2 请求签名
 
@@ -233,7 +233,7 @@ Signature: sig1=:base64...:
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
 | `service_binding_ref.delivery_binding_frontier` | body | `id[]` | required | 发送方解析投递目标时所依据的 member delivery binding 因果前沿。接收方 MUST 校验该前沿在自己的 Realm 视图中可达，且对应到当前 effective `delivery_binding.recipient_service_id = Destination-Service-ID`。前沿落后于当前接收方 binding（接收方已收到 rebind handover frontier `F` 而 sender 仍按旧 binding 投递）时，接收方 MUST 返回 `delivery_binding_stale` 并在响应中带回 `new_recipient_service_id` 与 `handover_frontier`，sender 切到新目标后重试。 |
 | `service_binding_ref.delivery_binding_diagnostics` | body | `object` | optional | 纯诊断字段。可携带 `basis: ["member_delivery_binding"\|"realm_sync_endpoint"]` 等本次投递的来源标签，便于排查；不得替代接收方独立校验。 |
-| `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
+| `service_binding_ref.destination_service_kind` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
 | `service_binding_ref.reducer_profile_digest` | body | `sha256:<hash>` | required | 发送方在此 Realm 使用的 reducer profile 内容寻址摘要。计算规则见下文；输入对象是从 [`reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json) 对应 `profile_id` 的声明及本地 reducer 契约内容独立重建的 `resolved_digest_input`。接收方 MUST 独立重建并比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免同一 Event 因 registry、schema、fixture 或 lattice/reducer 规范内容不同而在两端产生不同 cell 状态、state_root 或 covered_seals。 |
 
 #### `reducer_profile_digest` 计算规则（normative）
@@ -274,7 +274,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
     "delivery_binding_diagnostics": {
       "basis": ["member_delivery_binding"]
     },
-    "destination_service_type": "principal_server",
+    "destination_service_kind": "principal_server",
     "reducer_profile_digest": "sha256:9f816e28a928952624e0a6dd50021b212593f05fd94ed502929beb836d57c046"
   },
   "events": [
@@ -410,7 +410,7 @@ Rebind handover：
 - `delivery_binding_stale` 重试是有界重定向，不是无限 fanout：sender 对同一 `(event_id, target_principal_id, handover_frontier)` 最多重试一次到 `new_recipient_service_id`；再次收到 stale / handed_over 时 MUST 停止投递并进入 backoff / operator diagnostic，避免跨服务循环。
 - 旧 `recipient_service_id` MUST 在 `handover_grace_seconds`（默认 86400）内继续接受迟到的 `prec(F)` 与 ∥F（与 F 并发）event，超出 grace 后旧服务 MUST 返回 `delivery_binding_handed_over`；接受集合全分类与 `handover_grace_seconds` 的语义以 [`governance/member-delivery-binding.md` §6](../governance/member-delivery-binding.md) 为准。
 
-`delivery_binding_stale` 响应体（normative 字段表，canonical schema [`delivery-binding-stale.schema.json`](../../artifacts/schemas/delivery-binding-stale.schema.json)，schema id `ak.schema.delivery_binding_stale.v1`，已登记于 `contract-catalog`）：符合规范的实现 MUST 按该 canonical schema 与下表产出 / 校验响应结构。下表与 §4.1 散文、canonical schema 之间若有歧义，以更严格者为准。
+`delivery_binding_stale` 响应体（normative 字段表，canonical schema [`delivery-binding-stale.schema.json`](../../artifacts/schemas/delivery-binding-stale.schema.json)，schema id `ak.schema.delivery_binding_stale.v1`，已登记于 `contract-registry`）：符合规范的实现 MUST 按该 canonical schema 与下表产出 / 校验响应结构。下表与 §4.1 散文、canonical schema 之间若有歧义，以更严格者为准。
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
@@ -694,14 +694,14 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ak.realm.join
       "did": "did:webvh:z4YZEfM4SYVUdnZbosrGu69JK:server-alpha.com",
       "endpoint": "https://server-alpha.com",
       "role": "primary",
-      "service_type": "principal_server",
+      "service_kind": "principal_server",
       "plaintext_visible": true
     },
     {
       "did": "did:webvh:z2z1rvs6FuSuJWQcRMn6p8K3m:server-beta.com",
       "endpoint": "https://server-beta.com",
       "role": "mirror",
-      "service_type": "principal_server",
+      "service_kind": "principal_server",
       "plaintext_visible": false
     }
   ]

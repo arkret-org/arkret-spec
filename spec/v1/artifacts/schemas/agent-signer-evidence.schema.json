@@ -370,8 +370,8 @@
       "required": [
         "profile",
         "log_id",
-        "tree_size",
-        "root_hash",
+        "leaf_count",
+        "tree_root",
         "inclusion_proof",
         "consistency_proof",
         "witness_signatures"
@@ -384,11 +384,11 @@
           "type": "string",
           "minLength": 1
         },
-        "tree_size": {
+        "leaf_count": {
           "type": "integer",
           "minimum": 1
         },
-        "root_hash": {
+        "tree_root": {
           "$ref": "#/$defs/hash"
         },
         "inclusion_proof": {

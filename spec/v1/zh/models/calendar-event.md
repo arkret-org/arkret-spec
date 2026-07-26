@@ -66,6 +66,6 @@ RSVP projection 按 accountable actor 对 `(event_ref, occurrence)` 使用 `mv_r
 
 ## 6. Schedule notification
 
-仅当实现同时声明 `ak.profile.calendar_event.v1` 与 notification 派生能力时，Calendar schedule 变更才通过 `ak.strand.update` 修改 §2 字段，并额外把 `metadata.fields.start` / `end` / `timezone` / `all_day` / `recurrence` / `location` / `call_id` / `attendees` 视为 schedule-relevant；这组 calendar 字段不属于 core notification。实现 MUST 按 [`private-objects.md` §3.6](./private-objects.md#36-schedule-notification-派生) 生成 `notification_type=schedule`，并把当前 `attendees[].actor_id` 加入 receiver 候选集合；最终只通知有访问权且未被 muted / DND / push rule 抑制的 receiver。同一 patch 同时改变多项时只产生一条 notification。
+仅当实现同时声明 `ak.profile.calendar_event.v1` 与 notification 派生能力时，Calendar schedule 变更才通过 `ak.strand.update` 修改 §2 字段，并额外把 `metadata.fields.start` / `end` / `timezone` / `all_day` / `recurrence` / `location` / `call_id` / `attendees` 视为 schedule-relevant；这组 calendar 字段不属于 core notification。实现 MUST 按 [`private-objects.md` §3.6](./private-objects.md#36-schedule-notification-派生) 生成 `notification_kind=schedule`，并把当前 `attendees[].actor_id` 加入 receiver 候选集合；最终只通知有访问权且未被 muted / DND / push rule 抑制的 receiver。同一 patch 同时改变多项时只产生一条 notification。
 
 Calendar attendees 是 schedule notification 的 receiver set 输入，不是访问权真源；无 Realm / Circle 读取权的 attendee MUST 不收到 notification 或 push wakeup。RSVP 变更默认不产生 schedule notification；RSVP 自身的 UI 状态由 RSVP projection 展示。

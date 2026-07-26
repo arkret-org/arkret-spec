@@ -50,7 +50,7 @@ updated: 2026-07-02
   "sent_at": "2026-04-26T10:00:00Z",
   "expires_at": "2026-04-26T10:00:30Z",
   "payload": {
-    "receipt_type": "read",
+    "receipt_kind": "read",
     "schema": "ak.schema.read_receipt.v1",
     "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
@@ -259,7 +259,7 @@ Receipt 可以公开或私有，取决于 Realm policy。schema：`ak.schema.rea
 
 ```json
 {
-  "receipt_type": "read",
+  "receipt_kind": "read",
   "schema": "ak.schema.read_receipt.v1",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
@@ -287,14 +287,14 @@ Notification 是派生 projection，不是 canonical truth。schema：`ak.schema
   "source_ref": "ak:message:0196434c-c000-7000-8000-000000000000",
   "strand_id": "ak:strand:01964200-0000-7000-8000-000000000001",
   "track_name": "discussion",
-  "notification_type": "mention",
+  "notification_kind": "mention",
   "priority": "normal",
   "state": "unread",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
 
-`notification_type` 是封闭枚举，其权威取值集合以 [`notification.schema.json`](../../artifacts/schemas/notification.schema.json) 为准:`message` / `mention` / `reply` / `assignment` / `schedule` / `invite` / `reaction` / `policy` / `call` / `applet` / `agent` / `moderation` / `system`(共 13 值);取未列值的 notification MUST 视为非法。
+`notification_kind` 是封闭枚举，其权威取值集合以 [`notification.schema.json`](../../artifacts/schemas/notification.schema.json) 为准:`message` / `mention` / `reply` / `assignment` / `schedule` / `invite` / `reaction` / `policy` / `call` / `applet` / `agent` / `moderation` / `system`(共 13 值);取未列值的 notification MUST 视为非法。
 
 notification / read scope 的 track 字段统一为 `track_name`，`track` 在 schema 层被拒绝（notification.schema.json 顶层 `not.required:["track"]`）。
 

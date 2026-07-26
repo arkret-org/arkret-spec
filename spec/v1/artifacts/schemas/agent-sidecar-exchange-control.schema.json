@@ -48,7 +48,7 @@
       },
       "uniqueItems": true
     },
-    "failure_code": {
+    "failure_reason_code": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,63}$",
       "description": "Required only for action=fail. close/cancel derive empty-response failure codes controller_closed_empty/controller_cancelled."
@@ -110,13 +110,13 @@
       },
       "then": {
         "required": [
-          "failure_code"
+          "failure_reason_code"
         ]
       },
       "else": {
         "not": {
           "required": [
-            "failure_code"
+            "failure_reason_code"
           ]
         }
       }

@@ -15,7 +15,7 @@ sidebar:
 ## 1. 推荐接入顺序
 
 1. 读取根目录 [`artifacts/registry/schema-registry.json`](../../artifacts/registry/schema-registry.json)、[`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 与 [`operation-registry.json`](../../artifacts/registry/operation-registry.json)。
-   若需要判断 canonical source、surface tier 和 generated view 的关系，先读 [`artifacts/registry/contract-catalog.json`](../../artifacts/registry/contract-catalog.json)。
+   若需要判断 canonical source、surface tier 和 generated view 的关系，先读 [`artifacts/registry/contract-registry.json`](../../artifacts/registry/contract-registry.json)。
 2. 用 `artifacts/schemas/` 的 JSON Schema 做结构校验。
 3. 用 [`artifacts/openapi/arkret-service-api.openapi.yaml`](../../artifacts/openapi/arkret-service-api.openapi.yaml) 生成服务 stub、client 或 contract tests。
 4. 用 `artifacts/fixtures/` 运行一致性向量。

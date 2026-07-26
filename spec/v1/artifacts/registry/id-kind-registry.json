@@ -2,7 +2,7 @@
   "version": "2026-07-20",
   "source_of_truth": false,
   "generated_at": "2026-07-20T00:00:00Z",
-  "generated_from": "registry/contract-catalog.json",
+  "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
   "storage_rules": [
@@ -67,7 +67,7 @@
       "wire_form": "ak:cell:ak.component.<facet-path>.v<n>:<subject>",
       "status": "active",
       "storage_recommendation": "Store canonical tuple fields separately when indexing cell state.",
-      "description": "Canonical protocol cell identifier. The complete ak.component.<facet-path>.v<n> family identifier is embedded unchanged after ak:cell:. When the catalog declares cell_subject: null for a family, the canonical subject segment is the literal ASCII string 'null' (ak:cell:<component>:null); the cell is located by the Event envelope realm_id and implementations MUST NOT encode realm_id, Realm role classification, or any payload-derived value into that segment. See spec/v1/zh/conformance/encoding.md section 4."
+      "description": "Canonical protocol cell identifier. The complete ak.component.<facet-path>.v<n> family identifier is embedded unchanged after ak:cell:. When the registry declares cell_subject: null for a family, the canonical subject segment is the literal ASCII string 'null' (ak:cell:<component>:null); the cell is located by the Event envelope realm_id and implementations MUST NOT encode realm_id, Realm role classification, or any payload-derived value into that segment. See spec/v1/zh/conformance/encoding.md section 4."
     },
     {
       "kind": "trust_domain",
@@ -142,7 +142,7 @@
       "category": "identity",
       "status": "active",
       "wire_form": "ak:backup_series:<uuid>",
-      "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_class). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ak.schema.key_backup.v1.series_id and recovery strands to detect rollback. See identity/key-management.md §7.6."
+      "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_kind). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ak.schema.key_backup.v1.series_id and recovery strands to detect rollback. See identity/key-management.md §7.6."
     },
     {
       "kind": "batch",

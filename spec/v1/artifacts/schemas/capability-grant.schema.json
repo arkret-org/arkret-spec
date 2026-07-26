@@ -42,14 +42,14 @@
           "type": "object",
           "required": [
             "kind",
-            "requires_claims"
+            "required_claims"
           ],
           "properties": {
             "kind": {
               "const": "condition"
             },
-            "requires_claims": {
-              "$ref": "./grant-constraint.schema.json#/properties/requires_claims"
+            "required_claims": {
+              "$ref": "./grant-constraint.schema.json#/properties/required_claims"
             }
           },
           "additionalProperties": true
@@ -83,7 +83,7 @@
         "$ref": "./grant-constraint.schema.json"
       },
       "maxItems": 64,
-      "description": "Constraints applied to this grant. Delegation control MUST be expressed via constraint_type='delegation_control' and max_delegation_depth (see capabilities.md §10). Top-level delegable is forbidden and MUST be rejected as schema_violation. With no delegation_control constraint the grant is not delegable (equivalent to max_delegation_depth=0)."
+      "description": "Constraints applied to this grant. Delegation control MUST be expressed via constraint_kind='delegation_control' and max_delegation_depth (see capabilities.md §10). Top-level delegable is forbidden and MUST be rejected as schema_violation. With no delegation_control constraint the grant is not delegable (equivalent to max_delegation_depth=0)."
     },
     "parent_grant_id": {
       "type": "string",

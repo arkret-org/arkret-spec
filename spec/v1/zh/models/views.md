@@ -70,7 +70,7 @@ View 查询 SHOULD 优先使用标准对象类型：
 - `message`
 - `morph`
 
-Board Space / List Space 作为容器由 `space.kind` 与 `contains` relation 表达。只有开放对象才主要依赖 `morph_type`。
+Board Space / List Space 作为容器由 `space.kind` 与 `contains` relation 表达。只有开放对象才主要依赖 `morph_kind`。
 
 ### 2.5 权限必须逐对象、按 effective scope 与 action scope 裁剪
 
@@ -140,8 +140,8 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `item_object_types` | conditional | `array<string>` | 可由 `item_facets` 替代；至少 1 项。 | 按对象类型过滤可投影为 item/card/row/message 的对象。 |
-| `item_facets` | conditional | `array<FacetName>` | 可替代 `item_object_types`；至少 1 项。 | 按声明 hint 选择 item，例如 `rankable`、`reviewable`、`replyable`。 |
+| `item_object_kinds` | conditional | `array<string>` | 可由 `item_facets` 替代；至少 1 项。 | 按对象类型过滤可投影为 item/card/row/message 的对象。 |
+| `item_facets` | conditional | `array<FacetName>` | 可替代 `item_object_kinds`；至少 1 项。 | 按声明 hint 选择 item，例如 `rankable`、`reviewable`、`replyable`。 |
 | `item_render` | no | `enum(card, row, tile, compact, badge, message)` | 仅为共享 presentation hint；缺省时 renderer 按终端形态与可用能力推导，不改变投影结果。看板式展示 SHOULD 为 `card`。 | 建议展示面。 |
 | `item_order_by` | yes | `array<SortSpec>` | 至少 1 项。 | item 稳定排序；拖拽类 collection SHOULD 使用 rank。 |
 | `display_fields` | no | `array<DisplayColumn>` | dot path。 | 展示字段与格式。 |
@@ -181,7 +181,7 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
   "title": "Release Strand",
   "visibility": "shared",
   "query": {
-    "object_types": ["strand"],
+    "object_kinds": ["strand"],
     "filters": [
       { "field": "fields.archived", "op": "neq", "value": true }
     ],
@@ -193,7 +193,7 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
     }
   },
   "collection": {
-    "item_object_types": ["strand"],
+    "item_object_kinds": ["strand"],
     "item_render": "card",
     "item_order_by": [
       { "field": "rank", "direction": "asc" }
@@ -236,7 +236,7 @@ View 应通过结构化 query 表达对象范围。
 
 ```json
 {
-  "object_types": ["strand", "morph"],
+  "object_kinds": ["strand", "morph"],
   "facets": ["reviewable"],
   "filters": [
     { "field": "metadata.fields.status", "op": "in", "value": ["todo", "in_progress"] }
@@ -257,7 +257,7 @@ View 应通过结构化 query 表达对象范围。
 
 ```json
 {
-    "object_types": ["strand"],
+    "object_kinds": ["strand"],
     "filters": [
     { "field": "metadata.fields.status", "op": "in", "value": ["todo", "in_progress"] },
     { "field": "state", "op": "eq", "value": "active" }
@@ -275,7 +275,7 @@ View 应通过结构化 query 表达对象范围。
 
 ```json
 {
-  "object_types": ["message"],
+  "object_kinds": ["message"],
   "filters": [
     { "field": "state", "op": "eq", "value": "active" },
     { "field": "strand_id", "op": "eq", "value": "ak:strand:01964200-0000-7000-8000-000000000000" },

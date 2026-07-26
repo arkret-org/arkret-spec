@@ -1580,19 +1580,19 @@
     },
     {
       "operation_id": "ak.self.account_data.resource.get",
-      "http_alias": "GET /_arkret/self/account_data/{data_type}",
+      "http_alias": "GET /_arkret/self/account_data/{account_data_key}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
       "operation_id": "ak.self.account_data.resource.replace",
-      "http_alias": "PUT /_arkret/self/account_data/{data_type}",
+      "http_alias": "PUT /_arkret/self/account_data/{account_data_key}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
       "operation_id": "ak.self.account_data.resource.delete",
-      "http_alias": "DELETE /_arkret/self/account_data/{data_type}",
+      "http_alias": "DELETE /_arkret/self/account_data/{account_data_key}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },

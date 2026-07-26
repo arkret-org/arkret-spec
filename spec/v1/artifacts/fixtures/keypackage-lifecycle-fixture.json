@@ -186,7 +186,7 @@
       "intended_realm_id": "ak:realm:0196419b-0000-7000-8000-000000000010",
       "strand_id": "ak:strand:0196419b-0000-7000-8000-000000000011",
       "mls_group_id": "fixture-dm-group-1",
-      "allow_last_resort": false,
+      "last_resort_allowed": false,
       "negative_mutations": [
         "missing_requester_authorization",
         "stale_requester_authorization",
@@ -196,7 +196,7 @@
         "contact_not_accepted",
         "target_consent_missing",
         "required_capability_not_in_keypackage",
-        "allow_last_resort_true"
+        "last_resort_allowed_true"
       ],
       "expected": {
         "authenticated_business_mutations_external_error": "claim_failed",

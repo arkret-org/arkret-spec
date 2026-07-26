@@ -1,0 +1,284 @@
+{
+  "version": "2026-07-26",
+  "source_of_truth": true,
+  "description": "Machine authority for the kind/type/class/tier naming axes. Entries are exact-context permissions, never basename allowlists.",
+  "axis_rules": {
+    "kind": "Arkret-owned discriminators, routing dimensions, registry families, and reducer/lattice dispatch.",
+    "type": "Exact round-trip fields inherited from an external standard. Arkret-owned classification fields are forbidden on this axis.",
+    "class": "Finite, unordered, closed classifications that do not select incompatible object shapes.",
+    "tier": "Finite classifications with a declared strict total order and comparison semantics."
+  },
+  "external_type_fields": [
+    {
+      "schema_ref": "schemas/blob-operations.schema.json",
+      "json_pointer": "/$defs/blob_upload_outcome/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/blob-operations.schema.json",
+      "json_pointer": "/$defs/blob_upload_request_body/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/blob.schema.json",
+      "json_pointer": "/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/blob.schema.json",
+      "json_pointer": "/$defs/encrypted_attachment/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/call-recording-artifact.schema.json",
+      "json_pointer": "/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/encrypted-envelope.schema.json",
+      "json_pointer": "/properties/content_type",
+      "external_standard": "HTTP Semantics",
+      "external_field_path": "Content-Type field value",
+      "round_trip_requirement": "Preserve the HTTP media type value used to label the encrypted content.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/event-payload.schema.json",
+      "json_pointer": "/$defs/call_state_payload/properties/recording_transition/properties/result/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the backend recording media type without Arkret taxonomy remapping.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/event-payload.schema.json",
+      "json_pointer": "/$defs/call_state_payload/properties/transcript_transition/properties/result/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the transcript media type without Arkret taxonomy remapping.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/event-payload.schema.json",
+      "json_pointer": "/$defs/mls_proposal_payload/properties/proposal_type",
+      "external_standard": "RFC 9420 Messaging Layer Security",
+      "external_field_path": "ProposalType",
+      "round_trip_requirement": "Preserve the MLS proposal type value and dispatch semantics.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/file-transfer.schema.json",
+      "json_pointer": "/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/ice-config-response.schema.json",
+      "json_pointer": "/$defs/ice_server/properties/credential_type",
+      "external_standard": "WebRTC RTCIceServer",
+      "external_field_path": "RTCIceServer.credentialType",
+      "round_trip_requirement": "Round-trip the WebRTC credential type value unchanged.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/media-metadata.schema.json",
+      "json_pointer": "/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/media-metadata.schema.json",
+      "json_pointer": "/properties/thumbnails/items/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve each thumbnail media type without Arkret taxonomy remapping.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/mimi-operations.schema.json",
+      "json_pointer": "/$defs/ciphertext/properties/content_type",
+      "external_standard": "HTTP Semantics",
+      "external_field_path": "Content-Type field value",
+      "round_trip_requirement": "Preserve the interop content type unchanged.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/mimi-operations.schema.json",
+      "json_pointer": "/$defs/opaque_payload/properties/content_type",
+      "external_standard": "HTTP Semantics",
+      "external_field_path": "Content-Type field value",
+      "round_trip_requirement": "Preserve the interop content type unchanged.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/ServiceDidVerificationMethod/properties/type",
+      "external_standard": "W3C DID Core",
+      "external_field_path": "Verification Method type",
+      "round_trip_requirement": "Preserve the raw DID verification-method type field and value.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/ServiceDidEndpoint/properties/type",
+      "external_standard": "W3C DID Core",
+      "external_field_path": "Service type",
+      "round_trip_requirement": "Preserve the raw DID service type field and value.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/service-operation-dtos.schema.json",
+      "json_pointer": "/$defs/ServiceWebvhDataIntegrityProof/properties/type",
+      "external_standard": "W3C Data Integrity",
+      "external_field_path": "DataIntegrityProof.type",
+      "round_trip_requirement": "Preserve the Data Integrity proof type field and value.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "doc_ref": "zh/crypto-media/webrtc-signaling.md",
+      "heading_anchor": "6-一对一通话",
+      "block_anchor": "RTCSessionDescriptionInit",
+      "json_pointer": "/sdp/type",
+      "external_standard": "WebRTC Session Description Protocol API",
+      "external_field_path": "RTCSessionDescriptionInit.type",
+      "round_trip_requirement": "Preserve offer/answer/pranswer/rollback exactly as defined by WebRTC.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "doc_ref": "zh/identity/identity-did.md",
+      "heading_anchor": "7-method-specific-operations",
+      "block_anchor": "DataIntegrityProof",
+      "json_pointer": "/proof/type",
+      "external_standard": "W3C Data Integrity",
+      "external_field_path": "DataIntegrityProof.type",
+      "round_trip_requirement": "Preserve the raw proof field and registered value.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "doc_ref": "zh/identity/identity-did.md",
+      "heading_anchor": "8-organization-principal-ownership",
+      "block_anchor": "DID Document",
+      "json_pointer": "/verificationMethod/0/type",
+      "external_standard": "W3C DID Core",
+      "external_field_path": "VerificationMethod.type",
+      "round_trip_requirement": "Preserve the raw DID field and registered value.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "doc_ref": "zh/identity/identity-did.md",
+      "heading_anchor": "8-organization-principal-ownership",
+      "block_anchor": "DID Document",
+      "json_pointer": "/service/0/type",
+      "external_standard": "W3C DID Core",
+      "external_field_path": "Service.type",
+      "round_trip_requirement": "Preserve the raw DID service field and value.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    }
+  ],
+  "closed_class_fields": [
+    {
+      "context": "fixtures/history-crypto-closure-fixture.json#/cases/*/scenarios/*/receiver_class",
+      "allowed_values": [
+        "joined_member",
+        "preview_token_holder",
+        "non_member"
+      ],
+      "semantic_axis": "history_receiver_class"
+    },
+    {
+      "context": "fixtures/protocol-edge-cases-fixture.json#/cases/*/expected_confusable_classes",
+      "allowed_values": [
+        "safe_ascii",
+        "mixed_script_confusable",
+        "invisible_code_point",
+        "compatibility_confusable"
+      ],
+      "semantic_axis": "confusable_output_class"
+    },
+    {
+      "context": "registry/relation-kind-registry.json#/relation_kinds/*/truth_source_class",
+      "allowed_values": [
+        "canonical",
+        "derived_projection",
+        "shape_dependent"
+      ],
+      "semantic_axis": "truth_source_class",
+      "distinct_from": [
+        "relation_kind"
+      ]
+    }
+  ],
+  "ordered_tier_fields": [
+    {
+      "field": "risk_tier",
+      "allowed_values": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "strict_order": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "comparison_semantics": "A greater risk_tier requires at least as strict freshness and authorization handling."
+    }
+  ],
+  "semantic_axis_declarations": [
+    {
+      "semantic_axis": "relation_shape",
+      "field": "relation_kind",
+      "distinct_from": [
+        "truth_source_class"
+      ]
+    },
+    {
+      "semantic_axis": "operation_surface",
+      "field": "surface_class",
+      "distinct_from": [
+        "completeness_class"
+      ]
+    }
+  ]
+}

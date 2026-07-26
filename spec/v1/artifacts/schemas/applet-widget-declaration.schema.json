@@ -9,7 +9,7 @@
     "widget_origin",
     "csp",
     "token_scope",
-    "requires_consent"
+    "consent_required"
   ],
   "properties": {
     "schema": {
@@ -72,7 +72,7 @@
       },
       "additionalProperties": false
     },
-    "requires_consent": {
+    "consent_required": {
       "type": "boolean"
     }
   },

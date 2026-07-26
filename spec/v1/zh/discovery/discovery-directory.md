@@ -72,7 +72,7 @@ Realm discovery policy SHOULD 由 `ak.realm.discovery` state event 表达：
     "allowed_discoverers": [
       {
         "type": "claim",
-        "claim_type": "org_membership",
+        "claim_kind": "org_membership",
         "organization": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
         "issuer": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example"
       }
@@ -81,7 +81,7 @@ Realm discovery policy SHOULD 由 `ak.realm.discovery` state event 表达：
       "did:webvh:z43vHHHeh32Hnyv6t7X3t33Xs:directory.acme.example"
     ],
     "anti_enumeration": {
-      "require_exact_alias_for_unlisted": true,
+      "unlisted_exact_alias_required": true,
       "member_count_mode": "bucketed",
       "not_found_blinding": true
     }
@@ -299,9 +299,9 @@ v1 core `ak.private_contact_discovery.v1` profile 明确限定为 **set-membersh
 
 实现 MUST 使用 RFC 9497 `modeVOPRF`（0x01）的两轮协议：
 
-1. **配置与本地 padding**：客户端先读取 `ServiceDescribe.private_contact_discovery`，验证 `profile="ak.private_contact_discovery.v1"`、`oprf_mode="VOPRF"`、`ciphersuite="ristretto255-SHA512"`、当前 `public_key` / `key_epoch`、固定 `batch_size`、`proof_shape="single_batched_dleq"` 与其它必需字段。任一字段缺失、未知或不支持时 MUST fail closed。客户端把真实 canonical connection identifier 与 CSPRNG 生成的 dummy private input 混合并随机排列到**恰好** `batch_size` 项，真实 / dummy 位置映射只保留在本地；不得把真实项数量作为 wire 字段或让数组长度泄露它。
+1. **配置与本地 padding**：客户端先读取 `ServiceDescribe.private_contact_discovery`，验证 `profile="ak.private_contact_discovery.v1"`、`oprf_mode="VOPRF"`、`ciphersuite="ristretto255-SHA512"`、当前 `public_key` / `key_epoch`、固定 `batch_item_count`、`proof_shape="single_batched_dleq"` 与其它必需字段。任一字段缺失、未知或不支持时 MUST fail closed。客户端把真实 canonical connection identifier 与 CSPRNG 生成的 dummy private input 混合并随机排列到**恰好** `batch_item_count` 项，真实 / dummy 位置映射只保留在本地；不得把真实项数量作为 wire 字段或让数组长度泄露它。
 2. **Round 1 — Blind**：客户端对固定 batch 的每项执行 RFC 9497 VOPRF Blind，提交 `{batch_id, blinded_elements[]}`。Provider 对同序数组执行 batched VOPRF BlindEvaluate，返回等长 `evaluated_elements[]` 与覆盖整个数组的**一条** batched DLEQ proof。客户端用 describe 中同 `key_epoch` 的 `public_key` 验证 proof 后才可 unblind；验证失败 MUST 丢弃整批结果。
-3. **Round 2 — Match**：客户端在第二个独立请求中按同序提交恰好 `batch_size` 项 `derived_prefixes[]`；v1 每项固定为 VOPRF output digest 的前 16 字节。Provider 仅在自己的 VOPRF-evaluated 可联系集合中比较，返回恰好 `batch_size` 位 `hit_bitmap`。无论命中数为 0、部分命中还是全部命中，数组 cardinality、排序、响应 body bucket 与延迟分布 MUST 相同。
+3. **Round 2 — Match**：客户端在第二个独立请求中按同序提交恰好 `batch_item_count` 项 `derived_prefixes[]`；v1 每项固定为 VOPRF output digest 的前 16 字节。Provider 仅在自己的 VOPRF-evaluated 可联系集合中比较，返回恰好 `batch_item_count` 位 `hit_bitmap`。无论命中数为 0、部分命中还是全部命中，数组 cardinality、排序、响应 body bucket 与延迟分布 MUST 相同。
 4. **披露**：客户端只在 user 在 UI 中显式确认联系或发起邀请时，才向目标 principal 的 provider 披露自己的 DID、pairwise DID、presentation 或 connection identifier 原文。该披露走 §6 / consent-model 的 invite + consent 流程，不在 PSI 协议范围内。
 
 OPRF 选择：
@@ -321,7 +321,7 @@ OPRF 选择：
   "batch_id": "ak:batch:0196429a-0000-7000-8000-000000000000",
   "ciphersuite": "ristretto255-SHA512",
   "key_epoch": 14,
-  "blinded_elements": ["base64url-32bytes...", "... exactly batch_size entries ..."]
+  "blinded_elements": ["base64url-32bytes...", "... exactly batch_item_count entries ..."]
 }
 ```
 
@@ -333,7 +333,7 @@ OPRF 选择：
   "phase": "match",
   "batch_id": "ak:batch:0196429a-0000-7000-8000-000000000000",
   "key_epoch": 14,
-  "derived_prefixes": ["base64url-16bytes...", "... exactly batch_size entries ..."]
+  "derived_prefixes": ["base64url-16bytes...", "... exactly batch_item_count entries ..."]
 }
 ```
 
@@ -346,7 +346,7 @@ OPRF 选择：
   "batch_id": "ak:batch:0196429a-0000-7000-8000-000000000000",
   "ciphersuite": "ristretto255-SHA512",
   "key_epoch": 14,
-  "evaluated_elements": ["base64url-32bytes...", "... exactly batch_size entries ..."],
+  "evaluated_elements": ["base64url-32bytes...", "... exactly batch_item_count entries ..."],
   "evaluation_proofs": ["base64url-64byte-batched-dleq-proof..."],
   "derived_prefix_bytes": 16,
   "padding": "    "
@@ -377,7 +377,7 @@ OPRF 选择：
 }
 ```
 
-- `hit_bitmap` MUST 与 blind / match 数组具有相同的 `batch_size` cardinality 与位置顺序。
+- `hit_bitmap` MUST 与 blind / match 数组具有相同的 `batch_item_count` cardinality 与位置顺序。
 - `handoff_stubs_mode="always"` 时 `handoff_stubs` MUST 在每个响应中出现、与 `hit_bitmap` 等长，且未命中 / 逐目标拒绝位置携带相同 dummy stub；`handoff_stubs_mode="never"` 时每个响应都 MUST 省略该字段。不得按是否命中动态切换字段存在性。
 
 quota denial（blind 阶段，HTTP 429 + `Retry-After` header）：
@@ -403,7 +403,7 @@ quota denial（blind 阶段，HTTP 429 + `Retry-After` header）：
 - Provider MUST 对 batch 大小、dummy padding、失败响应、计时和 result cardinality 做反枚举处理。**不可区分性分两类界定（normative）**：
   - **Class A（逐目标 outcome）**：目标不存在、不可发现、逐目标 policy-denied 与 OPRF mismatch MUST 统一编码为固定 cardinality 成功 outcome（`hit_bitmap`）中的未命中位，在 HTTP status、字段集合与字节形态上逐目标不可区分；MUST NOT 通过专用错误码、额外字段或逐目标延迟差暴露上述任何一种情形。
   - **Class B（整请求级失败）**：quota 耗尽与 batch 级 `policy_denied`（如 requester 被封禁、profile 未启用）MUST 使用带顶层 `padding` 的标准 ErrorEnvelope；其内容只允许描述 requester / batch 自身状态，MUST NOT 携带逐目标信息。Class B 触发条件 MUST 只依赖 requester / batch 级状态，MUST NOT 依赖目标集合内容。quota 与初始 batch policy 准入发生在 blind 阶段；已接纳 batch 后发生的账号冻结等 requester 状态仍 MAY 在 match 阶段以 Class B 拒绝，但不得重新执行逐目标判断。
-  - **固定请求 cardinality**：客户端 MUST 在发送前把 blind batch 填充到 describe 的精确 `batch_size`；Provider 对 cardinality 不等于该值的请求 MUST 在目标评估前以 `schema_violation` 拒绝。Provider 不得在收到可变长数组后自行追加 dummy 来声称隐藏了客户端原始 cardinality。
+  - **固定请求 cardinality**：客户端 MUST 在发送前把 blind batch 填充到 describe 的精确 `batch_item_count`；Provider 对 cardinality 不等于该值的请求 MUST 在目标评估前以 `schema_violation` 拒绝。Provider 不得在收到可变长数组后自行追加 dummy 来声称隐藏了客户端原始 cardinality。
 - **PSI HTTP entity-body bucket（normative）**：describe 固定 buckets `[4096, 16384, 65536, 262144]` bytes。对 blind / match 各 phase，Provider 分别构造该 phase 最大合法 200 success，以及每一种允许的 Class B ErrorEnvelope / `PsiPaddedProblem` 最大投影（均令 `padding=""`），取其中 RFC 8785 JCS UTF-8 body 最大者，再选择能容纳它的最小 bucket `B_phase`；计算必须纳入 schema 允许的最大字符串转义长度。若无 bucket 可容纳，MUST NOT advertise 该配置。Provider MUST 分别把结果写入 `blind_response_bucket_bytes` / `match_response_bucket_bytes`，客户端与 runner MUST 重算并拒绝不是最小可容纳 bucket 的 describe。产生实际响应时，先对 `padding=""` 的完整对象执行 RFC 8785 JCS 并取 UTF-8 byte length `N`，再把 `padding` 设为恰好 `B_phase-N` 个 ASCII SP，最后再次执行 JCS 得到 wire body；由于 SP 在 JSON string 中不转义，最终 HTTP entity body 的实际 `Content-Length` MUST **恰好等于** describe 的 phase bucket。该 phase 的每个 200 success 与 Class B ErrorEnvelope 都使用此算法。响应 MUST **省略 `Content-Encoding`**（即不应用任何 content coding）并设置 `Cache-Control: no-store, no-transform`；origin 与受控 gateway MUST NOT 压缩或改写 body。RFC 9110 将 `identity` 保留给 `Accept-Encoding`，因此实现 MUST NOT 发送 `Content-Encoding: identity`。`application/problem+json` 使用闭合的 `PsiPaddedProblem`，`padding` 是唯一 extension member，并满足同一算法；此 PSI surface 的 `type` MUST 为 `urn:arkret:error:<canonical_error_code>`，`status` MUST 与 HTTP status line 及 error registry 一致。不得因 content negotiation 旁路 padding 或改变错误语义。
 - **反枚举 delay class（normative）**：describe 的 `anti_enumeration_delay={minimum_ms,jitter_ms,distribution="uniform"}` 定义 origin 从完成认证 / schema 校验到开始发送响应前的等待分布：`minimum_ms + UniformInteger(0..jitter_ms)`。同一 phase 的成功与 Class B 路径 MUST 调用同一 sampler；不得按错误原因选择不同 floor / jitter。Conformance runner MUST 检查配置路径一致，并在同机条件下对每类至少采样 30 次；success 与 Class B 的 p95 差异 MUST ≤ `max(50ms, jitter_ms/4)`。
 - Provider MUST NOT 在第二轮返回 contact request handoff token、reachability proof、handle verified claim、完整 profile、组织成员资格、Realm membership 或读取权限。这些声明只能通过后续 contact / invite + consent 流程获得。既有最小 invite/consent handoff stub 只可声明 consent state hash、grant/revoke 状态或下一步引导，不得成为可直接创建 contact relation 的凭据。
@@ -647,7 +647,7 @@ v1 core **不**定义 Directory 之间的 replication / federation 协议。每�
 
 ### 8.9 `ak.find.directory.query.describe` 扩展
 
-**Schema overlay 关系（normative）**：`ak.find.directory.query.describe` 响应是通用 `ak.schema.service_describe.v1` 的 **directory-service overlay**。这些 overlay 字段已作为裸字段登记在 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json) 中，且仅在 `service_type=directory_service` 的 describe 响应上成为 required directory contract；实现 MUST NOT 把下列标准字段改写为 vendor-specific `x_*` 顶层字段。Directory describe MUST 在通用 `service_describe` 基础上 extend 以下字段集，作为 directory-specific 字段权威列表：(a) `resource_types[]` 与 `discovery_profiles[]`（资源类别与索引 profile）；(b) `restricted_query_proof`（是否需要 holder-approved proof）；(c) 本节下表列出的 9 个 ingest 字段。`../sync/service-http-binding.md` 中所有 `ak.find.directory.query.describe` operation row 引用本节作为字段 superset 的权威定义，不另列重复表；任何 directory-specific 字段调整 MUST 先在本节落地。
+**Schema overlay 关系（normative）**：`ak.find.directory.query.describe` 响应是通用 `ak.schema.service_describe.v1` 的 **directory-service overlay**。这些 overlay 字段已作为裸字段登记在 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json) 中，且仅在 `service_kind=directory_service` 的 describe 响应上成为 required directory contract；实现 MUST NOT 把下列标准字段改写为 vendor-specific `x_*` 顶层字段。Directory describe MUST 在通用 `service_describe` 基础上 extend 以下字段集，作为 directory-specific 字段权威列表：(a) `resource_kinds[]` 与 `discovery_profiles[]`（资源类别与索引 profile）；(b) `restricted_query_proof`（是否需要 holder-approved proof）；(c) 本节下表列出的 9 个 ingest 字段。`../sync/service-http-binding.md` 中所有 `ak.find.directory.query.describe` operation row 引用本节作为字段 superset 的权威定义，不另列重复表；任何 directory-specific 字段调整 MUST 先在本节落地。
 
 Directory MUST 在 `describe` 响应中暴露 ingest 能力：
 
@@ -707,7 +707,7 @@ POST /_arkret/find/directory/push/register
 
 | operation_id | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- |
-| `ak.find.directory.query.describe` | 无 | 无 | `service_id: did`; `resource_types: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?`；以及 §8.9 全部 ingest 字段 | `public_metadata`；可限流。 |
+| `ak.find.directory.query.describe` | 无 | 无 | `service_id: did`; `resource_kinds: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?`；以及 §8.9 全部 ingest 字段 | `public_metadata`；可限流。 |
 | `ak.find.directory.query.search_realms` | 无 | `query: string`; `organization_did: did`; `source_realm_id: id`; `requester: did`; `proof_challenge: string`; `claim_presentations: DirectoryRestrictedClaimPresentation[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 每条 result MUST 含 §9.1 normative 字段；其余按 §3 / §11 过滤；restricted Realm 的 claim presentation 形态见 §2；隐藏资源不得泄露存在性。 |
 | `ak.find.directory.query.resolve_realm` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proof_challenge: string`; `claim_presentations: DirectoryRestrictedClaimPresentation[]` | `realm_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `join_candidates?: ak.schema.realm_join_candidate.v1[]` | `join_candidates[]` 是 v1 join 路由的规范字段；当 resolver 支持结构化 candidate 且调用方有权得到 join 路由时 MUST 给出调用方可用且经过 policy 过滤的候选 ingress service。若隐私策略不能披露 candidate，响应 MUST 省略 `join_candidates[]`；客户端在取得候选列表前不得提交 join material。invite / restricted / secret Realm 对未授权请求使用统一 `not_found`。 |
 | `ak.find.directory.query.resolve_target` | `address: string`（object-addressing grammar） | `requester: did`; `proofs: proof[]`; `token: string` | `target_kind: enum(realm,strand,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; §9.1 全部通用字段 | `resolve_realm` 的对象级泛化（分享 Strand / Message / Realm 的深链解析）；realm 解析 MUST 委托同一 `resolve_realm` 路径，并继承 `join_candidates[]` 语义；`token` 仅在 `lt ∈ {invite, preview}` 的 link 类型下允许携带，reference 类型 MUST NOT 带 token（见 [`object-addressing.md` §4.1](./object-addressing.md)）；携带 `token` 时 MUST 按 target descriptor 逐级校验再走 join-policy；未授权统一 `not_found`。完整 grammar / token 绑定 / 隐私规则见 [`object-addressing.md`](./object-addressing.md)。 |
@@ -824,7 +824,7 @@ Result：
         {
           "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
           "service_id": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example",
-          "service_type": "principal_server",
+          "service_kind": "principal_server",
           "role": "primary",
           "endpoint": "https://principal.acme.example",
           "operations": [

@@ -112,7 +112,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 
 | `kind` | 必带字段 | 语义 | `auto_resolve` |
 | --- | --- | --- | --- |
-| `claim_required` | `requires_claims[]`（见 [`../authz/constraint-schema.md` §10](../authz/constraint-schema.md)） | applicant MUST 提交满足声明集合的 VC / claim presentation。 | `true` |
+| `claim_required` | `required_claims[]`（见 [`../authz/constraint-schema.md` §10](../authz/constraint-schema.md)） | applicant MUST 提交满足声明集合的 VC / claim presentation。 | `true` |
 | `parent_membership` | `membership_source_realm_ids: id:realm[]`、`require_min_membership: enum(invite, join)` | applicant MUST 已是任一 source Realm 的指定成员；该字段只是 membership gate 的验证来源，不表达 Realm 树形父子关系。reducer 在 join Control Move 校验时必须能够独立验证（snapshot 或 backfill）。等价于 Matrix MSC3083 `m.room_membership` 条件。 | `true` |
 | `principal_admission` | 至少一个 selector 字段：`allowed_did_methods[]`、`allowed_principal_dids[]`、`denied_principal_dids[]` | applicant 的 principal DID 自身 MUST 满足 Realm 声明的硬准入条件。典型用途是只允许特定 DID method 或显式 allowlist 中的 principal 加入。 | `true` |
 | `challenge_response` | `provider_did: did`、`challenge_kinds: enum(captcha, pow, attested_human, idp_oidc)[]`、`max_proof_age: duration` | applicant MUST 完成 provider 颁发的挑战并提交 signed proof。详见 §12。 | `true` |
@@ -170,7 +170,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
   "directory_hint": {
     "summary": "Members must hold an Acme employee VC and complete a brief intro form.",
     "expected_review_time": "PT24H",
-    "requires_human_review": true,
+    "human_review_required": true,
     "challenge_kinds_displayed": ["captcha"]
   }
 }
@@ -178,7 +178,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 
 `questions[]` 正文 MUST NOT 出现在 hint 中；公开 question prompt 是 opt-in（每个 question 独立 `disclosed_in_directory: bool`）。
 
-`directory_hint` 是封闭对象：`summary` 为 1..512 chars；`expected_review_time` 为 ISO 8601 duration；`requires_human_review` 为 boolean；`challenge_kinds_displayed[]` 最多 16 项且仅取 `captcha` / `pow` / `attested_human` / `idp_oidc`。未知字段或未知 challenge kind MUST `schema_violation`。
+`directory_hint` 是封闭对象：`summary` 为 1..512 chars；`expected_review_time` 为 ISO 8601 duration；`human_review_required` 为 boolean；`challenge_kinds_displayed[]` 最多 16 项且仅取 `captcha` / `pow` / `attested_human` / `idp_oidc`。未知字段或未知 challenge kind MUST `schema_violation`。
 
 ### 3.3 `application_form.questions[]`
 
@@ -261,7 +261,7 @@ applicant 直接提交：
     "delivery_status": "routable",
     "delivery_binding": {
       "recipient_service_id": "did:webvh:zumXV7yCE8UjvfwVEcio4oN3f:principal.org-a.example",
-      "recipient_service_type": "principal_server",
+      "recipient_service_kind": "principal_server",
       "binding_scope": "realm",
       "binding_source": "explicit",
       "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
@@ -560,7 +560,7 @@ applicant 完成挑战后，重新提交 join / application Control Move，在 `
 | `application_ttl` | PT168H | reducer 到期自动转 `reason_code="ttl_expired"`（统一走 §7.3 受控枚举命名约定，`ttl_expired` 见 [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）；不计 cooldown。 |
 | `cooldown_after_reject` | PT72H | reject 后 reducer MUST 拒绝同 actor 在窗口内的新 `member.application`。`request_changes` 不触发 cooldown。 |
 | `max_open_applications_per_actor` | 1 | reducer 校验 actor 当前 pending 数；超出 `failed_precondition`。 |
-| Quota constraint | 由 Realm `ak.realm.policy_components` 声明 | 推荐对 `ak.member.state{knock}` 配置 `quota.subtype=rate`（如 `max_operations=5/day` + `constraint_scope`），通过既有 [`../authz/constraint-schema.md` §7](../authz/constraint-schema.md) 表达。 |
+| Quota constraint | 由 Realm `ak.realm.policy_components` 声明 | 推荐对 `ak.member.state{knock}` 配置 `quota.constraint_subkind=rate`（如 `max_operations=5/day` + `constraint_scope`），通过既有 [`../authz/constraint-schema.md` §7](../authz/constraint-schema.md) 表达。 |
 | Policy Server `challenge` | 高风险 Realm 推荐 | Sync Service 面对突发 knock 流量时 SHOULD 通过 Policy Server 注入 challenge obligation。 |
 
 ## 13. 与 MIMI 的映射
@@ -583,8 +583,8 @@ applicant 完成挑战后，重新提交 join / application Control Move，在 `
           "gate_id": "g-vc",
           "kind": "claim_required",
           "auto_resolve": true,
-          "requires_claims": [
-            {"claim_type": "membership", "issuer": "did:webvh:zHqvNofxnbRjYqHgjiWCQ5jj6:openresearch.org", "status": "active"}
+          "required_claims": [
+            {"claim_kind": "membership", "issuer": "did:webvh:zHqvNofxnbRjYqHgjiWCQ5jj6:openresearch.org", "status": "active"}
           ]
         },
         {
@@ -618,7 +618,7 @@ applicant 完成挑战后，重新提交 join / application Control Move，在 `
       "directory_hint": {
         "summary": "Members hold an OpenResearch credential, OR complete a brief application + CAPTCHA.",
         "expected_review_time": "PT24H",
-        "requires_human_review": true,
+        "human_review_required": true,
         "challenge_kinds_displayed": ["captcha"]
       }
     }

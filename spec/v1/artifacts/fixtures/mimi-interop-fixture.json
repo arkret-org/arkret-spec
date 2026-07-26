@@ -28,7 +28,7 @@
       "name": "provider_directory_draft_pinning",
       "input": {
         "service_id": "did:webvh:z6mkfixture:mimi.example.com",
-        "service_type": "mimi_provider_facade",
+        "service_kind": "mimi_provider_facade",
         "supported_profiles": [
           "ak.profile.mimi_interop.v1"
         ],
@@ -83,7 +83,7 @@
         "requester_provider": "did:webvh:z6mkfixture:mimi.example.com",
         "required_content_profile": "ak.profile.mimi_interop.v1",
         "mls_capabilities": [
-          "mls-rfc9420"
+          "mls_rfc9420"
         ],
         "cipher_suites": [
           "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
@@ -95,7 +95,7 @@
           "device_binding": "ak:device:0110c853-1d09-7044-b214-c74240110c85",
           "expires_at": "2026-04-30T01:00:00.000Z",
           "supported_capabilities": [
-            "mls-rfc9420"
+            "mls_rfc9420"
           ],
           "single_use": true
         },

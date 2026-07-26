@@ -19,7 +19,7 @@
       "kind": "morph_schema_migrate_transformation",
       "description": "Identity transformation preserves all fields and canonical values.",
       "input": {
-        "morph_type": "customer_risk",
+        "morph_kind": "customer_risk",
         "from_schema_refs": ["ak.schema.morph.customer_risk.v1"],
         "fields": {"risk_score": 7, "status": "open"},
         "payload": {
@@ -37,7 +37,7 @@
       "kind": "morph_schema_migrate_transformation",
       "description": "A field-rename transformation: fields.risk_score is renamed to fields.score; the unrelated fields.status passes through untouched. Pure rename, replay-deterministic.",
       "input": {
-        "morph_type": "customer_risk",
+        "morph_kind": "customer_risk",
         "from_schema_refs": ["ak.schema.morph.customer_risk.v1"],
         "fields": {
           "risk_score": 7,
@@ -70,7 +70,7 @@
       "kind": "morph_schema_migrate_transformation",
       "description": "A default-backfill transformation: a new optional field fields.priority is backfilled with the deterministic default \"normal\" while existing fields.status is preserved. Backfill is idempotent (it never overwrites a present value).",
       "input": {
-        "morph_type": "customer_risk",
+        "morph_kind": "customer_risk",
         "from_schema_refs": ["ak.schema.morph.customer_risk.v1"],
         "fields": {
           "status": "open"
@@ -102,7 +102,7 @@
       "kind": "morph_schema_migrate_transformation",
       "description": "Integer-to-number widening preserves the JSON numeric value while changing its declared schema acceptance set.",
       "input": {
-        "morph_type": "customer_risk",
+        "morph_kind": "customer_risk",
         "from_schema_refs": ["ak.schema.morph.customer_risk.v1"],
         "fields": {"confidence": 7, "status": "open"},
         "payload": {
@@ -112,8 +112,8 @@
           "transformation_rules": [{
             "rule": "ak.transform.type_widen.v1",
             "field": "confidence",
-            "from_type": "integer",
-            "to_type": "number"
+            "from_kind": "integer",
+            "to_kind": "number"
           }]
         }
       },

@@ -286,9 +286,9 @@ controller 客户端解密候选 Agent Event 后，MUST 全部通过下列检查
 - `reassign_coordinator` 仅在非终态有效；`expected_coordinator_agent_id` 必须等于当前 coordinator，`coordinator_agent_id` 必须与 expected 值不同、属于 request 的 `addressed_agent_ids` 且 authoring 时 eligible。成功后该 control Event id 成为新的 `coordinator_assignment_event_id`。
 - `close`、`cancel`、`fail` 都是 terminal action。第一条有效 terminal control 吸收终态；其后的全部 control（含 reassign）忽略，不得改变 projection。
 - terminal action 的 `response_event_ids` 非空时统一落 `complete`。这明确覆盖 `cancel + response`、`fail + response`：已交付的响应不是失败。
-- `response_event_ids=[]` 时：`close` 落 `failed/controller_closed_empty`；`cancel` 落 `failed/controller_cancelled`；`fail` 落 `failed/<failure_code>`。因此 complete 始终至少一个 response，failed 始终没有 response。
+- `response_event_ids=[]` 时：`close` 落 `failed/controller_closed_empty`；`cancel` 落 `failed/controller_cancelled`；`fail` 落 `failed/<failure_reason_code>`。因此 complete 始终至少一个 response，failed 始终没有 response。
 
-Agent pause/deactivate、MLS removal、超时、Event 缺席都不会隐式改变 exchange。非 coordinator Agent 失效不影响终态；coordinator 失效后 exchange 保持非终态，直到 controller 写入 reassign、cancel 或 fail control。controller 自动化 MAY 因已验证 lifecycle 事实 author `fail/failure_code=agent_deactivated`，但该 control Event 本身才是可重放真相。
+Agent pause/deactivate、MLS removal、超时、Event 缺席都不会隐式改变 exchange。非 coordinator Agent 失效不影响终态；coordinator 失效后 exchange 保持非终态，直到 controller 写入 reassign、cancel 或 fail control。controller 自动化 MAY 因已验证 lifecycle 事实 author `fail/failure_reason_code=agent_deactivated`，但该 control Event 本身才是可重放真相。
 
 ### 7.2.4 确定性 fold、本地 cache 与恢复
 

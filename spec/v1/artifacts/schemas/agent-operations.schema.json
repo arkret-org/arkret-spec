@@ -1544,14 +1544,14 @@
       "type": "object",
       "required": [
         "agent_id",
-        "stage",
+        "provisioning_phase",
         "reason"
       ],
       "properties": {
         "agent_id": {
           "$ref": "#/$defs/did"
         },
-        "stage": {
+        "provisioning_phase": {
           "type": "string",
           "enum": [
             "backing_scope_membership",

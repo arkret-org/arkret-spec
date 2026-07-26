@@ -43,14 +43,14 @@ schema、wire grant 与 conformance 测试 MUST 以本节定义的 JSON 形态�
     {
       "kind": "morph",
       "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-      "morph_type": "customer_case"
+      "morph_kind": "customer_case"
     }
   ],
   "constraints": [
     {
-      "constraint_type": "type_restriction",
+      "constraint_kind": "kind_restriction",
       "effect": "allow",
-      "allowed_object_types": ["strand"],
+      "allowed_object_kinds": ["strand"],
       "allowed_tracks": ["synthesis"]
     }
   ]
@@ -71,7 +71,7 @@ Board 与 List 使用 `kind="space"` 选择器，配合 `allowed_space_kinds` �
   ],
   "constraints": [
     {
-      "constraint_type": "type_restriction",
+      "constraint_kind": "kind_restriction",
       "effect": "allow",
       "allowed_space_kinds": ["board"]
     }
@@ -96,7 +96,7 @@ Circle 使用 `kind="circle"` 选择器，配合 `allowed_circle_ids` constraint
   ],
   "constraints": [
     {
-      "constraint_type": "type_restriction",
+      "constraint_kind": "kind_restriction",
       "effect": "allow",
       "allowed_circle_ids": ["ak:circle:019640d0-0000-7000-8000-000000000000"]
     }
@@ -119,7 +119,7 @@ Strand 的 synthesis / discussion 能力面使用 `kind="strand"` 选择器，�
   ],
   "constraints": [
     {
-      "constraint_type": "type_restriction",
+      "constraint_kind": "kind_restriction",
       "effect": "allow",
       "allowed_tracks": ["discussion"]
     }
@@ -176,7 +176,7 @@ strand_selector        ::= "strand" ":" realm_part ":" (strand_id | "*")
 
 message_selector     ::= "message" ":" realm_part ":" strand_part ":" (message_id | "*")
 
-morph_selector       ::= "morph" ":" realm_part ":" (morph_id | morph_type | "*")
+morph_selector       ::= "morph" ":" realm_part ":" (morph_id | morph_kind | "*")
 
 relation_selector    ::= "relation" ":" realm_part ":" (relation_id | relation_kind | "*")
 
@@ -193,7 +193,7 @@ policy_selector      ::= "policy" ":" realm_part ":" (policy_id | "*")
 
 invite_selector      ::= "invite" ":" realm_part ":" (invite_id | "*")
 
-object_selector      ::= "object" ":" realm_part ":" (object_ref | object_type | "*")
+object_selector      ::= "object" ":" realm_part ":" (object_ref | object_kind | "*")
 
 blob_selector        ::= "blob" ":" (blob_ref | "*")
 
@@ -225,9 +225,9 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 - `schema_ref`：schema registry id，例如 `ak.schema.strand.v1` 或反向域名 schema id。Shorthand 与 canonical JSON 都只使用 `schema_ref`；parser MUST 拒绝 `schema_id` 等未声明 token。
 - `did`：DID URI。
 - `blob_ref`：Blob typed ID，wire form 为 `ak:blob:` 前缀后接 UUIDv7（blob metadata ID），或 `ak:blob:<suite>:<hex>` content-addressed ref（suite ∈ digest-suite registry active rows，v1 即 `sha256` / `blake3`）。
-- `morph_type`：Realm schema 中注册的开放对象类型。
+- `morph_kind`：Realm schema 中注册的开放对象类型。
 - `relation_kind`：关系类型，例如 `contains`、`assigned_to`、`promoted_from_discussion`、`summarized_from`。
-- `object_type`：标准对象类型或 `morph`。
+- `object_kind`：标准对象类型或 `morph`。
 - `object_ref`：任一 canonical object id。
 - 空白字符被忽略，引号内字符串除外。
 
@@ -244,8 +244,8 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 | Conjunction 展开后总项数 | 64 项 | JSON selector 或 shorthand 归一化后的 AND 项总数；防止嵌套组合指数展开。|
 | 嵌套深度（任意 selector 树） | 8 层 | 包括逗号 / 加号 / 引用 / 子 selector 嵌套；canonical 上限单一真相源见 [`scalability-constraints.md` §3](../conformance/scalability-constraints.md)。|
 | 单个 `selector_term` 字段值长度 | 1024 字节 | DID、URL、UUIDv7、复合 id 都包含在内。|
-| `requires_claims[]` 在 subject selector 中的项数 | 32 项 | 每个 claim object 内部字段亦受单字段上限；`grant-constraint.schema.json` 的 `requires_claims` 已用 `maxItems:32` 静态强制本上限。|
-| `requires_claims[]` 内 DID / 列表字段长度（`trusted_issuers[]` / `roles[]` 等；schema 无 `subjects[]` 字段） | 16 项 | 任一 claim object 内 DID 列表（`trusted_issuers`）或角色列表（`roles`）等展开的对象数量；`grant-constraint.schema.json` 对 `trusted_issuers` / `roles` 强制 `maxItems:16`。|
+| `required_claims[]` 在 subject selector 中的项数 | 32 项 | 每个 claim object 内部字段亦受单字段上限；`grant-constraint.schema.json` 的 `required_claims` 已用 `maxItems:32` 静态强制本上限。|
+| `required_claims[]` 内 DID / 列表字段长度（`trusted_issuers[]` / `roles[]` 等；schema 无 `subjects[]` 字段） | 16 项 | 任一 claim object 内 DID 列表（`trusted_issuers`）或角色列表（`roles`）等展开的对象数量；`grant-constraint.schema.json` 对 `trusted_issuers` / `roles` 强制 `maxItems:16`。|
 | Constraint object 内嵌套层级 | 4 层 | approval / claim object 内部最多 4 层嵌套。|
 | Selector JSON canonical form 总 byte | 64 KiB | 即便所有单项上限均未触发，整个 JSON canonical form 序列化后的 byte 总长仍 MUST ≤ 64 KiB（与 [`../conformance/encoding.md §8.6`](../conformance/encoding.md) cursor opaque payload 上限一致）；超过即 `selector_too_complex`，防止以 256 × 1024 byte selector_term 合法堆叠为 DoS 面。|
 
@@ -305,7 +305,7 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 
 `morph:ak:realm:...:customer_case`
 
-- 匹配：该 Realm 中所有 `morph_type=customer_case` 的 Morph。
+- 匹配：该 Realm 中所有 `morph_kind=customer_case` 的 Morph。
 - 不匹配：标准 Strand、Message 或 Relation。
 
 `morph:ak:realm:...:ak:morph:01964140-0000-7000-8000-000000000000`
@@ -431,14 +431,14 @@ function matches(target, selector):
             return false
         if selector.morph_id and selector.morph_id != target.id:
             return false
-        if selector.morph_type and selector.morph_type != target.morph_type:
+        if selector.morph_kind and selector.morph_kind != target.morph_kind:
             return false
         return true
 
     if selector.kind == "object":
         if selector.object_ref and selector.object_ref != target.id:
             return false
-        if selector.object_type and selector.object_type != target.type:
+        if selector.object_kind and selector.object_kind != target.type:
             return false
         return true
 
@@ -521,7 +521,7 @@ function matches(target, selector):
     return false
 ```
 
-> `space` / `circle` 配合 `allowed_space_kinds` 等 constraint 在 selector 命中之后再做收窄（见 §6 末段与 §7）；`space` / `circle` / `object` / `morph` 的 `realm_wide` wildcard 形态 MUST 携带 `realm_id`，不得跨 Realm 命中（`object` / `morph` 的 `realm_wide` 命中该 Realm 内对应 `object_type` / `morph_type` 的全部资源，用于表达 Realm 全域的对象/Morph 授权）；`blob` 的目标身份字段为 `blob_ref`；`notification` / `read_cursor` 是 realm-scoped 的 \*-only selector，schema 已强制 `realm_id` 必填、不接受精确对象 id。
+> `space` / `circle` 配合 `allowed_space_kinds` 等 constraint 在 selector 命中之后再做收窄（见 §6 末段与 §7）；`space` / `circle` / `object` / `morph` 的 `realm_wide` wildcard 形态 MUST 携带 `realm_id`，不得跨 Realm 命中（`object` / `morph` 的 `realm_wide` 命中该 Realm 内对应 `object_kind` / `morph_kind` 的全部资源，用于表达 Realm 全域的对象/Morph 授权）；`blob` 的目标身份字段为 `blob_ref`；`notification` / `read_cursor` 是 realm-scoped 的 \*-only selector，schema 已强制 `realm_id` 必填、不接受精确对象 id。
 
 `match_scope` 的语义固定如下：
 
@@ -546,7 +546,7 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 
 1. **资源匹配**：目标资源必须匹配 selector。
 2. **动作匹配**：操作动作必须逐字出现在授权 `actions[]` 中；`actions[]` 不存在 wildcard / segment 通配。通配只适用于资源 selector，不适用于 action token。
-3. **约束匹配**：`allowed_space_kinds`、`allowed_morph_types`、`allowed_relation_kinds`、`allowed_tracks` 等约束必须满足。
+3. **约束匹配**：`allowed_space_kinds`、`allowed_morph_kinds`、`allowed_relation_kinds`、`allowed_tracks` 等约束必须满足。
 4. **Track scope 检查**：Message 和 discussion track 访问必须在已有 Realm / capability 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility；track 本身不授予 membership、history 或 E2EE key。
 5. **跨对象不传播权限**：Relation、View、Strand 和 Message 的互相引用不自动传播读写权。
 6. **策略检查**：moderation、retention、legal hold、plaintext-visible service 和 federation policy 不得被 selector 绕过。
@@ -565,7 +565,7 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 非治理面 wildcard（`realm:*`、`object:*:<非治理类型>` 等）的缓解措施：
 
 - 始终配合 `expires_at` 使用。
-- 与 `allowed_object_types`、`allowed_space_kinds`、`allowed_morph_types`、`allowed_facets`、`allowed_tracks` 等约束组合。
+- 与 `allowed_object_kinds`、`allowed_space_kinds`、`allowed_morph_kinds`、`allowed_facets`、`allowed_tracks` 等约束组合。
 - 要求管理员审批与审计理由。
 - `max_delegation_depth` SHOULD 为 0。
 
@@ -596,7 +596,7 @@ Facet 是 Realm schema / Morph profile 声明后的 hint 或查询标签，不�
 1. `realm_id`
 2. `kind`
 3. 精确对象 ID，例如 `strand_id`、`message_id`、`morph_id`
-4. `morph_type`、`relation_kind`
+4. `morph_kind`、`relation_kind`
 5. 通配符授权缓存
 
 求值顺序 SHOULD 先做精确 ID 和 `realm_id` 裁剪，再执行对象类型、kind、constraint 和 policy 检查。

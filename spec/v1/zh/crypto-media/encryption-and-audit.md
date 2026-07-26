@@ -18,7 +18,7 @@ sidebar:
 
 本规范定义了 Arkret 官方推荐的加密标准，旨在实现：
 - 基于 **MLS (RFC 9420)** 的高效大规模协作加密
-- 强前向安全 (Forward Secrecy) 与后向安全 (Post-Compromise Security)——此为默认 `mls-rfc9420` 内容 scheme 的属性；启用 §2.10 `mls-exporter-aead-v1` 且保留 per-epoch `history_secret` 的 Realm，其 FS / PCS 在被保留 epoch 上按 §2.10.5 退化为限定形态（per-epoch FS、PCS 仅对未被保留的 epoch 成立）
+- 强前向安全 (Forward Secrecy) 与后向安全 (Post-Compromise Security)——此为默认 `mls_rfc9420` 内容 scheme 的属性；启用 §2.10 `mls_exporter_aead_v1` 且保留 per-epoch `history_secret` 的 Realm，其 FS / PCS 在被保留 epoch 上按 §2.10.5 退化为限定形态（per-epoch FS、PCS 仅对未被保留的 epoch 成立）
 - **可审查加密 (Auditable E2EE)**，在 TEE / HSM / 等价受控执行 profile 下把合规解密绑定到可验证审计记录；在 software-only profile 下提供透明审计流程，但不声称具备同等密码学强制力。
 
 ## 2. 基础加密架构：MLS 与 Arkret 的融合
@@ -116,7 +116,7 @@ Realm policy MUST 通过 `ak.realm.policy_components.metadata_encryption_floor` 
 ```json
 {
   "envelope": {
-    "scheme": "mls-rfc9420",
+    "scheme": "mls_rfc9420",
     "version": "1.0",
     "group_id": "base64url",
     "epoch": 12,
@@ -147,8 +147,8 @@ Realm policy MUST 通过 `ak.realm.policy_components.metadata_encryption_floor` 
 | `group_id` | base64url | 是 | MLS 群组 ID |
 | `epoch` | integer | 是 | MLS epoch 编号 |
 | `content_type` | string | 是 | 解密后内容的 MIME 类型 |
-| `ciphertext` | base64url | 是 | `mls-rfc9420` scheme 为 MLS PrivateMessage / application message 序列化字节;`mls-exporter-aead-v1` scheme 为 §2.10 定义的 `nonce \|\| AEAD_seal(K_content[N], nonce, aad_bytes, plaintext)`（nonce/AAD 遵循 [encoding.md](../conformance/encoding.md) §10.1；AEAD tag 含在 seal 输出内）。 |
-| `authentication_tag` | base64url | 禁止 | v1 两个 scheme 下均 **MUST NOT 出现**:`mls-rfc9420` 的 tag 已在 MLS message 内、`mls-exporter-aead-v1` 的 AEAD tag 已附在 `ciphertext` 内，均不重复拆出;schema 用顶层 `not` 拒绝该字段（携带者 `schema_violation`）。 |
+| `ciphertext` | base64url | 是 | `mls_rfc9420` scheme 为 MLS PrivateMessage / application message 序列化字节;`mls_exporter_aead_v1` scheme 为 §2.10 定义的 `nonce \|\| AEAD_seal(K_content[N], nonce, aad_bytes, plaintext)`（nonce/AAD 遵循 [encoding.md](../conformance/encoding.md) §10.1；AEAD tag 含在 seal 输出内）。 |
+| `authentication_tag` | base64url | 禁止 | v1 两个 scheme 下均 **MUST NOT 出现**:`mls_rfc9420` 的 tag 已在 MLS message 内、`mls_exporter_aead_v1` 的 AEAD tag 已附在 `ciphertext` 内，均不重复拆出;schema 用顶层 `not` 拒绝该字段（携带者 `schema_violation`）。 |
 | `aad_visibility_event_id` | enum(hidden, routing_digest, opaque_id) | 是 | `aad.event_id` / `aad.event_ref_digest` 的 schema discriminator；receiver 必须按该值校验 AAD 字段集合。 |
 | `aad` | object | 是 | 路由元数据；明文但被 AEAD 认证。 |
 | `aad.realm_id` | id:realm | 是 | 路由与授权的 Realm。 |
@@ -157,7 +157,7 @@ Realm policy MUST 通过 `ak.realm.policy_components.metadata_encryption_floor` 
 | `aad.event_ref_digest` | hash | 条件 | `aad_visibility_event_id="routing_digest"` 时必填；构造 MUST 按下方 `routing_digest` 条目的 canonical 公式（域分隔常量 `ak.aad-event-ref-v1`），实现 MUST NOT 使用其它输入或顺序。 |
 | `aad.causal_refs` | array | 条件 | 可见因果依赖；高隐私 profile 可改用 `causal_ref_digests`。 |
 | `aad.causal_ref_digests` | array&lt;hash&gt; | 条件 | `causal_refs` 的摘要化形态，高隐私 profile 用以替代明文 `causal_refs`；二者 MUST NOT 同时出现。 |
-| `key_ref.algorithm` | string | 条件 | `mls-rfc9420` scheme 为 `MLS`；`mls-exporter-aead-v1` scheme 为 `MLS-EXPORTER-AEAD`；其他 scheme 必须注册自己的值。 |
+| `key_ref.algorithm` | string | 条件 | `mls_rfc9420` scheme 为 `MLS`；`mls_exporter_aead_v1` scheme 为 `MLS-EXPORTER-AEAD`；其他 scheme 必须注册自己的值。 |
 | `key_ref.group_state_ref` | id:event 或 hash | 是 | 指向 accepted `ak.mls.genesis` / winning `ak.mls.commit` event / 等价 group state proof；用于加速 lookup，不替代 MLS transcript 验证。 |
 | `payload_digest` | hash | 是 | `sha256(payload_metadata_bytes \|\| encrypted_payload_bytes)`；输入定义见 §2.3.3。 |
 | `aad_digest` | hash | 是 | canonical AAD 的 SHA-256。 |
@@ -210,7 +210,7 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 
 ```json
 {
-  "scheme": "mls-rfc9420",
+  "scheme": "mls_rfc9420",
   "version": "1.0",
   "group_id": "base64url",
   "epoch": 12,
@@ -229,10 +229,10 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 ```
 
 3. `payload_metadata_bytes = canonical_json(payload_metadata)`。
-4. `encrypted_payload_bytes = base64url_decode(ciphertext)`。v1 `mls-rfc9420` scheme 下 envelope MUST NOT 携带 `authentication_tag`（见 §2.3.1），故该步骤不追加 tag,`payload_digest` 输入无歧义。
+4. `encrypted_payload_bytes = base64url_decode(ciphertext)`。v1 `mls_rfc9420` scheme 下 envelope MUST NOT 携带 `authentication_tag`（见 §2.3.1），故该步骤不追加 tag,`payload_digest` 输入无歧义。
 5. `payload_digest = "sha256:" + sha256(payload_metadata_bytes || encrypted_payload_bytes)`。
 
-`mls-rfc9420` profile 中，MLS PrivateMessage 本身还必须把 `aad_bytes` 作为 MLS authenticated data 或 profile 声明的等价 authenticated input；`payload_digest` 是 Arkret envelope 的外层完整性检查，不替代 MLS AEAD。
+`mls_rfc9420` profile 中，MLS PrivateMessage 本身还必须把 `aad_bytes` 作为 MLS authenticated data 或 profile 声明的等价 authenticated input；`payload_digest` 是 Arkret envelope 的外层完整性检查，不替代 MLS AEAD。
 
 #### 2.3.4 解密错误处理
 
@@ -264,7 +264,7 @@ late key recovery 接受条件（normative）— 客户端 MUST 全部通过才�
 
 a. **Membership 时点校验**：受影响 event 的 T₀，receiver 在 T₀ 必须确实是该 Realm 的成员（`ak.member.state` 在 T₀ pre-state 下为 join，且不是 ban / leave）。如果 receiver 在 T₀ 不是成员、或当时还未被 invite，late key 解码出的明文 MUST NOT 进入 verified timeline；audit log emit `late_recovery_rejected_membership`。
 b. **Policy 时点校验**：T₀ 处的 Realm policy MUST 允许该 receiver 类别看到该 event（history visibility / disclosure policy 在 T₀ 处）；若 policy 在 T₀ 之后收紧到禁止该 receiver，late material 仍按 T₀ policy 解码（policy 不溯及既往），但 UI MUST 提示"已不在当前 policy 下可见"。
-c. **Key share 来源授权**：late key 提供方 MUST 是 Realm policy 声明的合法 key recovery 源（key backup、archive node、authorized peer）。每条 `ak.realm_key.share` MUST 携带 `source_authorization_ref`，指向在 share Event 的 CBA basis 下有效、明确覆盖 `(source principal/device, recipient principal/device, key_scope, share_class)` 的 policy/grant/authorized-source Control Move；该引用与 `sender_device_signature` 一起进入 canonical Event bytes。Receiver MUST 独立验证引用、签名与当前未撤销设备，缺失或不覆盖时以 `late_recovery_share_not_authorized` 拒绝。裸 `history_secret` 或没有该可验证来源凭证的 P2P 传递不得进入 key store。
+c. **Key share 来源授权**：late key 提供方 MUST 是 Realm policy 声明的合法 key recovery 源（key backup、archive node、authorized peer）。每条 `ak.realm_key.share` MUST 携带 `source_authorization_ref`，指向在 share Event 的 CBA basis 下有效、明确覆盖 `(source principal/device, recipient principal/device, key_scope, share_kind)` 的 policy/grant/authorized-source Control Move；该引用与 `sender_device_signature` 一起进入 canonical Event bytes。Receiver MUST 独立验证引用、签名与当前未撤销设备，缺失或不覆盖时以 `late_recovery_share_not_authorized` 拒绝。裸 `history_secret` 或没有该可验证来源凭证的 P2P 传递不得进入 key store。
 d. **Audit profile 强制**：`ak.profile.attested_audit.e2ee.v1` / `ak.profile.disclosed_audit.e2ee.v1` 下，late_recovered transition MUST 同步 emit `ak.audit.accessed` Event（payload `access_kind="e2ee_late_recovery"`、`late_recovery_original_event_id=<原 event_id>`、当前 receiver actor），并等待 RYW receipt 与正常解码相同的流程；未拿到 receipt MUST NOT 解码。`ak.audit.ryw_receipt` 在 receipt object 上 MAY 标 `recovery_reason_code` = "late_key_arrival"（payload 取值，**不是** error code registry 中的 reason_code；仅用于 audit projection 区分晚到 key 触发的访问与首次访问）。**成员自访问 receipt 类别（normative 澄清）**：此处 late_recovered 所需的 RYW receipt 与该成员**正常解码**所用 receipt 同类（`single_source` / 本地 receipt 即可）；它**不是** [`audited-e2ee.md` §6](./audited-e2ee.md) 的 audit *release* 所要求的 `federation_witness_attested`（≥2 独立 witness）receipt——后者只约束阶段性 release session，MUST NOT 施加到成员对自己在 T₀ 合法可见历史的自访问活性路径，否则离线 / 分区下合法历史恢复将事实不可达。
 e. **Expiry / retention guard**：目标 event 带 disappearing expiry 且当前时间已超过 `expired_at + grace`，或 Realm / retention policy 已要求销毁该 event 的内容 key 时，late key MUST NOT 使 plaintext 进入 `late_recovered`。客户端必须保持 expiry stub / metadata-only 状态并记录 `late_recovery_rejected_expired`；key recovery source 在发放 late material 前也必须执行同一 guard。
 
@@ -843,15 +843,15 @@ Reaction 事件 (`ak.reaction.*`) 的可见性规则：
 
 Reaction 事件的 `aad.event_kind` 始终为明文 (`ak.reaction.add` / `ak.reaction.remove`),以便服务端做 capability fast path 与限流；该明文 kind 不暴露具体 emoji。
 
-### 2.10 可共享历史的内容加密 scheme（`mls-exporter-aead-v1`，normative）
+### 2.10 可共享历史的内容加密 scheme（`mls_exporter_aead_v1`，normative）
 
-默认内容 scheme `mls-rfc9420`（MLS PrivateMessage）提供 per-message 前向安全，但其消息密钥由 MLS secret tree 单向棘轮、用完即焚，**后加入成员在密码学上无法解开 join 前 epoch 的内容**（这是 MLS 前向安全的本质，不是实现缺陷）。需要把历史授权给后加入成员的 Realm，MUST 改用本节定义的 `mls-exporter-aead-v1` scheme：内容用一把**可保留、可重新封装**的 per-epoch `history_secret` 加密，从而能经 `ak.realm_key.share` 合法交付给后加入成员。
+默认内容 scheme `mls_rfc9420`（MLS PrivateMessage）提供 per-message 前向安全，但其消息密钥由 MLS secret tree 单向棘轮、用完即焚，**后加入成员在密码学上无法解开 join 前 epoch 的内容**（这是 MLS 前向安全的本质，不是实现缺陷）。需要把历史授权给后加入成员的 Realm，MUST 改用本节定义的 `mls_exporter_aead_v1` scheme：内容用一把**可保留、可重新封装**的 per-epoch `history_secret` 加密，从而能经 `ak.realm_key.share` 合法交付给后加入成员。
 
-scheme 选择是 Realm policy 字段 `content_scheme`（经 `ak.realm.policy_components` 写入；[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 取 `mls-rfc9420` / `mls-exporter-aead-v1`；缺省时 `encryption_profile=mls_rfc9420` 的 Realm 视为 `mls-rfc9420`），MUST 纳入 MLS governance binding 的 `policy_root`（§2.5.1）。同一 Realm 的 effective content scheme 由该字段在每个 epoch 的 `T0` 决定；不同 epoch 可使用不同 scheme（切换只对其后 epoch 生效，§2.10.6）。每条密文 envelope 自身的 `scheme` 字段记录其所用 scheme，故接收方解密时直接读 envelope，无需回溯 policy。
+scheme 选择是 Realm policy 字段 `content_scheme`（经 `ak.realm.policy_components` 写入；[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 取 `mls_rfc9420` / `mls_exporter_aead_v1`；缺省时 `encryption_profile=mls_rfc9420` 的 Realm 视为 `mls_rfc9420`），MUST 纳入 MLS governance binding 的 `policy_root`（§2.5.1）。同一 Realm 的 effective content scheme 由该字段在每个 epoch 的 `T0` 决定；不同 epoch 可使用不同 scheme（切换只对其后 epoch 生效，§2.10.6）。每条密文 envelope 自身的 `scheme` 字段记录其所用 scheme，故接收方解密时直接读 envelope，无需回溯 policy。
 
-上述缺省值只能在客户端已经验证当前 `ak.realm.create`、且当前 `ak.realm.policy_components` projection 已知不存在覆盖值后应用；“同步尚未给出安全基线”不等于“policy 缺省”。若 initial / incremental sync 尚未提供或验证足以确定 `encryption_profile` 与 effective `content_scheme` 的当前安全基线，加密 producer MUST 暂停并报告 `encryption_policy_pending`，不得猜测 `mls-rfc9420` 后产生与实际 exporter policy 不同的 wire ciphertext。同步服务提供该基线的义务见 [`../sync/client-sync.md`](../sync/client-sync.md) §13。
+上述缺省值只能在客户端已经验证当前 `ak.realm.create`、且当前 `ak.realm.policy_components` projection 已知不存在覆盖值后应用；“同步尚未给出安全基线”不等于“policy 缺省”。若 initial / incremental sync 尚未提供或验证足以确定 `encryption_profile` 与 effective `content_scheme` 的当前安全基线，加密 producer MUST 暂停并报告 `encryption_policy_pending`，不得猜测 `mls_rfc9420` 后产生与实际 exporter policy 不同的 wire ciphertext。同步服务提供该基线的义务见 [`../sync/client-sync.md`](../sync/client-sync.md) §13。
 
-**与 `history_visibility` 的强制联动（normative）**：在 `encryption_profile=mls_rfc9420` 的 Realm 中，`history_visibility ∈ {world_readable, shared, invited}` 表示允许后加入 / 加入前读取历史；这只有在 effective `content_scheme=mls-exporter-aead-v1` 时结构上可实现。若 effective `content_scheme=mls-rfc9420`（包括缺省值）或未声明 history-capable scheme，则该 Realm 只能使用 `history_visibility ∈ {joined, restricted}`。reducer / admission MUST 拒绝任何 `ak.realm.create` bootstrap、`ak.realm.history_visibility` 或 `ak.realm.policy_components` 写入导致的非法有效组合，返回 `failed_precondition`，reason=`history_visibility_requires_history_capable_scheme`。选择 `mls-exporter-aead-v1` 只表示历史在密码学上**可**按 policy 交付，并不自动打开 pre-join delivery；`history_visibility=joined` / `restricted` 仍可与 exporter scheme 同用，以便未来 policy 或 RRK 能力可用但默认不放开历史。
+**与 `history_visibility` 的强制联动（normative）**：在 `encryption_profile=mls_rfc9420` 的 Realm 中，`history_visibility ∈ {world_readable, shared, invited}` 表示允许后加入 / 加入前读取历史；这只有在 effective `content_scheme=mls_exporter_aead_v1` 时结构上可实现。若 effective `content_scheme=mls_rfc9420`（包括缺省值）或未声明 history-capable scheme，则该 Realm 只能使用 `history_visibility ∈ {joined, restricted}`。reducer / admission MUST 拒绝任何 `ak.realm.create` bootstrap、`ak.realm.history_visibility` 或 `ak.realm.policy_components` 写入导致的非法有效组合，返回 `failed_precondition`，reason=`history_visibility_requires_history_capable_scheme`。选择 `mls_exporter_aead_v1` 只表示历史在密码学上**可**按 policy 交付，并不自动打开 pre-join delivery；`history_visibility=joined` / `restricted` 仍可与 exporter scheme 同用，以便未来 policy 或 RRK 能力可用但默认不放开历史。
 
 本 scheme 只选择**内容信封层**的加密方式，与 Realm 级 `encryption_profile`（仍为 `mls_rfc9420`，表示该 Realm 为 MLS-backed）**正交**；§2.4 epoch 推进、§2.4.1 send-pause 与 §2.5 MLS Governance Binding 对本 scheme **照常适用**——ban / revoke / policy 收紧仍须被后续 `ak.mls.commit` 覆盖方对新内容生效。
 
@@ -864,19 +864,19 @@ scheme 选择是 Realm policy 字段 `content_scheme`（经 `ak.realm.policy_com
 
 #### 2.10.2 ciphertext 布局与 AAD（normative）
 
-`ciphertext = base64url(nonce || AEAD_seal(K_content[N], nonce, aad_bytes, plaintext))`。`nonce` 与 AEAD AAD MUST 遵循 [`../conformance/encoding.md`](../conformance/encoding.md) §10.1 的 canonical AEAD nonce / AAD contract——`purpose="mls_exporter_aead_content"`、`device_id` 取作者设备、`aead_profile` 取 ciphersuite AEAD，nonce 为 `sender_nonce_prefix || device_nonce_counter_be64`（per-sender 前缀 + 持久单调计数器，§10.1 保证 `(K_content[N], nonce)` 跨设备唯一、不回退 random）；AEAD AAD 按 §10.1 绑定 `(key_ref, ciphertext_digest, nonce)` 的 canonical 形态并覆盖 §2.3.2 的 `aad_bytes`（routing 元数据）。AEAD tag 含在 seal 输出内，故 `authentication_tag` 字段 MUST NOT 出现（§2.3.1）。`key_ref.algorithm = "MLS-EXPORTER-AEAD"`，`scheme = "mls-exporter-aead-v1"`。`payload_digest` 按 §2.3.3 对 `ciphertext` 字节计算（`scheme` 取本值）。
+`ciphertext = base64url(nonce || AEAD_seal(K_content[N], nonce, aad_bytes, plaintext))`。`nonce` 与 AEAD AAD MUST 遵循 [`../conformance/encoding.md`](../conformance/encoding.md) §10.1 的 canonical AEAD nonce / AAD contract——`purpose="mls_exporter_aead_content"`、`device_id` 取作者设备、`aead_profile` 取 ciphersuite AEAD，nonce 为 `sender_nonce_prefix || device_nonce_counter_be64`（per-sender 前缀 + 持久单调计数器，§10.1 保证 `(K_content[N], nonce)` 跨设备唯一、不回退 random）；AEAD AAD 按 §10.1 绑定 `(key_ref, ciphertext_digest, nonce)` 的 canonical 形态并覆盖 §2.3.2 的 `aad_bytes`（routing 元数据）。AEAD tag 含在 seal 输出内，故 `authentication_tag` 字段 MUST NOT 出现（§2.3.1）。`key_ref.algorithm = "MLS-EXPORTER-AEAD"`，`scheme = "mls_exporter_aead_v1"`。`payload_digest` 按 §2.3.3 对 `ciphertext` 字节计算（`scheme` 取本值）。
 
 发送设备必须把 §10.1 的 counter 状态与 epoch 一起耐久化。设备恢复备份、检测到 counter 丢失/回退、无法证明下一 counter 严格大于该域全部已用值，或接近 `2^64-1` 时 MUST 停止发送并先通过 accepted MLS Commit 推进 epoch；新 epoch 使用新的 exporter prefix 后才可从 0 重新计数。Receiver 必须维护 per-`(key_ref,epoch,device_id,purpose,aead_profile)` replay set 或无误判等价结构；counter rollback/reuse MUST fail closed，且不得用 random nonce 兜底。Conformance suite MUST 覆盖持久化回退与设备备份恢复负例。
 
 接收方 MUST 先按 §2.10.3 验签确定作者设备，再用 `history_secret[N]` 派生 `K_content[N]`、按 §10.1 用作者 `device_id` 重算 `sender_nonce_prefix` 校验 nonce 与 replay、以 `aad_bytes` 为 AEAD AAD 解密；AEAD 校验失败 MUST 按 §2.3.4（`payload_digest_mismatch` / `key_unavailable`）处理，不得把结果纳入 verified timeline。作者设备身份由 §2.10.3 Event 签名与 §10.1 nonce 前缀双重绑定。
 
-**共享 `K_content[N]` 的关键安全前提（normative）**：与标准 MLS（`mls-rfc9420`，每个发送方有独立的 secret-tree 派生 leaf key、AEAD 上下文天然按 leaf 隔离）不同，本 scheme 的 `K_content[N]` 是**全 epoch 成员共享的同一把 AEAD key**。这使 **nonce / prefix 唯一性从"实现细节"上升为关键安全前提**：在共享 key 下，任意两个发送方若复用同一 `(K_content[N], nonce)` 即发生灾难性 AEAD nonce 重用（泄露 keystream / 可伪造）。因此本 scheme 比标准 MLS 更脆——其安全性额外依赖跨设备 nonce 前缀不碰撞。两条 MUST：(1) 发送方按 §10.1 `sender_nonce_prefix || device_nonce_counter_be64` 构造 nonce，per-sender 前缀 + 持久单调计数器保证 `(K_content[N], nonce)` 跨设备唯一、不回退 random；(2) **接收方对 nonce 的 sender prefix 校验 MUST NOT 省略**——接收方 MUST 按 §10.1 用已验签作者 `device_id` 重算期望的 `sender_nonce_prefix` 并逐字节比对密文携带的 nonce 前缀，不匹配 MUST fail closed（按 `payload_digest_mismatch` 处理），以闭合"伪造方借他人 prefix 制造碰撞"的面。prefix 唯一性与碰撞防护的 canonical 契约见 [`../conformance/encoding.md`](../conformance/encoding.md) §10.1。
+**共享 `K_content[N]` 的关键安全前提（normative）**：与标准 MLS（`mls_rfc9420`，每个发送方有独立的 secret-tree 派生 leaf key、AEAD 上下文天然按 leaf 隔离）不同，本 scheme 的 `K_content[N]` 是**全 epoch 成员共享的同一把 AEAD key**。这使 **nonce / prefix 唯一性从"实现细节"上升为关键安全前提**：在共享 key 下，任意两个发送方若复用同一 `(K_content[N], nonce)` 即发生灾难性 AEAD nonce 重用（泄露 keystream / 可伪造）。因此本 scheme 比标准 MLS 更脆——其安全性额外依赖跨设备 nonce 前缀不碰撞。两条 MUST：(1) 发送方按 §10.1 `sender_nonce_prefix || device_nonce_counter_be64` 构造 nonce，per-sender 前缀 + 持久单调计数器保证 `(K_content[N], nonce)` 跨设备唯一、不回退 random；(2) **接收方对 nonce 的 sender prefix 校验 MUST NOT 省略**——接收方 MUST 按 §10.1 用已验签作者 `device_id` 重算期望的 `sender_nonce_prefix` 并逐字节比对密文携带的 nonce 前缀，不匹配 MUST fail closed（按 `payload_digest_mismatch` 处理），以闭合"伪造方借他人 prefix 制造碰撞"的面。prefix 唯一性与碰撞防护的 canonical 契约见 [`../conformance/encoding.md`](../conformance/encoding.md) §10.1。
 
 #### 2.10.3 作者认证（normative）
 
-`mls-exporter-aead-v1` 的内容密钥为**全 epoch 成员共享的对称键**，AEAD 只证明“某成员所为”、**不证明是哪个成员**——`mls-rfc9420` 的发送方 leaf 签名在本 scheme 下不存在。因此内容作者性 MUST 完全由 Event 外层签名承载：
+`mls_exporter_aead_v1` 的内容密钥为**全 epoch 成员共享的对称键**，AEAD 只证明“某成员所为”、**不证明是哪个成员**——`mls_rfc9420` 的发送方 leaf 签名在本 scheme 下不存在。因此内容作者性 MUST 完全由 Event 外层签名承载：
 
-1. 每条 `mls-exporter-aead-v1` 内容事件 MUST 由作者设备签名，签名 MUST 覆盖 `payload_digest`（进而覆盖 `ciphertext`）、`aad`（含 `realm_id`、`event_kind`、epoch）与声称的 `actor_id`。
+1. 每条 `mls_exporter_aead_v1` 内容事件 MUST 由作者设备签名，签名 MUST 覆盖 `payload_digest`（进而覆盖 `ciphertext`）、`aad`（含 `realm_id`、`event_kind`、epoch）与声称的 `actor_id`。
 2. 接收方 MUST 验证该签名链接到 `actor_id` 在事件 `T0` 时当前授权的设备（[`device-lifecycle.md`](./device-lifecycle.md)）；签名缺失 / 无效 / 设备未授权 MUST 拒收，不得纳入 verified timeline。
 3. 客户端 MUST 把展示的作者绑定到**已验证的签名者**，MUST NOT 信任密文明文内自带的任何 `from` / author 字段。
 4. 实现 MUST NOT 把“AEAD 解密成功”本身当作作者证明。
@@ -896,43 +896,43 @@ Receiver MUST 按以下顺序验证：
 
 #### 2.10.4 历史密钥交付（normative）
 
-`mls-exporter-aead-v1` Realm 的历史共享通过 `ak.realm_key.share` 交付 `history_secret`：其 `ciphertext` / `encrypted_key_ref` MUST 为该区间内**每个 epoch 的 `history_secret` 集合**（`{history_secret[from_epoch], …, history_secret[to_epoch]}`，区间见 `key_scope.from_epoch` / `to_epoch`）经 HPKE 封装到接收方公钥的密文，服务器不可解。普通成员设备交付 MUST 使用 `share_class="member_device"`，封装目标是**接收方掌握对应私钥的设备 HPKE 公钥**，并携带 `recipient_device_id`。每条 share 还 MUST 携带 §2.3.5(c) 的 `source_authorization_ref`；发送方设备签名 MUST 覆盖该 ref，receiver 必须在安装 secret 前验证来源授权。注意 MLS KeyPackage init key 的私钥通常不被 MLS 栈暴露供带外解封，故接收设备 SHOULD 发布/广告一把**专用设备 HPKE 公钥**（在 `ak.realm_key.request.recipient_hpke_public_key` 中携带，或预先 publish）供 provider seal，而非依赖 KeyPackage init key。发送前 MUST 通过 [`device-lifecycle.md`](./device-lifecycle.md) §13 的 canonical key-share 资格校验与 [`../governance/history-visibility.md`](../governance/history-visibility.md) §6 判定。接收方安装 `history_secret[N]` 后即可解 epoch-N 的 `decryption_pending` 内容，纳入 §2.3.5 late-recovery 状态机。
+`mls_exporter_aead_v1` Realm 的历史共享通过 `ak.realm_key.share` 交付 `history_secret`：其 `ciphertext` / `encrypted_key_ref` MUST 为该区间内**每个 epoch 的 `history_secret` 集合**（`{history_secret[from_epoch], …, history_secret[to_epoch]}`，区间见 `key_scope.from_epoch` / `to_epoch`）经 HPKE 封装到接收方公钥的密文，服务器不可解。普通成员设备交付 MUST 使用 `share_kind="member_device"`，封装目标是**接收方掌握对应私钥的设备 HPKE 公钥**，并携带 `recipient_device_id`。每条 share 还 MUST 携带 §2.3.5(c) 的 `source_authorization_ref`；发送方设备签名 MUST 覆盖该 ref，receiver 必须在安装 secret 前验证来源授权。注意 MLS KeyPackage init key 的私钥通常不被 MLS 栈暴露供带外解封，故接收设备 SHOULD 发布/广告一把**专用设备 HPKE 公钥**（在 `ak.realm_key.request.recipient_hpke_public_key` 中携带，或预先 publish）供 provider seal，而非依赖 KeyPackage init key。发送前 MUST 通过 [`device-lifecycle.md`](./device-lifecycle.md) §13 的 canonical key-share 资格校验与 [`../governance/history-visibility.md`](../governance/history-visibility.md) §6 判定。接收方安装 `history_secret[N]` 后即可解 epoch-N 的 `decryption_pending` 内容，纳入 §2.3.5 late-recovery 状态机。
 
-`mls-rfc9420`（PrivateMessage）Realm 不具备可交付的 `history_secret`，其 `ak.realm_key.share` 不适用于 join 前内容（那些 epoch 的 secret tree 已焚）。
+`mls_rfc9420`（PrivateMessage）Realm 不具备可交付的 `history_secret`，其 `ak.realm_key.share` 不适用于 join 前内容（那些 epoch 的 secret tree 已焚）。
 
 #### 2.10.5 保留义务与前向安全边界（normative）
 
 - 要充当 epoch-N key source 的成员 MUST 在可分享窗口内保留 `history_secret[N]`，MUST 加密保存（at-rest，置于设备 / 账号 secret 之下），并 MUST 在 Realm / retention policy 要求销毁或 erasure 时删除。
-- **前向安全边界**：`history_secret[N]` 可派生 epoch-N 全部消息键，故 `mls-exporter-aead-v1` 的 FS 粒度为 **per-epoch 而非 per-message**——持有该根期间一次设备失陷暴露整段 epoch。Realm SHOULD 通过缩短 MLS epoch lifetime / 提高 commit 频次限制单 epoch 爆炸半径（与 §2.9 / §5.6 同机制）。
-- **后向安全（PCS）边界（normative）**：标准 MLS（`mls-rfc9420`）的 PCS 保证是：成员设备失陷后，一次后续 Commit（heal）即可让攻击者**失去**对此后 epoch 的解密能力。`mls-exporter-aead-v1` 在**长期保留** `history_secret` 的 epoch 上**削弱**这一保证——只要某 epoch 的 `history_secret[N]` 仍被任何在线 key_source / RRK 持有者保留，对该 root 的失陷就持续暴露该 epoch 内容，后续 Commit 无法 heal 已被保留并泄露的旧 root。因此本 scheme 的 PCS 退化为"**仅对那些未被任何在线 key_source / 持久封存方保留的 epoch 成立**"：已按 §2.10.5 删除 `history_secret[N]` 的 epoch 恢复标准 PCS 语义；仍被保留（为历史共享 / durability）的 epoch 不享有标准 PCS。选择 `mls-exporter-aead-v1` 且保留 `history_secret` 的 Realm MUST 在 policy / UI 披露该 PCS 边界（"被保留 epoch 的历史在 root 失陷下不因后续 Commit 而恢复保护"），MUST NOT 在文案中对这些 epoch 宣称无限定的"强 PCS"。该边界与 §1 的 PCS 主张对齐——§1 的强 PCS 是默认 `mls-rfc9420` 形态的属性，本 scheme 在保留 root 的范围内是其显式限定例外。
-- 不需要历史共享的 `mls-exporter-aead-v1` epoch，key source SHOULD 在该 epoch 关闭且本地内容已落地后删除 `history_secret[N]`，以近似恢复长期前向安全。
-- 选择 `mls-exporter-aead-v1` 的 Realm MUST 在 policy / UI 披露“内容前向安全为 per-epoch 粒度、且历史可被授权后加入者解密”，MUST NOT 在文案中宣称 per-message FS。
-- **踢后不可回收的残留（非保证，normative honesty）**：与 [`audited-e2ee.md` §7](./audited-e2ee.md) 的非保证项同构，本 scheme 明确**不保证**：移除 / ban 一个曾在某 epoch 充当 key_source（或仅作为该 epoch 普通成员而持有 `history_secret[N]`）的成员后，能撤回或销毁该成员设备上**已保留的** `history_secret[N]`。§2.4.1 的 ban / revoke + epoch 推进只保证被移除成员**得不到此后新 epoch 的 group secret**；它**不能**追溯回收对方设备本地已落盘的旧 epoch `history_secret`，因而该成员对其在任期间合法可解的 epoch 区间内容**仍可继续解密**。这是 `mls-exporter-aead-v1`（"可保留、可重新封装"的 per-epoch 根）**固有的代价**——把历史授权给后加入者的能力，与"踢后旧成员对历史立即失能"在密码学上不可兼得。实现 / UI / 采购文案 MUST NOT 声称移除或 ban 会使被移除成员对其曾合法可见的历史内容失去解密能力，也 MUST NOT 把 §2.4.1 的 ban 即时性表述为覆盖旧 epoch 内容。该非保证项与 §2.10.6"关闭只向前 / 已交付 `history_secret` 无法追溯收回"一致。
+- **前向安全边界**：`history_secret[N]` 可派生 epoch-N 全部消息键，故 `mls_exporter_aead_v1` 的 FS 粒度为 **per-epoch 而非 per-message**——持有该根期间一次设备失陷暴露整段 epoch。Realm SHOULD 通过缩短 MLS epoch lifetime / 提高 commit 频次限制单 epoch 爆炸半径（与 §2.9 / §5.6 同机制）。
+- **后向安全（PCS）边界（normative）**：标准 MLS（`mls_rfc9420`）的 PCS 保证是：成员设备失陷后，一次后续 Commit（heal）即可让攻击者**失去**对此后 epoch 的解密能力。`mls_exporter_aead_v1` 在**长期保留** `history_secret` 的 epoch 上**削弱**这一保证——只要某 epoch 的 `history_secret[N]` 仍被任何在线 key_source / RRK 持有者保留，对该 root 的失陷就持续暴露该 epoch 内容，后续 Commit 无法 heal 已被保留并泄露的旧 root。因此本 scheme 的 PCS 退化为"**仅对那些未被任何在线 key_source / 持久封存方保留的 epoch 成立**"：已按 §2.10.5 删除 `history_secret[N]` 的 epoch 恢复标准 PCS 语义；仍被保留（为历史共享 / durability）的 epoch 不享有标准 PCS。选择 `mls_exporter_aead_v1` 且保留 `history_secret` 的 Realm MUST 在 policy / UI 披露该 PCS 边界（"被保留 epoch 的历史在 root 失陷下不因后续 Commit 而恢复保护"），MUST NOT 在文案中对这些 epoch 宣称无限定的"强 PCS"。该边界与 §1 的 PCS 主张对齐——§1 的强 PCS 是默认 `mls_rfc9420` 形态的属性，本 scheme 在保留 root 的范围内是其显式限定例外。
+- 不需要历史共享的 `mls_exporter_aead_v1` epoch，key source SHOULD 在该 epoch 关闭且本地内容已落地后删除 `history_secret[N]`，以近似恢复长期前向安全。
+- 选择 `mls_exporter_aead_v1` 的 Realm MUST 在 policy / UI 披露“内容前向安全为 per-epoch 粒度、且历史可被授权后加入者解密”，MUST NOT 在文案中宣称 per-message FS。
+- **踢后不可回收的残留（非保证，normative honesty）**：与 [`audited-e2ee.md` §7](./audited-e2ee.md) 的非保证项同构，本 scheme 明确**不保证**：移除 / ban 一个曾在某 epoch 充当 key_source（或仅作为该 epoch 普通成员而持有 `history_secret[N]`）的成员后，能撤回或销毁该成员设备上**已保留的** `history_secret[N]`。§2.4.1 的 ban / revoke + epoch 推进只保证被移除成员**得不到此后新 epoch 的 group secret**；它**不能**追溯回收对方设备本地已落盘的旧 epoch `history_secret`，因而该成员对其在任期间合法可解的 epoch 区间内容**仍可继续解密**。这是 `mls_exporter_aead_v1`（"可保留、可重新封装"的 per-epoch 根）**固有的代价**——把历史授权给后加入者的能力，与"踢后旧成员对历史立即失能"在密码学上不可兼得。实现 / UI / 采购文案 MUST NOT 声称移除或 ban 会使被移除成员对其曾合法可见的历史内容失去解密能力，也 MUST NOT 把 §2.4.1 的 ban 即时性表述为覆盖旧 epoch 内容。该非保证项与 §2.10.6"关闭只向前 / 已交付 `history_secret` 无法追溯收回"一致。
 
 #### 2.10.6 生命周期与可逆性（normative）
 
-- **开启可后置**：每个 `mls-exporter-aead-v1` epoch 结构上即可共享，故 Realm MAY 在任意时点放开历史共享 policy；能否真正交付取决于目标 epoch 的 `history_secret` 当时是否被保留（§2.10.5）。
-- **关闭只向前**：收紧 history sharing policy 或切回 `mls-rfc9420` 只对其后 epoch 生效；已交付的 `history_secret` 无法追溯收回，已用 `mls-rfc9420` 焚过的 epoch 无法追溯变为可共享。
+- **开启可后置**：每个 `mls_exporter_aead_v1` epoch 结构上即可共享，故 Realm MAY 在任意时点放开历史共享 policy；能否真正交付取决于目标 epoch 的 `history_secret` 当时是否被保留（§2.10.5）。
+- **关闭只向前**：收紧 history sharing policy 或切回 `mls_rfc9420` 只对其后 epoch 生效；已交付的 `history_secret` 无法追溯收回，已用 `mls_rfc9420` 焚过的 epoch 无法追溯变为可共享。
 - scheme 在不同 epoch 间切换会产生“可共享段 / 不可共享段”交替的 epoch 带，后加入者获得的历史相应出现空洞；实现 SHOULD 能向用户解释该空洞。
 - 关闭 / 切换是 policy Control Move，MUST 由后续 `ak.mls.commit` 覆盖对应 frontier 后方对新内容生效（§2.4.1 / §2.5）。
 
 #### 2.10.7 互操作（normative）
 
-`mls-exporter-aead-v1` 的内容**不是**标准 MLS application message，内容层不与仅支持 `mls-rfc9420` 的 MLS 实现 wire 互通；密钥分发层（KeyPackage / Welcome / Commit / governance binding）仍为标准 MLS。`scheme="mls-exporter-aead-v1"` 已注册进 [`encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json) 的 `scheme` 枚举（与 `key_ref.algorithm="MLS-EXPORTER-AEAD"` 经 schema 的 `if/then` 绑定）；声明本 scheme 的 Realm，其服务端 `ServiceDescribe.supported_features` MUST 列出 `ak.feature.mls_exporter_aead.v1`。
+`mls_exporter_aead_v1` 的内容**不是**标准 MLS application message，内容层不与仅支持 `mls_rfc9420` 的 MLS 实现 wire 互通；密钥分发层（KeyPackage / Welcome / Commit / governance binding）仍为标准 MLS。`scheme="mls_exporter_aead_v1"` 已注册进 [`encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json) 的 `scheme` 枚举（与 `key_ref.algorithm="MLS-EXPORTER-AEAD"` 经 schema 的 `if/then` 绑定）；声明本 scheme 的 Realm，其服务端 `ServiceDescribe.supported_features` MUST 列出 `ak.feature.mls_exporter_aead.v1`。
 
 #### 2.10.8 Realm 恢复密钥（RRK）持久化封存（normative）
 
 §2.10.4 的 `history_secret` 交付依赖**一个活成员**做 key source / re-share；当某 Realm 的全体成员设备失效或全员离职时，该 epoch 的 `history_secret` 不再有任何活着的持有者，密文虽在但永久不可解。这违背企业语境下"数据不丢失"的持久性要求。Realm 持久化策略（[`../models/realm-and-space.md` §2.3 `durability_policy`](../models/realm-and-space.md)）通过把每个 epoch 的 `history_secret` 额外封给一组**离线恢复方（Realm Recovery Key, RRK）**关闭这一暴露面。
 
-适用条件：本节仅对 `content_scheme=mls-exporter-aead-v1` 的 Realm 适用。纯 `mls-rfc9420`（PrivateMessage）Realm 没有可交付的 `history_secret`（§2.10.4），其组织级历史恢复结构上不可达，MUST NOT 声称由 RRK 提供；此类 Realm 的成员级 durable 备份仍走 [`../identity/key-management.md` §7 `mls_history`](../identity/key-management.md)。
+适用条件：本节仅对 `content_scheme=mls_exporter_aead_v1` 的 Realm 适用。纯 `mls_rfc9420`（PrivateMessage）Realm 没有可交付的 `history_secret`（§2.10.4），其组织级历史恢复结构上不可达，MUST NOT 声称由 RRK 提供；此类 Realm 的成员级 durable 备份仍走 [`../identity/key-management.md` §7 `mls_history`](../identity/key-management.md)。
 
 封存义务：
 
-- 当 effective `durability_policy.mode != none` 时，推进 epoch 的 `ak.mls.commit` 提交方 MUST 在该 commit accepted 后、且在按 §2.10.5 删除 `history_secret[N]` **之前**，为 `durability_policy.recovery_recipients[]` 的每个接收方发布一条 `ak.realm_key.share`。该 share MUST 使用 `share_class="realm_recovery_key"`，`recipient_principal_id` 等于该接收方 `principal_id`，`recipient_verification_method` 等于该接收方 `verification_method`，`recovery_recipient_id` 等于该接收方 `recipient_id`，且 MUST NOT 携带 `recipient_device_id`；其 `ciphertext` 按 §2.10.4 把 `history_secret[N]`（或自上次封存以来的 epoch 区间集合）HPKE 封装到该 `verification_method` 所声明的 RRK HPKE 公钥。该封存对接收方而言是 **provider-initiated**（无需接收方在线 claim），与 §2.10.4 的 join-time request/response 路径并存。
+- 当 effective `durability_policy.mode != none` 时，推进 epoch 的 `ak.mls.commit` 提交方 MUST 在该 commit accepted 后、且在按 §2.10.5 删除 `history_secret[N]` **之前**，为 `durability_policy.recovery_recipients[]` 的每个接收方发布一条 `ak.realm_key.share`。该 share MUST 使用 `share_kind="realm_recovery_key"`，`recipient_principal_id` 等于该接收方 `principal_id`，`recipient_verification_method` 等于该接收方 `verification_method`，`recovery_recipient_id` 等于该接收方 `recipient_id`，且 MUST NOT 携带 `recipient_device_id`；其 `ciphertext` 按 §2.10.4 把 `history_secret[N]`（或自上次封存以来的 epoch 区间集合）HPKE 封装到该 `verification_method` 所声明的 RRK HPKE 公钥。该封存对接收方而言是 **provider-initiated**（无需接收方在线 claim），与 §2.10.4 的 join-time request/response 路径并存。
 - **接收方解析与校验**：发送前 MUST 解析每个 `recovery_recipients[].principal_id` 的当前 DID Document，确认 `verification_method` 是该 principal 发布的、被一条 active `ArkretRealmHistoryRecoveryKey` service entry 指定的活跃 verification method（见 [`../identity/identity-did.md` §8.3](../identity/identity-did.md)）；不可解析、已撤销或未被该 service entry 指定时 MUST fail closed（`durability_recovery_recipient_unverified`），MUST NOT 回退到任意公钥。
 - **eager 时序（防 FS-GC 竞态）**：RRK 封存 MUST 是 eager 的。任何成员 MUST NOT 在某 epoch 的全部 `recovery_recipients[]` 封存 `ak.realm_key.share` 被 accepted 落盘（read-your-writes）之前，按 §2.10.5 GC 掉该 epoch 的 `history_secret[N]`；否则崩溃窗口内该 epoch 的组织可恢复性永久丢失。实现遇到"`history_secret` 已不可得但封存尚未完成"的情况 MUST 报 `durability_seal_missing_before_gc` 并保留该 secret 直至封存完成或 policy 不再要求。
 - **接收方的 policy tuple 绑定（normative）**：[`../identity/identity-did.md` §8.3](../identity/identity-did.md) 已要求 receiver 复验历史 RRK 封存时按该 share Event 的 accepted-at 对 DID 做按时点解析，用当时 active 的 RRK 验证；receiver MUST NOT 用接收时的当前 DID Document 覆盖该历史判断。在此之上，receiver 还 MUST 把 share payload 的 `(recovery_recipient_id, recipient_principal_id, recipient_verification_method)` 三元组，与该 Event `seal_ref` 所固定的 CBA / policy basis 上生效的 `durability_policy.recovery_recipients[]` 做**唯一匹配且逐字段相等**的绑定。缺失、多重匹配或任一字段不等 MUST 以 `durability_recovery_recipient_unverified` fail closed。这里 MUST NOT 使用接收时的当前 policy，也 MUST NOT 把 `recipient_verification_method` 加回 cell subject 代替该授权校验——subject 只提供稳定 cell identity，不是接收方授权证据。缺少本条时会留下"VM 在该 principal 的 DID history 中确实有效，但并非该 Realm 当时 policy 登记的 recovery recipient / VM"的替换面。
-- **RRK holder re-share 的 source authorization（normative）**：本节"统一后加入者历史"允许无活成员时由 RRK holder 临时上线 re-seal，但 RRK holder 不是 MLS 成员，也不构成隐式特权。该路径 MUST 机械化为 history-sharing policy 已登记的 `recovery_service` key source（枚举见 [`../governance/history-visibility.md`](../governance/history-visibility.md) 与 `event-payload.schema.json`），并同时满足：source principal MUST 等于该 share CBA / policy basis 上 active 的 `RecoveryRecipient.principal_id`；临时上线的 signer MUST 是该 principal 真实 accepted、未撤销的设备（不要求成为 MLS leaf，但 MUST 通过普通 Event signer / device 验证）；`source_authorization_ref` MUST 指向包含该 RecoveryRecipient 的 accepted durability-policy Control Move，并同时满足 effective history-sharing policy 对 `recovery_service`、目标 receiver、scope 与 epoch range 的授权；发给后加入设备的 Event MUST 使用 `share_class="member_device"` 且 target 是该设备——`realm_recovery_key` 只用于把 epoch secret 封存到 RRK，MUST NOT 反向复用。任一绑定不成立 MUST 以 `late_recovery_share_not_authorized` fail closed。实现 MUST NOT 靠离线 RRK 私钥或伪造 `sender_device_id` 直接 author Realm Event。
+- **RRK holder re-share 的 source authorization（normative）**：本节"统一后加入者历史"允许无活成员时由 RRK holder 临时上线 re-seal，但 RRK holder 不是 MLS 成员，也不构成隐式特权。该路径 MUST 机械化为 history-sharing policy 已登记的 `recovery_service` key source（枚举见 [`../governance/history-visibility.md`](../governance/history-visibility.md) 与 `event-payload.schema.json`），并同时满足：source principal MUST 等于该 share CBA / policy basis 上 active 的 `RecoveryRecipient.principal_id`；临时上线的 signer MUST 是该 principal 真实 accepted、未撤销的设备（不要求成为 MLS leaf，但 MUST 通过普通 Event signer / device 验证）；`source_authorization_ref` MUST 指向包含该 RecoveryRecipient 的 accepted durability-policy Control Move，并同时满足 effective history-sharing policy 对 `recovery_service`、目标 receiver、scope 与 epoch range 的授权；发给后加入设备的 Event MUST 使用 `share_kind="member_device"` 且 target 是该设备——`realm_recovery_key` 只用于把 epoch secret 封存到 RRK，MUST NOT 反向复用。任一绑定不成立 MUST 以 `late_recovery_share_not_authorized` fail closed。实现 MUST NOT 靠离线 RRK 私钥或伪造 `sender_device_id` 直接 author Realm Event。
 - **threshold 模式**：`durability_policy.mode=threshold` 时，封存目标是门限恢复策略的接收方集合；释放（恢复时重建 RRK 私钥）走 [`../identity/key-management.md` §7.5.4 / §8](../identity/key-management.md) 门限 recovery policy，本节只负责按 epoch 把 `history_secret` 封给这些接收方公钥。
 - **存储与恢复读取**：RRK 封存的 `ak.realm_key.share` 是 durable Event，进 Realm 事件日志，服务端以密文存储不可解。组织恢复时按持久化策略取回这些 Event，用 RRK 私钥 HPKE-open 得到各 epoch `history_secret[N]`，再按 §2.10.1 派生 `K_content[N]` 解密历史内容。
 - **统一后加入者历史**：RRK 同时充当 §2.10.4 的"永远在的后备 re-sharer"——常态后加入者仍由活成员 re-share；无活成员时，RRK 持有者临时上线把授权 epoch 区间 re-seal 给新成员。RRK 封存不改变 §2.10.5 的 per-epoch FS 边界对**普通成员**的语义，但**对 RRK 持有者**，持久化封存意味着该 epoch FS 被刻意保留（设计取舍，MUST 按 §2.10.5 与下条披露）。

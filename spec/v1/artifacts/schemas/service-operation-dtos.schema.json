@@ -819,7 +819,7 @@
       "type": "object",
       "required": [
         "focus_id",
-        "type",
+        "backend_kind",
         "connect_url",
         "backend_token",
         "participant_identity",
@@ -832,17 +832,6 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 64
-        },
-        "type": {
-          "type": "string",
-          "description": "Backend binding type identifier (livekit / arkret-native / etc.).",
-          "enum": [
-            "livekit",
-            "mediasoup",
-            "janus",
-            "arkret-native",
-            "moq-relay"
-          ]
         },
         "connect_url": {
           "type": "string",
@@ -936,6 +925,17 @@
               "type": "string"
             }
           }
+        },
+        "backend_kind": {
+          "type": "string",
+          "description": "Backend binding type identifier (livekit / arkret_native / etc.).",
+          "enum": [
+            "livekit",
+            "mediasoup",
+            "janus",
+            "arkret_native",
+            "moq_relay"
+          ]
         }
       },
       "additionalProperties": false
@@ -1141,11 +1141,11 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "service_type",
+        "service_kind",
         "public_base"
       ],
       "properties": {
-        "service_type": {
+        "service_kind": {
           "type": "string",
           "enum": [
             "principal_server",
@@ -1194,7 +1194,7 @@
       "required": [
         "id",
         "type",
-        "serviceType",
+        "serviceKind",
         "serviceEndpoint"
       ],
       "properties": {
@@ -1205,7 +1205,7 @@
         "type": {
           "const": "ArkretService"
         },
-        "serviceType": {
+        "serviceKind": {
           "type": "string",
           "enum": [
             "principal_server",
@@ -1449,14 +1449,14 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "service_type",
+        "service_kind",
         "public_base",
         "inception_operation",
         "idempotency_key"
       ],
       "properties": {
-        "service_type": {
-          "$ref": "#/$defs/ServiceRegistrationKey/properties/service_type"
+        "service_kind": {
+          "$ref": "#/$defs/ServiceRegistrationKey/properties/service_kind"
         },
         "public_base": {
           "$ref": "#/$defs/ServiceRegistrationKey/properties/public_base"
@@ -1790,7 +1790,7 @@
       ],
       "properties": {
         "event": {
-          "$ref": "#/$defs/EventReadItem"
+          "$ref": "#/$defs/EventReadRow"
         },
         "visibility": {
           "type": "object",
@@ -1885,7 +1885,7 @@
         "events": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/EventReadItem"
+            "$ref": "#/$defs/EventReadRow"
           }
         },
         "prev_cursor": {
@@ -2319,7 +2319,7 @@
           "type": "object",
           "required": [
             "service_id",
-            "service_type",
+            "service_kind",
             "signed_transport"
           ],
           "properties": {
@@ -2327,7 +2327,7 @@
               "type": "string",
               "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
             },
-            "service_type": {
+            "service_kind": {
               "type": "string"
             },
             "source_ip_digest": {
@@ -3225,7 +3225,7 @@
         }
       ]
     },
-    "EventsActorCasConflictDetails": {
+    "EventsActorCasConflictProblem": {
       "type": "object",
       "description": "Closed details for an authenticated, visible actor-chain cas_conflict that proves the submitted Event was not accepted and its signed basis is stale.",
       "required": [
@@ -3337,7 +3337,7 @@
       },
       "additionalProperties": false
     },
-    "EventReadItem": {
+    "EventReadRow": {
       "description": "A readable event item. Complete EventEnvelope is the only reducer input shape. RedactedEventView and ReferenceLockedEventStub are projection/completeness evidence for callers that may know the source event exists but may not receive its full canonical payload bytes.",
       "oneOf": [
         {
@@ -3540,7 +3540,7 @@
         "realm_policy_digest",
         "membership_frontier",
         "delivery_binding_frontier",
-        "destination_service_type",
+        "destination_service_kind",
         "reducer_profile_digest"
       ],
       "properties": {
@@ -3569,7 +3569,7 @@
           "type": "object",
           "additionalProperties": true
         },
-        "destination_service_type": {
+        "destination_service_kind": {
           "type": "string",
           "minLength": 1
         },
@@ -3718,7 +3718,7 @@
       "required": [
         "morph_id",
         "realm_id",
-        "morph_type",
+        "morph_kind",
         "state"
       ],
       "properties": {
@@ -3729,7 +3729,7 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "morph_type": {
+        "morph_kind": {
           "type": "string"
         },
         "title": {

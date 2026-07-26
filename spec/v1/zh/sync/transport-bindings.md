@@ -72,7 +72,7 @@ libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供
 
 ## 4. Canonical Operation IDs
 
-Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#operation_registry` 中定义的 canonical `operation_id`。`artifacts/registry/operation-registry.json` 是实现可直接消费的生成视图。取值使用 `ak.<namespace>.<lower_snake_case>`。下表只是核心示例；完整集合以 generated registry 为准，OpenAPI、gRPC、MQ、SSE、WebSocket 和 libp2p binding 均不得声明 catalog 中不存在的 operation。
+Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#operation_registry` 中定义的 canonical `operation_id`。`artifacts/registry/operation-registry.json` 是实现可直接消费的生成视图。取值使用 `ak.<namespace>.<lower_snake_case>`。下表只是核心示例；完整集合以 generated registry 为准，OpenAPI、gRPC、MQ、SSE、WebSocket 和 libp2p binding 均不得声明 catalog 中不存在的 operation。
 
 | Operation | 语义 |
 | --- | --- |
@@ -169,7 +169,7 @@ transport MUST 各自通过 binding profile 单独 normative 化。
 
 ```json
 {
-  "service_type": "principal_server",
+  "service_kind": "principal_server",
   "service_id": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
   "supported_bindings": [
     {

@@ -99,7 +99,7 @@
         "failed"
       ]
     },
-    "failure_code": {
+    "failure_reason_code": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,63}$"
     },
@@ -125,7 +125,7 @@
       },
       "then": {
         "required": [
-          "failure_code",
+          "failure_reason_code",
           "terminal_event_id"
         ],
         "properties": {
@@ -157,7 +157,7 @@
         },
         "not": {
           "required": [
-            "failure_code"
+            "failure_reason_code"
           ]
         }
       }
@@ -200,7 +200,7 @@
           "anyOf": [
             {
               "required": [
-                "failure_code"
+                "failure_reason_code"
               ]
             },
             {

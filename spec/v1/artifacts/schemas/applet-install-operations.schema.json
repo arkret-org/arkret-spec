@@ -65,10 +65,10 @@
       "type": "object",
       "required": [
         "approve_actions",
-        "allow_ghost_actors",
-        "allow_delegated_native_actors",
-        "allow_e2ee_join",
-        "allow_widget"
+        "ghost_actors_allowed",
+        "delegated_native_actors_allowed",
+        "e2ee_join_allowed",
+        "widget_allowed"
       ],
       "properties": {
         "approve_actions": {
@@ -79,16 +79,16 @@
           "minItems": 1,
           "uniqueItems": true
         },
-        "allow_ghost_actors": {
+        "ghost_actors_allowed": {
           "type": "boolean"
         },
-        "allow_delegated_native_actors": {
+        "delegated_native_actors_allowed": {
           "type": "boolean"
         },
-        "allow_e2ee_join": {
+        "e2ee_join_allowed": {
           "type": "boolean"
         },
-        "allow_widget": {
+        "widget_allowed": {
           "type": "boolean"
         }
       },
@@ -119,7 +119,7 @@
     "e2ee_policy": {
       "type": "object",
       "properties": {
-        "allow_mls_join": {
+        "mls_join_allowed": {
           "type": "boolean"
         }
       },
@@ -128,7 +128,7 @@
     "widget_policy": {
       "type": "object",
       "properties": {
-        "allow_widget": {
+        "widget_allowed": {
           "type": "boolean"
         }
       },

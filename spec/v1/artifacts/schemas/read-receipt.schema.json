@@ -10,7 +10,7 @@
   "description": "Public/shared read receipt for Strand timeline UI hint. NOT canonical truth, NOT a multi-device cursor (see read-cursor.schema.json for that). MUST NOT generate push notifications. Privacy is governed by Realm policy: Realms MAY allow public, members-only, or actor-private receipt sharing.",
   "type": "object",
   "required": [
-    "receipt_type",
+    "receipt_kind",
     "schema",
     "realm_id",
     "actor_id",
@@ -19,7 +19,7 @@
     "created_at"
   ],
   "properties": {
-    "receipt_type": {
+    "receipt_kind": {
       "const": "read"
     },
     "schema": {
