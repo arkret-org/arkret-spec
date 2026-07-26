@@ -1125,6 +1125,7 @@ components:
               - cas_conflict
               - causal_conflict
               - dependency_missing
+              - federation_dependencies_pending
               - discussion_track_disabled
               - track_disabled
               - selector_too_complex

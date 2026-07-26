@@ -1869,6 +1869,32 @@
       ]
     },
     {
+      "vector_id": "ak.vector.federation.seal_prerequisite_closure.v1",
+      "status": "active",
+      "domain": "federation",
+      "applies_to_fixtures": [
+        "federation-fixture.json"
+      ],
+      "description": "Federation push carries one Realm's minimal receiver-relative, strictly ordered Seal prerequisite closure rooted at DataEvent seal_ref and Control Event seal_basis leaves on the sole peer events rail; receivers resolve Control Events and basis Seals topologically before DataEvents without granting same-batch unsealed authority or advancing actor frontiers.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/federation-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.federation.seal_partial_retry.v1",
+      "status": "active",
+      "domain": "federation",
+      "applies_to_fixtures": [
+        "federation-fixture.json"
+      ],
+      "description": "Ordinary dependency gaps are per-item HTTP 200 partial outcomes while registered founding units remain atomic 503; retry identity changes exactly when the canonical body is reduced after accepted or duplicate items.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/federation-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.strand_tracks_update.atomic.v1",
       "status": "active",
       "domain": "strand_tracks_update",

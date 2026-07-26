@@ -392,6 +392,12 @@
       "description": "A required dependency is missing and may be recoverable via backfill or retry."
     },
     {
+      "code": "federation_dependencies_pending",
+      "http_status": 503,
+      "scope": "both",
+      "description": "A federation transaction lacks an Event, Seal, Seal predecessor, or Seal-covered Control Event required for verification. At top level this code is reserved for a registered atomic unit such as Realm founding and guarantees that no member of the unit was persisted. Ordinary federation batches report the dual-registered per-item reason in an HTTP 200 partial outcome instead."
+    },
+    {
       "code": "discussion_track_disabled",
       "http_status": 409,
       "scope": "both",
@@ -1616,6 +1622,14 @@
     }
   ],
   "reason_codes": [
+    {
+      "code": "federation_dependencies_pending",
+      "applies_to": [
+        "batch_item",
+        "federation_transaction"
+      ],
+      "description": "The individual federation Event cannot yet be verified because a required Event or signed Seal closure element is absent. This is retryable after bounded dependency backfill; it is not a permanent authorization denial. Independent complete items in an ordinary batch remain eligible for acceptance. Dual-registered as a reason_code and a top-level service code (see codes[])."
+    },
     {
       "code": "capability_registry_basis_unavailable",
       "applies_to": [

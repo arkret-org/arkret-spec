@@ -788,6 +788,7 @@
       "operation_id": "ak.peer.events.command.submit",
       "http_alias": "POST /_arkret/peer/events",
       "operation_specific": [
+        "federation_dependencies_pending",
         "duplicate_conflict",
         "failed_precondition",
         "expired_invite_token",

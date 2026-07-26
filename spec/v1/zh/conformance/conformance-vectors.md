@@ -5229,3 +5229,21 @@ Expected:
 - 缺失 component、未登记 `envelope.*`、裸字段来源、object/array/小数终点、以及 schema 不允许 null 的字段实际取 null，均 MUST `schema_violation`。
 - payload 中出现同名 `actor_id` 不得遮蔽 `envelope.actor_id`；components 重排 MUST 产生不同 subject。
 - 因果后继 status 支配旧 head；真正并发的不同 status 暴露多个 heads。交换两条并发 Event 的 HLC 大小不得改变 join 结果。
+
+### 23.12 Federation Seal 前置闭包与 partial retry
+
+`vector_id`: `ak.vector.federation.seal_prerequisite_closure.v1`、`ak.vector.federation.seal_partial_retry.v1`
+
+Steps:
+
+1. 在 receiver 已有零个、部分或全部 predecessor Seal 的三种状态下，提交同一 Realm 的 `旧 Control Event → Seal S0 → 以 S0 为 seal_basis 的新 Control Event → Seal S1 → 引用 S1 的 DataEvent`，闭包根为 `seal_basis.leaves[] ∪ seal_ref`，并按 `(notary_seq,id)` 严格升序。
+2. 分别删除 target Seal、一个 receiver 不持有的 predecessor、一个 Seal delta 覆盖的 Control Event；构造“Control Event 的 basis 根 Seal 反向覆盖该 Event 自身”的循环；再分别篡改 signature、Realm、任一 root，并构造乱序、重复、无关 Seal。
+3. 构造一个完整独立 Event 与一个缺依赖 Event 的普通批次、全缺依赖普通批次，以及缺依赖的注册 founding unit；按返回的 `accepted[] ∪ duplicate[]` 重组 retry。
+
+Expected:
+
+- 正例 MUST 按依赖拓扑交替接受 Control Event 与投影其 basis/后继 Seal，最后验证 DataEvent；只携带 `seal_ref` 闭包而遗漏新 Control Event 所需的非本地 `seal_basis` 根 MUST pending。Seal transport 本身不得推进任何 actor frontier。
+- 缺 Event / target Seal / 非本地 predecessor / delta Control Event 是逐项 `federation_dependencies_pending`；Event/Seal 循环必须永久 `schema_violation`；signature、Realm、ID 或 root 不匹配是永久失败，不得伪装为 pending。
+- 普通批次 MUST 继续接受独立完整项并返回 HTTP 200 `partial`；全 pending 仍为 `partial` 且允许 `accepted[]` / `duplicate[]` 为空。注册 founding unit MUST 零写入并整体返回 HTTP 503。
+- 同批未 sealed grant 不得授权后续 DataEvent。receiver 不得通过静默排序、去重或丢弃无关 Seal 修复非法 wire。
+- 已有 accepted / duplicate 时 retry MUST 只含待处理项，使用新 `Idempotency-Key` 并重算两个 digest 与签名；没有任何成功项且全部 pending 时才可在补齐依赖后复用相同 body/key。所有自动 retry 必须有界。

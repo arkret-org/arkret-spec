@@ -50,7 +50,7 @@
         "field": "resolved_digest_input",
         "recompute_from_local_contracts": true
       },
-      "expected_digest": "sha256:64b4282fd2cccf6149b4ef24fe5678ec22545cbdf4796cf35d5c169094dad36b",
+      "expected_digest": "sha256:87f5ae68216eb55ee57625e64b455c8917ec8344aaea97d454674f11f48a6a4b",
       "mutation_cases": [
         {
           "name": "event_kind_contract_content_changes",
@@ -176,6 +176,112 @@
         "beta_event_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
       },
       "expected": "divergent_realm_history_quarantined"
+    },
+    {
+      "name": "seal_prerequisite_closure",
+      "vector_id": "ak.vector.federation.seal_prerequisite_closure.v1",
+      "request_contract": {
+        "single_realm": true,
+        "event_count_range": [
+          1,
+          500
+        ],
+        "event_phase_order": [
+          "control",
+          "data"
+        ],
+        "seal_count_range": [
+          0,
+          4096
+        ],
+        "seal_order": [
+          "notary_seq",
+          "id"
+        ],
+        "seal_ids_unique": true,
+        "closure": "minimal_relative_to_receiver_accepted_seals_rooted_at_seal_ref_and_seal_basis_leaves",
+        "body_contains_idempotency_key": false
+      },
+      "cases": [
+        {
+          "case": "complete_control_seal_data_closure",
+          "expected": "control_and_basis_seals_resolved_topologically_then_data_events_verified"
+        },
+        {
+          "case": "missing_control_seal_basis_leaf",
+          "expected": "item_rejected_federation_dependencies_pending"
+        },
+        {
+          "case": "missing_target_seal",
+          "expected": "item_rejected_federation_dependencies_pending"
+        },
+        {
+          "case": "missing_nonlocal_predecessor",
+          "expected": "item_rejected_federation_dependencies_pending"
+        },
+        {
+          "case": "missing_seal_delta_control_event",
+          "expected": "item_rejected_federation_dependencies_pending"
+        },
+        {
+          "case": "event_seal_dependency_cycle",
+          "expected": "permanent_schema_violation"
+        },
+        {
+          "case": "invalid_seal_signature",
+          "expected": "permanent_signature_invalid"
+        },
+        {
+          "case": "cross_realm_event_or_seal",
+          "expected": "permanent_schema_or_realm_mismatch"
+        },
+        {
+          "case": "invalid_seal_root",
+          "expected": "permanent_state_mismatch"
+        },
+        {
+          "case": "unrelated_or_unsorted_or_duplicate_seal",
+          "expected": "request_schema_violation_without_receiver_reordering"
+        },
+        {
+          "case": "same_batch_unsealed_grant_then_data_event",
+          "expected": "grant_not_visible_for_data_event_authorization"
+        },
+        {
+          "case": "seal_transport",
+          "expected": "no_actor_frontier_advance"
+        }
+      ]
+    },
+    {
+      "name": "seal_prerequisite_partial_retry",
+      "vector_id": "ak.vector.federation.seal_partial_retry.v1",
+      "cases": [
+        {
+          "case": "ordinary_batch_independent_success_and_pending",
+          "expected": "http_200_partial_with_success_accounted_and_pending_reason"
+        },
+        {
+          "case": "ordinary_batch_all_pending",
+          "expected": "http_200_partial_with_empty_accepted_and_duplicate"
+        },
+        {
+          "case": "atomic_founding_unit_pending",
+          "expected": "http_503_federation_dependencies_pending_with_zero_writes"
+        },
+        {
+          "case": "partial_retry_after_any_success",
+          "expected": "new_body_pending_only_new_idempotency_key_and_resigned_digests"
+        },
+        {
+          "case": "all_pending_retry",
+          "expected": "same_body_and_idempotency_key_allowed_after_backfill"
+        },
+        {
+          "case": "retry_budget_exhausted",
+          "expected": "operator_diagnostic_without_unbounded_retry"
+        }
+      ]
     },
     {
       "name": "pull_authorization",

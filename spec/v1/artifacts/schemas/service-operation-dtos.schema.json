@@ -3505,9 +3505,11 @@
         "events": {
           "type": "array",
           "minItems": 1,
+          "maxItems": 500,
           "items": {
             "$ref": "#/$defs/EventSubmitEnvelope"
-          }
+          },
+          "description": "One Realm-scoped federation transaction. Every Event realm_id MUST equal service_binding_ref.realm_id. Control-plane Events MUST precede data-plane Events; relative order within each phase is preserved."
         },
         "seals": {
           "type": "array",
@@ -3515,7 +3517,7 @@
           "items": {
             "$ref": "./seal.schema.json"
           },
-          "description": "Signed Seal ancestry required to verify events[].seal_ref. These transport prerequisites remain inside the single ak.peer.events.command.submit rail; receivers independently verify and project each Seal only after its covered Control Events are accepted."
+          "description": "Minimal receiver-relative signed Seal closure rooted at DataEvent events[].seal_ref and Control Event events[].seal_basis.leaves[]. Items MUST be unique and strictly ordered by (notary_seq, id). An omitted predecessor MUST already be accepted by the receiver; unrelated Seal disclosure is invalid. These transport prerequisites remain inside the single ak.peer.events.command.submit rail; receivers independently verify and project each Seal only after its covered Control Events are accepted."
         },
         "signer_key_evidence": {
           "type": "array",
