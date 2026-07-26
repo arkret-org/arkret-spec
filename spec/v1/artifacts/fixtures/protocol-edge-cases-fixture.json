@@ -24,7 +24,8 @@
     "ak.vector.invite.membership_transition_atomicity.v1",
     "ak.vector.join_policy.gate_axis_orthogonality.v1",
     "ak.vector.invite.quarantine_disclosure_indistinguishable.v1",
-    "ak.vector.invite.claim_expiry_canonical_time.v1"
+    "ak.vector.invite.claim_expiry_canonical_time.v1",
+    "ak.vector.device_pairing.challenge_transcript.v1"
   ],
   "cases": [
     {
@@ -464,6 +465,38 @@
         "all clock variants and the backfill replay produce identical outcome and identical invite cell value",
         "the rejected claim writes no shared effect",
         "pending to expired must come from a separate accepted ak.invite.revoke Control Move"
+      ]
+    },
+    {
+      "name": "device_pairing_challenge_transcript",
+      "vector_id": "ak.vector.device_pairing.challenge_transcript.v1",
+      "variants": [
+        "complete_stage_resolve_gate_round_trip",
+        "gate_audience_mismatch",
+        "request_canonical_digest_mismatch",
+        "stale_pairing_code",
+        "cross_request_replay",
+        "expired_challenge",
+        "public_key_mutation",
+        "invalid_signature",
+        "verification_method_key_mismatch",
+        "cross_path_proof_replay",
+        "legacy_public_key_shape",
+        "stage_request_carries_challenge_proof",
+        "gate_path_selector_xor_violation"
+      ],
+      "expected": {
+        "positive_decision": "accept",
+        "negative_decision": "reject",
+        "transcript": "ak.device-pairing.challenge.v1",
+        "public_key_canonical_bytes": "stable"
+      },
+      "assertions": [
+        "the verifier independently rebuilds the complete challenge transcript before signature verification",
+        "new_device_pubkey canonical bytes and digest remain identical across stage, resolve and gate",
+        "stage accepts only the canonical PublicKey shape and rejects a challenge proof minted before server challenge material exists",
+        "the gate request selects exactly one staged or to-device transcript path",
+        "the to-device path binds gate_audience to the Account Authority origin rather than requester-controlled input"
       ]
     }
   ]

@@ -194,7 +194,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "7fc2d9431af364fd1177204821439a17065d29ae64d0d17c06327e6a8b5acb1c"
+      "sha256": "e27f20e64cf7ef99821ac257a9d84c62b0a6fa3e787c71c2bce87b3b309a84b6"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-rule-core-fixture.json",

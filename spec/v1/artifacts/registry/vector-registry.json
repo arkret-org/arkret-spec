@@ -4263,8 +4263,7 @@
       "scope": "universal",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-        "spec/v1/artifacts/fixtures/security-closure-fixture.json"
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
       ]
     },
     {
@@ -4274,7 +4273,8 @@
       "scope": "universal",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/crypto-media/device-lifecycle.md"
+        "spec/v1/zh/crypto-media/device-lifecycle.md",
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
       ]
     }
   ]
