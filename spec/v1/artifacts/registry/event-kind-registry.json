@@ -2416,8 +2416,11 @@
         {
           "cell_family": "ak.component.relation.v1",
           "cell_subject": {
-            "kind": "id:relation",
-            "field": "payload.object.id"
+            "kind": "coalesce",
+            "fields": [
+              "payload.relation.id",
+              "payload.relation_id"
+            ]
           },
           "lattice": "mv_register",
           "bottom": "expose"
@@ -2425,8 +2428,11 @@
       ],
       "cell_family": "ak.component.relation.v1",
       "cell_subject": {
-        "kind": "id:relation",
-        "field": "payload.object.id"
+        "kind": "coalesce",
+        "fields": [
+          "payload.relation.id",
+          "payload.relation_id"
+        ]
       },
       "lattice": "mv_register",
       "bottom": "expose"
@@ -3066,7 +3072,7 @@
             "kind": "composite",
             "components": [
               "payload.target_realm_id",
-              "payload.profile_id"
+              "payload.target_ref"
             ]
           },
           "lattice": "cas_register",
@@ -3078,7 +3084,7 @@
         "kind": "composite",
         "components": [
           "payload.target_realm_id",
-          "payload.profile_id"
+          "payload.target_ref"
         ]
       },
       "lattice": "cas_register",

@@ -2172,6 +2172,277 @@
       },
       "additionalProperties": false
     },
+    "resource_discovery_state_payload": {
+      "type": "object",
+      "description": "State payload for actor, applet, and handle discovery declarations. resource_id is the stable cell subject; value carries the schema-versioned discovery state.",
+      "required": [
+        "resource_id"
+      ],
+      "properties": {
+        "resource_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "value": {},
+        "state": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "organization_discovery_state_payload": {
+      "type": "object",
+      "description": "State payload for an Organization discovery declaration. organization_did is the stable cell subject.",
+      "required": [
+        "organization_did"
+      ],
+      "properties": {
+        "organization_did": {
+          "$ref": "#/$defs/did"
+        },
+        "value": {},
+        "state": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "organization_moderation_policy_state_payload": {
+      "type": "object",
+      "description": "Organization moderation-policy state. A producer identifies the Organization by exactly one canonical DID or typed Organization id; the first present identifier is the registered coalesce subject.",
+      "oneOf": [
+        {
+          "required": [
+            "organization_did"
+          ],
+          "not": {
+            "required": [
+              "organization_id"
+            ]
+          }
+        },
+        {
+          "required": [
+            "organization_id"
+          ],
+          "not": {
+            "required": [
+              "organization_did"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "organization_did": {
+          "$ref": "#/$defs/did"
+        },
+        "organization_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "value": {},
+        "state": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "did_proof_state_payload": {
+      "type": "object",
+      "description": "Identity proof-log state payload. did is the proof-log cell subject.",
+      "required": [
+        "did"
+      ],
+      "properties": {
+        "did": {
+          "$ref": "#/$defs/did"
+        },
+        "value": {},
+        "state": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "identity_disclosure_policy_state_payload": {
+      "type": "object",
+      "description": "Identity disclosure-policy state payload. policy_id is the stable policy cell subject.",
+      "required": [
+        "policy_id"
+      ],
+      "properties": {
+        "policy_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "value": {},
+        "state": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "identity_disclosure_receipt_state_payload": {
+      "type": "object",
+      "description": "Identity disclosure-receipt log payload. holder_did is the stable log subject.",
+      "required": [
+        "holder_did"
+      ],
+      "properties": {
+        "holder_did": {
+          "$ref": "#/$defs/did"
+        },
+        "value": {},
+        "state": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "identity_presentation_request_state_payload": {
+      "type": "object",
+      "description": "Identity presentation-request log payload. request_id is the stable presentation correlation subject.",
+      "required": [
+        "request_id"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "value": {},
+        "state": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "identity_presentation_response_state_payload": {
+      "$ref": "#/$defs/identity_presentation_request_state_payload"
+    },
+    "schema_define_state_payload": {
+      "type": "object",
+      "description": "Schema definition state payload. schema_id is the stable definition cell subject.",
+      "required": [
+        "schema_id"
+      ],
+      "properties": {
+        "schema_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "value": {},
+        "state": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "schema_update_state_payload": {
+      "$ref": "#/$defs/schema_define_state_payload"
+    },
+    "policy_set_state_payload": {
+      "type": "object",
+      "description": "Policy definition state payload. policy_id is the stable policy cell subject.",
+      "required": [
+        "policy_id"
+      ],
+      "properties": {
+        "policy_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "value": {},
+        "state": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "policy_action_state_payload": {
+      "type": "object",
+      "description": "Policy action-log payload. Exactly one policy_id or action_id is present and becomes the registered coalesce subject.",
+      "oneOf": [
+        {
+          "required": [
+            "policy_id"
+          ],
+          "not": {
+            "required": [
+              "action_id"
+            ]
+          }
+        },
+        {
+          "required": [
+            "action_id"
+          ],
+          "not": {
+            "required": [
+              "policy_id"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "policy_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "action_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "value": {},
+        "state": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sovereign_did_policy_state_payload": {
+      "type": "object",
+      "description": "Sovereign DID policy state payload. trust_domain is the deployment-scoped replay-boundary subject.",
+      "required": [
+        "trust_domain"
+      ],
+      "properties": {
+        "trust_domain": {
+          "type": "string",
+          "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
+        },
+        "value": {},
+        "state": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
     "history_visibility_value": {
       "type": "string",
       "enum": [
@@ -4277,23 +4548,56 @@
     },
     "relation_create_payload": {
       "type": "object",
-      "anyOf": [
+      "oneOf": [
         {
           "required": [
             "relation"
-          ]
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "relation_id"
+                ]
+              },
+              {
+                "required": [
+                  "kind"
+                ]
+              },
+              {
+                "required": [
+                  "from_ref"
+                ]
+              },
+              {
+                "required": [
+                  "to_ref"
+                ]
+              }
+            ]
+          }
         },
         {
           "required": [
+            "relation_id",
             "kind",
             "from_ref",
             "to_ref"
-          ]
+          ],
+          "not": {
+            "required": [
+              "relation"
+            ]
+          }
         }
       ],
       "properties": {
         "relation": {
           "$ref": "#/$defs/object_snapshot"
+        },
+        "relation_id": {
+          "$ref": "#/$defs/relation_id"
         },
         "kind": {
           "type": "string",

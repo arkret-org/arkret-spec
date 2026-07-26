@@ -222,6 +222,32 @@
       ]
     },
     {
+      "vector_id": "ak.vector.realm_key.withheld_policy_basis.v1",
+      "status": "active",
+      "domain": "realm_key",
+      "applies_to_fixtures": [
+        "state-reducer-hardening-fixture.json"
+      ],
+      "description": "Binds every durable member-device withheld reason to the unique refusal-policy root and source authorization at the Event CBA/T0 basis; receiver-current, zero, ambiguous, stale, or wrong-scope substitutes fail closed without a terminal projection.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.realm_key.share_sender_signature.v1",
+      "status": "active",
+      "domain": "realm_key",
+      "applies_to_fixtures": [
+        "state-reducer-hardening-fixture.json"
+      ],
+      "description": "Byte-exact member-device and RRK sender-proof transcripts with omitted inactive branches/material/options; cross-target, double/missing material, field tampering, and sender-device key mismatch fail closed.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.scalability.circle_count_limit.v1",
       "status": "active",
       "domain": "scalability",

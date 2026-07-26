@@ -8,6 +8,8 @@
   },
   "covers_vectors": [
     "ak.vector.event_kind.cell_contract_closure.v1",
+    "ak.vector.realm_key.share_sender_signature.v1",
+    "ak.vector.realm_key.withheld_policy_basis.v1",
     "ak.vector.patch.atomic_application.v1",
     "ak.vector.patch.effects_prestate_binding.v1",
     "ak.vector.state_root.incremental.v1",
@@ -71,8 +73,107 @@
             "decision": "reject",
             "reason": "plane_cross_write"
           }
+        },
+        {
+          "name": "realm_key_delivery_variants_recompute_cell_and_value",
+          "event_kinds": [
+            "ak.realm_key.share",
+            "ak.realm_key.withheld"
+          ],
+          "positive_variants": [
+            "member_device_share",
+            "realm_recovery_key_share",
+            "member_device_withheld"
+          ],
+          "assertions": [
+            "subject_components_are_share_kind_principal_target_and_effective_scope",
+            "component_order_is_exact",
+            "recovery_recipient_id_is_not_unicode_normalized_or_case_folded",
+            "effect_cell_is_recomputed_from_schema_selected_components",
+            "append_value_is_recomputed_from_registered_value_projection",
+            "ciphertext_material_uses_decoded_bytes_digest",
+            "encrypted_key_ref_material_uses_canonical_json_digest"
+          ],
+          "negative_mutations": [
+            "missing_share_kind",
+            "selected_target_missing",
+            "cross_variant_target_present",
+            "recovery_recipient_id_spoofs_device_id_without_share_kind_domain_separator",
+            "effective_scope_kind_id_mismatch",
+            "circle_id_from_other_realm",
+            "component_reordered",
+            "producer_selected_wrong_cell",
+            "append_value_missing",
+            "append_value_member_missing",
+            "append_value_payload_projection_mismatch",
+            "unicode_composed_and_decomposed_recipient_ids_collapsed",
+            "recipient_id_case_folded"
+          ],
+          "expected": {
+            "positive_decision": "accept",
+            "negative_decision": "reject",
+            "negative_reason": "effects_payload_mismatch"
+          }
         }
       ]
+    },
+    {
+      "vector_id": "ak.vector.realm_key.withheld_policy_basis.v1",
+      "reason_codes": [
+        "unverified_device",
+        "blacklisted_device",
+        "not_member",
+        "history_not_visible",
+        "policy_denied",
+        "unknown_session"
+      ],
+      "positive_assertion": "policy_digest equals the unique effective refusal-policy root at the Event CBA/T0 basis and source_authorization_ref covers the exact recipient, device, scope, and decision",
+      "negative_mutations": [
+        "policy_digest_missing",
+        "policy_digest_wrong",
+        "policy_digest_expired",
+        "receiver_current_policy_root_substituted",
+        "zero_policy_digest_placeholder",
+        "ambiguous_effective_policy_root",
+        "source_authorization_ref_missing",
+        "source_authorization_ref_wrong_scope",
+        "source_authorization_ref_wrong_device"
+      ],
+      "expected": {
+        "positive_decision": "accept",
+        "negative_decision": "reject",
+        "negative_reason": "late_recovery_share_not_authorized",
+        "terminal_projection_on_reject": false
+      }
+    },
+    {
+      "vector_id": "ak.vector.realm_key.share_sender_signature.v1",
+      "context": "ak.realm-key-share-sender-proof-v1",
+      "positive_variants": [
+        "member_device",
+        "realm_recovery_key"
+      ],
+      "canonicalization": {
+        "encoding": "canonical_json_utf8",
+        "unselected_branch_fields": "omit",
+        "unselected_material_field": "omit",
+        "absent_optional_fields": "omit"
+      },
+      "negative_mutations": [
+        "unselected_target_written_as_null",
+        "cross_variant_target_present",
+        "ciphertext_and_encrypted_key_ref_both_present",
+        "material_missing",
+        "expires_at_tampered",
+        "source_authorization_ref_tampered",
+        "key_scope_tampered",
+        "signature_kid_sender_device_mismatch"
+      ],
+      "expected": {
+        "positive_decision": "signature_valid",
+        "negative_decision": "reject",
+        "negative_reason": "invalid_signature"
+      }
     },
     {
       "vector_id": "ak.vector.state_root.incremental.v1",

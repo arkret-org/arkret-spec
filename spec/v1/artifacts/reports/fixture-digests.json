@@ -26,7 +26,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json",
-      "sha256": "8287a6efa56aff9d8854a0ef059faff209b64a580ec9803f847fc28e170a7ab7"
+      "sha256": "5b62b775e6e705ae74d6649d1d7f6899fa4805a30acb347ecb0b545493ecf2f1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/audit-release-fixture.json",
@@ -106,7 +106,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "455b287f07baa47de17d01dc3ea7cdaa795d7939f93f6e8e2b64b7963d0185b3"
+      "sha256": "ad565e08fca83e240b390d81ea3a8be8a824ac5d8d94daa9a03596099d48d19f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -238,7 +238,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",
-      "sha256": "4e6177ff211bbd945574d76d65f11cf241a69baee0cd4b19fa541d8d840531cb"
+      "sha256": "d70a6671be99dbe3afe9cc1a868f787b24d8a8fc75ad726038d42c6bd7f1e386"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",

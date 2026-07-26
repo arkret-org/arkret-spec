@@ -147,6 +147,58 @@
       }
     },
     {
+      "name": "rrk_historical_method_is_resolved_at_event_acceptance",
+      "vector_id": "ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1",
+      "input": {
+        "verification_method_state_at_event_acceptance": "active_and_designated",
+        "verification_method_state_at_receiver_replay": "rotated",
+        "policy_tuple_matches_event_basis": true
+      },
+      "expected": {
+        "decision": "accept",
+        "must_not_replace_with_current_did_document": true
+      }
+    },
+    {
+      "name": "rrk_policy_tuple_is_bound_field_by_field",
+      "vector_id": "ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1",
+      "input": {
+        "event_basis": "seal_ref_cba_policy_basis",
+        "tuple_fields": [
+          "recovery_recipient_id",
+          "recipient_principal_id",
+          "recipient_verification_method"
+        ],
+        "mutate_each_field_independently": true
+      },
+      "expected": {
+        "decision": "reject_each_mutation",
+        "reason_code": "durability_recovery_recipient_unverified"
+      }
+    },
+    {
+      "name": "rrk_holder_recovery_service_re_share_authorization",
+      "vector_id": "ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1",
+      "input": {
+        "source_is_recovery_recipient_principal": true,
+        "sender_device_is_currently_accepted": true,
+        "source_authorization_ref_matches_event_basis": true,
+        "history_share_sources_contains": "recovery_service"
+      },
+      "negative_mutations": [
+        "sender_device_forged",
+        "source_not_recovery_recipient",
+        "source_authorization_ref_wrong",
+        "source_authorization_ref_expired",
+        "recovery_service_not_allowed_by_policy"
+      ],
+      "expected": {
+        "positive_decision": "accept",
+        "negative_decision": "reject",
+        "negative_reason_code": "late_recovery_share_not_authorized"
+      }
+    },
+    {
       "name": "rrk_threshold_target_set_complete",
       "vector_id": "ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1",
       "input": {

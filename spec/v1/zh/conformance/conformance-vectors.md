@@ -5247,3 +5247,31 @@ Expected:
 - 普通批次 MUST 继续接受独立完整项并返回 HTTP 200 `partial`；全 pending 仍为 `partial` 且允许 `accepted[]` / `duplicate[]` 为空。注册 founding unit MUST 零写入并整体返回 HTTP 503。
 - 同批未 sealed grant 不得授权后续 DataEvent。receiver 不得通过静默排序、去重或丢弃无关 Seal 修复非法 wire。
 - 已有 accepted / duplicate 时 retry MUST 只含待处理项，使用新 `Idempotency-Key` 并重算两个 digest 与签名；没有任何成功项且全部 pending 时才可在补齐依赖后复用相同 body/key。所有自动 retry 必须有界。
+
+### 23.13 Realm-key withheld policy basis
+
+`vector_id`: `ak.vector.realm_key.withheld_policy_basis.v1`
+
+Steps:
+
+1. 对六个 registered `withheld_reason_code` 分别构造 member-device withheld，并在 Event 的 CBA/T0 basis 上解析唯一 effective refusal-policy root 与 source authorization。
+2. 分别缺失、篡改、过期 `policy_digest`，替换为 receiver 当前 root、零值或实现占位；再构造多 root 歧义与缺失/错 scope/错 device 的 `source_authorization_ref`。
+
+Expected:
+
+- 正例的 `policy_digest` MUST 等于作出相应拒绝决定时实际求值的 root，且 source authorization 覆盖同一 recipient、device、scope 与 decision。
+- 任一负例 MUST 以 `late_recovery_share_not_authorized` fail closed；不得把未授权 withheld 写入 terminal delivery projection。
+
+### 23.14 Realm-key sender-device signature transcript
+
+`vector_id`: `ak.vector.realm_key.share_sender_signature.v1`
+
+Steps:
+
+1. 分别构造 member-device 与 realm-recovery-key share，按 `context="ak.realm-key-share-sender-proof-v1"` 生成 canonical JSON UTF-8 transcript。
+2. 对 inactive target branch、inactive material branch 与缺省 optional 字段验证“省略而非 null”；再逐项篡改 expiry、source authorization、key scope、target 与 signer device。
+
+Expected:
+
+- 两个正例 MUST 由 SDK 唯一 helper 生成逐字相同 bytes，并由 receiver helper 重建后验签通过。
+- 未选字段写 null、交叉 target、双 material、无 material、任一 covered 字段被篡改、或 signature key 与 accepted `sender_device_id` 不匹配，均 MUST `invalid_signature`。

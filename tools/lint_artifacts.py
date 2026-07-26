@@ -3104,11 +3104,15 @@ def check_composite_subject_terminal_types(
     event_schema_path: Path,
     event_schema: Any,
 ) -> None:
-    """Reject composite endpoints that have no typed JSON scalar variant.
+    """Reject cell-subject endpoints that are absent or not typed scalars.
 
-    Every ordinary component variant must be scalar. A `string_set_digest`
-    component is checked against its stricter closed string-or-array schema
-    contract and is treated as a string only after transformation.
+    Single-field subjects and every composite/select endpoint must exist in the
+    payload class selected for the Event kind. Coalesce descriptors may share
+    one descriptor across payload classes, but at least one candidate must
+    resolve. Every resolved ordinary endpoint must be scalar. A
+    `string_set_digest` component is checked against its stricter closed
+    string-or-array schema contract and is treated as a string only after
+    transformation.
     """
     event_registry_path = ARTIFACTS / "registry" / "event-kind-registry.json"
     event_registry = load_json(lint, event_registry_path)
@@ -3444,7 +3448,50 @@ def check_composite_subject_terminal_types(
                 resolved_types.update(types)
         return resolved, resolved_types
 
-    def output_paths(component: Any) -> list[str]:
+    def terminal_enum_values(
+        schema_path: Path,
+        document: Any,
+        node: Any,
+        seen: set[int] | None = None,
+    ) -> set[Any]:
+        schema_path, document, node = dereference(schema_path, document, node)
+        if not isinstance(node, dict):
+            return set()
+        seen = set() if seen is None else seen
+        marker = id(node)
+        if marker in seen:
+            return set()
+        seen.add(marker)
+        result: set[Any] = set()
+        if "const" in node and isinstance(node["const"], (str, int, bool)):
+            result.add(node["const"])
+        enum = node.get("enum")
+        if isinstance(enum, list):
+            result.update(
+                value for value in enum if isinstance(value, (str, int, bool))
+            )
+        for keyword in ("allOf", "oneOf", "anyOf"):
+            branches = node.get(keyword)
+            if isinstance(branches, list):
+                for branch in branches:
+                    result.update(
+                        terminal_enum_values(
+                            schema_path, document, branch, seen.copy()
+                        )
+                    )
+        return result
+
+    def reachable_selector_values(kind: str, selector: str) -> set[Any]:
+        values: set[Any] = set()
+        for ref in dispatch_refs.get(kind, []):
+            nodes = path_terminal_nodes(ref, selector)
+            for node_path, node_document, node in nodes or []:
+                values.update(
+                    terminal_enum_values(node_path, node_document, node)
+                )
+        return values
+
+    def output_paths(kind: str, component: Any) -> list[str]:
         if isinstance(component, str):
             return [component]
         if not isinstance(component, dict):
@@ -3454,13 +3501,58 @@ def check_composite_subject_terminal_types(
         branches = component.get("branches")
         if not isinstance(branches, dict):
             return []
+        selector = component.get("selector")
+        reachable = (
+            reachable_selector_values(kind, selector)
+            if isinstance(selector, str)
+            else set()
+        )
         return [
             branch["field"]
-            for branch in branches.values()
+            for branch_name, branch in branches.items()
             if isinstance(branch, dict) and isinstance(branch.get("field"), str)
+            and (not reachable or branch_name in reachable)
         ]
 
     allowed = {"string", "integer", "boolean", "null"}
+
+    def validate_scalar_endpoint(
+        kind: str,
+        write_index: int,
+        source: str,
+        endpoint_ref: str,
+        *,
+        require_endpoint: bool = True,
+    ) -> bool:
+        if source == "envelope.actor_id":
+            return True
+        if not source.startswith("payload."):
+            return False
+        resolved, resolved_types = resolved_terminal_types(kind, source)
+        if not resolved:
+            if require_endpoint:
+                lint.fail(
+                    event_registry_path,
+                    f"{endpoint_ref} endpoint {source!r} has no schema endpoint",
+                )
+            return False
+        has_scalar_variant = bool(resolved_types & allowed)
+        non_scalar_variants = resolved_types - allowed
+        if not has_scalar_variant:
+            lint.fail(
+                event_registry_path,
+                f"{endpoint_ref} endpoint {source!r} must be a schema-declared "
+                f"JSON string/integer/boolean/null scalar, got "
+                f"{sorted(resolved_types) or ['untyped']}",
+            )
+        elif non_scalar_variants:
+            lint.fail(
+                event_registry_path,
+                f"{endpoint_ref} endpoint {source!r} has forbidden "
+                f"non-scalar schema variants {sorted(non_scalar_variants)}",
+            )
+        return True
+
     rows = event_registry.get("event_kinds")
     for row in rows if isinstance(rows, list) else []:
         if not isinstance(row, dict) or not isinstance(row.get("event_kind"), str):
@@ -3469,10 +3561,37 @@ def check_composite_subject_terminal_types(
         writes = row.get("cell_writes")
         for write_index, write in enumerate(writes if isinstance(writes, list) else []):
             subject = write.get("cell_subject") if isinstance(write, dict) else None
-            if not isinstance(subject, dict) or subject.get("kind") not in {
-                "composite",
-                "tuple",
-            }:
+            if not isinstance(subject, dict):
+                continue
+            subject_kind = subject.get("kind")
+            subject_ref = f"{kind} cell_writes[{write_index}].cell_subject"
+            if subject_kind == "coalesce":
+                fields = subject.get("fields")
+                resolved_any = False
+                for source in fields if isinstance(fields, list) else []:
+                    if isinstance(source, str):
+                        resolved_any = (
+                            validate_scalar_endpoint(
+                                kind,
+                                write_index,
+                                source,
+                                subject_ref,
+                                require_endpoint=False,
+                            )
+                            or resolved_any
+                        )
+                if not resolved_any:
+                    lint.fail(
+                        event_registry_path,
+                        f"{subject_ref} coalesce fields have no schema endpoint",
+                    )
+                continue
+            if subject_kind not in {"composite", "tuple"}:
+                source = subject.get("field")
+                if isinstance(source, str):
+                    validate_scalar_endpoint(
+                        kind, write_index, source, subject_ref
+                    )
                 continue
             components = subject.get("components")
             for component_index, component in enumerate(
@@ -3499,7 +3618,12 @@ def check_composite_subject_terminal_types(
                     selector_resolved, selector_types = resolved_terminal_types(
                         kind, selector
                     )
-                    if selector_resolved and selector_types != {"string"}:
+                    if not selector_resolved:
+                        lint.fail(
+                            event_registry_path,
+                            f"{component_ref} selector {selector!r} has no schema endpoint",
+                        )
+                    elif selector_types != {"string"}:
                         lint.fail(
                             event_registry_path,
                             f"{kind} cell_writes[{write_index}].cell_subject.components"
@@ -3507,29 +3631,10 @@ def check_composite_subject_terminal_types(
                             f"schema-declared JSON string, got "
                             f"{sorted(selector_types) or ['untyped']}",
                         )
-                for source in output_paths(component):
-                    if source == "envelope.actor_id":
-                        continue
-                    if not source.startswith("payload."):
-                        continue
-                    resolved, resolved_types = resolved_terminal_types(kind, source)
-                    has_scalar_variant = bool(resolved_types & allowed)
-                    non_scalar_variants = resolved_types - allowed
-                    if resolved and not has_scalar_variant:
-                        lint.fail(
-                            event_registry_path,
-                            f"{kind} cell_writes[{write_index}].cell_subject.components"
-                            f"[{component_index}] endpoint {source!r} must be a schema-declared "
-                            f"JSON string/integer/boolean/null scalar, got "
-                            f"{sorted(resolved_types) or ['untyped']}",
-                        )
-                    elif resolved and non_scalar_variants:
-                        lint.fail(
-                            event_registry_path,
-                            f"{kind} cell_writes[{write_index}].cell_subject.components"
-                            f"[{component_index}] endpoint {source!r} has forbidden "
-                            f"non-scalar schema variants {sorted(non_scalar_variants)}",
-                        )
+                for source in output_paths(kind, component):
+                    validate_scalar_endpoint(
+                        kind, write_index, source, component_ref
+                    )
 
 
 def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:

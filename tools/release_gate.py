@@ -17,6 +17,7 @@ import json
 import re
 import subprocess
 import sys
+import warnings
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,6 +26,80 @@ CHECKS: list[tuple[str, list[str]]] = [
     ("artifact pipeline", [sys.executable, "tools/artifact_pipeline.py", "check"]),
     ("crossref", ["node", "site/scripts/crossref-check.mjs"]),
 ]
+
+
+def check_required_schema_branch_witnesses() -> str | None:
+    """Prove every role-closed Direct Conversation draft slot is inhabitable.
+
+    Schema meta-validation cannot detect an `allOf` branch whose constraints
+    have an empty intersection. These minimal witnesses make that release
+    property executable and also prove the slots reject a swapped role kind.
+    """
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            from jsonschema import Draft202012Validator, RefResolver
+    except ImportError:
+        return "jsonschema is required for required-branch witness validation"
+
+    schema_dir = ROOT / "spec" / "v1" / "artifacts" / "schemas"
+    schema_path = schema_dir / "contact-operations.schema.json"
+    try:
+        documents = [
+            json.loads(path.read_text(encoding="utf-8"))
+            for path in schema_dir.glob("*.json")
+        ]
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return f"required-branch witness schemas are unreadable: {exc}"
+    store = {
+        document["$id"]: document
+        for document in documents
+        if isinstance(document, dict) and isinstance(document.get("$id"), str)
+    }
+    resolver = RefResolver.from_schema(schema, store=store)
+    base = {
+        "event_id": "ak:event:0196419b-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000002",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_seq": 0,
+        "hlc": "01970e589d21-0000-a13f9c2e",
+        "proofs": [],
+    }
+    witnesses = {
+        "unsigned_direct_realm_create_event": ("ak.realm.create", {}),
+        "unsigned_direct_founding_grant_event": (
+            "ak.capability.grant",
+            {"grant": {"proofs": []}},
+        ),
+        "unsigned_direct_peer_member_event": ("ak.member.state", {}),
+        "unsigned_direct_main_strand_grant_event": (
+            "ak.capability.grant",
+            {"grant": {"actions": ["ak.strand.create"], "proofs": []}},
+        ),
+        "unsigned_direct_main_strand_event": ("ak.strand.create", {}),
+        "unsigned_direct_binding_event": ("ak.direct_conversation.bound", {}),
+    }
+    for definition, (kind, payload) in witnesses.items():
+        branch = schema.get("$defs", {}).get(definition)
+        if not isinstance(branch, dict):
+            return f"required-branch witness definition is missing: {definition}"
+        validator = Draft202012Validator(
+            branch,
+            resolver=resolver,
+            format_checker=Draft202012Validator.FORMAT_CHECKER,
+        )
+        instance = {**base, "kind": kind, "payload": payload}
+        errors = list(validator.iter_errors(instance))
+        if errors:
+            return (
+                f"required-branch witness {definition} is uninhabitable: "
+                f"{errors[0].message}"
+            )
+        swapped = {**instance, "kind": "ak.schema.define"}
+        if not list(validator.iter_errors(swapped)):
+            return f"required-branch witness {definition} accepts a swapped role kind"
+    return None
 
 
 def check_stable_promotion_evidence() -> str | None:
@@ -63,6 +138,10 @@ def main(argv: list[str]) -> int:
         checks.append(("strict spec lint", [sys.executable, "tools/lint_spec.py", "--strict"]))
 
     failures: list[str] = []
+    witness_error = check_required_schema_branch_witnesses()
+    if witness_error is not None:
+        print(f"BLOCKED: {witness_error}")
+        failures.append("required schema branch witnesses")
     stable_error = check_stable_promotion_evidence()
     if stable_error is not None:
         print(f"BLOCKED: {stable_error}")
