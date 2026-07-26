@@ -8474,6 +8474,18 @@
         "event_mapping_kind": "same_name"
       },
       {
+        "action": "ak.realm_key.share",
+        "category": "service",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.realm_key.share"
+        ],
+        "profile": null,
+        "event_mapping_kind": "same_name",
+        "notes": "Authorizes durable history-key delivery after the independent membership, device, history-sharing policy, source_authorization_ref, and recipient checks succeed. This explicit high-risk action is not implied by ak.realm.admin."
+      },
+      {
         "action": "ak.audit.accessed",
         "category": "service",
         "risk_tier": "medium",

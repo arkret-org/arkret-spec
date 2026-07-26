@@ -352,6 +352,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.mls.commit`
 - `ak.mls.welcome`
 - `ak.mls.keypackage`
+- `ak.realm_key.share`（high risk；仅授权 durable 历史密钥投递 Event，仍须独立通过 history-sharing policy、成员、设备、`source_authorization_ref` 与 recipient gate；不得由 `ak.realm.admin` 隐式推出）
 - `ak.audit.accessed`
 - `ak.audit.session.request`
 - `ak.audit.session.notice`

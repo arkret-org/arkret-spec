@@ -3509,6 +3509,14 @@
             "$ref": "#/$defs/EventSubmitEnvelope"
           }
         },
+        "seals": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {
+            "$ref": "./seal.schema.json"
+          },
+          "description": "Signed Seal ancestry required to verify events[].seal_ref. These transport prerequisites remain inside the single ak.peer.events.command.submit rail; receivers independently verify and project each Seal only after its covered Control Events are accepted."
+        },
         "signer_key_evidence": {
           "type": "array",
           "maxItems": 64,

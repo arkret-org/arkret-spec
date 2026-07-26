@@ -3091,6 +3091,7 @@
         "properties": [
           "events",
           "service_binding_ref",
+          "seals",
           "signer_key_evidence",
           "agent_signer_evidence_bundle"
         ],
@@ -3124,6 +3125,7 @@
             "properties": [
               "service_binding_ref",
               "events",
+              "seals",
               "signer_key_evidence",
               "agent_signer_evidence_bundle"
             ],
@@ -3337,6 +3339,7 @@
         "properties": [
           "service_binding_ref",
           "events",
+          "seals",
           "signer_key_evidence",
           "agent_signer_evidence_bundle"
         ],

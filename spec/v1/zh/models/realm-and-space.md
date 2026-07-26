@@ -212,7 +212,7 @@ Schema id: `ak.schema.realm.v1`
 
 5. **接受显式 founding grant**：同一 ordered submit batch 中紧随 create 的下一条 Event MUST 是一条 `ak.capability.grant`，其 envelope `actor_id` 与 payload `issuer`（若 payload 形态显式承载 issuer）均等于 `payload.object.created_by`，且 grant 必须逐字满足以下封闭形态：
    - `subject == payload.object.created_by`；
-   - `actions[]` 作为集合恰为 `{ "ak.realm.admin", "ak.capability.grant", "ak.capability.revoke" }`，不得增加、缺少或用聚合别名替代；
+   - `actions[]` 作为集合恰为 `{ "ak.realm.admin", "ak.capability.grant", "ak.capability.revoke", "ak.realm_key.share" }`，不得增加、缺少或用聚合别名替代；其中显式 high-risk `ak.realm_key.share` 只授权在独立 history-sharing policy、成员、设备、`source_authorization_ref` 与 recipient gate 全部通过后投递历史密钥，不得由 `ak.realm.admin` 隐式推出；
    - `capability_action_registry_digest` MUST 存在，并按 [`capabilities.md` §3.2](../authz/capabilities.md#32-首发-grant-的-issuer-自身权限上界normative) 绑定 receiver 可取得且 JCS 重算一致的完整 `capability-action-registry.json` snapshot；founding grant 的一次性 genesis authority 只豁免 issuer 既有上界，不豁免聚合 admin registry basis；
    - nested grant MUST 携带由 creator device 生成的有效 issuer-attestation proof，并按 [`capabilities.md` §3.0.1](../authz/capabilities.md#301-grant-proof-transcript-与验签normative) 独立于 envelope proof 验证；server 可以返回 `proofs=[]` 的 unsigned authoring draft，但 MUST NOT 代签、补造或把空 proof draft 当作可接受 grant；
    - `resources[]` 恰含一个 `{ "kind": "realm", "realm_id": <新 Realm id>, "match_scope": "realm_wide" }` selector；
