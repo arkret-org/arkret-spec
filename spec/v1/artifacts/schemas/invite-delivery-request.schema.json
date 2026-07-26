@@ -244,16 +244,15 @@
             "duplicate",
             "deferred"
           ],
-          "description": "Generic receive status. It MUST NOT reveal whether subject_id exists or whether policy quarantined/dropped the invite unless receiver policy explicitly allows disclosure via disclosed_outcome."
+          "description": "Generic receive status. It MUST NOT reveal whether subject_id exists or whether policy quarantined/dropped the invite. A holder-quarantine outcome MUST be reported as deferred with no disclosed_outcome. Only a receiver policy disclosure level of outcome may add disclosed_outcome, and only with delivered|blocked."
         },
         "disclosed_outcome": {
           "type": "string",
           "enum": [
             "delivered",
-            "blocked",
-            "quarantined"
+            "blocked"
           ],
-          "description": "Optional graded-disclosure result. Present ONLY when the subject invite_receive_policy disclosure level for this introduction trust tier is 'outcome'. Omitted (opaque) for low-trust tiers and always omitted for blocked_subjects hits. delivered: invite reached the holder surface awaiting acceptance; blocked: rejected by block list or policy; quarantined: held for review."
+          "description": "Optional graded-disclosure result, closed to delivered|blocked. Present ONLY when the subject's receive policy disclosure level for this introduction trust tier is 'outcome' and the subject did not block the issuer; omitted (opaque) otherwise. delivered: the invite reached the holder surface awaiting acceptance; blocked: rejected by block list or policy. A holder-quarantine outcome MUST NOT be disclosed: it reveals holder-private consent state (identity/consent-model.md 6.1.1) and MUST be reported as status='deferred' with no disclosed_outcome, in the same response and timing equivalence class as rate-limit silent drop, timeout drop, holder-not-found and holder policy deny."
         },
         "received_at": {
           "$ref": "#/$defs/timestamp"

@@ -43,7 +43,7 @@ updated: 2026-07-13
 
 - `default_join_rule` 决定**入口模式**（`public` / `invite` / `knock` / `restricted` / `knock_restricted` / `closed`）。
 - Join Policy 决定**入口模式选定后，到 `membership=join` 必须穿越的 gate 集合**（凭证、问卷、挑战、人工审批等）的组合、解析顺序、加密语义和反滥用约束。
-- `default_join_rule=public` 与 `default_join_rule=closed` 不消耗 Join Policy（前者无 gate，后者无入口）；其余四个枚举值的精确语义由 §4 与 Join Policy 交叉决定。
+- Join Policy 的 gate 分三条正交轴（§4）：**A 硬准入门 `principal_admission`** 与 **B deny-only gate `cooldown`** 与 `default_join_rule` 完全正交，在所有取值（含 `public` / `invite` / `closed`）下无条件评估；只有 **C 轴 applicant 可选解析门**的参与集合由 `default_join_rule` 决定。`public` 与 `closed` 下 C 轴为空，但 A / B 轴照常生效——MUST NOT 据此认为 Join Policy 整体不生效。
 
 ## 2. 设计原则
 
@@ -63,7 +63,7 @@ bottom      := reject
 value shape := JoinPolicy（见下）
 ```
 
-本 cell 的 `cell_subject=null`，与 [`member-delivery-binding.md`](member-delivery-binding.md) §4 的 `ak.component.realm.delivery_binding_policy.v1` 统一：二者都是由 Event envelope `realm_id` 定位的 per-Realm 单例 policy cell。实现不得把 `realm_id` 再编码进 cell subject，也不得从 payload 重复字段派生第二个 cell key。
+本 cell 的 `cell_subject=null`，与 [`member-delivery-binding.md`](member-delivery-binding.md) §4 的 `ak.component.realm.delivery_binding_policy.v1` 统一：二者都是由 Event envelope `realm_id` 定位的 per-Realm 单例 policy cell。null subject 的 canonical wire 形态（字面 ASCII `null`）及"不得把 `realm_id`、Realm 角色分类或任何 payload 派生值编码进 subject 段"的禁令是全协议规则，canonical 定义在 [`../conformance/encoding.md` §4](../conformance/encoding.md)；本节不再重复承载该规则。
 
 写入 cell 的候选概念在正式登记前记为 `realm.join_policy`（裸名仅是 design-time concept/action，不是 v1 wire `Event.kind`，也 MUST NOT 作为 Event envelope 的 `kind` 上链或同步），需要 `ak.policy.manage` capability（与 `ak.realm.policy_server` / `ak.realm.policy_components` 同等级）。`ak.realm.create` 时 SHOULD 通过 `ak.realm.policy_components` 一并提供 join policy 初值；省略时 cell 维持 `null`，行为退化为"`default_join_rule` 单独决定"。
 
@@ -136,6 +136,8 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 
 `principal_admission` 是 hard pre-admission gate：只要 Join Policy 中出现该 gate，reducer MUST 在普通 `combinator` 解析、application form 或 manual review 之前先评估它；任一 `principal_admission` gate 失败时，当前 join / knock / application MUST fail closed，applicant 不得通过其它 gate 或人工审核路径绕过 principal 准入约束。
 
+**本 gate 与 `default_join_rule` 完全正交（normative）**：它在 `public` / `invite` / `knock` / `restricted` / `knock_restricted` / `closed` 六种取值下一律评估，**invite 路径同样适用**——`ak.invite.create` 与 `ak.invite.accept` 在写 `ak.component.member.state.v1` 之前 MUST 先过本 gate（§4）。任何"某些 join rule 下 Join Policy 不生效"的实现都会让 DID method allowlist 与 principal denylist 可被切换 join rule 绕过。
+
 加入失败对外 MUST 使用通用 `gate_check_failed`，不得向 external applicant 区分"method 不允许"、"DID 不在 allowlist"、"DID 在 denylist"等细节；细节 MAY 写入 reviewer / admin 可见审计日志。
 
 **细分原因对 applicant 永不可见是预期，非缝隙（normative，消歧）**：`principal_admission` 是 hard pre-admission gate，在普通 `combinator` 解析、application form、manual review 之前评估，也即在 applicant 提交 stage 1 `ak.member.state{knock}` 进入 §7.3 半信任申请-审核态**之前**就已对其 fail closed。因此被 `principal_admission` 拒绝者**永远到达不了** §7.3 半信任态，§7.3「knock 之后才解锁面向本人的细粒度 review reason」对其不适用——其拒绝细分原因（method / allowlist / denylist 命中）对 applicant **永不可见**（仅 reviewer / admin audit 可见）。这是刻意设计：principal 准入是比半信任申请更靠前的硬门，不向未通过硬门的探测者透露准入名单结构，与 §5「外部 applicant 失败不可枚举」一致，并非 §7.3 半信任披露规则的缝隙或遗漏。
@@ -207,14 +209,35 @@ Question 是封闭对象，必填 `question_id`、`prompt_canonical`、`answer_k
 
 ## 4. 与 `default_join_rule` 的交叉表
 
-| `default_join_rule` | Join Policy 是否生效 | 等价 gate 组合 |
+Join Policy 的 gate 分三条**正交轴**，`default_join_rule` 只影响其中一条。"Join Policy 在某些 join rule 下整体不生效"是错误概括，MUST NOT 按该概括实现。
+
+| 轴 | 成员 gate | 与 `default_join_rule` 的关系 |
 | --- | --- | --- |
-| `public` | 不生效 | applicant 提交 `ak.member.state{join}` 即被接受。 |
-| `invite` | 不生效 | 必须有 `ak.invite.create`；Join Policy 不可绕过 invite。 |
-| `knock` | 生效（任一路径） | gate 集合可包含人工审核；申请-审核路径必走。 |
-| `restricted` | 生效（自动解析路径） | `gates[*].auto_resolve == true` MUST 全为 true；含 `manual_review` 或 `application_form` MUST schema_violation。 |
-| `knock_restricted` | 生效（OR 合成） | `combinator` SHOULD 为 `any`；典型组合：`[claim_required(auto), application_form(manual)]`，凭证持有者直接进，否则走问卷申请。 |
-| `closed` | 不生效 | reducer 拒绝任何 join / knock / application Control Move。 |
+| **A. 硬准入门** | `principal_admission` | **完全正交**：`public` / `invite` / `knock` / `restricted` / `knock_restricted` / `closed` 全部无条件评估，且先于一切其它判定（§3.1）。invite 路径同样适用。 |
+| **B. deny-only gate** | `cooldown` | **完全正交**：无条件独立评估，命中即拒，无视 `combinator`（§5）。 |
+| **C. applicant 可选解析门** | `claim_required` / `parent_membership` / `challenge_response` / `application_form` / `manual_review` | 由 `combinator` 组合，其**参与集合**随 `default_join_rule` 变化，见下表。 |
+
+C 轴与 `default_join_rule` 的交叉：
+
+| `default_join_rule` | C 轴参与集合 | 说明（A / B 轴始终评估） |
+| --- | --- | --- |
+| `public` | 空 | 无 applicant 可选解析门；applicant 自助 join 按 §5 自动解析路径处理（A/B 轴仍是该路径的一部分，`principal_admission` 不满足或 `cooldown` 命中 MUST 拒绝）。 |
+| `invite` | 空 | 入口授权由 invite 承担：必须有 `ak.invite.create`，C 轴不可绕过 invite；**invite 亦不得绕过 A / B 轴**——见下方"invite 路径的 A/B 轴义务"。 |
+| `knock` | 全部（任一路径） | gate 集合可包含人工审核；申请-审核路径必走。 |
+| `restricted` | 全部 auto-resolve gate | non-deny gate 的 `auto_resolve == true` MUST 全为 true；含 `manual_review` 或 `application_form` MUST `schema_violation`。 |
+| `knock_restricted` | 全部（OR 合成） | `combinator` SHOULD 为 `any`；典型组合：`[claim_required(auto), application_form(manual)]`，凭证持有者直接进，否则走问卷申请。 |
+| `closed` | 空 | 只关闭 **applicant-initiated 入口**，见下方"`closed` 的封闭豁免列表"。 |
+
+**invite 路径的 A / B 轴义务（normative）**：`ak.invite.create` 与 `ak.invite.accept` 在写 `ak.component.member.state.v1` 之前 MUST 评估 A 轴 `principal_admission` 与 B 轴 `cooldown`；命中 `denied_principal_dids`、不满足 `allowed_did_methods` / `allowed_principal_dids`，或处于 cooldown 期时 MUST fail closed，对外统一 `gate_check_failed`（§5 的不可枚举要求）。否则把 `default_join_rule` 从 `knock` 改成看似**更紧**的 `invite`，反而会关闭 DID method allowlist 与 principal denylist——那是准入面的净放宽，不是收紧。
+
+**`closed` 的封闭豁免列表（normative）**：`closed` MUST 拒绝 applicant 自助提交的 `ak.member.state{join}` / `{knock}` 与 candidate application。它 MUST NOT 拒绝下列 authorized-writer 路径（本列表封闭，不得由实现自行扩展或收窄）：
+
+1. `ak.realm.admin` 持有者按 [`../models/common-fields.md` §4.5](../models/common-fields.md) 写入的 `leave -> join` / `invite -> join`；
+2. `ak.realm.join.review` 持有者写入的 `knock -> join`（用于本节"存量 in-flight 申请处置"）；
+3. [`../models/realm-and-space.md` §2.7](../models/realm-and-space.md) 的 Native Personal Agent controller carve-out；
+4. Realm bootstrap batch 内由 creator 写入的初始成员（1:1 Direct Conversation Realm 的 peer join 即此项，见 [`../identity/contact-and-direct-conversation.md` §6/§7](../identity/contact-and-direct-conversation.md)）。
+
+这四项仍然要过 A / B 轴。`closed` 约束的是**入口模式**（谁可以自助发起加入），不是一条授权规则——把它扩大成"禁止一切 membership join 写入"会同时封死管理员加人、reviewer 完成 knock 审批的最后一步、controller 拉入自己的 Agent，以及 1:1 私聊的 peer bootstrap。
 
 reducer 在 `ak.realm.join_rule` 与 join-policy cell 任一变更时 MUST 重新评估上述一致性约束；不一致 MUST `failed_precondition` 拒绝写入，并附带 `reason="join_rule_policy_mismatch"`。
 
@@ -222,7 +245,7 @@ reducer 在 `ak.realm.join_rule` 与 join-policy cell 任一变更时 MUST 重�
 
 ## 5. 自动解析路径
 
-适用条件：`default_join_rule ∈ {public, restricted, knock_restricted}` 且 applicant 拟使用的 gate 子集全部 `auto_resolve=true`。
+适用条件：`default_join_rule ∈ {public, restricted, knock_restricted}` 且 applicant 拟使用的 gate 子集全部 `auto_resolve=true`。`public` 下 C 轴集合可为空，此时"拟使用子集"为空集、全称条件平凡成立，但 **A 轴 `principal_admission` 与 B 轴 `cooldown` 仍 MUST 评估**（§4）——`public` Realm 上的自助 join 不是无条件放行。
 
 **deny-only gate 不计入"拟使用子集"（normative）**：`cooldown` 这类 deny-only gate（§3.1）始终独立、强制评估，applicant 无法选择"使用 / 不使用"，因此**不计入**上述"applicant 拟使用的 gate 子集"的 `auto_resolve` 全称校验；它们虽标注 `auto_resolve=true`，但其角色是 pre-evaluation deny，不是 applicant 可选的解析门。相应地，§4 中 `restricted` 生效时"`gates[*].auto_resolve == true` 全为 true"与"含 `manual_review` / `application_form` MUST schema_violation"的 schema 校验只针对 **non-deny gate**——deny-only gate 始终独立评估，既不破坏 restricted 的全称约束，也不被计入 applicant 子集。
 
@@ -297,7 +320,10 @@ reducer MUST NOT 在自动解析路径上隐式生成 application / review Contr
 | 1. 敲门 | `ak.member.state{membership=knock}` | applicant |
 | 2. 提交申请 | `member.application` | applicant |
 | 3. 审核决策 | `member.application.review` | reviewer（持 `review_capability`） |
-| 4. 接受邀请（隐式） | `ak.invite.create` + `ak.invite.accept` | reviewer 与 applicant |
+| 4. 签发定向邀请 | `ak.invite.create`（effects：`ak.component.invite.lifecycle.v1` → `pending` **且** `ak.component.member.state.v1:<invitee>` `knock -> invite`） | reviewer（持 `ak.realm.join.review` 或 `ak.realm.admin`） |
+| 5. 接受邀请 | `ak.invite.accept`（effects：`invite.lifecycle` → `accepted` **且** `member.state` `invite -> join`） | applicant（invitee 本人） |
+
+stage 4 / 5 的两条 Event **各自**在同一 Control Move 内同时推进 invite 流程轴与 membership cell，不是"invite 对象变了、成员态由 reducer 顺带跟进"。invite 被 reject / revoke / 过期时的 `invite -> leave` 原子回写见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)。
 
 stage 1 是公开 Control Move，stage 2 是 profile-private receipt，二者不得伪装成同一 Event batch。client MUST 先取得已接受 stage 1 的 `event_id`，再把它作为 `knock_ref` 提交 stage 2；server 在写入 private record 的同一事务内 MUST 重新确认该 knock 仍有效。
 
@@ -456,7 +482,11 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 ```text
         knock ──submit member.application──▶ knock (with application_ref projection)
             │
-            ├─ review.accept ──▶ invite (via ak.invite.create) ──▶ join (via ak.invite.accept)
+            ├─ review.accept ──▶ invite ──▶ join
+            │      invite: ak.invite.create  effects = { invite.lifecycle -> pending,
+            │                                            member.state:<invitee> knock -> invite }
+            │      join:   ak.invite.accept  effects = { invite.lifecycle -> accepted,
+            │                                            member.state:<invitee> invite -> join }
             ├─ review.request_changes ──▶ knock[changes_requested] (awaiting applicant revision; ttl continues)
             ├─ review.reject ──▶ leave  (with rejected_at + cooldown_until projection)
             ├─ application.cancel ──▶ leave

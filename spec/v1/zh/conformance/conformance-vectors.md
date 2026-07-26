@@ -1128,7 +1128,7 @@ ak.vector.lattice.ordered_log_gap.v1
 
 本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 `ordered_log` 的缺口规则：“issuer 子链出现缺口时，缺口后的 entry MUST 保留为 pending / diagnostic 输入，但不得进入 cell value、`state_root` leaf 或授权判断；依赖补齐后按同一规则重算。”
 
-输入（ordered_log cell，`bottom=expose`）：
+输入（ordered_log cell，`bottom=inert`）：
 
 - **Case A — 缺口存在**：issuer I 的 append entries 以 `issuer_seq ∈ {0, 1, 3}` 到达（seq 2 缺失）。
 - **Case B — 缺口补齐后重算**：在 Case A 状态上，seq 2 的 entry 通过 backfill 到达，reducer 重算同一 cell。
@@ -1142,7 +1142,7 @@ ak.vector.lattice.ordered_log_gap.v1
 失败条件：
 
 - Case A 把缺口后的 entry 直接并入 cell value 或 `state_root` leaf。
-- Case A 因缺口返回 ⊥ 或阻塞整个 cell（ordered_log 是 `bottom=expose`，并发 append 不阻塞协议判断）。
+- Case A 因缺口返回 ⊥ 或阻塞整个 cell（`ordered_log` 的 join 数学上永不产生 ⊥，故按 §9.1.1 登记 `bottom=inert`；缺口只产生 pending / diagnostic，不阻塞协议判断）。
 - Case B 重算结果依赖本地接收顺序，两个 reducer 产出不同的 contiguous prefix。
 
 ### 2.14 Vector: auth_context epoch pinning 拒绝过期 key
@@ -1364,7 +1364,7 @@ ak.vector.lattice.ordered_log_join.v1
 
 本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 `ordered_log` 的 issuer 顺序与 equivocation 收敛规则，其 winner 键来自 [`encoding.md` §4.2](./encoding.md) 的全协议唯一 tie-break（逻辑 slot equivocation 候选集），digest 定义见 [`encoding.md` §6](./encoding.md)。
 
-输入（ordered_log cell，`bottom=expose`；fixture：[`cba-lattice-fixture.json`](../../artifacts/fixtures/cba-lattice-fixture.json) `ak.vector.lattice.ordered_log_join.v1`）：
+输入（ordered_log cell，`bottom=inert`；fixture：[`cba-lattice-fixture.json`](../../artifacts/fixtures/cba-lattice-fixture.json) `ak.vector.lattice.ordered_log_join.v1`）：
 
 - **Case A — per-issuer 顺序**：两个 issuer 各自提交 `issuer_seq ∈ {0, 1}`，到达顺序交错。
 - **Case B — 逐字等价重复**：同一 `(cell, actor_id, issuer_seq)` 的两条 entry，完整 canonical `effect.op` bytes 相同。
@@ -5029,3 +5029,183 @@ Expected：
 ### 22.4 Recovery-secret 泄露 handoff
 
 `ak.vector.identity.recovery_secret_handoff.v1` 要求：没有预先存在的独立 guardian/witness/组织权威时，旧秘密泄露后的 same-DID 原地 handoff 必须拒绝并重铸 DID；存在独立权威时，只接受带 durable checkpoint 的两-entry 分阶段 handoff，并在 re-anchor、新 recovery policy、全部旧 backup-HPKE active envelope 新 series 重封装与 active-series pointer 推进完成后，最后撤销旧 policy key。runner MUST 覆盖任一阶段崩溃后的幂等续跑。
+
+## 23. 2026-07-26 spec-open review closure vectors
+
+本节固定 2026-07-26 一轮流程自洽性审核裁决所要求的向量。它们与既有分节的区别是：
+每条都直接对应一条已关闭的开放缺陷，负例用于防止实现私自回退到裁决前的行为。
+
+### 23.1 Canonical Event tie-break（全协议）
+
+`vector_id`: `ak.vector.encoding.canonical_event_tie_break.v1`
+
+覆盖 [`encoding.md` 4.2](./encoding.md) 的唯一 tie-break 键，两类候选集共用同一规则。
+
+Steps:
+
+1. 构造并发候选集与同一 `(cell, actor_id, issuer_seq)` 逻辑 slot 的 equivocation 候选集。
+2. 对每个候选计算 `canonical_digest(envelope_without_proofs_unsigned_reducer_stamps)`。
+3. 解码 typed digest 的 hex 为 octets，按 unsigned lexicographic order 取最大者。
+
+Expected:
+
+- winner 是 decoded digest octets 最大的候选；octets 完全相同而 suite 不同时以 canonical suite id 的 UTF-8 bytewise 顺序作第二键。
+- 必须包含一条 suite 前缀字符串顺序与 decoded octets 顺序**相反**的 transition case：按整串 UTF-8 比较会选错 winner。
+- digest preimage MUST 逐字使用移除 `proofs` / `unsigned` / reducer stamps（`effective_scope`、`actor_kind`）后的 canonical bytes；沿用旧的 `envelope_without_proofs_unsigned` 简写 MUST 失败。
+- 仅 `proofs` 或 reducer stamps 不同、canonical preimage 逐字相同的两个输入 MUST NOT 被报成 collision。
+- 同 typed digest（同 suite、同 octets）但 canonical preimage 不同 MUST fail closed，MUST NOT 回退到 `event_id` / HLC / `created_at` / 到达顺序 / 实现私有 ID。
+- producer 在 Event DAG 中人为加入因果边 MUST NOT 改变 slot winner。
+
+### 23.2 `ak.realm.create` 显式 effect 闭包与 genesis `state_root`
+
+`vector_id`: `ak.vector.event_kind.realm_create_effects_closure.v1`
+
+Steps:
+
+1. 提交普通 Realm 的 bootstrap batch：`ak.realm.create` + 紧邻 founding grant。
+2. 两个独立实现各自按 `contract-catalog.json` 的 `ak.realm.create` `cell_writes[]` 应用 effects 并重算 genesis Seal 的治理 `state_root`。
+
+Expected:
+
+- create Event 的 `effects[]` MUST 恰好含四条：`ak.component.realm.metadata.v1:null`（`set`）、`ak.component.member.state.v1:<created_by>`（`transition` `leave -> join`）、`ak.component.realm.create.v1:null`（`append`，`issuer_seq=0`）、`ak.component.notary.v1:null`（`set`）。少一条或多一条 MUST `effects_payload_mismatch`。
+- 两个实现的 genesis `state_root` MUST 逐字节相同（KAT）。
+- `ak:cell:ak.component.member.state.v1:<created_by>` MUST 有 inclusion proof；对同一 cell 求 non-membership proof MUST 失败（负例）。
+- `ak.component.realm.metadata.v1` MUST 在 genesis Seal 即出现在 leaf 集合中；"仅在首次 `ak.realm.update` 之后才出现"视为不合规（负例）。
+- PCR 与 Direct Conversation 两条 bootstrap 分支使用同一 effect 集合。
+- 负例：把任一 effect 降级为 reducer 私有派生（不出现在 `effects[]`）后重算 `state_root`，MUST 与正例不同，从而被 `apply_seal` step 11 拒为 `rejected_seal`。
+
+### 23.3 Null cell subject 的 wire 形态与 leaf 顺序
+
+`vector_id`: `ak.vector.event_kind.null_cell_subject_wire_form.v1`
+
+Steps:
+
+1. 对同一组 Realm policy facet Control Move，由两个实现各自派生 cell wire id 并计算 `state_root` leaf 序列。
+
+Expected:
+
+- 每个 `cell_subject: null` family 的 wire subject 段 MUST 逐字节等于字面 ASCII `null`。
+- 两个实现 MUST 得到逐字节相同的 leaf 序列与 `state_root`。
+- 负例：把 `realm_id`、Realm 角色分类（`collaboration` / `principal_control` / `managed_agent_principal_control`）或任何 payload 派生值写进 subject 段；空末段（`ak:cell:<family>:`）；这些形态 MUST `schema_violation`。
+
+### 23.4 Invite 与 membership cell 的原子绑定
+
+`vector_id`: `ak.vector.invite.membership_transition_atomicity.v1`
+
+Steps:
+
+1. `default_join_rule=invite` 的 Realm 上走完整 create 到 accept 链路。
+2. 分别执行 cancel（invitee 拒绝）、revoke、以及以 `reason_code` 表达 expired 的 revoke。
+
+Expected:
+
+- 正例：`member.state` 依次经过 `leave -> invite -> join`；`ak.invite.create` 与 `ak.invite.accept` 各自在同一 Control Move 内同时写 `invite.lifecycle` 与 `member.state`。
+- 负例：invitee 在没有 `invite` 前态时提交 `ak.invite.accept` MUST `failed_precondition` / `invalid_membership_transition`（防止实现私自放宽 `leave -> join`）。
+- 负例：`ak.invite.cancel{rejected}` 之后 `member.state` MUST 回到 `leave`，且该主体在 `history_visibility=invited` Realm 中不再具备 invite-frontier 读取与 key share 资格。
+- 负例：以 expired 为 `reason_code` 的 revoke 之后同上。
+- 负例：定向 invite 的 cancel / revoke 缺失 `payload.invitee`，或其值与 invite cell 记录不等，MUST `effects_payload_mismatch`。
+- 正例：3PID 分支（`third_party_id`，无 `invitee`）的 `ak.invite.create` MUST NOT 产生 `member.state` effect（防止过度补写）。
+- 负例：对处于 `invite` 的 Realm member cell 直接提交裸 `ak.member.state{ban}` MUST `invalid_membership_transition`。
+
+### 23.5 Call state 正交轴各自成 cell
+
+`vector_id`: `ak.vector.call_state.axis_cell_split.v1`
+
+Steps:
+
+1. 两个 moderator 在同一 CBA basis 上并发 ban 不同目标。
+2. 在同一段捕获上并发写冲突的 `recording_state`，随后推进通话 `state` 到 `ended`。
+3. 提交只改动单一轴的 `ak.call.state`。
+4. 二次写入不同的 `session_focus`。
+
+Expected:
+
+- 并发 ban MUST 在 `ak.component.call.moderation.v1`（`or_set`）合并，不产生冲突，通话 `state` 轴完全不受影响。
+- 冲突的 `recording_state` 只把该段 `ak.component.call.recording.v1` 打入 `⊥` / `failed_bottom`；`ak.component.call.state.v1` 仍可接受 `active -> ended`。段 cell 的 subject 是 `[payload.call_id, payload.recording_result.recording_id]`，因此另一段捕获（不同 `recording_id`）完全不受影响（正例）。
+- 负例：`ak.call.state` 携带 `recording_state` 但缺 `recording_result`（或 `recording_result` 缺 `recording_id`）MUST `schema_violation`——段键缺失时目标 cell subject 不可派生。`transcript_state` 同理。
+- 负例：`ak.call.state` 的 `recording_result.recording_id` 与该段 `ak.call.recording.start` 的 `recording_id` 不逐字节相同时，写入落在另一个 cell，MUST 以 `recording_state_transition_invalid` 拒绝（不得静默新建一段捕获）。
+- 未变更的轴 MUST NOT 出现在 `effects[]`；把未变更轴写成 same-value effect 视为不合规（负例）。
+- `session_focus` 二次写入不同值 MUST 以 `session_focus_already_committed` 失败（`ak.component.call.focus.v1` 的 CAS 负例）。
+- 保留既有语义：同 basis 两条 `state` sibling 写不同 `to` MUST 落 `⊥` / `failed_bottom`。
+
+### 23.6 Join gate 三轴正交性
+
+`vector_id`: `ak.vector.join_policy.gate_axis_orthogonality.v1`
+
+Steps:
+
+1. `default_join_rule=invite` + `principal_admission` denylist 命中的 principal 走 invite 流程。
+2. `default_join_rule=public` + `cooldown` gate，在冷却期内重新 join。
+3. `default_join_rule=closed` 下分别提交 applicant 自助 join 与 `ak.realm.admin` 写入。
+4. DM Realm bootstrap batch 端到端。
+
+Expected:
+
+- 负例：denylist 命中的 principal 的 `ak.invite.create` 与 `ak.invite.accept` MUST fail closed，对外统一 `gate_check_failed`。
+- 负例：`public` Realm 上冷却期内重新 join MUST 被拒。
+- 一负一正：`closed` 下 applicant 自助 join MUST 被拒；`ak.realm.admin` 写入 MUST 通过。
+- 正例：DM Realm 的 create + founding grant + peer join batch MUST 成功，最终 active member count = 2。
+- 负例：向已 active 的 DM Realm 加第三人 MUST 被拒。
+
+### 23.7 Quarantine 不可区分等价类
+
+`vector_id`: `ak.vector.invite.quarantine_disclosure_indistinguishable.v1`
+
+Steps:
+
+1. default consent profile + 高信任 evidence + holder 无 active invite grant，投递 invite。
+2. 对同一 `(requester, holder)` 分别触发：限速静默丢弃、TTL 超时丢弃、holder 不存在、holder policy deny。
+3. 对同一输入分别经 invite delivery、contact delivery 与 `ak.self.consent.command.request` 三条通道观测。
+
+Expected:
+
+- 五种情形的响应体与状态码 MUST 逐字节相同，timing 差 ≤ 50ms。
+- quarantine MUST 表示为 `status="deferred"` 且不携带 `disclosed_outcome`。
+- 负例：响应携带 `disclosed_outcome="quarantined"` 视为不合规；该值不在枚举内。
+- 三条通道的可观察量 MUST 互不能用于区分 quarantine 与拒绝。
+
+### 23.8 Direct Conversation materialization draft 可居住性
+
+`vector_id`: `ak.vector.contact.direct_materialization_witness.v1`
+
+Steps:
+
+1. 构造一个完整合法的 `direct_conversation_materialization` outcome，并对 `contact-operations.schema.json` 校验。
+
+Expected:
+
+- 正例存在：`founding_grant_event.kind="ak.capability.grant"` 且 nested `grant.proofs=[]` MUST 校验通过。
+- 五个 draft slot 各自的 `kind` 是 const；互换任意两个 slot MUST `schema_violation`（负例）。
+- 缺失 `founding_grant_event`、非空 envelope `proofs`、非空 nested `grant.proofs` MUST `schema_violation`（负例）。
+
+### 23.9 3PID claim 过期判定的 canonical 时点
+
+`vector_id`: `ak.vector.invite.claim_expiry_canonical_time.v1`
+
+Steps:
+
+1. 同一条已签名 `ak.invite.claim` 在两个不同本地时钟（过期前 / 过期后）的 receiver 上求值与重放。
+
+Expected:
+
+- 两次求值 MUST 得到相同 outcome 与相同 invite cell value：判定只用签名 `created_at` 与 `expires_at`，MUST NOT 使用 receiver 本地 `now`。
+- 被拒绝的 claim MUST NOT 产生任何共享 effect：invite cell 保持其最后 accepted 状态。
+- 负例：由被拒 claim 的处理路径写出 `pending -> expired` 视为不合规；该 transition MUST 由独立 accepted Control Move 承载。
+
+### 23.10 Device pairing challenge transcript
+
+`vector_id`: `ak.vector.device_pairing.challenge_transcript.v1`
+
+Steps:
+
+1. 走完整 stage 到 gate 的 round-trip，并对同一 `new_device_pubkey` 全程比较 canonical bytes 与 digest。
+
+Expected:
+
+- 正例：proof 覆盖 `ak.device-pairing.challenge.v1` transcript 的全部 member，verifier 独立重算 transcript 后验签通过。
+- 正例：同一 `new_device_pubkey` object 的 canonical bytes 与 `new_device_pubkey_digest` 在 stage / resolve / gate 三处逐字节不变。
+- 负例：坏 `gate_audience`、坏 `request_canonical_digest`、旧 `pairing_code`、跨 request 重放、过期窗口外、改 key、坏签名、`verification_method` 与 `new_device_pubkey.kid` 不等、路径 A 的 proof 用于路径 B，一律 MUST 拒绝。
+- 负例：正文旧示例形态 `{kid, alg, public_key}` MUST 被 canonical `PublicKey` schema 拒绝（缺 `kty` / 缺 `key` / 多余 `public_key`）。
+- 负例：stage 请求携带 challenge proof MUST `schema_violation`（proof 必须承诺 stage 才铸出的值，因此不可能在 stage 时存在）。
+- 负例：`ak.gate.account.command.pair_device` 同时携带 `device_pairing_request_id` 与 `challenge_transcript`，或两者都不携带，MUST `schema_violation`（schema 以 `oneOf` 强制该 XOR，gate 必须确定该用哪套 transcript）。
+- 负例：路径 B 下 gate 采用请求体提供的 `gate_audience` 而非自身 origin，视为不合规——那会让跨 Account Authority 重放重新成立。

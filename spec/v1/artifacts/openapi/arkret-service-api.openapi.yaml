@@ -6271,7 +6271,8 @@ paths:
       summary: Stage a device-pairing short-link record.
       description: |
         Unauthenticated stage of a device-pairing short-link handoff. The new
-        device submits new_device_pubkey and challenge_signature; the service
+        device submits a canonical new_device_pubkey and a client_nonce and MUST
+        NOT submit a challenge proof; the service
         mints a fresh device_pairing_request_id and 8-character Crockford-style
         40-bit CSPRNG pairing_code and
         stores a bounded-TTL account-less record in state pending_authorization.

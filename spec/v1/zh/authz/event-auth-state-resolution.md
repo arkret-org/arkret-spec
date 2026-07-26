@@ -172,7 +172,11 @@ Event Batch Receipt 只证明"issuer 看见并承诺所列事件集合的 integr
 
 Control Move 是写 control plane cell 的 Event，通常 MUST 携带 `seal_basis` 且 MUST NOT 携带 `seal_ref`。v1 只有两个封闭 anchor-unit 例外：
 
-1. [`ak.realm.create`](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) bootstrap。普通 Realm 是 create + founding grant + 封闭 follow-up；自体 principal PCR 是 root-signed create + delegated first `ak.device.authorize`，两者互斥。
+1. [`ak.realm.create`](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) bootstrap。自体 principal PCR 是 root-signed create + delegated first `ak.device.authorize`；普通 Realm 是 create + 紧邻 founding grant + 下列**封闭 follow-up 白名单**。两条分支互斥。免 `seal_basis` 的普通 Realm bootstrap follow-up 白名单**逐条封闭列举**如下，与 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md) 使用同一句：
+   - 同批同 actor 的初始 facet follow-up：`ak.realm.join_rule`、`ak.realm.history_visibility`、`ak.realm.discovery`、`ak.realm.policy_components`、`ak.realm.plaintext_visible_services`；
+   - 同批由 creator 写入的 **bootstrap 初始成员 `ak.member.state{join}`**，含 1:1 Direct Conversation Realm 的 peer join（[`../identity/contact-and-direct-conversation.md` §6](../identity/contact-and-direct-conversation.md)）与 [`../governance/member-delivery-binding.md` §3.1.1](../governance/member-delivery-binding.md) 的 creator `join -> join` delivery-binding self-transition。
+
+   不在该列表内的 Control Move 一律要求 `seal_basis`。
 2. B 模型 [`ak.device.reanchor`](../identity/key-management.md#507-b-模型-recovery-re-anchor-unit) + replacement authorize 原子 unit。它不携带 `seal_basis`，而在 payload 的 `pre_fence_basis` 固定完整当前 accepted Seal frontier，并由 admission transaction 对 frontier digest 做 CAS。授权 fence 在完整 unit 验证/提交后立即生效；治理 effects 由首个新-generation Seal 覆盖。
 
 这两个例外不得推广到 batch 外、普通设备入册或其他 Control Move。机器执行闭包分别由 `ak.vector.identity.root_anchor_exclusivity.v1` 与 `ak.vector.identity.device_reanchor.v1` 覆盖。
@@ -281,7 +285,8 @@ Seal 顶层的治理 `state_root`（§6 Seal schema、§4 Control Move `seal_bas
 
 leaf 集合与顺序：
 
-- **成员**：`state_root` 覆盖**当前 joined 治理视图 `J(L)`（§6.3.1）下每一个 non-`⊥` 物化值的 control cell**——即至少被 `covered(L)` 中某个 Control Move effect 命中、且按其 lattice join 后得到确定值的 control cell。data plane cell 不进入 `state_root`（数据面承诺走 §6.4 `data_view_root`）。
+- **成员（单一判据）**：一个 control cell 进入 `state_root` leaf 集合**当且仅当**它至少被 `covered(L)` 中某个 Control Move 的**显式 `effects[]` 条目**命中，且在当前 joined 治理视图 `J(L)`（§6.3.1）下按其 lattice join 后得到 non-`⊥` 的确定值。data plane cell 不进入 `state_root`（数据面承诺走 §6.4 `data_view_root`）。
+  - **`state_root` 只承认显式 effect（全协议纪律，normative）**：reducer 内部派生、但不出现在任何 Event `effects[]` 中的状态 **MUST NOT** 进入 `state_root`，MUST NOT 被 inclusion proof 引用，也 MUST NOT 作为轻客户端（§4.3）的授权判据。任何领域若需要某个派生状态进入 `state_root`，MUST 把它登记为该 Event kind 的显式 `cell_writes[]` effect（canonical 载体是 [`registry/contract-catalog.json`](../../artifacts/registry/contract-catalog.json)），而不是留在散文里描述为"reducer 顺带写入 / 隐式物化"。`apply_seal` step 10 "原子应用 Control Move effects 后重算" 与 step 11 的逐字节比对使这条纪律成为跨实现互操作的硬前提：未登记的隐含写入必然让两个实现算出不同的 `state_root`，进而 `rejected_seal`。
 - **每个 cell 的 leaf 输入**：`leaf_preimage = canonical_json({ "cell": "<cell_wire_id>", "state": <state_object> })`，其中
   - `<cell_wire_id>` 是该 cell 的 canonical tuple 引用 `ak:cell:<component>:<subject>`（[`conformance/encoding.md` §4](../conformance/encoding.md)）；
   - `<state_object>` 在 cell 物化为具体值时为 `{ "value": <lattice_value> }`。`⊥`（`failed_bottom`，§9.1.1）cell **一律不进入** `state_root` leaf 集；它通过失败状态、冲突 heads 与 §9.5 recovery witness 暴露，不作为治理 root 成员编码。
@@ -385,7 +390,7 @@ KeyView {
 
 ### 6.5 Notary control cell（normative）
 
-每个 Realm 恰有一个 protocol-singleton cell `ak:cell:ak.component.notary.v1:<realm_id>`，其 canonical value shape 与 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) `properties.notary` 完全相同，lattice=`cas_register`、bottom=`reject`、plane=`control`。genesis value 来自 `ak.realm.create.payload.object.notary`；后继值只能由 `ak.realm.notary` Control Move 写入，并且该 Move 必须以当前 cell head 作 CAS precondition、由当前 notary authority 按 §6.3 step 2b 最终签 Seal。并发 rotation 产生 `⊥` 时普通 Seal finality fail closed，只能走 §9.5 recovery。实现不得通过未登记 event kind、部署私有管理端点或直接数据库写入改变该 cell。
+每个 Realm 恰有一个 protocol-singleton cell `ak:cell:ak.component.notary.v1:null`（`cell_subject=null`，由 Event envelope `realm_id` 定位；null subject 的 canonical wire 形态见 [`../conformance/encoding.md` §4](../conformance/encoding.md)，MUST NOT 把 `realm_id` 写进 subject 段），其 canonical value shape 与 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) `properties.notary` 完全相同，lattice=`cas_register`、bottom=`reject`、plane=`control`。genesis value 由 `ak.realm.create` 的显式 effect（`cell_writes[]` 第 4 条）从 `payload.object.notary` 写入，不是 reducer 的隐式派生；后继值只能由 `ak.realm.notary` Control Move 写入，并且该 Move 必须以当前 cell head 作 CAS precondition、由当前 notary authority 按 §6.3 step 2b 最终签 Seal。并发 rotation 产生 `⊥` 时普通 Seal finality fail closed，只能走 §9.5 recovery。实现不得通过未登记 event kind、部署私有管理端点或直接数据库写入改变该 cell。
 
 ## 7. 问责、审查与 transparency
 

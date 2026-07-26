@@ -123,7 +123,7 @@
       "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Seal coverage, governance state_root, or reducer state.",
       "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
       "Every active lifecycle event kind MUST declare lifecycle_modality. Use reversible for a reversible lifecycle facet or either member of an archive/restore pair, and terminal for an irreversible transition that cannot be restored. Reducers and SDKs MUST NOT infer modality from event-kind spelling or the presence of a sibling event.",
-      "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell contract. A single-target kind MAY use the legacy cell_family/cell_subject/lattice/bottom shorthand. cell_writes[] is the general authority and is REQUIRED for multi-target kinds; each entry declares cell_family, cell_subject, lattice, bottom, and optional initial_value. The generator materializes the single-target shorthand when cell_writes[] has one entry. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an envelope/payload field path, a coalesce descriptor, or a composite descriptor. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
+      "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell contract. A single-target kind MAY use the legacy cell_family/cell_subject/lattice/bottom shorthand. cell_writes[] is the general authority and is REQUIRED for multi-target kinds; each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional: it uses the closed grammar {type: field_present|field_absent|field_equals|any_field_present, field: <dot-path>, const?: <scalar>, fields?: [<dot-path>...]} evaluated as a pure function of the schema-validated payload. When the condition holds the target is required and the Event MUST carry exactly one matching effect; when it does not hold the Event MUST NOT carry that effect. See zh/models/event-and-patch.md section 2.4.2. The generator materializes the single-target shorthand when cell_writes[] has one entry. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an envelope/payload field path, a coalesce descriptor, or a composite descriptor. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
       "Protocol-singleton cells MAY take their genesis value from a create payload, but every subsequent write MUST use a registered event_kind. ak.component.notary.v1 is canonically defined in zh/authz/event-auth-state-resolution.md section 6.5; its genesis value comes from ak.realm.create and subsequent writes use ak.realm.notary.",
       "Lattice MUST be one of the fully specified core types: or_set, mv_register, cas_register, fsm, counter, ordered_log. A new lattice type cannot become active until its join, bottom, op schema, profile gate, and conformance vectors are all registered.",
       "State convergence is defined by CBA: DataEvent effects are locally accepted against seal_ref, Control Move effects are finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
@@ -138,10 +138,11 @@
       "non_critical_extension_rule": "Unknown non-critical payload fields are preserved in canonical bytes and MAY be ignored by reducers. Unknown critical payload semantics MUST be declared in Event.requirements.critical_extensions and fail closed when unsupported."
     },
     "cell_contracts": {
+      "ak.realm.create": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.realm.metadata.v1", "cell_subject": null, "lattice": "cas_register", "bottom": "reject", "initial_value": "__unset__"}, {"cell_family": "ak.component.member.state.v1", "cell_subject": {"type": "did", "field": "payload.object.created_by"}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.realm.create.v1", "cell_subject": null, "lattice": "ordered_log", "bottom": "inert"}, {"cell_family": "ak.component.notary.v1", "cell_subject": null, "lattice": "cas_register", "bottom": "reject", "initial_value": "__unset__"}]},
       "ak.realm.update": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.realm.metadata.v1", "cell_subject": null, "lattice": "cas_register", "bottom": "reject"}]},
       "ak.circle.update": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.circle.metadata.v1", "cell_subject": {"type": "id:circle", "field": "payload.circle_id"}, "lattice": "cas_register", "bottom": "reject"}]},
-      "ak.circle.archive": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.circle.lifecycle.v1", "cell_subject": {"type": "id:circle", "field": "payload.circle_id"}, "lattice": "fsm", "bottom": "reject"}]},
-      "ak.circle.restore": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.circle.lifecycle.v1", "cell_subject": {"type": "id:circle", "field": "payload.circle_id"}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.circle.archive": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.circle.lifecycle.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.circle_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.circle.restore": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.circle.lifecycle.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.circle_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
       "ak.organization.discovery": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.organization.discovery.v1", "cell_subject": {"type": "did", "field": "payload.organization_did"}, "lattice": "cas_register", "bottom": "reject"}]},
       "ak.actor.discovery": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.actor.discovery.v1", "cell_subject": {"type": "did", "field": "payload.resource_id"}, "lattice": "cas_register", "bottom": "reject"}]},
       "ak.applet.discovery": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.applet.discovery.v1", "cell_subject": {"type": "typed_id", "field": "payload.resource_id"}, "lattice": "cas_register", "bottom": "reject"}]},
@@ -192,15 +193,16 @@
       "ak.audit.accessed": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.audit.access_log.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.target_ref", "payload.target_cell_id", "payload.paired_event_id"]}, "lattice": "ordered_log", "bottom": "expose"}]},
       "ak.self.moderation.report": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.moderation.report.v1", "cell_subject": {"type": "string", "field": "payload.target_ref"}, "lattice": "ordered_log", "bottom": "expose"}]},
       "ak.moderation.franking_proof": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.moderation.franking_proof.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.report_id", "payload.target_ref", "id"]}, "lattice": "ordered_log", "bottom": "expose"}]},
-      "ak.invite.create": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.invite.id", "payload.invite_id", "id"]}, "lattice": "fsm", "bottom": "reject"}]},
-      "ak.invite.cancel": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"type": "typed_id", "field": "payload.invite_id"}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.invite.create": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.invite.id", "payload.invite_id", "id"]}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.member.state.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.invite.invitee", "payload.invitee"]}, "lattice": "fsm", "bottom": "reject", "condition": {"type": "any_field_present", "fields": ["payload.invite.invitee", "payload.invitee"]}}]},
+      "ak.invite.cancel": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"type": "typed_id", "field": "payload.invite_id"}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.member.state.v1", "cell_subject": {"type": "did", "field": "payload.invitee"}, "lattice": "fsm", "bottom": "reject", "condition": {"type": "field_present", "field": "payload.invitee"}}]},
       "ak.invite.accept": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"type": "typed_id", "field": "payload.invite_id"}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.member.state.v1", "cell_subject": {"type": "did", "field": "actor_id"}, "lattice": "fsm", "bottom": "reject"}]},
       "ak.invite.third_party": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"type": "coalesce", "fields": ["payload.invite.id", "payload.invite_id", "id"]}, "lattice": "fsm", "bottom": "reject"}]},
       "ak.invite.claim": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"type": "typed_id", "field": "payload.invite_id"}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.invite.membership_proposal.v1", "cell_subject": {"type": "composite", "components": ["payload.invite_id", "payload.subject_id"]}, "lattice": "or_set", "bottom": "inert"}]},
-      "ak.invite.revoke": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"type": "typed_id", "field": "payload.invite_id"}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.invite.revoke": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.invite.lifecycle.v1", "cell_subject": {"type": "typed_id", "field": "payload.invite_id"}, "lattice": "fsm", "bottom": "reject"}, {"cell_family": "ak.component.member.state.v1", "cell_subject": {"type": "did", "field": "payload.invitee"}, "lattice": "fsm", "bottom": "reject", "condition": {"type": "field_present", "field": "payload.invitee"}}]},
       "ak.applet.bridge_error": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.applet.bridge_error.v1", "cell_subject": {"type": "typed_id", "field": "payload.applet_id"}, "lattice": "ordered_log", "bottom": "expose"}]},
       "ak.applet.registration": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.applet.registration.v1", "cell_subject": {"type": "typed_id", "field": "payload.applet_id"}, "lattice": "cas_register", "bottom": "reject"}]},
-      "ak.call.recording.start": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.call.recording.v1", "cell_subject": {"type": "typed_id", "field": "payload.call_id"}, "lattice": "fsm", "bottom": "reject"}]},
+      "ak.call.state": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.call.state.v1", "cell_subject": {"type": "typed_id", "field": "payload.call_id"}, "lattice": "fsm", "bottom": "reject", "condition": {"type": "field_present", "field": "payload.state"}}, {"cell_family": "ak.component.call.focus.v1", "cell_subject": {"type": "typed_id", "field": "payload.call_id"}, "lattice": "cas_register", "bottom": "reject", "initial_value": "__unset__", "condition": {"type": "any_field_present", "fields": ["payload.session_focus", "payload.mode"]}}, {"cell_family": "ak.component.call.recording.v1", "cell_subject": {"type": "composite", "components": ["payload.call_id", "payload.recording_result.recording_id"]}, "lattice": "fsm", "bottom": "reject", "condition": {"type": "field_present", "field": "payload.recording_state"}}, {"cell_family": "ak.component.call.transcript.v1", "cell_subject": {"type": "composite", "components": ["payload.call_id", "payload.transcript_result.recording_id"]}, "lattice": "fsm", "bottom": "reject", "condition": {"type": "field_present", "field": "payload.transcript_state"}}, {"cell_family": "ak.component.call.moderation.v1", "cell_subject": {"type": "typed_id", "field": "payload.call_id"}, "lattice": "or_set", "bottom": "inert", "condition": {"type": "any_field_present", "fields": ["payload.removed_participants", "payload.removed_participant_tombstones", "payload.participant_mute_overrides"]}}, {"cell_family": "ak.component.call.roster.v1", "cell_subject": {"type": "typed_id", "field": "payload.call_id"}, "lattice": "or_set", "bottom": "inert", "condition": {"type": "field_present", "field": "payload.participants"}}]},
+      "ak.call.recording.start": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.call.recording.v1", "cell_subject": {"type": "composite", "components": ["payload.call_id", "payload.recording_id"]}, "lattice": "fsm", "bottom": "reject", "condition": {"type": "field_equals", "field": "payload.capture_kind", "const": "recording"}}, {"cell_family": "ak.component.call.transcript.v1", "cell_subject": {"type": "composite", "components": ["payload.call_id", "payload.recording_id"]}, "lattice": "fsm", "bottom": "reject", "condition": {"type": "field_equals", "field": "payload.capture_kind", "const": "transcript"}}]},
       "ak.sovereign.did_policy": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.sovereign.did_policy.v1", "cell_subject": {"type": "string", "field": "payload.trust_domain"}, "lattice": "cas_register", "bottom": "reject"}]}
     },
     "event_kinds": [
@@ -252,13 +254,7 @@
             "admission": "deny"
           }
         ],
-        "payload": "Realm create",
-        "cell_family": "ak.component.realm.create.v1",
-        "cell_subject": null,
-        "lattice": "ordered_log",
-        "bottom": "expose",
-        "plane": "control",
-        "sealed": true
+        "payload": "Realm create"
       },
       {
         "event_kind": "ak.realm.update",
@@ -757,7 +753,7 @@
         "cell_family": "ak.component.circle.create.v1",
         "cell_subject": null,
         "lattice": "ordered_log",
-        "bottom": "expose",
+        "bottom": "inert",
         "plane": "control",
         "sealed": true
       },
@@ -771,7 +767,7 @@
         "cell_family": "ak.component.sidecar.create.v1",
         "cell_subject": null,
         "lattice": "ordered_log",
-        "bottom": "reject",
+        "bottom": "inert",
         "plane": "control",
         "sealed": true
       },
@@ -810,7 +806,13 @@
         "payload": "Circle tombstone (terminal). Triggers lifecycle cascade per zh/models/circle.md §9.2.",
         "lifecycle_modality": "terminal",
         "cell_family": "ak.component.circle.tombstone.v1",
-        "cell_subject": null,
+        "cell_subject": {
+          "type": "coalesce",
+          "fields": [
+            "payload.circle_id",
+            "payload.target_ref"
+          ]
+        },
         "lattice": "cas_register",
         "bottom": "reject",
         "plane": "control",
@@ -2952,15 +2954,6 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Call state",
-        "cell_family": "ak.component.call.state.v1",
-        "cell_subject": {
-          "type": "typed_id",
-          "field": "payload.call_id"
-        },
-        "lattice": "fsm",
-        "bottom": "reject",
-        "plane": "control",
-        "sealed": true,
         "parameters": {
           "initial_states": [
             "scheduled",
@@ -3782,6 +3775,12 @@
         "description": "Canonical ServiceDescribe response for ak.server.query.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces) and the registered directory_service overlay fields used by ak.find.directory.query.describe. Enforces development_mode=true => verified_profiles=[]. compat_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
       },
       {
+        "schema_id": "ak.schema.public_key.v1",
+        "file": "schemas/public-key.schema.json",
+        "status": "active",
+        "description": "Defs-only canonical PublicKey DTO (kty/kid/alg/key, optional key_digest). Owned by its own document so device, agent, account and to-device surfaces reference one shared definition instead of reverse-referencing each other's bundles. The {kid, alg, public_key} spelling is not canonical wire and MUST be rejected."
+      },
+      {
         "schema_id": "ak.schema.time.v1",
         "file": "schemas/time.schema.json",
         "status": "active",
@@ -3895,7 +3894,7 @@
         "wire_form": "ak:cell:ak.component.<facet-path>.v<n>:<subject>",
         "status": "active",
         "storage_recommendation": "Store canonical tuple fields separately when indexing cell state.",
-        "description": "Canonical protocol cell identifier. The complete ak.component.<facet-path>.v<n> family identifier is embedded unchanged after ak:cell:."
+        "description": "Canonical protocol cell identifier. The complete ak.component.<facet-path>.v<n> family identifier is embedded unchanged after ak:cell:. When the catalog declares cell_subject: null for a family, the canonical subject segment is the literal ASCII string 'null' (ak:cell:<component>:null); the cell is located by the Event envelope realm_id and implementations MUST NOT encode realm_id, Realm role classification, or any payload-derived value into that segment. See spec/v1/zh/conformance/encoding.md section 4."
       },
       {
         "kind": "trust_domain",
@@ -4765,7 +4764,7 @@
         "http": "POST /_arkret/gate/account/device-pair",
         "grpc": "GateAccount/DevicePair",
         "mq": "gate.account.command.pair_device",
-        "notes": "Authorizes a sibling device after the verified current device confirms the SAS/QR transcript. When device_pairing_request_id is present, the Account Authority MUST atomically require and consume the unexpired pending staged record whose pairing_code, new_device_pubkey and challenge_signature exactly match the request; a mismatch performs no device authorization.",
+        "notes": "Authorizes a sibling device after the verified current device confirms the SAS/QR transcript. When device_pairing_request_id is present, the Account Authority MUST atomically require and consume the unexpired pending staged record whose pairing_code and new_device_pubkey exactly match the request, and MUST verify challenge_proof by recomputing the ak.device-pairing.challenge.v1 transcript from that staged record (device-lifecycle.md section 2.1.2); a mismatch or a failing signature performs no device authorization. A byte-equality comparison of the proof is NOT sufficient.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
@@ -6210,7 +6209,7 @@
         "http": "POST /_arkret/open/device-pairing/requests",
         "grpc": "OpenDevicePairing/Stage",
         "mq": "open.device_pairing.command.stage",
-        "notes": "Unauthenticated stage of a device-pairing short-link handoff (device-lifecycle.md §2.1.1). The new device submits new_device_pubkey and challenge_signature (plus optional display_name / device_metadata); the service mints a fresh device_pairing_request_id and an 8-character Crockford-style 40-bit CSPRNG pairing_code and stores a bounded-TTL account-less record in state pending_authorization. The staged record binds no principal and grants nothing until an authenticated device authorizes it. Stage, resolve and status are rate limited. Each call mints a fresh request, so blind retries duplicate staged records: not retry-safe.",
+        "notes": "Unauthenticated stage of a device-pairing short-link handoff (device-lifecycle.md §2.1.1). The new device submits a canonical new_device_pubkey and a client_nonce (plus optional display_name / device_metadata) and MUST NOT submit a challenge proof, because the proof must commit to values this call mints; the service mints a fresh device_pairing_request_id, an 8-character Crockford-style 40-bit CSPRNG pairing_code, a gate_audience and a server_nonce, and stores a bounded-TTL account-less record in state pending_authorization. The staged record binds no principal and grants nothing until an authenticated device authorizes it. Stage, resolve and status are rate limited. Each call mints a fresh request, so blind retries duplicate staged records: not retry-safe.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,

@@ -197,12 +197,20 @@ Schema id: `ak.schema.realm.v1`
 
 **Principal Control Realm 分支（normative）**：当 create 同时满足 `fields.purpose="principal_control"`、PCR profile、`created_by=actor_id=principal DID` 与 [`identity/key-management.md` §5.0.1](../identity/key-management.md) 的唯一 critical `did_inception` root anchor 时，bootstrap unit 的第二条固定为首个 delegated `ak.device.authorize`，不是 `ak.capability.grant`。两条必须在同一 `ak.self.events.command.submit` batch 原子接受，均免 `seal_basis`；authority 必须来自 entry 0/document delegation。PCR 的自体控制权来自 root-anchored genesis，不建立普通 Realm founding grant。该分支不得用于 managed Agent PCR：Agent genesis 继续使用 controller device proof + accepted DID delegation，且不携带 `did_inception`。PCR allowlist 包含恢复专用 `ak.device.reanchor`，但该 kind 只能走 key-management §5.0.7 的独立原子 unit。
 
-以下步骤适用于普通非 PCR Realm，且 MUST 在评估同一批次后续 event 前完成：
+以下步骤 MUST 在评估同一批次后续 event 前完成。其中步骤 1–4 是 `ak.realm.create` **自身的 effect 集合，对全部 bootstrap 分支（普通 Collaboration Realm、PCR、Direct Conversation Realm）一致适用**；只有步骤 5（founding grant）限于普通非 PCR Realm，PCR 按上文分支以 delegated `ak.device.authorize` 取代。
 
-1. **物化 Realm metadata**：把 `payload.object` 写入 reducer 视图（schema 校验、`encryption_profile` / `security_class` / `notary_profile` 等 create-locked 字段固化；`digest_algorithm` 仅可由 [`ak.realm.digest_suite_transition`](../authz/event-auth-state-resolution.md#932-digest-suite-transition-sealnormative) 后续改变）。
-2. **写入 `ak.component.member.state.v1` cell**（`subject=created_by`，state=`join`，hlc 取自 create event）。这 **不要求** 发起者额外提交一条 `ak.member.state{join}` event，event 本身的 `created_by == actor_id` 已经是 spec 规定的成员资格凭证（[`common-fields.md` §3](common-fields.md)、[`event-and-patch.md` §2.5](event-and-patch.md#25-create-类-event-的跨字段语义校验)）。
-3. **写入 `ak.component.realm.create.v1` cell**（ordered_log，bottom=expose，genesis singleton）。该 cell 记录 accepted create 条目用于审计 / backfill；reducer 仍 MUST 把同一 Realm id 的第二条 create 拒绝为 `realm_already_exists`，不得把 duplicate create 作为普通 log append 接受。
-4. **接受显式 founding grant**：同一 ordered submit batch 中紧随 create 的下一条 Event MUST 是一条 `ak.capability.grant`，其 envelope `actor_id` 与 payload `issuer`（若 payload 形态显式承载 issuer）均等于 `payload.object.created_by`，且 grant 必须逐字满足以下封闭形态：
+`ak.realm.create` 的前四项职责 MUST 由该 Event **自身 `effects[]` 中的显式 Control Move effect** 承担，缺一不可。全部 effect 在 canonical [`contract-catalog.json`](../../artifacts/registry/contract-catalog.json) 的 `ak.realm.create` `cell_writes[]` 中登记，顺序固定：
+
+1. **物化 Realm metadata**：effect 写入 `ak.component.realm.metadata.v1`（`cas_register`，`bottom=reject`，`cell_subject=null`，与 `ak.realm.update` 同一 cell），初值为 `payload.object`（schema 校验、`encryption_profile` / `security_class` / `notary_profile` 等 create-locked 字段固化；`digest_algorithm` 仅可由 [`ak.realm.digest_suite_transition`](../authz/event-auth-state-resolution.md#932-digest-suite-transition-sealnormative) 后续改变）。该 cell MUST 在 genesis Seal 即存在；"metadata cell 只在首次 `ak.realm.update` 之后才出现在 `state_root` leaf 集合中"是不合规实现。
+2. **写入 `ak.component.member.state.v1` cell**：effect 的 `cell_subject` 取 `payload.object.created_by`，transition 为 `leave -> join`，hlc 取自 create event。这 **不要求** 发起者额外提交一条 `ak.member.state{join}` event——effect 就在这条 create Event 内部，wire 上仍然只有一条 Event；`created_by == actor_id` 的跨字段校验见 [`common-fields.md` §3](common-fields.md)、[`event-and-patch.md` §2.5](event-and-patch.md#25-create-类-event-的跨字段语义校验)。
+3. **写入 `ak.component.realm.create.v1` cell**（`ordered_log`，`bottom=inert`，`cell_subject=null`，`issuer_seq=0`）。该 cell 记录 accepted create 条目用于审计 / backfill；`ordered_log` 的 join 数学上不产生 `⊥` 且本 family 不定义领域冲突语义，因此登记 `bottom=inert`（[`event-auth-state-resolution.md` §9.1.1](../authz/event-auth-state-resolution.md)）。"同一 Realm id 的第二条 create MUST 拒绝为 `realm_already_exists`"是 reducer 的 admission precondition，不经由 lattice bottom 表达，也不得把 duplicate create 作为普通 log append 接受。
+4. **写入 `ak.component.notary.v1` cell**（`cas_register`，`bottom=reject`，`cell_subject=null`），初值为 `payload.object.notary`。该 cell 的后继写入只能由 `ak.realm.notary` Control Move 承担，定义见 [`event-auth-state-resolution.md` §6.5](../authz/event-auth-state-resolution.md)。它同样 MUST 是 create 的显式 effect——genesis Seal 的 signer authority 就在这个 cell 上求值（§6.3 step 2b），若它只是 reducer 的隐式派生，两个实现会对 genesis `state_root` 得到不同 leaf 集合。
+
+以上四条是 `ak.realm.create` 的完整 effect 集合。**任何未登记在 `cell_writes[]` 中的"reducer 顺带写入"MUST NOT 进入 `state_root`**（[`event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md)）。
+
+创建流程的第五项职责由同批的下一条独立 Event 承担（普通非 PCR Realm）：
+
+5. **接受显式 founding grant**：同一 ordered submit batch 中紧随 create 的下一条 Event MUST 是一条 `ak.capability.grant`，其 envelope `actor_id` 与 payload `issuer`（若 payload 形态显式承载 issuer）均等于 `payload.object.created_by`，且 grant 必须逐字满足以下封闭形态：
    - `subject == payload.object.created_by`；
    - `actions[]` 作为集合恰为 `{ "ak.realm.admin", "ak.capability.grant", "ak.capability.revoke" }`，不得增加、缺少或用聚合别名替代；
    - `capability_action_registry_digest` MUST 存在，并按 [`capabilities.md` §3.2](../authz/capabilities.md#32-首发-grant-的-issuer-自身权限上界normative) 绑定 receiver 可取得且 JCS 重算一致的完整 `capability-action-registry.json` snapshot；founding grant 的一次性 genesis authority 只豁免 issuer 既有上界，不豁免聚合 admin registry basis；
@@ -212,7 +220,14 @@ Schema id: `ak.schema.realm.v1`
 
 这条 founding grant 是普通 `ak.component.capability.grant.v1` OR-Set add，后续可由标准 `ak.capability.revoke` 撤销；它不是不可撤销的 creator 超级权限，也不是从普通 `join` membership 隐式推出 admin。创建者 membership 仍不为任何其它成员建立 baseline capability。reducer 只对这一个封闭 payload 应用一次性 genesis authority；它通过后，创建者才具有后续首发 grant 的 issuer 上界。create 缺少该紧邻 founding grant 时，整个 bootstrap unit MUST 原子拒绝（`failed_precondition`，`reason="realm_founding_grant_missing"`）；形态越界时整个 unit MUST 原子拒绝（`failed_precondition`，`reason="invalid_realm_founding_grant"`），不得只留下 Realm / membership 半成品。
 
-普通 Realm bootstrap event set 以 create 开始，第二条固定为 founding grant。创建时没有 accepted Seal，因此 create、founding grant 与同批同 actor 的封闭初始 facet follow-up MAY 免 `seal_basis`。PCR 则只允许上文 create + first-authorize 两项 shape；不得把普通 Realm follow-up 白名单或 founding grant混入 PCR bootstrap。批次结束后所有普通 Control Move 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#5-control-move) 携带 basis。
+普通 Realm bootstrap event set 以 create 开始，第二条固定为 founding grant。创建时没有 accepted Seal，因此下列**封闭列表**内的 Event MAY 免 `seal_basis`（与 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#5-control-move) 使用同一句，两处 MUST 保持逐条一致）：
+
+- `ak.realm.create` 自身；
+- 紧邻的 founding grant（`ak.capability.grant`）；
+- 同批同 actor 的初始 facet follow-up：`ak.realm.join_rule`、`ak.realm.history_visibility`、`ak.realm.discovery`、`ak.realm.policy_components`、`ak.realm.plaintext_visible_services`；
+- 同批由 creator 写入的 **bootstrap 初始成员 `ak.member.state{join}`**，含 1:1 Direct Conversation Realm 的 peer join（[`../identity/contact-and-direct-conversation.md` §6](../identity/contact-and-direct-conversation.md)）与 [`../governance/member-delivery-binding.md` §3.1.1](../governance/member-delivery-binding.md) 的 creator `join -> join` delivery-binding self-transition。
+
+不在该列表内的 Control Move 一律要求 `seal_basis`。PCR 则只允许上文 create + first-authorize 两项 shape；不得把普通 Realm follow-up 白名单或 founding grant混入 PCR bootstrap。批次结束后所有普通 Control Move 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#5-control-move) 携带 basis。
 
 Authz 含义：
 
@@ -229,7 +244,7 @@ Server 端实现合规要点：
 - 若 server 为 capability 使用独立索引 / cache，MUST 与 Realm metadata、creator membership 一起原子写入 founding grant；任一写入失败必须回滚整个 bootstrap unit。不得先返回 create 成功再异步补 grant。
 - 不允许通过 spec 之外的 REST 端点（如 `POST /spaces` 之类的私造 lifecycle 命令面）来兜底 bootstrap。此类端点违反 [`sync/service-http-binding.md` §2.1](../sync/service-http-binding.md#21-rest-api-命名空间组织) 的"实现不得用未声明路径绕过 canonical operation"规则，且会让事件流上的 read-only consumer 看不到完整的 source-of-truth 事件。
 
-**Backfill / federation peer 一致性（normative）**：Backfill / federation peer consumer MUST 把 cell snapshot（`ak.component.member.state.v1`）与 event 流并联回放，不得只回放 event 流——否则会看到 `ak.realm.create` 之后由 `created_by` 提交的 facet event 但找不到对应 `ak.member.state{join}` event（spec 不要求显式 emit），产生“无成员合法写入”的误读。founding grant 本身是显式 Event，consumer MUST 验证它紧邻对应 create 且满足本节封闭形态；缺失 / 越界的历史 bootstrap 不得被本地补造或凭 creator 身份推断为有效 admin。
+**Backfill / federation peer 一致性（normative）**：creator membership 是 `ak.realm.create` 自身的第 2 条 effect，因此**回放 event 流即可得到 creator 的 `join` 成员资格**：consumer MUST 按 `effects[]` 应用本节步骤 1–4 的全部四条 effect，不得因为没有看到独立的 `ak.member.state{join}` Event 就判定"无成员合法写入"，也不再需要"把 cell snapshot 与 event 流并联回放"这种额外要求（cell snapshot 仍可作为性能优化，但不是正确性前提）。founding grant 本身是显式 Event，consumer MUST 验证它紧邻对应 create 且满足本节封闭形态；缺失 / 越界的历史 bootstrap 不得被本地补造或凭 creator 身份推断为有效 admin。
 
 ### 2.6 Realm 终态 (`ak.realm.tombstone` / `ak.realm.destroy`)
 
@@ -376,7 +391,7 @@ Direct Conversation Realm MUST：
 - `content_encryption_floor="e2ee_required"` 且 `metadata_encryption_floor="e2ee_required"`。
 - `schema_refs` 同时包含 `ak.schema.realm.v1` 与 `ak.profile.direct_conversation_realm.v1`，并设置 `fields.collaboration_role="direct_conversation"`；两者受 schema 双向 guard 约束。不得复用 `fields.purpose="direct_message"`，因为 `fields.purpose` 已用于 Principal Control Realm。
 - active member count 等于 2；向 active DM Realm 加第三人 MUST 被拒绝。升级多人聊天必须创建新的普通 Realm / Strand，再用 Relation 或 Message 引用旧 DM 内容。
-- `default_join_rule` 为 `closed` 或等价 fail-closed policy；第三方 invite / member_add MUST 被拒绝。
+- `default_join_rule` 为 `closed` 或等价 fail-closed policy。**这里必须区分两件事（normative）**：（a）**bootstrap peer join**——Realm bootstrap batch 内由 creator 写入的第二个成员（pair 的另一方）是 DM Realm 成立的必要步骤，MUST 被接受；它走 authorized-writer 分支（creator 持 founding grant 得到的 `ak.realm.admin`），属于 [`../governance/join-policy.md` §4](../governance/join-policy.md) `closed` 行的封闭豁免列表第 4 项。（b）**向已 active 的 DM Realm 加第三人**——任何第三方 invite / member_add MUST 被拒绝。实现 MUST NOT 把（a）当成（b）拒掉，否则 1:1 私聊永远只有 1 个成员，违反“active member count 等于 2”。
 - `ak.space.*` Event MUST 以 `direct_conversation_space_forbidden` 拒绝；额外普通 Strand MAY 存在，但不改变 binding 指定的默认 main Strand。
 - 通过 principal-scoped `ak.direct_conversation.bound` fact 绑定 unordered participant pair、`realm_id` 与 `main_strand_id`。同一 pair 至多一个 active canonical DM Realm；并发 duplicate 必须用 deterministic tie-break 收敛。
 

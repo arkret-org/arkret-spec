@@ -5845,7 +5845,8 @@
           "$ref": "#/$defs/invite_id"
         },
         "invitee": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did",
+          "description": "Directed invite subject DID. On ak.invite.create it selects the directed branch and carries the conditional ak.component.member.state.v1 leave -> invite effect. On ak.invite.cancel / ak.invite.revoke targeting a directed DID invite it is REQUIRED and MUST equal the invitee recorded on the target invite cell; the same Control Move then carries the atomic invite -> leave member.state effect. 3PID placeholder invites carry no invitee and MUST NOT produce a member.state effect."
         },
         "invite_delivery_target": {
           "$ref": "./invite-delivery-request.schema.json#/$defs/invite_delivery_target",
@@ -8729,10 +8730,30 @@
     },
     "call_state_payload": {
       "type": "object",
-      "description": "Typed payload for ak.call.state (durable call lifecycle state). state is a controlled enum, participants carry machine-checkable participant_binding, and recording results are carried in a typed recording_result object. See crypto-media/call-state.md §4/§4.1/§5.",
+      "description": "Typed payload for ak.call.state (durable call lifecycle state). Each orthogonal axis lives in its own registered cell: state -> ak.component.call.state.v1 (fsm), session_focus/mode -> ak.component.call.focus.v1 (cas_register), recording_state -> ak.component.call.recording.v1 (per-segment fsm), transcript_state -> ak.component.call.transcript.v1 (per-segment fsm), moderation sets -> ak.component.call.moderation.v1 (or_set), participants -> ak.component.call.roster.v1 (or_set). An axis that is not being changed MUST be omitted so it produces no effect. See crypto-media/call-state.md sections 4, 4.1, 4.2 and 5.",
       "required": [
-        "call_id",
-        "state"
+        "call_id"
+      ],
+      "anyOf": [
+        {"required": ["state"]},
+        {"required": ["session_focus"]},
+        {"required": ["mode"]},
+        {"required": ["recording_state"]},
+        {"required": ["transcript_state"]},
+        {"required": ["participants"]},
+        {"required": ["removed_participants"]},
+        {"required": ["removed_participant_tombstones"]},
+        {"required": ["participant_mute_overrides"]}
+      ],
+      "allOf": [
+        {
+          "if": {"required": ["recording_state"]},
+          "then": {"required": ["recording_result"]}
+        },
+        {
+          "if": {"required": ["transcript_state"]},
+          "then": {"required": ["transcript_result"]}
+        }
       ],
       "properties": {
         "call_id": {
@@ -8901,7 +8922,15 @@
         "recording_result": {
           "type": "object",
           "description": "Typed recording outcome, present when recording_state ∈ {stopped, ready, failed}. See crypto-media/call-state.md §4.2 / §5: the durable ak.call.state carries recording_start_event_id for every terminal recording segment, and carries content digest, duration, media type, retention policy and a typed artifact when an artifact exists. All fields optional at schema level; prose defines state-specific requirements.",
+          "required": [
+            "recording_id"
+          ],
           "properties": {
+            "recording_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._-]{1,128}$",
+              "description": "Capture segment handle, byte-identical to the recording_id of the ak.call.recording.start that opened this segment. It is the second component of the ak.component.call.recording.v1 cell subject, so it MUST be present whenever recording_state is."
+            },
             "content_digest": {
               "$ref": "#/$defs/hash"
             },
@@ -8949,7 +8978,15 @@
         "transcript_result": {
           "type": "object",
           "description": "Typed transcription outcome, present when transcript_state ∈ {stopped, ready, failed}. The transcript artifact is encrypted with the MLS-Exporter label ak.rtc-transcript-key/v1 (see exporter-label-registry.json) and strands through the same Arkret blob pipeline as recordings. transcript_start_event_id binds this segment to its ak.call.transcribe.start. All fields optional at schema level; prose defines state-specific requirements. See crypto-media/call-state.md §5.1.",
+          "required": [
+            "recording_id"
+          ],
           "properties": {
+            "recording_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._-]{1,128}$",
+              "description": "Capture segment handle, byte-identical to the recording_id of the ak.call.recording.start (capture_kind=transcript) that opened this segment. It is the second component of the ak.component.call.transcript.v1 cell subject, so it MUST be present whenever transcript_state is."
+            },
             "content_digest": {
               "$ref": "#/$defs/hash"
             },
@@ -9086,6 +9123,7 @@
         "call_id",
         "recording_id",
         "recording_agent",
+        "capture_kind",
         "mode"
       ],
       "properties": {
@@ -9107,7 +9145,7 @@
             "recording",
             "transcript"
           ],
-          "description": "Whether this start event opens a recording or a transcription segment. Absent defaults to recording for backward compatibility."
+          "description": "Whether this start event opens a recording or a transcription segment. REQUIRED: it selects the target capture cell family (ak.component.call.recording.v1 vs ak.component.call.transcript.v1) in the registered cell contract, so it MUST NOT be inferred from a missing-field default."
         },
         "mode": {
           "type": "string",

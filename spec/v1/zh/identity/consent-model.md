@@ -278,7 +278,13 @@ policy MAY 声明 `ak.realm.policy_components` 中的 `preauth` component 包含
 - **生命周期与 TTL**：暂存项停留在 `pending_review` 直到 holder 在 UI review;实现 SHOULD 为暂存项设置 deployment-policy 声明的 TTL（缺省建议 30 天）,超时后 MUST 按"丢弃"处理（等价 holder 未授权，不得自动转 grant）。
 - **review 后转换**：holder review 后只有两种终态——(a) **接受** → holder 构造 §3.2 `ak.consent.grant` Control Move 写入 consent cell（此后该 peer 的 invite 走正常 active-grant 路径）,并 MAY 接受原 invite;(b) **丢弃** → 删除暂存项，不产生任何 consent dot。review 动作本身不绕过 consent cell:授权始终经 grant Control Move 落入 consent cell,quarantine inbox 永远不是授权根。
 - **profile 边界**：quarantine inbox 仅在 default profile 生效;`require_explicit_consent` profile 下无 active grant 的 invite 直接 `failed_precondition` 拒绝(§6.1 step 2),不进入 quarantine inbox。
-- **不向 requester 暴露可联系信号（normative）**：invite 进入 quarantine inbox 暂存(§3.1 缺省判定的"非拒绝、非放行")**MUST NOT** 被对 requester 暴露为送达 / 可联系信号。quarantine 期间(暂存项处于 `pending_review`,以及超时丢弃后)服务端与客户端 **MUST NOT** 向 requester 返回任何 deliver / seen / read receipt / presence / typing / "已送达" / "可联系" 等指示，亦不得通过响应码、时序或副作用让 requester 区分"已进入 holder quarantine"与"被直接拒绝 / holder 不存在"。requester 只有在 holder 显式 review 接受并构造 grant Control Move(本节 review 后转换 (a))后，才 MAY 从正常 active-grant 路径观察到可联系状态。否则 quarantine 暂存本身会成为"holder 真实存在且 inbox 可达"的可联系侧信道，违背 consent gate 的"非授权即不可联系"语义。
+- **不向 requester 暴露可联系信号（normative）**：invite 进入 quarantine inbox 暂存(§3.1 缺省判定的"非拒绝、非放行")**MUST NOT** 被对 requester 暴露为送达 / 可联系信号。quarantine 期间(暂存项处于 `pending_review`,以及超时丢弃后)服务端与客户端 **MUST NOT** 向 requester 返回任何 deliver / seen / read receipt / presence / typing / "已送达" / "可联系" 等指示，亦不得通过响应码、时序或副作用让 requester 区分下列五种情形。
+
+  **不可区分等价类（normative，封闭列举）**：`{已进入 quarantine inbox（`pending_review`）, 本节反滥用限速导致的静默丢弃, TTL 超时丢弃, holder 不存在, holder policy deny}` 五种情形 MUST 返回**逐字节相同**的响应体与状态码，并落在同一 timing bucket。任何一项与其余四项可区分，都等价于回答了"holder 是否对该 requester 持有 active invite grant"。
+
+  **wire 落点（normative）**：在 peer invite delivery 与 contact delivery 面上，该等价类的 wire 形态固定为 `status="deferred"` 且**不携带** `disclosed_outcome`；`disclosed_outcome` 的枚举因此封闭为 `delivered | blocked`，`quarantined` 不是可回送值。详见 [`../sync/invite-addressing.md` §5.1](../sync/invite-addressing.md)。高信任 introduction evidence（`locator_ref` / `consent_grant` / `shared_realm`）**不构成**放宽理由：它只说明 requester 已知 holder 存在，而这里泄露的是 consent 状态而非 existence。
+
+  requester 只有在 holder 显式 review 接受并构造 grant Control Move(本节 review 后转换 (a))后，才 MAY 从正常 active-grant 路径观察到可联系状态。否则 quarantine 暂存本身会成为"holder 真实存在且 inbox 可达"的可联系侧信道，违背 consent gate 的"非授权即不可联系"语义。
 - **反滥用限速（normative）**：为闭合"换 pairwise DID 即重新入列"的骚扰放大面，服务端对写入同一 holder quarantine inbox 的**新来源**（此前未见过的 `peer` pairwise DID）首次接触项 MUST 施加 per-holder 速率与总量上限（与 [`../discovery/discovery-directory.md` §6.4](../discovery/discovery-directory.md) 的 private contact discovery 限速同构；具体阈值由 deployment policy 声明，缺省 SHOULD 收敛到与该 PSI quota 同量级）。超过上限的新来源接触 MUST 被静默丢弃——不入列、不向 requester 暴露任何送达 / 可联系信号（遵守上一条不可区分要求）；holder MAY 在 UI 显式放宽。该限速仅针对"新陌生 pairwise 首次接触"；已被 holder grant 过、走正常 active-grant 路径的 peer 不受此限。
 
 #### 6.1.2 `ak.self.consent.command.request`（normative）
@@ -331,7 +337,7 @@ MIMI 协议有 `request_consent` / `update_consent` 操作（`ak.open.mimi.comma
 
 ### 8.1 Pairwise consent 的反骚扰局限与聚合 revoke（normative for client UI）
 
-consent 的去重 / 撤销键含 `intent.peer`（counterparty DID 或 pairwise DID，见 §3.2）。这带来一个协议层局限：**骚扰者每换一个新 pairwise DID 发起联系，就构成一个全新的 `(consent_id, peer)` 入口**——holder 此前对旧 pairwise DID 的 `ak.consent.revoke` 不会覆盖新 pairwise DID，default profile 下该新 peer 仍可经 §6.1.1 quarantine inbox 暂存，重新出现在 holder 的待 review 列表中。协议层无法在 wire 上判定两个 pairwise DID 是否指向同一真实主体（这正是 pairwise pseudonym 的隐私目标），因此**不能**在 consent cell 语义中强制把多 pairwise DID 折叠到同一撤销键。
+consent 的去重 / 撤销键含 `intent.peer`（counterparty DID 或 pairwise DID，见 §3.2）。这带来一个协议层局限：**骚扰者每换一个新 pairwise DID 发起联系，就构成一个全新的 `(consent_id, peer)` 入口**——holder 此前对旧 pairwise DID 的 `ak.consent.revoke` 不会覆盖新 pairwise DID，default profile 下该新 peer 仍可经 §6.1.1 quarantine inbox 暂存，重新出现在 holder 的待 review 列表中。（本节的 pairwise 反骚扰分析以"quarantine 对 requester 完全不可区分"为前提；该前提由 §6.1.1 的五元等价类与 [`../sync/invite-addressing.md` §5.1](../sync/invite-addressing.md) 的 `deferred` 映射**共同**保证，不是隐含假设。任一侧回送 `quarantined` 都会让本节结论失效。）协议层无法在 wire 上判定两个 pairwise DID 是否指向同一真实主体（这正是 pairwise pseudonym 的隐私目标），因此**不能**在 consent cell 语义中强制把多 pairwise DID 折叠到同一撤销键。
 
 为收敛该局限，对反骚扰能力作如下要求：
 

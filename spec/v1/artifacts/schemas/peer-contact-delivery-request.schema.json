@@ -267,10 +267,9 @@
           "type": "string",
           "enum": [
             "delivered",
-            "blocked",
-            "quarantined"
+            "blocked"
           ],
-          "description": "Optional graded-disclosure result, present only when the subject's receive policy disclosure level for this trust tier is 'outcome' and the subject did not block the issuer. Omitted (opaque) otherwise."
+          "description": "Optional graded-disclosure result, closed to delivered|blocked. Present ONLY when the subject's receive policy disclosure level for this introduction trust tier is 'outcome' and the subject did not block the issuer; omitted (opaque) otherwise. delivered: the invite reached the holder surface awaiting acceptance; blocked: rejected by block list or policy. A holder-quarantine outcome MUST NOT be disclosed: it reveals holder-private consent state (identity/consent-model.md 6.1.1) and MUST be reported as status='deferred' with no disclosed_outcome, in the same response and timing equivalence class as rate-limit silent drop, timeout drop, holder-not-found and holder policy deny."
         },
         "received_at": {
           "$ref": "#/$defs/timestamp"

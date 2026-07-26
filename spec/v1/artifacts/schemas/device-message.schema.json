@@ -596,27 +596,12 @@
           "description": "Eight-character human-readable Crockford-style device-pairing code bound into a same-principal authorization transcript. It is short-lived, one-time, and locked after ten failed submissions."
         },
         "new_device_pubkey": {
-          "type": "object",
-          "description": "Public key material for the requesting device when purpose=same_principal_device_authorization. The kid SHOULD equal the requesting device id and the object is later consumed by ak.gate.account.command.pair_device.",
-          "properties": {
-            "kid": {
-              "$ref": "#/$defs/device_id"
-            },
-            "alg": {
-              "type": "string",
-              "minLength": 1
-            },
-            "public_key": {
-              "type": "string",
-              "minLength": 1
-            }
-          },
-          "additionalProperties": true
+          "$ref": "./public-key.schema.json#/$defs/public_key",
+          "description": "Canonical PublicKey for the requesting device when purpose=same_principal_device_authorization. kid MUST be the requesting ak:device:<uuidv7> id and the key material MUST be carried in key. The legacy {kid, alg, public_key} spelling is not canonical wire and MUST be rejected. The object is later consumed verbatim by ak.gate.account.command.pair_device."
         },
-        "challenge_signature": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Fresh requesting-device proof bound to pairing_code, new_device_pubkey, gate_audience, and request_canonical_digest; later submitted to ak.gate.account.command.pair_device."
+        "challenge_proof": {
+          "$ref": "./device-pairing.schema.json#/$defs/device_pairing_challenge_proof",
+          "description": "Fresh requesting-device proof of possession over the ak.device-pairing.challenge.to_device.v1 transcript, which commits to {expires_at, gate_audience, new_device_pubkey_digest, pairing_code, request_canonical_digest, transaction_id}. The receiving authorized device MUST recompute the transcript from the values it displays to the user and verify the signature before treating the requesting device as pairable; it is later submitted verbatim to ak.gate.account.command.pair_device."
         },
         "gate_audience": {
           "type": "string",

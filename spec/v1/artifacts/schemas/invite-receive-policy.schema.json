@@ -116,7 +116,7 @@
     },
     "disclosure": {
       "$ref": "#/$defs/disclosure_policy",
-      "description": "Graded disclosure policy. Controls whether the invite/contact delivery outcome reveals a real result (delivered/blocked/quarantined) to the requester, by introduction trust tier. Omitted means the default: high_trust=outcome, discovery_trust=opaque, low_trust=opaque."
+      "description": "Graded disclosure policy. Controls whether the invite/contact delivery outcome reveals a real result (delivered/blocked) to the requester, by introduction trust tier. Holder quarantine is never disclosable at any tier: it maps to status=deferred with no disclosed_outcome. Omitted means the default: high_trust=outcome, discovery_trust=opaque, low_trust=opaque."
     }
   },
   "additionalProperties": false,
@@ -159,7 +159,7 @@
         "opaque",
         "outcome"
       ],
-      "description": "opaque: only a generic accepted-for-processing status is returned, indistinguishable across exists/not-exists/policy outcomes. outcome: the real delivered/blocked/quarantined result is disclosed to the inviter."
+      "description": "opaque: only a generic accepted-for-processing status is returned, indistinguishable across exists/not-exists/policy outcomes. outcome: the real delivered|blocked result is disclosed to the inviter. Neither level ever discloses holder quarantine."
     },
     "disclosure_policy": {
       "type": "object",

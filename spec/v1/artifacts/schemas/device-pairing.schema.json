@@ -39,6 +39,79 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "pairing_nonce": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{22,86}$",
+      "description": "base64url CSPRNG nonce carrying at least 128 bits of entropy."
+    },
+    "gate_audience": {
+      "type": "string",
+      "format": "uri",
+      "description": "Origin of the Account Authority gate surface (gate_account_base) this pairing request is bound to. Minted by the staging service; the challenge proof commits to it so a proof cannot be replayed against another Account Authority."
+    },
+    "device_pairing_to_device_challenge_transcript": {
+      "type": "object",
+      "description": "Transcript inputs the authorizing device forwards for the to-device pairing path, where no server-staged record exists. The Account Authority rebuilds the ak.device-pairing.challenge.to_device.v1 signing input from these values plus its own gate_audience origin and the digest of the submitted new_device_pubkey; it MUST NOT accept a client-supplied gate_audience, because substituting its own origin is exactly what blocks cross-Account-Authority replay. See crypto-media/device-lifecycle.md section 2.1.2.",
+      "required": [
+        "transaction_id",
+        "request_canonical_digest",
+        "expires_at"
+      ],
+      "properties": {
+        "transaction_id": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Verification transaction id of the ak.key.verification.request that carried this pairing challenge."
+        },
+        "request_canonical_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Expiry the proof committed to. The Account Authority MUST reject an elapsed expires_at before it verifies the signature."
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_pairing_challenge_proof": {
+      "type": "object",
+      "description": "Proof of possession of the staged new_device_pubkey, bound to the server-minted pairing challenge. Signing input is UTF8(\"ak.device-pairing.challenge.v1\\n\") || canonical_json({client_nonce, device_pairing_request_id, expires_at, gate_audience, new_device_pubkey_digest, pairing_code, server_nonce}); see crypto-media/device-lifecycle.md section 2.1.2. The proof can only be generated after staging returns, because it commits to server-minted values that do not exist at stage time.",
+      "required": [
+        "transcript",
+        "verification_method",
+        "alg",
+        "transcript_digest",
+        "signature"
+      ],
+      "properties": {
+        "transcript": {
+          "type": "string",
+          "enum": [
+            "ak.device-pairing.challenge.v1",
+            "ak.device-pairing.challenge.to_device.v1"
+          ],
+          "description": "Names the exact signing transcript. ak.device-pairing.challenge.v1 is the server-mediated short-link path and commits to {client_nonce, device_pairing_request_id, expires_at, gate_audience, new_device_pubkey_digest, pairing_code, server_nonce}. ak.device-pairing.challenge.to_device.v1 is the to-device verification path and commits to {expires_at, gate_audience, new_device_pubkey_digest, pairing_code, request_canonical_digest, transaction_id}. A verifier MUST select the member set from this discriminator and MUST NOT accept a proof whose transcript name does not match the path it is verifying."
+        },
+        "verification_method": {
+          "$ref": "#/$defs/device_id",
+          "description": "MUST equal new_device_pubkey.kid. The proof is verified with the staged new_device_pubkey and with no other key."
+        },
+        "alg": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "transcript_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "sha256 over the canonical challenge transcript bytes. The verifier recomputes it from its own staged record and rejects a mismatch before checking the signature."
+        },
+        "signature": {
+          "$ref": "#/$defs/base64url"
+        }
+      },
+      "additionalProperties": false
+    },
     "device_pairing_request_id": {
       "$ref": "./agent-operations.schema.json#/$defs/device_pairing_request_id"
     },
@@ -54,7 +127,7 @@
       "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "public_key": {
-      "$ref": "./agent-operations.schema.json#/$defs/public_key",
+      "$ref": "./public-key.schema.json#/$defs/public_key",
       "description": "Canonical PublicKey shape shared with agent-operations. For a staged device the key material is carried in `key` and `kid` is the target `ak:device:<uuid>` id."
     },
     "device_metadata": {
@@ -71,17 +144,17 @@
     },
     "device_pairing_stage_request_body": {
       "type": "object",
-      "description": "Unauthenticated stage request that mints a fresh account-less pending pairing record. The service returns a device_pairing_request_id and a short pairing_code; the record binds no principal and grants nothing until an authenticated device authorizes it.",
+      "description": "Unauthenticated stage request that mints a fresh account-less pending pairing record. It carries only the canonical public key and a client nonce: the challenge proof cannot exist yet, because it must commit to the request id, pairing code, expiry, gate audience and server nonce that this call mints. The record binds no principal and grants nothing until an authenticated device authorizes it.",
       "required": [
         "new_device_pubkey",
-        "challenge_signature"
+        "client_nonce"
       ],
       "properties": {
         "new_device_pubkey": {
           "$ref": "#/$defs/public_key"
         },
-        "challenge_signature": {
-          "$ref": "#/$defs/base64url"
+        "client_nonce": {
+          "$ref": "#/$defs/pairing_nonce"
         },
         "display_name": {
           "$ref": "#/$defs/non_empty_string"
@@ -94,10 +167,12 @@
     },
     "device_pairing_stage_outcome": {
       "type": "object",
-      "description": "Result of staging a device-pairing short-link record. pairing_code is a short human-carryable secret; both device_pairing_request_id and pairing_code are the query credential for the resolve/status endpoints and MUST NOT be sent in URL path or query string.",
+      "description": "Result of staging a device-pairing short-link record. It returns the full server-minted challenge material the new device needs to build the ak.device-pairing.challenge.v1 proof. pairing_code is a short human-carryable secret; both device_pairing_request_id and pairing_code are the query credential for the resolve/status endpoints and MUST NOT be sent in URL path or query string.",
       "required": [
         "device_pairing_request_id",
         "pairing_code",
+        "gate_audience",
+        "server_nonce",
         "expires_at"
       ],
       "properties": {
@@ -106,6 +181,12 @@
         },
         "pairing_code": {
           "$ref": "#/$defs/device_pairing_code"
+        },
+        "gate_audience": {
+          "$ref": "#/$defs/gate_audience"
+        },
+        "server_nonce": {
+          "$ref": "#/$defs/pairing_nonce"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -128,13 +209,15 @@
     },
     "device_pairing_bootstrap": {
       "type": "object",
-      "description": "Pairing material handed to an already-authorized device after resolving a device-pairing short link. This is not a session grant, capability grant or long-term secret; the authorized device still drives ak.gate.account.command.pair_device to complete authorization.",
+      "description": "Pairing material handed to an already-authorized device after resolving a device-pairing short link. It carries the server-minted challenge material so the authorized device can recompute the ak.device-pairing.challenge.v1 transcript and verify the proof it received out of band from the new device. It does NOT carry the proof itself: the staging surface is unauthenticated and never sees it. This is not a session grant, capability grant or long-term secret; the authorized device still drives ak.gate.account.command.pair_device to complete authorization.",
       "required": [
         "arkret_base_url",
         "device_pairing_request_id",
         "pairing_code",
         "new_device_pubkey",
-        "challenge_signature",
+        "client_nonce",
+        "gate_audience",
+        "server_nonce",
         "expires_at"
       ],
       "properties": {
@@ -151,8 +234,14 @@
         "new_device_pubkey": {
           "$ref": "#/$defs/public_key"
         },
-        "challenge_signature": {
-          "$ref": "#/$defs/base64url"
+        "client_nonce": {
+          "$ref": "#/$defs/pairing_nonce"
+        },
+        "gate_audience": {
+          "$ref": "#/$defs/gate_audience"
+        },
+        "server_nonce": {
+          "$ref": "#/$defs/pairing_nonce"
         },
         "display_name": {
           "$ref": "#/$defs/non_empty_string"

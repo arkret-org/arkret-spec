@@ -310,22 +310,32 @@ Reducer 逐层比较相同 `native_agent` 子对象的同名 bit：内层为 tru
 
 Realm 与 Circle membership 共用本节唯一的状态图。`initial_state=leave`，wire 枚举固定为 `invite / join / knock / leave / ban`；不存在 `none`。实例参数 `delivery_binding_rebind` 仅控制 `join -> join`：Realm 为 `true`，Circle 为 `false`。除该参数化边外，任何未列边与任何 same-state transition 均非法，MUST `failed_precondition`（`reason=invalid_membership_transition`）。
 
-| from | to | Realm guard / writer | Circle guard / writer |
-| --- | --- | --- | --- |
-| `leave` | `invite` | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
-| `leave` | `knock` | target actor，且 Join Rule / Join Policy 允许 | target actor，且 `join_rule=knock` |
-| `leave` | `join` | target actor 通过 public/restricted gate，或 `ak.realm.admin`；Native Personal Agent carve-out 见 Realm 文档 | target actor 仅当 `join_rule=public`，否则 `ak.circle.member.manage` |
-| `invite` | `join` | target actor 或 `ak.realm.admin` | target actor（`ak.circle.member.add`）或 `ak.circle.member.manage` |
-| `invite` | `leave` | target actor、inviter 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
-| `knock` | `invite` | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
-| `knock` | `join` | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
-| `knock` | `leave` | target actor、reviewer 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
-| `join` | `join` | 仅当 `delivery_binding_rebind=true`：target actor 或 rebind-authorized service，且只更新 delivery binding / membership metadata | 不可用（`delivery_binding_rebind=false`） |
-| `join` | `leave` | target actor 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
-| `leave` / `invite` / `knock` / `join` | `ban` | `ak.realm.admin` | `ak.circle.member.manage` |
-| `ban` | `leave` / `invite` | `ak.realm.admin` | `ak.circle.member.manage`；self-service fail closed |
+下表的 **wire event kind** 列给出承载该边的 Event kind（Realm scope）。每条边都 MUST 由一条已登记的 wire event kind 的显式 `effects[]` 承担（[`event-and-patch.md` §2.4.2](event-and-patch.md)）；没有对应 kind 的"reducer 隐式推进"不是合法边。
+
+| from | to | wire event kind（Realm） | Realm guard / writer | Circle guard / writer |
+| --- | --- | --- | --- | --- |
+| `leave` | `invite` | `ak.invite.create`（directed 分支，条件性 `member.state` effect） | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
+| `leave` | `knock` | `ak.member.state` | target actor，且 Join Rule / Join Policy 允许 | target actor，且 `join_rule=knock` |
+| `leave` | `join` | `ak.member.state`；`ak.realm.create`（creator 自身，见 [`realm-and-space.md` §2.5](realm-and-space.md)） | target actor 通过 public/restricted gate，或 `ak.realm.admin`；Native Personal Agent carve-out 见 Realm 文档 | target actor 仅当 `join_rule=public`，否则 `ak.circle.member.manage` |
+| `invite` | `join` | `ak.invite.accept` | target actor 或 `ak.realm.admin` | target actor（`ak.circle.member.add`）或 `ak.circle.member.manage` |
+| `invite` | `leave` | `ak.invite.cancel` / `ak.invite.revoke`（条件性 `member.state` effect） | target actor、inviter 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
+| `knock` | `invite` | `ak.invite.create`（reviewer 批准后签发定向 invite） | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
+| `knock` | `join` | `ak.member.state` | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
+| `knock` | `leave` | `ak.member.state` | target actor、reviewer 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
+| `join` | `join` | `ak.member.state` | 仅当 `delivery_binding_rebind=true`：target actor 或 rebind-authorized service，且只更新 delivery binding / membership metadata | 不可用（`delivery_binding_rebind=false`） |
+| `join` | `leave` | `ak.member.state` | target actor 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
+| `leave` / `invite` / `knock` / `join` | `ban` | `ak.member.state` | `ak.realm.admin` | `ak.circle.member.manage` |
+| `ban` | `leave` / `invite` | `ak.member.state`（→`leave`）/ `ak.invite.create`（→`invite`） | `ak.realm.admin` | `ak.circle.member.manage`；self-service fail closed |
 
 实现 MUST 以 `(scope_kind, delivery_binding_rebind)` 选择 FSM 实例，再按上表对应 scope 列求值 writer/guard，不得分别硬编码两套 transition graph。Bare knock / invite 的本地计时器不产生隐式边；任何过期清理仍须由该 scope 对应列授权的 writer 显式提交 `leave`。
+
+**`default_join_rule=closed` 下的可用分支（normative）**：Realm scope 下 `default_join_rule=closed` 只关闭 **applicant-initiated 入口**——`leave -> knock` 与 applicant 自助的 `leave -> join` MUST 被拒绝。上表 `leave -> join` / `invite -> join` / `knock -> join` 三行的 **authorized-writer 分支仍然可用**（`ak.realm.admin`、`ak.realm.join.review`、Native Personal Agent controller carve-out、Realm bootstrap batch 内 creator 写入的初始成员）；封闭豁免列表见 [`../governance/join-policy.md` §4](../governance/join-policy.md)。所有分支仍 MUST 通过 Join Policy 的 A 轴 `principal_admission` 与 B 轴 `cooldown`。
+
+**Realm `invite` 态与 Invite 对象的原子绑定（normative）**：Realm scope 下 `member.state=invite` 与一条 live 定向 Invite 对象（[`governance-objects.md` §5](governance-objects.md)）**一一对应**，二者的转换 MUST 在同一 Control Move 内原子完成：
+
+- 进入 `invite` 只能由 `ak.invite.create` 的定向分支承担（它同时写 `ak.component.invite.lifecycle.v1` 与 `ak.component.member.state.v1`）；
+- 离开 `invite` 到 `leave` 只能由把该 Invite 推进到终态的 `ak.invite.cancel` / `ak.invite.revoke` 承担；离开到 `join` 只能由 `ak.invite.accept` 承担。**MUST NOT** 用裸 `ak.member.state` 单独改写处于 `invite` 的 Realm member cell——那会留下 invite 对象与成员态不一致的悬挂状态。
+- 因此 Realm scope 的 `invite -> ban` MUST 先（或在同一 batch 内）由 `ak.invite.revoke` 把该 Invite 推进终态，使 ban 边实际以 `leave -> ban` 求值。对处于 `invite` 的 Realm member cell 直接提交 `ak.member.state{ban}` MUST `failed_precondition`（`reason=invalid_membership_transition`）。Circle scope 无 Invite 对象，`invite -> ban` 照常由 `ak.circle.member.state` 承担。
 
 ## 5. State 枚举对齐
 

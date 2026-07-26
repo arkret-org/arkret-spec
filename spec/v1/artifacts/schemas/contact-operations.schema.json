@@ -528,11 +528,11 @@
             "mls_welcome_event_ref": { "$ref": "#/$defs/event_id" },
             "claimed_keypackage": { "$ref": "./keypackage-operations.schema.json#/$defs/keypackage_claim_record" },
             "claim_receipt": { "$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt" },
-            "realm_event": { "$ref": "#/$defs/unsigned_direct_materialization_event" },
-            "founding_grant_event": { "$ref": "#/$defs/unsigned_direct_materialization_event" },
-            "peer_member_event": { "$ref": "#/$defs/unsigned_direct_materialization_event" },
-            "main_strand_event": { "$ref": "#/$defs/unsigned_direct_materialization_event" },
-            "binding_event": { "$ref": "#/$defs/unsigned_direct_materialization_event" },
+            "realm_event": { "$ref": "#/$defs/unsigned_direct_realm_create_event" },
+            "founding_grant_event": { "$ref": "#/$defs/unsigned_direct_founding_grant_event" },
+            "peer_member_event": { "$ref": "#/$defs/unsigned_direct_peer_member_event" },
+            "main_strand_event": { "$ref": "#/$defs/unsigned_direct_main_strand_event" },
+            "binding_event": { "$ref": "#/$defs/unsigned_direct_binding_event" },
             "expires_at": { "$ref": "#/$defs/timestamp" }
           },
           "additionalProperties": false,
@@ -629,19 +629,12 @@
       ],
       "additionalProperties": false
     },
-    "unsigned_direct_materialization_event": {
+    "unsigned_direct_materialization_event_base": {
       "type": "object",
       "required": ["event_id", "kind", "realm_id", "actor_id", "actor_seq", "hlc", "payload", "proofs"],
       "properties": {
         "event_id": { "$ref": "#/$defs/event_id" },
-        "kind": {
-          "enum": [
-            "ak.realm.create",
-            "ak.member.state",
-            "ak.strand.create",
-            "ak.direct_conversation.bound"
-          ]
-        },
+        "kind": { "type": "string" },
         "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
         "actor_id": { "$ref": "./common-ids.schema.json#/$defs/did" },
         "actor_seq": { "type": "integer", "minimum": 0 },
@@ -649,7 +642,81 @@
         "payload": { "type": "object" },
         "proofs": { "type": "array", "maxItems": 0 }
       },
-      "additionalProperties": true
+      "additionalProperties": true,
+      "description": "Shared envelope shape of every unsigned draft Event in a direct_conversation_materialization plan. proofs MUST be empty: the service issues an authoring draft and never signs on behalf of the participant. Each draft slot narrows this base to exactly one kind via its own role-closed definition; the five slots are NOT interchangeable."
+    },
+    "unsigned_direct_realm_create_event": {
+      "allOf": [
+        { "$ref": "#/$defs/unsigned_direct_materialization_event_base" },
+        {
+          "properties": {
+            "kind": { "const": "ak.realm.create" }
+          },
+          "required": ["kind"]
+        }
+      ],
+      "description": "Bootstrap unit event 1. payload.object MUST be the Direct Conversation Realm object (ak.profile.direct_conversation_realm.v1) whose id equals this envelope realm_id and whose created_by equals actor_id."
+    },
+    "unsigned_direct_founding_grant_event": {
+      "allOf": [
+        { "$ref": "#/$defs/unsigned_direct_materialization_event_base" },
+        {
+          "properties": {
+            "kind": { "const": "ak.capability.grant" },
+            "payload": {
+              "type": "object",
+              "required": ["grant"],
+              "properties": {
+                "grant": {
+                  "type": "object",
+                  "required": ["proofs"],
+                  "properties": {
+                    "proofs": { "type": "array", "maxItems": 0 }
+                  }
+                }
+              }
+            }
+          },
+          "required": ["kind"]
+        }
+      ],
+      "description": "Bootstrap unit event 2: the creator founding ak.capability.grant required by models/realm-and-space.md section 2.5. It MUST immediately follow realm_event in the same atomic batch. The nested grant is delivered in authoring state with grant.proofs empty; the participant device generates the issuer-attestation proof per authz/capabilities.md section 3.0.1. No service may synthesize it."
+    },
+    "unsigned_direct_peer_member_event": {
+      "allOf": [
+        { "$ref": "#/$defs/unsigned_direct_materialization_event_base" },
+        {
+          "properties": {
+            "kind": { "const": "ak.member.state" }
+          },
+          "required": ["kind"]
+        }
+      ],
+      "description": "Bootstrap unit event 3: the peer member join written by the creator under the founding grant. It is the bootstrap initial member carve-out of governance/join-policy.md section 4, not a third-party member_add, and it is exempt from seal_basis per authz/event-auth-state-resolution.md section 5."
+    },
+    "unsigned_direct_main_strand_event": {
+      "allOf": [
+        { "$ref": "#/$defs/unsigned_direct_materialization_event_base" },
+        {
+          "properties": {
+            "kind": { "const": "ak.strand.create" }
+          },
+          "required": ["kind"]
+        }
+      ],
+      "description": "Post-bootstrap main Strand create. Submitted after the MLS genesis/add-commit/Welcome objects authored from claimed_keypackage."
+    },
+    "unsigned_direct_binding_event": {
+      "allOf": [
+        { "$ref": "#/$defs/unsigned_direct_materialization_event_base" },
+        {
+          "properties": {
+            "kind": { "const": "ak.direct_conversation.bound" }
+          },
+          "required": ["kind"]
+        }
+      ],
+      "description": "Final binding event submitted in the participant PCR after the Realm side is complete."
     }
   }
 }

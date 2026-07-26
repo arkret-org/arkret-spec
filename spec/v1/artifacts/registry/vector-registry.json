@@ -7,8 +7,12 @@
       "vector_id": "ak.vector.events.submit_seal_admission.v1",
       "status": "active",
       "domain": "events",
-      "applies_to_fixtures": ["seal-submit-fixture.json"],
-      "source_refs": ["spec/v1/artifacts/fixtures/seal-submit-fixture.json"],
+      "applies_to_fixtures": [
+        "seal-submit-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/seal-submit-fixture.json"
+      ],
       "description": "Service-level submit_seal admission covers genesis completeness, current device generation, recomputed roots, predecessor notary authority and non-terminal future-clock deferral."
     },
     {
@@ -3854,7 +3858,9 @@
       "vector_id": "ak.vector.capability.issuer_authority_bound.v1",
       "status": "active",
       "domain": "capability",
-      "applies_to_fixtures": ["protocol-edge-cases-fixture.json"],
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
       "description": "Issuer effective-authority and freshness-unknown fail-closed checks for first-issued grants.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
@@ -3865,7 +3871,9 @@
       "vector_id": "ak.vector.capability.validity_window.v1",
       "status": "active",
       "domain": "capability",
-      "applies_to_fixtures": ["protocol-edge-cases-fixture.json"],
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
       "description": "Effective grant validity-window intersection rejects empty windows.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
@@ -3876,7 +3884,9 @@
       "vector_id": "ak.vector.capability.delegation_expiry_seal.v1",
       "status": "active",
       "domain": "capability",
-      "applies_to_fixtures": ["protocol-edge-cases-fixture.json"],
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
       "description": "Fixed delegation expiry seal prevents rolling renewal and widened downstream expiry.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
@@ -3887,7 +3897,9 @@
       "vector_id": "ak.vector.capability.delegation_cycle.v1",
       "status": "active",
       "domain": "capability",
-      "applies_to_fixtures": ["protocol-edge-cases-fixture.json"],
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
       "description": "Delegation cycle rejection across direct, multi-hop, revoke/redelegate and atomic batch variants.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
@@ -3898,7 +3910,9 @@
       "vector_id": "ak.vector.capability.moderation_dependency.v1",
       "status": "active",
       "domain": "capability",
-      "applies_to_fixtures": ["protocol-edge-cases-fixture.json"],
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
       "description": "Static depends_on_moderation_state requirement rejects missing or false declarations.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
@@ -3909,7 +3923,9 @@
       "vector_id": "ak.vector.capability.freshness_risk_matrix.v1",
       "status": "active",
       "domain": "capability",
-      "applies_to_fixtures": ["protocol-edge-cases-fixture.json"],
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
       "description": "Risk-tier freshness matrix fails closed and keeps unknown low-risk pending outcomes local.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
@@ -3920,7 +3936,9 @@
       "vector_id": "ak.vector.capability.global_decision_merge.v1",
       "status": "active",
       "domain": "capability",
-      "applies_to_fixtures": ["protocol-edge-cases-fixture.json"],
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
       "description": "Global cross-grant decision merge prevents any allow from bypassing deny, quarantine or review.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
@@ -3931,7 +3949,9 @@
       "vector_id": "ak.vector.sync.delivery_ack.v1",
       "status": "active",
       "domain": "sync",
-      "applies_to_fixtures": ["protocol-edge-cases-fixture.json"],
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
       "description": "Opaque delivery ack token, monotonic cumulative acknowledgement, binding rejection and lost escalation.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
@@ -3942,7 +3962,9 @@
       "vector_id": "ak.vector.sync.cursor_binding.v1",
       "status": "active",
       "domain": "sync",
-      "applies_to_fixtures": ["protocol-edge-cases-fixture.json"],
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
       "description": "Canonical filter/query-scope cursor binding and cross-scope replay rejection.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
@@ -3953,7 +3975,9 @@
       "vector_id": "ak.vector.sync.state_at_window_start.v1",
       "status": "active",
       "domain": "sync",
-      "applies_to_fixtures": ["protocol-edge-cases-fixture.json"],
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
       "description": "Deterministic limited-timeline window-start state basis with safe omission on unresolved bases.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
@@ -3964,7 +3988,9 @@
       "vector_id": "ak.vector.scalability.protocol_window_limits.v1",
       "status": "active",
       "domain": "scalability",
-      "applies_to_fixtures": ["protocol-edge-cases-fixture.json"],
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
       "description": "Generated boundary and injected-clock cases for Seal, device message, push, lifecycle and propagation limits.",
       "source_refs": [
         "spec/v1/zh/conformance/scalability-constraints.md",
@@ -3975,7 +4001,9 @@
       "vector_id": "ak.vector.api.request_idempotency.v1",
       "status": "active",
       "domain": "api",
-      "applies_to_fixtures": ["protocol-edge-cases-fixture.json"],
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
       "description": "Request-key canonical body conflict, scope binding, canonical_hash_input and 24-hour retention semantics.",
       "source_refs": [
         "spec/v1/zh/sync/api-conventions.md",
@@ -3986,7 +4014,9 @@
       "vector_id": "ak.vector.sdk.retry_after.v1",
       "status": "active",
       "domain": "sdk",
-      "applies_to_fixtures": ["protocol-edge-cases-fixture.json"],
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
       "description": "SDK honors Retry-After and never clamps a long server delay into an earlier retry.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -3997,7 +4027,9 @@
       "vector_id": "ak.vector.sdk.pagination_has_more.v1",
       "status": "active",
       "domain": "sdk",
-      "applies_to_fixtures": ["protocol-edge-cases-fixture.json"],
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
       "description": "SDK pagination continues solely from has_more, independent of item count.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -4008,7 +4040,9 @@
       "vector_id": "ak.vector.encoding.confusable_check.v1",
       "status": "active",
       "domain": "encoding",
-      "applies_to_fixtures": ["protocol-edge-cases-fixture.json"],
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
       "description": "Canonical confusable-check test set and callable SDK utility behavior.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -4019,7 +4053,9 @@
       "vector_id": "ak.vector.hash_transition.dual_root_recompute.v1",
       "status": "active",
       "domain": "hash_transition",
-      "applies_to_fixtures": ["hash-transition-fixture.json"],
+      "applies_to_fixtures": [
+        "hash-transition-fixture.json"
+      ],
       "description": "Transition Seal positive path recomputes old and new roots under their respective suites.",
       "source_refs": [
         "spec/v1/zh/authz/event-auth-state-resolution.md",
@@ -4030,7 +4066,9 @@
       "vector_id": "ak.vector.hash_transition.fail_closed.v1",
       "status": "active",
       "domain": "hash_transition",
-      "applies_to_fixtures": ["hash-transition-fixture.json"],
+      "applies_to_fixtures": [
+        "hash-transition-fixture.json"
+      ],
       "description": "Transition Seal root, snapshot, suite, downgrade and post-transition negative matrix.",
       "source_refs": [
         "spec/v1/zh/authz/event-auth-state-resolution.md",
@@ -4041,11 +4079,125 @@
       "vector_id": "ak.vector.scalability.cursor_selector_limits.v1",
       "status": "active",
       "domain": "scalability",
-      "applies_to_fixtures": ["scalability-limits-fixture.json"],
+      "applies_to_fixtures": [
+        "scalability-limits-fixture.json"
+      ],
       "description": "Generated decoded-cursor, selector canonical JSON, selector term, unknown-field and policy-array boundary cases.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
         "spec/v1/zh/conformance/scalability-constraints.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.canonical_event_tie_break.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_vector_groups": [
+        "ak.vector_group.encoding.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/conformance/encoding.md",
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.event_kind.realm_create_effects_closure.v1",
+      "status": "active",
+      "domain": "event_kind",
+      "applies_to_vector_groups": [
+        "ak.vector_group.cba_lattice.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.event_kind.null_cell_subject_wire_form.v1",
+      "status": "active",
+      "domain": "event_kind",
+      "applies_to_vector_groups": [
+        "ak.vector_group.cba_lattice.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.invite.membership_transition_atomicity.v1",
+      "status": "active",
+      "domain": "invite",
+      "scope": "universal",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.call_state.axis_cell_split.v1",
+      "status": "active",
+      "domain": "call_state",
+      "applies_to_profiles": [
+        "ak.profile.media_service_binding.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/call-state-core-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.join_policy.gate_axis_orthogonality.v1",
+      "status": "active",
+      "domain": "join_policy",
+      "scope": "universal",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.invite.quarantine_disclosure_indistinguishable.v1",
+      "status": "active",
+      "domain": "invite",
+      "scope": "universal",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.contact.direct_materialization_witness.v1",
+      "status": "active",
+      "domain": "contact",
+      "applies_to_fixtures": [
+        "direct-conversation-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.invite.claim_expiry_canonical_time.v1",
+      "status": "active",
+      "domain": "invite",
+      "scope": "universal",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
+        "spec/v1/artifacts/fixtures/security-closure-vectors.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.device_pairing.challenge_transcript.v1",
+      "status": "active",
+      "domain": "device_pairing",
+      "scope": "universal",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/crypto-media/device-lifecycle.md"
       ]
     }
   ]

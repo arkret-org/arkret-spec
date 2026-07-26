@@ -214,9 +214,13 @@ token 要求：
 `disclosure_level` 语义:
 
 - `opaque`:`invite_delivery_outcome` 只返回 generic `status`(`accepted | duplicate | deferred`),MUST NOT 携带 `disclosed_outcome`，且对 exists / not-exists / quarantine / drop 各情形不可区分。这是反枚举 / 反侧信道的默认。
-- `outcome`:`invite_delivery_outcome` MAY 携带 `disclosed_outcome`(`delivered | blocked | quarantined`)，把真实处理结果告知邀请者。
+- `outcome`:`invite_delivery_outcome` MAY 携带 `disclosed_outcome`,把真实处理结果告知邀请者。**`disclosed_outcome` 的封闭枚举只有 `delivered | blocked` 两值。**
 
-设计意图:对**已建立信任的来源**(已互授 invite consent 的联系人、对方主动给的 locator、已同在 Realm)，邀请失败能给邀请者明确反馈，避免"联系人加不进却不知为何"的 UX 黑洞；对**可发现但未建立关系的来源**(handle_claim)与**陌生人**(explicit_address)默认保持不可区分。`blocked_subjects` 命中者无论 disclosure 设置一律 `opaque`。`disclosure` 整体省略时按默认 `high_trust=outcome / discovery_trust=opaque / low_trust=opaque`。
+**quarantine MUST NOT 被回送（normative）**：`disclosed_outcome` 的上界由 [`../identity/consent-model.md` §6.1.1](../identity/consent-model.md) 的不可区分 `MUST NOT` 决定。`delivered` 与 `blocked` 回答的是"这次投递是否被**接收方策略**放行"，属于本节设计意图内的反馈；而"invite 进入 holder quarantine inbox"回答的是 **holder 的 consent 决策尚未作出**——那是 consent-model §2.1 / §6.1.2 明确的 holder-private 状态，等价于回答"holder 未对该 requester 授予 active invite grant"。高信任档只说明 inviter 已知 holder 存在，泄露的不是 existence 而是 consent 状态，因此**不构成**可以回送的理由。
+
+**quarantine 的 wire 落点固定为 `status="deferred"` 且不携带 `disclosed_outcome`**：`deferred` 与"正在重试投递"、"holder 侧尚未处理"共用同一语义，因而不构成对 quarantine 的可区分指示。该映射在所有信任档、所有 `disclosure` 取值下一致，不因 `high_trust=outcome` 而改变。
+
+设计意图:对**已建立信任的来源**(已互授 invite consent 的联系人、对方主动给的 locator、已同在 Realm)，邀请被接收方策略拒绝时能给邀请者明确反馈，避免"联系人加不进却不知为何"的 UX 黑洞；对**可发现但未建立关系的来源**(handle_claim)与**陌生人**(explicit_address)默认保持不可区分。`blocked_subjects` 命中者无论 disclosure 设置一律 `opaque`。`disclosure` 整体省略时按默认 `high_trust=outcome / discovery_trust=opaque / low_trust=opaque`。
 
 ### 5.2 部署接收约束（normative）
 
@@ -281,8 +285,8 @@ Rules:
 - `payload.invite_delivery_target.recipient_service_id` MUST equal `invite_address.recipient_service_id`.
 - `payload.invite_delivery_target.recipient_service_type` MAY appear; if present, it MUST be `principal_server`.
 - `introduction_evidence_digest = digest(canonical_json(private_delivery_introduction_evidence))`，用于审计关联，不得泄露 raw locator token。
-- 普通定向邀请的取消 / 拒绝 MUST 使用 `ak.invite.cancel`，payload 为 `InviteRefPayload`（`invite_id`，可选 `reason`）。被邀请者本人提交时表示拒绝并写入 `rejected`；邀请者或 Realm 管理 actor 提交时表示撤销尚未接受的 pending invite 并写入 `revoked`。
-- `ak.invite.revoke` MUST 用于第三方/token invite 的撤销或等价高风险撤销路径，payload 同样为 `InviteRefPayload`；reducer MUST 将 live invite 写入 `revoked`，并清除可认领 token material。直接 DID 邀请不需要通过 `ak.invite.revoke` 才能从成员管理 UI 撤销。
+- 普通定向邀请的取消 / 拒绝 MUST 使用 `ak.invite.cancel`，payload 使用 `invite_payload` 的引用形态：`invite_id`、与目标 invite 逐字节相等的 `invitee`，以及可选 `reason`。被邀请者本人提交时表示拒绝并写入 `rejected`；邀请者或 Realm 管理 actor 提交时表示撤销尚未接受的 pending invite 并写入 `revoked`。同一 Move MUST 同时携带 `member.state:<invitee>` 的 `invite -> leave` effect，见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)。
+- `ak.invite.revoke` MUST 用于第三方/token invite 的撤销或等价高风险撤销路径，payload 使用同一引用形态；指向定向 DID invite 时 `invitee` 必填并原子写入 `invite -> leave`，指向尚无 DID 主体的 3PID placeholder 时不得携带 `invitee`、也不得写 member cell。reducer MUST 将 live invite 写入对应终态，并清除可认领 token material。直接 DID 邀请不需要通过 `ak.invite.revoke` 才能从成员管理 UI 撤销。
 
 ## 7. 私有 Invite Delivery
 
@@ -302,7 +306,7 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Principal Se
 5. 验证 `invite_event.payload.invite_delivery_target.recipient_service_id == invite_address.recipient_service_id`。
 6. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。对 `consent_grant` evidence,MUST 按 §2 校验 `consent_grant_ref` 是被邀请方给 inviter 的 active `invite` / `any` grant dot；校验失败 MUST 降级为低信任 `explicit_address` 处理。对 `handle_claim` evidence,MUST 按 §2 校验 handle claim、issuer / Directory trust、domain allowlist、expiry、audience、handle claim 自带的 `member_delivery_binding`（若存在）和可选 `member_delivery_binding_candidate`；校验失败 MUST 降级为低信任 `explicit_address` 处理。
 7. 计算 effective receive policy:先取 subject 私有 `invite_receive_policy`，再与 §5.2 `receive_policy_constraints` 及适用组织 / Realm 约束求交集。随后查 `blocked_subjects`(命中 inviter 即 `drop` 且强制 opaque)与 `blocked_principal_services`；再按 effective `allowed_introduction_kinds`、`handle_claim_behavior`、`explicit_address_behavior`、`unknown_invites` 决定 drop / quarantine / notify。
-8. 返回 receive outcome:按 §5.1 分级披露。发现信任档、低信任档或 `blocked_subjects` 命中时默认返回 generic `status`(opaque),MUST NOT 通过响应泄露 subject 是否存在或策略如何处理；高信任档且 `disclosure.high_trust=outcome` 时 MAY 在 `disclosed_outcome` 回送真实结果。仅当 subject 与部署约束都允许 `disclosure.discovery_trust=outcome` 时，`handle_claim` MAY 回送真实结果。
+8. 返回 receive outcome:按 §5.1 分级披露。发现信任档、低信任档或 `blocked_subjects` 命中时默认返回 generic `status`(opaque),MUST NOT 通过响应泄露 subject 是否存在或策略如何处理；高信任档且 `disclosure.high_trust=outcome` 时 MAY 在 `disclosed_outcome` 回送真实结果(`delivered | blocked` 两值)。仅当 subject 与部署约束都允许 `disclosure.discovery_trust=outcome` 时，`handle_claim` MAY 回送真实结果。**invite 进入 holder quarantine inbox 时，无论信任档与 `disclosure` 取值，一律返回 `status="deferred"` 且 MUST NOT 携带 `disclosed_outcome`**，并与"限速静默丢弃 / 超时丢弃 / holder 不存在 / holder policy deny"落在同一响应与 timing 等价类（[`../identity/consent-model.md` §6.1.1](../identity/consent-model.md)）。
 
 ## 8. Describe Capabilities
 

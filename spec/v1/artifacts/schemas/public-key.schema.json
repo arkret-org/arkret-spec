@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/public-key.schema.json",
+  "title": "Arkret Canonical Public Key DTO",
+  "description": "Canonical wire shape of a public key carried in Arkret DTOs. It is defined in its own document so that device, agent and account surfaces reference one shared definition instead of reverse-referencing each other's bundles. Prose examples MUST use this exact shape: kty/kid/alg/key, no public_key alias.",
+  "$ref": "#/$defs/public_key",
+  "$defs": {
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "base64url": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "minLength": 1
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "public_key": {
+      "type": "object",
+      "description": "Canonical public key. key carries the base64url key material; kid is the typed identifier of the key holder (for a device key, ak:device:<uuidv7>). There is no public_key member: that spelling is not canonical wire and MUST be rejected.",
+      "required": [
+        "kty",
+        "kid",
+        "alg",
+        "key"
+      ],
+      "properties": {
+        "kty": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "kid": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "alg": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "key": {
+          "$ref": "#/$defs/base64url"
+        },
+        "key_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -693,11 +693,68 @@
         ],
         "effects": [
           {
-            "cell": "ak:cell:ak.component.realm.create.v1:principal_control",
+            "cell": "ak:cell:ak.component.realm.metadata.v1:null",
+            "op": {
+              "kind": "set",
+              "value": {
+                "id": "ak:realm:0196419b-0000-7000-8000-000000000010",
+                "schema": "ak.schema.realm.v1",
+                "title": "Alice Principal Control Realm",
+                "created_by": "did:webvh:z6mkfixture:alice.example",
+                "trust_domain": "ak:trust_domain:did.webvh.alice.example",
+                "schema_refs": [
+                  "ak.schema.realm.v1",
+                  "ak.profile.principal_control_realm.v1"
+                ],
+                "default_discoverability": "secret",
+                "default_join_rule": "closed",
+                "history_visibility": "restricted",
+                "encryption_profile": "mls_rfc9420",
+                "notary_profile": "single_did",
+                "notary": {
+                  "type": "single_did",
+                  "did": "did:webvh:z6mkfixture:alice.example",
+                  "recovery_members": [
+                    "did:webvh:z6mkfixture:alice-recovery.example"
+                  ]
+                },
+                "fields": {
+                  "purpose": "principal_control"
+                },
+                "created_at": "2026-05-20T00:00:00.000Z",
+                "security_class": "high_assurance",
+                "content_encryption_floor": "e2ee_required",
+                "metadata_encryption_floor": "e2ee_required"
+              }
+            }
+          },
+          {
+            "cell": "ak:cell:ak.component.member.state.v1:did:webvh:z6mkfixture:alice.example",
+            "op": {
+              "kind": "transition",
+              "from": "leave",
+              "to": "join"
+            }
+          },
+          {
+            "cell": "ak:cell:ak.component.realm.create.v1:null",
             "op": {
               "kind": "append",
               "issuer_seq": 0,
               "value": "ak:realm:0196419b-0000-7000-8000-000000000010"
+            }
+          },
+          {
+            "cell": "ak:cell:ak.component.notary.v1:null",
+            "op": {
+              "kind": "set",
+              "value": {
+                "type": "single_did",
+                "did": "did:webvh:z6mkfixture:alice.example",
+                "recovery_members": [
+                  "did:webvh:z6mkfixture:alice-recovery.example"
+                ]
+              }
             }
           }
         ],
@@ -763,11 +820,68 @@
         "refs": [],
         "effects": [
           {
-            "cell": "ak:cell:ak.component.realm.create.v1:managed_agent_principal_control",
+            "cell": "ak:cell:ak.component.realm.metadata.v1:null",
+            "op": {
+              "kind": "set",
+              "value": {
+                "id": "ak:realm:0196419b-0000-7000-8000-000000000011",
+                "schema": "ak.schema.realm.v1",
+                "title": "Managed Agent Principal Control Realm",
+                "created_by": "did:webvh:z6mkfixture:agent.example",
+                "trust_domain": "ak:trust_domain:did.webvh.alice.example",
+                "schema_refs": [
+                  "ak.schema.realm.v1",
+                  "ak.profile.principal_control_realm.v1"
+                ],
+                "default_discoverability": "secret",
+                "default_join_rule": "closed",
+                "history_visibility": "restricted",
+                "encryption_profile": "mls_rfc9420",
+                "notary_profile": "single_did",
+                "notary": {
+                  "type": "single_did",
+                  "did": "did:webvh:z6mkfixture:agent.example",
+                  "recovery_members": [
+                    "did:webvh:z6mkfixture:alice.example"
+                  ]
+                },
+                "fields": {
+                  "purpose": "principal_control"
+                },
+                "created_at": "2026-05-20T00:00:00.000Z",
+                "security_class": "high_assurance",
+                "content_encryption_floor": "e2ee_required",
+                "metadata_encryption_floor": "e2ee_required"
+              }
+            }
+          },
+          {
+            "cell": "ak:cell:ak.component.member.state.v1:did:webvh:z6mkfixture:agent.example",
+            "op": {
+              "kind": "transition",
+              "from": "leave",
+              "to": "join"
+            }
+          },
+          {
+            "cell": "ak:cell:ak.component.realm.create.v1:null",
             "op": {
               "kind": "append",
               "issuer_seq": 0,
               "value": "ak:realm:0196419b-0000-7000-8000-000000000011"
+            }
+          },
+          {
+            "cell": "ak:cell:ak.component.notary.v1:null",
+            "op": {
+              "kind": "set",
+              "value": {
+                "type": "single_did",
+                "did": "did:webvh:z6mkfixture:agent.example",
+                "recovery_members": [
+                  "did:webvh:z6mkfixture:alice.example"
+                ]
+              }
             }
           }
         ],
@@ -837,11 +951,68 @@
         ],
         "effects": [
           {
-            "cell": "ak:cell:ak.component.realm.create.v1:principal_control",
+            "cell": "ak:cell:ak.component.realm.metadata.v1:null",
+            "op": {
+              "kind": "set",
+              "value": {
+                "id": "ak:realm:0196419b-0000-7000-8000-000000000012",
+                "schema": "ak.schema.realm.v1",
+                "title": "Alice Principal Control Realm",
+                "created_by": "did:webvh:z6mkfixture:alice.example",
+                "trust_domain": "ak:trust_domain:did.webvh.alice.example",
+                "schema_refs": [
+                  "ak.schema.realm.v1",
+                  "ak.profile.principal_control_realm.v1"
+                ],
+                "default_discoverability": "secret",
+                "default_join_rule": "closed",
+                "history_visibility": "restricted",
+                "encryption_profile": "mls_rfc9420",
+                "notary_profile": "single_did",
+                "notary": {
+                  "type": "single_did",
+                  "did": "did:webvh:z6mkfixture:alice.example",
+                  "recovery_members": [
+                    "did:webvh:z6mkfixture:alice-recovery.example"
+                  ]
+                },
+                "fields": {
+                  "purpose": "principal_control"
+                },
+                "created_at": "2026-05-20T00:00:00.000Z",
+                "security_class": "high_assurance",
+                "content_encryption_floor": "e2ee_required",
+                "metadata_encryption_floor": "e2ee_required"
+              }
+            }
+          },
+          {
+            "cell": "ak:cell:ak.component.member.state.v1:did:webvh:z6mkfixture:alice.example",
+            "op": {
+              "kind": "transition",
+              "from": "leave",
+              "to": "join"
+            }
+          },
+          {
+            "cell": "ak:cell:ak.component.realm.create.v1:null",
             "op": {
               "kind": "append",
               "issuer_seq": 0,
               "value": "ak:realm:0196419b-0000-7000-8000-000000000012"
+            }
+          },
+          {
+            "cell": "ak:cell:ak.component.notary.v1:null",
+            "op": {
+              "kind": "set",
+              "value": {
+                "type": "single_did",
+                "did": "did:webvh:z6mkfixture:alice.example",
+                "recovery_members": [
+                  "did:webvh:z6mkfixture:alice-recovery.example"
+                ]
+              }
             }
           }
         ],
@@ -911,11 +1082,62 @@
         ],
         "effects": [
           {
-            "cell": "ak:cell:ak.component.realm.create.v1:collaboration",
+            "cell": "ak:cell:ak.component.realm.metadata.v1:null",
+            "op": {
+              "kind": "set",
+              "value": {
+                "id": "ak:realm:0196419b-0000-7000-8000-000000000013",
+                "schema": "ak.schema.realm.v1",
+                "title": "Collaboration Realm",
+                "created_by": "did:webvh:z6mkfixture:alice.example",
+                "trust_domain": "ak:trust_domain:did.webvh.alice.example",
+                "schema_refs": [
+                  "ak.schema.realm.v1"
+                ],
+                "default_discoverability": "invite_only",
+                "default_join_rule": "invite",
+                "history_visibility": "joined",
+                "encryption_profile": "mls_rfc9420",
+                "notary_profile": "single_did",
+                "notary": {
+                  "type": "single_did",
+                  "did": "did:webvh:z6mkfixture:alice.example",
+                  "recovery_members": [
+                    "did:webvh:z6mkfixture:alice-recovery.example"
+                  ]
+                },
+                "fields": {},
+                "created_at": "2026-05-20T00:00:00.000Z"
+              }
+            }
+          },
+          {
+            "cell": "ak:cell:ak.component.member.state.v1:did:webvh:z6mkfixture:alice.example",
+            "op": {
+              "kind": "transition",
+              "from": "leave",
+              "to": "join"
+            }
+          },
+          {
+            "cell": "ak:cell:ak.component.realm.create.v1:null",
             "op": {
               "kind": "append",
               "issuer_seq": 0,
               "value": "ak:realm:0196419b-0000-7000-8000-000000000013"
+            }
+          },
+          {
+            "cell": "ak:cell:ak.component.notary.v1:null",
+            "op": {
+              "kind": "set",
+              "value": {
+                "type": "single_did",
+                "did": "did:webvh:z6mkfixture:alice.example",
+                "recovery_members": [
+                  "did:webvh:z6mkfixture:alice-recovery.example"
+                ]
+              }
             }
           }
         ],

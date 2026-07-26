@@ -717,6 +717,153 @@
         "canonicalize exactly {participants:[p0,p1],trust_domain:realm_trust_domain} with JCS and compute SHA-256; the resulting sha256:<lowercase-hex> value is pair_key",
         "reversing the caller-supplied participant order MUST yield the same pair_key after the required sort"
       ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.canonical_event_tie_break.v1",
+      "kind": "canonical_event_tie_break",
+      "description": "Single protocol-wide winner rule for both concurrent candidate sets and logical-slot equivocation candidate sets. The comparison key is the decoded digest octets of canonical_digest(envelope_without_proofs_unsigned_reducer_stamps), bytewise greatest, with the canonical suite id as secondary key only when the octets are identical.",
+      "digest_preimage": {
+        "source": "envelope_without_proofs_unsigned_reducer_stamps",
+        "removed_top_level_fields": [
+          "proofs",
+          "unsigned",
+          "effective_scope",
+          "actor_kind"
+        ],
+        "forbidden_legacy_preimage": "envelope_without_proofs_unsigned"
+      },
+      "comparison": {
+        "primary_key": "decoded_digest_octets_unsigned_lexicographic_greatest",
+        "secondary_key": "canonical_suite_id_utf8_bytewise_greatest_only_when_octets_equal",
+        "forbidden_keys": [
+          "event_id",
+          "hlc",
+          "created_at",
+          "actor_id",
+          "actor_seq",
+          "arrival_order",
+          "database_id",
+          "op.value_domain_field"
+        ]
+      },
+      "cases": [
+        {
+          "name": "concurrent_candidates_max_digest_wins",
+          "candidates": [
+            {
+              "label": "a",
+              "event_digest": "sha256:1f00000000000000000000000000000000000000000000000000000000000000"
+            },
+            {
+              "label": "b",
+              "event_digest": "sha256:f000000000000000000000000000000000000000000000000000000000000000"
+            }
+          ],
+          "expected_winner": "b"
+        },
+        {
+          "name": "slot_equivocation_max_digest_wins_regardless_of_causal_edges",
+          "candidates": [
+            {
+              "label": "a",
+              "issuer_seq": 3,
+              "event_digest": "sha256:0100000000000000000000000000000000000000000000000000000000000000",
+              "declares_causal_edge_to": "b"
+            },
+            {
+              "label": "b",
+              "issuer_seq": 3,
+              "event_digest": "sha256:0200000000000000000000000000000000000000000000000000000000000000"
+            }
+          ],
+          "expected_winner": "b",
+          "expected_loser_diagnostic": "equivocation"
+        },
+        {
+          "name": "cross_suite_prefix_order_opposes_decoded_octet_order",
+          "description": "The suite prefix string order and the decoded octet order disagree on purpose. Comparing the whole typed wire string as UTF-8 selects the wrong winner.",
+          "candidates": [
+            {
+              "label": "a",
+              "event_digest": "blake3:ff00000000000000000000000000000000000000000000000000000000000000"
+            },
+            {
+              "label": "b",
+              "event_digest": "sha256:0100000000000000000000000000000000000000000000000000000000000000"
+            }
+          ],
+          "expected_winner": "a",
+          "expected_wrong_winner_if_wire_string_compared": "b"
+        },
+        {
+          "name": "identical_octets_different_suite_uses_suite_secondary_key",
+          "candidates": [
+            {
+              "label": "a",
+              "event_digest": "blake3:aa00000000000000000000000000000000000000000000000000000000000000"
+            },
+            {
+              "label": "b",
+              "event_digest": "sha256:aa00000000000000000000000000000000000000000000000000000000000000"
+            }
+          ],
+          "expected_winner": "b"
+        },
+        {
+          "name": "byte_identical_effect_op_is_idempotent",
+          "candidates": [
+            {
+              "label": "a",
+              "issuer_seq": 0,
+              "effect_op_canonical_bytes": "{\"issuer_seq\":0,\"kind\":\"append\",\"value\":\"x\"}"
+            },
+            {
+              "label": "b",
+              "issuer_seq": 0,
+              "effect_op_canonical_bytes": "{\"issuer_seq\":0,\"kind\":\"append\",\"value\":\"x\"}"
+            }
+          ],
+          "expected": "duplicate_single_entry_no_equivocation_diagnostic"
+        },
+        {
+          "name": "proofs_or_reducer_stamps_only_difference_is_not_collision",
+          "candidates": [
+            {
+              "label": "a",
+              "canonical_preimage_equal_to": "b",
+              "differs_in": [
+                "proofs"
+              ]
+            },
+            {
+              "label": "b",
+              "canonical_preimage_equal_to": "a",
+              "differs_in": [
+                "effective_scope",
+                "actor_kind"
+              ]
+            }
+          ],
+          "expected": "same_event_content_no_collision_report"
+        },
+        {
+          "name": "same_typed_digest_different_preimage_fails_closed",
+          "candidates": [
+            {
+              "label": "a",
+              "event_digest": "sha256:cc00000000000000000000000000000000000000000000000000000000000000",
+              "canonical_preimage": "A"
+            },
+            {
+              "label": "b",
+              "event_digest": "sha256:cc00000000000000000000000000000000000000000000000000000000000000",
+              "canonical_preimage": "B"
+            }
+          ],
+          "expected": "fail_closed_digest_collision",
+          "injection": "lattice_test_seam_only; MUST NOT register a fake active hash suite or forge a real SHA-256 collision"
+        }
+      ]
     }
   ],
   "rank_order": [

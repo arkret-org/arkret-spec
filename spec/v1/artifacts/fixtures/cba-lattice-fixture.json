@@ -986,7 +986,7 @@
     {
       "name": "conflict_recovery_move",
       "description": "A bottom=reject control cell recovers only through a sealed Control Move with recovery_capability and a pre-conflict state_witness.",
-      "cell": "ak:cell:ak.component.realm.policy.v1:ak.realm.019641d2-1000-7000-8000-000000000000",
+      "cell": "ak:cell:ak.component.realm.policy.v1:null",
       "pre_conflict_value": {
         "policy_revision": 7
       },
@@ -1069,7 +1069,7 @@
       "name": "same_seal_bottom_reject_serialization",
       "description": "Notary admission serializes mutually exclusive writes to one bottom=reject cell within a single proposed Seal, while preserving bottom semantics across unreachable Seal leaves.",
       "cell": {
-        "id": "ak:cell:ak.component.realm.policy.v1:ak.realm.fixture",
+        "id": "ak:cell:ak.component.realm.policy.v1:null",
         "lattice": "cas_register",
         "bottom": "reject",
         "frozen_predecessor_value": {
@@ -1132,6 +1132,94 @@
         }
       ],
       "vector_id": "ak.vector.seal.same_batch_bottom_reject_serialization.v1"
+    },
+    {
+      "name": "realm_create_effects_closure",
+      "vector_id": "ak.vector.event_kind.realm_create_effects_closure.v1",
+      "description": "ak.realm.create carries all four registered effects explicitly, so two independent implementations recompute a byte-identical genesis state_root.",
+      "required_effects": [
+        {
+          "cell": "ak:cell:ak.component.realm.metadata.v1:null",
+          "op_kind": "set"
+        },
+        {
+          "cell": "ak:cell:ak.component.member.state.v1:<payload.object.created_by>",
+          "op_kind": "transition",
+          "from": "leave",
+          "to": "join"
+        },
+        {
+          "cell": "ak:cell:ak.component.realm.create.v1:null",
+          "op_kind": "append",
+          "issuer_seq": 0
+        },
+        {
+          "cell": "ak:cell:ak.component.notary.v1:null",
+          "op_kind": "set"
+        }
+      ],
+      "expected": {
+        "genesis_state_root": "byte_identical_across_independent_implementations",
+        "creator_member_cell_proof": "inclusion",
+        "realm_metadata_cell_present_in_genesis_leaf_set": true,
+        "branches_covered": [
+          "collaboration",
+          "principal_control",
+          "direct_conversation"
+        ]
+      },
+      "negative_cases": [
+        {
+          "name": "missing_member_state_effect",
+          "mutation": "drop the ak.component.member.state.v1 effect and derive it inside the reducer instead",
+          "expected": "state_root differs from the positive case and apply_seal step 11 rejects with rejected_seal"
+        },
+        {
+          "name": "creator_non_membership_proof",
+          "mutation": "request a non-membership proof for ak:cell:ak.component.member.state.v1:<created_by>",
+          "expected": "proof MUST fail"
+        },
+        {
+          "name": "metadata_cell_only_after_first_update",
+          "mutation": "omit the realm metadata effect at genesis and write it only on the first ak.realm.update",
+          "expected": "non_compliant"
+        },
+        {
+          "name": "extra_unregistered_effect",
+          "mutation": "add a fifth effect not present in cell_writes[]",
+          "expected": "effects_payload_mismatch"
+        }
+      ]
+    },
+    {
+      "name": "null_cell_subject_wire_form",
+      "vector_id": "ak.vector.event_kind.null_cell_subject_wire_form.v1",
+      "description": "Every cell family declared with cell_subject: null uses the literal ASCII subject segment null, so the state_root leaf set and leaf order are identical across implementations.",
+      "expected": {
+        "wire_subject_segment": "null",
+        "leaf_sequence": "byte_identical_across_independent_implementations",
+        "state_root": "byte_identical_across_independent_implementations"
+      },
+      "negative_cases": [
+        {
+          "name": "realm_id_encoded_into_subject",
+          "cell_family": "ak.component.realm.policy.v1",
+          "bad_subject_segment": "the Realm id of the Event envelope",
+          "expected": "schema_violation"
+        },
+        {
+          "name": "realm_role_classification_encoded_into_subject",
+          "cell_family": "ak.component.realm.create.v1",
+          "bad_subject_segment": "a prose-layer Realm role term such as collaboration or principal_control",
+          "expected": "schema_violation"
+        },
+        {
+          "name": "empty_trailing_segment",
+          "cell_family": "ak.component.realm.create.v1",
+          "bad_subject_segment": "the empty string (indistinguishable from a truncated wire id)",
+          "expected": "schema_violation"
+        }
+      ]
     }
   ]
 }

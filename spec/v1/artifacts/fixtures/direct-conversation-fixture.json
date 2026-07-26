@@ -5,7 +5,8 @@
   "covers_vectors": [
     "ak.vector.direct_conversation.realm_shape.v1",
     "ak.vector.direct_conversation.binding_lifecycle.v1",
-    "ak.vector.direct_conversation.canonical_candidate.v1"
+    "ak.vector.direct_conversation.canonical_candidate.v1",
+    "ak.vector.contact.direct_materialization_witness.v1"
   ],
   "version": "2026-07-21",
   "spec_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#7-dm-realm-well-known-形态",
@@ -248,6 +249,140 @@
         "mls_welcome_event_ref": "ak:event:0196419b-0000-7000-8000-000000000307",
         "created_at": "2026-07-21T01:00:00.000Z"
       }
+    },
+    {
+      "name": "direct_materialization_founding_grant_inhabitable",
+      "vector_id": "ak.vector.contact.direct_materialization_witness.v1",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/unsigned_direct_founding_grant_event",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "event_id": "ak:event:0196419b-0000-7000-8000-000000000302",
+        "kind": "ak.capability.grant",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_seq": 1,
+        "hlc": "01970e589d21-0001-a13f9c2e",
+        "payload": {
+          "grant_id": "ak:grant:0196419b-0000-7000-8000-000000000201",
+          "grant": {
+            "subject": "did:webvh:z6mkfixture:alice.example",
+            "actions": [
+              "ak.realm.admin",
+              "ak.capability.grant",
+              "ak.capability.revoke"
+            ],
+            "resources": [
+              {
+                "kind": "realm",
+                "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+                "match_scope": "realm_wide"
+              }
+            ],
+            "proofs": []
+          }
+        },
+        "proofs": []
+      }
+    },
+    {
+      "name": "direct_materialization_founding_grant_slot_rejects_other_kind",
+      "vector_id": "ak.vector.contact.direct_materialization_witness.v1",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/unsigned_direct_founding_grant_event",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "event_id": "ak:event:0196419b-0000-7000-8000-000000000302",
+        "kind": "ak.realm.create",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_seq": 1,
+        "hlc": "01970e589d21-0001-a13f9c2e",
+        "payload": {
+          "grant_id": "ak:grant:0196419b-0000-7000-8000-000000000201",
+          "grant": {
+            "subject": "did:webvh:z6mkfixture:alice.example",
+            "actions": [
+              "ak.realm.admin",
+              "ak.capability.grant",
+              "ak.capability.revoke"
+            ],
+            "resources": [
+              {
+                "kind": "realm",
+                "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+                "match_scope": "realm_wide"
+              }
+            ],
+            "proofs": []
+          }
+        },
+        "proofs": []
+      },
+      "first_expected_error": "$.kind: 'ak.capability.grant' was expected"
+    },
+    {
+      "name": "direct_materialization_founding_grant_nested_proof_must_be_empty",
+      "vector_id": "ak.vector.contact.direct_materialization_witness.v1",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/unsigned_direct_founding_grant_event",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "event_id": "ak:event:0196419b-0000-7000-8000-000000000302",
+        "kind": "ak.capability.grant",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_seq": 1,
+        "hlc": "01970e589d21-0001-a13f9c2e",
+        "payload": {
+          "grant_id": "ak:grant:0196419b-0000-7000-8000-000000000201",
+          "grant": {
+            "subject": "did:webvh:z6mkfixture:alice.example",
+            "actions": [
+              "ak.realm.admin",
+              "ak.capability.grant",
+              "ak.capability.revoke"
+            ],
+            "resources": [
+              {
+                "kind": "realm",
+                "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+                "match_scope": "realm_wide"
+              }
+            ],
+            "proofs": [
+              {
+                "kind": "detached_jws",
+                "jws": "a..b"
+              }
+            ]
+          }
+        },
+        "proofs": []
+      },
+      "first_expected_error": "$.payload.grant.proofs: [{'kind': 'detached_jws', 'jws': 'a..b'}] is expected to be empty"
+    },
+    {
+      "name": "direct_materialization_peer_member_slot_rejects_grant_kind",
+      "vector_id": "ak.vector.contact.direct_materialization_witness.v1",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/unsigned_direct_peer_member_event",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "event_id": "ak:event:0196419b-0000-7000-8000-000000000303",
+        "kind": "ak.member.state",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_seq": 2,
+        "hlc": "01970e589d21-0002-a13f9c2e",
+        "payload": {
+          "actor_id": "did:webvh:z6mkfixture:bob.example",
+          "membership": "join"
+        },
+        "proofs": []
+      }
     }
   ],
   "semantic_cases": [
@@ -287,6 +422,15 @@
         "loser projects as duplicate",
         "receive time and event_id do not affect the result"
       ]
+    },
+    {
+      "name": "direct_materialization_bootstrap_peer_join_accepted",
+      "vector_id": "ak.vector.contact.direct_materialization_witness.v1",
+      "precondition": "closed DM Realm bootstrap batch: ak.realm.create then founding grant then peer ak.member.state join, all from the creator",
+      "action": "submit the three-event atomic ordinary-Realm bootstrap batch",
+      "semantic_outcome": "accept",
+      "expected_active_member_count": 2,
+      "notes": "default_join_rule=closed only closes applicant-initiated entry; the bootstrap initial member written by the creator is the closed exemption listed in governance/join-policy.md section 4 and is exempt from seal_basis per authz/event-auth-state-resolution.md section 5. It is NOT the third-party member_add forbidden by realm-and-space.md section 2.8.4."
     }
   ]
 }

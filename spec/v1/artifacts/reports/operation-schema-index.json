@@ -151,21 +151,30 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
-        "schema_kind": "object",
-        "required": [
-          "pairing_code",
-          "new_device_pubkey",
-          "challenge_signature"
-        ],
-        "properties": [
-          "pairing_code",
-          "new_device_pubkey",
-          "challenge_signature",
-          "display_name",
-          "device_metadata",
-          "device_pairing_request_id"
-        ],
-        "closed": true
+        "schema_kind": "oneOf",
+        "required": [],
+        "properties": [],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
+            "schema_kind": null,
+            "required": [
+              "device_pairing_request_id"
+            ],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
+            "schema_kind": null,
+            "required": [
+              "challenge_transcript"
+            ],
+            "properties": [],
+            "closed": false
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome",
@@ -4739,11 +4748,11 @@
         "schema_kind": "object",
         "required": [
           "new_device_pubkey",
-          "challenge_signature"
+          "client_nonce"
         ],
         "properties": [
           "new_device_pubkey",
-          "challenge_signature",
+          "client_nonce",
           "display_name",
           "device_metadata"
         ],
@@ -4755,11 +4764,15 @@
         "required": [
           "device_pairing_request_id",
           "pairing_code",
+          "gate_audience",
+          "server_nonce",
           "expires_at"
         ],
         "properties": [
           "device_pairing_request_id",
           "pairing_code",
+          "gate_audience",
+          "server_nonce",
           "expires_at"
         ],
         "closed": true
@@ -4787,7 +4800,9 @@
           "device_pairing_request_id",
           "pairing_code",
           "new_device_pubkey",
-          "challenge_signature",
+          "client_nonce",
+          "gate_audience",
+          "server_nonce",
           "expires_at"
         ],
         "properties": [
@@ -4795,7 +4810,9 @@
           "device_pairing_request_id",
           "pairing_code",
           "new_device_pubkey",
-          "challenge_signature",
+          "client_nonce",
+          "gate_audience",
+          "server_nonce",
           "display_name",
           "device_metadata",
           "expires_at"

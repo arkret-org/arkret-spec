@@ -166,6 +166,24 @@ Receiver MUST 在解析任何验签 key 前先确定唯一 signer regime，不�
 
 Producer MUST 为 `cell_writes[]` 的每个目标生成且只生成一个对应 `effects[]` 项；receiver MUST 从 Event Envelope 与 payload 按登记的 `cell_subject` 纯函数派生完整 cell id，并逐项验证 family、subject、lattice op 与 Event plane。缺少已登记目标、额外写入未登记目标、把 data/control plane 写反，或用 `effects[].cell` 改写派生结果，分别以 `effects_payload_mismatch` 或 `plane_cross_write` 拒绝整个 Event。多目标 Event 的所有 effects 在同一原子 reducer transaction 内成功或全部失败；数组顺序不产生业务语义，canonical 比较按完整 cell id 的 UTF-8 byte order 排序。
 
+**条件性 cell write（`condition`，normative）**：`cell_writes[]` 的某一项 MAY 携带可选 `condition`，表示该目标只在同一 Event 的特定 payload 形态下参与。`condition` 是**封闭语法**，只有四种形态，且求值 MUST 是对已通过 schema 校验的 payload 的纯函数：
+
+| `type` | 附加字段 | 命中条件 |
+| --- | --- | --- |
+| `field_present` | `field`（点分具名路径） | 该路径在 payload 中存在且值不是 JSON `null` |
+| `field_absent` | `field` | 该路径在 payload 中不存在，或值是 JSON `null` |
+| `field_equals` | `field`、`const`（字符串 / 数字 / 布尔标量） | 该路径存在且其值与 `const` 逐字节相等（字符串按原始 Unicode scalar 比较，MUST NOT 做大小写折叠或归一化） |
+| `any_field_present` | `fields[]`（≥2 条点分具名路径） | 至少一条路径存在且值不是 JSON `null` |
+
+求值规则：
+
+- `condition` 命中时该目标**成为必需目标**，Event MUST 恰好携带一条对应 effect；未命中时该目标**MUST NOT** 出现在 `effects[]` 中。两个方向都以 `effects_payload_mismatch` 拒绝整个 Event，实现 MUST NOT 把"未命中的目标写成 same-value / no-op effect"当作等价做法——对 `fsm` cell 而言 same-state transition 本身非法（[`common-fields.md` §4.5](common-fields.md)）。
+- 无 `condition` 的目标是无条件必需目标。
+- 未知 `type`、缺 `field`、`field` 不是点分具名路径、`field_equals` 缺 `const` 或 `const` 不是标量，MUST fail closed（registry 无效，发布门禁失败）。
+- **`any_field_present` 的两种正当用途**：(i) 同一语义值在同 kind 的不同 payload 形态下落在不同路径（例如 invite 既可用 `payload.invite` 完整对象、也可用扁平字段承载）；(ii) 同一 cell 承载多个不同字段，其中任一字段出现即需写该 cell。
+- **subject 可派生性（normative）**：条件命中时该目标的 `cell_subject` MUST 可派生。用途 (i) 下 `cell_subject` 必然是 `coalesce`，其 `fields[]` MUST 与 `condition.fields[]` 逐项一致、同序——否则会出现「条件命中但 subject 无法派生」或反之的组合；该一致性由 `tools/lint_artifacts.py` 机械校验。用途 (ii) 下 `cell_subject` 取一个与条件字段无关的路径，该路径 MUST 是 payload 的无条件必填字段。
+- `condition` 只决定该目标**是否**参与，MUST NOT 改变 `cell_family`、`cell_subject` 派生式、`lattice` 或 `bottom`；需要在同一目标内按判别值切换取值字段时用 `cell_subject` 的 `select` component（[`../conformance/encoding.md` §9.5.1](../conformance/encoding.md)），不要用 `condition` 复制出两条同 family 目标。
+
 `ak.mls.genesis` / `ak.mls.commit` 的三目标合约固定为 MLS epoch、key schedule 与 covered-seals；`ak.invite.accept` 固定为 invite lifecycle 与 member state；`ak.invite.claim` 固定为 invite lifecycle 与 subject-bound membership proposal。generic/message redaction 写入单调 `ak.component.object.redaction.v1` fact；对象的 effective terminal/redacted 状态由该 fact 与对象 lifecycle cell 联合派生，不允许用到达顺序选择是否清除内容。闭包与正负路径由 `ak.vector.event_kind.cell_contract_closure.v1` 固定。
 
 ### 2.5 Create 类 Event 的跨字段语义校验

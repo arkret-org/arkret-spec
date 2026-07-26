@@ -700,6 +700,12 @@
       "description": "Canonical ServiceDescribe response for ak.server.query.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces) and the registered directory_service overlay fields used by ak.find.directory.query.describe. Enforces development_mode=true => verified_profiles=[]. compat_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
     },
     {
+      "schema_id": "ak.schema.public_key.v1",
+      "file": "schemas/public-key.schema.json",
+      "status": "active",
+      "description": "Defs-only canonical PublicKey DTO (kty/kid/alg/key, optional key_digest). Owned by its own document so device, agent, account and to-device surfaces reference one shared definition instead of reverse-referencing each other's bundles. The {kid, alg, public_key} spelling is not canonical wire and MUST be rejected."
+    },
+    {
       "schema_id": "ak.schema.time.v1",
       "file": "schemas/time.schema.json",
       "status": "active",

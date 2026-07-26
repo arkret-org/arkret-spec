@@ -20,121 +20,451 @@
     "ak.vector.api.request_idempotency.v1",
     "ak.vector.sdk.retry_after.v1",
     "ak.vector.sdk.pagination_has_more.v1",
-    "ak.vector.encoding.confusable_check.v1"
+    "ak.vector.encoding.confusable_check.v1",
+    "ak.vector.invite.membership_transition_atomicity.v1",
+    "ak.vector.join_policy.gate_axis_orthogonality.v1",
+    "ak.vector.invite.quarantine_disclosure_indistinguishable.v1",
+    "ak.vector.invite.claim_expiry_canonical_time.v1"
   ],
   "cases": [
     {
       "name": "issuer_authority_bound",
       "vector_id": "ak.vector.capability.issuer_authority_bound.v1",
-      "variants": ["action_outside_effective_authority", "resource_outside_effective_authority", "freshness_unknown"],
-      "expected": {"decision": "reject", "reason_code": "grant_exceeds_issuer_authority"},
-      "assertions": ["no grant is materialized", "freshness unknown never widens issuer authority"]
+      "variants": [
+        "action_outside_effective_authority",
+        "resource_outside_effective_authority",
+        "freshness_unknown"
+      ],
+      "expected": {
+        "decision": "reject",
+        "reason_code": "grant_exceeds_issuer_authority"
+      },
+      "assertions": [
+        "no grant is materialized",
+        "freshness unknown never widens issuer authority"
+      ]
     },
     {
       "name": "effective_validity_window",
       "vector_id": "ak.vector.capability.validity_window.v1",
-      "variants": ["not_before_equal_expires_at", "not_before_after_expires_at", "non_empty_intersection"],
-      "expected": {"empty_window_reason": "grant_validity_window_empty", "non_empty_window": "accept"}
+      "variants": [
+        "not_before_equal_expires_at",
+        "not_before_after_expires_at",
+        "non_empty_intersection"
+      ],
+      "expected": {
+        "empty_window_reason": "grant_validity_window_empty",
+        "non_empty_window": "accept"
+      }
     },
     {
       "name": "delegation_expiry_seal",
       "vector_id": "ak.vector.capability.delegation_expiry_seal.v1",
-      "variants": ["redelegate_same_bound", "redelegate_shorter_bound", "redelegate_widened_bound", "fixed_seal_replay"],
-      "expected": {"widened_reason": "delegation_expiry_widening", "expiry_seal_rotated": false}
+      "variants": [
+        "redelegate_same_bound",
+        "redelegate_shorter_bound",
+        "redelegate_widened_bound",
+        "fixed_seal_replay"
+      ],
+      "expected": {
+        "widened_reason": "delegation_expiry_widening",
+        "expiry_seal_rotated": false
+      }
     },
     {
       "name": "delegation_cycle",
       "vector_id": "ak.vector.capability.delegation_cycle.v1",
-      "variants": ["direct_cycle", "multi_hop_cycle", "revoke_then_redelegate_cycle", "same_batch_cycle"],
-      "expected": {"decision": "reject", "reason_code": "delegation_cycle", "batch_atomic": true}
+      "variants": [
+        "direct_cycle",
+        "multi_hop_cycle",
+        "revoke_then_redelegate_cycle",
+        "same_batch_cycle"
+      ],
+      "expected": {
+        "decision": "reject",
+        "reason_code": "delegation_cycle",
+        "batch_atomic": true
+      }
     },
     {
       "name": "moderation_dependency_static_lint",
       "vector_id": "ak.vector.capability.moderation_dependency.v1",
-      "variants": ["required_true_present", "required_true_missing", "explicit_false"],
-      "expected": {"missing_or_false": "schema_violation", "present": "accept"}
+      "variants": [
+        "required_true_present",
+        "required_true_missing",
+        "explicit_false"
+      ],
+      "expected": {
+        "missing_or_false": "schema_violation",
+        "present": "accept"
+      }
     },
     {
       "name": "freshness_risk_matrix",
       "vector_id": "ak.vector.capability.freshness_risk_matrix.v1",
       "matrix": [
-        {"risk": "high", "freshness": "stale", "decision": "deny"},
-        {"risk": "high", "freshness": "unknown", "decision": "deny"},
-        {"risk": "medium", "freshness": "unknown", "decision": "deny"},
-        {"risk": "low", "freshness": "unknown", "tier": "local_pending", "decision": "pending_local_only"}
+        {
+          "risk": "high",
+          "freshness": "stale",
+          "decision": "deny"
+        },
+        {
+          "risk": "high",
+          "freshness": "unknown",
+          "decision": "deny"
+        },
+        {
+          "risk": "medium",
+          "freshness": "unknown",
+          "decision": "deny"
+        },
+        {
+          "risk": "low",
+          "freshness": "unknown",
+          "tier": "local_pending",
+          "decision": "pending_local_only"
+        }
       ],
-      "assertions": ["pending_local_only is never synchronized or federated"]
+      "assertions": [
+        "pending_local_only is never synchronized or federated"
+      ]
     },
     {
       "name": "global_decision_merge",
       "vector_id": "ak.vector.capability.global_decision_merge.v1",
-      "matched_grant_decisions": ["allow", "deny", "quarantine", "require_review"],
-      "expected": {"allow_plus_deny": "deny", "allow_plus_quarantine": "quarantine", "allow_plus_require_review": "require_review"},
-      "assertions": ["an allow from one grant never short-circuits a stronger global outcome"]
+      "matched_grant_decisions": [
+        "allow",
+        "deny",
+        "quarantine",
+        "require_review"
+      ],
+      "expected": {
+        "allow_plus_deny": "deny",
+        "allow_plus_quarantine": "quarantine",
+        "allow_plus_require_review": "require_review"
+      },
+      "assertions": [
+        "an allow from one grant never short-circuits a stronger global outcome"
+      ]
     },
     {
       "name": "explicit_delivery_ack",
       "vector_id": "ak.vector.sync.delivery_ack.v1",
-      "variants": ["opaque_token_round_trip", "monotonic_cumulative_ack", "cross_binding_token", "invalid_token", "unacked_drop"],
-      "expected": {"cross_binding": "cursor_integrity_invalid", "invalid": "invalid_param", "unacked_drop_lost": true}
+      "variants": [
+        "opaque_token_round_trip",
+        "monotonic_cumulative_ack",
+        "cross_binding_token",
+        "invalid_token",
+        "unacked_drop"
+      ],
+      "expected": {
+        "cross_binding": "cursor_integrity_invalid",
+        "invalid": "invalid_param",
+        "unacked_drop_lost": true
+      }
     },
     {
       "name": "cursor_binding",
       "vector_id": "ak.vector.sync.cursor_binding.v1",
-      "variants": ["canonical_filter_digest", "query_scope_digest", "same_scope_round_trip", "cross_scope_replay", "filter_mutation"],
-      "expected": {"cross_scope_or_mutated": "cursor_integrity_invalid"}
+      "variants": [
+        "canonical_filter_digest",
+        "query_scope_digest",
+        "same_scope_round_trip",
+        "cross_scope_replay",
+        "filter_mutation"
+      ],
+      "expected": {
+        "cross_scope_or_mutated": "cursor_integrity_invalid"
+      }
     },
     {
       "name": "limited_timeline_state_at_window_start",
       "vector_id": "ak.vector.sync.state_at_window_start.v1",
       "basis": "first_limited_event.prev_refs causal closure joined at nearest reachable Seal",
-      "variants": ["deterministic_join", "unreachable_basis", "conflicting_heads"],
-      "expected": {"deterministic_join": "emit_state", "unreachable_basis": "safe_omission", "conflicting_heads": "safe_omission"},
-      "assertions": ["current state is never substituted for window-start state"]
+      "variants": [
+        "deterministic_join",
+        "unreachable_basis",
+        "conflicting_heads"
+      ],
+      "expected": {
+        "deterministic_join": "emit_state",
+        "unreachable_basis": "safe_omission",
+        "conflicting_heads": "safe_omission"
+      },
+      "assertions": [
+        "current state is never substituted for window-start state"
+      ]
     },
     {
       "name": "protocol_window_and_wire_limits",
       "vector_id": "ak.vector.scalability.protocol_window_limits.v1",
       "limit_cases": [
-        {"field": "invite_locator.ttl_seconds", "minimum": 60, "maximum": 3600, "test": [59, 60, 3600, 3601], "outside": "schema_violation"},
-        {"field": "invite_locator.active_per_principal", "limit": 16, "test": [15, 16, 17], "overflow": ["failed_precondition", "rate_limited"], "rotate_at_limit": "success"},
-        {"field": "seal.predecessor_refs", "limit": 128, "test": [127, 128, 129], "overflow": "payload_too_large", "must_not_truncate": true},
-        {"field": "compaction_seal.covered_event_digests", "limit": 1048576, "test": [1048575, 1048576, 1048577], "overflow": "payload_too_large", "must_not_truncate": true},
-        {"field": "device_message.expires_at", "max_ttl_ms": 86400000, "negative": ["missing", "expired", "before_sent_at", "over_limit"]},
-        {"field": "push_routes", "limit": 16, "test": [15, 16, 17], "overflow": "push_route_limit_exceeded"},
-        {"field": "contact_request_pending_ttl", "clock_injection": true, "after_window": "failed_precondition"},
-        {"field": "erasure_propagation_window_ms", "clock_injection": true, "after_window": "timed_out_and_incomplete"},
-        {"field": "deactivation_propagation_window_ms", "clock_injection": true, "after_window": "timed_out"},
-        {"field": "mls_deactivation_grace_ms", "clock_injection": true, "after_window": "remove_required"},
-        {"field": "call_empty_timeout_ms", "clock_injection": true, "after_window": "active_to_ended"},
-        {"field": "push_target_mapping_retention_ms", "limit": 86400000, "after_window": "physically_deleted"},
-        {"field": "third_party_invite_replay_ttl", "clock_injection": true, "during_window": "replay_rejected"}
+        {
+          "field": "invite_locator.ttl_seconds",
+          "minimum": 60,
+          "maximum": 3600,
+          "test": [
+            59,
+            60,
+            3600,
+            3601
+          ],
+          "outside": "schema_violation"
+        },
+        {
+          "field": "invite_locator.active_per_principal",
+          "limit": 16,
+          "test": [
+            15,
+            16,
+            17
+          ],
+          "overflow": [
+            "failed_precondition",
+            "rate_limited"
+          ],
+          "rotate_at_limit": "success"
+        },
+        {
+          "field": "seal.predecessor_refs",
+          "limit": 128,
+          "test": [
+            127,
+            128,
+            129
+          ],
+          "overflow": "payload_too_large",
+          "must_not_truncate": true
+        },
+        {
+          "field": "compaction_seal.covered_event_digests",
+          "limit": 1048576,
+          "test": [
+            1048575,
+            1048576,
+            1048577
+          ],
+          "overflow": "payload_too_large",
+          "must_not_truncate": true
+        },
+        {
+          "field": "device_message.expires_at",
+          "max_ttl_ms": 86400000,
+          "negative": [
+            "missing",
+            "expired",
+            "before_sent_at",
+            "over_limit"
+          ]
+        },
+        {
+          "field": "push_routes",
+          "limit": 16,
+          "test": [
+            15,
+            16,
+            17
+          ],
+          "overflow": "push_route_limit_exceeded"
+        },
+        {
+          "field": "contact_request_pending_ttl",
+          "clock_injection": true,
+          "after_window": "failed_precondition"
+        },
+        {
+          "field": "erasure_propagation_window_ms",
+          "clock_injection": true,
+          "after_window": "timed_out_and_incomplete"
+        },
+        {
+          "field": "deactivation_propagation_window_ms",
+          "clock_injection": true,
+          "after_window": "timed_out"
+        },
+        {
+          "field": "mls_deactivation_grace_ms",
+          "clock_injection": true,
+          "after_window": "remove_required"
+        },
+        {
+          "field": "call_empty_timeout_ms",
+          "clock_injection": true,
+          "after_window": "active_to_ended"
+        },
+        {
+          "field": "push_target_mapping_retention_ms",
+          "limit": 86400000,
+          "after_window": "physically_deleted"
+        },
+        {
+          "field": "third_party_invite_replay_ttl",
+          "clock_injection": true,
+          "during_window": "replay_rejected"
+        }
       ]
     },
     {
       "name": "request_idempotency",
       "vector_id": "ak.vector.api.request_idempotency.v1",
-      "variants": ["same_key_same_body", "same_key_different_body", "same_key_other_principal", "same_key_other_operation", "canonical_hash_input_pointer", "retention_just_before_24h", "retention_at_24h"],
-      "expected": {"same_body": "original_outcome", "different_body": "duplicate_conflict", "other_scope": "independent", "minimum_retention_ms": 86400000}
+      "variants": [
+        "same_key_same_body",
+        "same_key_different_body",
+        "same_key_other_principal",
+        "same_key_other_operation",
+        "canonical_hash_input_pointer",
+        "retention_just_before_24h",
+        "retention_at_24h"
+      ],
+      "expected": {
+        "same_body": "original_outcome",
+        "different_body": "duplicate_conflict",
+        "other_scope": "independent",
+        "minimum_retention_ms": 86400000
+      }
     },
     {
       "name": "retry_after",
       "vector_id": "ak.vector.sdk.retry_after.v1",
-      "variants": ["retry_after_shorter_than_local_backoff", "retry_after_longer_than_local_cap", "retry_after_date"],
-      "expected": {"earliest_retry": "not_before_server_retry_after", "long_value_clamped": false}
+      "variants": [
+        "retry_after_shorter_than_local_backoff",
+        "retry_after_longer_than_local_cap",
+        "retry_after_date"
+      ],
+      "expected": {
+        "earliest_retry": "not_before_server_retry_after",
+        "long_value_clamped": false
+      }
     },
     {
       "name": "pagination_has_more",
       "vector_id": "ak.vector.sdk.pagination_has_more.v1",
-      "variants": ["empty_items_has_more_true", "full_page_has_more_false", "short_page_has_more_true"],
-      "expected": {"continue_only_when_has_more": true}
+      "variants": [
+        "empty_items_has_more_true",
+        "full_page_has_more_false",
+        "short_page_has_more_true"
+      ],
+      "expected": {
+        "continue_only_when_has_more": true
+      }
     },
     {
       "name": "confusable_check",
       "vector_id": "ak.vector.encoding.confusable_check.v1",
-      "inputs": ["alice", "a\u043bice", "paypa\u04cf", "admin\u200d", "Ａlice"],
-      "expected_classes": ["safe_ascii", "mixed_script_confusable", "mixed_script_confusable", "invisible_code_point", "compatibility_confusable"],
-      "assertions": ["the SDK exposes this exact check as a callable utility", "the utility does not silently normalize before reporting"]
+      "inputs": [
+        "alice",
+        "aлice",
+        "paypaӏ",
+        "admin‍",
+        "Ａlice"
+      ],
+      "expected_classes": [
+        "safe_ascii",
+        "mixed_script_confusable",
+        "mixed_script_confusable",
+        "invisible_code_point",
+        "compatibility_confusable"
+      ],
+      "assertions": [
+        "the SDK exposes this exact check as a callable utility",
+        "the utility does not silently normalize before reporting"
+      ]
+    },
+    {
+      "name": "invite_membership_transition_atomicity",
+      "vector_id": "ak.vector.invite.membership_transition_atomicity.v1",
+      "variants": [
+        "create_then_accept_walks_leave_invite_join",
+        "accept_without_invite_prestate_is_invalid_membership_transition",
+        "cancel_rejected_returns_member_state_to_leave",
+        "revoke_with_expired_reason_returns_member_state_to_leave",
+        "directed_terminal_move_missing_invitee_is_effects_payload_mismatch",
+        "third_party_create_writes_no_member_state_effect",
+        "bare_member_state_ban_from_invite_prestate_is_rejected"
+      ],
+      "expected": {
+        "decision": "mixed",
+        "positive_member_state_path": [
+          "leave",
+          "invite",
+          "join"
+        ]
+      },
+      "assertions": [
+        "ak.invite.create and ak.invite.accept each write invite.lifecycle and member.state in one Control Move",
+        "leave to join is never relaxed for the invite path",
+        "a rejected or revoked or expired invite returns the member cell to leave in the same Control Move",
+        "after the terminal move the subject loses invite-frontier read and key share eligibility in a history_visibility=invited Realm",
+        "the 3PID branch produces no member.state effect and over-writing one is effects_payload_mismatch",
+        "a live directed invite must be driven terminal before a ban, so the ban edge evaluates as leave to ban"
+      ]
+    },
+    {
+      "name": "join_policy_gate_axis_orthogonality",
+      "vector_id": "ak.vector.join_policy.gate_axis_orthogonality.v1",
+      "variants": [
+        "invite_path_hits_principal_denylist",
+        "public_realm_cooldown_still_evaluated",
+        "closed_realm_applicant_self_join_rejected",
+        "closed_realm_admin_write_accepted",
+        "dm_bootstrap_batch_reaches_two_members",
+        "dm_third_member_add_rejected"
+      ],
+      "expected": {
+        "decision": "mixed",
+        "external_reason_code": "gate_check_failed"
+      },
+      "assertions": [
+        "principal_admission and cooldown are evaluated under every default_join_rule including public, invite and closed",
+        "ak.invite.create and ak.invite.accept fail closed before writing member.state when the hard gate rejects",
+        "closed blocks applicant-initiated entry only; the four authorized-writer branches stay available",
+        "the DM bootstrap batch reaches active member count 2",
+        "adding a third member to an active DM Realm is still rejected"
+      ]
+    },
+    {
+      "name": "invite_quarantine_disclosure_indistinguishable",
+      "vector_id": "ak.vector.invite.quarantine_disclosure_indistinguishable.v1",
+      "variants": [
+        "entered_holder_quarantine",
+        "rate_limit_silent_drop",
+        "ttl_timeout_drop",
+        "holder_not_found",
+        "holder_policy_deny"
+      ],
+      "expected": {
+        "decision": "indistinguishable",
+        "status": "deferred",
+        "disclosed_outcome": "absent"
+      },
+      "assertions": [
+        "all five variants return a byte-identical response body and status code",
+        "timing difference across the equivalence class is at most 50ms",
+        "the response never carries disclosed_outcome=quarantined; that value is not in the enum",
+        "high trust introduction evidence does not widen disclosure, because the leak is consent state and not existence",
+        "invite delivery, contact delivery and ak.self.consent.command.request expose no observable that distinguishes quarantine from rejection"
+      ]
+    },
+    {
+      "name": "invite_claim_expiry_canonical_time",
+      "vector_id": "ak.vector.invite.claim_expiry_canonical_time.v1",
+      "variants": [
+        "same_signed_claim_receiver_clock_before_expiry",
+        "same_signed_claim_receiver_clock_after_expiry",
+        "backfill_replay_after_expiry"
+      ],
+      "expected": {
+        "decision": "reject",
+        "reason_code": "expired_invite_token",
+        "invite_state": "unchanged",
+        "shared_effects": "none"
+      },
+      "assertions": [
+        "expiry compares the signed claim event created_at against the invite expires_at and never uses receiver-local now",
+        "all clock variants and the backfill replay produce identical outcome and identical invite cell value",
+        "the rejected claim writes no shared effect",
+        "pending to expired must come from a separate accepted ak.invite.revoke Control Move"
+      ]
     }
   ]
 }

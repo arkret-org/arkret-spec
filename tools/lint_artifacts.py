@@ -1157,6 +1157,46 @@ def lint_field_path(lint: Lint, path: Path, ref: str, value: object) -> None:
         )
 
 
+def lint_cell_write_condition(lint: Lint, path: Path, ref: str, condition: object) -> None:
+    """Validate the closed `condition` grammar of a conditional cell write.
+
+    See zh/models/event-and-patch.md section 2.4.2: a conditional target
+    participates only when the condition holds, and the grammar is closed so the
+    predicate stays a pure function of the schema-validated payload.
+    """
+    if not isinstance(condition, dict):
+        lint.fail(path, f"{ref} must be an object")
+        return
+    allowed_types = {"field_present", "field_absent", "field_equals", "any_field_present"}
+    condition_type = condition.get("type")
+    if condition_type not in allowed_types:
+        lint.fail(path, f"{ref}.type must be one of {sorted(allowed_types)}")
+        return
+    if condition_type == "any_field_present":
+        unknown = set(condition) - {"type", "fields"}
+        if unknown:
+            lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
+        fields = condition.get("fields")
+        if not isinstance(fields, list) or len(fields) < 2:
+            lint.fail(path, f"{ref}.fields must be an array of at least two field paths")
+            return
+        for index, field in enumerate(fields):
+            lint_field_path(lint, path, f"{ref}.fields[{index}]", field)
+        if len(fields) != len({repr(field) for field in fields}):
+            lint.fail(path, f"{ref}.fields must not repeat a path")
+        return
+    allowed_keys = {"type", "field"} | ({"const"} if condition_type == "field_equals" else set())
+    unknown = set(condition) - allowed_keys
+    if unknown:
+        lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
+    lint_field_path(lint, path, f"{ref}.field", condition.get("field"))
+    if condition_type == "field_equals":
+        if "const" not in condition:
+            lint.fail(path, f"{ref}.const is required for field_equals")
+        elif not isinstance(condition["const"], (str, int, float, bool)):
+            lint.fail(path, f"{ref}.const must be a scalar")
+
+
 def lint_value_projection(lint: Lint, path: Path, ref: str, projection: object) -> None:
     """Validate a declared ordered_log append `op.value` projection.
 
@@ -1167,6 +1207,9 @@ def lint_value_projection(lint: Lint, path: Path, ref: str, projection: object) 
     if not isinstance(projection, dict):
         lint.fail(path, f"{ref} must be an object")
         return
+    unknown_projection_keys = set(projection) - {"type", "members"}
+    if unknown_projection_keys:
+        lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown_projection_keys)}")
     if projection.get("type") != "object":
         lint.fail(path, f"{ref}.type must be 'object'")
     members = projection.get("members")
@@ -1200,15 +1243,23 @@ def lint_value_projection(lint: Lint, path: Path, ref: str, projection: object) 
             if not isinstance(digest, dict):
                 lint.fail(path, f"{member_ref}.digest_of must be an object")
             else:
-                if "field" in digest:
+                digest_input = digest.get("input")
+                if digest_input == "event_payload_canonical_bytes":
+                    if "field" in digest:
+                        lint.fail(
+                            path,
+                            f"{member_ref}.digest_of.field must be omitted when digesting "
+                            "the whole event payload",
+                        )
+                elif "field" in digest:
                     lint_field_path(lint, path, f"{member_ref}.digest_of.field", digest["field"])
-                elif digest.get("input") != "event_payload_canonical_bytes":
+                else:
                     lint.fail(
                         path,
                         f"{member_ref}.digest_of must declare a field unless it digests the "
                         "whole event payload",
                     )
-                if digest.get("input") not in VALUE_PROJECTION_DIGEST_INPUTS:
+                if digest_input not in VALUE_PROJECTION_DIGEST_INPUTS:
                     lint.fail(
                         path,
                         f"{member_ref}.digest_of.input must be one of {sorted(VALUE_PROJECTION_DIGEST_INPUTS)}",
@@ -1352,6 +1403,34 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     lint_value_projection(
                         lint, event_path, f"{write_ref}.value_projection", write["value_projection"]
                     )
+                if "condition" in write:
+                    lint_cell_write_condition(
+                        lint, event_path, f"{write_ref}.condition", write["condition"]
+                    )
+                    # event-and-patch.md 2.4.2: when an `any_field_present`
+                    # condition selects the same alternative paths a `coalesce`
+                    # subject derives from, the two lists MUST agree item-for-item
+                    # and in order. A mismatch means the target can be required on
+                    # a payload shape whose subject cannot be derived, or derived
+                    # on a shape where the target must not appear. The other
+                    # legitimate use of `any_field_present` -- one cell carrying
+                    # several distinct fields, addressed by an unconditional
+                    # subject field -- is not constrained here.
+                    condition = write["condition"]
+                    subject = write.get("cell_subject")
+                    if (
+                        isinstance(condition, dict)
+                        and condition.get("type") == "any_field_present"
+                        and isinstance(condition.get("fields"), list)
+                        and isinstance(subject, dict)
+                        and subject.get("type") == "coalesce"
+                        and subject.get("fields") != condition["fields"]
+                    ):
+                        lint.fail(
+                            event_path,
+                            f"{write_ref}.condition.fields must equal the cell_subject "
+                            "coalesce fields item-for-item and in order",
+                        )
                 write_lattice = write.get("lattice")
                 if write_lattice not in REGISTRY_LATTICES:
                     lint.fail(event_path, f"{write_ref} has unknown lattice {write_lattice!r}")
@@ -3380,6 +3459,64 @@ def check_circle_membership_enum_single_source(lint: Lint) -> None:
                 path,
                 f"$defs.{def_name}.properties.{field_name} must reference {canonical_ref}",
             )
+
+
+def check_null_cell_subject_wire_form(lint: Lint) -> None:
+    """Pin the wire form of every cell family declared with `cell_subject: null`.
+
+    encoding.md section 4 fixes that subject segment to the literal ASCII string
+    `null`. The segment is both the state_root leaf preimage content and the leaf
+    sort key, so any other spelling (realm id, Realm role classification, empty
+    segment) forks state_root across implementations.
+    """
+    catalog = load_json(lint, ARTIFACTS / "registry" / "contract-catalog.json")
+    if not isinstance(catalog, dict):
+        return
+    registry = catalog.get("event_kind_registry")
+    if not isinstance(registry, dict):
+        return
+
+    null_families: set[str] = set()
+    for row in registry.get("event_kinds", []) or []:
+        if not isinstance(row, dict):
+            continue
+        family = row.get("cell_family")
+        if isinstance(family, str) and family and row.get("cell_subject") is None:
+            null_families.add(family)
+    for contract in (registry.get("cell_contracts") or {}).values():
+        if not isinstance(contract, dict):
+            continue
+        for write in contract.get("cell_writes", []) or []:
+            if not isinstance(write, dict):
+                continue
+            family = write.get("cell_family")
+            if isinstance(family, str) and family and write.get("cell_subject") is None:
+                null_families.add(family)
+    if not null_families:
+        return
+
+    scan_paths = sorted((ARTIFACTS / "fixtures").rglob("*.json"))
+    scan_paths.extend(markdown_files())
+    for path in scan_paths:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for family in sorted(null_families):
+            if family not in text:
+                continue
+            pattern = re.compile(
+                r"ak:cell:" + re.escape(family) + r":([A-Za-z0-9._~=%-]*)"
+            )
+            for match in pattern.finditer(text):
+                subject = match.group(1)
+                if subject != "null":
+                    lint.fail(
+                        path,
+                        f"ak:cell:{family} declares cell_subject: null; its wire subject "
+                        f"segment MUST be the literal 'null', found {subject!r} "
+                        "(encoding.md section 4)",
+                    )
 
 
 def check_circle_lifecycle_basis_vector(lint: Lint) -> None:
@@ -7232,6 +7369,7 @@ def main() -> int:
     check_signed_object_closure(lint)
     check_reducer_payload_closure(lint)
     check_circle_membership_enum_single_source(lint)
+    check_null_cell_subject_wire_form(lint)
     check_circle_lifecycle_basis_vector(lint)
     check_did_and_device_constraints(lint)
     check_operation_binding_metadata(lint)

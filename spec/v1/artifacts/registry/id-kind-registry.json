@@ -67,7 +67,7 @@
       "wire_form": "ak:cell:ak.component.<facet-path>.v<n>:<subject>",
       "status": "active",
       "storage_recommendation": "Store canonical tuple fields separately when indexing cell state.",
-      "description": "Canonical protocol cell identifier. The complete ak.component.<facet-path>.v<n> family identifier is embedded unchanged after ak:cell:."
+      "description": "Canonical protocol cell identifier. The complete ak.component.<facet-path>.v<n> family identifier is embedded unchanged after ak:cell:. When the catalog declares cell_subject: null for a family, the canonical subject segment is the literal ASCII string 'null' (ak:cell:<component>:null); the cell is located by the Event envelope realm_id and implementations MUST NOT encode realm_id, Realm role classification, or any payload-derived value into that segment. See spec/v1/zh/conformance/encoding.md section 4."
     },
     {
       "kind": "trust_domain",
