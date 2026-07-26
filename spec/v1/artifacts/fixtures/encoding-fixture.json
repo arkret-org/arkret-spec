@@ -719,6 +719,113 @@
       ]
     },
     {
+      "vector_id": "ak.vector.calendar.rsvp_composite_subject.v1",
+      "kind": "typed_composite_subject",
+      "source_descriptor": {
+        "event_kind": "ak.rsvp.set",
+        "cell_family": "ak.component.calendar.rsvp.v1",
+        "components": [
+          "payload.event_ref",
+          "payload.occurrence",
+          "envelope.actor_id"
+        ]
+      },
+      "positive_cases": [
+        {
+          "name": "instance_occurrence",
+          "components_array": [
+            "ak:strand:019f9e50-d787-74e0-8731-c9ad5eaa9182",
+            "2026-07-26T09:00:00[Asia/Shanghai]",
+            "did:webvh:z6mkfixture:alice.example"
+          ],
+          "expected_canonical_bytes_utf8": "[\"ak:strand:019f9e50-d787-74e0-8731-c9ad5eaa9182\",\"2026-07-26T09:00:00[Asia/Shanghai]\",\"did:webvh:z6mkfixture:alice.example\"]",
+          "expected_subject": "tc2S5LQybi5y3tI-hoyB6HoBWFepT_tDfFcmHJk_jd0"
+        },
+        {
+          "name": "series_occurrence_preserves_json_null",
+          "components_array": [
+            "ak:strand:019f9e50-d787-74e0-8731-c9ad5eaa9182",
+            null,
+            "did:webvh:z6mkfixture:alice.example"
+          ],
+          "expected_canonical_bytes_utf8": "[\"ak:strand:019f9e50-d787-74e0-8731-c9ad5eaa9182\",null,\"did:webvh:z6mkfixture:alice.example\"]",
+          "expected_subject": "3iBI9bjQLklvfcVhQeaxLajMskSVG4oZ5IMpU62GvRc"
+        },
+        {
+          "name": "reordered_components_diverge",
+          "components_array": [
+            "did:webvh:z6mkfixture:alice.example",
+            null,
+            "ak:strand:019f9e50-d787-74e0-8731-c9ad5eaa9182"
+          ],
+          "expected_subject": "G-jylvAZSC52_c77DCKw98StFxsbCIT71e4Gp0a5QcY",
+          "must_differ_from": "series_occurrence_preserves_json_null"
+        }
+      ],
+      "negative_cases": [
+        {
+          "name": "missing_component",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "unregistered_envelope_source",
+          "source": "envelope.event_id",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "bare_source",
+          "source": "actor_id",
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "payload_actor_id_does_not_shadow_envelope",
+          "payload_actor_id": "did:webvh:z6mkfixture:mallory.example",
+          "envelope_actor_id": "did:webvh:z6mkfixture:alice.example",
+          "expected_component": "did:webvh:z6mkfixture:alice.example"
+        },
+        {
+          "name": "object_component",
+          "component": {
+            "not": "scalar"
+          },
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "array_component",
+          "component": [
+            "not",
+            "scalar"
+          ],
+          "expected_error": "schema_violation"
+        },
+        {
+          "name": "floating_number_component",
+          "component": 1.5,
+          "expected_error": "schema_violation"
+        }
+      ],
+      "mv_register_cases": [
+        {
+          "name": "causal_successor_dominates",
+          "first_status": "tentative",
+          "successor_status": "accepted",
+          "expected_heads": [
+            "accepted"
+          ]
+        },
+        {
+          "name": "concurrent_statuses_expose_heads",
+          "left_status": "accepted",
+          "right_status": "declined",
+          "expected_heads": [
+            "accepted",
+            "declined"
+          ],
+          "hlc_swap_changes_result": false
+        }
+      ]
+    },
+    {
       "vector_id": "ak.vector.encoding.canonical_event_tie_break.v1",
       "kind": "canonical_event_tie_break",
       "description": "Single protocol-wide winner rule for both concurrent candidate sets and logical-slot equivocation candidate sets. The comparison key is the decoded digest octets of canonical_digest(envelope_without_proofs_unsigned_reducer_stamps), bytewise greatest, with the canonical suite id as secondary key only when the octets are identical.",

@@ -5175,7 +5175,7 @@ Steps:
 Expected:
 
 - 正例存在：`founding_grant_event.kind="ak.capability.grant"` 且 nested `grant.proofs=[]` MUST 校验通过。
-- 五个 draft slot 各自的 `kind` 是 const；互换任意两个 slot MUST `schema_violation`（负例）。
+- 六个 draft slot 各自的 `kind` 是 const；互换任意两个 slot MUST `schema_violation`（负例）。`main_strand_grant_event` 还 MUST 只包含 `actions=["ak.strand.create"]`，增加其它 action MUST `schema_violation`。
 - 缺失 `founding_grant_event`、非空 envelope `proofs`、非空 nested `grant.proofs` MUST `schema_violation`（负例）。
 
 ### 23.9 3PID claim 过期判定的 canonical 时点
@@ -5209,3 +5209,21 @@ Expected:
 - 负例：stage 请求携带 challenge proof MUST `schema_violation`（proof 必须承诺 stage 才铸出的值，因此不可能在 stage 时存在）。
 - 负例：`ak.gate.account.command.pair_device` 同时携带 `device_pairing_request_id` 与 `challenge_transcript`，或两者都不携带，MUST `schema_violation`（schema 以 `oneOf` 强制该 XOR，gate 必须确定该用哪套 transcript）。
 - 负例：路径 B 下 gate 采用请求体提供的 `gate_audience` 而非自身 origin，视为不合规——那会让跨 Account Authority 重放重新成立。
+
+### 23.11 RSVP typed composite subject 与 `mv_register` 收敛
+
+`vector_id`: `ak.vector.calendar.rsvp_composite_subject.v1`
+
+Steps:
+
+1. 分别构造 instance RSVP 与 `occurrence=null` 的 series RSVP，从 registry 显式读取 `payload.event_ref`、`payload.occurrence`、`envelope.actor_id`。
+2. 对 components array 做 canonical JSON 编码并计算 SHA-256 / base64url-nopad subject。
+3. 对同一 responder 构造因果后继与真正并发的不同 status 写入。
+
+Expected:
+
+- instance preimage `["ak:strand:019f9e50-d787-74e0-8731-c9ad5eaa9182","2026-07-26T09:00:00[Asia/Shanghai]","did:webvh:z6mkfixture:alice.example"]` 的 subject MUST 为 `tc2S5LQybi5y3tI-hoyB6HoBWFepT_tDfFcmHJk_jd0`。
+- series preimage `["ak:strand:019f9e50-d787-74e0-8731-c9ad5eaa9182",null,"did:webvh:z6mkfixture:alice.example"]` 的 subject MUST 为 `3iBI9bjQLklvfcVhQeaxLajMskSVG4oZ5IMpU62GvRc`；把 JSON null 改写成字符串、空串或 sentinel MUST 失败。
+- 缺失 component、未登记 `envelope.*`、裸字段来源、object/array/小数终点、以及 schema 不允许 null 的字段实际取 null，均 MUST `schema_violation`。
+- payload 中出现同名 `actor_id` 不得遮蔽 `envelope.actor_id`；components 重排 MUST 产生不同 subject。
+- 因果后继 status 支配旧 head；真正并发的不同 status 暴露多个 heads。交换两条并发 Event 的 HLC 大小不得改变 join 结果。

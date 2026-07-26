@@ -58,7 +58,9 @@ Attendee DID、display name snapshot 和 attendance role 不得替代 Realm memb
 
 RSVP 通过 `ak.rsvp.set` 写入。payload 必须包含 `event_ref`、`status` 和 `occurrence`；`status` 是封闭集 `accepted | declined | tentative`，未知值 MUST `schema_violation`；`comment` 若存在 MUST 加密，除非 Realm policy 明确允许该服务接收 plaintext-visible RSVP comment。
 
-RSVP projection 按 actor 对 `(event_ref, occurrence)` 做 LWW 收敛。`occurrence=null` 表示整个 series；实例级 RSVP 使用 recurrence instance key。该 key MUST 是 occurrence 的 local wall-clock start 按事件 `timezone` 展开后写成 `YYYY-MM-DD`（all-day）或 `YYYY-MM-DDTHH:mm:ss[Zone]`（非 all-day，Zone 为 IANA timezone 名）的 canonical 字符串；同一 series instance 在所有实现中必须生成相同 key。重复写同一 status 是 no-op，较新 HLC 的不同 status 替换旧值。
+RSVP projection 按 accountable actor 对 `(event_ref, occurrence)` 使用 `mv_register` 收敛；cell subject 固定为 [`encoding.md` §9.5.2](../conformance/encoding.md) 的 `[payload.event_ref, payload.occurrence, envelope.actor_id]`。`occurrence=null` 表示整个 series；实例级 RSVP 使用 recurrence instance key。该 key MUST 是 occurrence 的 local wall-clock start 按事件 `timezone` 展开后写成 `YYYY-MM-DD`（all-day）或 `YYYY-MM-DDTHH:mm:ss[Zone]`（非 all-day，Zone 为 IANA timezone 名）的 canonical 字符串；同一 series instance 在所有实现中必须生成相同 key。
+
+同一 responder 的因果后继 RSVP 支配旧 head；真正并发且 status 不同的 RSVP 必须暴露多个 heads，直到该 actor 以观察到这些 heads 的后续 RSVP 显式解决。并发 join 的结果不得由 HLC、`created_at`、`event_id` 或到达顺序选边。重复写同一 status 可作为 value-level no-op，但不得借此隐藏并发的不同 status。
 
 `ak.rsvp.set` 只表达回应，不修改 Strand schedule，不创建 attendees，也不赋予访问权。
 

@@ -1081,7 +1081,14 @@ def check_no_rule_marker_emoji(lint: Lint) -> None:
                 )
 
 
-def lint_select_component(lint: Lint, path: Path, ref: str, component: object) -> None:
+def lint_select_component(
+    lint: Lint,
+    path: Path,
+    ref: str,
+    component: object,
+    *,
+    subject_source: bool = False,
+) -> None:
     """Validate a discriminated `select` cell-subject component (encoding.md 9.5.1).
 
     A select component picks one scalar field path from a closed branch map keyed by
@@ -1098,7 +1105,8 @@ def lint_select_component(lint: Lint, path: Path, ref: str, component: object) -
     if component_type != "select":
         lint.fail(path, f"{ref}.type must be 'select'; unknown component types are rejected")
         return
-    lint_field_path(lint, path, f"{ref}.selector", component.get("selector"))
+    lint_path = lint_subject_field_path if subject_source else lint_field_path
+    lint_path(lint, path, f"{ref}.selector", component.get("selector"))
     branches = component.get("branches")
     if not isinstance(branches, dict) or not branches:
         lint.fail(path, f"{ref}.branches must be a non-empty object")
@@ -1110,7 +1118,7 @@ def lint_select_component(lint: Lint, path: Path, ref: str, component: object) -
         if not isinstance(branch, dict):
             lint.fail(path, f"{branch_ref} must be an object")
             continue
-        lint_field_path(lint, path, f"{branch_ref}.field", branch.get("field"))
+        lint_path(lint, path, f"{branch_ref}.field", branch.get("field"))
         # Exclusivity is declared per branch, never inferred from "some other
         # branch's field is present": branches may legitimately share a field.
         if "forbidden_fields" in branch:
@@ -1119,7 +1127,7 @@ def lint_select_component(lint: Lint, path: Path, ref: str, component: object) -
                 lint.fail(path, f"{branch_ref}.forbidden_fields must be a non-empty array")
             else:
                 for forbidden_index, item in enumerate(forbidden):
-                    lint_field_path(
+                    lint_path(
                         lint, path, f"{branch_ref}.forbidden_fields[{forbidden_index}]", item
                     )
             if isinstance(forbidden, list) and branch.get("field") in forbidden:
@@ -1155,6 +1163,24 @@ def lint_field_path(lint: Lint, path: Path, ref: str, value: object) -> None:
             f"{ref} must be dot-separated named fields "
             f"(no array index, wildcard or empty segment): {value!r}",
         )
+
+
+def lint_subject_field_path(lint: Lint, path: Path, ref: str, value: object) -> None:
+    """Validate an explicitly sourced cell-subject field path."""
+    lint_field_path(lint, path, ref, value)
+    if not isinstance(value, str) or FIELD_PATH_RE.fullmatch(value) is None:
+        return
+    if value.startswith("payload."):
+        return
+    if value == "envelope.actor_id":
+        return
+    if value.startswith("envelope."):
+        lint.fail(path, f"{ref} uses an unregistered envelope source: {value!r}")
+        return
+    lint.fail(
+        path,
+        f"{ref} must use an explicit payload.* or envelope.actor_id source: {value!r}",
+    )
 
 
 def lint_cell_write_condition(lint: Lint, path: Path, ref: str, condition: object) -> None:
@@ -1366,10 +1392,15 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                                 for part_index, part in enumerate(parts):
                                     part_ref = f"{write_ref}.cell_subject.components[{part_index}]"
                                     if isinstance(part, str):
-                                        if not part:
-                                            lint.fail(event_path, f"{part_ref} must be a non-empty field path")
+                                        lint_subject_field_path(lint, event_path, part_ref, part)
                                     elif isinstance(part, dict):
-                                        lint_select_component(lint, event_path, part_ref, part)
+                                        lint_select_component(
+                                            lint,
+                                            event_path,
+                                            part_ref,
+                                            part,
+                                            subject_source=True,
+                                        )
                                     else:
                                         lint.fail(
                                             event_path,
@@ -1377,28 +1408,44 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                                         )
                         elif subject_type == "coalesce":
                             parts = subject.get("fields")
-                            if (
-                                not isinstance(parts, list)
-                                or not parts
-                                or any(not isinstance(part, str) or not part for part in parts)
-                            ):
+                            if not isinstance(parts, list) or not parts:
                                 lint.fail(
                                     event_path,
                                     f"{write_ref}.cell_subject.fields must be a non-empty string array",
                                 )
+                            else:
+                                for part_index, part in enumerate(parts):
+                                    lint_subject_field_path(
+                                        lint,
+                                        event_path,
+                                        f"{write_ref}.cell_subject.fields[{part_index}]",
+                                        part,
+                                    )
                         elif subject_type == "tuple":
                             parts = subject.get("components")
                             if not isinstance(parts, list) or not parts:
                                 lint.fail(event_path, f"{write_ref}.cell_subject.components must be non-empty")
-                            elif any(
-                                not isinstance(part, dict)
-                                or not isinstance(part.get("field"), str)
-                                or not part.get("field")
-                                for part in parts
-                            ):
-                                lint.fail(event_path, f"{write_ref} tuple components must declare field")
-                        elif not isinstance(subject.get("field"), str) or not subject.get("field"):
-                            lint.fail(event_path, f"{write_ref}.cell_subject must declare field")
+                            else:
+                                for part_index, part in enumerate(parts):
+                                    part_ref = (
+                                        f"{write_ref}.cell_subject.components[{part_index}].field"
+                                    )
+                                    if not isinstance(part, dict):
+                                        lint.fail(
+                                            event_path,
+                                            f"{write_ref} tuple components must declare field",
+                                        )
+                                    else:
+                                        lint_subject_field_path(
+                                            lint, event_path, part_ref, part.get("field")
+                                        )
+                        else:
+                            lint_subject_field_path(
+                                lint,
+                                event_path,
+                                f"{write_ref}.cell_subject.field",
+                                subject.get("field"),
+                            )
                 if "value_projection" in write:
                     lint_value_projection(
                         lint, event_path, f"{write_ref}.value_projection", write["value_projection"]
@@ -2445,9 +2492,9 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
 }
 
 
-def collect_payload_dispatch_pairs(value: Any) -> list[tuple[str, str]]:
-    """Return [(kind, payload_class_name)] for every `if kind=const → then payload $ref` block."""
-    pairs: list[tuple[str, str]] = []
+def collect_payload_dispatch_refs(value: Any) -> list[tuple[str, str]]:
+    """Return every `(Event kind, payload schema ref)` dispatch."""
+    refs: list[tuple[str, str]] = []
     if isinstance(value, dict):
         if_schema = value.get("if")
         then_schema = value.get("then")
@@ -2458,27 +2505,343 @@ def collect_payload_dispatch_pairs(value: Any) -> list[tuple[str, str]]:
                 if isinstance(then_properties, dict)
                 else None
             )
-            if isinstance(payload_schema, dict):
-                ref = payload_schema.get("$ref")
-                if isinstance(ref, str):
-                    match = PAYLOAD_DISPATCH_REF_RE.search(ref)
-                    if match:
-                        class_name = match.group(1)
-                        if_properties = if_schema.get("properties")
-                        kind_schema = (
-                            if_properties.get("kind")
-                            if isinstance(if_properties, dict)
-                            else None
-                        )
-                        for kind in collect_kind_selector_tokens(kind_schema):
-                            if kind.startswith("ak."):
-                                pairs.append((kind, class_name))
+            ref = payload_schema.get("$ref") if isinstance(payload_schema, dict) else None
+            if isinstance(ref, str):
+                if_properties = if_schema.get("properties")
+                kind_schema = (
+                    if_properties.get("kind")
+                    if isinstance(if_properties, dict)
+                    else None
+                )
+                for kind in collect_kind_selector_tokens(kind_schema):
+                    if kind.startswith("ak."):
+                        refs.append((kind, ref))
         for child in value.values():
-            pairs.extend(collect_payload_dispatch_pairs(child))
+            refs.extend(collect_payload_dispatch_refs(child))
     elif isinstance(value, list):
         for child in value:
-            pairs.extend(collect_payload_dispatch_pairs(child))
+            refs.extend(collect_payload_dispatch_refs(child))
+    return refs
+
+
+def collect_payload_dispatch_pairs(value: Any) -> list[tuple[str, str]]:
+    """Return `(kind, payload class name)` views of the canonical dispatch scan."""
+    pairs: list[tuple[str, str]] = []
+    for kind, ref in collect_payload_dispatch_refs(value):
+        match = PAYLOAD_DISPATCH_REF_RE.search(ref)
+        if match:
+            pairs.append((kind, match.group(1)))
     return pairs
+
+
+# Temporary, fail-visible waiver for the independent finding recorded at:
+# arkret-work/review/spec-open/
+# 2026-07-26-09-accountability-scope-array-composite-subject.md
+#
+# A stale waiver is itself a lint failure below, so resolving the schema or
+# descriptor cannot silently leave this exception behind.
+COMPOSITE_SUBJECT_MIXED_TYPE_EXEMPTIONS: dict[tuple[str, str], str] = {
+    (
+        "ak.identity.accountability_grant",
+        "payload.accountability_scope",
+    ): "finding 09",
+}
+
+
+def check_composite_subject_terminal_types(
+    lint: Lint,
+    event_schema_path: Path,
+    event_schema: Any,
+) -> None:
+    """Reject composite endpoints that have no typed JSON scalar variant.
+
+    Every declared variant must be scalar unless the exact kind/path pair has a
+    temporary, fail-visible exemption for an independent open finding. Missing
+    payload paths remain finding 08's closure scope. The check follows refs and
+    union/composition nodes for paths that do resolve, so a nullable scalar such
+    as RSVP occurrence is distinguished from an object, array, or
+    floating-point number endpoint.
+    """
+    event_registry_path = ARTIFACTS / "registry" / "event-kind-registry.json"
+    event_registry = load_json(lint, event_registry_path)
+    if not isinstance(event_registry, dict):
+        return
+
+    schema_cache: dict[Path, Any] = {event_schema_path.resolve(): event_schema}
+
+    def schema_document(path: Path) -> Any:
+        resolved = path.resolve()
+        if resolved not in schema_cache:
+            schema_cache[resolved] = load_json(lint, resolved)
+        return schema_cache[resolved]
+
+    def dereference(
+        schema_path: Path,
+        document: Any,
+        node: Any,
+        seen: set[tuple[Path, str]] | None = None,
+    ) -> tuple[Path, Any, Any]:
+        seen = set() if seen is None else seen
+        while isinstance(node, dict) and isinstance(node.get("$ref"), str):
+            ref = node["$ref"]
+            file_ref, separator, fragment = ref.partition("#")
+            target_path = (
+                (schema_path.parent / file_ref).resolve()
+                if file_ref
+                else schema_path.resolve()
+            )
+            key = (target_path, fragment)
+            if key in seen:
+                return schema_path, document, {}
+            seen.add(key)
+            target_document = schema_document(target_path)
+            if target_document is None:
+                return target_path, {}, {}
+            try:
+                target = resolve_json_pointer(
+                    target_document,
+                    f"#{fragment}" if separator else "#",
+                )
+            except KeyError:
+                lint.fail(event_registry_path, f"cell subject schema ref not found: {ref}")
+                return target_path, target_document, {}
+            schema_path, document, node = target_path, target_document, target
+        return schema_path, document, node
+
+    def property_nodes(
+        schema_path: Path,
+        document: Any,
+        node: Any,
+        name: str,
+        seen: set[int] | None = None,
+    ) -> list[tuple[Path, Any, Any]]:
+        schema_path, document, node = dereference(schema_path, document, node)
+        if not isinstance(node, dict):
+            return []
+        seen = set() if seen is None else seen
+        marker = id(node)
+        if marker in seen:
+            return []
+        seen.add(marker)
+        results: list[tuple[Path, Any, Any]] = []
+        properties = node.get("properties")
+        if isinstance(properties, dict) and name in properties:
+            results.append((schema_path, document, properties[name]))
+        for keyword in ("allOf", "oneOf", "anyOf"):
+            branches = node.get(keyword)
+            if isinstance(branches, list):
+                for branch in branches:
+                    results.extend(
+                        property_nodes(schema_path, document, branch, name, seen.copy())
+                    )
+        return results
+
+    def terminal_types(
+        schema_path: Path,
+        document: Any,
+        node: Any,
+        seen: set[int] | None = None,
+    ) -> set[str]:
+        schema_path, document, node = dereference(schema_path, document, node)
+        if not isinstance(node, dict):
+            return set()
+        seen = set() if seen is None else seen
+        marker = id(node)
+        if marker in seen:
+            return set()
+        seen.add(marker)
+        result: set[str] = set()
+        declared = node.get("type")
+        if isinstance(declared, str):
+            result.add(declared)
+        elif isinstance(declared, list):
+            result.update(item for item in declared if isinstance(item, str))
+        if "const" in node:
+            value = node["const"]
+            result.add(
+                "null"
+                if value is None
+                else "boolean"
+                if isinstance(value, bool)
+                else "integer"
+                if isinstance(value, int)
+                else "number"
+                if isinstance(value, float)
+                else "string"
+                if isinstance(value, str)
+                else "array"
+                if isinstance(value, list)
+                else "object"
+                if isinstance(value, dict)
+                else "unknown"
+            )
+        enum = node.get("enum")
+        if isinstance(enum, list):
+            for value in enum:
+                result.add(
+                    "null"
+                    if value is None
+                    else "boolean"
+                    if isinstance(value, bool)
+                    else "integer"
+                    if isinstance(value, int)
+                    else "number"
+                    if isinstance(value, float)
+                    else "string"
+                    if isinstance(value, str)
+                    else "array"
+                    if isinstance(value, list)
+                    else "object"
+                    if isinstance(value, dict)
+                    else "unknown"
+                )
+        for keyword in ("allOf", "oneOf", "anyOf"):
+            branches = node.get(keyword)
+            if isinstance(branches, list):
+                for branch in branches:
+                    result.update(
+                        terminal_types(schema_path, document, branch, seen.copy())
+                    )
+        return result
+
+    def path_terminal_types(ref: str, payload_path: str) -> set[str] | None:
+        file_ref, separator, fragment = ref.partition("#")
+        schema_path = (
+            (event_schema_path.parent / file_ref).resolve()
+            if file_ref
+            else event_schema_path.resolve()
+        )
+        document = schema_document(schema_path)
+        if document is None:
+            return None
+        try:
+            node = resolve_json_pointer(document, f"#{fragment}" if separator else "#")
+        except KeyError:
+            return None
+        candidates = [(schema_path, document, node)]
+        for segment in payload_path.removeprefix("payload.").split("."):
+            next_candidates: list[tuple[Path, Any, Any]] = []
+            for candidate_path, candidate_document, candidate in candidates:
+                next_candidates.extend(
+                    property_nodes(
+                        candidate_path,
+                        candidate_document,
+                        candidate,
+                        segment,
+                    )
+                )
+            candidates = next_candidates
+            if not candidates:
+                return None
+        result: set[str] = set()
+        for candidate_path, candidate_document, candidate in candidates:
+            result.update(
+                terminal_types(candidate_path, candidate_document, candidate)
+            )
+        return result
+
+    dispatch_refs: dict[str, list[str]] = {}
+    for kind, ref in collect_payload_dispatch_refs(event_schema):
+        dispatch_refs.setdefault(kind, []).append(ref)
+
+    def resolved_terminal_types(kind: str, source: str) -> tuple[bool, set[str]]:
+        resolved_types: set[str] = set()
+        resolved = False
+        for ref in dispatch_refs.get(kind, []):
+            types = path_terminal_types(ref, source)
+            if types is not None:
+                resolved = True
+                resolved_types.update(types)
+        return resolved, resolved_types
+
+    def output_paths(component: Any) -> list[str]:
+        if isinstance(component, str):
+            return [component]
+        if not isinstance(component, dict):
+            return []
+        if isinstance(component.get("field"), str):
+            return [component["field"]]
+        branches = component.get("branches")
+        if not isinstance(branches, dict):
+            return []
+        return [
+            branch["field"]
+            for branch in branches.values()
+            if isinstance(branch, dict) and isinstance(branch.get("field"), str)
+        ]
+
+    allowed = {"string", "integer", "boolean", "null"}
+    used_mixed_type_exemptions: set[tuple[str, str]] = set()
+    rows = event_registry.get("event_kinds")
+    for row in rows if isinstance(rows, list) else []:
+        if not isinstance(row, dict) or not isinstance(row.get("event_kind"), str):
+            continue
+        kind = row["event_kind"]
+        writes = row.get("cell_writes")
+        for write_index, write in enumerate(writes if isinstance(writes, list) else []):
+            subject = write.get("cell_subject") if isinstance(write, dict) else None
+            if not isinstance(subject, dict) or subject.get("type") not in {
+                "composite",
+                "tuple",
+            }:
+                continue
+            components = subject.get("components")
+            for component_index, component in enumerate(
+                components if isinstance(components, list) else []
+            ):
+                selector = (
+                    component.get("selector")
+                    if isinstance(component, dict)
+                    else None
+                )
+                if isinstance(selector, str) and selector.startswith("payload."):
+                    selector_resolved, selector_types = resolved_terminal_types(
+                        kind, selector
+                    )
+                    if selector_resolved and selector_types != {"string"}:
+                        lint.fail(
+                            event_registry_path,
+                            f"{kind} cell_writes[{write_index}].cell_subject.components"
+                            f"[{component_index}] selector {selector!r} must be a "
+                            f"schema-declared JSON string, got "
+                            f"{sorted(selector_types) or ['untyped']}",
+                        )
+                for source in output_paths(component):
+                    if source == "envelope.actor_id":
+                        continue
+                    if not source.startswith("payload."):
+                        continue
+                    resolved, resolved_types = resolved_terminal_types(kind, source)
+                    has_scalar_variant = bool(resolved_types & allowed)
+                    non_scalar_variants = resolved_types - allowed
+                    exemption = (kind, source)
+                    if resolved and not has_scalar_variant:
+                        lint.fail(
+                            event_registry_path,
+                            f"{kind} cell_writes[{write_index}].cell_subject.components"
+                            f"[{component_index}] endpoint {source!r} must be a schema-declared "
+                            f"JSON string/integer/boolean/null scalar, got "
+                            f"{sorted(resolved_types) or ['untyped']}",
+                        )
+                    elif resolved and non_scalar_variants:
+                        if exemption in COMPOSITE_SUBJECT_MIXED_TYPE_EXEMPTIONS:
+                            used_mixed_type_exemptions.add(exemption)
+                        else:
+                            lint.fail(
+                                event_registry_path,
+                                f"{kind} cell_writes[{write_index}].cell_subject.components"
+                                f"[{component_index}] endpoint {source!r} has forbidden "
+                                f"non-scalar schema variants {sorted(non_scalar_variants)}",
+                            )
+
+    for exemption, finding in sorted(
+        COMPOSITE_SUBJECT_MIXED_TYPE_EXEMPTIONS.items()
+    ):
+        if exemption not in used_mixed_type_exemptions:
+            lint.fail(
+                event_registry_path,
+                f"stale composite subject mixed-type exemption {exemption!r} ({finding})",
+            )
 
 
 def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
@@ -2517,6 +2880,8 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     }
     for token in sorted(active_envelope_event_kinds - payload_dispatch_kinds):
         lint.fail(path, f"active Event.kind missing payload schema dispatch: {token}")
+
+    check_composite_subject_terminal_types(lint, path, data)
 
     # Mis-routed dispatch detector: each (kind, payload_class) pair must either
     # appear in KIND_PAYLOAD_RENAME_EXEMPTIONS verbatim, or embed the kind's

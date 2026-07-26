@@ -91,7 +91,7 @@
     "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Seal coverage, governance state_root, or reducer state.",
     "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
     "Every active lifecycle event kind MUST declare lifecycle_modality. Use reversible for a reversible lifecycle facet or either member of an archive/restore pair, and terminal for an irreversible transition that cannot be restored. Reducers and SDKs MUST NOT infer modality from event-kind spelling or the presence of a sibling event.",
-    "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell contract. A single-target kind MAY use the legacy cell_family/cell_subject/lattice/bottom shorthand. cell_writes[] is the general authority and is REQUIRED for multi-target kinds; each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional: it uses the closed grammar {type: field_present|field_absent|field_equals|any_field_present, field: <dot-path>, const?: <scalar>, fields?: [<dot-path>...]} evaluated as a pure function of the schema-validated payload. When the condition holds the target is required and the Event MUST carry exactly one matching effect; when it does not hold the Event MUST NOT carry that effect. See zh/models/event-and-patch.md section 2.4.2. The generator materializes the single-target shorthand when cell_writes[] has one entry. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an envelope/payload field path, a coalesce descriptor, or a composite descriptor. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
+    "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell contract. A single-target kind MAY use the legacy cell_family/cell_subject/lattice/bottom shorthand. cell_writes[] is the general authority and is REQUIRED for multi-target kinds; each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional: it uses the closed grammar {type: field_present|field_absent|field_equals|any_field_present, field: <dot-path>, const?: <scalar>, fields?: [<dot-path>...]} evaluated as a pure function of the schema-validated payload. When the condition holds the target is required and the Event MUST carry exactly one matching effect; when it does not hold the Event MUST NOT carry that effect. See zh/models/event-and-patch.md section 2.4.2. The generator materializes the single-target shorthand when cell_writes[] has one entry. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a coalesce descriptor, or a composite descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
     "Protocol-singleton cells MAY take their genesis value from a create payload, but every subsequent write MUST use a registered event_kind. ak.component.notary.v1 is canonically defined in zh/authz/event-auth-state-resolution.md section 6.5; its genesis value comes from ak.realm.create and subsequent writes use ak.realm.notary.",
     "Lattice MUST be one of the fully specified core types: or_set, mv_register, cas_register, fsm, counter, ordered_log. A new lattice type cannot become active until its join, bottom, op schema, profile gate, and conformance vectors are all registered.",
     "State convergence is defined by CBA: DataEvent effects are locally accepted against seal_ref, Control Move effects are finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
@@ -1322,8 +1322,7 @@
             "type": "coalesce",
             "fields": [
               "payload.policy_id",
-              "payload.action_id",
-              "id"
+              "payload.action_id"
             ]
           },
           "lattice": "ordered_log",
@@ -1335,8 +1334,7 @@
         "type": "coalesce",
         "fields": [
           "payload.policy_id",
-          "payload.action_id",
-          "id"
+          "payload.action_id"
         ]
       },
       "lattice": "ordered_log",
@@ -2086,7 +2084,7 @@
             "components": [
               "payload.event_ref",
               "payload.occurrence",
-              "actor_id"
+              "envelope.actor_id"
             ]
           },
           "lattice": "mv_register",
@@ -2099,7 +2097,7 @@
         "components": [
           "payload.event_ref",
           "payload.occurrence",
-          "actor_id"
+          "envelope.actor_id"
         ]
       },
       "lattice": "mv_register",
@@ -4481,8 +4479,7 @@
             "type": "coalesce",
             "fields": [
               "payload.report_id",
-              "payload.target_ref",
-              "id"
+              "payload.target_ref"
             ]
           },
           "lattice": "ordered_log",
@@ -4494,8 +4491,7 @@
         "type": "coalesce",
         "fields": [
           "payload.report_id",
-          "payload.target_ref",
-          "id"
+          "payload.target_ref"
         ]
       },
       "lattice": "ordered_log",
@@ -4635,8 +4631,7 @@
             "type": "coalesce",
             "fields": [
               "payload.invite.id",
-              "payload.invite_id",
-              "id"
+              "payload.invite_id"
             ]
           },
           "lattice": "fsm",
@@ -4720,7 +4715,7 @@
           "cell_family": "ak.component.member.state.v1",
           "cell_subject": {
             "type": "did",
-            "field": "actor_id"
+            "field": "envelope.actor_id"
           },
           "lattice": "fsm",
           "bottom": "reject"
@@ -4743,8 +4738,7 @@
             "type": "coalesce",
             "fields": [
               "payload.invite.id",
-              "payload.invite_id",
-              "id"
+              "payload.invite_id"
             ]
           },
           "lattice": "fsm",
@@ -4756,8 +4750,7 @@
         "type": "coalesce",
         "fields": [
           "payload.invite.id",
-          "payload.invite_id",
-          "id"
+          "payload.invite_id"
         ]
       },
       "lattice": "fsm",

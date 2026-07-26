@@ -3560,6 +3560,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.calendar.rsvp_composite_subject.v1",
+      "status": "active",
+      "domain": "calendar",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
+      "description": "RSVP derives a typed composite subject from payload event_ref, nullable occurrence, and the explicitly sourced envelope actor_id; causal successors dominate while concurrent mv_register heads remain exposed independently of HLC.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.realm_organization.schema_semantic.v1",
       "status": "active",
       "domain": "realm_organization",
