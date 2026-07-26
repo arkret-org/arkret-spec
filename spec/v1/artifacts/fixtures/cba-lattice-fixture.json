@@ -43,7 +43,14 @@
         "lattice": "ordered_log",
         "assertions": [
           "per_issuer_sequence_order",
-          "same_issuer_seq_dedupes_deterministically"
+          "issuer_prefix_starts_at_seq_zero",
+          "byte_identical_effect_op_is_idempotent",
+          "same_issuer_seq_equivocation_uses_max_event_digest",
+          "equivocation_winner_is_independent_of_causal_edges",
+          "equivocation_loser_remains_in_canonical_log",
+          "max_event_digest_compares_decoded_octets_across_suites",
+          "distinct_digest_preimage_same_event_digest_fails_closed",
+          "proofs_or_reducer_stamp_difference_is_not_a_digest_collision"
         ]
       },
       {
@@ -52,8 +59,7 @@
         "assertions": [
           "gap_after_contiguous_prefix_is_pending_diagnostic",
           "pending_gap_entry_does_not_enter_cell_value",
-          "backfill_recompute_is_arrival_order_independent",
-          "duplicate_same_issuer_seq_uses_min_entry_id"
+          "backfill_recompute_is_arrival_order_independent"
         ]
       },
       {

@@ -8,32 +8,423 @@
     "A verifier MUST reject a valid signature made under a context registered to a different object family"
   ],
   "contexts": [
-    {"context":"ak.event-proof-v1","object_family":"event_envelope","binding_fields":["event_digest","actor_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/models/event-and-patch.md","schema_ref":"schemas/event-envelope.schema.json#/$defs/event_proof"},
-    {"context":"ak.ephemeral-proof-v1","object_family":"ephemeral_envelope","binding_fields":["payload_digest","actor_id","device_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/discovery/read-receipts.md","schema_ref":"schemas/ephemeral-envelope.schema.json"},
-    {"context":"ak.receipt-proof-v1","object_family":"event_batch_receipt","binding_fields":["payload_digest","issuer","verification_method","created_at","domain?","audience?"],"defined_in":"zh/conformance/encoding.md","schema_ref":"schemas/event-batch-receipt.schema.json"},
-    {"context":"ak.identity-receipt-proof-v1","object_family":"identity_receipt","binding_fields":["payload_digest","registry_service_id","did","verification_method","created_at","domain?","audience?"],"defined_in":"zh/identity/identity-did.md","schema_ref":"schemas/identity-receipt.schema.json"},
-    {"context":"ak.service-registration-receipt-proof-v1","object_family":"service_registration_receipt","binding_fields":["payload_digest","provider_service_id","registration_receipt_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/identity/identity-did.md","schema_ref":"schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationReceipt"},
-    {"context":"ak.capability-grant-proof-v1","object_family":"capability_grant","binding_fields":["payload_digest","issuer","subject","verification_method","created_at","domain?","audience?"],"defined_in":"zh/authz/capabilities.md","schema_ref":"schemas/capability-grant.schema.json"},
-    {"context":"ak.agent-requested-scope-disclosure-proof-v1","object_family":"agent_requested_scope_disclosure","binding_fields":["payload_digest","controller_id","agent_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/identity/key-management.md","schema_ref":"schemas/agent-requested-scope-disclosure.schema.json"},
-    {"context":"ak.accountability-grant-proof-v1","object_family":"accountability_grant","binding_fields":["payload_digest","issuer","subject","verification_method","created_at","domain?","audience?"],"defined_in":"zh/identity/key-management.md","schema_ref":"schemas/accountability-grant.schema.json"},
-    {"context":"ak.did-continuity-proof-v1","object_family":"did_continuity","binding_fields":["payload_digest","old_did","new_did","verification_method","created_at","domain?","audience?"],"defined_in":"zh/identity/key-management.md","schema_ref":"schemas/did-continuity-proof.schema.json"},
-    {"context":"ak.account-handoff-authentication-proof-v1","object_family":"account_handoff_authentication","binding_fields":["payload_digest","account_id","principal_id","verification_method","created_at","audience"],"defined_in":"zh/identity/account-lifecycle.md","schema_ref":"schemas/account-operations.schema.json"},
-    {"context":"ak.identity-creation-control-proof-v1","object_family":"identity_creation_control","binding_fields":["payload_digest","principal_id","verification_method","created_at","audience"],"defined_in":"zh/identity/identity-did.md","schema_ref":"schemas/account-operations.schema.json"},
-    {"context":"ak.snapshot-proof-v1","object_family":"snapshot","binding_fields":["payload_digest","snapshot_id","realm_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/conformance/snapshot-schema.md","schema_ref":"schemas/snapshot.schema.json"},
-    {"context":"ak.handle-claim-proof-v1","object_family":"handle_claim","binding_fields":["payload_digest","handle","subject_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/identity/identity-handles.md","schema_ref":"schemas/handle-claim.schema.json"},
-    {"context":"ak.audit-ryw-receipt-proof-v1","object_family":"audit_ryw_receipt","binding_fields":["payload_digest","issuer","scope","verification_method","created_at","domain?","audience?"],"defined_in":"zh/crypto-media/audited-e2ee.md","schema_ref":"schemas/audit-ryw-receipt.schema.json"},
-    {"context":"ak.attestation-evidence-proof-v1","object_family":"attestation_evidence","binding_fields":["payload_digest","issuer","subject","verification_method","created_at","domain?","audience?"],"defined_in":"zh/crypto-media/audited-e2ee.md","schema_ref":"schemas/attestation-evidence.schema.json"},
-    {"context":"ak.range-completeness-attestation-proof-v1","object_family":"range_completeness_attestation","binding_fields":["payload_digest","issuer","scope","verification_method","created_at","domain?","audience?"],"defined_in":"zh/sync/operations-sync.md","schema_ref":"schemas/range-completeness-attestation.schema.json"},
-    {"context":"ak.agent-selector-claim-proof-v1","object_family":"agent_selector_claim","binding_fields":["payload_digest","controller_id","agent_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/identity/key-management.md","schema_ref":"schemas/agent-selector-claim.schema.json"},
-    {"context":"ak.applet-package-proof-v1","object_family":"applet_package","binding_fields":["payload_digest","applet_id","publisher_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/extensions/applet-schema.md","schema_ref":"schemas/applet-package.schema.json"},
-    {"context":"ak.did-key-log-entry-proof-v1","object_family":"did_key_log_entry","binding_fields":["payload_digest","did","seq","verification_method","created_at","domain?","audience?"],"defined_in":"zh/identity/identity-did.md#44-did-key-log-entry-digest-与-proof-transcript","schema_ref":"schemas/did-key-log-entry.schema.json"},
-    {"context":"ak.directory-operation-proof-v1","object_family":"directory_operation","binding_fields":["payload_digest","issuer","operation_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/discovery/discovery-directory.md","schema_ref":"schemas/directory-operations.schema.json"},
-    {"context":"ak.member-delivery-binding-candidate-proof-v1","object_family":"member_delivery_binding_candidate","binding_fields":["payload_digest","subject_id","recipient_service_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/governance/member-delivery-binding.md","schema_ref":"schemas/member-delivery-binding-candidate.schema.json"},
-    {"context":"ak.mimi-operation-proof-v1","object_family":"mimi_operation","binding_fields":["payload_digest","issuer","operation_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/extensions/mimi-interop.md","schema_ref":"schemas/mimi-operations.schema.json"},
-    {"context":"ak.principal-locator-proof-v1","object_family":"principal_locator","binding_fields":["payload_digest","subject_id","recipient_service_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/identity/identity-handles.md","schema_ref":"schemas/principal-locator.schema.json"},
-    {"context":"ak.realm-join-candidate-proof-v1","object_family":"realm_join_candidate","binding_fields":["payload_digest","realm_id","subject_id","verification_method","created_at","domain?","audience?"],"defined_in":"zh/governance/join-policy.md","schema_ref":"schemas/realm-join-candidate.schema.json"},
-    {"context":"ak.join-application-receipt-proof-v1","object_family":"join_application_receipt","binding_fields":["receipt_digest","realm_id","actor_id","verification_method","created_at"],"defined_in":"zh/governance/join-policy.md#711-candidate-profile-的唯一承载normative","schema_ref":"schemas/join-policy-operations.schema.json#/$defs/application_receipt"},
-    {"context":"ak.join-application-review-receipt-proof-v1","object_family":"join_application_review_receipt","binding_fields":["receipt_digest","realm_id","application_ref","application_revision_digest","actor_id","verification_method","created_at"],"defined_in":"zh/governance/join-policy.md#711-candidate-profile-的唯一承载normative","schema_ref":"schemas/join-policy-operations.schema.json#/$defs/review_receipt"},
-    {"context":"ak.join-application-cancel-receipt-proof-v1","object_family":"join_application_cancel_receipt","binding_fields":["receipt_digest","realm_id","application_ref","actor_id","verification_method","created_at"],"defined_in":"zh/governance/join-policy.md#711-candidate-profile-的唯一承载normative","schema_ref":"schemas/join-policy-operations.schema.json#/$defs/cancel_receipt"}
+    {
+      "context": "ak.account-handoff-authentication-proof-v1",
+      "object_family": "account_handoff_authentication",
+      "binding_fields": [
+        "payload_digest",
+        "account_id",
+        "principal_id",
+        "verification_method",
+        "created_at",
+        "audience"
+      ],
+      "defined_in": "zh/identity/account-lifecycle.md",
+      "schema_ref": "schemas/account-operations.schema.json"
+    },
+    {
+      "context": "ak.accountability-grant-proof-v1",
+      "object_family": "accountability_grant",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "subject",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/identity/key-management.md",
+      "schema_ref": "schemas/accountability-grant.schema.json"
+    },
+    {
+      "context": "ak.agent-requested-scope-disclosure-proof-v1",
+      "object_family": "agent_requested_scope_disclosure",
+      "binding_fields": [
+        "payload_digest",
+        "controller_id",
+        "agent_id",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/identity/key-management.md",
+      "schema_ref": "schemas/agent-requested-scope-disclosure.schema.json"
+    },
+    {
+      "context": "ak.agent-selector-claim-proof-v1",
+      "object_family": "agent_selector_claim",
+      "binding_fields": [
+        "payload_digest",
+        "controller_id",
+        "agent_id",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/identity/key-management.md",
+      "schema_ref": "schemas/agent-selector-claim.schema.json"
+    },
+    {
+      "context": "ak.applet-package-proof-v1",
+      "object_family": "applet_package",
+      "binding_fields": [
+        "payload_digest",
+        "applet_id",
+        "publisher_id",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/extensions/applet-schema.md",
+      "schema_ref": "schemas/applet-package.schema.json"
+    },
+    {
+      "context": "ak.attestation-evidence-proof-v1",
+      "object_family": "attestation_evidence",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "subject",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/crypto-media/audited-e2ee.md",
+      "schema_ref": "schemas/attestation-evidence.schema.json"
+    },
+    {
+      "context": "ak.audit-ryw-receipt-proof-v1",
+      "object_family": "audit_ryw_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "scope",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/crypto-media/audited-e2ee.md",
+      "schema_ref": "schemas/audit-ryw-receipt.schema.json"
+    },
+    {
+      "context": "ak.capability-grant-proof-v1",
+      "object_family": "capability_grant",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "subject",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/authz/capabilities.md",
+      "schema_ref": "schemas/capability-grant.schema.json"
+    },
+    {
+      "context": "ak.did-continuity-proof-v1",
+      "object_family": "did_continuity",
+      "binding_fields": [
+        "payload_digest",
+        "old_did",
+        "new_did",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/identity/key-management.md",
+      "schema_ref": "schemas/did-continuity-proof.schema.json"
+    },
+    {
+      "context": "ak.did-key-log-entry-proof-v1",
+      "object_family": "did_key_log_entry",
+      "binding_fields": [
+        "payload_digest",
+        "did",
+        "seq",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/identity/identity-did.md#44-did-key-log-entry-digest-与-proof-transcript",
+      "schema_ref": "schemas/did-key-log-entry.schema.json"
+    },
+    {
+      "context": "ak.directory-operation-proof-v1",
+      "object_family": "directory_operation",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "operation_id",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/discovery/discovery-directory.md",
+      "schema_ref": "schemas/directory-operations.schema.json"
+    },
+    {
+      "context": "ak.ephemeral-proof-v1",
+      "object_family": "ephemeral_envelope",
+      "binding_fields": [
+        "payload_digest",
+        "actor_id",
+        "device_id",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/discovery/read-receipts.md",
+      "schema_ref": "schemas/ephemeral-envelope.schema.json"
+    },
+    {
+      "context": "ak.event-proof-v1",
+      "object_family": "event_envelope",
+      "binding_fields": [
+        "event_digest",
+        "actor_id",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/models/event-and-patch.md",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/event_proof"
+    },
+    {
+      "context": "ak.handle-claim-proof-v1",
+      "object_family": "handle_claim",
+      "binding_fields": [
+        "payload_digest",
+        "handle",
+        "subject_id",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/identity/identity-handles.md",
+      "schema_ref": "schemas/handle-claim.schema.json"
+    },
+    {
+      "context": "ak.identity-creation-control-proof-v1",
+      "object_family": "identity_creation_control",
+      "binding_fields": [
+        "payload_digest",
+        "principal_id",
+        "verification_method",
+        "created_at",
+        "audience"
+      ],
+      "defined_in": "zh/identity/identity-did.md",
+      "schema_ref": "schemas/account-operations.schema.json"
+    },
+    {
+      "context": "ak.identity-receipt-proof-v1",
+      "object_family": "identity_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "registry_service_id",
+        "did",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/identity/identity-did.md",
+      "schema_ref": "schemas/identity-receipt.schema.json"
+    },
+    {
+      "context": "ak.join-application-cancel-receipt-proof-v1",
+      "object_family": "join_application_cancel_receipt",
+      "binding_fields": [
+        "receipt_digest",
+        "realm_id",
+        "application_ref",
+        "actor_id",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/governance/join-policy.md#711-candidate-profile-的唯一承载normative",
+      "schema_ref": "schemas/join-policy-operations.schema.json#/$defs/cancel_receipt"
+    },
+    {
+      "context": "ak.join-application-receipt-proof-v1",
+      "object_family": "join_application_receipt",
+      "binding_fields": [
+        "receipt_digest",
+        "realm_id",
+        "actor_id",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/governance/join-policy.md#711-candidate-profile-的唯一承载normative",
+      "schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_receipt"
+    },
+    {
+      "context": "ak.join-application-review-receipt-proof-v1",
+      "object_family": "join_application_review_receipt",
+      "binding_fields": [
+        "receipt_digest",
+        "realm_id",
+        "application_ref",
+        "application_revision_digest",
+        "actor_id",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/governance/join-policy.md#711-candidate-profile-的唯一承载normative",
+      "schema_ref": "schemas/join-policy-operations.schema.json#/$defs/review_receipt"
+    },
+    {
+      "context": "ak.member-delivery-binding-candidate-proof-v1",
+      "object_family": "member_delivery_binding_candidate",
+      "binding_fields": [
+        "payload_digest",
+        "subject_id",
+        "recipient_service_id",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/governance/member-delivery-binding.md",
+      "schema_ref": "schemas/member-delivery-binding-candidate.schema.json"
+    },
+    {
+      "context": "ak.mimi-operation-proof-v1",
+      "object_family": "mimi_operation",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "operation_id",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/extensions/mimi-interop.md",
+      "schema_ref": "schemas/mimi-operations.schema.json"
+    },
+    {
+      "context": "ak.principal-locator-proof-v1",
+      "object_family": "principal_locator",
+      "binding_fields": [
+        "payload_digest",
+        "subject_id",
+        "recipient_service_id",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/identity/identity-handles.md",
+      "schema_ref": "schemas/principal-locator.schema.json"
+    },
+    {
+      "context": "ak.range-completeness-attestation-proof-v1",
+      "object_family": "range_completeness_attestation",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "scope",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/sync/operations-sync.md",
+      "schema_ref": "schemas/range-completeness-attestation.schema.json"
+    },
+    {
+      "context": "ak.realm-join-candidate-proof-v1",
+      "object_family": "realm_join_candidate",
+      "binding_fields": [
+        "payload_digest",
+        "realm_id",
+        "subject_id",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/governance/join-policy.md",
+      "schema_ref": "schemas/realm-join-candidate.schema.json"
+    },
+    {
+      "context": "ak.realm-key-share-sender-proof-v1",
+      "object_family": "realm_key_share_sender_transcript",
+      "binding_fields": [
+        "share_class",
+        "sender_device_id",
+        "source_authorization_ref",
+        "recipient_principal_id",
+        "recipient_device_id?",
+        "recipient_verification_method?",
+        "recovery_recipient_id?",
+        "key_scope",
+        "ciphertext?",
+        "encrypted_key_ref?",
+        "aad_digest?",
+        "expires_at?",
+        "created_at"
+      ],
+      "defined_in": "zh/crypto-media/device-lifecycle.md",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_key_share_payload"
+    },
+    {
+      "context": "ak.receipt-proof-v1",
+      "object_family": "event_batch_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "issuer",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/conformance/encoding.md",
+      "schema_ref": "schemas/event-batch-receipt.schema.json"
+    },
+    {
+      "context": "ak.service-registration-receipt-proof-v1",
+      "object_family": "service_registration_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "provider_service_id",
+        "registration_receipt_id",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/identity/identity-did.md",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationReceipt"
+    },
+    {
+      "context": "ak.snapshot-proof-v1",
+      "object_family": "snapshot",
+      "binding_fields": [
+        "payload_digest",
+        "snapshot_id",
+        "realm_id",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/conformance/snapshot-schema.md",
+      "schema_ref": "schemas/snapshot.schema.json"
+    }
   ]
 }

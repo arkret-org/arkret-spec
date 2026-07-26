@@ -213,14 +213,22 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 
 ### 4.2 Canonical 确定性 tie-break（normative，单一真相源）
 
-协议中多处需要在一组**因果上互不可达（并发）**的候选 Event 间机械选出唯一 winner（如 relation `deterministic_winner`、message revision 的"最新可见 revision"、account status 同严格度并发收敛）。这些场景的 tie-break **MUST 全部使用本节定义的单一规则**，不得各自规定方向：
+协议中多处需要在一组候选 Event 间机械选出唯一 winner。本节覆盖两类候选集，二者 **MUST 全部使用本节定义的单一规则**，不得各自规定键或方向：
 
-- **最终 tie-break 键固定为 `event_digest`**：候选各自产生 Event 的 canonical `event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned)`，§6）。它是签名覆盖的内容指纹，对所有 verifier 唯一确定。
-- **方向固定为 bytewise 最大（lexicographically-greatest）**：winner = 候选集中 `event_digest` 按 bytewise 升序排序后的**最大值**（字典序最后者）。选最大是 LWW-register 的惯例方向，跨全协议统一。
+- **并发候选集**：因果上互不可达的候选（如 relation `deterministic_winner`、message revision 的"最新可见 revision"、account status 同严格度并发收敛）；
+- **逻辑 slot equivocation 候选集**：协议明确要求从同一个逻辑 slot 的互斥声明中选出唯一值的场景（如 `ordered_log` 的同一 `(cell, actor_id, issuer_seq)` 出现多条非逐字等价 entry，见 [`../authz/event-auth-state-resolution.md` §9.3.1](../authz/event-auth-state-resolution.md)）。这类候选**不要求互不可达**；producer 是否在 Event DAG 中人为加入因果边，MUST NOT 改变 winner，也不得把 slot 复用洗成合法的下一次写入。
+
+两类候选集的规则相同：
+
+- **最终 tie-break 键固定为 `event_digest`**：候选各自产生 Event 的 canonical `event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned_reducer_stamps)`，§6）。digest preimage MUST 逐字使用 §2 / §6 的权威集合——从 envelope 移除 `proofs`、`unsigned` 与 reducer-stamped 顶层字段（v1 当前为 `effective_scope`、`actor_kind`）后再 canonicalize。它是签名覆盖的内容指纹，对所有 verifier 唯一确定。
+- **方向固定为 bytewise 最大（lexicographically-greatest）**：winner = 候选集中 `event_digest` 最大者。比较对象 MUST 是**解码后的 digest octets**，不是 typed wire string：wire 形态 `<canonical_suite_id>:<lowercase_hex>`（§3.1）若整串按 UTF-8 比较，suite 名会先于内容决定 winner。规则固定为——先按 §3.2 确认候选 suite 对该 Event basis 合法，再把 hex 解码为 octets，以 unsigned lexicographic order 比较；长度不同且短者是长者前缀时短者较小。**仅当** octets 完全相同而 suite 不同时，才以 canonical suite id 的 unsigned UTF-8 bytewise 顺序作第二键，使全序完备。选最大是 LWW-register 的惯例方向，跨全协议统一。
 - **禁止的 tie-break 键**：winner 选择 MUST NOT 使用 `created_at` / HLC / `actor_id` / `actor_seq` / `event_id` / 本地接收顺序 / 数据库 ID / 服务端插入顺序中的任何一个。注意 **`event_id` 也被禁用**：它是 UUIDv7，其时间戳前缀是 producer 设定的墙钟量，用作 tie-break 会重新引入被本规则排除的墙钟依赖。
 - **复合排序的 domain 语义键**：某些 domain 在 tie-break 之前**先**按一个或多个有 domain 语义的有序键排序（如 account status 先按严格度、再按 `effective_at`）。这类 domain-semantic 主排序键是各 domain 的合法设计；但当主排序键全部相等仍并发时，**最终的并发消歧 MUST 落到本节的 bytewise-greatest `event_digest`**，不得用 `event_id` 或墙钟量收尾。
+- **collision fail closed**：两个候选的 canonical digest preimage bytes 不同却得到完全相同的 typed digest（同 suite、同 octets）时 MUST fail closed，MUST NOT 回退到任何禁止键或实现私有 ID。反之，preimage bytes 逐字相同而仅 `proofs`、`unsigned` 或 reducer stamps 不同的，是同一 producer-signed Event 内容，分别按 proof profile 与 reducer-stamp 验证处理，MUST NOT 误报 collision。
 
-引用本规则的 domain：[`models/relation.md` §6](../models/relation.md)、[`models/strand-and-message.md` §9.5.1](../models/strand-and-message.md)、[`identity/account-lifecycle.md` §3](../identity/account-lifecycle.md)。该规则只决定**确定性投影/展示选择**，不改变 canonical event log——全部并发候选都保留在日志/审计视图中。
+引用本规则的 domain：[`models/relation.md` §6](../models/relation.md)、[`models/strand-and-message.md` §9.5.1](../models/strand-and-message.md)、[`identity/account-lifecycle.md` §3](../identity/account-lifecycle.md)、[`authz/event-auth-state-resolution.md` §9.3.1](../authz/event-auth-state-resolution.md)。
+
+**该规则 MUST NOT 删除或重写 canonical event log**：全部候选（并发的与 equivocation 的）都保留在日志与审计视图中，loser 只是不被选中。但本规则的作用域**不限于**投影/展示——`event-auth-state-resolution.md` §9.3.1 的 `ordered_log` slot winner 决定该 cell 的 joined value。该 value 进入哪一族 Seal 承诺**由 cell 所属 plane 决定，不由本节决定**：control cell 进入治理 `state_root`（[`../authz/event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md)），data plane cell MUST NOT 进入治理 `state_root`，其承诺走同文 §6.4 的 `data_view_root`。domain 各自声明本规则的输出是仅用于展示投影，还是进入 canonical state；未声明进入 canonical state 的 domain MUST NOT 用本规则的结果做授权。
 
 ## 5. Event Batch Receipt Hash
 
@@ -606,7 +614,12 @@ rank_between(left, right):
 
   其中 `components_array` 是按本规范声明的固定顺序排列的 JSON array。每个 string element MUST 使用该字段自己的 canonical profile：typed ID 使用 schema 规定的小写 canonical 形态；DID 保留 DID method 定义的 canonical bytes，MUST NOT 做 Arkret 全串 NFKC / case folding；handle 使用已准备 localpart + 小写 A-label domain；connection identifier 使用其 kind / provider profile。复合 subject producer 与 verifier 必须消费同一 typed value，不得用通用 Unicode normalizer猜测外部标识符等价。
 - 实现 MUST NOT 直接使用 `a|b|c` 这种管道分隔字符串作为复合 subject。canonical cell id、签名输入、state map 索引 MUST 使用 hash 形态。
-- 复合 subject 的 sub-component 必须存在于 DataEvent / Control Move effect value 或兼容 Event payload 的具名字段中。
+- 复合 subject 的 sub-component 必须来自 DataEvent / Control Move effect value 或兼容 Event payload 的具名字段。registry 中的字段路径 MAY 是点分嵌套路径（如 `payload.key_scope.effective_scope.realm_id`），但每一段 MUST 是该对象的具名字段，且最终取值 MUST 是标量；路径中出现数组下标、通配或非具名段一律 `schema_violation`。
+- **判别式 `select` component（normative）**：`components[]` 的元素 MAY 是一个 `select` 对象，用于在同一 cell family 内按显式判别值选择该 component 的取值字段。形态固定为 `{"type":"select","selector":<字段路径>,"branches":{<判别值>:{"field":<字段路径>,"forbidden_fields":[<字段路径>…]}}}`，`branches` 是封闭映射，`forbidden_fields` 可选。求值规则：读取 `selector` 指向的、已通过 schema 校验的**原始字符串**，与 branch key 逐字匹配，MUST NOT 做大小写折叠、Unicode 归一化或别名解析；命中 branch 后取其 `field` 的标量值作为该 component。`select` 只选择 component 的**取值**，MUST NOT 改变 `components_array` 的元素数目或顺序——同一 cell family 的所有分支共享同一 arity 与同一顺序。
+
+分支之间是否互斥由**各分支自己的 `forbidden_fields` 显式声明**，MUST NOT 由「未命中分支的 `field` 出现即歧义」这类通用规则推断：多个分支合法共享同一字段是常见形态（例如 `effective_scope` 的 `circle` 分支按 schema 必须同时携带 `realm_id` 与 `circle_id`，而 `realm_id` 正是 `realm` 分支的取值字段），通用禁止会把这类合法 payload 全部拒掉。`forbidden_fields` MUST 与该 payload schema 的互斥约束一致，只作为不经 schema 校验路径上的等价 fail-closed 复核，MUST NOT 声明 schema 允许共存的字段。
+
+下列任一情况 MUST fail closed（`schema_violation`）：`selector` 缺失或非字符串；判别值不在 `branches` 中；命中 branch 的 `field` 缺失；命中 branch 的某个 `forbidden_fields` 路径在 payload 中出现；取值不是该字段 schema 要求的 canonical 标量。实现 MUST NOT 用字段存在性 `coalesce` 或 payload 形状推断替代显式 `selector`。
 - 同一 standard cell family 的 `components_array` schema 由本规范固定，profile MUST NOT 擅自增删字段或重新排序。
 
 ### 9.5.2 标准复合 Subject
@@ -615,8 +628,17 @@ rank_between(left, right):
 | --- | --- |
 | `ak.component.device.authorization.v1` / `ak.device.authorize` | `[principal_id, device_id]` |
 | `ak.component.device.authorization.v1` / `ak.device.revoke` | `[principal_id, device_id]` |
+| `ak.component.realm_key.delivery.v1` / `ak.realm_key.share`、`ak.realm_key.withheld` | `[share_class, recipient_principal_id, recipient_target_id, effective_scope_id]` |
 
 `principal_id` MUST 是无 fragment 的完整 DID URI（见 §4）；`device_id` MUST 是完整 `id:device` typed ID（`ak:device:<uuidv7>`）。
+
+`ak.component.realm_key.delivery.v1` 的四元组固定 arity 4，两个 Event kind 使用**逐字相同**的 registry descriptor，其中后两个 component 是 §9.5.1 的 `select`：
+
+- `share_class` 直接取 `payload.share_class`。它 MUST 进入 components 做**目标类型域分隔**：`recovery_recipient_id` 只是 Realm-local 非空字符串，可被构造成与某个 `ak:device:*` typed ID 相同的文本；缺少该 component 时 RRK recipient 与 member device 会落入同一 delivery cell。
+- `recipient_target_id` 按 `payload.share_class` 选择：`member_device` → `payload.recipient_device_id`；`realm_recovery_key` → `payload.recovery_recipient_id`。`recipient_verification_method` 是可轮换的 RRK 密钥引用，MUST NOT 进入 subject（它由 `sender_device_signature` 与接收方校验覆盖，见 [`../crypto-media/device-lifecycle.md` §13](../crypto-media/device-lifecycle.md)）；把它纳入定址会在 RRK 轮换后拆分同一 recovery recipient 的 ordered log。
+- `effective_scope_id` 按 `payload.key_scope.effective_scope.kind` 选择：`realm` → `realm_id`；`circle` → `circle_id`。完整 `key_scope`（`policy_digest`、membership frontier、epoch 区间）是单次交付/拒绝决定的证据，随策略与 epoch 变化，MUST NOT 进入稳定 subject。
+- `recovery_recipient_id` 作为 component 时 MUST 使用 payload 中经 JSON 解码得到的原始 Unicode scalar sequence，由 canonical JSON 负责转义；MUST NOT 做 NFKC / NFC、case folding 或 trim。
+- receiver MUST 独立校验 `effective_scope.realm_id` 等于 Event `realm_id`，Circle 分支还 MUST 校验该 `circle_id` 属于该 Realm。
 
 非复合 cell（例如 member 用 actor DID、capability grant 用 grant id、Realm policy 用 Realm id）直接把规范化 subject 放入 `ak:cell:<component>:<subject>`，不需要 hash 化。
 

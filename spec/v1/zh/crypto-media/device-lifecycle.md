@@ -1370,6 +1370,71 @@ Arkret 使用 `ak.realm_key.share` 共享历史解密材料。`share_class="memb
 - `policy_denied`
 - `unknown_session`
 
+`ak.realm_key.withheld` 与 share 共用同一 delivery cell family，因此它同样 MUST 携带 `share_class`（v1 仅 `member_device`）、`key_scope` 与 `source_authorization_ref`。withheld 虽不携带 secret，但 `not_member` / `history_not_visible` 等 reason 会产生主体级终态语义；仅有任意设备的 Event 签名不足以授权它向目标 delivery cell 写入拒绝记录。缺失或不覆盖该决定的 source authorization MUST 以 `late_recovery_share_not_authorized` 拒绝整个 Event，MUST NOT 把未授权 withheld 投影为终态。
+
+withheld 的 `key_scope.policy_digest` 是**来源方作出该拒绝判定时实际求值的** effective Realm/Circle policy root，它钉住拒绝所依据的 policy snapshot，不表示该 share 曾获授权：`not_member` / `history_not_visible` / `policy_denied` 绑定作出相应 membership、visibility 或 sharing-policy 判定时的 root；`unverified_device` / `blacklisted_device` / `unknown_session` 绑定此次拒绝所依据的 effective device/session eligibility policy root。设备、session 与 membership 事实仍由 Event CBA、引用与领域校验提供，MUST NOT 用 `policy_digest` 自证。receiver MUST 在同一 Event CBA / T₀ basis 上重算并逐字比较该 root。来源方若无法在 canonical basis 上解析出唯一 effective policy root，MUST NOT 生成 canonical durable withheld，只能 fail closed 并走领域登记的非 Event / pending 错误路径，MUST NOT 填零值、接收时当前最新 root 或实现私有占位。
+
+### 13.0 Delivery cell identity 与 sender-device transcript（normative）
+
+`ak.realm_key.share` 与 `ak.realm_key.withheld` 写入同一 `ak.component.realm_key.delivery.v1` cell family。其 cell subject 是固定 arity 4 的判别式复合 subject，canonical 定义与 `select` 求值规则以 [`../conformance/encoding.md` §9.5](../conformance/encoding.md) 为唯一真源：`[share_class, recipient_principal_id, recipient_target_id, effective_scope_id]`。两个 Event kind 使用逐字相同的 registry descriptor。实现 MUST 按 registry 纯函数重算 `effects[].cell`，MUST NOT 信任 producer 自选的 cell。
+
+`sender_device_signature` 的 canonical transcript 由本节固定，schema description 与任何 SDK 方法都不构成替代真源。签名对象为：
+
+```text
+{
+  context: "ak.realm-key-share-sender-proof-v1",
+  share_class,
+  sender_device_id,
+  source_authorization_ref,
+  recipient_principal_id,
+  <仅选中 variant 的 target fields>,
+  key_scope,
+  <ciphertext 或 encrypted_key_ref，精确一个>,
+  aad_digest?,
+  expires_at?,
+  created_at
+}
+```
+
+按 [`../conformance/encoding.md` §2](../conformance/encoding.md) 的 canonical JSON 签名。未选中的 variant target 字段、未选中的 material 字段与缺省 optional 字段 MUST 省略，MUST NOT 写 `null`；payload schema 已把 `ciphertext` / `encrypted_key_ref` 收紧为 exactly-one，因此 transcript 中恰有一个 material 字段。`expires_at` 出现时 MUST 进入 transcript。verifier MUST 逐字节重建同一 transcript，并要求 signature `kid` 解析到 `sender_device_id` 对应的、该 sender principal 当前 accepted 且未撤销的设备 key；外层 Event proof MUST NOT 替代这条领域签名。
+
+#### 13.0.1 Delivery append value projection（normative）
+
+delivery cell 的 lattice 是 `ordered_log`，每个 accepted Event 产生恰好一个 `op.kind="append"` entry。该 entry 的 `op.value` 由本节固定为一个**纯函数投影**：producer MUST 按下表构造，receiver MUST 独立重算并与 `effects[0].op.value` 逐字节比较，不一致以 `effects_payload_mismatch` 拒绝整个 Event。实现 MUST NOT 接受 producer 自选的任意 JSON value。
+
+投影结果是 canonical JSON object。缺省的 optional member MUST 省略，MUST NOT 写 `null`。
+
+`ak.realm_key.share` 的 member 与来源：
+
+| member | 来源 |
+| --- | --- |
+| `delivery_outcome` | 字面量 `"shared"` |
+| `share_class` | `payload.share_class` |
+| `recipient_principal_id` | `payload.recipient_principal_id` |
+| `recipient_target_id` | 与 cell subject 同一 `select`：`member_device` → `payload.recipient_device_id`；`realm_recovery_key` → `payload.recovery_recipient_id` |
+| `effective_scope_id` | 与 cell subject 同一 `select`：`realm` → `payload.key_scope.effective_scope.realm_id`；`circle` → `payload.key_scope.effective_scope.circle_id` |
+| `policy_digest` | `payload.key_scope.policy_digest` |
+| `from_epoch`（optional） | `payload.key_scope.from_epoch` |
+| `to_epoch`（optional） | `payload.key_scope.to_epoch` |
+| `sender_device_id` | `payload.sender_device_id` |
+| `source_authorization_ref` | `payload.source_authorization_ref` |
+| `payload_digest` | 完整签名 payload 的 canonical JSON bytes 的 digest |
+
+`ak.realm_key.withheld` 使用同一前十项（`delivery_outcome` 为字面量 `"withheld"`）与同一 `payload_digest`，并追加：
+
+| member | 来源 |
+| --- | --- |
+| `withheld_reason_code` | `payload.withheld_reason_code` |
+
+规则与理由：
+
+- **plane 边界。** delivery family 在 registry 中是 `plane=data`，因此该 cell 的 joined value MUST NOT 进入治理 `state_root`；它的 Seal 级承诺走 [`../authz/event-auth-state-resolution.md` §6.4](../authz/event-auth-state-resolution.md) 的 `data_view_root`（§6.2.1 明确 data plane cell 不进入 `state_root`）。
+- **不复制材料本身。** `op.value` 由每个参与方独立重算并进入数据面观测承诺；把 HPKE 密文抄进去会让所有节点为记账各背一份密文副本。投影只承诺指纹。
+- **`payload_digest` 承诺完整语义，不逐字段枚举。** [`../authz/event-auth-state-resolution.md` §9.3.1](../authz/event-auth-state-resolution.md) 规定同一 `(cell, actor_id, issuer_seq)` 上完整 canonical `effect.op` bytes 相同即幂等 duplicate。若投影只承诺部分字段，语义不同的两条交付会产生逐字相同的 entry 而被静默去重——例如密文相同但 `expires_at` 不同的续期 share、`aad_digest` 不同的重封、RRK 轮换后 `recipient_verification_method` 改变的重新封存，以及 `key_scope` 中 `membership_frontier_digest` / `history_visibility` 的差异。逐字段枚举会在 payload 每次演进时重新产生该缺口，因此本节固定为对**完整签名 payload**（含 `sender_device_signature`）取 digest：任何语义差异都改变 `payload_digest`，而逐字节相同的重放仍然幂等。
+- **digest 形态**遵循该 Realm 的 `digest_algorithm` 与 [`../conformance/encoding.md` §3.1](../conformance/encoding.md) 的 `<suite>:<lowercase_hex>` wire 形态；输入是 payload 的 canonical JSON bytes（[`../conformance/encoding.md` §2](../conformance/encoding.md)）。
+- **不使用 Event 标识符。** `event_id` / `event_digest` MUST NOT 出现在 `op.value` 中：entry value 是内容承诺，不是 Event 引用；`event_digest` 另由 §9.3.1 的 equivocation tie-break 使用，写回 `op.value` 会产生自引用。审计侧的 share 与结果关联仍由 `ak.realm_key.share_audit` 的 `share_event_ref` 承担。
+- 其余可读 member 保留，是为了让数据面投影和诊断无需重新解析 payload；它们不承担完整性职责，完整性由 `payload_digest` 承担。
+
 ### 13.1 来源级扣留 vs 主体级拒绝（normative）
 
 `ak.realm_key.withheld` 必须区分两类语义，二者对接收端是否为终态不同：

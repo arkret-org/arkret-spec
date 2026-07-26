@@ -4023,7 +4023,9 @@
         "comment": {
           "description": "RSVP comment. MUST be an encrypted_payload unless Realm policy explicitly permits a plaintext-visible RSVP comment (calendar-event.md §5).",
           "oneOf": [
-            { "$ref": "#/$defs/encrypted_payload" },
+            {
+              "$ref": "#/$defs/encrypted_payload"
+            },
             {
               "type": "string",
               "maxLength": 2000,
@@ -6836,15 +6838,29 @@
           }
         }
       ],
-      "anyOf": [
+      "allOf": [
         {
-          "required": [
-            "ciphertext"
-          ]
-        },
-        {
-          "required": [
-            "encrypted_key_ref"
+          "oneOf": [
+            {
+              "required": [
+                "ciphertext"
+              ],
+              "not": {
+                "required": [
+                  "encrypted_key_ref"
+                ]
+              }
+            },
+            {
+              "required": [
+                "encrypted_key_ref"
+              ],
+              "not": {
+                "required": [
+                  "ciphertext"
+                ]
+              }
+            }
           ]
         }
       ],
@@ -6884,7 +6900,7 @@
         },
         "sender_device_signature": {
           "$ref": "#/$defs/signature_material",
-          "description": "Detached device signature over canonical share metadata and ciphertext reference. Verifiers MUST bind share_class, sender_device_id, source_authorization_ref, recipient_principal_id, the variant target fields (recipient_device_id OR recipient_verification_method + recovery_recipient_id), key_scope, aad_digest?, ciphertext/encrypted_key_ref and created_at."
+          "description": "Detached device signature over the canonical share transcript fixed by crypto-media/device-lifecycle.md 13. The transcript carries context \"ak.realm-key-share-sender-proof-v1\" and binds share_class, sender_device_id, source_authorization_ref, recipient_principal_id, the selected variant target fields (recipient_device_id OR recipient_verification_method + recovery_recipient_id), key_scope, exactly one of ciphertext / encrypted_key_ref, aad_digest?, expires_at? and created_at. Unselected branch fields, the unselected material field and absent optional fields MUST be omitted from the transcript and MUST NOT be written as null."
         },
         "key_scope": {
           "$ref": "#/$defs/realm_key_scope"
@@ -6910,12 +6926,22 @@
     "realm_key_withheld_payload": {
       "type": "object",
       "required": [
+        "share_class",
         "recipient_principal_id",
         "recipient_device_id",
         "sender_device_id",
+        "source_authorization_ref",
+        "key_scope",
         "withheld_reason_code"
       ],
       "properties": {
+        "share_class": {
+          "type": "string",
+          "enum": [
+            "member_device"
+          ],
+          "description": "Discriminator shared with realm_key_share_payload so both kinds derive the same ak.component.realm_key.delivery.v1 cell subject. v1 registers member_device only: durable realm_recovery_key withheld semantics are not defined (crypto-media/encryption-and-audit.md 2.10.8 handles RRK seal failure through fail-closed error paths)."
+        },
         "recipient_principal_id": {
           "$ref": "#/$defs/did"
         },
@@ -6924,6 +6950,10 @@
         },
         "sender_device_id": {
           "$ref": "#/$defs/device_id"
+        },
+        "source_authorization_ref": {
+          "$ref": "#/$defs/event_ref",
+          "description": "Accepted policy/grant/source-authorisation Control Move proving that sender_device_id may decide delivery for this recipient, target and key_scope at the Event CBA basis. A withheld carries subject-level terminal semantics, so receivers MUST verify it and reject the Event with late_recovery_share_not_authorized when it is missing or does not cover the decision."
         },
         "key_scope": {
           "$ref": "#/$defs/realm_key_scope"
@@ -6994,7 +7024,7 @@
         },
         "policy_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Hash of the effective Realm/Circle policy root used to authorize this historical key share."
+          "description": "Hash of the effective Realm/Circle policy root that is the basis of this delivery decision. For ak.realm_key.share it is the root authorising the historical key delivery. For ak.realm_key.withheld it is the root the source actually evaluated when refusing delivery; it pins the refusal basis and does NOT assert that the share was ever authorised. The source MUST resolve a single effective root on the Event CBA/T0 basis and MUST NOT emit a durable withheld with a zero value, the receiver-current root or an implementation placeholder."
         },
         "membership_frontier_digest": {
           "$ref": "#/$defs/hash",

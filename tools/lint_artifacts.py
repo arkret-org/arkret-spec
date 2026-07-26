@@ -1081,6 +1081,148 @@ def check_no_rule_marker_emoji(lint: Lint) -> None:
                 )
 
 
+def lint_select_component(lint: Lint, path: Path, ref: str, component: object) -> None:
+    """Validate a discriminated `select` cell-subject component (encoding.md 9.5.1).
+
+    A select component picks one scalar field path from a closed branch map keyed by
+    the literal value of a discriminator field. Unknown component types, missing
+    selectors and empty or malformed branch maps are fail-closed lint errors so a
+    registry can never leave a subject partially derivable.
+    """
+    # A malformed registry must produce a lint failure, never an exception:
+    # the release gate has to report the problem, not abort on it.
+    if not isinstance(component, dict):
+        lint.fail(path, f"{ref} must be a select component object")
+        return
+    component_type = component.get("type")
+    if component_type != "select":
+        lint.fail(path, f"{ref}.type must be 'select'; unknown component types are rejected")
+        return
+    lint_field_path(lint, path, f"{ref}.selector", component.get("selector"))
+    branches = component.get("branches")
+    if not isinstance(branches, dict) or not branches:
+        lint.fail(path, f"{ref}.branches must be a non-empty object")
+        return
+    for branch_key, branch in branches.items():
+        branch_ref = f"{ref}.branches[{branch_key}]"
+        if not isinstance(branch_key, str) or not branch_key:
+            lint.fail(path, f"{branch_ref} key must be a non-empty discriminator value")
+        if not isinstance(branch, dict):
+            lint.fail(path, f"{branch_ref} must be an object")
+            continue
+        lint_field_path(lint, path, f"{branch_ref}.field", branch.get("field"))
+        # Exclusivity is declared per branch, never inferred from "some other
+        # branch's field is present": branches may legitimately share a field.
+        if "forbidden_fields" in branch:
+            forbidden = branch.get("forbidden_fields")
+            if not isinstance(forbidden, list) or not forbidden:
+                lint.fail(path, f"{branch_ref}.forbidden_fields must be a non-empty array")
+            else:
+                for forbidden_index, item in enumerate(forbidden):
+                    lint_field_path(
+                        lint, path, f"{branch_ref}.forbidden_fields[{forbidden_index}]", item
+                    )
+            if isinstance(forbidden, list) and branch.get("field") in forbidden:
+                lint.fail(path, f"{branch_ref}.forbidden_fields must not contain its own field")
+        unknown_branch_keys = set(branch) - {"field", "forbidden_fields"}
+        if unknown_branch_keys:
+            lint.fail(path, f"{branch_ref} has unknown member(s) {sorted(unknown_branch_keys)}")
+    unknown_keys = set(component) - {"type", "selector", "branches"}
+    if unknown_keys:
+        lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown_keys)}")
+
+
+VALUE_PROJECTION_DIGEST_INPUTS = {
+    "base64url_decoded_bytes",
+    "canonical_json_bytes",
+    "event_payload_canonical_bytes",
+}
+
+# encoding.md 9.5.1: a registered path is dot-separated *named* fields only.
+# Array indices, wildcards and empty segments have no defined evaluation, so a
+# registry carrying one would pass lint yet be underivable.
+FIELD_PATH_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*$")
+
+
+def lint_field_path(lint: Lint, path: Path, ref: str, value: object) -> None:
+    """Validate one registered dot-separated named-field path."""
+    if not isinstance(value, str) or not value:
+        lint.fail(path, f"{ref} must be a non-empty field path")
+        return
+    if FIELD_PATH_RE.fullmatch(value) is None:
+        lint.fail(
+            path,
+            f"{ref} must be dot-separated named fields "
+            f"(no array index, wildcard or empty segment): {value!r}",
+        )
+
+
+def lint_value_projection(lint: Lint, path: Path, ref: str, projection: object) -> None:
+    """Validate a declared ordered_log append `op.value` projection.
+
+    The projection is the pure function a receiver re-runs to rebuild `op.value`
+    from the signed payload, so every member must name exactly one closed source:
+    a literal, a field path, a `select` component, or a digest over a field.
+    """
+    if not isinstance(projection, dict):
+        lint.fail(path, f"{ref} must be an object")
+        return
+    if projection.get("type") != "object":
+        lint.fail(path, f"{ref}.type must be 'object'")
+    members = projection.get("members")
+    if not isinstance(members, list) or not members:
+        lint.fail(path, f"{ref}.members must be a non-empty array")
+        return
+    seen_names: set[str] = set()
+    for index, member in enumerate(members):
+        member_ref = f"{ref}.members[{index}]"
+        if not isinstance(member, dict):
+            lint.fail(path, f"{member_ref} must be an object")
+            continue
+        name = member.get("name")
+        if not isinstance(name, str) or not name:
+            lint.fail(path, f"{member_ref}.name must be a non-empty string")
+        elif name in seen_names:
+            lint.fail(path, f"{member_ref}.name duplicates another member")
+        else:
+            seen_names.add(name)
+        sources = [key for key in ("literal", "field", "select", "digest_of") if key in member]
+        if len(sources) != 1:
+            lint.fail(path, f"{member_ref} must declare exactly one of literal/field/select/digest_of")
+            continue
+        source = sources[0]
+        if source == "field":
+            lint_field_path(lint, path, f"{member_ref}.field", member["field"])
+        elif source == "select":
+            lint_select_component(lint, path, f"{member_ref}.select", member["select"])
+        elif source == "digest_of":
+            digest = member["digest_of"]
+            if not isinstance(digest, dict):
+                lint.fail(path, f"{member_ref}.digest_of must be an object")
+            else:
+                if "field" in digest:
+                    lint_field_path(lint, path, f"{member_ref}.digest_of.field", digest["field"])
+                elif digest.get("input") != "event_payload_canonical_bytes":
+                    lint.fail(
+                        path,
+                        f"{member_ref}.digest_of must declare a field unless it digests the "
+                        "whole event payload",
+                    )
+                if digest.get("input") not in VALUE_PROJECTION_DIGEST_INPUTS:
+                    lint.fail(
+                        path,
+                        f"{member_ref}.digest_of.input must be one of {sorted(VALUE_PROJECTION_DIGEST_INPUTS)}",
+                    )
+                unknown = set(digest) - {"field", "input"}
+                if unknown:
+                    lint.fail(path, f"{member_ref}.digest_of has unknown member(s) {sorted(unknown)}")
+        unknown_keys = set(member) - {"name", "optional", source}
+        if unknown_keys:
+            lint.fail(path, f"{member_ref} has unknown member(s) {sorted(unknown_keys)}")
+        if "optional" in member and not isinstance(member["optional"], bool):
+            lint.fail(path, f"{member_ref}.optional must be a boolean")
+
+
 def check_registries(lint: Lint) -> dict[str, set[str]]:
     event_path = ARTIFACTS / "registry" / "event-kind-registry.json"
     schema_path = ARTIFACTS / "registry" / "schema-registry.json"
@@ -1162,9 +1304,28 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                         subject_type = subject.get("type")
                         if not isinstance(subject_type, str) or not subject_type:
                             lint.fail(event_path, f"{write_ref}.cell_subject.type must be a non-empty string")
-                        if subject_type in {"composite", "coalesce"}:
-                            list_field = "components" if subject_type == "composite" else "fields"
-                            parts = subject.get(list_field)
+                        if subject_type == "composite":
+                            parts = subject.get("components")
+                            if not isinstance(parts, list) or not parts:
+                                lint.fail(
+                                    event_path,
+                                    f"{write_ref}.cell_subject.components must be a non-empty array",
+                                )
+                            else:
+                                for part_index, part in enumerate(parts):
+                                    part_ref = f"{write_ref}.cell_subject.components[{part_index}]"
+                                    if isinstance(part, str):
+                                        if not part:
+                                            lint.fail(event_path, f"{part_ref} must be a non-empty field path")
+                                    elif isinstance(part, dict):
+                                        lint_select_component(lint, event_path, part_ref, part)
+                                    else:
+                                        lint.fail(
+                                            event_path,
+                                            f"{part_ref} must be a field path string or a select component object",
+                                        )
+                        elif subject_type == "coalesce":
+                            parts = subject.get("fields")
                             if (
                                 not isinstance(parts, list)
                                 or not parts
@@ -1172,7 +1333,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                             ):
                                 lint.fail(
                                     event_path,
-                                    f"{write_ref}.cell_subject.{list_field} must be a non-empty string array",
+                                    f"{write_ref}.cell_subject.fields must be a non-empty string array",
                                 )
                         elif subject_type == "tuple":
                             parts = subject.get("components")
@@ -1187,6 +1348,10 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                                 lint.fail(event_path, f"{write_ref} tuple components must declare field")
                         elif not isinstance(subject.get("field"), str) or not subject.get("field"):
                             lint.fail(event_path, f"{write_ref}.cell_subject must declare field")
+                if "value_projection" in write:
+                    lint_value_projection(
+                        lint, event_path, f"{write_ref}.value_projection", write["value_projection"]
+                    )
                 write_lattice = write.get("lattice")
                 if write_lattice not in REGISTRY_LATTICES:
                     lint.fail(event_path, f"{write_ref} has unknown lattice {write_lattice!r}")
@@ -1210,7 +1375,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             elif (plane == "control") != sealed:
                 lint.fail(event_path, f"{kind} sealed must be true iff plane=control")
             if len(cell_writes) == 1 and isinstance(cell_writes[0], dict):
-                for field in ("cell_family", "cell_subject", "lattice", "bottom", "initial_value"):
+                for field in ("cell_family", "cell_subject", "value_projection", "lattice", "bottom", "initial_value"):
                     if field in cell_writes[0] and row.get(field) != cell_writes[0].get(field):
                         lint.fail(event_path, f"{kind} single-target shorthand {field} differs from cell_writes[0]")
         if row.get("status") == "active" and row.get("reducer_input") is True:

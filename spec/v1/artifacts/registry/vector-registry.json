@@ -3485,8 +3485,9 @@
       "applies_to_vector_groups": [
         "ak.vector_group.cba_lattice.v1"
       ],
-      "description": "ordered_log join/validate_op convergence for the same CBA Event set.",
+      "description": "ordered_log per-issuer prefix from issuer_seq 0 and issuer equivocation convergence: byte-identical canonical effect.op is idempotent, non-equivalent candidates for the same (cell, actor_id, issuer_seq) resolve to the greatest canonical event_digest compared as decoded octets, causal edges never change the winner, losers stay auditable, and digest collision fails closed.",
       "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
     },
@@ -3522,7 +3523,7 @@
       "applies_to_vector_groups": [
         "ak.vector_group.cba_lattice.v1"
       ],
-      "description": "ordered_log issuer sub-chain seq gap yields contiguous_prefix plus pending_gap diagnostics; deterministic recompute after backfill.",
+      "description": "ordered_log issuer sub-chain seq gap yields contiguous_prefix plus pending_gap diagnostics; deterministic recompute after backfill. Equivocation winner selection belongs to ak.vector.lattice.ordered_log_join.v1.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"

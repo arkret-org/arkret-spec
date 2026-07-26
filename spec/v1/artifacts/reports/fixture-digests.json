@@ -54,7 +54,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "8d74353c505d20374c4a1641ffc44fa453bc0ece29da97c0a28d5b417fa27952"
+      "sha256": "d72d0c6b59c09868bafb2938c7e5a190dfd2a05dd0d922f036290d8b18da5169"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -106,7 +106,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "f2e0552e70c3b39a0255173f7ecb6ef71a3ae43db522a8a75da8919782453713"
+      "sha256": "ce24c3e3ca621b3071a98783ca4032be8261cdde151d6642662bfcf26a73c31d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",

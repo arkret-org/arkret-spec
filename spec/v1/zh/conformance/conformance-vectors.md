@@ -1128,7 +1128,7 @@ ak.vector.lattice.ordered_log_gap.v1
 
 本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 `ordered_log` 的缺口规则：“issuer 子链出现缺口时，缺口后的 entry MUST 保留为 pending / diagnostic 输入，但不得进入 cell value、`state_root` leaf 或授权判断；依赖补齐后按同一规则重算。”
 
-输入（ordered_log cell，`bottom=expose`，cell schema 声明 `parameters.entry_id_field`）：
+输入（ordered_log cell，`bottom=expose`）：
 
 - **Case A — 缺口存在**：issuer I 的 append entries 以 `issuer_seq ∈ {0, 1, 3}` 到达（seq 2 缺失）。
 - **Case B — 缺口补齐后重算**：在 Case A 状态上，seq 2 的 entry 通过 backfill 到达，reducer 重算同一 cell。
@@ -1137,7 +1137,7 @@ ak.vector.lattice.ordered_log_gap.v1
 
 - **Case A**：join 产出的 cell value 仅含 `contiguous_prefix`（seq 0、1）；seq 3 的 entry MUST 作为 `pending_gap` 诊断（`reason=dependency_missing`）暴露，MUST NOT 进入 cell value、`state_root` leaf 或任何授权判断。`bottom` 永不出现（与 §5.1 对照表一致）。
 - **Case B**：补齐 seq 2 后，按同一 join 规则确定性重算，cell value 变为 seq 0–3 的完整子链；两个 conformant reducer 以不同到达顺序（先 3 后 2 / 先 2 后 3）重放 MUST 得到 bit-exact 相同的 cell value 与 `state_root` leaf。
-- 同一 `(issuer, seq)` 重复 entry MUST 按最小 `entry_id` 去重，不得产生双重 entry。
+- 同一 `(issuer, seq)` 的逐字等价重复 entry MUST 幂等去重，不得产生双重 entry；非等价候选的 winner 选择不属于本向量，见 §2.21。
 
 失败条件：
 
@@ -1353,6 +1353,47 @@ ak.vector.cba_lattice.conflict_recovery_move.v1
 - Case E：MUST 拒绝；unsealed recovery Move 不得改变 `⊥` cell。
 
 失败条件：普通 Control Move 在 `⊥` 下绕过 recovery 例外；post-conflict witness 被接受；recovery capability 未 sealed 或已撤销仍生效；未 sealed 的 recovery Move 改变 canonical state。
+
+### 2.21 Vector: `ordered_log` issuer equivocation winner
+
+向量名称：
+
+```text
+ak.vector.lattice.ordered_log_join.v1
+```
+
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 `ordered_log` 的 issuer 顺序与 equivocation 收敛规则，其 winner 键来自 [`encoding.md` §4.2](./encoding.md) 的全协议唯一 tie-break（逻辑 slot equivocation 候选集），digest 定义见 [`encoding.md` §6](./encoding.md)。
+
+输入（ordered_log cell，`bottom=expose`；fixture：[`cba-lattice-fixture.json`](../../artifacts/fixtures/cba-lattice-fixture.json) `ak.vector.lattice.ordered_log_join.v1`）：
+
+- **Case A — per-issuer 顺序**：两个 issuer 各自提交 `issuer_seq ∈ {0, 1}`，到达顺序交错。
+- **Case B — 逐字等价重复**：同一 `(cell, actor_id, issuer_seq)` 的两条 entry，完整 canonical `effect.op` bytes 相同。
+- **Case C — equivocation**：同一 `(cell, actor_id, issuer_seq)` 的两条 entry，完整 canonical `effect.op` bytes 不同（含 `op.value` 相同而 `op` 其它字段不同的子例，以及 `op.value` 不含任何 `entry_id` 字段的子例），两个候选 Event 的 canonical `event_digest` 不同。
+- **Case D — 因果边不改变 winner**：与 Case C 相同的候选集，但较小 `event_digest` 的候选通过 `prev_refs` / `causal_refs` 因果地晚于较大者。
+- **Case E — digest collision**：两个候选的 canonical `envelope_without_proofs_unsigned_reducer_stamps` bytes 不同，却得到完全相同的 typed `event_digest`（同 suite、同 octets）。
+- **Case F — 仅 proofs / reducer stamps 不同**：两个候选的 canonical digest preimage bytes 逐字相同，只有 `proofs` 集或 reducer-stamped `effective_scope` / `actor_kind` 不同。
+- **Case G — 跨 suite 比较**：两个候选使用不同 digest suite，且 typed wire string 的 UTF-8 顺序与 decoded digest octets 顺序**相反**。
+
+期望：
+
+- **Case A**：每个 issuer 子链的期望起点固定为 `issuer_seq=0`，只有从 `0` 起的连续 prefix 进入 cell value；输入顺序的任意排列 MUST 产出 bit-exact 相同的 cell value 与 `state_root` leaf。实现 MUST NOT 把该 issuer 的最小已见 seq 当作起点——只到达 `issuer_seq=3` 时 MUST 报告 `missing_seq=0` 的 pending gap，MUST NOT 物化 seq 3。
+- **Case B**：幂等去重，该 slot 只产生一条 entry。
+- **Case C**：`event_digest` 按 §4.2 decoded-octets 比较取**最大**的候选进入连续 prefix；loser MUST 保留为 duplicate/equivocation 诊断，且 MUST 仍留在 canonical event log 与审计视图中，MUST NOT 被删除。等价性判定 MUST 使用完整 canonical `effect.op` bytes：`op.value` 相同而 `op` 其它字段不同的候选仍是 equivocation；`op.value` 不含 `entry_id` 字段不得导致回退到到达顺序。
+- **Case D**：winner 与 Case C 相同。因果边、`prev_refs`、HLC 与到达顺序 MUST NOT 改变 slot winner，也不得把 seq 复用解释为合法的下一条 append。
+- **Case E**：MUST fail closed（digest collision），MUST NOT 回退到 `event_id`、`op.value` 内任一字段、到达顺序或实现私有 ID。
+- **Case F**：视为同一 producer-signed Event 内容，MUST NOT 报 collision；`proofs` 按 proof profile 合并，reducer stamps 按其各自验证规则处理。
+- **Case G**：winner 由 decoded digest octets 决定，MUST NOT 由 `<suite>:` 前缀的字符串顺序决定。
+
+失败条件：
+
+- 用 `event_id`、`created_at`、HLC、`actor_seq`、到达顺序或某个领域字段（含 `op.value.entry_id` 一类实现私有 id）选 winner（`encoding.md` §4.2 禁止键）。
+- 选 bytewise 最小而非最大 `event_digest`。
+- 直接比较 typed digest wire string，使 suite 名先于内容决定 winner。
+- 只比较 `op.value` 而非完整 `effect.op`，把 `op` 其它字段不同的候选误判为 duplicate。
+- 从该 issuer 的最小已见 seq 起算 prefix，而不是固定从 `0` 起。
+- equivocation loser 被从 canonical event log 或审计视图中移除，或未暴露 winner/loser 诊断。
+- Case D 因存在因果边而改判 winner。
+- Case F 被误报为 digest collision。
 
 ## 3. Redaction 与 Snapshot Vectors
 
