@@ -3637,6 +3637,175 @@
       ]
     },
     {
+      "vector_id": "ak.vector.calendar.profile_activation.v1",
+      "status": "active",
+      "domain": "calendar",
+      "applies_to_fixtures": [
+        "calendar-rsvp-fixture.json"
+      ],
+      "description": "Calendar Strands activate exactly one way: Strand.schema_refs carries ak.schema.calendar_event.v1 and metadata.fields.calendar co-occurs in both directions on the post-patch object, the container self-schema is refused in schema_refs, legacy flat schedule fields and metadata.fields.profile/profile_refs impostors are refused, and writes bind the schema in requirements.schema[].",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.calendar.schedule_shape.v1",
+      "status": "active",
+      "domain": "calendar",
+      "applies_to_fixtures": [
+        "calendar-rsvp-fixture.json"
+      ],
+      "description": "all_day selects the date branch and its negation the whole-second LocalDateTime branch for start, end and recurrence.until; intervals are half-open so end is strictly later than start; UTC timestamps, offsets, bracketed zones and fractional seconds are refused.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.calendar.recurrence_expansion.v1",
+      "status": "active",
+      "domain": "calendar",
+      "applies_to_fixtures": [
+        "calendar-rsvp-fixture.json"
+      ],
+      "description": "RFC 8984 subset defaults, base start as the first occurrence counted against count, implicit inheritance of base time and weekday components, count/until typing and exclusivity, by_* companion preconditions, and the paginated expansion with its candidate-period scan budget and revision-bound continuation.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.calendar.recurrence_dst.v1",
+      "status": "active",
+      "domain": "calendar",
+      "applies_to_fixtures": [
+        "calendar-rsvp-fixture.json"
+      ],
+      "description": "Nonexistent and ambiguous local times both resolve with the offset in effect before the transition, so a fixed local meeting time does not drift across a DST boundary and the overlap emits exactly one occurrence.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.calendar.tzdb_identity.v1",
+      "status": "active",
+      "domain": "calendar",
+      "applies_to_fixtures": [
+        "calendar-rsvp-fixture.json"
+      ],
+      "description": "Producers canonicalize Link aliases to the canonical Zone before signing, receivers refuse non-canonical signed zones, a schedule-signed tzdb_version outside the executable set fails closed, and a release bump may move derived instants without changing the signed timezone or any local occurrence key.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.calendar.recurrence_unsupported.v1",
+      "status": "active",
+      "domain": "calendar",
+      "applies_to_fixtures": [
+        "calendar-rsvp-fixture.json"
+      ],
+      "description": "Excluded recurrence rules, recurrence overrides, RDATE/EXDATE, per-instance reschedule or cancellation, and the JSCalendar @type discriminator all fail closed instead of being silently ignored.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.calendar.schedule_revision.v1",
+      "status": "active",
+      "domain": "calendar",
+      "applies_to_fixtures": [
+        "calendar-rsvp-fixture.json"
+      ],
+      "description": "Identity-affecting schedule edits orphan instance RSVPs and mark series RSVPs needs_reconfirmation, non-calendar updates are not schedule revisions, divergent concurrent heads block RSVP until a resolution Event, and byte-identical concurrent heads settle without picking a winner.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.calendar.rsvp_effect_projection.v1",
+      "status": "active",
+      "domain": "calendar",
+      "applies_to_fixtures": [
+        "calendar-rsvp-fixture.json"
+      ],
+      "description": "ak.rsvp.set declares effect_projection set(payload.entry): a missing effect, an extra target, or an op value that differs from the canonical payload entry is refused rather than accepted on op-kind alone.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.calendar.rsvp_effective_projection.v1",
+      "status": "active",
+      "domain": "calendar",
+      "applies_to_fixtures": [
+        "calendar-rsvp-fixture.json"
+      ],
+      "description": "Instance heads override series fallback without unioning them into a false conflict, causal successors dominate independently of arrival order and HLC, missing keys project encrypted_unresolved instead of a fabricated status, and equal decrypted plaintext is not a conflict merely because ciphertexts differ.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.calendar.rsvp_admission.v1",
+      "status": "active",
+      "domain": "calendar",
+      "applies_to_fixtures": [
+        "calendar-rsvp-fixture.json"
+      ],
+      "description": "RSVP admission is capability-based rather than attendee-based, refuses cancelled events, and layers basis checks so that e2ee and plaintext Realms accept the identical canonical set: shape admission rejects without resolving anything, target admission reads only the referenced Events plaintext envelope and pends on dependency_missing, and basis validity is projection-only. It also fails closed above the 128-entry frontier bound and keeps missing, invisible, cross-Realm and non-calendar targets externally indistinguishable.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.calendar.attendee_roster.v1",
+      "status": "active",
+      "domain": "calendar",
+      "applies_to_fixtures": [
+        "calendar-rsvp-fixture.json"
+      ],
+      "description": "calendar.attendees is the single canonical roster: actor ids are unique, the omitted role defaults to required, at most one organizer exists, and roster membership creates no Realm or Circle membership and widens no history access.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.calendar.notification.v1",
+      "status": "active",
+      "domain": "calendar",
+      "applies_to_fixtures": [
+        "calendar-notification-fixture.json"
+      ],
+      "description": "One schedule patch derives exactly one notification per receiver over the pre/post roster union filtered by post-state access, mute, DND and push rules; encrypted schedules only produce the profile-defined blind wakeup; RSVP changes derive no schedule notification.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/calendar-notification-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.calendar.rsvp_privacy.v1",
+      "status": "active",
+      "domain": "calendar",
+      "applies_to_fixtures": [
+        "calendar-rsvp-fixture.json"
+      ],
+      "description": "The RSVP response branch follows the effective scope encryption floor: plaintext is refused under an e2ee floor, permitted only with the declared rsvp_response data class otherwise, never silently downgraded, and the routing-visible metadata set is disclosed explicitly.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.realm_organization.schema_semantic.v1",
       "status": "active",
       "domain": "realm_organization",

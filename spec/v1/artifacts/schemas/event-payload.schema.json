@@ -3358,7 +3358,8 @@
         "media_plaintext",
         "derived_plaintext",
         "account_private_state",
-        "profile_private_field"
+        "profile_private_field",
+        "rsvp_response"
       ]
     },
     "preview_policy_payload": {
@@ -4264,14 +4265,92 @@
       "type": "object",
       "required": [
         "event_ref",
-        "status",
-        "occurrence"
+        "occurrence",
+        "entry"
       ],
       "properties": {
         "event_ref": {
           "$ref": "#/$defs/strand_id",
           "description": "Calendar event Strand id; encoded as a ak:strand: typed id."
         },
+        "occurrence": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "./time.schema.json#/$defs/local_date"
+            },
+            {
+              "type": "string",
+              "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\[[A-Za-z][A-Za-z0-9_+-]*(?:/[A-Za-z0-9_+-]+)*\\]$"
+            }
+          ],
+          "description": "JSON null for the whole series, or the canonical recurrence instance key: YYYY-MM-DD for all-day events and YYYY-MM-DDTHH:MM:SS[Zone] for timed events. The date component MUST be a real proleptic-Gregorian date, not merely match the digit pattern. The producer MUST canonicalize before signing; receivers MUST reject non-canonical keys instead of rewriting them."
+        },
+        "entry": {
+          "$ref": "#/$defs/rsvp_entry"
+        }
+      },
+      "additionalProperties": false
+    },
+    "rsvp_entry": {
+      "type": "object",
+      "description": "Complete RSVP cell value. The whole entry is the mv_register set value, so every head independently carries the schedule the responder observed plus the response itself.",
+      "required": [
+        "schedule_basis_refs"
+      ],
+      "properties": {
+        "schedule_basis_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/hash"
+          },
+          "description": "Non-empty schedule revision frontier the responder actually observed, as event_digest values sorted in ascending canonical UTF-8 byte order. MUST be a subset of the envelope causal_refs[], which caps it at the same 128 entries. A frontier larger than 128 MUST fail closed with schedule_frontier_too_large rather than being truncated."
+        },
+        "response": {
+          "$ref": "#/$defs/rsvp_response",
+          "description": "Plaintext response branch. Only admissible when the target Strand effective scope encryption floor permits plaintext and the receiving service declares the rsvp_response plaintext data class."
+        },
+        "encrypted_response": {
+          "$ref": "#/$defs/rsvp_encrypted_response",
+          "description": "Encrypted response branch; content_type is pinned to application/vnd.arkret.calendar-rsvp-response+json and the decrypted plaintext MUST validate against rsvp_response. Required when the effective scope encryption floor is e2ee_required."
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "response"
+          ],
+          "not": {
+            "required": [
+              "encrypted_response"
+            ]
+          }
+        },
+        {
+          "required": [
+            "encrypted_response"
+          ],
+          "not": {
+            "required": [
+              "response"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "rsvp_response": {
+      "type": "object",
+      "description": "RSVP response object. Used directly by rsvp_entry.response and as the decrypted plaintext of rsvp_entry.encrypted_response, whose content_type is application/vnd.arkret.calendar-rsvp-response+json. status and comment always share one encryption boundary; a plaintext status with an encrypted comment is not a valid shape.",
+      "required": [
+        "status"
+      ],
+      "properties": {
         "status": {
           "type": "string",
           "enum": [
@@ -4280,29 +4359,10 @@
             "tentative"
           ]
         },
-        "occurrence": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "type": "string",
-              "minLength": 1
-            }
-          ]
-        },
         "comment": {
-          "description": "RSVP comment. MUST be an encrypted_payload unless Realm policy explicitly permits a plaintext-visible RSVP comment (calendar-event.md §5).",
-          "oneOf": [
-            {
-              "$ref": "#/$defs/encrypted_payload"
-            },
-            {
-              "type": "string",
-              "maxLength": 2000,
-              "description": "Plaintext RSVP comment; only permitted when Realm policy lists the receiving service as plaintext-visible."
-            }
-          ]
+          "$ref": "string-profiles.schema.json#/$defs/short_text",
+          "maxLength": 2000,
+          "description": "Optional responder comment. An empty response is expressed by omitting the field, never by an empty string."
         }
       },
       "additionalProperties": false
@@ -9940,6 +10000,25 @@
               "required": [
                 "level_public"
               ]
+            }
+          }
+        }
+      ]
+    },
+    "rsvp_encrypted_response": {
+      "description": "Encrypted RSVP response envelope. The content_type is pinned so a receiver can route the ciphertext to exactly one decrypted schema; the plaintext MUST validate against rsvp_response.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/encrypted_payload"
+        },
+        {
+          "type": "object",
+          "required": [
+            "content_type"
+          ],
+          "properties": {
+            "content_type": {
+              "const": "application/vnd.arkret.calendar-rsvp-response+json"
             }
           }
         }

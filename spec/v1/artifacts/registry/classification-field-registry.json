@@ -65,6 +65,15 @@
     },
     {
       "schema_ref": "schemas/event-payload.schema.json",
+      "json_pointer": "/$defs/rsvp_encrypted_response/allOf/1/properties/content_type",
+      "external_standard": "HTTP Semantics",
+      "external_field_path": "Content-Type field value",
+      "round_trip_requirement": "Preserve the HTTP media type value used to label the encrypted RSVP response. Arkret narrows it to the single registered value application/vnd.arkret.calendar-rsvp-response+json so a receiver can route the ciphertext to exactly one decrypted schema; the narrowing selects among external media types and does not extend the external vocabulary.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/event-payload.schema.json",
       "json_pointer": "/$defs/call_state_payload/properties/recording_transition/properties/result/properties/media_type",
       "external_standard": "IANA Media Types and HTTP Content-Type",
       "external_field_path": "Content-Type media type",

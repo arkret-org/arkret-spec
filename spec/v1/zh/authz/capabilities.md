@@ -823,6 +823,8 @@ Arkret v1 至少区分：
 
 这能避免把"能改 Strand"和"能进入 discussion"混成一种权限——Realm-default discussion 按源 Realm capability 判断；若整个 Strand 落在 Circle，则还必须满足该 Circle 的 membership / effective scope 校验。
 
+profile-gated 动作沿用同一原则：出现在 schedule、roster 或成员快照中的身份**不是**授权真源。例如 `ak.profile.calendar_event.v1` 的 `ak.rsvp.set`，其准入完全由覆盖该精确 Strand / effective scope 的 grant 决定——attendee 身份 MUST NOT 自动授予该动作，持有精确 capability 的非 attendee 也 MUST NOT 被 reducer 用隐式身份判断拒绝。产品若要求"只有 attendees 能回应"，MUST 通过 grant materialization 或 profile policy 实现。完整 admission predicate（目标 Realm / lifecycle / calendar status / basis 两级校验与反枚举要求）见 [`../models/calendar-event.md` §8.4](../models/calendar-event.md)。
+
 ## 17. 决策执行位置
 
 权限检查 MUST 至少在以下协议边界执行：

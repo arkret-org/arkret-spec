@@ -161,6 +161,16 @@
       "description": "Generated registry view for canonical capability action vocabulary, risk tiers, required constraints, and event_kind targets."
     },
     {
+      "name": "calendar_timezone",
+      "file": "registry/calendar-timezone-registry.json",
+      "kind": "calendar_timezone_registry",
+      "value_set_evolution": "open",
+      "source_role": "generated",
+      "source_of_truth": false,
+      "generated_from": "registry/contract-registry.json",
+      "description": "Generated registry view for the IANA TZDB releases calendar schedules may pin, and the canonicalization rules that turn a producer-supplied zone name into the signed canonical Zone."
+    },
+    {
       "name": "registry_manifest",
       "file": "registry/registry-manifest.json",
       "kind": "registry_index",

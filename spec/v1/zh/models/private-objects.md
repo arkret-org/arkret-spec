@@ -133,6 +133,10 @@ Schedule notification 的 receiver set 是下列集合的并集，并在生成�
 
 E2EE / plaintext policy 不允许服务端读取 schedule fields 时，服务端不得为了通知而解密或扩展明文可见性；实现 MAY 发送不含 preview 的 blind wakeup，或让客户端在本地解密后根据同一规则完成 inbox 派生。
 
+上述过滤发生在**生成之前**：失去访问权、被 mute/block、被 DND 或 push rule 抑制的 actor MUST NOT 收到 notification、stub 或 push wakeup。实现 MUST NOT 把 DND 只解释为 provider 侧 transport filter 而仍然生成 notification 对象。
+
+Calendar 扩展在此基础上收窄两点，规则正文见 [`calendar-event.md` §10](./calendar-event.md)：一是 receiver 候选集扩展为 `pre_state.attendees ∪ post_state.attendees ∪ assigned_to ∪ watch_all`，使被移除但仍有 scope 读取权的 attendee 也能获知变更；二是 calendar 字段的 dispatcher 职责属于独立的 server profile `ak.profile.calendar_notification_dispatch.v1`，client 侧 `ak.profile.calendar_event.v1` 不承担该职责，core 实现也不因此被迫识别 calendar 字段。
+
 ## 4. 与 Account Data 的关系
 
 Read marker 与个人通知偏好、saved view personalization、列宽 / 折叠等本地状态都属于 **actor-private account data** 类别。完整 account data 模型、私有标签、个人 blocklist 见 [`../discovery/client-preferences.md`](../discovery/client-preferences.md)。

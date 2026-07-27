@@ -109,7 +109,9 @@
       "description": "Transport binding declarations for this service.",
       "items": {
         "type": "object",
-        "required": ["kind"],
+        "required": [
+          "kind"
+        ],
         "additionalProperties": true,
         "properties": {
           "kind": {
@@ -131,6 +133,16 @@
         "type": "string",
         "minLength": 1
       },
+      "uniqueItems": true
+    },
+    "calendar_tzdb_versions": {
+      "type": "array",
+      "description": "IANA TZDB release tags this service can execute for calendar schedules, taken from calendar-timezone-registry.json. Required when the service claims a calendar profile. A schedule whose signed tzdb_version is absent here MUST fail closed with calendar_tzdb_mismatch or project its instants as unresolved; the service MUST NOT fall back to a nearby or newer release.",
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9]{4}[a-z]$"
+      },
+      "minItems": 1,
       "uniqueItems": true
     },
     "auth_metadata": {
@@ -783,7 +795,10 @@
       "description": "Profiles the service self-claims membership in. `claim_kind` MUST be `self_claimed`; verified-only assertions belong under `verified_profiles` and MUST NOT appear here.",
       "items": {
         "type": "object",
-        "required": ["profile_id", "claim_kind"],
+        "required": [
+          "profile_id",
+          "claim_kind"
+        ],
         "additionalProperties": true,
         "properties": {
           "profile_id": {
@@ -792,7 +807,9 @@
           },
           "claim_kind": {
             "type": "string",
-            "enum": ["self_claimed"]
+            "enum": [
+              "self_claimed"
+            ]
           },
           "claimed_at": {
             "$ref": "./time.schema.json#/$defs/timestamp"
@@ -827,7 +844,9 @@
           },
           "claim_kind": {
             "type": "string",
-            "enum": ["conformance_verified"]
+            "enum": [
+              "conformance_verified"
+            ]
           },
           "verification_run_id": {
             "type": "string",
@@ -876,7 +895,10 @@
       "description": "External-interop surfaces this service exposes outside its claimed Arkret v1 conformance.",
       "items": {
         "type": "object",
-        "required": ["name", "kind"],
+        "required": [
+          "name",
+          "kind"
+        ],
         "additionalProperties": true,
         "properties": {
           "name": {
@@ -910,9 +932,13 @@
     {
       "if": {
         "properties": {
-          "development_mode": { "const": true }
+          "development_mode": {
+            "const": true
+          }
         },
-        "required": ["development_mode"]
+        "required": [
+          "development_mode"
+        ]
       },
       "then": {
         "properties": {
@@ -1049,14 +1075,76 @@
           }
         }
       }
+    },
+    {
+      "$comment": "A service that claims or verifies a calendar profile MUST publish the TZDB releases it can execute; see zh/models/calendar-event.md.",
+      "if": {
+        "anyOf": [
+          {
+            "required": [
+              "claimed_profiles"
+            ],
+            "properties": {
+              "claimed_profiles": {
+                "contains": {
+                  "type": "object",
+                  "required": [
+                    "profile_id"
+                  ],
+                  "properties": {
+                    "profile_id": {
+                      "enum": [
+                        "ak.profile.calendar_event.v1",
+                        "ak.profile.calendar_notification_dispatch.v1"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "required": [
+              "verified_profiles"
+            ],
+            "properties": {
+              "verified_profiles": {
+                "contains": {
+                  "type": "object",
+                  "required": [
+                    "profile_id"
+                  ],
+                  "properties": {
+                    "profile_id": {
+                      "enum": [
+                        "ak.profile.calendar_event.v1",
+                        "ak.profile.calendar_notification_dispatch.v1"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "required": [
+          "calendar_tzdb_versions"
+        ]
+      }
     }
   ],
   "anyOf": [
     {
-      "required": ["rate_limit_policy"]
+      "required": [
+        "rate_limit_policy"
+      ]
     },
     {
-      "required": ["rate_limit_policy_id"]
+      "required": [
+        "rate_limit_policy_id"
+      ]
     }
   ],
   "$defs": {
@@ -1252,7 +1340,8 @@
         "media_plaintext",
         "derived_plaintext",
         "account_private_state",
-        "profile_private_field"
+        "profile_private_field",
+        "rsvp_response"
       ]
     }
   }

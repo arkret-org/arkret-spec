@@ -2126,7 +2126,13 @@
             ]
           },
           "lattice": "mv_register",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.entry"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.calendar.rsvp.v1",
@@ -2137,6 +2143,12 @@
           "payload.occurrence",
           "envelope.actor_id"
         ]
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload.entry"
+        }
       },
       "lattice": "mv_register",
       "bottom": "expose"

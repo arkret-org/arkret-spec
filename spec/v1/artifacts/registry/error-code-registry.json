@@ -4923,6 +4923,71 @@
         "service_call"
       ],
       "description": "A service did:webvh inception or rotation omitted the sole next-key commitment, supplied more than one update/next key, or failed to open the previous nextKeyHashes commitment. Providers and resolvers MUST fail closed as service_registration_rejected."
+    },
+    {
+      "code": "calendar_activation_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "schema_validation"
+      ],
+      "description": "Sub-reason for schema_violation when Strand.schema_refs and the matching metadata.fields profile subtree do not co-occur on the post-patch object, in either direction. Applies to ak.schema.calendar_event.v1 with metadata.fields.calendar. See zh/models/calendar-event.md."
+    },
+    {
+      "code": "calendar_tzdb_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "service_call",
+        "projection"
+      ],
+      "description": "The signed schedule tzdb_version is outside the receiver's executable release set declared in ServiceDescribe.calendar_tzdb_versions. The receiver MUST fail closed or mark instant projection unresolved and MUST NOT substitute a nearby or newer release. See zh/models/calendar-event.md."
+    },
+    {
+      "code": "calendar_schedule_unsettled",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "An RSVP or occurrence expansion was attempted while the Calendar schedule projection is conflict or encrypted_unresolved rather than settled. Concurrent schedule heads MUST be resolved by a schedule resolution Event first; no HLC, arrival order, or private last-writer rule may pick a winner. See zh/models/calendar-event.md. This is an authoring-side and projection-side code, never a server admission gate: deciding settledness requires the Calendar subtree plaintext, so gating admission on it would fork the accepted set between e2ee and plaintext Realms."
+    },
+    {
+      "code": "calendar_event_cancelled",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A new RSVP targets a Calendar Strand whose schedule status is cancelled. Historical RSVP projection is retained; new responses are refused. The generic Strand stage axis MUST NOT be reinterpreted as calendar status. See zh/models/calendar-event.md. This is an authoring-side and projection-side code for the same reason as calendar_schedule_unsettled: the cancelled status lives in the Calendar subtree plaintext."
+    },
+    {
+      "code": "schedule_frontier_too_large",
+      "applies_to": [
+        "event_envelope",
+        "schema_validation"
+      ],
+      "description": "The observed Calendar schedule revision frontier exceeds the 128-entry bound shared with causal_refs, so entry.schedule_basis_refs cannot express it. The producer MUST converge the schedule before responding and MUST NOT truncate the basis. See zh/conformance/scalability-constraints.md. It is raised by the authoring client when the observed frontier itself exceeds the bound; a wire Event that actually carries more than 128 refs is instead rejected by schema maxItems as schema_violation."
+    },
+    {
+      "code": "rsvp_basis_not_causal",
+      "applies_to": [
+        "event_envelope",
+        "schema_validation"
+      ],
+      "description": "entry.schedule_basis_refs is not a subset of the envelope causal_refs[], or is empty, duplicated, or not sorted in ascending canonical byte order. This shape admission is decidable without resolving the referenced Events and MUST reject rather than pend. See zh/models/calendar-event.md."
+    },
+    {
+      "code": "rsvp_occurrence_not_canonical",
+      "applies_to": [
+        "event_envelope",
+        "schema_validation"
+      ],
+      "description": "payload.occurrence is neither JSON null nor a canonical instance key (YYYY-MM-DD for all-day, YYYY-MM-DDTHH:MM:SS[Zone] for timed), including when its date component is not a real proleptic-Gregorian date. Receivers MUST reject instead of rewriting the key, since the cell subject derives from the signed value. See zh/models/calendar-event.md."
+    },
+    {
+      "code": "unresolved_basis",
+      "applies_to": [
+        "state_resolution",
+        "projection"
+      ],
+      "description": "A projected RSVP head references a schedule basis that cannot be resolved, is invisible, or is not on the target Strand's schedule revision DAG. The head is retained for audit, excluded from the effective response, and MUST NOT be guessed into currency. See zh/models/calendar-event.md."
     }
   ]
 }

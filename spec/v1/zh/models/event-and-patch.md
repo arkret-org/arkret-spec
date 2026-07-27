@@ -170,7 +170,7 @@ Producer MUST 为 `cell_writes[]` 的每个目标生成且只生成一个对应 
 
 - source 对象必须且只能含 `field`（Event 根路径，例如 `payload.focus`）、`envelope_field`（顶层签名字段名）或 `const`（任意 JSON literal）之一；路径不得含数组下标、通配符或空段。
 - `{"kind":"transition","from":source,"to":source}` 只用于 `fsm`，精确派生 `{"kind":"transition","from":...,"to":...}`。
-- `{"kind":"set","value":source}` 只用于 `mv_register` / `cas_register`，精确派生 `{"kind":"set","value":...}`。
+- `{"kind":"set","value":source}` 只用于 `mv_register` / `cas_register`，精确派生 `{"kind":"set","value":...}`。source 求值结果 MAY 是任意 JSON 值，包含完整 object——例如 `ak.realm.create` 的 `{"field":"payload.object"}` 与 `ak.rsvp.set` 的 `{"field":"payload.entry"}`，二者的 lattice value 都是整个子对象。这不引入第二套 object-construction DSL：投影只能整体搬运一个已存在的 Event 根路径或 `const`，MUST NOT 在 projection 内拼装、改名或裁剪字段。
 - `{"kind":"append","value":source,"issuer_seq":source}` 只用于 `ordered_log`，精确派生 `{"kind":"append","value":...,"issuer_seq":...}`；`issuer_seq` 必须求值为无符号整数。
 - `{"kind":"or_set_delta","selector":"payload.<path>","branches":{...}}` 只用于 `or_set`。selector 值必须精确命中一个 branch；每个 branch 的 `op` 只能为 `add` 或 `remove`。`add` 必须同时登记 `tag` 与 `value` source，`remove` 必须只登记 `tag` source；分别精确派生同名 op。
 - projection 不声明的 `reason`、`issuer_seq`、`tag`、`value` 等 op 成员 MUST 缺省；wire op 擅自增加或省略任何成员均为 `effects_payload_mismatch`。source 路径不存在、selector 未命中或投影与 lattice 不兼容表示 registry / Event 无法求值，MUST fail closed，不得退化为只校验 op kind。
@@ -233,7 +233,12 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 
 `requirements.features[]` 与 `requirements.critical_extensions[].id` 必须使用可发现的 feature/profile 标识，并通过 service describe、profile registry 或 Realm schema/policy 指向可验证定义。接收方不支持 critical feature 时 MUST fail closed；不得把未知 critical 语义当作普通未知字段保留后继续 accepted。
 
-**Per-event schema 版本绑定**：当 event 修改的对象使用 evolvable schema（典型是 Morph，但同样适用于任何 Realm-defined schema 容器对象）时，写入端 **MUST** 在 `requirements.schema[]` 中列出该 event 写入时对象实际遵循的 schema profile id 全集。reader 重放该 event 时 **MUST** 用 `requirements.schema[]` 绑定的 schema 版本进行 payload / patch / transition 验证，**不得**使用对象当前的 `schema_refs[]`。这保证 partial replication 与跨版本历史回放时验证结果一致，并锁定每个 event 的 schema 解释边界。详细规则与 Morph 特化语义见 [`morph.md` §4.1](./morph.md#41-schema-refs-evolution-policy-normative)。
+**Per-event schema 版本绑定**：当 event 修改的对象携带 `schema_refs[]` 时，写入端 **MUST** 在 `requirements.schema[]` 中列出该 event 写入时对象实际遵循的 schema profile id 全集。reader 重放该 event 时 **MUST** 用 `requirements.schema[]` 绑定的 schema 版本进行 payload / patch / transition 验证，**不得**使用对象当前的 `schema_refs[]`。这保证 partial replication 与跨版本历史回放时验证结果一致，并锁定每个 event 的 schema 解释边界。
+
+该规则按对象的 schema 来源分成两类，二者都适用，不因来源不同而豁免：
+
+- **Realm-defined evolvable schema**（典型是 Morph）：`schema_refs[]` 由 Realm 声明并可演进，绑定用于锁定演进历史。详细规则与 Morph 特化语义见 [`morph.md` §4.1](./morph.md#41-schema-refs-evolution-policy-normative)。
+- **spec-fixed profile subtree schema**（典型是 Strand 的 `metadata.fields.<profile>` 子树）：schema 本身由 spec 固定、不可演进，但对象**是否激活**该 profile 会随 patch 变化。写入或修改该子树的 event **MUST** 同样绑定对应 schema id，否则 reader 在回放一段"profile 后来被移除"的历史时会用当前 `schema_refs[]` 得到不同的验证结论。缺该绑定 MUST `schema_violation`。v1 的唯一实例见 [`calendar-event.md` §1](./calendar-event.md)。
 
 ## 3. Proof
 

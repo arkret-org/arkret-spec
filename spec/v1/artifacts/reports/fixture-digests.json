@@ -41,6 +41,14 @@
       "sha256": "1dd52fafa966245b1ca3c58ffca9b3be4c6b08e40245cf94244349ec0259b2fb"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/calendar-notification-fixture.json",
+      "sha256": "b115fa67a27bcb42995f8566411a12e5e5896535abb9f35e953d74d106b092e3"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
+      "sha256": "4a3d8ac661686aa2ffa1ffd00122d65428b77f8f6220222932b0ce4115a0439d"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/call-state-core-fixture.json",
       "sha256": "ae249a0bb43a17b2c2401dee1eb71a2124bf0faf6d2c57bb4f7a7e15733d5dd8"
     },
@@ -106,11 +114,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "ad565e08fca83e240b390d81ea3a8be8a824ac5d8d94daa9a03596099d48d19f"
+      "sha256": "b5f1532c32af328a5e13a8bb1abc173f95dba05590e50d9141d2a8998327c65f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-      "sha256": "14015af312aa4396c5dae5bf8a300cd598811fb6649d715be65b8b2afe328d78"
+      "sha256": "2344a1a34f7372ed28a598f557b65562aea27e08ea250a8551066050f1ff364b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hash-transition-fixture.json",

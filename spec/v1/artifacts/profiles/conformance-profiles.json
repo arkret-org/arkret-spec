@@ -411,6 +411,7 @@
     "ak.profile.file_transfer.v1",
     "ak.profile.disappearing.v1",
     "ak.profile.calendar_event.v1",
+    "ak.profile.calendar_notification_dispatch.v1",
     "ak.profile.pinned_items.v1",
     "ak.profile.search.client_index.v1",
     "ak.profile.search.blind_index.v1",
@@ -460,6 +461,7 @@
       "ak.profile.file_transfer.v1",
       "ak.profile.disappearing.v1",
       "ak.profile.calendar_event.v1",
+      "ak.profile.calendar_notification_dispatch.v1",
       "ak.profile.pinned_items.v1",
       "ak.profile.search.client_index.v1",
       "ak.profile.search.blind_index.v1",
@@ -620,6 +622,7 @@
     "ak.profile.file_transfer.v1": "client",
     "ak.profile.disappearing.v1": "client",
     "ak.profile.calendar_event.v1": "client",
+    "ak.profile.calendar_notification_dispatch.v1": "server",
     "ak.profile.pinned_items.v1": "client",
     "ak.profile.search.client_index.v1": "client",
     "ak.profile.search.blind_index.v1": "server",
@@ -4423,7 +4426,7 @@
       }
     },
     "ak.profile.calendar_event.v1": {
-      "description": "Strand profile for calendar events and RSVP convergence.",
+      "description": "Client profile for authoring calendar-event Strands, expanding recurrence, and converging RSVP. Schedule-change notification dispatch is a separate server profile.",
       "required_endpoints": [
         "ak.self.events.command.submit",
         "ak.self.events.query.scan"
@@ -4440,9 +4443,12 @@
         "ak.schema.rsvp.v1"
       ],
       "required_fixtures": [
-        "sync-fixture.json"
+        "sync-fixture.json",
+        "calendar-rsvp-fixture.json"
       ],
-      "optional_extensions": [],
+      "optional_extensions": [
+        "ak.profile.calendar_notification_dispatch.v1"
+      ],
       "feature_discovery": {
         "required": [
           "calendar_event_strand_profile",
@@ -4450,6 +4456,36 @@
           "rrule_v1_subset"
         ],
         "unsupported_optional": "return unsupported_feature for calendar profile writes instead of inventing unregistered Relation kinds"
+      }
+    },
+    "ak.profile.calendar_notification_dispatch.v1": {
+      "description": "Principal Server profile for deriving notification_kind=schedule from calendar schedule changes, including the blind-wakeup path for encrypted schedules. Provider delivery stays governed by the Push Gateway profiles.",
+      "required_endpoints": [
+        "ak.server.query.describe",
+        "ak.self.events.query.scan"
+      ],
+      "required_event_kinds": [
+        "ak.strand.update"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ak.schema.strand.v1",
+        "ak.schema.calendar_event.v1",
+        "ak.schema.notification.v1"
+      ],
+      "required_fixtures": [
+        "calendar-notification-fixture.json"
+      ],
+      "optional_extensions": [
+        "ak.profile.push_gateway.blind_wakeup.v1",
+        "ak.profile.push_gateway.visible_notification.v1"
+      ],
+      "feature_discovery": {
+        "required": [
+          "calendar_schedule_notification",
+          "calendar_encrypted_blind_wakeup"
+        ],
+        "unsupported_optional": "return unsupported_feature rather than claiming verified schedule notification for encrypted schedules the service cannot read"
       }
     },
     "ak.profile.pinned_items.v1": {

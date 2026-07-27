@@ -228,6 +228,8 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 
 > `renderer` 的全局枚举(§3.1)允许 `custom` 用于**所有** kind:`custom` 是 profile-defined 展示面 escape hatch,本表每行的常用 renderer 之外都 MAY 取 `custom`(由 profile 声明语义),不参与真相归约。
 
+`calendar` / `gantt` 只是 `collection` 的 renderer，不引入新的 `View.kind`，也不引入新的真相源。[`calendar-event.md`](./calendar-event.md) 定义的 `CalendarOccurrenceProjection` 与 `CalendarRsvpProjection` 是**客户端本地派生模型**，由已授权 Event 集合、schedule revision frontier 与 CBA cell heads 计算得出；v1 **不**把它们注册为独立 View kind 或远端 Calendar API。实现 MAY 用 `collection` + `calendar` renderer 展示这些结果，但 MUST NOT 用 View projection 缓存回写 RSVP 或 schedule 状态，也 MUST NOT 让 View 输出突破 Calendar Strand 的 effective scope 与 history visibility。
+
 ## 5. Query Model
 
 View 应通过结构化 query 表达对象范围。

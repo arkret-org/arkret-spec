@@ -72,6 +72,17 @@
       "$ref": "./common-ids.schema.json#/$defs/circle_id",
       "description": "Optional reference to an intra-Realm Circle (see models/circle.md) that defines this Strand's effective scope. When set, ALL Strand tracks (synthesis, discussion, etc.) share that Circle's membership, history visibility, delivery/query/projection boundary, and encryption_profile. When unset, the Strand lives in Realm-default scope. The referenced Circle MUST have realm_id == this Strand's realm_id (reducer enforces; otherwise schema_violation reason=circle_realm_mismatch). Reducer stamps the immutable effective_scope onto each emitted Event; rebinding scope_circle_id is forbidden by default (failed_precondition reason=scope_rebind_forbidden). For 'wide synthesis + narrow discussion' scenarios use two Strands linked by a confidential_discussion_of Relation (circle.md §7.2)."
     },
+    "schema_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^ak\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+      },
+      "description": "Optional authoritative schema set for profile-defined metadata.fields subtrees. Unlike Morph, a plain Strand carries no profile subtree and omits this field entirely; when present it MUST list at least one profile schema id. The container self-schema ak.schema.strand.v1 MUST NOT appear here. Every listed profile schema and its metadata.fields namespace MUST co-occur in both directions: the ref without the subtree and the subtree without the ref are both schema_violation, evaluated on the post-patch object. Writers MUST also bind the same schema id in the Event requirements.schema[] so replay validates against the write-time schema instead of the object's current schema_refs.",
+      "$comment": "Bidirectional co-presence for concrete profiles is enforced in allOf below; see zh/models/strand-and-message.md."
+    },
     "agent_participation": {
       "type": "object",
       "description": "Optional wrapped agent participation ceiling for this Strand: { native_agent: { reply, accept_third_party_mention, act_on_behalf } }. When omitted, inherits the enclosing Circle ceiling (or Realm-default ceiling when scope_circle_id is unset). Each bit MAY only tighten, never widen, the parent ceiling (reducer rejects a widening write with agent_participation_ceiling_widen). The legacy flat three-bit shape is invalid v1 wire. See zh/models/strand-and-message.md.",
@@ -158,6 +169,91 @@
     }
   },
   "allOf": [
+    {
+      "$comment": "The container self-schema is not a business schema and MUST NOT appear in schema_refs (same rule as morph.md).",
+      "if": {
+        "required": [
+          "schema_refs"
+        ]
+      },
+      "then": {
+        "properties": {
+          "schema_refs": {
+            "not": {
+              "contains": {
+                "const": "ak.schema.strand.v1"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "$comment": "Calendar profile activation, direction 1: the schema ref requires the metadata.fields.calendar subtree. Only decidable when plaintext metadata is present; encrypted_metadata Strands are checked by the producer before encryption and by authorized clients after decryption.",
+      "if": {
+        "required": [
+          "schema_refs",
+          "metadata"
+        ],
+        "properties": {
+          "schema_refs": {
+            "contains": {
+              "const": "ak.schema.calendar_event.v1"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "metadata": {
+            "required": [
+              "fields"
+            ],
+            "properties": {
+              "fields": {
+                "required": [
+                  "calendar"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "$comment": "Calendar profile activation, direction 2: the metadata.fields.calendar subtree requires the schema ref.",
+      "if": {
+        "required": [
+          "metadata"
+        ],
+        "properties": {
+          "metadata": {
+            "required": [
+              "fields"
+            ],
+            "properties": {
+              "fields": {
+                "required": [
+                  "calendar"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "schema_refs"
+        ],
+        "properties": {
+          "schema_refs": {
+            "contains": {
+              "const": "ak.schema.calendar_event.v1"
+            }
+          }
+        }
+      }
+    },
     {
       "if": {
         "properties": {
@@ -452,8 +548,62 @@
             "required": [
               "scope_circle_id"
             ]
+          },
+          {
+            "required": [
+              "profile"
+            ],
+            "$comment": "profile activation impostor; the canonical activation axis is Strand.schema_refs"
+          },
+          {
+            "required": [
+              "profile_refs"
+            ],
+            "$comment": "profile activation impostor; the canonical activation axis is Strand.schema_refs"
+          },
+          {
+            "required": [
+              "start"
+            ],
+            "$comment": "legacy flat calendar schedule field; the canonical path is metadata.fields.calendar.start"
+          },
+          {
+            "required": [
+              "end"
+            ],
+            "$comment": "legacy flat calendar schedule field; the canonical path is metadata.fields.calendar.end"
+          },
+          {
+            "required": [
+              "timezone"
+            ],
+            "$comment": "legacy flat calendar schedule field; the canonical path is metadata.fields.calendar.timezone"
+          },
+          {
+            "required": [
+              "all_day"
+            ],
+            "$comment": "legacy flat calendar schedule field; the canonical path is metadata.fields.calendar.all_day"
+          },
+          {
+            "required": [
+              "recurrence"
+            ],
+            "$comment": "legacy flat calendar schedule field; the canonical path is metadata.fields.calendar.recurrence"
+          },
+          {
+            "required": [
+              "attendees"
+            ],
+            "$comment": "legacy flat calendar schedule field; the canonical path is metadata.fields.calendar.attendees"
           }
         ]
+      },
+      "properties": {
+        "calendar": {
+          "$ref": "./calendar-event.schema.json",
+          "description": "Calendar event schedule subtree activated by ak.schema.calendar_event.v1 in Strand.schema_refs. See zh/models/calendar-event.md."
+        }
       },
       "additionalProperties": true
     },

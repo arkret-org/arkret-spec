@@ -20,7 +20,7 @@ see_also:
 ### 1.1 规范权威层级
 
 - `artifacts/registry/contract-registry.json` 是 event/schema/id/operation contract 的 canonical catalog。
-- `artifacts/registry/event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json` 和 `operation-registry.json` 是从 canonical catalog 生成的机器视图；实现、SDK 和 lint 应消费这些生成物，而不是手抄 Markdown 表。
+- `artifacts/registry/event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json`、`operation-registry.json`、`capability-action-registry.json` 和 `calendar-timezone-registry.json` 是从 canonical catalog 生成的机器视图；实现、SDK 和 lint 应消费这些生成物，而不是手抄 Markdown 表。
 - `artifacts/registry/error-code-registry.json` 是标准 service error 与逐项 `reason_code` 的 canonical registry。
 - `artifacts/openapi/arkret-service-api.openapi.yaml` 是 HTTP/OpenAPI binding shape；它描述 HTTP 形状，不替代抽象 `operation_id`、Event kind、typed ID 或 reducer 语义。
 - `zh/*/*.md` 文档主要承担解释、边界说明和阅读路径；除明确标注“生成视图”外，不应再手工维护穷尽清单。
@@ -34,7 +34,7 @@ see_also:
 `artifacts/registry/registry-manifest.json` 索引 current v1 的机器可读源。实现、SDK、Conformance Verifier 与 transport adapter 应优先消费这些 artifact，而不是从 Markdown 表格手抄定义：
 
 - `artifacts/registry/contract-registry.json`：event、schema、typed id、operation contract 的 canonical catalog。
-- `artifacts/registry/operation-registry.json`、`event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json`：从 canonical catalog 生成的 current-wire 视图。
+- `artifacts/registry/operation-registry.json`、`event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json`、`capability-action-registry.json`、`calendar-timezone-registry.json`：从 canonical catalog 生成的 current-wire 视图。`calendar-timezone-registry.json` 额外锁定 calendar schedule 可 pin 的 IANA TZDB release 与 zone canonicalization 规则。
 - `artifacts/registry/error-code-registry.json`：标准 service error 与 `reason_code` 的 canonical registry。
 - `artifacts/profiles/conformance-profiles.json`：profile、feature、unknown/unsupported 行为和 profile role 的机器矩阵。
 - `artifacts/schemas/*.schema.json`：wire object、DTO、event payload、proof、capability、cursor、seal 与 extension object 的 JSON Schema。
@@ -150,7 +150,7 @@ see_also:
 | `models/common-fields.md` | 公共字段、lifecycle / state 对齐、主体引用对照、reducer 总则、类型记法。 |
 | `models/realm-and-space.md` | Realm（security boundary）、Space（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Space lifecycle / cas_register / cascade。 |
 | `models/strand-and-message.md` | Strand（统一协作主对象）、tracks（synthesis / discussion）、`scope_circle_id`（Strand effective scope）、Watch / 通知订阅模型（`watches` Relation + cas_register cell + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
-| `models/calendar-event.md` | Calendar event Strand profile、schedule fields、RRULE v1 子集、attendees 与 `ak.rsvp.set` 收敛。 |
+| `models/calendar-event.md` | Calendar Strand 的 `schema_refs` 激活、schedule fields、LocalDateTime 半开区间、RFC 8984 recurrence v1 子集、TZDB 版本绑定、schedule revision frontier、attendees 与 `ak.rsvp.set` 完整 entry 收敛。 |
 | `models/circle.md` | Circle（intra-Realm 子事件 / 子消息边界）、`scope_circle_id` / `effective_scope`、Circle encryption profile 与父 Realm floor、`Circle.members ⊆ Realm.members`、Realm-default vs Circle scope、Space `child_scope_policy`、跨 scope Relation、`confidential_discussion_of` 模式、MLS-backed Circle rotate amplification 缓解、Circle UX 视觉一致性要求。 |
 | `models/sidecar.md` | Agent Sidecar 独立对象、singleton ensure、derived desired/effective access、reducer-managed backing Circle/MLS scope、private Strand、存在性隐私与专用 UI 不变量。 |
 | `models/morph.md` | Morph 开放对象、`morph_kind` 合并优先级、标准 facets、schema evolution。 |

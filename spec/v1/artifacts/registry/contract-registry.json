@@ -33,6 +33,12 @@
       "file": "registry/capability-action-registry.json",
       "section": "capability_action_registry",
       "description": "Generated registry view for canonical capability action vocabulary, risk tiers, required constraints, and event_kind targets."
+    },
+    {
+      "name": "calendar_timezone",
+      "file": "registry/calendar-timezone-registry.json",
+      "section": "calendar_timezone_registry",
+      "description": "Generated registry view for the IANA TZDB releases calendar schedules may pin, and the canonicalization rules that turn a producer-supplied zone name into the signed canonical Zone."
     }
   ],
   "event_kind_registry": {
@@ -168,7 +174,7 @@
       "ak.space.tombstone": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.space.lifecycle.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.space_id", "payload.target_ref"]}, "lattice": "fsm", "bottom": "reject"}]},
       "ak.message.revise": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.message.revision.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.message_id", "payload.target_ref", "payload.revision_of"]}, "lattice": "mv_register", "bottom": "expose"}]},
       "ak.message.redact": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.object.redaction.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.message_id", "payload.target_ref", "payload.event_id", "payload.target_event_id"]}, "lattice": "or_set", "bottom": "inert"}]},
-      "ak.rsvp.set": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.calendar.rsvp.v1", "cell_subject": {"kind": "composite", "components": ["payload.event_ref", "payload.occurrence", "envelope.actor_id"]}, "lattice": "mv_register", "bottom": "expose"}]},
+      "ak.rsvp.set": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.calendar.rsvp.v1", "cell_subject": {"kind": "composite", "components": ["payload.event_ref", "payload.occurrence", "envelope.actor_id"]}, "lattice": "mv_register", "bottom": "expose", "effect_projection": {"kind": "set", "value": {"field": "payload.entry"}}}]},
       "ak.redaction": {"plane": "control", "sealed": true, "cell_writes": [{"cell_family": "ak.component.object.redaction.v1", "cell_subject": {"kind": "coalesce", "fields": ["payload.target_ref", "payload.event_id", "payload.target_event_id"]}, "lattice": "or_set", "bottom": "inert"}]},
       "ak.morph.create": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.morph.v1", "cell_subject": {"kind": "id:morph", "field": "payload.object.id"}, "lattice": "mv_register", "bottom": "expose"}]},
       "ak.morph.update": {"plane": "data", "sealed": false, "cell_writes": [{"cell_family": "ak.component.morph.v1", "cell_subject": {"kind": "id:morph", "field": "payload.target_ref"}, "lattice": "mv_register", "bottom": "expose"}]},
@@ -9002,5 +9008,138 @@
       "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
       "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
     }
+  },
+  "calendar_timezone_registry": {
+    "registry_rules": [
+      "A calendar schedule MUST carry a signed tzdb_version naming one release row below. Receivers resolve timezone and every derived instant with that release, never with their locally installed release.",
+      "Release rows are append-only and each row is frozen once published, including its own required_normalizations table, because historical schedules signed that row. Withdrawing a release is expressed by setting status=deprecated, never by deleting or rewriting the row.",
+      "required_normalizations is per release, not global. A later IANA release that changes a Link target expresses that by carrying a different mapping in its own row; the earlier row keeps the mapping that was in force when those schedules were signed. A global table could not represent both at once and would silently break the append-only promise.",
+      "Determinism comes from the release tag: IANA tzdata release tags are immutable once published. This registry deliberately does not mirror the full Zone/Link table and does not pin a distribution digest, because a hand-copied mirror would drift from IANA and become a second truth source, and this repository cannot verify third-party distribution bytes. Deployments that additionally need supply-chain pinning verify the distribution in their own build; that pinning is out of scope for v1 interop.",
+      "Canonicalization is defined by the Link declarations of the pinned IANA release as published by IANA, in particular its backward and etcetera files: the canonical Zone is the Link target. It is NOT defined by whatever a given platform time zone library happens to expose, since distributions may build the same release with different link handling.",
+      "Producers MUST rewrite timezone to the canonical Zone before signing. Receivers MUST NOT re-canonicalize a signed value: an alias that reaches the wire is a producer defect and MUST be rejected, not repaired. The RSVP occurrence key reuses the exact signed timezone value.",
+      "Each row required_normalizations is the conformance-required subset that vectors pin for that release. It is not the full alias set; an input outside the table is still canonicalized by that release Link declarations.",
+      "Updating a schedule tzdb_version MAY change derived instants but MUST NOT change the signed timezone value or any local occurrence key. When any occurrence instant or end changes, the significant-change table requires RSVP needs_reconfirmation plus a schedule notification.",
+      "A service that cannot execute a schedule tzdb_version MUST fail closed with calendar_tzdb_mismatch or unsupported_feature, or mark instant projection unresolved. Falling back to a nearby or newer release is forbidden. Services declare their executable set in ServiceDescribe.calendar_tzdb_versions."
+    ],
+    "releases": [
+      {
+        "tzdb_version": "2025a",
+        "status": "active",
+        "notes": "v1 conformance baseline release. Frozen: this row required_normalizations is the mapping schedules pinned to 2025a were signed against.",
+        "required_normalizations": [
+          {
+            "input": "UTC",
+            "canonical_zone": "Etc/UTC"
+          },
+          {
+            "input": "Universal",
+            "canonical_zone": "Etc/UTC"
+          },
+          {
+            "input": "Zulu",
+            "canonical_zone": "Etc/UTC"
+          },
+          {
+            "input": "Etc/Universal",
+            "canonical_zone": "Etc/UTC"
+          },
+          {
+            "input": "Etc/Zulu",
+            "canonical_zone": "Etc/UTC"
+          },
+          {
+            "input": "Etc/UTC",
+            "canonical_zone": "Etc/UTC"
+          },
+          {
+            "input": "GMT",
+            "canonical_zone": "Etc/GMT"
+          },
+          {
+            "input": "Etc/GMT",
+            "canonical_zone": "Etc/GMT"
+          },
+          {
+            "input": "Asia/Calcutta",
+            "canonical_zone": "Asia/Kolkata"
+          },
+          {
+            "input": "Asia/Rangoon",
+            "canonical_zone": "Asia/Yangon"
+          },
+          {
+            "input": "Asia/Saigon",
+            "canonical_zone": "Asia/Ho_Chi_Minh"
+          },
+          {
+            "input": "Europe/Kiev",
+            "canonical_zone": "Europe/Kyiv"
+          },
+          {
+            "input": "America/Buenos_Aires",
+            "canonical_zone": "America/Argentina/Buenos_Aires"
+          }
+        ]
+      },
+      {
+        "tzdb_version": "2025b",
+        "status": "active",
+        "notes": "Appended release; schedules pinned to it expand with its rules only. Its required_normalizations is identical to 2025a because no listed Link target changed between the two releases.",
+        "required_normalizations": [
+          {
+            "input": "UTC",
+            "canonical_zone": "Etc/UTC"
+          },
+          {
+            "input": "Universal",
+            "canonical_zone": "Etc/UTC"
+          },
+          {
+            "input": "Zulu",
+            "canonical_zone": "Etc/UTC"
+          },
+          {
+            "input": "Etc/Universal",
+            "canonical_zone": "Etc/UTC"
+          },
+          {
+            "input": "Etc/Zulu",
+            "canonical_zone": "Etc/UTC"
+          },
+          {
+            "input": "Etc/UTC",
+            "canonical_zone": "Etc/UTC"
+          },
+          {
+            "input": "GMT",
+            "canonical_zone": "Etc/GMT"
+          },
+          {
+            "input": "Etc/GMT",
+            "canonical_zone": "Etc/GMT"
+          },
+          {
+            "input": "Asia/Calcutta",
+            "canonical_zone": "Asia/Kolkata"
+          },
+          {
+            "input": "Asia/Rangoon",
+            "canonical_zone": "Asia/Yangon"
+          },
+          {
+            "input": "Asia/Saigon",
+            "canonical_zone": "Asia/Ho_Chi_Minh"
+          },
+          {
+            "input": "Europe/Kiev",
+            "canonical_zone": "Europe/Kyiv"
+          },
+          {
+            "input": "America/Buenos_Aires",
+            "canonical_zone": "America/Argentina/Buenos_Aires"
+          }
+        ]
+      }
+    ]
   }
 }

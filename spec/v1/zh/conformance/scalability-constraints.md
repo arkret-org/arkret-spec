@@ -147,7 +147,10 @@ CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 
 | 单个 View projection page | 1,000 items | View cursor MUST 绑定 authorization context 和 frontier。 |
 | rank 长度 | 128 chars | 超过时 MUST reject，见 `encoding.md`。 |
 | 单个 Calendar Event attendees 数 | 1,000 | 超过时 MUST reject 或要求拆分会议 / 日程实例；attendees 必须按 actor / handle / resource key 去重。 |
-| 单次 recurrence expansion 返回 occurrence 数 | 10,000 | 超过时 MUST paginate、截断为带 cursor 的 page，或返回 `limit_exceeded`；不得无界展开 RRULE。 |
+| 单次 recurrence expansion 返回 occurrence 数 | 10,000 | 超过时 MUST paginate、截断为带 cursor 的 page，或返回 `limit_exceeded`；不得无界展开 RRULE。每次展开还 MUST 携带有限 `[range_start, range_end)`。 |
+| 单次 recurrence expansion 扫描的 candidate period 数 | 100,000 | 只返回条数不足以封顶 CPU：永不命中 `by_*` filter 的规则会在有限返回数下无界扫描。预算耗尽时 MUST 返回带 continuation 的 `limit_exceeded` 或 partial result，不得继续扫描。 |
+| recurrence expansion continuation 的有效基线 | schedule revision + `tzdb_version` + range + 排序键 | continuation MUST 绑定这四项；任一改变后旧 cursor MUST 以 `invalid_cursor` 失效，不得在新 schedule 上续跑。见 [`../models/calendar-event.md` §4.3](../models/calendar-event.md)。 |
+| 单条 RSVP `entry.schedule_basis_refs` 数 | 128 | 与本表 `causal_refs` 上限同源：basis MUST 是 `causal_refs[]` 的子集，因此不可能更大。wire 上真的携带超过 128 项时由 schema `maxItems` 以 `schema_violation` 在 ingress 拒绝；authoring client 观察到的 schedule frontier 本身超过 128 时 MUST 以 `schedule_frontier_too_large` 在本地 fail closed，先经 schedule resolution 收敛；两种情形都不得截断 basis 或只列部分 head。见 [`../models/calendar-event.md` §8.1](../models/calendar-event.md)。 |
 | 单个 File Transfer `recipient_device_ids` 数 | 1,000 | 超过时 MUST reject 或拆分 transfer；每个 device key wrap 必须保持独立可验证。 |
 | 单个 call 的 effective roster 数 | 1,000 | 接受会使 `ak.component.call.roster.v1` effective OR-Set 超过上限的 join MUST reject（`schema_violation`）；每条 `ak.call.state` 只携带一个 `roster_delta`。见 [call-state.md](../crypto-media/call-state.md) §4.1。 |
 | `ring_timeout_ms` / `scheduled_start_grace_ms` / `connecting_timeout_ms` | 60,000 / 300,000 / 120,000 ms（默认且最大） | 见 [call-state.md](../crypto-media/call-state.md) §4.2；超时由 focus / token issuer / Principal Server 基于当前 accepted head 显式推进，不能由本地计时器直接改写 reducer。 |

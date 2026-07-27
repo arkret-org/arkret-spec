@@ -1,0 +1,108 @@
+{
+  "suite": "calendar_notification_dispatch_conformance",
+  "fixture_kind": "schema_and_semantic",
+  "profile": "ak.profile.calendar_notification_dispatch.v1",
+  "covers_vectors": [
+    "ak.vector.calendar.notification.v1"
+  ],
+  "version": "2026-07-27",
+  "spec_anchor": "spec/v1/zh/models/calendar-event.md#10-schedule-notification",
+  "source_refs": [
+    "spec/v1/zh/models/calendar-event.md",
+    "spec/v1/zh/models/private-objects.md",
+    "spec/v1/artifacts/fixtures/calendar-notification-fixture.json",
+    "spec/v1/artifacts/profiles/conformance-profiles.json#profile_requirements"
+  ],
+  "description": "Server-side schedule notification derivation for ak.profile.calendar_notification_dispatch.v1: one notification per patch per receiver, the pre/post roster union candidate set filtered before generation, the blind-wakeup path for encrypted schedules, and the rule that RSVP writes derive no schedule notification. It deliberately excludes the client authoring, recurrence and RSVP vectors so that requiring this fixture does not pull the client vector closure into a server profile.",
+  "runner": {
+    "kind": "json_schema_and_semantic_cases",
+    "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "schema_assertion_fields": [
+      "schema_ref",
+      "expect_valid",
+      "instance"
+    ],
+    "semantic_assertion_fields": [
+      "semantic_outcome",
+      "expected_reason_code",
+      "expected_projection"
+    ]
+  },
+  "schema_validation_cases": [
+    {
+      "name": "notification_service_declares_executable_tzdb_versions",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:calendar_tzdb_versions",
+      "instance": {
+        "service_id": "did:webvh:z6mkfixture:server-alpha.example",
+        "trust_domain": "ak:trust_domain:example.test",
+        "service_kind": "principal_server",
+        "protocol_version": "1.0",
+        "supported_profiles": [
+          "ak.profile.calendar_notification_dispatch.v1"
+        ],
+        "supported_operations": [
+          "ak.server.query.describe",
+          "ak.self.events.query.scan"
+        ],
+        "supported_bindings": [
+          {
+            "kind": "http"
+          }
+        ],
+        "supported_features": [],
+        "auth_metadata": {},
+        "limits": {},
+        "plaintext_visibility": {},
+        "implemented_features": [],
+        "claimed_profiles": [
+          {
+            "profile_id": "ak.profile.calendar_notification_dispatch.v1",
+            "claim_kind": "self_claimed"
+          }
+        ],
+        "verified_profiles": [],
+        "experimental_features": [],
+        "compat_surfaces": [],
+        "development_mode": false
+      }
+    }
+  ],
+  "semantic_cases": [
+    {
+      "name": "notification_single_notification_per_patch",
+      "vector_id": "ak.vector.calendar.notification.v1",
+      "precondition": "one ak.strand.update changes start, end and location together",
+      "action": "derive schedule notifications",
+      "semantic_outcome": "accept",
+      "expected_projection": "exactly one notification_kind=schedule per receiver, deduplicated on (actor_id, source_event_id, notification_kind)"
+    },
+    {
+      "name": "notification_receiver_set_is_pre_and_post_roster",
+      "vector_id": "ak.vector.calendar.notification.v1",
+      "precondition": "a patch removes one attendee and adds another",
+      "action": "derive the receiver candidate set",
+      "semantic_outcome": "accept",
+      "expected_projection": "candidates are pre_state.attendees union post_state.attendees union assigned_to union watch_all, then filtered by post-state access, mute, DND and push rules before generation"
+    },
+    {
+      "name": "notification_encrypted_schedule_uses_blind_wakeup",
+      "vector_id": "ak.vector.calendar.notification.v1",
+      "precondition": "schedule metadata is encrypted and the server cannot read attendees",
+      "action": "derive notifications",
+      "semantic_outcome": "accept",
+      "expected_projection": "the server emits only the profile-defined blind wakeup over visible assigned and watch relations, never a verified schedule notification, and never widens decryption"
+    },
+    {
+      "name": "notification_rsvp_change_does_not_emit_schedule_notification",
+      "vector_id": "ak.vector.calendar.notification.v1",
+      "precondition": "an accepted ak.rsvp.set",
+      "action": "derive schedule notifications",
+      "semantic_outcome": "accept",
+      "expected_projection": "no notification_kind=schedule is produced; RSVP state surfaces through the RSVP projection"
+    }
+  ]
+}

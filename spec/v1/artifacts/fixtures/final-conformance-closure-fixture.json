@@ -169,7 +169,8 @@
         "instance_key_uses_event_timezone_local_wall_clock",
         "non_all_day_key_uses_iana_zone_suffix",
         "all_day_key_uses_local_date",
-        "same_series_instance_converges_to_same_key"
+        "same_series_instance_converges_to_same_key",
+        "duplicate_noop_requires_byte_equal_entry"
       ],
       "timezone": "America/New_York",
       "occurrences": [
@@ -202,16 +203,31 @@
         {
           "actor": "did:webvh:z6mkfixture:bob.example",
           "occurrence_key": "2026-03-08T09:00:00[America/New_York]",
-          "status": "accepted"
+          "entry": {
+            "schedule_basis_refs": [
+              "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+            ],
+            "response": {
+              "status": "accepted"
+            }
+          }
         },
         {
           "actor": "did:webvh:z6mkfixture:bob.example",
           "occurrence_key": "2026-03-08T09:00:00[America/New_York]",
-          "status": "accepted"
+          "entry": {
+            "schedule_basis_refs": [
+              "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+            ],
+            "response": {
+              "status": "accepted"
+            }
+          }
         }
       ],
       "expected": {
-        "duplicate_same_status_noop": true
+        "duplicate_byte_equal_entry_noop": true,
+        "note": "The value-level no-op condition is byte equality of the whole entry, not equality of status alone; differing basis or ciphertext yields distinct heads."
       }
     },
     {

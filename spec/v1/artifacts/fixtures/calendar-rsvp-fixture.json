@@ -1,0 +1,1470 @@
+{
+  "suite": "calendar_rsvp_conformance",
+  "fixture_kind": "schema_and_semantic",
+  "profile": "ak.profile.calendar_event.v1",
+  "covers_vectors": [
+    "ak.vector.calendar.profile_activation.v1",
+    "ak.vector.calendar.schedule_shape.v1",
+    "ak.vector.calendar.recurrence_expansion.v1",
+    "ak.vector.calendar.recurrence_dst.v1",
+    "ak.vector.calendar.tzdb_identity.v1",
+    "ak.vector.calendar.recurrence_unsupported.v1",
+    "ak.vector.calendar.schedule_revision.v1",
+    "ak.vector.calendar.rsvp_effect_projection.v1",
+    "ak.vector.calendar.rsvp_effective_projection.v1",
+    "ak.vector.calendar.rsvp_admission.v1",
+    "ak.vector.calendar.attendee_roster.v1",
+    "ak.vector.calendar.rsvp_privacy.v1"
+  ],
+  "version": "2026-07-27",
+  "spec_anchor": "spec/v1/zh/models/calendar-event.md#1-模型与激活",
+  "source_refs": [
+    "spec/v1/zh/models/calendar-event.md",
+    "spec/v1/artifacts/schemas/calendar-event.schema.json",
+    "spec/v1/artifacts/schemas/strand.schema.json",
+    "spec/v1/artifacts/schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
+    "spec/v1/artifacts/registry/calendar-timezone-registry.json",
+    "spec/v1/artifacts/profiles/conformance-profiles.json#profile_requirements"
+  ],
+  "description": "Schema and semantic vectors for the calendar-event Strand profile: single canonical schema activation, half-open all-day and timed intervals on signed local anchors, the RFC 8984 recurrence subset with its implicit defaults and rejected members, TZDB identity, schedule revision frontier and basis binding, complete RSVP entry effect projection, series/instance effective projection, RSVP admission, attendee roster invariants, and the RSVP response privacy branches. Server-side schedule notification derivation is carried by calendar-notification-fixture.json so the client and server profiles do not inherit each other vector closure.",
+  "runner": {
+    "kind": "json_schema_and_semantic_cases",
+    "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "schema_assertion_fields": [
+      "schema_ref",
+      "expect_valid",
+      "instance"
+    ],
+    "semantic_assertion_fields": [
+      "semantic_outcome",
+      "expected_reason_code",
+      "expected_projection"
+    ]
+  },
+  "schema_validation_cases": [
+    {
+      "name": "activation_schema_ref_with_calendar_subtree_valid",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "id": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "schema_refs": [
+          "ak.schema.calendar_event.v1"
+        ],
+        "metadata": {
+          "title": "Weekly sync",
+          "fields": {
+            "calendar": {
+              "start": "2026-06-22T09:00:00",
+              "end": "2026-06-22T10:00:00",
+              "timezone": "America/Los_Angeles",
+              "tzdb_version": "2025a",
+              "all_day": false,
+              "status": "confirmed"
+            }
+          }
+        },
+        "tracks": {
+          "synthesis": {
+            "enabled": true,
+            "is_primary": true
+          }
+        },
+        "created_by": "did:webvh:z6mkfixture:alice.example",
+        "created_at": "2026-06-01T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "activation_schema_ref_without_calendar_subtree_rejected",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "calendar_activation_mismatch",
+      "first_expected_error": "contains:'fields' is a required property",
+      "instance": {
+        "id": "ak:strand:0196419b-0000-7000-8000-000000000202",
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "schema_refs": [
+          "ak.schema.calendar_event.v1"
+        ],
+        "metadata": {
+          "title": "Weekly sync"
+        },
+        "tracks": {
+          "synthesis": {
+            "enabled": true,
+            "is_primary": true
+          }
+        },
+        "created_by": "did:webvh:z6mkfixture:alice.example",
+        "created_at": "2026-06-01T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "activation_calendar_subtree_without_schema_ref_rejected",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "calendar_activation_mismatch",
+      "first_expected_error": "contains:schema_refs",
+      "instance": {
+        "id": "ak:strand:0196419b-0000-7000-8000-000000000203",
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "metadata": {
+          "fields": {
+            "calendar": {
+              "start": "2026-06-22T09:00:00",
+              "end": "2026-06-22T10:00:00",
+              "timezone": "America/Los_Angeles",
+              "tzdb_version": "2025a",
+              "all_day": false,
+              "status": "confirmed"
+            }
+          }
+        },
+        "tracks": {
+          "synthesis": {
+            "enabled": true,
+            "is_primary": true
+          }
+        },
+        "created_by": "did:webvh:z6mkfixture:alice.example",
+        "created_at": "2026-06-01T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "activation_container_self_schema_in_schema_refs_rejected",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:ak.schema.strand.v1",
+      "instance": {
+        "id": "ak:strand:0196419b-0000-7000-8000-000000000204",
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "schema_refs": [
+          "ak.schema.strand.v1"
+        ],
+        "tracks": {
+          "synthesis": {
+            "enabled": true,
+            "is_primary": true
+          }
+        },
+        "created_by": "did:webvh:z6mkfixture:alice.example",
+        "created_at": "2026-06-01T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "activation_metadata_fields_profile_impostor_rejected",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:should not be valid under",
+      "instance": {
+        "id": "ak:strand:0196419b-0000-7000-8000-000000000205",
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "metadata": {
+          "fields": {
+            "profile": "ak.profile.calendar_event.v1"
+          }
+        },
+        "tracks": {
+          "synthesis": {
+            "enabled": true,
+            "is_primary": true
+          }
+        },
+        "created_by": "did:webvh:z6mkfixture:alice.example",
+        "created_at": "2026-06-01T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "activation_legacy_flat_schedule_field_rejected",
+      "schema_ref": "schemas/strand.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:should not be valid under",
+      "instance": {
+        "id": "ak:strand:0196419b-0000-7000-8000-000000000206",
+        "schema": "ak.schema.strand.v1",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "metadata": {
+          "fields": {
+            "start": "2026-06-22T09:00:00",
+            "end": "2026-06-22T10:00:00"
+          }
+        },
+        "tracks": {
+          "synthesis": {
+            "enabled": true,
+            "is_primary": true
+          }
+        },
+        "created_by": "did:webvh:z6mkfixture:alice.example",
+        "created_at": "2026-06-01T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "schedule_shape_all_day_half_open_interval_valid",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "start": "2026-06-22",
+        "end": "2026-06-23",
+        "timezone": "Asia/Shanghai",
+        "tzdb_version": "2025a",
+        "all_day": true,
+        "status": "confirmed"
+      }
+    },
+    {
+      "name": "schedule_shape_all_day_with_timed_end_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:end",
+      "instance": {
+        "start": "2026-06-22",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "Asia/Shanghai",
+        "tzdb_version": "2025a",
+        "all_day": true,
+        "status": "confirmed"
+      }
+    },
+    {
+      "name": "schedule_shape_timed_with_utc_timestamp_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "instance": {
+        "start": "2026-06-22T16:00:00.000Z",
+        "end": "2026-06-22T17:00:00.000Z",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false,
+        "status": "confirmed"
+      }
+    },
+    {
+      "name": "schedule_shape_timed_with_utc_offset_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "instance": {
+        "start": "2026-06-22T09:00:00-07:00",
+        "end": "2026-06-22T10:00:00-07:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false,
+        "status": "confirmed"
+      }
+    },
+    {
+      "name": "schedule_shape_timed_with_fractional_seconds_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:start",
+      "instance": {
+        "start": "2026-06-22T09:00:00.000",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false,
+        "status": "confirmed"
+      }
+    },
+    {
+      "name": "schedule_shape_missing_status_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:'status' is a required property",
+      "instance": {
+        "start": "2026-06-22T09:00:00",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false
+      }
+    },
+    {
+      "name": "tzdb_identity_missing_tzdb_version_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:'tzdb_version' is a required property",
+      "instance": {
+        "start": "2026-06-22T09:00:00",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "all_day": false,
+        "status": "confirmed"
+      }
+    },
+    {
+      "name": "tzdb_identity_malformed_release_tag_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:tzdb_version",
+      "instance": {
+        "start": "2026-06-22T09:00:00",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025",
+        "all_day": false,
+        "status": "confirmed"
+      }
+    },
+    {
+      "name": "recurrence_expansion_weekly_defaults_valid",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "start": "2026-06-22T09:00:00",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false,
+        "status": "confirmed",
+        "recurrence": {
+          "frequency": "weekly",
+          "count": 10
+        }
+      }
+    },
+    {
+      "name": "recurrence_expansion_count_and_until_together_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:recurrence",
+      "instance": {
+        "start": "2026-06-22T09:00:00",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false,
+        "status": "confirmed",
+        "recurrence": {
+          "frequency": "weekly",
+          "count": 10,
+          "until": "2026-12-31T09:00:00"
+        }
+      }
+    },
+    {
+      "name": "recurrence_expansion_empty_by_day_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:by_day",
+      "instance": {
+        "start": "2026-06-22T09:00:00",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false,
+        "status": "confirmed",
+        "recurrence": {
+          "frequency": "weekly",
+          "by_day": []
+        }
+      }
+    },
+    {
+      "name": "recurrence_expansion_weekly_with_by_month_day_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:recurrence",
+      "instance": {
+        "start": "2026-06-22T09:00:00",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false,
+        "status": "confirmed",
+        "recurrence": {
+          "frequency": "weekly",
+          "by_month_day": [
+            15
+          ]
+        }
+      }
+    },
+    {
+      "name": "recurrence_expansion_daily_with_nth_of_period_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:nth_of_period",
+      "instance": {
+        "start": "2026-06-22T09:00:00",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false,
+        "status": "confirmed",
+        "recurrence": {
+          "frequency": "daily",
+          "by_day": [
+            {
+              "day": "mo",
+              "nth_of_period": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "recurrence_expansion_by_set_position_without_companion_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:recurrence",
+      "instance": {
+        "start": "2026-06-22T09:00:00",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false,
+        "status": "confirmed",
+        "recurrence": {
+          "frequency": "monthly",
+          "by_set_position": [
+            -1
+          ]
+        }
+      }
+    },
+    {
+      "name": "recurrence_expansion_monthly_nth_of_period_with_set_position_valid",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "start": "2026-06-22T09:00:00",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false,
+        "status": "confirmed",
+        "recurrence": {
+          "frequency": "monthly",
+          "by_day": [
+            {
+              "day": "fr",
+              "nth_of_period": -1
+            }
+          ],
+          "by_set_position": [
+            -1
+          ],
+          "until": "2026-12-31T09:00:00"
+        }
+      }
+    },
+    {
+      "name": "recurrence_all_day_until_is_a_date_valid",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "start": "2026-06-22",
+        "end": "2026-06-23",
+        "timezone": "Asia/Shanghai",
+        "tzdb_version": "2025a",
+        "all_day": true,
+        "status": "confirmed",
+        "recurrence": {
+          "frequency": "weekly",
+          "until": "2026-12-31"
+        }
+      }
+    },
+    {
+      "name": "recurrence_all_day_until_as_local_date_time_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:until",
+      "instance": {
+        "start": "2026-06-22",
+        "end": "2026-06-23",
+        "timezone": "Asia/Shanghai",
+        "tzdb_version": "2025a",
+        "all_day": true,
+        "status": "confirmed",
+        "recurrence": {
+          "frequency": "weekly",
+          "until": "2026-12-31T00:00:00"
+        }
+      }
+    },
+    {
+      "name": "recurrence_timed_until_with_fraction_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:until",
+      "instance": {
+        "start": "2026-06-22T09:00:00",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false,
+        "status": "confirmed",
+        "recurrence": {
+          "frequency": "weekly",
+          "until": "2026-12-31T09:00:00.000"
+        }
+      }
+    },
+    {
+      "name": "recurrence_unsupported_override_member_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:recurrence_overrides",
+      "instance": {
+        "start": "2026-06-22T09:00:00",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false,
+        "status": "confirmed",
+        "recurrence": {
+          "frequency": "weekly",
+          "recurrence_overrides": {
+            "2026-06-29T09:00:00": {
+              "start": "2026-06-29T10:00:00"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "recurrence_unsupported_jscalendar_type_member_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:@type",
+      "instance": {
+        "start": "2026-06-22T09:00:00",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false,
+        "status": "confirmed",
+        "recurrence": {
+          "@type": "RecurrenceRule",
+          "frequency": "weekly"
+        }
+      }
+    },
+    {
+      "name": "attendee_roster_single_organizer_valid",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "start": "2026-06-22T09:00:00",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false,
+        "status": "confirmed",
+        "attendees": [
+          {
+            "actor_id": "did:webvh:z6mkfixture:alice.example",
+            "role": "organizer",
+            "display_name_snapshot": "Alice"
+          },
+          {
+            "actor_id": "did:webvh:z6mkfixture:bob.example"
+          }
+        ]
+      }
+    },
+    {
+      "name": "attendee_roster_two_organizers_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:attendees",
+      "instance": {
+        "start": "2026-06-22T09:00:00",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false,
+        "status": "confirmed",
+        "attendees": [
+          {
+            "actor_id": "did:webvh:z6mkfixture:alice.example",
+            "role": "organizer"
+          },
+          {
+            "actor_id": "did:webvh:z6mkfixture:bob.example",
+            "role": "organizer"
+          }
+        ]
+      }
+    },
+    {
+      "name": "rsvp_privacy_encrypted_response_series_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "occurrence": null,
+        "entry": {
+          "schedule_basis_refs": [
+            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          ],
+          "encrypted_response": {
+            "scheme": "mls_rfc9420",
+            "version": "1.0",
+            "group_id": "Zm9vYmFy",
+            "epoch": 7,
+            "content_type": "application/vnd.arkret.calendar-rsvp-response+json",
+            "ciphertext": "rsvpAlpha",
+            "aad_visibility_event_id": "routing_digest",
+            "aad": {
+              "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+              "event_kind": "ak.rsvp.set",
+              "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+            },
+            "key_ref": {
+              "algorithm": "MLS",
+              "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
+            },
+            "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+            "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+          }
+        }
+      }
+    },
+    {
+      "name": "rsvp_privacy_plaintext_response_instance_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "occurrence": "2026-06-22T09:00:00[America/Los_Angeles]",
+        "entry": {
+          "schedule_basis_refs": [
+            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          ],
+          "response": {
+            "status": "accepted",
+            "comment": "Joining from the Seattle office."
+          }
+        }
+      }
+    },
+    {
+      "name": "rsvp_privacy_both_response_branches_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:entry",
+      "instance": {
+        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "occurrence": null,
+        "entry": {
+          "schedule_basis_refs": [
+            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          ],
+          "response": {
+            "status": "accepted"
+          },
+          "encrypted_response": {
+            "scheme": "mls_rfc9420",
+            "version": "1.0",
+            "group_id": "Zm9vYmFy",
+            "epoch": 7,
+            "content_type": "application/vnd.arkret.calendar-rsvp-response+json",
+            "ciphertext": "rsvpAlpha",
+            "aad_visibility_event_id": "routing_digest",
+            "aad": {
+              "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+              "event_kind": "ak.rsvp.set",
+              "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+            },
+            "key_ref": {
+              "algorithm": "MLS",
+              "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
+            },
+            "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+            "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+          }
+        }
+      }
+    },
+    {
+      "name": "rsvp_privacy_legacy_flat_status_payload_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:'entry' is a required property",
+      "instance": {
+        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "occurrence": null,
+        "status": "accepted"
+      }
+    },
+    {
+      "name": "rsvp_effect_projection_empty_basis_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "rsvp_basis_not_causal",
+      "first_expected_error": "contains:schedule_basis_refs",
+      "instance": {
+        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "occurrence": null,
+        "entry": {
+          "schedule_basis_refs": [],
+          "response": {
+            "status": "accepted"
+          }
+        }
+      }
+    },
+    {
+      "name": "rsvp_effect_projection_duplicate_basis_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "rsvp_basis_not_causal",
+      "first_expected_error": "contains:schedule_basis_refs",
+      "instance": {
+        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "occurrence": null,
+        "entry": {
+          "schedule_basis_refs": [
+            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          ],
+          "response": {
+            "status": "accepted"
+          }
+        }
+      }
+    },
+    {
+      "name": "rsvp_admission_non_canonical_occurrence_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "rsvp_occurrence_not_canonical",
+      "first_expected_error": "contains:occurrence",
+      "instance": {
+        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "occurrence": "2026-06-22T16:00:00.000Z",
+        "entry": {
+          "schedule_basis_refs": [
+            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          ],
+          "response": {
+            "status": "accepted"
+          }
+        }
+      }
+    },
+    {
+      "name": "rsvp_admission_invalid_all_day_gregorian_date_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "rsvp_occurrence_not_canonical",
+      "first_expected_error": "contains:occurrence",
+      "instance": {
+        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "occurrence": "2026-02-30",
+        "entry": {
+          "schedule_basis_refs": [
+            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          ],
+          "response": {
+            "status": "accepted"
+          }
+        }
+      }
+    },
+    {
+      "name": "rsvp_admission_series_sentinel_string_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "rsvp_occurrence_not_canonical",
+      "first_expected_error": "contains:occurrence",
+      "instance": {
+        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "occurrence": "series",
+        "entry": {
+          "schedule_basis_refs": [
+            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          ],
+          "response": {
+            "status": "accepted"
+          }
+        }
+      }
+    },
+    {
+      "name": "rsvp_effective_projection_empty_comment_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_response",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:comment",
+      "instance": {
+        "status": "tentative",
+        "comment": ""
+      }
+    },
+    {
+      "name": "schedule_shape_unknown_calendar_field_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:colour",
+      "instance": {
+        "start": "2026-06-22T09:00:00",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false,
+        "status": "confirmed",
+        "colour": "red"
+      }
+    },
+    {
+      "name": "schedule_shape_unknown_status_value_rejected",
+      "schema_ref": "schemas/calendar-event.schema.json",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:status",
+      "instance": {
+        "start": "2026-06-22T09:00:00",
+        "end": "2026-06-22T10:00:00",
+        "timezone": "America/Los_Angeles",
+        "tzdb_version": "2025a",
+        "all_day": false,
+        "status": "postponed"
+      }
+    },
+    {
+      "name": "rsvp_admission_basis_over_cap_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:schedule_basis_refs",
+      "instance": {
+        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "occurrence": null,
+        "entry": {
+          "schedule_basis_refs": [
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000001",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000002",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000003",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000004",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000005",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000006",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000007",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000008",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000009",
+            "sha256:000000000000000000000000000000000000000000000000000000000000000a",
+            "sha256:000000000000000000000000000000000000000000000000000000000000000b",
+            "sha256:000000000000000000000000000000000000000000000000000000000000000c",
+            "sha256:000000000000000000000000000000000000000000000000000000000000000d",
+            "sha256:000000000000000000000000000000000000000000000000000000000000000e",
+            "sha256:000000000000000000000000000000000000000000000000000000000000000f",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000010",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000011",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000012",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000013",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000014",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000015",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000016",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000017",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000018",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000019",
+            "sha256:000000000000000000000000000000000000000000000000000000000000001a",
+            "sha256:000000000000000000000000000000000000000000000000000000000000001b",
+            "sha256:000000000000000000000000000000000000000000000000000000000000001c",
+            "sha256:000000000000000000000000000000000000000000000000000000000000001d",
+            "sha256:000000000000000000000000000000000000000000000000000000000000001e",
+            "sha256:000000000000000000000000000000000000000000000000000000000000001f",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000020",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000021",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000022",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000023",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000024",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000025",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000026",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000027",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000028",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000029",
+            "sha256:000000000000000000000000000000000000000000000000000000000000002a",
+            "sha256:000000000000000000000000000000000000000000000000000000000000002b",
+            "sha256:000000000000000000000000000000000000000000000000000000000000002c",
+            "sha256:000000000000000000000000000000000000000000000000000000000000002d",
+            "sha256:000000000000000000000000000000000000000000000000000000000000002e",
+            "sha256:000000000000000000000000000000000000000000000000000000000000002f",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000030",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000031",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000032",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000033",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000034",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000035",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000036",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000037",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000038",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000039",
+            "sha256:000000000000000000000000000000000000000000000000000000000000003a",
+            "sha256:000000000000000000000000000000000000000000000000000000000000003b",
+            "sha256:000000000000000000000000000000000000000000000000000000000000003c",
+            "sha256:000000000000000000000000000000000000000000000000000000000000003d",
+            "sha256:000000000000000000000000000000000000000000000000000000000000003e",
+            "sha256:000000000000000000000000000000000000000000000000000000000000003f",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000040",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000041",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000042",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000043",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000044",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000045",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000046",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000047",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000048",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000049",
+            "sha256:000000000000000000000000000000000000000000000000000000000000004a",
+            "sha256:000000000000000000000000000000000000000000000000000000000000004b",
+            "sha256:000000000000000000000000000000000000000000000000000000000000004c",
+            "sha256:000000000000000000000000000000000000000000000000000000000000004d",
+            "sha256:000000000000000000000000000000000000000000000000000000000000004e",
+            "sha256:000000000000000000000000000000000000000000000000000000000000004f",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000050",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000051",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000052",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000053",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000054",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000055",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000056",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000057",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000058",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000059",
+            "sha256:000000000000000000000000000000000000000000000000000000000000005a",
+            "sha256:000000000000000000000000000000000000000000000000000000000000005b",
+            "sha256:000000000000000000000000000000000000000000000000000000000000005c",
+            "sha256:000000000000000000000000000000000000000000000000000000000000005d",
+            "sha256:000000000000000000000000000000000000000000000000000000000000005e",
+            "sha256:000000000000000000000000000000000000000000000000000000000000005f",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000060",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000061",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000062",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000063",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000064",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000065",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000066",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000067",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000068",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000069",
+            "sha256:000000000000000000000000000000000000000000000000000000000000006a",
+            "sha256:000000000000000000000000000000000000000000000000000000000000006b",
+            "sha256:000000000000000000000000000000000000000000000000000000000000006c",
+            "sha256:000000000000000000000000000000000000000000000000000000000000006d",
+            "sha256:000000000000000000000000000000000000000000000000000000000000006e",
+            "sha256:000000000000000000000000000000000000000000000000000000000000006f",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000070",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000071",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000072",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000073",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000074",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000075",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000076",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000077",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000078",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000079",
+            "sha256:000000000000000000000000000000000000000000000000000000000000007a",
+            "sha256:000000000000000000000000000000000000000000000000000000000000007b",
+            "sha256:000000000000000000000000000000000000000000000000000000000000007c",
+            "sha256:000000000000000000000000000000000000000000000000000000000000007d",
+            "sha256:000000000000000000000000000000000000000000000000000000000000007e",
+            "sha256:000000000000000000000000000000000000000000000000000000000000007f",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000080"
+          ],
+          "response": {
+            "status": "accepted"
+          }
+        }
+      },
+      "instance_note": "A wire Event carrying more than 128 basis refs is rejected by schema maxItems; schedule_frontier_too_large is the distinct authoring-side failure when the observed frontier itself exceeds the bound."
+    },
+    {
+      "name": "rsvp_admission_occurrence_without_zone_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "rsvp_occurrence_not_canonical",
+      "first_expected_error": "contains:occurrence",
+      "instance": {
+        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "occurrence": "2026-06-22T09:00:00",
+        "entry": {
+          "schedule_basis_refs": [
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+          ],
+          "response": {
+            "status": "accepted"
+          }
+        }
+      }
+    },
+    {
+      "name": "rsvp_privacy_neither_response_branch_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:entry",
+      "instance": {
+        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "occurrence": null,
+        "entry": {
+          "schedule_basis_refs": [
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+          ]
+        }
+      }
+    },
+    {
+      "name": "rsvp_privacy_encrypted_response_wrong_content_type_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "first_expected_error": "contains:application/vnd.arkret.calendar-rsvp-response+json",
+      "instance": {
+        "event_ref": "ak:strand:0196419b-0000-7000-8000-000000000201",
+        "occurrence": null,
+        "entry": {
+          "schedule_basis_refs": [
+            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          ],
+          "encrypted_response": {
+            "scheme": "mls_rfc9420",
+            "version": "1.0",
+            "group_id": "Zm9vYmFy",
+            "epoch": 7,
+            "content_type": "application/json",
+            "ciphertext": "rsvpAlpha",
+            "aad_visibility_event_id": "routing_digest",
+            "aad": {
+              "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+              "event_kind": "ak.rsvp.set",
+              "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+            },
+            "key_ref": {
+              "algorithm": "MLS",
+              "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
+            },
+            "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+            "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+          }
+        }
+      }
+    }
+  ],
+  "semantic_cases": [
+    {
+      "name": "activation_removing_schema_ref_but_keeping_subtree_rejected",
+      "vector_id": "ak.vector.calendar.profile_activation.v1",
+      "precondition": "Strand carries ak.schema.calendar_event.v1 and metadata.fields.calendar",
+      "action": "ak.strand.update removes only the schema ref",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "calendar_activation_mismatch"
+    },
+    {
+      "name": "activation_write_without_requirements_schema_binding_rejected",
+      "vector_id": "ak.vector.calendar.profile_activation.v1",
+      "precondition": "target Strand activates the calendar schema",
+      "action": "ak.strand.update writes metadata.fields.calendar without listing ak.schema.calendar_event.v1 in requirements.schema[]",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation"
+    },
+    {
+      "name": "schedule_shape_end_not_after_start_rejected",
+      "vector_id": "ak.vector.calendar.schedule_shape.v1",
+      "precondition": "all_day=true single-day event authored as end equal to start",
+      "action": "ak.strand.create with start=2026-06-22 and end=2026-06-22",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation"
+    },
+    {
+      "name": "recurrence_expansion_base_start_is_first_occurrence",
+      "vector_id": "ak.vector.calendar.recurrence_expansion.v1",
+      "precondition": "weekly recurrence whose by_day does not contain the base weekday",
+      "action": "expand [start, start+8 weeks) with limit 100",
+      "semantic_outcome": "accept",
+      "expected_projection": "base start is emitted first and consumes one count unit; the remaining occurrences follow by_day"
+    },
+    {
+      "name": "recurrence_expansion_scan_budget_returns_continuation",
+      "vector_id": "ak.vector.calendar.recurrence_expansion.v1",
+      "precondition": "rule that matches no candidate period inside the requested range",
+      "action": "expand with the registered candidate-period scan budget",
+      "semantic_outcome": "accept",
+      "expected_projection": "limit_exceeded with a continuation bound to schedule revision, tzdb_version, range and sort key"
+    },
+    {
+      "name": "recurrence_expansion_continuation_invalid_after_schedule_change",
+      "vector_id": "ak.vector.calendar.recurrence_expansion.v1",
+      "precondition": "a continuation issued against schedule revision R1",
+      "action": "resume expansion after an accepted schedule revision R2",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "invalid_cursor"
+    },
+    {
+      "name": "recurrence_dst_gap_uses_pre_transition_offset",
+      "vector_id": "ak.vector.calendar.recurrence_dst.v1",
+      "precondition": "daily 02:30 local event in America/Los_Angeles crossing the spring-forward gap",
+      "action": "expand across the transition",
+      "semantic_outcome": "accept",
+      "expected_projection": "the nonexistent local time resolves with the offset in effect before the transition; the local wall-clock key stays 02:30 and does not drift"
+    },
+    {
+      "name": "recurrence_dst_fold_uses_pre_transition_offset",
+      "vector_id": "ak.vector.calendar.recurrence_dst.v1",
+      "precondition": "daily 01:30 local event in America/Los_Angeles crossing the fall-back overlap",
+      "action": "expand across the transition",
+      "semantic_outcome": "accept",
+      "expected_projection": "the ambiguous local time resolves with the offset in effect before the transition, and exactly one occurrence is emitted"
+    },
+    {
+      "name": "tzdb_identity_alias_must_be_canonicalized_before_signing",
+      "vector_id": "ak.vector.calendar.tzdb_identity.v1",
+      "precondition": "producer input timezone is the UTC alias",
+      "action": "ak.strand.create carrying timezone=UTC on the wire",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation"
+    },
+    {
+      "name": "tzdb_identity_unknown_release_fails_closed",
+      "vector_id": "ak.vector.calendar.tzdb_identity.v1",
+      "precondition": "schedule pins a tzdb_version outside ServiceDescribe.calendar_tzdb_versions",
+      "action": "derive occurrence instants",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "calendar_tzdb_mismatch"
+    },
+    {
+      "name": "tzdb_identity_version_bump_preserves_local_keys",
+      "vector_id": "ak.vector.calendar.tzdb_identity.v1",
+      "precondition": "schedule updated from one release to a later release",
+      "action": "recompute the projection",
+      "semantic_outcome": "accept",
+      "expected_projection": "local occurrence keys and the signed timezone are unchanged; only derived instants may move, and any moved instant marks affected RSVPs needs_reconfirmation"
+    },
+    {
+      "name": "recurrence_unsupported_rdate_exdate_fail_closed",
+      "vector_id": "ak.vector.calendar.recurrence_unsupported.v1",
+      "precondition": "client attempts per-instance reschedule or cancellation",
+      "action": "author RDATE / EXDATE style members",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "unsupported_feature"
+    },
+    {
+      "name": "schedule_revision_identity_edit_orphans_instance_rsvp",
+      "vector_id": "ak.vector.calendar.schedule_revision.v1",
+      "precondition": "instance RSVP exists for a timed occurrence",
+      "action": "organizer patches calendar.start",
+      "semantic_outcome": "accept",
+      "expected_projection": "the old instance RSVP is retained for audit and marked stale_orphaned; it is never migrated to the new key, while series RSVPs are marked needs_reconfirmation"
+    },
+    {
+      "name": "schedule_revision_concurrent_heads_block_rsvp",
+      "vector_id": "ak.vector.calendar.schedule_revision.v1",
+      "precondition": "two concurrent accepted schedule updates produce different canonical calendar bytes; the authoring client can decrypt and sees conflict",
+      "action": "authoring client attempts to construct ak.rsvp.set before a schedule resolution Event",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "calendar_schedule_unsettled",
+      "expected_projection": "the refusal happens client-side because settledness needs schedule plaintext; a server MUST NOT gate admission on it, so an e2ee and a plaintext server accept the identical set"
+    },
+    {
+      "name": "schedule_revision_equal_value_heads_are_settled",
+      "vector_id": "ak.vector.calendar.schedule_revision.v1",
+      "precondition": "two concurrent heads decrypt to identical canonical calendar bytes",
+      "action": "compute schedule_resolution_state",
+      "semantic_outcome": "accept",
+      "expected_projection": "state is settled and both canonical heads remain listed in schedule_revision_heads[]"
+    },
+    {
+      "name": "schedule_revision_non_calendar_update_is_not_a_revision",
+      "vector_id": "ak.vector.calendar.schedule_revision.v1",
+      "precondition": "an ak.strand.update that only changes metadata.title",
+      "action": "recompute the schedule revision frontier",
+      "semantic_outcome": "accept",
+      "expected_projection": "the frontier is unchanged and previously authored RSVP basis values stay current"
+    },
+    {
+      "name": "rsvp_effect_projection_value_must_equal_payload_entry",
+      "vector_id": "ak.vector.calendar.rsvp_effect_projection.v1",
+      "precondition": "registry declares effect_projection set(payload.entry)",
+      "action": "submit ak.rsvp.set whose effects[0].op.value differs from payload.entry",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "effects_payload_mismatch"
+    },
+    {
+      "name": "rsvp_effect_projection_missing_effect_rejected",
+      "vector_id": "ak.vector.calendar.rsvp_effect_projection.v1",
+      "precondition": "registry declares exactly one cell write for ak.rsvp.set",
+      "action": "submit ak.rsvp.set with effects=[]",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "effects_payload_mismatch"
+    },
+    {
+      "name": "rsvp_effective_projection_instance_overrides_series",
+      "vector_id": "ak.vector.calendar.rsvp_effective_projection.v1",
+      "precondition": "same responder has a series head and an instance head for the same occurrence",
+      "action": "compute the effective response",
+      "semantic_outcome": "accept",
+      "expected_projection": "only instance heads participate; series heads are the fallback and the two sets are never unioned into a false conflict"
+    },
+    {
+      "name": "rsvp_effective_projection_causal_successor_dominates",
+      "vector_id": "ak.vector.calendar.rsvp_effective_projection.v1",
+      "precondition": "the same responder rewrites an earlier RSVP while observing it",
+      "action": "join the mv_register cell in either arrival order",
+      "semantic_outcome": "accept",
+      "expected_projection": "one head remains and the result is independent of arrival order, HLC, created_at and event_id"
+    },
+    {
+      "name": "rsvp_effective_projection_missing_key_is_not_a_status",
+      "vector_id": "ak.vector.calendar.rsvp_effective_projection.v1",
+      "precondition": "reader lacks the scope key for an encrypted response head",
+      "action": "render the effective response",
+      "semantic_outcome": "accept",
+      "expected_projection": "the head is marked encrypted_unresolved; no status is fabricated and the head is excluded from the effective response"
+    },
+    {
+      "name": "rsvp_effective_projection_ciphertext_difference_is_not_conflict",
+      "vector_id": "ak.vector.calendar.rsvp_effective_projection.v1",
+      "precondition": "two concurrent heads whose plaintext responses and basis are identical",
+      "action": "compute resolution_state after decryption",
+      "semantic_outcome": "accept",
+      "expected_projection": "state is not conflict; the heads may merge for display while canonical heads and provenance are preserved"
+    },
+    {
+      "name": "rsvp_admission_non_attendee_with_capability_accepted",
+      "vector_id": "ak.vector.calendar.rsvp_admission.v1",
+      "precondition": "actor is absent from attendees but holds ak.rsvp.set over the exact Strand",
+      "action": "submit ak.rsvp.set",
+      "semantic_outcome": "accept",
+      "expected_projection": "attendees is schedule data, not an authorization source; the capability grant decides"
+    },
+    {
+      "name": "rsvp_admission_attendee_without_capability_rejected",
+      "vector_id": "ak.vector.calendar.rsvp_admission.v1",
+      "precondition": "actor appears in attendees but holds no capability covering the Strand",
+      "action": "submit ak.rsvp.set",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "capability_denied"
+    },
+    {
+      "name": "rsvp_admission_cancelled_event_rejected",
+      "vector_id": "ak.vector.calendar.rsvp_admission.v1",
+      "precondition": "calendar.status is cancelled; the authoring client can decrypt the schedule",
+      "action": "authoring client attempts to construct a new ak.rsvp.set",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "calendar_event_cancelled",
+      "expected_projection": "refusal is client-side for the same reason as schedule settledness; historical RSVP projection is retained and a late head is shown as a response to a cancelled event"
+    },
+    {
+      "name": "rsvp_admission_basis_outside_causal_refs_rejected",
+      "vector_id": "ak.vector.calendar.rsvp_admission.v1",
+      "precondition": "entry.schedule_basis_refs contains a digest absent from causal_refs[] (shape admission, decidable without resolving anything)",
+      "action": "submit ak.rsvp.set",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "rsvp_basis_not_causal"
+    },
+    {
+      "name": "rsvp_admission_basis_pending_dependency",
+      "vector_id": "ak.vector.calendar.rsvp_admission.v1",
+      "precondition": "basis passes shape admission but one referenced Event has not arrived",
+      "action": "submit ak.rsvp.set",
+      "semantic_outcome": "defer",
+      "expected_projection": "target admission only reads the referenced Events plaintext envelope; the RSVP stays pending until they arrive and is never accepted as if the basis resolved",
+      "expected_reason_code": "dependency_missing"
+    },
+    {
+      "name": "rsvp_admission_frontier_over_cap_fails_closed",
+      "vector_id": "ak.vector.calendar.rsvp_admission.v1",
+      "precondition": "observed schedule frontier exceeds 128 heads",
+      "action": "authoring client tries to build entry.schedule_basis_refs from the observed frontier",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schedule_frontier_too_large",
+      "expected_projection": "the client fails closed locally; it MUST NOT truncate the basis to fit the 128 bound"
+    },
+    {
+      "name": "rsvp_admission_missing_target_is_not_an_oracle",
+      "vector_id": "ak.vector.calendar.rsvp_admission.v1",
+      "precondition": "event_ref is absent, invisible, cross-Realm, or not a calendar Strand",
+      "action": "submit ak.rsvp.set",
+      "semantic_outcome": "reject",
+      "expected_projection": "all four inputs produce the same externally visible error under the existing anti-enumeration policy; internal reason codes may differ"
+    },
+    {
+      "name": "attendee_roster_duplicate_actor_rejected",
+      "vector_id": "ak.vector.calendar.attendee_roster.v1",
+      "precondition": "roster lists the same actor_id twice with different roles",
+      "action": "ak.strand.update",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation"
+    },
+    {
+      "name": "attendee_roster_does_not_widen_access",
+      "vector_id": "ak.vector.calendar.attendee_roster.v1",
+      "precondition": "an actor without Realm or Circle read access is added to attendees",
+      "action": "recompute effective access",
+      "semantic_outcome": "accept",
+      "expected_projection": "no membership is created, history access is unchanged, and the actor receives no notification or push wakeup"
+    },
+    {
+      "name": "rsvp_privacy_plaintext_branch_rejected_under_e2ee_floor",
+      "vector_id": "ak.vector.calendar.rsvp_privacy.v1",
+      "precondition": "target Strand effective scope encryption floor is e2ee_required",
+      "action": "submit ak.rsvp.set carrying entry.response in plaintext",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation"
+    },
+    {
+      "name": "rsvp_privacy_no_silent_plaintext_downgrade",
+      "vector_id": "ak.vector.calendar.rsvp_privacy.v1",
+      "precondition": "scope floor is e2ee_required but the client has no scope encryption key",
+      "action": "attempt ak.rsvp.set",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "unsupported_feature"
+    },
+    {
+      "name": "rsvp_privacy_routing_metadata_is_disclosed",
+      "vector_id": "ak.vector.calendar.rsvp_privacy.v1",
+      "precondition": "encrypted response branch",
+      "action": "enumerate service-visible RSVP metadata",
+      "semantic_outcome": "accept",
+      "expected_projection": "event_ref, occurrence, schedule_basis_refs, responder actor and ciphertext size are routing-visible and MUST appear in the privacy disclosure; status and comment are not readable"
+    },
+    {
+      "name": "rsvp_admission_basis_validity_is_projection_only",
+      "vector_id": "ak.vector.calendar.rsvp_admission.v1",
+      "precondition": "basis passes shape and target admission, but decryption later shows the referenced update did not touch the calendar subtree, or the set is not the frontier the responder observed",
+      "action": "compare the accepted set of an e2ee Realm against a plaintext Realm fed the same events",
+      "semantic_outcome": "accept",
+      "expected_projection": "both Realms accept the identical canonical set; the discrepancy surfaces only in the authorized projection as unresolved_basis or stale, so a server that happens to read plaintext MUST NOT reject what an e2ee server accepts"
+    },
+    {
+      "name": "rsvp_admission_basis_out_of_order_rejected",
+      "vector_id": "ak.vector.calendar.rsvp_admission.v1",
+      "precondition": "entry.schedule_basis_refs holds two distinct digests that are a genuine subset of causal_refs[], non-empty and deduplicated, but listed in descending byte order",
+      "action": "submit ak.rsvp.set carrying [sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb, sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "rsvp_basis_not_causal",
+      "expected_projection": "JSON Schema can only express non-empty, unique and the 128 bound, so canonical ascending byte order MUST be enforced by the reducer shape admission; accepting an unsorted basis would fork both the accepted set and the signed canonical bytes across implementations"
+    },
+    {
+      "name": "rsvp_admission_basis_sorted_ascending_accepted",
+      "vector_id": "ak.vector.calendar.rsvp_admission.v1",
+      "precondition": "the same two digests as the previous case",
+      "action": "submit ak.rsvp.set carrying [sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb]",
+      "semantic_outcome": "accept",
+      "expected_projection": "the ascending ordering is the only accepted permutation, so the pair forms an executable positive/negative couple rather than an unenforced prose rule"
+    },
+    {
+      "name": "rsvp_admission_invalid_timed_gregorian_date_rejected",
+      "vector_id": "ak.vector.calendar.rsvp_admission.v1",
+      "precondition": "payload.occurrence is 2026-02-30T09:00:00[America/Los_Angeles], which matches the timed digit pattern but contains a nonexistent Gregorian date",
+      "action": "submit ak.rsvp.set",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "rsvp_occurrence_not_canonical",
+      "expected_projection": "the receiver parses and validates the signed date component during shape admission; it MUST NOT create a cell address for a nonexistent date or defer the check until schedule decryption"
+    },
+    {
+      "name": "rsvp_privacy_plaintext_branch_requires_dual_authorization",
+      "vector_id": "ak.vector.calendar.rsvp_privacy.v1",
+      "precondition": "scope floor permits plaintext and both the Realm policy plaintext_data_class enum and the service plaintext_visibility.data_classes declare rsvp_response",
+      "action": "submit ak.rsvp.set carrying entry.response in plaintext",
+      "semantic_outcome": "accept",
+      "expected_projection": "plaintext RSVP is legal only under this combination; the Realm grant and the service declaration are two independent gates and neither alone authorizes it"
+    },
+    {
+      "name": "rsvp_privacy_plaintext_branch_realm_only_rejected",
+      "vector_id": "ak.vector.calendar.rsvp_privacy.v1",
+      "precondition": "Realm policy declares rsvp_response but the receiving service does not",
+      "action": "submit ak.rsvp.set carrying entry.response in plaintext",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "unsupported_feature",
+      "expected_projection": "the service has no declared plaintext data class for this payload path and MUST NOT read it"
+    },
+    {
+      "name": "rsvp_privacy_plaintext_branch_service_only_rejected",
+      "vector_id": "ak.vector.calendar.rsvp_privacy.v1",
+      "precondition": "the service declares rsvp_response but the Realm policy enum does not grant it",
+      "action": "submit ak.rsvp.set carrying entry.response in plaintext",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "unsupported_feature",
+      "expected_projection": "a service declaration cannot manufacture Realm authorization; this is the combination the closure review flagged as previously unreachable"
+    },
+    {
+      "name": "rsvp_privacy_plaintext_branch_undeclared_rejected",
+      "vector_id": "ak.vector.calendar.rsvp_privacy.v1",
+      "precondition": "neither side declares rsvp_response",
+      "action": "submit ak.rsvp.set carrying entry.response in plaintext",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "unsupported_feature",
+      "expected_projection": "default posture: plaintext RSVP is refused unless explicitly authorized on both axes"
+    }
+  ]
+}

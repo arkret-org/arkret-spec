@@ -2,43 +2,61 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/calendar-event.schema.json",
   "title": "Arkret Calendar Event Profile Fields",
+  "description": "Schedule subtree carried at Strand metadata.fields.calendar and activated by ak.schema.calendar_event.v1 in Strand.schema_refs. Both directions of that binding are enforced by strand.schema.json. All intervals are half-open [start, end). Timed events carry RFC 8984 LocalDateTime wall-clock anchors resolved through timezone plus tzdb_version; this schema never carries an absolute instant.",
   "type": "object",
   "required": [
     "start",
     "end",
     "timezone",
-    "all_day"
+    "tzdb_version",
+    "all_day",
+    "status"
   ],
   "properties": {
     "start": {
       "oneOf": [
         {
-          "$ref": "./time.schema.json#/$defs/timestamp"
+          "$ref": "./time.schema.json#/$defs/local_date"
         },
         {
-          "type": "string",
-          "format": "date"
+          "$ref": "./time.schema.json#/$defs/local_date_time"
         }
-      ]
+      ],
+      "description": "Inclusive lower bound of the event interval, and the recurrence anchor. Narrowed to local_date when all_day is true and to local_date_time when it is false."
     },
     "end": {
       "oneOf": [
         {
-          "$ref": "./time.schema.json#/$defs/timestamp"
+          "$ref": "./time.schema.json#/$defs/local_date"
         },
         {
-          "type": "string",
-          "format": "date"
+          "$ref": "./time.schema.json#/$defs/local_date_time"
         }
-      ]
+      ],
+      "description": "Exclusive upper bound of the event interval, in the same shape as start. MUST be strictly later than start in both branches; a single all-day event spells end as the following date. JSON Schema cannot express the cross-field comparison, so reducers and profiles enforce it with schema_violation."
     },
     "timezone": {
       "type": "string",
-      "minLength": 1,
-      "description": "IANA time zone name."
+      "pattern": "^[A-Za-z][A-Za-z0-9_+-]*(?:/[A-Za-z0-9_+-]+)*$",
+      "description": "Canonical IANA Zone name in the release named by tzdb_version. Producers MUST resolve Link aliases to their canonical Zone before signing per calendar-timezone-registry.json; this pattern only constrains shape."
+    },
+    "tzdb_version": {
+      "type": "string",
+      "pattern": "^[0-9]{4}[a-z]$",
+      "description": "IANA TZDB release tag (for example 2026a) whose rules resolve timezone and every derived instant. Signed with the schedule so receivers never silently substitute their locally installed release."
     },
     "all_day": {
-      "type": "boolean"
+      "type": "boolean",
+      "description": "True selects the date branch of start/end/recurrence.until; false selects the whole-second LocalDateTime branch."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "confirmed",
+        "tentative",
+        "cancelled"
+      ],
+      "description": "Whole-event schedule status. Required with no implicit default; distinct from the generic Strand stage and state axes. cancelled rejects new RSVPs and is schedule-relevant for notification."
     },
     "recurrence": {
       "$ref": "#/$defs/recurrence"
@@ -55,7 +73,8 @@
     },
     "call_id": {
       "type": "string",
-      "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Soft reference to an Arkret call session. It never widens access: an unresolvable or invisible call_id MUST NOT leak call state."
     },
     "attendees": {
       "type": "array",
@@ -63,13 +82,90 @@
         "$ref": "#/$defs/attendee"
       },
       "uniqueItems": true,
-      "maxItems": 1000
+      "maxItems": 1000,
+      "minContains": 0,
+      "maxContains": 1,
+      "contains": {
+        "type": "object",
+        "required": [
+          "role"
+        ],
+        "properties": {
+          "role": {
+            "const": "organizer"
+          }
+        }
+      },
+      "description": "The single canonical schedule roster. Membership and invite projections are producer inputs only, never a second projection truth source. actor_id uniqueness is enforced by the reducer; at most one organizer is enforced here by maxContains."
     }
   },
   "additionalProperties": false,
+  "allOf": [
+    {
+      "$comment": "All-day branch: start, end and recurrence.until are Gregorian dates.",
+      "if": {
+        "required": [
+          "all_day"
+        ],
+        "properties": {
+          "all_day": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "start": {
+            "$ref": "./time.schema.json#/$defs/local_date"
+          },
+          "end": {
+            "$ref": "./time.schema.json#/$defs/local_date"
+          },
+          "recurrence": {
+            "properties": {
+              "until": {
+                "$ref": "./time.schema.json#/$defs/local_date"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "$comment": "Timed branch: start, end and recurrence.until are whole-second LocalDateTime values.",
+      "if": {
+        "required": [
+          "all_day"
+        ],
+        "properties": {
+          "all_day": {
+            "const": false
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "start": {
+            "$ref": "./time.schema.json#/$defs/local_date_time"
+          },
+          "end": {
+            "$ref": "./time.schema.json#/$defs/local_date_time"
+          },
+          "recurrence": {
+            "properties": {
+              "until": {
+                "$ref": "./time.schema.json#/$defs/local_date_time"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "recurrence": {
       "type": "object",
+      "description": "RFC 8984 RecurrenceRule snake_case subset. Omitted interval means 1, omitted first_day_of_week means mo, rscale is Gregorian and skip is omit; the JSCalendar @type discriminator is implied by this schema and MUST NOT appear on the wire. Unlisted RecurrenceRule members, excluded rules, overrides, RDATE and EXDATE are rejected rather than ignored.",
       "required": [
         "frequency"
       ],
@@ -89,6 +185,7 @@
         },
         "by_day": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "$ref": "#/$defs/n_day"
           },
@@ -134,9 +231,15 @@
           "maximum": 10000
         },
         "until": {
-          "type": "string",
-          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?$",
-          "description": "RFC 8984 LocalDateTime interpreted in the calendar event timezone; no UTC offset or Z suffix is allowed."
+          "oneOf": [
+            {
+              "$ref": "./time.schema.json#/$defs/local_date"
+            },
+            {
+              "$ref": "./time.schema.json#/$defs/local_date_time"
+            }
+          ],
+          "description": "Inclusive termination bound compared against the occurrence local start with <=. Narrowed to the same branch as start/end by all_day, and MUST NOT be earlier than the base start."
         }
       },
       "additionalProperties": false,
@@ -146,6 +249,82 @@
             "required": [
               "count",
               "until"
+            ]
+          }
+        },
+        {
+          "$comment": "nth_of_period selects an occurrence within a month or year and is meaningless for daily/weekly recurrence.",
+          "if": {
+            "required": [
+              "frequency"
+            ],
+            "properties": {
+              "frequency": {
+                "enum": [
+                  "daily",
+                  "weekly"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "by_day": {
+                "items": {
+                  "not": {
+                    "required": [
+                      "nth_of_period"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "$comment": "by_month_day filters a month position and cannot combine with weekly recurrence.",
+          "if": {
+            "required": [
+              "frequency"
+            ],
+            "properties": {
+              "frequency": {
+                "const": "weekly"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "required": [
+                "by_month_day"
+              ]
+            }
+          }
+        },
+        {
+          "$comment": "by_set_position selects from a candidate set and requires at least one candidate-producing by_* rule.",
+          "if": {
+            "required": [
+              "by_set_position"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "required": [
+                  "by_day"
+                ]
+              },
+              {
+                "required": [
+                  "by_month"
+                ]
+              },
+              {
+                "required": [
+                  "by_month_day"
+                ]
+              }
             ]
           }
         }
@@ -207,10 +386,12 @@
             "required",
             "optional",
             "organizer"
-          ]
+          ],
+          "description": "Attendance role. Omitted means required. organizer is display and scheduling semantics only and grants no capability."
         },
         "display_name_snapshot": {
-          "type": "string"
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256",
+          "description": "Identity-revealing display snapshot. It MUST be encrypted together with the rest of the schedule whenever Strand metadata is encrypted."
         }
       },
       "additionalProperties": false

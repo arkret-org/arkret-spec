@@ -5275,3 +5275,203 @@ Expected:
 
 - 两个正例 MUST 由 SDK 唯一 helper 生成逐字相同 bytes，并由 receiver helper 重建后验签通过。
 - 未选字段写 null、交叉 target、双 material、无 material、任一 covered 字段被篡改、或 signature key 与 accepted `sender_device_id` 不匹配，均 MUST `invalid_signature`。
+
+## 24. Calendar / RSVP normative closure vectors
+
+本节向量由 [`calendar-rsvp-fixture.json`](../../artifacts/fixtures/calendar-rsvp-fixture.json) 承载，规则正文见 [`../models/calendar-event.md`](../models/calendar-event.md)。fixture 的 `schema_validation_cases` 由 artifact lint 直接执行，`semantic_cases` 由 conformance runner 执行。
+
+### 24.1 Calendar schema activation
+
+`vector_id`: `ak.vector.calendar.profile_activation.v1`
+
+Steps:
+
+1. 构造 `schema_refs` 含 `ak.schema.calendar_event.v1` 且携带 `metadata.fields.calendar` 的正例。
+2. 分别构造只有 ref、只有子树、`schema_refs` 含容器 self-schema、`metadata.fields.profile` / `profile_refs`、以及扁平 `metadata.fields.start` 等负例。
+3. 构造只移除 ref 或只移除子树的 post-patch 负例，以及缺 `requirements.schema[]` 绑定的写入。
+
+Expected:
+
+- 正例 MUST 通过 `strand.schema.json`；四类激活替代形态 MUST `schema_violation`。
+- 单向缺失 MUST 以 `calendar_activation_mismatch` 拒绝，无论缺的是 ref 还是子树。
+- replay MUST 使用 Event 的 `requirements.schema[]` 绑定，MUST NOT 使用对象当前 `schema_refs[]`。
+
+### 24.2 Schedule 形态与半开区间
+
+`vector_id`: `ak.vector.calendar.schedule_shape.v1`
+
+Steps:
+
+1. 构造 all-day（`date`）与 timed（整秒 LocalDateTime）两个正例。
+2. 构造混型、UTC timestamp、UTC offset、小数秒、缺 `status`、`end == start` 的负例。
+
+Expected:
+
+- `all_day` MUST 唯一决定 `start` / `end` / `recurrence.until` 的分支。
+- 区间是 `[start, end)`，`end` MUST 严格晚于 `start`；跨字段比较由 reducer 以 `schema_violation` 承载。
+
+### 24.3 Recurrence 展开
+
+`vector_id`: `ak.vector.calendar.recurrence_expansion.v1`
+
+Steps:
+
+1. 展开缺 `by_day` 的 weekly、缺 `by_month_day` 的 monthly 与缺省 yearly 规则。
+2. 构造 base start 不匹配 `by_*` 的规则并检查首个 occurrence 与 `count` 计数。
+3. 触发 candidate-period 扫描预算，再在 schedule revision 变化后复用 continuation。
+
+Expected:
+
+- 隐式 filter MUST 由同一 expansion 算法补齐；base start MUST 是第一个 occurrence 并计入 `count`。
+- 预算耗尽 MUST 返回带 continuation 的 `limit_exceeded`；basis 改变后旧 cursor MUST `invalid_cursor`。
+
+### 24.4 DST 不连续
+
+`vector_id`: `ak.vector.calendar.recurrence_dst.v1`
+
+Steps:
+
+1. 在 spring-forward gap 与 fall-back fold 各构造一个每日 local 时间事件。
+2. 跨 transition 展开并比较 local key 与派生 instant。
+
+Expected:
+
+- gap 与 fold 都 MUST 使用 transition **之前**的 offset；fold MUST 只产生一个 occurrence；local wall-clock key MUST 不漂移。
+
+### 24.5 TZDB identity
+
+`vector_id`: `ak.vector.calendar.tzdb_identity.v1`
+
+Steps:
+
+1. 用 `UTC` 等 Link alias 作为 wire `timezone`；再用 canonical Zone 作为正例。
+2. 构造 `tzdb_version` 超出 `ServiceDescribe.calendar_tzdb_versions` 的 schedule。
+3. 显式把 schedule 从一个 release 更新到另一个 release。
+
+Expected:
+
+- 未归一化的 alias MUST 被拒绝，receiver MUST NOT 自行改写签名值。
+- 未知 release MUST `calendar_tzdb_mismatch` 或标记 `unresolved`，MUST NOT 回退到相近版本。
+- release 变更 MUST NOT 改变 `timezone` 与 local occurrence key；派生 instant 变化 MUST 触发 `needs_reconfirmation`。
+
+### 24.6 未支持 recurrence 能力
+
+`vector_id`: `ak.vector.calendar.recurrence_unsupported.v1`
+
+Steps:
+
+1. 构造 `recurrenceOverrides`、`excludedRecurrenceRules`、RDATE / EXDATE 与 JSCalendar `@type` 成员。
+
+Expected:
+
+- 全部 MUST 以 schema reject 或 `unsupported_feature` fail closed，MUST NOT 静默忽略。
+
+### 24.7 Schedule revision 与 identity
+
+`vector_id`: `ak.vector.calendar.schedule_revision.v1`
+
+Steps:
+
+1. 修改 `start` 后检查旧 instance 与 series RSVP 的分类。
+2. 构造两个 canonical bytes 不同的并发 schedule head，再构造两个取值相同的并发 head。
+3. 只修改 `metadata.title` 并重算 frontier。
+
+Expected:
+
+- identity-affecting 修改 MUST 把旧 instance RSVP 标为 `stale_orphaned` 且 MUST NOT 自动迁移；series RSVP MUST 标 `needs_reconfirmation`。
+- 取值不同 MUST `conflict`，此时 authoring client MUST 以 `calendar_schedule_unsettled` 拒绝构造新 RSVP；取值相同 MUST `settled` 且保留全部 canonical heads。
+- settledness MUST NOT 成为服务端 admission 条件：把同一组 Event 分别喂给 E2EE 与 plaintext 服务端，二者 accepted set MUST 逐项相同。
+- 非 Calendar 子树的 update MUST NOT 产生新 schedule revision。
+
+### 24.8 RSVP effect projection
+
+`vector_id`: `ak.vector.calendar.rsvp_effect_projection.v1`
+
+Steps:
+
+1. 提交合规 `ak.rsvp.set`，再分别构造缺 effect、多写目标、op value 与 `payload.entry` 不一致的 Event。
+
+Expected:
+
+- receiver MUST 按 `effect_projection = set(payload.entry)` 重算并要求 canonical 等价；三类负例 MUST `effects_payload_mismatch`。
+
+### 24.9 RSVP effective projection
+
+`vector_id`: `ak.vector.calendar.rsvp_effective_projection.v1`
+
+Steps:
+
+1. 对同一 occurrence 同时构造 series 与 instance head。
+2. 构造因果后继并交换到达顺序与 HLC 大小。
+3. 构造缺 key、解密失败、以及 plaintext 相同但 ciphertext 不同的并发 head。
+
+Expected:
+
+- instance MUST 覆盖 series 且二者 MUST NOT union；后继 MUST 支配旧 head 且结果与到达顺序无关。
+- 缺 key MUST 标 `encrypted_unresolved`，MUST NOT 伪造 status；plaintext 相同 MUST NOT 判为 conflict。
+
+### 24.10 RSVP admission
+
+`vector_id`: `ak.vector.calendar.rsvp_admission.v1`
+
+Steps:
+
+1. 构造 attendee 无 capability、非 attendee 有 capability 两个对照。
+2. 构造 `status=cancelled`、basis 为空 / 重复 / 乱序 / 不在 `causal_refs[]`、basis 部分未到达、frontier 超 128 的用例。
+3. 构造形态匹配但日期不存在的 all-day / timed occurrence（如 `2026-02-30`）以及 target 不存在 / 不可见 / 跨 Realm / 非 Calendar 四种情况。
+4. 把同一组 Event 分别喂给 E2EE Realm 与 plaintext Realm，比较两侧 accepted set。
+
+Expected:
+
+- capability 是唯一授权真源；attendee 身份 MUST NOT 自动授权，非 attendee 持证 MUST 被接受。
+- cancelled MUST 由 authoring client 以 `calendar_event_cancelled` 拒绝（不是服务端 admission，理由同 settledness）；basis shape 违例 MUST `rsvp_basis_not_causal` 且 MUST NOT 进入 pending；不存在的 Gregorian occurrence 日期 MUST `rsvp_occurrence_not_canonical`；被引用 Event 未到达 MUST 以 `dependency_missing` pending；wire 上超过 128 项的 basis MUST 由 schema `maxItems` 以 `schema_violation` 拒绝，而 observed frontier 超限是 authoring 侧的 `schedule_frontier_too_large`。
+- 四种 target 情况的对外错误 MUST 不可区分。
+- 两侧 accepted set MUST 逐项相同：target admission 只读被引用 Event 的明文 envelope，"该 revision 是否真的改了 schedule / 是否等于 authoring frontier"只在授权投影里表现为 `unresolved_basis` 或 stale，能读明文的服务 MUST NOT 因此多拒绝。
+
+### 24.11 Attendee roster
+
+`vector_id`: `ak.vector.calendar.attendee_roster.v1`
+
+Steps:
+
+1. 构造重复 `actor_id`、两个 `organizer`、省略 `role` 的用例。
+2. 把无读取权 actor 加入 roster 后重算访问与通知。
+
+Expected:
+
+- 重复 actor 与多 organizer MUST `schema_violation`；省略 `role` MUST 等价于 `required`。
+- roster 变更 MUST NOT 创建 membership、扩大 history access 或产生通知 / push wakeup。
+
+### 24.12 Schedule notification
+
+`vector_id`: `ak.vector.calendar.notification.v1`
+
+Steps:
+
+1. 用一次 patch 同时修改多个 schedule 字段。
+2. 构造一次同时增删 attendee 的 patch。
+3. 在加密 metadata 下派生通知；再对一次 `ak.rsvp.set` 派生通知。
+
+Expected:
+
+- 每个 receiver MUST 只得到一条 `notification_kind=schedule`，按 `(actor_id, source_event_id, notification_kind)` 去重。
+- 候选集 MUST 是 pre/post roster 并集，并在生成前按 access / mute / DND / push rule 过滤。
+- 加密 schedule MUST 只产生 profile 定义的 blind wakeup；RSVP 变更 MUST NOT 产生 schedule notification。
+
+### 24.13 RSVP 隐私分支
+
+`vector_id`: `ak.vector.calendar.rsvp_privacy.v1`
+
+Steps:
+
+1. 在 `e2ee_required` floor 下提交明文 `entry.response`。
+2. 在允许 plaintext 的 floor 下构造四种授权组合：Realm policy 与 ServiceDescribe 都声明 `rsvp_response`、只有 Realm policy 声明、只有 ServiceDescribe 声明、两侧都未声明。
+3. 在 `e2ee_required` floor 下让客户端缺少 scope key。
+4. 构造 `encrypted_response` 携带非 `application/vnd.arkret.calendar-rsvp-response+json` 的 `content_type`。
+
+Expected:
+
+- e2ee floor 下明文分支 MUST `schema_violation`；缺 key MUST `unsupported_feature` 而非降级明文。
+- 明文分支需要**双重授权**：只有 Realm policy（`event-payload.schema.json#/$defs/plaintext_data_class`）与 ServiceDescribe（`plaintext_visibility.data_classes`）都声明 `rsvp_response` 才合法；其余三种组合 MUST `unsupported_feature`。仅 ServiceDescribe 单侧声明不构成合法授权。
+- `encrypted_response` 的 `content_type` 由 schema `const` 固定，错误 media type MUST `schema_violation`，使同一 ciphertext 只能路由到唯一解密 schema。
+- `event_ref`、`occurrence`、`schedule_basis_refs`、responder actor 与 ciphertext size MUST 出现在 privacy disclosure 中。
