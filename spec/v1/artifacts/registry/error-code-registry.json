@@ -5134,6 +5134,14 @@
         "projection"
       ],
       "description": "A projected RSVP head references a schedule basis that cannot be resolved, is invisible, or is not on the target Strand's schedule revision DAG. The head is retained for audit, excluded from the effective response, and MUST NOT be guessed into currency. See zh/models/calendar-event.md."
+    },
+    {
+      "code": "ephemeral_plaintext_in_encrypted_scope",
+      "applies_to": [
+        "service_call",
+        "client_sync"
+      ],
+      "description": "Sub-reason for failed_precondition when a plaintext broadcast EphemeralEnvelope is submitted to or received in an MLS-backed scope. Until the encrypted realtime surface is verified, ak.presence / ak.typing / ak.receipt.read / ak.call.signal carry their full payload in the clear, which exposes read position, typing target and the complete call state machine to the Sync Service. Implementations MUST fail closed and MUST NOT advertise broadcast ephemeral capability for that scope; see zh/crypto-media/encryption-and-audit.md section 2.9.1."
     }
   ]
 }

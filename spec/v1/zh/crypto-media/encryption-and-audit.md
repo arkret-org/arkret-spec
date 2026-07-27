@@ -843,6 +843,34 @@ Reaction 事件 (`ak.reaction.*`) 的可见性规则：
 
 Reaction 事件的 `aad.event_kind` 始终为明文 (`ak.reaction.add` / `ak.reaction.remove`),以便服务端做 capability fast path 与限流；该明文 kind 不暴露具体 emoji。
 
+#### 2.9.1 MLS-backed scope 禁止 plaintext broadcast ephemeral（normative，fail closed）
+
+上一节把 `ak.receipt.read` / `ak.typing` 的 `actor_id`、`target_ref` 登记为元数据通道，但 v1
+当前的 [`ephemeral-envelope.schema.json`](../../artifacts/schemas/ephemeral-envelope.schema.json)
+只有 plaintext `payload` 分支——这意味着在 MLS-backed E2EE scope 中，**typing / presence /
+read receipt / call signal 的完整 payload 对 Sync Service 可见**，包括 read position、
+typing 目标与 14 值 `signal_kind` 构成的完整通话状态机时序。这不是元数据剩余泄露，而是
+**内容明文暴露**。
+
+因此，在承载这些信号的加密实时面（Realtime Extension）完成并 verified **之前**：
+
+- effective `encryption_profile=mls_rfc9420` 的 Realm / Circle scope 中，Sync Service 与接收端
+  MUST 拒绝任何 plaintext broadcast `EphemeralEnvelope`，返回 `failed_precondition`，
+  `reason_code=ephemeral_plaintext_in_encrypted_scope`；
+- 服务端 MUST NOT 在 `ServiceDescribe` 中为该 scope 广告 broadcast ephemeral 能力；
+- 客户端 MUST NOT 在该 scope 发送 `ak.presence` / `ak.typing` / `ak.receipt.read` /
+  `ak.call.signal`；
+- **MUST NOT 以"加密实时面尚未就绪"为由继续接受明文**。能力缺失应表现为该 scope 没有实时
+  信号，而不是表现为明文实时信号。
+
+plaintext Realm（`encryption_profile` 未声明 MLS-backed）不受本条约束，继续按 §2.9 的元数据
+规则使用 plaintext 分支。
+
+点对点 to-device 信号（`ak.key.verification.*`、`ak.secret.request` / `ak.secret.send`、
+`ak.realm_key.request`）**不属于**本条范围：它们使用
+[`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json) 的独立
+信封与自有加密，且直接承载设备验证与密钥分发，与 broadcast fanout 不是同一投递语义。
+
 ### 2.10 可共享历史的内容加密 scheme（`mls_exporter_aead_v1`，normative）
 
 默认内容 scheme `mls_rfc9420`（MLS PrivateMessage）提供 per-message 前向安全，但其消息密钥由 MLS secret tree 单向棘轮、用完即焚，**后加入成员在密码学上无法解开 join 前 epoch 的内容**（这是 MLS 前向安全的本质，不是实现缺陷）。需要把历史授权给后加入成员的 Realm，MUST 改用本节定义的 `mls_exporter_aead_v1` scheme：内容用一把**可保留、可重新封装**的 per-epoch `history_secret` 加密，从而能经 `ak.realm_key.share` 合法交付给后加入成员。

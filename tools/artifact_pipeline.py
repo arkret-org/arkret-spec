@@ -702,6 +702,78 @@ def write_reducer_profile_registry() -> None:
         dump_json(materialized), encoding="utf-8", newline="\n"
     )
     print(f"updated {REDUCER_PROFILE_REGISTRY_PATH.relative_to(ROOT).as_posix()}")
+    sync_reducer_profile_digest_vector(materialized)
+
+
+FEDERATION_FIXTURE_PATH = ARTIFACTS / "fixtures" / "federation-fixture.json"
+REDUCER_PROFILE_DIGEST_VECTOR_ID = "ak.vector.federation.reducer_profile_digest.v1"
+REDUCER_PROFILE_DIGEST_VECTOR_CASE = "reducer_profile_digest_federation_minimal"
+REDUCER_PROFILE_DIGEST_VECTOR_PROFILE = "ak.profile.federation_minimal.v1"
+
+
+def sync_reducer_profile_digest_vector(materialized: Any) -> None:
+    """Keep the pinned conformance vector in step with the generated registry.
+
+    `federation-fixture.json` pins the federation-minimal reducer profile digest so
+    implementations can check they derive the same value. That digest covers spec prose,
+    so any edit to a covered document invalidates it and the artifact lint fails with
+    "reducer profile vector expected_digest differs from generated registry". The fixture
+    mirrors a generated value, so regenerating it belongs here rather than being rediscovered
+    by hand on every prose change.
+    """
+    rows = materialized.get("profiles") if isinstance(materialized, dict) else None
+    if not isinstance(rows, list):
+        return
+    expected = next(
+        (
+            row.get("reducer_profile_digest")
+            for row in rows
+            if isinstance(row, dict)
+            and row.get("profile_id") == REDUCER_PROFILE_DIGEST_VECTOR_PROFILE
+        ),
+        None,
+    )
+    if not isinstance(expected, str):
+        return
+    raw = FEDERATION_FIXTURE_PATH.read_text(encoding="utf-8")
+    fixture = json.loads(raw)
+
+    def find_case(node: Any) -> Any:
+        if isinstance(node, dict):
+            if (
+                node.get("vector_id") == REDUCER_PROFILE_DIGEST_VECTOR_ID
+                and node.get("name") == REDUCER_PROFILE_DIGEST_VECTOR_CASE
+            ):
+                return node
+            for value in node.values():
+                found = find_case(value)
+                if found is not None:
+                    return found
+        elif isinstance(node, list):
+            for value in node:
+                found = find_case(value)
+                if found is not None:
+                    return found
+        return None
+
+    case = find_case(fixture)
+    if not isinstance(case, dict):
+        return
+    current = case.get("expected_digest")
+    if not isinstance(current, str) or current == expected:
+        return
+    if raw.count(current) != 1:
+        raise SystemExit(
+            f"cannot rewrite {REDUCER_PROFILE_DIGEST_VECTOR_ID}: expected_digest is not unique "
+            f"in {FEDERATION_FIXTURE_PATH.name}"
+        )
+    FEDERATION_FIXTURE_PATH.write_text(
+        raw.replace(current, expected), encoding="utf-8", newline="\n"
+    )
+    print(
+        f"updated {FEDERATION_FIXTURE_PATH.relative_to(ROOT).as_posix()} "
+        f"({REDUCER_PROFILE_DIGEST_VECTOR_ID})"
+    )
 
 
 def write_public_registry_snapshot() -> None:
