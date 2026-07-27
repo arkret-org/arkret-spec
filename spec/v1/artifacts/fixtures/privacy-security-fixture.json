@@ -458,13 +458,14 @@
         "notification": {
           "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
           "wakeup_kind": "message",
+          "timing_profile_hint": "default",
           "push_hint": "new_message",
           "counts": {
-            "unread": 1
+            "unread_increment": 1
           },
           "devices": [
             {
-              "push_key": "fcm:eJx9k2-example",
+              "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
               "app_id": "com.arkret.client"
             }
           ]

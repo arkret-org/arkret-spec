@@ -222,6 +222,93 @@ DIF / identity.foundation `did:webvh` method specification（<https://identity.f
 与 §7.2；core v1 文档不再展开。`did:webvh` 当前不是 W3C Recommendation，本规范不应把它表述为 W3C
 artifact。
 
+#### 3.4.1 Witness 的 method-native 输入合同（normative）
+
+§3.4 把 witness 验证定为 v1 core MUST。该 MUST 的输入合同是封闭的，实现之间不得各自解释：
+
+**唯一 policy 来源**：witness policy 只来自 DID log 的 `parameters.witness`，形状为
+`{threshold, witnesses: [{id}]}`。`witnesses[].id` MUST 是 `did:key` 且在数组内唯一；
+`threshold` MUST 落在 `1..witnesses.length`。
+
+**`did:key` MUST 可解码为合规公钥。** 形状检查不够：verifier MUST 在**参数校验阶段**把每个
+`witnesses[].id` 的 multibase/multicodec 载荷实际解码，确认它是一个长度与算法均合法、
+且与该 log 所用 Data Integrity cryptosuite 兼容的公钥；解码失败、multicodec 未登记、
+密钥长度不符或算法与 cryptosuite 不匹配时 MUST `webvh_witness_parameter_malformed`，
+**MUST NOT 推迟到验签时才发现**。只按字符串形状接受，等于允许一个永远无法验签的 witness
+占据 threshold 名额，从而把门限悄悄架空。
+
+**唯一 proof 来源**：witness proofs 只来自与 `did.jsonl` 分离发布的 `did-witness.json`，
+按 `versionId` 绑定。每个适用 log entry MUST 满足其生效 threshold。
+
+**不承认任何 alias**：`witness_threshold`、`witnessThreshold`、`parameters.witnesses.*`
+及其它未登记键**都不是** method 输入。注意 §4.1 resolver policy 示例中的
+`require_witness` / `witness_threshold` / `trusted_witnesses` 是 **verifier 本地部署配置**的形状，
+不是 DID log parameter；把它们当作 log parameter 解析会把 verifier 自己的信任配置
+误认成 holder 的声明。
+
+**缺失与 malformed 是两件事**：`parameters.witness` 缺席表示该 DID 未声明 method witness；
+而对象存在但形状不合法、threshold 越界、witness id 重复或非 `did:key`、proof 缺失或不足 threshold，
+一律 MUST fail closed 并返回下表错误码，**MUST NOT 归零为「未配置 witness」**。
+`parameters` 中出现上述 alias 键时同样 MUST fail closed：该形状本身即证明该 log 是按非标准方言产出的，
+真实 policy 未知。把解析失败向「无需 witness」方向取整，会让一个**声明了** witness 的 DID
+静默变成一个**不要求** witness 的 DID，与 §4.2.1（degraded 信号缺失一律向 degraded 方向取整）
+所确立的保守纪律相反。
+
+| 情形 | 错误码 |
+|---|---|
+| `parameters.witness` 形状不合法、threshold 越界、witness id 重复或非 `did:key`、`did:key` 无法解码为与 cryptosuite 兼容的合规公钥、出现 alias 键 | `webvh_witness_parameter_malformed` |
+| 已声明 policy 但 `did-witness.json` 不可达 / 不可解析 / 无该 `versionId` 条目 | `webvh_witness_proofs_unavailable` |
+| 单条 witness proof 验签失败、签名者不在 witness 列表、或未绑定所声称的 `versionId` | `webvh_witness_proof_invalid` |
+| 有效且互不相同的 witness proof 少于生效 threshold | `webvh_witness_threshold_not_met` |
+| evidence 超过生效 max age | `webvh_witness_evidence_stale` |
+| distinct controlling organization 要求下，某 witness 的控制组织不可验证或两者同源 | `webvh_witness_controlling_organization_unverified` |
+
+#### 3.4.2 Arkret overlay policy 与 method-native policy 的分层（normative）
+
+§3.4 对各 deployment profile 规定的 ≥2 distinct controlling organization、log-backed witness
+与 evidence age 属于 **Arkret overlay**，不是 did:webvh method 语义。二者分层如下：
+
+- **overlay policy MUST NOT 写入 method 参数**。`profileMinThreshold`、`structuredWitnesses`、
+  `watcherEvidence`、`maxAgeSeconds` 或任何等价的部署侧字段 MUST NOT 出现在 `parameters.witness` 中。
+  写进 method history 会造成三个后果：外部标准 verifier 面对未登记字段；policy 轮换必须改写 DID history；
+  以及 holder 得以同时自报 threshold 与自签 evidence，从而自定 trust root。
+- **overlay policy 的来源是 deployment / Realm policy**（§4.1 resolver policy 的
+  `require_witness` / `witness_threshold` / `trusted_witnesses`，及 profile 声明的
+  distinct-organization 与 max age 要求）。服务 MUST 在 ServiceDescribe 中声明它能提供的 witness rail
+  与 evidence 形态，使调用方无需试探即可判断可得性。
+- **生效 policy 取最严格交集**：`effective_threshold = max(method_threshold, deployment_minimum)`，
+  distinct-organization 与 max age 取各约束中最严者。holder 在 log 中的声明只能**提高**门限，
+  **MUST NOT 降低** deployment policy 的任一项。
+- **controlling organization 的判定与去重**：distinct-organization 要求按 witness 的控制组织计数，
+  而不是按 witness key 计数。verifier MUST 能独立验证某 witness 到其控制组织的绑定；
+  不可验证或两个 witness 同源时 MUST 按 `webvh_witness_controlling_organization_unverified` fail closed。
+  否则一个运营方持有多把 witness key 即可独自满足「两个不同组织」要求，该要求形同虚设。
+- **freshness 以观测时刻计**：evidence age 从 witness proof 被**观测**的时刻起算，
+  而不是从任何 Arkret 层记录被签发的时刻起算；重新签发一份旧观测不构成刷新。
+
+#### 3.4.3 Witness evidence 在 Arkret 层的承载（normative）
+
+Arkret 层用 [`did-webvh-witness-receipt.schema.json`](../../artifacts/schemas/did-webvh-witness-receipt.schema.json)
+（`ak.schema.did_webvh_witness_receipt.v1`）承载 witness 观测结论，
+经 `ak.root.identity.receipts.query.list` 以**闭合 discriminator 的 tagged union** 返回。
+
+该 receipt 与 `ak.schema.identity_receipt.v1` 是**两个不同的对象族**，不得合并：
+后者的 `witness_role ∈ {writer, witness, replica}` 描述的是 DID **registry consensus group** 中的复制角色，
+并绑定 `seq` + `head_event_digest`；前者描述的是 **did:webvh method witness** 在某个 `versionId` 上的观测，
+绑定 `version_id` + witness `did:key` + controlling organization + `observed_at`。
+两者用同一个英文词表达不同含义，因此 discriminator 是必需的，verifier MUST 按 `schema` 常量分支，
+不得靠"哪些可选字段恰好出现"来猜测语义。
+
+receipt 是 Arkret 层的**可缓存、可审计**承载，**MUST NOT** 替代 method conformance：
+verifier 仍 MUST 直接验证标准 `did-witness.json` proof、entry hash chain 与 controller proof。
+`IdentityReceiptListOutcome.threshold_met` 同理只是便利信号；其缺席 MUST NOT 被读作 `true`。
+
+§3.4.1–§3.4.3 的可执行证据是 `ak.vector.identity.did_webvh_witness_rail.v1`
+（见 [`../conformance/conformance-vectors.md` §22.6](../conformance/conformance-vectors.md)
+与 [`did-webvh-witness-fixture.json`](../../artifacts/fixtures/did-webvh-witness-fixture.json)），
+其负向用例逐条固定上述 fail-closed 矩阵，包括 alias 键、overlay 字段污染、
+threshold 不满足、同源 controlling organization 与 stale evidence。
+
 ### 3.5 Interop Adapter Extension Profiles
 
 下列 method 在 v1 core 中**不要求**实现，作为可选 interop extension profile 提供：
@@ -761,6 +848,130 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 - **引用校验**：Realm `durability_policy.recovery_recipients[].verification_method` MUST 等于某个 `principal_id` 当前 DID Document 中、被一条 active `ArkretRealmHistoryRecoveryKey` service entry 指定的 VM；解析不到、已撤销或未被该 service entry 指定时，封存方 MUST fail closed（`durability_recovery_recipient_unverified`），MUST NOT 回退到任意 key。
 - **轮换按时点解析**:RRK 轮换进入 DID method 可验证历史；receiver 复验历史 RRK 封存的 `ak.realm_key.share` 时 MUST 按封存 Event 的 accepted-at 对该主体 DID 做按时点解析，用当时 active 的 RRK 验证，与 §4.2 / [`key-management.md` §5.0.6](./key-management.md) 的按时点解析纪律一致。
 - RRK 私钥的离线保管、门限拆分与释放走 [`key-management.md` §8](./key-management.md) recovery policy（24 词 / threshold / hardware），subject 为该 principal、域为 history-recovery。
+
+### 8.4 外部 Organization DID 的本地 registration（normative）
+
+一个已在别处发布、成熟的 Organization DID 要进入本部署的管理范围，唯一 canonical 路径是
+`ak.root.identity.organization_registration.*` family。该 family 有意与个人 account 注册和
+service identity registration 分开：三者的主体模型不同，混用会把互不相干的生命周期绑在一起。
+
+**先分清五件事。** 它们经常被混为一谈，规范逐一划界：
+
+| 概念 | 含义 | 不蕴含 |
+|---|---|---|
+| resolution | 解析 DID Document 与 method history | 不证明任何人控制它 |
+| control verification | 证明调用方在某个 pinned version 上持有控制权或治理 quorum | 不建立持久状态 |
+| local registration | 本部署保存可审计的 organization binding 与本地管理委派 | 不托管 method history，不使本部署成为 controller |
+| Realm relationship | 由 `ak.realm.organization` statement 表达 | 不因本地 registration 自动获得 |
+| service delegation | organization → service DID 的 purpose/scope/validity | 另行验证，registration 不代替 |
+
+`ak.find.directory.query.resolve_organization` 只提供可见的 discovery/resolve 结果，
+`ak.self.realm_organization.query.list` 只是既有 Realm relationship 的投影。
+**能解析或能引用，不产生本地管理权**——规范必须堵住"可见 ⇒ 可管理"的权限升级。
+
+**为什么不复用 service registration。** 结构先例可以借：root identity 下的 operation 位置、
+ensure 的幂等姿态与 resource.get 的只读分工、pinned `version_id + log_head_digest + control_key_digest`、
+闭合 receipt claims，以及 receipt id / payload digest / detached JWS / signing-time issuer authority 的
+transcript 构造方式。但主体不可借：`ServiceRegistrationKey {service_kind, public_base}`、
+service type/endpoint 校验、`service_id` 主体名、Provider 默认托管 service DID history 的含义，
+以及 `ak.service-registration-receipt-proof-v1` context 都不适用于组织。
+把 organization 冒充 service 会让"本部署托管它的历史"这一含义随命名一起被继承。
+
+**两阶段是裁决结果，不是可选项。** `prepare` 由 registry 签发并记住 single-use challenge，
+绑定 `purpose` / `audience` / `origin` / `trust_domain` / `nonce` / `requested_scopes` /
+`local_admin_subject` 与 ≤300 秒窗口，首次使用即消费；`ensure` 才提交 proof。
+若把 challenge 折叠进 ensure，challenge 就由调用方自报，接收方既无法确定 freshness
+也无法保证单次消费。`prepare` 刻意不幂等：每次调用铸新 nonce。
+
+消费与安全重试 MUST 同时成立：registry MUST 在消费 challenge 的同一事务内持久化
+`(challenge_id, canonical_request_digest, outcome)`。此后只有 canonical bytes 完全相同的
+`ensure` 重试可以返回该既有 outcome；同一 `challenge_id` 携带不同 digest、或已消费但找不到
+匹配成功 ledger 的请求 MUST `organization_registration_challenge_invalid`。因此“single-use”
+禁止第二个意图，**不**把网络超时后的 byte-identical 安全重试变成错误。
+
+**proof MUST 绑定受益管理员。** control proof 的签名 transcript 是
+`canonical_json({context:'ak.organization-registration-control-proof-v1', challenge_id,
+organization_id, local_admin_subject, version_id, log_head_digest, verification_method, created_at})`。
+`local_admin_subject` 必须同时出现在 challenge 与 proof 中，且 `ensure` MUST 拒绝与所引用 challenge
+不一致的值（`organization_registration_challenge_invalid`）。
+**只绑定 organization 与 version 的 proof 不说明谁受益**：任何拿到该 proof 的人都能提交 `ensure`
+把自己填进 `local_admin_subject`，从而取得该组织的管理 scope。这是必须在合同层堵死的转交攻击，
+不能留给实现自行加固。
+
+**registration generation 让终态与幂等共存。** `organization_id` 是稳定 key，
+但终态是**按 generation** 成立的：receipt 与 outcome 携带 `registration_generation`（从 1 起单调递增）。
+
+- 重放当前 generation 中已成功消费 challenge 的 byte-identical 同一请求 → 从 challenge
+  consumption ledger 返回既有 receipt，`created=false`；相同 challenge 的不同请求不是幂等重试；
+- `revoke` 结束第 N 代；此后的 `ensure` 开启第 N+1 代（`created=true`），既不复活 N，也不与 N 冲突；
+- 改变 `local_admin_subject` 或 scope 集合的 `ensure` 同样开启新 generation——所授予的委派已不是
+  前一份 receipt 所证明的那一个；
+- 任一 `ensure` 开启 N+1 时，registry MUST 在同一原子事务内先把仍为 current 的 N
+  终止为 `revoked`（reason `organization_registration_superseded`），再以单调 CAS 推进
+  current-generation pointer。不得存在 N 与 N+1 同时 active 的窗口。授权方 MUST 同时验证
+  receipt 的 generation 等于 registry 当前 generation 且当前状态为 `active`；旧 receipt 即使其
+  不可变签名载荷仍写着 `status=active`，在 current pointer 推进后也不再授予任何 scope；
+- `refresh` 永远不开新 generation，只在当前 generation 内换新的 `version_id`；
+  对 `revoked` generation 执行 refresh MUST 返回 `organization_registration_revoked`。
+
+没有 generation 时，"`revoked` 是终态"与"`ensure` 按 `organization_id` 幂等"互相矛盾，
+实现只能在"返回旧终态"、"报 duplicate conflict"、"非法复活终态"之间自行选择——三者会产生不同的 wire 行为。
+
+**receipt 构造唯一。** `OrganizationRegistrationReceipt` 沿用 Arkret detached JWS，且两个摘要
+不得把自身包含进输入：
+
+1. `receipt_claims` 精确为不含 `registration_receipt_id` 与 `proof` 的对象
+   `{organization_id, registration_generation, version_id, log_head_digest, control_proof_kind,
+   control_key_digest, local_admin_subject, delegated_scopes, status, issued_at, expires_at,
+   issuer_service_id}`；`registration_receipt_id = "ak:organization-registration-receipt:" ||
+   hex(SHA-256(canonical_json(receipt_claims)))`。
+2. `document` 是加入 `registration_receipt_id`、但删除整个 `proof` 后的完整 receipt；
+   `proof.payload_digest = "sha256:" || hex(SHA-256(canonical_json(document)))`。
+3. detached JWS MUST 签
+   `canonical_json({context:"ak.organization-registration-receipt-proof-v1", payload_digest,
+   issuer_service_id, registration_receipt_id, organization_id, verification_method, created_at,
+   domain?, audience?})`；`created_at` MUST 等于 `issued_at`。任何实现把 receipt id 或 proof
+   递归放回各自摘要输入都会得到不可构造的自引用合同，MUST 拒绝。
+
+**proof discriminator 封闭。** `OrganizationControlProof.proof_kind` 只有
+`resolved_verification_method` 与 `governance_quorum`，二者都描述**已发布的成熟 DID**。
+新建 Organization DID 属独立的 organization inception / governance ceremony，
+在本 family 中没有成员——接收方不必猜测某个 proof 主张的是既有控制权还是新建。
+按 §8.1，witness 不是 quorum：witness 证明历史可见性，quorum 证明治理授权，
+`governance_quorum` 分支 MUST NOT 用 witness attestation 充数。
+
+**生命周期唯一。** receipt 的 `status` 是封闭三值：
+
+- `active`：控制证据现行有效；
+- `stale`：pinned version 因 controller rotation 不再反映当前控制权，或 receipt 已过 `expires_at`。
+  低风险只读可继续，**高风险路径 MUST fail closed**（`organization_registration_stale`）直到 refresh 成功。
+  选择"转 stale"而不是"自动失效"或"保持有效"，是因为前者会让攻击者靠触发一次轮换即强制解绑，
+  后者会让被窃取后完成轮换的组织继续保有绑定；
+- `revoked`：终态。本地撤销，或外部 DID 被 deactivated 时**强制**转入——已停用的 DID 无法再被控制，
+  refresh 永远不可能成功，因此不能停留在可刷新的 `stale`。重建关系只能走新的 `ensure`。
+
+`revoke` 只撤销本地 binding，不修改、不停用、不批注外部 DID 的 method history——本部署不控制它。
+
+**scope 闭合。** `delegated_scopes` 取自封闭集合
+`organization_profile_manage` / `organization_realm_endorse` / `organization_service_delegate`，
+且 `ensure` 携带的集合 MUST 与 challenge 所载逐项一致。开放的 scope 词表会让部署凭空铸出
+组织从未同意的管理权。持有 scope 是"日后可以做某事"的许可，不是动作本身：
+registration 本身不创建 Realm、成员、notary、capability 或 service delegation。
+
+**不可枚举。** `resource.get` 对"无权管理"与"不存在"MUST 返回同一个 `did_not_found`，
+否则该查询会成为枚举本部署绑定了哪些组织的侧信道。
+
+**handle 只是附加证据。** organization handle / domain claim 可增强发现与展示，
+MUST NOT 替代 DID control 或 quorum proof——运营某个域名的人并不因此成为该组织 DID 的 controller。
+`handle_attestation` 绑定 `subject`（MUST 等于 `organization_id`）、`issuer`、`audience`、
+`status` 与有效期；其 `status` 是签发时自述，接收方仍 MUST 查询 issuer 当前撤销状态。
+
+witness evidence 的 method 形状、proof 位置与 Arkret freshness 由 §3.4.1–§3.4.3 唯一裁决，
+本节不另立 witness 字段。
+
+本节的可执行证据是 `ak.vector.identity.organization_registration.v1`
+（见 [`../conformance/conformance-vectors.md` §22.5](../conformance/conformance-vectors.md)
+与 [`organization-registration-fixture.json`](../../artifacts/fixtures/organization-registration-fixture.json)）。
 
 ## 9. 验证规则
 

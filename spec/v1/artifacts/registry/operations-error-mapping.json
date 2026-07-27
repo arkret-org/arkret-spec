@@ -936,6 +936,56 @@
       ]
     },
     {
+      "operation_id": "ak.root.identity.organization_registration.command.prepare",
+      "http_alias": "POST /_arkret/root/identity/organization-registrations:prepare",
+      "operation_specific": [
+        "did_not_found",
+        "organization_registration_scope_unsupported"
+      ],
+      "description": "Issues a single-use control challenge for a resolvable external Organization DID. An unresolvable DID fails closed rather than yielding a challenge no proof could ever satisfy."
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.command.ensure",
+      "http_alias": "POST /_arkret/root/identity/organization-registrations:ensure",
+      "operation_specific": [
+        "organization_registration_challenge_invalid",
+        "organization_registration_control_proof_invalid",
+        "organization_registration_quorum_not_met",
+        "organization_registration_scope_unsupported",
+        "duplicate_conflict",
+        "did_not_found"
+      ],
+      "description": "Establishes the local binding after verifying a method-native control or governance-quorum proof against a consumed challenge and a pinned resolved version. Every failure mode is a distinct registered code so a caller can tell a stale challenge from a bad proof from an insufficient quorum without parsing prose."
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.resource.get",
+      "http_alias": "GET /_arkret/root/identity/organization-registrations",
+      "operation_specific": [
+        "did_not_found"
+      ],
+      "description": "Callers without authority over a binding receive the same did_not_found answer as for an organization that was never registered, so the read surface cannot be used to enumerate a deployment's organization relationships."
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.command.refresh",
+      "http_alias": "POST /_arkret/root/identity/organization-registrations:refresh",
+      "operation_specific": [
+        "organization_registration_challenge_invalid",
+        "organization_registration_control_proof_invalid",
+        "organization_registration_quorum_not_met",
+        "organization_registration_revoked",
+        "did_not_found"
+      ],
+      "description": "Re-proves control at a newer resolved version. A revoked binding is terminal and MUST NOT be revived by refresh; re-establishing the relationship requires a fresh ensure."
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.command.revoke",
+      "http_alias": "POST /_arkret/root/identity/organization-registrations:revoke",
+      "operation_specific": [
+        "did_not_found"
+      ],
+      "description": "Withdraws the local binding only. Revoking an already-revoked binding is idempotent and returns the existing terminal receipt rather than an error."
+    },
+    {
       "operation_id": "ak.root.identity.recovery_policy.resource.get",
       "http_alias": "GET /_arkret/root/identity/recovery-policy",
       "operation_specific": [],
@@ -1263,8 +1313,12 @@
         "push_gateway_unreachable",
         "push_target_unknown",
         "push_payload_too_large",
-        "profile_unsupported"
-      ]
+        "profile_unsupported",
+        "delivery_binding_stale",
+        "push_token_unknown",
+        "push_token_invalid"
+      ],
+      "description": "These codes reach the caller in two places that MUST agree: as a top-level failure envelope, and as the per-device reason_code inside push_notify_outcome.outcomes[]. rate_limited also appears in that enum but stays out of this list because it is universal (see rules.universal_codes). schema_violation is likewise universal at the request/response validation layer, but intentionally is not a per-device outcome reason: malformed input or a non-conserving response invalidates the whole exchange rather than one device route."
     },
     {
       "operation_id": "ak.edge.push.command.register_device",

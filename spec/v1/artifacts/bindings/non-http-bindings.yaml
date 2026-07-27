@@ -215,6 +215,11 @@ grpc:
       SubmitDidOperation: ak.root.identity.command.submit_did_operation
       EnsureServiceRegistration: ak.root.identity.service_registration.command.ensure
       GetServiceRegistration: ak.root.identity.service_registration.resource.get
+      PrepareOrganizationRegistration: ak.root.identity.organization_registration.command.prepare
+      EnsureOrganizationRegistration: ak.root.identity.organization_registration.command.ensure
+      GetOrganizationRegistration: ak.root.identity.organization_registration.resource.get
+      RefreshOrganizationRegistration: ak.root.identity.organization_registration.command.refresh
+      RevokeOrganizationRegistration: ak.root.identity.organization_registration.command.revoke
       RecoveryPolicyGet: ak.root.identity.recovery_policy.resource.get
       RecoveryPolicyPublish: ak.root.identity.recovery_policy.command.publish
       RecoverySessionCreate: ak.root.identity.recovery_session.command.create

@@ -1,0 +1,710 @@
+{
+  "suite": "did_webvh_witness_conformance",
+  "fixture_kind": "schema_semantic_and_crypto",
+  "profile": "ak.vector_group.privacy_security.v1",
+  "covers_vectors": [
+    "ak.vector.identity.did_webvh_witness_rail.v1"
+  ],
+  "version": "2026-07-27",
+  "spec_anchor": "spec/v1/zh/identity/identity-did.md#341-witness-的-method-native-输入合同normative",
+  "source_refs": [
+    "spec/v1/zh/identity/identity-did.md",
+    "spec/v1/zh/sync/service-http-binding.md",
+    "spec/v1/zh/conformance/conformance-vectors.md",
+    "spec/v1/artifacts/schemas/did-webvh-witness-receipt.schema.json",
+    "spec/v1/artifacts/schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome",
+    "spec/v1/artifacts/registry/error-code-registry.json",
+    "spec/v1/artifacts/registry/proof-context-registry.json"
+  ],
+  "description": "Conformance vectors for the did:webvh witness rail (identity-did.md §3.4.1-§3.4.3). Two layers are exercised and MUST NOT be conflated. cryptographic_vectors[] contains a field-exact, externally sourced did:webvh v1.0 log and did-witness.json whose entry hash, controller proof and witness proof MUST all be recomputed and verified. method_policy_cases[] cover structural and policy semantics: witness policy is read only from parameters.witness = {threshold, witnesses:[{id}]} whose ids are did:key values that MUST decode to cryptosuite-compatible public keys during parameter validation, proofs come only from the separate did-witness.json keyed by versionId, and every malformed, aliased, unavailable or under-threshold condition fails closed with a registered code instead of degrading to threshold 0. schema_validation_cases[] cover the Arkret-layer carrier: ak.schema.did_webvh_witness_receipt.v1 is a distinct object family from ak.schema.identity_receipt.v1 and the two are returned as a tagged union discriminated on schema. The receipt is a cacheable, auditable observation record; it never substitutes for verifying the standard did-witness.json proofs, the entry hash chain or the controller proof. Placeholder values occur only in the explicitly structural cases; they MUST NOT be substituted for cryptographic_vectors[].",
+  "runner": {
+    "kind": "json_schema_and_semantic_cases",
+    "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "schema_assertion_fields": [
+      "schema_ref",
+      "expect_valid",
+      "instance"
+    ],
+    "semantic_assertion_fields": [
+      "semantic_outcome",
+      "expected_reason_code"
+    ],
+    "cryptographic_assertion_fields": [
+      "did_log_entries",
+      "did_witness_json",
+      "expected",
+      "mutation_cases"
+    ]
+  },
+  "cryptographic_vectors": [
+    {
+      "name": "official_did_webvh_v1_witness_threshold_1_of_1",
+      "source": "DIF didwebvh-test-suite witness-threshold Rust vector",
+      "source_url": "https://github.com/decentralized-identity/didwebvh-test-suite/tree/02b568fff9da408b8b10702f02b93efd7edcb013/vectors/witness-threshold/rust",
+      "source_commit": "02b568fff9da408b8b10702f02b93efd7edcb013",
+      "source_license": "Apache-2.0",
+      "spec_ref": "https://identity.foundation/didwebvh/v1.0/",
+      "notes": "The objects below are field-exact semantic projections of the upstream did.jsonl and did-witness.json at source_commit; insignificant source whitespace is not preserved. A runner MUST perform did:webvh v1.0 resolution rather than trusting expected: decode both did:key values as Ed25519 public keys, recompute the SHA-256 multihash entryHash from RFC 8785 JCS with proof removed and versionId replaced by the SCID, verify the eddsa-jcs-2022 controller proof, verify the independently signed witness proof for the exact versionId, and count one distinct verified witness against threshold=1.",
+      "generation_keys": [
+        {
+          "id": "key-0",
+          "type": "ed25519",
+          "seed_hex": "0000000000000000000000000000000000000000000000000000000000000001"
+        },
+        {
+          "id": "wit-0",
+          "type": "ed25519",
+          "seed_hex": "0000000000000000000000000000000000000000000000000000000000000010"
+        }
+      ],
+      "did_log_entries": [
+        {
+          "versionId": "1-QmQuf4Ficd9An6KLaZeddjRARvUe7p3iXaYwrxUiy5xqCg",
+          "versionTime": "2000-01-01T00:00:00Z",
+          "parameters": {
+            "method": "did:webvh:1.0",
+            "scid": "QmXxi5SJLod9kfjyLztg632vmSYK6Wi951PWQRCe7k32Fo",
+            "updateKeys": [
+              "z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG"
+            ],
+            "witness": {
+              "threshold": 1,
+              "witnesses": [
+                {
+                  "id": "did:key:z6Mkrv5Cm2XCLumMPTqooLTCw6YDf421d7VdTziwrZ8vNf4L"
+                }
+              ]
+            }
+          },
+          "state": {
+            "@context": [
+              "https://www.w3.org/ns/did/v1",
+              "https://w3id.org/security/multikey/v1"
+            ],
+            "assertionMethod": [],
+            "authentication": [
+              "did:webvh:QmXxi5SJLod9kfjyLztg632vmSYK6Wi951PWQRCe7k32Fo:example.com#P5RDjVJG"
+            ],
+            "capabilityDelegation": [],
+            "capabilityInvocation": [],
+            "controller": "did:webvh:QmXxi5SJLod9kfjyLztg632vmSYK6Wi951PWQRCe7k32Fo:example.com",
+            "id": "did:webvh:QmXxi5SJLod9kfjyLztg632vmSYK6Wi951PWQRCe7k32Fo:example.com",
+            "keyAgreement": [],
+            "verificationMethod": [
+              {
+                "controller": "did:webvh:QmXxi5SJLod9kfjyLztg632vmSYK6Wi951PWQRCe7k32Fo:example.com",
+                "id": "did:webvh:QmXxi5SJLod9kfjyLztg632vmSYK6Wi951PWQRCe7k32Fo:example.com#P5RDjVJG",
+                "publicKeyMultibase": "z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
+                "type": "Multikey"
+              }
+            ]
+          },
+          "proof": [
+            {
+              "type": "DataIntegrityProof",
+              "cryptosuite": "eddsa-jcs-2022",
+              "created": "2026-07-09T23:33:06Z",
+              "verificationMethod": "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG#z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG",
+              "proofPurpose": "assertionMethod",
+              "proofValue": "z5A1x1GqmXqaKumPqDkb4o3Qp88Dx5CZJ3SmyCeNJWSRDqbwVAxgsGKeR8suD7Hqf26iQr7jkA861ciTYgYxwhDn"
+            }
+          ]
+        }
+      ],
+      "did_witness_json": [
+        {
+          "versionId": "1-QmQuf4Ficd9An6KLaZeddjRARvUe7p3iXaYwrxUiy5xqCg",
+          "proof": [
+            {
+              "type": "DataIntegrityProof",
+              "cryptosuite": "eddsa-jcs-2022",
+              "created": "2026-07-09T23:33:06Z",
+              "verificationMethod": "did:key:z6Mkrv5Cm2XCLumMPTqooLTCw6YDf421d7VdTziwrZ8vNf4L#z6Mkrv5Cm2XCLumMPTqooLTCw6YDf421d7VdTziwrZ8vNf4L",
+              "proofPurpose": "assertionMethod",
+              "proofValue": "zoPhoC3DDMg5QYNQSZyUBiLfiDUfPkp12EzggtVBRfqa2mmqrZM1ZVqQy2EkeQLudpZ86ZVymstd3QmaQP73ccDA"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "decision": "accept",
+        "did": "did:webvh:QmXxi5SJLod9kfjyLztg632vmSYK6Wi951PWQRCe7k32Fo:example.com",
+        "version_id": "1-QmQuf4Ficd9An6KLaZeddjRARvUe7p3iXaYwrxUiy5xqCg",
+        "entry_hash_chain_verified": true,
+        "controller_proof_verified": true,
+        "witness_proof_verified": true,
+        "verified_distinct_witnesses": 1,
+        "effective_threshold": 1
+      },
+      "mutation_cases": [
+        {
+          "name": "entry_hash_tampered",
+          "mutation": "replace did_log_entries[0].versionId entryHash with Qm11111111111111111111111111111111111111111111",
+          "expected_reason_code": "digest_mismatch",
+          "expected_stage": "entry_hash_verification"
+        },
+        {
+          "name": "controller_proof_tampered",
+          "mutation": "flip the final base58 character of did_log_entries[0].proof[0].proofValue",
+          "expected_reason_code": "invalid_signature",
+          "expected_stage": "controller_proof_verification"
+        },
+        {
+          "name": "witness_proof_tampered",
+          "mutation": "flip the final base58 character of did_witness_json[0].proof[0].proofValue",
+          "expected_reason_code": "webvh_witness_proof_invalid",
+          "expected_stage": "witness_proof_verification"
+        },
+        {
+          "name": "witness_version_binding_tampered",
+          "mutation": "replace did_witness_json[0].versionId with 1-Qm11111111111111111111111111111111111111111111",
+          "expected_reason_code": "webvh_witness_proofs_unavailable",
+          "expected_stage": "witness_version_binding"
+        },
+        {
+          "name": "wrong_cryptosuite",
+          "mutation": "replace did_witness_json[0].proof[0].cryptosuite with ecdsa-jcs-2019",
+          "expected_reason_code": "webvh_witness_proof_invalid",
+          "expected_stage": "witness_proof_verification"
+        }
+      ]
+    }
+  ],
+  "method_policy_cases": [
+    {
+      "name": "standard_witness_parameter_is_the_only_policy_source",
+      "semantic_outcome": "accept",
+      "notes": "The did:webvh 1.0 shape. threshold is within 1..witnesses.length and every witness id is a unique did:key. This is the only structure an Arkret verifier reads as witness policy.",
+      "parameters": {
+        "method": "did:webvh:1.0",
+        "witness": {
+          "threshold": 2,
+          "witnesses": [
+            {
+              "id": "did:key:z6MkfixtureWitnessA"
+            },
+            {
+              "id": "did:key:z6MkfixtureWitnessB"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "absent_witness_parameter_means_no_method_witness",
+      "semantic_outcome": "accept",
+      "notes": "Absence is not malformation. A DID that never declared method witnesses is legitimately unwitnessed at the method layer; deployment policy may still refuse to use it on high-risk paths, but that is an overlay decision and not a parse failure.",
+      "parameters": {
+        "method": "did:webvh:1.0"
+      }
+    },
+    {
+      "name": "aliased_witness_keys_fail_closed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "webvh_witness_parameter_malformed",
+      "notes": "The single most dangerous case. A log carrying witnesses / witness_threshold instead of witness was produced against a non-standard dialect, so the true policy is unknown. Reading it as no policy would silently turn a DID that declares two witnesses into one that requires none, which is a fail-open, not a compatibility fallback.",
+      "parameters": {
+        "method": "did:webvh:1.0",
+        "witnesses": [
+          "did:key:z6MkfixtureWitnessA",
+          "did:key:z6MkfixtureWitnessB"
+        ],
+        "witness_threshold": 2
+      }
+    },
+    {
+      "name": "arkret_overlay_fields_inside_method_parameter_fail_closed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "webvh_witness_parameter_malformed",
+      "notes": "profileMinThreshold / structuredWitnesses / watcherEvidence / maxAgeSeconds are Arkret deployment policy. Inside method history they force external verifiers to cope with unregistered keys, make policy rotation require rewriting DID history, and let a holder self-declare both the threshold and the evidence that satisfies it.",
+      "parameters": {
+        "method": "did:webvh:1.0",
+        "witness": {
+          "threshold": 1,
+          "profileMinThreshold": 1,
+          "witnesses": [
+            {
+              "id": "did:key:z6MkfixtureWitnessA"
+            }
+          ],
+          "structuredWitnesses": [
+            {
+              "did": "did:web:witness-a.example",
+              "controllingOrg": "did:web:org-a.example"
+            }
+          ],
+          "maxAgeSeconds": 3600
+        }
+      }
+    },
+    {
+      "name": "non_did_key_witness_id_fails_closed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "webvh_witness_parameter_malformed",
+      "notes": "did:webvh 1.0 constrains witness identifiers to did:key. Any other form describes something that is not a method witness.",
+      "parameters": {
+        "method": "did:webvh:1.0",
+        "witness": {
+          "threshold": 1,
+          "witnesses": [
+            {
+              "id": "did:web:witness-a.example"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "undecodable_did_key_witness_fails_closed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "webvh_witness_parameter_malformed",
+      "notes": "The witness id is shaped like a did:key and passes any pattern check, but its multibase payload does not decode to a well-formed public key compatible with the log's Data Integrity cryptosuite. did:webvh 1.0 requires this to be caught during parameter validation, not deferred to signature verification: an undecodable key that is allowed to occupy a threshold slot silently hollows out the threshold, because that slot can never be satisfied by any proof.",
+      "parameters": {
+        "method": "did:webvh:1.0",
+        "witness": {
+          "threshold": 1,
+          "witnesses": [
+            {
+              "id": "did:key:z6MkNOTAVALIDMULTIBASEPAYLOAD"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "threshold_above_witness_count_fails_closed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "webvh_witness_parameter_malformed",
+      "notes": "An unsatisfiable threshold is a declaration error, not an instruction to ignore witnessing.",
+      "parameters": {
+        "method": "did:webvh:1.0",
+        "witness": {
+          "threshold": 3,
+          "witnesses": [
+            {
+              "id": "did:key:z6MkfixtureWitnessA"
+            },
+            {
+              "id": "did:key:z6MkfixtureWitnessB"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "duplicate_witness_id_fails_closed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "webvh_witness_parameter_malformed",
+      "notes": "A repeated id would let one key be counted twice toward threshold.",
+      "parameters": {
+        "method": "did:webvh:1.0",
+        "witness": {
+          "threshold": 2,
+          "witnesses": [
+            {
+              "id": "did:key:z6MkfixtureWitnessA"
+            },
+            {
+              "id": "did:key:z6MkfixtureWitnessA"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "missing_witness_proofs_file_fails_closed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "webvh_witness_proofs_unavailable",
+      "notes": "Policy is declared but did-witness.json is unreachable or has no entry for this versionId. Unavailable evidence is not absent policy.",
+      "parameters": {
+        "method": "did:webvh:1.0",
+        "witness": {
+          "threshold": 1,
+          "witnesses": [
+            {
+              "id": "did:key:z6MkfixtureWitnessA"
+            }
+          ]
+        }
+      },
+      "witness_proofs": {
+        "version_id": "2-zFixtureVersionTwo",
+        "proofs_available": false
+      }
+    },
+    {
+      "name": "proof_from_unlisted_signer_does_not_count",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "webvh_witness_proof_invalid",
+      "notes": "A syntactically fine proof signed by a key outside parameters.witness proves nothing about the declared witness set.",
+      "parameters": {
+        "method": "did:webvh:1.0",
+        "witness": {
+          "threshold": 1,
+          "witnesses": [
+            {
+              "id": "did:key:z6MkfixtureWitnessA"
+            }
+          ]
+        }
+      },
+      "witness_proofs": {
+        "version_id": "2-zFixtureVersionTwo",
+        "proofs_available": true,
+        "signers": [
+          "did:key:z6MkfixtureWitnessC"
+        ]
+      }
+    },
+    {
+      "name": "fewer_valid_proofs_than_threshold_fails_closed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "webvh_witness_threshold_not_met",
+      "notes": "One valid proof against a declared threshold of two. Effective threshold is the strictest intersection of the method threshold and the deployment minimum, so a holder can raise this bar but never lower it.",
+      "parameters": {
+        "method": "did:webvh:1.0",
+        "witness": {
+          "threshold": 2,
+          "witnesses": [
+            {
+              "id": "did:key:z6MkfixtureWitnessA"
+            },
+            {
+              "id": "did:key:z6MkfixtureWitnessB"
+            }
+          ]
+        }
+      },
+      "witness_proofs": {
+        "version_id": "2-zFixtureVersionTwo",
+        "proofs_available": true,
+        "signers": [
+          "did:key:z6MkfixtureWitnessA"
+        ]
+      }
+    },
+    {
+      "name": "holder_declared_threshold_cannot_lower_deployment_minimum",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "webvh_witness_threshold_not_met",
+      "notes": "The log declares threshold 1 while deployment policy requires 2. Effective threshold is 2; otherwise any holder could opt out of the deployment's witnessing requirement by editing its own log.",
+      "parameters": {
+        "method": "did:webvh:1.0",
+        "witness": {
+          "threshold": 1,
+          "witnesses": [
+            {
+              "id": "did:key:z6MkfixtureWitnessA"
+            },
+            {
+              "id": "did:key:z6MkfixtureWitnessB"
+            }
+          ]
+        }
+      },
+      "deployment_policy": {
+        "witness_threshold": 2,
+        "distinct_controlling_organizations": 2
+      },
+      "witness_proofs": {
+        "version_id": "2-zFixtureVersionTwo",
+        "proofs_available": true,
+        "signers": [
+          "did:key:z6MkfixtureWitnessA"
+        ]
+      }
+    },
+    {
+      "name": "same_controlling_organization_does_not_satisfy_distinct_requirement",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "webvh_witness_controlling_organization_unverified",
+      "notes": "Two distinct witness keys, one operator. Counting keys instead of controlling organizations would let a single operator satisfy a two-organization requirement alone, which empties the requirement of meaning.",
+      "parameters": {
+        "method": "did:webvh:1.0",
+        "witness": {
+          "threshold": 2,
+          "witnesses": [
+            {
+              "id": "did:key:z6MkfixtureWitnessA"
+            },
+            {
+              "id": "did:key:z6MkfixtureWitnessB"
+            }
+          ]
+        }
+      },
+      "deployment_policy": {
+        "witness_threshold": 2,
+        "distinct_controlling_organizations": 2
+      },
+      "witness_proofs": {
+        "version_id": "2-zFixtureVersionTwo",
+        "proofs_available": true,
+        "signers": [
+          "did:key:z6MkfixtureWitnessA",
+          "did:key:z6MkfixtureWitnessB"
+        ],
+        "controlling_organizations": [
+          "did:web:org-a.example",
+          "did:web:org-a.example"
+        ]
+      }
+    },
+    {
+      "name": "evidence_older_than_max_age_fails_closed",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "webvh_witness_evidence_stale",
+      "notes": "Age is measured from observed_at, not from when an Arkret receipt was signed. Re-signing an old observation does not refresh it.",
+      "parameters": {
+        "method": "did:webvh:1.0",
+        "witness": {
+          "threshold": 1,
+          "witnesses": [
+            {
+              "id": "did:key:z6MkfixtureWitnessA"
+            }
+          ]
+        }
+      },
+      "deployment_policy": {
+        "witness_max_age_seconds": 3600
+      },
+      "witness_proofs": {
+        "version_id": "2-zFixtureVersionTwo",
+        "proofs_available": true,
+        "signers": [
+          "did:key:z6MkfixtureWitnessA"
+        ],
+        "observed_at": "2026-05-01T00:00:00.000Z",
+        "evaluated_at": "2026-05-02T00:00:00.000Z"
+      }
+    }
+  ],
+  "schema_validation_cases": [
+    {
+      "name": "did_webvh_witness_receipt_valid",
+      "schema_ref": "schemas/did-webvh-witness-receipt.schema.json",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "notes": "Binds subject DID, exact versionId, witness did:key, its controlling organization and the observation instant. The issuer service DID is the trust root for the receipt itself and is unrelated to the subject DID's controller.",
+      "instance": {
+        "schema": "ak.schema.did_webvh_witness_receipt.v1",
+        "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "did": "did:webvh:z6mkfixture:subject.example",
+        "version_id": "2-zFixtureVersionTwo",
+        "log_head_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "witness_did": "did:key:z6MkfixtureWitnessA",
+        "witness_verification_method": "did:key:z6MkfixtureWitnessA#z6MkfixtureWitnessA",
+        "controlling_organization": "did:web:org-a.example",
+        "observed_at": "2026-05-01T00:00:00.000Z",
+        "source": "https://subject.example/.well-known/did-witness.json",
+        "issuer_service_id": "did:webvh:z6mkfixture:registry.example",
+        "expires_at": "2026-05-02T00:00:00.000Z",
+        "created_at": "2026-05-01T00:00:00.000Z",
+        "signature": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "created_at": "2026-05-01T00:00:00.000Z",
+          "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+        }
+      }
+    },
+    {
+      "name": "registry_consensus_receipt_stays_a_separate_family",
+      "schema_ref": "schemas/identity-receipt.schema.json",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "notes": "The pre-existing family, unchanged. Its witness_role describes a replication role inside a DID registry consensus group and it binds seq + head_event_digest; it says nothing about did:webvh method witnesses. Both families ride ak.root.identity.receipts.query.list and are told apart only by the schema constant.",
+      "instance": {
+        "schema": "ak.schema.identity_receipt.v1",
+        "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
+        "did": "did:webvh:z6mkfixture:subject.example",
+        "seq": 2,
+        "head_event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "registry_service_id": "did:webvh:z6mkfixture:registry.example",
+        "witness_role": "replica",
+        "created_at": "2026-05-01T00:00:00.000Z",
+        "signature": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "created_at": "2026-05-01T00:00:00.000Z",
+          "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+        }
+      }
+    },
+    {
+      "name": "witness_receipt_without_expiry_is_invalid",
+      "schema_ref": "schemas/did-webvh-witness-receipt.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$: 'expires_at' is a required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "notes": "An Arkret-layer cache record without an expiry is indistinguishable from a permanent assertion, which is exactly how stale witness evidence outlives the state it described.",
+      "instance": {
+        "schema": "ak.schema.did_webvh_witness_receipt.v1",
+        "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "did": "did:webvh:z6mkfixture:subject.example",
+        "version_id": "2-zFixtureVersionTwo",
+        "witness_did": "did:key:z6MkfixtureWitnessA",
+        "witness_verification_method": "did:key:z6MkfixtureWitnessA#z6MkfixtureWitnessA",
+        "controlling_organization": "did:web:org-a.example",
+        "observed_at": "2026-05-01T00:00:00.000Z",
+        "issuer_service_id": "did:webvh:z6mkfixture:registry.example",
+        "created_at": "2026-05-01T00:00:00.000Z",
+        "signature": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "created_at": "2026-05-01T00:00:00.000Z",
+          "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+        }
+      }
+    },
+    {
+      "name": "witness_receipt_without_controlling_organization_is_invalid",
+      "schema_ref": "schemas/did-webvh-witness-receipt.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$: 'controlling_organization' is a required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "notes": "Distinct-organization policy counts organizations, not keys. A receipt that cannot name the controlling organization cannot be counted toward that requirement, so the field is required rather than optional.",
+      "instance": {
+        "schema": "ak.schema.did_webvh_witness_receipt.v1",
+        "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "did": "did:webvh:z6mkfixture:subject.example",
+        "version_id": "2-zFixtureVersionTwo",
+        "witness_did": "did:key:z6MkfixtureWitnessA",
+        "witness_verification_method": "did:key:z6MkfixtureWitnessA#z6MkfixtureWitnessA",
+        "observed_at": "2026-05-01T00:00:00.000Z",
+        "issuer_service_id": "did:webvh:z6mkfixture:registry.example",
+        "expires_at": "2026-05-02T00:00:00.000Z",
+        "created_at": "2026-05-01T00:00:00.000Z",
+        "signature": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "created_at": "2026-05-01T00:00:00.000Z",
+          "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+        }
+      }
+    },
+    {
+      "name": "non_did_key_witness_in_receipt_is_invalid",
+      "schema_ref": "schemas/did-webvh-witness-receipt.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:'did:web:witness-a.example' does not match",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "notes": "witness_did mirrors parameters.witness.witnesses[].id, which did:webvh 1.0 constrains to did:key. A receipt naming another form is describing something that is not a method witness.",
+      "instance": {
+        "schema": "ak.schema.did_webvh_witness_receipt.v1",
+        "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "did": "did:webvh:z6mkfixture:subject.example",
+        "version_id": "2-zFixtureVersionTwo",
+        "witness_did": "did:web:witness-a.example",
+        "witness_verification_method": "did:web:witness-a.example#key-1",
+        "controlling_organization": "did:web:org-a.example",
+        "observed_at": "2026-05-01T00:00:00.000Z",
+        "issuer_service_id": "did:webvh:z6mkfixture:registry.example",
+        "expires_at": "2026-05-02T00:00:00.000Z",
+        "created_at": "2026-05-01T00:00:00.000Z",
+        "signature": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "created_at": "2026-05-01T00:00:00.000Z",
+          "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+        }
+      }
+    },
+    {
+      "name": "arkret_overlay_field_on_receipt_is_invalid",
+      "schema_ref": "schemas/did-webvh-witness-receipt.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('max_age_seconds' was unexpected)",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "notes": "The receipt records an observation; it does not carry policy. Letting an issuer attach its own max age would put the freshness bar back in the hands of the party whose evidence is being judged.",
+      "instance": {
+        "schema": "ak.schema.did_webvh_witness_receipt.v1",
+        "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "did": "did:webvh:z6mkfixture:subject.example",
+        "version_id": "2-zFixtureVersionTwo",
+        "witness_did": "did:key:z6MkfixtureWitnessA",
+        "witness_verification_method": "did:key:z6MkfixtureWitnessA#z6MkfixtureWitnessA",
+        "controlling_organization": "did:web:org-a.example",
+        "observed_at": "2026-05-01T00:00:00.000Z",
+        "issuer_service_id": "did:webvh:z6mkfixture:registry.example",
+        "expires_at": "2026-05-02T00:00:00.000Z",
+        "created_at": "2026-05-01T00:00:00.000Z",
+        "max_age_seconds": 3600,
+        "signature": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "created_at": "2026-05-01T00:00:00.000Z",
+          "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+        }
+      }
+    },
+    {
+      "name": "receipts_tagged_union_accepts_both_families",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "notes": "One response carrying both families. A consumer MUST branch on the schema constant; threshold_met is an Arkret-layer convenience and its absence MUST NOT be read as true.",
+      "instance": {
+        "receipts": [
+          {
+            "schema": "ak.schema.did_webvh_witness_receipt.v1",
+            "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+            "did": "did:webvh:z6mkfixture:subject.example",
+            "version_id": "2-zFixtureVersionTwo",
+            "witness_did": "did:key:z6MkfixtureWitnessA",
+            "witness_verification_method": "did:key:z6MkfixtureWitnessA#z6MkfixtureWitnessA",
+            "controlling_organization": "did:web:org-a.example",
+            "observed_at": "2026-05-01T00:00:00.000Z",
+            "issuer_service_id": "did:webvh:z6mkfixture:registry.example",
+            "expires_at": "2026-05-02T00:00:00.000Z",
+            "created_at": "2026-05-01T00:00:00.000Z",
+            "signature": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
+              "alg": "EdDSA",
+              "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "created_at": "2026-05-01T00:00:00.000Z",
+              "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+            }
+          },
+          {
+            "schema": "ak.schema.identity_receipt.v1",
+            "receipt_id": "ak:receipt:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
+            "did": "did:webvh:z6mkfixture:subject.example",
+            "seq": 2,
+            "head_event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "registry_service_id": "did:webvh:z6mkfixture:registry.example",
+            "witness_role": "replica",
+            "created_at": "2026-05-01T00:00:00.000Z",
+            "signature": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixture:registry.example#registry-signing-key-1",
+              "alg": "EdDSA",
+              "payload_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "created_at": "2026-05-01T00:00:00.000Z",
+              "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJlLXBsYWNlaG9sZGVy"
+            }
+          }
+        ],
+        "threshold_met": false
+      }
+    }
+  ]
+}

@@ -18,19 +18,19 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 202,
+    "total_operations": 207,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 190
+      "typed_schema": 195
     },
     "by_surface_class_and_completeness_class": {
       "core": {
         "service_describe": 4,
         "streaming_frame_schema": 2,
-        "typed_schema": 27
+        "typed_schema": 32
       },
       "deployment_local": {
         "typed_schema": 12
@@ -1036,6 +1036,75 @@
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListOutcome",
       "openapi_component_refs": {
         "response": "#/components/schemas/IdentityLogListOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.command.ensure",
+      "surface_class": "core",
+      "http": "POST /_arkret/root/identity/organization-registrations:ensure",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationEnsureRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/OrganizationRegistrationEnsureRequestBody",
+        "response": "#/components/schemas/OrganizationRegistrationOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.command.prepare",
+      "surface_class": "core",
+      "http": "POST /_arkret/root/identity/organization-registrations:prepare",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallengeRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallenge",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/OrganizationRegistrationChallengeRequestBody",
+        "response": "#/components/schemas/OrganizationRegistrationChallenge"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.command.refresh",
+      "surface_class": "core",
+      "http": "POST /_arkret/root/identity/organization-registrations:refresh",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRefreshRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/OrganizationRegistrationRefreshRequestBody",
+        "response": "#/components/schemas/OrganizationRegistrationOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.command.revoke",
+      "surface_class": "core",
+      "http": "POST /_arkret/root/identity/organization-registrations:revoke",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRevokeRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/OrganizationRegistrationRevokeRequestBody",
+        "response": "#/components/schemas/OrganizationRegistrationOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.resource.get",
+      "surface_class": "core",
+      "http": "GET /_arkret/root/identity/organization-registrations",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/OrganizationRegistrationOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."

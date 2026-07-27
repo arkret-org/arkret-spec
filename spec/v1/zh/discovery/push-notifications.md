@@ -389,9 +389,11 @@ POST /_arkret/edge/push/notify
 | `notification.evaluation_locus_unresolved` | boolean | optional | E2EE client-side rule 降级信号（见 §4.5 第 3 步）：为 `true` 表示客户端已被唤醒但 server 端规则匹配尚未确定。纯本地评估信号，不携带 metadata。 |
 | `notification.timing_profile_hint` | string | required | Sync Service 提供的闭合时序 / profile hint，封闭枚举 `default` / `traffic_metadata_hardened`。当值为 `traffic_metadata_hardened` 时，表示源 Realm 或 route 声明 `ak.profile.traffic_metadata_hardened.v1`；Push Gateway MUST 对 provider 可见出向 push 使用 300s 或更粗 timing bucket。该字段只驱动 gateway 内部时序，不得转发给 provider，也不得替代 `wakeup_default` 或 payload disclosure profile。 |
 | `notification.counts` | object | optional | 未读数、未接来电数等计数。**`blind_wakeup` 下约束（normative）**：绝对未读数是活动侧信道，会让 provider 推断用户的累计活跃度，且 §2.2 已将"未读绝对计数明文"列入 `push_hint` MUST NOT 清单；为避免该 MUST NOT 被本字段架空，`blind_wakeup` 下 counts **MUST NOT** 携带明文绝对未读数。counts MUST 改用以下形态之一：粗粒度布尔 badge（如"有/无新内容"）、`unread_increment` 增量，或按 Realm policy 声明粒度 **bucket 化**的未读数。**封闭默认 bucket grid（normative）**：采用 bucket 化形态时，未声明 policy grid 的实现 MUST 使用封闭默认 grid `1` / `2-5` / `6-20` / `21+`（与 [`discovery-directory.md` §3](./discovery-directory.md) member_count bucket 同为协议固定枚举，使迟滞带宽有可计算基准）。policy MAY 声明更细或更粗的自定义 grid，但 MUST 是封闭枚举（请求方收到不在 grid 内的 bucket 字符串 MUST 视作不合规并丢弃），不得使用开放 / 无界粒度——否则下方迟滞带宽公式（依赖"相邻有限 bucket 跨度"）无可计算基准。无论何种形态，counts MUST NOT 跨 `push_target_id` 关联，也不得用于在 provider 侧重建跨 Realm 累计活动画像。**边界振荡侧信道（normative）**：与 [`discovery-directory.md` §3](./discovery-directory.md) member_count bucket 同理，真实未读数在两个 bucket 边界附近抖动时，provider 反复观察 bucket 翻转可逼近精确计数。因此采用 bucket 化形态时，bucket 输出 MUST 带迟滞（hysteresis）且最小驻留时间：bucket 一旦切换，MUST 在 policy 声明或本段默认的最小驻留窗口内保持稳定，不得在边界两侧逐次 notify 即翻转；实现 MUST 仅在真实计数越过 bucket 边界并持续超过 policy 声明或本段默认的迟滞带宽后才切换输出 bucket。默认最小驻留窗口与默认迟滞带宽复用 [`discovery-directory.md` §3](./discovery-directory.md) member_count bucket 口径：最小驻留窗口 MUST ≥ max(当前通知聚合窗口、provider 可观察刷新间隔)；默认迟滞带宽 = max(2, ceil(相邻有限 bucket 跨度较小者 × 0.10))，其中 bucket"跨度"按**含端点计数**（`upper − lower + 1`）计算，与 [`discovery-directory.md` §3](./discovery-directory.md) 同口径（如 `501-2000` 跨度 = 1500）；开放上界 bucket（如 `21+`）以前一个有限 bucket 的跨度为参照基数（默认 grid 下 `6-20` 跨度 = 15，故 `21+` 参照基数 = 15）。policy MAY 声明更大的绝对值或比例，但不得低于该默认值；声明 0 或更小值 MUST 按不合规处理。`unread_increment` 与布尔 badge 形态不受 bucket 迟滞约束（前者只传增量、后者不暴露绝对量级）。 |
-| `notification.devices` | object[] | required | 目标设备数组。 |
-| `notification.devices[].push_key` | string | required | 目标平台 push token。 |
+| `notification.devices` | object[] | required | 目标设备路由数组，`minItems=1`。**`device_id` MUST 在数组内唯一（normative）**：输入是集合而非多重集。schema 的 `uniqueItems` 只能拒绝逐字节相同的条目，因此 gateway MUST 另行拒绝仅 `push_key` 或其它字段不同、但 `device_id` 重复的请求（`schema_violation`）。该唯一性是 §5.2 响应能对输入逐项守恒的前提，也使 `gateway_status=duplicate` 只表示"此前请求已接管"，不与请求内重复混淆。 |
+| `notification.devices[].device_id` | id:device | required | 目标设备的 typed device id，与 `ak.edge.push.command.register_device` 注册时使用的同一 id。它与 `notification.push_target_id` 组成本次 notify 的逐项身份，§5.2 响应即以此定址；协议不存在第三套 route identity。 |
+| `notification.devices[].push_key` | string | optional | 目标平台 push token。Push Gateway 已在 register_device 时持有该设备的 route，正常情况下 SHOULD 省略本字段，由 gateway 依 `device_id` 解析已注册 route；携带它只会把原始 provider token 多复制一份到 wire 上。本字段 MUST NOT 出现在任何响应中（见 §5.2）。 |
 | `notification.devices[].app_id` | string | optional | 目标应用标识。 |
+| `notification.devices[].platform` | string | optional | 目标平台标识，供 gateway 选择 provider adapter。 |
 | `notification.devices[].target_route_token` | string | optional（routing-stripped） | gateway-internal mention-redirect 路由 token。与 `notification.route_tokens.mention_redirect_target_route_tokens` 配对，驱动 per-device fail-closed 路由门。该 token 不得包含或可逆推出 actor DID、Realm id、Circle id、event id、handle、平台 push token 或其它跨上下文稳定标识。**MUST 在出 provider 前 strip，MUST NOT 转发给 provider**（见 §4.5）。 |
 | `notification.devices[].visible_notification_opt_in` | boolean | optional（默认 `false`；routing-stripped） | 接收设备授权状态中的 `visible_notification` opt-in 投影。仅当 Realm policy、调用服务 visible profile 与该字段三者同时允许时，Push Gateway 才可处理本表 visible-only 字段；缺失或 `false` 时该设备 MUST 回退到 `blind_wakeup`，不得接收明文标题、发送者显示名或 typed-id preview。MUST NOT 转发给 provider。 |
 | `notification.route_tokens` | object | optional（routing-stripped） | gateway-internal opaque token 集合，blind 与 visible 通知共有。第三方 Push Gateway 只可把 token 用作路由、去重、熔断和等值比较输入；token 由接收 Sync / Principal Service 生成，并绑定 `recipient_service_id`、Push Gateway service DID、用途、scope 与 salt epoch。其下所有字段 **MUST 在出 provider 前 strip，MUST NOT 转发给 provider**。 |
@@ -439,7 +441,7 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 
 默认 blind wakeup 请求示例：
 
-```json
+```json schema=schemas/push-operations.schema.json#/$defs/push_notify_request_body
 {
   "notification": {
     "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
@@ -451,7 +453,11 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
     },
     "devices": [
       {
-        "push_key": "fcm:eJx9k2...",
+        "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "app_id": "com.arkret.client"
+      },
+      {
+        "device_id": "ak:device:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
         "app_id": "com.arkret.client"
       }
     ]
@@ -461,19 +467,71 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 
 ### 5.2 响应
 
-```json
+响应对 `notification.devices[]` **逐项守恒**：每个输入 `device_id` 在 `outcomes[]` 中恰好出现一次。
+
+```json schema=schemas/push-operations.schema.json#/$defs/push_notify_outcome
 {
-  "rejected": []
+  "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+  "outcomes": [
+    {
+      "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+      "gateway_status": "accepted"
+    },
+    {
+      "device_id": "ak:device:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
+      "gateway_status": "rejected",
+      "reason_code": "push_token_unknown"
+    }
+  ]
 }
 ```
 
 响应字段：
 
-| 字段 | 类型 | 必填 | 说明 |
+| 字段 | 类型 | 必填 | 说明与约束 |
 |------|------|------|------|
-| `rejected` | object[] | required | 已失效、无权限或无法投递的 push token 摘要。 |
+| `push_target_id` | string | required | 回显 `notification.push_target_id`，MUST 与请求一致。 |
+| `outcomes` | object[] | required | 逐 device 的 gateway 接管结论，`minItems=1`。 |
+| `outcomes[].device_id` | id:device | required | 对应 `notification.devices[].device_id`。逐项身份是 `(push_target_id, device_id)` 复合键——请求侧已经承载它，响应不引入第三套 route identity。 |
+| `outcomes[].gateway_status` | string | required | 封闭枚举 `accepted` / `duplicate` / `rejected`。`accepted`=本次请求 durable 接管该 device route；`duplicate`=此前请求已接管，本次不产生新投递；`rejected`=未接管。 |
+| `outcomes[].reason_code` | string | conditional | 封闭枚举，`gateway_status=rejected` 时 MUST 出现，否则 MUST 缺席。取值见下表，全部登记于 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)。 |
+| `outcomes[].retry_after_ms` | integer | optional | caller 退避毫秒数。仅当 gateway 未接管且 `reason_code` 属 caller-retryable 子集时出现；它的出现是"下一次尝试归调用方"的唯一 wire 信号。 |
 
-`rejected` 数组包含已失效的 `push_key`，Sync Service SHOULD 移除这些设备的注册。
+**守恒规则（normative）**：
+
+- 对 `notification.devices[]` 中每个 `device_id`，`outcomes[]` 中恰有一项同 `device_id`；
+- `outcomes[]` MUST NOT 出现请求中不存在的 `device_id`，MUST NOT 重复；
+- **target 级失败 MUST 展开**：未知 `push_target_id`、target 级 policy 拒绝、payload 超限或 profile 不匹配等整体性失败，MUST 为请求中每个 device 各产出一条 `gateway_status=rejected` 且 `reason_code` 相同的 outcome。请求已携带完整 `devices[]`，展开总是可计算，因此协议不定义第二种响应形状，也不设可选定址字段。
+
+**两阶段责任（normative）**：
+
+1. `gateway_status ∈ {accepted, duplicate}` 表示 Push Gateway 已 durable 接管该 device route。此后 provider 侧的 429、临时失败与重试**由 gateway 负责**，调用方 MUST NOT 因 provider 失败重发该 device。
+2. `gateway_status=rejected` 表示未接管。只有登记为 caller-retryable 的 reason 才可携带 `retry_after_ms`；其余 rejection 是 terminal，重发同一请求不会改变结果。
+3. provider 侧的 pending / accepted / rejected / expired 属于接管之后的 delivery state，由 gateway 内部推进，**不进入本同步响应**。
+4. provider 状态更新 MUST NOT 反向改写首次 gateway 接管结论。
+
+`reason_code` 取值与责任归属：
+
+| `reason_code` | 层级 | 调用方动作 |
+|---|---|---|
+| `push_target_unknown` | target（展开到全部 device） | terminal；停止对该 target 的 notify。 |
+| `push_payload_too_large` | target（展开到全部 device） | terminal；缩减 payload 后才可重试。 |
+| `profile_unsupported` | device | terminal；该设备未 opt-in 所请求的通知 profile，改用 blind 形态。 |
+| `delivery_binding_stale` | device | terminal；接收方 delivery-binding frontier 已推进，route 过期，需重新解析。 |
+| `push_token_unknown` | device | terminal；**SHOULD 移除该设备注册**。 |
+| `push_token_invalid` | device | terminal；**SHOULD 移除该设备注册**。 |
+| `push_gateway_unreachable` | device | **caller-retryable**，按 `retry_after_ms` 重试。 |
+| `rate_limited` | device | **caller-retryable**，按 `retry_after_ms` 重试。 |
+
+注册清理由 `(push_target_id, device_id)` 定址。响应 **MUST NOT** 回传 `push_key`、`app_id`、provider message id、provider 私有 body 或原始 push token 的任何 hash——把原始 provider token 回送给调用方与 §5.1 / §6.2 对路由输入必须 opaque 的约束方向相反，且逐项身份已足以定位注册。
+
+**幂等（normative）**：
+
+- exact replay MUST 返回与首次相同的 `outcomes[]`（同 `device_id` 同 `gateway_status`）；
+- 同一 `Idempotency-Key` 配不同 body MUST 返回 `duplicate_conflict`；
+- 已 durable 接管的 device MUST NOT 因 provider 仍 pending 而要求调用方再次提交。
+
+守恒、展开、责任分层与幂等的可执行向量为 `ak.vector.push.notify_outcome_conservation.v1`（见 [`../conformance/conformance-vectors.md` §10.12.1](../conformance/conformance-vectors.md) 与 [`push-notify-outcome-fixture.json`](../../artifacts/fixtures/push-notify-outcome-fixture.json)）。其中"遗漏 / 重复 / 未请求 device / 回显不符"四条负例通过 JSON Schema 但 MUST 被 verifier 判为 `schema_violation`——守恒是 JSON Schema 无法表达的跨字段不变式。
 
 ## 6. E2EE 场景下的推送
 
@@ -517,6 +575,6 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 ## 8. v1 互操作要求
 
 - 推送规则的跨设备同步使用私有加密 Account Data；规则变更 MUST 由 holder device 签名，未授权服务不得读取敏感关键词或联系人规则。
-- Delivery Receipt 只能表示推送网关或平台尝试投递，不等于用户已读。已读状态仍由 read cursor / read receipt profile 表达。
+- Delivery Receipt 只能表示推送网关或平台尝试投递，不等于用户已读。已读状态仍由 read cursor / read receipt profile 表达。Delivery Receipt 属于 gateway 接管**之后**的 provider 投递阶段，**MUST NOT** 出现在 `ak.edge.push.command.notify` 的同步响应中（见 §5.2）；v1 也未定义把它暴露给调用方的 canonical rail。若某部署需要该能力，MUST 另行定义独立的 query/stream operation 并裁决其定址、保留期、可见性与不可枚举要求，不得借 notify 响应或私有扩展字段承载。
 - 语音/视频通话推送使用 `ak.call.signal` 的 invite hint；payload MUST NOT 包含 SDP、ICE candidate、TURN credential 或明文会议标题，除非 Realm policy 明确允许。
 - Push Gateway 高可用不得通过共享长期 device token 实现。多网关部署 MUST 使用 service DID、短期授权、token 分片或 per-gateway registration，并支持撤销。

@@ -341,6 +341,34 @@
       ]
     },
     {
+      "vector_id": "ak.vector.identity.organization_registration.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "organization-registration-fixture.json"
+      ],
+      "description": "Registering an external Organization DID separates resolution, control verification, local registration, Realm relationship and service delegation; being resolvable or referenceable yields no local administrative authority. prepare/ensure is two-phase by decision: the registry issues and remembers a single-use challenge bound to purpose, audience, origin, trust domain, nonce, local_admin_subject and a window of at most 300 seconds, and the control proof binds that beneficiary to block redirection. Challenge consumption atomically records the canonical request digest and outcome, so only a byte-identical retry is idempotent; the same challenge under a different digest fails closed. proof_kind is a closed two-member discriminator over mature DIDs, witness attestation is never a governance quorum, requested scopes MUST match the challenge, and quorum proofs MUST meet the declared threshold. registration_generation reconciles idempotency with terminal revocation: replacement atomically terminates the old current generation and advances a monotonic current pointer, so an old receipt cannot authorize after supersession. Status is the closed triple active/stale/revoked with rotation mapping to stale and DID deactivation forcing revoked, and revoked is terminal against refresh.",
+      "source_refs": [
+        "spec/v1/zh/identity/identity-did.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/organization-registration-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity.did_webvh_witness_rail.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "did-webvh-witness-fixture.json"
+      ],
+      "description": "did:webvh witness policy is read only from parameters.witness = {threshold, witnesses:[{id}]} with unique did:key ids, and proofs only from the separate did-witness.json keyed by versionId. Malformed, aliased (witnesses / witness_threshold / witnessThreshold), Arkret-overlay-polluted, unavailable, under-threshold, stale or same-controlling-organization evidence all fail closed with a registered code; none of them may degrade to threshold 0. Deployment policy raises but never lowers the method threshold. The fixture includes a field-exact official signed vector that requires entry-hash recomputation plus controller and witness proof verification. Arkret carries observations in ak.schema.did_webvh_witness_receipt.v1, a family distinct from the registry-consensus ak.schema.identity_receipt.v1, returned as a schema-discriminated tagged union that never substitutes for verifying the standard proofs.",
+      "source_refs": [
+        "spec/v1/zh/identity/identity-did.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/did-webvh-witness-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.identity.recovery_kdf.v1",
       "status": "active",
       "domain": "identity",
@@ -3841,6 +3869,20 @@
         "spec/v1/zh/discovery/push-notifications.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/push-rule-core-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.push.notify_outcome_conservation.v1",
+      "status": "active",
+      "domain": "push",
+      "applies_to_fixtures": [
+        "push-notify-outcome-fixture.json"
+      ],
+      "description": "ak.edge.push.command.notify returns one outcome per input device: every notification.devices[] device_id appears in outcomes[] exactly once, none missing, none duplicated, none unrequested, and a target-level failure is expanded per device instead of collapsing into a second response shape. accepted/duplicate forbid caller resend; only a rejected outcome carrying retry_after_ms, and only for the two registered caller-retryable reasons, transfers the next attempt to the caller. Provider delivery state, provider message ids and raw push tokens never appear in the response.",
+      "source_refs": [
+        "spec/v1/zh/discovery/push-notifications.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json"
       ]
     },
     {

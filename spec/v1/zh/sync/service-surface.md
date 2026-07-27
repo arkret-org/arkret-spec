@@ -331,9 +331,18 @@ GET /_arkret/describe
   时，本数组 MUST 为空——dev / placeholder proof 路径不得用来宣告生产 conformance（见本节 §3.0）。
 - `experimental_features: feature_id[]` — 服务暴露但不承诺稳定互操作的 feature；客户端 MUST NOT
   把它当成协议级决策的依据，也不得继承到 `claimed_profiles`。
-- `compat_surfaces: [{name, kind, ...}]` — Arkret v1 conformance 之外的 external interop surface
-  （`kind` ∈ {`matrix_passthrough`, `mimi_passthrough`, `external_interop`}）。
+- `compat_surfaces: [{name, kind, since?, notes?}]` — Arkret v1 conformance 之外的 surface：
+  被桥接的第三方协议，以及代他方承载的 resolver 姿态
+  （`kind` ∈ {`matrix_passthrough`, `mimi_passthrough`, `delegated_resolver`, `external_interop`}，
+  该枚举是封闭的；`delegated_resolver` 用于本服务并不自称 canonical 权威、
+  但代其暴露的 DID document / key-log 表面，见
+  [`../conformance/conformance-profiles.md` §9](../conformance/conformance-profiles.md)）。
   这些 surface **不构成** Arkret v1 conformance 的一部分。
+  服务 **MUST NOT** 用 `compat_surfaces[]` 声明自身的产品私有 route root——
+  产品私有 API 既不是被桥接的外部协议，也不是委托解析，枚举中没有它的成员；
+  该声明会让私有前缀获得它并不具备的"贴近 conformance"地位，
+  并在 discovery 面上把它暗示为 canonical path 的 fallback。
+  item 对象是封闭的（`additionalProperties: false`），扩展键不能用作绕过路径。
 - `development_mode: boolean` — 必填；为 `true` 时 `verified_profiles` MUST 为空。省略不是 false，SDK / conformance tooling MUST 把缺失视为 invalid describe。
 - `egress_network_policy` — 可选的出站网络策略摘要。会解析 DID、联邦 peer、媒体、snapshot、Policy Server、Webhook、Applet 或 Agent endpoint 的服务 SHOULD 暴露粗粒度策略；完整 SSRF 防护语义见 [`api-conventions.md`](./api-conventions.md) §11.2。
 - `receive_policy_constraints` — Principal Server 可选的部署 / 管理员级接收策略上限。它约束 `ak.peer.invites.command.submit` 与 `ak.peer.contacts.command.submit` 对 `locator_ref`、`handle_claim`、`explicit_address` 等 introduction evidence 的处理；客户端 MUST 把它渲染为“服务器约束”，不得把它当作 subject 自愿公开。语义见 [`invite-addressing.md`](./invite-addressing.md) §5.2。

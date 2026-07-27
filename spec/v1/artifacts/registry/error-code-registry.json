@@ -551,7 +551,7 @@
       "code": "rate_limited",
       "http_status": 429,
       "scope": "both",
-      "description": "The caller exceeded the current rate limit policy."
+      "description": "The caller exceeded the current rate limit policy. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
     },
     {
       "code": "psi_batch_unavailable",
@@ -785,31 +785,31 @@
       "code": "push_gateway_unreachable",
       "http_status": 503,
       "scope": "endpoint",
-      "description": "The push gateway or downstream push provider could not be reached or is unavailable for this route."
+      "description": "The push gateway or downstream push provider could not be reached or is unavailable for this route. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
     },
     {
       "code": "push_payload_too_large",
       "http_status": 413,
       "scope": "endpoint",
-      "description": "The notification payload exceeds the push profile, provider, or deployment size limit."
+      "description": "The notification payload exceeds the push profile, provider, or deployment size limit. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
     },
     {
       "code": "push_target_unknown",
       "http_status": 404,
       "scope": "endpoint",
-      "description": "The requested push target, device route, or notification subscription is unknown or no longer visible."
+      "description": "The requested push target, device route, or notification subscription is unknown or no longer visible. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
     },
     {
       "code": "push_token_invalid",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "The supplied push token is malformed, fails provider validation, or is not bound to the authenticated principal/device."
+      "description": "The supplied push token is malformed, fails provider validation, or is not bound to the authenticated principal/device. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
     },
     {
       "code": "push_token_unknown",
       "http_status": 404,
       "scope": "endpoint",
-      "description": "The push token or registration id is unknown, revoked, expired, or already unregistered."
+      "description": "The push token or registration id is unknown, revoked, expired, or already unregistered. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
     },
     {
       "code": "quarantine",
@@ -968,10 +968,46 @@
       "description": "The Realm schema or Event references a lattice type outside the active, fully specified v1 lattice set. Receivers fail closed; implementation-local CRDT support does not activate a wire lattice."
     },
     {
+      "code": "organization_registration_challenge_invalid",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "The referenced organization registration challenge is unknown, expired, already consumed without an exact successful-replay ledger match, or its purpose / audience / origin / trust_domain / local_admin_subject / requested_scopes binding does not match the submitted request. On first success the registry atomically records (challenge_id, canonical_request_digest, outcome): a byte-identical retry returns that outcome, while the same challenge with a different digest fails here rather than authorising a second intent."
+    },
+    {
+      "code": "organization_registration_control_proof_invalid",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "The method-native control proof fails verification, was produced under a different signing context, does not bind the submitted challenge / organization / version_id, or its signer is not in the organization DID's control relationship at the pinned version. Resolvability of the DID is never accepted in place of this proof."
+    },
+    {
+      "code": "organization_registration_quorum_not_met",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "proof_kind=governance_quorum but fewer than quorum_threshold distinct valid governance signatures were supplied, or two signatures resolve to the same verification method. JSON Schema cannot compare the array length against the declared threshold, so the receiver enforces it and fails closed rather than accepting a partial quorum."
+    },
+    {
+      "code": "organization_registration_scope_unsupported",
+      "http_status": 422,
+      "scope": "endpoint",
+      "description": "A requested delegated scope is outside the closed organization registration scope set, or this deployment does not offer it. The scope vocabulary is closed so that a deployment cannot mint administrative authority the organization never consented to."
+    },
+    {
+      "code": "organization_registration_revoked",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The local organization binding generation is revoked, which is terminal. This also covers an older generation atomically terminated with reason organization_registration_superseded when a new current generation was opened. Refresh MUST NOT revive it, and a receipt from it MUST NOT authorize after the current-generation pointer advances: a binding withdrawn locally, superseded by changed admin/scopes, or forced to revoked because the external DID was deactivated can only be replaced by a fresh registration with a new challenge and proof."
+    },
+    {
+      "code": "organization_registration_stale",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The organization binding is stale — the pinned version no longer reflects current control after a controller rotation, or the receipt has passed expires_at — and the attempted operation is on a high-risk path. Low-risk reads may still proceed; high-risk paths MUST fail closed until a successful refresh, so that one first-time proof cannot authorise the relationship indefinitely."
+    },
+    {
       "code": "profile_unsupported",
       "http_status": 422,
       "scope": "both",
-      "description": "Caller requested an operation that relies on a Realm-declared profile or feature this service has not declared in ak.server.query.describe.supported_features / supported_profiles. The server MUST fail-closed and MUST NOT silently downgrade to a permissive interpretation."
+      "description": "Caller requested an operation that relies on a Realm-declared profile or feature this service has not declared in ak.server.query.describe.supported_features / supported_profiles. The server MUST fail-closed and MUST NOT silently downgrade to a permissive interpretation. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
     },
     {
       "code": "unsupported_join_rule",
@@ -1061,7 +1097,7 @@
       "code": "delivery_binding_stale",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "Federation sender used an obsolete member delivery binding frontier; response carries new_recipient_service_id and handover_frontier so the sender can retry at the current service."
+      "description": "Federation sender used an obsolete member delivery binding frontier; response carries new_recipient_service_id and handover_frontier so the sender can retry at the current service. Dual-registered as a per-device reason_code for ak.edge.push.command.notify (see reason_codes[])."
     },
     {
       "code": "delivery_binding_handed_over",
@@ -1856,6 +1892,62 @@
         "service_call"
       ],
       "description": "Internal audit reason recorded when push-route registration / rotation writes for a `(recipient_service_id, principal_id, device_id)` exceed the default rate (8 writes per 60s). The outward response uses a generic rate-limited envelope; this reason is for server-side abuse detection only. See zh/crypto-media/device-lifecycle.md §5a.2 and zh/conformance/scalability-constraints.md §6.1."
+    },
+    {
+      "code": "push_target_unknown",
+      "applies_to": [
+        "push_notify_outcome"
+      ],
+      "description": "Per-device rejection reason in ak.edge.push.command.notify: the push target is unknown or no longer visible. Target-level, so the gateway MUST expand it into one same-reason rejected outcome per input device. Terminal; not caller-retryable and MUST NOT carry retry_after_ms. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+    },
+    {
+      "code": "push_payload_too_large",
+      "applies_to": [
+        "push_notify_outcome"
+      ],
+      "description": "Per-device rejection reason in ak.edge.push.command.notify: the notification exceeds the push profile, provider, or deployment size limit. Target-level, so the gateway MUST expand it into one same-reason rejected outcome per input device. Terminal until the caller shrinks the payload; MUST NOT carry retry_after_ms. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+    },
+    {
+      "code": "profile_unsupported",
+      "applies_to": [
+        "push_notify_outcome"
+      ],
+      "description": "Per-device rejection reason in ak.edge.push.command.notify: the device has not opted in to the requested notification profile (for example a visible notification sent to a device without visible_notification_opt_in). Terminal; the caller falls back to the blind_wakeup form and MUST NOT resend the same shape. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+    },
+    {
+      "code": "delivery_binding_stale",
+      "applies_to": [
+        "push_notify_outcome"
+      ],
+      "description": "Per-device rejection reason in ak.edge.push.command.notify: the receiver's delivery-binding frontier has advanced past the route this notify was built against. Terminal for this attempt; the caller MUST re-resolve the route rather than retry the same one. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+    },
+    {
+      "code": "push_token_unknown",
+      "applies_to": [
+        "push_notify_outcome"
+      ],
+      "description": "Per-device rejection reason in ak.edge.push.command.notify: no active push registration exists for this (push_target_id, device_id). Terminal; the caller SHOULD drop the device registration. Cleanup is addressed by the composite identity — the response never returns the raw push_key. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+    },
+    {
+      "code": "push_token_invalid",
+      "applies_to": [
+        "push_notify_outcome"
+      ],
+      "description": "Per-device rejection reason in ak.edge.push.command.notify: the registered route failed provider validation or is no longer bound to this device. Terminal; the caller SHOULD drop the device registration. Cleanup is addressed by the composite identity — the response never returns the raw push_key. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+    },
+    {
+      "code": "push_gateway_unreachable",
+      "applies_to": [
+        "push_notify_outcome"
+      ],
+      "description": "Per-device rejection reason in ak.edge.push.command.notify: the gateway could not durably take the route over. One of exactly two caller-retryable notify reasons; it MAY carry retry_after_ms, and its presence is the wire signal that the caller — not the gateway — owns the next attempt. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
+    },
+    {
+      "code": "rate_limited",
+      "applies_to": [
+        "push_notify_outcome"
+      ],
+      "description": "Per-device rejection reason in ak.edge.push.command.notify: gateway-side admission limiting refused durable takeover of this route. One of exactly two caller-retryable notify reasons; it MAY carry retry_after_ms. A route the gateway already accepted is retried by the gateway and never surfaces this reason. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/discovery/push-notifications.md §5.2."
     },
     {
       "code": "selector_actor_wildcard_forbidden",
@@ -4432,6 +4524,54 @@
         "identity_resolution"
       ],
       "description": "did:webvh resolution is in cache-only degraded mode and either the requested operation is outside the closed low-risk read-only set, or no sealed, controller-proof-verified cache evidence is available. Resolver MUST fail closed rather than treat unresolvable as valid."
+    },
+    {
+      "code": "webvh_witness_parameter_malformed",
+      "applies_to": [
+        "identity_resolution",
+        "auth_decision"
+      ],
+      "description": "parameters.witness is present but is not the did:webvh 1.0 shape {threshold, witnesses:[{id}]}: threshold outside 1..witnesses.length, a duplicated witness id, a witness id that is not a did:key, a did:key whose multibase/multicodec payload does not decode to a well-formed public key compatible with the log's Data Integrity cryptosuite, or an unregistered extension key. Key decoding happens during parameter validation, not at signature time; accepting a witness id on string shape alone would let an unverifiable key occupy a threshold slot and hollow out the threshold. Also raised when parameters carries a look-alike key such as witnesses, witness_threshold or witnessThreshold, because that shape is evidence the log was produced against a non-standard dialect and the true policy is therefore unknown. A verifier MUST fail closed and MUST NOT fall back to treating the DID as unwitnessed: silently reading a malformed or aliased declaration as threshold 0 turns a DID that declares witnesses into one that requires none. See zh/identity/identity-did.md §3.4.1."
+    },
+    {
+      "code": "webvh_witness_proofs_unavailable",
+      "applies_to": [
+        "identity_resolution",
+        "auth_decision"
+      ],
+      "description": "parameters.witness declares a witness policy but the did-witness.json proofs file is unreachable, unparseable, or contains no entry for the versionId under evaluation. Unavailable evidence is not absent policy; the verifier MUST fail closed on high-risk paths rather than proceed as if no witnessing were required. See zh/identity/identity-did.md §3.4.1."
+    },
+    {
+      "code": "webvh_witness_proof_invalid",
+      "applies_to": [
+        "identity_resolution",
+        "auth_decision"
+      ],
+      "description": "A witness proof in did-witness.json fails signature verification, is signed by a key outside the witness listed in parameters.witness, or does not bind the versionId it is offered for. The proof does not count toward threshold and the entry MUST be treated as under-witnessed. See zh/identity/identity-did.md §3.4.1."
+    },
+    {
+      "code": "webvh_witness_threshold_not_met",
+      "applies_to": [
+        "identity_resolution",
+        "auth_decision"
+      ],
+      "description": "Valid distinct witness proofs for the versionId are fewer than the effective threshold, which is the strictest intersection of the method-native parameters.witness.threshold and the deployment / Realm policy minimum. A holder-declared policy can raise this bar but MUST NOT lower it. See zh/identity/identity-did.md §3.4.1 and §3.4.2."
+    },
+    {
+      "code": "webvh_witness_evidence_stale",
+      "applies_to": [
+        "identity_resolution",
+        "auth_decision"
+      ],
+      "description": "Witness evidence is older than the effective max age set by deployment / Realm policy, measured from when the proof was observed rather than from when any Arkret receipt was signed. Re-signing an old observation does not refresh it. See zh/identity/identity-did.md §3.4.2."
+    },
+    {
+      "code": "webvh_witness_controlling_organization_unverified",
+      "applies_to": [
+        "identity_resolution",
+        "auth_decision"
+      ],
+      "description": "A deployment profile requires witnesses from distinct controlling organizations, but the controlling organization of at least one witness cannot be verified, or two witnesses resolve to the same organization. Counting unverifiable or colliding organizations would let one operator running several witness keys satisfy a distinct-organization requirement alone; the verifier MUST fail closed on high-risk paths. See zh/identity/identity-did.md §3.4.2."
     },
     {
       "code": "unsupported_attachment_scheme",

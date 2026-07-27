@@ -59,6 +59,11 @@
         "ak.root.identity.command.submit_did_operation",
         "ak.root.identity.service_registration.command.ensure",
         "ak.root.identity.service_registration.resource.get",
+        "ak.root.identity.organization_registration.command.prepare",
+        "ak.root.identity.organization_registration.command.ensure",
+        "ak.root.identity.organization_registration.resource.get",
+        "ak.root.identity.organization_registration.command.refresh",
+        "ak.root.identity.organization_registration.command.revoke",
         "ak.root.identity.recovery_policy.resource.get",
         "ak.root.identity.recovery_policy.command.publish",
         "ak.root.identity.recovery_session.command.create",
@@ -1761,6 +1766,68 @@
       "notes": "Read the service registration bound to the canonical (service_kind, public_base) key without creating or mutating identity state.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome"
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.command.prepare",
+      "http": "POST /_arkret/root/identity/organization-registrations:prepare",
+      "grpc": "RootIdentity/PrepareOrganizationRegistration",
+      "mq": "root.identity.organization_registration.command.prepare",
+      "notes": "Issue a single-use control challenge for an external Organization DID. Two phases are mandatory: the registry issues and remembers the challenge, then the caller proves control against it. Folding the challenge into ensure would let the caller supply its own, at which point the receiver can establish neither freshness nor single use. The challenge binds purpose, audience, origin, trust domain, nonce, the requested scope set, the beneficiary local_admin_subject, and a window of at most 300 seconds, and MUST be consumed on first use. Binding the beneficiary here rather than only in the request is what stops a captured proof from being redirected: a proof that names only the organization and the version says nothing about who receives the scopes. Deliberately not idempotent: every call mints a fresh nonce, because reusing one challenge across attempts is exactly the replay window single use exists to close. A retry therefore yields a different challenge and the caller MUST prove against the newest one.",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "reissue_material",
+        "operation_id": "ak.root.identity.organization_registration.command.prepare",
+        "requires_fresh_request_identity": true
+      },
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallengeRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallenge"
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.command.ensure",
+      "http": "POST /_arkret/root/identity/organization-registrations:ensure",
+      "grpc": "RootIdentity/EnsureOrganizationRegistration",
+      "mq": "root.identity.organization_registration.command.ensure",
+      "notes": "Establish the local binding for an external, already-published Organization DID, keyed on organization_id. The caller pins the resolved version_id and log_head_digest and proves control with a method-native proof whose kind is a closed two-member discriminator; creating a new Organization DID is a separate inception ceremony and has no member here. The control proof binds local_admin_subject, so a captured proof cannot be resubmitted naming a different beneficiary. Idempotency is per generation, not per organization: replaying the current generation's request returns created=false, while a request after revoke, or one that changes local_admin_subject or the scope set, opens registration_generation+1 with created=true. Without that generation the terminal revoked state and the organization-keyed idempotency would contradict each other. This operation registers a reference and a local administrative delegation only: it does not host the DID's method history, does not make this deployment the controller, and creates no Realm, membership, notary, capability or service delegation.",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationEnsureRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome"
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.resource.get",
+      "http": "GET /_arkret/root/identity/organization-registrations",
+      "grpc": "RootIdentity/GetOrganizationRegistration",
+      "mq": "root.identity.organization_registration.resource.get",
+      "notes": "Read the local binding for one Organization DID without creating or mutating state; returns created=false. Only bindings the caller is authorised to manage or see are returned. A caller with no such authorisation MUST receive the same not-found answer as for an organization that was never registered, so the query cannot be used to enumerate which organizations a deployment has bound.",
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome"
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.command.refresh",
+      "http": "POST /_arkret/root/identity/organization-registrations:refresh",
+      "grpc": "RootIdentity/RefreshOrganizationRegistration",
+      "mq": "root.identity.organization_registration.command.refresh",
+      "notes": "Re-prove control at a newer resolved version and re-issue the receipt, returning created=false. Scopes are not renegotiated here; a scope change is a new ensure. Refresh exists because a binding pinned to one version stops proving current control the moment the organization rotates its controller, and because a first-time proof must not authorise the relationship indefinitely.",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRefreshRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome"
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.command.revoke",
+      "http": "POST /_arkret/root/identity/organization-registrations:revoke",
+      "grpc": "RootIdentity/RevokeOrganizationRegistration",
+      "mq": "root.identity.organization_registration.command.revoke",
+      "notes": "Withdraw the local binding, returning a receipt with status=revoked and created=false. Local act with local effect only: it does not modify, deactivate or annotate the external DID's method history, which this deployment does not control. revoked is terminal; re-establishing the relationship requires a fresh ensure with a new challenge and proof.",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRevokeRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome"
     },
     {
       "operation_id": "ak.root.identity.recovery_policy.resource.get",

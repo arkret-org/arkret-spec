@@ -892,14 +892,14 @@
     },
     "compat_surfaces": {
       "type": "array",
-      "description": "External-interop surfaces this service exposes outside its claimed Arkret v1 conformance.",
+      "description": "Surfaces this service exposes outside its claimed Arkret v1 conformance: bridged third-party protocols and delegated resolver postures. A service MUST NOT declare its own product-private route root here — a private API is neither a bridged foreign protocol nor a delegation, and declaring one would grant it a conformance-adjacent standing it does not have. The object is closed so such a declaration cannot be smuggled in through extension keys.",
       "items": {
         "type": "object",
         "required": [
           "name",
           "kind"
         ],
-        "additionalProperties": true,
+        "additionalProperties": false,
         "properties": {
           "name": {
             "type": "string",
@@ -910,8 +910,10 @@
             "enum": [
               "matrix_passthrough",
               "mimi_passthrough",
+              "delegated_resolver",
               "external_interop"
-            ]
+            ],
+            "description": "matrix_passthrough / mimi_passthrough: bridged foreign protocol surface. delegated_resolver: a DID document / key-log surface served on behalf of a canonical authority this service does not claim to be (conformance-profiles.md §9). external_interop: any other non-Arkret interop surface. This list is exhaustive; product-private APIs have no member here."
           },
           "since": {
             "type": "string"

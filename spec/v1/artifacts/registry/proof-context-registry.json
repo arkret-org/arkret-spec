@@ -230,6 +230,54 @@
       "schema_ref": "schemas/account-operations.schema.json"
     },
     {
+      "context": "ak.did-webvh-witness-receipt-proof-v1",
+      "object_family": "did_webvh_witness_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "issuer_service_id",
+        "did",
+        "version_id",
+        "witness_did",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/identity/identity-did.md",
+      "schema_ref": "schemas/did-webvh-witness-receipt.schema.json"
+    },
+    {
+      "context": "ak.organization-registration-control-proof-v1",
+      "object_family": "organization_registration_control_proof",
+      "binding_fields": [
+        "challenge_id",
+        "organization_id",
+        "local_admin_subject",
+        "version_id",
+        "log_head_digest",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/identity/identity-did.md",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationControlProof"
+    },
+    {
+      "context": "ak.organization-registration-receipt-proof-v1",
+      "object_family": "organization_registration_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "issuer_service_id",
+        "registration_receipt_id",
+        "organization_id",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/identity/identity-did.md",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationReceipt"
+    },
+    {
       "context": "ak.identity-receipt-proof-v1",
       "object_family": "identity_receipt",
       "binding_fields": [

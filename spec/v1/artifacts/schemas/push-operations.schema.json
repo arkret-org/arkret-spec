@@ -248,9 +248,11 @@
         "devices": {
           "type": "array",
           "minItems": 1,
+          "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/device_route"
-          }
+          },
+          "description": "Input device routes for this notification. device_id MUST be unique across the array: the input is a set, not a multiset. uniqueItems only rejects byte-identical entries, so the gateway MUST additionally reject a repeated device_id that differs in push_key or any other field. This uniqueness is what lets the response conserve exactly one outcome per input device. See push-notifications.md §5.1."
         }
       },
       "not": {
@@ -353,9 +355,11 @@
         "devices": {
           "type": "array",
           "minItems": 1,
+          "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/device_route"
-          }
+          },
+          "description": "Input device routes for this notification. device_id MUST be unique across the array: the input is a set, not a multiset. uniqueItems only rejects byte-identical entries, so the gateway MUST additionally reject a repeated device_id that differs in push_key or any other field. This uniqueness is what lets the response conserve exactly one outcome per input device. See push-notifications.md §5.1."
         },
         "event_id": {
           "$ref": "#/$defs/event_id"
@@ -389,29 +393,6 @@
         },
         "membership": {
           "$ref": "#/$defs/non_empty_string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "notify_rejection": {
-      "type": "object",
-      "required": [
-        "push_target_id",
-        "reason_code"
-      ],
-      "properties": {
-        "push_target_id": {
-          "$ref": "#/$defs/push_target_id"
-        },
-        "device_id": {
-          "$ref": "#/$defs/device_id"
-        },
-        "reason_code": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "retry_after_ms": {
-          "type": "integer",
-          "minimum": 1
         }
       },
       "additionalProperties": false
@@ -529,17 +510,122 @@
       },
       "additionalProperties": false
     },
-    "push_notify_outcome": {
+    "push_notify_device_outcome": {
       "type": "object",
+      "description": "Gateway acceptance result for exactly one input device route. Identity is the (push_target_id, device_id) pair already carried by the request; no third route identifier exists. Provider delivery state, provider message ids, raw push tokens and token hashes MUST NOT appear here.",
       "required": [
-        "rejected"
+        "device_id",
+        "gateway_status"
       ],
       "properties": {
-        "rejected": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/notify_rejection"
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "gateway_status": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "duplicate",
+            "rejected"
+          ],
+          "description": "Closed gateway acceptance result. accepted = this request durably took the device route over. duplicate = an earlier request already took it over and this request produced no new delivery. rejected = the gateway did not take it over. accepted and duplicate both mean the caller MUST NOT resend this device; only rejected may be resent, and only when retry_after_ms is present. See push-notifications.md §5.2."
+        },
+        "reason_code": {
+          "type": "string",
+          "enum": [
+            "push_target_unknown",
+            "push_payload_too_large",
+            "profile_unsupported",
+            "delivery_binding_stale",
+            "push_token_unknown",
+            "push_token_invalid",
+            "push_gateway_unreachable",
+            "rate_limited"
+          ],
+          "description": "Closed rejection reason, all registered in error-code-registry.json. The first four are target-level or policy rejections; push_token_unknown / push_token_invalid tell the caller to drop this device registration; the last two are the only caller-retryable reasons. REQUIRED when gateway_status=rejected and MUST be absent otherwise."
+        },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Caller-facing backoff. Present only when the gateway did not take the route over AND the reason is one the caller can retry; its presence is the sole wire signal that the caller — not the gateway — owns the next attempt. A durably accepted route is retried by the gateway and never carries this field."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "gateway_status": {
+                "const": "rejected"
+              }
+            },
+            "required": [
+              "gateway_status"
+            ]
+          },
+          "then": {
+            "required": [
+              "reason_code"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "reason_code"
+                  ]
+                },
+                {
+                  "required": [
+                    "retry_after_ms"
+                  ]
+                }
+              ]
+            }
           }
+        },
+        {
+          "if": {
+            "required": [
+              "retry_after_ms"
+            ]
+          },
+          "then": {
+            "required": [
+              "reason_code"
+            ],
+            "properties": {
+              "reason_code": {
+                "enum": [
+                  "push_gateway_unreachable",
+                  "rate_limited"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "push_notify_outcome": {
+      "type": "object",
+      "description": "Closed notify response. outcomes[] is conserved against notification.devices[]: every input device_id appears exactly once, no device_id appears twice, and no device_id appears that was not requested. A target-level failure is expanded into one same-reason rejected outcome per input device rather than collapsing into a second response shape, so the conservation invariant holds unconditionally. Counts, if a deployment surfaces them, are derived from outcomes[] and are never an independent truth source.",
+      "required": [
+        "push_target_id",
+        "outcomes"
+      ],
+      "properties": {
+        "push_target_id": {
+          "$ref": "#/$defs/push_target_id",
+          "description": "Echo of notification.push_target_id. MUST equal the request value."
+        },
+        "outcomes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/push_notify_device_outcome"
+          },
+          "description": "One entry per unique device_id in notification.devices[]. device_id MUST be unique across the array."
         }
       },
       "additionalProperties": false

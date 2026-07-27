@@ -476,6 +476,12 @@
       "file": "schemas/identity-receipt.schema.json"
     },
     {
+      "schema_id": "ak.schema.did_webvh_witness_receipt.v1",
+      "file": "schemas/did-webvh-witness-receipt.schema.json",
+      "status": "active",
+      "description": "Arkret-layer record that a named did:webvh witness was observed attesting a specific log versionId. Separate object family from ak.schema.identity_receipt.v1, whose witness_role describes a DID registry consensus role rather than a method-native witness; both are returned by ak.root.identity.receipts.query.list as a tagged union discriminated on schema. Never substitutes for verifying the standard did-witness.json proofs."
+    },
+    {
       "schema_id": "ak.schema.identity_link.v1",
       "file": "schemas/identity-link.schema.json",
       "status": "active",

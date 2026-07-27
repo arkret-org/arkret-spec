@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/did-webvh-witness-receipt.schema.json",
+  "$defs": {
+    "timestamp": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    }
+  },
+  "title": "Arkret did:webvh Witness Receipt",
+  "description": "Arkret-layer, cacheable and auditable record that a named did:webvh witness was observed attesting a specific log version. It is deliberately a separate object family from ak.schema.identity_receipt.v1: that one records a role (writer / witness / replica) inside a DID registry consensus group and binds seq + head_event_digest, whereas this one binds a did:webvh method versionId and a witness did:key drawn from parameters.witness. Overloading one object with both meanings would leave half its required fields meaningless on either branch and force verifiers to guess which sense of the word witness applies. This receipt NEVER substitutes for method conformance: a verifier MUST still fetch and verify the standard did-witness.json proofs, the entry hash chain and the controller proof. See zh/identity/identity-did.md.",
+  "type": "object",
+  "required": [
+    "schema",
+    "receipt_id",
+    "did",
+    "version_id",
+    "witness_did",
+    "witness_verification_method",
+    "controlling_organization",
+    "observed_at",
+    "issuer_service_id",
+    "expires_at",
+    "created_at",
+    "signature"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.did_webvh_witness_receipt.v1",
+      "description": "Closed discriminator. ak.root.identity.receipts.query.list returns a tagged union of receipt families; this constant is what lets a verifier pick the did:webvh method-witness branch instead of the registry consensus branch without guessing."
+    },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "did": {
+      "type": "string",
+      "pattern": "^did:webvh:[^\\s#?]+$",
+      "description": "Subject DID. Restricted to did:webvh because the object binds method-native did:webvh state; other methods need their own receipt family rather than a widened pattern here."
+    },
+    "version_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The exact did:webvh versionId this attestation covers, verbatim from the log entry. Binding to versionId rather than to a digest of the document is what makes the receipt replayable against did-witness.json, whose proofs are themselves keyed by versionId."
+    },
+    "log_head_digest": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
+      "description": "Optional digest of the log head the issuer held when observing. Present it when the issuer can commit to the whole log state; it lets a consumer detect a split view that a per-version binding alone would not reveal."
+    },
+    "witness_did": {
+      "type": "string",
+      "pattern": "^did:key:[A-Za-z0-9]+$",
+      "description": "The attesting witness, which MUST be one of the parameters.witness.witnesses[].id values in force at version_id. did:webvh 1.0 constrains witness identifiers to did:key, so a receipt naming any other form is describing something that is not a method witness."
+    },
+    "witness_verification_method": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+      "description": "The specific verification method inside witness_did whose signature appears in did-witness.json for version_id."
+    },
+    "controlling_organization": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+      "description": "The organization that controls this witness, as resolved by the issuer. Arkret deployment policy counts distinct controlling organizations, not distinct witness keys; without this field an operator running several witness keys would satisfy a two-distinct-organization requirement by itself. A verifier that cannot independently verify this binding MUST fail closed on high-risk paths rather than count the witness."
+    },
+    "observed_at": {
+      "$ref": "#/$defs/timestamp",
+      "description": "When the issuer actually fetched or observed the witness proof. Freshness is evaluated against this instant, not against created_at: an issuer could otherwise re-sign a years-old observation and present it as current."
+    },
+    "source": {
+      "type": "string",
+      "format": "uri",
+      "description": "Optional origin the proof was read from (the DID's own did-witness.json or a declared mirror). Recorded so a consumer can tell a first-party read from a mirrored one when adjudicating conflicting receipts."
+    },
+    "issuer_service_id": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+      "description": "Service DID of the Arkret service issuing this receipt. This is the trust root for the receipt itself, and is unrelated to the DID's own controller."
+    },
+    "trust_domain": {
+      "type": "string",
+      "description": "Optional trust domain the receipt is scoped to."
+    },
+    "audience": {
+      "type": "string",
+      "description": "Optional audience binding (verifier DID, service DID, or domain). When present, verifiers MUST reject the receipt outside that audience context to prevent cross-protocol reuse."
+    },
+    "expires_at": {
+      "$ref": "#/$defs/timestamp",
+      "description": "Required. An Arkret-layer cache record without an expiry becomes indistinguishable from a permanent assertion, which is precisely how stale witness evidence outlives the state it described. MUST be later than created_at, and a consumer MUST treat an expired receipt as absent rather than as weak evidence."
+    },
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "signature": {
+      "$ref": "./event-envelope.schema.json#/$defs/proof",
+      "properties": {
+        "payload_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "audience": {
+          "type": "string"
+        }
+      },
+      "description": "Issuer detached proof. payload_digest = sha256(canonical_json(receipt with signature omitted)). The detached JWS signs canonical_json({context:'ak.did-webvh-witness-receipt-proof-v1', payload_digest, issuer_service_id, did, version_id, witness_did, verification_method, created_at, domain?, audience?}); context is a fixed signing-context domain tag and is not a wire field. signature.created_at MUST equal receipt.created_at. signature.verification_method MUST be a currently valid assertion method controlled by issuer_service_id. Receipt audience and proof audience MUST either both be absent or be the same single string; array-valued proof audiences are invalid for this object family."
+    }
+  },
+  "additionalProperties": false
+}

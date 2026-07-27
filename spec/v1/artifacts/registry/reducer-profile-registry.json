@@ -470,7 +470,7 @@
           },
           {
             "fixture": "privacy-security-fixture.json",
-            "semantic_projection_digest": "sha256:0dee899865fe14d13bad9bf994b5377b49099adb13ddc4d282854085746bd7f7"
+            "semantic_projection_digest": "sha256:55f48c18e61899f4593861da0064d22ce8e8d3bab3bccbbec5c4e099d8f9d3a6"
           },
           {
             "fixture": "reaction-fixture.json",
@@ -508,7 +508,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:4c9b0f97f17872a06dd599cb2e10743891f4a49d49e31278bf5290242361b9c1"
+            "content_digest": "sha256:35e92b31e898fc3b2e12afd47bdc8faa1e25489bf452d61de82ba8a182ce63a2"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -520,7 +520,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:8c7a2f7112616d1e6dad3fb5e89bf96be5826c1e2e1fa02cf502a572867caec3"
+      "reducer_profile_digest": "sha256:088920e79778b0f71fa5fae72fa5435b77a61e2988b3dbe288779cad238d6a53"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -1355,7 +1355,7 @@
           },
           {
             "fixture": "privacy-security-fixture.json",
-            "semantic_projection_digest": "sha256:0dee899865fe14d13bad9bf994b5377b49099adb13ddc4d282854085746bd7f7"
+            "semantic_projection_digest": "sha256:55f48c18e61899f4593861da0064d22ce8e8d3bab3bccbbec5c4e099d8f9d3a6"
           },
           {
             "fixture": "reaction-fixture.json",
@@ -1397,7 +1397,7 @@
           },
           {
             "ref": "artifacts/registry/operations-error-mapping.json",
-            "content_digest": "sha256:ab5a20b572fba6ee94ba9bacd8df6548c33a7feb9a14dc36a531e82679342309"
+            "content_digest": "sha256:ebadfc8324650dcdf1f394bf419dd695b7012b4f22cf12f920adf9afeadc1a45"
           },
           {
             "ref": "artifacts/registry/relation-kind-registry.json",
@@ -1413,7 +1413,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:4c9b0f97f17872a06dd599cb2e10743891f4a49d49e31278bf5290242361b9c1"
+            "content_digest": "sha256:35e92b31e898fc3b2e12afd47bdc8faa1e25489bf452d61de82ba8a182ce63a2"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -1437,7 +1437,7 @@
           },
           {
             "ref": "zh/sync/service-surface.md",
-            "content_digest": "sha256:2f01ed92632c7c5cd5d50a883160416283ff2246f1143f565715720c9527255e"
+            "content_digest": "sha256:59a37d838b244faf19ce0ae8ad5f2b08f099103b764b917fbdd4a66ff9e3a720"
           },
           {
             "ref": "zh/sync/third-party-invites.md",
@@ -1445,7 +1445,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:3dd17c949efb836343c9b0709bb926e0a9e2c83fd425c60d88c1dffdb60fea48"
+      "reducer_profile_digest": "sha256:4651f9b632eee0f9b0c0242aceb4c3798be204883018c7135c0a420543693a64"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1675,7 +1675,7 @@
           },
           {
             "ref": "artifacts/registry/operation-registry.json",
-            "content_digest": "sha256:59430ba6448c67707527e0f80e7efd7054346ba6d80db63d8f2ec182f6aa0c35"
+            "content_digest": "sha256:c32c0d5afe885c57653a1daa0c7aa6b045321937834abfa39a6f32e30e50fe15"
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
@@ -1691,11 +1691,11 @@
           },
           {
             "ref": "zh/sync/service-http-binding.md",
-            "content_digest": "sha256:5f038507ee90d22425c2eb8da4c987ad4451f0ffb34eb36f1cfb3848511ae2bb"
+            "content_digest": "sha256:474c9fce1c9b8647a84905a7b17a9d9949b76f993812b0b3f74dbb989fbe90ee"
           }
         ]
       },
-      "reducer_profile_digest": "sha256:aa43c64f6b301ec212e3c770eff207955b0ce8e8d57bfcbbbda37ceaae6eebba"
+      "reducer_profile_digest": "sha256:0d7160c02c5c1724db4bf8a8f9a8188b85a0dc700d2f2e92622d64cf8afe796c"
     }
   ],
   "generated_fields": [

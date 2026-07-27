@@ -85,6 +85,10 @@
       "sha256": "e43f708b46f4616e8df3ab19161fe285521aa42c2a937e2300d38c03ec1e14d3"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/did-webvh-witness-fixture.json",
+      "sha256": "a034f5b789622c3a950a7d77e712af566a8a73afaf56f8e15937fab7e98c210a"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
       "sha256": "64770e3724717722ba9beef08dee4f8f283755aa560e4e490ce3ecffd08bd38f"
     },
@@ -114,7 +118,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "b5f1532c32af328a5e13a8bb1abc173f95dba05590e50d9141d2a8998327c65f"
+      "sha256": "675d04903f9d98274ded77e2d12e2ac420ced5e000789ad383c7c4b07379c14c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -193,16 +197,24 @@
       "sha256": "0bb1a4fee4fb711313268b34e85bece44cc8bd41847d4c08c61f11665e3885fe"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/organization-registration-fixture.json",
+      "sha256": "06cd1c070d0df3aee3f7aa72a9c6bfce3afcf0b4003c4e09572512eaec003b09"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/policy-server-fixture.json",
       "sha256": "d7e161c526d3d521d99a8372d17bb4b288733153c88b7ff49d3ec2736b6e1564"
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "c6d4665ec1dde9d8fbd73c219d805b19f1edf631c1da431243bbbe60d44a64e8"
+      "sha256": "c41b6a33e6b2531f7e155a29409fc0d015b80f0bc1ced9ecdfe9d1386c24b1f2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
       "sha256": "e27f20e64cf7ef99821ac257a9d84c62b0a6fa3e787c71c2bce87b3b309a84b6"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",
+      "sha256": "c97de9c97f618222ea4a1e3347e6932533edab99350a4d4ed9aa18f1dda9e4f9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-rule-core-fixture.json",

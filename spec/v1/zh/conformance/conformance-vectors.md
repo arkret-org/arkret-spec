@@ -3444,6 +3444,36 @@ Expected：
 - Presence / online 状态 MUST NOT 影响 `strand_engaged` 的 receiver set；实现不得把 `@here` 解释成 presence-filtered audience。
 - Sender、普通 Realm 成员、push gateway、公开日志与 delivery response MUST NOT 暴露 recipient count、watcher 列表、watch level、命中原因，且不得区分 Bob 是参与者命中还是 Carol 是 watcher 命中。
 
+### 10.12.1 Vector: Push Notify Outcome Conservation
+
+`vector_id`: `ak.vector.push.notify_outcome_conservation.v1`
+
+前置：调用方对同一 `push_target_id` 提交一次 `ak.edge.push.command.notify`，`notification.devices[]` 含两个不同 `device_id`（`D1`、`D2`）。
+
+Steps：
+
+1. 两个 device 均被 gateway durable 接管。
+2. `D1` 接管、`D2` 无有效注册。
+3. `push_target_id` 未知（target 级失败）。
+4. `D1` 接管、`D2` 因 gateway 暂时不可用未被接管。
+5. 用同一 `Idempotency-Key` 与逐字节相同的 body 重放第 1 步。
+6. 变体 A：响应只返回 `D1` 的 outcome。
+7. 变体 B：响应对 `D1` 返回两条互相矛盾的 outcome。
+8. 变体 C：响应额外返回请求中不存在的 `D3`。
+9. 变体 D：响应顶层 `push_target_id` 与请求不一致。
+10. 变体 E：请求的 `devices[]` 中 `D1` 出现两次，仅 `app_id` 不同。
+
+Expected：
+
+- 第 1–5 步的响应 MUST 对 `devices[]` 逐项守恒：每个输入 `device_id` 在 `outcomes[]` 中恰好出现一次。
+- 第 2 步 `D2` MUST 返回 `gateway_status=rejected` + `reason_code=push_token_unknown`；调用方据 `(push_target_id, device_id)` 清理注册。响应 MUST NOT 回传 `push_key`、`app_id`、provider message id 或原始 token 的任何 hash。
+- 第 3 步 MUST 展开为每个输入 device 一条 `reason_code=push_target_unknown` 的 `rejected`，MUST NOT 返回 target 作用域的第二种响应形状。
+- 第 4 步 `D2` MUST 返回 `push_gateway_unreachable` 并 MAY 携带 `retry_after_ms`；`D1` 已被接管，MUST NOT 携带 `retry_after_ms`，调用方 MUST NOT 因 provider 侧失败重发 `D1`。
+- 第 5 步 MUST 返回与第 1 步相同的逐项结论（`gateway_status` 为 `duplicate` 或与首次一致的接管结论），MUST NOT 产生新的 provider 投递。同一 key 配不同 body MUST 返回 `duplicate_conflict`。
+- 变体 A / B / C / D 虽通过 JSON Schema，但 MUST 被判为不合规（`schema_violation`）：守恒是 JSON Schema 无法表达的跨字段不变式，verifier MUST 自行校验。
+- 变体 E MUST 被 gateway 拒绝（`schema_violation`）：`devices[]` 按 `device_id` 唯一，`uniqueItems` 只能拦截逐字节相同项。
+- 任何 outcome MUST NOT 携带 provider 投递状态、`provider_retries[]` 或未登记的 `reason_code`。
+
 ### 10.13 Vector: Events Query Range Completeness Detection
 
 `vector_id`: `ak.vector.sync.range_completeness_client_query.v1`
@@ -5029,6 +5059,78 @@ Expected：
 ### 22.4 Recovery-secret 泄露 handoff
 
 `ak.vector.identity.recovery_secret_handoff.v1` 要求：没有预先存在的独立 guardian/witness/组织权威时，旧秘密泄露后的 same-DID 原地 handoff 必须拒绝并重铸 DID；存在独立权威时，只接受带 durable checkpoint 的两-entry 分阶段 handoff，并在 re-anchor、新 recovery policy、全部旧 backup-HPKE active envelope 新 series 重封装与 active-series pointer 推进完成后，最后撤销旧 policy key。runner MUST 覆盖任一阶段崩溃后的幂等续跑。
+
+### 22.5 外部 Organization DID registration
+
+`ak.vector.identity.organization_registration.v1` 由 [`organization-registration-fixture.json`](../../artifacts/fixtures/organization-registration-fixture.json) 承载，覆盖 [`identity-did.md` §8.4](../identity/identity-did.md)。
+
+正向：合法 challenge；`resolved_verification_method` 与 `governance_quorum` 两个分支的 ensure；含闭合 claims 的 receipt。
+
+负向 MUST 全部拒绝：
+
+- `resolved_verification_method` 分支携带 `quorum_threshold`，或 `governance_quorum` 分支缺 `quorum_threshold` → `schema_violation`。discriminator 双向封闭，否则接收方无法判断"一个签名够用"还是"承诺两个只交了一个"；
+- receipt 缺 `expires_at` → `schema_violation`。无界 receipt 会让一次首验永久授权该组织关系，refresh 也就失去存在理由；
+- `requested_scopes` 含闭合集合外的值 → `organization_registration_scope_unsupported`；
+- `handle_attestation` 缺 `subject` → `schema_violation`。subject 绑定阻止把为 A 组织签发的 attestation 拿去为 B 组织使用；
+- challenge 窗口超过 300 秒 → `organization_registration_challenge_invalid`（schema 无法比较两个时间戳，由接收方强制）；
+- `governance_quorum` 的 proof 数少于所声明 threshold → `organization_registration_quorum_not_met`；
+- ensure 的 `requested_scopes` 与 challenge 所载不一致 → `organization_registration_challenge_invalid`。不一致意味着 proof 是为另一组权限产出的；
+- 对 `revoked` binding 执行 refresh → `organization_registration_revoked`。`revoked` 是终态，复活它会抹掉"已撤销"与"仅过期"的区别，也会让因外部 DID deactivated 而被迫 revoked 的绑定死而复生；
+- binding 为 `stale` 时的高风险路径 → `organization_registration_stale`；低风险只读可继续，直到 refresh 成功；
+- **`ensure` 的 `local_admin_subject` 与所引用 challenge 不一致 → `organization_registration_challenge_invalid`**。这是转交攻击：若 proof 只绑定 organization 与 version，任何拿到它的人都能提交 `ensure` 把自己填进受益位，从而取得该组织的管理 scope。runner MUST 用一个合法 proof 配另一个 `local_admin_subject` 复现该用例。
+
+generation 状态机 MUST 覆盖：
+
+- 重放当前 generation 中已成功消费 challenge 的 byte-identical 同一请求 → 命中
+  `(challenge_id, canonical_request_digest, outcome)` ledger，`created=false` 且 generation 不变；
+  相同 challenge 的不同 digest → `organization_registration_challenge_invalid`；
+- `revoke` 结束第 N 代后再 `ensure` → `created=true`，generation 变为 N+1，既不复活 N 也不报冲突；
+- 改变 `local_admin_subject` 或 scope 集合的 `ensure` → 同样开启新 generation（否则被放宽的委派会藏在一次"幂等重放"背后）；
+- 开启 N+1 必须与以 `organization_registration_superseded` 终止 N、推进 current-generation pointer
+  属于同一原子事务；runner MUST 证明不存在双 active 窗口，且 N 的旧 receipt 即使签名载荷仍写
+  `status=active` 也不能再授权；
+- `refresh` 永不开启新 generation，只在当前 generation 内换 `version_id`。
+
+runner MUST 实际验证 challenge 消费、proof 绑定与状态机转移，只检查字段存在不算通过。registration 本身 MUST NOT 产生 Realm、成员、notary、capability 或 service delegation；`resource.get` 对"无权管理"与"不存在"MUST 返回同一 `did_not_found`。
+
+### 22.6 did:webvh witness rail
+
+`ak.vector.identity.did_webvh_witness_rail.v1` 由 [`did-webvh-witness-fixture.json`](../../artifacts/fixtures/did-webvh-witness-fixture.json) 承载，覆盖 [`identity-did.md` §3.4.1–§3.4.3](../identity/identity-did.md) 的两层：method-native 输入合同与 Arkret 层承载。二者不得混同。
+
+**method 层**：witness policy 只从 `parameters.witness = {threshold, witnesses:[{id}]}` 读取，`id` MUST 为唯一 `did:key`，`threshold` MUST 落在 `1..witnesses.length`；proof 只从独立发布、按 `versionId` 绑定的 `did-witness.json` 读取。runner MUST 实际解析并验签，只检查字段存在不算通过。
+
+正向：标准形状被接受；`parameters.witness` 缺席被判为"该 DID 未声明 method witness"而不是解析失败。
+
+负向 MUST 全部 fail closed，且 **MUST NOT 归零为「无需 witness」**：
+
+- `parameters` 携带 `witnesses` / `witness_threshold` / `witnessThreshold` 等 alias 键 → `webvh_witness_parameter_malformed`。这是最危险的一条：把该形状读作"无 policy"，会让一个**声明了**两个 witness 的 DID 静默变成**不要求** witness 的 DID；
+- `parameters.witness` 混入 `profileMinThreshold` / `structuredWitnesses` / `watcherEvidence` / `maxAgeSeconds` 等 Arkret overlay 字段 → `webvh_witness_parameter_malformed`；
+- witness id 非 `did:key`、重复，或 `threshold` 超过 witness 数 → `webvh_witness_parameter_malformed`；
+- witness id 形如 `did:key` 但 multibase 载荷无法解码为与 cryptosuite 兼容的合规公钥 → `webvh_witness_parameter_malformed`。MUST 在**参数校验阶段**发现，不得推迟到验签：不可解码的 key 若被允许占据 threshold 名额，该名额永远无法被任何 proof 满足，门限即被悄悄架空；
+- 已声明 policy 但 `did-witness.json` 不可达或无该 `versionId` 条目 → `webvh_witness_proofs_unavailable`；
+- proof 由 witness 列表外的 key 签发 → `webvh_witness_proof_invalid`；
+- 有效且互不相同的 proof 少于生效 threshold → `webvh_witness_threshold_not_met`；
+- log 声明 `threshold=1` 而 deployment policy 要求 2 时，生效 threshold MUST 为 2 → `webvh_witness_threshold_not_met`。holder 声明只能提高门限，MUST NOT 降低；
+- 要求 distinct controlling organization 时，两个 witness key 同属一个组织 → `webvh_witness_controlling_organization_unverified`。计数按控制组织而非按 key，否则单一运营方持多把 key 即可独自满足"两个不同组织"；
+- evidence 超过生效 max age → `webvh_witness_evidence_stale`。age 自 `observed_at` 起算，重新签发旧观测不构成刷新。
+
+**Arkret 层**：`ak.schema.did_webvh_witness_receipt.v1` 与 `ak.schema.identity_receipt.v1` 是两个不同对象族，经 `ak.root.identity.receipts.query.list` 以 `schema` 常量为 discriminator 的 tagged union 返回。runner MUST 验证：两族可在同一响应中共存并被正确分支；receipt 缺 `expires_at` 或 `controlling_organization` MUST 被拒（前者会让缓存记录退化为永久断言，后者使该 receipt 无法计入 distinct-organization）；`witness_did` 非 `did:key` MUST 被拒；receipt 携带 `max_age_seconds` 等 policy 字段 MUST 被拒——receipt 记录观测，不承载 policy，否则新鲜度门槛会落回被审对象手中。
+
+receipt 与 `threshold_met` 均 MUST NOT 替代对标准 `did-witness.json` proof、entry hash chain 与 controller proof 的直接验证；`threshold_met` 缺席 MUST NOT 被读作 `true`。
+
+`did-webvh-witness-fixture.json` 的 `cryptographic_vectors[]` 固定了 did:webvh 官方测试套件
+`witness-threshold/rust` 的真实 Ed25519 金向量（上游提交
+`02b568fff9da408b8b10702f02b93efd7edcb013`，Apache-2.0）。runner MUST 对该向量：
+
+- 逐条重算 `versionId` 的 entry hash，并验证 controller 的 `eddsa-jcs-2022` proof；
+- 把 `parameters.witness.witnesses[].id` 解码为兼容的 Ed25519 `did:key` 公钥；
+- 按 `versionId` 绑定并验证 `did-witness.json` 的 witness proof，再计算唯一有效 signer 数；
+- 执行 `mutation_cases[]`，分别证明 entry hash、controller proof、witness proof、
+  witness-version binding 与 cryptosuite 任一被篡改都会 fail closed。
+
+同一 fixture 的 `structural_cases[]` 继续覆盖 Arkret overlay、策略交集、控制组织去重与
+receipt schema；其中的示意 JWS / digest 不得用于密码学断言，也不得覆盖或替代
+`cryptographic_vectors[]` 的真实验签结果。
 
 ## 23. 2026-07-26 spec-open review closure vectors
 

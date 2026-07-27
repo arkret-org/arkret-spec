@@ -1,0 +1,375 @@
+{
+  "suite": "push_notify_outcome_conformance",
+  "fixture_kind": "schema_and_semantic",
+  "profile": "ak.vector_group.discovery.v1",
+  "covers_vectors": [
+    "ak.vector.push.notify_outcome_conservation.v1"
+  ],
+  "version": "2026-07-27",
+  "spec_anchor": "spec/v1/zh/discovery/push-notifications.md#5.2",
+  "source_refs": [
+    "spec/v1/zh/discovery/push-notifications.md",
+    "spec/v1/zh/sync/service-http-binding.md",
+    "spec/v1/artifacts/schemas/push-operations.schema.json#/$defs/push_notify_outcome",
+    "spec/v1/artifacts/schemas/push-operations.schema.json#/$defs/push_notify_device_outcome",
+    "spec/v1/artifacts/schemas/push-operations.schema.json#/$defs/push_notify_request_body",
+    "spec/v1/artifacts/registry/error-code-registry.json"
+  ],
+  "description": "Conformance vectors for the ak.edge.push.command.notify response contract (push-notifications.md §5.2). The response is conserved against notification.devices[]: every input device_id appears in outcomes[] exactly once, none is missing, none is duplicated, and none appears that was not requested. A target-level failure is expanded into one same-reason rejected outcome per input device, so a second response shape never exists. gateway_status accepted/duplicate mean the gateway durably took the route over and the caller MUST NOT resend; only a rejected outcome carrying retry_after_ms transfers the next attempt back to the caller, and only for the two registered caller-retryable reasons. Cases whose schema_only_valid is true but whose semantic_outcome is reject satisfy JSON Schema yet MUST be rejected by a conforming verifier for the listed registered reason code, because conservation is a cross-field invariant JSON Schema cannot express. Placeholder pseudonyms and device ids are structural only and MUST NOT be treated as cryptographic vectors.",
+  "runner": {
+    "kind": "json_schema_and_semantic_cases",
+    "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "schema_assertion_fields": [
+      "schema_ref",
+      "expect_valid",
+      "instance"
+    ],
+    "semantic_assertion_fields": [
+      "semantic_outcome",
+      "expected_reason_code"
+    ]
+  },
+  "request_context": {
+    "notes": "Every response case below is evaluated against this one request. Its devices[] is the conserved input set.",
+    "instance": {
+      "notification": {
+        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "wakeup_kind": "message",
+        "timing_profile_hint": "default",
+        "devices": [
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+            "app_id": "com.arkret.client"
+          },
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
+            "app_id": "com.arkret.client"
+          }
+        ]
+      }
+    }
+  },
+  "schema_validation_cases": [
+    {
+      "name": "all_input_devices_accepted",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "notes": "Both input devices durably taken over. Neither outcome carries reason_code or retry_after_ms; the caller owns no further attempt.",
+      "instance": {
+        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "outcomes": [
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+            "gateway_status": "accepted"
+          },
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
+            "gateway_status": "accepted"
+          }
+        ]
+      }
+    },
+    {
+      "name": "partial_rejection_drives_registration_cleanup",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "notes": "Second device has no live registration. Cleanup is addressed by (push_target_id, device_id); the response never returns push_key, so the caller can drop the registration without the raw provider token crossing the wire.",
+      "instance": {
+        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "outcomes": [
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+            "gateway_status": "accepted"
+          },
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
+            "gateway_status": "rejected",
+            "reason_code": "push_token_unknown"
+          }
+        ]
+      }
+    },
+    {
+      "name": "target_level_failure_is_expanded_per_device",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "notes": "Unknown push target is a target-level failure. It MUST be expanded into one same-reason rejected outcome per input device rather than collapsing into a target-scoped shape, which is what keeps conservation unconditional.",
+      "instance": {
+        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "outcomes": [
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+            "gateway_status": "rejected",
+            "reason_code": "push_target_unknown"
+          },
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
+            "gateway_status": "rejected",
+            "reason_code": "push_target_unknown"
+          }
+        ]
+      }
+    },
+    {
+      "name": "caller_retryable_rejection_carries_backoff",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "notes": "push_gateway_unreachable is one of exactly two caller-retryable reasons. retry_after_ms is the sole wire signal that the caller, not the gateway, owns the next attempt for that device.",
+      "instance": {
+        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "outcomes": [
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+            "gateway_status": "accepted"
+          },
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
+            "gateway_status": "rejected",
+            "reason_code": "push_gateway_unreachable",
+            "retry_after_ms": 2000
+          }
+        ]
+      }
+    },
+    {
+      "name": "exact_replay_reports_duplicate",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "notes": "Replay under the same Idempotency-Key and body. duplicate means an earlier request already took the route over and this one produced no new delivery; like accepted it forbids caller resend. It never means the request repeated a device_id, which devices[] uniqueness already forbids.",
+      "instance": {
+        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "outcomes": [
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+            "gateway_status": "duplicate"
+          },
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
+            "gateway_status": "duplicate"
+          }
+        ]
+      }
+    },
+    {
+      "name": "rejected_without_reason_code_is_invalid",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_device_outcome",
+      "expect_valid": false,
+      "first_expected_error": "$: 'reason_code' is a required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "notes": "reason_code is REQUIRED when gateway_status=rejected; without it the caller cannot tell a terminal rejection from a retryable one.",
+      "instance": {
+        "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "gateway_status": "rejected"
+      }
+    },
+    {
+      "name": "reason_code_on_accepted_is_invalid",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_device_outcome",
+      "expect_valid": false,
+      "first_expected_error": "contains:should not be valid under {'anyOf': [{'required': ['reason_code']}, {'required': ['retry_after_ms']}]}",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "notes": "A durably accepted route has no rejection reason. Allowing one would reintroduce the ambiguity between acceptance and failure that the closed gateway_status enum exists to remove.",
+      "instance": {
+        "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "gateway_status": "accepted",
+        "reason_code": "rate_limited"
+      }
+    },
+    {
+      "name": "retry_after_ms_on_accepted_is_invalid",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_device_outcome",
+      "expect_valid": false,
+      "first_expected_error": "contains:should not be valid under {'anyOf': [{'required': ['reason_code']}, {'required': ['retry_after_ms']}]}",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "notes": "The gateway retries what it accepted. A backoff on an accepted route would invite the caller to resend and produce duplicate provider delivery.",
+      "instance": {
+        "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "gateway_status": "accepted",
+        "retry_after_ms": 2000
+      }
+    },
+    {
+      "name": "retry_after_ms_with_terminal_reason_is_invalid",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_device_outcome",
+      "expect_valid": false,
+      "first_expected_error": "$.reason_code: 'push_token_unknown' is not one of ['push_gateway_unreachable', 'rate_limited']",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "notes": "push_token_unknown is terminal: the caller must drop the registration, not retry it. Only push_gateway_unreachable and rate_limited may carry retry_after_ms.",
+      "instance": {
+        "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "gateway_status": "rejected",
+        "reason_code": "push_token_unknown",
+        "retry_after_ms": 2000
+      }
+    },
+    {
+      "name": "unregistered_reason_code_is_invalid",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_device_outcome",
+      "expect_valid": false,
+      "first_expected_error": "$.reason_code: 'push_key_expired' is not one of ['push_target_unknown', 'push_payload_too_large', 'profile_unsupported', 'delivery_binding_stale', 'push_token_unknown', 'push_token_invalid', 'push_gateway_unreachable', 'rate_limited']",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "notes": "reason_code is a closed enum whose members are all registered in error-code-registry.json. A free-form string would let each gateway invent its own failure vocabulary.",
+      "instance": {
+        "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "gateway_status": "rejected",
+        "reason_code": "push_key_expired"
+      }
+    },
+    {
+      "name": "raw_push_key_in_outcome_is_invalid",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_device_outcome",
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('push_key' was unexpected)",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "notes": "The outcome object is closed. Returning the raw provider token would contradict the opaque-routing obligation in push-notifications.md §5.1 / §6.2, and the composite identity already addresses registration cleanup.",
+      "instance": {
+        "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+        "gateway_status": "rejected",
+        "reason_code": "push_token_invalid",
+        "push_key": "fcm:eJx9k2-example"
+      }
+    },
+    {
+      "name": "rejected_bucket_response_is_invalid",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome",
+      "expect_valid": false,
+      "first_expected_error": "$: 'push_target_id' is a required property",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "notes": "A rejected-only bucket cannot prove what happened to the devices it omits. The response is a single conserved outcomes[] array; there is no bucketed alternative shape.",
+      "instance": {
+        "rejected": []
+      }
+    },
+    {
+      "name": "missing_input_device_violates_conservation",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome",
+      "expect_valid": true,
+      "schema_only_valid": true,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "notes": "Schema-valid but the second input device has no outcome. The caller cannot tell whether it was taken over or silently dropped, which is exactly the ambiguity conservation removes. JSON Schema cannot express this cross-field invariant, so a conforming verifier MUST enforce it.",
+      "instance": {
+        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "outcomes": [
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+            "gateway_status": "accepted"
+          }
+        ]
+      }
+    },
+    {
+      "name": "duplicate_device_id_violates_conservation",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome",
+      "expect_valid": true,
+      "schema_only_valid": true,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "notes": "Schema-valid but the same device carries two contradictory conclusions. Exactly one outcome per input device_id is required.",
+      "instance": {
+        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "outcomes": [
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+            "gateway_status": "accepted"
+          },
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+            "gateway_status": "rejected",
+            "reason_code": "push_token_unknown"
+          },
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
+            "gateway_status": "accepted"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unrequested_device_violates_conservation",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome",
+      "expect_valid": true,
+      "schema_only_valid": true,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "notes": "Schema-valid but the third outcome names a device the request never carried. An outcome set that can exceed its input is not a conservation proof and would let a gateway disclose device ids the caller did not address.",
+      "instance": {
+        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+        "outcomes": [
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+            "gateway_status": "accepted"
+          },
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
+            "gateway_status": "accepted"
+          },
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-8c32-4d5e6f7a8b9c",
+            "gateway_status": "accepted"
+          }
+        ]
+      }
+    },
+    {
+      "name": "echoed_push_target_id_must_match_request",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome",
+      "expect_valid": true,
+      "schema_only_valid": true,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "notes": "Schema-valid but the echo names a different target than the request. The echo exists so an outcome set is self-describing under replay and audit; an echo free to drift provides neither.",
+      "instance": {
+        "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000001",
+        "outcomes": [
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+            "gateway_status": "accepted"
+          },
+          {
+            "device_id": "ak:device:0192f3a1-4c2b-7d5e-b021-3c4d5e6f7a8b",
+            "gateway_status": "accepted"
+          }
+        ]
+      }
+    },
+    {
+      "name": "request_with_repeated_device_id_is_rejected",
+      "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_request_body",
+      "expect_valid": true,
+      "schema_only_valid": true,
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "notes": "devices[] is a set keyed by device_id. uniqueItems only rejects byte-identical entries, so this pair differing only in app_id passes JSON Schema; the gateway MUST still reject it. Accepting it would make one input device demand two outcomes and break conservation at the source.",
+      "instance": {
+        "notification": {
+          "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
+          "wakeup_kind": "message",
+          "timing_profile_hint": "default",
+          "devices": [
+            {
+              "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+              "app_id": "com.arkret.client"
+            },
+            {
+              "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
+              "app_id": "com.arkret.client.beta"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -62,6 +62,24 @@
       "$ref": "#/$defs/ServiceRegistrationOutcome"
     },
     {
+      "$ref": "#/$defs/OrganizationRegistrationChallengeRequestBody"
+    },
+    {
+      "$ref": "#/$defs/OrganizationRegistrationChallenge"
+    },
+    {
+      "$ref": "#/$defs/OrganizationRegistrationEnsureRequestBody"
+    },
+    {
+      "$ref": "#/$defs/OrganizationRegistrationRefreshRequestBody"
+    },
+    {
+      "$ref": "#/$defs/OrganizationRegistrationRevokeRequestBody"
+    },
+    {
+      "$ref": "#/$defs/OrganizationRegistrationOutcome"
+    },
+    {
       "$ref": "#/$defs/DirectoryAnnounceRequestBody"
     },
     {
@@ -1510,6 +1528,449 @@
         }
       }
     },
+    "OrganizationRegistrationScope": {
+      "type": "string",
+      "enum": [
+        "organization_profile_manage",
+        "organization_realm_endorse",
+        "organization_service_delegate"
+      ],
+      "description": "Closed set of local administrative scopes a registration may delegate. organization_profile_manage covers this deployment's local organization profile and display; organization_realm_endorse permits issuing ak.realm.organization statements on the organization's behalf; organization_service_delegate permits declaring organization-to-service delegations locally. The set is closed because an open scope vocabulary would let a deployment mint authority the organization never consented to. Holding a scope is a permission to act later, not an action: registration by itself creates no Realm, membership, notary, capability or service delegation."
+    },
+    "OrganizationControlProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Method-native proof that the caller controls the external Organization DID at the pinned version. proof_kind is a closed discriminator with exactly two members, both of which describe a MATURE, already-published DID. Creating a new Organization DID is a separate inception / governance ceremony and deliberately has no member here: a receiver must never have to guess whether a proof asserts control of existing state or creation of new state. This object never carries an Arkret-issued challenge signature in place of method-native control evidence.",
+      "required": [
+        "proof_kind",
+        "proofs"
+      ],
+      "properties": {
+        "proof_kind": {
+          "type": "string",
+          "enum": [
+            "resolved_verification_method",
+            "governance_quorum"
+          ],
+          "description": "resolved_verification_method: a single signature by a verification method that is in the organization DID's control relationship at version_id. governance_quorum: a threshold of signatures from the organization's governance key set. Witness attestation is neither of these and MUST NOT be substituted for control evidence (identity-did.md §8.1)."
+        },
+        "quorum_threshold": {
+          "type": "integer",
+          "minimum": 2,
+          "description": "Required when proof_kind=governance_quorum and forbidden otherwise. The number of distinct valid governance signatures the organization's own policy demands. proofs[] MUST contain at least this many entries signed by distinct verification methods; JSON Schema cannot compare the two, so the receiver MUST enforce it and fail closed when short."
+        },
+        "proofs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "./event-envelope.schema.json#/$defs/proof"
+          },
+          "description": "Detached proofs over canonical_json({context:'ak.organization-registration-control-proof-v1', challenge_id, organization_id, local_admin_subject, version_id, log_head_digest, verification_method, created_at}). Binding the challenge, the DID, the beneficiary admin and the exact version together is what stops a proof captured for one deployment, one log version or one beneficiary from being replayed elsewhere. Omitting local_admin_subject would leave the proof silent about who receives the scopes, so a captured proof could be resubmitted naming a different local admin."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "proof_kind": {
+                "const": "governance_quorum"
+              }
+            },
+            "required": [
+              "proof_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "quorum_threshold"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "quorum_threshold"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "OrganizationRegistrationChallengeRequestBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Request a single-use control challenge for an external Organization DID. Two phases are mandatory: the registry issues the challenge and remembers it, then the caller proves control against it. Folding this into ensure would let the caller supply its own challenge, at which point neither freshness nor single use can be established by the receiver.",
+      "required": [
+        "organization_id",
+        "local_admin_subject",
+        "requested_scopes"
+      ],
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+          "description": "The external Organization DID to be registered. Resolvability alone confers nothing; this request only opens a proof window."
+        },
+        "local_admin_subject": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+          "description": "The local principal the requested scopes will be delegated to. It is fixed at challenge time and signed over by the control proof, because a proof that binds only the organization and the version says nothing about who benefits from it: anyone who obtained such a proof could submit ensure naming themselves and receive the organization's administrative scopes. ensure MUST reject a request whose local_admin_subject differs from the one in the referenced challenge."
+        },
+        "requested_scopes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/OrganizationRegistrationScope"
+          }
+        }
+      }
+    },
+    "OrganizationRegistrationChallenge": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Single-use control challenge. Every binding field exists to close one replay path: purpose separates this proof from any other signature the organization makes, audience and trust_domain pin it to this deployment, origin pins the HTTP surface, nonce makes it unrepeatable, and the expiry window bounds how long a captured proof stays useful. A registry MUST consume the challenge on the first successful use and atomically persist (challenge_id, canonical_request_digest, outcome). Only a byte-identical retry may return that stored outcome; the same challenge with any different digest is invalid.",
+      "required": [
+        "challenge_id",
+        "organization_id",
+        "purpose",
+        "nonce",
+        "audience",
+        "origin",
+        "trust_domain",
+        "local_admin_subject",
+        "requested_scopes",
+        "expires_at",
+        "created_at"
+      ],
+      "properties": {
+        "challenge_id": {
+          "type": "string",
+          "pattern": "^ak:organization-registration-challenge:[0-9a-f]{64}$"
+        },
+        "organization_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "purpose": {
+          "const": "ak.organization-registration-control-proof-v1",
+          "description": "Fixed purpose tag, identical to the signing context of OrganizationControlProof.proofs[]. A proof produced for any other purpose MUST NOT verify here."
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,128}$"
+        },
+        "audience": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+          "description": "Service DID of the issuing registry. A proof bound to one registry MUST NOT be accepted by another."
+        },
+        "origin": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://[^?#]+/$"
+        },
+        "trust_domain": {
+          "type": "string",
+          "minLength": 1
+        },
+        "local_admin_subject": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+          "description": "The local principal the requested scopes will be delegated to. It is fixed at challenge time and signed over by the control proof, because a proof that binds only the organization and the version says nothing about who benefits from it: anyone who obtained such a proof could submit ensure naming themselves and receive the organization's administrative scopes. ensure MUST reject a request whose local_admin_subject differs from the one in the referenced challenge."
+        },
+        "requested_scopes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/OrganizationRegistrationScope"
+          }
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "MUST be at most 300 seconds after created_at. A longer window buys nothing and widens the interval in which a captured proof remains usable."
+        },
+        "created_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      }
+    },
+    "OrganizationRegistrationEnsureRequestBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Register an external Organization DID with this deployment. Idempotent on organization_id: replaying the same registration returns the existing binding with created=false. This operation registers a reference and a local administrative binding; it does not host the DID's method history, does not make this deployment its controller, and does not create Realm state.",
+      "required": [
+        "organization_id",
+        "challenge_id",
+        "version_id",
+        "log_head_digest",
+        "control_proof",
+        "local_admin_subject",
+        "requested_scopes"
+      ],
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "challenge_id": {
+          "type": "string",
+          "pattern": "^ak:organization-registration-challenge:[0-9a-f]{64}$"
+        },
+        "version_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The exact resolved DID version the control proof was made against. Pinning the version is what makes the receipt auditable later: without it, a receipt asserts control at an unknown point in the DID's history."
+        },
+        "log_head_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "control_proof": {
+          "$ref": "#/$defs/OrganizationControlProof"
+        },
+        "local_admin_subject": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+          "description": "The local principal the requested scopes are delegated to. MUST equal the value bound into the referenced challenge and signed over by control_proof; a mismatch means the proof was made for a different beneficiary and MUST be rejected with organization_registration_challenge_invalid."
+        },
+        "requested_scopes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/OrganizationRegistrationScope"
+          },
+          "description": "MUST be identical to the set carried by the referenced challenge; a mismatch means the proof was made for different authority than is being claimed."
+        },
+        "handle_attestation": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Optional supporting attestation only. An organization handle or domain claim may improve discovery and display, but MUST NOT substitute for DID control or quorum proof: whoever operates a domain is not thereby the controller of the organization's DID. Named attestation rather than evidence because it carries exactly one material family (common-fields.md R6).",
+          "required": [
+            "subject",
+            "handle",
+            "issuer",
+            "audience",
+            "status",
+            "expires_at"
+          ],
+          "properties": {
+            "subject": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+              "description": "The DID the handle is claimed for. MUST equal organization_id; binding the subject inside the attestation is what stops an attestation issued for one organization from being presented for another."
+            },
+            "handle": {
+              "type": "string",
+              "minLength": 1
+            },
+            "issuer": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+            },
+            "audience": {
+              "type": "string",
+              "minLength": 1
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "active",
+                "revoked"
+              ],
+              "description": "The issuer's assertion at signing time. It is a floor, not a guarantee: a receiver MUST still consult the issuer's current revocation state before relying on the handle for display, because a self-asserted active is exactly what a revoked attestation would also carry."
+            },
+            "expires_at": {
+              "$ref": "./time.schema.json#/$defs/timestamp"
+            }
+          }
+        }
+      }
+    },
+    "OrganizationRegistrationRefreshRequestBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Re-prove control at a newer resolved version and re-issue the receipt. Scopes are not re-negotiated here; a scope change is a new ensure. Refresh exists because a binding pinned to one version stops proving current control the moment the organization rotates its controller.",
+      "required": [
+        "organization_id",
+        "challenge_id",
+        "version_id",
+        "log_head_digest",
+        "control_proof"
+      ],
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "challenge_id": {
+          "type": "string",
+          "pattern": "^ak:organization-registration-challenge:[0-9a-f]{64}$"
+        },
+        "version_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "log_head_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "control_proof": {
+          "$ref": "#/$defs/OrganizationControlProof"
+        }
+      }
+    },
+    "OrganizationRegistrationRevokeRequestBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Withdraw the local binding. This is a local act with local effect only: it does not modify, deactivate or annotate the external DID's method history, which this deployment does not control.",
+      "required": [
+        "organization_id"
+      ],
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "reason_code": {
+          "type": "string",
+          "enum": [
+            "organization_registration_superseded",
+            "organization_registration_withdrawn"
+          ],
+          "description": "Closed reason set. superseded: replaced by a new binding for the same organization. withdrawn: the deployment or the organization ended the relationship."
+        }
+      }
+    },
+    "OrganizationRegistrationReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Provider-signed record that this deployment accepted an external Organization DID binding. receipt_claims is exactly the object formed by removing registration_receipt_id and proof from the receipt; registration_receipt_id is ak:organization-registration-receipt:<lowercase hex SHA-256(canonical_json(receipt_claims))>. proof.payload_digest hashes the complete receipt after registration_receipt_id is inserted and proof is removed, so neither digest is self-referential. proof is a detached JWS over the ak.organization-registration-receipt-proof-v1 binding object. The receipt proves acceptance of one generation of one local binding and nothing else: it is not a Realm capability, not membership, not a notary designation, and not a service delegation.",
+      "required": [
+        "registration_receipt_id",
+        "organization_id",
+        "registration_generation",
+        "version_id",
+        "log_head_digest",
+        "control_proof_kind",
+        "control_key_digest",
+        "local_admin_subject",
+        "delegated_scopes",
+        "status",
+        "issued_at",
+        "expires_at",
+        "issuer_service_id",
+        "proof"
+      ],
+      "properties": {
+        "registration_receipt_id": {
+          "type": "string",
+          "pattern": "^ak:organization-registration-receipt:[0-9a-f]{64}$",
+          "description": "ak:organization-registration-receipt: plus lowercase hex SHA-256(canonical_json(receipt with registration_receipt_id and proof both omitted))."
+        },
+        "organization_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "registration_generation": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Monotonic generation of the binding for this organization_id, starting at 1. The organization DID stays the stable key, but a binding's terminal states are per generation, which is what lets 'revoked is terminal' and 'ensure is idempotent on organization_id' hold at the same time: revoke ends generation N, and a later ensure opens generation N+1 rather than reviving N or colliding with it. ensure that changes local_admin_subject or the scope set also opens a new generation, because the delegation being granted is not the one the previous receipt attests. Opening N+1 MUST atomically terminate a still-current N as revoked with reason organization_registration_superseded and advance the current-generation pointer; a receipt authorizes only while its generation equals that current pointer and its registry state is active."
+        },
+        "version_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "log_head_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "control_proof_kind": {
+          "type": "string",
+          "enum": [
+            "resolved_verification_method",
+            "governance_quorum"
+          ],
+          "description": "Mirrors OrganizationControlProof.proof_kind so a later auditor can tell which commitment control_key_digest is over without re-fetching the original request."
+        },
+        "control_key_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Under resolved_verification_method, the digest of the active control/update public key at version_id. Under governance_quorum, the digest of the canonical governance key set head that satisfied the threshold. It is never a next-key commitment and never private material."
+        },
+        "local_admin_subject": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "delegated_scopes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/OrganizationRegistrationScope"
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "stale",
+            "revoked"
+          ],
+          "description": "Closed lifecycle. active: control evidence is current. stale: the pinned version no longer reflects current control (controller rotation) or the evidence has aged out; low-risk reads may continue but high-risk paths MUST fail closed until a successful refresh. revoked: terminal for this generation, whether withdrawn locally, atomically superseded by a new generation, or forced by deactivation of the external DID. A signed historical receipt can retain status=active as an immutable audit artifact, but it authorizes only while its generation is the registry current generation and that registry state is active."
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "After this instant the binding MUST be treated as stale regardless of stored status. A receipt without a bounded life would let a single first-time proof authorise an organization relationship indefinitely."
+        },
+        "issuer_service_id": {
+          "type": "string",
+          "pattern": "^did:webvh:[^\\s#?]+$"
+        },
+        "proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "description": "payload_digest = sha256(canonical_json(receipt with proof omitted)). detached_jws signs canonical_json({context:'ak.organization-registration-receipt-proof-v1', payload_digest, issuer_service_id, registration_receipt_id, organization_id, verification_method, created_at, domain?, audience?}); created_at MUST equal issued_at and verification_method MUST be a signing-time assertionMethod of issuer_service_id. Consumers MUST resolve the issuer DID's verifiable history and verify the signature; transport bearer, mTLS or a successful HTTPS response never substitutes for that verification."
+        }
+      }
+    },
+    "OrganizationRegistrationOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Result of every organization registration command and of the read surface. organization_id, registration_generation and version_id MUST exactly equal the corresponding fields inside registration_receipt. created is true exactly on a call that opened a new generation, so an idempotent replay is distinguishable from first establishment or replacement without comparing receipts; JSON Schema cannot express these cross-field invariants, so receivers and conformance runners MUST enforce them.",
+      "required": [
+        "organization_id",
+        "registration_generation",
+        "version_id",
+        "registration_receipt",
+        "created"
+      ],
+      "properties": {
+        "organization_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "registration_generation": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Monotonic generation of the binding for this organization_id, starting at 1. The organization DID stays the stable key, but a binding's terminal states are per generation, which is what lets 'revoked is terminal' and 'ensure is idempotent on organization_id' hold at the same time: revoke ends generation N, and a later ensure opens generation N+1 rather than reviving N or colliding with it. ensure that changes local_admin_subject or the scope set also opens a new generation, because the delegation being granted is not the one the previous receipt attests. Opening N+1 MUST atomically terminate a still-current N as revoked with reason organization_registration_superseded and advance the current-generation pointer; a receipt authorizes only while its generation equals that current pointer and its registry state is active."
+        },
+        "version_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "registration_receipt": {
+          "$ref": "#/$defs/OrganizationRegistrationReceipt"
+        },
+        "created": {
+          "type": "boolean",
+          "description": "True exactly when this call opened a new generation: the first registration, a re-registration after revoke, or an ensure that changed local_admin_subject or the scope set. False for a byte-identical ensure retry that matches the consumed challenge's canonical_request_digest and stored outcome, and for every read, refresh and revoke. Reusing the challenge with a different digest is an error, not created=false."
+        }
+      }
+    },
     "DirectoryAnnounceRequestBody": {
       "type": "object",
       "additionalProperties": false,
@@ -2197,7 +2658,7 @@
     },
     "IdentityReceiptListOutcome": {
       "type": "object",
-      "description": "Result of ak.root.identity.receipts.query.list — witness receipts for a DID key-log head.",
+      "description": "Result of ak.root.identity.receipts.query.list. receipts[] is a tagged union over two distinct object families discriminated by their schema constant: ak.schema.identity_receipt.v1 records a role inside a DID registry consensus group (writer / witness / replica) and binds seq + head_event_digest, while ak.schema.did_webvh_witness_receipt.v1 records a did:webvh method witness observed at a specific versionId. The two say different things with the same English word, so the discriminator is mandatory and a verifier MUST branch on it rather than infer intent from which optional fields happen to be present.",
       "required": [
         "receipts"
       ],
@@ -2205,12 +2666,19 @@
         "receipts": {
           "type": "array",
           "items": {
-            "$ref": "./identity-receipt.schema.json"
+            "oneOf": [
+              {
+                "$ref": "./identity-receipt.schema.json"
+              },
+              {
+                "$ref": "./did-webvh-witness-receipt.schema.json"
+              }
+            ]
           }
         },
         "threshold_met": {
           "type": "boolean",
-          "description": "True when the returned receipt set satisfies the method or deployment witness threshold for the requested head. Omitted when the registry cannot evaluate threshold policy for this query."
+          "description": "True when the returned receipt set satisfies the effective witness threshold for the requested head. The effective threshold is the strictest intersection of the method-native parameters.witness.threshold and the deployment / Realm policy minimum (identity-did.md §3.4.2), and distinctness is counted over controlling_organization where policy requires distinct organizations. Omitted when the registry cannot evaluate threshold policy for this query; an omitted value MUST NOT be read as true. A true value is an Arkret-layer convenience and MUST NOT replace verifying the standard did-witness.json proofs."
         }
       },
       "additionalProperties": false

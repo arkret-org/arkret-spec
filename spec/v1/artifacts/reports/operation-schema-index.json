@@ -3849,6 +3849,203 @@
       }
     },
     {
+      "operation_id": "ak.root.identity.organization_registration.command.prepare",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallengeRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "organization_id",
+          "local_admin_subject",
+          "requested_scopes"
+        ],
+        "properties": [
+          "organization_id",
+          "local_admin_subject",
+          "requested_scopes"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallenge",
+        "schema_kind": "object",
+        "required": [
+          "challenge_id",
+          "organization_id",
+          "purpose",
+          "nonce",
+          "audience",
+          "origin",
+          "trust_domain",
+          "local_admin_subject",
+          "requested_scopes",
+          "expires_at",
+          "created_at"
+        ],
+        "properties": [
+          "challenge_id",
+          "organization_id",
+          "purpose",
+          "nonce",
+          "audience",
+          "origin",
+          "trust_domain",
+          "local_admin_subject",
+          "requested_scopes",
+          "expires_at",
+          "created_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.command.ensure",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationEnsureRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "organization_id",
+          "challenge_id",
+          "version_id",
+          "log_head_digest",
+          "control_proof",
+          "local_admin_subject",
+          "requested_scopes"
+        ],
+        "properties": [
+          "organization_id",
+          "challenge_id",
+          "version_id",
+          "log_head_digest",
+          "control_proof",
+          "local_admin_subject",
+          "requested_scopes",
+          "handle_attestation"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+        "schema_kind": "object",
+        "required": [
+          "organization_id",
+          "registration_generation",
+          "version_id",
+          "registration_receipt",
+          "created"
+        ],
+        "properties": [
+          "organization_id",
+          "registration_generation",
+          "version_id",
+          "registration_receipt",
+          "created"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.resource.get",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+        "schema_kind": "object",
+        "required": [
+          "organization_id",
+          "registration_generation",
+          "version_id",
+          "registration_receipt",
+          "created"
+        ],
+        "properties": [
+          "organization_id",
+          "registration_generation",
+          "version_id",
+          "registration_receipt",
+          "created"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.command.refresh",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRefreshRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "organization_id",
+          "challenge_id",
+          "version_id",
+          "log_head_digest",
+          "control_proof"
+        ],
+        "properties": [
+          "organization_id",
+          "challenge_id",
+          "version_id",
+          "log_head_digest",
+          "control_proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+        "schema_kind": "object",
+        "required": [
+          "organization_id",
+          "registration_generation",
+          "version_id",
+          "registration_receipt",
+          "created"
+        ],
+        "properties": [
+          "organization_id",
+          "registration_generation",
+          "version_id",
+          "registration_receipt",
+          "created"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.root.identity.organization_registration.command.revoke",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRevokeRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "organization_id"
+        ],
+        "properties": [
+          "organization_id",
+          "reason_code"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+        "schema_kind": "object",
+        "required": [
+          "organization_id",
+          "registration_generation",
+          "version_id",
+          "registration_receipt",
+          "created"
+        ],
+        "properties": [
+          "organization_id",
+          "registration_generation",
+          "version_id",
+          "registration_receipt",
+          "created"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.root.identity.recovery_policy.resource.get",
       "success_shape_kind": "schema_resource",
       "response": {
@@ -6399,10 +6596,12 @@
         "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome",
         "schema_kind": "object",
         "required": [
-          "rejected"
+          "push_target_id",
+          "outcomes"
         ],
         "properties": [
-          "rejected"
+          "push_target_id",
+          "outcomes"
         ],
         "closed": true
       }
