@@ -226,9 +226,9 @@
         }
       ],
       "expected": {
-        "duplicate_byte_equal_entry_noop": true,
-        "note": "The value-level no-op condition is byte equality of the whole entry, not equality of status alone; differing basis or ciphertext yields distinct heads."
-      }
+        "duplicate_byte_equal_entry_noop": true
+      },
+      "note": "The value-level no-op condition is byte equality of the whole entry, not equality of status alone; differing basis or ciphertext yields distinct heads."
     },
     {
       "vector_id": "ak.vector.federation.timing_bucket.v1",
