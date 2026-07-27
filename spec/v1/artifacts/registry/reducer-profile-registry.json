@@ -1433,7 +1433,7 @@
           },
           {
             "ref": "zh/sync/client-sync.md",
-            "content_digest": "sha256:a88a1cb39723755c2aa1f9b366b951e5d27915ced67324a21015a4499ed95eb0"
+            "content_digest": "sha256:7a5e2d70022785fb98e23c221d588b93525230b764087e384f6e0d253aeb0c74"
           },
           {
             "ref": "zh/sync/service-surface.md",
@@ -1445,7 +1445,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:4651f9b632eee0f9b0c0242aceb4c3798be204883018c7135c0a420543693a64"
+      "reducer_profile_digest": "sha256:782be3e439f58566b551a1d71ecda723d0a27f524bbf9571ff42d00c983b64d0"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",

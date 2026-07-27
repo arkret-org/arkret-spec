@@ -8588,6 +8588,7 @@ def main() -> int:
     check_non_normative_frontmatter(lint)
     check_normative_prose_role_names(lint)
     check_device_messages_cursor_binding(lint)
+    check_account_notification_prose_schema_alignment(lint)
 
     if lint.warnings:
         print("Artifact registry lint warnings:", file=sys.stderr)
@@ -8610,6 +8611,36 @@ def main() -> int:
         f"{len(known['profiles'])} profile id references)."
     )
     return 0
+
+
+def check_account_notification_prose_schema_alignment(lint: Lint) -> None:
+    prose_path = SPEC_ROOT / "zh" / "sync" / "client-sync.md"
+    schema_path = ARTIFACTS / "schemas" / "account-subscribe-frame.schema.json"
+    prose = prose_path.read_text(encoding="utf-8")
+    schema = load_json(lint, schema_path)
+    if not isinstance(schema, dict):
+        return
+    notification_delta = schema.get("$defs", {}).get("notification_delta", {})
+    required = notification_delta.get("required", [])
+    properties = notification_delta.get("properties", {})
+    canonical_field = "notification_kind"
+    if canonical_field not in required or canonical_field not in properties:
+        lint.fail(
+            schema_path,
+            "notification_delta must require the canonical notification_kind field",
+        )
+    canonical_shape = "{id, notification_kind, action, data?}"
+    canonical_literal = '`notification_kind="agent"`'
+    if canonical_shape not in prose or canonical_literal not in prose:
+        lint.fail(
+            prose_path,
+            "account notification normative prose must match notification_delta.notification_kind",
+        )
+    if "{id, type, action, data?}" in prose or '`type="agent"`' in prose:
+        lint.fail(
+            prose_path,
+            "legacy NotificationDelta.type is forbidden; use notification_kind",
+        )
 
 
 if __name__ == "__main__":

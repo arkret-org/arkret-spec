@@ -192,7 +192,7 @@ Account subscribe `delta` frame 包含以下 stream：
 
 ### 3.1 Account notification delta（normative）
 
-顶层 `notifications` 的 wire 形态固定为 `{items: NotificationDelta[]}`，不再复用 `{events: EventEnvelope[]}`。`NotificationDelta` 是闭合对象 `{id, type, action, data?}`：`id` 为 `ak:notification:*`，`type="agent"`，`action` 只能为 `add | update | remove`。当前 v1 数据分支只登记 `data.kind="agent_runtime_approval"`：
+顶层 `notifications` 的 wire 形态固定为 `{items: NotificationDelta[]}`，不再复用 `{events: EventEnvelope[]}`。`NotificationDelta` 是闭合对象 `{id, notification_kind, action, data?}`：`id` 为 `ak:notification:*`，`notification_kind="agent"`，`action` 只能为 `add | update | remove`。当前 v1 数据分支只登记 `data.kind="agent_runtime_approval"`：
 
 - `add` / `update` 的 `data` MUST 含 `approval_request_id`、`agent_id`、`requested_at`、`expires_at`，并且不得含 pairing code、runtime public key、PoP、attestation、display name 或 slug。客户端必须在显示和审批前通过认证的 `ak.self.agent.query.get` 读取当前完整投影。
 - `remove` 的 `data` MAY 省略；若存在，必须是闭合 `{kind="agent_runtime_approval", reason}`，其中 `reason` 只能为 `approved | expired | renewed | deactivated | superseded`。
