@@ -589,7 +589,7 @@
     },
     "content_block_long_text": {
       "type": "object",
-      "description": "ak.content.long_text: plain text whose full normalized UTF-8 body exceeds the 256 KiB inline boundary (or, by the narrow exception in zh/models/content-types.md section 4.1.4, whose Event would otherwise exceed the 1 MiB envelope limit). Exactly one of the plaintext branch (blob_ref + size_bytes + media_type) and the E2EE branch (plaintext_size_bytes + attachment) applies. v1 core Content Block: no feature gate, no server-side opt-out.",
+      "description": "ak.content.long_text: plain text whose full normalized UTF-8 body exceeds the 256 KiB inline boundary (or, by the narrow exception in zh/models/content-types.md section 4.1.4, whose Event would otherwise exceed the 1 MiB envelope limit). Exactly one of the plaintext branch (blob_ref + size_bytes + media_type) and the E2EE branch (attachment) applies. v1 core Content Block: no feature gate, no server-side opt-out.",
       "oneOf": [
         {
           "type": "object",
@@ -698,7 +698,6 @@
             "format",
             "body",
             "body_kind",
-            "plaintext_size_bytes",
             "attachment"
           ],
           "properties": {
@@ -729,11 +728,6 @@
               "type": "integer",
               "minimum": 0
             },
-            "plaintext_size_bytes": {
-              "type": "integer",
-              "minimum": 0,
-              "description": "Normalized full UTF-8 plaintext body bytes. attachment.size_bytes is ciphertext bytes and MUST NOT substitute for this."
-            },
             "attachment": {
               "$ref": "./blob.schema.json#/$defs/encrypted_attachment",
               "description": "Encrypted full-body Blob descriptor. MUST use scheme ak.blob.stream_aead.v1 with the matching _stream alg; whole-file AEAD is forbidden for long text."
@@ -762,7 +756,8 @@
                     "scheme",
                     "nonce_prefix",
                     "segment_bytes",
-                    "segment_count"
+                    "segment_count",
+                    "size_bytes"
                   ],
                   "properties": {
                     "blob_ref": {
@@ -776,6 +771,11 @@
                         "mls_exporter_aead_xchacha20poly1305_stream",
                         "mls_exporter_aead_aes_256_gcm_stream"
                       ]
+                    },
+                    "size_bytes": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Normalized full UTF-8 plaintext body bytes; encrypted_attachment.size_bytes is the plaintext count that segment_count = ceil(size_bytes / segment_bytes) is derived from (zh/crypto-media/media-and-blob.md section 3.1 / 3.3.1). The >256 KiB rule and the narrow Event-overflow exception are normative validator rules, not a schema minimum."
                     }
                   }
                 }

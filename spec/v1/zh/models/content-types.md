@@ -146,7 +146,6 @@ E2EE Message 的 long-text descriptor 位于已认证的 `encrypted_content` pla
   "format": "plain",
   "body": "已认证 fallback",
   "body_kind": "summary",
-  "plaintext_size_bytes": 700000,
   "line_count": 12000,
   "attachment": {
     "blob_ref": "ak:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -159,7 +158,7 @@ E2EE Message 的 long-text descriptor 位于已认证的 `encrypted_content` pla
     },
     "epoch": 42,
     "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-    "size_bytes": 700048,
+    "size_bytes": 700000,
     "media_type": "text/plain",
     "nonce_prefix": "AAAAAAAAAAAAAAAAAAAAAAAAAA",
     "segment_bytes": 262144,
@@ -170,12 +169,11 @@ E2EE Message 的 long-text descriptor 位于已认证的 `encrypted_content` pla
 
 规则：
 
-- `plaintext_size_bytes` REQUIRED（替代 plaintext 形态的 `size_bytes`）；
+- 完整正文的明文字节数由 `attachment.size_bytes` 承载（[`../crypto-media/media-and-blob.md` §3.1](../crypto-media/media-and-blob.md)：`encrypted_attachment.size_bytes` 是**明文**字节数，与 `segment_count == ceil(size_bytes / segment_bytes)` 同源）。本 kind MUST NOT 再定义 `plaintext_size_bytes` 之类的第二个明文尺寸字段；
 - `attachment.scheme` MUST 是 `ak.blob.stream_aead.v1`，`attachment.alg` MUST 是对应的 `_stream` 算法。E2EE long text MUST NOT 使用 whole-file AEAD——强制 streaming 是为了让超过分界的正文能边下边验且内存有界，不作为同一语义的第二种可选形态；
-- `attachment.size_bytes` 是 **ciphertext** 字节数，MUST NOT 替代 plaintext size；
 - `attachment.blob_ref` MUST 是 hash-addressed，且其中的 `<suite>:<hex>` MUST 同时等于 `attachment.ciphertext_digest` 与 Blob metadata `content_digest`；三者都承诺按 `segment_index` 顺序拼接、每段包含 AEAD tag 的完整 stored ciphertext bytes；
 - `attachment.media_type` MUST 与 `format` 一致；
-- `segment_count` 与 `plaintext_size_bytes` / `segment_bytes` 的自洽性按 [`../crypto-media/media-and-blob.md` §3.3](../crypto-media/media-and-blob.md) 既有算法针对实际 ciphertext 验证；MUST NOT 仅用 ciphertext size 猜 plaintext size；
+- `segment_count` MUST 等于 `ceil(attachment.size_bytes / attachment.segment_bytes)`，并与实际收到的 segment 数一致（[`../crypto-media/media-and-blob.md` §3.3.1](../crypto-media/media-and-blob.md)）；接收端 MUST NOT 从 stored ciphertext 长度反推明文长度；
 - 完整 `ciphertext_digest`、逐段 AEAD、末段与顺序全部验证通过前，接收端 MUST NOT 把正文标成完整；
 - fallback `body` 已在 Message encrypted payload 内认证，Blob 服务 MUST NOT 改写。
 
@@ -189,7 +187,7 @@ Blob 解码后的正文 MUST：
 - 除 LF、TAB 外 MUST NOT 含 C0 控制字符与 DEL；
 - `format=markdown` 按不可信输入消毒，MUST NOT 执行 raw HTML/script。
 
-`size_bytes` / `plaintext_size_bytes` 是上述规范化后完整 UTF-8 字节长度。fallback `body` 自身 MUST 满足相同的 UTF-8、LF、BOM、控制字符与 markdown 消毒规则；producer MUST 先规范化完整正文，再从该结果生成 prefix 或 summary，MUST NOT 对两者采用不同的换行 / Unicode 处理。
+`size_bytes`（plaintext 形态）与 `attachment.size_bytes`（E2EE 形态）都是上述规范化后完整 UTF-8 字节长度。fallback `body` 自身 MUST 满足相同的 UTF-8、LF、BOM、控制字符与 markdown 消毒规则；producer MUST 先规范化完整正文，再从该结果生成 prefix 或 summary，MUST NOT 对两者采用不同的换行 / Unicode 处理。
 
 `line_count` 若存在，定义为：
 
@@ -225,7 +223,7 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 - `ak.content.text` 只在正文 ≤256 KiB **且**完整 Event 合法时可用；
 - `ak.content.long_text` 在正文 >256 KiB 时强制；在较小正文上**仅当**完整 Event 否则无法满足 1 MiB 硬上限时允许，且该例外 MUST 由完整 Event size validator 证明，MUST NOT 由实现任意选择。
 
-因此 `size_bytes` / `plaintext_size_bytes` 的 schema 下界不能写成 262,145——那会使上述例外不可表达。schema 只校验类型与非负性，">256 KiB 或 Event-overflow 例外"由 normative validator 判定。
+因此 `size_bytes` / `attachment.size_bytes` 的 schema 下界不能写成 262,145——那会使上述例外不可表达。schema 只校验类型与非负性，">256 KiB 或 Event-overflow 例外"由 normative validator 判定。
 
 ### 4.1.5 下游行为（normative）
 

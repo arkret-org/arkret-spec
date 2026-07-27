@@ -135,7 +135,7 @@ AEAD nonce 在同一 `key_ref` 下复用会使该 key 下使用相关 nonce 的�
    - `nonce`；
    - `purpose = "blob-attachment"`、`aead_profile`；
    - `media_type`；
-   - `size_bytes`——它是**密文**字节数，故 MUST 在 seal 前由 `plaintext_size + tag_len`（整文件形态）或 `plaintext_size + segment_count × tag_len`（分块形态）**确定计算**得出；实现 MUST NOT 用 seal 完成后实测的值反向参与已生成的 tag；
+   - `size_bytes`——在 `encrypted_attachment` descriptor 中它是**明文**字节数（与 §3.3.1 的 `segment_count == ceil(size_bytes / segment_bytes)` 同一个量），在 seal 之前即已确定，因此进入 AAD 不产生任何循环。它与 Blob metadata 顶层的 `size_bytes`（存储的密文字节数）是两个不同对象上的不同量，实现 MUST NOT 互相替代；descriptor 中 MUST NOT 再增加第二个明文尺寸字段；
    - 任何 profile 声明的 content policy digest（该 digest 必须在加密前已确定）。
 
    分块形态的逐段 AAD 见 §3.3.3。**`ciphertext_digest` MUST NOT 进入 AAD**：它覆盖含 AEAD tag 的完整密文，进入生成同一 tag 的 AAD 会形成不可构造循环（encoding §10.2）。它是 post-encryption commitment，MUST 由引用该附件的已签名 Event / encrypted descriptor / upload receipt 覆盖；若某条 Blob 路径没有任何外层认证，MUST 补齐该认证，MUST NOT 把 digest 塞回 AEAD AAD。
