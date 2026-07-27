@@ -94,7 +94,7 @@ v1 的 metadata 加密下限是二元字段 `metadata_encryption_floor ∈ {allo
 
 **`e2ee_required` metadata floor** 是 v1 的 MLS / E2EE 默认形态；启用时 Strand / Message 的用户可读 metadata 按 §2.7 的 rules 进入 `encrypted_metadata`，wire 上只保留 reducer 和路由必需的键。`allow_plaintext` Realm 不得对 `metadata.title` / `metadata.summary` / `metadata.fields` / `rank` / `state` / `tracks` 等字段强制 wire-level 加密替换。
 
-Realm policy MUST 通过 `ak.realm.policy_components.metadata_encryption_floor` 显式声明 metadata 加密下限，取值为：
+Realm policy MUST 通过 Event kind `ak.realm.policy_bundle` 的 payload path `metadata_encryption_floor` 显式声明 metadata 加密下限，取值为：
 
 | floor | wire 明文 | encrypted_metadata | 说明 |
 | --- | --- | --- | --- |
@@ -300,15 +300,15 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
   **`mls_send_pause="advisory"` 降级规则**：把上述 MUST 暂停降级为 SHOULD 的能力**仅在显式 degraded profile** `ak.profile.e2ee_relaxed.v1` 下允许声明，不得在默认 `ak.profile.mls_governance_binding.full.v1` profile 或任何声称 “完整 MLS Governance Binding” 的部署中使用。该字段在符合资格的部署中也 MUST：
 
-  - 出现在 `ak.realm.policy_components` 的明文 audit log 中(声明本身被记录，便于审计)
+  - 出现在 `ak.realm.policy_bundle` 的明文 audit log 中(声明本身被记录，便于审计)
   - 部署 profile 在 conformance 声明中**显式列出** `ak.profile.e2ee_relaxed.v1`，否则降级声明 MUST 被 reducer 拒绝（`profile_unsupported` reason）
   - 客户端 UI 在该 Realm 中 MUST 展示明确的"该 Realm 使用降级 E2EE,踢/ban 非密码学即时生效"banner-level 警示(详见 §2.4.2 / `ak.profile.e2ee_relaxed.v1` 规范)
   - 接收端在解密 advisory 模式下旧 epoch 消息时 MUST 检查 receive_at vs membership_change_at 时间窗，超过部署声明 `relaxed_window_max_ms` 时拒绝解密结果进入 verified timeline
-  - **`relaxed_window_max_ms` 默认值 = 30,000 ms（30 秒），硬上限 = 300,000 ms（5 分钟）**：两者语义不同，不得混淆。**默认值**是部署未在 `ak.realm.policy_components` 显式声明 `relaxed_window_max_ms` 时 reducer / 接收端 MUST 采用的值，固定为 30,000 ms（与 §2.4.2 profile 行为表"被踢者继续解密窗口默认 30s"及 `max_mls_commit_delay_ms` 默认 30,000 ms 对齐，使"踢出后被踢者继续可读窗口"与"正常 commit roundtrip 上限"在默认配置下同量级）。**硬上限**是部署即使显式声明也不得超过的天花板 300,000 ms：部署不得通过 `ak.realm.policy_components` 把 `relaxed_window_max_ms` 写为大于硬上限的值；reducer MUST 用 `relaxed_window_exceeds_ceiling` 拒绝。接收端 MUST 独立 enforce 硬上限——不得静默 clamp 到 300000，否则部署声明的窗口与 receiver 接受的窗口会跨实现分裂。部署 MAY 在 `(0, 300000]` 区间内显式覆盖默认 30000；缺省即 30000。Negative vector `ak.vector.e2ee_relaxed.window_exceeds_ceiling.v1` 同时覆盖 policy write 超限与 receiver 接受超限 decrypt 两条路径。
+  - **`relaxed_window_max_ms` 默认值 = 30,000 ms（30 秒），硬上限 = 300,000 ms（5 分钟）**：两者语义不同，不得混淆。**默认值**是部署未在 `ak.realm.policy_bundle` 显式声明 `relaxed_window_max_ms` 时 reducer / 接收端 MUST 采用的值，固定为 30,000 ms（与 §2.4.2 profile 行为表"被踢者继续解密窗口默认 30s"及 `max_mls_commit_delay_ms` 默认 30,000 ms 对齐，使"踢出后被踢者继续可读窗口"与"正常 commit roundtrip 上限"在默认配置下同量级）。**硬上限**是部署即使显式声明也不得超过的天花板 300,000 ms：部署不得通过 `ak.realm.policy_bundle` 把 `relaxed_window_max_ms` 写为大于硬上限的值；reducer MUST 用 `relaxed_window_exceeds_ceiling` 拒绝。接收端 MUST 独立 enforce 硬上限——不得静默 clamp 到 300000，否则部署声明的窗口与 receiver 接受的窗口会跨实现分裂。部署 MAY 在 `(0, 300000]` 区间内显式覆盖默认 30000；缺省即 30000。Negative vector `ak.vector.e2ee_relaxed.window_exceeds_ceiling.v1` 同时覆盖 policy write 超限与 receiver 接受超限 decrypt 两条路径。
   - **合规 profile 互斥**：声明 `ak.profile.attested_audit.e2ee.v1` / `ak.profile.disclosed_audit.e2ee.v1` 或存在 active Audit Applet Binding 的部署 MUST NOT 同时启用 `ak.profile.e2ee_relaxed.v1`；reducer MUST 用 `e2ee_relaxed_disallowed_in_compliance_profile` 拒绝。合规 / 监管 profile 的核心承诺是"踢出即时密码学生效"，relaxed 窗口与之矛盾。
   - **Federation guard**：`ak.profile.e2ee_relaxed.v1` MUST NOT 与 `federation_policy="open"` 或 `"quarantine"` 同时启用；reducer MUST 用 `e2ee_relaxed_federation_policy_unsupported` 拒绝。`federation_policy="restricted"` 只允许在 Realm policy 同时声明 `relaxed_fanout_deadline_ms <= relaxed_window_max_ms`、`max_federation_delivery_delay_ms <= relaxed_window_max_ms` 且 federation peers 在 `ak.server.query.describe.limits` 中公开不超过该 deadline 的 fanout SLA 时启用；否则 MUST fail closed。`federation_policy="closed"` 不需要额外 federation guard。describe SLA 校验仅是准入门槛（声明时校验 peer 公开的 fanout deadline 是否满足约束），实际 enforcement 仍由接收端 `relaxed_window_max_ms` 时间窗兜底（运行时校验 receive_at vs membership_change_at，超窗即拒绝 decrypt 进入 verified timeline）；二者缺一不可，不得理解为"声明合规即放行"。
 
-  **降级声明义务（normative）**：`ak.profile.e2ee_relaxed.v1` 不是本地优化开关，而是可审计的协议降级声明。有效声明必须同时满足：Realm create 或 `ak.realm.policy_components` 明文记录该 profile 与 `mls_send_pause="advisory"`；服务端 `ServiceDescribe.supported_profiles` / `supported_features` 声明 `ak.profile.e2ee_relaxed.v1` / `ak.feature.e2ee_relaxed.v1`；该 Realm 后续每个 MLS `governance_binding.binding_profile` 写为 `ak.profile.e2ee_relaxed.v1` 并携带匹配的 `reducer_profile`；sync metadata、snapshot、backup/export 与 interop mapping receipt 必须保留 `e2ee_relaxed=true` 和 `relaxed_window_max_ms`。任一条件缺失、互相矛盾、或仅通过部署私有配置 / UI 标签 / 省略 GroupContext extension 表达降级，接收方 MUST 按未声明降级 fail closed：拒绝 Realm 写入、quarantine 相关 MLS artifact，或拒绝 old-epoch decrypt 进入 verified timeline。
+  **降级声明义务（normative）**：`ak.profile.e2ee_relaxed.v1` 不是本地优化开关，而是可审计的协议降级声明。有效声明必须同时满足：Realm create 或 `ak.realm.policy_bundle` 明文记录该 profile 与 `mls_send_pause="advisory"`；服务端 `ServiceDescribe.supported_profiles` / `supported_features` 声明 `ak.profile.e2ee_relaxed.v1` / `ak.feature.e2ee_relaxed.v1`；该 Realm 后续每个 MLS `governance_binding.binding_profile` 写为 `ak.profile.e2ee_relaxed.v1` 并携带匹配的 `reducer_profile`；sync metadata、snapshot、backup/export 与 interop mapping receipt 必须保留 `e2ee_relaxed=true` 和 `relaxed_window_max_ms`。任一条件缺失、互相矛盾、或仅通过部署私有配置 / UI 标签 / 省略 GroupContext extension 表达降级，接收方 MUST 按未声明降级 fail closed：拒绝 Realm 写入、quarantine 相关 MLS artifact，或拒绝 old-epoch decrypt 进入 verified timeline。
 
   **联邦互操作下界（normative）**：跨 deployment 的 MLS-backed Realm 以 `ak.profile.mls_governance_binding.full.v1` 为 E2EE 互操作下界。`ak.profile.e2ee_relaxed.v1` 是低于该下界的显式降级，只能在 `federation_policy="closed"` 或满足上方 restricted federation guard 的 `restricted` Realm 中出现；open / quarantine federation MUST reject。联邦 peer 未在 describe 中声明所需 profile/feature、未公开满足窗口的 fanout SLA、或 MLS commit / DataEvent 的 `binding_profile`、`reducer_profile`、`covered_seals_cell` 无法验证时，接收方 MUST reject 或 quarantine，不得把该 peer 的 push 用于推进本地 Realm frontier。
 
@@ -341,7 +341,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
 **强制约束**:
 
-- Realm 在 create event 或 `ak.realm.policy_components` 中声明 `mls_send_pause="advisory"` 时,**MUST** 同时声明 `ak.profile.e2ee_relaxed.v1` profile 适配。reducer 检测到 advisory 但 Realm `supported_profiles` 不含 `e2ee_relaxed.v1` → MUST reject(`profile_unsupported`,详细 reason `mls_send_pause_advisory_requires_e2ee_relaxed_profile`)
+- Realm 在 create event 或 `ak.realm.policy_bundle` 中声明 `mls_send_pause="advisory"` 时,**MUST** 同时声明 `ak.profile.e2ee_relaxed.v1` profile 适配。reducer 检测到 advisory 但 Realm `supported_profiles` 不含 `e2ee_relaxed.v1` → MUST reject(`profile_unsupported`,详细 reason `mls_send_pause_advisory_requires_e2ee_relaxed_profile`)
 - 声明本 profile 的 Realm **MUST NOT** 同时声明 `ak.profile.mls_governance_binding.full.v1`(互斥)。reducer 检测同时声明 → MUST reject(`conflicting_e2ee_profiles`)
 - 声明本 profile 的 Realm 后续 MLS commit **MUST** 在 `governance_binding.binding_profile` 中写入 `ak.profile.e2ee_relaxed.v1`，并在 `governance_binding.reducer_profile` 中写入当前协商 reducer profile。缺字段、写成 full profile、写成未知 profile、或与 Realm policy / ServiceDescribe 声明不一致时，接收方 MUST reject / quarantine 该 commit，并不得把对应 epoch 用于 verified timeline。
 - 声明本 profile 的 Realm 若同时声明 federation，MUST 满足 §2.4.1 的 Federation guard。open / quarantine federation 直接拒绝；restricted federation 必须证明 fanout deadline 不超过 relaxed window。
@@ -459,7 +459,7 @@ MLS group 的 key scope 由 `effective_scope`（§2.5 开头）唯一决定，**
 **`policy_root` / `capability_root` canonical 计算（normative）**：两者都是 [`event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md#621-治理-state_root-的-merkle-计算规则normative) `state_root` 算法的确定性过滤视图，使用同一 hash suite、JCS leaf 前像、`0x00` / `0x01` 域分隔、奇数节点提升与空树 root。
 
 1. 从 `governance_binding` 引用的 accepted Seal 重建 joined control state `J(S)`；`⊥` cell 不进入 root，并使依赖它的 commit fail closed。
-2. `policy_root` 的 leaf 集是 `J(S)` 中当前 `effective_scope` 可见的 policy cell：cell family 为 `ak.component.realm.*policy*`、`ak.component.realm.join_rule.v1`、`ak.component.realm.history_visibility.v1`、`ak.component.realm.media_service.v1`、`ak.component.realm.policy_components.v1`、`ak.component.realm.plaintext_visible_services.v1`，以及同 scope 的 Circle history/encryption/lifecycle policy cell。未知或 profile 新增的 policy family 只有在 profile 的 governance-binding coverage registry 显式登记后才可加入；full profile 遇到未登记且会影响解密/投递的 family MUST fail closed。
+2. `policy_root` 的 leaf 集是 `J(S)` 中当前 `effective_scope` 可见的 policy cell：cell family 为 `ak.component.realm.*policy*`、`ak.component.realm.join_rule.v1`、`ak.component.realm.history_visibility.v1`、`ak.component.realm.media_service.v1`、`ak.component.realm.policy_bundle.v1`、`ak.component.realm.plaintext_visible_services.v1`，以及同 scope 的 Circle history/encryption/lifecycle policy cell。未知或 profile 新增的 policy family 只有在 profile 的 governance-binding coverage registry 显式登记后才可加入；full profile 遇到未登记且会影响解密/投递的 family MUST fail closed。
 3. `capability_root` 的 leaf 集是 `J(S)` 中 cell family 以 `ak.component.capability.` 开头的全部 grant、revoke、delegate 与 derived-capability cell；不得由 producer 选择子集。
 4. 每个 leaf 的 `leaf_preimage`、排序与 hash 完全复用 §6.2.1：`canonical_json({"cell":"<cell_wire_id>","state":{"value":<lattice_value>}})`，按 `cell_wire_id` Unicode code point 升序。wire root 形态为 `<suite>:<lowercase_hex>`。
 
@@ -493,7 +493,7 @@ Chunk 0 请求 MUST 使用 `chunk_index=0` 且不得携带 `expected_bundle_dige
 6. 校验拼接 `frontier_events` 按 digest 升序且与 `membership_frontier` Event ID 集精确相等；对每个 Event 重算 producer digest、验证 proofs、确认 digest inclusion、控制面 family、Realm 与 scope。缺一项、多一项或跨 scope 重放都拒绝。
 7. 校验拼接 `control_state` cell id canonical 升序且无重复，拒绝任何显式 Bottom 条目，流式重算并比对目标 Seal 的 `state_root`。
 8. 从完整控制状态按 §2.5.1 的过滤规则重算 `policy_root` 与 `capability_root`；不得使用目标 Seal 的全量 `state_root` 代替任一过滤 root。
-9. 从同一控制状态重算 `discussion_metadata_digest`：构造 `canonical_json({"media_service_decrypts":<bool>,"plaintext_visible_services":[<service DID>...]})`，服务 DID 按 Unicode code point 升序并去重；布尔值缺省为 `false`，集合缺省为空。结果为 `sha256(canonical_json_bytes)` 的 wire hash。来源只能是 `policy_root` 覆盖的 `ak.component.realm.policy_components.v1` / `ak.component.realm.plaintext_visible_services.v1` 有效值，不能读取服务端私有 projection 或 UI 状态。
+9. 从同一控制状态重算 `discussion_metadata_digest`：构造 `canonical_json({"media_service_decrypts":<bool>,"plaintext_visible_services":[<service DID>...]})`，服务 DID 按 Unicode code point 升序并去重；布尔值缺省为 `false`，集合缺省为空。结果为 `sha256(canonical_json_bytes)` 的 wire hash。来源只能是 `policy_root` 覆盖的 `ak.component.realm.policy_bundle.v1` / `ak.component.realm.plaintext_visible_services.v1` 有效值，不能读取服务端私有 projection 或 UI 状态。
 10. 将四类本地结果与 transcript-authenticated `governance_binding` 比较，并再校验 group id、previous/next epoch、binding profile 与 reducer profile。全部通过后才可把 logical proof bundle 标为已验证，以 `(proof_request_digest, accepted_seal_id)` 建 acquisition index、以 `bundle_digest` 存 manifest、以 `chunk_digest` 存 chunks；单独 `accepted_seal_id` 命中不得返回缓存 Bundle。
 
 完整物化 Bundle 是轻客户端验证 signed state commitment 的载荷，不把轻客户端升级成全历史 verifier。持有全部 Control Move 的 full verifier 仍 MUST 按 §6.3 重放 Seal transition；两者若对同一目标 Seal 得出不同结果，必须拒绝并进入 fork / state mismatch 处理，不能以服务端物化覆盖本地重放结果。
@@ -774,9 +774,9 @@ Minimal-metadata Realm 不改变签名责任。客户端在解密后仍必须验
 - `ak.identity_link` 被更新或撤销时，MUST 替换旧条目。
 - **Eager invalidation on policy tightening（normative MUST）**：处理下列 Realm policy / disclosure policy event 时，客户端 MUST **立即**失效缓存中所有 `(realm_id == current_realm_id, *)` 条目——因为这些事件只可能**收紧**真实 principal 的可见性，旧缓存条目仍按更宽松的 policy 暴露 principal DID 会导致 UI / projection 把已收紧的真实身份继续展示给非授权成员：
   - 已注册的 `ak.identity.disclosure_policy` 让 `disclosure_policy.strictness` 升级（例：`open` → `minimal` / `pairwise_only` / `audit_only`）。
-  - 已注册的 `ak.realm.policy_components` 更新中任何 `metadata_encryption_floor`、`minimal_metadata_mode` 或 routing disclosure 相关字段变化，把 Realm 切到更严格的 minimal-metadata mode；同步影响 sync / federation 路由 disclosure。
+  - 已注册的 `ak.realm.policy_bundle` 更新中任何 `metadata_encryption_floor`、`minimal_metadata_mode` 或 routing disclosure 相关字段变化，把 Realm 切到更严格的 minimal-metadata mode；同步影响 sync / federation 路由 disclosure。
   - `ak.realm.history_visibility` 收紧（例：`shared` → `invited` / `joined` / `restricted`）。
-  - `ak.realm.policy_components` 更新中任何 `identity_disclosure_profile` 字段变化。
+  - `ak.realm.policy_bundle` 更新中任何 `identity_disclosure_profile` 字段变化。
   - 任何 linked Realm（`Realm.linked_realms[]` 或 `ak.realm.link` 引用的 federation peer Realm）的 membership / history visibility 收紧——cross-Realm 解析依赖该 linked Realm policy；linked 一端收紧后 source 一端的缓存也 MUST 失效。Realm 内 [Circle](../models/circle.md) 的 membership / history visibility 收紧由 Circle 自身 `ak.circle.member.state` 与 `policy_root` 触发同 Realm 内的缓存失效。
   - 对应的失效粒度规则：失效全部 `(realm_id == current_realm_id, *)`，而不仅是当时已 disclosed 的 principal——因为收紧后的 policy 可能撤销之前被 disclose 的部分映射。
 - 缓存比较时，客户端 MUST 把当前 Realm policy 的 `policy_frontier_digest` 与缓存条目内的值做 constant-time 比较；**任一**不一致即视为缓存失效，回退到完整 identity_link 重新验证。`policy_frontier_digest` 在签发缓存条目时由客户端从最近 accepted Seal 的 Realm policy 状态计算（推荐 `sha256(canonical_json({policy_revision, disclosure_policy, history_visibility, identity_disclosure_profile, metadata_encryption_floor, minimal_metadata_mode}))`），并随后续 policy event 推进而变化；不允许仅靠 TTL 或 MLS epoch 等内部计数替代该 hash 比较。
@@ -847,11 +847,11 @@ Reaction 事件的 `aad.event_kind` 始终为明文 (`ak.reaction.add` / `ak.rea
 
 默认内容 scheme `mls_rfc9420`（MLS PrivateMessage）提供 per-message 前向安全，但其消息密钥由 MLS secret tree 单向棘轮、用完即焚，**后加入成员在密码学上无法解开 join 前 epoch 的内容**（这是 MLS 前向安全的本质，不是实现缺陷）。需要把历史授权给后加入成员的 Realm，MUST 改用本节定义的 `mls_exporter_aead_v1` scheme：内容用一把**可保留、可重新封装**的 per-epoch `history_secret` 加密，从而能经 `ak.realm_key.share` 合法交付给后加入成员。
 
-scheme 选择是 Realm policy 字段 `content_scheme`（经 `ak.realm.policy_components` 写入；[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 取 `mls_rfc9420` / `mls_exporter_aead_v1`；缺省时 `encryption_profile=mls_rfc9420` 的 Realm 视为 `mls_rfc9420`），MUST 纳入 MLS governance binding 的 `policy_root`（§2.5.1）。同一 Realm 的 effective content scheme 由该字段在每个 epoch 的 `T0` 决定；不同 epoch 可使用不同 scheme（切换只对其后 epoch 生效，§2.10.6）。每条密文 envelope 自身的 `scheme` 字段记录其所用 scheme，故接收方解密时直接读 envelope，无需回溯 policy。
+scheme 选择是 Realm policy 字段 `content_scheme`（经 `ak.realm.policy_bundle` 写入；[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 取 `mls_rfc9420` / `mls_exporter_aead_v1`；缺省时 `encryption_profile=mls_rfc9420` 的 Realm 视为 `mls_rfc9420`），MUST 纳入 MLS governance binding 的 `policy_root`（§2.5.1）。同一 Realm 的 effective content scheme 由该字段在每个 epoch 的 `T0` 决定；不同 epoch 可使用不同 scheme（切换只对其后 epoch 生效，§2.10.6）。每条密文 envelope 自身的 `scheme` 字段记录其所用 scheme，故接收方解密时直接读 envelope，无需回溯 policy。
 
-上述缺省值只能在客户端已经验证当前 `ak.realm.create`、且当前 `ak.realm.policy_components` projection 已知不存在覆盖值后应用；“同步尚未给出安全基线”不等于“policy 缺省”。若 initial / incremental sync 尚未提供或验证足以确定 `encryption_profile` 与 effective `content_scheme` 的当前安全基线，加密 producer MUST 暂停并报告 `encryption_policy_pending`，不得猜测 `mls_rfc9420` 后产生与实际 exporter policy 不同的 wire ciphertext。同步服务提供该基线的义务见 [`../sync/client-sync.md`](../sync/client-sync.md) §13。
+上述缺省值只能在客户端已经验证当前 `ak.realm.create`、且当前 `ak.realm.policy_bundle` projection 已知不存在覆盖值后应用；“同步尚未给出安全基线”不等于“policy 缺省”。若 initial / incremental sync 尚未提供或验证足以确定 `encryption_profile` 与 effective `content_scheme` 的当前安全基线，加密 producer MUST 暂停并报告 `encryption_policy_pending`，不得猜测 `mls_rfc9420` 后产生与实际 exporter policy 不同的 wire ciphertext。同步服务提供该基线的义务见 [`../sync/client-sync.md`](../sync/client-sync.md) §13。
 
-**与 `history_visibility` 的强制联动（normative）**：在 `encryption_profile=mls_rfc9420` 的 Realm 中，`history_visibility ∈ {world_readable, shared, invited}` 表示允许后加入 / 加入前读取历史；这只有在 effective `content_scheme=mls_exporter_aead_v1` 时结构上可实现。若 effective `content_scheme=mls_rfc9420`（包括缺省值）或未声明 history-capable scheme，则该 Realm 只能使用 `history_visibility ∈ {joined, restricted}`。reducer / admission MUST 拒绝任何 `ak.realm.create` bootstrap、`ak.realm.history_visibility` 或 `ak.realm.policy_components` 写入导致的非法有效组合，返回 `failed_precondition`，reason=`history_visibility_requires_history_capable_scheme`。选择 `mls_exporter_aead_v1` 只表示历史在密码学上**可**按 policy 交付，并不自动打开 pre-join delivery；`history_visibility=joined` / `restricted` 仍可与 exporter scheme 同用，以便未来 policy 或 RRK 能力可用但默认不放开历史。
+**与 `history_visibility` 的强制联动（normative）**：在 `encryption_profile=mls_rfc9420` 的 Realm 中，`history_visibility ∈ {world_readable, shared, invited}` 表示允许后加入 / 加入前读取历史；这只有在 effective `content_scheme=mls_exporter_aead_v1` 时结构上可实现。若 effective `content_scheme=mls_rfc9420`（包括缺省值）或未声明 history-capable scheme，则该 Realm 只能使用 `history_visibility ∈ {joined, restricted}`。reducer / admission MUST 拒绝任何 `ak.realm.create` bootstrap、`ak.realm.history_visibility` 或 `ak.realm.policy_bundle` 写入导致的非法有效组合，返回 `failed_precondition`，reason=`history_visibility_requires_history_capable_scheme`。选择 `mls_exporter_aead_v1` 只表示历史在密码学上**可**按 policy 交付，并不自动打开 pre-join delivery；`history_visibility=joined` / `restricted` 仍可与 exporter scheme 同用，以便未来 policy 或 RRK 能力可用但默认不放开历史。
 
 本 scheme 只选择**内容信封层**的加密方式，与 Realm 级 `encryption_profile`（仍为 `mls_rfc9420`，表示该 Realm 为 MLS-backed）**正交**；§2.4 epoch 推进、§2.4.1 send-pause 与 §2.5 MLS Governance Binding 对本 scheme **照常适用**——ban / revoke / policy 收紧仍须被后续 `ak.mls.commit` 覆盖方对新内容生效。
 
@@ -864,7 +864,60 @@ scheme 选择是 Realm policy 字段 `content_scheme`（经 `ak.realm.policy_com
 
 #### 2.10.2 ciphertext 布局与 AAD（normative）
 
-`ciphertext = base64url(nonce || AEAD_seal(K_content[N], nonce, aad_bytes, plaintext))`。`nonce` 与 AEAD AAD MUST 遵循 [`../conformance/encoding.md`](../conformance/encoding.md) §10.1 的 canonical AEAD nonce / AAD contract——`purpose="mls_exporter_aead_content"`、`device_id` 取作者设备、`aead_profile` 取 ciphersuite AEAD，nonce 为 `sender_nonce_prefix || device_nonce_counter_be64`（per-sender 前缀 + 持久单调计数器，§10.1 保证 `(K_content[N], nonce)` 跨设备唯一、不回退 random）；AEAD AAD 按 §10.1 绑定 `(key_ref, ciphertext_digest, nonce)` 的 canonical 形态并覆盖 §2.3.2 的 `aad_bytes`（routing 元数据）。AEAD tag 含在 seal 输出内，故 `authentication_tag` 字段 MUST NOT 出现（§2.3.1）。`key_ref.algorithm = "MLS-EXPORTER-AEAD"`，`scheme = "mls_exporter_aead_v1"`。`payload_digest` 按 §2.3.3 对 `ciphertext` 字节计算（`scheme` 取本值）。
+`ciphertext = base64url(nonce || AEAD_seal(K_content[N], nonce, aead_aad_bytes, plaintext))`。`nonce` 与 AEAD AAD MUST 遵循 [`../conformance/encoding.md`](../conformance/encoding.md) §10.1 / §10.2 的 canonical AEAD nonce / AAD contract——`purpose="mls_exporter_aead_content"`、`device_id` 取作者设备，nonce 为 `sender_nonce_prefix || device_nonce_counter_be64`（per-sender 前缀 + 持久单调计数器，§10.1 保证 `(K_content[N], nonce)` 跨设备唯一、不回退 random）。`aead_profile` MUST 等于 `key_ref.group_state_ref` 所指 MLS group 实际协商的 active ciphersuite `canonical_id`（取自 [`mls-ciphersuite-registry.json`](../../artifacts/registry/mls-ciphersuite-registry.json)），MUST NOT 取 HPKE suite 名或任何本地别名。AEAD tag 含在 seal 输出内，故 `authentication_tag` 字段 MUST NOT 出现（§2.3.1）。`key_ref.algorithm = "MLS-EXPORTER-AEAD"`，`scheme = "mls_exporter_aead_v1"`。`payload_digest` 按 §2.3.3 对 `ciphertext` 字节计算（`scheme` 取本值）。
+
+**AAD = pre-encryption immutable header（normative）**：本 scheme 的 AEAD AAD 是 `aead_aad_bytes`——下列 closed header 的 JCS canonical bytes。它把 §2.3.2 的 `aad` 对象作为**一个闭合成员**与 scheme/key/epoch/nonce/purpose/profile 合并成唯一 transcript；实现 MUST NOT 另造 `routing` 别名，MUST NOT 把 `aad` 内的字段同时复制到 header 顶层，也 MUST NOT 把 `aad_visibility` policy 已选择省略的字段作为平行顶层字段加回：
+
+```json
+{
+  "scheme": "mls_exporter_aead_v1",
+  "key_ref": {
+    "algorithm": "MLS-EXPORTER-AEAD",
+    "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
+  },
+  "epoch": 42,
+  "nonce": "base64url...",
+  "purpose": "mls_exporter_aead_content",
+  "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
+  "aad": {
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+    "event_kind": "ak.message.create",
+    "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  }
+}
+```
+
+`aad` 成员的实际字段集合、`event_id` / `event_ref_digest` / hidden 三选一与 `causal_refs` 仍以 §2.3.2 为唯一真源。header MUST NOT 包含 `ciphertext`、AEAD tag、`payload_digest`、`ciphertext_digest`、producer proofs 或服务端 `unsigned`——它们都在 AEAD seal 之后才存在，进入 AAD 会形成不可构造循环（[`../conformance/encoding.md` §10.2](../conformance/encoding.md)）。
+
+**`aead_aad_bytes` 与 `aad_bytes` / `aad_digest` 的关系（normative，避免同名歧义）**：`aad_bytes = canonical_json(aad)` 与 `aad_digest = sha256(aad_bytes)` 的定义在 §2.3.3 与 encoding §10 **保持不变**，对全部 content scheme 一致——它们承诺的是 §2.3.2 的 routing metadata 对象本身，`mls_rfc9420` 的 MLS authenticated data 仍取 `aad_bytes`。本 scheme 的 **AEAD AAD 另有其名**：`aead_aad_bytes` 是上述 header 的 canonical bytes，`aad` 是它的一个成员。两者 MUST NOT 混用同一名称，也 MUST NOT 把 `aad_digest` 重新定义成 header 的摘要——那会让同一个 wire 字段在两种 scheme 下指向不同 transcript。header 中除 `aad` 之外的全部字段（`scheme` / `key_ref` / `epoch` / `nonce` / `purpose` / `aead_profile`）都已经在 envelope 上、并由 `payload_digest` 与 Event proof 覆盖，因此 receiver 能确定性重建 `aead_aad_bytes`，不需要第二个 wire digest 字段。
+
+**Sender 顺序（normative，无循环）**：
+
+```text
+1. 生成 event/message identity，并按有效 aad_visibility 构造 immutable `aad`
+2. 确定 key_ref、epoch、purpose、aead_profile
+3. 按 encoding §10.1 生成并持久化 nonce counter，得到 nonce
+4. aad_bytes = canonical_json(aad)；aad_digest = sha256(aad_bytes)（§2.3.3，不进入 header）
+5. aead_aad_bytes = JCS(header)
+6. ciphertext = base64url(nonce || AEAD_seal(K_content[N], nonce, aead_aad_bytes, plaintext))
+7. payload_digest 按 §2.3.3 计算
+8. 组装完整 Event Envelope
+9. 计算 Event digest 并生成 proofs
+```
+
+**Receiver 顺序（normative）**：
+
+```text
+1. 验证 Event schema、identity、payload_digest 与 producer proofs
+2. 从 envelope 重建 `aad` 并 constant-time 比对 aad_digest（§2.3.3）
+3. 从 envelope 重建相同 immutable header，得到 aead_aad_bytes = JCS(header)
+4. 验证 key_ref/epoch/nonce prefix/counter replay
+5. AEAD open
+6. 验证 plaintext schema 与 inner/outer routing
+7. 执行 reducer/consumer
+```
+
+完全相同 Event 的重复投递 MUST 先按 Event/digest identity 折叠，再判 nonce counter replay；否则同一条合法密文经两条 rail 到达时第二份会被误报为 nonce 攻击。
 
 发送设备必须把 §10.1 的 counter 状态与 epoch 一起耐久化。设备恢复备份、检测到 counter 丢失/回退、无法证明下一 counter 严格大于该域全部已用值，或接近 `2^64-1` 时 MUST 停止发送并先通过 accepted MLS Commit 推进 epoch；新 epoch 使用新的 exporter prefix 后才可从 0 重新计数。Receiver 必须维护 per-`(key_ref,epoch,device_id,purpose,aead_profile)` replay set 或无误判等价结构；counter rollback/reuse MUST fail closed，且不得用 random nonce 兜底。Conformance suite MUST 覆盖持久化回退与设备备份恢复负例。
 

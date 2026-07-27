@@ -518,13 +518,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ak.realm.policy_components",
+      "event_kind": "ak.realm.policy_bundle",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Enabled Realm policy components set. Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_digest MUST cover policy_revision.",
-      "cell_family": "ak.component.realm.policy_components.v1",
+      "cell_family": "ak.component.realm.policy_bundle.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",

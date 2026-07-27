@@ -569,7 +569,7 @@
               "ak.realm.organization",
               "ak.realm.plaintext_visible_services",
               "ak.realm.policy",
-              "ak.realm.policy_components",
+              "ak.realm.policy_bundle",
               "ak.realm.policy_server",
               "ak.realm.preview_policy",
               "ak.realm.read_receipt_policy",
@@ -752,7 +752,7 @@
                   "ak.realm.history_visibility",
                   "ak.realm.join_rule",
                   "ak.realm.plaintext_visible_services",
-                  "ak.realm.policy_components"
+                  "ak.realm.policy_bundle"
                 ]
               }
             },
@@ -1696,7 +1696,7 @@
               "ak.realm.history_visibility",
               "ak.realm.discovery",
               "ak.realm.policy_server",
-              "ak.realm.policy_components",
+              "ak.realm.policy_bundle",
               "ak.realm.delivery_binding_policy",
               "ak.realm.history_sharing_policy",
               "ak.realm.asset_privacy_policy",

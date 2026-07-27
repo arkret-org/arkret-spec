@@ -754,7 +754,7 @@ Accept: application/x-ndjson
 - 返回 device list delta 的完整 baseline。
 - 把当前 account context 下全部仍 open 的 `agent_runtime_approval` notification 作为 `action=add` 的权威完整集合返回；即使其它 notification 历史受限也不得截断该子集。
 
-对当前 membership 为 `join` 且 `encryption_profile=mls_rfc9420` 的 Realm，baseline 还 MUST 提供可验证的**当前安全控制基线**：至少包含 current accepted `ak.realm.create`、effective `ak.realm.policy_components` singleton state（若该 cell 尚无值，则提供同一 frontier 下可验证的缺省/空值证明），以及足以验证当前 membership / MLS governance frontier 的 state/proof material；这些材料可直接位于 `state.events`，或由已验证 snapshot + 可 backfill refs 等价提供。`history_visibility` 只裁剪 data-plane timeline 和调用者无权读取的历史正文，不得裁掉客户端验证当前写入、选择 `content_scheme`、处理 Welcome 或判断 `epoch_update_required` 所必需的当前 control/security state。该义务不要求泄露 join 前旧 policy revisions 或其它不可见历史；只要求当前 effective singleton/control evidence。客户端在基线完整前 MUST 保持 `encryption_policy_pending` / `encryption_transition_pending`，不得把字段缺失解释为 policy 缺省或 membership 未发生变化。
+对当前 membership 为 `join` 且 `encryption_profile=mls_rfc9420` 的 Realm，baseline 还 MUST 提供可验证的**当前安全控制基线**：至少包含 current accepted `ak.realm.create`、effective `ak.realm.policy_bundle` singleton state（若该 cell 尚无值，则提供同一 frontier 下可验证的缺省/空值证明），以及足以验证当前 membership / MLS governance frontier 的 state/proof material；这些材料可直接位于 `state.events`，或由已验证 snapshot + 可 backfill refs 等价提供。`history_visibility` 只裁剪 data-plane timeline 和调用者无权读取的历史正文，不得裁掉客户端验证当前写入、选择 `content_scheme`、处理 Welcome 或判断 `epoch_update_required` 所必需的当前 control/security state。该义务不要求泄露 join 前旧 policy revisions 或其它不可见历史；只要求当前 effective singleton/control evidence。客户端在基线完整前 MUST 保持 `encryption_policy_pending` / `encryption_transition_pending`，不得把字段缺失解释为 policy 缺省或 membership 未发生变化。
 
 大型账户 MAY 使用 sliding window subscriptions，避免一次性返回所有 Realm。
 

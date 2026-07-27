@@ -735,7 +735,38 @@ nonce = sender_nonce_prefix || device_nonce_counter_be64
 - **跨设备域分离**：同一 `(key_ref, epoch, purpose, aead_profile)` 下，每个 active sender 的 `sender_nonce_prefix` MUST 唯一。接收方按 sender `device_id` 重算前缀并校验；前缀冲突或与声明 sender 不匹配时 MUST fail closed (`aead_nonce_sender_domain_collision`)。
 - **不回退到 random**：实现 MUST NOT fallback 到 random nonce。96-bit AEAD (AES-GCM) 在 ~2^48 次操作上有显著 birthday-bound 碰撞率；Arkret MLS application key 跨多设备共享，naive random nonce 不满足 v1 normative。
 - **接收方 replay 防护**：接收方 MUST 维护 per-`(key_ref, epoch, device_id, purpose, aead_profile)` 已见 counter 集合或等价无误判结构，重复 counter MUST 触发 `failed_precondition` reason=`aead_nonce_counter_replay`。
-- **AAD binding**：AEAD AAD MUST 绑定 `(key_ref, ciphertext_digest, nonce)` canonical 形态，防止 (key, nonce) 下的 ciphertext 被与另一 AAD 配对解密。
+- **AAD binding（normative，§10.2）**：AEAD AAD MUST 是该 domain 的 **pre-encryption immutable header** 的 canonical bytes，见 §10.2。任何依赖 AEAD 输出的字段（覆盖 authentication tag 的 ciphertext digest、payload digest、content digest、receipt 等）MUST NOT 进入同一次 AEAD 的 AAD。
 - **不同 AEAD 用途独立 nonce 域**：`purpose` MUST 写入 exporter context。标准 purpose 取值由消费域文档声明；未声明 purpose 的 AEAD envelope MUST fail closed。
 
-**Registry 真源（normative）**：上式使用的 MLS-Exporter label `arkret-aead-sender-nonce-prefix-v1` 是 wire-breaking 的安全域分隔参数，MUST 登记于 [`exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)（该 registry 是全部 normative MLS-Exporter label 的 canonical source of truth，`defined_in` 回指本节）；实现 MUST 使用与该 registry 行完全一致的 label 字符串与 `context_fields` 形状（`{key_ref, epoch, device_id, purpose, aead_profile}`），MUST NOT 以空 context 派生，未登记 label MUST fail closed。其中 `aead_profile` 标识所选 AEAD 算法 suite，其合法取值 enum MUST 由 HPKE / AEAD 算法 agility registry（[`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)，§6.1）派生，未登记 suite MUST fail closed。
+**Registry 真源（normative）**：上式使用的 MLS-Exporter label `arkret-aead-sender-nonce-prefix-v1` 是 wire-breaking 的安全域分隔参数，MUST 登记于 [`exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)（该 registry 是全部 normative MLS-Exporter label 的 canonical source of truth，`defined_in` 回指本节）；实现 MUST 使用与该 registry 行完全一致的 label 字符串与 `context_fields` 形状（`{key_ref, epoch, device_id, purpose, aead_profile}`），MUST NOT 以空 context 派生，未登记 label MUST fail closed。其中 `aead_profile` 标识所选 AEAD 算法 suite；**其合法取值 enum 的权威 registry 由各消费 domain 显式声明**，MUST NOT 一律指向 HPKE registry：应用层 HPKE sealing surface（key backup / to-device / file-transfer key envelope 等）取 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)（§6.1）；由 MLS exporter 派生 key 的 domain（`mls_exporter_aead_v1` 内容加密、ephemeral signal AEAD）取 [`mls-ciphersuite-registry.json`](../../artifacts/registry/mls-ciphersuite-registry.json) 的 `canonical_id`，并 MUST 等于 `key_ref.group_state_ref` 所指 MLS group 实际协商的 active ciphersuite。未登记 suite、或与该 group 实际 ciphersuite 不符的 `aead_profile` MUST fail closed。实现 MUST NOT 再发明第三层会漂移的 AEAD 映射名。
+
+### 10.2 AEAD AAD = pre-encryption immutable header（normative）
+
+每个在 v1 wire 上使用 AEAD 的 domain MUST 定义一个 closed、JCS canonical 的 **immutable header**。该 header 的全部字段 MUST 在调用 AEAD seal 之前已确定，至少绑定 `key_ref`、`nonce`（或 `nonce_prefix` 与其确定性后缀分量）、`purpose` 与 `aead_profile`，并绑定该 domain 的 routing / identity / epoch 字段。AEAD AAD MUST 是该 header 的 canonical bytes。
+
+任何依赖 AEAD 输出的字段——包括覆盖 authentication tag 的 `ciphertext_digest`、`payload_digest`、content digest 或 receipt——MUST NOT 进入同一次 AEAD 的 AAD。此类 **post-encryption commitment** MUST 由该 domain 指定的外层 authentication（已签名 Event / encrypted descriptor / upload receipt / envelope proof）覆盖；某条路径若没有任何外层认证，MUST 补齐认证，MUST NOT 把 digest 塞回 AEAD AAD。
+
+**为什么是纯删除（normative rationale）**：本节的前身条款曾以“防止 (key, nonce) 下的 ciphertext 被与另一 AAD 配对解密”为由要求 AAD 绑定 `ciphertext_digest`。该理由不成立：AEAD 的 tag 本身就是对 `(key, nonce, AAD, ciphertext)` 四元组的认证，在 `AAD₁` 下产生的密文改用 `AAD₂` 验证必然失败——这是 AEAD 的定义性质。因此从 AAD 中删除 ciphertext digest **不损失任何安全属性**：ciphertext↔AAD 绑定由 tag 提供；ciphertext↔key domain 绑定由实际使用的 key 与 AAD 中已认证的 `key_ref` 共同提供；ciphertext↔nonce 绑定由 nonce 参与 seal/open 提供；AEAD 非 key-committing 的已知问题由 `key_ref` 与域分离处理，`ciphertext_digest` 从来无助于此。规范 MUST NOT 保留该错误理由文本，否则后续 scheme 会重新引入同样的绑定。
+
+**明确否决的替代构造**：
+
+1. digest 字段先置零、seal 后替换；
+2. 固定点迭代到稳定值；
+3. 把 digest 重定义为“排除 tag 的 ciphertext body”从而可在 tag 之前计算——它能解开循环，但保留一个零收益字段，并制造“完整 digest”与“body digest”两个易混淆概念；
+4. 为通过测试而让 receiver 忽略 AAD 中的 digest；
+5. 删除 post-encryption digest 却不确认外层 proof 覆盖 ciphertext；
+6. 每个实现自选 AAD 字段集合；
+7. 新增 v2 scheme 而保留错误的 v1 定义。
+
+**逐 domain 登记义务**：每个消费 domain MUST 登记 `purpose`、`aead_profile` 的权威 registry、immutable header schema、ciphertext/tag 编码、post-encryption digest 的覆盖范围、认证该 digest 的外层 proof，以及逐字节 KAT。v1 各 domain 的结论：
+
+| domain | immutable header（AAD） | post-encryption digest | 认证该 digest 的外层 |
+|---|---|---|---|
+| `mls_exporter_aead_v1`（[`../crypto-media/encryption-and-audit.md` §2.10.2](../crypto-media/encryption-and-audit.md)） | `aead_aad_bytes` = JCS(`{scheme, key_ref, epoch, nonce, purpose, aead_profile, aad}`) | `payload_digest`（§10 / §2.3.3） | Event proof |
+| `ak.blob.whole_file_aead.v1` / `ak.blob.stream_aead.v1`（[`../crypto-media/media-and-blob.md` §3.1 / §3.3.3](../crypto-media/media-and-blob.md)） | 见该节列举的 pre-encryption 字段 | `ciphertext_digest` | 引用它的已签名 Event / encrypted descriptor / upload receipt |
+| account data（[`../models/account-data.md`](../models/account-data.md)） | envelope `aad`（`{actor_id, account_data_key, schema, version}`） | `ciphertext_digest` | account-data envelope 自身的已认证写入路径 |
+| key backup（[`../identity/key-management.md` §7.2](../identity/key-management.md)） | 已固化于 KAT 的 `aead_aad_canonical_json` | `ciphertext_digest` | `auth_data.signed_fields` 设备签名 |
+
+`aad_digest` 是**对 AAD bytes 自身**的摘要，与本节无冲突，可由 domain 保留，但 MUST 位于 header/AAD 之外、由外层 proof 覆盖；receiver MUST 重算 AAD 而不是采信调用方自报的 `aad_digest`。domain 之间 MUST NOT 被误写成“统一必须携带”或“统一必须删除”。
+
+**既有密文处置（normative）**：v1 尚无发布，Arkret 采取激进更新、不保留旧数据兼容。任何按前身（不可构造）定义生成的持久密文一律视为不可读，实现 MUST NOT 为其保留第二套 AAD 组成或兼容分支。

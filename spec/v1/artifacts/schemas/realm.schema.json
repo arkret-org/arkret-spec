@@ -241,7 +241,7 @@
     },
     "agent_participation": {
       "type": "object",
-      "description": "Realm agent participation ceiling: { native_agent: { reply, accept_third_party_mention, act_on_behalf } } — the maximum native personal agent behavior permitted Realm-wide, written by a holder of ak.realm.admin via ak.realm.policy_components. It is the top of the deployment ⊇ Realm ⊇ Circle ⊇ Strand tighten-only chain (inner ceilings MUST NOT widen it; reducer rejects with agent_participation_ceiling_widen). When absent, inherits the deployment-default ceiling (deny-default under sovereign profiles). native_agent and applet_agent ceilings MUST be declared separately. See zh/models/realm-and-space.md.",
+      "description": "Realm agent participation ceiling: { native_agent: { reply, accept_third_party_mention, act_on_behalf } } — the maximum native personal agent behavior permitted Realm-wide, written by a holder of ak.realm.admin via Event kind ak.realm.policy_bundle. It is the top of the deployment ⊇ Realm ⊇ Circle ⊇ Strand tighten-only chain (inner ceilings MUST NOT widen it; reducer rejects with agent_participation_ceiling_widen). When absent, inherits the deployment-default ceiling (deny-default under sovereign profiles). native_agent and applet_agent ceilings MUST be declared separately. See zh/models/realm-and-space.md.",
       "properties": {
         "native_agent": {
           "type": "object",
@@ -263,7 +263,7 @@
     },
     "durability_policy": {
       "type": "object",
-      "description": "Realm Recovery Key (RRK) durability policy (models/realm-and-space.md §2.3.1, crypto-media/encryption-and-audit.md §2.10.8). Declares who can recover Realm history after all member devices are lost or all members leave. Confidentiality-axis durability, orthogonal to notary / notary.recovery_* (finality axis: who signs Seals). Recovery recipients are offline HPKE public keys, NOT MLS members. Only effective (mode != none) when content_scheme=mls_exporter_aead_v1; declaring mode != none on an mls_rfc9420 Realm MUST failed_precondition (durability_scheme_incompatible). Granularity = organization composition (point a sensitive Realm's owning_organizations at a finer org), not a per-Realm knob; parent-org retention = list the parent org RRK in recovery_recipients (explicit, member-visible). Written via ak.realm.policy_components.",
+      "description": "Realm Recovery Key (RRK) durability policy (models/realm-and-space.md §2.3.1, crypto-media/encryption-and-audit.md §2.10.8). Declares who can recover Realm history after all member devices are lost or all members leave. Confidentiality-axis durability, orthogonal to notary / notary.recovery_* (finality axis: who signs Seals). Recovery recipients are offline HPKE public keys, NOT MLS members. Only effective (mode != none) when content_scheme=mls_exporter_aead_v1; declaring mode != none on an mls_rfc9420 Realm MUST failed_precondition (durability_scheme_incompatible). Granularity = organization composition (point a sensitive Realm's owning_organizations at a finer org), not a per-Realm knob; parent-org retention = list the parent org RRK in recovery_recipients (explicit, member-visible). Written via Event kind ak.realm.policy_bundle.",
       "required": [
         "mode"
       ],

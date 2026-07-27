@@ -28,7 +28,10 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
-| 单个 canonical Event / Operation envelope | 1 MiB | 超过时 MUST reject 为 `payload_too_large` 或 `schema_violation`。正文、附件和大对象必须使用 Blob。 |
+| 完整 canonical Event Envelope | 1 MiB（1,048,576 bytes） | 见 §2.1.1。超过时 MUST reject 为 `payload_too_large`（不得改用 `schema_violation`）。正文、附件和大对象必须使用 Blob 或 [`content-types.md`](../models/content-types.md) 的 `ak.content.long_text`。 |
+| 非流式 JSON operation canonical request/response body | 8 MiB（8,388,608 bytes） | 见 §2.1.2。只适用于 operation registry 标注 `body_class=non_streaming_json` 的 operation。 |
+| 非流式 JSON HTTP message content wire bytes | 16 MiB（16,777,216 bytes） | 见 §2.1.3。MUST 在完整解析 / JCS 之前停止读取。 |
+| 服务端在 read view 上附加的单 Event `unsigned` canonical JSON | 16 KiB（16,384 bytes） | 见 §2.1.1。producer / peer submit 的 Event MUST NOT 携带 `unsigned`；read view 的 service-added `unsigned` 超限 MUST 视为服务端自身错误，不得发出。 |
 | 单个 HTTP header value | 8 KiB（但专用 header 可更小） | 入口 MUST 在解析/复制到业务对象前拒绝超限值。`Idempotency-Key` 与 `X-Arkret-Request-Id` 的专用上限均为 128 ASCII chars；cursor / causal wait token header 的专用上限为 4 KiB。 |
 | HTTP header aggregate | 32 KiB | request line 之外全部 header name/value 的编码总量；超限 MUST 在认证、签名 transcript 构造和幂等缓存分配前以 `payload_too_large` 拒绝。反向代理可声明更小上限，但不得接受超过本上限的请求。 |
 | HTTP path + query | 8 KiB | 按接收的 UTF-8/percent-encoded octets 计；超限 MUST `payload_too_large`，不得先展开为无界对象。大型 selector 必须使用已注册的 POST query-body variant。 |
@@ -69,6 +72,157 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 
 [^hlc-logical-width]: informative：logical 段宽度的潜在扩展属未来评估方向，不构成 v1 规范要求。
 
+### 2.1 三层大小边界（normative）
+
+v1 之前使用的“Event / Operation envelope”是一个未定义术语，把签名原子对象、JSON operation body 与 HTTP wire bytes 混在一个数值上。本节把它拆成三个**测量对象不同、同时成立**的层，并新增一个通用 pre-parse 上限。
+
+| 层 | v1 固定上限 | 测量对象 |
+| --- | ---: | --- |
+| 完整 canonical Event Envelope | 1 MiB | §2.1.1 |
+| 非流式 JSON operation canonical body | 8 MiB | §2.1.2 |
+| 非流式 JSON HTTP message content wire bytes | 16 MiB | §2.1.3 |
+
+#### 2.1.1 Event（1 MiB）
+
+测量对象是：
+
+```text
+RFC 8785 JCS(
+  reducer 接受后、含 reducer-stamped 顶层字段的完整 Event Envelope，
+  含全部 producer proofs / signatures，
+  不含服务端在 read view 上附加的 unsigned
+)
+```
+
+- 单独测 payload 或 “without proof” 形态都不够；multi-proof / hybrid proof 的**全部** active proof 都计入。
+- producer / self submit 与 peer submit 的 Event **MUST NOT** 携带 `unsigned`。该字段只能由接收服务在 read view 上添加，任何实现都 MUST NOT 把它用于身份、授权、reducer 或签名判断（与 [`encoding.md` §2](./encoding.md) 的签名字节排除规则一致）。
+- reducer MUST 在真正 commit 前，按将写入的 reducer-stamped 字段（v1 当前为 `effective_scope`、`actor_kind`）构造**候选 accepted envelope** 并执行 1 MiB 检查；MUST NOT 先接受再由 stamping 把对象推过上限。
+- Event 被包含在 batch / operation body 中时，同时受单 Event 1 MiB 与外层 body 8 MiB 约束。
+- 服务端附加的 `unsigned` 另受单对象 16 KiB canonical JSON 上限，并计入 response body 8 MiB，但 **不** 反向改变已接受 Event 的 1 MiB 身份。16 KiB 足以承载 age、redaction reason 与有限 transport hints；更大的诊断、receipt 集合或扩展材料 MUST 使用 read model 的独立分页 / 引用字段，MUST NOT 塞进一个未签名、开放解释的旁路对象。该值是 response amplification 安全边界。
+- 1 MiB + 1 MUST 返回 `payload_too_large`，MUST NOT 因为 JSON schema 恰好也失败而返回 `schema_violation`。
+
+**为什么 Event 仍是 1 MiB**：Event 是签名、fanout、持久化与 reducer 的原子安全边界。提高到 8/16 MiB 会同时放大验签前内存、federation fanout、DAG/backfill、reducer 单项延迟与数据库 row/transaction 突发。长正文已有 `ak.content.long_text`，大二进制已走 Blob，结构化大对象已有各自 256 KiB / Blob 边界。operation body 可以容纳多个小 Event，故 8 MiB 与单 Event 1 MiB 并不矛盾。
+
+#### 2.1.2 JSON operation canonical body（8 MiB）
+
+测量对象是 `RFC 8785 JCS(parsed request or response JSON value)`——**整个 operation body**，不是数组中每一项各 8 MiB。
+
+- 只适用于 operation registry 标成 `body_class=non_streaming_json` 的 operation。
+- operation 若有更低的语义上限，MUST 在 operation registry 以 `max_canonical_body_bytes` 规范性登记，客户端与服务端按较小值执行；未登记时按通用 8 MiB。
+- operation MUST NOT 登记高于通用 8 MiB 的非流式 JSON 值；更大数据 MUST 改用分页、stream 或 Blob。
+
+#### 2.1.3 HTTP wire message content（16 MiB）
+
+测量对象是 HTTP transfer framing 解码后、JSON parse 之前交给应用的 message content bytes：
+
+- `Content-Length` 已知且 >16 MiB：MUST NOT 读取 body，直接 413 `payload_too_large`；
+- chunked / HTTP2 / HTTP3 无可靠 length：MUST 边读取边计数，在第 16 MiB + 1 byte 立即终止；
+- MUST NOT 先完整缓存、parse 或 JCS 后再判；
+- transfer framing bytes 不计入；headers / path / query 有各自既有上限（§2），不计入 body；
+- 对需要 body 内 proof 才能认证的请求，该限制发生在 body-dependent authentication **之前**；若 transport/session header 已完成认证，MAY 先做不读取 body 的认证。
+
+#### 2.1.4 Content-Encoding（normative）
+
+所有 `body_class=non_streaming_json` 的 canonical operation：
+
+```text
+Content-Type: application/json
+Content-Encoding: MUST be absent
+```
+
+不接受 `gzip` / `br` / `deflate` / `zstd` 或任何其它 coding。理由：否则必须再定义压缩 wire、解压后、canonical 三层限制；压缩比会形成 decompression bomb；producer proof / JCS 已要求确定字节语义；大量数据本就应走 stream / Blob。
+
+携带 `Content-Encoding` 的请求 MUST 在读取 / 解压 body 前以 **HTTP 415** 拒绝，error_code = `unsupported_content_encoding`。该 code MUST NOT 复用 `invalid_param`（后者在 error registry 固定映射 HTTP 400，复用会让同一 code 出现两个 status），也不是 `payload_too_large`（即使压缩体很小，编码本身也不属于该 binding）。response 同样 MUST NOT 使用 `Content-Encoding`；cache / proxy MUST 设置适当 `no-transform`。
+
+#### 2.1.5 二维 batch 与 pagination（normative）
+
+数量上限与字节上限是**同时成立的二维约束**，不是二选一：
+
+```text
+items <= operation.max_items
+AND
+JCS(body) bytes <= operation.max_canonical_body_bytes
+```
+
+- **Request batch**：客户端依次添加完整 item；加入下一项将导致 `next_count > max_items` **或** `JCS(candidate_body).length > max_canonical_body_bytes` 时结束当前批次。服务端按同样两维校验；超任一维时整个 request 以 `payload_too_large` 拒绝，除非该 operation 的既有规范明确是逐项独立事务，否则 MUST NOT 部分接受。
+- item 本身还有自己的上限（例如完整 canonical Event 1 MiB）。**batch body 上限 MUST 不小于其允许的最大单 item**，否则合法 item 永远无法发送。
+- **Response page**：服务端按 count 与 canonical bytes 的先到者停止——未达 count 但将超上限时提前结束并返回 next cursor；达到 count 但仍有数据时返回 next cursor。单个 item 在其自身上限内却无法放进一个空 page，说明 operation / page shape 设计错误，MUST NOT 无限循环返回空 page。客户端 MUST NOT 把“本页少于 `max_items`”解释为没有下一页，必须以 next cursor / 规范终止字段为准。
+
+**count 数字不下调（normative）**：本文保留现有 count 上限（events batch 1,000、federation transaction 500、sync/backfill/projection page 1,000 等）。`maxItems=N` 与 `maxCanonicalBytes=B` 是**合取**约束，count 上限从不承诺任意 N 个接近单项上限的对象都能装进一批，它只允许足够小的对象达到 N。因此实现与规范审查 MUST NOT 用 “fixture 中位尺寸 × maxItems > body 上限” 论证 count 不可达或据此下调 count——那会把 fixture 分布误当规范真相。gate 只要求每个数组同时存在 count 与 body-byte contract。
+
+#### 2.1.6 固定值与 Describe（normative）
+
+1 / 8 / 16 MiB 是 v1 互操作常量：
+
+- 所有 core 实现 MUST 接受达到该边界、且其他 schema / operation 约束均合法的输入；超出 MUST 拒绝。
+- deployment / proxy MUST NOT 声明更低的全局值；允许各自下调会使同一个合法 command 在不同服务间不可移植，也会使 federation origin 无法安全拆批。
+- Describe 报告这些固定值仅用于诊断，**不参与协商**。
+- operation registry MAY 规范性登记更低的 per-operation 值，Describe 只能如实反映该登记值。
+- 当前负载、quota、rate limit 是另一维，MUST NOT 伪装成更小的 payload max。
+
+#### 2.1.7 Streaming 与 binary 例外（normative）
+
+以下 **不** 套用“整个 body 8 / 16 MiB”：
+
+- NDJSON / SSE 长连接（`ak.self.events.stream.subscribe`、`ak.self.account.stream.subscribe`）；
+- Blob multipart upload、tus chunks；
+- Blob / media download、Range response；
+- WebRTC / media transport；
+- federation / event streaming binding。
+
+它们 MUST 各自定义 per-frame / per-chunk 上限、connection/session 累计速率、pending bytes、lifetime/idle 与 parse-before-limit 纪律；单靠 frame 计数不够，少量大 frame 仍可制造内存突发，因此 pending 维度 MUST 同时有条数与字节两个上限。MUST NOT 把一条无限 NDJSON 连接误判为一个 >16 MiB 的 JSON body。
+
+反之，普通非流式 JSON response 仍受 8 / 16 MiB，即使通过 HTTP chunked 发送——transfer coding 不会把它变成 streaming semantic。
+
+#### 2.1.8 实现顺序（normative）
+
+非流式 JSON request：
+
+```text
+1. path / header 数值边界
+2. transport/session auth（若不需 body）
+3. 拒绝 Content-Encoding（415）
+4. Content-Length 预检（413）
+5. 流式读取并计数 wire bytes，第 16 MiB+1 byte 立即终止
+6. JSON parse
+7. JCS canonicalize 并计数，达到 8 MiB+1 可提前中止
+8. schema / operation validation
+9. body-dependent proof / auth
+10. handler
+```
+
+实现不要求同时保存 16 MiB raw + 8 MiB DOM + 8 MiB canonical 三份副本；parser / JCS MAY 使用有界 streaming / spool 策略，但任何临时文件、buffer、DOM 也 MUST 计入独立资源上限并清理。response MUST 在写 header 前完成 count / canonical budget 规划，MUST NOT 先声明 200 再在中途发现页面过大而截断成无效 JSON。
+
+#### 2.1.9 错误语义（normative）
+
+| 情况 | HTTP | error_code |
+| --- | ---: | --- |
+| `Content-Length` / wire body >16 MiB | 413 | `payload_too_large` |
+| parsed canonical operation body >8 MiB | 413 | `payload_too_large` |
+| full canonical Event >1 MiB | 413 / operation mapping | `payload_too_large` |
+| per-operation 更低 byte 上限 | 413 | `payload_too_large` |
+| 数组 count 超 schema 上限但 bytes 未超 | 422 | `schema_violation` |
+| `Content-Encoding` present | 415 | `unsupported_content_encoding` |
+| JSON 无法解析 | 400 | `bad_json` |
+| JSON 可解析但非 canonical、含 BOM / 重复 key 或违反 schema | 422 | `schema_violation`（按 [`encoding.md`](./encoding.md) 既有细分） |
+
+字节超限 MUST NOT 再允许 `payload_too_large` / `schema_violation` 二选一。即使 schema 的 `maxLength` / `maxItems` 也能提前发现，只要拒绝的规范原因是 byte budget，对外错误码就 MUST 稳定为 `payload_too_large`。错误体本身 MUST 是小型固定 shape，MUST NOT 回显 body、数组项或 canonicalized payload。
+
+#### 2.1.10 明确否决
+
+1. 提高 Event 到 8 / 16 MiB；
+2. 按常见 Event kind 给不同 Event 原子上限；
+3. 只保留 wire limit 或只保留 canonical limit；
+4. 实现通过 Describe 任意下调通用互操作上限；
+5. 用 “fixture median × maxItems” 证明 count 不可达；
+6. 为“自洽”下调所有 count；
+7. 先解压 / parse 再检查 wire；
+8. 因为是 chunked 就不计总 wire bytes；
+9. 对字节超限随机返回 `schema_violation`；
+10. 把长连接累计 bytes 套成普通 operation body 上限。
+
+三层边界的 `±1` bytes、chunked 终止、whitespace/escape 放大、page 提前结束与 `unsigned` 相关负例由 `ak.vector.scalability.envelope_size_limit.v1` 与 `ak.vector.scalability.batch_page_limits.v1` 覆盖。
+
 ## 3. 授权与 Capability 上限
 
 | 项 | v1 默认上限 | 规则 |
@@ -94,8 +248,8 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
-| 单个 DataEvent canonical size | 1 MiB | 超过时 MUST reject 为 `payload_too_large` 或 `schema_violation`。 |
-| 单个 Control Move canonical size | 1 MiB | 超过时 MUST reject 为 `payload_too_large` 或 `schema_violation`。 |
+| 单个 DataEvent canonical size | 1 MiB | 与 §2.1.1 同一测量对象与同一数值；超过时 MUST reject 为 `payload_too_large`。 |
+| 单个 Control Move canonical size | 1 MiB | 与 §2.1.1 同一测量对象与同一数值；超过时 MUST reject 为 `payload_too_large`。 |
 | 单个 Control Move 的 `preconditions + effects` 数 | 256 | 超过时 MUST reject；需要拆成多个 Control Move 或使用 higher-level control transaction。 |
 | 单个 Seal 新增 Control Move 数 | 1,000 | 超过时 MUST 拆分 Seal；接收方 MAY 返回 `rate_limited` 或 `temporarily_unavailable`。 |
 | Seal DAG leaf 数 | 实现声明 | 超过时 SHOULD 请求或生成 signed compaction Seal；查询可使用 deterministic Seal view。 |
@@ -138,6 +292,8 @@ CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 
 | 单 Realm active Space 数 | 5,000 | 超过时 Realm projection MUST paginate；建议拆分为多个 Realm 或使用嵌套 Space。 |
 | 单个 Space `labels[]` | 64 项；每项 128 chars | 超过时 MUST `schema_violation`；items MUST 去重。 |
 | 单个 Message ContentBlock `attachments[]` | 32 项 | 超过时 MUST `schema_violation`；大附件使用 Blob，durable 关联优先使用 Relation `attached_to`。 |
+| `ak.content.text.body` inline 正文 | 256 KiB（262,144 UTF-8 bytes） | inline / long-text 的强制分界，见 [`content-types.md` §4.1.4](../models/content-types.md)。超过时 MUST 改用 `ak.content.long_text`；JSON Schema `maxLength` 只是不宽于该值的 code-point 快速上限，权威检查 MUST 由 UTF-8 byte validator 执行。 |
+| `ak.content.long_text.body` fallback | 4 KiB（4,096 UTF-8 bytes） | `prefix` 与 `summary` 同一上限，见 [`content-types.md` §4.1.3](../models/content-types.md)。同样是 UTF-8 **字节**上限，不是 `maxLength` 的 code point 数。 |
 | 单个 Board Space active List Space 数 | 500 | 超过时 Board projection MUST paginate 或 require filtered View。 |
 | 单个 List Space active Strand item 数 | 10,000 | Projection MUST paginate；drag / reorder 仍按 rank + deterministic tie-break。 |
 | Space 嵌套深度 | 8 | 超过时 reducer MUST reject `ak.space.parent`；防止任意深度的容器树拖累查询性能。 |

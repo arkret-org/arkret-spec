@@ -1655,6 +1655,12 @@
       "http_status": 400,
       "scope": "endpoint",
       "description": "A conformance snapshot chunk digest does not match the declared digest."
+    },
+    {
+      "code": "unsupported_content_encoding",
+      "http_status": 415,
+      "scope": "both",
+      "description": "A canonical non-streaming JSON operation carried a Content-Encoding header. Canonical JSON bindings MUST reject the request before reading or decompressing the body; see zh/conformance/scalability-constraints.md section 2.1.4."
     }
   ],
   "reason_codes": [
@@ -1809,7 +1815,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "A ak.realm.policy_components update skipped one or more monotonic policy_revision values. Reducer MUST reject instead of accepting a discontinuous policy frontier."
+      "description": "A ak.realm.policy_bundle update skipped one or more monotonic policy_revision values. Reducer MUST reject instead of accepting a discontinuous policy frontier."
     },
     {
       "code": "moderation_control_lifted",
@@ -3428,7 +3434,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Realm `ak.realm.join_rule` and `ak.realm.policy_components` declare conflicting join modes (e.g., `restricted` with no gate configuration, or `knock_restricted` with all-auto gates degrading to `restricted`). See zh/governance/join-policy.md §4."
+      "description": "Realm `ak.realm.join_rule` and `ak.realm.policy_bundle` declare conflicting join modes (e.g., `restricted` with no gate configuration, or `knock_restricted` with all-auto gates degrading to `restricted`). See zh/governance/join-policy.md §4."
     },
     {
       "code": "quorum_unreachable",
@@ -3787,7 +3793,7 @@
         "schema_violation",
         "state_resolution"
       ],
-      "description": "A ak.realm.policy_components write under ak.profile.e2ee_relaxed.v1 declared relaxed_window_max_ms greater than the spec hard ceiling (300000 ms / 5 min). Reducer MUST reject the policy update and receivers MUST NOT silently clamp; otherwise visible policy state splits across implementations. See artifacts/profiles/conformance-profiles.json#ak.profile.e2ee_relaxed.v1.downgrade_window_constraint."
+      "description": "A ak.realm.policy_bundle write under ak.profile.e2ee_relaxed.v1 declared relaxed_window_max_ms greater than the spec hard ceiling (300000 ms / 5 min). Reducer MUST reject the policy update and receivers MUST NOT silently clamp; otherwise visible policy state splits across implementations. See artifacts/profiles/conformance-profiles.json#ak.profile.e2ee_relaxed.v1.downgrade_window_constraint."
     },
     {
       "code": "e2ee_relaxed_disallowed_in_compliance_profile",
@@ -3916,7 +3922,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "A MIMI room policy component does not match the Arkret Realm policy_root or ak.realm.policy_components state. Facade MUST reject the update until a fresh policy projection is available. See zh/extensions/mimi-interop.md §4.1."
+      "description": "A MIMI room policy component does not match the Arkret Realm policy_root or ak.realm.policy_bundle state. Facade MUST reject the update until a fresh policy projection is available. See zh/extensions/mimi-interop.md §4.1."
     },
     {
       "code": "mimi_room_state_incompatible",
@@ -4147,14 +4153,14 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when a ak.realm.policy_components or ak.circle.update would lower a scope's effective content_encryption_floor from e2ee_required back to allow_plaintext. The effective content encryption floor is a one-way ratchet (monotonically non-decreasing); tightening is allowed, lowering is rejected. See zh/models/realm-and-space.md §2.5 and zh/models/circle.md §7."
+      "description": "Sub-reason for failed_precondition when a ak.realm.policy_bundle or ak.circle.update would lower a scope's effective content_encryption_floor from e2ee_required back to allow_plaintext. The effective content encryption floor is a one-way ratchet (monotonically non-decreasing); tightening is allowed, lowering is rejected. See zh/models/realm-and-space.md §2.5 and zh/models/circle.md §7."
     },
     {
       "code": "durability_scheme_incompatible",
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when a ak.realm.policy_components write declares durability_policy.mode != none on a Realm whose content_scheme is not mls_exporter_aead_v1. mls_rfc9420 Realms have no deliverable history_secret, so Realm Recovery Key (RRK) durability is structurally unavailable. See zh/models/realm-and-space.md §2.3.1 and zh/crypto-media/encryption-and-audit.md §2.10.8."
+      "description": "Sub-reason for failed_precondition when a ak.realm.policy_bundle write declares durability_policy.mode != none on a Realm whose content_scheme is not mls_exporter_aead_v1. mls_rfc9420 Realms have no deliverable history_secret, so Realm Recovery Key (RRK) durability is structurally unavailable. See zh/models/realm-and-space.md §2.3.1 and zh/crypto-media/encryption-and-audit.md §2.10.8."
     },
     {
       "code": "history_visibility_requires_history_capable_scheme",
@@ -4182,7 +4188,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when a ak.realm.policy_components or ak.circle.update would lower a scope's effective metadata encryption floor to a lower level (comparison order allow_plaintext < e2ee_required). The effective metadata encryption floor is a one-way ratchet (monotonically non-decreasing). See zh/models/realm-and-space.md §2.5 and zh/models/circle.md §7."
+      "description": "Sub-reason for failed_precondition when a ak.realm.policy_bundle or ak.circle.update would lower a scope's effective metadata encryption floor to a lower level (comparison order allow_plaintext < e2ee_required). The effective metadata encryption floor is a one-way ratchet (monotonically non-decreasing). See zh/models/realm-and-space.md §2.5 and zh/models/circle.md §7."
     },
     {
       "code": "scope_rebind_forbidden",

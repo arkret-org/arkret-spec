@@ -4014,7 +4014,7 @@ Expected:
 
 Preconditions:
 
-- 部署顶层 ceiling 全 `false`。Realm `R` 的 `ak.realm.policy_components.agent_participation.native_agent = {reply:true, accept_third_party_mention:true, act_on_behalf:false}`。
+- 部署顶层 ceiling 全 `false`。Realm `R` 经 Event kind `ak.realm.policy_bundle` 写入 payload path `agent_participation.native_agent`，值为 `{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。
 
 Steps:
 
@@ -4518,8 +4518,8 @@ Expected:
 
 Setup:
 
-1. Realm R 的 effective `content_encryption_floor` 已达 `e2ee_required`(经 `ak.realm.policy_components` 写入)。
-2. 后续 `ak.realm.policy_components` 把 `content_encryption_floor` 改回 `allow_plaintext`。
+1. Realm R 的 effective `content_encryption_floor` 已达 `e2ee_required`(经 `ak.realm.policy_bundle` 写入)。
+2. 后续 `ak.realm.policy_bundle` 把 `content_encryption_floor` 改回 `allow_plaintext`。
 
 Expected:
 
@@ -4533,7 +4533,7 @@ Expected:
 Setup:
 
 1. Realm R 的 effective `metadata_encryption_floor` 已达 `e2ee_required`。
-2. 后续 `ak.realm.policy_components` 把 `metadata_encryption_floor` 改回 `allow_plaintext`。
+2. 后续 `ak.realm.policy_bundle` 把 `metadata_encryption_floor` 改回 `allow_plaintext`。
 
 Expected:
 
@@ -4547,7 +4547,7 @@ Expected:
 Setup:
 
 1. Realm R 以 `encryption_profile="mls_rfc9420"` + `content_encryption_floor="allow_plaintext"` 创建（钥匙在手、初期明文发送）。
-2. 后续 `ak.realm.policy_components` 把 `content_encryption_floor` 抬到 `e2ee_required`。
+2. 后续 `ak.realm.policy_bundle` 把 `content_encryption_floor` 抬到 `e2ee_required`。
 
 Expected:
 

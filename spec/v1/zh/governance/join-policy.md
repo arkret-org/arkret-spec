@@ -28,7 +28,7 @@ updated: 2026-07-13
 | Surface | v1 状态 | Wire 形态 | 实现要求 |
 | --- | --- | --- | --- |
 | `ak.realm.join_rule` | active | 标准 `Event.kind` / reducer cell | base v1 按 registry 和 reducer 规则实现 |
-| `ak.realm.policy_components` 中的 join policy facet | active | 标准 policy component payload | base v1 可表达 gate、delivery binding policy 与自动解析要求 |
+| `ak.realm.policy_bundle` 中的 join policy facet | active | 标准 policy component payload | base v1 可表达 gate、delivery binding policy 与自动解析要求 |
 | `ak.member.state{membership=join}` 自动 gate | active | 标准 membership event + `gate_proofs[]` / delivery binding payload | base v1 必须 fail closed 校验 capability、gate proof 与 delivery binding |
 | `ak.invite.*` + `refs[role="join_authorised_by"]` | active | 标准 invite / member refs | base v1 支持 invite 或 join-authorized grant 时必须校验引用仍有效 |
 | `realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` | candidate | 裸名 design-time concept；不得作为 `Event.kind` | 仅 `ak.profile.candidate.join_policy.v1` 实现可用 profile-private signed receipt 或私有 Event kind 承载 |
@@ -65,7 +65,7 @@ value shape := JoinPolicy（见下）
 
 本 cell 的 `cell_subject=null`，与 [`member-delivery-binding.md`](member-delivery-binding.md) §4 的 `ak.component.realm.delivery_binding_policy.v1` 统一：二者都是由 Event envelope `realm_id` 定位的 per-Realm 单例 policy cell。null subject 的 canonical wire 形态（字面 ASCII `null`）及"不得把 `realm_id`、Realm 角色分类或任何 payload 派生值编码进 subject 段"的禁令是全协议规则，canonical 定义在 [`../conformance/encoding.md` §4](../conformance/encoding.md)；本节不再重复承载该规则。
 
-写入 cell 的候选概念在正式登记前记为 `realm.join_policy`（裸名仅是 design-time concept/action，不是 v1 wire `Event.kind`，也 MUST NOT 作为 Event envelope 的 `kind` 上链或同步），需要 `ak.policy.manage` capability（与 `ak.realm.policy_server` / `ak.realm.policy_components` 同等级）。`ak.realm.create` 时 SHOULD 通过 `ak.realm.policy_components` 一并提供 join policy 初值；省略时 cell 维持 `null`，行为退化为"`default_join_rule` 单独决定"。
+写入 cell 的候选概念在正式登记前记为 `realm.join_policy`（裸名仅是 design-time concept/action，不是 v1 wire `Event.kind`，也 MUST NOT 作为 Event envelope 的 `kind` 上链或同步），需要 `ak.policy.manage` capability（与 `ak.realm.policy_server` / `ak.realm.policy_bundle` 同等级）。`ak.realm.create` 时 SHOULD 通过 `ak.realm.policy_bundle` 一并提供 join policy 初值；省略时 cell 维持 `null`，行为退化为"`default_join_rule` 单独决定"。
 
 JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 
@@ -560,7 +560,7 @@ applicant 完成挑战后，重新提交 join / application Control Move，在 `
 | `application_ttl` | PT168H | reducer 到期自动转 `reason_code="ttl_expired"`（统一走 §7.3 受控枚举命名约定，`ttl_expired` 见 [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）；不计 cooldown。 |
 | `cooldown_after_reject` | PT72H | reject 后 reducer MUST 拒绝同 actor 在窗口内的新 `member.application`。`request_changes` 不触发 cooldown。 |
 | `max_open_applications_per_actor` | 1 | reducer 校验 actor 当前 pending 数；超出 `failed_precondition`。 |
-| Quota constraint | 由 Realm `ak.realm.policy_components` 声明 | 推荐对 `ak.member.state{knock}` 配置 `quota.constraint_subkind=rate`（如 `max_operations=5/day` + `constraint_scope`），通过既有 [`../authz/constraint-schema.md` §7](../authz/constraint-schema.md) 表达。 |
+| Quota constraint | 由 Realm `ak.realm.policy_bundle` 声明 | 推荐对 `ak.member.state{knock}` 配置 `quota.constraint_subkind=rate`（如 `max_operations=5/day` + `constraint_scope`），通过既有 [`../authz/constraint-schema.md` §7](../authz/constraint-schema.md) 表达。 |
 | Policy Server `challenge` | 高风险 Realm 推荐 | Sync Service 面对突发 knock 流量时 SHOULD 通过 Policy Server 注入 challenge obligation。 |
 
 ## 13. 与 MIMI 的映射

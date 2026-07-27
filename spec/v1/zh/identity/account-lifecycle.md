@@ -258,7 +258,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 
 约束：
 
-- **不自动 ban**：deactivation 不等于 Realm 内 `ak.member.state` 转 `ban`/`leave`。哪些 Realm membership 自动 `ak.member.state = leave`（自愿停用）vs. 保留 `join`（policy 决定）由 Realm policy component `account_deactivation.member_action` 字段控制（该字段作为 Realm policy component 的登记见 [`../models/realm-and-space.md` §2.1](../models/realm-and-space.md)，经 `ak.realm.policy_components` 写入；本节是其封闭枚举与处置语义的单一权威源）。该字段是封闭枚举，v1 取值域为：
+- **不自动 ban**：deactivation 不等于 Realm 内 `ak.member.state` 转 `ban`/`leave`。哪些 Realm membership 自动 `ak.member.state = leave`（自愿停用）vs. 保留 `join`（policy 决定）由 Realm policy component `account_deactivation.member_action` 字段控制（该字段作为 Realm policy component 的登记见 [`../models/realm-and-space.md` §2.1](../models/realm-and-space.md)，经 `ak.realm.policy_bundle` 写入；本节是其封闭枚举与处置语义的单一权威源）。该字段是封闭枚举，v1 取值域为：
   - `leave_self_initiated`（默认）：把该 principal 在本 Realm 的 membership 视为自愿退出，自动转 `ak.member.state = leave`。
   - `retain_membership`：保留 `join`，由 Realm policy 在后续显式处置（deactivation 本身不改 membership state）。
   - `leave_all`：无条件把该 principal 在本 Realm 的 membership 转 `leave`，等同 self-initiated 但不区分触发方语义。

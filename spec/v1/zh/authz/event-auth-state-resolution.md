@@ -173,7 +173,7 @@ Event Batch Receipt 只证明"issuer 看见并承诺所列事件集合的 integr
 Control Move 是写 control plane cell 的 Event，通常 MUST 携带 `seal_basis` 且 MUST NOT 携带 `seal_ref`。v1 只有两个封闭 anchor-unit 例外：
 
 1. [`ak.realm.create`](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) bootstrap。自体 principal PCR 是 root-signed create + delegated first `ak.device.authorize`；普通 Realm 是 create + 紧邻 founding grant + 下列**封闭 follow-up 白名单**。两条分支互斥。免 `seal_basis` 的普通 Realm bootstrap follow-up 白名单**逐条封闭列举**如下，与 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md) 使用同一句：
-   - 同批同 actor 的初始 facet follow-up：`ak.realm.join_rule`、`ak.realm.history_visibility`、`ak.realm.discovery`、`ak.realm.policy_components`、`ak.realm.plaintext_visible_services`；
+   - 同批同 actor 的初始 facet follow-up：`ak.realm.join_rule`、`ak.realm.history_visibility`、`ak.realm.discovery`、`ak.realm.policy_bundle`、`ak.realm.plaintext_visible_services`；
    - 同批由 creator 写入的 **bootstrap 初始成员 `ak.member.state{join}`**，含 1:1 Direct Conversation Realm 的 peer join（[`../identity/contact-and-direct-conversation.md` §6](../identity/contact-and-direct-conversation.md)）与 [`../governance/member-delivery-binding.md` §3.1.1](../governance/member-delivery-binding.md) 的 creator `join -> join` delivery-binding self-transition。
 
    不在该列表内的 Control Move 一律要求 `seal_basis`。

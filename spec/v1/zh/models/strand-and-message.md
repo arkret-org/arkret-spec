@@ -591,6 +591,12 @@ Schema id: `ak.schema.message.v1`
 
 > `revision_root` 字段位于对象顶层，**不**藏在 `metadata.fields` 黑盒中；可见性由顶层 `state` 枚举（`active` / `redacted`）表达，不存在独立的 `visible_state` 顶层字段。`metadata.fields.revision_root` / `metadata.fields.visible_state` / `metadata.fields.redacted` 形态在 v1 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。
 
+**长文本正文的物化与生命周期（normative）**：`content`（或 `encrypted_content` 的 plaintext）为 `ak.content.long_text` 时，Message 物化的仍然是**一个** Message 对象，正文分成已认证的 inline `body` fallback 与一个 Blob-backed 完整正文（见 [`content-types.md` §4.1.1](./content-types.md)）。
+
+- 客户端 MUST 在提交 `ak.message.create` / `ak.message.revise` 之前完成 Blob 上传并取得稳定 hash ref；reducer 不为 Blob 可达性背书，接收端按现有 Blob / Content 校验错误（`digest_mismatch` 等）处理。
+- Message 转为 `state=redacted`、超出 disappearing / retention 窗口或所属 Realm/Strand 不再可见时，实现 MUST 同步使 inline fallback、搜索索引、本地缓存与该 Blob 的访问一并失效；Blob GC 沿用现有引用追踪。仅清空 `content` 而让完整正文仍可从索引或缓存恢复不满足 redaction 语义。
+- long text 与 revision chain、`replies_to`、reaction、mention 通知的关系与普通 `ak.content.text` 完全相同：引用方引用 Message ID，MUST NOT 复制完整长正文；canonical mentions MUST 仍在 Message metadata / `encrypted_metadata` 中，MUST NOT 要求服务端扫描 Blob。
+
 ### 9.3 最小示例
 
 ```json schema=schemas/message.schema.json

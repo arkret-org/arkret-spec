@@ -268,7 +268,7 @@ Peer 发送 invite Control Move 时，invite service / facade 在 Control Move �
    - **default profile**：invite MAY 进入 holder 的 quarantine inbox（"陌生人邀请"），由 holder 在 UI 上 review 后构造 grant Control Move 或丢弃。
 3. 若有匹配活跃 grant 且当前时间在 `[not_before, expires_at]`：invite Control Move 正常 accepted，并等待 accepted Seal 覆盖后生效。
 
-policy MAY 声明 `ak.realm.policy_components` 中的 `preauth` component 包含 `require_consent: true`，对该 Realm 的所有 invite Control Move 强制以 consent cell precondition 表达。
+policy MAY 声明 `ak.realm.policy_bundle` 中的 `preauth` component 包含 `require_consent: true`，对该 Realm 的所有 invite Control Move 强制以 consent cell precondition 表达。
 
 #### 6.1.1 Quarantine inbox（default profile no-consent invite 暂存）
 

@@ -223,6 +223,186 @@
       "round_trip_requirement": "Preserve the raw DID service field and value.",
       "dispatch_authority": "external_standard",
       "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/event-payload.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/0/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/event-payload.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/0/allOf/0/then/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/event-payload.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/0/allOf/1/then/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/event-payload.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/event-payload.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/message.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/0/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/message.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/0/allOf/0/then/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/message.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/0/allOf/1/then/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/message.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/message.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/morph.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/0/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/morph.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/0/allOf/0/then/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/morph.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/0/allOf/1/then/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/morph.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/morph.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/strand.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/0/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/strand.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/0/allOf/0/then/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/strand.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/0/allOf/1/then/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/strand.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/1/allOf/2/then/properties/attachment/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/strand.schema.json",
+      "json_pointer": "/$defs/content_block_long_text/oneOf/1/allOf/3/then/properties/attachment/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
     }
   ],
   "closed_class_fields": [

@@ -374,6 +374,291 @@
               "parts"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.content.long_text"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/content_block_long_text"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.content.text"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "body": {
+                "maxLength": 262144,
+                "description": "Inline text body. Authoritative bound is 256 KiB UTF-8 bytes enforced by a byte validator; maxLength is a not-wider code-point fast bound. Longer bodies MUST use ak.content.long_text (zh/models/content-types.md section 4.1.4)."
+              }
+            }
+          }
+        }
+      ]
+    },
+    "content_block_long_text": {
+      "type": "object",
+      "description": "ak.content.long_text: plain text whose full normalized UTF-8 body exceeds the 256 KiB inline boundary (or, by the narrow exception in zh/models/content-types.md section 4.1.4, whose Event would otherwise exceed the 1 MiB envelope limit). Exactly one of the plaintext branch (blob_ref + size_bytes + media_type) and the E2EE branch (plaintext_size_bytes + attachment) applies. v1 core Content Block: no feature gate, no server-side opt-out.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "format",
+            "body",
+            "body_kind",
+            "blob_ref",
+            "size_bytes",
+            "media_type"
+          ],
+          "properties": {
+            "kind": {
+              "const": "ak.content.long_text"
+            },
+            "format": {
+              "type": "string",
+              "enum": [
+                "plain",
+                "markdown"
+              ],
+              "description": "Closed set for long text. prosemirror_json is forbidden here; structured rich text needs its own Content Block."
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 4096,
+              "description": "Inline fallback. Authoritative bound is 4096 UTF-8 bytes enforced by a byte validator; maxLength is a not-wider code-point fast bound."
+            },
+            "body_kind": {
+              "type": "string",
+              "enum": [
+                "prefix",
+                "summary"
+              ]
+            },
+            "line_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "blob_ref": {
+              "type": "string",
+              "pattern": "^ak:blob:(sha256|blake3):[0-9a-f]{64}$",
+              "description": "Hash-addressed Blob ref for the full normalized UTF-8 body. UUID blob refs are forbidden here because they carry no digest commitment."
+            },
+            "size_bytes": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Normalized full UTF-8 body bytes. The >256 KiB rule and the narrow Event-overflow exception are normative validator rules (zh/models/content-types.md section 4.1.4), not a schema minimum."
+            },
+            "media_type": {
+              "type": "string",
+              "enum": [
+                "text/plain",
+                "text/markdown"
+              ],
+              "description": "MUST match format. No parameters: charset is fixed to UTF-8 by this kind."
+            }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "format": {
+                    "const": "plain"
+                  }
+                },
+                "required": [
+                  "format"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "media_type": {
+                    "const": "text/plain"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "format": {
+                    "const": "markdown"
+                  }
+                },
+                "required": [
+                  "format"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "media_type": {
+                    "const": "text/markdown"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "format",
+            "body",
+            "body_kind",
+            "plaintext_size_bytes",
+            "attachment"
+          ],
+          "properties": {
+            "kind": {
+              "const": "ak.content.long_text"
+            },
+            "format": {
+              "type": "string",
+              "enum": [
+                "plain",
+                "markdown"
+              ],
+              "description": "Closed set for long text. prosemirror_json is forbidden here; structured rich text needs its own Content Block."
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 4096,
+              "description": "Inline fallback. Authoritative bound is 4096 UTF-8 bytes enforced by a byte validator; maxLength is a not-wider code-point fast bound."
+            },
+            "body_kind": {
+              "type": "string",
+              "enum": [
+                "prefix",
+                "summary"
+              ]
+            },
+            "line_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "plaintext_size_bytes": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Normalized full UTF-8 plaintext body bytes. attachment.size_bytes is ciphertext bytes and MUST NOT substitute for this."
+            },
+            "attachment": {
+              "$ref": "./blob.schema.json#/$defs/encrypted_attachment",
+              "description": "Encrypted full-body Blob descriptor. MUST use scheme ak.blob.stream_aead.v1 with the matching _stream alg; whole-file AEAD is forbidden for long text."
+            }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "properties": {
+                "attachment": {
+                  "properties": {
+                    "scheme": {
+                      "const": "ak.blob.stream_aead.v1"
+                    }
+                  },
+                  "required": [
+                    "scheme"
+                  ]
+                }
+              }
+            },
+            {
+              "properties": {
+                "attachment": {
+                  "required": [
+                    "scheme",
+                    "nonce_prefix",
+                    "segment_bytes",
+                    "segment_count"
+                  ],
+                  "properties": {
+                    "blob_ref": {
+                      "type": "string",
+                      "pattern": "^ak:blob:(sha256|blake3):[0-9a-f]{64}$",
+                      "description": "Long text MUST use a hash-addressed Blob ref; the <suite>:<hex> part MUST equal attachment.ciphertext_digest and the Blob metadata content_digest."
+                    },
+                    "alg": {
+                      "type": "string",
+                      "enum": [
+                        "mls_exporter_aead_xchacha20poly1305_stream",
+                        "mls_exporter_aead_aes_256_gcm_stream"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "format": {
+                    "const": "plain"
+                  }
+                },
+                "required": [
+                  "format"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "attachment": {
+                    "properties": {
+                      "media_type": {
+                        "const": "text/plain"
+                      }
+                    },
+                    "required": [
+                      "media_type"
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "format": {
+                    "const": "markdown"
+                  }
+                },
+                "required": [
+                  "format"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "attachment": {
+                    "properties": {
+                      "media_type": {
+                        "const": "text/markdown"
+                      }
+                    },
+                    "required": [
+                      "media_type"
+                    ]
+                  }
+                }
+              }
+            }
+          ]
         }
       ]
     },

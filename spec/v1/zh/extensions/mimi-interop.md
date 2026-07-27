@@ -153,7 +153,7 @@ MIMI facade 对 Arkret Realm 的入站投影失败时，MUST 使用稳定 reason
 | --- | --- | --- |
 | `mimi_governance_binding_missing` | 找不到可验证的 Arkret MLS Governance Binding。 | quarantine 或 reject，不投影到 Realm。 |
 | `mimi_governance_binding_mismatch` | binding 存在但 `realm_id` / `strand_id` / `mls_group_id` / provider DID 与当前 MIMI room state 不一致。 | quarantine；需要人工或 backfill 复核。 |
-| `mimi_policy_root_mismatch` | MIMI policy component 与 Arkret `policy_root` / `ak.realm.policy_components` 不一致。 | reject 当前 update，等待 fresh policy projection。 |
+| `mimi_policy_root_mismatch` | MIMI policy component 与 Arkret `policy_root` / `ak.realm.policy_bundle` 不一致。 | reject 当前 update，等待 fresh policy projection。 |
 | `mimi_room_state_incompatible` | MIMI room state 使用当前 profile 不支持的 lifecycle、membership、policy 形态，或试图把未被双方显式声明支持的 `ak.profile.e2ee_relaxed.v1` 降级当作 full MLS Governance Binding 投影。 | reject 或要求使用新 interop profile。 |
 | `mimi_provider_unreachable` | provider directory、key material 或 groupInfo 依赖暂时不可达。 | `temporarily_unavailable` + bounded retry；不得接受无 binding 的 fallback。 |
 | `mimi_draft_unsupported` | 对端声明的 MIMI draft version 不在本 profile 支持集合。 | reject；不得按相近草案猜测解析。 |
@@ -316,7 +316,7 @@ Arkret v1 把 Realm-level policy 映射为 Control Move effects on cell families
 | `ak.component.realm.history_visibility.v1` | `ak.realm.history_visibility` | `history_sharing` 的 visibility 子字段 |
 | `ak.component.realm.discovery.v1` | `ak.realm.discovery` | `participation` 中 `discoverability` 子字段 |
 | `ak.component.realm.policy_server.v1` | `ak.realm.policy_server` | （Arkret 专属，与 MIMI hub provider 概念解耦） |
-| `ak.component.realm.policy_components.v1` | `ak.realm.policy_components` | MIMI policy component 集合声明（root + active list） |
+| `ak.component.realm.policy_bundle.v1` | `ak.realm.policy_bundle` | MIMI policy component 集合声明（root + active list） |
 | `ak.component.realm.history_sharing_policy.v1` | `ak.realm.history_sharing_policy` | `history_sharing` |
 | `ak.component.realm.asset_privacy_policy.v1` | `ak.realm.asset_privacy_policy` | `asset` |
 | `ak.component.realm.moderation_policy.v1` | `ak.realm.moderation_policy` | `logging` 的 abuse-report 子字段 + 自定义 `moderation` extension |
@@ -338,9 +338,9 @@ Arkret v1 把 Realm-level policy 映射为 Control Move effects on cell families
 | --- | --- | --- | --- |
 | `realm.join_policy`（candidate workflow concept/action 名称，不是 v1 wire `Event.kind`；见 [`../conformance/schema-registry.md` §4.1](../conformance/schema-registry.md)） | `ak.profile.candidate.join_policy.v1` | `participation.join_policy` 子字段（结构化 gates / reviewer / TTL）；MIMI 侧未覆盖部分以 `application/vnd.arkret.component+json` 私有扩展承载 | MIMI facade **MUST reject / omit**，不得写入 shared Realm history |
 
-> 历史的 MIMI components（`roles`、`preauth`、`bot`、`message_expiration`、`operational`）在 Arkret 中是 `ak.realm.policy_components` cell 的子字段，而不是独立 kind。Facade 接收 MIMI policy update 时 MUST 把这些 components 归约为 `ak.realm.policy_components` Control Move effect。
+> 历史的 MIMI components（`roles`、`preauth`、`bot`、`message_expiration`、`operational`）在 Arkret 中是 `ak.realm.policy_bundle` cell 的子字段，而不是独立 kind。Facade 接收 MIMI policy update 时 MUST 把这些 components 归约为 `ak.realm.policy_bundle` Control Move effect。
 >
-> MIMI room policy 投影 MUST 落在有效 Realm 的 `ak.realm.policy_components` cell；不存在 track-scoped policy projection——track 不携带独立 access。当 MIMI room 映射的 Strand 通过 `scope_circle_id` 落在 Realm 内的 [Circle](../models/circle.md) 时，Circle-local policy 通过 Circle 自身 `policy_root` 表达，与父 Realm policy 取更严格者。
+> MIMI room policy 投影 MUST 落在有效 Realm 的 `ak.realm.policy_bundle` cell；不存在 track-scoped policy projection——track 不携带独立 access。当 MIMI room 映射的 Strand 通过 `scope_circle_id` 落在 Realm 内的 [Circle](../models/circle.md) 时，Circle-local policy 通过 Circle 自身 `policy_root` 表达，与父 Realm policy 取更严格者。
 
 ### 9.2 Unknown Handling
 

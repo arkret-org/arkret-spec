@@ -70,7 +70,7 @@ Schema id: `ak.schema.event.v1`
 | `seal_basis` | conditional | `object` | Control Move 必填；`{leaves[], control_event_set_root, state_root}` 全部进入 canonical bytes。 | 控制面提交基线。 |
 | `payload` | yes | `object` | 由 event kind schema 定义。 | 事件负载。 |
 | `redacts` | no | `id:event` | 仅 redaction event 使用。 | 被撤回事件。 |
-| `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
+| `unsigned` | no | `object` | MUST NOT 进入 event digest。**producer / self submit 与 peer submit 的 Event MUST NOT 携带该字段**；它只能由接收服务在 read view 上添加，任何实现都 MUST NOT 把它用于身份、授权、reducer 或签名判断。service-added `unsigned` 单对象 canonical JSON MUST NOT 超过 16 KiB，见 [`../conformance/scalability-constraints.md` §2.1.1](../conformance/scalability-constraints.md)。 | 仅 read view 的本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof（`minItems: 1`）。 | 签名证明。 |
 
 Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。除 schema 已声明的标准字段（含 `executed_by`、`authorization_ref`、`applet_id`、`external_ref`、`actor_kind`、`effective_scope`、可选诊断字段 `conflict_keys_digest`——对 `effects[]` 派生 cell id 集合的摘要，语义与校验见 [`../authz/event-auth-state-resolution.md` §4](../authz/event-auth-state-resolution.md#4-dataevent)，非安全边界，verifier 一律从 `effects[]` 派生冲突域）外，扩展字段不得直接加在顶层；非关键扩展只能放入 `payload.x_*`，且仅当该 payload kind 的 schema 显式声明 `x_*` patternProperties 扩展槽时才可使用——未声明扩展槽的 payload kind 不接受任何未知字段（payload schema 的 `additionalProperties: false` 即权威判定；当前已声明扩展槽的 payload kind 以 schema 为准，现仅 `invite_payload`）。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的 `x_*` 字段；需要扩展槽的 payload kind SHOULD 先在对应 schema 登记 `x_*` 槽再使用。关键扩展必须通过 `requirements.critical_extensions[]` 声明并 fail closed。

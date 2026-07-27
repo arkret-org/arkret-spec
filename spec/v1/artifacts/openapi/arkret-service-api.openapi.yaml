@@ -1307,6 +1307,7 @@ components:
               - franking_tampered
               - mls_keypackage_claim_request_expired
               - snapshot_chunk_digest_mismatch
+              - unsupported_content_encoding
             message:
               type: string
             retry_after_ms:

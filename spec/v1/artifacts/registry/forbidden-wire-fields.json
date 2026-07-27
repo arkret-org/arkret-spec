@@ -267,7 +267,7 @@
       "context": "space_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ak.realm.join_rule or ak.realm.policy_components join policy facet",
+      "replacement": "ak.realm.join_rule or ak.realm.policy_bundle join policy facet",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",

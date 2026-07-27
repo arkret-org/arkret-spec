@@ -100,6 +100,161 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 | `format` | string | SHOULD | 格式化类型：`plain`, `markdown`, `prosemirror_json` |
 | `formatted_body` | string/object | MAY | 结构化的富文本内容（当 format 不为 plain 时使用） |
 
+**inline 正文上限（normative）**：`ak.content.text.body` MUST NOT 超过 **256 KiB UTF-8 bytes（262,144）**。超过该分界的纯文本正文 MUST 使用 §4.1.1 的 `ak.content.long_text`。JSON Schema 的 `maxLength` 只表达不宽于该值的 code-point 快速上限；权威检查 MUST 由 UTF-8 byte validator 执行。
+
+### 4.1.1 长文本消息 `ak.content.long_text`
+
+超过 inline 分界的纯文本正文使用本 Content Block：一个小型 inline fallback 加一个 Blob-backed 完整正文。它是 **v1 core Content Block**，不使用 requirements feature，服务端 MUST NOT 广告“支持 `ak.content.text` 但不支持 `ak.content.long_text`”——长正文是同一个 Message 基础模型的边界形态，把它设为可选会使合法 Message 在不同 core 实现间不可读。
+
+#### plaintext 形态
+
+```json
+{
+  "kind": "ak.content.long_text",
+  "format": "markdown",
+  "body": "前 4 KiB 内的可独立展示前缀……",
+  "body_kind": "prefix",
+  "blob_ref": "ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "size_bytes": 700000,
+  "line_count": 12000,
+  "media_type": "text/markdown"
+}
+```
+
+| 字段 | 类型 | 必需 | 规则 |
+|------|------|------|------|
+| `kind` | const | MUST | `ak.content.long_text` |
+| `format` | enum | MUST | 闭集 `plain` \| `markdown`；本 kind MUST NOT 使用 `prosemirror_json`（结构化富文本应有独立 Content Block/schema） |
+| `body` | string | MUST | fallback，≤ **4 KiB UTF-8 bytes（4,096）** |
+| `body_kind` | enum | MUST | 闭集 `prefix` \| `summary` |
+| `blob_ref` | hash blob ref | MUST | 完整 UTF-8 正文字节的内容地址，形如 `ak:blob:(sha256\|blake3):<64 hex>` |
+| `size_bytes` | uint64 | MUST | §4.1.2 规范化后完整 UTF-8 正文字节数 |
+| `line_count` | uint64 | MAY | 按 §4.1.2 计算 |
+| `media_type` | enum | MUST | `text/plain` 对应 `format=plain`，`text/markdown` 对应 `format=markdown` |
+
+shape MUST 是 `additionalProperties=false` 的闭合对象。
+
+`blob_ref` 本身就是完整 plaintext 字节的 digest commitment，因此本 kind **不**再增加重复的 `content_digest`。接收端 MUST 把 `blob_ref=ak:blob:<suite>:<hex>` 拆成 `<suite>:<hex>`，要求它与 Blob metadata 的 `content_digest` 相等，并对下载的规范化正文重算；三者任一不等即 `digest_mismatch`。UUID 形态 Blob ref 不具备该性质，故在本 Content Block 中 MUST NOT 使用；`media_type` MUST NOT 携带 `; charset=utf-8` 等参数（charset 由本 kind 固定为 UTF-8）。
+
+#### E2EE 形态
+
+E2EE Message 的 long-text descriptor 位于已认证的 `encrypted_content` plaintext 中，完整正文 Blob 使用现有 `encrypted_attachment` descriptor：
+
+```json
+{
+  "kind": "ak.content.long_text",
+  "format": "plain",
+  "body": "已认证 fallback",
+  "body_kind": "summary",
+  "plaintext_size_bytes": 700000,
+  "line_count": 12000,
+  "attachment": {
+    "blob_ref": "ak:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "encrypted": true,
+    "scheme": "ak.blob.stream_aead.v1",
+    "alg": "mls_exporter_aead_xchacha20poly1305_stream",
+    "key_ref": {
+      "algorithm": "MLS",
+      "group_state_ref": "ak:event:01900000-0000-7000-8000-000000000000"
+    },
+    "epoch": 42,
+    "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "size_bytes": 700048,
+    "media_type": "text/plain",
+    "nonce_prefix": "AAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "segment_bytes": 262144,
+    "segment_count": 3
+  }
+}
+```
+
+规则：
+
+- `plaintext_size_bytes` REQUIRED（替代 plaintext 形态的 `size_bytes`）；
+- `attachment.scheme` MUST 是 `ak.blob.stream_aead.v1`，`attachment.alg` MUST 是对应的 `_stream` 算法。E2EE long text MUST NOT 使用 whole-file AEAD——强制 streaming 是为了让超过分界的正文能边下边验且内存有界，不作为同一语义的第二种可选形态；
+- `attachment.size_bytes` 是 **ciphertext** 字节数，MUST NOT 替代 plaintext size；
+- `attachment.blob_ref` MUST 是 hash-addressed，且其中的 `<suite>:<hex>` MUST 同时等于 `attachment.ciphertext_digest` 与 Blob metadata `content_digest`；三者都承诺按 `segment_index` 顺序拼接、每段包含 AEAD tag 的完整 stored ciphertext bytes；
+- `attachment.media_type` MUST 与 `format` 一致；
+- `segment_count` 与 `plaintext_size_bytes` / `segment_bytes` 的自洽性按 [`../crypto-media/media-and-blob.md` §3.3](../crypto-media/media-and-blob.md) 既有算法针对实际 ciphertext 验证；MUST NOT 仅用 ciphertext size 猜 plaintext size；
+- 完整 `ciphertext_digest`、逐段 AEAD、末段与顺序全部验证通过前，接收端 MUST NOT 把正文标成完整；
+- fallback `body` 已在 Message encrypted payload 内认证，Blob 服务 MUST NOT 改写。
+
+### 4.1.2 文本规范化与计数（normative）
+
+Blob 解码后的正文 MUST：
+
+- 是有效 UTF-8，不带 BOM；
+- 保留原始 Unicode scalar sequence，MUST NOT 做 NFC/NFKC 改写；
+- 行结束统一使用 LF（U+000A）；producer MUST 在计算 digest、size 与 line count **之前**把 CRLF/CR 规范化为 LF；
+- 除 LF、TAB 外 MUST NOT 含 C0 控制字符与 DEL；
+- `format=markdown` 按不可信输入消毒，MUST NOT 执行 raw HTML/script。
+
+`size_bytes` / `plaintext_size_bytes` 是上述规范化后完整 UTF-8 字节长度。fallback `body` 自身 MUST 满足相同的 UTF-8、LF、BOM、控制字符与 markdown 消毒规则；producer MUST 先规范化完整正文，再从该结果生成 prefix 或 summary，MUST NOT 对两者采用不同的换行 / Unicode 处理。
+
+`line_count` 若存在，定义为：
+
+```text
+empty text     => 0
+non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
+```
+
+接收端 MUST 校验声明计数。计数不一致时正文无效，但 Message 的小 fallback 仍可显示。
+
+### 4.1.3 Fallback 规则（normative）
+
+`body` 是 timeline、通知可访问性、Blob 尚未到达和未知实现的安全 fallback。
+
+- `body_kind=prefix`：`body` MUST 是完整正文从 byte 0 开始、在 Unicode scalar 边界截断的前缀，MUST NOT 超过 4,096 UTF-8 bytes；接收端下载 Blob 后 MUST 验证前缀相等。前缀可在 code point 边界截断，不要求落在单词或段落边界。
+- `body_kind=summary`：`body` 是作者提供的摘要，不要求是正文前缀，MUST NOT 超过 4,096 UTF-8 bytes；UI MUST 标注为摘要，MUST NOT 拼接到完整正文前面。协议不尝试机器验证摘要忠实性。
+
+4 KiB 是 UTF-8 **字节**限制，不是 JSON Schema `maxLength` 的 code point 数。schema MAY 给不宽于 4,096 的 `maxLength` 作为快速上限，但权威检查 MUST 由 UTF-8 byte validator 完成。
+
+### 4.1.4 选择边界（normative）
+
+选择基于**最终规范化源正文**，不是 gzip、ciphertext、JSON escaped 或上传 chunk 大小：
+
+```text
+0..262144 bytes        => ak.content.text
+262145 bytes and above => ak.content.long_text
+```
+
+边界无重叠。`ak.content.long_text` MUST NOT 用来把 10 字节正文强行 Blob 化；普通文件另用 `ak.content.file`。
+
+此外，最终 Event 仍 MUST 满足 [`../conformance/scalability-constraints.md` §2.1.1](../conformance/scalability-constraints.md) 的完整 Event Envelope 上限。这是一条**更早的 transport 必要条件**，不改变上述 content-kind 的强制分界：
+
+- `ak.content.text` 只在正文 ≤256 KiB **且**完整 Event 合法时可用；
+- `ak.content.long_text` 在正文 >256 KiB 时强制；在较小正文上**仅当**完整 Event 否则无法满足 1 MiB 硬上限时允许，且该例外 MUST 由完整 Event size validator 证明，MUST NOT 由实现任意选择。
+
+因此 `size_bytes` / `plaintext_size_bytes` 的 schema 下界不能写成 262,145——那会使上述例外不可表达。schema 只校验类型与非负性，">256 KiB 或 Event-overflow 例外"由 normative validator 判定。
+
+### 4.1.5 下游行为（normative）
+
+- **Timeline**：先显示 `body`，下载 / 验证成功后替换为完整正文。
+- **Search**：只能索引已解密且完整验证的 Blob 正文；fallback 可单独标记为 partial。
+- **Mentions**：提交通知所需的 canonical mentions MUST 仍在 Message metadata / encrypted metadata 中，MUST NOT 要求服务端扫描 Blob。
+- **Reply/quote**：引用 Message ID，不复制完整长正文。
+- **Push**：MUST NOT 把 Blob 正文发送给 push provider；沿用 blind/visible profile 边界。
+- **Redaction / expiry**：Message 不可见后 MUST 同步使 fallback、搜索索引、缓存和 Blob 访问失效；Blob GC 沿用现有引用追踪。
+- **Range**：E2EE 按 AEAD segment 边界请求并验证。
+- **Offline**：实现 MAY 只缓存 fallback；缓存完整正文 MUST 受 Realm / Message 生命周期清理。
+
+未知 `ak.content.long_text` 的客户端按 §7.2 的 unknown-kind fallback：展示已认证 `body`，MUST NOT 把未知字段解释成 executable content，也 MUST NOT 假装正文完整。
+
+客户端在提交 Message 前 MUST 完成 Blob 上传并取得稳定 hash ref；引用不存在、digest 不符、无权访问或 E2EE descriptor 不完整时按现有 Blob / Content 校验错误拒绝。
+
+### 4.1.6 明确否决
+
+1. 给 `ak.content.text` 加可选 `body_ref`，形成两种语义；
+2. 提高 Event 1 MiB 上限来容纳正文；
+3. 多个 Message chunk 拼成一条逻辑 Message；
+4. 复用 `ak.content.file` 表达消息正文；
+5. 用 `ak.content.composite` 切段，破坏搜索 / quote / redaction 身份；
+6. 允许 UUID `blob_ref` 并另猜内容是否被承诺；
+7. `text/plain; charset=utf-8` 形态的 media type；
+8. long text 支持 `prosemirror_json`；
+9. E2EE long text 任意选择 whole-file 或 streaming AEAD；
+10. 只用 JSON Schema `maxLength` 声称执行了 UTF-8 byte limit。
+
 ### 4.2 图片消息 `ak.content.image`
 
 ```json

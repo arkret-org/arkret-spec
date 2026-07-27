@@ -67,6 +67,15 @@ Blob 上传、媒体下载和二进制 stream MAY 使用其他 content type，�
 
 注意：OpenAPI `content:` map 与 HTTP `Content-Type` 只表示 media type / body 编码，不是 Arkret Content Block 字段。协议正文内容仍按对象或 Event payload schema 使用 `content` / `encrypted_content`。
 
+### 2.3.1 Content-Encoding 与 pre-parse 大小边界（normative）
+
+所有在 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 标注 `body_class=non_streaming_json` 的 operation：
+
+- request 与 response 的 `Content-Encoding` **MUST be absent**。服务端 MUST 在读取或解压 body 之前以 HTTP 415、`error_code=unsupported_content_encoding` 拒绝携带该 header 的请求；MUST NOT 复用 `invalid_param`（它固定映射 400）。cache / proxy MUST 设置适当 `no-transform`，MUST NOT 在中途压缩 response。
+- 三层大小边界（完整 canonical Event 1 MiB、canonical operation body 8 MiB、HTTP message content wire bytes 16 MiB）、二维 count+bytes batch/page 算法与统一 `payload_too_large` 语义的唯一真源是 [`../conformance/scalability-constraints.md` §2.1](../conformance/scalability-constraints.md)。
+- 请求处理 MUST 按 scalability-constraints §2.1.8 的顺序执行：header 边界 → 不需 body 的认证 → 拒绝 `Content-Encoding` → `Content-Length` 预检 → 边读边计 wire bytes → JSON parse → JCS 计数 → schema/operation 校验 → body-dependent proof/auth → handler。实现 MUST NOT 先完整缓存或解析 body 再判大小。
+- streaming binding（NDJSON / SSE、Blob upload/download、Range、media transport、federation streaming）不套用 8 / 16 MiB 整体 body 上限，各自按 scalability-constraints §2.1.7 定义 per-frame / per-chunk / pending 上限。
+
 ### 2.4 Operation ID kind/action taxonomy
 
 标准 `operation_id` 是跨 transport 的语义操作名，不是 HTTP method 的派生名。Operation ID MUST 使用可变长度前缀加固定末两段：

@@ -173,6 +173,23 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 - 所有批量读取 MUST 支持 `limit` 上限，分页 cursor 必须是不透明 token。
 - 路由层 MUST 对 `/_arkret/*` 下的未知路径返回 `404 unrecognized_endpoint`，对已知路径的错误 method 返回 `405 method_not_allowed`，且不得进入业务逻辑。
 
+#### 2.2.1 `body_class` 与大小边界（normative）
+
+每个 operation 在 [`contract-registry.json#operation_registry`](../../artifacts/registry/contract-registry.json)（生成视图 [`operation-registry.json`](../../artifacts/registry/operation-registry.json)）声明闭集 `body_class`：
+
+| `body_class` | 含义 | 大小契约 |
+| --- | --- | --- |
+| `non_streaming_json` | 一次性 canonical JSON request/response body | [`../conformance/scalability-constraints.md` §2.1](../conformance/scalability-constraints.md)：canonical body ≤ 8 MiB、HTTP message content wire bytes ≤ 16 MiB、`Content-Encoding` MUST absent、字节超限统一 `payload_too_large`（超 wire 上限时 HTTP 413，`Content-Encoding` 存在时 HTTP 415 `unsupported_content_encoding`） |
+| `streaming_ndjson` | NDJSON 长连接 / 有界长轮询帧流 | 不套用整体 body 上限；MUST 各自声明 per-frame line 上限、pending frames 与 pending bytes 双上限、heartbeat / reconnect 与 parse-before-limit 纪律（scalability-constraints §2.1.7） |
+| `binary_stream` | Blob / media 上传、下载与 Range | 不套用整体 body 上限；按 [`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) 的 chunk / segment / quota 边界执行 |
+
+规则：
+
+- `body_class=non_streaming_json` 的 operation 即使使用 HTTP chunked transfer 也仍受 8 / 16 MiB——transfer coding 不会把它变成 streaming semantic。
+- operation MAY 通过 `max_canonical_body_bytes` 登记**更低**的 canonical body 上限；MUST NOT 登记高于 8 MiB 的值，部署与反向代理也 MUST NOT 私自下调通用互操作常量（scalability-constraints §2.1.6）。
+- 携带 top-level 数组的 `non_streaming_json` operation MUST 登记 `max_items`；服务端与客户端 MUST 同时按 count 与 canonical bytes 两维截断 batch / page（scalability-constraints §2.1.5）。
+- 请求处理顺序 MUST 遵循 scalability-constraints §2.1.8：先 header 边界与不依赖 body 的认证，再拒绝 `Content-Encoding`，再 `Content-Length` 预检与边读边计数，最后才 parse / canonicalize / 校验 / body-dependent proof。
+
 ### 2.3 端点契约清单
 
 类型简写：`did` 为 DID URI，`id` 为协议对象 ID，`cursor` / `token` 为 opaque string，`signature` 为 `{kid, alg?, sig}`，`proof` 为 DID / HTTP message / detached JWS proof。`events` 为 Event Envelope 数组。

@@ -656,7 +656,7 @@
           "batch_order": [
             "ak.realm.create",
             "ak.capability.grant",
-            "ak.realm.policy_components"
+            "ak.realm.policy_bundle"
           ],
           "created_by": "did:webvh:z6mkfixture:founder.example",
           "founding_grant": {
@@ -685,7 +685,7 @@
           "name": "missing_founding_grant",
           "batch_order": [
             "ak.realm.create",
-            "ak.realm.policy_components"
+            "ak.realm.policy_bundle"
           ],
           "expected": {
             "decision": "reject_atomically",

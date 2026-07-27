@@ -3033,7 +3033,7 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ak.realm.moderation_policy", "state_payload"),
     ("ak.realm.organization", "state_payload"),
     ("ak.realm.policy", "state_payload"),
-    ("ak.realm.policy_components", "state_payload"),
+    ("ak.realm.policy_bundle", "state_payload"),
     ("ak.realm.policy_server", "state_payload"),
     ("ak.realm.read_receipt_policy", "state_payload"),
     ("ak.realm.schema", "state_payload"),
