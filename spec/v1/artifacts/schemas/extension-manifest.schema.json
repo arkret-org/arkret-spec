@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/extension-manifest.schema.json",
+  "title": "Arkret Extension Manifest",
+  "type": "object",
+  "required": [
+    "manifest_id",
+    "extension_id",
+    "namespace",
+    "layer",
+    "manifest_digest",
+    "publisher",
+    "published_at",
+    "dependencies",
+    "payload_schemas",
+    "reducer_contracts",
+    "required_actions",
+    "confidentiality",
+    "transport_profiles",
+    "recovery_profile",
+    "federation_profile",
+    "conformance_vectors",
+    "resource_limits",
+    "signatures"
+  ],
+  "properties": {
+    "manifest_id": {
+      "type": "string",
+      "pattern": "^ak\\.manifest\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v1$"
+    },
+    "extension_id": {
+      "type": "string",
+      "pattern": "^ak\\.extension\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v1$"
+    },
+    "namespace": {
+      "type": "string",
+      "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*$"
+    },
+    "layer": {
+      "type": "string",
+      "enum": [
+        "collaboration_base",
+        "extension"
+      ]
+    },
+    "manifest_digest": {
+      "$ref": "#/$defs/hash"
+    },
+    "publisher": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "published_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "dependencies": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/digest_ref"
+      }
+    },
+    "payload_schemas": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 256,
+      "items": {
+        "$ref": "#/$defs/digest_ref"
+      }
+    },
+    "reducer_contracts": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 256,
+      "items": {
+        "$ref": "#/$defs/reducer_ref"
+      }
+    },
+    "required_actions": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 256,
+      "items": {
+        "type": "string",
+        "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*$"
+      }
+    },
+    "confidentiality": {
+      "type": "string",
+      "enum": [
+        "plaintext_allowed",
+        "recipient_encrypted",
+        "e2ee_required"
+      ]
+    },
+    "transport_profiles": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 32,
+      "items": {
+        "type": "string",
+        "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*$"
+      }
+    },
+    "recovery_profile": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^ak\\.profile\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v1$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "federation_profile": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^ak\\.profile\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v1$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "conformance_vectors": {
+      "type": "array",
+      "uniqueItems": true,
+      "minItems": 1,
+      "maxItems": 512,
+      "items": {
+        "$ref": "#/$defs/digest_ref"
+      }
+    },
+    "resource_limits": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "max_canonical_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8388608
+        },
+        "max_items": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4096
+        },
+        "max_depth": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4096
+        },
+        "max_rate_per_minute": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000
+        }
+      },
+      "additionalProperties": false
+    },
+    "signatures": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "./event-envelope.schema.json#/$defs/proof"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    },
+    "digest_ref": {
+      "type": "object",
+      "required": [
+        "id",
+        "digest"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "additionalProperties": false
+    },
+    "reducer_ref": {
+      "type": "object",
+      "required": [
+        "id",
+        "digest",
+        "lattice_profile",
+        "concurrency_class"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "lattice_profile": {
+          "type": "string",
+          "pattern": "^ak\\.profile\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v1$"
+        },
+        "concurrency_class": {
+          "type": "string",
+          "enum": [
+            "merge_safe",
+            "exclusive",
+            "security_barrier"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

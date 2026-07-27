@@ -339,15 +339,15 @@ Reducer 逐层比较相同 `native_agent` 子对象的同名 bit：内层为 tru
 
 Realm 与 Circle membership 共用本节唯一的状态图。`initial_state=leave`，wire 枚举固定为 `invite / join / knock / leave / ban`；不存在 `none`。实例参数 `delivery_binding_rebind` 仅控制 `join -> join`：Realm 为 `true`，Circle 为 `false`。除该参数化边外，任何未列边与任何 same-state transition 均非法，MUST `failed_precondition`（`reason=invalid_membership_transition`）。
 
-下表的 **wire event kind** 列给出承载该边的 Event kind（Realm scope）。每条边都 MUST 由一条已登记的 wire event kind 的显式 `effects[]` 承担（[`event-and-patch.md` §2.4.2](event-and-patch.md)）；没有对应 kind 的"reducer 隐式推进"不是合法边。
+下表的 **wire event kind** 列给出承载该边的 Event kind（Realm scope）。每条边都 MUST 由已登记 kind 的 canonical reducer contract 明确派生；未登记的“reducer 隐式推进”不是合法边。
 
 | from | to | wire event kind（Realm） | Realm guard / writer | Circle guard / writer |
 | --- | --- | --- | --- | --- |
-| `leave` | `invite` | `ak.invite.create`（directed 分支，条件性 `member.state` effect） | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
+| `leave` | `invite` | `ak.invite.create`（directed 分支，条件性 `member.state` projection） | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
 | `leave` | `knock` | `ak.member.state` | target actor，且 Join Rule / Join Policy 允许 | target actor，且 `join_rule=knock` |
 | `leave` | `join` | `ak.member.state`；`ak.realm.create`（creator 自身，见 [`realm-and-space.md` §2.5](realm-and-space.md)） | target actor 通过 public/restricted gate，或 `ak.realm.admin`；Native Personal Agent carve-out 见 Realm 文档 | target actor 仅当 `join_rule=public`，否则 `ak.circle.member.manage` |
 | `invite` | `join` | `ak.invite.accept` | target actor 或 `ak.realm.admin` | target actor（`ak.circle.member.add`）或 `ak.circle.member.manage` |
-| `invite` | `leave` | `ak.invite.cancel` / `ak.invite.revoke`（条件性 `member.state` effect） | target actor、inviter 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
+| `invite` | `leave` | `ak.invite.cancel` / `ak.invite.revoke`（条件性 `member.state` projection） | target actor、inviter 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |
 | `knock` | `invite` | `ak.invite.create`（reviewer 批准后签发定向 invite） | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
 | `knock` | `join` | `ak.member.state` | `ak.realm.join.review` 或 `ak.realm.admin` | `ak.circle.member.manage` |
 | `knock` | `leave` | `ak.member.state` | target actor、reviewer 或 `ak.realm.admin` | target actor 或 `ak.circle.member.manage` |

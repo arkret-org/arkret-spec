@@ -64,7 +64,7 @@ ensure MUST：
 
 **`ak.component.sidecar.create.v1` 的 cell 语义（normative）**：该 cell family 是 `ordered_log`、`cell_subject=null`、`bottom=inert`，语义是**本 Realm 的 Sidecar 创建日志**——cell 由 Event envelope 的 `realm_id` 定位，每确保一个 Sidecar 追加一条 entry。它**不是** per-controller singleton cell：本节第 1 条的 singleton key `(context_ref.realm_id, controller_id)` 是 ensure 的 admission precondition（重复 key MUST fail closed），由 reducer 在准入阶段判定，MUST NOT 被改写成 cell subject。null subject 的 canonical wire 形态见 [`../conformance/encoding.md` §4](../conformance/encoding.md)；`ordered_log` 的 join 数学上不产生 `⊥`，本 family 不定义额外领域冲突语义，因此登记 `bottom=inert`（[`../authz/event-auth-state-resolution.md` §9.1.1](../authz/event-auth-state-resolution.md)），MUST NOT 借 `bottom=reject` 表达 singleton 冲突。
 
-`ak.sidecar.create` 不能通过通用 event submit 独立构造。Admission MUST 证明它属于本节 ensure 的原子 aggregate，`controller_id` 等于 authenticated principal，`backing_circle_id` 与同 batch 中 reducer 派生的 Circle bit-identical，且 singleton/reuse key 尚未被另一个 non-tombstoned Sidecar 占用；否则 MUST fail closed。该 Event 的 `effective_scope` MUST 为 `{kind:"circle", realm_id, circle_id=backing_circle_id}`，不得进入 Realm-default shared delivery 或明文 Seal leaf。
+`ak.sidecar.create` 不能通过通用 event submit 独立构造。Admission MUST 证明它属于本节 ensure 的原子 aggregate，`controller_id` 等于 authenticated principal，`backing_circle_id` 与同 batch Circle bit-identical。该 Event 的签名 `scope_ref` MUST 为 `{kind:"circle", realm_id, circle_id=backing_circle_id}`，不得进入 Realm-default delivery。
 
 ### 3.2 专用读取
 

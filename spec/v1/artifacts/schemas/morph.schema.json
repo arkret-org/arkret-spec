@@ -59,7 +59,7 @@
     },
     "scope_circle_id": {
       "$ref": "./common-ids.schema.json#/$defs/circle_id",
-      "description": "Optional reference to an intra-Realm Circle that defines this Morph's effective scope. Omitted means Realm-default scope. Reducer enforces scope_circle_id.realm_id == Morph.realm_id and stamps immutable effective_scope onto emitted events."
+      "description": "Optional reference to an intra-Realm Circle that defines this Morph's effective scope. Omitted means Realm-default scope. The producer signs the corresponding Event.scope_ref; the receiver verifies scope_circle_id.realm_id == Morph.realm_id and exact equality between the derived scope and Event.scope_ref before materializing the object's immutable effective_scope."
     },
     "schema_refs": {
       "type": "array",

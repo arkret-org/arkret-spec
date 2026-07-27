@@ -285,7 +285,7 @@ Rules:
 - `payload.invite_delivery_target.recipient_service_id` MUST equal `invite_address.recipient_service_id`.
 - `payload.invite_delivery_target.recipient_service_kind` MAY appear; if present, it MUST be `principal_server`.
 - `introduction_evidence_digest = digest(canonical_json(private_delivery_introduction_evidence))`，用于审计关联，不得泄露 raw locator token。
-- 普通定向邀请的取消 / 拒绝 MUST 使用 `ak.invite.cancel`，payload 使用 `invite_payload` 的引用形态：`invite_id`、与目标 invite 逐字节相等的 `invitee`，以及可选 `reason`。被邀请者本人提交时表示拒绝并写入 `rejected`；邀请者或 Realm 管理 actor 提交时表示撤销尚未接受的 pending invite 并写入 `revoked`。同一 Move MUST 同时携带 `member.state:<invitee>` 的 `invite -> leave` effect，见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)。
+- 普通定向邀请的取消 / 拒绝 MUST 使用 `ak.invite.cancel`，payload 使用 `invite_payload` 的引用形态：`invite_id`、与目标 invite 逐字节相等的 `invitee`，以及可选 `reason`。被邀请者本人提交时表示拒绝并写入 `rejected`；邀请者或 Realm 管理 actor 提交时表示撤销尚未接受的 pending invite 并写入 `revoked`。同一 Move 的 registered reducer contract MUST 同时投影 `member.state:<invitee>` 的 `invite -> leave`，见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)。
 - `ak.invite.revoke` MUST 用于第三方/token invite 的撤销或等价高风险撤销路径，payload 使用同一引用形态；指向定向 DID invite 时 `invitee` 必填并原子写入 `invite -> leave`，指向尚无 DID 主体的 3PID placeholder 时不得携带 `invitee`、也不得写 member cell。reducer MUST 将 live invite 写入对应终态，并清除可认领 token material。直接 DID 邀请不需要通过 `ak.invite.revoke` 才能从成员管理 UI 撤销。
 
 ## 7. 私有 Invite Delivery

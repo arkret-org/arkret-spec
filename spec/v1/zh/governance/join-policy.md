@@ -320,8 +320,8 @@ reducer MUST NOT 在自动解析路径上隐式生成 application / review Contr
 | 1. 敲门 | `ak.member.state{membership=knock}` | applicant |
 | 2. 提交申请 | `member.application` | applicant |
 | 3. 审核决策 | `member.application.review` | reviewer（持 `review_capability`） |
-| 4. 签发定向邀请 | `ak.invite.create`（effects：`ak.component.invite.lifecycle.v1` → `pending` **且** `ak.component.member.state.v1:<invitee>` `knock -> invite`） | reviewer（持 `ak.realm.join.review` 或 `ak.realm.admin`） |
-| 5. 接受邀请 | `ak.invite.accept`（effects：`invite.lifecycle` → `accepted` **且** `member.state` `invite -> join`） | applicant（invitee 本人） |
+| 4. 签发定向邀请 | `ak.invite.create`（注册 projection：`ak.component.invite.lifecycle.v1` → `pending` **且** `ak.component.member.state.v1:<invitee>` `knock -> invite`） | reviewer（持 `ak.realm.join.review` 或 `ak.realm.admin`） |
+| 5. 接受邀请 | `ak.invite.accept`（注册 projection：`invite.lifecycle` → `accepted` **且** `member.state` `invite -> join`） | applicant（invitee 本人） |
 
 stage 4 / 5 的两条 Event **各自**在同一 Control Move 内同时推进 invite 流程轴与 membership cell，不是"invite 对象变了、成员态由 reducer 顺带跟进"。invite 被 reject / revoke / 过期时的 `invite -> leave` 原子回写见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)。
 
@@ -483,9 +483,9 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
         knock ──submit member.application──▶ knock (with application_ref projection)
             │
             ├─ review.accept ──▶ invite ──▶ join
-            │      invite: ak.invite.create  effects = { invite.lifecycle -> pending,
+            │      invite: ak.invite.create  projection = { invite.lifecycle -> pending,
             │                                            member.state:<invitee> knock -> invite }
-            │      join:   ak.invite.accept  effects = { invite.lifecycle -> accepted,
+            │      join:   ak.invite.accept  projection = { invite.lifecycle -> accepted,
             │                                            member.state:<invitee> invite -> join }
             ├─ review.request_changes ──▶ knock[changes_requested] (awaiting applicant revision; ttl continues)
             ├─ review.reject ──▶ leave  (with rejected_at + cooldown_until projection)

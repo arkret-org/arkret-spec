@@ -2050,7 +2050,7 @@
       "required": [
         "key"
       ],
-      "anyOf": [
+      "oneOf": [
         {
           "required": [
             "body"
@@ -4962,7 +4962,7 @@
     },
     "relation_update_payload": {
       "type": "object",
-      "anyOf": [
+      "oneOf": [
         {
           "required": [
             "relation_id",
@@ -4973,12 +4973,6 @@
           "required": [
             "target_ref",
             "patch"
-          ]
-        },
-        {
-          "required": [
-            "relation_id",
-            "status"
           ]
         }
       ],
@@ -4991,9 +4985,6 @@
         },
         "patch": {
           "$ref": "#/$defs/patch"
-        },
-        "status": {
-          "type": "string"
         }
       },
       "additionalProperties": false
@@ -6606,6 +6597,18 @@
         },
         "reason": {
           "type": "string"
+        },
+        "target_state": {
+          "type": "string",
+          "enum": [
+            "rejected",
+            "revoked",
+            "expired",
+            "revoked_by_capability_loss",
+            "revoked_by_inviter_left",
+            "invalidated_by_rate_limit"
+          ],
+          "description": "Required on ak.invite.cancel and ak.invite.revoke. It is the signed target state consumed by the invite.lifecycle transition_to projection; per-kind restrictions are enforced by event-envelope.schema.json."
         }
       },
       "patternProperties": {
@@ -7728,6 +7731,7 @@
         "previous_epoch",
         "next_epoch",
         "membership_frontier",
+        "covered_seal_refs",
         "policy_root",
         "binding_profile",
         "reducer_profile"
@@ -7769,6 +7773,15 @@
             "$ref": "#/$defs/event_ref"
           },
           "minItems": 1
+        },
+        "covered_seal_refs": {
+          "type": "array",
+          "description": "Non-empty exact set of governance Seal references attested by this MLS binding. The reducer deterministically adds each value to ak.component.covered_seals.v1; every value is covered by the MLS transcript.",
+          "items": {
+            "$ref": "#/$defs/seal_ref"
+          },
+          "minItems": 1,
+          "uniqueItems": true
         },
         "policy_root": {
           "$ref": "#/$defs/hash"

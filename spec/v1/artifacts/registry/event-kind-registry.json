@@ -7,8 +7,7 @@
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
   "wire_scope_definitions": {
     "durable_event": "Valid Event Envelope kind for persisted canonical history and reducer input.",
-    "actor_private_event": "Persisted actor-private/account-data event; not shared Realm history and not Realm reducer input.",
-    "ephemeral_event": "Transient sync/federation/app signal; MUST NOT be persisted as durable Event Envelope history."
+    "actor_private_event": "Persisted actor-private/account-data event; not shared Realm history and not Realm reducer input."
   },
   "admission_class_definitions": {
     "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
@@ -86,15 +85,14 @@
     }
   },
   "registry_rules": [
-    "Standard ak.* effect kinds MUST appear in this registry when used by a DataEvent effect, Control Move effect, or Event Envelope payload router.",
+    "Every standard ak.* Event.kind admitted through Event Envelope MUST appear in this registry. Realtime payload types and DeviceMessageEnvelope message kinds are intentionally outside this Event registry.",
     "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
-    "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Seal coverage, governance state_root, or reducer state.",
     "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
     "Every active lifecycle event kind MUST declare lifecycle_modality. Use reversible for a reversible lifecycle facet or either member of an archive/restore pair, and terminal for an irreversible transition that cannot be restored. Reducers and SDKs MUST NOT infer modality from event-kind spelling or the presence of a sibling event.",
-    "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell contract. A single-target kind MAY use the legacy cell_family/cell_subject/lattice/bottom shorthand. cell_writes[] is the general authority and is REQUIRED for multi-target kinds; each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional: it uses the closed grammar {kind: field_present|field_absent|field_equals|any_field_present, field: <dot-path>, const?: <scalar>, fields?: [<dot-path>...]} evaluated as a pure function of the schema-validated payload. When the condition holds the target is required and the Event MUST carry exactly one matching effect; when it does not hold the Event MUST NOT carry that effect. See zh/models/event-and-patch.md section 2.4.2. The generator materializes the single-target shorthand when cell_writes[] has one entry. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a coalesce descriptor, or a composite descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
+    "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell contract. A single-target kind MAY use the legacy cell_family/cell_subject/lattice/bottom shorthand. cell_writes[] is the general authority and is REQUIRED for multi-target kinds; each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional: it uses the closed grammar {kind: field_present|field_absent|field_equals|any_field_present, field: <dot-path>, const?: <scalar>, fields?: [<dot-path>...]} evaluated as a pure function of the schema-validated payload. When the condition holds the target is required and the reducer MUST derive exactly one matching write from kind+payload; when it does not hold the reducer MUST NOT derive that write. See zh/models/event-and-patch.md section 2.4.2. The generator materializes the single-target shorthand when cell_writes[] has one entry. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a coalesce descriptor, or a composite descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any reducer write has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
     "Protocol-singleton cells MAY take their genesis value from a create payload, but every subsequent write MUST use a registered event_kind. ak.component.notary.v1 is canonically defined in zh/authz/event-auth-state-resolution.md section 6.5; its genesis value comes from ak.realm.create and subsequent writes use ak.realm.notary.",
     "Lattice MUST be one of the fully specified core types: or_set, mv_register, cas_register, fsm, counter, ordered_log. A new lattice type cannot become active until its join, bottom, op schema, profile gate, and conformance vectors are all registered.",
-    "State convergence is defined by CBA: DataEvent effects are locally accepted against seal_ref, Control Move effects are finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
+    "State convergence is defined by CBA: DataEvent writes are projected and locally accepted against seal_ref, Control Move writes are projected and finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
     "Every active durable reducer-input event_kind MUST have a machine-readable admission source: either at least one capability action targets it (capability_action_registry.target_event_kinds), or it declares an admission class from admission_class_definitions. capability_gated events MUST list the authorizing action(s) in admission_capabilities. Enforced by lint_artifacts.py; no active durable reducer-input event may lack an admission source (fail-closed).",
     "A conditional admission MUST use only selectors defined by admission_predicate_contract. All non-otherwise predicates are evaluated independently; exactly one match selects its branch, zero matches selects the final otherwise branch, and multiple matches fail closed. otherwise is never evaluated as an ordinary predicate."
   ],
@@ -217,7 +215,8 @@
             }
           }
         }
-      ]
+      ],
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.realm.update",
@@ -233,11 +232,24 @@
           "cell_family": "ak.component.realm.metadata.v1",
           "cell_subject": null,
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            }
+          }
         }
       ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.realm.metadata.v1",
       "cell_subject": null,
+      "effect_projection": {
+        "kind": "apply_patch",
+        "patch": {
+          "field": "payload.patch"
+        }
+      },
       "lattice": "cas_register",
       "bottom": "reject"
     },
@@ -765,13 +777,26 @@
             "field": "payload.circle_id"
           },
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            }
+          }
         }
       ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.circle.metadata.v1",
       "cell_subject": {
         "kind": "id:circle",
         "field": "payload.circle_id"
+      },
+      "effect_projection": {
+        "kind": "apply_patch",
+        "patch": {
+          "field": "payload.patch"
+        }
       },
       "lattice": "cas_register",
       "bottom": "reject"
@@ -797,9 +822,19 @@
             ]
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "active"
+            },
+            "to": {
+              "const": "archived"
+            }
+          }
         }
       ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.circle.lifecycle.v1",
       "cell_subject": {
         "kind": "coalesce",
@@ -807,6 +842,15 @@
           "payload.circle_id",
           "payload.target_ref"
         ]
+      },
+      "effect_projection": {
+        "kind": "transition",
+        "from": {
+          "const": "active"
+        },
+        "to": {
+          "const": "archived"
+        }
       },
       "lattice": "fsm",
       "bottom": "reject"
@@ -832,9 +876,19 @@
             ]
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "archived"
+            },
+            "to": {
+              "const": "active"
+            }
+          }
         }
       ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.circle.lifecycle.v1",
       "cell_subject": {
         "kind": "coalesce",
@@ -842,6 +896,15 @@
           "payload.circle_id",
           "payload.target_ref"
         ]
+      },
+      "effect_projection": {
+        "kind": "transition",
+        "from": {
+          "const": "archived"
+        },
+        "to": {
+          "const": "active"
+        }
       },
       "lattice": "fsm",
       "bottom": "reject"
@@ -913,13 +976,26 @@
             "field": "payload.organization_did"
           },
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.organization.discovery.v1",
       "cell_subject": {
         "kind": "did",
         "field": "payload.organization_did"
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "cas_register",
       "bottom": "reject"
@@ -942,13 +1018,26 @@
             "field": "payload.resource_id"
           },
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.actor.discovery.v1",
       "cell_subject": {
         "kind": "did",
         "field": "payload.resource_id"
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "cas_register",
       "bottom": "reject"
@@ -971,13 +1060,26 @@
             "field": "payload.resource_id"
           },
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.applet.discovery.v1",
       "cell_subject": {
         "kind": "typed_id",
         "field": "payload.resource_id"
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "cas_register",
       "bottom": "reject"
@@ -1000,13 +1102,26 @@
             "field": "payload.resource_id"
           },
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.handle.discovery.v1",
       "cell_subject": {
         "kind": "string",
         "field": "payload.resource_id"
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "cas_register",
       "bottom": "reject"
@@ -1035,9 +1150,16 @@
             ]
           },
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.organization.moderation_policy.v1",
       "cell_subject": {
         "kind": "coalesce",
@@ -1045,6 +1167,12 @@
           "payload.organization_did",
           "payload.organization_id"
         ]
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "cas_register",
       "bottom": "reject"
@@ -1067,13 +1195,31 @@
             "field": "payload.did"
           },
           "lattice": "ordered_log",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.identity.proof_log.v1",
       "cell_subject": {
         "kind": "did",
         "field": "payload.did"
+      },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
       },
       "lattice": "ordered_log",
       "bottom": "expose"
@@ -1096,13 +1242,26 @@
             "field": "payload.policy_id"
           },
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.identity.disclosure_policy.v1",
       "cell_subject": {
         "kind": "typed_id",
         "field": "payload.policy_id"
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "cas_register",
       "bottom": "reject"
@@ -1125,13 +1284,31 @@
             "field": "payload.holder_did"
           },
           "lattice": "ordered_log",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.identity.disclosure_receipt.v1",
       "cell_subject": {
         "kind": "did",
         "field": "payload.holder_did"
+      },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
       },
       "lattice": "ordered_log",
       "bottom": "expose"
@@ -1154,13 +1331,31 @@
             "field": "payload.request_id"
           },
           "lattice": "ordered_log",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.identity.presentation.v1",
       "cell_subject": {
         "kind": "typed_id",
         "field": "payload.request_id"
+      },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
       },
       "lattice": "ordered_log",
       "bottom": "expose"
@@ -1183,13 +1378,31 @@
             "field": "payload.request_id"
           },
           "lattice": "ordered_log",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.identity.presentation.v1",
       "cell_subject": {
         "kind": "typed_id",
         "field": "payload.request_id"
+      },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
       },
       "lattice": "ordered_log",
       "bottom": "expose"
@@ -1220,9 +1433,16 @@
             ]
           },
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.identity.accountability.v1",
       "cell_subject": {
         "kind": "composite",
@@ -1235,6 +1455,12 @@
             "context": "ak.accountability-scope-set-v1"
           }
         ]
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "cas_register",
       "bottom": "reject"
@@ -1257,13 +1483,26 @@
           },
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__"
+          "initial_value": "__unset__",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.schema.definition.v1",
       "cell_subject": {
         "kind": "string",
         "field": "payload.schema_id"
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "cas_register",
       "bottom": "reject",
@@ -1287,13 +1526,26 @@
           },
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__"
+          "initial_value": "__unset__",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.schema.definition.v1",
       "cell_subject": {
         "kind": "string",
         "field": "payload.schema_id"
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "cas_register",
       "bottom": "reject",
@@ -1316,13 +1568,26 @@
             "field": "payload.policy_id"
           },
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.policy.definition.v1",
       "cell_subject": {
         "kind": "typed_id",
         "field": "payload.policy_id"
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "cas_register",
       "bottom": "reject"
@@ -1364,9 +1629,19 @@
             ]
           },
           "lattice": "ordered_log",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
         }
       ],
+      "concurrency_class": "merge_safe",
       "cell_family": "ak.component.policy.action_log.v1",
       "cell_subject": {
         "kind": "coalesce",
@@ -1374,6 +1649,15 @@
           "payload.policy_id",
           "payload.action_id"
         ]
+      },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
       },
       "lattice": "ordered_log",
       "bottom": "expose"
@@ -1562,13 +1846,25 @@
             "field": "payload.object.id"
           },
           "lattice": "mv_register",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.object"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.strand.object.v1",
       "cell_subject": {
         "kind": "id:strand",
         "field": "payload.object.id"
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload.object"
+        }
       },
       "lattice": "mv_register",
       "bottom": "expose"
@@ -1611,9 +1907,19 @@
             ]
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "active"
+            },
+            "to": {
+              "const": "archived"
+            }
+          }
         }
       ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.strand.lifecycle.v1",
       "cell_subject": {
         "kind": "coalesce",
@@ -1621,6 +1927,15 @@
           "payload.strand_id",
           "payload.target_ref"
         ]
+      },
+      "effect_projection": {
+        "kind": "transition",
+        "from": {
+          "const": "active"
+        },
+        "to": {
+          "const": "archived"
+        }
       },
       "lattice": "fsm",
       "bottom": "reject"
@@ -1646,9 +1961,19 @@
             ]
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "archived"
+            },
+            "to": {
+              "const": "active"
+            }
+          }
         }
       ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.strand.lifecycle.v1",
       "cell_subject": {
         "kind": "coalesce",
@@ -1656,6 +1981,15 @@
           "payload.strand_id",
           "payload.target_ref"
         ]
+      },
+      "effect_projection": {
+        "kind": "transition",
+        "from": {
+          "const": "archived"
+        },
+        "to": {
+          "const": "active"
+        }
       },
       "lattice": "fsm",
       "bottom": "reject"
@@ -1728,7 +2062,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Strand reorder within Space. Writes the same cell as ak.strand.move; effect.list_space_id MUST equal head_eq.list_space_id (rank-only update). Plane ruling follows ak.strand.move: same cell family, same default sealed=true control-plane declaration (models/realm-and-space.md section 3.6).",
+      "payload": "Strand reorder within Space. Writes the same cell as ak.strand.move; the reducer-projected list_space_id MUST equal head_eq.list_space_id (rank-only update). Plane ruling follows ak.strand.move: same cell family, same default sealed=true control-plane declaration (models/realm-and-space.md section 3.6).",
       "cell_family": "ak.component.strand.position.v1",
       "cell_subject": {
         "components": [
@@ -1795,13 +2129,25 @@
             "field": "payload.object.id"
           },
           "lattice": "mv_register",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.object"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.space.metadata.v1",
       "cell_subject": {
         "kind": "id:space",
         "field": "payload.object.id"
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload.object"
+        }
       },
       "lattice": "mv_register",
       "bottom": "expose"
@@ -1826,7 +2172,13 @@
             ]
           },
           "lattice": "mv_register",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.space.metadata.v1",
@@ -1836,6 +2188,12 @@
           "payload.space_id",
           "payload.target_ref"
         ]
+      },
+      "effect_projection": {
+        "kind": "apply_patch",
+        "patch": {
+          "field": "payload.patch"
+        }
       },
       "lattice": "mv_register",
       "bottom": "expose"
@@ -1878,9 +2236,19 @@
             ]
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "active"
+            },
+            "to": {
+              "const": "archived"
+            }
+          }
         }
       ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.space.lifecycle.v1",
       "cell_subject": {
         "kind": "coalesce",
@@ -1888,6 +2256,15 @@
           "payload.space_id",
           "payload.target_ref"
         ]
+      },
+      "effect_projection": {
+        "kind": "transition",
+        "from": {
+          "const": "active"
+        },
+        "to": {
+          "const": "archived"
+        }
       },
       "lattice": "fsm",
       "bottom": "reject"
@@ -1913,9 +2290,19 @@
             ]
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "archived"
+            },
+            "to": {
+              "const": "active"
+            }
+          }
         }
       ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.space.lifecycle.v1",
       "cell_subject": {
         "kind": "coalesce",
@@ -1923,6 +2310,15 @@
           "payload.space_id",
           "payload.target_ref"
         ]
+      },
+      "effect_projection": {
+        "kind": "transition",
+        "from": {
+          "const": "archived"
+        },
+        "to": {
+          "const": "active"
+        }
       },
       "lattice": "fsm",
       "bottom": "reject"
@@ -1948,9 +2344,16 @@
             ]
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition_to",
+            "to": {
+              "const": "tombstoned"
+            }
+          }
         }
       ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.space.lifecycle.v1",
       "cell_subject": {
         "kind": "coalesce",
@@ -1958,6 +2361,12 @@
           "payload.space_id",
           "payload.target_ref"
         ]
+      },
+      "effect_projection": {
+        "kind": "transition_to",
+        "to": {
+          "const": "tombstoned"
+        }
       },
       "lattice": "fsm",
       "bottom": "reject"
@@ -2017,7 +2426,13 @@
             ]
           },
           "lattice": "mv_register",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.message.revision.v1",
@@ -2028,6 +2443,12 @@
           "payload.target_ref",
           "payload.revision_of"
         ]
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "mv_register",
       "bottom": "expose"
@@ -2054,9 +2475,19 @@
             ]
           },
           "lattice": "or_set",
-          "bottom": "inert"
+          "bottom": "inert",
+          "effect_projection": {
+            "kind": "or_set_add",
+            "tag": {
+              "envelope_field": "event_id"
+            },
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "merge_safe",
       "cell_family": "ak.component.object.redaction.v1",
       "cell_subject": {
         "kind": "coalesce",
@@ -2066,6 +2497,15 @@
           "payload.event_id",
           "payload.target_event_id"
         ]
+      },
+      "effect_projection": {
+        "kind": "or_set_add",
+        "tag": {
+          "envelope_field": "event_id"
+        },
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "or_set",
       "bottom": "inert"
@@ -2229,9 +2669,19 @@
             ]
           },
           "lattice": "or_set",
-          "bottom": "inert"
+          "bottom": "inert",
+          "effect_projection": {
+            "kind": "or_set_add",
+            "tag": {
+              "envelope_field": "event_id"
+            },
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "merge_safe",
       "cell_family": "ak.component.object.redaction.v1",
       "cell_subject": {
         "kind": "coalesce",
@@ -2240,6 +2690,15 @@
           "payload.event_id",
           "payload.target_event_id"
         ]
+      },
+      "effect_projection": {
+        "kind": "or_set_add",
+        "tag": {
+          "envelope_field": "event_id"
+        },
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "or_set",
       "bottom": "inert"
@@ -2261,13 +2720,25 @@
             "field": "payload.object.id"
           },
           "lattice": "mv_register",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.object"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.morph.v1",
       "cell_subject": {
         "kind": "id:morph",
         "field": "payload.object.id"
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload.object"
+        }
       },
       "lattice": "mv_register",
       "bottom": "expose"
@@ -2289,13 +2760,25 @@
             "field": "payload.target_ref"
           },
           "lattice": "mv_register",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.morph.v1",
       "cell_subject": {
         "kind": "id:morph",
         "field": "payload.target_ref"
+      },
+      "effect_projection": {
+        "kind": "apply_patch",
+        "patch": {
+          "field": "payload.patch"
+        }
       },
       "lattice": "mv_register",
       "bottom": "expose"
@@ -2321,9 +2804,19 @@
             ]
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "active"
+            },
+            "to": {
+              "const": "archived"
+            }
+          }
         }
       ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.morph.lifecycle.v1",
       "cell_subject": {
         "kind": "coalesce",
@@ -2331,6 +2824,15 @@
           "payload.morph_id",
           "payload.target_ref"
         ]
+      },
+      "effect_projection": {
+        "kind": "transition",
+        "from": {
+          "const": "active"
+        },
+        "to": {
+          "const": "archived"
+        }
       },
       "lattice": "fsm",
       "bottom": "reject"
@@ -2356,9 +2858,19 @@
             ]
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "archived"
+            },
+            "to": {
+              "const": "active"
+            }
+          }
         }
       ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.morph.lifecycle.v1",
       "cell_subject": {
         "kind": "coalesce",
@@ -2366,6 +2878,15 @@
           "payload.morph_id",
           "payload.target_ref"
         ]
+      },
+      "effect_projection": {
+        "kind": "transition",
+        "from": {
+          "const": "archived"
+        },
+        "to": {
+          "const": "active"
+        }
       },
       "lattice": "fsm",
       "bottom": "reject"
@@ -2387,13 +2908,26 @@
             "field": "payload.morph_id"
           },
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.morph.schema.v1",
       "cell_subject": {
         "kind": "id:morph",
         "field": "payload.morph_id"
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "cas_register",
       "bottom": "reject"
@@ -2435,7 +2969,13 @@
             ]
           },
           "lattice": "mv_register",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.relation"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.relation.v1",
@@ -2445,6 +2985,12 @@
           "payload.relation.id",
           "payload.relation_id"
         ]
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload.relation"
+        }
       },
       "lattice": "mv_register",
       "bottom": "expose"
@@ -2466,13 +3012,25 @@
             "field": "payload.target_ref"
           },
           "lattice": "mv_register",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.relation.v1",
       "cell_subject": {
         "kind": "id:relation",
         "field": "payload.target_ref"
+      },
+      "effect_projection": {
+        "kind": "apply_patch",
+        "patch": {
+          "field": "payload.patch"
+        }
       },
       "lattice": "mv_register",
       "bottom": "expose"
@@ -2498,9 +3056,16 @@
             ]
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition_to",
+            "to": {
+              "const": "tombstoned"
+            }
+          }
         }
       ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.relation.lifecycle.v1",
       "cell_subject": {
         "kind": "coalesce",
@@ -2508,6 +3073,12 @@
           "payload.relation_id",
           "payload.target_ref"
         ]
+      },
+      "effect_projection": {
+        "kind": "transition_to",
+        "to": {
+          "const": "tombstoned"
+        }
       },
       "lattice": "fsm",
       "bottom": "reject"
@@ -2532,9 +3103,16 @@
             ]
           },
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.container.position.v1",
       "cell_subject": {
         "kind": "composite",
@@ -2542,6 +3120,12 @@
           "payload.container_ref",
           "payload.item_ref"
         ]
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "cas_register",
       "bottom": "reject"
@@ -2563,13 +3147,26 @@
             "field": "payload.container_ref"
           },
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.container.order.v1",
       "cell_subject": {
         "kind": "string",
         "field": "payload.container_ref"
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "cas_register",
       "bottom": "reject"
@@ -3016,22 +3613,6 @@
       "payload": "Actor-private account data update"
     },
     {
-      "event_kind": "ak.presence",
-      "category": "account",
-      "status": "active",
-      "wire_scope": "ephemeral_event",
-      "reducer_input": false,
-      "payload": "Presence ephemeral or account state"
-    },
-    {
-      "event_kind": "ak.typing",
-      "category": "account",
-      "status": "active",
-      "wire_scope": "ephemeral_event",
-      "reducer_input": false,
-      "payload": "Typing ephemeral event"
-    },
-    {
       "event_kind": "ak.profile.create",
       "category": "profile",
       "status": "active",
@@ -3088,9 +3669,16 @@
             ]
           },
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.profile.realm_override.v1",
       "cell_subject": {
         "kind": "composite",
@@ -3098,6 +3686,12 @@
           "payload.target_realm_id",
           "payload.target_ref"
         ]
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "cas_register",
       "bottom": "reject"
@@ -3283,86 +3877,6 @@
       "sealed": true
     },
     {
-      "event_kind": "ak.key.verification.request",
-      "category": "device",
-      "status": "active",
-      "wire_scope": "ephemeral_event",
-      "reducer_input": false,
-      "payload": "Device key verification request"
-    },
-    {
-      "event_kind": "ak.key.verification.ready",
-      "category": "device",
-      "status": "active",
-      "wire_scope": "ephemeral_event",
-      "reducer_input": false,
-      "payload": "Device key verification ready"
-    },
-    {
-      "event_kind": "ak.key.verification.start",
-      "category": "device",
-      "status": "active",
-      "wire_scope": "ephemeral_event",
-      "reducer_input": false,
-      "payload": "Device key verification start"
-    },
-    {
-      "event_kind": "ak.key.verification.accept",
-      "category": "device",
-      "status": "active",
-      "wire_scope": "ephemeral_event",
-      "reducer_input": false,
-      "payload": "Device key verification accept"
-    },
-    {
-      "event_kind": "ak.key.verification.key",
-      "category": "device",
-      "status": "active",
-      "wire_scope": "ephemeral_event",
-      "reducer_input": false,
-      "payload": "Device key verification ephemeral key"
-    },
-    {
-      "event_kind": "ak.key.verification.mac",
-      "category": "device",
-      "status": "active",
-      "wire_scope": "ephemeral_event",
-      "reducer_input": false,
-      "payload": "Device key verification MAC"
-    },
-    {
-      "event_kind": "ak.key.verification.done",
-      "category": "device",
-      "status": "active",
-      "wire_scope": "ephemeral_event",
-      "reducer_input": false,
-      "payload": "Device key verification completion"
-    },
-    {
-      "event_kind": "ak.key.verification.cancel",
-      "category": "device",
-      "status": "active",
-      "wire_scope": "ephemeral_event",
-      "reducer_input": false,
-      "payload": "Device key verification cancellation"
-    },
-    {
-      "event_kind": "ak.secret.request",
-      "category": "device",
-      "status": "active",
-      "wire_scope": "ephemeral_event",
-      "reducer_input": false,
-      "payload": "To-device secret share request"
-    },
-    {
-      "event_kind": "ak.secret.send",
-      "category": "device",
-      "status": "active",
-      "wire_scope": "ephemeral_event",
-      "reducer_input": false,
-      "payload": "To-device encrypted secret share response"
-    },
-    {
       "event_kind": "ak.mls.proposal",
       "category": "e2ee",
       "status": "active",
@@ -3379,13 +3893,32 @@
             "field": "payload.mls_group_id"
           },
           "lattice": "ordered_log",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
         }
       ],
+      "concurrency_class": "merge_safe",
       "cell_family": "ak.component.mls.proposal.v1",
       "cell_subject": {
         "kind": "string",
         "field": "payload.mls_group_id"
+      },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
       },
       "lattice": "ordered_log",
       "bottom": "expose"
@@ -3408,7 +3941,13 @@
           },
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__"
+          "initial_value": "__unset__",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.epoch"
+            }
+          }
         },
         {
           "cell_family": "ak.component.mls.key_schedule.v1",
@@ -3418,7 +3957,13 @@
           },
           "lattice": "cas_register",
           "bottom": "reject",
-          "initial_value": "__unset__"
+          "initial_value": "__unset__",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.governance_binding"
+            }
+          }
         },
         {
           "cell_family": "ak.component.covered_seals.v1",
@@ -3427,9 +3972,17 @@
             "field": "payload.mls_group_id"
           },
           "lattice": "or_set",
-          "bottom": "inert"
+          "bottom": "inert",
+          "effect_projection": {
+            "kind": "or_set_batch_add",
+            "values": {
+              "field": "payload.governance_binding.covered_seal_refs"
+            },
+            "tag_context": "ak.covered-seal-tag-v1"
+          }
         }
-      ]
+      ],
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.mls.commit",
@@ -3448,7 +4001,13 @@
             "field": "payload.mls_group_id"
           },
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.next_epoch"
+            }
+          }
         },
         {
           "cell_family": "ak.component.mls.key_schedule.v1",
@@ -3457,7 +4016,13 @@
             "field": "payload.mls_group_id"
           },
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.governance_binding"
+            }
+          }
         },
         {
           "cell_family": "ak.component.covered_seals.v1",
@@ -3466,9 +4031,17 @@
             "field": "payload.mls_group_id"
           },
           "lattice": "or_set",
-          "bottom": "inert"
+          "bottom": "inert",
+          "effect_projection": {
+            "kind": "or_set_batch_add",
+            "values": {
+              "field": "payload.governance_binding.covered_seal_refs"
+            },
+            "tag_context": "ak.covered-seal-tag-v1"
+          }
         }
-      ]
+      ],
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.mls.commit_failed",
@@ -3487,13 +4060,32 @@
             "field": "payload.mls_group_id"
           },
           "lattice": "ordered_log",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
         }
       ],
+      "concurrency_class": "merge_safe",
       "cell_family": "ak.component.mls.failure_log.v1",
       "cell_subject": {
         "kind": "string",
         "field": "payload.mls_group_id"
+      },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
       },
       "lattice": "ordered_log",
       "bottom": "expose"
@@ -3519,9 +4111,19 @@
             ]
           },
           "lattice": "ordered_log",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
         }
       ],
+      "concurrency_class": "merge_safe",
       "cell_family": "ak.component.mls.welcome.v1",
       "cell_subject": {
         "kind": "composite",
@@ -3530,6 +4132,15 @@
           "payload.recipient_principal_id",
           "payload.recipient_device_id"
         ]
+      },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
       },
       "lattice": "ordered_log",
       "bottom": "expose"
@@ -3555,9 +4166,16 @@
             ]
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition_to",
+            "to": {
+              "field": "payload.state"
+            }
+          }
         }
       ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.mls.keypackage.v1",
       "cell_subject": {
         "kind": "composite",
@@ -3567,16 +4185,14 @@
           "payload.keypackage_ref"
         ]
       },
+      "effect_projection": {
+        "kind": "transition_to",
+        "to": {
+          "field": "payload.state"
+        }
+      },
       "lattice": "fsm",
       "bottom": "reject"
-    },
-    {
-      "event_kind": "ak.realm_key.request",
-      "category": "e2ee",
-      "status": "active",
-      "wire_scope": "ephemeral_event",
-      "reducer_input": false,
-      "payload": "Realm history key request (receiver to key source); ephemeral to-device signal relayed to the target source, not a reducer-input durable event"
     },
     {
       "event_kind": "ak.realm_key.share",
@@ -3712,7 +4328,16 @@
             ]
           },
           "lattice": "ordered_log",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "projected_value": true
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.realm_key.delivery.v1",
@@ -3835,6 +4460,15 @@
             }
           }
         ]
+      },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "projected_value": true
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
       },
       "lattice": "ordered_log",
       "bottom": "expose"
@@ -3977,7 +4611,16 @@
             ]
           },
           "lattice": "ordered_log",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "projected_value": true
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.realm_key.delivery.v1",
@@ -4105,6 +4748,15 @@
           }
         ]
       },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "projected_value": true
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
+      },
       "lattice": "ordered_log",
       "bottom": "expose"
     },
@@ -4126,13 +4778,32 @@
             "field": "payload.share_event_ref"
           },
           "lattice": "ordered_log",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
         }
       ],
+      "concurrency_class": "merge_safe",
       "cell_family": "ak.component.realm_key.audit.v1",
       "cell_subject": {
         "kind": "string",
         "field": "payload.share_event_ref"
+      },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
       },
       "lattice": "ordered_log",
       "bottom": "expose"
@@ -4158,9 +4829,19 @@
             ]
           },
           "lattice": "ordered_log",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
         }
       ],
+      "concurrency_class": "merge_safe",
       "cell_family": "ak.component.audit.access_log.v1",
       "cell_subject": {
         "kind": "coalesce",
@@ -4169,6 +4850,15 @@
           "payload.target_cell_id",
           "payload.paired_event_id"
         ]
+      },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
       },
       "lattice": "ordered_log",
       "bottom": "expose"
@@ -4507,13 +5197,31 @@
             "field": "payload.target_ref"
           },
           "lattice": "ordered_log",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.moderation.report.v1",
       "cell_subject": {
         "kind": "string",
         "field": "payload.target_ref"
+      },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
       },
       "lattice": "ordered_log",
       "bottom": "expose"
@@ -4539,7 +5247,16 @@
             ]
           },
           "lattice": "ordered_log",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.moderation.franking_proof.v1",
@@ -4549,6 +5266,15 @@
           "payload.report_id",
           "payload.target_ref"
         ]
+      },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
       },
       "lattice": "ordered_log",
       "bottom": "expose"
@@ -4664,14 +5390,6 @@
       "payload": "Read cursor advance event (actor-private). Writes the actor's latest read position for a given (realm_id, read_scope) tuple. Was historically named ak.read.cursor; renamed to align the event_kind, capability action, schema id and typed ID prefix on a single noun root read_cursor."
     },
     {
-      "event_kind": "ak.receipt.read",
-      "category": "read",
-      "status": "active",
-      "wire_scope": "ephemeral_event",
-      "reducer_input": false,
-      "payload": "Read receipt event"
-    },
-    {
       "event_kind": "ak.invite.create",
       "category": "invite",
       "status": "active",
@@ -4691,7 +5409,16 @@
             ]
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "leave"
+            },
+            "to": {
+              "const": "pending"
+            }
+          }
         },
         {
           "cell_family": "ak.component.member.state.v1",
@@ -4705,10 +5432,7 @@
           "lattice": "fsm",
           "bottom": "reject",
           "effect_projection": {
-            "kind": "transition",
-            "from": {
-              "const": "leave"
-            },
+            "kind": "transition_to",
             "to": {
               "const": "invite"
             }
@@ -4721,7 +5445,8 @@
             ]
           }
         }
-      ]
+      ],
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.invite.cancel",
@@ -4740,7 +5465,13 @@
             "field": "payload.invite_id"
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition_to",
+            "to": {
+              "field": "payload.target_state"
+            }
+          }
         },
         {
           "cell_family": "ak.component.member.state.v1",
@@ -4751,10 +5482,7 @@
           "lattice": "fsm",
           "bottom": "reject",
           "effect_projection": {
-            "kind": "transition",
-            "from": {
-              "const": "invite"
-            },
+            "kind": "transition_to",
             "to": {
               "const": "leave"
             }
@@ -4764,7 +5492,8 @@
             "field": "payload.invitee"
           }
         }
-      ]
+      ],
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.invite.accept",
@@ -4783,7 +5512,16 @@
             "field": "payload.invite_id"
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "pending"
+            },
+            "to": {
+              "const": "accepted"
+            }
+          }
         },
         {
           "cell_family": "ak.component.member.state.v1",
@@ -4794,16 +5532,14 @@
           "lattice": "fsm",
           "bottom": "reject",
           "effect_projection": {
-            "kind": "transition",
-            "from": {
-              "const": "invite"
-            },
+            "kind": "transition_to",
             "to": {
               "const": "join"
             }
           }
         }
-      ]
+      ],
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.invite.third_party",
@@ -4825,9 +5561,19 @@
             ]
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "leave"
+            },
+            "to": {
+              "const": "pending"
+            }
+          }
         }
       ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.invite.lifecycle.v1",
       "cell_subject": {
         "kind": "coalesce",
@@ -4835,6 +5581,15 @@
           "payload.invite.id",
           "payload.invite_id"
         ]
+      },
+      "effect_projection": {
+        "kind": "transition",
+        "from": {
+          "const": "leave"
+        },
+        "to": {
+          "const": "pending"
+        }
       },
       "lattice": "fsm",
       "bottom": "reject"
@@ -4869,7 +5624,16 @@
             "field": "payload.invite_id"
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "pending"
+            },
+            "to": {
+              "const": "claimed"
+            }
+          }
         },
         {
           "cell_family": "ak.component.invite.membership_proposal.v1",
@@ -4881,9 +5645,19 @@
             ]
           },
           "lattice": "or_set",
-          "bottom": "inert"
+          "bottom": "inert",
+          "effect_projection": {
+            "kind": "or_set_add",
+            "tag": {
+              "envelope_field": "event_id"
+            },
+            "value": {
+              "field": "payload"
+            }
+          }
         }
-      ]
+      ],
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.invite.revoke",
@@ -4902,7 +5676,13 @@
             "field": "payload.invite_id"
           },
           "lattice": "fsm",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition_to",
+            "to": {
+              "field": "payload.target_state"
+            }
+          }
         },
         {
           "cell_family": "ak.component.member.state.v1",
@@ -4913,10 +5693,7 @@
           "lattice": "fsm",
           "bottom": "reject",
           "effect_projection": {
-            "kind": "transition",
-            "from": {
-              "const": "invite"
-            },
+            "kind": "transition_to",
             "to": {
               "const": "leave"
             }
@@ -4926,7 +5703,8 @@
             "field": "payload.invitee"
           }
         }
-      ]
+      ],
+      "concurrency_class": "security_barrier"
     },
     {
       "event_kind": "ak.applet.bridge_error",
@@ -4946,13 +5724,31 @@
             "field": "payload.applet_id"
           },
           "lattice": "ordered_log",
-          "bottom": "expose"
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
         }
       ],
       "cell_family": "ak.component.applet.bridge_error.v1",
       "cell_subject": {
         "kind": "typed_id",
         "field": "payload.applet_id"
+      },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
       },
       "lattice": "ordered_log",
       "bottom": "expose"
@@ -4975,13 +5771,26 @@
             "field": "payload.applet_id"
           },
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.applet.registration.v1",
       "cell_subject": {
         "kind": "typed_id",
         "field": "payload.applet_id"
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
       },
       "lattice": "cas_register",
       "bottom": "reject"
@@ -5007,14 +5816,6 @@
       "bottom": "expose",
       "plane": "control",
       "sealed": true
-    },
-    {
-      "event_kind": "ak.call.signal",
-      "category": "call",
-      "status": "active",
-      "wire_scope": "ephemeral_event",
-      "reducer_input": false,
-      "payload": "WebRTC signal message"
     },
     {
       "event_kind": "ak.call.state",
@@ -5340,7 +6141,8 @@
             "field": "payload.mute_override"
           }
         }
-      ]
+      ],
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.call.recording.start",
@@ -5450,7 +6252,8 @@
             "const": "transcript"
           }
         }
-      ]
+      ],
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.call.summary",
@@ -5487,16 +6290,34 @@
             "field": "payload.trust_domain"
           },
           "lattice": "cas_register",
-          "bottom": "reject"
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
         }
       ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.sovereign.did_policy.v1",
       "cell_subject": {
         "kind": "string",
         "field": "payload.trust_domain"
       },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
+      },
       "lattice": "cas_register",
       "bottom": "reject"
     }
-  ]
+  ],
+  "concurrency_class_definitions": {
+    "merge_safe": "Operation commutes under its declared lattice and may execute concurrently with other merge_safe operations after ordinary causal validation.",
+    "exclusive": "Operation requires exclusive compare-and-apply for its target cell set but does not globally serialize unrelated security authority.",
+    "security_barrier": "Authority, membership, key, scope, policy, recovery, or identity transition that serializes against every concurrent security_barrier touching the same signed scope."
+  }
 }

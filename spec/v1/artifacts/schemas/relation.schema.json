@@ -30,7 +30,7 @@
     },
     "effective_scope": {
       "$ref": "#/$defs/effective_scope",
-      "description": "Reducer-stamped immutable effective scope of this Relation fact, materialized from scope_circle_id at create time (circle.md §6.1-§6.2). For structural relations it MUST NOT be wider than the narrowest participating endpoint scope. Immutable across any later scope rebind. MUST NOT appear in actor-supplied submit payload (reducer-managed, reason=effective_scope_reducer_managed); the reducer stamps it on accept."
+      "description": "Read-only immutable effective scope of this Relation fact, materialized from the accepted Event.scope_ref after the receiver verifies it against scope_circle_id and endpoint pre-state (circle.md §6.1-§6.2). For structural relations it MUST NOT be wider than the narrowest participating endpoint scope. It remains immutable across any later scope rebind and MUST NOT appear in actor-supplied content payload (reason=effective_scope_reducer_managed)."
     },
     "relation_kind": {
       "type": "string",

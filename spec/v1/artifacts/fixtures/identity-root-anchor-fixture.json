@@ -17,46 +17,93 @@
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
       "input": {
         "identity_model": "enrollment_authority",
-        "batch_kinds": ["ak.realm.create", "ak.device.authorize"],
+        "batch_kinds": [
+          "ak.realm.create",
+          "ak.device.authorize"
+        ],
         "atomic": true,
         "realm_purpose": "principal_control",
-        "root_proof_ref": {"role": "did_inception", "critical": true, "entry_is_genesis": true},
+        "root_proof_ref": {
+          "role": "did_inception",
+          "critical": true,
+          "entry_is_genesis": true
+        },
         "root_verification_method": "did:key:z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ#z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ",
         "referenced_entry_active_update_verification_method": "did:key:z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ#z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ",
         "authorize_authority_matches_entry_delegation": true,
         "existing_principal_control_realm": false
       },
-      "expected": {"decision": "accept", "founding_grant_required": false}
+      "expected": {
+        "decision": "accept",
+        "founding_grant_required": false
+      }
     },
     {
       "name": "reject_root_signed_ordinary_event",
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
-      "input": {"event_kind": "ak.message.create", "verification_method": "did:key:z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ#z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ", "proof_key_role": "identity_root", "did_anchor_ref_present": true},
-      "expected": {"decision": "reject", "error_code": "failed_precondition"}
+      "input": {
+        "event_kind": "ak.message.create",
+        "verification_method": "did:key:z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ#z6MkvMW3tjuvW6PqYiX8dLRNwZWyGhxe3biRDjA4ZPiBaFaJ",
+        "proof_key_role": "identity_root",
+        "did_anchor_ref_present": true
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition"
+      }
     },
     {
       "name": "reject_root_signed_non_pcr_create",
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
-      "input": {"event_kind": "ak.realm.create", "realm_purpose": "collaboration", "proof_key_role": "identity_root"},
-      "expected": {"decision": "reject", "error_code": "failed_precondition"}
+      "input": {
+        "event_kind": "ak.realm.create",
+        "realm_purpose": "collaboration",
+        "proof_key_role": "identity_root"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition"
+      }
     },
     {
       "name": "reject_bootstrap_missing_unique_critical_inception_ref",
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
-      "input": {"event_kind": "ak.realm.create", "realm_purpose": "principal_control", "did_inception_ref_count": 0},
-      "expected": {"decision": "reject", "error_code": "schema_violation"}
+      "input": {
+        "event_kind": "ak.realm.create",
+        "realm_purpose": "principal_control",
+        "did_inception_ref_count": 0
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation"
+      }
     },
     {
       "name": "reject_second_principal_control_genesis",
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
-      "input": {"event_kind": "ak.realm.create", "realm_purpose": "principal_control", "existing_principal_control_realm": true},
-      "expected": {"decision": "reject", "error_code": "failed_precondition"}
+      "input": {
+        "event_kind": "ak.realm.create",
+        "realm_purpose": "principal_control",
+        "existing_principal_control_realm": true
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition"
+      }
     },
     {
       "name": "reject_split_bootstrap_batch",
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
-      "input": {"batch_kinds": ["ak.realm.create"], "atomic": false},
-      "expected": {"decision": "reject", "error_code": "failed_precondition"}
+      "input": {
+        "batch_kinds": [
+          "ak.realm.create"
+        ],
+        "atomic": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition"
+      }
     },
     {
       "name": "accept_reanchor_without_prior_seal",
@@ -66,14 +113,20 @@
         "entry_is_live_registry_head": true,
         "pre_fence_basis": null,
         "accepted_seal_frontier": [],
-        "batch_kinds": ["ak.device.reanchor", "ak.device.authorize"],
+        "batch_kinds": [
+          "ak.device.reanchor",
+          "ak.device.authorize"
+        ],
         "replacement_event_binding_matches": true,
         "previous_generation_matches": true,
         "update_authority_is_current_and_unspent": true,
         "verification_method": "did:key:z6MknoCfkzmsoi3R98zoM8gNdsnQsouJQCaCYoeVJ6VkquSi#z6MknoCfkzmsoi3R98zoM8gNdsnQsouJQCaCYoeVJ6VkquSi",
         "referenced_entry_active_update_verification_method": "did:key:z6MknoCfkzmsoi3R98zoM8gNdsnQsouJQCaCYoeVJ6VkquSi#z6MknoCfkzmsoi3R98zoM8gNdsnQsouJQCaCYoeVJ6VkquSi"
       },
-      "expected": {"decision": "accept", "new_device_generation_status": "active"}
+      "expected": {
+        "decision": "accept",
+        "new_device_generation_status": "active"
+      }
     },
     {
       "name": "accept_reanchor_with_complete_current_frontier",
@@ -83,108 +136,228 @@
         "entry_is_live_registry_head": true,
         "pre_fence_basis_matches_full_accepted_frontier": true,
         "frontier_compare_and_swap_matches": true,
-        "batch_kinds": ["ak.device.reanchor", "ak.device.authorize"],
+        "batch_kinds": [
+          "ak.device.reanchor",
+          "ak.device.authorize"
+        ],
         "replacement_event_binding_matches": true,
         "previous_generation_matches": true,
         "update_authority_is_current_and_unspent": true
       },
-      "expected": {"decision": "accept", "fence_effective_before_new_generation_seal": true}
+      "expected": {
+        "decision": "accept",
+        "fence_effective_before_new_generation_seal": true
+      }
     },
     {
       "name": "accept_byte_identical_reanchor_retry",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"same_event_ids": true, "same_event_digests": true, "same_receipt_scope": true},
-      "expected": {"decision": "accept", "idempotent": true, "duplicate_effects": false}
+      "input": {
+        "same_event_ids": true,
+        "same_event_digests": true,
+        "same_receipt_scope": true
+      },
+      "expected": {
+        "decision": "accept",
+        "idempotent": true,
+        "duplicate_effects": false
+      }
     },
     {
       "name": "accept_historical_reverification_after_registry_head_advanced",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"mode": "historical_reverification", "accepted_at_receipt_snapshot_valid": true, "entry_is_current_head_now": false},
-      "expected": {"decision": "accept", "uses_current_head": false}
+      "input": {
+        "mode": "historical_reverification",
+        "accepted_at_receipt_snapshot_valid": true,
+        "entry_is_current_head_now": false
+      },
+      "expected": {
+        "decision": "accept",
+        "uses_current_head": false
+      }
     },
     {
       "name": "reject_cross_signing_model_reanchor",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"identity_model": "cross_signing", "event_kind": "ak.device.reanchor"},
-      "expected": {"decision": "reject", "error_code": "failed_precondition"}
+      "input": {
+        "identity_model": "cross_signing",
+        "event_kind": "ak.device.reanchor"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition"
+      }
     },
     {
       "name": "reject_live_non_head_entry",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"mode": "live_admission", "entry_is_live_registry_head": false},
-      "expected": {"decision": "reject", "error_code": "device_reanchor_entry_not_head"}
+      "input": {
+        "mode": "live_admission",
+        "entry_is_live_registry_head": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_reanchor_entry_not_head"
+      }
     },
     {
       "name": "reject_previous_generation_mismatch",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"previous_generation_matches": false},
-      "expected": {"decision": "reject", "error_code": "device_generation_fenced"}
+      "input": {
+        "previous_generation_matches": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_generation_fenced"
+      }
     },
     {
       "name": "reject_incomplete_or_older_frontier",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"pre_fence_basis_matches_full_accepted_frontier": false},
-      "expected": {"decision": "reject", "error_code": "device_reanchor_frontier_mismatch"}
+      "input": {
+        "pre_fence_basis_matches_full_accepted_frontier": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_reanchor_frontier_mismatch"
+      }
     },
     {
       "name": "reject_frontier_changed_after_snapshot",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"pre_fence_basis_matches_full_accepted_frontier": true, "frontier_compare_and_swap_matches": false},
-      "expected": {"decision": "reject", "error_code": "device_reanchor_frontier_mismatch"}
+      "input": {
+        "pre_fence_basis_matches_full_accepted_frontier": true,
+        "frontier_compare_and_swap_matches": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_reanchor_frontier_mismatch"
+      }
     },
     {
       "name": "reject_replacement_authorize_id_or_digest_mismatch",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"replacement_event_binding_matches": false},
-      "expected": {"decision": "reject", "error_code": "device_reanchor_authorize_mismatch"}
+      "input": {
+        "replacement_event_binding_matches": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_reanchor_authorize_mismatch"
+      }
     },
     {
       "name": "reject_split_or_partially_committed_reanchor_unit",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"batch_kinds": ["ak.device.reanchor"], "atomic": false},
-      "expected": {"decision": "reject", "error_code": "failed_precondition", "durable_effects": 0}
+      "input": {
+        "batch_kinds": [
+          "ak.device.reanchor"
+        ],
+        "atomic": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition",
+        "durable_effects": 0
+      }
     },
     {
       "name": "reject_spent_or_wrong_generation_root",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"update_authority_is_current_and_unspent": false},
-      "expected": {"decision": "reject", "error_code": "invalid_signature"}
+      "input": {
+        "update_authority_is_current_and_unspent": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "invalid_signature"
+      }
     },
     {
       "name": "reject_old_generation_event_after_fence",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"device_authorized_generation_ref": "1-old", "current_device_generation_ref": "2-new", "event_was_in_pre_fence_closure": false},
-      "expected": {"decision": "reject", "error_code": "device_generation_fenced"}
+      "input": {
+        "device_authorized_generation_ref": "1-old",
+        "current_device_generation_ref": "2-new",
+        "event_was_in_pre_fence_closure": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_generation_fenced"
+      }
     },
     {
       "name": "quarantine_all_same_version_number_conflicts_independent_of_arrival_order",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"did_version_number": 2, "candidate_count": 2, "candidate_digests_differ": true, "arrival_orders": [["a", "b"], ["b", "a"]]},
-      "expected": {"decision": "quarantine_all", "device_generation_status": "conflicted", "first_seen_winner": false, "same_result_for_all_arrival_orders": true}
+      "input": {
+        "did_version_number": 2,
+        "candidate_count": 2,
+        "candidate_digests_differ": true,
+        "arrival_orders": [
+          [
+            "a",
+            "b"
+          ],
+          [
+            "b",
+            "a"
+          ]
+        ]
+      },
+      "expected": {
+        "decision": "quarantine_all",
+        "device_generation_status": "conflicted",
+        "first_seen_winner": false,
+        "same_result_for_all_arrival_orders": true
+      }
     },
     {
       "name": "reject_ordinary_admission_while_generation_conflicted",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"device_generation_status": "conflicted", "event_kind": "ak.message.create"},
-      "expected": {"decision": "reject", "error_code": "device_generation_fenced"}
+      "input": {
+        "device_generation_status": "conflicted",
+        "event_kind": "ak.message.create"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_generation_fenced"
+      }
     },
     {
       "name": "accept_conflict_resolution_by_next_precommitted_authority",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"device_generation_status": "conflicted", "resolution_entry_uses_next_precommitted_authority": true, "resolution_unit_valid": true},
-      "expected": {"decision": "accept", "device_generation_status": "active"}
+      "input": {
+        "device_generation_status": "conflicted",
+        "resolution_entry_uses_next_precommitted_authority": true,
+        "resolution_unit_valid": true
+      },
+      "expected": {
+        "decision": "accept",
+        "device_generation_status": "active"
+      }
     },
     {
       "name": "reject_first_new_generation_seal_wrong_predecessors_or_delta",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"seal_predecessors_equal_pre_fence_leaves": false, "seal_delta_covers_reanchor_and_authorize": false},
-      "expected": {"decision": "reject", "error_code": "failed_precondition"}
+      "input": {
+        "seal_predecessors_equal_pre_fence_leaves": false,
+        "seal_delta_covers_reanchor_and_authorize": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition"
+      }
     },
     {
       "name": "reject_in_place_secret_rotation_without_independent_authority",
       "vector_id": "ak.vector.identity.recovery_secret_handoff.v1",
-      "input": {"recovery_secret_suspected_compromised": true, "independent_authority_preexists": false, "requested_action": "same_did_handoff"},
-      "expected": {"decision": "reject", "required_action": "mint_new_did_and_reestablish_trust"}
+      "input": {
+        "recovery_secret_suspected_compromised": true,
+        "independent_authority_preexists": false,
+        "requested_action": "same_did_handoff"
+      },
+      "expected": {
+        "decision": "reject",
+        "required_action": "mint_new_did_and_reestablish_trust"
+      }
     },
     {
       "name": "accept_staged_two_entry_secret_handoff",
@@ -203,229 +376,506 @@
         "old_policy_key_revoked_last": true,
         "durable_checkpoints_present": true
       },
-      "expected": {"decision": "accept", "resumable_after_each_stage": true}
+      "expected": {
+        "decision": "accept",
+        "resumable_after_each_stage": true
+      }
     },
     {
       "name": "accept_delegated_agent_pcr_genesis_without_did_inception",
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
-      "input": {"event_kind": "ak.realm.create", "realm_purpose": "principal_control", "did_inception_ref_count": 0, "actor_kind": "agent", "executed_by_present": true, "authorization_ref_matches_agent_pcr_delegation": true, "realm_matches_agent_did_service": true},
-      "expected": {"decision": "accept", "admission": "delegated_pcr_genesis"}
+      "input": {
+        "event_kind": "ak.realm.create",
+        "realm_purpose": "principal_control",
+        "did_inception_ref_count": 0,
+        "actor_kind": "agent",
+        "executed_by_present": true,
+        "authorization_ref_matches_agent_pcr_delegation": true,
+        "realm_matches_agent_did_service": true
+      },
+      "expected": {
+        "decision": "accept",
+        "admission": "delegated_pcr_genesis"
+      }
     },
     {
       "name": "reject_self_principal_pcr_genesis_without_did_inception",
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
-      "input": {"event_kind": "ak.realm.create", "realm_purpose": "principal_control", "did_inception_ref_count": 0, "actor_kind": "user", "executed_by_present": false},
-      "expected": {"decision": "reject", "error_code": "schema_violation"}
+      "input": {
+        "event_kind": "ak.realm.create",
+        "realm_purpose": "principal_control",
+        "did_inception_ref_count": 0,
+        "actor_kind": "user",
+        "executed_by_present": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation"
+      }
     },
     {
       "name": "reject_noncritical_did_inception_ref",
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
-      "input": {"event_kind": "ak.realm.create", "realm_purpose": "principal_control", "did_inception_refs": [{"critical": false}]},
-      "expected": {"decision": "reject", "error_code": "schema_violation"}
+      "input": {
+        "event_kind": "ak.realm.create",
+        "realm_purpose": "principal_control",
+        "did_inception_refs": [
+          {
+            "critical": false
+          }
+        ]
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation"
+      }
     },
     {
       "name": "reject_duplicate_did_inception_refs",
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
-      "input": {"event_kind": "ak.realm.create", "realm_purpose": "principal_control", "did_inception_refs": [{"critical": true}, {"critical": true}]},
-      "expected": {"decision": "reject", "error_code": "schema_violation"}
+      "input": {
+        "event_kind": "ak.realm.create",
+        "realm_purpose": "principal_control",
+        "did_inception_refs": [
+          {
+            "critical": true
+          },
+          {
+            "critical": true
+          }
+        ]
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation"
+      }
     },
     {
       "name": "reject_root_anchor_realm_binding_mismatch",
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
-      "input": {"event_kind": "ak.realm.create", "realm_purpose": "principal_control", "realm_matches_did_pcr_service": false},
-      "expected": {"decision": "reject", "error_code": "failed_precondition"}
+      "input": {
+        "event_kind": "ak.realm.create",
+        "realm_purpose": "principal_control",
+        "realm_matches_did_pcr_service": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition"
+      }
     },
     {
       "name": "reject_root_anchor_actor_did_mismatch",
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
-      "input": {"event_kind": "ak.realm.create", "realm_purpose": "principal_control", "actor_id_matches_referenced_did_subject": false},
-      "expected": {"decision": "reject", "error_code": "failed_precondition"}
+      "input": {
+        "event_kind": "ak.realm.create",
+        "realm_purpose": "principal_control",
+        "actor_id_matches_referenced_did_subject": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition"
+      }
     },
     {
       "name": "reject_delegated_pcr_missing_or_forged_delegation_pair",
       "vector_id": "ak.vector.identity.root_anchor_exclusivity.v1",
-      "input": {"event_kind": "ak.realm.create", "realm_purpose": "principal_control", "did_inception_ref_count": 0, "executed_by_present": true, "authorization_ref_matches_agent_pcr_delegation": false},
-      "expected": {"decision": "reject", "error_code": "failed_precondition"}
+      "input": {
+        "event_kind": "ak.realm.create",
+        "realm_purpose": "principal_control",
+        "did_inception_ref_count": 0,
+        "executed_by_present": true,
+        "authorization_ref_matches_agent_pcr_delegation": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition"
+      }
     },
     {
       "name": "reject_reanchor_missing_did_recovery_anchor",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"event_kind": "ak.device.reanchor", "did_recovery_anchor_refs": []},
-      "expected": {"decision": "reject", "error_code": "schema_violation"}
+      "input": {
+        "event_kind": "ak.device.reanchor",
+        "did_recovery_anchor_refs": []
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation"
+      }
     },
     {
       "name": "reject_reanchor_noncritical_did_recovery_anchor",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"event_kind": "ak.device.reanchor", "did_recovery_anchor_refs": [{"critical": false}]},
-      "expected": {"decision": "reject", "error_code": "schema_violation"}
+      "input": {
+        "event_kind": "ak.device.reanchor",
+        "did_recovery_anchor_refs": [
+          {
+            "critical": false
+          }
+        ]
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation"
+      }
     },
     {
       "name": "reject_reanchor_duplicate_did_recovery_anchor",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"event_kind": "ak.device.reanchor", "did_recovery_anchor_refs": [{"critical": true}, {"critical": false}]},
-      "expected": {"decision": "reject", "error_code": "schema_violation"}
+      "input": {
+        "event_kind": "ak.device.reanchor",
+        "did_recovery_anchor_refs": [
+          {
+            "critical": true
+          },
+          {
+            "critical": false
+          }
+        ]
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation"
+      }
     },
     {
       "name": "reject_reanchor_anchor_entry_payload_mismatch",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"did_recovery_anchor_entry_id": "3-other", "payload_did_version_id": "4-head"},
-      "expected": {"decision": "reject", "error_code": "device_reanchor_entry_not_head"}
+      "input": {
+        "did_recovery_anchor_entry_id": "3-other",
+        "payload_did_version_id": "4-head"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_reanchor_entry_not_head"
+      }
     },
     {
       "name": "reject_reanchor_authorize_prev_refs_mismatch",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"authorize_prev_refs_exactly_reanchor": false},
-      "expected": {"decision": "reject", "error_code": "device_reanchor_authorize_mismatch"}
+      "input": {
+        "authorize_prev_refs_exactly_reanchor": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_reanchor_authorize_mismatch"
+      }
     },
     {
       "name": "reject_reanchor_authorize_actor_sequence_or_head_mismatch",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"authorize_actor_seq_follows_reanchor": false, "authorize_actor_head_is_reanchor": false},
-      "expected": {"decision": "reject", "error_code": "device_reanchor_authorize_mismatch"}
+      "input": {
+        "authorize_actor_seq_follows_reanchor": false,
+        "authorize_actor_head_is_reanchor": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_reanchor_authorize_mismatch"
+      }
     },
     {
       "name": "reject_reanchor_authorize_recovery_session_mismatch",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"authorize_recovery_session_matches_reanchor": false},
-      "expected": {"decision": "reject", "error_code": "device_reanchor_authorize_mismatch"}
+      "input": {
+        "authorize_recovery_session_matches_reanchor": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_reanchor_authorize_mismatch"
+      }
     },
     {
       "name": "reject_reanchor_authorize_device_possession_mismatch",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"authorize_device_signature_valid_for_replacement_key": false},
-      "expected": {"decision": "reject", "error_code": "device_reanchor_authorize_mismatch"}
+      "input": {
+        "authorize_device_signature_valid_for_replacement_key": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_reanchor_authorize_mismatch"
+      }
     },
     {
       "name": "reject_reanchor_authorize_authority_delegation_mismatch",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"authorize_enrollment_authority_matches_referenced_entry": false},
-      "expected": {"decision": "reject", "error_code": "device_reanchor_authorize_mismatch"}
+      "input": {
+        "authorize_enrollment_authority_matches_referenced_entry": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_reanchor_authorize_mismatch"
+      }
     },
     {
       "name": "reject_null_pre_fence_basis_when_seal_exists",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"accepted_seal_frontier": ["ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"], "pre_fence_basis": null},
-      "expected": {"decision": "reject", "error_code": "device_reanchor_frontier_mismatch"}
+      "input": {
+        "accepted_seal_frontier": [
+          "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ],
+        "pre_fence_basis": null
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_reanchor_frontier_mismatch"
+      }
     },
     {
       "name": "reject_old_generation_seal_after_fence",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"object_kind": "seal", "signer_authorized_generation_ref": "1-old", "current_device_generation_ref": "2-new", "seal_covers_only_pre_fence_closure": false},
-      "expected": {"decision": "reject", "error_code": "device_generation_fenced"}
+      "input": {
+        "object_kind": "seal",
+        "signer_authorized_generation_ref": "1-old",
+        "current_device_generation_ref": "2-new",
+        "seal_covers_only_pre_fence_closure": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "device_generation_fenced"
+      }
     },
     {
       "name": "quarantine_same_version_number_different_version_ids",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"did_version_number": 4, "candidate_version_ids": ["4-aaa", "4-bbb"], "candidate_units_identical": false},
-      "expected": {"decision": "quarantine_all", "error_code": "device_reanchor_conflict", "first_seen_winner": false}
+      "input": {
+        "did_version_number": 4,
+        "candidate_version_ids": [
+          "4-aaa",
+          "4-bbb"
+        ],
+        "candidate_units_identical": false
+      },
+      "expected": {
+        "decision": "quarantine_all",
+        "error_code": "device_reanchor_conflict",
+        "first_seen_winner": false
+      }
     },
     {
       "name": "quarantine_same_entry_two_different_units",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"did_version_number": 4, "candidate_version_ids": ["4-aaa", "4-aaa"], "candidate_event_digest_pairs_differ": true},
-      "expected": {"decision": "quarantine_all", "error_code": "device_reanchor_conflict", "first_seen_winner": false}
+      "input": {
+        "did_version_number": 4,
+        "candidate_version_ids": [
+          "4-aaa",
+          "4-aaa"
+        ],
+        "candidate_event_digest_pairs_differ": true
+      },
+      "expected": {
+        "decision": "quarantine_all",
+        "error_code": "device_reanchor_conflict",
+        "first_seen_winner": false
+      }
     },
     {
       "name": "quarantine_previously_accepted_unit_when_conflict_arrives",
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "input": {"first_unit_has_accepted_receipt": true, "later_same_slot_conflicting_unit_arrives": true},
-      "expected": {"decision": "quarantine_all", "receipt_retained_as_historical_acceptance_evidence": true, "current_effects_removed": true}
+      "input": {
+        "first_unit_has_accepted_receipt": true,
+        "later_same_slot_conflicting_unit_arrives": true
+      },
+      "expected": {
+        "decision": "quarantine_all",
+        "receipt_retained_as_historical_acceptance_evidence": true,
+        "current_effects_removed": true
+      }
     },
     {
       "name": "resume_secret_handoff_after_new_secret_custody_checkpoint",
       "vector_id": "ak.vector.identity.recovery_secret_handoff.v1",
-      "input": {"crash_after_stage": "new_secret_custody_confirmed", "retry_from_durable_checkpoint": true},
-      "expected": {"decision": "resume", "next_stage": "activate_old_precommitted_root"}
+      "input": {
+        "crash_after_stage": "new_secret_custody_confirmed",
+        "retry_from_durable_checkpoint": true
+      },
+      "expected": {
+        "decision": "resume",
+        "next_stage": "activate_old_precommitted_root"
+      }
     },
     {
       "name": "resume_secret_handoff_after_old_next_root_activation_checkpoint",
       "vector_id": "ak.vector.identity.recovery_secret_handoff.v1",
-      "input": {"crash_after_stage": "old_precommitted_root_activated_and_new_root_committed", "retry_from_durable_checkpoint": true},
-      "expected": {"decision": "resume", "next_stage": "activate_new_secret_root"}
+      "input": {
+        "crash_after_stage": "old_precommitted_root_activated_and_new_root_committed",
+        "retry_from_durable_checkpoint": true
+      },
+      "expected": {
+        "decision": "resume",
+        "next_stage": "activate_new_secret_root"
+      }
     },
     {
       "name": "resume_secret_handoff_after_new_root_activation_checkpoint",
       "vector_id": "ak.vector.identity.recovery_secret_handoff.v1",
-      "input": {"crash_after_stage": "new_secret_root_activated_and_next_committed", "retry_from_durable_checkpoint": true},
-      "expected": {"decision": "resume", "next_stage": "device_reanchor"}
+      "input": {
+        "crash_after_stage": "new_secret_root_activated_and_next_committed",
+        "retry_from_durable_checkpoint": true
+      },
+      "expected": {
+        "decision": "resume",
+        "next_stage": "device_reanchor"
+      }
     },
     {
       "name": "resume_secret_handoff_after_reanchor_checkpoint",
       "vector_id": "ak.vector.identity.recovery_secret_handoff.v1",
-      "input": {"crash_after_stage": "device_reanchor_accepted", "retry_from_durable_checkpoint": true},
-      "expected": {"decision": "resume", "next_stage": "publish_recovery_policy"}
+      "input": {
+        "crash_after_stage": "device_reanchor_accepted",
+        "retry_from_durable_checkpoint": true
+      },
+      "expected": {
+        "decision": "resume",
+        "next_stage": "publish_recovery_policy"
+      }
     },
     {
       "name": "resume_secret_handoff_after_policy_checkpoint",
       "vector_id": "ak.vector.identity.recovery_secret_handoff.v1",
-      "input": {"crash_after_stage": "new_recovery_policy_accepted", "retry_from_durable_checkpoint": true},
-      "expected": {"decision": "resume", "next_stage": "rewrap_all_active_series"}
+      "input": {
+        "crash_after_stage": "new_recovery_policy_accepted",
+        "retry_from_durable_checkpoint": true
+      },
+      "expected": {
+        "decision": "resume",
+        "next_stage": "rewrap_all_active_series"
+      }
     },
     {
       "name": "resume_secret_handoff_after_rewrap_checkpoint",
       "vector_id": "ak.vector.identity.recovery_secret_handoff.v1",
-      "input": {"crash_after_stage": "all_active_series_rewrapped", "retry_from_durable_checkpoint": true},
-      "expected": {"decision": "resume", "next_stage": "advance_active_series_pointers"}
+      "input": {
+        "crash_after_stage": "all_active_series_rewrapped",
+        "retry_from_durable_checkpoint": true
+      },
+      "expected": {
+        "decision": "resume",
+        "next_stage": "advance_active_series_pointers"
+      }
     },
     {
       "name": "resume_secret_handoff_after_pointer_checkpoint",
       "vector_id": "ak.vector.identity.recovery_secret_handoff.v1",
-      "input": {"crash_after_stage": "active_series_pointers_advanced", "retry_from_durable_checkpoint": true},
-      "expected": {"decision": "resume", "next_stage": "revoke_old_policy_key"}
+      "input": {
+        "crash_after_stage": "active_series_pointers_advanced",
+        "retry_from_durable_checkpoint": true
+      },
+      "expected": {
+        "decision": "resume",
+        "next_stage": "revoke_old_policy_key"
+      }
     },
     {
       "name": "accept_recovery_policy_distinct_signing_and_hpke_pair",
       "vector_id": "ak.vector.identity.recovery_key_role_separation.v1",
-      "input": {"signing_verification_method": "did:webvh:z6mkfixture:alice.example#recovery-proof-1", "signing_alg": "Ed25519", "signing_public_key_multibase": "z6MkogKw38hXxUkpMWitoBubBGHZzeGrQJ4oHF36iegUbmpA", "key_agreement_ref": "did:webvh:z6mkfixture:alice.example#backup-hpke-1", "key_agreement_alg": "X25519", "key_agreement_public_key_multibase": "z6LSriWhVBzW9Vz2PvqbieSz7Aa2hPLzTKJuDwXTMKFeomeW", "recipient_ref_matches_pair": true, "hpke_suite_allowed": true, "both_entries_active": true},
-      "expected": {"decision": "accept"}
+      "input": {
+        "signing_verification_method": "did:webvh:z6mkfixture:alice.example#recovery-proof-1",
+        "signing_alg": "Ed25519",
+        "signing_public_key_multibase": "z6MkogKw38hXxUkpMWitoBubBGHZzeGrQJ4oHF36iegUbmpA",
+        "key_agreement_ref": "did:webvh:z6mkfixture:alice.example#backup-hpke-1",
+        "key_agreement_alg": "X25519",
+        "key_agreement_public_key_multibase": "z6LSriWhVBzW9Vz2PvqbieSz7Aa2hPLzTKJuDwXTMKFeomeW",
+        "recipient_ref_matches_pair": true,
+        "hpke_suite_allowed": true,
+        "both_entries_active": true
+      },
+      "expected": {
+        "decision": "accept"
+      }
     },
     {
       "name": "reject_recovery_policy_dangling_key_agreement_ref",
       "vector_id": "ak.vector.identity.recovery_key_role_separation.v1",
-      "input": {"recovery_key_key_agreement_ref_resolves_exactly_once": false},
-      "expected": {"decision": "reject", "error_code": "recovery_policy_mismatch"}
+      "input": {
+        "recovery_key_key_agreement_ref_resolves_exactly_once": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "recovery_policy_mismatch"
+      }
     },
     {
       "name": "reject_recovery_policy_duplicate_key_agreement_ref",
       "vector_id": "ak.vector.identity.recovery_key_role_separation.v1",
-      "input": {"matching_key_agreement_entry_count": 2},
-      "expected": {"decision": "reject", "error_code": "recovery_policy_mismatch"}
+      "input": {
+        "matching_key_agreement_entry_count": 2
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "recovery_policy_mismatch"
+      }
     },
     {
       "name": "reject_recovery_policy_revoked_pair",
       "vector_id": "ak.vector.identity.recovery_key_role_separation.v1",
-      "input": {"signing_entry_active": true, "key_agreement_entry_revoked": true},
-      "expected": {"decision": "reject", "error_code": "recovery_policy_mismatch"}
+      "input": {
+        "signing_entry_active": true,
+        "key_agreement_entry_revoked": true
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "recovery_policy_mismatch"
+      }
     },
     {
       "name": "reject_recovery_policy_expired_or_not_yet_valid_pair",
       "vector_id": "ak.vector.identity.recovery_key_role_separation.v1",
-      "input": {"signing_entry_active": true, "key_agreement_entry_within_validity_window": false},
-      "expected": {"decision": "reject", "error_code": "recovery_policy_mismatch"}
+      "input": {
+        "signing_entry_active": true,
+        "key_agreement_entry_within_validity_window": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "recovery_policy_mismatch"
+      }
     },
     {
       "name": "reject_recovery_policy_same_material_for_signing_and_hpke",
       "vector_id": "ak.vector.identity.recovery_key_role_separation.v1",
-      "input": {"signing_and_key_agreement_material_distinct": false},
-      "expected": {"decision": "reject", "error_code": "recovery_policy_mismatch"}
+      "input": {
+        "signing_and_key_agreement_material_distinct": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "recovery_policy_mismatch"
+      }
     },
     {
       "name": "reject_backup_recipient_pointing_to_recovery_signing_key",
       "vector_id": "ak.vector.identity.recovery_key_role_separation.v1",
-      "input": {"recipient_key_ref_points_to_recovery_signing_key": true, "hpke_suite_allowed_by_key_agreement": true},
-      "expected": {"decision": "reject", "error_code": "recovery_policy_mismatch"}
+      "input": {
+        "recipient_key_ref_points_to_recovery_signing_key": true,
+        "hpke_suite_allowed_by_key_agreement": true
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "recovery_policy_mismatch"
+      }
     },
     {
       "name": "reject_backup_recipient_disallowed_hpke_suite",
       "vector_id": "ak.vector.identity.recovery_key_role_separation.v1",
-      "input": {"recipient_key_ref_points_to_recovery_signing_key": false, "recipient_key_ref_resolves_to_active_paired_key_agreement": true, "hpke_suite_allowed_by_key_agreement": false},
-      "expected": {"decision": "reject", "error_code": "unsupported_hpke_suite"}
+      "input": {
+        "recipient_key_ref_points_to_recovery_signing_key": false,
+        "recipient_key_ref_resolves_to_active_paired_key_agreement": true,
+        "hpke_suite_allowed_by_key_agreement": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "unsupported_hpke_suite"
+      }
     },
     {
       "name": "reject_did_document_only_recovery_signing_or_hpke_key",
       "vector_id": "ak.vector.identity.recovery_key_role_separation.v1",
-      "input": {"key_declared_only_in_did_document": true, "key_declared_in_snapshotted_policy": false},
-      "expected": {"decision": "reject", "error_code": "recovery_policy_mismatch"}
+      "input": {
+        "key_declared_only_in_did_document": true,
+        "key_declared_in_snapshotted_policy": false
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "recovery_policy_mismatch"
+      }
     }
   ]
 }

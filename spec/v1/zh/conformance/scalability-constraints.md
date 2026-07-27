@@ -96,7 +96,7 @@ RFC 8785 JCS(
 
 - 单独测 payload 或 “without proof” 形态都不够；multi-proof / hybrid proof 的**全部** active proof 都计入。
 - producer / self submit 与 peer submit 的 Event **MUST NOT** 携带 `unsigned`。该字段只能由接收服务在 read view 上添加，任何实现都 MUST NOT 把它用于身份、授权、reducer 或签名判断（与 [`encoding.md` §2](./encoding.md) 的签名字节排除规则一致）。
-- reducer MUST 在真正 commit 前，按将写入的 reducer-stamped 字段（v1 当前为 `effective_scope`、`actor_kind`）构造**候选 accepted envelope** 并执行 1 MiB 检查；MUST NOT 先接受再由 stamping 把对象推过上限。
+- reducer MUST 在真正 commit 前，按将写入的唯一 reducer-stamped 字段 `actor_kind` 构造候选 accepted envelope 并执行 1 MiB 检查；签名 `scope_ref` 已包含在 producer bytes 中。
 - Event 被包含在 batch / operation body 中时，同时受单 Event 1 MiB 与外层 body 8 MiB 约束。
 - 服务端附加的 `unsigned` 另受单对象 16 KiB canonical JSON 上限，并计入 response body 8 MiB，但 **不** 反向改变已接受 Event 的 1 MiB 身份。16 KiB 足以承载 age、redaction reason 与有限 transport hints；更大的诊断、receipt 集合或扩展材料 MUST 使用 read model 的独立分页 / 引用字段，MUST NOT 塞进一个未签名、开放解释的旁路对象。该值是 response amplification 安全边界。
 - 1 MiB + 1 MUST 返回 `payload_too_large`，MUST NOT 因为 JSON schema 恰好也失败而返回 `schema_violation`。
@@ -250,7 +250,8 @@ JCS(body) bytes <= operation.max_canonical_body_bytes
 | --- | ---: | --- |
 | 单个 DataEvent canonical size | 1 MiB | 与 §2.1.1 同一测量对象与同一数值；超过时 MUST reject 为 `payload_too_large`。 |
 | 单个 Control Move canonical size | 1 MiB | 与 §2.1.1 同一测量对象与同一数值；超过时 MUST reject 为 `payload_too_large`。 |
-| 单个 Control Move 的 `preconditions + effects` 数 | 256 | 超过时 MUST reject；需要拆成多个 Control Move 或使用 higher-level control transaction。 |
+| 单个 Control Move 的 `preconditions[]` 项数 | 256 | 这是 wire schema 的 `maxItems`；超过时 MUST reject。 |
+| 单个 Event 的 reducer-projected cell write 数 | 256 | receiver 从 registry 重算；超过时 MUST `reducer_projection_failed`，协议设计者需拆成多个 Event 或使用已注册的 typed control transaction。 |
 | 单个 Seal 新增 Control Move 数 | 1,000 | 超过时 MUST 拆分 Seal；接收方 MAY 返回 `rate_limited` 或 `temporarily_unavailable`。 |
 | Seal DAG leaf 数 | 实现声明 | 超过时 SHOULD 请求或生成 signed compaction Seal；查询可使用 deterministic Seal view。 |
 | 单次 Lattice join CPU / wall-clock 预算 | 实现声明 | 服务 MUST 在 `server/describe.limits` 暴露；超出时返回可恢复错误或使用已验证 state_root + inclusion proof。 |

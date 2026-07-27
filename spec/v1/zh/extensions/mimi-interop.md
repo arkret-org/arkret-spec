@@ -95,7 +95,7 @@ GET /_arkret/open/mimi/provider-directory
 
 ## 4. Room Binding
 
-允许被导出为 MIMI room 的 Arkret 对象 MUST 有写入 `ak.component.mimi.room_binding.v1` cell 的 Control Move effect。对应 Event kind 为 `ak.mimi.room_binding`；cell subject 是 `payload.mimi_room_uri`。
+允许被导出为 MIMI room 的 Arkret 对象 MUST 有写入 `ak.component.mimi.room_binding.v1` cell 的 Control Move registered projection。对应 Event kind 为 `ak.mimi.room_binding`；cell subject 是 `payload.mimi_room_uri`。
 
 `ak.mimi.room_binding` 的完整 payload 形态（含 `hub_provider`、`follower_providers`、`content_profile`、`policy_root`、`local_provider_role` 等全部字段）以 [`../../artifacts/schemas/mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 为权威机读真源；下文逐字段说明不替代该 schema。
 
@@ -305,11 +305,11 @@ facade 在 Arkret ↔ MIMI 之间转换一条内容时，SHOULD 生成 **Content
 
 ## 9. Policy Mapping
 
-Arkret v1 把 Realm-level policy 映射为 Control Move effects on cell families。Facade 在 MIMI room policy 与 Arkret state 之间转换时，读取 registry 中的 `cell_family`、`lattice` 与 `bottom`。
+Arkret v1 把 Realm-level policy 映射为 Control Move 的 registered cell projections。Facade 在 MIMI room policy 与 Arkret state 之间转换时，读取 registry 中的 `cell_family`、`lattice` 与 `bottom`。
 
 ### 9.1 Cell Family 互译
 
-| Arkret cell_family | Arkret effect kind | MIMI policy component（draft-ietf-mimi-room-policy） |
+| Arkret cell_family | Arkret Event kind | MIMI policy component（draft-ietf-mimi-room-policy） |
 | --- | --- | --- |
 | `ak.component.realm.policy.v1` | `ak.realm.policy` | （Arkret 专属；映射时合并入 `operational`） |
 | `ak.component.realm.join_rule.v1` | `ak.realm.join_rule` | `participation` 中 `join_policy` 子字段（粗粒度入口枚举） |
@@ -332,13 +332,13 @@ Arkret v1 把 Realm-level policy 映射为 Control Move effects on cell families
 
 #### 9.1.1 Candidate-profile-only 行（base profile MUST reject）
 
-下表中的条目**不是** v1 base profile 的 wire `Event.kind`，仅在显式声明对应 candidate profile 的 facade 上可见。**base profile 下 MIMI facade MUST reject / omit 这些条目，而不得把它们写入 shared Realm history。** 把它们与 §9.1 主表的 base-profile wire effect kind 分开列出，避免误读为 base profile 必须支持。
+下表中的条目**不是** v1 base profile 的 wire `Event.kind`，仅在显式声明对应 candidate profile 的 facade 上可见。**base profile 下 MIMI facade MUST reject / omit 这些条目，而不得把它们写入 shared Realm history。** 把它们与 §9.1 主表的 base-profile Event kind 分开列出，避免误读为 base profile 必须支持。
 
 | Arkret concept/action 名称 | 所属 candidate profile | MIMI policy component | base profile 行为 |
 | --- | --- | --- | --- |
 | `realm.join_policy`（candidate workflow concept/action 名称，不是 v1 wire `Event.kind`；见 [`../conformance/schema-registry.md` §4.1](../conformance/schema-registry.md)） | `ak.profile.candidate.join_policy.v1` | `participation.join_policy` 子字段（结构化 gates / reviewer / TTL）；MIMI 侧未覆盖部分以 `application/vnd.arkret.component+json` 私有扩展承载 | MIMI facade **MUST reject / omit**，不得写入 shared Realm history |
 
-> 历史的 MIMI components（`roles`、`preauth`、`bot`、`message_expiration`、`operational`）在 Arkret 中是 `ak.realm.policy_bundle` cell 的子字段，而不是独立 kind。Facade 接收 MIMI policy update 时 MUST 把这些 components 归约为 `ak.realm.policy_bundle` Control Move effect。
+> 历史的 MIMI components（`roles`、`preauth`、`bot`、`message_expiration`、`operational`）在 Arkret 中是 `ak.realm.policy_bundle` cell 的子字段，而不是独立 kind。Facade 接收 MIMI policy update 时 MUST 把这些 components 归约为 `ak.realm.policy_bundle` Control Move payload，再按 registry 派生 cell write。
 >
 > MIMI room policy 投影 MUST 落在有效 Realm 的 `ak.realm.policy_bundle` cell；不存在 track-scoped policy projection——track 不携带独立 access。当 MIMI room 映射的 Strand 通过 `scope_circle_id` 落在 Realm 内的 [Circle](../models/circle.md) 时，Circle-local policy 通过 Circle 自身 `policy_root` 表达，与父 Realm policy 取更严格者。
 
@@ -354,7 +354,7 @@ Arkret 的 unknown handling 来自 Lattice bottom：
 
 **Facade 责任**：
 
-- 接收 MIMI policy update 时 MUST 验证目标 `cell_family` 已注册（或被部署的 profile 显式 opt-in），并归约为对应 Control Move effect；未注册 MIMI component MUST 按其 MIMI unknown-handling 处理。
+- 接收 MIMI policy update 时 MUST 验证目标 `cell_family` 已注册（或被部署的 profile 显式 opt-in），并归约为对应 Control Move `kind + payload`；未注册 MIMI component MUST 按其 MIMI unknown-handling 处理。
 - 发送 Arkret state 到 MIMI 时 MUST 按 §9.1 表生成 MIMI component。Arkret 专属 component（无 MIMI 对应）在 facade 输出中标记为 `application/vnd.arkret.component+json` 私有扩展。
 
 MIMI role 只能作为 interop projection。Arkret 授权仍以 capability Control Move / grant cell 为准。Facade 在接收 MIMI role/policy update 时 MUST 归约为具体 capability event（如 `ak.capability.grant` / `ak.capability.delegate` / `ak.capability.revoke`）或具体 `ak.realm.<facet>` Control Move effect，并经过 Arkret Control Move refs 授权验证后才能生效。

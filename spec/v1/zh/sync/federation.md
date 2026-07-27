@@ -159,7 +159,7 @@ Realm 级 server ACL 的权威表达是 `ak.realm.moderation_policy` 中的 serv
 任一 federation transaction 携带或依赖 `encryption_profile="mls_rfc9420"` 的 Realm 状态、`ak.mls.genesis`、`ak.mls.commit`、`ak.mls.welcome`、MLS-backed E2EE DataEvent 或 `covered_seals_cell` projection 时，接收方 MUST 把 [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.5 的 `ak.profile.mls_governance_binding.full.v1` 视为 MLS 联邦互操作下界。该下界至少包含：
 
 - `governance_binding.binding_profile` 与 `governance_binding.reducer_profile` 均存在，且与 Realm policy、ServiceDescribe / peer profile 声明和当前 reducer profile digest 一致；
-- `ak.mls.commit` 的 MLS GroupContext extensions 中存在固定 codepoint `mls_governance_binding` (`0xF1C0`)，并且 extension bytes、Event payload 与 `covered_seals_cell` effect 相互匹配；
+- `ak.mls.commit` 的 MLS GroupContext extensions 中存在固定 codepoint `mls_governance_binding` (`0xF1C0`)，并且 extension bytes、Event payload 与 registered `covered_seals_cell` projection 相互匹配；
 - `covered_seals_cell` 对 E2EE DataEvent 的 `seal_ref` 做全称 coverage gate；缺 coverage 时消息不得进入 verified timeline；
 - peer 的 `ServiceDescribe.supported_profiles` / `supported_features` 声明足以支持该下界；仅支持 payload fallback、替换私用 codepoint 或省略 GroupContext extension 的 peer 不满足下界。
 
@@ -225,11 +225,11 @@ Signature: sig1=:base64...:
 | `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 至少绑定 `@method`、`@target-uri`、`@authority`、`source-service-id`、`destination-service-id`、`source-trust-domain`、`destination-trust-domain`，以及 `created` / `expires` 参数。有 body 请求（`POST /_arkret/peer/events`）MUST 额外绑定 `content-digest` 与 `request-canonical-digest`；无 body 的 `GET` pull MUST NOT 绑定 `content-digest` / `request-canonical-digest`。出现 `Destination-Service-Endpoint-Digest` 时也 MUST 绑定 `destination-service-endpoint-digest`；出现 `Idempotency-Key` 时也 MUST 绑定 `idempotency-key`。 |
 | `Signature` | header | `string` | required | 来源 service DID 的 HTTP Message Signature。 |
 | `Content-Digest` | header | `sha-256=:...:` | conditional | 仅有 body 请求携带（`POST /_arkret/peer/events` required）；MUST 按 [`service-http-binding.md` §2.5.1](./service-http-binding.md) 覆盖 exact canonical HTTP content bytes。接收方 MUST 在 JSON 业务解析与验签前对 exact bytes 重算并校验，且 MUST 拒绝 `sha256=:` alias、非 canonical JSON wire 与 parse-then-canonicalize verification。无 body 的 `GET` pull MUST NOT 携带该 header，`Signature-Input` 也 MUST NOT 绑定 `content-digest`。 |
-| `events` | body | `object[]` | required | Event Envelope 数组；每项 MUST 是完整签名 `ak.schema.event.v1`。复用 §3 client write 同一 schema，不引入第二套形态。 |
-| `seals` | body | `Seal[]` | optional | 最多 4096 项的接收端相对最小 Seal 闭包，只可包含本请求 DataEvent 的 `seal_ref` 或 Control Event 的 `seal_basis.leaves[]` 所需 Seal。严格按 `(notary_seq, id)` 升序且 ID 唯一。缺省的 predecessor 必须已在接收端 accepted；接收端不得依赖排序或去重修复非法 wire。 |
+| `events` | body | `EventFederationSubmission[]` | required | 每项包含完整签名 `event`、其 `authorization_lease` 与至少一个 `ingress_receipts[]`。这些证据不进入 Event canonical bytes；receiver 必须独立重算 Event digest 并验证 receipt threshold。 |
+| `cba_proof_bundles` | body | `CBAProofBundle[]` | optional | 最多 64 个 receiver-relative CBA 依赖 bundle。bundle 可以是有界、完整可验证的超集，不要求字节级最小；每个内含对象独立验签、重算 root 与 reducer，缺项返回精确 missing refs。 |
 | `signer_key_evidence` | body | `FederatedDeviceSigningKeyEvidence[]` | optional | 原 Event proof 所用 active device signing key 的 portable authorization evidence。每项 `verification_method` MUST 精确等于 `actor_id + "#" + device_id`、必须出现在同请求某个 Event proof 中，`device_signing_key` MUST 是 Ed25519 `did:key`；`device_authorize_event` MUST 是来源 authority 当前 active projection 所引用的原始、已接受、`service_attested` `ak.device.authorize` Event，且其 payload 必须逐字绑定同一 actor/device/key。该数组被外层 HTTP Message Signature 覆盖，不进入被投递 Event digest、Realm reducer、Seal 或 timeline。 |
 | `service_binding_ref` | body | `object` | required | 接收方服务绑定快照（v1 联邦特有的请求级元数据；client write 时省略）。 |
-| `service_binding_ref.realm_id` | body | `id` | required | 本请求唯一受影响的 Realm；每个 `events[].realm_id` 与 `seals[].realm_id` MUST 与其逐字相等。多 Realm 投递 MUST 拆成独立请求。 |
+| `service_binding_ref.realm_id` | body | `id` | required | 本请求唯一受影响的 Realm；每个 `events[].event.realm_id` 与每个 bundle 中可归属 Realm 的对象 MUST 与其逐字相等。多 Realm 投递 MUST 拆成独立请求。 |
 | `service_binding_ref.realm_policy_digest` | body | `sha256:<hash>` | required | 发送方用于判定接收方委托关系的 Realm policy hash。 |
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
 | `service_binding_ref.delivery_binding_frontier` | body | `id[]` | required | 发送方解析投递目标时所依据的 member delivery binding 因果前沿。接收方 MUST 校验该前沿在自己的 Realm 视图中可达，且对应到当前 effective `delivery_binding.recipient_service_id = Destination-Service-ID`。前沿落后于当前接收方 binding（接收方已收到 rebind handover frontier `F` 而 sender 仍按旧 binding 投递）时，接收方 MUST 返回 `delivery_binding_stale` 并在响应中带回 `new_recipient_service_id` 与 `handover_frontier`，sender 切到新目标后重试。 |
@@ -256,7 +256,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
 
 接收方 MUST 用同一 registry 规则重算自己在该 Realm 上实际执行的 reducer profile digest，并与请求字段逐字节比对。缺少 registry row、profile_id 未声明、canonicalization 不支持、digest suite 不是 active `sha256`，或重算结果不一致，均 MUST fail closed；对于 `POST /_arkret/peer/events`，失败结果是整批拒绝并返回 `reducer_profile_mismatch`，不得 partial accept。
 
-`signer_key_evidence` 只解决「目标 Realm host 尚无来源 principal 的本地 device directory projection」时的原 Event 验签，不扩大来源服务的代言范围。接收方只能在外层 RFC 9421 请求已认证、actor 与来源 service authority / 已验证 Realm membership / 本节规定的初始 Direct Conversation authority 之一绑定成功后使用该证据；还必须：(1) 重算 `device_authorize_event` digest 与 proof transcript；(2) 按其 accepted-at 时点独立解析 principal DID 的 enrollment delegation 与 `executed_by` authority DID，验证原 authority proof；(3) 确认 authorization Event 的 actor/device/key 与 evidence 逐字一致；(4) 用该 key 验证被投递 Event 的原 JWS。来源服务只为“该已验证 authorization 当前仍 active”背书，裸 key 断言绝不是 participant trust root。证据缺失、authorization Event 不可独立验证、actor/device/method/key 不匹配或任一 JWS 失败均 MUST fail closed。接收方不得持久化一个被证据改写的 Event；持久化的 canonical envelope 必须与 sender 的 `events[]` 项 byte-identical。
+`signer_key_evidence` 只解决「目标 Realm host 尚无来源 principal 的本地 device directory projection」时的原 Event 验签，不扩大来源服务的代言范围。接收方只能在外层 RFC 9421 请求已认证、actor 与来源 service authority / 已验证 Realm membership / 本节规定的初始 Direct Conversation authority 之一绑定成功后使用该证据；还必须：(1) 重算 `device_authorize_event` digest 与 proof transcript；(2) 按其 accepted-at 时点独立解析 principal DID 的 enrollment delegation 与 `executed_by` authority DID，验证原 authority proof；(3) 确认 authorization Event 的 actor/device/key 与 evidence 逐字一致；(4) 用该 key 验证被投递 Event 的原 JWS。来源服务只为“该已验证 authorization 当前仍 active”背书，裸 key 断言绝不是 participant trust root。证据缺失、authorization Event 不可独立验证、actor/device/method/key 不匹配或任一 JWS 失败均 MUST fail closed。接收方不得持久化一个被证据改写的 Event；持久化的 canonical envelope 必须与 sender 的 `events[].event` 项 byte-identical。
 
 
 请求示例（`Source-Service-ID` / `Destination-Service-ID` 由 header 承载，不重复在 body 中）：
@@ -280,52 +280,88 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
   },
   "events": [
     {
-      "event_id": "ak:event:0196419b-2000-7000-8000-000000000001",
-      "kind": "ak.message.create",
-      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-      "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-      "actor_seq": 42,
-      "created_at": "2026-04-26T00:00:00.000Z",
-      "prev_refs": [],
-      "refs": [],
-      "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
-      "auth_context": {
-        "did": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-        "key_id": "device-1",
-        "key_epoch": 1,
-        "capability_refs": ["ak:grant:0196419b-3000-7000-8000-000000000004"]
-      },
-      "effects": [
-        {
-          "cell": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:0196419b-3000-7000-8000-000000000003",
-          "op": {
-            "kind": "append",
-            "issuer_seq": 0,
-            "value": {
-              "message_id": "ak:message:0196419b-3000-7000-8000-000000000001",
-              "strand_id": "ak:strand:0196419b-3000-7000-8000-000000000003",
-              "track_name": "discussion"
-            }
+      "event": {
+        "event_id": "ak:event:0196419b-2000-7000-8000-000000000001",
+        "kind": "ak.message.create",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+        },
+        "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+        "actor_seq": 42,
+        "created_at": "2026-04-26T00:00:00.000Z",
+        "prev_refs": [],
+        "refs": [],
+        "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "auth_context": {
+          "did": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+          "key_id": "device-1",
+          "key_epoch": 1
+        },
+        "payload": {
+          "message_id": "ak:message:0196419b-3000-7000-8000-000000000001",
+          "strand_id": "ak:strand:0196419b-3000-7000-8000-000000000003",
+          "track_name": "discussion",
+          "content": {
+            "kind": "ak.content.text",
+            "body": "hello from alpha"
           }
-        }
-      ],
-      "payload": {
-        "message_id": "ak:message:0196419b-3000-7000-8000-000000000001",
-        "strand_id": "ak:strand:0196419b-3000-7000-8000-000000000003",
-        "track_name": "discussion",
-        "content": {
-          "kind": "ak.content.text",
-          "body": "hello from alpha"
-        }
+        },
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "alg": "EdDSA",
+            "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
+            "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "created_at": "2026-04-26T00:00:00.000Z",
+            "jws": "a..b"
+          }
+        ]
       },
-      "proofs": [
+      "authorization_lease": {
+        "lease_id": "ak:lease:0196419b-2100-7000-8000-000000000001",
+        "basis_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+        "device_id": "ak:device:0196419b-2050-7000-8000-000000000001",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+        },
+        "action": "ak.message.create",
+        "risk_tier": "medium",
+        "issued_at": "2026-04-25T20:00:00.000Z",
+        "expires_at": "2026-04-26T04:00:00.000Z",
+        "issuer_set_ref": "ak.issuer_set.realm_admission.v1",
+        "signatures": [
+          {
+            "kind": "detached_jws",
+            "alg": "EdDSA",
+            "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alpha.example#notary-1",
+            "payload_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "created_at": "2026-04-25T20:00:00.000Z",
+            "jws": "a..b"
+          }
+        ]
+      },
+      "ingress_receipts": [
         {
-          "kind": "detached_jws",
-          "alg": "EdDSA",
-          "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
+          "receipt_id": "ak:receipt:0196419b-2200-7000-8000-000000000001",
           "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-          "created_at": "2026-04-26T00:00:00.000Z",
-          "jws": "a..b"
+          "lease_ref": "ak:lease:0196419b-2100-7000-8000-000000000001",
+          "received_at": "2026-04-26T00:00:01.000Z",
+          "service_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alpha.example",
+          "issuer_set_ref": "ak.issuer_set.realm_admission.v1",
+          "signatures": [
+            {
+              "kind": "detached_jws",
+              "alg": "EdDSA",
+              "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alpha.example#ingress-1",
+              "payload_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "created_at": "2026-04-26T00:00:01.000Z",
+              "jws": "a..b"
+            }
+          ]
         }
       ]
     }
@@ -339,6 +375,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
 | --- | --- | --- | --- |
 | `status` | `enum(accepted, duplicate, partial, historical_only)` | required | 整体提交结果状态；`partial` 表示至少存在 rejected / quarantine 项，允许 `accepted[]` 与 `duplicate[]` 同时为空；`historical_only` 仅用于历史 replay / backfill 结果，必须携带 `original_outcome`。 |
 | `accepted` | `id[]` | required | 首次接受的 Event ID；不含幂等重复项。 |
+| `ingress_receipts` | `IngressReceipt[]` | optional | 本 ingress 新签发或从幂等记录原样返回的 receipt。对同一 Event 重试不得更新 `received_at`。 |
 | `duplicate` | `id[]` | optional | 内容完全相同的幂等重复项（幂等 no-op）；同一 `event_id` MUST NOT 同时出现在 `accepted[]` 与 `duplicate[]`。 |
 | `rejected` | `object[]` | optional | 被拒绝项；每项 SHOULD 包含 `id`、`reason_code` 和可审计说明。为空或省略表示本批无单项拒绝。 |
 | `quarantine` | `id[]` | optional | 进入隔离队列等待人工或异步验证的 Event ID。 |
@@ -355,11 +392,20 @@ Arkret v1 的普通联邦批量传播采用依赖感知的 partial accept：默�
 
 已由 core profile 注册为原子协议单元的批次是例外，不能由 transport 拆分或 partial accept。普通 Realm founding unit `ak.realm.create → creator founding ak.capability.grant → closed bootstrap facets` MUST 保持为一个 `events[]` 请求、按原顺序整体验证并在一个持久化事务中提交；sender 不得为其中每个 Event 建独立 outbox 项，receiver 不得先提交 create 再等待 founding grant。该 unit 任一项失败时整组均不得推进 reducer / projection；依赖尚未到达或 Realm founding unit 正在乱序恢复时，receiver MUST 返回 retryable HTTP 503（`temporarily_unavailable` / `federation_dependencies_pending`）而不是 HTTP 200 partial，使 sender 以相同 canonical body 与同一 `Idempotency-Key` 重试。其它需要 all-or-nothing 的批处理必须由 profile / critical extension 显式注册，不能由部署私自推断。
 
-`events[]` MUST 属于 `service_binding_ref.realm_id` 指定的唯一 Realm，项数为 1..500，并按数组顺序处理。为使固定验证阶段无歧义，所有 Control Event MUST 位于所有 DataEvent 之前；每个阶段内部保持 sender 给出的相对顺序，receiver 不得重排。同批中已接受的 Event 仅可作为**解析材料**（resolution-only）出现在后续 Event 中：可以满足 `prev_refs` 的 byte / event-id 解析、actor event chain 链接、`causal_refs` 或 payload-level causal reference 等结构性引用；但**不得**作为同批后续 Event 的授权基准。DataEvent MUST 按自身 `seal_ref` 验证；Control Move MUST 按自身 `seal_basis` 验证。
+`events[].event` MUST 属于 `service_binding_ref.realm_id` 指定的唯一 Realm，项数为 1..500，并按数组顺序处理。为使固定验证阶段无歧义，所有 Control Event MUST 位于所有 DataEvent 之前；每个阶段内部保持 sender 给出的相对顺序，receiver 不得重排。同批中已接受的 Event 仅可作为**解析材料**（resolution-only）出现在后续 Event 中：可以满足 `prev_refs` 的 byte / event-id 解析、actor event chain 链接、`causal_refs` 或 payload-level causal reference 等结构性引用；但**不得**作为同批后续 Event 的授权基准。DataEvent MUST 按自身 `seal_ref` 验证；Control Move MUST 按自身 `seal_basis` 验证。
 
-请求 MAY 携带最多 4096 项、ID 唯一且严格按 `(notary_seq, id)` 升序的 `seals[]`。该数组 MUST 是**相对接收端已 accepted Seal 集合的最小闭包**：闭包根恰为本请求 DataEvent 的非空 `seal_ref` 与 Control Event 的 `seal_basis.leaves[]` 的并集；沿 predecessor 边向后展开，已被接收端接受的 predecessor 可省略，除此之外不得缺项，也不得携带从任一根不可达的 Seal。只以 `seal_ref` 为根会使尚未持有 founding Seal 的新接收方无法验证第一个后继 Control Event，属于不完整闭包。sender 应先通过 peer frontier 确认 receiver 的 accepted anchor；不知道接收端状态时 MUST 保守携带完整可达前缀。receiver 必须逐项验证省略的 predecessor 确实已在本地 accepted。它们是本请求内的验证前置材料，不是 Event、不得推进 actor frontier，也不构成第二条 federation write rail。receiver 不得静默排序、去重或删除无关项来修复非法 wire。
+请求 MAY 携带最多 64 个 `cba_proof_bundles[]`。每个 bundle 的 `target_seal_ref` 必须服务于本请求
+某个 Event 的 `seal_ref` 或 `seal_basis.leaves[]`，并覆盖 receiver 尚未 accepted 的 ancestry、
+Control Move 与 inclusion/availability proof。sender MAY 携带有界、全部可验证的超集，不要求
+所有实现产生字节相同的“最小闭包”；receiver 必须独立验证 digest、Seal signature、root 与 reducer，
+并返回精确 `missing_seal_refs[]` / `missing_event_digests[]`。无关对象、错误 root、循环或越界都必须
+拒绝，不能靠静默排序、删项或信任 sender 修复。
 
-若相对最小闭包仍超过 4096 项或 receiver `ServiceDescribe.max_body_bytes`，sender MUST 在发送 DataEvent 前等待/取得一个协议有效的 compacted Seal，使相对闭包回到两个边界内；不得截断闭包、越过未知 predecessor 或拆成无法独立验证的 Seal-only 私有写轨。当前没有可接受 compacted anchor 时，本 DataEvent 保持本地 pending，并按 `federation_dependencies_pending` 的有界退避与 operator diagnostic 规则处理；这不是降低验证要求的理由。
+若所需 bundle 超过 schema 数量/深度/byte 上限或 receiver `ServiceDescribe.max_body_bytes`，sender
+MUST 在发送 DataEvent 前等待/取得协议有效的 compacted Seal，或通过标准 dependency fetch 分批
+补齐；不得截断 proof、越过未知 predecessor 或拆成无法独立验证的 Seal-only 私有写轨。当前没有
+可接受 anchor 时，本 DataEvent 保持本地 pending，并按 `federation_dependencies_pending` 的
+有界退避与 operator diagnostic 规则处理；这不是降低验证要求的理由。
 
 接收方按固定依赖拓扑处理：(1) 对 Control Event 保持 wire 顺序；在验证每一项前，先对该项 `seal_basis.leaves[]` 尚未在本地 accepted 的根验证并投影其 receiver-relative Seal 闭包，而每个 Seal 又只能在其 `delta` 覆盖的 Control Event 已 canonical accepted 后投影；随后才按该 basis 验证并接受该 Control Event；(2) Control 前缀处理完后，对每个 DataEvent 保持 wire 顺序，以同样规则补齐并投影其 `seal_ref` 闭包，再按该 Seal view 验证 Event。因而一个请求可表达 `旧 Control Event → Seal S0 → 以 S0 为 basis 的新 Control Event → Seal S1 → 引用 S1 的 DataEvent`，但不得形成 Event/Seal 循环依赖；循环是永久 `schema_violation`，真正缺少可补齐材料才是 `federation_dependencies_pending`。同批前序 Event 创建、delegate、恢复、扩权或 revoke 的 grant / policy **不**因事件到达而提前生效；只有 sender 在发送前已取得、并由合法 notary 签署且覆盖这些 Control Event 的 Seal 完成独立验签后，才可构成后续 Control 或 Data Event 的授权基准。Seal 不得产生 actor frontier。
 
@@ -608,7 +654,7 @@ Probe 响应 payload：
 冲突检测规则：
 
 - 若两端历史包含相同 `event_id` 但不同 hash，接收方 MUST quarantine 并以 `duplicate_conflict` 报告。此处的 `duplicate_conflict` 是 **probe-detected fork 的 quarantine reason**（语义同 error-code-registry 的 `duplicate_conflict` reason_code，`applies_to=event_envelope`：两条 canonical-byte 不同的 event 共用同一 `event_id`，reducer MUST quarantine 并要求 operator / fork-resolution 处理），**不是** §8.5 / `ak.peer.events.command.submit` 提交路径上"同一幂等键 + 不同 canonical body"那种可由调用方修正后重试的 submit 冲突。接收方 MUST NOT 把它当作可直接重试的提交错误返回给上游 sender，也不得通过简单重发解除；只能走 raw replay、quorum witness 或 operator-approved fork resolution。
-- 上述 probe 检测一旦成立，必须复用 [`operations-sync.md` §12](./operations-sync.md) 的整组追溯处置：此前已 accepted 的同 id 变体也进入 quarantine，数据面 effects 被移除，Seal 已覆盖的控制面变体只按 CBA §6.3.2 由后继 fork-resolution compaction Seal 归一。不得因一个变体先到达或来自本地 submit 就保留其普通 accepted 状态。
+- 上述 probe 检测一旦成立，必须复用 [`operations-sync.md` §12](./operations-sync.md) 的整组追溯处置：此前已 accepted 的同 id 变体也进入 quarantine，数据面 reducer projection 输入被移除，Seal 已覆盖的控制面变体只按 CBA §6.3.2 由后继 fork-resolution compaction Seal 归一。不得因一个变体先到达或来自本地 submit 就保留其普通 accepted 状态。
 - 若冲突来自同一 actor 的不同签名 frontier，接收方 SHOULD 保留最小证据集：冲突 event id、hash、签名 key id、source service DID、收到时间和相关 frontier。证据集不得包含未授权明文 payload。
 - 可疑 remote 输入 MAY 在 quarantine 队列中暂存，直到签名、schema、capability、fork resolution 与 operator policy 全部通过。
 - **quarantine 驻留语义（normative 澄清）**：quarantine 是 fail-closed 安全态——quarantined 输入 MUST NOT 推进本地 frontier、MUST NOT 进入 joined view 或授权判定，因此长时间驻留**不影响互操作正确性或一致性**。协议**不**为 quarantine 设 wire 级最大驻留时长或自动转 `rejected` 的超时:fork resolution 依赖 raw replay / quorum witness / operator-approved resolution 等可能耗时的带外动作，设硬超时反而会丢弃合法但解析较慢的分叉。最大驻留时长、是否以及何时人工清退，属 **operator policy**，不在 wire conformance 范围。实现 SHOULD 对超过部署声明阈值仍未解析的 quarantine 条目触发治理健康告警（运维可见)，但 MUST NOT 据此自动接受或静默丢弃。high-assurance profile MAY 声明更严格的 operator-side resolution SLA，但该 SLA 是运营承诺，不改变上述 wire 语义。
@@ -778,7 +824,7 @@ Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "so
 Signature: sig1=:<base64>:
 ```
 
-字段、签名 transcript、绑定与重放保护按 §3.2、§4.1 与 [`api-conventions.md` §3](./api-conventions.md) 与 [`service-http-binding.md` §3](./service-http-binding.md) 执行。事件以普通 CBA reducer-input Event 提交：DataEvent 使用 `effects` / `seal_ref` / `auth_context`，Control Move 使用 `effects` / `seal_basis` / 可选 `preconditions`，与单域 client write 共享同一 schema（`ak.schema.event.v1`）。
+字段、签名 transcript、绑定与重放保护按 §3.2、§4.1 与 [`api-conventions.md` §3](./api-conventions.md) 与 [`service-http-binding.md` §3](./service-http-binding.md) 执行。事件以普通 CBA reducer-input Event 提交：DataEvent 使用签名 `kind + payload + scope_ref` / `seal_ref` / `auth_context`，Control Move 使用签名 `kind + payload + scope_ref` / `seal_basis` / 可选 `preconditions`；cell write 均由 receiver 按 registry 投影，与单域 client write 共享同一 schema（`ak.schema.event.v1`）。
 
 ### 7.2 跨域 Backfill
 

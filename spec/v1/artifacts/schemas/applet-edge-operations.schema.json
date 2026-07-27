@@ -202,10 +202,11 @@
             "$ref": "./event-envelope.schema.json"
           }
         },
-        "ephemeral": {
+        "realtime": {
           "type": "array",
+          "description": "Optional encrypted Realtime Extension envelopes. Exact applet payload types and targets remain inside ciphertext.",
           "items": {
-            "$ref": "./ephemeral-envelope.schema.json"
+            "$ref": "./realtime-envelope.schema.json"
           }
         }
       },

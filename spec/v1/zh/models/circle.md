@@ -96,13 +96,13 @@ Schema id: `ak.schema.circle.v1`
 
 ```
 Strand.scope_circle_id          : id:circle | null   # null = Realm-default scope
-Message.effective_scope       : reducer-stamped, immutable tagged scope
-Event.effective_scope         : reducer-stamped, immutable tagged scope，进入 envelope/sub-seal；MLS-backed scope 中也进入 AAD/governance binding
+Message.effective_scope       : reducer-derived read projection，必须等于创建 Event.scope_ref
+Event.scope_ref               : producer-signed, immutable tagged security scope
 Space.scope_circle_id         : id:circle | null   # Space 自身 metadata / scoped structural relation 的可见性 scope
 Space.child_scope_policy      : object             # 子资源 placement 约束，见 §7
 Morph.scope_circle_id         : id:circle | null
 Relation.scope_circle_id      : id:circle | null
-Relation.effective_scope      : reducer-stamped, immutable tagged scope
+Relation.effective_scope      : reducer-derived read projection，必须等于创建 Event.scope_ref
 ```
 
 **关键约束:Strand 永远只有一个 effective scope**。不存在 per-track scope —— 整个 Strand(synthesis、discussion、其他 track)共享同一事件 / 投递 / history 边界，要么都在 Realm-default，要么都在某个 Circle。
@@ -111,10 +111,10 @@ Relation.effective_scope      : reducer-stamped, immutable tagged scope
 
 - `scope_circle_id` 引用的 Circle MUST `realm_id` 与对象 `realm_id` 一致；否则 `schema_violation`(`reason=circle_realm_mismatch`)。
 - `scope_circle_id` 引用的 Circle MUST `state=active`；否则 `failed_precondition`(`reason=circle_not_active`)。
-- `scope_circle_id=null` 不表示"没有 scope"；它表示 Realm-default scope。Reducer MUST 把它物化为 tagged `effective_scope = {kind:"realm", realm_id}`。
-- `scope_circle_id=ak:circle:...` MUST 物化为 tagged `effective_scope = {kind:"circle", realm_id, circle_id}`。
-- Reducer 在接受每个 event 时 MUST 固化 `effective_scope`。该值进入 Event envelope 与 Seal/sub-seal leaf；在 MLS-backed scope 中还进入 E2EE AAD 与 MLS governance binding 输入。后续 `scope_circle_id` 改绑不得重解释旧 event。
-- Message 与 Relation 的 canonical reducer-output 对象 MUST 物化顶层 `effective_scope`；Strand 与 Morph 的 canonical 对象只保存 actor-signed `scope_circle_id`，其 reducer 派生的 `effective_scope` MUST 写入承载变更的 Event。该差异用于避免把派生字段混入 Strand/Morph 的 actor-signed 对象前像；实现 MUST NOT 从当前 Circle 状态重算历史 Event 的 scope。
+- `scope_circle_id=null` 表示 Realm-default scope，对应签名 `scope_ref={kind:"realm", realm_id}`。
+- `scope_circle_id=ak:circle:...` 对应签名 `scope_ref={kind:"circle", realm_id, circle_id}`。
+- Reducer 在接受每个 Event 时 MUST 从 payload 与 accepted references 派生 scope，并与 producer-signed `scope_ref` 逐字段比较。后续对象 rebind 不得重解释旧 Event。
+- Message 与 Relation 的 read projection MAY 物化顶层 `effective_scope`，但它必须逐字段等于创建 Event 的 `scope_ref`。该 projection 不是可写真相源。
 - Effective history visibility = 父 Realm policy floor 与 Circle `history_visibility` 的更严格者。Circle MAY 收紧父 Realm，不得放宽父 Realm 的隐私/合规下限。
 - 改绑 `scope_circle_id` 默认 reducer 拒绝(`failed_precondition` `reason=scope_rebind_forbidden`);profile MAY 允许，但 MUST audit-paired high-risk update。所有已存在 Message / 子内容保留其写入时的 `effective_scope` 与旧 scope 的 history / key eligibility；新内容才进新 scope。客户端 MUST 把切分前后历史分段展示。
 - Structural Relation / position cell 的 `effective_scope` **MUST be no broader than 参与端点中最窄的 scope**(取参与端点 scope 集合中最严格者作为关系事实自身的 scope)。具体例:`public Board (Realm-default)` 包含 `private Strand (Circle=HR-Conf)` 时，`contains` 关系事实与其 position cell 的 `effective_scope = Circle:HR-Conf`,**不是** Realm-default；非 Circle 成员看不到该 containment 关系、看不到 private Strand 的 rank/position，也看不到 board 上"此处有隐藏项"的可枚举元数据。
@@ -129,56 +129,48 @@ Relation.effective_scope      : reducer-stamped, immutable tagged scope
 - `open_set` 下 archive / tombstone Seal 与 `seal_ref` 并发时，receiver MUST 按已验证 leaf 集的 joined control view 重判；joined lifecycle 不是 `active` 时立即 `stale_seal_ref`，不得计算 `distance` 或给予窗口。无法验证 multi-leaf joined view 的轻客户端 MUST hold pending 或 fail closed，不得 fanout。
 - 后续 `ak.circle.restore` 只使**以包含 restore 的 active control view 为新基线**的写入恢复合法；它 MUST NOT 追溯恢复任何跨过 archive barrier 的旧 `seal_ref`。producer 在 restore 后继续写入 MUST 换用包含 restore 的新 Seal 基线。
 
-这些规则只统一 lifecycle gate 的基线与 stale 处置，不改变 `effective_scope` 的 immutable 派生：一旦 DataEvent 被接受，其 stamped scope 不因 archive / restore 重写。Conformance vector `ak.vector.circle.lifecycle_basis_and_archive_freshness.v1` 固定线性 archive、并发 archive、tombstone、restore barrier 与 Control Move basis 的结果。
+这些规则只统一 lifecycle gate 的基线与 stale 处置，不改变签名 `scope_ref`：一旦 DataEvent
+被接受，其 scope 不因 archive/restore 重写。对应 conformance vector 是
+`ak.vector.circle.lifecycle_basis_and_archive_freshness.v1`。
 
-### 6.2 `effective_scope` wire shape — submit-payload vs canonical reducer-output
+### 6.2 `scope_ref` wire shape 与对象 projection
 
-`effective_scope` 在 wire 上有**两个不同的形态**，机器契约 MUST 分别校验:
+Event wire 只有一个安全作用域字段 `scope_ref`：
 
-1. **Submit-payload form (actor-supplied)**:actor 在 `ak.strand.create` / `ak.morph.create` / `ak.relation.create` / `ak.space.create` 等建对象写事件的 `payload.object`(Relation 为 `payload.relation`)内联对象中 supply `scope_circle_id` 字段(可为 `null`)。**MUST NOT** 携带 `effective_scope` 顶层字段；若 supply，reducer MUST 返回 `schema_violation` (`reason=effective_scope_reducer_managed`)。`ak.message.create` 与 `ak.space.parent` **不**携带 `scope_circle_id`:Message 无独立 scope，其 `effective_scope` 由所属 Strand 的 scope 派生；`ak.space.parent` 是只设 parent 链的 cas_register Move,Space 的 `scope_circle_id` 在 `ak.space.create` 随对象写入。
-2. **Canonical reducer-output form (reducer-stamped, immutable)**:reducer 在接受 event 时把 `scope_circle_id` 物化为 tagged 对象，写入 Event envelope 的 `effective_scope` 字段 + 物化对象的 `effective_scope` cell。该字段一经写入 immutable；旧 event 即使 `scope_circle_id` 后续改绑也保留写入时的值。
+1. 对带 `scope_circle_id` 的对象，producer 同时提交对象字段和由它确定的 Event `scope_ref`；
+2. Message 等不带独立 `scope_circle_id` 的 payload，producer 从引用对象的已接受 projection 得到 `scope_ref`；
+3. reducer 独立派生并比较；不一致返回 `scope_ref_mismatch`，不得替 sender 盖章或修正；
+4. 对象 read projection 中的 `effective_scope` 只能从创建 Event `scope_ref` 物化。
 
-两个形态的 schema:
-
-**Submit-payload (actor-side input shape)**:
+Realm scope Event：
 
 ```json
 {
-  "scope_circle_id": null
+  "scope_ref": {
+    "kind": "realm",
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+  }
 }
 ```
 
-```json
-{
-  "scope_circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
-}
-```
-
-`scope_circle_id` 是 `id:circle | null`;`effective_scope` 字段 MUST NOT 出现。
-
-**Canonical reducer-output (Event envelope + materialized object)**:
-
-`effective_scope.kind = "realm"`(对应 submit-payload `scope_circle_id=null`):
-
-```json
-{ "kind": "realm", "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000" }
-```
-
-`effective_scope.kind = "circle"`(对应 submit-payload `scope_circle_id=ak:circle:...`):
+Circle scope Event：
 
 ```json
 {
-  "kind": "circle",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-  "circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
+  "scope_ref": {
+    "kind": "circle",
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+    "circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
+  }
 }
 ```
 
 Reducer 校验顺序(MUST):
 
-1. 解析 submit-payload，确认顶层无 `effective_scope`，确认 `scope_circle_id` 为合法 `id:circle | null`。
+1. schema 校验 Event 必有 `scope_ref`，且 `scope_ref.realm_id == realm_id`。
 2. 若 `scope_circle_id` 非 null:在 §6.1 规定的 DataEvent `seal_ref` / Control Move `seal_basis` CBA 基线中解析对应 Circle，校验 `realm_id` 一致 + `state=active`；不得读取 receiver 当前 projection 代替事件基线。
-3. 物化 tagged `effective_scope` 对象，写入 Event envelope + 物化 cell；后续 Event reader / projection / Seal verifier MUST 使用 canonical reducer-output form 进行 authorization 与 history visibility 评估。
+3. 从 payload/accepted target projection 派生预期 scope，与签名 `scope_ref` 逐字段比较。
+4. authorization、fanout、history 与 E2EE 只使用已验证的签名 `scope_ref`；对象 projection 可复制该值但不得反向覆盖 Event。
 
 Conformance fixture 见 `artifacts/fixtures/circle-scope-fixture.json`，覆盖 None→None / 同scope→同scope / None→Some / Some→None / Some(A)→Some(B) 五种 rebind transition 与 schema-violation negative case。
 
@@ -302,7 +294,7 @@ authorized(actor, action, object) ⇔
      actor ∈ Circle(effective_scope(object).circle_id).members[at object.causal_frontier])
 ```
 
-其中 `effective_scope(object)` 对 durable Event 使用 immutable `effective_scope`，对 materialized object 使用当前 `scope_circle_id` 派生出的 tagged scope。capability 决定"能不能做",Circle membership 决定"够不够近"。任一不满足都拒绝。
+其中 `effective_scope(object)` 对 durable Event 使用 immutable signed `scope_ref`，对 materialized object 使用创建 Event scope 或当前 `scope_circle_id` 的规范派生。capability 决定能否执行，Circle membership 决定作用域资格；任一不满足都拒绝。
 
 Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` selector，或由 Circle 自身的 admin cell 派生；不得把无约束的 Realm-wide `ak.circle.manage` 当作普通管理权限发放。Realm admin 需要读取 Circle 正文或成员细节时 MUST 走 `ak.circle.audit` + `ak.audit.accessed` 配对路径；MLS-backed Circle 中还不能获得历史解密 key，除非被正式加入该 Circle。Plaintext Circle 不存在历史解密 key，但仍不得绕过 Circle membership / audit gate 直接投递或查询。
 

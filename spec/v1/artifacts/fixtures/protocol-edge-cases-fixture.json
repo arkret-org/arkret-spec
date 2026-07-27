@@ -379,7 +379,7 @@
         "accept_without_invite_prestate_is_invalid_membership_transition",
         "cancel_rejected_returns_member_state_to_leave",
         "revoke_with_expired_reason_returns_member_state_to_leave",
-        "directed_terminal_move_missing_invitee_is_effects_payload_mismatch",
+        "directed_terminal_move_missing_invitee_is_reducer_projection_failed",
         "third_party_create_writes_no_member_state_effect",
         "bare_member_state_ban_from_invite_prestate_is_rejected"
       ],
@@ -396,7 +396,7 @@
         "leave to join is never relaxed for the invite path",
         "a rejected or revoked or expired invite returns the member cell to leave in the same Control Move",
         "after the terminal move the subject loses invite-frontier read and key share eligibility in a history_visibility=invited Realm",
-        "the 3PID branch produces no member.state effect and over-writing one is effects_payload_mismatch",
+        "the 3PID branch produces no member.state projection and attempting an extra write is reducer_projection_failed",
         "a live directed invite must be driven terminal before a ban, so the ban edge evaluates as leave to ban"
       ]
     },

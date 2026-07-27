@@ -654,7 +654,7 @@
           "éxample:example.com",
           "bad/name:example.com",
           "bad@name:example.com",
-          "bad\u202ename:example.com",
+          "bad‮name:example.com",
           "alice:example.com.",
           "alice:xn--a.example",
           "alice:ab--cd.example"
@@ -662,7 +662,7 @@
         "rejected_single_line_display_text": [
           "éxample",
           "line\nbreak",
-          "only\u202eoverride",
+          "only‮override",
           "   "
         ],
         "external_identifier_pairs_not_generically_equal": [

@@ -41,7 +41,7 @@ Offer、Answer、ICE candidate、renegotiation、speaking update 等高频信令
 WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 - 绑定 Realm id、call id、device id、actor id。
-- 由发送设备签名，或封装在已认证的 encrypted ephemeral channel。
+- 由发送设备签名，并封装在已认证的 encrypted Realtime rail。
 - 对同一 Realm / DM 的授权成员端到端加密。
 - 防重放，至少包含 timestamp、sequence 或 frame id。
 
@@ -256,78 +256,26 @@ Content-Type: application/json
 
 ## 5. Signaling Envelope
 
-所有 call signaling frame 使用 `ak.schema.ephemeral_envelope.v1` 的 broadcast envelope；`ak.call.signal` 分支 MUST 携带 `device_id` 与 `proof`，并在 `payload` 中携带 call 级字段：
+所有 call signaling frame 使用 [`RealtimeEnvelope`](../sync/realtime.md)，外层只允许
+`signal_class` 三值分类。`call_id`、`signal_kind`、sequence、SDP、ICE candidate 与媒体状态
+全部位于 `encrypted_payload` 内；服务端不得看见或按它们路由。`invite` 等需要唤醒的 frame
+使用 `signal_class=setup`，moderation frame 使用 `moderation`，其余使用 `session`。
 
-```json schema=schemas/ephemeral-envelope.schema.json
-{
-  "kind": "ak.call.signal",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-  "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-  "sent_at": "2026-04-26T00:00:00.000Z",
-  "expires_at": "2026-04-26T00:00:30.000Z",
-  "payload": {
-    "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
-    "signal_kind": "invite",
-    "seq": 12,
-    "data": {}
-  },
-  "proof": {
-    "kind": "detached_jws",
-    "alg": "EdDSA",
-    "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#ak:device:01964137-0000-7000-8000-000000000000",
-    "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-    "created_at": "2026-04-26T00:00:00.000Z",
-    "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJl"
-  }
-}
-```
+接收方 MUST 在 ringing、candidate application 或任何副作用之前验证外层 device proof、
+Seal basis、scope/MLS epoch 与 AAD，然后解密并检查 plaintext sequence 在
+`(realm_id, call_id, actor_id, device_id)` 上单调递增。失败、过期、重放、未知 signal kind
+或被吊销设备的 frame 必须 fail closed。规范外层 schema 是
+[`realtime-envelope.schema.json`](../../artifacts/schemas/realtime-envelope.schema.json)；
+proof context 固定为 `ak.realtime-proof-v1`。
 
-### 5.1 Envelope proof（normative）
-
-`ak.call.signal` 的 `proof` 是 detached-JWS，**形态与持久 Event proof 同构**（[`../models/event-and-patch.md` §3](../models/event-and-patch.md) 与 `event-envelope.schema.json` 的 `$defs/event_proof`）：字段为 `kind` = `detached_jws`、`alg`(默认 `EdDSA`)、`verification_method`、`event_digest`、`created_at`、`jws`，schema 见 [`ephemeral-envelope.schema.json`](../../artifacts/schemas/ephemeral-envelope.schema.json) 的 `$defs/ephemeral_proof`。
-
-- `verification_method` MUST 是 `` `{actor_id}#{device_id}` `` 形式的 DID URL，fragment 是完整 `ak:device:<uuidv7>`；其 controller DID(去 fragment / query 后)MUST 与 envelope `actor_id` 逐字节相等。
-- `event_digest` MUST 等价于 `canonical_digest(envelope_without_proof)`：对**移除 `proof` 字段后**的整个 ephemeral envelope(`kind`、`realm_id`、`actor_id`、`device_id`、`sent_at`、`expires_at`、`payload`)按 RFC 8785 JCS（canonical JSON，见 [`../conformance/encoding.md`](../conformance/encoding.md)）序列化后取 hash，前缀算法名(如 `sha256:`)。
-- `jws` 的 detached-JWS payload / transcript MUST 是 canonical proof binding object，而非把整个 envelope bytes 放进 JWS payload：
-
-```json
-{
-  "event_digest": "sha256:<canonical envelope hash>",
-  "actor_id": "<envelope actor_id>",
-  "verification_method": "<proof.verification_method>",
-  "created_at": "<proof.created_at>",
-  "domain": "<proof.domain if present>",
-  "audience": "<proof.audience if present>"
-}
-```
-
-该 binding object 与 [`../models/event-and-patch.md` §3](../models/event-and-patch.md) 的持久 Event proof binding object **逐字段同构**（同样含 `actor_id` = envelope `actor_id`），从而**同一个** EdDSA detached-JWS verifier（参考实现 `arkret-rust-sdk` 的 `verify_eddsa_detached_jws_proof`）可不加改动地同时服务通话信令与持久消息。`actor_id` 既进 binding object 被签名覆盖，`verification_method` 的 controller DID 又 MUST 与之逐字节相等——双重绑定。
-
-接收方 MUST 在触发 ringing UI（或任何信令副作用）之前验证 `proof`：MUST 先移除 `proof` 计算 canonical envelope hash 并与 `proof.event_digest` 比对，再按上述字段构造 binding object 验证 detached-JWS。验证 verify_key 时 MUST 以 `verification_method` = `` `{actor_id}#{device_id}` `` 经设备目录（[`device-lifecycle.md` §8](./device-lifecycle.md) keys/query 响应的 `device_signing_key`）解析该 `(actor, device)` 的权威验签公钥。设备**吊销**(`device_status != active` 或目录省略 key)、目录**缺失**该 `(actor, device)`、`verification_method` controller 与 `actor_id` 不一致、或 detached-JWS 验签失败者，接收方 MUST **fail-closed**：丢弃该信号，MUST NOT 触发 UI、MUST NOT 入库、MUST NOT 推进 `payload.seq` 状态。
-
-接收方亦 MUST reject replay / rollback：`payload.seq` 在 `(realm_id, payload.call_id, actor_id, device_id)` 维度上 MUST 单调递增。
-
-`payload.signal_kind`：
-
-- `invite`
-- `answer`
-- `candidate`
-- `reject`
-- `hangup`
-- `renegotiate`
-- `mute_state`
-- `media_state`
-- `speaking`
-- `focus_join`
-- `focus_leave`
-- `moderation`
-- `error`
-- `ack`
+解密后的 plaintext 是闭合对象，字段为 `kind=ak.call.signal`、`call_id`、
+`signal_kind`、`seq` 与 `data`。允许的 `signal_kind` 为 `invite` / `answer` /
+`candidate` / `reject` / `hangup` / `renegotiate` / `mute_state` / `media_state` /
+`speaking` / `focus_join` / `focus_leave` / `moderation` / `error` / `ack`。
 
 ## 6. 一对一通话
 
-以下示例给出 `ak.call.signal` 信令的 `payload` 对象（外层 ephemeral envelope 形态见 §5；`payload` 的封闭字段为 `call_id` / `signal_kind` / `seq` / `data`，信令种类由 `payload.signal_kind` 选择，取值见 §5）。
+以下示例给出解密后的 `ak.call.signal` plaintext 对象；外层加密形态见 §5。
 
 Invite payload:
 

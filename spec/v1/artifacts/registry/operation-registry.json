@@ -77,6 +77,15 @@
       "surface_class": "core"
     },
     {
+      "surface": "security_transactions",
+      "operations": [
+        "ak.self.security_transaction.command.create",
+        "ak.self.security_transaction.resource.get",
+        "ak.self.security_transaction.command.continue"
+      ],
+      "surface_class": "core"
+    },
+    {
       "surface": "events_sync",
       "operations": [
         "ak.self.events.query.describe",
@@ -94,9 +103,7 @@
         "ak.self.account.command.update_profile",
         "ak.self.account.stream.subscribe",
         "ak.self.account.command.revoke_cursor",
-        "ak.self.ephemeral.command.send",
-        "ak.self.snapshot.query.manifest_head",
-        "ak.self.call.media.exchange.issue_token"
+        "ak.self.snapshot.query.manifest_head"
       ],
       "surface_class": "core"
     },
@@ -252,7 +259,10 @@
     {
       "surface": "realtime_media",
       "operations": [
-        "ak.self.media.query.ice_config"
+        "ak.self.media.query.ice_config",
+        "ak.self.realtime.command.send",
+        "ak.self.realtime.stream.subscribe",
+        "ak.self.call.media.exchange.issue_token"
       ],
       "surface_class": "extension"
     },
@@ -1620,7 +1630,7 @@
       "http": "POST /_arkret/self/events",
       "grpc": "SelfEvents/Submit",
       "mq": "self.events.command.submit",
-      "notes": "Durable self event submission, including ak.invite.claim. For ak.invite.claim, the receiving Realm reducer is the authoritative state machine: it MUST match token_commitment, re-check verification_service_id allowlist against current Realm policy, reject claim_nonce replay, perform pending -> claimed / membership-proposal effects, and run expiry cleanup before accepting.",
+      "notes": "Initial durable Event publication uses EventInitialSubmission: the signed Event remains the only business fact, while AuthorizationLease and optional CBAProofBundle values are independently verified publication evidence outside the Event digest. The ingress MUST persist and return the original IngressReceipt before lease expiry; byte-identical retry returns the stored receipt without changing received_at. For ak.invite.claim, the receiving Realm reducer remains the authoritative state machine and re-checks token commitment, allowlist, replay, proposal and expiry state.",
       "body_class": "non_streaming_json",
       "max_items": 1000,
       "success_shape_kind": "typed_response",
@@ -1699,7 +1709,7 @@
       "http": "POST /_arkret/peer/events",
       "grpc": "PeerEvents/Submit",
       "mq": "peer.events.command.submit",
-      "notes": "Federation peer event push. Body is EventsSubmitFederationRequestBody and the caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers. Federated ak.invite.claim events are still decided by the destination Realm reducer, which MUST enforce token_commitment, current allowlist re-check, claim_nonce replay rejection, membership proposal conversion, and expiry cleanup; peer ingress prechecks are not state authority.",
+      "notes": "Federation peer Event publication. Each EventFederationSubmission carries the original signed Event, its AuthorizationLease and at least one original IngressReceipt; request-level CBAProofBundle values provide receiver-relative dependency closure. The receiver independently validates every Event, lease, receipt threshold, bundle object and reducer result. The caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers. Federated ak.invite.claim remains decided by the destination Realm reducer.",
       "body_class": "non_streaming_json",
       "max_items": 500,
       "success_shape_kind": "typed_response",
@@ -1773,20 +1783,30 @@
       "response_schema_ref": "schemas/snapshot.schema.json"
     },
     {
-      "operation_id": "ak.self.ephemeral.command.send",
-      "http": "POST /_arkret/self/ephemeral",
-      "grpc": "SelfEphemeral/Send",
-      "mq": "self.ephemeral.command.send",
-      "notes": "Canonical broadcast ephemeral send operation for ak.schema.ephemeral_envelope.v1. Carries ak.presence, ak.typing, ak.receipt.read, and ak.call.signal; MUST NOT persist the signal as a durable Event or advance actor_seq / Realm frontier.",
+      "operation_id": "ak.self.realtime.command.send",
+      "http": "POST /_arkret/self/realtime",
+      "grpc": "SelfRealtime/Send",
+      "mq": "self.realtime.command.send",
+      "notes": "Encrypted-only Realtime Extension send rail for ak.schema.realtime_envelope.v1. Exact signal type and product target remain inside ciphertext. It MUST NOT persist the envelope as a durable Event or advance actor_seq / Realm frontier.",
       "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 65536,
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,
       "uncertain_outcome": {
         "strategy": "drop_unconfirmed"
       },
-      "request_schema_ref": "schemas/ephemeral-envelope.schema.json",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitOutcome"
+      "request_schema_ref": "schemas/realtime-envelope.schema.json",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/RealtimeSubmitOutcome"
+    },
+    {
+      "operation_id": "ak.self.realtime.stream.subscribe",
+      "http": "GET /_arkret/self/realtime/subscribe",
+      "grpc": "SelfRealtime/Subscribe",
+      "mq": "self.realtime.stream.subscribe",
+      "notes": "Authenticated encrypted-only Realtime Extension receive rail. Frames carry RealtimeEnvelope objects or bounded transport control frames; exact signal type and product target remain inside ciphertext. No catch-up or durable delivery guarantee.",
+      "body_class": "streaming_ndjson",
+      "success_shape_kind": "event_stream"
     },
     {
       "operation_id": "ak.self.call.media.exchange.issue_token",
@@ -2033,6 +2053,42 @@
       },
       "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
       "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome"
+    },
+    {
+      "operation_id": "ak.self.security_transaction.command.create",
+      "http": "POST /_arkret/self/security-transactions",
+      "grpc": "SelfSecurityTransactions/Create",
+      "mq": "self.security_transaction.command.create",
+      "notes": "Creates exactly one durable RecoveryTransaction or SecurityRotationTransaction. The coordinator MUST atomically persist canonical request bytes, request_digest, typed intent, all reserved public ids, and the initial resource before the first irreversible side effect. Same transaction_id plus identical bytes returns the recorded resource; different bytes returns duplicate_conflict.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "protocol_sequence",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/security-transaction.schema.json#/$defs/create_request",
+      "response_schema_ref": "schemas/security-transaction.schema.json"
+    },
+    {
+      "operation_id": "ak.self.security_transaction.resource.get",
+      "http": "GET /_arkret/self/security-transactions/{transaction_id}",
+      "grpc": "SelfSecurityTransactions/Get",
+      "mq": "self.security_transaction.resource.get",
+      "notes": "Authoritative durable progress query by transaction_id. It MUST return the stored binding, accepted step prefix, next action, and terminal outcome and MUST NOT synthesize state from a short-lived HTTP idempotency cache.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "response_schema_ref": "schemas/security-transaction.schema.json"
+    },
+    {
+      "operation_id": "ak.self.security_transaction.command.continue",
+      "http": "POST /_arkret/self/security-transactions/{transaction_id}/continue",
+      "grpc": "SelfSecurityTransactions/Continue",
+      "mq": "self.security_transaction.command.continue",
+      "notes": "Continues only the stored next_required_action. request_digest and expected_next_action MUST equal the resource; the endpoint is not a generic step or Saga executor. Client attestation is accepted only for issue_terminal_receipt or local_commit and must bind the pre-reserved ref.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "protocol_sequence",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/security-transaction.schema.json#/$defs/continue_request",
+      "response_schema_ref": "schemas/security-transaction.schema.json"
     },
     {
       "operation_id": "ak.self.keys.command.claim",
@@ -3036,7 +3092,7 @@
       "http": "GET /_arkret/self/account/subscribe",
       "grpc": "SelfAccount/Subscribe",
       "mq": "self.account.stream.subscribe",
-      "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, presence, unread / notification counts). Connection is long-lived; server pushes NDJSON frames as new data becomes available. Symmetric with ak.self.events.stream.subscribe — both are streaming subscriptions, differing only in scope (self.events.stream.subscribe = per-Realm event log; self.account.stream.subscribe = account-aggregate). `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same principal/device/filter scope; early reconnects are rejected with rate_limited / Retry-After. Presence changes are sent through ak.self.ephemeral.command.send, not this read-only stream subscription.",
+      "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, unread / notification counts). Realtime envelopes use the Realtime Extension live rail and are not account aggregate state. Connection is long-lived; server pushes NDJSON frames as new data becomes available.",
       "body_class": "streaming_ndjson",
       "success_shape_kind": "event_stream"
     },

@@ -20,16 +20,32 @@
       "description": "Identity transformation preserves all fields and canonical values.",
       "input": {
         "morph_kind": "customer_risk",
-        "from_schema_refs": ["ak.schema.morph.customer_risk.v1"],
-        "fields": {"risk_score": 7, "status": "open"},
+        "from_schema_refs": [
+          "ak.schema.morph.customer_risk.v1"
+        ],
+        "fields": {
+          "risk_score": 7,
+          "status": "open"
+        },
         "payload": {
-          "from_schema_refs": ["ak.schema.morph.customer_risk.v1"],
-          "to_schema_refs": ["ak.schema.morph.customer_risk.v1"],
+          "from_schema_refs": [
+            "ak.schema.morph.customer_risk.v1"
+          ],
+          "to_schema_refs": [
+            "ak.schema.morph.customer_risk.v1"
+          ],
           "compatibility_class": "transformation",
-          "transformation_rules": [{"rule": "ak.transform.identity.v1"}]
+          "transformation_rules": [
+            {
+              "rule": "ak.transform.identity.v1"
+            }
+          ]
         }
       },
-      "expected_output": {"risk_score": 7, "status": "open"},
+      "expected_output": {
+        "risk_score": 7,
+        "status": "open"
+      },
       "expected_output_digest": "sha256:be821986e41569d5b57dd22365fd68552b4d674235d993ea62959c12fbcfaa79"
     },
     {
@@ -38,13 +54,17 @@
       "description": "A field-rename transformation: fields.risk_score is renamed to fields.score; the unrelated fields.status passes through untouched. Pure rename, replay-deterministic.",
       "input": {
         "morph_kind": "customer_risk",
-        "from_schema_refs": ["ak.schema.morph.customer_risk.v1"],
+        "from_schema_refs": [
+          "ak.schema.morph.customer_risk.v1"
+        ],
         "fields": {
           "risk_score": 7,
           "status": "open"
         },
         "payload": {
-          "from_schema_refs": ["ak.schema.morph.customer_risk.v1"],
+          "from_schema_refs": [
+            "ak.schema.morph.customer_risk.v1"
+          ],
           "to_schema_refs": [
             "ak.schema.morph.customer_risk.v1",
             "ak.schema.morph.customer_risk.ext.v1"
@@ -71,12 +91,16 @@
       "description": "A default-backfill transformation: a new optional field fields.priority is backfilled with the deterministic default \"normal\" while existing fields.status is preserved. Backfill is idempotent (it never overwrites a present value).",
       "input": {
         "morph_kind": "customer_risk",
-        "from_schema_refs": ["ak.schema.morph.customer_risk.v1"],
+        "from_schema_refs": [
+          "ak.schema.morph.customer_risk.v1"
+        ],
         "fields": {
           "status": "open"
         },
         "payload": {
-          "from_schema_refs": ["ak.schema.morph.customer_risk.v1"],
+          "from_schema_refs": [
+            "ak.schema.morph.customer_risk.v1"
+          ],
           "to_schema_refs": [
             "ak.schema.morph.customer_risk.v1",
             "ak.schema.morph.customer_risk.ext.v1"
@@ -103,21 +127,36 @@
       "description": "Integer-to-number widening preserves the JSON numeric value while changing its declared schema acceptance set.",
       "input": {
         "morph_kind": "customer_risk",
-        "from_schema_refs": ["ak.schema.morph.customer_risk.v1"],
-        "fields": {"confidence": 7, "status": "open"},
+        "from_schema_refs": [
+          "ak.schema.morph.customer_risk.v1"
+        ],
+        "fields": {
+          "confidence": 7,
+          "status": "open"
+        },
         "payload": {
-          "from_schema_refs": ["ak.schema.morph.customer_risk.v1"],
-          "to_schema_refs": ["ak.schema.morph.customer_risk.v1", "ak.schema.morph.customer_risk.ext.v1"],
+          "from_schema_refs": [
+            "ak.schema.morph.customer_risk.v1"
+          ],
+          "to_schema_refs": [
+            "ak.schema.morph.customer_risk.v1",
+            "ak.schema.morph.customer_risk.ext.v1"
+          ],
           "compatibility_class": "transformation",
-          "transformation_rules": [{
-            "rule": "ak.transform.type_widen.v1",
-            "field": "confidence",
-            "from_kind": "integer",
-            "to_kind": "number"
-          }]
+          "transformation_rules": [
+            {
+              "rule": "ak.transform.type_widen.v1",
+              "field": "confidence",
+              "from_kind": "integer",
+              "to_kind": "number"
+            }
+          ]
         }
       },
-      "expected_output": {"confidence": 7, "status": "open"},
+      "expected_output": {
+        "confidence": 7,
+        "status": "open"
+      },
       "expected_output_digest": "sha256:3894463f741ab60b7eaad3b1917aa0fefaf6c1be14721618c19aea4b775fbdc4"
     }
   ]

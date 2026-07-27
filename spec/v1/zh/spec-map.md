@@ -48,13 +48,13 @@ see_also:
 
 初次理解协议时，建议按以下顺序阅读：
 
-1. `overview/architecture.md`：先理解分层、实际服务器角色和信任边界。
+1. `overview/protocol-layers.md` 与 `overview/architecture.md`：先理解 Kernel / Collaboration Base / Extension 分层、实际服务器角色和信任边界。
 2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Realm / Event / Principal Server。
 3. `overview/current-model.md`：理解 v1 统一对象模型的关键设计决定（Strand 统一、Board/List 容器化、track 模型、E2EE 边界、agent 落点）。
 4. `models/overview.md` 起步，按需进入 `models/realm-and-space.md`、`models/strand-and-message.md` 等专项文件，理解协作图和标准对象。
-5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`、`identity/consent-model.md`、`identity/contact-and-direct-conversation.md`：理解身份、handle、设备/备份密钥、consent gate、联系人关系和 1:1 私聊入口。
-6. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限和 Realm 状态机。
-7. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`、`sync/service-http-binding.md`：理解写入、同步和服务面。
+5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`、`identity/security-transactions.md`、`identity/consent-model.md`、`identity/contact-and-direct-conversation.md`：理解身份、handle、设备/备份密钥、安全事务、consent gate、联系人关系和 1:1 私聊入口。
+6. `authz/capabilities.md`、`authz/cba-profiles.md`、`authz/event-auth-state-resolution.md`、`authz/offline-publication.md`：理解权限、CBA 授权形态、Realm 状态机和离线发布。
+7. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/realtime.md`、`sync/service-surface.md`、`sync/service-http-binding.md`：理解 durable 写入、同步、加密实时 rail 和服务面。
 8. `governance/history-visibility.md`：理解历史可见性、preview / peek、public plaintext Realm 和 E2EE history key share 的共同边界。
 9. 按业务需要阅读扩展 profile，例如 Applet、Agent、WebRTC、Directory。
 
@@ -121,6 +121,7 @@ see_also:
 | `index.md` | 项目定位、设计目标、规范入口。 |
 | `spec-map.md` | 本文，按协议平面组织阅读路径。 |
 | `overview/architecture.md` | 顶层架构、Principal Server 部署形态、部署拓扑、信任边界。 |
+| `overview/protocol-layers.md` | Kernel、Collaboration Base 与 Extension 的协议边界、依赖方向和演进规则。 |
 | `overview/current-model.md` | Strand / track / Board / List / View 的统一模型说明。 |
 | `overview/release-readiness.md` | `v1` 发布基线、工件矩阵与稳定发布门槛。 |
 | `overview/glossary.md` | 全局术语表。 |
@@ -137,6 +138,7 @@ see_also:
 | `identity/contact-and-direct-conversation.md` | 联系人请求 / 接受 / 拒绝 / tombstone、contact-managed consent、private contact discovery 边界、direct conversation resolver、DM Realm 与 DM 主 Strand 形态。 |
 | `identity/tsp-integration.md` | TSP 作为可选 transport / trust binding。 |
 | `identity/key-management.md` | 密钥、恢复、Accountable Actor。 |
+| `identity/security-transactions.md` | RecoveryTransaction / SecurityRotationTransaction 的幂等、恢复与终态合同。 |
 | `identity/account-lifecycle.md` | 账号停用、锁定、擦除、session revocation。 |
 | `sync/third-party-invites.md` | 3PID 邀请、认领与第三方标识符 claim 流程；物理位于 `sync/`，因为其 wire strand 与服务提交路径由 Sync / Federation 章节承载。 |
 
@@ -175,6 +177,8 @@ see_also:
 | 文档 | 内容 |
 | --- | --- |
 | `authz/capabilities.md` | Capability、delegation、revocation、claim 条件。 |
+| `authz/cba-profiles.md` | CBA 授权集合 profile、并发类别、proof bundle 与提案终态。 |
+| `authz/offline-publication.md` | AuthorizationLease、IngressReceipt 与离线发布窗口。 |
 | `authz/constraint-schema.md` | Capability / policy 约束表达式、条件字段和组合语义。 |
 | `authz/resource-selector-grammar.md` | Resource selector 的语法、匹配范围和解析规则。 |
 | `authz/event-auth-state-resolution.md` | Move、Seal、Lattice、bottom diagnostics、auth refs、membership、policy cells、history sharing 与 E2EE covered Seals。 |
@@ -191,6 +195,7 @@ see_also:
 | --- | --- |
 | `sync/operations-sync.md` | Event-first 发布、Event Envelope、snapshot、冲突收敛。 |
 | `sync/client-sync.md` | 客户端增量同步、timeline、state_after、to_device。 |
+| `sync/realtime.md` | encrypted-only Realtime Extension send / subscribe rail、可见分类与 TTL。 |
 | `sync/service-surface.md` | 最小服务面与实际服务组合：Principal Server、identity、events、sync、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |
 | `sync/privacy-preserving-search.md` | 客户端加密索引托管、blind-index token、`ak.realm.search_policy` 与 search result fail-closed 语义。 |
 | `sync/service-http-binding.md` | 默认 HTTP/JSON binding 路径、请求/响应和标准错误码。 |
@@ -233,6 +238,7 @@ see_also:
 | 文档 | 内容 |
 | --- | --- |
 | `extensions/applet-integration.md` | Applet / bridge / bot / Ghost Actor / portal Realm。 |
+| `extensions/extension-manifest.md` | Extension Manifest 的声明式边界、依赖与禁止可执行 DSL 规则。 |
 | `extensions/applet-schema.md` | Applet schema 与 OpenAPI binding。 |
 | `extensions/mimi-interop.md` | MIMI Provider Facade、room binding、content/policy/identity mapping。 |
 

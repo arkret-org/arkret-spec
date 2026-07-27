@@ -91,7 +91,7 @@ python tools/artifact_pipeline.py check      # 对照 catalog 检查派生视图
 
 ### 2.1 JSON Schema 校验边界
 
-JSON Schema 只验证 wire object 的结构层。一个标准 Event 只有在同时通过 Event Envelope schema、event-kind registry、active profile requirements、payload class、capability resolution、reducer precondition/effect 和 Seal/Lattice state 校验后，才能被实现当作协议有效。实现 MUST NOT 把单独的 `schemas/*.schema.json` 通过结果当作 security-sensitive event 的接受条件；schema-only validator 只能用于早期格式拒绝和开发期诊断。
+JSON Schema 只验证 wire object 的结构层。一个标准 Event 只有在同时通过 Event Envelope schema、event-kind registry、active profile requirements、payload class、capability resolution、reducer precondition/projection 和 Seal/Lattice state 校验后，才能被实现当作协议有效。实现 MUST NOT 把单独的 `schemas/*.schema.json` 通过结果当作 security-sensitive event 的接受条件；schema-only validator 只能用于早期格式拒绝和开发期诊断。
 
 ## 3. CI 要求
 

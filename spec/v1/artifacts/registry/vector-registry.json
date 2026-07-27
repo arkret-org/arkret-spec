@@ -196,13 +196,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.patch.effects_prestate_binding.v1",
+      "vector_id": "ak.vector.patch.projection_prestate_binding.v1",
       "status": "active",
       "domain": "patch",
       "applies_to_fixtures": [
         "state-reducer-hardening-fixture.json"
       ],
-      "description": "Pins strand update/tracks update to data-plane mv_register target_ref routing while stage.set remains control CAS; data-plane patch effects are recomputed from the single causal_refs base head, remain independent of receiver-local current heads, hold on missing dependencies, and reject missing/multiple bases or non-canonical full post-state effects with effects_payload_mismatch.",
+      "description": "Pins strand update/tracks update to data-plane mv_register target_ref routing while stage.set remains control CAS; reducer projections are recomputed from the single causal_refs base head, remain independent of receiver-local current heads, hold on missing dependencies, and reject missing/multiple bases or non-canonical projected post-state with reducer_projection_failed.",
       "source_refs": [
         "spec/v1/zh/models/event-and-patch.md",
         "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json"
@@ -215,7 +215,7 @@
       "applies_to_fixtures": [
         "state-reducer-hardening-fixture.json"
       ],
-      "description": "Requires every active reducer-input kind to have a complete machine-readable cell contract and pins exact multi-target atomicity, missing/extra effect rejection, and data/control plane-cross-write rejection.",
+      "description": "Requires every active reducer-input kind to have a complete machine-readable cell contract and pins exact multi-target atomicity, missing/extra reducer-projection rejection, and data/control plane-cross-write rejection.",
       "source_refs": [
         "spec/v1/zh/models/event-and-patch.md",
         "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json"
@@ -1873,9 +1873,9 @@
       ]
     },
     {
-      "vector_id": "ak.vector.ephemeral.capability_ttl.v1",
+      "vector_id": "ak.vector.realtime.class_ttl.v1",
       "status": "active",
-      "domain": "ephemeral",
+      "domain": "realtime",
       "applies_to_fixtures": [
         "service-closure-hardening-fixture.json"
       ],
@@ -3569,7 +3569,7 @@
       "applies_to_vector_groups": [
         "ak.vector_group.cba_lattice.v1"
       ],
-      "description": "ordered_log per-issuer prefix from issuer_seq 0 and issuer equivocation convergence: byte-identical canonical effect.op is idempotent, non-equivalent candidates for the same (cell, actor_id, issuer_seq) resolve to the greatest canonical event_digest compared as decoded octets, causal edges never change the winner, losers stay auditable, and digest collision fails closed.",
+      "description": "ordered_log per-issuer prefix from issuer_seq 0 and issuer equivocation convergence: byte-identical canonical projected write.op is idempotent, non-equivalent candidates for the same (cell, actor_id, issuer_seq) resolve to the greatest canonical event_digest compared as decoded octets, causal edges never change the winner, losers stay auditable, and digest collision fails closed.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
@@ -3756,13 +3756,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.calendar.rsvp_effect_projection.v1",
+      "vector_id": "ak.vector.calendar.rsvp_reducer_projection.v1",
       "status": "active",
       "domain": "calendar",
       "applies_to_fixtures": [
         "calendar-rsvp-fixture.json"
       ],
-      "description": "ak.rsvp.set declares effect_projection set(payload.entry): a missing effect, an extra target, or an op value that differs from the canonical payload entry is refused rather than accepted on op-kind alone.",
+      "description": "ak.rsvp.set declares one deterministic reducer projection, set(payload.entry): an implementation that omits the registered write, projects an extra target, or derives a value different from the canonical payload entry fails conformance. Those writes are reducer-local output and never producer-selected Event fields.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -4390,7 +4390,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.event_kind.realm_create_effects_closure.v1",
+      "vector_id": "ak.vector.event_kind.realm_create_projection_closure.v1",
       "status": "active",
       "domain": "event_kind",
       "applies_to_vector_groups": [

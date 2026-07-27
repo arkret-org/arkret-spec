@@ -33,9 +33,9 @@ Account Data 的存储、namespace key、`derive_account_data_key`、value encry
 
 ### 2.1 服务端 policy projection 能力协商（normative）
 
-account data 默认是 holder-private 加密数据，Sync Service 只存不透明密文（[`../models/account-data.md` §1](../models/account-data.md)）。但部分 policy 投影（如 `ak.presence.visibility` 的 `presence_visibility` enum、`ak.account.blocklist` 的最小 data_class）需要服务端在执行 presence / typing fanout gate（[`profiles-presence.md` §3.4`](./profiles-presence.md)）或代表用户做 blocklist 过滤（§3.5）时读取。"account data 加密"与"服务端执行 policy"之间存在张力：若服务端完全无法读取最小 policy projection，它无法在服务端可靠 gate；若它能读，则突破了 holder-private 边界。v1 通过**显式能力协商**消解，而非让实现各自假定：
+account data 默认是 holder-private 加密数据，Sync Service 只存不透明密文（[`../models/account-data.md` §1](../models/account-data.md)）。presence / typing 的精确 kind、target 与 visibility policy 不再交给服务端读取；发送端按 [`profiles-presence.md` §3.4](./profiles-presence.md) 选择可安全加密的 scope。服务端仅可读取其它明确声明、确有服务端执行需要的最小 policy projection（例如 blocklist data class）。"account data 加密"与"服务端执行 policy"之间的边界必须显式协商：
 
-- 服务端 MUST 在 `ak.server.query.describe`（`ServiceDescribe`）中声明它能否读取最小 policy projection，至少覆盖 `presence_visibility` 与 `blocklist` 两个 data_class（例如通过 `plaintext_visible_services.data_classes` 或等价 `policy_projection_readable[]` 声明）。未声明即视为**不能读取**（fail-closed 默认）。
+- 服务端 MUST 在 `ak.server.query.describe`（`ServiceDescribe`）中声明它能否读取每个最小 policy projection（例如通过 `plaintext_visible_services.data_classes` 或等价 `policy_projection_readable[]` 声明）。`presence_visibility` 不得声明为服务端可读；未声明的其它 data class 视为不能读取。
 - 客户端据该声明选择执行位置：
   - 服务端声明可读对应 projection 且 holder 已显式授权 → 客户端 MAY 采用**服务端 gate**（服务端据 projection 执行 presence / typing fanout 与 blocklist 过滤）。
   - 服务端未声明可读、或 holder 未授权 → 客户端 MUST 采用**客户端本地 gate**，并且服务端 MUST 对跨设备 / 跨接收方 fanout fail closed（与 [`profiles-presence.md` §3.4`](./profiles-presence.md) "无法读取最小 policy projection 时 MUST 对 fanout fail closed" 同口径）。

@@ -64,16 +64,24 @@
           "versionId": "1-fixtureprev",
           "parameters": {
             "method": "did:webvh:1.0",
-            "updateKeys": ["z6MkgZb469vbyZCg3L7kx1PbQuUD4NToPpcy1utdLxUUfpsh"],
-            "nextKeyHashes": ["QmWgPjiSzjB2GMHYvXkgwozRnwYbSFvBJeozmDNBbgxwiw"]
+            "updateKeys": [
+              "z6MkgZb469vbyZCg3L7kx1PbQuUD4NToPpcy1utdLxUUfpsh"
+            ],
+            "nextKeyHashes": [
+              "QmWgPjiSzjB2GMHYvXkgwozRnwYbSFvBJeozmDNBbgxwiw"
+            ]
           }
         },
         "current_entry": {
           "versionId": "2-fixturecurrent",
           "parameters": {
             "method": "did:webvh:1.0",
-            "updateKeys": ["z6Mknsdc9pTFmauU4ys8mNthvopBiztB86JEbvXtU425mN7p"],
-            "nextKeyHashes": ["Qmefp9gpz6r2u4zgqH6dzDsBjJa1CPcSqjSbvdZc6QKmbv"]
+            "updateKeys": [
+              "z6Mknsdc9pTFmauU4ys8mNthvopBiztB86JEbvXtU425mN7p"
+            ],
+            "nextKeyHashes": [
+              "Qmefp9gpz6r2u4zgqH6dzDsBjJa1CPcSqjSbvdZc6QKmbv"
+            ]
           },
           "state": {
             "id": "did:webvh:z6mkfixture:alice.example",
@@ -106,8 +114,12 @@
           "versionId": "1-fixturegenesis",
           "parameters": {
             "method": "did:webvh:1.0",
-            "updateKeys": ["z6MkgZb469vbyZCg3L7kx1PbQuUD4NToPpcy1utdLxUUfpsh"],
-            "nextKeyHashes": ["QmWgPjiSzjB2GMHYvXkgwozRnwYbSFvBJeozmDNBbgxwiw"]
+            "updateKeys": [
+              "z6MkgZb469vbyZCg3L7kx1PbQuUD4NToPpcy1utdLxUUfpsh"
+            ],
+            "nextKeyHashes": [
+              "QmWgPjiSzjB2GMHYvXkgwozRnwYbSFvBJeozmDNBbgxwiw"
+            ]
           },
           "state": {
             "id": "did:webvh:z6mkfixture:alice.example",
@@ -125,8 +137,12 @@
                 "publicKeyMultibase": "z6MkhsxkjJkU3TE6qmVBz5vKvRLCTtsU24aef1fVYNXZRsUH"
               }
             ],
-            "assertionMethod": ["did:webvh:z6mkfixture:alice.example#principal-signing-key"],
-            "capabilityDelegation": ["did:webvh:z6mkfixture:alice.example#device-enrollment-authority"]
+            "assertionMethod": [
+              "did:webvh:z6mkfixture:alice.example#principal-signing-key"
+            ],
+            "capabilityDelegation": [
+              "did:webvh:z6mkfixture:alice.example#device-enrollment-authority"
+            ]
           },
           "controller_proof_key": "z6MkgZb469vbyZCg3L7kx1PbQuUD4NToPpcy1utdLxUUfpsh"
         },
@@ -142,7 +158,9 @@
       "input": {
         "state": {
           "id": "did:webvh:z6mkfixture:alice.example",
-          "capabilityDelegation": ["did:webvh:z6mkfixture:alice.example#device-enrollment-authority"],
+          "capabilityDelegation": [
+            "did:webvh:z6mkfixture:alice.example#device-enrollment-authority"
+          ],
           "service": [
             {
               "id": "did:webvh:z6mkfixture:alice.example#arkret-device-enrollment-authority",
@@ -163,7 +181,9 @@
         "state": {
           "id": "did:webvh:z6mkfixture:alice.example",
           "verificationMethod": [],
-          "capabilityDelegation": ["did:webvh:z6mkfixture:alice.example#missing-enrollment-key"]
+          "capabilityDelegation": [
+            "did:webvh:z6mkfixture:alice.example#missing-enrollment-key"
+          ]
         }
       },
       "expected": {
@@ -174,8 +194,12 @@
     {
       "name": "reject_previous_entry_update_key_proof",
       "input": {
-        "previous_update_keys": ["z6MkgZb469vbyZCg3L7kx1PbQuUD4NToPpcy1utdLxUUfpsh"],
-        "current_update_keys": ["z6Mknsdc9pTFmauU4ys8mNthvopBiztB86JEbvXtU425mN7p"],
+        "previous_update_keys": [
+          "z6MkgZb469vbyZCg3L7kx1PbQuUD4NToPpcy1utdLxUUfpsh"
+        ],
+        "current_update_keys": [
+          "z6Mknsdc9pTFmauU4ys8mNthvopBiztB86JEbvXtU425mN7p"
+        ],
         "controller_proof_key": "z6MkgZb469vbyZCg3L7kx1PbQuUD4NToPpcy1utdLxUUfpsh",
         "pre_rotation_commitment_matches_current_key": true
       },
@@ -187,10 +211,14 @@
     {
       "name": "reject_omitted_current_update_keys",
       "input": {
-        "previous_update_keys": ["z6MkgZb469vbyZCg3L7kx1PbQuUD4NToPpcy1utdLxUUfpsh"],
+        "previous_update_keys": [
+          "z6MkgZb469vbyZCg3L7kx1PbQuUD4NToPpcy1utdLxUUfpsh"
+        ],
         "current_parameters": {
           "method": "did:webvh:1.0",
-          "nextKeyHashes": ["Qmefp9gpz6r2u4zgqH6dzDsBjJa1CPcSqjSbvdZc6QKmbv"]
+          "nextKeyHashes": [
+            "Qmefp9gpz6r2u4zgqH6dzDsBjJa1CPcSqjSbvdZc6QKmbv"
+          ]
         },
         "attempted_inheritance": true
       },
@@ -202,9 +230,16 @@
     {
       "name": "reject_spent_update_key_reuse",
       "input": {
-        "activated_update_keys": ["z6MkgZb469vbyZCg3L7kx1PbQuUD4NToPpcy1utdLxUUfpsh", "z6Mknsdc9pTFmauU4ys8mNthvopBiztB86JEbvXtU425mN7p"],
-        "current_update_keys": ["z6MkgZb469vbyZCg3L7kx1PbQuUD4NToPpcy1utdLxUUfpsh"],
-        "current_next_key_hashes_resolve_to": ["z6MktiAojPDKXTWTn2SUx2j649MeZ2xQSFaZWVz6Wy3Vyk5d"]
+        "activated_update_keys": [
+          "z6MkgZb469vbyZCg3L7kx1PbQuUD4NToPpcy1utdLxUUfpsh",
+          "z6Mknsdc9pTFmauU4ys8mNthvopBiztB86JEbvXtU425mN7p"
+        ],
+        "current_update_keys": [
+          "z6MkgZb469vbyZCg3L7kx1PbQuUD4NToPpcy1utdLxUUfpsh"
+        ],
+        "current_next_key_hashes_resolve_to": [
+          "z6MktiAojPDKXTWTn2SUx2j649MeZ2xQSFaZWVz6Wy3Vyk5d"
+        ]
       },
       "expected": {
         "decision": "reject",
@@ -227,9 +262,15 @@
     {
       "name": "reject_current_key_not_precommitted",
       "input": {
-        "previous_next_key_hashes": ["QmWgPjiSzjB2GMHYvXkgwozRnwYbSFvBJeozmDNBbgxwiw"],
-        "current_update_keys": ["z6MktiAojPDKXTWTn2SUx2j649MeZ2xQSFaZWVz6Wy3Vyk5d"],
-        "current_key_hashes": ["Qmefp9gpz6r2u4zgqH6dzDsBjJa1CPcSqjSbvdZc6QKmbv"]
+        "previous_next_key_hashes": [
+          "QmWgPjiSzjB2GMHYvXkgwozRnwYbSFvBJeozmDNBbgxwiw"
+        ],
+        "current_update_keys": [
+          "z6MktiAojPDKXTWTn2SUx2j649MeZ2xQSFaZWVz6Wy3Vyk5d"
+        ],
+        "current_key_hashes": [
+          "Qmefp9gpz6r2u4zgqH6dzDsBjJa1CPcSqjSbvdZc6QKmbv"
+        ]
       },
       "expected": {
         "decision": "reject",

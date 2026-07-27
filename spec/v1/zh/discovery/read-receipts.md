@@ -23,7 +23,7 @@ updated: 2026-07-02
 
 | 对象 / Event | Wire scope | 持久性 | 谁可见 | 推送 / 审计关系 |
 | --- | --- | --- | --- | --- |
-| `ak.receipt.read` / `ak.schema.read_receipt.v1` | `ephemeral_event` | 短 TTL，不进入 durable Event history | 按 visibility 规则广播给发送者或可见成员 | Push Gateway MUST NOT 因 receipt 本身发通知；只能用于 unread / suppression 派生 |
+| Realtime 密文内的 `ak.receipt.read` / `ak.schema.read_receipt.v1` | Realtime Extension | 短 TTL，不进入 durable Event history | 仅能解密目标 scope 的成员 | Push Gateway MUST NOT 因 receipt 本身发通知；只能用于 unread / suppression 派生 |
 | `ak.read_cursor.advance` / `ak.schema.read_cursor.v1` | actor-private account / durable sync object | 持久保存最新阅读位置，多端同步 | 仅该 actor 的设备和授权 account aggregate 服务 | 作为 unread count、badge 与 push suppression 输入 |
 | `ak.notification` / `ak.schema.notification.v1` | derived projection / account aggregate | 派生状态，可重建 | 目标 actor 及其设备 | 不是协议真相源；必须绑定 read cursor frontier、notification rule frontier 与 source event frontier |
 | `ak.audit.accessed`（schema 见 audit profile，本表不另列 `ak.schema.*`） | durable Event（审计 profile 下） | 按 audit retention 保留 | 由 Realm audit policy / capability 控制 | 记录受控读取、watch manage_others、late recovery 等访问证明；不得替代 read receipt |
@@ -32,56 +32,21 @@ updated: 2026-07-02
 
 已读回执是向同一个 Strand `discussion` track 的可见成员广播“我已经看到这条消息了”。
 
-### 2.1 临时性与高频特征
+### 2.1 实时性与加密边界
 
-与具体的业务数据不同，已读回执变动极其频繁（用户每次滑动屏幕都会产生），并且其历史记录没有长期保留价值。
-因此，Read Receipt MUST 仅作为 **Ephemeral Event** 通过 Sync Service 的 Ephemeral Channel 广播，不写入持久化 Event 因果图中。HTTP/JSON 参考 binding 为 `ak.self.ephemeral.command.send`（`POST /_arkret/self/ephemeral`），请求体使用 `ak.schema.ephemeral_envelope.v1`，其中 `kind="ak.receipt.read"`。
+已读回执高频且没有长期保留价值，因此 MUST 作为
+[`RealtimeEnvelope`](../sync/realtime.md) 的加密 plaintext 发送，不写入 Event 因果图。
+外层 `signal_class` 固定为 `session`；`ak.receipt.read`、read target、Event id、HLC 与 actor
+都必须位于 `encrypted_payload` 中，Sync Service 不得看见或按这些字段路由。
 
-### 2.2 广播格式
+plaintext 解密后使用闭合对象 `ak.schema.read_receipt.v1`，至少包含
+`kind="ak.receipt.read"`、`actor_id`、单调 `payload_sequence`、`read_scope` 与已读至的
+`event_id`，并可包含 `hlc`。外层 `sender_actor_id` MUST 等于 plaintext `actor_id`。
 
-客户端在用户视线停留或明确确认后，以 `ak.schema.ephemeral_envelope.v1` 向 Sync Service 发送；envelope 的 `payload` SHOULD 使用 read receipt object（schema：`ak.schema.read_receipt.v1`）：
-
-```json
-{
-  "kind": "ak.receipt.read",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-  "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-  "device_id": "ak:device:019640dd-8000-7000-8000-000000000000",
-  "sent_at": "2026-04-26T10:00:00Z",
-  "expires_at": "2026-04-26T10:00:30Z",
-  "payload": {
-    "receipt_kind": "read",
-    "schema": "ak.schema.read_receipt.v1",
-    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-    "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-    "read_scope": {
-      "kind": "strand",
-      "object_ref": "ak:strand:01964200-0000-7000-8000-000000000001",
-      "track_name": "discussion"
-    },
-    "event_id": "ak:event:01964387-7000-7000-8000-000000000000",
-    "hlc": "01970e589d21-0004-a13f9c2e",
-    "created_at": "2026-04-26T10:00:00Z"
-  },
-  "proof": {
-    "kind": "detached_jws",
-    "alg": "EdDSA",
-    "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#ak:device:019640dd-8000-7000-8000-000000000000",
-    "event_digest": "sha256:...",
-    "created_at": "2026-04-26T10:00:00Z",
-    "jws": "..."
-  }
-}
-```
-
-| 字段 | 说明 |
-|------|------|
-| `event_id` | 用户已读的最新那条 Event 的 ID。由于因果性，表示该 Event 及其因果前驱均已读。 |
-| `actor_id` | 阅读者 DID。该字段名与协议中其它 actor-引用字段一致。 |
-| `device_id` / `proof` | 来源设备与 detached proof。所有 `ak.receipt.read` 广播 MUST 携带；`proof.verification_method` 的 controller DID MUST 等于 `actor_id`，fragment MUST 等于 `device_id`，签名 context 为 `ak.ephemeral-proof-v1`。 |
-| `hlc` | 可选；当 Sync Service 需要按 HLC 合并 / 去重多个 receipts 时由客户端附带。 |
-
-**来源真实性（normative）**：Sync Service 接收 `ak.receipt.read` 时 MUST 同时校验提交会话的 authenticated principal 与 envelope `actor_id` 一致、`proof` 验证通过、`proof.verification_method` 控制者等于 `actor_id` 且 fragment 等于 `device_id`。跨服务、联邦或 relay 转发的 read receipt 若无法验证该 actor device proof，接收方 MUST 丢弃；服务端签名的转发断言只能作为传输层 provenance，不能替代 actor device proof。`ak.schema.ephemeral_envelope.v1` 因此把 `device_id` 与 `proof` 作为所有 broadcast ephemeral kind 的必填字段。
+接收方只有在验证 Realtime proof、Seal basis、MLS epoch/AAD、TTL 并成功解密后，才能更新
+UI。relay attestation 不能替代 sender device proof。任何把 receipt target 或精确 kind 放到
+外层的旧明文 envelope MUST 以 `schema_violation` 或
+`ephemeral_plaintext_in_encrypted_scope` 拒绝。
 
 ### 2.3 防雪崩与合并
 

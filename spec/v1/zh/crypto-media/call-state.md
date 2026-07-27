@@ -130,7 +130,7 @@ sidebar:
 | `roster_delta` | `ak.component.call.roster.v1` | `payload.call_id` | `or_set` | `inert` |
 | `mute_override` | `ak.component.call.mute_override.v1` | composite `[payload.call_id, payload.mute_override.actor_id, payload.mute_override.device_id]` | `cas_register` | `reject` |
 
-**未变更的轴 MUST NOT 产生 effect（normative）**：`payload.call_id` 之外的每个 delta 字段都是可选的，单条 `ak.call.state` MUST 只携带本次实际变更的轴，并且至少携带一个 delta（schema `anyOf`）。上表每条 `cell_writes[]` 都是**条件性**目标；字段存在则对应 effect 必需，字段缺席则对应 effect MUST NOT 出现。`recording_transition.result` / `transcript_transition.result` 各自额外产生 result cell effect。完整 op 由 registry `effect_projection` 派生，producer 不得自选 `from` / `to` / `tag` / `value`。
+**未变更的轴 MUST NOT 产生 projected write（normative）**：`payload.call_id` 之外的每个 delta 字段都是可选的，单条 `ak.call.state` MUST 只携带本次实际变更的轴，并且至少携带一个 delta（schema `anyOf`）。上表每条 `cell_writes[]` 都是**条件性**目标；字段存在则对应 write 必需，字段缺席则对应 write MUST NOT 产生。`recording_transition.result` / `transcript_transition.result` 各自额外产生 result cell write。完整 op 由 registry `effect_projection` 派生，producer 不得自选 `from` / `to` / `tag` / `value`。
 
 **捕获态按段切分**：录制 / 转写 cell 的 subject 是 `(call_id, recording_id)` composite，因此同一通话的多段捕获天然落在不同 cell，互不冲突。段键选用 `payload.recording_id` 而不是 start Event 的 `event_id`：v1 的封闭 envelope subject 来源白名单只登记 `envelope.actor_id`，不登记 `envelope.event_id`；而 `recording_id` 已经是 `ak.call.recording.start` 的 required 字段、已按 §5 要求在同一通话内逐段唯一、且已是录制 / 转写 key exporter Context 的 member，因此是两侧都能派生的同一个键。`ak.call.recording.start` 按 `payload.capture_kind` 写入 `ak.component.call.recording.v1` 或 `ak.component.call.transcript.v1`，subject 为 `[payload.call_id, payload.recording_id]`；后续 `ak.call.state` 用 `recording_transition.recording_id` / `transcript_transition.recording_id` 指向同一段，其值 MUST 与该段 start event 的 `recording_id` 逐字节相同。`capture_kind` 是 required 字段，MUST NOT 由 missing-field default 推断——它决定目标 cell family。
 
@@ -148,9 +148,9 @@ sidebar:
   4. `sig` 通过签名验证。
   任一失败 → `failed_precondition` `reason="participant_binding_invalid"`。
 - `mute_override`：每个 call leg 独立写入 `ak.component.call.mute_override.v1` CAS cell。`status=active` 时必须携带 `audio_muted/video_muted`；`status=cleared` 时二者必须省略。不同 leg 并发互不冲突，同一 leg 并发改写 fail closed。写入者 MUST 持有 `ak.call.moderate`。
-- `moderation_delta.op=remove_participant`：effect 固定为 `add(tag=envelope.event_id,value=removal)`。`kick` MUST 含 `device_id`；`ban` MUST 省略它。`moderation_delta.op=restore_participant` 固定移除 `observed_tag`，且只能移除已观察到、actor 一致的 ban，不能恢复 kick。
+- `moderation_delta.op=remove_participant`：projected write 固定为 `add(tag=envelope.event_id,value=removal)`。`kick` MUST 含 `device_id`；`ban` MUST 省略它。`moderation_delta.op=restore_participant` 固定移除 `observed_tag`，且只能移除已观察到、actor 一致的 ban，不能恢复 kick。
 
-高频 speaking、自主 mute/video 状态 SHOULD 走 ephemeral channel；主持人强制静音 MUST 通过 durable `mute_override` 驱动服务端媒体权限。
+高频 speaking、自主 mute/video 状态 SHOULD 走 encrypted Realtime Extension；主持人强制静音 MUST 通过 durable `mute_override` 驱动服务端媒体权限。
 
 ### 4.2 `state` 状态机（normative）
 

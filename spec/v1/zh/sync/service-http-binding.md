@@ -141,7 +141,7 @@ B 类——产品 / 运维能力，被实现误放进协议段，按 (b) 归位�
 
 | 误址簇 | canonical 协议归属（若该能力本就是协议能力） | 误址形态归位 |
 | --- | --- | --- |
-| WebRTC / calls 信令面 | call 信令 `ak.call.signal` 走 ephemeral envelope（`ak.self.ephemeral.command.send`）；媒体凭证 `ak.self.call.media.exchange.issue_token`（`/_arkret/self/rtc/token`）+ `/_arkret/self/rtc/ice-config`；持久 call 状态 `ak.call.{state,recording.start,summary}` 走 self/events | 其余 call-setup / 私有信令旁路 → 媒体服务私有面 `/_<impl>/*`，不进 v1 core |
+| WebRTC / calls 信令面 | call 信令 plaintext 加密在 `RealtimeEnvelope` 内，走 `ak.self.realtime.command.send` / `ak.self.realtime.stream.subscribe`；媒体凭证 `ak.self.call.media.exchange.issue_token`（`/_arkret/self/rtc/token`）+ `/_arkret/self/rtc/ice-config`；持久 call 状态 `ak.call.{state,recording.start,summary}` 走 self/events | 其余 call-setup / 私有信令旁路 → 媒体服务私有面 `/_<impl>/*`，不进 v1 core |
 | moderation 审查者工作台运行态 | `ak.moderation.{decision,decision.lift,appeal.submit,appeal.review,appeal.decision,appeal.close}` 事件经 self/events，realm authz capability 闸门；report 经 `ak.self.moderation.command.report` | 残留实现私有 admin 路径（如 `/_<impl>/admin`）+ OAuth admin scope 入口下线 |
 | relations / views / moves 直读 | Realm 作用域对象读（`/_arkret/self/realms/{realm_id}/spaces\|strands\|morphs`、`/_arkret/self/realms/{realm_id}/morphs/{morph_id}`）、`/_arkret/self/views/*`（extension surface，非 canonical truth source，须服务显式声明） | 越出已声明 read binding 的 relation/view/move 直读路径 → 实现私有面 |
 | authz / grants compat 路由 | capability 经 `ak.capability.{grant,revoke,delegate}` 事件 + `ak.self.policy.query.check` 预检 | 任何 `/_arkret/*` authz 直写 compat 路径 MUST NOT 存在；capability 一律走主 reducer 事件，相关运维只读视图归 `/_<impl>/*` |
@@ -212,8 +212,11 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /_arkret/root/identity/receipts` | query `{did: did, head: string}` | 同 DID 可见性；witness 可公开最小 receipt。 | `{receipts[], threshold_met?: boolean}` |
 | `POST /_arkret/root/identity/recovery-policy` | body `ak.schema.recovery_policy.v1` | `user_session` bound to the principal/current device, or authorized recovery coordinator/service proof for that principal；MUST verify `auth_data.signed_fields`、签名权限、`version` 单调递增和 `supersedes` 链接。 | `schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome` |
 | `GET /_arkret/root/identity/recovery-policy` | query `{principal_id?: did}` | `user_session` bound to the principal/current device, or authorized recovery coordinator/service proof for that principal；不得枚举他人 recovery policy。 | `schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome`；`active_policy=null` 表示当前没有 accepted recovery policy。 |
+| `POST /_arkret/self/security-transactions` | body `security-transaction.schema.json#/$defs/create_request` | 当前 principal 的 `user_session` / active device proof；Recovery 还必须验证 Authority ticket，Rotation 还必须验证 high-risk action authority。首个副作用前原子保存 request bytes/digest、typed intent、全部 reserved ids 与 initial resource。 | `security-transaction.schema.json`；同 transaction id + 同 bytes 返回已记录 resource，不同 bytes 返回 `duplicate_conflict`。 |
+| `GET /_arkret/self/security-transactions/{transaction_id}` | path `{transaction_id}` | 仅 transaction principal、其已验证 replacement device 或 basis 授权的 recovery coordinator；不可见与不存在统一 `not_found`。 | 权威 durable `SecurityTransaction`，不得由短期 HTTP idempotency cache 合成。 |
+| `POST /_arkret/self/security-transactions/{transaction_id}/continue` | path `{transaction_id}` body `#/$defs/continue_request` | 同 resource get；`request_digest` 与 `expected_next_action` 必须匹配当前 resource。只有 terminal receipt/local commit 可携带与 reserved ref 匹配的 device attestation。 | 更新或幂等重放后的 `SecurityTransaction`；不能提交任意步骤列表。 |
 | `GET /_arkret/self/events/describe` | query none 或 `{actor_id?: did, realm_id?: id}` | `public_metadata` 或 `user_session`；私有 frontier 需认证。 | `ServiceDescribe`；event schema / reducer / signature 能力通过 `supported_features`、`supported_profiles`、`limits` 或扩展字段表达。 |
-| `POST /_arkret/self/events` | body 是 `EventSubmitEnvelope`（单事件）或 `{events: EventSubmitEnvelope[]}`（批量）；submit 输入 MUST NOT 携带 reducer-managed accepted-output 字段（如 `actor_kind` / `effective_scope`）。MUST NOT 使用 `{event: ...}` wrapper，也不存在独立 `expected_frontier` 字段；普通 actor authoring basis 只由 signed envelope 的 `actor_seq + prev_refs` 表达。 | `user_session` / `device_proof` / 当前 principal 授权的 delegated service signature；MUST 验证 actor DID、签名、capability、Realm policy、`actor_seq`、`prev_refs`、`refs[role=authorized_by]`。不得接受 federation peer wire。 | `{status, accepted[], duplicate[]?, rejected[]?, quarantine[]?, realm_actor_frontiers[]?, realm_frontiers[]?, cursor?}` |
+| `POST /_arkret/self/events` | body 是 `EventInitialSubmission {event, authorization_lease, cba_proof_bundles[]?}`（单事件）或 `{events: EventInitialSubmission[]}`（批量）；嵌套 Event MUST 携带 producer-signed `scope_ref`，MUST NOT 携带 reducer-managed `actor_kind`。lease/bundle 是 Event 外的发布证据，不进入 Event digest。 | `user_session` / `device_proof` / 当前 principal 授权的 delegated service signature；MUST 验证 actor DID、签名、scope、lease、CBA basis、capability、Realm policy 与 actor chain，并在 lease 到期前持久化签发 IngressReceipt。不得接受 federation peer wire。 | `{status, accepted[], ingress_receipts[]?, duplicate[]?, rejected[]?, quarantine[]?, realm_actor_frontiers[]?, realm_frontiers[]?, cursor?}` |
 | `POST /_arkret/self/events/seals` | body `seal.schema.json` | `user_session` bound to the Seal signer device；调用方必须可见该 Realm，且 signer principal MUST 满足 predecessor governance state 的 `ak.component.notary.v1` 成员 / 门限规则；可见性与“设备属于调用方”都只是附加前置，不构成 notary 授权。Managed Agent PCR 仅在唯一 signed genesis 与 accepted Agent DID delegation 精确绑定 `(Agent DID, controller DID, realm_id, authorization_ref)` 且 purpose 覆盖 `principal_control_realm_recovery` 时，允许 controller 当前 active device 作为 delegated notary signer；service 不得代签。服务端 MUST 重算 Seal ID、完整 predecessor coverage、`delta`、`covered_event_digests`、`control_event_set_root`、`completeness_root`、`state_root` 与签名；B 模型 PCR bootstrap 的首个 Seal MUST 由 bootstrap device #1 签名并完整覆盖 `[ak.realm.create, ak.device.authorize]` 原子 unit；managed Agent PCR 首个 Seal MUST 由 controller device 签名并覆盖 create，后继 Seal MUST 覆盖 effectless `ak.mls.genesis`。该职责只能由 canonical operation 承载，MUST NOT 通过非注册端点或自定义 queue envelope 承载。 | `EventSealSubmitOutcome {seal_id, accepted_event_digests[], post_state_root}` |
 | `GET /_arkret/self/events/{event_id}` | path `{event_id: id}` query `{include_payload?: boolean}` | Event 可见性按 Realm policy / history visibility / E2EE envelope 判断；不可见时返回 `not_found`。 | `{event, visibility?, receipts?}` |
 | `POST /_arkret/self/events/resolve` | body `{event_ids?: id[], event_digests?: string[], include_payload?: boolean}` | 同 Event read；payload 可见性按 Realm policy / E2EE envelope 判断。 | `{events[], missing[], unauthorized[]?}` |
@@ -223,16 +226,17 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /_arkret/self/events/frontier` | query 恰为 `{actor_id, realm_id}`、`{actor_id}` 或 `{realm_id}` | 返回调用方可见范围内、带 `kind` discriminator 的闭合 frontier union；不得泄露不可见 Realm 或 private DID。组合 selector 返回 `kind=realm_actor` 的 `(realm_id, actor_id)` authoring frontier，携带 `next_actor_seq`、完整排序去重的 `frontier_event_ids` 与 `frontier_digest`；producer MUST 使用该形态，MUST NOT 用 actor aggregate 构造 `prev_refs`。仅 `actor_id` 返回 `kind=actor_aggregate`、`actor_id` 与按 `realm_id` 稳定排序的可见 `realms[]`，aggregate 本身没有单一 sequence/head。仅 `realm_id` 返回 `kind=realm_seal` 的 Realm Seal view，并保持本节既有 Seal / managed Agent PCR 约束。服务端与客户端 MUST 校验 variant 的 scope 精确回显 selector。不可见与不存在的 Realm MUST 统一返回 `not_found`，不得返回或暗示 synthetic empty frontier；已通过注册 bootstrap-unit 校验的 producer MUST 在提交前本地派生 genesis basis：第一条 `actor_seq=0, prev_refs=[]`，同一原子 authoring transaction 的后续同 scope Event 逐条引用前一条。 | `EventsFrontierAccountClientState` |
 | `POST /_arkret/self/events/mls-governance-proof` | body `mls-governance-proof-bundle.schema.json#/$defs/proof_request`，必含 caller 本地已信任的 `trusted_anchor_seal_id` 与 `chunk_index`；chunk 0 禁止 `expected_bundle_digest`，后续 chunk 必须携带 | 只对已认证且可见的 Realm/scope 返回 `complete_control_state_v1` 的一个 manifest-committed chunk。服务端 MUST 从请求的精确 anchor 构造逻辑 `seal_path`，不得静默替换；无法桥接返回 409 `mls_governance_anchor_unreachable`。每响应 ≤4 MiB，逻辑 item bytes ≤256 MiB、chunks ≤1024，四类总项/单块项上限按 `scalability-constraints.md` §6；任一总界超限返回 422 `mls_governance_proof_bounds_exceeded`，不得部分返回。服务端 MUST 从同一 accepted Seal view 派生 `membership_frontier` 和全部治理根，调用方不得提交 root/frontier；任一 chunk commitment、covered Event、控制状态、Seal 路径、签名权限或 reducer profile 无法重建时 MUST fail closed。 | `mls-governance-proof-bundle.schema.json`，含 `proof_request_digest`、完整逻辑内容地址 `bundle_digest`、`chunk_manifest` 与一个 `chunk`；client 收齐全部块、重算 `chunks_root` / Seal roots 前不得接受。`accepted_seal_id` 不得单独作为 Bundle cache key。 |
 | `GET /_arkret/peer/events/describe` | query none 或 `{realm_id?: id}` | `public_metadata` 可返回通用能力；Realm-specific 限制和 peer policy 细节需 service signature。 | `ServiceDescribe`；MUST 声明 `ak.peer.events.*` supported_operations、peer auth metadata 与 federation limits。 |
-| `POST /_arkret/peer/events` | body `EventsSubmitFederationRequestBody {service_binding_ref, events[], seals[]?, signer_key_evidence[]?, agent_signer_evidence_bundle?}`；`Idempotency-Key` 只存在于 header，不得出现在 body | `service_signature`；MUST 绑定 Source/Destination service DID、Source/Destination trust domain、Request-Canonical-Digest、Content-Digest 与 Idempotency-Key（若有），并验证 Realm policy / service binding 中的 `federation_peer` 角色。`events[]` 为单 Realm、最多 500 项，Control Event 必须位于 DataEvent 之前。`signer_key_evidence` 只可在来源 authority 已绑定后验证原 participant Event proof，不进入 Event canonical bytes。`seals[]` 只承载相对接收端已接受 Seal 的最小有序闭包（最多 4096 项），根为 DataEvent `seal_ref` 与 Control Event `seal_basis.leaves[]` 的并集，仍位于本唯一 federation write rail 内；接收方按 Event/Seal 依赖拓扑交替接受 Control Event 与独立验签、投影 Seal，最后验证 DataEvent，不能把同批未 sealed grant 提前用于授权。普通批次缺依赖以 HTTP 200 `status=partial` + 逐项 `federation_dependencies_pending` 表达；注册的 Realm founding unit 仍须原子接收，缺依赖才整体返回 retryable 503。 | `EventsSubmitOutcome {status, accepted[], duplicate[]?, rejected[]?, quarantine[]?, realm_actor_frontiers[]?, realm_frontiers[]?, cursor?, original_outcome?}` |
+| `POST /_arkret/peer/events` | body `EventsSubmitFederationRequestBody {service_binding_ref, events: EventFederationSubmission[], cba_proof_bundles[]?, signer_key_evidence[]?, agent_signer_evidence_bundle?}`；`Idempotency-Key` 只存在于 header，不得出现在 body | `service_signature`；MUST 绑定 Source/Destination service DID、Source/Destination trust domain、Request-Canonical-Digest、Content-Digest 与 Idempotency-Key（若有），并验证 Realm policy / service binding 中的 `federation_peer` 角色。每项携带原 Event、AuthorizationLease 与至少一个 IngressReceipt；接收方独立验证 receipt threshold 和 CBA closure。`events[]` 为单 Realm、最多 500 项，Control Event 必须位于 DataEvent 之前。`signer_key_evidence` 与 proof bundles 都不进入 Event canonical bytes。普通批次缺依赖以 HTTP 200 `status=partial` + 逐项 `federation_dependencies_pending` 表达；注册的 Realm founding unit 仍须原子接收，缺依赖才整体返回 retryable 503。 | `EventsSubmitOutcome {status, accepted[], ingress_receipts[]?, duplicate[]?, rejected[]?, quarantine[]?, realm_actor_frontiers[]?, realm_frontiers[]?, cursor?, original_outcome?}` |
 | `GET /_arkret/peer/events` | query `{realms?: id[], actors?: did[], before?: cursor, after?: cursor, order?: enum(default, ascending, descending), limit?: int, filters?: object}` | `service_signature`；调用方必须是每个 selector 所属 Realm 的授权 federation peer。服务端按 Realm policy、history visibility、reference disclosure 与 E2EE epoch policy 裁剪。 | `EventsQueryOutcome {events[], next_cursor?, prev_cursor?, has_more, snapshot_bootstrap?}` |
 | `POST /_arkret/peer/events/query` | body `{realms?: id[], actors?: did[], before?: cursor, after?: cursor, order?: enum(default, ascending, descending), limit?: int, filters?: object}` | 同 `GET /_arkret/peer/events`（`ak.peer.events.query.scan` 的 HTTP POST/body binding variant，registry `binding_variant_of="ak.peer.events.query.scan"`）。 | 同 `EventsQueryOutcome`。 |
 | `POST /_arkret/peer/events/resolve` | body `{event_ids?: id[], event_digests?: string[], include_payload?: boolean, realms?: id[]}` | `service_signature`；调用方必须是目标 Event 所属 Realm 的授权 federation peer；不可见或禁止 disclosure 的 Event 返回 missing / unauthorized，不得泄露 payload。 | `EventsResolveOutcome {events[], missing[], unauthorized[]?}` |
 | `GET /_arkret/peer/events/frontier` | query `{realm_id: id}` | `service_signature`；调用方必须是该 Realm 的授权 federation peer；响应 MUST 由目标 service DID 签名并绑定 observed frontier。 | `EventsFrontierFederationPeerState {realm_id, heads[], max_hlc?, frontier_root, actor_seq_upper_bounds?, witness_receipts?, observed_at, issuer, signature}` |
 | `POST /_arkret/peer/invites` | body `schemas/invite-delivery-request.schema.json` | `service_signature`；`Destination-Service-ID` MUST 等于 `invite_address.recipient_service_id`；接收方必须验证 `invite_event.kind=ak.invite.create`、`payload.invitee == invite_address.subject_id`、`introduction_evidence` 与 subject 私有 `invite_receive_policy`。 | `schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome`；响应只给 generic receive status，不泄露 subject 是否存在。 |
-| `POST /_arkret/self/ephemeral` | body `ak.schema.ephemeral_envelope.v1` (`kind` ∈ `ak.presence` / `ak.typing` / `ak.receipt.read` / `ak.call.signal`) | `user_session` 或 service signature；actor 必须可在 `realm_id` 的 ephemeral channel 中广播该 kind，并持有对应 `ak.presence.broadcast` / `ak.typing.broadcast` / `ak.receipt.broadcast` / `ak.call.signal.send` action。 | `{accepted: true, kind, realm_id, dispatched_to?, server_received_at?}`；不生成 Event ID、不推进 actor_seq / Realm frontier。 |
+| `POST /_arkret/self/realtime` | body `ak.schema.realtime_envelope.v1` | `user_session` 或 service signature；验证 signed scope、sender device、Seal basis、MLS epoch/AAD、三值 `signal_class`、TTL 与 scope-aware Realtime capability。 | `{accepted: true, realm_id, envelope_digest, dispatched_to?, server_received_at?}`；精确 signal kind/target 保持加密，不生成 Event ID、不推进 actor_seq / Realm frontier。 |
+| `GET /_arkret/self/realtime/subscribe` | 无 durable cursor/catch-up query | authenticated device；服务端只投递该设备在当前 signed scope/Seal basis 下可解密的 `RealtimeEnvelope`。 | `application/x-ndjson` live frames；无持久化、backfill、排序或送达保证。 |
 | `POST /_arkret/self/rtc/token` | body `{realm_id: id, call_id: id, actor_id: did, device_id: id, focus_id: string, capability_refs?: id[], desired_media?: object}` | `user_session` 或 device proof；调用方 MUST 持 `ak.call.join`，并根据 `desired_media` 持 `ak.call.screen_share` 等子 capability；token issuer DID MUST 出现在 `ak.realm.media_service.service_id` 锚定列表；当 `ak.call.state.session_focus` 已存在，请求的 `focus_id` MUST 等于该值（否则 `focus_mismatch`）。 | `{focus_id, type, connect_url, backend_token, participant_identity, participant_binding, expires_at, service_signature}`；`expires_at - now ≤ 600s`（SHOULD ≤ 300s）。`participant_binding.scheme="ak.media.participant_binding.v1"`，覆盖 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)`。媒体服务 token exchange；详见 [`../crypto-media/media-service-binding.md` §3](../crypto-media/media-service-binding.md)。 |
 | `GET /_arkret/self/account/viewer` | query none | `user_session` bound to principal/device。返回当前 holder 的账号主体投影，不是服务能力 describe。 | `AccountView {principal_id, primary_handle_claim?, primary_handle_claim_ref?, handle_claim_digests?, state, devices[], profile?}`；不得返回未签名裸 `handle` 作为权威身份。 |
-| `GET /_arkret/self/account/subscribe` | query `{after?: cursor, catchup?: boolean, filter?: object}` | `user_session` bound to principal/device。聚合账号视角 delta(跨 Realm frontier、to_device、device_lists、account_data、presence、unread / notification counts)，不是裸事件读；presence 广播必须走 `POST /_arkret/self/ephemeral`。 | `application/x-ndjson` 返回有界 `AccountSubscribeFrame` 响应，frame kinds: `delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`；增量无变化时服务端等待默认 30 秒再以 `frontier` 完成本轮响应；`dropped` / `resync_required` 可带 `reconnect_after_ms`。 |
+| `GET /_arkret/self/account/subscribe` | query `{after?: cursor, catchup?: boolean, filter?: object}` | `user_session` bound to principal/device。聚合账号视角 delta(跨 Realm frontier、to_device、device_lists、account_data、presence、unread / notification counts)，不是裸事件读；presence 广播必须走 `POST /_arkret/self/realtime`。 | `application/x-ndjson` 返回有界 `AccountSubscribeFrame` 响应，frame kinds: `delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`；增量无变化时服务端等待默认 30 秒再以 `frontier` 完成本轮响应；`dropped` / `resync_required` 可带 `reconnect_after_ms`。 |
 | `POST /_arkret/self/account/profile` | body `AccountUpdateProfileRequestBody {patch}`；`patch` 为 `ak.patch.v1`，路径仅限 `display_name` / `avatar_blob_ref` / `profile_fields.<key>` | `user_session` bound to principal/device。Actor Profile 字段语义以 [`profiles-presence.md` §2.2](../discovery/profiles-presence.md) 为准；协议路径不接受 `avatar_url`、`handle`、lifecycle、principal、actor_kind、accountability 或 auth 字段。 | `AccountUpdateProfileOutcome {profile: ActorProfile}`；服务端 MUST 写入或等价产生 `ak.profile.update` / Actor Profile projection。 |
 | `POST /_arkret/self/account/cursor/revoke` | body `{cursor: cursor, reason_code: string, revoke_scope?: enum(this_cursor,same_device,same_session)}` | `user_session` bound to principal/device；high-assurance optional profile。 | `{revoked: boolean, expires_at: datetime}`；撤销命中后的 cursor 使用返回 `cursor_revoked`，不得推进任何 server-side state。 |
 | `GET /_arkret/self/account/describe` | query none | `public_metadata` 或 `user_session`；私有 limits 可认证后返回。 | `ServiceDescribe`；私有 frontier 只能作为认证后扩展字段返回。 |
@@ -395,7 +399,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 
 #### 2.3.1 Wire-level JSON 示例
 
-以下三段示例展示 §2.3 表中三类典型 binding。所有 fence 标 `schema=schemas/event-envelope.schema.json expect=valid`(canonical `ak.schema.event.v1` artifact),与 [`event-and-patch.md` §2.3](../models/event-and-patch.md) 的 canonical Event Envelope shape 一致。示例均为 DataEvent，因此携带顶层 `effects[]`、`seal_ref` 与 `auth_context`；Control Move 示例见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
+以下三段示例展示 §2.3 表中三类典型 binding。所有 fence 标 `schema=schemas/event-envelope.schema.json expect=valid`，与 canonical Event Envelope shape 一致。示例均为 DataEvent，因此携带签名 `scope_ref`、`seal_ref` 与 `auth_context`；cell writes 由 reducer contract 派生。
 
 **示例 A — `POST /_arkret/self/events`(单事件提交,`ak.message.create`)**:
 
@@ -403,6 +407,10 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 {
   "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "scope_ref": {
+    "kind": "realm",
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+  },
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 4,
   "kind": "ak.message.create",
@@ -413,22 +421,16 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
     { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "causal_refs": ["sha256:3333333333333333333333333333333333333333333333333333333333333333"],
-  "effects": [
-    {
-      "cell": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
-      "op": { "kind": "append", "issuer_seq": 0, "value": { "message_id": "ak:message:019640ed-8000-7000-8000-000000000000" } }
-    }
-  ],
   "seal_ref": "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "auth_context": {
     "did": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "key_id": "device-1",
-    "key_epoch": 1,
-    "capability_refs": ["ak:grant:0196410c-0000-7000-8000-000000000000"]
+    "key_epoch": 1
   },
   "payload": {
     "strand_id": "ak:strand:019640c6-8000-7000-8000-000000000000",
     "track_name": "discussion",
+    "message_id": "ak:message:019640ed-8000-7000-8000-000000000000",
     "content": { "kind": "ak.content.text", "body": "Sample message" }
   },
   "proofs": [
@@ -450,6 +452,10 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 {
   "event_id": "ak:event:019640ed-9000-7000-8000-000000000000",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "scope_ref": {
+    "kind": "realm",
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+  },
   "actor_id": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
   "actor_seq": 7,
   "kind": "ak.message.create",
@@ -460,22 +466,16 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
     { "id": "ak:grant:0196410c-1000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "causal_refs": ["sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
-  "effects": [
-    {
-      "cell": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
-      "op": { "kind": "append", "issuer_seq": 1, "value": { "message_id": "ak:message:019640ed-9000-7000-8000-000000000000" } }
-    }
-  ],
   "seal_ref": "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "auth_context": {
     "did": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
     "key_id": "device-1",
-    "key_epoch": 1,
-    "capability_refs": ["ak:grant:0196410c-1000-7000-8000-000000000000"]
+    "key_epoch": 1
   },
   "payload": {
     "strand_id": "ak:strand:019640c6-8000-7000-8000-000000000000",
     "track_name": "discussion",
+    "message_id": "ak:message:019640ed-9000-7000-8000-000000000000",
     "content": { "kind": "ak.content.text", "body": "Reply" }
   },
   "proofs": [
@@ -501,6 +501,10 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 {
   "event_id": "ak:event:019640ee-0000-7000-8000-000000000000",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "scope_ref": {
+    "kind": "realm",
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+  },
   "actor_id": "did:webvh:zCELkEydSckveKumo1eHsfN2G:carol.example",
   "actor_seq": 12,
   "kind": "ak.reaction.add",
@@ -512,18 +516,11 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
     { "id": "ak:event:019640ed-8000-7000-8000-000000000000", "role": "parent_event", "critical": false }
   ],
   "causal_refs": ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
-  "effects": [
-    {
-      "cell": "ak:cell:ak.component.message.reactions.v1:ak:message:019640ed-8000-7000-8000-000000000000",
-      "op": { "kind": "add", "value": { "actor_id": "did:webvh:zCELkEydSckveKumo1eHsfN2G:carol.example", "key": "+1" } }
-    }
-  ],
   "seal_ref": "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "auth_context": {
     "did": "did:webvh:zCELkEydSckveKumo1eHsfN2G:carol.example",
     "key_id": "device-2",
-    "key_epoch": 1,
-    "capability_refs": ["ak:grant:0196410c-2000-7000-8000-000000000000"]
+    "key_epoch": 1
   },
   "payload": {
     "target_ref": "ak:message:019640ed-8000-7000-8000-000000000000",
@@ -580,8 +577,11 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 | `ak.root.identity.recovery_session.resource.get` | path `{recovery_session_id}` | 无 | `session` | response_schema_ref=schemas/recovery-session.schema.json#/$defs/recovery_session_state。仅 session principal / requesting device / authorized recovery coordinator 可见；不得枚举他人 session。 |
 | `ak.root.identity.recovery_session.command.submit_proof` | path `{recovery_session_id}`; body `proof_submit_request` | 无 | `proof_submit_response` | request_schema_ref=schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body; response_schema_ref=schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome。proof MUST 对 server-reconstructed canonical transcript 校验并回显 session challenge。 |
 | `ak.root.identity.recovery_session.command.complete` | path `{recovery_session_id}`; body `complete_request` | 无 | `complete_response` | request_schema_ref=schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body; response_schema_ref=schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome。要求 `state=verified` 并按 server-locked model 分流：A 只引用 accepted authorize + list-update；B 只引用原子 accepted reanchor + replacement authorize unit 及 Event Batch Receipt，并复核 snapshot/head/frontier/id/digest/result generation。complete 不得自行合成、重签或部分提交 Event。 |
+| `ak.self.security_transaction.command.create` | `transaction_id: id`; `kind: enum(recovery,security_rotation)`; `principal_id: did`; `expires_at: datetime`; `intent: RecoveryIntent or SecurityRotationIntent` | 无 | `SecurityTransaction` | request_schema_ref=schemas/security-transaction.schema.json#/$defs/create_request; response_schema_ref=schemas/security-transaction.schema.json。协调方 MUST 在首次不可逆副作用前，原子持久化 canonical request bytes、`request_digest`、typed intent、全部预留公开 ID 与初始事务资源；相同 `transaction_id` 和相同 bytes 返回已记录资源，不同 bytes 返回 `duplicate_conflict`。 |
+| `ak.self.security_transaction.resource.get` | `path.transaction_id: id` | 无 | `SecurityTransaction` | response_schema_ref=schemas/security-transaction.schema.json。只读返回持久化的 binding、已接受步骤前缀、下一动作与终态结果；MUST NOT 从短期 HTTP 幂等缓存合成事务状态。 |
+| `ak.self.security_transaction.command.continue` | `path.transaction_id: id`; `request_digest: sha256`; `expected_next_action: enum` | `client_attestation: ClientStepAttestation` | `SecurityTransaction` | request_schema_ref=schemas/security-transaction.schema.json#/$defs/continue_request; response_schema_ref=schemas/security-transaction.schema.json。只允许推进资源中已记录的 `next_required_action`；attestation 仅可用于 `issue_terminal_receipt` 或 `local_commit`，并必须绑定预留 ref。 |
 | `ak.self.events.query.describe` | 无 | `query.actor_id: did`; `query.realm_id: id` | `ServiceDescribe` | public metadata 可公开；私有 frontier 需认证后作为扩展字段返回。 |
-| `ak.self.events.command.submit` | 单事件提交 body 是 `EventSubmitEnvelope` 对象（顶层 `event_id`/`actor_id`/`payload`/`proofs[]` ...，但不含 reducer-managed accepted-output 字段）；批量提交 body 是 `{events: EventSubmitEnvelope[]}`。MUST NOT 使用 `{event: ...}` wrapper。 | `idempotency_key: string`（仅批量 wrapper / transport metadata）；不存在 `expected_frontier` | `status: enum(accepted,duplicate,partial)`; `accepted: id[]`; `duplicate: id[]?`; `rejected: object[]?`; `quarantine: id[]?`; `realm_actor_frontiers: RealmActorFrontierView[]?`; `realm_frontiers: RealmSealFrontierView[]?`; `cursor: cursor?` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome。MUST 验证 Event signature、DID、capability、Realm policy、`actor_seq`、`prev_refs` 和 `refs[role=authorized_by]`。同一 `event_id` 对应不同 canonical 内容时 MUST 先于 actor CAS 判定并以 `duplicate_conflict`（409）拒绝（见 [operations-sync.md](./operations-sync.md) §12），不得退化为 `causal_conflict` / `state_mismatch`。`cursor` 是 barrier purpose（read-your-writes）。 |
+| `ak.self.events.command.submit` | 单事件 body 是 `EventInitialSubmission {event, authorization_lease, cba_proof_bundles[]?}`；批量 body 是 `{events: EventInitialSubmission[]}`。Event 本身不含 reducer-managed accepted-output 字段，发布证据不进入 Event digest。 | 不存在 body `idempotency_key` 或 `expected_frontier`；HTTP 幂等键只在 header。 | `status: enum(accepted,duplicate,partial)`; `accepted: id[]`; `ingress_receipts: IngressReceipt[]?`; `duplicate: id[]?`; `rejected: object[]?`; `quarantine: id[]?`; `realm_actor_frontiers: RealmActorFrontierView[]?`; `realm_frontiers: RealmSealFrontierView[]?`; `cursor: cursor?` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome。MUST 验证 Event signature、DID、lease、CBA basis、capability、Realm policy、`actor_seq`、`prev_refs` 和 `refs[role=authorized_by]`，并在 lease 到期前持久化签发 IngressReceipt。相同 canonical Event 的重复提交返回原 receipt，不得用新时间重签。同一 `event_id` 对应不同 canonical 内容时 MUST 先于 actor CAS 判定并以 `duplicate_conflict`（409）拒绝（见 [operations-sync.md](./operations-sync.md) §12），不得退化为 `causal_conflict` / `state_mismatch`。`cursor` 是 barrier purpose（read-your-writes）。 |
 | `ak.self.events.command.submit_seal` | body `Seal` | 无 | `seal_id: seal-id`; `accepted_event_digests: string[]`; `post_state_root: string` | request_schema_ref=schemas/seal.schema.json; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventSealSubmitOutcome。认证 session 只能对可见 Realm 提交 Seal，且 signer MUST 满足 predecessor `ak.component.notary.v1` authority；managed Agent PCR 可按 `key-management.md` §4.1 的闭合 delegation 由 controller 当前设备签署，service 不得代签。receiver MUST 重算全部 signed body、coverage、completeness 与 state。B 模型 principal-control Realm 的首个 Seal必须由 bootstrap device #1 签名并完整覆盖 bootstrap unit；managed Agent PCR 首个/后继 Seal分别完整覆盖 create 与 effectless MLS genesis。 |
 | `ak.self.events.resource.get` | `path.event_id: id` | `query.include_payload: boolean` | `event: object`; `visibility: object?`; `receipts: object[]?` | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventView。不可见时返回 `not_found`。 |
 | `ak.self.events.query.resolve` | 至少一个：`event_ids: id[]` 或 `event_digests: string[]` | `include_payload: boolean` | `events: object[]`; `missing: id[]`; `unauthorized: id[]?` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome。payload 可见性按 Realm policy / E2EE envelope 判断。 |
@@ -591,7 +591,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 | `ak.self.events.query.frontier` | query 恰为 `actor_id+realm_id`、仅 `actor_id` 或仅 `realm_id` | 无 | `frontier: RealmActorFrontierView \| ActorAggregateFrontierView \| RealmSealFrontierView`; `receipts: ManagedAgentPcrSealHeadReceipt[]?` | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState。组合 selector、仅 actor selector、仅 Realm selector MUST 分别返回 `realm_actor`、`actor_aggregate`、`realm_seal`，并精确回显 selector scope。只承载 self Events API 的当前 caller 可见 frontier；不可见与不存在统一 `not_found`，不得接受 federation peer wire，不得泄露不可见 Realm 或 private DID，也不得为尚未创建的 Realm 合成 empty frontier。注册 genesis unit 的 authoring basis 由 producer 本地按本表 HTTP binding 规则派生。Managed Agent PCR 的 accepted Event coverage 超前于 accepted Seal 时，返回最后 accepted 的 controller-device-signed Seal view，并附带闭合的 `ak.managed_agent_pcr.seal_head.v1` 完整 Seal receipt，供 controller device 构造 successor；service MUST NOT 代签。 |
 | `ak.self.events.query.mls_governance_proof` | body `realm_id`; `effective_scope`; `mls_group_id`; `previous_epoch`; `next_epoch`; `binding_profile`; `reducer_profile`; `trusted_anchor_seal_id`; `chunk_index` | `expected_bundle_digest`（`chunk_index>0` 时 MUST，0 时 MUST NOT） | `MlsGovernanceProofBundle` bounded chunk（必含 `proof_request_digest`, `bundle_digest`, `trusted_anchor_seal_id`, `accepted_seal_id`, `chunk_manifest`, `chunk`） | request_schema_ref=schemas/mls-governance-proof-bundle.schema.json#/$defs/proof_request；response_schema_ref=schemas/mls-governance-proof-bundle.schema.json。仅限已认证且可见的 Realm/scope；response anchor MUST 与请求精确相等，服务端从同一 accepted Seal view 派生 frontier 与全部 root。无法桥接返回 `mls_governance_anchor_unreachable`；总 byte/count/chunk 上限超出返回 `mls_governance_proof_bounds_exceeded`，不得截断。Chunk 0 建 manifest，后续必须 pin 同一 digest；manifest 丢失返回 `frontier_unavailable` 并从 0 重启。Cache acquisition index 使用 `(proof_request_digest, accepted_seal_id)`，manifest 以 `bundle_digest`、chunk 以 `chunk_digest` 存储，不得只按 accepted Seal 缓存。 |
 | `ak.peer.events.query.describe` | 无 | `query.realm_id: id` | `ServiceDescribe` | `public_metadata` 可返回通用 peer surface 能力；Realm-specific peer policy 细节需 service signature。响应 MUST 声明实际可调用的 `ak.peer.events.*` supported_operations、auth metadata 与 federation limits。 |
-| `ak.peer.events.command.submit` | `service_binding_ref: object`; `events: EventEnvelope[]`; `seals: Seal[]?`; `signer_key_evidence: object[]?`; `agent_signer_evidence_bundle: object?` | `header.Idempotency-Key: string?`（不得出现在 body） | `status: enum(accepted,duplicate,partial,historical_only)`; `accepted: id[]`; `duplicate: id[]?`; `rejected: object[]?`; `quarantine: object[]?`; `realm_actor_frontiers: RealmActorFrontierView[]?`; `realm_frontiers: RealmSealFrontierView[]?`; `cursor: cursor?`; `original_outcome: object?` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome。MUST 使用 §3 service-to-service authentication，绑定 Source/Destination service DID、Source/Destination trust domain、Request-Canonical-Digest、Content-Digest 与 Idempotency-Key（若有），并校验 Realm policy / service binding 的 `federation_peer` 角色。`status=historical_only` 仅出现在 idempotency cache 撤销后重放路径（[`federation.md` §8.5.1](./federation.md)）：原 cache outcome 经 `original_outcome` 原样带回，顶层 `accepted[]` MUST 为 empty。 |
+| `ak.peer.events.command.submit` | `service_binding_ref: object`; `events: EventFederationSubmission[]`; `cba_proof_bundles: CBAProofBundle[]?`; `signer_key_evidence: object[]?`; `agent_signer_evidence_bundle: object?` | `header.Idempotency-Key: string?`（不得出现在 body） | `status: enum(accepted,duplicate,partial,historical_only)`; `accepted: id[]`; `ingress_receipts: IngressReceipt[]?`; `duplicate: id[]?`; `rejected: object[]?`; `quarantine: object[]?`; `realm_actor_frontiers: RealmActorFrontierView[]?`; `realm_frontiers: RealmSealFrontierView[]?`; `cursor: cursor?`; `original_outcome: object?` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome。每项必须携带原 Event、AuthorizationLease 与至少一个 IngressReceipt；接收端独立验证 receipt policy 和 proof bundle closure。MUST 使用 §3 service-to-service authentication，绑定 Source/Destination service DID、Source/Destination trust domain、Request-Canonical-Digest、Content-Digest 与 Idempotency-Key（若有），并校验 Realm policy / service binding 的 `federation_peer` 角色。`status=historical_only` 仅出现在 idempotency cache 撤销后重放路径（[`federation.md` §8.5.1](./federation.md)）：原 cache outcome 经 `original_outcome` 原样带回，顶层 `accepted[]` MUST 为 empty。 |
 | `ak.peer.events.query.resolve` | 至少一个：`event_ids: id[]` 或 `event_digests: string[]` | `include_payload: boolean`; `realms: id[]` | `events: object[]`; `missing: id[]`; `unauthorized: id[]?` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome。用于 federation peer 补洞解析 missing `prev_refs` / causal references；payload 可见性按 Realm policy、history visibility、reference disclosure 与 E2EE envelope 判断。 |
 | `ak.peer.events.query.scan` | 至少一个：`query.realms: id[]` 或 `query.actors: did[]` | `query.before: cursor`; `query.after: cursor`; `query.order: enum(default,ascending,descending)=default`; `query.limit: int`; `query.filters: object` | `events: object[]`; `next_cursor: cursor?`; `prev_cursor: cursor?`; `has_more: boolean`; `snapshot_bootstrap: object?` | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome。用于 federation pull / backfill；调用方必须是 selector 所属 Realm 的授权 federation peer。分页、排序与 cursor 语义同 `ak.self.events.query.scan`，但 HTTP trust surface 是 `peer`。 |
 | `ak.peer.events.query.scan_body` | body 至少一个：`realms: id[]` 或 `actors: did[]` | `before: cursor`; `after: cursor`; `order: enum(default,ascending,descending)=default`; `limit: int`; `filters: object` | 与 `ak.peer.events.query.scan` 同 | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome。`ak.peer.events.query.scan` 的 HTTP POST/body binding variant（registry `binding_variant_of="ak.peer.events.query.scan"`）。 |
@@ -623,7 +623,8 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 | `ak.self.circle.command.archive` | `path.circle_id: id` | `reason_code: string` | 同 `ak.self.circle.command.create` 响应字段 | request_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body; response_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_view。构造 `ak.circle.archive`;非法转换由 reducer 以 `circle_not_active` 拒绝。 |
 | `ak.self.circle.command.restore` | `path.circle_id: id` | `reason_code: string` | 同 `ak.self.circle.command.create` 响应字段 | request_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body; response_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_view。构造 `ak.circle.restore`;非法转换由 reducer 以 `circle_not_archived` 拒绝；若存在 pending MLS remove proposal，恢复写入前必须先完成对应 rotate。 |
 | `ak.self.circle.command.tombstone` | `path.circle_id: id` | `reason_code: string` | 同 `ak.self.circle.command.create` 响应字段 | request_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body; response_schema_ref=schemas/circle-operations.schema.json#/$defs/circle_view。构造 `ak.circle.tombstone`(terminal);响应回显终态且 `members` 为空。 |
-| `ak.self.ephemeral.command.send` | body `ak.schema.ephemeral_envelope.v1` | `proof: object`（按 kind 需要）；payload 内 kind-specific 字段 | `accepted: boolean`; `kind: string`; `realm_id: id`; `dispatched_to: int?`; `server_received_at: datetime?` | request_schema_ref=schemas/ephemeral-envelope.schema.json; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitOutcome。broadcast ephemeral channel；只承载 `ak.presence` / `ak.typing` / `ak.receipt.read` / `ak.call.signal`，并分别要求 `ak.presence.broadcast` / `ak.typing.broadcast` / `ak.receipt.broadcast` / `ak.call.signal.send`。MUST NOT 写入 durable Event history，MUST NOT 推进 actor_seq / Realm frontier。拒绝码包括 `ephemeral_kind_not_permitted`、`ephemeral_ttl_out_of_range`、`ephemeral_channel_unavailable`；MLS-backed scope 的 plaintext envelope MUST 以 `failed_precondition`、`reason_code=ephemeral_plaintext_in_encrypted_scope` 拒绝，见 [`../crypto-media/encryption-and-audit.md` §2.9.1](../crypto-media/encryption-and-audit.md)。 |
+| `ak.self.realtime.command.send` | body `ak.schema.realtime_envelope.v1` | 无明文 kind-specific 字段 | `accepted: boolean`; `realm_id: id`; `envelope_digest: hash`; `dispatched_to: int?`; `server_received_at: datetime?` | request_schema_ref=schemas/realtime-envelope.schema.json; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/RealtimeSubmitOutcome。encrypted-only Realtime Extension send rail；精确 kind/target 位于 ciphertext。MUST NOT 写 durable Event history 或推进 actor_seq / Realm frontier。拒绝码包括 `realtime_class_not_permitted`、`realtime_ttl_out_of_range`、`realtime_rail_unavailable`；旧 plaintext envelope 以 `ephemeral_plaintext_in_encrypted_scope` 拒绝。 |
+| `ak.self.realtime.stream.subscribe` | 无请求体 | 无 durable cursor/catch-up 字段 | `RealtimeEnvelope` NDJSON data frame 或有界 transport control frame | optional encrypted-only receive rail；无 backfill、持久化或送达保证。 |
 | `ak.self.call.media.exchange.issue_token` | body `realm_id: id`; `call_id: id`; `actor_id: did`; `device_id: id`; `focus_id: string` | `capability_refs: id[]`; `desired_media: object` | `focus_id: string`; `type: string`; `connect_url: string`; `backend_token: string`; `participant_identity: string`; `participant_binding: object`; `expires_at: datetime`; `service_signature: object` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome。Media service token exchange，等价于 MSC4195 `lk-jwt-service`。TTL `expires_at ≤ 600s`；token issuer DID MUST 出现在 `ak.realm.media_service.service_id` 锚定列表。拒绝码：`focus_mismatch`、`unknown_focus_type`、`token_issuer_unauthorised`、`mls_governance_binding_stale`、`media_plaintext_service_not_authorised`、`capability_denied`、`media_service_foci_required`。详见 [`../crypto-media/media-service-binding.md` §3](../crypto-media/media-service-binding.md)。 |
 | `ak.self.snapshot.query.manifest_head` | `query.realm_id: id` | 无 | `ak.schema.snapshot.v1` manifest（`id`、`realm_id`、`state_digest`、`frontier`、`event_set_commitment`、`chunks[]`、`created_by`、`created_at`、`authority_binding`、`signature` 等） | response_schema_ref=schemas/snapshot.schema.json。响应是完整 Snapshot manifest（不含 chunk bytes），客户端经 `chunks[].chunk_ref` 走 blob surface 取数；manifest MUST 签名，signer 必须是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员，签名 transcript 见 [`../conformance/snapshot-schema.md`](../conformance/snapshot-schema.md) §5；无法产出真实签名 manifest 的部署 MUST NOT 宣告本操作并 MUST 返回 `not_implemented`，不得伪造证明字段；high-assurance profile MUST 支持 inclusion / omission challenge hints。 |
 | `ak.self.space.query.list` | `path.realm_id: id` | `query.include_terminal: boolean=false`; `query.cursor: cursor`; `query.limit: int` | `realm_id: id`; `spaces: object[]`; `total: int`; `next_cursor: cursor?`; `has_more: boolean` | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList。extension surface；返回 reducer 派生的 Space lifecycle read model，不是真相源；默认不得返回 tombstoned terminal rows。 |
@@ -715,7 +716,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 | `ak.self.applet.command.install` | `header.Idempotency-Key: string`; `plan_digest: hash`; `applet_package: object`; `effective_scope: object`; `approved_scopes: object[]` | `actor_policy: object`; `e2ee_policy: object`; `widget_policy: object` | `ok: boolean`; `install_id: string`; `registration_event_ref: ref?`; `registration_epoch: hash`; `bot_actor_id: did`; `capability_grant_refs: ref[]`; `membership_event_refs: ref[]`; `e2ee_authorization_refs: ref[]`; `widget_policy_ref: ref?`; `effective_status: enum(installed,partially_installed,rejected)`; `rejected: object[]` | request_schema_ref=schemas/applet-install-operations.schema.json#/$defs/applet_install_request_body; response_schema_ref=schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome。self/admin aggregate operation；MUST 重新计算 plan，`plan_digest` 不匹配返回 `applet_install_plan_mismatch`；不创建 install 专用 durable Event。 |
 | `ak.self.applet.command.revoke` | `header.Idempotency-Key: string`; `path.applet_id: id`; `effective_scope: object`; `reason_code: string`; `revoke_mode: enum(revoke_all,revoke_runtime_only,revoke_widget_only,revoke_delegated_sessions)` | `proof?: AccountLifecycleProof` | `ok: boolean`; `revoked_refs: ref[]?`; `rejected: object[]?` | request_schema_ref=schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body; response_schema_ref=schemas/applet-install-operations.schema.json#/$defs/applet_revoke_outcome。self/admin aggregate operation；撤销 bound grants / widget tokens / delegated sessions；delegated session revoke 的 `proof` MUST 签署 Account Authority session revoke applet selector；revoke 后未来写入返回 `applet_revoked` 或更细 reason。 |
 | `ak.self.applet.ghost.command.provision` | `header.Idempotency-Key: string`; `path.applet_id: id`; `schema: const(ak.applet.ghost_actor.provision_request.v1)`; `applet_id: id`; `service_id: did`; `ghost_actor_id: did`; `protocol: string`; `tenant: string`; `external_user_id: string`; `realm_id: id`; `external_ref: object`; `accountability_grant_event: Event`; `profile_event: Event` | `display_name: string` | `ghost_actor_id: did`; `profile_event_ref: ref`; `accountability_grant_ref: ref`; `authorization_ref: ref`; `display_name: string?` | request_schema_ref=schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body; response_schema_ref=schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome。调用方是已安装 bridge Applet 的 service DID，并提交完整 service-signed accountability Event 与 delegated Ghost profile Event；服务端 MUST 验证 production DID proof、active registration/capability、frontier、namespace 与 effective scope，并把 Event 对、projection、Ghost record、幂等结果放入同一 durable transaction；不得用 Principal Server notary 代签。相同 tuple/key 只有 canonical bytes 完全一致才可幂等返回既有 refs，否则 `duplicate_conflict`。见 `applet-integration.md` §9.1。 |
-| `ak.edge.applet.command.transaction` | `header.Idempotency-Key: string`; `source_service_id: did`; `events: EventEnvelope[]` | `ephemeral: EphemeralEnvelope[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | request_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body; response_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_outcome。Applet 必须验证 event signature、namespace、capability；按 `(source_service_id, Idempotency-Key)` 幂等。 |
+| `ak.edge.applet.command.transaction` | `header.Idempotency-Key: string`; `source_service_id: did`; `events: EventEnvelope[]` | `realtime: RealtimeEnvelope[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | request_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body; response_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_outcome。Applet 必须独立验证 Event 与 Realtime proof、namespace、scope 和 capability；按 `(source_service_id, Idempotency-Key)` 幂等。 |
 | `ak.edge.applet.actor.query.resolve` | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | response_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_actor_view。actor_id 必须命中 namespace。 |
 | `ak.edge.applet.realm.query.resolve` | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | response_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view。必须命中 portal namespace 或授权查询。 |
 | `ak.edge.applet.query.protocol_metadata` | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_definitions: object`; `instances: object[]?` | response_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_protocol_metadata。instance list 可要求授权。 |
@@ -751,7 +752,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 | `ak.gate.account.command.pair_device` | `pairing_code: string`; `new_device_pubkey: object`; `challenge_proof: object`; `device_pairing_request_id: string` XOR `challenge_transcript: object` | `display_name: string`; `device_metadata: object` | `device_id: id`; `authorized_event_ref: ref`; `device_grant: object?`; `key_backup_hint: object?` | request_schema_ref=schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome。pairing code / proof 必须短期有效、一次性使用，并绑定目标 Account Authority `gate_account_base` / origin / request canonical hash；`challenge_proof` 的唯一 signing transcript 与验签步骤见 [device-lifecycle.md §2.1.2](../crypto-media/device-lifecycle.md)，服务端 MUST 独立重算 transcript 验签，MUST NOT 只做逐字段相等比较；服务端 MUST 按 principal、授权源设备和目标 origin 限速。携带 `device_pairing_request_id` 时 MUST 原子核验并消费匹配的 server-mediated 暂存记录。 |
 | `ak.gate.account.command.pair_agent_key` | `agent_id: did`; `verification_method: did_url`; `public_key: object`; `proof_of_possession: proof`; `requested_scope_disclosure: AgentRequestedScopeDisclosure`; `authorize_event: EventEnvelope`; `signing_key_binding: AgentSigningKeyBinding`; `header.Idempotency-Key=authorize_event.event_id` | `runtime_attestation: object` | `ok: boolean`; `authorized_event_ref: ref`; `signing_key_binding: AgentSigningKeyBinding` | request_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome。commit 前 MUST 验证 controller-owned managed-PCR backup 覆盖 pre-commit frontier 且 `pcr_recovery.status=ready`，否则 `agent_pcr_recovery_not_ready` 且 pairing handle 不消费。`requested_scope_disclosure` 是 verifier/audience/challenge-bound 私有 sidecar；MUST 验证 controller proof、单次 challenge、接收窗口与 accepted-at DID digest，且不得写入 `authorize_event` 或公开 history。`authorize_event` MUST 是 Agent PCR 中 `actor_id=agent_id`、`executed_by=controller`、带可验证 controller delegation 的完整签名 Event；其 `signing_key_binding_digest` MUST 承诺请求中的公开 binding，服务端 MUST 独立验证 binding controller proof、raw key digest、method、Event ID 与 validity。`verification_method` 的 DID 部分 MUST 与 `agent_id` bit-identical。相同 Event / pairing 重试幂等；同 Event ID 不同 bytes 返回 conflict。split Account Authority MUST 把完全相同的 typed request 委托到权威 Principal Server 的同一 canonical operation，MUST NOT 改用产品私有 fan-out endpoint；只有 downstream durable acceptance + activation 后才能返回成功。accepted authorize Event 推进 frontier 后，恢复投影转 `stale` 直至 post-commit backup accepted；这不回滚本次 pairing。replacement re-pairing 时，controller-signed `authorize_event.payload.supersedes[]` MUST 精确列出全部既有 active authorization，reducer 接受该单一 Event 时原子替换并记录 reason=`superseded_by_repairing`。 |
 | `ak.gate.account.command.enroll_device` | `device_id: id`; `device_public_key: string`; `hpke_key: string`; `algorithms: string[]`; `actor_seq: const(1)`; `bootstrap_create_event_id: id` | `not_before: datetime` | `principal_id: did`; `device_id: id`; `authority_did: did`; `authorized_event: object` | request_schema_ref=schemas/agent-operations.schema.json#/$defs/account_device_enroll_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome。托管 DID（account-authority）首设备入册，见 [`crypto-media/device-lifecycle.md` §5.4](../crypto-media/device-lifecycle.md) 与 [`identity/key-management.md` §5.0.6](../identity/key-management.md)。`Authorization` 出示当前 `ak.session.grant`，`DPoP` holder proof 绑定 grant `cnf.jkt` 与本 endpoint。入册权威用其**持久**签名密钥铸造 `service_attested` `ak.device.authorize`（`executed_by`/`authorization_ref`/`enrollment_authority_binding`），**MUST NOT** 持有或伪造本 principal 的 SSK；返回完整签名 Event，调用方把 root-signed `ak.realm.create` 与该 Event 原样作为同一原子 bootstrap unit 提交到 `POST /_arkret/self/events`。请求的 `actor_seq` MUST 为 `1`，并 MUST 携带同一提交批次内 root-signed `ak.realm.create` 的 `bootstrap_create_event_id`；权威 MUST 把该 ID 写为 authorize Event 唯一的 `prev_refs`。任何已有 active device 的 principal、`actor_seq!=1`、缺失 bootstrap create 引用或试图指定其它 predecessor 的请求都 MUST fail closed，且不得铸造 Event。后续设备只允许 `pair_device`（§2.1 已授权设备 SAS/QR 审批，携 `pairing_code`）或 B 模型 recovery re-anchor；本操作只服务无兄弟设备可审批的 bootstrap / 首台设备路径。服务端 MUST 按 principal 与目标 origin 限速。 |
-| `ak.self.agent.command.provision` | `phase: enum(prepare,commit)`; `slug: string`; `requested_scope: object`; commit: `agent_id: did`; `principal_control_realm_id: id`; `provision_events: {accountability_grant: EventEnvelope, selector_claim: EventEnvelope}` | `display_name: string?`; `avatar_blob_ref: id?`; `pairing_ttl_ms: int?` | prepare: `status=awaiting_controller_events`; `agent_id`; `principal_control_realm_id`; `controller_realm_id`; `controller_authorization_ref`; `requested_scope_digest`; commit: `status=complete`; 同一 allocation + `pcr_recovery: {status: pending}`; `pairing_request_id`; `pairing_code?`; `expires_at` | request_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_provision_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_provision_outcome。controller 无 accepted recovery policy 时在任何副作用前 fail closed。prepare 只校验先决条件并分配 Agent DID/PCR 坐标，MUST NOT 创建 durable Agent、DID/PCR、accountability、selector、pairing 或 grant；controller 必须重算返回的 scope digest，再使用 Arkret SDK 唯一 canonical authoring API 构造并签署闭合的 accountability/selector Event pair。commit 中两个 Event 的 `actor_id`/`realm_id` 必须是 authenticated controller/controller PCR，selector `source_refs` 必须绑定 accountability Event id，payload proof、Event proof、effects、时间 profile 和 canonical digest 均按普通 Event 规则验证并进入同一 admission；Principal Server 不得代签或接受 service/dev/payload-only Event proof。只有两条 Event durable accepted 后才发布 Agent DID binding 与 pairing handle。`requested_scope` 必填且 immutable，只建立全局 Agent key/session 上限，不得生成内容 grant。精确重试以已分配 `agent_id` 和两个 Event id/bytes 为身份，MUST 返回原 outcome；同 Event id 不同 bytes MUST conflict。若首次尝试只接受一条 Event，恢复 MUST 重放完全相同的两条 Event 并幂等完成，不得生成替代 id/proof。controller E2EE client 后续本地生成 Agent PCR MLS/genesis/Profile state 与 recovery backup；服务端不得生成 MLS private state，也不得在首次 pairing 前预写 `ak.agent.key.authorize`。 |
+| `ak.self.agent.command.provision` | `phase: enum(prepare,commit)`; `slug: string`; `requested_scope: object`; commit: `agent_id: did`; `principal_control_realm_id: id`; `provision_events: {accountability_grant: EventEnvelope, selector_claim: EventEnvelope}` | `display_name: string?`; `avatar_blob_ref: id?`; `pairing_ttl_ms: int?` | prepare: `status=awaiting_controller_events`; `agent_id`; `principal_control_realm_id`; `controller_realm_id`; `controller_authorization_ref`; `requested_scope_digest`; commit: `status=complete`; 同一 allocation + `pcr_recovery: {status: pending}`; `pairing_request_id`; `pairing_code?`; `expires_at` | request_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_provision_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_provision_outcome。controller 无 accepted recovery policy 时在任何副作用前 fail closed。prepare 只校验先决条件并分配 Agent DID/PCR 坐标，MUST NOT 创建 durable Agent、DID/PCR、accountability、selector、pairing 或 grant；controller 必须重算返回的 scope digest，再使用 Arkret SDK 唯一 canonical authoring API 构造并签署闭合的 accountability/selector Event pair。commit 中两个 Event 的 `actor_id`/`realm_id` 必须是 authenticated controller/controller PCR，selector `source_refs` 必须绑定 accountability Event id；payload schema、Event proof、scope_ref、时间 profile、registered reducer projection 和 canonical digest 均按普通 Event 规则验证并进入同一 admission；Principal Server 不得代签或接受 service/dev/payload-only Event proof。只有两条 Event durable accepted 后才发布 Agent DID binding 与 pairing handle。`requested_scope` 必填且 immutable，只建立全局 Agent key/session 上限，不得生成内容 grant。精确重试以已分配 `agent_id` 和两个 Event id/bytes 为身份，MUST 返回原 outcome；同 Event id 不同 bytes MUST conflict。若首次尝试只接受一条 Event，恢复 MUST 重放完全相同的两条 Event 并幂等完成，不得生成替代 id/proof。controller E2EE client 后续本地生成 Agent PCR MLS/genesis/Profile state 与 recovery backup；服务端不得生成 MLS private state，也不得在首次 pairing 前预写 `ak.agent.key.authorize`。 |
 | `ak.self.agent.command.renew_pairing` | `path.agent_id: did` | `pairing_ttl_ms: int?` | `agent_id: did`; `principal_control_realm_id: id`; `controller_authorization_ref: did_url`; `requested_scope_digest: hash`; `pcr_recovery: object`; `pairing_mode: enum(bootstrap,replacement)`; `pairing_request_id: string`; `pairing_code: string?`; `expires_at: datetime` | request_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_outcome。签发全新一次性 pairing handle，旧 handle 永久不可解析，并返回 immutable DID binding 的同一 `requested_scope_digest`、当前 `pcr_recovery`（`pending` / `ready` / `stale`）与固定分支 `pairing_mode`。runtime_state `pending_runtime_key` / `pairing_expired` 走 `bootstrap`；已持有 active authorized key 的 agent(lifecycle `active` / `paused`)走 `replacement`（lifecycle 意图 / 既有 key / grant 在新配对完成前不变，完成时由 controller-signed authorize Event 的精确 `supersedes[]` 原子替换，lifecycle 意图原样保留，`active` 无需 resume）；两种分支都不得创建、撤销或重发 Realm grant；`deactivated` MUST 拒绝。pair commit 仍仅接受 `pcr_recovery.status=ready`。见 [`identity/key-management.md` §3.6.1](../identity/key-management.md)。 |
 | `ak.self.agent.query.list` | 无 | `query.cursor: cursor`; `query.limit: int`; `query.state: string` | `agents: object[]`; `next_cursor: cursor?`; `has_more: boolean` | response_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_list。只列出调用方可管理的 native personal agent。 |
 | `ak.self.agent.resource.get` | `path.agent_id: did` | 无 | `agent: object`; `status: enum(active,paused,deactivated)`; `runtime_state: enum(pending_runtime_key,ready,replacing,pairing_expired)`; `grants: object[]?`; `key_state: object?` | response_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_view。只返回 controller 或 policy-authorized admin 可见的 agent projection；`key_state.pcr_recovery` 必须按 active controller backup series 与 Agent PCR current frontier 投影 `pending` / `ready` / `stale`。`pairing_request_id` / `pairing_mode` / `pairing_expires_at` 仅投影当前 open handle，消费或过期后与 `pairing_code` 一并省略。 |
@@ -814,62 +815,35 @@ header 规则：
 POST /_arkret/self/events
 ```
 
-单事件提交 request body 直接是 `EventSubmitEnvelope` 对象（**不**用任何 `{event: ...}` wrapper）。批量提交 request body 是 `{events: EventSubmitEnvelope[]}`。服务接受后返回的 get/query/subscribe 路径暴露 accepted `EventEnvelope`；submit input 与 accepted/read envelope 不得混用。
+单事件提交 request body 是 `EventInitialSubmission`；批量提交是
+`{events: EventInitialSubmission[]}`。`event` 保持完整原始签名 Event，`authorization_lease`
+与可选 `cba_proof_bundles` 是独立发布证据。服务接受后，get/query/subscribe 只暴露 accepted
+`EventEnvelope`；不得把提交 wrapper 持久化成 Event，或把 receipt 写回 Event。
 
 单事件请求示例（非完整 schema）：
 
 ```json
 {
-  "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-  "actor_seq": 42,
-  "kind": "ak.strand.update",
-  "created_at": "2026-04-22T08:30:00Z",
-  "hlc": "01970e589d21-0007-a13f9c2e",
-  "prev_refs": [
-    "ak:event:019640ed-0000-7000-8000-000000000000"
-  ],
-  "refs": [
-    { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
-  ],
-  "causal_refs": [],
-  "effects": [
-    {
-      "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
-      "op": {
-        "kind": "set",
-        "value": {
-          "metadata": {
-            "fields": {
-              "review_status": "approved"
-            }
-          }
-        }
-      }
-    }
-  ],
-  "seal_ref": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
-  "auth_context": {
-    "did": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-    "key_id": "device-1",
-    "key_epoch": 3,
-    "capability_refs": ["ak:grant:0196410c-0000-7000-8000-000000000000"]
+  "event": {
+    "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+    "scope_ref": {
+      "kind": "realm",
+      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+    },
+    "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
+    "actor_seq": 42,
+    "kind": "ak.strand.update",
+    "payload": {"target_ref": "ak:strand:...", "patch": {"metadata.fields.review_status": "approved"}},
+    "proofs": ["..."]
   },
-  "payload": {
-    "target_ref": "ak:strand:019640c6-8000-7000-8000-000000000000",
-    "patch": { "metadata.fields.review_status": "approved" }
-  },
-  "proofs": [
-    {
-      "kind": "detached_jws",
-      "alg": "EdDSA",
-      "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#device-1",
-      "event_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-      "created_at": "2026-04-22T08:30:00Z",
-      "jws": "..."
-    }
-  ]
+  "authorization_lease": {
+    "lease_id": "ak:lease:019640ed-8100-7000-8000-000000000000",
+    "basis_ref": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "action": "ak.strand.update",
+    "expires_at": "2026-04-22T16:00:00Z",
+    "...": "..."
+  }
 }
 ```
 
@@ -878,8 +852,8 @@ POST /_arkret/self/events
 ```json
 {
   "events": [
-    { "event_id": "ak:event:...", "realm_id": "ak:realm:...", "actor_id": "did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:...", "actor_seq": 42, "kind": "ak.strand.update", "...": "..." },
-    { "event_id": "ak:event:...", "realm_id": "ak:realm:...", "actor_id": "did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:...", "actor_seq": 43, "kind": "ak.message.create", "...": "..." }
+    {"event": {"event_id": "ak:event:...", "kind": "ak.strand.update", "...": "..."}, "authorization_lease": {"lease_id": "ak:lease:...", "...": "..."}},
+    {"event": {"event_id": "ak:event:...", "kind": "ak.message.create", "...": "..."}, "authorization_lease": {"lease_id": "ak:lease:...", "...": "..."}}
   ]
 }
 ```

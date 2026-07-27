@@ -11,7 +11,7 @@
     "ak.vector.realm_key.share_sender_signature.v1",
     "ak.vector.realm_key.withheld_policy_basis.v1",
     "ak.vector.patch.atomic_application.v1",
-    "ak.vector.patch.effects_prestate_binding.v1",
+    "ak.vector.patch.projection_prestate_binding.v1",
     "ak.vector.state_root.incremental.v1",
     "ak.vector.strand_tracks_update.atomic.v1"
   ],
@@ -34,7 +34,7 @@
         {
           "name": "mls_commit_exact_registered_targets",
           "event_kind": "ak.mls.commit",
-          "effect_families": [
+          "projected_cell_families": [
             "ak.component.mls.epoch.v1",
             "ak.component.mls.key_schedule.v1",
             "ak.component.covered_seals.v1"
@@ -47,17 +47,17 @@
         {
           "name": "mls_commit_missing_covered_seals",
           "event_kind": "ak.mls.commit",
-          "remove_effect_family": "ak.component.covered_seals.v1",
+          "omit_projected_cell_family": "ak.component.covered_seals.v1",
           "expected": {
             "decision": "reject",
-            "reason": "effects_payload_mismatch",
+            "reason": "reducer_projection_failed",
             "applied_cell_writes": 0
           }
         },
         {
           "name": "invite_accept_extra_unregistered_target",
           "event_kind": "ak.invite.accept",
-          "inject_effect_family": "ak.component.realm.policy.v1",
+          "inject_projected_cell_family": "ak.component.realm.policy.v1",
           "expected": {
             "decision": "reject",
             "reason": "plane_cross_write",
@@ -67,8 +67,8 @@
         {
           "name": "data_kind_attempts_control_cell",
           "event_kind": "ak.message.revise",
-          "replace_effect_family": "ak.component.message.revision.v1",
-          "with_effect_family": "ak.component.member.state.v1",
+          "replace_projected_cell_family": "ak.component.message.revision.v1",
+          "with_projected_cell_family": "ak.component.member.state.v1",
           "expected": {
             "decision": "reject",
             "reason": "plane_cross_write"
@@ -89,7 +89,7 @@
             "subject_components_are_share_kind_principal_target_and_effective_scope",
             "component_order_is_exact",
             "recovery_recipient_id_is_not_unicode_normalized_or_case_folded",
-            "effect_cell_is_recomputed_from_schema_selected_components",
+            "projected_cell_is_recomputed_from_schema_selected_components",
             "append_value_is_recomputed_from_registered_value_projection",
             "ciphertext_material_uses_decoded_bytes_digest",
             "encrypted_key_ref_material_uses_canonical_json_digest"
@@ -112,7 +112,7 @@
           "expected": {
             "positive_decision": "accept",
             "negative_decision": "reject",
-            "negative_reason": "effects_payload_mismatch"
+            "negative_reason": "reducer_projection_failed"
           }
         }
       ]
@@ -417,7 +417,7 @@
       }
     },
     {
-      "vector_id": "ak.vector.patch.effects_prestate_binding.v1",
+      "vector_id": "ak.vector.patch.projection_prestate_binding.v1",
       "assertions": [
         "strand_patch_plane_and_subject_match_registry",
         "data_patch_prestate_is_loaded_only_from_referenced_base_head",
@@ -512,7 +512,7 @@
           {
             "name": "base_ref_missing",
             "causal_refs": [],
-            "expected": "effects_payload_mismatch"
+            "expected": "reducer_projection_failed"
           },
           {
             "name": "multiple_base_refs",
@@ -520,7 +520,7 @@
               "sha256:1111111111111111111111111111111111111111111111111111111111111111",
               "sha256:2222222222222222222222222222222222222222222222222222222222222222"
             ],
-            "expected": "effects_payload_mismatch"
+            "expected": "reducer_projection_failed"
           },
           {
             "name": "partial_wire_effect_rejected",
@@ -536,7 +536,7 @@
                 }
               }
             },
-            "expected": "effects_payload_mismatch"
+            "expected": "reducer_projection_failed"
           }
         ]
       }

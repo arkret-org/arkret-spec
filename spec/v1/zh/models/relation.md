@@ -34,7 +34,7 @@ Schema id: `ak.schema.relation.v1`
 | `schema` | yes | `ak.schema.relation.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | Relation 所在 Realm。 | 所属 Realm。 |
 | `scope_circle_id` | no | `id:circle` | submit payload 提供的 Realm 内 Circle scope；弱语义隐私边（`agent_sidecar_of` / `confidential_discussion_of`）按 §3.1 MUST 提交，指向 private Strand 的 Circle。对 Sidecar，该值必须等于独立 Sidecar 对象的 reducer-derived `backing_circle_id`，不得由 caller 自选。由此 `effective_scope = circle`，non-member 无法从公开端点枚举该边（见 [`circle.md` §6.1](./circle.md) 与 [`sidecar.md`](./sidecar.md)）。 | 该 Relation 事实的 Circle 作用域。 |
-| `effective_scope` | no | `object` | **Reducer-stamped immutable，actor MUST NOT 提交**（reducer-managed，`reason=effective_scope_reducer_managed`）。create 时由 `scope_circle_id` 物化；结构关系 MUST NOT 宽于参与端点中最窄的作用域，且后续 rebind 不变（见 [`circle.md` §6.1-§6.2](./circle.md)）。 | 派生的有效作用域。 |
+| `effective_scope` | no | `object` | 只读对象投影，MUST 等于创建 Event 的签名 `scope_ref`；actor 不在 relation content 内重复提交。create 时 receiver 从 `scope_circle_id` 与端点冻结前态复核，结构关系 MUST NOT 宽于参与端点中最窄的作用域。 | 派生的有效作用域。 |
 | `relation_kind` | yes | `string` | 标准值见 §3。 | 关系语义。 |
 | `from_ref` | yes | `string` | MUST 是 `ak:<kind>:...` 或 DID。 | 起点对象/Actor/Realm 引用。 |
 | `to_ref` | yes | `string` | MUST 是 `ak:<kind>:...` 或 DID。 | 终点对象/Actor/Realm 引用。 |

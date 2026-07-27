@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/offline-publication.schema.json",
+  "title": "Arkret Offline Publication Proofs",
+  "$defs": {
+    "authorization_lease": {
+      "type": "object",
+      "required": [
+        "lease_id",
+        "basis_ref",
+        "actor_id",
+        "device_id",
+        "scope_ref",
+        "action",
+        "risk_tier",
+        "issued_at",
+        "expires_at",
+        "issuer_set_ref",
+        "signatures"
+      ],
+      "properties": {
+        "lease_id": {
+          "type": "string",
+          "pattern": "^ak:lease:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "basis_ref": {
+          "oneOf": [
+            {
+              "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+            },
+            {
+              "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+            }
+          ],
+          "description": "Accepted authorization basis. Single-chain profiles use one Seal ref; open_set uses the signed multi-leaf seal_basis object including control_event_set_root and state_root."
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "scope_ref": {
+          "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
+        },
+        "action": {
+          "type": "string",
+          "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*$"
+        },
+        "risk_tier": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "issuer_set_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "signatures": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./event-envelope.schema.json#/$defs/proof"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ingress_receipt": {
+      "type": "object",
+      "required": [
+        "receipt_id",
+        "event_digest",
+        "lease_ref",
+        "received_at",
+        "service_id",
+        "issuer_set_ref",
+        "signatures"
+      ],
+      "properties": {
+        "receipt_id": {
+          "type": "string",
+          "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "event_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "lease_ref": {
+          "type": "string",
+          "pattern": "^ak:lease:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "received_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "issuer_set_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "signatures": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./event-envelope.schema.json#/$defs/proof"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/authorization_lease"
+    },
+    {
+      "$ref": "#/$defs/ingress_receipt"
+    }
+  ]
+}

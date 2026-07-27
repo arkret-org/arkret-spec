@@ -1,0 +1,611 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/security-transaction.schema.json",
+  "title": "Arkret Security Transaction",
+  "type": "object",
+  "required": [
+    "transaction_id",
+    "kind",
+    "principal_id",
+    "coordinator_service_id",
+    "expires_at",
+    "created_at",
+    "request_digest",
+    "binding",
+    "state",
+    "accepted_step_refs",
+    "next_required_action"
+  ],
+  "properties": {
+    "transaction_id": {
+      "type": "string",
+      "pattern": "^ak:transaction:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "recovery",
+        "security_rotation"
+      ]
+    },
+    "principal_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "coordinator_service_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "expires_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "created_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "request_digest": {
+      "$ref": "#/$defs/hash"
+    },
+    "binding": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/recovery_binding"
+        },
+        {
+          "$ref": "#/$defs/security_rotation_binding"
+        }
+      ]
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "running",
+        "complete",
+        "abort",
+        "expired"
+      ]
+    },
+    "accepted_step_refs": {
+      "type": "array",
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/accepted_step_ref"
+      }
+    },
+    "next_required_action": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "open_recovery_session",
+            "validate_authority_ticket",
+            "publish_did_entry",
+            "submit_reanchor_unit",
+            "issue_terminal_receipt",
+            "revoke",
+            "upload_new_material",
+            "switch_authoritative_pointer",
+            "erase_old_material",
+            "local_commit"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "terminal_outcome": {
+      "type": "object",
+      "required": [
+        "outcome",
+        "completed_at"
+      ],
+      "properties": {
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "complete",
+            "abort",
+            "expired"
+          ]
+        },
+        "completed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "receipt_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "reason_code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "recovery"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "binding": {
+            "$ref": "#/$defs/recovery_binding"
+          },
+          "accepted_step_refs": {
+            "items": {
+              "$ref": "#/$defs/recovery_step_ref"
+            }
+          },
+          "next_required_action": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/recovery_step"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "binding": {
+            "$ref": "#/$defs/security_rotation_binding"
+          },
+          "accepted_step_refs": {
+            "items": {
+              "$ref": "#/$defs/security_rotation_step_ref"
+            }
+          },
+          "next_required_action": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/security_rotation_step"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "enum": [
+              "complete",
+              "abort",
+              "expired"
+            ]
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "required": [
+          "terminal_outcome"
+        ],
+        "properties": {
+          "next_required_action": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "next_required_action": {
+            "type": "string"
+          }
+        },
+        "not": {
+          "required": [
+            "terminal_outcome"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "complete"
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "terminal_outcome": {
+            "properties": {
+              "outcome": {
+                "const": "complete"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "abort"
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "terminal_outcome": {
+            "properties": {
+              "outcome": {
+                "const": "abort"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "expired"
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "terminal_outcome": {
+            "properties": {
+              "outcome": {
+                "const": "expired"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "create_request": {
+      "type": "object",
+      "required": [
+        "transaction_id",
+        "kind",
+        "principal_id",
+        "expires_at",
+        "intent"
+      ],
+      "properties": {
+        "transaction_id": {
+          "type": "string",
+          "pattern": "^ak:transaction:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "recovery",
+            "security_rotation"
+          ]
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "intent": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/recovery_intent"
+            },
+            {
+              "$ref": "#/$defs/security_rotation_intent"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "recovery"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "intent": {
+                "$ref": "#/$defs/recovery_intent"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "intent": {
+                "$ref": "#/$defs/security_rotation_intent"
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "continue_request": {
+      "type": "object",
+      "required": [
+        "request_digest",
+        "expected_next_action"
+      ],
+      "properties": {
+        "request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "expected_next_action": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/recovery_step"
+            },
+            {
+              "$ref": "#/$defs/security_rotation_step"
+            }
+          ]
+        },
+        "client_attestation": {
+          "$ref": "#/$defs/client_step_attestation"
+        }
+      },
+      "additionalProperties": false
+    },
+    "client_step_attestation": {
+      "type": "object",
+      "required": [
+        "ref",
+        "accepted_digest",
+        "proof"
+      ],
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "accepted_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "proof": {
+          "$ref": "./event-envelope.schema.json#/$defs/proof"
+        }
+      },
+      "additionalProperties": false
+    },
+    "recovery_intent": {
+      "type": "object",
+      "required": [
+        "recovery_session_ref",
+        "replacement_device_id",
+        "authority_ticket_ref",
+        "did_entry_digest",
+        "replacement_device_authorization_digest"
+      ],
+      "properties": {
+        "recovery_session_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "replacement_device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "authority_ticket_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "did_entry_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "replacement_device_authorization_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "security_rotation_intent": {
+      "type": "object",
+      "required": [
+        "revoke_event_digest",
+        "new_secret_commitment",
+        "staged_material_digest"
+      ],
+      "properties": {
+        "revoke_event_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "new_secret_commitment": {
+          "$ref": "#/$defs/hash"
+        },
+        "staged_material_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "opaque_ref": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "accepted_step_ref": {
+      "type": "object",
+      "required": [
+        "step",
+        "ref",
+        "accepted_digest"
+      ],
+      "properties": {
+        "step": {
+          "type": "string"
+        },
+        "ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "accepted_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "recovery_step": {
+      "type": "string",
+      "enum": [
+        "open_recovery_session",
+        "validate_authority_ticket",
+        "publish_did_entry",
+        "submit_reanchor_unit",
+        "issue_terminal_receipt"
+      ]
+    },
+    "recovery_step_ref": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/accepted_step_ref"
+        },
+        {
+          "properties": {
+            "step": {
+              "$ref": "#/$defs/recovery_step"
+            }
+          }
+        }
+      ]
+    },
+    "security_rotation_step": {
+      "type": "string",
+      "enum": [
+        "revoke",
+        "upload_new_material",
+        "switch_authoritative_pointer",
+        "erase_old_material",
+        "local_commit"
+      ]
+    },
+    "security_rotation_step_ref": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/accepted_step_ref"
+        },
+        {
+          "properties": {
+            "step": {
+              "$ref": "#/$defs/security_rotation_step"
+            }
+          }
+        }
+      ]
+    },
+    "recovery_binding": {
+      "type": "object",
+      "required": [
+        "recovery_session_ref",
+        "did_entry_ref",
+        "replacement_device_id",
+        "authorize_event_id",
+        "reanchor_event_id",
+        "authority_ticket_ref",
+        "terminal_receipt_id"
+      ],
+      "properties": {
+        "recovery_session_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "did_entry_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "replacement_device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "authorize_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "reanchor_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "authority_ticket_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "terminal_receipt_id": {
+          "type": "string",
+          "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "security_rotation_binding": {
+      "type": "object",
+      "required": [
+        "revoke_event_id",
+        "new_secret_commitment",
+        "series_ref",
+        "backup_ref",
+        "authoritative_pointer_ref",
+        "erase_confirmation_ref",
+        "local_commit_ref"
+      ],
+      "properties": {
+        "revoke_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "new_secret_commitment": {
+          "$ref": "#/$defs/hash"
+        },
+        "series_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "backup_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "authoritative_pointer_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "erase_confirmation_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "local_commit_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

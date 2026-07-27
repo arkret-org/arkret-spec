@@ -1287,7 +1287,7 @@
         "properties": [
           "source_service_id",
           "events",
-          "ephemeral"
+          "realtime"
         ],
         "closed": true
       },
@@ -3089,20 +3089,26 @@
         "schema_kind": "oneOf",
         "required": [],
         "properties": [
-          "events",
-          "service_binding_ref",
-          "seals",
-          "signer_key_evidence",
-          "agent_signer_evidence_bundle"
+          "event",
+          "authorization_lease",
+          "cba_proof_bundles",
+          "events"
         ],
-        "closed": false,
+        "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventSubmitEnvelope",
-            "schema_kind": null,
-            "required": [],
-            "properties": [],
-            "closed": false
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
+            "schema_kind": "object",
+            "required": [
+              "event",
+              "authorization_lease"
+            ],
+            "properties": [
+              "event",
+              "authorization_lease",
+              "cba_proof_bundles"
+            ],
+            "closed": true
           },
           {
             "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitBatchRequestBody",
@@ -3112,22 +3118,6 @@
             ],
             "properties": [
               "events"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody",
-            "schema_kind": "object",
-            "required": [
-              "service_binding_ref",
-              "events"
-            ],
-            "properties": [
-              "service_binding_ref",
-              "events",
-              "seals",
-              "signer_key_evidence",
-              "agent_signer_evidence_bundle"
             ],
             "closed": true
           }
@@ -3143,6 +3133,7 @@
         "properties": [
           "status",
           "accepted",
+          "ingress_receipts",
           "duplicate",
           "rejected",
           "quarantine",
@@ -3339,7 +3330,7 @@
         "properties": [
           "service_binding_ref",
           "events",
-          "seals",
+          "cba_proof_bundles",
           "signer_key_evidence",
           "agent_signer_evidence_bundle"
         ],
@@ -3355,6 +3346,7 @@
         "properties": [
           "status",
           "accepted",
+          "ingress_receipts",
           "duplicate",
           "rejected",
           "quarantine",
@@ -3571,45 +3563,49 @@
       }
     },
     {
-      "operation_id": "ak.self.ephemeral.command.send",
+      "operation_id": "ak.self.realtime.command.send",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/ephemeral-envelope.schema.json",
+        "schema_ref": "schemas/realtime-envelope.schema.json",
         "schema_kind": "object",
         "required": [
-          "kind",
           "realm_id",
-          "actor_id",
-          "device_id",
+          "scope_ref",
+          "sender_actor_id",
+          "sender_device_id",
+          "seal_ref",
+          "signal_class",
           "sent_at",
           "expires_at",
-          "payload",
+          "encrypted_payload",
           "proof"
         ],
         "properties": [
-          "kind",
           "realm_id",
-          "actor_id",
-          "device_id",
+          "scope_ref",
+          "sender_actor_id",
+          "sender_device_id",
+          "seal_ref",
+          "signal_class",
           "sent_at",
           "expires_at",
-          "payload",
+          "encrypted_payload",
           "proof"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/RealtimeSubmitOutcome",
         "schema_kind": "object",
         "required": [
           "accepted",
-          "kind",
-          "realm_id"
+          "realm_id",
+          "envelope_digest"
         ],
         "properties": [
           "accepted",
-          "kind",
           "realm_id",
+          "envelope_digest",
           "dispatched_to",
           "server_received_at"
         ],
@@ -4326,6 +4322,147 @@
             "closed": false
           }
         ]
+      }
+    },
+    {
+      "operation_id": "ak.self.security_transaction.command.create",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/security-transaction.schema.json#/$defs/create_request",
+        "schema_kind": "object",
+        "required": [
+          "transaction_id",
+          "kind",
+          "principal_id",
+          "expires_at",
+          "intent"
+        ],
+        "properties": [
+          "transaction_id",
+          "kind",
+          "principal_id",
+          "expires_at",
+          "intent"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/security-transaction.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "transaction_id",
+          "kind",
+          "principal_id",
+          "coordinator_service_id",
+          "expires_at",
+          "created_at",
+          "request_digest",
+          "binding",
+          "state",
+          "accepted_step_refs",
+          "next_required_action"
+        ],
+        "properties": [
+          "transaction_id",
+          "kind",
+          "principal_id",
+          "coordinator_service_id",
+          "expires_at",
+          "created_at",
+          "request_digest",
+          "binding",
+          "state",
+          "accepted_step_refs",
+          "next_required_action",
+          "terminal_outcome"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.security_transaction.resource.get",
+      "success_shape_kind": "schema_resource",
+      "response": {
+        "schema_ref": "schemas/security-transaction.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "transaction_id",
+          "kind",
+          "principal_id",
+          "coordinator_service_id",
+          "expires_at",
+          "created_at",
+          "request_digest",
+          "binding",
+          "state",
+          "accepted_step_refs",
+          "next_required_action"
+        ],
+        "properties": [
+          "transaction_id",
+          "kind",
+          "principal_id",
+          "coordinator_service_id",
+          "expires_at",
+          "created_at",
+          "request_digest",
+          "binding",
+          "state",
+          "accepted_step_refs",
+          "next_required_action",
+          "terminal_outcome"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.security_transaction.command.continue",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/security-transaction.schema.json#/$defs/continue_request",
+        "schema_kind": "object",
+        "required": [
+          "request_digest",
+          "expected_next_action"
+        ],
+        "properties": [
+          "request_digest",
+          "expected_next_action",
+          "client_attestation"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/security-transaction.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "transaction_id",
+          "kind",
+          "principal_id",
+          "coordinator_service_id",
+          "expires_at",
+          "created_at",
+          "request_digest",
+          "binding",
+          "state",
+          "accepted_step_refs",
+          "next_required_action"
+        ],
+        "properties": [
+          "transaction_id",
+          "kind",
+          "principal_id",
+          "coordinator_service_id",
+          "expires_at",
+          "created_at",
+          "request_digest",
+          "binding",
+          "state",
+          "accepted_step_refs",
+          "next_required_action",
+          "terminal_outcome"
+        ],
+        "closed": true
       }
     },
     {

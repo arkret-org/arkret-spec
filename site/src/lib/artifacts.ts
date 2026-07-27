@@ -48,7 +48,7 @@ export interface EventKind {
   event_kind: string;
   category: string;
   status: "active" | "reserved" | string;
-  wire_scope: "durable_event" | "actor_private_event" | "ephemeral_event" | string;
+  wire_scope: "durable_event" | "actor_private_event" | string;
   reducer_input?: boolean;
   payload?: string;
 }

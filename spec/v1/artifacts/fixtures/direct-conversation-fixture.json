@@ -260,6 +260,10 @@
         "event_id": "ak:event:0196419b-0000-7000-8000-000000000302",
         "kind": "ak.capability.grant",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101"
+        },
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 1,
         "hlc": "01970e589d21-0001-a13f9c2e",
@@ -296,6 +300,10 @@
         "event_id": "ak:event:0196419b-0000-7000-8000-000000000302",
         "kind": "ak.realm.create",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101"
+        },
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 1,
         "hlc": "01970e589d21-0001-a13f9c2e",
@@ -333,6 +341,10 @@
         "event_id": "ak:event:0196419b-0000-7000-8000-000000000302",
         "kind": "ak.capability.grant",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101"
+        },
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 1,
         "hlc": "01970e589d21-0001-a13f9c2e",
@@ -374,6 +386,10 @@
         "event_id": "ak:event:0196419b-0000-7000-8000-000000000303",
         "kind": "ak.member.state",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000101"
+        },
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 2,
         "hlc": "01970e589d21-0002-a13f9c2e",

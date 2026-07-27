@@ -32,9 +32,9 @@ Arkret canonical JSON MUST 使用：
 - whole-object digest/signature 对通过 schema 的 `.sssZ` 字符串原样 canonicalize。独立 transcript/AAD 绑定已有 Arkret timestamp 时 MUST 使用相同字段名和相同 canonical 字符串；“参与密码学”本身不是转成 epoch integer 的理由。producer 必须先构造 typed canonical timestamp，receiver 必须先严格验证 wire spelling，再重建 canonical bytes。
 - 字段名使用 snake_case。
 
-Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs`、`unsigned` 与 **reducer-stamped 顶层字段**（v1 当前为 `effective_scope`、`actor_kind`）后的 canonical JSON bytes，并且 MUST 保留 `event_id`。`unsigned` 是传输/本地附加信息，MUST NOT 影响 event digest 或 proof `event_digest`。reducer-stamped 字段由 producer 提交时 MUST NOT 携带、reducer 接受时才 immutable 写入，因此**不进入 producer `proof.event_digest`**（否则联邦 peer 独立重算 digest 必与 producer 签名失配）；它们经 accepted envelope 存储、Seal / sub-seal observational 承诺与（MLS-backed scope 下的）E2EE AAD / MLS governance binding input 单独承诺，权威定义见 [`../models/event-and-patch.md` §2.2](../models/event-and-patch.md) 与 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)。实现 MUST NOT 对已经签名的 bytes 做大小写规范化、ID 前缀补全、字段默认值补写、key 重排以外的语义改写。签名字节的不可变性是协议演进的根约束——升级 MUST NOT 改写历史签名 bytes，而是用重放/投影重建派生视图，详见 [overview/evolution-and-compatibility.md](../overview/evolution-and-compatibility.md)。
+Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs`、`unsigned` 与 **reducer-stamped 顶层字段**（v1 只有 `actor_kind`）后的 canonical JSON bytes，并且 MUST 保留 `event_id` 与 producer 声明的 `scope_ref`。`unsigned` 是传输/本地附加信息，MUST NOT 影响 event digest 或 proof `event_digest`。`actor_kind` 由 producer 提交时 MUST NOT 携带、reducer 接受时才 immutable 写入，因此不进入 producer `proof.event_digest`。`scope_ref` 不是 stamp：它由 producer 签名，reducer 必须从 payload 与 accepted references 独立派生并逐字段比对。实现 MUST NOT 对已经签名的 bytes 做大小写规范化、ID 前缀补全、字段默认值补写、key 重排以外的语义改写。签名字节的不可变性是协议演进的根约束——升级 MUST NOT 改写历史签名 bytes，而是用重放/投影重建派生视图，详见 [overview/evolution-and-compatibility.md](../overview/evolution-and-compatibility.md)。
 
-**架构取舍（normative）**：v1 有意逐字段登记 reducer stamp，而不引入整体排除的开放 `stamped` 容器。原因是每个 stamp 都必须同时具备 actor-submit 禁止规则、确定的 reducer 来源，以及 Seal/sub-seal/AAD/governance-binding 的独立承诺；开放容器会让未知 stamp 在 producer digest 外出现而没有对应承诺。新增 reducer-stamped 顶层字段因此是 reducer-profile / schema release 变更，MUST 原子更新本节、Event schema、stamp 来源、承诺输入与 conformance vector；stable release 中必须使用新 schema/profile，不得把它当作普通 optional field。低层 canonicalizer 只消费 event schema 导出的 sealed exclusion set，MUST NOT 自行维护另一份业务字段列表。
+**架构取舍（normative）**：v1 不引入开放 `stamped` 容器，Event 顶层 exclusion set 固定为 `actor_kind`。新增 reducer-stamped 顶层字段会在 producer 签名之外创造新事实来源，v1 MUST NOT 接受。低层 canonicalizer 必须从 Event schema 消费该单元素 exclusion set，不得自行维护另一份业务字段列表。
 
 生产者 MUST 在所有 v1 签名对象中使用 JSON integer 表示数值。Schema 要求小数语义的字段（如概率、进度、置信度）MUST 使用整数 + scale（见上文 `_basis_points` 等约定），生产者和消费者按预定义 scale 解释，无须做 number canonicalization。任何进入签名 / canonical wire bytes 的 v1 schema MUST NOT 出现 `type: number`（非整数）字段；该约束在 OpenAPI 镜像上由 lint 强制。唯一例外是**派生的 read / projection 响应**中承载「被投影字段运行时类型」的 filter 值（例如 `view.schema.json#/$defs/collection_projection_view` 分组 source 的 `value`、OpenAPI `CollectionFieldValueGroupSource.value`）：它们不进入 canonical Event bytes、不参与签名，MAY 保留 `type: number`，且在 OpenAPI 镜像中 MUST 以 `# lint-waiver(type:number): <理由>` 标注；后续 wire 修订可将需要小数的字段类型迁移为 `{integer, scale}` 信封。
 
@@ -221,11 +221,11 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 
 两类候选集的规则相同：
 
-- **最终 tie-break 键固定为 `event_digest`**：候选各自产生 Event 的 canonical `event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned_reducer_stamps)`，§6）。digest preimage MUST 逐字使用 §2 / §6 的权威集合——从 envelope 移除 `proofs`、`unsigned` 与 reducer-stamped 顶层字段（v1 当前为 `effective_scope`、`actor_kind`）后再 canonicalize。它是签名覆盖的内容指纹，对所有 verifier 唯一确定。
+- **最终 tie-break 键固定为 `event_digest`**：候选各自产生 Event 的 canonical `event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned_actor_kind)`，§6）。digest preimage MUST 逐字使用 §2 / §6 的权威集合——从 envelope 移除 `proofs`、`unsigned` 与 `actor_kind` 后再 canonicalize；签名 `scope_ref` 不得移除。它是签名覆盖的内容指纹，对所有 verifier 唯一确定。
 - **方向固定为 bytewise 最大（lexicographically-greatest）**：winner = 候选集中 `event_digest` 最大者。比较对象 MUST 是**解码后的 digest octets**，不是 typed wire string：wire 形态 `<canonical_suite_id>:<lowercase_hex>`（§3.1）若整串按 UTF-8 比较，suite 名会先于内容决定 winner。规则固定为——先按 §3.2 确认候选 suite 对该 Event basis 合法，再把 hex 解码为 octets，以 unsigned lexicographic order 比较；长度不同且短者是长者前缀时短者较小。**仅当** octets 完全相同而 suite 不同时，才以 canonical suite id 的 unsigned UTF-8 bytewise 顺序作第二键，使全序完备。选最大是 LWW-register 的惯例方向，跨全协议统一。
 - **禁止的 tie-break 键**：winner 选择 MUST NOT 使用 `created_at` / HLC / `actor_id` / `actor_seq` / `event_id` / 本地接收顺序 / 数据库 ID / 服务端插入顺序中的任何一个。注意 **`event_id` 也被禁用**：它是 UUIDv7，其时间戳前缀是 producer 设定的墙钟量，用作 tie-break 会重新引入被本规则排除的墙钟依赖。
 - **复合排序的 domain 语义键**：某些 domain 在 tie-break 之前**先**按一个或多个有 domain 语义的有序键排序（如 account status 先按严格度、再按 `effective_at`）。这类 domain-semantic 主排序键是各 domain 的合法设计；但当主排序键全部相等仍并发时，**最终的并发消歧 MUST 落到本节的 bytewise-greatest `event_digest`**，不得用 `event_id` 或墙钟量收尾。
-- **collision fail closed**：两个候选的 canonical digest preimage bytes 不同却得到完全相同的 typed digest（同 suite、同 octets）时 MUST fail closed，MUST NOT 回退到任何禁止键或实现私有 ID。反之，preimage bytes 逐字相同而仅 `proofs`、`unsigned` 或 reducer stamps 不同的，是同一 producer-signed Event 内容，分别按 proof profile 与 reducer-stamp 验证处理，MUST NOT 误报 collision。
+- **collision fail closed**：两个候选的 canonical digest preimage bytes 不同却得到完全相同的 typed digest（同 suite、同 octets）时 MUST fail closed，MUST NOT 回退到任何禁止键或实现私有 ID。反之，preimage bytes 逐字相同而仅 `proofs`、`unsigned` 或 `actor_kind` 不同的，是同一 producer-signed Event 内容，分别按 proof profile 与 actor-kind 投影验证处理，MUST NOT 误报 collision。
 
 引用本规则的 domain：[`models/relation.md` §6](../models/relation.md)、[`models/strand-and-message.md` §9.5.1](../models/strand-and-message.md)、[`identity/account-lifecycle.md` §3](../identity/account-lifecycle.md)、[`authz/event-auth-state-resolution.md` §9.3.1](../authz/event-auth-state-resolution.md)。
 
@@ -304,11 +304,11 @@ Durable Realm Event 是可由多个合规 Realm host 保存和复验的原始事
 }
 ```
 
-Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned` 与 reducer-stamped 顶层字段（当前为 `effective_scope`、`actor_kind`），按 §2 canonicalize 并计算 `event_digest`；再与 `proof.event_digest` constant-time 比对；最后按上表字段构造 canonical binding object（含固定 `context`）并验证 detached JWS。实现 MUST NOT 直接签 HTTP envelope、transport metadata 或只签 `payload` 字段。
+Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned` 与 `actor_kind`，保留签名 `scope_ref`，按 §2 canonicalize 并计算 `event_digest`；再与 `proof.event_digest` constant-time 比对；最后按上表字段构造 canonical binding object（含固定 `context`）并验证 detached JWS。实现 MUST NOT 直接签 HTTP envelope、transport metadata 或只签 `payload` 字段。
 
 非 Event 的 detached proof（使用 `payload_digest` 的 receipt、capability grant、snapshot witness、handle claim 等）MUST 同样在 canonical proof binding object 内包含对象族固定 `context` 常量。每个对象族 MUST 在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json) 登记唯一 context、binding fields、规范定义点与 schema；schema description 只可作镜像注解，不是常量真相源。MUST NOT 复用其它对象族（尤其 `ak.event-proof-v1`）的 context，也 MUST NOT 省略 context 后只签 `{payload_digest, verification_method, created_at, ...}`。用错误对象族 context 生成的签名即使密码学验签通过也 MUST 拒绝。
 
-**Realm 绑定（normative）**：event proof 通过 `event_digest` 间接绑定 `realm_id` —— `event_digest = canonical_digest(envelope_without_proofs_unsigned_reducer_stamps)` 覆盖 producer Event envelope，而 envelope MUST 含 `realm_id` 字段（见 [`conformance-vectors.md` §1.6](./conformance-vectors.md) event digest 向量）；任何改写 `realm_id` 的尝试都会改变 `event_digest`，使 proof 验证失败。因此 event proof 对跨 Realm 重放提供与 Event Batch Receipt 的 `scope` 等价的保护：receipt 显式绑定 `scope`（见 §5），event proof 经由 `event_digest` 覆盖 `realm_id`。实现 MUST 在验证 proof 前确认 envelope 的 `realm_id` 与处理上下文的目标 Realm 一致，MUST NOT 仅凭 proof 验证通过就跨 Realm 接受同一 Event。
+**Realm 与 scope 绑定（normative）**：`event_digest = canonical_digest(envelope_without_proofs_unsigned_actor_kind)` 同时覆盖 `realm_id` 与 `scope_ref`；改写二者都会使 proof 失败。实现 MUST 在验证 proof 后确认 `scope_ref.realm_id == realm_id`、处理上下文 Realm 相等，并由 payload/accepted references 重算 scope；不得仅凭签名有效就跨 Realm/Circle 接受。
 
 ### 6.1 Signature Suite registered set
 

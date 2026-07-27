@@ -140,7 +140,7 @@
     "did_key": {
       "type": "string",
       "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
-      "description": "Authoritative device signing key as an Ed25519 did:key (multibase base58btc, multicodec ed25519-pub). Mirrors ak.device.authorize.payload.device_public_key (device-lifecycle.md §5.2 / §5.4). This is the verify key receivers resolve via verification_method `{actor}#{device_id}` where the fragment is the full ak:device:<uuidv7> id, to check ak.call.signal / ephemeral envelope and durable Event proofs."
+      "description": "Authoritative device signing key as an Ed25519 did:key (multibase base58btc, multicodec ed25519-pub). Mirrors ak.device.authorize.payload.device_public_key (device-lifecycle.md §5.2 / §5.4). This is the verify key receivers resolve via verification_method `{actor}#{device_id}` where the fragment is the full ak:device:<uuidv7> id, to check RealtimeEnvelope and durable Event proofs."
     },
     "device_status": {
       "type": "string",

@@ -76,7 +76,7 @@ Reducer MUST 拒绝把 effective Realm 或 Circle history visibility 设置为 `
 | `allowed_history_visibility_values` | yes | `array<history_visibility_value>`（≥1，唯一） | 命中本 rule 时允许的 history visibility 取值集（取自 §3 五值）。 |
 | `range` | yes | `enum(all_visible_at_t0, since_invite, since_join, bounded_epoch_range)` | reader 可读 / 可获 key 的历史下界范围；`bounded_epoch_range` 配合 `max_epoch_span` 限定 epoch 跨度。 |
 | `max_epoch_span` | no | `integer`（≥1） | 仅 `range=bounded_epoch_range` 时有意义，限定允许的最大 epoch 跨度。 |
-| `key_sources` | yes | `array<enum>`（≥1，唯一） | 允许的 history key 来源，取 `own_device` / `verified_member_device` / `key_backup` / `archive_node` / `recovery_service`。read 与 key share 的区分由本字段（是否含可交付 key 的来源）+ §6 流程承载，而非单独的 effect 开关。 |
+| `key_sources` | yes | `array<enum>`（≥1，唯一） | 允许的 history key 来源，取 `own_device` / `verified_member_device` / `key_backup` / `archive_node` / `recovery_service`。read 与 key share 的区分由本字段（是否含可交付 key 的来源）+ §6 流程承载，而非单独的布尔开关。 |
 | `history_scope` | no | `object`（`{ kind: realm\|circle, circle_id? }`） | 限定本 rule 适用的 scope（整 Realm 或具体 Circle）。 |
 | `audit_required` | no | `boolean`（默认 `true`） | 命中本 rule 的读取 / key share 是否要求审计留痕。 |
 

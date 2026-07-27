@@ -2,12 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/event-envelope.schema.json",
   "title": "Arkret Event Envelope",
-  "description": "Single canonical wire object for **durable Event Envelope** — i.e. events with wire_scope=durable_event OR wire_scope=actor_private_event in event-kind-registry.json. Reducer-input events (reducer_input=true) are CBA events: DataEvents carry top-level effects / seal_ref / auth_context; Control Moves carry effects / seal_basis and optional preconditions. Non-reducer events (read cursor, batch receipts, range completeness, audit RYW, etc.) omit effects / seal_ref / seal_basis. Causal refs use prev_refs (actor chain), causal_refs[] and refs[] (semantic refs with role: authorized_by, attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof, ...). proof.event_digest is the hash of canonical producer event bytes after removing proofs, unsigned, and reducer-stamped top-level fields (currently effective_scope and actor_kind); detached_jws signs the canonical proof binding object that includes fixed context='ak.event-proof-v1', event_digest, actor_id, verification_method, created_at, and domain/audience where present. hlc IS included in canonical producer event bytes (integrity-protected) but is semantically advisory — see encoding.md §6-§7.\n\n**Wire-scope boundary (normative)**: ephemeral_event kinds (ak.presence, ak.typing, ak.receipt.read, ak.call.signal) MUST NOT appear with this schema — they use the dedicated ephemeral-envelope.schema.json carried on the ephemeral channel (and MUST NOT advance Seal coverage, governance state_root, or reducer state). Likewise ak.key.verification.* and ak.realm_key.request use device-message.schema.json on the point-to-point to-device channel. ak.self.events.command.submit MUST schema_violation any event whose kind has wire_scope=ephemeral_event in the registry — see operations-sync.md §2.3 (wire-scope reject rule).",
+  "description": "Single canonical wire object for durable and actor-private Events. kind + schema-validated payload is the only producer-authored business fact; reducer cell targets and lattice operations are derived from the registered reducer contract and never supplied on wire. DataEvents carry seal_ref/auth_context; Control Moves carry seal_basis and optional preconditions. proof.event_digest hashes canonical producer bytes after removing proofs, unsigned, and the sole reducer-stamped top-level field actor_kind. Signed scope_ref is included in the digest and is independently checked against payload-derived security scope. Realtime uses realtime-envelope.schema.json; point-to-point device verification and secret distribution use device-message.schema.json.",
   "type": "object",
   "required": [
     "event_id",
     "kind",
     "realm_id",
+    "scope_ref",
     "actor_id",
     "actor_seq",
     "created_at",
@@ -24,14 +25,14 @@
     "kind": {
       "type": "string",
       "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
-      "description": "Standard ak.* effect kinds MUST appear in artifacts/registry/event-kind-registry.json. State convergence is defined by CBA: DataEvents use effects + seal_ref + auth_context; Control Moves use effects + seal_basis and Seal finality; per-cell Lattice join remains deterministic."
+      "description": "Standard ak.* Event kinds MUST appear in artifacts/registry/event-kind-registry.json. State convergence is defined by the registered pure reducer over kind + payload; producers do not submit cell writes."
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
-    "effective_scope": {
-      "$ref": "#/$defs/effective_scope",
-      "description": "Reducer-stamped immutable effective scope for this accepted Event. scope_circle_id=null materializes as {kind:'realm', realm_id}; Circle-scoped objects materialize as {kind:'circle', realm_id, circle_id}. Actor-supplied submit payloads MUST NOT carry this field. This value is excluded from producer proof.event_digest, but enters accepted envelope storage, Seal/sub-seal observational commitments when present, and in MLS-backed scopes E2EE AAD and MLS governance binding input."
+    "scope_ref": {
+      "$ref": "#/$defs/scope_ref",
+      "description": "Required producer-signed security scope. It enters proof.event_digest and E2EE AAD. Reducers independently derive the Realm/Circle scope from the schema-validated payload and accepted references; missing dependencies, an underivable scope, realm_id mismatch, or any unequal field is fail closed. Exact product targets remain inside recipient-visible ciphertext."
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/did",
@@ -118,20 +119,10 @@
     },
     "preconditions": {
       "type": "array",
-      "description": "Control Move only. Pre-state predicates that must hold under the seal_basis governance view; if any fails, the entire event fails (no partial application of effects). DataEvents MUST NOT carry preconditions.",
+      "description": "Control Move only. Pre-state predicates that must hold under the seal_basis governance view; if any fails, the entire event fails. DataEvents MUST NOT carry preconditions.",
       "items": {
         "$ref": "#/$defs/precondition"
       },
-      "uniqueItems": true,
-      "maxItems": 256
-    },
-    "effects": {
-      "type": "array",
-      "description": "Reducer-input only. Atomic cell writes. DataEvents may only target data plane cells; Control Moves may only target control plane cells. MUST contain at least one effect when present.",
-      "items": {
-        "$ref": "#/$defs/effect"
-      },
-      "minItems": 1,
       "uniqueItems": true,
       "maxItems": 256
     },
@@ -139,19 +130,13 @@
       "$ref": "#/$defs/seal_ref",
       "description": "DataEvent only. Accepted control-plane Seal id used as the authorization basis. Receivers verify identity/key/capability validity at this seal and apply revocation freshness rules."
     },
-    "conflict_keys_digest": {
-      "type": "string",
-      "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
-      "description": "Optional diagnostic digest: hash over the canonical sorted list of cell ids derived from effects[]. Producer and verifier each derive the cell set from effects[] under their schema version; a mismatch surfaces schema-derivation divergence early. This field is NOT a security boundary: verifiers MUST derive conflict domains from effects[] regardless of its presence."
-    },
     "auth_context": {
       "type": "object",
-      "description": "DataEvent only. Pins the signing DID/key/capability epoch used to verify authorization at seal_ref.",
+      "description": "DataEvent only. Pins the signing DID and key epoch used to verify authorization at seal_ref. Effective capabilities are derived from the accepted governance basis, never selected by the producer.",
       "required": [
         "did",
         "key_id",
-        "key_epoch",
-        "capability_refs"
+        "key_epoch"
       ],
       "properties": {
         "did": {
@@ -168,21 +153,13 @@
         "credential_epoch": {
           "type": "integer",
           "minimum": 0
-        },
-        "capability_refs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/grant_ref"
-          },
-          "minItems": 1,
-          "uniqueItems": true
         }
       },
       "additionalProperties": false
     },
     "seal_basis": {
       "type": "object",
-      "description": "Control Move only. Signed governance basis for preconditions/effects. control_event_set_root covers only control-plane event digests; state_root covers only control-plane cells.",
+      "description": "Control Move only. Signed governance basis for preconditions and reducer derivation. control_event_set_root covers only control-plane event digests; state_root covers only control-plane cells.",
       "required": [
         "leaves",
         "control_event_set_root",
@@ -219,7 +196,7 @@
     },
     "proofs": {
       "type": "array",
-      "description": "Detached signatures over the canonical proof binding object. proof.event_digest is computed from canonical producer event bytes excluding proofs, unsigned, and reducer-stamped top-level fields (currently effective_scope and actor_kind); hlc is included in that hash as advisory signed metadata. The actor / device / service signature lives here. Seal signatures live on the Seal object, not on the event.",
+      "description": "Detached signatures over the canonical proof binding object. proof.event_digest is computed from canonical producer event bytes excluding proofs, unsigned, and reducer-stamped actor_kind; signed scope_ref and advisory hlc are included. Seal signatures live on the Seal object.",
       "items": {
         "$ref": "#/$defs/event_proof"
       },
@@ -293,7 +270,7 @@
       }
     },
     {
-      "$comment": "Known active non-reducer event kinds (wire_scope=actor_private_event OR wire_scope=durable_event with reducer_input=false) MUST NOT carry CBA reducer fields: preconditions/effects/seal_ref/auth_context/seal_basis. ephemeral_event kinds are forbidden here entirely — see the next allOf branch.",
+      "$comment": "Known active non-reducer Event kinds MUST NOT carry CBA fields: preconditions/seal_ref/auth_context/seal_basis.",
       "if": {
         "properties": {
           "kind": {
@@ -327,11 +304,6 @@
             },
             {
               "required": [
-                "effects"
-              ]
-            },
-            {
-              "required": [
                 "seal_ref"
               ]
             },
@@ -346,6 +318,67 @@
               ]
             }
           ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.invite.cancel"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "required": [
+              "target_state"
+            ],
+            "properties": {
+              "target_state": {
+                "enum": [
+                  "rejected",
+                  "revoked"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.invite.revoke"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "required": [
+              "target_state"
+            ],
+            "properties": {
+              "target_state": {
+                "enum": [
+                  "revoked",
+                  "expired",
+                  "revoked_by_capability_loss",
+                  "revoked_by_inviter_left",
+                  "invalidated_by_rate_limit"
+                ]
+              }
+            }
+          }
         }
       }
     },
@@ -407,7 +440,7 @@
       }
     },
     {
-      "$comment": "Wire-scope boundary (normative, T02). Kinds with wire_scope=ephemeral_event in event-kind-registry.json MUST NOT appear in the durable Event Envelope. They use ephemeral-envelope.schema.json (broadcast: presence/typing/receipt/call.signal) or device-message.schema.json (point-to-point to-device: ak.key.verification.*, ak.secret.*). ak.self.events.command.submit MUST schema_violation on any wire bytes matching this enum; reducer/state path MUST NOT advance Seal coverage or actor_seq for these kinds.",
+      "$comment": "Realtime payload type names are not Event kinds and MUST NOT appear in durable history. They exist only inside encrypted Realtime payload. To-device kinds use device-message.schema.json.",
       "not": {
         "properties": {
           "kind": {
@@ -436,7 +469,7 @@
       }
     },
     {
-      "$comment": "Known active reducer-input event kinds MUST carry effects and exactly one CBA basis shape: DataEvent (seal_ref + auth_context, no preconditions/seal_basis), Control Move (seal_basis, no seal_ref/auth_context), the ak.realm.create genesis bootstrap shape, OR a Realm bootstrap follow-up shape (same submit batch after create; batch context is enforced by admission, not JSON Schema). Unknown extension kinds must declare their own critical extension requirements and are not matched by this branch.",
+      "$comment": "Known active reducer-input event kinds MUST carry exactly one CBA basis shape: DataEvent (seal_ref + auth_context, no preconditions/seal_basis), Control Move (seal_basis, no seal_ref/auth_context), the ak.realm.create genesis bootstrap shape, OR a Realm bootstrap follow-up shape (same submit batch after create; batch context is enforced by admission, not JSON Schema). Reducer writes are derived from kind+payload and the registry contract. Unknown extension kinds must declare their own critical extension requirements and are not matched by this branch.",
       "if": {
         "properties": {
           "kind": {
@@ -612,9 +645,6 @@
         ]
       },
       "then": {
-        "required": [
-          "effects"
-        ],
         "oneOf": [
           {
             "required": [
@@ -3949,7 +3979,7 @@
       "type": "string",
       "pattern": "^(cx|[a-z0-9][a-z0-9-]*(\\.[a-z0-9][a-z0-9-]*)+)\\.[a-z0-9_]+(\\.[a-z0-9_]+)*\\.v[0-9]+$"
     },
-    "effective_scope": {
+    "scope_ref": {
       "oneOf": [
         {
           "type": "object",
@@ -4130,84 +4160,6 @@
       },
       "additionalProperties": false
     },
-    "effect": {
-      "type": "object",
-      "required": [
-        "cell",
-        "op"
-      ],
-      "properties": {
-        "cell": {
-          "$ref": "#/$defs/cell_ref"
-        },
-        "op": {
-          "$ref": "#/$defs/lattice_op"
-        }
-      },
-      "additionalProperties": false
-    },
-    "lattice_op": {
-      "type": "object",
-      "required": [
-        "kind"
-      ],
-      "properties": {
-        "kind": {
-          "type": "string",
-          "enum": [
-            "add",
-            "remove",
-            "set",
-            "transition",
-            "inc",
-            "dec",
-            "append"
-          ],
-          "description": "add/remove → or_set; set → mv_register/cas_register; transition → fsm; inc/dec → counter; append → ordered_log."
-        },
-        "tag": {
-          "type": "string"
-        },
-        "value": true,
-        "from": true,
-        "to": true,
-        "reason": {
-          "type": "string"
-        },
-        "issuer_seq": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Required only for kind=append. Zero-based sequence scoped to (effect.cell, envelope.actor_id); see event-auth-state-resolution.md §9.3.1."
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "kind": {
-                "const": "append"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          },
-          "then": {
-            "required": [
-              "issuer_seq"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "issuer_seq"
-              ]
-            }
-          }
-        }
-      ],
-      "additionalProperties": false
-    },
     "semantic_ref": {
       "type": "object",
       "required": [
@@ -4277,7 +4229,7 @@
           "enum": [
             "detached_jws"
           ],
-          "description": "detached_jws = actor / device / service signature over canonical proof binding object: canonical_json({context:'ak.event-proof-v1', event_digest, actor_id, verification_method, created_at, domain?, audience?}). context is a fixed signing-context domain tag, not an Event envelope field. event_digest is the canonical producer event hash excluding proofs, unsigned, and reducer-stamped top-level fields (currently effective_scope and actor_kind); hlc IS covered by that hash as advisory signed metadata. Ordering authority signatures are carried by Seal."
+          "description": "detached_jws = actor / device / service signature over canonical proof binding object: canonical_json({context:'ak.event-proof-v1', event_digest, actor_id, verification_method, created_at, domain?, audience?}). event_digest excludes proofs, unsigned, and reducer-stamped actor_kind; signed scope_ref and advisory hlc are covered. Ordering authority signatures are carried by Seal."
         },
         "verification_method": {
           "type": "string",

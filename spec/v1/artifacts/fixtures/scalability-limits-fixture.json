@@ -688,11 +688,56 @@
         "generator": {
           "kind": "decoded_canonical_size_matrix",
           "cases": [
-            {"field": "cursor_payload", "limit_bytes": 65536, "values": [65535, 65536, 65537], "over_error_code": "invalid_param"},
-            {"field": "resource_selector", "limit_bytes": 65536, "values": [65535, 65536, 65537], "over_error_code": "selector_too_complex"},
-            {"field": "resource_selector.unknown_field_count", "limit": 256, "values": [255, 256, 257], "over_error_code": "selector_too_complex"},
-            {"field": "resource_selector.required_claims", "limit": 32, "values": [31, 32, 33], "over_error_code": "schema_violation"},
-            {"field": "resource_selector.required_claims[].trusted_issuers", "limit": 16, "values": [15, 16, 17], "over_error_code": "schema_violation"}
+            {
+              "field": "cursor_payload",
+              "limit_bytes": 65536,
+              "values": [
+                65535,
+                65536,
+                65537
+              ],
+              "over_error_code": "invalid_param"
+            },
+            {
+              "field": "resource_selector",
+              "limit_bytes": 65536,
+              "values": [
+                65535,
+                65536,
+                65537
+              ],
+              "over_error_code": "selector_too_complex"
+            },
+            {
+              "field": "resource_selector.unknown_field_count",
+              "limit": 256,
+              "values": [
+                255,
+                256,
+                257
+              ],
+              "over_error_code": "selector_too_complex"
+            },
+            {
+              "field": "resource_selector.required_claims",
+              "limit": 32,
+              "values": [
+                31,
+                32,
+                33
+              ],
+              "over_error_code": "schema_violation"
+            },
+            {
+              "field": "resource_selector.required_claims[].trusted_issuers",
+              "limit": 16,
+              "values": [
+                15,
+                16,
+                17
+              ],
+              "over_error_code": "schema_violation"
+            }
           ]
         }
       },

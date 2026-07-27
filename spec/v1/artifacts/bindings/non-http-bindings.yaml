@@ -202,8 +202,9 @@ grpc:
       KeyPackagesClaimQuery: ak.peer.keys.keypackages.query.claim
     PeerSnapshot:
       Head: ak.peer.snapshot.query.manifest_head
-    SelfEphemeral:
-      Send: ak.self.ephemeral.command.send
+    SelfRealtime:
+      Send: ak.self.realtime.command.send
+      Subscribe: ak.self.realtime.stream.subscribe
     SelfCallMedia:
       TokenExchange: ak.self.call.media.exchange.issue_token
     RootIdentity:
@@ -226,6 +227,10 @@ grpc:
       RecoverySessionGet: ak.root.identity.recovery_session.resource.get
       RecoverySessionSubmitProof: ak.root.identity.recovery_session.command.submit_proof
       RecoverySessionComplete: ak.root.identity.recovery_session.command.complete
+    SelfSecurityTransactions:
+      Create: ak.self.security_transaction.command.create
+      Get: ak.self.security_transaction.resource.get
+      Continue: ak.self.security_transaction.command.continue
     SelfKeys:
       Claim: ak.self.keys.command.claim
       BackupsDelete: ak.self.keys.backups.resource.delete
@@ -317,6 +322,9 @@ mq:
       signatures:
         type: array
   topics:
+    self.security_transaction.command.create: ak.self.security_transaction.command.create
+    self.security_transaction.resource.get: ak.self.security_transaction.resource.get
+    self.security_transaction.command.continue: ak.self.security_transaction.command.continue
     self.events.command.submit: ak.self.events.command.submit
     self.events.command.submit_seal: ak.self.events.command.submit_seal
     self.events.query.mls_governance_proof: ak.self.events.query.mls_governance_proof
@@ -333,7 +341,8 @@ mq:
     peer.keys.keypackages.command.claim: ak.peer.keys.keypackages.command.claim
     peer.keys.keypackages.query.claim: ak.peer.keys.keypackages.query.claim
     peer.snapshot.query.manifest_head: ak.peer.snapshot.query.manifest_head
-    self.ephemeral.command.send: ak.self.ephemeral.command.send
+    self.realtime.command.send: ak.self.realtime.command.send
+    self.realtime.stream.subscribe: ak.self.realtime.stream.subscribe
     self.call.media.exchange.issue_token: ak.self.call.media.exchange.issue_token
     self.account.stream.subscribe: ak.self.account.stream.subscribe
     self.account.query.viewer: ak.self.account.query.viewer

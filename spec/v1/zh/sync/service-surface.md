@@ -476,13 +476,15 @@ GET /_arkret/self/events/describe
 POST /_arkret/self/events
 ```
 
-请求体是一个 Event Envelope，或 profile 明确允许的 Event Envelope 数组。
+请求体是一个 `EventInitialSubmission {event, authorization_lease, cba_proof_bundles[]?}`，
+或 `{events: EventInitialSubmission[]}`。发布证据不进入 Event canonical bytes。
 
 要求：
 
 - 同一个 `event_id` 重复提交相同 canonical bytes MUST 幂等成功。
 - 同一个 `event_id` 若内容不同 MUST 拒绝并记录冲突。
-- 服务 MUST 验证 Event 签名、actor DID、device/session、capability、Realm policy、`actor_seq` 和因果依赖。
+- 服务 MUST 验证 Event 签名、actor DID、device/session、AuthorizationLease、CBA basis、
+  capability、Realm policy、`actor_seq` 和因果依赖，并在 lease 到期前持久化签发 IngressReceipt。
 - 服务 SHOULD 返回 accepted event、当前 actor frontier、Realm frontier 以及 read-your-writes barrier `cursor`（schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)，purpose=`barrier`）。
 
 批量提交的处理顺序、依赖可见性、frozen authorization basis 与 partial-accept 原子边界统一以 [`operations-sync.md` §5](./operations-sync.md) 为准；本 surface 只声明该 operation 属于 Events Surface。

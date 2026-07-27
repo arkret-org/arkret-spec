@@ -118,27 +118,37 @@
       "runner": "cotest::conformance::push_rule_core::run_hardened_mention_routing_hint_vector",
       "variants": [
         {
-          "realm_profiles": ["ak.profile.mls.minimal_metadata_realm.v1"],
+          "realm_profiles": [
+            "ak.profile.mls.minimal_metadata_realm.v1"
+          ],
           "declared_mention_routing_hint": "recipient_registered_token",
           "expected_effective_hint": "disabled"
         },
         {
-          "realm_profiles": ["ak.profile.attested_audit.e2ee.v1"],
+          "realm_profiles": [
+            "ak.profile.attested_audit.e2ee.v1"
+          ],
           "declared_mention_routing_hint": "recipient_registered_token",
           "expected_effective_hint": "disabled"
         },
         {
-          "realm_profiles": ["ak.profile.disclosed_audit.e2ee.v1"],
+          "realm_profiles": [
+            "ak.profile.disclosed_audit.e2ee.v1"
+          ],
           "declared_mention_routing_hint": "recipient_registered_token",
           "expected_effective_hint": "disabled"
         },
         {
-          "realm_profiles": ["ak.profile.e2ee_client.v1"],
+          "realm_profiles": [
+            "ak.profile.e2ee_client.v1"
+          ],
           "declared_mention_routing_hint": "recipient_registered_token",
           "expected_effective_hint": "recipient_registered_token"
         },
         {
-          "realm_profiles": ["ak.profile.mls.minimal_metadata_realm.v1"],
+          "realm_profiles": [
+            "ak.profile.mls.minimal_metadata_realm.v1"
+          ],
           "declared_mention_routing_hint": "unknown_hint",
           "expected_effective_hint": "disabled"
         }

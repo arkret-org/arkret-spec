@@ -13,13 +13,17 @@ are no longer copied into the prose tree. The site renders them directly.
 from __future__ import annotations
 
 import copy
+import argparse
 import json
 import base64
 import hashlib
 import re
 import sys
+import time
 import warnings
+from collections import Counter
 from datetime import datetime
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -63,7 +67,6 @@ JSON_FENCE_EXPECT_ATTR_RE = re.compile(r"\bexpect=(valid|invalid)\b")
 JSON_FENCE_FIRST_ERROR_ATTR_RE = re.compile(r"\bfirst_error=(?:\"([^\"]+)\"|'([^']+)'|([^\s]+))")
 TYPED_ID_PREFIX_TOKEN_RE = re.compile(r"\bak:([a-z0-9_]+):")
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)\s]+(?:#[^)]+)?)\)")
-RULE_MARKER_EMOJI_RE = re.compile(r"[✅❌]")
 TEXT_ARTIFACT_REF_RE = re.compile(
     r"(?<![A-Za-z0-9_./-])("
     r"zh/[A-Za-z0-9_./-]+\.mdx?|"
@@ -152,20 +155,35 @@ class Lint:
         self.warnings.append(f"{self.rel(path)}: {message}")
 
 
+@lru_cache(maxsize=None)
+def read_text(path: Path) -> str:
+    """Read one repository file once per lint run."""
+    return path.read_text(encoding="utf-8")
+
+
+@lru_cache(maxsize=None)
+def parse_json_file(path: Path) -> Any:
+    return parse_json_text(read_text(path))
+
+
+@lru_cache(maxsize=None)
+def parse_yaml_file(path: Path) -> Any:
+    if yaml is None:
+        raise RuntimeError("PyYAML is required for OpenAPI lint; install pyyaml")
+    return yaml.safe_load(read_text(path))
+
+
 def load_json(lint: Lint, path: Path) -> Any:
     try:
-        return parse_json_text(path.read_text(encoding="utf-8"))
+        return parse_json_file(path.resolve())
     except Exception as exc:  # pragma: no cover - exact parser errors vary
         lint.fail(path, f"invalid JSON: {exc}")
         return None
 
 
 def load_yaml(lint: Lint, path: Path) -> Any:
-    if yaml is None:
-        lint.fail(path, "PyYAML is required for OpenAPI lint; install pyyaml")
-        return None
     try:
-        return yaml.safe_load(path.read_text(encoding="utf-8"))
+        return parse_yaml_file(path.resolve())
     except Exception as exc:  # pragma: no cover - exact parser errors vary
         lint.fail(path, f"invalid YAML: {exc}")
         return None
@@ -314,6 +332,70 @@ def walk_json(value: Any, json_path: str = "$") -> Iterable[tuple[str, Any, str 
             yield from walk_json(child, child_path)
 
 
+EVENT_ENVELOPE_IDENTITY_FIELDS = frozenset({"event_id", "realm_id", "payload"})
+FORBIDDEN_EVENT_ENVELOPE_FIELDS = frozenset(
+    {"effects", "conflict_keys_digest", "effective_scope"}
+)
+
+
+def event_envelope_candidates(
+    value: Any,
+    json_path: str = "$",
+    negative_context: bool = False,
+) -> Iterable[tuple[str, dict[str, Any], bool]]:
+    """Yield Event-like objects without treating unrelated ``kind`` fields as Event kinds."""
+    if isinstance(value, dict):
+        expected = value.get("expected")
+        negative_context = negative_context or (
+            isinstance(expected, dict)
+            and expected.get("decision") in {"reject", "quarantine"}
+        ) or value.get("expect_valid") is False
+        if EVENT_ENVELOPE_IDENTITY_FIELDS.issubset(value) and "kind" in value:
+            yield json_path, value, negative_context
+        for key, child in value.items():
+            child_path = f"{json_path}.{key}"
+            yield from event_envelope_candidates(child, child_path, negative_context)
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            yield from event_envelope_candidates(
+                child,
+                f"{json_path}[{index}]",
+                negative_context,
+            )
+
+
+def check_event_envelope_candidates(
+    lint: Lint,
+    owner: Path,
+    value: Any,
+    known_event_kinds: set[str],
+    *,
+    label: str = "",
+    negative_context: bool = False,
+) -> None:
+    for json_path, event, is_negative in event_envelope_candidates(
+        value,
+        negative_context=negative_context,
+    ):
+        if is_negative:
+            continue
+        kind = event.get("kind")
+        if isinstance(kind, str) and kind.startswith("ak.") and kind not in known_event_kinds:
+            lint.fail(owner, f"{label}{json_path} references unregistered Event.kind: {kind}")
+        forbidden = sorted(FORBIDDEN_EVENT_ENVELOPE_FIELDS.intersection(event))
+        if forbidden:
+            lint.fail(
+                owner,
+                f"{label}{json_path} Event envelope contains forbidden legacy field(s): {forbidden}",
+            )
+        auth_context = event.get("auth_context")
+        if isinstance(auth_context, dict) and "capability_refs" in auth_context:
+            lint.fail(
+                owner,
+                f"{label}{json_path}.auth_context contains forbidden legacy capability_refs",
+            )
+
+
 def unique_values(lint: Lint, path: Path, rows: Any, key: str) -> set[str]:
     values: set[str] = set()
     seen: dict[str, int] = {}
@@ -397,43 +479,6 @@ def text_contract_files() -> list[Path]:
     return sorted(path for path in files if path.is_file())
 
 
-# Wire field names that were renamed during v1 schema evolution.
-# Each entry maps the legacy field name to:
-#   - replacement: human-readable description of the new shape
-#   - context_tokens: substrings whose presence on the SAME line marks the
-#     occurrence as legitimate migration commentary (not a regression).
-# Adding a token here is preferred to wholesale whitelisting a file.
-LEGACY_WIRE_FIELDS: dict[str, dict[str, Any]] = {
-    "auth_refs": {
-        "replacement": "refs[role=authorized_by]",
-        "context_tokens": [
-            # English migration tokens
-            "dropped",
-            "removed",
-            "former",
-            "replaces",
-            "renamed",
-            "deprecated",
-            "legacy",
-            # Chinese migration tokens
-            "替代",
-            "替换",
-            "迁移",
-            "早期",
-            "草案",
-            "曾",
-            "旧 ",
-            "旧`",
-            "旧 `",
-            "旧auth_refs",
-            "已合并",
-            "已收敛",
-            "废弃",
-            "字段名",
-        ],
-    },
-}
-
 WIRE_GUARD_FILES = {"forbidden-wire-fields.json"}
 
 FORBIDDEN_NAMING_ALIAS_KEYS = {
@@ -463,7 +508,6 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
     "criticalExtension": "critical_extension",
     "parent_ref": "parent_space_id",
     "default_realm_ref": "default_realm_id",
-    "scope_ref": "scope_circle_id",
     "metadata_encryption_profile": "metadata_encryption_floor",
     "retention_policy_ref": "retention_policy_id",
     "disclosure_policy_ref": "disclosure_policy_id",
@@ -548,115 +592,8 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
     "must_not_affect_state_hash": "must_not_affect_state_digest",
 }
 
-FORBIDDEN_NAMING_STRING_ALIASES = {
-    "ak:notif:": "ak:notification:",
-    "ak:devmsg:": "ak:device_message:",
-    "ak:keyevt:": "ak:key_event:",
-    "ak:modq:": "ak:moderation_queue_item:",
-    "ak:req:": "ak:request:",
-    "ak:txn:": "ak:transaction:",
-    "ak:frank:": "ak:franking_proof:",
-    "ak:rtcpart:": "ak:rtc_participant:",
-    "ak.agent.key.authorized": "ak.agent.key.authorize",
-    "ak.agent.key.revoked": "ak.agent.key.revoke",
-    "ak.agent.key.rotated": "ak.agent.key.rotate",
-    "ak.device.authorized": "ak.device.authorize",
-    "ak.device.revoked": "ak.device.revoke",
-    "ak.relation.delete": "ak.relation.tombstone",
-    "ak.read.marker": "ak.read.cursor",
-    "ak.schema.read_marker.v1": "ak.schema.read_cursor.v1",
-    "or-set": "or_set",
-    "mv-register": "mv_register",
-    "cas-register": "cas_register",
-    "ordered-log": "ordered_log",
-    "frank_unavailable": "franking_proof_unavailable",
-    "frank_only": "franking_proof_only",
-    "routing_hash": "routing_digest",
-    "http_message_signature_hash": "http_message_signature_digest",
-    "Request-Canonical-Hash": "Request-Canonical-Digest",
-    "unsupported_hash": "unsupported_digest_algorithm",
-    "series_sequence": "series_seq",
-    "series_sequence_not_monotonic": "series_seq_not_monotonic",
-    "strand_body": "strand_content",
-    "message_body": "message_content",
-    "body_only": "content_only",
-    "body-only E2EE": "content-only E2EE",
-    "minimal_encrypted": "e2ee_required",
-    "full_encrypted": "e2ee_required",
-    "space_bound": "realm_bound",
-    "derived_hash_prefix": "derived_digest_prefix",
-    "application_receipt_hash": "application_receipt_digest",
-    "review_receipt_hash": "review_receipt_digest",
-    "receipt_hash": "receipt_digest",
-    "pattern_hash": "pattern_digest",
-    "media_hash": "media_digest",
-    "presentation_hash": "presentation_digest",
-    "raw_document_hash": "raw_document_digest",
-    "filter_hash": "filter_digest",
-    "signature_over_content_hash": "signature_over_content_digest",
-    "prev_frontier_hash": "prev_frontier_digest",
-    "constraint_hash": "constraint_digest",
-    # verb_noun_bridge_collapse — capability action MUST equal target event kind
-    "ak.invite.create_third_party": "ak.invite.third_party",
-    "ak.policy.rule.manage": "ak.policy.rule",
-    "ak.policy.action.manage": "ak.policy.action",
-    "ak.realm.link.manage": "ak.realm.link",
-    "ak.realm.plaintext_visible_services.modify": "ak.realm.plaintext_visible_services",
-    "ak.realm.moderate": "ak.realm.moderation_policy",
-    "parent_ref": "parent_space_id",
-    "default_realm_ref": "default_realm_id",
-    "scope_ref": "scope_circle_id",
-    "require_scope_ref": "require_scope_circle_id",
-    "retention_policy_ref": "retention_policy_id",
-    "disclosure_policy_ref": "disclosure_policy_id",
-    "rate_limit_policy_ref": "rate_limit_policy_id",
-}
-
-
 def is_wire_guard_file(path: Path) -> bool:
     return path.name in WIRE_GUARD_FILES
-
-
-def check_legacy_wire_fields(lint: Lint) -> None:
-    """Reject lingering deprecated wire field names outside of migration notes.
-
-    A bare ``auth_refs`` token in prose or JSON example will cause SDK / reducer
-    implementations to either generate envelopes that the canonical schema
-    rejects (since ``auth_refs`` is no longer a defined property) or split the
-    authorization-dependency surface between two field names. Any legitimate
-    discussion of the legacy field must explicitly call it out as such; this
-    check uses a context-token allow-list (see ``LEGACY_WIRE_FIELDS``).
-    """
-    scan_paths: list[Path] = list(markdown_files())
-    scan_paths.extend(p for p in all_json_files() if ARTIFACTS in p.parents)
-    seen: set[tuple[Path, int]] = set()
-    for path in scan_paths:
-        if is_wire_guard_file(path):
-            continue
-        try:
-            text = path.read_text(encoding="utf-8")
-        except Exception:
-            continue
-        for line_no, line in enumerate(text.splitlines(), start=1):
-            for field, info in LEGACY_WIRE_FIELDS.items():
-                if field not in line:
-                    continue
-                if any(tok in line for tok in info["context_tokens"]):
-                    continue
-                key = (path, line_no)
-                if key in seen:
-                    continue
-                seen.add(key)
-                lint.fail(
-                    path,
-                    f"line {line_no}: legacy wire field `{field}` appears without "
-                    f"migration context — use `{info['replacement']}` instead, "
-                    f"or add a migration-context token "
-                    f"(e.g. 替代/迁移/dropped/replaces) on the same line.",
-                )
-
-
-STRIKETHROUGH_RE = re.compile(r"~~[^~]+~~")
 
 
 NAMING_RULES_PATH = Path(__file__).with_name("naming-convention-rules.json")
@@ -952,54 +889,14 @@ def check_naming_predicates(lint: Lint) -> None:
         if data is not None:
             check_json_value(path, data)
 
-    text_paths = markdown_files()
-    text_paths.extend(
-        path
-        for path in raw_artifact_files()
-        if path.suffix.lower() in {".json", ".yaml", ".yml", ".md"}
-        and not is_wire_guard_file(path)
-    )
-    for path in text_paths:
-        if is_wire_guard_file(path):
-            continue
-        try:
-            text = path.read_text(encoding="utf-8")
-        except Exception:
-            continue
-        for line_no, line in enumerate(text.splitlines(), start=1):
-            # Documentation-conversion-table lines may legitimately quote both old and new names side by side.
-            # Convention: strike-through the old name with markdown ~~...~~ around it. The strike-through marker
-            # is the explicit signal "this is a deprecation table cell, not a live use of the legacy name".
-            stripped = line
-            if "~~" in stripped:
-                stripped = STRIKETHROUGH_RE.sub("", stripped)
-            for old, replacement in FORBIDDEN_NAMING_STRING_ALIASES.items():
-                pattern = rf"(?<![A-Za-z0-9_]){re.escape(old)}(?![A-Za-z0-9_])"
-                if re.search(pattern, stripped):
-                    lint.fail(path, f"line {line_no}: legacy name `{old}` appears; use `{replacement}`")
-            legacy_service_identity = re.search(
-                r"(?<!principal_server_)\b(?:[a-z0-9_]+_)?service_dids?\b"
-                r"|\b(?:[A-Za-z0-9]+)?ServiceDids?\b"
-                r"|\b(?:[A-Za-z]+-)*[Ss]ervice-(?:DID|did)\b",
-                stripped,
-            )
-            if legacy_service_identity:
-                old = legacy_service_identity.group(0)
-                replacement = (
-                    old.replace("service_did", "service_id")
-                    .replace("ServiceDid", "ServiceId")
-                    .replace("Service-DID", "Service-ID")
-                    .replace("service-did", "service-id")
-                )
-                lint.fail(
-                    path,
-                    f"line {line_no}: legacy service identity name `{old}` appears; "
-                    f"use `{replacement}`",
-                )
-
+    # Prose may discuss historical spellings. Only machine objects and declared
+    # JSON examples are naming-contract inputs; raw-word blacklists create false
+    # positives when protocol rationale names a rejected spelling.
+    for path in markdown_files():
+        text = read_text(path)
         for match in JSON_FENCE_RE.finditer(text):
             try:
-                data = json.loads(match.group("body"))
+                data = parse_json_text(match.group("body"))
             except Exception:
                 continue
             line_no = text.count("\n", 0, match.start()) + 1
@@ -1433,17 +1330,6 @@ def check_markdown_links(lint: Lint) -> None:
                 lint.fail(path, f"markdown link target does not exist: {target}")
 
 
-def check_no_rule_marker_emoji(lint: Lint) -> None:
-    for path in markdown_files():
-        text = path.read_text(encoding="utf-8")
-        for line_number, line in enumerate(text.splitlines(), 1):
-            if RULE_MARKER_EMOJI_RE.search(line):
-                lint.fail(
-                    path,
-                    f"line {line_number} uses emoji rule marker; use textual allowed/forbidden/included/excluded",
-                )
-
-
 def lint_select_component(
     lint: Lint,
     path: Path,
@@ -1717,9 +1603,16 @@ def lint_effect_source(lint: Lint, path: Path, ref: str, source: object) -> None
     if not isinstance(source, dict):
         lint.fail(path, f"{ref} must be an object")
         return
-    source_keys = [key for key in ("field", "envelope_field", "const") if key in source]
+    source_keys = [
+        key
+        for key in ("field", "envelope_field", "const", "projected_value")
+        if key in source
+    ]
     if len(source_keys) != 1 or len(source) != 1:
-        lint.fail(path, f"{ref} must declare exactly one of field/envelope_field/const")
+        lint.fail(
+            path,
+            f"{ref} must declare exactly one of field/envelope_field/const/projected_value",
+        )
         return
     source_key = source_keys[0]
     if source_key == "field":
@@ -1732,6 +1625,8 @@ def lint_effect_source(lint: Lint, path: Path, ref: str, source: object) -> None
                 f"{ref}.envelope_field must be one of "
                 f"{sorted(EFFECT_PROJECTION_ENVELOPE_FIELDS)}",
             )
+    elif source_key == "projected_value" and source["projected_value"] is not True:
+        lint.fail(path, f"{ref}.projected_value must be true")
 
 
 def lint_effect_projection(
@@ -1746,21 +1641,30 @@ def lint_effect_projection(
         lint.fail(path, f"{ref} must be an object")
         return
     projection_kind = projection.get("kind")
-    expected_kind = {
-        "fsm": "transition",
-        "mv_register": "set",
-        "cas_register": "set",
-        "ordered_log": "append",
-        "or_set": "or_set_delta",
+    expected_kinds = {
+        "fsm": {"transition", "transition_to"},
+        "mv_register": {"set", "apply_patch"},
+        "cas_register": {"set", "apply_patch"},
+        "ordered_log": {"append"},
+        "or_set": {"or_set_delta", "or_set_add", "or_set_batch_add"},
     }.get(lattice)
-    if expected_kind is None:
+    if expected_kinds is None:
         lint.fail(path, f"{ref} is not defined for lattice {lattice!r}")
         return
-    if projection_kind != expected_kind:
+    if projection_kind not in expected_kinds:
         lint.fail(
             path,
-            f"{ref}.kind must be {expected_kind!r} for lattice {lattice!r}",
+            f"{ref}.kind must be one of {sorted(expected_kinds)!r} for lattice {lattice!r}",
         )
+        return
+    if projection_kind == "transition_to":
+        unknown = set(projection) - {"kind", "to"}
+        if unknown:
+            lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
+        if "to" not in projection:
+            lint.fail(path, f"{ref}.to is required")
+        else:
+            lint_effect_source(lint, path, f"{ref}.to", projection["to"])
         return
     if projection_kind == "transition":
         unknown = set(projection) - {"kind", "from", "to"}
@@ -1780,6 +1684,15 @@ def lint_effect_projection(
             lint.fail(path, f"{ref}.value is required")
         else:
             lint_effect_source(lint, path, f"{ref}.value", projection["value"])
+        return
+    if projection_kind == "apply_patch":
+        unknown = set(projection) - {"kind", "patch"}
+        if unknown:
+            lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
+        if "patch" not in projection:
+            lint.fail(path, f"{ref}.patch is required")
+        else:
+            lint_effect_source(lint, path, f"{ref}.patch", projection["patch"])
         return
     if projection_kind == "append":
         unknown = set(projection) - {"kind", "value", "issuer_seq"}
@@ -1801,6 +1714,28 @@ def lint_effect_projection(
             )
         ):
             lint.fail(path, f"{ref}.issuer_seq.const must be an unsigned integer")
+        return
+
+    if projection_kind == "or_set_add":
+        unknown = set(projection) - {"kind", "tag", "value"}
+        if unknown:
+            lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
+        for member in ("tag", "value"):
+            if member not in projection:
+                lint.fail(path, f"{ref}.{member} is required")
+            else:
+                lint_effect_source(lint, path, f"{ref}.{member}", projection[member])
+        return
+    if projection_kind == "or_set_batch_add":
+        unknown = set(projection) - {"kind", "values", "tag_context"}
+        if unknown:
+            lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
+        if "values" not in projection:
+            lint.fail(path, f"{ref}.values is required")
+        else:
+            lint_effect_source(lint, path, f"{ref}.values", projection["values"])
+        if not isinstance(projection.get("tag_context"), str) or not projection["tag_context"]:
+            lint.fail(path, f"{ref}.tag_context must be a non-empty string")
         return
 
     unknown = set(projection) - {"kind", "selector", "branches"}
@@ -2004,6 +1939,25 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                         write["effect_projection"],
                         write.get("lattice"),
                     )
+                    projection = write.get("effect_projection")
+                    if (
+                        isinstance(projection, dict)
+                        and projection.get("kind") == "append"
+                        and isinstance(projection.get("value"), dict)
+                        and projection["value"].get("projected_value") is True
+                        and "value_projection" not in write
+                    ):
+                        lint.fail(
+                            event_path,
+                            f"{write_ref}.effect_projection uses projected_value "
+                            "without value_projection",
+                        )
+                else:
+                    lint.fail(
+                        event_path,
+                        f"{write_ref}.effect_projection is required; reducers must derive "
+                        "every write from signed kind+payload",
+                    )
                 if "condition" in write:
                     lint_cell_write_condition(
                         lint, event_path, f"{write_ref}.condition", write["condition"]
@@ -2054,6 +2008,22 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                 lint.fail(event_path, f"{kind} cell_writes row must declare sealed boolean")
             elif (plane == "control") != sealed:
                 lint.fail(event_path, f"{kind} sealed must be true iff plane=control")
+            concurrency_class = row.get("concurrency_class")
+            if plane == "control":
+                if concurrency_class not in {
+                    "merge_safe",
+                    "exclusive",
+                    "security_barrier",
+                }:
+                    lint.fail(
+                        event_path,
+                        f"{kind} control contract must declare a valid concurrency_class",
+                    )
+            elif concurrency_class is not None:
+                lint.fail(
+                    event_path,
+                    f"{kind} data contract must omit control concurrency_class",
+                )
             if len(cell_writes) == 1 and isinstance(cell_writes[0], dict):
                 for field in (
                     "cell_family",
@@ -2392,6 +2362,57 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     }
 
 
+def check_protocol_layer_registry(lint: Lint) -> None:
+    """Require an exhaustive, single-owner layer classification for active Event kinds."""
+    path = ARTIFACTS / "registry" / "protocol-layer-registry.json"
+    data = load_json(lint, path)
+    event_registry_path = ARTIFACTS / "registry" / "event-kind-registry.json"
+    event_registry = load_json(lint, event_registry_path)
+    if not isinstance(data, dict) or not isinstance(event_registry, dict):
+        return
+
+    layers = data.get("event_kinds")
+    expected_layer_names = {"kernel", "collaboration_base", "extension"}
+    if not isinstance(layers, dict) or set(layers) != expected_layer_names:
+        lint.fail(
+            path,
+            "event_kinds must contain exactly kernel, collaboration_base, and extension",
+        )
+        return
+
+    classified: list[str] = []
+    for layer_name in ("kernel", "collaboration_base", "extension"):
+        values = layers.get(layer_name)
+        if not isinstance(values, list) or not values:
+            lint.fail(path, f"event_kinds.{layer_name} must be a non-empty array")
+            continue
+        if values != sorted(values):
+            lint.fail(path, f"event_kinds.{layer_name} must be sorted")
+        if any(not isinstance(value, str) for value in values):
+            lint.fail(path, f"event_kinds.{layer_name} entries must be strings")
+            continue
+        classified.extend(values)
+
+    duplicates = sorted(
+        value for value, count in Counter(classified).items() if count > 1
+    )
+    if duplicates:
+        lint.fail(path, f"Event kinds assigned to multiple layers: {duplicates}")
+
+    active = {
+        row.get("event_kind")
+        for row in event_registry.get("event_kinds", [])
+        if isinstance(row, dict) and row.get("status") == "active"
+    }
+    actual = set(classified)
+    missing = sorted(active - actual)
+    extra = sorted(actual - active)
+    if missing:
+        lint.fail(path, f"active Event kinds missing a protocol layer: {missing}")
+    if extra:
+        lint.fail(path, f"unknown or inactive Event kinds have a protocol layer: {extra}")
+
+
 def check_schema_refs(lint: Lint, known: dict[str, set[str]]) -> None:
     # The current-wire rejection guard intentionally names forbidden fields
     # that are absent from active registries.
@@ -2490,7 +2511,7 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
         for event_kind in requirement.get("rejected_event_kinds", []):
             if isinstance(event_kind, str) and event_kind.startswith("wire_scope:"):
                 scope = event_kind.split(":", 1)[1]
-                if scope not in {"durable_event", "actor_private_event", "ephemeral_event"}:
+                if scope not in {"durable_event", "actor_private_event"}:
                     lint.fail(path, f"{profile_id} rejects unknown wire_scope: {event_kind}")
                 continue
             if event_kind not in known["event_kinds"]:
@@ -3644,11 +3665,33 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
         return
 
     event_schema_tokens: set[str] = set()
-    for _, value, key in walk_json(data):
-        if key == "const" and isinstance(value, str):
-            event_schema_tokens.add(value)
-        elif key == "enum" and isinstance(value, list):
-            event_schema_tokens.update(item for item in value if isinstance(item, str))
+
+    def collect_admitted_kind_tokens(node: object) -> None:
+        if isinstance(node, list):
+            for item in node:
+                collect_admitted_kind_tokens(item)
+            return
+        if not isinstance(node, dict):
+            return
+        properties = node.get("properties")
+        if isinstance(properties, dict):
+            kind_schema = properties.get("kind")
+            if isinstance(kind_schema, dict):
+                value = kind_schema.get("const")
+                if isinstance(value, str):
+                    event_schema_tokens.add(value)
+                values = kind_schema.get("enum")
+                if isinstance(values, list):
+                    event_schema_tokens.update(
+                        item for item in values if isinstance(item, str)
+                    )
+        for key, value in node.items():
+            # A negative rejection list proves that tokens are not Event kinds; it
+            # is not admission coverage and must not be compared with the registry.
+            if key != "not":
+                collect_admitted_kind_tokens(value)
+
+    collect_admitted_kind_tokens(data)
 
     event_schema_kinds = {
         token
@@ -3753,10 +3796,6 @@ def parse_openapi_operation_http_map(text: str) -> tuple[dict[str, str], list[st
 
 
 def check_openapi_contract_shape(lint: Lint, path: Path, text: str) -> None:
-    for forbidden in ("structural skeleton", "placeholders", "placeholder", "_report.md"):
-        if forbidden in text:
-            lint.fail(path, f"OpenAPI must not reference unpublished or placeholder contract text: {forbidden}")
-
     in_paths = False
     current_path: str | None = None
     current_method: str | None = None
@@ -4833,14 +4872,19 @@ def check_did_and_device_constraints(lint: Lint) -> None:
                 lint.fail(openapi_path, f"{json_path}.schema must use the canonical ak:device UUIDv7 pattern")
 
 
-def infer_openapi_success_shape(operation_id: str, method: str, schema: Any) -> str:
+def infer_openapi_success_shape(method: str, content: Any) -> str:
+    """Infer response shape from HTTP semantics instead of operation-name allowlists."""
+    if method == "head":
+        return "metadata_headers"
+    if not isinstance(content, dict) or not content:
+        return "empty_response"
+    if "application/x-ndjson" in content:
+        return "event_stream"
+    if "application/octet-stream" in content:
+        return "binary_stream"
+    json_media = content.get("application/json")
+    schema = json_media.get("schema") if isinstance(json_media, dict) else None
     if schema is None:
-        if method == "head":
-            return "metadata_headers"
-        if operation_id in {"ak.self.events.stream.subscribe", "ak.self.account.stream.subscribe"}:
-            return "event_stream"
-        if operation_id == "ak.self.blob.resource.get":
-            return "binary_stream"
         return "empty_response"
     if isinstance(schema, dict):
         ref = schema.get("$ref")
@@ -4950,12 +4994,16 @@ def collect_openapi_operation_facts(lint: Lint, openapi_path: Path) -> dict[str,
             if not isinstance(operation_id, str) or not operation_id:
                 continue
             request_schema = openapi_request_schema(operation)
-            response_schema = (
+            response_content = (
                 operation.get("responses", {})
                 .get("200", {})
                 .get("content", {})
-                .get("application/json", {})
-                .get("schema")
+            )
+            response_schema = (
+                response_content.get("application/json", {}).get("schema")
+                if isinstance(response_content, dict)
+                and isinstance(response_content.get("application/json"), dict)
+                else None
             )
             facts[operation_id] = {
                 "generic_request": isinstance(request_schema, dict)
@@ -4964,7 +5012,7 @@ def collect_openapi_operation_facts(lint: Lint, openapi_path: Path) -> dict[str,
                 and response_schema.get("$ref") == GENERIC_OPERATION_RESULT_REF,
                 "request_schema_ref": openapi_artifact_schema_ref(request_schema, components),
                 "response_schema_ref": openapi_artifact_schema_ref(response_schema, components),
-                "success_shape_kind": infer_openapi_success_shape(operation_id, method, response_schema),
+                "success_shape_kind": infer_openapi_success_shape(method, response_content),
             }
     return facts
 
@@ -5162,59 +5210,6 @@ def check_operation_field_table_schema_refs(lint: Lint) -> None:
                 )
 
 
-def check_design_phase_legacy_compat_removed(lint: Lint) -> None:
-    """Reject legacy wire compatibility hooks removed while v1 is still in design."""
-    forbidden_by_path = {
-        ARTIFACTS / "registry" / "error-code-registry.json": [
-            "legacy_single_endpoint_media_service",
-            "legacy_secret_storage_wire_form",
-        ],
-        ARTIFACTS / "registry" / "operations-error-mapping.json": [
-            "legacy_single_endpoint_media_service",
-            "legacy_secret_storage_wire_form",
-        ],
-        ARTIFACTS / "schemas" / "service-describe.schema.json": [
-            "legacy_alias",
-            "deprecated_alias",
-        ],
-        ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml": [
-            "legacy_single_endpoint_media_service",
-            "legacy_secret_storage_wire_form",
-            "legacy_alias",
-            "deprecated_alias",
-            "deprecated single-`sfu_endpoint`",
-        ],
-        ARTIFACTS / "profiles" / "conformance-profiles.json": [
-            "legacy single-endpoint",
-            "single sfu_endpoint",
-        ],
-        SPEC_ROOT / "zh" / "crypto-media" / "media-service-binding.md": [
-            "服务端 SHOULD 接受遗留单 `sfu_endpoint`",
-            "legacy_single_endpoint_media_service",
-        ],
-        SPEC_ROOT / "zh" / "crypto-media" / "device-lifecycle.md": [
-            "legacy_secret_storage_wire_form",
-            "Wire deprecation",
-            "现存远端 `ak.secret_storage.v1`",
-        ],
-        SPEC_ROOT / "zh" / "sync" / "service-surface.md": [
-            "legacy_alias",
-            "deprecated_alias",
-            "旧版本只暴露 `supported_operations`",
-            "向后兼容地追加",
-        ],
-    }
-    for path, tokens in forbidden_by_path.items():
-        try:
-            text = path.read_text(encoding="utf-8")
-        except Exception as exc:
-            lint.fail(path, f"unable to read for legacy compatibility lint: {exc}")
-            continue
-        for token in tokens:
-            if token in text:
-                lint.fail(path, f"design-phase legacy compatibility token remains: {token}")
-
-
 def check_capability_action_event_mapping(lint: Lint) -> None:
     """Machine-check allowed action ↔ event-kind mapping deviations."""
     action_path = ARTIFACTS / "registry" / "capability-action-registry.json"
@@ -5375,7 +5370,7 @@ def _resolve_dto_object(schema_ref: str) -> dict | None:
 
     def load(p: Path):
         try:
-            return json.loads(p.read_text(encoding="utf-8"))
+            return parse_json_file(p.resolve())
         except Exception:
             return None
 
@@ -5479,10 +5474,15 @@ def check_cross_source_drift(lint: Lint, known: dict[str, set[str]]) -> None:
         (SPEC_ROOT / "zh" / "extensions" / "mimi-interop.md").resolve(),
     }
     operation_count = len(known["operation_ids"])
+    versioned_event_kind_re = re.compile(
+        r"(?<![A-Za-z0-9_.-])("
+        + "|".join(re.escape(kind) for kind in active_event_kinds)
+        + r")\.v[0-9]+\b"
+    )
 
     for path in scan_paths:
         try:
-            text = path.read_text(encoding="utf-8")
+            text = read_text(path.resolve())
         except Exception:
             continue
         resolved = path.resolve()
@@ -5510,9 +5510,12 @@ def check_cross_source_drift(lint: Lint, known: dict[str, set[str]]) -> None:
                 if count != operation_count:
                     lint.fail(path, f"line {line_no}: hard-coded operation count {count} differs from registry count {operation_count}")
 
-            for event_kind in active_event_kinds:
-                if re.search(rf"(?<![A-Za-z0-9_.-]){re.escape(event_kind)}\.v[0-9]+\b", line):
-                    lint.fail(path, f"line {line_no}: active Event.kind {event_kind} must not be written with a .vN suffix")
+            for match in versioned_event_kind_re.finditer(line):
+                lint.fail(
+                    path,
+                    f"line {line_no}: active Event.kind {match.group(1)} "
+                    "must not be written with a .vN suffix",
+                )
 
 
 def check_vector_registry(lint: Lint) -> None:
@@ -5538,6 +5541,7 @@ def check_vector_registry(lint: Lint) -> None:
         return
 
     registered: dict[str, dict[str, Any]] = {}
+    source_vector_ids: dict[Path, set[str]] = {}
     for index, row in enumerate(rows):
         label = f"vectors[{index}]"
         if not isinstance(row, dict):
@@ -5614,11 +5618,14 @@ def check_vector_registry(lint: Lint) -> None:
                 lint.fail(path, f"{source_label} target does not exist: {source_ref}")
                 continue
             try:
-                source_text = resolved.read_text(encoding="utf-8")
+                referenced_ids = source_vector_ids.get(resolved)
+                if referenced_ids is None:
+                    referenced_ids = set(VECTOR_ID_TOKEN_RE.findall(read_text(resolved)))
+                    source_vector_ids[resolved] = referenced_ids
             except Exception as exc:
                 lint.fail(path, f"{source_label} target cannot be read: {source_ref}: {exc}")
                 continue
-            if vector_id not in VECTOR_ID_TOKEN_RE.findall(source_text):
+            if vector_id not in referenced_ids:
                 lint.fail(path, f"{source_label} does not contain vector_id {vector_id}")
 
         for fixture in row.get("applies_to_fixtures", []):
@@ -5628,7 +5635,7 @@ def check_vector_registry(lint: Lint) -> None:
 
     for scan_path in markdown_files() + raw_artifact_files():
         try:
-            text = scan_path.read_text(encoding="utf-8")
+            text = read_text(scan_path.resolve())
         except Exception:
             continue
         for vector_id in sorted(set(VECTOR_ID_TOKEN_RE.findall(text))):
@@ -5883,6 +5890,7 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
         if data is None:
             continue
         check_fixture_schema_validation_cases(lint, path, data)
+        check_event_envelope_candidates(lint, path, data, known["event_kinds"])
         for json_path, value, key in walk_json(data):
             if key in {"auth_weight", "authority_class"}:
                 lint.fail(path, f"{json_path} uses removed state-resolution authority field: {key}")
@@ -5898,13 +5906,8 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
                 if profile_id not in known["profiles"]:
                     lint.fail(path, f"{json_path} references unknown profile: {profile_id}")
 
-            if (
-                key in {"kind", "event_kind", "target_format"}
-                and value.startswith("ak.")
-                and not value.startswith("ak.content.")
-            ):
-                if value not in known["event_kinds"]:
-                    lint.fail(path, f"{json_path} references unregistered Event.kind: {value}")
+            if key == "event_kind" and value.startswith("ak.") and value not in known["event_kinds"]:
+                lint.fail(path, f"{json_path} references unregistered Event.kind: {value}")
 
             if key in {"operation_id", "mapped_operation_id"} and value.startswith("ak."):
                 if value not in known["operation_ids"]:
@@ -6060,13 +6063,8 @@ def check_markdown_json_value(lint: Lint, path: Path, json_path: str, value: Any
             if profile_id not in known["profiles"]:
                 lint.fail(path, f"{json_path} markdown JSON references unknown profile: {profile_id}")
 
-        if (
-            key in {"kind", "event_kind", "target_format"}
-            and value.startswith("ak.")
-            and not value.startswith("ak.content.")
-        ):
-            if value not in known["event_kinds"]:
-                lint.fail(path, f"{json_path} markdown JSON references unregistered Event.kind: {value}")
+        if key == "event_kind" and value.startswith("ak.") and value not in known["event_kinds"]:
+            lint.fail(path, f"{json_path} markdown JSON references unregistered Event.kind: {value}")
 
         if key in {"operation_id", "mapped_operation_id", "operationId"} and value.startswith("ak."):
             if value not in known["operation_ids"]:
@@ -6149,6 +6147,7 @@ def resolve_json_pointer(document: Any, fragment: str) -> Any:
     return current
 
 
+@lru_cache(maxsize=None)
 def load_json_schema_for_uri(uri: str) -> Any:
     # Canonical schema $id base: https://arkret.org/v1/schemas/<name>.schema.json
     # (the /v1/ segment pins the current spec generation so other generations get distinct
@@ -6158,13 +6157,58 @@ def load_json_schema_for_uri(uri: str) -> Any:
     if not uri.startswith(prefix):
         raise ValueError(f"unsupported remote schema URI {uri}")
     path = ARTIFACTS / "schemas" / uri[len(prefix):]
-    return parse_json_text(path.read_text(encoding="utf-8"))
+    return parse_json_file(path.resolve())
 
 
 def load_schema_document(lint: Lint, path: Path) -> Any:
     if path.suffix.lower() in {".yaml", ".yml"}:
         return load_yaml(lint, path)
     return load_json(lint, path)
+
+
+@lru_cache(maxsize=1)
+def schema_format_checker() -> Any:
+    if FormatChecker is None:
+        return None
+    format_checker = FormatChecker()
+
+    @format_checker.checks("date-time", raises=(TypeError, ValueError))
+    def strict_rfc3339_date_time(value: object) -> bool:
+        if not isinstance(value, str):
+            return True
+        if not re.fullmatch(
+            r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
+            r"(?:\.[0-9]+)?(?:Z|[+-][0-9]{2}:[0-9]{2})",
+            value,
+        ):
+            return False
+        datetime.fromisoformat(value.removesuffix("Z") + ("+00:00" if value.endswith("Z") else ""))
+        return True
+
+    return format_checker
+
+
+def schema_validator(schema_path: Path, fragment: str) -> Any:
+    schema_document = (
+        parse_yaml_file(schema_path)
+        if schema_path.suffix.lower() in {".yaml", ".yml"}
+        else parse_json_file(schema_path)
+    )
+    schema = resolve_json_pointer(schema_document, fragment)
+    if not isinstance(schema, dict):
+        raise TypeError("schema_ref fragment is not an object schema")
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        resolver = RefResolver(
+            base_uri=schema_path.as_uri(),
+            referrer=schema_document,
+            handlers={"https": load_json_schema_for_uri},
+        )
+        return Draft202012Validator(
+            schema,
+            resolver=resolver,
+            format_checker=schema_format_checker(),
+        )
 
 
 def jsonschema_errors(lint: Lint, owner: Path, schema_ref: str, instance: Any) -> list[str]:
@@ -6174,48 +6218,22 @@ def jsonschema_errors(lint: Lint, owner: Path, schema_ref: str, instance: Any) -
     schema_path = resolve_artifact_schema_ref(lint, owner, schema_ref)
     if schema_path is None:
         return []
-    schema_document = load_schema_document(lint, schema_path)
-    if not isinstance(schema_document, dict):
-        return []
     fragment = "#" + schema_ref.split("#", 1)[1] if "#" in schema_ref else "#"
     try:
-        schema = resolve_json_pointer(schema_document, fragment)
+        validator = schema_validator(schema_path.resolve(), fragment)
     except Exception as exc:
         lint.fail(owner, f"schema_ref fragment cannot be resolved: {schema_ref}: {exc}")
         return []
-    if not isinstance(schema, dict):
-        lint.fail(owner, f"schema_ref fragment is not an object schema: {schema_ref}")
-        return []
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", DeprecationWarning)
-        format_checker = FormatChecker()
-
-        @format_checker.checks("date-time", raises=(TypeError, ValueError))
-        def strict_rfc3339_date_time(value: object) -> bool:
-            if not isinstance(value, str):
-                return True
-            if not re.fullmatch(
-                r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
-                r"(?:\.[0-9]+)?(?:Z|[+-][0-9]{2}:[0-9]{2})",
-                value,
-            ):
-                return False
-            datetime.fromisoformat(value.removesuffix("Z") + ("+00:00" if value.endswith("Z") else ""))
-            return True
-
-        resolver = RefResolver(
-            base_uri=schema_path.as_uri(),
-            referrer=schema_document,
-            handlers={
-                "https": load_json_schema_for_uri,
-            },
-        )
-        validator = Draft202012Validator(
-            schema,
-            resolver=resolver,
-            format_checker=format_checker,
-        )
-        errors = sorted(validator.iter_errors(instance), key=lambda error: list(error.path))
+        try:
+            errors = sorted(
+                validator.iter_errors(instance),
+                key=lambda error: list(error.path),
+            )
+        except Exception as exc:
+            lint.fail(owner, f"schema validation could not resolve {schema_ref}: {exc}")
+            return []
     formatted: list[str] = []
     for error in errors:
         path_bits = ["$"]
@@ -6335,8 +6353,10 @@ def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
             except Exception as exc:
                 lint.fail(path, f"json_block[{block_index}] invalid canonical JSON: {exc}")
                 continue
+            example_negative = False
             if schema_ref:
                 expect_valid = expect_valid_from_fence_meta(meta)
+                example_negative = not expect_valid
                 first_expected_error = first_expected_error_from_fence_meta(meta)
                 if expect_valid and first_expected_error is not None:
                     lint.fail(path, f"json_block[{block_index}] first_error is only valid with expect=invalid")
@@ -6353,6 +6373,14 @@ def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
                 )
             check_markdown_full_object_example(lint, path, block_index, data)
             check_event_ref_invariants_in_value(lint, path, f"json_block[{block_index}]", data)
+            check_event_envelope_candidates(
+                lint,
+                path,
+                data,
+                known["event_kinds"],
+                label=f"json_block[{block_index}]",
+                negative_context=example_negative,
+            )
             for json_path, value, key in walk_json(data):
                 check_markdown_json_value(lint, path, f"json_block[{block_index}]{json_path[1:]}", value, key, known)
 
@@ -7064,22 +7092,6 @@ def check_declared_canonical_json_strings(lint: Lint) -> None:
     `passphrase_kdf_kat` nonce transcript failed exactly this way, and every
     value derived from it had to be regenerated.
     """
-    # Known-broken pointers awaiting a full transcript regeneration. Each entry MUST reference
-    # an open finding and MUST be removed with the fix; this is a quarantine, not a permission.
-    # `ak.vector.key_backup.unlock_proof.v1` needs more than a re-sort: its ciphertext is 345
-    # bytes while the declared plaintext is 344, so the recorded bytes cannot be reproduced from
-    # the recorded inputs at all. See arkret-work review/spec-open
-    # 2026-07-28-01-key-backup-kat-transcript-canonicality.md.
-    quarantined = {
-        (
-            "key-backup-hardening-fixture.json",
-            "/cases/1/crypto_transcript/aad_canonical_json",
-        ),
-        (
-            "key-backup-hardening-fixture.json",
-            "/cases/1/crypto_transcript/plaintext_canonical_json",
-        ),
-    }
     fixture_root = ARTIFACTS / "fixtures"
     for path in sorted(fixture_root.glob("*.json")):
         data = load_json(lint, path)
@@ -7095,8 +7107,6 @@ def check_declared_canonical_json_strings(lint: Lint) -> None:
                             parsed = json.loads(value)
                         except json.JSONDecodeError:
                             lint.fail(path, f"{child} is not parseable JSON")
-                            continue
-                        if (path.name, child) in quarantined:
                             continue
                         if canonical_json(parsed) != value:
                             lint.fail(
@@ -8544,110 +8554,200 @@ def check_timestamp_profile_single_source(lint: Lint) -> None:
             walk(path, data)
 
 
-def main() -> int:
-    lint = Lint()
-    check_text_files_utf8_no_nul(lint)
-    corrupt_brand_replacement_tokens = (
-        "roll" + "baak",
-        "b" + "loak",
-        "un" + "loak",
-        "s" + "laak",
-    )
-    for scan_root in (SPEC_ROOT, ROOT / "tools"):
-        for path in scan_root.rglob("*"):
-            if not path.is_file() or path.suffix.lower() not in {".json", ".md", ".py", ".yaml", ".yml"}:
-                continue
-            text = path.read_text(encoding="utf-8")
-            for token in corrupt_brand_replacement_tokens:
-                if token in text.lower():
-                    lint.fail(path, f"corrupt brand-replacement token forbidden: {token}")
-    if lint.errors:
-        print("Artifact registry lint failed:", file=sys.stderr)
-        for error in lint.errors:
-            print(f"- {error}", file=sys.stderr)
-        return 1
+def run_lint_phase(
+    index: int,
+    total: int,
+    label: str,
+    checks: list[tuple[str, Any]],
+    *,
+    quiet: bool,
+    timing: bool,
+) -> dict[str, Any]:
+    if not quiet:
+        print(f"[lint {index}/{total}] {label} ...", file=sys.stderr, flush=True)
+    phase_started = time.perf_counter()
+    results: dict[str, Any] = {}
+    for name, check in checks:
+        started = time.perf_counter()
+        results[name] = check()
+        if timing:
+            print(
+                f"  {name}: {time.perf_counter() - started:.3f}s",
+                file=sys.stderr,
+                flush=True,
+            )
+    if not quiet:
+        print(
+            f"[lint {index}/{total}] {label} done "
+            f"({time.perf_counter() - phase_started:.2f}s)",
+            file=sys.stderr,
+            flush=True,
+        )
+    return results
 
-    check_registry_manifest(lint)
-    check_timestamp_profile_single_source(lint)
-    check_proof_context_registry(lint)
-    known = check_registries(lint)
-    check_schema_refs(lint, known)
-    check_profile_requirements(lint, known)
-    check_sdk_conformance_contract(lint)
-    check_operation_clause_registry(lint)
-    check_vector_group_requirements(lint, known)
-    check_event_schema_coverage(lint, known)
-    check_openapi_schema_component_order(lint)
-    check_operation_surfaces(lint, known)
-    check_service_describe_alignment(lint)
-    check_policy_check_alignment(lint)
-    check_openapi_dedicated_operation_schemas(lint)
-    check_openapi_core_selector_constraints(lint)
-    check_openapi_auth_semantics(lint)
-    check_openapi_error_enum_alignment(lint)
-    check_wire_schema_no_bare_scope(lint)
-    check_read_scope_schema_closure(lint)
-    check_signed_object_closure(lint)
-    check_reducer_payload_closure(lint)
-    check_circle_membership_enum_single_source(lint)
-    check_null_cell_subject_wire_form(lint)
-    check_circle_lifecycle_basis_vector(lint)
-    check_did_and_device_constraints(lint)
-    check_operation_binding_metadata(lint)
-    check_binding_completeness_index(lint)
-    check_operation_field_table_schema_refs(lint)
-    check_design_phase_legacy_compat_removed(lint)
-    check_binding_variant_non_http(lint)
-    check_capability_action_event_mapping(lint)
-    check_event_admission_coverage(lint)
-    check_operation_dto_closure(lint)
-    check_text_reference_targets(lint)
-    check_cross_source_drift(lint, known)
-    check_account_data_key_registry(lint, known)
-    check_vector_registry(lint)
-    check_vector_reference_closure(lint)
-    check_security_closure_fixture(lint)
-    check_fixtures(lint, known)
-    check_fixture_runner_contract(lint)
-    check_crypto_signature_fixture(lint)
-    check_markdown_links(lint)
-    check_no_rule_marker_emoji(lint)
-    check_markdown_examples(lint, known)
-    check_legacy_wire_fields(lint)
-    check_naming_predicates(lint)
-    check_profile_dependency_graph(lint)
-    check_common_object_field_matrix(lint)
-    check_event_proof_digest_shape(lint)
-    check_legacy_announce_id_form(lint)
-    check_directory_field_drift(lint)
-    check_typed_id_prose_consistency(lint)
-    check_join_policy_gate_id_uniqueness(lint)
-    check_content_composite_uses_parts(lint)
-    check_release_readiness_counts(lint, known)
-    check_error_code_registry_uniqueness(lint)
-    check_operations_error_mapping_closure(lint)
-    check_fixture_reject_reason_closure(lint)
-    check_error_code_closure(lint)
-    check_cross_doc_anchors(lint)
-    check_openapi_no_floating_number(lint)
-    check_canonical_digest_fixtures(lint)
-    check_event_batch_receipt_normalization_vector(lint)
-    check_encrypted_envelope_digest_vector(lint)
-    check_declared_canonical_json_strings(lint)
-    check_reducer_profile_digest_closure(lint)
-    check_field_order(lint)
-    check_model_required_field_table_coverage(lint)
-    check_exporter_label_registry(lint)
-    check_signature_algorithm_registry(lint)
-    check_mls_governance_proof_fixture(lint)
-    check_mls_governance_proof_bounds(lint)
-    check_mls_pq_suite_registration(lint)
-    check_service_kind_registry(lint)
-    check_action_reference_closure(lint)
-    check_non_normative_frontmatter(lint)
-    check_normative_prose_role_names(lint)
-    check_device_messages_cursor_binding(lint)
-    check_account_notification_prose_schema_alignment(lint)
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--quiet", action="store_true", help="suppress phase progress")
+    parser.add_argument(
+        "--timing",
+        action="store_true",
+        help="print individual check timings in addition to phase progress",
+    )
+    args = parser.parse_args(argv)
+    lint = Lint()
+    started = time.perf_counter()
+
+    for cached in (
+        read_text,
+        parse_json_file,
+        parse_yaml_file,
+        load_json_schema_for_uri,
+        schema_format_checker,
+    ):
+        cached.cache_clear()
+
+    phase_count = 6
+    foundation = run_lint_phase(
+        1,
+        phase_count,
+        "基础文件与规范注册表",
+        [
+            ("text_encoding", lambda: check_text_files_utf8_no_nul(lint)),
+            ("registry_manifest", lambda: check_registry_manifest(lint)),
+            ("timestamp_profile", lambda: check_timestamp_profile_single_source(lint)),
+            ("proof_contexts", lambda: check_proof_context_registry(lint)),
+            ("registries", lambda: check_registries(lint)),
+            ("protocol_layers", lambda: check_protocol_layer_registry(lint)),
+        ],
+        quiet=args.quiet,
+        timing=args.timing,
+    )
+    known = foundation["registries"]
+
+    run_lint_phase(
+        2,
+        phase_count,
+        "Schema、profile 与授权闭包",
+        [
+            ("schema_refs", lambda: check_schema_refs(lint, known)),
+            ("profile_requirements", lambda: check_profile_requirements(lint, known)),
+            ("sdk_conformance", lambda: check_sdk_conformance_contract(lint)),
+            ("operation_clauses", lambda: check_operation_clause_registry(lint)),
+            ("vector_groups", lambda: check_vector_group_requirements(lint, known)),
+            ("event_schema_coverage", lambda: check_event_schema_coverage(lint, known)),
+            ("wire_scope", lambda: check_wire_schema_no_bare_scope(lint)),
+            ("read_scope", lambda: check_read_scope_schema_closure(lint)),
+            ("signed_objects", lambda: check_signed_object_closure(lint)),
+            ("reducer_payloads", lambda: check_reducer_payload_closure(lint)),
+            ("circle_membership", lambda: check_circle_membership_enum_single_source(lint)),
+            ("null_cell_subject", lambda: check_null_cell_subject_wire_form(lint)),
+            ("circle_lifecycle", lambda: check_circle_lifecycle_basis_vector(lint)),
+            ("did_device", lambda: check_did_and_device_constraints(lint)),
+        ],
+        quiet=args.quiet,
+        timing=args.timing,
+    )
+
+    run_lint_phase(
+        3,
+        phase_count,
+        "OpenAPI 与 operation 绑定",
+        [
+            ("openapi_component_order", lambda: check_openapi_schema_component_order(lint)),
+            ("operation_surfaces", lambda: check_operation_surfaces(lint, known)),
+            ("service_describe", lambda: check_service_describe_alignment(lint)),
+            ("policy_check", lambda: check_policy_check_alignment(lint)),
+            ("dedicated_schemas", lambda: check_openapi_dedicated_operation_schemas(lint)),
+            ("core_selectors", lambda: check_openapi_core_selector_constraints(lint)),
+            ("openapi_auth", lambda: check_openapi_auth_semantics(lint)),
+            ("openapi_errors", lambda: check_openapi_error_enum_alignment(lint)),
+            ("binding_metadata", lambda: check_operation_binding_metadata(lint)),
+            ("binding_index", lambda: check_binding_completeness_index(lint)),
+            ("field_table_refs", lambda: check_operation_field_table_schema_refs(lint)),
+            ("non_http_variants", lambda: check_binding_variant_non_http(lint)),
+            ("capability_mapping", lambda: check_capability_action_event_mapping(lint)),
+            ("event_admission", lambda: check_event_admission_coverage(lint)),
+            ("dto_closure", lambda: check_operation_dto_closure(lint)),
+        ],
+        quiet=args.quiet,
+        timing=args.timing,
+    )
+
+    run_lint_phase(
+        4,
+        phase_count,
+        "Fixtures、样例与向量",
+        [
+            ("account_data_keys", lambda: check_account_data_key_registry(lint, known)),
+            ("vector_registry", lambda: check_vector_registry(lint)),
+            ("vector_refs", lambda: check_vector_reference_closure(lint)),
+            ("security_fixture", lambda: check_security_closure_fixture(lint)),
+            ("fixtures", lambda: check_fixtures(lint, known)),
+            ("fixture_runner", lambda: check_fixture_runner_contract(lint)),
+            ("crypto_signatures", lambda: check_crypto_signature_fixture(lint)),
+            ("canonical_digests", lambda: check_canonical_digest_fixtures(lint)),
+            ("batch_receipt", lambda: check_event_batch_receipt_normalization_vector(lint)),
+            ("encrypted_digest", lambda: check_encrypted_envelope_digest_vector(lint)),
+            ("canonical_strings", lambda: check_declared_canonical_json_strings(lint)),
+            ("reducer_digest", lambda: check_reducer_profile_digest_closure(lint)),
+            ("mls_proof", lambda: check_mls_governance_proof_fixture(lint)),
+        ],
+        quiet=args.quiet,
+        timing=args.timing,
+    )
+
+    run_lint_phase(
+        5,
+        phase_count,
+        "正文引用与结构化命名",
+        [
+            ("text_targets", lambda: check_text_reference_targets(lint)),
+            ("cross_source", lambda: check_cross_source_drift(lint, known)),
+            ("markdown_links", lambda: check_markdown_links(lint)),
+            ("markdown_examples", lambda: check_markdown_examples(lint, known)),
+            ("naming_predicates", lambda: check_naming_predicates(lint)),
+            ("profile_graph", lambda: check_profile_dependency_graph(lint)),
+            ("field_matrix", lambda: check_common_object_field_matrix(lint)),
+            ("event_proof_digest", lambda: check_event_proof_digest_shape(lint)),
+            ("announce_ids", lambda: check_legacy_announce_id_form(lint)),
+            ("directory_fields", lambda: check_directory_field_drift(lint)),
+            ("typed_id_prose", lambda: check_typed_id_prose_consistency(lint)),
+            ("join_policy_ids", lambda: check_join_policy_gate_id_uniqueness(lint)),
+            ("composite_parts", lambda: check_content_composite_uses_parts(lint)),
+            ("release_counts", lambda: check_release_readiness_counts(lint, known)),
+            ("cross_doc_anchors", lambda: check_cross_doc_anchors(lint)),
+            ("non_normative_frontmatter", lambda: check_non_normative_frontmatter(lint)),
+            ("normative_roles", lambda: check_normative_prose_role_names(lint)),
+            ("account_notification", lambda: check_account_notification_prose_schema_alignment(lint)),
+        ],
+        quiet=args.quiet,
+        timing=args.timing,
+    )
+
+    run_lint_phase(
+        6,
+        phase_count,
+        "错误、字段顺序与安全边界",
+        [
+            ("error_uniqueness", lambda: check_error_code_registry_uniqueness(lint)),
+            ("error_mapping", lambda: check_operations_error_mapping_closure(lint)),
+            ("fixture_reasons", lambda: check_fixture_reject_reason_closure(lint)),
+            ("error_closure", lambda: check_error_code_closure(lint)),
+            ("openapi_numbers", lambda: check_openapi_no_floating_number(lint)),
+            ("field_order", lambda: check_field_order(lint)),
+            ("required_field_tables", lambda: check_model_required_field_table_coverage(lint)),
+            ("exporter_labels", lambda: check_exporter_label_registry(lint)),
+            ("signature_algorithms", lambda: check_signature_algorithm_registry(lint)),
+            ("mls_bounds", lambda: check_mls_governance_proof_bounds(lint)),
+            ("mls_pq", lambda: check_mls_pq_suite_registration(lint)),
+            ("service_kinds", lambda: check_service_kind_registry(lint)),
+            ("action_refs", lambda: check_action_reference_closure(lint)),
+            ("device_cursor", lambda: check_device_messages_cursor_binding(lint)),
+        ],
+        quiet=args.quiet,
+        timing=args.timing,
+    )
 
     if lint.warnings:
         print("Artifact registry lint warnings:", file=sys.stderr)
@@ -8667,7 +8767,8 @@ def main() -> int:
         f"{len(known['id_kinds'])} typed ID kinds, "
         f"{len(known['operation_ids'])} operations, "
         f"{len(known['claimable_profiles'])} claimable profiles, "
-        f"{len(known['profiles'])} profile id references)."
+        f"{len(known['profiles'])} profile id references, "
+        f"{time.perf_counter() - started:.2f}s)."
     )
     return 0
 

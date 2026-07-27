@@ -113,19 +113,21 @@ def build_event(
     member_did: str,
     previous_event_id: str | None,
     realm_id: str,
-    effective_scope: dict[str, str],
+    scope_ref: dict[str, str],
     actor_did: str,
     verification_method: str,
     signing_key: Ed25519PrivateKey,
 ) -> tuple[dict[str, Any], str, dict[str, Any]]:
     cell_subject = member_did.replace(":", "%3A")
+    state_cell = f"ak:cell:ak.component.member.state.v1:{cell_subject}"
     producer_event: dict[str, Any] = {
         "event_id": event_id,
         "kind": "ak.member.state",
         "realm_id": realm_id,
+        "scope_ref": deepcopy(scope_ref),
         "actor_id": actor_did,
         "actor_seq": actor_seq,
-        "created_at": f"2026-07-15T00:00:0{actor_seq}.000Z",
+        "created_at": f"2026-07-15T00:00:0{actor_seq}Z",
         "hlc": f"019809f4a80{actor_seq}-0000-a1b2c3d4",
         "prev_refs": [] if previous_event_id is None else [previous_event_id],
         "refs": [],
@@ -135,12 +137,6 @@ def build_event(
             "membership": "join",
             "delivery_status": "unroutable",
         },
-        "effects": [
-            {
-                "cell": f"ak:cell:ak.component.member.state.v1:{cell_subject}",
-                "op": {"kind": "transition", "from": "leave", "to": "join"},
-            }
-        ],
     }
     event_digest = wire_digest(canonical_bytes(producer_event))
     proof_created_at = producer_event["created_at"]
@@ -160,10 +156,9 @@ def build_event(
         "jws": detached_jws(signing_key, verification_method, canonical_bytes(binding)),
     }
     accepted_event = deepcopy(producer_event)
-    accepted_event["effective_scope"] = deepcopy(effective_scope)
     accepted_event["proofs"] = [proof]
     state_leaf = {
-        "cell": producer_event["effects"][0]["cell"],
+        "cell": state_cell,
         "state": {"value": "join"},
     }
     kat = {
@@ -253,7 +248,7 @@ def build_fixture() -> dict[str, Any]:
             member_did=member_did,
             previous_event_id=previous,
             realm_id=realm_id,
-            effective_scope=effective_scope,
+            scope_ref=effective_scope,
             actor_did=actor_did,
             verification_method=actor_vm,
             signing_key=actor_key,

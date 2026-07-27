@@ -25,7 +25,6 @@ if (!row) throw new Error(`event_kind not found in registry: ${kind}`);
     <code>{row.wire_scope}</code> ·
     {row.wire_scope === "durable_event" && "Persisted canonical history & reducer input."}
     {row.wire_scope === "actor_private_event" && "Persisted actor-private/account-data; not Space history."}
-    {row.wire_scope === "ephemeral_event" && "Transient sync/federation/app signal; MUST NOT persist."}
   </p>
   <CatalogSource
     entries={[

@@ -332,22 +332,22 @@
       "description": "A child Realm's read-receipt policy attempted to cross the parent's compliance floor (parent disclosure='required' → child 'optional' or 'disabled') without the parent explicitly setting receipt_compliance_opt_in.child_privacy_tightening_against_required=true. Reducer MUST reject the offending ak.realm.read_receipt_policy Move with this wire code. See zh/discovery/read-receipts.md §2.5."
     },
     {
-      "code": "ephemeral_kind_not_permitted",
+      "code": "realtime_class_not_permitted",
       "http_status": 403,
       "scope": "service_call",
-      "description": "ak.self.ephemeral.command.send rejected the envelope because the actor lacks the kind-specific broadcast capability or Realm policy disables that ephemeral kind."
+      "description": "ak.self.realtime.command.send rejected the envelope because the actor lacks the kind-specific broadcast capability or Realm policy disables that realtime kind."
     },
     {
-      "code": "ephemeral_ttl_out_of_range",
+      "code": "realtime_ttl_out_of_range",
       "http_status": 400,
       "scope": "service_call",
-      "description": "ak.self.ephemeral.command.send rejected ttl_ms because it is absent when required or outside the service's advertised kind-specific range."
+      "description": "ak.self.realtime.command.send rejected ttl_ms because it is absent when required or outside the service's advertised kind-specific range."
     },
     {
-      "code": "ephemeral_channel_unavailable",
+      "code": "realtime_rail_unavailable",
       "http_status": 503,
       "scope": "service_call",
-      "description": "ak.self.ephemeral.command.send could not enqueue or fan out the transient signal because the ephemeral channel is temporarily unavailable; durable Event history is not affected."
+      "description": "ak.self.realtime.command.send could not enqueue or fan out the transient signal because the realtime channel is temporarily unavailable; durable Event history is not affected."
     },
     {
       "code": "not_found",
@@ -1025,13 +1025,13 @@
       "code": "failed_plane",
       "http_status": 412,
       "scope": "both",
-      "description": "CBA plane invariant failed: a Control Move's effects[] wrote a data-plane cell, or an Event violated a hard data-schema plane invariant. Terminal failure state; the write MUST NOT be bypassed as cas_conflict. See zh/authz/event-auth-state-resolution.md §13 and zh/sync/service-http-binding.md (write outcomes)."
+      "description": "CBA plane invariant failed: the registered reducer projection for a Control Move targeted a data-plane cell, or a DataEvent targeted a control-plane cell. Terminal failure state; the write MUST NOT be bypassed as cas_conflict. See zh/authz/event-auth-state-resolution.md §13 and zh/sync/service-http-binding.md (write outcomes)."
     },
     {
       "code": "failed_bottom",
       "http_status": 409,
       "scope": "both",
-      "description": "CBA lattice join produced bottom (irreconcilable state) for the event's effects. Terminal failure state per zh/authz/event-auth-state-resolution.md §13; MUST NOT be reported as cas_conflict."
+      "description": "CBA lattice join produced bottom (irreconcilable state) while applying the reducer-projected writes. Terminal failure state per zh/authz/event-auth-state-resolution.md §13; MUST NOT be reported as cas_conflict."
     },
     {
       "code": "direct_conversation_unavailable",
@@ -2771,12 +2771,21 @@
       "description": "A single payload.patch contains parent/child writes, duplicate target paths, selector-affecting writes, or another multi-path combination that cannot be applied as one deterministic atomic Move. Reducer MUST reject the whole patch rather than partially applying paths. See zh/models/event-and-patch.md §4.4."
     },
     {
-      "code": "effects_payload_mismatch",
+      "code": "reducer_projection_failed",
       "applies_to": [
         "event_envelope",
         "state_resolution"
       ],
-      "description": "Wire effects[] is not bytewise canonical-equivalent to derive_patch_effects(kind, target_ref, payload.patch, frozen_pre_state). Receiver MUST recompute and reject the entire Event; effects[] remains the CBA materialization input but cannot diverge from the signed patch instruction. See zh/models/event-and-patch.md §4.3.1."
+      "description": "The reducer projection required by the registered contract cannot be derived uniquely from `kind`, signed envelope fields, schema-validated payload, and frozen pre-state. Receiver MUST reject the entire Event; projected writes are reducer output and never producer-selected Event fields. See zh/models/event-and-patch.md §4.3.1."
+    },
+    {
+      "code": "scope_ref_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "state_resolution"
+      ],
+      "description": "The signed Event `scope_ref` does not equal the security scope deterministically resolved from the target or referenced accepted object state. Receiver MUST reject the Event and MUST NOT rewrite or reducer-stamp the signed scope. See zh/models/circle.md §6.1."
     },
     {
       "code": "patch_path_reducer_managed",
@@ -4242,7 +4251,7 @@
       "applies_to": [
         "schema_validation"
       ],
-      "description": "Sub-reason for schema_violation when actor-side submit payload illegally carries a top-level `effective_scope` field. `effective_scope` is the canonical reducer-output form (tagged {kind:realm|circle}); actors only supply `scope_circle_id` (id:circle | null). Reducer stamps the immutable tagged form on the Event envelope and materialized object cell. See zh/models/circle.md §6.2."
+      "description": "Sub-reason for schema_violation when an object content payload illegally carries `effective_scope` where its schema reserves that name for a read-only materialized projection. The Event envelope instead requires producer-signed `scope_ref`; the receiver derives the scope from payload and frozen pre-state, verifies exact equality, and only then may copy it into the object's effective_scope projection. See zh/models/circle.md §6.2."
     },
     {
       "code": "actor_kind_reducer_managed",
@@ -4754,14 +4763,6 @@
       "description": "Proof lacks a required `domain` or `audience` binding on a cross-service, cross-trust-domain, federation, or multi-audience call. Receivers MUST fail closed rather than accept a single-audience proof across services. A profile MAY define a more specific reason. See zh/models/event-and-patch.md §3."
     },
     {
-      "code": "schema_derivation_mismatch",
-      "applies_to": [
-        "event_envelope",
-        "state_resolution"
-      ],
-      "description": "Diagnostic: the optional `conflict_keys_digest` derived by the producer does not match the digest a verifier derives from `effects[]` under its own schema version, surfacing a two-sided schema-derivation divergence early. NOT a security boundary — verifiers MUST always derive the conflict domain from `effects[]` regardless of this field. See zh/authz/event-auth-state-resolution.md §88."
-    },
-    {
       "code": "morph_schema_refs_precondition_mismatch",
       "applies_to": [
         "event_envelope",
@@ -4805,7 +4806,7 @@
         "event_envelope",
         "schema_validation"
       ],
-      "description": "Sub-reason for schema_violation when a DataEvent's effects[] references a control-plane cell. Data-plane events MUST only write data-plane cell families; the receiver MUST reject the envelope instead of applying a cross-plane write. See zh/authz/event-auth-state-resolution.md §4."
+      "description": "Sub-reason for schema_violation when a DataEvent's registered reducer projection targets a control-plane cell. Data-plane events MUST only project writes to data-plane cell families; the receiver MUST reject the envelope instead of applying a cross-plane write. See zh/authz/event-auth-state-resolution.md §4."
     },
     {
       "code": "relation_kind_watches_derived",
@@ -5141,7 +5142,7 @@
         "service_call",
         "client_sync"
       ],
-      "description": "Sub-reason for failed_precondition when a plaintext broadcast EphemeralEnvelope is submitted to or received in an MLS-backed scope. Until the encrypted realtime surface is verified, ak.presence / ak.typing / ak.receipt.read / ak.call.signal carry their full payload in the clear, which exposes read position, typing target and the complete call state machine to the Sync Service. Implementations MUST fail closed and MUST NOT advertise broadcast ephemeral capability for that scope; see zh/crypto-media/encryption-and-audit.md section 2.9.1."
+      "description": "Sub-reason for failed_precondition when any legacy plaintext broadcast envelope is submitted or received. Realtime is encrypted-only in every scope; implementations MUST fail closed and MUST NOT advertise Realtime for a scope unless they can verify its MLS basis, AAD, and proof. See zh/crypto-media/encryption-and-audit.md section 2.9.1."
     }
   ]
 }

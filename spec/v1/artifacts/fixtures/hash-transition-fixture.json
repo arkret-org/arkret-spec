@@ -26,8 +26,21 @@
     {
       "name": "transition_fail_closed_matrix",
       "vector_id": "ak.vector.hash_transition.fail_closed.v1",
-      "variants": ["missing_previous_state_root", "previous_root_wrong_suite", "new_root_wrong_suite", "snapshot_commitment_mismatch", "suite_identity_mismatch", "strength_downgrade", "previous_state_root_on_non_transition_seal", "old_suite_digest_after_transition"],
-      "expected": {"decision": "rejected_seal", "atomic": true, "state_unchanged": true}
+      "variants": [
+        "missing_previous_state_root",
+        "previous_root_wrong_suite",
+        "new_root_wrong_suite",
+        "snapshot_commitment_mismatch",
+        "suite_identity_mismatch",
+        "strength_downgrade",
+        "previous_state_root_on_non_transition_seal",
+        "old_suite_digest_after_transition"
+      ],
+      "expected": {
+        "decision": "rejected_seal",
+        "atomic": true,
+        "state_unchanged": true
+      }
     }
   ]
 }

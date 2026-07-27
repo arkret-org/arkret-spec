@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/cba-proof-bundle.schema.json",
+  "title": "Arkret CBA Proof Bundle",
+  "description": "Unsigned dependency container. Every embedded object is independently verified; the bundle itself is not authoritative.",
+  "type": "object",
+  "required": [
+    "target_seal_ref",
+    "seals",
+    "control_moves",
+    "inclusion_proofs",
+    "availability_proofs"
+  ],
+  "properties": {
+    "target_seal_ref": {
+      "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+    },
+    "seals": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "./seal.schema.json"
+      }
+    },
+    "control_moves": {
+      "type": "array",
+      "maxItems": 1024,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "./event-envelope.schema.json"
+      }
+    },
+    "inclusion_proofs": {
+      "type": "array",
+      "maxItems": 2048,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "./event-envelope.schema.json#/$defs/semantic_ref/properties/proof"
+      }
+    },
+    "availability_proofs": {
+      "type": "array",
+      "maxItems": 2048,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "./availability-receipt.schema.json"
+      }
+    }
+  },
+  "additionalProperties": false
+}

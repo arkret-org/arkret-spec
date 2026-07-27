@@ -6,7 +6,7 @@
   "profile": "ak.vector_group.cba_lattice.v1",
   "version": "2026-06-11",
   "notes": [
-    "These vectors pin CBA dual-plane semantics. DataEvent vectors use effects + seal_ref + auth_context and never use preconditions. Control Move vectors use effects + seal_basis and may use preconditions.",
+    "These vectors pin CBA dual-plane semantics. DataEvent vectors use signed kind + payload + scope_ref + seal_ref and never use preconditions. Control Move vectors use signed kind + payload + scope_ref + seal_basis and may use preconditions. Every cell write is receiver-projected from the registered reducer contract.",
     "Seal delta entries reference only newly sealed control-plane event digests. Cumulative coverage is derived from predecessor_refs[] plus delta[]. DataEvent digests may appear in data_event_set_root / data_view_root observations, but those roots do not confer control-plane finality.",
     "Cell ids follow ak:cell:ak.component.<facet-path>.v<n>:<subject>; subject placeholders use dot-safe strings to keep examples unambiguous."
   ],
@@ -44,7 +44,7 @@
         "assertions": [
           "per_issuer_sequence_order",
           "issuer_prefix_starts_at_seq_zero",
-          "byte_identical_effect_op_is_idempotent",
+          "byte_identical_projected_op_is_idempotent",
           "same_issuer_seq_equivocation_uses_max_event_digest",
           "equivocation_winner_is_independent_of_causal_edges",
           "equivocation_loser_remains_in_canonical_log",
@@ -144,12 +144,9 @@
         "auth_context": {
           "did": "did:webvh:z6mkfixture:alice.example",
           "key_id": "device-1",
-          "key_epoch": 1,
-          "capability_refs": [
-            "ak:grant:0196410c-0000-7000-8000-000000000000"
-          ]
+          "key_epoch": 1
         },
-        "effects": [
+        "projected_writes": [
           {
             "cell": "ak:cell:ak.component.strand.discussion.timeline.v1:ak.strand.019640c6-8000-7000-8000-000000000000",
             "op": {
@@ -213,7 +210,7 @@
             }
           }
         ],
-        "effects": [
+        "projected_writes": [
           {
             "cell": "ak:cell:ak.component.member.state.v1:did.web.alice.example",
             "op": {
@@ -253,10 +250,7 @@
           "auth_context": {
             "did": "did:webvh:z6mkfixture:bob.example",
             "key_id": "device-1",
-            "key_epoch": 1,
-            "capability_refs": [
-              "ak:grant:0196410c-9999-7000-8000-000000000000"
-            ]
+            "key_epoch": 1
           }
         }
       ],
@@ -420,7 +414,7 @@
             "id": "ak:event:019641c6-8000-7000-8000-000000000101",
             "plane": "data",
             "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
-            "effects": [
+            "projected_writes": [
               {
                 "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
                 "op": {
@@ -434,7 +428,7 @@
           "expected": {
             "result": "failed_precondition",
             "cell_value": "v1",
-            "atomic_rejects_all_effects": true,
+            "atomic_rejects_all_projected_writes": true,
             "defensive_join_result": "bottom"
           }
         },
@@ -452,7 +446,7 @@
                 }
               }
             ],
-            "effects": [
+            "projected_writes": [
               {
                 "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
                 "op": {
@@ -780,10 +774,7 @@
         "auth_context": {
           "did": "did:webvh:z6mkfixture:alice.example",
           "key_id": "device-1",
-          "key_epoch": 1,
-          "capability_refs": [
-            "ak:grant:0196410c-2000-7000-8000-000000000000"
-          ]
+          "key_epoch": 1
         }
       },
       "cases": [
@@ -827,12 +818,12 @@
         },
         {
           "name": "late_revocation_leaf_retroactive_removal",
-          "description": "Ordered sequence, not a single joined-view snapshot: E is first accepted and its effect materialized into data cell X under the initial joined view that has NOT yet joined the revoke leaf R. Dependent event D is then accepted with E as a critical causal dependency and materializes an effect into data cell Y. R arrives later; once joined, E loses seal_ref authorization, so E and the complete direct/indirect dependency closure rooted at E MUST leave accepted projection inputs. The final state MUST equal that of a receiver that joined {S0,R} from the start, independent of arrival order.",
+          "description": "Ordered sequence, not a single joined-view snapshot: E is first accepted and its reducer-projected write is materialized into data cell X under the initial joined view that has NOT yet joined the revoke leaf R. Dependent event D is then accepted with E as a critical causal dependency and materializes a projected write into data cell Y. R arrives later; once joined, E loses seal_ref authorization, so E and the complete direct/indirect dependency closure rooted at E MUST leave accepted projection inputs. The final state MUST equal that of a receiver that joined {S0,R} from the start, independent of arrival order.",
           "dependent_data_event": {
             "id": "ak:event:019641d2-0001-7000-8000-000000000000",
             "plane": "data",
             "critical_causal_ref": "ak:event:019641d2-0000-7000-8000-000000000000",
-            "effect_cell": "data_cell_y"
+            "projected_cell": "data_cell_y"
           },
           "sequence": [
             {
@@ -846,9 +837,9 @@
               },
               "expected": {
                 "data_event_result": "accept",
-                "data_cell_x_contains_event_effect": true,
+                "data_cell_x_contains_event_projection": true,
                 "dependent_event_result": "accept",
-                "data_cell_y_contains_dependent_effect": true
+                "data_cell_y_contains_dependent_projection": true
               }
             },
             {
@@ -865,10 +856,10 @@
               "expected": {
                 "data_event_result": "reject_or_hide",
                 "reason": "stale_seal_ref",
-                "data_cell_x_effect_retroactively_removed": true,
+                "data_cell_x_projection_retroactively_removed": true,
                 "dependent_event_result": "pending",
                 "dependent_event_reason": "dependency_missing",
-                "dependent_event_effect_retroactively_removed": true,
+                "dependent_event_projection_retroactively_removed": true,
                 "recursive_dependency_closure_revalidated": true,
                 "projection_recomputed": true,
                 "converges_with_from_start_joiner": true,
@@ -879,10 +870,10 @@
           "expected": {
             "final_data_event_result": "reject_or_hide",
             "final_reason": "stale_seal_ref",
-            "data_cell_x_effect_retroactively_removed": true,
+            "data_cell_x_projection_retroactively_removed": true,
             "dependent_event_final_result": "pending",
             "dependent_event_final_reason": "dependency_missing",
-            "data_cell_y_dependent_effect_retroactively_removed": true,
+            "data_cell_y_dependent_projection_retroactively_removed": true,
             "accepted_set_is_authorized_dependency_closed": true,
             "final_state_equals_from_start_joiner_of_leaf_set": [
               "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -1136,10 +1127,10 @@
       "vector_id": "ak.vector.seal.same_batch_bottom_reject_serialization.v1"
     },
     {
-      "name": "realm_create_effects_closure",
-      "vector_id": "ak.vector.event_kind.realm_create_effects_closure.v1",
-      "description": "ak.realm.create carries all four registered effects explicitly, so two independent implementations recompute a byte-identical genesis state_root.",
-      "required_effects": [
+      "name": "realm_create_projection_closure",
+      "vector_id": "ak.vector.event_kind.realm_create_projection_closure.v1",
+      "description": "ak.realm.create deterministically projects all four registered writes, so two independent implementations recompute a byte-identical genesis state_root without producer-supplied reducer state.",
+      "required_projected_writes": [
         {
           "cell": "ak:cell:ak.component.realm.metadata.v1:null",
           "op_kind": "set"
@@ -1172,8 +1163,8 @@
       },
       "negative_cases": [
         {
-          "name": "missing_member_state_effect",
-          "mutation": "drop the ak.component.member.state.v1 effect and derive it inside the reducer instead",
+          "name": "missing_member_state_projection",
+          "mutation": "implement a reducer that omits the registered ak.component.member.state.v1 projected write",
           "expected": "state_root differs from the positive case and apply_seal step 11 rejects with rejected_seal"
         },
         {
@@ -1183,13 +1174,13 @@
         },
         {
           "name": "metadata_cell_only_after_first_update",
-          "mutation": "omit the realm metadata effect at genesis and write it only on the first ak.realm.update",
+          "mutation": "omit the registered realm metadata projection at genesis and write it only on the first ak.realm.update",
           "expected": "non_compliant"
         },
         {
-          "name": "extra_unregistered_effect",
-          "mutation": "add a fifth effect not present in cell_writes[]",
-          "expected": "effects_payload_mismatch"
+          "name": "extra_unregistered_projection",
+          "mutation": "implement a reducer that adds a fifth projected write not present in cell_writes[]",
+          "expected": "reducer_projection_failed"
         }
       ]
     },

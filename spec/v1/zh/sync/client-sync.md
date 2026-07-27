@@ -72,13 +72,15 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 | `filter.event_types` | query | `string[]` | optional | 事件类型 allow list。 |
 | `filter.not_event_types` | query | `string[]` | optional | 事件类型 deny list。 |
 
-Presence 变更不是 account subscribe 的 query 参数。客户端要广播 `online` / `idle` / `dnd` / `offline`（closed set，见 [profiles-presence.md §3.2](../discovery/profiles-presence.md)）presence 状态时，MUST 通过 `POST /_arkret/self/ephemeral` 提交 `ak.presence` ephemeral envelope，并按该 operation 执行 `ak.presence.broadcast` 授权、TTL、幂等和日志最小披露规则。`GET /_arkret/self/account/subscribe` MUST 保持只读：建立、恢复或重放订阅不得触发 presence 广播或其它 server-side mutation。
+Presence 不属于 account aggregate。客户端通过可选
+[`Realtime Extension`](./realtime.md) 发送和接收加密 presence；`GET
+/_arkret/self/account/subscribe` MUST 保持只读，且不得投递 `RealtimeEnvelope`。
 
 NDJSON 响应 frame 形态(`application/x-ndjson`,每行一个 JSON 对象):
 
 | `kind` | 是否含 `cursor` | 含义 |
 | --- | --- | --- |
-| `delta` | required | 一次 account-aggregate 增量推送(realms / to_device / account_data / device_lists / presence / notifications)。客户端 MUST 把 `cursor` 作为下次重连的 `after=` 起点。 |
+| `delta` | required | 一次 account-aggregate 增量推送(realms / to_device / account_data / device_lists / notifications)。客户端 MUST 把 `cursor` 作为下次重连的 `after=` 起点。 |
 | `catchup_complete` | required | catch-up replay 或 initial baseline 完成；本轮有界响应随后结束。`catchup=true` 才会出现;`catchup=false` 时不会出现。 |
 | `frontier` | required | 仅推进 cursor,不带数据；用于带 `after` 的长轮询在默认 30 秒窗口无变化时完成本轮响应。 |
 | `heartbeat` | absent | 防中间层断流的 keepalive。 |
@@ -109,7 +111,6 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
   "to_device": {"messages": []},
   "device_lists": {"changed": [], "left": []},
   "account_data": {"events": []},
-  "presence": {"events": []},
   "notifications": {"items": []}
 }
 ```
@@ -125,7 +126,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 {"kind": "unauthorized"}
 ```
 
-`realms` MUST 是以 `ak:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。membership state 的完整枚举是 `join` / `invite` / `knock` / `leave` / `ban`，它们是事件 payload / `ak.member.state` projection 取值，不再作为 `realms` 外层 bucket；其中只有 `join` / `invite` / `knock` 进入 roster（`members[]`），`leave` / `ban` 不进入 roster（见 §中 roster `members[]` 定义）。`state`、`state_after`、`ephemeral`、Realm-scoped `account_data` 以及顶层 `presence` / `account_data` 使用事件容器形状:
+`realms` MUST 是以 `ak:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。membership state 的完整枚举是 `join` / `invite` / `knock` / `leave` / `ban`，它们是事件 payload / `ak.member.state` projection 取值，不再作为 `realms` 外层 bucket；其中只有 `join` / `invite` / `knock` 进入 roster（`members[]`），`leave` / `ban` 不进入 roster（见 §中 roster `members[]` 定义）。`state`、`state_after`、Realm-scoped `account_data` 以及顶层 `account_data` 使用事件容器形状:
 
 ```json
 {
@@ -133,7 +134,9 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 }
 ```
 
-容器形状相同不表示元素的 envelope class 相同：`state`、`state_after` 与 `account_data` 的 `events[]` 使用 durable / actor-private `Event`；per-Realm `ephemeral` 与顶层 `presence` 的 `events[]` 必须使用 `EphemeralEnvelope`。`ephemeral_event` kind 不得为了复用容器而包装成 durable `Event`，也不得恢复 `{type, actors}`、`{type, receipts}`、`{type, call_signals}` 等非规范聚合对象。
+`state`、`state_after` 与 `account_data` 的 `events[]` 使用 durable / actor-private `Event`。
+`RealtimeEnvelope` 只出现在 `ak.self.realtime.stream.subscribe`，不得为了复用本流容器而包装
+成 durable Event，也不得恢复旧的 presence/receipt/call 聚合对象。
 
 顶层 `notifications` 与 `to_device` 都不是事件容器。`notifications` 使用 §3.1 的闭合 `{items: NotificationDelta[]}`；`to_device` 使用 `DeviceMessageEnvelope[]` 承载形态 `{messages, ack_token?, limited?, next_cursor?, lost?}`，schema 为 `account-subscribe-frame.schema.json#/$defs/device_message_container`。两者中的对象均不得作为 durable Event Envelope 处理。
 
@@ -143,7 +146,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 
 1. **原子持久化 frame 与 cursor**: 客户端 MUST 在同一本地事务中持久化 frame payload(timeline 事件、state、account_data、device_lists 等)与该 frame 的 `cursor`,之后才把它用作重连 `after=` 起点;MUST NOT 在 payload 落盘前单独推进本地 cursor 高水位。"先存 cursor、后落数据"的实现会在崩溃时产生本地静默缺口——其中 `device_lists` 缺口只能靠重做 initial sync 恢复。to-device 消息的投递安全由 §10.1 显式 ack 在协议层保证，不依赖本条；但 SHOULD 同样与 cursor 同事务落盘以减少重连后的重复处理。仅带 cursor 不带数据的 frame(`frontier` / `catchup_complete`)直接更新本地高水位即可。
 2. **正常续轮与网络断开**: 正常收到 `delta` / `frontier` 并完成本轮响应后，若没有服务端 `reconnect_after_ms` 或 HTTP `Retry-After` 指令，MUST 立即用最近 `cursor` 作为 `after=` 发起下一轮请求，并设置 `catchup=true`；网络断开时使用相同规则重连，确保断线期间的账号聚合 delta 不被跳过。若服务端返回 `cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized`,按 §12.3 恢复。客户端 MUST NOT 在服务端 30 秒等待窗口之外再固定 sleep 5 秒，否则会平白增加实时延迟。
-3. **`dropped` frame**: 用 frame 自带的 `cursor` 重新建立 `GET /_arkret/self/account/subscribe?after=<cursor>&catchup=true`,让服务端重放账号聚合 delta；若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。不得只用 `ak.self.events.query.scan` 恢复，因为 `to_device`、`account_data`、`device_lists`、presence 与 notifications 不属于裸 Realm Event 查询面。
+3. **`dropped` frame**: 用 frame 自带的 `cursor` 重新建立 `GET /_arkret/self/account/subscribe?after=<cursor>&catchup=true`,让服务端重放账号聚合 delta；若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。不得只用 `ak.self.events.query.scan` 恢复，因为 `to_device`、`account_data`、`device_lists` 与 notifications 不属于裸 Realm Event 查询面。
 4. **`resync_required` frame**: 清空本地 cursor 缓存，重新建立连接(`after=` 缺省 + `catchup=true`)执行 initial account sync;若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。大型 Realm 的当前态可走 snapshot bootstrap,见 §12.3 与 §13。
 5. **`unauthorized` frame**: 关闭连接，触发 session 刷新或退出登录。
 6. **建议 reconnect 退避**: 指数退避，起始 1s,最大 60s;`dropped` / `resync_required` 未携带 `reconnect_after_ms` 时可立即重连以缩短数据不一致窗口。客户端收到 `reconnect_after_ms`、HTTP `Retry-After` 或错误 body `retry_after_ms` 时，MUST 优先遵守服务端指令，并 SHOULD 加 jitter 避免同批客户端同步重连。

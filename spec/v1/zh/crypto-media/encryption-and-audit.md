@@ -360,7 +360,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 | 层 | 名称（wire-level） | 角色 |
 |---|---|---|
 | **Commit-side proof** | `governance_binding`（GroupContext extension `mls_governance_binding`，定义见 §2.5.1，CBOR 编码见 §2.5.3） | 每个 `ak.mls.commit` 携带的 binding payload，把本次 epoch 推进所**断言覆盖**的 governance roots（`membership_frontier` / `policy_root` / `capability_root` / `discussion_metadata_digest`）哈希进 MLS transcript |
-| **Lattice-side accumulator** | `covered_seals_cell`（cell family `ak.component.covered_seals.v1`，or_set，bottom=expose，见 §2.5.2） | MLS Commit Control Move 的 effect cell，**累计**已被 commit attest 的 governance Seal；E2EE DataEvent 用 `seal_ref` 与 `contains` 求值 gate 自身依赖的 governance Seal |
+| **Lattice-side accumulator** | `covered_seals_cell`（cell family `ak.component.covered_seals.v1`，or_set，bottom=expose，见 §2.5.2） | MLS Commit Control Move 的 registered projection cell，**累计**已被 commit attest 的 governance Seal；E2EE DataEvent 用 `seal_ref` 与 `contains` 求值 gate 自身依赖的 governance Seal |
 
 两层缺一不可：`governance_binding` 提供 per-commit 的不可伪造证据并由 MLS transcript hash 覆盖，`covered_seals_cell` 沉淀 reducer 可查询的累计状态供 E2EE DataEvent `seal_ref` coverage 引用。
 
@@ -395,7 +395,7 @@ flowchart TB
     end
 
     Anc -- "Commit 读取并断言" --> GB
-    GB -- "MLS Commit Control Move effects" --> CFC
+    GB -- "MLS Commit registered projections" --> CFC
     GB -- "推进 epoch" --> EpC
 
     Msg["E2EE application DataEvent<br/>seal_ref: covered_seals_cell contains 自身 governance Seal"]
@@ -473,7 +473,7 @@ full profile 的客户端不能只接收服务端声明的 `state_root` 或由�
 - 所有响应重复同一固定大小 `chunk_manifest`，并只携带一个非空 collection chunk。全局 chunk 顺序固定为 `seal_path`、`covered_event_digests`、`control_state`、`frontier_events`；同 collection 的 `start_index` 从 0 无缝递增。`chunks_root` 按 `chunk_index` 承诺全部 `chunk_digest`，每个响应用 `chunk_proof` 证明当前块 inclusion。普通 HTTP 分页、服务端自报 total、缺块继续验证或混用不同 `bundle_digest` 的块都不能构成完整性证明。
 - 拼接后的 `covered_event_digests` 是目标 Seal 的完整递归 `covered_set`，按 wire 值 canonical 升序；verifier 用 §6.2.2 的 `H(0x00 || event_digest_raw)` / `H(0x01 || left || right)` 规则流式重算 `control_event_set_root`。
 - 拼接后的 `control_state` 是目标 Seal 下全部 non-`⊥` joined control cell 的完整物化，按 cell id 升序；verifier 用 §6.2.1/§6.2.2 流式重算 `state_root`。`⊥` cell 不进入数组；binding 依赖的任何 family 存在 `⊥` 时仍必须 fail closed。
-- 拼接后的 `frontier_events` 是 `membership_frontier` 指向的完整签名 Control Move Envelope 集，按 Event digest wire 值升序；verifier 重算 Event digest、验证签名与 Realm/scope，确认 digest 属于完整 `covered_event_digests`，并确认 effect 命中当前 scope 注册的 membership / device trust / account lifecycle family。
+- 拼接后的 `frontier_events` 是 `membership_frontier` 指向的完整签名 Control Move Envelope 集，按 Event digest wire 值升序；verifier 重算 Event digest、验证签名与 Realm/scope，确认 digest 属于完整 `covered_event_digests`，并确认 registered reducer projection 命中当前 scope 注册的 membership / device trust / account lifecycle family。
 
 该形态比选择性 multiproof 大，但它是现有 `state_root` 与 `control_event_set_root` 承诺下能证明集合完备性的最小安全 bootstrap。`accepted_seal_id` 只标识目标 Seal，不能唯一标识 Bundle。请求 identity 固定为 RFC 8785 canonical object `{realm_id,effective_scope,mls_group_id,previous_epoch,next_epoch,binding_profile,reducer_profile,trusted_anchor_seal_id}`；transport 字段 `chunk_index` / `expected_bundle_digest` 不进入 identity。响应 `proof_request_digest=sha256(utf8("arkret-mls-governance-proof-request-v1\n") || canonical_json(proof_identity))`。每个 `chunk_digest=sha256(utf8("arkret-mls-governance-proof-chunk-v1\n") || canonical_json({chunk_index,collection,start_index,items}))`；`chunks_root` 对按 index 排列的 `chunk_digest_raw` 使用 §6.2.2 同形的 SHA-256 `0x00` leaf / `0x01` node 规则。完整逻辑 Bundle 的内容地址为 `bundle_digest=sha256(utf8("arkret-mls-governance-proof-bundle-v1\n") || canonical_json(response_without_bundle_digest_and_chunk))`，因其中含 `chunks_root` 而传递承诺所有块。域分隔字符串末尾均为单个 LF (`0a`)。
 
@@ -839,32 +839,19 @@ Reaction 事件 (`ak.reaction.*`) 的可见性规则：
 
 - 在 routing hash 模式下，聚合层 MUST 仍能给出 `(target_ref, key, count)` 摘要 (其中 `key` 即 routing hash),客户端解密后将 hash 替换为真实 emoji 再渲染。
 - 不得将 routing hash 与历史 plaintext emoji 跨 Realm 关联 (例如缓存全局 `emoji ↔ hash` 表),Realm policy 如声明 `aad_visibility=hidden` MUST 拒绝此类全局关联。
-- `ak.receipt.read` / `ak.typing` 等 ephemeral 事件不进入 reducer state, 但其 actor_id、target_ref 仍是元数据通道；高隐私 Realm SHOULD 同样使用 pairwise DID 与 routing hash,详细规则随对应章节给出。
+- `ak.receipt.read` / `ak.typing` 等实时信号不进入 reducer state；其精确 kind、actor 与 target
+  必须位于 Realtime ciphertext 内，外层只暴露 scope 与三值 `signal_class`。
 
 Reaction 事件的 `aad.event_kind` 始终为明文 (`ak.reaction.add` / `ak.reaction.remove`),以便服务端做 capability fast path 与限流；该明文 kind 不暴露具体 emoji。
 
-#### 2.9.1 MLS-backed scope 禁止 plaintext broadcast ephemeral（normative，fail closed）
+#### 2.9.1 Realtime 一律 encrypted-only（normative，fail closed）
 
-上一节把 `ak.receipt.read` / `ak.typing` 的 `actor_id`、`target_ref` 登记为元数据通道，但 v1
-当前的 [`ephemeral-envelope.schema.json`](../../artifacts/schemas/ephemeral-envelope.schema.json)
-只有 plaintext `payload` 分支——这意味着在 MLS-backed E2EE scope 中，**typing / presence /
-read receipt / call signal 的完整 payload 对 Sync Service 可见**，包括 read position、
-typing 目标与 14 值 `signal_kind` 构成的完整通话状态机时序。这不是元数据剩余泄露，而是
-**内容明文暴露**。
-
-因此，在承载这些信号的加密实时面（Realtime Extension）完成并 verified **之前**：
-
-- effective `encryption_profile=mls_rfc9420` 的 Realm / Circle scope 中，Sync Service 与接收端
-  MUST 拒绝任何 plaintext broadcast `EphemeralEnvelope`，返回 `failed_precondition`，
-  `reason_code=ephemeral_plaintext_in_encrypted_scope`；
-- 服务端 MUST NOT 在 `ServiceDescribe` 中为该 scope 广告 broadcast ephemeral 能力；
-- 客户端 MUST NOT 在该 scope 发送 `ak.presence` / `ak.typing` / `ak.receipt.read` /
-  `ak.call.signal`；
-- **MUST NOT 以"加密实时面尚未就绪"为由继续接受明文**。能力缺失应表现为该 scope 没有实时
-  信号，而不是表现为明文实时信号。
-
-plaintext Realm（`encryption_profile` 未声明 MLS-backed）不受本条约束，继续按 §2.9 的元数据
-规则使用 plaintext 分支。
+Realtime Extension 不存在 plaintext branch，且不因 Realm 内容 profile 改变这一规则。
+typing、presence、read receipt 与 call signaling 的精确 kind、actor、target 和内容都在
+`RealtimeEnvelope.encrypted_payload` 内。发送方、Sync Service 和接收方 MUST 拒绝任何旧
+plaintext broadcast envelope，返回 `failed_precondition` 与
+`reason_code=ephemeral_plaintext_in_encrypted_scope`。服务端只有在能按 scope 验证 MLS
+basis、AAD 与 proof 时才能广告 Realtime；能力缺失表现为没有实时信号，不能降级为明文。
 
 点对点 to-device 信号（`ak.key.verification.*`、`ak.secret.request` / `ak.secret.send`、
 `ak.realm_key.request`）**不属于**本条范围：它们使用

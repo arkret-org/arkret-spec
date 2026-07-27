@@ -10,9 +10,9 @@
     "ak.vector.circle.scope_rebind_and_admission.v1",
     "ak.vector.circle.lifecycle_basis_and_archive_freshness.v1"
   ],
-  "description": "Machine-contract fixture for Circle effective_scope semantics and lifecycle basis evaluation. Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope and materialized object). Covers rebind transitions, DataEvent seal_ref and Control Move seal_basis evaluation, linear and concurrent archive, tombstone, restore barriers, and negative cases. See spec/v1/zh/models/circle.md §6.1 / §6.2 / §7 / §9.2 / §10.2.",
+  "description": "Machine-contract fixture for signed Event scope_ref, projected object effective_scope, and Circle lifecycle basis evaluation. Producer supplies scope_circle_id where the payload owns it and signs the matching scope_ref; the reducer verifies that scope and may materialize effective_scope only in object read projections. Covers rebind transitions, DataEvent seal_ref and Control Move seal_basis evaluation, linear and concurrent archive, tombstone, restore barriers, and negative cases. See spec/v1/zh/models/circle.md §6.1 / §6.2 / §7 / §9.2 / §10.2.",
   "submit_payload_shape": {
-    "description": "Actor-supplied input on ak.strand.create / ak.message.create / ak.morph.create / ak.relation.create / ak.space.* writes. MUST carry only scope_circle_id (id:circle | null). MUST NOT carry effective_scope.",
+    "description": "Generic actor-supplied scope fragment for object payload schemas that own scope_circle_id (for example Strand, Morph, Relation, and scoped Space creation/update). It MUST NOT carry effective_scope. Message and structural-operation payloads that derive scope from accepted target references do not embed this fragment; they still sign Event.scope_ref.",
     "schema": {
       "type": "object",
       "properties": {
@@ -87,18 +87,18 @@
   "scope_rebind_transition_cases": [
     {
       "name": "none_to_none_noop",
-      "description": "scope_circle_id=null -> scope_circle_id=null. No-op rebind; reducer MUST accept (idempotent same-scope), effective_scope stays {kind:realm}.",
+      "description": "scope_circle_id=null -> scope_circle_id=null. No-op rebind; reducer MUST accept when the signed scope_ref remains {kind:realm}; the object projection effective_scope remains Realm-scoped.",
       "from_submit_payload": {
         "scope_circle_id": null
       },
       "to_submit_payload": {
         "scope_circle_id": null
       },
-      "from_canonical_effective_scope": {
+      "from_expected_scope_ref": {
         "kind": "realm",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
       },
-      "to_canonical_effective_scope": {
+      "to_expected_scope_ref": {
         "kind": "realm",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
       },
@@ -114,12 +114,12 @@
       "to_submit_payload": {
         "scope_circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
       },
-      "from_canonical_effective_scope": {
+      "from_expected_scope_ref": {
         "kind": "circle",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
         "circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
       },
-      "to_canonical_effective_scope": {
+      "to_expected_scope_ref": {
         "kind": "circle",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
         "circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
@@ -136,11 +136,11 @@
       "to_submit_payload": {
         "scope_circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
       },
-      "from_canonical_effective_scope": {
+      "from_expected_scope_ref": {
         "kind": "realm",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
       },
-      "to_canonical_effective_scope_when_profile_allows": {
+      "to_expected_scope_ref_when_profile_allows": {
         "kind": "circle",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
         "circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
@@ -158,12 +158,12 @@
       "to_submit_payload": {
         "scope_circle_id": null
       },
-      "from_canonical_effective_scope": {
+      "from_expected_scope_ref": {
         "kind": "circle",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
         "circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
       },
-      "to_canonical_effective_scope_when_profile_allows": {
+      "to_expected_scope_ref_when_profile_allows": {
         "kind": "realm",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
       },
@@ -180,12 +180,12 @@
       "to_submit_payload": {
         "scope_circle_id": "ak:circle:0196419d-0000-7000-8000-000000000000"
       },
-      "from_canonical_effective_scope": {
+      "from_expected_scope_ref": {
         "kind": "circle",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
         "circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
       },
-      "to_canonical_effective_scope_when_profile_allows": {
+      "to_expected_scope_ref_when_profile_allows": {
         "kind": "circle",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
         "circle_id": "ak:circle:0196419d-0000-7000-8000-000000000000"
@@ -344,37 +344,37 @@
       "reason": "circle_realm_mismatch"
     },
     {
-      "name": "accepted_event_missing_effective_scope",
-      "description": "An accepted durable Circle-scoped Event (e.g. ak.message.create whose Strand scope_circle_id is set) MUST carry the reducer-stamped effective_scope on its envelope. An offline validator / cotest MUST reject an accepted event whose object is Circle-scoped but whose effective_scope is absent, otherwise the §9.3 'Circle scoped event not delivered to non-members' invariant cannot be deterministically replayed. event-envelope.schema.json carries effective_scope as a reducer-stamped field; this vector pins that accepted (post-reducer) Circle events MUST populate it.",
+      "name": "event_missing_scope_ref_rejected_at_schema",
+      "description": "Every Event, including an ak.message.create derived from a Circle-scoped Strand, MUST carry signed scope_ref before reducer admission. Schema validation rejects a missing scope_ref; no receiver may accept first and later add or infer a wire field.",
       "event_kind": "ak.message.create",
       "object_scope_circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000",
-      "accepted_event_effective_scope": null,
-      "expect_validation_result": "reject",
-      "invariant": "accepted_circle_event_requires_effective_scope"
+      "accepted_event_scope_ref": null,
+      "expect_validation_result": "schema_violation",
+      "invariant": "accepted_circle_event_requires_scope_ref"
     },
     {
-      "name": "effective_scope_mismatches_scope_circle_id",
-      "description": "The reducer-stamped effective_scope MUST be derived from the object's scope_circle_id: scope_circle_id=null -> {kind:realm}; scope_circle_id=C -> {kind:circle, circle_id:C}. A materialized object / accepted event whose effective_scope.circle_id disagrees with its scope_circle_id is corrupt; reducer MUST schema_violation (effective_scope_reducer_managed) on write and a validator MUST reject on read.",
+      "name": "scope_ref_mismatches_scope_circle_id",
+      "description": "The signed Event scope_ref MUST equal the scope derived from the target object's accepted projection: scope_circle_id=null -> {kind:realm}; scope_circle_id=C -> {kind:circle, circle_id:C}. Receiver MUST reject a mismatch and MUST NOT rewrite the signed field. A separately materialized object effective_scope is projection output and must copy the verified scope_ref.",
       "event_kind": "ak.message.create",
       "object_scope_circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000",
-      "stamped_effective_scope": {
+      "signed_scope_ref": {
         "kind": "circle",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
         "circle_id": "ak:circle:0196419d-0000-7000-8000-000000000000"
       },
       "expect_reducer_result": "schema_violation",
-      "reason": "effective_scope_reducer_managed"
+      "reason": "scope_ref_mismatch"
     },
     {
-      "name": "seal_leaf_effective_scope_tamper",
-      "description": "effective_scope is part of an Event's canonical bytes, so event_digest = H(canonical bytes) binds it directly. If a Seal later reports the DataEvent inside data_event_set_root, that root is an observational availability/projection proof, not control-plane finality. Mutating effective_scope after signing changes event_digest, so the recomputed digest no longer matches the signed event. Receivers MUST reject with digest_mismatch; this forbids silently re-scoping an accepted event and is why no separate scope field is added to seal.schema.json (the binding is the digest).",
+      "name": "signed_scope_ref_tamper",
+      "description": "scope_ref is part of signed Event canonical bytes, so event_digest binds it directly. If a Seal later reports the DataEvent inside data_event_set_root, that root is an observational availability/projection proof, not control-plane finality. Mutating scope_ref after signing changes event_digest; receivers MUST reject with digest_mismatch. No separate scope field is added to seal.schema.json because the Event digest already carries this binding.",
       "event_kind": "ak.message.create",
-      "original_effective_scope": {
+      "original_scope_ref": {
         "kind": "circle",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
         "circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
       },
-      "tampered_effective_scope": {
+      "tampered_scope_ref": {
         "kind": "realm",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
       },
@@ -383,7 +383,7 @@
     },
     {
       "name": "content_plaintext_under_e2ee_required",
-      "description": "Realm.content_encryption_floor=e2ee_required requires every Strand/Message/Morph/Blob content effective_scope to be MLS-backed (Realm-default MLS or Circle MLS). A ak.message.create carrying plaintext content (or whose effective_scope resolves to a plaintext Circle with encryption_profile=none) MUST be rejected with failed_precondition reason=content_encryption_floor_violation.",
+      "description": "Realm.content_encryption_floor=e2ee_required requires the verified Event scope_ref for every Strand/Message/Morph/Blob content write to resolve to an MLS-backed scope (Realm-default MLS or Circle MLS). An ak.message.create carrying plaintext content, or whose verified scope_ref resolves to a Circle with encryption_profile=none, MUST be rejected with failed_precondition reason=content_encryption_floor_violation.",
       "realm_content_encryption_floor": "e2ee_required",
       "event_kind": "ak.message.create",
       "content_form": "plaintext",

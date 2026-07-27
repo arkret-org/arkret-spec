@@ -92,7 +92,7 @@
       "$ref": "#/$defs/DirectoryWithdrawOutcome"
     },
     {
-      "$ref": "#/$defs/EphemeralSubmitOutcome"
+      "$ref": "#/$defs/RealtimeSubmitOutcome"
     },
     {
       "$ref": "#/$defs/EventView"
@@ -2208,29 +2208,25 @@
         }
       }
     },
-    "EphemeralSubmitOutcome": {
+    "RealtimeSubmitOutcome": {
       "type": "object",
-      "description": "Result of ak.ephemeral.send. `accepted=true` means the Sync Service\nadmitted the short-lived signal into its ephemeral fanout path. No\nEvent ID, actor_seq, Seal coverage, or durable receipt is minted.\n",
+      "description": "Result of ak.self.realtime.command.send. accepted=true means the service admitted the encrypted envelope into the short-lived realtime rail. No Event ID, actor_seq, Seal coverage, or durable receipt is minted.",
       "required": [
         "accepted",
-        "kind",
-        "realm_id"
+        "realm_id",
+        "envelope_digest"
       ],
       "properties": {
         "accepted": {
           "type": "boolean"
         },
-        "kind": {
-          "type": "string",
-          "enum": [
-            "ak.call.signal",
-            "ak.presence",
-            "ak.typing",
-            "ak.receipt.read"
-          ]
-        },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "envelope_digest": {
+          "type": "string",
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
+          "description": "Digest of the admitted complete encrypted envelope, used only for short-lived replay suppression and local correlation."
         },
         "dispatched_to": {
           "type": "integer",
@@ -2466,13 +2462,10 @@
     "EventsSubmitRequestBody": {
       "oneOf": [
         {
-          "$ref": "#/$defs/EventSubmitEnvelope"
+          "$ref": "#/$defs/EventInitialSubmission"
         },
         {
           "$ref": "#/$defs/EventsSubmitBatchRequestBody"
-        },
-        {
-          "$ref": "#/$defs/EventsSubmitFederationRequestBody"
         }
       ]
     },
@@ -2499,6 +2492,15 @@
             "type": "string"
           },
           "description": "Event IDs that entered the accepted set for the first time. Idempotent re-submissions of identical bodies are sealed via duplicate[], not re-listed here."
+        },
+        "ingress_receipts": {
+          "type": "array",
+          "maxItems": 500,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./offline-publication.schema.json#/$defs/ingress_receipt"
+          },
+          "description": "Newly issued or byte-identical previously issued receipts for accepted/duplicate Event digests. A service MUST return the stored receipt for an idempotent duplicate; it MUST NOT mint a receipt with a later received_at."
         },
         "duplicate": {
           "type": "array",
@@ -3533,22 +3535,66 @@
         {
           "type": "object",
           "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "actor_kind"
-                ]
-              },
-              {
-                "required": [
-                  "effective_scope"
-                ]
-              }
+            "required": [
+              "actor_kind"
             ]
           },
-          "description": "Actor-supplied ak.self.events.command.submit input envelope. It reuses the base Event\nshape for actor intent fields but forbids reducer-managed accepted-output\nprojections such as actor_kind and effective_scope. Services stamp those\nfields only after accept and expose them on read/query/sync envelopes.\n"
+          "description": "Actor-supplied ak.self.events.command.submit input envelope. It reuses the base Event shape, including the required producer-signed scope_ref, and forbids the sole reducer-stamped Event field actor_kind. Object payload schemas independently forbid actor-supplied effective_scope where that name is reserved for a read-only materialized object projection."
         }
       ]
+    },
+    "EventInitialSubmission": {
+      "type": "object",
+      "description": "Initial durable Event publication. The Event remains the only signed business fact; lease and dependency bundles are independently verified publication evidence and are excluded from the Event digest.",
+      "required": [
+        "event",
+        "authorization_lease"
+      ],
+      "properties": {
+        "event": {
+          "$ref": "#/$defs/EventSubmitEnvelope"
+        },
+        "authorization_lease": {
+          "$ref": "./offline-publication.schema.json#/$defs/authorization_lease"
+        },
+        "cba_proof_bundles": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./cba-proof-bundle.schema.json"
+          },
+          "description": "Optional receiver-relative dependency bundles for the Event seal_ref or seal_basis. Bundles are transport evidence, not Event fields."
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventFederationSubmission": {
+      "type": "object",
+      "description": "Previously receipted Event publication evidence transported between peers. The receiving peer revalidates the Event, lease, receipts and CBA closure independently.",
+      "required": [
+        "event",
+        "authorization_lease",
+        "ingress_receipts"
+      ],
+      "properties": {
+        "event": {
+          "$ref": "#/$defs/EventSubmitEnvelope"
+        },
+        "authorization_lease": {
+          "$ref": "./offline-publication.schema.json#/$defs/authorization_lease"
+        },
+        "ingress_receipts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./offline-publication.schema.json#/$defs/ingress_receipt"
+          }
+        }
+      },
+      "additionalProperties": false
     },
     "RealmActorFrontierView": {
       "type": "object",
@@ -3952,8 +3998,9 @@
         "events": {
           "type": "array",
           "minItems": 1,
+          "maxItems": 500,
           "items": {
-            "$ref": "#/$defs/EventSubmitEnvelope"
+            "$ref": "#/$defs/EventInitialSubmission"
           }
         }
       },
@@ -3975,17 +4022,18 @@
           "minItems": 1,
           "maxItems": 500,
           "items": {
-            "$ref": "#/$defs/EventSubmitEnvelope"
+            "$ref": "#/$defs/EventFederationSubmission"
           },
-          "description": "One Realm-scoped federation transaction. Every Event realm_id MUST equal service_binding_ref.realm_id. Control-plane Events MUST precede data-plane Events; relative order within each phase is preserved."
+          "description": "One Realm-scoped federation transaction. Every nested event.realm_id MUST equal service_binding_ref.realm_id. Control-plane Events MUST precede data-plane Events; relative order within each phase is preserved."
         },
-        "seals": {
+        "cba_proof_bundles": {
           "type": "array",
-          "maxItems": 4096,
+          "maxItems": 64,
+          "uniqueItems": true,
           "items": {
-            "$ref": "./seal.schema.json"
+            "$ref": "./cba-proof-bundle.schema.json"
           },
-          "description": "Minimal receiver-relative signed Seal closure rooted at DataEvent events[].seal_ref and Control Event events[].seal_basis.leaves[]. Items MUST be unique and strictly ordered by (notary_seq, id). An omitted predecessor MUST already be accepted by the receiver; unrelated Seal disclosure is invalid. These transport prerequisites remain inside the single ak.peer.events.command.submit rail; receivers independently verify and project each Seal only after its covered Control Events are accepted."
+          "description": "Receiver-relative CBA dependency bundles rooted at nested Events' seal_ref or seal_basis leaves. Each bundle MAY be a bounded verifiable superset; the receiver independently validates all objects and reports exact missing dependencies."
         },
         "signer_key_evidence": {
           "type": "array",

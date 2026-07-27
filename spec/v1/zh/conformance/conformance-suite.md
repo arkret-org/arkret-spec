@@ -81,7 +81,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 每个实现必须通过以下验收：
 
 - `/_arkret/` 下公开至少包含 `service/identity/events/account/snapshot/blob/authz` 关键 operation。
-- 服务 `operation_id` MUST 以 `artifacts/registry/contract-registry.json#operation_registry` 为 canonical source，并通过生成的 `artifacts/registry/operation-registry.json` 供实现消费；operation DTO 字段集合 MUST 以 JSON Schema 与生成的 `artifacts/reports/operation-schema-index.json` 为机器索引；标准 `Event.kind` MUST 以 `artifacts/registry/event-kind-registry.json` 为唯一 generated registry view，并遵守其 `wire_scope` / `reducer_input` 分类；协议 typed ID 前缀 MUST 以 `artifacts/registry/id-kind-registry.json` 为唯一 generated registry view；标准 Event payload class MUST 以 `artifacts/schemas/event-payload.schema.json` 的 `$defs` 为唯一 source of truth，但完整 payload validation MUST 通过 `event-envelope.schema.json` 的 Event.kind dispatch 或等价 registry dispatch 执行，不得直接把 `event-payload.schema.json` root generic fallback 当作接受条件。OpenAPI、非 HTTP binding 与说明性 `service-api-schema.mdx` 不得声明 catalog / registry 中不存在的 operation；Event validator、reducer 与 fixture 不得声明 registry 中不存在的标准 `ak.*` event kind，也不得把 `ephemeral_event` 或 `actor_private_event` 当作共享 durable reducer input；schema、fixture、文档示例和 DTO 不得使用未注册的 `ak:<kind>:` typed ID 前缀。
+- 服务 `operation_id` MUST 以 `artifacts/registry/contract-registry.json#operation_registry` 为 canonical source，并通过生成的 `artifacts/registry/operation-registry.json` 供实现消费；operation DTO 字段集合 MUST 以 JSON Schema 与生成的 `artifacts/reports/operation-schema-index.json` 为机器索引；标准 `Event.kind` MUST 以 `artifacts/registry/event-kind-registry.json` 为唯一 generated registry view，并遵守其 `wire_scope` / `reducer_input` 分类；协议 typed ID 前缀 MUST 以 `artifacts/registry/id-kind-registry.json` 为唯一 generated registry view；标准 Event payload class MUST 以 `artifacts/schemas/event-payload.schema.json` 的 `$defs` 为唯一 source of truth，但完整 payload validation MUST 通过 `event-envelope.schema.json` 的 Event.kind dispatch 或等价 registry dispatch 执行，不得直接把 `event-payload.schema.json` root generic fallback 当作接受条件。OpenAPI、非 HTTP binding 与说明性 `service-api-schema.mdx` 不得声明 catalog / registry 中不存在的 operation；Event validator、reducer 与 fixture 不得声明 registry 中不存在的标准 `ak.*` event kind，也不得把 `actor_private_event` 当作共享 durable reducer input；Realtime 与 DeviceMessage kind 不得登记成 Event.kind；schema、fixture、文档示例和 DTO 不得使用未注册的 `ak:<kind>:` typed ID 前缀。
 - 相同操作在 gRPC/WebSocket/SSE 等替代 transport 下，语义输入输出一致（可通过对同一 fixture 做幂等重放对比）。
 
 ### 3.2 Canonical envelope tests
@@ -114,7 +114,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
   - 期望输出：Control Move 先 pending，只有被有效 Seal 覆盖并重算 `state_root` 后进入 `sealed`。
 - `ak.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1`
   - 输入同一 ordered submit batch 内相互依赖的 Control Move。
-  - 期望输出：同批前序 effect 不提前成为后续授权 basis，依赖方必须等待后续 Seal。
+  - 期望输出：同批前序 projected write 不提前成为后续授权 basis，依赖方必须等待后续 Seal。
 
 ### 4.3 Redaction 向量
 

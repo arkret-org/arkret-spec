@@ -33,12 +33,12 @@ Event 是 reducer 输入和审计事实。所有协作变化最终都落为签�
 
 Reducer-input event 按 CBA 分为两类：
 
-- DataEvent：顶层带 `effects[]` / `seal_ref` / `auth_context`，不带 `seal_basis` / `preconditions[]`。
-- Control Move：顶层带 `effects[]` / `seal_basis`，可带 `preconditions[]`，不带 `seal_ref` / `auth_context`。
+- DataEvent：顶层带 `seal_ref` / `auth_context`，不带 `seal_basis` / `preconditions[]`。
+- Control Move：顶层带 `seal_basis`，可带 `preconditions[]`，不带 `seal_ref` / `auth_context`。
 
 非 reducer event 不带这些 reducer 字段。
 
-Event Envelope 是 kind-routed payload 兼容层。v1 的协议状态收敛以 CBA 双平面、Seal 与 Lattice 为准；Event kind 可以作为 effect kind 与 Events API payload router 的稳定命名。
+Event Envelope 是 kind-routed payload 兼容层。v1 的协议状态收敛以 CBA 双平面、Seal、Lattice 与注册 reducer 纯函数为准；`kind + payload` 是唯一业务事实源。
 
 ### 2.2 Schema 与字段
 
@@ -47,9 +47,9 @@ Schema id: `ak.schema.event.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `event_id` | yes | `id:event` | 事件稳定 typed ID。事件 canonical digest / proof hash 见 `conformance-vectors.md`。 | 事件 ID。 |
-| `kind` | yes | `string` | MUST 匹配 `^ak\.[a-z0-9_]+(\.[a-z0-9_]+)*$`；标准 kind MUST 登记于 `event-kind-registry.json`。Registry 可声明 `cell_family`、`cell_subject`、`lattice` 和 `bottom`，供 CBA reducer 使用。 | 事件 kind。 |
+| `kind` | yes | `string` | MUST 匹配 `^ak\.[a-z0-9_]+(\.[a-z0-9_]+)*$`；标准 kind MUST 登记于 `event-kind-registry.json`。Registry 的 reducer contract 声明内部 cell target、lattice、bottom 与投影。 | 事件 kind。 |
 | `realm_id` | yes | `id:realm` | Realm create 可在 payload 中建立。 | 所属 Realm。 |
-| `effective_scope` | reducer-stamped | `object` | Reducer 接受 Event 时从 Realm/Circle scope 物化并 immutable 写入 accepted envelope；进入 Seal/sub-seal leaves、E2EE AAD 与 MLS governance binding input。Actor-supplied submit payload MUST NOT 携带该字段，reducer MUST `schema_violation` (`reason=effective_scope_reducer_managed`)。该 reducer-stamped 字段不参与 producer proof 的 `event_digest` 输入（见 §3），其完整性由接受后的 envelope、Seal/sub-seal/AAD 承诺和存储回放规则承担。 | 事件有效作用域。 |
+| `scope_ref` | yes | `object` | `{kind:realm, realm_id}` 或 `{kind:circle, realm_id, circle_id}`。由 producer 声明并进入 event digest、proof 与 E2EE AAD；reducer 从 payload 和 accepted references 独立派生后逐字段比对。 | 签名安全作用域。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链(`executed_by` 缺失时);`executed_by` 存在时 proof 控制链对齐 `executed_by`。 | 事件归属的 principal of record。 |
 | `executed_by` | conditional | `did` | agent / applet / delegated service 代 `actor_id` 写入时出现。出现时 MUST 与 `authorization_ref` 同时出现；Applet delegated 写入还 MUST 同时出现 `applet_id`。进入 canonical bytes、event digest、E2EE AAD。Receiver MUST 校验 proof `verification_method` 解析到 `executed_by`。 | act-on-behalf 时实际签发该 wire write 的主体。 |
 | `authorization_ref` | conditional | `id:grant` 或 `id:event` | `executed_by` 存在时必填；Applet-originated 写入携带 `applet_id` 时也必填。优先引用已物化的 `ak:grant:*`；若授权仍以 Event 表达，则引用产生该 grant / delegation 的 accepted Event。Reducer MUST 校验该 grant / delegation 覆盖目标 event kind / resource / fresh approval,并在 effective validity window 内。 | act-on-behalf / Applet grant / delegation 引用。 |
@@ -64,16 +64,21 @@ Schema id: `ak.schema.event.v1`
 | `refs` | yes | `array<SemanticRef>` | 默认 `[]`。每项 `{id, role, critical?}`；常见 `role` 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`recovery_capability`、`state_witness`、`inclusion_proof`。`critical` 默认 `true`；未识别 critical role MUST fail closed，未识别非 critical role MAY 被忽略。 | 语义引用集合。 |
 | `requirements` | no | `object` | `requirements.{schema[], reducer, features[], critical_extensions[]}` 全部进入 canonical bytes 与 event digest；接收方 MUST fail closed 对未知 critical 项。`critical_extensions[]` 每项必须有 `id`、`extension_scope`、`fail_closed=true`，且 entry 顶层是 closed object；extension-specific data 必须放入 `parameters` 或用 `material_digest` 指向外部材料。 | 事件依赖声明（schema profile / reducer profile / feature / critical extension）。 |
 | `preconditions` | conditional | `array<Predicate>` | 仅 Control Move 携带；在 `seal_basis` 治理 view 下求值。DataEvent MUST 省略。 | 控制面原子条件。 |
-| `effects` | conditional | `array<Effect>` | reducer-input event 必填且至少 1 项。DataEvent 只能写 data plane cell；Control Move 只能写 control plane cell。 | effect 集合。 |
 | `seal_ref` | conditional | `id:seal` | DataEvent 必填；指向已接受控制面 Seal，作为授权验证基线。 | 数据面授权基准。 |
-| `auth_context` | conditional | `object` | DataEvent 必填；pin DID/key/capability epoch，用于在 `seal_ref` 时点验证授权。 | 数据面授权上下文。 |
+| `auth_context` | conditional | `object` | DataEvent 必填；pin DID/key epoch。有效 capability 集合从 `seal_ref` 治理状态派生，producer 不提交重复引用。 | 数据面签名密钥上下文。 |
 | `seal_basis` | conditional | `object` | Control Move 必填；`{leaves[], control_event_set_root, state_root}` 全部进入 canonical bytes。 | 控制面提交基线。 |
 | `payload` | yes | `object` | 由 event kind schema 定义。 | 事件负载。 |
 | `redacts` | no | `id:event` | 仅 redaction event 使用。 | 被撤回事件。 |
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。**producer / self submit 与 peer submit 的 Event MUST NOT 携带该字段**；它只能由接收服务在 read view 上添加，任何实现都 MUST NOT 把它用于身份、授权、reducer 或签名判断。service-added `unsigned` 单对象 canonical JSON MUST NOT 超过 16 KiB，见 [`../conformance/scalability-constraints.md` §2.1.1](../conformance/scalability-constraints.md)。 | 仅 read view 的本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof（`minItems: 1`）。 | 签名证明。 |
 
-Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。除 schema 已声明的标准字段（含 `executed_by`、`authorization_ref`、`applet_id`、`external_ref`、`actor_kind`、`effective_scope`、可选诊断字段 `conflict_keys_digest`——对 `effects[]` 派生 cell id 集合的摘要，语义与校验见 [`../authz/event-auth-state-resolution.md` §4](../authz/event-auth-state-resolution.md#4-dataevent)，非安全边界，verifier 一律从 `effects[]` 派生冲突域）外，扩展字段不得直接加在顶层；非关键扩展只能放入 `payload.x_*`，且仅当该 payload kind 的 schema 显式声明 `x_*` patternProperties 扩展槽时才可使用——未声明扩展槽的 payload kind 不接受任何未知字段（payload schema 的 `additionalProperties: false` 即权威判定；当前已声明扩展槽的 payload kind 以 schema 为准，现仅 `invite_payload`）。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的 `x_*` 字段；需要扩展槽的 payload kind SHOULD 先在对应 schema 登记 `x_*` 槽再使用。关键扩展必须通过 `requirements.critical_extensions[]` 声明并 fail closed。
+Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。`effects`、`conflict_keys_digest` 与 producer-selected `auth_context.capability_refs` 均不是 v1 wire 字段；遇到它们 MUST `schema_violation`。扩展字段不得直接加在顶层；非关键扩展只能放入 payload schema 明确声明的 `x_*` 槽。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的扩展字段；关键扩展必须通过 `requirements.critical_extensions[]` 声明并 fail closed。
+
+v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperations`。每个 Control Move
+必须使用已注册的领域 `kind + payload` 与其闭合 reducer contract；Event、Extension Manifest
+和服务 operation 都不得携带任意 cell family、subject 或 lattice op 描述。未来若引入通用控制
+操作，必须先作为封闭枚举逐项登记并证明不会重新形成 producer reducer DSL；在此之前一律
+`unknown_kind` / `schema_violation` fail closed。
 
 ### 2.3 最小 DataEvent 示例
 
@@ -82,6 +87,10 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
   "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
   "kind": "ak.strand.update",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "scope_ref": {
+    "kind": "realm",
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+  },
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 4,
   "created_at": "2026-04-26T00:00:00.000Z",
@@ -95,20 +104,11 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
   "causal_refs": [
     "sha256:3333333333333333333333333333333333333333333333333333333333333333"
   ],
-  "effects": [
-    {
-      "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
-      "op": { "kind": "set", "value": { "metadata": { "fields": { "review_status": "approved" } } } }
-    }
-  ],
   "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
   "auth_context": {
     "did": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "key_id": "device-1",
-    "key_epoch": 7,
-    "capability_refs": [
-      "ak:grant:0196410c-0000-7000-8000-000000000000"
-    ]
+    "key_epoch": 7
   },
   "payload": {
     "target_ref": "ak:strand:019640c6-8000-7000-8000-000000000000",
@@ -133,7 +133,7 @@ Event MUST 被签名。Reducer MUST 拒绝任何 signature、schema、capability
 
 ### 2.4 Payload 与 type 约定
 
-Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State convergence 只能从 CBA effect 显式给出的 cell id 与 lattice op 推导，不从 envelope kind 隐式推导 state slot。
+Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State convergence 只能由注册 reducer contract 对 `kind + payload` 的纯函数求值得到；producer 不能选择 cell id 或 lattice op。
 
 - `payload.type` 不得重复写入 `ak.*` Event kind。
 - Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`ak:strand:` 等）即对象种类，不写单独的 `payload.object.type`。
@@ -162,20 +162,49 @@ Receiver MUST 在解析任何验签 key 前先确定唯一 signer regime，不�
 
 #### 2.4.2 Event kind cell contract（normative）
 
-每个 `status=active && reducer_input=true` 的 durable Event kind MUST 在 `event-kind-registry.json` 声明完整 cell contract。`plane` / `sealed` 固定整个 Event 的 CBA 路由；`cell_writes[]` 是一般形态，每项固定 `cell_family`、`cell_subject` 派生式、`lattice`、`bottom` 与可选 `initial_value`。单目标 kind MAY 同时暴露等价的 `cell_family` / `cell_subject` / `lattice` / `bottom` 简写；两者不一致时 registry 无效，发布门禁 MUST 失败。
+每个 `status=active && reducer_input=true` 的 durable Event kind MUST 在 `event-kind-registry.json`
+声明完整 reducer contract。`plane` / `sealed` 固定 CBA 路由；`cell_writes[]` 是 reducer 内部目标集合，
+每项固定 `cell_family`、`cell_subject` 派生式、`lattice`、`bottom`、可选 `initial_value` 与必需
+`effect_projection`。这些声明不出现在 Event wire，producer 不能覆盖。
 
-Producer MUST 为 `cell_writes[]` 的每个目标生成且只生成一个对应 `effects[]` 项；receiver MUST 从 Event Envelope 与 payload 按登记的 `cell_subject` 纯函数派生完整 cell id，并逐项验证 family、subject、lattice op 与 Event plane。缺少已登记目标、额外写入未登记目标、把 data/control plane 写反，或用 `effects[].cell` 改写派生结果，分别以 `effects_payload_mismatch` 或 `plane_cross_write` 拒绝整个 Event。多目标 Event 的所有 effects 在同一原子 reducer transaction 内成功或全部失败；数组顺序不产生业务语义，canonical 比较按完整 cell id 的 UTF-8 byte order 排序。
+receiver MUST 从签名 envelope、schema-validated payload 与冻结前态重算所有目标和 lattice op。
+任一 source 缺失、projection 无法求值、data/control plane 写反或目标间原子约束失败，分别以
+`reducer_projection_failed` 或 `plane_cross_write` 拒绝整个 Event。多目标 contract 的所有写
+在同一原子 reducer transaction 内成功或全部失败。
 
-**精确 effect 投影（`effect_projection`，normative）**：当一个 cell write 的完整 lattice op 可由 schema-validated Event 纯函数派生时，该 write MUST 登记 `effect_projection`；producer MUST 使用投影结果作为 wire op，receiver MUST 重算并要求完整 op canonical 等价。只检查 `op.kind` 不足以满足本约束。投影是封闭语法：
+**精确 reducer 投影（`effect_projection`，normative）**：每个 cell write MUST 登记由 Event
+纯函数派生的完整 lattice op。投影是规范内部封闭语法：
 
-- source 对象必须且只能含 `field`（Event 根路径，例如 `payload.focus`）、`envelope_field`（顶层签名字段名）或 `const`（任意 JSON literal）之一；路径不得含数组下标、通配符或空段。
+- source 对象必须且只能含 `field`（Event 根路径，例如 `payload.focus`）、`envelope_field`
+  （顶层签名字段名）、`const`（任意 JSON literal）或 `projected_value=true` 之一；最后一种只在
+  同一 write 已声明闭合 `value_projection` 时引用其结果。路径不得含数组下标、通配符或空段。
 - `{"kind":"transition","from":source,"to":source}` 只用于 `fsm`，精确派生 `{"kind":"transition","from":...,"to":...}`。
+- `{"kind":"transition_to","to":source}` 只用于 `fsm`；reducer 从冻结前态读取 `from`，按该
+  cell 的闭合 FSM 表校验到 `to` 的迁移。它适用于 KeyPackage 等由 payload 声明目标状态、
+  但不允许 producer 伪造前态的状态机。
 - `{"kind":"set","value":source}` 只用于 `mv_register` / `cas_register`，精确派生 `{"kind":"set","value":...}`。source 求值结果 MAY 是任意 JSON 值，包含完整 object——例如 `ak.realm.create` 的 `{"field":"payload.object"}` 与 `ak.rsvp.set` 的 `{"field":"payload.entry"}`，二者的 lattice value 都是整个子对象。这不引入第二套 object-construction DSL：投影只能整体搬运一个已存在的 Event 根路径或 `const`，MUST NOT 在 projection 内拼装、改名或裁剪字段。
+- `{"kind":"apply_patch","patch":source}` 只用于 `mv_register` / `cas_register`；reducer 对冻结
+  前态应用 schema-defined Patch，并验证 payload 的 expected digest/prestate binding。失败拒绝
+  整个 Event，不能存储 Patch 本身作为 cell value。
 - `{"kind":"append","value":source,"issuer_seq":source}` 只用于 `ordered_log`，精确派生 `{"kind":"append","value":...,"issuer_seq":...}`；`issuer_seq` 必须求值为无符号整数。
 - `{"kind":"or_set_delta","selector":"payload.<path>","branches":{...}}` 只用于 `or_set`。selector 值必须精确命中一个 branch；每个 branch 的 `op` 只能为 `add` 或 `remove`。`add` 必须同时登记 `tag` 与 `value` source，`remove` 必须只登记 `tag` source；分别精确派生同名 op。
-- projection 不声明的 `reason`、`issuer_seq`、`tag`、`value` 等 op 成员 MUST 缺省；wire op 擅自增加或省略任何成员均为 `effects_payload_mismatch`。source 路径不存在、selector 未命中或投影与 lattice 不兼容表示 registry / Event 无法求值，MUST fail closed，不得退化为只校验 op kind。
+- `or_set_add` 产生一个 add；`or_set_batch_add` 对已验证、唯一的 payload array 逐项 add，
+  tag 固定为 `digest(tag_context, event_id, index, canonical(value))`。批量形式只用于 MLS
+  Governance Binding 的 `covered_seal_refs`，数组顺序按 canonical value 排序后编号，确保
+  不同接收方产生同一 tag 集。
+- projection 不声明的 `reason`、`issuer_seq`、`tag`、`value` 等 op 成员 MUST 缺省；source
+  路径不存在、selector 未命中或投影与 lattice 不兼容表示 registry/Event 无法求值，MUST
+  fail closed，不得退化为实现私有默认值。
 
-`effect_projection` 与 `condition` 正交：先求值 `condition` 决定目标是否参与，仅对参与目标求值 projection。一个 payload delta 需要多个同 family op 时，必须拆成多个 Event；v1 不定义 batch-op projection，不能把数组元素顺序当作隐含 op 次序。
+`effect_projection` 与 `condition` 正交：先求值 `condition` 决定目标是否参与，仅对参与目标
+求值 projection。一个 payload delta 需要多个同 family op 时，必须由该 kind 的封闭 contract
+明确登记、使用上述唯一批量特例，或拆成多个 Event；不能把其它 payload 数组顺序当作隐含
+op 次序。
+
+控制面 contract 还 MUST 声明 `concurrency_class`：`merge_safe` 仅使用可交换 lattice 合并；
+`exclusive` 对目标 cell 集做独占 compare-and-apply；`security_barrier` 用于 membership、
+authority、policy、scope、identity 与 key transition，并与同 signed scope 的其它 security
+barrier 串行化。实现不得按 Event kind 名称猜测类别。
 
 **条件性 cell write（`condition`，normative）**：`cell_writes[]` 的某一项 MAY 携带可选 `condition`，表示该目标只在同一 Event 的特定 payload 形态下参与。`condition` 是**封闭语法**，只有四种形态，且求值 MUST 是对已通过 schema 校验的 payload 的纯函数：
 
@@ -188,12 +217,14 @@ Producer MUST 为 `cell_writes[]` 的每个目标生成且只生成一个对应 
 
 求值规则：
 
-- `condition` 命中时该目标**成为必需目标**，Event MUST 恰好携带一条对应 effect；未命中时该目标**MUST NOT** 出现在 `effects[]` 中。两个方向都以 `effects_payload_mismatch` 拒绝整个 Event，实现 MUST NOT 把"未命中的目标写成 same-value / no-op effect"当作等价做法——对 `fsm` cell 而言 same-state transition 本身非法（[`common-fields.md` §4.5](common-fields.md)）。
+- `condition` 命中时 reducer 必须执行该目标；未命中时不得执行。实现 MUST NOT 把未命中的
+  目标写成 same-value/no-op——对 `fsm` cell 而言 same-state transition 本身非法。
 - 无 `condition` 的目标是无条件必需目标。
 - 未知 `kind`、缺 `field`、`field` 不是点分具名路径、`field_equals` 缺 `const` 或 `const` 不是标量，MUST fail closed（registry 无效，发布门禁失败）。
 - **`any_field_present` 的两种正当用途**：(i) 同一语义值在同 kind 的不同 payload 形态下落在不同路径（例如 invite 既可用 `payload.invite` 完整对象、也可用扁平字段承载）；(ii) 同一 cell 承载多个不同字段，其中任一字段出现即需写该 cell。
 - **subject 可派生性（normative）**：条件命中时该目标的 `cell_subject` MUST 可派生。用途 (i) 下 `cell_subject` 必然是 `coalesce`，其 `fields[]` MUST 与 `condition.fields[]` 逐项一致、同序——否则会出现「条件命中但 subject 无法派生」或反之的组合；该一致性由 `tools/lint_artifacts.py` 机械校验。用途 (ii) 下 `cell_subject` 取一个与条件字段无关的路径，该路径 MUST 是 payload 的无条件必填字段。
-- `condition` 只决定该目标**是否**参与，MUST NOT 改变 `cell_family`、`cell_subject` 派生式、`lattice` 或 `bottom`；需要在同一目标内按判别值切换取值字段时用 `cell_subject` 的 `select` component（[`../conformance/encoding.md` §9.5.1](../conformance/encoding.md)），不要用 `condition` 复制出两条同 family 目标。
+- `condition` 只决定该目标是否参与，MUST NOT 改变 `cell_family`、`cell_subject` 派生式、
+  `lattice` 或 `bottom`；需要按判别值切换取值字段时使用已登记的 `select` component。
 
 `ak.mls.genesis` / `ak.mls.commit` 的三目标合约固定为 MLS epoch、key schedule 与 covered-seals；`ak.invite.accept` 固定为 invite lifecycle 与 member state；`ak.invite.claim` 固定为 invite lifecycle 与 subject-bound membership proposal。generic/message redaction 写入单调 `ak.component.object.redaction.v1` fact；对象的 effective terminal/redacted 状态由该 fact 与对象 lifecycle cell 联合派生，不允许用到达顺序选择是否清除内容。闭包与正负路径由 `ak.vector.event_kind.cell_contract_closure.v1` 固定。
 
@@ -219,11 +250,11 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 - 实现 MUST 对同一 `(realm_id, actor_id, actor_seq, prev_frontier_digest)` 接受的 sibling 数量设置上限；v1 的单桶上限为 16。同一 `(realm_id, actor_id, actor_seq)` 跨全部 `prev_frontier_digest` 桶的合法签名 sibling 累计上限为 64；任一上限被超过时 MUST quarantine 或要求 actor chain repair。累计候选集合只由已验证 canonical Event 集合决定，不依赖到达顺序。两项均是无条件 v1 上限，单一数值真相源见 [`scalability-constraints.md` §2](../conformance/scalability-constraints.md)。
 - Realm 隔离、同 Realm sibling 与跨 Realm predecessor 拒绝由 `ak.vector.actor_chain.realm_scope.v1` 固定。
 - 被判定为 rejected 的 fork 不推进 actor accepted frontier，也不得作为后续 accepted event 的 predecessor。
-- **over-fork repair 终局（normative）**：当某 `(realm_id, actor_id, actor_seq, prev_frontier_digest)` 桶内合法签名 sibling 数超过上限时，「quarantine 或要求 actor chain repair」的收敛终局复用 [`../sync/federation.md` §4.5](../sync/federation.md) 定义的 fork resolution 机制，而非各实现自定义：(a) receiver MUST 把整个 over-fork 桶（该桶内全部 sibling，含上限内已 accepted 者）标为 quarantine，MUST NOT 把其中任何 sibling 推进为 actor accepted frontier；(b) 重新归一只能由 federation §4.5 的 `raw replay` / `quorum witness` / `operator-approved fork resolution` 三条终局路径之一产生一个 canonical 归一结果，由有 recovery / fork-resolution capability 的主体写入；(c) 在归一结果产生前，所有 receiver 对同一 over-fork 桶 MUST 一致地拒绝推进 frontier（即 quarantine 子集 = 整桶，跨 receiver 确定相同），避免不同 receiver quarantine 不同子集导致 accepted frontier 跨 receiver 分歧。over-fork 桶不适用 §2.6 的分桶限流容忍语义（限流只针对未超限的合法分叉计数）。追溯进入 quarantine 的 sibling 的 effects MUST 从所有 data/control cell 的 join 输入集中移除，并按"非 quarantine accepted set 的纯函数"确定性重算 projection；以这些 sibling 作为 `prev_refs`、`refs[role=authorized_by]`、critical ref 或 payload-level critical causal ref 的后续 Event MUST 转为 `dependency_missing` / pending，不得继续使用被 quarantine 的 predecessor 维持 accepted 状态。
+- **over-fork repair 终局（normative）**：当某 `(realm_id, actor_id, actor_seq, prev_frontier_digest)` 桶内合法签名 sibling 数超过上限时，「quarantine 或要求 actor chain repair」的收敛终局复用 [`../sync/federation.md` §4.5](../sync/federation.md) 定义的 fork resolution 机制，而非各实现自定义：(a) receiver MUST 把整个 over-fork 桶（该桶内全部 sibling，含上限内已 accepted 者）标为 quarantine，MUST NOT 把其中任何 sibling 推进为 actor accepted frontier；(b) 重新归一只能由 federation §4.5 的 `raw replay` / `quorum witness` / `operator-approved fork resolution` 三条终局路径之一产生一个 canonical 归一结果，由有 recovery / fork-resolution capability 的主体写入；(c) 在归一结果产生前，所有 receiver 对同一 over-fork 桶 MUST 一致地拒绝推进 frontier。追溯进入 quarantine 的 sibling 必须从所有 cell 的 reducer 输入集中移除，并按非 quarantine accepted Event 集合确定性重算 projection；依赖这些 sibling 的后续 Event 转为 `dependency_missing` / pending。
 
 `prev_frontier_digest` 的 canonical 计算为 `sha256:` + hex(SHA-256(JCS(sort_unique(prev_refs))))；`prev_refs` 先按 bytewise UTF-8 升序排序并去重，输入为空数组时编码为 `[]`。若 Realm 的 `digest_algorithm` 不是 `sha256`，同一结构使用该 Realm 声明的 digest algorithm，并把算法名前缀写入结果。该 digest 只用于 sibling fork 计数分桶，不参与 winner 选择。
 
-跨桶累计超过 64 时，上述“整桶”扩展为同一 `(realm_id, actor_id, actor_seq)` 的全部 sibling：receiver MUST quarantine 该高度的全部候选，并沿用相同三条归一终局。对已经被 accepted Seal 覆盖的 Control Move，追溯规则存在唯一例外：其 effects 与 digest MUST 保留在该 Seal 的 `covered_set` / `state_root` 输入中，不得改写已接受 Seal；该 actor 后续控制面 Move 在显式 fork-resolution compaction Seal 归一前 fail closed。数据面 sibling 与尚未被任何 accepted Seal 覆盖的 pending Control Move 仍按上段移除 effects。完整衔接见 [`event-auth-state-resolution.md` §6.3.2](../authz/event-auth-state-resolution.md)。
+跨桶累计超过 64 时，上述“整桶”扩展为同一 `(realm_id, actor_id, actor_seq)` 的全部 sibling。对已经被 accepted Seal 覆盖的 Control Move，追溯规则存在唯一例外：其 digest 与确定性 reducer 输出 MUST 保留在该 Seal 的 `covered_set` / `state_root` 输入中，不得改写已接受 Seal；该 actor 后续控制面 Move 在显式 fork-resolution compaction Seal 归一前 fail closed。数据面 sibling 与尚未被任何 accepted Seal 覆盖的 pending Control Move仍按上段移除。
 
 `ak.device.reanchor` 另使用独立冲突槽 `(principal_id,did_version_number)`，version number 必须从已验证 DID versionId 解析。did_version_id、re-anchor digest 与 replacement-authorize digest 全相同才是幂等重试；同槽任一不同即把全部候选 unit 及后继 generation Seal quarantine，禁止 first-seen winner。reducer 保留最后未冲突的 current generation ref、将状态置 `conflicted` 并关闭普通 Event/Seal admission；只有更高 version、由下一预承诺 authority 签发且在 registry/witness policy 下成为 canonical head 的 re-anchor 可以解除。该规则优先于普通 actor sibling 容量/限流规则，不能用唯一约束丢弃第二份证据。
 
@@ -247,7 +278,7 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 | `kind` | yes | `enum(detached_jws)` | 初版必须支持。 | 证明类型。 |
 | `alg` | yes | `string` | 初版默认 `EdDSA`。 | 签名算法。 |
 | `verification_method` | yes | `string` | DID URL。 | 公钥/设备方法。 |
-| `event_digest` | yes | `hash` | MUST 等价于 `canonical_digest(envelope_without_proofs_unsigned_reducer_stamps)`：hash 输入是去除 `proofs`、`unsigned` 与 reducer-stamped 顶层字段（当前为 `effective_scope`、`actor_kind`）之后的 canonical Event envelope（含 `event_id`、`kind`、`actor_id`、`executed_by`、`authorization_ref`、`applet_id`、`external_ref`、`payload`、`refs`、`causal_refs`、`preconditions`、`effects`、`seal_ref`、`auth_context`、`seal_basis`、`requirements`、`hlc` 等）。 | producer-signed canonical Event digest。 |
+| `event_digest` | yes | `hash` | MUST 等价于 `canonical_digest(envelope_without_proofs_unsigned_actor_kind)`。签名输入包含 `scope_ref`、`payload`、basis 与其它 producer 字段，只排除 `proofs`、`unsigned`、`actor_kind`。 | producer-signed canonical Event digest。 |
 | `created_at` | yes | `timestamp` | MUST 使用 canonical RFC 3339 UTC 毫秒精度 `YYYY-MM-DDTHH:MM:SS.sssZ`（整秒也写 `.000Z`）；微秒/纳秒输入必须在生成 proof binding 与签名之前截断到毫秒，不得使用 `+00:00`。 | 签名时间。 |
 | `domain` | no | `string` | 同一 trust domain 内 SHOULD 设置；跨服务、跨 trust domain 或 federation profile 下 MUST 设置。 | 域绑定。 |
 | `audience` | no | `string` 或 `array<string>` | 同一 service audience 内 SHOULD 设置；跨域/服务调用、多受众调用或 federation profile 下 MUST 设置。 | 受众绑定。 |
@@ -269,7 +300,7 @@ DID proof JSON Schema MUST 与 [`../identity/identity-did.md`](../identity/ident
 }
 ```
 
-Verifier MUST 先移除 `proofs`、`unsigned` 与 reducer-stamped 顶层字段（当前为 `effective_scope`、`actor_kind`）计算 producer-signed canonical Event hash，并与 `proof.event_digest` 比对；随后按上述字段构造 canonical proof binding object，且 MUST 写入固定 signing-context `context="ak.event-proof-v1"`，再验证 detached JWS 覆盖该 binding object。这样 `event_digest` 绑定 producer 提交的完整 Event，reducer-stamped 字段则在 accepted envelope、Seal/sub-seal/AAD 与存储回放中保持 immutable，不得被联邦 peer 或中间服务重写。JWS transcript 同时绑定 context、actor、verification method、时间、domain/audience，避免跨签名对象族、跨服务或跨 actor 重放。
+Verifier MUST 先移除 `proofs`、`unsigned` 与 `actor_kind`，保留 `scope_ref`，计算 producer-signed canonical Event hash并与 `proof.event_digest` 比对；随后写入固定 signing-context `context="ak.event-proof-v1"` 验证 detached JWS。JWS transcript 同时绑定 context、actor、verification method、时间、domain/audience，避免跨对象族、跨服务或跨 actor/scope 重放。
 
 在 cross-service、cross-trust-domain、federation 或任何 profile 声明的多受众调用中，缺少 `domain` 或缺少所需 `audience` 的 proof MUST fail closed（`proof_binding_missing` 或 profile 声明的更具体 reason）。同一服务内单受众本地写入 MAY 省略其中一项，但 verifier 仍 MUST 把处理上下文中的 Realm / service audience 与 envelope `realm_id`、proof controller 和 capability 绑定分开校验；不得因为 proof 验签通过就跨服务接受同一 Event。
 
@@ -375,6 +406,10 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
   "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
   "kind": "ak.strand.update",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "scope_ref": {
+    "kind": "realm",
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+  },
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 5,
   "created_at": "2026-04-26T00:00:00.000Z",
@@ -384,20 +419,11 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
     { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "causal_refs": ["sha256:3333333333333333333333333333333333333333333333333333333333333333"],
-  "effects": [
-    {
-      "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
-      "op": { "kind": "set", "value": { "metadata": { "fields": { "review_status": "approved", "due_date": "2026-06-01" } } } }
-    }
-  ],
   "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
   "auth_context": {
     "did": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "key_id": "device-1",
-    "key_epoch": 7,
-    "capability_refs": [
-      "ak:grant:0196410c-0000-7000-8000-000000000000"
-    ]
+    "key_epoch": 7
   },
   "payload": {
     "target_ref": "ak:strand:019640c6-8000-7000-8000-000000000000",
@@ -421,27 +447,30 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
 
 Reducer MUST 按 §4.4 原子性规则评估整个 `payload.patch` map（全部成功才接受），其中每条 path 还要分别通过 §4.2.4 redactable 字段保护与 §4.2.5 reducer-managed 字段保护检查。
 
-#### 4.3.1 Patch 与 `effects[]` 的唯一一致性规则（normative）
+#### 4.3.1 Patch reducer 的唯一输入（normative）
 
-`effects[]` 是 CBA 物化与 conflict-domain 的唯一输入；`payload.patch` 是 producer 签名的更新指令，二者不得独立表达两个结果。对任何携带 `payload.patch` 的 reducer-input Event，producer 与 receiver MUST 在该 Event 的冻结 pre-state 上执行同一纯函数 `derive_patch_effects(kind, target_ref, patch, pre_state)`，并要求输出与 wire `effects[]` 逐字节 canonical 等价；不一致 MUST 以 `schema_violation`、`reason_code=effects_payload_mismatch` 拒绝整个 Event。receiver MUST 重算，不能信 producer 的 effects。
+`payload.patch` 是 producer 签名的唯一更新指令。receiver MUST 在该 Event 的冻结 pre-state 上执行
+规范纯函数 `reduce_patch(kind, target_ref, patch, pre_state)`；wire 不携带第二份 cell write。投影无法
+唯一求值时以 `schema_violation`、`reason_code=reducer_projection_failed` 拒绝。
 
 冻结 pre-state 的唯一求值规则：
 
 - Control Move 的 pre-state 是 `seal_basis` 所承诺的目标 cell settled value，按 CBA frozen-baseline 规则读取。
-- 携带 patch 的 DataEvent MUST 在 `causal_refs[]` 中为每个目标 cell 精确引用一个 accepted base-head event digest；该 digest 对应 Event 的 effect 必须写同一 cell。receiver 从该 base head 的完整 post-state cell value恢复 pre-state，不读取本地当前 head、到达顺序或墙钟。base 依赖尚未取得时 Event 保持 `dependency_missing` pending，不得报 `effects_payload_mismatch`；依赖取得后再重算。
+- 携带 patch 的 DataEvent MUST 在 `causal_refs[]` 中为每个目标 cell 精确引用一个 accepted base-head event digest；该 Event 的 reducer contract 必须写同一 cell。receiver 从该 base head 的完整 post-state恢复 pre-state，不读取本地当前 head、到达顺序或墙钟。依赖未取得时保持 `dependency_missing` pending。
 - 目标 cell 当前已有多个并发 head 不影响某个基于旧 head 的 DataEvent 被验证：它形成新的并发 head并由 `mv_register` 暴露。producer 若要显式收敛多个 head，MUST 使用该 cell family 注册的 resolution Event / per-object sequencer；通用 patch 不得任意选择本地 winner。create 类无 pre-state 的 Event 不使用本 patch 规则。
-- `causal_refs[]` 中没有命中目标 cell 的 base、命中多个 base、base Event 未写该 cell，或引用的 base post-state 无法按 registry/schema 重建时，receiver MUST `schema_violation` / `effects_payload_mismatch`；不得回退到 receiver 当前 state。
+- `causal_refs[]` 中没有命中目标 cell 的 base、命中多个 base、base Event reducer 未写该 cell，或 base post-state 无法重建时，receiver MUST `schema_violation` / `reducer_projection_failed`；不得回退到当前 state。
 
-上述 patch 路由、冻结 pre-state 与失败分支由 `ak.vector.patch.effects_prestate_binding.v1` 固定。
+上述 patch 路由、冻结 pre-state 与失败分支由
+`ak.vector.patch.projection_prestate_binding.v1` 固定。
 
 派生函数按以下封闭规则工作：
 
-1. 先按上述冻结规则取得唯一 pre-state，再按 §4.2 / §4.4 验证并原子应用 patch，得到完整 post-state；命中 redactable 或 reducer-managed 路径时在产生 effects 前即拒绝，因此不能经 effects 绕过保护。
-2. 目标 cell family、cell subject、plane 与 lattice 只从 event-kind registry 的单目标简写或 `cell_writes[]` 以及 kind payload schema 派生，producer 不得用 `effects[].cell` 改写目标；多目标 kind 必须与 §2.4.1 的目标集合逐项完全相等。
+1. 先按上述冻结规则取得唯一 pre-state，再按 §4.2 / §4.4 验证并原子应用 patch，得到完整 post-state；命中 redactable 或 reducer-managed 路径时立即拒绝。
+2. 目标 cell family、cell subject、plane 与 lattice 只从 event-kind registry reducer contract 与 kind payload schema 派生，producer 无覆盖入口。
 3. `mv_register` / `cas_register` 产生单个 `op.kind="set"`，`op.value` 是完整 post-state cell value，不是 partial patch。`or_set` 只允许 patch `add` / `remove`，逐项产生同名 lattice op；`counter` 只允许 schema 登记的增减字段并产生 `inc` / `dec`；`fsm` 只允许领域 transition Event，MUST NOT 用通用 patch 改状态。其它 lattice 若无本节或领域文档的显式映射，携带 patch MUST fail closed。
-4. 派生 effects 按 cell id、op kind、tag / element id 的 canonical tuple 升序排列；相同 tuple 重复、patch 父子路径冲突或一个 patch 需要跨 plane 写入时 MUST 拒绝，不能靠数组顺序消歧。
+4. 内部派生写按 cell id、op kind、tag/element id 的 canonical tuple 升序处理；相同 tuple 重复、patch 父子路径冲突或跨 plane 写入时 MUST 拒绝，不能靠数组顺序消歧。
 
-因此 verifier、Seal 与 projection 始终消费 `effects[]`，同时通过重算保证它只能是合法 patch 的规范派生物。
+verifier、Seal 与 projection 始终消费同一规范 reducer 输出，不消费 producer 指令。
 
 ### 4.4 原子性与条件
 
@@ -495,7 +524,7 @@ Reducer MUST：
 - 验证 schema
 - 验证 capability
 - 按 causal order 处理
-- 对相同 Event（相同 `event_id` 及其 effect 集合）保持幂等：重复 apply 同一已接受 Event MUST NOT 产生额外状态变化或副作用
+- 对相同 Event（相同 `event_id` 与 canonical digest）保持幂等：重复 apply 同一已接受 Event MUST NOT 产生额外状态变化或副作用
 - 按 §2.2 处理未知字段：拒绝 schema 未声明的字段，保留 schema 显式声明扩展槽中的未识别内容
 - 输出可声明的 reducer profile
 

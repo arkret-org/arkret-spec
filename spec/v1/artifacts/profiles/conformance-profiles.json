@@ -775,17 +775,16 @@
       ],
       "required_event_kinds": [
         "ak.message.create",
-        "ak.read_cursor.advance",
-        "ak.typing"
+        "ak.read_cursor.advance"
       ],
       "rejected_event_kinds": [
-        "wire_scope:actor_private_event",
-        "wire_scope:ephemeral_event"
+        "wire_scope:actor_private_event"
       ],
       "required_schemas": [
         "ak.schema.event.v1",
         "ak.schema.event_payload.v1",
-        "ak.schema.seal.v1"
+        "ak.schema.seal.v1",
+        "ak.schema.realtime_envelope.v1"
       ],
       "required_fixtures": [
         "event-envelope-negative-fixture.json",
@@ -1360,8 +1359,7 @@
         "ak.member.state"
       ],
       "rejected_event_kinds": [
-        "wire_scope:actor_private_event",
-        "wire_scope:ephemeral_event"
+        "wire_scope:actor_private_event"
       ],
       "required_schemas": [
         "ak.schema.event.v1",
@@ -1920,8 +1918,7 @@
         "ak.member.state"
       ],
       "rejected_event_kinds": [
-        "wire_scope:actor_private_event",
-        "wire_scope:ephemeral_event"
+        "wire_scope:actor_private_event"
       ],
       "required_schemas": [
         "ak.schema.event.v1",
@@ -2029,8 +2026,7 @@
         "ak.member.state"
       ],
       "rejected_event_kinds": [
-        "wire_scope:actor_private_event",
-        "wire_scope:ephemeral_event"
+        "wire_scope:actor_private_event"
       ],
       "required_schemas": [
         "ak.schema.event.v1",
@@ -3187,15 +3183,17 @@
     },
     "ak.profile.webrtc_media.v1": {
       "required_endpoints": [
-        "ak.server.query.describe"
+        "ak.server.query.describe",
+        "ak.self.realtime.command.send",
+        "ak.self.realtime.stream.subscribe"
       ],
       "required_event_kinds": [
-        "ak.call.signal",
         "ak.call.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ak.schema.event.v1"
+        "ak.schema.event.v1",
+        "ak.schema.realtime_envelope.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -4245,7 +4243,7 @@
     "ak.profile.circle_conformance.v1": {
       "role": "interop",
       "inherits": [],
-      "description": "Conformance profile pinning the machine-contract surface for Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md). Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope + materialized object), and pins the Circle event-kind family, member-state transition table, encryption-profile compatibility, and scope-rebind reducer-reject semantics. Required by implementations that emit or consume Circle events or that materialize Circle-scoped Strand / Message / Morph / Relation / Space objects.",
+      "description": "Conformance profile pinning the machine-contract surface for Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md). Splits actor content payload (`scope_circle_id` where that object schema defines it), the signed Event `scope_ref`, and the materialized object's `effective_scope`; it also pins the Circle event-kind family, member-state transition table, encryption-profile compatibility, and scope-rebind reducer-reject semantics. Required by implementations that emit or consume Circle events or that materialize Circle-scoped Strand / Message / Morph / Relation / Space objects.",
       "required_endpoints": [
         "ak.self.events.command.submit",
         "ak.self.events.query.scan"
@@ -4284,22 +4282,22 @@
       "feature_discovery": {
         "required": [
           "circle_submit_payload_shape",
-          "circle_canonical_effective_scope_shape",
+          "circle_signed_scope_ref_shape",
           "circle_encryption_profile_floor_check",
           "circle_scope_rebind_default_reject",
           "circle_member_state_transition_table"
         ],
-        "unsupported_optional": "implementations that cannot enforce canonical reducer-stamped effective_scope MUST NOT claim ak.profile.circle_conformance.v1; receivers MUST treat any unknown Circle event-kind as schema_violation"
+        "unsupported_optional": "implementations that cannot verify the signed Event scope_ref and its equivalence to reducer-derived scope MUST NOT claim ak.profile.circle_conformance.v1; receivers MUST treat any unknown Circle event-kind as schema_violation"
       },
       "additional_requirements": {
-        "submit_payload_must": "Submit payload for ak.strand.create / ak.message.create / ak.morph.create / ak.relation.create / ak.space.create / ak.space.parent MUST carry only scope_circle_id (id:circle | null). Reducer MUST reject any submit payload that also carries effective_scope (reason=effective_scope_reducer_managed).",
-        "canonical_reducer_output_must": "Reducer MUST stamp tagged effective_scope on accepted Event envelope and materialized object cell. effective_scope is immutable per-event; later scope_circle_id rebinds MUST NOT re-interpret historical events.",
+        "submit_payload_must": "Object payload schemas that own scope_circle_id (including Strand, Morph, Relation, and scoped Space create/update shapes) MAY carry only that field as their actor-authored scope selector and MUST reject effective_scope (reason=effective_scope_reducer_managed). Message and structural-operation payloads derive scope from accepted target references and MUST NOT invent a duplicate scope_circle_id; every Event still carries the producer-signed scope_ref.",
+        "canonical_reducer_output_must": "The producer MUST sign the tagged Event scope_ref. The receiver MUST derive the effective scope from the frozen pre-state and payload, require exact equality with scope_ref, and materialize the same value as the object's read-only effective_scope. A later scope_circle_id rebind MUST NOT re-interpret historical Events or objects.",
         "scope_rebind_default_reject_must": "Default reducer MUST reject scope_circle_id rebind (None<->Some, Some(A)->Some(B)) with failed_precondition reason=scope_rebind_forbidden. Profile-declared audit-paired rebind MAY be permitted, but MUST emit ak.audit.accessed pairing.",
         "circle_encryption_profile_floor_must": "Circle.encryption_profile may be none or mls_rfc9420. Reducer MUST reject plaintext Circle creation or update when the parent Realm encryption_profile is mls_rfc9420 or the effective content_encryption_floor is e2ee_required (reason=circle_encryption_below_realm_floor).",
         "circle_content_encryption_floor_must": "Circle.content_encryption_floor (allow_plaintext | e2ee_required) is optional and symmetric with Circle.metadata_encryption_floor: when omitted it inherits the parent Realm content_encryption_floor, and the effective floor = max(parent Realm content_encryption_floor, Circle content_encryption_floor). Reducer MUST reject a Circle floor below the effective floor and MUST reject content_encryption_floor=e2ee_required on an encryption_profile=none Circle (reason=circle_encryption_below_realm_floor). See zh/models/circle.md §7.",
         "encryption_floor_ratchet_must": "The effective content_encryption_floor and effective metadata encryption floor of any scope (Realm-default or Circle) are one-way ratchets: monotonically non-decreasing over time. A ak.realm.policy_bundle or ak.circle.update that lowers the effective content floor from e2ee_required to allow_plaintext MUST be rejected (reason=content_encryption_floor_downgrade); one that lowers the effective metadata floor MUST be rejected (reason=metadata_encryption_floor_downgrade). Tightening is always allowed. Vectors: ak.vector.e2ee.content_floor_downgrade_rejected.v1, ak.vector.e2ee.metadata_floor_downgrade_rejected.v1, ak.vector.circle.content_floor_below_realm_rejected.v1, ak.vector.e2ee.in_place_enable.v1.",
         "circle_membership_subset_must": "Circle.members MUST be a strict subset of parent Realm.members; reducer MUST reject ak.circle.member.state -> join when the target actor is not a `join` member of the parent Realm (reason=circle_member_must_be_realm_member).",
-        "scope_invariant_must": "Sync Service MUST NOT deliver events with effective_scope.kind=circle to actors not in that Circle's member frontier at the event's causal frontier (see zh/models/circle.md §9.3 scope-delivery invariant)."
+        "scope_invariant_must": "Sync Service MUST NOT deliver Events with scope_ref.kind=circle to actors not in that Circle's member frontier at the Event's causal frontier (see zh/models/circle.md §9.3 scope-delivery invariant)."
       }
     },
     "ak.profile.personal_productivity.v1": {

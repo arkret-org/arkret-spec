@@ -38,7 +38,7 @@
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "effective_scope": {
-      "$ref": "./event-envelope.schema.json#/$defs/effective_scope"
+      "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
     },
     "reducer_profile": {
       "type": "string",
@@ -86,7 +86,7 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "effective_scope": {
-          "$ref": "./event-envelope.schema.json#/$defs/effective_scope"
+          "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
         },
         "mls_group_id": {
           "type": "string",

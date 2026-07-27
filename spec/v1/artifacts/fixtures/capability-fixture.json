@@ -435,6 +435,10 @@
           "event_id": "ak:event:019640d0-c000-7000-8000-000000000000",
           "kind": "ak.capability.delegate",
           "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000"
+          },
           "actor_id": "did:webvh:z6mkfixture:root-admin.example.com",
           "payload": {
             "parent_grant_id": "ak:grant:019640d0-b800-7000-8000-000000000000",
@@ -477,6 +481,10 @@
           "event_id": "ak:event:019640d0-c400-7000-8000-000000000000",
           "kind": "ak.capability.delegate",
           "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000"
+          },
           "actor_id": "did:webvh:z6mkfixture:ops.example.com",
           "payload": {
             "parent_grant_id": "ak:grant:019640d0-c000-7000-8000-000000000000",

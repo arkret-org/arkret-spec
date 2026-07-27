@@ -52,7 +52,11 @@
     {
       "operation_id": "ak.gate.account.command.enroll_device",
       "http_alias": "POST /_arkret/gate/account/device-enroll",
-      "operation_specific": ["proof_invalid", "duplicate_conflict", "failed_precondition"],
+      "operation_specific": [
+        "proof_invalid",
+        "duplicate_conflict",
+        "failed_precondition"
+      ],
       "description": "Enrolls a device via the principal's designated enrollment authority. proof_invalid when the enrollment proof / controller binding does not verify against the authority designated in the principal DID document; duplicate_conflict when the device record already exists; failed_precondition when the enrollment-authority designation is absent or stale at the accepted-at frontier. See zh/identity/key-management.md §5.0.6 and zh/identity/identity-did.md §3.2."
     },
     {
@@ -849,12 +853,19 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.ephemeral.command.send",
-      "http_alias": "POST /_arkret/self/ephemeral",
+      "operation_id": "ak.self.realtime.command.send",
+      "http_alias": "POST /_arkret/self/realtime",
       "operation_specific": [
-        "ephemeral_kind_not_permitted",
-        "ephemeral_ttl_out_of_range",
-        "ephemeral_channel_unavailable"
+        "realtime_class_not_permitted",
+        "realtime_ttl_out_of_range",
+        "realtime_rail_unavailable"
+      ]
+    },
+    {
+      "operation_id": "ak.self.realtime.stream.subscribe",
+      "http_alias": "GET /_arkret/self/realtime/subscribe",
+      "operation_specific": [
+        "realtime_rail_unavailable"
       ]
     },
     {
@@ -1045,6 +1056,33 @@
         "device_reanchor_conflict",
         "device_generation_fenced"
       ]
+    },
+    {
+      "operation_id": "ak.self.security_transaction.command.create",
+      "http_alias": "POST /_arkret/self/security-transactions",
+      "operation_specific": [
+        "duplicate_conflict",
+        "failed_precondition"
+      ],
+      "description": "Creates and durably reserves one closed recovery or security-rotation transaction before any irreversible side effect."
+    },
+    {
+      "operation_id": "ak.self.security_transaction.resource.get",
+      "http_alias": "GET /_arkret/self/security-transactions/{transaction_id}",
+      "operation_specific": [
+        "not_found"
+      ]
+    },
+    {
+      "operation_id": "ak.self.security_transaction.command.continue",
+      "http_alias": "POST /_arkret/self/security-transactions/{transaction_id}/continue",
+      "operation_specific": [
+        "not_found",
+        "duplicate_conflict",
+        "failed_precondition",
+        "state_mismatch"
+      ],
+      "description": "Continues only the resource's stored next action and rejects request-digest, action, reserved-ref, or terminal-state drift."
     },
     {
       "operation_id": "ak.self.keys.command.claim",
@@ -1435,7 +1473,9 @@
     {
       "operation_id": "ak.self.circle.command.restore",
       "http_alias": "POST /_arkret/self/circles/{circle_id}/restore",
-      "operation_specific": ["failed_precondition"],
+      "operation_specific": [
+        "failed_precondition"
+      ],
       "description": "Restores an archived Circle. failed_precondition (carrying a reason in the *_not_archived family) when the target Circle is not in an archived state, or is in a terminal (tombstoned/deleted) state from which restore is illegal. See zh/models/circle.md §9."
     },
     {
@@ -1495,25 +1535,33 @@
     {
       "operation_id": "ak.self.realm.command.archive",
       "http_alias": "POST /_arkret/self/realms/{realm_id}/archive",
-      "operation_specific": ["failed_precondition"],
+      "operation_specific": [
+        "failed_precondition"
+      ],
       "description": "Archives a Realm. failed_precondition (carrying a reason in the realm-state family) when the Realm is already archived or in a terminal (frozen/tombstoned) state from which archive is not a legal transition. See zh/models/realm-and-space.md §2."
     },
     {
       "operation_id": "ak.self.realm.command.freeze",
       "http_alias": "POST /_arkret/self/realms/{realm_id}/freeze",
-      "operation_specific": ["failed_precondition"],
+      "operation_specific": [
+        "failed_precondition"
+      ],
       "description": "Freezes a Realm (suspends writes while preserving state). failed_precondition when the Realm is already frozen or in a terminal (tombstoned) state. See zh/models/realm-and-space.md §2."
     },
     {
       "operation_id": "ak.self.realm.command.tombstone",
       "http_alias": "POST /_arkret/self/realms/{realm_id}/tombstone",
-      "operation_specific": ["failed_precondition"],
+      "operation_specific": [
+        "failed_precondition"
+      ],
       "description": "Tombstones a Realm (irreversible terminal state). failed_precondition when the Realm is already in a terminal state, or when an open legal hold / erasure obligation blocks the transition. See zh/models/realm-and-space.md §2 and zh/identity/account-lifecycle.md §8."
     },
     {
       "operation_id": "ak.self.realm.command.destroy",
       "http_alias": "POST /_arkret/self/realms/{realm_id}/destroy",
-      "operation_specific": ["failed_precondition"],
+      "operation_specific": [
+        "failed_precondition"
+      ],
       "description": "Destroys a Realm's residual storage after tombstone (irreversible). failed_precondition when the Realm has not first reached the tombstoned precursor state, or when a legal hold blocks erasure. See zh/models/realm-and-space.md §2 and zh/identity/account-lifecycle.md §8."
     },
     {

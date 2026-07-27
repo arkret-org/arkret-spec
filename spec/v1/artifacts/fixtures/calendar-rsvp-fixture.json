@@ -10,7 +10,7 @@
     "ak.vector.calendar.tzdb_identity.v1",
     "ak.vector.calendar.recurrence_unsupported.v1",
     "ak.vector.calendar.schedule_revision.v1",
-    "ak.vector.calendar.rsvp_effect_projection.v1",
+    "ak.vector.calendar.rsvp_reducer_projection.v1",
     "ak.vector.calendar.rsvp_effective_projection.v1",
     "ak.vector.calendar.rsvp_admission.v1",
     "ak.vector.calendar.attendee_roster.v1",
@@ -26,7 +26,7 @@
     "spec/v1/artifacts/registry/calendar-timezone-registry.json",
     "spec/v1/artifacts/profiles/conformance-profiles.json#profile_requirements"
   ],
-  "description": "Schema and semantic vectors for the calendar-event Strand profile: single canonical schema activation, half-open all-day and timed intervals on signed local anchors, the RFC 8984 recurrence subset with its implicit defaults and rejected members, TZDB identity, schedule revision frontier and basis binding, complete RSVP entry effect projection, series/instance effective projection, RSVP admission, attendee roster invariants, and the RSVP response privacy branches. Server-side schedule notification derivation is carried by calendar-notification-fixture.json so the client and server profiles do not inherit each other vector closure.",
+  "description": "Schema and semantic vectors for the calendar-event Strand profile: single canonical schema activation, half-open all-day and timed intervals on signed local anchors, the RFC 8984 recurrence subset with its implicit defaults and rejected members, TZDB identity, schedule revision frontier and basis binding, deterministic RSVP reducer projection, series/instance effective projection, RSVP admission, attendee roster invariants, and the RSVP response privacy branches. Server-side schedule notification derivation is carried by calendar-notification-fixture.json so the client and server profiles do not inherit each other vector closure.",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -753,7 +753,7 @@
       }
     },
     {
-      "name": "rsvp_effect_projection_empty_basis_rejected",
+      "name": "rsvp_payload_empty_basis_rejected",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
       "expect_valid": false,
       "semantic_outcome": "reject",
@@ -771,7 +771,7 @@
       }
     },
     {
-      "name": "rsvp_effect_projection_duplicate_basis_rejected",
+      "name": "rsvp_payload_duplicate_basis_rejected",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
       "expect_valid": false,
       "semantic_outcome": "reject",
@@ -1251,20 +1251,28 @@
       "expected_projection": "the frontier is unchanged and previously authored RSVP basis values stay current"
     },
     {
-      "name": "rsvp_effect_projection_value_must_equal_payload_entry",
-      "vector_id": "ak.vector.calendar.rsvp_effect_projection.v1",
-      "precondition": "registry declares effect_projection set(payload.entry)",
-      "action": "submit ak.rsvp.set whose effects[0].op.value differs from payload.entry",
+      "name": "rsvp_reducer_projection_value_must_equal_payload_entry",
+      "vector_id": "ak.vector.calendar.rsvp_reducer_projection.v1",
+      "precondition": "registry declares effect_projection set(payload.entry), and the submitted Event contains only kind plus its typed payload rather than producer-selected writes",
+      "action": "mutate the reducer implementation so the projected set value differs from payload.entry",
       "semantic_outcome": "reject",
-      "expected_reason_code": "effects_payload_mismatch"
+      "expected_reason_code": "reducer_projection_failed"
     },
     {
-      "name": "rsvp_effect_projection_missing_effect_rejected",
-      "vector_id": "ak.vector.calendar.rsvp_effect_projection.v1",
+      "name": "rsvp_reducer_projection_missing_write_rejected",
+      "vector_id": "ak.vector.calendar.rsvp_reducer_projection.v1",
       "precondition": "registry declares exactly one cell write for ak.rsvp.set",
-      "action": "submit ak.rsvp.set with effects=[]",
+      "action": "mutate the reducer implementation so it omits the registered RSVP cell write",
       "semantic_outcome": "reject",
-      "expected_reason_code": "effects_payload_mismatch"
+      "expected_reason_code": "reducer_projection_failed"
+    },
+    {
+      "name": "rsvp_reducer_projection_extra_target_rejected",
+      "vector_id": "ak.vector.calendar.rsvp_reducer_projection.v1",
+      "precondition": "registry declares exactly one RSVP cell target for ak.rsvp.set",
+      "action": "mutate the reducer implementation so it also projects an unregistered cell write",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "reducer_projection_failed"
     },
     {
       "name": "rsvp_effective_projection_instance_overrides_series",

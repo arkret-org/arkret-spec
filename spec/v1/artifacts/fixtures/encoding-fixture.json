@@ -153,7 +153,7 @@
           "n": "-Infinity"
         },
         {
-          "n_literal": 1.0,
+          "n_literal": 1,
           "comment": "JSON number 1.0"
         },
         {
@@ -223,34 +223,21 @@
         "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
         "kind": "ak.message.create",
         "realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:01964137-0000-7000-8000-000000000000"
+        },
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 1,
         "created_at": "2026-04-26T00:00:00.000Z",
         "hlc": "01970e589d21-0004-a13f9c2e",
         "prev_refs": [],
         "refs": [],
-        "effects": [
-          {
-            "cell": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:01964137-0000-7000-8000-000000000000",
-            "op": {
-              "kind": "append",
-              "issuer_seq": 0,
-              "value": {
-                "strand_id": "ak:strand:01964137-0000-7000-8000-000000000000",
-                "message_id": "ak:message:019640ed-8000-7000-8000-000000000000",
-                "track_name": "discussion"
-              }
-            }
-          }
-        ],
         "seal_ref": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "auth_context": {
           "did": "did:webvh:z6mkfixture:alice.example",
           "key_id": "device-1",
-          "key_epoch": 1,
-          "capability_refs": [
-            "ak:grant:0196410c-0000-7000-8000-000000000000"
-          ]
+          "key_epoch": 1
         },
         "payload": {
           "strand_id": "ak:strand:01964137-0000-7000-8000-000000000000",
@@ -262,8 +249,8 @@
           }
         }
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"actor_seq\":1,\"auth_context\":{\"capability_refs\":[\"ak:grant:0196410c-0000-7000-8000-000000000000\"],\"did\":\"did:webvh:z6mkfixture:alice.example\",\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00.000Z\",\"effects\":[{\"cell\":\"ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:01964137-0000-7000-8000-000000000000\",\"op\":{\"issuer_seq\":0,\"kind\":\"append\",\"value\":{\"message_id\":\"ak:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ak:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ak:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"message_id\":\"ak:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ak:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[],\"seal_ref\":\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
-      "expected_digest": "sha256:dfb6b1a1ac018bbd55353733817cb6202d5779e7a118224fa5deb0840e341448",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"actor_seq\":1,\"auth_context\":{\"did\":\"did:webvh:z6mkfixture:alice.example\",\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00.000Z\",\"event_id\":\"ak:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"message_id\":\"ak:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ak:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[],\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:01964137-0000-7000-8000-000000000000\"},\"seal_ref\":\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
+      "expected_digest": "sha256:79782260377338841143afb682801dc2364e7761c38cf7e85811922070926a68",
       "rules": [
         "event digest MUST be derived from canonical bytes after stripping proofs and unsigned, before redaction",
         "event_id MUST appear inside the digest input but does not replace the digest",
@@ -835,12 +822,12 @@
         {
           "name": "old_direct_scalar_subject",
           "cell_subject": "q76kFdC2LNwLBlUed_ICSOysggmqrOXJbAtWHO49Woc",
-          "expected_error": "effects_payload_mismatch"
+          "expected_error": "reducer_projection_failed"
         },
         {
           "name": "wrong_context",
           "context": "ak.accountability-scope-set-v1-wrong",
-          "expected_error": "effects_payload_mismatch"
+          "expected_error": "reducer_projection_failed"
         }
       ],
       "rules": [

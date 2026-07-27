@@ -372,6 +372,13 @@
       "description": "Receipt object ID"
     },
     {
+      "kind": "lease",
+      "category": "authz",
+      "status": "active",
+      "wire_form": "ak:lease:<uuid>",
+      "description": "Basis-bound AuthorizationLease identifier."
+    },
+    {
       "kind": "recovery_session",
       "category": "identity",
       "status": "active",
@@ -455,10 +462,10 @@
     },
     {
       "kind": "transaction",
-      "category": "transport",
+      "category": "security",
       "status": "active",
       "wire_form": "ak:transaction:<uuid>",
-      "description": "Federation/applet transaction ID"
+      "description": "Durable RecoveryTransaction, SecurityRotationTransaction, federation, or applet transaction identifier."
     },
     {
       "kind": "view",

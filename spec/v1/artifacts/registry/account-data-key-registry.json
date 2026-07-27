@@ -118,7 +118,7 @@
       "write_event_kinds": [
         "ak.account_data.set"
       ],
-      "description": "Principal-private presence visibility policy. Principal/Sync services may project only the minimal presence_visibility enum needed to gate ak.presence and ak.typing fanout; it MUST NOT expose profile fields, status messages, contact notes, or precise last-active data.",
+      "description": "Principal-private sender-side presence visibility policy. Sync services MUST NOT project or read presence_visibility; encrypted Realtime fanout is selected by the sender according to profiles-presence.md section 3.4.",
       "source_refs": [
         "spec/v1/zh/discovery/profiles-presence.md",
         "spec/v1/zh/sync/client-sync.md"

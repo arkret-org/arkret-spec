@@ -67,7 +67,7 @@ Arkret 的合规审计目标是：在不削弱默认 E2EE 的前提下，为明�
 
 每个 `binding_id` 唯一对应 control-plane cell `ak.component.audit.binding.v1/<binding_id>`；该 cell 使用 `fsm` lattice，初始状态只能是 `active`，合法迁移只有 `active -> suspended`、`suspended -> active`、`active -> revoked`、`suspended -> revoked`。`revoked` 是 terminal，不能重新激活；需要新的资格时必须创建新的 `binding_id` 并重新经过 activation frontier 与成员可见流程。同一 `seal_basis` 的同状态重放是 no-op；同一 basis 的不同目标状态 sibling 产生 Bottom 并拒绝，不得按到达时间挑选 winner。
 
-Binding Event 必须作为 Control Move 写入上述 cell，信封携带 `seal_basis`，且 payload 的 `status` 必须等于 effect 的目标状态。Reducer 在接受任何 session 或 release 时必须读取 accepted current binding head；仅 `active` 可创建 request/authorize/release，`suspended` 与 `revoked` 均 fail closed。策略收窄或扩大除了更新同一 binding cell 外，仍受下一节的 epoch 覆盖与不可追溯规则约束。
+Binding Event 必须作为 Control Move 写入上述 cell，信封携带 `seal_basis`，且 payload 的 `status` 必须等于 registered reducer projection 的目标状态。Reducer 在接受任何 session 或 release 时必须读取 accepted current binding head；仅 `active` 可创建 request/authorize/release，`suspended` 与 `revoked` 均 fail closed。策略收窄或扩大除了更新同一 binding cell 外，仍受下一节的 epoch 覆盖与不可追溯规则约束。
 
 ### 3.2 Activation Frontier 与不可追溯性
 

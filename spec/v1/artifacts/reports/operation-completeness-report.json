@@ -18,19 +18,19 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 207,
+    "total_operations": 211,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
-      "streaming_frame_schema": 2,
-      "typed_schema": 195
+      "streaming_frame_schema": 3,
+      "typed_schema": 198
     },
     "by_surface_class_and_completeness_class": {
       "core": {
         "service_describe": 4,
         "streaming_frame_schema": 2,
-        "typed_schema": 32
+        "typed_schema": 33
       },
       "deployment_local": {
         "typed_schema": 12
@@ -39,7 +39,8 @@
         "binary_or_redirect": 2,
         "no_request_body": 1,
         "service_describe": 2,
-        "typed_schema": 132
+        "streaming_frame_schema": 1,
+        "typed_schema": 134
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -1728,7 +1729,7 @@
     },
     {
       "operation_id": "ak.self.call.media.exchange.issue_token",
-      "surface_class": "core",
+      "surface_class": "extension",
       "http": "POST /_arkret/self/rtc/token",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody",
@@ -2036,20 +2037,6 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/DirectConversationResolveRequestBody",
         "response": "#/components/schemas/DirectConversationResolveOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.ephemeral.command.send",
-      "surface_class": "core",
-      "http": "POST /_arkret/self/ephemeral",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/ephemeral-envelope.schema.json",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitOutcome",
-      "openapi_component_refs": {
-        "request": "../schemas/ephemeral-envelope.schema.json",
-        "response": "#/components/schemas/EphemeralSubmitOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2797,6 +2784,72 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.realtime.command.send",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/realtime",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/realtime-envelope.schema.json",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/RealtimeSubmitOutcome",
+      "openapi_component_refs": {
+        "request": "../schemas/realtime-envelope.schema.json",
+        "response": "#/components/schemas/RealtimeSubmitOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.realtime.stream.subscribe",
+      "surface_class": "extension",
+      "http": "GET /_arkret/self/realtime/subscribe",
+      "success_shape_kind": "event_stream",
+      "request_schema_ref": null,
+      "response_schema_ref": null,
+      "openapi_component_refs": {},
+      "completeness_class": "streaming_frame_schema",
+      "reason": "NDJSON event/account frame stream; frame contract lives in a dedicated frame schema, not a single DTO."
+    },
+    {
+      "operation_id": "ak.self.security_transaction.command.continue",
+      "surface_class": "core",
+      "http": "POST /_arkret/self/security-transactions/{transaction_id}/continue",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/security-transaction.schema.json#/$defs/continue_request",
+      "response_schema_ref": "schemas/security-transaction.schema.json",
+      "openapi_component_refs": {
+        "request": "../schemas/security-transaction.schema.json#/$defs/continue_request",
+        "response": "../schemas/security-transaction.schema.json"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.security_transaction.command.create",
+      "surface_class": "core",
+      "http": "POST /_arkret/self/security-transactions",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/security-transaction.schema.json#/$defs/create_request",
+      "response_schema_ref": "schemas/security-transaction.schema.json",
+      "openapi_component_refs": {
+        "request": "../schemas/security-transaction.schema.json#/$defs/create_request",
+        "response": "../schemas/security-transaction.schema.json"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.security_transaction.resource.get",
+      "surface_class": "core",
+      "http": "GET /_arkret/self/security-transactions/{transaction_id}",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/security-transaction.schema.json",
+      "openapi_component_refs": {
+        "response": "../schemas/security-transaction.schema.json"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ak.self.snapshot.query.manifest_head",

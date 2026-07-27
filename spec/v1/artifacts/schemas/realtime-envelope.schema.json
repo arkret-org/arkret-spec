@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/realtime-envelope.schema.json",
+  "title": "Arkret Realtime Envelope",
+  "description": "Encrypted-only broadcast realtime envelope. Exact product payload type and target are inside encrypted_payload. This object is never a durable Event and never advances actor_seq, Seal coverage, state_root, or reducer state.",
+  "type": "object",
+  "required": [
+    "realm_id",
+    "scope_ref",
+    "sender_actor_id",
+    "sender_device_id",
+    "seal_ref",
+    "signal_class",
+    "sent_at",
+    "expires_at",
+    "encrypted_payload",
+    "proof"
+  ],
+  "properties": {
+    "realm_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+    },
+    "scope_ref": {
+      "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
+    },
+    "sender_actor_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "sender_device_id": {
+      "$ref": "./common-ids.schema.json#/$defs/device_id"
+    },
+    "seal_ref": {
+      "type": "string",
+      "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+    },
+    "signal_class": {
+      "type": "string",
+      "enum": [
+        "setup",
+        "moderation",
+        "session"
+      ]
+    },
+    "sent_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "expires_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp",
+      "description": "Semantic validation requires sent_at < expires_at and a class-specific TTL no greater than 120s for setup, 60s for moderation, and 30s for session."
+    },
+    "encrypted_payload": {
+      "type": "object",
+      "description": "AEAD ciphertext. The immutable outer header digest is bound into AAD; exact payload kind, product target, and sender sequence exist only in plaintext after recipient decryption.",
+      "required": [
+        "scheme",
+        "epoch",
+        "nonce",
+        "ciphertext",
+        "aad_digest"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "ak.mls_exporter_aead_chacha20poly1305.v1"
+        },
+        "epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{16}$"
+        },
+        "ciphertext": {
+          "type": "string",
+          "minLength": 22,
+          "maxLength": 65558,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "aad_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "proof": {
+      "$ref": "#/$defs/realtime_proof"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    },
+    "realtime_proof": {
+      "type": "object",
+      "description": "Detached device proof over canonical_json({context:'ak.realtime-proof-v1', envelope_digest, sender_actor_id, sender_device_id, verification_method, created_at, domain?, audience?}). envelope_digest hashes the complete RealtimeEnvelope with proof removed; created_at MUST equal the outer sent_at.",
+      "required": [
+        "kind",
+        "verification_method",
+        "alg",
+        "envelope_digest",
+        "created_at",
+        "jws"
+      ],
+      "properties": {
+        "kind": {
+          "const": "detached_jws"
+        },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+          "description": "MUST resolve, at seal_ref, to the active device signing method authorized for sender_device_id under sender_actor_id. No fragment-to-device-id string equality is implied."
+        },
+        "alg": {
+          "type": "string",
+          "enum": [
+            "EdDSA",
+            "ES256",
+            "ML-DSA-65"
+          ]
+        },
+        "envelope_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "created_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "audience": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

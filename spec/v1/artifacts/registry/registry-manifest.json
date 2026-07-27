@@ -212,6 +212,14 @@
       "description": "Exact-context machine authority for Arkret kind/type/class/tier naming-axis validation."
     },
     {
+      "name": "protocol_layers",
+      "file": "registry/protocol-layer-registry.json",
+      "kind": "protocol_layer_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Exhaustive ownership of every active Event.kind by Kernel, Collaboration Base, or Extension."
+    },
+    {
       "name": "forbidden_wire_fields",
       "file": "registry/forbidden-wire-fields.json",
       "kind": "drift_detection_forbidden_wire_fields",

@@ -208,9 +208,9 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
 
 ## 3. 在线状态 (Presence)
 
-### 3.1 Presence 是 Ephemeral 状态
+### 3.1 Presence 是 Realtime 状态
 
-在线状态属于高频变动的临时数据，MUST NOT 作为 Durable Event 写入 Event history。它通过 Sync Service 的 Ephemeral Channel 广播。
+在线状态属于高频变动的临时数据，MUST NOT 作为 durable Event 写入 history。它只通过 encrypted-only Realtime Extension 发送。
 
 ### 3.2 Presence 状态值
 
@@ -226,82 +226,26 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
 - _Informative._ "忙碌 / 会议中 / 请勿打扰"一类用户主动设置的繁忙态统一映射为 `dnd`，更细的语义（例如"开会中"、"烦躁"）通过 `status_message`（§3.3）表达；v1 不为具体情绪 / 场景扩充 `state` 枚举。"隐身"（自己在线但对他人显示离线）也不是 `state` 值，通过 `ak.presence.visibility="nobody"`（§3.4）实现，从而把状态语义与可见性策略分离。
 - `state` 可以由客户端自动判定（前台活跃 → `online`、无操作超时 → `idle`），也可以由用户通过手动状态偏好固定（§3.6）；两者的仲裁规则见 §3.6。
 
-### 3.3 Presence 广播格式
+### 3.3 Presence plaintext 与聚合
 
-通过 Sync Service 的 Ephemeral Channel 广播：
+Presence 使用 [`RealtimeEnvelope`](../sync/realtime.md)，外层 `signal_class=session`。解密后的
+闭合 plaintext 至少包含 `kind=ak.presence`、`actor_id`、`state`、`payload_sequence` 与
+`ttl_ms`，可包含 `status_message` 和 `last_active_at`。精确 kind、actor、状态与活动时间
+不得出现在外层。
 
-```json
-{
-  "kind": "ak.presence",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-  "device_id": "ak:device:019640dd-8000-7000-8000-000000000000",
-  "sent_at": "2026-04-26T10:00:00Z",
-  "expires_at": "2026-04-26T10:01:00Z",
-  "payload": {
-    "state": "online",
-    "status_message": "On vacation until May 5",
-    "ttl_ms": 60000
-  },
-  "proof": {
-    "kind": "detached_jws",
-    "alg": "EdDSA",
-    "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#ak:device:019640dd-8000-7000-8000-000000000000",
-    "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "created_at": "2026-04-26T10:00:00Z",
-    "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
-  }
-}
-```
+`status_message` MUST 不超过 256 Unicode code points，NFC 规范化，且不得含除 U+0009 /
+U+000A 外的 C0/C1 control。`last_active_at` 默认省略；policy 允许时只能使用 RFC 3339 UTC
+timestamp 或对齐 Unix epoch UTC、duration 不小于 PT60S 的 ISO 8601 interval bucket。接收方
+独立验证 bucket 边界、fixed-duration 与 policy 粒度，畸形值 fail closed。
 
-| 字段 | 类型 | 必需 | 说明 |
-|------|------|------|------|
-| `state` | string | MUST | 状态值 |
-| `actor_id` | did | MUST | 发送 presence 的 actor DID。 |
-| `device_id` / `proof` | id:device / object | MUST | 所有 `ak.presence` 广播 MUST 携带来源设备与 detached proof；`proof.verification_method` 的 controller DID MUST 等于 `actor_id`，fragment MUST 等于 `device_id`。 |
-| `last_active_at` | string | 可选 | 最后活跃时间，承载两种互斥 wire 形态，由值中是否含 `/` 判别：（1）精确形态为 RFC 3339 UTC timestamp（如 `2026-04-26T10:00:00Z`，不含 `/`）；（2）bucket 形态为 ISO 8601 interval `<start>/<duration>`（如 `2026-04-26T10:00:00Z/PT1H`，含 `/`）。接收方 MUST 据是否含 `/` 选择解析路径。默认 MUST 省略，或按 policy bucket 化为粗粒度（例如分钟 / 小时级）；**仅当** presence policy 显式允许精确披露时才发送精确（秒级）timestamp。精确秒级值会成为活动 timing 侧信道，因此不得作为默认行为。 |
-| `status_message` | string | 可选 | 当前状态消息（来自 Profile）。MUST ≤ 256 字符（Unicode code point 计），按 [`conformance/encoding.md` §2.1](../conformance/encoding.md) NFC 规范化，MUST NOT 含除 `U+0009`/`U+000A` 外的 C0/C1 控制字符。presence 广播的 `status_message` MAY 与 Profile 的 `profile_fields.status_message` 不同（presence 可为临时覆盖值），但两者受同一长度与规范化约束。 |
-| `ttl_ms` | integer | SHOULD | 存活时间（毫秒），超时后客户端应将该用户视为 offline |
+同一 actor 多设备 presence 的确定性聚合由接收端完成：
 
-当 presence policy 未显式允许精确披露时，`last_active_at` 默认省略；若 policy 要求携带粗粒度活跃度，MUST 以 bucket 化形态发送，bucket 边界（分钟 / 小时级）按 policy 声明，确定性编码，不得发送秒级精确 timestamp。bucket 化广播示例：
+1. 只考虑外层与 plaintext TTL 都未过期且 sequence 未回退的信号；
+2. `state` 优先级为 `dnd > online > idle`，没有有效信号即 `offline`；
+3. `status_message` 取 `sent_at` 最新的非空值；
+4. `last_active_at` 取通过校验后的最新值。
 
-`last_active_at` 解析必须是确定性的：若值中包含 `/`，接收方 MUST 按 ISO 8601 interval `<start>/<duration>` 解析，且值中必须恰好一个 `/`，`start` 必须是 RFC 3339 UTC timestamp，`duration` 必须是正 ISO 8601 fixed-duration，且 `duration >= PT60S`；`P1M` / `P1Y` 等日历长度不固定的 duration 不得用于 presence bucket。bucket 对齐以 Unix epoch UTC 为唯一原点：`aligned_start = floor(unix_seconds(start) / seconds(duration)) * seconds(duration)`。若值中不包含 `/`，接收方 MUST 按 RFC 3339 UTC timestamp 解析。解析失败、本地时区表示、缺少 `Z`、duration 为零或负数、duration 小于 `PT60S`、非 fixed-duration、额外 `/`、**`start` 未对齐到 `duration` 边界**（接收方据上述 Unix epoch UTC 算法独立重算 `start` 应有的对齐值并比对，未对齐即视为畸形）、或试图修补 / 猜测畸形值时，接收方 MUST 丢弃该 presence update 或按 `schema_violation` fail closed，不得降级为更精确或更宽松的活跃度显示。该接收方对齐与下界校验闭合"发送方（buggy 或恶意）以未对齐或过细 duration 的值把 bucket 退化为秒级活动 timing 侧信道"——发送方对齐（见下）是单侧 MUST，接收方独立复核构成两侧闭合。
-
-```json
-{
-  "kind": "ak.presence",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-  "device_id": "ak:device:019640dd-8000-7000-8000-000000000000",
-  "sent_at": "2026-04-26T10:00:00Z",
-  "expires_at": "2026-04-26T10:01:00Z",
-  "payload": {
-    "state": "idle",
-    "last_active_at": "2026-04-26T10:00:00Z/PT1H",
-    "ttl_ms": 60000
-  },
-  "proof": {
-    "kind": "detached_jws",
-    "alg": "EdDSA",
-    "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#ak:device:019640dd-8000-7000-8000-000000000000",
-    "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-    "created_at": "2026-04-26T10:00:00Z",
-    "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
-  }
-}
-```
-
-该 wire 值表示"最后活跃落在以 `2026-04-26T10:00:00Z` 为起点、粒度 `PT1H`（1 小时）的 bucket 内"，bucket 起点 MUST 按 policy 声明的粒度向下取整对齐（同一 bucket 内任意精确时间映射到同一 wire 值），使接收方无法据此还原秒级活动 timing。bucket 粒度（`duration`）MUST NOT 细于 policy 声明的最小粒度下限，且协议绝对下界为 `PT60S`：过细的 bucket 会使边界采样退化为接近秒级的活动 timing 侧信道，与"不还原秒级 timing"的目的相悖。
-
-**多设备聚合（normative）**：同一 `actor_id` 的多个设备 MAY 并发广播 `ak.presence`（各自携带自己的 `device_id` / `proof`）。观察者（客户端，或做服务端投影聚合的 Sync Service）MUST 把该 actor 全部未过期（`expires_at` 未到且 `ttl_ms` 未超时）的广播聚合为单一 actor presence，聚合规则必须确定性：
-
-1. `state` 取未过期信号中优先级最高者，优先级为 `dnd > online > idle`；没有任何未过期信号时该 actor 视为 `offline`。
-2. `status_message` 取未过期信号中 `sent_at` 最新的非空 `status_message`；均无时客户端 SHOULD 回退展示 Profile 的 `profile_fields.status_message`（§2.2）。
-3. `last_active_at`（若按 policy 披露）取未过期信号中最新的值；比较前 MUST 先按本节解析校验，畸形值 fail closed 丢弃、不参与聚合。
-
-手动状态偏好（§3.6）的跨设备一致性由发送侧保证（各设备读取同一份 account data），接收方不区分某个 `state` 是自动判定还是手动固定，聚合规则不变。
-
-presence 广播内的 `status_message` 是临时覆盖值，展示优先级高于 Profile 的持久 `profile_fields.status_message`；presence 信号全部过期后，客户端 SHOULD 回退展示持久值。
+Sync Service 不得解密、聚合或投影 presence 内容。
 
 ### 3.4 隐私控制
 
@@ -321,58 +265,40 @@ presence 广播内的 `status_message` 是临时覆盖值，展示优先级高�
 | `contacts_only` | 仅对明确的联系人可见 |
 | `nobody` | 完全隐藏在线状态（对所有人显示为 offline） |
 
-`ak.presence.visibility` 是 principal-private policy projection：Principal / Sync Service MAY 读取并投影其中的 `presence_visibility` enum，用于执行 `ak.presence` 与 `ak.typing` 的提交、读取和 fanout gate；服务端不得借此读取或披露 Profile 字段、`status_message`、联系人备注、精确 `last_active_at` 或其它 account data 明文。若服务端无法读取该最小 policy projection（例如部署选择端到端 opaque account data 且没有受托投影服务），它 MUST 对跨设备 / 跨接收方 fanout fail closed：不得把 presence 或 typing 转发给不能在本地证明属于允许集合的接收方。
+`ak.presence.visibility` 是发送侧的 principal-private policy，不得成为 Sync Service 的明文
+projection。Realtime 使用 scope group key，因此发送方只能向整个 signed scope 加密：
 
-**来源真实性（normative）**：Sync Service 接收 `ak.presence` / `ak.typing` 时 MUST 同时校验提交会话的 authenticated principal 与 envelope `actor_id` 一致、`proof` 验证通过、`proof.verification_method` 控制者等于 `actor_id` 且 fragment 等于 `device_id`。跨服务、联邦或 relay 转发的 presence / typing 若无法验证该 proof，接收方 MUST 丢弃；服务端签名的转发断言只能作为传输层 provenance，不能替代 actor device proof。携带自由文本 `status_message` 的 presence 不得走 unsigned 路径。
+- `public` 表示目标 scope 的全部 active members；
+- `contacts_only` 仅当发送方已验证该 scope 的全部 active members 都属于 accepted-contact
+  fact log 时才可发送；否则必须对该 scope 抑制 presence，不能把联系人集合泄露给服务端做筛选；
+- `nobody` 时客户端不得发送 presence。
 
-**`contacts_only` 的"联系人"集合真源与 fail-closed（normative）**：`contacts_only` 中的"明确联系人"集合 MUST 取自 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 的 `ak.contact.*` accepted-contact fact log，**不是** `ak.presence.visibility` 的 enum，也不是 client-preferences 的本地联系人备注（备注不打开 presence gate）。服务端执行 `contacts_only` gate 需要可读的 accepted-contact 投影；当服务端无法读取该 contacts 集合（未托管该投影 / 端到端 opaque）时，`contacts_only` MUST 与上一段一致 fail closed——退化为客户端本地 gate、MUST NOT 退化为 `public`，即对不能在本地证明属于 accepted-contact 集合的接收方不转发。
-
-当 `presence_visibility="nobody"` 时，客户端 MUST NOT 发送 `ak.presence`，Sync Service MUST NOT 转发既有或缓存的 `ak.presence`；接收方看到的结果必须与从未收到 presence 一致。
+接收方必须验证外层 sender device proof，并要求 plaintext `actor_id == sender_actor_id`。
+relay attestation 不能替代 sender proof。`dnd` / `idle` 等细分只在成功解密后可见；不存在
+服务端降级或重写状态的 plaintext 路径。
 
 `dnd` / `idle` 会泄露"用户在线但勿扰 / 空闲"，可被用于推断作息，属与 `last_active_at` 同类的活动侧信道。对不在 presence 可见集合内（不满足 `presence_visibility` 授权）的观察者，`dnd` / `idle` MUST 降级为 `offline` 或与 `online` 不可区分，不得向其暴露细分的勿扰 / 空闲状态；该降级与 `presence_visibility="nobody"` 的 MUST 隐藏同强度，避免 dnd/idle 成为绕过授权的活动侧信道。满足 `presence_visibility` 授权的观察者（授权集内）MAY 保留 `dnd` / `idle` 细分。
 
 ### 3.5 Typing 指示器
 
-正在输入状态通过 Sync Service 的 Ephemeral Channel 广播，格式极度轻量：
+Typing 使用 [`RealtimeEnvelope`](../sync/realtime.md)，外层 `signal_class=session`。
+`kind=ak.typing`、`strand_id`、`track_name`、`typing`、`payload_sequence` 和可选
+`ttl_ms` 全部位于 ciphertext plaintext 内；不得把目标 Strand 或精确 kind 暴露给 Sync
+Service。
 
-```json
-{
-  "kind": "ak.typing",
-  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-  "device_id": "ak:device:019640dd-8000-7000-8000-000000000000",
-  "sent_at": "2026-04-26T10:00:00Z",
-  "expires_at": "2026-04-26T10:00:05Z",
-  "payload": {
-    "strand_id": "ak:strand:01964200-0000-7000-8000-000000000001",
-    "track_name": "discussion",
-    "typing": true,
-    "ttl_ms": 5000
-  },
-  "proof": {
-    "kind": "detached_jws",
-    "alg": "EdDSA",
-    "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#ak:device:019640dd-8000-7000-8000-000000000000",
-    "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-    "created_at": "2026-04-26T10:00:00Z",
-    "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
-  }
-}
-```
-
-payload 形状由 [`ephemeral-envelope.schema.json`](../../artifacts/schemas/ephemeral-envelope.schema.json) 的 `ak.typing` 分支约束：`strand_id` 与 `typing` 必填，`track_name` / `ttl_ms` 可选。
-
-- `track_name` 标识正在输入的目标 track，口径与 `ak.message.create` payload 的 `track_name` 一致（[`message.schema.json`](../../artifacts/schemas/message.schema.json)）：v1 Message 时间线限定在 `discussion` track，因此 present 时 MUST 为 `"discussion"`；省略时接收方 MUST 解析为 `discussion`。携带其他值的信号 MUST 被拒收（`schema_violation`）。该字段为未来声明多可写时间线的 profile 预留定位维度，届时放宽枚举即可，不需要改信封结构。
-- `ttl_ms` 到期后客户端应自动清除 Typing 指示
-- 客户端 SHOULD 限制 Typing 广播频率（建议每 3 秒最多一次）
-- 客户端 SHOULD 在用户停止输入后主动发送 `typing: false`
-- Typing 指示器 MUST 遵循与 Presence 至少同等严格的可见性策略：当 `presence_visibility="nobody"` 或接收方不在允许集合内时，不得发送或转发 `ak.typing`；`contacts_only` 时只可发给明确联系人且仍需满足 Realm membership / history visibility。
-- Sync Service 转发 typing 前 MUST 同时检查发送者与接收者在目标 Strand effective scope（Realm-default 或 Circle）的可见性、personal blocklist 过滤结果和目标 track（payload `track_name`，省略解析为 `discussion`）的启用状态。被屏蔽、无权读取目标 track、或不可枚举的接收方 MUST 看到与未发生 typing 一致的空结果，不得收到可区分的拒绝。
-- **world_readable scope fail-closed（normative）**：typing 是逐键级实时活动信号，比 presence `last_active_at` 更细。在 `history_visibility=world_readable` 的 Realm / Strand 且对外可见的 scope 下，Sync Service MUST NOT 主动把 `ak.typing` fanout 给非成员的外部 world-readable 观察者；typing 的 fanout 目标 MUST 限制在该 Strand effective scope 的 active member 集合内（`scope_circle_id` 指向 Circle 时为该 Circle 成员）。该口径与 [read-receipts.md §2.5.1](./read-receipts.md) 的 receipt fanout 收口对齐——"历史 world-readable"（读取已落库历史）不等于"实时活动信号 world-readable"（主动广播逐键 typing），二者解耦：world-readable 历史可见性不构成把 typing 主动推送给非成员外部观察者的义务。
+- `track_name` present 时 MUST 为 `discussion`，省略时接收方解析为 `discussion`；
+- plaintext TTL 不得放宽外层 Realtime TTL，客户端到期后自动清除指示；
+- 客户端 SHOULD 每 3 秒至多发送一次，并在停止输入后发送 `typing=false`；
+- 接收方 MUST 在验证 Realtime proof、scope、Seal/MLS basis、AAD 并解密后，才应用单调
+  `payload_sequence`；
+- fanout 只能面向目标 effective scope 的 active members，world-readable 历史不赋予外部观察者
+  接收 typing 的资格；
+- personal blocklist、membership 与 target track 可见性在端侧解密后继续 fail closed。无法对目标
+  成员集合安全加密时不得发送，不能降级为服务端可读的明文筛选。
 
 ### 3.6 手动状态偏好 (Manual Presence Preference)
 
-自动状态判定（前台活跃 → `online`、无操作超时 → `idle`、断连 / TTL 过期 → `offline`）覆盖大多数场景，但用户还需要能把自己的状态主动固定为某个值（例如切到 `dnd` 开会），且该选择要跨设备、跨重连生效。presence 广播本身是 ephemeral（§3.1），不承担持久化；手动偏好的标准存储位置是 actor-private Account Data key `ak.presence.preference`（见 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)），通过 `ak.account_data.set` 写入，payload 形态：
+自动状态判定（前台活跃 → `online`、无操作超时 → `idle`、断连 / TTL 过期 → `offline`）覆盖大多数场景，但用户还需要能把自己的状态主动固定为某个值（例如切到 `dnd` 开会），且该选择要跨设备、跨重连生效。presence 广播本身是 Realtime（§3.1），不承担持久化；手动偏好的标准存储位置是 actor-private Account Data key `ak.presence.preference`（见 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)），通过 `ak.account_data.set` 写入，payload 形态：
 
 ```json
 {

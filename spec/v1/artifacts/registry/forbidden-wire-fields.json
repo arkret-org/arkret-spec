@@ -138,13 +138,13 @@
       "context": "single_kind_identifier_fields",
       "since_revision": "2026-05-25",
       "rejection_level": "hard_reject",
-      "replacement": "parent_space_id / default_realm_id / scope_circle_id / default_scope_circle_id / retention_policy_id / disclosure_policy_id / rate_limit_policy_id / policy_id",
+      "replacement": "parent_space_id / default_realm_id / default_scope_circle_id / retention_policy_id / disclosure_policy_id / rate_limit_policy_id / policy_id",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Single concrete protocol object identifiers use `_id`; `_ref` is reserved for causal, proof, schema/profile, content-addressed, or polymorphic reference material. The old fields parent_ref, default_realm_ref, scope_ref, default_scope_ref, retention_policy_ref, disclosure_policy_ref, rate_limit_policy_ref, and Policy-object policy_ref MUST NOT appear on current v1 wire."
+      "notes": "Single concrete protocol object identifiers use `_id`; `_ref` is reserved for causal, proof, schema/profile, content-addressed, or polymorphic reference material. Event.scope_ref is a valid polymorphic signed reference. The old fields parent_ref, default_realm_ref, default_scope_ref, retention_policy_ref, disclosure_policy_ref, rate_limit_policy_ref, and Policy-object policy_ref MUST NOT appear on current v1 wire."
     },
     {
       "id": "grant_constraint_single_kind_refs_to_ids",

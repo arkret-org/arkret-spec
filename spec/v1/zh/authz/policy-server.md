@@ -385,8 +385,8 @@ Policy Server decision 是 out-of-band 的签名决策，本身不进入 Realm S
 
 对应 wire event：
 
-- `ak.moderation.decision` — 由持有 `ak.realm.moderation_policy` 或 `ak.policy.manage` 的 actor 签发的 Control Move，在 `ak.component.moderation_state.v1:<target>` control cell 上写一个 `or_set add` effect。
-- `ak.moderation.decision.lift` — 在同一 cell 上写 `or_set remove` effect，针对此前 add 的 tag。
+- `ak.moderation.decision` — 由持有 `ak.realm.moderation_policy` 或 `ak.policy.manage` 的 actor 签发的 Control Move；registered reducer projection 在 `ak.component.moderation_state.v1:<target>` control cell 上写一个 `or_set add`。
+- `ak.moderation.decision.lift` — registered reducer projection 在同一 cell 上写 `or_set remove`，针对此前 add 的 tag。
 - 两者的 `refs[role=authorized_by]` SHOULD 引用对应 Policy Server signed decision（role=`policy_decision`）作为风险决策证据；该 ref 不参与签名校验等价性，仅用于审计和回放。Policy Server signed decision 本身不是 capability 来源——签发 Control Move 的 actor 必须独立持有 `ak.realm.moderation_policy` 或 `ak.policy.manage`。
 
 Reducer 与所有读路径 MUST：

@@ -57,7 +57,7 @@
   "schema_ref": "../schemas/mls-governance-proof-bundle.schema.json",
   "trust_context": {
     "trusted_anchor_seal_ids": [
-      "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5"
+      "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf"
     ],
     "authorized_notary_methods": [
       "did:webvh:zfixture:notary.example#key-1"
@@ -95,8 +95,8 @@
       "previous_epoch": 41,
       "next_epoch": 42,
       "membership_frontier": [
-        "ak:event:019809f4-a800-7000-8000-000000000101",
-        "ak:event:019809f4-a801-7000-8000-000000000102"
+        "ak:event:019809f4-a801-7000-8000-000000000102",
+        "ak:event:019809f4-a800-7000-8000-000000000101"
       ],
       "policy_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "capability_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -127,33 +127,33 @@
       "next_epoch": 42,
       "binding_profile": "ak.profile.mls_governance_binding.full.v1",
       "reducer_profile": "ak.reducer.core.v1",
-      "trusted_anchor_seal_id": "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5"
+      "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf"
     },
     "accepted_seals": [
       {
-        "id": "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5",
+        "id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
         "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
         "predecessor_refs": [],
         "delta": [
-          "sha256:678870e5977059aa984f404a74a5c88c85d171c47adde4ff202bfc75bd3a027f",
-          "sha256:88ed5310764015726fa92134b9eb1e193f8526306807605ef623fa645158e82e"
+          "sha256:583deb26d464891c453add7a588a1e048a2332046f7c7f16be714a0b946a8cd5",
+          "sha256:937d0e1ee656228c85db92665f50a8ad5c043eb431e51ca1e8b829fa668c2c58"
         ],
         "covered_event_digests": [
-          "sha256:678870e5977059aa984f404a74a5c88c85d171c47adde4ff202bfc75bd3a027f",
-          "sha256:88ed5310764015726fa92134b9eb1e193f8526306807605ef623fa645158e82e"
+          "sha256:583deb26d464891c453add7a588a1e048a2332046f7c7f16be714a0b946a8cd5",
+          "sha256:937d0e1ee656228c85db92665f50a8ad5c043eb431e51ca1e8b829fa668c2c58"
         ],
-        "control_event_set_root": "sha256:5bb080042d26a1e300a4d98b0bb65098ea3d13163e07ba28885d059f0eeda189",
+        "control_event_set_root": "sha256:f9541468a15277e15af026bef3c109ec5c5c4d221475998c5ee9e6411090896e",
         "state_root": "sha256:6697c95a65a0c59add7ae722f62d732c722462f45ad9d9a7f74d46960cf17153",
-        "completeness_root": "sha256:c139d156cdd3234f06d55f12549ae7d8957f8ccab0af55fb17b52d90f1fcd877",
+        "completeness_root": "sha256:9f919a6f19ddb58886de89b58c904612356a91a499149bcd7de9208b50c97f84",
         "notary_seq": 0,
         "sealed_at": "2026-07-15T00:00:02.000Z",
         "hlc": "019809f4a802-0000-d4c3b2a1",
         "notary_signature": {
           "verification_method": "did:webvh:zfixture:notary.example#key-1",
           "alg": "EdDSA",
-          "payload_digest": "sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5",
+          "payload_digest": "sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
           "created_at": "2026-07-15T00:00:02.000Z",
-          "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTpub3RhcnkuZXhhbXBsZSNrZXktMSJ9..N913idTV0J4w8nDJqvYwFhA1wMWGBNJaAtqiUhh7MXsEpkoJysKzcftaRmz-eb6LMCes0q-KfOgqt9m6JEWqAg"
+          "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTpub3RhcnkuZXhhbXBsZSNrZXktMSJ9..A3QU1zmmOx-4VtCZ97Rsz9H2gm4g-PTFK4FzzhxVcZ9tkcnzRKSm9dVhYsb9uTFVlcNskjJU4fE7mzWO1rClAA"
         }
       }
     ],
@@ -162,9 +162,13 @@
         "event_id": "ak:event:019809f4-a800-7000-8000-000000000101",
         "kind": "ak.member.state",
         "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+        },
         "actor_id": "did:webvh:zfixture:admin.example",
         "actor_seq": 0,
-        "created_at": "2026-07-15T00:00:00.000Z",
+        "created_at": "2026-07-15T00:00:00Z",
         "hlc": "019809f4a800-0000-a1b2c3d4",
         "prev_refs": [],
         "refs": [],
@@ -174,28 +178,14 @@
           "membership": "join",
           "delivery_status": "unroutable"
         },
-        "effects": [
-          {
-            "cell": "ak:cell:ak.component.member.state.v1:did%3Awebvh%3Azfixture%3Abob.example",
-            "op": {
-              "kind": "transition",
-              "from": "leave",
-              "to": "join"
-            }
-          }
-        ],
-        "effective_scope": {
-          "kind": "realm",
-          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
-        },
         "proofs": [
           {
             "kind": "detached_jws",
             "verification_method": "did:webvh:zfixture:admin.example#key-1",
             "alg": "EdDSA",
-            "event_digest": "sha256:678870e5977059aa984f404a74a5c88c85d171c47adde4ff202bfc75bd3a027f",
-            "created_at": "2026-07-15T00:00:00.000Z",
-            "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTphZG1pbi5leGFtcGxlI2tleS0xIn0..J9HRIsHOC3U5Ocp1Vo4r1bOnkpSpP6tRvePUtf8hzqA51VDq5crn3qFX1woMX7a9Wd7wt1oqiFHpGtfCY1yTDg"
+            "event_digest": "sha256:937d0e1ee656228c85db92665f50a8ad5c043eb431e51ca1e8b829fa668c2c58",
+            "created_at": "2026-07-15T00:00:00Z",
+            "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTphZG1pbi5leGFtcGxlI2tleS0xIn0..qsqJpG7goFSfnB1F2Rmkv9-KDk4Vk7bAFbhDkmmeNCZS9vx15uiGnJNNFtP-indPM5iEv3Rotqx9uDLLHU67BA"
           }
         ]
       },
@@ -203,9 +193,13 @@
         "event_id": "ak:event:019809f4-a801-7000-8000-000000000102",
         "kind": "ak.member.state",
         "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+        },
         "actor_id": "did:webvh:zfixture:admin.example",
         "actor_seq": 1,
-        "created_at": "2026-07-15T00:00:01.000Z",
+        "created_at": "2026-07-15T00:00:01Z",
         "hlc": "019809f4a801-0000-a1b2c3d4",
         "prev_refs": [
           "ak:event:019809f4-a800-7000-8000-000000000101"
@@ -217,28 +211,14 @@
           "membership": "join",
           "delivery_status": "unroutable"
         },
-        "effects": [
-          {
-            "cell": "ak:cell:ak.component.member.state.v1:did%3Awebvh%3Azfixture%3Acarol.example",
-            "op": {
-              "kind": "transition",
-              "from": "leave",
-              "to": "join"
-            }
-          }
-        ],
-        "effective_scope": {
-          "kind": "realm",
-          "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
-        },
         "proofs": [
           {
             "kind": "detached_jws",
             "verification_method": "did:webvh:zfixture:admin.example#key-1",
             "alg": "EdDSA",
-            "event_digest": "sha256:88ed5310764015726fa92134b9eb1e193f8526306807605ef623fa645158e82e",
-            "created_at": "2026-07-15T00:00:01.000Z",
-            "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTphZG1pbi5leGFtcGxlI2tleS0xIn0..iHWH48XPTIDHihTQ1z2b9SUmsXyHPqvLS1Ls3-Y5apJPzakvhcwK4rKWZRuZTqAuJwY9bo2U_qDySoskslqiAg"
+            "event_digest": "sha256:583deb26d464891c453add7a588a1e048a2332046f7c7f16be714a0b946a8cd5",
+            "created_at": "2026-07-15T00:00:01Z",
+            "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTphZG1pbi5leGFtcGxlI2tleS0xIn0..-80ZjDpCCcH9bDZlDaIQGSmHdSocdvLMU8XZH02-KBYvLPqameKeZ-2IW2T2BQz_FpNTXnSwvzPBPujy8EvUDw"
           }
         ]
       }
@@ -272,7 +252,7 @@
       "next_epoch": 42,
       "binding_profile": "ak.profile.mls_governance_binding.full.v1",
       "reducer_profile": "ak.reducer.core.v1",
-      "trusted_anchor_seal_id": "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5",
+      "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
       "chunk_index": 0
     },
     {
@@ -286,9 +266,9 @@
       "next_epoch": 42,
       "binding_profile": "ak.profile.mls_governance_binding.full.v1",
       "reducer_profile": "ak.reducer.core.v1",
-      "trusted_anchor_seal_id": "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5",
+      "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
       "chunk_index": 1,
-      "expected_bundle_digest": "sha256:b447ceadb96e91e3f379f833f602b721c9d9e42e325a26fb59b70f11dd995519"
+      "expected_bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4"
     },
     {
       "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
@@ -301,9 +281,9 @@
       "next_epoch": 42,
       "binding_profile": "ak.profile.mls_governance_binding.full.v1",
       "reducer_profile": "ak.reducer.core.v1",
-      "trusted_anchor_seal_id": "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5",
+      "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
       "chunk_index": 2,
-      "expected_bundle_digest": "sha256:b447ceadb96e91e3f379f833f602b721c9d9e42e325a26fb59b70f11dd995519"
+      "expected_bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4"
     },
     {
       "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
@@ -316,16 +296,16 @@
       "next_epoch": 42,
       "binding_profile": "ak.profile.mls_governance_binding.full.v1",
       "reducer_profile": "ak.reducer.core.v1",
-      "trusted_anchor_seal_id": "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5",
+      "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
       "chunk_index": 3,
-      "expected_bundle_digest": "sha256:b447ceadb96e91e3f379f833f602b721c9d9e42e325a26fb59b70f11dd995519"
+      "expected_bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4"
     }
   ],
   "expected_acquisition": {
     "responses": [
       {
         "bundle_version": 1,
-        "proof_request_digest": "sha256:99eef9ba6522c6f48f14b1ac493f8ffcc089dda28ef0652b42392bed0a621ed5",
+        "proof_request_digest": "sha256:0914552e17fdd42b146ab32c0e86557615a5a741bb98cf8cd3f4c52a9af88a66",
         "materialization_profile": "complete_control_state_v1",
         "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
         "effective_scope": {
@@ -345,8 +325,8 @@
           "previous_epoch": 41,
           "next_epoch": 42,
           "membership_frontier": [
-            "ak:event:019809f4-a800-7000-8000-000000000101",
-            "ak:event:019809f4-a801-7000-8000-000000000102"
+            "ak:event:019809f4-a801-7000-8000-000000000102",
+            "ak:event:019809f4-a800-7000-8000-000000000101"
           ],
           "policy_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "capability_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -354,13 +334,13 @@
           "binding_profile": "ak.profile.mls_governance_binding.full.v1",
           "reducer_profile": "ak.reducer.core.v1"
         },
-        "trusted_anchor_seal_id": "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5",
-        "accepted_seal_id": "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5",
+        "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
+        "accepted_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
         "chunk_manifest": {
           "manifest_version": 1,
           "chunk_count": 4,
-          "chunks_root": "sha256:a3e14f0782e6f7732bf37002455b537880e6d813eaf644a11076ae155d504003",
-          "total_item_bytes": 3970,
+          "chunks_root": "sha256:8910036b5758776e2912d6617684eaeb551db234aa2a666d752ecabacc0b758b",
+          "total_item_bytes": 3638,
           "collection_totals": {
             "seal_path": 1,
             "covered_event_digests": 2,
@@ -376,49 +356,49 @@
             "frontier_events": 32
           }
         },
-        "bundle_digest": "sha256:b447ceadb96e91e3f379f833f602b721c9d9e42e325a26fb59b70f11dd995519",
+        "bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4",
         "chunk": {
           "chunk_index": 0,
           "collection": "seal_path",
           "start_index": 0,
           "items": [
             {
-              "id": "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5",
+              "id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
               "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
               "predecessor_refs": [],
               "delta": [
-                "sha256:678870e5977059aa984f404a74a5c88c85d171c47adde4ff202bfc75bd3a027f",
-                "sha256:88ed5310764015726fa92134b9eb1e193f8526306807605ef623fa645158e82e"
+                "sha256:583deb26d464891c453add7a588a1e048a2332046f7c7f16be714a0b946a8cd5",
+                "sha256:937d0e1ee656228c85db92665f50a8ad5c043eb431e51ca1e8b829fa668c2c58"
               ],
               "covered_event_digests": [
-                "sha256:678870e5977059aa984f404a74a5c88c85d171c47adde4ff202bfc75bd3a027f",
-                "sha256:88ed5310764015726fa92134b9eb1e193f8526306807605ef623fa645158e82e"
+                "sha256:583deb26d464891c453add7a588a1e048a2332046f7c7f16be714a0b946a8cd5",
+                "sha256:937d0e1ee656228c85db92665f50a8ad5c043eb431e51ca1e8b829fa668c2c58"
               ],
-              "control_event_set_root": "sha256:5bb080042d26a1e300a4d98b0bb65098ea3d13163e07ba28885d059f0eeda189",
+              "control_event_set_root": "sha256:f9541468a15277e15af026bef3c109ec5c5c4d221475998c5ee9e6411090896e",
               "state_root": "sha256:6697c95a65a0c59add7ae722f62d732c722462f45ad9d9a7f74d46960cf17153",
-              "completeness_root": "sha256:c139d156cdd3234f06d55f12549ae7d8957f8ccab0af55fb17b52d90f1fcd877",
+              "completeness_root": "sha256:9f919a6f19ddb58886de89b58c904612356a91a499149bcd7de9208b50c97f84",
               "notary_seq": 0,
               "sealed_at": "2026-07-15T00:00:02.000Z",
               "hlc": "019809f4a802-0000-d4c3b2a1",
               "notary_signature": {
                 "verification_method": "did:webvh:zfixture:notary.example#key-1",
                 "alg": "EdDSA",
-                "payload_digest": "sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5",
+                "payload_digest": "sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
                 "created_at": "2026-07-15T00:00:02.000Z",
-                "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTpub3RhcnkuZXhhbXBsZSNrZXktMSJ9..N913idTV0J4w8nDJqvYwFhA1wMWGBNJaAtqiUhh7MXsEpkoJysKzcftaRmz-eb6LMCes0q-KfOgqt9m6JEWqAg"
+                "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTpub3RhcnkuZXhhbXBsZSNrZXktMSJ9..A3QU1zmmOx-4VtCZ97Rsz9H2gm4g-PTFK4FzzhxVcZ9tkcnzRKSm9dVhYsb9uTFVlcNskjJU4fE7mzWO1rClAA"
               }
             }
           ],
-          "chunk_digest": "sha256:ff254a087632e8a47bf189574e7f1c34127957f0e6f469f08cc99b6b66387f06",
+          "chunk_digest": "sha256:5023de80810ac1857eccf8bc908c179be43df042f46861ee7fe980ed2d5b8b00",
           "chunk_proof": [
-            "sha256:aaec6c8e54188c3e7266dac8daf97028f11058d216ba8a4e68b3dc4303869240",
-            "sha256:6c50ebe5ba909ade052c8f1848883777f37aced9697abfc5610117953be72a16"
+            "sha256:38d3aa9d465847d681c123b91794087f334d0ecb4f4606f051f08b6e22de7d99",
+            "sha256:95a30ef2a519c8a06eb710b763187eefedda22e26ea30d2f6b8d523081926629"
           ]
         }
       },
       {
         "bundle_version": 1,
-        "proof_request_digest": "sha256:99eef9ba6522c6f48f14b1ac493f8ffcc089dda28ef0652b42392bed0a621ed5",
+        "proof_request_digest": "sha256:0914552e17fdd42b146ab32c0e86557615a5a741bb98cf8cd3f4c52a9af88a66",
         "materialization_profile": "complete_control_state_v1",
         "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
         "effective_scope": {
@@ -438,8 +418,8 @@
           "previous_epoch": 41,
           "next_epoch": 42,
           "membership_frontier": [
-            "ak:event:019809f4-a800-7000-8000-000000000101",
-            "ak:event:019809f4-a801-7000-8000-000000000102"
+            "ak:event:019809f4-a801-7000-8000-000000000102",
+            "ak:event:019809f4-a800-7000-8000-000000000101"
           ],
           "policy_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "capability_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -447,13 +427,13 @@
           "binding_profile": "ak.profile.mls_governance_binding.full.v1",
           "reducer_profile": "ak.reducer.core.v1"
         },
-        "trusted_anchor_seal_id": "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5",
-        "accepted_seal_id": "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5",
+        "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
+        "accepted_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
         "chunk_manifest": {
           "manifest_version": 1,
           "chunk_count": 4,
-          "chunks_root": "sha256:a3e14f0782e6f7732bf37002455b537880e6d813eaf644a11076ae155d504003",
-          "total_item_bytes": 3970,
+          "chunks_root": "sha256:8910036b5758776e2912d6617684eaeb551db234aa2a666d752ecabacc0b758b",
+          "total_item_bytes": 3638,
           "collection_totals": {
             "seal_path": 1,
             "covered_event_digests": 2,
@@ -469,25 +449,25 @@
             "frontier_events": 32
           }
         },
-        "bundle_digest": "sha256:b447ceadb96e91e3f379f833f602b721c9d9e42e325a26fb59b70f11dd995519",
+        "bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4",
         "chunk": {
           "chunk_index": 1,
           "collection": "covered_event_digests",
           "start_index": 0,
           "items": [
-            "sha256:678870e5977059aa984f404a74a5c88c85d171c47adde4ff202bfc75bd3a027f",
-            "sha256:88ed5310764015726fa92134b9eb1e193f8526306807605ef623fa645158e82e"
+            "sha256:583deb26d464891c453add7a588a1e048a2332046f7c7f16be714a0b946a8cd5",
+            "sha256:937d0e1ee656228c85db92665f50a8ad5c043eb431e51ca1e8b829fa668c2c58"
           ],
-          "chunk_digest": "sha256:416ecc6c753529d34a0e54613beb2773914d8be81fbd3643e84421539d959aac",
+          "chunk_digest": "sha256:c224e76421ab70f02648f5f35cddbf2c2c316ab04b168dba7ffe134ca5529b4d",
           "chunk_proof": [
-            "sha256:fdb7c6e8f434443b914dd19a8b91d9c6016fe468d700488a29a1353edca90fe3",
-            "sha256:6c50ebe5ba909ade052c8f1848883777f37aced9697abfc5610117953be72a16"
+            "sha256:c205adfc38c2cd566c465788c106549b244a49524a86535fee38d20c5e23b127",
+            "sha256:95a30ef2a519c8a06eb710b763187eefedda22e26ea30d2f6b8d523081926629"
           ]
         }
       },
       {
         "bundle_version": 1,
-        "proof_request_digest": "sha256:99eef9ba6522c6f48f14b1ac493f8ffcc089dda28ef0652b42392bed0a621ed5",
+        "proof_request_digest": "sha256:0914552e17fdd42b146ab32c0e86557615a5a741bb98cf8cd3f4c52a9af88a66",
         "materialization_profile": "complete_control_state_v1",
         "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
         "effective_scope": {
@@ -507,8 +487,8 @@
           "previous_epoch": 41,
           "next_epoch": 42,
           "membership_frontier": [
-            "ak:event:019809f4-a800-7000-8000-000000000101",
-            "ak:event:019809f4-a801-7000-8000-000000000102"
+            "ak:event:019809f4-a801-7000-8000-000000000102",
+            "ak:event:019809f4-a800-7000-8000-000000000101"
           ],
           "policy_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "capability_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -516,13 +496,13 @@
           "binding_profile": "ak.profile.mls_governance_binding.full.v1",
           "reducer_profile": "ak.reducer.core.v1"
         },
-        "trusted_anchor_seal_id": "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5",
-        "accepted_seal_id": "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5",
+        "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
+        "accepted_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
         "chunk_manifest": {
           "manifest_version": 1,
           "chunk_count": 4,
-          "chunks_root": "sha256:a3e14f0782e6f7732bf37002455b537880e6d813eaf644a11076ae155d504003",
-          "total_item_bytes": 3970,
+          "chunks_root": "sha256:8910036b5758776e2912d6617684eaeb551db234aa2a666d752ecabacc0b758b",
+          "total_item_bytes": 3638,
           "collection_totals": {
             "seal_path": 1,
             "covered_event_digests": 2,
@@ -538,7 +518,7 @@
             "frontier_events": 32
           }
         },
-        "bundle_digest": "sha256:b447ceadb96e91e3f379f833f602b721c9d9e42e325a26fb59b70f11dd995519",
+        "bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4",
         "chunk": {
           "chunk_index": 2,
           "collection": "control_state",
@@ -559,14 +539,14 @@
           ],
           "chunk_digest": "sha256:38f9e2eac06ff6b2da5c6ec544178a06814863c38dcd0c0dc19773eba9c17b8e",
           "chunk_proof": [
-            "sha256:8be4909e022ac7d1305b1c56f31cc1c21685a0de837b08cffe7f9b7153661214",
-            "sha256:cb0dcd7f5f5f2d8653fccd499267f574b71dfa466017c6def9dbf39d0c97e6b7"
+            "sha256:a98986f876a6d15e2e8f0ba58c10480e162ae21a704377ceea83979faf5cee1a",
+            "sha256:19713c210882dcb578936301cd2c710844da69d696b88fe325e4c08e45aacb44"
           ]
         }
       },
       {
         "bundle_version": 1,
-        "proof_request_digest": "sha256:99eef9ba6522c6f48f14b1ac493f8ffcc089dda28ef0652b42392bed0a621ed5",
+        "proof_request_digest": "sha256:0914552e17fdd42b146ab32c0e86557615a5a741bb98cf8cd3f4c52a9af88a66",
         "materialization_profile": "complete_control_state_v1",
         "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
         "effective_scope": {
@@ -586,8 +566,8 @@
           "previous_epoch": 41,
           "next_epoch": 42,
           "membership_frontier": [
-            "ak:event:019809f4-a800-7000-8000-000000000101",
-            "ak:event:019809f4-a801-7000-8000-000000000102"
+            "ak:event:019809f4-a801-7000-8000-000000000102",
+            "ak:event:019809f4-a800-7000-8000-000000000101"
           ],
           "policy_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "capability_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -595,13 +575,13 @@
           "binding_profile": "ak.profile.mls_governance_binding.full.v1",
           "reducer_profile": "ak.reducer.core.v1"
         },
-        "trusted_anchor_seal_id": "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5",
-        "accepted_seal_id": "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5",
+        "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
+        "accepted_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
         "chunk_manifest": {
           "manifest_version": 1,
           "chunk_count": 4,
-          "chunks_root": "sha256:a3e14f0782e6f7732bf37002455b537880e6d813eaf644a11076ae155d504003",
-          "total_item_bytes": 3970,
+          "chunks_root": "sha256:8910036b5758776e2912d6617684eaeb551db234aa2a666d752ecabacc0b758b",
+          "total_item_bytes": 3638,
           "collection_totals": {
             "seal_path": 1,
             "covered_event_digests": 2,
@@ -617,60 +597,23 @@
             "frontier_events": 32
           }
         },
-        "bundle_digest": "sha256:b447ceadb96e91e3f379f833f602b721c9d9e42e325a26fb59b70f11dd995519",
+        "bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4",
         "chunk": {
           "chunk_index": 3,
           "collection": "frontier_events",
           "start_index": 0,
           "items": [
             {
-              "event_id": "ak:event:019809f4-a800-7000-8000-000000000101",
-              "kind": "ak.member.state",
-              "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
-              "actor_id": "did:webvh:zfixture:admin.example",
-              "actor_seq": 0,
-              "created_at": "2026-07-15T00:00:00.000Z",
-              "hlc": "019809f4a800-0000-a1b2c3d4",
-              "prev_refs": [],
-              "refs": [],
-              "payload": {
-                "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
-                "actor_id": "did:webvh:zfixture:bob.example",
-                "membership": "join",
-                "delivery_status": "unroutable"
-              },
-              "effects": [
-                {
-                  "cell": "ak:cell:ak.component.member.state.v1:did%3Awebvh%3Azfixture%3Abob.example",
-                  "op": {
-                    "kind": "transition",
-                    "from": "leave",
-                    "to": "join"
-                  }
-                }
-              ],
-              "effective_scope": {
-                "kind": "realm",
-                "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
-              },
-              "proofs": [
-                {
-                  "kind": "detached_jws",
-                  "verification_method": "did:webvh:zfixture:admin.example#key-1",
-                  "alg": "EdDSA",
-                  "event_digest": "sha256:678870e5977059aa984f404a74a5c88c85d171c47adde4ff202bfc75bd3a027f",
-                  "created_at": "2026-07-15T00:00:00.000Z",
-                  "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTphZG1pbi5leGFtcGxlI2tleS0xIn0..J9HRIsHOC3U5Ocp1Vo4r1bOnkpSpP6tRvePUtf8hzqA51VDq5crn3qFX1woMX7a9Wd7wt1oqiFHpGtfCY1yTDg"
-                }
-              ]
-            },
-            {
               "event_id": "ak:event:019809f4-a801-7000-8000-000000000102",
               "kind": "ak.member.state",
               "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+              "scope_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+              },
               "actor_id": "did:webvh:zfixture:admin.example",
               "actor_seq": 1,
-              "created_at": "2026-07-15T00:00:01.000Z",
+              "created_at": "2026-07-15T00:00:01Z",
               "hlc": "019809f4a801-0000-a1b2c3d4",
               "prev_refs": [
                 "ak:event:019809f4-a800-7000-8000-000000000101"
@@ -682,36 +625,53 @@
                 "membership": "join",
                 "delivery_status": "unroutable"
               },
-              "effects": [
+              "proofs": [
                 {
-                  "cell": "ak:cell:ak.component.member.state.v1:did%3Awebvh%3Azfixture%3Acarol.example",
-                  "op": {
-                    "kind": "transition",
-                    "from": "leave",
-                    "to": "join"
-                  }
+                  "kind": "detached_jws",
+                  "verification_method": "did:webvh:zfixture:admin.example#key-1",
+                  "alg": "EdDSA",
+                  "event_digest": "sha256:583deb26d464891c453add7a588a1e048a2332046f7c7f16be714a0b946a8cd5",
+                  "created_at": "2026-07-15T00:00:01Z",
+                  "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTphZG1pbi5leGFtcGxlI2tleS0xIn0..-80ZjDpCCcH9bDZlDaIQGSmHdSocdvLMU8XZH02-KBYvLPqameKeZ-2IW2T2BQz_FpNTXnSwvzPBPujy8EvUDw"
                 }
-              ],
-              "effective_scope": {
+              ]
+            },
+            {
+              "event_id": "ak:event:019809f4-a800-7000-8000-000000000101",
+              "kind": "ak.member.state",
+              "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+              "scope_ref": {
                 "kind": "realm",
                 "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001"
+              },
+              "actor_id": "did:webvh:zfixture:admin.example",
+              "actor_seq": 0,
+              "created_at": "2026-07-15T00:00:00Z",
+              "hlc": "019809f4a800-0000-a1b2c3d4",
+              "prev_refs": [],
+              "refs": [],
+              "payload": {
+                "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
+                "actor_id": "did:webvh:zfixture:bob.example",
+                "membership": "join",
+                "delivery_status": "unroutable"
               },
               "proofs": [
                 {
                   "kind": "detached_jws",
                   "verification_method": "did:webvh:zfixture:admin.example#key-1",
                   "alg": "EdDSA",
-                  "event_digest": "sha256:88ed5310764015726fa92134b9eb1e193f8526306807605ef623fa645158e82e",
-                  "created_at": "2026-07-15T00:00:01.000Z",
-                  "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTphZG1pbi5leGFtcGxlI2tleS0xIn0..iHWH48XPTIDHihTQ1z2b9SUmsXyHPqvLS1Ls3-Y5apJPzakvhcwK4rKWZRuZTqAuJwY9bo2U_qDySoskslqiAg"
+                  "event_digest": "sha256:937d0e1ee656228c85db92665f50a8ad5c043eb431e51ca1e8b829fa668c2c58",
+                  "created_at": "2026-07-15T00:00:00Z",
+                  "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Zml4dHVyZTphZG1pbi5leGFtcGxlI2tleS0xIn0..qsqJpG7goFSfnB1F2Rmkv9-KDk4Vk7bAFbhDkmmeNCZS9vx15uiGnJNNFtP-indPM5iEv3Rotqx9uDLLHU67BA"
                 }
               ]
             }
           ],
-          "chunk_digest": "sha256:77923dd5a92f95eadc1f0db9bb75313ec255ffdbc758354ccad606d9f85d4440",
+          "chunk_digest": "sha256:99fff30eaabd060af4a6db219e48843d17c2f352246b8877df7a37302557ade4",
           "chunk_proof": [
             "sha256:4b2194e6d6be61163986328d9e659e2cc0af888daa92fe7b0de7191f4ef886ec",
-            "sha256:cb0dcd7f5f5f2d8653fccd499267f574b71dfa466017c6def9dbf39d0c97e6b7"
+            "sha256:19713c210882dcb578936301cd2c710844da69d696b88fe325e4c08e45aacb44"
           ]
         }
       }
@@ -719,17 +679,17 @@
     "accept_only_after_response_count": 4,
     "cache_keys": {
       "acquisition_index": [
-        "sha256:99eef9ba6522c6f48f14b1ac493f8ffcc089dda28ef0652b42392bed0a621ed5",
-        "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5"
+        "sha256:0914552e17fdd42b146ab32c0e86557615a5a741bb98cf8cd3f4c52a9af88a66",
+        "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf"
       ],
-      "manifest": "sha256:b447ceadb96e91e3f379f833f602b721c9d9e42e325a26fb59b70f11dd995519",
+      "manifest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4",
       "chunks": [
-        "sha256:ff254a087632e8a47bf189574e7f1c34127957f0e6f469f08cc99b6b66387f06",
-        "sha256:416ecc6c753529d34a0e54613beb2773914d8be81fbd3643e84421539d959aac",
+        "sha256:5023de80810ac1857eccf8bc908c179be43df042f46861ee7fe980ed2d5b8b00",
+        "sha256:c224e76421ab70f02648f5f35cddbf2c2c316ab04b168dba7ffe134ca5529b4d",
         "sha256:38f9e2eac06ff6b2da5c6ec544178a06814863c38dcd0c0dc19773eba9c17b8e",
-        "sha256:77923dd5a92f95eadc1f0db9bb75313ec255ffdbc758354ccad606d9f85d4440"
+        "sha256:99fff30eaabd060af4a6db219e48843d17c2f352246b8877df7a37302557ade4"
       ],
-      "forbidden_bundle_key": "ak:seal:sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5"
+      "forbidden_bundle_key": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf"
     }
   },
   "known_answer": {
@@ -737,49 +697,49 @@
     "event_steps": [
       {
         "event_id": "ak:event:019809f4-a800-7000-8000-000000000101",
-        "producer_event_canonical_bytes": 621,
-        "producer_event_digest": "sha256:678870e5977059aa984f404a74a5c88c85d171c47adde4ff202bfc75bd3a027f",
-        "proof_binding_canonical_bytes": 269,
-        "proof_binding_sha256": "sha256:26607cea17b888510bd4aaa758994852c856c645457fd472696634340b2ab157"
+        "producer_event_canonical_bytes": 554,
+        "producer_event_digest": "sha256:937d0e1ee656228c85db92665f50a8ad5c043eb431e51ca1e8b829fa668c2c58",
+        "proof_binding_canonical_bytes": 265,
+        "proof_binding_sha256": "sha256:34e872d462f4f3cb6bd64a73b1e27409c428be9821391adfdfb258771dd02dbf"
       },
       {
         "event_id": "ak:event:019809f4-a801-7000-8000-000000000102",
-        "producer_event_canonical_bytes": 672,
-        "producer_event_digest": "sha256:88ed5310764015726fa92134b9eb1e193f8526306807605ef623fa645158e82e",
-        "proof_binding_canonical_bytes": 269,
-        "proof_binding_sha256": "sha256:ff83bab52ab686a768ef0873a39d026c5699d7b04ce27f11cce33accdedcbad4"
+        "producer_event_canonical_bytes": 603,
+        "producer_event_digest": "sha256:583deb26d464891c453add7a588a1e048a2332046f7c7f16be714a0b946a8cd5",
+        "proof_binding_canonical_bytes": 265,
+        "proof_binding_sha256": "sha256:cc4415b90302a7e31266f9f69ec517a5f0c395021a935b9a034a32db60fbaf1f"
       }
     ],
-    "control_event_set_root": "sha256:5bb080042d26a1e300a4d98b0bb65098ea3d13163e07ba28885d059f0eeda189",
+    "control_event_set_root": "sha256:f9541468a15277e15af026bef3c109ec5c5c4d221475998c5ee9e6411090896e",
     "state_leaf_canonical_bytes": [
       109,
       111
     ],
     "state_root": "sha256:6697c95a65a0c59add7ae722f62d732c722462f45ad9d9a7f74d46960cf17153",
     "completeness_leaf_canonical_bytes": 237,
-    "completeness_root": "sha256:c139d156cdd3234f06d55f12549ae7d8957f8ccab0af55fb17b52d90f1fcd877",
+    "completeness_root": "sha256:9f919a6f19ddb58886de89b58c904612356a91a499149bcd7de9208b50c97f84",
     "discussion_input_canonical_bytes": 64,
     "discussion_metadata_digest": "sha256:9610cd5decd573bbebbea8aa903d9cd282c75ea6aeddea78754e5d98db266306",
     "seal_canonical_bytes": 783,
-    "seal_digest": "sha256:363a82ffcc3edcc7cf65e9bfec5f56345f507c0920e3f23b5cb2195bcece25d5",
+    "seal_digest": "sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
     "proof_identity_canonical_bytes": 427,
-    "proof_request_digest": "sha256:99eef9ba6522c6f48f14b1ac493f8ffcc089dda28ef0652b42392bed0a621ed5",
+    "proof_request_digest": "sha256:0914552e17fdd42b146ab32c0e86557615a5a741bb98cf8cd3f4c52a9af88a66",
     "chunk_canonical_bytes": [
       1350,
       228,
       294,
-      2399
+      2067
     ],
     "chunk_digests": [
-      "sha256:ff254a087632e8a47bf189574e7f1c34127957f0e6f469f08cc99b6b66387f06",
-      "sha256:416ecc6c753529d34a0e54613beb2773914d8be81fbd3643e84421539d959aac",
+      "sha256:5023de80810ac1857eccf8bc908c179be43df042f46861ee7fe980ed2d5b8b00",
+      "sha256:c224e76421ab70f02648f5f35cddbf2c2c316ab04b168dba7ffe134ca5529b4d",
       "sha256:38f9e2eac06ff6b2da5c6ec544178a06814863c38dcd0c0dc19773eba9c17b8e",
-      "sha256:77923dd5a92f95eadc1f0db9bb75313ec255ffdbc758354ccad606d9f85d4440"
+      "sha256:99fff30eaabd060af4a6db219e48843d17c2f352246b8877df7a37302557ade4"
     ],
-    "chunks_root": "sha256:a3e14f0782e6f7732bf37002455b537880e6d813eaf644a11076ae155d504003",
-    "total_item_bytes": 3970,
+    "chunks_root": "sha256:8910036b5758776e2912d6617684eaeb551db234aa2a666d752ecabacc0b758b",
+    "total_item_bytes": 3638,
     "bundle_header_canonical_bytes": 1828,
-    "bundle_digest": "sha256:b447ceadb96e91e3f379f833f602b721c9d9e42e325a26fb59b70f11dd995519"
+    "bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4"
   },
   "verifier_cases": [
     {
@@ -795,7 +755,7 @@
         "reason_code": null,
         "verified_bundle_persisted": true,
         "epoch_advanced": true,
-        "verified_bundle_digest": "sha256:b447ceadb96e91e3f379f833f602b721c9d9e42e325a26fb59b70f11dd995519"
+        "verified_bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4"
       }
     },
     {

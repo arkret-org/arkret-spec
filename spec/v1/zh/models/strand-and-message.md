@@ -58,7 +58,7 @@ Schema id: `ak.schema.strand.v1`
 | `id` | yes | `id:strand` | 以 `ak:strand:` 开头。 | Strand ID。 |
 | `schema` | yes | `ak.schema.strand.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
-| `scope_circle_id` | no | `id:circle` | 必须是同 Realm 内的 Circle（`Circle.realm_id == Strand.realm_id`）；否则 `schema_violation` `reason=circle_realm_mismatch`。引用的 Circle MUST `state=active`，否则 `failed_precondition` `reason=circle_not_active`（完整约束见 §5）。Reducer 把 `null` 物化为 `effective_scope={kind:"realm",...}`，把 Circle 引用物化为 `effective_scope={kind:"circle",...}`。改绑默认拒（`scope_rebind_forbidden`）。 | 整个 Strand 的 effective scope（含所有 track）。未设置时 Strand 落在 Realm-default scope；设置时整个 Strand（含 synthesis、discussion）落在该 Circle 的 membership / history / delivery / query / encryption profile 边界内。详见 §5 与 [`circle.md`](./circle.md)。 |
+| `scope_circle_id` | no | `id:circle` | 必须是同 Realm 内的 active Circle。producer 据此填写签名 `Event.scope_ref`，receiver 对冻结前态复核；对象 read projection 可物化同值 `effective_scope`。改绑默认拒（`scope_rebind_forbidden`）。 | 整个 Strand 的 effective scope（含所有 track）。未设置时 Strand 落在 Realm-default scope；设置时整个 Strand落在该 Circle 的 membership / history / delivery / query / encryption profile 边界内。 |
 | `schema_refs` | no | `array<string>` | 出现时至少 1 项且唯一，每项形如 `ak.schema.<name>.v1`。容器 self-schema `ak.schema.strand.v1` MUST NOT 出现在此（同 [`morph.md` §4](./morph.md)）。**该 pattern 比 Realm / Morph 的同名字段更严格是有意的**：Realm 的 `schema_refs` 允许同时承载 `ak.profile.*` 判别式（见 [`../identity/contact-and-direct-conversation.md` §7](../identity/contact-and-direct-conversation.md)），而 Strand 的激活轴 MUST 只接受 schema id——否则 conformance profile id 会再次变成对象激活 token，正是本字段要消除的歧义。与 Morph 不同，本字段可选：没有 profile 子树的普通讨论 Strand MUST 整体省略，而不是填占位 schema id。**双向共现（normative）**：每个被列出的 profile schema 与其在 `metadata.fields` 下的命名空间子树 MUST 在 post-patch 对象上同时出现或同时不出现，任一方向缺失均 `schema_violation`（Calendar 用 `reason=calendar_activation_mismatch`）。因此 ref 与子树可增可减，但只能整体成对增减。该规则对每一对已登记的 `(schema id, metadata.fields 命名空间)` 生效，并 MUST 在 `strand.schema.json` 中逐对以 `if/then` 机器强制；v1 只登记一对：`ak.schema.calendar_event.v1` ↔ `metadata.fields.calendar`。新增 Strand profile 子树时 MUST 在同一处补齐该对的双向分支，MUST NOT 只写正文。写入端 MUST 同时在 Event `requirements.schema[]` 绑定同一 schema id，replay 用该绑定而不是对象当前值（见 [`event-and-patch.md` §2.7](./event-and-patch.md)）。v1 不新增 `ak.strand.schema_migrate`：Strand profile 子树由 spec 固定 schema，没有 Morph 式 Realm-defined schema 演进面。 | `metadata.fields` 下 profile 子树的权威 schema 集合，也是唯一的 profile 激活轴。`metadata.fields.profile` / `profile_refs` 等替代形态 MUST 被拒绝。 |
 | `agent_participation` | no | `object{native_agent:{reply, accept_third_party_mention, act_on_behalf: boolean}}` | 省略时继承有效父级 ceiling：`scope_circle_id` 指向 Circle 时取该 Circle ceiling，否则取 Realm-default ceiling。`native_agent` 的每一位只能收紧、不得放宽父级对应位（违反 `failed_precondition`，`reason="agent_participation_ceiling_widen"`）；第三方 mention 投递 gate 见 §9.4.5。Realm、Circle、Strand 使用同一带轴 wire 形态；旧扁平三位不是 v1 wire，见 [`common-fields.md` §4.4](./common-fields.md#44-agent_participation-wire-形态normative)。详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)、[`realm-and-space.md` §2.2](./realm-and-space.md) 与 [`circle.md` §7](./circle.md)。 | native personal agent 在该 Strand scope 内的参与上限。 |
 | `metadata` | no | `object` | MAY contain `title`, `summary`, `fields` and profile-defined keys. `metadata.title` 1..512 chars；`metadata.summary` SHOULD <= 2048 chars。 | 用户可读 Strand metadata；MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
@@ -294,7 +294,7 @@ Track 写入路径只有一个 event kind: **`ak.strand.tracks.update`**(注意�
 }
 ```
 
-整个变更作为单个原子 DataEvent effect 写入同一 `mv_register` cell；并发更新暴露多 head，后续写入按 [`event-and-patch.md` §4.3.1](./event-and-patch.md) 引用一个明确 base head，不得依赖接收顺序静默覆盖。
+整个变更由单个 DataEvent 的 reducer projection 原子写入同一 `mv_register` cell；并发更新暴露多 head，后续写入按 [`event-and-patch.md` §4.3.1](./event-and-patch.md) 引用一个明确 base head，不得依赖接收顺序静默覆盖。
 
 **Capability**: `ak.strand.tracks.update` 一个 action 覆盖该 event。
 
@@ -322,7 +322,7 @@ Strand 永远只有**一个** effective scope。整个 Strand（含所有 track�
 
 - `scope_circle_id=null` 时，Strand 与所有 track 的事件落在父 Realm 的 Realm-default scope；reducer 把 `effective_scope` 物化为 `{kind:"realm", realm_id}`。
 - `scope_circle_id` 指向 Circle 时，整个 Strand 与所有 track 的事件落在该 Circle 的 membership / history / delivery / query / encryption profile scope；reducer 把 `effective_scope` 物化为 `{kind:"circle", realm_id, circle_id}`。
-- `effective_scope` 是 reducer 在每个 event 接受时**immutable stamped**，进入 accepted Event envelope；它不参与 producer proof 的 `event_digest` 输入（见 [`event-and-patch.md` §3](./event-and-patch.md)），但在 MLS-backed scope 中进入 E2EE AAD / MLS governance binding，并可被 Seal/sub-seal 观察性承诺覆盖。若 Seal 通过 `data_event_set_root` 观察该 DataEvent，观察性 root 只证明同一 producer event digest，不改变数据面 finality。后续 `scope_circle_id` 改绑不得重解释旧 event。
+- 每个 Event 的 `scope_ref` 由 producer 签名并进入 `event_digest`、E2EE AAD / MLS governance binding。reducer 从 Strand/Message 引用派生后复核；后续 `scope_circle_id` 改绑不得重解释旧 Event。
 - 改绑 `scope_circle_id` 默认 reducer 拒绝（`failed_precondition` `reason=scope_rebind_forbidden`）；profile MAY 允许，但 MUST audit-paired high-risk update，且既有历史保留在原 scope，新内容才进新 scope。
 - 跨 Strand 的"宽 synthesis + 窄 discussion"模式见 [`circle.md` §7.2](./circle.md)：两个 Strand + `confidential_discussion_of` Relation。
 - Watch、通知、生命周期、metadata 加密 floor 等跨 scope 行为统一在 [`circle.md` §6 / §7 / §9 / §10](./circle.md) 描述；本文件不定义额外特例。
@@ -587,7 +587,7 @@ Schema id: `ak.schema.message.v1`
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` | 由最近一次 revise / redact 等 materialized update 的 Event actor 派生。 | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
-| `effective_scope` | materialized | `EffectiveScope` | reducer 从 Realm / Circle scope 推导并盖章；actor 的 create / revise payload MUST NOT 携带，accepted 后 immutable。 | Message 的实际可见与授权边界。 |
+| `effective_scope` | materialized | `EffectiveScope` | 只读投影，MUST 等于签名 `Event.scope_ref`；actor 的 content payload 不重复携带，accepted 后 immutable。 | Message 的实际可见与授权边界。 |
 
 > `revision_root` 字段位于对象顶层，**不**藏在 `metadata.fields` 黑盒中；可见性由顶层 `state` 枚举（`active` / `redacted`）表达，不存在独立的 `visible_state` 顶层字段。`metadata.fields.revision_root` / `metadata.fields.visible_state` / `metadata.fields.redacted` 形态在 v1 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。
 
@@ -877,7 +877,7 @@ Payload schema：[`event-payload.schema.json#/$defs/reaction_payload`](../../art
 
 v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective scope 内的一条 `ak:message:`（即 discussion track 上的 Message）。`reaction_payload.target_ref` 的 wire 类型虽是通用 `ref:object`，但 reducer MUST 对 v1 core 拒绝非 `ak:message:` 的 target（`schema_violation`，`reason="reaction_target_unsupported"`）。Profile MAY 注册额外可表态对象（例如 Strand synthesis、Morph）；未声明该 profile 的实现遇到未知 target kind MUST fail closed，不得静默接受。
 
-跨 effective scope 表态不允许：`target_ref` 必须落在 reaction event 自身 stamped 的 effective scope 内，否则 `failed_precondition`（`reason="reaction_scope_mismatch"`）。
+跨 security scope 表态不允许：`target_ref` 必须落在 reaction Event 自身签名 `scope_ref` 内，否则 `failed_precondition`（`reason="reaction_scope_mismatch"`）。
 
 #### 9.8.3 Reaction-specific remove-wins set 收敛（authoritative）
 

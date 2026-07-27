@@ -78,33 +78,29 @@ bottom   = inert  // or_set join never produces ⊥
 
 ```text
 ControlMove(ak.consent.grant) {
-  event_id     = ak:event:019640ed-7000-7000-8000-000000000001   // producer-assigned typed UUIDv7
-  event_digest = sha256:<H(canonical bytes excluding proofs and unsigned)>   // content-addressed fingerprint
-  issuer       = holder DID（或 holder DID Document 显式授权的 controller / agent）
-  realm_id     = holder principal control Realm
-  preconditions = []          // grant 不依赖 cell 既有状态
-  effects   = [
-    (ak:cell:ak.component.consent.grant.v1:<consent_id>,
-     {type: "add",
-      dot:  "ak:event:019640ed-7000-7000-8000-000000000001:0",   // = "<enclosing event_id>:<effect_index>"
-      value: {
-        intent: {                          // projection-level dedupe key
-          consent_id: <consent_id>,
-          peer:       "did:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip:bob.example.com",
-          consent_scope: "invite"
-        },
-        not_before:   "2026-05-07T00:00:00Z",
-        expires_at:  "2026-12-31T00:00:00Z",
-        evidence_ref: "ak:event:019640e0-0000-7000-8000-000000000002",
-        reason:       "Bob completed verified contact discovery"
-      }})
-  ]
-  refs       = [
-    (id="ak:grant:0196411c-b000-7000-8000-000000000000",
-     role="authorized_by")
-  ]
-  seal_basis = <holder principal control Realm 的当前 Seal basis>
+  event_id      = ak:event:019640ed-7000-7000-8000-000000000001
+  kind          = ak.consent.grant
+  realm_id      = holder principal control Realm
+  scope_ref     = {kind: "realm", realm_id: <holder PCR>}
+  actor_id      = holder DID
+  payload       = {
+    consent_id: <consent_id>,
+    peer: "did:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip:bob.example.com",
+    consent_scope: "invite",
+    not_before: "2026-05-07T00:00:00Z",
+    expires_at: "2026-12-31T00:00:00Z",
+    evidence_ref: "ak:event:019640e0-0000-7000-8000-000000000002",
+    reason: "Bob completed verified contact discovery"
+  }
+  preconditions = []
+  refs          = [(id="ak:grant:0196411c-b000-7000-8000-000000000000", role="authorized_by")]
+  seal_basis    = <holder principal control Realm 的当前 Seal basis>
 }
+
+receiver 按 registry 从 `kind + payload` 唯一投影一条 `or_set add`：目标 cell
+为 `ak.component.consent.grant.v1:<consent_id>`，dot 为
+`"<enclosing event_id>:<projection_index>"`，value 为 payload 的规范化 consent
+entry。该投影不是 Event wire 字段。
 ```
 
 字段语义：
@@ -132,37 +128,35 @@ Payload-only schema 示例：
 
 Issuer MUST 是 holder 自己（或 holder DID Document 显式授权的 controller / agent）。被授权的 controller / agent 只有在其授权 scope 明确包含 `ak.consent.grant` / `consent_write` action，且本次 grant payload 携带可重放的 holder approval evidence（例如 holder 签名 approval、有效 approval Event ref 或等价审计证据）时，才可代 holder 写入 consent grant；通用 PCR 写权限、agent 自动化权限或 `ak.self.events.command.submit` 能力本身不得被解释为 consent-write 授权。Reducer MUST 在 holder principal control Realm 中验证该专用 action 与 approval evidence，缺失时 `unauthorized` reject。其他 actor 提交的 grant Control Move 在 holder 的 principal control Realm MUST `unauthorized` reject。
 
-`dot` 由 `<enclosing event_id>:<effect_index>` 派生，全局唯一。Projection 层按 `intent` 把同一 (consent_id, peer, consent_scope) 下当前 active 的多个 dot 折叠成一条 effective consent。同一 holder 对同一 intent 重复 grant 会产生不同 dot，or_set 视为多个独立 add——effective consent 仍然 active；revoke 时需要枚举该 intent 当前所有 active dot 才能完整撤销（见 §3.3）。
+`dot` 由 `<enclosing event_id>:<projection_index>` 派生，全局唯一。Projection 层按 `intent` 把同一 (consent_id, peer, consent_scope) 下当前 active 的多个 dot 折叠成一条 effective consent。同一 holder 对同一 intent 重复 grant 会产生不同 dot，or_set 视为多个独立 add——effective consent 仍然 active；revoke 时需要枚举该 intent 当前所有 active dot 才能完整撤销（见 §3.3）。
 
 ### 3.3 `ak.consent.revoke` Control Move
 
 ```text
 ControlMove(ak.consent.revoke) {
-  event_id     = ak:event:0196414c-3000-7000-8000-000000000003   // producer-assigned typed UUIDv7
-  event_digest = sha256:<H(canonical bytes excluding proofs and unsigned)>   // content-addressed fingerprint
-  issuer       = holder DID
-  realm_id  = holder principal control Realm
+  event_id      = ak:event:0196414c-3000-7000-8000-000000000003
+  kind          = ak.consent.revoke
+  realm_id      = holder principal control Realm
+  scope_ref     = {kind: "realm", realm_id: <holder PCR>}
+  actor_id      = holder DID
+  payload       = {
+    consent_id: <consent_id>,
+    observed_dots: ["ak:event:019640ed-7000-7000-8000-000000000001:0"],
+    revoked_at: "2026-06-15T10:00:00Z",
+    reason: "Bob harassment incident #4711"
+  }
   preconditions = [
     (ak:cell:ak.component.consent.grant.v1:<consent_id>,
      {op: "contains_dots",
-      dots: [
-        "ak:event:019640ed-7000-7000-8000-000000000001:0"   // seal_basis view 下该 intent 全部 active dots
-      ]})
+      dots: ["ak:event:019640ed-7000-7000-8000-000000000001:0"]})
   ]
-  effects   = [
-    (ak:cell:ak.component.consent.grant.v1:<consent_id>,
-     {type: "remove",
-      observed_dots: [
-        "ak:event:019640ed-7000-7000-8000-000000000001:0"
-      ],
-      value: {
-        revoked_at: "2026-06-15T10:00:00Z",
-        reason:     "Bob harassment incident #4711"
-      }})
-  ]
-  refs       = [(id="ak:grant:0196411c-b000-7000-8000-000000000000", role="authorized_by")]
-  seal_basis = <holder principal control Realm 的当前 Seal basis>
+  refs          = [(id="ak:grant:0196411c-b000-7000-8000-000000000000", role="authorized_by")]
+  seal_basis    = <holder principal control Realm 的当前 Seal basis>
 }
+
+receiver 按 registry 从 `kind + payload` 唯一投影同一 consent cell 上的
+`or_set remove`；其 `observed_dots` 必须逐字取自 payload。该投影不是 Event
+wire 字段。
 ```
 
 `observed_dots` MUST 列出 revoke 想要撤销的具体 add dot；它们 MUST 在该 Control Move 的 `seal_basis` view 下解析为合法 add op。precondition `contains_dots` 让 reducer 在 dots 已被先行 revoke 时拒绝 no-op 重放，避免审计日志中出现无意义记录；多 issuer 并发 revoke 同一 dot 收敛于 or_set 的去重语义。`observed_dots` 之外的 dot 不受影响——这是 OR-Set 的 normative 行为。
@@ -180,7 +174,7 @@ Payload-only schema 示例：
 }
 ```
 
-Payload `observed_dots[]` MUST 与 Control Move effect 中的 `observed_dots` 完全一致；缺失、额外、重复或排序后集合不等都 MUST `schema_violation` / `failed_precondition` 拒绝。这样 schema validation、审计 projection 与 lattice reducer 看到的是同一个撤销集合。
+Reducer projection 的 `observed_dots[]` MUST 逐字等于 payload 的 `observed_dots[]`；缺失、额外、重复或排序后集合不等都 MUST `schema_violation` / `reducer_projection_failed` 拒绝。这样 schema validation、审计 projection 与 lattice reducer 看到的是同一个撤销集合。
 
 **Regrant**：撤销后 holder 可以再次发出 `ak.consent.grant` Event；新 Event 产生新的 `dot`（来自不同 `event_id`），不在任何先前 `observed_dots` 中，effective consent 重新 active。Regrant 是 normative 支持的行为。
 
@@ -212,7 +206,7 @@ Payload `observed_dots[]` MUST 与 Control Move effect 中的 `observed_dots` �
 - **按 `consent_id` 全量撤销**（推荐路径）：revoke Control Move 的 `observed_dots` 列出 cell 当前 `(consent_id, peer, *)` 下所有 active dot，无论原 grant 的 scope 是 `any` 还是具体 consent_scope。这是显式"完全 revoke 该 consent_id"操作。
 - **按 scope 部分撤销**：revoke Control Move 仅列出某具体 consent_scope 对应的 active dot。剩余 consent_scope 的 dot 保持 active。
 - **`consent_scope="any"` 与具体 consent_scope 互斥语义**：
-  - 撤销一条 `consent_scope=any` 的 grant dot MUST 显式枚举该 `(consent_id, peer)` 下当前 active 的 **所有** consent_scope dot（含具体 consent_scope 的 grant dot）。即 `any` revoke 的 cascade 由 payload / Control Move effect 中完整的 `observed_dots[]` 表达；reducer MUST NOT 基于一个 `consent_scope=any` dot 隐式推断并移除未枚举的其他 dot。若 active dot 未被枚举，effective consent 只构成部分撤销，admin / UI MUST 标 `partial_revoke`。
+  - 撤销一条 `consent_scope=any` 的 grant dot MUST 显式枚举该 `(consent_id, peer)` 下当前 active 的 **所有** consent_scope dot（含具体 consent_scope 的 grant dot）。即 `any` revoke 的 cascade 由 payload 中完整的 `observed_dots[]` 表达；reducer MUST NOT 基于一个 `consent_scope=any` dot 隐式推断并移除未枚举的其他 dot。若 active dot 未被枚举，effective consent 只构成部分撤销，admin / UI MUST 标 `partial_revoke`。
   - 反向不成立：撤销一条 `consent_scope=invite` 的具体 consent_scope dot 仅清空 `invite`，不影响同 `(consent_id, peer)` 下 `consent_scope=any` 的 dot——因为 `any` 是 holder 显式更宽授权，需要 holder 再单独撤销 `any` 才算 cascade。
   - 这条非对称规则 MUST 在 admin / UI 中明示，避免用户误以为"撤销 invite 就等于全撤销"。
 - **conformance vector** `ak.vector.consent.scope_cascade.v1` 覆盖 (a) `any` revoke cascade 到具体 consent_scope；(b) 具体 consent_scope revoke 不影响 `any`；(c) 部分 scope revoke 留下其他 scope active；(d) 完整 revoke 必须列出当前 cell 全部 active dot 否则只构成部分 revoke。

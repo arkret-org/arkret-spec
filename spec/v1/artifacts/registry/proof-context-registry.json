@@ -173,19 +173,62 @@
       "schema_ref": "schemas/directory-operations.schema.json"
     },
     {
-      "context": "ak.ephemeral-proof-v1",
-      "object_family": "ephemeral_envelope",
+      "context": "ak.authorization-lease-proof-v1",
+      "object_family": "authorization_lease",
       "binding_fields": [
         "payload_digest",
-        "actor_id",
-        "device_id",
+        "issuer_set_ref",
         "verification_method",
         "created_at",
         "domain?",
         "audience?"
       ],
-      "defined_in": "zh/discovery/read-receipts.md",
-      "schema_ref": "schemas/ephemeral-envelope.schema.json"
+      "defined_in": "zh/authz/offline-publication.md",
+      "schema_ref": "schemas/offline-publication.schema.json#/$defs/authorization_lease"
+    },
+    {
+      "context": "ak.ingress-receipt-proof-v1",
+      "object_family": "ingress_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "issuer_set_ref",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/authz/offline-publication.md",
+      "schema_ref": "schemas/offline-publication.schema.json#/$defs/ingress_receipt"
+    },
+    {
+      "context": "ak.extension-manifest-proof-v1",
+      "object_family": "extension_manifest",
+      "binding_fields": [
+        "payload_digest",
+        "extension_id",
+        "publisher",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/extensions/extension-manifest.md",
+      "schema_ref": "schemas/extension-manifest.schema.json"
+    },
+    {
+      "context": "ak.realtime-proof-v1",
+      "object_family": "realtime_envelope",
+      "binding_fields": [
+        "envelope_digest",
+        "sender_actor_id",
+        "sender_device_id",
+        "verification_method",
+        "created_at",
+        "domain?",
+        "audience?"
+      ],
+      "defined_in": "zh/sync/realtime.md",
+      "schema_ref": "schemas/realtime-envelope.schema.json"
     },
     {
       "context": "ak.event-proof-v1",

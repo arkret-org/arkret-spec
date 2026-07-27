@@ -302,34 +302,21 @@ ak.vector.encoding.event_digest.v1
   "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
   "kind": "ak.message.create",
   "realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
+  "scope_ref": {
+    "kind": "realm",
+    "realm_id": "ak:realm:01964137-0000-7000-8000-000000000000"
+  },
   "actor_id": "did:webvh:z6mkfixture:alice.example",
   "actor_seq": 1,
-  "created_at": "2026-04-26T00:00:00Z",
+  "created_at": "2026-04-26T00:00:00.000Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [],
   "refs": [],
-  "effects": [
-    {
-      "cell": "ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:01964137-0000-7000-8000-000000000000",
-      "op": {
-        "kind": "append",
-        "issuer_seq": 0,
-        "value": {
-          "strand_id": "ak:strand:01964137-0000-7000-8000-000000000000",
-          "message_id": "ak:message:019640ed-8000-7000-8000-000000000000",
-          "track_name": "discussion"
-        }
-      }
-    }
-  ],
   "seal_ref": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
   "auth_context": {
     "did": "did:webvh:z6mkfixture:alice.example",
     "key_id": "device-1",
-    "key_epoch": 1,
-    "capability_refs": [
-      "ak:grant:0196410c-0000-7000-8000-000000000000"
-    ]
+    "key_epoch": 1
   },
   "payload": {
     "strand_id": "ak:strand:01964137-0000-7000-8000-000000000000",
@@ -346,13 +333,13 @@ ak.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:webvh:z6mkfixture:alice.example","actor_seq":1,"auth_context":{"capability_refs":["ak:grant:0196410c-0000-7000-8000-000000000000"],"did":"did:webvh:z6mkfixture:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ak:cell:ak.component.strand.discussion.timeline.v1:ak:strand:01964137-0000-7000-8000-000000000000","op":{"issuer_seq":0,"kind":"append","value":{"message_id":"ak:message:019640ed-8000-7000-8000-000000000000","strand_id":"ak:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ak:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"message_id":"ak:message:019640ed-8000-7000-8000-000000000000","strand_id":"ak:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:01964137-0000-7000-8000-000000000000","refs":[],"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
+{"actor_id":"did:webvh:z6mkfixture:alice.example","actor_seq":1,"auth_context":{"did":"did:webvh:z6mkfixture:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00.000Z","event_id":"ak:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"message_id":"ak:message:019640ed-8000-7000-8000-000000000000","strand_id":"ak:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:01964137-0000-7000-8000-000000000000","refs":[],"scope_ref":{"kind":"realm","realm_id":"ak:realm:01964137-0000-7000-8000-000000000000"},"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
 ```
 
 期望 digest：
 
 ```text
-sha256:274b5dfea3305ca487fc205f2c5f28a7d622af18a8e76e614320cc0793ba28df
+sha256:79782260377338841143afb682801dc2364e7761c38cf7e85811922070926a68
 ```
 
 判定规则：
@@ -798,7 +785,7 @@ ak.vector.cba_lattice.data_event_accepts_without_seal_finality.v1
 
 输入：
 
-- DataEvent 携带 `effects[]`、`seal_ref` 与 `auth_context`，不携带 `seal_basis` 或 `preconditions`。
+- DataEvent 携带签名 `scope_ref`、`seal_ref` 与 `auth_context`，不携带 `seal_basis` 或 `preconditions`；writes 由 reducer vector 重算。
 - `seal_ref` 指向的 Seal view 可验证，actor chain / signature / capability 均通过。
 
 期望：
@@ -836,7 +823,7 @@ ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1
 
 输入：
 
-- Control Move 携带 `effects[]`、`seal_basis` 与必要 `preconditions[]`。
+- Control Move 携带签名 `scope_ref`、`seal_basis` 与必要 `preconditions[]`；writes 由 reducer vector 重算。
 - 同形 Control Move 的负向 case 缺少 `seal_basis`，或 `seal_basis.state_root` 与 leaves 重算不一致。
 
 期望：
@@ -855,13 +842,13 @@ ak.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1
 输入：
 
 - 同一 ordered submit batch 中包含 Control Move `M1` 与 `M2`。
-- `M2` 的 precondition 只有在读取 `M1` effect 后才成立。
+- `M2` 的 precondition 只有在读取 `M1` 的 projected write 后才成立。
 - `M2.seal_basis` 指向 batch 前的 Seal view。
 
 期望：
 
 - `M2` MUST `failed_precondition`。
-- 同批只提供传输/原子提交便利，不推进 authorization basis；接收端不得用同批内新 effect 自我满足 precondition。
+- 同批只提供传输/原子提交便利，不推进 authorization basis；接收端不得用同批内新 projected write 自我满足 precondition。
 - 需要依赖 `M1` 的写入必须等待 `M1` 被 accepted Seal 覆盖后重新提交。
 
 ### 2.5.1 Vector: MLS Governance Epoch Binding
@@ -1000,8 +987,8 @@ ak.vector.state_root.incremental.v1
 
 - 一个已被接受的 Seal `A0`，其控制面覆盖集写入 N 个 cell（`cell_1 … cell_N`，N ≥ 8）；实现已按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6.2.1 缓存 `cell → leaf_digest` 表。
 - 一个新的 Seal `A1`（`predecessor_refs=[A0]`），控制面 `delta[]` 仅修改其中 K 个 cell（K ≤ N，包含 K=1 / K=N/2 / K=N 三种 case）。
-- 一个 corner-case Seal `A2`：`delta[]` 是空 set（无新 control effect）。
-- 一个 schema-evolution case `A3`：`delta[]` 包含一个新 cell（之前从未有过 effect），并删除一个旧 cell 的 effect（通过 lattice 的 ⊥/tombstone 机制）。
+- 一个 corner-case Seal `A2`：`delta[]` 是空 set（无新 control write）。
+- 一个 schema-evolution case `A3`：`delta[]` 包含一个新 cell（之前从未有过 write），并用 lattice 的 ⊥/tombstone 机制终止一个旧 cell。
 
 期望：
 
@@ -1015,7 +1002,7 @@ ak.vector.state_root.incremental.v1
 - `state_root_incremental == state_root_full` 在所有四个 case 上 MUST 成立，bit-exact。
 - 缓存的 `leaf_digest` 表 MUST 在 `apply_seal` 接受 Seal 后更新；保留旧 leaf_digest 导致 next-seal 增量重算偏离全量结果即视为实现 bug。
 - A2（空 `delta[]`）情况下 `state_root_incremental` MUST 直接复用 `A0.state_root`；不得因为"没有 cell 可重算"而错误地返回空 Merkle root（`H("")`）或 null。
-- A3（新增 cell + 删除旧 cell effect）case 验证两点：(a) 新 cell 的 leaf_digest 进入 sorted leaf 列表（按 `cell_wire` Unicode 升序）；(b) 删除 effect 的 cell 仍以其 `Bottom` 或 tombstone 后的 lattice value 编码 leaf_digest，不被简单从 leaf 列表移除。
+- A3（新增 cell + 旧 cell tombstone）case 验证两点：(a) 新 cell 的 leaf_digest 进入 sorted leaf 列表（按 `cell_wire` Unicode 升序）；(b) 已终止 cell 仍以其 `Bottom` 或 tombstone 后的 lattice value 编码 leaf_digest，不被简单从 leaf 列表移除。
 
 失败条件：
 
@@ -1037,7 +1024,7 @@ ak.vector.strand_tracks_update.atomic.v1
 输入：
 
 - 一个已存在 Strand `F0`，`tracks = { "synthesis": { is_primary: true, enabled: true }, "discussion": { is_primary: false, enabled: true } }`。
-- Case A — 单字段 patch：一个 `ak.strand.tracks.update` Event，`payload.patch = { "tracks.synthesis.is_primary": { "$op": "set", "value": false }, "tracks.discussion.is_primary": { "$op": "set", "value": true } }`。期望 Strand `tracks` 在单个 Event effect 内原子地把 primary 从 `synthesis` 切到 `discussion`，中间态 MUST NOT 出现"两个 is_primary=true"或"零个 is_primary=true"。
+- Case A — 单字段 patch：一个 `ak.strand.tracks.update` Event，`payload.patch = { "tracks.synthesis.is_primary": { "$op": "set", "value": false }, "tracks.discussion.is_primary": { "$op": "set", "value": true } }`。期望 Strand `tracks` 在单个 Event 的 reducer projection 内原子地把 primary 从 `synthesis` 切到 `discussion`，中间态 MUST NOT 出现"两个 is_primary=true"或"零个 is_primary=true"。
 - Case B — 新增 + 启停 + 移除：在 Strand 已含 `tracks.synthesis` / `tracks.discussion` 的基础上，单条 `ak.strand.tracks.update` 同时 (1) 新增 `tracks.review.enabled=true` 子 map (profile 注册的扩展 track)，(2) 把 `tracks.discussion.enabled` 置为 false，(3) 把 `tracks.synthesis.is_primary` 置为 false，(4) 把 `tracks.review.is_primary` 置为 true。
 - Case C — invariant 违反：单条 `ak.strand.tracks.update` 把 `tracks.synthesis.is_primary` 与 `tracks.discussion.is_primary` 同时 set 为 `true`。
 
@@ -1045,7 +1032,7 @@ ak.vector.strand_tracks_update.atomic.v1
 
 - **Case A**: reducer 应用 patch 后，`Strand.tracks.synthesis.is_primary == false` 且 `Strand.tracks.discussion.is_primary == true`；reducer 视角下不存在两次中间 state cell write，cas_register cell 一次 atomic update。
 - **Case B**: reducer 接受合并后状态 `{ synthesis: {is_primary: false, enabled: true}, discussion: {is_primary: false, enabled: false}, review: {is_primary: true, enabled: true} }`；中间过程 MUST 在同一 cell update 内完成，不得分裂为 4 个独立 cell write。
-- **Case C**: reducer MUST 在 effect 应用前 (cell update 之前) 校验合并后 `tracks` map 至多 1 个 entry `is_primary=true`；不满足 MUST `schema_violation`，整条 Event 拒绝，Strand `tracks` 不发生任何变化。
+- **Case C**: reducer MUST 在 projected writes 应用前（cell update 之前）校验合并后 `tracks` map 至多 1 个 entry `is_primary=true`；不满足 MUST `schema_violation`，整条 Event 拒绝，Strand `tracks` 不发生任何变化。
 
 判定要求：
 
@@ -1089,7 +1076,7 @@ ak.vector.lattice.fsm_join.v1
 
 #### 2.11.1 Vector: same-Seal `bottom=reject` 排重
 
-向量名称 `ak.vector.seal.same_batch_bottom_reject_serialization.v1`。构造两条基于同一 frozen predecessor、命中同一 `cas_register` 或 `fsm` `bottom=reject` cell 且 effect 互斥的 Control Move。Case A 的 notary 只 include 一条并对另一条 signed-reject `cas_conflict`（或 defer）；Seal MUST accept。Case B 的同一 Seal `delta[]` include 两条；`apply_seal` MUST 拒绝整个 Seal 为 `rejected_seal`，不得物化 `failed_bottom`。Case C 把两条 Move 放在不可达的并发 Seal leaf；joined view 仍 MUST 按 lattice 返回 `Bottom{kind="conflict"}`，证明排重义务不改变真正跨 leaf 并发语义。
+向量名称 `ak.vector.seal.same_batch_bottom_reject_serialization.v1`。构造两条基于同一 frozen predecessor、命中同一 `cas_register` 或 `fsm` `bottom=reject` cell 且 projected writes 互斥的 Control Move。Case A 的 notary 只 include 一条并对另一条 signed-reject `cas_conflict`（或 defer）；Seal MUST accept。Case B 的同一 Seal `delta[]` include 两条；`apply_seal` MUST 拒绝整个 Seal 为 `rejected_seal`，不得物化 `failed_bottom`。Case C 把两条 Move 放在不可达的并发 Seal leaf；joined view 仍 MUST 按 lattice 返回 `Bottom{kind="conflict"}`，证明排重义务不改变真正跨 leaf 并发语义。
 
 ### 2.12 Vector: `cas_register` 混合 basis（非初始态盲写拒绝）
 
@@ -1099,7 +1086,7 @@ ak.vector.lattice.fsm_join.v1
 ak.vector.cba_lattice.cas_mixed_basis.v1
 ```
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 的 **Basis 强制（normative）**：“cas_register 的 set effect 在目标 cell 的 settled 值为非初始态时，Control Move MUST 携带针对本 cell 的 `head_eq` precondition；DataEvent MUST 通过 causal refs 与 lattice 规则表达同等 CAS 约束。缺失时，receiver MUST 以 `failed_precondition` 拒绝该 effect，并按多 cell 原子性拒绝整个 reducer input，不接受‘无 CAS 强制写’。”
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 的 **Basis 强制（normative）**：“cas_register 的 set write 在目标 cell 的 settled 值为非初始态时，Control Move MUST 携带针对本 cell 的 `head_eq` precondition；DataEvent MUST 通过 causal refs 与 lattice 规则表达同等 CAS 约束。缺失时，receiver MUST 以 `failed_precondition` 拒绝该 write，并按多 cell 原子性拒绝整个 reducer input，不接受‘无 CAS 强制写’。”
 
 输入（cas_register cell，未声明 `initial_value`，初值 `null`；前置 Seal 已把 settled 值推进到 `value_1`，即非初始态）：
 
@@ -1108,7 +1095,7 @@ ak.vector.cba_lattice.cas_mixed_basis.v1
 
 期望：
 
-- **Case A**：receiver MUST 以 `failed_precondition` 拒绝整个 Event（多 cell 原子性，不得部分应用其余 effect）；cell 保持 `value_1`。若此类 Event 越过验证进入 join（防御性路径），join MUST 返回 ⊥，MUST NOT 把 null-basis 盲写当作合法覆盖。
+- **Case A**：receiver MUST 以 `failed_precondition` 拒绝整个 Event（多 cell 原子性，不得部分应用其余 projected writes）；cell 保持 `value_1`。若此类 Event 越过验证进入 join（防御性路径），join MUST 返回 ⊥，MUST NOT 把 null-basis 盲写当作合法覆盖。
 - **Case B**：Control Move 接受并在被 accepted Seal 覆盖后使 cell 收敛到 `value_2`；两个 conformant reducer 以不同输入顺序重放 MUST 得到同一结果。
 - “无条件覆盖”语义 MUST 通过 profile 显式注册的专门高权限 event kind 或 §8 conflict-recovery 路径表达，不得通过省略普通 set Control Move 的 `head_eq` 实现。
 
@@ -1286,16 +1273,16 @@ ak.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1
 - **Case A**：两个并发 Seal leaf 中，一个覆盖 capability grant，另一个覆盖同一 grant 的 revoke；DataEvent 的 `seal_ref` 指向 grant leaf。
 - **Case B**：承载授权判定的 control cell 在并发 join 后进入 `⊥`，且 `bottom=reject`。
 - **Case C**：轻客户端只持有单 leaf 视图，无法独立验证 multi-leaf union basis。
-- **Case D**：receiver 先接受 DataEvent `E` 并物化 cell X effect，再接受以 `E` 为 critical causal dependency 的 DataEvent `D` 并物化 cell Y effect；随后并发撤销 leaf `R` 迟到。
+- **Case D**：receiver 先接受 DataEvent `E` 并物化 cell X write，再接受以 `E` 为 critical causal dependency 的 DataEvent `D` 并物化 cell Y write；随后并发撤销 leaf `R` 迟到。
 
 期望：
 
 - Case A：receiver MUST 按 joined control view 判定该 capability 已撤销，DataEvent MUST fail closed（`stale_seal_ref`）；并发分支不计算 `distance`，不享受新鲜度窗口。
 - Case B：依赖该 cell 的 DataEvent 与 Control Move MUST fail closed（`cell_in_bottom_state` / `failed_bottom`）。
 - Case C：轻客户端 MUST hold pending 或 fail closed，MUST NOT 用单 leaf 授权结论接受该 DataEvent。
-- Case D：join `R` 后 `E` MUST `stale_seal_ref`，其 cell X effect MUST 被追溯移除；`D` 与所有直接 / 间接依赖 `E` 的 accepted 后继 MUST 转为 `result=pending, reason=dependency_missing`，其 effects（含 cell Y）同步移除。最终 accepted set 与 projection MUST 等于从一开始就持有 `{S0,R}` 的 receiver，且与到达顺序无关。
+- Case D：join `R` 后 `E` MUST `stale_seal_ref`，其 cell X write MUST 被追溯移除；`D` 与所有直接 / 间接依赖 `E` 的 accepted 后继 MUST 转为 `result=pending, reason=dependency_missing`，其 projected writes（含 cell Y）同步移除。最终 accepted set 与 projection MUST 等于从一开始就持有 `{S0,R}` 的 receiver，且与到达顺序无关。
 
-失败条件：用 `seal_ref` 单分支接受并发撤销后的 DataEvent；把并发撤销套入后继距离窗口；轻客户端无法验证 joined view 时仍接受；只移除 `E` 而保留依赖 `E` 的 `D` / 后继 effects，导致先接受后撤销与先撤销后接收的 projection 不同。
+失败条件：用 `seal_ref` 单分支接受并发撤销后的 DataEvent；把并发撤销套入后继距离窗口；轻客户端无法验证 joined view 时仍接受；只移除 `E` 而保留依赖 `E` 的 `D` / 后继 projected writes，导致先接受后撤销与先撤销后接收的 projection 不同。
 
 ### 2.19.1 Vector: Circle lifecycle basis 与 archive freshness
 
@@ -1367,18 +1354,18 @@ ak.vector.lattice.ordered_log_join.v1
 输入（ordered_log cell，`bottom=inert`；fixture：[`cba-lattice-fixture.json`](../../artifacts/fixtures/cba-lattice-fixture.json) `ak.vector.lattice.ordered_log_join.v1`）：
 
 - **Case A — per-issuer 顺序**：两个 issuer 各自提交 `issuer_seq ∈ {0, 1}`，到达顺序交错。
-- **Case B — 逐字等价重复**：同一 `(cell, actor_id, issuer_seq)` 的两条 entry，完整 canonical `effect.op` bytes 相同。
-- **Case C — equivocation**：同一 `(cell, actor_id, issuer_seq)` 的两条 entry，完整 canonical `effect.op` bytes 不同（含 `op.value` 相同而 `op` 其它字段不同的子例，以及 `op.value` 不含任何 `entry_id` 字段的子例），两个候选 Event 的 canonical `event_digest` 不同。
+- **Case B — 逐字等价重复**：同一 `(cell, actor_id, issuer_seq)` 的两条 entry，完整 canonical `write.op` bytes 相同。
+- **Case C — equivocation**：同一 `(cell, actor_id, issuer_seq)` 的两条 entry，完整 canonical `write.op` bytes 不同（含 `op.value` 相同而 `op` 其它字段不同的子例，以及 `op.value` 不含任何 `entry_id` 字段的子例），两个候选 Event 的 canonical `event_digest` 不同。
 - **Case D — 因果边不改变 winner**：与 Case C 相同的候选集，但较小 `event_digest` 的候选通过 `prev_refs` / `causal_refs` 因果地晚于较大者。
 - **Case E — digest collision**：两个候选的 canonical `envelope_without_proofs_unsigned_reducer_stamps` bytes 不同，却得到完全相同的 typed `event_digest`（同 suite、同 octets）。
-- **Case F — 仅 proofs / reducer stamps 不同**：两个候选的 canonical digest preimage bytes 逐字相同，只有 `proofs` 集或 reducer-stamped `effective_scope` / `actor_kind` 不同。
+- **Case F — 仅 proofs / reducer stamp 不同**：两个候选的 canonical digest preimage bytes 逐字相同，只有 `proofs` 集或 reducer-stamped `actor_kind` 不同。`scope_ref` 不同必然改变 digest，不属于本例。
 - **Case G — 跨 suite 比较**：两个候选使用不同 digest suite，且 typed wire string 的 UTF-8 顺序与 decoded digest octets 顺序**相反**。
 
 期望：
 
 - **Case A**：每个 issuer 子链的期望起点固定为 `issuer_seq=0`，只有从 `0` 起的连续 prefix 进入 cell value；输入顺序的任意排列 MUST 产出 bit-exact 相同的 cell value 与 `state_root` leaf。实现 MUST NOT 把该 issuer 的最小已见 seq 当作起点——只到达 `issuer_seq=3` 时 MUST 报告 `missing_seq=0` 的 pending gap，MUST NOT 物化 seq 3。
 - **Case B**：幂等去重，该 slot 只产生一条 entry。
-- **Case C**：`event_digest` 按 §4.2 decoded-octets 比较取**最大**的候选进入连续 prefix；loser MUST 保留为 duplicate/equivocation 诊断，且 MUST 仍留在 canonical event log 与审计视图中，MUST NOT 被删除。等价性判定 MUST 使用完整 canonical `effect.op` bytes：`op.value` 相同而 `op` 其它字段不同的候选仍是 equivocation；`op.value` 不含 `entry_id` 字段不得导致回退到到达顺序。
+- **Case C**：`event_digest` 按 §4.2 decoded-octets 比较取**最大**的候选进入连续 prefix；loser MUST 保留为 duplicate/equivocation 诊断，且 MUST 仍留在 canonical event log 与审计视图中，MUST NOT 被删除。等价性判定 MUST 使用完整 canonical `write.op` bytes：`op.value` 相同而 `op` 其它字段不同的候选仍是 equivocation；`op.value` 不含 `entry_id` 字段不得导致回退到到达顺序。
 - **Case D**：winner 与 Case C 相同。因果边、`prev_refs`、HLC 与到达顺序 MUST NOT 改变 slot winner，也不得把 seq 复用解释为合法的下一条 append。
 - **Case E**：MUST fail closed（digest collision），MUST NOT 回退到 `event_id`、`op.value` 内任一字段、到达顺序或实现私有 ID。
 - **Case F**：视为同一 producer-signed Event 内容，MUST NOT 报 collision；`proofs` 按 proof profile 合并，reducer stamps 按其各自验证规则处理。
@@ -1389,7 +1376,7 @@ ak.vector.lattice.ordered_log_join.v1
 - 用 `event_id`、`created_at`、HLC、`actor_seq`、到达顺序或某个领域字段（含 `op.value.entry_id` 一类实现私有 id）选 winner（`encoding.md` §4.2 禁止键）。
 - 选 bytewise 最小而非最大 `event_digest`。
 - 直接比较 typed digest wire string，使 suite 名先于内容决定 winner。
-- 只比较 `op.value` 而非完整 `effect.op`，把 `op` 其它字段不同的候选误判为 duplicate。
+- 只比较 `op.value` 而非完整 `write.op`，把 `op` 其它字段不同的候选误判为 duplicate。
 - 从该 issuer 的最小已见 seq 起算 prefix，而不是固定从 `0` 起。
 - equivocation loser 被从 canonical event log 或审计视图中移除，或未暴露 winner/loser 诊断。
 - Case D 因存在因果边而改判 winner。
@@ -2086,7 +2073,7 @@ ak.vector.auth.sensitive_field_handling.v1
 - `event_id` 是内容寻址或签名绑定后的稳定 ID。
 - `actor_seq` 在同一 actor 的单条因果路径上严格递增；并发 sibling fork 可出现相同高度。
 - `hlc` 是 Hybrid Logical Clock，不能单独决定因果顺序。
-- `unsigned.target_ref_hint` MAY 指向标准对象、Morph、Relation、View、Space 或 Realm，仅作为测试向量的阅读辅助；规范性目标必须来自 `payload.*` 字段、`payload.object.id`、precondition/effect cell key 或 reducer 规则。标准 Event envelope **top-level**（与 `kind` / `actor_id` / `payload` 同级）MUST NOT 出现 `target_ref`；该禁令仅针对 envelope 顶层，**不**适用于 payload 内部合法使用的 `target_ref`（如 §3.2.1 redaction payload 的顶层 `target_ref`）。
+- `unsigned.target_ref_hint` MAY 指向标准对象、Morph、Relation、View、Space 或 Realm，仅作为测试向量的阅读辅助；规范性目标必须来自 `payload.*` 字段、`payload.object.id`、precondition cell key 或 registered reducer contract。标准 Event envelope **top-level**（与 `kind` / `actor_id` / `payload` 同级）MUST NOT 出现 `target_ref`；该禁令仅针对 envelope 顶层，**不**适用于 payload 内部合法使用的 `target_ref`（如 §3.2.1 redaction payload 的顶层 `target_ref`）。
 
 ### 5.2.1 Vector: Late Key Recovery T0 Determinism
 
@@ -3011,7 +2998,7 @@ Steps：
 4. Subject proof transcript replay：`subject_proof.transcript_digest` / signature 绑定的是另一份 `binding_proof_digest` 或 verification service。
 5. Token commitment mismatch：`ak.invite.claim.payload.token_commitment` 不等于 pending invite 的 commitment。
 6. Allowlist 复校验失败：验证服务曾签发 binding proof，但当前 effective Realm policy 已移除该 `verification_service_id`。
-7. Claim nonce replay：同一 `(invite_id, claim_nonce)` 或同一 `token_commitment` 已被 reducer 观察为 claim effect。
+7. Claim nonce replay：同一 `(invite_id, claim_nonce)` 或同一 `token_commitment` 已被 reducer 观察为 accepted claim projection。
 8. Expired cleanup：`invite.expires_at <= now` 时提交 claim。
 
 Expected：
@@ -3141,21 +3128,21 @@ Expected：
 
 ## 10. Service Closure Vectors
 
-### 10.1 Vector: Ephemeral Capability And TTL
+### 10.1 Vector: Realtime Class And TTL
 
-`vector_id`: `ak.vector.ephemeral.capability_ttl.v1`
+`vector_id`: `ak.vector.realtime.class_ttl.v1`
 
 Steps：
 
-1. Actor 对 `ak.typing` 提交 `ak.self.ephemeral.command.send`，但只持有 `ak.presence.broadcast`。
-2. Actor 持有正确 action 后，提交超出 advertised kind-specific TTL 的 envelope。
-3. Ephemeral channel 暂时不可用。
+1. Actor 提交 `signal_class=moderation`，但 current Seal basis 不允许 moderation realtime。
+2. Actor 持有 realtime 资格后，提交超出 `signal_class=session` 30 秒上限的 envelope。
+3. Realtime rail 暂时不可用。
 
 Expected：
 
-- 第 1 步 MUST 返回 `ephemeral_kind_not_permitted`。
-- 第 2 步 MUST 返回 `ephemeral_ttl_out_of_range`。
-- 第 3 步 MUST 返回 `ephemeral_channel_unavailable`，且不写 durable Event、不推进 actor_seq / Realm frontier。
+- 第 1 步 MUST 返回 `realtime_class_not_permitted`。
+- 第 2 步 MUST 返回 `realtime_ttl_out_of_range`。
+- 第 3 步 MUST 返回 `realtime_rail_unavailable`，且不写 durable Event、不推进 actor_seq / Realm frontier。
 
 ### 10.2 Vector: Projection Pagination Shape
 
@@ -4382,7 +4369,7 @@ Expected:
 
 - 第 2、3 步删除 MUST 被拒绝 `legal_hold_active`（audit_lock 优先于 TTL 与 capability）。
 - 第 4 步 start MUST `failed_precondition` `reason_code=recording_consent_required`，绕过形态 MUST `schema_violation`。
-- 反例（control）：`audit_lock=false` 且已过 `retention_expires_at`、`deletion_trigger=retention_expiry` 时删除 MAY accepted；start 的 result ref 等于本 Event `event_id` 且 `consent_confirmed=true` 时 FSM/result 两个 effect MUST 原子 accepted。
+- 反例（control）：`audit_lock=false` 且已过 `retention_expires_at`、`deletion_trigger=retention_expiry` 时删除 MAY accepted；start 的 result ref 等于本 Event `event_id` 且 `consent_confirmed=true` 时 FSM/result 两个 projected writes MUST 原子 accepted。
 
 ### 12.16.1 Call State — Recording Result Artifact Shape
 
@@ -5153,28 +5140,28 @@ Expected:
 
 - winner 是 decoded digest octets 最大的候选；octets 完全相同而 suite 不同时以 canonical suite id 的 UTF-8 bytewise 顺序作第二键。
 - 必须包含一条 suite 前缀字符串顺序与 decoded octets 顺序**相反**的 transition case：按整串 UTF-8 比较会选错 winner。
-- digest preimage MUST 逐字使用移除 `proofs` / `unsigned` / reducer stamps（`effective_scope`、`actor_kind`）后的 canonical bytes；沿用旧的 `envelope_without_proofs_unsigned` 简写 MUST 失败。
+- digest preimage MUST 逐字使用移除 `proofs` / `unsigned` / reducer stamp `actor_kind` 后的 canonical bytes，并保留签名 `scope_ref`；沿用移除 scope 的旧算法 MUST 失败。
 - 仅 `proofs` 或 reducer stamps 不同、canonical preimage 逐字相同的两个输入 MUST NOT 被报成 collision。
 - 同 typed digest（同 suite、同 octets）但 canonical preimage 不同 MUST fail closed，MUST NOT 回退到 `event_id` / HLC / `created_at` / 到达顺序 / 实现私有 ID。
 - producer 在 Event DAG 中人为加入因果边 MUST NOT 改变 slot winner。
 
-### 23.2 `ak.realm.create` 显式 effect 闭包与 genesis `state_root`
+### 23.2 `ak.realm.create` reducer projection 闭包与 genesis `state_root`
 
-`vector_id`: `ak.vector.event_kind.realm_create_effects_closure.v1`
+`vector_id`: `ak.vector.event_kind.realm_create_projection_closure.v1`
 
 Steps:
 
 1. 提交普通 Realm 的 bootstrap batch：`ak.realm.create` + 紧邻 founding grant。
-2. 两个独立实现各自按 `contract-registry.json` 的 `ak.realm.create` `cell_writes[]` 应用 effects 并重算 genesis Seal 的治理 `state_root`。
+2. 两个独立实现各自按 `contract-registry.json` 的 `ak.realm.create` `cell_writes[]` 派生并应用 reducer projection，再重算 genesis Seal 的治理 `state_root`。
 
 Expected:
 
-- create Event 的 `effects[]` MUST 恰好含四条：`ak.component.realm.metadata.v1:null`（`set`）、`ak.component.member.state.v1:<created_by>`（`transition` `leave -> join`）、`ak.component.realm.create.v1:null`（`append`，`issuer_seq=0`）、`ak.component.notary.v1:null`（`set`）。少一条或多一条 MUST `effects_payload_mismatch`。
+- create Event 的 reducer 输出 MUST 恰好含四条：`ak.component.realm.metadata.v1:null`（`set`）、`ak.component.member.state.v1:<created_by>`（`transition` `leave -> join`）、`ak.component.realm.create.v1:null`（`append`，`issuer_seq=0`）、`ak.component.notary.v1:null`（`set`）。少一条或多一条表示 registry/vector drift，门禁 MUST 失败。
 - 两个实现的 genesis `state_root` MUST 逐字节相同（KAT）。
 - `ak:cell:ak.component.member.state.v1:<created_by>` MUST 有 inclusion proof；对同一 cell 求 non-membership proof MUST 失败（负例）。
 - `ak.component.realm.metadata.v1` MUST 在 genesis Seal 即出现在 leaf 集合中；"仅在首次 `ak.realm.update` 之后才出现"视为不合规（负例）。
-- PCR 与 Direct Conversation 两条 bootstrap 分支使用同一 effect 集合。
-- 负例：把任一 effect 降级为 reducer 私有派生（不出现在 `effects[]`）后重算 `state_root`，MUST 与正例不同，从而被 `apply_seal` step 11 拒为 `rejected_seal`。
+- PCR 与 Direct Conversation 两条 bootstrap 分支使用同一 registered projection 集合。
+- 负例：实现漏执行任一已登记 write 后重算 `state_root`，MUST 与正例不同并被 `apply_seal` step 11 拒为 `rejected_seal`。
 
 ### 23.3 Null cell subject 的 wire 形态与 leaf 顺序
 
@@ -5205,8 +5192,8 @@ Expected:
 - 负例：invitee 在没有 `invite` 前态时提交 `ak.invite.accept` MUST `failed_precondition` / `invalid_membership_transition`（防止实现私自放宽 `leave -> join`）。
 - 负例：`ak.invite.cancel{rejected}` 之后 `member.state` MUST 回到 `leave`，且该主体在 `history_visibility=invited` Realm 中不再具备 invite-frontier 读取与 key share 资格。
 - 负例：以 expired 为 `reason_code` 的 revoke 之后同上。
-- 负例：定向 invite 的 cancel / revoke 缺失 `payload.invitee`，或其值与 invite cell 记录不等，MUST `effects_payload_mismatch`。
-- 正例：3PID 分支（`third_party_id`，无 `invitee`）的 `ak.invite.create` MUST NOT 产生 `member.state` effect（防止过度补写）。
+- 负例：定向 invite 的 cancel / revoke 缺失 `payload.invitee`，或其值与 invite cell 记录不等，MUST `reducer_projection_failed`。
+- 正例：3PID 分支（`third_party_id`，无 `invitee`）的 `ak.invite.create` MUST NOT 投影 `member.state` write（防止过度补写）。
 - 负例：对处于 `invite` 的 Realm member cell 直接提交裸 `ak.member.state{ban}` MUST `invalid_membership_transition`。
 
 ### 23.5 Call state 正交轴各自成 cell
@@ -5217,8 +5204,8 @@ Steps:
 
 1. 两个 moderator 在同一 CBA basis 上分别用单项 `moderation_delta` 并发 ban 不同目标。
 2. 在同一段捕获上并发写 `recording_transition` 的冲突 `to`，随后用 `state_transition` 推进通话主状态到 `ended`。
-3. 分别提交只携带一个 `roster_delta`、`moderation_delta` 或 `mute_override` 的 `ak.call.state`，并对每种 delta 篡改 wire effect 的 tag / value / op kind。
-4. 提交含 `recording_transition.result` 的 ready transition，并分别篡改 FSM transition effect 与独立 result-cell set effect。
+3. 分别提交只携带一个 `roster_delta`、`moderation_delta` 或 `mute_override` 的 `ak.call.state`，并对 reducer 实现做错误 tag / value / op kind 的 projection mutation。
+4. 提交含 `recording_transition.result` 的 ready transition，并分别 mutation FSM transition write 与独立 result-cell set write 的派生逻辑。
 5. 二次写入不同的 `focus`，以及省略已 committed `session_focus` 的 focus mode 更新。
 
 Expected:
@@ -5226,10 +5213,10 @@ Expected:
 - 并发 ban MUST 在 `ak.component.call.moderation.v1`（`or_set`）合并，不产生冲突，通话 `state` 轴完全不受影响。
 - 冲突的 `recording_transition.to` 只把该段 `ak.component.call.recording.v1` 打入 `⊥` / `failed_bottom`；`ak.component.call.state.v1` 仍可接受 `active -> ended`。段 cell 的 subject 是 `[payload.call_id, payload.recording_transition.recording_id]`，因此另一段捕获（不同 `recording_id`）完全不受影响（正例）。
 - `recording_transition` / `transcript_transition` 必须携带 `recording_id`；与该段 `ak.call.recording.start` 的 `recording_id` 不逐字节相同时，写入落在另一个 cell，MUST 以 `recording_state_transition_invalid` 拒绝（不得静默新建一段捕获）。
-- roster join / moderation remove 的 OR-Set add tag 必须精确等于 Event `event_id`，value 必须精确等于对应 payload value；leave / restore 的 remove tag 必须精确等于 `observed_tag`。mute override 必须精确 set 完整 `mute_override` 对象。任何篡改均 MUST `effects_payload_mismatch`。
-- capture lifecycle 与 result 是两个独立 target：FSM effect 只含精确 `from` / `to`，result effect 只 set 完整 result。不得把 result 塞入 transition op，也不得因一个目标冲突冻结另一个轴。
-- 未变更的轴 MUST NOT 出现在 `effects[]`；把未变更轴写成 same-value effect 视为不合规（负例）。
-- `focus` effect 必须 set 完整 focus 对象；`session_focus` 二次写入不同值或 mode 更新时省略已 committed focus 均 MUST 以 `session_focus_already_committed` 失败（`ak.component.call.focus.v1` 的 CAS 负例）。
+- roster join / moderation remove 的 OR-Set add tag 必须精确等于 Event `event_id`，value 必须精确等于对应 payload value；leave / restore 的 remove tag 必须精确等于 `observed_tag`。mute override 必须精确 set 完整 `mute_override` 对象。任何无法由 Event 与 registry 唯一导出的投影均 MUST `reducer_projection_failed`。
+- capture lifecycle 与 result 是两个独立 target：FSM write 只含精确 `from` / `to`，result write 只 set 完整 result。不得把 result 塞入 transition op，也不得因一个目标冲突冻结另一个轴。
+- 未变更的轴不得由 reducer contract 命中；把未变更轴派生为 same-value write 视为不合规（负例）。
+- `focus` projected write 必须 set 完整 focus 对象；`session_focus` 二次写入不同值或 mode 更新时省略已 committed focus 均 MUST 以 `session_focus_already_committed` 失败（`ak.component.call.focus.v1` 的 CAS 负例）。
 - 保留既有语义：同 basis 两条 `state` sibling 写不同 `to` MUST 落 `⊥` / `failed_bottom`。
 
 ### 23.6 Join gate 三轴正交性
@@ -5293,7 +5280,7 @@ Steps:
 Expected:
 
 - 两次求值 MUST 得到相同 outcome 与相同 invite cell value：判定只用签名 `created_at` 与 `expires_at`，MUST NOT 使用 receiver 本地 `now`。
-- 被拒绝的 claim MUST NOT 产生任何共享 effect：invite cell 保持其最后 accepted 状态。
+- 被拒绝的 claim MUST NOT 产生任何共享 projected write：invite cell 保持其最后 accepted 状态。
 - 负例：由被拒 claim 的处理路径写出 `pending -> expired` 视为不合规；该 transition MUST 由独立 accepted Control Move 承载。
 
 ### 23.10 Device pairing challenge transcript
@@ -5485,17 +5472,18 @@ Expected:
 - settledness MUST NOT 成为服务端 admission 条件：把同一组 Event 分别喂给 E2EE 与 plaintext 服务端，二者 accepted set MUST 逐项相同。
 - 非 Calendar 子树的 update MUST NOT 产生新 schedule revision。
 
-### 24.8 RSVP effect projection
+### 24.8 RSVP reducer projection
 
-`vector_id`: `ak.vector.calendar.rsvp_effect_projection.v1`
+`vector_id`: `ak.vector.calendar.rsvp_reducer_projection.v1`
 
 Steps:
 
-1. 提交合规 `ak.rsvp.set`，再分别构造缺 effect、多写目标、op value 与 `payload.entry` 不一致的 Event。
+1. 提交只含已注册 `kind + payload` 的合规 `ak.rsvp.set`。
+2. 分别对 reducer 做缺失注册写、额外写未注册目标、投影值不等于 `payload.entry` 的实现级 mutation。
 
 Expected:
 
-- receiver MUST 按 `effect_projection = set(payload.entry)` 重算并要求 canonical 等价；三类负例 MUST `effects_payload_mismatch`。
+- receiver MUST 按 registry 的 `effect_projection = set(payload.entry)` 唯一派生 reducer projection；三类实现级 mutation 均 MUST `reducer_projection_failed`，且 wire Event 不得携带 producer-selected write。
 
 ### 24.9 RSVP effective projection
 

@@ -155,7 +155,8 @@ sidebar:
 
 - `durable_event`：进入共享 Event Envelope 历史，参与 reducer。
 - `actor_private_event`：进入加密 account data 或 actor-private stream。
-- `ephemeral_event`：仅经短暂同步通道，不参与 actor_seq / prev_refs / state hash / reducer frontier。
+
+RealtimeEnvelope 与 DeviceMessageEnvelope 不属于 Event kind registry，因此不分配 `wire_scope`。
 
 实现不得仅靠本文件定义；必须加载机器 registry 或等价生成产物。
 

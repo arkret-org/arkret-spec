@@ -358,8 +358,34 @@
       "file": "schemas/device-message.schema.json"
     },
     {
-      "schema_id": "ak.schema.ephemeral_envelope.v1",
-      "file": "schemas/ephemeral-envelope.schema.json"
+      "schema_id": "ak.schema.realtime_envelope.v1",
+      "file": "schemas/realtime-envelope.schema.json",
+      "status": "active",
+      "description": "Encrypted-only Realtime Extension envelope; product payload types remain inside ciphertext."
+    },
+    {
+      "schema_id": "ak.schema.cba_proof_bundle.v1",
+      "file": "schemas/cba-proof-bundle.schema.json",
+      "status": "active",
+      "description": "Unsigned, independently verified CBA dependency bundle."
+    },
+    {
+      "schema_id": "ak.schema.offline_publication.v1",
+      "file": "schemas/offline-publication.schema.json",
+      "status": "active",
+      "description": "AuthorizationLease and IngressReceipt proof objects."
+    },
+    {
+      "schema_id": "ak.schema.security_transaction.v1",
+      "file": "schemas/security-transaction.schema.json",
+      "status": "active",
+      "description": "Closed RecoveryTransaction and SecurityRotationTransaction resource."
+    },
+    {
+      "schema_id": "ak.schema.extension_manifest.v1",
+      "file": "schemas/extension-manifest.schema.json",
+      "status": "active",
+      "description": "Declarative extension loading and conformance manifest."
     },
     {
       "schema_id": "ak.schema.blob.v1",

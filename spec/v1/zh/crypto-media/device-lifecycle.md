@@ -592,7 +592,7 @@ To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `Eve
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `message_id` | `id:device_message` | required | 发送方为一个逻辑消息分配的稳定 UUIDv7 typed ID；服务端在重试、分页和重投时 MUST 原样保留。接收端统一按 `(sender_principal_id, sender_device_id, message_id)` 去重。 |
-| `kind` | `string` | required | 消息 kind，例如 `ak.key.verification.request`。标准 `ak.*` to-device kind MUST 在 registry 中登记为 `ephemeral_event` 或由扩展 profile 声明。 |
+| `kind` | `string` | required | 消息 kind，例如 `ak.key.verification.request`。标准 to-device kind 由 `device-message.schema.json` 的闭合 dispatch 定义，不得登记成 Event.kind。 |
 | `sender_principal_id` | `did` | required | 发送 principal。 |
 | `sender_device_id` | `id:device` | required | 发送设备。 |
 | `recipient_principal_id` | `did` | required | 接收 principal；MUST 等于投递路径中的目标 principal。 |
@@ -1213,7 +1213,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 
 §10.5(3) 允许已授权设备在验证成功后“通过加密 to-device 消息共享 `self_signing_key`、secret storage bootstrap 或 MLS Welcome”。本节把该动作收敛为两个标准 to-device kind，用于把账户级 secret（如 MLS account secret / secret storage bootstrap key）从一台已授权设备直传给同一 principal 的另一台已通过 §10.3 SAS 验证的设备，无需用户重新输入恢复口令。它是 [`identity/key-management.md` §7](../identity/key-management.md) 无口令恢复路径的设备直传分支，服务端零知识。
 
-标准 kind（均为 `wire_scope=ephemeral_event`，走 §7 to-device 通道，不进入任何持久 timeline）：
+标准 kind（均走 §7 to-device 通道，不进入 Event registry 或任何持久 timeline）：
 
 - `ak.secret.request`：请求设备（通常是新设备）向已授权设备索取某个 `secret_id`。
 - `ak.secret.send`：被请求设备把 secret 以 HPKE 密封后回传给请求设备。
@@ -1449,7 +1449,7 @@ withheld 的 `key_scope.policy_digest` 是**来源方作出该拒绝判定时实
 
 ### 13.0 Delivery cell identity 与 sender-device transcript（normative）
 
-`ak.realm_key.share` 与 `ak.realm_key.withheld` 写入同一 `ak.component.realm_key.delivery.v1` cell family。其 cell subject 是固定 arity 4 的判别式复合 subject，canonical 定义与 `select` 求值规则以 [`../conformance/encoding.md` §9.5](../conformance/encoding.md) 为唯一真源：`[share_kind, recipient_principal_id, recipient_target_id, effective_scope_id]`。两个 Event kind 使用逐字相同的 registry descriptor。实现 MUST 按 registry 纯函数重算 `effects[].cell`，MUST NOT 信任 producer 自选的 cell。
+`ak.realm_key.share` 与 `ak.realm_key.withheld` 写入同一 `ak.component.realm_key.delivery.v1` cell family。其 cell subject 是固定 arity 4 的判别式复合 subject：`[share_kind, recipient_principal_id, recipient_target_id, effective_scope_id]`。两个 kind 使用逐字相同的 registry descriptor。实现 MUST 按 registry 纯函数重算 cell 与 value；wire 没有 producer 自选 cell。
 
 `sender_device_signature` 的 canonical transcript 由本节固定，schema description 与任何 SDK 方法都不构成替代真源。签名对象为：
 
@@ -1473,7 +1473,7 @@ withheld 的 `key_scope.policy_digest` 是**来源方作出该拒绝判定时实
 
 #### 13.0.1 Delivery append value projection（normative）
 
-delivery cell 的 lattice 是 `ordered_log`，每个 accepted Event 产生恰好一个 `op.kind="append"` entry。该 entry 的 `op.value` 由本节固定为一个**纯函数投影**：producer MUST 按下表构造，receiver MUST 独立重算并与 `effects[0].op.value` 逐字节比较，不一致以 `effects_payload_mismatch` 拒绝整个 Event。实现 MUST NOT 接受 producer 自选的任意 JSON value。
+delivery cell 的 lattice 是 `ordered_log`，每个 accepted Event 产生恰好一个 `op.kind="append"` entry。该 entry 的值由本节固定为一个**纯函数投影**：receiver MUST 根据 Event 与 registry 合同独立计算，不可确定时以 `reducer_projection_failed` 拒绝整个 Event。实现 MUST NOT 接受 producer 自选的任意 JSON value。
 
 投影结果是 canonical JSON object。缺省的 optional member MUST 省略，MUST NOT 写 `null`。
 
@@ -1503,7 +1503,7 @@ delivery cell 的 lattice 是 `ordered_log`，每个 accepted Event 产生恰好
 
 - **plane 边界。** delivery family 在 registry 中是 `plane=data`，因此该 cell 的 joined value MUST NOT 进入治理 `state_root`；它的 Seal 级承诺走 [`../authz/event-auth-state-resolution.md` §6.4](../authz/event-auth-state-resolution.md) 的 `data_view_root`（§6.2.1 明确 data plane cell 不进入 `state_root`）。
 - **不复制材料本身。** `op.value` 由每个参与方独立重算并进入数据面观测承诺；把 HPKE 密文抄进去会让所有节点为记账各背一份密文副本。投影只承诺指纹。
-- **`payload_digest` 承诺完整语义，不逐字段枚举。** [`../authz/event-auth-state-resolution.md` §9.3.1](../authz/event-auth-state-resolution.md) 规定同一 `(cell, actor_id, issuer_seq)` 上完整 canonical `effect.op` bytes 相同即幂等 duplicate。若投影只承诺部分字段，语义不同的两条交付会产生逐字相同的 entry 而被静默去重——例如密文相同但 `expires_at` 不同的续期 share、`aad_digest` 不同的重封、RRK 轮换后 `recipient_verification_method` 改变的重新封存，以及 `key_scope` 中 `membership_frontier_digest` / `history_visibility` 的差异。逐字段枚举会在 payload 每次演进时重新产生该缺口，因此本节固定为对**完整签名 payload**（含 `sender_device_signature`）取 digest：任何语义差异都改变 `payload_digest`，而逐字节相同的重放仍然幂等。
+- **`payload_digest` 承诺完整语义，不逐字段枚举。** [`../authz/event-auth-state-resolution.md` §9.3.1](../authz/event-auth-state-resolution.md) 规定同一 `(cell, actor_id, issuer_seq)` 上完整 canonical `write.op` bytes 相同即幂等 duplicate。若投影只承诺部分字段，语义不同的两条交付会产生逐字相同的 entry 而被静默去重——例如密文相同但 `expires_at` 不同的续期 share、`aad_digest` 不同的重封、RRK 轮换后 `recipient_verification_method` 改变的重新封存，以及 `key_scope` 中 `membership_frontier_digest` / `history_visibility` 的差异。逐字段枚举会在 payload 每次演进时重新产生该缺口，因此本节固定为对**完整签名 payload**（含 `sender_device_signature`）取 digest：任何语义差异都改变 `payload_digest`，而逐字节相同的重放仍然幂等。
 - **digest 形态**遵循该 Realm 的 `digest_algorithm` 与 [`../conformance/encoding.md` §3.1](../conformance/encoding.md) 的 `<suite>:<lowercase_hex>` wire 形态；输入是 payload 的 canonical JSON bytes（[`../conformance/encoding.md` §2](../conformance/encoding.md)）。
 - **不使用 Event 标识符。** `event_id` / `event_digest` MUST NOT 出现在 `op.value` 中：entry value 是内容承诺，不是 Event 引用；`event_digest` 另由 §9.3.1 的 equivocation tie-break 使用，写回 `op.value` 会产生自引用。审计侧的 share 与结果关联仍由 `ak.realm_key.share_audit` 的 `share_event_ref` 承担。
 - 其余可读 member 保留，是为了让数据面投影和诊断无需重新解析 payload；它们不承担完整性职责，完整性由 `payload_digest` 承担。
@@ -1524,7 +1524,11 @@ delivery cell 的 lattice 是 `ordered_log`，每个 accepted Event 产生恰好
 
 §13 / §13.1 规定了 key source **交付**前的资格与扣留语义；本节规定接收方**如何发现、选择并向具体来源发起请求**——这是与交付独立的发现 + 请求流程。
 
-**`ak.realm_key.request`**——read-eligible 的接收方向某个 key source 发起的历史 key 请求。它是 **ephemeral to-device 触发信号**（`wire_scope=ephemeral_event`、非 reducer-input durable event，与 `ak.key.verification.request` 同类），使用 [`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json) 的 `DeviceMessageEnvelope.content`，经 device message 队列中继到 `target_source_ref` 指向的来源；它不进入 reducer state、不需 effects/seal，也不得使用 durable `EventEnvelope`。content 字段顺序对齐本表：
+**`ak.realm_key.request`**——read-eligible 的接收方向某个 key source 发起的历史 key 请求。它是可靠
+to-device 触发消息，与 `ak.key.verification.request` 同类，使用
+[`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json) 的
+`DeviceMessageEnvelope.content`，经 device message 队列中继到 `target_source_ref` 指向的来源；
+它不进入 Event registry 或 reducer state，也不得使用 durable `EventEnvelope`。content 字段顺序对齐本表：
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
