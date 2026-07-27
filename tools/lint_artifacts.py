@@ -7054,6 +7054,64 @@ def check_encrypted_envelope_digest_vector(lint: Lint) -> None:
         lint.fail(fixture_path, "Encrypted Envelope expected_digest mismatch")
 
 
+def check_declared_canonical_json_strings(lint: Lint) -> None:
+    """A fixture field named `*_canonical_json` MUST actually be canonical.
+
+    RFC 8785 canonical JSON sorts object keys. A fixture that stores an
+    unsorted string under a `_canonical_json` name is self-contradictory: the
+    vector stays internally consistent while disagreeing with every conforming
+    implementation, and the mismatch only surfaces downstream. The
+    `passphrase_kdf_kat` nonce transcript failed exactly this way, and every
+    value derived from it had to be regenerated.
+    """
+    # Known-broken pointers awaiting a full transcript regeneration. Each entry MUST reference
+    # an open finding and MUST be removed with the fix; this is a quarantine, not a permission.
+    # `ak.vector.key_backup.unlock_proof.v1` needs more than a re-sort: its ciphertext is 345
+    # bytes while the declared plaintext is 344, so the recorded bytes cannot be reproduced from
+    # the recorded inputs at all. See arkret-work review/spec-open
+    # 2026-07-28-01-key-backup-kat-transcript-canonicality.md.
+    quarantined = {
+        (
+            "key-backup-hardening-fixture.json",
+            "/cases/1/crypto_transcript/aad_canonical_json",
+        ),
+        (
+            "key-backup-hardening-fixture.json",
+            "/cases/1/crypto_transcript/plaintext_canonical_json",
+        ),
+    }
+    fixture_root = ARTIFACTS / "fixtures"
+    for path in sorted(fixture_root.glob("*.json")):
+        data = load_json(lint, path)
+        if data is None:
+            continue
+
+        def walk(node: Any, pointer: str) -> None:
+            if isinstance(node, dict):
+                for key, value in node.items():
+                    child = f"{pointer}/{key}"
+                    if key.endswith("_canonical_json") and isinstance(value, str):
+                        try:
+                            parsed = json.loads(value)
+                        except json.JSONDecodeError:
+                            lint.fail(path, f"{child} is not parseable JSON")
+                            continue
+                        if (path.name, child) in quarantined:
+                            continue
+                        if canonical_json(parsed) != value:
+                            lint.fail(
+                                path,
+                                f"{child} is named canonical but is not RFC 8785 canonical "
+                                "(object keys must be sorted, no insignificant whitespace)",
+                            )
+                    walk(value, child)
+            elif isinstance(node, list):
+                for index, value in enumerate(node):
+                    walk(value, f"{pointer}/{index}")
+
+        walk(data, "")
+
+
 def check_reducer_profile_digest_closure(lint: Lint) -> None:
     path = ARTIFACTS / "registry" / "reducer-profile-registry.json"
     registry = load_json(lint, path)
@@ -8575,6 +8633,7 @@ def main() -> int:
     check_canonical_digest_fixtures(lint)
     check_event_batch_receipt_normalization_vector(lint)
     check_encrypted_envelope_digest_vector(lint)
+    check_declared_canonical_json_strings(lint)
     check_reducer_profile_digest_closure(lint)
     check_field_order(lint)
     check_model_required_field_table_coverage(lint)
