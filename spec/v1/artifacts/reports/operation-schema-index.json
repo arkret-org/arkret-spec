@@ -236,6 +236,50 @@
       }
     },
     {
+      "operation_id": "ak.gate.account.command.authorize_recovery_device",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/recovery-authority.schema.json#/$defs/authorize_recovery_device_request",
+        "schema_kind": "object",
+        "required": [
+          "ticket",
+          "authorization_preimage",
+          "canonical_request_digest",
+          "holder_proof"
+        ],
+        "properties": [
+          "ticket",
+          "authorization_preimage",
+          "canonical_request_digest",
+          "holder_proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/recovery-authority.schema.json#/$defs/authorize_recovery_device_outcome",
+        "schema_kind": "object",
+        "required": [
+          "ticket_id",
+          "transaction_id",
+          "authorize_event_id",
+          "authorized_event",
+          "authorized_event_digest",
+          "authority_receipt_id",
+          "accepted_at"
+        ],
+        "properties": [
+          "ticket_id",
+          "transaction_id",
+          "authorize_event_id",
+          "authorized_event",
+          "authorized_event_digest",
+          "authority_receipt_id",
+          "accepted_at"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.gate.account.command.issue_session_grant",
       "success_shape_kind": "typed_response",
       "request": {
@@ -354,6 +398,52 @@
           "scopes",
           "dpop_jkt",
           "previous_grant_id"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.gate.account.command.promote_recovery_session_grant",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/recovery-authority.schema.json#/$defs/promote_recovery_session_grant_request",
+        "schema_kind": "object",
+        "required": [
+          "old_grant_id",
+          "transaction_id",
+          "transaction_request_digest",
+          "terminal_receipt",
+          "device_authorization_event_id",
+          "result_model_generation_ref",
+          "canonical_request_digest",
+          "holder_proof"
+        ],
+        "properties": [
+          "old_grant_id",
+          "transaction_id",
+          "transaction_request_digest",
+          "terminal_receipt",
+          "device_authorization_event_id",
+          "result_model_generation_ref",
+          "canonical_request_digest",
+          "holder_proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/recovery-authority.schema.json#/$defs/promote_recovery_session_grant_outcome",
+        "schema_kind": "object",
+        "required": [
+          "transaction_id",
+          "consumed_grant_id",
+          "new_grant",
+          "consumed_at"
+        ],
+        "properties": [
+          "transaction_id",
+          "consumed_grant_id",
+          "new_grant",
+          "consumed_at"
         ],
         "closed": true
       }
@@ -4210,6 +4300,7 @@
           "challenge",
           "state",
           "proof_summary",
+          "transaction_id",
           "rejection_reason_code",
           "expires_at",
           "created_at",
@@ -4256,6 +4347,7 @@
           "challenge",
           "state",
           "proof_summary",
+          "transaction_id",
           "rejection_reason_code",
           "expires_at",
           "created_at",
@@ -4296,69 +4388,33 @@
       }
     },
     {
-      "operation_id": "ak.root.identity.recovery_session.command.complete",
+      "operation_id": "ak.self.recovery_authority_ticket.command.issue",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
-        "schema_kind": "oneOf",
-        "required": [],
-        "properties": [],
-        "closed": false,
-        "variants": [
-          {
-            "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
-            "schema_kind": null,
-            "required": [
-              "device_list_update_event_id"
-            ],
-            "properties": [],
-            "closed": false
-          },
-          {
-            "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
-            "schema_kind": null,
-            "required": [
-              "reanchor_event_id",
-              "reanchor_batch_receipt_id"
-            ],
-            "properties": [],
-            "closed": false
-          }
-        ]
+        "schema_ref": "schemas/recovery-authority.schema.json#/$defs/ticket_issue_request",
+        "schema_kind": "object",
+        "required": [
+          "transaction_id",
+          "transaction_request_digest",
+          "prepared_plan_digest",
+          "authority_ticket_id",
+          "expected_next_step"
+        ],
+        "properties": [
+          "transaction_id",
+          "transaction_request_digest",
+          "prepared_plan_digest",
+          "authority_ticket_id",
+          "expected_next_step"
+        ],
+        "closed": true
       },
       "response": {
-        "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome",
-        "schema_kind": "oneOf",
+        "schema_ref": "schemas/recovery-authority.schema.json",
+        "schema_kind": null,
         "required": [],
-        "properties": [
-          "identity_model"
-        ],
-        "closed": false,
-        "variants": [
-          {
-            "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome",
-            "schema_kind": null,
-            "required": [
-              "device_list_update_event_id"
-            ],
-            "properties": [
-              "identity_model"
-            ],
-            "closed": false
-          },
-          {
-            "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome",
-            "schema_kind": null,
-            "required": [
-              "reanchor_event_id",
-              "reanchor_batch_receipt_id"
-            ],
-            "properties": [
-              "identity_model"
-            ],
-            "closed": false
-          }
-        ]
+        "properties": [],
+        "closed": false
       }
     },
     {
@@ -4366,22 +4422,74 @@
       "success_shape_kind": "schema_resource",
       "request": {
         "schema_ref": "schemas/security-transaction.schema.json#/$defs/create_request",
-        "schema_kind": "object",
+        "schema_kind": "oneOf",
         "required": [
           "transaction_id",
           "kind",
           "principal_id",
           "expires_at",
-          "intent"
+          "binding",
+          "prepared_plan",
+          "prepared_plan_digest"
         ],
         "properties": [
           "transaction_id",
           "kind",
           "principal_id",
           "expires_at",
-          "intent"
+          "binding",
+          "prepared_plan",
+          "prepared_plan_digest"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_create_request",
+            "schema_kind": "object",
+            "required": [
+              "transaction_id",
+              "kind",
+              "principal_id",
+              "expires_at",
+              "binding",
+              "prepared_plan",
+              "prepared_plan_digest"
+            ],
+            "properties": [
+              "transaction_id",
+              "kind",
+              "principal_id",
+              "expires_at",
+              "binding",
+              "prepared_plan",
+              "prepared_plan_digest"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/security-transaction.schema.json#/$defs/security_rotation_create_request",
+            "schema_kind": "object",
+            "required": [
+              "transaction_id",
+              "kind",
+              "principal_id",
+              "expires_at",
+              "binding",
+              "prepared_plan",
+              "prepared_plan_digest"
+            ],
+            "properties": [
+              "transaction_id",
+              "kind",
+              "principal_id",
+              "expires_at",
+              "binding",
+              "prepared_plan",
+              "prepared_plan_digest"
+            ],
+            "closed": true
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/security-transaction.schema.json",
@@ -4395,6 +4503,8 @@
           "created_at",
           "request_digest",
           "binding",
+          "prepared_plan",
+          "prepared_plan_digest",
           "state",
           "accepted_steps",
           "next_required_step"
@@ -4408,6 +4518,8 @@
           "created_at",
           "request_digest",
           "binding",
+          "prepared_plan",
+          "prepared_plan_digest",
           "state",
           "accepted_steps",
           "next_required_step",
@@ -4431,6 +4543,8 @@
           "created_at",
           "request_digest",
           "binding",
+          "prepared_plan",
+          "prepared_plan_digest",
           "state",
           "accepted_steps",
           "next_required_step"
@@ -4444,6 +4558,8 @@
           "created_at",
           "request_digest",
           "binding",
+          "prepared_plan",
+          "prepared_plan_digest",
           "state",
           "accepted_steps",
           "next_required_step",
@@ -4460,10 +4576,12 @@
         "schema_kind": "object",
         "required": [
           "request_digest",
+          "prepared_plan_digest",
           "expected_next_step"
         ],
         "properties": [
           "request_digest",
+          "prepared_plan_digest",
           "expected_next_step",
           "client_attestation"
         ],
@@ -4481,6 +4599,8 @@
           "created_at",
           "request_digest",
           "binding",
+          "prepared_plan",
+          "prepared_plan_digest",
           "state",
           "accepted_steps",
           "next_required_step"
@@ -4494,6 +4614,8 @@
           "created_at",
           "request_digest",
           "binding",
+          "prepared_plan",
+          "prepared_plan_digest",
           "state",
           "accepted_steps",
           "next_required_step",

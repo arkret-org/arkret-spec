@@ -25,6 +25,8 @@ SecurityTransaction {
   created_at,
   request_digest,
   binding,
+  prepared_plan,
+  prepared_plan_digest,
   state,
   accepted_steps,
   next_required_step,
@@ -33,20 +35,25 @@ SecurityTransaction {
 ```
 
 `kind` 是 `recovery` 或 `security_rotation`。`state` 是
-`pending | running | completed | aborted | expired`；后三者是唯一终态。
+`pending | running | awaiting_device_attestation | completed | aborted | expired`；后三者是唯一终态。
 `binding` 由 `kind` 选择闭合 shape，不能使用任意键值或通用步骤 DSL。
-`accepted_steps[]` 的每项固定为
-`{step, output_ref, output_digest}`；`step` 必须属于该 kind 的闭集且在 transaction 内唯一，
+`prepared_plan` 是按 kind/model 判别的 closed typed public plan；`prepared_plan_digest` 必须
+等于其完整 canonical bytes digest。`prepared_plan` 内不得再携带自身 digest，也没有计算时
+排除某字段的隐式规则。`accepted_steps[]` 的每项固定为
+`{step, prepared_material_digest, acceptor_id, output_ref, output_digest, accepted_at}`；
+`step` 必须属于该 kind/model 的闭集且在 transaction 内唯一，
 数组必须是下述顺序的连续前缀，不能跳步、重排或为同一步记录第二个 digest。
 `next_required_step` 只能是该闭集中紧随此前缀的下一项；终态必须为 `null`。
 
 共同不变量：
 
 1. 第一个不可逆副作用前固定 `transaction_id`；
-2. 在同一原子持久化中固定 canonical request bytes/digest 和全部公开 Event/object/series id；
+2. 在同一原子持久化中固定 canonical request bytes/digest、closed typed prepared plan/digest 和
+   全部公开 Event/object/series/ticket id；
 3. 同 id + 同 canonical bytes 返回 byte-identical 已记录 result；
 4. 同 id + 不同 bytes 返回 `duplicate_conflict`；
-5. store 保存 typed binding、首次 result 与每步 accepted output ref，不能只保存“见过 id”；
+5. store 分别保存 typed binding、prepared canonical bytes、首次 result 与每步 accepted output，
+   不能只保存“见过 id”或用一个 ref 混淆 reserved/prepared/accepted；
 6. coordinator restart、response lost 与重试都从 transaction resource 续跑；
 7. 可按 id 权威查询，不由客户端猜进度；
 8. terminal 后禁止新增副作用；
@@ -65,9 +72,13 @@ SecurityTransaction {
 | `ak.self.security_transaction.resource.get` | `GET /_arkret/self/security-transactions/{transaction_id}` | `SecurityTransaction` |
 | `ak.self.security_transaction.command.continue` | `POST /_arkret/self/security-transactions/{transaction_id}/continue` | `#/$defs/continue_request` → `SecurityTransaction` |
 
-`create` 必须在一个 durable transaction 中保存 canonical request bytes/digest、typed intent、全部
-reserved ids 与初始 resource，然后才能执行第一个副作用。`continue` 的 `request_digest` 和
-`expected_next_step` 必须与当前 resource 精确相等，否则 `duplicate_conflict` /
+两种 `create` 都必须在一个 durable transaction 中保存 canonical request bytes/digest、
+typed prepared plan/digest、全部 reserved ids 与初始 resource，然后才能执行第一个副作用。
+Recovery create 还必须只接受属于同一 principal、已 verified 且尚未绑定其它 transaction 的
+recovery session，并在同一 durable commit 中 CAS 绑定该 session；SecurityRotation create
+不依赖 recovery session，必须验证当前 principal 的 high-risk action authority。`continue` 的 `request_digest`、
+`prepared_plan_digest` 和 `expected_next_step` 必须与当前 resource 精确相等，否则
+`duplicate_conflict` /
 `failed_precondition`；它不是提交任意步骤列表的接口。
 
 只有 `issue_terminal_receipt` 与 `local_commit` 可以携带 `client_attestation`，且其 `output_ref`
@@ -75,40 +86,101 @@ reserved ids 与初始 resource，然后才能执行第一个副作用。`contin
 replacement/local device 验证。其它 step 携带 client attestation 必须拒绝。`get` 是 response loss、restart 与
 跨设备续跑的权威进度查询，不得从短期 HTTP idempotency cache 合成。
 
+旧 `recovery_session.command.complete` 不属于 v1。recovery session 只负责建立 verified 证据；
+完成投影只能由接受 terminal receipt 的 RecoveryTransaction coordinator 原子写入，不能存在绕过
+transaction binding、prepared plan 和 accepted-step ledger 的第二个公开完成入口。
+
 ## 2. RecoveryTransaction
 
-RecoveryTransaction 固定绑定：
+RecoveryTransaction 必须由 `identity_model` 判别为下面两个且仅两个 closed shape。
 
-- recovery session；
-- DID/WebVH entry；
-- replacement device；
-- authorize/reanchor Event ids；
-- authority ticket；
-- terminal device-attested receipt id。
+### 2.1 A 模型：`cross_signing`
 
-这些字段必须逐项出现在 `binding`：
-`recovery_session_id`、`did_entry_ref`、`replacement_device_id`、`authorize_event_id`、
-`reanchor_event_id`、`authority_ticket_ref`、`terminal_receipt_id`。它们在首个不可逆副作用前
-全部固定；不得退化为任意键值的 reserved-id map。
+binding 必填：
 
-WebVH entry 已接受而 re-anchor response 丢失时，transaction 保持 `running` 并从相同 reserved
-ids 续跑，不得创建第二 entry 或判为 request mismatch。
+`identity_model`、`recovery_session_id`、`replacement_device_id`、`authorize_event_id`、
+`device_list_update_event_id`、`terminal_receipt_id`。
 
-Recovery 的闭合步骤顺序是：
+prepared plan 必须保存 session snapshot/proof digest、previous/result SSK generation、
+包含固定 `ak.device.authorize` 与 `ak.device.list_update` 的完整
+`EventsSubmitBatchRequestBody` typed value及其 canonical bytes/digest、目标 Principal Server/
+audience。terminal receipt 只在设备观察 accepted outputs 后生成，不属于 prepared plan。
+batch Event ids必须逐项等于
+binding。
+
+唯一连续步骤是：
 
 ```text
-open_recovery_session
-→ validate_authority_ticket
+submit_authorize_unit
+→ issue_terminal_receipt
+```
+
+`submit_authorize_unit` 是固定双 Event batch，不得拆成两个可生成新 Event id 的通用 submit。
+
+### 2.2 B 模型：`enrollment_authority`
+
+binding 必填：
+
+`identity_model`、`recovery_session_id`、`replacement_device_id`、`authority_ticket_id`、
+`did_entry_ref`、`reanchor_event_id`、`authorize_event_id`、`terminal_receipt_id`。
+
+`authority_ticket_id` 必须在 create 时作为 UUIDv7 typed id 预留；ticket 的签名 bytes 只能在
+transaction durable 后由 `issue_authority_ticket` 产生。create 不得要求一个已经存在的 ticket
+digest，否则 ticket issuance 会落到 transaction 固定之前。
+
+prepared plan 必须保存 session snapshot/proof digest、Account Authority
+authorization preimage、replacement device possession proof、planned DID entry canonical bytes/
+digest/previous head/ref、prebuilt reanchor Event submission、authority-produced authorize Event 的
+publication evidence。Account Authority 签名与 terminal receipt 都是 create 后的 accepted
+output，不属于 prepared material。
+
+ticket issue request 不得嵌入 create 的 prepared plan，因为它绑定 create `request_digest`；
+coordinator 必须在 transaction durable 后从已保存的 `transaction_id + request_digest +
+prepared_plan_digest + authority_ticket_id + expected_next_step` 确定性构造它。
+
+唯一连续步骤是：
+
+```text
+issue_authority_ticket
+→ authorize_recovery_device
 → publish_did_entry
 → submit_reanchor_unit
 → issue_terminal_receipt
 ```
 
-`submit_reanchor_unit` 原子覆盖 `reanchor_event_id` 与 `authorize_event_id`，不得拆成两个可独立
-重试并产生不同 Event id 的通用步骤。
+先取得 byte-stable authority Event，再发布不可回滚的 WebVH entry。WebVH entry 已接受而
+re-anchor response 丢失时，transaction 保持 `running` 并从相同 reserved ids、prepared bytes
+和 authority accepted output续跑，不得创建第二 entry。
 
-terminal receipt 只证明设备对 transaction digest、refs 和 result 的签名声明。服务端可以验证
-签名、引用、digest 与 release state，不能声称观察到设备完成解密或 MLS secret 导入。
+`submit_reanchor_unit` 原子覆盖固定 `reanchor_event_id` 与 authority output 中的
+`authorize_event_id`，不得拆成两个可独立重试并产生不同 Event id 的通用步骤。
+
+### 2.3 Terminal attestation
+
+terminal receipt 必须签名绑定 `transaction_id`、该 transaction 的稳定 `request_digest`、
+`prepared_plan_digest`，以及 A/B binding 的全部 artifact refs，并证明设备对 accepted outputs
+和 result 的签名声明。服务端可以验证签名、引用、digest 与 release state，不能声称观察到设备
+完成解密或 MLS secret 导入。
+
+设备必须在观察到 accepted refs 后签名，因此 coordinator 完成全部服务端步骤但客户端离线时，
+resource 必须进入 `awaiting_device_attestation`，`next_required_step=issue_terminal_receipt`。
+它不得预签 receipt 或把该状态声明为 completed。
+
+### 2.4 Recovery authority 与 grant promotion 操作
+
+| operation | HTTP | 合同 |
+| --- | --- | --- |
+| `ak.self.recovery_authority_ticket.command.issue` | `POST /_arkret/self/recovery-authority-tickets` | 只为当前 durable transaction 的下一步签发 ticket |
+| `ak.gate.account.command.authorize_recovery_device` | `POST /_arkret/gate/account/recovery-device-authorizations` | 消费 ticket，幂等返回固定 authority-signed Event |
+| `ak.gate.account.command.promote_recovery_session_grant` | `POST /_arkret/gate/account/recovery-session-grants/promote` | 以 completed transaction/receipt 与 DPoP holder proof 轮换受限 grant |
+
+ticket 必须绑定 transaction/request/plan、principal/session/policy/domain、两端 service audience、
+replacement device、generation、DID head/entry、Event ids、authorization preimage 与 possession
+proof digest。Account Authority 必须按 `(ticket_id, transaction_id, request_digest)` 一次性消费；
+同 bytes replay 返回 byte-identical outcome，不同 bytes 返回 `duplicate_conflict`。
+
+旧 recovery grant 不得原地扩大 scope。promotion 必须签发新 device/current-generation-bound
+grant，并把旧 grant chain 置于 consumed 终态。
 
 ## 3. SecurityRotationTransaction
 

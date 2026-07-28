@@ -1893,32 +1893,6 @@
       "first_expected_error": "$: 'alg' is a required property"
     },
     {
-      "name": "recovery_session_complete_request_valid",
-      "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
-      "expect_valid": true,
-      "instance": {
-        "authorization_event_id": "ak:event:01964137-0000-7000-8000-00000000a111",
-        "device_list_update_event_id": "ak:event:01964137-0000-7000-8000-00000000a222"
-      }
-    },
-    {
-      "name": "recovery_session_complete_request_missing_event_ids_rejected",
-      "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
-      "expect_valid": false,
-      "instance": {},
-      "first_expected_error": "$: 'authorization_event_id' is a required property"
-    },
-    {
-      "name": "recovery_session_enrollment_authority_complete_request_valid",
-      "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
-      "expect_valid": true,
-      "instance": {
-        "authorization_event_id": "ak:event:01964137-0000-7000-8000-00000000b111",
-        "reanchor_event_id": "ak:event:01964137-0000-7000-8000-00000000b222",
-        "reanchor_batch_receipt_id": "ak:receipt:01964137-0000-7000-8000-00000000b333"
-      }
-    },
-    {
       "name": "recovery_session_principal_signing_transcript_valid",
       "schema_ref": "schemas/recovery-session.schema.json#/$defs/principal_signing_transcript",
       "expect_valid": true,
@@ -1946,6 +1920,8 @@
         "schema": "ak.schema.recovery_receipt.v1",
         "receipt_id": "ak:receipt:019a6aa0-0000-7000-8000-0000000000cc",
         "transaction_id": "ak:transaction:019a6aa0-0000-7000-8000-0000000000dd",
+        "transaction_request_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "prepared_plan_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         "principal_id": "did:webvh:z6mkfixture:alice.example",
         "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
@@ -1980,6 +1956,9 @@
           "signed_fields": [
             "schema",
             "receipt_id",
+            "transaction_id",
+            "transaction_request_digest",
+            "prepared_plan_digest",
             "principal_id",
             "recovery_session_id",
             "policy_id",
@@ -2009,6 +1988,8 @@
         "schema": "ak.schema.recovery_receipt.v1",
         "receipt_id": "ak:receipt:019a6aa0-0000-7000-8000-0000000000cd",
         "transaction_id": "ak:transaction:019a6aa0-0000-7000-8000-0000000000dd",
+        "transaction_request_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "prepared_plan_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         "principal_id": "did:webvh:z6mkfixture:alice.example",
         "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-0000000000ab",
         "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
@@ -2021,6 +2002,8 @@
         "authorization_event_id": "ak:event:01964137-0000-7000-8000-00000000b111",
         "reanchor_event_id": "ak:event:01964137-0000-7000-8000-00000000b222",
         "reanchor_batch_receipt_id": "ak:receipt:01964137-0000-7000-8000-00000000b333",
+        "authority_ticket_id": "ak:recovery_authority_ticket:019a6aa0-0000-7000-8000-0000000000ef",
+        "did_entry_ref": "did:webvh:z6mkfixture:alice.example?versionId=2-fixturerecovery",
         "proof_summary": {
           "kind": "recovery_unlock",
           "proof_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -2037,6 +2020,9 @@
           "signed_fields": [
             "schema",
             "receipt_id",
+            "transaction_id",
+            "transaction_request_digest",
+            "prepared_plan_digest",
             "principal_id",
             "recovery_session_id",
             "policy_id",
@@ -2049,6 +2035,8 @@
             "authorization_event_id",
             "reanchor_event_id",
             "reanchor_batch_receipt_id",
+            "authority_ticket_id",
+            "did_entry_ref",
             "proof_summary",
             "backup_classes_unlocked",
             "welcome_count",
@@ -2067,6 +2055,8 @@
         "schema": "ak.schema.recovery_receipt.v1",
         "receipt_id": "ak:receipt:019a6aa0-0000-7000-8000-0000000000cc",
         "transaction_id": "ak:transaction:019a6aa0-0000-7000-8000-0000000000dd",
+        "transaction_request_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "prepared_plan_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         "principal_id": "did:webvh:z6mkfixture:alice.example",
         "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
@@ -2093,6 +2083,9 @@
           "signed_fields": [
             "schema",
             "receipt_id",
+            "transaction_id",
+            "transaction_request_digest",
+            "prepared_plan_digest",
             "principal_id",
             "recovery_session_id",
             "policy_id",
@@ -2524,17 +2517,170 @@
         "created_at": "2026-05-20T00:00:00.000Z",
         "request_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
         "binding": {
+          "identity_model": "cross_signing",
           "recovery_session_id": "ak:recovery_session:019a7360-0000-7000-8000-000000000021",
-          "did_entry_ref": "did:webvh:z6mkfixture:alice.example?versionId=entry-2",
           "replacement_device_id": "ak:device:019a7360-0000-7000-8000-000000000022",
           "authorize_event_id": "ak:event:019a7360-0000-7000-8000-000000000023",
-          "reanchor_event_id": "ak:event:019a7360-0000-7000-8000-000000000024",
-          "authority_ticket_ref": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+          "device_list_update_event_id": "ak:event:019a7360-0000-7000-8000-000000000024",
           "terminal_receipt_id": "ak:receipt:019a7360-0000-7000-8000-000000000025"
         },
+        "prepared_plan": {
+          "identity_model": "cross_signing",
+          "recovery_session_snapshot_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+          "proof_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+          "previous_model_generation_ref": 2,
+          "result_model_generation_ref": 2,
+          "authorize_unit": {
+            "operation_id": "ak.self.events.command.submit",
+            "destination_service_id": "did:webvh:z6mkfixture:coordinator.example",
+            "audience": "did:webvh:z6mkfixture:coordinator.example",
+            "request_schema": "https://arkret.org/v1/schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitBatchRequestBody",
+            "request": {
+              "events": [
+                {
+                  "event_id": "ak:event:019a7360-0000-7000-8000-000000000023",
+                  "kind": "ak.device.authorize"
+                },
+                {
+                  "event_id": "ak:event:019a7360-0000-7000-8000-000000000024",
+                  "kind": "ak.device.list_update"
+                }
+              ]
+            },
+            "canonical_request_base64url": "eyJldmVudHMiOltdfQ",
+            "request_digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+          }
+        },
+        "prepared_plan_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
         "state": "pending",
         "accepted_steps": [],
-        "next_required_step": "open_recovery_session"
+        "next_required_step": "submit_authorize_unit"
+      }
+    },
+    {
+      "name": "security_transaction_enrollment_authority_create_valid",
+      "schema_ref": "schemas/security-transaction.schema.json#/$defs/create_request",
+      "expect_valid": true,
+      "instance": {
+        "transaction_id": "ak:transaction:019a7360-0000-7000-8000-000000000030",
+        "kind": "recovery",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
+        "expires_at": "2026-05-20T12:00:00.000Z",
+        "binding": {
+          "identity_model": "enrollment_authority",
+          "recovery_session_id": "ak:recovery_session:019a7360-0000-7000-8000-000000000031",
+          "replacement_device_id": "ak:device:019a7360-0000-7000-8000-000000000032",
+          "authority_ticket_id": "ak:recovery_authority_ticket:019a7360-0000-7000-8000-000000000033",
+          "did_entry_ref": "did:webvh:z6mkfixture:alice.example?versionId=2-recovery",
+          "reanchor_event_id": "ak:event:019a7360-0000-7000-8000-000000000034",
+          "authorize_event_id": "ak:event:019a7360-0000-7000-8000-000000000035",
+          "terminal_receipt_id": "ak:receipt:019a7360-0000-7000-8000-000000000036"
+        },
+        "prepared_plan": {
+          "identity_model": "enrollment_authority",
+          "recovery_session_snapshot_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "proof_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "previous_model_generation_ref": "1-genesis",
+          "result_model_generation_ref": "2-recovery",
+          "authorization_preimage": {
+            "principal_id": "did:webvh:z6mkfixture:alice.example",
+            "replacement_device_id": "ak:device:019a7360-0000-7000-8000-000000000032",
+            "device_public_key": "z6MkReplacementDevice",
+            "hpke_key": "z6LSReplacementHpke",
+            "algorithms": [
+              "Ed25519"
+            ],
+            "recovery_session_id": "ak:recovery_session:019a7360-0000-7000-8000-000000000031",
+            "policy_id": "ak:policy:019a7360-0000-7000-8000-000000000037",
+            "policy_version": 3,
+            "trust_domain": "ak:trust_domain:example.local",
+            "identity_model": "enrollment_authority",
+            "previous_model_generation_ref": "1-genesis",
+            "result_model_generation_ref": "2-recovery",
+            "registry_previous_head": "did:webvh:z6mkfixture:alice.example?versionId=1-genesis",
+            "did_entry_ref": "did:webvh:z6mkfixture:alice.example?versionId=2-recovery",
+            "did_entry_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+            "reanchor_event_id": "ak:event:019a7360-0000-7000-8000-000000000034",
+            "authorize_event_id": "ak:event:019a7360-0000-7000-8000-000000000035",
+            "actor_seq": 7,
+            "pre_fence_frontier_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+            "not_before": "2026-05-20T00:00:00.000Z",
+            "authorize_event_preimage": {
+              "canonical_encoding": "canonical_json",
+              "value": {
+                "event_id": "ak:event:019a7360-0000-7000-8000-000000000035",
+                "kind": "ak.device.authorize"
+              },
+              "canonical_bytes_base64url": "eyJraW5kIjoiYWsuZGV2aWNlLmF1dGhvcml6ZSJ9",
+              "digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+            },
+            "possession_proof": {
+              "verification_method": "did:webvh:z6mkfixture:alice.example#replacement-device",
+              "alg": "EdDSA",
+              "transcript_digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+              "signature": "c2ln"
+            }
+          },
+          "authorization_request_digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+          "did_publication": {
+            "registry_url": "https://registry.example/did/alice",
+            "previous_entry_ref": "did:webvh:z6mkfixture:alice.example?versionId=1-genesis",
+            "expected_entry_ref": "did:webvh:z6mkfixture:alice.example?versionId=2-recovery",
+            "canonical_entry_base64url": "eyJ2ZXJzaW9uSWQiOiIyLXJlY292ZXJ5In0",
+            "entry_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+          },
+          "reanchor_event_submission": {
+            "canonical_encoding": "canonical_json",
+            "value": {
+              "event_id": "ak:event:019a7360-0000-7000-8000-000000000034",
+              "kind": "ak.device.reanchor"
+            },
+            "canonical_bytes_base64url": "eyJraW5kIjoiYWsuZGV2aWNlLnJlYW5jaG9yIn0",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "reanchor_event_submission_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "authorize_event_publication_material": {
+            "event_id": "ak:event:019a7360-0000-7000-8000-000000000035",
+            "publication_material_schema": "https://arkret.org/v1/schemas/service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
+            "publication_material": {
+              "canonical_encoding": "canonical_json",
+              "value": {
+                "authorization_lease_id": "ak:authorization_lease:019a7360-0000-7000-8000-000000000038"
+              },
+              "canonical_bytes_base64url": "eyJhdXRob3JpemF0aW9uX2xlYXNlX2lkIjoiZml4ZWQifQ",
+              "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "material_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        },
+        "prepared_plan_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    },
+    {
+      "name": "security_transaction_enrollment_authority_step_reorder_rejected",
+      "schema_ref": "schemas/security-transaction.schema.json#/$defs/enrollment_authority_accepted_steps",
+      "expect_valid": false,
+      "first_expected_error": "$[0].step: 'issue_authority_ticket' was expected",
+      "instance": [
+        {
+          "step": "publish_did_entry",
+          "prepared_material_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "acceptor_id": "did:webvh:z6mkfixture:registry.example",
+          "output_ref": "did:webvh:z6mkfixture:alice.example?versionId=2-recovery",
+          "output_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "accepted_at": "2026-05-20T00:01:00.000Z"
+        }
+      ]
+    },
+    {
+      "name": "security_transaction_terminal_continue_without_device_attestation_rejected",
+      "schema_ref": "schemas/security-transaction.schema.json#/$defs/continue_request",
+      "expect_valid": false,
+      "first_expected_error": "$: 'client_attestation' is a required property",
+      "instance": {
+        "request_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "prepared_plan_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "expected_next_step": "issue_terminal_receipt"
       }
     },
     {

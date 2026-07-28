@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/security-transaction.schema.json",
   "title": "Arkret Security Transaction",
+  "description": "Closed durable RecoveryTransaction and SecurityRotationTransaction resource. Binding, prepared plan and accepted outputs are separate protocol states.",
   "type": "object",
   "required": [
     "transaction_id",
@@ -12,14 +13,15 @@
     "created_at",
     "request_digest",
     "binding",
+    "prepared_plan",
+    "prepared_plan_digest",
     "state",
     "accepted_steps",
     "next_required_step"
   ],
   "properties": {
     "transaction_id": {
-      "type": "string",
-      "pattern": "^ak:transaction:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "#/$defs/transaction_id"
     },
     "kind": {
       "type": "string",
@@ -46,18 +48,39 @@
     "binding": {
       "oneOf": [
         {
-          "$ref": "#/$defs/recovery_binding"
+          "$ref": "#/$defs/cross_signing_recovery_binding"
+        },
+        {
+          "$ref": "#/$defs/enrollment_authority_recovery_binding"
         },
         {
           "$ref": "#/$defs/security_rotation_binding"
         }
       ]
     },
+    "prepared_plan": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/cross_signing_recovery_plan"
+        },
+        {
+          "$ref": "#/$defs/enrollment_authority_recovery_plan"
+        },
+        {
+          "$ref": "#/$defs/security_rotation_plan"
+        }
+      ]
+    },
+    "prepared_plan_digest": {
+      "$ref": "#/$defs/hash",
+      "description": "Digest of canonical prepared_plan bytes. Implementations MUST recompute it and persist both bytes and typed value before the first side effect."
+    },
     "state": {
       "type": "string",
       "enum": [
         "pending",
         "running",
+        "awaiting_device_attestation",
         "completed",
         "aborted",
         "expired"
@@ -66,7 +89,6 @@
     "accepted_steps": {
       "type": "array",
       "maxItems": 5,
-      "uniqueItems": true,
       "items": {
         "$ref": "#/$defs/accepted_step"
       }
@@ -74,19 +96,7 @@
     "next_required_step": {
       "oneOf": [
         {
-          "type": "string",
-          "enum": [
-            "open_recovery_session",
-            "validate_authority_ticket",
-            "publish_did_entry",
-            "submit_reanchor_unit",
-            "issue_terminal_receipt",
-            "revoke",
-            "upload_new_material",
-            "switch_authoritative_pointer",
-            "erase_old_material",
-            "local_commit"
-          ]
+          "$ref": "#/$defs/any_step"
         },
         {
           "type": "null"
@@ -94,33 +104,7 @@
       ]
     },
     "terminal_result": {
-      "type": "object",
-      "required": [
-        "result",
-        "completed_at"
-      ],
-      "properties": {
-        "result": {
-          "type": "string",
-          "enum": [
-            "completed",
-            "aborted",
-            "expired"
-          ]
-        },
-        "completed_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "receipt_id": {
-          "type": "string",
-          "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "reason_code": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]{0,63}$"
-        }
-      },
-      "additionalProperties": false
+      "$ref": "#/$defs/terminal_result"
     }
   },
   "allOf": [
@@ -136,36 +120,91 @@
         ]
       },
       "then": {
-        "properties": {
-          "binding": {
-            "$ref": "#/$defs/recovery_binding"
-          },
-          "accepted_steps": {
-            "items": {
-              "$ref": "#/$defs/recovery_accepted_step"
-            }
-          },
-          "next_required_step": {
-            "oneOf": [
-              {
-                "$ref": "#/$defs/recovery_step"
-              },
-              {
-                "type": "null"
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "binding": {
+                  "properties": {
+                    "identity_model": {
+                      "const": "cross_signing"
+                    }
+                  },
+                  "required": [
+                    "identity_model"
+                  ]
+                }
               }
-            ]
+            },
+            "then": {
+              "properties": {
+                "binding": {
+                  "$ref": "#/$defs/cross_signing_recovery_binding"
+                },
+                "prepared_plan": {
+                  "$ref": "#/$defs/cross_signing_recovery_plan"
+                },
+                "accepted_steps": {
+                  "$ref": "#/$defs/cross_signing_accepted_steps"
+                },
+                "next_required_step": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/$defs/cross_signing_recovery_step"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "allOf": [
+                {
+                  "$ref": "#/$defs/cross_signing_progress_contract"
+                }
+              ]
+            },
+            "else": {
+              "properties": {
+                "binding": {
+                  "$ref": "#/$defs/enrollment_authority_recovery_binding"
+                },
+                "prepared_plan": {
+                  "$ref": "#/$defs/enrollment_authority_recovery_plan"
+                },
+                "accepted_steps": {
+                  "$ref": "#/$defs/enrollment_authority_accepted_steps"
+                },
+                "next_required_step": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/$defs/enrollment_authority_recovery_step"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "allOf": [
+                {
+                  "$ref": "#/$defs/enrollment_authority_progress_contract"
+                }
+              ]
+            }
           }
-        }
+        ]
       },
       "else": {
         "properties": {
           "binding": {
             "$ref": "#/$defs/security_rotation_binding"
           },
+          "prepared_plan": {
+            "$ref": "#/$defs/security_rotation_plan"
+          },
           "accepted_steps": {
-            "items": {
-              "$ref": "#/$defs/security_rotation_accepted_step"
-            }
+            "$ref": "#/$defs/security_rotation_accepted_steps"
           },
           "next_required_step": {
             "oneOf": [
@@ -177,7 +216,12 @@
               }
             ]
           }
-        }
+        },
+        "allOf": [
+          {
+            "$ref": "#/$defs/security_rotation_progress_contract"
+          }
+        ]
       }
     },
     {
@@ -206,11 +250,6 @@
         }
       },
       "else": {
-        "properties": {
-          "next_required_step": {
-            "type": "string"
-          }
-        },
         "not": {
           "required": [
             "terminal_result"
@@ -236,7 +275,10 @@
               "result": {
                 "const": "completed"
               }
-            }
+            },
+            "required": [
+              "receipt_id"
+            ]
           }
         }
       }
@@ -290,179 +332,29 @@
   ],
   "additionalProperties": false,
   "$defs": {
-    "create_request": {
-      "type": "object",
-      "required": [
-        "transaction_id",
-        "kind",
-        "principal_id",
-        "expires_at",
-        "intent"
-      ],
-      "properties": {
-        "transaction_id": {
-          "type": "string",
-          "pattern": "^ak:transaction:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "kind": {
-          "type": "string",
-          "enum": [
-            "recovery",
-            "security_rotation"
-          ]
-        },
-        "principal_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did"
-        },
-        "expires_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "intent": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/recovery_intent"
-            },
-            {
-              "$ref": "#/$defs/security_rotation_intent"
-            }
-          ]
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "kind": {
-                "const": "recovery"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          },
-          "then": {
-            "properties": {
-              "intent": {
-                "$ref": "#/$defs/recovery_intent"
-              }
-            }
-          },
-          "else": {
-            "properties": {
-              "intent": {
-                "$ref": "#/$defs/security_rotation_intent"
-              }
-            }
-          }
-        }
-      ],
-      "additionalProperties": false
-    },
-    "continue_request": {
-      "type": "object",
-      "required": [
-        "request_digest",
-        "expected_next_step"
-      ],
-      "properties": {
-        "request_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "expected_next_step": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/recovery_step"
-            },
-            {
-              "$ref": "#/$defs/security_rotation_step"
-            }
-          ]
-        },
-        "client_attestation": {
-          "$ref": "#/$defs/client_step_attestation"
-        }
-      },
-      "additionalProperties": false
-    },
-    "client_step_attestation": {
-      "type": "object",
-      "required": [
-        "output_ref",
-        "output_digest",
-        "proof"
-      ],
-      "properties": {
-        "output_ref": {
-          "$ref": "#/$defs/step_output_ref"
-        },
-        "output_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "proof": {
-          "$ref": "./event-envelope.schema.json#/$defs/proof"
-        }
-      },
-      "additionalProperties": false
-    },
-    "recovery_intent": {
-      "type": "object",
-      "required": [
-        "recovery_session_id",
-        "replacement_device_id",
-        "authority_ticket_ref",
-        "did_entry_digest",
-        "replacement_device_authorization_digest"
-      ],
-      "properties": {
-        "recovery_session_id": {
-          "$ref": "#/$defs/recovery_session_id"
-        },
-        "replacement_device_id": {
-          "$ref": "./common-ids.schema.json#/$defs/device_id"
-        },
-        "authority_ticket_ref": {
-          "$ref": "#/$defs/step_output_ref"
-        },
-        "did_entry_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "replacement_device_authorization_digest": {
-          "$ref": "#/$defs/hash"
-        }
-      },
-      "additionalProperties": false
-    },
-    "security_rotation_intent": {
-      "type": "object",
-      "required": [
-        "revoke_event_digest",
-        "new_secret_commitment",
-        "staged_material_digest"
-      ],
-      "properties": {
-        "revoke_event_digest": {
-          "$ref": "#/$defs/hash"
-        },
-        "new_secret_commitment": {
-          "$ref": "#/$defs/hash"
-        },
-        "staged_material_digest": {
-          "$ref": "#/$defs/hash"
-        }
-      },
-      "additionalProperties": false
-    },
     "hash": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    },
+    "transaction_id": {
+      "type": "string",
+      "pattern": "^ak:transaction:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "recovery_session_id": {
+      "type": "string",
+      "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "authority_ticket_id": {
+      "type": "string",
+      "pattern": "^ak:recovery_authority_ticket:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "event_id": {
       "type": "string",
       "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "recovery_session_id": {
+    "receipt_id": {
       "type": "string",
-      "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "backup_series_id": {
       "type": "string",
@@ -474,94 +366,137 @@
     },
     "step_output_ref": {
       "type": "string",
-      "pattern": "^(?:ak:[a-z][a-z0-9_]*:[^\\s]+|did:[^\\s]+|(?:sha256|blake3):[0-9a-f]{64})$",
-      "description": "Pre-reserved heterogeneous step output reference. It MUST equal the exact typed id, Event id, content digest, or profile-defined proof reference reserved in binding for the current closed transaction step."
+      "minLength": 1,
+      "maxLength": 2048
     },
-    "accepted_step": {
+    "cross_signing_generation_ref": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "did_generation_ref": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*-[^\\s]+$"
+    },
+    "prepared_event_unit": {
       "type": "object",
+      "description": "Exact typed Event submit request and its persisted canonical bytes. The request MUST be a batch whose Event ids and kinds equal the enclosing closed plan.",
       "required": [
-        "step",
-        "output_ref",
-        "output_digest"
+        "operation_id",
+        "destination_service_id",
+        "audience",
+        "request_schema",
+        "request",
+        "canonical_request_base64url",
+        "request_digest"
       ],
       "properties": {
-        "step": {
-          "type": "string"
+        "operation_id": {
+          "type": "string",
+          "const": "ak.self.events.command.submit"
         },
-        "output_ref": {
-          "$ref": "#/$defs/step_output_ref"
+        "destination_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
-        "output_digest": {
+        "audience": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "request_schema": {
+          "type": "string",
+          "const": "https://arkret.org/v1/schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitBatchRequestBody"
+        },
+        "request": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": true,
+          "description": "Typed value that MUST independently validate against request_schema. The indirection keeps the transaction schema acyclic while preserving a closed schema identity."
+        },
+        "canonical_request_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "request_digest": {
           "$ref": "#/$defs/hash"
         }
       },
       "additionalProperties": false
     },
-    "recovery_step": {
-      "type": "string",
-      "enum": [
-        "open_recovery_session",
-        "validate_authority_ticket",
-        "publish_did_entry",
-        "submit_reanchor_unit",
-        "issue_terminal_receipt"
-      ]
-    },
-    "recovery_accepted_step": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/accepted_step"
+    "prepared_event_publication_material": {
+      "type": "object",
+      "description": "Publication evidence fixed for an authority-produced Event whose signed Event bytes become an accepted output after create.",
+      "required": [
+        "event_id",
+        "publication_material_schema",
+        "publication_material",
+        "material_digest"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "#/$defs/event_id"
         },
-        {
-          "properties": {
-            "step": {
-              "$ref": "#/$defs/recovery_step"
-            }
-          }
-        }
-      ]
-    },
-    "security_rotation_step": {
-      "type": "string",
-      "enum": [
-        "revoke",
-        "upload_new_material",
-        "switch_authoritative_pointer",
-        "erase_old_material",
-        "local_commit"
-      ]
-    },
-    "security_rotation_accepted_step": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/accepted_step"
+        "publication_material_schema": {
+          "type": "string",
+          "const": "https://arkret.org/v1/schemas/service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
         },
-        {
-          "properties": {
-            "step": {
-              "$ref": "#/$defs/security_rotation_step"
-            }
-          }
+        "publication_material": {
+          "$ref": "./recovery-authority.schema.json#/$defs/canonical_public_material",
+          "description": "Canonical typed publication wrapper containing the authorization lease and any CBA proof bundles. The authority-produced Event is inserted only after its accepted output is available."
+        },
+        "material_digest": {
+          "$ref": "#/$defs/hash"
         }
-      ]
+      },
+      "additionalProperties": false
     },
-    "recovery_binding": {
+    "prepared_did_publication": {
       "type": "object",
       "required": [
+        "registry_url",
+        "previous_entry_ref",
+        "expected_entry_ref",
+        "canonical_entry_base64url",
+        "entry_digest"
+      ],
+      "properties": {
+        "registry_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "previous_entry_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_entry_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "canonical_entry_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "entry_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "cross_signing_recovery_binding": {
+      "type": "object",
+      "required": [
+        "identity_model",
         "recovery_session_id",
-        "did_entry_ref",
         "replacement_device_id",
         "authorize_event_id",
-        "reanchor_event_id",
-        "authority_ticket_ref",
+        "device_list_update_event_id",
         "terminal_receipt_id"
       ],
       "properties": {
+        "identity_model": {
+          "type": "string",
+          "const": "cross_signing"
+        },
         "recovery_session_id": {
           "$ref": "#/$defs/recovery_session_id"
-        },
-        "did_entry_ref": {
-          "$ref": "#/$defs/step_output_ref"
         },
         "replacement_device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
@@ -569,15 +504,139 @@
         "authorize_event_id": {
           "$ref": "#/$defs/event_id"
         },
+        "device_list_update_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "terminal_receipt_id": {
+          "$ref": "#/$defs/receipt_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "enrollment_authority_recovery_binding": {
+      "type": "object",
+      "required": [
+        "identity_model",
+        "recovery_session_id",
+        "replacement_device_id",
+        "authority_ticket_id",
+        "did_entry_ref",
+        "reanchor_event_id",
+        "authorize_event_id",
+        "terminal_receipt_id"
+      ],
+      "properties": {
+        "identity_model": {
+          "type": "string",
+          "const": "enrollment_authority"
+        },
+        "recovery_session_id": {
+          "$ref": "#/$defs/recovery_session_id"
+        },
+        "replacement_device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "authority_ticket_id": {
+          "$ref": "#/$defs/authority_ticket_id"
+        },
+        "did_entry_ref": {
+          "type": "string",
+          "minLength": 1
+        },
         "reanchor_event_id": {
           "$ref": "#/$defs/event_id"
         },
-        "authority_ticket_ref": {
-          "$ref": "#/$defs/step_output_ref"
+        "authorize_event_id": {
+          "$ref": "#/$defs/event_id"
         },
         "terminal_receipt_id": {
+          "$ref": "#/$defs/receipt_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "cross_signing_recovery_plan": {
+      "type": "object",
+      "required": [
+        "identity_model",
+        "recovery_session_snapshot_digest",
+        "proof_digest",
+        "previous_model_generation_ref",
+        "result_model_generation_ref",
+        "authorize_unit"
+      ],
+      "properties": {
+        "identity_model": {
           "type": "string",
-          "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "const": "cross_signing"
+        },
+        "recovery_session_snapshot_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "proof_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "previous_model_generation_ref": {
+          "$ref": "#/$defs/cross_signing_generation_ref"
+        },
+        "result_model_generation_ref": {
+          "$ref": "#/$defs/cross_signing_generation_ref"
+        },
+        "authorize_unit": {
+          "$ref": "#/$defs/prepared_event_unit"
+        }
+      },
+      "additionalProperties": false
+    },
+    "enrollment_authority_recovery_plan": {
+      "type": "object",
+      "required": [
+        "identity_model",
+        "recovery_session_snapshot_digest",
+        "proof_digest",
+        "previous_model_generation_ref",
+        "result_model_generation_ref",
+        "authorization_preimage",
+        "authorization_request_digest",
+        "did_publication",
+        "reanchor_event_submission",
+        "reanchor_event_submission_digest",
+        "authorize_event_publication_material"
+      ],
+      "properties": {
+        "identity_model": {
+          "type": "string",
+          "const": "enrollment_authority"
+        },
+        "recovery_session_snapshot_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "proof_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "previous_model_generation_ref": {
+          "$ref": "#/$defs/did_generation_ref"
+        },
+        "result_model_generation_ref": {
+          "$ref": "#/$defs/did_generation_ref"
+        },
+        "authorization_preimage": {
+          "$ref": "./recovery-authority.schema.json#/$defs/authorization_preimage"
+        },
+        "authorization_request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "did_publication": {
+          "$ref": "#/$defs/prepared_did_publication"
+        },
+        "reanchor_event_submission": {
+          "$ref": "./recovery-authority.schema.json#/$defs/canonical_public_material"
+        },
+        "reanchor_event_submission_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "authorize_event_publication_material": {
+          "$ref": "#/$defs/prepared_event_publication_material"
         }
       },
       "additionalProperties": false
@@ -616,6 +675,893 @@
           "$ref": "#/$defs/hash"
         }
       },
+      "additionalProperties": false
+    },
+    "security_rotation_plan": {
+      "type": "object",
+      "required": [
+        "revoke_unit",
+        "new_secret_commitment",
+        "encrypted_backup_material",
+        "active_series_unit",
+        "erase_confirmation_digest",
+        "local_commit_digest"
+      ],
+      "properties": {
+        "revoke_unit": {
+          "$ref": "#/$defs/prepared_event_unit"
+        },
+        "new_secret_commitment": {
+          "$ref": "#/$defs/hash"
+        },
+        "encrypted_backup_material": {
+          "$ref": "./recovery-authority.schema.json#/$defs/canonical_public_material"
+        },
+        "active_series_unit": {
+          "$ref": "#/$defs/prepared_event_unit"
+        },
+        "erase_confirmation_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "local_commit_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "accepted_step": {
+      "type": "object",
+      "required": [
+        "step",
+        "prepared_material_digest",
+        "acceptor_id",
+        "output_ref",
+        "output_digest",
+        "accepted_at"
+      ],
+      "properties": {
+        "step": {
+          "$ref": "#/$defs/any_step"
+        },
+        "prepared_material_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "acceptor_id": {
+          "type": "string",
+          "pattern": "^(did:[a-z0-9]+:[^\\s#?]+|ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
+        },
+        "output_ref": {
+          "$ref": "#/$defs/step_output_ref"
+        },
+        "output_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "accepted_submit_authorize_unit": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/accepted_step"
+        },
+        {
+          "properties": {
+            "step": {
+              "const": "submit_authorize_unit"
+            }
+          }
+        }
+      ]
+    },
+    "accepted_issue_authority_ticket": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/accepted_step"
+        },
+        {
+          "properties": {
+            "step": {
+              "const": "issue_authority_ticket"
+            }
+          }
+        }
+      ]
+    },
+    "accepted_authorize_recovery_device": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/accepted_step"
+        },
+        {
+          "properties": {
+            "step": {
+              "const": "authorize_recovery_device"
+            }
+          }
+        }
+      ]
+    },
+    "accepted_publish_did_entry": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/accepted_step"
+        },
+        {
+          "properties": {
+            "step": {
+              "const": "publish_did_entry"
+            }
+          }
+        }
+      ]
+    },
+    "accepted_submit_reanchor_unit": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/accepted_step"
+        },
+        {
+          "properties": {
+            "step": {
+              "const": "submit_reanchor_unit"
+            }
+          }
+        }
+      ]
+    },
+    "accepted_issue_terminal_receipt": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/accepted_step"
+        },
+        {
+          "properties": {
+            "step": {
+              "const": "issue_terminal_receipt"
+            }
+          }
+        }
+      ]
+    },
+    "accepted_revoke": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/accepted_step"
+        },
+        {
+          "properties": {
+            "step": {
+              "const": "revoke"
+            }
+          }
+        }
+      ]
+    },
+    "accepted_upload_new_material": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/accepted_step"
+        },
+        {
+          "properties": {
+            "step": {
+              "const": "upload_new_material"
+            }
+          }
+        }
+      ]
+    },
+    "accepted_switch_authoritative_pointer": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/accepted_step"
+        },
+        {
+          "properties": {
+            "step": {
+              "const": "switch_authoritative_pointer"
+            }
+          }
+        }
+      ]
+    },
+    "accepted_erase_old_material": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/accepted_step"
+        },
+        {
+          "properties": {
+            "step": {
+              "const": "erase_old_material"
+            }
+          }
+        }
+      ]
+    },
+    "accepted_local_commit": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/accepted_step"
+        },
+        {
+          "properties": {
+            "step": {
+              "const": "local_commit"
+            }
+          }
+        }
+      ]
+    },
+    "cross_signing_accepted_steps": {
+      "type": "array",
+      "maxItems": 2,
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/accepted_submit_authorize_unit"
+        },
+        {
+          "$ref": "#/$defs/accepted_issue_terminal_receipt"
+        }
+      ],
+      "items": false
+    },
+    "enrollment_authority_accepted_steps": {
+      "type": "array",
+      "maxItems": 5,
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/accepted_issue_authority_ticket"
+        },
+        {
+          "$ref": "#/$defs/accepted_authorize_recovery_device"
+        },
+        {
+          "$ref": "#/$defs/accepted_publish_did_entry"
+        },
+        {
+          "$ref": "#/$defs/accepted_submit_reanchor_unit"
+        },
+        {
+          "$ref": "#/$defs/accepted_issue_terminal_receipt"
+        }
+      ],
+      "items": false
+    },
+    "security_rotation_accepted_steps": {
+      "type": "array",
+      "maxItems": 5,
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/accepted_revoke"
+        },
+        {
+          "$ref": "#/$defs/accepted_upload_new_material"
+        },
+        {
+          "$ref": "#/$defs/accepted_switch_authoritative_pointer"
+        },
+        {
+          "$ref": "#/$defs/accepted_erase_old_material"
+        },
+        {
+          "$ref": "#/$defs/accepted_local_commit"
+        }
+      ],
+      "items": false
+    },
+    "cross_signing_recovery_step": {
+      "type": "string",
+      "enum": [
+        "submit_authorize_unit",
+        "issue_terminal_receipt"
+      ]
+    },
+    "enrollment_authority_recovery_step": {
+      "type": "string",
+      "enum": [
+        "issue_authority_ticket",
+        "authorize_recovery_device",
+        "publish_did_entry",
+        "submit_reanchor_unit",
+        "issue_terminal_receipt"
+      ]
+    },
+    "security_rotation_step": {
+      "type": "string",
+      "enum": [
+        "revoke",
+        "upload_new_material",
+        "switch_authoritative_pointer",
+        "erase_old_material",
+        "local_commit"
+      ]
+    },
+    "any_step": {
+      "type": "string",
+      "enum": [
+        "submit_authorize_unit",
+        "issue_authority_ticket",
+        "authorize_recovery_device",
+        "publish_did_entry",
+        "submit_reanchor_unit",
+        "issue_terminal_receipt",
+        "revoke",
+        "upload_new_material",
+        "switch_authoritative_pointer",
+        "erase_old_material",
+        "local_commit"
+      ]
+    },
+    "cross_signing_progress_contract": {
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "pending",
+                  "running",
+                  "awaiting_device_attestation"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "accepted_steps": {
+                    "maxItems": 0
+                  },
+                  "next_required_step": {
+                    "const": "submit_authorize_unit"
+                  },
+                  "state": {
+                    "enum": [
+                      "pending",
+                      "running"
+                    ]
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "accepted_steps": {
+                    "minItems": 1,
+                    "maxItems": 1
+                  },
+                  "next_required_step": {
+                    "const": "issue_terminal_receipt"
+                  },
+                  "state": {
+                    "const": "awaiting_device_attestation"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "completed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "accepted_steps": {
+                "minItems": 2,
+                "maxItems": 2
+              }
+            }
+          }
+        }
+      ]
+    },
+    "enrollment_authority_progress_contract": {
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "pending",
+                  "running",
+                  "awaiting_device_attestation"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "accepted_steps": {
+                    "maxItems": 0
+                  },
+                  "next_required_step": {
+                    "const": "issue_authority_ticket"
+                  },
+                  "state": {
+                    "enum": [
+                      "pending",
+                      "running"
+                    ]
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "accepted_steps": {
+                    "minItems": 1,
+                    "maxItems": 1
+                  },
+                  "next_required_step": {
+                    "const": "authorize_recovery_device"
+                  },
+                  "state": {
+                    "const": "running"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "accepted_steps": {
+                    "minItems": 2,
+                    "maxItems": 2
+                  },
+                  "next_required_step": {
+                    "const": "publish_did_entry"
+                  },
+                  "state": {
+                    "const": "running"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "accepted_steps": {
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "next_required_step": {
+                    "const": "submit_reanchor_unit"
+                  },
+                  "state": {
+                    "const": "running"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "accepted_steps": {
+                    "minItems": 4,
+                    "maxItems": 4
+                  },
+                  "next_required_step": {
+                    "const": "issue_terminal_receipt"
+                  },
+                  "state": {
+                    "const": "awaiting_device_attestation"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "completed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "accepted_steps": {
+                "minItems": 5,
+                "maxItems": 5
+              }
+            }
+          }
+        }
+      ]
+    },
+    "security_rotation_progress_contract": {
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "pending",
+                  "running",
+                  "awaiting_device_attestation"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "accepted_steps": {
+                    "maxItems": 0
+                  },
+                  "next_required_step": {
+                    "const": "revoke"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "accepted_steps": {
+                    "minItems": 1,
+                    "maxItems": 1
+                  },
+                  "next_required_step": {
+                    "const": "upload_new_material"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "accepted_steps": {
+                    "minItems": 2,
+                    "maxItems": 2
+                  },
+                  "next_required_step": {
+                    "const": "switch_authoritative_pointer"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "accepted_steps": {
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "next_required_step": {
+                    "const": "erase_old_material"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "accepted_steps": {
+                    "minItems": 4,
+                    "maxItems": 4
+                  },
+                  "next_required_step": {
+                    "const": "local_commit"
+                  },
+                  "state": {
+                    "const": "awaiting_device_attestation"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "completed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "accepted_steps": {
+                "minItems": 5,
+                "maxItems": 5
+              }
+            }
+          }
+        }
+      ]
+    },
+    "client_step_attestation": {
+      "type": "object",
+      "required": [
+        "step",
+        "output_ref",
+        "transaction_id",
+        "transaction_request_digest",
+        "prepared_plan_digest",
+        "attestation_digest",
+        "verification_method",
+        "alg",
+        "signature"
+      ],
+      "properties": {
+        "step": {
+          "type": "string",
+          "enum": [
+            "issue_terminal_receipt",
+            "local_commit"
+          ]
+        },
+        "output_ref": {
+          "$ref": "#/$defs/step_output_ref"
+        },
+        "transaction_id": {
+          "$ref": "#/$defs/transaction_id"
+        },
+        "transaction_request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "prepared_plan_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "attestation_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "alg": {
+          "type": "string",
+          "const": "EdDSA"
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "terminal_result": {
+      "type": "object",
+      "required": [
+        "result",
+        "completed_at"
+      ],
+      "properties": {
+        "result": {
+          "type": "string",
+          "enum": [
+            "completed",
+            "aborted",
+            "expired"
+          ]
+        },
+        "completed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "receipt_id": {
+          "$ref": "#/$defs/receipt_id"
+        },
+        "reason_code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "recovery_create_request": {
+      "type": "object",
+      "required": [
+        "transaction_id",
+        "kind",
+        "principal_id",
+        "expires_at",
+        "binding",
+        "prepared_plan",
+        "prepared_plan_digest"
+      ],
+      "properties": {
+        "transaction_id": {
+          "$ref": "#/$defs/transaction_id"
+        },
+        "kind": {
+          "type": "string",
+          "const": "recovery"
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "binding": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/cross_signing_recovery_binding"
+            },
+            {
+              "$ref": "#/$defs/enrollment_authority_recovery_binding"
+            }
+          ]
+        },
+        "prepared_plan": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/cross_signing_recovery_plan"
+            },
+            {
+              "$ref": "#/$defs/enrollment_authority_recovery_plan"
+            }
+          ]
+        },
+        "prepared_plan_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "binding": {
+                "properties": {
+                  "identity_model": {
+                    "const": "cross_signing"
+                  }
+                },
+                "required": [
+                  "identity_model"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "prepared_plan": {
+                "$ref": "#/$defs/cross_signing_recovery_plan"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "prepared_plan": {
+                "$ref": "#/$defs/enrollment_authority_recovery_plan"
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "security_rotation_create_request": {
+      "type": "object",
+      "required": [
+        "transaction_id",
+        "kind",
+        "principal_id",
+        "expires_at",
+        "binding",
+        "prepared_plan",
+        "prepared_plan_digest"
+      ],
+      "properties": {
+        "transaction_id": {
+          "$ref": "#/$defs/transaction_id"
+        },
+        "kind": {
+          "type": "string",
+          "const": "security_rotation"
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "binding": {
+          "$ref": "#/$defs/security_rotation_binding"
+        },
+        "prepared_plan": {
+          "$ref": "#/$defs/security_rotation_plan"
+        },
+        "prepared_plan_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "create_request": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/recovery_create_request"
+        },
+        {
+          "$ref": "#/$defs/security_rotation_create_request"
+        }
+      ]
+    },
+    "continue_request": {
+      "type": "object",
+      "required": [
+        "request_digest",
+        "prepared_plan_digest",
+        "expected_next_step"
+      ],
+      "properties": {
+        "request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "prepared_plan_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "expected_next_step": {
+          "$ref": "#/$defs/any_step"
+        },
+        "client_attestation": {
+          "$ref": "#/$defs/client_step_attestation"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "client_attestation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "expected_next_step": {
+                "enum": [
+                  "issue_terminal_receipt",
+                  "local_commit"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "expected_next_step": {
+                "enum": [
+                  "issue_terminal_receipt",
+                  "local_commit"
+                ]
+              }
+            },
+            "required": [
+              "expected_next_step"
+            ]
+          },
+          "then": {
+            "required": [
+              "client_attestation"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "client_attestation"
+              ]
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     }
   }

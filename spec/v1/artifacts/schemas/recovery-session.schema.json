@@ -32,6 +32,10 @@
       "type": "string",
       "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "transaction_id": {
+      "type": "string",
+      "pattern": "^ak:transaction:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
     "trust_domain": {
       "$ref": "./common-ids.schema.json#/$defs/trust_domain"
     },
@@ -184,6 +188,10 @@
         },
         "proof_summary": {
           "$ref": "#/$defs/proof_summary"
+        },
+        "transaction_id": {
+          "$ref": "#/$defs/transaction_id",
+          "description": "Unique durable RecoveryTransaction bound by CAS after verification. Absent until transaction create succeeds."
         },
         "rejection_reason_code": {
           "type": "string",
@@ -605,159 +613,6 @@
         },
         "proof_summary": {
           "$ref": "#/$defs/proof_summary"
-        }
-      },
-      "additionalProperties": false
-    },
-    "event_id": {
-      "type": "string",
-      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "recovery_session_complete_request_body": {
-      "type": "object",
-      "description": "Recovery completion references only accepted artifacts; the server derives the identity model and snapshotted generation from recovery_session_state. A references accepted authorize/list-update events. B references the accepted atomic re-anchor/authorize unit and its batch receipt; isolated event-store presence is insufficient.",
-      "required": [
-        "authorization_event_id"
-      ],
-      "oneOf": [
-        {
-          "required": [
-            "device_list_update_event_id"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "reanchor_event_id"
-                ]
-              },
-              {
-                "required": [
-                  "reanchor_batch_receipt_id"
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "required": [
-            "reanchor_event_id",
-            "reanchor_batch_receipt_id"
-          ],
-          "not": {
-            "required": [
-              "device_list_update_event_id"
-            ]
-          }
-        }
-      ],
-      "properties": {
-        "authorization_event_id": {
-          "$ref": "#/$defs/event_id",
-          "description": "event_id of the client-submitted, accepted ak.device.authorize."
-        },
-        "device_list_update_event_id": {
-          "$ref": "#/$defs/event_id",
-          "description": "event_id of the client-submitted, accepted ak.device.list_update."
-        },
-        "reanchor_event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "reanchor_batch_receipt_id": {
-          "type": "string",
-          "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "idempotency_key": {
-          "type": "string",
-          "minLength": 1
-        }
-      },
-      "additionalProperties": false
-    },
-    "recovery_session_complete_outcome": {
-      "type": "object",
-      "required": [
-        "ok",
-        "recovery_session_id",
-        "state",
-        "device_id",
-        "identity_model",
-        "authorization_event_id"
-      ],
-      "oneOf": [
-        {
-          "properties": {
-            "identity_model": {
-              "const": "cross_signing"
-            }
-          },
-          "required": [
-            "device_list_update_event_id"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "reanchor_event_id"
-                ]
-              },
-              {
-                "required": [
-                  "reanchor_batch_receipt_id"
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "properties": {
-            "identity_model": {
-              "const": "enrollment_authority"
-            }
-          },
-          "required": [
-            "reanchor_event_id",
-            "reanchor_batch_receipt_id"
-          ],
-          "not": {
-            "required": [
-              "device_list_update_event_id"
-            ]
-          }
-        }
-      ],
-      "properties": {
-        "ok": {
-          "const": true
-        },
-        "recovery_session_id": {
-          "$ref": "#/$defs/recovery_session_id"
-        },
-        "state": {
-          "const": "completed"
-        },
-        "device_id": {
-          "$ref": "#/$defs/device_id"
-        },
-        "identity_model": {
-          "$ref": "#/$defs/identity_model"
-        },
-        "authorization_event_id": {
-          "type": "string",
-          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Accepted ak.device.authorize event emitted to the principal control stream."
-        },
-        "device_list_update_event_id": {
-          "type": "string",
-          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Accepted ak.device.list_update event emitted to the principal control stream."
-        },
-        "reanchor_event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "reanchor_batch_receipt_id": {
-          "type": "string",
-          "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       },
       "additionalProperties": false
