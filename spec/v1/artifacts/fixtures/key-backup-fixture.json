@@ -1417,23 +1417,52 @@
         "ssk_generation": 2,
         "publication_authority_context": {
           "identity_model": "cross_signing",
-          "issuer_key_role": "self_signing",
           "basis_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "scope_ref": {
             "kind": "realm",
             "realm_id": "ak:realm:01964142-0000-7000-8000-000000000001"
           },
           "authority_set_ref": {
-            "authority_set_id": "ak.authority_set.recovery.v1",
-            "authority_set_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            "authority_set_id": "ak.authority_set.recovery_cross_signing.v1",
+            "authority_set_digest": "sha256:6e8b3632b3b4d50ce5b0c33b0fafe58f2027f6f2691a4f4c43852b9a3ba1b82a"
           },
-          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_self_signing_v1",
+          "authority_set_policy": {
+            "schema": "ak.schema.authority_set_policy.v1",
+            "authority_set_id": "ak.authority_set.recovery_cross_signing.v1",
+            "policy_kind": "principal_control",
+            "scope_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:01964142-0000-7000-8000-000000000001"
+            },
+            "source": {
+              "source_kind": "cross_signing_publish",
+              "source_ref": "ak:event:01964142-0000-7000-8000-0000000000aa",
+              "source_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "generation_ref": "2"
+            },
+            "authorization_rules": [
+              {
+                "rule_id": "cross_signing",
+                "issuer_role": "cross_signing_self_signing",
+                "allowed_actions": [
+                  "ak.device.authorize",
+                  "ak.device.list_update"
+                ],
+                "issuers": [
+                  {
+                    "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_self_signing_v1"
+                  }
+                ],
+                "threshold": 1
+              }
+            ]
+          },
           "allowed_actions": [
             "ak.device.authorize",
             "ak.device.list_update"
           ]
         },
-        "publication_authority_context_digest": "sha256:23e7460019125065c946096b27759fd9e6b014aceb5d7e7132c9222126c1a224",
+        "publication_authority_context_digest": "sha256:c2b87315452828cb93b1169e3525d3a9019386e6a2ef7ae3284474b27e7a1fdc",
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "state": "pending",
         "created_at": "2026-04-27T00:00:00.000Z",

@@ -1,0 +1,91 @@
+{
+  "version": "2026-07-29",
+  "source_of_truth": true,
+  "description": "Canonical registry of authority-set policy symbols and deterministic projections from accepted CBA control state. Registry rows are templates, not authority: each lease carries the concrete AuthoritySetPolicy and its digest, and verifiers rederive it from basis_ref plus CBA closure.",
+  "registry_rules": [
+    "authority_set_id values MUST be unique and MUST match the concrete AuthoritySetPolicy.authority_set_id",
+    "A concrete policy MUST use the registered policy_kind and source_kind, then project authorization_rules exactly from fixed_rules or rules_source",
+    "authorization_rules MUST be ordered lexicographically by rule_id; each rule's issuers MUST be ordered lexicographically by verification_method and allowed_actions MUST be ordered lexicographically",
+    "A lease is authorized when exactly one registered rule covers its action and that rule's distinct valid issuer proofs meet threshold; rules are alternatives and MUST NOT be flattened into one global quorum",
+    "authority_set_digest is SHA-256(JCS(the complete concrete AuthoritySetPolicy object))",
+    "A verifier MUST rederive source_ref, source_digest, generation_ref and issuer verification methods from the accepted basis; inline policy bytes are portable evidence, not an authority source",
+    "A candidate or post-basis control object MUST NOT create authority for a lease evaluated at an earlier basis"
+  ],
+  "policies": [
+    {
+      "authority_set_id": "ak.authority_set.recovery_cross_signing.v1",
+      "policy_kind": "principal_control",
+      "source_kind": "cross_signing_publish",
+      "fixed_rules": [
+        {
+          "rule_id": "cross_signing",
+          "issuer_role": "cross_signing_self_signing",
+          "allowed_actions": [
+            "ak.device.authorize",
+            "ak.device.list_update"
+          ],
+          "threshold": 1
+        }
+      ],
+      "projection": {
+        "scope_ref": "principal_control_realm",
+        "source_ref": "accepted_event_ref(ak.cross_signing.publish)",
+        "source_digest": "accepted_event_digest",
+        "generation_ref": "payload.ssk_generation(decimal)",
+        "issuer_verification_methods": "payload.self_signing_key.kid"
+      },
+      "defined_in": "zh/crypto-media/device-lifecycle.md#15-全部设备丢失后的恢复"
+    },
+    {
+      "authority_set_id": "ak.authority_set.recovery_identity_reanchor.v1",
+      "policy_kind": "principal_control",
+      "source_kind": "recovery_policy",
+      "rules_source": "accepted_recovery_policy.allowed_proof_kinds_and_linked_accepted_state",
+      "projection": {
+        "scope_ref": "principal_control_realm",
+        "source_ref": "accepted_recovery_policy(policy_id,policy_version)",
+        "source_digest": "accepted_recovery_policy_canonical_digest",
+        "generation_ref": "policy_version(decimal)",
+        "authorization_rules": "one rule per allowed proof kind; principal_signing/recovery_unlock/trusted service use threshold 1, device_quorum uses device_quorum.k, threshold_recovery uses threshold.k"
+      },
+      "defined_in": "zh/crypto-media/device-lifecycle.md#15-全部设备丢失后的恢复"
+    },
+    {
+      "authority_set_id": "ak.authority_set.recovery_account_authority.v1",
+      "policy_kind": "principal_control",
+      "source_kind": "did_document",
+      "fixed_rules": [
+        {
+          "rule_id": "account_authority",
+          "issuer_role": "account_enrollment_authority",
+          "allowed_actions": [
+            "ak.device.authorize"
+          ],
+          "threshold": 1
+        }
+      ],
+      "projection": {
+        "scope_ref": "principal_control_realm",
+        "source_ref": "pre_fence_did_document.version_id",
+        "source_digest": "pre_fence_did_document.canonical_digest",
+        "generation_ref": "pre_fence_did_document.version_id",
+        "issuer_verification_methods": "ArkretDeviceEnrollmentAuthority.resolved_authority_verification_method"
+      },
+      "defined_in": "zh/crypto-media/device-lifecycle.md#15-全部设备丢失后的恢复"
+    },
+    {
+      "authority_set_id": "ak.authority_set.realm_admission.v1",
+      "policy_kind": "realm_admission",
+      "source_kind": "realm_control",
+      "rules_source": "accepted_realm_policy.offline_publication_authorization_rules",
+      "projection": {
+        "scope_ref": "lease.scope_ref",
+        "source_ref": "accepted_realm_authority_control_event.event_id",
+        "source_digest": "accepted_realm_authority_control_event.event_digest",
+        "generation_ref": "accepted_realm_authority_generation",
+        "issuer_verification_methods": "accepted_realm_authority_set.verification_methods"
+      },
+      "defined_in": "zh/authz/offline-publication.md"
+    }
+  ]
+}

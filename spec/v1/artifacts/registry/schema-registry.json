@@ -388,6 +388,12 @@
       "description": "Unsigned, independently verified CBA dependency bundle."
     },
     {
+      "schema_id": "ak.schema.authority_set_policy.v1",
+      "file": "schemas/authority-set-policy.schema.json",
+      "status": "active",
+      "description": "Canonical concrete authority policy rederived from accepted CBA control state and bound by AuthoritySetRef."
+    },
+    {
       "schema_id": "ak.schema.offline_publication.v1",
       "file": "schemas/offline-publication.schema.json",
       "status": "active",

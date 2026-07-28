@@ -154,8 +154,10 @@ prepared plan 必须保存 session snapshot/proof digest、显式 `account_autho
 preimage、replacement device possession proof、planned DID entry canonical bytes/
 digest/previous head/ref、完整 typed reanchor `EventInitialSubmission`、authority-produced
 authorize Event 的 closed `authorize_event_publication_intent`。reanchor submission 的
-high-risk lease只能由 recovery session `publication_authority_context` 固定的
-identity-recovery verification method签发，且 action 必须为 `ak.device.reanchor`。
+high-risk lease只能由 recovery session `publication_authority_context` 固定的concrete policy
+中某个完整authorization rule按其threshold签发，且 action 必须为 `ak.device.reanchor`；
+coordinator不得在proof前
+把该集合降格成单个synthetic verification method。
 Account Authority 签名与 terminal receipt 都是 create 后的 accepted output，不属于 prepared
 material。
 

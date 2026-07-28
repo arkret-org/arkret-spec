@@ -53,7 +53,10 @@ open-set vectors。
 `{authority_set_id, authority_set_digest}`：id 是登记的 `ak.authority_set.*.v1` policy
 symbol，digest 是该 policy 在当前 CBA basis 中的 canonical digest。任何 signer、lease、
 receipt 或 barrier verifier 都 MUST 同时校验 id 与 digest，不得用可变名称解析替代 basis-bound
-policy bytes。
+policy bytes。需要跨服务或离线验证的对象 MUST 携带完整
+`ak.schema.authority_set_policy.v1` concrete policy；接收方按
+`authority-set-policy-registry.json` 的 template 从 accepted basis 与 CBA closure 重新派生，
+并校验 `SHA-256(JCS(policy))`。inline policy 与 registry row 均不得替代 accepted source。
 
 barrier attestation 没有独立 height、state root、历史日志或可被 DataEvent 引用的 id；它随
 Control Move 被 Seal 覆盖，不构成第二套 checkpoint。有效双签是可归责 equivocation，相关

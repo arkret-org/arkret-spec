@@ -119,19 +119,15 @@
           "type": "object",
           "required": [
             "identity_model",
-            "issuer_key_role",
             "basis_ref",
             "scope_ref",
             "authority_set_ref",
-            "verification_method",
+            "authority_set_policy",
             "allowed_actions"
           ],
           "properties": {
             "identity_model": {
               "const": "cross_signing"
-            },
-            "issuer_key_role": {
-              "const": "self_signing"
             },
             "basis_ref": {
               "$ref": "./offline-publication.schema.json#/$defs/authorization_lease/properties/basis_ref"
@@ -142,8 +138,8 @@
             "authority_set_ref": {
               "$ref": "./offline-publication.schema.json#/$defs/authority_set_ref"
             },
-            "verification_method": {
-              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            "authority_set_policy": {
+              "$ref": "./offline-publication.schema.json#/$defs/authority_set_policy"
             },
             "allowed_actions": {
               "type": "array",
@@ -159,19 +155,15 @@
           "type": "object",
           "required": [
             "identity_model",
-            "issuer_key_role",
             "basis_ref",
             "scope_ref",
             "authority_set_ref",
-            "verification_method",
+            "authority_set_policy",
             "allowed_actions"
           ],
           "properties": {
             "identity_model": {
               "const": "enrollment_authority"
-            },
-            "issuer_key_role": {
-              "const": "identity_recovery"
             },
             "basis_ref": {
               "$ref": "./offline-publication.schema.json#/$defs/authorization_lease/properties/basis_ref"
@@ -182,8 +174,8 @@
             "authority_set_ref": {
               "$ref": "./offline-publication.schema.json#/$defs/authority_set_ref"
             },
-            "verification_method": {
-              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            "authority_set_policy": {
+              "$ref": "./offline-publication.schema.json#/$defs/authority_set_policy"
             },
             "allowed_actions": {
               "type": "array",
@@ -195,7 +187,7 @@
           "additionalProperties": false
         }
       ],
-      "description": "Server-snapshotted accepted authority context for locally authoring only the model-specific recovery publication leases. It never grants the replacement device a generic lease issuer role."
+      "description": "Server-snapshotted accepted authority policy for locally authoring only the model-specific recovery publication leases. Issuers and quorum live only in authority_set_policy; the context does not predict a single future proof signer. It never grants the replacement device a generic lease issuer role."
     },
     "recovery_session_state": {
       "type": "object",

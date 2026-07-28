@@ -62,6 +62,14 @@
       "description": "Canonical domain-separation contexts and binding fields for Event and non-Event detached proof object families."
     },
     {
+      "name": "authority_set_policies",
+      "file": "registry/authority-set-policy-registry.json",
+      "kind": "authority_set_policy_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical authority-set symbols and deterministic policy projections from accepted CBA control state."
+    },
+    {
       "name": "mls_ciphersuites",
       "file": "registry/mls-ciphersuite-registry.json",
       "kind": "mls_ciphersuite_registry",

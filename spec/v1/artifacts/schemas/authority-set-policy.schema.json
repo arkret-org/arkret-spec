@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/authority-set-policy.schema.json",
+  "title": "Arkret Authority Set Policy",
+  "description": "Canonical, basis-resolvable authority policy bound by AuthoritySetRef. authority_set_digest is SHA-256(JCS(the complete object)).",
+  "$ref": "./offline-publication.schema.json#/$defs/authority_set_policy"
+}

@@ -358,7 +358,37 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
         "expires_at": "2026-04-26T04:00:00.000Z",
         "authority_set_ref": {
           "authority_set_id": "ak.authority_set.realm_admission.v1",
-          "authority_set_digest": "sha256:abababababababababababababababababababababababababababababababab"
+          "authority_set_digest": "sha256:0ba17251dadb67da885d0acd7d978c3a1c0d7f9396d285d697ebc924e9cacc64"
+        },
+        "authority_set_policy": {
+          "schema": "ak.schema.authority_set_policy.v1",
+          "authority_set_id": "ak.authority_set.realm_admission.v1",
+          "policy_kind": "realm_admission",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
+          },
+          "source": {
+            "source_kind": "realm_control",
+            "source_ref": "ak:event:0196419b-0000-7000-8000-000000000002",
+            "source_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "generation_ref": "1"
+          },
+          "authorization_rules": [
+            {
+              "rule_id": "realm_admission",
+              "issuer_role": "realm_admission",
+              "allowed_actions": [
+                "ak.message.create"
+              ],
+              "issuers": [
+                {
+                  "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alpha.example#notary-1"
+                }
+              ],
+              "threshold": 1
+            }
+          ]
         },
         "proofs": [
           {
@@ -380,7 +410,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
           "service_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alpha.example",
           "authority_set_ref": {
             "authority_set_id": "ak.authority_set.realm_admission.v1",
-            "authority_set_digest": "sha256:abababababababababababababababababababababababababababababababab"
+            "authority_set_digest": "sha256:0ba17251dadb67da885d0acd7d978c3a1c0d7f9396d285d697ebc924e9cacc64"
           },
           "proofs": [
             {

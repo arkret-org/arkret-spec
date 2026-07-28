@@ -27,6 +27,7 @@ AuthorizationLease {
   issued_at,
   expires_at,
   authority_set_ref,
+  authority_set_policy,
   proofs
 }
 ```
@@ -50,6 +51,29 @@ authorization。verifier MUST 从 accepted CBA basis
 控制面视图中的 canonical digest。verifier MUST 同时校验 id、digest、quorum、delegation 与
 revocation authority，不得只按可变 registry 名称解析当前值。
 
+`authority_set_policy` 是
+[`ak.schema.authority_set_policy.v1`](../../artifacts/schemas/authority-set-policy.schema.json)
+的完整 concrete policy bytes。它不是可选提示：
+
+1. `authority_set_policy.authority_set_id` MUST 等于
+   `authority_set_ref.authority_set_id`；
+2. `SHA-256(JCS(authority_set_policy))` MUST 等于
+   `authority_set_ref.authority_set_digest`；
+3. policy 的 kind、source kind与ordered `authorization_rules[]` MUST 命中
+   [`authority-set-policy-registry.json`](../../artifacts/registry/authority-set-policy-registry.json)
+   中同 id 的 template；
+4. verifier MUST 使用 `basis_ref` 与 `CbaProofBundle` 重放 accepted control state，重新派生
+   source ref/digest/generation、每个rule的issuer methods、scope、actions 与 threshold。
+
+`authorization_rules[]` 是替代分支，不是一个可合并的全局issuer set。每个rule独立固定
+`rule_id + issuer_role + allowed_actions + issuers + threshold`；lease必须命中恰好一个覆盖其
+action的rule，并满足该rule的quorum。verifier不得把不同recovery proof family的issuer拼成
+一个较弱门限。
+
+因此 inline policy 只提供可移植的 canonical bytes，不是自报 authority。registry template
+也只固定投影算法和值域，不能替代 basis 中的 accepted source。candidate、未 Seal 或晚于
+`basis_ref` 的控制对象不得给该 lease 创造 authority。
+
 协议最大 TTL：
 
 | risk tier | `expires_at - issued_at` 最大值 |
@@ -67,10 +91,15 @@ fresh-device recovery 不存在“replacement device因为通过 recovery proof�
 规则。服务端创建 recovery session时必须从 accepted basis snapshot一个 closed
 `publication_authority_context`并把其digest纳入 recovery proof transcript：
 
-- A模型只有当前snapshot generation的SSK可为固定`ak.device.authorize`和
+- A模型使用`ak.authority_set.recovery_cross_signing.v1`，只有当前snapshot generation的SSK
+  可为固定`ak.device.authorize`和
   `ak.device.list_update`签发lease；
-- B模型客户端只有DID recovery/root authority可为固定`ak.device.reanchor`签发lease；
-- B模型由Account Authority产生的`ak.device.authorize`必须由该authority在
+- B模型local re-anchor使用`ak.authority_set.recovery_identity_reanchor.v1`，每个allowed proof
+  family的issuer集合与threshold从session创建时accepted sealed recovery policy完整投影；满足
+  其中一个完整authorization rule的recovery
+  authority才可为固定`ak.device.reanchor`签发lease；
+- B模型Account Authority lease使用`ak.authority_set.recovery_account_authority.v1`。该
+  authority必须已经由pre-fence accepted DID document委托，并在
   `authorize_recovery_device`首次durable outcome中同时签发lease。
 
 每份lease的basis、actor、replacement device、scope、action、risk与authority-set都必须逐字

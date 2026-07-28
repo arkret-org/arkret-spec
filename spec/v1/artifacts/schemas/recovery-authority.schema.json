@@ -110,6 +110,7 @@
         "risk_tier",
         "basis_ref",
         "authority_set_ref",
+        "authority_set_policy",
         "cba_proof_bundles"
       ],
       "properties": {
@@ -145,6 +146,10 @@
         },
         "authority_set_ref": {
           "$ref": "./offline-publication.schema.json#/$defs/authority_set_ref"
+        },
+        "authority_set_policy": {
+          "$ref": "./offline-publication.schema.json#/$defs/authority_set_policy",
+          "description": "Concrete pre-fence Account Authority policy. Its sole recovery issuer MUST be resolved from the accepted previous DID document; the candidate DID entry cannot create or replace it for this transaction."
         },
         "cba_proof_bundles": {
           "type": "array",
