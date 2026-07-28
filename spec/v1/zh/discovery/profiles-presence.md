@@ -131,7 +131,7 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
   "hlc": "01970e598d21-0001-a13f9c2e",
   "prev_refs": ["ak:event:019640ed-8000-7000-8000-000000000000"],
   "refs": [
-    { "id": "ak:event:019640ed-8000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ak:grant:019640ed-8000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "payload": {
     "target_ref": "ak:actor_profile:019640ab-0000-7000-8000-000000000000",
@@ -176,7 +176,7 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
   "hlc": "01970e5a8d21-0001-a13f9c2e",
   "prev_refs": ["ak:event:019640ed-8400-7000-8000-000000000000"],
   "refs": [
-    { "id": "ak:event:019640ed-8400-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ak:grant:019640ed-8400-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "payload": {
     "target_ref": "ak:actor_profile:019640ab-0000-7000-8000-000000000000",

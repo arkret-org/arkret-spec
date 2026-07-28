@@ -50,7 +50,7 @@
         "field": "resolved_digest_input",
         "recompute_from_local_contracts": true
       },
-      "expected_digest": "sha256:f75a908b19a29574d7e21c184be0ab96f7745963f50f21b1f2c8a8899df3d05d",
+      "expected_digest": "sha256:4ae760a180012c922f7f963766b275c7c48a7d57f6e9391dbefdf3b25f54f1fd",
       "mutation_cases": [
         {
           "name": "event_kind_contract_content_changes",

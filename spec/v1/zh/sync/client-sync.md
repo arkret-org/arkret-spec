@@ -275,7 +275,7 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
 
 ### 5.2 State At Window Start (limited timeline 边界状态)
 
-**协议正确性层面**，Arkret 的事件携带 `prev_refs` 与 `refs[role=authorized_by]`，每个事件自带因果与授权 seal；reducer / projection 在 gap 期间不会误判 authz 或 state convergence。这部分不依赖额外 gap-boundary 信息。
+**协议正确性层面**，Arkret 的事件携带 `prev_refs` Event 因果边与 `refs[role=authorized_by]` 不可变 grant id；结合 `seal_ref` / `seal_basis` 固定授权求值 frontier，reducer / projection 在 gap 期间不会误判 authz 或 state convergence。这部分不依赖额外 gap-boundary 信息。
 
 **渲染正确性层面**，当 `timeline.limited=true` 且 window 内可能包含 actor profile 更新、Realm / Strand / Space 元数据变更、或 E2EE epoch rotation 时，客户端按"当前 seal view"渲染 window 起点事件会显示错误的 display name / Realm/Strand/Space display metadata / 加密 epoch。为此，服务端 MUST 在响应该 Realm timeline 时二选一：
 
@@ -329,7 +329,7 @@ Client Sync 的事件顺序是展示顺序和增量恢复顺序，不是授权�
 
 1. 同一响应内的事件按 deterministic timeline projection order 排列。
 2. 若事件 B 通过 `prev_refs`、`refs[role="after"]`、`causal_refs` 或 payload 物化的 reply/reference edge（如 `replies_to`）直接依赖事件 A，且 A 在同一响应窗口中可见，则 A MUST 出现在 B 之前。
-3. 如果依赖事件因过滤、权限、分页或缺失而不在响应中，B MUST 保留原始 Event Envelope 中客户端可见的完整 `prev_refs[]` 与 `refs[]` 条目；客户端把其中未在本响应出现、且本地 store 未命中的 `prev_refs[]` 或 `refs[role=authorized_by]` 判为 backfill 目标，并在补齐前 soft fail 或延迟渲染。若某个依赖引用本身因权限不可见，服务端不得伪造占位引用；该事件按 `timeline.limited=true` / `preview_only=true` 或对应 `unauthorized` 诊断处理。
+3. 如果依赖事件因过滤、权限、分页或缺失而不在响应中，B MUST 保留原始 Event Envelope 中客户端可见的完整 `prev_refs[]` 与 `refs[]` 条目；客户端把本地 store 未命中的 `prev_refs[]` 当作 Event backfill 目标，把未命中的 `refs[role=authorized_by]` 当作 grant-record / 对应 sealed control-history backfill 目标，并在补齐前 soft fail 或延迟渲染。`authorized_by` 的 `ak:grant:` id 不得被改写成承载 Event id alias。若某个依赖引用本身因权限不可见，服务端不得伪造占位引用；该事件按 `timeline.limited=true` / `preview_only=true` 或对应 `unauthorized` 诊断处理。
 4. 服务器 MUST NOT 使用本地数据库自增 ID、接收顺序或 Sync Service 到达顺序作为跨实现排序依据。
 
 Canonical default timeline projection order（不输入 canonical state、授权判断或 winner 选择；请求未显式声明并协商其它 profile 排序时，服务器 MUST 使用本顺序）：

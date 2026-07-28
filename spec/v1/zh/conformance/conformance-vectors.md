@@ -1459,7 +1459,7 @@ ak.vector.redaction.preserve_fields.v1
       "ak:event:0196414c-3000-7000-8000-000000000000"
     ],
     "refs": [
-      { "id": "ak:event:019640c5-5800-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+      { "id": "ak:grant:019640c5-5800-7000-8000-000000000000", "role": "authorized_by", "critical": true }
     ],
     "payload": {
       "redacts": "ak:event:0196414c-3000-7000-8000-000000000000",
@@ -1704,6 +1704,7 @@ ak.vector.capability.delegate_chain.v1
 {
   "base": {
     "kind": "ak.capability.grant",
+    "grant_id": "ak:grant:019640d0-b800-7000-8000-000000000000",
     "subject": "did:webvh:z6mkfixture:root-admin.example.com",
     "actions": [
       "ak.realm.admin"
@@ -1717,6 +1718,7 @@ ak.vector.capability.delegate_chain.v1
       "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:webvh:z6mkfixture:root-admin.example.com",
       "payload": {
+        "grant_id": "ak:grant:019640d0-c000-7000-8000-000000000000",
         "parent_grant_id": "ak:grant:019640d0-b800-7000-8000-000000000000",
         "subject": "did:webvh:z6mkfixture:ops.example.com",
         "resources": [
@@ -1746,8 +1748,9 @@ ak.vector.capability.delegate_chain.v1
         ]
       },
       "refs": [
-      { "id": "ak:event:01964180-0350-72ab-a000-000000000000", "role": "authorized_by", "critical": true }
-    ]
+        { "id": "ak:grant:019640d0-b800-7000-8000-000000000000", "role": "authorized_by", "critical": true },
+        { "id": "ak:grant:019640d0-b800-7000-8000-000000000000", "role": "parent_grant", "critical": true }
+      ]
     },
     {
       "event_id": "ak:event:019640d0-c400-7000-8000-000000000000",
@@ -1755,6 +1758,7 @@ ak.vector.capability.delegate_chain.v1
       "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:webvh:z6mkfixture:ops.example.com",
       "payload": {
+        "grant_id": "ak:grant:019640d0-c400-7000-8000-000000000000",
         "parent_grant_id": "ak:grant:019640d0-c000-7000-8000-000000000000",
         "subject": "did:webvh:z6mkfixture:intern.example.com",
         "resources": [
@@ -1785,8 +1789,9 @@ ak.vector.capability.delegate_chain.v1
         ]
       },
       "refs": [
-      { "id": "ak:event:019640d0-c000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
-    ]
+        { "id": "ak:grant:019640d0-c000-7000-8000-000000000000", "role": "authorized_by", "critical": true },
+        { "id": "ak:grant:019640d0-c000-7000-8000-000000000000", "role": "parent_grant", "critical": true }
+      ]
     }
   ],
   "action_query": {
@@ -1805,9 +1810,9 @@ ak.vector.capability.delegate_chain.v1
 {
   "authorized": true,
   "valid_chain": [
-    "ak:event:01964180-0350-72ab-a000-000000000000",
-    "ak:event:019640d0-c000-7000-8000-000000000000",
-    "ak:event:019640d0-c400-7000-8000-000000000000"
+    "ak:grant:019640d0-b800-7000-8000-000000000000",
+    "ak:grant:019640d0-c000-7000-8000-000000000000",
+    "ak:grant:019640d0-c400-7000-8000-000000000000"
   ],
   "constraints_checked": {
     "time": true,
@@ -1926,7 +1931,7 @@ ak.vector.capability.approval_constraint.v1
       "policy_scope": "ak:realm:0196419b-0000-7000-8000-000000000000"
     },
     "refs": [
-      { "id": "ak:event:0196419b-298e-7368-9a80-000000000000", "role": "authorized_by", "critical": true }
+      { "id": "ak:grant:0196419b-298e-7368-9a80-000000000000", "role": "authorized_by", "critical": true }
     ]
   },
   "capabilities": [

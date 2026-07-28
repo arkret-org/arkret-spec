@@ -209,7 +209,7 @@
           "hlc": "01970e589d23-0001-a13f9c2e",
           "refs": [
             {
-              "id": "ak:event:019640e8-0000-7000-8000-000000000000",
+              "id": "ak:grant:0196410c-0800-7000-8000-000000000000",
               "role": "authorized_by",
               "critical": true
             }
@@ -274,7 +274,7 @@
           "hlc": "01970e589d33-0001-a13f9c2e",
           "refs": [
             {
-              "id": "ak:event:019640f0-0000-7000-8000-000000000000",
+              "id": "ak:grant:0196410c-1000-7000-8000-000000000000",
               "role": "authorized_by",
               "critical": true
             }
@@ -349,7 +349,7 @@
           "hlc": "01970e589d37-0001-a13f9c2e",
           "refs": [
             {
-              "id": "ak:event:019640fc-0000-7000-8000-000000000000",
+              "id": "ak:grant:0196410c-1400-7000-8000-000000000000",
               "role": "authorized_by",
               "critical": true
             }
@@ -441,6 +441,7 @@
           },
           "actor_id": "did:webvh:z6mkfixture:root-admin.example.com",
           "payload": {
+            "grant_id": "ak:grant:019640d0-c000-7000-8000-000000000000",
             "parent_grant_id": "ak:grant:019640d0-b800-7000-8000-000000000000",
             "subject": "did:webvh:z6mkfixture:ops.example.com",
             "resources": [
@@ -471,8 +472,13 @@
           },
           "refs": [
             {
-              "id": "ak:event:01964180-0350-72ab-a000-000000000000",
+              "id": "ak:grant:019640d0-b800-7000-8000-000000000000",
               "role": "authorized_by",
+              "critical": true
+            },
+            {
+              "id": "ak:grant:019640d0-b800-7000-8000-000000000000",
+              "role": "parent_grant",
               "critical": true
             }
           ]
@@ -487,6 +493,7 @@
           },
           "actor_id": "did:webvh:z6mkfixture:ops.example.com",
           "payload": {
+            "grant_id": "ak:grant:019640d0-c400-7000-8000-000000000000",
             "parent_grant_id": "ak:grant:019640d0-c000-7000-8000-000000000000",
             "subject": "did:webvh:z6mkfixture:intern.example.com",
             "resources": [
@@ -518,8 +525,13 @@
           },
           "refs": [
             {
-              "id": "ak:event:019640d0-c000-7000-8000-000000000000",
+              "id": "ak:grant:019640d0-c000-7000-8000-000000000000",
               "role": "authorized_by",
+              "critical": true
+            },
+            {
+              "id": "ak:grant:019640d0-c000-7000-8000-000000000000",
+              "role": "parent_grant",
               "critical": true
             }
           ]
@@ -535,9 +547,9 @@
       "expected": {
         "authorized": true,
         "valid_chain": [
-          "ak:event:01964180-0350-72ab-a000-000000000000",
-          "ak:event:019640d0-c000-7000-8000-000000000000",
-          "ak:event:019640d0-c400-7000-8000-000000000000"
+          "ak:grant:019640d0-b800-7000-8000-000000000000",
+          "ak:grant:019640d0-c000-7000-8000-000000000000",
+          "ak:grant:019640d0-c400-7000-8000-000000000000"
         ],
         "constraints_checked": {
           "time": true,

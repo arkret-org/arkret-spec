@@ -58,7 +58,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
-      "sha256": "85f07e2d0909a70797f8b28d28390ce528aacf998490842a0c19a140e5017853"
+      "sha256": "69af93b8d79fc7ba677adc2d56d8df325f82d2dfa0ce59bd86ae4d3d8ad0cbc0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
@@ -106,7 +106,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-envelope-negative-fixture.json",
-      "sha256": "546e85c3d94c6f3c52145139787f313fd91a0e97dbf94c647c29a065caaddeb5"
+      "sha256": "4c96022150af7afb4453a8072ab372f992c9f14c0ffe667c52cbe4481e6dbfd0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-lattice-dispatch-fixture.json",
@@ -118,7 +118,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "a25aa4847aa6e3524cdd7001f2362d92054203f8449cf3fe539023afa1d0a454"
+      "sha256": "dbfc95bcbf74a0d8d6f68cf9e6c5bdb2b240e2a84a0d8720d244167351ca28e7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -250,7 +250,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/seal-submit-fixture.json",
-      "sha256": "7356bcf9063764843a3bfad4f8ca9bc230ebabe7704713bfa6ea8e4085f88fe1"
+      "sha256": "ddd1f08c8fb752af29e4c1d731f7e42caf31c4e78406c8203b86314be9c329ce"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-fixture.json",

@@ -3174,6 +3174,13 @@ def check_event_ref_invariants_in_value(lint: Lint, path: Path, json_path: str, 
                 refs = value.get(ref_key)
                 if isinstance(refs, list) and event_id in refs:
                     lint.fail(path, f"{json_path}.{ref_key} contains its own event_id {event_id}")
+        if value.get("role") == "authorized_by" and "id" in value:
+            authorized_by_id = value.get("id")
+            if not isinstance(authorized_by_id, str) or not authorized_by_id.startswith("ak:grant:"):
+                lint.fail(
+                    path,
+                    f"{json_path}.id must be an ak:grant: id for role=authorized_by",
+                )
         for key, child in value.items():
             check_event_ref_invariants_in_value(lint, path, f"{json_path}.{key}", child)
     elif isinstance(value, list):

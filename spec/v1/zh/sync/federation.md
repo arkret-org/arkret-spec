@@ -580,7 +580,7 @@ Arkret v1 联邦推送使用 `POST /_arkret/peer/events`（`ak.peer.events.comma
 
 ### 4.2 拉取模式 (Pull / Backfill)
 
-当节点发现自己的因果图中存在缺失（`prev_refs` 或 `refs[role=authorized_by]` 引用了本地没有的 Event）时，可以主动向源 Principal Server 的 peer surface 拉取。v1 联邦 pull 使用 `ak.peer.events.query.scan`（`GET /_arkret/peer/events`），通过 `before=<cursor>` 表示历史回填（取该 cursor 之前最近一批），认证使用与 §4.1 同一套 service signature header：
+当节点发现自己的验证图中存在缺失（`prev_refs` 引用了本地没有的 Event，或 `refs[role=authorized_by]` 所指 grant record 无法从本地 sealed control history 重建）时，可以主动向源 Principal Server 的 peer surface 拉取对应历史。`authorized_by` 仍保留 `ak:grant:` id，不得改写为承载 Event alias；接收方从回填的 control Event 与 Seal 重建 grant record 后继续验证。v1 联邦 Event pull 使用 `ak.peer.events.query.scan`（`GET /_arkret/peer/events`），通过 `before=<cursor>` 表示历史回填（取该 cursor 之前最近一批），认证使用与 §4.1 同一套 service signature header：
 
 ```
 GET /_arkret/peer/events?realms=ak:realm:...&before=<cursor>&limit=100

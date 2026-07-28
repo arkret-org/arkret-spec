@@ -289,7 +289,7 @@ MLS KeyPackage key 用于加入加密 Realm。
 - `actor_id` MUST 是签发该控制事件的 principal、已授权 device、受信 recovery service 或组织声明的 session issuer。
 - `payload.principal_id` / `payload.subject` MUST 与该 control Realm 绑定的 principal DID 一致；不一致时 MUST reject。
 - control Realm 的 `ak.realm.create` 或等价 genesis record MUST 绑定 principal DID、DID method / key-log history、control stream policy 和可发现的 service endpoint。该 Realm 使用标准 `ak.schema.realm.v1`；通过 `fields.purpose="principal_control"` + `schema_refs` 包含 `ak.profile.principal_control_realm.v1` 标记其 control stream 角色（详见 §5.0.1 步骤 3）。control realm **不**使用单独的 Realm kind——所有 Realm-level 验证（schema、boundary、E2EE、federation）走标准 Realm 路径。
-- 普通 Collaboration Realm 的业务事件 MAY 通过 `refs[role=authorized_by]`（或 role=`did_inception` 等专门 role）、verified snapshot reference、Policy Server proof 或 device-state seal 引用 principal control state；不得把另一个 principal 的 device/session 事件直接写入该 Collaboration Realm history 来改变身份状态。
+- 普通 Collaboration Realm 的业务事件 MAY 通过 `refs[role=authorized_by]` 引用不可变 grant record，并通过 role=`did_inception` 等专门 role、verified snapshot reference、Policy Server proof 或 device-state seal 引用 principal control state；`authorized_by` 不得使用 Event id alias，也不得把另一个 principal 的 device/session 事件直接写入该 Collaboration Realm history 来改变身份状态。
 
 `principal_control_realm_id` MUST 可通过 DID Document service、normalized principal view、device/key server describe endpoint 或本地 account binding 验证。客户端无法验证 control Realm 与 principal DID 的绑定时，MUST fail closed：不得接受该 principal 的新 device grant、session grant、KeyPackage 或 device revocation 状态。
 
