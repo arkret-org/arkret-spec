@@ -1659,6 +1659,7 @@ def lint_effect_projection(
             "or_set_add",
             "or_set_batch_add",
             "or_set_remove_observed",
+            "or_set_remove_dots",
         },
     }.get(lattice)
     if expected_kinds is None:
@@ -1763,6 +1764,20 @@ def lint_effect_projection(
             lint_effect_source(lint, path, f"{ref}.values", projection["values"])
         if not isinstance(projection.get("tag_context"), str) or not projection["tag_context"]:
             lint.fail(path, f"{ref}.tag_context must be a non-empty string")
+        return
+
+    if projection_kind == "or_set_remove_dots":
+        # Partial revoke: the removal set is the payload-enumerated dot array,
+        # byte-for-byte. It is the remove-side counterpart of or_set_batch_add
+        # and MUST NOT be substituted for or_set_remove_observed, whose set
+        # comes from the frozen pre-state instead.
+        unknown = set(projection) - {"kind", "dots"}
+        if unknown:
+            lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
+        if "dots" not in projection:
+            lint.fail(path, f"{ref}.dots is required")
+        else:
+            lint_effect_source(lint, path, f"{ref}.dots", projection["dots"])
         return
 
     if projection_kind == "or_set_remove_observed":
@@ -1872,6 +1887,13 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         bottom = row.get("bottom")
         if bottom is not None and bottom not in REGISTRY_BOTTOMS:
             lint.fail(event_path, f"{kind} has unknown bottom {bottom!r}")
+        elif lattice == "or_set" and bottom == "reject":
+            lint.fail(
+                event_path,
+                f"{kind} declares bottom=reject on an or_set; an or_set bottom MUST be "
+                "inert or expose and MUST NOT fail authorization closed "
+                "(zh/authz/event-auth-state-resolution.md section 9.1.1)",
+            )
         cell_family = row.get("cell_family")
         if cell_family is not None:
             if not isinstance(cell_family, str):
@@ -2055,6 +2077,17 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                 write_bottom = write.get("bottom")
                 if write_bottom not in REGISTRY_BOTTOMS:
                     lint.fail(event_path, f"{write_ref} has unknown bottom {write_bottom!r}")
+                elif write_lattice == "or_set" and write_bottom == "reject":
+                    # zh/authz/event-auth-state-resolution.md section 9.1.1: the
+                    # or_set join never produces bottom, so an or_set bottom can
+                    # never be an authorization rejection. inert is the default;
+                    # expose is legal only where the owning domain document
+                    # defines the exposed multi-head handling.
+                    lint.fail(
+                        event_path,
+                        f"{write_ref} declares bottom=reject on an or_set; an or_set bottom "
+                        "MUST be inert or expose and MUST NOT fail authorization closed",
+                    )
                 write_key = json.dumps(
                     [write_family, write.get("cell_subject")],
                     sort_keys=True,
@@ -2708,7 +2741,7 @@ def check_fixture_runner_contract(lint: Lint) -> None:
         },
         "event_kind_lattice_dispatch_fixture": {
             "registered_dispatch_target",
-            "or_set_bottom_is_inert",
+            "or_set_bottom_never_rejects",
             "family_semantics_present",
             "unknown_dispatch_fails_closed",
         },

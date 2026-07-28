@@ -7,6 +7,7 @@
   "required": [
     "schema",
     "receipt_id",
+    "transaction_id",
     "principal_id",
     "recovery_session_id",
     "policy_id",
@@ -33,13 +34,18 @@
       "type": "string",
       "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "transaction_id": {
+      "type": "string",
+      "pattern": "^ak:transaction:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "RecoveryTransaction that reserved this receipt id. It MUST equal the transaction whose binding.terminal_receipt_id is this receipt_id, which is what lets a verifier holding only the receipt resolve the authorizing transaction; binding.terminal_receipt_id alone is one-way. See zh/identity/security-transactions.md section 2."
+    },
     "principal_id": {
       "$ref": "#/$defs/did"
     },
     "recovery_session_id": {
       "type": "string",
       "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Stable session identifier used by every proof transcript, backup decrypt proof, and MLS Welcome replay during this recovery. Receivers MUST reject receipts that reuse a session id already accepted for the same principal."
+      "description": "Stable session identifier used by every proof transcript, backup decrypt proof, and MLS Welcome replay during this recovery. A byte-identical resubmission of an already accepted receipt is idempotent and MUST return the stored receipt; only a SECOND, DIFFERENT receipt for the same session id and principal is a conflict. Rejecting the byte-identical replay would make a lost response unrecoverable, which zh/identity/security-transactions.md section 1 invariants 3 and 4 forbid."
     },
     "policy_id": {
       "type": "string",
@@ -248,10 +254,9 @@
         "signature_algorithm": {
           "type": "string",
           "enum": [
-            "Ed25519",
-            "ES256",
-            "ML-DSA-65"
-          ]
+            "Ed25519"
+          ],
+          "description": "v1 fixes the recovery-strand replacement device possession proof to Ed25519 (zh/crypto-media/device-lifecycle.md sections 5.2 and 15). The three-algorithm set in zh/identity/key-management.md section 7.9 belongs to recovery_policy.recovery_keys[].alg and MUST NOT be reused as a reason to widen this one."
         },
         "signature": {
           "type": "string",

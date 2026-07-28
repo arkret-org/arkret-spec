@@ -16,8 +16,8 @@
       "rule": "Every durable event kind resolves to its registered component and state-resolution family without prose inference."
     },
     {
-      "id": "or_set_bottom_is_inert",
-      "rule": "Every or_set component dispatches bottom as inert and never as an authorization rejection."
+      "id": "or_set_bottom_never_rejects",
+      "rule": "Every or_set component declares bottom as inert or expose, never reject, and an or_set bottom is never dispatched as an authorization rejection. inert is the default because the or_set join cannot produce bottom; expose is legal only for a cell family whose owning domain document defines the exposed multi-head handling. See zh/authz/event-auth-state-resolution.md section 9.1.1."
     },
     {
       "id": "family_semantics_present",

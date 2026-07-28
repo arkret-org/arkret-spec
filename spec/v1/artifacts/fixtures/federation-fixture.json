@@ -50,7 +50,7 @@
         "field": "resolved_digest_input",
         "recompute_from_local_contracts": true
       },
-      "expected_digest": "sha256:249c077629490b1556aa2b20bf01338f9d25307d7b66ee200e6828c9ec75cb2b",
+      "expected_digest": "sha256:7642afdb74523484cf06ed986545f0a33f26ab01f9872a026e83fd915cf3cf5b",
       "mutation_cases": [
         {
           "name": "event_kind_contract_content_changes",
@@ -190,16 +190,17 @@
           "control",
           "data"
         ],
-        "seal_count_range": [
+        "cba_proof_bundle_count_range": [
           0,
-          4096
+          64
         ],
-        "seal_order": [
-          "notary_seq",
-          "id"
-        ],
-        "seal_ids_unique": true,
-        "closure": "minimal_relative_to_receiver_accepted_seals_rooted_at_seal_ref_and_seal_basis_leaves",
+        "per_bundle_limits": {
+          "seals": 256,
+          "control_moves": 1024,
+          "inclusion_and_availability_proofs_combined": 2048,
+          "dependency_path_depth": 4096
+        },
+        "closure": "bounded_verifiable_superset_rooted_at_seal_ref_and_seal_basis_leaves",
         "body_contains_idempotency_key": false
       },
       "cases": [

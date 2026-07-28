@@ -1,4 +1,4 @@
-"""Mutation tests for the OR-Set dot source and or_set_remove_observed projection."""
+"""Mutation tests for the OR-Set dot source and the two or_set remove projections."""
 
 from __future__ import annotations
 
@@ -114,6 +114,41 @@ class OrSetTagLintTest(unittest.TestCase):
             },
         )
         self.assertTrue(any("element_field" in f for f in failures), failures)
+
+    # or_set_remove_dots (partial revoke)
+
+    def test_remove_dots_takes_a_payload_dot_array(self) -> None:
+        self.assertEqual(
+            self._lint_projection(
+                "or_set",
+                {"kind": "or_set_remove_dots", "dots": {"field": "payload.observed_dots"}},
+            ),
+            [],
+        )
+
+    def test_remove_dots_requires_the_dots_source(self) -> None:
+        errors = self._lint_projection("or_set", {"kind": "or_set_remove_dots"})
+        self.assertTrue(any("dots is required" in error for error in errors), errors)
+
+    def test_remove_dots_rejects_an_observed_style_match(self) -> None:
+        # The two remove forms are closed and MUST NOT be blended: the removal
+        # set is either the payload array or the frozen pre-state, never both.
+        errors = self._lint_projection(
+            "or_set",
+            {
+                "kind": "or_set_remove_dots",
+                "dots": {"field": "payload.observed_dots"},
+                "match": {"element_field": "peer", "source": {"field": "payload.peer"}},
+            },
+        )
+        self.assertTrue(any("unknown member" in error for error in errors), errors)
+
+    def test_remove_dots_is_not_defined_for_other_lattices(self) -> None:
+        errors = self._lint_projection(
+            "ordered_log",
+            {"kind": "or_set_remove_dots", "dots": {"field": "payload.observed_dots"}},
+        )
+        self.assertTrue(any("must be one of" in error for error in errors), errors)
 
     def test_remove_observed_is_not_defined_for_other_lattices(self) -> None:
         failures = self._lint_projection(

@@ -132,7 +132,7 @@ Kernel 硬上限：
 - 从 target leaf 向 genesis 的单路径深度 ≤ 4,096；
 - dependency fetch 最多连续 8 轮；每轮必须使 missing set 严格缩小。
 
-超限返回 `resource_limit_exceeded`，不得按部分 bundle 改变控制状态。依赖不足返回
+超限返回 `limit_exceeded`，不得按部分 bundle 改变控制状态。依赖不足返回
 `dependency_missing` 并给出精确、去重、有界的 `missing_seal_refs[]` 与
 `missing_event_digests[]`；对象完整但授权失败返回 `policy_denied`，二者不得混淆。
 

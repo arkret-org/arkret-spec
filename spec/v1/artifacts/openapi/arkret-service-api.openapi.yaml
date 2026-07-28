@@ -1233,6 +1233,7 @@ components:
               - unsupported_digest_algorithm
               - unsupported_signature_alg
               - unsupported_hpke_suite
+              - invalid_genesis_seal
               - seal_incomplete
               - franking_proof_unavailable
               - turn_credential_expired

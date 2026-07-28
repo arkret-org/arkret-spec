@@ -1076,6 +1076,12 @@
       "description": "HPKE suite id on an application-layer sealed surface is not an active row of artifacts/registry/hpke-suite-registry.json (unknown, inactive, or reserved-but-not-activated). One of the three algorithm-agility fail-closed errors; dual-registered as a service code and a reason_code (see unsupported_digest_algorithm). Receivers MUST fail closed rather than infer suite parameters from the AEAD name. See zh/identity/key-management.md §7.5.2."
     },
     {
+      "code": "invalid_genesis_seal",
+      "http_status": 422,
+      "scope": "both",
+      "description": "The first Seal of a Realm did not atomically cover and materialize the complete founding anchor unit, or it declared an empty covered set or an empty control_event_set_root. Distinct from seal_incomplete (a backfill gap in an otherwise valid chain) and from rejected_seal (a Seal whose covered Control Moves failed reducer validation): a genesis Seal that omits a required cell is never repairable by later Seals, because accepting an empty Seal first and adding the authority afterwards is exactly what this code forbids. See zh/authz/cba-profiles.md section 3."
+    },
+    {
       "code": "seal_incomplete",
       "http_status": 409,
       "scope": "both",
@@ -1751,6 +1757,14 @@
         "state_resolution"
       ],
       "description": "A ak.realm.create bootstrap batch did not place the required closed-form creator self founding grant immediately after the create event. Reducer MUST reject the entire bootstrap unit atomically without leaving Realm metadata or creator membership. See zh/models/realm-and-space.md section 2.5."
+    },
+    {
+      "code": "invalid_genesis_seal",
+      "applies_to": [
+        "seal",
+        "state_resolution"
+      ],
+      "description": "The first Seal of a Realm did not atomically cover the complete founding anchor unit (Realm metadata, creator joined membership, founding authority/notary, founding grant, base policy, and for an MLS-backed scope the epoch-0 governance binding), or used an empty covered set or empty control_event_set_root. See zh/authz/cba-profiles.md section 3."
     },
     {
       "code": "invalid_realm_founding_grant",

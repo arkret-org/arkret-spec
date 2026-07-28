@@ -645,6 +645,7 @@
         "payload": {
           "schema": "ak.schema.erasure_receipt.v1",
           "receipt_id": "ak:receipt:019a6aa0-0200-7000-8000-000000000000",
+        "transaction_id": "ak:transaction:019a6aa0-0000-7000-8000-0000000000dd",
           "issuer": "did:webvh:z6mkfixture:erasure.example",
           "subject": {
             "kind": "principal",
@@ -1919,6 +1920,7 @@
       "instance": {
         "schema": "ak.schema.recovery_receipt.v1",
         "receipt_id": "ak:receipt:019a6aa0-0000-7000-8000-0000000000cc",
+        "transaction_id": "ak:transaction:019a6aa0-0000-7000-8000-0000000000dd",
         "principal_id": "did:webvh:z6mkfixture:alice.example",
         "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
@@ -1981,6 +1983,7 @@
       "instance": {
         "schema": "ak.schema.recovery_receipt.v1",
         "receipt_id": "ak:receipt:019a6aa0-0000-7000-8000-0000000000cd",
+        "transaction_id": "ak:transaction:019a6aa0-0000-7000-8000-0000000000dd",
         "principal_id": "did:webvh:z6mkfixture:alice.example",
         "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-0000000000ab",
         "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
@@ -2038,6 +2041,7 @@
       "instance": {
         "schema": "ak.schema.recovery_receipt.v1",
         "receipt_id": "ak:receipt:019a6aa0-0000-7000-8000-0000000000cc",
+        "transaction_id": "ak:transaction:019a6aa0-0000-7000-8000-0000000000dd",
         "principal_id": "did:webvh:z6mkfixture:alice.example",
         "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",

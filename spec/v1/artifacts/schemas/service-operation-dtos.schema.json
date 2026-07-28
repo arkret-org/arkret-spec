@@ -2469,6 +2469,49 @@
         }
       ]
     },
+    "EventsSubmitRejectedItem": {
+      "type": "object",
+      "description": "One rejected submission. When the reason is a missing CBA dependency the receiver reports the exact shortfall so the sender can extend one bundle instead of guessing; a bundle MAY be a bounded verifiable superset, so the receiver never asks for a byte-minimal bundle.",
+      "required": [
+        "id",
+        "reason_code"
+      ],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "0-based position of the rejected item in the request events[] array. Present when the item could be located positionally, which is the only way to report an item whose id failed to parse."
+        },
+        "id": {
+          "type": "string"
+        },
+        "reason_code": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "missing_seal_refs": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+          },
+          "description": "Exact Seals the receiver still needs to close this Event's seal_ref or seal_basis leaves. Required whenever the rejection is a dependency shortfall; each retry round MUST strictly shrink this set."
+        },
+        "missing_event_digests": {
+          "type": "array",
+          "maxItems": 1024,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./event-envelope.schema.json#/$defs/hash"
+          },
+          "description": "Exact control-plane Event digests the receiver still needs. Same shrinking obligation as missing_seal_refs."
+        }
+      },
+      "additionalProperties": false
+    },
     "EventsSubmitOutcome": {
       "type": "object",
       "description": "Result of ak.events.submit. Tracks per-event acceptance / duplication /\nrejection along with the post-write frontier and an optional barrier\ncursor for read-your-writes.\n",
@@ -2512,22 +2555,7 @@
         "rejected": {
           "type": "array",
           "items": {
-            "type": "object",
-            "required": [
-              "id",
-              "reason_code"
-            ],
-            "properties": {
-              "id": {
-                "type": "string"
-              },
-              "reason_code": {
-                "type": "string"
-              },
-              "detail": {
-                "type": "string"
-              }
-            }
+            "$ref": "#/$defs/EventsSubmitRejectedItem"
           }
         },
         "quarantine": {

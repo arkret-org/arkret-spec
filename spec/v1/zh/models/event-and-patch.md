@@ -218,8 +218,24 @@ receiver MUST 从签名 envelope、schema-validated payload 与冻结前态重�
   view 下解析目标 add dot）。
 
   需要**部分撤销**——即只移除 producer 明确指名的 dot 子集——时 MUST NOT 使用本形态，
-  而使用 `or_set_delta` 的 `remove` branch 从 payload 取 dot，参见
-  [`../identity/consent-model.md`](../identity/consent-model.md) §3.3 的 `observed_dots`。
+  而使用下一条的 `or_set_remove_dots`。
+- `{"kind":"or_set_remove_dots","dots":source}` 只用于 `or_set`，且 `source` 求值结果 MUST 是
+  一个 dot 数组。对数组中每个元素精确派生一个 `{"kind":"remove","tag":<该元素>}`，
+  移除集合与该数组**逐字节相等**：数组外的 dot 不受影响，reducer MUST NOT 由任一元素隐式
+  推断并移除未枚举的其它 dot。元素 MUST 是本节定义的 canonical dot 形态；数组为空、含重复项、
+  含非 dot 字符串，或 `source` 路径不存在，均 MUST fail closed。
+
+  这是 `or_set_batch_add` 之外唯一的批量特例，只用于**部分撤销**：移除集合由 producer 在
+  payload 中显式枚举，而不是由冻结前态确定。它与 `or_set_remove_observed` 的分工是封闭的——
+  前者移除 producer 指名的子集，后者移除冻结前态下的全部存活 dot；两者 MUST NOT 互相替代。
+  规范来源见 [`../identity/consent-model.md`](../identity/consent-model.md) §3.3 的
+  `observed_dots`（同一 `(consent_id, peer, consent_scope)` 下可以只撤销部分 dot，
+  且 reducer MUST NOT 基于一个 `consent_scope=any` 的 dot 推断移除其它 dot）。
+
+  > 与 §2.4.2 末段「一个 payload delta 需要多个同 family op 时必须使用唯一批量特例」的关系：
+  > 批量特例现在是**两个**且各自封闭——add 侧 `or_set_batch_add`（只用于 MLS Governance
+  > Binding 的 `covered_seal_refs`），remove 侧 `or_set_remove_dots`（只用于 payload 显式
+  > 枚举的 dot 数组）。其它 payload 数组仍然 MUST NOT 被当作隐含 op 次序。
 - projection 不声明的 `reason`、`issuer_seq`、`tag`、`value` 等 op 成员 MUST 缺省；source
   路径不存在、selector 未命中或投影与 lattice 不兼容表示 registry/Event 无法求值，MUST
   fail closed，不得退化为实现私有默认值。

@@ -1644,7 +1644,7 @@
           },
           {
             "fixture": "federation-fixture.json",
-            "semantic_projection_digest": "sha256:7884c22e65f52f0cc275a6d1059b665965fbb48dcd02051bfab6dbce7d60f5ca"
+            "semantic_projection_digest": "sha256:887ece2a0806d89405cfade7a0bffaed084b7611acc8d6414506b207f322d78d"
           },
           {
             "fixture": "sync-fixture.json",
@@ -1686,7 +1686,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:249c077629490b1556aa2b20bf01338f9d25307d7b66ee200e6828c9ec75cb2b"
+      "reducer_profile_digest": "sha256:7642afdb74523484cf06ed986545f0a33f26ab01f9872a026e83fd915cf3cf5b"
     }
   ],
   "generated_fields": [
