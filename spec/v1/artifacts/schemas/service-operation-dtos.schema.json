@@ -4626,6 +4626,83 @@
         }
       }
     },
+    "ControlGovernanceHealth": {
+      "type": "object",
+      "required": [
+        "status",
+        "pending_proposals"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "healthy",
+            "degraded"
+          ]
+        },
+        "pending_proposals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "proposal_digest",
+              "receipt",
+              "current_decision_due_at",
+              "absolute_due_at",
+              "defer_count",
+              "decision_state"
+            ],
+            "properties": {
+              "proposal_digest": {
+                "type": "string",
+                "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+              },
+              "receipt": {
+                "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_receipt"
+              },
+              "current_decision_due_at": {
+                "$ref": "./time.schema.json#/$defs/timestamp"
+              },
+              "absolute_due_at": {
+                "$ref": "./time.schema.json#/$defs/timestamp"
+              },
+              "defer_count": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2
+              },
+              "decision_state": {
+                "enum": [
+                  "pending",
+                  "deferred",
+                  "overdue"
+                ]
+              },
+              "fault_reason": {
+                "const": "control_proposal_decision_overdue"
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "decision_state": {
+                      "const": "overdue"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "fault_reason"
+                  ]
+                }
+              }
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "RealmId": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },

@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/control-proposal-decision.schema.json",
+  "title": "Arkret Control Proposal Receipt and Decision",
+  "description": "Signed proposal-ingress receipt and signed reject/defer decisions for CBA Control Moves. Deadlines provide bounded authority decisions, never acceptance or Seal finality.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/proposal_receipt"
+    },
+    {
+      "$ref": "#/$defs/proposal_decision"
+    }
+  ],
+  "$defs": {
+    "proposal_receipt": {
+      "type": "object",
+      "required": [
+        "kind",
+        "realm_id",
+        "proposal_digest",
+        "received_at",
+        "decision_due_at",
+        "absolute_due_at",
+        "defer_count",
+        "authority_set_ref",
+        "signature"
+      ],
+      "properties": {
+        "kind": {
+          "const": "proposal_receipt"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "proposal_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "received_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "decision_due_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "absolute_due_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "defer_count": {
+          "const": 0
+        },
+        "authority_set_ref": {
+          "$ref": "#/$defs/hash"
+        },
+        "signature": {
+          "$ref": "#/$defs/proof"
+        }
+      },
+      "additionalProperties": false
+    },
+    "proposal_decision": {
+      "type": "object",
+      "required": [
+        "kind",
+        "realm_id",
+        "proposal_digest",
+        "receipt_digest",
+        "decided_at",
+        "decision_due_at",
+        "absolute_due_at",
+        "defer_count",
+        "reason_code",
+        "authority_set_ref",
+        "signature"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "signed_reject",
+            "signed_defer"
+          ]
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "proposal_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "receipt_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "decided_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "decision_due_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "absolute_due_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "defer_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "reason_code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "authority_set_ref": {
+          "$ref": "#/$defs/hash"
+        },
+        "signature": {
+          "$ref": "#/$defs/proof"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "signed_reject"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "defer_count": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "signed_defer"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "defer_count": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 2
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "timestamp": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    },
+    "proof": {
+      "type": "object",
+      "required": [
+        "kind",
+        "verification_method",
+        "alg",
+        "payload_digest",
+        "created_at",
+        "jws"
+      ],
+      "properties": {
+        "kind": {
+          "const": "detached_jws"
+        },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "alg": {
+          "type": "string",
+          "enum": [
+            "EdDSA",
+            "ES256",
+            "ML-DSA-65"
+          ]
+        },
+        "payload_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

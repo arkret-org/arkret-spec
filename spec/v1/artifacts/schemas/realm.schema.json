@@ -578,19 +578,28 @@
       "type": "integer",
       "minimum": 0,
       "default": 86400000,
-      "description": "Realm-level deadline within which a pending control-plane Control Move MUST receive a signed receipt or signed rejection (authz/event-auth-state-resolution.md section 7.2). Measured by notary-committed seal time, not local receive time. Silent omission past this SLA (modulo bounded defers, see max_receipt_defers) is censorship evidence."
+      "description": "Realm-level deadline within which a submitted control-plane Control Move MUST receive a signed proposal receipt or signed ingress rejection (authz/event-auth-state-resolution.md section 7.2). This acknowledgement phase is separate from the proposal receipt's bounded decision window. Silent omission past this SLA is governance-health evidence."
     },
-    "control_move_finality_sla_ms": {
+    "proposal_decision_window_ms": {
       "type": "integer",
       "minimum": 1,
       "default": 30000,
-      "description": "Realm-level deadline within which an accepted control-plane Control Move MUST reach control-plane finality (authz/event-auth-state-resolution.md section 7.2). The clock starts at the received_at the Move's notary-signed receipt commits to, and stops either when the first accepted Seal's covered set contains that Move digest or when the notary issues an independently verifiable terminal rejection. elapsed <= SLA conforms; elapsed > SLA does not. A receiver's local arrival time for the Event or Seal MUST NOT enter the computation. This is deliberately not receipt_sla_ms: one field cannot carry both 'how long until receipt is acknowledged' and 'how long until control-plane finality', because the two phases are observed, alerted and tuned separately. Exceeding it is a governance health fault (control_move_finality_exceeded), never a change to the cryptographic acceptance result - a Seal arriving late is still accepted, and the fault is retained as auditable evidence rather than splitting the same Seal into accepted on one receiver and rejected on another."
+      "maximum": 86400000,
+      "description": "Realm-level default first decision window for a receipted Control Move. A proposal receipt commits decision_due_at = received_at + an effective window no greater than this value and the protocol hard ceiling of 24 hours. The deadline requires a verifiable decision (include in an accepted Seal, signed reject, or bounded signed defer); it is not an acceptance or finality SLA."
     },
-    "max_receipt_defers": {
+    "proposal_absolute_deadline_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 259200000,
+      "default": 90000,
+      "description": "Realm-level absolute proposal decision horizon measured from the proposal receipt's signed received_at. absolute_due_at MUST equal received_at plus an effective value no greater than this field and the protocol hard ceiling of 72 hours. Signed defers MUST preserve absolute_due_at and cannot extend this horizon."
+    },
+    "max_proposal_defers": {
       "type": "integer",
       "minimum": 0,
-      "default": 3,
-      "description": "Maximum cumulative number of signed defers a single pending Control Move may receive before include / signed-reject is mandatory (authz/event-auth-state-resolution.md section 7.2). Exceeding it without include/signed-reject is treated as silent omission / censorship evidence."
+      "maximum": 2,
+      "default": 2,
+      "description": "Maximum cumulative number of signed defers for one receipted Control Move. The protocol hard ceiling is two. Every defer carries a closed reason code, increments defer_count by exactly one, advances decision_due_at without exceeding absolute_due_at, and preserves the receipt's absolute_due_at."
     },
     "seal_compaction_max_interval_ms": {
       "type": "integer",

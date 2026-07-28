@@ -427,41 +427,56 @@ Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名�
 
 控制面 pending Control Move MUST 在 `receipt_sla_ms` 内得到签名 receipt 或签名 rejection。`receipt_sla_ms` 的权威字段是 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `receipt_sla_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`），与 `seal_compaction_max_interval_ms`（§6.2）同量级；其 wire 上限登记于 [`scalability-constraints.md`](../conformance/scalability-constraints.md) §4。SLA 计时以 notary 签署的提交时间为准（与 §4.3 `distance` 同源），不用本地接收时间。
 
-**控制面终局 SLA（`control_move_finality_sla_ms`，normative）**：`receipt_sla_ms`
-管的是「多久确认收到」，本字段管的是「多久取得控制面终局」——两个独立阶段
-MUST NOT 复用同一字段，否则无法分别观测、告警与调优。权威字段是
-[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `control_move_finality_sla_ms`
-（integer，毫秒，`default 30000`，`minimum 1`），默认值与 `max_mls_commit_delay_ms`
-同量级，即用户可感知的控制面阻塞时长；notary profile 与部署可显式声明更严或更宽的值。
+**Proposal 有界决议（normative）**：`receipt_sla_ms` 只管「多久确认收到」。authority
+接受 proposal ingress 后签发的 receipt 还 MUST 承诺：
 
-- **起点**：该 Move 的 notary-signed receipt 所承诺的 `received_at`。
-- **成功终点**：首条 accepted Seal 的 covered set 包含该 Move digest。
-- **另一终点**：notary 签发可独立验证的 terminal rejection。
-- **边界**：`elapsed <= SLA` 合规，`elapsed > SLA` 违规。
-- receiver 本地收到 Event / Seal 的时间 **MUST NOT** 参与计算（与 §4.3 `distance` 同源）。
+```text
+proposal_digest, received_at, decision_due_at, absolute_due_at,
+defer_count=0, authority_set_ref, signature
+```
 
-**超时是治理健康 fault，不改变密码学接受结果（normative）**：超过 SLA 后，
+机读合同为
+[`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json)。
+Realm 的 `proposal_decision_window_ms` 给出首个决议窗口（default 30,000ms，协议硬上限
+24h），`proposal_absolute_deadline_ms` 给出从 signed `received_at` 起不可延长的绝对窗口
+（default 90,000ms，协议硬上限 72h），`max_proposal_defers` 给出 defer 次数上限
+（default 2，协议硬上限 2）。profile / deployment MAY 声明更短窗口或更少 defer，
+不得放宽协议硬上限。
 
-1. Realm governance health 投影进入 `degraded`，记录超时 Move digest、receipt 与 deadline；
-2. 依赖该 pending Move 的 authoring / readiness **MUST** fail closed；
-3. 无法证明旧 capability 在 pending revoke / ban / notary change 下仍安全的写入 **MUST** fail closed；
-4. 与该 Move 无关、仍由 accepted 旧 Seal 合法授权的 DataEvent **MUST NOT** 被全局误伤；
-5. 后来抵达且按 Seal 规则有效的 Seal 仍正常 accepted；SLA fault 作为可审计证据保留。
-   **MUST NOT** 因「迟到」把相同 Seal 在不同 receiver 上分成 accepted / rejected 两种终态——
-   那会把一个本地计时差异升格为共识分叉。
+每个决议窗口到期前，authority MUST 产生以下之一：
 
-诊断码 `control_move_finality_exceeded` 用于 health / readiness 投影与 retryable service failure；
-它**不取代** Event 本身的 `control_pending` 状态。
+1. proposal digest 被 accepted Seal 的 covered set 覆盖；
+2. `signed_reject`，携带 closed `reason_code`；
+3. `signed_defer`，携带 closed `reason_code`、严格递增且不晚于 `absolute_due_at` 的新
+   `decision_due_at`，并把 `defer_count` 恰好加一。
+
+每个 defer MUST 引用原始 receipt digest，绑定同一 proposal、Realm 与 authority set，
+并原样保留 `absolute_due_at`。`signed_reject` 与 `signed_defer` 是可验证的 authority
+决议，**不是** proposal 被接受，也不提供 finality；只有第 1 项中的 accepted Seal 提供
+控制面 finality。该义务不得命名为“接受 SLA”，也不得声称 deadline 本身提供 finality。
+receiver 本地收到 Event、receipt、decision 或 Seal 的时间 MUST NOT 进入规范计算。
+
+**逾期是治理健康 fault，不改变密码学接受结果（normative）**：在当前
+`decision_due_at` 前没有上述三者，或到达 `absolute_due_at` / defer 上限后仍未 include /
+signed-reject 时：
+
+1. Realm governance health 投影进入 `degraded`，记录 proposal digest、receipt、当前
+   decision chain 与 deadline；
+2. 产生稳定诊断 `control_proposal_decision_overdue`，并允许形成 censorship evidence；
+3. 依赖该 pending Move 的 authoring/readiness，以及无法证明旧授权在 pending revoke /
+   ban / notary change 下仍安全的写入 MUST fail closed；
+4. 与该 Move 无关、仍由 accepted 旧 Seal 合法授权的 DataEvent MUST NOT 被全局误伤；
+5. 后来抵达且按 Seal 规则有效的 Seal仍正常 accepted；fault 作为可审计证据保留。
+
+不得因“迟到”把同一 cryptographically valid Seal 在不同 receiver 上分成 accepted /
+rejected 两种终态。协议不能强迫停机或恶意 authority 接受 proposal；它能保证的是合规
+authority 给出有界、可验证的决议，并为失约提供 health/fault/recovery/rotation 入口。
+上述 receipt、两次 defer 上界、绝对期限与迟到 Seal 规则由 conformance vector
+`ak.vector.cba.proposal_bounded_decision.v1` 固定。
 
 **compaction 不承担终局（normative）**：首个 Seal **MUST NOT** 是 compaction Seal；
 compaction 前的普通 signing pass 出现任何硬错误时 compaction **MUST** 停止并上浮；
-compaction 成功 **MUST NOT** 作为普通 pending Move 已在 SLA 内终局的替代证据。
-
-到期 receipt 在后续 Seal 中必须三选一：
-
-1. include；
-2. signed-reject，附可验证原因；
-3. **有限次 defer**，附原因与新的到期边界；同一 pending Control Move 的累计 defer 次数 MUST NOT 超过 `max_receipt_defers`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)，integer，`default 3`，`minimum 0`，上限登记于 [`scalability-constraints.md`](../conformance/scalability-constraints.md) §4）；超过该上限仍未 include / signed-reject 即等同无声遗漏，构成下面的 censorship evidence。
+compaction 成功 **MUST NOT** 作为普通 pending Move 已按期取得 proposal 决议的替代证据。
 
 无声遗漏构成 censorship evidence：
 
