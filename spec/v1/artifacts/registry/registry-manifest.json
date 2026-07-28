@@ -214,6 +214,16 @@
       "description": "Generated registry view for active schema IDs and schema file locations."
     },
     {
+      "name": "track_names",
+      "file": "registry/track-name-registry.json",
+      "kind": "track_name_registry",
+      "value_set_evolution": "closed",
+      "source_role": "generated",
+      "source_of_truth": false,
+      "generated_from": "registry/contract-registry.json",
+      "description": "Generated registry view for the closed active Strand TrackName vocabulary and its schema/profile owners."
+    },
+    {
       "name": "morph_kind_decision_table",
       "file": "registry/morph-kind-decision-table.json",
       "kind": "decision_table",

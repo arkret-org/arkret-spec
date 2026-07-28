@@ -239,7 +239,11 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 `discussion` 不是独立实体或 selector kind。授权 discussion track 应使用 `allowed_tracks=["discussion"]`。`tracks.<name>.profile` 只是 track-local profile hint，v1 grant constraint 不定义按 profile 名称授权的字段；能否读取、发送或管理消息仍由 action、`allowed_tracks` action scope、history visibility 和 E2EE key eligibility 决定。
 
-`allowed_tracks` 和 `denied_tracks` 的元素 MUST 使用 Strand `tracks` map key 的同一命名规则：`^[a-z][a-z0-9_]{0,63}$`。`synthesis` 与 `discussion` 是 v1 标准 track 名；profile MAY 声明其他 track 名，但不得用 profile 名称替代 track name。
+`allowed_tracks` 和 `denied_tracks` 的元素 MUST 使用 Strand `tracks` map key 的同一
+[`track-name-registry.json`](../../artifacts/registry/track-name-registry.json) active 集合；
+`^[a-z][a-z0-9_]{0,63}$` 只是在 registry 中登记名称的语法，不是独立准入条件。当前集合为
+`discussion` 与 `synthesis`。profile MAY 声明其他 track 名，但必须先完成带 owner 的机器登记，
+且不得用 profile 名称替代 track name；未登记名称 MUST fail closed。
 
 ### 6.2 视图限制
 

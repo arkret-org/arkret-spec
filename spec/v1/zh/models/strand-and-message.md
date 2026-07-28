@@ -173,7 +173,13 @@ Schema id: `ak.schema.strand.v1`
 - value 是该 track 的配置对象；
 - `is_primary=true` 是可选显式 primary 标记。
 
-标准 track name 为 `synthesis` 与 `discussion`，profile MAY 声明更多 track name。
+TrackName 的 canonical 真源是
+[`track-name-registry.json`](../../artifacts/registry/track-name-registry.json)；当前 active
+集合精确为 `discussion` 与 `synthesis`。`^[a-z][a-z0-9_]{0,63}$` 只定义登记时的语法上限，
+不能单独构成准入。profile MAY 声明更多 track name，但 MUST 在
+`contract-registry.json#track_name_registry.track_names` 增加带 owner 的条目、经 artifact
+pipeline 生成唯一视图，并在同一协议变更中更新 versioned Strand schema。未登记、重复、
+deprecated 或 owner 不可解析的名称 MUST `schema_violation`，不得仅因匹配正则而接受。
 
 ### 4.1 `StrandTrack` 字段
 
@@ -298,7 +304,7 @@ Track 写入路径只有一个 event kind: **`ak.strand.tracks.update`**(注意�
 
 **Capability**: `ak.strand.tracks.update` 一个 action 覆盖该 event。
 
-**Reducer 规则**: 同 §4.6 §4.7 — 切到 `discussion` 前 `discussion` track MUST 已 enabled(可在同一 patch 中通过 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true` 原子完成); primary track 不能空缺(切走旧 primary 后必须有一个新 primary); track key 必须匹配 `^[a-z][a-z0-9_]{0,63}$`。
+**Reducer 规则**: 同 §4.6 §4.7 — 切到 `discussion` 前 `discussion` track MUST 已 enabled(可在同一 patch 中通过 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true` 原子完成); primary track 不能空缺(切走旧 primary 后必须有一个新 primary); 每个 track key 必须命中 `track-name-registry.json` 的 active 唯一行；正则匹配不足以准入，未登记名称 MUST `schema_violation`。
 
 ## 5. Strand Scope（`scope_circle_id`）
 

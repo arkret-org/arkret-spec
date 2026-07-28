@@ -1961,6 +1961,7 @@ def lint_effect_projection(
 def check_registries(lint: Lint) -> dict[str, set[str]]:
     event_path = ARTIFACTS / "registry" / "event-kind-registry.json"
     schema_path = ARTIFACTS / "registry" / "schema-registry.json"
+    track_path = ARTIFACTS / "registry" / "track-name-registry.json"
     id_path = ARTIFACTS / "registry" / "id-kind-registry.json"
     operation_path = ARTIFACTS / "registry" / "operation-registry.json"
     profile_path = ARTIFACTS / "profiles" / "conformance-profiles.json"
@@ -1968,6 +1969,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
 
     event_registry = load_json(lint, event_path) or {}
     schema_registry = load_json(lint, schema_path) or {}
+    track_registry = load_json(lint, track_path) or {}
     id_registry = load_json(lint, id_path) or {}
     operation_registry = load_json(lint, operation_path) or {}
     profile_registry = load_json(lint, profile_path) or {}
@@ -2555,6 +2557,170 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             if not PROFILE_ID_RE.fullmatch(value):
                 lint.fail(profile_path, f"profile id has invalid format: {value}")
 
+    track_rows = track_registry.get("track_names", [])
+    track_names = unique_values(lint, track_path, track_rows, "track_name")
+    active_track_names: set[str] = set()
+    name_pattern = track_registry.get("name_pattern")
+    try:
+        compiled_track_name = re.compile(name_pattern) if isinstance(name_pattern, str) else None
+    except re.error as exc:
+        lint.fail(track_path, f"name_pattern is invalid: {exc}")
+        compiled_track_name = None
+    if compiled_track_name is None and not isinstance(name_pattern, str):
+        lint.fail(track_path, "name_pattern must be a regex string")
+
+    registered_schema_refs = {
+        f"{file_ref}{fragment}"
+        for file_ref, fragments in schema_refs_by_file.items()
+        for fragment in fragments
+    }
+    for index, row in enumerate(track_rows if isinstance(track_rows, list) else []):
+        if not isinstance(row, dict):
+            continue
+        track_name = row.get("track_name")
+        status = row.get("status")
+        if isinstance(track_name, str) and compiled_track_name is not None:
+            if compiled_track_name.fullmatch(track_name) is None:
+                lint.fail(track_path, f"track_names[{index}] has invalid track_name {track_name!r}")
+        if status not in {"active", "deprecated"}:
+            lint.fail(track_path, f"track_names[{index}].status must be active or deprecated")
+        elif status == "active" and isinstance(track_name, str):
+            active_track_names.add(track_name)
+
+        owner = row.get("owner")
+        if not isinstance(owner, dict):
+            lint.fail(track_path, f"track_names[{index}].owner must be an object")
+            continue
+        owner_kind = owner.get("kind")
+        if owner_kind == "schema":
+            if set(owner) != {"kind", "schema_ref"}:
+                lint.fail(
+                    track_path,
+                    f"track_names[{index}].owner kind=schema must contain only kind and schema_ref",
+                )
+            schema_ref = owner.get("schema_ref")
+            if not isinstance(schema_ref, str) or schema_ref not in registered_schema_refs:
+                lint.fail(
+                    track_path,
+                    f"track_names[{index}].owner.schema_ref does not resolve through schema-registry: {schema_ref!r}",
+                )
+        elif owner_kind == "profile":
+            if set(owner) != {"kind", "profile_id"}:
+                lint.fail(
+                    track_path,
+                    f"track_names[{index}].owner kind=profile must contain only kind and profile_id",
+                )
+            profile_id = owner.get("profile_id")
+            if not isinstance(profile_id, str) or profile_id not in profiles:
+                lint.fail(
+                    track_path,
+                    f"track_names[{index}].owner.profile_id does not resolve through conformance-profiles: {profile_id!r}",
+                )
+        else:
+            lint.fail(
+                track_path,
+                f"track_names[{index}].owner.kind must be schema or profile",
+            )
+
+    strand_schema_path = ARTIFACTS / "schemas" / "strand.schema.json"
+    strand_schema = load_json(lint, strand_schema_path) or {}
+    track_name_schema = (
+        strand_schema.get("$defs", {}).get("track_name", {})
+        if isinstance(strand_schema, dict)
+        else {}
+    )
+    schema_track_names = (
+        track_name_schema.get("enum", [])
+        if isinstance(track_name_schema, dict)
+        else []
+    )
+    if (
+        not isinstance(schema_track_names, list)
+        or any(not isinstance(value, str) for value in schema_track_names)
+        or len(schema_track_names) != len(set(schema_track_names))
+    ):
+        lint.fail(
+            strand_schema_path,
+            "$defs.track_name.enum must be a duplicate-free string array",
+        )
+    elif set(schema_track_names) != active_track_names:
+        lint.fail(
+            strand_schema_path,
+            "$defs.track_name.enum must exactly equal active track-name-registry names: "
+            f"schema={sorted(schema_track_names)!r}, registry={sorted(active_track_names)!r}",
+        )
+    tracks_property_names = (
+        strand_schema.get("properties", {}).get("tracks", {}).get("propertyNames")
+        if isinstance(strand_schema, dict)
+        else None
+    )
+    if tracks_property_names != {"$ref": "#/$defs/track_name"}:
+        lint.fail(
+            strand_schema_path,
+            "Strand.tracks.propertyNames must reference #/$defs/track_name",
+        )
+
+    track_vector_path = ARTIFACTS / "fixtures" / "state-reducer-hardening-fixture.json"
+    track_vector_fixture = load_json(lint, track_vector_path) or {}
+    vector_rows = (
+        track_vector_fixture.get("cases", [])
+        if isinstance(track_vector_fixture, dict)
+        else []
+    )
+    track_vector = next(
+        (
+            row
+            for row in vector_rows
+            if isinstance(row, dict)
+            and row.get("vector_id") == "ak.vector.strand_tracks_update.atomic.v1"
+        ),
+        None,
+    )
+    if not isinstance(track_vector, dict):
+        lint.fail(track_vector_path, "missing strand_tracks_update atomic vector")
+    else:
+        vector_input = track_vector.get("input")
+        cases = vector_input.get("cases") if isinstance(vector_input, dict) else None
+        if not isinstance(cases, list):
+            lint.fail(track_vector_path, "strand_tracks_update vector cases must be a list")
+        else:
+            has_unknown_rejection = False
+            for case_index, case in enumerate(cases):
+                if not isinstance(case, dict):
+                    continue
+                expected = case.get("expected")
+                decision = expected.get("decision") if isinstance(expected, dict) else None
+                reason = expected.get("reason") if isinstance(expected, dict) else None
+                patch = case.get("patch")
+                if not isinstance(patch, list):
+                    continue
+                for patch_index, operation in enumerate(patch):
+                    path_value = operation.get("path") if isinstance(operation, dict) else None
+                    match = (
+                        re.fullmatch(r"tracks\.([a-z][a-z0-9_]{0,63})\.[a-z][a-z0-9_]*", path_value)
+                        if isinstance(path_value, str)
+                        else None
+                    )
+                    if match is None:
+                        continue
+                    vector_track_name = match.group(1)
+                    if decision == "accept" and vector_track_name not in active_track_names:
+                        lint.fail(
+                            track_vector_path,
+                            f"cases[{case_index}].patch[{patch_index}] accepts unregistered TrackName {vector_track_name!r}",
+                        )
+                    if (
+                        decision == "reject"
+                        and reason == "schema_violation"
+                        and vector_track_name not in active_track_names
+                    ):
+                        has_unknown_rejection = True
+            if not has_unknown_rejection:
+                lint.fail(
+                    track_vector_path,
+                    "strand_tracks_update vector must reject an unregistered TrackName with schema_violation",
+                )
+
     constraint_types: set[str] = set()
     constraint_type_schema = (
         constraint_schema.get("properties", {})
@@ -2603,6 +2769,8 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             if row.get("status") == "active"
         },
         "schema_ids": schema_ids,
+        "track_names": track_names,
+        "active_track_names": active_track_names,
         "id_kinds": id_kinds,
         "special_id_kinds": special_id_kinds,
         "operation_ids": operation_ids,

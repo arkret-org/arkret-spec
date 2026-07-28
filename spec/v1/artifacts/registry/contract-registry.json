@@ -17,6 +17,12 @@
       "description": "Generated registry view for active schema IDs and schema file locations."
     },
     {
+      "name": "track_names",
+      "file": "registry/track-name-registry.json",
+      "section": "track_name_registry",
+      "description": "Generated registry view for the closed active Strand TrackName vocabulary and its schema/profile owners."
+    },
+    {
       "name": "id_kinds",
       "file": "registry/id-kind-registry.json",
       "section": "id_kind_registry",
@@ -47,6 +53,35 @@
       "description": "Generated registry view for the IANA TZDB releases calendar schedules may pin, and the canonicalization rules that turn a producer-supplied zone name into the signed canonical Zone."
     }
   ],
+  "track_name_registry": {
+    "registry_rules": [
+      "track_names[] is the canonical source for every Strand.tracks map key; syntax alone never admits a name.",
+      "New writes MUST use an active row. Unknown, deprecated, duplicate, or owner-unresolvable names fail closed with schema_violation.",
+      "owner.kind=schema requires schema_ref to resolve to an effective reference registered by schema_registry; owner.kind=profile requires profile_id to resolve in conformance-profiles.json.",
+      "Profiles MAY add a TrackName only by adding an owned row here, regenerating track-name-registry.json, and updating the versioned Strand schema TrackName enum in the same protocol change."
+    ],
+    "name_pattern": "^[a-z][a-z0-9_]{0,63}$",
+    "track_names": [
+      {
+        "track_name": "discussion",
+        "status": "active",
+        "owner": {
+          "kind": "schema",
+          "schema_ref": "schemas/message.schema.json"
+        },
+        "description": "Message and discussion timeline section of a Strand."
+      },
+      {
+        "track_name": "synthesis",
+        "status": "active",
+        "owner": {
+          "kind": "schema",
+          "schema_ref": "schemas/strand.schema.json"
+        },
+        "description": "Authoritative structured and narrative synthesis section of a Strand."
+      }
+    ]
+  },
   "event_kind_registry": {
     "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
     "wire_scope_definitions": {

@@ -548,6 +548,7 @@
         "primary_switch_validates_after_merge",
         "intermediate_zero_primary_state_is_not_observed",
         "conflicting_primary_patch_rejects_all_or_nothing",
+        "unregistered_track_name_rejects_schema_violation",
         "selector_segment_rejects_schema_violation"
       ],
       "input": {
@@ -595,27 +596,17 @@
             }
           },
           {
-            "name": "add_disable_primary_transfer_atomic",
+            "name": "disable_and_profile_update_atomic",
             "patch": [
-              {
-                "path": "tracks.review.enabled",
-                "op": "set",
-                "value": true
-              },
               {
                 "path": "tracks.discussion.enabled",
                 "op": "set",
                 "value": false
               },
               {
-                "path": "tracks.synthesis.is_primary",
+                "path": "tracks.discussion.profile",
                 "op": "set",
-                "value": false
-              },
-              {
-                "path": "tracks.review.is_primary",
-                "op": "set",
-                "value": true
+                "value": "review"
               }
             ],
             "expected": {
@@ -624,15 +615,12 @@
               "tracks": {
                 "discussion": {
                   "enabled": false,
-                  "is_primary": false
-                },
-                "review": {
-                  "enabled": true,
-                  "is_primary": true
+                  "is_primary": false,
+                  "profile": "review"
                 },
                 "synthesis": {
                   "enabled": true,
-                  "is_primary": false
+                  "is_primary": true
                 }
               }
             }
@@ -658,10 +646,25 @@
             }
           },
           {
+            "name": "unregistered_track_name_rejected",
+            "patch": [
+              {
+                "path": "tracks.review.enabled",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "tracks_unchanged": true
+            }
+          },
+          {
             "name": "selector_segment_rejected",
             "patch": [
               {
-                "path": "tracks.review[key=id].enabled",
+                "path": "tracks.discussion[key=id].enabled",
                 "op": "set",
                 "value": true
               }

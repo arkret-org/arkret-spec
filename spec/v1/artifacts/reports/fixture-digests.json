@@ -270,7 +270,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",
-      "sha256": "02b250cdec1377fdf16d3a6e1820b20307cb4d36996505b5a0e3046590cd8df4"
+      "sha256": "8f40903e38ec2ae4c3934eb04214b049b5d8ffb9ad7afe612474569e238798b5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",

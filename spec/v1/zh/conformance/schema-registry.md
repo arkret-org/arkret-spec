@@ -24,12 +24,18 @@ sidebar:
 
 - `artifacts/registry/contract-registry.json`
 - `artifacts/registry/schema-registry.json`
+- `artifacts/registry/track-name-registry.json`
 - `artifacts/registry/id-kind-registry.json`
 - `artifacts/registry/event-kind-registry.json`
 - `artifacts/registry/operation-registry.json`
 - `artifacts/registry/error-code-registry.json`
 
 其中 `error-code-registry.json` 是标准 service error code 与批处理逐项 `reason_code` 的 canonical registry；本文后续 event/schema 表只提供文档视图，不重复维护错误码全集。
+
+`track-name-registry.json` 是 `contract-registry.json#track_name_registry.track_names`
+生成的唯一 TrackName 视图。`Strand.tracks`、track-scoped constraint、正文与 conformance
+vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` 必须可解析，未登记名称
+一律 fail closed。
 
 各 registry（schema / event kind / typed ID / operation / profile）的**当前 registered 计数及其 CI 门禁**（由 `tools/lint_artifacts.py` 的 `check_release_readiness_counts` 对照 Canonical registry 自动校验）集中登记在 [`overview/release-readiness.md` §2](../overview/release-readiness.md) 的计数表；本文不重复维护计数，引用时以该表与各 Canonical JSON registry 为权威来源。
 

@@ -20,7 +20,7 @@ see_also:
 ### 1.1 规范权威层级
 
 - `artifacts/registry/contract-registry.json` 是 event/schema/id/operation contract 的 canonical catalog。
-- `artifacts/registry/event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json`、`operation-registry.json`、`capability-action-registry.json` 和 `calendar-timezone-registry.json` 是从 canonical catalog 生成的机器视图；实现、SDK 和 lint 应消费这些生成物，而不是手抄 Markdown 表。
+- `artifacts/registry/event-kind-registry.json`、`schema-registry.json`、`track-name-registry.json`、`id-kind-registry.json`、`operation-registry.json`、`capability-action-registry.json` 和 `calendar-timezone-registry.json` 是从 canonical catalog 生成的机器视图；实现、SDK 和 lint 应消费这些生成物，而不是手抄 Markdown 表。
 - `artifacts/registry/error-code-registry.json` 是标准 service error 与逐项 `reason_code` 的 canonical registry。
 - `artifacts/openapi/arkret-service-api.openapi.yaml` 是 HTTP/OpenAPI binding shape；它描述 HTTP 形状，不替代抽象 `operation_id`、Event kind、typed ID 或 reducer 语义。
 - `zh/*/*.md` 文档主要承担解释、边界说明和阅读路径；除明确标注“生成视图”外，不应再手工维护穷尽清单。
@@ -34,7 +34,7 @@ see_also:
 `artifacts/registry/registry-manifest.json` 索引 current v1 的机器可读源。实现、SDK、Conformance Verifier 与 transport adapter 应优先消费这些 artifact，而不是从 Markdown 表格手抄定义：
 
 - `artifacts/registry/contract-registry.json`：event、schema、typed id、operation contract 的 canonical catalog。
-- `artifacts/registry/operation-registry.json`、`event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json`、`capability-action-registry.json`、`calendar-timezone-registry.json`：从 canonical catalog 生成的 current-wire 视图。`calendar-timezone-registry.json` 额外锁定 calendar schedule 可 pin 的 IANA TZDB release 与 zone canonicalization 规则。
+- `artifacts/registry/operation-registry.json`、`event-kind-registry.json`、`schema-registry.json`、`track-name-registry.json`、`id-kind-registry.json`、`capability-action-registry.json`、`calendar-timezone-registry.json`：从 canonical catalog 生成的 current-wire 视图。`track-name-registry.json` 固定 `Strand.tracks` 的 active key 与 owner；`calendar-timezone-registry.json` 额外锁定 calendar schedule 可 pin 的 IANA TZDB release 与 zone canonicalization 规则。
 - `artifacts/registry/error-code-registry.json`：标准 service error 与 `reason_code` 的 canonical registry。
 - `artifacts/profiles/conformance-profiles.json`：profile、feature、unknown/unsupported 行为和 profile role 的机器矩阵。
 - `artifacts/schemas/*.schema.json`：wire object、DTO、event payload、proof、capability、cursor、seal 与 extension object 的 JSON Schema。

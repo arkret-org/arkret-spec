@@ -46,6 +46,10 @@ Jira / Trello 一类产品里的细粒度 workflow status（例如 QA、Review�
 - `synthesis`：正式表达、结构化字段、状态推进、标题、摘要、正文
 - `discussion`：消息时间线、通知入口与讨论 UI；成员、历史可见性和 E2EE 由整个 Strand 的 effective scope 决定，不由 track 自己持有
 
+这两个名称同时是当前
+[`track-name-registry.json`](../../artifacts/registry/track-name-registry.json) 的完整 active
+集合；正则只约束登记语法，未登记名称不能进入 `Strand.tracks`。
+
 Track 可独立启用或关闭，也可原子切换 primary；「只聊天不归纳」和「只承载结构化正文不开讨论」都是合法模型形态。完整的 active/primary 不变量、`discussion` 启用护栏与 `ak.strand.tracks.update` patch 规则只由 [`models/strand-and-message.md` §4.5–§4.8](../models/strand-and-message.md) 规范定义，本导览不重复承载。
 
 ## 4. 工作流容器

@@ -1034,14 +1034,16 @@ ak.vector.strand_tracks_update.atomic.v1
 
 - 一个已存在 Strand `F0`，`tracks = { "synthesis": { is_primary: true, enabled: true }, "discussion": { is_primary: false, enabled: true } }`。
 - Case A — 单字段 patch：一个 `ak.strand.tracks.update` Event，`payload.patch = { "tracks.synthesis.is_primary": { "$op": "set", "value": false }, "tracks.discussion.is_primary": { "$op": "set", "value": true } }`。期望 Strand `tracks` 在单个 Event 的 reducer projection 内原子地把 primary 从 `synthesis` 切到 `discussion`，中间态 MUST NOT 出现"两个 is_primary=true"或"零个 is_primary=true"。
-- Case B — 新增 + 启停 + 移除：在 Strand 已含 `tracks.synthesis` / `tracks.discussion` 的基础上，单条 `ak.strand.tracks.update` 同时 (1) 新增 `tracks.review.enabled=true` 子 map (profile 注册的扩展 track)，(2) 把 `tracks.discussion.enabled` 置为 false，(3) 把 `tracks.synthesis.is_primary` 置为 false，(4) 把 `tracks.review.is_primary` 置为 true。
+- Case B — 启停 + profile 更新：在 Strand 已含 `tracks.synthesis` / `tracks.discussion` 的基础上，单条 `ak.strand.tracks.update` 同时 (1) 把 `tracks.discussion.enabled` 置为 false，(2) 把 `tracks.discussion.profile` 置为 `review`。`review` 在这里是 UI hint profile 值，不是 TrackName。
 - Case C — invariant 违反：单条 `ak.strand.tracks.update` 把 `tracks.synthesis.is_primary` 与 `tracks.discussion.is_primary` 同时 set 为 `true`。
+- Case D — 未登记名称：单条 `ak.strand.tracks.update` 尝试写入 `tracks.review.enabled=true`；`review` 未登记在 `track-name-registry.json`，即使匹配 TrackName 基础正则也不得创建。
 
 期望：
 
 - **Case A**: reducer 应用 patch 后，`Strand.tracks.synthesis.is_primary == false` 且 `Strand.tracks.discussion.is_primary == true`；reducer 视角下不存在两次中间 state cell write，mv_register cell 一次 atomic update。
-- **Case B**: reducer 接受合并后状态 `{ synthesis: {is_primary: false, enabled: true}, discussion: {is_primary: false, enabled: false}, review: {is_primary: true, enabled: true} }`；中间过程 MUST 在同一 cell update 内完成，不得分裂为 4 个独立 cell write。
+- **Case B**: reducer 接受合并后状态 `{ synthesis: {is_primary: true, enabled: true}, discussion: {is_primary: false, enabled: false, profile: "review"} }`；中间过程 MUST 在同一 cell update 内完成，不得分裂为多个独立 cell write。`tracks` 的 key 仍精确为 registry 中的 `discussion` / `synthesis`。
 - **Case C**: reducer MUST 在 projected writes 应用前（cell update 之前）校验合并后 `tracks` map 至多 1 个 entry `is_primary=true`；不满足 MUST `schema_violation`，整条 Event 拒绝，Strand `tracks` 不发生任何变化。
+- **Case D**: reducer MUST 在应用 patch 前把 path 中的 TrackName 与 active registry 集合比较；未登记名称 MUST `schema_violation`，不得创建 `review` track，Strand `tracks` 不发生任何变化。
 
 判定要求：
 
@@ -1051,10 +1053,11 @@ ak.vector.strand_tracks_update.atomic.v1
 失败条件：
 
 - Case A 在 cell update 中间态触发 invariant 校验，把"先把 synthesis 设 false → 此时 0 个 primary"错判为 violation。
-- Case B 把 patch 拆分为多个独立 cell write，破坏 atomic 语义（外部读取在中间能看到不一致的 tracks map）。
+- Case B 把 patch 拆分为多个独立 cell write，破坏 atomic 语义（外部读取在中间能看到部分更新的 track 配置）。
 - Case C 把违反 invariant 的 Event 部分接受（例如设了 enabled 但拒绝 is_primary），破坏 Event-level all-or-nothing 语义。
+- Case D 因 `review` 匹配基础正则而接受，绕过 registry 准入。
 
-实现 MUST 在 conformance 报告中分别报告三个 case 的 reducer 输出 cell value 与 invariant violation reason；该 vector 防御 [`strand-and-message.md`](../models/strand-and-message.md) §4.5 step 5 primary 解析规则的边界 case。
+实现 MUST 在 conformance 报告中分别报告四个 case 的 reducer 输出 cell value 与 invariant violation reason；该 vector 防御 [`strand-and-message.md`](../models/strand-and-message.md) §4.5 step 5 primary 解析规则及 TrackName registry 准入的边界 case。
 
 ### 2.11 Vector: `fsm` 家族 join 幂等与并发冲突
 

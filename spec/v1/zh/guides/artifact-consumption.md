@@ -21,10 +21,11 @@ updated: 2026-07-13
 - `registry/event-kind-registry.json`: event kind 是否 active、wire scope、cell family、lattice、bottom、payload schema。
 - `registry/operation-registry.json`: service operation ID、surface group、profile tier。
 - `registry/schema-registry.json`: registered schema ID 到 schema artifact 的映射；consumer 递归解析同目录 `$ref` 指向的 raw schema artifact（例如 `event-envelope.schema.json` 引用 `event-payload.schema.json`、`common-ids.schema.json` 与 `read-cursor.schema.json`），避免假设 registry 直接列出的文件就是全部需要发布或缓存的 schema 文件。该要求的权威来源是 [`../overview/release-readiness.md`](../overview/release-readiness.md)。
+- `registry/track-name-registry.json`: `Strand.tracks` active key 的闭集、状态与 schema/profile owner；未登记名称不得仅凭正则匹配进入 reducer。
 - `registry/id-kind-registry.json`: typed ID kind 与 wire form。
 - `profiles/conformance-profiles.json`: profile inheritance、required operations、event kinds、schemas、fixtures、features、capability actions、cell namespaces、rejected event kinds。
 
-> 上述 `registry/{event-kind,operation,schema,id-kind}-registry.json` 是从 canonical `registry/contract-registry.json` 生成的机器视图；contract-registry 是它们的 single source of truth。新增或修改 contract 时，实施流程先修改 catalog 再重生成；权威规则见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md)。
+> 上述 `registry/{event-kind,operation,schema,track-name,id-kind}-registry.json` 是从 canonical `registry/contract-registry.json` 生成的机器视图；contract-registry 是它们的 single source of truth。新增或修改 contract 时，实施流程先修改 catalog 再重生成；权威规则见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md)。
 
 手写常量只能作为 ergonomics alias；admission、profile claim、conformance gate 应避免以手写常量作为唯一事实来源。
 
