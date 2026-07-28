@@ -1161,11 +1161,11 @@
         "event_kind_contracts": [
           {
             "event_kind": "ak.capability.grant",
-            "content_digest": "sha256:5dfba4c970f4a18ea455a766b669ad0d3eb5f582f0c297a755ecd5640955a7a0"
+            "content_digest": "sha256:45747c60d4e03c22d5013c36dc713ba2d7b24f1bcba06094b351033d70fc22b6"
           },
           {
             "event_kind": "ak.capability.revoke",
-            "content_digest": "sha256:8b546051ffe84aef2ed414a2cf5087fb1e1b95b3ebb1597a1c84d6d6a76ed627"
+            "content_digest": "sha256:ae1a833fb28e688603070c201acd052e16d1bf048cbfa6684ef6615ccc72aadb"
           },
           {
             "event_kind": "ak.container.rebalance",
@@ -1439,7 +1439,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:22b07bde55a407ca4542931e22715da0b6dbea70066ca36b27a9a4c4a63a7012"
+      "reducer_profile_digest": "sha256:2d5f6a54ab6fb6350a0adcf315879ca8a862b82c1c8c5158e046eb85f2c79ac8"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",

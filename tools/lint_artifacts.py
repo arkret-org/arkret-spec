@@ -1916,7 +1916,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             if not isinstance(cell_writes, list) or not cell_writes:
                 lint.fail(event_path, f"{kind} cell_writes must be a non-empty array")
                 cell_writes = []
-            seen_writes: set[str] = set()
+            seen_writes: dict[str, str | None] = {}
             for index, write in enumerate(cell_writes):
                 write_ref = f"{kind} cell_writes[{index}]"
                 if not isinstance(write, dict):
@@ -2093,9 +2093,34 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     sort_keys=True,
                     ensure_ascii=False,
                 )
-                if write_key in seen_writes:
-                    lint.fail(event_path, f"{write_ref} duplicates another cell target")
-                seen_writes.add(write_key)
+                # zh/models/event-and-patch.md section 2.4.2 allows one Event to
+                # carry several ops of the same family when the kind's closed
+                # contract registers them explicitly. The one shape that needs
+                # it is an or_set atomic remove-then-add on a single cell
+                # (zh/identity/key-management.md section 3.6.1 requires exactly
+                # that for agent key re-authorization). Any other repeat of a
+                # cell is still a duplicate target: the two ops would be
+                # indistinguishable to a receiver.
+                projection_kind = None
+                if isinstance(write.get("effect_projection"), dict):
+                    projection_kind = write["effect_projection"].get("kind")
+                add_kinds = {"or_set_add", "or_set_batch_add"}
+                remove_kinds = {"or_set_remove_observed", "or_set_remove_dots"}
+                previous = seen_writes.get(write_key)
+                if previous is not None:
+                    paired = (
+                        write_lattice == "or_set"
+                        and {previous, projection_kind}
+                        <= (add_kinds | remove_kinds)
+                        and bool({previous, projection_kind} & add_kinds)
+                        and bool({previous, projection_kind} & remove_kinds)
+                    )
+                    if not paired:
+                        lint.fail(
+                            event_path,
+                            f"{write_ref} duplicates another cell target",
+                        )
+                seen_writes[write_key] = projection_kind
             plane = row.get("plane")
             sealed = row.get("sealed")
             if plane not in REGISTRY_PLANES:
