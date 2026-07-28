@@ -7712,7 +7712,7 @@
           "effect_projection": {
             "kind": "transition",
             "from": {
-              "const": "leave"
+              "const": null
             },
             "to": {
               "const": "pending"
@@ -7864,7 +7864,7 @@
           "effect_projection": {
             "kind": "transition",
             "from": {
-              "const": "leave"
+              "const": null
             },
             "to": {
               "const": "pending"
@@ -7884,7 +7884,7 @@
       "effect_projection": {
         "kind": "transition",
         "from": {
-          "const": "leave"
+          "const": null
         },
         "to": {
           "const": "pending"

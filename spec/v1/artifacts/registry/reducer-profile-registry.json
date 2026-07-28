@@ -1181,7 +1181,7 @@
           },
           {
             "event_kind": "ak.invite.create",
-            "content_digest": "sha256:77c6e380b3de1ccff1314ea9e64d8fc20d3ec8693490f3ab5ba62031128d667c"
+            "content_digest": "sha256:01bf38a16cd2eafdacf5a9f36689ae74dd90ef36c825119e18eeab754cbb21d2"
           },
           {
             "event_kind": "ak.invite.revoke",
@@ -1189,7 +1189,7 @@
           },
           {
             "event_kind": "ak.invite.third_party",
-            "content_digest": "sha256:a774097b096976712006e08a9d9a63f18c9c3c2f50d6e17ae2a9a98bfd54114b"
+            "content_digest": "sha256:dee2ae5bd4d1ac125fe7807875dabf7544fe82cb60372bd99974e775be1bc276"
           },
           {
             "event_kind": "ak.member.state",
@@ -1439,7 +1439,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:272c464326220ab36c861a8d9198ccfc1cd03bc5755a0b9c8426350e6c361204"
+      "reducer_profile_digest": "sha256:11329a10bf8f6d217696faab9dde6dcbb285fbd63b30e9ed408466b3a67738df"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
