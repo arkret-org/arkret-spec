@@ -5024,6 +5024,8 @@ Expected：
 
 `ak.vector.mls_exporter_aead.content_key_derivation.v1` 固定 `exporter_secret` 与 `realm_id`，逐字节比较 `history_secret`、`ak.content-v1` 的完整 KDFLabel info 与 `K_content`。错误 label、空 Realm exporter context、给第二级派生加入非空 context、跨 epoch 复用内容键均 MUST 与金值不同或在加密前 fail closed。
 
+`ak.vector.mls_exporter_aead.seal_open_transcript.v1` 继续固定 `history_secret`、nonce、closed immutable header、plaintext 与 AES-128-GCM 输出，逐字节比较 `aead_aad_canonical_json` 和含 tag 的 ciphertext。修改 `aad.event_kind`、epoch、`key_ref.group_state_ref`、`aead_profile` 或 authentication tag 均 MUST 在 open 时拒绝；runner MUST 从 header 重建 JCS bytes，不得直接把 fixture 的 canonical JSON 字符串当作可信 AAD 输入。
+
 ### 21.2 Reaction routing HMAC
 
 `ak.vector.reaction.routing_hmac_kat.v1` 固定 exporter secret、Realm context 与 routing label，要求分解形式 `U+0065 U+0301` 与预组形式 `U+00E9` 经 NFC 后产生完全相同的 tag，并覆盖 emoji modifier。跳过 NFC、错误 label、跨 Realm context 或跨 epoch 复用 exporter key MUST fail closed。

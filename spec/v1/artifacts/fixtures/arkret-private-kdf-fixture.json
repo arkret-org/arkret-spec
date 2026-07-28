@@ -7,6 +7,7 @@
   "version": "2026-07-13",
   "covers_vectors": [
     "ak.vector.mls_exporter_aead.content_key_derivation.v1",
+    "ak.vector.mls_exporter_aead.seal_open_transcript.v1",
     "ak.vector.reaction.routing_hmac_kat.v1",
     "ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1"
   ],
@@ -38,6 +39,44 @@
         "content_key_hex": "86fe11a399474afc8d9a81b2f5a961bf"
       },
       "note": "aead_nk is AEAD.Nk of the ciphersuite the group actually negotiated, per encryption-and-audit.md 2.10.1, and 2.10.2 requires aead_profile to be an ACTIVE canonical_id of mls-ciphersuite-registry.json. The only active row is AES-128-GCM, so Nk is 16. The length is an ExpandWithLabel input, so a 16-byte key is not a prefix of a 32-byte one - an implementation following the normative text can never reproduce the latter."
+    },
+    {
+      "name": "mls_exporter_aead_seal_open_transcript",
+      "vector_id": "ak.vector.mls_exporter_aead.seal_open_transcript.v1",
+      "input": {
+        "history_secret_hex": "4242424242424242424242424242424242424242424242424242424242424242",
+        "content_key_hex": "76ab7dcbbbc1782052dc28c399e95bb5",
+        "nonce_hex": "714372a20000000000000007",
+        "plaintext_hex": "6578706f727465722d616561642072656772657373696f6e20616e63686f72",
+        "immutable_header": {
+          "scheme": "mls_exporter_aead_v1",
+          "key_ref": {
+            "algorithm": "MLS-EXPORTER-AEAD",
+            "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
+          },
+          "epoch": 42,
+          "nonce": "cUNyogAAAAAAAAAH",
+          "purpose": "mls_exporter_aead_content",
+          "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
+          "aad": {
+            "realm_id": "ak:realm:01904100-0000-7000-8000-000000000042",
+            "event_kind": "ak.message.create"
+          }
+        }
+      },
+      "expected": {
+        "aead_aad_canonical_json": "{\"aad\":{\"event_kind\":\"ak.message.create\",\"realm_id\":\"ak:realm:01904100-0000-7000-8000-000000000042\"},\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"epoch\":42,\"key_ref\":{\"algorithm\":\"MLS-EXPORTER-AEAD\",\"group_state_ref\":\"ak:event:01964148-0000-7000-8000-000000000000\"},\"nonce\":\"cUNyogAAAAAAAAAH\",\"purpose\":\"mls_exporter_aead_content\",\"scheme\":\"mls_exporter_aead_v1\"}",
+        "ciphertext_with_tag_hex": "e758b2f7d462d5170fe80aa7daee698cbdef6d5247cdd6cfc71e311632aa1730d3e406aa948ab34a36dbc8953b1809",
+        "opened_plaintext_hex": "6578706f727465722d616561642072656772657373696f6e20616e63686f72",
+        "negative_mutations": [
+          "aad.event_kind",
+          "epoch",
+          "key_ref.group_state_ref",
+          "aead_profile",
+          "ciphertext_tag"
+        ],
+        "negative_decision": "reject"
+      }
     },
     {
       "name": "content_key_derivation_fail_closed_negatives",

@@ -4205,6 +4205,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.mls_exporter_aead.seal_open_transcript.v1",
+      "status": "active",
+      "domain": "mls_exporter_aead",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1"
+      ],
+      "description": "Byte-exact AES-128-GCM seal/open KAT for the closed mls_exporter_aead_v1 pre-encryption immutable header, including header and authentication-tag negative mutations.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.direct_conversation.pair_key.v1",
       "status": "active",
       "domain": "direct_conversation",
