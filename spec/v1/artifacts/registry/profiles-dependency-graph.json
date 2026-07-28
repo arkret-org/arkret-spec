@@ -27,6 +27,7 @@
     "ak.profile.applet_widget.v1",
     "ak.profile.attested_audit.e2ee.v1",
     "ak.profile.auth_server.v1",
+    "ak.profile.binding.websocket.v1",
     "ak.profile.blob_node.v1",
     "ak.profile.calendar_event.v1",
     "ak.profile.calendar_notification_dispatch.v1",

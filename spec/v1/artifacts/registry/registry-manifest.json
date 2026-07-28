@@ -151,6 +151,16 @@
       "description": "Generated registry view for service operation IDs across HTTP, gRPC, and message-queue surfaces."
     },
     {
+      "name": "binding_kinds",
+      "file": "registry/binding-kind-registry.json",
+      "kind": "binding_kind_registry",
+      "value_set_evolution": "closed",
+      "source_role": "generated",
+      "source_of_truth": false,
+      "generated_from": "registry/contract-registry.json",
+      "description": "Generated registry view for closed ServiceDescribe transport binding kinds and extension profile requirements."
+    },
+    {
       "name": "capability_actions",
       "file": "registry/capability-action-registry.json",
       "kind": "capability_action_registry",

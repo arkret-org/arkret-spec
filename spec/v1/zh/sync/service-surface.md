@@ -170,7 +170,13 @@ GET /_arkret/describe
   "supported_bindings": [
     {
       "kind": "http_json",
-      "base_url": "https://alice.example.net"
+      "base_url": "https://alice.example.net",
+      "operations": [
+        "ak.server.query.describe",
+        "ak.self.account.query.viewer",
+        "ak.self.account.stream.subscribe"
+      ],
+      "extension_profile_required": null
     },
     {
       "kind": "tus",

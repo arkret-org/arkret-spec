@@ -370,6 +370,12 @@
       "description": "Bounded single-hop peer relay request and opaque outcome for encrypted SignalEnvelope values."
     },
     {
+      "schema_id": "ak.schema.signal_stream_frame.v1",
+      "file": "schemas/signal-stream-frame.schema.json",
+      "status": "active",
+      "description": "Closed data/control frame union for ak.self.signal.stream.subscribe."
+    },
+    {
       "schema_id": "ak.schema.cba_proof_bundle.v1",
       "file": "schemas/cba-proof-bundle.schema.json",
       "status": "active",
@@ -736,6 +742,12 @@
       "file": "schemas/service-describe.schema.json",
       "status": "active",
       "description": "Canonical ServiceDescribe response for ak.server.query.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces) and the registered directory_service overlay fields used by ak.find.directory.query.describe. Enforces development_mode=true => verified_profiles=[]. compat_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
+    },
+    {
+      "schema_id": "ak.schema.transport_binding.v1",
+      "file": "schemas/transport-binding.schema.json",
+      "status": "active",
+      "description": "Closed ServiceDescribe supported_bindings union for registered HTTP companion and extension transports."
     },
     {
       "schema_id": "ak.schema.public_key.v1",

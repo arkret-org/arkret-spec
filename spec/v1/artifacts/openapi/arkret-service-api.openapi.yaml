@@ -2466,11 +2466,11 @@ components:
         supported_bindings:
           type: array
           description: |
-            HTTP / gRPC / WebSocket / MQ binding declarations for this service.
-            Each entry SHOULD specify `kind`, optional `version`, and binding-
-            specific endpoint details. See `zh/sync/transport-bindings.md`.
+            Closed transport binding declarations for this service. Unknown or
+            incomplete binding kinds are not Arkret v1 bindings and clients
+            ignore them fail-closed. See `zh/sync/transport-bindings.md`.
           items:
-            type: object
+            $ref: ../schemas/transport-binding.schema.json
         supported_features:
           type: array
           description: |
@@ -4823,7 +4823,7 @@ paths:
           content:
             application/x-ndjson:
               schema:
-                $ref: ../schemas/signal-envelope.schema.json
+                $ref: ../schemas/signal-stream-frame.schema.json
         '403':
           description: |
             `capability_denied` or `policy_violation` — the authenticated device

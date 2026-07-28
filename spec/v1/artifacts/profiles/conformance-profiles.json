@@ -529,7 +529,8 @@
   "candidate_profiles": [
     "ak.profile.candidate.join_policy.v1",
     "ak.profile.ucan_interop.v1",
-    "ak.profile.federation.rbsr.negentropy.v1"
+    "ak.profile.federation.rbsr.negentropy.v1",
+    "ak.profile.binding.websocket.v1"
   ],
   "candidate_profiles_tier_rule": "Profiles pairing unregistered candidate workflow concept/action names / capabilities with an explicit fail-closed gate. Receivers MUST treat any capability action whose `profile` points to a candidate profile as unknown (risk_tier=high default) unless they implement the profile. Candidate profiles are NOT part of v1 active conformance and SHOULD be promoted (with paired wire Event.kind values registered under `ak.*`) once their underlying surface is formally registered.",
   "profile_roles_rule": "Every profile id MUST be annotated with exactly one role from the enum {client, server, gateway, directory, admin, interop}. Roles partition the profile namespace so that an implementation MUST NOT mistake e.g. a gateway profile (push_gateway, blob_node) for a client profile, or a deployment / hardening / vector profile (admin role) for a wire-conformance client / server profile. SDK manifests, client-side feature negotiation, and conformance harness loaders MUST consult `profile_roles` before claiming a profile as locally implemented. Roles in spec layer metadata; the per-profile object in `profile_requirements` MAY ALSO carry a `role` field for convenience, but `profile_roles` is the canonical source.",
@@ -551,6 +552,7 @@
     "ak.profile.signal_peer_relay.v1": "server",
     "ak.profile.federation.high_assurance.v1": "server",
     "ak.profile.federation.rbsr.negentropy.v1": "server",
+    "ak.profile.binding.websocket.v1": "interop",
     "ak.profile.identity_registry.v1": "directory",
     "ak.profile.auth_server.v1": "server",
     "ak.profile.public_network_identity.v1": "directory",
@@ -4180,6 +4182,32 @@
           "profile_private_http_receipt_v1"
         ],
         "unsupported_optional": "omit profile claim (and reject member.application.* events as unknown)"
+      },
+      "profile_set": "candidate"
+    },
+    "ak.profile.binding.websocket.v1": {
+      "inherits": [],
+      "status": "candidate",
+      "description": "Optional multiplexed WebSocket binding for the three registered self subscribe operations. It preserves each operation's independent authorization, frame schema, cursor and recovery semantics and never replaces the mandatory HTTP/JSON binding.",
+      "required_endpoints": [
+        "ak.self.account.stream.subscribe",
+        "ak.self.events.stream.subscribe",
+        "ak.self.signal.stream.subscribe"
+      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ak.schema.account_subscribe_frame.v1",
+        "ak.schema.signal_stream_frame.v1",
+        "ak.schema.transport_binding.v1"
+      ],
+      "required_fixtures": [],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "supported_bindings"
+        ],
+        "unsupported_optional": "omit the websocket binding and use canonical HTTP/JSON"
       },
       "profile_set": "candidate"
     },

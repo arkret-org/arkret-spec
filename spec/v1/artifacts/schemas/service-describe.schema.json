@@ -108,21 +108,7 @@
       "type": "array",
       "description": "Transport binding declarations for this service.",
       "items": {
-        "type": "object",
-        "required": [
-          "kind"
-        ],
-        "additionalProperties": true,
-        "properties": {
-          "kind": {
-            "type": "string",
-            "minLength": 1
-          },
-          "base_url": {
-            "type": "string",
-            "format": "uri"
-          }
-        }
+        "$ref": "#/$defs/transport_binding"
       },
       "uniqueItems": true
     },
@@ -1345,6 +1331,158 @@
         "profile_private_field",
         "rsvp_response"
       ]
+    },
+    "transport_binding": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/transport_binding_http_json"
+        },
+        {
+          "$ref": "#/$defs/transport_binding_tus"
+        },
+        {
+          "$ref": "#/$defs/transport_binding_websocket"
+        }
+      ]
+    },
+    "transport_binding_operation_id": {
+      "type": "string",
+      "pattern": "^ak\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"
+    },
+    "transport_binding_http_json": {
+      "type": "object",
+      "required": [
+        "kind",
+        "base_url",
+        "operations",
+        "extension_profile_required"
+      ],
+      "properties": {
+        "kind": {
+          "const": "http_json"
+        },
+        "base_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "operations": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/transport_binding_operation_id"
+          }
+        },
+        "extension_profile_required": {
+          "type": "null"
+        }
+      },
+      "additionalProperties": false
+    },
+    "transport_binding_tus": {
+      "type": "object",
+      "required": [
+        "kind",
+        "base_url",
+        "operations",
+        "extension_profile_required",
+        "tus_version",
+        "tus_extensions"
+      ],
+      "properties": {
+        "kind": {
+          "const": "tus"
+        },
+        "base_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "operations": {
+          "const": [
+            "ak.self.blob.upload.create"
+          ]
+        },
+        "extension_profile_required": {
+          "type": "null"
+        },
+        "tus_version": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "const": "1.0.0"
+          }
+        },
+        "tus_extensions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "creation",
+              "creation-with-upload",
+              "checksum",
+              "expiration",
+              "termination"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "transport_binding_websocket": {
+      "type": "object",
+      "required": [
+        "kind",
+        "base_url",
+        "operations",
+        "extension_profile_required",
+        "subprotocol",
+        "authentication",
+        "max_frame_bytes",
+        "max_channels"
+      ],
+      "properties": {
+        "kind": {
+          "const": "websocket"
+        },
+        "base_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "operations": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "ak.self.account.stream.subscribe",
+              "ak.self.events.stream.subscribe",
+              "ak.self.signal.stream.subscribe"
+            ]
+          }
+        },
+        "extension_profile_required": {
+          "const": "ak.profile.binding.websocket.v1"
+        },
+        "subprotocol": {
+          "const": "arkret.v1"
+        },
+        "authentication": {
+          "const": "challenge_dpop_session_v1"
+        },
+        "max_frame_bytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 1048576
+        },
+        "max_channels": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

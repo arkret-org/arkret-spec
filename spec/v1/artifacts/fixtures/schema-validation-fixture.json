@@ -124,7 +124,11 @@
         "supported_bindings": [
           {
             "kind": "http_json",
-            "base_url": "https://alice.example.net"
+            "base_url": "https://alice.example.net",
+            "operations": [
+              "ak.server.query.describe"
+            ],
+            "extension_profile_required": null
           }
         ],
         "supported_features": [],
@@ -179,7 +183,12 @@
         "supported_bindings": [
           {
             "kind": "http_json",
-            "base_url": "https://directory.example.net"
+            "base_url": "https://directory.example.net",
+            "operations": [
+              "ak.find.directory.query.describe",
+              "ak.find.directory.query.private_contact_discovery"
+            ],
+            "extension_profile_required": null
           }
         ],
         "supported_features": [],
@@ -272,7 +281,12 @@
         ],
         "supported_bindings": [
           {
-            "kind": "http_json"
+            "kind": "http_json",
+            "base_url": "https://alice.example.net",
+            "operations": [
+              "ak.server.query.describe"
+            ],
+            "extension_profile_required": null
           }
         ],
         "supported_features": [],
@@ -322,7 +336,12 @@
         ],
         "supported_bindings": [
           {
-            "kind": "http_json"
+            "kind": "http_json",
+            "base_url": "https://alice.example.net",
+            "operations": [
+              "ak.server.query.describe"
+            ],
+            "extension_profile_required": null
           }
         ],
         "supported_features": [],

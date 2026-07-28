@@ -114,10 +114,21 @@ encrypted signal 时，才能为该 scope 广告 Signal；否则必须撤下 sco
 
 ### 4.1 Local send / subscribe
 
-`ak.self.signal.command.send`（`POST /_arkret/self/signal`）接受一个 `SignalEnvelope`；
-`ak.self.signal.stream.subscribe`（`GET /_arkret/self/signal/subscribe`）在 authenticated
-live connection 上输出同一 envelope 和有界 transport control frames。新增 payload type 不得新增
-endpoint、stream frame kind 或 server-visible selector。
+`send` 接受一个 `SignalEnvelope`。canonical HTTP binding 的 `subscribe` 使用独立
+`GET /_arkret/self/signal/subscribe` NDJSON response，并输出
+[`SignalStreamFrame`](../../artifacts/schemas/signal-stream-frame.schema.json)：data frame
+固定为 `{kind:"signal", envelope}`，control frame 只允许 `heartbeat`、`drain` 与
+`unauthorized`。Signal stream 没有 cursor、catch-up、ack 或 durable delivery receipt；
+control frame 不得推进任何 account/events position。
+
+“既有 authenticated live connection”指 binding 可以复用同一 authenticated transport
+session，而不是允许把 Signal 放进其它 operation 的 payload。启用
+[`ak.profile.binding.websocket.v1`](./websocket-binding.md) 时，Signal subscribe 可以与
+account/events channel 复用一个物理 WebSocket；三者仍是独立 canonical operation、独立
+authorization 与独立 frame schema。HTTP fallback 下它们是独立 response。
+
+新增 Signal plaintext payload type 不得新增 endpoint、`SignalStreamFrame` kind 或
+server-visible selector；精确 signal kind 和 product target 始终位于 ciphertext。
 
 ### 4.2 单跳 peer operation
 

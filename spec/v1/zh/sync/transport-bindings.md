@@ -25,7 +25,8 @@ Arkret 协议核心定义的是：
 [`arkret-service-api.openapi.yaml`](../../artifacts/openapi/arkret-service-api.openapi.yaml) 规定。声称
 `ak.profile.principal_server.v1` / `ak.profile.full_client.v1` 等 v1 core profile 的实现
 **MUST** 提供 HTTP/JSON binding；其他 transport（gRPC、WebSocket-frame、SSE、message queue、
-libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供。
+libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供。本规范当前定义的
+第一个可选 profile 是 [`ak.profile.binding.websocket.v1`](./websocket-binding.md)。
 
 > Rationale: HTTP/JSON 是 core normative surface（`arkret-service-api.openapi.yaml` ~70 KB
 > 完整描述）。gRPC / WebSocket / MQ / libp2p 由独立 binding extension profile 单独 normative
@@ -138,9 +139,10 @@ HTTP binding 的 canonical 路径和请求/响应 shape SHOULD 遵循 `service-h
 
 ## 6. Non-HTTP Binding Extensions
 
-gRPC、WebSocket / SSE、WebTransport over HTTP/3、Message Queue (Kafka / NATS / Pulsar / AMQP) 与 P2P / libp2p binding **不是 v1 core
-互操作 surface**。本规范不为它们定义 normative wire format、operation mapping、stream framing
-或 discovery 字段；这些 transport 名称仅作为 extension profile slot 保留。
+gRPC、WebSocket / SSE、WebTransport over HTTP/3、Message Queue (Kafka / NATS / Pulsar / AMQP)
+与 P2P / libp2p binding **不是 v1 core 互操作 surface**。其中 WebSocket 的可选 normative
+profile 见 [`websocket-binding.md`](./websocket-binding.md)；其它 transport 当前只保留
+extension profile slot，不具有可互操作的 wire format、operation mapping 或 stream framing。
 
 任何声明此类 binding 的部署 MUST 自行发布独立 binding profile 文档（profile id 形如
 `ak.profile.binding.<transport>.v1`），并在该文档中至少明确：
@@ -182,7 +184,18 @@ transport MUST 各自通过 binding profile 单独 normative 化。
 }
 ```
 
-其他 binding（gRPC / WebSocket / SSE / WebTransport / MQ / libp2p）是 extension profile，需声明对应 binding profile id 后才可出现在此处；v1 core 仅要求 `http_json`。WebTransport profile 必须精确钉定所用 `draft-ietf-webtrans-http3` revision、stream/datagram 对 canonical operation 与 stream-frame 的映射、Origin 校验、session authentication 与 reconnect/cursor 语义，不得仅因底层运行在 HTTP/3 就当作 `http_json`。§6.1 的 per-operation HTTP 伴生 binding（如 `kind="tus"`）以 `extension_profile_required: null` + 对应 `ak.feature.*` 声明出现，不需要 binding profile id。
+`supported_bindings[]` 必须通过
+[`transport-binding.schema.json`](../../artifacts/schemas/transport-binding.schema.json)
+验证。当前注册 kind 为 `http_json`、`tus` 与 `websocket`；未知 kind 不是 Arkret v1 binding，
+客户端必须忽略。WebSocket 条目必须声明 `ak.profile.binding.websocket.v1` 及该 profile
+要求的 subprotocol、认证和 limit 字段。
+
+其它 binding（gRPC / SSE / WebTransport / MQ / libp2p）需先发布对应 binding profile 和
+machine registry/schema，才可出现在此处；v1 core 仅要求 `http_json`。WebTransport profile
+必须精确钉定所用 revision、stream/datagram 对 canonical operation 与 stream-frame 的映射、
+Origin 校验、session authentication 与 reconnect/cursor 语义，不得仅因底层运行在 HTTP/3
+就当作 `http_json`。§6.1 的 per-operation HTTP 伴生 binding（如 `kind="tus"`）以
+`extension_profile_required: null` + 对应 `ak.feature.*` 声明出现，不需要 binding profile id。
 
 客户端 MUST 根据 `supported_bindings` 选择 transport，不得假设所有服务都有 REST path。
 

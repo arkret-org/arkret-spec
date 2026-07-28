@@ -1,0 +1,41 @@
+{
+  "version": "2026-07-20",
+  "source_of_truth": false,
+  "generated_at": "2026-07-20T00:00:00Z",
+  "generated_from": "registry/contract-registry.json",
+  "generated_by": "tools/artifact_pipeline.py",
+  "kind_pattern": "^[a-z][a-z0-9_]*$",
+  "profile_pattern": "^ak\\.profile\\.binding\\.[a-z0-9_]+\\.v1$",
+  "entries": [
+    {
+      "kind": "http_json",
+      "status": "active",
+      "extension_profile_required": null,
+      "schema_ref": "schemas/transport-binding.schema.json#/$defs/http_json",
+      "description": "Mandatory Arkret v1 core HTTPS JSON/NDJSON binding."
+    },
+    {
+      "kind": "tus",
+      "status": "active",
+      "extension_profile_required": null,
+      "schema_ref": "schemas/transport-binding.schema.json#/$defs/tus",
+      "operations": [
+        "ak.self.blob.upload.create"
+      ],
+      "description": "Per-operation HTTPS tus companion binding for resumable Blob upload."
+    },
+    {
+      "kind": "websocket",
+      "status": "candidate",
+      "extension_profile_required": "ak.profile.binding.websocket.v1",
+      "schema_ref": "schemas/transport-binding.schema.json#/$defs/websocket",
+      "operations": [
+        "ak.self.account.stream.subscribe",
+        "ak.self.events.stream.subscribe",
+        "ak.self.signal.stream.subscribe"
+      ],
+      "profile_document": "zh/sync/websocket-binding.md",
+      "description": "Optional authenticated multiplexed WebSocket binding for account, events, and encrypted Signal subscribe channels."
+    }
+  ]
+}
