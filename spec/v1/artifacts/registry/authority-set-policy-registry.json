@@ -40,14 +40,14 @@
       "authority_set_id": "ak.authority_set.recovery_identity_reanchor.v1",
       "policy_kind": "principal_control",
       "source_kind": "recovery_policy",
-      "rules_source": "accepted_recovery_policy.allowed_proof_kinds_and_linked_accepted_state",
+      "rules_source": "accepted_recovery_policy.publication_authorization_rules rederived from allowed_proof_kinds and linked accepted state",
       "projection": {
         "scope_ref": "principal_control_realm",
         "source_ref": "accepted_recovery_policy.policy_id",
         "source_digest": "accepted_recovery_policy_canonical_digest",
         "generation_ref": "policy_version(decimal)",
         "basis_ref": "accepted_recovery_policy.acceptance_basis",
-        "authorization_rules": "one rule per allowed proof kind; principal_signing/recovery_unlock/trusted service use threshold 1, device_quorum uses device_quorum.k, threshold_recovery uses threshold.k"
+        "authorization_rules": "one rule per allowed proof kind; principal_signing/recovery_unlock/trusted service use threshold 1, device_quorum uses device_quorum.k, threshold_recovery uses its recovered signing key with threshold 1 (Shamir reconstruction k is not a signature quorum)"
       },
       "defined_in": "zh/crypto-media/device-lifecycle.md#15-全部设备丢失后的恢复"
     },

@@ -1181,6 +1181,22 @@
         "allowed_proof_kinds": [
           "threshold_recovery"
         ],
+        "publication_authorization_rules": [
+          {
+            "rule_id": "threshold_recovery",
+            "proof_kind": "threshold_recovery",
+            "issuer_role": "identity_recovery",
+            "allowed_actions": [
+              "ak.device.reanchor"
+            ],
+            "issuers": [
+              {
+                "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery-proof-1"
+              }
+            ],
+            "threshold": 1
+          }
+        ],
         "threshold": {
           "k": 2,
           "n": 2,
@@ -1205,6 +1221,31 @@
             }
           ]
         },
+        "recovery_keys": [
+          {
+            "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery-proof-1",
+            "public_key_multibase": "z6MkogKw38hXxUkpMWitoBubBGHZzeGrQJ4oHF36iegUbmpA",
+            "key_agreement_ref": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#backup-hpke-1",
+            "alg": "Ed25519",
+            "not_before": "2026-04-26T00:00:00.000Z",
+            "expires_at": "2036-04-26T00:00:00.000Z",
+            "revoked_at": null
+          }
+        ],
+        "recovery_key_agreements": [
+          {
+            "key_agreement_ref": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#backup-hpke-1",
+            "alg": "X25519",
+            "public_key_multibase": "z6LSriWhVBzW9Vz2PvqbieSz7Aa2hPLzTKJuDwXTMKFeomeW",
+            "hpke_suites": [
+              "ak.hpke_x25519_aead_chacha20poly1305.v1"
+            ],
+            "use": "backup_hpke",
+            "not_before": "2026-04-26T00:00:00.000Z",
+            "expires_at": "2036-04-26T00:00:00.000Z",
+            "revoked_at": null
+          }
+        ],
         "issued_at": "2026-04-26T00:00:00.000Z",
         "auth_data": {
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
@@ -1218,7 +1259,10 @@
             "supersedes",
             "trust_domain",
             "allowed_proof_kinds",
+            "publication_authorization_rules",
             "threshold",
+            "recovery_keys",
+            "recovery_key_agreements",
             "issued_at"
           ]
         }
@@ -1278,6 +1322,22 @@
         "allowed_proof_kinds": [
           "recovery_unlock"
         ],
+        "publication_authorization_rules": [
+          {
+            "rule_id": "recovery_unlock",
+            "proof_kind": "recovery_unlock",
+            "issuer_role": "identity_recovery",
+            "allowed_actions": [
+              "ak.device.reanchor"
+            ],
+            "issuers": [
+              {
+                "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery-proof-1"
+              }
+            ],
+            "threshold": 1
+          }
+        ],
         "recovery_keys": [
           {
             "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery-proof-1",
@@ -1317,6 +1377,7 @@
             "supersedes",
             "trust_domain",
             "allowed_proof_kinds",
+            "publication_authorization_rules",
             "recovery_keys",
             "recovery_key_agreements",
             "issued_at"
@@ -1338,6 +1399,22 @@
         "trust_domain": "ak:trust_domain:did.webvh.example",
         "allowed_proof_kinds": [
           "recovery_unlock"
+        ],
+        "publication_authorization_rules": [
+          {
+            "rule_id": "recovery_unlock",
+            "proof_kind": "recovery_unlock",
+            "issuer_role": "identity_recovery",
+            "allowed_actions": [
+              "ak.device.reanchor"
+            ],
+            "issuers": [
+              {
+                "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery-proof-1"
+              }
+            ],
+            "threshold": 1
+          }
         ],
         "recovery_keys": [
           {
@@ -1362,6 +1439,7 @@
             "supersedes",
             "trust_domain",
             "allowed_proof_kinds",
+            "publication_authorization_rules",
             "recovery_keys",
             "recovery_key_agreements",
             "issued_at"
@@ -1381,6 +1459,7 @@
         "supersedes": "ak:policy:01964140-0000-7000-8000-000000000000",
         "trust_domain": "ak:trust_domain:did.webvh.example",
         "allowed_proof_kinds": [],
+        "publication_authorization_rules": [],
         "expires_at": "2026-04-27T00:00:00.000Z",
         "issued_at": "2026-04-27T00:00:00.000Z",
         "auth_data": {
@@ -1395,6 +1474,7 @@
             "supersedes",
             "trust_domain",
             "allowed_proof_kinds",
+            "publication_authorization_rules",
             "expires_at",
             "issued_at"
           ]

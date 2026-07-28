@@ -120,6 +120,16 @@ device-generation frontier、`accepted_at` 或 inline policy bytes。authority p
 device-generation/re-anchor frontier 为空，不表示 recovery policy 可以没有自己的 acceptance
 basis。
 
+B 模型 policy 的 `publication_authorization_rules[]` 必须由 policy
+`auth_data.signed_fields`覆盖，并与`allowed_proof_kinds[]`一一对应。它是确定性投影输入而不是
+自报 authority：session creator必须在policy `acceptance_basis`重算每个exact DidUrl。规则固定
+只允许`ak.device.reanchor`；principal-signing使用accepted policy authority method；
+recovery-unlock使用active `recovery_keys[].verification_method`且threshold=1；device-quorum把
+每个member在basis中解析为唯一current device method并使用`device_quorum.k`；trusted service
+使用entry中与`service_id`同controller DID的`authorization_verification_method`且threshold=1。
+threshold-recovery完成Shamir重构后使用policy中的recovery signing key、signature
+threshold=1；`threshold.k`是secret reconstruction门限，绝不能复制成PayloadProof签名quorum。
+
 ## 2. IngressReceipt
 
 ```text

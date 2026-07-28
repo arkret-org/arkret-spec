@@ -1768,6 +1768,11 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
    单rule、单issuer、threshold=1的特例。“零 Seal frontier”仅指B模型的
    device-generation/re-anchor frontier可以为空；accepted recovery policy自身仍必须有
    acceptance Seal/SealBasis。
+   recovery policy必须携带由policy签名覆盖的
+   `publication_authorization_rules[]`，与`allowed_proof_kinds[]`一一对应；coordinator仍必须从
+   acceptance basis重算其exact verification methods。Shamir `threshold.k`只控制secret
+   reconstruction，不是lease PayloadProof quorum；reconstructed recovery signing key对应的rule
+   threshold固定为1。
 2. **Recovery proof**：proof kind 仍由 accepted recovery policy 选择。使用用户 recovery secret 时，签名 key MUST 是 [`identity/key-management.md` §3.3](../identity/key-management.md) 的 Ed25519 `recovery-proof` 子键，不是 identity root，也不是 X25519 backup-HPKE key。所有 proof transcript 必须从 stored session 重建并绑定 `{schema, kind, identity_model, principal_id, requesting_device_id, trust_domain, policy_id, policy_version, recovery_session_id, model_generation_ref, publication_authority_context_digest, challenge, expires_at, created_at, proof_body?}`；`schema="ak.identity.recovery_proof.v1"`。A 的 `model_generation_ref` 是 decimal SSK generation；B 是当前 DID versionId。客户端复制的 policy/model metadata 不得成为权威输入。
 
    `recovery_unlock` 的 `recovery_secret_ref` 必须解析到 session created-at 时 authoritative 的 policy entry，`verification_method` 必须等于该 entry 对应的 recovery-proof public key。signature 覆盖 generic transcript；`unlock_commitment` 继续使用 `ak.recovery-session-unlock-binding-v1\n` 域并绑定同一 transcript。root 或 backup-HPKE key 签名 MUST reject。
