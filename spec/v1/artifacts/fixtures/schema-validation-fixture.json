@@ -1760,6 +1760,25 @@
         "policy_version": 1,
         "identity_model": "cross_signing",
         "ssk_generation": 1,
+        "publication_authority_context": {
+          "identity_model": "cross_signing",
+          "issuer_key_role": "self_signing",
+          "basis_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:019a6aa0-0000-7000-8000-0000000000cc"
+          },
+          "authority_set_ref": {
+            "authority_set_id": "ak.authority_set.recovery.v1",
+            "authority_set_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
+          "allowed_actions": [
+            "ak.device.authorize",
+            "ak.device.list_update"
+          ]
+        },
+        "publication_authority_context_digest": "sha256:6dc21270538903a93d706faf25dbc485a76ac1b1aab9865fa55bc63961e67d12",
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "state": "pending",
         "created_at": "2026-05-30T00:00:00.000Z",
@@ -1780,6 +1799,25 @@
         "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
         "identity_model": "cross_signing",
+        "publication_authority_context": {
+          "identity_model": "cross_signing",
+          "issuer_key_role": "self_signing",
+          "basis_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:019a6aa0-0000-7000-8000-0000000000cc"
+          },
+          "authority_set_ref": {
+            "authority_set_id": "ak.authority_set.recovery.v1",
+            "authority_set_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
+          "allowed_actions": [
+            "ak.device.authorize",
+            "ak.device.list_update"
+          ]
+        },
+        "publication_authority_context_digest": "sha256:6dc21270538903a93d706faf25dbc485a76ac1b1aab9865fa55bc63961e67d12",
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "state": "pending",
         "created_at": "2026-05-30T00:00:00.000Z",
@@ -1805,6 +1843,24 @@
         "device_generation_status": "active",
         "registry_head": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "accepted_seal_frontier": null,
+        "publication_authority_context": {
+          "identity_model": "enrollment_authority",
+          "issuer_key_role": "identity_recovery",
+          "basis_ref": "ak:seal:sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:019a6aa0-0000-7000-8000-0000000000dd"
+          },
+          "authority_set_ref": {
+            "authority_set_id": "ak.authority_set.recovery.v1",
+            "authority_set_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          "verification_method": "did:webvh:z6mkfixture:alice.example#identity-recovery-1",
+          "allowed_actions": [
+            "ak.device.reanchor"
+          ]
+        },
+        "publication_authority_context_digest": "sha256:66c28baeb5dc63a51f37b44f4f97ac74aa8eb59c90cbe43e799dbdc577b403bf",
         "challenge": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
         "state": "pending",
         "created_at": "2026-05-30T00:00:00.000Z",
@@ -1826,6 +1882,25 @@
         "policy_version": 1,
         "identity_model": "cross_signing",
         "ssk_generation": 1,
+        "publication_authority_context": {
+          "identity_model": "cross_signing",
+          "issuer_key_role": "self_signing",
+          "basis_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:019a6aa0-0000-7000-8000-0000000000cc"
+          },
+          "authority_set_ref": {
+            "authority_set_id": "ak.authority_set.recovery.v1",
+            "authority_set_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
+          "allowed_actions": [
+            "ak.device.authorize",
+            "ak.device.list_update"
+          ]
+        },
+        "publication_authority_context_digest": "sha256:6dc21270538903a93d706faf25dbc485a76ac1b1aab9865fa55bc63961e67d12",
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "state": "verified",
         "created_at": "2026-05-30T00:00:00.000Z",
@@ -1906,6 +1981,7 @@
         "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "identity_model": "cross_signing",
         "model_generation_ref": 1,
+        "publication_authority_context_digest": "sha256:6dc21270538903a93d706faf25dbc485a76ac1b1aab9865fa55bc63961e67d12",
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "created_at": "2026-05-30T00:00:00.000Z",
         "expires_at": "2026-05-30T00:15:00.000Z",
@@ -2769,6 +2845,24 @@
               "canonical_bytes_base64url": "eyJraW5kIjoiYWsuZGV2aWNlLmF1dGhvcml6ZSJ9",
               "digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
             },
+            "authorize_event_publication_intent": {
+              "event_id": "ak:event:019a7360-0000-7000-8000-000000000035",
+              "event_preimage_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+              "actor_id": "did:webvh:z6mkfixture:alice.example",
+              "device_id": "ak:device:019a7360-0000-7000-8000-000000000032",
+              "scope_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000039"
+              },
+              "action": "ak.device.authorize",
+              "risk_tier": "high",
+              "basis_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "authority_set_ref": {
+                "authority_set_id": "ak.authority_set.recovery.v1",
+                "authority_set_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "cba_proof_bundles": []
+            },
             "possession_proof": {
               "verification_method": "did:webvh:z6mkfixture:alice.example#replacement-device",
               "alg": "EdDSA",
@@ -2855,36 +2949,23 @@
             }
           },
           "reanchor_event_submission_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "authorize_event_publication_evidence": {
+          "authorize_event_publication_intent": {
             "event_id": "ak:event:019a7360-0000-7000-8000-000000000035",
-            "authorization_lease": {
-              "authorization_lease_id": "ak:authorization_lease:019a7360-0000-7000-8000-000000000040",
-              "basis_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-              "actor_id": "did:webvh:z6mkfixture:alice.example",
-              "device_id": "ak:device:019a7360-0000-7000-8000-000000000031",
-              "scope_ref": {
-                "kind": "realm",
-                "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000039"
-              },
-              "action": "ak.device.authorize",
-              "risk_tier": "high",
-              "issued_at": "2026-05-20T00:00:00.000Z",
-              "expires_at": "2026-05-20T00:05:00.000Z",
-              "authority_set_ref": {
-                "authority_set_id": "ak.authority_set.recovery.v1",
-                "authority_set_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-              },
-              "proofs": [
-                {
-                  "kind": "detached_jws",
-                  "verification_method": "did:webvh:z6mkfixture:alice.example#lease",
-                  "alg": "EdDSA",
-                  "payload_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-                  "created_at": "2026-05-20T00:00:00.000Z",
-                  "jws": "a..b"
-                }
-              ]
-            }
+            "event_preimage_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+            "actor_id": "did:webvh:z6mkfixture:alice.example",
+            "device_id": "ak:device:019a7360-0000-7000-8000-000000000032",
+            "scope_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000039"
+            },
+            "action": "ak.device.authorize",
+            "risk_tier": "high",
+            "basis_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "authority_set_ref": {
+              "authority_set_id": "ak.authority_set.recovery.v1",
+              "authority_set_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "cba_proof_bundles": []
           }
         },
         "prepared_plan_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"

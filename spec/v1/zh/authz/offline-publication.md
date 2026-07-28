@@ -61,6 +61,23 @@ revocation authority，不得只按可变 registry 名称解析当前值。
 未知 action 按 `high`。Realm policy MAY 收紧但不得放宽。高风险 lease 的 issuer quorum MUST
 与同一 `security_barrier` revoke authority set 相交并满足 `2k > n`。
 
+### 1.1 RecoveryTransaction 的 authority ownership
+
+fresh-device recovery 不存在“replacement device因为通过 recovery proof即可自行签 lease”的
+规则。服务端创建 recovery session时必须从 accepted basis snapshot一个 closed
+`publication_authority_context`并把其digest纳入 recovery proof transcript：
+
+- A模型只有当前snapshot generation的SSK可为固定`ak.device.authorize`和
+  `ak.device.list_update`签发lease；
+- B模型客户端只有DID recovery/root authority可为固定`ak.device.reanchor`签发lease；
+- B模型由Account Authority产生的`ak.device.authorize`必须由该authority在
+  `authorize_recovery_device`首次durable outcome中同时签发lease。
+
+每份lease的basis、actor、replacement device、scope、action、risk与authority-set都必须逐字
+等于session context或transaction-bound publication intent。SSK、root/recovery method或Account
+Authority只有在accepted basis明确把它列为相应high-risk issuer时才有效；角色名称本身不产生
+authority。协议不登记一个允许客户端请求任意action lease的通用endpoint。
+
 ## 2. IngressReceipt
 
 ```text

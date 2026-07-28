@@ -4366,7 +4366,7 @@
         "device_recovery",
         "service_call"
       ],
-      "description": "A recovery-session operation (submit_proof / complete) targeted a recovery session that is already in a terminal state (`completed` / `rejected` / `expired`). Terminal recovery sessions are immutable; servers MUST reject with top-level `failed_precondition` carrying this reason_code. See zh/crypto-media/device-lifecycle.md §15 and artifacts/schemas/recovery-session.schema.json."
+      "description": "A recovery-session submit_proof or a new RecoveryTransaction binding targeted a recovery session that is already in a terminal state (`completed` / `rejected` / `expired`). Terminal recovery sessions are immutable; servers MUST reject with top-level `failed_precondition` carrying this reason_code. Recovery sessions have no public complete operation. See zh/crypto-media/device-lifecycle.md §15 and artifacts/schemas/recovery-session.schema.json."
     },
     {
       "code": "proof_failed",

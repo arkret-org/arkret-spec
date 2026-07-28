@@ -97,6 +97,66 @@
       },
       "additionalProperties": false
     },
+    "authorize_event_publication_intent": {
+      "type": "object",
+      "description": "Closed publication fields fixed before the Account Authority produces the signed ak.device.authorize Event and its lease. The authority MUST derive and compare these fields against authorize_event_preimage before signing.",
+      "required": [
+        "event_id",
+        "event_preimage_digest",
+        "actor_id",
+        "device_id",
+        "scope_ref",
+        "action",
+        "risk_tier",
+        "basis_ref",
+        "authority_set_ref",
+        "cba_proof_bundles"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "event_preimage_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "scope_ref": {
+          "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
+        },
+        "action": {
+          "const": "ak.device.authorize"
+        },
+        "risk_tier": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "description": "Recovery authorize publication MUST use high; the complete ordered enum is retained here for the shared risk-tier registry lint."
+        },
+        "basis_ref": {
+          "$ref": "./offline-publication.schema.json#/$defs/authorization_lease/properties/basis_ref"
+        },
+        "authority_set_ref": {
+          "$ref": "./offline-publication.schema.json#/$defs/authority_set_ref"
+        },
+        "cba_proof_bundles": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./cba-proof-bundle.schema.json"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "authorization_preimage": {
       "type": "object",
       "description": "Closed Account Authority input fixed by the RecoveryTransaction before ticket issuance. It contains no recovery secret or private key.",
@@ -125,6 +185,7 @@
         "pre_fence_frontier_digest",
         "not_before",
         "authorize_event_preimage",
+        "authorize_event_publication_intent",
         "possession_proof"
       ],
       "properties": {
@@ -216,6 +277,9 @@
         },
         "authorize_event_preimage": {
           "$ref": "#/$defs/canonical_public_material"
+        },
+        "authorize_event_publication_intent": {
+          "$ref": "#/$defs/authorize_event_publication_intent"
         },
         "possession_proof": {
           "$ref": "#/$defs/replacement_device_possession_proof"
@@ -471,6 +535,8 @@
         "authorize_event_id",
         "authorized_event",
         "authorized_event_digest",
+        "authorization_lease",
+        "cba_proof_bundles",
         "authority_receipt_id",
         "accepted_at"
       ],
@@ -492,6 +558,18 @@
         },
         "authorized_event_digest": {
           "$ref": "#/$defs/hash"
+        },
+        "authorization_lease": {
+          "$ref": "./offline-publication.schema.json#/$defs/authorization_lease",
+          "description": "Authority-signed lease for the returned Event. Every non-signature field MUST equal the ticket-bound authorize_event_publication_intent."
+        },
+        "cba_proof_bundles": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./cba-proof-bundle.schema.json"
+          }
         },
         "authority_receipt_id": {
           "$ref": "#/$defs/receipt_id"

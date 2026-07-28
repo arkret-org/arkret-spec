@@ -500,31 +500,6 @@
       },
       "additionalProperties": false
     },
-    "prepared_event_publication_evidence": {
-      "type": "object",
-      "description": "Publication evidence fixed for an authority-produced Event whose signed Event bytes become an accepted output after create.",
-      "required": [
-        "event_id",
-        "authorization_lease"
-      ],
-      "properties": {
-        "event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "authorization_lease": {
-          "$ref": "./offline-publication.schema.json#/$defs/authorization_lease"
-        },
-        "cba_proof_bundles": {
-          "type": "array",
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./cba-proof-bundle.schema.json"
-          }
-        }
-      },
-      "additionalProperties": false
-    },
     "event_initial_submission": {
       "type": "object",
       "required": [
@@ -707,7 +682,7 @@
         "did_publication",
         "reanchor_event_submission",
         "reanchor_event_submission_digest",
-        "authorize_event_publication_evidence"
+        "authorize_event_publication_intent"
       ],
       "properties": {
         "identity_model": {
@@ -741,8 +716,8 @@
         "reanchor_event_submission_digest": {
           "$ref": "#/$defs/hash"
         },
-        "authorize_event_publication_evidence": {
-          "$ref": "#/$defs/prepared_event_publication_evidence"
+        "authorize_event_publication_intent": {
+          "$ref": "./recovery-authority.schema.json#/$defs/authorize_event_publication_intent"
         }
       },
       "additionalProperties": false

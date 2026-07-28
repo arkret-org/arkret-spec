@@ -122,6 +122,13 @@ audience；batch 中两项都必须是完整 `EventInitialSubmission`，不得�
 batch Event ids必须逐项等于
 binding。
 
+A 模型 batch 中两份 high-risk `AuthorizationLease` 只能由 recovery session
+`publication_authority_context` 固定的 snapshot SSK verification method 签发；lease 的
+basis/scope/authority-set 必须逐字等于该 context，action 顺序分别为
+`ak.device.authorize`、`ak.device.list_update`。replacement device Event key、自报 key或普通
+缓存 lease均不得替代。context digest同时进入 recovery proof transcript与 session snapshot
+digest。
+
 唯一连续步骤是：
 
 ```text
@@ -146,7 +153,9 @@ prepared plan 必须保存 session snapshot/proof digest、显式 `account_autho
 从已验证 recovery session/grant 固定的 `recovery_holder_jkt` 与 Account Authority authorization
 preimage、replacement device possession proof、planned DID entry canonical bytes/
 digest/previous head/ref、完整 typed reanchor `EventInitialSubmission`、authority-produced
-authorize Event 的 typed `authorization_lease + cba_proof_bundles` publication evidence。
+authorize Event 的 closed `authorize_event_publication_intent`。reanchor submission 的
+high-risk lease只能由 recovery session `publication_authority_context` 固定的
+identity-recovery verification method签发，且 action 必须为 `ak.device.reanchor`。
 Account Authority 签名与 terminal receipt 都是 create 后的 accepted output，不属于 prepared
 material。
 
@@ -183,8 +192,10 @@ re-anchor response 丢失时，transaction 保持 `running` 并从相同 reserve
 `submit_reanchor_unit` 原子覆盖固定 `reanchor_event_id` 与 authority output 中的
 `authorize_event_id`，不得拆成两个可独立重试并产生不同 Event id 的通用步骤。
 其唯一 batch 顺序为 `[reanchor_event_submission, authorize_event_submission]`；后者只能由
-Account Authority首次 outcome中的 signed Event与prepared
-`authorize_event_publication_evidence`组合，coordinator不得改写 Event、lease或CBA bundles。
+Account Authority首次 outcome中的 signed Event、authority-signed lease与CBA bundles组合。
+outcome 的每个 publication 字段必须逐字匹配prepared
+`authorize_event_publication_intent`；coordinator不得改写 Event、lease或CBA bundles，也不得
+回退到客户端预先注入的 authorize lease。
 
 ### 2.3 Terminal attestation
 
@@ -211,7 +222,7 @@ coordinator attestation 证明服务端 durable completion，两者不得互相�
 | operation | HTTP | 合同 |
 | --- | --- | --- |
 | `ak.self.recovery_authority_ticket.command.issue` | `POST /_arkret/self/recovery-authority-tickets` | 只为当前 durable transaction 的下一步签发 ticket |
-| `ak.gate.account.command.authorize_recovery_device` | `POST /_arkret/gate/account/recovery-device-authorizations` | 消费 ticket，幂等返回固定 authority-signed Event |
+| `ak.gate.account.command.authorize_recovery_device` | `POST /_arkret/gate/account/recovery-device-authorizations` | 消费 ticket，原子、幂等返回固定 authority-signed Event及其 authority-signed publication evidence |
 | `ak.gate.account.command.promote_recovery_session_grant` | `POST /_arkret/gate/account/recovery-session-grants/promote` | 以 completed transaction/receipt 与 DPoP holder proof 轮换受限 grant |
 
 `authorization_preimage.account_authority_id` 与 `authorization_preimage.recovery_holder_jkt`
@@ -241,7 +252,7 @@ outcome；不存在 accepted outcome 时才验证 proof freshness并原子消费
 
 ticket 必须绑定 transaction/request/plan、principal/session/policy/domain、两端 service audience、
 recovery holder JKT、replacement device、generation、DID head/entry、Event ids、
-authorization preimage 与 possession
+authorization preimage（含 authorize Event publication intent）与 possession
 proof digest。Account Authority 必须按 `(ticket_id, transaction_id, request_digest)` 一次性消费；
 同 bytes replay 返回 byte-identical outcome，不同 bytes 返回 `duplicate_conflict`。
 
@@ -255,6 +266,13 @@ projection 签名；其它 schema-admitted service signature algorithm 也必须
 [`device-lifecycle.md` §5.2](../crypto-media/device-lifecycle.md) 的
 `ak.device-authorize-possession-v1`。ticket 对 closed preimage/proof digest 的签名负责把这份
 设备持有证明绑定到 transaction、generation、frontier 与 planned Event ids。
+
+Account Authority 在签 authorize Event前必须从 proof-free Event preimage重算 Event id、
+preimage digest、actor、replacement device、signed scope与action，并逐字段匹配
+`authorize_event_publication_intent`。首次 durable outcome必须在保存 authority Event的同一事务
+保存其 `AuthorizationLease` 与CBA bundles；lease 的actor/device/scope/action/risk/basis/
+authority-set必须等于intent，issuer verification method必须属于当前 accepted enrollment/
+recovery authority set。exact request replay返回同一 Event、lease、bundles、receipt id与时间。
 
 `authorize_event_preimage` 必须是 canonical JSON 编码、尚未带 Account Authority Event proof 的
 完整 `ak.schema.event.v1` Event；reserved event id、scope、actor sequence、HLC、time、prev refs、

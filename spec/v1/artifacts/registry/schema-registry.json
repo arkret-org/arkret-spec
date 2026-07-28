@@ -493,7 +493,7 @@
       "schema_id": "ak.schema.recovery_session.v1",
       "file": "schemas/recovery-session.schema.json",
       "status": "active",
-      "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit/complete request and response helpers, and principal_signing recovery proof transcript. See crypto-media/device-lifecycle.md §15."
+      "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit request and response helpers, the closed publication-authority snapshot, and principal_signing recovery proof transcript. Session completion is owned exclusively by the bound RecoveryTransaction terminal commit. See crypto-media/device-lifecycle.md §15."
     },
     {
       "schema_id": "ak.schema.recovery_receipt.v1",

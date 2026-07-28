@@ -1415,6 +1415,25 @@
         "policy_version": 1,
         "identity_model": "cross_signing",
         "ssk_generation": 2,
+        "publication_authority_context": {
+          "identity_model": "cross_signing",
+          "issuer_key_role": "self_signing",
+          "basis_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:01964142-0000-7000-8000-000000000001"
+          },
+          "authority_set_ref": {
+            "authority_set_id": "ak.authority_set.recovery.v1",
+            "authority_set_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_self_signing_v1",
+          "allowed_actions": [
+            "ak.device.authorize",
+            "ak.device.list_update"
+          ]
+        },
+        "publication_authority_context_digest": "sha256:23e7460019125065c946096b27759fd9e6b014aceb5d7e7132c9222126c1a224",
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "state": "pending",
         "created_at": "2026-04-27T00:00:00.000Z",
@@ -1436,6 +1455,7 @@
         "recovery_session_id": "ak:recovery_session:01964142-0000-7000-8000-000000000000",
         "identity_model": "cross_signing",
         "model_generation_ref": 2,
+        "publication_authority_context_digest": "sha256:23e7460019125065c946096b27759fd9e6b014aceb5d7e7132c9222126c1a224",
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "created_at": "2026-04-27T00:00:00.000Z",
         "expires_at": "2026-04-27T00:15:00.000Z",

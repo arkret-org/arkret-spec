@@ -113,6 +113,90 @@
       },
       "additionalProperties": false
     },
+    "publication_authority_context": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "identity_model",
+            "issuer_key_role",
+            "basis_ref",
+            "scope_ref",
+            "authority_set_ref",
+            "verification_method",
+            "allowed_actions"
+          ],
+          "properties": {
+            "identity_model": {
+              "const": "cross_signing"
+            },
+            "issuer_key_role": {
+              "const": "self_signing"
+            },
+            "basis_ref": {
+              "$ref": "./offline-publication.schema.json#/$defs/authorization_lease/properties/basis_ref"
+            },
+            "scope_ref": {
+              "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
+            },
+            "authority_set_ref": {
+              "$ref": "./offline-publication.schema.json#/$defs/authority_set_ref"
+            },
+            "verification_method": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            },
+            "allowed_actions": {
+              "type": "array",
+              "const": [
+                "ak.device.authorize",
+                "ak.device.list_update"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "identity_model",
+            "issuer_key_role",
+            "basis_ref",
+            "scope_ref",
+            "authority_set_ref",
+            "verification_method",
+            "allowed_actions"
+          ],
+          "properties": {
+            "identity_model": {
+              "const": "enrollment_authority"
+            },
+            "issuer_key_role": {
+              "const": "identity_recovery"
+            },
+            "basis_ref": {
+              "$ref": "./offline-publication.schema.json#/$defs/authorization_lease/properties/basis_ref"
+            },
+            "scope_ref": {
+              "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
+            },
+            "authority_set_ref": {
+              "$ref": "./offline-publication.schema.json#/$defs/authority_set_ref"
+            },
+            "verification_method": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            },
+            "allowed_actions": {
+              "type": "array",
+              "const": [
+                "ak.device.reanchor"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "Server-snapshotted accepted authority context for locally authoring only the model-specific recovery publication leases. It never grants the replacement device a generic lease issuer role."
+    },
     "recovery_session_state": {
       "type": "object",
       "required": [
@@ -124,6 +208,8 @@
         "policy_id",
         "policy_version",
         "identity_model",
+        "publication_authority_context",
+        "publication_authority_context_digest",
         "challenge",
         "state",
         "expires_at",
@@ -179,6 +265,13 @@
         },
         "accepted_seal_frontier": {
           "$ref": "./event-payload.schema.json#/$defs/device_reanchor_payload/properties/pre_fence_basis"
+        },
+        "publication_authority_context": {
+          "$ref": "#/$defs/publication_authority_context"
+        },
+        "publication_authority_context_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "SHA-256 of JCS(publication_authority_context). Recovery proof transcripts and RecoveryTransaction session snapshots bind this exact digest."
         },
         "challenge": {
           "$ref": "#/$defs/challenge"
@@ -630,6 +723,7 @@
         "recovery_session_id",
         "identity_model",
         "model_generation_ref",
+        "publication_authority_context_digest",
         "challenge",
         "expires_at",
         "created_at"
@@ -672,6 +766,9 @@
           ],
           "description": "SSK generation for cross_signing; DID versionId for enrollment_authority."
         },
+        "publication_authority_context_digest": {
+          "$ref": "#/$defs/hash"
+        },
         "challenge": {
           "$ref": "#/$defs/challenge"
         },
@@ -702,6 +799,7 @@
         "recovery_session_id",
         "identity_model",
         "model_generation_ref",
+        "publication_authority_context_digest",
         "challenge",
         "expires_at",
         "created_at",
@@ -743,6 +841,9 @@
               "$ref": "#/$defs/did_version_id"
             }
           ]
+        },
+        "publication_authority_context_digest": {
+          "$ref": "#/$defs/hash"
         },
         "challenge": {
           "$ref": "#/$defs/challenge"
