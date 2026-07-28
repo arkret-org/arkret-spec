@@ -2479,7 +2479,7 @@
           "effect_projection": {
             "kind": "or_set_add",
             "tag": {
-              "envelope_field": "event_id"
+              "dot": true
             },
             "value": {
               "field": "payload"
@@ -2501,7 +2501,7 @@
       "effect_projection": {
         "kind": "or_set_add",
         "tag": {
-          "envelope_field": "event_id"
+          "dot": true
         },
         "value": {
           "field": "payload"
@@ -2673,7 +2673,7 @@
           "effect_projection": {
             "kind": "or_set_add",
             "tag": {
-              "envelope_field": "event_id"
+              "dot": true
             },
             "value": {
               "field": "payload"
@@ -2694,7 +2694,7 @@
       "effect_projection": {
         "kind": "or_set_add",
         "tag": {
-          "envelope_field": "event_id"
+          "dot": true
         },
         "value": {
           "field": "payload"
@@ -5649,7 +5649,7 @@
           "effect_projection": {
             "kind": "or_set_add",
             "tag": {
-              "envelope_field": "event_id"
+              "dot": true
             },
             "value": {
               "field": "payload"
@@ -6065,7 +6065,7 @@
               "remove_participant": {
                 "op": "add",
                 "tag": {
-                  "envelope_field": "event_id"
+                  "dot": true
                 },
                 "value": {
                   "field": "payload.moderation_delta.removal"
@@ -6074,7 +6074,7 @@
               "restore_participant": {
                 "op": "remove",
                 "tag": {
-                  "field": "payload.moderation_delta.observed_tag"
+                  "field": "payload.moderation_delta.observed_dot"
                 }
               }
             }
@@ -6099,7 +6099,7 @@
               "join": {
                 "op": "add",
                 "tag": {
-                  "envelope_field": "event_id"
+                  "dot": true
                 },
                 "value": {
                   "field": "payload.roster_delta.participant"
@@ -6108,7 +6108,7 @@
               "leave": {
                 "op": "remove",
                 "tag": {
-                  "field": "payload.roster_delta.observed_tag"
+                  "field": "payload.roster_delta.observed_dot"
                 }
               }
             }

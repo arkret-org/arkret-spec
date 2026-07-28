@@ -858,7 +858,8 @@
       "operation_specific": [
         "signal_class_not_permitted",
         "signal_ttl_out_of_range",
-        "signal_rail_unavailable"
+        "signal_rail_unavailable",
+        "signal_plaintext_forbidden"
       ]
     },
     {

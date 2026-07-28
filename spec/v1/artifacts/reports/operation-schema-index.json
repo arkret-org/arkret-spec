@@ -55,13 +55,13 @@
         "schema_kind": "object",
         "required": [
           "request_id",
-          "lease_id",
+          "identity_creation_lease_id",
           "lease_fence",
           "did_operation"
         ],
         "properties": [
           "request_id",
-          "lease_id",
+          "identity_creation_lease_id",
           "lease_fence",
           "did_operation"
         ],
@@ -77,7 +77,7 @@
           "purpose",
           "principal_id",
           "operation_digest",
-          "lease_id",
+          "identity_creation_lease_id",
           "lease_fence",
           "dpop_jkt",
           "audience",
@@ -93,7 +93,7 @@
           "purpose",
           "principal_id",
           "operation_digest",
-          "lease_id",
+          "identity_creation_lease_id",
           "lease_fence",
           "dpop_jkt",
           "audience",
@@ -1281,13 +1281,12 @@
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
         "schema_kind": "object",
         "required": [
-          "source_service_id",
-          "events"
+          "source_service_id"
         ],
         "properties": [
           "source_service_id",
           "events",
-          "signal"
+          "signals"
         ],
         "closed": true
       },
@@ -3606,7 +3605,7 @@
           "accepted",
           "realm_id",
           "envelope_digest",
-          "dispatched_to",
+          "dispatched_recipient_count",
           "server_received_at"
         ],
         "closed": true
@@ -4359,8 +4358,8 @@
           "request_digest",
           "binding",
           "state",
-          "accepted_step_refs",
-          "next_required_action"
+          "accepted_steps",
+          "next_required_step"
         ],
         "properties": [
           "transaction_id",
@@ -4372,9 +4371,9 @@
           "request_digest",
           "binding",
           "state",
-          "accepted_step_refs",
-          "next_required_action",
-          "terminal_outcome"
+          "accepted_steps",
+          "next_required_step",
+          "terminal_result"
         ],
         "closed": true
       }
@@ -4395,8 +4394,8 @@
           "request_digest",
           "binding",
           "state",
-          "accepted_step_refs",
-          "next_required_action"
+          "accepted_steps",
+          "next_required_step"
         ],
         "properties": [
           "transaction_id",
@@ -4408,9 +4407,9 @@
           "request_digest",
           "binding",
           "state",
-          "accepted_step_refs",
-          "next_required_action",
-          "terminal_outcome"
+          "accepted_steps",
+          "next_required_step",
+          "terminal_result"
         ],
         "closed": true
       }
@@ -4423,11 +4422,11 @@
         "schema_kind": "object",
         "required": [
           "request_digest",
-          "expected_next_action"
+          "expected_next_step"
         ],
         "properties": [
           "request_digest",
-          "expected_next_action",
+          "expected_next_step",
           "client_attestation"
         ],
         "closed": true
@@ -4445,8 +4444,8 @@
           "request_digest",
           "binding",
           "state",
-          "accepted_step_refs",
-          "next_required_action"
+          "accepted_steps",
+          "next_required_step"
         ],
         "properties": [
           "transaction_id",
@@ -4458,9 +4457,9 @@
           "request_digest",
           "binding",
           "state",
-          "accepted_step_refs",
-          "next_required_action",
-          "terminal_outcome"
+          "accepted_steps",
+          "next_required_step",
+          "terminal_result"
         ],
         "closed": true
       }

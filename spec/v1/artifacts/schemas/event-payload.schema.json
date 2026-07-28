@@ -304,6 +304,11 @@
       "type": "string",
       "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "or_set_dot": {
+      "type": "string",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}:[0-9]+$",
+      "description": "Canonical OR-Set dot: \"ak:event:\" + event_id + \":\" + write_index, where write_index is the 0-based index of the write in the event kind's registry cell_writes[]. See zh/models/event-and-patch.md section 2.4.2."
+    },
     "seal_ref": {
       "type": "string",
       "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
@@ -6022,8 +6027,7 @@
           "minItems": 1,
           "uniqueItems": true,
           "items": {
-            "type": "string",
-            "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}:[0-9]+$"
+            "$ref": "#/$defs/or_set_dot"
           },
           "description": "Exact add dots being removed. A full revoke, including consent_scope=any cascade, MUST enumerate every active dot that becomes inactive; implicit cascade without dot enumeration is invalid."
         },
@@ -8112,7 +8116,7 @@
         "protocols",
         "namespaces",
         "receive_events",
-        "receive_ephemeral",
+        "receive_signals",
         "rate_limited",
         "requested_scopes",
         "registration_epoch",
@@ -8159,7 +8163,7 @@
         "receive_events": {
           "type": "boolean"
         },
-        "receive_ephemeral": {
+        "receive_signals": {
           "type": "boolean"
         },
         "rate_limited": {
@@ -9260,26 +9264,6 @@
       ],
       "additionalProperties": false
     },
-    "call_payload": {
-      "type": "object",
-      "minProperties": 1,
-      "properties": {
-        "call_id": {
-          "type": "string",
-          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "strand_id": {
-          "$ref": "#/$defs/strand_id"
-        },
-        "state": {
-          "type": "string"
-        },
-        "signal": {
-          "type": "object"
-        }
-      },
-      "additionalProperties": false
-    },
     "participant_binding": {
       "type": "object",
       "description": "Token issuer's signed commitment over (realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at) for a media participant. See crypto-media/media-service-binding.md §3 and crypto-media/call-state.md §4.1. v1 uses the single scheme ak.media.participant_binding.v1.",
@@ -9707,7 +9691,7 @@
               "type": "object",
               "required": [
                 "op",
-                "observed_tag",
+                "observed_dot",
                 "actor_id",
                 "device_id"
               ],
@@ -9715,8 +9699,8 @@
                 "op": {
                   "const": "leave"
                 },
-                "observed_tag": {
-                  "$ref": "#/$defs/event_ref"
+                "observed_dot": {
+                  "$ref": "#/$defs/or_set_dot"
                 },
                 "actor_id": {
                   "$ref": "./common-ids.schema.json#/$defs/did"
@@ -9805,7 +9789,7 @@
               "type": "object",
               "required": [
                 "op",
-                "observed_tag",
+                "observed_dot",
                 "actor_id",
                 "restored_by",
                 "restored_at"
@@ -9814,8 +9798,8 @@
                 "op": {
                   "const": "restore_participant"
                 },
-                "observed_tag": {
-                  "$ref": "#/$defs/event_ref"
+                "observed_dot": {
+                  "$ref": "#/$defs/or_set_dot"
                 },
                 "actor_id": {
                   "$ref": "./common-ids.schema.json#/$defs/did"

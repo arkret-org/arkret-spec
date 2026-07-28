@@ -372,10 +372,10 @@
       "description": "Receipt object ID"
     },
     {
-      "kind": "lease",
+      "kind": "authorization_lease",
       "category": "authz",
       "status": "active",
-      "wire_form": "ak:lease:<uuid>",
+      "wire_form": "ak:authorization_lease:<uuid>",
       "description": "Basis-bound AuthorizationLease identifier."
     },
     {

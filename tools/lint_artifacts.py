@@ -1598,20 +1598,26 @@ EFFECT_PROJECTION_ENVELOPE_FIELDS = {
 }
 
 
-def lint_effect_source(lint: Lint, path: Path, ref: str, source: object) -> None:
-    """Validate one closed source used to derive a lattice op member."""
+def lint_effect_source(
+    lint: Lint, path: Path, ref: str, source: object, *, allow_dot: bool = False
+) -> None:
+    """Validate one closed source used to derive a lattice op member.
+
+    `dot` resolves to the write's canonical OR-Set dot
+    (`ak:event:<event_id>:<write_index>`, event-and-patch.md section 2.4.2) and is
+    only legal in an or_set tag position, so callers must opt in.
+    """
     if not isinstance(source, dict):
         lint.fail(path, f"{ref} must be an object")
         return
-    source_keys = [
-        key
-        for key in ("field", "envelope_field", "const", "projected_value")
-        if key in source
-    ]
+    allowed = ("field", "envelope_field", "const", "projected_value")
+    if allow_dot:
+        allowed += ("dot",)
+    source_keys = [key for key in allowed if key in source]
     if len(source_keys) != 1 or len(source) != 1:
         lint.fail(
             path,
-            f"{ref} must declare exactly one of field/envelope_field/const/projected_value",
+            f"{ref} must declare exactly one of {'/'.join(allowed)}",
         )
         return
     source_key = source_keys[0]
@@ -1627,6 +1633,8 @@ def lint_effect_source(lint: Lint, path: Path, ref: str, source: object) -> None
             )
     elif source_key == "projected_value" and source["projected_value"] is not True:
         lint.fail(path, f"{ref}.projected_value must be true")
+    elif source_key == "dot" and source["dot"] is not True:
+        lint.fail(path, f"{ref}.dot must be true")
 
 
 def lint_effect_projection(
@@ -1646,7 +1654,12 @@ def lint_effect_projection(
         "mv_register": {"set", "apply_patch"},
         "cas_register": {"set", "apply_patch"},
         "ordered_log": {"append"},
-        "or_set": {"or_set_delta", "or_set_add", "or_set_batch_add"},
+        "or_set": {
+            "or_set_delta",
+            "or_set_add",
+            "or_set_batch_add",
+            "or_set_remove_observed",
+        },
     }.get(lattice)
     if expected_kinds is None:
         lint.fail(path, f"{ref} is not defined for lattice {lattice!r}")
@@ -1724,7 +1737,21 @@ def lint_effect_projection(
             if member not in projection:
                 lint.fail(path, f"{ref}.{member} is required")
             else:
-                lint_effect_source(lint, path, f"{ref}.{member}", projection[member])
+                lint_effect_source(
+                    lint,
+                    path,
+                    f"{ref}.{member}",
+                    projection[member],
+                    allow_dot=member == "tag",
+                )
+        if isinstance(projection.get("tag"), dict) and projection["tag"].get(
+            "envelope_field"
+        ) == "event_id":
+            lint.fail(
+                path,
+                f"{ref}.tag must use {{\"dot\": true}}; a bare event_id is not unique "
+                "across multiple or_set writes on the same cell",
+            )
         return
     if projection_kind == "or_set_batch_add":
         unknown = set(projection) - {"kind", "values", "tag_context"}
@@ -1736,6 +1763,31 @@ def lint_effect_projection(
             lint_effect_source(lint, path, f"{ref}.values", projection["values"])
         if not isinstance(projection.get("tag_context"), str) or not projection["tag_context"]:
             lint.fail(path, f"{ref}.tag_context must be a non-empty string")
+        return
+
+    if projection_kind == "or_set_remove_observed":
+        unknown = set(projection) - {"kind", "match"}
+        if unknown:
+            lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
+        match = projection.get("match")
+        if match is None:
+            return
+        if not isinstance(match, dict):
+            lint.fail(path, f"{ref}.match must be an object")
+            return
+        unknown_match = set(match) - {"element_field", "source"}
+        if unknown_match:
+            lint.fail(path, f"{ref}.match has unknown member(s) {sorted(unknown_match)}")
+        element_field = match.get("element_field")
+        if not isinstance(element_field, str) or not FIELD_PATH_RE.fullmatch(element_field):
+            lint.fail(
+                path,
+                f"{ref}.match.element_field must be a dotted named path on the element value",
+            )
+        if "source" not in match:
+            lint.fail(path, f"{ref}.match.source is required")
+        else:
+            lint_effect_source(lint, path, f"{ref}.match.source", match["source"])
         return
 
     unknown = set(projection) - {"kind", "selector", "branches"}
@@ -1764,7 +1816,18 @@ def lint_effect_projection(
         if "tag" not in branch:
             lint.fail(path, f"{branch_ref}.tag is required")
         else:
-            lint_effect_source(lint, path, f"{branch_ref}.tag", branch["tag"])
+            lint_effect_source(
+                lint, path, f"{branch_ref}.tag", branch["tag"], allow_dot=True
+            )
+            if (
+                isinstance(branch["tag"], dict)
+                and branch["tag"].get("envelope_field") == "event_id"
+            ):
+                lint.fail(
+                    path,
+                    f"{branch_ref}.tag must use {{\"dot\": true}}; a bare event_id is "
+                    "not unique across multiple or_set writes on the same cell",
+                )
         if op == "add":
             if "value" not in branch:
                 lint.fail(path, f"{branch_ref}.value is required for add")
@@ -4716,6 +4779,54 @@ def check_null_cell_subject_wire_form(lint: Lint) -> None:
                         f"segment MUST be the literal 'null', found {subject!r} "
                         "(encoding.md section 4)",
                     )
+
+
+def check_classification_context_paths(lint: Lint) -> None:
+    """Every closed-class context MUST resolve to a real node in a real artifact.
+
+    A context that points at a field which does not exist silently governs nothing,
+    so a registration slip reads as coverage it never had. `*` matches any element
+    of a list or any value of an object.
+    """
+    path = ARTIFACTS / "registry" / "classification-field-registry.json"
+    registry = load_json(lint, path)
+    if not isinstance(registry, dict):
+        return
+    rows = registry.get("closed_class_fields")
+    if not isinstance(rows, list):
+        lint.fail(path, "closed_class_fields must be an array")
+        return
+
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            lint.fail(path, f"closed_class_fields[{index}] must be an object")
+            continue
+        context = row.get("context")
+        if not isinstance(context, str) or not context:
+            lint.fail(path, f"closed_class_fields[{index}].context must be a non-empty string")
+            continue
+        artifact_ref, _, fragment = context.partition("#")
+        artifact_path = ARTIFACTS / artifact_ref
+        if not artifact_path.exists():
+            lint.fail(path, f"{context} references missing artifact {artifact_ref}")
+            continue
+        document = load_json(lint, artifact_path)
+        nodes: list[Any] = [document]
+        for segment in [part for part in fragment.split("/") if part]:
+            segment = segment.replace("~1", "/").replace("~0", "~")
+            following: list[Any] = []
+            for node in nodes:
+                if segment == "*":
+                    if isinstance(node, list):
+                        following.extend(node)
+                    elif isinstance(node, dict):
+                        following.extend(node.values())
+                elif isinstance(node, dict) and segment in node:
+                    following.append(node[segment])
+            if not following:
+                lint.fail(path, f"{context} does not resolve: no node at {segment!r}")
+                break
+            nodes = following
 
 
 def check_circle_lifecycle_basis_vector(lint: Lint) -> None:
@@ -8642,6 +8753,10 @@ def main(argv: list[str] | None = None) -> int:
             ("reducer_payloads", lambda: check_reducer_payload_closure(lint)),
             ("circle_membership", lambda: check_circle_membership_enum_single_source(lint)),
             ("null_cell_subject", lambda: check_null_cell_subject_wire_form(lint)),
+            (
+                "classification_contexts",
+                lambda: check_classification_context_paths(lint),
+            ),
             ("circle_lifecycle", lambda: check_circle_lifecycle_basis_vector(lint)),
             ("did_device", lambda: check_did_and_device_constraints(lint)),
         ],

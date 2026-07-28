@@ -177,7 +177,7 @@
       "object_family": "authorization_lease",
       "binding_fields": [
         "payload_digest",
-        "issuer_set_ref",
+        "authority_set_ref",
         "verification_method",
         "created_at",
         "domain?",
@@ -191,7 +191,7 @@
       "object_family": "ingress_receipt",
       "binding_fields": [
         "payload_digest",
-        "issuer_set_ref",
+        "authority_set_ref",
         "verification_method",
         "created_at",
         "domain?",
@@ -206,7 +206,7 @@
       "binding_fields": [
         "payload_digest",
         "extension_id",
-        "publisher",
+        "publisher_id",
         "verification_method",
         "created_at",
         "domain?",

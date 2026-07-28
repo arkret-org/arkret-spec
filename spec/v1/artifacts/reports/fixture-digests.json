@@ -22,7 +22,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
-      "sha256": "c79a038e90d6e4c0b7f476e1a3cb8c66a637ac0e2b96ff3d3a375aa30511f087"
+      "sha256": "c71a9ac8c451c47fd9dd18b0987e41a58e6fc71fce188fdf741fc6d70396ac4d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json",
@@ -50,7 +50,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-state-core-fixture.json",
-      "sha256": "5c792872ac4dbf9e30b4044f8fcac3f18422570e2b4e7e6099f82e0976b80843"
+      "sha256": "e44ed69c42ad1cfaf34ab9b17a4ed09539e97568c061df036bbedc82b59d216c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json",
@@ -98,7 +98,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "5a2a9a0e5e10a034143ba16dab95d65183d4045d64e27198ebbb566e2f75bf50"
+      "sha256": "8889a811add76a60d75ec222ceb41e8185dde5496444c7ef0c9f961e5a078ef9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",
@@ -118,7 +118,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "5fb17421478ee15ec43495c3f9c93167b1aeb7787a84248e9207f70f150bab15"
+      "sha256": "8e483da796fd142501493561ec7f410165a3ee96982ea64c70d12a75e969b819"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -238,7 +238,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "d7a57346dfcb54356eb53fa35617f65e102e6595bb2cb6ea4f9ef57c1e41bb46"
+      "sha256": "030c43e014847d416dcc90c1ad23b1585e6b4c5fa0aa372cfee89be24a7b5b71"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

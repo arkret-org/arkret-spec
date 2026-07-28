@@ -136,6 +136,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.encoding.or_set_dot_and_batch_tag.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_fixtures": [
+        "encoding-fixture.json"
+      ],
+      "description": "Canonical OR-Set dot (ak:event:<event_id>:<write_index>, write_index taken from the registry cell_writes[]) and the or_set_batch_add tag digest encoding, with negative cases for a bare event_id tag and for deriving the third segment from a wire array index.",
+      "source_refs": [
+        "spec/v1/zh/models/event-and-patch.md",
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.encoding.open_registry_unknown_roundtrip.v1",
       "status": "active",
       "domain": "encoding",

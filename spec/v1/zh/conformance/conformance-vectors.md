@@ -5213,7 +5213,7 @@ Expected:
 - 并发 ban MUST 在 `ak.component.call.moderation.v1`（`or_set`）合并，不产生冲突，通话 `state` 轴完全不受影响。
 - 冲突的 `recording_transition.to` 只把该段 `ak.component.call.recording.v1` 打入 `⊥` / `failed_bottom`；`ak.component.call.state.v1` 仍可接受 `active -> ended`。段 cell 的 subject 是 `[payload.call_id, payload.recording_transition.recording_id]`，因此另一段捕获（不同 `recording_id`）完全不受影响（正例）。
 - `recording_transition` / `transcript_transition` 必须携带 `recording_id`；与该段 `ak.call.recording.start` 的 `recording_id` 不逐字节相同时，写入落在另一个 cell，MUST 以 `recording_state_transition_invalid` 拒绝（不得静默新建一段捕获）。
-- roster join / moderation remove 的 OR-Set add tag 必须精确等于 Event `event_id`，value 必须精确等于对应 payload value；leave / restore 的 remove tag 必须精确等于 `observed_tag`。mute override 必须精确 set 完整 `mute_override` 对象。任何无法由 Event 与 registry 唯一导出的投影均 MUST `reducer_projection_failed`。
+- roster join / moderation remove 的 OR-Set add tag 必须精确等于本 write 的 canonical dot `ak:event:<event_id>:<write_index>`，value 必须精确等于对应 payload value；leave / restore 的 remove tag 必须精确等于 `observed_dot`。mute override 必须精确 set 完整 `mute_override` 对象。任何无法由 Event 与 registry 唯一导出的投影均 MUST `reducer_projection_failed`。
 - capture lifecycle 与 result 是两个独立 target：FSM write 只含精确 `from` / `to`，result write 只 set 完整 result。不得把 result 塞入 transition op，也不得因一个目标冲突冻结另一个轴。
 - 未变更的轴不得由 reducer contract 命中；把未变更轴派生为 same-value write 视为不合规（负例）。
 - `focus` projected write 必须 set 完整 focus 对象；`session_focus` 二次写入不同值或 mode 更新时省略已 committed focus 均 MUST 以 `session_focus_already_committed` 失败（`ak.component.call.focus.v1` 的 CAS 负例）。

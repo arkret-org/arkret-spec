@@ -5137,7 +5137,7 @@
       "description": "A projected RSVP head references a schedule basis that cannot be resolved, is invisible, or is not on the target Strand's schedule revision DAG. The head is retained for audit, excluded from the effective response, and MUST NOT be guessed into currency. See zh/models/calendar-event.md."
     },
     {
-      "code": "ephemeral_plaintext_in_encrypted_scope",
+      "code": "signal_plaintext_forbidden",
       "applies_to": [
         "service_call",
         "client_sync"

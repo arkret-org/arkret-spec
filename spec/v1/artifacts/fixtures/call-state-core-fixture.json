@@ -87,7 +87,7 @@
         "a conflicting recording_transition.to only bottoms that capture segment cell",
         "the call state axis still accepts active to ended while a capture segment is bottom",
         "roster and moderation add tags equal event_id and their values equal the selected payload value",
-        "roster leave and moderation restore remove exactly the payload observed_tag",
+        "roster leave and moderation restore remove exactly the payload observed_dot",
         "mute override CAS sets the complete per-leg payload value",
         "capture lifecycle transition and capture result are projected into separate exact cell writes",
         "any derived projection kind, tag, value, from, or to mismatch fails with reducer_projection_failed",

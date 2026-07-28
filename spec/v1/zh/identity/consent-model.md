@@ -99,7 +99,7 @@ ControlMove(ak.consent.grant) {
 
 receiver 按 registry 从 `kind + payload` 唯一投影一条 `or_set add`：目标 cell
 为 `ak.component.consent.grant.v1:<consent_id>`，dot 为
-`"<enclosing event_id>:<projection_index>"`，value 为 payload 的规范化 consent
+`"ak:event:<enclosing event_id>:<write_index>"`（dot 的规范定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md) §2.4.2），value 为 payload 的规范化 consent
 entry。该投影不是 Event wire 字段。
 ```
 
@@ -128,7 +128,7 @@ Payload-only schema 示例：
 
 Issuer MUST 是 holder 自己（或 holder DID Document 显式授权的 controller / agent）。被授权的 controller / agent 只有在其授权 scope 明确包含 `ak.consent.grant` / `consent_write` action，且本次 grant payload 携带可重放的 holder approval evidence（例如 holder 签名 approval、有效 approval Event ref 或等价审计证据）时，才可代 holder 写入 consent grant；通用 PCR 写权限、agent 自动化权限或 `ak.self.events.command.submit` 能力本身不得被解释为 consent-write 授权。Reducer MUST 在 holder principal control Realm 中验证该专用 action 与 approval evidence，缺失时 `unauthorized` reject。其他 actor 提交的 grant Control Move 在 holder 的 principal control Realm MUST `unauthorized` reject。
 
-`dot` 由 `<enclosing event_id>:<projection_index>` 派生，全局唯一。Projection 层按 `intent` 把同一 (consent_id, peer, consent_scope) 下当前 active 的多个 dot 折叠成一条 effective consent。同一 holder 对同一 intent 重复 grant 会产生不同 dot，or_set 视为多个独立 add——effective consent 仍然 active；revoke 时需要枚举该 intent 当前所有 active dot 才能完整撤销（见 §3.3）。
+`dot` 由 `ak:event:<enclosing event_id>:<write_index>` 派生，全局唯一。Projection 层按 `intent` 把同一 (consent_id, peer, consent_scope) 下当前 active 的多个 dot 折叠成一条 effective consent。同一 holder 对同一 intent 重复 grant 会产生不同 dot，or_set 视为多个独立 add——effective consent 仍然 active；revoke 时需要枚举该 intent 当前所有 active dot 才能完整撤销（见 §3.3）。
 
 ### 3.3 `ak.consent.revoke` Control Move
 

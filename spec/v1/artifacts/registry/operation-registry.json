@@ -2082,7 +2082,7 @@
       "http": "POST /_arkret/self/security-transactions/{transaction_id}/continue",
       "grpc": "SelfSecurityTransactions/Continue",
       "mq": "self.security_transaction.command.continue",
-      "notes": "Continues only the stored next_required_action. request_digest and expected_next_action MUST equal the resource; the endpoint is not a generic step or Saga executor. Client attestation is accepted only for issue_terminal_receipt or local_commit and must bind the pre-reserved ref.",
+      "notes": "Continues only the stored next_required_step. request_digest and expected_next_step MUST equal the resource; the endpoint is not a generic step or Saga executor. Client attestation is accepted only for issue_terminal_receipt or local_commit and must bind the pre-reserved output_ref.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "protocol_sequence",

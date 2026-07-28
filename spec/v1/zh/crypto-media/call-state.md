@@ -137,7 +137,7 @@ sidebar:
 **捕获 transition 与 result 分离（normative）**：`recording_transition` / `transcript_transition` 自身 MUST 携带 `recording_id`、`from`、`to`，FSM cell 只保存生命周期 state。可选 `result` 写入独立 result CAS cell；不得把 artifact/result 私自塞进 transition op，因为 FSM join 不保存 `op.value`。`recording_start_event_id` / `transcript_start_event_id` 只作 provenance 引用。
 
 - `focus`：是 `ak.component.call.focus.v1` 的**完整目标值**，`mode` required、`session_focus` optional。首个 committed `session_focus` 后，任何后继 `focus` 写入都 MUST 原样携带它；省略或改写均以 `session_focus_already_committed` 拒绝。`mode` 只允许按 §6 单向升级。
-- `roster_delta`：`op=join` 时 effect 固定为 `add(tag=envelope.event_id,value=participant)`；`op=leave` 时固定为 `remove(tag=observed_tag)`，并携带与 observed add value 一致的 `actor_id/device_id`。未知、跨 call 或身份不匹配的 tag MUST 拒绝。每 Event 只允许一个 roster delta；effective roster 上限为 1,000。
+- `roster_delta`：`op=join` 时 effect 固定为 `add(tag=dot,value=participant)`（`dot` 为本 write 的 canonical OR-Set dot，定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md) §2.4.2）；`op=leave` 时固定为 `remove(tag=observed_dot)`，并携带与 observed add value 一致的 `actor_id/device_id`。未知、跨 call 或身份不匹配的 tag MUST 拒绝。每 Event 只允许一个 roster delta；effective roster 上限为 1,000。
 - `roster_delta.participant` 的 durable 身份最小化：除 Realm policy 明确要求实名审计且已披露外，`actor_id` MUST 使用 call-scoped pairwise DID，`device_id` MUST 使用仅在该 call 内稳定的 typed device alias。`joined_at` 若写入 durable event MUST 向下取整到 5 分钟 bucket。
 - `roster_delta.participant.foci_preferred`：客户端本地 focus 偏好列表；后加入者不得改变已 committed `session_focus`。
 - `roster_delta.participant.participant_identity`：来自 token exchange 响应的 SFU-local handle，scope 限 `(call_id, focus_id, sfu_did)`。
@@ -148,7 +148,7 @@ sidebar:
   4. `sig` 通过签名验证。
   任一失败 → `failed_precondition` `reason="participant_binding_invalid"`。
 - `mute_override`：每个 call leg 独立写入 `ak.component.call.mute_override.v1` CAS cell。`status=active` 时必须携带 `audio_muted/video_muted`；`status=cleared` 时二者必须省略。不同 leg 并发互不冲突，同一 leg 并发改写 fail closed。写入者 MUST 持有 `ak.call.moderate`。
-- `moderation_delta.op=remove_participant`：projected write 固定为 `add(tag=envelope.event_id,value=removal)`。`kick` MUST 含 `device_id`；`ban` MUST 省略它。`moderation_delta.op=restore_participant` 固定移除 `observed_tag`，且只能移除已观察到、actor 一致的 ban，不能恢复 kick。
+- `moderation_delta.op=remove_participant`：projected write 固定为 `add(tag=dot,value=removal)`。`kick` MUST 含 `device_id`；`ban` MUST 省略它。`moderation_delta.op=restore_participant` 固定移除 `observed_dot`，且只能移除已观察到、actor 一致的 ban，不能恢复 kick。
 
 高频 speaking、自主 mute/video 状态 SHOULD 走 encrypted Signal Extension；主持人强制静音 MUST 通过 durable `mute_override` 驱动服务端媒体权限。
 

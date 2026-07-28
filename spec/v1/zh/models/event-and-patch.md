@@ -176,8 +176,9 @@ receiver MUST 从签名 envelope、schema-validated payload 与冻结前态重�
 纯函数派生的完整 lattice op。投影是规范内部封闭语法：
 
 - source 对象必须且只能含 `field`（Event 根路径，例如 `payload.focus`）、`envelope_field`
-  （顶层签名字段名）、`const`（任意 JSON literal）或 `projected_value=true` 之一；最后一种只在
-  同一 write 已声明闭合 `value_projection` 时引用其结果。路径不得含数组下标、通配符或空段。
+  （顶层签名字段名）、`const`（任意 JSON literal）、`projected_value=true` 或 `dot=true` 之一；
+  `projected_value` 只在同一 write 已声明闭合 `value_projection` 时引用其结果，`dot` 只允许
+  出现在 `or_set` op 的 `tag` 位置（见下方 dot 定义）。路径不得含数组下标、通配符或空段。
 - `{"kind":"transition","from":source,"to":source}` 只用于 `fsm`，精确派生 `{"kind":"transition","from":...,"to":...}`。
 - `{"kind":"transition_to","to":source}` 只用于 `fsm`；reducer 从冻结前态读取 `from`，按该
   cell 的闭合 FSM 表校验到 `to` 的迁移。它适用于 KeyPackage 等由 payload 声明目标状态、
@@ -188,13 +189,64 @@ receiver MUST 从签名 envelope、schema-validated payload 与冻结前态重�
   整个 Event，不能存储 Patch 本身作为 cell value。
 - `{"kind":"append","value":source,"issuer_seq":source}` 只用于 `ordered_log`，精确派生 `{"kind":"append","value":...,"issuer_seq":...}`；`issuer_seq` 必须求值为无符号整数。
 - `{"kind":"or_set_delta","selector":"payload.<path>","branches":{...}}` 只用于 `or_set`。selector 值必须精确命中一个 branch；每个 branch 的 `op` 只能为 `add` 或 `remove`。`add` 必须同时登记 `tag` 与 `value` source，`remove` 必须只登记 `tag` source；分别精确派生同名 op。
-- `or_set_add` 产生一个 add；`or_set_batch_add` 对已验证、唯一的 payload array 逐项 add，
-  tag 固定为 `digest(tag_context, event_id, index, canonical(value))`。批量形式只用于 MLS
-  Governance Binding 的 `covered_seal_refs`，数组顺序按 canonical value 排序后编号，确保
-  不同接收方产生同一 tag 集。
+- `or_set_add` 产生一个 add；`or_set_batch_add` 对已验证、唯一的 payload array 逐项 add。
+  批量形式只用于 MLS Governance Binding 的 `covered_seal_refs`，数组顺序按 canonical value
+  排序后编号，确保不同接收方产生同一 tag 集。其 tag 编码固定为（与
+  [`../conformance/encoding.md`](../conformance/encoding.md) §9.5.1 的 `string_set_digest` 同构）：
+
+  ```text
+  batch_tag(i) = base64url_nopad(sha256(
+      utf8(tag_context) || 0x0A || utf8(dot) || 0x0A || canonical_json(values[i])
+  ))
+  ```
+
+  其中 `dot` 是本 write 的 canonical dot（见下），`values[]` 已按 canonical value 升序排序，
+  `i` 是排序后的 0-based 下标。任何其它 digest 算法、拼接顺序、分隔符或输出编码都不符合 v1。
+- `{"kind":"or_set_remove_observed"}` 与
+  `{"kind":"or_set_remove_observed","match":{"element_field":"<name>","source":source}}`
+  只用于 `or_set`。无 `match` 时移除该目标 cell 在**冻结前态**下全部存活的 add dot；
+  有 `match` 时只移除元素值上 `element_field` 具名路径的取值与 `source` 求值结果
+  **逐字节相等**的存活 add dot。`element_field` 是**元素值**上的点分具名路径，
+  不是 Event 根路径——这是它与 `condition.field` 的关键区别；路径不存在的元素不参与移除。
+
+  该形态的确定性来自 CBA basis：Control Move 的 `seal_basis` 已经把 frontier 钉死，
+  因此"冻结前态下的存活 add dot 集合"在所有实现上相同，无需 producer 在 payload 中枚举 dot。
+  它是规范既有语义的机器可读形式，参见
+  [`../identity/key-management.md`](../identity/key-management.md) §3.6.1
+  （`ak.component.agent.key.v1` 的 re-authorization 必须 observe-remove 全部 active dot）
+  与 [`../authz/capabilities.md`](../authz/capabilities.md) §12.1（revoke 在 `seal_basis`
+  view 下解析目标 add dot）。
+
+  需要**部分撤销**——即只移除 producer 明确指名的 dot 子集——时 MUST NOT 使用本形态，
+  而使用 `or_set_delta` 的 `remove` branch 从 payload 取 dot，参见
+  [`../identity/consent-model.md`](../identity/consent-model.md) §3.3 的 `observed_dots`。
 - projection 不声明的 `reason`、`issuer_seq`、`tag`、`value` 等 op 成员 MUST 缺省；source
   路径不存在、selector 未命中或投影与 lattice 不兼容表示 registry/Event 无法求值，MUST
   fail closed，不得退化为实现私有默认值。
+
+**OR-Set dot（`dot`，normative）**：`or_set` 元素的身份由 dot 唯一确定，其规范形态固定为
+
+```text
+dot = "ak:event:" + event_id + ":" + write_index
+```
+
+`event_id` 取自签名 envelope；`write_index` 是本次 write 在该 Event kind 的 registry
+`cell_writes[]` 中的 **0-based 下标**。两者都不出现在 Event wire 的独立字段中，receiver
+从签名 envelope 与 registry 重算即可得到，无需任何 producer 声明。单目标 contract 的
+`write_index` 恒为 `0`。
+
+`write_index` 取 registry `cell_writes[]` 下标而非任何 wire 数组下标，是因为 v1 的 Event
+wire 不存在 producer 书写的 effect 数组（见 §2.4 的单一事实源规则）。任何把 dot 的第三段
+解释为 payload 数组下标、到达顺序或实现本地计数器的做法都会在实现间产生不同 dot 集合，
+不符合 v1。
+
+`or_set` op 的 `tag` MUST 使用 `{"dot": true}` 求值为本 write 的 dot，或使用一个已在本节
+登记的封闭 tag 派生式；MUST NOT 直接使用裸 `{"envelope_field":"event_id"}`——裸 event_id
+在同 Event 写多个 `or_set` 目标时不唯一。
+
+dot 拼接与 `or_set_batch_add` 的 tag 编码由 `ak.vector.encoding.or_set_dot_and_batch_tag.v1`
+（[`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json)）固定，含裸 event_id
+作 tag 与用 wire 数组下标充当第三段的负向例。
 
 `effect_projection` 与 `condition` 正交：先求值 `condition` 决定目标是否参与，仅对参与目标
 求值 projection。一个 payload delta 需要多个同 family op 时，必须由该 kind 的封闭 contract

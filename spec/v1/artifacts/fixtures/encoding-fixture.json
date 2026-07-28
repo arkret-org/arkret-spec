@@ -1090,6 +1090,61 @@
           "injection": "lattice_test_seam_only; MUST NOT register a fake active hash suite or forge a real SHA-256 collision"
         }
       ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.or_set_dot_and_batch_tag.v1",
+      "kind": "or_set_dot_and_batch_tag",
+      "description": "Canonical OR-Set dot and or_set_batch_add tag encoding. dot = \"ak:event:\" + event_id + \":\" + write_index, where write_index is the 0-based index of the write in the event kind's registry cell_writes[]. batch_tag = base64url_nopad(sha256(utf8(tag_context) || 0x0A || utf8(dot) || 0x0A || canonical_json(values[i]))) over values sorted by canonical value ascending.",
+      "event_id": "ak:event:01964185-0400-7000-8000-000000000000",
+      "dot_cases": [
+        {
+          "name": "single_target_write_index_is_zero",
+          "write_index": 0,
+          "dot": "ak:event:01964185-0400-7000-8000-000000000000:0"
+        },
+        {
+          "name": "second_write_of_multi_target_contract",
+          "write_index": 1,
+          "dot": "ak:event:01964185-0400-7000-8000-000000000000:1"
+        }
+      ],
+      "batch_add": {
+        "tag_context": "ak.covered-seal-tag-v1",
+        "dot": "ak:event:01964185-0400-7000-8000-000000000000:0",
+        "sorted_values": [
+          "ak:seal:01964185-0400-7000-8000-00000000000a",
+          "ak:seal:01964185-0400-7000-8000-00000000000b"
+        ],
+        "cases": [
+          {
+            "index": 0,
+            "value": "ak:seal:01964185-0400-7000-8000-00000000000a",
+            "tag_preimage_utf8": "ak.covered-seal-tag-v1\nak:event:01964185-0400-7000-8000-000000000000:0\n\"ak:seal:01964185-0400-7000-8000-00000000000a\"",
+            "batch_tag": "1iBmBx9eyxpIkSNfOAOpK85TXemME7YOfXe_MwkojTM"
+          },
+          {
+            "index": 1,
+            "value": "ak:seal:01964185-0400-7000-8000-00000000000b",
+            "tag_preimage_utf8": "ak.covered-seal-tag-v1\nak:event:01964185-0400-7000-8000-000000000000:0\n\"ak:seal:01964185-0400-7000-8000-00000000000b\"",
+            "batch_tag": "70hmv5IajqSpRoVHskF9M4V4h6nIZeftWLdvwWBlrhY"
+          }
+        ]
+      },
+      "negative_cases": [
+        {
+          "name": "bare_event_id_as_tag",
+          "tag": "ak:event:01964185-0400-7000-8000-000000000000",
+          "reason": "reducer_projection_failed",
+          "note": "A bare event_id is not a dot; it is not unique across multiple or_set writes on one cell."
+        },
+        {
+          "name": "wire_array_index_as_third_segment",
+          "tag": "ak:event:01964185-0400-7000-8000-000000000000:0",
+          "derived_from": "payload array index",
+          "reason": "reducer_projection_failed",
+          "note": "The third segment MUST be the registry cell_writes[] index; v1 has no producer-written effect array."
+        }
+      ]
     }
   ],
   "rank_order": [
