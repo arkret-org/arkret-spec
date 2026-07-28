@@ -544,32 +544,34 @@ Arkret v1 定义以下 MLS GroupContext extension 绑定形状；codepoint 以 `
 | ExtensionType（数值 codepoint） | `0xF1C0` ∈ MLS GroupContext **private-use range `0xF000`–`0xFFFF`**（RFC 9420 §17.6 / IANA MLS registry）。**Arkret v1 wire 形态固定（pinned）为 `0xF1C0`,任何实现 MUST 使用该 codepoint;deployment policy MUST NOT 用其他 codepoint 覆盖该 binding。** `ak.profile.mls_governance_binding.full.v1` MUST 使用 `0xF1C0`。所有 Arkret 私有 MLS 扩展 codepoint 集中登记在 `artifacts/registry/mls-extension-registry.json`。 |
 | ExtensionData | `governance_binding` 对象的 CBOR 编码 |
 
-CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)。字段顺序按 lexicographic key 排列；条件字段不满足出现条件时 **MUST 从 CBOR map 整体省略该 key，MUST NOT 写入 null 占位**——`circle_id` 只在 Circle scope 出现，`sidecar_binding` 只在 effective scope 是 reducer-managed Sidecar backing Circle 时出现，`capability_root` / `discussion_metadata_digest` 在 full profile 必填、仅在显式 `ak.profile.e2ee_relaxed.v1` 降级时可省略。deterministic CBOR 下 null 占位会改变 canonical 字节序，导致不同实现对同一 governance binding 得出不一致编码；lexicographic key 排序只对实际存在（present）的 key 生效。下表中的字段顺序仅为可读性展示，实际 wire 顺序以 present key 的 lexicographic 排序为准：
+CBOR 编码 MUST 使用 RFC 8949 §4.2.1 的 core deterministic encoding。**map key MUST 按其编码后字节的 bytewise lexicographic 序排列**（即 RFC 8949 §4.2.1 原文规则）。注意这**不是**对 key 明文的排序：text string 的 head 字节编码了长度，因此对本 binding 的全部 key 而言等价于「先按长度、再按 UTF-8 字节」——例如 `realm_id`（8 字节，head `0x68`）排在 `binding_profile`（15 字节，head `0x6F`）**之前**。选用该规则而非自拟细则，是因为 `encoding_profile` 取值字面就是 `cbor-deterministic-rfc8949-v1`，且 [`../conformance/encoding.md` §2.3](../conformance/encoding.md) 要求引入 CBOR 的 profile pin 上游已标准化的 deterministic profile（CDE / dCBOR，二者均强制 §4.2.1）而非自拟等价规则；条件字段不满足出现条件时 **MUST 从 CBOR map 整体省略该 key，MUST NOT 写入 null 占位**——`circle_id` 只在 Circle scope 出现，`sidecar_binding` 只在 effective scope 是 reducer-managed Sidecar backing Circle 时出现，`capability_root` / `discussion_metadata_digest` 在 full profile 必填、仅在显式 `ak.profile.e2ee_relaxed.v1` 降级时可省略。deterministic CBOR 下 null 占位会改变 canonical 字节序，导致不同实现对同一 governance binding 得出不一致编码；§4.2.1 排序只对实际存在（present）的 key 生效。**下表已按 wire 顺序书写**（包括嵌套 map），省略某个条件 key 时其余 key 的相对顺序不变：
 
 ```text
-{
+{                                 ; keys in RFC 8949 4.2.1 order: length, then bytes
+  "realm_id":            tstr,
+  "circle_id":           tstr,    ; optional, only when effective_scope.kind="circle"
+  "next_epoch":          uint,
+  "policy_root":         bstr,    ; decoded digest bytes, not the "sha256:" text
+  "mls_group_id":        bstr,    ; decoded base64url bytes
+  "previous_epoch":      uint,
   "binding_profile":     tstr,
   "binding_version":     uint,    ; v1 = 1
   "capability_root":     bstr,    ; required in full profile; omitted only by relaxed profile
-  "circle_id":           tstr,    ; optional, only when effective_scope.kind="circle"
-  "covered_seal_refs":   [+ bstr], ; non-empty unique set of governance Seal refs
-  "discussion_metadata_digest": bstr, ; required in full profile; omitted only by relaxed profile
   "effective_scope":     { "kind": tstr, "realm_id": tstr, "circle_id": tstr? },
-  "encoding_profile":    tstr,    ; "cbor-deterministic-rfc8949-v1"
-  "membership_frontier": [+ bstr],
-  "mls_group_id":        bstr,
-  "next_epoch":          uint,
-  "policy_root":         bstr,
-  "previous_epoch":      uint,
-  "realm_id":            tstr,
   "reducer_profile":     tstr,
   "sidecar_binding": {              ; required only for a Sidecar backing Circle
+    "sidecar_id": tstr,
     "control_frontier": [+ tstr],
-    "desired_access_digest": bstr,
-    "sidecar_id": tstr
-  }?
+    "desired_access_digest": bstr
+  }?,
+  "encoding_profile":    tstr,    ; "cbor-deterministic-rfc8949-v1"
+  "covered_seal_refs":   [+ tstr], ; non-empty unique set of governance Seal refs
+  "membership_frontier": [+ tstr],
+  "discussion_metadata_digest": bstr ; required in full profile; omitted only by relaxed profile
 }
 ```
+
+`bstr` 在本 map 中只表示**二进制值**：`policy_root` / `capability_root` / `discussion_metadata_digest` 是解码后的 digest 字节（不含 `sha256:` 前缀），`mls_group_id` 是解码后的 base64url 字节。`ak:` 开头的标识符一律是 `tstr`，与 `realm_id` / `circle_id` / `sidecar_id` 同型——包括 `membership_frontier`、`covered_seal_refs` 与 `control_frontier` 三个数组。把它们编为 `bstr` 会让 `bstr` 在同一个 map 里同时表示「解码后的二进制」与「UTF-8 文本字节」，实现方无法从类型判断应否解码。
 
 **字段冗余说明（normative rationale）**：
 
