@@ -4199,38 +4199,16 @@
       "operation_id": "ak.root.identity.recovery_policy.command.publish",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/recovery-policy.schema.json",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
         "schema_kind": "object",
         "required": [
-          "schema",
-          "policy_id",
-          "principal_id",
-          "version",
-          "supersedes",
-          "trust_domain",
-          "allowed_proof_kinds",
-          "issued_at",
-          "auth_data"
+          "event",
+          "authorization_lease"
         ],
         "properties": [
-          "schema",
-          "policy_id",
-          "principal_id",
-          "version",
-          "supersedes",
-          "trust_domain",
-          "allowed_proof_kinds",
-          "threshold",
-          "device_quorum",
-          "trusted_recovery_services",
-          "recovery_keys",
-          "recovery_key_agreements",
-          "approval_requirement",
-          "audit",
-          "issued_at",
-          "not_before",
-          "expires_at",
-          "auth_data"
+          "event",
+          "authorization_lease",
+          "cba_proof_bundles"
         ],
         "closed": true
       },
@@ -4242,6 +4220,7 @@
           "policy_id",
           "principal_id",
           "version",
+          "acceptance_basis",
           "accepted_at"
         ],
         "properties": [
@@ -4249,6 +4228,7 @@
           "policy_id",
           "principal_id",
           "version",
+          "acceptance_basis",
           "accepted_at"
         ],
         "closed": true

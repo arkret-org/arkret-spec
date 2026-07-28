@@ -107,6 +107,19 @@ fresh-device recovery 不存在“replacement device因为通过 recovery proof�
 Authority只有在accepted basis明确把它列为相应high-risk issuer时才有效；角色名称本身不产生
 authority。协议不登记一个允许客户端请求任意action lease的通用endpoint。
 
+每个 accepted recovery policy version 必须携带 immutable `acceptance_basis`。该 basis 引用已把
+承载该 policy 的 Principal Control Realm `ak.policy.set` Event纳入control state的accepted
+Seal/SealBasis；policy publish request必须是该Event的完整`EventInitialSubmission`。Event
+actor/scope、payload principal、lease与accepted Seal必须一致。command只有在该basis
+materialize后才能返回成功或推进active policy；此前对同一Event id返回retry-safe
+`frontier_unavailable`，不得生成第二policy Event。B 模型 session 的
+`publication_authority_context.basis_ref` 必须逐字等于该 `acceptance_basis`，不得借用 live
+device-generation frontier、`accepted_at` 或 inline policy bytes。authority policy 的
+`source_ref=policy_id`、`source_digest=SHA-256(JCS(RecoveryPolicy))`、
+`generation_ref=policy_version(decimal)`。所谓“零 Seal frontier”只允许
+device-generation/re-anchor frontier 为空，不表示 recovery policy 可以没有自己的 acceptance
+basis。
+
 ## 2. IngressReceipt
 
 ```text

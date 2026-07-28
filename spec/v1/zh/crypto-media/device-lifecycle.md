@@ -1759,11 +1759,15 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
    `ak.cross_signing.publish`投影固定
    `ak.authority_set.recovery_cross_signing.v1` concrete policy、snapshot SSK、control
    scope、basis与`[ak.device.authorize, ak.device.list_update]`；B从accepted sealed
-   recovery policy投影固定`ak.authority_set.recovery_identity_reanchor.v1` concrete policy、
+   recovery policy及其immutable `acceptance_basis`投影固定
+   `ak.authority_set.recovery_identity_reanchor.v1` concrete policy、
    各proof family的完整authorization rules、scope/basis与`[ak.device.reanchor]`。context不能由客户端自报，
-   也不能在session存续期内随live state漂移；缺少可从同一basis重算的concrete policy时create
+   也不能在session存续期内随live state漂移；context的basis必须逐字等于policy
+   `acceptance_basis`，不得借用device-generation frontier。缺少可从同一basis重算的concrete policy时create
    必须fail closed。context不得在proof前预测单个verification method；A的单一SSK只是
-   单rule、单issuer、threshold=1的特例。
+   单rule、单issuer、threshold=1的特例。“零 Seal frontier”仅指B模型的
+   device-generation/re-anchor frontier可以为空；accepted recovery policy自身仍必须有
+   acceptance Seal/SealBasis。
 2. **Recovery proof**：proof kind 仍由 accepted recovery policy 选择。使用用户 recovery secret 时，签名 key MUST 是 [`identity/key-management.md` §3.3](../identity/key-management.md) 的 Ed25519 `recovery-proof` 子键，不是 identity root，也不是 X25519 backup-HPKE key。所有 proof transcript 必须从 stored session 重建并绑定 `{schema, kind, identity_model, principal_id, requesting_device_id, trust_domain, policy_id, policy_version, recovery_session_id, model_generation_ref, publication_authority_context_digest, challenge, expires_at, created_at, proof_body?}`；`schema="ak.identity.recovery_proof.v1"`。A 的 `model_generation_ref` 是 decimal SSK generation；B 是当前 DID versionId。客户端复制的 policy/model metadata 不得成为权威输入。
 
    `recovery_unlock` 的 `recovery_secret_ref` 必须解析到 session created-at 时 authoritative 的 policy entry，`verification_method` 必须等于该 entry 对应的 recovery-proof public key。signature 覆盖 generic transcript；`unlock_commitment` 继续使用 `ak.recovery-session-unlock-binding-v1\n` 域并绑定同一 transcript。root 或 backup-HPKE key 签名 MUST reject。

@@ -859,6 +859,7 @@
         "policy_id",
         "principal_id",
         "version",
+        "acceptance_basis",
         "trust_domain",
         "allowed_proof_kinds",
         "issued_at"
@@ -873,6 +874,10 @@
         "version": {
           "type": "integer",
           "minimum": 1
+        },
+        "acceptance_basis": {
+          "$ref": "./offline-publication.schema.json#/$defs/lease_basis_ref",
+          "description": "Immutable accepted CBA basis whose control state commits this exact recovery policy version."
         },
         "recovery_policy_ref": {
           "$ref": "#/$defs/recovery_policy_ref",
@@ -990,6 +995,7 @@
         "policy_id",
         "principal_id",
         "version",
+        "acceptance_basis",
         "accepted_at"
       ],
       "properties": {
@@ -1005,6 +1011,10 @@
         "version": {
           "type": "integer",
           "minimum": 1
+        },
+        "acceptance_basis": {
+          "$ref": "./offline-publication.schema.json#/$defs/lease_basis_ref",
+          "description": "Immutable accepted CBA basis whose control state commits this exact recovery policy version."
         },
         "accepted_at": {
           "$ref": "#/$defs/timestamp"

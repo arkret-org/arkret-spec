@@ -1666,7 +1666,7 @@
           },
           {
             "ref": "artifacts/registry/operation-registry.json",
-            "content_digest": "sha256:65b26527a3a91724c405962f6e4fae1658d8e53a72acb184f58ec33ffa9c4536"
+            "content_digest": "sha256:07501a14785dd18f344bec11ec6f312bb9502ce31a251927b1f7414490336855"
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
@@ -1682,11 +1682,11 @@
           },
           {
             "ref": "zh/sync/service-http-binding.md",
-            "content_digest": "sha256:2a3d6bf9da9075cf0d000498a66156e7f8d2b1f6d2973d42637d15c5177172e0"
+            "content_digest": "sha256:74e8b74df2aec2435eadbfad81b8dec6fe37f81ca7275881de58b45ad724a967"
           }
         ]
       },
-      "reducer_profile_digest": "sha256:20add0a5fb9d59048ff3bc78d17ee92f2ad52a23666654e34b6b56f385c13b7f"
+      "reducer_profile_digest": "sha256:c6112612f4d05c7c97403ececcd8f92c0d60fac6b561e4e7202dc19f3aafee5d"
     }
   ],
   "generated_fields": [

@@ -2035,12 +2035,12 @@
       "http": "POST /_arkret/root/identity/recovery-policy",
       "grpc": "RootIdentity/RecoveryPolicyPublish",
       "mq": "root.identity.recovery_policy.command.publish",
-      "notes": "Publish a signed ak.schema.recovery_policy.v1 genesis policy or rotation for the authenticated principal. HTTP binding is POST because the principal/authority is derived from authenticated proof and signed policy state rather than a URI-addressed resource slot. Servers MUST verify auth_data.signed_fields, signature authority, version monotonicity, and supersedes linkage before accepting.",
+      "notes": "Publish a signed ak.schema.recovery_policy.v1 genesis policy or rotation as a Principal Control Realm ak.policy.set EventInitialSubmission. Event actor/scope, payload principal, lease and accepted control Seal MUST agree. The command returns success only after the Event is covered by the immutable acceptance_basis; before Seal materialization it returns retry-safe frontier_unavailable for the same Event id.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "protocol_sequence",
       "retry_safe": true,
-      "request_schema_ref": "schemas/recovery-policy.schema.json",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
       "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome"
     },
     {

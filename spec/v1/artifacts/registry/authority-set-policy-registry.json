@@ -43,9 +43,10 @@
       "rules_source": "accepted_recovery_policy.allowed_proof_kinds_and_linked_accepted_state",
       "projection": {
         "scope_ref": "principal_control_realm",
-        "source_ref": "accepted_recovery_policy(policy_id,policy_version)",
+        "source_ref": "accepted_recovery_policy.policy_id",
         "source_digest": "accepted_recovery_policy_canonical_digest",
         "generation_ref": "policy_version(decimal)",
+        "basis_ref": "accepted_recovery_policy.acceptance_basis",
         "authorization_rules": "one rule per allowed proof kind; principal_signing/recovery_unlock/trusted service use threshold 1, device_quorum uses device_quorum.k, threshold_recovery uses threshold.k"
       },
       "defined_in": "zh/crypto-media/device-lifecycle.md#15-全部设备丢失后的恢复"
