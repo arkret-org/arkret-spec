@@ -202,6 +202,8 @@ grpc:
       KeyPackagesClaimQuery: ak.peer.keys.keypackages.query.claim
     PeerSnapshot:
       Head: ak.peer.snapshot.query.manifest_head
+    PeerSignal:
+      Relay: ak.peer.signal.command.relay
     SelfSignal:
       Send: ak.self.signal.command.send
       Subscribe: ak.self.signal.stream.subscribe
@@ -341,6 +343,7 @@ mq:
     peer.keys.keypackages.command.claim: ak.peer.keys.keypackages.command.claim
     peer.keys.keypackages.query.claim: ak.peer.keys.keypackages.query.claim
     peer.snapshot.query.manifest_head: ak.peer.snapshot.query.manifest_head
+    peer.signal.command.relay: ak.peer.signal.command.relay
     self.signal.command.send: ak.self.signal.command.send
     self.signal.stream.subscribe: ak.self.signal.stream.subscribe
     self.call.media.exchange.issue_token: ak.self.call.media.exchange.issue_token

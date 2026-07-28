@@ -4718,6 +4718,53 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PeerKeyPackagesClaimQueryOutcome'
+  /_arkret/peer/signal:
+    post:
+      operationId: ak.peer.signal.command.relay
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        requestCanonicalDigest: []
+        contentDigest: []
+      summary: Relay encrypted Signal Extension envelopes to one peer.
+      description: |
+        Optional `ak.profile.signal_peer_relay.v1` single-hop, best-effort
+        relay. The request contains 1..128 original producer-signed encrypted
+        SignalEnvelope values for one Realm and has a 1 MiB canonical body
+        ceiling. The peer signature expires-created window is at most 5
+        seconds. Idempotency-Key is forbidden; uncertain outcomes are dropped.
+        This operation never creates a durable Event, receipt, Seal, actor_seq
+        or Realm frontier update, and the destination cannot forward a received
+        envelope to a third peer.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/signal-relay.schema.json
+      responses:
+        '200':
+          description: |
+            Opaque request takeover result. It does not reveal whether any
+            Realm, scope, sender, binding or recipient exists and does not
+            promise delivery.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/signal-relay.schema.json#/$defs/signal_relay_outcome
+        '400':
+          description: Malformed or cross-Realm relay request.
+        '403':
+          description: |
+            Unified minimally disclosing outer peer authentication, trust-domain,
+            destination-endpoint or request-policy rejection. Per-envelope
+            sender/member binding and delivery-policy failures are silently
+            dropped behind the opaque 200 outcome.
+        '413':
+          description: Canonical request body exceeds 1 MiB.
   /_arkret/self/signal:
     post:
       operationId: ak.self.signal.command.send

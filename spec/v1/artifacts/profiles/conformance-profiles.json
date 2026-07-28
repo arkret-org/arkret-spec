@@ -378,6 +378,7 @@
     "ak.profile.principal_server.v1",
     "ak.profile.directory_service.v1",
     "ak.profile.federation_minimal.v1",
+    "ak.profile.signal_peer_relay.v1",
     "ak.profile.federation.high_assurance.v1",
     "ak.profile.identity_registry.v1",
     "ak.profile.auth_server.v1",
@@ -431,6 +432,7 @@
       "ak.profile.principal_server.v1",
       "ak.profile.directory_service.v1",
       "ak.profile.federation_minimal.v1",
+      "ak.profile.signal_peer_relay.v1",
       "ak.profile.federation.high_assurance.v1",
       "ak.profile.identity_registry.v1",
       "ak.profile.auth_server.v1",
@@ -462,6 +464,7 @@
       "ak.profile.disappearing.v1",
       "ak.profile.calendar_event.v1",
       "ak.profile.calendar_notification_dispatch.v1",
+      "ak.profile.signal_peer_relay.v1",
       "ak.profile.pinned_items.v1",
       "ak.profile.search.client_index.v1",
       "ak.profile.search.blind_index.v1",
@@ -545,6 +548,7 @@
     "ak.profile.principal_server.v1": "server",
     "ak.profile.directory_service.v1": "directory",
     "ak.profile.federation_minimal.v1": "server",
+    "ak.profile.signal_peer_relay.v1": "server",
     "ak.profile.federation.high_assurance.v1": "server",
     "ak.profile.federation.rbsr.negentropy.v1": "server",
     "ak.profile.identity_registry.v1": "directory",
@@ -1442,7 +1446,8 @@
         "redaction-fixture.json",
         "reaction-fixture.json",
         "cba-lattice-fixture.json",
-        "privacy-security-fixture.json"
+        "privacy-security-fixture.json",
+        "long-text-content-fixture.json"
       ],
       "prose_requirement_coverage": [
         {
@@ -1470,6 +1475,13 @@
           "coverage": [
             "privacy-security-fixture.json",
             "sync-fixture.json"
+          ]
+        },
+        {
+          "requirement": "inline and Blob-backed long-text Content Block boundary, E2EE descriptor and lifecycle",
+          "coverage": [
+            "ak.schema.message.v1",
+            "long-text-content-fixture.json"
           ]
         }
       ],
@@ -2113,6 +2125,65 @@
         "downgrade_profile": "ak.profile.e2ee_relaxed.v1",
         "downgrade_admission": "Only closed or restricted federation may accept ak.profile.e2ee_relaxed.v1, and restricted federation MUST satisfy the bounded-SLA federation_guard in that profile. Open and quarantine federation MUST reject the relaxed downgrade.",
         "fail_closed_behavior": "A receiver that cannot verify the minimum profile, sees a missing/inconsistent binding_profile or reducer_profile, or cannot prove the relaxed federation guard MUST reject or quarantine the affected MLS artifact/DataEvent before advancing Realm frontier."
+      }
+    },
+    "ak.profile.signal_peer_relay.v1": {
+      "role": "server",
+      "description": "Optional symmetric Principal Server profile for the encrypted Signal Extension single-hop peer relay. It does not imply durable Event federation and does not advertise any product signal kind.",
+      "required_endpoints": [
+        "ak.server.query.describe",
+        "ak.self.signal.command.send",
+        "ak.self.signal.stream.subscribe",
+        "ak.peer.signal.command.relay"
+      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ak.schema.signal_envelope.v1",
+        "ak.schema.signal_relay.v1"
+      ],
+      "required_fixtures": [
+        "signal-federation-fixture.json"
+      ],
+      "optional_extensions": [],
+      "prose_requirement_coverage": [
+        {
+          "requirement": "single-hop peer authentication, current member delivery binding and unchanged producer envelope",
+          "coverage": [
+            "ak.peer.signal.command.relay",
+            "signal-federation-fixture.json"
+          ]
+        },
+        {
+          "requirement": "opaque request-level outcome and anti-enumeration",
+          "coverage": [
+            "ak.schema.signal_relay.v1",
+            "signal-federation-fixture.json"
+          ]
+        },
+        {
+          "requirement": "bounded batch/body/signature window and drop-unconfirmed retry behavior",
+          "coverage": [
+            "ak.peer.signal.command.relay",
+            "signal-federation-fixture.json"
+          ]
+        }
+      ],
+      "feature_discovery": {
+        "required": [
+          "service_id",
+          "supported_bindings",
+          "supported_operations",
+          "supported_profiles"
+        ],
+        "unsupported_optional": "omit ak.profile.signal_peer_relay.v1 and ak.peer.signal.command.relay; local Signal and durable federation remain independently usable"
+      },
+      "additional_requirements": {
+        "encrypted_only_must": "Every relayed item MUST be ak.schema.signal_envelope.v1; plaintext or legacy ephemeral inputs fail closed with signal_plaintext_forbidden.",
+        "single_hop_must": "A destination MUST NOT relay a peer-received SignalEnvelope to a third service. The original sender-side service performs one direct request per eligible destination service.",
+        "no_kind_advertisement_must": "Describe MUST advertise only this profile and operation support; exact product signal kind and target remain encrypted and MUST NOT appear in supported-kinds or routing metadata.",
+        "opaque_outcome_must": "A valid authenticated request returns only {accepted:true}; no recipient, binding, capability, count or per-item outcome is exposed.",
+        "retry_must": "The operation forbids Idempotency-Key, is retry_safe=false and uses uncertain_outcome.strategy=drop_unconfirmed. A lost response MUST NOT cause automatic request replay."
       }
     },
     "ak.profile.federation.high_assurance.v1": {

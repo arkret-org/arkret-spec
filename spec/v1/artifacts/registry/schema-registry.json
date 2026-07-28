@@ -364,6 +364,12 @@
       "description": "Encrypted-only Signal Extension envelope; product payload types remain inside ciphertext."
     },
     {
+      "schema_id": "ak.schema.signal_relay.v1",
+      "file": "schemas/signal-relay.schema.json",
+      "status": "active",
+      "description": "Bounded single-hop peer relay request and opaque outcome for encrypted SignalEnvelope values."
+    },
+    {
       "schema_id": "ak.schema.cba_proof_bundle.v1",
       "file": "schemas/cba-proof-bundle.schema.json",
       "status": "active",

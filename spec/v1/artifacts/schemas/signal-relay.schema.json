@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/signal-relay.schema.json",
+  "title": "Arkret Signal Peer Relay Request",
+  "description": "Bounded single-hop peer relay request for encrypted SignalEnvelope values. The request is short-lived, best-effort, non-idempotent, and never creates durable Event, Seal, frontier, receipt, or delivery state.",
+  "type": "object",
+  "required": [
+    "realm_id",
+    "signals"
+  ],
+  "properties": {
+    "realm_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_id",
+      "description": "The only Realm represented by this request. Every signals[].realm_id and signals[].scope_ref.realm_id MUST equal this value."
+    },
+    "signals": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {
+        "$ref": "./signal-envelope.schema.json"
+      },
+      "description": "Original producer-signed encrypted envelopes. The source and destination services MUST NOT alter, re-sign, decrypt, or re-encrypt an item."
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "signal_relay_outcome": {
+      "type": "object",
+      "description": "Opaque request-level takeover result. accepted=true does not reveal whether the Realm, scope, sender, recipient, binding, or local Signal rail exists, and does not promise delivery.",
+      "required": [
+        "accepted"
+      ],
+      "properties": {
+        "accepted": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

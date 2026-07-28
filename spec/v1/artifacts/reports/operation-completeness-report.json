@@ -18,13 +18,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 211,
+    "total_operations": 212,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 3,
-      "typed_schema": 198
+      "typed_schema": 199
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -40,7 +40,7 @@
         "no_request_body": 1,
         "service_describe": 2,
         "streaming_frame_schema": 1,
-        "typed_schema": 134
+        "typed_schema": 135
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -984,6 +984,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/PeerKeyPackagesClaimQueryRequestBody",
         "response": "#/components/schemas/PeerKeyPackagesClaimQueryOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.signal.command.relay",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/signal",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/signal-relay.schema.json",
+      "response_schema_ref": "schemas/signal-relay.schema.json#/$defs/signal_relay_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/signal-relay.schema.json",
+        "response": "../schemas/signal-relay.schema.json#/$defs/signal_relay_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

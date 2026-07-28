@@ -295,7 +295,62 @@
       ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/conformance/scalability-constraints.md",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.scalability.operation_body_size_limit.v1",
+      "status": "active",
+      "domain": "scalability",
+      "applies_to_fixtures": [
+        "scalability-limits-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.scalability.http_body_preparse_limit.v1",
+      "status": "active",
+      "domain": "scalability",
+      "scope": "universal",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.scalability.content_encoding_forbidden.v1",
+      "status": "active",
+      "domain": "scalability",
+      "scope": "universal",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.scalability.batch_page_byte_count.v1",
+      "status": "active",
+      "domain": "scalability",
+      "applies_to_fixtures": [
+        "scalability-limits-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.scalability.read_unsigned_size_limit.v1",
+      "status": "active",
+      "domain": "scalability",
+      "applies_to_fixtures": [
+        "scalability-limits-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
     },
@@ -1894,6 +1949,66 @@
       ],
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.signal.peer_relay.v1",
+      "status": "active",
+      "domain": "signal",
+      "applies_to_fixtures": [
+        "signal-federation-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.content.long_text_boundaries.v1",
+      "status": "active",
+      "domain": "content",
+      "applies_to_fixtures": [
+        "long-text-content-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/long-text-content-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.content.long_text_normalization.v1",
+      "status": "active",
+      "domain": "content",
+      "applies_to_fixtures": [
+        "long-text-content-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/long-text-content-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.content.long_text_e2ee.v1",
+      "status": "active",
+      "domain": "content",
+      "applies_to_fixtures": [
+        "long-text-content-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/long-text-content-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.content.long_text_lifecycle.v1",
+      "status": "active",
+      "domain": "content",
+      "applies_to_fixtures": [
+        "long-text-content-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/long-text-content-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },

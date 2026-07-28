@@ -184,6 +184,31 @@ Fail-closed 条件：
 
 这些 endpoint 仍属于 `/_arkret/peer/*` 联邦协议面，因而 MUST 复用 §3 的 service-to-service HTTP Message Signature、trust-domain、destination binding、body digest、最小披露错误和 replay 防护。invite / contact 接收方只把 payload 投影进目标 holder 的 principal control / account-private 处理路径；KeyPackage authority 还 MUST 执行 [`../crypto-media/device-lifecycle.md` §9.2](../crypto-media/device-lifecycle.md) 的 participant authorization、唯一 CAS、幂等 ledger 与反枚举 gate。任何尝试在这些 endpoint 中夹带共享 Realm Event Envelope 的请求 MUST fail closed（`schema_violation` 或 `capability_denied`，对外仍遵守最小披露）。
 
+### 4.0.3 Signal peer relay 不是 Event federation（normative）
+
+`/_arkret/peer/signal`（`ak.peer.signal.command.relay`）是 `ak.profile.signal_peer_relay.v1` 的可选、
+encrypted-only、单跳、best-effort Signal Extension surface。它承载
+[`signal.md`](./signal.md) 的原 producer-signed `SignalEnvelope`，MUST NOT：
+
+- 分配 Event ID、推进 `actor_seq` / Realm frontier / Seal / CBA state；
+- 写入 durable Event log、backfill、snapshot、range completeness 或 federation ack；
+- 复用 `/_arkret/peer/events` 的 transaction/idempotency ledger；
+- 解密、重签、改写或重加密 producer envelope；
+- 从 destination 再转发第三 peer。
+
+它仍属于 `/_arkret/peer/*` trust surface，MUST 完整复用 §3 的 service DID、trust domain、
+endpoint、canonical body digest、HTTP Message Signature 与最小披露错误；该 operation 另外把
+`expires-created` 收紧为 5 秒，禁止 `Idempotency-Key`，不确定结果固定
+`drop_unconfirmed`。source 必须是每个 sender actor/device 的 current member delivery binding；
+destination 只按 outer `scope_ref` 计算本地 eligible devices，精确产品 kind/target 位于 ciphertext，
+不得按 kind 广告、路由或返回结果。
+
+schema-valid、已认证 request 即使 Realm/scope/sender 未知、producer proof 或 current member
+delivery binding 不成立，或所有 signal 都过期、重复、不可见、policy-denied、没有 local
+recipient，也只返回 opaque `{"accepted":true}`；只有外层 peer auth、跨 Realm batch 及
+body/schema/count/byte 失败才拒绝。完整 batch、签名窗口、重复/乱序、资源隔离与 conformance
+合同以 [`signal.md` §4](./signal.md) 为准。
+
 ### 4.1 推送模式 (Push)
 
 > **v1 联邦使用专用 peer HTTP API surface**。跨域 Event 推送、拉取、补洞、frontier probe 与 snapshot bootstrap 必须使用 `/_arkret/peer/*` 路径和 `ak.peer.*` operation_id。`/_arkret/self/*` 是当前 principal / 自服务会话攻击面，不承接 federation server-to-server wire。本节描述的所有规则适用于 `ak.peer.events.*` / `ak.peer.snapshot.query.manifest_head` 调用。

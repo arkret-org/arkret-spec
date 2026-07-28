@@ -3572,6 +3572,34 @@
       }
     },
     {
+      "operation_id": "ak.peer.signal.command.relay",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/signal-relay.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "signals"
+        ],
+        "properties": [
+          "realm_id",
+          "signals"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/signal-relay.schema.json#/$defs/signal_relay_outcome",
+        "schema_kind": "object",
+        "required": [
+          "accepted"
+        ],
+        "properties": [
+          "accepted"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.self.signal.command.send",
       "success_shape_kind": "typed_response",
       "request": {

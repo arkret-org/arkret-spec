@@ -853,6 +853,12 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
+      "operation_id": "ak.peer.signal.command.relay",
+      "http_alias": "POST /_arkret/peer/signal",
+      "operation_specific": [],
+      "description": "Optional encrypted-only single-hop Signal peer relay. Only outer peer authentication, trust-domain/destination-endpoint checks, cross-Realm batches and malformed/oversized requests use the universal minimally disclosing failure surface. Per-item unknown Realm/scope/sender, producer-proof, current member delivery-binding, TTL, action-gate, visibility, duplication and recipient failures are silently dropped behind the opaque accepted=true request outcome."
+    },
+    {
       "operation_id": "ak.self.signal.command.send",
       "http_alias": "POST /_arkret/self/signal",
       "operation_specific": [

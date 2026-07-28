@@ -118,7 +118,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "7b16c051cef70279a27173ac6966e893dba6ec82c4633eca7c12995267c4b904"
+      "sha256": "bd3b33da0a9d761a867353a80fb53531e748271aef6c82d9344b13e9de0d67e2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -163,6 +163,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
       "sha256": "0ff911931dc3bfc56e6492d174712ac1f40de30be20f6a9dfed404e38273975b"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/long-text-content-fixture.json",
+      "sha256": "54d7c1cc9c03907a2c9a384105fbada0832e2097c3c96175b1d6f92ba8edfbe6"
     },
     {
       "path": "spec/v1/artifacts/fixtures/media-aead-nonce-fixture.json",
@@ -234,7 +238,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
-      "sha256": "5e009572d9e211de2a30a49f77c1d8cd44d457b6c629407d9d4171f53b7baf6b"
+      "sha256": "3232d9b9a9d3bf596de99ff66287f66bfa84538d0d7b1acfddfde2cf0bc87cd4"
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
@@ -255,6 +259,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
       "sha256": "a0ab50a152f72043ae816132547ae01300506bcf3d566eba8211a0035f750edb"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
+      "sha256": "ed1f83836dbf13251589c9d10cdabc824d68287e5ac327afe22ebb98154f8a2a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",

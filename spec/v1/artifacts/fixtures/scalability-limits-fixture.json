@@ -12,6 +12,11 @@
     "ak.vector.scalability.event_ref_role_limits.v1",
     "ak.vector.scalability.circle_count_limit.v1",
     "ak.vector.scalability.envelope_size_limit.v1",
+    "ak.vector.scalability.operation_body_size_limit.v1",
+    "ak.vector.scalability.http_body_preparse_limit.v1",
+    "ak.vector.scalability.content_encoding_forbidden.v1",
+    "ak.vector.scalability.batch_page_byte_count.v1",
+    "ak.vector.scalability.read_unsigned_size_limit.v1",
     "ak.vector.scalability.http_header_limits.v1",
     "ak.vector.scalability.batch_page_limits.v1",
     "ak.vector.scalability.sibling_fork_limits.v1",
@@ -53,13 +58,16 @@
       "vector_id": "ak.vector.scalability.envelope_size_limit.v1",
       "input": {
         "generator": {
-          "kind": "canonical_operation_envelope_bytes",
-          "encoded_size_bytes": 1048576
+          "kind": "accepted_event_envelope_canonical_bytes",
+          "encoded_size_bytes": 1048576,
+          "include_all_proofs": true,
+          "include_reducer_stamped_fields": true,
+          "include_unsigned": false
         }
       },
       "expected": {
         "decision": "accept",
-        "limit": "canonical envelope <= 1048576 bytes"
+        "limit": "complete canonical accepted Event Envelope <= 1048576 bytes"
       }
     },
     {
@@ -67,15 +75,211 @@
       "vector_id": "ak.vector.scalability.envelope_size_limit.v1",
       "input": {
         "generator": {
-          "kind": "canonical_operation_envelope_bytes",
-          "encoded_size_bytes": 1048577
+          "kind": "accepted_event_envelope_canonical_bytes",
+          "encoded_size_bytes": 1048577,
+          "include_all_proofs": true,
+          "include_reducer_stamped_fields": true,
+          "include_unsigned": false
         }
       },
       "expected": {
         "decision": "reject",
         "error_code": "payload_too_large",
-        "limit": "canonical envelope <= 1048576 bytes",
+        "limit": "complete canonical accepted Event Envelope <= 1048576 bytes",
         "must_not_enter_reducer": true
+      }
+    },
+    {
+      "name": "reject_event_that_crosses_limit_after_reducer_stamping",
+      "vector_id": "ak.vector.scalability.envelope_size_limit.v1",
+      "input": {
+        "generator": {
+          "kind": "event_reducer_stamp_boundary",
+          "producer_envelope_bytes": 1048500,
+          "accepted_candidate_bytes": 1048577,
+          "stamped_fields": [
+            "effective_scope",
+            "actor_kind"
+          ]
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "payload_too_large",
+        "commit_started": false,
+        "state_unchanged": true
+      }
+    },
+    {
+      "name": "reject_submit_event_with_unsigned",
+      "vector_id": "ak.vector.scalability.envelope_size_limit.v1",
+      "input": {
+        "generator": {
+          "kind": "event_submit_envelope",
+          "surface": "self_or_peer",
+          "unsigned_present": true
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "must_not_enter_reducer": true
+      }
+    },
+    {
+      "name": "operation_canonical_body_limit_matrix",
+      "vector_id": "ak.vector.scalability.operation_body_size_limit.v1",
+      "input": {
+        "generator": {
+          "kind": "non_streaming_json_operation_canonical_body",
+          "encoded_size_bytes": [
+            8388607,
+            8388608,
+            8388609
+          ]
+        }
+      },
+      "expected": {
+        "at_or_below_limit": "accept_when_all_other_checks_pass",
+        "over_limit": "reject",
+        "over_error_code": "payload_too_large",
+        "limit": "canonical request or response body <= 8388608 bytes"
+      }
+    },
+    {
+      "name": "http_message_content_preparse_limit_matrix",
+      "vector_id": "ak.vector.scalability.http_body_preparse_limit.v1",
+      "input": {
+        "generator": {
+          "kind": "non_streaming_json_http_message_content",
+          "transfer_modes": [
+            "content_length",
+            "http1_chunked",
+            "http2_data_frames",
+            "http3_data_frames"
+          ],
+          "wire_bytes": [
+            16777215,
+            16777216,
+            16777217
+          ]
+        }
+      },
+      "expected": {
+        "at_or_below_limit": "continue_to_json_parse",
+        "over_limit": "terminate_at_byte_16777217",
+        "over_error_code": "payload_too_large",
+        "json_parser_started_on_overflow": false,
+        "jcs_started_on_overflow": false,
+        "handler_started_on_overflow": false
+      }
+    },
+    {
+      "name": "reject_whitespace_amplification_before_parse",
+      "vector_id": "ak.vector.scalability.http_body_preparse_limit.v1",
+      "input": {
+        "generator": {
+          "kind": "json_wire_amplification",
+          "wire_bytes": 16777217,
+          "canonical_bytes": 2,
+          "amplification": "insignificant_whitespace"
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "payload_too_large",
+        "json_parser_started": false,
+        "canonical_size_does_not_override_wire_limit": true
+      }
+    },
+    {
+      "name": "reject_content_encoding_before_body_read",
+      "vector_id": "ak.vector.scalability.content_encoding_forbidden.v1",
+      "input": {
+        "generator": {
+          "kind": "non_streaming_json_request_headers",
+          "content_encodings": [
+            "gzip",
+            "br",
+            "deflate"
+          ]
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "http_status": 415,
+        "error_code": "unsupported_content_encoding",
+        "body_read_started": false,
+        "decompression_started": false
+      }
+    },
+    {
+      "name": "request_batch_count_and_bytes_are_conjunctive",
+      "vector_id": "ak.vector.scalability.batch_page_byte_count.v1",
+      "input": {
+        "generator": {
+          "kind": "operation_batch_matrix",
+          "operation_id": "ak.self.events.command.submit",
+          "cases": [
+            {
+              "count": 1000,
+              "canonical_body_bytes": 8388608
+            },
+            {
+              "count": 1000,
+              "canonical_body_bytes": 8388609
+            },
+            {
+              "count": 1001,
+              "canonical_body_bytes": 1048576
+            }
+          ]
+        }
+      },
+      "expected": {
+        "count_and_bytes_both_required": true,
+        "count_at_limit_and_bytes_at_limit": "accept_when_items_are_individually_valid",
+        "byte_overflow_error_code": "payload_too_large",
+        "count_overflow_error_code": "schema_violation",
+        "partial_accept_forbidden": true
+      }
+    },
+    {
+      "name": "response_page_stops_on_bytes_and_returns_cursor",
+      "vector_id": "ak.vector.scalability.batch_page_byte_count.v1",
+      "input": {
+        "generator": {
+          "kind": "response_page_candidates",
+          "candidate_count": 1000,
+          "next_candidate_would_exceed_canonical_body_bytes": 8388608
+        }
+      },
+      "expected": {
+        "decision": "emit_short_page",
+        "returned_items_less_than_count_limit": true,
+        "has_more": true,
+        "next_cursor_present": true,
+        "must_not_emit_invalid_truncated_json": true
+      }
+    },
+    {
+      "name": "read_unsigned_limit_matrix",
+      "vector_id": "ak.vector.scalability.read_unsigned_size_limit.v1",
+      "input": {
+        "generator": {
+          "kind": "service_added_event_read_unsigned_canonical_bytes",
+          "encoded_size_bytes": [
+            16383,
+            16384,
+            16385
+          ]
+        }
+      },
+      "expected": {
+        "at_or_below_limit": "accept_when_response_body_remains_within_operation_limit",
+        "over_limit": "reject_or_omit_unsigned_before_response_commit",
+        "unsigned_must_not_affect_event_identity": true,
+        "unsigned_must_not_affect_authorization_or_reducer": true
       }
     },
     {
@@ -326,10 +530,8 @@
       },
       "expected": {
         "decision": "reject",
-        "allowed_error_codes": [
-          "rate_limited",
-          "payload_too_large"
-        ]
+        "error_code": "schema_violation",
+        "must_not_partially_accept": true
       }
     },
     {
@@ -343,10 +545,8 @@
       },
       "expected": {
         "decision": "reject",
-        "allowed_error_codes": [
-          "rate_limited",
-          "payload_too_large"
-        ]
+        "error_code": "schema_violation",
+        "must_not_partially_accept": true
       }
     },
     {

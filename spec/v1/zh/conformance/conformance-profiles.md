@@ -126,6 +126,20 @@ Coverage mapping：endpoint 能力由 `required_endpoints` 覆盖；signed Event
 
 MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge 和 full-text search。
 
+### `ak.profile.signal_peer_relay.v1`
+
+这是 Signal Extension 的可选对称 Principal Server profile，只声明 encrypted Signal 的单跳 peer relay，不继承 durable Event federation：
+
+- MUST 支持 `ak.self.signal.command.send`、`ak.self.signal.stream.subscribe` 与 `ak.peer.signal.command.relay`；
+- MUST 支持 `ak.schema.signal_envelope.v1`、`ak.schema.signal_relay.v1` 与 `signal-federation-fixture.json`；
+- MUST 使用 federation peer HTTP Message Signature、current member delivery binding、producer device proof、signed `scope_ref`、`seal_ref`、三值 `signal_class`、TTL 与 MLS/AAD binding；
+- MUST 原样转发 producer envelope，不重签、不改写、不解密重加密，不从 destination 再转发第三 peer；
+- request-level 成功只返回 `{"accepted":true}`，不得暴露 recipient/binding/capability/count/per-item outcome；
+- operation MUST 是 `idempotency_mechanism=none`、`retry_safe=false`、`uncertain_outcome.strategy=drop_unconfirmed`，不得携带 `Idempotency-Key`；
+- Describe 只用 `supported_profiles` + `supported_operations` 广告；精确 payload kind/target 位于 ciphertext，MUST NOT 添加 `supported_kinds`。
+
+不声明该 profile 的实现仍可独立支持本地 Signal 或 durable federation；它必须省略 peer relay operation 广告，而不是把远端成员能力逐人暴露。
+
 ## 3. 通用强制要求（所有 Profile 必须遵守）
 
 以下要求不依赖具体角色，必须作为可互操作实现的基础：

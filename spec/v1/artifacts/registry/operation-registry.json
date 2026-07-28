@@ -120,7 +120,8 @@
         "ak.peer.contacts.command.submit",
         "ak.peer.keys.keypackages.command.claim",
         "ak.peer.keys.keypackages.query.claim",
-        "ak.peer.snapshot.query.manifest_head"
+        "ak.peer.snapshot.query.manifest_head",
+        "ak.peer.signal.command.relay"
       ],
       "surface_class": "extension"
     },
@@ -1781,6 +1782,24 @@
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "response_schema_ref": "schemas/snapshot.schema.json"
+    },
+    {
+      "operation_id": "ak.peer.signal.command.relay",
+      "http": "POST /_arkret/peer/signal",
+      "grpc": "PeerSignal/Relay",
+      "mq": "peer.signal.command.relay",
+      "notes": "Optional Signal Extension single-hop peer relay. The source batches original producer-signed encrypted SignalEnvelope values for one Realm and one destination service. The destination independently verifies peer authentication, current delivery binding, envelope proof, scope, Seal, signal_class, TTL and encrypted payload binding, then performs only local live fanout. The request MUST NOT carry Idempotency-Key; uncertain outcomes use drop_unconfirmed. The opaque accepted=true response reveals no Realm, scope, sender, recipient, binding, support, or per-signal result and is not a durable delivery receipt.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 1048576,
+      "max_items": 128,
+      "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "drop_unconfirmed"
+      },
+      "request_schema_ref": "schemas/signal-relay.schema.json",
+      "response_schema_ref": "schemas/signal-relay.schema.json#/$defs/signal_relay_outcome"
     },
     {
       "operation_id": "ak.self.signal.command.send",

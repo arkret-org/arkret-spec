@@ -751,11 +751,21 @@ Expected：`expected_multibase` / `expected_did_key` MUST byte-for-byte 复现�
 
 `ak.vector.scalability.circle_count_limit.v1` MUST 同时覆盖：（a）已有 1,000 个 active Circle 的 Realm 再提交 `ak.circle.create`；（b）已有 256 个 active MLS-backed Circle membership 的 actor 再加入一个 MLS-backed Circle。两者均 MUST 以 `failed_precondition`、`reason_code=circle_count_exceeded` 拒绝且不得改变状态。体量状态由 runner 按 [`scalability-limits-fixture.json`](../../artifacts/fixtures/scalability-limits-fixture.json) 的 generator 描述构造，不要求 fixture 字面展开全部对象。
 
-`ak.vector.scalability.envelope_size_limit.v1` MUST 生成精确 1,048,576 bytes 的 canonical Event/Operation envelope 作为接受边界，并生成 1,048,577 bytes 的超限输入，后者 MUST 在 reducer / signature verification 前以 `payload_too_large` 拒绝。
+`ak.vector.scalability.envelope_size_limit.v1` 只测完整 canonical accepted Event Envelope，不再使用未定义的 “Event/Operation envelope” 混合对象。Runner MUST 生成精确 1,048,576 bytes 的候选 accepted Event（包含全部 proof 与 reducer-stamped 字段、不含 read-view `unsigned`）作为接受边界，并生成 1,048,577 bytes 的超限输入；还必须覆盖 producer envelope 在 stamping 前未超限、加入 `effective_scope` / `actor_kind` 后变为 1,048,577 bytes 的用例。两个超限输入都 MUST 在 commit 前以 `payload_too_large` 拒绝；self/peer submit 携带 `unsigned` 必须在 reducer 前 `schema_violation`。
 
 `ak.vector.scalability.http_header_limits.v1` MUST 至少覆盖：128-char `Idempotency-Key` 接受、129-char 拒绝；非 ASCII / 非 canonical alphabet 拒绝；HTTP header aggregate 32 KiB 接受、32 KiB + 1 byte 拒绝；超限输入不得建立 replay-cache entry、不得构造无界签名 transcript。
 
-### 1.12.3 Vector: MLS Governance Proof 分块与总界（normative）
+### 1.12.3 Vector: JSON operation、HTTP pre-parse 与二维分页边界（normative）
+
+下列 vector 均由 [`scalability-limits-fixture.json`](../../artifacts/fixtures/scalability-limits-fixture.json) 的生成式 case 承载：
+
+- `ak.vector.scalability.operation_body_size_limit.v1` MUST 对 `body_class=non_streaming_json` 的完整 canonical request/response body 生成 8 MiB−1、8 MiB、8 MiB+1；前两者在其它约束合法时通过，8 MiB+1 固定为 `payload_too_large`。
+- `ak.vector.scalability.http_body_preparse_limit.v1` MUST 对 `Content-Length`、HTTP/1.1 chunked、HTTP/2 DATA 与 HTTP/3 DATA 分别生成 16 MiB−1、16 MiB、16 MiB+1；超限必须在第 16 MiB+1 byte 终止，JSON parser、JCS 与 handler 都不得启动。另生成 wire 16 MiB+1、canonical 仅 `{}` 的 whitespace amplification，证明 canonical 较小不能绕过 wire 上限。
+- `ak.vector.scalability.content_encoding_forbidden.v1` MUST 对 gzip、br、deflate 在读取或解压 body 前返回 HTTP 415 / `unsupported_content_encoding`。
+- `ak.vector.scalability.batch_page_byte_count.v1` MUST 同时覆盖 request 的 count 与 canonical bytes 两维，以及 response page 因 bytes 先到而提前结束并返回 `has_more=true` 与 `next_cursor`；少于 count 上限不得被解释为终页。
+- `ak.vector.scalability.read_unsigned_size_limit.v1` MUST 生成 service-added `unsigned` 的 16 KiB−1、16 KiB、16 KiB+1，验证超限值在 response commit 前被拒绝或省略，且任何 `unsigned` 都不改变 Event identity、授权或 reducer。
+
+### 1.12.4 Vector: MLS Governance Proof 分块与总界（normative）
 
 `ak.vector.scalability.mls_governance_proof_bounds.v1` 由 [`scalability-limits-fixture.json`](../../artifacts/fixtures/scalability-limits-fixture.json) 的生成式矩阵固化 [`scalability-constraints.md` §6](./scalability-constraints.md) 与 `mls-governance-proof-bundle.schema.json`。Runner MUST 对下列每个维度生成 `limit-1 / limit / limit+1`：4 MiB response bytes、256 MiB logical item bytes、1,024 chunks、四类 collection total（4,096 / 1,048,576 / 262,144 / 128）、四类 per-chunk item count（128 / 8,192 / 1,024 / 32）、10 个 inclusion-proof sibling，以及 request `chunk_index=1023`。`limit-1` 与 `limit` 必须通过该维度的边界检查；`limit+1` 必须在 materializer 或 verifier 对应边界以 `mls_governance_proof_bounds_exceeded` / `schema_violation` fail closed，且不得截断、返回 partial manifest、按声明 cardinality 预分配或把已接收前缀标为完整。
 
@@ -5590,3 +5600,49 @@ Expected:
 - 明文分支需要**双重授权**：只有 Realm policy（`event-payload.schema.json#/$defs/plaintext_data_class`）与 ServiceDescribe（`plaintext_visibility.data_classes`）都声明 `rsvp_response` 才合法；其余三种组合 MUST `unsupported_feature`。仅 ServiceDescribe 单侧声明不构成合法授权。
 - `encrypted_response` 的 `content_type` 由 schema `const` 固定，错误 media type MUST `schema_violation`，使同一 ciphertext 只能路由到唯一解密 schema。
 - `event_ref`、`occurrence`、`schedule_basis_refs`、responder actor 与 ciphertext size MUST 出现在 privacy disclosure 中。
+
+## 25. Long Text Content Block closure vectors
+
+本节由 [`long-text-content-fixture.json`](../../artifacts/fixtures/long-text-content-fixture.json) 承载，规则正文见 [`../models/content-types.md` §4.1](../models/content-types.md) 与 [`../crypto-media/media-and-blob.md` §3](../crypto-media/media-and-blob.md)。
+
+### 25.1 UTF-8 byte boundary 与选择唯一性
+
+`vector_id`: `ak.vector.content.long_text_boundaries.v1`
+
+Runner MUST 生成 256 KiB−1、256 KiB、256 KiB+1 的规范化源正文，以及 4 KiB−1、4 KiB、4 KiB+1 的 fallback；每组都必须包含多字节 Unicode scalar 落在边界附近的用例。测量对象是规范化后的 UTF-8 bytes，不是 code point、JSON escaped bytes、ciphertext 或压缩长度。正文超过 256 KiB 时只允许 `ak.content.long_text`；较小正文只有在完整 Event 否则超过 1 MiB 时才能使用 long text，该例外必须由完整 Event size validator 证明。
+
+plaintext descriptor 还 MUST 覆盖 hash-only `blob_ref`、Blob metadata digest、下载正文重算 digest、声明 size 与 `format ↔ media_type` 一致；UUID ref、带 charset 参数 media type、任一 digest/size 不一致都必须拒绝。
+
+### 25.2 规范化、line count 与 fallback
+
+`vector_id`: `ak.vector.content.long_text_normalization.v1`
+
+Runner MUST 覆盖 empty、末尾有/无 LF、多行、CRLF、bare CR、BOM、TAB、禁用 C0/DEL 与 canonical-equivalent 但 scalar sequence 不同的 Unicode 输入。producer 先把 CRLF/CR 归一为 LF，再计算 digest/size/line count；不得 NFC/NFKC 改写。`prefix` 必须从 byte 0 开始并只在 scalar 边界截断；`summary` 可不等于前缀，但 UI 必须标注为摘要且不得与全文拼接。
+
+### 25.3 E2EE stream descriptor
+
+`vector_id`: `ak.vector.content.long_text_e2ee.v1`
+
+Runner MUST 验证 `scheme=ak.blob.stream_aead.v1`、`alg` 为 `_stream` 算法、hash-addressed ciphertext Blob、`segment_count=ceil(size_bytes/segment_bytes)`、逐段 tag、顺序、末段与完整 ciphertext digest。whole-file AEAD、段数不一致、重排、截断或任一 digest 不符必须 fail closed；全部段验证前不得把正文标记为完整。
+
+### 25.4 生命周期闭包
+
+`vector_id`: `ak.vector.content.long_text_lifecycle.v1`
+
+Message redaction、expiry 或 Blob access revoke 必须同步使 fallback、完整正文、partial/full search index、cache 与 Blob authorization 失效；Blob GC 仍按引用追踪。push provider 不得收到全文，mention 通知不得要求服务端扫描 Blob。
+
+## 26. Signal peer relay closure vector
+
+`vector_id`: `ak.vector.signal.peer_relay.v1`
+
+本向量由 [`signal-federation-fixture.json`](../../artifacts/fixtures/signal-federation-fixture.json) 承载，规则正文见 [`../sync/signal.md` §4](../sync/signal.md) 与 [`../sync/federation.md` §4.0.3](../sync/federation.md)。
+
+Runner MUST 覆盖：
+
+1. 原 producer-signed encrypted `SignalEnvelope` 经一个 source → destination peer hop 后，ciphertext、proof 与 envelope digest identity 不变；
+2. `signals[]` 127/128/129、canonical request body 1 MiB−1/1 MiB/1 MiB+1、HTTP Message Signature `expires-created` 4,999/5,000/5,001 ms；
+3. request `realm_id` 与任一 envelope/scope Realm 不一致、第二 peer hop、source 不托管 sender、destination 不在 active member delivery binding、producer proof/Seal/TTL/AAD 无效；
+4. 有 eligible local recipient 与无 eligible local recipient 的已认证合法 request 都返回逐字相同 `{"accepted":true}`，且无 count/per-item outcome；
+5. response 丢失时 source 不自动重放，不携带 `Idempotency-Key`，按 `drop_unconfirmed` 丢弃不确定结果；
+6. peer/live/local rails 重复、乱序或丢失不写 durable Event、不推进 actor sequence / Realm frontier，consumer 依靠下一自足 signal 或产品级 timeout/renegotiation 恢复；
+7. source/destination 改写、重签、解密重加密 envelope，以及 destination 再转发第三 peer，全部 fail closed。

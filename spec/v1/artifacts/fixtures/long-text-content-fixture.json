@@ -1,0 +1,213 @@
+{
+  "suite": "long_text_content",
+  "version": "2026-07-28",
+  "profile": "ak.profile.chat_mvp.v1",
+  "runner": {
+    "kind": "generated_limit_cases",
+    "canonicalization": "fixture_json_v1",
+    "must_not_allocate_declared_cardinality": true
+  },
+  "covers_vectors": [
+    "ak.vector.content.long_text_boundaries.v1",
+    "ak.vector.content.long_text_normalization.v1",
+    "ak.vector.content.long_text_e2ee.v1",
+    "ak.vector.content.long_text_lifecycle.v1"
+  ],
+  "source_refs": [
+    "spec/v1/zh/models/content-types.md",
+    "spec/v1/zh/models/strand-and-message.md",
+    "spec/v1/zh/crypto-media/media-and-blob.md",
+    "spec/v1/artifacts/schemas/message.schema.json",
+    "spec/v1/artifacts/schemas/event-payload.schema.json"
+  ],
+  "cases": [
+    {
+      "name": "inline_and_long_text_utf8_byte_boundaries",
+      "vector_id": "ak.vector.content.long_text_boundaries.v1",
+      "input": {
+        "generator": {
+          "kind": "normalized_utf8_content_block_matrix",
+          "inline_limit_bytes": 262144,
+          "fallback_limit_bytes": 4096,
+          "values": [
+            4095,
+            4096,
+            4097,
+            262143,
+            262144,
+            262145
+          ],
+          "include_multibyte_scalar_boundary": true
+        }
+      },
+      "expected": {
+        "inline_at_or_below_limit": "ak.content.text",
+        "above_inline_limit": "ak.content.long_text",
+        "fallback_at_or_below_limit": "accept",
+        "fallback_above_limit": "payload_too_large",
+        "must_measure_utf8_bytes": true,
+        "must_not_split_unicode_scalar": true
+      }
+    },
+    {
+      "name": "long_text_small_body_requires_event_overflow_proof",
+      "vector_id": "ak.vector.content.long_text_boundaries.v1",
+      "input": {
+        "generator": {
+          "kind": "long_text_selection",
+          "normalized_body_bytes": 1024,
+          "event_without_blob_indirection_bytes": 1048577
+        }
+      },
+      "expected": {
+        "decision": "accept_long_text",
+        "exception": "complete_event_would_exceed_one_mib"
+      }
+    },
+    {
+      "name": "reject_small_long_text_without_event_overflow",
+      "vector_id": "ak.vector.content.long_text_boundaries.v1",
+      "input": {
+        "generator": {
+          "kind": "long_text_selection",
+          "normalized_body_bytes": 1024,
+          "event_without_blob_indirection_bytes": 4096
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation"
+      }
+    },
+    {
+      "name": "normalization_line_count_and_fallback_matrix",
+      "vector_id": "ak.vector.content.long_text_normalization.v1",
+      "input": {
+        "generator": {
+          "kind": "long_text_normalization_matrix",
+          "cases": [
+            "empty",
+            "single_line_without_lf",
+            "single_line_with_trailing_lf",
+            "three_lines_without_trailing_lf",
+            "crlf",
+            "bare_cr",
+            "utf8_bom",
+            "c0_control",
+            "del",
+            "tab_and_lf",
+            "nfc_distinct_scalar_sequence"
+          ]
+        }
+      },
+      "expected": {
+        "producer_normalizes_crlf_and_cr_to_lf_before_digest": true,
+        "bom_and_forbidden_controls_rejected": true,
+        "unicode_normalization_forbidden": true,
+        "empty_line_count": 0,
+        "non_empty_line_count_rule": "lf_count_plus_one_unless_trailing_lf"
+      }
+    },
+    {
+      "name": "prefix_and_summary_semantics",
+      "vector_id": "ak.vector.content.long_text_normalization.v1",
+      "input": {
+        "generator": {
+          "kind": "long_text_fallback_matrix",
+          "body_kinds": [
+            "prefix",
+            "summary"
+          ],
+          "mutations": [
+            "prefix_not_at_byte_zero",
+            "prefix_splits_unicode_scalar",
+            "summary_appended_to_full_body",
+            "unknown_body_kind"
+          ]
+        }
+      },
+      "expected": {
+        "prefix_must_equal_full_body_prefix": true,
+        "summary_need_not_equal_prefix": true,
+        "summary_must_be_labeled_and_not_concatenated": true,
+        "invalid_mutations_rejected": true
+      }
+    },
+    {
+      "name": "plaintext_hash_and_media_binding",
+      "vector_id": "ak.vector.content.long_text_boundaries.v1",
+      "input": {
+        "generator": {
+          "kind": "long_text_plaintext_descriptor",
+          "mutations": [
+            "uuid_blob_ref",
+            "blob_ref_digest_mismatch",
+            "blob_metadata_digest_mismatch",
+            "media_type_has_charset",
+            "format_media_type_mismatch",
+            "declared_size_mismatch"
+          ]
+        }
+      },
+      "expected": {
+        "valid_blob_ref_shape": "ak:blob:(sha256|blake3):<64 lowercase hex>",
+        "digest_triplet_equal": true,
+        "invalid_mutations_rejected": true
+      }
+    },
+    {
+      "name": "e2ee_stream_descriptor_and_segment_matrix",
+      "vector_id": "ak.vector.content.long_text_e2ee.v1",
+      "input": {
+        "generator": {
+          "kind": "long_text_e2ee_descriptor",
+          "size_bytes": 700000,
+          "segment_bytes": 262144,
+          "segment_count": 3,
+          "mutations": [
+            "whole_file_scheme",
+            "non_stream_algorithm",
+            "segment_count_mismatch",
+            "ciphertext_digest_mismatch",
+            "stored_segment_reordered",
+            "last_segment_truncated"
+          ]
+        }
+      },
+      "expected": {
+        "scheme": "ak.blob.stream_aead.v1",
+        "algorithm_suffix": "_stream",
+        "segment_count_rule": "ceil(size_bytes/segment_bytes)",
+        "complete_only_after_all_segment_tags_and_digest_verify": true,
+        "invalid_mutations_rejected": true
+      }
+    },
+    {
+      "name": "redaction_expiry_and_partial_index_cleanup",
+      "vector_id": "ak.vector.content.long_text_lifecycle.v1",
+      "input": {
+        "generator": {
+          "kind": "long_text_lifecycle",
+          "transitions": [
+            "message_redacted",
+            "message_expired",
+            "blob_access_revoked"
+          ],
+          "stores": [
+            "fallback",
+            "verified_full_text",
+            "partial_search_index",
+            "cache",
+            "blob_authorization"
+          ]
+        }
+      },
+      "expected": {
+        "all_message_derived_views_invalidated": true,
+        "blob_gc_uses_reference_tracking": true,
+        "push_provider_never_receives_full_text": true,
+        "mentions_do_not_require_server_blob_scan": true
+      }
+    }
+  ]
+}

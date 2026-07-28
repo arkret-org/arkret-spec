@@ -1,0 +1,201 @@
+{
+  "suite": "signal_peer_relay",
+  "version": "2026-07-28",
+  "profile": "ak.profile.signal_peer_relay.v1",
+  "runner": {
+    "kind": "generated_limit_cases",
+    "canonicalization": "fixture_json_v1",
+    "must_not_allocate_declared_cardinality": true
+  },
+  "covers_vectors": [
+    "ak.vector.signal.peer_relay.v1"
+  ],
+  "source_refs": [
+    "spec/v1/zh/sync/signal.md",
+    "spec/v1/zh/sync/federation.md",
+    "spec/v1/artifacts/schemas/signal-relay.schema.json",
+    "spec/v1/artifacts/schemas/signal-envelope.schema.json",
+    "spec/v1/artifacts/registry/operation-registry.json"
+  ],
+  "cases": [
+    {
+      "name": "accept_single_hop_encrypted_signal",
+      "vector_id": "ak.vector.signal.peer_relay.v1",
+      "input": {
+        "generator": {
+          "kind": "signal_peer_relay_request",
+          "signal_count": 1,
+          "canonical_body_bytes": 4096,
+          "same_realm": true,
+          "source_hosts_sender": true,
+          "destination_hosts_eligible_member": true,
+          "producer_proof_valid": true,
+          "signal_encrypted": true,
+          "hop_count": 1,
+          "signature_window_ms": 5000
+        }
+      },
+      "expected": {
+        "decision": "accept",
+        "response": {
+          "accepted": true
+        },
+        "durable_event_written": false,
+        "actor_seq_advanced": false,
+        "realm_frontier_advanced": false,
+        "envelope_rewritten": false
+      }
+    },
+    {
+      "name": "opaque_success_hides_recipient_existence",
+      "vector_id": "ak.vector.signal.peer_relay.v1",
+      "input": {
+        "generator": {
+          "kind": "signal_peer_relay_equivalence_pair",
+          "variants": [
+            "eligible_local_recipient",
+            "no_eligible_local_recipient",
+            "unknown_realm_or_scope",
+            "unknown_sender",
+            "invalid_producer_proof",
+            "source_not_current_member_delivery_binding",
+            "signal_class_action_denied",
+            "expired_or_duplicate_signal"
+          ],
+          "authenticated_request": true,
+          "schema_valid": true
+        }
+      },
+      "expected": {
+        "decision": "accept_all_requests_and_silently_drop_ineligible_items",
+        "responses_byte_identical": true,
+        "response": {
+          "accepted": true
+        },
+        "forbidden_response_fields": [
+          "accepted_count",
+          "rejected_count",
+          "results",
+          "recipient_count",
+          "reason_code"
+        ]
+      }
+    },
+    {
+      "name": "reject_cross_realm_batch",
+      "vector_id": "ak.vector.signal.peer_relay.v1",
+      "input": {
+        "generator": {
+          "kind": "signal_peer_relay_request",
+          "signal_count": 2,
+          "same_realm": false
+        }
+      },
+      "expected": {
+        "decision": "reject_request",
+        "error_code": "schema_violation",
+        "signals_dispatched": 0
+      }
+    },
+    {
+      "name": "reject_second_peer_hop",
+      "vector_id": "ak.vector.signal.peer_relay.v1",
+      "input": {
+        "generator": {
+          "kind": "signal_peer_relay_request",
+          "signal_count": 1,
+          "hop_count": 2
+        }
+      },
+      "expected": {
+        "decision": "reject_request",
+        "error_code": "capability_denied",
+        "signals_dispatched": 0
+      }
+    },
+    {
+      "name": "reject_batch_count_and_body_overflow",
+      "vector_id": "ak.vector.signal.peer_relay.v1",
+      "input": {
+        "generator": {
+          "kind": "signal_peer_relay_limit_matrix",
+          "dimensions": [
+            {
+              "field": "signals",
+              "limit": 128,
+              "values": [
+                127,
+                128,
+                129
+              ],
+              "over_error_code": "schema_violation"
+            },
+            {
+              "field": "canonical_body_bytes",
+              "limit": 1048576,
+              "values": [
+                1048575,
+                1048576,
+                1048577
+              ],
+              "over_error_code": "payload_too_large"
+            },
+            {
+              "field": "signature_window_ms",
+              "limit": 5000,
+              "values": [
+                4999,
+                5000,
+                5001
+              ],
+              "over_error_code": "capability_denied"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "at_or_below_limit": "accept_when_all_other_checks_pass",
+        "over_limit": "reject_before_dispatch",
+        "partial_accept_forbidden": true
+      }
+    },
+    {
+      "name": "uncertain_outcome_is_dropped",
+      "vector_id": "ak.vector.signal.peer_relay.v1",
+      "input": {
+        "generator": {
+          "kind": "signal_peer_relay_uncertain_outcome",
+          "response_lost": true,
+          "idempotency_key_present": false
+        }
+      },
+      "expected": {
+        "automatic_request_retry": false,
+        "strategy": "drop_unconfirmed",
+        "recovery": "next_self_contained_signal_or_product_timeout",
+        "durable_retry_queue_created": false
+      }
+    },
+    {
+      "name": "reject_idempotency_key_and_envelope_rewrite",
+      "vector_id": "ak.vector.signal.peer_relay.v1",
+      "input": {
+        "generator": {
+          "kind": "signal_peer_relay_mutations",
+          "mutations": [
+            "idempotency_key_header_present",
+            "source_changes_expires_at",
+            "destination_re_signs_producer_envelope",
+            "destination_decrypts_and_re_encrypts",
+            "source_or_destination_changes_ciphertext"
+          ]
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "signals_dispatched": 0,
+        "producer_envelope_identity_preserved": true
+      }
+    }
+  ]
+}
