@@ -471,6 +471,8 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 
 #### 5.0.7 B 模型 Recovery Re-anchor Unit
 
+> 本节的 re-anchor unit 是 `RecoveryTransaction` 的 `submit_reanchor_unit` 步骤，不是独立流程：它原子覆盖 `reanchor_event_id` 与 `authorize_event_id` 两个 reserved id，MUST NOT 拆成两个可独立重试、会产生不同 Event id 的步骤。WebVH entry 已接受但 re-anchor response 丢失时，transaction 保持 `running` 并从相同 reserved ids 续跑，不得创建第二 entry。见 [`./security-transactions.md` §2](./security-transactions.md)。
+
 `ak.vector.identity.device_reanchor.v1` 覆盖本节原子 unit、frontier CAS、generation fence、receipt、幂等与冲突 quarantine 的规范执行闭包。
 
 本节仅适用于外部 enrollment authority 的 B 模型。A 模型 fresh-device recovery 继续使用 [`../crypto-media/device-lifecycle.md` §15](../crypto-media/device-lifecycle.md) 的 SSK path；同一 control stream 混用 `ak.device.reanchor` 与 SSK generation MUST fail closed。

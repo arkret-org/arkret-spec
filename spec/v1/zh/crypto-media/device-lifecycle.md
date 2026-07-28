@@ -146,6 +146,13 @@ stage 到 gate 的 round-trip 正例、同一 `new_device_pubkey` canonical byte
 stage 请求携带 proof 等负向量。
 
 ### 2.2 设备吊销
+
+> 吊销后的 MLS secret 与 backup series 轮换 MUST 在一个 `SecurityRotationTransaction` 内进行，
+> 且该 transaction MUST 在提交 `ak.device.revoke` **之前**创建：`ak.device.revoke` 一旦 accepted
+> 不可回滚，而其后的每一步都是独立远端写。固定顺序、reserved id 与崩溃续跑合同见
+> [`../identity/security-transactions.md` §3](../identity/security-transactions.md)。
+> 在没有该 transaction 的情况下重试轮换会重新生成 secret 与 series id，而不是续跑首次计划。
+
 当设备丢失时，用户可从任何其他已授权设备、DID 控制密钥或 recovery policy 允许的恢复服务发起吊销操作：发布 `ak.device.revoke`，停止接受该设备的新签名写入，并对受影响的 MLS 群组触发 `Remove` 与 Epoch 更新。若该设备曾被写入 DID Document，撤销流程还必须按 DID method 规则移除或失效对应 verification method。
 
 `ak.device.revoke` 是 principal control stream 上的 Control Move：其 Event Envelope MUST 携带 `seal_basis`（撤销方签名时观察到的 accepted Seal view `{leaves[], control_event_set_root, state_root}`，进入 canonical event bytes 并被撤销证明签名覆盖，见 `../authz/event-auth-state-resolution.md` §5）；payload 不携带任何 frontier 字段。客户端铸造单 leaf basis 的注册来源是 `ak.self.events.query.frontier?realm_id=<principal_control_realm_id>`（Realm Seal view `{realm_id, seal_id, control_event_set_root, state_root, hlc?}`，取 `leaves=[seal_id]`）；该来源不可用时 MUST fail closed，不得伪造 basis。撤销自被 accepted Seal 覆盖（`control_sealed`）起生效；Principal Server / Sync Service 在拒绝该设备后续 session grant、KeyPackage、to-device write 或 Event write 时，MUST 以该 covering Seal 或其后继 Seal view 作为判定依据，不得用本地布尔缓存替代。
@@ -1724,6 +1731,11 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 - Receiver MUST 在接受 reset 后 `parameters.publish_recovery_window_seconds` 之内观察到对应的 `ak.cross_signing.publish`；超时未观察到 MUST 进入 §14.2 第 5 项的 "无可用 SSK / USK" 状态，并拒绝任何引用 `new_generation` 的设备授权事件。
 
 ## 15. Device Recovery Lifecycle
+
+> 本节的端到端流程 MUST 由一个 `RecoveryTransaction` 承载：`transaction_id` 与全部公开
+> Event/object/series id 在首个不可逆副作用前固定，响应丢失与 coordinator 重启从该 resource
+> 续跑而不是重新生成。闭合步骤顺序、typed binding 与幂等合同见
+> [`../identity/security-transactions.md` §2](../identity/security-transactions.md)。
 
 设备恢复是一个端到端状态机，不能只靠单个 reset proof 或 key backup 下载完成。合规实现 MUST 按以下顺序闭环：
 
