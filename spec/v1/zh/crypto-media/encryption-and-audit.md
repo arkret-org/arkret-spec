@@ -431,6 +431,7 @@ MLS group 的 scope 绑定到 tagged `effective_scope`：`{kind:"realm", realm_i
     "previous_epoch": 41,
     "next_epoch": 42,
     "membership_frontier": ["ak:event:8ea2dd8c-c436-7b94-9000-000000000000"],
+    "covered_seal_refs": ["ak:seal:sha256:governance_seal_covered_by_this_binding"],
     "policy_root": "sha256:canonical_state_policy_root",
     "capability_root": "sha256:effective_capability_root",
     "discussion_metadata_digest": "sha256:canonical_discussion_metadata",
@@ -551,6 +552,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
   "binding_version":     uint,    ; v1 = 1
   "capability_root":     bstr,    ; required in full profile; omitted only by relaxed profile
   "circle_id":           tstr,    ; optional, only when effective_scope.kind="circle"
+  "covered_seal_refs":   [+ bstr], ; non-empty unique set of governance Seal refs
   "discussion_metadata_digest": bstr, ; required in full profile; omitted only by relaxed profile
   "effective_scope":     { "kind": tstr, "realm_id": tstr, "circle_id": tstr? },
   "encoding_profile":    tstr,    ; "cbor-deterministic-rfc8949-v1"

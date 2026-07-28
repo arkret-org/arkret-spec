@@ -282,22 +282,6 @@ def build_fixture() -> dict[str, Any]:
         "plaintext_visible_services": [],
     }
     discussion_metadata_digest = wire_digest(canonical_bytes(discussion_input))
-    governance_binding = {
-        "binding_version": 1,
-        "encoding_profile": "cbor-deterministic-rfc8949-v1",
-        "realm_id": realm_id,
-        "effective_scope": deepcopy(effective_scope),
-        "mls_group_id": "Z3JvdXAtMDE",
-        "previous_epoch": 41,
-        "next_epoch": 42,
-        "membership_frontier": [event["event_id"] for event in frontier_events],
-        "policy_root": EMPTY_SHA256,
-        "capability_root": EMPTY_SHA256,
-        "discussion_metadata_digest": discussion_metadata_digest,
-        "binding_profile": "ak.profile.mls_governance_binding.full.v1",
-        "reducer_profile": "ak.reducer.core.v1",
-    }
-
     seal_body = {
         "realm_id": realm_id,
         "predecessor_refs": [],
@@ -312,6 +296,24 @@ def build_fixture() -> dict[str, Any]:
     }
     seal_digest = wire_digest(canonical_bytes(seal_body))
     seal_id = "ak:seal:" + seal_digest
+
+    governance_binding = {
+        "binding_version": 1,
+        "encoding_profile": "cbor-deterministic-rfc8949-v1",
+        "realm_id": realm_id,
+        "effective_scope": deepcopy(effective_scope),
+        "mls_group_id": "Z3JvdXAtMDE",
+        "previous_epoch": 41,
+        "next_epoch": 42,
+        "membership_frontier": [event["event_id"] for event in frontier_events],
+        "covered_seal_refs": [seal_id],
+        "policy_root": EMPTY_SHA256,
+        "capability_root": EMPTY_SHA256,
+        "discussion_metadata_digest": discussion_metadata_digest,
+        "binding_profile": "ak.profile.mls_governance_binding.full.v1",
+        "reducer_profile": "ak.reducer.core.v1",
+    }
+
     seal = {"id": seal_id, **seal_body}
     seal["notary_signature"] = {
         "verification_method": notary_vm,

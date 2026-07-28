@@ -98,6 +98,9 @@
         "ak:event:019809f4-a801-7000-8000-000000000102",
         "ak:event:019809f4-a800-7000-8000-000000000101"
       ],
+      "covered_seal_refs": [
+        "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf"
+      ],
       "policy_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "capability_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "discussion_metadata_digest": "sha256:9610cd5decd573bbebbea8aa903d9cd282c75ea6aeddea78754e5d98db266306",
@@ -268,7 +271,7 @@
       "reducer_profile": "ak.reducer.core.v1",
       "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
       "chunk_index": 1,
-      "expected_bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4"
+      "expected_bundle_digest": "sha256:19f3d4edc934fffb449eb5bdfa4a2afce90f0fff106927b59a0ed8757fab1fb8"
     },
     {
       "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
@@ -283,7 +286,7 @@
       "reducer_profile": "ak.reducer.core.v1",
       "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
       "chunk_index": 2,
-      "expected_bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4"
+      "expected_bundle_digest": "sha256:19f3d4edc934fffb449eb5bdfa4a2afce90f0fff106927b59a0ed8757fab1fb8"
     },
     {
       "realm_id": "ak:realm:019809f4-a800-7000-8000-000000000001",
@@ -298,7 +301,7 @@
       "reducer_profile": "ak.reducer.core.v1",
       "trusted_anchor_seal_id": "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf",
       "chunk_index": 3,
-      "expected_bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4"
+      "expected_bundle_digest": "sha256:19f3d4edc934fffb449eb5bdfa4a2afce90f0fff106927b59a0ed8757fab1fb8"
     }
   ],
   "expected_acquisition": {
@@ -328,6 +331,9 @@
             "ak:event:019809f4-a801-7000-8000-000000000102",
             "ak:event:019809f4-a800-7000-8000-000000000101"
           ],
+          "covered_seal_refs": [
+            "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf"
+          ],
           "policy_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "capability_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "discussion_metadata_digest": "sha256:9610cd5decd573bbebbea8aa903d9cd282c75ea6aeddea78754e5d98db266306",
@@ -356,7 +362,7 @@
             "frontier_events": 32
           }
         },
-        "bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4",
+        "bundle_digest": "sha256:19f3d4edc934fffb449eb5bdfa4a2afce90f0fff106927b59a0ed8757fab1fb8",
         "chunk": {
           "chunk_index": 0,
           "collection": "seal_path",
@@ -421,6 +427,9 @@
             "ak:event:019809f4-a801-7000-8000-000000000102",
             "ak:event:019809f4-a800-7000-8000-000000000101"
           ],
+          "covered_seal_refs": [
+            "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf"
+          ],
           "policy_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "capability_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "discussion_metadata_digest": "sha256:9610cd5decd573bbebbea8aa903d9cd282c75ea6aeddea78754e5d98db266306",
@@ -449,7 +458,7 @@
             "frontier_events": 32
           }
         },
-        "bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4",
+        "bundle_digest": "sha256:19f3d4edc934fffb449eb5bdfa4a2afce90f0fff106927b59a0ed8757fab1fb8",
         "chunk": {
           "chunk_index": 1,
           "collection": "covered_event_digests",
@@ -490,6 +499,9 @@
             "ak:event:019809f4-a801-7000-8000-000000000102",
             "ak:event:019809f4-a800-7000-8000-000000000101"
           ],
+          "covered_seal_refs": [
+            "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf"
+          ],
           "policy_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "capability_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "discussion_metadata_digest": "sha256:9610cd5decd573bbebbea8aa903d9cd282c75ea6aeddea78754e5d98db266306",
@@ -518,7 +530,7 @@
             "frontier_events": 32
           }
         },
-        "bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4",
+        "bundle_digest": "sha256:19f3d4edc934fffb449eb5bdfa4a2afce90f0fff106927b59a0ed8757fab1fb8",
         "chunk": {
           "chunk_index": 2,
           "collection": "control_state",
@@ -569,6 +581,9 @@
             "ak:event:019809f4-a801-7000-8000-000000000102",
             "ak:event:019809f4-a800-7000-8000-000000000101"
           ],
+          "covered_seal_refs": [
+            "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf"
+          ],
           "policy_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "capability_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "discussion_metadata_digest": "sha256:9610cd5decd573bbebbea8aa903d9cd282c75ea6aeddea78754e5d98db266306",
@@ -597,7 +612,7 @@
             "frontier_events": 32
           }
         },
-        "bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4",
+        "bundle_digest": "sha256:19f3d4edc934fffb449eb5bdfa4a2afce90f0fff106927b59a0ed8757fab1fb8",
         "chunk": {
           "chunk_index": 3,
           "collection": "frontier_events",
@@ -682,7 +697,7 @@
         "sha256:0914552e17fdd42b146ab32c0e86557615a5a741bb98cf8cd3f4c52a9af88a66",
         "ak:seal:sha256:e72e57917b16c42128464d078ac1db27c37492c3f819e62853205b9c1ba21ecf"
       ],
-      "manifest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4",
+      "manifest": "sha256:19f3d4edc934fffb449eb5bdfa4a2afce90f0fff106927b59a0ed8757fab1fb8",
       "chunks": [
         "sha256:5023de80810ac1857eccf8bc908c179be43df042f46861ee7fe980ed2d5b8b00",
         "sha256:c224e76421ab70f02648f5f35cddbf2c2c316ab04b168dba7ffe134ca5529b4d",
@@ -738,8 +753,8 @@
     ],
     "chunks_root": "sha256:8910036b5758776e2912d6617684eaeb551db234aa2a666d752ecabacc0b758b",
     "total_item_bytes": 3638,
-    "bundle_header_canonical_bytes": 1828,
-    "bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4"
+    "bundle_header_canonical_bytes": 1932,
+    "bundle_digest": "sha256:19f3d4edc934fffb449eb5bdfa4a2afce90f0fff106927b59a0ed8757fab1fb8"
   },
   "verifier_cases": [
     {
@@ -755,7 +770,7 @@
         "reason_code": null,
         "verified_bundle_persisted": true,
         "epoch_advanced": true,
-        "verified_bundle_digest": "sha256:e5f6316b0173c7c3cc8d889e7fca172496f515cabf1b86a7815d097a8b7340d4"
+        "verified_bundle_digest": "sha256:19f3d4edc934fffb449eb5bdfa4a2afce90f0fff106927b59a0ed8757fab1fb8"
       }
     },
     {
