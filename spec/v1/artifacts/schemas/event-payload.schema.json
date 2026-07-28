@@ -9472,72 +9472,19 @@
     },
     "relation_create_payload": {
       "type": "object",
-      "oneOf": [
-        {
-          "required": [
-            "relation"
-          ],
-          "not": {
-            "anyOf": [
-              {
-                "required": [
-                  "relation_id"
-                ]
-              },
-              {
-                "required": [
-                  "kind"
-                ]
-              },
-              {
-                "required": [
-                  "from_ref"
-                ]
-              },
-              {
-                "required": [
-                  "to_ref"
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "required": [
-            "relation_id",
-            "kind",
-            "from_ref",
-            "to_ref"
-          ],
-          "not": {
-            "required": [
-              "relation"
-            ]
-          }
-        }
-      ],
       "properties": {
         "relation": {
           "$ref": "#/$defs/object_snapshot"
-        },
-        "relation_id": {
-          "$ref": "#/$defs/relation_id"
-        },
-        "kind": {
-          "type": "string",
-          "minLength": 1
-        },
-        "from_ref": {
-          "$ref": "#/$defs/object_ref"
-        },
-        "to_ref": {
-          "$ref": "#/$defs/object_ref"
         },
         "rank": {
           "$ref": "#/$defs/rank"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "relation"
+      ],
+      "description": "Relation creation. The payload carries the whole relation object under `relation`: the registered effect_projection is set value = payload.relation, and event-and-patch.md 2.4.2 permits a projection to move an existing root path wholesale but never to assemble one, so a flat {relation_id, kind, from_ref, to_ref} form has no derivable cell value."
     },
     "relation_id": {
       "type": "string",

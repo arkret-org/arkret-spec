@@ -4420,11 +4420,8 @@
         {
           "cell_family": "ak.component.relation.v1",
           "cell_subject": {
-            "kind": "coalesce",
-            "fields": [
-              "payload.relation.id",
-              "payload.relation_id"
-            ]
+            "kind": "typed_id",
+            "field": "payload.relation.id"
           },
           "lattice": "mv_register",
           "bottom": "expose",
@@ -4438,11 +4435,8 @@
       ],
       "cell_family": "ak.component.relation.v1",
       "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.relation.id",
-          "payload.relation_id"
-        ]
+        "kind": "typed_id",
+        "field": "payload.relation.id"
       },
       "effect_projection": {
         "kind": "set",
