@@ -1637,6 +1637,24 @@ def lint_effect_source(
         lint.fail(path, f"{ref}.dot must be true")
 
 
+def complementary_conditions(left: object, right: object) -> bool:
+    """True when two cell writes can never both participate in one Event.
+
+    The only provable form in the closed condition grammar is field_present /
+    field_absent over the identical path. Treating any other pair as exclusive
+    would be a guess, and a wrong guess means two writes racing on one cell.
+    """
+    if not isinstance(left, dict) or not isinstance(right, dict):
+        return False
+    kinds = {left.get("kind"), right.get("kind")}
+    if kinds != {"field_present", "field_absent"}:
+        return False
+    return (
+        isinstance(left.get("field"), str)
+        and left.get("field") == right.get("field")
+    )
+
+
 def lint_effect_projection(
     lint: Lint,
     path: Path,
@@ -1916,7 +1934,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             if not isinstance(cell_writes, list) or not cell_writes:
                 lint.fail(event_path, f"{kind} cell_writes must be a non-empty array")
                 cell_writes = []
-            seen_writes: dict[str, str | None] = {}
+            seen_writes: dict[str, tuple[str | None, object]] = {}
             for index, write in enumerate(cell_writes):
                 write_ref = f"{kind} cell_writes[{index}]"
                 if not isinstance(write, dict):
@@ -2108,19 +2126,27 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                 remove_kinds = {"or_set_remove_observed", "or_set_remove_dots"}
                 previous = seen_writes.get(write_key)
                 if previous is not None:
+                    previous_kind, previous_condition = previous
                     paired = (
                         write_lattice == "or_set"
-                        and {previous, projection_kind}
+                        and {previous_kind, projection_kind}
                         <= (add_kinds | remove_kinds)
-                        and bool({previous, projection_kind} & add_kinds)
-                        and bool({previous, projection_kind} & remove_kinds)
+                        and bool({previous_kind, projection_kind} & add_kinds)
+                        and bool({previous_kind, projection_kind} & remove_kinds)
                     )
-                    if not paired:
+                    # The other legal repeat is a provably complementary pair:
+                    # field_present / field_absent on the same path, so the
+                    # reducer derives exactly one of them for any payload.
+                    # Anything weaker would let two writes race on one cell.
+                    complementary = complementary_conditions(
+                        previous_condition, write.get("condition")
+                    )
+                    if not paired and not complementary:
                         lint.fail(
                             event_path,
                             f"{write_ref} duplicates another cell target",
                         )
-                seen_writes[write_key] = projection_kind
+                seen_writes[write_key] = (projection_kind, write.get("condition"))
             plane = row.get("plane")
             sealed = row.get("sealed")
             if plane not in REGISTRY_PLANES:

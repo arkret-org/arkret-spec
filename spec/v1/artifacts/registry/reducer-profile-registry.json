@@ -118,7 +118,7 @@
         "event_kind_contracts": [
           {
             "event_kind": "ak.member.state",
-            "content_digest": "sha256:cd5abab7f4b1c4bfae0586a2727950cb45e401d94fa3c56bedc2716d557e162c"
+            "content_digest": "sha256:afe0b9b88478ea9b0f57288a2fa4853a489c7c9e9542ab684810907b34ef24a3"
           },
           {
             "event_kind": "ak.realm.create",
@@ -194,7 +194,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:9ce0e50fbfb0666a02c1d5e31f90ebf78b432721f6bf48c17454d53fac755558"
+      "reducer_profile_digest": "sha256:807b47ca5fe656158835bb02d5c43cdebe4714c1d4d2774b2c3dc0fb9a146c1f"
     },
     {
       "profile_id": "ak.profile.chat_mvp.v1",
@@ -361,11 +361,11 @@
         "event_kind_contracts": [
           {
             "event_kind": "ak.member.state",
-            "content_digest": "sha256:cd5abab7f4b1c4bfae0586a2727950cb45e401d94fa3c56bedc2716d557e162c"
+            "content_digest": "sha256:afe0b9b88478ea9b0f57288a2fa4853a489c7c9e9542ab684810907b34ef24a3"
           },
           {
             "event_kind": "ak.message.create",
-            "content_digest": "sha256:a9bd351f94a41b63221964c628c4a7aee2ad63b74da48e4c96078b4f648bb91d"
+            "content_digest": "sha256:abc448b203caa78c01cbbd855d5493a25698c1291dc1b3aa4efd7cbe2d8c0e04"
           },
           {
             "event_kind": "ak.message.redact",
@@ -517,7 +517,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:0385f34cee5df88b1fbb392259a5cb7090f371907eb8a058ace94887ff4df4ed"
+      "reducer_profile_digest": "sha256:11e1bf059656fec6d1512b2bc345843ac9874235a4ec0a1df744add97834e3e6"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -672,7 +672,7 @@
           },
           {
             "event_kind": "ak.member.state",
-            "content_digest": "sha256:cd5abab7f4b1c4bfae0586a2727950cb45e401d94fa3c56bedc2716d557e162c"
+            "content_digest": "sha256:afe0b9b88478ea9b0f57288a2fa4853a489c7c9e9542ab684810907b34ef24a3"
           },
           {
             "event_kind": "ak.realm.create",
@@ -688,15 +688,15 @@
           },
           {
             "event_kind": "ak.strand.move",
-            "content_digest": "sha256:e5c00a28bf71d94a7739733c94c2a52c6a5c6fb32dc43de6604af55f398ee0df"
+            "content_digest": "sha256:7a9b15e8d4c84bba0643fb4f7dcf0a2db77f8765f0287cc34dafc02521699a6d"
           },
           {
             "event_kind": "ak.strand.reorder",
-            "content_digest": "sha256:78d4bf2849755347d2ff51fb2014eabe24b53e8a72328a737f4625911fd42abe"
+            "content_digest": "sha256:e72f17336f4709d004bce41a63281a5eec4e6087a109b360503505f7a5f11fef"
           },
           {
             "event_kind": "ak.strand.update",
-            "content_digest": "sha256:1e9d9dde7f9dd39df3b40e1ca81cabf39bf187d02f49bae1c371cadb3f79f401"
+            "content_digest": "sha256:60b603d1f508559eacd476b54746d478d6244d4dc141115cc948f4c4d6335346"
           }
         ],
         "schema_contracts": [
@@ -812,7 +812,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:35a0aa9f6618c8d96c2b330932c70a9329b1a25835c8bd5bfb07523f7903c112"
+      "reducer_profile_digest": "sha256:a27e669e402dc44d95f75bc5e52382e24426c5d9b558228076b83db2a0492035"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1193,11 +1193,11 @@
           },
           {
             "event_kind": "ak.member.state",
-            "content_digest": "sha256:cd5abab7f4b1c4bfae0586a2727950cb45e401d94fa3c56bedc2716d557e162c"
+            "content_digest": "sha256:afe0b9b88478ea9b0f57288a2fa4853a489c7c9e9542ab684810907b34ef24a3"
           },
           {
             "event_kind": "ak.message.create",
-            "content_digest": "sha256:a9bd351f94a41b63221964c628c4a7aee2ad63b74da48e4c96078b4f648bb91d"
+            "content_digest": "sha256:abc448b203caa78c01cbbd855d5493a25698c1291dc1b3aa4efd7cbe2d8c0e04"
           },
           {
             "event_kind": "ak.message.redact",
@@ -1233,15 +1233,15 @@
           },
           {
             "event_kind": "ak.strand.move",
-            "content_digest": "sha256:e5c00a28bf71d94a7739733c94c2a52c6a5c6fb32dc43de6604af55f398ee0df"
+            "content_digest": "sha256:7a9b15e8d4c84bba0643fb4f7dcf0a2db77f8765f0287cc34dafc02521699a6d"
           },
           {
             "event_kind": "ak.strand.reorder",
-            "content_digest": "sha256:78d4bf2849755347d2ff51fb2014eabe24b53e8a72328a737f4625911fd42abe"
+            "content_digest": "sha256:e72f17336f4709d004bce41a63281a5eec4e6087a109b360503505f7a5f11fef"
           },
           {
             "event_kind": "ak.strand.update",
-            "content_digest": "sha256:1e9d9dde7f9dd39df3b40e1ca81cabf39bf187d02f49bae1c371cadb3f79f401"
+            "content_digest": "sha256:60b603d1f508559eacd476b54746d478d6244d4dc141115cc948f4c4d6335346"
           }
         ],
         "schema_contracts": [
@@ -1439,7 +1439,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:2d5f6a54ab6fb6350a0adcf315879ca8a862b82c1c8c5158e046eb85f2c79ac8"
+      "reducer_profile_digest": "sha256:272c464326220ab36c861a8d9198ccfc1cd03bc5755a0b9c8426350e6c361204"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1590,7 +1590,7 @@
         "event_kind_contracts": [
           {
             "event_kind": "ak.member.state",
-            "content_digest": "sha256:cd5abab7f4b1c4bfae0586a2727950cb45e401d94fa3c56bedc2716d557e162c"
+            "content_digest": "sha256:afe0b9b88478ea9b0f57288a2fa4853a489c7c9e9542ab684810907b34ef24a3"
           },
           {
             "event_kind": "ak.realm.create",
@@ -1686,7 +1686,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:7642afdb74523484cf06ed986545f0a33f26ab01f9872a026e83fd915cf3cf5b"
+      "reducer_profile_digest": "sha256:32aeccb0a0a548d8056f04815f292ed3fbc65af062f633c123a4250ebef98a88"
     }
   ],
   "generated_fields": [

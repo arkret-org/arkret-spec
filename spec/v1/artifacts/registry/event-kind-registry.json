@@ -1302,12 +1302,39 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes independent MLS group and epoch-0 governance binding only when encryption_profile=mls_rfc9420. See zh/models/circle.md §3, §5.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.circle.create.v1",
+          "cell_subject": null,
+          "lattice": "ordered_log",
+          "bottom": "inert",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.circle.create.v1",
       "cell_subject": null,
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
+      },
       "lattice": "ordered_log",
-      "bottom": "inert",
-      "plane": "control",
-      "sealed": true
+      "bottom": "inert"
     },
     {
       "event_kind": "ak.sidecar.create",
@@ -1316,12 +1343,39 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Full ak.schema.agent_sidecar.v1 object. Accepted only inside the atomic ak.self.agent.sidecar.command.ensure aggregate after its reducer-derived backing Circle exists. The canonical Event materializes backing_circle_id and is stamped into that Circle effective scope; raw ensure callers cannot supply it. See zh/models/sidecar.md §2-§5.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.sidecar.create.v1",
+          "cell_subject": null,
+          "lattice": "ordered_log",
+          "bottom": "inert",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.sidecar.create.v1",
       "cell_subject": null,
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
+      },
       "lattice": "ordered_log",
-      "bottom": "inert",
-      "plane": "control",
-      "sealed": true
+      "bottom": "inert"
     },
     {
       "event_kind": "ak.circle.update",
@@ -1480,6 +1534,29 @@
       "reducer_input": true,
       "payload": "Circle tombstone (terminal). Triggers lifecycle cascade per zh/models/circle.md §9.2.",
       "lifecycle_modality": "terminal",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.circle.tombstone.v1",
+          "cell_subject": {
+            "fields": [
+              "payload.circle_id",
+              "payload.target_ref"
+            ],
+            "kind": "coalesce"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.circle.tombstone.v1",
       "cell_subject": {
         "fields": [
@@ -1488,10 +1565,14 @@
         ],
         "kind": "coalesce"
       },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
+      },
       "lattice": "cas_register",
-      "bottom": "reject",
-      "plane": "control",
-      "sealed": true
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.circle.member.state",
@@ -1500,6 +1581,29 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Circle membership state. Uses the same membership_state enum as ak.member.state (invite/join/knock/leave/ban), scoped to a Circle. Reducer MUST first validate the target actor is a parent Realm `join` member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.circle.member.v1",
+          "cell_subject": {
+            "components": [
+              "payload.circle_id",
+              "payload.actor_id"
+            ],
+            "kind": "composite"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.membership"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.circle.member.v1",
       "cell_subject": {
         "components": [
@@ -1508,10 +1612,14 @@
         ],
         "kind": "composite"
       },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload.membership"
+        }
+      },
       "lattice": "cas_register",
-      "bottom": "reject",
-      "plane": "control",
-      "sealed": true
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.circle.seal_commit",
@@ -2356,15 +2464,6 @@
         "ak.realm.admin"
       ],
       "payload": "Realm membership state",
-      "cell_family": "ak.component.member.state.v1",
-      "cell_subject": {
-        "field": "payload.actor_id",
-        "kind": "did"
-      },
-      "lattice": "fsm",
-      "bottom": "reject",
-      "plane": "control",
-      "sealed": true,
       "parameters": {
         "initial_state": "leave",
         "states": [
@@ -2440,7 +2539,40 @@
             "invite"
           ]
         ]
-      }
+      },
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.member.state.v1",
+          "cell_subject": {
+            "field": "payload.actor_id",
+            "kind": "did"
+          },
+          "lattice": "fsm",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition_to",
+            "to": {
+              "field": "payload.membership"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier",
+      "cell_family": "ak.component.member.state.v1",
+      "cell_subject": {
+        "field": "payload.actor_id",
+        "kind": "did"
+      },
+      "effect_projection": {
+        "kind": "transition_to",
+        "to": {
+          "field": "payload.membership"
+        }
+      },
+      "lattice": "fsm",
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.member.identity.update",
@@ -2450,6 +2582,33 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior ak.member.identity.update events via payload.replaces[] without overloading ak.profile.update patch semantics.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.member.identity.v1",
+          "cell_subject": {
+            "components": [
+              "payload.realm_id",
+              "payload.actor_id",
+              "payload.segment"
+            ],
+            "kind": "composite"
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "merge_safe",
       "cell_family": "ak.component.member.identity.v1",
       "cell_subject": {
         "components": [
@@ -2459,10 +2618,17 @@
         ],
         "kind": "composite"
       },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
+      },
       "lattice": "ordered_log",
-      "bottom": "expose",
-      "plane": "control",
-      "sealed": true
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.strand.create",
@@ -2511,15 +2677,38 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Strand patch",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.strand.metadata.v1",
+          "cell_subject": {
+            "field": "payload.target_ref",
+            "kind": "id:strand"
+          },
+          "lattice": "mv_register",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            }
+          }
+        }
+      ],
       "cell_family": "ak.component.strand.metadata.v1",
       "cell_subject": {
         "field": "payload.target_ref",
         "kind": "id:strand"
       },
+      "effect_projection": {
+        "kind": "apply_patch",
+        "patch": {
+          "field": "payload.patch"
+        }
+      },
       "lattice": "mv_register",
-      "bottom": "expose",
-      "plane": "data",
-      "sealed": false
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.strand.archive",
@@ -2636,15 +2825,39 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Strand business-progression stage transition. Single source of truth for mutating Strand.stage / Strand.stage_changed_at; ak.strand.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Strand's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=strand_already_terminal; state=archived yields strand_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. A per-Realm workflow profile MAY narrow which transitions are legal beyond these hard invariants.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.strand.stage.v1",
+          "cell_subject": {
+            "field": "payload.strand_id",
+            "kind": "id:strand"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.stage"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.strand.stage.v1",
       "cell_subject": {
         "field": "payload.strand_id",
         "kind": "id:strand"
       },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload.stage"
+        }
+      },
       "lattice": "cas_register",
-      "bottom": "reject",
-      "plane": "control",
-      "sealed": true
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.strand.tracks.update",
@@ -2653,15 +2866,38 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Unified Strand tracks patch. payload.patch uses ak.patch.v1 against the Strand.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks.",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.strand.tracks.v1",
+          "cell_subject": {
+            "field": "payload.target_ref",
+            "kind": "id:strand"
+          },
+          "lattice": "mv_register",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            }
+          }
+        }
+      ],
       "cell_family": "ak.component.strand.tracks.v1",
       "cell_subject": {
         "field": "payload.target_ref",
         "kind": "id:strand"
       },
+      "effect_projection": {
+        "kind": "apply_patch",
+        "patch": {
+          "field": "payload.patch"
+        }
+      },
       "lattice": "mv_register",
-      "bottom": "expose",
-      "plane": "data",
-      "sealed": false
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.strand.move",
@@ -2670,6 +2906,50 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Strand move between Spaces (target_space_id in payload). Writes a cas_register cell keyed by (board_space_id, strand_id); the contains Relation list_space_id->strand_id is derived from cell value, not a separate truth source. Plane ruling (CBA): ak.component.strand.position.v1 defaults to sealed=true (control plane), so ak.strand.move is a Control Move carrying seal_basis; Realm schema MAY redeclare the cell family as data-plane mv_register + user-pick or per-object sequencer per authz/event-auth-state-resolution.md section 9.4 and models/realm-and-space.md section 3.6.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.strand.position.v1",
+          "cell_subject": {
+            "components": [
+              {
+                "name": "board_space_id",
+                "field": "payload.board_space_id",
+                "kind": "id:space"
+              },
+              {
+                "name": "strand_id",
+                "field": "payload.strand_id",
+                "kind": "id:strand"
+              }
+            ],
+            "kind": "tuple"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "value_projection": {
+            "kind": "object",
+            "members": [
+              {
+                "name": "list_space_id",
+                "field": "payload.target_space_id"
+              },
+              {
+                "name": "rank",
+                "field": "payload.rank"
+              }
+            ]
+          },
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "projected_value": true
+            }
+          }
+        }
+      ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.strand.position.v1",
       "cell_subject": {
         "components": [
@@ -2686,10 +2966,27 @@
         ],
         "kind": "tuple"
       },
+      "value_projection": {
+        "kind": "object",
+        "members": [
+          {
+            "name": "list_space_id",
+            "field": "payload.target_space_id"
+          },
+          {
+            "name": "rank",
+            "field": "payload.rank"
+          }
+        ]
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "projected_value": true
+        }
+      },
       "lattice": "cas_register",
-      "bottom": "reject",
-      "plane": "control",
-      "sealed": true
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.strand.reorder",
@@ -2698,6 +2995,50 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Strand reorder within Space. Writes the same cell as ak.strand.move; the reducer-projected list_space_id MUST equal head_eq.list_space_id (rank-only update). Plane ruling follows ak.strand.move: same cell family, same default sealed=true control-plane declaration (models/realm-and-space.md section 3.6).",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.strand.position.v1",
+          "cell_subject": {
+            "components": [
+              {
+                "name": "board_space_id",
+                "field": "payload.board_space_id",
+                "kind": "id:space"
+              },
+              {
+                "name": "strand_id",
+                "field": "payload.strand_id",
+                "kind": "id:strand"
+              }
+            ],
+            "kind": "tuple"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "value_projection": {
+            "kind": "object",
+            "members": [
+              {
+                "name": "list_space_id",
+                "field": "payload.space_id"
+              },
+              {
+                "name": "rank",
+                "field": "payload.rank"
+              }
+            ]
+          },
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "projected_value": true
+            }
+          }
+        }
+      ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.strand.position.v1",
       "cell_subject": {
         "components": [
@@ -2714,10 +3055,27 @@
         ],
         "kind": "tuple"
       },
+      "value_projection": {
+        "kind": "object",
+        "members": [
+          {
+            "name": "list_space_id",
+            "field": "payload.space_id"
+          },
+          {
+            "name": "rank",
+            "field": "payload.rank"
+          }
+        ]
+      },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "projected_value": true
+        }
+      },
       "lattice": "cas_register",
-      "bottom": "reject",
-      "plane": "control",
-      "sealed": true
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.strand.watch.set",
@@ -2726,26 +3084,85 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a cas_register cell keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ak.strand.watch.set.others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch ak.audit.accessed event with access_kind=watch_set_others. The watches Relation (actor --watches--> strand) is a derived projection of this cell, not a separate truth source — direct ak.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
-      "cell_family": "ak.component.strand.watch.v1",
-      "cell_subject": {
-        "components": [
-          {
-            "name": "strand_id",
-            "field": "payload.strand_id",
-            "kind": "id:strand"
-          },
-          {
-            "name": "watcher_actor_id",
-            "field": "payload.watcher_actor_id",
-            "kind": "did"
-          }
-        ],
-        "kind": "tuple"
-      },
-      "lattice": "cas_register",
-      "bottom": "reject",
       "plane": "control",
-      "sealed": true
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.strand.watch.v1",
+          "cell_subject": {
+            "components": [
+              {
+                "name": "strand_id",
+                "field": "payload.strand_id",
+                "kind": "id:strand"
+              },
+              {
+                "name": "watcher_actor_id",
+                "field": "payload.watcher_actor_id",
+                "kind": "did"
+              }
+            ],
+            "kind": "tuple"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "value_projection": {
+            "kind": "object",
+            "members": [
+              {
+                "name": "level",
+                "field": "payload.level"
+              },
+              {
+                "name": "level_public",
+                "field": "payload.level_public",
+                "optional": true
+              }
+            ]
+          },
+          "condition": {
+            "kind": "field_present",
+            "field": "payload.level"
+          },
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "projected_value": true
+            }
+          }
+        },
+        {
+          "cell_family": "ak.component.strand.watch.v1",
+          "cell_subject": {
+            "components": [
+              {
+                "name": "strand_id",
+                "field": "payload.strand_id",
+                "kind": "id:strand"
+              },
+              {
+                "name": "watcher_actor_id",
+                "field": "payload.watcher_actor_id",
+                "kind": "did"
+              }
+            ],
+            "kind": "tuple"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "condition": {
+            "kind": "field_absent",
+            "field": "payload.level"
+          },
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "const": null
+            }
+          }
+        }
+      ],
+      "concurrency_class": "exclusive"
     },
     {
       "event_kind": "ak.space.create",
@@ -3037,15 +3454,44 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Message create",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.strand.discussion.timeline.v1",
+          "cell_subject": {
+            "field": "payload.strand_id",
+            "kind": "id:strand"
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
+        }
+      ],
       "cell_family": "ak.component.strand.discussion.timeline.v1",
       "cell_subject": {
         "field": "payload.strand_id",
         "kind": "id:strand"
       },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
+      },
       "lattice": "ordered_log",
-      "bottom": "expose",
-      "plane": "data",
-      "sealed": false
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.agent.sidecar.exchange.control",
@@ -3890,15 +4336,38 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "View create",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.view.create.v1",
+          "cell_subject": {
+            "field": "payload.view_id",
+            "kind": "string"
+          },
+          "lattice": "mv_register",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.object"
+            }
+          }
+        }
+      ],
       "cell_family": "ak.component.view.create.v1",
       "cell_subject": {
         "field": "payload.view_id",
         "kind": "string"
       },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload.object"
+        }
+      },
       "lattice": "mv_register",
-      "bottom": "expose",
-      "plane": "data",
-      "sealed": false
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.view.update",
@@ -3907,15 +4376,38 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "View update",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.view.update.v1",
+          "cell_subject": {
+            "field": "payload.view_id",
+            "kind": "string"
+          },
+          "lattice": "mv_register",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            }
+          }
+        }
+      ],
       "cell_family": "ak.component.view.update.v1",
       "cell_subject": {
         "field": "payload.view_id",
         "kind": "string"
       },
+      "effect_projection": {
+        "kind": "apply_patch",
+        "patch": {
+          "field": "payload.patch"
+        }
+      },
       "lattice": "mv_register",
-      "bottom": "expose",
-      "plane": "data",
-      "sealed": false
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.view.reconcile",
@@ -4567,15 +5059,45 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Principal-scoped contact request fact. Issuer is requester; target holder must respond with accepted/rejected.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.contact.fact_log.v1",
+          "cell_subject": {
+            "field": "payload.target",
+            "kind": "did"
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "merge_safe",
       "cell_family": "ak.component.contact.fact_log.v1",
       "cell_subject": {
         "field": "payload.target",
         "kind": "did"
       },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
+      },
       "lattice": "ordered_log",
-      "bottom": "expose",
-      "plane": "control",
-      "sealed": true
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.contact.accepted",
@@ -4585,15 +5107,45 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Principal-scoped contact acceptance fact. Issuer is original request target and MUST reference target-controlled consent grants.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.contact.fact_log.v1",
+          "cell_subject": {
+            "field": "payload.requester",
+            "kind": "did"
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "merge_safe",
       "cell_family": "ak.component.contact.fact_log.v1",
       "cell_subject": {
         "field": "payload.requester",
         "kind": "did"
       },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
+      },
       "lattice": "ordered_log",
-      "bottom": "expose",
-      "plane": "control",
-      "sealed": true
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.contact.rejected",
@@ -4603,15 +5155,45 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Principal-scoped contact rejection fact. Issuer is original request target and does not write consent.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.contact.fact_log.v1",
+          "cell_subject": {
+            "field": "payload.requester",
+            "kind": "did"
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "merge_safe",
       "cell_family": "ak.component.contact.fact_log.v1",
       "cell_subject": {
         "field": "payload.requester",
         "kind": "did"
       },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
+      },
       "lattice": "ordered_log",
-      "bottom": "expose",
-      "plane": "control",
-      "sealed": true
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.contact.tombstoned",
@@ -4621,15 +5203,45 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Principal-scoped contact tombstone fact. Issuer ends their own side of a contact and may revoke contact-managed consent dots.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.contact.fact_log.v1",
+          "cell_subject": {
+            "field": "payload.peer",
+            "kind": "did"
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "merge_safe",
       "cell_family": "ak.component.contact.fact_log.v1",
       "cell_subject": {
         "field": "payload.peer",
         "kind": "did"
       },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
+      },
       "lattice": "ordered_log",
-      "bottom": "expose",
-      "plane": "control",
-      "sealed": true
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.direct_conversation.bound",
@@ -4639,15 +5251,45 @@
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Principal-scoped binding from unordered participant pair to canonical DM Realm and main Strand.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.direct_conversation.binding.v1",
+          "cell_subject": {
+            "field": "payload.pair_key",
+            "kind": "string"
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "merge_safe",
       "cell_family": "ak.component.direct_conversation.binding.v1",
       "cell_subject": {
         "field": "payload.pair_key",
         "kind": "string"
       },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
+      },
       "lattice": "ordered_log",
-      "bottom": "expose",
-      "plane": "control",
-      "sealed": true
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.account.status",
@@ -6799,15 +7441,45 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Sealed moderation decision (writes ak.component.moderation_state.v1 cell)",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.moderation_state.v1",
+          "cell_subject": {
+            "field": "payload.target_ref",
+            "kind": "string"
+          },
+          "lattice": "or_set",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "or_set_add",
+            "tag": {
+              "dot": true
+            },
+            "value": {
+              "field": "payload"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "merge_safe",
       "cell_family": "ak.component.moderation_state.v1",
       "cell_subject": {
         "field": "payload.target_ref",
         "kind": "string"
       },
+      "effect_projection": {
+        "kind": "or_set_add",
+        "tag": {
+          "dot": true
+        },
+        "value": {
+          "field": "payload"
+        }
+      },
       "lattice": "or_set",
-      "bottom": "expose",
-      "plane": "control",
-      "sealed": true
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.moderation.decision.lift",
@@ -6833,15 +7505,45 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Submit an appeal against an existing ak.moderation.decision. Writes the appeal cell to state=submitted. Schema: ak.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal strand).",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.moderation.appeal.v1",
+          "cell_subject": {
+            "field": "payload.appeal_id",
+            "kind": "string"
+          },
+          "lattice": "fsm",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": null
+            },
+            "to": {
+              "const": "submitted"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.moderation.appeal.v1",
       "cell_subject": {
         "field": "payload.appeal_id",
         "kind": "string"
       },
+      "effect_projection": {
+        "kind": "transition",
+        "from": {
+          "const": null
+        },
+        "to": {
+          "const": "submitted"
+        }
+      },
       "lattice": "fsm",
-      "bottom": "reject",
-      "plane": "control",
-      "sealed": true
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.moderation.appeal.review",
@@ -6850,15 +7552,45 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Reviewer acknowledges the appeal and transitions cell state submitted → under_review. Identifies the reviewing actor and target appeal. Schema: ak.schema.moderation_appeal.v1.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.moderation.appeal.v1",
+          "cell_subject": {
+            "field": "payload.appeal_id",
+            "kind": "string"
+          },
+          "lattice": "fsm",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "submitted"
+            },
+            "to": {
+              "const": "under_review"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.moderation.appeal.v1",
       "cell_subject": {
         "field": "payload.appeal_id",
         "kind": "string"
       },
+      "effect_projection": {
+        "kind": "transition",
+        "from": {
+          "const": "submitted"
+        },
+        "to": {
+          "const": "under_review"
+        }
+      },
       "lattice": "fsm",
-      "bottom": "reject",
-      "plane": "control",
-      "sealed": true
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.moderation.appeal.decision",
@@ -6867,15 +7599,45 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Reviewer's verdict on the appeal: uphold (decision stands) / overturn (decision reversed, emits ak.moderation.decision.lift) / modify (decision adjusted). Transitions cell state under_review → decided. Schema: ak.schema.moderation_appeal.v1.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.moderation.appeal.v1",
+          "cell_subject": {
+            "field": "payload.appeal_id",
+            "kind": "string"
+          },
+          "lattice": "fsm",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "under_review"
+            },
+            "to": {
+              "const": "decided"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.moderation.appeal.v1",
       "cell_subject": {
         "field": "payload.appeal_id",
         "kind": "string"
       },
+      "effect_projection": {
+        "kind": "transition",
+        "from": {
+          "const": "under_review"
+        },
+        "to": {
+          "const": "decided"
+        }
+      },
       "lattice": "fsm",
-      "bottom": "reject",
-      "plane": "control",
-      "sealed": true
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.moderation.appeal.close",
@@ -6884,15 +7646,39 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Closes the appeal from submitted / under_review / decided via reviewer close, appellant withdrawal, or a deployment's authorized close service. close is a manual/authorized action; the protocol does not mandate any auto-close timer or cool-off duration (deployment/Realm policy decides). Schema: ak.schema.moderation_appeal.v1.",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.moderation.appeal.v1",
+          "cell_subject": {
+            "field": "payload.appeal_id",
+            "kind": "string"
+          },
+          "lattice": "fsm",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition_to",
+            "to": {
+              "const": "closed"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "exclusive",
       "cell_family": "ak.component.moderation.appeal.v1",
       "cell_subject": {
         "field": "payload.appeal_id",
         "kind": "string"
       },
+      "effect_projection": {
+        "kind": "transition_to",
+        "to": {
+          "const": "closed"
+        }
+      },
       "lattice": "fsm",
-      "bottom": "reject",
-      "plane": "control",
-      "sealed": true
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.read_cursor.advance",
