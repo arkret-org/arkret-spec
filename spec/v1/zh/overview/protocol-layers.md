@@ -50,7 +50,7 @@ Kernel 与 Collaboration Base conformance；仅声明 Kernel 的实现 MAY 完�
 
 ### 1.3 Extension
 
-Realtime、Calendar、Call/Media、Moderation、Directory/Push、Agent/Applet/Sidecar、
+Signal、Calendar、Call/Media、Moderation、Directory/Push、Agent/Applet/Sidecar、
 Organization/MIMI 与 identity hardening/witness 均为 Extension。扩展通过
 [`extension-manifest.md`](../extensions/extension-manifest.md) 声明自己的 schema、reducer、
 transport、资源上限与 vectors，不得把领域特例写回 Kernel gate。

@@ -54,7 +54,7 @@ see_also:
 4. `models/overview.md` 起步，按需进入 `models/realm-and-space.md`、`models/strand-and-message.md` 等专项文件，理解协作图和标准对象。
 5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`、`identity/security-transactions.md`、`identity/consent-model.md`、`identity/contact-and-direct-conversation.md`：理解身份、handle、设备/备份密钥、安全事务、consent gate、联系人关系和 1:1 私聊入口。
 6. `authz/capabilities.md`、`authz/cba-profiles.md`、`authz/event-auth-state-resolution.md`、`authz/offline-publication.md`：理解权限、CBA 授权形态、Realm 状态机和离线发布。
-7. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/realtime.md`、`sync/service-surface.md`、`sync/service-http-binding.md`：理解 durable 写入、同步、加密实时 rail 和服务面。
+7. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/signal.md`、`sync/service-surface.md`、`sync/service-http-binding.md`：理解 durable 写入、同步、加密实时 rail 和服务面。
 8. `governance/history-visibility.md`：理解历史可见性、preview / peek、public plaintext Realm 和 E2EE history key share 的共同边界。
 9. 按业务需要阅读扩展 profile，例如 Applet、Agent、WebRTC、Directory。
 
@@ -195,7 +195,7 @@ see_also:
 | --- | --- |
 | `sync/operations-sync.md` | Event-first 发布、Event Envelope、snapshot、冲突收敛。 |
 | `sync/client-sync.md` | 客户端增量同步、timeline、state_after、to_device。 |
-| `sync/realtime.md` | encrypted-only Realtime Extension send / subscribe rail、可见分类与 TTL。 |
+| `sync/signal.md` | encrypted-only Signal Extension send / subscribe rail、可见分类与 TTL。 |
 | `sync/service-surface.md` | 最小服务面与实际服务组合：Principal Server、identity、events、sync、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |
 | `sync/privacy-preserving-search.md` | 客户端加密索引托管、blind-index token、`ak.realm.search_policy` 与 search result fail-closed 语义。 |
 | `sync/service-http-binding.md` | 默认 HTTP/JSON binding 路径、请求/响应和标准错误码。 |

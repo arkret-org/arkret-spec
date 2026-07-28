@@ -85,7 +85,7 @@
     }
   },
   "registry_rules": [
-    "Every standard ak.* Event.kind admitted through Event Envelope MUST appear in this registry. Realtime payload types and DeviceMessageEnvelope message kinds are intentionally outside this Event registry.",
+    "Every standard ak.* Event.kind admitted through Event Envelope MUST appear in this registry. Signal payload types and DeviceMessageEnvelope message kinds are intentionally outside this Event registry.",
     "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
     "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
     "Every active lifecycle event kind MUST declare lifecycle_modality. Use reversible for a reversible lifecycle facet or either member of an archive/restore pair, and terminal for an irreversible transition that cannot be restored. Reducers and SDKs MUST NOT infer modality from event-kind spelling or the presence of a sibling event.",
@@ -4869,7 +4869,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Audit Applet Binding. Declares that an audit applet/service may request staged historical release sessions for a specific Realm or Circle effective_scope. Binding is control-plane only: it does not add the applet to MLS, does not subscribe it to realtime sync, and does not grant plaintext/history keys. Bindings are non-retroactive: activation_frontier_digest / first_auditable_epoch define the earliest eligible material, and later policy changes MUST NOT expand eligibility for already encrypted messages.",
+      "payload": "Audit Applet Binding. Declares that an audit applet/service may request staged historical release sessions for a specific Realm or Circle effective_scope. Binding is control-plane only: it does not add the applet to MLS, does not subscribe it to signal sync, and does not grant plaintext/history keys. Bindings are non-retroactive: activation_frontier_digest / first_auditable_epoch define the earliest eligible material, and later policy changes MUST NOT expand eligibility for already encrypted messages.",
       "cell_family": "ak.component.audit.binding.v1",
       "cell_subject": {
         "field": "payload.binding_id",

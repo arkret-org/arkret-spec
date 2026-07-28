@@ -75,8 +75,8 @@ Control Move 的签名、actor chain、basis、precondition 和授权验证通�
 
 `actor_private_event` 仍使用 signed Event Envelope，但不写 shared Realm data/control cell，不进入控制面 Seal 覆盖集，也不影响其他成员的共享状态。它可以用于 account data、device route、个人偏好或 actor 私有投影。
 
-Realtime 与 to-device 都不属于 Event registry。presence、typing、receipt、call signaling 使用
-encrypted-only `RealtimeEnvelope`；key verification、secret 与 Realm key 请求使用
+Signal 与 to-device 都不属于 Event registry。presence、typing、receipt、call signaling 使用
+encrypted-only `SignalEnvelope`；key verification、secret 与 Realm key 请求使用
 `DeviceMessageEnvelope`。接收方 MUST NOT 把两者解释为 durable Event、不得分配 shared
 `actor_seq`、不得写 cell、不得进入 Seal。
 
@@ -85,7 +85,7 @@ encrypted-only `RealtimeEnvelope`；key verification、secret 与 Realm key 请�
 | `durable_event` | `ak.schema.event.v1` | `ak.self.events.command.submit`、`ak.peer.events.command.submit` |
 | `actor_private_event` | `ak.schema.event.v1`，但不得携带 CBA reducer 字段 | `ak.self.events.command.submit` 的 actor 私有路径 |
 
-Realtime 与 DeviceMessage 使用各自 operation 和 schema，不具有 `wire_scope` 值。`wire_scope`
+Signal 与 DeviceMessage 使用各自 operation 和 schema，不具有 `wire_scope` 值。`wire_scope`
 只分类 signed Event Envelope。
 
 ## 3. 接收与验证

@@ -41,7 +41,7 @@ Offer、Answer、ICE candidate、renegotiation、speaking update 等高频信令
 WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 - 绑定 Realm id、call id、device id、actor id。
-- 由发送设备签名，并封装在已认证的 encrypted Realtime rail。
+- 由发送设备签名，并封装在已认证的 encrypted Signal rail。
 - 对同一 Realm / DM 的授权成员端到端加密。
 - 防重放，至少包含 timestamp、sequence 或 frame id。
 
@@ -256,7 +256,7 @@ Content-Type: application/json
 
 ## 5. Signaling Envelope
 
-所有 call signaling frame 使用 [`RealtimeEnvelope`](../sync/realtime.md)，外层只允许
+所有 call signaling frame 使用 [`SignalEnvelope`](../sync/signal.md)，外层只允许
 `signal_class` 三值分类。`call_id`、`signal_kind`、sequence、SDP、ICE candidate 与媒体状态
 全部位于 `encrypted_payload` 内；服务端不得看见或按它们路由。`invite` 等需要唤醒的 frame
 使用 `signal_class=setup`，moderation frame 使用 `moderation`，其余使用 `session`。
@@ -265,8 +265,8 @@ Content-Type: application/json
 Seal basis、scope/MLS epoch 与 AAD，然后解密并检查 plaintext sequence 在
 `(realm_id, call_id, actor_id, device_id)` 上单调递增。失败、过期、重放、未知 signal kind
 或被吊销设备的 frame 必须 fail closed。规范外层 schema 是
-[`realtime-envelope.schema.json`](../../artifacts/schemas/realtime-envelope.schema.json)；
-proof context 固定为 `ak.realtime-proof-v1`。
+[`signal-envelope.schema.json`](../../artifacts/schemas/signal-envelope.schema.json)；
+proof context 固定为 `ak.signal-proof-v1`。
 
 解密后的 plaintext 是闭合对象，字段为 `kind=ak.call.signal`、`call_id`、
 `signal_kind`、`seq` 与 `data`。允许的 `signal_kind` 为 `invite` / `answer` /

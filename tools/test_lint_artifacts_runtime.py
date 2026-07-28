@@ -25,7 +25,7 @@ class LintArtifactsRuntimeTest(unittest.TestCase):
                 "get",
                 {
                     "application/x-ndjson": {
-                        "schema": {"$ref": "../schemas/realtime-envelope.schema.json"}
+                        "schema": {"$ref": "../schemas/signal-envelope.schema.json"}
                     }
                 },
             ),

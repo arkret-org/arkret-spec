@@ -3128,21 +3128,21 @@ Expected：
 
 ## 10. Service Closure Vectors
 
-### 10.1 Vector: Realtime Class And TTL
+### 10.1 Vector: Signal Class And TTL
 
-`vector_id`: `ak.vector.realtime.class_ttl.v1`
+`vector_id`: `ak.vector.signal.class_ttl.v1`
 
 Steps：
 
-1. Actor 提交 `signal_class=moderation`，但 current Seal basis 不允许 moderation realtime。
-2. Actor 持有 realtime 资格后，提交超出 `signal_class=session` 30 秒上限的 envelope。
-3. Realtime rail 暂时不可用。
+1. Actor 提交 `signal_class=moderation`，但 current Seal basis 不允许 moderation signal。
+2. Actor 持有 signal 资格后，提交超出 `signal_class=session` 30 秒上限的 envelope。
+3. Signal rail 暂时不可用。
 
 Expected：
 
-- 第 1 步 MUST 返回 `realtime_class_not_permitted`。
-- 第 2 步 MUST 返回 `realtime_ttl_out_of_range`。
-- 第 3 步 MUST 返回 `realtime_rail_unavailable`，且不写 durable Event、不推进 actor_seq / Realm frontier。
+- 第 1 步 MUST 返回 `signal_class_not_permitted`。
+- 第 2 步 MUST 返回 `signal_ttl_out_of_range`。
+- 第 3 步 MUST 返回 `signal_rail_unavailable`，且不写 durable Event、不推进 actor_seq / Realm frontier。
 
 ### 10.2 Vector: Projection Pagination Shape
 

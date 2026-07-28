@@ -839,19 +839,19 @@ Reaction 事件 (`ak.reaction.*`) 的可见性规则：
 
 - 在 routing hash 模式下，聚合层 MUST 仍能给出 `(target_ref, key, count)` 摘要 (其中 `key` 即 routing hash),客户端解密后将 hash 替换为真实 emoji 再渲染。
 - 不得将 routing hash 与历史 plaintext emoji 跨 Realm 关联 (例如缓存全局 `emoji ↔ hash` 表),Realm policy 如声明 `aad_visibility=hidden` MUST 拒绝此类全局关联。
-- `ak.receipt.read` / `ak.typing` 等实时信号不进入 reducer state；其精确 kind、actor 与 target
-  必须位于 Realtime ciphertext 内，外层只暴露 scope 与三值 `signal_class`。
+- `ak.receipt.read` / `ak.typing` 等 Signal 不进入 reducer state；其精确 kind、actor 与 target
+  必须位于 Signal ciphertext 内，外层只暴露 scope 与三值 `signal_class`。
 
 Reaction 事件的 `aad.event_kind` 始终为明文 (`ak.reaction.add` / `ak.reaction.remove`),以便服务端做 capability fast path 与限流；该明文 kind 不暴露具体 emoji。
 
-#### 2.9.1 Realtime 一律 encrypted-only（normative，fail closed）
+#### 2.9.1 Signal 一律 encrypted-only（normative，fail closed）
 
-Realtime Extension 不存在 plaintext branch，且不因 Realm 内容 profile 改变这一规则。
+Signal Extension 不存在 plaintext branch，且不因 Realm 内容 profile 改变这一规则。
 typing、presence、read receipt 与 call signaling 的精确 kind、actor、target 和内容都在
-`RealtimeEnvelope.encrypted_payload` 内。发送方、Sync Service 和接收方 MUST 拒绝任何旧
+`SignalEnvelope.encrypted_payload` 内。发送方、Sync Service 和接收方 MUST 拒绝任何旧
 plaintext broadcast envelope，返回 `failed_precondition` 与
 `reason_code=ephemeral_plaintext_in_encrypted_scope`。服务端只有在能按 scope 验证 MLS
-basis、AAD 与 proof 时才能广告 Realtime；能力缺失表现为没有实时信号，不能降级为明文。
+basis、AAD 与 proof 时才能广告 Signal；能力缺失表现为该 scope 没有 Signal，不能降级为明文。
 
 点对点 to-device 信号（`ak.key.verification.*`、`ak.secret.request` / `ak.secret.send`、
 `ak.realm_key.request`）**不属于**本条范围：它们使用

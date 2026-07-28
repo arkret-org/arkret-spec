@@ -358,10 +358,10 @@
       "file": "schemas/device-message.schema.json"
     },
     {
-      "schema_id": "ak.schema.realtime_envelope.v1",
-      "file": "schemas/realtime-envelope.schema.json",
+      "schema_id": "ak.schema.signal_envelope.v1",
+      "file": "schemas/signal-envelope.schema.json",
       "status": "active",
-      "description": "Encrypted-only Realtime Extension envelope; product payload types remain inside ciphertext."
+      "description": "Encrypted-only Signal Extension envelope; product payload types remain inside ciphertext."
     },
     {
       "schema_id": "ak.schema.cba_proof_bundle.v1",

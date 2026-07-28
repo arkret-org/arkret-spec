@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://arkret.org/v1/schemas/realtime-envelope.schema.json",
-  "title": "Arkret Realtime Envelope",
-  "description": "Encrypted-only broadcast realtime envelope. Exact product payload type and target are inside encrypted_payload. This object is never a durable Event and never advances actor_seq, Seal coverage, state_root, or reducer state.",
+  "$id": "https://arkret.org/v1/schemas/signal-envelope.schema.json",
+  "title": "Arkret Signal Envelope",
+  "description": "Encrypted-only broadcast signal envelope. Exact product payload type and target are inside encrypted_payload. This object is never a durable Event and never advances actor_seq, Seal coverage, state_root, or reducer state.",
   "type": "object",
   "required": [
     "realm_id",
@@ -83,7 +83,7 @@
       "additionalProperties": false
     },
     "proof": {
-      "$ref": "#/$defs/realtime_proof"
+      "$ref": "#/$defs/signal_proof"
     }
   },
   "additionalProperties": false,
@@ -92,9 +92,9 @@
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
-    "realtime_proof": {
+    "signal_proof": {
       "type": "object",
-      "description": "Detached device proof over canonical_json({context:'ak.realtime-proof-v1', envelope_digest, sender_actor_id, sender_device_id, verification_method, created_at, domain?, audience?}). envelope_digest hashes the complete RealtimeEnvelope with proof removed; created_at MUST equal the outer sent_at.",
+      "description": "Detached device proof over canonical_json({context:'ak.signal-proof-v1', envelope_digest, sender_actor_id, sender_device_id, verification_method, created_at, domain?, audience?}). envelope_digest hashes the complete SignalEnvelope with proof removed; created_at MUST equal the outer sent_at.",
       "required": [
         "kind",
         "verification_method",

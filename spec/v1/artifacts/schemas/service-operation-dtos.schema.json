@@ -92,7 +92,7 @@
       "$ref": "#/$defs/DirectoryWithdrawOutcome"
     },
     {
-      "$ref": "#/$defs/RealtimeSubmitOutcome"
+      "$ref": "#/$defs/SignalSubmitOutcome"
     },
     {
       "$ref": "#/$defs/EventView"
@@ -2208,9 +2208,9 @@
         }
       }
     },
-    "RealtimeSubmitOutcome": {
+    "SignalSubmitOutcome": {
       "type": "object",
-      "description": "Result of ak.self.realtime.command.send. accepted=true means the service admitted the encrypted envelope into the short-lived realtime rail. No Event ID, actor_seq, Seal coverage, or durable receipt is minted.",
+      "description": "Result of ak.self.signal.command.send. accepted=true means the service admitted the encrypted envelope into the short-lived signal rail. No Event ID, actor_seq, Seal coverage, or durable receipt is minted.",
       "required": [
         "accepted",
         "realm_id",

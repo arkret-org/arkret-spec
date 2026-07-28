@@ -73,8 +73,8 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 | `filter.not_event_types` | query | `string[]` | optional | 事件类型 deny list。 |
 
 Presence 不属于 account aggregate。客户端通过可选
-[`Realtime Extension`](./realtime.md) 发送和接收加密 presence；`GET
-/_arkret/self/account/subscribe` MUST 保持只读，且不得投递 `RealtimeEnvelope`。
+[`Signal Extension`](./signal.md) 发送和接收加密 presence；`GET
+/_arkret/self/account/subscribe` MUST 保持只读，且不得投递 `SignalEnvelope`。
 
 NDJSON 响应 frame 形态(`application/x-ndjson`,每行一个 JSON 对象):
 
@@ -135,7 +135,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 ```
 
 `state`、`state_after` 与 `account_data` 的 `events[]` 使用 durable / actor-private `Event`。
-`RealtimeEnvelope` 只出现在 `ak.self.realtime.stream.subscribe`，不得为了复用本流容器而包装
+`SignalEnvelope` 只出现在 `ak.self.signal.stream.subscribe`，不得为了复用本流容器而包装
 成 durable Event，也不得恢复旧的 presence/receipt/call 聚合对象。
 
 顶层 `notifications` 与 `to_device` 都不是事件容器。`notifications` 使用 §3.1 的闭合 `{items: NotificationDelta[]}`；`to_device` 使用 `DeviceMessageEnvelope[]` 承载形态 `{messages, ack_token?, limited?, next_cursor?, lost?}`，schema 为 `account-subscribe-frame.schema.json#/$defs/device_message_container`。两者中的对象均不得作为 durable Event Envelope 处理。

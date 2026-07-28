@@ -202,11 +202,11 @@
             "$ref": "./event-envelope.schema.json"
           }
         },
-        "realtime": {
+        "signal": {
           "type": "array",
-          "description": "Optional encrypted Realtime Extension envelopes. Exact applet payload types and targets remain inside ciphertext.",
+          "description": "Optional encrypted Signal Extension envelopes. Exact applet payload types and targets remain inside ciphertext.",
           "items": {
-            "$ref": "./realtime-envelope.schema.json"
+            "$ref": "./signal-envelope.schema.json"
           }
         }
       },

@@ -42,7 +42,7 @@ info:
 
     `EventsResolveRequestBody` / `EventsResolveOutcome`, `EventsQueryOutcome`,
 
-    `EventsFrontierState`, `RealtimeSubmitOutcome`,
+    `EventsFrontierState`, `SignalSubmitOutcome`,
 
     `IdentityResolveOutcome` / `IdentityDocumentView`,
     `DidOperationSubmitRequestBody` / `DidOperationSubmitOutcome`,
@@ -2330,8 +2330,6 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/RealmSealFrontierView
     RealmTombstonePayload:
       $ref: ../schemas/event-payload.schema.json#/$defs/realm_tombstone_payload
-    RealtimeSubmitOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/RealtimeSubmitOutcome
     ReferenceProjectionState:
       type: string
       description: Projection-only status for cross-Realm references. It maps Relation/View/Space hierarchy responses to accessible, lazy link, or locked anti-enumeration stubs.
@@ -2908,6 +2906,8 @@ components:
       $ref: ../schemas/account-operations.schema.json#/$defs/session_revoke_outcome
     SessionRevokeRequestBody:
       $ref: ../schemas/account-operations.schema.json#/$defs/session_revoke_request_body
+    SignalSubmitOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SignalSubmitOutcome
     SnapshotBootstrap:
       type: object
       description: Optional ak.peer.events.query.scan acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).
@@ -4685,18 +4685,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PeerKeyPackagesClaimQueryOutcome'
-  /_arkret/self/realtime:
+  /_arkret/self/signal:
     post:
-      operationId: ak.self.realtime.command.send
+      operationId: ak.self.signal.command.send
       security:
       - bearerAuth: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
         contentDigest: []
-      summary: Send an encrypted Realtime Extension envelope.
+      summary: Send an encrypted Signal Extension envelope.
       description: |
-        Sends a `ak.schema.realtime_envelope.v1` encrypted envelope. Exact
+        Sends a `ak.schema.signal_envelope.v1` encrypted envelope. Exact
         payload type and product target remain inside ciphertext. This endpoint
         never persists the envelope as a durable Event and never advances
         actor_seq, Seal state, or Realm frontier. Point-to-point device
@@ -4706,14 +4706,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/realtime-envelope.schema.json
+              $ref: ../schemas/signal-envelope.schema.json
       responses:
         '200':
-          description: Encrypted realtime envelope accepted into the live rail.
+          description: Encrypted signal envelope accepted into the live rail.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RealtimeSubmitOutcome'
+                $ref: '#/components/schemas/SignalSubmitOutcome'
         '400':
           description: |
             `invalid_param` or `schema_violation` — malformed envelope, expired
@@ -4722,32 +4722,32 @@ paths:
           description: |
             `capability_denied` or `policy_violation` — caller cannot send the
             declared signal_class in the signed scope.
-  /_arkret/self/realtime/subscribe:
+  /_arkret/self/signal/subscribe:
     get:
-      operationId: ak.self.realtime.stream.subscribe
+      operationId: ak.self.signal.stream.subscribe
       security:
       - bearerAuth: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
-      summary: Subscribe to encrypted Realtime Extension envelopes.
+      summary: Subscribe to encrypted Signal Extension envelopes.
       description: |
         Opens the optional authenticated live receive rail. Each data line is
-        the same `ak.schema.realtime_envelope.v1` accepted by the send rail;
+        the same `ak.schema.signal_envelope.v1` accepted by the send rail;
         bounded transport control frames may also be emitted. This stream has
         no catch-up, persistence, ordering, or delivery guarantee. Exact signal
         type and product target remain inside ciphertext.
       responses:
         '200':
-          description: Encrypted realtime NDJSON live stream.
+          description: Encrypted signal NDJSON live stream.
           content:
             application/x-ndjson:
               schema:
-                $ref: ../schemas/realtime-envelope.schema.json
+                $ref: ../schemas/signal-envelope.schema.json
         '403':
           description: |
             `capability_denied` or `policy_violation` — the authenticated device
-            has no eligible encrypted Realtime scope.
+            has no eligible encrypted Signal scope.
   /_arkret/self/rtc/token:
     post:
       operationId: ak.self.call.media.exchange.issue_token
@@ -4853,7 +4853,7 @@ paths:
         rebuild / initial account sync. `dropped` / `resync_required` may
         carry `reconnect_after_ms`, a minimum server-directed delay before
         opening another subscription for the same principal/device/filter
-        scope. Realtime envelopes use the Realtime Extension live rail, not
+        scope. Signal envelopes use the Signal Extension live rail, not
         this account-aggregate subscription.
       parameters:
       - in: header

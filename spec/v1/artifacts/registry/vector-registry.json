@@ -1873,9 +1873,9 @@
       ]
     },
     {
-      "vector_id": "ak.vector.realtime.class_ttl.v1",
+      "vector_id": "ak.vector.signal.class_ttl.v1",
       "status": "active",
-      "domain": "realtime",
+      "domain": "signal",
       "applies_to_fixtures": [
         "service-closure-hardening-fixture.json"
       ],

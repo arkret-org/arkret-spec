@@ -8533,7 +8533,7 @@
     },
     "audit_applet_binding_payload": {
       "type": "object",
-      "description": "Payload for ak.audit.applet_binding. Writes the control-plane FSM cell ak.component.audit.binding.v1 keyed by binding_id. Initial status is active; legal transitions are active->suspended, suspended->active, active->revoked, and suspended->revoked; revoked is terminal. The binding is non-retroactive and does not make the applet an MLS member or realtime sync recipient. Messages encrypted before activation_frontier_digest / first_auditable_epoch are never eligible for this binding's ak.audit.release.",
+      "description": "Payload for ak.audit.applet_binding. Writes the control-plane FSM cell ak.component.audit.binding.v1 keyed by binding_id. Initial status is active; legal transitions are active->suspended, suspended->active, active->revoked, and suspended->revoked; revoked is terminal. The binding is non-retroactive and does not make the applet an MLS member or signal sync recipient. Messages encrypted before activation_frontier_digest / first_auditable_epoch are never eligible for this binding's ak.audit.release.",
       "required": [
         "binding_id",
         "realm_id",

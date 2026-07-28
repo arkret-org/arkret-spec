@@ -106,7 +106,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-envelope-negative-fixture.json",
-      "sha256": "c2e92f282af902616d34692a0abeb73d3e3db47e532386fbd697f7081e1ec27a"
+      "sha256": "546e85c3d94c6f3c52145139787f313fd91a0e97dbf94c647c29a065caaddeb5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-lattice-dispatch-fixture.json",
@@ -118,7 +118,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "10dbd3f3093060ddc926108190aff5d021da1313f763404e6a070ca9d42bf679"
+      "sha256": "5fb17421478ee15ec43495c3f9c93167b1aeb7787a84248e9207f70f150bab15"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -238,7 +238,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "d5da1e6ffc3929c88c632f62514dcf638d6f905b7e6d96adbc61097cacc60eaa"
+      "sha256": "d7a57346dfcb54356eb53fa35617f65e102e6595bb2cb6ea4f9ef57c1e41bb46"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -254,7 +254,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
-      "sha256": "8e4fba9be015410faebdde69e6dd6da149142ecbc4c45ba5e979507dc64e586d"
+      "sha256": "a0ab50a152f72043ae816132547ae01300506bcf3d566eba8211a0035f750edb"
     },
     {
       "path": "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",

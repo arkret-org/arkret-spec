@@ -260,8 +260,8 @@
       "surface": "realtime_media",
       "operations": [
         "ak.self.media.query.ice_config",
-        "ak.self.realtime.command.send",
-        "ak.self.realtime.stream.subscribe",
+        "ak.self.signal.command.send",
+        "ak.self.signal.stream.subscribe",
         "ak.self.call.media.exchange.issue_token"
       ],
       "surface_class": "extension"
@@ -1783,11 +1783,11 @@
       "response_schema_ref": "schemas/snapshot.schema.json"
     },
     {
-      "operation_id": "ak.self.realtime.command.send",
-      "http": "POST /_arkret/self/realtime",
-      "grpc": "SelfRealtime/Send",
-      "mq": "self.realtime.command.send",
-      "notes": "Encrypted-only Realtime Extension send rail for ak.schema.realtime_envelope.v1. Exact signal type and product target remain inside ciphertext. It MUST NOT persist the envelope as a durable Event or advance actor_seq / Realm frontier.",
+      "operation_id": "ak.self.signal.command.send",
+      "http": "POST /_arkret/self/signal",
+      "grpc": "SelfSignal/Send",
+      "mq": "self.signal.command.send",
+      "notes": "Encrypted-only Signal Extension send rail for ak.schema.signal_envelope.v1. Exact signal type and product target remain inside ciphertext. It MUST NOT persist the envelope as a durable Event or advance actor_seq / Realm frontier.",
       "body_class": "non_streaming_json",
       "max_canonical_body_bytes": 65536,
       "success_shape_kind": "typed_response",
@@ -1796,15 +1796,15 @@
       "uncertain_outcome": {
         "strategy": "drop_unconfirmed"
       },
-      "request_schema_ref": "schemas/realtime-envelope.schema.json",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/RealtimeSubmitOutcome"
+      "request_schema_ref": "schemas/signal-envelope.schema.json",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SignalSubmitOutcome"
     },
     {
-      "operation_id": "ak.self.realtime.stream.subscribe",
-      "http": "GET /_arkret/self/realtime/subscribe",
-      "grpc": "SelfRealtime/Subscribe",
-      "mq": "self.realtime.stream.subscribe",
-      "notes": "Authenticated encrypted-only Realtime Extension receive rail. Frames carry RealtimeEnvelope objects or bounded transport control frames; exact signal type and product target remain inside ciphertext. No catch-up or durable delivery guarantee.",
+      "operation_id": "ak.self.signal.stream.subscribe",
+      "http": "GET /_arkret/self/signal/subscribe",
+      "grpc": "SelfSignal/Subscribe",
+      "mq": "self.signal.stream.subscribe",
+      "notes": "Authenticated encrypted-only Signal Extension receive rail. Frames carry SignalEnvelope objects or bounded transport control frames; exact signal type and product target remain inside ciphertext. No catch-up or durable delivery guarantee.",
       "body_class": "streaming_ndjson",
       "success_shape_kind": "event_stream"
     },
@@ -3092,7 +3092,7 @@
       "http": "GET /_arkret/self/account/subscribe",
       "grpc": "SelfAccount/Subscribe",
       "mq": "self.account.stream.subscribe",
-      "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, unread / notification counts). Realtime envelopes use the Realtime Extension live rail and are not account aggregate state. Connection is long-lived; server pushes NDJSON frames as new data becomes available.",
+      "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, unread / notification counts). Signal envelopes use the Signal Extension live rail and are not account aggregate state. Connection is long-lived; server pushes NDJSON frames as new data becomes available.",
       "body_class": "streaming_ndjson",
       "success_shape_kind": "event_stream"
     },

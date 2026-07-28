@@ -202,9 +202,9 @@ grpc:
       KeyPackagesClaimQuery: ak.peer.keys.keypackages.query.claim
     PeerSnapshot:
       Head: ak.peer.snapshot.query.manifest_head
-    SelfRealtime:
-      Send: ak.self.realtime.command.send
-      Subscribe: ak.self.realtime.stream.subscribe
+    SelfSignal:
+      Send: ak.self.signal.command.send
+      Subscribe: ak.self.signal.stream.subscribe
     SelfCallMedia:
       TokenExchange: ak.self.call.media.exchange.issue_token
     RootIdentity:
@@ -341,8 +341,8 @@ mq:
     peer.keys.keypackages.command.claim: ak.peer.keys.keypackages.command.claim
     peer.keys.keypackages.query.claim: ak.peer.keys.keypackages.query.claim
     peer.snapshot.query.manifest_head: ak.peer.snapshot.query.manifest_head
-    self.realtime.command.send: ak.self.realtime.command.send
-    self.realtime.stream.subscribe: ak.self.realtime.stream.subscribe
+    self.signal.command.send: ak.self.signal.command.send
+    self.signal.stream.subscribe: ak.self.signal.stream.subscribe
     self.call.media.exchange.issue_token: ak.self.call.media.exchange.issue_token
     self.account.stream.subscribe: ak.self.account.stream.subscribe
     self.account.query.viewer: ak.self.account.query.viewer

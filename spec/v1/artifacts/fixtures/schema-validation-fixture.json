@@ -1603,8 +1603,8 @@
       }
     },
     {
-      "name": "realtime_envelope_missing_proof_rejected",
-      "schema_ref": "schemas/realtime-envelope.schema.json",
+      "name": "signal_envelope_missing_proof_rejected",
+      "schema_ref": "schemas/signal-envelope.schema.json",
       "expect_valid": false,
       "first_expected_error": "$: 'proof' is a required property",
       "instance": {

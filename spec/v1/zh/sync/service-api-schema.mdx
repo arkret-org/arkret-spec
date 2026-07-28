@@ -73,7 +73,7 @@ HTTP 路径的第一段是 trust-surface classifier（信任面分类器），�
 | 安全事务 | `ak.self.security_transaction.*` | `/_arkret/self/security-transactions/*` |
 | Events | `ak.self.events.*` | `/_arkret/self/events/*` |
 | Federation peer events | `ak.peer.events.*` | `/_arkret/peer/events/*` |
-| 加密实时扩展 | `ak.self.realtime.command.send`、`ak.self.realtime.stream.subscribe` | `/_arkret/self/realtime*` |
+| 加密信号扩展 | `ak.self.signal.command.send`、`ak.self.signal.stream.subscribe` | `/_arkret/self/signal*` |
 | 账号自服务与聚合同步 | `ak.self.account.query.viewer`、`ak.self.account.command.update_profile`、`ak.self.account.stream.subscribe`、`ak.self.account.query.describe`、`ak.self.account.command.revoke_cursor` | `/_arkret/self/account/*` |
 | Realm snapshot 入口 | `ak.self.snapshot.*` | `/_arkret/self/snapshot/*` |
 | Federation peer snapshot 入口 | `ak.peer.snapshot.*` | `/_arkret/peer/snapshot/*` |
@@ -162,12 +162,12 @@ paths:
   /_arkret/self/events/frontier:
     get:
       operationId: ak.self.events.query.frontier
-  /_arkret/self/realtime:
+  /_arkret/self/signal:
     post:
-      operationId: ak.self.realtime.command.send
-  /_arkret/self/realtime/subscribe:
+      operationId: ak.self.signal.command.send
+  /_arkret/self/signal/subscribe:
     get:
-      operationId: ak.self.realtime.stream.subscribe
+      operationId: ak.self.signal.stream.subscribe
 
   /_arkret/peer/events/describe:
     get:
@@ -401,8 +401,8 @@ paths:
 | `ak.gate.account.command.revoke_session` | `POST /_arkret/gate/account/session-grants/revoke` | gRPC `GateAccount/SessionRevoke` / MQ `gate.account.command.revoke_session` |
 | `ak.gate.account.command.logout_auth_session` | `POST /_arkret/gate/account/auth-sessions/logout` | Account Authority → Auth Server S2S 子操作；普通客户端不得调用；不提供 gRPC/MQ client binding |
 | `ak.gate.account.command.logout` | `POST /_arkret/gate/account/logout` | Account Authority hard logout 的唯一客户端入口；内部可调用 `logout_auth_session`，不提供 gRPC/MQ client binding |
-| `ak.self.realtime.command.send` | `POST /_arkret/self/realtime` | gRPC `SelfRealtime/Send` / MQ `self.realtime.command.send`；承载 `ak.schema.realtime_envelope.v1`，不写 durable Event |
-| `ak.self.realtime.stream.subscribe` | `GET /_arkret/self/realtime/subscribe` | gRPC `SelfRealtime/Subscribe` / MQ `self.realtime.stream.subscribe`；encrypted-only live receive rail，无 backfill / durable delivery |
+| `ak.self.signal.command.send` | `POST /_arkret/self/signal` | gRPC `SelfSignal/Send` / MQ `self.signal.command.send`；承载 `ak.schema.signal_envelope.v1`，不写 durable Event |
+| `ak.self.signal.stream.subscribe` | `GET /_arkret/self/signal/subscribe` | gRPC `SelfSignal/Subscribe` / MQ `self.signal.stream.subscribe`；encrypted-only live receive rail，无 backfill / durable delivery |
 | `ak.self.snapshot.query.manifest_head` | `GET /_arkret/self/snapshot/head` | snapshot manifest |
 | `ak.peer.snapshot.query.manifest_head` | `GET /_arkret/peer/snapshot/head` | peer snapshot manifest |
 | `ak.self.space.query.list` / `ak.self.strand.query.list` / `ak.self.morph.query.list` / `ak.self.views.collection_projection.command.materialize` / `ak.self.morph.resource.get` | `GET /_arkret/self/realms/{realm_id}/spaces`, `GET /_arkret/self/realms/{realm_id}/strands`, `GET /_arkret/self/realms/{realm_id}/morphs`, `POST /_arkret/self/views/{view_id}/projection`, `GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}` | gRPC `SelfSpace/List` / `SelfStrand/List` / `SelfMorph/List` / `SelfViews/CollectionProjection` / `SelfMorph/Get`; MQ `self.space.query.list` / `self.strand.query.list` / `self.morph.query.list` / `self.views.collection_projection.command.materialize` / `self.morph.resource.get` |

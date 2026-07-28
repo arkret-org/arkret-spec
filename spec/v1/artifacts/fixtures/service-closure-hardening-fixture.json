@@ -8,7 +8,7 @@
   },
   "covers_vectors": [
     "ak.vector.invite.consumed_token_resubject_rejected.v1",
-    "ak.vector.realtime.class_ttl.v1",
+    "ak.vector.signal.class_ttl.v1",
     "ak.vector.projection.pagination_shape.v1",
     "ak.vector.range_completeness.witness_disagreement.v1",
     "ak.vector.cursor.revoke_high_assurance.v1",
@@ -66,7 +66,7 @@
       }
     },
     {
-      "vector_id": "ak.vector.realtime.class_ttl.v1",
+      "vector_id": "ak.vector.signal.class_ttl.v1",
       "assertions": [
         "class_requires_scope_eligibility",
         "ttl_above_class_ceiling_rejected",
@@ -75,7 +75,7 @@
       "steps": [
         {
           "name": "moderation_class_not_permitted",
-          "scope_realtime_classes": [
+          "scope_signal_classes": [
             "setup",
             "session"
           ],
@@ -84,13 +84,13 @@
           "rail_available": true,
           "expected": {
             "decision": "reject",
-            "reason": "realtime_class_not_permitted",
+            "reason": "signal_class_not_permitted",
             "durable_event_written": false
           }
         },
         {
           "name": "ttl_above_session_ceiling",
-          "scope_realtime_classes": [
+          "scope_signal_classes": [
             "session"
           ],
           "signal_class": "session",
@@ -98,13 +98,13 @@
           "rail_available": true,
           "expected": {
             "decision": "reject",
-            "reason": "realtime_ttl_out_of_range",
+            "reason": "signal_ttl_out_of_range",
             "durable_event_written": false
           }
         },
         {
           "name": "rail_unavailable",
-          "scope_realtime_classes": [
+          "scope_signal_classes": [
             "session"
           ],
           "signal_class": "session",
@@ -112,7 +112,7 @@
           "rail_available": false,
           "expected": {
             "decision": "reject",
-            "reason": "realtime_rail_unavailable",
+            "reason": "signal_rail_unavailable",
             "durable_event_written": false,
             "actor_seq_advanced": false,
             "realm_frontier_advanced": false

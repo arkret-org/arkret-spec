@@ -2786,31 +2786,6 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ak.self.realtime.command.send",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/realtime",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/realtime-envelope.schema.json",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/RealtimeSubmitOutcome",
-      "openapi_component_refs": {
-        "request": "../schemas/realtime-envelope.schema.json",
-        "response": "#/components/schemas/RealtimeSubmitOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.realtime.stream.subscribe",
-      "surface_class": "extension",
-      "http": "GET /_arkret/self/realtime/subscribe",
-      "success_shape_kind": "event_stream",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
-      "openapi_component_refs": {},
-      "completeness_class": "streaming_frame_schema",
-      "reason": "NDJSON event/account frame stream; frame contract lives in a dedicated frame schema, not a single DTO."
-    },
-    {
       "operation_id": "ak.self.security_transaction.command.continue",
       "surface_class": "core",
       "http": "POST /_arkret/self/security-transactions/{transaction_id}/continue",
@@ -2850,6 +2825,31 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.self.signal.command.send",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/signal",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/signal-envelope.schema.json",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SignalSubmitOutcome",
+      "openapi_component_refs": {
+        "request": "../schemas/signal-envelope.schema.json",
+        "response": "#/components/schemas/SignalSubmitOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.signal.stream.subscribe",
+      "surface_class": "extension",
+      "http": "GET /_arkret/self/signal/subscribe",
+      "success_shape_kind": "event_stream",
+      "request_schema_ref": null,
+      "response_schema_ref": null,
+      "openapi_component_refs": {},
+      "completeness_class": "streaming_frame_schema",
+      "reason": "NDJSON event/account frame stream; frame contract lives in a dedicated frame schema, not a single DTO."
     },
     {
       "operation_id": "ak.self.snapshot.query.manifest_head",

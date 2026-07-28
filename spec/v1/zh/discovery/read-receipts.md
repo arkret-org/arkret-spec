@@ -23,7 +23,7 @@ updated: 2026-07-02
 
 | 对象 / Event | Wire scope | 持久性 | 谁可见 | 推送 / 审计关系 |
 | --- | --- | --- | --- | --- |
-| Realtime 密文内的 `ak.receipt.read` / `ak.schema.read_receipt.v1` | Realtime Extension | 短 TTL，不进入 durable Event history | 仅能解密目标 scope 的成员 | Push Gateway MUST NOT 因 receipt 本身发通知；只能用于 unread / suppression 派生 |
+| Signal 密文内的 `ak.receipt.read` / `ak.schema.read_receipt.v1` | Signal Extension | 短 TTL，不进入 durable Event history | 仅能解密目标 scope 的成员 | Push Gateway MUST NOT 因 receipt 本身发通知；只能用于 unread / suppression 派生 |
 | `ak.read_cursor.advance` / `ak.schema.read_cursor.v1` | actor-private account / durable sync object | 持久保存最新阅读位置，多端同步 | 仅该 actor 的设备和授权 account aggregate 服务 | 作为 unread count、badge 与 push suppression 输入 |
 | `ak.notification` / `ak.schema.notification.v1` | derived projection / account aggregate | 派生状态，可重建 | 目标 actor 及其设备 | 不是协议真相源；必须绑定 read cursor frontier、notification rule frontier 与 source event frontier |
 | `ak.audit.accessed`（schema 见 audit profile，本表不另列 `ak.schema.*`） | durable Event（审计 profile 下） | 按 audit retention 保留 | 由 Realm audit policy / capability 控制 | 记录受控读取、watch manage_others、late recovery 等访问证明；不得替代 read receipt |
@@ -35,7 +35,7 @@ updated: 2026-07-02
 ### 2.1 实时性与加密边界
 
 已读回执高频且没有长期保留价值，因此 MUST 作为
-[`RealtimeEnvelope`](../sync/realtime.md) 的加密 plaintext 发送，不写入 Event 因果图。
+[`SignalEnvelope`](../sync/signal.md) 的加密 plaintext 发送，不写入 Event 因果图。
 外层 `signal_class` 固定为 `session`；`ak.receipt.read`、read target、Event id、HLC 与 actor
 都必须位于 `encrypted_payload` 中，Sync Service 不得看见或按这些字段路由。
 
@@ -43,7 +43,7 @@ plaintext 解密后使用闭合对象 `ak.schema.read_receipt.v1`，至少包含
 `kind="ak.receipt.read"`、`actor_id`、单调 `payload_sequence`、`read_scope` 与已读至的
 `event_id`，并可包含 `hlc`。外层 `sender_actor_id` MUST 等于 plaintext `actor_id`。
 
-接收方只有在验证 Realtime proof、Seal basis、MLS epoch/AAD、TTL 并成功解密后，才能更新
+接收方只有在验证 Signal proof、Seal basis、MLS epoch/AAD、TTL 并成功解密后，才能更新
 UI。relay attestation 不能替代 sender device proof。任何把 receipt target 或精确 kind 放到
 外层的旧明文 envelope MUST 以 `schema_violation` 或
 `ephemeral_plaintext_in_encrypted_scope` 拒绝。

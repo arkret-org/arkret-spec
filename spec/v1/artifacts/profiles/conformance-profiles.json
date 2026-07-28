@@ -784,7 +784,7 @@
         "ak.schema.event.v1",
         "ak.schema.event_payload.v1",
         "ak.schema.seal.v1",
-        "ak.schema.realtime_envelope.v1"
+        "ak.schema.signal_envelope.v1"
       ],
       "required_fixtures": [
         "event-envelope-negative-fixture.json",
@@ -3184,8 +3184,8 @@
     "ak.profile.webrtc_media.v1": {
       "required_endpoints": [
         "ak.server.query.describe",
-        "ak.self.realtime.command.send",
-        "ak.self.realtime.stream.subscribe"
+        "ak.self.signal.command.send",
+        "ak.self.signal.stream.subscribe"
       ],
       "required_event_kinds": [
         "ak.call.state"
@@ -3193,7 +3193,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.event.v1",
-        "ak.schema.realtime_envelope.v1"
+        "ak.schema.signal_envelope.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"

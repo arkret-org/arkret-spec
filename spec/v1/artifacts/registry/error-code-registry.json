@@ -332,22 +332,22 @@
       "description": "A child Realm's read-receipt policy attempted to cross the parent's compliance floor (parent disclosure='required' → child 'optional' or 'disabled') without the parent explicitly setting receipt_compliance_opt_in.child_privacy_tightening_against_required=true. Reducer MUST reject the offending ak.realm.read_receipt_policy Move with this wire code. See zh/discovery/read-receipts.md §2.5."
     },
     {
-      "code": "realtime_class_not_permitted",
+      "code": "signal_class_not_permitted",
       "http_status": 403,
       "scope": "service_call",
-      "description": "ak.self.realtime.command.send rejected the envelope because the actor lacks the kind-specific broadcast capability or Realm policy disables that realtime kind."
+      "description": "ak.self.signal.command.send rejected the envelope because the actor lacks the kind-specific broadcast capability or Realm policy disables that signal kind."
     },
     {
-      "code": "realtime_ttl_out_of_range",
+      "code": "signal_ttl_out_of_range",
       "http_status": 400,
       "scope": "service_call",
-      "description": "ak.self.realtime.command.send rejected ttl_ms because it is absent when required or outside the service's advertised kind-specific range."
+      "description": "ak.self.signal.command.send rejected ttl_ms because it is absent when required or outside the service's advertised kind-specific range."
     },
     {
-      "code": "realtime_rail_unavailable",
+      "code": "signal_rail_unavailable",
       "http_status": 503,
       "scope": "service_call",
-      "description": "ak.self.realtime.command.send could not enqueue or fan out the transient signal because the realtime channel is temporarily unavailable; durable Event history is not affected."
+      "description": "ak.self.signal.command.send could not enqueue or fan out the transient signal because the signal channel is temporarily unavailable; durable Event history is not affected."
     },
     {
       "code": "not_found",
@@ -5142,7 +5142,7 @@
         "service_call",
         "client_sync"
       ],
-      "description": "Sub-reason for failed_precondition when any legacy plaintext broadcast envelope is submitted or received. Realtime is encrypted-only in every scope; implementations MUST fail closed and MUST NOT advertise Realtime for a scope unless they can verify its MLS basis, AAD, and proof. See zh/crypto-media/encryption-and-audit.md section 2.9.1."
+      "description": "Sub-reason for failed_precondition when any legacy plaintext broadcast envelope is submitted or received. Signal is encrypted-only in every scope; implementations MUST fail closed and MUST NOT advertise Signal for a scope unless they can verify its MLS basis, AAD, and proof. See zh/crypto-media/encryption-and-audit.md section 2.9.1."
     }
   ]
 }

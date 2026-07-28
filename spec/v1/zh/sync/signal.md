@@ -1,22 +1,22 @@
 ---
-title: Realtime Extension
+title: Signal Extension
 status: candidate
 normative: true
 stability: v1
 updated: 2026-07-28
 ---
 
-# Realtime Extension
+# Signal Extension
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
-Realtime 是可选 Extension，不是 durable Event 或 core to-device 的别名。它只有一个
+Signal 是可选 Extension，不是 durable Event 或 core to-device 的别名。它只有一个
 encrypted envelope、一条 send/subscribe live rail 与一个可选单跳 peer relay。
 
 ## 1. Envelope
 
 ```text
-RealtimeEnvelope {
+SignalEnvelope {
   realm_id,
   scope_ref,
   sender_actor_id,
@@ -32,7 +32,7 @@ RealtimeEnvelope {
 
 `scope_ref`、sender、Seal basis、时间、`signal_class` 与 ciphertext metadata 进入
 `envelope_digest`；device proof 使用
-`canonical_json({context:"ak.realtime-proof-v1", envelope_digest, sender_actor_id,
+`canonical_json({context:"ak.signal-proof-v1", envelope_digest, sender_actor_id,
 sender_device_id, verification_method, created_at, domain?, audience?})`，其中 proof
 `created_at` 必须逐字等于外层 `sent_at`。`encrypted_payload` 必须使用 scope 当前 MLS exporter
 派生的 AEAD key，并把上述不可变 server-visible header 的 canonical digest 绑定进 AAD。
@@ -49,7 +49,7 @@ aad_digest = H(canonical_json({
 ```
 
 `aad_digest` 不包含自身、ciphertext 或 proof。`envelope_digest` 则覆盖移除 `proof` 后的完整
-RealtimeEnvelope，因此同时承诺 ciphertext 与 `aad_digest`。`verification_method` 必须在
+SignalEnvelope，因此同时承诺 ciphertext 与 `aad_digest`。`verification_method` 必须在
 `seal_ref` 下解析为 `sender_actor_id` 为 `sender_device_id` 授权的 active device signing
 method；不得用 verification-method fragment 与 device id 的字符串相等代替该授权验证。
 
@@ -70,7 +70,7 @@ method；不得用 verification-method fragment 与 device id 的字符串相等
 - `setup` 最大 120 seconds，`moderation` 最大 60 seconds，`session` 最大 30 seconds；
 - canonical envelope ≤ 64 KiB，AEAD plaintext ≤ 48 KiB；ChaCha20-Poly1305 tag 计入
   `ciphertext`，其 unpadded base64url 最大长度为 65,558 characters；
-- relay 每次只允许一个 destination peer hop，不得形成 realtime mesh 转发链；
+- relay 每次只允许一个 destination peer hop，不得形成 signal mesh 转发链；
 - receiver 按 `(sender_device_id, scope_ref, payload_sequence)` 去重；sequence 位于密文内，
   server 只按完整 envelope digest 做短期 replay suppression。
 
@@ -85,16 +85,16 @@ sender、ingress、relay 和 receiver 都 MUST 验证：
 3. `signal_class=moderation` 还具有对应 moderation action；
 4. E2EE profile、epoch/AAD binding、proof 与 TTL 有效。
 
-不存在 plaintext branch。任何 MLS-backed scope 的 plaintext realtime/legacy ephemeral 输入
+不存在 plaintext branch。任何 MLS-backed scope 的 plaintext signal/legacy ephemeral 输入
 MUST 以 `ephemeral_plaintext_in_encrypted_scope` fail closed。
 
 Service Describe 的服务级 operation 广告仅表示 transport surface 存在，不表示每个 scope
 可用。实现只有在同时提供 scope-aware profile/limit descriptor，并能在目标 scope 验证
-encrypted realtime 时，才能为该 scope 广告 Realtime；否则必须撤下 scope capability。
+encrypted signal 时，才能为该 scope 广告 Signal；否则必须撤下 scope capability。
 
 ## 4. Rail
 
-`send` 接受一个 `RealtimeEnvelope`；`subscribe` 在既有 authenticated live connection 上输出
+`send` 接受一个 `SignalEnvelope`；`subscribe` 在既有 authenticated live connection 上输出
 同一 envelope 和 transport control frames。新增 payload type 不得新增 endpoint、stream
 frame kind 或 server-visible selector。
 
@@ -106,7 +106,7 @@ delivery guarantee。
 
 `ak.key.verification.*`、`ak.secret.request/send`、`ak.realm_key.request` 以及直接参与设备验证、
 密钥分发、历史恢复的消息使用 `DeviceMessageEnvelope` 和可靠队列。它们不得进入 broadcast
-Realtime，也不得使用 realtime TTL/单跳 fanout 语义。
+Signal，也不得使用 signal TTL/单跳 fanout 语义。
 
 ## 6. 最小正反例
 
@@ -114,5 +114,5 @@ Realtime，也不得使用 realtime TTL/单跳 fanout 语义。
 
 反例：外层携带 `signal_kind=typing` 或 `call_id`，即使内容仍加密也违反元数据最小化。
 
-反例：服务端因 operation 存在而对所有 Realm 全局广告 Realtime，却不能验证某 Circle 的 MLS
+反例：服务端因 operation 存在而对所有 Realm 全局广告 Signal，却不能验证某 Circle 的 MLS
 basis。该广告不合规，必须按 scope 撤下。

@@ -532,7 +532,7 @@
       "expected": {
         "decision": "reject",
         "error_code": "schema_violation",
-        "reason": "Realtime payload type MUST NOT be inserted into durable Event history"
+        "reason": "Signal payload type MUST NOT be inserted into durable Event history"
       }
     },
     {

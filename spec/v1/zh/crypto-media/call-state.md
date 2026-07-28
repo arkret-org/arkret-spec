@@ -150,7 +150,7 @@ sidebar:
 - `mute_override`：每个 call leg 独立写入 `ak.component.call.mute_override.v1` CAS cell。`status=active` 时必须携带 `audio_muted/video_muted`；`status=cleared` 时二者必须省略。不同 leg 并发互不冲突，同一 leg 并发改写 fail closed。写入者 MUST 持有 `ak.call.moderate`。
 - `moderation_delta.op=remove_participant`：projected write 固定为 `add(tag=envelope.event_id,value=removal)`。`kick` MUST 含 `device_id`；`ban` MUST 省略它。`moderation_delta.op=restore_participant` 固定移除 `observed_tag`，且只能移除已观察到、actor 一致的 ban，不能恢复 kick。
 
-高频 speaking、自主 mute/video 状态 SHOULD 走 encrypted Realtime Extension；主持人强制静音 MUST 通过 durable `mute_override` 驱动服务端媒体权限。
+高频 speaking、自主 mute/video 状态 SHOULD 走 encrypted Signal Extension；主持人强制静音 MUST 通过 durable `mute_override` 驱动服务端媒体权限。
 
 ### 4.2 `state` 状态机（normative）
 

@@ -216,8 +216,8 @@
       "schema_ref": "schemas/extension-manifest.schema.json"
     },
     {
-      "context": "ak.realtime-proof-v1",
-      "object_family": "realtime_envelope",
+      "context": "ak.signal-proof-v1",
+      "object_family": "signal_envelope",
       "binding_fields": [
         "envelope_digest",
         "sender_actor_id",
@@ -227,8 +227,8 @@
         "domain?",
         "audience?"
       ],
-      "defined_in": "zh/sync/realtime.md",
-      "schema_ref": "schemas/realtime-envelope.schema.json"
+      "defined_in": "zh/sync/signal.md",
+      "schema_ref": "schemas/signal-envelope.schema.json"
     },
     {
       "context": "ak.event-proof-v1",

@@ -853,19 +853,19 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.realtime.command.send",
-      "http_alias": "POST /_arkret/self/realtime",
+      "operation_id": "ak.self.signal.command.send",
+      "http_alias": "POST /_arkret/self/signal",
       "operation_specific": [
-        "realtime_class_not_permitted",
-        "realtime_ttl_out_of_range",
-        "realtime_rail_unavailable"
+        "signal_class_not_permitted",
+        "signal_ttl_out_of_range",
+        "signal_rail_unavailable"
       ]
     },
     {
-      "operation_id": "ak.self.realtime.stream.subscribe",
-      "http_alias": "GET /_arkret/self/realtime/subscribe",
+      "operation_id": "ak.self.signal.stream.subscribe",
+      "http_alias": "GET /_arkret/self/signal/subscribe",
       "operation_specific": [
-        "realtime_rail_unavailable"
+        "signal_rail_unavailable"
       ]
     },
     {

@@ -1287,7 +1287,7 @@
         "properties": [
           "source_service_id",
           "events",
-          "realtime"
+          "signal"
         ],
         "closed": true
       },
@@ -3563,10 +3563,10 @@
       }
     },
     {
-      "operation_id": "ak.self.realtime.command.send",
+      "operation_id": "ak.self.signal.command.send",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/realtime-envelope.schema.json",
+        "schema_ref": "schemas/signal-envelope.schema.json",
         "schema_kind": "object",
         "required": [
           "realm_id",
@@ -3595,7 +3595,7 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/RealtimeSubmitOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SignalSubmitOutcome",
         "schema_kind": "object",
         "required": [
           "accepted",

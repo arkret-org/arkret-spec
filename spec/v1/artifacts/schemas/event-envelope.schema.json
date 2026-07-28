@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/event-envelope.schema.json",
   "title": "Arkret Event Envelope",
-  "description": "Single canonical wire object for durable and actor-private Events. kind + schema-validated payload is the only producer-authored business fact; reducer cell targets and lattice operations are derived from the registered reducer contract and never supplied on wire. DataEvents carry seal_ref/auth_context; Control Moves carry seal_basis and optional preconditions. proof.event_digest hashes canonical producer bytes after removing proofs, unsigned, and the sole reducer-stamped top-level field actor_kind. Signed scope_ref is included in the digest and is independently checked against payload-derived security scope. Realtime uses realtime-envelope.schema.json; point-to-point device verification and secret distribution use device-message.schema.json.",
+  "description": "Single canonical wire object for durable and actor-private Events. kind + schema-validated payload is the only producer-authored business fact; reducer cell targets and lattice operations are derived from the registered reducer contract and never supplied on wire. DataEvents carry seal_ref/auth_context; Control Moves carry seal_basis and optional preconditions. proof.event_digest hashes canonical producer bytes after removing proofs, unsigned, and the sole reducer-stamped top-level field actor_kind. Signed scope_ref is included in the digest and is independently checked against payload-derived security scope. Signal uses signal-envelope.schema.json; point-to-point device verification and secret distribution use device-message.schema.json.",
   "type": "object",
   "required": [
     "event_id",
@@ -440,7 +440,7 @@
       }
     },
     {
-      "$comment": "Realtime payload type names are not Event kinds and MUST NOT appear in durable history. They exist only inside encrypted Realtime payload. To-device kinds use device-message.schema.json.",
+      "$comment": "Signal payload type names are not Event kinds and MUST NOT appear in durable history. They exist only inside encrypted Signal payload. To-device kinds use device-message.schema.json.",
       "not": {
         "properties": {
           "kind": {
