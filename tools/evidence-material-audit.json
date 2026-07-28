@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 57,
+  "audited_occurrence_count": 59,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -297,6 +297,22 @@
       "disposition": "polymorphic_container",
       "material_families": ["proof", "attestation"],
       "reason": "References either an executable proof artifact or an externally issued test attestation."
+    },
+    {
+      "file": "security-transaction.schema.json",
+      "key": "authorize_event_publication_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "receipt", "commitment"],
+      "reason": "Carries the fixed authorization lease proofs and optional CBA dependency proof bundles for the authority-produced authorize Event."
+    },
+    {
+      "file": "security-transaction.schema.json",
+      "key": "prepared_event_publication_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "attestation", "receipt", "commitment"],
+      "reason": "Defines the typed publication evidence container whose lease and CBA bundles are combined with an authority-produced Event."
     },
     {
       "file": "service-operation-dtos.schema.json",

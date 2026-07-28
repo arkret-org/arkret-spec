@@ -502,6 +502,122 @@
       },
       "additionalProperties": false
     },
+    "recovery_completion_attestation": {
+      "type": "object",
+      "description": "Coordinator-signed proof created atomically with the durable completed RecoveryTransaction. It is the only offline completion evidence accepted by the Account Authority during recovery grant promotion.",
+      "required": [
+        "schema",
+        "transaction_id",
+        "transaction_request_digest",
+        "prepared_plan_digest",
+        "principal_id",
+        "coordinator_service_id",
+        "recovery_session_id",
+        "terminal_receipt_id",
+        "terminal_receipt_digest",
+        "replacement_device_id",
+        "device_authorization_event_id",
+        "device_authorization_event_digest",
+        "result_model_generation_ref",
+        "completed_at",
+        "auth_data"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.recovery_completion_attestation.v1"
+        },
+        "transaction_id": {
+          "$ref": "#/$defs/transaction_id"
+        },
+        "transaction_request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "prepared_plan_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "coordinator_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "recovery_session_id": {
+          "$ref": "#/$defs/recovery_session_id"
+        },
+        "terminal_receipt_id": {
+          "$ref": "#/$defs/receipt_id"
+        },
+        "terminal_receipt_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "replacement_device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "device_authorization_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "device_authorization_event_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "result_model_generation_ref": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "$ref": "#/$defs/did_generation_ref"
+            }
+          ]
+        },
+        "completed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "auth_data": {
+          "type": "object",
+          "required": [
+            "verification_method",
+            "alg",
+            "signature",
+            "signed_fields"
+          ],
+          "properties": {
+            "verification_method": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            },
+            "alg": {
+              "type": "string",
+              "const": "EdDSA"
+            },
+            "signature": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "signed_fields": {
+              "type": "array",
+              "const": [
+                "schema",
+                "transaction_id",
+                "transaction_request_digest",
+                "prepared_plan_digest",
+                "principal_id",
+                "coordinator_service_id",
+                "recovery_session_id",
+                "terminal_receipt_id",
+                "terminal_receipt_digest",
+                "replacement_device_id",
+                "device_authorization_event_id",
+                "device_authorization_event_digest",
+                "result_model_generation_ref",
+                "completed_at"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "promote_recovery_session_grant_request": {
       "type": "object",
       "required": [
@@ -509,6 +625,7 @@
         "transaction_id",
         "transaction_request_digest",
         "terminal_receipt",
+        "completion_attestation",
         "device_authorization_event_id",
         "result_model_generation_ref",
         "canonical_request_digest",
@@ -526,6 +643,9 @@
         },
         "terminal_receipt": {
           "$ref": "./recovery-receipt.schema.json"
+        },
+        "completion_attestation": {
+          "$ref": "#/$defs/recovery_completion_attestation"
         },
         "device_authorization_event_id": {
           "$ref": "#/$defs/event_id"

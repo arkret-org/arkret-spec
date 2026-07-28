@@ -2531,19 +2531,164 @@
           "previous_model_generation_ref": 2,
           "result_model_generation_ref": 2,
           "authorize_unit": {
-            "operation_id": "ak.self.events.command.submit",
             "destination_service_id": "did:webvh:z6mkfixture:coordinator.example",
             "audience": "did:webvh:z6mkfixture:coordinator.example",
-            "request_schema": "https://arkret.org/v1/schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitBatchRequestBody",
             "request": {
               "events": [
                 {
-                  "event_id": "ak:event:019a7360-0000-7000-8000-000000000023",
-                  "kind": "ak.device.authorize"
+                  "event": {
+                    "event_id": "ak:event:019a7360-0000-7000-8000-000000000023",
+                    "kind": "ak.device.authorize",
+                    "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000026",
+                    "scope_ref": {
+                      "kind": "realm",
+                      "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000026"
+                    },
+                    "actor_id": "did:webvh:z6mkfixture:alice.example",
+                    "actor_seq": 8,
+                    "created_at": "2026-05-20T00:00:00.000Z",
+                    "prev_refs": [],
+                    "refs": [],
+                    "seal_basis": {
+                      "leaves": [
+                        "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                      ],
+                      "control_event_set_root": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                      "state_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                    },
+                    "payload": {
+                      "principal_id": "did:webvh:z6mkfixture:alice.example",
+                      "device_id": "ak:device:019a7360-0000-7000-8000-000000000022",
+                      "device_public_key": "z6MkReplacementDevice",
+                      "hpke_key": "z6LSReplacementHpke",
+                      "algorithms": [
+                        "ak.device.alg.ed25519.v1",
+                        "ak.device.hpke.x25519_hkdf_sha256.v1"
+                      ],
+                      "authorized_by": "did:webvh:z6mkfixture:alice.example",
+                      "not_before": "2026-05-20T00:00:00.000Z",
+                      "cross_signing_binding": {
+                        "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
+                        "alg": "EdDSA",
+                        "ssk_generation": 2,
+                        "signature": "c2ln"
+                      },
+                      "device_signature": {
+                        "kind": "detached_jws",
+                        "verification_method": "did:webvh:z6mkfixture:alice.example#replacement-device",
+                        "jws": "a..b"
+                      },
+                      "recovery_session_id": "ak:recovery_session:019a7360-0000-7000-8000-000000000021"
+                    },
+                    "proofs": [
+                      {
+                        "kind": "detached_jws",
+                        "verification_method": "did:webvh:z6mkfixture:alice.example#replacement-device",
+                        "alg": "EdDSA",
+                        "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                        "created_at": "2026-05-20T00:00:00.000Z",
+                        "jws": "a..b"
+                      }
+                    ]
+                  },
+                  "authorization_lease": {
+                    "authorization_lease_id": "ak:authorization_lease:019a7360-0000-7000-8000-000000000027",
+                    "basis_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "actor_id": "did:webvh:z6mkfixture:alice.example",
+                    "device_id": "ak:device:019a7360-0000-7000-8000-000000000022",
+                    "scope_ref": {
+                      "kind": "realm",
+                      "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000026"
+                    },
+                    "action": "ak.device.authorize",
+                    "risk_tier": "high",
+                    "issued_at": "2026-05-20T00:00:00.000Z",
+                    "expires_at": "2026-05-20T00:05:00.000Z",
+                    "authority_set_ref": {
+                      "authority_set_id": "ak.authority_set.recovery.v1",
+                      "authority_set_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                    },
+                    "proofs": [
+                      {
+                        "kind": "detached_jws",
+                        "verification_method": "did:webvh:z6mkfixture:alice.example#lease",
+                        "alg": "EdDSA",
+                        "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                        "created_at": "2026-05-20T00:00:00.000Z",
+                        "jws": "a..b"
+                      }
+                    ]
+                  }
                 },
                 {
-                  "event_id": "ak:event:019a7360-0000-7000-8000-000000000024",
-                  "kind": "ak.device.list_update"
+                  "event": {
+                    "event_id": "ak:event:019a7360-0000-7000-8000-000000000024",
+                    "kind": "ak.device.list_update",
+                    "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000026",
+                    "scope_ref": {
+                      "kind": "realm",
+                      "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000026"
+                    },
+                    "actor_id": "did:webvh:z6mkfixture:alice.example",
+                    "actor_seq": 9,
+                    "created_at": "2026-05-20T00:00:01.000Z",
+                    "prev_refs": [
+                      "ak:event:019a7360-0000-7000-8000-000000000023"
+                    ],
+                    "refs": [],
+                    "seal_basis": {
+                      "leaves": [
+                        "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                      ],
+                      "control_event_set_root": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                      "state_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                    },
+                    "payload": {
+                      "principal_id": "did:webvh:z6mkfixture:alice.example",
+                      "changed": [
+                        "ak:device:019a7360-0000-7000-8000-000000000022"
+                      ],
+                      "updated_at": "2026-05-20T00:00:01.000Z"
+                    },
+                    "proofs": [
+                      {
+                        "kind": "detached_jws",
+                        "verification_method": "did:webvh:z6mkfixture:alice.example#replacement-device",
+                        "alg": "EdDSA",
+                        "event_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                        "created_at": "2026-05-20T00:00:01.000Z",
+                        "jws": "a..b"
+                      }
+                    ]
+                  },
+                  "authorization_lease": {
+                    "authorization_lease_id": "ak:authorization_lease:019a7360-0000-7000-8000-000000000028",
+                    "basis_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "actor_id": "did:webvh:z6mkfixture:alice.example",
+                    "device_id": "ak:device:019a7360-0000-7000-8000-000000000022",
+                    "scope_ref": {
+                      "kind": "realm",
+                      "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000026"
+                    },
+                    "action": "ak.device.list_update",
+                    "risk_tier": "high",
+                    "issued_at": "2026-05-20T00:00:00.000Z",
+                    "expires_at": "2026-05-20T00:05:00.000Z",
+                    "authority_set_ref": {
+                      "authority_set_id": "ak.authority_set.recovery.v1",
+                      "authority_set_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                    },
+                    "proofs": [
+                      {
+                        "kind": "detached_jws",
+                        "verification_method": "did:webvh:z6mkfixture:alice.example#lease",
+                        "alg": "EdDSA",
+                        "payload_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                        "created_at": "2026-05-20T00:00:00.000Z",
+                        "jws": "a..b"
+                      }
+                    ]
+                  }
                 }
               ]
             },
@@ -2633,34 +2778,113 @@
           },
           "authorization_request_digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
           "did_publication": {
-            "registry_url": "https://registry.example/did/alice",
+            "registry_service_id": "did:webvh:z6mkfixture:registry.example",
+            "registry_endpoint": "https://registry.example/_arkret/root/identity/submit-did-operation",
             "previous_entry_ref": "did:webvh:z6mkfixture:alice.example?versionId=1-genesis",
             "expected_entry_ref": "did:webvh:z6mkfixture:alice.example?versionId=2-recovery",
             "canonical_entry_base64url": "eyJ2ZXJzaW9uSWQiOiIyLXJlY292ZXJ5In0",
             "entry_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
           },
           "reanchor_event_submission": {
-            "canonical_encoding": "canonical_json",
-            "value": {
+            "event": {
               "event_id": "ak:event:019a7360-0000-7000-8000-000000000034",
-              "kind": "ak.device.reanchor"
+              "kind": "ak.device.reanchor",
+              "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000039",
+              "scope_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000039"
+              },
+              "actor_id": "did:webvh:z6mkfixture:alice.example",
+              "actor_seq": 1,
+              "created_at": "2026-05-20T00:00:00.000Z",
+              "prev_refs": [],
+              "refs": [
+                {
+                  "id": "2-recovery",
+                  "role": "did_recovery_anchor",
+                  "critical": true
+                }
+              ],
+              "payload": {
+                "principal_id": "did:webvh:z6mkfixture:alice.example",
+                "did_version_id": "2-recovery",
+                "previous_device_generation": "1-genesis",
+                "new_device_generation": "2-recovery",
+                "pre_fence_basis": null,
+                "replacement_authorize_event_id": "ak:event:019a7360-0000-7000-8000-000000000035",
+                "replacement_authorize_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              "proofs": [
+                {
+                  "kind": "detached_jws",
+                  "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a7360-0000-7000-8000-000000000031",
+                  "alg": "EdDSA",
+                  "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "created_at": "2026-05-20T00:00:00.000Z",
+                  "jws": "a..b"
+                }
+              ]
             },
-            "canonical_bytes_base64url": "eyJraW5kIjoiYWsuZGV2aWNlLnJlYW5jaG9yIn0",
-            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "authorization_lease": {
+              "authorization_lease_id": "ak:authorization_lease:019a7360-0000-7000-8000-000000000038",
+              "basis_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "actor_id": "did:webvh:z6mkfixture:alice.example",
+              "device_id": "ak:device:019a7360-0000-7000-8000-000000000031",
+              "scope_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000039"
+              },
+              "action": "ak.device.reanchor",
+              "risk_tier": "high",
+              "issued_at": "2026-05-20T00:00:00.000Z",
+              "expires_at": "2026-05-20T00:05:00.000Z",
+              "authority_set_ref": {
+                "authority_set_id": "ak.authority_set.recovery.v1",
+                "authority_set_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "proofs": [
+                {
+                  "kind": "detached_jws",
+                  "verification_method": "did:webvh:z6mkfixture:alice.example#lease",
+                  "alg": "EdDSA",
+                  "payload_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                  "created_at": "2026-05-20T00:00:00.000Z",
+                  "jws": "a..b"
+                }
+              ]
+            }
           },
           "reanchor_event_submission_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "authorize_event_publication_material": {
+          "authorize_event_publication_evidence": {
             "event_id": "ak:event:019a7360-0000-7000-8000-000000000035",
-            "publication_material_schema": "https://arkret.org/v1/schemas/service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
-            "publication_material": {
-              "canonical_encoding": "canonical_json",
-              "value": {
-                "authorization_lease_id": "ak:authorization_lease:019a7360-0000-7000-8000-000000000038"
+            "authorization_lease": {
+              "authorization_lease_id": "ak:authorization_lease:019a7360-0000-7000-8000-000000000040",
+              "basis_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "actor_id": "did:webvh:z6mkfixture:alice.example",
+              "device_id": "ak:device:019a7360-0000-7000-8000-000000000031",
+              "scope_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000039"
               },
-              "canonical_bytes_base64url": "eyJhdXRob3JpemF0aW9uX2xlYXNlX2lkIjoiZml4ZWQifQ",
-              "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-            },
-            "material_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              "action": "ak.device.authorize",
+              "risk_tier": "high",
+              "issued_at": "2026-05-20T00:00:00.000Z",
+              "expires_at": "2026-05-20T00:05:00.000Z",
+              "authority_set_ref": {
+                "authority_set_id": "ak.authority_set.recovery.v1",
+                "authority_set_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "proofs": [
+                {
+                  "kind": "detached_jws",
+                  "verification_method": "did:webvh:z6mkfixture:alice.example#lease",
+                  "alg": "EdDSA",
+                  "payload_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                  "created_at": "2026-05-20T00:00:00.000Z",
+                  "jws": "a..b"
+                }
+              ]
+            }
           }
         },
         "prepared_plan_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"

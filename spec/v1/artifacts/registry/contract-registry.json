@@ -7260,10 +7260,24 @@
         "description": "Closed RecoveryTransaction and SecurityRotationTransaction resource."
       },
       {
+        "schema_id": "ak.schema.security_rotation_local_commit.v1",
+        "file": "schemas/security-transaction.schema.json",
+        "fragment": "#/$defs/security_rotation_local_commit",
+        "status": "active",
+        "description": "Typed local-device commit artifact for the terminal SecurityRotationTransaction step."
+      },
+      {
         "schema_id": "ak.schema.recovery_authority_ticket.v1",
         "file": "schemas/recovery-authority.schema.json",
         "status": "active",
         "description": "Transaction-bound recovery authority ticket plus ticket issuance, recovery device authorization and recovery grant promotion DTOs."
+      },
+      {
+        "schema_id": "ak.schema.recovery_completion_attestation.v1",
+        "file": "schemas/recovery-authority.schema.json",
+        "fragment": "#/$defs/recovery_completion_attestation",
+        "status": "active",
+        "description": "Coordinator-signed proof of a durably completed RecoveryTransaction for recovery grant promotion."
       },
       {
         "schema_id": "ak.schema.extension_manifest.v1",

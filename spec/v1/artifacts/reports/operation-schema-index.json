@@ -413,6 +413,7 @@
           "transaction_id",
           "transaction_request_digest",
           "terminal_receipt",
+          "completion_attestation",
           "device_authorization_event_id",
           "result_model_generation_ref",
           "canonical_request_digest",
@@ -423,6 +424,7 @@
           "transaction_id",
           "transaction_request_digest",
           "terminal_receipt",
+          "completion_attestation",
           "device_authorization_event_id",
           "result_model_generation_ref",
           "canonical_request_digest",
@@ -4585,7 +4587,8 @@
           "request_digest",
           "prepared_plan_digest",
           "expected_next_step",
-          "client_attestation"
+          "client_attestation",
+          "participant_request"
         ],
         "closed": true
       },

@@ -1682,11 +1682,11 @@
           },
           {
             "ref": "zh/sync/service-http-binding.md",
-            "content_digest": "sha256:05e3725e9e53b567c48e02440b469d3de79713a42f36456c8b3696f266227a4f"
+            "content_digest": "sha256:348dc52f921510c3f798134cc542526109f7b95fdf4858ca65329fd916c2db61"
           }
         ]
       },
-      "reducer_profile_digest": "sha256:4ae760a180012c922f7f963766b275c7c48a7d57f6e9391dbefdf3b25f54f1fd"
+      "reducer_profile_digest": "sha256:44d8136ab194880f39853da294958c685c86e16a3fc5f092c681d15254162e15"
     }
   ],
   "generated_fields": [

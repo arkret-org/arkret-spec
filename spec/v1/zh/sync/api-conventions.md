@@ -228,6 +228,13 @@ Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失�
 - **DPoP 签名**:DPoP proof JWT MUST 用该 grant 的 grant-binding(DPoP)key 签名，其公钥 JWK thumbprint（[RFC 7638](https://www.rfc-editor.org/rfc/rfc7638)）MUST 等于 grant 的 `cnf.jkt`(Principal Server 通过 session-grant 内省取得 `cnf_jkt`,见 §3.1 与下文)。
 - **DPoP 绑定声明**:`htm` MUST 等于请求方法、`htu` MUST 等于请求 URL、`ath` MUST 等于所出示 grant 的 hash;这些把该 proof 钉死到「本方法 + 本 URL + 本 grant」,防跨 endpoint / 跨 grant 复用。`htu` 比对遵循 [RFC 9449](https://www.rfc-editor.org/rfc/rfc9449) §4.3,先剥离 query 与 fragment，再逐字比较经规范化的 scheme + authority + path。**外部 URI 重建**:`htu` 的 authority 是客户端看到的 gate origin。直连部署 MUST 使用请求自身的 scheme 与 authority；反向代理部署 MUST 使用静态配置的 public origin，或仅接受由受信最后一跳代理写入、并在入口清洗所有客户端同名 header 后得到的 `Forwarded` / `X-Forwarded-Host` / `X-Forwarded-Proto`。实现不得信任任意首跳转发值，也不得退化为 path-only 比对；无法可靠重建完整外部 URI 时 MUST 以 `unauthenticated` 拒绝 DPoP 出示。
 - **grant active**:grant MUST 经 session-grant 内省判定 active(`ak.gate.account.command.introspect_session_grant`)。Principal Server **MAY** 缓存内省结果，但 TTL **SHOULD ≤ 120s**；对敏感操作 MUST 旁路缓存、强制重新内省(吊销生效上界即缓存 TTL，见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。内省的 `proof` 字段是部署内部 S2S 的可选附加确认；默认 self-path 客户端只发送本节的 `Authorization` + `DPoP`，Principal Server MUST 依据内省返回的 `cnf_jkt` 在本地校验该请求的 DPoP，不得要求客户端再发送额外的 session-grant introspection proof header。
+- **grant class/binding**：JWT 与内省必须使用
+  `service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims` 的 typed
+  `credential_class`。`recovery_restricted` 只允许 recovery bootstrap scope，必须携带
+  `recovery_binding` 且不得携带 `device_binding`；已授权设备的 `standard` grant 必须携带
+  `device_binding {device_id, authorization_event_id, model_generation_ref}`。Principal Server
+  在每个 self-path admission 中必须把该 binding 与当前 active authorization Event /
+  generation 比对；scope 内的 device 字符串或数据库旁路字段不能替代 signed binding。
 - **audience**:grant 的 audience MUST 等于本 Principal Server 的 service DID。
 - **scope**:grant scope MUST 含 Principal Server 的 session.bind scope 与 device scope。
 - **principal / device 绑定**:grant 绑定的 principal / device MUST 与请求一致。

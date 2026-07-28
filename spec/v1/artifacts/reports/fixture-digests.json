@@ -118,7 +118,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "dbfc95bcbf74a0d8d6f68cf9e6c5bdb2b240e2a84a0d8720d244167351ca28e7"
+      "sha256": "80836e4b46c556dc5aa098aa3521ed9077c89e5f9cd1b8f4b89a306fc38f01e5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -242,7 +242,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "5a67be7722c1ca5c2af77e233fa2848c1f781a391f3e9817c80454b41f6df157"
+      "sha256": "9845dfc518724a46713e91033b7983efcf7300d9fdf119eda10f4b9695563478"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

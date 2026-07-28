@@ -456,7 +456,8 @@
         "scopes",
         "expires_at",
         "revocation_ref",
-        "session_public_key"
+        "session_public_key",
+        "credential_class"
       ],
       "properties": {
         "id": {
@@ -500,6 +501,15 @@
         "cnf_jkt": {
           "type": "string",
           "description": "RFC 7638 JWK SHA-256 thumbprint of the holder (DPoP) key the grant is bound to (cnf.jkt); the Principal Server uses it to verify the per-request DPoP proof on /_arkret/self/* (api-conventions §3.3). Server-to-server only."
+        },
+        "credential_class": {
+          "$ref": "#/$defs/SessionGrantCredentialClass"
+        },
+        "recovery_binding": {
+          "$ref": "#/$defs/SessionGrantRecoveryBinding"
+        },
+        "device_binding": {
+          "$ref": "#/$defs/SessionGrantDeviceBinding"
         }
       }
     },
@@ -3692,6 +3702,204 @@
           "uniqueItems": true
         }
       }
+    },
+    "SessionGrantCredentialClass": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "recovery_restricted"
+      ]
+    },
+    "SessionGrantRecoveryBinding": {
+      "type": "object",
+      "required": [
+        "recovery_session_id",
+        "policy_id",
+        "policy_version"
+      ],
+      "properties": {
+        "recovery_session_id": {
+          "type": "string",
+          "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "policy_id": {
+          "type": "string",
+          "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "policy_version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "SessionGrantDeviceBinding": {
+      "type": "object",
+      "description": "Authorization state committed into a standard device grant. Account Authorities populate this from accepted recovery completion evidence or the equivalent ordinary enrollment authority state; Principal Servers compare it with the current active device generation on admission.",
+      "required": [
+        "device_id",
+        "authorization_event_id",
+        "model_generation_ref"
+      ],
+      "properties": {
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "authorization_event_id": {
+          "type": "string",
+          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "model_generation_ref": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*-[^\\s]+$"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "SignedSessionGrantClaims": {
+      "type": "object",
+      "description": "Canonical claims carried by an ak.session.grant JWT. recovery_restricted is a closed bootstrap credential and cannot be interpreted as a standard device grant.",
+      "required": [
+        "kind",
+        "grant_id",
+        "subject",
+        "audience",
+        "scopes",
+        "not_before",
+        "expires_at",
+        "session_id",
+        "cnf",
+        "credential_class"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "ak.session.grant"
+        },
+        "grant_id": {
+          "$ref": "./common-ids.schema.json#/$defs/grant_id"
+        },
+        "subject": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "audience": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "not_before": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cnf": {
+          "type": "object",
+          "required": [
+            "jkt"
+          ],
+          "properties": {
+            "jkt": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "credential_class": {
+          "$ref": "#/$defs/SessionGrantCredentialClass"
+        },
+        "recovery_binding": {
+          "$ref": "#/$defs/SessionGrantRecoveryBinding"
+        },
+        "device_binding": {
+          "$ref": "#/$defs/SessionGrantDeviceBinding"
+        },
+        "proof_kind": {
+          "type": "string",
+          "enum": [
+            "did_bound_signature",
+            "paired_device_proof",
+            "passkey_assertion",
+            "oidc_code_exchange",
+            "pre_registration_handoff",
+            "agent_key_proof"
+          ]
+        },
+        "scope_details": {
+          "type": "object"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "credential_class": {
+                "const": "recovery_restricted"
+              }
+            },
+            "required": [
+              "credential_class"
+            ]
+          },
+          "then": {
+            "required": [
+              "recovery_binding"
+            ],
+            "properties": {
+              "scopes": {
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "ak.root.identity.recovery_policy.resource.get",
+                    "ak.root.identity.recovery_session.command.create",
+                    "ak.root.identity.recovery_session.resource.get",
+                    "ak.root.identity.recovery_session.command.submit_proof",
+                    "ak.self.security_transaction.command.create",
+                    "ak.self.security_transaction.resource.get",
+                    "ak.self.security_transaction.command.continue",
+                    "ak.self.recovery_authority_ticket.command.issue",
+                    "ak.self.keys.backups.command.unlock"
+                  ]
+                }
+              }
+            },
+            "not": {
+              "required": [
+                "device_binding"
+              ]
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "recovery_binding"
+              ]
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
     },
     "SessionGrantOutcome": {
       "type": "object",
