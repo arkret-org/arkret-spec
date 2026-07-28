@@ -237,7 +237,6 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
     "realm_metadata": {},
     "e2ee_epoch": null
   },
-  "ephemeral": {"events": []},
   "account_data": {"events": []},
   "summary": {
     "joined_member_count": 12,

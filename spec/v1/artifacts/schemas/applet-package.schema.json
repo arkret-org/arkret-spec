@@ -19,7 +19,7 @@
     "endpoint_policy",
     "webhook_auth",
     "receive_events",
-    "receive_ephemeral",
+    "receive_signals",
     "rate_limited",
     "limits",
     "ghost_policy",
@@ -91,7 +91,7 @@
     "receive_events": {
       "type": "boolean"
     },
-    "receive_ephemeral": {
+    "receive_signals": {
       "type": "boolean"
     },
     "rate_limited": {

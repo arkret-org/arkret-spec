@@ -46,7 +46,7 @@ plaintext 解密后使用闭合对象 `ak.schema.read_receipt.v1`，至少包含
 接收方只有在验证 Signal proof、Seal basis、MLS epoch/AAD、TTL 并成功解密后，才能更新
 UI。relay attestation 不能替代 sender device proof。任何把 receipt target 或精确 kind 放到
 外层的旧明文 envelope MUST 以 `schema_violation` 或
-`ephemeral_plaintext_in_encrypted_scope` 拒绝。
+`signal_plaintext_forbidden` 拒绝。
 
 ### 2.3 防雪崩与合并
 

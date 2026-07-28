@@ -13,8 +13,8 @@
     "request_digest",
     "binding",
     "state",
-    "accepted_step_refs",
-    "next_required_action"
+    "accepted_steps",
+    "next_required_step"
   ],
   "properties": {
     "transaction_id": {
@@ -58,20 +58,20 @@
       "enum": [
         "pending",
         "running",
-        "complete",
-        "abort",
+        "completed",
+        "aborted",
         "expired"
       ]
     },
-    "accepted_step_refs": {
+    "accepted_steps": {
       "type": "array",
       "maxItems": 5,
       "uniqueItems": true,
       "items": {
-        "$ref": "#/$defs/accepted_step_ref"
+        "$ref": "#/$defs/accepted_step"
       }
     },
-    "next_required_action": {
+    "next_required_step": {
       "oneOf": [
         {
           "type": "string",
@@ -93,28 +93,27 @@
         }
       ]
     },
-    "terminal_outcome": {
+    "terminal_result": {
       "type": "object",
       "required": [
-        "outcome",
+        "result",
         "completed_at"
       ],
       "properties": {
-        "outcome": {
+        "result": {
           "type": "string",
           "enum": [
-            "complete",
-            "abort",
+            "completed",
+            "aborted",
             "expired"
           ]
         },
         "completed_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "receipt_ref": {
+        "receipt_id": {
           "type": "string",
-          "minLength": 1,
-          "maxLength": 512
+          "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "reason_code": {
           "type": "string",
@@ -141,12 +140,12 @@
           "binding": {
             "$ref": "#/$defs/recovery_binding"
           },
-          "accepted_step_refs": {
+          "accepted_steps": {
             "items": {
-              "$ref": "#/$defs/recovery_step_ref"
+              "$ref": "#/$defs/recovery_accepted_step"
             }
           },
-          "next_required_action": {
+          "next_required_step": {
             "oneOf": [
               {
                 "$ref": "#/$defs/recovery_step"
@@ -163,12 +162,12 @@
           "binding": {
             "$ref": "#/$defs/security_rotation_binding"
           },
-          "accepted_step_refs": {
+          "accepted_steps": {
             "items": {
-              "$ref": "#/$defs/security_rotation_step_ref"
+              "$ref": "#/$defs/security_rotation_accepted_step"
             }
           },
-          "next_required_action": {
+          "next_required_step": {
             "oneOf": [
               {
                 "$ref": "#/$defs/security_rotation_step"
@@ -186,8 +185,8 @@
         "properties": {
           "state": {
             "enum": [
-              "complete",
-              "abort",
+              "completed",
+              "aborted",
               "expired"
             ]
           }
@@ -198,23 +197,23 @@
       },
       "then": {
         "required": [
-          "terminal_outcome"
+          "terminal_result"
         ],
         "properties": {
-          "next_required_action": {
+          "next_required_step": {
             "type": "null"
           }
         }
       },
       "else": {
         "properties": {
-          "next_required_action": {
+          "next_required_step": {
             "type": "string"
           }
         },
         "not": {
           "required": [
-            "terminal_outcome"
+            "terminal_result"
           ]
         }
       }
@@ -223,7 +222,7 @@
       "if": {
         "properties": {
           "state": {
-            "const": "complete"
+            "const": "completed"
           }
         },
         "required": [
@@ -232,10 +231,10 @@
       },
       "then": {
         "properties": {
-          "terminal_outcome": {
+          "terminal_result": {
             "properties": {
-              "outcome": {
-                "const": "complete"
+              "result": {
+                "const": "completed"
               }
             }
           }
@@ -246,7 +245,7 @@
       "if": {
         "properties": {
           "state": {
-            "const": "abort"
+            "const": "aborted"
           }
         },
         "required": [
@@ -255,10 +254,10 @@
       },
       "then": {
         "properties": {
-          "terminal_outcome": {
+          "terminal_result": {
             "properties": {
-              "outcome": {
-                "const": "abort"
+              "result": {
+                "const": "aborted"
               }
             }
           }
@@ -278,9 +277,9 @@
       },
       "then": {
         "properties": {
-          "terminal_outcome": {
+          "terminal_result": {
             "properties": {
-              "outcome": {
+              "result": {
                 "const": "expired"
               }
             }
@@ -363,13 +362,13 @@
       "type": "object",
       "required": [
         "request_digest",
-        "expected_next_action"
+        "expected_next_step"
       ],
       "properties": {
         "request_digest": {
           "$ref": "#/$defs/hash"
         },
-        "expected_next_action": {
+        "expected_next_step": {
           "oneOf": [
             {
               "$ref": "#/$defs/recovery_step"
@@ -388,15 +387,15 @@
     "client_step_attestation": {
       "type": "object",
       "required": [
-        "ref",
-        "accepted_digest",
+        "output_ref",
+        "output_digest",
         "proof"
       ],
       "properties": {
-        "ref": {
-          "$ref": "#/$defs/opaque_ref"
+        "output_ref": {
+          "$ref": "#/$defs/step_output_ref"
         },
-        "accepted_digest": {
+        "output_digest": {
           "$ref": "#/$defs/hash"
         },
         "proof": {
@@ -408,21 +407,21 @@
     "recovery_intent": {
       "type": "object",
       "required": [
-        "recovery_session_ref",
+        "recovery_session_id",
         "replacement_device_id",
         "authority_ticket_ref",
         "did_entry_digest",
         "replacement_device_authorization_digest"
       ],
       "properties": {
-        "recovery_session_ref": {
-          "$ref": "#/$defs/opaque_ref"
+        "recovery_session_id": {
+          "$ref": "#/$defs/recovery_session_id"
         },
         "replacement_device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
         },
         "authority_ticket_ref": {
-          "$ref": "#/$defs/opaque_ref"
+          "$ref": "#/$defs/step_output_ref"
         },
         "did_entry_digest": {
           "$ref": "#/$defs/hash"
@@ -461,26 +460,38 @@
       "type": "string",
       "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "opaque_ref": {
+    "recovery_session_id": {
       "type": "string",
-      "minLength": 1,
-      "maxLength": 512
+      "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "accepted_step_ref": {
+    "backup_series_id": {
+      "type": "string",
+      "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "backup_id": {
+      "type": "string",
+      "pattern": "^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "step_output_ref": {
+      "type": "string",
+      "pattern": "^(?:ak:[a-z][a-z0-9_]*:[^\\s]+|did:[^\\s]+|(?:sha256|blake3):[0-9a-f]{64})$",
+      "description": "Pre-reserved heterogeneous step output reference. It MUST equal the exact typed id, Event id, content digest, or profile-defined proof reference reserved in binding for the current closed transaction step."
+    },
+    "accepted_step": {
       "type": "object",
       "required": [
         "step",
-        "ref",
-        "accepted_digest"
+        "output_ref",
+        "output_digest"
       ],
       "properties": {
         "step": {
           "type": "string"
         },
-        "ref": {
-          "$ref": "#/$defs/opaque_ref"
+        "output_ref": {
+          "$ref": "#/$defs/step_output_ref"
         },
-        "accepted_digest": {
+        "output_digest": {
           "$ref": "#/$defs/hash"
         }
       },
@@ -496,10 +507,10 @@
         "issue_terminal_receipt"
       ]
     },
-    "recovery_step_ref": {
+    "recovery_accepted_step": {
       "allOf": [
         {
-          "$ref": "#/$defs/accepted_step_ref"
+          "$ref": "#/$defs/accepted_step"
         },
         {
           "properties": {
@@ -520,10 +531,10 @@
         "local_commit"
       ]
     },
-    "security_rotation_step_ref": {
+    "security_rotation_accepted_step": {
       "allOf": [
         {
-          "$ref": "#/$defs/accepted_step_ref"
+          "$ref": "#/$defs/accepted_step"
         },
         {
           "properties": {
@@ -537,7 +548,7 @@
     "recovery_binding": {
       "type": "object",
       "required": [
-        "recovery_session_ref",
+        "recovery_session_id",
         "did_entry_ref",
         "replacement_device_id",
         "authorize_event_id",
@@ -546,11 +557,11 @@
         "terminal_receipt_id"
       ],
       "properties": {
-        "recovery_session_ref": {
-          "$ref": "#/$defs/opaque_ref"
+        "recovery_session_id": {
+          "$ref": "#/$defs/recovery_session_id"
         },
         "did_entry_ref": {
-          "$ref": "#/$defs/opaque_ref"
+          "$ref": "#/$defs/step_output_ref"
         },
         "replacement_device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
@@ -562,7 +573,7 @@
           "$ref": "#/$defs/event_id"
         },
         "authority_ticket_ref": {
-          "$ref": "#/$defs/opaque_ref"
+          "$ref": "#/$defs/step_output_ref"
         },
         "terminal_receipt_id": {
           "type": "string",
@@ -576,11 +587,11 @@
       "required": [
         "revoke_event_id",
         "new_secret_commitment",
-        "series_ref",
-        "backup_ref",
-        "authoritative_pointer_ref",
-        "erase_confirmation_ref",
-        "local_commit_ref"
+        "series_id",
+        "backup_id",
+        "active_series_event_id",
+        "erase_confirmation_digest",
+        "local_commit_digest"
       ],
       "properties": {
         "revoke_event_id": {
@@ -589,20 +600,20 @@
         "new_secret_commitment": {
           "$ref": "#/$defs/hash"
         },
-        "series_ref": {
-          "$ref": "#/$defs/opaque_ref"
+        "series_id": {
+          "$ref": "#/$defs/backup_series_id"
         },
-        "backup_ref": {
-          "$ref": "#/$defs/opaque_ref"
+        "backup_id": {
+          "$ref": "#/$defs/backup_id"
         },
-        "authoritative_pointer_ref": {
-          "$ref": "#/$defs/opaque_ref"
+        "active_series_event_id": {
+          "$ref": "#/$defs/event_id"
         },
-        "erase_confirmation_ref": {
-          "$ref": "#/$defs/opaque_ref"
+        "erase_confirmation_digest": {
+          "$ref": "#/$defs/hash"
         },
-        "local_commit_ref": {
-          "$ref": "#/$defs/opaque_ref"
+        "local_commit_digest": {
+          "$ref": "#/$defs/hash"
         }
       },
       "additionalProperties": false

@@ -2228,7 +2228,7 @@
           "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
           "description": "Digest of the admitted complete encrypted envelope, used only for short-lived replay suppression and local correlation."
         },
-        "dispatched_to": {
+        "dispatched_recipient_count": {
           "type": "integer",
           "minimum": 0,
           "description": "Optional implementation hint for fanout recipients queued locally."

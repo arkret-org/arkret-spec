@@ -57,7 +57,7 @@ sequenceDiagram
 ```
 
 - **`ak.mls.commit`**：当拥有权限的 Admin 邀请新成员加入或移除成员时，客户端计算 MLS 的 `Commit` 消息。该 `Commit` 必须作为 `ak.mls.commit` 类型的 Event 提交至 Realm Event history。它作为不可篡改的账本，确保全网节点对群组密钥状态树的演进达成一致。
-- **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。Welcome MUST 通过 durable `ak.mls.welcome` Event、durable encrypted pointer 或等价可 backfill 记录交付，直到被消费、撤销或过期。Sync Service 的 Ephemeral Channel 只能作为通知和加速通道，不得是唯一交付路径；否则离线设备、跨域 backfill 和恢复流程无法验证加入历史。
+- **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。Welcome MUST 通过 durable `ak.mls.welcome` Event、durable encrypted pointer 或等价可 backfill 记录交付，直到被消费、撤销或过期。Sync Service 的 Signal Extension 只能作为通知和加速通道，不得是唯一交付路径；否则离线设备、跨域 backfill 和恢复流程无法验证加入历史。
 - **投递不得降维**：Delivery / Sync Service 把 accepted `ak.mls.welcome` 投影为 to-device message 时，MUST 原样保留其规范 payload，至少包括 `mls_group_id`、`epoch`、`recipient_principal_id`、`recipient_device_id`、`claim_ref`、`claim_envelope`、`governance_binding`、`commit_ref` 与 ciphertext / durable ciphertext pointer。服务端不得只转发 MLS ciphertext 或重新构造一个缺少 claim / governance 字段的缩减信封；接收端必须能在解密和入组前独立复算 Welcome digest、验证邀请方签名，并将同一个 `governance_binding` 与 MLS GroupContext extension 及 Seal 证明逐字段比较。
 
 **发送方 admission saga（normative）**：一次 Add admission 的 Commit、面向全部目标设备的 Welcome、以及 Commit 后本地 MLS group state 是同一不可拆分的恢复单元。发送客户端在完成必要的 KeyPackage claim、构造出该 admission 后，MUST 在首次 Commit / Welcome 网络写入前，把以下材料原子写入 crash-recoverable outbound state：精确签名后的 `ak.mls.commit` Event、每条精确签名后的 `ak.mls.welcome` Event，以及仅在投递完成后安装的 post-Commit group state。网络时序 MUST 是 Commit accepted / duplicate 后才投递与其 `commit_ref` 绑定的 Welcome；不得先投递 Welcome，也不得在 Commit 未被接受时安装 post-Commit group state。
@@ -850,7 +850,7 @@ Signal Extension 不存在 plaintext branch，且不因 Realm 内容 profile 改
 typing、presence、read receipt 与 call signaling 的精确 kind、actor、target 和内容都在
 `SignalEnvelope.encrypted_payload` 内。发送方、Sync Service 和接收方 MUST 拒绝任何旧
 plaintext broadcast envelope，返回 `failed_precondition` 与
-`reason_code=ephemeral_plaintext_in_encrypted_scope`。服务端只有在能按 scope 验证 MLS
+`reason_code=signal_plaintext_forbidden`。服务端只有在能按 scope 验证 MLS
 basis、AAD 与 proof 时才能广告 Signal；能力缺失表现为该 scope 没有 Signal，不能降级为明文。
 
 点对点 to-device 信号（`ak.key.verification.*`、`ak.secret.request` / `ak.secret.send`、

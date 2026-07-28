@@ -29,7 +29,7 @@ updated: 2026-07-02
     "handles": []
   },
   "receive_events": true,
-  "receive_ephemeral": false,
+  "receive_signals": false,
   "rate_limited": true,
   "requested_scopes": [],
   "registration_epoch": "sha256:<canonical-registration-epoch-hash>",
@@ -82,7 +82,7 @@ updated: 2026-07-02
   "protocols",
   "namespaces",
   "receive_events",
-  "receive_ephemeral",
+  "receive_signals",
   "rate_limited",
   "requested_scopes",
   "registration_epoch",
@@ -116,7 +116,7 @@ updated: 2026-07-02
 | `endpoint_policy` | yes | 实际支持的 Applet API endpoint 与 auth requirement。 |
 | `webhook_auth` | yes | HTTP message signature key ref / accepted algorithms；`key_ref` MUST 是 Applet `service_id` 下的 DID URL，并作为 app/bridge→arkret inbound transaction push 的来源签名锚点。 |
 | `receive_events` | yes | 派生 registration 的接收事件声明。 |
-| `receive_ephemeral` | yes | 派生 registration 的 ephemeral 接收声明。 |
+| `receive_signals` | yes | 派生 registration 的 encrypted Signal Extension 接收声明。 |
 | `rate_limited` | yes | 派生 registration 的服务端限流声明。 |
 | `limits` | yes | max transaction events、payload bytes、rate limit hint。 |
 | `ghost_policy` | yes | Ghost Actor 支持与 accountability 模板。 |
@@ -141,7 +141,7 @@ Package -> registration 派生映射:
 | `protocols` | `protocols` | 原样复制；空数组非法。 |
 | `namespaces` | `namespaces` | canonicalize 后复制；只接受对象形态。 |
 | `receive_events` | `receive_events` | 原样复制；不得从 `endpoint_policy` 猜测默认值。 |
-| `receive_ephemeral` | `receive_ephemeral` | 原样复制；不得省略。 |
+| `receive_signals` | `receive_signals` | 原样复制；不得省略。 |
 | `rate_limited` | `rate_limited` | 原样复制；不得省略。 |
 | `requested_scopes` | `requested_scopes` | 原样复制；仍只是请求声明。 |
 | `registration_epoch` | `registration_epoch` | 由 canonical derived registration + DID/key/endpoint/auth evidence 计算。 |
@@ -255,8 +255,8 @@ Idempotency-Key: <opaque-string>
 | `Signature-Input` | header | `string` | required | RFC 9421 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`idempotency-key`，并带 `created` / `expires`。 |
 | `Signature` | header | `string` | required | 来源 service DID 的逐次 HTTP Message Signature；纯 bearer 不满足 transaction push 认证。 |
 | `source_service_id` | body | `did` | required | 推送来源 service DID。 |
-| `events` | body | `EventEnvelope[]` | required | 推送给 Applet 的 signed Event 数组；每项必须满足 `event-envelope.schema.json`。 |
-| `ephemeral` | body | `object[]` | optional | 非持久临时事件数组。 |
+| `events` | body | `EventEnvelope[]` | conditional | 推送给 Applet 的非空 signed Event 数组；每项必须满足 `event-envelope.schema.json`。与 `signals[]` 至少出现一个。 |
+| `signals` | body | `SignalEnvelope[]` | conditional | 非持久、encrypted-only 的非空 Signal Extension envelope 数组；与 `events[]` 至少出现一个。 |
 
 > **HTTP signature、source signature anchor 与 `received_at`(normative)**:[`applet-integration.md` §7.3.1](./applet-integration.md) / §16 把逐次 RFC 9421 HTTP message signature、`source_signature_anchor` audit value 与 `received_at` audit metadata 列为 transaction push 的 MUST。它们由 transport / audit 层承载（HTTP `Signature` / `Signature-Input` header 与 receiving service 记录的 audit metadata），**不进入** transaction body；receiver MUST 校验 HTTP message signature，形成并持久化 `source_signature_anchor`，记录 `received_at`，缺失任一者 MUST 拒绝。
 
@@ -266,7 +266,7 @@ Idempotency-Key: <opaque-string>
 {
   "source_service_id": "did:webvh:z7SrvceTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:server.example",
   "events": [],
-  "ephemeral": []
+  "signals": []
 }
 ```
 

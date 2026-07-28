@@ -86,7 +86,7 @@ sender、ingress、relay 和 receiver 都 MUST 验证：
 4. E2EE profile、epoch/AAD binding、proof 与 TTL 有效。
 
 不存在 plaintext branch。任何 MLS-backed scope 的 plaintext signal/legacy ephemeral 输入
-MUST 以 `ephemeral_plaintext_in_encrypted_scope` fail closed。
+MUST 以 `signal_plaintext_forbidden` fail closed。
 
 Service Describe 的服务级 operation 广告仅表示 transport surface 存在，不表示每个 scope
 可用。实现只有在同时提供 scope-aware profile/limit descriptor，并能在目标 scope 验证

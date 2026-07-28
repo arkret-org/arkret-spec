@@ -161,7 +161,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
     ]
   },
   "receive_events": true,
-  "receive_ephemeral": false,
+  "receive_signals": false,
   "rate_limited": true,
   "requested_scopes": [
     "ak.realm.discover",
@@ -413,7 +413,7 @@ Arkret Sync Service / Events API 向 Applet 推送事件批次。
       "payload": {}
     }
   ],
-  "ephemeral": [
+  "signals": [
     {
       "type": "typing",
       "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",

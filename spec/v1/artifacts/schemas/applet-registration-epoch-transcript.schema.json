@@ -81,7 +81,7 @@
         "protocols",
         "namespaces",
         "receive_events",
-        "receive_ephemeral",
+        "receive_signals",
         "rate_limited",
         "requested_scopes",
         "created_at"
@@ -124,7 +124,7 @@
         "receive_events": {
           "type": "boolean"
         },
-        "receive_ephemeral": {
+        "receive_signals": {
           "type": "boolean"
         },
         "rate_limited": {

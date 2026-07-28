@@ -187,8 +187,7 @@
       "type": "object",
       "description": "Body for ak.edge.applet.command.transaction. Transport-layer requirements are mandatory but not body fields: RFC 9421 Signature/Signature-Input, Source-Service-ID, Destination-Service-ID, Content-Digest, Idempotency-Key, received_at audit metadata, and a persisted source_signature_anchor. See zh/extensions/applet-integration.md section 7.3.1.",
       "required": [
-        "source_service_id",
-        "events"
+        "source_service_id"
       ],
       "properties": {
         "source_service_id": {
@@ -202,14 +201,27 @@
             "$ref": "./event-envelope.schema.json"
           }
         },
-        "signal": {
+        "signals": {
           "type": "array",
+          "minItems": 1,
           "description": "Optional encrypted Signal Extension envelopes. Exact applet payload types and targets remain inside ciphertext.",
           "items": {
             "$ref": "./signal-envelope.schema.json"
           }
         }
       },
+      "anyOf": [
+        {
+          "required": [
+            "events"
+          ]
+        },
+        {
+          "required": [
+            "signals"
+          ]
+        }
+      ],
       "additionalProperties": false
     },
     "applet_transaction_outcome": {

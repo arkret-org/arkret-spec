@@ -436,6 +436,51 @@
       "distinct_from": [
         "relation_kind"
       ]
+    },
+    {
+      "context": "schemas/signal-envelope.schema.json#/properties/signal_class",
+      "allowed_values": [
+        "setup",
+        "moderation",
+        "session"
+      ],
+      "semantic_axis": "signal_delivery_class"
+    },
+    {
+      "context": "schemas/extension-manifest.schema.json#/properties/confidentiality_class",
+      "allowed_values": [
+        "plaintext_allowed",
+        "recipient_encrypted",
+        "e2ee_required"
+      ],
+      "semantic_axis": "extension_confidentiality_class"
+    },
+    {
+      "context": "schemas/extension-manifest.schema.json#/$defs/reducer_contract_ref/properties/concurrency_class",
+      "allowed_values": [
+        "merge_safe",
+        "exclusive",
+        "security_barrier"
+      ],
+      "semantic_axis": "reducer_concurrency_class"
+    },
+    {
+      "context": "registry/contract-registry.json#/event_kind_registry/cell_contracts/*/concurrency_class",
+      "allowed_values": [
+        "merge_safe",
+        "exclusive",
+        "security_barrier"
+      ],
+      "semantic_axis": "event_concurrency_class"
+    },
+    {
+      "context": "registry/event-kind-registry.json#/event_kinds/*/concurrency_class",
+      "allowed_values": [
+        "merge_safe",
+        "exclusive",
+        "security_barrier"
+      ],
+      "semantic_axis": "event_concurrency_class"
     }
   ],
   "ordered_tier_fields": [

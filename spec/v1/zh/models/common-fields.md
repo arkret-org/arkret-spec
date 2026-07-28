@@ -328,6 +328,7 @@ DID 是 Arkret 的主体标识，不是普通协作对象 ID。标准协作对�
 | `notary` | 叙述性角色名词 | [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)；[glossary `Seal` / `Notary Cell`](../overview/glossary.md)；[`capabilities.md`](../authz/capabilities.md) | Seal ordering authority：对 Move frontier 签名承诺的主体；由 `notary_cell`（`cas_register + bottom=reject`）授权，冲突时触发 Realm-wide Seal pause。 |
 | `witness` | 叙述性角色名词 | [glossary `Witness`](../overview/glossary.md)；[`federation.md`](../sync/federation.md)；[`operations-sync.md`](../sync/operations-sync.md)；[`identity-did.md`](../identity/identity-did.md) | 对 frontier、range completeness、DID key-log 头部或 handover frontier 签发 attestation / receipt 的受信背书主体；不替代 Event 自身签名、Seal finality 或 reducer 验证。 |
 | `controller` | 叙述性角色名词 | [`identity-did.md`](../identity/identity-did.md)（DID controller proof）；[`actor.md` §3.3](./actor.md)（Native Personal Agent controller） | DID 控制主体（method history 中以 controller proof 证明控制权），或受 holder / principal 显式授权代为写入 / provision 的控制方。 |
+| `publisher_id` | id 字段（§4.2） | [`extension-manifest.md`](../extensions/extension-manifest.md)；[`extension-manifest.schema.json`](../../artifacts/schemas/extension-manifest.schema.json) | 对 Extension Manifest 的 canonical digest 与完整声明负责并签发 publisher proof 的主体 DID；不得用裸 `publisher` 或 transport service identity 替代。 |
 
 ### 4.4 `agent_participation` wire 形态（normative）
 

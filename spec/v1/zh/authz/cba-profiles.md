@@ -49,6 +49,12 @@ open-set vectors。
 5. 由 signer 持久化 `(authority_set_ref, barrier_parent_head, control_move_digest)`，并拒绝为
    同一 parent 签第二个不同 digest。
 
+`authority_set_ref` 在所有 CBA authority/quorum 场景中统一为
+`{authority_set_id, authority_set_digest}`：id 是登记的 `ak.authority_set.*.v1` policy
+symbol，digest 是该 policy 在当前 CBA basis 中的 canonical digest。任何 signer、lease、
+receipt 或 barrier verifier 都 MUST 同时校验 id 与 digest，不得用可变名称解析替代 basis-bound
+policy bytes。
+
 barrier attestation 没有独立 height、state root、历史日志或可被 DataEvent 引用的 id；它随
 Control Move 被 Seal 覆盖，不构成第二套 checkpoint。有效双签是可归责 equivocation，相关
 分支 MUST fail closed 并进入 recovery。

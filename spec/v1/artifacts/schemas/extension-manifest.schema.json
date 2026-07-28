@@ -7,21 +7,21 @@
     "manifest_id",
     "extension_id",
     "namespace",
-    "layer",
+    "protocol_layer_kind",
     "manifest_digest",
-    "publisher",
+    "publisher_id",
     "published_at",
-    "dependencies",
-    "payload_schemas",
-    "reducer_contracts",
+    "dependency_refs",
+    "payload_schema_refs",
+    "reducer_contract_refs",
     "required_actions",
-    "confidentiality",
-    "transport_profiles",
-    "recovery_profile",
-    "federation_profile",
-    "conformance_vectors",
+    "confidentiality_class",
+    "transport_rail_ids",
+    "recovery_profile_ref",
+    "federation_profile_ref",
+    "conformance_vector_refs",
     "resource_limits",
-    "signatures"
+    "proofs"
   ],
   "properties": {
     "manifest_id": {
@@ -36,7 +36,7 @@
       "type": "string",
       "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*$"
     },
-    "layer": {
+    "protocol_layer_kind": {
       "type": "string",
       "enum": [
         "collaboration_base",
@@ -46,34 +46,34 @@
     "manifest_digest": {
       "$ref": "#/$defs/hash"
     },
-    "publisher": {
+    "publisher_id": {
       "$ref": "./common-ids.schema.json#/$defs/did"
     },
     "published_at": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "dependencies": {
+    "dependency_refs": {
       "type": "array",
       "uniqueItems": true,
       "maxItems": 64,
       "items": {
-        "$ref": "#/$defs/digest_ref"
+        "$ref": "#/$defs/registry_content_ref"
       }
     },
-    "payload_schemas": {
+    "payload_schema_refs": {
       "type": "array",
       "uniqueItems": true,
       "maxItems": 256,
       "items": {
-        "$ref": "#/$defs/digest_ref"
+        "$ref": "#/$defs/registry_content_ref"
       }
     },
-    "reducer_contracts": {
+    "reducer_contract_refs": {
       "type": "array",
       "uniqueItems": true,
       "maxItems": 256,
       "items": {
-        "$ref": "#/$defs/reducer_ref"
+        "$ref": "#/$defs/reducer_contract_ref"
       }
     },
     "required_actions": {
@@ -85,7 +85,7 @@
         "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*$"
       }
     },
-    "confidentiality": {
+    "confidentiality_class": {
       "type": "string",
       "enum": [
         "plaintext_allowed",
@@ -93,7 +93,7 @@
         "e2ee_required"
       ]
     },
-    "transport_profiles": {
+    "transport_rail_ids": {
       "type": "array",
       "uniqueItems": true,
       "maxItems": 32,
@@ -102,7 +102,7 @@
         "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*$"
       }
     },
-    "recovery_profile": {
+    "recovery_profile_ref": {
       "oneOf": [
         {
           "type": "string",
@@ -113,7 +113,7 @@
         }
       ]
     },
-    "federation_profile": {
+    "federation_profile_ref": {
       "oneOf": [
         {
           "type": "string",
@@ -124,13 +124,13 @@
         }
       ]
     },
-    "conformance_vectors": {
+    "conformance_vector_refs": {
       "type": "array",
       "uniqueItems": true,
       "minItems": 1,
       "maxItems": 512,
       "items": {
-        "$ref": "#/$defs/digest_ref"
+        "$ref": "#/$defs/registry_content_ref"
       }
     },
     "resource_limits": {
@@ -142,7 +142,7 @@
           "minimum": 1,
           "maximum": 8388608
         },
-        "max_items": {
+        "max_item_count": {
           "type": "integer",
           "minimum": 1,
           "maximum": 4096
@@ -152,7 +152,7 @@
           "minimum": 1,
           "maximum": 4096
         },
-        "max_rate_per_minute": {
+        "max_operation_count_per_minute": {
           "type": "integer",
           "minimum": 1,
           "maximum": 100000
@@ -160,7 +160,7 @@
       },
       "additionalProperties": false
     },
-    "signatures": {
+    "proofs": {
       "type": "array",
       "minItems": 1,
       "maxItems": 16,
@@ -176,46 +176,46 @@
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
-    "digest_ref": {
+    "registry_content_ref": {
       "type": "object",
       "required": [
-        "id",
+        "registry_id",
         "digest"
       ],
       "properties": {
-        "id": {
+        "registry_id": {
           "type": "string",
-          "minLength": 1,
-          "maxLength": 256
+          "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v1$",
+          "description": "Versioned registry symbol for a dependency, payload schema, or conformance vector."
         },
         "digest": {
           "$ref": "#/$defs/hash"
         },
-        "url": {
+        "retrieval_url": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "Optional retrieval hint only. The registry_id plus digest, not this URL, identifies the referenced content."
         }
       },
       "additionalProperties": false
     },
-    "reducer_ref": {
+    "reducer_contract_ref": {
       "type": "object",
       "required": [
-        "id",
+        "reducer_contract_id",
         "digest",
-        "lattice_profile",
+        "lattice_profile_ref",
         "concurrency_class"
       ],
       "properties": {
-        "id": {
+        "reducer_contract_id": {
           "type": "string",
-          "minLength": 1,
-          "maxLength": 256
+          "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v1$"
         },
         "digest": {
           "$ref": "#/$defs/hash"
         },
-        "lattice_profile": {
+        "lattice_profile_ref": {
           "type": "string",
           "pattern": "^ak\\.profile\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v1$"
         },

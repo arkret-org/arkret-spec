@@ -320,7 +320,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
         ]
       },
       "authorization_lease": {
-        "lease_id": "ak:lease:0196419b-2100-7000-8000-000000000001",
+        "authorization_lease_id": "ak:authorization_lease:0196419b-2100-7000-8000-000000000001",
         "basis_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
         "device_id": "ak:device:0196419b-2050-7000-8000-000000000001",
@@ -332,8 +332,11 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
         "risk_tier": "medium",
         "issued_at": "2026-04-25T20:00:00.000Z",
         "expires_at": "2026-04-26T04:00:00.000Z",
-        "issuer_set_ref": "ak.issuer_set.realm_admission.v1",
-        "signatures": [
+        "authority_set_ref": {
+          "authority_set_id": "ak.authority_set.realm_admission.v1",
+          "authority_set_digest": "sha256:abababababababababababababababababababababababababababababababab"
+        },
+        "proofs": [
           {
             "kind": "detached_jws",
             "alg": "EdDSA",
@@ -348,11 +351,14 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
         {
           "receipt_id": "ak:receipt:0196419b-2200-7000-8000-000000000001",
           "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-          "lease_ref": "ak:lease:0196419b-2100-7000-8000-000000000001",
+          "authorization_lease_id": "ak:authorization_lease:0196419b-2100-7000-8000-000000000001",
           "received_at": "2026-04-26T00:00:01.000Z",
           "service_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alpha.example",
-          "issuer_set_ref": "ak.issuer_set.realm_admission.v1",
-          "signatures": [
+          "authority_set_ref": {
+            "authority_set_id": "ak.authority_set.realm_admission.v1",
+            "authority_set_digest": "sha256:abababababababababababababababababababababababababababababababab"
+          },
+          "proofs": [
             {
               "kind": "detached_jws",
               "alg": "EdDSA",

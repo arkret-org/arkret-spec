@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/cba-proof-bundle.schema.json",
   "title": "Arkret CBA Proof Bundle",
-  "description": "Unsigned dependency container. Every embedded object is independently verified; the bundle itself is not authoritative.",
+  "description": "Unsigned receiver-relative dependency container. Every embedded object is independently verified and the bundle itself is not authoritative. inclusion_proofs and availability_proofs together MUST contain no more than 2048 items; this cross-property aggregate is a semantic validation rule in addition to each array's local JSON Schema bound.",
   "type": "object",
   "required": [
     "target_seal_ref",
@@ -28,6 +28,7 @@
       "type": "array",
       "maxItems": 1024,
       "uniqueItems": true,
+      "description": "Control Move Event envelopes only. Semantic validation MUST reject DataEvent, Anchor Unit, actor-private, or unknown non-control Event shapes even when the generic Event Envelope schema is otherwise valid.",
       "items": {
         "$ref": "./event-envelope.schema.json"
       }
@@ -35,6 +36,7 @@
     "inclusion_proofs": {
       "type": "array",
       "maxItems": 2048,
+      "description": "Inclusion proofs. The combined item count of this array and availability_proofs MUST be no greater than 2048.",
       "uniqueItems": true,
       "items": {
         "$ref": "./event-envelope.schema.json#/$defs/semantic_ref/properties/proof"
@@ -43,6 +45,7 @@
     "availability_proofs": {
       "type": "array",
       "maxItems": 2048,
+      "description": "Availability proofs. The combined item count of this array and inclusion_proofs MUST be no greater than 2048.",
       "uniqueItems": true,
       "items": {
         "$ref": "./availability-receipt.schema.json"

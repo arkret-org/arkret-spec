@@ -26,27 +26,27 @@ SecurityTransaction {
   request_digest,
   binding,
   state,
-  accepted_step_refs,
-  next_required_action,
-  terminal_outcome
+  accepted_steps,
+  next_required_step,
+  terminal_result
 }
 ```
 
 `kind` 是 `recovery` 或 `security_rotation`。`state` 是
-`pending | running | complete | abort | expired`；后三者是唯一终态。
+`pending | running | completed | aborted | expired`；后三者是唯一终态。
 `binding` 由 `kind` 选择闭合 shape，不能使用任意键值或通用步骤 DSL。
-`accepted_step_refs[]` 的每项固定为
-`{step, ref, accepted_digest}`；`step` 必须属于该 kind 的闭集且在 transaction 内唯一，
+`accepted_steps[]` 的每项固定为
+`{step, output_ref, output_digest}`；`step` 必须属于该 kind 的闭集且在 transaction 内唯一，
 数组必须是下述顺序的连续前缀，不能跳步、重排或为同一步记录第二个 digest。
-`next_required_action` 只能是该闭集中紧随此前缀的下一项；终态必须为 `null`。
+`next_required_step` 只能是该闭集中紧随此前缀的下一项；终态必须为 `null`。
 
 共同不变量：
 
 1. 第一个不可逆副作用前固定 `transaction_id`；
 2. 在同一原子持久化中固定 canonical request bytes/digest 和全部公开 Event/object/series id；
-3. 同 id + 同 canonical bytes 返回 byte-identical 已记录 outcome；
+3. 同 id + 同 canonical bytes 返回 byte-identical 已记录 result；
 4. 同 id + 不同 bytes 返回 `duplicate_conflict`；
-5. store 保存 typed binding、首次 outcome 与每步 accepted ref，不能只保存“见过 id”；
+5. store 保存 typed binding、首次 result 与每步 accepted output ref，不能只保存“见过 id”；
 6. coordinator restart、response lost 与重试都从 transaction resource 续跑；
 7. 可按 id 权威查询，不由客户端猜进度；
 8. terminal 后禁止新增副作用；
@@ -67,12 +67,12 @@ SecurityTransaction {
 
 `create` 必须在一个 durable transaction 中保存 canonical request bytes/digest、typed intent、全部
 reserved ids 与初始 resource，然后才能执行第一个副作用。`continue` 的 `request_digest` 和
-`expected_next_action` 必须与当前 resource 精确相等，否则 `duplicate_conflict` /
+`expected_next_step` 必须与当前 resource 精确相等，否则 `duplicate_conflict` /
 `failed_precondition`；它不是提交任意步骤列表的接口。
 
-只有 `issue_terminal_receipt` 与 `local_commit` 可以携带 `client_attestation`，且其 `ref` 必须等于
-binding 中预留的 `terminal_receipt_id` / `local_commit_ref`，proof 必须由当前 replacement/local
-device 验证。其它 action 携带 client attestation 必须拒绝。`get` 是 response loss、restart 与
+只有 `issue_terminal_receipt` 与 `local_commit` 可以携带 `client_attestation`，且其 `output_ref`
+必须等于 binding 中预留的 `terminal_receipt_id` / `local_commit_digest`，proof 必须由当前
+replacement/local device 验证。其它 step 携带 client attestation 必须拒绝。`get` 是 response loss、restart 与
 跨设备续跑的权威进度查询，不得从短期 HTTP idempotency cache 合成。
 
 ## 2. RecoveryTransaction
@@ -87,7 +87,7 @@ RecoveryTransaction 固定绑定：
 - terminal device-attested receipt id。
 
 这些字段必须逐项出现在 `binding`：
-`recovery_session_ref`、`did_entry_ref`、`replacement_device_id`、`authorize_event_id`、
+`recovery_session_id`、`did_entry_ref`、`replacement_device_id`、`authorize_event_id`、
 `reanchor_event_id`、`authority_ticket_ref`、`terminal_receipt_id`。它们在首个不可逆副作用前
 全部固定；不得退化为任意键值的 reserved-id map。
 
@@ -107,16 +107,16 @@ open_recovery_session
 `submit_reanchor_unit` 原子覆盖 `reanchor_event_id` 与 `authorize_event_id`，不得拆成两个可独立
 重试并产生不同 Event id 的通用步骤。
 
-terminal receipt 只证明设备对 transaction digest、refs 和 outcome 的签名声明。服务端可以验证
+terminal receipt 只证明设备对 transaction digest、refs 和 result 的签名声明。服务端可以验证
 签名、引用、digest 与 release state，不能声称观察到设备完成解密或 MLS secret 导入。
 
 ## 3. SecurityRotationTransaction
 
-固定绑定 revoke Event、新 secret commitment、series/backup/pointer ids、erase confirmation 与
-local commit state。步骤顺序唯一：
+固定绑定 revoke Event、新 secret commitment、backup series/envelope、active-series Event、
+erase confirmation digest 与 local commit digest。步骤顺序唯一：
 
-对应 `binding` 必填 `revoke_event_id`、`new_secret_commitment`、`series_ref`、`backup_ref`、
-`authoritative_pointer_ref`、`erase_confirmation_ref`、`local_commit_ref`。
+对应 `binding` 必填 `revoke_event_id`、`new_secret_commitment`、`series_id`、`backup_id`、
+`active_series_event_id`、`erase_confirmation_digest`、`local_commit_digest`。
 
 ```text
 revoke
@@ -128,7 +128,7 @@ revoke
 
 每一步必须以 reserved id 和前一步 accepted ref 为 precondition。新 pointer 未成为权威状态前
 不得 erase；erase 已接受后不得切回旧 pointer。客户端本地 commit 丢失时只能查询并重放相同
-terminal outcome，不能重新上传或重新 erase。
+terminal result，不能重新上传或重新 erase。
 
 ## 4. 故障点要求
 

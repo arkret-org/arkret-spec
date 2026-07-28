@@ -273,12 +273,12 @@
     "identity_creation_lease": {
       "type": "object",
       "required": [
-        "lease_id",
+        "identity_creation_lease_id",
         "fence",
         "expires_at"
       ],
       "properties": {
-        "lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "identity_creation_lease_id": { "$ref": "#/$defs/opaque_registration_id" },
         "fence": {
           "type": "integer",
           "minimum": 1
@@ -383,13 +383,13 @@
       "type": "object",
       "required": [
         "request_id",
-        "lease_id",
+        "identity_creation_lease_id",
         "lease_fence",
         "did_operation"
       ],
       "properties": {
         "request_id": { "$ref": "#/$defs/request_id" },
-        "lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "identity_creation_lease_id": { "$ref": "#/$defs/opaque_registration_id" },
         "lease_fence": {
           "type": "integer",
           "minimum": 1
@@ -410,7 +410,7 @@
         "purpose",
         "principal_id",
         "operation_digest",
-        "lease_id",
+        "identity_creation_lease_id",
         "lease_fence",
         "dpop_jkt",
         "audience",
@@ -432,7 +432,7 @@
           "$ref": "#/$defs/sha256_digest",
           "description": "sha256:<lowercase-hex> of SHA-256 over RFC 8785 JCS bytes of the complete request did_operation object."
         },
-        "lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "identity_creation_lease_id": { "$ref": "#/$defs/opaque_registration_id" },
         "lease_fence": {
           "type": "integer",
           "minimum": 1
@@ -461,7 +461,7 @@
         "purpose",
         "principal_id",
         "operation_digest",
-        "lease_id",
+        "identity_creation_lease_id",
         "lease_fence",
         "dpop_jkt",
         "audience",
@@ -482,7 +482,7 @@
         "purpose": { "const": "account_binding" },
         "principal_id": { "$ref": "#/$defs/did" },
         "operation_digest": { "$ref": "#/$defs/sha256_digest" },
-        "lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "identity_creation_lease_id": { "$ref": "#/$defs/opaque_registration_id" },
         "lease_fence": {
           "type": "integer",
           "minimum": 1
@@ -513,13 +513,13 @@
     "identity_creation_registration": {
       "type": "object",
       "required": [
-        "lease_id",
+        "identity_creation_lease_id",
         "lease_fence",
         "did_operation",
         "control_proof"
       ],
       "properties": {
-        "lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "identity_creation_lease_id": { "$ref": "#/$defs/opaque_registration_id" },
         "lease_fence": {
           "type": "integer",
           "minimum": 1
@@ -535,7 +535,7 @@
       "type": "object",
       "required": [
         "binding_state",
-        "lease_id",
+        "identity_creation_lease_id",
         "lease_fence",
         "operation_status",
         "operation_digest",
@@ -543,7 +543,7 @@
       ],
       "properties": {
         "binding_state": { "const": "bound" },
-        "lease_id": { "$ref": "#/$defs/opaque_registration_id" },
+        "identity_creation_lease_id": { "$ref": "#/$defs/opaque_registration_id" },
         "lease_fence": {
           "type": "integer",
           "minimum": 1

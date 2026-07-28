@@ -2129,7 +2129,7 @@
           "kind": "http_message_signature"
         },
         "receive_events": true,
-        "receive_ephemeral": false,
+        "receive_signals": false,
         "rate_limited": true,
         "limits": {
           "max_transaction_events": 100,
@@ -2202,7 +2202,7 @@
           "kind": "http_message_signature"
         },
         "receive_events": true,
-        "receive_ephemeral": false,
+        "receive_signals": false,
         "rate_limited": true,
         "limits": {
           "max_transaction_events": 100
@@ -2268,7 +2268,7 @@
           "kind": "http_message_signature"
         },
         "receive_events": true,
-        "receive_ephemeral": false,
+        "receive_signals": false,
         "rate_limited": true,
         "limits": {
           "max_transaction_events": 100
@@ -2374,7 +2374,7 @@
           "kind": "http_message_signature"
         },
         "receive_events": true,
-        "receive_ephemeral": false,
+        "receive_signals": false,
         "rate_limited": true,
         "limits": {
           "max_transaction_events": 100
@@ -2448,6 +2448,180 @@
       "instance": {
         "pairing_token": "pairing-token-01970e58-ABCDEFG"
       }
+    },
+    {
+      "name": "authorization_lease_normalized_fields_valid",
+      "schema_ref": "schemas/offline-publication.schema.json#/$defs/authorization_lease",
+      "expect_valid": true,
+      "instance": {
+        "authorization_lease_id": "ak:authorization_lease:019a7360-0000-7000-8000-000000000010",
+        "basis_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "device_id": "ak:device:019a7360-0000-7000-8000-000000000011",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000012"
+        },
+        "action": "ak.message.create",
+        "risk_tier": "medium",
+        "issued_at": "2026-05-20T00:00:00.000Z",
+        "expires_at": "2026-05-20T08:00:00.000Z",
+        "authority_set_ref": {
+          "authority_set_id": "ak.authority_set.realm_admission.v1",
+          "authority_set_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixture:authority.example#key-1",
+            "alg": "EdDSA",
+            "payload_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+            "created_at": "2026-05-20T00:00:00.000Z",
+            "jws": "a..b"
+          }
+        ]
+      }
+    },
+    {
+      "name": "security_transaction_normalized_steps_valid",
+      "schema_ref": "schemas/security-transaction.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "transaction_id": "ak:transaction:019a7360-0000-7000-8000-000000000020",
+        "kind": "recovery",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
+        "coordinator_service_id": "did:webvh:z6mkfixture:coordinator.example",
+        "expires_at": "2026-05-21T00:00:00.000Z",
+        "created_at": "2026-05-20T00:00:00.000Z",
+        "request_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "binding": {
+          "recovery_session_id": "ak:recovery_session:019a7360-0000-7000-8000-000000000021",
+          "did_entry_ref": "did:webvh:z6mkfixture:alice.example?versionId=entry-2",
+          "replacement_device_id": "ak:device:019a7360-0000-7000-8000-000000000022",
+          "authorize_event_id": "ak:event:019a7360-0000-7000-8000-000000000023",
+          "reanchor_event_id": "ak:event:019a7360-0000-7000-8000-000000000024",
+          "authority_ticket_ref": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+          "terminal_receipt_id": "ak:receipt:019a7360-0000-7000-8000-000000000025"
+        },
+        "state": "pending",
+        "accepted_steps": [],
+        "next_required_step": "open_recovery_session"
+      }
+    },
+    {
+      "name": "extension_manifest_normalized_fields_valid",
+      "schema_ref": "schemas/extension-manifest.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "manifest_id": "ak.manifest.calendar.v1",
+        "extension_id": "ak.extension.calendar.v1",
+        "namespace": "ak.calendar",
+        "protocol_layer_kind": "extension",
+        "manifest_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "publisher_id": "did:webvh:z6mkfixture:publisher.example",
+        "published_at": "2026-05-20T00:00:00.000Z",
+        "dependency_refs": [],
+        "payload_schema_refs": [],
+        "reducer_contract_refs": [],
+        "required_actions": [
+          "ak.calendar.create"
+        ],
+        "confidentiality_class": "e2ee_required",
+        "transport_rail_ids": [
+          "ak.self.events.command.submit"
+        ],
+        "recovery_profile_ref": null,
+        "federation_profile_ref": null,
+        "conformance_vector_refs": [
+          {
+            "registry_id": "ak.vector.calendar.profile_activation.v1",
+            "digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+          }
+        ],
+        "resource_limits": {
+          "max_canonical_bytes": 65536,
+          "max_item_count": 64,
+          "max_depth": 16,
+          "max_operation_count_per_minute": 600
+        },
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixture:publisher.example#key-1",
+            "alg": "EdDSA",
+            "payload_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+            "created_at": "2026-05-20T00:00:00.000Z",
+            "jws": "a..b"
+          }
+        ]
+      }
+    },
+    {
+      "name": "applet_transaction_signals_only_valid",
+      "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
+      "expect_valid": true,
+      "instance": {
+        "source_service_id": "did:webvh:z6mkfixture:source.example",
+        "signals": [
+          {
+            "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000030",
+            "scope_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000030"
+            },
+            "sender_actor_id": "did:webvh:z6mkfixture:alice.example",
+            "sender_device_id": "ak:device:019a7360-0000-7000-8000-000000000031",
+            "seal_ref": "ak:seal:sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "signal_class": "session",
+            "sent_at": "2026-05-20T00:00:00.000Z",
+            "expires_at": "2026-05-20T00:00:30.000Z",
+            "encrypted_payload": {
+              "scheme": "ak.mls_exporter_aead_chacha20poly1305.v1",
+              "epoch": 3,
+              "nonce": "AAAAAAAAAAAAAAAA",
+              "ciphertext": "AAAAAAAAAAAAAAAAAAAAAA",
+              "aad_digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+            },
+            "proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
+              "alg": "EdDSA",
+              "envelope_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "created_at": "2026-05-20T00:00:00.000Z",
+              "jws": "a..b"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "applet_transaction_without_events_or_signals_invalid",
+      "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
+      "expect_valid": false,
+      "instance": {
+        "source_service_id": "did:webvh:z6mkfixture:source.example"
+      },
+      "first_expected_error": "contains:is not valid under any of the given schemas"
+    },
+    {
+      "name": "applet_transaction_empty_signals_invalid",
+      "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
+      "expect_valid": false,
+      "instance": {
+        "source_service_id": "did:webvh:z6mkfixture:source.example",
+        "signals": []
+      },
+      "first_expected_error": "$.signals: [] should be non-empty"
+    },
+    {
+      "name": "applet_transaction_empty_events_invalid",
+      "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
+      "expect_valid": false,
+      "instance": {
+        "source_service_id": "did:webvh:z6mkfixture:source.example",
+        "events": []
+      },
+      "first_expected_error": "$.events: [] should be non-empty"
     }
   ]
 }

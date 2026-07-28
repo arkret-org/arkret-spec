@@ -85,6 +85,10 @@ see_also:
 | Wire fact | 线路事实 | 在协议线上以 canonical bytes + proof 承诺、可被接收方验证并作为 reducer / audit truth source 的规范事实。v1 不定义独立的 `wire_fact` 对象；除 Wire Event / Event Envelope 外，Operation、SDK builder / draft、receipt object 与 projection 都不是共享 wire fact，除非它们以 registered Event kind 的 payload 进入 Event Envelope。 |
 | Signal Extension | 信号扩展 | 可选 encrypted-only live rail。presence、typing、read receipt 与 call signaling 的精确 kind、target 和内容位于 `SignalEnvelope.encrypted_payload`，外层只暴露 scope、sender、Seal basis 与三值 `signal_class`。它不进入 Event history、cell、Seal coverage、state_root 或 backfill。 |
 | Signal（消歧） | 信号（消歧） | 本规范中未加限定的 “Signal” 一律指本协议的 Signal 平面（`SignalEnvelope` / `signal_class` / `ak.self.signal.*`）。引用同名即时通讯产品的设计时 MUST 使用全称并带产品限定，例如 “Signal SVR”、“Signal SealedSession”，不得写作裸 “Signal”。 |
+| Kernel | 协议内核 | Arkret v1 的安全与收敛原语层，只包含 identity proof、scope/lifecycle、CBA、授权、MLS/key delivery、审计承诺、邀请与设备/账号安全。Kernel 不依赖 Collaboration Base 或任何 Extension。 |
+| Collaboration Base | 协作基础包 | 官方基础协作层，包含 Strand、Message/Content、Relation、View 与 long text 等通用协作对象；依赖 Kernel，但不属于 Kernel。不得缩写为 CBA。 |
+| Extension | 协议扩展 | 通过 Extension Manifest 声明 schema、reducer、action、transport rail、资源上限和 conformance vectors 的可选协议层。裸 “Extension” 仅表示本分层概念；产品扩展必须使用限定名称。 |
+| Extension Manifest | 扩展清单 | 扩展装载、依赖闭包、隔离、资源约束与 conformance 绑定的唯一机器入口；它是签名声明性数据，不是可执行代码或 reducer DSL。 |
 | Device Message | 设备消息 | 可靠的点对点设备队列消息，用于 key verification、secret 分发和 Realm key 请求。它使用 `DeviceMessageEnvelope`，既不是 Event 也不是 Signal。 |
 | Event Store | 事件存储 | 保存 Event Envelope 的服务能力，不是协议真相源本身。 |
 | Event Batch Receipt | 事件批次回执 | 可选审计/同步加速对象（payload schema `ak.schema.event_batch_receipt.v1`），**不是 canonical history**，也**不是 reducer input**；只对 issuer *选择* 承诺的事件集合提供 *integrity*，不提供 *completeness*。**wire-scope：仅为 receipt object 名称（`ak.event_batch_receipt`），不是 Event `kind`、不进入 `event-kind-registry.json`、不进 reducer**——与 Audit RYW Receipt 的"object + durable-kind 双形态"形成对照，命名分层的 normative 定义见 [`../models/event-and-patch.md` §5.1 概念分层](../models/event-and-patch.md)。数据面单事件"已看见"确认是其 `events[]` 单元素用法；只有具体 operation / profile 显式登记承载字段时，才能把该 receipt 作为响应证据。详见同文件 §5 与 [`../sync/operations-sync.md` §6.1](../sync/operations-sync.md)。 |
@@ -123,8 +127,16 @@ see_also:
 | Causal Depth | 因果深度 | 事件在已知 DAG / prev_refs 中的深度值；只可用于 timeline 诊断或兼容投影，不参与协议状态 winner。 |
 | Data Plane | 数据面 | 普通协作写入所在平面：消息、reaction、对象字段、排序、协作文本、计数等。DataEvent 签名与授权验证通过后按 Lattice / CRDT 本地接受；Seal 只可对其作观测承诺。 |
 | Control Plane | 控制面 | 治理写入所在平面：membership、capability、policy、notary、lifecycle、MLS epoch、密钥治理，以及 schema 声明 `sealed=true` 的对象。Control Move 只有被 Seal 覆盖并进入控制面 `state_root` 后才 `sealed`。 |
+| CBA | 控制面基线承诺封存 | `Control-plane Basis-committed Sealing` 的唯一缩写。DataEvent 按自身 `seal_ref` 验证，Control Move 按自身 `seal_basis` 验证并由 Seal 取得 finality。CBA 不表示 Collaboration Base。 |
+| Authority Set | 权威集合 | 在某个 CBA basis 下决定 signer、quorum、delegation 与 revocation authority 的已接受 policy。wire 引用统一为 `{authority_set_id, authority_set_digest}`，不得只按可变名称解析。 |
 | DataEvent | 数据事件 | 数据面 reducer-input Event；携带签名 `scope_ref`、`seal_ref` 与 `auth_context`，writes 由 kind + payload 派生。 |
 | Control Move | 控制动作 | 控制面 reducer-input Event；携带签名 `scope_ref` 与 `seal_basis`，可携带 `preconditions[]`，writes 由 kind + payload 派生。 |
+| CBAProofBundle | CBA 依赖证明包 | 不签名、不创建身份的 receiver-relative dependency bundle；携带目标 Seal、Control Move、inclusion proof 与 availability proof 的有界可验证超集。receiver 必须独立验签、重算 root 与 reducer 输出。 |
+| AuthorizationLease | 授权租约 | 绑定 accepted CBA basis、主体、设备、scope、action、risk tier 与短期有效期的签名发布许可；它只能收窄既有授权，不能创建 capability。 |
+| IngressReceipt | 入口签收回执 | ingress 对某个 Event digest 在 AuthorizationLease 有效期内到达的签名确认；不证明 reducer acceptance、投影可见性或 Seal finality。 |
+| SecurityTransaction | 安全事务资源 | 可查询、可幂等续跑的闭合跨服务安全过程；v1 仅允许 RecoveryTransaction 与 SecurityRotationTransaction，不是通用 Saga/Plan DSL。 |
+| RecoveryTransaction | 恢复事务 | 固定绑定 recovery session、DID entry、replacement device、authorize/reanchor Event 与 terminal receipt 的 SecurityTransaction。 |
+| SecurityRotationTransaction | 安全轮换事务 | 固定绑定 revoke Event、新 secret commitment、backup series/envelope、active-series Event、erase confirmation 与 local commit 的 SecurityTransaction。 |
 | Pending Control Move | 待确认控制动作 | Control Move 已通过格式、签名、basis、授权与 precondition 初检，但尚未被有效 Seal 覆盖。 |
 | Rejected | 已拒绝 | Event / Seal 在格式、签名、schema、basis、precondition、授权、Lattice 或 `state_root` 校验上确定失败。 |
 | Seal | 检查点锚点 | Ordering authority 对控制面 frontier 的签名承诺；包含 predecessors、frontier、`control_event_set_root`、控制面 `state_root` 与 notary / committee signature。它只 finalizes 控制面；数据面 root 是观测承诺。 |
@@ -139,7 +151,7 @@ see_also:
 | Governance Binding Payload | 治理绑定 payload | MLS Governance Binding 的 **commit-side proof**：每个 `ak.mls.commit` 携带的 `governance_binding` payload（MLS GroupContext extension `mls_governance_binding`，codepoint `0xF1C0`），哈希进 MLS transcript，覆盖 `membership_frontier`、`policy_root`、`capability_root`、`discussion_metadata_digest`。 |
 | Covered Seals | 已覆盖 Seal 集 | MLS Governance Binding 的 **lattice-side accumulator**：`covered_seals_cell`（cell family `ak.component.covered_seals.v1`，or_set，bottom=expose）当前值，累积已被 commit attest 的治理 Seal；E2EE DataEvent 用 `seal_ref` 指向已覆盖的治理基准。 |
 | MLS KeyPackage | MLS 密钥包（durable event payload） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生对象：actor 预先公布、供他人将其加入 MLS group 的单次使用公钥材料。在 Arkret 中作为可声明 / 领取 / 消费 / 撤销的 durable event payload（`ak.mls.keypackage` 等）落地，并被 Realm-scoped claim 生命周期约束。prose 用 `KeyPackage`（PascalCase）；单个 KeyPackage 的 identity/content 属性使用 `keypackage_` 前缀（如 `keypackage_id` / `keypackage_ref` / `keypackage_digest`），集合容器与批量引用使用 `key_packages` / `key_package_refs`。详见 [`encryption-and-audit.md` §2.6](../crypto-media/encryption-and-audit.md)。 |
-| MLS Welcome | MLS 欢迎消息（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生消息，把新成员带入当前 epoch。Arkret 扩展：MUST 通过 durable `ak.mls.welcome` Event、durable encrypted pointer 或等价可 backfill 记录交付（Ephemeral Channel 不得是唯一路径）。prose 用 `Welcome`，wire 字段（如 `welcome_digest`）保持小写。详见 [`encryption-and-audit.md` §2.1](../crypto-media/encryption-and-audit.md)。 |
+| MLS Welcome | MLS 欢迎消息（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生消息，把新成员带入当前 epoch。Arkret 扩展：MUST 通过 durable `ak.mls.welcome` Event、durable encrypted pointer 或等价可 backfill 记录交付（Signal Extension 不得是唯一路径）。prose 用 `Welcome`，wire 字段（如 `welcome_digest`）保持小写。详见 [`encryption-and-audit.md` §2.1](../crypto-media/encryption-and-audit.md)。 |
 | MLS Commit | MLS 提交（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生 epoch 推进消息。Arkret 扩展：作为 `ak.mls.commit` durable Event 进入 Realm history，并 MUST 携带 `governance_binding`（GroupContext extension `mls_governance_binding`）把 governance frontier 哈希进 MLS transcript（见 MLS Governance Binding 行）。详见 [`encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md)。 |
 | MLS Proposal | MLS 提案（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生提案消息（add / remove / update 等），由后续 Commit 落实。Arkret 中作为 `ak.mls.proposal` durable Event 传输；发送者 MUST 在事件自身 causal auth state 下满足对应 admin set 或成员 self-update 规则。详见 [`encryption-and-audit.md` §2.1](../crypto-media/encryption-and-audit.md)。 |
 | Notary Profile | 锚点 Profile | Realm create 时固定的 Seal finality profile：`single_did`、`threshold`、`open_set` 或 `mixed`。它只决定控制面 Seal 的签发与问责方式。 |

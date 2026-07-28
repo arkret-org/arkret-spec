@@ -17,7 +17,7 @@ ingress receipt 给出；Event `created_at` 和 verifier 本地首次见到时�
 
 ```text
 AuthorizationLease {
-  lease_id,
+  authorization_lease_id,
   basis_ref,
   actor_id,
   device_id,
@@ -26,15 +26,15 @@ AuthorizationLease {
   risk_tier,
   issued_at,
   expires_at,
-  issuer_set_ref,
-  signatures
+  authority_set_ref,
+  proofs
 }
 ```
 
-`lease_digest = sha256(canonical_json(lease_without_signatures))`。每个 issuer proof 必须签
+`lease_digest = sha256(canonical_json(lease_without_proofs))`。每个 issuer proof 必须签
 `canonical_json({context:"ak.authorization-lease-proof-v1", payload_digest:lease_digest,
-issuer_set_ref, verification_method, created_at, domain?, audience?})`；proof `created_at` 必须逐字
-等于 lease `issued_at`。签名条数与唯一 issuer 数必须满足 basis 中已接受的 issuer-set policy，
+authority_set_ref, verification_method, created_at, domain?, audience?})`；proof `created_at` 必须逐字
+等于 lease `issued_at`。proof 条数与唯一 issuer 数必须满足 basis 中已接受的 authority-set policy，
 数组长度本身不等于 quorum。
 
 `basis_ref` 在 `single_did` / `threshold` / `mixed` 下是单个 accepted Seal ref；在
@@ -43,6 +43,12 @@ issuer_set_ref, verification_method, created_at, domain?, audience?})`；proof `
 authorization。verifier MUST 从 accepted CBA basis
 验证 issuer/delegation、actor/device、scope、action、risk 与有效期；lease 不能创建 capability，
 不能把 medium/high action 降为 low，也不能跨 scope 使用。
+
+`authority_set_ref` 是 CBA 各 authority/quorum 场景共用的闭合对象
+`{authority_set_id, authority_set_digest}`。`authority_set_id` 必须是登记的
+`ak.authority_set.*.v1` policy symbol；`authority_set_digest` 必须等于该 policy 在 `basis_ref`
+控制面视图中的 canonical digest。verifier MUST 同时校验 id、digest、quorum、delegation 与
+revocation authority，不得只按可变 registry 名称解析当前值。
 
 协议最大 TTL：
 
@@ -61,17 +67,17 @@ authorization。verifier MUST 从 accepted CBA basis
 IngressReceipt {
   receipt_id,
   event_digest,
-  lease_ref,
+  authorization_lease_id,
   received_at,
   service_id,
-  issuer_set_ref,
-  signatures
+  authority_set_ref,
+  proofs
 }
 ```
 
-`receipt_digest = sha256(canonical_json(receipt_without_signatures))`。每个 ingress proof 必须签
+`receipt_digest = sha256(canonical_json(receipt_without_proofs))`。每个 ingress proof 必须签
 `canonical_json({context:"ak.ingress-receipt-proof-v1", payload_digest:receipt_digest,
-issuer_set_ref, verification_method, created_at, domain?, audience?})`；proof `created_at` 必须逐字
+authority_set_ref, verification_method, created_at, domain?, audience?})`；proof `created_at` 必须逐字
 等于 `received_at`。同一 verification method 的重复 proof 只计一次。
 
 Event 必须在 lease `expires_at` 之前被 policy 接受的 ingress 签收。`received_at` 必须由 issuer
