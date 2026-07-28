@@ -885,6 +885,30 @@ v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective sc
 
 `ak.vector.reaction.remove_wins_join.v1` 与 `reaction-fixture.json` 固化本节 add/remove、并发、redaction、epoch 与 capability-revoke 行为。
 
+**本节与 cell lattice 的分层（normative）**：`ak.component.message.reactions.v1` 是
+[`../authz/event-auth-state-resolution.md` §9](../authz/event-auth-state-resolution.md) 的核心
+`or_set`，其元素是 **reaction 断言**——`ak.reaction.add` 与 `ak.reaction.remove` 各精确投影
+一个 `{"kind":"or_set_add","tag":{"dot":true},"value":{"field":"payload"}}`，即 remove 同样
+是**往集合里加一条断言**，而不是 observed-remove。这不是绕路，而是本节要求的唯一可表达形态：
+本节明文要求审计视图保留并发 (add, remove) 的双方，若 remove 走 observed-remove，被移除的
+add dot 就不复存在，审计视图无从重建；本节又要求 remove 连**与之并发**的 add 一并 tombstone，
+而 observed-remove 的判据是冻结前态，并发 add 根本不在其中。
+
+断言的 `actor_id` 与极性（add 还是 remove）**不是元素字段**：二者从元素 dot 所指的 Event 的
+签名 envelope（`actor_id` 与 `kind`）读出。投影不拼装对象是因为
+[`event-and-patch.md` §2.4.2](./event-and-patch.md) 禁止在 projection 内拼装、改名或裁剪字段，
+而这两个事实已由签名 envelope 承载，无需复制进元素值。
+
+因此下文"不引用核心 `or_set` lattice"的准确含义是：**remove-wins 收敛规则不是 or_set 的
+join**，而是该 or_set 之上的**默认视图投影**。cell 的 join 仍是核心 or_set 的 dot 集合并，
+仍然可交换、可结合、幂等且数学上永不产生 `⊥`；registry 登记的 `bottom=expose` 按 §9.1.1 由
+本节这一领域规则定义暴露语义。实现 MUST NOT 据此把该 cell 实现成第七种 lattice。
+
+默认视图的成员判定式：actor `A` 属于 `(target_ref, key)` 的 `members[]`，当且仅当集合中存在
+一条 `A` 在该 `(target_ref, key)` 上的 add 断言 `α`，使得对 `A` 在该 `(target_ref, key)` 上的
+**每一条** remove 断言 `ρ`，`α` 都严格因果晚于 `ρ`。去重与 `count` 由该判定式自然得出——
+`members[]` 是 actor 集合，同一 actor 的多条存活 add 只贡献一个成员条目。
+
 - **去重**：同一 actor 对同一 `(target_ref, key)` 的多次 `add` 收敛为一个成员条目（`count` 不重复累加）；per-event 审计日志保留全部 add event。
 - **add / remove**：`ak.reaction.remove` 对该 actor、同 `(target_ref, key)`、且**不严格因果晚于**该 remove 的所有 add（即因果过去 ∪ 与该 remove 并发）打 tombstone；只有**严格因果晚于**该 remove 的 re-add 才存活。因此并发（无因果序）的 (add, remove) 在默认视图 MUST 按 remove 收敛；审计视图保留双方。本规则是 reaction 专用的 remove-wins set，不引用 `event-auth-state-resolution.md` 的核心 `or_set` lattice。
 - **dangling**：`target_ref` 尚未观测到时，reducer MUST 把该 reaction 挂起（pending，`reason="dependency_missing"`），目标 Message 物化后再落 reaction set 条目。

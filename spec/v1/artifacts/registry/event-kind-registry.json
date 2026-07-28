@@ -237,6 +237,9 @@
             "kind": "apply_patch",
             "patch": {
               "field": "payload.patch"
+            },
+            "expected_prestate": {
+              "field": "payload.expected_state_digest"
             }
           }
         }
@@ -248,6 +251,9 @@
         "kind": "apply_patch",
         "patch": {
           "field": "payload.patch"
+        },
+        "expected_prestate": {
+          "field": "payload.expected_state_digest"
         }
       },
       "lattice": "cas_register",
@@ -260,15 +266,39 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm version upgrade",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.realm.upgrade.v1",
+          "cell_subject": {
+            "field": "payload.target_reducer_profile",
+            "kind": "profile_ref"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.realm.upgrade.v1",
       "cell_subject": {
         "field": "payload.target_reducer_profile",
         "kind": "profile_ref"
       },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
+        }
+      },
       "lattice": "cas_register",
-      "bottom": "reject",
-      "plane": "control",
-      "sealed": true
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.realm.organization",
@@ -387,6 +417,37 @@
           ]
         ]
       },
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.realm.link.v1",
+          "cell_subject": {
+            "components": [
+              {
+                "name": "target_realm_id",
+                "field": "payload.target_realm_id",
+                "kind": "id:realm"
+              },
+              {
+                "name": "link_kind",
+                "field": "payload.link_kind",
+                "kind": "string"
+              }
+            ],
+            "kind": "tuple"
+          },
+          "lattice": "fsm",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "transition_to",
+            "to": {
+              "field": "payload.status"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier",
       "cell_family": "ak.component.realm.link.v1",
       "cell_subject": {
         "components": [
@@ -403,10 +464,14 @@
         ],
         "kind": "tuple"
       },
+      "effect_projection": {
+        "kind": "transition_to",
+        "to": {
+          "field": "payload.status"
+        }
+      },
       "lattice": "fsm",
-      "bottom": "reject",
-      "plane": "control",
-      "sealed": true
+      "bottom": "reject"
     },
     {
       "event_kind": "ak.realm.policy",
@@ -1399,6 +1464,9 @@
             "kind": "apply_patch",
             "patch": {
               "field": "payload.patch"
+            },
+            "expected_prestate": {
+              "field": "payload.expected_state_digest"
             }
           }
         }
@@ -1413,6 +1481,9 @@
         "kind": "apply_patch",
         "patch": {
           "field": "payload.patch"
+        },
+        "expected_prestate": {
+          "field": "payload.expected_state_digest"
         }
       },
       "lattice": "cas_register",
@@ -1593,11 +1664,11 @@
             ],
             "kind": "composite"
           },
-          "lattice": "cas_register",
+          "lattice": "fsm",
           "bottom": "reject",
           "effect_projection": {
-            "kind": "set",
-            "value": {
+            "kind": "transition_to",
+            "to": {
               "field": "payload.membership"
             }
           }
@@ -1613,12 +1684,12 @@
         "kind": "composite"
       },
       "effect_projection": {
-        "kind": "set",
-        "value": {
+        "kind": "transition_to",
+        "to": {
           "field": "payload.membership"
         }
       },
-      "lattice": "cas_register",
+      "lattice": "fsm",
       "bottom": "reject"
     },
     {
@@ -2270,15 +2341,45 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Policy rule state",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.policy.rule.v1",
+          "cell_subject": {
+            "field": "payload.rule_id",
+            "kind": "string"
+          },
+          "lattice": "ordered_log",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "append",
+            "value": {
+              "field": "payload"
+            },
+            "issuer_seq": {
+              "envelope_field": "actor_seq"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "merge_safe",
       "cell_family": "ak.component.policy.rule.v1",
       "cell_subject": {
         "field": "payload.rule_id",
         "kind": "string"
       },
+      "effect_projection": {
+        "kind": "append",
+        "value": {
+          "field": "payload"
+        },
+        "issuer_seq": {
+          "envelope_field": "actor_seq"
+        }
+      },
       "lattice": "ordered_log",
-      "bottom": "expose",
-      "plane": "control",
-      "sealed": true
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.policy.action",
@@ -2692,6 +2793,9 @@
             "kind": "apply_patch",
             "patch": {
               "field": "payload.patch"
+            },
+            "expected_prestate": {
+              "field": "payload.expected_state_digest"
             }
           }
         }
@@ -2705,6 +2809,9 @@
         "kind": "apply_patch",
         "patch": {
           "field": "payload.patch"
+        },
+        "expected_prestate": {
+          "field": "payload.expected_state_digest"
         }
       },
       "lattice": "mv_register",
@@ -2881,6 +2988,9 @@
             "kind": "apply_patch",
             "patch": {
               "field": "payload.patch"
+            },
+            "expected_prestate": {
+              "field": "payload.expected_state_digest"
             }
           }
         }
@@ -2894,6 +3004,9 @@
         "kind": "apply_patch",
         "patch": {
           "field": "payload.patch"
+        },
+        "expected_prestate": {
+          "field": "payload.expected_state_digest"
         }
       },
       "lattice": "mv_register",
@@ -3229,6 +3342,9 @@
             "kind": "apply_patch",
             "patch": {
               "field": "payload.patch"
+            },
+            "expected_prestate": {
+              "field": "payload.expected_state_digest"
             }
           }
         }
@@ -3245,6 +3361,9 @@
         "kind": "apply_patch",
         "patch": {
           "field": "payload.patch"
+        },
+        "expected_prestate": {
+          "field": "payload.expected_state_digest"
         }
       },
       "lattice": "mv_register",
@@ -3651,15 +3770,44 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Reaction add",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.message.reactions.v1",
+          "cell_subject": {
+            "field": "payload.target_ref",
+            "kind": "id:message"
+          },
+          "lattice": "or_set",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "or_set_add",
+            "tag": {
+              "dot": true
+            },
+            "value": {
+              "field": "payload"
+            }
+          }
+        }
+      ],
       "cell_family": "ak.component.message.reactions.v1",
       "cell_subject": {
         "field": "payload.target_ref",
         "kind": "id:message"
       },
+      "effect_projection": {
+        "kind": "or_set_add",
+        "tag": {
+          "dot": true
+        },
+        "value": {
+          "field": "payload"
+        }
+      },
       "lattice": "or_set",
-      "bottom": "expose",
-      "plane": "data",
-      "sealed": false
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.reaction.remove",
@@ -3668,15 +3816,44 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Reaction remove",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.message.reactions.v1",
+          "cell_subject": {
+            "field": "payload.target_ref",
+            "kind": "id:message"
+          },
+          "lattice": "or_set",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "or_set_add",
+            "tag": {
+              "dot": true
+            },
+            "value": {
+              "field": "payload"
+            }
+          }
+        }
+      ],
       "cell_family": "ak.component.message.reactions.v1",
       "cell_subject": {
         "field": "payload.target_ref",
         "kind": "id:message"
       },
+      "effect_projection": {
+        "kind": "or_set_add",
+        "tag": {
+          "dot": true
+        },
+        "value": {
+          "field": "payload"
+        }
+      },
       "lattice": "or_set",
-      "bottom": "expose",
-      "plane": "data",
-      "sealed": false
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.rsvp.set",
@@ -3735,15 +3912,44 @@
       "reducer_input": true,
       "payload": "Shared pin add or update",
       "payload_schema": "ak.schema.pin.v1",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.pin.v1",
+          "cell_subject": {
+            "field": "payload.pin_scope.id",
+            "kind": "string"
+          },
+          "lattice": "or_set",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "or_set_add",
+            "tag": {
+              "dot": true
+            },
+            "value": {
+              "field": "payload"
+            }
+          }
+        }
+      ],
       "cell_family": "ak.component.pin.v1",
       "cell_subject": {
         "field": "payload.pin_scope.id",
         "kind": "string"
       },
+      "effect_projection": {
+        "kind": "or_set_add",
+        "tag": {
+          "dot": true
+        },
+        "value": {
+          "field": "payload"
+        }
+      },
       "lattice": "or_set",
-      "bottom": "expose",
-      "plane": "data",
-      "sealed": false
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.pin.remove",
@@ -3753,15 +3959,44 @@
       "reducer_input": true,
       "payload": "Shared pin remove",
       "payload_schema": "ak.schema.pin.v1",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.pin.v1",
+          "cell_subject": {
+            "field": "payload.pin_scope.id",
+            "kind": "string"
+          },
+          "lattice": "or_set",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "or_set_add",
+            "tag": {
+              "dot": true
+            },
+            "value": {
+              "field": "payload"
+            }
+          }
+        }
+      ],
       "cell_family": "ak.component.pin.v1",
       "cell_subject": {
         "field": "payload.pin_scope.id",
         "kind": "string"
       },
+      "effect_projection": {
+        "kind": "or_set_add",
+        "tag": {
+          "dot": true
+        },
+        "value": {
+          "field": "payload"
+        }
+      },
       "lattice": "or_set",
-      "bottom": "expose",
-      "plane": "data",
-      "sealed": false
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.pin.reorder",
@@ -3771,15 +4006,44 @@
       "reducer_input": true,
       "payload": "Shared pin rank update",
       "payload_schema": "ak.schema.pin.v1",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.pin.v1",
+          "cell_subject": {
+            "field": "payload.pin_scope.id",
+            "kind": "string"
+          },
+          "lattice": "or_set",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "or_set_add",
+            "tag": {
+              "dot": true
+            },
+            "value": {
+              "field": "payload"
+            }
+          }
+        }
+      ],
       "cell_family": "ak.component.pin.v1",
       "cell_subject": {
         "field": "payload.pin_scope.id",
         "kind": "string"
       },
+      "effect_projection": {
+        "kind": "or_set_add",
+        "tag": {
+          "dot": true
+        },
+        "value": {
+          "field": "payload"
+        }
+      },
       "lattice": "or_set",
-      "bottom": "expose",
-      "plane": "data",
-      "sealed": false
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.redaction",
@@ -3899,6 +4163,9 @@
             "kind": "apply_patch",
             "patch": {
               "field": "payload.patch"
+            },
+            "expected_prestate": {
+              "field": "payload.expected_state_digest"
             }
           }
         }
@@ -3912,6 +4179,9 @@
         "kind": "apply_patch",
         "patch": {
           "field": "payload.patch"
+        },
+        "expected_prestate": {
+          "field": "payload.expected_state_digest"
         }
       },
       "lattice": "mv_register",
@@ -4175,6 +4445,9 @@
             "kind": "apply_patch",
             "patch": {
               "field": "payload.patch"
+            },
+            "expected_prestate": {
+              "field": "payload.expected_state_digest"
             }
           }
         }
@@ -4188,6 +4461,9 @@
         "kind": "apply_patch",
         "patch": {
           "field": "payload.patch"
+        },
+        "expected_prestate": {
+          "field": "payload.expected_state_digest"
         }
       },
       "lattice": "mv_register",
@@ -4391,6 +4667,9 @@
             "kind": "apply_patch",
             "patch": {
               "field": "payload.patch"
+            },
+            "expected_prestate": {
+              "field": "payload.expected_state_digest"
             }
           }
         }
@@ -4404,6 +4683,9 @@
         "kind": "apply_patch",
         "patch": {
           "field": "payload.patch"
+        },
+        "expected_prestate": {
+          "field": "payload.expected_state_digest"
         }
       },
       "lattice": "mv_register",
@@ -4416,15 +4698,38 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "View schema or definition sync",
+      "plane": "data",
+      "sealed": false,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.view.reconcile.v1",
+          "cell_subject": {
+            "field": "payload.view_id",
+            "kind": "string"
+          },
+          "lattice": "mv_register",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.definition"
+            }
+          }
+        }
+      ],
       "cell_family": "ak.component.view.reconcile.v1",
       "cell_subject": {
         "field": "payload.view_id",
         "kind": "string"
       },
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload.definition"
+        }
+      },
       "lattice": "mv_register",
-      "bottom": "expose",
-      "plane": "data",
-      "sealed": false
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.agent.key.authorize",
@@ -5420,6 +5725,9 @@
             "kind": "apply_patch",
             "patch": {
               "field": "payload.patch"
+            },
+            "expected_prestate": {
+              "field": "payload.expected_state_digest"
             }
           }
         }
@@ -5434,6 +5742,9 @@
         "kind": "apply_patch",
         "patch": {
           "field": "payload.patch"
+        },
+        "expected_prestate": {
+          "field": "payload.expected_state_digest"
         }
       },
       "lattice": "mv_register",
@@ -7488,15 +7799,39 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Lift a previously sealed moderation decision (observed-remove/supersede the referenced decision in ak.component.moderation_state.v1)",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.moderation_state.v1",
+          "cell_subject": {
+            "field": "payload.target_ref",
+            "kind": "string"
+          },
+          "lattice": "or_set",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "or_set_remove_dots",
+            "dots": {
+              "field": "payload.observed_dots"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "merge_safe",
       "cell_family": "ak.component.moderation_state.v1",
       "cell_subject": {
         "field": "payload.target_ref",
         "kind": "string"
       },
+      "effect_projection": {
+        "kind": "or_set_remove_dots",
+        "dots": {
+          "field": "payload.observed_dots"
+        }
+      },
       "lattice": "or_set",
-      "bottom": "expose",
-      "plane": "control",
-      "sealed": true
+      "bottom": "expose"
     },
     {
       "event_kind": "ak.moderation.appeal.submit",

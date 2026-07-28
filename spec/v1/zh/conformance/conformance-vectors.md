@@ -1030,14 +1030,14 @@ ak.vector.strand_tracks_update.atomic.v1
 
 期望：
 
-- **Case A**: reducer 应用 patch 后，`Strand.tracks.synthesis.is_primary == false` 且 `Strand.tracks.discussion.is_primary == true`；reducer 视角下不存在两次中间 state cell write，cas_register cell 一次 atomic update。
+- **Case A**: reducer 应用 patch 后，`Strand.tracks.synthesis.is_primary == false` 且 `Strand.tracks.discussion.is_primary == true`；reducer 视角下不存在两次中间 state cell write，mv_register cell 一次 atomic update。
 - **Case B**: reducer 接受合并后状态 `{ synthesis: {is_primary: false, enabled: true}, discussion: {is_primary: false, enabled: false}, review: {is_primary: true, enabled: true} }`；中间过程 MUST 在同一 cell update 内完成，不得分裂为 4 个独立 cell write。
 - **Case C**: reducer MUST 在 projected writes 应用前（cell update 之前）校验合并后 `tracks` map 至多 1 个 entry `is_primary=true`；不满足 MUST `schema_violation`，整条 Event 拒绝，Strand `tracks` 不发生任何变化。
 
 判定要求：
 
 - patch path 解析 MUST 遵循 [`event-and-patch.md` §4.2`](../models/event-and-patch.md) ABNF grammar；任何 path 形如 `tracks.<name>[key=...]` 的 selector segment MUST `schema_violation`（`tracks` 是 map，不是 unique-key 数组）。
-- `ak.strand.tracks.update` 写入的 cell 是 `ak:cell:ak.component.strand.tracks.v1:<strand_id>`（cas_register），reducer 校验合并后 invariant 在 cell update 之前 完成。
+- `ak.strand.tracks.update` 写入的 cell 是 `ak:cell:ak.component.strand.tracks.v1:<strand_id>`（mv_register），reducer 校验合并后 invariant 在 cell update 之前 完成。
 
 失败条件：
 

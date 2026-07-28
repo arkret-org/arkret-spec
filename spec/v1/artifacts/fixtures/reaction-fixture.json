@@ -9,7 +9,7 @@
   "covers_vectors": [
     "ak.vector.reaction.remove_wins_join.v1"
   ],
-  "notes": "Reducer-level vectors for ak.reaction.add / ak.reaction.remove. Convergence is the reaction-specific remove-wins set keyed on (actor_id, target_ref, key), which zh/models/strand-and-message.md §9.8.3 states authoritatively does NOT use the core or_set lattice; see §9.8 (Reaction model) and zh/crypto-media/encryption-and-audit.md §2.9 (plaintext-vs-encrypted visibility).",
+  "notes": "Reducer-level vectors for ak.reaction.add / ak.reaction.remove. The cell ak.component.message.reactions.v1 is the core or_set of reaction assertions: ak.reaction.add and ak.reaction.remove each project exactly one or_set_add, so the remove is itself an assertion rather than an observed-remove. Convergence of the default view is the reaction-specific remove-wins rule keyed on (actor_id, target_ref, key), which zh/models/strand-and-message.md §9.8.3 defines authoritatively as a projection over that set rather than as the or_set join; see §9.8 (Reaction model) and zh/crypto-media/encryption-and-audit.md §2.9 (plaintext-vs-encrypted visibility).",
   "cases": [
     {
       "name": "or_set_basic_add_then_remove",

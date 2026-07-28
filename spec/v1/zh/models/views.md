@@ -136,6 +136,30 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 
 若某个 UI 操作改变 Strand 所属 List、Strand rank、List rank、Strand discussion Message、Relation 或对象字段，必须使用对应对象 Event；只有改变共享 filter、sort、grouping、visible fields、renderer 或 layout 时才修改 View。个人偏好、临时排序、列宽、折叠状态、本地 pin、选择模式与分页大小 MUST 使用 actor-private account data 或等价私有 Event。
 
+### 3.2 三个 View event 的写入语义（normative）
+
+三个 kind 写**三个不同的 cell**，subject 都是 `payload.view_id`，lattice 都是 `mv_register`、
+`bottom=expose`：
+
+| kind | cell family | 写入 | payload |
+| --- | --- | --- | --- |
+| `ak.view.create` | `ak.component.view.create.v1` | `set` 整个 `payload.object` | 创建时的 object snapshot |
+| `ak.view.update` | `ak.component.view.update.v1` | 对冻结前态 `apply_patch` `payload.patch` | 增量 patch |
+| `ak.view.reconcile` | `ak.component.view.reconcile.v1` | `set` 整个 `payload.definition` | `{view_id, definition}` |
+
+`ak.view.reconcile` 用于把 View 定义**整体**重新同步到一个已知良好的 `ak.schema.view.v1`
+对象——典型场景是 schema 演进后重新发布定义。它与另外两者的分工是封闭的：create 只在
+View 首次出现时携带 object snapshot；update 携带增量 patch，无法表达"丢弃当前定义、
+以这一份为准"；reconcile 则不是增量，MUST 携带完整 `definition`。
+
+因此 reconcile 的 payload MUST 是 `view_reconcile_payload`（`{view_id, definition}` 闭合对象），
+**MUST NOT** 复用 create / update 的 `view_payload`：后者的 `{definition}` 分支连 `view_id`
+都不要求，而 `view_id` 是 cell subject，缺失即无法定址。
+
+reconcile 不改变 §3.1 的终态规则：目标 View 的 accepted lifecycle state 为 `tombstoned` 时，
+reconcile MUST 以 `failed_precondition`、`reason_code="view_already_terminal"` 拒绝。
+reconcile 同样 MUST NOT 写入被投影对象的任何 canonical state（§2.1）。
+
 ### 3.2 `CollectionConfig`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |

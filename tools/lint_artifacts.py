@@ -1718,13 +1718,27 @@ def lint_effect_projection(
             lint_effect_source(lint, path, f"{ref}.value", projection["value"])
         return
     if projection_kind == "apply_patch":
-        unknown = set(projection) - {"kind", "patch"}
+        unknown = set(projection) - {"kind", "patch", "expected_prestate"}
         if unknown:
             lint.fail(path, f"{ref} has unknown member(s) {sorted(unknown)}")
         if "patch" not in projection:
             lint.fail(path, f"{ref}.patch is required")
         else:
             lint_effect_source(lint, path, f"{ref}.patch", projection["patch"])
+        # The optional prestate guard has to name a payload path, because it is
+        # a producer-signed claim about the frozen pre-state. envelope_field,
+        # const, dot and projected_value would either be unsigned by the
+        # producer or unable to vary per write, which defeats the guard.
+        expected = projection.get("expected_prestate")
+        if expected is not None:
+            lint_effect_source(lint, path, f"{ref}.expected_prestate", expected)
+            if not (isinstance(expected, dict)
+                    and isinstance(expected.get("field"), str)
+                    and expected["field"].startswith("payload.")):
+                lint.fail(
+                    path,
+                    f"{ref}.expected_prestate MUST be a payload.* field source",
+                )
         return
     if projection_kind == "append":
         unknown = set(projection) - {"kind", "value", "issuer_seq"}
@@ -3184,7 +3198,6 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ak.organization.discovery", "state_payload"),
     ("ak.organization.moderation_policy", "state_payload"),
     ("ak.policy.action", "state_payload"),
-    ("ak.policy.rule", "state_payload"),
     ("ak.policy.set", "state_payload"),
     ("ak.profile.update", "object_patch_payload"),
     ("ak.reaction.add", "reaction_payload"),
@@ -3193,20 +3206,15 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ak.realm.audit_policy_downgrade", "audit_payload"),
     ("ak.realm.delivery_binding_policy", "state_payload"),
     ("ak.realm.discovery", "state_payload"),
-    ("ak.realm.history_sharing_policy", "state_payload"),
-    ("ak.realm.history_visibility", "state_payload"),
     ("ak.realm.join_rule", "state_payload"),
-    ("ak.realm.link", "state_payload"),
     ("ak.realm.media_service", "state_payload"),
     ("ak.realm.moderation_policy", "state_payload"),
     ("ak.realm.organization", "state_payload"),
     ("ak.realm.policy", "state_payload"),
     ("ak.realm.policy_bundle", "state_payload"),
     ("ak.realm.policy_server", "state_payload"),
-    ("ak.realm.read_receipt_policy", "state_payload"),
     ("ak.realm.schema", "state_payload"),
     ("ak.realm.update", "object_patch_payload"),
-    ("ak.realm.upgrade", "state_payload"),
     ("ak.redaction", "message_redact_payload"),
     ("ak.relation.tombstone", "relation_update_payload"),
     ("ak.schema.define", "state_payload"),

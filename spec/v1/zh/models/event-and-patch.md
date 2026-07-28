@@ -184,9 +184,23 @@ receiver MUST 从签名 envelope、schema-validated payload 与冻结前态重�
   cell 的闭合 FSM 表校验到 `to` 的迁移。它适用于 KeyPackage 等由 payload 声明目标状态、
   但不允许 producer 伪造前态的状态机。
 - `{"kind":"set","value":source}` 只用于 `mv_register` / `cas_register`，精确派生 `{"kind":"set","value":...}`。source 求值结果 MAY 是任意 JSON 值，包含完整 object——例如 `ak.realm.create` 的 `{"field":"payload.object"}` 与 `ak.rsvp.set` 的 `{"field":"payload.entry"}`，二者的 lattice value 都是整个子对象。这不引入第二套 object-construction DSL：投影只能整体搬运一个已存在的 Event 根路径或 `const`，MUST NOT 在 projection 内拼装、改名或裁剪字段。
-- `{"kind":"apply_patch","patch":source}` 只用于 `mv_register` / `cas_register`；reducer 对冻结
-  前态应用 schema-defined Patch，并验证 payload 的 expected digest/prestate binding。失败拒绝
-  整个 Event，不能存储 Patch 本身作为 cell value。
+- `{"kind":"apply_patch","patch":source,"expected_prestate"?:source}` 只用于 `mv_register` /
+  `cas_register`；reducer 对冻结前态应用 schema-defined Patch。失败拒绝整个 Event，不能存储
+  Patch 本身作为 cell value。
+
+  **prestate binding（normative）**：可选成员 `expected_prestate` 是 prestate binding 的**唯一
+  机器可读来源**。它 MUST 是 `payload.<path>` 形态的 field source——binding 是 producer 对
+  冻结前态的签名声明，`envelope_field` / `const` / `dot` / `projected_value` 要么不由 producer
+  签名，要么无法逐 write 变化，都表达不了这个断言。求值结果 MUST 是一个 canonical hash 字符串；
+  与冻结前态的 canonical digest 不逐字节相等时 MUST 以 `failed_precondition` 拒绝整个 Event。
+  实现 MUST NOT 改从别处猜测 binding 字段名，也 MUST NOT 在 registry 未登记本成员时凭空施加
+  binding。
+
+  该 source 的路径不存在时**不** fail closed，而是表示本次 write 不携带 binding：这是本节
+  source 求值规则的**唯一登记例外**，因为 binding 按各 kind 的 payload 契约是可选的乐观并发
+  守卫，而不是必填字段。并发安全本身由 lattice 承担——`cas_register` 在非初始态上按 §9.3.1
+  必须携带命中该 cell 的 `head_eq` precondition，`mv_register` 暴露并发 heads；
+  `expected_prestate` 是在此之上的额外守卫，不是替代品。
 - `{"kind":"append","value":source,"issuer_seq":source}` 只用于 `ordered_log`，精确派生 `{"kind":"append","value":...,"issuer_seq":...}`；`issuer_seq` 必须求值为无符号整数。
 - `{"kind":"or_set_delta","selector":"payload.<path>","branches":{...}}` 只用于 `or_set`。selector 值必须精确命中一个 branch；每个 branch 的 `op` 只能为 `add` 或 `remove`。`add` 必须同时登记 `tag` 与 `value` source，`remove` 必须只登记 `tag` source；分别精确派生同名 op。
 - `or_set_add` 产生一个 add；`or_set_batch_add` 对已验证、唯一的 payload array 逐项 add。

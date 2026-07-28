@@ -3665,9 +3665,9 @@
         "unsupported_optional": "fail closed on root mismatch"
       },
       "required_cells": [
-        "ak:cell:ak.component.covered_seals.v1:<realm_id>",
-        "ak:cell:ak.component.mls_epoch.v1:<mls_group_id>",
-        "ak:cell:ak.component.key_schedule.v1:<mls_group_id>"
+        "ak:cell:ak.component.covered_seals.v1:<mls_group_id>",
+        "ak:cell:ak.component.mls.epoch.v1:<mls_group_id>",
+        "ak:cell:ak.component.mls.key_schedule.v1:<mls_group_id>"
       ],
       "federation_interop_floor": {
         "is_minimum_for_mls_backed_federation": true,
