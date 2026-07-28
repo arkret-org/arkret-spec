@@ -10386,7 +10386,7 @@
       },
       "additionalProperties": false
     },
-    "conflict_recovery_payload": {
+    "state_conflict_recovery_payload": {
       "type": "object",
       "description": "Control cell bottom recovery. zh/authz/event-auth-state-resolution.md section 9.5 resolves a bottom=reject cell that has joined to Bottom back to a single legal value. The authorization and the pre-conflict anchor are not payload fields: they are refs[] entries with role=recovery_capability and role=state_witness.",
       "required": [

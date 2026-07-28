@@ -4054,6 +4054,14 @@
       "description": "A Move attempted to read or write a bottom=reject cell while the effective value is ⊥. Ordinary CAS writes MUST fail; recovery requires the conflict-recovery witness path. See zh/authz/event-auth-state-resolution.md §5.1 and §8."
     },
     {
+      "code": "recovery_target_not_in_bottom",
+      "applies_to": [
+        "state_resolution",
+        "auth_decision"
+      ],
+      "description": "An ak.state.conflict_recovery reset named a target_cell that is not in ⊥. The reset replaces a cell rather than joining into it, so allowing it on a live cell would make recovery a general overwrite channel that bypasses every lattice and every precondition. This is the converse of cell_in_bottom_state, which rejects an ordinary write against a cell that is in ⊥. See zh/authz/event-auth-state-resolution.md §9.5."
+    },
+    {
       "code": "inception_upgrade_evidence_stale",
       "applies_to": [
         "auth_decision",

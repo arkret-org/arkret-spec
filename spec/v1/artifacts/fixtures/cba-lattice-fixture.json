@@ -1067,7 +1067,7 @@
           "cell_status_before": "value",
           "expected": {
             "result": "failed_precondition",
-            "reason": "cell_in_bottom_state",
+            "reason": "recovery_target_not_in_bottom",
             "note": "reset is legal only on a cell already in bottom; on any other state the write is rejected, so recovery cannot be used as a general overwrite channel."
           }
         },

@@ -3953,7 +3953,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/conflict_recovery_payload"
+            "$ref": "./event-payload.schema.json#/$defs/state_conflict_recovery_payload"
           }
         }
       }
