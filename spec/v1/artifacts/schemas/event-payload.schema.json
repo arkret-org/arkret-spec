@@ -10385,6 +10385,28 @@
         }
       },
       "additionalProperties": false
+    },
+    "conflict_recovery_payload": {
+      "type": "object",
+      "description": "Control cell bottom recovery. zh/authz/event-auth-state-resolution.md section 9.5 resolves a bottom=reject cell that has joined to Bottom back to a single legal value. The authorization and the pre-conflict anchor are not payload fields: they are refs[] entries with role=recovery_capability and role=state_witness.",
+      "required": [
+        "target_cell",
+        "resolved_value"
+      ],
+      "properties": {
+        "target_cell": {
+          "$ref": "./event-envelope.schema.json#/$defs/cell_ref",
+          "description": "The cell being recovered. It MUST be in Bottom when the reducer applies this Event; on any other cell state the write MUST be rejected. This is the only registered kind whose write target is resolved from the payload rather than from a literal cell_family in the registry, because a recovery addresses one cell of an arbitrary family."
+        },
+        "resolved_value": {
+          "description": "The single legal value the cell resolves to. Section 9.5 requires the Move to declare it, so it is signed payload, never reducer-synthesized."
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 512
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

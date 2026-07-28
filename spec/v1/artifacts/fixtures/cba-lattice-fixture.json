@@ -978,7 +978,7 @@
     },
     {
       "name": "conflict_recovery_move",
-      "description": "A bottom=reject control cell recovers only through a sealed Control Move with recovery_capability and a pre-conflict state_witness.",
+      "description": "A bottom=reject control cell recovers only through a sealed ak.state.conflict_recovery Control Move with recovery_capability and a pre-conflict state_witness. The recovered value is the signed payload.resolved_value, projected by the registered cell_ref + reset form; no other kind may declare that form.",
       "cell": "ak:cell:ak.component.realm.policy.v1:null",
       "pre_conflict_value": {
         "policy_revision": 7
@@ -988,6 +988,13 @@
         "reason": "conflict"
       },
       "valid_recovery_move": {
+        "kind": "ak.state.conflict_recovery",
+        "payload": {
+          "target_cell": "ak:cell:ak.component.realm.policy.v1:null",
+          "resolved_value": {
+            "policy_revision": 8
+          }
+        },
         "plane": "control",
         "refs": [
           {
@@ -1053,6 +1060,24 @@
             "result": "control_pending",
             "cell_remains": "bottom",
             "query_result": "failed_bottom"
+          }
+        },
+        {
+          "name": "reset_on_a_cell_not_in_bottom",
+          "cell_status_before": "value",
+          "expected": {
+            "result": "failed_precondition",
+            "reason": "cell_in_bottom_state",
+            "note": "reset is legal only on a cell already in bottom; on any other state the write is rejected, so recovery cannot be used as a general overwrite channel."
+          }
+        },
+        {
+          "name": "target_cell_mismatch",
+          "payload_target_cell": "ak:cell:ak.component.realm.notary.v1:null",
+          "expected": {
+            "result": "failed_precondition",
+            "reason": "recovery_witness_invalid",
+            "note": "the state_witness must witness the cell named by payload.target_cell; witnessing a different cell proves nothing about the one being reset."
           }
         }
       ],

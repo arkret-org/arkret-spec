@@ -585,7 +585,20 @@ Realm 的 `digest_algorithm` 只能通过控制面 suite-transition Control Move
 
 `bottom=reject` 的控制面 cell（典型 `cas_register` / `fsm`）join 到 `⊥`（§9.1.1）后是**死状态**：所有依赖它的 Control Move precondition、DataEvent 授权判定与读路径 fail closed（`failed_bottom`）。把该 cell 从 `⊥` 拉回单一合法值，唯一途径是本节定义的 **conflict-recovery Move**。`bottom=expose` cell 的 `⊥` 暴露多 heads、由后续普通 Move 收敛，**不**适用本节、也不需要 recovery capability。
 
-conflict-recovery Move 不是新 event kind，而是一条**针对该 cell 的 Control Move**，由它携带的 `refs[]` role 与 reducer 的"`⊥` 唯一例外接受"规则识别。它 MUST 满足：
+conflict-recovery Move 是一条 kind 为 `ak.state.conflict_recovery` 的 Control Move，
+payload 为 `{target_cell, resolved_value, reason?}`。它在 registry 中登记为
+[`../models/event-and-patch.md` §2.4.2](../models/event-and-patch.md) 的 `cell_ref` +
+`reset` 形态：目标 cell 由签名 payload 的完整 `cell_id` 给出，
+写入值为 `resolved_value`。
+
+> **v1 变更说明**：本节早先写作"不是新 event kind，而是一条针对该 cell 的
+> Control Move，由 `refs[]` role 识别"。那在 producer 还能写 `effects[]` 时成立；
+> v1 删除该数组后，一条 Control Move 的写入**完全**由它自己 kind 的注册
+> contract 派生，因此"无 kind 的恢复"派生不出任何写入，该句不可满足。
+> 本节因此登记了唯一的恢复 kind。识别仍不依赖 kind 名单独成立：
+> 下列条件全部为 MUST，reducer 仅在 cell 处于 `⊥` 时接受它。
+
+它 MUST 满足：
 
 1. **携带 recovery 授权与见证 ref**：`refs[]` MUST 含 `role=recovery_capability`（critical，授权本次 recovery 的 grant）与至少一个 `role=state_witness`（critical，见证 `⊥` 之前该 cell 合法单值的 frontier + inclusion proof）。缺 `state_witness` MUST `recovery_witness_missing`。这两个 role 已登记于 [`event-and-patch.md` §2.2](../models/event-and-patch.md) 的 `SemanticRef.role`。
 2. **witness 可重建 state_root**：`state_witness` 的 inclusion proof MUST 能重建该 witness frontier 的 `state_root`；不能则 `recovery_witness_invalid`。

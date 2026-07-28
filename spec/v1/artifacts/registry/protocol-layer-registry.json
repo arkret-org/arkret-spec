@@ -79,7 +79,8 @@
       "ak.realm_key.withheld",
       "ak.schema.define",
       "ak.schema.update",
-      "ak.session.grant"
+      "ak.session.grant",
+      "ak.state.conflict_recovery"
     ],
     "collaboration_base": [
       "ak.container.move_item",

@@ -3938,6 +3938,25 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.state.conflict_recovery"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/conflict_recovery_payload"
+          }
+        }
+      }
     }
   ],
   "$defs": {

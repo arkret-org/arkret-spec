@@ -22,8 +22,275 @@
   "reserved_actions": [],
   "actions": [
     {
-      "action": "ak.realm.discover",
+      "action": "ak.agent.action_approve",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.agent.action_approve"
+      ],
+      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.agent.action_reject",
+      "category": "management",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.agent.action_reject"
+      ],
+      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.agent.action_request",
       "category": "general",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.agent.action_request"
+      ],
+      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.agent.draft.propose",
+      "category": "general",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.agent.draft.propose"
+      ],
+      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.agent.key.authorize",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.agent.key.authorize"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.agent.key.revoke",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.agent.key.revoke"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.agent.selector_claim",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.agent.selector_claim"
+      ],
+      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.agent.sidecar.exchange.control",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [
+        "allowed_strand_ids"
+      ],
+      "target_event_kinds": [
+        "ak.agent.sidecar.exchange.control"
+      ],
+      "profile": "ak.profile.agent_sidecar.v1",
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.agent.sidecar.publish",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [
+        "expires_at",
+        "approval_required"
+      ],
+      "target_event_kinds": [
+        "ak.message.create"
+      ],
+      "profile": "ak.profile.agent_sidecar.v1",
+      "event_mapping_kind": "scope_suffix_variant"
+    },
+    {
+      "action": "ak.agent.sidecar.write",
+      "category": "general",
+      "risk_tier": "low",
+      "required_constraints": [
+        "allowed_strand_ids"
+      ],
+      "target_event_kinds": [
+        "ak.message.create"
+      ],
+      "profile": "ak.profile.agent_sidecar.v1",
+      "event_mapping_kind": "scope_suffix_variant"
+    },
+    {
+      "action": "ak.approval.vote",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.audit.accessed",
+      "category": "service",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.audit.accessed"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.audit.applet_binding",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.audit.applet_binding"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.audit.export",
+      "category": "service",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.audit.query",
+      "category": "service",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.audit.release",
+      "category": "service",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.audit.release"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.audit.session.authorize",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.audit.session.authorize"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.audit.session.close",
+      "category": "service",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.audit.session.close"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.audit.session.notice",
+      "category": "service",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.audit.session.notice"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.audit.session.request",
+      "category": "service",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.audit.session.request"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.call.join",
+      "category": "service",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.call.state",
+        "ak.call.summary"
+      ],
+      "profile": null,
+      "event_mapping_kind": "scope_suffix_variant"
+    },
+    {
+      "action": "ak.call.moderate",
+      "category": "service",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.call.state"
+      ],
+      "profile": null,
+      "event_mapping_kind": "scope_suffix_variant"
+    },
+    {
+      "action": "ak.call.record",
+      "category": "service",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.call.recording.start",
+        "ak.call.state"
+      ],
+      "profile": null,
+      "event_mapping_kind": "aggregate_admin"
+    },
+    {
+      "action": "ak.call.screen_share",
+      "category": "service",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.call.state"
+      ],
+      "profile": null,
+      "event_mapping_kind": "scope_suffix_variant"
+    },
+    {
+      "action": "ak.call.signal.send",
+      "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
@@ -31,72 +298,74 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.realm.create",
-      "category": "general",
-      "risk_tier": "medium",
+      "action": "ak.call.transcribe",
+      "category": "service",
+      "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.realm.create"
+        "ak.call.state"
       ],
       "profile": null,
-      "event_mapping_kind": "same_name"
+      "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "ak.realm.update",
-      "category": "general",
-      "risk_tier": "medium",
+      "action": "ak.capability.delegate",
+      "category": "management",
+      "risk_tier": "high",
       "required_constraints": [
-        "allowed_write_fields"
+        "max_delegation_depth"
       ],
       "target_event_kinds": [
-        "ak.realm.update"
+        "ak.capability.delegate"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.realm.archive",
-      "category": "general",
+      "action": "ak.capability.derived",
+      "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.realm.archive"
+        "ak.capability.derived"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.realm.freeze",
-      "category": "general",
+      "action": "ak.capability.grant",
+      "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.realm.freeze"
+        "ak.capability.grant"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.realm.tombstone",
-      "category": "general",
+      "action": "ak.capability.revoke",
+      "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.realm.tombstone"
+        "ak.capability.revoke"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.realm.destroy",
-      "category": "general",
+      "action": "ak.circle.audit",
+      "category": "audit",
       "risk_tier": "high",
       "required_constraints": [],
-      "target_event_kinds": [
-        "ak.realm.destroy"
+      "required_evaluator_checks": [
+        "audit_pair_required"
       ],
+      "target_event_kinds": [],
       "profile": null,
-      "event_mapping_kind": "same_name"
+      "notes": "Read-only audit access for a Realm admin NOT in the target Circle. MUST be paired with ak.audit.accessed event. Does NOT yield historical decryption keys unless the admin is formally added to the Circle.",
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "ak.circle.create",
@@ -140,20 +409,6 @@
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "ak.circle.member.manage",
-      "category": "general",
-      "risk_tier": "medium",
-      "required_constraints": [
-        "allowed_circle_ids"
-      ],
-      "target_event_kinds": [
-        "ak.circle.member.state"
-      ],
-      "profile": null,
-      "notes": "Invite / remove others. Held by Circle admin. payload.actor_id != envelope.actor_id.",
-      "event_mapping_kind": "scope_suffix_variant"
-    },
-    {
       "action": "ak.circle.member.add.others",
       "category": "audit",
       "risk_tier": "high",
@@ -171,407 +426,18 @@
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "ak.circle.audit",
-      "category": "audit",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "required_evaluator_checks": [
-        "audit_pair_required"
-      ],
-      "target_event_kinds": [],
-      "profile": null,
-      "notes": "Read-only audit access for a Realm admin NOT in the target Circle. MUST be paired with ak.audit.accessed event. Does NOT yield historical decryption keys unless the admin is formally added to the Circle.",
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.object.read",
+      "action": "ak.circle.member.manage",
       "category": "general",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.object.read_metadata",
-      "category": "general",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.object.read_content",
-      "category": "general",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.object.read_history",
-      "category": "general",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface",
-      "notes": "Authorizes reading an object's discussion / history events (message timeline, redacted-message metainfo, prior revisions). Read / projection surface only; emits no durable reducer event."
-    },
-    {
-      "action": "ak.object.archive",
-      "category": "general",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.strand.archive",
-        "ak.morph.archive"
-      ],
-      "profile": null,
-      "event_mapping_kind": "polymorphic_object"
-    },
-    {
-      "action": "ak.object.restore",
-      "category": "general",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.strand.restore",
-        "ak.morph.restore",
-        "ak.space.restore"
-      ],
-      "profile": null,
-      "event_mapping_kind": "polymorphic_object"
-    },
-    {
-      "action": "ak.strand.create",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.strand.create"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.strand.read",
-      "category": "strand",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.strand.update",
-      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [
-        "allowed_write_fields"
+        "allowed_circle_ids"
       ],
       "target_event_kinds": [
-        "ak.strand.update"
+        "ak.circle.member.state"
       ],
       "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.morph.read",
-      "category": "morph",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.morph.create",
-      "category": "morph",
-      "risk_tier": "medium",
-      "required_constraints": [
-        "allowed_morph_kinds"
-      ],
-      "target_event_kinds": [
-        "ak.morph.create"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.morph.update",
-      "category": "morph",
-      "risk_tier": "medium",
-      "required_constraints": [
-        "allowed_write_fields"
-      ],
-      "target_event_kinds": [
-        "ak.morph.update"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.morph.schema_migrate",
-      "category": "morph",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.morph.schema_migrate"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.morph.archive",
-      "category": "morph",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.morph.archive"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.morph.restore",
-      "category": "morph",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.morph.restore"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.strand.archive",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.strand.archive"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.strand.restore",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.strand.restore"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.strand.move",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.strand.move"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.strand.reorder",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.strand.reorder"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.strand.tracks.update",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.strand.tracks.update"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.strand.stage.set",
-      "category": "strand",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.strand.stage.set"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.morph.stage.set",
-      "category": "morph",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.morph.stage.set"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.object.stage.set",
-      "category": "general",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.strand.stage.set",
-        "ak.morph.stage.set"
-      ],
-      "profile": null,
-      "event_mapping_kind": "polymorphic_object"
-    },
-    {
-      "action": "ak.relation.create",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.relation.create"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.relation.update",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.relation.update"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.relation.tombstone",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.relation.tombstone"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.strand.watch.set",
-      "category": "discussion",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.strand.watch.set"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.strand.watch.set.others",
-      "category": "discussion",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "required_evaluator_checks": [
-        "actor_ne_watcher_actor",
-        "audit_pair_required"
-      ],
-      "target_event_kinds": [
-        "ak.strand.watch.set"
-      ],
-      "profile": null,
+      "notes": "Invite / remove others. Held by Circle admin. payload.actor_id != envelope.actor_id.",
       "event_mapping_kind": "scope_suffix_variant"
-    },
-    {
-      "action": "ak.realm.notification.audit",
-      "category": "governance",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.space.create",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [
-        "allowed_space_kinds"
-      ],
-      "target_event_kinds": [
-        "ak.space.create"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.space.update",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [
-        "allowed_space_kinds"
-      ],
-      "target_event_kinds": [
-        "ak.space.update"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.space.parent",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.space.parent"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.space.archive",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.space.archive"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.space.restore",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.space.restore"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.space.tombstone",
-      "category": "strand",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.space.tombstone"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
     },
     {
       "action": "ak.container.move_item",
@@ -596,39 +462,6 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.view.create",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.view.create"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.view.update",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.view.update"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.view.reconcile",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.view.reconcile"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
       "action": "ak.event.read",
       "category": "discussion",
       "risk_tier": "low",
@@ -636,6 +469,72 @@
       "target_event_kinds": [],
       "profile": null,
       "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.invite.accept",
+      "category": "personal",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.invite.accept"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.invite.cancel",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.invite.cancel"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.invite.claim",
+      "category": "management",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.invite.claim"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.invite.create",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.invite.create"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.invite.revoke",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.invite.revoke"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.invite.third_party",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.invite.third_party"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "ak.message.create",
@@ -671,33 +570,6 @@
       "notes": "Authorizes adding an audience_mention node such as @all or @here to a Message create/revise. @here maps to audience=\"strand_engaged\" and is not presence-filtered. This is an additional gate: the actor MUST also be authorized for the underlying message create/revise action. Effective Realm/Circle policy MUST allow the audience and declare finite max_recipients/quota before notification fanout."
     },
     {
-      "action": "ak.message.revise",
-      "category": "discussion",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.message.revise"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.message.revise.own",
-      "category": "discussion",
-      "risk_tier": "low",
-      "required_constraints": [
-        "message_edit_window"
-      ],
-      "required_evaluator_checks": [
-        "actor_eq_target_author"
-      ],
-      "target_event_kinds": [
-        "ak.message.revise"
-      ],
-      "profile": null,
-      "event_mapping_kind": "scope_suffix_variant"
-    },
-    {
       "action": "ak.message.redact",
       "category": "discussion",
       "risk_tier": "medium",
@@ -727,37 +599,304 @@
       "event_mapping_kind": "operation_verb"
     },
     {
-      "action": "ak.reaction.add",
+      "action": "ak.message.revise",
       "category": "discussion",
-      "risk_tier": "low",
+      "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.reaction.add"
+        "ak.message.revise"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.reaction.remove",
+      "action": "ak.message.revise.own",
       "category": "discussion",
       "risk_tier": "low",
+      "required_constraints": [
+        "message_edit_window"
+      ],
+      "required_evaluator_checks": [
+        "actor_eq_target_author"
+      ],
+      "target_event_kinds": [
+        "ak.message.revise"
+      ],
+      "profile": null,
+      "event_mapping_kind": "scope_suffix_variant"
+    },
+    {
+      "action": "ak.mls.commit",
+      "category": "service",
+      "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.reaction.remove"
+        "ak.mls.commit",
+        "ak.mls.commit_failed"
+      ],
+      "profile": null,
+      "event_mapping_kind": "aggregate_admin"
+    },
+    {
+      "action": "ak.mls.genesis",
+      "category": "service",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.mls.genesis"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.rsvp.set",
-      "category": "discussion",
+      "action": "ak.mls.keypackage",
+      "category": "service",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.mls.keypackage"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.mls.proposal",
+      "category": "service",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.mls.proposal"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.mls.welcome",
+      "category": "service",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.mls.welcome"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.moderation.appeal.review",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.moderation.appeal.review",
+        "ak.moderation.appeal.decision",
+        "ak.moderation.appeal.close"
+      ],
+      "profile": null,
+      "event_mapping_kind": "aggregate_admin"
+    },
+    {
+      "action": "ak.moderation.appeal.submit",
+      "category": "management",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.rsvp.set"
+        "ak.moderation.appeal.submit"
       ],
-      "profile": "ak.profile.calendar_event.v1",
+      "profile": null,
       "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.moderation.decision",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.moderation.decision"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.moderation.decision.lift",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.moderation.decision.lift"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.morph.archive",
+      "category": "morph",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.morph.archive"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.morph.create",
+      "category": "morph",
+      "risk_tier": "medium",
+      "required_constraints": [
+        "allowed_morph_kinds"
+      ],
+      "target_event_kinds": [
+        "ak.morph.create"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.morph.read",
+      "category": "morph",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.morph.restore",
+      "category": "morph",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.morph.restore"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.morph.schema_migrate",
+      "category": "morph",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.morph.schema_migrate"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.morph.stage.set",
+      "category": "morph",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.morph.stage.set"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.morph.update",
+      "category": "morph",
+      "risk_tier": "medium",
+      "required_constraints": [
+        "allowed_write_fields"
+      ],
+      "target_event_kinds": [
+        "ak.morph.update"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.notification.ack",
+      "category": "personal",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.notification.read",
+      "category": "personal",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.object.archive",
+      "category": "general",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.strand.archive",
+        "ak.morph.archive"
+      ],
+      "profile": null,
+      "event_mapping_kind": "polymorphic_object"
+    },
+    {
+      "action": "ak.object.read",
+      "category": "general",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.object.read_content",
+      "category": "general",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.object.read_history",
+      "category": "general",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface",
+      "notes": "Authorizes reading an object's discussion / history events (message timeline, redacted-message metainfo, prior revisions). Read / projection surface only; emits no durable reducer event."
+    },
+    {
+      "action": "ak.object.read_metadata",
+      "category": "general",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.object.restore",
+      "category": "general",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.strand.restore",
+        "ak.morph.restore",
+        "ak.space.restore"
+      ],
+      "profile": null,
+      "event_mapping_kind": "polymorphic_object"
+    },
+    {
+      "action": "ak.object.stage.set",
+      "category": "general",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.strand.stage.set",
+        "ak.morph.stage.set"
+      ],
+      "profile": null,
+      "event_mapping_kind": "polymorphic_object"
     },
     {
       "action": "ak.pin.add",
@@ -790,6 +929,105 @@
         "ak.pin.reorder"
       ],
       "profile": "ak.profile.pinned_items.v1",
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.policy.action",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.policy.action"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.policy.manage",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.policy.set",
+        "ak.policy.rule",
+        "ak.policy.action",
+        "ak.realm.policy",
+        "ak.realm.policy_server",
+        "ak.realm.policy_bundle",
+        "ak.realm.delivery_binding_policy",
+        "ak.realm.asset_privacy_policy",
+        "ak.realm.read_receipt_policy",
+        "ak.realm.history_sharing_policy",
+        "ak.realm.preview_policy",
+        "ak.realm.moderation_policy",
+        "ak.realm.disappearing_policy",
+        "ak.realm.search_policy"
+      ],
+      "profile": null,
+      "event_mapping_kind": "aggregate_admin"
+    },
+    {
+      "action": "ak.policy.rule",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.policy.rule"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.policy.set",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.policy.set"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.presence.broadcast",
+      "category": "service",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.reaction.add",
+      "category": "discussion",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.reaction.add"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.reaction.remove",
+      "category": "discussion",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.reaction.remove"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.read_cursor.advance",
+      "category": "personal",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.read_cursor.advance"
+      ],
+      "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
@@ -826,6 +1064,79 @@
       "event_mapping_kind": "aggregate_admin"
     },
     {
+      "action": "ak.realm.archive",
+      "category": "general",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm.archive"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.realm.create",
+      "category": "general",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm.create"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.realm.destroy",
+      "category": "general",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm.destroy"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.realm.disappearing_policy",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm.disappearing_policy"
+      ],
+      "profile": "ak.profile.disappearing.v1",
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.realm.discover",
+      "category": "general",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.realm.freeze",
+      "category": "general",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm.freeze"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.realm.join.review",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": "ak.profile.candidate.join_policy.v1",
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
       "action": "ak.realm.link",
       "category": "management",
       "risk_tier": "high",
@@ -837,12 +1148,12 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.realm.upgrade",
-      "category": "management",
+      "action": "ak.realm.media_service",
+      "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.realm.upgrade"
+        "ak.realm.media_service"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
@@ -857,6 +1168,15 @@
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.realm.notification.audit",
+      "category": "governance",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
     },
     {
       "action": "ak.realm.plaintext_visible_services",
@@ -878,17 +1198,6 @@
         "ak.realm.preview_policy"
       ],
       "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.realm.disappearing_policy",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.realm.disappearing_policy"
-      ],
-      "profile": "ak.profile.disappearing.v1",
       "event_mapping_kind": "same_name"
     },
     {
@@ -915,35 +1224,104 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.audit.applet_binding",
-      "category": "management",
+      "action": "ak.realm.tombstone",
+      "category": "general",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.audit.applet_binding"
+        "ak.realm.tombstone"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.audit.session.authorize",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
+      "action": "ak.realm.update",
+      "category": "general",
+      "risk_tier": "medium",
+      "required_constraints": [
+        "allowed_write_fields"
+      ],
       "target_event_kinds": [
-        "ak.audit.session.authorize"
+        "ak.realm.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.strand.admin",
+      "action": "ak.realm.upgrade",
       "category": "management",
       "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm.upgrade"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.realm_key.share",
+      "category": "service",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm_key.share"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name",
+      "notes": "Authorizes durable history-key delivery after the independent membership, device, history-sharing policy, source_authorization_ref, and recipient checks succeed. This explicit high-risk action is not implied by ak.realm.admin."
+    },
+    {
+      "action": "ak.receipt.broadcast",
+      "category": "service",
+      "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
       "profile": null,
       "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.relation.create",
+      "category": "strand",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.relation.create"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.relation.tombstone",
+      "category": "strand",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.relation.tombstone"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.relation.update",
+      "category": "strand",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.relation.update"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.rsvp.set",
+      "category": "discussion",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.rsvp.set"
+      ],
+      "profile": "ak.profile.calendar_event.v1",
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "ak.schema.define",
@@ -968,83 +1346,44 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.capability.grant",
+      "action": "ak.self.account.query.describe",
+      "category": "service",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.self.account.stream.subscribe",
+      "category": "service",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.self.agent.command.deactivate",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.capability.grant"
+        "ak.self.agent.deactivate"
       ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
+      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "event_mapping_kind": "operation_verb"
     },
     {
-      "action": "ak.capability.delegate",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [
-        "max_delegation_depth"
-      ],
-      "target_event_kinds": [
-        "ak.capability.delegate"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.capability.derived",
+      "action": "ak.self.agent.command.pause",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.capability.derived"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.capability.revoke",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.capability.revoke"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.agent.key.authorize",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.agent.key.authorize"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.agent.key.revoke",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.agent.key.revoke"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.agent.selector_claim",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.agent.selector_claim"
+        "ak.self.agent.pause"
       ],
       "profile": "ak.profile.personal_agent_provisioning.v1",
-      "event_mapping_kind": "same_name"
+      "event_mapping_kind": "operation_verb"
     },
     {
       "action": "ak.self.agent.command.provision",
@@ -1070,34 +1409,12 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.self.agent.command.pause",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.self.agent.pause"
-      ],
-      "profile": "ak.profile.personal_agent_provisioning.v1",
-      "event_mapping_kind": "operation_verb"
-    },
-    {
       "action": "ak.self.agent.command.resume",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
         "ak.self.agent.resume"
-      ],
-      "profile": "ak.profile.personal_agent_provisioning.v1",
-      "event_mapping_kind": "operation_verb"
-    },
-    {
-      "action": "ak.self.agent.command.deactivate",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.self.agent.deactivate"
       ],
       "profile": "ak.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "operation_verb"
@@ -1127,48 +1444,17 @@
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ak.agent.draft.propose",
-      "category": "general",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.agent.draft.propose"
-      ],
-      "profile": "ak.profile.personal_agent_provisioning.v1",
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.agent.action_request",
-      "category": "general",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.agent.action_request"
-      ],
-      "profile": "ak.profile.personal_agent_provisioning.v1",
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.agent.action_approve",
+      "action": "ak.self.agent.participation.resource.replace",
       "category": "management",
-      "risk_tier": "medium",
+      "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.agent.action_approve"
+        "ak.capability.grant",
+        "ak.capability.revoke"
       ],
-      "profile": "ak.profile.personal_agent_provisioning.v1",
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.agent.action_reject",
-      "category": "management",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.agent.action_reject"
-      ],
-      "profile": "ak.profile.personal_agent_provisioning.v1",
-      "event_mapping_kind": "same_name"
+      "profile": "ak.profile.agent_participation_policy.v1",
+      "migration_group": "ak._0016_agent_participation",
+      "event_mapping_kind": "aggregate_admin"
     },
     {
       "action": "ak.self.agent.sidecar.command.ensure",
@@ -1187,285 +1473,12 @@
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ak.agent.sidecar.write",
-      "category": "general",
-      "risk_tier": "low",
-      "required_constraints": [
-        "allowed_strand_ids"
-      ],
-      "target_event_kinds": [
-        "ak.message.create"
-      ],
-      "profile": "ak.profile.agent_sidecar.v1",
-      "event_mapping_kind": "scope_suffix_variant"
-    },
-    {
-      "action": "ak.agent.sidecar.exchange.control",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [
-        "allowed_strand_ids"
-      ],
-      "target_event_kinds": [
-        "ak.agent.sidecar.exchange.control"
-      ],
-      "profile": "ak.profile.agent_sidecar.v1",
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.agent.sidecar.publish",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [
-        "expires_at",
-        "approval_required"
-      ],
-      "target_event_kinds": [
-        "ak.message.create"
-      ],
-      "profile": "ak.profile.agent_sidecar.v1",
-      "event_mapping_kind": "scope_suffix_variant"
-    },
-    {
-      "action": "ak.self.agent.participation.resource.replace",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.capability.grant",
-        "ak.capability.revoke"
-      ],
-      "profile": "ak.profile.agent_participation_policy.v1",
-      "migration_group": "ak._0016_agent_participation",
-      "event_mapping_kind": "aggregate_admin"
-    },
-    {
-      "action": "ak.policy.manage",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.policy.set",
-        "ak.policy.rule",
-        "ak.policy.action",
-        "ak.realm.policy",
-        "ak.realm.policy_server",
-        "ak.realm.policy_bundle",
-        "ak.realm.delivery_binding_policy",
-        "ak.realm.asset_privacy_policy",
-        "ak.realm.read_receipt_policy",
-        "ak.realm.history_sharing_policy",
-        "ak.realm.preview_policy",
-        "ak.realm.moderation_policy",
-        "ak.realm.disappearing_policy",
-        "ak.realm.search_policy"
-      ],
-      "profile": null,
-      "event_mapping_kind": "aggregate_admin"
-    },
-    {
-      "action": "ak.policy.set",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.policy.set"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.policy.rule",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.policy.rule"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.policy.action",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.policy.action"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.invite.create",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.invite.create"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.realm.join.review",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": "ak.profile.candidate.join_policy.v1",
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.invite.cancel",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.invite.cancel"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.invite.third_party",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.invite.third_party"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.invite.claim",
-      "category": "management",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.invite.claim"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.invite.revoke",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.invite.revoke"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.approval.vote",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.moderation.decision",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.moderation.decision"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.moderation.decision.lift",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.moderation.decision.lift"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.moderation.appeal.submit",
-      "category": "management",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.moderation.appeal.submit"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.moderation.appeal.review",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.moderation.appeal.review",
-        "ak.moderation.appeal.decision",
-        "ak.moderation.appeal.close"
-      ],
-      "profile": null,
-      "event_mapping_kind": "aggregate_admin"
-    },
-    {
-      "action": "ak.self.events.query.scan",
-      "category": "service",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.self.events.stream.subscribe",
-      "category": "service",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.self.account.stream.subscribe",
-      "category": "service",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.self.account.query.describe",
-      "category": "service",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.self.snapshot.query.manifest_head",
-      "category": "service",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.self.blob.upload.create",
+      "action": "ak.self.blob.command.presign",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [
-        "blob_max_bytes"
+        "blob_presign_max_ttl_seconds",
+        "blob_presign_scope"
       ],
       "target_event_kinds": [],
       "profile": null,
@@ -1490,177 +1503,257 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.self.blob.command.presign",
+      "action": "ak.self.blob.upload.create",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [
-        "blob_presign_max_ttl_seconds",
-        "blob_presign_scope"
+        "blob_max_bytes"
       ],
       "target_event_kinds": [],
       "profile": null,
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.realm.media_service",
-      "category": "service",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.realm.media_service"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.mls.genesis",
-      "category": "service",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.mls.genesis"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.mls.proposal",
-      "category": "service",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.mls.proposal"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.mls.commit",
-      "category": "service",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.mls.commit",
-        "ak.mls.commit_failed"
-      ],
-      "profile": null,
-      "event_mapping_kind": "aggregate_admin"
-    },
-    {
-      "action": "ak.mls.welcome",
-      "category": "service",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.mls.welcome"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.mls.keypackage",
-      "category": "service",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.mls.keypackage"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.realm_key.share",
-      "category": "service",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.realm_key.share"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name",
-      "notes": "Authorizes durable history-key delivery after the independent membership, device, history-sharing policy, source_authorization_ref, and recipient checks succeed. This explicit high-risk action is not implied by ak.realm.admin."
-    },
-    {
-      "action": "ak.audit.accessed",
-      "category": "service",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.audit.accessed"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.audit.session.request",
-      "category": "service",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.audit.session.request"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.audit.session.notice",
-      "category": "service",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.audit.session.notice"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.audit.release",
-      "category": "service",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.audit.release"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.audit.session.close",
-      "category": "service",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.audit.session.close"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.audit.query",
-      "category": "service",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.audit.export",
-      "category": "service",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.presence.broadcast",
+      "action": "ak.self.events.query.scan",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
       "profile": null,
       "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.self.events.stream.subscribe",
+      "category": "service",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.self.snapshot.query.manifest_head",
+      "category": "service",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.space.archive",
+      "category": "strand",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.space.archive"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.space.create",
+      "category": "strand",
+      "risk_tier": "medium",
+      "required_constraints": [
+        "allowed_space_kinds"
+      ],
+      "target_event_kinds": [
+        "ak.space.create"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.space.parent",
+      "category": "strand",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.space.parent"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.space.restore",
+      "category": "strand",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.space.restore"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.space.tombstone",
+      "category": "strand",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.space.tombstone"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.space.update",
+      "category": "strand",
+      "risk_tier": "medium",
+      "required_constraints": [
+        "allowed_space_kinds"
+      ],
+      "target_event_kinds": [
+        "ak.space.update"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.state.conflict_recovery",
+      "category": "general",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.state.conflict_recovery"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.strand.admin",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.strand.archive",
+      "category": "strand",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.strand.archive"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.strand.create",
+      "category": "strand",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.strand.create"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.strand.move",
+      "category": "strand",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.strand.move"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.strand.read",
+      "category": "strand",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.strand.reorder",
+      "category": "strand",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.strand.reorder"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.strand.restore",
+      "category": "strand",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.strand.restore"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.strand.stage.set",
+      "category": "strand",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.strand.stage.set"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.strand.tracks.update",
+      "category": "strand",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.strand.tracks.update"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.strand.update",
+      "category": "strand",
+      "risk_tier": "medium",
+      "required_constraints": [
+        "allowed_write_fields"
+      ],
+      "target_event_kinds": [
+        "ak.strand.update"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.strand.watch.set",
+      "category": "discussion",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.strand.watch.set"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.strand.watch.set.others",
+      "category": "discussion",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "actor_ne_watcher_actor",
+        "audit_pair_required"
+      ],
+      "target_event_kinds": [
+        "ak.strand.watch.set"
+      ],
+      "profile": null,
+      "event_mapping_kind": "scope_suffix_variant"
     },
     {
       "action": "ak.typing.broadcast",
@@ -1672,116 +1765,34 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ak.receipt.broadcast",
-      "category": "service",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.call.signal.send",
-      "category": "service",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.call.join",
-      "category": "service",
+      "action": "ak.view.create",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.call.state",
-        "ak.call.summary"
-      ],
-      "profile": null,
-      "event_mapping_kind": "scope_suffix_variant"
-    },
-    {
-      "action": "ak.call.screen_share",
-      "category": "service",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.call.state"
-      ],
-      "profile": null,
-      "event_mapping_kind": "scope_suffix_variant"
-    },
-    {
-      "action": "ak.call.record",
-      "category": "service",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.call.recording.start",
-        "ak.call.state"
-      ],
-      "profile": null,
-      "event_mapping_kind": "aggregate_admin"
-    },
-    {
-      "action": "ak.call.transcribe",
-      "category": "service",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.call.state"
-      ],
-      "profile": null,
-      "event_mapping_kind": "scope_suffix_variant"
-    },
-    {
-      "action": "ak.call.moderate",
-      "category": "service",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.call.state"
-      ],
-      "profile": null,
-      "event_mapping_kind": "scope_suffix_variant"
-    },
-    {
-      "action": "ak.read_cursor.advance",
-      "category": "personal",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.read_cursor.advance"
+        "ak.view.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.notification.read",
-      "category": "personal",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.notification.ack",
-      "category": "personal",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ak.invite.accept",
-      "category": "personal",
-      "risk_tier": "low",
+      "action": "ak.view.reconcile",
+      "category": "strand",
+      "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ak.invite.accept"
+        "ak.view.reconcile"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.view.update",
+      "category": "strand",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.view.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"

@@ -278,6 +278,30 @@ dot 拼接与 `or_set_batch_add` 的 tag 编码由 `ak.vector.encoding.or_set_do
 （[`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json)）固定，含裸 event_id
 作 tag 与用 wire 数组下标充当第三段的负向例。
 
+**`reset` 与 `cell_ref`（normative，封闭于单一 kind）**：上述全部 projection 都写入一个由
+registry 字面 `cell_family` + `cell_subject` 静态确定的 cell。唯一例外是
+`ak.state.conflict_recovery`（[`../authz/event-auth-state-resolution.md` §9.5](../authz/event-auth-state-resolution.md)）：
+
+```json
+{"cell_ref": {"kind": "cell_ref", "field": "payload.target_cell"},
+ "effect_projection": {"kind": "reset", "value": {"field": "payload.resolved_value"}}}
+```
+
+- `cell_ref` 取代 `cell_family` + `cell_subject`，目标 cell 由签名 payload 的完整 `cell_id`
+  给出。恢复面向的是**任意 family 的某一个 cell**，因此目标不可能是字面
+  `ak.component.*.v<n>` URI。
+- `reset` 不是 lattice op：它把该 cell 直接解析为 `resolved_value`，不参与 join。因此该
+  write **MUST NOT** 声明 `lattice`、`bottom`、`cell_family`、`cell_subject` 或 `condition`
+  ——目标 cell 的 lattice 与 bottom 属于被恢复的那个 cell，不属于本 kind；而带条件的 reset
+  会让恢复路径本身依赖 payload 形状。
+- reducer **MUST** 仅在目标 cell 已处于 `⊥` 时应用 `reset`，且 Event 必须满足 §9.5 的
+  全部条件（`refs[]` 的 `recovery_capability` 与 `state_witness`、witness 严格 pre-conflict、
+  已 sealed 等）。cell 处于任何其它状态时该 write **MUST** 被拒绝。
+
+这一形态对其它 kind **封闭**：任何其它 kind 声明 `cell_ref` 或 `reset` 都是 registry 错误，
+而 `ak.state.conflict_recovery` 必须同时声明二者。静态可达性在此由 §9.5 的授权与见证条件
+承担——恢复的安全边界是"谁被授权、锚定在哪个冲突前状态"，而不是"这个 kind 能碰哪些 family"。
+
 `effect_projection` 与 `condition` 正交：先求值 `condition` 决定目标是否参与，仅对参与目标
 求值 projection。一个 payload delta 需要多个同 family op 时，必须由该 kind 的封闭 contract
 明确登记、使用上述唯一批量特例，或拆成多个 Event；不能把其它 payload 数组顺序当作隐含

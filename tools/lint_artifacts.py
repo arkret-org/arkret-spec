@@ -1450,6 +1450,52 @@ def lint_field_path(lint: Lint, path: Path, ref: str, value: object) -> None:
         )
 
 
+CONFLICT_RECOVERY_KIND = "ak.state.conflict_recovery"
+
+
+def lint_conflict_recovery_write(lint, event_path, write_ref, kind, write):
+    """The single registered exception to literal cell addressing.
+
+    Enforces both directions: only `ak.state.conflict_recovery` may declare
+    `cell_ref` or a `reset` projection, and it MUST declare exactly that pair
+    with no lattice, bottom, family, subject or condition -- a reset is not a
+    join, and a conditional reset would make the recovery path itself depend on
+    payload shape.
+    """
+    if kind != CONFLICT_RECOVERY_KIND:
+        lint.fail(
+            event_path,
+            f"{write_ref} declares cell_ref or a reset projection; that form is reserved "
+            f"to {CONFLICT_RECOVERY_KIND} (event-auth-state-resolution.md section 9.5)",
+        )
+        return
+    cell_ref = write.get("cell_ref")
+    if not isinstance(cell_ref, dict) or cell_ref.get("kind") != "cell_ref":
+        lint.fail(event_path, f"{write_ref}.cell_ref must be an object with kind='cell_ref'")
+    elif cell_ref.get("field") != "payload.target_cell":
+        lint.fail(
+            event_path,
+            f"{write_ref}.cell_ref.field must be payload.target_cell, got "
+            f"{cell_ref.get('field')!r}",
+        )
+    projection = write.get("effect_projection")
+    if not isinstance(projection, dict) or projection.get("kind") != "reset":
+        lint.fail(event_path, f"{write_ref}.effect_projection must be kind='reset'")
+    elif projection.get("value") != {"field": "payload.resolved_value"}:
+        lint.fail(
+            event_path,
+            f"{write_ref}.effect_projection.value must be "
+            "{'field': 'payload.resolved_value'}",
+        )
+    for forbidden in ("cell_family", "cell_subject", "lattice", "bottom", "condition"):
+        if forbidden in write:
+            lint.fail(
+                event_path,
+                f"{write_ref} MUST NOT declare {forbidden}: the target family, its lattice "
+                "and its bottom belong to the cell being recovered, not to this kind",
+            )
+
+
 def lint_subject_field_path(lint: Lint, path: Path, ref: str, value: object) -> None:
     """Validate an explicitly sourced cell-subject field path."""
     lint_field_path(lint, path, ref, value)
@@ -1954,6 +2000,21 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                 if not isinstance(write, dict):
                     lint.fail(event_path, f"{write_ref} must be an object")
                     continue
+                # zh/authz/event-auth-state-resolution.md section 9.5: a
+                # conflict recovery addresses one cell of an arbitrary family,
+                # so its target cannot be a literal ak.component.*.v<n> URI and
+                # its write is a reset rather than a join. That form is closed
+                # to this one kind, and this kind MUST use it -- otherwise
+                # `cell_ref` becomes a general escape from static cell
+                # addressing, which is what the literal family exists to
+                # prevent.
+                has_cell_ref = "cell_ref" in write
+                projection_kind = None
+                if isinstance(write.get("effect_projection"), dict):
+                    projection_kind = write["effect_projection"].get("kind")
+                if kind == CONFLICT_RECOVERY_KIND or has_cell_ref or projection_kind == "reset":
+                    lint_conflict_recovery_write(lint, event_path, write_ref, kind, write)
+                    continue
                 write_family = write.get("cell_family")
                 if not isinstance(write_family, str) or CELL_FAMILY_RE.fullmatch(write_family) is None:
                     lint.fail(
@@ -2185,7 +2246,15 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     event_path,
                     f"{kind} data contract must omit control concurrency_class",
                 )
-            if len(cell_writes) == 1 and isinstance(cell_writes[0], dict):
+            if (
+                len(cell_writes) == 1
+                and isinstance(cell_writes[0], dict)
+                and "cell_ref" not in cell_writes[0]
+            ):
+                # The conflict-recovery form has no single-target shorthand to
+                # agree with: the shorthand is a literal cell_family plus a
+                # lattice op, and this write has neither. The generator
+                # deliberately does not mirror it.
                 for field in (
                     "cell_family",
                     "cell_subject",
