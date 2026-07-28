@@ -471,13 +471,13 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 
 #### 5.0.7 B 模型 Recovery Re-anchor Unit
 
-> 本节的 re-anchor unit 是 `RecoveryTransaction` 的 `submit_reanchor_unit` 步骤，不是独立流程：它原子覆盖 `reanchor_event_id` 与 `authorize_event_id` 两个 reserved id，MUST NOT 拆成两个可独立重试、会产生不同 Event id 的步骤。WebVH entry 已接受但 re-anchor response 丢失时，transaction 保持 `running` 并从相同 reserved ids 续跑，不得创建第二 entry。见 [`./security-transactions.md` §2](./security-transactions.md)。
+> 本节的 re-anchor unit 是 B 模型 `RecoveryTransaction` 的 `submit_reanchor_unit` 步骤，不是独立流程：create 先固定 typed prepared plan 与 ticket/DID/Event reserved ids；coordinator 依次执行 `issue_authority_ticket → authorize_recovery_device → publish_did_entry → submit_reanchor_unit`。unit 原子覆盖 `reanchor_event_id` 与 `authorize_event_id`，MUST NOT 拆成两个可独立重试、会产生不同 Event id 的步骤。WebVH entry 已接受但 re-anchor response 丢失时，transaction 保持 `running` 并从相同 prepared bytes、reserved ids 与 authority accepted output续跑，不得创建第二 entry。见 [`./security-transactions.md` §2](./security-transactions.md)。
 
 `ak.vector.identity.device_reanchor.v1` 覆盖本节原子 unit、frontier CAS、generation fence、receipt、幂等与冲突 quarantine 的规范执行闭包。
 
 本节仅适用于外部 enrollment authority 的 B 模型。A 模型 fresh-device recovery 继续使用 [`../crypto-media/device-lifecycle.md` §15](../crypto-media/device-lifecycle.md) 的 SSK path；同一 control stream 混用 `ak.device.reanchor` 与 SSK generation MUST fail closed。
 
-恢复客户端 MUST 先发布并验证 `did:webvh` entry N。entry N 的 `updateKeys[0]` 是当前 active `root_{i+1}`，其哈希命中 entry N-1 的 `nextKeyHashes`；entry N controller proof 必须由 entry N 当前 active authority 签发，而不是 previous root。entry N 同时承诺下一 root，并可替换 enrollment delegation。guardian 替代 authority 必须表现为一把 generation-specific threshold multikey；DID 层仍是 any-of，不得把多个普通 `updateKeys` 宣称为 threshold。已经激活的 root/guardian key 均为 spent，不得复用。
+恢复客户端 MUST 在 transaction create 前准备 `did:webvh` entry N 的 canonical bytes，但不得自行先发布。entry N 的 `updateKeys[0]` 是当前 active `root_{i+1}`，其哈希命中 entry N-1 的 `nextKeyHashes`；entry N controller proof 必须由 entry N 当前 active authority 签发，而不是 previous root。entry N 同时承诺下一 root，并可替换 enrollment delegation。guardian 替代 authority 必须表现为一把 generation-specific threshold multikey；DID 层仍是 any-of，不得把多个普通 `updateKeys` 宣称为 threshold。已经激活的 root/guardian key 均为 spent，不得复用。Principal Server 必须先为 durable transaction 签发 audience 精确的 recovery authority ticket，Account Authority 通过 `ak.gate.account.command.authorize_recovery_device` 返回 byte-stable authorize Event；只有该 accepted output 与 prepared plan逐项一致后，coordinator 才发布 entry N。
 
 随后客户端 MUST 在一个 `ak.self.events.command.submit` batch 中按顺序原子提交：
 

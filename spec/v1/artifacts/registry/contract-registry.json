@@ -7260,6 +7260,12 @@
         "description": "Closed RecoveryTransaction and SecurityRotationTransaction resource."
       },
       {
+        "schema_id": "ak.schema.recovery_authority_ticket.v1",
+        "file": "schemas/recovery-authority.schema.json",
+        "status": "active",
+        "description": "Transaction-bound recovery authority ticket plus ticket issuance, recovery device authorization and recovery grant promotion DTOs."
+      },
+      {
         "schema_id": "ak.schema.extension_manifest.v1",
         "file": "schemas/extension-manifest.schema.json",
         "status": "active",
@@ -8149,6 +8155,13 @@
         "description": "Durable RecoveryTransaction, SecurityRotationTransaction, federation, or applet transaction identifier."
       },
       {
+        "kind": "recovery_authority_ticket",
+        "category": "security",
+        "status": "active",
+        "wire_form": "ak:recovery_authority_ticket:<uuid>",
+        "description": "Reserved UUIDv7 identity of the Principal Server signed, RecoveryTransaction-bound one-time Account Authority ticket. The id is fixed at transaction create; signed ticket bytes are issued only after the transaction is durable."
+      },
+      {
         "kind": "view",
         "category": "core_object",
         "status": "active",
@@ -8231,14 +8244,14 @@
           "ak.root.identity.recovery_policy.command.publish",
           "ak.root.identity.recovery_session.command.create",
           "ak.root.identity.recovery_session.resource.get",
-          "ak.root.identity.recovery_session.command.submit_proof",
-          "ak.root.identity.recovery_session.command.complete"
+          "ak.root.identity.recovery_session.command.submit_proof"
         ],
         "surface_class": "core"
       },
       {
         "surface": "security_transactions",
         "operations": [
+          "ak.self.recovery_authority_ticket.command.issue",
           "ak.self.security_transaction.command.create",
           "ak.self.security_transaction.resource.get",
           "ak.self.security_transaction.command.continue"
@@ -8571,8 +8584,10 @@
           "ak.gate.account.command.register",
           "ak.gate.account.command.pair_device",
           "ak.gate.account.command.enroll_device",
+          "ak.gate.account.command.authorize_recovery_device",
           "ak.gate.account.command.issue_session_grant",
           "ak.gate.account.command.refresh_session_grant",
+          "ak.gate.account.command.promote_recovery_session_grant",
           "ak.gate.account.command.logout_auth_session",
           "ak.gate.account.command.introspect_session_grant",
           "ak.gate.account.command.logout",
@@ -8677,6 +8692,19 @@
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome"
       },
       {
+        "operation_id": "ak.gate.account.command.authorize_recovery_device",
+        "http": "POST /_arkret/gate/account/recovery-device-authorizations",
+        "grpc": "GateAccount/AuthorizeRecoveryDevice",
+        "mq": "gate.account.command.authorize_recovery_device",
+        "notes": "Enrollment-authority B-model recovery only. Consumes a Principal Server signed RecoveryAuthorityTicket bound to one durable RecoveryTransaction and the complete authorization preimage. The Account Authority revalidates ticket signature/audience/TTL/current delegation, every transaction/plan/device/generation/DID/Event binding and the replacement device possession proof, then stores and returns one byte-stable authority-signed ak.device.authorize Event. Same ticket_id plus identical canonical request returns the recorded outcome; different bytes returns duplicate_conflict. It is not founding enroll_device and cannot authorize an unbound session.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "object_id",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/recovery-authority.schema.json#/$defs/authorize_recovery_device_request",
+        "response_schema_ref": "schemas/recovery-authority.schema.json#/$defs/authorize_recovery_device_outcome"
+      },
+      {
         "operation_id": "ak.gate.account.command.issue_session_grant",
         "http": "POST /_arkret/gate/account/session-grants",
         "grpc": "GateAccount/IssueSessionGrant",
@@ -8726,6 +8754,18 @@
         },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome"
+      },
+      {
+        "operation_id": "ak.gate.account.command.promote_recovery_session_grant",
+        "http_only_variant": true,
+        "http": "POST /_arkret/gate/account/recovery-session-grants/promote",
+        "notes": "Explicitly rotates a restricted recovery grant into a normal replacement-device grant after the bound RecoveryTransaction is completed. Requires the old grant DPoP holder proof, terminal device-attested receipt, accepted device authorization projection and current model generation. The old grant is consumed and never widened in place. Same transaction_id plus old_grant_id and identical canonical request returns the recorded promotion; different bytes returns duplicate_conflict.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "protocol_sequence",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/recovery-authority.schema.json#/$defs/promote_recovery_session_grant_request",
+        "response_schema_ref": "schemas/recovery-authority.schema.json#/$defs/promote_recovery_session_grant_outcome"
       },
       {
         "operation_id": "ak.gate.account.command.logout_auth_session",
@@ -10218,27 +10258,24 @@
         "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome"
       },
       {
-        "operation_id": "ak.root.identity.recovery_session.command.complete",
-        "http": "POST /_arkret/root/identity/recovery-sessions/{recovery_session_id}/complete",
-        "grpc": "RootIdentity/RecoverySessionComplete",
-        "mq": "root.identity.recovery_session.command.complete",
+        "operation_id": "ak.self.recovery_authority_ticket.command.issue",
+        "http": "POST /_arkret/self/recovery-authority-tickets",
+        "grpc": "SelfRecoveryAuthorityTickets/Issue",
+        "mq": "self.recovery_authority_ticket.command.issue",
+        "notes": "Issues the Principal Server signed one-time authority ticket only when the referenced enrollment-authority RecoveryTransaction is durable, its recovery session is verified and transaction-bound, prepared_plan_digest matches, and issue_authority_ticket is the current next_required_step. ticket_id was reserved by create. Same transaction/request/plan bytes return the stored ticket; different bytes return duplicate_conflict.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "object_id",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "query_operation",
-          "operation_id": "ak.root.identity.recovery_session.resource.get"
-        },
-        "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
-        "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome"
+        "retry_safe": true,
+        "request_schema_ref": "schemas/recovery-authority.schema.json#/$defs/ticket_issue_request",
+        "response_schema_ref": "schemas/recovery-authority.schema.json"
       },
       {
         "operation_id": "ak.self.security_transaction.command.create",
         "http": "POST /_arkret/self/security-transactions",
         "grpc": "SelfSecurityTransactions/Create",
         "mq": "self.security_transaction.command.create",
-        "notes": "Creates exactly one durable RecoveryTransaction or SecurityRotationTransaction. The coordinator MUST atomically persist canonical request bytes, request_digest, typed intent, all reserved public ids, and the initial resource before the first irreversible side effect. Same transaction_id plus identical bytes returns the recorded resource; different bytes returns duplicate_conflict.",
+        "notes": "Creates exactly one durable RecoveryTransaction or SecurityRotationTransaction. The coordinator MUST atomically persist canonical request bytes, request_digest, the closed typed prepared_plan and prepared_plan_digest, all reserved public ids, and the initial resource before the first irreversible side effect. Recovery create also CAS-binds one already verified recovery session to this transaction. Same transaction_id plus identical bytes returns the recorded resource; different bytes returns duplicate_conflict.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "protocol_sequence",
@@ -10261,7 +10298,7 @@
         "http": "POST /_arkret/self/security-transactions/{transaction_id}/continue",
         "grpc": "SelfSecurityTransactions/Continue",
         "mq": "self.security_transaction.command.continue",
-        "notes": "Continues only the stored next_required_step. request_digest and expected_next_step MUST equal the resource; the endpoint is not a generic step or Saga executor. Client attestation is accepted only for issue_terminal_receipt or local_commit and must bind the pre-reserved output_ref.",
+        "notes": "Continues only the stored next_required_step. request_digest, prepared_plan_digest and expected_next_step MUST equal the resource; the endpoint is not a generic step or Saga executor. Client attestation is required only for issue_terminal_receipt or local_commit and must bind transaction/request/plan plus the pre-reserved output_ref. When all coordinator-owned recovery steps are accepted but the device is offline, the resource remains awaiting_device_attestation rather than completed.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "protocol_sequence",

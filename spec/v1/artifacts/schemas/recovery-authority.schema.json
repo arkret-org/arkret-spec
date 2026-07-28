@@ -1,0 +1,667 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/recovery-authority.schema.json",
+  "title": "Arkret Recovery Authority Ticket",
+  "description": "Principal Server signed, transaction-bound one-time authorization for an Account Authority to mint the fixed enrollment-authority recovery device authorization Event.",
+  "$ref": "#/$defs/recovery_authority_ticket",
+  "$defs": {
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    },
+    "transaction_id": {
+      "type": "string",
+      "pattern": "^ak:transaction:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "authority_ticket_id": {
+      "type": "string",
+      "pattern": "^ak:recovery_authority_ticket:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "recovery_session_id": {
+      "type": "string",
+      "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "did_generation_ref": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*-[^\\s]+$"
+    },
+    "canonical_public_material": {
+      "type": "object",
+      "description": "Typed public material plus the exact canonical bytes persisted by the coordinator. canonical_bytes_base64url MUST decode to the canonical JSON/CBOR representation of value and digest MUST recompute over those bytes.",
+      "required": [
+        "canonical_encoding",
+        "value",
+        "canonical_bytes_base64url",
+        "digest"
+      ],
+      "properties": {
+        "canonical_encoding": {
+          "type": "string",
+          "enum": [
+            "canonical_json",
+            "deterministic_cbor"
+          ]
+        },
+        "value": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": true
+        },
+        "canonical_bytes_base64url": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "replacement_device_possession_proof": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "alg",
+        "transcript_digest",
+        "signature"
+      ],
+      "properties": {
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "alg": {
+          "type": "string",
+          "const": "EdDSA"
+        },
+        "transcript_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Digest of the complete ak.device-authorize-possession-v1 transcript, including the transaction, recovery session, planned Event ids, keys, algorithms, generation, frontier and not_before."
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "authorization_preimage": {
+      "type": "object",
+      "description": "Closed Account Authority input fixed by the RecoveryTransaction before ticket issuance. It contains no recovery secret or private key.",
+      "required": [
+        "principal_id",
+        "replacement_device_id",
+        "device_public_key",
+        "hpke_key",
+        "algorithms",
+        "recovery_session_id",
+        "policy_id",
+        "policy_version",
+        "trust_domain",
+        "identity_model",
+        "previous_model_generation_ref",
+        "result_model_generation_ref",
+        "registry_previous_head",
+        "did_entry_ref",
+        "did_entry_digest",
+        "reanchor_event_id",
+        "authorize_event_id",
+        "actor_seq",
+        "pre_fence_frontier_digest",
+        "not_before",
+        "authorize_event_preimage",
+        "possession_proof"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "replacement_device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "device_public_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hpke_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "algorithms": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "recovery_session_id": {
+          "$ref": "#/$defs/recovery_session_id"
+        },
+        "policy_id": {
+          "type": "string",
+          "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "policy_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "trust_domain": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "identity_model": {
+          "type": "string",
+          "const": "enrollment_authority"
+        },
+        "previous_model_generation_ref": {
+          "$ref": "#/$defs/did_generation_ref"
+        },
+        "result_model_generation_ref": {
+          "$ref": "#/$defs/did_generation_ref"
+        },
+        "registry_previous_head": {
+          "type": "string",
+          "minLength": 1
+        },
+        "did_entry_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "did_entry_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "reanchor_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "authorize_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "actor_seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pre_fence_frontier_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "not_before": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "authorize_event_preimage": {
+          "$ref": "#/$defs/canonical_public_material"
+        },
+        "possession_proof": {
+          "$ref": "#/$defs/replacement_device_possession_proof"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ticket_issue_request": {
+      "type": "object",
+      "required": [
+        "transaction_id",
+        "transaction_request_digest",
+        "prepared_plan_digest",
+        "authority_ticket_id",
+        "expected_next_step"
+      ],
+      "properties": {
+        "transaction_id": {
+          "$ref": "#/$defs/transaction_id"
+        },
+        "transaction_request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "prepared_plan_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "authority_ticket_id": {
+          "$ref": "#/$defs/authority_ticket_id"
+        },
+        "expected_next_step": {
+          "type": "string",
+          "const": "issue_authority_ticket"
+        }
+      },
+      "additionalProperties": false
+    },
+    "recovery_authority_ticket": {
+      "type": "object",
+      "required": [
+        "schema",
+        "ticket_id",
+        "transaction_id",
+        "transaction_request_digest",
+        "prepared_plan_digest",
+        "principal_id",
+        "recovery_session_id",
+        "policy_id",
+        "policy_version",
+        "trust_domain",
+        "principal_server_id",
+        "account_authority_id",
+        "replacement_device_id",
+        "previous_model_generation_ref",
+        "result_model_generation_ref",
+        "registry_previous_head",
+        "did_entry_ref",
+        "did_entry_digest",
+        "reanchor_event_id",
+        "authorize_event_id",
+        "authorization_preimage_digest",
+        "possession_proof_digest",
+        "issued_at",
+        "expires_at",
+        "auth_data"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.recovery_authority_ticket.v1"
+        },
+        "ticket_id": {
+          "$ref": "#/$defs/authority_ticket_id"
+        },
+        "transaction_id": {
+          "$ref": "#/$defs/transaction_id"
+        },
+        "transaction_request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "prepared_plan_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "recovery_session_id": {
+          "$ref": "#/$defs/recovery_session_id"
+        },
+        "policy_id": {
+          "type": "string",
+          "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "policy_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "trust_domain": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "principal_server_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "account_authority_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "replacement_device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "previous_model_generation_ref": {
+          "$ref": "#/$defs/did_generation_ref"
+        },
+        "result_model_generation_ref": {
+          "$ref": "#/$defs/did_generation_ref"
+        },
+        "registry_previous_head": {
+          "type": "string",
+          "minLength": 1
+        },
+        "did_entry_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "did_entry_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "reanchor_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "authorize_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "authorization_preimage_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "possession_proof_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "auth_data": {
+          "type": "object",
+          "required": [
+            "verification_method",
+            "alg",
+            "signature",
+            "signed_fields"
+          ],
+          "properties": {
+            "verification_method": {
+              "$ref": "./common-ids.schema.json#/$defs/did_url"
+            },
+            "alg": {
+              "type": "string",
+              "enum": [
+                "EdDSA",
+                "ES256",
+                "PS256"
+              ]
+            },
+            "signature": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "signed_fields": {
+              "type": "array",
+              "uniqueItems": true,
+              "minItems": 24,
+              "items": {
+                "type": "string"
+              },
+              "allOf": [
+                {
+                  "contains": {
+                    "const": "schema"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "ticket_id"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "transaction_id"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "transaction_request_digest"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "prepared_plan_digest"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "principal_id"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "recovery_session_id"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "policy_id"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "policy_version"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "trust_domain"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "principal_server_id"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "account_authority_id"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "replacement_device_id"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "previous_model_generation_ref"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "result_model_generation_ref"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "registry_previous_head"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "did_entry_ref"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "did_entry_digest"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "reanchor_event_id"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "authorize_event_id"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "authorization_preimage_digest"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "possession_proof_digest"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "issued_at"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "expires_at"
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "authorize_recovery_device_request": {
+      "type": "object",
+      "required": [
+        "ticket",
+        "authorization_preimage",
+        "canonical_request_digest",
+        "holder_proof"
+      ],
+      "properties": {
+        "ticket": {
+          "$ref": "#/$defs/recovery_authority_ticket"
+        },
+        "authorization_preimage": {
+          "$ref": "#/$defs/authorization_preimage"
+        },
+        "canonical_request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "holder_proof": {
+          "type": "object",
+          "required": [
+            "dpop_jkt",
+            "proof_jwt"
+          ],
+          "properties": {
+            "dpop_jkt": {
+              "type": "string",
+              "minLength": 16
+            },
+            "proof_jwt": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "authorize_recovery_device_outcome": {
+      "type": "object",
+      "required": [
+        "ticket_id",
+        "transaction_id",
+        "authorize_event_id",
+        "authorized_event",
+        "authorized_event_digest",
+        "authority_receipt_id",
+        "accepted_at"
+      ],
+      "properties": {
+        "ticket_id": {
+          "$ref": "#/$defs/authority_ticket_id"
+        },
+        "transaction_id": {
+          "$ref": "#/$defs/transaction_id"
+        },
+        "authorize_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "authorized_event": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": true,
+          "description": "Fully signed ak.device.authorize Event. It MUST byte-match the ticket-bound preimage and carry the service_attested enrollment authority binding."
+        },
+        "authorized_event_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "authority_receipt_id": {
+          "$ref": "#/$defs/receipt_id"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "promote_recovery_session_grant_request": {
+      "type": "object",
+      "required": [
+        "old_grant_id",
+        "transaction_id",
+        "transaction_request_digest",
+        "terminal_receipt",
+        "device_authorization_event_id",
+        "result_model_generation_ref",
+        "canonical_request_digest",
+        "holder_proof"
+      ],
+      "properties": {
+        "old_grant_id": {
+          "$ref": "./common-ids.schema.json#/$defs/grant_id"
+        },
+        "transaction_id": {
+          "$ref": "#/$defs/transaction_id"
+        },
+        "transaction_request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "terminal_receipt": {
+          "$ref": "./recovery-receipt.schema.json"
+        },
+        "device_authorization_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "result_model_generation_ref": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "$ref": "#/$defs/did_generation_ref"
+            }
+          ]
+        },
+        "canonical_request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "holder_proof": {
+          "type": "object",
+          "required": [
+            "dpop_jkt",
+            "proof_jwt"
+          ],
+          "properties": {
+            "dpop_jkt": {
+              "type": "string",
+              "minLength": 16
+            },
+            "proof_jwt": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "promote_recovery_session_grant_outcome": {
+      "type": "object",
+      "required": [
+        "transaction_id",
+        "consumed_grant_id",
+        "new_grant",
+        "consumed_at"
+      ],
+      "properties": {
+        "transaction_id": {
+          "$ref": "#/$defs/transaction_id"
+        },
+        "consumed_grant_id": {
+          "$ref": "./common-ids.schema.json#/$defs/grant_id"
+        },
+        "new_grant": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/SessionGrantOutcome"
+        },
+        "consumed_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

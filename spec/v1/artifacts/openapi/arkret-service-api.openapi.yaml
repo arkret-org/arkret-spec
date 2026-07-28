@@ -2336,6 +2336,14 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/RealmSealFrontierView
     RealmTombstonePayload:
       $ref: ../schemas/event-payload.schema.json#/$defs/realm_tombstone_payload
+    RecoveryDeviceAuthorizationOutcome:
+      $ref: ../schemas/recovery-authority.schema.json#/$defs/authorize_recovery_device_outcome
+    RecoveryDeviceAuthorizationRequestBody:
+      $ref: ../schemas/recovery-authority.schema.json#/$defs/authorize_recovery_device_request
+    RecoverySessionGrantPromotionOutcome:
+      $ref: ../schemas/recovery-authority.schema.json#/$defs/promote_recovery_session_grant_outcome
+    RecoverySessionGrantPromotionRequestBody:
+      $ref: ../schemas/recovery-authority.schema.json#/$defs/promote_recovery_session_grant_request
     ReferenceProjectionState:
       type: string
       description: Projection-only status for cross-Realm references. It maps Relation/View/Space hierarchy responses to accessible, lazy link, or locked anti-enumeration stubs.
@@ -3847,33 +3855,27 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome
-  /_arkret/root/identity/recovery-sessions/{recovery_session_id}/complete:
+  /_arkret/self/recovery-authority-tickets:
     post:
-      operationId: ak.root.identity.recovery_session.command.complete
+      operationId: ak.self.recovery_authority_ticket.command.issue
       security:
       - bearerAuth: []
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
-      parameters:
-      - name: recovery_session_id
-        in: path
-        required: true
-        schema:
-          $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_id
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body
+              $ref: ../schemas/recovery-authority.schema.json#/$defs/ticket_issue_request
       responses:
         '200':
-          description: Recovery session completed
+          description: Durable transaction-bound recovery authority ticket issued or replayed byte-identically.
           content:
             application/json:
               schema:
-                $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome
+                $ref: ../schemas/recovery-authority.schema.json
   /_arkret/self/security-transactions:
     post:
       operationId: ak.self.security_transaction.command.create
@@ -8677,6 +8679,36 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SessionGrantRefreshRequestBody'
+  /_arkret/gate/account/recovery-session-grants/promote:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ak.gate.account.command.promote_recovery_session_grant
+      security:
+      - dpopProof: []
+      summary: Promote a consumed-scope recovery grant after transaction completion.
+      description: |
+        Rotates one restricted recovery grant into a normal grant bound to the
+        replacement device and current accepted model generation. The caller
+        proves possession of the old grant holder key and supplies the completed
+        RecoveryTransaction terminal receipt. The old grant is consumed and is
+        never widened in place. An identical replay returns the stored promotion.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecoverySessionGrantPromotionRequestBody'
+      responses:
+        '200':
+          description: Recovery grant consumed and replacement-device grant issued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoverySessionGrantPromotionOutcome'
   /_arkret/gate/account/auth-sessions/logout:
     servers:
     - url: https://{host}
@@ -8835,6 +8867,30 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AccountDeviceEnrollRequestBody'
+  /_arkret/gate/account/recovery-device-authorizations:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ak.gate.account.command.authorize_recovery_device
+      security:
+      - bearerAuth: []
+      - dpopProof: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecoveryDeviceAuthorizationRequestBody'
+      responses:
+        '200':
+          description: Transaction-bound authority-signed replacement device Event minted or replayed byte-identically.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoveryDeviceAuthorizationOutcome'
   /_arkret/gate/account/agent-key-pair:
     servers:
     - url: https://{host}

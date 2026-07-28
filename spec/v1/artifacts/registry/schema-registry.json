@@ -400,6 +400,12 @@
       "description": "Closed RecoveryTransaction and SecurityRotationTransaction resource."
     },
     {
+      "schema_id": "ak.schema.recovery_authority_ticket.v1",
+      "file": "schemas/recovery-authority.schema.json",
+      "status": "active",
+      "description": "Transaction-bound recovery authority ticket plus ticket issuance, recovery device authorization and recovery grant promotion DTOs."
+    },
+    {
       "schema_id": "ak.schema.extension_manifest.v1",
       "file": "schemas/extension-manifest.schema.json",
       "status": "active",
