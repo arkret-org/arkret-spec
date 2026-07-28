@@ -427,6 +427,36 @@ Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名�
 
 控制面 pending Control Move MUST 在 `receipt_sla_ms` 内得到签名 receipt 或签名 rejection。`receipt_sla_ms` 的权威字段是 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `receipt_sla_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`），与 `seal_compaction_max_interval_ms`（§6.2）同量级；其 wire 上限登记于 [`scalability-constraints.md`](../conformance/scalability-constraints.md) §4。SLA 计时以 notary 签署的提交时间为准（与 §4.3 `distance` 同源），不用本地接收时间。
 
+**控制面终局 SLA（`control_move_finality_sla_ms`，normative）**：`receipt_sla_ms`
+管的是「多久确认收到」，本字段管的是「多久取得控制面终局」——两个独立阶段
+MUST NOT 复用同一字段，否则无法分别观测、告警与调优。权威字段是
+[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `control_move_finality_sla_ms`
+（integer，毫秒，`default 30000`，`minimum 1`），默认值与 `max_mls_commit_delay_ms`
+同量级，即用户可感知的控制面阻塞时长；notary profile 与部署可显式声明更严或更宽的值。
+
+- **起点**：该 Move 的 notary-signed receipt 所承诺的 `received_at`。
+- **成功终点**：首条 accepted Seal 的 covered set 包含该 Move digest。
+- **另一终点**：notary 签发可独立验证的 terminal rejection。
+- **边界**：`elapsed <= SLA` 合规，`elapsed > SLA` 违规。
+- receiver 本地收到 Event / Seal 的时间 **MUST NOT** 参与计算（与 §4.3 `distance` 同源）。
+
+**超时是治理健康 fault，不改变密码学接受结果（normative）**：超过 SLA 后，
+
+1. Realm governance health 投影进入 `degraded`，记录超时 Move digest、receipt 与 deadline；
+2. 依赖该 pending Move 的 authoring / readiness **MUST** fail closed；
+3. 无法证明旧 capability 在 pending revoke / ban / notary change 下仍安全的写入 **MUST** fail closed；
+4. 与该 Move 无关、仍由 accepted 旧 Seal 合法授权的 DataEvent **MUST NOT** 被全局误伤；
+5. 后来抵达且按 Seal 规则有效的 Seal 仍正常 accepted；SLA fault 作为可审计证据保留。
+   **MUST NOT** 因「迟到」把相同 Seal 在不同 receiver 上分成 accepted / rejected 两种终态——
+   那会把一个本地计时差异升格为共识分叉。
+
+诊断码 `control_move_finality_exceeded` 用于 health / readiness 投影与 retryable service failure；
+它**不取代** Event 本身的 `control_pending` 状态。
+
+**compaction 不承担终局（normative）**：首个 Seal **MUST NOT** 是 compaction Seal；
+compaction 前的普通 signing pass 出现任何硬错误时 compaction **MUST** 停止并上浮；
+compaction 成功 **MUST NOT** 作为普通 pending Move 已在 SLA 内终局的替代证据。
+
 到期 receipt 在后续 Seal 中必须三选一：
 
 1. include；

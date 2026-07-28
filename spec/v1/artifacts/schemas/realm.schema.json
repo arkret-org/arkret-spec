@@ -580,6 +580,12 @@
       "default": 86400000,
       "description": "Realm-level deadline within which a pending control-plane Control Move MUST receive a signed receipt or signed rejection (authz/event-auth-state-resolution.md section 7.2). Measured by notary-committed seal time, not local receive time. Silent omission past this SLA (modulo bounded defers, see max_receipt_defers) is censorship evidence."
     },
+    "control_move_finality_sla_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 30000,
+      "description": "Realm-level deadline within which an accepted control-plane Control Move MUST reach control-plane finality (authz/event-auth-state-resolution.md section 7.2). The clock starts at the received_at the Move's notary-signed receipt commits to, and stops either when the first accepted Seal's covered set contains that Move digest or when the notary issues an independently verifiable terminal rejection. elapsed <= SLA conforms; elapsed > SLA does not. A receiver's local arrival time for the Event or Seal MUST NOT enter the computation. This is deliberately not receipt_sla_ms: one field cannot carry both 'how long until receipt is acknowledged' and 'how long until control-plane finality', because the two phases are observed, alerted and tuned separately. Exceeding it is a governance health fault (control_move_finality_exceeded), never a change to the cryptographic acceptance result - a Seal arriving late is still accepted, and the fault is retained as auditable evidence rather than splitting the same Seal into accepted on one receiver and rejected on another."
+    },
     "max_receipt_defers": {
       "type": "integer",
       "minimum": 0,

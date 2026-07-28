@@ -4040,6 +4040,14 @@
       "description": "A service_attested ak.device.authorize was signed by an enrollment authority whose DID has no history-resolution method (e.g. did:web), but its enrollment_authority_binding omits the inline issuance-time verification method snapshot and/or controller proof required for point-in-time historical re-verification. Without these, the authorization cannot be re-verified at its signing time and a rotated/hijacked current document could forge re-verification, so the receiver MUST reject. See zh/identity/key-management.md §5.0.6 and zh/identity/identity-did.md §3.2."
     },
     {
+      "code": "control_move_finality_exceeded",
+      "applies_to": [
+        "state_resolution",
+        "auth_decision"
+      ],
+      "description": "An accepted control-plane Control Move did not reach control-plane finality within the Realm's control_move_finality_sla_ms: neither an accepted Seal covering its digest nor an independently verifiable terminal rejection arrived in time, measured from the received_at its notary-signed receipt commits to. This is a governance health fault, not an acceptance result - the Realm's health projection goes degraded and authoring that depends on the pending Move fails closed, but a Seal arriving after the deadline is still accepted and the fault is retained as auditable evidence. It does not replace the Event's own pending state. See zh/authz/event-auth-state-resolution.md section 7.2."
+    },
+    {
       "code": "cell_in_bottom_state",
       "applies_to": [
         "state_resolution",
