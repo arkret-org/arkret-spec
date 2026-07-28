@@ -715,7 +715,9 @@
       },
       "then": {
         "required": [
-          "threshold"
+          "threshold",
+          "recovery_keys",
+          "recovery_key_agreements"
         ]
       }
     },
