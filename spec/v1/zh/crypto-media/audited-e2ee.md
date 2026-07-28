@@ -105,7 +105,7 @@ Binding 或 policy 的后续变更遵守同一规则：
 4. `ak.audit.release`
 5. `ak.audit.session.close`
 
-每个 `session_id` 唯一对应 control-plane cell `ak.component.audit.session.v1/<session_id>`；payload `stage` 是目标状态。该 cell 使用 `fsm` lattice，初始状态只能是 `request`，主路径为 `request -> authorize -> notice -> close`。为关闭失败或被撤回的流程，也允许 `request -> close` 与 `authorize -> close`；`close` 是 terminal。除同一 `seal_basis`、同一 stage、同一 payload digest 的幂等重放外，重复 stage、跳过 authorize/notice、terminal 后追加或同 basis 不同目标 sibling 均产生 Bottom 并拒绝。四类 session Event 都必须作为 Control Move 写入同一 cell，payload `session_id`、`binding_id`、`realm_id` 与 `effective_scope` 必须从 request 起逐字节保持一致。
+每个 `session_id` 唯一对应 control-plane cell `ak.component.audit.session.v1/<session_id>`；payload `session_state` 是目标状态（wire 字段名以 `event-payload.schema.json` 的 `audit_session_payload` 为准）。该 cell 使用 `fsm` lattice，初始状态只能是 `request`，主路径为 `request -> authorize -> notice -> close`。为关闭失败或被撤回的流程，也允许 `request -> close` 与 `authorize -> close`；`close` 是 terminal。除同一 `seal_basis`、同一 `session_state`、同一 payload digest 的幂等重放外，重复 `session_state`、跳过 authorize/notice、terminal 后追加或同 basis 不同目标 sibling 均产生 Bottom 并拒绝。四类 session Event 都必须作为 Control Move 写入同一 cell，payload `session_id`、`binding_id`、`realm_id` 与 `effective_scope` 必须从 request 起逐字节保持一致。
 
 `ak.audit.release` 不改变 session FSM head，而是向 control-plane `ordered_log` cell `ak.component.audit.release.v1/<session_id>` 追加一条以 `release_id` 标识的记录。只有 accepted current session head 为 `notice` 时才可追加；日志按接受它的 Seal coverage 顺序排列，同一 Seal 内按 `event_digest` 字节序排列。重复 `release_id`、不一致的 request/authorize/notice 引用或已 close 的 session 必须拒绝。
 

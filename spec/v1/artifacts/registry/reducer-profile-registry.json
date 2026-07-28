@@ -471,7 +471,7 @@
           },
           {
             "fixture": "reaction-fixture.json",
-            "semantic_projection_digest": "sha256:0e3f0ae81566bf46f569ea0211d4f85b0348eba51513270f91d2de784fc4e097"
+            "semantic_projection_digest": "sha256:3fc66c81be6fed107fd6ea924f1c8dbdb37973f69fc515a9c480d2d584c007ea"
           },
           {
             "fixture": "redaction-fixture.json",
@@ -517,7 +517,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:11e1bf059656fec6d1512b2bc345843ac9874235a4ec0a1df744add97834e3e6"
+      "reducer_profile_digest": "sha256:a7b1499cfc1eceb3600c8be12234e9201ffa4419606f0955d2204256ddf0d5f1"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -1353,7 +1353,7 @@
           },
           {
             "fixture": "reaction-fixture.json",
-            "semantic_projection_digest": "sha256:0e3f0ae81566bf46f569ea0211d4f85b0348eba51513270f91d2de784fc4e097"
+            "semantic_projection_digest": "sha256:3fc66c81be6fed107fd6ea924f1c8dbdb37973f69fc515a9c480d2d584c007ea"
           },
           {
             "fixture": "redaction-fixture.json",
@@ -1439,7 +1439,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:11329a10bf8f6d217696faab9dde6dcbb285fbd63b30e9ed408466b3a67738df"
+      "reducer_profile_digest": "sha256:8c85a896bff5c4122608a15b45baa4f5663751bee60934bb07818af654b75700"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
