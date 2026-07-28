@@ -377,6 +377,30 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 - **Realm-defined evolvable schema**（典型是 Morph）：`schema_refs[]` 由 Realm 声明并可演进，绑定用于锁定演进历史。详细规则与 Morph 特化语义见 [`morph.md` §4.1](./morph.md#41-schema-refs-evolution-policy-normative)。
 - **spec-fixed profile subtree schema**（典型是 Strand 的 `metadata.fields.<profile>` 子树）：schema 本身由 spec 固定、不可演进，但对象**是否激活**该 profile 会随 patch 变化。写入或修改该子树的 event **MUST** 同样绑定对应 schema id，否则 reader 在回放一段"profile 后来被移除"的历史时会用当前 `schema_refs[]` 得到不同的验证结论。缺该绑定 MUST `schema_violation`。v1 的唯一实例见 [`calendar-event.md` §1](./calendar-event.md)。
 
+### 2.8 统一准入与反枚举顺序（normative）
+
+对引用既有 Realm / Circle / Strand / Message 或其它对象的 Event，receiver MUST 按以下顺序
+执行准入；kind-specific handler 不得把后续检查提前：
+
+1. 执行 transport/body 上限、closed schema、canonical encoding、Event proof 与 signer
+   regime 校验。未通过者按对应结构或认证错误拒绝，不进入对象查找。
+2. 在已认证 requester 的可见控制面与 history view 中解析 `realm_id`、`scope_ref` 和目标
+   object。目标不存在、已 tombstone、属于其它 scope，或 requester 无权观察其存在时，
+   MUST 返回同一不可区分的 `not_found` / opaque denial 形态；response body、状态码、可观察
+   timing 与 telemetry-facing reason 均不得区分这些情形。
+3. 仅在目标对 requester 可见后，按冻结的 `seal_ref` / `seal_basis` view 校验 capability、
+   membership、history visibility、grant constraints 与 freshness。
+4. 仅在可见性与授权均通过后，求值 profile feature gate、对象 lifecycle、Track enabled
+   状态及其它 kind-specific precondition；此阶段才可返回
+   `discussion_track_disabled`、`failed_precondition` 等会揭示对象内部状态的诊断。
+5. 最后执行 registry reducer projection、lattice precondition 与原子写入；任一失败拒绝
+   整条 Event，不得留下部分 projection。
+
+同一准入入口的 batch 项也 MUST 逐项遵守上述顺序。实现可以合并不会改变可观察结果的内部
+查询，但不得以缓存、索引或“快速 feature gate”为由，在第 2 步之前暴露目标 kind、Track
+配置、lifecycle 或 capability 命中情况。具体领域章节若声明更细的检查，只能插入对应阶段，
+不得重排这五个安全边界。
+
 ## 3. Proof
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |

@@ -513,11 +513,11 @@
           },
           {
             "ref": "zh/models/strand-and-message.md",
-            "content_digest": "sha256:c26abd740c91aafe85bdb57170317e5a41e216445bc0b59b5d3113034bb85174"
+            "content_digest": "sha256:7023a4c9becb80571680ab26d4720a45bcecfd71c650675bbf5ea7d7d04f2165"
           }
         ]
       },
-      "reducer_profile_digest": "sha256:d13424519983d703c2d873e313bbee26e65071484d98fd39ab5f55a421aa98cf"
+      "reducer_profile_digest": "sha256:9d0823712269d9dac5e295643a6ae03faa9ccbcea436f489e0036028b192a004"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -808,11 +808,11 @@
           },
           {
             "ref": "zh/models/strand-and-message.md",
-            "content_digest": "sha256:c26abd740c91aafe85bdb57170317e5a41e216445bc0b59b5d3113034bb85174"
+            "content_digest": "sha256:7023a4c9becb80571680ab26d4720a45bcecfd71c650675bbf5ea7d7d04f2165"
           }
         ]
       },
-      "reducer_profile_digest": "sha256:36033e92a02ac79958860290ddad9f95341e8479591590a1eec942de2266b27c"
+      "reducer_profile_digest": "sha256:ece07b74c58cb09d147895ff220d8b78c4855bc5531a8c5ea1746254cf6c55f8"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1423,7 +1423,7 @@
           },
           {
             "ref": "zh/models/strand-and-message.md",
-            "content_digest": "sha256:c26abd740c91aafe85bdb57170317e5a41e216445bc0b59b5d3113034bb85174"
+            "content_digest": "sha256:7023a4c9becb80571680ab26d4720a45bcecfd71c650675bbf5ea7d7d04f2165"
           },
           {
             "ref": "zh/sync/client-sync.md",
@@ -1439,7 +1439,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:2b832d51586beee9c2af789797b370038bd47058cd1c959ad6ebe41d343fc23c"
+      "reducer_profile_digest": "sha256:4c351ebe214771eba2ba5dff4dccf320562185a6a4e062680cc3eb73c49aaa76"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",

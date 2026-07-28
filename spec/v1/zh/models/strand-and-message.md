@@ -230,7 +230,7 @@ track 名是 `tracks` map 的 key，不重复在 value 中。
 - `announcement`、`review` 等 posting 约束 MUST 通过 capability / policy 表达，不得只靠 `profile` 字符串隐式生效。
 - `activity` SHOULD 允许系统/agent 产生状态播报，但 reducer 仍按普通 Message timeline 处理。
 - discussion 可见成员关系不从 `assigned_to`、`watches` 或其他 Strand relation 隐式派生；track 自身不持有 membership，可见成员一律由 Strand 的 effective scope 决定（`scope_circle_id=null` 时为父 Realm 的 membership / capability / policy；`scope_circle_id` 指向 Circle 时为该 [Circle](./circle.md) 的 membership / capability / policy），若实现需要此类映射必须可审计地声明。`watches` 是个人通知订阅偏好（§8），不是访问 / membership 控制。
-- 当 `discussion` track 不存在或不处于 active 状态时，`ak.message.create`、`ak.message.revise`、`ak.message.redact` MUST 被拒绝，错误语义 SHOULD 为 `discussion_track_disabled` 或等价 fail-closed 结果。
+- 当 `discussion` track 不存在或不处于 active 状态时，`ak.message.create`、`ak.message.revise`、`ak.message.redact` MUST 被拒绝。receiver 必须先完成 [`event-and-patch.md` §2.8](./event-and-patch.md) 的目标可见性与授权门；仅对已可见且已授权的目标，错误语义 SHOULD 为 `discussion_track_disabled` 或等价 fail-closed 结果。不可见、不存在、跨 scope 与 tombstone 目标必须保持相同的 `not_found` / opaque denial，不能用该错误泄露 Strand 或 Track 状态。
 
 ### 4.4 Track 是纯展示标识，不是 access 域
 
