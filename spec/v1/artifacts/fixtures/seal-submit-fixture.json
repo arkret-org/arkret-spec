@@ -17,7 +17,8 @@
     ]
   },
   "covers_vectors": [
-    "ak.vector.events.submit_seal_admission.v1"
+    "ak.vector.events.submit_seal_admission.v1",
+    "ak.vector.cba.proposal_bounded_decision.v1"
   ],
   "schema_validation_cases": [
     {
@@ -238,6 +239,117 @@
         },
         "sealed_at": "2099-07-16T00:00:01.000Z",
         "hlc": "0000019f69bd-0000-00000002"
+      }
+    },
+    {
+      "name": "proposal_receipt_commits_initial_and_absolute_deadlines",
+      "schema_ref": "schemas/control-proposal-decision.schema.json",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "kind": "proposal_receipt",
+        "realm_id": "ak:realm:018f6b1d-7a20-7abc-8def-0123456789ab",
+        "proposal_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "received_at": "2026-07-28T00:00:00.000Z",
+        "decision_due_at": "2026-07-28T00:00:30.000Z",
+        "absolute_due_at": "2026-07-28T00:01:30.000Z",
+        "defer_count": 0,
+        "authority_set_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "signature": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#notary-1",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "created_at": "2026-07-28T00:00:00.000Z",
+          "jws": "e30..c2ln"
+        }
+      }
+    },
+    {
+      "name": "second_defer_at_immutable_absolute_deadline",
+      "schema_ref": "schemas/control-proposal-decision.schema.json",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "kind": "signed_defer",
+        "realm_id": "ak:realm:018f6b1d-7a20-7abc-8def-0123456789ab",
+        "proposal_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "receipt_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "decided_at": "2026-07-28T00:01:00.000Z",
+        "decision_due_at": "2026-07-28T00:01:30.000Z",
+        "absolute_due_at": "2026-07-28T00:01:30.000Z",
+        "defer_count": 2,
+        "reason_code": "quorum_collection_pending",
+        "authority_set_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "signature": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#notary-1",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+          "created_at": "2026-07-28T00:01:00.000Z",
+          "jws": "e30..c2ln"
+        }
+      }
+    },
+    {
+      "name": "third_defer_is_schema_rejected",
+      "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_decision",
+      "expect_valid": false,
+      "first_expected_error": "contains:greater than the maximum of 2",
+      "semantic_outcome": "reject",
+      "expected_reason_code": "schema_violation",
+      "instance": {
+        "kind": "signed_defer",
+        "realm_id": "ak:realm:018f6b1d-7a20-7abc-8def-0123456789ab",
+        "proposal_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "receipt_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "decided_at": "2026-07-28T00:01:30.000Z",
+        "decision_due_at": "2026-07-28T00:02:00.000Z",
+        "absolute_due_at": "2026-07-28T00:02:00.000Z",
+        "defer_count": 3,
+        "reason_code": "quorum_collection_pending",
+        "authority_set_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "signature": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#notary-1",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+          "created_at": "2026-07-28T00:01:30.000Z",
+          "jws": "e30..c2ln"
+        }
+      }
+    },
+    {
+      "name": "late_valid_seal_remains_accepted_and_fault_is_retained",
+      "schema_ref": "schemas/control-proposal-decision.schema.json",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "expected_reason_code": "control_proposal_decision_overdue",
+      "receiver_state": {
+        "absolute_due_at_elapsed": true,
+        "later_valid_seal_includes_proposal": true,
+        "seal_acceptance": "accepted",
+        "governance_fault_retained": true
+      },
+      "instance": {
+        "kind": "signed_reject",
+        "realm_id": "ak:realm:018f6b1d-7a20-7abc-8def-0123456789ab",
+        "proposal_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "receipt_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "decided_at": "2026-07-28T00:01:31.000Z",
+        "decision_due_at": "2026-07-28T00:01:30.000Z",
+        "absolute_due_at": "2026-07-28T00:01:30.000Z",
+        "defer_count": 2,
+        "reason_code": "policy_rejected",
+        "authority_set_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "signature": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#notary-1",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+          "created_at": "2026-07-28T00:01:31.000Z",
+          "jws": "e30..c2ln"
+        }
       }
     }
   ]

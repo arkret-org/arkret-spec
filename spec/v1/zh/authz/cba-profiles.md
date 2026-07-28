@@ -89,19 +89,25 @@ proposal_digest, received_at, decision_due_at, absolute_due_at,
 defer_count, authority_set_ref, signature
 ```
 
-协议硬上限：
+Realm 可通过 `proposal_decision_window_ms`、`proposal_absolute_deadline_ms` 与
+`max_proposal_defers` 声明更严格的有效值；协议硬上限：
 
 - `decision_due_at - received_at` 不得超过 24 hours；
 - 最多 2 次 signed defer；
 - 每次 defer 必须带 closed `reason_code` 和新的 `decision_due_at`；
 - `absolute_due_at - received_at` 不得超过 72 hours，且 defer 不得改变 `absolute_due_at`。
 
-期限内必须出现 include in accepted Seal、signed reject 或 signed defer。reject 与 defer 只是
+每个 defer MUST 引用原 receipt digest，绑定同一 proposal / Realm / authority set，
+`defer_count` 恰好加一，且不得改变 `absolute_due_at`。期限内必须出现 include in
+accepted Seal、signed reject 或 signed defer。reject 与 defer 只是
 可验证决议，不提供 finality；只有 include 后的 Seal 提供 finality。超过绝对期限仍无决议时，
 客户端可生成 censorship evidence 并进入 authority health/recovery/rotation；协议不能强迫
 停机或恶意 authority 接受 proposal。
 
 不得把该义务称作“接受 SLA”，也不得声称 deadline 本身提供 finality。
+
+机读合同为
+[`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json)。
 
 ## 5. CbaProofBundle
 

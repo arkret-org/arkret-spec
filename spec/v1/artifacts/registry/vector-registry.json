@@ -16,6 +16,19 @@
       "description": "Service-level submit_seal admission covers genesis completeness, current device generation, recomputed roots, predecessor notary authority and non-terminal future-clock deferral."
     },
     {
+      "vector_id": "ak.vector.cba.proposal_bounded_decision.v1",
+      "status": "active",
+      "domain": "cba",
+      "applies_to_fixtures": [
+        "seal-submit-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/authz/event-auth-state-resolution.md",
+        "spec/v1/artifacts/fixtures/seal-submit-fixture.json"
+      ],
+      "description": "Proposal receipt deadlines, at most two immutable-horizon signed defers, decision-overdue evidence, and acceptance of a later cryptographically valid Seal."
+    },
+    {
       "vector_id": "ak.vector.cross_signing.subordinate_key_binding.v1",
       "status": "active",
       "domain": "cross_signing",
