@@ -1678,7 +1678,7 @@
           },
           {
             "ref": "zh/sync/federation.md",
-            "content_digest": "sha256:df9982b95f95bf905c9615a61aeb88b4ea9b0b7128b61a4544b0b060dd93940e"
+            "content_digest": "sha256:c0cd92376fcf115eb2038e4816b7b1b6a69b56a14f0e2ab6659cba3ccc2e72b0"
           },
           {
             "ref": "zh/sync/service-http-binding.md",
@@ -1686,7 +1686,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:c6112612f4d05c7c97403ececcd8f92c0d60fac6b561e4e7202dc19f3aafee5d"
+      "reducer_profile_digest": "sha256:4a893c3fe8feaef9c5e3a3941dfa3584ec0eb4c5cad98c51c70aa6f2661ee8b6"
     }
   ],
   "generated_fields": [

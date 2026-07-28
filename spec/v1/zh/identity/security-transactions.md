@@ -155,7 +155,8 @@ preimage、replacement device possession proof、planned DID entry canonical byt
 digest/previous head/ref、完整 typed reanchor `EventInitialSubmission`、authority-produced
 authorize Event 的 closed `authorize_event_publication_intent`。reanchor submission 的
 high-risk lease只能由 recovery session `publication_authority_context` 固定的concrete policy
-中某个完整authorization rule按其threshold签发，且 action 必须为 `ak.device.reanchor`；
+中与已验证proof family同名、由`authorization_rule_id`精确选择的完整authorization rule按其
+threshold签发，且 action 必须为 `ak.device.reanchor`；
 coordinator不得在proof前
 把该集合降格成单个synthetic verification method。
 Account Authority 签名与 terminal receipt 都是 create 后的 accepted output，不属于 prepared
@@ -273,7 +274,8 @@ Account Authority 在签 authorize Event前必须从 proof-free Event preimage�
 preimage digest、actor、replacement device、signed scope与action，并逐字段匹配
 `authorize_event_publication_intent`。首次 durable outcome必须在保存 authority Event的同一事务
 保存其 `AuthorizationLease` 与CBA bundles；lease 的actor/device/scope/action/risk/basis/
-authority-set必须等于intent，issuer verification method必须属于当前 accepted enrollment/
+authority-set与`authorization_rule_id="account_authority"`必须等于intent，issuer
+verification method必须属于当前 accepted enrollment/
 recovery authority set。exact request replay返回同一 Event、lease、bundles、receipt id与时间。
 
 `authorize_event_preimage` 必须是 canonical JSON 编码、尚未带 Account Authority Event proof 的

@@ -12,6 +12,7 @@
         "device_id",
         "scope_ref",
         "action",
+        "authorization_rule_id",
         "risk_tier",
         "issued_at",
         "expires_at",
@@ -47,6 +48,11 @@
         "action": {
           "type": "string",
           "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*$"
+        },
+        "authorization_rule_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "description": "Exact authorization_rules[].rule_id selected for this lease. The selected rule MUST allow action and only proofs from that rule may satisfy its threshold."
         },
         "risk_tier": {
           "type": "string",

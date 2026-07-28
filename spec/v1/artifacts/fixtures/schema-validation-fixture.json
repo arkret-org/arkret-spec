@@ -2676,6 +2676,7 @@
           "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000012"
         },
         "action": "ak.message.create",
+        "authorization_rule_id": "realm_admission",
         "risk_tier": "medium",
         "issued_at": "2026-05-20T00:00:00.000Z",
         "expires_at": "2026-05-20T08:00:00.000Z",
@@ -2822,6 +2823,7 @@
                       "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000026"
                     },
                     "action": "ak.device.authorize",
+                    "authorization_rule_id": "cross_signing",
                     "risk_tier": "high",
                     "issued_at": "2026-05-20T00:00:00.000Z",
                     "expires_at": "2026-05-20T00:05:00.000Z",
@@ -2923,6 +2925,7 @@
                       "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000026"
                     },
                     "action": "ak.device.list_update",
+                    "authorization_rule_id": "cross_signing",
                     "risk_tier": "high",
                     "issued_at": "2026-05-20T00:00:00.000Z",
                     "expires_at": "2026-05-20T00:05:00.000Z",
@@ -3062,6 +3065,7 @@
                 "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000039"
               },
               "action": "ak.device.authorize",
+              "authorization_rule_id": "account_authority",
               "risk_tier": "high",
               "basis_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
               "authority_set_ref": {
@@ -3166,6 +3170,7 @@
                 "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000039"
               },
               "action": "ak.device.reanchor",
+              "authorization_rule_id": "recovery_unlock",
               "risk_tier": "high",
               "issued_at": "2026-05-20T00:00:00.000Z",
               "expires_at": "2026-05-20T00:05:00.000Z",
@@ -3226,6 +3231,7 @@
               "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000039"
             },
             "action": "ak.device.authorize",
+            "authorization_rule_id": "account_authority",
             "risk_tier": "high",
             "basis_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "authority_set_ref": {

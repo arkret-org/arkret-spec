@@ -6,7 +6,7 @@
     "authority_set_id values MUST be unique and MUST match the concrete AuthoritySetPolicy.authority_set_id",
     "A concrete policy MUST use the registered policy_kind and source_kind, then project authorization_rules exactly from fixed_rules or rules_source",
     "authorization_rules MUST be ordered lexicographically by rule_id; each rule's issuers MUST be ordered lexicographically by verification_method and allowed_actions MUST be ordered lexicographically",
-    "A lease is authorized when exactly one registered rule covers its action and that rule's distinct valid issuer proofs meet threshold; rules are alternatives and MUST NOT be flattened into one global quorum",
+    "A lease is authorized only by the unique registered rule whose rule_id equals authorization_rule_id and whose allowed_actions covers action; different rules MAY cover the same action, rules are alternatives, and proofs MUST NOT be combined across rules",
     "authority_set_digest is SHA-256(JCS(the complete concrete AuthoritySetPolicy object))",
     "A verifier MUST rederive source_ref, source_digest, generation_ref and issuer verification methods from the accepted basis; inline policy bytes are portable evidence, not an authority source",
     "A candidate or post-basis control object MUST NOT create authority for a lease evaluated at an earlier basis"

@@ -107,6 +107,7 @@
         "device_id",
         "scope_ref",
         "action",
+        "authorization_rule_id",
         "risk_tier",
         "basis_ref",
         "authority_set_ref",
@@ -131,6 +132,9 @@
         },
         "action": {
           "const": "ak.device.authorize"
+        },
+        "authorization_rule_id": {
+          "const": "account_authority"
         },
         "risk_tier": {
           "type": "string",

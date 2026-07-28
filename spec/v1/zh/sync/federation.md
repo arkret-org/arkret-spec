@@ -353,6 +353,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
           "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
         },
         "action": "ak.message.create",
+        "authorization_rule_id": "realm_admission",
         "risk_tier": "medium",
         "issued_at": "2026-04-25T20:00:00.000Z",
         "expires_at": "2026-04-26T04:00:00.000Z",

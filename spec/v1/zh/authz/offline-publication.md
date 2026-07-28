@@ -23,6 +23,7 @@ AuthorizationLease {
   device_id,
   scope_ref,
   action,
+  authorization_rule_id,
   risk_tier,
   issued_at,
   expires_at,
@@ -66,9 +67,14 @@ revocation authority，不得只按可变 registry 名称解析当前值。
    source ref/digest/generation、每个rule的issuer methods、scope、actions 与 threshold。
 
 `authorization_rules[]` 是替代分支，不是一个可合并的全局issuer set。每个rule独立固定
-`rule_id + issuer_role + allowed_actions + issuers + threshold`；lease必须命中恰好一个覆盖其
-action的rule，并满足该rule的quorum。verifier不得把不同recovery proof family的issuer拼成
-一个较弱门限。
+`rule_id + issuer_role + allowed_actions + issuers + threshold`；lease必须携带
+`authorization_rule_id`，verifier按该id精确选择唯一rule，再确认该rule覆盖lease的`action`
+并独立满足其quorum。不同rule可以覆盖同一action；verifier不得按action、issuer交集或
+threshold猜测分支，也不得把不同recovery proof family的issuer拼成一个较弱门限。
+缺失或未知`authorization_rule_id`、所选rule不允许`action`、proof issuer不属于所选rule、
+或把多个rule的proof合并凑threshold，均必须fail closed为`authorization_denied`。同一policy
+中至少两个rule覆盖同一action时，分别显式选择各rule的lease都合法，前提是各自独立满足
+所选rule的全部验证条件。
 
 因此 inline policy 只提供可移植的 canonical bytes，不是自报 authority。registry template
 也只固定投影算法和值域，不能替代 basis 中的 accepted source。candidate、未 Seal 或晚于
@@ -129,6 +135,8 @@ recovery-unlock使用active `recovery_keys[].verification_method`且threshold=1�
 使用entry中与`service_id`同controller DID的`authorization_verification_method`且threshold=1。
 threshold-recovery完成Shamir重构后使用policy中的recovery signing key、signature
 threshold=1；`threshold.k`是secret reconstruction门限，绝不能复制成PayloadProof签名quorum。
+proof verified后，prepared plan与lease的`authorization_rule_id`必须逐字等于已验证proof
+family对应的`publication_authorization_rules[].rule_id`；不得在其它同action rule间切换。
 
 ## 2. IngressReceipt
 
