@@ -326,6 +326,13 @@
       "description": "Message object ID"
     },
     {
+      "kind": "message_stream",
+      "category": "sync",
+      "status": "active",
+      "wire_form": "ak:message_stream:<uuid>",
+      "description": "Transient Signal Message preview stream instance ID; never a durable object or Event identity"
+    },
+    {
       "kind": "morph",
       "category": "core_object",
       "status": "active",

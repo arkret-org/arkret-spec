@@ -3602,7 +3602,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Message create",
+      "payload": "Message create. Payload MUST omit message_id; reducer materializes Message.id by retyping the UUIDv7 of Event.event_id.",
       "plane": "data",
       "sealed": false,
       "cell_writes": [

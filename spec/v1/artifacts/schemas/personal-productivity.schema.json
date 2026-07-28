@@ -77,16 +77,8 @@
           "$ref": "#/$defs/timestamp"
         },
         "message_payload": {
-          "allOf": [
-            {
-              "$ref": "./event-payload.schema.json#/$defs/message_create_payload"
-            },
-            {
-              "required": [
-                "message_id"
-              ]
-            }
-          ]
+          "$ref": "./event-payload.schema.json#/$defs/message_create_payload",
+          "description": "Canonical future ak.message.create payload. It MUST omit message_id; dispatch derives Event.event_id by retyping planned_message_id and the Message id is then retyped back from that Event id."
         },
         "message_payload_digest": {
           "type": "string",

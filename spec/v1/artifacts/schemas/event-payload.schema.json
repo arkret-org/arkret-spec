@@ -5906,14 +5906,19 @@
               "revision_root"
             ]
           }
+        },
+        {
+          "$comment": "ak.message.create payload MUST NOT carry message_id. The materialized Message.id is obtained by retyping the UUIDv7 of Event.event_id; a second producer-chosen identity would create a conflicting truth source. See zh/models/strand-and-message.md §9 and forbidden-wire-fields.json `message_id/message_create_payload`.",
+          "not": {
+            "required": [
+              "message_id"
+            ]
+          }
         }
       ],
       "properties": {
         "strand_id": {
           "$ref": "#/$defs/strand_id"
-        },
-        "message_id": {
-          "$ref": "#/$defs/message_id"
         },
         "track_name": {
           "$ref": "#/$defs/track_name"

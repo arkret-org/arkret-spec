@@ -137,6 +137,10 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 `state`、`state_after` 与 `account_data` 的 `events[]` 使用 durable / actor-private `Event`。
 `SignalEnvelope` 只出现在 `ak.self.signal.stream.subscribe`，不得为了复用本流容器而包装
 成 durable Event，也不得恢复旧的 presence/receipt/call 聚合对象。
+`ak.profile.signal_message_stream.v1` 的 `ak.message.stream` 正文预览同样只在该 Signal rail
+解密后处理；它没有 account/events cursor、catch-up、ack 或 backfill。客户端的丢帧恢复、
+attempt 选择与 final 替换 MUST 按 [`signal.md` §7](./signal.md#7-message-正文流式预览-payload-profile)
+执行，不得把预览写入 `timeline.events[]`。
 
 顶层 `notifications` 与 `to_device` 都不是事件容器。`notifications` 使用 §3.1 的闭合 `{items: NotificationDelta[]}`；`to_device` 使用 `DeviceMessageEnvelope[]` 承载形态 `{messages, ack_token?, limited?, next_cursor?, lost?}`，schema 为 `account-subscribe-frame.schema.json#/$defs/device_message_container`。两者中的对象均不得作为 durable Event Envelope 处理。
 

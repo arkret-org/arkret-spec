@@ -172,7 +172,7 @@
       "write_event_kinds": [
         "ak.account_data.set"
       ],
-      "description": "Principal-private scheduled-send plan. planned_message_id is later reused as ak.message.create.payload.message_id.",
+      "description": "Principal-private scheduled-send plan. The UUIDv7 in planned_message_id is retyped as the eventual ak.message.create Event.event_id; message_payload omits message_id and the reducer retypes the Event UUID back into Message.id.",
       "source_refs": [
         "spec/v1/zh/models/personal-productivity.md"
       ]

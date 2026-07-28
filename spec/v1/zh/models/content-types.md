@@ -60,6 +60,12 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 这里的 `payload` 指 Event Envelope 的 kind-specific 业务载荷容器；`content` 指该 payload 内部写入 Message / Strand / Morph 正文字段的 Content Block，不是 `payload` 的同义词。
 
+Signal Extension 的 `ak.message.stream` plaintext 是提交前 transient preview，MUST NOT
+验证或物化为 Content Block，也不得进入 Message revision chain、Realm history、搜索索引或
+Blob 引用计数。只有接受后的 `ak.message.create` / `ak.message.revise` payload 中的
+`content`（或 `encrypted_content` plaintext）才是本文件定义的 Content Block；preview 与
+final 不同不构成 Content schema 错误。
+
 ### 2.3 复合消息使用 `composite` 类型
 
 当一条消息需要同时包含文本和图片（例如带说明文字的截图），使用 `composite` 类型将多个 Content Block 组合。

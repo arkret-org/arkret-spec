@@ -558,6 +558,13 @@ Message 是 Strand `discussion` track 时间线中的原子消息对象。
 
 Message 创建是 append-only。编辑通过 revision chain；撤回通过 redaction/tombstone。
 
+`ak.message.create` 只有一个 producer-chosen 创建 UUID：Event wire 的
+`event_id=ak:event:<uuidv7>`。reducer MUST 把同一 UUIDv7 重类型为
+`Message.id=ak:message:<uuidv7>`；create payload MUST NOT 携带 `message_id`。两个 typed ID
+分别寻址 durable 创建事实与物化 Message 对象，但不得成为两个可独立选择的 identity。网络重试
+MUST 重发相同 canonical Event；相同 `event_id` 的不同 canonical bytes 按 Event identity
+conflict 处理，新 `event_id` 则必然创建新的 Message。
+
 未加密消息的 `content` MUST 是 `content-types.md` 定义的 Content Block。Event wire 上，`ak.message.create` / `ak.message.revise` 的正文位于 Event Envelope 的 `payload.content`，E2EE 对偶位于 `payload.encrypted_content`；物化 Message 对象的字段名分别是顶层 `content` / `encrypted_content`。`strand_id` 等字段只表达归属或目标（Message 主键是顶层 `id`，不是 `message_id`）；物化 Message 对象的回复关系不走标量字段，由 `replies_to` 关系表达（`ak.message.create` payload 可携带 `reply_to` 创建便利，reducer 据此记录回复指向并投影为 `replies_to` 关系，不要求单独的 canonical `ak.relation` 事件）。Message 的用户可读扩展 metadata 使用 `metadata` / `encrypted_metadata`。
 
 Message MAY reply to another Message, mention Actor or object, reference Strand / Morph / Realm, or be redacted.
@@ -568,7 +575,7 @@ Schema id: `ak.schema.message.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:message` | 以 `ak:message:` 开头。 | Message ID。 |
+| `id` | yes | `id:message` | 以 `ak:message:` 开头；创建时 MUST 等于把 `ak.message.create` Event 的 `event_id` UUIDv7 重类型为 `ak:message:`。 | Message ID。 |
 | `schema` | yes | `ak.schema.message.v1` | const。 | Schema ID。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `strand_id` | yes | `id:strand` |  | 所属 Strand。 |
@@ -835,11 +842,16 @@ Message timeline 的同步与 reducer 行为：
 
 - typing
 - 当前输入草稿
+- 尚未提交的生成式正文预览
 - 临时在线状态
 - 高频 read cursor
 
-它们 SHOULD 作为 Sync Service 上的 ephemeral signal，或由各端本地缓存。Read
-receipt / read cursor 的具体规则见 [`../discovery/read-receipts.md`](../discovery/read-receipts.md)。
+它们 SHOULD 使用强制密文的 [Signal Extension](../sync/signal.md)，或由各端本地缓存。声明
+`ak.profile.signal_message_stream.v1` 的实现可按 [`signal.md` §7](../sync/signal.md#7-message-正文流式预览-payload-profile)
+发送 `ak.message.stream` transient preview。preview 不进入 Realm history、不参与 reducer、
+不建立 cursor/replay，也不是最终 Content Block；最终真相仍只有通过普通 Event 验证与 reducer
+接受的 `ak.message.create`。Read receipt / read cursor 的具体规则见
+[`../discovery/read-receipts.md`](../discovery/read-receipts.md)。
 
 ### 9.7 Message 常见关系
 

@@ -2001,7 +2001,7 @@
         "scheduled_send",
         "client_sync"
       ],
-      "description": "A scheduled-send plan or to-device retry reused the same planned_message_id / message_id with different canonical content. The reducer or queue service MUST return duplicate_conflict with this reason_code and MUST NOT emit or enqueue a replacement message."
+      "description": "A scheduled-send plan reused the same planned_message_id with different canonical plan content, or a to-device retry reused the same message_id with different canonical target content. The plan store or queue service MUST return duplicate_conflict with this reason_code and MUST NOT emit or enqueue a replacement message. Durable ak.message.create identity conflicts are keyed only by Event.event_id."
     },
     {
       "code": "state_mismatch",

@@ -626,6 +626,20 @@
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
+      "action": "ak.message.stream.send",
+      "category": "discussion",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "message_create_authorized_for_decrypted_strand",
+        "signal_scope_matches_decrypted_strand"
+      ],
+      "target_event_kinds": [],
+      "profile": "ak.profile.signal_message_stream.v1",
+      "event_mapping_kind": "non_event_surface",
+      "notes": "Authorizes a decrypted ak.message.stream Signal payload for one discussion Strand. It is an additional recipient-verified gate: the sender MUST also hold ak.message.create. The service cannot inspect or advertise the encrypted payload kind or Strand target."
+    },
+    {
       "action": "ak.mls.commit",
       "category": "service",
       "risk_tier": "high",

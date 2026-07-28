@@ -12,6 +12,8 @@ updated: 2026-07-28
 
 Signal 是可选 Extension，不是 durable Event 或 core to-device 的别名。它只有一个
 encrypted envelope、一条 send/subscribe live rail 与一个可选单跳 peer relay。
+标准 plaintext payload profile 必须在独立 closed schema 中登记；profile schema 只在接收端
+解密后应用，不得把其中的 `kind`、产品 target 或 sequence 提升到外层 routing metadata。
 
 ## 1. Envelope
 
@@ -272,3 +274,109 @@ Signal，也不得使用 signal TTL/单跳 fanout 语义。
 
 反例：服务端因 operation 存在而对所有 Realm 全局广告 Signal，却不能验证某 Circle 的 MLS
 basis。该广告不合规，必须按 scope 撤下。
+
+## 7. Message 正文流式预览 payload profile
+
+`ak.profile.signal_message_stream.v1` 定义 Signal plaintext payload kind
+`ak.message.stream`。其 schema 是
+[`signal-message-stream.schema.json`](../../artifacts/schemas/signal-message-stream.schema.json)。
+它只提供尚未成为 durable Message 的、发送者设备认证过的正文预览；它不是 Content Block、
+Event 分片、Blob upload progress、revision 或最终提交。外层 MUST 是 §1 的
+`SignalEnvelope`，`signal_class` MUST 为 `session`，不得新增 plaintext envelope、endpoint、
+stream frame kind、cursor 或 replay rail。
+
+### 7.1 身份、作用域与授权
+
+producer 在首帧前 MUST：
+
+1. 预生成最终 `ak.message.create` 的 `event_id`；
+2. 以同一个 UUIDv7 把它重类型为 `ak:message:<uuidv7>`，作为每帧 `message_id`；
+3. 持久化 `{event_id, attempt, stream_id}`；`message_id` 只能从 `event_id` 派生，不是第二份
+   producer-chosen identity。
+
+`stream_id` 为每个 attempt 新生成的 `ak:message_stream:<uuidv7>`。producer 丢失上述状态时
+MUST 生成新的 Event/Message identity，不得猜测或复用旧 identity。
+
+解密后的 `strand_id` MUST 在 Signal 外层签名 `scope_ref` 指定的 Realm/Circle security scope
+内，`track_name` 固定为 `discussion`。sender MUST 同时持有 `ak.message.stream.send` 和目标
+Message create 所需授权；因为精确 kind 与 target 按 §1 强制加密，service 只能执行外层实时
+发送资格与 scope gate，recipient MUST 在展示前按 `seal_ref` basis 重验这两个产品级 action。
+授权、scope、schema 或 AEAD 任一项不可验证时 MUST fail closed 且不得显示正文。
+
+### 7.2 帧与资源常数
+
+每个 decrypted payload 都携带通用 `payload_sequence`，供 §2 的 sender-device/scope replay
+处理；它与每条 stream 自己从 0 严格递增的 `seq` 相互独立。`frame_kind` 是 closed 三值：
+
+- `keyframe`：携带截至当前的完整 `text`、固定 `format=plain|markdown` 与 `truncated`；
+- `delta`：只携带非空 `text_append`，并要求 `base_seq` 等于 producer 上一正文帧的 `seq`；
+- `abort`：只携带低敏 `reason_code=generation_cancelled|generation_failed|superseded`。
+
+`seq=0` MUST 是 keyframe。format 在同一 stream 内不得改变；delta 只能追加有效 UTF-8，不支持
+删除、替换或格式切换。正文允许 LF、CR、TAB，禁止其它 C0 控制字符和 DEL。
+
+本 profile 的固定限制为：
+
+| 维度 | v1 上限 |
+| --- | ---: |
+| 累积 plaintext preview | 16 KiB UTF-8 |
+| 单 stream producer 发送率 | 5 frames/s |
+| 单 device 并发发送 stream | 8 |
+| 单 stream 生命周期 | 10 min |
+| consumer stalled 标记 | 30 s |
+| 单 device 同时展示 stream | 8 |
+
+16 KiB 是 §2 的 48 KiB Signal plaintext / 64 KiB canonical envelope 总上限之内的 profile
+子上限。conformance 必须覆盖 16,384 个 ASCII quote/backslash 的最坏 JSON 转义 keyframe；
+合法最大 keyframe 仍须装入两层 Signal 上限，不得把超限帧静默截短。service 不得解密以执行
+per-stream 限制；它只执行外层 envelope/rate/backpressure budget。producer 和 recipient 都
+MUST 执行 plaintext、stream count、lifetime 与 frame-rate 边界。
+
+### 7.3 Keyframe 调度
+
+首帧之后，满足任一条件时 producer MUST 发 keyframe：
+
+1. 当前 preview UTF-8 bytes 大于或等于
+   `max(1, previous_keyframe_bytes * 2)`；
+2. 距上一 keyframe 的单调时钟时间达到 15 seconds；
+3. 即将达到 16 KiB profile 上限。
+
+达到上限时 producer MUST 发 `truncated=true` 的自足 keyframe，停止发送 delta；在 final 或
+abort 之前仍 MUST 每 15 seconds 以内重复同一正文的自足 keyframe。最终 Message 可继续增长，
+并按普通 inline text 或 Blob-backed long text 规则提交。
+
+### 7.4 attempt 与 consumer 状态机
+
+receiver 对同一 `(sender_actor_id, sender_device_id, message_id)`：
+
+1. 没有活动 preview，或收到更大 `attempt` 时，只有 `seq=0` keyframe 能激活/替换；更大
+   attempt 的 delta/abort 在该 keyframe 前忽略，已见更大 attempt 后的较小 attempt 永远忽略；
+2. 同一 attempt 只允许一个 `stream_id`；出现第二个 stream id 表示 producer 分叉，receiver
+   MUST 冻结该 Message preview、记录安全诊断并等待 final，不得按到达时间选 winner；
+3. keyframe 仅在 `seq > last_content_seq` 时直接替换 preview；`highest_observed_seq` 只用于
+   诊断，不得阻止稍后到达但仍更新的 keyframe；
+4. delta 仅在 `seq > last_content_seq && base_seq == last_content_seq` 时追加；否则忽略正文并
+   等待 keyframe，不得清空已经认证的前缀；
+5. 当前 attempt/stream 的 abort 终止该 attempt；未激活更大 attempt 的 abort 不影响当前
+   preview；
+6. 30 seconds 无有效帧则标记 stalled；10 minutes 后丢弃未完成 preview。
+
+Signal rail 的丢失、重复、乱序、backpressure drop 和断线都是正常输入。consumer 不需要
+reorder buffer；service MUST NOT 保存 stream `seq`、attempt、正文、final/abort 或恢复缓存。
+
+### 7.5 最终 Message 绑定
+
+receiver 只有在以下条件全部成立时才把 durable final 绑定并替换 preview：
+
+1. Event kind 为 `ak.message.create`，其 schema、proof、authorization 与 reducer 全部通过；
+2. payload 不携带 `message_id`，物化 `Message.id` 等于把 `Event.event_id` 的 UUIDv7 重类型为
+   `ak:message:`，且与 preview `message_id` 相等；
+3. final Event 不含 `executed_by`；preview 的 `sender_actor_id == Event.actor_id`，且
+   `sender_device_id` 等于从 final proof 的已验证 `verification_method` 解析并授权的设备；
+4. preview/final 的 Realm、由 `scope_ref` 确定的 security scope、Strand 与 discussion track
+   全部相等。
+
+final 正文可以与最后 preview 不同；receiver 直接以 final 为准，差异不是协议错误。preview
+不增加 hash commitment，也不承诺一定出现 final。收到合格 final 后，receiver MUST 终止该
+message 的全部 preview attempts。委托执行的 final 因 Signal 外层没有同时表达 principal of
+record 与 executor provenance，MUST NOT 与本 profile 的 direct preview 绑定。

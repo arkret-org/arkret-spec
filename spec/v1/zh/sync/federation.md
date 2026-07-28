@@ -325,7 +325,6 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
           "key_epoch": 1
         },
         "payload": {
-          "message_id": "ak:message:0196419b-3000-7000-8000-000000000001",
           "strand_id": "ak:strand:0196419b-3000-7000-8000-000000000003",
           "track_name": "discussion",
           "content": {

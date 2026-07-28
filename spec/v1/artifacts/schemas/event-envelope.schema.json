@@ -446,6 +446,7 @@
           "kind": {
             "enum": [
               "ak.call.signal",
+              "ak.message.stream",
               "ak.presence",
               "ak.typing",
               "ak.receipt.read",

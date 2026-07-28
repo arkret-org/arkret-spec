@@ -1,0 +1,276 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/signal-message-stream.schema.json",
+  "title": "Arkret Message Stream Signal Plaintext",
+  "description": "Closed decrypted plaintext payload profile for transient Message generation previews carried only inside ak.schema.signal_envelope.v1. It is not a durable Event or Content Block.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/keyframe"
+    },
+    {
+      "$ref": "#/$defs/delta"
+    },
+    {
+      "$ref": "#/$defs/abort"
+    }
+  ],
+  "$defs": {
+    "common_properties": {
+      "type": "object",
+      "required": [
+        "kind",
+        "payload_sequence",
+        "strand_id",
+        "track_name",
+        "message_id",
+        "attempt",
+        "stream_id",
+        "seq",
+        "frame_kind"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ak.message.stream"
+        },
+        "payload_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615,
+          "description": "Sender-device sequence within the signed Signal scope. It is independent of the per-stream seq and participates in generic Signal replay handling."
+        },
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
+        },
+        "track_name": {
+          "const": "discussion"
+        },
+        "message_id": {
+          "$ref": "#/$defs/message_id",
+          "description": "Predeclared final Message identity, derived by retyping the UUIDv7 of the planned ak.message.create Event.event_id."
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "stream_id": {
+          "type": "string",
+          "pattern": "^ak:message_stream:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "frame_kind": {
+          "enum": [
+            "keyframe",
+            "delta",
+            "abort"
+          ]
+        }
+      }
+    },
+    "preview_text": {
+      "type": "string",
+      "maxLength": 16384,
+      "pattern": "^[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]*$",
+      "description": "Authoritative limit is 16 KiB of valid UTF-8, enforced after decryption by a byte validator. maxLength is a not-wider code-point fast bound. LF, CR and TAB are allowed; other C0 controls and DEL are forbidden."
+    },
+    "message_id": {
+      "type": "string",
+      "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "strand_id": {
+      "type": "string",
+      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "keyframe": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/common_properties"
+        },
+        {
+          "type": "object",
+          "required": [
+            "format",
+            "text",
+            "truncated"
+          ],
+          "properties": {
+            "kind": {
+              "const": "ak.message.stream"
+            },
+            "payload_sequence": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 18446744073709551615
+            },
+            "strand_id": {
+              "$ref": "#/$defs/strand_id"
+            },
+            "track_name": {
+              "const": "discussion"
+            },
+            "message_id": {
+              "$ref": "#/$defs/message_id"
+            },
+            "attempt": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "stream_id": {
+              "type": "string",
+              "pattern": "^ak:message_stream:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "seq": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 18446744073709551615
+            },
+            "frame_kind": {
+              "const": "keyframe"
+            },
+            "format": {
+              "enum": [
+                "plain",
+                "markdown"
+              ]
+            },
+            "text": {
+              "$ref": "#/$defs/preview_text"
+            },
+            "truncated": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "delta": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/common_properties"
+        },
+        {
+          "type": "object",
+          "required": [
+            "base_seq",
+            "text_append"
+          ],
+          "properties": {
+            "kind": {
+              "const": "ak.message.stream"
+            },
+            "payload_sequence": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 18446744073709551615
+            },
+            "strand_id": {
+              "$ref": "#/$defs/strand_id"
+            },
+            "track_name": {
+              "const": "discussion"
+            },
+            "message_id": {
+              "$ref": "#/$defs/message_id"
+            },
+            "attempt": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "stream_id": {
+              "type": "string",
+              "pattern": "^ak:message_stream:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "seq": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 18446744073709551615
+            },
+            "frame_kind": {
+              "const": "delta"
+            },
+            "base_seq": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 18446744073709551615
+            },
+            "text_append": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/preview_text"
+                },
+                {
+                  "minLength": 1
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "abort": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/common_properties"
+        },
+        {
+          "type": "object",
+          "required": [
+            "reason_code"
+          ],
+          "properties": {
+            "kind": {
+              "const": "ak.message.stream"
+            },
+            "payload_sequence": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 18446744073709551615
+            },
+            "strand_id": {
+              "$ref": "#/$defs/strand_id"
+            },
+            "track_name": {
+              "const": "discussion"
+            },
+            "message_id": {
+              "$ref": "#/$defs/message_id"
+            },
+            "attempt": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "stream_id": {
+              "type": "string",
+              "pattern": "^ak:message_stream:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "seq": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 18446744073709551615
+            },
+            "frame_kind": {
+              "const": "abort"
+            },
+            "reason_code": {
+              "enum": [
+                "generation_cancelled",
+                "generation_failed",
+                "superseded"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

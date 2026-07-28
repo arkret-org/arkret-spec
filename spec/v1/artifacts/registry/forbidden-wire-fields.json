@@ -328,6 +328,19 @@
       "notes": "ak.message.create payload MUST NOT carry revision_root. The reducer initializes revision_root to the new message_id; only ak.message.revise (and subsequent revise events) may set revision_root, and only to the create's revision_root. See zh/models/strand-and-message.md §9."
     },
     {
+      "id": "message_id",
+      "context": "message_create_payload",
+      "since_revision": "2026-07-28",
+      "rejection_level": "hard_reject",
+      "replacement": "retype_message_id(Event.event_id)",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "ak.message.create payload MUST NOT carry a second producer-chosen identity. The reducer materializes Message.id by retyping the UUIDv7 of Event.event_id. See zh/models/strand-and-message.md §9."
+    },
+    {
       "id": "sidecar_exchange_binding",
       "context": "plaintext_metadata_or_shared_scope_payload",
       "since_revision": "2026-07-23",

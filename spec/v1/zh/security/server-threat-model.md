@@ -108,6 +108,16 @@ sidebar:
 27. **实时媒体 / SFU 信任边界滥用（Media-Plane Abuse）**
     恶意或被攻陷的 token issuer、SFU/MCU、TURN 服务或 recording/transcription backend 可能注入未授权 participant、伪造 `participant_identity` / frame-key 来源、静默把 `media_service_decrypts` 从 false 降级为 true、滥用短期 TURN credential、把 backend 明文产物绕过 Arkret blob pipeline，或通过 room join/leave timing 与包大小重建会议参与图谱。防护以 [`crypto-media/media-service-binding.md` §3/§7/§8](../crypto-media/media-service-binding.md)、[`crypto-media/webrtc-signaling.md` §3a/§5/§10](../crypto-media/webrtc-signaling.md) 与 [`crypto-media/call-state.md` §4/§5](../crypto-media/call-state.md) 为权威：participant admission 必须同时验证 membership/account/device/capability 与 signed binding；远端 SFU 默认不得获得 exporter key；任何 backend 明文访问必须通过三层 governance gate；TURN credential 必须短期、audience/focus/call 绑定；录制/转写只经 Arkret authenticated encrypted-blob pipeline。任一校验不可得 MUST fail closed。即使内容 E2EE，SFU/relay 仍可观察 room timing/size；实现 MUST 在 UI/policy 披露该残余元数据面，minimal-metadata profile SHOULD 做 bucket/padding/短留存。
 
+28. **生成式正文预览滥用（Streaming Preview Abuse）**
+    恶意 sender 可用 `ak.message.stream` 高频大帧消耗 recipient 内存/渲染资源、用不同
+    `stream_id` 制造同 attempt 分叉、发送危险 markdown，或展示诱导性 preview 后提交不同
+    final。Signal 强制密文只隐藏精确 kind/target，不隐藏外层 sender、scope、时间与大小模式。
+    防护以 [`sync/signal.md` §7](../sync/signal.md#7-message-正文流式预览-payload-profile) 为权威：
+    producer/receiver 执行 16 KiB、5 fps、8 streams、10 min 上限；分叉冻结；markdown 按不可信
+    富文本消毒；final 始终覆盖 preview，UI MUST NOT 把 preview 标成已提交内容。service 只执行
+    64 KiB envelope、外层 byte/rate/backpressure 和 scope admission，不得通过解密建立产品级
+    stream 状态。
+
 ### 2.1a 需 profile 才能缓解的攻击项（base v1 不直接防御）
 
 §2.1 中以 *conditional* 标注的条目不属于 base v1 可直接防御范围，只有在显式声明对应 hardening profile 时才能缓解。本节是 conditional 项的索引，缓解手段与 normative 约束（含「未声明 profile 时 MUST NOT 把 E2EE 误表述为隐藏 federation traffic metadata」）以被索引条目正文为权威，不在此重述：

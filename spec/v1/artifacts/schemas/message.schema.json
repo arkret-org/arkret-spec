@@ -106,7 +106,8 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "For ak.message.create, the reducer derives this value by retyping the UUIDv7 of the creating Event.event_id from ak:event: to ak:message:. It is not independently producer-chosen."
     },
     "schema": {
       "const": "ak.schema.message.v1"

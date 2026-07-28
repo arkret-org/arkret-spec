@@ -321,7 +321,6 @@ ak.vector.encoding.event_digest.v1
   "payload": {
     "strand_id": "ak:strand:01964137-0000-7000-8000-000000000000",
     "track_name": "discussion",
-    "message_id": "ak:message:019640ed-8000-7000-8000-000000000000",
     "content": {
       "kind": "ak.content.text",
       "body": "hello"
@@ -333,13 +332,13 @@ ak.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:webvh:z6mkfixture:alice.example","actor_seq":1,"auth_context":{"did":"did:webvh:z6mkfixture:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00.000Z","event_id":"ak:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"message_id":"ak:message:019640ed-8000-7000-8000-000000000000","strand_id":"ak:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:01964137-0000-7000-8000-000000000000","refs":[],"scope_ref":{"kind":"realm","realm_id":"ak:realm:01964137-0000-7000-8000-000000000000"},"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
+{"actor_id":"did:webvh:z6mkfixture:alice.example","actor_seq":1,"auth_context":{"did":"did:webvh:z6mkfixture:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00.000Z","event_id":"ak:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ak.content.text"},"strand_id":"ak:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:01964137-0000-7000-8000-000000000000","refs":[],"scope_ref":{"kind":"realm","realm_id":"ak:realm:01964137-0000-7000-8000-000000000000"},"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
 ```
 
 期望 digest：
 
 ```text
-sha256:79782260377338841143afb682801dc2364e7761c38cf7e85811922070926a68
+sha256:e78bdef1ff9554389beeecefd8f1658081f2bd5db29d0229557fe04caf98dfbb
 ```
 
 判定规则：
@@ -5646,3 +5645,26 @@ Runner MUST 覆盖：
 5. response 丢失时 source 不自动重放，不携带 `Idempotency-Key`，按 `drop_unconfirmed` 丢弃不确定结果；
 6. peer/live/local rails 重复、乱序或丢失不写 durable Event、不推进 actor sequence / Realm frontier，consumer 依靠下一自足 signal 或产品级 timeout/renegotiation 恢复；
 7. source/destination 改写、重签、解密重加密 envelope，以及 destination 再转发第三 peer，全部 fail closed。
+
+## 27. Signal Message streaming closure vector
+
+`vector_id`: `ak.vector.signal.message_stream.v1`
+
+本向量由
+[`signal-message-stream-fixture.json`](../../artifacts/fixtures/signal-message-stream-fixture.json)
+承载，规则正文见 [`../sync/signal.md` §7](../sync/signal.md#7-message-正文流式预览-payload-profile)
+与 [`../models/strand-and-message.md` §9](../models/strand-and-message.md#9-message)。
+
+Runner MUST 覆盖：
+
+1. `seq=0` keyframe、连续 delta、丢帧、重复、乱序、无效 `base_seq` 与后续自愈 keyframe；
+2. 大 attempt 只能由 `seq=0` keyframe 激活，迟到小 attempt 不回滚，同 attempt 第二
+   `stream_id` 冻结 preview；
+3. UTF-8 preview 16 KiB−1/16 KiB/16 KiB+1、增长比 2 边界、15 秒 keyframe 边界、
+   truncated 后周期 keyframe，以及最大 quote/backslash JSON 转义仍装入 48/64 KiB Signal
+   两层上限；
+4. `message_id` 等于 planned create `event_id` 的重类型 UUID；create payload 出现
+   `message_id` 必须 `schema_violation`；
+5. direct final 的 actor/device/security scope/Realm/Strand/track 任一不匹配，或 final
+   携带 `executed_by` 时，不得绑定 preview；全部匹配时 final 立即替换并终止所有 attempts；
+6. preview 永不写 durable Event、Content Block、cursor、replay cache 或 reducer state。

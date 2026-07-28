@@ -364,6 +364,12 @@
       "description": "Encrypted-only Signal Extension envelope; product payload types remain inside ciphertext."
     },
     {
+      "schema_id": "ak.schema.signal_message_stream.v1",
+      "file": "schemas/signal-message-stream.schema.json",
+      "status": "active",
+      "description": "Closed decrypted Signal payload profile for transient Message generation keyframe, delta, and abort frames."
+    },
+    {
       "schema_id": "ak.schema.signal_relay.v1",
       "file": "schemas/signal-relay.schema.json",
       "status": "active",

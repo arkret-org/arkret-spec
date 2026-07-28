@@ -1965,6 +1965,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.signal.message_stream.v1",
+      "status": "active",
+      "domain": "signal",
+      "applies_to_fixtures": [
+        "signal-message-stream-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/signal-message-stream-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ],
+      "description": "Encrypted Message preview keyframe/delta/abort state machine, identity derivation, attempt fork handling, resource limits, and direct final binding."
+    },
+    {
       "vector_id": "ak.vector.content.long_text_boundaries.v1",
       "status": "active",
       "domain": "content",

@@ -74,7 +74,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
-      "sha256": "f3917e83c668101125d5965be9d4a61d35d05a3d25810749004809989193ac3e"
+      "sha256": "741ab60923cc8746e3c85e28f076bb609d95b133563cb75fbb10f48dcd25e41e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cursor-negative-fixture.json",
@@ -98,7 +98,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "8889a811add76a60d75ec222ceb41e8185dde5496444c7ef0c9f961e5a078ef9"
+      "sha256": "a6c88c09ddf399b547a063b8020840f3da107387a0b18399da6d72b8eb1159d1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",
@@ -118,7 +118,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "160fbe98d47fd03c6590ddb85e478a48581f0778cd3ec03ffbf1503dd90ebd48"
+      "sha256": "590b50ce9ee558faf4db1d6c79c6df66806ca02ff282432ac01cd106bae17fa4"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -263,6 +263,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
       "sha256": "ed1f83836dbf13251589c9d10cdabc824d68287e5ac327afe22ebb98154f8a2a"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/signal-message-stream-fixture.json",
+      "sha256": "489f2ee9fa8a7700ab2c337c98bbb172c3fae15c6bbcaa052c9de940f01fd92b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",

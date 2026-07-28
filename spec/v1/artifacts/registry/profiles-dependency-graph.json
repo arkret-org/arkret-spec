@@ -101,6 +101,7 @@
     "ak.profile.search.blind_index.v1",
     "ak.profile.search.client_index.v1",
     "ak.profile.search.forward_private.v1",
+    "ak.profile.signal_message_stream.v1",
     "ak.profile.signal_peer_relay.v1",
     "ak.profile.signature.ecdsa_p256.v1",
     "ak.profile.signature.pqc.v1",

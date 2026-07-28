@@ -5697,7 +5697,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Message create"
+        "payload": "Message create. Payload MUST omit message_id; reducer materializes Message.id by retyping the UUIDv7 of Event.event_id."
       },
       {
         "event_kind": "ak.agent.sidecar.exchange.control",
@@ -7224,6 +7224,12 @@
         "description": "Encrypted-only Signal Extension envelope; product payload types remain inside ciphertext."
       },
       {
+        "schema_id": "ak.schema.signal_message_stream.v1",
+        "file": "schemas/signal-message-stream.schema.json",
+        "status": "active",
+        "description": "Closed decrypted Signal payload profile for transient Message generation keyframe, delta, and abort frames."
+      },
+      {
         "schema_id": "ak.schema.signal_relay.v1",
         "file": "schemas/signal-relay.schema.json",
         "status": "active",
@@ -7992,6 +7998,13 @@
           "read_cursor_thread_root"
         ],
         "description": "Message object ID"
+      },
+      {
+        "kind": "message_stream",
+        "category": "sync",
+        "status": "active",
+        "wire_form": "ak:message_stream:<uuid>",
+        "description": "Transient Signal Message preview stream instance ID; never a durable object or Event identity"
       },
       {
         "kind": "morph",
@@ -11919,6 +11932,20 @@
         ],
         "profile": null,
         "event_mapping_kind": "scope_suffix_variant"
+      },
+      {
+        "action": "ak.message.stream.send",
+        "category": "discussion",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "required_evaluator_checks": [
+          "message_create_authorized_for_decrypted_strand",
+          "signal_scope_matches_decrypted_strand"
+        ],
+        "target_event_kinds": [],
+        "profile": "ak.profile.signal_message_stream.v1",
+        "event_mapping_kind": "non_event_surface",
+        "notes": "Authorizes a decrypted ak.message.stream Signal payload for one discussion Strand. It is an additional recipient-verified gate: the sender MUST also hold ak.message.create. The service cannot inspect or advertise the encrypted payload kind or Strand target."
       },
       {
         "action": "ak.mls.commit",

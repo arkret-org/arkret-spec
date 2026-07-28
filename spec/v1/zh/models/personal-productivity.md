@@ -41,15 +41,25 @@ see_also:
 
 ## 4. Scheduled Send
 
-定时发送写入 `ak.scheduled_send.v1:<planned_message_id>`。值必须验证为 `ak.schema.personal_productivity.v1` 中的 scheduled-send plaintext value，并在写入 account-data 前加密。`planned_message_id` MUST 在创建计划时固定，并在真正发送时作为 `ak.message.create.payload.message_id` 使用；value 内的 `message_payload.message_id` MUST 等于 `planned_message_id`。
+定时发送写入 `ak.scheduled_send.v1:<planned_message_id>`。值必须验证为
+`ak.schema.personal_productivity.v1` 中的 scheduled-send plaintext value，并在写入
+account-data 前加密。`planned_message_id=ak:message:<uuidv7>` MUST 在创建计划时固定；dispatch
+把同一 UUIDv7 重类型为 `planned_event_id=ak:event:<uuidv7>`，并把它作为最终
+`ak.message.create` 的 `event_id`。`message_payload` MUST 省略 `message_id`；Message ID 由
+[`strand-and-message.md` §9.1](./strand-and-message.md#91-概览) 的 reducer 规则从 Event ID
+确定性派生。计划只持久化一个 UUID identity，不得保存第二份可写身份。
 
 同一 `planned_message_id` 的幂等规则如下：
 
 - 相同 canonical payload digest 的重复提交 MUST 视为 no-op。
-- 不同 canonical payload digest 的重复提交 MUST 返回 `duplicate_conflict`，reason 为 `message_id_conflict`。
+- 不同 canonical payload digest 的重复计划写入 MUST 返回 `duplicate_conflict`，reason 为
+  `message_id_conflict`。
 - 冲突时 MUST NOT 产生新的发送 Event，也不得替换已接受的消息。
 
-`message_payload_digest` MUST 是 canonical `message_payload` 的 `sha256:<hex>` digest。定时发送计划不是共享事实。只有到期并成功提交的 `ak.message.create` 才进入共享 Realm history。
+`message_payload_digest` MUST 是 canonical `message_payload` 的 `sha256:<hex>` digest。到期
+提交的网络重试 MUST 重用相同 `planned_event_id` 与 canonical Event bytes；同一 Event ID 的
+不同 bytes 走 Event identity conflict，不由 scheduled-send 另建覆盖语义。定时发送计划不是
+共享事实。只有到期并成功提交的 `ak.message.create` 才进入共享 Realm history。
 
 ## 5. Snooze
 

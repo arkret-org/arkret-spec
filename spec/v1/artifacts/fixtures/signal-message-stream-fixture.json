@@ -1,0 +1,131 @@
+{
+  "suite": "signal_message_stream",
+  "version": "2026-07-28",
+  "profile": "ak.profile.signal_message_stream.v1",
+  "runner": {
+    "kind": "json_schema_and_semantic_cases",
+    "canonicalization": "fixture_json_v1",
+    "must_not_allocate_declared_cardinality": true
+  },
+  "covers_vectors": [
+    "ak.vector.signal.message_stream.v1"
+  ],
+  "source_refs": [
+    "spec/v1/zh/sync/signal.md",
+    "spec/v1/zh/models/strand-and-message.md",
+    "spec/v1/artifacts/schemas/signal-message-stream.schema.json",
+    "spec/v1/artifacts/schemas/signal-envelope.schema.json"
+  ],
+  "cases": [
+    {
+      "name": "keyframe_delta_and_direct_final_bind",
+      "input": {
+        "generator": {
+          "kind": "signal_message_stream_sequence",
+          "frames": [
+            "seq_0_keyframe",
+            "contiguous_delta",
+            "newer_keyframe"
+          ],
+          "final_event": "direct_message_create_with_same_retyped_uuid_and_scope"
+        }
+      },
+      "expected": {
+        "decision": "replace_preview_with_final",
+        "durable_preview_events": 0,
+        "message_id_source": "retype_event_id"
+      }
+    },
+    {
+      "name": "lost_delta_waits_for_self_healing_keyframe",
+      "input": {
+        "generator": {
+          "kind": "signal_message_stream_loss_and_reorder",
+          "missing_seq": 1,
+          "invalid_delta_before_keyframe": true,
+          "later_keyframe_newer_than_last_content_seq": true
+        }
+      },
+      "expected": {
+        "invalid_delta_applied": false,
+        "authenticated_prefix_cleared": false,
+        "later_keyframe_applied": true,
+        "reorder_buffer_required": false
+      }
+    },
+    {
+      "name": "attempt_activation_and_fork_freeze",
+      "input": {
+        "generator": {
+          "kind": "signal_message_stream_attempt_matrix",
+          "higher_attempt_before_seq_0": true,
+          "higher_attempt_seq_0_keyframe": true,
+          "same_attempt_second_stream_id": true
+        }
+      },
+      "expected": {
+        "higher_attempt_before_seq_0_ignored": true,
+        "higher_attempt_activated_by_keyframe": true,
+        "same_attempt_fork": "freeze_until_final"
+      }
+    },
+    {
+      "name": "keyframe_schedule_and_truncation_limits",
+      "input": {
+        "generator": {
+          "kind": "signal_message_stream_limit_matrix",
+          "preview_utf8_bytes": [
+            16383,
+            16384,
+            16385
+          ],
+          "keyframe_growth_ratios": [
+            1.999,
+            2,
+            2.001
+          ],
+          "keyframe_intervals_ms": [
+            14999,
+            15000,
+            15001
+          ],
+          "worst_case_json_escape": true,
+          "signal_plaintext_limit_bytes": 49152,
+          "signal_envelope_limit_bytes": 65536
+        }
+      },
+      "expected": {
+        "preview_at_or_below_16384_bytes": "accept",
+        "preview_above_16384_bytes": "reject",
+        "growth_ratio_at_or_above_2_requires_keyframe": true,
+        "interval_at_or_above_15000_ms_requires_keyframe": true,
+        "worst_case_legal_keyframe_fits_signal_limits": true,
+        "truncated_keyframe_repeats_within_ms": 15000
+      }
+    },
+    {
+      "name": "reject_identity_scope_and_final_mismatch",
+      "input": {
+        "generator": {
+          "kind": "signal_message_stream_mismatch_matrix",
+          "mutations": [
+            "decrypted_strand_outside_signed_scope",
+            "message_id_not_retyped_final_event_id",
+            "different_final_actor",
+            "different_final_device",
+            "different_final_realm",
+            "different_final_strand",
+            "different_final_track",
+            "delegated_final_event",
+            "message_create_payload_contains_message_id"
+          ]
+        }
+      },
+      "expected": {
+        "preview_final_binding": false,
+        "preview_never_durable": true,
+        "message_create_payload_contains_message_id": "schema_violation"
+      }
+    }
+  ]
+}
