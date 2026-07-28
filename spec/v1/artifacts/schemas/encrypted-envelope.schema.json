@@ -153,6 +153,14 @@
       "additionalProperties": false,
       "description": "MLS group binding hints. Closed object: privacy-sensitive AAD must not be smuggled through here. Forbidden in v1: ratchet_tree, leaf_node, group_info (these MUST NOT be replicated per-message)."
     },
+    "purpose": {
+      "const": "mls_exporter_aead_content",
+      "description": "AEAD purpose for this domain (encryption-and-audit.md 2.10.2). It is a nonce-derivation and AAD input, so it separates a content nonce from every other AEAD domain under the same key and epoch. Present only for scheme=mls_exporter_aead_v1; mls_rfc9420 derives its message keys from the MLS secret tree and has no exporter AEAD."
+    },
+    "aead_profile": {
+      "type": "string",
+      "description": "canonical_id of an ACTIVE row of artifacts/registry/mls-ciphersuite-registry.json. It MUST equal the ciphersuite the MLS group at key_ref.group_state_ref actually negotiated (encryption-and-audit.md 2.10.2, conformance/encoding.md 10.1); a reserved suite, an unregistered suite, an HPKE suite name or any local alias MUST fail closed. It also fixes AEAD.Nk for the content key and N_AEAD for the nonce, so a receiver cannot derive either without it. Present only for scheme=mls_exporter_aead_v1."
+    },
     "payload_digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
@@ -183,6 +191,20 @@
               }
             }
           }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "purpose"
+              ]
+            },
+            {
+              "required": [
+                "aead_profile"
+              ]
+            }
+          ]
         }
       }
     },
@@ -206,7 +228,11 @@
               }
             }
           }
-        }
+        },
+        "required": [
+          "aead_profile",
+          "purpose"
+        ]
       }
     },
     {
