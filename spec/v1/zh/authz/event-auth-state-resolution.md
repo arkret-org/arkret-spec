@@ -437,6 +437,9 @@ defer_count=0, authority_set_ref, signature
 
 机读合同为
 [`control-proposal-decision.schema.json`](../../artifacts/schemas/control-proposal-decision.schema.json)。
+`ak.self.events.command.submit` / `ak.peer.events.command.submit` 对 accepted 或 byte-identical
+duplicate Control Move MUST 在 `EventsSubmitOutcome.control_proposal_receipts[]` 返回已持久化的
+原 receipt；DataEvent 不得进入该数组。重复提交不得重签或延长任何 deadline。
 Realm 的 `proposal_decision_window_ms` 给出首个决议窗口（default 30,000ms，协议硬上限
 24h），`proposal_absolute_deadline_ms` 给出从 signed `received_at` 起不可延长的绝对窗口
 （default 90,000ms，协议硬上限 72h），`max_proposal_defers` 给出 defer 次数上限
@@ -449,6 +452,12 @@ Realm 的 `proposal_decision_window_ms` 给出首个决议窗口（default 30,00
 2. `signed_reject`，携带 closed `reason_code`；
 3. `signed_defer`，携带 closed `reason_code`、严格递增且不晚于 `absolute_due_at` 的新
    `decision_due_at`，并把 `defer_count` 恰好加一。
+
+`signed_reject.reason_code` 的封闭集合为 `capability_denied`、`cas_conflict`、
+`policy_denied`、`schema_violation`、`superseded`；
+`signed_defer.reason_code` 的封闭集合为 `dependency_missing`、`quorum_unreachable`、
+`temporarily_unavailable`。实现不得接受
+未登记字符串，也不得把 defer 原因用于 terminal reject。
 
 每个 defer MUST 引用原始 receipt digest，绑定同一 proposal、Realm 与 authority set，
 并原样保留 `absolute_due_at`。`signed_reject` 与 `signed_defer` 是可验证的 authority
@@ -473,6 +482,16 @@ rejected 两种终态。协议不能强迫停机或恶意 authority 接受 propo
 authority 给出有界、可验证的决议，并为失约提供 health/fault/recovery/rotation 入口。
 上述 receipt、两次 defer 上界、绝对期限与迟到 Seal 规则由 conformance vector
 `ak.vector.cba.proposal_bounded_decision.v1` 固定。
+
+`ak.self.events.query.frontier` 的 `RealmSealFrontierView.governance_health` MUST 从已验证的
+receipt / decision chain 与 accepted Seal covered set 派生；pending 明细最多返回 128 项，
+按 `(absolute_due_at, proposal_digest)` canonical 升序。超过读取上限时 readiness MUST
+fail closed，不能静默截断后报告 `healthy`。该 View 不是新的可写真相源。
+迟到但合法的 Seal 覆盖 proposal 后，proposal 从 `pending_proposals[]` 移除，但失约证据
+MUST 进入 `retained_faults[]`，携带原 receipt、完整 signed-defer chain、accepted Seal id
+与其签名 `sealed_at`；按 `(accepted_at, proposal_digest)` canonical 升序，最多 128 项，
+超限同样 fail closed。只要 pending overdue 或 retained fault 非空，`status` MUST 为
+`degraded`，不得因 proposal 后来取得 finality 而把已发生的 deadline fault 抹除。
 
 **compaction 不承担终局（normative）**：首个 Seal **MUST NOT** 是 compaction Seal；
 compaction 前的普通 signing pass 出现任何硬错误时 compaction **MUST** 停止并上浮；

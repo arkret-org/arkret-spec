@@ -161,7 +161,7 @@ stage 请求携带 proof 等负向量。
 
 - 通用部署 SHOULD 在该窗口内预先 fail closed（拒绝该设备的上述请求）。
 - **声明 `ak.profile.e2ee_client.v1` 或任何专门 hardening / 高安全 deployment profile（如 `high_security_organization` / `sovereign_deployment`）的部署 MUST 在该窗口内预先 fail closed**——高安全语境下"撤销已提交即不再为该设备服务"是硬承诺，不得在等待 Seal 期间继续放行被撤销设备的写入或密钥获取。
-- 该 accepted→sealed 窗口本身 MUST 有界：其上界即控制面 Seal finality 延迟，受 [`encryption-and-audit.md` §2.4](../crypto-media/encryption-and-audit.md) `max_mls_commit_delay_ms`（默认 30,000 ms）同量级约束；超过该 effective 上界仍未 sealed 时，受理服务 MUST 对该设备一律 fail closed，不得无界停留在"已 accepted 撤销但仍按未撤销放行"的状态。
+- receipt→decision 窗口 MUST 服从 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §7.2 的 proposal 有界决议合同；它保证 include / signed-reject / bounded signed-defer 之一，不保证 proposal 被接受，也不是 Seal finality SLA。设备撤销 proposal 尚未进入 accepted Seal 时，若旧授权安全性无法证明，受理服务 MUST fail closed；MLS-backed scope 另受 [`encryption-and-audit.md` §2.4](../crypto-media/encryption-and-audit.md) `max_mls_commit_delay_ms` 发送阻塞窗口约束。迟到但有效的 Seal 仍按 CBA 规则接受，decision-overdue fault 保留。
 
 共享 E2EE Realm 不能只看到“某设备已撤销”的服务端布尔值就推进新 epoch。对应 `ak.mls.commit` Remove 的 `governance_binding.membership_frontier` MUST 覆盖该 `ak.device.revoke` 事件本身，或覆盖一个已经把该撤销导入 Realm governance state 的显式 Control Move，且该撤销 MUST 已被 principal control stream 的 accepted Seal 覆盖；否则该 Remove 不满足 MLS Governance Binding，新的 `covered_seals_cell` 不得声称已覆盖该设备撤销。
 

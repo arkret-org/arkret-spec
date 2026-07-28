@@ -186,7 +186,7 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:e7f0d1ce96a91a3dbcca64f65f631f54dd39a2b002f091af532cb38f8aeac41a"
+            "content_digest": "sha256:5392eb49937efab5fb69f5dfd37561b02a1684ce7aec61cfb58e8e9b82859927"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -194,7 +194,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:98002e321a4236206554b7abca179f9872d2cd3ef025e4bc79a2cb7d71ee7f11"
+      "reducer_profile_digest": "sha256:987423092394fc1d505212de3e6b06534a450c643cf6a1acfb0e9eb682a3ec1e"
     },
     {
       "profile_id": "ak.profile.chat_mvp.v1",
@@ -501,7 +501,7 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:e7f0d1ce96a91a3dbcca64f65f631f54dd39a2b002f091af532cb38f8aeac41a"
+            "content_digest": "sha256:5392eb49937efab5fb69f5dfd37561b02a1684ce7aec61cfb58e8e9b82859927"
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
@@ -517,7 +517,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:4496b5e7dc8cd2ea815afd08c03d899a034d41b1f7374236af2ddc7938035483"
+      "reducer_profile_digest": "sha256:b9a738dd9081b9e3aca4e9a3ec2aa44337305c12bbf805f2b88c5ed62f67576b"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -792,7 +792,7 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:e7f0d1ce96a91a3dbcca64f65f631f54dd39a2b002f091af532cb38f8aeac41a"
+            "content_digest": "sha256:5392eb49937efab5fb69f5dfd37561b02a1684ce7aec61cfb58e8e9b82859927"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -812,7 +812,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:6bced8b5fa853d7b91306be43c775f6e73375a9d34e56a9cdd54592c5818033c"
+      "reducer_profile_digest": "sha256:f317c40a3de4d7b5987351ae9a5722b44a52664aa9d8083e38208535d6f4a0be"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1403,7 +1403,7 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:e7f0d1ce96a91a3dbcca64f65f631f54dd39a2b002f091af532cb38f8aeac41a"
+            "content_digest": "sha256:5392eb49937efab5fb69f5dfd37561b02a1684ce7aec61cfb58e8e9b82859927"
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
@@ -1439,7 +1439,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:f77c539d231e7d6c8291f2b4298bc206be41a423c38d695ad311d70604c1ff04"
+      "reducer_profile_digest": "sha256:d5dfcd1407c5930e46b32fb68bb99a765a8ec1f1dbb4b9aef41e9f8e25f01d2e"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1670,7 +1670,7 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:e7f0d1ce96a91a3dbcca64f65f631f54dd39a2b002f091af532cb38f8aeac41a"
+            "content_digest": "sha256:5392eb49937efab5fb69f5dfd37561b02a1684ce7aec61cfb58e8e9b82859927"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -1686,7 +1686,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:e4e31d6a3d6102e130598502507216c688fdeb768fb3642bf4dce9c31bc71722"
+      "reducer_profile_digest": "sha256:f75a908b19a29574d7e21c184be0ab96f7745963f50f21b1f2c8a8899df3d05d"
     }
   ],
   "generated_fields": [

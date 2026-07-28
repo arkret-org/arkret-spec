@@ -129,6 +129,15 @@
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 2
+              },
+              "reason_code": {
+                "enum": [
+                  "capability_denied",
+                  "cas_conflict",
+                  "policy_denied",
+                  "schema_violation",
+                  "superseded"
+                ]
               }
             }
           }
@@ -147,12 +156,33 @@
                 "type": "integer",
                 "minimum": 1,
                 "maximum": 2
+              },
+              "reason_code": {
+                "enum": [
+                  "dependency_missing",
+                  "quorum_unreachable",
+                  "temporarily_unavailable"
+                ]
               }
             }
           }
         }
       ],
       "additionalProperties": false
+    },
+    "signed_defer": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/proposal_decision"
+        },
+        {
+          "properties": {
+            "kind": {
+              "const": "signed_defer"
+            }
+          }
+        }
+      ]
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
@@ -164,7 +194,6 @@
     "proof": {
       "type": "object",
       "required": [
-        "kind",
         "verification_method",
         "alg",
         "payload_digest",
@@ -172,9 +201,6 @@
         "jws"
       ],
       "properties": {
-        "kind": {
-          "const": "detached_jws"
-        },
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"

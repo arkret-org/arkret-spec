@@ -2796,6 +2796,15 @@
           },
           "description": "Newly issued or byte-identical previously issued receipts for accepted/duplicate Event digests. A service MUST return the stored receipt for an idempotent duplicate; it MUST NOT mint a receipt with a later received_at."
         },
+        "control_proposal_receipts": {
+          "type": "array",
+          "maxItems": 500,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_receipt"
+          },
+          "description": "Signed bounded-decision receipts for accepted or duplicate Control Move proposal digests. A duplicate MUST return the originally stored byte-identical receipt; a service MUST NOT mint later deadlines. DataEvents never appear in this array."
+        },
         "duplicate": {
           "type": "array",
           "items": {
@@ -3953,7 +3962,8 @@
         "realm_id",
         "seal_id",
         "control_event_set_root",
-        "state_root"
+        "state_root",
+        "governance_health"
       ],
       "properties": {
         "kind": {
@@ -3973,6 +3983,10 @@
         "state_root": {
           "type": "string",
           "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+        },
+        "governance_health": {
+          "$ref": "#/$defs/ControlGovernanceHealth",
+          "description": "Readiness projection derived only from verified proposal receipts/decisions and accepted Seals. It is not a second control-plane truth source."
         },
         "hlc": {
           "type": "string"
@@ -4630,7 +4644,8 @@
       "type": "object",
       "required": [
         "status",
-        "pending_proposals"
+        "pending_proposals",
+        "retained_faults"
       ],
       "properties": {
         "status": {
@@ -4641,11 +4656,13 @@
         },
         "pending_proposals": {
           "type": "array",
+          "maxItems": 128,
           "items": {
             "type": "object",
             "required": [
               "proposal_digest",
               "receipt",
+              "decisions",
               "current_decision_due_at",
               "absolute_due_at",
               "defer_count",
@@ -4658,6 +4675,14 @@
               },
               "receipt": {
                 "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_receipt"
+              },
+              "decisions": {
+                "type": "array",
+                "maxItems": 2,
+                "items": {
+                  "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_decision"
+                },
+                "description": "Verified signed decision chain in ascending defer_count order. Signed-reject is terminal and therefore does not remain in pending_proposals."
               },
               "current_decision_due_at": {
                 "$ref": "./time.schema.json#/$defs/timestamp"
@@ -4697,6 +4722,49 @@
                 }
               }
             ],
+            "additionalProperties": false
+          }
+        },
+        "retained_faults": {
+          "type": "array",
+          "maxItems": 128,
+          "description": "Deadline faults retained after a late but otherwise valid Seal is accepted. Sorted by (accepted_at, proposal_digest); this is evidence derived from the signed chain, not a second finality source.",
+          "items": {
+            "type": "object",
+            "required": [
+              "proposal_digest",
+              "receipt",
+              "decisions",
+              "accepted_seal_id",
+              "accepted_at",
+              "fault_reason"
+            ],
+            "properties": {
+              "proposal_digest": {
+                "type": "string",
+                "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+              },
+              "receipt": {
+                "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_receipt"
+              },
+              "decisions": {
+                "type": "array",
+                "maxItems": 2,
+                "items": {
+                  "$ref": "./control-proposal-decision.schema.json#/$defs/signed_defer"
+                }
+              },
+              "accepted_seal_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "accepted_at": {
+                "$ref": "./time.schema.json#/$defs/timestamp"
+              },
+              "fault_reason": {
+                "const": "control_proposal_decision_overdue"
+              }
+            },
             "additionalProperties": false
           }
         }
