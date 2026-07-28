@@ -22,11 +22,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
-      "sha256": "c71a9ac8c451c47fd9dd18b0987e41a58e6fc71fce188fdf741fc6d70396ac4d"
+      "sha256": "b137e4ed83d0cbb7111f563220140a32f70f3ae8f4ae4b92e70c8b4b15818d66"
     },
     {
       "path": "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json",
-      "sha256": "5b62b775e6e705ae74d6649d1d7f6899fa4805a30acb347ecb0b545493ecf2f1"
+      "sha256": "bddc6ba554d5eca90555a641f933c66c0e354452d6b5d82014f1d6d4fe7969e1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/audit-release-fixture.json",
@@ -62,7 +62,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "151efce1ac27739914c7a4d1840618fe55067dec465b2b3fdb61356d44df8cae"
+      "sha256": "9eb25d304717c3608f6fd878b53f5e59c8a99b81cd0d1ec4316836c710a0a64a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -110,7 +110,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-lattice-dispatch-fixture.json",
-      "sha256": "1dd2dff496e55025bd30d0cd77ece635fe436efe841227d120b766204e2d8e49"
+      "sha256": "f193e06f027c368f7a283a1eab00ee27c6d5e44a3aa667f5414cf5d8afa27a4b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
@@ -118,7 +118,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "8e483da796fd142501493561ec7f410165a3ee96982ea64c70d12a75e969b819"
+      "sha256": "7b16c051cef70279a27173ac6966e893dba6ec82c4633eca7c12995267c4b904"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -146,7 +146,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
-      "sha256": "253190ece1f02752487044b29f2f82a5b5e8f2b18edf06586a9b07a931043f51"
+      "sha256": "bb799d5c83d20d7e09058f091c731a75349958e42fd95e64d7f98bc6ab885f88"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
@@ -182,7 +182,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
-      "sha256": "a07b691d230ee4e361fd89456f6c4b1bc1cd07c3ec24f48c98d38f992008874e"
+      "sha256": "bd93aa4d456f365514ab207f313521f861bfa21133485cd92581e61ecdeb17c0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-rfc9420-kat-fixture.json",
@@ -222,7 +222,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/reaction-fixture.json",
-      "sha256": "4b44f5f497c910f73761da1b1ff2172edf281d1cae44eee6658fff07f3962530"
+      "sha256": "bbed271a8a708d75c24bc7f48107a2572f35d5e9a9ffbb83e8150e24cc160e15"
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-organization-fixture.json",
@@ -238,7 +238,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "030c43e014847d416dcc90c1ad23b1585e6b4c5fa0aa372cfee89be24a7b5b71"
+      "sha256": "8671281799de7d586e72d6ca298f5317f0f8d3e53d759351ff8b63208e632153"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

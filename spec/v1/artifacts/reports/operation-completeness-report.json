@@ -910,11 +910,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/peer/events/resolve",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveOutcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/EventsResolveRequestBody",
-        "response": "#/components/schemas/EventsResolveOutcome"
+        "request": "#/components/schemas/PeerEventsResolveRequestBody",
+        "response": "#/components/schemas/PeerEventsResolveOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

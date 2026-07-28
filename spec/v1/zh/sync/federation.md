@@ -396,7 +396,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
 
 Arkret v1 的普通联邦批量传播采用依赖感知的 partial accept：默认最小原子单元是单个 Event 及其已接受依赖，而不是整个请求数组。接收方已经 accepted 的 Event 不因后续 Event 失败而回滚；后续 Event 若依赖同批失败项，必须拒绝或隔离并暴露依赖诊断。
 
-已由 core profile 注册为原子协议单元的批次是例外，不能由 transport 拆分或 partial accept。普通 Realm founding unit `ak.realm.create → creator founding ak.capability.grant → closed bootstrap facets` MUST 保持为一个 `events[]` 请求、按原顺序整体验证并在一个持久化事务中提交；sender 不得为其中每个 Event 建独立 outbox 项，receiver 不得先提交 create 再等待 founding grant。该 unit 任一项失败时整组均不得推进 reducer / projection；依赖尚未到达或 Realm founding unit 正在乱序恢复时，receiver MUST 返回 retryable HTTP 503（`temporarily_unavailable` / `federation_dependencies_pending`）而不是 HTTP 200 partial，使 sender 以相同 canonical body 与同一 `Idempotency-Key` 重试。其它需要 all-or-nothing 的批处理必须由 profile / critical extension 显式注册，不能由部署私自推断。
+已由 core profile 注册为原子协议单元的批次是例外，不能由 transport 拆分或 partial accept。普通 Realm founding unit `ak.realm.create → creator founding ak.capability.grant → closed bootstrap facets` MUST 保持为一个 `events[]` 请求、按原顺序整体验证并在一个持久化事务中提交；sender 不得为其中每个 Event 建独立 outbox 项，receiver 不得先提交 create 再等待 founding grant。该 unit 任一项失败时整组均不得推进 reducer / projection；依赖尚未到达或 Realm founding unit 正在乱序恢复时，receiver MUST 返回 HTTP 409 `dependency_missing`，其 closed `error.details` MUST 使用 `EventsDependencyMissingProblem` 并给出精确 missing refs，而不是返回 HTTP 200 partial。`dependency_missing` 是请求可通过标准 peer dependency resolve 补齐后重试的冲突，不得改写成服务不可用；只有服务本身暂时不能处理请求时才使用 HTTP 503 `temporarily_unavailable`。其它需要 all-or-nothing 的批处理必须由 profile / critical extension 显式注册，不能由部署私自推断。
 
 `events[].event` MUST 属于 `service_binding_ref.realm_id` 指定的唯一 Realm，项数为 1..500，并按数组顺序处理。为使固定验证阶段无歧义，所有 Control Event MUST 位于所有 DataEvent 之前；每个阶段内部保持 sender 给出的相对顺序，receiver 不得重排。同批中已接受的 Event 仅可作为**解析材料**（resolution-only）出现在后续 Event 中：可以满足 `prev_refs` 的 byte / event-id 解析、actor event chain 链接、`causal_refs` 或 payload-level causal reference 等结构性引用；但**不得**作为同批后续 Event 的授权基准。DataEvent MUST 按自身 `seal_ref` 验证；Control Move MUST 按自身 `seal_basis` 验证。
 
@@ -410,21 +410,45 @@ Control Move 与 inclusion/availability proof。sender MAY 携带有界、全部
 若所需 bundle 超过 schema 数量/深度/byte 上限或 receiver `ServiceDescribe.max_body_bytes`，sender
 MUST 在发送 DataEvent 前等待/取得协议有效的 compacted Seal，或通过标准 dependency fetch 分批
 补齐；不得截断 proof、越过未知 predecessor 或拆成无法独立验证的 Seal-only 私有写轨。当前没有
-可接受 anchor 时，本 DataEvent 保持本地 pending，并按 `federation_dependencies_pending` 的
-有界退避与 operator diagnostic 规则处理；这不是降低验证要求的理由。
+可接受 anchor 时，本 DataEvent 保持本地 pending，并按 `dependency_missing` 的精确求差、
+标准 dependency resolve、有界轮次与 operator diagnostic 规则处理；这不是降低验证要求的理由。
 
-接收方按固定依赖拓扑处理：(1) 对 Control Event 保持 wire 顺序；在验证每一项前，先对该项 `seal_basis.leaves[]` 尚未在本地 accepted 的根验证并投影其 receiver-relative Seal 闭包，而每个 Seal 又只能在其 `delta` 覆盖的 Control Event 已 canonical accepted 后投影；随后才按该 basis 验证并接受该 Control Event；(2) Control 前缀处理完后，对每个 DataEvent 保持 wire 顺序，以同样规则补齐并投影其 `seal_ref` 闭包，再按该 Seal view 验证 Event。因而一个请求可表达 `旧 Control Event → Seal S0 → 以 S0 为 basis 的新 Control Event → Seal S1 → 引用 S1 的 DataEvent`，但不得形成 Event/Seal 循环依赖；循环是永久 `schema_violation`，真正缺少可补齐材料才是 `federation_dependencies_pending`。同批前序 Event 创建、delegate、恢复、扩权或 revoke 的 grant / policy **不**因事件到达而提前生效；只有 sender 在发送前已取得、并由合法 notary 签署且覆盖这些 Control Event 的 Seal 完成独立验签后，才可构成后续 Control 或 Data Event 的授权基准。Seal 不得产生 actor frontier。
+接收方按固定依赖拓扑处理：(1) 对 Control Event 保持 wire 顺序；在验证每一项前，先对该项 `seal_basis.leaves[]` 尚未在本地 accepted 的根验证并投影其 receiver-relative Seal 闭包，而每个 Seal 又只能在其 `delta` 覆盖的 Control Event 已 canonical accepted 后投影；随后才按该 basis 验证并接受该 Control Event；(2) Control 前缀处理完后，对每个 DataEvent 保持 wire 顺序，以同样规则补齐并投影其 `seal_ref` 闭包，再按该 Seal view 验证 Event。因而一个请求可表达 `旧 Control Event → Seal S0 → 以 S0 为 basis 的新 Control Event → Seal S1 → 引用 S1 的 DataEvent`，但不得形成 Event/Seal 循环依赖；循环是永久 `schema_violation`，真正缺少可补齐材料才是 `dependency_missing`。同批前序 Event 创建、delegate、恢复、扩权或 revoke 的 grant / policy **不**因事件到达而提前生效；只有 sender 在发送前已取得、并由合法 notary 签署且覆盖这些 Control Event 的 Seal 完成独立验签后，才可构成后续 Control 或 Data Event 的授权基准。Seal 不得产生 actor frontier。
 
-普通批次中，某 Event 缺 Event、Seal、predecessor 或 Seal delta 所覆盖的 Control Event 时，receiver MUST 继续处理与它独立且闭包完整的其它 Event，并以 HTTP 200 `status=partial`、该项 `rejected[].reason_code=federation_dependencies_pending` 返回；`accepted[]` / `duplicate[]` 允许均为空。永久的 ID、结构、签名、Realm、root 或授权错误必须使用对应永久 reason，不得伪装为 pending。只有已注册的原子 founding unit 维持整组零写入并整体返回 HTTP 503 `federation_dependencies_pending`。同批中尚未处理、已拒绝或隔离的 Event 不能被视为已接受依赖。
+普通批次中，某 Event 缺 Event、Seal、predecessor 或 Seal delta 所覆盖的 Control Event 时，receiver MUST 继续处理与它独立且闭包完整的其它 Event，并以 HTTP 200 `status=partial`、该项 `rejected[].reason_code=dependency_missing` 返回；`accepted[]` / `duplicate[]` 允许均为空。该 rejected item MUST 携带至少一个非空、UTF-8 bytewise 排序且去重的 `missing_event_ids[]`、`missing_event_digests[]` 或 `missing_seal_refs[]`。永久的 ID、结构、签名、Realm、root 或授权错误必须使用对应永久 reason，不得伪装为 dependency missing。只有已注册的原子 founding unit 维持整组零写入并整体返回 HTTP 409 `dependency_missing`。同批中尚未处理、已拒绝或隔离的 Event 不能被视为已接受依赖。
 
-**partial accept 后的 retry 边界（normative）**：sender 收到仍有 `rejected[]` / `quarantine[]` / 未发送依赖的响应后，若 `accepted[] ∪ duplicate[]` 非空，MUST 把下一次 retry 组装成新的 batch，只包含尚未被确认且仍需投递的 Event；不得原样重放包含已确认 Event 的旧 `events[]` 来“补齐失败项”。内容完全相同的幂等重复项 MUST 列入 `duplicate[]`（幂等 no-op），MUST NOT 当作 `rejected[]`。新 batch MUST 使用新的 `Idempotency-Key`（或省略），并重新计算 `Content-Digest`、`Request-Canonical-Digest` 与签名 transcript；MUST NOT 以旧 `Idempotency-Key` 配新 canonical body 重交，幂等缓存命中旧 batch 不得被当作新 retry 的成功证明。若 `accepted[] ∪ duplicate[]` 为空且全部失败均为 `federation_dependencies_pending`，sender MAY 在补齐依赖后重放逐字节相同 body 与同一 `Idempotency-Key`。接收方 SHOULD 在 `rejected[]` 项内携带原数组 `index` 与 `id`，让 sender 能机械求差；若响应缺少 `index`，sender MUST 以 `id` 集合为准剔除 `accepted[] ∪ duplicate[]`（已投递集合）。本条只约束**求差重组后的新 batch**（body 已变化，必须换 key）；未收到任何响应（超时 / 网络失败 / 5xx）时对**逐字节相同**请求的全量重试义务相反——MUST 复用同一 `Idempotency-Key`，见 [`api-conventions.md` §6.2](./api-conventions.md)；两者互补不冲突。
+**partial accept 后的 retry 边界（normative）**：任何已收到的 submit 响应都终结该请求的 `Idempotency-Key`。sender 收到仍有 `rejected[]` / `quarantine[]` / 未发送依赖的响应后，MUST 把下一次 retry 组装成新的 batch，只包含尚未被确认且仍需投递的 Event；不得原样重放包含已确认 Event 的旧 `events[]` 来“补齐失败项”。内容完全相同的幂等重复项 MUST 列入 `duplicate[]`（幂等 no-op），MUST NOT 当作 `rejected[]`。补齐依赖后的下一次 submit 即使 Event body 未变，也 MUST 使用新的 `Idempotency-Key`（或省略），并重新计算外层 `Content-Digest`、`Request-Canonical-Digest` 与 HTTP signature transcript；MUST NOT 以旧 key 期待重新求值，幂等缓存命中的旧 partial / error outcome 也不得被当作新 retry 的成功证明。接收方 MUST 在 `rejected[]` 项内携带原数组 `index` 与 `id`，使 sender 能机械求差。只有**未收到任何响应**（超时 / transport failure）时，逐字节相同请求的全量重试 MUST 复用同一 `Idempotency-Key`，见 [`api-conventions.md` §6.2](./api-conventions.md)。
+
+**标准 dependency resolve（normative）**：`POST /_arkret/peer/events/resolve` 是缺失
+Event/CBA 材料的唯一 peer read/fetch surface；它不是写入轨，不接受 Seal 提交，也不推进
+Event、Seal、actor 或 Realm frontier。请求使用 `PeerEventsResolveRequestBody`，在单一
+`realm_id` 内按 `event_ids[]`、`event_digests[]`、`seal_refs[]` 精确求值；响应使用
+`PeerEventsResolveOutcome`，返回可见 Event 与以请求 Seal 为 target 的
+`cba_proof_bundles[]`。不存在和不可披露对象必须分别落入同类型的 `missing_*` 集合并保持
+外部不可区分，不得通过数量、顺序或错误文本泄露其存在性。sender MAY 返回全部可验证的有界
+超集，但每个非 missing 的请求 Seal MUST 恰好对应一个 target bundle；每个非 missing 的
+Event selector MUST 在 `events[]` 或某个 bundle 的 `control_moves[]` 中被逐字满足。三类
+selector 输入与三类 missing 输出都 MUST 按 canonical id / digest 的 UTF-8 bytes 升序排列并
+去重。每个输入 selector 必须恰好被“已返回对象”或同类型 missing 集合核算；同一 Event 可同时
+满足其 ID 与 digest 两个 selector，但任何 selector 都不得被静默省略。
+
+dependency resolve 响应的 canonical bytes MUST 不超过请求的 `max_response_bytes`、服务
+`ServiceDescribe.max_body_bytes` 与 8 MiB 三者最小值。若请求 selector 集的完整核算无法在
+界内返回，MUST 整体返回 `limit_exceeded`，不得返回 partial / 空成功或把因预算未返回的对象
+伪装成 missing；调用方应缩小 selector 集后重新 resolve。若单个所需对象或 target bundle
+仍无法装入上限，则只能等待协议有效的 compacted Seal 或进入 operator diagnostic，不得截断
+proof。receiver 可缓存已独立验证但尚未形成完整 closure 的对象，但在所需 closure 完整前不得
+投影 Seal 或接受 Event。一次 submit 之后
+最多连续执行 8 轮 resolve；每一成功轮的 missing 三元组按集合真包含关系 MUST 严格缩小，
+否则立即停止自动 fetch 并进入 operator diagnostic。fetch 完成后 Event 只可通过新的
+`POST /_arkret/peer/events` 请求进入 accepted set，不得因 read response 异步接受。
 
 **两类 quarantine 的退避与收敛边界（normative）**：partial accept 后进入 `quarantine[]` 的项分两类语义，sender 与接收方 MUST 区分处理，避免活锁：
 
 - **fork-detection quarantine（§4.5.1）**：probe / 提交路径检出同一 `event_id` 对应不同 canonical hash、合法 sibling 集超过 §2.6 的单桶 / 跨桶上限、领域规则声明的不可 join sibling 冲突，或同一完整 attestation scope 的 witness quorum 无法签署一致 payload（`witness_disagreement`）的项。它是 fail-closed 安全态，**可长驻留**，依赖 raw replay / quorum witness / operator-approved fork resolution（驻留语义见 §4.5.1）。sender **MUST NOT** 对这类 quarantine 做无界自动重交——简单重发不能解除 fork，重交只会放大；sender 收到 fork-class quarantine（如 `duplicate_conflict` probe-detected）时 MUST 停止自动重交并进入 operator diagnostic。仅同一 `(realm_id, actor_id, actor_seq)` 出现不同 `event_id` / hash **不是**充分条件：该位置按 [`../models/event-and-patch.md` §2.6](../models/event-and-patch.md) 是最多包含 64 个合法 sibling 的集合。
 - **dependency / proof quarantine（`dependency_missing` / `stale_seal_ref` / 缺 proof / 缺可用性）**：这类项是**可收敛**的——缺的依赖 / 更新的 Seal basis backfill 到位后即可被接受。对这类 quarantine：
   - sender MUST 使用**有界重交**：指数退避（建议起始 ≥ 1s，上界 ≥ 60s，加 jitter），对同一 `(event_id, 依赖 frontier)` 的重交次数设上限；超过上限 MUST 停止自动重交并进入 operator diagnostic，不得无限轮询。
-  - 重交前 sender SHOULD 先把缺失依赖 / 更新的控制面 Seal 通过 `ak.peer.events.command.submit`（依赖事件）或等待控制面 Seal 更新后**补齐**，再按 [`operations-sync.md` §5](./operations-sync.md) 的"`accepted ∪ duplicate` 求差后重提"组装新 batch，而不是原样重放旧 `events[]`。
+  - 重交前 sender SHOULD 先通过标准 `ak.peer.events.query.resolve` 补齐缺失 Event / Seal / proof 材料；若缺的是尚未投递的独立 Control Event，才通过 `ak.peer.events.command.submit` 的正常 Event 写轨投递。Seal 与 proof 不得作为 submit 的独立写入对象。随后按 [`operations-sync.md` §5](./operations-sync.md) 的“`accepted ∪ duplicate` 求差后重提”组装新 batch，而不是原样重放旧 `events[]`。
   - 接收方 SHOULD 在 quarantine 项的诊断中暴露**缺依赖 backfill 提示**（缺的 `prev_refs` / `seal_ref` / proof 引用），使 sender 的 backfill 有界收敛；接收方 MAY 对长期无法补齐依赖的 dependency/proof quarantine 项给出 GC 提示（声明该项将被本地清退），但清退不改变该 Event 的签名事实，sender 仍可在补齐依赖后重新提交。
 
 该划分与 operations-sync §5 的逐项失败原因（`dependency_missing` / `causal_conflict` / `capability_denied` / `soft_failed`）对齐：可收敛类走有界重交 + backfill，fork 类走带外 resolution，不混用同一套自动重试。
@@ -989,7 +1013,7 @@ cache frontier rollback、同selector的binding/state-root分歧或transparency 
 节点 MUST 将 `Idempotency-Key` 与请求 canonical hash 绑定后执行幂等和重放检查。任何参与该检查的 `Idempotency-Key` MUST 被 HTTP Message Signature 覆盖；未签名的 `Idempotency-Key` MUST NOT 用作幂等或 replay key：
 
 - 相同 `(origin, destination, Idempotency-Key)` 但 canonical hash 不同 MUST 拒绝；
-- 相同 `(origin, destination, Idempotency-Key)` 且 canonical hash 相同 MAY 幂等接受（sender 侧对应的全量重试同 key 义务见 [`api-conventions.md` §6.2](./api-conventions.md)）；
+- 相同 `(origin, destination, Idempotency-Key)` 且 canonical hash 相同 MAY 返回原幂等 outcome（sender 仅在完全未收到响应、首次结果不确定时才负有全量 transport retry 同 key 义务，见 [`api-conventions.md` §6.2](./api-conventions.md)；收到响应后的重新求值必须换 key）；
 - 幂等 / replay 记录的保留窗口遵循 [`api-conventions.md` §6.1](./api-conventions.md)：自记录创建起至少 24 小时，且不短于 §3.2 签名时效窗口加最大允许时钟偏移；
 - 单事件级别仍以 `event_id` 去重，规则见 4.3 节；`event_id` 去重是 durable Event 语义的一部分，不受上述幂等记录保留窗口限制；
 - 对同一 `(Source-Service-ID, Destination-Service-ID, endpoint, realm_id?)` 计数窗口，若 60 秒内相同 canonical request hash 被拒绝 ≥ 3 次，或 5 分钟内总请求数 ≥ 10 且失败率 ≥ 50%，接收方 MUST 将该来源在该 endpoint / Realm 范围内暂停至少 60 秒，并返回 `rate_limited`（可附 `retry_after_ms` / HTTP `Retry-After`）或 `temporarily_unavailable`。

@@ -369,7 +369,7 @@ Applet transaction push 的幂等记录（[`applet-integration.md` §7.3](../ext
 - **安全全量重试同 identity**：仅当 registry 声明 `retry_safe=true` 时，语义上同一请求的全量重试才允许自动执行。若 `idempotency_mechanism != "none"`，重试 MUST 复用同一稳定 request identity（`Idempotency-Key` / `event_id` / `request_id` / object id / canonical hash / protocol sequence），且 canonical form 的 request body MUST 逐字节相同；若为纯计算 `none/true`，请求体仍 MUST 逐字节相同，但不虚构 idempotency key。
 - **不安全 operation 禁止自动重放**：`retry_safe=false` 时，客户端 MUST NOT 自动全量重试；必须先执行该 operation 的 outcome 查询或恢复流程。若没有机器可调用的恢复路径，调用方只能把结果标为 uncertain 并请求人工确认，不能生成新的 key 盲目再发。
 - **改内容必换 request key**：采用请求级 identity 的请求修改内容后重交 MUST 换新幂等键，MUST NOT 以旧幂等键携带新 canonical body 重交（服务端按上文规则返回 `duplicate_conflict`）。`object_id` / `protocol_sequence` 不适用本条。
-- **partial retry 是新 batch，不是全量重试**：联邦批量提交发生 partial accept 后，按 `accepted[] ∪ duplicate[]` 求差重组的下一次提交是**新请求**，MUST 使用新的 `Idempotency-Key`（或省略），见 [`federation.md` §4.1](./federation.md) partial-retry 条文。本条与其不冲突：body 逐字节相同的全量重试复用同 key，body 已变化（求差重组）的重交必须换 key；接收方对同 `(origin, destination, Idempotency-Key)` 且 canonical hash 相同的请求 MAY 幂等接受的条文（[`federation.md` §8.5](./federation.md)）保持不变。
+- **federation submit 收到响应后是新求值**：`ak.peer.events.command.submit` 的调用方只有在完全未收到响应、首次结果不确定时，才把逐字节相同的 transport retry 视为上文“安全全量重试”并复用原 `Idempotency-Key`。一旦收到任何 submit 响应，该 key 即终结；按 `accepted[] ∪ duplicate[]` 求差重组的 partial retry、依赖补齐后的同 body 重求值以及原子 `dependency_missing` 后的重交都 MUST 使用新的 `Idempotency-Key`（或省略），见 [`federation.md` §4.1](./federation.md)。接收方仍可按 [`federation.md` §8.5](./federation.md) 对旧 key + 相同 canonical hash 返回旧幂等 outcome，但调用方不得把该 cache hit 当作依赖补齐后的新求值。
 
 ## 7. Cursor（统一不透明 token）
 

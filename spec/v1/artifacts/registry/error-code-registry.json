@@ -389,13 +389,7 @@
       "code": "dependency_missing",
       "http_status": 409,
       "scope": "both",
-      "description": "A required dependency is missing and may be recoverable via backfill or retry."
-    },
-    {
-      "code": "federation_dependencies_pending",
-      "http_status": 503,
-      "scope": "both",
-      "description": "A federation transaction lacks an Event, Seal, Seal predecessor, or Seal-covered Control Event required for verification. At top level this code is reserved for a registered atomic unit such as Realm founding and guarantees that no member of the unit was persisted. Ordinary federation batches report the dual-registered per-item reason in an HTTP 200 partial outcome instead."
+      "description": "One or more exact Event, Seal, predecessor, proof, or other signed dependencies are absent. The response MUST identify the bounded missing set in the operation's closed details/item shape. This is recoverable only through bounded canonical backfill/resolve followed by a new evaluation; it is not authorization denial or service unavailability. Dual-registered with the per-item/federation-transaction reason code."
     },
     {
       "code": "discussion_track_disabled",
@@ -1671,12 +1665,12 @@
   ],
   "reason_codes": [
     {
-      "code": "federation_dependencies_pending",
+      "code": "dependency_missing",
       "applies_to": [
         "batch_item",
         "federation_transaction"
       ],
-      "description": "The individual federation Event cannot yet be verified because a required Event or signed Seal closure element is absent. This is retryable after bounded dependency backfill; it is not a permanent authorization denial. Independent complete items in an ordinary batch remain eligible for acceptance. Dual-registered as a reason_code and a top-level service code (see codes[])."
+      "description": "The item cannot yet be verified because an exact Event, Seal, predecessor, proof, or other signed dependency is absent. Federation submit items MUST include at least one non-empty typed missing set; independent complete items remain eligible for acceptance. Dual-registered with the top-level service code."
     },
     {
       "code": "capability_registry_basis_unavailable",

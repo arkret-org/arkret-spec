@@ -924,13 +924,17 @@
       }
     },
     "ak.vector_group.federation.v1": {
-      "required_endpoints": [],
+      "required_endpoints": [
+        "ak.peer.events.command.submit",
+        "ak.peer.events.query.resolve"
+      ],
       "required_event_kinds": [
         "ak.realm.create",
         "ak.member.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
+        "ak.schema.cba_proof_bundle.v1",
         "ak.schema.event.v1",
         "ak.schema.seal.v1"
       ],

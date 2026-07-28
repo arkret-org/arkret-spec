@@ -1942,7 +1942,7 @@
       "applies_to_fixtures": [
         "federation-fixture.json"
       ],
-      "description": "Federation push carries one Realm's minimal receiver-relative, strictly ordered Seal prerequisite closure rooted at DataEvent seal_ref and Control Event seal_basis leaves on the sole peer events rail; receivers resolve Control Events and basis Seals topologically before DataEvents without granting same-batch unsealed authority or advancing actor frontiers.",
+      "description": "Federation push carries one Realm's bounded, receiver-verifiable CbaProofBundle superset rooted at DataEvent seal_ref and Control Event seal_basis leaves on the sole peer Event write rail; receivers reject unreachable bundle objects, resolve Control Events and basis Seals topologically before DataEvents, and never grant same-batch unsealed authority or advance actor frontiers from proof transport.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/federation-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1955,7 +1955,20 @@
       "applies_to_fixtures": [
         "federation-fixture.json"
       ],
-      "description": "Ordinary dependency gaps are per-item HTTP 200 partial outcomes while registered founding units remain atomic 503; retry identity changes exactly when the canonical body is reduced after accepted or duplicate items.",
+      "description": "Ordinary dependency gaps are per-item HTTP 200 partial outcomes with non-empty typed missing sets while registered founding units remain zero-write atomic HTTP 409 dependency_missing outcomes; every received response terminates the prior Idempotency-Key and only a no-response byte-identical transport retry reuses it.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/federation-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.federation.cba_dependency_resolve.v1",
+      "status": "active",
+      "domain": "federation",
+      "applies_to_fixtures": [
+        "federation-fixture.json"
+      ],
+      "description": "The standard peer dependency resolve operation is a bounded read-only Event/CBA fetch surface with canonical sorted exact typed selectors, complete selector accounting, indistinguishable missing and undisclosable results, atomic limit_exceeded on response-budget overflow, bounded verifiable supersets, strict progress, an eight-round automatic-fetch ceiling, and a fresh-key submit after closure completion.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/federation-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"

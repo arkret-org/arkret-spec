@@ -254,13 +254,17 @@ JCS(body) bytes <= operation.max_canonical_body_bytes
 | 单个 Event 的 reducer-projected cell write 数 | 256 | receiver 从 registry 重算；超过时 MUST `reducer_projection_failed`，协议设计者需拆成多个 Event 或使用已注册的 typed control transaction。 |
 | 单个 Seal 新增 Control Move 数 | 1,000 | 超过时 MUST 拆分 Seal；接收方 MAY 返回 `rate_limited` 或 `temporarily_unavailable`。 |
 | Seal DAG leaf 数 | 实现声明 | 超过时 SHOULD 请求或生成 signed compaction Seal；查询可使用 deterministic Seal view。 |
+| 单个 `CbaProofBundle` canonical bytes | 8 MiB | 超过时 MUST `limit_exceeded`；不得截断或产生部分 accepted state。 |
+| 单个 `CbaProofBundle` 对象数 | 256 Seals；1,024 Control Moves；两类 proof 合计 2,048 | 与 `cba-proof-bundle.schema.json` 及 `cba-profiles.md` §5 同值。 |
+| 单条 target→genesis dependency path | 4,096 | 超过时 MUST 使用合法 compaction/state-root-assisted recovery，不得无界递归。 |
+| peer dependency resolve 连续轮次 | 8 | 每一成功轮 MUST 严格缩小 typed missing sets；第 9 轮进入 operator diagnostic。 |
 | 单次 Lattice join CPU / wall-clock 预算 | 实现声明 | 服务 MUST 在 `server/describe.limits` 暴露；超出时返回可恢复错误或使用已验证 state_root + inclusion proof。 |
 | 单次 Lattice join 内存预算 | 实现声明 | 服务 MUST 暴露，超出时返回可恢复错误而不是 OOM。 |
 | `revocation_freshness_window_ms` | 86,400,000 ms（24h，default）| `realm.schema.json`；按 Seal DAG notary 提交时间差度量（[`event-auth-state-resolution.md` §4.3](../authz/event-auth-state-resolution.md)）。`risk_tier=high` capability 无宽限（等效 0）。高风险 Realm SHOULD 取更短值。 |
 | `receipt_sla_ms` | 86,400,000 ms（24h，default）| `realm.schema.json`；pending Control Move 得到 signed receipt / rejection 的截止（[`event-auth-state-resolution.md` §7.2](../authz/event-auth-state-resolution.md)）。按 notary 提交时间计。 |
 | 单个 pending Control Move 累计 defer 数（`max_receipt_defers`）| 3（default）| `realm.schema.json`；超过仍未 include / signed-reject 即等同无声遗漏，构成 censorship evidence（[`event-auth-state-resolution.md` §7.2](../authz/event-auth-state-resolution.md)）。 |
 
-CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 Seal inclusion proof、state_root、frontier 和 chunk digest。对缺失、不可达或高成本 `refs` 的 backfill，接收方 MAY 在预算耗尽后把 DataEvent 保持 observed-only、把 Control Move 保持 pending，或返回 `dependency_missing`、`temporarily_unavailable`；不得在同步写入路径无界递归展开。
+CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 Seal inclusion proof、state_root、frontier 和 chunk digest。对缺失、不可达或高成本 `refs` 的 backfill，接收方 MAY 在预算耗尽后把 DataEvent 保持 observed-only、把 Control Move 保持 pending，或返回带精确 typed missing sets 的 `dependency_missing`；只有服务本身暂时不能处理请求时才使用 `temporarily_unavailable`。不得在同步写入路径无界递归展开。
 
 ### 4.1 Progressive CBA Backfill Profile
 
@@ -268,7 +272,7 @@ CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 
 
 | 项 | v1 默认上限 / 建议 | 规则 |
 | --- | ---: | --- |
-| 单轮 targeted backfill page | 256 objects | 客户端 SHOULD 优先拉缺失 DataEvent、Control Move、Seal predecessor、critical `refs` 的最小闭包，再扩大范围。 |
+| 单轮 targeted backfill page | 256 objects | 客户端 SHOULD 优先拉精确 missing refs；响应 MAY 携带全部可验证的有界超集，不要求字节级最小闭包。 |
 | 单 Realm 后台 dependency 队列 | 4,096 refs | 超过时 MUST 合并去重、分批处理，或切换到 state_root-assisted recovery。 |
 | snapshot-assisted recovery 触发 | Seal leaf 过多、join 预算耗尽或本地预算耗尽 | 必须验证 Seal signer authority、frontier、state_root 和 chunk digest。 |
 | 交互式恢复首屏预算 | 2 seconds SHOULD | 预算耗尽后 MAY 返回 read-only partial view + `seal_incomplete`，并继续后台恢复。 |
@@ -277,7 +281,7 @@ CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 
 渐进恢复阶段：
 
 1. **Seal probe**：先查询 Realm Seal leaves、可用 snapshot manifest 和缺失 ref 的 source。
-2. **Targeted dependency fetch**：按缺失 DataEvent、Control Move、Seal predecessor 与 critical refs 拉最小闭包。
+2. **Targeted dependency fetch**：按精确 missing DataEvent、Control Move、Seal predecessor 与 critical refs 拉取；允许有界可验证超集，不把传输优化算法变成共识规则。
 3. **State-root-assisted recovery**：闭包超过预算时，改用最近可验证 state_root / snapshot 作为 base，再回放其 frontier 之后的 DataEvent 与 Control Move。
 4. **Read-only partial state**：仍有缺口时，客户端 MAY 展示已验证 CBA query basis 的只读 projection，并显式标记 query basis incomplete。
 5. **Write revalidation**：任何新 Control Move 必须在提交前以最新 Seal view 重新验证 preconditions；DataEvent 必须以最新可用 `seal_ref` 重新验证授权 freshness；不得继承 partial view 的乐观允许结果。

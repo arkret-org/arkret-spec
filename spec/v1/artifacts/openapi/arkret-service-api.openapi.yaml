@@ -1123,7 +1123,6 @@ components:
               - cas_conflict
               - causal_conflict
               - dependency_missing
-              - federation_dependencies_pending
               - discussion_track_disabled
               - track_disabled
               - selector_too_complex
@@ -1322,6 +1321,8 @@ components:
       pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     EventsActorCasConflictProblem:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsActorCasConflictProblem
+    EventsDependencyMissingProblem:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsDependencyMissingProblem
     EventsFrontierAccountClientState:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierAccountClientState
     EventsFrontierFederationPeerState:
@@ -1890,6 +1891,10 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRefreshRequestBody
     OrganizationRegistrationRevokeRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRevokeRequestBody
+    PeerEventsResolveOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveOutcome
+    PeerEventsResolveRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveRequestBody
     PeerKeyPackagesClaimOutcome:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_outcome
     PeerKeyPackagesClaimQueryOutcome:
@@ -4371,10 +4376,12 @@ paths:
         description: |
           Conditional batch idempotency / replay key (federation.md section 3.2
           and 8.5). Required whenever the sender wants request-level idempotency,
-          a batch replay key, or partial-retry dedup; when present it MUST be
-          covered by the HTTP Message Signature transcript. A byte-identical full
-          retry MUST reuse the same key; a re-assembled partial-retry batch MUST
-          use a fresh key (or omit the header).
+          a batch replay key, or uncertain-outcome transport retry dedup; when
+          present it MUST be covered by the HTTP Message Signature transcript.
+          A byte-identical retry reuses the same key only when no response was
+          received. Every received submit response terminates that key; any later
+          evaluation, including a byte-identical post-backfill submit, MUST use a
+          fresh key (or omit the header).
         schema:
           type: string
           minLength: 1
@@ -4392,6 +4399,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsSubmitOutcome'
+        '409':
+          description: Registered atomic federation unit rejected with zero writes because exact Event or CBA dependencies are missing. error.code is dependency_missing and error.details conforms to EventsDependencyMissingProblem.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ErrorEnvelope'
+                - type: object
+                  properties:
+                    error:
+                      type: object
+                      properties:
+                        code:
+                          const: dependency_missing
+                        details:
+                          $ref: '#/components/schemas/EventsDependencyMissingProblem'
     get:
       operationId: ak.peer.events.query.scan
       x-arkret-required-any-of:
@@ -4508,20 +4531,29 @@ paths:
         destinationTrustDomain: []
         requestCanonicalDigest: []
         contentDigest: []
-      summary: Federation peer event reference resolution.
+      summary: Federation peer Event and CBA dependency resolution.
+      description: |
+        Read-only dependency fetch for exact Event IDs, Event digests, and Seal
+        refs in one Realm. Returned CbaProofBundle values are independently
+        verified transport evidence and MAY be bounded supersets. This operation
+        never accepts an Event or Seal and never advances an actor or Realm
+        frontier. Every input selector is fully accounted for as resolved or in
+        its same-type missing set; if complete accounting cannot fit the response
+        budget, the operation fails with limit_exceeded instead of returning a
+        partial success.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EventsResolveRequestBody'
+              $ref: '#/components/schemas/PeerEventsResolveRequestBody'
       responses:
         '200':
-          description: Resolved events visible to the authenticated federation peer
+          description: Resolved Events and CBA proof bundles visible to the authenticated federation peer
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventsResolveOutcome'
+                $ref: '#/components/schemas/PeerEventsResolveOutcome'
   /_arkret/peer/events/frontier:
     get:
       operationId: ak.peer.events.query.frontier

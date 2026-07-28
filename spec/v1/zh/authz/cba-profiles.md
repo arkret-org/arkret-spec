@@ -123,6 +123,29 @@ profile、predecessor/leaf closure、inclusion proof、state root 与 reducer �
 补 ancestry closure。sender MAY 发送完整、可验证的有界超集；receiver 不得要求字节相同的
 “最小 bundle”。
 
+每个 bundle 只服务一个 `target_seal_ref`。全部可归属 Realm 的 Seal、Control Move、proof
+与 receipt MUST 属于 target 的同一 Realm；跨 Realm 对象是永久 `schema_violation`，不得当成
+缺依赖。数组必须按各对象 canonical id/digest 的 UTF-8 bytes 严格递增排列并去重；receiver
+MUST 拒绝乱序或重复输入，不得静默排序/删项后继续。超集只允许包含从 target 沿 predecessor /
+leaf、Seal delta/covered set、inclusion 或 availability obligation 可达的对象；不可达对象是
+过度披露与放大输入，MUST 拒绝。
+
+验证顺序固定为：
+
+```text
+结构、Realm、数量与 canonical order
+→ 对象 id/digest/signature
+→ predecessor/leaf 与 inclusion/availability proof
+→ covered Control Move canonical acceptance
+→ roots 与 reducer 重算
+→ target Seal projection
+→ 引用 target 的 Event authorization
+```
+
+同批到达但尚未进入合法 accepted Seal 的 Control Move 不能授权后续 Event。验证失败不得产生
+Event、Seal、reducer、projection 或 frontier 的部分副作用；实现 MAY 缓存已独立验证的原始对象，
+但缓存不是 accepted state。
+
 Kernel 硬上限：
 
 - canonical bundle body ≤ 8 MiB；
@@ -133,8 +156,15 @@ Kernel 硬上限：
 - dependency fetch 最多连续 8 轮；每轮必须使 missing set 严格缩小。
 
 超限返回 `limit_exceeded`，不得按部分 bundle 改变控制状态。依赖不足返回
-`dependency_missing` 并给出精确、去重、有界的 `missing_seal_refs[]` 与
-`missing_event_digests[]`；对象完整但授权失败返回 `policy_denied`，二者不得混淆。
+`dependency_missing` 并给出精确、UTF-8 bytewise 排序、去重且有界的
+`missing_seal_refs[]` 与 `missing_event_digests[]`；结构性 Event 引用缺失另用
+`missing_event_ids[]`。对象完整但授权失败使用已登记的最窄 capability/policy reason（无更窄
+reason 时才用 `policy_denied`），不得新增含混的泛化“authorization rejected”reason，也不得与缺依赖混淆。
+
+peer dependency fetch 复用 `POST /_arkret/peer/events/resolve` 的只读
+`PeerEventsResolveRequestBody` / `PeerEventsResolveOutcome`。resolve 响应不得直接接受 Event 或
+Seal；闭包补齐后仍须通过新的 peer submit 请求重新求值。收到任何 submit 响应后，后续求值必须
+使用新的 `Idempotency-Key`；只有完全未收到响应的逐字节 transport retry 才复用原 key。
 
 ## 6. 最小正反例
 

@@ -5319,23 +5319,48 @@ Expected:
 - payload 中出现同名 `actor_id` 不得遮蔽 `envelope.actor_id`；components 重排 MUST 产生不同 subject。
 - 因果后继 status 支配旧 head；真正并发的不同 status 暴露多个 heads。交换两条并发 Event 的 HLC 大小不得改变 join 结果。
 
-### 23.12 Federation Seal 前置闭包与 partial retry
+### 23.12 Federation CBA 前置闭包、dependency resolve 与 partial retry
 
-`vector_id`: `ak.vector.federation.seal_prerequisite_closure.v1`、`ak.vector.federation.seal_partial_retry.v1`
+`vector_id`: `ak.vector.federation.seal_prerequisite_closure.v1`、
+`ak.vector.federation.seal_partial_retry.v1`、
+`ak.vector.federation.cba_dependency_resolve.v1`
 
 Steps:
 
-1. 在 receiver 已有零个、部分或全部 predecessor Seal 的三种状态下，提交同一 Realm 的 `旧 Control Event → Seal S0 → 以 S0 为 seal_basis 的新 Control Event → Seal S1 → 引用 S1 的 DataEvent`，闭包根为 `seal_basis.leaves[] ∪ seal_ref`，并按 `(notary_seq,id)` 严格升序。
-2. 分别删除 target Seal、一个 receiver 不持有的 predecessor、一个 Seal delta 覆盖的 Control Event；构造“Control Event 的 basis 根 Seal 反向覆盖该 Event 自身”的循环；再分别篡改 signature、Realm、任一 root，并构造乱序、重复、无关 Seal。
-3. 构造一个完整独立 Event 与一个缺依赖 Event 的普通批次、全缺依赖普通批次，以及缺依赖的注册 founding unit；按返回的 `accepted[] ∪ duplicate[]` 重组 retry。
+1. 在 receiver 已有零个、部分或全部 predecessor Seal 的三种状态下，提交同一 Realm 的
+   `旧 Control Move → Seal S0 → 以 S0 为 seal_basis 的新 Control Move → Seal S1 →
+   引用 S1 的 DataEvent`。bundle 根为 `seal_basis.leaves[] ∪ seal_ref`；各数组按自身
+   canonical id/digest 的 UTF-8 bytes 严格递增，可携带从 target 可达的有界超集。
+2. 分别删除 target Seal、一个 receiver 不持有的 predecessor、一个 Seal delta 覆盖的
+   Control Move；构造“Control Move 的 basis 根 Seal 反向覆盖该 Event 自身”的循环；再分别
+   篡改 signature、Realm、任一 root，并构造乱序、重复、不可达对象。
+3. 构造一个完整独立 Event 与一个缺依赖 Event 的普通批次、全缺依赖普通批次，以及缺依赖的
+   注册 founding unit；验证 typed missing sets 与 `accepted[] ∪ duplicate[]` 求差。
+4. 使用 `PeerEventsResolveRequestBody` 分别请求 Event ID、Event digest 与 Seal ref；覆盖有界
+   超集、selector 乱序/重复、成功响应遗漏 selector、不可见/不存在合并、response budget
+   无法装入完整核算、missing set 不缩小、第 9 轮 fetch，以及 resolve 后未重新 submit 的状态。
 
 Expected:
 
-- 正例 MUST 按依赖拓扑交替接受 Control Event 与投影其 basis/后继 Seal，最后验证 DataEvent；只携带 `seal_ref` 闭包而遗漏新 Control Event 所需的非本地 `seal_basis` 根 MUST pending。Seal transport 本身不得推进任何 actor frontier。
-- 缺 Event / target Seal / 非本地 predecessor / delta Control Event 是逐项 `federation_dependencies_pending`；Event/Seal 循环必须永久 `schema_violation`；signature、Realm、ID 或 root 不匹配是永久失败，不得伪装为 pending。
-- 普通批次 MUST 继续接受独立完整项并返回 HTTP 200 `partial`；全 pending 仍为 `partial` 且允许 `accepted[]` / `duplicate[]` 为空。注册 founding unit MUST 零写入并整体返回 HTTP 503。
-- 同批未 sealed grant 不得授权后续 DataEvent。receiver 不得通过静默排序、去重或丢弃无关 Seal 修复非法 wire。
-- 已有 accepted / duplicate 时 retry MUST 只含待处理项，使用新 `Idempotency-Key` 并重算两个 digest 与签名；没有任何成功项且全部 pending 时才可在补齐依赖后复用相同 body/key。所有自动 retry 必须有界。
+- 正例 MUST 按依赖拓扑交替接受 Control Move 与投影其 basis/后继 Seal，最后验证 DataEvent；
+  只携带 `seal_ref` closure 而遗漏新 Control Move 所需的非本地 `seal_basis` 根 MUST
+  `dependency_missing`。bundle/resolve 本身不得推进 Event、Seal、actor 或 Realm frontier。
+- 缺 Event ID / Event digest / target Seal / 非本地 predecessor 分别产生非空且精确的
+  `missing_event_ids[]` / `missing_event_digests[]` / `missing_seal_refs[]`，逐项 reason 固定为
+  `dependency_missing`。Event/Seal 循环必须永久 `schema_violation`；signature、Realm、ID 或
+  root 不匹配是永久失败，不得伪装为依赖缺失。
+- 普通批次 MUST 继续接受独立完整项并返回 HTTP 200 `partial`；全缺依赖仍为 `partial` 且允许
+  `accepted[]` / `duplicate[]` 为空。注册 founding unit MUST 零写入并整体返回 HTTP 409
+  `dependency_missing`，其 `error.details` 必须通过 `EventsDependencyMissingProblem`。
+- 同批未 sealed grant 不得授权后续 DataEvent。receiver 不得通过静默排序、去重或丢弃不可达
+  对象修复非法 wire；合法超集不得因不是字节级最小而被拒绝。
+- 收到任何 submit 响应后的 retry MUST 使用新 `Idempotency-Key` 并重算外层两个 digest 与
+  HTTP signature；只有完全未收到响应的逐字节 transport retry 才复用旧 key。
+- dependency resolve 必须保持只读；不存在与不可披露 selector 外部不可区分。成功轮必须严格
+  缩小 missing 三元组，最多连续 8 轮；每个 selector 必须由返回对象或同类型 missing 集合
+  完整核算，response budget 无法装入完整核算时必须整体 `limit_exceeded`，不得 partial、
+  静默省略或把预算裁剪伪装成 missing。resolve 完成 closure 后仍须以新 key 重新 submit，
+  不能异步接受原 Event。
 
 ### 23.13 Realm-key withheld policy basis
 

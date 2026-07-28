@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/cba-proof-bundle.schema.json",
   "title": "Arkret CBA Proof Bundle",
-  "description": "Unsigned receiver-relative dependency container. Every embedded object is independently verified and the bundle itself is not authoritative. inclusion_proofs and availability_proofs together MUST contain no more than 2048 items; this cross-property aggregate is a semantic validation rule in addition to each array's local JSON Schema bound.",
+  "description": "Unsigned receiver-relative dependency container for exactly one target_seal_ref. Every embedded object MUST belong to the target Realm, be reachable from the target Seal dependency graph, appear in canonical id/digest bytewise order without duplicates, and be independently verified; the bundle itself is not authoritative. A bounded verifiable superset is allowed, but unrelated objects are a schema violation. inclusion_proofs and availability_proofs together MUST contain no more than 2048 items; this cross-property aggregate and the dependency path depth limit of 4096 are semantic validation rules in addition to each array's local JSON Schema bound.",
   "type": "object",
   "required": [
     "target_seal_ref",

@@ -785,21 +785,21 @@
       "operation_id": "ak.peer.events.query.resolve",
       "http_alias": "POST /_arkret/peer/events/resolve",
       "operation_specific": [
-        "not_found"
-      ]
+        "limit_exceeded"
+      ],
+      "description": "Exact missing and undisclosable selectors are represented in the successful typed missing sets, not as not_found. limit_exceeded is returned when complete selector accounting cannot fit the negotiated response budget."
     },
     {
       "operation_id": "ak.peer.events.command.submit",
       "http_alias": "POST /_arkret/peer/events",
       "operation_specific": [
-        "federation_dependencies_pending",
+        "dependency_missing",
         "duplicate_conflict",
         "failed_precondition",
         "expired_invite_token",
         "unsupported_join_rule",
         "actor_seq_invalid",
         "stale_seal_ref",
-        "seal_ref_unknown",
         "realm_frozen",
         "quarantine",
         "stale_peer",

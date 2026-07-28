@@ -50,7 +50,7 @@
         "field": "resolved_digest_input",
         "recompute_from_local_contracts": true
       },
-      "expected_digest": "sha256:722fa4ccfe83c423a7a09d6be738a2c0a7693a609ca18d125cadaffede82b653",
+      "expected_digest": "sha256:404de46402566eb7ee03443f4828d8b6b12211e622eeb8404ce759ae8f8a3f86",
       "mutation_cases": [
         {
           "name": "event_kind_contract_content_changes",
@@ -210,19 +210,19 @@
         },
         {
           "case": "missing_control_seal_basis_leaf",
-          "expected": "item_rejected_federation_dependencies_pending"
+          "expected": "item_rejected_dependency_missing_with_missing_seal_refs"
         },
         {
           "case": "missing_target_seal",
-          "expected": "item_rejected_federation_dependencies_pending"
+          "expected": "item_rejected_dependency_missing_with_missing_seal_refs"
         },
         {
           "case": "missing_nonlocal_predecessor",
-          "expected": "item_rejected_federation_dependencies_pending"
+          "expected": "item_rejected_dependency_missing_with_missing_seal_refs"
         },
         {
           "case": "missing_seal_delta_control_event",
-          "expected": "item_rejected_federation_dependencies_pending"
+          "expected": "item_rejected_dependency_missing_with_missing_event_digests"
         },
         {
           "case": "event_seal_dependency_cycle",
@@ -268,7 +268,7 @@
         },
         {
           "case": "atomic_founding_unit_pending",
-          "expected": "http_503_federation_dependencies_pending_with_zero_writes"
+          "expected": "http_409_dependency_missing_problem_with_zero_writes"
         },
         {
           "case": "partial_retry_after_any_success",
@@ -276,11 +276,63 @@
         },
         {
           "case": "all_pending_retry",
-          "expected": "same_body_and_idempotency_key_allowed_after_backfill"
+          "expected": "new_idempotency_key_required_after_any_response"
         },
         {
           "case": "retry_budget_exhausted",
           "expected": "operator_diagnostic_without_unbounded_retry"
+        }
+      ]
+    },
+    {
+      "name": "cba_dependency_resolve",
+      "vector_id": "ak.vector.federation.cba_dependency_resolve.v1",
+      "request_contract": {
+        "single_realm": true,
+        "selector_any_of": [
+          "event_ids",
+          "event_digests",
+          "seal_refs"
+        ],
+        "max_response_bytes_ceiling": 8388608,
+        "read_only": true
+      },
+      "cases": [
+        {
+          "case": "requested_seal_returns_bounded_verifiable_superset",
+          "expected": "one_target_bundle_and_no_frontier_advance"
+        },
+        {
+          "case": "requested_event_digest_resolved_inside_control_moves",
+          "expected": "digest_satisfied_without_duplicate_event_copy"
+        },
+        {
+          "case": "missing_and_undisclosable_selectors",
+          "expected": "typed_missing_sets_are_externally_indistinguishable"
+        },
+        {
+          "case": "unsorted_or_duplicate_selector_array",
+          "expected": "schema_violation_before_dependency_lookup"
+        },
+        {
+          "case": "success_omits_one_requested_selector",
+          "expected": "nonconformant_response_selector_conservation_failure"
+        },
+        {
+          "case": "response_budget_cannot_fully_account_for_all_selectors",
+          "expected": "atomic_limit_exceeded_not_partial_or_empty_success"
+        },
+        {
+          "case": "successful_round_does_not_strictly_shrink_missing_sets",
+          "expected": "stop_automatic_fetch_and_surface_operator_diagnostic"
+        },
+        {
+          "case": "ninth_consecutive_fetch_round",
+          "expected": "fetch_budget_exhausted_without_submit_side_effect"
+        },
+        {
+          "case": "resolve_response_completes_closure",
+          "expected": "event_still_requires_new_submit_with_fresh_idempotency_key"
         }
       ]
     },

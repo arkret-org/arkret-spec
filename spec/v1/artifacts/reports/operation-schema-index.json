@@ -3291,27 +3291,37 @@
       "operation_id": "ak.peer.events.query.resolve",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveRequestBody",
         "schema_kind": "object",
-        "required": [],
+        "required": [
+          "realm_id"
+        ],
         "properties": [
+          "realm_id",
           "event_ids",
           "event_digests",
-          "include_payload"
+          "seal_refs",
+          "include_payload",
+          "max_response_bytes"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PeerEventsResolveOutcome",
         "schema_kind": "object",
         "required": [
           "events",
-          "missing"
+          "cba_proof_bundles",
+          "missing_event_ids",
+          "missing_event_digests",
+          "missing_seal_refs"
         ],
         "properties": [
           "events",
-          "missing",
-          "unauthorized"
+          "cba_proof_bundles",
+          "missing_event_ids",
+          "missing_event_digests",
+          "missing_seal_refs"
         ],
         "closed": true
       }
