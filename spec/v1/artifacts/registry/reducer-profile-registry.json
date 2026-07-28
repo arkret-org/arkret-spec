@@ -186,7 +186,7 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:fa9d624df6b34e1873bacaf2cc3ffcc8dd6144c2ccba3ceda15d6f8ee6f51aca"
+            "content_digest": "sha256:491dffd56b664a6a30a44b34bd6d492765ef62d8777abcb7adbcff7ccf82612f"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -194,7 +194,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:6ceaef990b0f0eab98411e520b164034dfae792413a8bb39d3ff653c4576cc3e"
+      "reducer_profile_digest": "sha256:1b368d68dfe2fd96993e796f3149ff5c22bc7a5d4620067cb9652e5f03834544"
     },
     {
       "profile_id": "ak.profile.chat_mvp.v1",
@@ -501,7 +501,7 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:fa9d624df6b34e1873bacaf2cc3ffcc8dd6144c2ccba3ceda15d6f8ee6f51aca"
+            "content_digest": "sha256:491dffd56b664a6a30a44b34bd6d492765ef62d8777abcb7adbcff7ccf82612f"
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
@@ -517,7 +517,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:6eeab271a8d45eb9ec3d169f1ac01da1662eb572dbf6545359d0922781ccc750"
+      "reducer_profile_digest": "sha256:7f4a6f0f14c63e6e9155f5bc631f7f3859884620525e3e3dd10e9f2c685318d2"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -792,7 +792,7 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:fa9d624df6b34e1873bacaf2cc3ffcc8dd6144c2ccba3ceda15d6f8ee6f51aca"
+            "content_digest": "sha256:491dffd56b664a6a30a44b34bd6d492765ef62d8777abcb7adbcff7ccf82612f"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -812,7 +812,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:4c6bbf8c6c8ad391333c3e1249f428e46d684c84a583dd5fc049cdd1c8045027"
+      "reducer_profile_digest": "sha256:ffa8cd0daad56d6c71cb344c3bd83261c1d61d66165d93d024604d5572802197"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1403,7 +1403,7 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:fa9d624df6b34e1873bacaf2cc3ffcc8dd6144c2ccba3ceda15d6f8ee6f51aca"
+            "content_digest": "sha256:491dffd56b664a6a30a44b34bd6d492765ef62d8777abcb7adbcff7ccf82612f"
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
@@ -1439,7 +1439,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:68988b877854d176a569b352843bc26de30bcdf205d83f4236a3f6b9c808104f"
+      "reducer_profile_digest": "sha256:d2a27a5fd5573a0771d1c488fd1353b618b3e3be9e1f3ddf1bd856e9984b533f"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1666,11 +1666,11 @@
           },
           {
             "ref": "artifacts/registry/operation-registry.json",
-            "content_digest": "sha256:a45762e4827a29267f2f0cc3408c34e3851bc55a746e5f792f405462b814f1bc"
+            "content_digest": "sha256:d151628d25ae87560a759484509aca77e37bb8ee83ed49b78f417b7abe07c04c"
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:fa9d624df6b34e1873bacaf2cc3ffcc8dd6144c2ccba3ceda15d6f8ee6f51aca"
+            "content_digest": "sha256:491dffd56b664a6a30a44b34bd6d492765ef62d8777abcb7adbcff7ccf82612f"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -1678,15 +1678,15 @@
           },
           {
             "ref": "zh/sync/federation.md",
-            "content_digest": "sha256:624cdaad10014edb4e37a46fd611e1bd140d8375dc895097265ff6298d4860b1"
+            "content_digest": "sha256:5ac6f5b21a0eac7fd92c71759ac137a74cb864515156853f40bf4abfda581ea1"
           },
           {
             "ref": "zh/sync/service-http-binding.md",
-            "content_digest": "sha256:475a498800996cf107ef305d48e7a61b00be9aba27d789418b418d52c49766a7"
+            "content_digest": "sha256:90569ea3022502684df6d0903115f357c2d48ec6324cfc7e5f2d27236f271d30"
           }
         ]
       },
-      "reducer_profile_digest": "sha256:16f76b53059887e9abc0c0a99c15616ef0cd752f7252f51fa0c2e49efbc8fa2a"
+      "reducer_profile_digest": "sha256:722fa4ccfe83c423a7a09d6be738a2c0a7693a609ca18d125cadaffede82b653"
     }
   ],
   "generated_fields": [

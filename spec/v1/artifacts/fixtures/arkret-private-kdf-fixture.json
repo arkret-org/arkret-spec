@@ -20,7 +20,7 @@
   },
   "cases": [
     {
-      "name": "content_key_derivation_sha256_aes256gcm",
+      "name": "content_key_derivation_sha256_aes128gcm",
       "vector_id": "ak.vector.mls_exporter_aead.content_key_derivation.v1",
       "input": {
         "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
@@ -29,13 +29,15 @@
         "content_label": "ak.content-v1",
         "content_context_hex": "",
         "kdf_nh": 32,
-        "aead_nk": 32
+        "aead_nk": 16,
+        "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
       },
       "expected": {
         "history_secret_hex": "c23c438ea6324409174e5fe5c330199fe511c44eca88f0100cc40eca29a84d2a",
-        "content_expand_with_label_info_hex": "0020154d4c5320312e3020616b2e636f6e74656e742d763100",
-        "content_key_hex": "caa04c9ed1d884eec3f27a1b389aae0cd9d6cdf20583252258312691c28e633e"
-      }
+        "content_expand_with_label_info_hex": "0010154d4c5320312e3020616b2e636f6e74656e742d763100",
+        "content_key_hex": "86fe11a399474afc8d9a81b2f5a961bf"
+      },
+      "note": "aead_nk is AEAD.Nk of the ciphersuite the group actually negotiated, per encryption-and-audit.md 2.10.1, and 2.10.2 requires aead_profile to be an ACTIVE canonical_id of mls-ciphersuite-registry.json. The only active row is AES-128-GCM, so Nk is 16. The length is an ExpandWithLabel input, so a 16-byte key is not a prefix of a 32-byte one - an implementation following the normative text can never reproduce the latter."
     },
     {
       "name": "content_key_derivation_fail_closed_negatives",
