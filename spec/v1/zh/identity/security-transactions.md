@@ -128,7 +128,7 @@ binding 必填：
 transaction durable 后由 `issue_authority_ticket` 产生。create 不得要求一个已经存在的 ticket
 digest，否则 ticket issuance 会落到 transaction 固定之前。
 
-prepared plan 必须保存 session snapshot/proof digest、Account Authority
+prepared plan 必须保存 session snapshot/proof digest、显式 `account_authority_id` 与 Account Authority
 authorization preimage、replacement device possession proof、planned DID entry canonical bytes/
 digest/previous head/ref、prebuilt reanchor Event submission、authority-produced authorize Event 的
 publication evidence。Account Authority 签名与 terminal receipt 都是 create 后的 accepted
@@ -174,10 +174,25 @@ resource 必须进入 `awaiting_device_attestation`，`next_required_step=issue_
 | `ak.gate.account.command.authorize_recovery_device` | `POST /_arkret/gate/account/recovery-device-authorizations` | 消费 ticket，幂等返回固定 authority-signed Event |
 | `ak.gate.account.command.promote_recovery_session_grant` | `POST /_arkret/gate/account/recovery-session-grants/promote` | 以 completed transaction/receipt 与 DPoP holder proof 轮换受限 grant |
 
+`authorization_preimage.account_authority_id` 必须在 create 前固定，并由
+`prepared_plan_digest` 覆盖；ticket 的 `account_authority_id` 必须逐字复制该 typed 字段，
+不得从 generic Event JSON、部署配置或事后 delegation 查询推导。
+
+`authorize_recovery_device` 与 `promote_recovery_session_grant` 的
+`canonical_request_digest` 统一等于
+`SHA-256(JCS(request object with only canonical_request_digest omitted))`。除该摘要字段本身外，
+完整 holder proof 与所有业务字段都在摘要投影内；实现不得再排除其它字段或尝试摘要包含摘要
+自身的最终对象。
+
 ticket 必须绑定 transaction/request/plan、principal/session/policy/domain、两端 service audience、
 replacement device、generation、DID head/entry、Event ids、authorization preimage 与 possession
 proof digest。Account Authority 必须按 `(ticket_id, transaction_id, request_digest)` 一次性消费；
 同 bytes replay 返回 byte-identical outcome，不同 bytes 返回 `duplicate_conflict`。
+
+v1 ticket 必须满足 `0 < expires_at - issued_at <= 300 seconds`。`auth_data.signed_fields` 必须
+逐字等于 schema 登记的 24 个顶层字段，不能添加实现私有字段；签名输入是只投影这 24 个键后
+的 `JCS` object bytes，不包含 `auth_data`，因此不形成 signature 自引用。`EdDSA` 直接对该
+projection 签名；其它 schema-admitted service signature algorithm 也必须签同一 projection。
 
 旧 recovery grant 不得原地扩大 scope。promotion 必须签发新 device/current-generation-bound
 grant，并把旧 grant chain 置于 consumed 终态。

@@ -105,6 +105,7 @@
         "policy_id",
         "policy_version",
         "trust_domain",
+        "account_authority_id",
         "identity_model",
         "previous_model_generation_ref",
         "result_model_generation_ref",
@@ -156,6 +157,10 @@
         },
         "trust_domain": {
           "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "account_authority_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did",
+          "description": "Account Authority service DID fixed by the prepared plan before ticket issuance. The issued ticket audience and consuming service MUST equal this value."
         },
         "identity_model": {
           "type": "string",
@@ -336,7 +341,8 @@
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "expires_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "MUST be after issued_at and no more than 300 seconds later."
         },
         "auth_data": {
           "type": "object",
@@ -366,6 +372,7 @@
               "type": "array",
               "uniqueItems": true,
               "minItems": 24,
+              "maxItems": 24,
               "items": {
                 "type": "string"
               },
@@ -514,7 +521,8 @@
           "$ref": "#/$defs/authorization_preimage"
         },
         "canonical_request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/hash",
+          "description": "SHA-256 of JCS(request object with only canonical_request_digest omitted). Every other field, including holder_proof, remains in the projection."
         },
         "holder_proof": {
           "type": "object",
@@ -616,7 +624,8 @@
           ]
         },
         "canonical_request_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/hash",
+          "description": "SHA-256 of JCS(request object with only canonical_request_digest omitted). Every other field, including holder_proof, remains in the projection."
         },
         "holder_proof": {
           "type": "object",

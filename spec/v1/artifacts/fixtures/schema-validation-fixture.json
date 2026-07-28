@@ -2594,6 +2594,7 @@
             "policy_id": "ak:policy:019a7360-0000-7000-8000-000000000037",
             "policy_version": 3,
             "trust_domain": "ak:trust_domain:example.local",
+            "account_authority_id": "did:web:accounts.example",
             "identity_model": "enrollment_authority",
             "previous_model_generation_ref": "1-genesis",
             "result_model_generation_ref": "2-recovery",
