@@ -48,8 +48,8 @@
     {
       "rule_id": "NC-TYPE-001",
       "axis": "type_name",
-      "applies_to": ["json_schema_defs_key", "openapi_schema_component"],
-      "predicate": "$defs use snake_case; OpenAPI components use PascalCase and registered structural wrapper suffixes",
+      "applies_to": ["json_schema_defs_key", "openapi_schema_component", "conceptual_type_name"],
+      "predicate": "$defs use snake_case; Arkret-owned PascalCase type names fold acronym segments as ordinary words; OpenAPI components use registered structural wrapper suffixes",
       "narrative_section": "R4",
       "exceptions": [
         {

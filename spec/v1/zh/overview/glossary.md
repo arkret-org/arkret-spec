@@ -131,7 +131,7 @@ see_also:
 | Authority Set | 权威集合 | 在某个 CBA basis 下决定 signer、quorum、delegation 与 revocation authority 的已接受 policy。wire 引用统一为 `{authority_set_id, authority_set_digest}`，不得只按可变名称解析。 |
 | DataEvent | 数据事件 | 数据面 reducer-input Event；携带签名 `scope_ref`、`seal_ref` 与 `auth_context`，writes 由 kind + payload 派生。 |
 | Control Move | 控制动作 | 控制面 reducer-input Event；携带签名 `scope_ref` 与 `seal_basis`，可携带 `preconditions[]`，writes 由 kind + payload 派生。 |
-| CBAProofBundle | CBA 依赖证明包 | 不签名、不创建身份的 receiver-relative dependency bundle；携带目标 Seal、Control Move、inclusion proof 与 availability proof 的有界可验证超集。receiver 必须独立验签、重算 root 与 reducer 输出。 |
+| CbaProofBundle | CBA 依赖证明包 | 不签名、不创建身份的 receiver-relative dependency bundle；携带目标 Seal、Control Move、inclusion proof 与 availability proof 的有界可验证超集。receiver 必须独立验签、重算 root 与 reducer 输出。 |
 | AuthorizationLease | 授权租约 | 绑定 accepted CBA basis、主体、设备、scope、action、risk tier 与短期有效期的签名发布许可；它只能收窄既有授权，不能创建 capability。 |
 | IngressReceipt | 入口签收回执 | ingress 对某个 Event digest 在 AuthorizationLease 有效期内到达的签名确认；不证明 reducer acceptance、投影可见性或 Seal finality。 |
 | SecurityTransaction | 安全事务资源 | 可查询、可幂等续跑的闭合跨服务安全过程；v1 仅允许 RecoveryTransaction 与 SecurityRotationTransaction，不是通用 Saga/Plan DSL。 |

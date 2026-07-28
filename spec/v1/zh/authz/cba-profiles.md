@@ -103,12 +103,12 @@ defer_count, authority_set_ref, signature
 
 不得把该义务称作“接受 SLA”，也不得声称 deadline 本身提供 finality。
 
-## 5. CBAProofBundle
+## 5. CbaProofBundle
 
 peer durable submit 或 dependency response MAY 携带：
 
 ```text
-CBAProofBundle {
+CbaProofBundle {
   target_seal_ref,
   seals[],
   control_moves[],

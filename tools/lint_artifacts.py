@@ -600,6 +600,9 @@ NAMING_RULES_PATH = Path(__file__).with_name("naming-convention-rules.json")
 EVIDENCE_MATERIAL_AUDIT_PATH = Path(__file__).with_name("evidence-material-audit.json")
 COMMON_OBJECT_FIELD_MATRIX_PATH = Path(__file__).with_name("common-object-field-matrix.json")
 NAMING_RULE_MARKER_RE = re.compile(r"rule_id:\s*([A-Z0-9-]+)")
+UNFOLDED_PASCAL_ACRONYM_RE = re.compile(
+    r"(?:^[A-Z]{2,}(?=[A-Z][a-z])|[a-z0-9][A-Z]{2,}(?:$|[A-Z][a-z]))"
+)
 STAGE_VALUES = {
     "draft",
     "proposed",
@@ -662,6 +665,33 @@ def check_naming_predicates(lint: Lint) -> None:
                     NAMING_RULES_PATH,
                     f"{row.get('rule_id')} external_literal exception lacks external_anchor",
                 )
+
+    dto_schema_path = ARTIFACTS / "schemas" / "service-operation-dtos.schema.json"
+    dto_schema = load_json(lint, dto_schema_path)
+    if isinstance(dto_schema, dict):
+        dto_defs = dto_schema.get("$defs")
+        if isinstance(dto_defs, dict):
+            for type_name in dto_defs:
+                if UNFOLDED_PASCAL_ACRONYM_RE.search(type_name):
+                    lint.fail(
+                        dto_schema_path,
+                        f"NC-TYPE-001 type name must fold acronym segments as ordinary "
+                        f"PascalCase words: {type_name}",
+                    )
+
+    openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
+    openapi = load_yaml(lint, openapi_path)
+    if isinstance(openapi, dict):
+        components = openapi.get("components")
+        schemas = components.get("schemas") if isinstance(components, dict) else None
+        if isinstance(schemas, dict):
+            for type_name in schemas:
+                if UNFOLDED_PASCAL_ACRONYM_RE.search(type_name):
+                    lint.fail(
+                        openapi_path,
+                        f"NC-TYPE-001 component name must fold acronym segments as ordinary "
+                        f"PascalCase words: {type_name}",
+                    )
 
     evidence_audit = load_json(lint, EVIDENCE_MATERIAL_AUDIT_PATH)
     if isinstance(evidence_audit, dict):

@@ -221,7 +221,7 @@ verify_control_move(M, pre_state):
 
 ## 6. Seal
 
-Finality profile、控制并发类别、非空 genesis、proposal 有界决议与 `CBAProofBundle` 的权威合同见
+Finality profile、控制并发类别、非空 genesis、proposal 有界决议与 `CbaProofBundle` 的权威合同见
 [`cba-profiles.md`](./cba-profiles.md)。本文件只定义 Seal 的编码、root 与 reducer 计算。
 
 Seal 是唯一控制状态接受事实。submitted/pending/receipt、snapshot、transparency、

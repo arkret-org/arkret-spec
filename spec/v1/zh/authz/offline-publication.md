@@ -90,7 +90,7 @@ reducer、已进入数据 projection、已被 peer 看见或已获 Seal finality
 
 ### 2.1 提交与重传封装
 
-lease、receipt 与 `CBAProofBundle` 都不是 Event 字段，也不进入 Event digest。首次提交使用：
+lease、receipt 与 `CbaProofBundle` 都不是 Event 字段，也不进入 Event digest。首次提交使用：
 
 ```text
 EventInitialSubmission {
