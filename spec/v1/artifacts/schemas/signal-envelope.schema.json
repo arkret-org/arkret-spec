@@ -50,9 +50,12 @@
     },
     "encrypted_payload": {
       "type": "object",
-      "description": "AEAD ciphertext. The immutable outer header digest is bound into AAD; exact payload kind, product target, and sender sequence exist only in plaintext after recipient decryption.",
+      "description": "AEAD ciphertext. The immutable outer header digest is bound into AAD; exact payload kind, product target, and sender sequence exist only in plaintext after recipient decryption. The scheme names the construction, never the algorithm: aead_profile carries the algorithm and MUST equal the active MLS ciphersuite the group at key_ref.group_state_ref actually negotiated (zh/conformance/encoding.md section 10.1). Activating a further ciphersuite therefore reaches Signal with no wire change.",
       "required": [
         "scheme",
+        "key_ref",
+        "purpose",
+        "aead_profile",
         "epoch",
         "nonce",
         "ciphertext",
@@ -60,7 +63,41 @@
       ],
       "properties": {
         "scheme": {
-          "const": "ak.mls_exporter_aead_chacha20poly1305.v1"
+          "const": "ak.signal_exporter_aead.v1"
+        },
+        "key_ref": {
+          "type": "object",
+          "required": [
+            "algorithm",
+            "group_state_ref"
+          ],
+          "properties": {
+            "algorithm": {
+              "const": "MLS-EXPORTER-AEAD"
+            },
+            "group_state_ref": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+                }
+              ],
+              "description": "Accepted ak.mls.genesis / winning ak.mls.commit for the scope's MLS group, or an equivalent group state proof hash. It is what fixes which ciphersuite aead_profile must equal."
+            }
+          },
+          "additionalProperties": false
+        },
+        "purpose": {
+          "const": "ak.signal.v1",
+          "description": "AEAD purpose for this domain. It is a nonce-derivation and AAD input, so it keeps a Signal nonce from colliding with a content-encryption nonce under the same key and epoch."
+        },
+        "aead_profile": {
+          "type": "string",
+          "description": "canonical_id of an active row of artifacts/registry/mls-ciphersuite-registry.json. It MUST equal the ciphersuite the group at key_ref.group_state_ref actually negotiated; a reserved suite, an unregistered suite, or a mismatch MUST fail closed."
         },
         "epoch": {
           "type": "integer",

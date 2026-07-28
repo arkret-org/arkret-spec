@@ -763,6 +763,7 @@ nonce = sender_nonce_prefix || device_nonce_counter_be64
 | domain | immutable header（AAD） | post-encryption digest | 认证该 digest 的外层 |
 |---|---|---|---|
 | `mls_exporter_aead_v1`（[`../crypto-media/encryption-and-audit.md` §2.10.2](../crypto-media/encryption-and-audit.md)） | `aead_aad_bytes` = JCS(`{scheme, key_ref, epoch, nonce, purpose, aead_profile, aad}`) | `payload_digest`（§10 / §2.3.3） | Event proof |
+| `ak.signal_exporter_aead.v1`（[`../sync/signal.md` §1](../sync/signal.md)） | `aad_digest` 覆盖 JCS(`{realm_id, scope_ref, sender_actor_id, sender_device_id, seal_ref, signal_class, sent_at, expires_at, scheme, key_ref, purpose, aead_profile, epoch, nonce}`)；`purpose` = `ak.signal.v1`，`aead_profile` 取 `mls-ciphersuite-registry.json` | `envelope_digest`（覆盖移除 `proof` 后的完整 envelope，因而承诺 ciphertext 与 `aad_digest`） | `SignalEnvelope.proof`（device detached JWS，context `ak.signal-proof-v1`） |
 | `ak.blob.whole_file_aead.v1` / `ak.blob.stream_aead.v1`（[`../crypto-media/media-and-blob.md` §3.1 / §3.3.3](../crypto-media/media-and-blob.md)） | 见该节列举的 pre-encryption 字段 | `ciphertext_digest` | 引用它的已签名 Event / encrypted descriptor / upload receipt |
 | account data（[`../models/account-data.md`](../models/account-data.md)） | envelope `aad`（`{actor_id, account_data_key, schema, version}`） | `ciphertext_digest` | account-data envelope 自身的已认证写入路径 |
 | key backup（[`../identity/key-management.md` §7.2](../identity/key-management.md)） | 已固化于 KAT 的 `aead_aad_canonical_json` | `ciphertext_digest` | `auth_data.signed_fields` 设备签名 |

@@ -35,18 +35,35 @@ SignalEnvelope {
 `canonical_json({context:"ak.signal-proof-v1", envelope_digest, sender_actor_id,
 sender_device_id, verification_method, created_at, domain?, audience?})`，其中 proof
 `created_at` 必须逐字等于外层 `sent_at`。`encrypted_payload` 必须使用 scope 当前 MLS exporter
-派生的 AEAD key，并把上述不可变 server-visible header 的 canonical digest 绑定进 AAD。
-其中：
+以 label `ak.signal-v1`（[`exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)）
+派生的 AEAD key，并把上述不可变 server-visible header 的 canonical digest 绑定进 AAD。其中：
 
 ```text
 aad_digest = H(canonical_json({
   realm_id, scope_ref, sender_actor_id, sender_device_id, seal_ref,
   signal_class, sent_at, expires_at,
   scheme: encrypted_payload.scheme,
+  key_ref: encrypted_payload.key_ref,
+  purpose: encrypted_payload.purpose,
+  aead_profile: encrypted_payload.aead_profile,
   epoch: encrypted_payload.epoch,
   nonce: encrypted_payload.nonce
 }))
 ```
+
+`key_ref`、`purpose` 与 `aead_profile` 是 [`../conformance/encoding.md` §10.1](../conformance/encoding.md)
+对每个 AEAD-bearing envelope 的最低 AAD 绑定要求，同时也是 canonical nonce 派生 context
+`{key_ref, epoch, device_id, purpose, aead_profile}` 的分量——缺其一接收方就无法重算
+`sender_nonce_prefix`。
+
+**算法由 `aead_profile` 承载，不由 `scheme` 承载（normative）**：`scheme` 固定为
+`ak.signal_exporter_aead.v1`，只标识构造方式；`aead_profile` MUST 是
+[`mls-ciphersuite-registry.json`](../../artifacts/registry/mls-ciphersuite-registry.json)
+某个 `status=active` 行的 `canonical_id`，且 MUST 等于 `key_ref.group_state_ref` 所指 MLS group
+**实际协商**的 ciphersuite。reserved suite、未登记 suite 或与该 group 实际 ciphersuite 不符者
+MUST fail closed（同 `encoding.md` §10.1 对全部 MLS-exporter 派生 domain 的统一规则）。
+因此后续激活新 ciphersuite 时 Signal **无需任何 wire 变更**即可获得该算法；把算法名写进
+`scheme` 会使每次激活都变成一次 wire-breaking 变更，v1 不采用该形态。
 
 `aad_digest` 不包含自身、ciphertext 或 proof。`envelope_digest` 则覆盖移除 `proof` 后的完整
 SignalEnvelope，因此同时承诺 ciphertext 与 `aad_digest`。`verification_method` 必须在
@@ -68,8 +85,9 @@ method；不得用 verification-method fragment 与 device id 的字符串相等
 
 - `expires_at` 必须晚于 `sent_at`，差值硬上限 120 seconds；
 - `setup` 最大 120 seconds，`moderation` 最大 60 seconds，`session` 最大 30 seconds；
-- canonical envelope ≤ 64 KiB，AEAD plaintext ≤ 48 KiB；ChaCha20-Poly1305 tag 计入
-  `ciphertext`，其 unpadded base64url 最大长度为 65,558 characters；
+- canonical envelope ≤ 64 KiB，AEAD plaintext ≤ 48 KiB；AEAD tag 计入 `ciphertext`，
+  其 unpadded base64url 最大长度为 65,558 characters（按 16 字节 tag 计，v1 全部 active
+  ciphersuite 的 AEAD tag 均为 16 字节）；
 - relay 每次只允许一个 destination peer hop，不得形成 signal mesh 转发链；
 - receiver 按 `(sender_device_id, scope_ref, payload_sequence)` 去重；sequence 位于密文内，
   server 只按完整 envelope digest 做短期 replay suppression。

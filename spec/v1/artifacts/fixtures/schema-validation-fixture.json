@@ -1621,7 +1621,13 @@
         "sent_at": "2026-05-20T00:00:00.000Z",
         "expires_at": "2026-05-20T00:00:30.000Z",
         "encrypted_payload": {
-          "scheme": "ak.mls_exporter_aead_chacha20poly1305.v1",
+          "scheme": "ak.signal_exporter_aead.v1",
+          "key_ref": {
+            "algorithm": "MLS-EXPORTER-AEAD",
+            "group_state_ref": "ak:event:019a6aa0-0000-7000-8000-0000000000e1"
+          },
+          "purpose": "ak.signal.v1",
+          "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
           "epoch": 3,
           "nonce": "AAAAAAAAAAAAAAAA",
           "ciphertext": "AAAAAAAAAAAAAAAAAAAAAA",
@@ -2580,7 +2586,13 @@
             "sent_at": "2026-05-20T00:00:00.000Z",
             "expires_at": "2026-05-20T00:00:30.000Z",
             "encrypted_payload": {
-              "scheme": "ak.mls_exporter_aead_chacha20poly1305.v1",
+              "scheme": "ak.signal_exporter_aead.v1",
+              "key_ref": {
+                "algorithm": "MLS-EXPORTER-AEAD",
+                "group_state_ref": "ak:event:019a6aa0-0000-7000-8000-0000000000e1"
+              },
+              "purpose": "ak.signal.v1",
+              "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
               "epoch": 3,
               "nonce": "AAAAAAAAAAAAAAAA",
               "ciphertext": "AAAAAAAAAAAAAAAAAAAAAA",

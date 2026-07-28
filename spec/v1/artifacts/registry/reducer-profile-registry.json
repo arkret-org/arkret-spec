@@ -190,11 +190,11 @@
           },
           {
             "ref": "zh/conformance/encoding.md",
-            "content_digest": "sha256:2f225c7a1ffe6703b80e0fc3ed5d23ac12d54a2d8ab18ebb31c4211db82b395f"
+            "content_digest": "sha256:d46e4cc26eda2f1e88d9e56c4c92fe7ea0ac1c558155ae68e7686a838ce46a74"
           }
         ]
       },
-      "reducer_profile_digest": "sha256:807b47ca5fe656158835bb02d5c43cdebe4714c1d4d2774b2c3dc0fb9a146c1f"
+      "reducer_profile_digest": "sha256:265c38004637ad277d0b91d47e3229594ecebe7b8ac0468d4217ee8713f0483f"
     },
     {
       "profile_id": "ak.profile.chat_mvp.v1",
@@ -509,7 +509,7 @@
           },
           {
             "ref": "zh/conformance/encoding.md",
-            "content_digest": "sha256:2f225c7a1ffe6703b80e0fc3ed5d23ac12d54a2d8ab18ebb31c4211db82b395f"
+            "content_digest": "sha256:d46e4cc26eda2f1e88d9e56c4c92fe7ea0ac1c558155ae68e7686a838ce46a74"
           },
           {
             "ref": "zh/models/strand-and-message.md",
@@ -517,7 +517,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:a7b1499cfc1eceb3600c8be12234e9201ffa4419606f0955d2204256ddf0d5f1"
+      "reducer_profile_digest": "sha256:7953a51b873d8bdd0823432f85c6a50658b482e8c4a5da762e055909eb7f65f5"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -796,7 +796,7 @@
           },
           {
             "ref": "zh/conformance/encoding.md",
-            "content_digest": "sha256:2f225c7a1ffe6703b80e0fc3ed5d23ac12d54a2d8ab18ebb31c4211db82b395f"
+            "content_digest": "sha256:d46e4cc26eda2f1e88d9e56c4c92fe7ea0ac1c558155ae68e7686a838ce46a74"
           },
           {
             "ref": "zh/models/realm-and-space.md",
@@ -812,7 +812,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:a27e669e402dc44d95f75bc5e52382e24426c5d9b558228076b83db2a0492035"
+      "reducer_profile_digest": "sha256:6e5729c1e4e0f99da91f4abf87bd83102225952968f736cb10d40abe64844212"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1411,7 +1411,7 @@
           },
           {
             "ref": "zh/conformance/encoding.md",
-            "content_digest": "sha256:2f225c7a1ffe6703b80e0fc3ed5d23ac12d54a2d8ab18ebb31c4211db82b395f"
+            "content_digest": "sha256:d46e4cc26eda2f1e88d9e56c4c92fe7ea0ac1c558155ae68e7686a838ce46a74"
           },
           {
             "ref": "zh/models/realm-and-space.md",
@@ -1439,7 +1439,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:8c85a896bff5c4122608a15b45baa4f5663751bee60934bb07818af654b75700"
+      "reducer_profile_digest": "sha256:ae11d387d7bcd87889ac0005d3c45f908a89207d60f1b8df296d23a82325a026"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1674,7 +1674,7 @@
           },
           {
             "ref": "zh/conformance/encoding.md",
-            "content_digest": "sha256:2f225c7a1ffe6703b80e0fc3ed5d23ac12d54a2d8ab18ebb31c4211db82b395f"
+            "content_digest": "sha256:d46e4cc26eda2f1e88d9e56c4c92fe7ea0ac1c558155ae68e7686a838ce46a74"
           },
           {
             "ref": "zh/sync/federation.md",
@@ -1686,7 +1686,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:32aeccb0a0a548d8056f04815f292ed3fbc65af062f633c123a4250ebef98a88"
+      "reducer_profile_digest": "sha256:706f11aae5aa47d92f1953305c6d2742f11168522673ed41a9ad41275302e9ed"
     }
   ],
   "generated_fields": [
