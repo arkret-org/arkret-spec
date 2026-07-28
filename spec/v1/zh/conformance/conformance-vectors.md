@@ -1036,7 +1036,7 @@ ak.vector.strand_tracks_update.atomic.v1
 
 判定要求：
 
-- patch path 解析 MUST 遵循 [`event-and-patch.md` §4.2`](../models/event-and-patch.md) ABNF grammar；任何 path 形如 `tracks.<name>[key=...]` 的 selector segment MUST `schema_violation`（`tracks` 是 map，不是 unique-key 数组）。
+- patch path 解析 MUST 遵循 [`event-and-patch.md` §4.2`](../models/event-and-patch.md) ABNF grammar；任何 path 形如 `tracks.<name>[key=...]` 的 selector segment MUST `schema_violation`——selector segment 不是 ak.patch.v1 的一部分（§4.2.1）。
 - `ak.strand.tracks.update` 写入的 cell 是 `ak:cell:ak.component.strand.tracks.v1:<strand_id>`（mv_register），reducer 校验合并后 invariant 在 cell update 之前 完成。
 
 失败条件：

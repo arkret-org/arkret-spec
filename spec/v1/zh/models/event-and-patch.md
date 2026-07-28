@@ -409,27 +409,23 @@ patch path 严格遵循下面 ABNF：
 
 ```text
 path           = segment *( "." segment )
-segment        = identifier / quoted-identifier / selector-segment
+segment        = identifier / quoted-identifier
 identifier     = ALPHA-LOWER *( ALPHA-LOWER / DIGIT / "_" )
 ALPHA-LOWER    = %x61-7A                       ; a-z
 quoted-identifier = "`" 1*( quoted-char ) "`"
 quoted-char    = %x20-5F / %x61-7F             ; printable ASCII excluding `
                                                ; (literal backtick MUST be escaped as ``)
-selector-segment = identifier "[" key-name "=" selector-value "]"
-key-name       = identifier
-selector-value = canonical-json-string         ; RFC 8785 JCS-canonicalized JSON string,
-                                               ; surrounding double-quotes included
-canonical-json-string = '"' *( json-char ) '"'
-json-char      = unescaped / escape
-unescaped      = %x20-21 / %x23-5B / %x5D-10FFFF  ; everything except " and \
-escape         = "\" ( '"' / "\" / "/" / "b" / "f" / "n" / "r" / "t" / "u" 4HEXDIG )
 ```
 
 具体约束：
 
-- `identifier` 与 `key-name` MUST 匹配正则 `^[a-z][a-z0-9_]{0,63}$`(snake_case,首字符必须小写字母，长度 ≤ 64);
-- `selector-value` MUST 是合法的 [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) JCS canonical JSON string,**包括外层 ASCII 双引号**,内部按 JCS 转义规则 (`\"` / `\\` / `\/` / `\b` / `\f` / `\n` / `\r` / `\t` / `\uXXXX`);
-- selector-value 内字面 `]`、`[`、`=`、`"`、`\` MUST 出现为 `\uXXXX` 或对应反斜杠转义形式;
+- `identifier` MUST 匹配正则 `^[a-z][a-z0-9_]{0,63}$`(snake_case,首字符必须小写字母，长度 ≤ 64);
+- **v1 不含 selector segment**（`field[key=value]` 形态）。它在 v1 从未可用：旧 ABNF 要求
+  `selector-value` 是含外层双引号的 RFC 8785 canonical JSON string，而登记的 `patch_path`
+  schema pattern 在该位置只接受 `[A-Za-z0-9_:.@-]+`，永远容不下双引号——两种写法各被一侧拒绝，
+  没有任何 producer 发得出合规的 selector path。它的有效性判据（项 schema 声明 `unique: true`）
+  本就不是 wire 层可知的，且 v1 标准 schema 不含具名集合数组（Strand `tracks` 是 map）。
+  因此 `field[key=value]` MUST 以 `schema_violation` 拒绝;
 - `quoted-identifier` 用于字段名包含非 snake_case 字符的特殊场景(v1 标准 schema 不应使用),字面 backtick 必须 escape 成连续两个 backtick;
 - 默认仅支持对象路径，不支持数字数组下标。
 
@@ -437,15 +433,11 @@ escape         = "\" ( '"' / "\" / "/" / "b" / "f" / "n" / "r" / "t" / "u" 4HEXD
 
 reducer / SDK 实现 MUST 使用确定性 parser:遇到任何 ambiguous match、超长 path(> 1024 字节)、超深嵌套(> 16 段)、非 canonical selector-value(未经 JCS 规范)时,MUST 返回 `schema_violation` reason=`patch_path_invalid`。Parser **MUST NOT** 走 fallback 路径——例如不得在 selector-value 中错位的 `]` 之后继续尝试匹配下一个 segment。
 
-#### 4.2.3 Selector 语义
+#### 4.2.3 无 stable-key 列表元素
 
-对 schema 声明了唯一 key 的具名集合数组(仅由 profile / 扩展引入;v1 标准 schema 不再含此类数组),path MAY 使用 selector segment。规则:
-
-- selector 字段必须是该数组项 schema 中声明 `unique: true` 的 stable key;
-- selector 值按 canonical JSON string 解析后用于精确比较;
-- 匹配 0 项时 `set` / `add` MUST reject (`failed_precondition`, reason=`patch_selector_no_match`);
-- 匹配多项表示对象已违反 schema 的 uniqueness 约束,reducer MUST fail closed (`failed_precondition`, reason=`patch_selector_ambiguous`);
-- Strand `tracks` 在 v1 是 map(key 即 track 名),patch path 直接使用普通对象段，例如 `tracks.discussion.profile`,不需要 selector。
+v1 的 patch path 只寻址对象成员。要更新没有 stable key 的列表元素，必须把该对象重建为
+map（key 即成员名，如 Strand `tracks`）、使用 profile 注册的 move/update event，
+或用明确的 API 约束字段表示更新目标；不得把数字数组下标或 selector segment 写入 path。
 
 #### 4.2.4 Op 与 redactable 字段交互（normative）
 

@@ -2816,20 +2816,6 @@
       "description": "A `ak.patch.v1` `$op=\"unset\"` was used on a redactable content field (e.g. message.content, strand.metadata.summary, encrypted_content / encrypted_metadata). Redaction MUST go through `ak.<kind>.redact` or `ak.redaction` events to enforce redaction-specific capability checks and audit. See zh/models/event-and-patch.md §4.2.4."
     },
     {
-      "code": "patch_selector_no_match",
-      "applies_to": [
-        "event_envelope"
-      ],
-      "description": "A `ak.patch.v1` selector segment matched zero array items for a `set` or `add` operation. See zh/models/event-and-patch.md §4.2.3."
-    },
-    {
-      "code": "patch_selector_ambiguous",
-      "applies_to": [
-        "event_envelope"
-      ],
-      "description": "A `ak.patch.v1` selector segment matched multiple array items, indicating the underlying collection already violated its declared uniqueness constraint. Reducer fails closed. See zh/models/event-and-patch.md §4.2.3."
-    },
-    {
       "code": "aead_nonce_counter_replay",
       "applies_to": [
         "event_envelope",

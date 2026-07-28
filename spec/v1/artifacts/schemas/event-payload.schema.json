@@ -7959,8 +7959,8 @@
     },
     "patch_path": {
       "type": "string",
-      "description": "Arkret field patch path. Segments are snake_case identifiers, optional stable-key selectors (such as profile-declared named-collection arrays of the form `<field>[<key>=<value>]`), or backtick-quoted literals; numeric array indexes are not part of ak.patch.v1. v1 standard schemas no longer use stable-key selectors — Strand tracks is now a map keyed by track name, so paths like `tracks.discussion.profile` are plain object segments.",
-      "pattern": "^(?:[a-z_][a-z0-9_]*(?:\\[[a-z_][a-z0-9_]*=[A-Za-z0-9_:.@-]+\\])?|`(?:[^`\\\\]|\\\\[`\\\\.\\\\])*`)(?:\\.(?:[a-z_][a-z0-9_]*(?:\\[[a-z_][a-z0-9_]*=[A-Za-z0-9_:.@-]+\\])?|`(?:[^`\\\\]|\\\\[`\\\\.\\\\])*`))*$"
+      "description": "Arkret field patch path. Segments are snake_case identifiers or backtick-quoted literals; a literal backtick inside a quoted segment is escaped by doubling it. Numeric array indexes and selector segments (field[key=value]) are not part of ak.patch.v1 - see zh/models/event-and-patch.md section 4.2.1. Strand tracks is a map keyed by track name, so paths like tracks.discussion.profile are plain object segments.",
+      "pattern": "^(?:[a-z][a-z0-9_]{0,63}|`(?:[^`]|``)+`)(?:\\.(?:[a-z][a-z0-9_]{0,63}|`(?:[^`]|``)+`))*$"
     },
     "patch_value": {
       "description": "A plain value is shorthand for {\"$op\":\"set\",\"value\":...}. Objects containing $op MUST be patch_operation objects.",
