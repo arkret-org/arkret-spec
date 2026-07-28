@@ -2595,12 +2595,21 @@
             "policy_version": 3,
             "trust_domain": "ak:trust_domain:example.local",
             "account_authority_id": "did:web:accounts.example",
+            "recovery_holder_jkt": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
             "identity_model": "enrollment_authority",
             "previous_model_generation_ref": "1-genesis",
             "result_model_generation_ref": "2-recovery",
             "registry_previous_head": "did:webvh:z6mkfixture:alice.example?versionId=1-genesis",
             "did_entry_ref": "did:webvh:z6mkfixture:alice.example?versionId=2-recovery",
             "did_entry_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+            "did_entry_preimage": {
+              "canonical_encoding": "canonical_json",
+              "value": {
+                "versionId": "2-recovery"
+              },
+              "canonical_bytes_base64url": "eyJ2ZXJzaW9uSWQiOiIyLXJlY292ZXJ5In0",
+              "digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+            },
             "reanchor_event_id": "ak:event:019a7360-0000-7000-8000-000000000034",
             "authorize_event_id": "ak:event:019a7360-0000-7000-8000-000000000035",
             "actor_seq": 7,

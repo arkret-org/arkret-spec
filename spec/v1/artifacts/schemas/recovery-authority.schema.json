@@ -9,6 +9,11 @@
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
+    "recovery_holder_jkt": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{43}$",
+      "description": "RFC 7638 SHA-256 JWK thumbprint of the verified recovery-session holder key, encoded base64url without padding."
+    },
     "transaction_id": {
       "type": "string",
       "pattern": "^ak:transaction:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -83,7 +88,7 @@
         },
         "transcript_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Digest of the complete ak.device-authorize-possession-v1 transcript, including the transaction, recovery session, planned Event ids, keys, algorithms, generation, frontier and not_before."
+          "description": "Digest of the exact ak.device-authorize-possession-v1 input for the fixed authorize Event payload. Transaction, generation, frontier and planned Event bindings are supplied by the ticket over the closed authorization preimage."
         },
         "signature": {
           "type": "string",
@@ -106,12 +111,14 @@
         "policy_version",
         "trust_domain",
         "account_authority_id",
+        "recovery_holder_jkt",
         "identity_model",
         "previous_model_generation_ref",
         "result_model_generation_ref",
         "registry_previous_head",
         "did_entry_ref",
         "did_entry_digest",
+        "did_entry_preimage",
         "reanchor_event_id",
         "authorize_event_id",
         "actor_seq",
@@ -162,6 +169,10 @@
           "$ref": "./common-ids.schema.json#/$defs/did",
           "description": "Account Authority service DID fixed by the prepared plan before ticket issuance. The issued ticket audience and consuming service MUST equal this value."
         },
+        "recovery_holder_jkt": {
+          "$ref": "#/$defs/recovery_holder_jkt",
+          "description": "Holder key thumbprint copied only from the Principal Server's verified recovery session/grant binding."
+        },
         "identity_model": {
           "type": "string",
           "const": "enrollment_authority"
@@ -182,6 +193,10 @@
         },
         "did_entry_digest": {
           "$ref": "#/$defs/hash"
+        },
+        "did_entry_preimage": {
+          "$ref": "#/$defs/canonical_public_material",
+          "description": "Canonical JSON of the prepared did:webvh entry that will become did_entry_ref. Its bytes and digest MUST equal the enclosing RecoveryTransaction prepared did_publication material. The Account Authority verifies this candidate against the independently resolved previous head before signing; it MUST NOT publish the entry."
         },
         "reanchor_event_id": {
           "$ref": "#/$defs/event_id"
@@ -252,6 +267,7 @@
         "trust_domain",
         "principal_server_id",
         "account_authority_id",
+        "recovery_holder_jkt",
         "replacement_device_id",
         "previous_model_generation_ref",
         "result_model_generation_ref",
@@ -304,6 +320,9 @@
         },
         "account_authority_id": {
           "$ref": "./common-ids.schema.json#/$defs/did"
+        },
+        "recovery_holder_jkt": {
+          "$ref": "#/$defs/recovery_holder_jkt"
         },
         "replacement_device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id"
@@ -370,133 +389,32 @@
             },
             "signed_fields": {
               "type": "array",
-              "uniqueItems": true,
-              "minItems": 24,
-              "maxItems": 24,
-              "items": {
-                "type": "string"
-              },
-              "allOf": [
-                {
-                  "contains": {
-                    "const": "schema"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "ticket_id"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "transaction_id"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "transaction_request_digest"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "prepared_plan_digest"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "principal_id"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "recovery_session_id"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "policy_id"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "policy_version"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "trust_domain"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "principal_server_id"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "account_authority_id"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "replacement_device_id"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "previous_model_generation_ref"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "result_model_generation_ref"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "registry_previous_head"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "did_entry_ref"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "did_entry_digest"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "reanchor_event_id"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "authorize_event_id"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "authorization_preimage_digest"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "possession_proof_digest"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "issued_at"
-                  }
-                },
-                {
-                  "contains": {
-                    "const": "expires_at"
-                  }
-                }
+              "const": [
+                "schema",
+                "ticket_id",
+                "transaction_id",
+                "transaction_request_digest",
+                "prepared_plan_digest",
+                "principal_id",
+                "recovery_session_id",
+                "policy_id",
+                "policy_version",
+                "trust_domain",
+                "principal_server_id",
+                "account_authority_id",
+                "recovery_holder_jkt",
+                "replacement_device_id",
+                "previous_model_generation_ref",
+                "result_model_generation_ref",
+                "registry_previous_head",
+                "did_entry_ref",
+                "did_entry_digest",
+                "reanchor_event_id",
+                "authorize_event_id",
+                "authorization_preimage_digest",
+                "possession_proof_digest",
+                "issued_at",
+                "expires_at"
               ]
             }
           },
@@ -522,7 +440,7 @@
         },
         "canonical_request_digest": {
           "$ref": "#/$defs/hash",
-          "description": "SHA-256 of JCS(request object with only canonical_request_digest omitted). Every other field, including holder_proof, remains in the projection."
+          "description": "SHA-256 of JCS(request object with canonical_request_digest and holder_proof.proof_jwt omitted). holder_proof.dpop_jkt and every business field remain covered; proof_jwt carries this digest as its RFC 9449 nonce."
         },
         "holder_proof": {
           "type": "object",
@@ -532,12 +450,12 @@
           ],
           "properties": {
             "dpop_jkt": {
-              "type": "string",
-              "minLength": 16
+              "$ref": "#/$defs/recovery_holder_jkt"
             },
             "proof_jwt": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "description": "RFC 9449 EdDSA DPoP proof for this exact POST endpoint. Its nonce claim MUST equal canonical_request_digest."
             }
           },
           "additionalProperties": false
@@ -625,7 +543,7 @@
         },
         "canonical_request_digest": {
           "$ref": "#/$defs/hash",
-          "description": "SHA-256 of JCS(request object with only canonical_request_digest omitted). Every other field, including holder_proof, remains in the projection."
+          "description": "SHA-256 of JCS(request object with canonical_request_digest and holder_proof.proof_jwt omitted). holder_proof.dpop_jkt and every business field remain covered; proof_jwt carries this digest as its RFC 9449 nonce."
         },
         "holder_proof": {
           "type": "object",
@@ -635,12 +553,12 @@
           ],
           "properties": {
             "dpop_jkt": {
-              "type": "string",
-              "minLength": 16
+              "$ref": "#/$defs/recovery_holder_jkt"
             },
             "proof_jwt": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "description": "RFC 9449 EdDSA DPoP proof for this exact POST endpoint. Its nonce claim MUST equal canonical_request_digest."
             }
           },
           "additionalProperties": false
