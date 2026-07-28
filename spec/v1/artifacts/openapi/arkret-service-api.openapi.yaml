@@ -3756,7 +3756,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventInitialSubmission
+              $ref: ../schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_request
       responses:
         '200':
           description: Recovery policy accepted

@@ -115,8 +115,10 @@ authority。协议不登记一个允许客户端请求任意action lease的通�
 
 每个 accepted recovery policy version 必须携带 immutable `acceptance_basis`。该 basis 引用已把
 承载该 policy 的 Principal Control Realm `ak.policy.set` Event纳入control state的accepted
-Seal/SealBasis；policy publish request必须是该Event的完整`EventInitialSubmission`。Event
-actor/scope、payload principal、lease与accepted Seal必须一致。command只有在该basis
+Seal/SealBasis；policy publish request必须是该Event的完整`EventInitialSubmission`。
+canonical Event payload固定为`{policy_id, value}`，其中`value`是完整`RecoveryPolicy`，
+两处policy id必须逐字一致，且本operation禁止`state`/`reason`。Event actor/scope、
+`payload.value.principal_id`、lease与accepted Seal必须一致。command只有在该basis
 materialize后才能返回成功或推进active policy；此前对同一Event id返回retry-safe
 `frontier_unavailable`，不得生成第二policy Event。B 模型 session 的
 `publication_authority_context.basis_ref` 必须逐字等于该 `acceptance_basis`，不得借用 live

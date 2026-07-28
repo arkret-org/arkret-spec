@@ -787,6 +787,46 @@
   },
   "additionalProperties": false,
   "$defs": {
+    "recovery_policy_set_payload": {
+      "type": "object",
+      "description": "Canonical ak.policy.set payload for recovery-policy publication. policy_id MUST equal value.policy_id; state and reason are intentionally unavailable on this operation.",
+      "required": [
+        "policy_id",
+        "value"
+      ],
+      "properties": {
+        "policy_id": {
+          "type": "string",
+          "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "value": {
+          "$ref": "#"
+        }
+      },
+      "additionalProperties": false
+    },
+    "recovery_policy_publish_request": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.policy.set"
+                },
+                "payload": {
+                  "$ref": "#/$defs/recovery_policy_set_payload"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Recovery policy publication through the ordinary first-publication Event ingress. Cross-field validation additionally requires payload.policy_id=value.policy_id and actor/scope/lease to bind value.principal_id's Principal Control Realm."
+    },
     "did": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"

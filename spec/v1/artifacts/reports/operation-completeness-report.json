@@ -1184,10 +1184,10 @@
       "surface_class": "core",
       "http": "POST /_arkret/root/identity/recovery-policy",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
+      "request_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_request",
       "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome",
       "openapi_component_refs": {
-        "request": "../schemas/service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
+        "request": "../schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_request",
         "response": "../schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome"
       },
       "completeness_class": "typed_schema",

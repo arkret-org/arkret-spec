@@ -2035,12 +2035,12 @@
       "http": "POST /_arkret/root/identity/recovery-policy",
       "grpc": "RootIdentity/RecoveryPolicyPublish",
       "mq": "root.identity.recovery_policy.command.publish",
-      "notes": "Publish a signed ak.schema.recovery_policy.v1 genesis policy or rotation as a Principal Control Realm ak.policy.set EventInitialSubmission. Event actor/scope, payload principal, lease and accepted control Seal MUST agree. The command returns success only after the Event is covered by the immutable acceptance_basis; before Seal materialization it returns retry-safe frontier_unavailable for the same Event id.",
+      "notes": "Publish a signed ak.schema.recovery_policy.v1 genesis policy or rotation as a Principal Control Realm ak.policy.set EventInitialSubmission. The canonical Event payload is {policy_id,value}; value is the complete RecoveryPolicy, both policy ids MUST match, and state/reason MUST be absent. Event actor/scope, value.principal_id, lease and accepted control Seal MUST agree. The command returns success only after the Event is covered by the immutable acceptance_basis; before Seal materialization it returns retry-safe frontier_unavailable for the same Event id.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "protocol_sequence",
       "retry_safe": true,
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
+      "request_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_request",
       "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome"
     },
     {
