@@ -8,6 +8,8 @@
     "schema",
     "receipt_id",
     "transaction_id",
+    "transaction_request_digest",
+    "prepared_plan_digest",
     "principal_id",
     "recovery_session_id",
     "policy_id",
@@ -38,6 +40,14 @@
       "type": "string",
       "pattern": "^ak:transaction:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "RecoveryTransaction that reserved this receipt id. It MUST equal the transaction whose binding.terminal_receipt_id is this receipt_id, which is what lets a verifier holding only the receipt resolve the authorizing transaction; binding.terminal_receipt_id alone is one-way. See zh/identity/security-transactions.md section 2."
+    },
+    "transaction_request_digest": {
+      "$ref": "#/$defs/hash",
+      "description": "Stable request_digest of the RecoveryTransaction. It is signed by the replacement device so the terminal attestation cannot be rebound to a different transaction plan even if an identifier is substituted."
+    },
+    "prepared_plan_digest": {
+      "$ref": "#/$defs/hash",
+      "description": "Digest of the closed typed prepared_plan stored by the RecoveryTransaction. It MUST equal transaction.prepared_plan_digest and is signed to prevent substituting different prepared bytes under the same reserved ids."
     },
     "principal_id": {
       "$ref": "#/$defs/did"
@@ -106,6 +116,15 @@
     "reanchor_event_id": {
       "type": "string",
       "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "authority_ticket_id": {
+      "type": "string",
+      "pattern": "^ak:recovery_authority_ticket:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "did_entry_ref": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
     },
     "reanchor_batch_receipt_id": {
       "type": "string",
@@ -278,6 +297,21 @@
             {
               "contains": {
                 "const": "receipt_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "transaction_id"
+              }
+            },
+            {
+              "contains": {
+                "const": "transaction_request_digest"
+              }
+            },
+            {
+              "contains": {
+                "const": "prepared_plan_digest"
               }
             },
             {
@@ -527,6 +561,16 @@
               "required": [
                 "reanchor_batch_receipt_id"
               ]
+            },
+            {
+              "required": [
+                "authority_ticket_id"
+              ]
+            },
+            {
+              "required": [
+                "did_entry_ref"
+              ]
             }
           ]
         }
@@ -534,7 +578,9 @@
       "else": {
         "required": [
           "reanchor_event_id",
-          "reanchor_batch_receipt_id"
+          "reanchor_batch_receipt_id",
+          "authority_ticket_id",
+          "did_entry_ref"
         ],
         "properties": {
           "previous_model_generation_ref": {
@@ -557,6 +603,16 @@
                   {
                     "contains": {
                       "const": "reanchor_batch_receipt_id"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "authority_ticket_id"
+                    }
+                  },
+                  {
+                    "contains": {
+                      "const": "did_entry_ref"
                     }
                   }
                 ]

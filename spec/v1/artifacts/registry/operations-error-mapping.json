@@ -60,6 +60,21 @@
       "description": "Enrolls a device via the principal's designated enrollment authority. proof_invalid when the enrollment proof / controller binding does not verify against the authority designated in the principal DID document; duplicate_conflict when the device record already exists; failed_precondition when the enrollment-authority designation is absent or stale at the accepted-at frontier. See zh/identity/key-management.md §5.0.6 and zh/identity/identity-did.md §3.2."
     },
     {
+      "operation_id": "ak.gate.account.command.authorize_recovery_device",
+      "http_alias": "POST /_arkret/gate/account/recovery-device-authorizations",
+      "operation_specific": [
+        "duplicate_conflict",
+        "failed_precondition",
+        "proof_invalid",
+        "audience_mismatch",
+        "token_expired",
+        "recovery_policy_mismatch",
+        "recovery_session_terminal",
+        "device_reanchor_authorize_mismatch"
+      ],
+      "description": "Consumes one transaction-bound recovery authority ticket and returns the fixed authority-signed replacement-device authorization Event. Substitution of ticket, plan, device, generation, DID entry, Event preimage or possession proof fails closed."
+    },
+    {
       "operation_id": "ak.gate.account.command.issue_session_grant",
       "http_alias": "POST /_arkret/gate/account/session-grants",
       "operation_specific": [
@@ -97,6 +112,20 @@
         "proof_invalid"
       ],
       "description": "DPoP-bound session-grant rotation (account-lifecycle §4.1). Single-use: a consumed grant cannot be rotated again (grant_already_consumed); the audience is locked to the prior grant (audience_mismatch); rotation is refused once the underlying browser session is logged out (session_logged_out). The caller MUST present a holder proof signed by the key bound into the grant's cnf.jkt plus a fresh DID/device proof bound to principal_id, device_id, audience, request_canonical_digest, challenge, issued_at, and expires_at. Missing proof material returns did_proof_required; invalid signature, replay, transcript, device binding, or freshness semantics return proof_invalid."
+    },
+    {
+      "operation_id": "ak.gate.account.command.promote_recovery_session_grant",
+      "http_alias": "POST /_arkret/gate/account/recovery-session-grants/promote",
+      "operation_specific": [
+        "duplicate_conflict",
+        "failed_precondition",
+        "proof_invalid",
+        "grant_already_consumed",
+        "session_grant_not_found",
+        "device_generation_fenced",
+        "device_reanchor_authorize_mismatch"
+      ],
+      "description": "Consumes a restricted recovery grant only after the bound transaction and terminal receipt match the current accepted replacement-device projection. It creates one new grant and never widens the old grant in place."
     },
     {
       "operation_id": "ak.gate.account.command.logout_auth_session",
@@ -1048,21 +1077,16 @@
       ]
     },
     {
-      "operation_id": "ak.root.identity.recovery_session.command.complete",
-      "http_alias": "POST /_arkret/root/identity/recovery-sessions/{recovery_session_id}/complete",
+      "operation_id": "ak.self.recovery_authority_ticket.command.issue",
+      "http_alias": "POST /_arkret/self/recovery-authority-tickets",
       "operation_specific": [
         "not_found",
+        "duplicate_conflict",
         "failed_precondition",
         "recovery_policy_mismatch",
-        "recovery_evidence_unbound",
-        "recovery_session_challenge_mismatch",
-        "device_recovery_ssk_generation_mismatch",
-        "device_reanchor_entry_not_head",
-        "device_reanchor_frontier_mismatch",
-        "device_reanchor_authorize_mismatch",
-        "device_reanchor_conflict",
-        "device_generation_fenced"
-      ]
+        "recovery_session_terminal"
+      ],
+      "description": "Issues a reserved authority ticket only for the current step of a durable enrollment-authority RecoveryTransaction whose session, request and prepared-plan digests still match."
     },
     {
       "operation_id": "ak.self.security_transaction.command.create",

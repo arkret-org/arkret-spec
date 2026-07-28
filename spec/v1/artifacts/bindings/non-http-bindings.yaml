@@ -53,6 +53,7 @@ grpc:
       Register: ak.gate.account.command.register
       DevicePair: ak.gate.account.command.pair_device
       DeviceEnroll: ak.gate.account.command.enroll_device
+      AuthorizeRecoveryDevice: ak.gate.account.command.authorize_recovery_device
       IssueSessionGrant: ak.gate.account.command.issue_session_grant
       SessionRevoke: ak.gate.account.command.revoke_session
       AgentKeyPair: ak.gate.account.command.pair_agent_key
@@ -228,11 +229,12 @@ grpc:
       RecoverySessionCreate: ak.root.identity.recovery_session.command.create
       RecoverySessionGet: ak.root.identity.recovery_session.resource.get
       RecoverySessionSubmitProof: ak.root.identity.recovery_session.command.submit_proof
-      RecoverySessionComplete: ak.root.identity.recovery_session.command.complete
     SelfSecurityTransactions:
       Create: ak.self.security_transaction.command.create
       Get: ak.self.security_transaction.resource.get
       Continue: ak.self.security_transaction.command.continue
+    SelfRecoveryAuthorityTickets:
+      Issue: ak.self.recovery_authority_ticket.command.issue
     SelfKeys:
       Claim: ak.self.keys.command.claim
       BackupsDelete: ak.self.keys.backups.resource.delete
@@ -324,6 +326,8 @@ mq:
       signatures:
         type: array
   topics:
+    gate.account.command.authorize_recovery_device: ak.gate.account.command.authorize_recovery_device
+    self.recovery_authority_ticket.command.issue: ak.self.recovery_authority_ticket.command.issue
     self.security_transaction.command.create: ak.self.security_transaction.command.create
     self.security_transaction.resource.get: ak.self.security_transaction.resource.get
     self.security_transaction.command.continue: ak.self.security_transaction.command.continue

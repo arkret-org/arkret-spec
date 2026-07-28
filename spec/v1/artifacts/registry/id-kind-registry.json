@@ -475,6 +475,13 @@
       "description": "Durable RecoveryTransaction, SecurityRotationTransaction, federation, or applet transaction identifier."
     },
     {
+      "kind": "recovery_authority_ticket",
+      "category": "security",
+      "status": "active",
+      "wire_form": "ak:recovery_authority_ticket:<uuid>",
+      "description": "Reserved UUIDv7 identity of the Principal Server signed, RecoveryTransaction-bound one-time Account Authority ticket. The id is fixed at transaction create; signed ticket bytes are issued only after the transaction is durable."
+    },
+    {
       "kind": "view",
       "category": "core_object",
       "status": "active",
