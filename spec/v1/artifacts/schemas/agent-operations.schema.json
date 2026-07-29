@@ -995,41 +995,17 @@
     },
     "agent_provision_events": {
       "type": "object",
-      "description": "Closed, controller-signed fan-out plan authored through the Arkret SDK. Both envelopes use the authenticated controller as actor_id and its PCR as realm_id, carry ordinary Event proofs, and pass the standard Event admission pipeline. The selector source_refs binds the accountability Event id.",
+      "description": "Closed, controller-signed fan-out plan authored through the Arkret SDK. Both initial submissions use the authenticated controller as actor_id and its PCR as realm_id, carry the immutable Event envelope plus ordinary publication authority evidence, and pass the standard Event admission pipeline. The selector source_refs binds the accountability Event id.",
       "required": [
         "accountability_grant",
         "selector_claim"
       ],
       "properties": {
         "accountability_grant": {
-          "allOf": [
-            {
-              "$ref": "./event-envelope.schema.json"
-            },
-            {
-              "properties": {
-                "kind": {
-                  "const": "ak.identity.accountability_grant"
-                }
-              },
-              "required": ["kind"]
-            }
-          ]
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
         },
         "selector_claim": {
-          "allOf": [
-            {
-              "$ref": "./event-envelope.schema.json"
-            },
-            {
-              "properties": {
-                "kind": {
-                  "const": "ak.agent.selector_claim"
-                }
-              },
-              "required": ["kind"]
-            }
-          ]
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission"
         }
       },
       "additionalProperties": false
