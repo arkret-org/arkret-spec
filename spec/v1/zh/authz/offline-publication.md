@@ -184,7 +184,8 @@ lease、receipt 与 `CbaProofBundle` 都不是 Event 字段，也不进入 Event
 EventInitialSubmission {
   event,
   authorization_lease,
-  cba_proof_bundles?
+  cba_proof_bundles?,
+  control_proposal_receipt?
 }
 ```
 
@@ -198,13 +199,19 @@ peer federation 使用：
 EventFederationSubmission {
   event,
   authorization_lease,
-  ingress_receipts[]
+  ingress_receipts[],
+  control_proposal_receipt?
 }
 ```
 
 至少携带一个 receipt；receiver 再按目标 Realm 的 issuer/threshold/transparency policy 判断证据
 是否充分。request 级 `cba_proof_bundles[]` 只负责补齐 basis closure。任何服务都不得把这些
 传输证据复制进 Event，或因本地较晚首次见到而改写 `received_at`。
+
+`control_proposal_receipt` 只允许 Control Move，且必须是
+[`event-auth-state-resolution.md` §7.2](./event-auth-state-resolution.md) 的 canonical
+authority receipt set；DataEvent携带该字段必须拒绝。它不属于通用CBA bundle，也不能由接收
+Principal Server在不持有真实authority key时补签。
 
 ### 2.2 租约签发
 
@@ -226,10 +233,19 @@ receiver 还 MUST 验证该 service 在 basis/policy 中是合格 ingress 或 de
 proof audience 必须覆盖 issuer service DID。
 
 相同 canonical request 与相同 `Idempotency-Key` 的 retry MUST 返回逐字节相同 lease 与 expiry；
-同 key 不同 request 返回 `duplicate_conflict`。客户端 MAY 在到期前续取，但 MUST 以
+同 key 不同 request 返回 `duplicate_conflict`。续租是用新`Idempotency-Key`重新执行同一
+read-only admission并取得新lease id/issued_at/expires_at；它不得修改已签Event或延长旧lease。
+客户端 MAY 在到期前续取，但 MUST 以
 actor/device/scope/action/basis/authority-set digest 分区保存，且在 sign-out、account switch、
-device revocation 或 generation change 时清除。离线状态只能使用已持有且未过期的 lease，不得
+device revocation、generation change或authority-set digest变化时清除。AuthorizationLease是
+离线可验证事实，协议不定义一个能追溯抹除已分发签名bytes的私有revoke endpoint；撤销必须通过
+accepted CBA capability/device/authority policy变化与bounded TTL生效，client cache清除不能
+替代receiver的basis/revocation验证。离线状态只能使用已持有且未过期的 lease，不得
 把无法联机签发降级为裸 Event。
+
+签发、ordered batch delivery、founding anchor、exact replay/refresh、stale basis、quorum失败与
+cache清除由`ak.vector.authz.authorization_lease_issuance.v1`固定，至少两个独立runner必须对
+相同request产生相同typed decision与lease canonical digest。
 
 ## 3. Profile 与审查风险
 

@@ -88,6 +88,7 @@
     {
       "surface": "events_sync",
       "operations": [
+        "ak.self.control_proposal_receipts.command.issue",
         "ak.self.authorization_leases.command.issue",
         "ak.self.events.query.describe",
         "ak.self.events.command.submit",
@@ -302,7 +303,8 @@
         "ak.self.keys.backups.resource.replace",
         "ak.self.keys.backups.query.list",
         "ak.self.keys.backups.command.unlock",
-        "ak.self.keys.backups.resource.delete"
+        "ak.self.keys.backups.resource.delete",
+        "ak.self.keys.backup_series.command.erase"
       ],
       "surface_class": "extension"
     },
@@ -1655,6 +1657,20 @@
       "success_shape_kind": "event_stream"
     },
     {
+      "operation_id": "ak.self.control_proposal_receipts.command.issue",
+      "http": "POST /_arkret/self/control-proposal-receipts",
+      "grpc": "SelfControlProposalReceipts/Issue",
+      "mq": "self.control_proposal_receipts.command.issue",
+      "notes": "Issue one immutable current-authority member receipt for a fully signed Control Move. Local device/Agent authorities use the same typed request and outcome without an HTTP hop. A caller canonically sorts distinct member receipts and may submit the resulting receipt set only when the current notary profile quorum and common-window rules are satisfied.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "/event",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_request",
+      "response_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_outcome"
+    },
+    {
       "operation_id": "ak.self.authorization_leases.command.issue",
       "http": "POST /_arkret/self/authorization-leases",
       "grpc": "SelfAuthorizationLeases/Issue",
@@ -2176,6 +2192,20 @@
       "retry_safe": true,
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome"
+    },
+    {
+      "operation_id": "ak.self.keys.backup_series.command.erase",
+      "http": "POST /_arkret/self/keys/backup-series/erase",
+      "grpc": "SelfKeys/BackupSeriesErase",
+      "mq": "self.keys.backup_series.command.erase",
+      "notes": "Transaction-bound monotonic erasure of the exact old secret_storage and mls_history series reserved by a SecurityRotationTransaction. Partial outcomes persist per series/object; exact retry never resurrects or rewrites an erased item. A complete outcome carries the sole canonical erase confirmation.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "/transaction_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_request_body",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_outcome"
     },
     {
       "operation_id": "ak.self.keys.backups.query.list",

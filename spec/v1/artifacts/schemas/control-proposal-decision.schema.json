@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/control-proposal-decision.schema.json",
   "title": "Arkret Control Proposal Receipt and Decision",
-  "description": "Signed proposal-ingress receipt and signed reject/defer decisions for CBA Control Moves. Deadlines provide bounded authority decisions, never acceptance or Seal finality.",
+  "description": "Quorum-capable proposal-ingress receipt sets and signed reject/defer decisions for CBA Control Moves. Deadlines provide bounded authority decisions, never acceptance or Seal finality.",
   "oneOf": [
     {
       "$ref": "#/$defs/proposal_receipt"
@@ -23,7 +23,7 @@
         "absolute_due_at",
         "defer_count",
         "authority_set_ref",
-        "signature"
+        "member_receipts"
       ],
       "properties": {
         "kind": {
@@ -50,6 +50,49 @@
         "authority_set_ref": {
           "$ref": "#/$defs/hash"
         },
+        "member_receipts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/proposal_member_receipt"
+          },
+          "description": "Canonical ascending verification_method order. Distinct valid members, not array length, determine quorum."
+        }
+      },
+      "additionalProperties": false
+    },
+    "proposal_member_receipt": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "proposal_digest",
+        "received_at",
+        "decision_due_at",
+        "absolute_due_at",
+        "authority_set_ref",
+        "signature"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "proposal_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "received_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "decision_due_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "absolute_due_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "authority_set_ref": {
+          "$ref": "#/$defs/hash"
+        },
         "signature": {
           "$ref": "#/$defs/proof"
         }
@@ -69,7 +112,7 @@
         "defer_count",
         "reason_code",
         "authority_set_ref",
-        "signature"
+        "proofs"
       ],
       "properties": {
         "kind": {
@@ -110,8 +153,15 @@
         "authority_set_ref": {
           "$ref": "#/$defs/hash"
         },
-        "signature": {
-          "$ref": "#/$defs/proof"
+        "proofs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/proof"
+          },
+          "description": "Canonical ascending verification_method order. Every proof signs the same decision payload and the set independently satisfies the receipt authority quorum."
         }
       },
       "allOf": [
@@ -183,6 +233,43 @@
           }
         }
       ]
+    },
+    "proposal_receipt_issue_request": {
+      "type": "object",
+      "description": "Typed authority input used by a local signer or the registered HTTP operation to issue one immutable member receipt.",
+      "required": [
+        "event",
+        "authorization_lease"
+      ],
+      "properties": {
+        "event": {
+          "$ref": "./event-envelope.schema.json"
+        },
+        "authorization_lease": {
+          "$ref": "./offline-publication.schema.json#/$defs/authorization_lease"
+        },
+        "cba_proof_bundles": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./cba-proof-bundle.schema.json"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "proposal_receipt_issue_outcome": {
+      "type": "object",
+      "required": [
+        "member_receipt"
+      ],
+      "properties": {
+        "member_receipt": {
+          "$ref": "#/$defs/proposal_member_receipt"
+        }
+      },
+      "additionalProperties": false
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

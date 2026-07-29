@@ -413,6 +413,13 @@
       "description": "Typed local-device commit artifact for the terminal SecurityRotationTransaction step."
     },
     {
+      "schema_id": "ak.schema.backup_series_erase_confirmation.v1",
+      "file": "schemas/keys-operations.schema.json",
+      "fragment": "#/$defs/backup_series_erase_confirmation",
+      "status": "active",
+      "description": "Immutable transaction-bound completion artifact proving all planned old secret_storage and mls_history backup objects were erased after authoritative pointer switch."
+    },
+    {
       "schema_id": "ak.schema.recovery_authority_ticket.v1",
       "file": "schemas/recovery-authority.schema.json",
       "status": "active",

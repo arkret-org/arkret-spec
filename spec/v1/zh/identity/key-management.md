@@ -943,7 +943,7 @@ controller fresh-device recovery 仍先完成自己的普通 §7.3 / `device-lif
 - **认证降级阻断**：`POST /_arkret/self/keys/backups/{backup_id}/unlock` 即便对自己的备份也 MUST 要求 fresh device proof（与 §7.4 fresh challenge 相同绑定：challenge / audience / service_id / principal_id / key_id / nonce / 过期时间）。bearer token 单独到达 MUST 被拒绝。
 - **审计记录**：超出阈值或在异常时间窗内的下载 MUST 写入 `ak.audit.accessed`，`access_kind="key_backup_read"`，并按 `ak.profile.attested_audit.e2ee.v1`（若声明）配对 audit pair。
 - **跨 actor 拒绝**：服务端 MUST 在 envelope `actor_id` 与请求 caller 不一致时返回 `forbidden`，并不得通过 metadata 暴露 envelope 是否存在。§7.5.6 managed Agent PCR backup 的 envelope `actor_id` 是 controller，上传/列出/解锁 caller 也始终是该 controller；`contents[].managed_principal_binding.managed_principal_id` 不把 Agent 变成 backup owner，不构成跨 actor 例外。
-- **删除验证**：active series 内的非尾部 envelope MUST NOT 被单独删除。`DELETE` 尾部 envelope MUST 额外要求 `crypto-media/device-lifecycle.md` §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）并写入 `access_kind="key_backup_delete"` 审计。仅持普通 device proof 的 caller 只能删除 `expired_at < now` 且不属于 active series 的旧 envelope，或对已被 active-series record 移出 primary source 的旧 series 发起整组 erasure/retention 删除。
+- **删除验证**：active series 内的非尾部 envelope MUST NOT 被单独删除。`DELETE` 尾部 envelope MUST 额外要求 `crypto-media/device-lifecycle.md` §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）并写入 `access_kind="key_backup_delete"` 审计。仅持普通 device proof 的 caller 只能删除 `expired_at < now` 且不属于 active series 的旧 envelope，或对已被 active-series record 移出 primary source 的旧 series 发起整组 erasure/retention 删除。设备revoke轮换的整组删除必须使用[`security-transactions.md` §3](./security-transactions.md)登记的transaction-bound operation；普通DELETE outcome不得作为`erase_confirmation_digest`来源。
 
 实现 MAY 在 deployment policy 中收紧上述阈值；MUST NOT 放宽超过本节默认。
 
@@ -1089,7 +1089,7 @@ recovery secret 疑似泄露时 MUST 按 §3.3 分流：有独立权威才允许
 
 1. **轮换 backup series**：按 §7.6 为受影响 `backup_kind` 开启**新 `series_id`**（不是在旧 series 上追加），用轮换后的接收密钥重新加密当前需要保留的内容并上传新 series。新设备发现 canonical series 的方式见下方“active series 指针”。
 2. **推进受影响 MLS 群组 epoch（PCS）**：轮换备份密钥本身**不**提供 post-compromise security——它只更换“备份包装”。要使后续消息密钥与被泄状态解耦，MUST 对受影响 Realm 触发 MLS Remove / Update 推进 epoch（与 §9 step 3 同一动作），并按 `crypto-media/encryption-and-audit.md` 绑定 governance frontier。
-3. **删除旧 series**：在新 series 确认可恢复**之后**，按 `crypto-media/device-lifecycle.md` §12.2 retention 流程删除旧 `series` 的服务端密文。删除 MUST 在确认新备份可用之后进行，且 MUST 整组迁移而非删除链中间节点。
+3. **删除旧 series**：在新 series 确认可恢复**之后**，按 `crypto-media/device-lifecycle.md` §12.2 retention 流程删除旧 `series` 的服务端密文。删除 MUST 在确认新备份可用之后进行，且 MUST 整组迁移而非删除链中间节点。若触发源是设备revoke，`secret_storage`与`mls_history`必须由同一`SecurityRotationTransaction`预留并通过`ak.self.keys.backup_series.command.erase`返回逐series durable progress；只有complete typed confirmation的canonical digest可推进事务。
 
 **不可挽回边界（MUST 在 UI 明示）**：上述流程只缩小**后续**暴露面；攻击者在泄露窗口内**已经下载**的旧密文用旧密钥永远可解，轮换/删除无法撤销。
 

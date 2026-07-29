@@ -89,7 +89,7 @@ authority 接受 proposal ingress 时签发的 proposal receipt MUST 包含：
 
 ```text
 proposal_digest, received_at, decision_due_at, absolute_due_at,
-defer_count, authority_set_ref, signature
+defer_count, authority_set_ref, member_receipts[]
 ```
 
 **闭合 genesis 的 ingress authority**：普通路径中的 `authority_set_ref` 来自已经生效的
@@ -98,7 +98,9 @@ PCR、managed Agent PCR），该 authority set 正由单元创建，不能循环
 notary 先签 receipt。此时，完成全量预准入并为同一有序单元签发
 `AuthorizationLease` 的 Principal Server MAY 签发 proposal receipt；receipt 的
 `authority_set_ref` MUST 等于这些 lease 的 `authority_set_digest`，且每个 receipt
-仍逐一绑定 exact Event digest。该例外只确认 ingress，不产生授权、accepted state 或 finality；
+仍逐一绑定 exact Event digest，并以自身真实admission verification method产生唯一
+`member_receipts[0]`。这不是把Principal Server冒充为founding notary，也不得与其它服务receipt
+拼成虚构notary quorum。该例外只确认 ingress，不产生授权、accepted state 或 finality；
 首个 accepted Seal 仍 MUST 由单元声明的 founding notary 签署并独立重算 genesis state。
 已有 accepted Realm authority、reanchor、recovery 或普通 Control Move 不得使用此例外。
 
@@ -110,7 +112,8 @@ Realm 可通过 `proposal_decision_window_ms`、`proposal_absolute_deadline_ms` 
 - 每次 defer 必须带 closed `reason_code` 和新的 `decision_due_at`；
 - `absolute_due_at - received_at` 不得超过 72 hours，且 defer 不得改变 `absolute_due_at`。
 
-每个 defer MUST 引用原 receipt digest，绑定同一 proposal / Realm / authority set，
+每个 defer MUST 引用完整canonical receipt-set digest，绑定同一 proposal / Realm /
+authority set，并由该receipt set要求的quorum对同一payload产生canonical `proofs[]`；
 `defer_count` 恰好加一，且不得改变 `absolute_due_at`。期限内必须出现 include in
 accepted Seal、signed reject 或 signed defer。reject 与 defer 只是
 可验证决议，不提供 finality；只有 include 后的 Seal 提供 finality。超过绝对期限仍无决议时，

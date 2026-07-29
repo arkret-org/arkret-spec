@@ -240,3 +240,9 @@ fallback；没有该 profile时不得在Arkret discovery中广告WebTransport。
 - Signal洪峰下account/to-device保留配额；
 - server drain、reauth、session撤销与HTTP fallback；
 - 两标签页中只有single leader拥有物理连接和durable writer。
+
+上述发现、认证、多路复用隔离、backpressure、reconnect/downgrade与HTTP fallback由
+`ak.vector.binding.websocket.v1`固定。实现只有运行
+`websocket-binding-fixture.json`并通过全部正负向case后，才可在
+`ServiceDescribe.supported_bindings`广告本profile；未知/不完整descriptor永远回退mandatory
+HTTP/JSON与bounded NDJSON。

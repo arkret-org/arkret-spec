@@ -432,7 +432,7 @@ Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名�
 
 ```text
 proposal_digest, received_at, decision_due_at, absolute_due_at,
-defer_count=0, authority_set_ref, signature
+defer_count=0, authority_set_ref, member_receipts[]
 ```
 
 机读合同为
@@ -445,6 +445,51 @@ Realm 的 `proposal_decision_window_ms` 给出首个决议窗口（default 30,00
 （default 90,000ms，协议硬上限 72h），`max_proposal_defers` 给出 defer 次数上限
 （default 2，协议硬上限 2）。profile / deployment MAY 声明更短窗口或更少 defer，
 不得放宽协议硬上限。
+
+**外部 authority receipt set（normative）**：当接收 Event 的 Principal Server 不持有当前
+notary authority，或单个 signer 不能满足 threshold/mixed quorum 时，它不得用服务密钥代签。
+proposal author 必须对每个真实 authority 使用
+`ak.self.control_proposal_receipts.command.issue` 的 typed request；本地 Agent/device signer
+使用完全相同的 request、canonical digest 与 outcome transcript，只省略 HTTP hop。每个
+authority 独立验证最终签名 Event、AuthorizationLease、genesis/basis 当前 notary policy、
+Realm、`proposal_digest`、signer membership 与 deadlines，随后签发一次
+`ProposalMemberReceipt`。同一 `(proposal_digest, authority_set_ref, verification_method)` 的
+byte-identical retry MUST 返回首次持久化的 member receipt；不同 Event bytes、authority set
+或时间字段 MUST `duplicate_conflict`，不得重签延长期限。
+
+member签名 transcript 是
+`JCS({context:"ak.control-proposal-member-receipt-proof-v1",
+payload_digest:SHA-256(JCS(member_receipt_without_signature)),verification_method,
+created_at:received_at})`；proof的`payload_digest`与`created_at`必须逐字匹配，禁止签任意摘要后
+只比较字段。每个member的`decision_due_at`必须恰等于
+`received_at + proposal_decision_window_ms`，`absolute_due_at`必须恰等于
+`received_at + proposal_absolute_deadline_ms`；所有加法按UTC instant计算，溢出或超协议上限拒绝。
+
+author 将互异 member receipt 按 `signature.verification_method` canonical 升序组装为唯一
+`ProposalReceipt`。receiver 必须：
+
+1. 逐项重算 member statement digest并验真实签名，按 verification method 去重，只把 genesis
+   或 Event basis 解析出的当前 authority member计入 quorum；
+2. 要求所有 member 的 Realm、proposal digest与authority-set ref逐字一致，且
+   `max(received_at)-min(received_at) <= receipt_sla_ms`；
+3. 令set级 `received_at=max(member.received_at)`、
+   `decision_due_at=min(member.decision_due_at)`、
+   `absolute_due_at=min(member.absolute_due_at)`，并要求
+   `received_at <= decision_due_at <= absolute_due_at`；set级字段与该计算不一致即拒绝；
+4. 按`single_did` / `threshold` / `mixed`当前profile计算互异member quorum；open-set按
+   `(Realm, signer slot)`独立receipt，不得把互不相干leaves拼成threshold；
+5. 把canonical receipt set、accepted Event、pending index与wakeup原子提交。duplicate Event
+   返回byte-identical receipt set；receipt集合、成员时间、顺序或签名不同均不得覆盖首次事实。
+
+`EventInitialSubmission.control_proposal_receipt` 与
+`EventFederationSubmission.control_proposal_receipt` 是该证据的唯一输入位置，只允许 Control
+Move；DataEvent携带时必须 schema/admission拒绝。`cba_proof_bundles[]`只补basis closure，不得
+承载或替代receipt。收集未在共同窗口内达到quorum时，本proposal永久不能以零散receipt入库；
+producer必须author并签署新的Control Move Event，authority不得为旧digest重新计时。
+`receipt_digest = SHA-256(JCS(the complete canonical ProposalReceipt including member
+signatures))`；同一有效member集合只有一种排序和一种digest。
+该外部成员签发、共同窗口、quorum、duplicate/equivocation与decision-set binding由
+`ak.vector.cba.external_proposal_receipt_quorum.v1`固定。
 
 每个决议窗口到期前，authority MUST 产生以下之一：
 
@@ -459,8 +504,13 @@ Realm 的 `proposal_decision_window_ms` 给出首个决议窗口（default 30,00
 `temporarily_unavailable`。实现不得接受
 未登记字符串，也不得把 defer 原因用于 terminal reject。
 
-每个 defer MUST 引用原始 receipt digest，绑定同一 proposal、Realm 与 authority set，
-并原样保留 `absolute_due_at`。`signed_reject` 与 `signed_defer` 是可验证的 authority
+每个 defer MUST 引用完整 canonical receipt-set digest，绑定同一 proposal、Realm 与 authority
+set，并由当前 receipt quorum 对同一 decision payload 产生按 verification method canonical
+排序的 `proofs[]`。`decision_digest=SHA-256(JCS(decision_without_proofs))`，每个proof的
+`payload_digest`必须等于该值、`created_at`必须等于`decided_at`，签名transcript固定为
+`JCS({context:"ak.control-proposal-decision-proof-v1",payload_digest,
+verification_method,created_at})`；proof不得跨 receipt set、decision kind 或 defer count拼接。它还必须
+原样保留 `absolute_due_at`。`signed_reject` 与 `signed_defer` 是可验证的 authority
 决议，**不是** proposal 被接受，也不提供 finality；只有第 1 项中的 accepted Seal 提供
 控制面 finality。该义务不得命名为“接受 SLA”，也不得声称 deadline 本身提供 finality。
 receiver 本地收到 Event、receipt、decision 或 Seal 的时间 MUST NOT 进入规范计算。

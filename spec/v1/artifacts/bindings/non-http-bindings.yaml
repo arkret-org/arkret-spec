@@ -180,6 +180,8 @@ grpc:
       TakedownAppeal: ak.find.directory.command.takedown_appeal
     SelfAuthorizationLeases:
       Issue: ak.self.authorization_leases.command.issue
+    SelfControlProposalReceipts:
+      Issue: ak.self.control_proposal_receipts.command.issue
     SelfEvents:
       Describe: ak.self.events.query.describe
       Frontier: ak.self.events.query.frontier
@@ -239,6 +241,7 @@ grpc:
       Issue: ak.self.recovery_authority_ticket.command.issue
     SelfKeys:
       Claim: ak.self.keys.command.claim
+      BackupSeriesErase: ak.self.keys.backup_series.command.erase
       BackupsDelete: ak.self.keys.backups.resource.delete
       BackupsUnlock: ak.self.keys.backups.command.unlock
       BackupsList: ak.self.keys.backups.query.list
@@ -333,6 +336,7 @@ mq:
     self.security_transaction.command.create: ak.self.security_transaction.command.create
     self.security_transaction.resource.get: ak.self.security_transaction.resource.get
     self.security_transaction.command.continue: ak.self.security_transaction.command.continue
+    self.control_proposal_receipts.command.issue: ak.self.control_proposal_receipts.command.issue
     self.authorization_leases.command.issue: ak.self.authorization_leases.command.issue
     self.events.command.submit: ak.self.events.command.submit
     self.events.command.submit_seal: ak.self.events.command.submit_seal
@@ -340,6 +344,7 @@ mq:
     self.events.query.scan.resolve: ak.self.events.query.resolve
     self.events.query.scan: ak.self.events.query.scan
     self.events.stream.subscribe: ak.self.events.stream.subscribe
+    self.keys.backup_series.command.erase: ak.self.keys.backup_series.command.erase
     peer.events.query.scan.describe: ak.peer.events.query.describe
     peer.events.command.submit: ak.peer.events.command.submit
     peer.events.query.scan.resolve: ak.peer.events.query.resolve

@@ -29,6 +29,58 @@
       "description": "Proposal receipt deadlines, at most two immutable-horizon signed defers, decision-overdue evidence, and acceptance of a later cryptographically valid Seal."
     },
     {
+      "vector_id": "ak.vector.cba.external_proposal_receipt_quorum.v1",
+      "status": "active",
+      "domain": "cba",
+      "applies_to_fixtures": [
+        "control-proposal-receipt-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/authz/event-auth-state-resolution.md",
+        "spec/v1/artifacts/fixtures/control-proposal-receipt-fixture.json"
+      ],
+      "description": "External authority member receipt issuance, canonical receipt-set assembly, common-window calculation, threshold deduplication, exact replay and decision-chain binding."
+    },
+    {
+      "vector_id": "ak.vector.security_transaction.resilience.v1",
+      "status": "active",
+      "domain": "security_transaction",
+      "applies_to_fixtures": [
+        "security-transaction-resilience-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/identity/security-transactions.md",
+        "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json"
+      ],
+      "description": "Recovery A/B and SecurityRotation crash, response-loss, restart, exact/conflicting replay, staged-secret loss, terminal replay and multi-backup-kind erase ordering."
+    },
+    {
+      "vector_id": "ak.vector.authz.authorization_lease_issuance.v1",
+      "status": "active",
+      "domain": "authz",
+      "applies_to_fixtures": [
+        "authorization-lease-issuance-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/authz/offline-publication.md",
+        "spec/v1/artifacts/fixtures/authorization-lease-issuance-fixture.json"
+      ],
+      "description": "Authority lease issuance, ordered batch delivery, exact idempotent refresh, founding anchor basis, stale/quorum failure and cache-clearing boundaries."
+    },
+    {
+      "vector_id": "ak.vector.binding.websocket.v1",
+      "status": "active",
+      "domain": "binding",
+      "applies_to_fixtures": [
+        "websocket-binding-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/sync/websocket-binding.md",
+        "spec/v1/artifacts/fixtures/websocket-binding-fixture.json"
+      ],
+      "description": "Closed WebSocket discovery, challenge/DPoP auth, account/events/signal multiplex isolation, backpressure, reconnect and mandatory HTTP fallback."
+    },
+    {
       "vector_id": "ak.vector.cross_signing.subordinate_key_binding.v1",
       "status": "active",
       "domain": "cross_signing",

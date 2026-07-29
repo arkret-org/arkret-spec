@@ -3951,6 +3951,28 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/security-transaction.schema.json
+  /_arkret/self/control-proposal-receipts:
+    post:
+      operationId: ak.self.control_proposal_receipts.command.issue
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        requestCanonicalDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_request
+      responses:
+        '200':
+          description: Immutable member receipt signed by one current Control authority.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_outcome
   /_arkret/self/authorization-leases:
     post:
       operationId: ak.self.authorization_leases.command.issue
@@ -6465,6 +6487,28 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/key-backup.schema.json
+  /_arkret/self/keys/backup-series/erase:
+    post:
+      operationId: ak.self.keys.backup_series.command.erase
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        requestCanonicalDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/keys-operations.schema.json#/$defs/backup_series_erase_request_body
+      responses:
+        '200':
+          description: Durable monotonic per-series erasure progress or immutable completion confirmation.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/keys-operations.schema.json#/$defs/backup_series_erase_outcome
   /_arkret/self/keys/backups:
     get:
       operationId: ak.self.keys.backups.query.list

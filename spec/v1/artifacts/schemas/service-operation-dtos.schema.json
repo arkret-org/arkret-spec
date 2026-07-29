@@ -4097,6 +4097,10 @@
             "$ref": "./cba-proof-bundle.schema.json"
           },
           "description": "Optional receiver-relative dependency bundles for the Event seal_ref or seal_basis. Bundles are transport evidence, not Event fields."
+        },
+        "control_proposal_receipt": {
+          "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_receipt",
+          "description": "Required external-authority receipt set when a Control Move is submitted to a receiver that cannot itself produce the complete current authority quorum. Forbidden for DataEvents."
         }
       },
       "additionalProperties": false
@@ -4124,6 +4128,10 @@
           "items": {
             "$ref": "./offline-publication.schema.json#/$defs/ingress_receipt"
           }
+        },
+        "control_proposal_receipt": {
+          "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_receipt",
+          "description": "Canonical external-authority receipt set for a federated Control Move. Forbidden for DataEvents."
         }
       },
       "additionalProperties": false

@@ -313,11 +313,16 @@ response loss 后复用 proof/JTI）返回首次 successor，不同 bytes 返回
 
 ## 3. SecurityRotationTransaction
 
-固定绑定 revoke Event、新 secret commitment、backup series/envelope、active-series Event、
-erase confirmation digest 与 local commit digest。步骤顺序唯一：
+固定绑定 revoke Event、新 secret commitment、按 `backup_kind` 闭合的两条
+`backup_rotations[]`、erase confirmation digest 与 local commit digest。数组必须按
+`secret_storage, mls_history` 顺序恰含两项；每项固定
+`previous_series_id`、`new_series_id`、完整 `new_backups[]`、`active_series_event_id` 与完整
+`old_backups[]`。两项或其任一 backup id/digest 在 create 后都不得替换。
 
-对应 `binding` 必填 `revoke_event_id`、`new_secret_commitment`、`series_id`、`backup_id`、
-`active_series_event_id`、`erase_confirmation_digest`、`local_commit_digest`。
+`prepared_plan.backup_rotations[]` 与 binding逐项相等，并为每项保存 encrypted material与
+active-series Event prepared unit。公开transaction/checkpoint只保存该typed public plan；
+staged account secret、明文keybag、MLS secret与私钥只能留在zeroizing secure-store slot，
+且终态必须清除。
 
 ```text
 revoke
@@ -331,11 +336,37 @@ revoke
 不得 erase；erase 已接受后不得切回旧 pointer。客户端本地 commit 丢失时只能查询并重放相同
 terminal result，不能重新上传或重新 erase。
 
+`erase_old_material` 的唯一 wire operation 是
+`ak.self.keys.backup_series.command.erase`。request 必须携带 transaction/request/plan digest、
+预留 `erase_confirmation_digest`、两条完整 binding、high-risk
+`AuthorizationLease(action=ak.keys.backup_series.erase)` 与必要CBA bundle。服务端必须先验证：
+
+1. transaction当前next step确为`erase_old_material`；
+2. 两个new series及其各自`ak.key_backup.active_series` Event均已accepted且仍是authoritative；
+3. target恰等于prepared plan的old backups，任何active、未计划、缺digest或额外backup均拒绝；
+4. lease的basis/rule/actor/device/scope覆盖当前transaction且未过期。
+
+response按backup kind返回durable `series_results[]`。storage partial failure只能把尚未擦除项标为
+`pending`或`failed_retryable`；已经擦除项必须单调保持`erased`，重启或精确重试不得复活、改写
+digest或重新加入remaining集合。`request_digest`是完整erase request canonical bytes的SHA-256；
+相同transaction id但request digest不同必须`duplicate_conflict`。每个result的
+`erased_backups ∪ remaining_backups`必须恰等于plan中该kind的`old_backups`，两集合不相交且均按
+backup id canonical升序；`status=erased`当且仅当remaining为空，`reason_code`只允许
+`failed_retryable`。只有两个series的全部planned objects都确认擦除时，status才可为
+`complete`并返回`ak.schema.backup_series_erase_confirmation.v1`。confirmation只含create时已固定
+的transaction/request/plan与series bytes，因而其SHA-256(JCS)必须逐字等于预留
+`erase_confirmation_digest`；这是SecurityTransaction accepted erase step
+`output_digest`的唯一来源。partial outcome、单对象DELETE响应、日志或本地flag都不能推进该step。
+
 ## 4. 故障点要求
 
 实现 conformance 必须在每个远端副作用前后注入 crash、response lost、coordinator restart、
 同 id 同/不同 bytes 重试、staged secret 丢失与 terminal replay。任一故障点都只能观察到一个
 transaction 和一组 reserved ids。
+
+上述矩阵由`ak.vector.security_transaction.resilience.v1`与
+`ak.vector_group.security_transaction.v1`固定；runner必须覆盖Recovery A/B与Rotation双
+backup-kind，并输出canonical结果digest供第二个独立实现对拍。
 
 正例：pointer switch 已成功但响应丢失；重试查询同一 transaction，继续 erase。
 

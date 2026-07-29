@@ -1,0 +1,76 @@
+{
+  "profile": "ak.profile.binding.websocket.v1",
+  "version": "2026-07-29",
+  "suite": "websocket_binding",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.binding.websocket.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.binding.websocket.v1"
+  ],
+  "cases": [
+    {
+      "name": "closed_discovery_and_authentication",
+      "binding_kind": "websocket",
+      "profile_id": "ak.profile.binding.websocket.v1",
+      "subprotocol": "arkret.v1",
+      "authentication": "challenge_dpop_session_v1",
+      "expected": {
+        "decision": "connect",
+        "credentials_in_url": false
+      }
+    },
+    {
+      "name": "unknown_or_incomplete_descriptor_falls_back",
+      "binding_kind": "websocket",
+      "missing_fields": [
+        "subprotocol",
+        "max_channels"
+      ],
+      "expected": {
+        "websocket_attempted": false,
+        "transport": "http_json"
+      }
+    },
+    {
+      "name": "multiplexed_channels_preserve_independent_semantics",
+      "channels": [
+        "ak.self.account.stream.subscribe",
+        "ak.self.events.stream.subscribe",
+        "ak.self.signal.stream.subscribe"
+      ],
+      "expected": {
+        "durable_cursors": [
+          "account",
+          "events"
+        ],
+        "signal_cursor": false,
+        "signal_catchup": false,
+        "channel_error_closes_connection": false
+      }
+    },
+    {
+      "name": "signal_flood_does_not_starve_durable_channels",
+      "signal_queue_over_limit": true,
+      "expected": {
+        "signal_may_drop": true,
+        "account_reserved_capacity": true,
+        "events_reserved_capacity": true
+      }
+    },
+    {
+      "name": "reauth_failure_and_proxy_block_use_http_fallback",
+      "failures": [
+        "reauth_failed",
+        "subprotocol_not_selected",
+        "proxy_blocked"
+      ],
+      "expected": {
+        "old_channel_owner_stopped_first": true,
+        "transport": "http_json",
+        "duplicate_consumers": false
+      }
+    }
+  ]
+}

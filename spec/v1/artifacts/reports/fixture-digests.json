@@ -37,6 +37,10 @@
       "sha256": "28d5337ebace16db525d4ac9d70ae3d57e8310aefaf5c33bddbde1188f38199e"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/authorization-lease-issuance-fixture.json",
+      "sha256": "682becb1cb69ead2c20136d8195a16d0d9221b045aaf1b7751486aee6f0e4a9a"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/blob-stream-aead-fixture.json",
       "sha256": "1dd52fafa966245b1ca3c58ffca9b3be4c6b08e40245cf94244349ec0259b2fb"
     },
@@ -67,6 +71,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
       "sha256": "afa8a98ead46618472ae7758228931abae365ed8b6243334a91f26e00cdcd76d"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/control-proposal-receipt-fixture.json",
+      "sha256": "aec959f2c50c5180bf6da80ca2d3e27ec52df7d72fbd334afbed567818e767fb"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cross-signing-binding-fixture.json",
@@ -118,7 +126,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "54b3e300f16ddedcc91c4cfa011fa2aea8812f2ec888459ee6bc458c4521dad9"
+      "sha256": "d265ea34b9275d48329c02513e789ae6dd1b046337ed9ee6d7ebb700fb0ec347"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -250,11 +258,15 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/seal-submit-fixture.json",
-      "sha256": "ddd1f08c8fb752af29e4c1d731f7e42caf31c4e78406c8203b86314be9c329ce"
+      "sha256": "84c10369ef05b3c7e3efffd79699ac9cc3b7aa2df5ce504b087a0caf1a8cd75e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-fixture.json",
       "sha256": "e8b55fefc6a60a61338a2432047b4db5332ac0e212b70db302767db4b9000956"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",
+      "sha256": "40fc55753be84e4ab81c27a13113886b4a7bd0a8301e5da4964ae4c5fb444bc5"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
@@ -279,6 +291,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
       "sha256": "71ed32f86ba4f27f4bb95d7d09c951d566747b063665d49275418cca175f2236"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/websocket-binding-fixture.json",
+      "sha256": "78548ffcb972a3e09b1b0f4fc59021f1ab0cc983ef7287db4ac469d100aa4164"
     }
   ],
   "fixtures_root": "spec/v1/artifacts/fixtures",

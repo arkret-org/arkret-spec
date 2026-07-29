@@ -520,6 +520,9 @@
           "items": {
             "$ref": "./cba-proof-bundle.schema.json"
           }
+        },
+        "control_proposal_receipt": {
+          "$ref": "./control-proposal-decision.schema.json#/$defs/proposal_receipt"
         }
       },
       "additionalProperties": false
@@ -727,9 +730,7 @@
       "required": [
         "revoke_event_id",
         "new_secret_commitment",
-        "series_id",
-        "backup_id",
-        "active_series_event_id",
+        "backup_rotations",
         "erase_confirmation_digest",
         "local_commit_digest"
       ],
@@ -740,14 +741,15 @@
         "new_secret_commitment": {
           "$ref": "#/$defs/hash"
         },
-        "series_id": {
-          "$ref": "#/$defs/backup_series_id"
-        },
-        "backup_id": {
-          "$ref": "#/$defs/backup_id"
-        },
-        "active_series_event_id": {
-          "$ref": "#/$defs/event_id"
+        "backup_rotations": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/backup_rotation_binding"
+          },
+          "description": "Exactly secret_storage then mls_history in canonical backup_kind order."
         },
         "erase_confirmation_digest": {
           "$ref": "#/$defs/hash"
@@ -758,13 +760,76 @@
       },
       "additionalProperties": false
     },
+    "backup_object_ref": {
+      "type": "object",
+      "required": [
+        "backup_id",
+        "ciphertext_digest"
+      ],
+      "properties": {
+        "backup_id": {
+          "$ref": "#/$defs/backup_id"
+        },
+        "ciphertext_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "backup_rotation_binding": {
+      "type": "object",
+      "required": [
+        "backup_kind",
+        "previous_series_id",
+        "new_series_id",
+        "new_backups",
+        "active_series_event_id",
+        "old_backups"
+      ],
+      "properties": {
+        "backup_kind": {
+          "type": "string",
+          "enum": [
+            "secret_storage",
+            "mls_history"
+          ]
+        },
+        "previous_series_id": {
+          "$ref": "#/$defs/backup_series_id"
+        },
+        "new_series_id": {
+          "$ref": "#/$defs/backup_series_id"
+        },
+        "new_backups": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 512,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/backup_object_ref"
+          }
+        },
+        "active_series_event_id": {
+          "$ref": "#/$defs/event_id"
+        },
+        "old_backups": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 512,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/backup_object_ref"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "security_rotation_plan": {
       "type": "object",
       "required": [
         "revoke_unit",
         "new_secret_commitment",
-        "encrypted_backup_material",
-        "active_series_unit",
+        "backup_rotations",
         "erase_confirmation_digest",
         "local_commit_digest"
       ],
@@ -775,17 +840,41 @@
         "new_secret_commitment": {
           "$ref": "#/$defs/hash"
         },
-        "encrypted_backup_material": {
-          "$ref": "./recovery-authority.schema.json#/$defs/canonical_public_material"
-        },
-        "active_series_unit": {
-          "$ref": "#/$defs/prepared_event_unit"
+        "backup_rotations": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/backup_rotation_plan"
+          },
+          "description": "Prepared material for the same canonical two backup_kind entries as binding.backup_rotations."
         },
         "erase_confirmation_digest": {
           "$ref": "#/$defs/hash"
         },
         "local_commit_digest": {
           "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "backup_rotation_plan": {
+      "type": "object",
+      "required": [
+        "binding",
+        "encrypted_backup_material",
+        "active_series_unit"
+      ],
+      "properties": {
+        "binding": {
+          "$ref": "#/$defs/backup_rotation_binding"
+        },
+        "encrypted_backup_material": {
+          "$ref": "./recovery-authority.schema.json#/$defs/canonical_public_material"
+        },
+        "active_series_unit": {
+          "$ref": "#/$defs/prepared_event_unit"
         }
       },
       "additionalProperties": false
