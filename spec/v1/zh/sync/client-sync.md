@@ -69,8 +69,8 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 | `filter.timeline_limit` | query | `int` | optional | 每个 Realm timeline 数量上限(per-frame)。 |
 | `filter.lazy_load_members` | query | `boolean` | optional | 是否延迟加载成员。 |
 | `filter.include_redundant_members` | query | `boolean` | optional | 是否包含冗余成员状态。 |
-| `filter.event_types` | query | `string[]` | optional | 事件类型 allow list。 |
-| `filter.not_event_types` | query | `string[]` | optional | 事件类型 deny list。 |
+| `filter.event_kinds` | query | `string[]` | optional | Event kind allow list。 |
+| `filter.not_event_kinds` | query | `string[]` | optional | Event kind deny list。 |
 
 Presence 不属于 account aggregate。客户端通过可选
 [`Signal Extension`](./signal.md) 发送和接收加密 presence；`GET
@@ -641,7 +641,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 1. 将 query deepObject 解析为 JSON filter object；未提供 `filter` 时，normalized filter 是空对象 `{}`。
 2. 省略所有未出现的 optional 字段；不得把实现默认值写入 normalized filter。
-3. 对集合语义字段 `realms`、`event_types`、`not_event_types`，在计算 digest 前按元素字符串 lexicographic 排序并去重；其它数组若未来由 profile 引入，profile MUST 声明 order-is-semantic 或 sorted，未声明时不得进入 cursor binding。
+3. 对集合语义字段 `realms`、`event_kinds`、`not_event_kinds`，在计算 digest 前按元素字符串 lexicographic 排序并去重；其它数组若未来由 profile 引入，profile MUST 声明 order-is-semantic 或 sorted，未声明时不得进入 cursor binding。
 4. 按 RFC 8785 JCS 对 normalized filter 编码为 UTF-8 bytes，计算 `filter_digest = "sha256:" || hex(sha256(jcs_bytes))`。
 
 服务端签发 stream cursor、强制 `reconnect_after_ms` cooldown 或验证 cursor binding 时 MUST 使用同一 `filter_digest`；客户端若持久化 cursor，也 SHOULD 同步持久化该 digest 以便诊断 `cursor_integrity_invalid`。
@@ -652,7 +652,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 1. normalized scope object 包含全部**非位置性**、决定结果集合或结果形状的请求参数：selector（`realms`、`actors`）、`filters` object、`order`，以及 profile 引入的等价参数。
 2. 位置性参数（`before` / `after` / `limit` / cursor 本身）与认证材料 MUST NOT 进入 digest——它们随每次调用变化，不属于作用域身份。
-3. 集合语义字段（`realms`、`actors`、`event_types`、`not_event_types`）在计算前按元素字符串 lexicographic 排序并去重；未提供的 optional 字段省略，不得把实现默认值写入 normalized scope。
+3. 集合语义字段（`realms`、`actors`、`event_kinds`、`not_event_kinds`）在计算前按元素字符串 lexicographic 排序并去重；未提供的 optional 字段省略，不得把实现默认值写入 normalized scope。
 4. 按 RFC 8785 JCS 编码为 UTF-8 bytes 计算 `sha256`，规则与本节 `filter_digest` 一致。
 
 客户端在与签发 scope 不同的查询作用域下回传 cursor（例如更换了 `actors` selector 或 `order`），服务端 MUST 视为 binding 不匹配并返回 `cursor_integrity_invalid`，MUST NOT 按新 scope 继续续读——跨 scope 复用 cursor 会产生静默跳读（新 scope 包含、旧 scope 排除的事件被跳过）或权限边界混淆。字段名继续沿用 `filter_digest`；在 events 面它语义上是 query-scope digest。

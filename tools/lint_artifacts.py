@@ -20,6 +20,7 @@ import hashlib
 import re
 import sys
 import time
+import urllib.parse
 import warnings
 from collections import Counter
 from datetime import datetime
@@ -38,10 +39,13 @@ try:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", DeprecationWarning)
         from jsonschema import Draft202012Validator, FormatChecker, RefResolver
+        from referencing import Registry, Resource
 except ImportError:  # pragma: no cover - CI installs the dependency.
     Draft202012Validator = None
     FormatChecker = None
     RefResolver = None
+    Registry = None
+    Resource = None
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -2901,6 +2905,16 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
         lint.fail(path, f"profile_requirements missing declared profile: {profile_id}")
 
     fixture_files = {fixture.name for fixture in (ARTIFACTS / "fixtures").glob("*.json")}
+    fixture_documents = {
+        fixture.name: load_json(lint, fixture)
+        for fixture in (ARTIFACTS / "fixtures").glob("*.json")
+    }
+    vector_registry = load_json(lint, ARTIFACTS / "registry" / "vector-registry.json")
+    vector_ids = {
+        row.get("vector_id")
+        for row in (vector_registry or {}).get("vectors", [])
+        if isinstance(row, dict) and isinstance(row.get("vector_id"), str)
+    }
     required_keys = {
         "required_endpoints",
         "required_event_kinds",
@@ -2956,6 +2970,34 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
         for fixture in requirement.get("required_fixtures", []):
             if fixture not in fixture_files:
                 lint.fail(path, f"{profile_id} requires missing fixture: {fixture}")
+
+        for vector_id in requirement.get("required_vectors", []):
+            if vector_id not in vector_ids:
+                lint.fail(path, f"{profile_id} requires unknown vector: {vector_id}")
+
+        for runner_suite in requirement.get("required_runner_suites", []):
+            if not isinstance(runner_suite, dict):
+                lint.fail(path, f"{profile_id} required_runner_suites entry must be an object")
+                continue
+            suite = runner_suite.get("suite")
+            fixture = runner_suite.get("artifact_fixture")
+            entrypoint = runner_suite.get("entrypoint")
+            if not isinstance(suite, str) or not suite:
+                lint.fail(path, f"{profile_id} runner suite requires non-empty suite")
+                continue
+            if not isinstance(fixture, str) or fixture not in fixture_documents:
+                lint.fail(path, f"{profile_id} runner suite references missing fixture: {fixture!r}")
+                continue
+            fixture_document = fixture_documents[fixture]
+            if not isinstance(fixture_document, dict) or fixture_document.get("suite") != suite:
+                lint.fail(path, f"{profile_id} runner suite {suite!r} does not match {fixture}")
+                continue
+            fixture_runner = fixture_document.get("runner")
+            if not isinstance(fixture_runner, dict):
+                lint.fail(path, f"{profile_id} runner suite fixture {fixture} has no runner")
+                continue
+            if entrypoint is not None and fixture_runner.get("entrypoint") != entrypoint:
+                lint.fail(path, f"{profile_id} runner suite entrypoint does not match {fixture}")
 
         feature_discovery = requirement.get("feature_discovery")
         if not isinstance(feature_discovery, dict):
@@ -6674,6 +6716,30 @@ def schema_validator(schema_path: Path, fragment: str) -> Any:
     schema = resolve_json_pointer(schema_document, fragment)
     if not isinstance(schema, dict):
         raise TypeError("schema_ref fragment is not an object schema")
+    root_id = schema_document.get("$id") if isinstance(schema_document, dict) else None
+    if (
+        schema_path.suffix.lower() == ".json"
+        and isinstance(root_id, str)
+        and Registry is not None
+        and Resource is not None
+    ):
+        def retrieve_schema(uri: str) -> Any:
+            return Resource.from_contents(load_json_schema_for_uri(uri))
+
+        registry = Registry(retrieve=retrieve_schema).with_resource(
+            root_id,
+            Resource.from_contents(schema_document),
+        )
+        target = root_id + (fragment if fragment.startswith("#") else fragment)
+        wrapper = {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$ref": target,
+        }
+        return Draft202012Validator(
+            wrapper,
+            registry=registry,
+            format_checker=schema_format_checker(),
+        )
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", DeprecationWarning)
         resolver = RefResolver(
@@ -9031,6 +9097,800 @@ def check_timestamp_profile_single_source(lint: Lint) -> None:
             walk(path, data)
 
 
+def websocket_canonical_wss_errors(value: object) -> list[str]:
+    """Return profile-level canonicalization errors for a WebSocket base URL."""
+    if not isinstance(value, str):
+        return ["value is not a string"]
+    errors: list[str] = []
+    if len(value.encode("utf-8")) > 2048:
+        errors.append("UTF-8 form exceeds 2048 bytes")
+    if not value.isascii():
+        errors.append("URI must use an ASCII DNS A-label host")
+    try:
+        parsed = urllib.parse.urlsplit(value)
+    except ValueError as exc:
+        return [f"URI cannot be parsed: {exc}"]
+    if parsed.scheme != "wss" or not value.startswith("wss://"):
+        errors.append("scheme must be lowercase wss")
+    if parsed.query or parsed.fragment:
+        errors.append("query and fragment are forbidden")
+    if parsed.username is not None or parsed.password is not None or "@" in parsed.netloc:
+        errors.append("userinfo is forbidden")
+    authority = parsed.netloc.rsplit("@", 1)[-1]
+    raw_host = authority.rsplit(":", 1)[0] if ":" in authority and not authority.startswith("[") else authority
+    host = parsed.hostname
+    if not host:
+        errors.append("DNS host is required")
+    else:
+        if raw_host != raw_host.lower():
+            errors.append("DNS host must be lowercase")
+        if host.endswith("."):
+            errors.append("DNS host trailing dot is forbidden")
+        if ":" in host:
+            errors.append("IP literals are not DNS A-label hosts")
+        labels = host.split(".")
+        if (
+            any(not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label) for label in labels)
+            or len(host) > 253
+        ):
+            errors.append("host is not a valid lowercase DNS A-label name")
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        errors.append(f"port is invalid: {exc}")
+        port = None
+    if ":" in authority and not authority.startswith("["):
+        port_text = authority.rsplit(":", 1)[1]
+        if not re.fullmatch(r"[1-9][0-9]{0,4}", port_text):
+            errors.append("explicit port must be non-zero decimal without leading zeros")
+        if port == 443:
+            errors.append("default port 443 must be omitted")
+    if port is not None and not 1 <= port <= 65535:
+        errors.append("port is outside 1..65535")
+    path_value = parsed.path
+    if not path_value or not path_value.startswith("/"):
+        errors.append("non-empty absolute path is required")
+    if any(segment in {".", ".."} for segment in path_value.split("/")):
+        errors.append("dot segments are forbidden")
+    unreserved = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
+    index = 0
+    while index < len(path_value):
+        if path_value[index] != "%":
+            index += 1
+            continue
+        escape = path_value[index : index + 3]
+        if not re.fullmatch(r"%[0-9A-F]{2}", escape):
+            errors.append("percent escapes must be complete and use uppercase hexadecimal")
+            index += 1
+            continue
+        if chr(int(escape[1:], 16)) in unreserved:
+            errors.append("unreserved path characters must not be percent-encoded")
+        index += 3
+    return errors
+
+
+def check_websocket_binding_fixture(lint: Lint) -> None:
+    """Execute the in-tree, tool-neutral portion of the WebSocket binding suite."""
+    path = ARTIFACTS / "fixtures" / "websocket-binding-fixture.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+
+    discovery_cases = data.get("discovery_cases")
+    if not isinstance(discovery_cases, list):
+        lint.fail(path, "discovery_cases must be an array")
+        return
+    discovery_by_name = {
+        case.get("name"): case
+        for case in discovery_cases
+        if isinstance(case, dict) and isinstance(case.get("name"), str)
+    }
+    required_discovery_names = {
+        "closed_descriptor",
+        "partial_operations_rejected",
+        "noncanonical_or_credentialed_url_rejected",
+        "missing_subprotocol_or_limit_rejected",
+    }
+    if set(discovery_by_name) != required_discovery_names:
+        lint.fail(path, f"discovery_cases names drift: {sorted(set(discovery_by_name))}")
+    descriptor_case = discovery_by_name.get("closed_descriptor") or {}
+    descriptor = descriptor_case.get("instance")
+    descriptor_schema_ref = descriptor_case.get("schema_ref")
+    if not isinstance(descriptor, dict) or not isinstance(descriptor_schema_ref, str):
+        lint.fail(path, "closed_descriptor requires instance and schema_ref")
+    else:
+        check_json_instance_against_schema(
+            lint,
+            path,
+            "closed_descriptor",
+            descriptor_schema_ref,
+            descriptor,
+        )
+        canonical_errors = websocket_canonical_wss_errors(descriptor.get("base_url"))
+        if canonical_errors:
+            lint.fail(path, "closed_descriptor base_url is not canonical: " + "; ".join(canonical_errors))
+
+        partial = copy.deepcopy(descriptor)
+        partial["operations"] = [
+            operation
+            for operation in partial.get("operations", [])
+            if operation != "ak.self.signal.stream.subscribe"
+        ]
+        check_json_instance_against_schema(
+            lint,
+            path,
+            "partial_operations_rejected",
+            descriptor_schema_ref,
+            partial,
+            expect_valid=False,
+        )
+
+        missing_case = discovery_by_name.get("missing_subprotocol_or_limit_rejected") or {}
+        remove_each = missing_case.get("remove_each")
+        if not isinstance(remove_each, list) or set(remove_each) != {
+            "subprotocol",
+            "authentication",
+            "max_frame_bytes",
+            "max_channels",
+        }:
+            lint.fail(path, "missing_subprotocol_or_limit_rejected remove_each drift")
+        else:
+            for field in remove_each:
+                mutation = copy.deepcopy(descriptor)
+                mutation.pop(field, None)
+                check_json_instance_against_schema(
+                    lint,
+                    path,
+                    f"missing descriptor field {field}",
+                    descriptor_schema_ref,
+                    mutation,
+                    expect_valid=False,
+                )
+
+    url_case = discovery_by_name.get("noncanonical_or_credentialed_url_rejected") or {}
+    rejected_urls = url_case.get("base_urls")
+    if not isinstance(rejected_urls, list) or not rejected_urls:
+        lint.fail(path, "noncanonical URL case requires base_urls")
+    else:
+        for value in rejected_urls:
+            if not websocket_canonical_wss_errors(value):
+                lint.fail(path, f"noncanonical base_url vector is canonical: {value!r}")
+            if isinstance(descriptor, dict) and isinstance(descriptor_schema_ref, str):
+                mutation = copy.deepcopy(descriptor)
+                mutation["base_url"] = value
+                check_json_instance_against_schema(
+                    lint,
+                    path,
+                    f"noncanonical base_url {value!r}",
+                    descriptor_schema_ref,
+                    mutation,
+                    expect_valid=False,
+                )
+
+    kat = data.get("dpop_kat")
+    if not isinstance(kat, dict):
+        lint.fail(path, "dpop_kat must be an object")
+        return
+    decoded = kat.get("decoded")
+    check_json_instance_against_schema(
+        lint,
+        path,
+        "dpop_kat.decoded",
+        "schemas/websocket-dpop-proof.schema.json",
+        decoded,
+    )
+    if not isinstance(decoded, dict):
+        return
+    protected = decoded.get("protected")
+    claims = decoded.get("claims")
+    if not isinstance(protected, dict) or not isinstance(claims, dict):
+        lint.fail(path, "dpop_kat.decoded must contain protected and claims objects")
+        return
+    if protected.get("jwk") != kat.get("public_jwk"):
+        lint.fail(path, "dpop_kat protected jwk must equal public_jwk")
+    if claims.get("htu") != kat.get("base_url"):
+        lint.fail(path, "dpop_kat htu must equal the advertised base_url verbatim")
+    canonical_htu_errors = websocket_canonical_wss_errors(claims.get("htu"))
+    if canonical_htu_errors:
+        lint.fail(path, "dpop_kat htu is not canonical: " + "; ".join(canonical_htu_errors))
+    if claims.get("nonce") != kat.get("nonce"):
+        lint.fail(path, "dpop_kat nonce must equal the challenge nonce")
+
+    def fixture_timestamp(value: object, label: str) -> datetime | None:
+        if not isinstance(value, str):
+            lint.fail(path, f"{label} must be an RFC 3339 timestamp")
+            return None
+        try:
+            return datetime.fromisoformat(value.removesuffix("Z") + ("+00:00" if value.endswith("Z") else ""))
+        except ValueError:
+            lint.fail(path, f"{label} is not an RFC 3339 timestamp")
+            return None
+
+    issued_at = fixture_timestamp(kat.get("issued_at"), "dpop_kat.issued_at")
+    expires_at = fixture_timestamp(kat.get("expires_at"), "dpop_kat.expires_at")
+    if issued_at is not None and expires_at is not None:
+        if not 0 < (expires_at - issued_at).total_seconds() <= 5:
+            lint.fail(path, "dpop_kat challenge window must be greater than zero and at most 5 seconds")
+        if claims.get("iat") != int(issued_at.timestamp()):
+            lint.fail(path, "dpop_kat iat must equal issued_at NumericDate")
+
+    challenge_state = kat.get("challenge_state")
+    if not isinstance(challenge_state, dict):
+        lint.fail(path, "dpop_kat challenge_state must be an object")
+    else:
+        expected_challenge_key = [kat.get("connection_id"), kat.get("nonce")]
+        if challenge_state.get("key") != expected_challenge_key:
+            lint.fail(path, "dpop_kat challenge_state key must be [connection_id, nonce]")
+        for field in ("canonical_origin", "canonical_base_url", "issued_at", "expires_at"):
+            expected_field = {
+                "canonical_origin": kat.get("origin"),
+                "canonical_base_url": kat.get("base_url"),
+                "issued_at": kat.get("issued_at"),
+                "expires_at": kat.get("expires_at"),
+            }[field]
+            if challenge_state.get(field) != expected_field:
+                lint.fail(path, f"dpop_kat challenge_state {field} drift")
+        if challenge_state.get("consumed") is not False:
+            lint.fail(path, "dpop_kat initial challenge_state must be unconsumed")
+
+    canonical_protected = json.dumps(
+        protected,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    canonical_claims = json.dumps(
+        claims,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    if kat.get("protected_json_utf8") != canonical_protected:
+        lint.fail(path, "dpop_kat protected_json_utf8 is not canonical JSON")
+    if kat.get("claims_json_utf8") != canonical_claims:
+        lint.fail(path, "dpop_kat claims_json_utf8 is not canonical JSON")
+
+    def b64url(data_bytes: bytes) -> str:
+        return base64.urlsafe_b64encode(data_bytes).rstrip(b"=").decode("ascii")
+
+    protected_segment = b64url(canonical_protected.encode("utf-8"))
+    claims_segment = b64url(canonical_claims.encode("utf-8"))
+    signing_input = protected_segment + "." + claims_segment
+    if kat.get("protected_base64url") != protected_segment:
+        lint.fail(path, "dpop_kat protected_base64url drift")
+    if kat.get("claims_base64url") != claims_segment:
+        lint.fail(path, "dpop_kat claims_base64url drift")
+    if kat.get("signing_input_ascii") != signing_input:
+        lint.fail(path, "dpop_kat signing_input_ascii drift")
+    signature = kat.get("signature_base64url")
+    if not isinstance(signature, str) or len(signature) != 86:
+        lint.fail(path, "dpop_kat signature must encode one 64-byte Ed25519 signature")
+    elif kat.get("compact_jws") != signing_input + "." + signature:
+        lint.fail(path, "dpop_kat compact_jws does not match its declared segments")
+    else:
+        try:
+            signature_bytes = base64.urlsafe_b64decode(signature + "==")
+        except (ValueError, TypeError):
+            signature_bytes = b""
+        if len(signature_bytes) != 64:
+            lint.fail(path, "dpop_kat signature_base64url does not decode to 64 bytes")
+    private_seed_hex = kat.get("private_seed_hex")
+    if not isinstance(private_seed_hex, str) or not re.fullmatch(r"[0-9a-f]{64}", private_seed_hex):
+        lint.fail(path, "dpop_kat private_seed_hex must encode one 32-byte public test seed")
+
+    grant = kat.get("session_grant")
+    if not isinstance(grant, str):
+        lint.fail(path, "dpop_kat session_grant must be a string")
+    else:
+        expected_ath = b64url(hashlib.sha256(grant.encode("ascii")).digest())
+        if claims.get("ath") != expected_ath:
+            lint.fail(path, "dpop_kat ath does not bind the ASCII session grant")
+
+    public_jwk = kat.get("public_jwk")
+    if isinstance(public_jwk, dict):
+        canonical_jwk = json.dumps(
+            public_jwk,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+        expected_jkt = b64url(hashlib.sha256(canonical_jwk.encode("utf-8")).digest())
+        if kat.get("cnf_jkt") != expected_jkt:
+            lint.fail(path, "dpop_kat cnf_jkt is not the RFC 7638 JWK thumbprint")
+        expected_replay_key = [expected_jkt, claims.get("jti"), "ak.websocket-auth.v1"]
+        if kat.get("expected_replay_ledger_key") != expected_replay_key:
+            lint.fail(path, "dpop_kat replay ledger key drift")
+    else:
+        lint.fail(path, "dpop_kat public_jwk must be an object")
+
+    dpop_negative_cases = data.get("dpop_negative_cases")
+    if not isinstance(dpop_negative_cases, list):
+        lint.fail(path, "dpop_negative_cases must be an array")
+        dpop_negative_cases = []
+    dpop_by_name = {
+        case.get("name"): case
+        for case in dpop_negative_cases
+        if isinstance(case, dict) and isinstance(case.get("name"), str)
+    }
+    required_dpop_negative = {
+        "http_validator_must_not_accept_application_context",
+        "wrong_htu_scheme",
+        "wrong_method_token",
+        "wrong_ath",
+        "wrong_nonce",
+        "connection_id_mismatch",
+        "origin_mismatch",
+        "expired_challenge",
+        "replayed_nonce_and_jti",
+        "unknown_claim",
+        "holder_thumbprint_mismatch",
+    }
+    if set(dpop_by_name) != required_dpop_negative:
+        lint.fail(path, f"dpop_negative_cases names drift: {sorted(set(dpop_by_name))}")
+    for name, case in dpop_by_name.items():
+        if case.get("expected") != "rejected":
+            lint.fail(path, f"dpop negative {name} must expect rejected")
+
+    proof_schema_ref = kat.get("proof_schema_ref")
+    if not isinstance(proof_schema_ref, str):
+        lint.fail(path, "dpop_kat proof_schema_ref must be a string")
+    else:
+        if proof_schema_ref != "schemas/websocket-dpop-proof.schema.json":
+            lint.fail(path, "dpop_kat proof_schema_ref drift")
+        for value in (rejected_urls if isinstance(rejected_urls, list) else []):
+            mutation = copy.deepcopy(decoded)
+            mutation["claims"]["htu"] = value
+            check_json_instance_against_schema(
+                lint,
+                path,
+                f"dpop noncanonical htu {value!r}",
+                proof_schema_ref,
+                mutation,
+                expect_valid=False,
+            )
+        for name in ("wrong_htu_scheme", "wrong_method_token", "unknown_claim"):
+            case = dpop_by_name.get(name) or {}
+            mutation = copy.deepcopy(decoded)
+            if isinstance(case.get("replace_claim"), dict):
+                mutation["claims"].update(case["replace_claim"])
+            if isinstance(case.get("add_claim"), dict):
+                mutation["claims"].update(case["add_claim"])
+            check_json_instance_against_schema(
+                lint,
+                path,
+                f"dpop negative {name}",
+                proof_schema_ref,
+                mutation,
+                expect_valid=False,
+            )
+
+    if (dpop_by_name.get("http_validator_must_not_accept_application_context") or {}).get(
+        "validator_context"
+    ) != "http_request_dpop":
+        lint.fail(path, "HTTP DPoP isolation negative must select http_request_dpop")
+    wrong_ath = ((dpop_by_name.get("wrong_ath") or {}).get("replace_claim") or {}).get("ath")
+    if not isinstance(wrong_ath, str) or wrong_ath == claims.get("ath"):
+        lint.fail(path, "wrong_ath negative must replace ath with a distinct value")
+    wrong_nonce = ((dpop_by_name.get("wrong_nonce") or {}).get("replace_claim") or {}).get("nonce")
+    if not isinstance(wrong_nonce, str) or wrong_nonce == kat.get("nonce"):
+        lint.fail(path, "wrong_nonce negative must replace nonce with a distinct value")
+    if (dpop_by_name.get("connection_id_mismatch") or {}).get(
+        "authenticate_connection_id"
+    ) == kat.get("connection_id"):
+        lint.fail(path, "connection_id_mismatch negative does not mismatch")
+    if (dpop_by_name.get("origin_mismatch") or {}).get("socket_origin") == kat.get("origin"):
+        lint.fail(path, "origin_mismatch negative does not mismatch")
+    expired_verification = fixture_timestamp(
+        (dpop_by_name.get("expired_challenge") or {}).get("verification_time"),
+        "expired_challenge.verification_time",
+    )
+    if expires_at is not None and (
+        expired_verification is None or expired_verification <= expires_at
+    ):
+        lint.fail(path, "expired_challenge verification_time must be after expires_at")
+    replay_case = dpop_by_name.get("replayed_nonce_and_jti") or {}
+    if replay_case.get("challenge_consumed") is not True or replay_case.get(
+        "replay_ledger_key_present"
+    ) is not True:
+        lint.fail(path, "replay negative must exercise consumed challenge and present ledger key")
+    if (dpop_by_name.get("holder_thumbprint_mismatch") or {}).get(
+        "grant_cnf_jkt"
+    ) == kat.get("cnf_jkt"):
+        lint.fail(path, "holder_thumbprint_mismatch negative does not mismatch")
+
+    parsed_frame_cases: dict[str, dict[str, Any]] = {}
+    frame_cases = data.get("frame_schema_cases")
+    if not isinstance(frame_cases, list) or not frame_cases:
+        lint.fail(path, "frame_schema_cases must be a non-empty array")
+    else:
+        advertised_limit = ((data.get("limits") or {}).get("fixture_advertised_max_frame_bytes"))
+        for index, case in enumerate(frame_cases):
+            if not isinstance(case, dict):
+                lint.fail(path, f"frame_schema_cases[{index}] must be an object")
+                continue
+            name = case.get("name")
+            if not isinstance(name, str) or not name:
+                lint.fail(path, f"frame_schema_cases[{index}] requires a name")
+            elif name in parsed_frame_cases:
+                lint.fail(path, f"duplicate frame_schema_cases name: {name}")
+            else:
+                parsed_frame_cases[name] = case
+            wire = case.get("wire_utf8")
+            schema_ref = case.get("direction_schema_ref")
+            if not isinstance(wire, str) or not isinstance(schema_ref, str):
+                lint.fail(path, f"frame_schema_cases[{index}] requires wire_utf8 and direction_schema_ref")
+                continue
+            if case.get("expect_valid") is not True:
+                lint.fail(path, f"frame_schema_cases[{index}] must explicitly expect valid")
+            if isinstance(advertised_limit, int) and len(wire.encode("utf-8")) > advertised_limit:
+                lint.fail(path, f"frame_schema_cases[{index}] exceeds the advertised byte limit")
+            try:
+                duplicate_members: list[str] = []
+
+                def collect_duplicate_members(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+                    result: dict[str, Any] = {}
+                    for key, value in pairs:
+                        if key in result:
+                            duplicate_members.append(key)
+                        result[key] = value
+                    return result
+
+                instance = json.loads(wire, object_pairs_hook=collect_duplicate_members)
+            except json.JSONDecodeError as exc:
+                lint.fail(path, f"frame_schema_cases[{index}] wire_utf8 is invalid JSON: {exc}")
+                continue
+            if duplicate_members:
+                lint.fail(path, f"frame_schema_cases[{index}] contains duplicate members")
+            check_json_instance_against_schema(
+                lint,
+                path,
+                f"frame_schema_cases[{index}]",
+                schema_ref,
+                instance,
+                expect_valid=case.get("expect_valid") is True,
+            )
+            check_json_instance_against_schema(
+                lint,
+                path,
+                f"frame_schema_cases[{index}] top-level union",
+                "schemas/websocket-frame.schema.json",
+                instance,
+            )
+            opposite_schema_ref = (
+                "schemas/websocket-frame.schema.json#/$defs/client_frame"
+                if schema_ref.endswith("/server_frame")
+                else "schemas/websocket-frame.schema.json#/$defs/server_frame"
+            )
+            check_json_instance_against_schema(
+                lint,
+                path,
+                f"frame_schema_cases[{index}] opposite direction",
+                opposite_schema_ref,
+                instance,
+                expect_valid=False,
+            )
+
+        required_frame_cases = {
+            "challenge",
+            "authenticate",
+            "welcome",
+            "open_account",
+            "open_events",
+            "open_signal",
+            "opened",
+            "opened_events",
+            "opened_signal",
+            "account_data",
+            "events_data",
+            "signal_data",
+            "channel_control",
+            "signal_control",
+            "channel_error",
+            "connection_error",
+            "client_close",
+            "server_closed",
+            "ping",
+            "pong",
+            "reauth_required",
+            "connection_drain",
+        }
+        if set(parsed_frame_cases) != required_frame_cases:
+            lint.fail(path, f"frame_schema_cases names drift: {sorted(set(parsed_frame_cases))}")
+        authenticate_case = parsed_frame_cases.get("authenticate") or {}
+        try:
+            authenticate_instance = json.loads(authenticate_case.get("wire_utf8", "null"))
+        except json.JSONDecodeError:
+            authenticate_instance = None
+        if not isinstance(authenticate_instance, dict) or authenticate_instance.get(
+            "dpop_proof"
+        ) != kat.get("compact_jws"):
+            lint.fail(path, "authenticate frame must carry the exact DPoP KAT compact_jws")
+        welcome_case = parsed_frame_cases.get("welcome") or {}
+        try:
+            welcome_instance = json.loads(welcome_case.get("wire_utf8", "null"))
+        except json.JSONDecodeError:
+            welcome_instance = None
+        if not isinstance(welcome_instance, dict) or welcome_instance.get(
+            "max_frame_bytes"
+        ) != advertised_limit:
+            lint.fail(path, "welcome max_frame_bytes must equal the fixture advertised limit")
+        error_registry = load_json(lint, ARTIFACTS / "registry" / "error-code-registry.json")
+        registered_error_codes = {
+            row.get("code")
+            for row in (error_registry or {}).get("codes", [])
+            if isinstance(row, dict) and isinstance(row.get("code"), str)
+        }
+        for error_case_name in ("channel_error", "connection_error"):
+            try:
+                error_instance = json.loads(
+                    (parsed_frame_cases.get(error_case_name) or {}).get("wire_utf8", "null")
+                )
+            except json.JSONDecodeError:
+                error_instance = None
+            error_code = (
+                ((error_instance or {}).get("error") or {}).get("code")
+                if isinstance(error_instance, dict)
+                else None
+            )
+            if error_code not in registered_error_codes:
+                lint.fail(path, f"{error_case_name} uses an unregistered error code: {error_code!r}")
+
+    negative_cases = data.get("wire_negative_cases")
+    if not isinstance(negative_cases, list) or not negative_cases:
+        lint.fail(path, "wire_negative_cases must be a non-empty array")
+        return
+    by_name = {
+        case.get("name"): case
+        for case in negative_cases
+        if isinstance(case, dict) and isinstance(case.get("name"), str)
+    }
+    required_negative = {
+        "duplicate_member",
+        "unknown_field",
+        "non_ascii_session_grant",
+        "wrong_direction",
+        "binary_message",
+        "oversize_before_json_parse",
+        "data_on_unopened_channel",
+        "payload_does_not_match_channel_operation",
+    }
+    if set(by_name) != required_negative:
+        lint.fail(path, f"wire_negative_cases names drift: {sorted(set(by_name))}")
+
+    duplicate_wire = (by_name.get("duplicate_member") or {}).get("wire_utf8")
+    duplicate_seen = False
+    if isinstance(duplicate_wire, str):
+        def reject_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+            nonlocal duplicate_seen
+            result: dict[str, Any] = {}
+            for key, value in pairs:
+                if key in result:
+                    duplicate_seen = True
+                result[key] = value
+            return result
+        json.loads(duplicate_wire, object_pairs_hook=reject_duplicates)
+    if not duplicate_seen:
+        lint.fail(path, "duplicate_member vector does not contain a duplicate JSON member")
+
+    for name in ("unknown_field", "non_ascii_session_grant", "wrong_direction"):
+        case = by_name.get(name) or {}
+        wire = case.get("wire_utf8")
+        schema_ref = case.get("direction_schema_ref") or "schemas/websocket-frame.schema.json#/$defs/client_frame"
+        if isinstance(wire, str):
+            check_json_instance_against_schema(
+                lint,
+                path,
+                name,
+                schema_ref,
+                json.loads(wire),
+                expect_valid=False,
+            )
+
+    oversize = by_name.get("oversize_before_json_parse") or {}
+    generator = oversize.get("generator")
+    limit = oversize.get("advertised_max_frame_bytes")
+    if not isinstance(generator, dict) or not isinstance(limit, int):
+        lint.fail(path, "oversize vector requires generator and advertised_max_frame_bytes")
+    else:
+        total = generator.get("total_message_bytes")
+        prefix = generator.get("prefix_utf8")
+        repeated = generator.get("repeat_utf8")
+        suffix = generator.get("suffix_utf8")
+        if (
+            not isinstance(total, int)
+            or not isinstance(prefix, str)
+            or not isinstance(repeated, str)
+            or len(repeated.encode("utf-8")) != 1
+            or not isinstance(suffix, str)
+            or total != limit + 1
+            or len(prefix.encode("utf-8")) + len(suffix.encode("utf-8")) >= total
+        ):
+            lint.fail(path, "oversize generator must materialize exactly limit + 1 UTF-8 bytes")
+
+    expected_wire_close_codes = {
+        "duplicate_member": 1002,
+        "unknown_field": 1002,
+        "non_ascii_session_grant": 1002,
+        "wrong_direction": 1002,
+        "binary_message": 1002,
+        "oversize_before_json_parse": 1009,
+        "data_on_unopened_channel": 1002,
+    }
+    for name, expected_close_code in expected_wire_close_codes.items():
+        if (by_name.get(name) or {}).get("expected_close_code") != expected_close_code:
+            lint.fail(path, f"{name} close code must be {expected_close_code}")
+    binary_case = by_name.get("binary_message") or {}
+    if binary_case.get("opcode") != "binary" or not re.fullmatch(
+        r"(?:[0-9a-f]{2})+",
+        binary_case.get("wire_hex", ""),
+    ):
+        lint.fail(path, "binary_message must contain lowercase even-length wire_hex and binary opcode")
+    state_case = by_name.get("data_on_unopened_channel") or {}
+    if state_case.get("rejection_stage") != "connection_state":
+        lint.fail(path, "data_on_unopened_channel must fail at connection_state")
+    operation_case = by_name.get("payload_does_not_match_channel_operation") or {}
+    if (
+        operation_case.get("channel_operation") != "ak.self.signal.stream.subscribe"
+        or operation_case.get("rejection_stage") != "channel_operation_schema"
+        or operation_case.get("connection_remains_open") is not True
+    ):
+        lint.fail(path, "payload mismatch negative must isolate the Signal channel")
+
+    multiplex_trace = data.get("multiplex_trace")
+    if not isinstance(multiplex_trace, dict):
+        lint.fail(path, "multiplex_trace must be an object")
+    else:
+        sequence = multiplex_trace.get("frame_case_sequence")
+        required_sequence = [
+            "challenge",
+            "authenticate",
+            "welcome",
+            "open_account",
+            "opened",
+            "open_events",
+            "opened_events",
+            "open_signal",
+            "opened_signal",
+            "account_data",
+            "events_data",
+            "channel_control",
+            "signal_control",
+            "channel_error",
+            "server_closed",
+        ]
+        if sequence != required_sequence:
+            lint.fail(path, "multiplex_trace frame_case_sequence drift")
+        elif any(name not in parsed_frame_cases for name in sequence):
+            lint.fail(path, "multiplex_trace references an unknown exact frame case")
+        expected_state = multiplex_trace.get("expected")
+        if not isinstance(expected_state, dict):
+            lint.fail(path, "multiplex_trace expected state must be an object")
+        else:
+            try:
+                account_data = json.loads(parsed_frame_cases["account_data"]["wire_utf8"])
+                events_data = json.loads(parsed_frame_cases["events_data"]["wire_utf8"])
+            except (KeyError, json.JSONDecodeError):
+                account_data = {}
+                events_data = {}
+            if expected_state.get("account_cursor") != (
+                (account_data.get("payload") or {}).get("cursor")
+            ):
+                lint.fail(path, "multiplex_trace account cursor does not come from account_data")
+            if expected_state.get("events_cursor") != (
+                (events_data.get("payload") or {}).get("cursor")
+            ):
+                lint.fail(path, "multiplex_trace events cursor does not come from events_data")
+            if (
+                expected_state.get("signal_cursor") is not None
+                or expected_state.get("signal_catchup") is not False
+                or expected_state.get("open_channels_after_events_close")
+                != ["account-1", "signal-1"]
+                or expected_state.get("channel_id_reuse") != "conflict"
+                or expected_state.get("physical_connection_open") is not True
+            ):
+                lint.fail(path, "multiplex_trace isolation state drift")
+
+    reauth_trace = data.get("reauth_trace")
+    reauth_by_name = {
+        case.get("name"): case
+        for case in reauth_trace or []
+        if isinstance(case, dict) and isinstance(case.get("name"), str)
+    }
+    if set(reauth_by_name) != {"fresh_reauth_succeeds", "old_proof_reuse_fails"}:
+        lint.fail(path, f"reauth_trace names drift: {sorted(set(reauth_by_name))}")
+    fresh_reauth = reauth_by_name.get("fresh_reauth_succeeds") or {}
+    if (
+        any(fresh_reauth.get(field) is not True for field in (
+            "new_nonce",
+            "new_jti",
+            "new_session_grant",
+            "new_ath",
+        ))
+        or not isinstance(fresh_reauth.get("authenticate_within_ms"), int)
+        or fresh_reauth.get("authenticate_within_ms", 5001) > 5000
+        or fresh_reauth.get("expected") != "channels_continue"
+    ):
+        lint.fail(path, "fresh_reauth_succeeds must refresh every proof input within 5 seconds")
+    stale_reauth = reauth_by_name.get("old_proof_reuse_fails") or {}
+    if (
+        stale_reauth.get("reuse_old_nonce") is not True
+        or stale_reauth.get("reuse_old_jti") is not True
+        or stale_reauth.get("expected_close_code") != 1008
+        or stale_reauth.get("old_authorization_continues") is not False
+    ):
+        lint.fail(path, "old_proof_reuse_fails semantics drift")
+
+    close_traces = data.get("drain_and_close_traces")
+    close_by_name = {
+        case.get("name"): case
+        for case in close_traces or []
+        if isinstance(case, dict) and isinstance(case.get("name"), str)
+    }
+    expected_close_names = {
+        "channel_error_isolated",
+        "graceful_service_drain",
+        "protocol_error",
+        "policy_error_retry_once",
+        "message_too_big",
+        "restart_retry_budget",
+    }
+    if set(close_by_name) != expected_close_names:
+        lint.fail(path, f"drain_and_close_traces names drift: {sorted(set(close_by_name))}")
+    required_trace_codes = {
+        "graceful_service_drain": 1001,
+        "protocol_error": 1002,
+        "message_too_big": 1009,
+    }
+    for name, code in required_trace_codes.items():
+        if (close_by_name.get(name) or {}).get("expected_close_code") != code:
+            lint.fail(path, f"{name} close code must be {code}")
+    if (close_by_name.get("restart_retry_budget") or {}).get("attempts") != 3:
+        lint.fail(path, "restart_retry_budget must fall back after three pre-welcome failures")
+
+    fallback_cases = data.get("fallback_cases")
+    fallback_by_name = {
+        case.get("name"): case
+        for case in fallback_cases or []
+        if isinstance(case, dict) and isinstance(case.get("name"), str)
+    }
+    if set(fallback_by_name) != {"upgrade_or_proxy_failure", "single_owner_transport_switch"}:
+        lint.fail(path, f"fallback_cases names drift: {sorted(set(fallback_by_name))}")
+    for name, case in fallback_by_name.items():
+        if case.get("expected_transport") != "http_json":
+            lint.fail(path, f"fallback case {name} must end on http_json")
+    owner_switch = fallback_by_name.get("single_owner_transport_switch") or {}
+    if (
+        owner_switch.get("old_websocket_owner_closed") is not True
+        or owner_switch.get("http_owner_started_after_old_owner_stopped") is not True
+        or owner_switch.get("duplicate_consumers") is not False
+        or owner_switch.get("signal_catchup_attempted") is not False
+    ):
+        lint.fail(path, "single_owner_transport_switch ordering drift")
+
+    frame_schema = load_json(lint, ARTIFACTS / "schemas" / "websocket-frame.schema.json")
+    definitions = set(((frame_schema or {}).get("$defs") or {}).keys())
+    required_frame_definitions = {
+        "challenge",
+        "authenticate",
+        "welcome",
+        "open",
+        "opened",
+        "data",
+        "control",
+        "error",
+        "close",
+        "closed",
+        "ping",
+        "pong",
+        "reauth_required",
+        "server_frame",
+        "client_frame",
+    }
+    missing = sorted(required_frame_definitions - definitions)
+    if missing:
+        lint.fail(path, f"websocket frame schema misses required definitions: {missing}")
+
+
 def run_lint_phase(
     index: int,
     total: int,
@@ -9166,6 +10026,7 @@ def main(argv: list[str] | None = None) -> int:
             ("security_fixture", lambda: check_security_closure_fixture(lint)),
             ("fixtures", lambda: check_fixtures(lint, known)),
             ("fixture_runner", lambda: check_fixture_runner_contract(lint)),
+            ("websocket_binding", lambda: check_websocket_binding_fixture(lint)),
             ("crypto_signatures", lambda: check_crypto_signature_fixture(lint)),
             ("canonical_digests", lambda: check_canonical_digest_fixtures(lint)),
             ("batch_receipt", lambda: check_event_batch_receipt_normalization_vector(lint)),

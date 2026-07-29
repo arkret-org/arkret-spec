@@ -1,0 +1,809 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/websocket-frame.schema.json",
+  "title": "Arkret WebSocket Frame",
+  "description": "Closed union of all application frames for ak.profile.binding.websocket.v1. Duplicate JSON member names and the advertised UTF-8 byte limit are enforced before JSON Schema validation.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/server_frame"
+    },
+    {
+      "$ref": "#/$defs/client_frame"
+    }
+  ],
+  "$defs": {
+    "connection_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{22,128}$"
+    },
+    "nonce": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{22,128}$"
+    },
+    "channel_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._~-]{1,64}$"
+    },
+    "operation_id": {
+      "type": "string",
+      "enum": [
+        "ak.self.account.stream.subscribe",
+        "ak.self.events.stream.subscribe",
+        "ak.self.signal.stream.subscribe"
+      ]
+    },
+    "timestamp": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "cursor": {
+      "type": "string",
+      "pattern": "^ak:cursor:[A-Za-z0-9_-]{1,2028}$",
+      "maxLength": 2048
+    },
+    "event_kind": {
+      "type": "string",
+      "pattern": "^ak\\.[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$",
+      "maxLength": 128
+    },
+    "account_filter": {
+      "type": "object",
+      "properties": {
+        "realms": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/realm_id"
+          }
+        },
+        "timeline_limit": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "lazy_load_members": {
+          "type": "boolean"
+        },
+        "include_redundant_members": {
+          "type": "boolean"
+        },
+        "event_kinds": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/event_kind"
+          }
+        },
+        "not_event_kinds": {
+          "type": "array",
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/event_kind"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_open_parameters": {
+      "type": "object",
+      "properties": {
+        "after": {
+          "$ref": "#/$defs/cursor"
+        },
+        "catchup": {
+          "type": "boolean"
+        },
+        "filter": {
+          "$ref": "#/$defs/account_filter"
+        },
+        "wait_for": {
+          "$ref": "#/$defs/cursor"
+        }
+      },
+      "additionalProperties": false
+    },
+    "events_open_parameters": {
+      "type": "object",
+      "properties": {
+        "realms": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/realm_id"
+          }
+        },
+        "actors": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/did"
+          }
+        },
+        "after": {
+          "$ref": "#/$defs/cursor"
+        },
+        "catchup": {
+          "type": "boolean"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "realms"
+          ]
+        },
+        {
+          "required": [
+            "actors"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "signal_open_parameters": {
+      "type": "object",
+      "maxProperties": 0,
+      "additionalProperties": false
+    },
+    "challenge": {
+      "type": "object",
+      "required": [
+        "kind",
+        "connection_id",
+        "nonce",
+        "expires_at"
+      ],
+      "properties": {
+        "kind": {
+          "const": "challenge"
+        },
+        "connection_id": {
+          "$ref": "#/$defs/connection_id"
+        },
+        "nonce": {
+          "$ref": "#/$defs/nonce"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "authenticate": {
+      "type": "object",
+      "required": [
+        "kind",
+        "connection_id",
+        "session_grant",
+        "dpop_proof"
+      ],
+      "properties": {
+        "kind": {
+          "const": "authenticate"
+        },
+        "connection_id": {
+          "$ref": "#/$defs/connection_id"
+        },
+        "session_grant": {
+          "type": "string",
+          "pattern": "^[\\u0021-\\u007E]+$",
+          "minLength": 1,
+          "maxLength": 16384
+        },
+        "dpop_proof": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$",
+          "minLength": 32,
+          "maxLength": 16384
+        }
+      },
+      "additionalProperties": false
+    },
+    "welcome": {
+      "type": "object",
+      "required": [
+        "kind",
+        "connection_id",
+        "max_frame_bytes",
+        "max_channels",
+        "max_connection_pending_bytes",
+        "max_channel_pending_bytes",
+        "max_connection_pending_frames",
+        "max_channel_pending_frames",
+        "heartbeat_interval_ms",
+        "auth_expires_at"
+      ],
+      "properties": {
+        "kind": {
+          "const": "welcome"
+        },
+        "connection_id": {
+          "$ref": "#/$defs/connection_id"
+        },
+        "max_frame_bytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 1048576
+        },
+        "max_channels": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256
+        },
+        "max_connection_pending_bytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 67108864
+        },
+        "max_channel_pending_bytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 16777216
+        },
+        "max_connection_pending_frames": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65536
+        },
+        "max_channel_pending_frames": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16384
+        },
+        "heartbeat_interval_ms": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 300000
+        },
+        "auth_expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "open": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/open_account"
+        },
+        {
+          "$ref": "#/$defs/open_events"
+        },
+        {
+          "$ref": "#/$defs/open_signal"
+        }
+      ]
+    },
+    "open_account": {
+      "type": "object",
+      "required": [
+        "kind",
+        "channel_id",
+        "operation_id",
+        "parameters"
+      ],
+      "properties": {
+        "kind": {
+          "const": "open"
+        },
+        "channel_id": {
+          "$ref": "#/$defs/channel_id"
+        },
+        "operation_id": {
+          "const": "ak.self.account.stream.subscribe"
+        },
+        "parameters": {
+          "$ref": "#/$defs/account_open_parameters"
+        }
+      },
+      "additionalProperties": false
+    },
+    "open_events": {
+      "type": "object",
+      "required": [
+        "kind",
+        "channel_id",
+        "operation_id",
+        "parameters"
+      ],
+      "properties": {
+        "kind": {
+          "const": "open"
+        },
+        "channel_id": {
+          "$ref": "#/$defs/channel_id"
+        },
+        "operation_id": {
+          "const": "ak.self.events.stream.subscribe"
+        },
+        "parameters": {
+          "$ref": "#/$defs/events_open_parameters"
+        }
+      },
+      "additionalProperties": false
+    },
+    "open_signal": {
+      "type": "object",
+      "required": [
+        "kind",
+        "channel_id",
+        "operation_id",
+        "parameters"
+      ],
+      "properties": {
+        "kind": {
+          "const": "open"
+        },
+        "channel_id": {
+          "$ref": "#/$defs/channel_id"
+        },
+        "operation_id": {
+          "const": "ak.self.signal.stream.subscribe"
+        },
+        "parameters": {
+          "$ref": "#/$defs/signal_open_parameters"
+        }
+      },
+      "additionalProperties": false
+    },
+    "opened": {
+      "type": "object",
+      "required": [
+        "kind",
+        "channel_id",
+        "operation_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "opened"
+        },
+        "channel_id": {
+          "$ref": "#/$defs/channel_id"
+        },
+        "operation_id": {
+          "$ref": "#/$defs/operation_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "kind",
+        "channel_id",
+        "payload"
+      ],
+      "properties": {
+        "kind": {
+          "const": "data"
+        },
+        "channel_id": {
+          "$ref": "#/$defs/channel_id"
+        },
+        "payload": {
+          "$ref": "#/$defs/data_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "data_payload": {
+      "oneOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "./account-subscribe-frame.schema.json"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "delta"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "./events-subscribe-frame.schema.json"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "event"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "$ref": "./signal-stream-frame.schema.json#/$defs/signal"
+        }
+      ]
+    },
+    "channel_control_payload": {
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "./account-subscribe-frame.schema.json"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "catchup_complete",
+                    "frontier",
+                    "heartbeat",
+                    "dropped",
+                    "resync_required",
+                    "unauthorized"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "./events-subscribe-frame.schema.json"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "frontier",
+                    "heartbeat",
+                    "catchup_complete",
+                    "epoch_rotation",
+                    "dropped",
+                    "resync_required",
+                    "unauthorized"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "$ref": "./signal-stream-frame.schema.json#/$defs/heartbeat"
+        },
+        {
+          "$ref": "./signal-stream-frame.schema.json#/$defs/drain"
+        },
+        {
+          "$ref": "./signal-stream-frame.schema.json#/$defs/unauthorized"
+        }
+      ]
+    },
+    "connection_drain_payload": {
+      "type": "object",
+      "required": [
+        "kind",
+        "reconnect_after_ms",
+        "deadline"
+      ],
+      "properties": {
+        "kind": {
+          "const": "drain"
+        },
+        "reconnect_after_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 300000
+        },
+        "deadline": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "additionalProperties": false
+    },
+    "control": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/channel_control"
+        },
+        {
+          "$ref": "#/$defs/connection_control"
+        }
+      ]
+    },
+    "channel_control": {
+      "type": "object",
+      "required": [
+        "kind",
+        "frame_scope",
+        "channel_id",
+        "payload"
+      ],
+      "properties": {
+        "kind": {
+          "const": "control"
+        },
+        "frame_scope": {
+          "const": "channel"
+        },
+        "channel_id": {
+          "$ref": "#/$defs/channel_id"
+        },
+        "payload": {
+          "$ref": "#/$defs/channel_control_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "connection_control": {
+      "type": "object",
+      "required": [
+        "kind",
+        "frame_scope",
+        "payload"
+      ],
+      "properties": {
+        "kind": {
+          "const": "control"
+        },
+        "frame_scope": {
+          "const": "connection"
+        },
+        "payload": {
+          "$ref": "#/$defs/connection_drain_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "error_body": {
+      "type": "object",
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,127}$",
+          "description": "Must resolve to a registered code in error-code-registry.json codes[]. This closed transport error body is not the HTTP ErrorEnvelope."
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 300000
+        }
+      },
+      "additionalProperties": false
+    },
+    "error": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/channel_error"
+        },
+        {
+          "$ref": "#/$defs/connection_error"
+        }
+      ]
+    },
+    "channel_error": {
+      "type": "object",
+      "required": [
+        "kind",
+        "frame_scope",
+        "channel_id",
+        "error"
+      ],
+      "properties": {
+        "kind": {
+          "const": "error"
+        },
+        "frame_scope": {
+          "const": "channel"
+        },
+        "channel_id": {
+          "$ref": "#/$defs/channel_id"
+        },
+        "error": {
+          "$ref": "#/$defs/error_body"
+        }
+      },
+      "additionalProperties": false
+    },
+    "connection_error": {
+      "type": "object",
+      "required": [
+        "kind",
+        "frame_scope",
+        "error"
+      ],
+      "properties": {
+        "kind": {
+          "const": "error"
+        },
+        "frame_scope": {
+          "const": "connection"
+        },
+        "error": {
+          "$ref": "#/$defs/error_body"
+        }
+      },
+      "additionalProperties": false
+    },
+    "close": {
+      "type": "object",
+      "required": [
+        "kind",
+        "channel_id",
+        "reason"
+      ],
+      "properties": {
+        "kind": {
+          "const": "close"
+        },
+        "channel_id": {
+          "$ref": "#/$defs/channel_id"
+        },
+        "reason": {
+          "enum": [
+            "client_request",
+            "transport_switch"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "closed": {
+      "type": "object",
+      "required": [
+        "kind",
+        "channel_id",
+        "reason"
+      ],
+      "properties": {
+        "kind": {
+          "const": "closed"
+        },
+        "channel_id": {
+          "$ref": "#/$defs/channel_id"
+        },
+        "reason": {
+          "enum": [
+            "completed",
+            "client_request",
+            "error",
+            "drain",
+            "unauthorized"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ping": {
+      "type": "object",
+      "required": [
+        "kind",
+        "ping_id",
+        "sent_at"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ping"
+        },
+        "ping_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{16,128}$"
+        },
+        "sent_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "pong": {
+      "type": "object",
+      "required": [
+        "kind",
+        "ping_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "pong"
+        },
+        "ping_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{16,128}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "reauth_required": {
+      "type": "object",
+      "required": [
+        "kind",
+        "connection_id",
+        "nonce",
+        "expires_at",
+        "reason"
+      ],
+      "properties": {
+        "kind": {
+          "const": "reauth_required"
+        },
+        "connection_id": {
+          "$ref": "#/$defs/connection_id"
+        },
+        "nonce": {
+          "$ref": "#/$defs/nonce"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "reason": {
+          "const": "grant_expiring"
+        }
+      },
+      "additionalProperties": false
+    },
+    "server_frame": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/challenge"
+        },
+        {
+          "$ref": "#/$defs/welcome"
+        },
+        {
+          "$ref": "#/$defs/opened"
+        },
+        {
+          "$ref": "#/$defs/data"
+        },
+        {
+          "$ref": "#/$defs/control"
+        },
+        {
+          "$ref": "#/$defs/error"
+        },
+        {
+          "$ref": "#/$defs/closed"
+        },
+        {
+          "$ref": "#/$defs/ping"
+        },
+        {
+          "$ref": "#/$defs/reauth_required"
+        }
+      ]
+    },
+    "client_frame": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/authenticate"
+        },
+        {
+          "$ref": "#/$defs/open"
+        },
+        {
+          "$ref": "#/$defs/close"
+        },
+        {
+          "$ref": "#/$defs/pong"
+        }
+      ]
+    }
+  }
+}

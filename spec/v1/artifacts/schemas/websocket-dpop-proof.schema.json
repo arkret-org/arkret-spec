@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/websocket-dpop-proof.schema.json",
+  "title": "Arkret WebSocket DPoP-Shaped Authentication Proof",
+  "description": "Decoded protected header and claims for challenge_dpop_session_v1. This is an Arkret application-level proof carried in an authenticate frame, not an RFC 9449 DPoP HTTP header. Its wss htu and ARKRET-WEBSOCKET-AUTH htm are accepted only in this proof context.",
+  "type": "object",
+  "required": [
+    "protected",
+    "claims"
+  ],
+  "properties": {
+    "protected": {
+      "$ref": "#/$defs/protected_header"
+    },
+    "claims": {
+      "$ref": "#/$defs/claims"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "public_jwk": {
+      "type": "object",
+      "required": [
+        "kty",
+        "crv",
+        "x"
+      ],
+      "properties": {
+        "kty": {
+          "const": "OKP"
+        },
+        "crv": {
+          "const": "Ed25519"
+        },
+        "x": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "protected_header": {
+      "type": "object",
+      "required": [
+        "typ",
+        "alg",
+        "jwk"
+      ],
+      "properties": {
+        "typ": {
+          "const": "dpop+jwt"
+        },
+        "alg": {
+          "const": "EdDSA"
+        },
+        "jwk": {
+          "$ref": "#/$defs/public_jwk"
+        }
+      },
+      "additionalProperties": false
+    },
+    "claims": {
+      "type": "object",
+      "required": [
+        "jti",
+        "htm",
+        "htu",
+        "iat",
+        "ath",
+        "nonce"
+      ],
+      "properties": {
+        "jti": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{16,128}$"
+        },
+        "htm": {
+          "const": "ARKRET-WEBSOCKET-AUTH"
+        },
+        "htu": {
+          "type": "string",
+          "pattern": "^wss://[a-z0-9.-]+(?::[1-9][0-9]{0,4})?/(?:[A-Za-z0-9._~!$&'()*+,;=:@/-]|%[0-9A-F]{2})*$",
+          "maxLength": 2048,
+          "allOf": [
+            {
+              "not": {
+                "pattern": "^wss://[^/]+:443/"
+              }
+            },
+            {
+              "not": {
+                "pattern": "^wss://[^/]+\\.(?::[1-9][0-9]{0,4})?/"
+              }
+            },
+            {
+              "not": {
+                "pattern": "^wss://[^/]+/(?:[^/]+/)*(?:\\.|\\.\\.)(?:/|$)"
+              }
+            }
+          ]
+        },
+        "iat": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "ath": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,128}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

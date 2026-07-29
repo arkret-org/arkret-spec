@@ -7189,6 +7189,12 @@
         "file": "schemas/account-subscribe-frame.schema.json"
       },
       {
+        "schema_id": "ak.schema.events_subscribe_frame.v1",
+        "file": "schemas/events-subscribe-frame.schema.json",
+        "status": "active",
+        "description": "Closed data/control frame union for ak.self.events.stream.subscribe."
+      },
+      {
         "schema_id": "ak.schema.account_operations.v1",
         "file": "schemas/account-operations.schema.json",
         "status": "active",
@@ -7682,6 +7688,137 @@
         "file": "schemas/transport-binding.schema.json",
         "status": "active",
         "description": "Closed ServiceDescribe supported_bindings union for registered HTTP companion and extension transports."
+      },
+      {
+        "schema_id": "ak.schema.websocket_frame.v1",
+        "file": "schemas/websocket-frame.schema.json",
+        "status": "active",
+        "description": "Closed bidirectional application-frame union for ak.profile.binding.websocket.v1."
+      },
+      {
+        "schema_id": "ak.schema.websocket_server_frame.v1",
+        "file": "schemas/websocket-frame.schema.json",
+        "fragment": "#/$defs/server_frame",
+        "status": "active",
+        "description": "Closed server-to-client WebSocket frame union."
+      },
+      {
+        "schema_id": "ak.schema.websocket_client_frame.v1",
+        "file": "schemas/websocket-frame.schema.json",
+        "fragment": "#/$defs/client_frame",
+        "status": "active",
+        "description": "Closed client-to-server WebSocket frame union."
+      },
+      {
+        "schema_id": "ak.schema.websocket_challenge_frame.v1",
+        "file": "schemas/websocket-frame.schema.json",
+        "fragment": "#/$defs/challenge",
+        "status": "active",
+        "description": "Server challenge frame with connection-bound one-time nonce."
+      },
+      {
+        "schema_id": "ak.schema.websocket_authenticate_frame.v1",
+        "file": "schemas/websocket-frame.schema.json",
+        "fragment": "#/$defs/authenticate",
+        "status": "active",
+        "description": "Client authentication and reauthentication response frame."
+      },
+      {
+        "schema_id": "ak.schema.websocket_welcome_frame.v1",
+        "file": "schemas/websocket-frame.schema.json",
+        "fragment": "#/$defs/welcome",
+        "status": "active",
+        "description": "Server authentication-success frame carrying effective connection and channel limits."
+      },
+      {
+        "schema_id": "ak.schema.websocket_open_frame.v1",
+        "file": "schemas/websocket-frame.schema.json",
+        "fragment": "#/$defs/open",
+        "status": "active",
+        "description": "Client channel-open union with operation-specific closed parameters."
+      },
+      {
+        "schema_id": "ak.schema.websocket_opened_frame.v1",
+        "file": "schemas/websocket-frame.schema.json",
+        "fragment": "#/$defs/opened",
+        "status": "active",
+        "description": "Server channel-open acknowledgement."
+      },
+      {
+        "schema_id": "ak.schema.websocket_data_frame.v1",
+        "file": "schemas/websocket-frame.schema.json",
+        "fragment": "#/$defs/data",
+        "status": "active",
+        "description": "Server channel data wrapper over a canonical account, events, or signal payload."
+      },
+      {
+        "schema_id": "ak.schema.websocket_control_frame.v1",
+        "file": "schemas/websocket-frame.schema.json",
+        "fragment": "#/$defs/control",
+        "status": "active",
+        "description": "Server connection- or channel-scoped control frame."
+      },
+      {
+        "schema_id": "ak.schema.websocket_error_frame.v1",
+        "file": "schemas/websocket-frame.schema.json",
+        "fragment": "#/$defs/error",
+        "status": "active",
+        "description": "Server connection- or channel-scoped error frame."
+      },
+      {
+        "schema_id": "ak.schema.websocket_close_frame.v1",
+        "file": "schemas/websocket-frame.schema.json",
+        "fragment": "#/$defs/close",
+        "status": "active",
+        "description": "Client channel-close request."
+      },
+      {
+        "schema_id": "ak.schema.websocket_closed_frame.v1",
+        "file": "schemas/websocket-frame.schema.json",
+        "fragment": "#/$defs/closed",
+        "status": "active",
+        "description": "Server channel-termination frame."
+      },
+      {
+        "schema_id": "ak.schema.websocket_ping_frame.v1",
+        "file": "schemas/websocket-frame.schema.json",
+        "fragment": "#/$defs/ping",
+        "status": "active",
+        "description": "Server application heartbeat probe."
+      },
+      {
+        "schema_id": "ak.schema.websocket_pong_frame.v1",
+        "file": "schemas/websocket-frame.schema.json",
+        "fragment": "#/$defs/pong",
+        "status": "active",
+        "description": "Client application heartbeat response."
+      },
+      {
+        "schema_id": "ak.schema.websocket_reauth_required_frame.v1",
+        "file": "schemas/websocket-frame.schema.json",
+        "fragment": "#/$defs/reauth_required",
+        "status": "active",
+        "description": "Server reauthentication challenge frame."
+      },
+      {
+        "schema_id": "ak.schema.websocket_dpop_proof.v1",
+        "file": "schemas/websocket-dpop-proof.schema.json",
+        "status": "active",
+        "description": "Decoded protected header and claim set for the application-level challenge_dpop_session_v1 proof."
+      },
+      {
+        "schema_id": "ak.schema.websocket_dpop_protected_header.v1",
+        "file": "schemas/websocket-dpop-proof.schema.json",
+        "fragment": "#/$defs/protected_header",
+        "status": "active",
+        "description": "Closed Ed25519 JOSE protected header for a WebSocket authentication proof."
+      },
+      {
+        "schema_id": "ak.schema.websocket_dpop_claims.v1",
+        "file": "schemas/websocket-dpop-proof.schema.json",
+        "fragment": "#/$defs/claims",
+        "status": "active",
+        "description": "Closed htm, wss htu, ath, nonce, iat and jti claim set for a WebSocket authentication proof."
       },
       {
         "schema_id": "ak.schema.public_key.v1",

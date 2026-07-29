@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/events-subscribe-frame.schema.json",
+  "title": "EventsSubscribeFrame",
+  "description": "Closed frame union emitted by ak.self.events.stream.subscribe over NDJSON or as the payload of an Arkret WebSocket channel frame.",
+  "type": "object",
+  "required": [
+    "kind"
+  ],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "event",
+        "frontier",
+        "heartbeat",
+        "catchup_complete",
+        "epoch_rotation",
+        "dropped",
+        "resync_required",
+        "unauthorized"
+      ]
+    },
+    "realm_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+    },
+    "cursor": {
+      "type": "string",
+      "pattern": "^ak:cursor:[A-Za-z0-9_-]{1,2028}$",
+      "maxLength": 2048
+    },
+    "payload": {
+      "type": "object"
+    },
+    "reconnect_after_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 300000
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "kind": {
+          "const": "event"
+        },
+        "payload": {
+          "$ref": "./event-envelope.schema.json"
+        }
+      },
+      "required": [
+        "kind",
+        "realm_id",
+        "cursor",
+        "payload"
+      ],
+      "not": {
+        "required": [
+          "reconnect_after_ms"
+        ]
+      }
+    },
+    {
+      "properties": {
+        "kind": {
+          "const": "epoch_rotation"
+        },
+        "payload": {
+          "$ref": "#/$defs/epoch_rotation_payload"
+        }
+      },
+      "required": [
+        "kind",
+        "realm_id",
+        "payload"
+      ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "cursor"
+            ]
+          },
+          {
+            "required": [
+              "reconnect_after_ms"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "kind": {
+          "enum": [
+            "frontier",
+            "catchup_complete"
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "cursor"
+      ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "payload"
+            ]
+          },
+          {
+            "required": [
+              "reconnect_after_ms"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "kind": {
+          "const": "dropped"
+        }
+      },
+      "required": [
+        "kind",
+        "realm_id",
+        "cursor"
+      ],
+      "not": {
+        "required": [
+          "payload"
+        ]
+      }
+    },
+    {
+      "properties": {
+        "kind": {
+          "const": "resync_required"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "cursor"
+            ]
+          },
+          {
+            "required": [
+              "payload"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "kind": {
+          "const": "unauthorized"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "cursor"
+            ]
+          },
+          {
+            "required": [
+              "payload"
+            ]
+          },
+          {
+            "required": [
+              "reconnect_after_ms"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "kind": {
+          "const": "heartbeat"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "realm_id"
+            ]
+          },
+          {
+            "required": [
+              "cursor"
+            ]
+          },
+          {
+            "required": [
+              "payload"
+            ]
+          },
+          {
+            "required": [
+              "reconnect_after_ms"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "epoch_rotation_payload": {
+      "type": "object",
+      "required": [
+        "new_epoch"
+      ],
+      "properties": {
+        "new_epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

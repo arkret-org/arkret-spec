@@ -92,7 +92,7 @@
         "spec/v1/zh/sync/websocket-binding.md",
         "spec/v1/artifacts/fixtures/websocket-binding-fixture.json"
       ],
-      "description": "Closed WebSocket discovery, challenge/DPoP auth, account/events/signal multiplex isolation, backpressure, reconnect and mandatory HTTP fallback."
+      "description": "Executable closed WebSocket discovery and frame bytes, application-context DPoP KAT and replay binding, account/events/signal multiplex isolation, duplicate/unknown/oversize negatives, reauth, drain, close-code traces and mandatory HTTP fallback."
     },
     {
       "vector_id": "ak.vector.cross_signing.subordinate_key_binding.v1",

@@ -4289,10 +4289,42 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.account_subscribe_frame.v1",
+        "ak.schema.events_subscribe_frame.v1",
         "ak.schema.signal_stream_frame.v1",
-        "ak.schema.transport_binding.v1"
+        "ak.schema.transport_binding.v1",
+        "ak.schema.websocket_frame.v1",
+        "ak.schema.websocket_server_frame.v1",
+        "ak.schema.websocket_client_frame.v1",
+        "ak.schema.websocket_challenge_frame.v1",
+        "ak.schema.websocket_authenticate_frame.v1",
+        "ak.schema.websocket_welcome_frame.v1",
+        "ak.schema.websocket_open_frame.v1",
+        "ak.schema.websocket_opened_frame.v1",
+        "ak.schema.websocket_data_frame.v1",
+        "ak.schema.websocket_control_frame.v1",
+        "ak.schema.websocket_error_frame.v1",
+        "ak.schema.websocket_close_frame.v1",
+        "ak.schema.websocket_closed_frame.v1",
+        "ak.schema.websocket_ping_frame.v1",
+        "ak.schema.websocket_pong_frame.v1",
+        "ak.schema.websocket_reauth_required_frame.v1",
+        "ak.schema.websocket_dpop_proof.v1",
+        "ak.schema.websocket_dpop_protected_header.v1",
+        "ak.schema.websocket_dpop_claims.v1"
       ],
-      "required_fixtures": [],
+      "required_vectors": [
+        "ak.vector.binding.websocket.v1"
+      ],
+      "required_fixtures": [
+        "websocket-binding-fixture.json"
+      ],
+      "required_runner_suites": [
+        {
+          "suite": "websocket_binding",
+          "entrypoint": "ak.suite.binding.websocket.v1",
+          "artifact_fixture": "websocket-binding-fixture.json"
+        }
+      ],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
