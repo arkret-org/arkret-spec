@@ -10,7 +10,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json",
-      "sha256": "31850738ff9c428d54f7c4ba24abf3aa432b0364b5e6f38ebae24e7c56760d7c"
+      "sha256": "bbb6390acb2d77b28225f8d14b4aa286b23410039e826bbe126711abfc1320cf"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json",

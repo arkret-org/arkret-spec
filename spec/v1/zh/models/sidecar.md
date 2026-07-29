@@ -304,6 +304,16 @@ fold 输入只包含有效 controller request Event、通过 §7.2.2 的 Agent b
 
 controller 离线时 response/control 留在 private history。新设备或 cache 丢失时扫描对应 private Strand 中 controller-authored request binding，验证后重放相关 Agent/control Events；不得再次投递请求。给定相同 accepted Event 集，所有 conforming 设备 MUST 得到 bit-identical projection、frontier digest、response 顺序与 terminal outcome。
 
+新 controller 设备不得依赖旧设备保存的 ensure outcome、pending fact、当前 route 或已激活 UI session 来定位 private Strand。它 MUST 对每个可访问 Realm 执行以下完整分页算法：
+
+1. 分页调用 `ak.self.agent.sidecar.query.list`，直到响应不再给出 continuation cursor，或下一 cursor 与已见 cursor 重复（重复 cursor MUST 作为服务端错误 fail closed，不得接受不完整结果）；将每个 view 的 `(realm_id, controller_id, sidecar_id, backing_circle_id)` 建成只读候选表。同一 `(realm_id, controller_id, backing_circle_id)` 映射到多个 `sidecar_id` 时，该候选冲突且不得恢复。
+2. 对候选表涉及的每个 Realm 分页调用 `ak.self.events.query.scan`，使用同一 verified controller self session，直到 continuation cursor 缺席；cursor 重复、页缺失、鉴权变化、限额中断或无法证明最后一页时，该 Realm 标记 `backfill_pending`，不得从部分 history 启用 echo。
+3. 只考虑完整 accepted Event Envelope。候选 `ak.strand.create` 的 effective scope MUST 精确为候选 backing Circle，actor MUST 是 controller，Realm MUST 匹配，且 payload 必须描述 private Strand。候选 `ak.relation.create` 必须位于同一 effective scope，actor/controller/Realm 全部匹配，`kind=agent_sidecar_of`，`from_ref` 指向该 private Strand，`to_ref` 是 canonical source context ref。
+4. `ak.strand.create` 与 `ak.relation.create` 必须同时存在于同一已接受 aggregate/history，并且 Relation 因果上引用或覆盖 Strand creation；缺一、多个 Relation 指向不同 source、多个 private Strand 指向同一 source，或任何 scope/controller/Realm 不匹配都使该候选保持 unresolved。
+5. 唯一有效配对恢复 `(sidecar_id, backing_circle_id, private_strand_id, source_context_ref)`。完成全部页并验证唯一性之前，该 Sidecar 的 Message/control Event 一律 non-echo、non-terminal 且不得触发 Agent 再投递。
+
+该算法不授权普通 Realm member 枚举 backing Circle。Event query 必须按 Event 当时的 effective Circle scope 与历史 membership 做可见性裁剪；仅 controller 与当时有权访问该 backing Circle 的 principal 可取得对应 structural Event。未授权 caller 对 structural Event、Sidecar、backing Circle、private Strand 与 Relation 的结果必须与不存在不可区分。query 返回的每一项必须保留可重算 `Event::event_digest()` 的完整 accepted Event Envelope，不得以 projection、Event id 或裁剪 payload 替代。
+
 request Event 提交被拒时没有 durable exchange；失败呈现属于 client-local pending-submission state，同一 intent 重试使用相同 `exchange_id`。实现 MUST NOT 由时间流逝、Event 缺席、内容或本地任务状态推断 `failed`/`complete`。
 
 ### 7.2.5 信任边界
@@ -312,9 +322,18 @@ binding 把“Agent 声明 user-facing/internal”与“controller 写入控制�
 
 ### 7.3 显式 Publish 与存在性隐私
 
-Sidecar 发布到共享 Strand 必须由 controller 显式确认，只创建符合目标 scope 的正常 shared event。shared event、日志、URL、push preview 与公开 telemetry MUST NOT 携带 `sidecar_id`、`backing_circle_id`、private Strand/Relation id、private messages、scratchpad 或 draft history；只可携带规范允许的 opaque digest。
+Sidecar 发布到共享 Strand 必须由 controller 对最终 allowlist payload 显式确认；确认动作之前 MUST 产生零 shared durable output。确认后只创建一个符合目标 scope 的正常 shared Event，且该 Event 必须由 shared Event schema 的显式 allowlist builder 构造，不能复制或序列化 private Event Envelope。允许输出只包含目标 shared Event kind 所允许的内容字段；不得包含 `sidecar_id`、`backing_circle_id`、private Strand/Relation id、`exchange_id`、private Event id/history、request binding、control plaintext、internal/tool/scratchpad/draft 内容或任何内部 locator。publish 失败或重试不得扩大字段集合，也不得把本地 pending intent 当作已发布事实。
 
 未授权 caller 对 Sidecar 的 list/get/search、backing Circle existence、private Strand/Relation existence MUST 收到与不存在资源相同的固定错误 envelope、字段集合与 timing bucket。
+
+Sidecar non-disclosure 必须对下列每个 surface 独立成立：Realm member list、普通 Circle list、普通 Strand list、Relation expansion、search、unread、watch、notification、push、public export、URL、应用日志与 telemetry。每个 surface 都 MUST 同时满足：
+
+- 不出现 Sidecar、backing Circle、private Strand、private Relation 或 exchange identity；
+- 不出现 private content、fold 输入、frontier、response/control 集或可关联 opaque token；
+- 不改变 shared object 的计数、排序、未读、watch、通知或搜索结果，从而避免存在性侧信道；
+- 服务端不得为生成该 surface 解密或持久化 exchange plaintext、fold cache 或 private MLS application content。
+
+Agent 的 pause、deactivate、eligibility 丧失、`ak.agent.key.authorize` revoke 或 runtime proof freshness 失效一经成为 accepted current state，服务端 MUST 立即停止对该 Agent 的新 Sidecar 寻址、投递和新写 admission；runtime 在执行每个 request 前 MUST 重新验证 addressed、effective、eligible 与 authorization freshness，旧 MLS key、旧 session grant 或已缓存 projection 不能授权新执行或回复。上述 lifecycle 变化不隐式改变任何 exchange terminal state；只有 accepted controller `ak.agent.sidecar.exchange.control` Event 能产生 terminal projection。
 
 ## 8. UI 安全不变量
 
@@ -326,6 +345,32 @@ Sidecar 发布到共享 Strand 必须由 controller 显式确认，只创建符�
 4. Mention picker 只显示 active eligible owned Agents，并在提交前由服务端再次 fail-closed 校验。
 5. `addressed`、`working`、`replied` 与完整 desired/effective access 必须使用不同文案，不得把一次呼叫伪装成固定 1:1 成员关系。
 6. readiness 未满足时 composer MUST 阻塞，并显示 `access_reconciliation_pending`、`key_material_pending`、`epoch_update_required` 等准确原因。
+
+### 8.1 Hosted UI 浏览器 conformance matrix
+
+具名 case `sidecar_hosted_ui_matrix` MUST 在 Chrome 与 Edge 的稳定构建产物上分别执行，且不得由静态 DOM、snapshot 或 unit test 替代。每个浏览器必须覆盖：
+
+- `synthesis`、`discussion` 与至少一个 profile-defined future Track；`context_merged` 与 `sidecar_only` 两种 display mode；
+- leader/follower controller device、多 addressed Agent 与 coordinator reassign/complete；
+- desktop 与窄屏 viewport、长 Strand title、长 Agent handle、长 history；
+- shared/private scroll、editor 与 draft 在 Track/mode/Sidecar enter-exit 切换前后保持；
+- 相同 accepted Event set 的 echo placement、provenance、dedupe 与 terminal UI 完全一致；
+- mode/Track 切换只做增量 projection 更新，网络请求计数与渲染 trace 必须证明没有全量 history replay。
+
+每次运行 MUST 保存 trace、关键截图、请求计数和 UI state assertions；Realm tree seed、Sidecar view seed 与 private history seed 必须在产品断言前显式检查，seed 失败立即失败，不能等待元素超时来掩盖 bootstrap 缺陷。
+
+### 8.2 必跑 conformance vectors
+
+| Vector id | 规范性覆盖 |
+|---|---|
+| `ak.vector.sidecar.context_locator_recovery.v1` | §7.2.4 完整分页、structural Event 唯一配对、未完成时 non-echo |
+| `ak.vector.sidecar.canonical_sibling_digest.v1` | §7.2.1/§7.2.3 同 sequence sibling 的 canonical Event digest 决胜 |
+| `ak.vector.sidecar.union_history_frontier.v1` | §7.2.4 不可比较 history、联合 refold、最大 causal heads |
+| `ak.vector.sidecar.non_disclosure_surface_matrix.v1` | §7.3 全 shared/public/operational surface 零泄露 |
+| `ak.vector.sidecar.revoke_fail_closed.v1` | §7.2.2/§7.3 revoke、pause、deactivate 后 fail closed |
+| `ak.vector.sidecar.explicit_publish.v1` | §7.3 controller 确认与 shared payload allowlist |
+| `ak.vector.sidecar.accepted_request_identity.v1` | §7.2.1/§7.2.2 accepted request Event id producer/consumer 一致性 |
+| `ak.vector.sidecar.hosted_ui_matrix.v1` | §8.1 Chrome/Edge hosted UI 全矩阵与增量切换证据 |
 
 ## 9. 规范性引用
 

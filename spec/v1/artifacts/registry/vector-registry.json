@@ -4733,6 +4733,110 @@
         "spec/v1/zh/crypto-media/device-lifecycle.md",
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
       ]
+    },
+    {
+      "vector_id": "ak.vector.sidecar.context_locator_recovery.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/models/sidecar.md",
+        "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
+      ],
+      "description": "Controller-only complete pagination and structural Event pairing recover private Sidecar context locators without adding a disclosure endpoint."
+    },
+    {
+      "vector_id": "ak.vector.sidecar.canonical_sibling_digest.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/models/sidecar.md",
+        "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
+      ],
+      "description": "Same-sequence request and control siblings choose the bytewise maximum canonical accepted Event envelope digest, never Event id, HLC, arrival or database order."
+    },
+    {
+      "vector_id": "ak.vector.sidecar.union_history_frontier.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/models/sidecar.md",
+        "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
+      ],
+      "description": "Incomparable device histories require complete backfill and union refold with maximal causal heads and a digest over all contributing Event ids."
+    },
+    {
+      "vector_id": "ak.vector.sidecar.non_disclosure_surface_matrix.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/models/sidecar.md",
+        "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
+      ],
+      "description": "Every shared list, expansion, activity, export, URL, log and telemetry surface discloses no Sidecar locator, identity, content or fold input."
+    },
+    {
+      "vector_id": "ak.vector.sidecar.revoke_fail_closed.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/models/sidecar.md",
+        "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
+      ],
+      "description": "Accepted Agent revoke, pause or deactivate immediately stops new delivery, execution and writes without implicitly terminating exchanges."
+    },
+    {
+      "vector_id": "ak.vector.sidecar.explicit_publish.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/models/sidecar.md",
+        "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
+      ],
+      "description": "Only explicit controller confirmation creates one allowlisted ordinary shared Event, with zero private identifiers, history or locators."
+    },
+    {
+      "vector_id": "ak.vector.sidecar.accepted_request_identity.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/models/sidecar.md",
+        "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
+      ],
+      "description": "Runtime producer and controller consumer bind exchange identity only to the accepted request Event id and reject message, local-intent and unaccepted identities."
+    },
+    {
+      "vector_id": "ak.vector.sidecar.hosted_ui_matrix.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "applies_to_fixtures": [
+        "agent-sidecar-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/models/sidecar.md",
+        "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json"
+      ],
+      "description": "Chrome and Edge execute the hosted multi-track, multi-mode, multi-device, multi-Agent and responsive UI matrix with preserved state and incremental switching evidence."
     }
   ]
 }
