@@ -3210,14 +3210,30 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequest",
-        "schema_kind": "object",
-        "required": [
-          "events"
-        ],
-        "properties": [
-          "events"
-        ],
-        "closed": true
+        "schema_kind": "oneOf",
+        "required": [],
+        "properties": [],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequest",
+            "schema_kind": null,
+            "required": [
+              "events"
+            ],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequest",
+            "schema_kind": null,
+            "required": [
+              "intents"
+            ],
+            "properties": [],
+            "closed": false
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueOutcome",

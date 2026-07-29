@@ -319,6 +319,22 @@ response loss 后复用 proof/JTI）返回首次 successor，不同 bytes 返回
 `previous_series_id`、`new_series_id`、完整 `new_backups[]`、`active_series_event_id` 与完整
 `old_backups[]`。两项或其任一 backup id/digest 在 create 后都不得替换。
 
+两个预留 digest 必须使用下列非循环 JCS 投影计算；不得把
+`transaction_request_digest`、`prepared_plan_digest`、digest 自身或运行时 timestamp 纳入
+预留值：
+
+- `erase_confirmation_digest = SHA-256(JCS({schema:
+  "ak.backup_series_erase_confirmation_preimage.v1", transaction_id, series:
+  backup_rotations}))`；
+- `local_commit_digest = SHA-256(JCS({schema:
+  "ak.security_rotation_local_commit_preimage.v1", transaction_id,
+  new_secret_commitment, backup_rotations}))`。
+
+complete erase confirmation 与 local commit artifact 仍必须回显最终
+`transaction_request_digest`/`prepared_plan_digest`；receiver 必须分别核对这些最终引用，并按
+上述投影复算预留 digest。这样 outcome 与最终 plan 逐字绑定，同时不形成 request/plan digest
+的哈希不动点。
+
 `prepared_plan.backup_rotations[]` 与 binding逐项相等，并为每项保存 encrypted material与
 active-series Event prepared unit。公开transaction/checkpoint只保存该typed public plan；
 staged account secret、明文keybag、MLS secret与私钥只能留在zeroizing secure-store slot，
@@ -354,8 +370,8 @@ digest或重新加入remaining集合。`request_digest`是完整erase request ca
 backup id canonical升序；`status=erased`当且仅当remaining为空，`reason_code`只允许
 `failed_retryable`。只有两个series的全部planned objects都确认擦除时，status才可为
 `complete`并返回`ak.schema.backup_series_erase_confirmation.v1`。confirmation只含create时已固定
-的transaction/request/plan与series bytes，因而其SHA-256(JCS)必须逐字等于预留
-`erase_confirmation_digest`；这是SecurityTransaction accepted erase step
+的transaction/request/plan与series bytes；receiver 必须核对最终 request/plan 引用，并按本节
+非循环 projection 重算且逐字等于预留 `erase_confirmation_digest`；这是SecurityTransaction accepted erase step
 `output_digest`的唯一来源。partial outcome、单对象DELETE响应、日志或本地flag都不能推进该step。
 
 ## 4. 故障点要求

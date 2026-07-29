@@ -219,13 +219,19 @@ Principal Server在不持有真实authority key时补签。
 ### 2.2 租约签发
 
 客户端通过 `ak.self.authorization_leases.command.issue`
-（`POST /_arkret/self/authorization-leases`）提交
-`AuthorizationLeaseIssueRequest {events: Event[1..500]}`。Event 必须已完成最终签名；服务端
+（`POST /_arkret/self/authorization-leases`）提交且只能二选一：
+`AuthorizationLeaseIssueRequest {events: Event[1..500]}` 或
+`AuthorizationLeaseIssueRequest {intents: AuthorizationLeaseIssueIntent[1..500]}`。Event 必须已完成最终签名；服务端
 MUST 对其执行与稍后正式提交相同的 actor/session、device generation、proof、registry、Realm
 policy、CBA、capability、frontier 与 closed-unit admission，但不得写 Event、推进 frontier 或
 承诺稍后一定接受。
 
-成功响应 `AuthorizationLeaseIssueOutcome {authorization_leases[]}` MUST 与 request Event
+`AuthorizationLeaseIssueIntent` 只用于 capability registry 中 `target_event_kinds=[]` 的
+non-Event operation，固定 `scope_ref/action/authorization_rule_id/risk_tier/basis_ref`。
+issuer MUST 独立确认 action/risk、当前 accepted basis、session actor/device、scope control
+Realm 和当前 authority policy；intent 本身不是授权。`events` 与 `intents` 不得同时出现。
+
+成功响应 `AuthorizationLeaseIssueOutcome {authorization_leases[]}` MUST 与 request target
 逐项同序、同数量。普通 Event 的 lease 绑定其 `seal_ref` / `seal_basis`；genesis 绑定 §1 的完整
 anchor unit。lease action 必须是其 `target_event_kinds` 覆盖 Event kind 且 actor 在该 basis
 实际持有的 registered capability action；未知 action 按 high risk fail closed。

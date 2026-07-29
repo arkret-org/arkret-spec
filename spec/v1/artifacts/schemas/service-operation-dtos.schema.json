@@ -4041,10 +4041,7 @@
     },
     "AuthorizationLeaseIssueRequest": {
       "type": "object",
-      "description": "Final signed Events presented for read-only publication pre-admission and authority lease issuance.",
-      "required": [
-        "events"
-      ],
+      "description": "Exactly one non-empty target array: final signed Events for publication pre-admission, or typed non-Event operation intents. Mixed requests are forbidden.",
       "properties": {
         "events": {
           "type": "array",
@@ -4053,6 +4050,79 @@
           "items": {
             "$ref": "#/$defs/EventSubmitEnvelope"
           }
+        },
+        "intents": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 500,
+          "items": {
+            "$ref": "#/$defs/AuthorizationLeaseIssueIntent"
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "events"
+          ],
+          "not": {
+            "required": [
+              "intents"
+            ]
+          }
+        },
+        {
+          "required": [
+            "intents"
+          ],
+          "not": {
+            "required": [
+              "events"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "AuthorizationLeaseIssueIntent": {
+      "type": "object",
+      "description": "Typed authorization target for a registered non-Event operation. The issuer rederives the current authority policy from the accepted basis; this object is not itself an authorization.",
+      "required": [
+        "scope_ref",
+        "action",
+        "authorization_rule_id",
+        "risk_tier",
+        "basis_ref"
+      ],
+      "properties": {
+        "scope_ref": {
+          "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
+        },
+        "action": {
+          "type": "string",
+          "pattern": "^ak\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*$"
+        },
+        "authorization_rule_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "risk_tier": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "basis_ref": {
+          "oneOf": [
+            {
+              "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+            },
+            {
+              "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+            }
+          ]
         }
       },
       "additionalProperties": false

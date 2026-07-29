@@ -752,10 +752,12 @@
           "description": "Exactly secret_storage then mls_history in canonical backup_kind order."
         },
         "erase_confirmation_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/hash",
+          "description": "SHA-256 of the non-circular JCS projection {domain=ak.backup_series_erase_confirmation_preimage.v1, transaction_id, series=backup_rotations}."
         },
         "local_commit_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/hash",
+          "description": "SHA-256 of the non-circular JCS projection {domain=ak.security_rotation_local_commit_preimage.v1, transaction_id, new_secret_commitment, backup_rotations}."
         }
       },
       "additionalProperties": false
@@ -851,10 +853,12 @@
           "description": "Prepared material for the same canonical two backup_kind entries as binding.backup_rotations."
         },
         "erase_confirmation_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/hash",
+          "description": "Must equal the binding's non-circular erase confirmation projection digest."
         },
         "local_commit_digest": {
-          "$ref": "#/$defs/hash"
+          "$ref": "#/$defs/hash",
+          "description": "Must equal the binding's non-circular local commit projection digest."
         }
       },
       "additionalProperties": false
