@@ -186,7 +186,7 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:090c4e94495f1f989041bf788a8756c33c85bab913bec5caa9b2ba7a33da8556"
+            "content_digest": "sha256:a676ac039f54f5538b40e99cfa13d1c520e4eb7dc0e0a4287f23fb6714aa01ef"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -194,7 +194,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:73df588ca54b789d4ee06be649e8062b2f33cbb68855cd58c3c5577aa7ce8141"
+      "reducer_profile_digest": "sha256:e30ca468cb663ba2bb41760d796bef1930b56ccc4d532a00b08de430041eb18f"
     },
     {
       "profile_id": "ak.profile.chat_mvp.v1",
@@ -435,7 +435,7 @@
           {
             "schema_id": "ak.schema.realm.v1",
             "registry_row_digest": "sha256:2ff03e9141d22bd758188fff95da4914fce65f690793f86720fcb3eb3c03e1ac",
-            "document_digest": "sha256:b93953a346ce805d6eec0893d25d5d7952b1835df935e0fbc9faa496cd3e2687"
+            "document_digest": "sha256:e18fec75af4cbe9c192a600c9c209f5d0e04630ddcf9a6389834f69b8819fc48"
           },
           {
             "schema_id": "ak.schema.seal.v1",
@@ -501,7 +501,7 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:090c4e94495f1f989041bf788a8756c33c85bab913bec5caa9b2ba7a33da8556"
+            "content_digest": "sha256:a676ac039f54f5538b40e99cfa13d1c520e4eb7dc0e0a4287f23fb6714aa01ef"
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
@@ -517,7 +517,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:e2b55f68f686b408f5efe58be373ed8219c5b8bbdd149324f18c75a64f522914"
+      "reducer_profile_digest": "sha256:dcb6bbde99a197f9115ead36ca07362f91f32698a00efc1b39cf76fb7cbd7def"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -728,7 +728,7 @@
           {
             "schema_id": "ak.schema.realm.v1",
             "registry_row_digest": "sha256:2ff03e9141d22bd758188fff95da4914fce65f690793f86720fcb3eb3c03e1ac",
-            "document_digest": "sha256:b93953a346ce805d6eec0893d25d5d7952b1835df935e0fbc9faa496cd3e2687"
+            "document_digest": "sha256:e18fec75af4cbe9c192a600c9c209f5d0e04630ddcf9a6389834f69b8819fc48"
           },
           {
             "schema_id": "ak.schema.relation.v1",
@@ -792,7 +792,7 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:090c4e94495f1f989041bf788a8756c33c85bab913bec5caa9b2ba7a33da8556"
+            "content_digest": "sha256:a676ac039f54f5538b40e99cfa13d1c520e4eb7dc0e0a4287f23fb6714aa01ef"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -812,7 +812,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:8ef9afd409c8f567fc6f8241b860987a2cb731df3966d55af47122761bf43509"
+      "reducer_profile_digest": "sha256:cea8bd050ce75c7e6d2265d11e0aee2226dd2a42a48df794ca5decd875c74512"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1298,7 +1298,7 @@
           {
             "schema_id": "ak.schema.realm.v1",
             "registry_row_digest": "sha256:2ff03e9141d22bd758188fff95da4914fce65f690793f86720fcb3eb3c03e1ac",
-            "document_digest": "sha256:b93953a346ce805d6eec0893d25d5d7952b1835df935e0fbc9faa496cd3e2687"
+            "document_digest": "sha256:e18fec75af4cbe9c192a600c9c209f5d0e04630ddcf9a6389834f69b8819fc48"
           },
           {
             "schema_id": "ak.schema.relation.v1",
@@ -1403,7 +1403,7 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:090c4e94495f1f989041bf788a8756c33c85bab913bec5caa9b2ba7a33da8556"
+            "content_digest": "sha256:a676ac039f54f5538b40e99cfa13d1c520e4eb7dc0e0a4287f23fb6714aa01ef"
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
@@ -1439,7 +1439,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:557a10cf137ebcb58453677853907a3cabc12e4567c1214d6f28126f5dd7bd56"
+      "reducer_profile_digest": "sha256:038ed86518a444f696e7699763d2209ac575e5befb0aae7426dc0ea163c5c640"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1670,7 +1670,7 @@
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
-            "content_digest": "sha256:090c4e94495f1f989041bf788a8756c33c85bab913bec5caa9b2ba7a33da8556"
+            "content_digest": "sha256:a676ac039f54f5538b40e99cfa13d1c520e4eb7dc0e0a4287f23fb6714aa01ef"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -1686,7 +1686,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:bcc22659ffc839891d4159c813048a8093fbbcb8afc493cb913efbc5cec81874"
+      "reducer_profile_digest": "sha256:fd156c921e39108effe8863a2deaabb826596319bf49ad5133f26ce9273a5f44"
     }
   ],
   "generated_fields": [

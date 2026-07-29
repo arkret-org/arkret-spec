@@ -577,6 +577,7 @@
     "receipt_sla_ms": {
       "type": "integer",
       "minimum": 0,
+      "maximum": 86400000,
       "default": 86400000,
       "description": "Realm-level deadline within which a submitted control-plane Control Move MUST receive a signed proposal receipt or signed ingress rejection (authz/event-auth-state-resolution.md section 7.2). This acknowledgement phase is separate from the proposal receipt's bounded decision window. Silent omission past this SLA is governance-health evidence."
     },

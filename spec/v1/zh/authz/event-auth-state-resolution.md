@@ -425,7 +425,7 @@ Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名�
 
 ### 7.2 控制面 receipt 与 inclusion obligation
 
-控制面 pending Control Move MUST 在 `receipt_sla_ms` 内得到签名 receipt 或签名 rejection。`receipt_sla_ms` 的权威字段是 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `receipt_sla_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`），与 `seal_compaction_max_interval_ms`（§6.2）同量级；其 wire 上限登记于 [`scalability-constraints.md`](../conformance/scalability-constraints.md) §4。SLA 计时以 notary 签署的提交时间为准（与 §4.3 `distance` 同源），不用本地接收时间。
+控制面 pending Control Move MUST 在 `receipt_sla_ms` 内得到签名 receipt 或签名 rejection。`receipt_sla_ms` 的权威字段是 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `receipt_sla_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`，v1 wire hard `maximum 86400000`），与 `seal_compaction_max_interval_ms`（§6.2）同量级；其 wire 上限登记于 [`scalability-constraints.md`](../conformance/scalability-constraints.md) §4。SLA 计时以 notary 签署的提交时间为准（与 §4.3 `distance` 同源），不用本地接收时间。
 
 **Proposal 有界决议（normative）**：`receipt_sla_ms` 只管「多久确认收到」。authority
 接受 proposal ingress 后签发的 receipt 还 MUST 承诺：

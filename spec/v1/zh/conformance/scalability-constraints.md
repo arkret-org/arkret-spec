@@ -261,7 +261,7 @@ JCS(body) bytes <= operation.max_canonical_body_bytes
 | 单次 Lattice join CPU / wall-clock 预算 | 实现声明 | 服务 MUST 在 `server/describe.limits` 暴露；超出时返回可恢复错误或使用已验证 state_root + inclusion proof。 |
 | 单次 Lattice join 内存预算 | 实现声明 | 服务 MUST 暴露，超出时返回可恢复错误而不是 OOM。 |
 | `revocation_freshness_window_ms` | 86,400,000 ms（24h，default）| `realm.schema.json`；按 Seal DAG notary 提交时间差度量（[`event-auth-state-resolution.md` §4.3](../authz/event-auth-state-resolution.md)）。`risk_tier=high` capability 无宽限（等效 0）。高风险 Realm SHOULD 取更短值。 |
-| `receipt_sla_ms` | 86,400,000 ms（24h，default）| `realm.schema.json`；pending Control Move 得到 signed receipt / rejection 的截止（[`event-auth-state-resolution.md` §7.2](../authz/event-auth-state-resolution.md)）。按 notary 提交时间计。 |
+| `receipt_sla_ms` | 86,400,000 ms（24h，default 与 v1 wire maximum）| `realm.schema.json`；pending Control Move 得到 signed receipt / rejection 的截止（[`event-auth-state-resolution.md` §7.2](../authz/event-auth-state-resolution.md)）。按 notary 提交时间计。 |
 | `proposal_decision_window_ms` | 30,000 ms（30s，default）；`minimum=1`；`maximum=86,400,000`（24h） | `realm.schema.json`；proposal receipt 的首个可验证决议窗口。到期前须 include / signed-reject / bounded signed-defer；不是接受或 finality SLA。 |
 | `proposal_absolute_deadline_ms` | 90,000 ms（90s，default）；`minimum=1`；`maximum=259,200,000`（72h） | `realm.schema.json`；从 receipt signed `received_at` 起不可延长的决议绝对窗口。defer 必须原样保留 `absolute_due_at`。 |
 | 单个 pending Control Move 累计 defer 数（`max_proposal_defers`）| 2（default 与 protocol maximum）| `realm.schema.json`；每次 defer 绑定原 receipt、closed reason 与递增 deadline；超过仍未 include / signed-reject 构成 decision-overdue / censorship evidence（[`event-auth-state-resolution.md` §7.2](../authz/event-auth-state-resolution.md)）。 |

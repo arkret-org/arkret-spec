@@ -65,6 +65,23 @@
       }
     },
     {
+      "name": "receipt_sla_wire_maximum_is_inclusive",
+      "received_at_span_ms": 86400000,
+      "receipt_sla_ms": 86400000,
+      "expected": {
+        "decision": "accept"
+      }
+    },
+    {
+      "name": "receipt_sla_above_wire_maximum_is_rejected",
+      "received_at_span_ms": 86400001,
+      "receipt_sla_ms": 86400001,
+      "expected": {
+        "decision": "reject",
+        "reason": "schema_violation"
+      }
+    },
+    {
       "name": "exact_member_retry_is_byte_identical_and_conflict_cannot_extend",
       "same_proposal_digest": true,
       "same_authority_set_ref": true,

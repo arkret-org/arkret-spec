@@ -74,7 +74,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/control-proposal-receipt-fixture.json",
-      "sha256": "aec959f2c50c5180bf6da80ca2d3e27ec52df7d72fbd334afbed567818e767fb"
+      "sha256": "c67ac2a33e9a5d47d2c8a00ac8914ed6364c556dfe041d80c27b6bb1689f194f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cross-signing-binding-fixture.json",
@@ -126,7 +126,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "3db8c4bd9d0625b482c7151d988883583ce59feff3ad25ae7fa537e37942ef6a"
+      "sha256": "340ed6b1cf8c1aaf61d08e1c770dcee7ca4f07e0f758866e9ac31a6e35d0c870"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
