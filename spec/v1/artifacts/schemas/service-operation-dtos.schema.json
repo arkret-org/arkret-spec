@@ -4039,6 +4039,42 @@
         }
       ]
     },
+    "AuthorizationLeaseIssueRequest": {
+      "type": "object",
+      "description": "Final signed Events presented for read-only publication pre-admission and authority lease issuance.",
+      "required": [
+        "events"
+      ],
+      "properties": {
+        "events": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 500,
+          "items": {
+            "$ref": "#/$defs/EventSubmitEnvelope"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "AuthorizationLeaseIssueOutcome": {
+      "type": "object",
+      "description": "One authority-issued publication lease per requested Event, preserving request order.",
+      "required": [
+        "authorization_leases"
+      ],
+      "properties": {
+        "authorization_leases": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 500,
+          "items": {
+            "$ref": "./offline-publication.schema.json#/$defs/authorization_lease"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "EventInitialSubmission": {
       "type": "object",
       "description": "Initial durable Event publication. The Event remains the only signed business fact; lease and dependency bundles are independently verified publication evidence and are excluded from the Event digest.",

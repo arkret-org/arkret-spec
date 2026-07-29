@@ -39,12 +39,21 @@ authority_set_ref, verification_method, created_at, domain?, audience?})`；proo
 等于 lease `issued_at`。proof 条数与唯一 issuer 数必须满足 basis 中已接受的 authority-set policy，
 数组长度本身不等于 quorum。
 
-`basis_ref` 在 `single_did` / `threshold` / `mixed` 下是单个 accepted Seal ref；在
+`basis_ref` 在普通 `single_did` / `threshold` / `mixed` 发布下是单个 accepted Seal ref；在
 `open_set` 下必须是包含 `leaves[]`、`control_event_set_root` 与 `state_root` 的完整
 `seal_basis`，不能用任一单 leaf 冒充 joined view。lease 只能收窄该 basis 中已存在的
 authorization。verifier MUST 从 accepted CBA basis
 验证 issuer/delegation、actor/device、scope、action、risk 与有效期；lease 不能创建 capability，
 不能把 medium/high action 降为 low，也不能跨 scope 使用。
+
+三个已注册的 closed genesis family（ordinary Realm founding unit、self-principal PCR
+bootstrap unit 与 accepted controller delegation 精确绑定的 managed Agent PCR create）
+没有先验 Seal。仅对这些完整 unit，`basis_ref` MAY 是
+`{anchor_unit:{realm_id,event_digests[],unit_digest}}`，其中 event digest 按 unit 必需顺序排列，
+`unit_digest = sha256(canonical_json({realm_id,event_digests}))`。issuer MUST 在签发前验证完整
+closed unit、root/enrollment authority proof、creator/session/device、notary declaration、actor
+chain 与目标 Realm 不存在；提交时 unit、顺序、数量或任一 digest 不同都 MUST 零写入拒绝。
+该例外不得用于普通未接受 Event，也不得把 prospective/fabricated Seal 当作 accepted basis。
 
 `authority_set_ref` 是 CBA 各 authority/quorum 场景共用的闭合对象
 `{authority_set_id, authority_set_digest}`。`authority_set_id` 必须是登记的
@@ -196,6 +205,31 @@ EventFederationSubmission {
 至少携带一个 receipt；receiver 再按目标 Realm 的 issuer/threshold/transparency policy 判断证据
 是否充分。request 级 `cba_proof_bundles[]` 只负责补齐 basis closure。任何服务都不得把这些
 传输证据复制进 Event，或因本地较晚首次见到而改写 `received_at`。
+
+### 2.2 租约签发
+
+客户端通过 `ak.self.authorization_leases.command.issue`
+（`POST /_arkret/self/authorization-leases`）提交
+`AuthorizationLeaseIssueRequest {events: Event[1..500]}`。Event 必须已完成最终签名；服务端
+MUST 对其执行与稍后正式提交相同的 actor/session、device generation、proof、registry、Realm
+policy、CBA、capability、frontier 与 closed-unit admission，但不得写 Event、推进 frontier 或
+承诺稍后一定接受。
+
+成功响应 `AuthorizationLeaseIssueOutcome {authorization_leases[]}` MUST 与 request Event
+逐项同序、同数量。普通 Event 的 lease 绑定其 `seal_ref` / `seal_basis`；genesis 绑定 §1 的完整
+anchor unit。lease action 必须是其 `target_event_kinds` 覆盖 Event kind 且 actor 在该 basis
+实际持有的 registered capability action；未知 action 按 high risk fail closed。
+
+issuer 是完成上述 admission 的 authenticated Principal Server admission authority，不必同时是
+Realm Seal notary。`authority_set_digest` 必须冻结 issuer service DID、Realm 与精确 basis；
+receiver 还 MUST 验证该 service 在 basis/policy 中是合格 ingress 或 delegated admission signer。
+proof audience 必须覆盖 issuer service DID。
+
+相同 canonical request 与相同 `Idempotency-Key` 的 retry MUST 返回逐字节相同 lease 与 expiry；
+同 key 不同 request 返回 `duplicate_conflict`。客户端 MAY 在到期前续取，但 MUST 以
+actor/device/scope/action/basis/authority-set digest 分区保存，且在 sign-out、account switch、
+device revocation 或 generation change 时清除。离线状态只能使用已持有且未过期的 lease，不得
+把无法联机签发降级为裸 Event。
 
 ## 3. Profile 与审查风险
 

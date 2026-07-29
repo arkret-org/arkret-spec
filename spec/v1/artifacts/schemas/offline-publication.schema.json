@@ -32,9 +32,12 @@
             },
             {
               "$ref": "./event-envelope.schema.json#/properties/seal_basis"
+            },
+            {
+              "$ref": "#/$defs/anchor_unit_basis_ref"
             }
           ],
-          "description": "Accepted authorization basis. Single-chain profiles use one Seal ref; open_set uses the signed multi-leaf seal_basis object including control_event_set_root and state_root."
+          "description": "Authorization basis. Ordinary publication uses an accepted Seal or signed multi-leaf seal_basis. Only a caller-validated registered genesis unit may use the exact anchor_unit digest commitment."
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/did"
@@ -83,6 +86,41 @@
           "items": {
             "$ref": "./event-envelope.schema.json#/$defs/proof"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "anchor_unit_basis_ref": {
+      "type": "object",
+      "required": [
+        "anchor_unit"
+      ],
+      "properties": {
+        "anchor_unit": {
+          "type": "object",
+          "required": [
+            "realm_id",
+            "event_digests",
+            "unit_digest"
+          ],
+          "properties": {
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            },
+            "event_digests": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 500,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/hash"
+              }
+            },
+            "unit_digest": {
+              "$ref": "#/$defs/hash"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

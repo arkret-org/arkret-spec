@@ -92,6 +92,16 @@ proposal_digest, received_at, decision_due_at, absolute_due_at,
 defer_count, authority_set_ref, signature
 ```
 
+**闭合 genesis 的 ingress authority**：普通路径中的 `authority_set_ref` 来自已经生效的
+Realm authority set。仅对登记的完整闭合 genesis 单元（ordinary Realm、self-principal
+PCR、managed Agent PCR），该 authority set 正由单元创建，不能循环要求尚未生效的 founding
+notary 先签 receipt。此时，完成全量预准入并为同一有序单元签发
+`AuthorizationLease` 的 Principal Server MAY 签发 proposal receipt；receipt 的
+`authority_set_ref` MUST 等于这些 lease 的 `authority_set_digest`，且每个 receipt
+仍逐一绑定 exact Event digest。该例外只确认 ingress，不产生授权、accepted state 或 finality；
+首个 accepted Seal 仍 MUST 由单元声明的 founding notary 签署并独立重算 genesis state。
+已有 accepted Realm authority、reanchor、recovery 或普通 Control Move 不得使用此例外。
+
 Realm 可通过 `proposal_decision_window_ms`、`proposal_absolute_deadline_ms` 与
 `max_proposal_defers` 声明更严格的有效值；协议硬上限：
 

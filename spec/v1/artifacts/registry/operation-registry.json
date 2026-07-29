@@ -88,6 +88,7 @@
     {
       "surface": "events_sync",
       "operations": [
+        "ak.self.authorization_leases.command.issue",
         "ak.self.events.query.describe",
         "ak.self.events.command.submit",
         "ak.self.events.command.submit_seal",
@@ -1652,6 +1653,21 @@
       "notes": "Long-lived per-Realm / actor event stream with optional bounded catch-up replay. `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same caller/selector scope; early reconnects are rejected with rate_limited / Retry-After.",
       "body_class": "streaming_ndjson",
       "success_shape_kind": "event_stream"
+    },
+    {
+      "operation_id": "ak.self.authorization_leases.command.issue",
+      "http": "POST /_arkret/self/authorization-leases",
+      "grpc": "SelfAuthorizationLeases/Issue",
+      "mq": "self.authorization_leases.command.issue",
+      "notes": "Read-only pre-admission of final signed Events followed by one authority-issued publication lease per Event. The operation never commits an Event or advances a frontier. Ordinary Events bind an accepted seal_ref/seal_basis; only complete registered genesis units may bind the ordered anchor_unit digest. Idempotent retry returns byte-identical leases.",
+      "body_class": "non_streaming_json",
+      "max_items": 500,
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "/events",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequest",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueOutcome"
     },
     {
       "operation_id": "ak.self.events.command.submit",

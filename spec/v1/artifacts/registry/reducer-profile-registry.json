@@ -1391,7 +1391,7 @@
           },
           {
             "ref": "artifacts/registry/operations-error-mapping.json",
-            "content_digest": "sha256:a8f7e3770e9a9846f6893b4f5c1d81c739d6f9f7a15aa949be30f5a22f006bc3"
+            "content_digest": "sha256:5569a4d5c6ba47e00f3696cd103aee53f2768053b3f3ad4deb356bf8e618ead8"
           },
           {
             "ref": "artifacts/registry/relation-kind-registry.json",
@@ -1439,7 +1439,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:fb7c82c97d79088f1775118e2bae250d83ca38c770d2e21adc667af6152b8350"
+      "reducer_profile_digest": "sha256:be1decdb110d6004832d9aee165f0f8888db479e4c1cec54a325762651891b6e"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1666,7 +1666,7 @@
           },
           {
             "ref": "artifacts/registry/operation-registry.json",
-            "content_digest": "sha256:8b445ced5ff3ddd964e32c5eb4a23741c9ab95836699eeb2b8706bd86b55776d"
+            "content_digest": "sha256:2197b510636d76253464b16f01c3357aa002b5c9fc98f6f01fdfdc74a8459b36"
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
@@ -1682,11 +1682,11 @@
           },
           {
             "ref": "zh/sync/service-http-binding.md",
-            "content_digest": "sha256:eb16cac4f1a0b1e621bef58fcafe327c8089b7d2b59bb7e6f4014be4f8f488dd"
+            "content_digest": "sha256:3363bd6d2ad10c62aa42a7f00eaf503631391449b215ad47c07292c8150fe2b3"
           }
         ]
       },
-      "reducer_profile_digest": "sha256:07edf8e00634230decbc060e74d78045c8d9c0dc23be33ed5a438428b55ef535"
+      "reducer_profile_digest": "sha256:12b869c4b6cd593bd440c12463ca189f34f225041485c1d42fbf2ad9337873fb"
     }
   ],
   "generated_fields": [

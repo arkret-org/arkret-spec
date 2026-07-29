@@ -754,6 +754,17 @@
       ]
     },
     {
+      "operation_id": "ak.self.authorization_leases.command.issue",
+      "http_alias": "POST /_arkret/self/authorization-leases",
+      "operation_specific": [
+        "duplicate_conflict",
+        "failed_precondition",
+        "stale_seal_ref",
+        "seal_ref_unknown"
+      ],
+      "description": "Publication lease issuance performs the same read-only Event admission as submit. It can reject stale or unknown bases and conflicting idempotency replays, but it never commits an Event."
+    },
+    {
       "operation_id": "ak.self.events.command.submit",
       "http_alias": "POST /_arkret/self/events",
       "operation_specific": [

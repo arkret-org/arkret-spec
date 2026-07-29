@@ -3177,6 +3177,32 @@
       }
     },
     {
+      "operation_id": "ak.self.authorization_leases.command.issue",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequest",
+        "schema_kind": "object",
+        "required": [
+          "events"
+        ],
+        "properties": [
+          "events"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueOutcome",
+        "schema_kind": "object",
+        "required": [
+          "authorization_leases"
+        ],
+        "properties": [
+          "authorization_leases"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.self.events.command.submit",
       "success_shape_kind": "typed_response",
       "request": {

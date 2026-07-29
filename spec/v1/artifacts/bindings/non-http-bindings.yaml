@@ -178,6 +178,8 @@ grpc:
       PushRegister: ak.find.directory.push.command.register
       Withdraw: ak.find.directory.command.withdraw
       TakedownAppeal: ak.find.directory.command.takedown_appeal
+    SelfAuthorizationLeases:
+      Issue: ak.self.authorization_leases.command.issue
     SelfEvents:
       Describe: ak.self.events.query.describe
       Frontier: ak.self.events.query.frontier
@@ -331,6 +333,7 @@ mq:
     self.security_transaction.command.create: ak.self.security_transaction.command.create
     self.security_transaction.resource.get: ak.self.security_transaction.resource.get
     self.security_transaction.command.continue: ak.self.security_transaction.command.continue
+    self.authorization_leases.command.issue: ak.self.authorization_leases.command.issue
     self.events.command.submit: ak.self.events.command.submit
     self.events.command.submit_seal: ak.self.events.command.submit_seal
     self.events.query.mls_governance_proof: ak.self.events.query.mls_governance_proof
