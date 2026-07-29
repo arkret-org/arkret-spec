@@ -1229,6 +1229,7 @@
         "ak.session.grant",
         "ak.cross_signing.publish",
         "ak.cross_signing.reset",
+        "ak.policy.set",
         "ak.mls.keypackage",
         "ak.account.status",
         "ak.consent.grant",
@@ -1256,6 +1257,7 @@
         "ak.schema.device_reanchor.v1",
         "ak.schema.capability.v1",
         "ak.schema.key_backup.v1",
+        "ak.schema.recovery_policy.v1",
         "ak.schema.cross_signing_publish.v1",
         "ak.schema.cross_signing_reset.v1"
       ],
@@ -1287,6 +1289,7 @@
           "ak.session.grant",
           "ak.cross_signing.publish",
           "ak.cross_signing.reset",
+          "ak.policy.set",
           "ak.mls.keypackage",
           "ak.account.status",
           "ak.consent.grant",
