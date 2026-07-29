@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/account-data-operations.schema.json",
   "title": "Arkret Account Data Self-Management Operation DTOs",
-  "description": "Closed request/response DTOs for the self-surface actor-private account_data operations (ak.self.account_data.*). PUT builds a ak.account_data.set actor-private write; the server stores content verbatim (clients own canonical encoding and, for sensitive keys, client-side encryption). account_data_key keys are dot-delimited namespaces validated against account-data-key-registry.json. See spec/v1/zh/discovery/client-preferences.md.",
+  "description": "Closed request/response DTOs for the self-surface actor-private account_data operations (ak.self.account_data.*). PUT builds a ak.account_data.set actor-private write; the server stores content verbatim (clients own canonical encoding and, for sensitive keys, client-side encryption). Every key is a server-versioned compare-and-set whole-value register: writes carry expected_revision and the accepted revision is expected_revision + 1, so concurrent multi-device writes converge instead of silently overwriting each other. See spec/v1/zh/models/account-data.md §5. account_data_key keys are dot-delimited namespaces validated against account-data-key-registry.json.",
   "anyOf": [
     {
       "$ref": "#/$defs/account_data_replace_request_body"
@@ -15,6 +15,9 @@
     },
     {
       "$ref": "#/$defs/account_data_delete_outcome"
+    },
+    {
+      "$ref": "#/$defs/account_data_cas_conflict_details"
     }
   ],
   "$defs": {
@@ -28,16 +31,26 @@
       "pattern": "^[^\\s/\\\\?#\\u0000-\\u001f]+$",
       "description": "Dot-delimited account_data namespace key (e.g. ak.contacts.realm.<realm_id>, ak.account.blocklist). Control chars / whitespace / path separators are forbidden so the key is URL- and log-safe."
     },
+    "revision": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Monotonic per-key revision counter. 0 means the key has never been written. Each accepted write or delete stores expected_revision + 1. The counter is a high-water mark: it MUST NOT go backwards, not even after a tombstone is garbage-collected, so a stale offline write can never resurrect a superseded value."
+    },
     "account_data_entry": {
       "type": "object",
       "required": [
         "account_data_key",
+        "revision",
         "content",
         "updated_at"
       ],
       "properties": {
         "account_data_key": {
           "$ref": "#/$defs/account_data_key"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision",
+          "description": "Revision of this stored value. Pass it back as expected_revision to replace or delete the entry."
         },
         "content": {
           "description": "Caller-supplied opaque payload, stored verbatim. Any JSON value."
@@ -51,9 +64,14 @@
     "account_data_replace_request_body": {
       "type": "object",
       "required": [
+        "expected_revision",
         "content"
       ],
       "properties": {
+        "expected_revision": {
+          "$ref": "#/$defs/revision",
+          "description": "Compare-and-set precondition: the revision the caller believes is current. Use 0 to create a key that has never been written. A mismatch MUST fail with cas_conflict and MUST NOT store the value."
+        },
         "content": {
           "description": "Caller-supplied opaque payload. Server stores it verbatim; canonical encoding and (for sensitive keys) client-side encryption are the client's responsibility. Any JSON value."
         }
@@ -79,7 +97,8 @@
       "type": "object",
       "required": [
         "ok",
-        "account_data_key"
+        "account_data_key",
+        "revision"
       ],
       "properties": {
         "ok": {
@@ -87,6 +106,31 @@
         },
         "account_data_key": {
           "$ref": "#/$defs/account_data_key"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision",
+          "description": "Revision of the stored tombstone (expected_revision + 1). Recreating the key requires this value as the next expected_revision."
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_data_cas_conflict_details": {
+      "type": "object",
+      "description": "Closed error.details payload for cas_conflict and not_found on ak.self.account_data.resource.*. It always carries the current revision so the caller can decrypt, re-apply its domain merge rule and issue exactly one new compare-and-set write without a second round trip.",
+      "required": [
+        "account_data_key",
+        "current_revision"
+      ],
+      "properties": {
+        "account_data_key": {
+          "$ref": "#/$defs/account_data_key"
+        },
+        "current_revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "current_entry": {
+          "$ref": "#/$defs/account_data_entry",
+          "description": "Present only when the key currently holds a live value. Omitted when the key is unset or holds a tombstone; current_revision is still authoritative in that case."
         }
       },
       "additionalProperties": false

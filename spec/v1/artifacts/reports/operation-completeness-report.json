@@ -1596,7 +1596,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ak.self.agent_signer_evidence.query",
+      "operation_id": "ak.self.agent_signer_evidence.query.resolve",
       "surface_class": "extension",
       "http": "POST /_arkret/self/agent-signer-evidence/query",
       "success_shape_kind": "typed_response",

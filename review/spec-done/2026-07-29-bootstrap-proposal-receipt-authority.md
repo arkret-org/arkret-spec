@@ -1,6 +1,7 @@
 # Closed-genesis proposal receipt authority is ambiguous
 
-Status: open  
+Status: closed (2026-07-29)  
+Closed by: the closed-genesis ingress authority rule in `spec/v1/zh/authz/cba-profiles.md` section 3.
 Detected by: `cotest` real-browser onboarding run `20260729-064857`  
 Affected surfaces: CBA proposal ingress, Principal Control Realm bootstrap, Realm bootstrap
 

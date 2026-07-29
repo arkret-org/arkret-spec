@@ -6160,7 +6160,7 @@ paths:
               $ref: '#/components/schemas/KeysClaimRequestBody'
   /_arkret/self/agent-signer-evidence/query:
     post:
-      operationId: ak.self.agent_signer_evidence.query
+      operationId: ak.self.agent_signer_evidence.query.resolve
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -8281,6 +8281,13 @@ paths:
         required: true
         schema:
           type: string
+      - name: expected_revision
+        in: query
+        description: Compare-and-set precondition; must equal the accepted per-key revision. See zh/models/account-data.md §5.
+        required: true
+        schema:
+          type: integer
+          minimum: 0
       responses:
         '200':
           description: Account data entry deleted.

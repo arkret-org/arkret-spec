@@ -3,7 +3,7 @@ title: Client Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-17
+updated: 2026-07-29
 ---
 
 ## 0. 规范语言
@@ -583,6 +583,8 @@ Handle claim 获取与刷新规则：
 - `ak.account.invite_quarantine`
 
 Account data MUST 按 principal/device 授权隔离。联邦节点不得向其他 principal 泄露 account data。
+
+存储模型、value 加密与跨设备并发写入契约的单一真源是 [`../models/account-data.md`](../models/account-data.md)：每个 key 是 server-versioned compare-and-set whole-value register，写入携带 `expected_revision`，领域 merge 规则在客户端明文上执行。
 
 ## 10. To-Device Delivery
 

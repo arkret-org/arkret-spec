@@ -3,7 +3,7 @@ title: File Transfer
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-29
 see_also:
   - private-objects.md
   - personal-productivity.md
@@ -106,7 +106,11 @@ AAD MUST NOT 绑定 content-addressed `blob_ref`，因为这会让 `blob_ref = d
 
 每个 file-transfer item 是独立 account-data 值，MUST NOT 使用一个不断增长的大列表作为唯一真相源。
 
-状态更新（例如 `downloaded`、`dismissed`、`deleted`）写回同一个 `ak.file_transfer.v1:<transfer_key>`。三个非 terminal 状态 `available`、`downloaded`、`dismissed` 之间允许双向迁移：重新下载可写 `downloaded`，从 UI 收起可写 `dismissed`，重新发送到同一授权设备集合前可写回 `available`；它们之间的冲突按 `(actor, transfer_key)` 做 last-writer-wins，比较源为 `updated_hlc`。`deleted` 是该 `transfer_key` 的不可逆 terminal tombstone：任一副本一旦观察到 `status="deleted"`，同一 `transfer_key` 后续或并发的非 deleted 状态 MUST NOT 复活该 transfer；需要重新发送时必须生成新的 `transfer_id` 与新的 `transfer_key`。多个 deleted tombstone 之间 MAY 用较新的 `updated_hlc` 更新保留元数据。如果设备本地时钟或 HLC 来源不可信，客户端 SHOULD 保留本地冲突副本供用户恢复，但 shared reducer 不参与 file-transfer 合并。
+状态更新（例如 `downloaded`、`dismissed`、`deleted`）写回同一个 `ak.file_transfer.v1:<transfer_key>`。该 key 的 registry row 声明 `merge_strategy=cas_register` 与 `deletion_mode=value_tombstone`：所有写入 MUST 走 [`account-data.md` §5](./account-data.md) 的 compare-and-set 循环，服务端只做 `expected_revision` 比较，下述状态规则 MUST 由客户端在解密明文上执行。
+
+三个非 terminal 状态 `available`、`downloaded`、`dismissed` 之间允许双向迁移：重新下载可写 `downloaded`，从 UI 收起可写 `dismissed`，重新发送到同一授权设备集合前可写回 `available`；它们之间的冲突按 `(actor, transfer_key)` 做 last-writer-wins，比较源为 `updated_hlc`。`deleted` 是该 `transfer_key` 的不可逆 terminal tombstone，且 MUST 作为 value 写入同一 key（而不是通过 `ak.self.account_data.resource.delete` 物理删除），使它在 tombstone GC 之后仍然可被任何设备观察到：任一副本一旦观察到 `status="deleted"`，同一 `transfer_key` 后续或并发的非 deleted 状态 MUST NOT 复活该 transfer；需要重新发送时必须生成新的 `transfer_id` 与新的 `transfer_key`。多个 deleted tombstone 之间 MAY 用较新的 `updated_hlc` 更新保留元数据。
+
+CAS 冲突（`cas_conflict`）时客户端 MUST 重新解密 `current_entry`、按上述规则合并后以新的 `expected_revision` 重写一次；离线设备的旧字节级 retry 因此必然失败，不会把已被覆盖的状态整体写回。如果设备本地时钟或 HLC 来源不可信，客户端 SHOULD 保留本地冲突副本供用户恢复，但 shared reducer 不参与 file-transfer 合并。
 
 客户端断线恢复 MUST 使用 `ak.self.account.stream.subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta；不得用 `ak.self.events.query.scan` 代替，因为 file-transfer account-data 和 to-device key messages 不属于裸 Realm Event 查询面。
 

@@ -5110,7 +5110,7 @@
       }
     },
     {
-      "operation_id": "ak.self.agent_signer_evidence.query",
+      "operation_id": "ak.self.agent_signer_evidence.query.resolve",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-signer-evidence-operations.schema.json#/$defs/query_request",
@@ -6739,11 +6739,13 @@
         "schema_kind": "object",
         "required": [
           "account_data_key",
+          "revision",
           "content",
           "updated_at"
         ],
         "properties": [
           "account_data_key",
+          "revision",
           "content",
           "updated_at"
         ],
@@ -6757,9 +6759,11 @@
         "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_replace_request_body",
         "schema_kind": "object",
         "required": [
+          "expected_revision",
           "content"
         ],
         "properties": [
+          "expected_revision",
           "content"
         ],
         "closed": true
@@ -6769,11 +6773,13 @@
         "schema_kind": "object",
         "required": [
           "account_data_key",
+          "revision",
           "content",
           "updated_at"
         ],
         "properties": [
           "account_data_key",
+          "revision",
           "content",
           "updated_at"
         ],
@@ -6788,11 +6794,13 @@
         "schema_kind": "object",
         "required": [
           "ok",
-          "account_data_key"
+          "account_data_key",
+          "revision"
         ],
         "properties": [
           "ok",
-          "account_data_key"
+          "account_data_key",
+          "revision"
         ],
         "closed": true
       }

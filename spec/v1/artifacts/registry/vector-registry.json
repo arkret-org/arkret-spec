@@ -4146,6 +4146,32 @@
       ]
     },
     {
+      "vector_id": "ak.vector.account_data.cas_convergence.v1",
+      "status": "active",
+      "domain": "account_data",
+      "applies_to_profiles": [
+        "ak.profile.full_client.v1"
+      ],
+      "description": "Account Data keys are server-versioned compare-and-set registers: a stale byte-identical retry after a newer write is rejected with cas_conflict, concurrent delete/update elects exactly one winner, opposite arrival orders reach the same final state, the revision high-water mark survives tombstone GC so deleted values cannot be resurrected, and value_tombstone key patterns refuse physical delete.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/models/account-data.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.read_cursor.multi_device_merge.v1",
+      "status": "active",
+      "domain": "read_cursor",
+      "applies_to_profiles": [
+        "ak.profile.full_client.v1"
+      ],
+      "description": "Multi-device read cursor merge is causal-first: a causally dominating position wins even when its HLC is lower, HLC max decides only causally concurrent positions, device_id breaks equal HLCs, and an undecidable causal closure stays provisional.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/discovery/read-receipts.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.agent_auth.human_approval_required.v1",
       "status": "active",
       "domain": "agent_auth",

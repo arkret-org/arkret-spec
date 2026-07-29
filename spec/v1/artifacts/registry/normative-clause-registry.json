@@ -1,0 +1,395 @@
+{
+  "version": "2026-07-29",
+  "source_of_truth": true,
+  "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
+  "coverage_scope": {
+    "included_categories": [
+      "wire",
+      "security",
+      "privacy",
+      "authorization",
+      "reducer",
+      "state_machine",
+      "distributed_write"
+    ],
+    "rule": "This registry covers the high-risk observable obligation set named in included_categories. It is deliberately not a numbering of every normative sentence under spec/v1/zh; mechanically numbering prose would manufacture meaningless MUSTs. A green release gate proves that every registered clause has live evidence and that no registered section changed without review. It does NOT prove that every MUST in the specification is registered.",
+    "extension_rule": "Adding a normative obligation inside an included category requires adding or updating a clause in the same change. Because section_digest pins the current text of every registered anchor, editing a registered section fails the release gate until the clause and its evidence are re-reviewed."
+  },
+  "registry_rules": [
+    "clause_id values are stable and MUST NOT be reused after a clause is retired; retire a clause by setting status=deprecated instead of deleting the row.",
+    "source_anchor MUST be a repository-relative markdown path plus an existing heading slug. section_digest MUST equal the sha256 of that heading's section text as computed by tools/lint_artifacts.py.",
+    "testability_grade=vector rows MUST list evidence_refs containing active vector ids from vector-registry.json. testability_grade=api_shape or audit rows MUST instead declare test_plan describing the non-vector proof.",
+    "A clause MUST NOT claim evidence it does not have: an obligation with no executable proof stays out of this registry rather than pointing at an unrelated vector."
+  ],
+  "clauses": [
+    {
+      "clause_id": "AK-NC-001",
+      "status": "active",
+      "category": "wire",
+      "source_anchor": "spec/v1/zh/conformance/encoding.md#2-canonical-json",
+      "section_digest": "sha256:2110d23a1b22df2db7921477ad72e319072546d95d8afb98eed814169ccd0958",
+      "requirement": "Canonical JSON serialization (key order, number form, NFC strings, duplicate-key rejection) is the single encoding used for every digest, signature and canonical comparison.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.encoding.canonical_json.basic.v1",
+        "ak.vector.encoding.canonical_json.nested.v1",
+        "ak.vector.encoding.canonical_json.utf16_supplementary_order.v1",
+        "ak.vector.encoding.reject_duplicate_key.v1",
+        "ak.vector.encoding.reject_noncanonical_numbers.v1",
+        "ak.vector.encoding.reject_non_nfc_string.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-002",
+      "status": "active",
+      "category": "wire",
+      "source_anchor": "spec/v1/zh/conformance/encoding.md#3-hash",
+      "section_digest": "sha256:19826c3e35d3c0130a792894b196eff09b824fd3a3bba09d079f016b2ee21e6b",
+      "requirement": "Digest suite identifiers, canonical event digest computation and the bytewise tie-break order are fixed; implementations MUST NOT substitute another hash encoding or comparison direction.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.encoding.digest.blake3.v1",
+        "ak.vector.encoding.event_digest.v1",
+        "ak.vector.encoding.canonical_event_tie_break.v1",
+        "ak.vector.encoding.event_batch_receipt_digest.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-003",
+      "status": "active",
+      "category": "wire",
+      "source_anchor": "spec/v1/zh/conformance/encoding.md#6-signature",
+      "section_digest": "sha256:6f96093f38f36b87fd535d084c5ec65f7ac86d91ca54b7ad5e2e5429859044bf",
+      "requirement": "The signature binding payload MUST bind algorithm, domain and audience; a signature valid for one domain or audience MUST NOT verify for another.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.encoding.signature_binding_payload.v1",
+        "ak.vector.encoding.signature_binding_payload_domain.v1",
+        "ak.vector.encoding.signature_binding_payload_audience.v1",
+        "ak.vector.encoding.signature_binding_payload_domain_audience.v1",
+        "ak.vector.encoding.crypto.signature_negative.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-004",
+      "status": "active",
+      "category": "wire",
+      "source_anchor": "spec/v1/zh/conformance/encoding.md#7-hlc",
+      "section_digest": "sha256:75907f6d5b8f5a5628a9f8b7dd132df363edc5b43407029442c3e30a94ecf514",
+      "requirement": "HLC well-formedness, logical-counter overflow handling and the causal-first usage boundary: HLC breaks ties between causally incomparable items only and MUST NOT select a winner in shared protocol state.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.encoding.hlc_order.v1",
+        "ak.vector.encoding.hlc_logical_overflow.v1",
+        "ak.vector.encoding.reject_malformed_hlc.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-005",
+      "status": "active",
+      "category": "wire",
+      "source_anchor": "spec/v1/zh/conformance/encoding.md#8-cursor",
+      "section_digest": "sha256:4525fe89815b5debb23f5262bcf8006e50c838cf736edd8178b7b9bdd7cf97e2",
+      "requirement": "Cursors are opaque server-issued tokens bound to their query scope; clients MUST NOT parse or forge them and cross-scope replay MUST be rejected.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.encoding.cursor_opaque.core.v1",
+        "ak.vector.encoding.reject_invalid_cursor.core.v1",
+        "ak.vector.sync.cursor_binding.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-006",
+      "status": "active",
+      "category": "wire",
+      "source_anchor": "spec/v1/zh/conformance/encoding.md#10-encrypted-envelope-digest",
+      "section_digest": "sha256:1c893f02dc45f533ef3f92b9479f055f83a2c4bd10fba5964ec1be918080e9b2",
+      "requirement": "Encrypted envelopes carry a pre-encryption immutable header; AAD digest and ciphertext digest are computed over fixed transcripts and any mismatch MUST fail closed.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.encoding.encrypted_envelope_digest.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-007",
+      "status": "active",
+      "category": "wire",
+      "source_anchor": "spec/v1/zh/sync/api-conventions.md#2-http-传输与编码",
+      "section_digest": "sha256:b506187daec3daa1b7d1ee1947e47aacd9fe210541751de5b21b04f9beb178a2",
+      "requirement": "Transport encoding bounds: Content-Encoding is forbidden on non-streaming JSON operations and every size limit MUST be enforced before the body is fully buffered or parsed.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.scalability.content_encoding_forbidden.v1",
+        "ak.vector.scalability.http_body_preparse_limit.v1",
+        "ak.vector.scalability.operation_body_size_limit.v1",
+        "ak.vector.scalability.http_header_limits.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-008",
+      "status": "active",
+      "category": "wire",
+      "source_anchor": "spec/v1/zh/sync/api-conventions.md#24-operation-id-kindaction-taxonomy",
+      "section_digest": "sha256:e5c0eb8dbf32ade613e8b38c0dc90480fd6958d266e30b3976cba248febdf688",
+      "requirement": "Every operation_id ends with <kind>.<action> drawn from the closed kind set, and the action MUST describe a protocol effect rather than an HTTP method name.",
+      "testability_grade": "api_shape",
+      "test_plan": "Enforced mechanically by tools/lint_artifacts.py: every operation_id in operation-registry.json is checked against the closed kind set and against forbidden HTTP-method action names. There is no runtime vector because the obligation is on the published contract, not on request handling."
+    },
+    {
+      "clause_id": "AK-NC-009",
+      "status": "active",
+      "category": "wire",
+      "source_anchor": "spec/v1/zh/sync/api-conventions.md#6-幂等",
+      "section_digest": "sha256:6742acb7c1a1e6dd0b3c2639986633eaf229ad78b77f1281c4c0fa71c95df988",
+      "requirement": "Every write operation declares a machine-readable idempotency mechanism and retry safety; clients MUST NOT be left to guess the recovery path of an uncertain outcome.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.api.request_idempotency.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-010",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
+      "section_digest": "sha256:2409964de7d20232df040fbaead6b63d3852cf1a1d50cdb699a408eb4128aa1e",
+      "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.session.pop_presentation.v1",
+        "ak.vector.session.bare_bearer_rejected_protected.v1",
+        "ak.vector.session.dpop_target_uri_binding.v1",
+        "ak.vector.session.device_identity_key_separation.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-011",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
+      "section_digest": "sha256:11e6346a5cbaa4e8a22cb09aa769fe4f1cad15c748bc3ae54ce12dafe0365f3b",
+      "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, and encryption floors MUST NOT be downgraded.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.mls.rfc9420_mti_kat.v1",
+        "ak.vector.mls.welcome_keypackage_hash.v1",
+        "ak.vector.e2ee.content_floor_downgrade_rejected.v1",
+        "ak.vector.e2ee.metadata_floor_downgrade_rejected.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-012",
+      "status": "active",
+      "category": "privacy",
+      "source_anchor": "spec/v1/zh/crypto-media/disappearing-messages.md#4-crypto-shredding",
+      "section_digest": "sha256:6fba7651ac99272421e9f5640fdc1fc96b0bd41d0dba0ce19b1ba5137be4d72b",
+      "requirement": "Read-trigger expiry anchors derive from anonymous aggregate contributions, converge under replay and reordering, and MUST NOT reveal reader identity or reader counts.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.disappearing.read_trigger_anonymous_aggregate.v1",
+        "ak.vector.disappearing.read_trigger_idempotent_replay.v1",
+        "ak.vector.disappearing.read_trigger_multi_aggregator_convergence.v1",
+        "ak.vector.disappearing.on_last_read_offline_window.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-013",
+      "status": "active",
+      "category": "privacy",
+      "source_anchor": "spec/v1/zh/discovery/discovery-directory.md#3-realm-discoverability",
+      "section_digest": "sha256:ebcfdc8f236e41d08032ab9adc7e405e04c1670030f24d92d255622a4a41a3db",
+      "requirement": "Directory resolution failures are indistinguishable: unauthorized, non-existent and policy-denied targets MUST NOT be separable by error code, field set or timing.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.directory.resolve_target_blinding.v1",
+        "ak.vector.directory.resolve_handle_failure_blinding.v1",
+        "ak.vector.directory.invite_not_found_blinding.v1",
+        "ak.vector.directory.withdraw_blinded_not_found.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-014",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#5-control-move",
+      "section_digest": "sha256:c7ff928001b8052ee1d4868a06b0e380782bc3f66c34e731a3b0c6beb9bb8c7e",
+      "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal; events in the same batch MUST NOT advance the authorization basis they rely on.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1",
+        "ak.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1",
+        "ak.vector.cba_lattice.auth_context_epoch_pinning_reject.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-015",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
+      "section_digest": "sha256:36a4832d5d3c6f4402b8f3794799c3a61e8cc63ef9980feee4e9c1dce293ac84",
+      "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, and equivocating notaries are quarantined instead of silently merged.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.cba_lattice.seal_canonical_no_self_reference.v1",
+        "ak.vector.cba_lattice.seal_delta_excludes_data_event_digest.v1",
+        "ak.vector.cba_lattice.open_set_compaction_preserves_control_roots.v1",
+        "ak.vector.cba_lattice.notary_fault_equivocation_quarantine.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-016",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/authz/capabilities.md#10-delegation",
+      "section_digest": "sha256:1661544af919d89c07a01151ab764a3fa99068d7e19b800319a0f30c43ba81da",
+      "requirement": "Delegation chains stay within the issuer authority and validity window; cycles and expired links MUST fail closed rather than widen the effective permission set.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.capability.delegate_chain.v1",
+        "ak.vector.capability.delegation_cycle.v1",
+        "ak.vector.capability.delegation_expiry_seal.v1",
+        "ak.vector.capability.issuer_authority_bound.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-017",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/authz/capabilities.md#12-revocation",
+      "section_digest": "sha256:7f560901ee8388f2a1bee7c3624204e40d506810b51b06430ae1e8ea41484c59",
+      "requirement": "Revocation rolls back downstream grants and forces a re-check of dependent decisions; a revoked grant MUST NOT keep authorizing pending or cached writes.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.capability.revoke_rollback.v1",
+        "ak.vector.capability.revoke_downstream_recheck.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-018",
+      "status": "active",
+      "category": "reducer",
+      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#9-lattice-与冲突语义",
+      "section_digest": "sha256:14270ccf5ca0fd94e422453c2edcf218a733746ffd8b2a3a868911612fe56da4",
+      "requirement": "Lattice joins are idempotent, commutative and associative per family; data-plane conflicts return structured bottom instead of electing a winner by arrival order or HLC.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.lattice.mv_register_join.v1",
+        "ak.vector.lattice.counter_join.v1",
+        "ak.vector.lattice.ordered_log_join.v1",
+        "ak.vector.lattice.fsm_join.v1",
+        "ak.vector.lattice.ordered_log_gap.v1",
+        "ak.vector.cba_lattice.data_plane_conflict_returns_bottom_without_winner.v1",
+        "ak.vector.cba_lattice.cas_mixed_basis.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-019",
+      "status": "active",
+      "category": "reducer",
+      "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akpatchv1--akschemapatchv1",
+      "section_digest": "sha256:416a826f725a1a0f828bb2baba19cdcc804e65de91fe5b054893bb255a9d389b",
+      "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.patch.atomic_application.v1",
+        "ak.vector.patch.projection_prestate_binding.v1",
+        "ak.vector.strand_tracks_update.atomic.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-020",
+      "status": "active",
+      "category": "reducer",
+      "source_anchor": "spec/v1/zh/models/event-and-patch.md#6-reducer-总则",
+      "section_digest": "sha256:7de56d0aeade9e74fdbad92bf02bb7e7d7119638cee9f6e49599fee14235c5e9",
+      "requirement": "Every reducer-input event kind declares a closed cell contract (cell family, subject, lattice, bottom, effect projection); an unregistered projection MUST NOT be improvised.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.event_kind.cell_contract_closure.v1",
+        "ak.vector.event_kind.null_cell_subject_wire_form.v1",
+        "ak.vector.state_root.incremental.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-021",
+      "status": "active",
+      "category": "state_machine",
+      "source_anchor": "spec/v1/zh/crypto-media/call-state.md#4-会议状态事件",
+      "section_digest": "sha256:7e98f9a7bb788184b7bc8fe36876d6bc5121b72e3f4d19d7c52ec2449a1c11d7",
+      "requirement": "Call state transitions follow the registered matrix, terminal states are absorbing, replaying the same state is a no-op, and concurrent siblings resolve to bottom.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.call_state.transition_matrix.v1",
+        "ak.vector.call_state.terminal_absorbing.v1",
+        "ak.vector.call_state.replay_same_state_noop.v1",
+        "ak.vector.call_state.concurrent_sibling_bottom.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-022",
+      "status": "active",
+      "category": "state_machine",
+      "source_anchor": "spec/v1/zh/models/governance-objects.md#5-invite",
+      "section_digest": "sha256:3c2820c9f238e09cfecff1e22542e7c4185162d48832a942e9451449e96d7cd2",
+      "requirement": "Invite claim is a state machine: a consumed token MUST NOT be re-subjected, expiry uses canonical time, and the membership transition is atomic with the claim.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.invite.claim_reducer_state_machine.v1",
+        "ak.vector.invite.consumed_token_resubject_rejected.v1",
+        "ak.vector.invite.claim_expiry_canonical_time.v1",
+        "ak.vector.invite.membership_transition_atomicity.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-023",
+      "status": "active",
+      "category": "distributed_write",
+      "source_anchor": "spec/v1/zh/models/account-data.md#5-并发写入与收敛契约normative",
+      "section_digest": "sha256:96f0ef334f8c98134adba70fe0ed96b8d4cfd16b894be0c79fdde3585e091cdb",
+      "requirement": "Account Data keys are server-versioned compare-and-set registers: a stale write MUST fail with cas_conflict, the revision high-water mark never goes backwards, and domain merge runs client-side on plaintext.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.account_data.cas_convergence.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-024",
+      "status": "active",
+      "category": "distributed_write",
+      "source_anchor": "spec/v1/zh/discovery/read-receipts.md#65-多设备合并",
+      "section_digest": "sha256:1afaf2dc50a0b3e5aa0c3238e925b848b92abe609e7ee6713c6aa1480ba7ec76",
+      "requirement": "Multi-device read cursor merge is causal-first: a causally dominating position wins regardless of HLC, HLC decides only concurrent positions, and device_id only breaks equal HLCs.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.read_cursor.multi_device_merge.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-025",
+      "status": "active",
+      "category": "distributed_write",
+      "source_anchor": "spec/v1/zh/sync/client-sync.md#10-to-device-delivery",
+      "section_digest": "sha256:2b742ae47296c284954a8f44c6bb6ba823b50e327460c19901f9d5c250ee5c2b",
+      "requirement": "To-device delivery executes each durable handler effect exactly once: redelivery is deduplicated by sender-scoped message id and queue removal happens only on explicit ack.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.sync.to_device_message_idempotency.v1",
+        "ak.vector.sync.delivery_ack.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-026",
+      "status": "active",
+      "category": "distributed_write",
+      "source_anchor": "spec/v1/zh/governance/member-delivery-binding.md#5-路由不可降级normative",
+      "section_digest": "sha256:9a2d66f15b1c86860fffead9b760bb11c69fbcb5d704473437e4947a26a13cd5",
+      "requirement": "Member delivery binding never silently downgrades: a stale binding frontier, an expired handover grace window or an unresolvable binding MUST fail closed instead of routing to the previous service.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.membership.delivery_binding.handover.v1",
+        "ak.vector.membership.delivery_binding.unroutable.v1",
+        "ak.vector.membership.delivery_binding.policy_mismatch.v1"
+      ]
+    }
+  ]
+}

@@ -253,7 +253,7 @@ grpc:
       Query: ak.self.keys.query.lookup
       Upload: ak.self.keys.upload.create
     SelfAgentSignerEvidence:
-      Query: ak.self.agent_signer_evidence.query
+      Resolve: ak.self.agent_signer_evidence.query.resolve
     SelfMedia:
       IceConfig: ak.self.media.query.ice_config
     OpenMimi:

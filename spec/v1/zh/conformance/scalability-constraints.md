@@ -3,7 +3,7 @@ title: Scalability Constraints
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-07-29
 ---
 
 ## 0. 规范语言
@@ -390,6 +390,8 @@ Arkret 的真相源仍是 signed Event Envelope；GC 只能释放某个存储边
 | --- | ---: | --- |
 | dangling redaction 最小保留 | 30 days | 目标 Event 尚未到达时，接收方 SHOULD 保留 redaction stub 至少 30 天或保留到 Realm policy 声明的更长窗口；不得在窗口内丢弃后再把迟到目标显示为未撤回内容。 |
 | tombstone / redaction verification stub 保留 | 不短于 raw event retention | 删除 payload 或压缩历史后仍 MUST 保留足以验证 causal refs、payload hash / proof、redaction / tombstone 授权和 erasure receipt 的最小 stub。 |
+| `account_data_tombstone_retention_ms` | 7,776,000,000 ms（90 days，最小值） | 见 [account-data.md](../models/account-data.md) §5.3。`deletion_mode=physical_delete` 的 key 被删除后，tombstone 元数据 MUST 至少保留该窗口，供长期离线设备识别删除态。 |
+| account_data `revision` 高水位保留 | 永久 | 见 [account-data.md](../models/account-data.md) §5.1。GC 掉 tombstone 元数据后仍 MUST 保留每个 `(actor_id, account_data_key)` 的最后 `revision`；该计数器 MUST NOT 回退，否则离线旧写会以过期 `expected_revision` 复活已被覆盖的值。 |
 | snapshot cadence | 实现声明 | 大型 Realm SHOULD 周期性生成可验证 snapshot；当 replay 成本超过第 4 节预算时 MUST 提供 snapshot-assisted recovery、可分页 backfill 或明确的可恢复错误。 |
 | snapshot 保留数量 | 至少 2 个有效 head SHOULD | 服务 SHOULD 保留当前推荐 snapshot 和至少一个前代 snapshot，便于 cursor 过期、移动端恢复和 snapshot 校验失败时回退。 |
 | track-disabled / archived materialized state | snapshot 中保留 stub | 通过 `ak.strand.tracks.update` 关闭 track（`tracks.<name>.enabled: set false`）、Realm tombstone、Message redaction 或 hard erasure 后，snapshot MUST 保留 reducer profile 声明的 tombstone / redaction stub；不得仅因 track 不活跃而从 state hash 中静默消失。 |

@@ -1766,7 +1766,7 @@
     "ak.profile.agent_signer_evidence.v1": {
       "description": "Portable ordinary-Realm Native Agent signer authorization evidence. Producers publish controller bindings, accepted state witnesses and freshness attestations; consumers independently verify them and cross-bind encrypted Events to the historical MLS leaf.",
       "required_endpoints": [
-        "ak.self.agent_signer_evidence.query"
+        "ak.self.agent_signer_evidence.query.resolve"
       ],
       "required_event_kinds": [
         "ak.agent.key.authorize",
@@ -4558,7 +4558,7 @@
       }
     },
     "ak.profile.draft_sync.v1": {
-      "description": "Client profile for encrypted cross-device draft account data with LWW resolution per draft slot.",
+      "description": "Client profile for encrypted cross-device draft account data. Writes go through the account-data compare-and-set contract (zh/models/account-data.md section 5); the per-draft-slot LWW rule runs client-side on decrypted plaintext inside that retry loop.",
       "required_endpoints": [
         "ak.self.account.stream.subscribe"
       ],

@@ -1230,7 +1230,7 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ak.self.agent_signer_evidence.query",
+      "operation_id": "ak.self.agent_signer_evidence.query.resolve",
       "http_alias": "POST /_arkret/self/agent-signer-evidence/query",
       "operation_specific": [
         "agent_signer_evidence_missing",
@@ -1750,20 +1750,26 @@
     {
       "operation_id": "ak.self.account_data.resource.get",
       "http_alias": "GET /_arkret/self/account_data/{account_data_key}",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "not_found carries account_data_cas_conflict_details so a caller reading an unset or tombstoned key still learns current_revision for its next compare-and-set write."
     },
     {
       "operation_id": "ak.self.account_data.resource.replace",
       "http_alias": "PUT /_arkret/self/account_data/{account_data_key}",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
+      "operation_specific": [
+        "cas_conflict"
+      ],
+      "description": "cas_conflict when expected_revision does not equal the accepted per-key revision; error.details use account_data_cas_conflict_details so the client can merge and re-issue exactly one write."
     },
     {
       "operation_id": "ak.self.account_data.resource.delete",
       "http_alias": "DELETE /_arkret/self/account_data/{account_data_key}",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
+      "operation_specific": [
+        "cas_conflict"
+      ],
+      "description": "cas_conflict when expected_revision does not equal the accepted per-key revision; the tombstone is not stored and error.details use account_data_cas_conflict_details."
     },
     {
       "operation_id": "ak.self.read_cursor.command.advance",

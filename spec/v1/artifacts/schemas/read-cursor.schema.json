@@ -181,7 +181,7 @@
     }
   },
   "title": "Arkret Read Cursor",
-  "description": "Actor-private multi-device read cursor. Stored in encrypted account data or actor-private stream; NEVER published into a shared Realm Event history. Bound to (actor_id, realm_id, read_scope, position, HLC, device_id) per zh/discovery/read-receipts.md §6.6 so that concurrent updates from multiple devices converge by HLC max.",
+  "description": "Actor-private multi-device read cursor. Stored in encrypted account data or actor-private stream; NEVER published into a shared Realm Event history. Bound to (actor_id, realm_id, read_scope, position, HLC, device_id) per zh/discovery/read-receipts.md §6.6. Multi-device merge is causal-first per §6.5: the position that causally dominates wins regardless of HLC; HLC max decides only causally concurrent positions, and device_id only breaks equal HLCs.",
   "type": "object",
   "required": [
     "id",
@@ -207,7 +207,7 @@
     "device_id": {
       "type": "string",
       "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Originating device. Required for multi-device convergence: when two devices race on the same (actor_id, realm_id, read_scope) the receiver picks the entry with greater HLC; device_id provides a deterministic actor_id-scoped tiebreaker when HLCs are equal."
+      "description": "Originating device. Required for multi-device convergence: when two devices race on the same (actor_id, realm_id, read_scope) the receiver first picks the causally dominating position; only for causally concurrent positions does it pick the greater HLC, and device_id provides a deterministic actor_id-scoped tiebreaker when those HLCs are equal. device_id MUST NOT be used to select a position that another position causally dominates."
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"

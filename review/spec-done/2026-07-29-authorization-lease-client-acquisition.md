@@ -1,6 +1,7 @@
 # Authorization lease client acquisition is undefined
 
-Status: open  
+Status: closed (2026-07-29)  
+Closed by: `ak.self.authorization_leases.command.issue` plus its schema, OpenAPI binding, profile and fixture at the current HEAD.
 Detected by: `cotest` joint-full run `20260729-043955`  
 Affected surfaces: Account Authority, Principal Server, clients, offline publication, conformance
 

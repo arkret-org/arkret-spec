@@ -3,7 +3,7 @@ title: Personal Productivity
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-29
 see_also:
   - private-objects.md
   - strand-and-message.md
@@ -82,6 +82,6 @@ Saved item 与 shared pin 不同：saved item 是 holder-private collection；sh
 
 草稿 value MUST 加密，并至少包含 `target_ref`、`kind`、`draft_slot`、`content`、`updated_hlc`、`origin_device_id` 和 `retention_expires_at`。`origin_device_id` MUST 是完整 `ak:device:<uuid>` typed ID；原始 `target_ref` MUST NOT 出现在 account-data key 中。
 
-草稿冲突按 `(actor, target_key, draft_slot)` 做 last-writer-wins。`updated_hlc` 是比较源；设备本地时钟不可信时，客户端 SHOULD 保留本地冲突副本供用户恢复，但 shared reducer 不参与草稿合并。
+草稿写入 MUST 走 [`account-data.md` §5](./account-data.md) 的 compare-and-set 循环：服务端只比较 `expected_revision`，草稿冲突规则由客户端在解密明文上执行。冲突按 `(actor, target_key, draft_slot)` 做 last-writer-wins，`updated_hlc` 是比较源；收到 `cas_conflict` 时客户端 MUST 重新解密 `current_entry`、合并后以新的 `expected_revision` 重写一次。设备本地时钟不可信时，客户端 SHOULD 保留本地冲突副本供用户恢复，但 shared reducer 不参与草稿合并。
 
 草稿发布后必须产生新的共享 Event，且共享 Event 只引用必要目标，不得把草稿 account-data key、草稿密文或草稿历史泄露进 shared payload。

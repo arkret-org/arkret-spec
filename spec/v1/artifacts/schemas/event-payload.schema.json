@@ -130,9 +130,10 @@
     },
     "account_data_set_payload": {
       "type": "object",
-      "description": "Payload for ak.account_data.set. Writes one holder-private account-data key; the value may be plaintext inside an already private envelope, encrypted account-data material, or a tombstone.",
+      "description": "Payload for ak.account_data.set. Writes one holder-private account-data key; the value may be plaintext inside an already private envelope, encrypted account-data material, or a tombstone. Every key is a compare-and-set whole-value register per zh/models/account-data.md §5: expected_revision is the revision the writer believes is current (0 to create), and the accepted revision is expected_revision + 1.",
       "required": [
-        "key"
+        "key",
+        "expected_revision"
       ],
       "oneOf": [
         {
@@ -158,6 +159,11 @@
         "owner": {
           "$ref": "#/$defs/did"
         },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Compare-and-set precondition against the accepted per-key revision. A mismatch MUST be rejected with cas_conflict and MUST NOT be stored; the revision counter is a high-water mark that never goes backwards, so a stale offline retry cannot resurrect a superseded value."
+        },
         "body": {
           "description": "Caller-supplied opaque account-data value. Any JSON value."
         },
@@ -173,9 +179,6 @@
         },
         "updated_at": {
           "$ref": "#/$defs/timestamp"
-        },
-        "expected_state_digest": {
-          "$ref": "#/$defs/hash"
         }
       },
       "additionalProperties": false

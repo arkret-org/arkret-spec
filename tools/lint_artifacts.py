@@ -54,6 +54,11 @@ ARTIFACTS = SPEC_ROOT / "artifacts"
 
 EVENT_KIND_TOKEN_RE = re.compile(r"\bak\.[a-z0-9_]+(?:\.[a-z0-9_]+)+\b")
 OPERATION_ID_RE = re.compile(r"^ak\.[a-z0-9_]+(?:\.[a-z0-9_]+)+$")
+# zh/sync/api-conventions.md §2.4: ak.<surface>.<domain...>.<kind>.<action>.
+OPERATION_KINDS = frozenset({"query", "stream", "resource", "command", "upload", "exchange"})
+# HTTP method names describe transport, not protocol effect; get/delete stay legal
+# because they are the canonical resource-kind actions.
+FORBIDDEN_OPERATION_ACTIONS = frozenset({"post", "put", "patch"})
 SCHEMA_ID_RE = re.compile(r"^ak\.schema\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+$")
 SCHEMA_ID_TOKEN_RE = re.compile(r"\bak\.schema\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+\b")
 PROFILE_ID_RE = re.compile(r"^ak\.profile\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+$")
@@ -65,6 +70,54 @@ UUID7_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-
 SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 OPENAPI_OPERATION_ID_RE = re.compile(r"^\s*operationId:\s*([A-Za-z0-9_.-]+)\s*$", re.MULTILINE)
 YAML_REF_RE = re.compile(r"\$ref:\s*['\"]?([^'\"\s#]+(?:#[^'\"\s]+)?)")
+HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$", re.MULTILINE)
+
+
+def markdown_heading_slug(heading: str) -> str:
+    """Slugify a markdown heading the way GitHub-flavored renderers do.
+
+    Strips markdown decoration (bold, code, links), keeps visible text, drops
+    punctuation except hyphen/underscore, and replaces each whitespace char with
+    a hyphen without collapsing runs. This mirrors Astro Starlight's default
+    renderer; collapsing would break anchors like "查询 / 回填" where " / "
+    becomes "--".
+    """
+    text = heading
+    text = re.sub(r"`([^`]+)`", r"\1", text)
+    text = re.sub(r"\*\*([^*]+)\*\*", r"\1", text)
+    text = re.sub(r"__([^_]+)__", r"\1", text)
+    text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
+    text = text.strip().lower()
+    text = re.sub(r"[^\w一-鿿\s-]", "", text)
+    text = re.sub(r"\s", "-", text)
+    return text
+
+
+def markdown_section_digest(text: str, anchor: str) -> str | None:
+    """sha256 of the section owned by `anchor`, or None when it does not exist.
+
+    The section runs from its heading line to the next heading of the same or
+    higher level. Line endings are normalized so the digest is stable across
+    checkouts.
+    """
+    lines = text.replace("\r\n", "\n").split("\n")
+    start: int | None = None
+    level = 0
+    for index, line in enumerate(lines):
+        match = re.match(r"^(#{1,6})\s+(.+?)\s*$", line)
+        if match and markdown_heading_slug(match.group(2)) == anchor:
+            start, level = index, len(match.group(1))
+            break
+    if start is None:
+        return None
+    end = len(lines)
+    for index in range(start + 1, len(lines)):
+        match = re.match(r"^(#{1,6})\s+", lines[index])
+        if match and len(match.group(1)) <= level:
+            end = index
+            break
+    body = "\n".join(lines[start:end]).rstrip() + "\n"
+    return "sha256:" + hashlib.sha256(body.encode("utf-8")).hexdigest()
 JSON_FENCE_RE = re.compile(r"```json(?P<meta>[^\n`]*)\n(?P<body>.*?)```", re.IGNORECASE | re.DOTALL)
 JSON_FENCE_SCHEMA_ATTR_RE = re.compile(r"\bschema=(?:\"([^\"]+)\"|'([^']+)'|([^\s]+))")
 JSON_FENCE_EXPECT_ATTR_RE = re.compile(r"\bexpect=(valid|invalid)\b")
@@ -2373,6 +2426,24 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     for operation_id in operation_ids:
         if not OPERATION_ID_RE.fullmatch(operation_id):
             lint.fail(operation_path, f"operation_id has invalid format: {operation_id}")
+            continue
+        segments = operation_id.split(".")
+        if len(segments) < 4:
+            lint.fail(
+                operation_path,
+                f"operation_id must be ak.<surface>.<domain...>.<kind>.<action>: {operation_id}",
+            )
+            continue
+        if segments[-2] not in OPERATION_KINDS:
+            lint.fail(
+                operation_path,
+                f"operation_id kind segment {segments[-2]!r} is not one of {sorted(OPERATION_KINDS)}: {operation_id}",
+            )
+        if segments[-1] in FORBIDDEN_OPERATION_ACTIONS:
+            lint.fail(
+                operation_path,
+                f"operation_id action segment {segments[-1]!r} is an HTTP method name, not a protocol effect: {operation_id}",
+            )
     for row in operation_rows if isinstance(operation_rows, list) else []:
         if not isinstance(row, dict):
             continue
@@ -6037,6 +6108,132 @@ def check_cross_source_drift(lint: Lint, known: dict[str, set[str]]) -> None:
                 )
 
 
+def check_normative_clause_registry(lint: Lint) -> None:
+    """Reverse coverage: every registered normative clause must have live evidence.
+
+    vector-registry.json proves each vector has a consumer. This registry proves
+    the other direction for the high-risk obligation set: each registered clause
+    points at an existing prose section, that section's text has not drifted
+    since the clause was reviewed, and the clause names evidence that actually
+    exists (an active vector, or an explicit non-vector test plan).
+    """
+    path = ARTIFACTS / "registry" / "normative-clause-registry.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+
+    if data.get("source_of_truth") is not True:
+        lint.fail(path, "source_of_truth must be true")
+
+    coverage_scope = data.get("coverage_scope")
+    if not isinstance(coverage_scope, dict):
+        lint.fail(path, "coverage_scope must be an object")
+        return
+    categories = coverage_scope.get("included_categories")
+    if not isinstance(categories, list) or not categories:
+        lint.fail(path, "coverage_scope.included_categories must be a non-empty array")
+        return
+    included_categories = set(categories)
+    for field in ("rule", "extension_rule"):
+        if not isinstance(coverage_scope.get(field), str) or not coverage_scope[field].strip():
+            lint.fail(path, f"coverage_scope.{field} must be a non-empty string")
+
+    vector_data = load_json(lint, ARTIFACTS / "registry" / "vector-registry.json")
+    active_vectors = {
+        row.get("vector_id")
+        for row in (vector_data.get("vectors", []) if isinstance(vector_data, dict) else [])
+        if isinstance(row, dict) and row.get("status") == "active"
+    }
+
+    rows = data.get("clauses")
+    if not isinstance(rows, list) or not rows:
+        lint.fail(path, "clauses must be a non-empty list")
+        return
+
+    clause_id_re = re.compile(r"^AK-NC-\d{3}$")
+    allowed_status = {"active", "deprecated"}
+    allowed_grades = {"vector", "api_shape", "audit"}
+    seen: set[str] = set()
+    covered_categories: set[str] = set()
+    for index, row in enumerate(rows):
+        label = f"clauses[{index}]"
+        if not isinstance(row, dict):
+            lint.fail(path, f"{label} must be an object")
+            continue
+
+        clause_id = row.get("clause_id")
+        if not isinstance(clause_id, str) or not clause_id_re.fullmatch(clause_id):
+            lint.fail(path, f"{label}.clause_id must match AK-NC-###")
+            continue
+        if clause_id in seen:
+            lint.fail(path, f"{label}.clause_id duplicates {clause_id}")
+        seen.add(clause_id)
+
+        status = row.get("status")
+        if status not in allowed_status:
+            lint.fail(path, f"{clause_id}.status must be one of {sorted(allowed_status)}")
+        category = row.get("category")
+        if category not in included_categories:
+            lint.fail(path, f"{clause_id}.category {category!r} is outside coverage_scope.included_categories")
+        elif status == "active":
+            covered_categories.add(category)
+        if not isinstance(row.get("requirement"), str) or not row["requirement"].strip():
+            lint.fail(path, f"{clause_id}.requirement must be a non-empty string")
+
+        source_anchor = row.get("source_anchor")
+        if not isinstance(source_anchor, str) or "#" not in source_anchor:
+            lint.fail(path, f"{clause_id}.source_anchor must be <repo-relative markdown path>#<heading slug>")
+            continue
+        rel, _, anchor = source_anchor.partition("#")
+        source_path = Path(rel)
+        if source_path.is_absolute() or ".." in source_path.parts:
+            lint.fail(path, f"{clause_id}.source_anchor escapes repository: {source_anchor}")
+            continue
+        resolved = (ROOT / source_path).resolve()
+        try:
+            resolved.relative_to(ROOT.resolve())
+        except ValueError:
+            lint.fail(path, f"{clause_id}.source_anchor escapes repository: {source_anchor}")
+            continue
+        if not resolved.is_file():
+            lint.fail(path, f"{clause_id}.source_anchor target does not exist: {rel}")
+            continue
+        digest = markdown_section_digest(read_text(resolved), anchor)
+        if digest is None:
+            lint.fail(path, f"{clause_id}.source_anchor heading does not exist: {source_anchor}")
+            continue
+        if row.get("section_digest") != digest:
+            lint.fail(
+                path,
+                f"{clause_id}.section_digest is stale for {source_anchor}: the normative text changed, so the clause "
+                f"and its evidence must be re-reviewed and the digest updated to {digest}",
+            )
+
+        grade = row.get("testability_grade")
+        if grade not in allowed_grades:
+            lint.fail(path, f"{clause_id}.testability_grade must be one of {sorted(allowed_grades)}")
+            continue
+        if grade == "vector":
+            evidence = row.get("evidence_refs")
+            if not isinstance(evidence, list) or not evidence:
+                lint.fail(path, f"{clause_id}.evidence_refs must be a non-empty array for testability_grade=vector")
+                continue
+            if "test_plan" in row:
+                lint.fail(path, f"{clause_id} must not declare both evidence_refs and test_plan")
+            for vector_id in evidence:
+                if vector_id not in active_vectors:
+                    lint.fail(path, f"{clause_id}.evidence_refs references a non-active vector: {vector_id!r}")
+        else:
+            if "evidence_refs" in row:
+                lint.fail(path, f"{clause_id} must declare test_plan instead of evidence_refs for grade {grade}")
+            if not isinstance(row.get("test_plan"), str) or not row["test_plan"].strip():
+                lint.fail(path, f"{clause_id}.test_plan must be a non-empty string for testability_grade={grade}")
+
+    missing = included_categories - covered_categories
+    if missing:
+        lint.fail(path, f"coverage_scope.included_categories has no active clause: {sorted(missing)}")
+
+
 def check_vector_registry(lint: Lint) -> None:
     path = ARTIFACTS / "registry" / "vector-registry.json"
     data = load_json(lint, path)
@@ -6179,6 +6376,10 @@ def check_account_data_key_registry(lint: Lint, known: dict[str, set[str]]) -> N
     seen: set[str] = set()
     allowed_status = {"active", "reserved", "deprecated"}
     allowed_storage = {"encrypted_account_data", "local_only", "encrypted_account_data_or_local"}
+    # zh/models/account-data.md §5: the convergence primitive is declared per row,
+    # never defaulted, so an implementation can never guess "CAS/LWW".
+    allowed_merge_strategies = {"cas_register"}
+    allowed_deletion_modes = {"physical_delete", "value_tombstone"}
     for index, row in enumerate(rows):
         label = f"account_data_key_patterns[{index}]"
         if not isinstance(row, dict):
@@ -6197,6 +6398,10 @@ def check_account_data_key_registry(lint: Lint, known: dict[str, set[str]]) -> N
             lint.fail(path, f"{label}.status must be one of {sorted(allowed_status)}")
         if row.get("storage") not in allowed_storage:
             lint.fail(path, f"{label}.storage must be one of {sorted(allowed_storage)}")
+        if row.get("merge_strategy") not in allowed_merge_strategies:
+            lint.fail(path, f"{label}.merge_strategy must be one of {sorted(allowed_merge_strategies)}")
+        if row.get("deletion_mode") not in allowed_deletion_modes:
+            lint.fail(path, f"{label}.deletion_mode must be one of {sorted(allowed_deletion_modes)}")
         if not isinstance(row.get("scope"), str) or not row["scope"]:
             lint.fail(path, f"{label}.scope must be a non-empty string")
         if not isinstance(row.get("description"), str) or not row["description"].strip():
@@ -7284,23 +7489,8 @@ def check_cross_doc_anchors(lint: Lint) -> None:
     silent rot when sections are renamed.
     """
     # Build slug index for every markdown file.
-    slug_re = re.compile(r"^(#{1,6})\s+(.+?)\s*$", re.MULTILINE)
-
-    def slugify(heading: str) -> str:
-        # Strip markdown decoration (bold, code, links), keep visible text.
-        text = heading
-        text = re.sub(r"`([^`]+)`", r"\1", text)
-        text = re.sub(r"\*\*([^*]+)\*\*", r"\1", text)
-        text = re.sub(r"__([^_]+)__", r"\1", text)
-        text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
-        text = text.strip().lower()
-        # github-slugger style: drop punctuation (except hyphen/underscore),
-        # replace each whitespace char with a hyphen (do NOT collapse runs).
-        # This mirrors Astro Starlight's default renderer; collapsing breaks
-        # anchors like "查询 / 回填" where " / " becomes "--".
-        text = re.sub(r"[^\w一-鿿\s-]", "", text)
-        text = re.sub(r"\s", "-", text)
-        return text
+    slug_re = HEADING_RE
+    slugify = markdown_heading_slug
 
     file_slugs: dict[Path, set[str]] = {}
     for path in markdown_files():
@@ -8278,7 +8468,13 @@ def check_service_kind_registry(lint: Lint) -> None:
 
 
 def check_mls_pq_suite_registration(lint: Lint) -> None:
-    """The reserved PQ-MLS row must track the current MLS WG suite mapping."""
+    """Every reserved PQ-MLS row must track the current MLS WG suite mapping.
+
+    MLS derives keys with the two-stage Extract/Expand pair, which
+    draft-ietf-hpke-pq does not define for single-stage SHAKE KDFs. The MLS WG
+    therefore pins HKDF-SHA256 (0x0001) / HKDF-SHA384 (0x0002) as the MLS KDF,
+    never the HPKE PQ SHAKE256 KDF 0x0011.
+    """
     path = ARTIFACTS / "registry" / "mls-ciphersuite-registry.json"
     data = load_json(lint, path)
     if not isinstance(data, dict):
@@ -8287,29 +8483,66 @@ def check_mls_pq_suite_registration(lint: Lint) -> None:
     if not isinstance(rows, list):
         lint.fail(path, "ciphersuites must be an array")
         return
-    pq_rows = [row for row in rows if isinstance(row, dict) and row.get("role") == "reserved_pqc_hybrid"]
-    if len(pq_rows) != 1:
-        lint.fail(path, f"expected exactly one reserved_pqc_hybrid row, found {len(pq_rows)}")
-        return
-    row = pq_rows[0]
-    expected = {
-        "canonical_id": "MLS_128_MLKEM768X25519_AES128GCM_SHA256_Ed25519",
-        "rfc9420_id": None,
-        "mls_draft": "draft-ietf-mls-pq-ciphersuites-05",
-        "mls_reference_url": "https://datatracker.ietf.org/doc/html/draft-ietf-mls-pq-ciphersuites-05",
-        "kem_draft": "draft-ietf-hpke-pq-05",
-        "kem_hpke_id": "0x647A",
-        "kem_reference_url": "https://datatracker.ietf.org/doc/html/draft-ietf-hpke-pq-05",
-        "kdf_hpke_id": "0x0011",
-        "aead_hpke_id": "0x0001",
-        "transcript_hash": "SHA256",
-        "signature_scheme": "ed25519",
-        "ietf_recommended": True,
-        "status": "reserved",
+    mls_draft = "draft-ietf-mls-pq-ciphersuites-06"
+    mls_reference_url = f"https://datatracker.ietf.org/doc/html/{mls_draft}"
+    expected_rows = {
+        "reserved_pqc_hybrid": {
+            "canonical_id": "MLS_128_MLKEM768X25519_AES128GCM_SHA256_Ed25519",
+            "rfc9420_id": None,
+            "mls_draft": mls_draft,
+            "mls_reference_url": mls_reference_url,
+            "kem_draft": "draft-ietf-hpke-pq-05",
+            "kem_hpke_id": "0x647A",
+            "kem_reference_url": "https://datatracker.ietf.org/doc/html/draft-ietf-hpke-pq-05",
+            "kdf_hpke_id": "0x0001",
+            "aead_hpke_id": "0x0001",
+            "transcript_hash": "SHA256",
+            "signature_scheme": "ed25519",
+            "ietf_recommended": True,
+            "construction_draft": "draft-irtf-cfrg-concrete-hybrid-kems-04",
+            "construction_reference_url": "https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-concrete-hybrid-kems-04",
+            "status": "reserved",
+        },
+        "reserved_pqc_hybrid_authentication": {
+            "canonical_id": "MLS_128_MLKEM768X25519_CHACHA20POLY1305_SHA384_MLDSA44",
+            "rfc9420_id": None,
+            "mls_draft": mls_draft,
+            "mls_reference_url": mls_reference_url,
+            "kem_draft": "draft-ietf-hpke-pq-05",
+            "kem_hpke_id": "0x647A",
+            "kem_reference_url": "https://datatracker.ietf.org/doc/html/draft-ietf-hpke-pq-05",
+            "kdf_hpke_id": "0x0002",
+            "aead_hpke_id": "0x0003",
+            "transcript_hash": "SHA384",
+            "signature_scheme": "mldsa44",
+            "signature_draft": "draft-ietf-tls-mldsa-05",
+            "signature_reference_url": "https://datatracker.ietf.org/doc/html/draft-ietf-tls-mldsa-05",
+            "ietf_recommended": True,
+            "status": "reserved",
+        },
     }
-    for field, value in expected.items():
-        if row.get(field) != value:
-            lint.fail(path, f"reserved PQ-MLS row {field} must be {value!r}, got {row.get(field)!r}")
+    for role, expected in expected_rows.items():
+        matched = [item for item in rows if isinstance(item, dict) and item.get("role") == role]
+        if len(matched) != 1:
+            lint.fail(path, f"expected exactly one {role} row, found {len(matched)}")
+            continue
+        row = matched[0]
+        for field, value in expected.items():
+            if row.get(field) != value:
+                lint.fail(path, f"{role} row {field} must be {value!r}, got {row.get(field)!r}")
+        requirements = row.get("activation_requirements")
+        requirements = requirements if isinstance(requirements, list) else []
+        if not any(
+            isinstance(entry, str)
+            and mls_draft in entry
+            and f"KDF {expected['kdf_hpke_id']}" in entry
+            and "0x0011 MUST NOT be used as the MLS KDF" in entry
+            for entry in requirements
+        ):
+            lint.fail(
+                path,
+                f"{role} activation_requirements must pin the {mls_draft} tuple and forbid the single-stage SHAKE KDF 0x0011",
+            )
     if any(isinstance(item, dict) and item.get("canonical_id") == "MLS_128_XWING_AES128GCM_SHA256_Ed25519" for item in rows):
         lint.fail(path, "private MLS_128_XWING_AES128GCM_SHA256_Ed25519 alias is forbidden")
 
@@ -10022,6 +10255,7 @@ def main(argv: list[str] | None = None) -> int:
         [
             ("account_data_keys", lambda: check_account_data_key_registry(lint, known)),
             ("vector_registry", lambda: check_vector_registry(lint)),
+            ("normative_clauses", lambda: check_normative_clause_registry(lint)),
             ("vector_refs", lambda: check_vector_reference_closure(lint)),
             ("security_fixture", lambda: check_security_closure_fixture(lint)),
             ("fixtures", lambda: check_fixtures(lint, known)),

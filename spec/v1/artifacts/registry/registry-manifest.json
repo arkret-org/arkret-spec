@@ -280,6 +280,14 @@
       "description": "Selector-based normative clause and evidence closure for profile operation conformance certification."
     },
     {
+      "name": "normative_clauses",
+      "file": "registry/normative-clause-registry.json",
+      "kind": "normative_clause_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Reverse-coverage registry binding high-risk normative clauses to an exact prose anchor, that section's text digest, and executable evidence. Consumed by tools/lint_artifacts.py#check_normative_clause_registry."
+    },
+    {
       "name": "runner_kinds",
       "file": "registry/runner-kind-registry.json",
       "kind": "runner_kind_registry",

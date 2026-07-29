@@ -3,7 +3,7 @@ title: Conformance Suite（自动化互操作测试）
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-07-29
 sidebar:
   label: Conformance Suite
 ---
@@ -29,6 +29,10 @@ sidebar:
 完整 profile 集合、角色分类和 requirement blocks 的机器真相源是 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)。本节只列首轮 release gate / 文档阅读优先子集；测试 runner MUST 枚举 JSON 中的 `implementation_profiles`、`deployment_profiles` 与 `hardening_profiles`(capability-negotiation profile)，并单独枚举 `vector_groups`(conformance 向量分组，`ak.vector_group.*` 命名空间，非可协商能力)，不得把下列清单解释为穷尽集合。
 
 **向量适用性闭包（normative）**：[`vector-registry.json`](../../artifacts/registry/vector-registry.json) 中每个 active vector MUST 恰好声明一个适用性 selector：`scope="universal"`、`applies_to_profiles[]`、`applies_to_vector_groups[]` 或 `applies_to_fixtures[]`。单值 `profile` 字段禁止出现。某 profile 的认证集合等于：（a）`scope="universal"`；（b）直接列出该 profile 的向量；（c）该 claim 明确包含的 vector group 向量；（d）该 profile 及其全部 `inherits[]` 的 `required_fixtures[]` 所映射向量的并集。runner MUST 先计算继承后的 fixture closure，再按集合去重；未命中该闭包的 vector 不得被实现或认证器自行猜测为必测或免测。fixture selector 只是适用性索引，`source_refs[]` 仍必须包含同一 fixture，二者由 lint 逐字校验。
+
+**规范条款反向覆盖（normative）**：上面的适用性闭包只证明"每个 active vector 都有消费者"，不能证明"每条可测试 MUST 都有测试"。反方向由 [`normative-clause-registry.json`](../../artifacts/registry/normative-clause-registry.json) 承载：每条登记条款绑定稳定 `clause_id`、精确 `source_anchor`（文件 + 章节 slug）、该章节当前正文的 `section_digest`、`testability_grade`（`vector` / `api_shape` / `audit`）以及 `evidence_refs[]` 或显式 `test_plan`。release gate MUST 校验四件事：anchor 指向的章节存在；`section_digest` 与当前正文一致；`vector` 级条款的 `evidence_refs[]` 全部是 active vector；非 `vector` 级条款声明了非空 `test_plan`。因此在已登记章节内新增或修改 normative 文本会直接使门禁失败，直到条款与其证据被重新复核。
+
+该 registry 的覆盖面由其 `coverage_scope` 显式声明，当前限于 wire、安全、隐私、授权、reducer、状态机与分布式写入七类高风险可观察义务。它**不是**对 `spec/v1/zh` 全部规范语句的机械编号——那只会制造无意义的 MUST。门禁全绿只证明"每条已登记条款有活证据、且已登记章节未静默漂移"，MUST NOT 被解读为"规范中每条 MUST 都已被测试覆盖"。在上述类别内新增协议义务时 MUST 在同一次变更中新增或更新条款。
 
 **Fixture runner 归属（normative）**：随件 fixture 顶层 `runner.kind` 是执行层的机读入口，其封闭词表、执行契约摘要与 contract owner 以 [`runner-kind-registry.json`](../../artifacts/registry/runner-kind-registry.json) 为唯一真源；owner 只维护协议执行契约，不指定验证工具。未知 kind MUST 在 lint 与 conformance 加载阶段 fail closed。`named_suite.runner.entrypoint` 是工具中立 suite id，MUST 匹配 `^ak\.suite\.[a-z0-9_.-]+\.v1$`；验证器自行映射到本地实现，未知、语法无效或未映射 suite id MUST fail closed。`json_schema_validation_cases` runner MUST 逐 case 解析 `schema_ref`、用声明的 JSON Schema dialect 校验 `instance`，并将结果与 `expect_valid` 精确比较；`json_schema_and_semantic_cases` 在完成同一 schema 步骤后，还 MUST 把 `semantic_outcome` 与 `expected_reason_code` 交给 reducer/validator 断言。`required_runner_suites[*].artifact_fixture` MUST 指向 `artifacts/fixtures/` 中存在的随件文件；runner 不得把缺失的本地私有夹具当作 profile 已满足。
 

@@ -3,7 +3,7 @@ title: Encoding, IDs, Hashes, Signatures
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-21
+updated: 2026-07-29
 sidebar:
   label: Encoding & IDs
 ---
@@ -334,7 +334,12 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned` 与 `act
 
 ## 7. HLC
 
-> **使用边界（normative）**：HLC 在 v1 是 **advisory** 字段。它 MUST NOT 进入授权决策、Lattice 收敛、Control Move precondition 比较、或 Seal finality 判断；这些都由 CBA basis、Control Move `preconditions[]`、Seal coverage 与 Lattice `join` 决定。HLC 在 v1 的唯一规范用途是 **timeline 派生层**——当两个事件在 `prev_refs` / `refs` 形成的因果图中互不可达时，HLC 作为 `(unix_ms, logical, node_id_hash)` 字典序 tie-breaker 使展示顺序确定。即便 HLC 进入 canonical event bytes 与 proof `event_digest`，实现 MUST NOT 把 HLC 数值当作可信时间戳，也 MUST NOT 据其反转因果或选 winner。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 与 [`sync/operations-sync.md`](../sync/operations-sync.md)。
+> **使用边界（normative）**：HLC 在 v1 是 **advisory** 字段。它 MUST NOT 进入授权决策、Lattice 收敛、Control Move precondition 比较、或 Seal finality 判断；这些都由 CBA basis、Control Move `preconditions[]`、Seal coverage 与 Lattice `join` 决定。HLC 在 v1 只有两个规范用途，两者都以**因果不可比**为前提：
+>
+> 1. **timeline 派生层**——当两个事件在 `prev_refs` / `refs` 形成的因果图中互不可达时，HLC 作为 `(unix_ms, logical, node_id_hash)` 字典序 tie-breaker 使展示顺序确定。
+> 2. **actor-private 状态的并发 tie-break**——同一 principal 的多设备 read cursor（[`discovery/read-receipts.md` §6.5](../discovery/read-receipts.md)），以及客户端在 Account Data compare-and-set 循环中对解密明文执行的领域合并规则（[`models/account-data.md` §5](../models/account-data.md)），在两个候选值**因果不可比**时 MAY 用 HLC 选出确定性 winner。这些状态只在 holder 自己的设备之间收敛，不进入共享 Realm 状态、CBA basis 或 Lattice join；因果可比时 MUST 取因果支配者，MUST NOT 用 HLC 反转。服务端不参与该 tie-break，它只比较 `expected_revision`。
+>
+> 即便 HLC 进入 canonical event bytes 与 proof `event_digest`，实现 MUST NOT 把 HLC 数值当作可信时间戳，也 MUST NOT 据其反转因果或在共享协议状态中选 winner。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 与 [`sync/operations-sync.md`](../sync/operations-sync.md)。
 
 Hybrid Logical Clock 编码：
 
@@ -413,7 +418,7 @@ function compare_hlc(hlc1, hlc2):
 实现 MUST：
 
 - 用正则 `^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$` 验证 HLC 格式。HLC **纯格式违例**（不匹配该正则、段长 / 字符集 / 大小写不合、`unix_ms_hex > ffffffffffff` 等单纯的 well-formedness 失败）MUST 返回 `schema_violation`（与 [`conformance-vectors.md` §1.10.1](./conformance-vectors.md) 钉定的单值一致）。格式合法但发生 §7 语义回绕 / tuple 复用时，submit 路径同样返回 `schema_violation`，同步 / backfill 路径则 quarantine；不得选择其它错误码或 soft-fail 后继续该分支。
-- 按本节的两层 drift 模型验证物理时间：超 `hard_future_skew_ms` MUST reject / quarantine；超 `expected_future_skew_ms` SHOULD soft-fail / quarantine。这两个阈值的默认数值以规模上限登记表 [`scalability-constraints.md`](./scalability-constraints.md) §2 为单一真相源（本节不重复字面值，避免漂移）。该校验是 envelope freshness / DoS guard，不是授权、Lattice winner、Control Move precondition 或 Seal finality 输入；通过 drift 校验的 HLC 仍只可用于 timeline tie-breaker。
+- 按本节的两层 drift 模型验证物理时间：超 `hard_future_skew_ms` MUST reject / quarantine；超 `expected_future_skew_ms` SHOULD soft-fail / quarantine。这两个阈值的默认数值以规模上限登记表 [`scalability-constraints.md`](./scalability-constraints.md) §2 为单一真相源（本节不重复字面值，避免漂移）。该校验是 envelope freshness / DoS guard，不是授权、Lattice winner、Control Move precondition 或 Seal finality 输入；通过 drift 校验的 HLC 仍只可用于本节开头列出的两个因果不可比 tie-break 用途。
 - profile MAY 通过 `state_event_expected_future_skew_ms` 对 state event（capability / membership / policy / service binding / Realm upgrade / MLS commit 等）施加更严窗口；未声明时按 `expected_future_skew_ms` 处理。
 - 拒绝 `unix_ms_hex > ffffffffffff` 的 HLC 值（物理时间溢出，需未来扩展 HLC profile 才可使用）。
 - 维护本地单调性；本地时钟落后远端时推进到远端时间，超前时限制推进速率。

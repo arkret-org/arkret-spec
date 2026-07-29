@@ -3,7 +3,7 @@ title: "Read Receipts & Markers"
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-29
 ---
 
 ## 0. 规范语言
@@ -306,6 +306,8 @@ state=unread, cursor=<cursor>, limit=<int>
 1. **因果优先**：同一 read_scope 取 causally latest read cursor——若 cursor A 的 position 因果上晚于（dominates）cursor B，则取 A，**与 HLC / device_id 无关**。合并结果 MUST NOT 回退到任何被它因果支配的更早 cursor 之前（即不得造成未读计数反弹，与 §6.6 流程第 5 条一致）。
 2. **并发才比 HLC**：仅当两 cursor 的 position **因果不可比（并发）**时，才取 HLC 最大者。
 3. **HLC 相等才用 device_id**：仅当并发且 HLC 全等时，才按 device id 字典序作确定性 tie-break。该 tie-break 只在两 position 因果等价（互不支配）时用于选出确定性 winner,MUST NOT 用来选中一个被另一方因果支配的更早 position。
+
+该三段式规则是唯一算法：schema description、operation notes 与 transport binding 表 MUST NOT 把它压缩成无条件 "HLC max"。可执行覆盖见 [`../conformance/conformance-vectors.md` §5.9](../conformance/conformance-vectors.md) 的 `ak.vector.read_cursor.multi_device_merge.v1`。若接收方尚未补齐足以判断两个 position 互不可达的 causal closure，MUST 按 [`../conformance/encoding.md` §7.3](../conformance/encoding.md) 把结果视为 provisional，MUST NOT 直接用 HLC 选出 winner 并写入持久 projection。
 
 通知状态 SHOULD 由 read cursor 与 notification rule 共同推导而来。
 

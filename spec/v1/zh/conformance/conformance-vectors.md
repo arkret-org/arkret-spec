@@ -3,7 +3,7 @@ title: Conformance Vectors
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-07-29
 ---
 
 本文是 v1 conformance 测试向量的人类阅读入口，按域分组呈现核心 normative steps。完整 active vector 集合的机器真相源是 `artifacts/registry/vector-registry.json`；测试 runner MUST 从 registry 的 `source_refs` 加载本文件、领域文档与 fixture，不得假定本文件正文穷尽列出所有 vector id。
@@ -2159,7 +2159,7 @@ ak.vector.disappearing.read_trigger_idempotent_replay.v1
 期望：
 
 - 同一 `(message, principal)` 的重复 contribution 只计一次；重复投递返回 success / already_observed 等幂等结果，不刷新 anchor。
-- 较旧 HLC 被忽略；HLC 相等时按 read cursor device tie-break 收敛，但仍只产生一个 principal-level contribution。
+- 两台设备的 read cursor 按 [`../discovery/read-receipts.md` §6.5](../discovery/read-receipts.md) 的因果优先规则收敛：被因果支配的 position 被忽略（与其 HLC 大小无关）；仅当两个 position 因果不可比时才忽略较旧 HLC，HLC 相等时按 read cursor device tie-break。无论走哪条分支，都只产生一个 principal-level contribution。
 - 跨 message、跨 scope、跨 trigger 或 policy frontier 不匹配的 replay MUST fail closed，不得让 `M2` 提前过期。
 
 ### 5.2.4 Vector: Disappearing On-last-read Offline Window
@@ -2412,6 +2412,51 @@ Expected：
 - 同 ID 不同内容 MUST 返回 `duplicate_conflict`、reason `message_id_conflict`，两个版本均不得新增队列项。
 - 不同 ID 是两个独立逻辑消息，即使业务 content 相同也各处理一次。
 - 缺少 `message_id` 的 envelope 或 send target MUST 在 handler 前以 schema violation 拒绝；kind-specific `transaction_id` / `request_id` 不得替代 envelope ID。
+
+### 5.9 Vector: Read Cursor 多设备合并
+
+`vector_id`: `ak.vector.read_cursor.multi_device_merge.v1`
+
+合并规则的唯一真源是 [`../discovery/read-receipts.md` §6.5](../discovery/read-receipts.md)。本向量固化"因果优先 → 并发比 HLC → HLC 相等比 device_id"三段式，并禁止把它压缩成无条件 HLC max。所有 cursor 同 `(actor_id, realm_id, read_scope)`，均为 actor-private，不进入共享 Realm history。
+
+Cases：
+
+1. **因果支配且 HLC 更大**：cursor A 的 `position.event_id` 在因果图中支配 B，且 A 的 HLC 大于 B。winner MUST 是 A。
+2. **因果支配但 HLC 更小**：cursor A 的 position 支配 B，但 A 的 HLC 小于 B（合法的 `expected_future_skew_ms` 窗口内偏斜）。winner MUST 仍是 A；实现 MUST NOT 因 HLC 更大而选 B。
+3. **并发且 HLC 不等**：两个 position 在已知 causal closure 内互不可达，HLC 不等。winner MUST 是 HLC 较大者。
+4. **并发且 HLC 相等**：两个 position 互不可达且 HLC 全等。winner MUST 是 `device_id` 字典序较大者，且两台设备 MUST 得到逐字节相同的结果。
+5. **乱序到达**：把 case 1–4 的每对 cursor 按两种投递顺序各执行一次。
+6. **因果不可判定**：接收方尚未补齐足以判断互不可达的 causal closure。实现 MUST 保留当前已合并位置并把结果标记为 provisional，MUST NOT 用 HLC 直接选出 winner 后写入持久 projection。
+
+Expected：
+
+- 两种投递顺序对同一对 cursor 产生相同 winner；合并是幂等且可交换的。
+- 合并结果 MUST NOT 回退到任何被 winner 因果支配的更早 position，因此 unread count 不得反弹（[`../discovery/read-receipts.md` §6.6](../discovery/read-receipts.md) 流程第 5 条）。
+- 派生的 unread count、badge、push suppression 与 `on_first_read` / `on_last_read` disappearing-message contribution 都以合并 winner 为输入；case 2 选出 B 的实现 MUST 判为 conformance failure。
+- 任何实现 MUST NOT 把 case 6 的 provisional 结果作为最终 read position 上报或持久化。
+
+### 5.10 Vector: Account Data CAS 收敛
+
+`vector_id`: `ak.vector.account_data.cas_convergence.v1`
+
+并发写入契约的唯一真源是 [`../models/account-data.md` §5](../models/account-data.md)。本向量证明多设备重试与离线写最终收敛到同一状态，且被覆盖的值不可复活。所有 case 使用同一 `(actor_id, account_data_key)`，服务端只见密文。
+
+Cases：
+
+1. **old-retry-after-new-write**：设备 A 读到 `revision=N` 并构造写入 `W_A`；设备 B 先以 `expected_revision=N` 写入成功（`revision=N+1`）；A 随后重放字节完全相同的 `W_A`。`W_A` MUST 以 `cas_conflict` 拒绝，MUST NOT 存储，`revision` MUST 仍为 `N+1`。
+2. **conflict details 足以一次合并**：case 1 的 `cas_conflict` 响应 MUST 携带 `account_data_cas_conflict_details`，且在 key 持有 live value 时 MUST 含 `current_entry`；A 解密、合并后以 `expected_revision=N+1` 写入 MUST 成功，且只需一次往返。
+3. **并发 delete / update**：设备 A 以 `expected_revision=N` 发 `resource.delete`，设备 B 以同一 `expected_revision=N` 发 `resource.replace`。恰好一个成功；失败方收到 `cas_conflict` 且不产生任何存储副作用。
+4. **两设备反序到达**：把 case 1 与 case 3 的请求对以两种到达顺序各执行一次。两次的终态 `revision` 与 `content` MUST 逐字节相同。
+5. **tombstone GC 后不复活**：删除该 key 得到 tombstone `revision=M`；GC 掉 tombstone 元数据后，持有 `expected_revision<M` 的离线设备重放旧写。该写 MUST 以 `cas_conflict` 拒绝；`resource.get` 的 `not_found` details MUST 给出 `current_revision=M`。
+6. **create 与 recreate**：对从未写入的 key 用 `expected_revision=0` 创建 MUST 成功；重复该请求 MUST 以 `cas_conflict` 拒绝。对已 tombstone 的 key 用 `expected_revision=M` 重建 MUST 成功。
+7. **value_tombstone 类型不得物理删除**：对 `deletion_mode=value_tombstone` 的 key（例如 `ak.file_transfer.v1:<transfer_key>`）调用 `ak.self.account_data.resource.delete` MUST 被拒绝；其删除态只能作为 value 写入，且任一副本观察到该终态后 MUST NOT 被后续非 deleted 状态复活。
+
+Expected：
+
+- 服务端 MUST NOT 解密、比较或合并 `content`；所有领域合并只发生在客户端明文上。
+- 每个 `(actor_id, account_data_key)` 的 `revision` 单调递增且 MUST NOT 回退；被拒绝的写 MUST NOT 推进它，也 MUST NOT 向其它设备 fanout。
+- 任意投递顺序下，所有设备在耗尽重试循环后 MUST 收敛到同一 `(revision, content)`。
+- 缺少 `expected_revision` 的 `ak.account_data.set` payload、`resource.replace` body 或 `resource.delete` query MUST 在 handler 前以 `schema_violation` 拒绝。
 
 ## 6. Space Lifecycle Vectors
 
