@@ -169,7 +169,10 @@ Read cursor schema：`ak.schema.read_cursor.v1`。Read Cursor 是 actor-private 
 
 - 该状态被加密存储在用户的 account data 中或单独 actor-private stream 中。
 - 用户的其他设备通过同步 account data 的变更，获取最新的游标位置，从而清除本地未读红点。
-- 多设备并发 read cursor 收敛 = HLC 取大；HLC 相等时按 device_id 字典序确定的顺序作为 actor-internal tiebreaker。
+- 多设备 read cursor MUST 按 §6.5 的因果优先三段式收敛：因果支配者胜出；
+  仅当 position 明确因果不可比时才取 HLC 较大者，HLC 全等才按 `device_id`
+  字典序作 actor-internal tiebreaker。因果闭包不足时不得直接用 HLC 决出
+  持久 winner。
 
 ### 3.3 写入合并
 

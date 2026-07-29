@@ -47,7 +47,11 @@ Schema id: `ak.schema.read_cursor.v1`
 ### 2.3 行为规则
 
 - Read marker MUST NOT 作为持久化共享对象写入 Event 链；它属于 ephemeral / actor-private 范畴（详见 [strand-and-message.md §9.6](./strand-and-message.md)）。
-- 多设备并发更新同一 `(actor_id, realm_id, read_scope)` 时，接收方取 HLC 更大者收敛;HLC 相等时按 `device_id` 作 actor 域内确定性 tiebreaker(见 [`../discovery/read-receipts.md` §6.6](../discovery/read-receipts.md))。
+- 多设备更新同一 `(actor_id, realm_id, read_scope)` 时，接收方 MUST 按
+  [`../discovery/read-receipts.md` §6.5](../discovery/read-receipts.md) 的因果优先规则
+  收敛：因果支配者胜出；仅当 position 明确因果不可比时才取 HLC 较大者，HLC 全等
+  才按 `device_id` 作 actor 域内确定性 tiebreaker；因果闭包不足时结果保持
+  provisional，不得持久化猜测的 winner。
 - Strand 时间线与父 Realm 在 read receipt policy 上需要分离时，整个 Strand 通过 `Strand.scope_circle_id` 落在一个 [Circle](./circle.md)（参见 [strand-and-message.md §5](./strand-and-message.md)）；effective policy 由 Circle 自身策略与父 Realm `ak.realm.read_receipt_policy` 取更严格者。Track 级别 override 不在 v1 范围内。
 
 ## 3. Notification
