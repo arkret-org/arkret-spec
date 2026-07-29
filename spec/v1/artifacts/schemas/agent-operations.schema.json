@@ -720,8 +720,8 @@
           "description": "Controller-signed minimal public binding created in the same approval action. Its agent/method/raw-key/authorization id and both digests MUST match the runtime request and authorize_event exactly."
         },
         "authorize_event": {
-          "$ref": "./event-envelope.schema.json",
-          "description": "Fully-signed ak.agent.key.authorize Event envelope approved by the controller or policy engine. It MUST target the Agent Principal Control Realm, carry actor_id equal to agent_id, executed_by equal to the controller DID, authorization_ref equal to the controller delegation DID URL bound by the Agent DID Document, and a proof verification method belonging to the controller or one of its currently authorized devices. Its payload.agent_key_scope MAY be narrower than, but MUST be an actions/resources/constraints subset of, the immutable provision requested_scope; every provision constraint remains mandatory. Required so key activation never depends on an unaudited pairing side effect. authorize_event.event_id is the pair operation idempotency identity."
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
+          "description": "Fully-signed ak.agent.key.authorize initial submission approved by the controller or policy engine. Its Event MUST target the Agent Principal Control Realm, carry actor_id equal to agent_id, executed_by equal to the controller DID, authorization_ref equal to the controller delegation DID URL bound by the Agent DID Document, and a proof verification method belonging to the controller or one of its currently authorized devices. The submission MUST carry ordinary publication authority evidence without rewriting the Event. Its payload.agent_key_scope MAY be narrower than, but MUST be an actions/resources/constraints subset of, the immutable provision requested_scope; every provision constraint remains mandatory. Required so key activation never depends on an unaudited pairing side effect. authorize_event.event.event_id is the pair operation idempotency identity."
         }
       },
       "additionalProperties": false
