@@ -1,0 +1,338 @@
+{
+  "profile": "ak.profile.full_client.v1",
+  "version": "2026-07-29",
+  "suite": "account_data_cas_convergence",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.account_data.cas_convergence.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.account_data.cas_convergence.v1"
+  ],
+  "account_data_key": "ak.preferences.v1",
+  "cases": [
+    {
+      "name": "old_retry_after_new_write",
+      "initial": {
+        "revision": 7,
+        "content": "ciphertext:base"
+      },
+      "requests": [
+        {
+          "id": "write_b",
+          "operation": "replace",
+          "expected_revision": 7,
+          "content": "ciphertext:b"
+        },
+        {
+          "id": "stale_write_a",
+          "operation": "replace",
+          "expected_revision": 7,
+          "content": "ciphertext:a"
+        }
+      ],
+      "delivery_order": [
+        "write_b",
+        "stale_write_a"
+      ],
+      "expected": {
+        "accepted": [
+          "write_b"
+        ],
+        "conflicts": [
+          "stale_write_a"
+        ],
+        "conflict_current_revision": 8,
+        "conflict_current_entry": "ciphertext:b",
+        "final_revision": 8,
+        "final_content": "ciphertext:b",
+        "rejected_write_fanout": false
+      }
+    },
+    {
+      "name": "conflict_details_enable_one_merge_retry",
+      "initial": {
+        "revision": 8,
+        "content": "ciphertext:b"
+      },
+      "requests": [
+        {
+          "id": "merged_retry_a",
+          "operation": "replace",
+          "expected_revision": 8,
+          "content": "ciphertext:merged-a-b"
+        }
+      ],
+      "delivery_order": [
+        "merged_retry_a"
+      ],
+      "expected": {
+        "accepted": [
+          "merged_retry_a"
+        ],
+        "conflicts": [],
+        "final_revision": 9,
+        "final_content": "ciphertext:merged-a-b",
+        "retry_count": 1
+      }
+    },
+    {
+      "name": "concurrent_delete_update_converges_after_one_merge_retry",
+      "initial": {
+        "revision": 7,
+        "content": "ciphertext:base"
+      },
+      "requests": [
+        {
+          "id": "delete_a",
+          "operation": "delete",
+          "expected_revision": 7
+        },
+        {
+          "id": "update_b",
+          "operation": "replace",
+          "expected_revision": 7,
+          "content": "ciphertext:b"
+        }
+      ],
+      "deliveries": [
+        {
+          "name": "delete_first",
+          "order": [
+            "delete_a",
+            "update_b"
+          ],
+          "merged_retry": {
+            "id": "merged_delete",
+            "operation": "delete",
+            "expected_revision": 8
+          }
+        },
+        {
+          "name": "update_first",
+          "order": [
+            "update_b",
+            "delete_a"
+          ],
+          "merged_retry": {
+            "id": "merged_delete",
+            "operation": "delete",
+            "expected_revision": 8
+          }
+        }
+      ],
+      "expected": {
+        "initial_success_count": 1,
+        "initial_conflict_count": 1,
+        "final_revision": 9,
+        "final_tombstone": true,
+        "all_delivery_orders_equal": true
+      }
+    },
+    {
+      "name": "opposite_write_arrival_orders_converge",
+      "initial": {
+        "revision": 7,
+        "content": "ciphertext:base"
+      },
+      "requests": [
+        {
+          "id": "write_a",
+          "operation": "replace",
+          "expected_revision": 7,
+          "content": "ciphertext:a"
+        },
+        {
+          "id": "write_b",
+          "operation": "replace",
+          "expected_revision": 7,
+          "content": "ciphertext:b"
+        }
+      ],
+      "deliveries": [
+        {
+          "name": "a_first",
+          "order": [
+            "write_a",
+            "write_b"
+          ],
+          "merged_retry": {
+            "id": "merged_write",
+            "operation": "replace",
+            "expected_revision": 8,
+            "content": "ciphertext:merged-a-b"
+          }
+        },
+        {
+          "name": "b_first",
+          "order": [
+            "write_b",
+            "write_a"
+          ],
+          "merged_retry": {
+            "id": "merged_write",
+            "operation": "replace",
+            "expected_revision": 8,
+            "content": "ciphertext:merged-a-b"
+          }
+        }
+      ],
+      "expected": {
+        "final_revision": 9,
+        "final_content": "ciphertext:merged-a-b",
+        "all_delivery_orders_equal": true
+      }
+    },
+    {
+      "name": "tombstone_gc_retains_revision_high_water",
+      "initial": {
+        "revision": 11,
+        "tombstone": true,
+        "tombstone_metadata_present": false
+      },
+      "requests": [
+        {
+          "id": "offline_old_write",
+          "operation": "replace",
+          "expected_revision": 7,
+          "content": "ciphertext:old"
+        }
+      ],
+      "delivery_order": [
+        "offline_old_write"
+      ],
+      "expected": {
+        "accepted": [],
+        "conflicts": [
+          "offline_old_write"
+        ],
+        "final_revision": 11,
+        "resource_get": "not_found",
+        "not_found_current_revision": 11,
+        "current_entry_omitted": true
+      }
+    },
+    {
+      "name": "create_repeat_and_recreate",
+      "scenarios": [
+        {
+          "name": "create_never_written",
+          "initial": {
+            "revision": 0,
+            "never_written": true
+          },
+          "requests": [
+            {
+              "id": "create",
+              "operation": "replace",
+              "expected_revision": 0,
+              "content": "ciphertext:new"
+            },
+            {
+              "id": "repeat_create",
+              "operation": "replace",
+              "expected_revision": 0,
+              "content": "ciphertext:new"
+            }
+          ],
+          "expected": {
+            "accepted": [
+              "create"
+            ],
+            "conflicts": [
+              "repeat_create"
+            ],
+            "final_revision": 1,
+            "final_content": "ciphertext:new"
+          }
+        },
+        {
+          "name": "recreate_tombstone",
+          "initial": {
+            "revision": 5,
+            "tombstone": true
+          },
+          "requests": [
+            {
+              "id": "recreate",
+              "operation": "replace",
+              "expected_revision": 5,
+              "content": "ciphertext:recreated"
+            }
+          ],
+          "expected": {
+            "accepted": [
+              "recreate"
+            ],
+            "conflicts": [],
+            "final_revision": 6,
+            "final_content": "ciphertext:recreated"
+          }
+        }
+      ]
+    },
+    {
+      "name": "value_tombstone_rejects_physical_delete_and_cannot_revive",
+      "account_data_key": "ak.file_transfer.v1:transfer-001",
+      "deletion_mode": "value_tombstone",
+      "initial": {
+        "revision": 3,
+        "content": "ciphertext:active"
+      },
+      "requests": [
+        {
+          "id": "physical_delete",
+          "operation": "delete",
+          "expected_revision": 3
+        },
+        {
+          "id": "terminal_value",
+          "operation": "replace",
+          "expected_revision": 3,
+          "content": "ciphertext:deleted"
+        },
+        {
+          "id": "stale_live_value",
+          "operation": "replace",
+          "expected_revision": 3,
+          "content": "ciphertext:active-newer"
+        }
+      ],
+      "expected": {
+        "physical_delete": "rejected",
+        "physical_delete_revision_advanced": false,
+        "terminal_value_revision": 4,
+        "stale_live_value": "cas_conflict",
+        "final_content": "ciphertext:deleted",
+        "revival_allowed": false
+      }
+    },
+    {
+      "name": "missing_expected_revision_rejected_before_handler",
+      "requests": [
+        {
+          "id": "event_set_missing_revision",
+          "surface": "ak.account_data.set",
+          "operation": "replace",
+          "content": "ciphertext:value"
+        },
+        {
+          "id": "resource_replace_missing_revision",
+          "surface": "ak.self.account_data.resource.replace",
+          "operation": "replace",
+          "content": "ciphertext:value"
+        },
+        {
+          "id": "resource_delete_missing_revision",
+          "surface": "ak.self.account_data.resource.delete",
+          "operation": "delete"
+        }
+      ],
+      "expected": {
+        "all_rejected_before_handler": true,
+        "error": "schema_violation"
+      }
+    }
+  ],
+  "minimum_independent_runners": 2
+}

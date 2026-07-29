@@ -1,0 +1,123 @@
+{
+  "profile": "ak.profile.full_client.v1",
+  "version": "2026-07-29",
+  "suite": "read_cursor_multi_device_merge",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.read_cursor.multi_device_merge.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.read_cursor.multi_device_merge.v1"
+  ],
+  "shared": {
+    "schema": "ak.schema.read_cursor.v1",
+    "actor_id": "did:webvh:z6mkalice:alice.example",
+    "realm_id": "ak:realm:01964137-0000-7000-8000-000000000001",
+    "read_scope": {
+      "kind": "realm"
+    },
+    "updated_at": "2026-07-29T00:00:00.000Z"
+  },
+  "cases": [
+    {
+      "name": "causal_dominance_with_higher_hlc",
+      "a": {
+        "id": "ak:read_cursor:01964137-0000-7000-8000-000000000101",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000101",
+        "event_id": "ak:event:01964137-0000-7000-8000-000000000101",
+        "hlc": "01970e589d21-0002-a13f9c2e"
+      },
+      "b": {
+        "id": "ak:read_cursor:01964137-0000-7000-8000-000000000102",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000102",
+        "event_id": "ak:event:01964137-0000-7000-8000-000000000102",
+        "hlc": "01970e589d21-0001-a13f9c2e"
+      },
+      "causal_relation": "a_dominates_b",
+      "expected_winner": "a",
+      "expected_provisional": false,
+      "verify_both_delivery_orders": true,
+      "verify_idempotent": true
+    },
+    {
+      "name": "causal_dominance_overrides_lower_hlc",
+      "a": {
+        "id": "ak:read_cursor:01964137-0000-7000-8000-000000000201",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000201",
+        "event_id": "ak:event:01964137-0000-7000-8000-000000000201",
+        "hlc": "01970e589d21-0001-a13f9c2e"
+      },
+      "b": {
+        "id": "ak:read_cursor:01964137-0000-7000-8000-000000000202",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000202",
+        "event_id": "ak:event:01964137-0000-7000-8000-000000000202",
+        "hlc": "01970e589d21-0002-a13f9c2e"
+      },
+      "causal_relation": "a_dominates_b",
+      "expected_winner": "a",
+      "expected_provisional": false,
+      "verify_both_delivery_orders": true,
+      "verify_idempotent": true
+    },
+    {
+      "name": "concurrent_higher_hlc_wins",
+      "a": {
+        "id": "ak:read_cursor:01964137-0000-7000-8000-000000000301",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000301",
+        "event_id": "ak:event:01964137-0000-7000-8000-000000000301",
+        "hlc": "01970e589d21-0001-a13f9c2e"
+      },
+      "b": {
+        "id": "ak:read_cursor:01964137-0000-7000-8000-000000000302",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000302",
+        "event_id": "ak:event:01964137-0000-7000-8000-000000000302",
+        "hlc": "01970e589d21-0002-a13f9c2e"
+      },
+      "causal_relation": "concurrent",
+      "expected_winner": "b",
+      "expected_provisional": false,
+      "verify_both_delivery_orders": true,
+      "verify_idempotent": true
+    },
+    {
+      "name": "concurrent_equal_hlc_uses_device_id",
+      "a": {
+        "id": "ak:read_cursor:01964137-0000-7000-8000-000000000401",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000401",
+        "event_id": "ak:event:01964137-0000-7000-8000-000000000401",
+        "hlc": "01970e589d21-0001-a13f9c2e"
+      },
+      "b": {
+        "id": "ak:read_cursor:01964137-0000-7000-8000-000000000402",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000402",
+        "event_id": "ak:event:01964137-0000-7000-8000-000000000402",
+        "hlc": "01970e589d21-0001-a13f9c2e"
+      },
+      "causal_relation": "concurrent",
+      "expected_winner": "b",
+      "expected_provisional": false,
+      "verify_both_delivery_orders": true,
+      "verify_idempotent": true
+    },
+    {
+      "name": "undecidable_closure_preserves_current_provisionally",
+      "a": {
+        "id": "ak:read_cursor:01964137-0000-7000-8000-000000000501",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000501",
+        "event_id": "ak:event:01964137-0000-7000-8000-000000000501",
+        "hlc": "01970e589d21-0001-a13f9c2e"
+      },
+      "b": {
+        "id": "ak:read_cursor:01964137-0000-7000-8000-000000000502",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000502",
+        "event_id": "ak:event:01964137-0000-7000-8000-000000000502",
+        "hlc": "01970e589d21-0002-a13f9c2e"
+      },
+      "causal_relation": "undecidable",
+      "expected_winner": "current",
+      "expected_provisional": true,
+      "verify_both_delivery_orders": false,
+      "verify_idempotent": false
+    }
+  ]
+}

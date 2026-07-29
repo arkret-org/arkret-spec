@@ -4155,7 +4155,8 @@
       "description": "Account Data keys are server-versioned compare-and-set registers: a stale byte-identical retry after a newer write is rejected with cas_conflict, concurrent delete/update elects exactly one winner, opposite arrival orders reach the same final state, the revision high-water mark survives tombstone GC so deleted values cannot be resurrected, and value_tombstone key patterns refuse physical delete.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/models/account-data.md"
+        "spec/v1/zh/models/account-data.md",
+        "spec/v1/artifacts/fixtures/account-data-cas-convergence-fixture.json"
       ]
     },
     {
@@ -4168,7 +4169,8 @@
       "description": "Multi-device read cursor merge is causal-first: a causally dominating position wins even when its HLC is lower, HLC max decides only causally concurrent positions, device_id breaks equal HLCs, and an undecidable causal closure stays provisional.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/discovery/read-receipts.md"
+        "spec/v1/zh/discovery/read-receipts.md",
+        "spec/v1/artifacts/fixtures/read-cursor-multi-device-merge-fixture.json"
       ]
     },
     {

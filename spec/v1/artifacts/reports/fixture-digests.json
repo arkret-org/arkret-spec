@@ -1,6 +1,10 @@
 {
   "files": [
     {
+      "path": "spec/v1/artifacts/fixtures/account-data-cas-convergence-fixture.json",
+      "sha256": "84720efd83a46af0b36be892f824e3db0efe7cc72947e3ca58610799bd4bf9bf"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/agent-mls-keypackage-authorization-fixture.json",
       "sha256": "aa18f4227fa2ac4fad883ce5b8c2f58b25c2687d989d250e2c2c9843efeb2099"
     },
@@ -235,6 +239,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/reaction-fixture.json",
       "sha256": "bbed271a8a708d75c24bc7f48107a2572f35d5e9a9ffbb83e8150e24cc160e15"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/read-cursor-multi-device-merge-fixture.json",
+      "sha256": "bf356e601b6f38d25fc5cae0a6226d84a606d356686b1bb7b00b51fe8c3362e1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-organization-fixture.json",
