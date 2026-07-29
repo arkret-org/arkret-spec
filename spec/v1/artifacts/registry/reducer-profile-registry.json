@@ -505,7 +505,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:f340f84d6c31d4405db5167fa4a903bc3609bf3230b0d5aac0465c364bea7725"
+            "content_digest": "sha256:03a7b9f0253ef81831d04031f78e273a84ea4e4df53ca69c6294b178c687bb26"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -517,7 +517,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:cfd79efaa7f42ccf3904673456d40772386209553451c4b31b7855dc3ca73893"
+      "reducer_profile_digest": "sha256:03510f8659c3e327f5609ef6ece505893c0744968124c7fe5bd2873f6885d1ed"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -800,7 +800,7 @@
           },
           {
             "ref": "zh/models/realm-and-space.md",
-            "content_digest": "sha256:b8dc0a85afac8cc20616830933518b2a5eeaf481afe96111b8eedac8acf82f85"
+            "content_digest": "sha256:198014f6e162eb0b523d2327fc4bf4e3d17e139dc99e1d6d436cc72237c54379"
           },
           {
             "ref": "zh/models/relation.md",
@@ -812,7 +812,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:dbf6933432d43e144570065646566d383160e22bb2553059b54e2525305c08db"
+      "reducer_profile_digest": "sha256:4b587b3eb0cfe2c8f83a7058f02242256f8cd7975a2f8937ce99036146ca304a"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1329,7 +1329,7 @@
         "fixture_contracts": [
           {
             "fixture": "capability-fixture.json",
-            "semantic_projection_digest": "sha256:e81895ec27d95aadc6cf94f86c56da8f7b5651e10dde51a31fcd42afb169f526"
+            "semantic_projection_digest": "sha256:1305274ec5037c7adde0998c1fd70e8cf240f49c0b099e3c441a2c1502eb2016"
           },
           {
             "fixture": "cba-lattice-fixture.json",
@@ -1407,7 +1407,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:f340f84d6c31d4405db5167fa4a903bc3609bf3230b0d5aac0465c364bea7725"
+            "content_digest": "sha256:03a7b9f0253ef81831d04031f78e273a84ea4e4df53ca69c6294b178c687bb26"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -1415,7 +1415,7 @@
           },
           {
             "ref": "zh/models/realm-and-space.md",
-            "content_digest": "sha256:b8dc0a85afac8cc20616830933518b2a5eeaf481afe96111b8eedac8acf82f85"
+            "content_digest": "sha256:198014f6e162eb0b523d2327fc4bf4e3d17e139dc99e1d6d436cc72237c54379"
           },
           {
             "ref": "zh/models/relation.md",
@@ -1439,7 +1439,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:af933da367fc9c5c42ed891ee7e8255497b90851f01d3f0151a13f01ebaba4ff"
+      "reducer_profile_digest": "sha256:684d544175988466369b104a2e8890264e6245c4a4e2515562bca5aae178c01b"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",

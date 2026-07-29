@@ -2022,7 +2022,7 @@ ak.vector.capability.membership_is_not_baseline.v1
 ak.vector.capability.realm_founding_grant_bootstrap.v1
 ```
 
-本向量固化 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 与 [`capabilities.md`](../authz/capabilities.md) §3.2：`ak.realm.create` 必须与紧随其后的封闭 creator self founding grant 原子 bootstrap。合法形态仅授予创建者 Realm-wide 的 `ak.realm.admin` / `ak.capability.grant` / `ak.capability.revoke`；缺失、改序、授予第三方、增加 action / resource / constraint 或在 batch 外重放该例外时，整个 bootstrap unit MUST fail closed，不得留下 Realm、membership 或 grant 半成品。founding grant 写入后是普通可撤销 OR-Set grant；普通 membership 仍不产生 baseline capability。
+本向量固化 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 与 [`capabilities.md`](../authz/capabilities.md) §3.2：`ak.realm.create` 必须与紧随其后的封闭 creator self founding grant 原子 bootstrap。合法形态只向创建者授予 Realm-wide 的 `ak.realm.admin` / `ak.capability.grant` / `ak.capability.revoke` / `ak.realm_key.share` / `ak.message.create`；缺失、改序、授予第三方、增加或删除 action / resource / constraint、使用旧四项 shape，或在 batch 外重放该例外时，整个 bootstrap unit MUST fail closed，不得留下 Realm、membership 或 grant 半成品。founding grant 写入后是普通可撤销 OR-Set grant；创建者在 genesis Seal 上可凭该显式 grant author `ak.message.create`，并可在 issuer upper-bound 内向已加入成员签发显式 message grant；只有 membership、没有该 grant 的成员仍 MUST `missing_capability`，不得因本次活性修复得到隐式 baseline capability。
 
 ### 4.7 Vector: Quota Linearizable Authority
 

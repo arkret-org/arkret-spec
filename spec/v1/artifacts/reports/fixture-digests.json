@@ -66,7 +66,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
-      "sha256": "69af93b8d79fc7ba677adc2d56d8df325f82d2dfa0ce59bd86ae4d3d8ad0cbc0"
+      "sha256": "c68ee89bdadfa47d40c37759c3fa6dfc71c0916d364c9ff86308b98b0a8afd42"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",

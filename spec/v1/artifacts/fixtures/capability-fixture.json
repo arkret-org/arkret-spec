@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.authz.capability.v1"
   },
   "profile": "ak.vector_group.capability.v1",
-  "version": "2026-05-02",
+  "version": "2026-07-30",
   "fixtures": [
     {
       "name": "direct_card_update_grant_allows_update",
@@ -685,7 +685,9 @@
             "actions": [
               "ak.realm.admin",
               "ak.capability.grant",
-              "ak.capability.revoke"
+              "ak.capability.revoke",
+              "ak.realm_key.share",
+              "ak.message.create"
             ],
             "resources": [
               {
@@ -698,7 +700,10 @@
           "expected": {
             "decision": "accept_atomically",
             "creator_membership": "join",
-            "founding_grant_active": true
+            "founding_grant_active": true,
+            "creator_message_create_at_genesis_seal": "allowed",
+            "creator_can_grant_member_message_create": true,
+            "member_without_explicit_message_grant": "missing_capability"
           }
         },
         {
@@ -728,7 +733,32 @@
               "ak.realm.admin",
               "ak.capability.grant",
               "ak.capability.revoke",
+              "ak.realm_key.share",
+              "ak.message.create",
               "ak.audit.export"
+            ]
+          },
+          "expected": {
+            "decision": "reject_atomically",
+            "reason": "invalid_realm_founding_grant",
+            "realm_created": false
+          }
+        },
+        {
+          "name": "legacy_four_action_founding_shape",
+          "batch_order": [
+            "ak.realm.create",
+            "ak.capability.grant"
+          ],
+          "created_by": "did:webvh:z6mkfixture:founder.example",
+          "founding_grant": {
+            "issuer": "did:webvh:z6mkfixture:founder.example",
+            "subject": "did:webvh:z6mkfixture:founder.example",
+            "actions": [
+              "ak.realm.admin",
+              "ak.capability.grant",
+              "ak.capability.revoke",
+              "ak.realm_key.share"
             ]
           },
           "expected": {
