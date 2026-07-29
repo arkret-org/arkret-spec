@@ -32,7 +32,7 @@ updated: 2026-07-13
 | `ref:<kind>` | 指向 `<kind>` 的 typed reference material；wire form 同样由 `id-kind-registry.json` 或对应 profile 声明，但字段语义是因果 / proof / content-addressed / profile-scoped reference，而不是普通对象主键。 |
 | `hash` | 自描述 `<digest-suite>:<lowercase_hex_digest>`（suite 取 `digest-suite-registry.json` 的 active 套件，如 `sha256:` / `blake3:`；实际套件由 Realm `digest_algorithm` 决定）。 |
 | `cursor` | `ak:cursor:<base64url>` opaque string。 |
-| `patch` | `ak.patch.v1` 形态的 JSON patch 片段，具体路径与 op 规则见 [`event-and-patch.md`](./event-and-patch.md)。 |
+| `patch` | `ak.schema.patch.v1` 形态的 JSON patch 片段，具体路径与 op 规则见 [`event-and-patch.md`](./event-and-patch.md)。 |
 
 注：`device_id` 不是例外字段；它的类型是 `id:device`，wire form MUST 为 `ak:device:<uuid>`。只有部分辅助标识符（如 `transaction_id`、`backup_version`、`stream_id`）使用领域特定前缀（如 `ver_`、`kb_`、`devstream_`），不遵循 `ak:<kind>:<uuid>` 格式。这些标识符的编码规则由各自所在章节定义。`recording_id` 是 [`crypto-media/call-state.md` §5](../crypto-media/call-state.md) 定义的 opaque 领域标识（示例形态 `rtc-recording-<uuid>`）：它是 backend 媒体服务（如 LiveKit Egress）生成的 opaque 录制 lifecycle 句柄，进入 recording key exporter Context，**不是** `ak:*` typed ID。
 
@@ -434,7 +434,7 @@ Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们�
 | 模板槽 | 含义 | 已有实例 |
 | --- | --- | --- |
 | `ak.<kind>.create` | 创建对象，落 state=`active`,写入 `created_by` / `created_at`。 | `ak.strand.create`、`ak.space.create`、`ak.morph.create`、`ak.message.create` |
-| `ak.<kind>.update` | 增量更新 active 对象字段;reducer 拒绝非 active 源。**新对象 SHOULD 沿用 `ak.patch.v1` 统一 patch 表达，不应再造单字段 update event。** | `ak.strand.update`、`ak.morph.update`、`ak.patch.v1`(unified) |
+| `ak.<kind>.update` | 增量更新 active 对象字段;reducer 拒绝非 active 源。**新对象 SHOULD 沿用 `ak.schema.patch.v1` 统一 patch 表达，不应再造单字段 update event。** | `ak.strand.update`、`ak.morph.update`、`ak.schema.patch.v1`(unified) |
 | `ak.<kind>.archive` | active → archived;写入 `state_changed_at`。 | `ak.strand.archive`、`ak.space.archive`、`ak.morph.archive` |
 | `ak.<kind>.restore` | archived → active;写入 `state_changed_at`。 | `ak.strand.restore`、`ak.space.restore`、`ak.morph.restore` |
 | `ak.<kind>.tombstone` 或 cross-object `ak.redaction` | active/archived → terminal(`tombstoned`/`deleted`/`redacted`);不可逆。Strand 与 Morph 的终态仅通过指向该对象的 `ak.redaction` 表达。 | `ak.space.tombstone`、`ak.relation.tombstone`、`ak.redaction`(指向 strand / space / morph / message) |
@@ -444,7 +444,7 @@ Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们�
 
 - **不是命名 mandate**,但 **MUST 与 registry 对齐**:模板槽列出的"已有实例"必须存在于 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中;`ak.message.create` 是 v1 标准 wire kind。新对象在注册时按模板选择需要的槽，但**不得**列出 registry 中不存在的 wire kind 当作示例。
 - **不创造新槽**:新增 lifecycle 行为(例如"软隔离 / 待审 / 撤回审核")MUST 先在本节扩展模板；否则不得作为标准 lifecycle event 入 registry。
-- **patch 优先**:新对象 lifecycle 中的"字段更新"槽 SHOULD 由 `ak.patch.v1` 承载(参见 [`strand-and-message.md` §4.8](./strand-and-message.md) 的 `ak.strand.tracks.update` 实例);避免出现 `ak.<kind>.set_<field>` / `ak.<kind>.toggle_<field>` 这类单点 event 膨胀。**stage 是该原则的明确例外**:`ak.<kind>.stage.set` 走专用 event 是为了 capability 切分与审计过滤(见 §5.3),而非字段膨胀。
+- **patch 优先**:新对象 lifecycle 中的"字段更新"槽 SHOULD 由 `ak.schema.patch.v1` 承载(参见 [`strand-and-message.md` §4.8](./strand-and-message.md) 的 `ak.strand.tracks.update` 实例);避免出现 `ak.<kind>.set_<field>` / `ak.<kind>.toggle_<field>` 这类单点 event 膨胀。**stage 是该原则的明确例外**:`ak.<kind>.stage.set` 走专用 event 是为了 capability 切分与审计过滤(见 §5.3),而非字段膨胀。
 - **stage 模板槽**:适配 §5.3 的对象 MUST 注册一条 `ak.<kind>.stage.set` event,走 `object_stage_set_payload` 形态(详见 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json));`ak.<kind>.update` patch 路径 MUST NOT 修改 `stage` / `stage_changed_at`(违者 `schema_violation`,单源约束)。**stage 变更不携带 reason 字段**:事件本身已经 durable 且 `created_by` / `created_at` 即审计归属；需要解释"为什么 cancel / block / supersede"时,actor SHOULD 在该对象的 discussion track 发一条 Message(`ak.message.create`),通过 `references` Relation 指向本次 `ak.<kind>.stage.set` event,而不是把 reason 藏在对象字段里。
 - **可逆 lifecycle facet 的两种合规形态**:`ak.<kind>.archive` / `ak.<kind>.restore` 模板槽描述的是**独立 archive event + 独立 restore event** 成对形态（Strand / Space / Morph 即此形态）。但可逆 lifecycle 也允许第二种形态：**单一 reversible boolean facet event**（同一 `ak.<kind>.archive` 写 `true` / `false` 在 active ↔ archived 间切换，不发布独立 `ak.<kind>.restore`）。Realm 的 `ak.realm.archive` / `ak.realm.freeze` 即此形态（见 [`realm-and-space.md` §2.6.0](./realm-and-space.md#260-realm-可逆-lifecycle-facetakrealmarchive--akrealmfreeze)）。具体某对象用哪种，以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的 `lifecycle_modality` 为准：`reversible` boolean facet 不要求也不应存在配套 `ak.<kind>.restore`。
 - **state 校验来源唯一**:本节所有模板事件的状态机校验入口都是 §5.1 表，不在各对象文档重复说明转换矩阵。

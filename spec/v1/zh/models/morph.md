@@ -60,7 +60,7 @@ Schema id: `ak.schema.morph.v1`
 | event kind | reducer_input | payload 形态 | capability action | 前置 / 说明 |
 | --- | --- | --- | --- | --- |
 | `ak.morph.create` | yes | full object | `ak.morph.create` | 创建 Morph；`morph_kind` create-locked，`stage` 可选（profile 可收紧），`schema_refs[]` ≥1。reducer 固化 `effective_scope`（见 §6.1 / [circle.md §6](./circle.md)）。 |
-| `ak.morph.update` | yes | `ak.patch.v1` | `ak.morph.update` | 改 `fields` / `metadata` / `facets` / `content` / `schema_refs[]`（schema_refs 变更收窄为 additive-only fast path，见 §4.1）。patch path `morph_kind` / `stage` / `stage_changed_at` MUST `schema_violation`。 |
+| `ak.morph.update` | yes | `ak.schema.patch.v1` | `ak.morph.update` | 改 `fields` / `metadata` / `facets` / `content` / `schema_refs[]`（schema_refs 变更收窄为 additive-only fast path，见 §4.1）。patch path `morph_kind` / `stage` / `stage_changed_at` MUST `schema_violation`。 |
 | `ak.morph.stage.set` | yes | stage transition payload | `ak.morph.stage.set` | 唯一改 / 初始化 `stage` 的路径；缺失轴的首写可取任一合法值，`stage_changed_at` reducer-derived；后续转换合法性见 [common-fields.md §5.3](./common-fields.md)。 |
 | `ak.morph.archive` | yes | object_lifecycle_payload | `ak.morph.archive` | `active → archived`（可逆中间态，非终态）；源状态非 `active` 时 `morph_not_active`。 |
 | `ak.morph.restore` | yes | object_lifecycle_payload | `ak.morph.restore` | `archived → active`；源状态非 `archived` 时 `morph_not_archived`。 |

@@ -14,7 +14,7 @@ updated: 2026-07-17
 
 `ak.profile.crdt.text.v1` 是实时协同文本/富文本的 reserved interoperability slot，不是 active v1 wire。未激活前，producer MUST NOT 发出以该 profile 标记的 CRDT operation；receiver MUST fail closed 为 `unsupported_feature`，不得把未知 op 当作 opaque 可合并内容。
 
-默认编辑面仍是 `ak.patch.v1` 整值字段更新与 Strand/Message revision chain；二者语义不变。实现 MAY 在本地使用任意 CRDT，但不得声称其私有编码与本 profile 互操作。
+默认编辑面仍是 `ak.schema.patch.v1` 整值字段更新与 Strand/Message revision chain；二者语义不变。实现 MAY 在本地使用任意 CRDT，但不得声称其私有编码与本 profile 互操作。
 
 ## 2. 激活前置条件
 

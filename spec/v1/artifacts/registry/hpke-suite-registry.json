@@ -9,6 +9,7 @@
     "Schema enum values for HPKE suite selector fields (e.g. ak.schema.key_backup.v1 encryption.hpke_suite, the ak.secret.send / member-application / file-transfer envelope `scheme` const) MUST be generated from active rows' canonical_id only when publishing a new schema version, then frozen for that schema version. Activating a reserved/new suite requires a new schema version and profile negotiation; registry activation MUST NOT expand an existing schema enum in place (zh/conformance/schema-registry.md §6.1 b.1).",
     "When a surface carries both an explicit `hpke_suite` selector and an AEAD `name`/profile field, the AEAD MUST equal the selected suite's aead; a mismatch MUST be rejected (schema_violation). A surface MAY omit the selector only where a single default-MUST suite is pinned by its defining document, in which case the absent selector denotes that row.",
     "status=reserved rows pin the wire id and profile gate but MUST NOT appear on wire until every activation_requirements entry is met and the row is flipped to active in a registry release. Receivers MUST fail closed (unsupported_hpke_suite) on a reserved suite id seen on wire before activation.",
+    "Every status=active row MUST declare kat_vector_id naming an active vector-registry entry; every status=reserved row MUST instead declare kat_absence_reason and MUST NOT declare kat_vector_id. tools/lint_artifacts.py enforces this binding.",
     "The registry is intentionally minimal: new KEM families (post-quantum / hybrid), new KDFs and new AEADs enter additively as new rows with their own profile gates and conformance vectors; the ak.hpke_*_aead_*.v* wire form needs no rewrite. Nonce handling is RFC 9180 key-schedule-derived, uniformly across every HPKE-sealed surface (`recovery_public_key` / did_recovery envelopes, the to-device `ak.secret.send` seal, member-application and file-transfer key envelopes): the AEAD nonce is base_nonce XOR seq (single-shot seq=0) and MUST NOT be carried on the wire; each seal mints a fresh ephemeral key, so base_nonce is unique per envelope. See zh/identity/key-management.md §7.5 for the symmetric (non-HPKE) key-backup nonce-uniqueness rules."
   ],
   "kem_strength_order": {
@@ -28,6 +29,7 @@
       "status": "active",
       "role": "v1_optional_interop",
       "profile_gate": null,
+      "kat_vector_id": "ak.vector.hpke.x25519_aes256gcm_base.v1",
       "security_note": "All-RFC-9180 suite for key-backup recovery_public_key envelopes on platforms with AES hardware acceleration. Classical."
     },
     {
@@ -42,6 +44,7 @@
       "status": "active",
       "role": "v1_default_must",
       "profile_gate": null,
+      "kat_vector_id": "ak.vector.hpke.x25519_chacha20poly1305_base.v1",
       "security_note": "v1 default-MUST application-layer HPKE suite: all-RFC-9180 base mode DHKEM(X25519, HKDF-SHA256) + HKDF-SHA256 + 96-bit-nonce ChaCha20-Poly1305 (SetupBaseS / SetupBaseR, key_schedule-derived base_nonce, no wire nonce). Software-friendly (constant-time, no AES hardware needed), the default for the recovery_public_key / did_recovery / to-device / member-application / file-transfer envelopes. Classical (not post-quantum)."
     },
     {
@@ -56,6 +59,7 @@
       "status": "active",
       "role": "v1_profile_gated_interop",
       "profile_gate": "ak.profile.hpke.p256.v1",
+      "kat_vector_id": "ak.vector.hpke.p256_aes256gcm_base.v1",
       "security_note": "P-256 KEM for WebAuthn/FIDO2/PKI key-agreement interop, mirroring the ECDSA-P256 signature row. Profile-gated; receivers not advertising ak.profile.hpke.p256.v1 fail closed. Classical."
     },
     {
@@ -73,6 +77,7 @@
       "status": "reserved",
       "role": "reserved_pqc_hybrid",
       "profile_gate": "ak.profile.kem.hybrid_xwing.v1",
+      "kat_absence_reason": "The X-Wing HPKE construction remains reserved until the profile and per-suite KAT activation requirements are complete.",
       "activation_requirements": [
         "ak.profile.kem.hybrid_xwing.v1 fully specifies draft-connolly-cfrg-xwing-kem-10 and HPKE KEM id 0x647A; any incompatible draft change requires an explicit registry release and refreshed KAT digest before activation",
         "Per-suite HPKE conformance vectors published (KEM encap/decap, key schedule, sealed bytes)",

@@ -6,6 +6,9 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.agent.signer_evidence.v1"
   },
+  "covers_vectors": [
+    "ak.vector.agent.signer_evidence_binding.v1"
+  ],
   "binding_vector": {
     "controller_public_key": "7UkoxijRwsbq6QM4kFmVYSlZJzpcY_k2NsFGFKyHN9E",
     "canonical_without_jws": "{\"agent_id\":\"did:webvh:z6mkagent:agent.example\",\"agent_key_authorize_event_id\":\"ak:event:01964137-0000-7000-8000-000000000001\",\"agent_key_id\":\"did:webvh:z6mkagent:agent.example#runtime-1\",\"controller_id\":\"did:webvh:z6mkcontroller:controller.example\",\"controller_proof\":{\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkcontroller:controller.example#ak:device:01964137-0000-7000-8000-000000000002\"},\"issued_at\":\"2026-07-25T00:00:00.000Z\",\"public_key\":{\"alg\":\"Ed25519\",\"key\":\"6kpsY-KcUgq-9VB7Ey7F-ZVHdq6-vnuSQh7qaRRG0iw\",\"kty\":\"OKP\"},\"public_key_digest\":\"sha256:bbeb7e8a892586b86114ab88cc60807dc588f3f5f29a428e69b46808f573bfa3\",\"schema\":\"ak.schema.agent_signing_key_binding.v1\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",

@@ -78,7 +78,7 @@ Schema id: `ak.schema.circle.v1`
 | event kind | reducer_input | payload 形态 | 说明 |
 | --- | --- | --- | --- |
 | `ak.circle.create` | yes | full object | 创建 Circle；当 `encryption_profile=mls_rfc9420` 时同时初始化独立 MLS group 与 epoch 0 governance binding。 |
-| `ak.circle.update` | yes | `ak.patch.v1`(path 不含 `realm_id` / `profile_ref` / `encryption_profile`) | 改 title / summary / display / directory_visibility / join_rule / history_visibility。 |
+| `ak.circle.update` | yes | `ak.schema.patch.v1`(path 不含 `realm_id` / `profile_ref` / `encryption_profile`) | 改 title / summary / display / directory_visibility / join_rule / history_visibility。 |
 | `ak.circle.archive` | yes | object_lifecycle_payload | active → archived。 |
 | `ak.circle.restore` | yes | object_lifecycle_payload | archived → active。 |
 | `ak.circle.tombstone` | yes | object_lifecycle_payload | terminal；触发 §8 cascade。 |

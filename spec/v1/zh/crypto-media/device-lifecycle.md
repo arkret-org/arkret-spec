@@ -830,7 +830,7 @@ POST /_arkret/self/keys/claim
 
 #### 8.2 设备验签公钥目录（normative）
 
-`keys/query` 响应在每个 `(principal_id, device_id)` 记录上附带便捷的**设备验签公钥目录**面，供任意 realm 成员把 `(actor, device)` 解析为权威验签公钥，据此 fail-closed 验证通话信令（[`webrtc-signaling.md` §5.1](./webrtc-signaling.md)）与持久消息的 proof：
+`keys/query` 响应在每个 `(principal_id, device_id)` 记录上附带便捷的**设备验签公钥目录**面，供任意 realm 成员把 `(actor, device)` 解析为权威验签公钥，据此 fail-closed 验证通话信令（[`webrtc-signaling.md` §5](./webrtc-signaling.md)）与持久消息的 proof：
 
 该目录严格是 principal-scoped 目录，不提供 pairwise-DID 枚举或别名查询。声明 `ak.profile.mls.minimal_metadata_realm.v1` 的内容作者性验证 MUST 按 [`encryption-and-audit.md` §2.10.3](./encryption-and-audit.md) 使用 encrypted envelope 所指 epoch 的 MLS LeafNode basic credential / `signature_key`，MUST NOT 为了验签把 pairwise DID 映射为 principal 后调用本 endpoint；`keys/query` 也 MUST NOT 接受 pairwise DID 作为 `principal_id` 的替代形态。
 
@@ -859,7 +859,7 @@ POST /_arkret/self/keys/claim
 - **Cross-signing 硬化面**：返回 `cross_signing_binding`（每设备）与 `cross_signing`（每 principal）的客户端 MUST 按 §8.3 独立验证完整交叉签名链，**不信服务端对 `device_signing_key` 的断言**，仅在链验证通过后才接受该 key。服务端对在效 cross-signing 设备 SHOULD 同时返回这些字段；缺失时客户端 MUST 视为 `unverified` 并 fail-closed。
 - **Service-attested 入册面**：使用 §5.4 enrollment-authority 模型的 principal 不产生 `ak.cross_signing.publish`，其设备授权以 accepted `ak.device.authorize` 的 `enrollment_authority_binding` 为信任根。`keys/query` 只有在 principal 的 `device_generation_status="active"` 且设备 `authorized_generation_ref == current_device_generation_ref` 时，才可把该设备标为 active 并返回 `device_signing_key`、`hpke_key` 或可 claim prekey；响应 MUST 同时返回 `enrollment_authority_binding`、`device_authorize_event_id`、`authorized_generation_ref` 与 principal `device_generations` 状态。generation conflicted、引用旧 generation、缺失 binding/ref、`kind != "service_attested"`、投影材料与 accepted Event payload 不等或设备已吊销时 MUST fail closed 且不得返回可用 key；不得因缺少 `cross_signing_binding` 把合法 current-generation service-attested 设备误判为 Tier-1 降级。
 
-接收方验 envelope / signal proof 时 MUST 按 `verification_method` = `` `{actor}#{device_id}` ``（fragment 是完整 `ak:device:<uuidv7>`）经本目录解析 `device_signing_key` 得 verify_key；设备吊销或 generation fenced/conflicted（`device_status != active`、B 模型 generation 不等或目录省略 key）、目录缺失该 `(actor, device)`、cross-signing 链验证未通过、service-attested 投影锚缺失/不合法、或验签失败者 MUST **fail-closed**：丢弃信号，MUST NOT 触发 UI，持久消息 MUST 标为不可验证且不得当作已验证明文呈现。该规则同时适用于通话信令(详见 [`webrtc-signaling.md` §5.1](./webrtc-signaling.md))与持久消息接收路径。
+接收方验 envelope / signal proof 时 MUST 按 `verification_method` = `` `{actor}#{device_id}` ``（fragment 是完整 `ak:device:<uuidv7>`）经本目录解析 `device_signing_key` 得 verify_key；设备吊销或 generation fenced/conflicted（`device_status != active`、B 模型 generation 不等或目录省略 key）、目录缺失该 `(actor, device)`、cross-signing 链验证未通过、service-attested 投影锚缺失/不合法、或验签失败者 MUST **fail-closed**：丢弃信号，MUST NOT 触发 UI，持久消息 MUST 标为不可验证且不得当作已验证明文呈现。该规则同时适用于通话信令(详见 [`webrtc-signaling.md` §5](./webrtc-signaling.md))与持久消息接收路径。
 
 `keys/query` 是普通设备专用 `(principal_id, ak:device:<uuidv7>) → accepted ak.device.authorize` 投影。Native Agent runtime 的 stable `device_id` 仅用于 MLS endpoint、KeyPackage、Welcome 与 session binding，不产生 device authorization；服务端 MUST NOT 在 Agent principal 下返回 runtime `device_signing_key`，客户端 MUST NOT 向本 operation 查询 Agent runtime method。ordinary Agent 使用 [`../identity/key-management.md`](../identity/key-management.md) 的 `ak.schema.agent_signer_evidence.v1` operation；Applet/service 使用其注册 evidence。目录缺失后尝试 Agent/MLS key，或 Agent evidence unresolved后回退本目录，均属于禁止的跨-regime fallback。
 

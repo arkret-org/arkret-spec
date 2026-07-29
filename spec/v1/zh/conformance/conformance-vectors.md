@@ -1047,7 +1047,7 @@ ak.vector.strand_tracks_update.atomic.v1
 
 判定要求：
 
-- patch path 解析 MUST 遵循 [`event-and-patch.md` §4.2`](../models/event-and-patch.md) ABNF grammar；任何 path 形如 `tracks.<name>[key=...]` 的 selector segment MUST `schema_violation`——selector segment 不是 ak.patch.v1 的一部分（§4.2.1）。
+- patch path 解析 MUST 遵循 [`event-and-patch.md` §4.2`](../models/event-and-patch.md) ABNF grammar；任何 path 形如 `tracks.<name>[key=...]` 的 selector segment MUST `schema_violation`——selector segment 不是 `ak.schema.patch.v1` 的一部分（§4.2.1）。
 - `ak.strand.tracks.update` 写入的 cell 是 `ak:cell:ak.component.strand.tracks.v1:<strand_id>`（mv_register），reducer 校验合并后 invariant 在 cell update 之前 完成。
 
 失败条件：
@@ -1058,6 +1058,23 @@ ak.vector.strand_tracks_update.atomic.v1
 - Case D 因 `review` 匹配基础正则而接受，绕过 registry 准入。
 
 实现 MUST 在 conformance 报告中分别报告四个 case 的 reducer 输出 cell value 与 invariant violation reason；该 vector 防御 [`strand-and-message.md`](../models/strand-and-message.md) §4.5 step 5 primary 解析规则及 TrackName registry 准入的边界 case。
+
+#### 2.10.1 Vector: patch path grammar 与边界
+
+向量名称：
+
+```text
+ak.vector.patch.path_grammar_bounds.v1
+```
+
+runner MUST 从 `scalability-limits-fixture.json` 的 generator 构造并验证以下边界：
+
+- 16 段且恰好 1024 ASCII bytes 的 snake_case path 必须通过 `patch.schema.json#/propertyNames`；
+- 1025 bytes、17 段、大写或数字开头、selector、数字数组下标、空 segment 与 quoted identifier
+  必须以 `schema_violation`、`reason_code=patch_path_invalid` 拒绝；
+- parser 对任何非法形态都不得跳过无效部分后继续解析。
+
+schema validation 与 reducer / SDK parser 必须给出一致结论；只在其中一层拒绝不构成通过。
 
 ### 2.11 Vector: `fsm` 家族 join 幂等与并发冲突
 
@@ -5723,3 +5740,12 @@ Runner MUST 覆盖：
 5. direct final 的 actor/device/security scope/Realm/Strand/track 任一不匹配，或 final
    携带 `executed_by` 时，不得绑定 preview；全部匹配时 final 立即替换并终止所有 attempts；
 6. preview 永不写 durable Event、Content Block、cursor、replay cache 或 reducer state。
+
+## 28. Agent signer evidence closure vector
+
+`vector_id`: `ak.vector.agent.signer_evidence_binding.v1`
+
+runner MUST 执行 `agent-signer-evidence-fixture.json` 的完整 `binding_vector` 与全部 case：重算
+controller proof signing input、binding digest、accepted state / transition witness 与 freshness
+边界，并覆盖 active、revoked、superseded、unresolved 及字段篡改分支。只加载 fixture、只验证来源服务
+签名或跳过任一 case 均不构成通过。

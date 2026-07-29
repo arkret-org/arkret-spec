@@ -190,15 +190,13 @@ SignalEnvelope 与 DeviceMessageEnvelope 不属于 Event kind registry，因此�
 | `ak.realm.freeze` | Temporary freeze state |
 | `ak.realm.destroy` | Terminal decommission marker |
 | `ak.member.state` | Membership state |
-
-> `realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 candidate workflow concept/action 名称，不是 v1 wire `Event.kind`，见 [`../governance/join-policy.md`](../governance/join-policy.md)。未列入本 active registry，正式登记前不得使用 `ak.*` 前缀，也不得作为 Event envelope 的 `kind`。
 | `ak.strand.create` | Strand create |
 | `ak.strand.update` | Strand patch |
 | `ak.strand.archive` | Strand archive |
 | `ak.strand.restore` | Strand restore |
 | `ak.strand.move` | Strand move between Lists |
 | `ak.strand.reorder` | Strand reorder within List |
-| `ak.strand.tracks.update` | Strand tracks map patch（`ak.patch.v1` payload；详见 [`../models/strand-and-message.md` §4.8](../models/strand-and-message.md)） |
+| `ak.strand.tracks.update` | Strand tracks map patch（`ak.schema.patch.v1` payload；详见 [`../models/strand-and-message.md` §4.8](../models/strand-and-message.md)） |
 | `ak.strand.watch.set` | Set / clear per-(strand, actor) watch subscription (writes cas_register cell `ak.component.strand.watch.v1`; derives `watches` Relation) |
 | `ak.space.create` | Space create (board / list / swimlane / calendar bucket / ...) |
 | `ak.space.update` | Space metadata patch |
@@ -206,6 +204,8 @@ SignalEnvelope 与 DeviceMessageEnvelope 不属于 Event kind registry，因此�
 | `ak.space.archive` | Space archive (reversible UI hide) |
 | `ak.space.restore` | Space restore (archived -> active; only valid when current state == archived) |
 | `ak.space.tombstone` | Space tombstone (irreversible; contained Strands MUST be relocated first) |
+
+> `realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 candidate workflow concept/action 名称，不是 v1 wire `Event.kind`，见 [`../governance/join-policy.md`](../governance/join-policy.md)。未列入本 active registry，正式登记前不得使用 `ak.*` 前缀，也不得作为 Event envelope 的 `kind`。
 
 ### 4.2 消息与关系
 

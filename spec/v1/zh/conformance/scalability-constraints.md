@@ -42,6 +42,7 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 单次 sync / backfill / projection page 返回项 | 1,000 | 执行方 MUST enforce；客户端不得假设更大 page 可用。 |
 | 单个 Event 的 `prev_refs` 数量 | 128 | 超过时 MUST reject（`schema_violation`，`reason_code=prev_refs_too_large`）或要求提交 snapshot / seal 引用；数组项 MUST 去重。 |
 | 单个 Event 的 `causal_refs` 数量 | 128 | 超过或存在重复项时 MUST reject（`schema_violation`，`reason_code=causal_refs_too_large`）；不得截断因果前驱集。 |
+| `ak.schema.patch.v1` patch path | 16 段；1024 UTF-8 bytes | 超过任一上限 MUST reject（`schema_violation`，`reason_code=patch_path_invalid`）。段数由 `patch.schema.json#/propertyNames/pattern`、长度由同一节点的 `maxLength` 机读承载；因 grammar 仅允许 ASCII，两种长度度量一致。见 [event-and-patch.md](../models/event-and-patch.md) §4.2. |
 | 单个 Event `refs[]` 中 `role="authorized_by"` 的条目数量 | 64 | 超过时 MUST reject；authorized_by refs 必须是最小授权状态集合（见 [event-and-patch.md](../models/event-and-patch.md) §2.2）。 |
 | 单个 Event 的 `refs[]` 总条目数量 | 128 | 涵盖 `authorized_by` / `attestation` / `parent_event` / `after` / `recovery_capability` / `state_witness` / `inclusion_proof` 等所有 role；超过时 MUST reject（`schema_violation`，`reason_code=refs_too_large`）或拆分。 |
 | 同一 `(realm_id, actor_id, actor_seq, prev_frontier_digest)` sibling fork 数 | 16 | 超过时 receiver MUST quarantine 或要求 actor chain repair；不同 Realm 独立计数，见 [event-and-patch.md](../models/event-and-patch.md) §2.6。 |
@@ -56,7 +57,6 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 手写 deterministic CBOR 结构单个 array / map 项数 | 65,536 | 适用于 `mls_governance_binding`（[encryption-and-audit.md](../crypto-media/encryption-and-audit.md) §2.5.3）等不经 JSON schema 校验的手写 deterministic CBOR 结构。单个 array 或 map 声明或实际项数超过 65,536 时 decoder MUST reject（`schema_violation`，`reason_code=cbor_bounds_invalid`），且 MUST NOT 依据声明项数在校验前预分配内存。 |
 | 手写 CBOR 声明长度自洽性 | 声明长度 ≤ 剩余输入 | CBOR string / byte string / array / map 头部声明的长度或项数 MUST ≤ 实际剩余输入可满足的量；违反时 decoder MUST 在按声明长度分配缓冲区之前 reject（`schema_violation`，`reason_code=cbor_bounds_invalid`）。indefinite-length 项（map `0xbf` / array `0x9f` / string `0x5f`、`0x7f`）违反 deterministic encoding（RFC 8949 §4.2），MUST reject（`schema_violation`，`reason_code=cbor_not_deterministic`），不得归一化后接受。负例见 [conformance-vectors.md](./conformance-vectors.md) §1.12.1。 |
 | 单 actor 每毫秒 HLC 生成事件数 | 65,536（HLC logical 4 hex 段上限） | HLC wire 形态为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，logical 段为 16-bit；同一 actor 在同一 ms 内最多分配 65,536 个 logical 值（`0x0000`–`0xFFFF`，即 0..65535），第 65,537 个 event 触发 HLC logical 段饱和，producer MUST 等待至下一 ms 再生成或返回本地错误 `hlc_logical_overflow`，MUST NOT wrap 或复用相同 HLC。HLC 仅作为时间线 advisory tie-breaker，不参与授权或状态收敛——饱和不影响协议正确性，只影响展示排序。[^hlc-throughput] [^hlc-logical-width] |
-
 | 单 actor 持续吞吐建议 | ≤ 100,000 events/min | Producer SHOULD 在生产侧自我限速，避免在突发情况下饱和 HLC logical 段或下游 reducer。超过该建议持续吞吐时，actor SHOULD 拆分为多 device / 多 actor 并行，或考虑使用 batch event。 |
 | HLC `hard_future_skew_ms`（硬 future drift 上限） | 300,000 ms（5 分钟） | 见 [encoding.md](./encoding.md) §7.2。HLC `unix_ms` 超本地时钟该阈值时 receiver MUST reject / quarantine。该校验是 envelope freshness / DoS guard，非授权、Lattice winner、Control Move precondition 或 Seal finality 输入。 |
 | HLC `expected_future_skew_ms`（软 future drift 阈值） | 30,000 ms（30 秒） | 见 [encoding.md](./encoding.md) §7.2。超该阈值但未超 `hard_future_skew_ms` 时 receiver SHOULD soft-fail / quarantine。 |
@@ -64,7 +64,7 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 
 `refs[]` 总量边界的生成式负例由 `ak.vector.scalability.refs_limit.v1` 固化。envelope 1 MiB 边界与 HTTP header/path/query 上限分别由 `ak.vector.scalability.envelope_size_limit.v1`、`ak.vector.scalability.http_header_limits.v1` 固化；runner MUST 使用 generator 描述在执行时构造边界值，不在 fixture 中内嵌兆级字符串。
 
-其余 wire 上限按语义族由 `ak.vector.scalability.event_ref_role_limits.v1`、`ak.vector.scalability.batch_page_limits.v1`、`ak.vector.scalability.sibling_fork_limits.v1`、`ak.vector.scalability.object_control_limits.v1` 与 `ak.vector.scalability.capability_limits.v1` 固化；统一生成式输入与期望结果见 `scalability-limits-fixture.json`。
+patch path 的 grammar、1024-byte 与 16-segment 边界由 `ak.vector.patch.path_grammar_bounds.v1` 固化。其余 wire 上限按语义族由 `ak.vector.scalability.event_ref_role_limits.v1`、`ak.vector.scalability.batch_page_limits.v1`、`ak.vector.scalability.sibling_fork_limits.v1`、`ak.vector.scalability.object_control_limits.v1` 与 `ak.vector.scalability.capability_limits.v1` 固化；统一生成式输入与期望结果见 `scalability-limits-fixture.json`。
 
 **字符串标识符 octet 上限的性质（normative）**：handle / realm alias localpart、agent `slug`、`title` / `display_name`、Strand `title` 等字段的 UTF-8 octet 上限均恰为其 code-point 上限的 **4 倍**，且两个上限都在 **prepared 形态**上测量（见 §2 各行"prepared 后超过任一上限 MUST reject"）。由于 UTF-8 单码点至多 4 字节，任何 prepared 字符串都满足"octet 数 ≤ 4×code-point 数"，故 `"code-point 检查通过"` **必然蕴含** `"octet 检查通过"`（等价逆否命题：`"octet 检查失败"` 必然蕴含 `"code-point 检查失败"`）。反向并不成立：例如 128 / 512 上限下，129 个 ASCII code point 会使 code-point 检查失败，但 129 octets 仍通过 octet 检查。因此两条检查不是同真同假的等价关系；准确结论只是 octet 臂不会在 code-point 已通过时**独立**拒绝。当前 4:1 octet 上限是被 code-point 接受边界蕴含的纵深防御 wire-byte 上界，无需一个"code-point 达标但 octet 超限"的独立负例，因为该输入在数学上不存在。实现仍 MUST 在 prepared 形态上执行两条上限（JSON Schema `maxLength` 仅表达 raw code-point 预检，preparation 归一 MAY 改变 code-point 数，故 normative validator MUST 在 **prepared 形态**上复核 code-point 与 octet 两个上限并 reject 超限输入，见 §2 各行）。若未来某字段声明 octet 上限 **< 4×code-point 上限**，该字段 MUST 另补一个 prepared code-point 达标但 prepared octet 超限的可执行负例。
 
@@ -235,12 +235,12 @@ JCS(body) bytes <= operation.max_canonical_body_bytes
 | 单个 selector term 字段值 | 1,024 bytes | 超过时 MUST `selector_too_complex`。 |
 | 单个 grant 未注册字段总数 | 256 | 超过时 MUST `selector_too_complex`；未知字段仍计入 64 KiB 总量。 |
 | `required_claims[]` 项数 | 32 | 超过时 MUST reject；canonical schema 同步 `maxItems: 32`。 |
-
-上述 cursor / selector / policy-array 边界由 active `ak.vector.scalability.cursor_selector_limits.v1` 在 `scalability-limits-fixture.json` 中执行。
 | 单个 claim 的 `trusted_issuers[]` / `roles[]` 项数 | 16 | 超过时 MUST reject；canonical schema 同步 `maxItems: 16`。 |
 | Constraint object 内嵌套层级 | 4 | 超过时 MUST reject；与 selector AST 深度分别计量。 |
 | 单个 device pairing transcript 失败提交数 | 10 | 达到上限时 pairing code MUST 锁定并永久失效；不得重置计数继续猜测。 |
 | 高频路径 authz snapshot 最大重建延迟 | 5 秒（SHOULD，本地性能建议） | `chat_mvp`、`kanban_mvp`、`full_client` 和 `principal_server` 相关服务 SHOULD 满足。这是**本地性能 / SLA 建议**，非 wire interoperability bound——对端无法仅凭 wire object 核验本地重建是否 ≤5s，故不构成 §1 意义上的可互操作核验项。 |
+
+上述 cursor / selector / policy-array 边界由 active `ak.vector.scalability.cursor_selector_limits.v1` 在 `scalability-limits-fixture.json` 中执行。
 
 当 grant / revoke / claim status / policy component / membership frontier 变化时，受影响的 capability snapshot MUST 立即标记 stale。stale snapshot 不得继续用于新的写入 allow 决策。
 
@@ -317,7 +317,6 @@ CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 
 | 单个 File Transfer `recipient_device_ids` 数 | 1,000 | 超过时 MUST reject 或拆分 transfer；每个 device key wrap 必须保持独立可验证。 |
 | 单个 call 的 effective roster 数 | 1,000 | 接受会使 `ak.component.call.roster.v1` effective OR-Set 超过上限的 join MUST reject（`schema_violation`）；每条 `ak.call.state` 只携带一个 `roster_delta`。见 [call-state.md](../crypto-media/call-state.md) §4.1。 |
 | `ring_timeout_ms` / `scheduled_start_grace_ms` / `connecting_timeout_ms` | 60,000 / 300,000 / 120,000 ms（默认且最大） | 见 [call-state.md](../crypto-media/call-state.md) §4.2；超时由 focus / token issuer / Principal Server 基于当前 accepted head 显式推进，不能由本地计时器直接改写 reducer。 |
-
 | join policy 单个 `application_form` gate 的 `questions[]` 数 | 64 | 超过时 MUST reject（`schema_violation`）。见 [join-policy.md](../governance/join-policy.md) §3.3。 |
 | `member.application` 的 `answers[]` 数 | 64 | 与 `questions[]` 上限对齐；超过时 MUST reject（`schema_violation`）。见 [join-policy.md](../governance/join-policy.md) §7.2。 |
 | join / application 的 `gate_proofs[]` 数 | 16 | 与 join policy `gates` 1..16 上限对齐（含 runtime challenge proof）；超过时 MUST reject（`schema_violation`）。见 [join-policy.md](../governance/join-policy.md) §5 / §7.2。 |

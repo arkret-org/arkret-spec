@@ -672,6 +672,7 @@
             "expected": {
               "decision": "reject",
               "reason": "schema_violation",
+              "reason_code": "patch_path_invalid",
               "tracks_unchanged": true
             }
           }

@@ -6,7 +6,8 @@
     "Schema / describe enum values for MLS ciphersuite fields MUST be generated from active rows' canonical_id only when publishing a new schema/describe contract version, then frozen for that version. Activating a reserved/new suite requires a new contract version and profile negotiation; registry activation MUST NOT expand an existing schema enum in place (zh/conformance/schema-registry.md §6.1 b.1).",
     "A ciphersuite not present as an active row MUST fail closed in KeyPackage claim / group negotiation (unsupported ciphersuite); receivers MUST NOT accept unregistered suites even if the underlying MLS library supports them.",
     "New suites (e.g. ChaCha20-Poly1305 for AES-accelerator-less devices) enter additively as new rows with their own profile gates and conformance vectors; the registry stays minimal for classical suites, but pre-registers post-quantum hybrid rows as status=reserved to match the HPKE / TLS PQ pre-registration discipline (hpke-suite-registry.json, transport-bindings.md §5).",
-    "status=reserved rows pin the canonical_id, profile gate and activation_requirements but MUST NOT appear on wire until every activation_requirements entry is met and the row is flipped to active in a registry release. Receivers MUST fail closed (unsupported ciphersuite) on a reserved suite seen in KeyPackage cipher_suites[] or group negotiation before activation — same discipline as encryption-and-audit.md 'MLS 内容 KEM 边界'."
+    "status=reserved rows pin the canonical_id, profile gate and activation_requirements but MUST NOT appear on wire until every activation_requirements entry is met and the row is flipped to active in a registry release. Receivers MUST fail closed (unsupported ciphersuite) on a reserved suite seen in KeyPackage cipher_suites[] or group negotiation before activation — same discipline as encryption-and-audit.md 'MLS 内容 KEM 边界'.",
+    "Every status=active row MUST declare kat_vector_id naming an active vector-registry entry; every status=reserved row MUST instead declare kat_absence_reason and MUST NOT declare kat_vector_id. tools/lint_artifacts.py enforces this binding."
   ],
   "ciphersuites": [
     {
@@ -32,6 +33,7 @@
       "status": "reserved",
       "role": "reserved_software_friendly_interop",
       "profile_gate": "ak.profile.mls_ciphersuite.chacha20poly1305.v1",
+      "kat_absence_reason": "The upstream corpus is identified, but byte-level digests and an active 0x0003 conformance vector are not yet published.",
       "kat_source": "https://github.com/mlswg/mls-implementations/tree/cfd450286d1bfd9cd2519b95c80f9771f94a5b1a/test-vectors",
       "kat_files": ["crypto-basics.json", "key-schedule.json", "messages.json", "welcome.json", "treekem.json"],
       "activation_requirements": [
@@ -61,6 +63,7 @@
       "status": "reserved",
       "role": "reserved_pqc_hybrid",
       "profile_gate": "ak.profile.kem.hybrid_xwing.v1",
+      "kat_absence_reason": "No stable MLS code point or byte-level KAT exists until the pinned PQ drafts and activation requirements are complete.",
       "activation_requirements": [
         "The exact suite mapping MUST match draft-ietf-mls-pq-ciphersuites-06 Table 2: MLKEM768-X25519 KEM 0x647A, HKDF-SHA256 KDF 0x0001, AES-128-GCM AEAD 0x0001, SHA256 transcript hash and ed25519 signature. MLS derives keys with the two-stage Extract/Expand pair, which draft-ietf-hpke-pq does not define for single-stage SHAKE KDFs, so the HPKE PQ SHAKE256 KDF 0x0011 MUST NOT be used as the MLS KDF. Any incompatible MLS/HPKE/CFRG draft change requires an explicit registry release and refreshed KAT digest",
         "IETF/IANA MLS ciphersuite code point assigned for MLS_128_MLKEM768X25519_AES128GCM_SHA256_Ed25519 and recorded here as rfc9420_id (registry release required; receivers MUST NOT improvise a private code point)",
@@ -87,6 +90,7 @@
       "status": "reserved",
       "role": "reserved_pqc_hybrid_authentication",
       "profile_gate": "ak.profile.mls_ciphersuite.pq_auth.v1",
+      "kat_absence_reason": "No stable MLS code point or byte-level KAT exists for the pinned PQ KEM plus ML-DSA authentication suite until all activation requirements are complete.",
       "activation_requirements": [
         "The exact suite mapping MUST match draft-ietf-mls-pq-ciphersuites-06 Table 2: MLKEM768-X25519 KEM 0x647A, HKDF-SHA384 KDF 0x0002, ChaCha20-Poly1305 AEAD 0x0003, SHA384 transcript hash and ML-DSA-44 signature. MLS derives keys with the two-stage Extract/Expand pair, which draft-ietf-hpke-pq does not define for single-stage SHAKE KDFs, so the HPKE PQ SHAKE256 KDF 0x0011 MUST NOT be used as the MLS KDF. Any incompatible draft change requires an explicit registry release and refreshed KAT digest",
         "IETF/IANA MLS ciphersuite code point assigned for MLS_128_MLKEM768X25519_CHACHA20POLY1305_SHA384_MLDSA44 and recorded here as rfc9420_id; receivers MUST NOT improvise a private code point",

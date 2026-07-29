@@ -6358,6 +6358,87 @@ def check_vector_registry(lint: Lint) -> None:
             if vector_id not in registered:
                 lint.fail(scan_path, f"references unregistered conformance vector id: {vector_id}")
 
+    indexed_fixtures: set[str] = set()
+    for row in registered.values():
+        if row.get("status") != "active":
+            continue
+        indexed_fixtures.update(
+            fixture
+            for fixture in row.get("applies_to_fixtures", [])
+            if isinstance(fixture, str)
+        )
+        for source_ref in row.get("source_refs", []):
+            if not isinstance(source_ref, str):
+                continue
+            prefix = "spec/v1/artifacts/fixtures/"
+            if source_ref.startswith(prefix) and source_ref.endswith(".json"):
+                indexed_fixtures.add(source_ref.removeprefix(prefix))
+
+    for fixture_path in sorted((ARTIFACTS / "fixtures").glob("*.json")):
+        fixture = load_json(lint, fixture_path)
+        if not isinstance(fixture, dict):
+            continue
+        runner = fixture.get("runner")
+        if (
+            isinstance(runner, dict)
+            and runner.get("kind") == "named_suite"
+            and fixture_path.name not in indexed_fixtures
+        ):
+            lint.fail(
+                fixture_path,
+                "runner.kind=named_suite fixture must be indexed by an active vector through "
+                "applies_to_fixtures[] or source_refs[]",
+            )
+
+
+def check_cryptographic_suite_kat_bindings(lint: Lint) -> None:
+    vector_path = ARTIFACTS / "registry" / "vector-registry.json"
+    vector_registry = load_json(lint, vector_path)
+    if not isinstance(vector_registry, dict):
+        return
+    active_vectors = {
+        row.get("vector_id")
+        for row in vector_registry.get("vectors", [])
+        if isinstance(row, dict)
+        and row.get("status") == "active"
+        and isinstance(row.get("vector_id"), str)
+    }
+    registries = {
+        "signature-alg-registry.json": "algorithms",
+        "digest-suite-registry.json": "suites",
+        "hpke-suite-registry.json": "suites",
+        "mls-ciphersuite-registry.json": "ciphersuites",
+    }
+    for filename, rows_key in registries.items():
+        path = ARTIFACTS / "registry" / filename
+        data = load_json(lint, path)
+        if not isinstance(data, dict):
+            continue
+        rows = data.get(rows_key)
+        if not isinstance(rows, list):
+            lint.fail(path, f"{rows_key} must be an array")
+            continue
+        for index, row in enumerate(rows):
+            label = f"{rows_key}[{index}]"
+            if not isinstance(row, dict):
+                lint.fail(path, f"{label} must be an object")
+                continue
+            status = row.get("status")
+            kat_vector_id = row.get("kat_vector_id")
+            absence_reason = row.get("kat_absence_reason")
+            if status == "active":
+                if not isinstance(kat_vector_id, str) or not kat_vector_id:
+                    lint.fail(path, f"{label} status=active requires kat_vector_id")
+                elif kat_vector_id not in active_vectors:
+                    lint.fail(path, f"{label}.kat_vector_id is not an active vector: {kat_vector_id!r}")
+                if absence_reason is not None:
+                    lint.fail(path, f"{label} status=active MUST NOT declare kat_absence_reason")
+            elif status == "reserved":
+                if kat_vector_id is not None:
+                    lint.fail(path, f"{label} status=reserved MUST NOT declare kat_vector_id")
+                if not isinstance(absence_reason, str) or not absence_reason.strip():
+                    lint.fail(path, f"{label} status=reserved requires kat_absence_reason")
+
 
 def check_account_data_key_registry(lint: Lint, known: dict[str, set[str]]) -> None:
     path = ARTIFACTS / "registry" / "account-data-key-registry.json"
@@ -10255,6 +10336,7 @@ def main(argv: list[str] | None = None) -> int:
         [
             ("account_data_keys", lambda: check_account_data_key_registry(lint, known)),
             ("vector_registry", lambda: check_vector_registry(lint)),
+            ("crypto_suite_kats", lambda: check_cryptographic_suite_kat_bindings(lint)),
             ("normative_clauses", lambda: check_normative_clause_registry(lint)),
             ("vector_refs", lambda: check_vector_reference_closure(lint)),
             ("security_fixture", lambda: check_security_closure_fixture(lint)),

@@ -164,7 +164,7 @@ see_also:
 | `models/crdt-text-extension.md` | 实时协同文本 CRDT 的 reserved profile、默认 revision 关系与激活门槛。 |
 | `models/personal-productivity.md` | principal-private reminders、scheduled send、snooze、saved items 与 draft sync account-data key 规则。 |
 | `models/file-transfer.md` | principal-private 跨设备文件传输：encrypted account-data transfer record、Blob ciphertext、to-device key delivery、retention 与共享附件边界。 |
-| `models/event-and-patch.md` | Event Envelope、Proof、Field Patch (`ak.patch.v1`)、Event Batch Receipt、reducer 总则。 |
+| `models/event-and-patch.md` | Event Envelope、Proof、Field Patch (`ak.schema.patch.v1`)、Event Batch Receipt、reducer 总则。 |
 | `models/extension-objects.md` | Applet、Agent、Blob 等通过 extension profile 接入的对象（指向 `extensions/` 与 `crypto-media/`）。 |
 | `models/pins.md` | Shared pin events、`pin_scope` 解析、Space effective scope 安全边界与 pin projection stub。 |
 | `models/views.md` | View kind / renderer、Query、Board / Timeline / Graph / Document projection。 |
@@ -203,6 +203,7 @@ see_also:
 | `sync/service-api-schema.mdx` | canonical operation 分组与治理说明视图（含 `<OperationTable />` 组件）；request / response shape 以 OpenAPI、JSON Schema 和 `artifacts/reports/operation-schema-index.json` 为准。 |
 | `sync/api-conventions.md` | 错误、分页、幂等、feature discovery。 |
 | `sync/transport-bindings.md` | HTTP/REST、gRPC、WebSocket、SSE、MQ、libp2p 等 binding。 |
+| `sync/websocket-binding.md` | （optional profile）`ak.profile.binding.websocket.v1`：三条 stream operation 的 WebSocket 承载、帧 schema、DPoP 绑定、重连与 flow control。 |
 | `sync/federation.md` | 跨域联邦模型、节点认证、Event 交换协议、跨域加入、frontier exchange、wire transaction 形态。 |
 | `sync/sovereign-deployment.md` | 高安全自建网络、sovereign client、DID resolver policy、sovereign deployment 下 External Collaboration Realm 的强制 policy、enclave、导入导出和撤销规则。 |
 | `sync/third-party-invites.md` | 3PID 邀请与认领的 wire strand、token handoff、claim submit 与不可枚举响应；身份语义同时在 §4.2 交叉登记。 |

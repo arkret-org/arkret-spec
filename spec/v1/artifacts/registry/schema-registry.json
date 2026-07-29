@@ -258,10 +258,7 @@
     {
       "schema_id": "ak.schema.patch.v1",
       "file": "schemas/patch.schema.json",
-      "format_aliases": [
-        "ak.patch.v1"
-      ],
-      "description": "Registered schema for the embedded ak.patch.v1 field-patch wire format."
+      "description": "Registered schema for the canonical Arkret field-patch wire format."
     },
     {
       "schema_id": "ak.schema.range_completeness_attestation.v1",

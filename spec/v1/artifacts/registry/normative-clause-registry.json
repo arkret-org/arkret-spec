@@ -286,12 +286,13 @@
       "clause_id": "AK-NC-019",
       "status": "active",
       "category": "reducer",
-      "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akpatchv1--akschemapatchv1",
-      "section_digest": "sha256:416a826f725a1a0f828bb2baba19cdcc804e65de91fe5b054893bb255a9d389b",
+      "source_anchor": "spec/v1/zh/models/event-and-patch.md#4-field-patch-akschemapatchv1",
+      "section_digest": "sha256:e5eab95cc2af0a106e4a1fd4dad5c4bb9b41a999c1bd8f39707242f267a3a7c6",
       "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.patch.atomic_application.v1",
+        "ak.vector.patch.path_grammar_bounds.v1",
         "ak.vector.patch.projection_prestate_binding.v1",
         "ak.vector.strand_tracks_update.atomic.v1"
       ]

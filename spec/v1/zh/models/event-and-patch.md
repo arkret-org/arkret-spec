@@ -16,7 +16,7 @@ updated: 2026-07-13
 
 - **Event Envelope**（`ak:event:`）：reducer 输入与审计事实的 wire 表示。
 - **Proof**：签名证明 envelope。
-- **Field Patch (`ak.patch.v1`)**：非 create 类更新的标准字段增量格式。
+- **Field Patch (`ak.schema.patch.v1`)**：非 create 类更新的标准字段增量格式。
 - **Event Batch Receipt**（`ak:receipt:`）：可选审计 / 同步加速对象。
 
 CBA 双平面、DataEvent、Control Move、Seal、Lattice、cell 模型、authority chain 与 state 收敛细节由 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 承担；本文聚焦对象级 schema、字段、reducer 总则与 patch 语义。
@@ -60,7 +60,7 @@ Schema id: `ak.schema.event.v1`
 | `created_at` | yes | `timestamp` | MUST 使用 canonical RFC 3339 UTC 毫秒精度 `YYYY-MM-DDTHH:MM:SS.sssZ`（整秒也写 `.000Z`）；微秒/纳秒输入必须在计算 Event digest 与签名之前截断到毫秒，不得使用 `+00:00`；不能单独决定因果。 | 创建时间。 |
 | `hlc` | no | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。**Advisory 字段** — 进入 canonical bytes 与签名以防被中间方重写，但语义上只是 timeline display tie-breaker，不参与 authorization、Lattice join、Control Move precondition 或 Seal finality。详见 `encoding.md` §7。 | HLC（advisory）。 |
 | `prev_refs` | yes | `array<id:event>` | 可为空。仅承载 actor event chain causal predecessors。 | Actor event chain 前序。 |
-| `causal_refs` | no | `array<hash>` | DataEvent 语义因果前驱 event digest；只表达业务依赖，不提供完整性证明。 | 数据面因果前驱。 |
+| `causal_refs` | conditional | `array<hash>` | 携带 `payload.patch` 的 DataEvent MUST 为每个 registry 目标 cell 精确引用一个 accepted base-head event digest，见 §4.3.1；其余 DataEvent 可用于声明业务因果。它不提供全局完整性证明。 | 数据面因果前驱。 |
 | `refs` | yes | `array<SemanticRef>` | 默认 `[]`。每项 `{id, role, critical?}`；常见 `role` 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`recovery_capability`、`state_witness`、`inclusion_proof`。`critical` 默认 `true`；未识别 critical role MUST fail closed，未识别非 critical role MAY 被忽略。 | 语义引用集合。 |
 | `requirements` | no | `object` | `requirements.{schema[], reducer, features[], critical_extensions[]}` 全部进入 canonical bytes 与 event digest；接收方 MUST fail closed 对未知 critical 项。`critical_extensions[]` 每项必须有 `id`、`extension_scope`、`fail_closed=true`，且 entry 顶层是 closed object；extension-specific data 必须放入 `parameters` 或用 `material_digest` 指向外部材料。 | 事件依赖声明（schema profile / reducer profile / feature / critical extension）。 |
 | `preconditions` | conditional | `array<Predicate>` | 仅 Control Move 携带；在 `seal_basis` 治理 view 下求值。DataEvent MUST 省略。 | 控制面原子条件。 |
@@ -434,15 +434,13 @@ Verifier MUST 先移除 `proofs`、`unsigned` 与 `actor_kind`，保留 `scope_r
 
 在 cross-service、cross-trust-domain、federation 或任何 profile 声明的多受众调用中，缺少 `domain` 或缺少所需 `audience` 的 proof MUST fail closed（`proof_binding_missing` 或 profile 声明的更具体 reason）。同一服务内单受众本地写入 MAY 省略其中一项，但 verifier 仍 MUST 把处理上下文中的 Realm / service audience 与 envelope `realm_id`、proof controller 和 capability 绑定分开校验；不得因为 proof 验签通过就跨服务接受同一 Event。
 
-## 4. Field Patch (`ak.patch.v1` / `ak.schema.patch.v1`)
+## 4. Field Patch (`ak.schema.patch.v1`)
 
-非 create 类更新建议使用 `ak.patch.v1` 做字段增量；客户端不得自行定义私有 dot-path 语义替代该标准。
-
-> **命名注意**：`ak.patch.v1` 是 **embedded format identifier**（spec prose 中的简称，用于指代 `payload.patch` 字段位置的 wire 形态），其结构 schema 已正式注册为 `ak.schema.patch.v1`，artifact 见 [`artifacts/schemas/patch.schema.json`](../../artifacts/schemas/patch.schema.json)。两个标识同源——format identifier 在中文规范与 prose 中保持兼容用法，schema_id 在 registry / SDK / lint 工具中作为可解析的 schema reference。实现 MUST 将 spec 中出现的 `ak.patch.v1` 引用解析到该 schema artifact；本节 §4.1–§4.3 是该 schema 的 normative 语义补充（grammar / parser 责任 / selector / redactable / reducer-managed 字段保护），artifact 自身不重复 normative 文字。
+非 create 类更新建议使用 `ak.schema.patch.v1` 做字段增量；客户端不得自行定义私有 dot-path 语义替代该标准。其 canonical artifact 是 [`patch.schema.json`](../../artifacts/schemas/patch.schema.json)，本节 §4.1–§4.4 定义该 schema 的 normative grammar、parser、字段保护与 reducer 语义。
 
 ### 4.1 结构
 
-`ak.patch.v1` 为 map 类型：
+`ak.schema.patch.v1` 为 map 类型：
 
 - `key`：patch path（字段路径）。
 - `value`：patch 操作，支持两种表达：
@@ -457,29 +455,27 @@ patch path 严格遵循下面 ABNF：
 
 ```text
 path           = segment *( "." segment )
-segment        = identifier / quoted-identifier
+segment        = identifier
 identifier     = ALPHA-LOWER *( ALPHA-LOWER / DIGIT / "_" )
 ALPHA-LOWER    = %x61-7A                       ; a-z
-quoted-identifier = "`" 1*( quoted-char ) "`"
-quoted-char    = %x20-5F / %x61-7F             ; printable ASCII excluding `
-                                               ; (literal backtick MUST be escaped as ``)
 ```
 
 具体约束：
 
 - `identifier` MUST 匹配正则 `^[a-z][a-z0-9_]{0,63}$`(snake_case,首字符必须小写字母，长度 ≤ 64);
-- **v1 不含 selector segment**（`field[key=value]` 形态）。它在 v1 从未可用：旧 ABNF 要求
-  `selector-value` 是含外层双引号的 RFC 8785 canonical JSON string，而登记的 `patch_path`
-  schema pattern 在该位置只接受 `[A-Za-z0-9_:.@-]+`，永远容不下双引号——两种写法各被一侧拒绝，
-  没有任何 producer 发得出合规的 selector path。它的有效性判据（项 schema 声明 `unique: true`）
-  本就不是 wire 层可知的，且 v1 标准 schema 不含具名集合数组（Strand `tracks` 是 map）。
-  因此 `field[key=value]` MUST 以 `schema_violation` 拒绝;
-- `quoted-identifier` 用于字段名包含非 snake_case 字符的特殊场景(v1 标准 schema 不应使用),字面 backtick 必须 escape 成连续两个 backtick;
-- 默认仅支持对象路径，不支持数字数组下标。
+- v1 只接受 snake_case `identifier` segment；quoted identifier、selector segment
+  （`field[key=value]`）与数字数组下标都不属于 v1 grammar，MUST 以 `schema_violation`、
+  `reason_code=patch_path_invalid` 拒绝；
+- path 最多 16 段，UTF-8 编码后最多 1024 bytes；
+- [`patch.schema.json#/propertyNames/pattern`](../../artifacts/schemas/patch.schema.json) 是上述 grammar 与
+  16 段上限的 canonical 机读投影；schema 与本节必须同批更新。
 
 #### 4.2.2 Parser 责任
 
-reducer / SDK 实现 MUST 使用确定性 parser:遇到任何 ambiguous match、超长 path(> 1024 字节)、超深嵌套(> 16 段)、非 canonical selector-value(未经 JCS 规范)时,MUST 返回 `schema_violation` reason=`patch_path_invalid`。Parser **MUST NOT** 走 fallback 路径——例如不得在 selector-value 中错位的 `]` 之后继续尝试匹配下一个 segment。
+reducer / SDK 实现 MUST 使用确定性 parser。遇到任何不匹配 §4.2.1 grammar 的 path、UTF-8 编码后超过
+1024 bytes 的 path 或超过 16 段的 path 时，MUST 返回 `schema_violation`、
+`reason_code=patch_path_invalid`。Parser MUST NOT 走 fallback 路径；例如空 segment、非法字符、
+selector / 数组下标形态不得在跳过无效部分后继续解析。
 
 #### 4.2.3 无 stable-key 列表元素
 
@@ -489,14 +485,14 @@ map（key 即成员名，如 Strand `tracks`）、使用 profile 注册的 move/
 
 #### 4.2.4 Op 与 redactable 字段交互（normative）
 
-`ak.patch.v1` 的 `$op="unset"` 路径 MUST NOT 操作以下 redactable 内容字段:
+`ak.schema.patch.v1` 的 `$op="unset"` 路径 MUST NOT 操作以下 redactable 内容字段:
 
 - Message: `content`、`encrypted_content`、`body`
 - Strand: `metadata.summary`、`encrypted_content`、`encrypted_metadata`、用户可写的长文本 `metadata.fields`
 - Morph: `content`、`encrypted_content`、`metadata.summary`、`encrypted_metadata`、`fields.<text-content-shape>` (由 morph profile 声明)
 - 任何在 Realm schema 中标记为 `redactable: true` 的字段。
 
-理由: 这些字段的清除必须走 `ak.<kind>.redact` 或 `ak.redaction` event,以触发 redaction-specific capability check + audit seal + retention policy;允许用 `ak.patch.v1` 直接 `unset` 等价于让任何持有 `ak.<kind>.update` 的 actor 绕过 `ak.<kind>.redact` 的高 tier capability 完成 redaction (redaction escape)。
+理由: 这些字段的清除必须走 `ak.<kind>.redact` 或 `ak.redaction` event,以触发 redaction-specific capability check + audit seal + retention policy;允许用 `ak.schema.patch.v1` 直接 `unset` 等价于让任何持有 `ak.<kind>.update` 的 actor 绕过 `ak.<kind>.redact` 的高 tier capability 完成 redaction (redaction escape)。
 
 reducer MUST 在 patch path 命中 redactable field + `$op="unset"` 时返回 `schema_violation` reason=`patch_unset_redactable_field`。
 
@@ -598,9 +594,9 @@ verifier、Seal 与 projection 始终消费同一规范 reducer 输出，不消�
 
 同一个 `payload.patch` map 中的所有 path 变更属于同一个 reducer-input Event 的单次原子写入。Reducer MUST 在读取旧对象状态后先验证全部 path grammar、schema transition、capability field constraint、redactable / reducer-managed 字段限制，以及 Control Move 的 `preconditions[]`（若存在）；任一失败时整个 patch MUST fail closed，不得部分应用已经通过的 path。
 
-`ak.vector.patch.atomic_application.v1` 与 `state-reducer-hardening-fixture.json` 固化多 path 单 cell 写入、原子 primary 切换、非法 selector 与失败时全量回滚。
+`ak.vector.patch.atomic_application.v1` 与 `state-reducer-hardening-fixture.json` 固化多 path 单 cell 写入、原子 primary 切换、非法 patch path 与失败时全量回滚；`ak.vector.patch.path_grammar_bounds.v1` 固化 grammar 与 1024-byte / 16-segment 边界。
 
-Patch path 之间若同时写入父子路径、同一路径重复写入、或一条操作会改变另一条操作的 selector 结果，producer MUST 拆分为多个有明确语义边界的 Event；若需要强单值 precondition 或跨 cell invariant，schema MUST 将目标 cell family 声明为 control plane 或 per-object sequencer。Receiver 在无法按 canonical path order 得到唯一结果时 MUST `schema_violation`，`reason="patch_atomic_conflict"`。Patch 的 canonical order 只用于签名和诊断，不得被实现用作“先应用 A 再应用 B”的业务语义逃逸路径。
+Patch path 之间若同时写入父子路径、同一路径重复写入、或一条操作会改变另一条操作的目标解析结果，producer MUST 拆分为多个有明确语义边界的 Event；若需要强单值 precondition 或跨 cell invariant，schema MUST 将目标 cell family 声明为 control plane 或 per-object sequencer。Receiver 在无法按 canonical path order 得到唯一结果时 MUST `schema_violation`，`reason="patch_atomic_conflict"`。Patch 的 canonical order 只用于签名和诊断，不得被实现用作“先应用 A 再应用 B”的业务语义逃逸路径。
 
 ## 5. Event Batch Receipt
 

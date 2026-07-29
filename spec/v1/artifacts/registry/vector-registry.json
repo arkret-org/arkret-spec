@@ -288,6 +288,35 @@
       ]
     },
     {
+      "vector_id": "ak.vector.patch.path_grammar_bounds.v1",
+      "status": "active",
+      "domain": "patch",
+      "applies_to_fixtures": [
+        "scalability-limits-fixture.json"
+      ],
+      "description": "Pins the ak.schema.patch.v1 snake_case-only path grammar, 16-segment inclusive boundary, 1024-byte inclusive boundary, and patch_path_invalid rejection without parser fallback.",
+      "source_refs": [
+        "spec/v1/zh/models/event-and-patch.md",
+        "spec/v1/zh/conformance/scalability-constraints.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.agent.signer_evidence_binding.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-signer-evidence-fixture.json"
+      ],
+      "description": "Executes the portable Agent signer evidence binding transcript and all positive, unresolved, revoked, superseded, freshness, witness and tamper cases.",
+      "source_refs": [
+        "spec/v1/zh/identity/key-management.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.patch.projection_prestate_binding.v1",
       "status": "active",
       "domain": "patch",

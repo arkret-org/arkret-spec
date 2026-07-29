@@ -79,7 +79,16 @@ Schema 字段、event kind 与 map / 集合字段使用复数（`tracks`、`refs
 - 新增 wire 字段 MUST 按 cardinality 选用单 / 复数形式；不得使用 `*_list` / `*_array` / `*_set` 后缀替代复数。
 - 与之配套的 `*_ref` / `*_refs` / `*_id` / `*_ids` 后缀规则见 [`../models/common-fields.md` §2.1](../models/common-fields.md)。
 
-## 8. References
+## 8. 文档 frontmatter 词表
+
+`spec/v1/zh/**/*.md` 的 frontmatter 字段采用以下封闭词表，lint MUST 拒绝未知值：
+
+- `status`：`draft` / `candidate` / `stable` / `deprecated`；
+- `normative`：YAML boolean `true` / `false`；
+- `stability`：current-v1 树中只能是 `v1`，表示协议代际，不表示 core / optional。可选性必须由
+  profile 与 protocol-layer / binding registry 表达，不得发明 `v1-extension` 等复合取值。
+
+## 9. References
 
 ### Normative References
 

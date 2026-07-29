@@ -281,7 +281,7 @@ resolved primary 只影响默认打开哪个协作面，不改变 `strand_id`，
 
 ### 4.8 Track 写入: `ak.strand.tracks.update`
 
-Track 写入路径只有一个 event kind: **`ak.strand.tracks.update`**(注意名称用复数 `tracks`)，通过 `ak.patch.v1` 表达对 `Strand.tracks` map 的任意原子修改——开/关 track、切换 primary、修改 track profile / metadata 都走同一条 event。
+Track 写入路径只有一个 event kind: **`ak.strand.tracks.update`**(注意名称用复数 `tracks`)，通过 `ak.schema.patch.v1` 表达对 `Strand.tracks` map 的任意原子修改——开/关 track、切换 primary、修改 track profile / metadata 都走同一条 event。
 
 **典型 patch 示例**:
 

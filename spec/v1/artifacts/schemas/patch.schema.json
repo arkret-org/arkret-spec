@@ -2,14 +2,15 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/patch.schema.json",
   "title": "Arkret Field Patch (ak.schema.patch.v1)",
-  "description": "Canonical field-patch format embedded in event payloads (typically at payload.patch) for non-create updates. This is a registered schema id (ak.schema.patch.v1) describing the structural form of a patch map; the embedded format identifier 'ak.patch.v1' remains the in-prose name for the same wire shape. Implementations MUST resolve ak.patch.v1 references in spec prose to this schema artifact. Grammar, parser responsibilities, selector semantics, redactable-field protection and reducer-managed-field protection are defined normatively in zh/models/event-and-patch.md §4.",
+  "description": "Canonical field-patch format embedded in event payloads (typically at payload.patch) for non-create updates. Its only protocol identifier is ak.schema.patch.v1. Grammar, parser responsibilities, redactable-field protection and reducer-managed-field protection are defined normatively in zh/models/event-and-patch.md §4.",
   "type": "object",
   "minProperties": 1,
   "propertyNames": {
-    "$comment": "Patch path syntax. Snake_case identifier, optional dot-separated segments, optional stable-key selectors (`field[<key>=<canonical-json-string>]`) and backtick-quoted literals for non-snake_case keys. Full ABNF in zh/models/event-and-patch.md §4.2.1. Maximum length 1024 bytes, maximum nesting depth 16 segments — exceeding either MUST yield reason_code patch_path_invalid.",
+    "$comment": "Canonical machine projection of zh/models/event-and-patch.md §4.2.1. A path contains 1..16 dot-separated snake_case identifier segments, each 1..64 ASCII characters. Selector segments, quoted identifiers and numeric array indexes are not part of v1 and MUST be rejected with reason_code patch_path_invalid.",
     "type": "string",
     "minLength": 1,
-    "maxLength": 1024
+    "maxLength": 1024,
+    "pattern": "^[a-z][a-z0-9_]{0,63}(\\.[a-z][a-z0-9_]{0,63}){0,15}$"
   },
   "additionalProperties": {
     "oneOf": [

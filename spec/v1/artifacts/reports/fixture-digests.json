@@ -18,7 +18,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-signer-evidence-fixture.json",
-      "sha256": "582e6d6f9f4faf2f63c8b0b6c3f10eddc069ccc0420d648ab399f97576bb087f"
+      "sha256": "eb2b8a721d534a7ea1f15582c1c3a0a034e93408742f3c9eb3b6d3983397d6b2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
@@ -130,7 +130,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "ace089ea762e78bc86c1cd2951cb67acc42baddcc280604d50d5803d53de27d7"
+      "sha256": "a017c3f5a60e31c504dd473cb43dc063f8891c43d2c53f1f721cb18c622ce211"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -258,7 +258,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
-      "sha256": "3232d9b9a9d3bf596de99ff66287f66bfa84538d0d7b1acfddfde2cf0bc87cd4"
+      "sha256": "c0d2155d23752d9624b5a785d3130641a1fb9607851adb7687849f2d55433167"
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
@@ -294,7 +294,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",
-      "sha256": "8f40903e38ec2ae4c3934eb04214b049b5d8ffb9ad7afe612474569e238798b5"
+      "sha256": "d3fc989499d0296c07a8767a43e7bb49246ff452c0715b19ba668d63ef6515a0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",

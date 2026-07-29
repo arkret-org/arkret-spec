@@ -75,7 +75,7 @@ web+arkret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
 **Realm alias canonical grammar**：realm alias 的 canonical 形态是 `<localpart>:<domain>`，与 [`identity/identity-handles.md` §3.1/§17](../identity/identity-handles.md) 定义的 handle canonical 形态**同语法**：
 
 - `<localpart>`：与 handle localpart 相同的 `arkret_human_identifier`，即 RFC 8265 `UsernameCaseMapped` enforcement 后的 Unicode canonical value；它不是 domain label，MUST NOT 使用 IDNA。长度 1..128 Unicode code points 且不超过 512 UTF-8 octets。
-- `<domain>`：运营该 alias 的部署 / 组织（realm alias issuer）的权威域，至少两个 label；用户输入 MAY 是 U-label，canonical wire MUST 是按 [`conformance/encoding.md` §2.1.1](../conformance/encoding.md) 得到的小写 A-label。
+- `<domain>`：运营该 alias 的部署 / 组织（realm alias issuer）的权威域，至少两个 label；用户输入 MAY 是 U-label，canonical wire MUST 是按 [`conformance/encoding.md` §2.2.1](../conformance/encoding.md) 得到的小写 A-label。
 - canonical alias **不含** sigil。`#general:acme.example`、`general@acme.example`、裸 `general` 等形态 MUST NOT 作为 canonical alias 出现在 `web+arkret:` path 段、缓存键或 `resolve_*` 规范化结果中（带 sigil 形态仅可作为 §下文「输入路由」的解析输入）。
 
 **人类短地址与 sigil（display + 输入路由）**：面向人的短地址用前导 sigil 标注目标类型：

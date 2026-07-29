@@ -6,6 +6,7 @@
     "Schema enum values for proof alg fields MUST be generated from active rows' proof_alg only when publishing a new schema version, then frozen for that schema version.",
     "Schema enum values for raw signature_algorithm fields MUST be generated from active rows' signature_algorithm only when publishing a new schema version, then frozen for that schema version. Activating a reserved/new algorithm requires a new schema version and profile negotiation; registry activation MUST NOT expand an existing schema enum in place (zh/conformance/schema-registry.md §6.1 b.1).",
     "Algorithms not present as active rows MUST fail closed with unsupported_signature_alg on critical proofs.",
+    "Every status=active row MUST declare kat_vector_id naming an active vector-registry entry; every status=reserved row MUST instead declare kat_absence_reason and MUST NOT declare kat_vector_id. tools/lint_artifacts.py enforces this binding.",
     "A reserved hybrid row is a single negotiated verification policy over two independent proof entries, not a new unregistered compact signature encoding. Both components MUST bind the same canonical payload and proof purpose; accepting a stripped single component as hybrid-verified is forbidden."
   ],
   "algorithms": [
@@ -18,6 +19,7 @@
       "status": "active",
       "role": "v1_default_must",
       "profile_gate": null,
+      "kat_vector_id": "ak.vector.encoding.crypto.ed25519_detached_jws.v1",
       "proof_kinds": [
         "detached_jws",
         "raw_detached_signature"
@@ -33,6 +35,7 @@
       "status": "active",
       "role": "v1_optional_interop",
       "profile_gate": "ak.profile.signature.ecdsa_p256.v1",
+      "kat_vector_id": "ak.vector.encoding.crypto.es256_detached_jws.v1",
       "proof_kinds": [
         "detached_jws"
       ],
@@ -52,6 +55,7 @@
       "status": "active",
       "role": "v1_profile_gated_pqc",
       "profile_gate": "ak.profile.signature.pqc.v1",
+      "kat_vector_id": "ak.vector.encoding.crypto.mldsa65_raw_detached_signature.v1",
       "proof_kinds": [
         "detached_jws",
         "raw_detached_signature"
@@ -67,6 +71,7 @@
       "status": "reserved",
       "role": "reserved_hybrid_signature_policy",
       "profile_gate": "ak.profile.signature.pqc.v1",
+      "kat_absence_reason": "Reserved hybrid policy has no canonical proof-set ordering or anti-stripping KAT until all activation_requirements are complete.",
       "proof_kinds": ["detached_jws", "raw_detached_signature"],
       "activation_requirements": [
         "Publish canonical proof-set ordering and duplicate-component rejection rules",

@@ -46,6 +46,7 @@ OPENAPI = ROOT / "spec" / "v1" / "artifacts" / "openapi" / "arkret-service-api.o
 
 REQUIRED_FRONTMATTER = {"title", "status", "normative", "stability", "updated"}
 ALLOWED_STATUS = {"draft", "candidate", "stable", "deprecated"}
+ALLOWED_STABILITY = {"v1"}
 ALLOWED_PROPOSAL_STATUS = {"draft", "review"}
 
 SECOND_PERSON_RE = re.compile(r"[你您]的?|我们")
@@ -65,6 +66,11 @@ CASUAL_HEADING_RE = re.compile(r"^#{1,6}\s.*(" + "|".join(CASUAL_HEADING_PATTERN
 # mix-up rather than a code identifier.
 MIXED_PUNCT_RE = re.compile(r"[一-鿿][,;][一-鿿]")
 ARKRET_PATH_RE = re.compile(r"/_arkret/[A-Za-z0-9_./{}:*-]+")
+MARKDOWN_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)\s]+)(?:\s+['\"][^)]*['\"])?\)")
+SECTION_REF_RE = re.compile(r"§\s*(\d+(?:\.\d+)*)")
+NUMBERED_HEADING_RE = re.compile(r"^#{1,6}\s+(\d+(?:\.\d+)*)(?:[.．]\s+|\s+|$)")
+TABLE_ROW_RE = re.compile(r"^\|.*\|$")
+TABLE_DELIMITER_CELL_RE = re.compile(r"^:?-{3,}:?$")
 
 FRONTMATTER_RE = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n", re.DOTALL)
 PROPOSAL_FILE_RE = re.compile(r"^(?P<num>[0-9]{4})-[A-Za-z0-9_.-]+\.md$")
@@ -150,6 +156,8 @@ def load_registered_arkret_paths() -> set[str]:
 
 
 REGISTERED_ARKRET_PATHS = load_registered_arkret_paths()
+SPEC_MAP_PATH = SPEC_ZH / "spec-map.md"
+_SECTION_CACHE: dict[Path, set[str]] = {}
 
 
 def normalize_arkret_path_token(token: str) -> str:
@@ -185,6 +193,63 @@ def is_registered_arkret_path_or_namespace(token: str) -> bool:
     return False
 
 
+def numbered_sections(path: Path) -> set[str]:
+    resolved = path.resolve()
+    cached = _SECTION_CACHE.get(resolved)
+    if cached is not None:
+        return cached
+    sections: set[str] = set()
+    try:
+        lines = resolved.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        _SECTION_CACHE[resolved] = sections
+        return sections
+    for line in lines:
+        match = NUMBERED_HEADING_RE.match(line)
+        if not match:
+            continue
+        sections.add(match.group(1))
+    _SECTION_CACHE[resolved] = sections
+    return sections
+
+
+def is_table_delimiter(row: str) -> bool:
+    if not TABLE_ROW_RE.fullmatch(row):
+        return False
+    cells = [cell.strip() for cell in row.strip("|").split("|")]
+    return bool(cells) and all(TABLE_DELIMITER_CELL_RE.fullmatch(cell) for cell in cells)
+
+
+def lint_table_blocks(path: Path, text: str, body_offset: int) -> list[Finding]:
+    findings: list[Finding] = []
+    lines = text.splitlines()
+    in_code = False
+    index = body_offset
+    while index < len(lines):
+        stripped = lines[index].strip()
+        if stripped.startswith("```"):
+            in_code = not in_code
+            index += 1
+            continue
+        if in_code or not TABLE_ROW_RE.fullmatch(stripped):
+            index += 1
+            continue
+        start = index
+        while index < len(lines) and TABLE_ROW_RE.fullmatch(lines[index].strip()):
+            index += 1
+        if start + 1 >= index or not is_table_delimiter(lines[start + 1].strip()):
+            findings.append(
+                Finding(
+                    path,
+                    start + 1,
+                    "MD001",
+                    "table-like row block lacks a header delimiter; a preceding paragraph or blank line may have split the table",
+                    "error",
+                )
+            )
+    return findings
+
+
 def lint_file(path: Path) -> list[Finding]:
     findings: list[Finding] = []
     text = path.read_text(encoding="utf-8")
@@ -212,7 +277,37 @@ def lint_file(path: Path) -> list[Finding]:
             )
         )
 
+    stability = fm.get("stability")
+    if stability is not None and stability not in ALLOWED_STABILITY:
+        findings.append(
+            Finding(
+                path,
+                1,
+                "FM007",
+                f"frontmatter stability '{stability}' not in {sorted(ALLOWED_STABILITY)}",
+                "error",
+            )
+        )
+
+    normative = fm.get("normative")
+    if normative is not None and not isinstance(normative, bool):
+        findings.append(
+            Finding(path, 1, "FM008", "frontmatter normative must be a YAML boolean", "error")
+        )
+
     is_normative = bool(fm.get("normative"))
+    if is_normative and path.resolve() != SPEC_MAP_PATH.resolve() and SPEC_MAP_PATH.is_file():
+        relative = path.resolve().relative_to(SPEC_ZH.resolve()).as_posix()
+        if f"`{relative}`" not in SPEC_MAP_PATH.read_text(encoding="utf-8"):
+            findings.append(
+                Finding(
+                    path,
+                    1,
+                    "MAP001",
+                    f"normative document is not registered in spec-map.md: {relative}",
+                    "error",
+                )
+            )
     see_also = fm.get("see_also")
     if see_also is not None:
         if not isinstance(see_also, list) or any(not isinstance(item, str) for item in see_also):
@@ -269,6 +364,8 @@ def lint_file(path: Path) -> list[Finding]:
                         "error",
                     )
                 )
+
+    findings.extend(lint_table_blocks(path, text, body_offset))
 
     for idx, raw in enumerate(text.splitlines(), start=1):
         # Skip lines inside fenced code blocks heuristically: tracked below.
@@ -352,6 +449,33 @@ def lint_file(path: Path) -> list[Finding]:
                             idx,
                             "CW001",
                             f"unregistered /_arkret path '{token}' in current-v1 prose",
+                            "error",
+                        )
+                    )
+
+        for label, target in MARKDOWN_LINK_RE.findall(raw):
+            referenced_sections = SECTION_REF_RE.findall(label)
+            if not referenced_sections:
+                continue
+            target_file = target.split("#", 1)[0].split("?", 1)[0]
+            if not target_file or not target_file.lower().endswith(".md"):
+                continue
+            target_path = (path.parent / target_file).resolve()
+            try:
+                target_path.relative_to(ROOT.resolve())
+            except ValueError:
+                continue
+            if not target_path.is_file():
+                continue
+            available = numbered_sections(target_path)
+            for section in referenced_sections:
+                if section not in available:
+                    findings.append(
+                        Finding(
+                            path,
+                            idx,
+                            "LK001",
+                            f"link label references missing §{section} in {target_file}",
                             "error",
                         )
                     )

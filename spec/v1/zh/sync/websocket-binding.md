@@ -2,7 +2,7 @@
 title: WebSocket Binding Extension
 status: candidate
 normative: true
-stability: v1-extension
+stability: v1
 updated: 2026-07-29
 ---
 

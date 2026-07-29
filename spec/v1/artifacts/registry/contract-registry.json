@@ -5287,7 +5287,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Circle patch (ak.patch.v1 with path NOT containing realm_id / encryption_profile). Modifies title / summary / display / directory_visibility / join_rule / history_visibility."
+        "payload": "Circle patch (ak.schema.patch.v1 with path NOT containing realm_id / encryption_profile). Modifies title / summary / display / directory_visibility / join_rule / history_visibility."
       },
       {
         "event_kind": "ak.circle.archive",
@@ -5649,7 +5649,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Unified Strand tracks patch. payload.patch uses ak.patch.v1 against the Strand.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks."
+        "payload": "Unified Strand tracks patch. payload.patch uses ak.schema.patch.v1 against the Strand.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks."
       },
       {
         "event_kind": "ak.strand.move",
@@ -7153,10 +7153,7 @@
       {
         "schema_id": "ak.schema.patch.v1",
         "file": "schemas/patch.schema.json",
-        "format_aliases": [
-          "ak.patch.v1"
-        ],
-        "description": "Registered schema for the embedded ak.patch.v1 field-patch wire format."
+        "description": "Registered schema for the canonical Arkret field-patch wire format."
       },
       {
         "schema_id": "ak.schema.range_completeness_attestation.v1",

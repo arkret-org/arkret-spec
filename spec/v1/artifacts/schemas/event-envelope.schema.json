@@ -109,7 +109,7 @@
     },
     "causal_refs": {
       "type": "array",
-      "description": "DataEvent semantic causal predecessors by event_digest. These refs express business causality only; they are not global completeness proofs.",
+      "description": "DataEvent semantic causal predecessors by event_digest. A DataEvent carrying payload.patch MUST provide at least one causal_ref and MUST identify exactly one accepted base-head digest for every target cell; the per-cell uniqueness and post-state reconstruction checks are reducer semantics. Other DataEvents may use this field for business causality. These refs are not global completeness proofs.",
       "maxItems": 128,
       "uniqueItems": true,
       "items": {
@@ -244,6 +244,33 @@
     ]
   },
   "allOf": [
+    {
+      "$comment": "A patch-bearing DataEvent is identified by its required seal_ref and payload.patch. It needs at least one causal base; exact per-target-cell matching remains a reducer check.",
+      "if": {
+        "required": [
+          "seal_ref",
+          "payload"
+        ],
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "patch"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "causal_refs"
+        ],
+        "properties": {
+          "causal_refs": {
+            "minItems": 1
+          }
+        }
+      }
+    },
     {
       "$comment": "Signed Applet provenance invariants. external_ref is only meaningful when bound to a signed applet_id, and Applet-originated writes must cite the accepted authorization/delegation grant.",
       "if": {
