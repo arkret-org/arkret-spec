@@ -138,6 +138,30 @@
             "maximum": 32
           }
         },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "proof_kind": {
+                  "const": "threshold_recovery"
+                }
+              },
+              "required": [
+                "proof_kind"
+              ]
+            },
+            "then": {
+              "properties": {
+                "rule_id": {
+                  "const": "threshold_recovery"
+                },
+                "threshold": {
+                  "const": 1
+                }
+              }
+            }
+          }
+        ],
         "additionalProperties": false
       }
     },
@@ -269,7 +293,7 @@
       "items": {
         "$ref": "#/$defs/recovery_key_entry"
       },
-      "description": "Recovery signing keys this principal authorizes to satisfy a 'recovery_unlock' proof. Each entry binds a verification method (24-word Recovery Key derived signing key, or hardware-released equivalent) to the principal. A recovery_unlock proof's recovery_secret_ref MUST resolve to one of these entries that is non-revoked and within its validity window at the proof's binding time; the proof signature MUST verify under that entry's public key. Required when allowed_proof_kinds contains 'recovery_unlock'. See identity/key-management.md §7.5.2 and crypto-media/device-lifecycle.md §14.4 / §15."
+      "description": "Recovery signing keys this principal authorizes for 'recovery_unlock' proofs and for the single publication signature produced after 'threshold_recovery' secret reconstruction. Each entry binds a verification method (24-word Recovery Key derived signing key, or hardware-released equivalent) to the principal. A recovery_unlock proof's recovery_secret_ref, and a threshold_recovery publication rule's issuer set, MUST resolve to active entries in this array; the proof signature MUST verify under the selected entry's public key. Required when allowed_proof_kinds contains either 'recovery_unlock' or 'threshold_recovery'. See identity/key-management.md §7.5.2 and crypto-media/device-lifecycle.md §14.4 / §15."
     },
     "recovery_key_agreements": {
       "type": "array",
@@ -818,7 +842,7 @@
                   "const": "ak.policy.set"
                 },
                 "payload": {
-                  "$ref": "#/$defs/recovery_policy_set_payload"
+                  "$ref": "./recovery-policy.schema.json#/$defs/recovery_policy_set_payload"
                 }
               }
             }
@@ -840,7 +864,7 @@
     },
     "recovery_key_entry": {
       "type": "object",
-      "description": "A recovery signing key the principal authorizes for 'recovery_unlock' proofs. The verification_method is the stable recovery_secret_ref; public_key_multibase carries the actual signing public key so B-model principals do not depend on a DID Document verificationMethod. key_agreement_ref pairs this signer with a distinct backup-only recovery_key_agreements[] entry.",
+      "description": "A recovery signing key the principal authorizes for 'recovery_unlock' proofs and post-reconstruction 'threshold_recovery' publication signatures. The verification_method is the stable recovery_secret_ref and publication-rule issuer; public_key_multibase carries the actual signing public key so B-model principals do not depend on a DID Document verificationMethod. key_agreement_ref pairs this signer with a distinct backup-only recovery_key_agreements[] entry.",
       "required": [
         "verification_method",
         "public_key_multibase",
@@ -852,7 +876,7 @@
       "properties": {
         "verification_method": {
           "$ref": "#/$defs/did_url",
-          "description": "DID URL (e.g. `did:webvh:...#recovery-1`) identifying this recovery signing key. This is the value a recovery_unlock proof carries in recovery_secret_ref / verification_method and MUST be unique within recovery_keys[]."
+          "description": "DID URL (e.g. `did:webvh:...#recovery-1`) identifying this recovery signing key. This is the value a recovery_unlock proof carries in recovery_secret_ref / verification_method and a threshold_recovery publication rule carries in issuers[].verification_method; it MUST be unique within recovery_keys[]."
         },
         "public_key_multibase": {
           "type": "string",
@@ -874,11 +898,11 @@
         },
         "not_before": {
           "$ref": "#/$defs/timestamp",
-          "description": "Earliest instant this recovery key may authorize a recovery_unlock proof."
+          "description": "Earliest instant this recovery key may authorize a recovery_unlock proof or threshold_recovery publication signature."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
-          "description": "Instant after which this recovery key MUST NOT authorize a recovery_unlock proof."
+          "description": "Instant after which this recovery key MUST NOT authorize a recovery_unlock proof or threshold_recovery publication signature."
         },
         "revoked_at": {
           "oneOf": [
@@ -889,7 +913,7 @@
               "$ref": "#/$defs/timestamp"
             }
           ],
-          "description": "When set, the entry is revoked from this instant onward and MUST NOT satisfy any recovery_unlock proof whose binding time is at or after it."
+          "description": "When set, the entry is revoked from this instant onward and MUST NOT satisfy any recovery_unlock proof or threshold_recovery publication signature whose binding time is at or after it."
         }
       },
       "additionalProperties": false

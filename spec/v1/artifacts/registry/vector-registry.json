@@ -55,6 +55,20 @@
       "description": "Recovery A/B and SecurityRotation crash, response-loss, restart, exact/conflicting replay, staged-secret loss, terminal replay and multi-backup-kind erase ordering."
     },
     {
+      "vector_id": "ak.vector.identity.recovery_policy_publication.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "recovery-policy-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/identity/key-management.md",
+        "spec/v1/zh/authz/offline-publication.md",
+        "spec/v1/artifacts/fixtures/recovery-policy-fixture.json"
+      ],
+      "description": "Threshold-recovery publication-signing-key closure, canonical recovery-policy EventInitialSubmission shape, PCR allowlist/reducer admission, acceptance-basis materialization and fail-closed retry semantics."
+    },
+    {
       "vector_id": "ak.vector.authz.authorization_lease_issuance.v1",
       "status": "active",
       "domain": "authz",

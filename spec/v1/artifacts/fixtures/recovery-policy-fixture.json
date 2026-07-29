@@ -1,0 +1,531 @@
+{
+  "profile": "ak.profile.principal_control_realm.v1",
+  "version": "2026-07-29",
+  "suite": "recovery_policy_publication",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.identity.recovery_policy_publication.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.identity.recovery_policy_publication.v1"
+  ],
+  "schema_validation_cases": [
+    {
+      "name": "canonical_event_initial_submission_valid",
+      "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_request",
+      "expect_valid": true,
+      "instance": {
+        "event": {
+          "event_id": "ak:event:019a8200-0000-7000-8000-000000000001",
+          "kind": "ak.policy.set",
+          "realm_id": "ak:realm:019a8200-0000-7000-8000-000000000002",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:019a8200-0000-7000-8000-000000000002"
+          },
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "actor_seq": 3,
+          "created_at": "2026-07-29T02:00:00.000Z",
+          "prev_refs": [],
+          "refs": [],
+          "seal_basis": {
+            "leaves": [
+              "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "control_event_set_root": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "state_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "payload": {
+            "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000003",
+            "value": {
+              "schema": "ak.schema.recovery_policy.v1",
+              "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000003",
+              "principal_id": "did:webvh:z6mkfixture:alice.example",
+              "version": 1,
+              "supersedes": null,
+              "trust_domain": "ak:trust_domain:fixture.example",
+              "allowed_proof_kinds": [],
+              "publication_authorization_rules": [],
+              "issued_at": "2026-07-29T02:00:00.000Z",
+              "expires_at": "2026-07-29T02:00:01.000Z",
+              "auth_data": {
+                "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
+                "signature_algorithm": "Ed25519",
+                "signature": "c2lnbmF0dXJl",
+                "signed_fields": [
+                  "schema",
+                  "policy_id",
+                  "principal_id",
+                  "version",
+                  "supersedes",
+                  "trust_domain",
+                  "allowed_proof_kinds",
+                  "publication_authorization_rules",
+                  "issued_at",
+                  "expires_at"
+                ]
+              }
+            }
+          },
+          "proofs": [
+            {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a8200-0000-7000-8000-000000000004",
+              "alg": "EdDSA",
+              "event_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "created_at": "2026-07-29T02:00:00.000Z",
+              "jws": "e30..c2ln"
+            }
+          ]
+        },
+        "authorization_lease": {
+          "authorization_lease_id": "ak:authorization_lease:019a8200-0000-7000-8000-000000000005",
+          "basis_ref": {
+            "leaves": [
+              "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "control_event_set_root": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "state_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "device_id": "ak:device:019a8200-0000-7000-8000-000000000004",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:019a8200-0000-7000-8000-000000000002"
+          },
+          "action": "ak.policy.set",
+          "authorization_rule_id": "policy_set",
+          "risk_tier": "high",
+          "issued_at": "2026-07-29T02:00:00.000Z",
+          "expires_at": "2026-07-29T02:30:00.000Z",
+          "authority_set_ref": {
+            "authority_set_id": "ak.authority_set.recovery_policy_publish.v1",
+            "authority_set_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          },
+          "authority_set_policy": {
+            "schema": "ak.schema.authority_set_policy.v1",
+            "authority_set_id": "ak.authority_set.recovery_policy_publish.v1",
+            "policy_kind": "principal_control",
+            "scope_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:019a8200-0000-7000-8000-000000000002"
+            },
+            "source": {
+              "source_kind": "realm_control",
+              "source_ref": "ak:realm:019a8200-0000-7000-8000-000000000002",
+              "source_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "generation_ref": "3"
+            },
+            "authorization_rules": [
+              {
+                "rule_id": "policy_set",
+                "issuer_role": "identity_recovery",
+                "allowed_actions": [
+                  "ak.policy.set"
+                ],
+                "issuers": [
+                  {
+                    "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a8200-0000-7000-8000-000000000004"
+                  }
+                ],
+                "threshold": 1
+              }
+            ]
+          },
+          "proofs": [
+            {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a8200-0000-7000-8000-000000000004",
+              "alg": "EdDSA",
+              "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "created_at": "2026-07-29T02:00:00.000Z",
+              "jws": "e30..c2ln"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "bare_recovery_policy_body_rejected",
+      "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_request",
+      "expect_valid": false,
+      "first_expected_error": "$: 'event' is a required property",
+      "instance": {
+        "schema": "ak.schema.recovery_policy.v1"
+      }
+    },
+    {
+      "name": "canonical_recovery_policy_payload_valid",
+      "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_set_payload",
+      "expect_valid": true,
+      "instance": {
+        "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000006",
+        "value": {
+          "schema": "ak.schema.recovery_policy.v1",
+          "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000006",
+          "principal_id": "did:webvh:z6mkfixture:alice.example",
+          "version": 1,
+          "supersedes": null,
+          "trust_domain": "ak:trust_domain:fixture.example",
+          "allowed_proof_kinds": [],
+          "publication_authorization_rules": [],
+          "issued_at": "2026-07-29T02:00:00.000Z",
+          "expires_at": "2026-07-29T02:00:01.000Z",
+          "auth_data": {
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
+            "signature_algorithm": "Ed25519",
+            "signature": "c2lnbmF0dXJl",
+            "signed_fields": [
+              "schema",
+              "policy_id",
+              "principal_id",
+              "version",
+              "supersedes",
+              "trust_domain",
+              "allowed_proof_kinds",
+              "publication_authorization_rules",
+              "issued_at",
+              "expires_at"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "recovery_policy_payload_with_state_rejected",
+      "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_set_payload",
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('state' was unexpected)",
+      "instance": {
+        "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000006",
+        "value": {
+          "schema": "ak.schema.recovery_policy.v1",
+          "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000006",
+          "principal_id": "did:webvh:z6mkfixture:alice.example",
+          "version": 1,
+          "supersedes": null,
+          "trust_domain": "ak:trust_domain:fixture.example",
+          "allowed_proof_kinds": [],
+          "publication_authorization_rules": [],
+          "issued_at": "2026-07-29T02:00:00.000Z",
+          "expires_at": "2026-07-29T02:00:01.000Z",
+          "auth_data": {
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
+            "signature_algorithm": "Ed25519",
+            "signature": "c2lnbmF0dXJl",
+            "signed_fields": [
+              "schema",
+              "policy_id",
+              "principal_id",
+              "version",
+              "supersedes",
+              "trust_domain",
+              "allowed_proof_kinds",
+              "publication_authorization_rules",
+              "issued_at",
+              "expires_at"
+            ]
+          }
+        },
+        "state": "active"
+      }
+    },
+    {
+      "name": "recovery_policy_payload_with_reason_rejected",
+      "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_set_payload",
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('reason' was unexpected)",
+      "instance": {
+        "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000006",
+        "value": {
+          "schema": "ak.schema.recovery_policy.v1",
+          "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000006",
+          "principal_id": "did:webvh:z6mkfixture:alice.example",
+          "version": 1,
+          "supersedes": null,
+          "trust_domain": "ak:trust_domain:fixture.example",
+          "allowed_proof_kinds": [],
+          "publication_authorization_rules": [],
+          "issued_at": "2026-07-29T02:00:00.000Z",
+          "expires_at": "2026-07-29T02:00:01.000Z",
+          "auth_data": {
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
+            "signature_algorithm": "Ed25519",
+            "signature": "c2lnbmF0dXJl",
+            "signed_fields": [
+              "schema",
+              "policy_id",
+              "principal_id",
+              "version",
+              "supersedes",
+              "trust_domain",
+              "allowed_proof_kinds",
+              "publication_authorization_rules",
+              "issued_at",
+              "expires_at"
+            ]
+          }
+        },
+        "reason": "rotation"
+      }
+    },
+    {
+      "name": "flattened_recovery_policy_payload_rejected",
+      "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_set_payload",
+      "expect_valid": false,
+      "first_expected_error": "$: 'value' is a required property",
+      "instance": {
+        "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000006",
+        "schema": "ak.schema.recovery_policy.v1",
+        "principal_id": "did:webvh:z6mkfixture:alice.example"
+      }
+    },
+    {
+      "name": "threshold_recovery_publication_signature_threshold_above_one_rejected",
+      "schema_ref": "schemas/recovery-policy.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "$.publication_authorization_rules[0].threshold: 1 was expected",
+      "instance": {
+        "schema": "ak.schema.recovery_policy.v1",
+        "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000007",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
+        "version": 1,
+        "supersedes": null,
+        "trust_domain": "ak:trust_domain:fixture.example",
+        "allowed_proof_kinds": [
+          "threshold_recovery"
+        ],
+        "publication_authorization_rules": [
+          {
+            "rule_id": "threshold_recovery",
+            "proof_kind": "threshold_recovery",
+            "issuer_role": "identity_recovery",
+            "allowed_actions": [
+              "ak.device.reanchor"
+            ],
+            "issuers": [
+              {
+                "verification_method": "did:webvh:z6mkfixture:alice.example#recovery-proof-1"
+              }
+            ],
+            "threshold": 2
+          }
+        ],
+        "threshold": {
+          "k": 2,
+          "n": 2,
+          "shares": [
+            {
+              "share_id": "s1",
+              "holder": "did:webvh:z6mkfixture:bob.example",
+              "transport": "hpke_x25519",
+              "share_commitment": {
+                "algorithm": "feldman_vss_sha256",
+                "commitment_b64u": "commitment1"
+              }
+            },
+            {
+              "share_id": "s2",
+              "holder": "did:webvh:z6mkfixture:carol.example",
+              "transport": "hpke_x25519",
+              "share_commitment": {
+                "algorithm": "feldman_vss_sha256",
+                "commitment_b64u": "commitment2"
+              }
+            }
+          ]
+        },
+        "recovery_keys": [
+          {
+            "verification_method": "did:webvh:z6mkfixture:alice.example#recovery-proof-1",
+            "public_key_multibase": "z6MkogKw38hXxUkpMWitoBubBGHZzeGrQJ4oHF36iegUbmpA",
+            "key_agreement_ref": "did:webvh:z6mkfixture:alice.example#backup-hpke-1",
+            "alg": "Ed25519",
+            "not_before": "2026-07-29T02:00:00.000Z",
+            "expires_at": "2036-07-29T02:00:00.000Z",
+            "revoked_at": null
+          }
+        ],
+        "recovery_key_agreements": [
+          {
+            "key_agreement_ref": "did:webvh:z6mkfixture:alice.example#backup-hpke-1",
+            "alg": "X25519",
+            "public_key_multibase": "z6LSriWhVBzW9Vz2PvqbieSz7Aa2hPLzTKJuDwXTMKFeomeW",
+            "hpke_suites": [
+              "ak.hpke_x25519_aead_chacha20poly1305.v1"
+            ],
+            "use": "backup_hpke",
+            "not_before": "2026-07-29T02:00:00.000Z",
+            "expires_at": "2036-07-29T02:00:00.000Z",
+            "revoked_at": null
+          }
+        ],
+        "issued_at": "2026-07-29T02:00:00.000Z",
+        "auth_data": {
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_019a8200",
+          "signature_algorithm": "Ed25519",
+          "signature": "c2lnbmF0dXJl",
+          "signed_fields": [
+            "schema",
+            "policy_id",
+            "principal_id",
+            "version",
+            "supersedes",
+            "trust_domain",
+            "allowed_proof_kinds",
+            "publication_authorization_rules",
+            "threshold",
+            "recovery_keys",
+            "recovery_key_agreements",
+            "issued_at"
+          ]
+        }
+      }
+    }
+  ],
+  "semantic_cases": [
+    {
+      "name": "canonical_threshold_policy_uses_one_publication_signature_after_reconstruction",
+      "threshold_k": 3,
+      "active_recovery_signing_key_count": 1,
+      "active_paired_hpke_key_count": 1,
+      "publication_rule_issuer_set_equals_active_recovery_key_set": true,
+      "publication_signature_threshold": 1,
+      "expected": {
+        "decision": "accept",
+        "required_share_count": 3,
+        "required_publication_signature_count": 1
+      }
+    },
+    {
+      "name": "missing_threshold_signing_or_paired_hpke_key_rejected",
+      "variants": [
+        {
+          "variant": "missing_recovery_keys",
+          "expected_error_code": "schema_violation"
+        },
+        {
+          "variant": "missing_recovery_key_agreements",
+          "expected_error_code": "schema_violation"
+        },
+        {
+          "variant": "dangling_key_agreement_ref",
+          "expected_error_code": "failed_precondition"
+        }
+      ],
+      "expected_decision": "reject"
+    },
+    {
+      "name": "threshold_publication_issuer_projection_mismatch_rejected",
+      "variants": [
+        {
+          "variant": "issuer_missing_active_recovery_key",
+          "expected_error_code": "failed_precondition"
+        },
+        {
+          "variant": "issuer_contains_unknown_verification_method",
+          "expected_error_code": "failed_precondition"
+        },
+        {
+          "variant": "issuer_is_share_holder_did",
+          "expected_error_code": "failed_precondition"
+        },
+        {
+          "variant": "publication_threshold_copied_from_threshold_k",
+          "expected_error_code": "schema_violation"
+        }
+      ],
+      "expected_decision": "reject"
+    },
+    {
+      "name": "canonical_pcr_event_follows_ordinary_ingress_and_seal",
+      "event_kind": "ak.policy.set",
+      "realm_profile": "ak.profile.principal_control_realm.v1",
+      "payload_shape": [
+        "policy_id",
+        "value"
+      ],
+      "event_actor_matches_policy_principal": true,
+      "event_scope_matches_principal_control_realm": true,
+      "lease_actor_and_scope_match_event": true,
+      "ordinary_event_admission_used": true,
+      "control_seal_materialized": true,
+      "expected": {
+        "decision": "accept",
+        "projection_saved": true,
+        "acceptance_basis_immutable": true
+      }
+    },
+    {
+      "name": "policy_id_actor_scope_and_lease_mismatch_rejected",
+      "variants": [
+        {
+          "variant": "payload_policy_id_differs_from_value_policy_id",
+          "expected_error_code": "failed_precondition"
+        },
+        {
+          "variant": "actor_differs_from_value_principal_id",
+          "expected_error_code": "recovery_principal_isolation"
+        },
+        {
+          "variant": "realm_is_not_principal_control_realm",
+          "expected_error_code": "recovery_principal_isolation"
+        },
+        {
+          "variant": "scope_ref_differs_from_principal_control_realm",
+          "expected_error_code": "recovery_principal_isolation"
+        },
+        {
+          "variant": "lease_actor_differs_from_event_actor",
+          "expected_error_code": "proof_invalid"
+        },
+        {
+          "variant": "lease_scope_differs_from_event_scope",
+          "expected_error_code": "proof_invalid"
+        }
+      ],
+      "expected_decision": "reject",
+      "projection_saved": false
+    },
+    {
+      "name": "pcr_policy_family_and_special_path_bypass_rejected",
+      "variants": [
+        {
+          "variant": "non_recovery_policy_value",
+          "expected_error_code": "schema_violation"
+        },
+        {
+          "variant": "recovery_endpoint_skips_profile_allowlist",
+          "expected_conformance_failure": true
+        },
+        {
+          "variant": "recovery_endpoint_skips_event_reducer",
+          "expected_conformance_failure": true
+        },
+        {
+          "variant": "recovery_endpoint_skips_authorization_lease",
+          "expected_error_code": "schema_violation"
+        },
+        {
+          "variant": "recovery_endpoint_saves_before_control_seal",
+          "expected_error_code": "frontier_unavailable"
+        }
+      ],
+      "expected_decision": "reject",
+      "projection_saved": false
+    },
+    {
+      "name": "unsealed_retry_is_single_event_and_retry_safe",
+      "same_event_id": true,
+      "same_canonical_event_bytes": true,
+      "control_seal_materialized": false,
+      "expected": {
+        "decision": "reject",
+        "error_code": "frontier_unavailable",
+        "second_event_created": false,
+        "active_policy_advanced": false
+      }
+    }
+  ],
+  "minimum_independent_runners": 2
+}

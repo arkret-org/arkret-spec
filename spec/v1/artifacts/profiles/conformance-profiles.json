@@ -1306,6 +1306,7 @@
       "required_fixtures": [
         "privacy-security-fixture.json",
         "crypto-signature-fixture.json",
+        "recovery-policy-fixture.json",
         "schema-validation-fixture.json"
       ],
       "optional_extensions": [
@@ -1394,6 +1395,7 @@
       "binding_invariants": [
         "realm_id MUST equal the principal_control_realm_id resolved for the principal DID.",
         "fields.purpose MUST be principal_control and schema_refs MUST contain ak.profile.principal_control_realm.v1.",
+        "Within a Principal Control Realm, ak.policy.set is admitted only for ak.root.identity.recovery_policy.command.publish with canonical payload {policy_id,value}, value.schema=ak.schema.recovery_policy.v1, equal policy ids, and no state/reason; admitting another policy family or bypassing ordinary Event, lease, reducer, allowlist, or Seal processing is non-conformant.",
         "encryption_profile MUST be mls_rfc9420; PCRs MUST NOT use none or external.",
         "content_encryption_floor and metadata_encryption_floor MUST both be e2ee_required; a PCR genesis declaring either floor below e2ee_required MUST be rejected (no plaintext-floor PCR exists in v1).",
         "history_visibility MUST be restricted; new same-principal devices obtain prior control history via durable device-list / normalized principal view baseline and policy-gated MLS history key share, not by joining at the current epoch.",

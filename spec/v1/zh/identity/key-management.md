@@ -984,6 +984,8 @@ E2EE Realm（effective `content_encryption_floor` 或 `metadata_encryption_floor
 
 Recovery policy 的标准发布面是 `POST /_arkret/root/identity/recovery-policy`（operation `ak.root.identity.recovery_policy.command.publish`，请求体为 `recovery-policy.schema.json#/$defs/recovery_policy_publish_request`，即携带 `ak.policy.set` Event 的完整 `EventInitialSubmission`，响应 `recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome`）；Event payload 固定为 `{policy_id, value}`，`value` 才是本节定义的完整 `ak.schema.recovery_policy.v1`，两处 policy id 必须一致且不得携带 `state` / `reason`。标准读取面是 `GET /_arkret/root/identity/recovery-policy`（operation `ak.root.identity.recovery_policy.resource.get`，响应 `recovery-policy.schema.json#/$defs/recovery_policy_active_outcome`）。服务端在 Event 首次接受前 MUST 校验 `auth_data.signed_fields`、签名权限、`version` 单调递增和 `supersedes` 链接；只有覆盖该 Event digest 的 control Seal/SealBasis materialize后才能推进 active policy并返回 immutable `acceptance_basis`，此前同 Event 重试返回 `frontier_unavailable`。客户端在校验 `recovery_policy_ref`、创建 `ak.schema.recovery_session.v1`、或向用户展示恢复策略之前，MUST 通过 GET 端点读取当前服务观察到的 active policy，或从本地已验证的 principal control stream 重放到同一 frontier 得到等价结果。新设备尚未持有 control stream 时 MUST 使用该端点；`active_policy=null` 表示当前没有 accepted recovery policy，fresh-device DID recovery 与 `did_recovery` backup unlock MUST fail closed。客户端向 `recovery_session.create` 发送 `expected_recovery_policy_ref` 时 SHOULD 使用该读取结果中的 `active_policy.policy_id` 与 `active_policy.version`，服务端发现不同步 MUST 返回 `recovery_policy_mismatch`。
 
+`ak.policy.set` 进入 Principal Control Realm 时只允许上述 recovery-policy publish 形态成为恢复 authority：payload 必须逐字只含 `{policy_id,value}`，且 `value.schema="ak.schema.recovery_policy.v1"`。普通 Realm 中其它 policy family 的 `ak.policy.set` 合同不会因此获得 PCR 写入权；recovery endpoint 也不得绕过 `ak.profile.principal_control_realm.v1` 的 event-kind allowlist、普通 Event proof/lease admission、reducer 或 Seal 流程。
+
 ```json
 {
   "schema": "ak.schema.recovery_policy.v1",
@@ -992,10 +994,24 @@ Recovery policy 的标准发布面是 `POST /_arkret/root/identity/recovery-poli
   "version": 1,
   "supersedes": null,
   "trust_domain": "ak:trust_domain:did.webvh.example",
-  "allowed_proof_kinds": ["threshold_recovery", "device_quorum"],
+  "allowed_proof_kinds": ["threshold_recovery"],
+  "publication_authorization_rules": [
+    {
+      "rule_id": "threshold_recovery",
+      "proof_kind": "threshold_recovery",
+      "issuer_role": "identity_recovery",
+      "allowed_actions": ["ak.device.reanchor"],
+      "issuers": [
+        {
+          "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery-proof-1"
+        }
+      ],
+      "threshold": 1
+    }
+  ],
   "threshold": {
-    "k": 3,
-    "n": 5,
+    "k": 2,
+    "n": 2,
     "shares": [
       {
         "share_id": "s1",
@@ -1003,9 +1019,21 @@ Recovery policy 的标准发布面是 `POST /_arkret/root/identity/recovery-poli
         "transport": "hpke_x25519",
         "share_commitment": {
           "algorithm": "feldman_vss_sha256",
-          "commitment_b64u": "base64url..."
+          "commitment_b64u": "Y29tbWl0bWVudDE"
         },
-        "not_before": "2026-04-26T00:00:00Z",
+        "not_before": "2026-04-26T00:00:00.000Z",
+        "expires_at": null,
+        "revoked_at": null
+      },
+      {
+        "share_id": "s2",
+        "holder": "did:webvh:z6mkfixture:bob.example",
+        "transport": "hpke_x25519",
+        "share_commitment": {
+          "algorithm": "feldman_vss_sha256",
+          "commitment_b64u": "Y29tbWl0bWVudDI"
+        },
+        "not_before": "2026-04-26T00:00:00.000Z",
         "expires_at": null,
         "revoked_at": null
       }
@@ -1015,30 +1043,57 @@ Recovery policy 的标准发布面是 `POST /_arkret/root/identity/recovery-poli
       "scheme": "proactive_vss"
     }
   },
-  "device_quorum": {
-    "k": 2,
-    "members": [
-      "ak:device:01964137-0000-7000-8000-000000000000",
-      "ak:device:01964138-0000-7000-8000-000000000000"
-    ]
-  },
+  "recovery_keys": [
+    {
+      "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery-proof-1",
+      "public_key_multibase": "z6MkogKw38hXxUkpMWitoBubBGHZzeGrQJ4oHF36iegUbmpA",
+      "key_agreement_ref": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#backup-hpke-1",
+      "alg": "Ed25519",
+      "not_before": "2026-04-26T00:00:00.000Z",
+      "expires_at": "2036-04-26T00:00:00.000Z",
+      "revoked_at": null
+    }
+  ],
+  "recovery_key_agreements": [
+    {
+      "key_agreement_ref": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#backup-hpke-1",
+      "alg": "X25519",
+      "public_key_multibase": "z6LSriWhVBzW9Vz2PvqbieSz7Aa2hPLzTKJuDwXTMKFeomeW",
+      "hpke_suites": ["ak.hpke_x25519_aead_chacha20poly1305.v1"],
+      "use": "backup_hpke",
+      "not_before": "2026-04-26T00:00:00.000Z",
+      "expires_at": "2036-04-26T00:00:00.000Z",
+      "revoked_at": null
+    }
+  ],
   "approval_requirement": {
     "min_approvals": 1,
     "cooldown_seconds": 3600,
     "announcement_required": true
   },
-  "not_before": "2026-04-26T00:00:00Z",
+  "issued_at": "2026-04-26T00:00:00.000Z",
+  "not_before": "2026-04-26T00:00:00.000Z",
   "expires_at": null,
-  "issued_at": "2026-04-26T00:00:00Z",
   "auth_data": {
     "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_principal_signing_v1",
     "signature_algorithm": "Ed25519",
-    "signature": "base64url...",
+    "signature": "c2lnbmF0dXJl",
     "signed_fields": [
       "schema",
-      "policy_id", "principal_id", "version", "trust_domain",
-      "supersedes", "allowed_proof_kinds", "threshold", "device_quorum",
-      "approval_requirement", "not_before", "expires_at", "issued_at"
+      "policy_id",
+      "principal_id",
+      "version",
+      "supersedes",
+      "trust_domain",
+      "allowed_proof_kinds",
+      "publication_authorization_rules",
+      "threshold",
+      "recovery_keys",
+      "recovery_key_agreements",
+      "approval_requirement",
+      "issued_at",
+      "not_before",
+      "expires_at"
     ]
   }
 }
@@ -1123,5 +1178,6 @@ Arkret v1 对设备、会话和恢复要求如下：
 - Backup envelope test vector MUST 覆盖：加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定、服务端不可解密要求、`series_seq` 严格单调、`supersedes` / `supersedes_digest` 链完整、`mixed_secret_storage=true` 在 non-personal_node profile 下被拒绝、`did_recovery` 域使用 `passphrase_kdf` 的 envelope 被拒绝(该域只允许 `recovery_public_key`)、§7.8 服务端限速与跨 actor 拒绝。
 - MLS KeyPackage binding MUST 覆盖 principal DID、device id、KeyPackage hash、签名 verification method、有效期和撤销检查；客户端 MUST 拒绝未绑定 DID / device trust chain 的 KeyPackage。
 - Recovery policy grammar 由 `ak.schema.recovery_policy.v1`（`artifacts/schemas/recovery-policy.schema.json`）规范化；publish / rotate / share-revoke 的 wire 形态由 §8.1 描述。grammar MUST 表达 threshold、share holder、not_before、expires_at、allowed_proof_kinds、approval requirement 与 audit event；恢复只改变控制链，不自动授予内容读取或业务 capability。
+- Recovery policy publication 的 `ak.vector.identity.recovery_policy_publication.v1` MUST 由至少两个独立 runner 覆盖 canonical `EventInitialSubmission`、PCR allowlist/reducer/Seal admission、threshold recovery signing/HPKE key 闭包、issuer projection、跨字段不一致、未 Seal retry 与特殊写路径绕过拒绝。
 - Recovery receipt 由 `ak.schema.recovery_receipt.v1`（`artifacts/schemas/recovery-receipt.schema.json`）规范化；`crypto-media/device-lifecycle.md` §15 finalize 写入的 receipt MUST 通过该 schema 校验，并绑定 `recovery_session_id` / `policy_id` / `policy_version` / `new_device_id` / `identity_model` / `previous_model_generation_ref` / `result_model_generation_ref` / authorization path refs / `proof_summary` / `backup_classes_unlocked` / `welcome_count` / `outcome`。
 - Backup series MUST 满足 §7.6：客户端 `LIST` 后重建链 → 验证 `supersedes_digest` → 用尾部 envelope 解密；当 `frontier_ref` 存在时 MUST 用 control stream snapshot 验证 `frontier_digest` 以及 A 模型 `ssk_generation` 或 B 模型 `device_generation_ref`。

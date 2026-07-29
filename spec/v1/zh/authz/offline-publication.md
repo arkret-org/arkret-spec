@@ -148,6 +148,9 @@ threshold-recovery完成Shamir重构后使用policy中的recovery signing key、
 threshold=1；`threshold.k`是secret reconstruction门限，绝不能复制成PayloadProof签名quorum。
 proof verified后，prepared plan与lease的`authorization_rule_id`必须逐字等于已验证proof
 family对应的`publication_authorization_rules[].rule_id`；不得在其它同action rule间切换。
+`ak.vector.identity.recovery_policy_publication.v1` 必须覆盖 signing/HPKE key 缺失、issuer
+集合漂移、share holder 冒充 issuer、把 `threshold.k` 复制为 publication signature quorum，
+以及 canonical PCR Event/lease/Seal 路径。
 
 ## 2. IngressReceipt
 

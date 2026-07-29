@@ -1066,6 +1066,7 @@
       "http_alias": "POST /_arkret/root/identity/recovery-policy",
       "operation_specific": [
         "failed_precondition",
+        "frontier_unavailable",
         "proof_invalid",
         "recovery_principal_isolation",
         "recovery_policy_genesis_not_v1",
@@ -1073,7 +1074,7 @@
         "recovery_policy_version_not_monotonic",
         "recovery_proof_kind_unknown"
       ],
-      "description": "Publishing or rotating a recovery policy requires authenticated principal isolation, valid signed_fields/signature authority, a known proof-kind enum, and strictly monotonic version/supersedes linkage."
+      "description": "Publishing or rotating a recovery policy requires authenticated principal isolation, valid Event/lease and signed_fields/signature authority, a known proof-kind enum, and strictly monotonic version/supersedes linkage. frontier_unavailable is the retry-safe response while the submitted Event is valid but its covering control Seal/SealBasis has not materialized."
     },
     {
       "operation_id": "ak.root.identity.recovery_session.command.create",
