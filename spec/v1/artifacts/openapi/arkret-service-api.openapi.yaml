@@ -8837,7 +8837,7 @@ paths:
       - name: Idempotency-Key
         in: header
         required: true
-        description: MUST equal authorize_event.event_id.
+        description: MUST equal authorize_event.event.event_id.
         schema:
           type: string
           minLength: 1
