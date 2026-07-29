@@ -128,7 +128,7 @@ Deployment profile 的 canonical 机器真源是 [`conformance-profiles.json`](.
 - 高安全或主权部署把 Principal、Identity Resolution、Auth、Directory、Policy/Authz、Events/Blob、Sync/Federation 与 Audit/Compliance 保持在受控 trust domain 内；公共 Directory、Push 或外部 federation ingress 只能作为显式授权的互联入口。
 - Applet、MIMI facade、Agent runtime、Moderation、Archive/Recovery 等角色是 service role / capability 组合，不是 deployment profile id；它们只能在已声明 profile 允许的 namespace、capability、Realm policy 与 service describe 范围内工作。
 
-客户端选择服务时 MUST 先解析 DID Document 与 Realm policy，再校验 `server/describe`。不得因为多个服务位于同一域名，就默认它们拥有相同权限或相同明文可见范围。
+客户端首次选择一个新 service binding、binding / Realm policy 变化或 authority freshness 失效时，MUST 验证 DID Document / accepted service binding 与 Realm policy，再校验 `server/describe`。同一未失效 binding 的普通请求复用该验证结果，不得每次请求重新在线解析 DID。不得因为多个服务位于同一域名，就默认它们拥有相同权限或相同明文可见范围。
 
 ## 3. 通用服务描述接口
 

@@ -81,7 +81,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
   - `supported_features` 含 `ak.feature.blob.resumable_upload.tus.v1`；
   - `supported_bindings` 含一条 `kind="tus"` 的 binding，携带 tus endpoint 的 `base_url`、`operations: ["ak.self.blob.upload.create"]`、`extension_profile_required: null`、`tus_version`（支持的协议版本列表）与 `tus_extensions`（支持的扩展列表）；
   - `limits` 携带下文的续传相关上限。
-- 客户端 MUST 先解析 DID Document 并校验 describe 后再使用该 binding（沿用 [`sync/service-surface.md` §2](../sync/service-surface.md) 的服务选择规则）。`/_arkret/describe` 是**服务级**权威发现面；tus `OPTIONS` 响应（`Tus-Resumable`、`Tus-Version`、`Tus-Extension`、`Tus-Max-Size`）是 **endpoint 级**的线上确认。二者 MUST 一致；冲突时客户端以 describe 与服务端实际拒绝为准，不得仅凭对猜测 endpoint 的裸 `OPTIONS` 探测作为发现手段。
+- 客户端首次接受该 binding、binding / policy 变化或 authority freshness 失效时，MUST 验证 DID Document / accepted service binding 并校验 describe（沿用 [`sync/service-surface.md` §2](../sync/service-surface.md) 的服务选择规则）；同一有效 binding 的后续上传复用验证结果，不得逐次在线解析 DID。`/_arkret/describe` 是**服务级**权威发现面；tus `OPTIONS` 响应（`Tus-Resumable`、`Tus-Version`、`Tus-Extension`、`Tus-Max-Size`）是 **endpoint 级**的线上确认。二者 MUST 一致；冲突时客户端以 describe 与服务端实际拒绝为准，不得仅凭对猜测 endpoint 的裸 `OPTIONS` 探测作为发现手段。
 
 **隐私（normative）**
 

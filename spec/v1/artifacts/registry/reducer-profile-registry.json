@@ -513,11 +513,11 @@
           },
           {
             "ref": "zh/models/strand-and-message.md",
-            "content_digest": "sha256:1509c93ae0d902f73feed65a3bf504b2a9961e6b4572bfc8c384a3e9e11a866d"
+            "content_digest": "sha256:9f5cdb022a8934f6922c435f67fceba34843d3b3fbc83343fc64291c0053cba6"
           }
         ]
       },
-      "reducer_profile_digest": "sha256:34bd60e2347a015ba83f870ec1e1bb7a8a5e1bf243023af23e6de8ae2aa31300"
+      "reducer_profile_digest": "sha256:cfd79efaa7f42ccf3904673456d40772386209553451c4b31b7855dc3ca73893"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -808,11 +808,11 @@
           },
           {
             "ref": "zh/models/strand-and-message.md",
-            "content_digest": "sha256:1509c93ae0d902f73feed65a3bf504b2a9961e6b4572bfc8c384a3e9e11a866d"
+            "content_digest": "sha256:9f5cdb022a8934f6922c435f67fceba34843d3b3fbc83343fc64291c0053cba6"
           }
         ]
       },
-      "reducer_profile_digest": "sha256:3cc1d8b24f2b5dadcb547e7811197a78ac0ff7e6abaff073a949eac77162ef51"
+      "reducer_profile_digest": "sha256:dbf6933432d43e144570065646566d383160e22bb2553059b54e2525305c08db"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1423,7 +1423,7 @@
           },
           {
             "ref": "zh/models/strand-and-message.md",
-            "content_digest": "sha256:1509c93ae0d902f73feed65a3bf504b2a9961e6b4572bfc8c384a3e9e11a866d"
+            "content_digest": "sha256:9f5cdb022a8934f6922c435f67fceba34843d3b3fbc83343fc64291c0053cba6"
           },
           {
             "ref": "zh/sync/client-sync.md",
@@ -1431,7 +1431,7 @@
           },
           {
             "ref": "zh/sync/service-surface.md",
-            "content_digest": "sha256:1cf67479cb4cb5e68d275dd4512a4659ad84a4f6cd534d19161c17bc1f113279"
+            "content_digest": "sha256:883cd89d9245eaf1d44e4e4dc2192ef8101f2f8cdbb2b9ff389fd66ed4aabce8"
           },
           {
             "ref": "zh/sync/third-party-invites.md",
@@ -1439,7 +1439,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:0266dc56e831091ac82425b8feb2a65f81247c91e0d6cecef0eaceb1c80f587b"
+      "reducer_profile_digest": "sha256:af933da367fc9c5c42ed891ee7e8255497b90851f01d3f0151a13f01ebaba4ff"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1678,7 +1678,7 @@
           },
           {
             "ref": "zh/sync/federation.md",
-            "content_digest": "sha256:29b3c5751f558ec7c39d1d53a1ff05f693cce4691fb250fe64bad0b39ce0993a"
+            "content_digest": "sha256:a7d962c4bb0c8559f560c6a3bf44377e5faed50e9c0d522b112936c6dbd27b6b"
           },
           {
             "ref": "zh/sync/service-http-binding.md",
@@ -1686,7 +1686,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:151f457b677f26145b411bafd8a5cc2ac95badf0a1aeae8eac5abe60f0ce13df"
+      "reducer_profile_digest": "sha256:fb067cef8c367d0590023c739285c2f1341c03b7cd76f08a959deb7f06b23f1a"
     }
   ],
   "generated_fields": [

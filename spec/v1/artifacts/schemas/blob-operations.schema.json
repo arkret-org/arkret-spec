@@ -16,6 +16,10 @@
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
+    "did_url": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+    },
     "blob_ref": {
       "type": "string",
       "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
@@ -40,8 +44,8 @@
       ],
       "properties": {
         "kid": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "$ref": "#/$defs/did_url",
+          "description": "DID URL of the concrete issuer verification method. Bare DID is not accepted because the receipt must pin one already accepted service key binding."
         },
         "alg": {
           "type": "string",

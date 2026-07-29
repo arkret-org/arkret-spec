@@ -22,6 +22,10 @@ Arkret 使用 DID 作为稳定身份根。Handle、邮箱、组织用户名和�
 - DID Document normalized view
 - 组织账号绑定的 DID proof
 
+DID / DID URL 字段总表，以及“何时只把 DID 当作身份锚点、何时才验证 DID 控制权”的统一
+边界见 [`did-usage-and-verification.md`](./did-usage-and-verification.md)。本文只定义真正进入
+DID authority path 后的方法、证据与解析规则，不要求普通业务路径重复解析 DID。
+
 Arkret v1 不定义、注册或推荐任何自有 DID method。实现和用户 MUST 使用已有 DID method，例如 `did:webvh`、`did:web`、`did:key`、`did:pkh`、`did:plc`，或本地 trust policy 明确允许的其他公开 DID method。
 
 ## 2. 核心原则
@@ -43,7 +47,7 @@ Arkret v1 不定义、注册或推荐任何自有 DID method。实现和用户 M
 
 实现 MAY 允许用户使用 `@alice:example.org`、`alice@example.org`、组织用户名、OIDC subject、邀请链接或其他人类可读标识完成发现、登录、邀请和账号恢复。
 
-这些标识是 user-facing identifier、service account id、handle、3PID 或 bridge alias；它们不是协议主键。实现接受任何持久 Event、capability grant、federation transaction、MLS membership 或 service delegation 前，MUST 将当前会话绑定到 principal DID 与 device，并按本地 trust policy 验证该绑定。
+这些标识是 user-facing identifier、service account id、handle、3PID 或 bridge alias；它们不是协议主键。实现首次建立账号、session、device、membership、federation peer 或 service delegation 信任绑定时，MUST 将其绑定到 principal DID 与 device，并按本地 trust policy 完成 [`did-usage-and-verification.md` §4](./did-usage-and-verification.md) 要求的权威验证。后续持久 Event 仍须逐条验签与授权，但命中既有 accepted auth-state / key epoch 时 MUST 复用该绑定，不得把每次 Event 接收都解释为重新解析 DID。
 
 如果用户尚无显式 DID，Auth Server MAY 编排 account-first onboarding，但 principal identity root 与 entry 0 必须由客户端生成、保管并签名；Auth Server/identity registry 只能在自有域名下托管客户端已签名的 `did.jsonl`、提供 enrollment authority 与 witness 接入，不得代用户生成或持有 root。Arkret v1 core 默认 principal/service method 是 `did:webvh`；`did:web` 仅用于显式 no-history service 或 `personal_node` principal。hosting outage 只允许 §3.4 cache-only degraded mode，不得 live fallback。hosted log 的 delegation、recovery policy、trust domain、method history 与 service-account binding 必须可审计；hosting 所有权不等于 DID 控制权。
 
@@ -386,12 +390,16 @@ Arkret 把身份解析抽象为 `Identity Resolution Infrastructure`，而不是
 | --- | --- | --- |
 | `did:webvh` | 不需要公共 registry（high-trust profile 默认 method）。 | `did.jsonl` history、SCID、entry hash chain、controller proof、watcher / witness evidence、HTTPS / DNS 校验。 |
 | `did:web` | 不需要公共 registry。 | HTTPS / DNS / 域名治理、TLS / PKI、method-specific DID Document 获取与校验。无历史链——只能反映"当前 DID Document 状态"。 |
-| `did:key` | 不需要。 | 本地 method resolver 从 DID 字符串展开 DID Document；适合临时主体、设备、测试、一次性邀请或 bootstrap key。 |
+| `did:key` | 不需要。 | 本地 method resolver 从 DID 字符串展开 DID Document；适合临时主体、测试、一次性邀请或 bootstrap principal。设备自身没有 DID；设备公钥可以用 `did:key` 作自描述 key material，但设备身份仍由 `device_id` + principal 下的 authorization 表达。 |
 | `did:pkh` | 不需要 Arkret registry。 | CAIP-10 / chain-specific account validation、wallet proof、chain namespace policy；通常不支持 DID document update / deactivation。 |
 | `did:plc` | 需要可接受的 PLC directory / mirror / audit source（AT Protocol interop adapter）。 | 验证 PLC operation chain、genesis / previous op hash、rotation keys、recovery state、DID Document、service bindings 和 directory transparency evidence。仅在声明 AT 互通 profile 的部署中需要。 |
 | 其他现有 DID method（KERI 等） | 取决于 method。 | 保留 raw DID Document 与 method-specific proof，并映射到 Arkret normalized principal view。 |
 
-使用 `did:key` 或 `did:pkh` 不表示“不需要身份解析”。它只表示通常不需要公共可写 registry。客户端、Auth Server、Principal Server 和 Policy / Authz 仍然必须具备对应 DID method 的 resolver / verifier，才能确认 DID 控制状态、服务委托和 method 限制。
+使用 `did:key` 或 `did:pkh` 不表示“不需要身份解析”。它只表示通常不需要公共可写 registry。
+客户端、Auth Server、Principal Server 和 Policy / Authz 仍然必须具备对应 DID method 的
+resolver / verifier，供 [`did-usage-and-verification.md` §4](./did-usage-and-verification.md)
+列出的权威验证触发场景确认 DID 控制状态、服务委托和 method 限制。普通对象读取、主体比较、
+授权 selector 匹配和命中既有 key binding 的 Event 验签不因此触发解析。
 
 ### 4.1 Resolver Policy
 
@@ -430,7 +438,7 @@ Resolver policy MUST 至少定义：
       "principal_allowed_profiles": ["personal_node"]
     },
     "did:key": {
-      "role": ["device", "test", "bootstrap"],
+      "role": ["temporary_principal", "test", "bootstrap"],
       "long_lived_principal": "deny"
     }
   }
@@ -975,17 +983,25 @@ witness evidence 的 method 形状、proof 位置与 Arkret freshness 由 §3.4.
 
 ## 9. 验证规则
 
-节点接受写入前至少应校验：
+节点接受写入前始终校验 wire schema、actor DID 语法、签名、事件所引用的 auth-state / key
+epoch、capability、membership 与 policy。若写入命中
+[`did-usage-and-verification.md` §4](./did-usage-and-verification.md) 的权威验证触发条件，还
+MUST 校验：
 
-1. actor 是合法 DID。
-2. DID method 在本地 resolver policy 中被允许。
-3. DID Document 可按 method-specific 规则解析。
-4. method history / proof / evidence 满足该 method 的控制权规则。
-5. 当前 `authentication` / `assertionMethod` 在事件时间有效。
-6. service endpoint 或 service delegation 与当前 Realm policy、destination binding 和 plaintext-visible service policy 一致。
-7. DID 未被 deactivated、quarantined 或本地 policy 禁止。
-8. `did:key`、`did:pkh` 等受限 method 未被用于 policy 禁止的长期 principal、组织或高风险 service 角色。
-9. Pairwise/private DID 不被强制公开 `alsoKnownAs`。
+1. DID method 在本地 resolver policy 中被允许。
+2. DID Document 可按 method-specific 规则解析。
+3. method history / proof / evidence 满足该 method 的控制权规则。
+4. 目标 `authentication` / `assertionMethod` 在事件引用的历史时点或 pinned version 有效。
+5. service endpoint 或 service delegation 与当前 Realm policy、destination binding 和
+   plaintext-visible service policy 一致。
+6. DID 未被 deactivated、quarantined 或本地 policy 禁止。
+7. `did:key`、`did:pkh` 等受限 method 未被用于 policy 禁止的长期 principal、组织或高风险
+   service 角色。
+8. Pairwise/private DID 不被强制公开 `alsoKnownAs`。
+
+命中已接受 binding 的普通 Event 不重复执行 1–8；它验证 Event proof 与 pinned key binding，
+而不是重新在线解析当前 DID Document。缓存 TTL 到期也只把 authority result 标成 stale；
+是否阻塞当前动作由 §4 的触发场景与风险 freshness policy 决定。
 
 ## 10. 一致性要求
 

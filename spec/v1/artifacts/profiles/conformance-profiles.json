@@ -2582,7 +2582,7 @@
     },
     "ak.profile.push_gateway.blind_wakeup.v1": {
       "role": "gateway",
-      "description": "Default push gateway privacy baseline. Every implementation claiming ak.profile.push_gateway.v1 MUST also claim this profile. Provider-facing payloads MUST NOT carry stable identifying fields (principal DID, sender DID, Realm id / name / avatar, Strand id / name, Message id, event id, device DID URL, reaction value, or any cross-Realm stable correlation key). Payloads MUST be restricted to per-(recipient_service_id, principal, device, push_route) pairwise pseudonym push_target_id + closed-enum wakeup hint fields (wakeup_kind, badge_count, unread_increment, l10n_key). See zh/discovery/push-notifications.md §2.2 / §4.5 / §5.1 and zh/crypto-media/device-lifecycle.md §5a.",
+      "description": "Default push gateway privacy baseline. Every implementation claiming ak.profile.push_gateway.v1 MUST also claim this profile. Provider-facing payloads MUST NOT carry stable identifying fields (principal DID, sender DID, Realm id / name / avatar, Strand id / name, Message id, event id, device verification-method DID URL, reaction value, or any cross-Realm stable correlation key). Payloads MUST be restricted to per-(recipient_service_id, principal, device, push_route) pairwise pseudonym push_target_id + closed-enum wakeup hint fields (wakeup_kind, badge_count, unread_increment, l10n_key). See zh/discovery/push-notifications.md §2.2 / §4.5 / §5.1 and zh/crypto-media/device-lifecycle.md §5a.",
       "required_endpoints": [
         "ak.edge.push.command.notify"
       ],
@@ -2606,7 +2606,7 @@
         "unsupported_optional": "MUST fail closed; gateways unable to enforce blind wakeup MUST NOT claim ak.profile.push_gateway.v1"
       },
       "additional_requirements": {
-        "stable_identifier_ban_must": "Provider payload MUST NOT contain principal DID, sender DID / handle, Realm id / name, Strand id / name, Message id, event id, device DID URL, reaction emoji, attachment filename, IP, geolocation, or any cross-Realm stable correlation key.",
+        "stable_identifier_ban_must": "Provider payload MUST NOT contain principal DID, sender DID / handle, Realm id / name, Strand id / name, Message id, event id, device verification-method DID URL, reaction emoji, attachment filename, IP, geolocation, or any cross-Realm stable correlation key.",
         "pseudonym_scope_must": "push_target_id MUST be a pairwise pseudonym scoped to (recipient_service_id, principal, device, push_route); MUST NOT be reusable across Principal Server contexts.",
         "default_claim_must": "Any implementation claiming ak.profile.push_gateway.v1 MUST also claim this profile and MUST NOT advertise downgrade switches that disable blind wakeup."
       }

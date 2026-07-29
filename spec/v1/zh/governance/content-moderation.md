@@ -302,7 +302,7 @@ Franking 信任链：
 个人 blocklist MAY 包含：
 
 - actor DID
-- device DID / device id
+- device verification-method DID URL / `device_id`（设备自身没有 DID）
 - service DID
 - handle
 - domain

@@ -93,7 +93,7 @@ Signal 与 DeviceMessage 使用各自 operation 和 schema，不具有 `wire_sco
 任何接收 Event Envelope 的 Events API 或 Sync Service，MUST 先执行通用验证：
 
 1. JSON schema validation。
-2. canonical bytes 与 `proofs[]` 校验；proof signer MUST 对应 `actor_id`，或在 `executed_by` 场景下对应代理身份并满足 `authorization_ref`。
+2. canonical bytes 与 `proofs[]` 校验；proof signer MUST 对应 `actor_id`，或在 `executed_by` 场景下对应代理身份并满足 `authorization_ref`。验签 MUST 优先使用 Event 所引用的 accepted auth-state / key epoch / device authorization / agent signer evidence 中固定的公钥绑定；命中既有绑定时不得重新在线解析 DID。只有出现新 DID、新 verification method、rotation / recovery / deactivation、service delegation 变化或 freshness policy 明确要求更新证据时，才进入 [`../identity/did-usage-and-verification.md` §4](../identity/did-usage-and-verification.md) 的 DID 权威验证路径。
 3. `event_id` 与 canonical bytes 的幂等冲突检测。
 4. `actor_seq`、`prev_refs[]` 与 actor chain 连续性验证。
 5. `realm_id`、kind registry、payload schema、critical extension 与 reducer profile 支持性验证。
@@ -106,7 +106,7 @@ Signal 与 DeviceMessage 使用各自 operation 和 schema，不具有 `wire_sco
 
 1. 确认 Event 携带签名 `scope_ref`、`seal_ref`、`auth_context`，且不携带 `preconditions` 或 `seal_basis`。
 2. 确认 `seal_ref` 指向本 Realm 已接受的 Seal。
-3. 在该 Seal 的控制面 `state_root` / KeyView 下验证 DID、key epoch、credential epoch、capability refs、policy、membership、Realm lifecycle、Circle lifecycle 与 object scope；Circle `state=active` MUST 在该 `seal_ref` view 中求值，不得读取 receiver 当前 projection。
+3. 在该 Seal 的控制面 `state_root` / KeyView 下验证 actor/key binding、key epoch、credential epoch、capability refs、policy、membership、Realm lifecycle、Circle lifecycle 与 object scope；这里的 actor/key binding 校验是对 pinned auth-state 的确定性求值，不是对当前 DID Document 的在线重解析。Circle `state=active` MUST 在该 `seal_ref` view 中求值，不得读取 receiver 当前 projection。
 4. 按 Realm 的 `revocation_freshness_window_ms` 判定该 `seal_ref` 是否仍可作为数据面授权基准；Circle archive 复用该框架，Circle tombstone 与 `open_set` 并发 archive / tombstone 不享受窗口，具体见 [`circle.md` §6.1](../models/circle.md)。无法确认撤销新鲜度的高风险写入 MUST fail closed。
 5. 从注册的 reducer contract 重算全部 cell writes，确认它们只命中 data plane cell，且 cell family 的 Lattice 操作合法。
 6. 将 DataEvent 纳入本地 data accepted set，并按 cell Lattice join 重算数据面 projection。
@@ -420,7 +420,8 @@ Arkret v1 固定：
 - DataEvent 是普通协作数据面的默认写入单元。
 - Control Move 是治理状态和强不变量的写入单元。
 - Seal 只给控制面 finality；对数据面的 root 是观测承诺。
-- Event 签名、DID/key 验证和 capability 检查解决伪造事件问题。
+- Event 签名、accepted DID/key binding 和 capability 检查解决伪造事件问题；DID authority
+  resolution 只在身份 / key binding 建立、变更或显式 freshness 触发时执行。
 - 数据面的核心分布式问题是冲突、可用性、可见性与观测证明；冲突由 Lattice / CRDT / bottom diagnostic 解决。
 - 密文负载可以由不解密的 Sync Service 转发。
 - hard erasure 只能删除本地 payload / blob / 派生内容，并保留事件图验证所需的最小 verification stub；不得重写 Event hash 或伪装事件从未存在。

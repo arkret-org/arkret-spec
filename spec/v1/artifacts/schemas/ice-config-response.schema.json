@@ -166,8 +166,8 @@
       "properties": {
         "kid": {
           "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+(#[A-Za-z0-9._:-]+)?$",
-          "description": "Verification method id, typically <media_service_id>#<key-id>. Bare DID is accepted (resolves to the controller's current key); DID URLs with key fragment are RECOMMENDED. The optional `#<key-id>` fragment is allowed (charset aligned with the token-exchange service_signature.kid pattern)."
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+          "description": "DID URL of the concrete media-service verification method. Bare DID is not accepted because the response must pin one already accepted service key binding."
         },
         "alg": {
           "type": "string",

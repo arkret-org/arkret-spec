@@ -106,12 +106,13 @@ Arkret v1 明确不把以下内容作为基础互操作必需项：
 ### 4.1 身份
 
 - `principal_id = DID URI`，Handle 只作为可迁移的人类可读入口。
+- DID / DID URL 字段总表与验证边界见 [`identity/did-usage-and-verification.md`](./identity/did-usage-and-verification.md)：普通业务把 DID 当作稳定身份锚点；字段含 DID 不会自动触发 DID Document 解析或在线请求，只有新信任绑定、key / controller / delegation 变化、恢复迁移或显式 freshness 要求才做权威验证。
 - Resolver policy 必须声明可用 DID method、默认 method、信任根与 fail-closed 规则。
 - **v1 core 默认 principal DID method 为 `did:webvh`**：在 `did:web` 之上叠加 `did.jsonl` 历史链 + SCID + witness evidence，提供可审计的 DID 控制历史，抵御 DNS / TLS 单点失陷。
 - `did:webvh` 是 v1 core 默认 principal DID method 与默认 service DID method；`did:web` 仅作为显式 no-history service profile 与 **`personal_node` deployment profile 的可选 principal method**；`did:webvh` hosting 暂时不可达时只允许 [`identity/identity-did.md`](./identity/identity-did.md) 定义的 cache-only degraded mode，MUST NOT live fallback 到 `did:web`；缓存有效期 / TTL 耗尽后 MUST fail closed（见 [`identity/identity-did.md` §3.4](./identity/identity-did.md)），不得无限期缓存信任旧 DID 文档。
-- 临时、测试、设备、邀请、bootstrap 使用 `did:key`；MUST NOT 作为默认长期主身份。
+- 临时主体、测试、一次性邀请与 bootstrap principal 可使用 `did:key`；MUST NOT 作为默认长期主身份。设备自身没有 DID，设备公钥 MAY 使用 `did:key` 作自描述 key material。
 - 钱包绑定（`did:pkh`）、AT Protocol 互通（`did:plc` adapter）、KERI 系列等是 interop extension profile，不属于 v1 core 互操作必需。
-- DID 文档、history chain 与 method evidence 需按各自 method 的 verifier 校验。
+- 当进入 DID 权威验证路径时，DID 文档、history chain 与 method evidence 需按各自 method 的 verifier 校验；普通读取、主体比较与命中既有 accepted key binding 的 Event 验签不重复解析 DID。
 
 ### 4.2 对象模型
 

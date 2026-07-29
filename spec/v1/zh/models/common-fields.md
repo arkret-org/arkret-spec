@@ -273,30 +273,25 @@ Service identity 字段统一使用 `service_id` / `<role>_service_id`，即使 
 
 ### 4.1 DID 适用边界
 
-DID 是 Arkret 的主体标识，不是普通协作对象 ID。标准协作对象（Realm / Circle / Space / Strand / Message / Morph / Relation / View / Policy / Grant / Invite / Blob 等）MUST 使用 `ak:<kind>:` typed ID 作为对象 ID；只有当字段表达 actor / principal / issuer / subject / service / controller / accountable party 时，才使用 DID 或 DID URL。设备不在此列：设备不是 actor 主体、没有自己的 DID，其标识是 `device_id`（`ak:device:<uuid>` typed ID），见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。
+DID 是 Arkret 的主体标识，不是普通协作对象 ID。标准协作对象（Realm / Circle / Space /
+Strand / Message / Morph / Relation / View / Policy / Grant / Invite / Blob 等）MUST 使用
+`ak:<kind>:` typed ID 作为对象 ID；设备也不是 actor 主体，其标识是
+`device_id`（`ak:device:<uuidv7>`），没有设备 DID。
 
-因此，"需要有 DID"的对象与结构按下表理解：
+DID / DID URL 字段总表、条件性 polymorphic ref、明确不是 DID 的 `*_id`，以及“普通业务只把
+DID 当作身份锚点、仅在封闭触发条件下验证 DID 控制权”的规则，统一见
+[`../identity/did-usage-and-verification.md`](../identity/did-usage-and-verification.md)。
+本节不复制总表，避免字段新增后出现两份不一致清单。
 
-| 对象 / 结构 | 必须包含的 DID 字段 | 说明 |
-| --- | --- | --- |
-| Actor identity（user / org / team / agent / service / integration） | DID 本身 | Actor 的身份根就是 DID；若需要在协作图中展示，则用 Actor Profile 承载展示字段。**不含 device**：设备不是 actor 主体、无独立 DID，仅有 `device_id`（`ak:device:<uuid>`），见 device-lifecycle §4。 |
-| Actor Profile (`ak:actor_profile:`) | `principal_id` | Profile 只是展示镜像；`principal_id` 才是授权、签名和审计归属的主体 DID。 |
-| Event Envelope (`ak:event:`) | `actor_id`; Proof 中的 `verification_method` 为 DID URL | `actor_id` 是签署并提交事件的 actor DID，MUST 匹配 proof 控制链。 |
-| Realm (`ak:realm:`) | `created_by` | Realm create event 的授权 principal；`owning_organizations[]` 可选使用组织 DID。 |
-| Circle / Space / Strand / Message / Morph / Relation / View / Policy / Blob metadata | `created_by`; 更新时可有 `updated_by` | 这些对象自身不使用 DID 做 `id`；DID 只记录创建 / 更新主体。协作图对象的创建 / 更新主体由 reducer 从对应 Event 的 `actor_id` 派生；Blob metadata 的 `created_by` 来自 authenticated media 写入主体。 |
-| Capability Grant (`ak:grant:`) | `issuer`; `subject` 为具体主体时必须是 DID | `subject` 也可以是条件 selector；handle、邮箱、域名用户名等不得作为权限主体主键。 |
-| Invite (`ak:invite:`) | `inviter`; `invitee` 在直接 DID 邀请时使用 DID | [3PID](../overview/glossary.md) 邀请可没有 `invitee`，但认领后必须绑定可验证主体。 |
-| Read Cursor / Notification | `actor_id` | actor-private 或派生对象，`actor_id` 表示该私有状态所属主体。 |
-| Event Batch Receipt / Identity Receipt / Audit Receipt | `issuer` 或 schema 声明的签发 / 主体 DID 字段 | receipt 的签发、覆盖范围和验证必须回到可解析 DID。 |
-| Relation endpoint | 当 endpoint 是 Actor 时，`from_ref` / `to_ref` 使用 DID | 指向普通对象时仍使用 `ak:<kind>:` typed ID；Relation 不把对象 ID 转换为 DID。 |
-
-任何可签名、可被授予 capability、可作为审计责任主体或可被 Realm / service policy allowlist 的实体，MUST 有可解析 DID。仅作为内容、容器、投影或关系事实存在的对象，不需要也不得发明独立 DID；它们通过 typed ID 被引用，通过 `created_by` / `updated_by` 等字段关联到 DID 主体。
+仅作为内容、容器、投影或关系事实存在的对象，不需要也不得发明独立 DID；它们通过 typed ID
+被引用，通过 `created_by` / `updated_by` 等字段关联到 DID 主体。字段里出现 DID 只声明
+value category，不会自动触发 DID Document 解析或在线验证。
 
 ### 4.2 主体引用字段
 
 | 字段 | 出现对象 | 含义 |
 | --- | --- | --- |
-| `actor_id` | Event Envelope、Read Cursor、Notification | 直接执行该 Event / 拥有该私有状态的 actor DID（`actor_kind` 决定它是 user / agent / service 等）。 |
+| `actor_id` | Event Envelope、Read Cursor、Notification | 直接执行该 Event / 拥有该私有状态的 actor DID（`actor_kind` 决定它是 user / agent / service 等）；普通业务按身份锚点使用，验证边界见 §4.1 的引用。 |
 | `watcher_actor_id` / `target_actor_id` / `writer_actor_id` | Event payload、Audit payload | 带角色限定的 actor DID-as-id；字段名必须说明角色，避免回退到模糊的 `actor_did`。 |
 | `principal_id` | Actor Profile | Profile 对应的 principal DID；权限根。 |
 | `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的 Event 的 `actor_id`，由 reducer 派生。Realm 的 `created_by` 还承担 genesis member bootstrap 的 authorizing principal 语义。 |

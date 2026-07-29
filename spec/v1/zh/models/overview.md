@@ -31,7 +31,7 @@ Arkret 的核心数据模型是一张以 Realm 为边界、以标准对象和开
 
 每个 Arkret 对象的种类由 `id` 的 typed-id 前缀（`ak:<kind>:`）唯一决定，canonical object 上不再单独写 `type` 字段。typed-id kind 的完整集合与 wire form 以 [`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)（生成自 contract-registry）为准；本表仅把协作图核心对象索引到详细文档，不是完整 kind 清单。
 
-DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用边界)：DID 标识 actor / principal / issuer / service / device 等主体，不替代 `ak:<kind>:` 对象 ID。
+DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用边界)：DID 标识 actor / principal / issuer / service 等主体，不替代 `ak:<kind>:` 对象 ID。设备不是主体 DID，使用 `device_id` + principal 下的 authorization。
 
 ### 2.1 协作图核心对象
 

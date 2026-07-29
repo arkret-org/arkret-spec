@@ -73,7 +73,7 @@ Agent 是 Arkret 协作图中以 **A2A** / **ACP** 等外部 agent 协议进行�
 - 接收外部 agent 协议事件并把结果落点到 Strand / Message / Morph。
 - 通过 capability + accountability 链表达"哪个 principal 委派 / 谁负责"。
 
-Agent 的对象身份与 Applet 类似（独立 DID 或受托 device DID），但运行时面向 agent 协议互通，而非外部网络桥接。
+Agent 的对象身份与 Applet 类似（独立 DID，或由 controller principal 授权的 agent signing key），但运行时面向 agent 协议互通，而非外部网络桥接。设备自身没有 DID，不得把 device key 写成受托 device DID。
 
 ### 3.2 关键对象
 
