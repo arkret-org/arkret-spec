@@ -128,6 +128,28 @@
       "schema_ref": "schemas/capability-grant.schema.json"
     },
     {
+      "context": "ak.control-proposal-decision-proof-v1",
+      "object_family": "control_proposal_decision",
+      "binding_fields": [
+        "payload_digest",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/authz/event-auth-state-resolution.md#72-控制面-receipt-与-inclusion-obligation",
+      "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_decision"
+    },
+    {
+      "context": "ak.control-proposal-member-receipt-proof-v1",
+      "object_family": "control_proposal_member_receipt",
+      "binding_fields": [
+        "payload_digest",
+        "verification_method",
+        "created_at"
+      ],
+      "defined_in": "zh/authz/event-auth-state-resolution.md#72-控制面-receipt-与-inclusion-obligation",
+      "schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_member_receipt"
+    },
+    {
       "context": "ak.did-continuity-proof-v1",
       "object_family": "did_continuity",
       "binding_fields": [

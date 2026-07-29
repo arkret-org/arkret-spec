@@ -18,19 +18,19 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 215,
+    "total_operations": 217,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 3,
-      "typed_schema": 202
+      "typed_schema": 204
     },
     "by_surface_class_and_completeness_class": {
       "core": {
         "service_describe": 4,
         "streaming_frame_schema": 2,
-        "typed_schema": 34
+        "typed_schema": 35
       },
       "deployment_local": {
         "typed_schema": 14
@@ -40,7 +40,7 @@
         "no_request_body": 1,
         "service_describe": 2,
         "streaming_frame_schema": 1,
-        "typed_schema": 135
+        "typed_schema": 136
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -2029,6 +2029,20 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
+      "operation_id": "ak.self.control_proposal_receipts.command.issue",
+      "surface_class": "core",
+      "http": "POST /_arkret/self/control-proposal-receipts",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_request",
+      "response_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_request",
+        "response": "../schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
       "operation_id": "ak.self.device_messages.command.ack",
       "surface_class": "extension",
       "http": "POST /_arkret/self/device_messages/ack",
@@ -2281,6 +2295,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/InviteReceivePolicy",
         "response": "#/components/schemas/InviteReceivePolicy"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.keys.backup_series.command.erase",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/keys/backup-series/erase",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_request_body",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/keys-operations.schema.json#/$defs/backup_series_erase_request_body",
+        "response": "../schemas/keys-operations.schema.json#/$defs/backup_series_erase_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

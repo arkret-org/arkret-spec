@@ -699,6 +699,7 @@
     "ak.vector_group.reaction.v1",
     "ak.vector_group.redaction.v1",
     "ak.vector_group.cba_lattice.v1",
+    "ak.vector_group.security_transaction.v1",
     "ak.vector_group.sync.v1",
     "ak.vector_group.mimi_interop.v1"
   ],
@@ -720,6 +721,7 @@
       ],
       "required_fixtures": [
         "capability-fixture.json",
+        "authorization-lease-issuance-fixture.json",
         "protocol-edge-cases-fixture.json"
       ],
       "optional_extensions": [],
@@ -780,6 +782,7 @@
     },
     "ak.vector_group.event_envelope_negative.v1": {
       "required_endpoints": [
+        "ak.self.control_proposal_receipts.command.issue",
         "ak.self.events.command.submit"
       ],
       "required_event_kinds": [
@@ -1119,12 +1122,51 @@
         "ak.schema.event_payload.v1"
       ],
       "required_fixtures": [
-        "cba-lattice-fixture.json"
+        "cba-lattice-fixture.json",
+        "control-proposal-receipt-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
           "cba_lattice_vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "ak.vector_group.security_transaction.v1": {
+      "required_endpoints": [
+        "ak.self.security_transaction.command.create",
+        "ak.self.security_transaction.resource.get",
+        "ak.self.security_transaction.command.continue",
+        "ak.self.keys.backup_series.command.erase"
+      ],
+      "required_event_kinds": [
+        "ak.device.authorize",
+        "ak.device.reanchor",
+        "ak.device.revoke",
+        "ak.key_backup.active_series"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ak.schema.security_transaction.v1",
+        "ak.schema.recovery_receipt.v1",
+        "ak.schema.key_backup.v1",
+        "ak.schema.backup_series_erase_confirmation.v1"
+      ],
+      "required_fixtures": [
+        "security-transaction-resilience-fixture.json"
+      ],
+      "required_runner_suites": [
+        {
+          "suite": "security_transaction_resilience",
+          "artifact_fixture": "security-transaction-resilience-fixture.json",
+          "minimum_independent_runners": 2
+        }
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "security_transaction_fault_injection_runner"
         ],
         "unsupported_optional": "not applicable"
       }
@@ -4215,7 +4257,9 @@
       "required_schemas": [
         "ak.schema.join_policy_operations.v1"
       ],
-      "required_fixtures": [],
+      "required_fixtures": [
+        "websocket-binding-fixture.json"
+      ],
       "optional_extensions": [],
       "required_capability_actions": [
         "ak.realm.join.review"

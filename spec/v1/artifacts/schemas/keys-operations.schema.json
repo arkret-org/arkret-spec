@@ -33,6 +33,12 @@
     },
     {
       "$ref": "#/$defs/keys_backups_delete_outcome"
+    },
+    {
+      "$ref": "#/$defs/backup_series_erase_request_body"
+    },
+    {
+      "$ref": "#/$defs/backup_series_erase_outcome"
     }
   ],
   "$defs": {
@@ -707,6 +713,205 @@
           "$ref": "#/$defs/backup_id"
         }
       },
+      "additionalProperties": false
+    },
+    "backup_series_erase_request_body": {
+      "type": "object",
+      "description": "Transaction-bound exact request for erasing every old backup object reserved by one SecurityRotationTransaction plan.",
+      "required": [
+        "transaction_id",
+        "transaction_request_digest",
+        "prepared_plan_digest",
+        "erase_confirmation_digest",
+        "series",
+        "authorization_lease"
+      ],
+      "properties": {
+        "transaction_id": {
+          "$ref": "./security-transaction.schema.json#/$defs/transaction_id"
+        },
+        "transaction_request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "prepared_plan_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "erase_confirmation_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "series": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./security-transaction.schema.json#/$defs/backup_rotation_binding"
+          }
+        },
+        "authorization_lease": {
+          "$ref": "./offline-publication.schema.json#/$defs/authorization_lease"
+        },
+        "cba_proof_bundles": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./cba-proof-bundle.schema.json"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "backup_series_erase_result": {
+      "type": "object",
+      "required": [
+        "backup_kind",
+        "previous_series_id",
+        "new_series_id",
+        "status",
+        "erased_backups",
+        "remaining_backups"
+      ],
+      "properties": {
+        "backup_kind": {
+          "type": "string",
+          "enum": [
+            "secret_storage",
+            "mls_history"
+          ]
+        },
+        "previous_series_id": {
+          "$ref": "#/$defs/backup_series_id"
+        },
+        "new_series_id": {
+          "$ref": "#/$defs/backup_series_id"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "failed_retryable",
+            "erased"
+          ]
+        },
+        "erased_backups": {
+          "type": "array",
+          "maxItems": 512,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./security-transaction.schema.json#/$defs/backup_object_ref"
+          }
+        },
+        "remaining_backups": {
+          "type": "array",
+          "maxItems": 512,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./security-transaction.schema.json#/$defs/backup_object_ref"
+          }
+        },
+        "reason_code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "backup_series_erase_confirmation": {
+      "type": "object",
+      "required": [
+        "schema",
+        "transaction_id",
+        "transaction_request_digest",
+        "prepared_plan_digest",
+        "series"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.backup_series_erase_confirmation.v1"
+        },
+        "transaction_id": {
+          "$ref": "./security-transaction.schema.json#/$defs/transaction_id"
+        },
+        "transaction_request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "prepared_plan_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "series": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./security-transaction.schema.json#/$defs/backup_rotation_binding"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "backup_series_erase_outcome": {
+      "type": "object",
+      "required": [
+        "transaction_id",
+        "request_digest",
+        "status",
+        "series_results"
+      ],
+      "properties": {
+        "transaction_id": {
+          "$ref": "./security-transaction.schema.json#/$defs/transaction_id"
+        },
+        "request_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "partial",
+            "complete"
+          ]
+        },
+        "series_results": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/backup_series_erase_result"
+          }
+        },
+        "confirmation": {
+          "$ref": "#/$defs/backup_series_erase_confirmation"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "complete"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "confirmation"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "confirmation"
+              ]
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "cross_signing_binding": {

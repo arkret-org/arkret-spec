@@ -1,0 +1,83 @@
+{
+  "profile": "ak.vector_group.capability.v1",
+  "version": "2026-07-29",
+  "suite": "authorization_lease_issuance",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.authz.authorization_lease_issuance.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.authz.authorization_lease_issuance.v1"
+  ],
+  "cases": [
+    {
+      "name": "accepted_basis_issue_and_exact_refresh",
+      "request_event_count": 2,
+      "same_idempotency_key": true,
+      "same_canonical_request": true,
+      "expected": {
+        "lease_count": 2,
+        "order_matches_events": true,
+        "retry_bytes_identical": true,
+        "expiry_extended_by_retry": false
+      }
+    },
+    {
+      "name": "idempotency_key_with_different_event_rejected",
+      "same_idempotency_key": true,
+      "same_canonical_request": false,
+      "expected": {
+        "decision": "reject",
+        "reason": "duplicate_conflict"
+      }
+    },
+    {
+      "name": "genesis_anchor_unit_is_closed_and_ordered",
+      "anchor_family": "ordinary_realm",
+      "event_order": [
+        "ak.realm.create",
+        "ak.capability.grant"
+      ],
+      "expected": {
+        "decision": "issue",
+        "basis_kind": "anchor_unit"
+      }
+    },
+    {
+      "name": "partial_or_reordered_genesis_anchor_rejected",
+      "anchor_family": "ordinary_realm",
+      "event_order": [
+        "ak.capability.grant",
+        "ak.realm.create"
+      ],
+      "expected": {
+        "decision": "reject",
+        "reason": "failed_precondition"
+      }
+    },
+    {
+      "name": "stale_basis_and_quorum_failure_fail_closed",
+      "basis_current": false,
+      "authority_quorum_satisfied": false,
+      "expected": {
+        "decision": "reject",
+        "network_submit_attempted": false
+      }
+    },
+    {
+      "name": "account_switch_and_authority_rotation_clear_cache",
+      "triggers": [
+        "sign_out",
+        "account_switch",
+        "device_revocation",
+        "device_generation_change",
+        "authority_set_digest_change"
+      ],
+      "expected": {
+        "all_partitioned_leases_removed": true,
+        "signed_event_rewritten": false
+      }
+    }
+  ],
+  "minimum_independent_runners": 2
+}

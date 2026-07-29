@@ -754,6 +754,18 @@
       ]
     },
     {
+      "operation_id": "ak.self.control_proposal_receipts.command.issue",
+      "http_alias": "POST /_arkret/self/control-proposal-receipts",
+      "operation_specific": [
+        "duplicate_conflict",
+        "failed_precondition",
+        "stale_seal_ref",
+        "seal_ref_unknown",
+        "quorum_unreachable"
+      ],
+      "description": "A current Control authority issues one immutable member receipt after independently validating the proposal and authority basis."
+    },
+    {
       "operation_id": "ak.self.authorization_leases.command.issue",
       "http_alias": "POST /_arkret/self/authorization-leases",
       "operation_specific": [
@@ -1140,6 +1152,17 @@
       "operation_specific": [
         "not_found"
       ]
+    },
+    {
+      "operation_id": "ak.self.keys.backup_series.command.erase",
+      "http_alias": "POST /_arkret/self/keys/backup-series/erase",
+      "operation_specific": [
+        "duplicate_conflict",
+        "failed_precondition",
+        "backup_frontier_stale",
+        "not_found"
+      ],
+      "description": "SecurityRotation old-series erasure rejects plan mismatch, missing authoritative pointers and conflicting replay; partial storage progress is a typed success outcome."
     },
     {
       "operation_id": "ak.self.keys.backups.command.unlock",
