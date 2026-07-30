@@ -391,4 +391,6 @@ sovereign / regulated / multi-writer federation 部署 **MUST** 同时声明 `ak
 - 连续 3 次 probe 失败 MUST 触发 `stale_peer` 标记；该状态下 MUST 拒绝以该 peer 的 push payload 推进本地 frontier，MUST 通过 alarm 通道暴露，MAY 拒绝向该 peer fanout 新 Event；
 - fork resolution 成功后 MUST 解除 `stale_peer` 标记。
 
+这里的 `federation_policy=closed` 只限制网络可达性与 peer allowlist，不把多个 witness 自动视为同一控制主体。high-assurance range completeness 若声明 `witness_independence=distinct_controlling_organization`，仍必须由至少 `witnessed_min_attestations` 个组织控制相互独立、且已在 `Realm.audit_policy.range_completeness_witnesses[]` allowlist 中的 witness 签署；它们可以位于同一封闭网络、联盟成员域或经批准的单向 evidence gateway。只有一个 controlling organization 的完全单组织部署无法满足该档独立性：它 MUST 把 completeness 保持为 unverified / degraded，或选择与实际保障一致的较低声明；不得把同组织内两个 service DID、两个 HSM key 或两个机房伪装成组织独立 witness。封闭部署因此是可满足的，但满足性来自组织控制独立，而非公网 federation。
+
 理由：sovereign 部署的威胁模型默认包含"独立 Principal Server 在同一 Realm 共同写入"，单纯依赖 seal 签名、duplicate_conflict、witness receipt 只能证明"看到的有效"，无法证明"对方没藏分支"——high-assurance frontier 主动交换 + fail-state 是 silent fork 抗性的最后一道防线。

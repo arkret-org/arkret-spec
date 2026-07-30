@@ -78,6 +78,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 ```json
 {
+  "kind": "ak.call.signal",
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_kind": "moderation",
   "seq": 30,
@@ -268,7 +269,7 @@ Seal basis、scope/MLS epoch 与 AAD，然后解密并检查 plaintext sequence 
 [`signal-envelope.schema.json`](../../artifacts/schemas/signal-envelope.schema.json)；
 proof context 固定为 `ak.signal-proof-v1`。
 
-解密后的 plaintext 是闭合对象，字段为 `kind=ak.call.signal`、`call_id`、
+解密后的 plaintext 顶层必须通过 [`call-signal-plaintext.schema.json`](../../artifacts/schemas/call-signal-plaintext.schema.json)（`ak.schema.call_signal_plaintext.v1`），闭合字段为 `kind=ak.call.signal`、`call_id`、
 `signal_kind`、`seq` 与 `data`。允许的 `signal_kind` 为 `invite` / `answer` /
 `candidate` / `reject` / `hangup` / `renegotiate` / `mute_state` / `media_state` /
 `speaking` / `focus_join` / `focus_leave` / `moderation` / `error` / `ack`。
@@ -281,6 +282,7 @@ Invite payload:
 
 ```json
 {
+  "kind": "ak.call.signal",
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_kind": "invite",
   "seq": 12,
@@ -304,6 +306,7 @@ Answer payload:
 
 ```json
 {
+  "kind": "ak.call.signal",
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_kind": "answer",
   "seq": 13,
@@ -324,6 +327,7 @@ Candidate payload:
 
 ```json
 {
+  "kind": "ak.call.signal",
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_kind": "candidate",
   "seq": 14,
@@ -349,6 +353,7 @@ Candidate payload:
 
 ```json
 {
+  "kind": "ak.call.signal",
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_kind": "renegotiate",
   "seq": 20,
@@ -376,6 +381,7 @@ Candidate payload:
 
 ```json
 {
+  "kind": "ak.call.signal",
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_kind": "mute_state",
   "seq": 21,
@@ -392,6 +398,7 @@ Candidate payload:
 
 ```json
 {
+  "kind": "ak.call.signal",
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_kind": "mute_state",
   "seq": 22,
@@ -409,6 +416,7 @@ Candidate payload:
 
 ```json
 {
+  "kind": "ak.call.signal",
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_kind": "speaking",
   "seq": 23,
@@ -429,7 +437,7 @@ Candidate payload:
 
 规则：
 
-- `answer` signaling frame 只是候选应答，不是 winner 真相。winner 必须由接收方的 call admission / media token issuer 接受一条 durable `ak.call.state.roster_delta.op="join"` 后才成立；只有该 winner 设备能获得 `participant_binding` 与 media send/receive token。
+- `answer` signaling frame 只是候选应答，不是 winner 真相。winner 必须由接收方的 call admission 接受一条 durable `ak.call.state.roster_delta.op="join"` 后才成立。P2P / mesh 候选不取得 `participant_binding`；SFU / MCU 的每个候选设备 MAY 在提交 join 前兑换短期 `participant_binding` 与 media token，winner 仍由首条 accepted roster join 确立。非 winner 的 binding / token MUST 由 issuer 立即撤销，或在不超过 `answer_timeout_ms` 的短 TTL 后失效，不得据此进入 media roster。
 - Admission service MUST 按 `(call_id, actor_id)` 串行化 accepted participant entry：若当前 accepted call roster effective OR-Set 已存在同一 actor 的 active call leg，后续 answer MUST 拒绝 `call_already_answered`，并要求该设备停止响铃。
 - 若同一 actor 的多个设备基于同一 prior call-state basis 并发 answer，reducer / admission service MUST 使用确定性 tiebreak，而不是本地接收顺序：按 `(device_id, proof.event_digest)` 字典序最小的候选成为唯一 winner；其它候选返回 `call_already_answered` 或发送 `reject{reason="call_already_answered"}`。该 tiebreak 只处理真正并发 sibling；非并发场景仍由已 accepted durable participant entry 吸收后续请求。
 - 发起端、其它接收端与 SFU MUST 以 accepted `ak.component.call.roster.v1` effective OR-Set 中的 participant entry 为权威，停止同 actor 其它设备的 ringing / offer-answer 流程；它们 MUST NOT 因先收到某个通过签名验证的 answer 就本地承认 winner。
@@ -442,16 +450,14 @@ Candidate payload:
 ```json
 {
   "kind": "ak.call.signal",
-  "payload": {
-    "call_id": "ak:call:...",
-    "signal_kind": "media_state",
-    "seq": 7,
-    "data": {
-      "screen": {
-        "enabled": true,
-        "source_id": "screen_01",
-        "with_audio": false
-      }
+  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+  "signal_kind": "media_state",
+  "seq": 7,
+  "data": {
+    "screen": {
+      "enabled": true,
+      "source_id": "screen_01",
+      "with_audio": false
     }
   }
 }

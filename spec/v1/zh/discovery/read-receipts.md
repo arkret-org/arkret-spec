@@ -50,9 +50,9 @@ UI。relay attestation 不能替代 sender device proof。任何把 receipt targ
 
 ### 2.3 防雪崩与合并
 
-Read Receipt 是高频信号，发送方和 Sync Service 都 MUST 支持合并。客户端 SHOULD debounce 可见区域滚动产生的更新，并且对同一 `(realm_id, read_scope, actor)` 在短窗口内只发送最新位置。默认建议窗口为 1 秒，交互结束、窗口失焦或显式“标为已读”时 SHOULD flush 最新位置。
+Read Receipt 是高频信号。发送方客户端 MUST 支持语义合并：客户端 SHOULD debounce 可见区域滚动产生的更新，并且对同一 `(realm_id, read_scope, actor)` 在短窗口内只发送最新位置。默认建议窗口为 1 秒，交互结束、窗口失焦或显式“标为已读”时 SHOULD flush 最新位置。
 
-Sync Service MAY 丢弃同一 read_scope 下较旧的 receipt，只向订阅方广播单调前进的最新位置；不得把每一次滚动增量都 fanout 成独立推送。公开或共享 receipt 的服务端限流维度至少应包含 actor、device、Realm 和 Strand。超过频率时 SHOULD 返回或广播 `rate_limited` / `retry_after_ms` 语义，客户端 MUST 按退避合并后重试。
+Sync Service 看不到加密 plaintext 中的 `read_scope` / position，因此 MUST NOT 声称按 read_scope 判断新旧或做语义合并。它 MAY 仅按外层可见的 `(sender_actor_id, sender_device_id, scope_ref)` 做短窗口批处理与粗粒度限流，但不得据此丢弃某一条并声称“只保留最新”；批内顺序与最终单调合并由接收客户端解密后完成。服务端限流维度只可使用这些外层字段，Strand 维度限流由持有明文的客户端执行。超过频率时 SHOULD 返回或广播 `rate_limited` / `retry_after_ms` 语义，客户端 MUST 按退避合并后重试。
 
 Push Gateway MUST NOT 因 read receipt 产生通知。它只能把 receipt / marker 作为 unread count、push suppression 和 badge recompute 的输入。
 
@@ -86,7 +86,7 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 
 | 字段 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
-| `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。该字段同时影响隐私上限与合规义务：`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 客户端与 Sync Service MUST NOT 在该 scope 转发 `ak.receipt.read`。 |
+| `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。该字段同时影响隐私上限与合规义务：`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 发送客户端 MUST NOT 生成、接收客户端 MUST 丢弃该 scope 的 `ak.receipt.read`。 |
 | `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Strand 的 effective scope 可见性允许的全部观察者；`members` = Strand effective scope 的可见成员（`scope_circle_id=null` 时为父 Realm 成员，`scope_circle_id` 指向 Circle 时为该 Circle 成员）；`private` = 仅消息发送者本人（Sync Service 按发送者 fanout，不广播给其他成员）。**警告**：在 `history_visibility=world_readable` 的 Realm/Strand 下，`visibility=public` 允许外部观察者读取 actor 的已读位置；若用于 metadata-private 场景，receipt-policy MUST 收紧 `visibility` 为 `members` 或 `private`。该组合的 reducer 级强制判定见 §2.5.1。 |
 | `scope_overrides_allowed` | `bool` | `true` | 是否允许 Realm 内的 [Circle](../models/circle.md) 声明独立、**收紧**（不放宽）的 read receipt policy。visibility 的收紧方向固定为 `private` > `members` > `public`。disclosure 的合规下限禁止从父 `required` 降到 `optional` 或 `disabled`，除非父 policy 显式声明 `receipt_compliance_opt_in.child_privacy_tightening_against_required=true`。 |
 | `receipt_compliance_opt_in` | closed object | absent（全部 false） | 单一合规旁路对象；子字段为 `child_privacy_tightening_against_required`、`public_receipts_on_world_readable`、`forced_public_world_readable_receipts`。对象 / 子字段缺失或为 false 均等价未 opt-in；未知子字段 `schema_violation`。最后一项是第二道门，不能替代 `public_receipts_on_world_readable=true`。 |
@@ -95,7 +95,7 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 
 - 该策略是**软声明 / 合规承诺**，不是密码学强制。`ak.receipt.read` 由客户端自愿生成，恶意或不合规客户端始终可以"看了不报"，与 audited E2EE 的 RYW receipt（[`crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) §4）不同。软声明只允许合规客户端按用户偏好不发送自己的 receipt；任何 actor、service、relay 或 federation peer 都不得伪造他人的 `ak.receipt.read`，也不得转发来源 proof 无法验证的 receipt。Realm policy MUST NOT 把 `ak.receipt.read` 当作密码学审计回执使用。
 - 客户端 MUST 在 join Realm / 进入 Strand 时明示当前生效 `disclosure` 与 `visibility`，并在用户偏好 UI 中标注该 scope 的开关是否被 policy 锁定。
-- `disclosure="required"`：合规客户端 MUST NOT 允许用户在该 scope 把 `ak.read_receipt.preferences` 设为 `send=false`，并 SHOULD 在每次进入 track 时按 §2.2 发送至少一条覆盖当前可见 head 的 receipt。
+- `disclosure="required"`：合规客户端 MUST NOT 允许用户在该 scope 把 `ak.read_receipt.preferences` 设为 `send=false`，并 SHOULD 在每次进入 track 时按 §2.1 的加密边界发送至少一条覆盖当前可见 head 的 receipt。
 - `disclosure="disabled"`：合规客户端 MUST NOT 生成该 scope 的 `ak.receipt.read`。**执行点在客户端**：Sync Service 看不到 Signal 的 payload 类型（[`../sync/signal.md`](../sync/signal.md) §1 下外层 header 无任何产品选择器，receipt 与 typing 同为 `session` class 且 payload 不透明），因此**不得**要求服务端识别并丢弃它。接收方客户端解密后 MUST 丢弃并不呈现该 scope 的 receipt。Read Cursor 不受影响。
 - `visibility="private"`：**执行点在客户端**。Sync Service 能强制的唯一收窄维度是签名的 `scope_ref`：它 MUST 仅向该 scope 内的成员 fanout。它**不能**再收窄到“仅 `event_id` 的发送者”——§2.1 已规定 `event_id` 位于 `encrypted_payload` 内且服务端不得看见或据其路由，要求它按该字段定向投递与§2.1 直接矛盾。接收方客户端解密后，若自己不是该 receipt 所引 `event_id` 的发送者，MUST 丢弃并不呈现。Push Gateway MUST NOT 据 `private` receipt 产生通知。
 

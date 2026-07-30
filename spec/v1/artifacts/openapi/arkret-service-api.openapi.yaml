@@ -4776,9 +4776,7 @@ paths:
           description: |
             `focus_mismatch` — requested `focus_id` differs from the
             already-committed `ak.call.state.session_focus`; clients MUST
-            re-target the established focus rather than retrying.
-        '412':
-          description: |
+            re-target the established focus rather than retrying; or
             `mls_governance_binding_stale` — current MLS epoch policy_root
             does not cover the `ak.realm.media_service` cell; or
             `media_plaintext_service_not_authorised` for SFUs negotiating
@@ -4822,7 +4820,7 @@ paths:
       description: |
         Long-lived streaming subscription that pushes cross-Realm
         account-aggregate deltas (cross-Realm frontier, to_device queue,
-        account_data, device_lists, presence, unread / notification counts)
+        account_data, device_lists, unread / notification counts)
         as new data becomes available. Response is `application/x-ndjson`;
         each line is a self-contained frame object — see
         AccountSubscribeFrame for frame kinds (`delta`, `frontier`,
@@ -6272,6 +6270,16 @@ paths:
         schema:
           type: string
           pattern: ^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      - in: header
+        name: Idempotency-Key
+        required: true
+        description: |
+          Stable request identity for an encrypted backup replacement. A
+          byte-identical retry MUST reuse the same key; the key MUST be
+          covered by the request proof or HTTP Message Signature.
+        schema:
+          type: string
+          minLength: 1
       requestBody:
         required: true
         content:
@@ -8852,7 +8860,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentKeyPairOutcome'
-        '412':
+        '409':
           description: Pairing failed (verification_method_principal_mismatch, pairing_request_expired, agent_pcr_recovery_not_ready, proof_invalid, etc.)
       requestBody:
         required: true

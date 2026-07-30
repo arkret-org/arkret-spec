@@ -30,7 +30,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json",
-      "sha256": "9154301996898e3540788dc3fdb8715e759577873c39b936e054755f00c525ef"
+      "sha256": "758158c1f9addf5bcd495551205702a8b1bd29ac94d6c06a4c93d97c0aaee69d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/audit-release-fixture.json",
@@ -130,11 +130,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "c664d413296f9da8e406e1cef0ccc50049ecc15652e1894a1e4cda87ff785eec"
+      "sha256": "fb942fe5b2082c41fe79cfe43054d364bd5a79fc37e8020f34e4a55971635522"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-      "sha256": "120f6dfe9cc2216b343ab6efb8f657ef8e43137921d2091a608082cdc38871d9"
+      "sha256": "fdffbc37cc27c00cdd091f2d06cd876efdfa41de49e4fb42ad02c3ac3592e36a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hash-transition-fixture.json",
@@ -258,7 +258,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
-      "sha256": "c0d2155d23752d9624b5a785d3130641a1fb9607851adb7687849f2d55433167"
+      "sha256": "c14a244e735599a59b1a8afee1c07ab0867d018e5ff407094184ae153df11fe0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",

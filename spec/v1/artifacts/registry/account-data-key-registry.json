@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-29",
+  "version": "2026-07-30",
   "source_of_truth": true,
   "description": "Canonical registry of standard Account Data key patterns. Account Data is actor/private state written through ak.account_data.set unless a row explicitly lists another actor-private event kind. Every row MUST declare its cross-device merge primitive (merge_strategy) and delete semantics (deletion_mode); see spec/v1/zh/models/account-data.md section 5.",
   "registry_rules": [
@@ -37,6 +37,38 @@
       "source_refs": [
         "spec/v1/zh/discovery/client-preferences.md",
         "spec/v1/zh/discovery/push-notifications.md"
+      ]
+    },
+    {
+      "key_pattern": "ak.notifications.inbox.<notification_id>",
+      "status": "active",
+      "scope": "principal_private_notification_state",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "ak.account_data.set"
+      ],
+      "merge_strategy": "cas_register",
+      "deletion_mode": "physical_delete",
+      "description": "Principal-private dismissed/archived state for one derived Notification. The encrypted value binds notification_id, state, HLC and device tie-break material; read/unread remains derived from the read cursor.",
+      "source_refs": [
+        "spec/v1/zh/discovery/client-preferences.md",
+        "spec/v1/zh/models/private-objects.md"
+      ]
+    },
+    {
+      "key_pattern": "ak.views.private.<view_id>",
+      "status": "active",
+      "scope": "realm_private_view",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "ak.account_data.set"
+      ],
+      "merge_strategy": "cas_register",
+      "deletion_mode": "physical_delete",
+      "description": "Actor-private View definition. The encrypted value validates as ak.schema.view.v1 with visibility=private; it never enters a shared Realm View cell.",
+      "source_refs": [
+        "spec/v1/zh/discovery/client-preferences.md",
+        "spec/v1/zh/models/views.md"
       ]
     },
     {

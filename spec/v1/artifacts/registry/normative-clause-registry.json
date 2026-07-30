@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-30.1",
+  "version": "2026-07-30.2",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -89,7 +89,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#8-cursor",
-      "section_digest": "sha256:4525fe89815b5debb23f5262bcf8006e50c838cf736edd8178b7b9bdd7cf97e2",
+      "section_digest": "sha256:375fb16d90273ad075b005b6819d5243c97fd42bd4db9a6b8eb17c08abd35970",
       "requirement": "Cursors are opaque server-issued tokens bound to their query scope; clients MUST NOT parse or forge them and cross-scope replay MUST be rejected.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -115,7 +115,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#2-http-传输与编码",
-      "section_digest": "sha256:0f11096e9f018b464a2a72f99b1e72a10b74316e34a8086f372cddbe0a4c894c",
+      "section_digest": "sha256:f44e8ffe2002619451a2c01a98212235ede95cfc84d8135b1fc90ccdec9b9317",
       "requirement": "Transport encoding bounds: Content-Encoding is forbidden on non-streaming JSON operations and every size limit MUST be enforced before the body is fully buffered or parsed.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -140,7 +140,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#6-幂等",
-      "section_digest": "sha256:6742acb7c1a1e6dd0b3c2639986633eaf229ad78b77f1281c4c0fa71c95df988",
+      "section_digest": "sha256:4b6fbd155c97b397921a377a98e227afa1c3516e7821ba94cd7b86889a45f0e7",
       "requirement": "Every write operation declares a machine-readable idempotency mechanism and retry safety; clients MUST NOT be left to guess the recovery path of an uncertain outcome.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -167,7 +167,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:a26b38f4203bd8a1a40204817bba6563dc937d670e206bca110dc1073e0f2d11",
+      "section_digest": "sha256:282a6291a3d31c1057e1cac766710b466c4f1fd06d84ce7d9a912c6ffe8cf534",
       "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, and encryption floors MUST NOT be downgraded.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -197,7 +197,7 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/discovery/discovery-directory.md#3-realm-discoverability",
-      "section_digest": "sha256:ebcfdc8f236e41d08032ab9adc7e405e04c1670030f24d92d255622a4a41a3db",
+      "section_digest": "sha256:3104534466ebd242583ab2d5ab9c437b5ac8d4085ce2397366b87d57329e0881",
       "requirement": "Directory resolution failures are indistinguishable: unauthorized, non-existent and policy-denied targets MUST NOT be separable by error code, field set or timing.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -226,7 +226,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:b61bb46866eb3a8d23b4e4325a44e4065097d2de1abc8a2837dd9b97716a2d85",
+      "section_digest": "sha256:826e2f14e7e26fef9ab76f477f563fdf7683809334793fe185458230cb7557d5",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, and equivocating notaries are quarantined instead of silently merged.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -241,7 +241,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-delegation",
-      "section_digest": "sha256:1661544af919d89c07a01151ab764a3fa99068d7e19b800319a0f30c43ba81da",
+      "section_digest": "sha256:c4897f38cb5dc3f7ff7bd792545aa4747d2ed3c25b6668a9f18319e7be847204",
       "requirement": "Delegation chains stay within the issuer authority and validity window; cycles and expired links MUST fail closed rather than widen the effective permission set.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -316,7 +316,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/call-state.md#4-会议状态事件",
-      "section_digest": "sha256:7e98f9a7bb788184b7bc8fe36876d6bc5121b72e3f4d19d7c52ec2449a1c11d7",
+      "section_digest": "sha256:fc4b18298b67d4d42f827a8eaa5bbc75861bb13949cf4addbf15d43a3e6e6977",
       "requirement": "Call state transitions follow the registered matrix, terminal states are absorbing, replaying the same state is a no-op, and concurrent siblings resolve to bottom.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -331,7 +331,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/models/governance-objects.md#5-invite",
-      "section_digest": "sha256:d2fcfbf03a78dc59b262840e9a301185cf2576f173edffa0bc5e7cd156393a29",
+      "section_digest": "sha256:bfaa5db8a659e057706be4080cd40560150582c3bfa137887e28cc36e1df9f94",
       "requirement": "Invite claim is a state machine: a consumed token MUST NOT be re-subjected, expiry uses canonical time, and the membership transition is atomic with the claim.",
       "testability_grade": "vector",
       "evidence_refs": [

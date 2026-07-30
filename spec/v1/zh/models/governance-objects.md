@@ -195,7 +195,7 @@ Schema id: `ak.schema.invite.v1`
   | invite.lifecycle 转换 | 承载 wire event kind | 同 Move 内的 `ak.component.member.state.v1:<invitee>` registered projection |
   | --- | --- | --- |
   | `(initial) -> pending` | `ak.invite.create`（定向分支） | `leave -> invite` |
-  | `pending`/`claimed`/`send_failed` `-> accepted` | `ak.invite.accept` | `invite -> join` |
+  | `pending`/`claimed` `-> accepted` | `ak.invite.accept` | `invite -> join` |
   | `-> rejected`（invitee 拒绝） | `ak.invite.cancel` | `invite -> leave` |
   | `-> revoked`（inviter / 管理方撤销） | 普通定向 DID invite 用 `ak.invite.cancel`；第三方/token 与其它高风险路径用 `ak.invite.revoke` | `invite -> leave`（存在已绑定 `invitee` 时） |
   | `-> expired` / `-> revoked_by_capability_loss` / `-> revoked_by_inviter_left` / `-> invalidated_by_rate_limit` | `ak.invite.revoke`（携带对应 `reason_code`） | `invite -> leave` |

@@ -26,7 +26,7 @@ updated: 2026-07-29
 derive_account_data_key(input) = base64url(HMAC-SHA256(account_data_namespace_key, input))
 ```
 
-`input` MUST 是 canonical JSON、typed id 或消费方逐项定义的规范化 bytes。不同 principal 的 namespace key MUST 独立。轮换后，客户端 MUST 用新 key 重写相应 encrypted value，并在同一更新事务中 tombstone 旧 key，或保留有界只读迁移索引；不得把同一私有对象长期映射到两个可链接 key。
+`input` MUST 是 canonical JSON、typed id 或消费方逐项定义的规范化 bytes。不同 principal 的 namespace key MUST 独立。轮换后，客户端 MUST 先用新 key 写入相应 encrypted value，确认新 key 的 CAS 已接受后，再 tombstone 旧 key。v1 不声称两个不同 account-data key 具备跨 key 原子性；若在两步之间崩溃，恢复客户端 MUST 以新 key 的 accepted revision 为依据重试旧 key tombstone，直到旧 key 不再持有 live value。过渡窗口内读取方 MUST 优先采用已验证的新 key，不得把双 key 状态解释为两个独立对象；也 MAY 保留有界只读迁移索引。
 
 ## 3. Value encryption（normative）
 

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/call-signal-plaintext.schema.json",
+  "title": "Arkret Call Signal Plaintext",
+  "description": "Closed top-level plaintext object carried inside a SignalEnvelope encrypted_payload for ak.call.signal. The signal_kind-specific data object is validated by the corresponding normative branch in zh/crypto-media/webrtc-signaling.md.",
+  "type": "object",
+  "required": [
+    "kind",
+    "call_id",
+    "signal_kind",
+    "seq",
+    "data"
+  ],
+  "properties": {
+    "kind": {
+      "const": "ak.call.signal"
+    },
+    "call_id": {
+      "type": "string",
+      "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "signal_kind": {
+      "type": "string",
+      "enum": [
+        "invite",
+        "answer",
+        "candidate",
+        "reject",
+        "hangup",
+        "renegotiate",
+        "mute_state",
+        "media_state",
+        "speaking",
+        "focus_join",
+        "focus_leave",
+        "moderation",
+        "error",
+        "ack"
+      ]
+    },
+    "seq": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "data": {
+      "type": "object",
+      "description": "Signal-kind-specific payload. Producers and consumers MUST additionally validate the closed field rules for the selected signal_kind in webrtc-signaling.md; this extension point is encrypted end-to-end and is not interpreted by the Signal service."
+    }
+  },
+  "additionalProperties": false
+}

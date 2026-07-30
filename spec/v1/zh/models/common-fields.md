@@ -167,7 +167,7 @@ Service identity 字段统一使用 `service_id` / `<role>_service_id`，即使 
 | `created_at` | yes | `timestamp` | 不能作为因果真相。 | 创建时间。 |
 | `updated_by` | no | `did` | 更新时 SHOULD 设置。 | 最近更新主体。 |
 | `updated_at` | no | `timestamp` | MUST be no earlier than `created_at`。 | 最近更新时间。 |
-| `state_changed_at` | R when state≠active | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Circle / Space / Strand / Message / Morph / Relation）当 `state != active` 时 MUST 写入（逐对象必填性矩阵见 §3.1，统一标记 `R when state≠active`）;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值。权威值为 `max(Event.created_at, first_covering_sealed_at)`；`first_covering_sealed_at` 是覆盖该 Move 的全部 accepted Seal 中 `sealed_at` 的最小值，data-plane Event 或尚未被 Seal 覆盖时只取 `created_at`。MUST be no earlier than `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
+| `state_changed_at` | R when state≠active | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Circle / Space / Strand / Message / Morph / Relation / View）当 `state != active` 时 MUST 写入（逐对象必填性矩阵见 §3.1，统一标记 `R when state≠active`）;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值。权威值为 `max(Event.created_at, first_covering_sealed_at)`；`first_covering_sealed_at` 是覆盖该 Move 的全部 accepted Seal 中 `sealed_at` 的最小值，data-plane Event 或尚未被 Seal 覆盖时只取 `created_at`。MUST be no earlier than `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
 | `stage` | conditional | `enum` | 适用对象自己的 schema 声明本字段时可用（v1 适用对象 = Strand / Morph，详见 §5.3）；二者在通用 schema 中均可省略，具体 profile MAY 收紧为必填。取值为 §5.3 的协议级 8 值枚举。**禁止与 `state` 混用**：`stage` 表达业务进度，`state` 表达物理生命周期，两者正交。Strand 的 `metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason`，以及 Morph 的 `fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` 等同名/近名 wire 路径 MUST 被拒绝。stage 变更的"为什么"解释通过 discussion track Message 表达，不在对象字段中携带。 | 业务进度阶段。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived，actor 不可信：** 适用对象 `stage` 字段每次实际变更时 MUST 写入；Strand 缺少 `stage` 时 MUST NOT 单独出现。reducer **MUST** 忽略 wire payload 的 actor-supplied 值，以触发该 transition 的 `ak.<kind>.stage.set` event 的 `created_at` 覆盖写入。MUST be no earlier than `created_at`。same-value self-transition（stage 值未变）reducer MUST NOT 更新本字段。 | 最近一次 stage 转换时间。 |
 | `labels` | no | `array<string>` | SHOULD 小写短标签。 | 用户或系统标签。 |
@@ -392,7 +392,7 @@ Realm 与 Circle membership 共用本节唯一的状态图。`initial_state=leav
 
 约定：
 
-- 写入路径 MUST 来自对应 reducer-input event（`ak.<kind>.archive` / `ak.<kind>.restore` / `ak.<kind>.tombstone` / `ak.<kind>.redact` 或等价命名）；不得直接 PATCH 对象顶层 state。`archived -> active` 是显式的可逆转换，由 `ak.<kind>.restore`（Strand、Space、Morph 均已注册对应 restore event）承担；`tombstoned` / `deleted` / `redacted` 是不可逆终态，MUST NOT 被 restore。
+- 写入路径 MUST 来自对应 reducer-input event（`ak.<kind>.archive` / `ak.<kind>.restore` / `ak.<kind>.tombstone` / `ak.<kind>.redact` 或等价命名）；不得直接 PATCH 对象顶层 state。`archived -> active` 是显式的可逆转换，由 `ak.<kind>.restore`（Strand、Circle、Space、Morph 均已注册对应 restore event）承担；`tombstoned` / `deleted` / `redacted` 是不可逆终态，MUST NOT 被 restore。
 - `state != active` 时 MUST 写入 `state_changed_at`（§3 / §3.1 统一标记为 `R when state≠active`：reducer-derived、actor MUST NOT 携带）。
 - **Agent Sidecar（`ak:sidecar:`）特例 state 轴**：Sidecar 的 `state` 为 `active` / `suspended` / `tombstoned`。它**不**由 §5.1 的 `ak.<kind>.archive/restore/tombstone` 事件驱动，而是由已接受的 controller account / Realm membership / lifecycle frontier **reducer-derived** 的 canonical projection（无 actor-authored lifecycle event）。`suspended`（controller 暂时失去 Realm access / account 临时冻结 / 密钥恢复未 ready）是本轴独有的可逆中间态，不属于上表通用 `archived` 语义；`tombstoned` 为不可逆终态。合法 / 非法迁移封闭表与派生条件见 [`sidecar.md` §3.3](./sidecar.md)。与 Notification / Invite 的特例 `state` 轴（§3.1 附注）并列，均不落入本节通用协作对象物理 lifecycle 状态机。
 
@@ -428,11 +428,11 @@ Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们�
 
 | 模板槽 | 含义 | 已有实例 |
 | --- | --- | --- |
-| `ak.<kind>.create` | 创建对象，落 state=`active`,写入 `created_by` / `created_at`。 | `ak.strand.create`、`ak.space.create`、`ak.morph.create`、`ak.message.create` |
+| `ak.<kind>.create` | 创建对象，落 state=`active`,写入 `created_by` / `created_at`。 | `ak.strand.create`、`ak.circle.create`、`ak.space.create`、`ak.morph.create`、`ak.message.create` |
 | `ak.<kind>.update` | 增量更新 active 对象字段;reducer 拒绝非 active 源。**新对象 SHOULD 沿用 `ak.schema.patch.v1` 统一 patch 表达，不应再造单字段 update event。** | `ak.strand.update`、`ak.morph.update`、`ak.schema.patch.v1`(unified) |
-| `ak.<kind>.archive` | active → archived;写入 `state_changed_at`。 | `ak.strand.archive`、`ak.space.archive`、`ak.morph.archive` |
-| `ak.<kind>.restore` | archived → active;写入 `state_changed_at`。 | `ak.strand.restore`、`ak.space.restore`、`ak.morph.restore` |
-| `ak.<kind>.tombstone` 或 cross-object `ak.redaction` | active/archived → terminal(`tombstoned`/`deleted`/`redacted`);不可逆。Strand 与 Morph 的终态仅通过指向该对象的 `ak.redaction` 表达。 | `ak.space.tombstone`、`ak.relation.tombstone`、`ak.redaction`(指向 strand / space / morph / message) |
+| `ak.<kind>.archive` | active → archived;写入 `state_changed_at`。 | `ak.strand.archive`、`ak.circle.archive`、`ak.space.archive`、`ak.morph.archive` |
+| `ak.<kind>.restore` | archived → active;写入 `state_changed_at`。 | `ak.strand.restore`、`ak.circle.restore`、`ak.space.restore`、`ak.morph.restore` |
+| `ak.<kind>.tombstone` 或 cross-object `ak.redaction` | active/archived → terminal(`tombstoned`/`deleted`/`redacted`);不可逆。Strand 与 Morph 的终态仅通过指向该对象的 `ak.redaction` 表达。 | `ak.circle.tombstone`、`ak.space.tombstone`、`ak.relation.tombstone`、`ak.redaction`(指向 strand / space / morph / message) |
 | `ak.<kind>.redact` 或 cross-object `ak.redaction` | active/archived → `redacted`(若对象支持);envelope 保留,content 清空。v1 wire 实际注册形态请以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为准:Message 走 `ak.message.redact`;Strand / Morph / Space / Relation 等未单独注册 `ak.<kind>.redact` 的对象走 cross-object `ak.redaction`。两种 wire 形态都是 canonical (`active` status),按对象选择;reducer 不得自行折叠或互换。 | `ak.message.redact`、`ak.redaction`(用于 strand / morph / space / relation 等未单独注册的对象) |
 
 模板使用约束:

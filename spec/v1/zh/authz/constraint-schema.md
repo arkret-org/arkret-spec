@@ -615,6 +615,11 @@ quota authority MUST 同时满足：
 
 `allowed_history_visibility_values` 的取值 MUST 来自 `history_visibility` 权威枚举的完整集合：`world_readable`（注意是 `world_readable`，不是 `world`）、`shared`、`invited`、`joined`、`restricted`。上例列出全部五个合法值以展示权威枚举；实际 grant 中 `allowed_history_visibility_values` 通常只声明该枚举的一个**子集**（例如 `["world_readable", "shared", "joined"]`）来限制 actor 可访问的对象/消息可见性级别，未列入的级别即不被该约束允许。出现枚举外的值（如 `world`）时 receiver MUST `schema_violation`。
 
+`redacted_history_allowed` 是布尔 **allow 开关**：只有字段存在且逐字为 `true` 时，该
+visibility constraint 才允许读取 redacted stub；`false` 或缺省都不允许读取。它不是
+“命中即 deny”的触发器。即使为 `true`，它也只放开调用者原本已经有权读取之对象的
+redacted stub，不恢复被删正文、不绕过 history visibility 或 audit gate。
+
 ## 14. 其它常用示例
 
 ### 14.1 Blob 大小限制
@@ -840,8 +845,14 @@ function matches_field_access(operation, constraint):
         deny = constraint.denied_write_fields
         fields = operation.write_fields
 
-    if constraint.condition and not meets_condition(operation, constraint.condition):
-        return constraint.effect == "allow"
+    if constraint.condition:
+        condition_result = meets_condition(operation, constraint.condition)
+        # Three-valued result: true, false, or indeterminate. Missing/stale
+        # dependencies and lattice bottom are indeterminate, never false.
+        if condition_result == indeterminate:
+            return DENIED
+        if condition_result == false:
+            return constraint.effect == "allow"
 
     if constraint.effect == "deny":
         # A deny constraint matches exactly when the operation touches a

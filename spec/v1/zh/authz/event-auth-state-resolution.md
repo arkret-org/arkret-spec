@@ -232,9 +232,11 @@ Seal 是唯一控制状态接受事实。submitted/pending/receipt、snapshot、
 availability 与 compaction 均不得创建第二种 finality。
 
 Genesis Seal 的 `predecessor_refs` 必须为空，但 covered set 不得为空。它必须原子覆盖完整 founding
-anchor unit，使 Realm metadata、creator membership、founding authority/notary、founding grant、
-base policy 与 MLS-backed scope 的 epoch-0 binding 同时可从该 Seal 验证。先接受空 Seal 再补上述
-状态一律 `invalid_genesis_seal`。
+anchor unit，使 Realm metadata、creator membership、founding authority/notary、founding grant 与
+base policy 同时可从该 Seal 验证。MLS-backed scope 的 `ak.mls.genesis` 以该 accepted Genesis
+Seal 为 `seal_basis`；**首个覆盖该 Move 的后继 Seal** MUST 验证并物化 epoch-0 governance
+binding，在该 Seal 之前不得接受 MLS application DataEvent。先接受空 Seal 再补 founding
+authority 仍一律 `invalid_genesis_seal`；epoch-0 binding 的这一后继时序不是 founding repair。
 
 Seal 的 wire schema 见 [`seal.schema.json`](../../artifacts/schemas/seal.schema.json)。
 

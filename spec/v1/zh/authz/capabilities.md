@@ -480,7 +480,7 @@ Arkret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 **confidentiality**
 
 - `allowed_history_visibility_values`
-- `redacted_history_allowed`（命中即拒绝读取已 redact 的历史，属 `confidentiality` `constraint_subkind=visibility`）
+- `redacted_history_allowed`（布尔 allow 开关；仅逐字 `true` 允许读取 redacted stub，见 constraint-schema §13.1）
 - `encryption_required`
 
 **moderation 缓存依赖标记**
@@ -535,7 +535,7 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 | `allowed_to_container_refs` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`，fail closed） | — | `allowed_to_container_refs` |
 | `wip_limit_override` | `scope_limitation`（kanban extension，profile-gated `ak.profile.kanban_mvp.v1`） | — | `wip_limit_override`（看板容器 WIP 上限覆盖） |
 | `allowed_history_visibility_values` | `confidentiality` | `visibility` | `allowed_history_visibility_values` |
-| `redacted_history_allowed` | `confidentiality` | `visibility` | `redacted_history_allowed`（命中即拒绝读取已 redact 历史） |
+| `redacted_history_allowed` | `confidentiality` | `visibility` | `redacted_history_allowed`（仅 `true` 允许读取 redacted stub；`false` / 缺省拒绝） |
 | `blob_max_bytes` | `quota` | `resource` | `blob_max_bytes` |
 | `blob_presign_max_ttl_seconds` | `quota` | `resource` | `blob_presign_max_ttl_seconds` |
 | `max_artifact_bytes` | `quota` | `resource` | `max_artifact_bytes` |
@@ -731,9 +731,9 @@ Delegation Move SHOULD 同时记录签发时点的 parent `auth_state_digest` / 
 
 ### 10.3 Revoke 因果传播
 
-`parent grant` 被 revoke 时，所有 derived child grant **MUST** 在该 revoke 的 causal 后继中失效。具体行为见 [`event-auth-state-resolution.md` §6](./event-auth-state-resolution.md) 委托链 revocation 传播规则；本节只补充: revoke 与 freshness 不一致期间(receiver 已收到 revoke 但未达到 freshness windows),derived child grant 已发起的 in-flight Events 由 reducer 按 §6 fast-path freshness 表判定(parent freshness `unknown` 时 fail closed 适用于高风险 action)。
+`parent grant` 被 revoke 时，所有 derived child grant **MUST** 在该 revoke 的 causal 后继中失效。DataEvent 对 revoke 的窗口判定见 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md)，风险分级与 freshness 降级见本文件 [§18.2](#182-撤销新鲜度-revocation-freshness)。revoke 与 freshness 不一致期间，derived child grant 已发起的 in-flight Event 必须沿用这两处的同一套风险分级，不得另造无窗口规则。
 
-上游 revoke 的本地可见性优先于 child grant 的 causal 视图：授权解析 `refs[role="parent_grant"]` / `parent_grant_id` 时，reducer MUST 主动查询本地已 accepted 的 grant/revoke index。若任一 ancestor parent grant 在本地已知为 revoked、superseded、expired 或 tombstoned，则 child grant 及依赖它的 Event MUST 立即 `failed_precondition`，`reason="grant_revoked_upstream"`，不得等待 child 的 `prev_refs` 或某个数据面观测 root 自然包含该 revoke。若本地无法确认 parent freshness，则按 §18.2 风险表处理：高风险与跨域 grant 相关 action MUST fail closed，低风险只可进入 pending / limited 模式。
+授权解析 `refs[role="parent_grant"]` / `parent_grant_id` 时，reducer MUST 主动查询本地已 accepted 的 grant/revoke index。若任一 ancestor parent grant 在本地已知为 revoked、superseded、expired 或 tombstoned：高风险 action 的 child grant 及依赖它的 Event MUST 立即 `failed_precondition`，`reason="grant_revoked_upstream"`；中低风险 DataEvent 则 MUST 按 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md) 的 causal distance window 判定，在窗口内接受时标记 `authorization_freshness="stale"`，越窗后拒绝。若本地无法确认 parent freshness，则按 §18.2 风险表处理：高风险与跨域 grant 相关 action MUST fail closed，低风险只可进入 pending / limited 模式。
 
 `grant_id` 是授权图的唯一追踪键。所有 reducer-input Event 的 `refs[role="authorized_by"]` MUST 指向 `ak:grant:<uuid>` 或 profile 注册的不可变 grant record id；MUST NOT 指向一次 `ak.self.policy.query.check`（默认 path `/_arkret/self/policy/check`）decision、human role、Event id alias 或当前 membership cell。节点 MUST 为每个 accepted / pending Event 记录 `authorized_by.grant_id[]` 与 grant canonical digest，用于 revoke 后的影响面枚举。revoke 生效后：
 

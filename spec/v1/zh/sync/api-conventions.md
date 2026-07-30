@@ -111,13 +111,16 @@ HTTP method 不是 operation action 的来源：同一 `query.scan` 语义可以
 `contract-registry.json` 的 operation 行声明一个 `durable_effect`，且只可使用：
 
 - `event_log`：显式列出非 actor-private 的 active `event_kinds[]`；若请求本身承载任意
-  Event，则改用唯一 `event_kind_source="$request.<path>"`，receiver 从已通过 schema 的请求
-  按该 JSON path 取 kind；
+  Event，则改用 `event_kind_source="$request.<path>"`。当请求 schema 是多个合法 shape 的
+  union、Event 在不同分支使用不同路径时，使用非空 `event_kind_sources[]` 列出每个分支
+  的路径；receiver 只对实际命中的 schema 分支解析对应路径并取 kind。每条路径都必须
+  能在 `request_schema_ref` 的至少一个合法分支中解析；
 - `actor_private_event`：显式登记唯一 active actor-private `event_kind`；
 - `none`：必须给出稳定、具体的 `rationale`，说明结果只改变 service-local material、
   identity log、队列、外部系统，或仅返回待签/待提交材料，不产生 Arkret durable Event。
 
-一个 operation 不得同时声明静态 kind 与动态 source，也不得把 actor-private kind 填进
+一个 operation 不得同时声明静态 kind 与任一种动态 source，也不得同时声明
+`event_kind_source` 与 `event_kind_sources`，不得把 actor-private kind 填进
 `event_log`。HTTP / gRPC / MQ adapter 必须实现同一 mapping；成功响应不能绕过该声明产生
 未登记 durable Event。该闭包由 `tools/lint_artifacts.py` 与
 `operation-registry-coverage-fixture.json` 机械校验。
@@ -373,10 +376,10 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 - 相同幂等键 + 相同 canonical request body MUST 返回与首次请求语义等价的结果。
 - 相同幂等键 + 不同 canonical request body MUST 返回 `duplicate_conflict`。
 - 服务端 SHOULD 记录 request identity 与完整 canonical request hash；联邦与服务间写入 MUST 将完整 hash 纳入签名 transcript 或 transaction replay cache。
-- `object_id` 与 `protocol_sequence` 是资源/协议状态 identity，不是请求级幂等键。逐字节相同的合法重放按 registry 的 `retry_safe` 承诺返回原 outcome 或等价 no-op；同一对象或序列上的不同 canonical body 是普通后继写，受 CAS、frontier、版本或状态机规则约束，MUST NOT 仅因 identity 相同返回 `duplicate_conflict`。
+- `object_id` 与 `protocol_sequence` 通常是资源/协议状态 identity，不是请求级幂等键。逐字节相同的合法重放按 registry 的 `retry_safe` 承诺返回原 outcome 或等价 no-op；同一对象或序列上的不同 canonical body 通常是普通后继写，受 CAS、frontier、版本或状态机规则约束。**Event identity 例外**：`ak.self.events.command.submit` 与 `ak.peer.events.command.submit` 虽登记为 `protocol_sequence`，但 `event_id` 是 immutable content identity；同一 `event_id` 对应不同 canonical Event bytes MUST 返回 `duplicate_conflict` 并按 operations-sync §12 / federation §4.3 处置，不得当作后继写。
 - `idempotency_mechanism="none"` 与 `retry_safe=false` 同时出现时，该 operation MUST 在 binding 文档中给出超时后的 outcome 查询、一次性材料重新签发或人工确认路径；客户端 MUST NOT 把传输失败解释为“服务端未执行”并盲目重放。`none/true` 只表示重复执行纯计算等价，不产生需要去重的 write outcome。
 
-上述恢复路径的机读真相源是 operation registry 同行 `uncertain_outcome`：`query_operation` 必须引用 outcome/read operation；`reissue_material` 必须引用重新签发入口并要求 fresh request identity；`manual_confirmation` 明确进入 uncertain 人工确认；`drop_unconfirmed` 仅允许不持久化、可安全丢弃的 ephemeral/fanout signal。`none/false` 缺该字段、引用未知 operation、或 `reissue_material` 未要求 fresh identity 时，artifact lint MUST 失败。
+上述恢复路径的机读真相源是 operation registry 同行 `uncertain_outcome`：`query_operation` 必须引用 outcome/read operation；`reissue_material` 必须引用重新签发入口并要求 fresh request identity；`revoke_then_reissue` 必须分别引用幂等 revoke 与 fresh-material issue operation，并要求 fresh request identity，客户端只有在 revoke 已达可确认终态后才可 issue；`manual_confirmation` 明确进入 uncertain 人工确认；`drop_unconfirmed` 仅允许不持久化、可安全丢弃的 ephemeral/fanout signal。`none/false` 缺该字段、引用未知 operation、或任何重新签发策略未要求 fresh identity 时，artifact lint MUST 失败。
 
 ### 6.1 幂等记录保留窗口（normative）
 
@@ -451,6 +454,13 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 **`next_cursor` / `has_more`** (normative)：
 - `next_cursor` 是 optional：缺省表示当前批次已经是末尾。
 - `has_more: boolean` MUST 出现：客户端 MUST 仅按 `has_more` 决定是否继续翻页；不得仅靠 `next_cursor` 是否存在做判断（实现可能在末尾仍返回 `next_cursor` 用作 long-poll resume token）。
+
+本小节的三字段合同适用于资源列表接口，不适用于双向 Event range scan。
+`ak.self.events.query.scan` / `ak.peer.events.query.scan` 按绝对方向分别返回
+`has_more_before` 与 `has_more_after`：沿 `before=<prev_cursor>` 补更旧历史时只看
+`has_more_before`，沿 `after=<next_cursor>` 追更新事件时只看 `has_more_after`。scan client
+不得把其中任一字段重命名为通用 `has_more`，也不得在向后补历史时用
+`has_more_after` 作为终止判据。
 
 **`prev_cursor`**（可选, 双向分页）：仅当接口支持向"更旧"方向翻页时返回。详见 §7.0；不支持双向翻页的接口 MUST NOT 返回 `prev_cursor`。
 

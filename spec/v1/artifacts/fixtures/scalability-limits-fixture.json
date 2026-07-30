@@ -9,6 +9,7 @@
   },
   "covers_vectors": [
     "ak.vector.scalability.refs_limit.v1",
+    "ak.vector.scalability.relation_expansion_depth.v1",
     "ak.vector.scalability.event_ref_role_limits.v1",
     "ak.vector.scalability.circle_count_limit.v1",
     "ak.vector.scalability.envelope_size_limit.v1",
@@ -27,6 +28,40 @@
     "ak.vector.patch.path_grammar_bounds.v1"
   ],
   "cases": [
+    {
+      "name": "accept_relation_expansion_at_depth_limit",
+      "vector_id": "ak.vector.scalability.relation_expansion_depth.v1",
+      "input": {
+        "generator": {
+          "kind": "relation_chain",
+          "depth": 32,
+          "cross_realm_at_depth": null
+        }
+      },
+      "expected": {
+        "decision": "accept",
+        "expanded_depth": 32,
+        "truncated": false
+      }
+    },
+    {
+      "name": "truncate_relation_expansion_over_depth_limit",
+      "vector_id": "ak.vector.scalability.relation_expansion_depth.v1",
+      "input": {
+        "generator": {
+          "kind": "relation_chain",
+          "depth": 33,
+          "cross_realm_at_depth": null
+        }
+      },
+      "expected": {
+        "decision": "accept_with_truncation",
+        "expanded_depth": 32,
+        "truncated": true,
+        "boundary_projection": "lazy_link",
+        "must_not_read_depth": 33
+      }
+    },
     {
       "name": "reject_refs_over_limit",
       "vector_id": "ak.vector.scalability.refs_limit.v1",

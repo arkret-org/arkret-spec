@@ -43,7 +43,7 @@ ak.profile.<name>.v<major>
 
 ## 2.1 v1 MVP 分层
 
-为降低实现复杂度，v1 profile 分为三个声明层。`artifacts/profiles/conformance-profiles.json.profile_sets` 是机器可读来源；`v1_profile_catalog` 不是 bundle requirement，实现只声明自己实际支持的 profile、event kind、schema 和 operation。
+为降低实现复杂度，v1 profile 分为四个声明层。`artifacts/profiles/conformance-profiles.json.profile_sets` 是机器可读来源；`v1_profile_catalog` 不是 bundle requirement，实现只声明自己实际支持的 profile、event kind、schema 和 operation。
 
 | 层级 | 含义 | 典型内容 |
 | --- | --- | --- |
@@ -930,27 +930,12 @@ MIMI Interop profile MUST 额外提供：
 
 ## 21. Feature Discovery 示例
 
-```json
-{
-  "service_id": "did:webvh:z6h868X7rdVapSQTt7ehsQB8v:server.example.com",
-  "service_kind": "principal_server",
-  "protocol_version": "1.0",
-  "supported_profiles": [
-    "ak.profile.principal_server.v1"
-  ],
-  "supported_features": [
-    "sync_stream",
-    "snapshot_bootstrap",
-    "plaintext_visibility_classes"
-  ],
-  "reducer_profiles": [
-    "ak.profile.federation_minimal.v1"
-  ],
-  "schema_profiles": [
-    "ak.schema.event.v1"
-  ]
-}
-```
+Feature discovery MUST 使用
+[`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json)
+的 closed `ServiceDescribe` DTO。完整且可校验的响应示例见
+[`service-surface.md` §3](../sync/service-surface.md)；profile 通过
+`supported_profiles` / `claimed_profiles` / `verified_profiles` 表达，reducer 与 schema
+版本不得伪装成独立的顶层 profile 字段。
 
 ## 22. 基线 Profile
 

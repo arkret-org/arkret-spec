@@ -101,12 +101,12 @@ Profile MAY 注册额外 `link_kind`。扩展值 MUST 使用 `x.<reverse-dns>.<n
 
 Projection MAY 派生：
 
-- `confirmed`：要求双方声明的 kind 同时 active。
+- `confirmed`：仅当声明该 link 的 profile 明确要求双方确认，并登记 `reciprocal_kind` 后才可派生；source 侧 `(source → target, link_kind)` 与 target 侧 `(target → source, reciprocal_kind)` 必须同时 active 且 commitment transcript 匹配。只有 profile 明确把 kind 声明为 symmetric 时，`reciprocal_kind` 才可与 `link_kind` 相同；`governed_by`、`discoverable_from`、`join_gate_from`、`inherits_policy_from`、`confidential_extension_of`、`mirror_of`、`split_from` 与 `replaces` 均不得仅因反向出现同名 kind 就判为 confirmed。
 - `unconfirmed_link`：只有一侧声明。
 - `rejected`：任一侧拒绝。
 - `tombstoned`：任一侧 tombstone 或 Realm lifecycle 使 link 失效。
 
-默认情况下，`ak.realm.link` 是单侧声明。需要双方确认的 profile MUST 规定目标 Realm 中的 reciprocal event 形态和 commitment 绑定规则。
+默认情况下，`ak.realm.link` 是单侧声明，core 标准 kind 在没有额外 profile 时不会产生 `confirmed`。需要双方确认的 profile MUST 规定目标 Realm 中的 reciprocal event 形态、`reciprocal_kind` 映射和 commitment 绑定规则。
 
 ## 5. 禁止隐式级联
 

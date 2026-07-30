@@ -12,7 +12,7 @@ updated: 2026-07-29
 
 ## 1. 目标
 
-Client Sync 是客户端 **账号视角聚合** 同步协议。它在 Events API 之上提供跨 Realm 的稳定 delta 视图（包含 to_device、account_data、device_lists、presence、unread / notification counts），由服务端通过 `ak.self.account.stream.subscribe` 的有界长轮询按需返回。它不是裸事件读取——逐 Realm 的事件查询和实时订阅请使用 `ak.self.events.query.scan` / `ak.self.events.stream.subscribe`。
+Client Sync 是客户端 **账号视角聚合** 同步协议。它在 Events API 之上提供跨 Realm 的稳定 delta 视图（包含 to_device、account_data、device_lists、unread / notification counts），由服务端通过 `ak.self.account.stream.subscribe` 的有界长轮询按需返回。它不是裸事件读取——逐 Realm 的事件查询和实时订阅请使用 `ak.self.events.query.scan` / `ak.self.events.stream.subscribe`。
 
 `ak.self.account.stream.subscribe` 与 `ak.self.events.stream.subscribe` 是对称的两类 streaming 订阅:
 - `ak.self.events.stream.subscribe` 是**逐 Realm / actor 的事件流**(selector 范围内的每条 Event)
@@ -34,7 +34,7 @@ Accept: application/x-ndjson
 
 上面是 **initial account sync** 的 canonical frame 调用：不带 `after`，显式设置 `catchup=true`。这里的 `catchup` 不是"返回全部历史记录"，而是要求服务端先发送当前账号 baseline（有限 timeline + 必要 state + account-scoped 当前位置），再发送 `catchup_complete`。后续请求使用 `GET /_arkret/self/account/subscribe?after=<cursor>&catchup=true` 进入有界长轮询；收到 `dropped` frame 后的补洞重连使用同一方式。
 
-该端点对应 `ak.self.account.stream.subscribe`，HTTP binding 返回 `application/x-ndjson` 的 `AccountSubscribeFrame` 有界响应。Initial sync 立即返回；带 `after` 的请求若已有可见 delta 也立即返回；否则服务端 MUST 等待数据或部署默认窗口（v1 默认 30 秒）到期，期间不得先发送空 `delta` / `catchup_complete` 使客户端误判本轮已完成。数据到达时返回 delta；窗口到期仍无数据时返回仅推进 cursor 的 `frontier`。`catchup=true` 时本轮数据 frame 后发送 `catchup_complete`，随后关闭本轮响应；客户端持久化 cursor 后立即发起下一轮长轮询。客户端 MUST 把 cursor-bearing frame 的 `cursor` 作为下一次 `after=` 起点。该端点聚合跨 Realm delta、to_device、account_data、device_lists、presence；不同于 `GET /_arkret/self/events/subscribe`(按 selector 的事件流订阅)和 `GET /_arkret/self/events?before=...` / `?after=...`(按 selector 的双向历史查询)。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `ak.self.account.*`，snapshot 入口在 `ak.self.snapshot.*`，事件读取在 `ak.self.events.*`（权威 operation namespace 以 [`../../artifacts/registry/operation-registry.json`](../../artifacts/registry/operation-registry.json) 为准，canonical 均带 `ak.self.*` 信任面前缀；`ak.account.*` / `ak.snapshot.*` / `ak.events.*` 只是 surface-group 口语简称，不是 wire operation_id）。
+该端点对应 `ak.self.account.stream.subscribe`，HTTP binding 返回 `application/x-ndjson` 的 `AccountSubscribeFrame` 有界响应。Initial sync 立即返回；带 `after` 的请求若已有可见 delta 也立即返回；否则服务端 MUST 等待数据或部署默认窗口（v1 默认 30 秒）到期，期间不得先发送空 `delta` / `catchup_complete` 使客户端误判本轮已完成。数据到达时返回 delta；窗口到期仍无数据时返回仅推进 cursor 的 `frontier`。`catchup=true` 时本轮数据 frame 后发送 `catchup_complete`，随后关闭本轮响应；客户端持久化 cursor 后立即发起下一轮长轮询。客户端 MUST 把 cursor-bearing frame 的 `cursor` 作为下一次 `after=` 起点。该端点聚合跨 Realm delta、to_device、account_data、device_lists 与 notifications；不同于 `GET /_arkret/self/events/subscribe`(按 selector 的事件流订阅)、`GET /_arkret/self/events?before=...` / `?after=...`(按 selector 的双向历史查询)以及独立的加密 Signal rail。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `ak.self.account.*`，snapshot 入口在 `ak.self.snapshot.*`，事件读取在 `ak.self.events.*`（权威 operation namespace 以 [`../../artifacts/registry/operation-registry.json`](../../artifacts/registry/operation-registry.json) 为准，canonical 均带 `ak.self.*` 信任面前缀；`ak.account.*` / `ak.snapshot.*` / `ak.events.*` 只是 surface-group 口语简称，不是 wire operation_id）。
 
 Account subscribe 的服务边界是当前 authenticated session 绑定的 Principal Server service DID。若同一 principal DID 同时在个人 Principal Server 与组织 Principal Server 上有账号/设备上下文，客户端必须分别维护 session、cursor、to-device queue 和 push registration,并对每个上下文建立独立的 `/_arkret/self/account/subscribe` 长轮询序列。某个 Realm 的 timeline / notification delta 只应出现在该成员 effective `delivery_binding.recipient_service_id` 指向的服务上;DID Document 中的默认 Principal Server 不得把其它 Realm-scoped delivery binding 的 delta 聚合进自己的 `/_arkret/self/account/subscribe` 流。
 
@@ -62,6 +62,7 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 | 参数 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
 | `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前 principal / device。 |
+| `X-Arkret-Wait-For` | header | `cursor` | optional | RYW barrier（purpose=`barrier`）。服务端在发送本轮第一个 account frame 前 MUST 等待 account projection frontier 覆盖 cursor 绑定 target；最长等待当前长轮询窗口（v1 默认 30 秒）。窗口内未覆盖时返回 `temporarily_unavailable` / `timeout` 与当前 frontier，不得先发送会被误认为满足 barrier 的 `delta` / `frontier`。WebSocket profile 的 account `parameters.wait_for` 是本 header 的等价投影。 |
 | `after` | query | `cursor` | optional | 订阅起点 cursor(purpose=`stream`,排除语义),从此 cursor *之后* 开始接收 frame。缺省表示没有可恢复账号 cursor。 |
 | `catchup` | query | `boolean` | optional | 默认 `false`。`after` 存在时,`true` 表示服务端返回 `after=` 之后到当前 frontier 的账号聚合 delta,再发 `catchup_complete` frame并结束本轮响应；这不是全量历史。`after` 缺省且 `catchup=true` 是 **initial account sync**:服务端 MUST 先发送覆盖当前账号 baseline 的 `delta` frame(Realm 摘要、必要首屏 state、device list baseline、to_device/account_data/notification 当前位置),再发送 `catchup_complete`。完整历史必须通过 `ak.self.events.query.scan` 分页/区间读取。 |
 | `filter` | query (deepObject) | `object` | optional | 过滤条件。语义同 self.events.stream.subscribe。 |
@@ -169,11 +170,10 @@ Account subscribe `delta` frame 包含以下 stream：
 | `state_at_window_start` | 派生 | `timeline.limited=true` 时 window 起点 seal 状态，见 §5 |
 | `account_data` | 私有持久 | 标签、UI 偏好、recent emoji、push rules |
 | `to_device` | 设备队列 | key verification、secret sharing、device messages（队列删除只由 §10.1 显式 ack 驱动，不随 cursor 推进） |
-| `ephemeral` | 短暂 | typing、presence、live cursor |
-| `receipts` | 可配置 | read receipt / read cursor delta（逻辑类，无独立 wire 字段；承载于 per-Realm `ephemeral` / `account_data`，见下表） |
+| `receipts` | 可配置 | actor-private read cursor delta（逻辑类，无独立 wire 字段；承载于 per-Realm `account_data`；加密 read receipt 走独立 Signal rail） |
 | `notifications` | 派生 | inbox / push notification delta |
 | `device_lists` | 持久 delta | E2EE device trust 更新 |
-| `applet` | 持久/短暂 | Applet delivery receipt、bridge health（逻辑类，无独立 wire 字段；承载于 per-Realm `timeline` / `ephemeral`，见下表） |
+| `applet` | 持久 | Applet delivery receipt、bridge health（逻辑类，无独立 wire 字段；承载于 per-Realm `timeline`，见下表） |
 | `blob_status` | 派生 | upload scan、thumbnail、retention 状态（逻辑类，无独立 wire 字段；承载于 per-Realm `timeline`，见下表） |
 
 客户端 MUST 使用 `cursor` 作为唯一 resume token，不得解析 token 内部结构。
@@ -182,20 +182,19 @@ Account subscribe `delta` frame 包含以下 stream：
 
 | Stream | 承载位置 |
 | --- | --- |
-| `timeline` / `state` / `state_after` / `state_at_window_start` / `ephemeral` | per-Realm：`delta.realms[<realm_id>]` 内的同名字段（§4） |
+| `timeline` / `state` / `state_after` / `state_at_window_start` | per-Realm：`delta.realms[<realm_id>]` 内的同名字段（§4） |
 | `to_device` / `device_lists` | `delta` 顶层同名字段（跨 Realm，不分桶到具体 Realm） |
 | `account_data` | 双位置：Realm-scoped 私有数据进 `delta.realms[<realm_id>].account_data`；account-scoped 进 `delta` 顶层 `account_data` |
-| `presence` | `delta` 顶层同名字段（跨 Realm，不分桶到具体 Realm） |
-| `receipts` | per-Realm：read receipt / read cursor delta 随对应 Realm 投递，承载于 `delta.realms[<realm_id>].ephemeral`（read receipt 临时位）与 `account_data`（actor-private `read_cursor` 高水位）；服务端 MAY 按下文合并 |
+| `receipts` | per-Realm：actor-private `read_cursor` 高水位承载于 `delta.realms[<realm_id>].account_data`；`ak.receipt.read` 只走独立 Signal rail，不进入本 frame |
 | `notifications` | `delta` 顶层 `notifications`；per-Realm 未读计数另由 `delta.realms[<realm_id>].unread_notifications` 表达（§4） |
-| `applet` | per-Realm 派生：Applet delivery receipt / bridge health 作为对应 Realm 的事件随 `delta.realms[<realm_id>].timeline` / `ephemeral` 投递 |
+| `applet` | per-Realm 派生：Applet delivery receipt / bridge health 作为对应 Realm 的事件随 `delta.realms[<realm_id>].timeline` 投递 |
 | `blob_status` | per-Realm 派生：upload scan / thumbnail / retention 状态作为对应 Realm 的派生事件随 `delta.realms[<realm_id>].timeline` 投递 |
 
 顶层 `delta` 与 per-Realm entry 都是 closed DTO（`additionalProperties:false`）；上表及 `account-subscribe-frame.schema.json` 给出 v1 全部 canonical 承载位置，实现不得自行另设字段或外层分桶。新增 stream class 必须先登记并更新 schema/profile；`receipts` / `applet` / `blob_status` 不在顶层 `delta` 另立独立 bucket。
 
 `device_lists` 的 wire 形态固定为 `{changed: did[], left: did[]}`。两个数组都必须存在、去重；元素是 principal DID，不是 `device_id`：`changed` 表示该 principal 的权威 device list 已变化，`left` 表示该 principal 已离开调用方可见范围。客户端收到 `changed` 后必须重新查询对应 principal 的 device list；收到 `left` 后必须删除其缓存设备信任投影。
 
-`receipts`、`notifications` 和高频 actor-private `read_cursor` delta MAY 被服务端合并；同一 scope 在一个 account subscribe frame 内只需要返回最新可见位置和最终 unread count。客户端不得要求服务返回每一次中间 read receipt / marker 变化；`cursor` 只承诺覆盖 frame 中声明的最终 stream positions。
+`notifications` 和高频 actor-private `read_cursor` delta MAY 被服务端合并；同一 scope 在一个 account subscribe frame 内只需要返回最新可见位置和最终 unread count。加密 `ak.receipt.read` 不在本流中，服务端不得解密或对其做语义合并。客户端不得要求服务返回每一次中间 private read-cursor 变化；`cursor` 只承诺覆盖 frame 中声明的最终 stream positions。
 
 ### 3.1 Account notification delta（normative）
 
@@ -301,7 +300,7 @@ Notification 是 account-private projection，不是 Realm Event。服务端必�
 - 三个字段都必须出现；`actor_profiles` 只允许 `display_name` / `avatar_blob_ref`，`realm_metadata` 只允许 `title` / `summary` / `join_rule` / `collaboration_role`。`collaboration_role` 仅在服务端已验证注册 profile 与 Realm genesis discriminator 后输出，v1 唯一值为 `direct_conversation`；客户端不得从 title、category、tag 或成员数重建该字段。`e2ee_epoch` 必须为 `null` 或 `{epoch: non-negative integer, key_ref: non-empty string}`。各层对象均为 closed DTO，未知字段必须按 `schema_violation` 拒绝。
 - 客户端 SHOULD 在渲染 window 内事件时优先用 `state_at_window_start` 而非"当前查询 basis"。
 - 服务端可以沿 Seal DAG 回溯控制面 basis，并按 DataEvent 因果闭包或观察性 `data_event_set_root` 定位 window 起点，再按各 Lattice 的 deterministic join 取 cell value 派生该状态；不可用时退路径 (b)。HLC 只能作为定位候选历史 view 的非权威索引 hint，MUST NOT 作为 cell value 选择键或状态判断依据。
-- **单一 canonical 定位规则（normative）**：上一条提到 window 起点可由 DataEvent 因果闭包或观察性 `data_event_set_root` 定位，但这两条路径对同一 limited timeline 的 window 起点**可能定位到不同的 cell view**（渲染层 display name / `realm_metadata` / `e2ee_epoch` 错位），"是否分歧"本身没有确定判据。为消除双路径歧义，凡实现选择给出 `state_at_window_start` 确定值，**MUST**（不再是 SHOULD）使用唯一 canonical 定位规则：**以该 limited timeline 首事件的 `prev_refs` 因果闭包在最近 Seal basis 下的 deterministic join 取 cell value**。该规则是确定性算法，对同一输入跨实现产出同一渲染投影，因此不存在"两条路径产出不同 cell view"的合法分歧。由于本字段是 projection-only、不入协议状态，实现仍 MUST NOT 把它当作权威 cell value 对外承诺；当实现无法按上述 canonical 规则计算出确定值（例如缺 Seal basis 或缺首事件因果闭包）时，MUST 回退到路径 (b)（`preview_only=true`），不得输出非 canonical 定位规则得出的 `state_at_window_start`。
+- **单一 canonical 定位规则（normative）**：上一条提到 window 起点可由 DataEvent 因果闭包或观察性 `data_event_set_root` 定位，但这两条路径对同一 limited timeline 的 window 起点**可能定位到不同的 cell view**（渲染层 display name / `realm_metadata` / `e2ee_epoch` 错位），"是否分歧"本身没有确定判据。为消除双路径歧义，凡实现选择给出 `state_at_window_start` 确定值，**MUST**（不再是 SHOULD）使用唯一 canonical 定位规则：**以该 limited timeline 首事件逐字携带的 `seal_ref` 为唯一 control basis，并对该事件 `prev_refs` 因果闭包做 deterministic join 取 cell value**；不得在 Seal DAG leaf 中另选“最近”Seal。首事件缺少可验证 `seal_ref` 或因果闭包时必须走下述回退路径。该规则对同一输入跨实现产出同一渲染投影，因此不存在"两条路径产出不同 cell view"的合法分歧。由于本字段是 projection-only、不入协议状态，实现仍 MUST NOT 把它当作权威 cell value 对外承诺。
 
 **(b) 标记 `preview_only=true`** (回退路径)：
 
@@ -760,7 +759,10 @@ Accept: application/x-ndjson
 - 对活跃 Realm 返回有限 timeline。
 - 返回足够 `required_state` 让客户端首屏可渲染。
 - 返回 device list delta 的完整 baseline。
-- 把当前 account context 下全部仍 open 的 `agent_runtime_approval` notification 作为 `action=add` 的权威完整集合返回；即使其它 notification 历史受限也不得截断该子集。
+
+此外，baseline `delta` MUST 把当前 account context 下全部仍 open 的
+`agent_runtime_approval` notification 作为 `action=add` 的权威完整集合返回；即使其它
+notification 历史受限也不得截断该子集。
 
 对当前 membership 为 `join` 且 `encryption_profile=mls_rfc9420` 的 Realm，baseline 还 MUST 提供可验证的**当前安全控制基线**：至少包含 current accepted `ak.realm.create`、effective `ak.realm.policy_bundle` singleton state（若该 cell 尚无值，则提供同一 frontier 下可验证的缺省/空值证明），以及足以验证当前 membership / MLS governance frontier 的 state/proof material；这些材料可直接位于 `state.events`，或由已验证 snapshot + 可 backfill refs 等价提供。`history_visibility` 只裁剪 data-plane timeline 和调用者无权读取的历史正文，不得裁掉客户端验证当前写入、选择 `content_scheme`、处理 Welcome 或判断 `epoch_update_required` 所必需的当前 control/security state。该义务不要求泄露 join 前旧 policy revisions 或其它不可见历史；只要求当前 effective singleton/control evidence。客户端在基线完整前 MUST 保持 `encryption_policy_pending` / `encryption_transition_pending`，不得把字段缺失解释为 policy 缺省或 membership 未发生变化。
 

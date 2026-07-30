@@ -144,7 +144,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 
 **Capability semantic coverage（normative gate）**：下列行为已由 `protocol-edge-cases-fixture.json` 的 active 向量固化：`ak.vector.capability.issuer_authority_bound.v1`、`ak.vector.capability.validity_window.v1`、`ak.vector.capability.delegation_expiry_seal.v1`、`ak.vector.capability.delegation_cycle.v1`、`ak.vector.capability.moderation_dependency.v1`、`ak.vector.capability.freshness_risk_matrix.v1`、`ak.vector.capability.global_decision_merge.v1`。进入 `v1-conformance-certified` 前，capability runner MUST 执行其全部正负例并保存逐 case 结果：
 
-规模型授权上限已由 active `ak.vector.scalability.capability_limits.v1` 与 `scalability-limits-fixture.json` 的生成式 runner 固化：delegation chain 深度 5、单次展开 1,025 grants、单 grant 65 constraints、selector AST 深度 17 均必须 fail closed；这些 case 与下列语义型 capability coverage 同属认证闭包，不得只运行其一。
+规模型授权上限已由 active `ak.vector.scalability.capability_limits.v1` 与 `scalability-limits-fixture.json` 的生成式 runner 固化：delegation chain 深度 5、单次展开 1,025 grants、单 grant 65 constraints、selector AST 深度 9 均必须 fail closed；这些 case 与下列语义型 capability coverage 同属认证闭包，不得只运行其一。
 
 - 首发 grant issuer 上界校验：grant 的 `actions[]` / `resources[]` 超出 issuer 当前 effective capability 时 MUST 拒绝（`grant_exceeds_issuer_authority`），并覆盖 freshness unknown fail-closed。
 - effective validity window 归一化：`effective_not_before >= effective_expires_at` MUST 拒绝（`grant_validity_window_empty`）。
@@ -194,7 +194,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 
 | 标签 | 允许用途 | 必须满足 |
 | --- | --- | --- |
-| `v1.0.0` | 对外发布稳定规范基线。 | `zh/` + `artifacts/` registry lint 通过；`core_event_store`、`chat_mvp`、`kanban_mvp` 的 schema / fixture / profile 已冻结；OpenAPI、cryptographic fixture 和 Markdown JSON 示例不得包含未发布占位、非 active wire 字段、未注册 Event kind 或 schema-invalid `constraint_kind`。只做结构验证的 fixture MUST 声明 `fixture_kind="schema_only"`，其占位 nonce / ciphertext / signature 不计为 cryptographic vector。 |
+| `v1.0.0` | 对外发布稳定规范基线。 | MUST 满足 [`release-readiness.md` §5](../overview/release-readiness.md) 的全部 stable promotion gate；该节是唯一权威清单。 |
 | `v1-interop-preview` | 多实现试验互通。 | 至少两个独立实现通过同一 reference validator 的 `core_event_store` 向量，并能重放官方 sync / state / capability fixture。 |
 | `v1-conformance-certified` | 某实现宣称完全通过指定 profile。 | reference validator、reference reducer、reference authz evaluator 和 conformance runner 已发布；canonical JSON、Event Envelope negative vectors、CBA/Lattice、capability、privacy/security、sync 和 snapshot vectors 均由 CI 或公开认证报告执行；并且 profile operation closure 中每个 endpoint 的全部 active `AK-OP-NNN` clause 均有不可变证据。英文或其他翻译不得作为 stale source of truth 发布。 |
 

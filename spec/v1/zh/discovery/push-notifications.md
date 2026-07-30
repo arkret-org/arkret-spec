@@ -23,7 +23,7 @@ updated: 2026-07-02
 
 ### 2.1 推送由 Sync Service 或受托通知服务触发
 
-客户端在离线前向 Sync Service 注册推送设备信息。此后由 Sync Service 或 Realm policy 明确授权的通知服务在收到匹配推送规则的事件时，向推送网关 (Push Gateway) 发送通知。
+客户端在离线前向 Sync Service 注册推送设备信息。此后由 Sync Service 或 Realm policy 明确授权的通知服务按服务端内置的 membership、watch/mute、blocklist、route 与 `wakeup_default` gate 产生 blind / batch wakeup；设备被唤醒并解密后，在客户端执行用户的完整 push-rule chain，再决定是否进入用户可感知的通知 surface。
 
 ### 2.2 推送内容脱敏 (Blind Wakeup)
 
@@ -123,7 +123,7 @@ POST /_arkret/edge/push/unregister-device
 
 ### 4.1 规则结构
 
-推送规则按优先级从高到低排列，第一条匹配的规则决定推送行为：
+推送规则按优先级从高到低排列，由客户端在解密后对**完整有序规则链**求值，第一条匹配的规则决定推送行为。服务端内置 dispatch gate 不属于这条用户规则链，不能截断或代替客户端 first-match 求值：
 
 ```json
 {
@@ -179,19 +179,22 @@ POST /_arkret/edge/push/unregister-device
 
 ### 4.3 条件类型 (Condition Kinds)
 
-| Condition Kind | 评估位置 | 说明 |
+| Condition Kind | 用户规则评估位置 | 说明 |
 |---------------|---------|------|
-| `field_match` | server-side | Event 明文元数据或授权可见 payload 字段匹配给定 pattern（支持 glob） |
-| `contains_keyword` | client-side（E2EE）/ server-side（plaintext Realm）| 消息 `body` 中包含指定关键词。E2EE Realm 中 server 不能解密正文 → 必须降级，见 §4.5 |
-| `mentions_actor` | client-side（E2EE）/ server-side（plaintext Realm）| 消息 direct mention 当前 Actor，或授权 audience mention 展开后包含当前 Actor。E2EE Realm 中 mention relation / audience node 通常嵌入密文 → 见 §4.5 |
-| `is_direct_message` | server-side | 来自 1 对 1 私聊 Realm（可由 Realm metadata 或成员数判断，不需要解密）|
-| `member_count` | server-side | Realm 成员数满足条件（如 `<= 5`），可由 metadata 判断 |
-| `strand_track` | server-side | Event 关联的 Strand track 名匹配给定 pattern（如 `synthesis`、`discussion`，支持 glob）。Track 名是 Strand 的公开配置 metadata，不属于 E2EE 正文 → server 端可在不解密内容的前提下评估 |
-| `watch_state` | server-side | Event 关联 Strand 的 receiver-side watch level 匹配给定 pattern（取值 `mentions_only` / `participating` / `all` / `muted`，支持 glob 与多值数组）。watch level 来自 receiver 自己的 watch cell + 隐含订阅（[`../models/strand-and-message.md` §8.7](../models/strand-and-message.md)）；cell value 由 server 直接读取，无 E2EE 降级。`muted` MUST 收敛到 `dont_notify`，实现路径见 §4.3.2 |
+| `field_match` | client | 客户端对已授权可见的 Event metadata / payload 字段匹配给定 pattern（支持 glob）。 |
+| `contains_keyword` | client | 解密后的消息 `body` 包含指定关键词。 |
+| `mentions_actor` | client | 解密后的 direct mention 或 audience 展开结果包含当前 Actor。 |
+| `is_direct_message` | client | 当前 Realm 是已验证的 1 对 1 Direct Conversation Realm。 |
+| `member_count` | client | 客户端在当前授权 roster projection 上评估成员数条件。 |
+| `strand_track` | client | Event 关联的 Strand track 名匹配给定 pattern（支持 glob）。 |
+| `watch_state` | client | receiver-side watch level 匹配给定 pattern；服务端对 `muted` 的强制 dispatch gate 另见 §4.3.2。 |
 
-每条 rule MUST 在 wire 上声明其 `evaluation_locus` 为 `server` 或 `client`。Sync Service 只在 `server` rule 上做匹配；`client` rule 的语义由本节 §4.5 定义的降级流程承担。
+`ak.push_rules` 存在 encrypted account data 中，v1 每条用户 rule 的 `evaluation_locus`
+MUST 为 `client`；`server` 值保留给未来显式注册的明文 projection profile，v1 receiver
+MUST 以 `unsupported_feature` 拒绝，不能读取 account-data ciphertext 后猜测规则。
+Sync Service 只执行本文件明确列出的内置 dispatch gate 与 coarse wakeup policy，不匹配用户规则。
 
-**`is_direct_message` / `member_count` 在 E2EE / 高隐私 Realm 的侧信道收口（normative）**：这两个 server-side 条件要求 Sync Service 读取精确成员数与"是否双人私聊"，在 E2EE Realm 中构成成员数与私聊存在性的侧信道（叠加 push timing 可近似重建"谁在和谁私聊"关系图）。因此：`member_count` 在 E2EE / `minimal-metadata` / 高隐私 Realm 中 MUST 仅对 server-side 规则暴露 bucket 化值（与 discovery §3 成员数 bucket+迟滞同口径），MUST NOT 暴露精确 `<= N` 比较所需的精确值；`is_direct_message` 的 server-side 投影 MUST 受 Realm policy gate，`minimal-metadata` Realm MUST 关闭该 server-side 条件并降级为 §4.5 的 client-side 评估。Realm policy 未授权时，实现 MUST NOT 在 E2EE Realm 用这两个条件做 server-side 匹配。
+**`is_direct_message` / `member_count` 的侧信道收口（normative）**：Sync Service 不得为匹配用户规则取得精确成员数或“是否双人私聊”投影。客户端只能使用自己在正常授权读取中已经获得的 roster / Direct Conversation binding；minimal-metadata Realm 若不向该客户端披露精确值，则该条件求值为 indeterminate 并继续检查下一条规则，不得触发 allow/notify。
 
 对 bucket 值求比较时，注册方 MUST 先把数值谓词映射为整数集合，并逐 bucket 检查：与 bucket 区间无交集则该 bucket 求值 `false`；bucket 全部落入谓词集合则求值 `true`；只部分相交属于不确定规则，MUST 在规则注册 / 更新时以 `invalid_param` 拒绝，不能按精确成员数补算。开放上界 bucket 同样按区间集合处理。因此 E2EE / 高隐私 Realm 的 `member_count` 阈值 MUST 对齐 bucket 边界；示例 `<= 5` 在默认 `1-10` grid 上非法，调用方应改用 `<= 10` 或 client-side 评估。
 
@@ -199,7 +202,7 @@ POST /_arkret/edge/push/unregister-device
 
 Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.md` §4](../models/strand-and-message.md)），但用户对不同 track 的关注度不同——例如想接收某个 Strand 的 `synthesis` 全部更新，但 `discussion` 只关心 @ 自己。`strand_track` condition 用于在通知层表达这种偏好，不影响访问控制。
 
-**`track_name` 的派生**（server-side，由 Sync Service 在规则匹配前从 Event 推导，**不是** 一个客户端在 wire 上自由设置的字段）：
+**`track_name` 的派生**：客户端从已验证 Event 与 Strand state 确定性推导；Sync Service MAY 为内置粗粒度 batching / route gate 推导同一值，但不得据此匹配 holder 的加密用户规则。它不是客户端在 wire 上自由设置的字段：
 
 - Event payload 显式引用 Strand（如 `ak.message.create` 携带 `strand_id`，或 `ak.strand.update` 直接作用于 Strand）→ 按 Event 类型映射：
   - `ak.message.create` / `ak.message.revise` / `ak.message.redact` / `ak.reaction.add` / `ak.reaction.remove` 在 Strand 的 discussion timeline 中产生 → `track_name = "discussion"`
@@ -210,7 +213,7 @@ Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.m
 - Event 不属于任何 Strand（普通 Realm 消息）→ `strand_track` condition 视为不匹配（既不为真，也不报错）；用户希望覆盖普通 Realm 消息时应使用 `field_match` on `realm_id` 而非 `strand_track`
 - Strand 设置了 `scope_circle_id` 指向 Circle → Strand 的所有 track（含 discussion）的 `ak.message.*` 落在该 [Circle](../models/circle.md) scope；server MUST 校验通知 receiver 属于该 Circle 成员集合，否则 MUST `dont_notify` 并不暴露该 Strand 的存在性（与 [`../models/circle.md` §9.3](../models/circle.md) 一致）。
 
-`strand_track` MUST NOT 携带任何正文或 mention 信息进入推送 payload；它只参与 server-side 规则匹配并影响 `notify` / `dont_notify` 的最终决定。在 E2EE Realm 中，由于 track name 是公开 Strand 配置（非密文），此条件不需要 §4.5 的降级流程，仍按 `evaluation_locus: server` 评估。
+`strand_track` MUST NOT 携带任何正文或 mention 信息进入推送 payload；它只在客户端完整规则链中影响 `notify` / `dont_notify` 的最终决定。
 
 示例（synthesis 全收，discussion 仅 mention 自己）：
 
@@ -220,7 +223,7 @@ Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.m
     "rule_id": "underride.strand-synthesis-all",
     "kind": "underride",
     "enabled": true,
-    "evaluation_locus": "server",
+    "evaluation_locus": "client",
     "conditions": [
       { "kind": "strand_track", "pattern": "synthesis" }
     ],
@@ -240,24 +243,23 @@ Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.m
 ]
 ```
 
-第二条规则把 `mentions_actor` 与 `strand_track` 复合：在 plaintext Realm 中 server 直接评估；在 E2EE Realm 中 server 看到 `strand_track=discussion` 但无法解密 mention，按 §4.5 走 client-side 降级——即按 Realm 级 `wakeup_default` 与设备 `client_rule_digest` 选择是否 blind wakeup，client 解密后再决定是否进入用户感知通知 surface。规则书写者无需手动区分两种 Realm，`evaluation_locus: client` 已经声明了降级路径。
+两条规则都由客户端在解密并验证 Event 后按同一有序链求值。服务端只按 Realm 级 `wakeup_default` 与设备注册状态选择是否 blind / batch wakeup；`client_rule_digest` 只能用于同一设备判断规则是否变化，不能用于匹配。
 
 #### 4.3.2 `watch_state` 与订阅偏好
 
-`watch_state` condition 用 receiver 的 watch level（[`../models/strand-and-message.md` §8](../models/strand-and-message.md)）做 server-side 匹配。Watch level 由 Sync Service 直接读取 receiver 在该 Strand 的 watch cell + 隐含订阅集合（assigned_to / self-posted），不需要解密正文，因此即使在 E2EE Realm 也是 `evaluation_locus: server`。
+`watch_state` condition 由客户端用 receiver 的 watch level（[`../models/strand-and-message.md` §8](../models/strand-and-message.md)）匹配。Sync Service 可直接读取 receiver 的 canonical watch cell，并把 `muted` 作为独立于用户规则链的强制 dispatch gate；它不得因此读取或执行 encrypted `ak.push_rules`。
 
 **两层职责**：
 
-- **Watch level 决定"通知是否发生"**：Sync Service 在派发前解析 receiver effective level（含 [`../models/strand-and-message.md` §8.7](../models/strand-and-message.md) 隐含订阅、`muted` 覆盖）。effective level 为 `mentions_only` 且当前 Event 不是 mention / assigned / reply / schedule target 等定向事件时，结果为 `dont_notify`。
-- **Push rule 决定"通知如何投递"**：在 watch level 允许通知发生的前提下，push rule 决定提示音、是否高亮、是否进 DND 例外等。
+- **服务端 dispatch gate 决定是否发 coarse wakeup**：Sync Service 在派发前解析 receiver effective level；`muted` 必须抑制 wakeup。无法从 opaque E2EE Event 判断 `mentions_only` 是否命中时，按 §4.5 的 `wakeup_default` 批量/盲唤醒，不得猜测用户规则结果。
+- **客户端 push rule 决定用户可感知通知**：客户端被唤醒、同步并解密后，对完整链 first-match，决定提示音、高亮、DND 例外或 `dont_notify`。
 
 **`muted` 强约束的实现自由度**：`watch_state=muted` MUST 收敛到 `dont_notify`，但实现可以在以下三种等价路径中任选：
 
-- (a) **Pre-engine short-circuit**：在引擎评估前直接判定 `dont_notify`，跳过整条 rule chain；
-- (b) **Built-in deny rule**：在 rule chain 最高优先级位置注入系统内置 deny rule（actor 不可写、不可禁用），由引擎匹配；
-- (c) **User-declared override rule**：用户手动写一条 `override.respect-mute` 规则，由引擎匹配。
+- (a) **Dispatch short-circuit**：在产生 wakeup 前直接判定 `dont_notify`；
+- (b) **Built-in dispatch deny**：在服务端内置 gate 链最高优先级位置注入不可写、不可禁用的 deny gate。
 
-三种路径在 dispatch 输出上**不可区分**。实现 SHOULD 在 dispatch decision log 中标注 `muted_short_circuit=true` 便于排错。Sync Service 即使没有任何用户规则也 MUST 保证 muted 收敛——(a) 或 (b) 是默认实现路径，(c) 仅为可选的"可见性增强"。
+两种路径在 dispatch 输出上**不可区分**。实现 SHOULD 在 dispatch decision log 中标注 `muted_short_circuit=true` 便于排错。Sync Service 即使没有任何用户规则也 MUST 保证 muted 收敛。用户 MAY 另写冗余的 client-side `override.respect-mute`，但它不替代服务端 gate。
 
 补充约束：
 
@@ -272,7 +274,7 @@ Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.m
     "rule_id": "override.respect-mute",
     "kind": "override",
     "enabled": true,
-    "evaluation_locus": "server",
+    "evaluation_locus": "client",
     "conditions": [
       { "kind": "watch_state", "pattern": "muted" }
     ],
@@ -282,7 +284,7 @@ Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.m
     "rule_id": "underride.watching-all",
     "kind": "underride",
     "enabled": true,
-    "evaluation_locus": "server",
+    "evaluation_locus": "client",
     "conditions": [
       { "kind": "watch_state", "pattern": ["participating", "all"] }
     ],
@@ -291,7 +293,7 @@ Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.m
 ]
 ```
 
-`override.respect-mute` 在实现走 (a) / (b) 路径时是冗余声明（引擎前已短路 / 已被系统规则匹配），但 wire 上合法，用于让 dispatch trace 在审计视图中显式记录 `matched_rule="override.respect-mute"`。两种写法 dispatcher 输出一致。
+`override.respect-mute` 对服务端 dispatch gate 是冗余声明，但 wire 上合法，可让客户端本地通知 trace 记录 `matched_rule="override.respect-mute"`。服务端不得声称匹配了该 encrypted rule。
 
 #### 4.3.3 Audience mention fanout
 
@@ -322,9 +324,9 @@ E2EE Realm 中，server 默认不能读取 audience mention AST。若 Realm poli
 
 ### 4.5 E2EE Realm 中的规则降级
 
-E2EE Realm 中，Sync Service 不持有正文密钥，无法在 server 端评估 `contains_keyword`、基于 mention 文本 / mention relation 嵌入密文时的 `mentions_actor`，或未授权明文 routing hint 的 audience mention。**实现 MUST NOT** 在 E2EE Realm 静默把这类规则视为不匹配（这会让被 mention 的人收不到推送，造成 UX 退化），也 MUST NOT 把它视为匹配（这会变成无差别推送，泄露元数据）。降级路径如下：
+Sync Service 不读取 encrypted `ak.push_rules`，在 E2EE Realm 中也不持有正文密钥，因此不能预判用户完整规则链。**实现 MUST NOT** 把尚未在客户端求值的规则静默视为不匹配（这会漏掉通知），也 MUST NOT 把它视为匹配（这会变成无差别可感知通知）。服务端只产生受 coarse gate 约束的 blind / batch wakeup，降级路径如下：
 
-1. **明确分类**：每条 push rule 在创建时 MUST 通过 `evaluation_locus ∈ {server, client}` 声明评估位置。client-side rule 在 E2EE Realm 中由本机已解密 Event 的 client 评估，并在本地决定是否触发本机通知通道（系统 banner、桌面提示、声音）。Sync Service 不参与 client-side rule 的匹配。
+1. **完整链客户端求值**：v1 每条 push rule 都 MUST 声明 `evaluation_locus="client"`。客户端被唤醒并同步后，必须从最高优先级开始对**完整有序链**重新求值，直到第一条匹配；不得只评估某个“未解析子集”，也不得把服务端 coarse gate 的结果当作链中已匹配规则。客户端在本地决定是否触发系统 banner、桌面提示或声音；Sync Service 不参与用户规则匹配。
 2. **Server fallback notify**：E2EE Realm 中，针对 client-side rule，Sync Service MUST 走 Realm policy 声明的保守 wakeup 策略。`wakeup_default` 取值为 `wakeup_for_all_messages` / `batch_wakeup` / `no_notification`，缺省为 `batch_wakeup`。**术语区分（normative）**：此处 Realm policy 字段 `wakeup_default`（决定 server 在无法解密 client-side rule 时**是否 / 以何种频次唤醒**的策略枚举）与 [`../overview/glossary.md`](../overview/glossary.md) "Push terminology layering" 中作为 **payload disclosure class** 的 Wakeup（即 `ak.profile.push_gateway.blind_wakeup.v1` 等 wakeup 信封 profile，决定 payload 可见性等级）处于**两个不同语义轴**，不得互换：`wakeup_default` 不改变 payload disclosure class，blind_wakeup 信封约束（§2.2 / §5.1）在任何 `wakeup_default` 取值下仍然适用。高隐私、minimal-metadata 与 audited Realm SHOULD 使用 `no_notification` 或 `batch_wakeup`。声明 `ak.profile.traffic_metadata_hardened.v1` 的 Realm / route MUST 使用 `batch_wakeup` 或 `no_notification`，并按该 profile 的 `push_wakeup_mode` 与 retry cadence padding 参数执行。客户端被唤醒后本地解密、本地评估 client-side rule，再决定显示哪个通知 surface（普通 banner / 高亮 banner / 静默处理）。若 `wakeup_default=no_notification`，server 不得因为无法解密 client-side rule 而单独唤醒，只能等待客户端下次 sync 或命中 server-side opaque routing token。
 3. **降级标记**：Sync Service 在 push payload 中携带 `evaluation_locus_unresolved=true`，让客户端知道"我已经被 wakeup 但匹配尚未在 server 端确定"。客户端 MUST 完成本地评估后才决定是否进入用户感知的通知 surface；不得仅凭 wakeup 就在 system tray 弹出。
 4. **明文 hint 限制**：E2EE Realm 中，`push_hint` MUST NOT 包含会让 push gateway 间接获得规则匹配信息的字段（例如 "matched_keyword: 'urgent'"）。默认 `blind_wakeup` 下，hint 只能携带固定枚举字段（`new_message` / `incoming_call` / `mention_self`）或 `l10n_key`，不能携带匹配到的具体内容。即使 Realm policy 把 push gateway 列入 `plaintext_visible_services`，也只允许进入 §5.1 的 `visible_notification` profile；不得把该授权解释为放宽 `blind_wakeup` 的 metadata 限制。
@@ -386,7 +388,7 @@ POST /_arkret/edge/push/notify
 | `notification.wakeup_kind` | string | required | 粗粒度唤醒类别，封闭枚举 `message` / `mention` / `assignment` / `schedule` / `reaction` / `call_invite` / `reminder` / `scheduled_send` / `expiry_invalidation`（与 §2.2 一致；后三者为 Phase-P2 生产力唤醒）；只是粗粒度提示，不带 Realm / sender 信息。 |
 | `notification.push_hint` | string | optional | 受信通知服务提供的脱敏提示形态选择器，与 `wakeup_kind` 是不同字段：`blind_wakeup` 下其封闭枚举为 `new_message` / `incoming_call` / `mention_self`（见 §4.5），或哨兵值 `l10n_key`。**`l10n_key` 是「形态选择器」而非字面展示 token**：当 `push_hint == "l10n_key"` 时，实际本地化键 MUST 由独立字段 `push_hint_l10n_key` 承载（不得把 l10n key 直接塞进 `push_hint` 值）。不得包含正文、sender DID / handle、Realm id / 名称、Strand / Message id、reaction 实际值或 stable correlation key。 |
 | `notification.push_hint_l10n_key` | string | conditional | 仅当 `push_hint == "l10n_key"` 时出现且 MUST 提供；承载实际本地化键 token（如 `push.new_message`），由客户端在解密后用于本地渲染。MUST NOT 携带正文或任何识别性 metadata。 |
-| `notification.evaluation_locus_unresolved` | boolean | optional | E2EE client-side rule 降级信号（见 §4.5 第 3 步）：为 `true` 表示客户端已被唤醒但 server 端规则匹配尚未确定。纯本地评估信号，不携带 metadata。 |
+| `notification.evaluation_locus_unresolved` | boolean | optional | 客户端规则待求值信号（见 §4.5 第 3 步）：为 `true` 表示设备已被唤醒，但完整用户规则链尚未在客户端求值。纯本地评估信号，不携带 metadata。 |
 | `notification.timing_profile_hint` | string | required | Sync Service 提供的闭合时序 / profile hint，封闭枚举 `default` / `traffic_metadata_hardened`。当值为 `traffic_metadata_hardened` 时，表示源 Realm 或 route 声明 `ak.profile.traffic_metadata_hardened.v1`；Push Gateway MUST 对 provider 可见出向 push 使用 300s 或更粗 timing bucket。该字段只驱动 gateway 内部时序，不得转发给 provider，也不得替代 `wakeup_default` 或 payload disclosure profile。 |
 | `notification.counts` | object | optional | 未读数、未接来电数等计数。**`blind_wakeup` 下约束（normative）**：绝对未读数是活动侧信道，会让 provider 推断用户的累计活跃度，且 §2.2 已将"未读绝对计数明文"列入 `push_hint` MUST NOT 清单；为避免该 MUST NOT 被本字段架空，`blind_wakeup` 下 counts **MUST NOT** 携带明文绝对未读数。counts MUST 改用以下形态之一：粗粒度布尔 badge（如"有/无新内容"）、`unread_increment` 增量，或按 Realm policy 声明粒度 **bucket 化**的未读数。**封闭默认 bucket grid（normative）**：采用 bucket 化形态时，未声明 policy grid 的实现 MUST 使用封闭默认 grid `1` / `2-5` / `6-20` / `21+`（与 [`discovery-directory.md` §3](./discovery-directory.md) member_count bucket 同为协议固定枚举，使迟滞带宽有可计算基准）。policy MAY 声明更细或更粗的自定义 grid，但 MUST 是封闭枚举（请求方收到不在 grid 内的 bucket 字符串 MUST 视作不合规并丢弃），不得使用开放 / 无界粒度——否则下方迟滞带宽公式（依赖"相邻有限 bucket 跨度"）无可计算基准。无论何种形态，counts MUST NOT 跨 `push_target_id` 关联，也不得用于在 provider 侧重建跨 Realm 累计活动画像。**边界振荡侧信道（normative）**：与 [`discovery-directory.md` §3](./discovery-directory.md) member_count bucket 同理，真实未读数在两个 bucket 边界附近抖动时，provider 反复观察 bucket 翻转可逼近精确计数。因此采用 bucket 化形态时，bucket 输出 MUST 带迟滞（hysteresis）且最小驻留时间：bucket 一旦切换，MUST 在 policy 声明或本段默认的最小驻留窗口内保持稳定，不得在边界两侧逐次 notify 即翻转；实现 MUST 仅在真实计数越过 bucket 边界并持续超过 policy 声明或本段默认的迟滞带宽后才切换输出 bucket。默认最小驻留窗口与默认迟滞带宽复用 [`discovery-directory.md` §3](./discovery-directory.md) member_count bucket 口径：最小驻留窗口 MUST ≥ max(当前通知聚合窗口、provider 可观察刷新间隔)；默认迟滞带宽 = max(2, ceil(相邻有限 bucket 跨度较小者 × 0.10))，其中 bucket"跨度"按**含端点计数**（`upper − lower + 1`）计算，与 [`discovery-directory.md` §3](./discovery-directory.md) 同口径（如 `501-2000` 跨度 = 1500）；开放上界 bucket（如 `21+`）以前一个有限 bucket 的跨度为参照基数（默认 grid 下 `6-20` 跨度 = 15，故 `21+` 参照基数 = 15）。policy MAY 声明更大的绝对值或比例，但不得低于该默认值；声明 0 或更小值 MUST 按不合规处理。`unread_increment` 与布尔 badge 形态不受 bucket 迟滞约束（前者只传增量、后者不暴露绝对量级）。 |
 | `notification.devices` | object[] | required | 目标设备路由数组，`minItems=1`。**`device_id` MUST 在数组内唯一（normative）**：输入是集合而非多重集。schema 的 `uniqueItems` 只能拒绝逐字节相同的条目，因此 gateway MUST 另行拒绝仅 `push_key` 或其它字段不同、但 `device_id` 重复的请求（`schema_violation`）。该唯一性是 §5.2 响应能对输入逐项守恒的前提，也使 `gateway_status=duplicate` 只表示"此前请求已接管"，不与请求内重复混淆。 |

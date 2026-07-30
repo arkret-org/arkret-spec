@@ -345,12 +345,16 @@ Policy decision 签名输入 MUST 包含：
 - `bound_to.policy_server_id`
 - decision
 - reason_code
+- `next_retry_at`（仅在字段实际存在时）
+- `obligations[]`（仅在字段实际存在时；保留 response 中的 canonical 数组顺序与完整元素）
 - expires_at
 - auth_state_digest
 - policy_frontier_digest
 - membership_frontier_digest
 - Policy Server id
 - key id
+
+签名对象 MUST 是由上述字段构造的闭合 canonical object：optional 字段缺省时省略对应 key，不得改写为 JSON `null`；字段存在时必须连同其完整值进入 JCS。verifier MUST 从收到的 decision 重建同一对象后验签，任何剥离、追加、重排或修改 `obligations[]`，以及剥离或修改 `next_retry_at`，都 MUST 使签名验证失败。实现不得只验证 allow/deny 主结果后信任未签名的 obligation 或重试时间。
 
 `request_canonical_digest` MUST 是 [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) JSON Canonicalization Scheme (JCS) 在该请求 body 上的 SHA-256 digest（hex 或 base64url，与 hash 字段 prefix `sha256:` 一致）。本规范锁定 JCS 形态以保证跨实现 hash 输入一致；任何"按 service-private 算法计算 canonical hash"的实现 MUST NOT 与其他 conformant 实现互通，且 MUST NOT 声明通过 v1 conformance。
 
@@ -362,7 +366,10 @@ Policy decision 签名输入 MUST 包含：
 2. `bound_to` 必须存在，且 `bound_to.realm_id` / `bound_to.actor_id` / `bound_to.action` / `bound_to.request_canonical_digest` 与本次 request 完全一致;
 3. `expires_at > now`;
 4. `auth_state_digest`、`policy_frontier_digest`、`membership_frontier_digest` 与本地 accepted authorization / policy / membership frontier 一致；不一致 MUST 回退完整授权判定或重新请求 policy check;
-5. 该 decision 未被同一 policy_server 后续的 `ak.moderation.decision.lift` 或 sealed control override 撤销。
+5. 当前 accepted moderation / policy frontier 不晚于 decision 绑定的 frontier；任何后续
+   `ak.moderation.decision.lift` 或 sealed control override 都会推进该 frontier，并按第 4
+   项使缓存失效。receiver MUST NOT 尝试从 lift 的 `observed_dots[]` 反推某份
+   out-of-band signed decision 的 request identity。
 
 Frontier 比较必须区分“本地落后”和“本地更新”。若本地 accepted authorization / policy / membership frontier 严格晚于 decision 绑定的 frontier（即本地已看到 decision 签发后发生的 grant revoke、membership 变化、policy 变化或相关 state digest 变化），receiver MUST fail closed 并重新请求 `/_arkret/self/policy/check`；不得把旧 decision 复用到更新后的 auth state。只有本地 frontier 可证明小于或等于 decision frontier，且 decision 仍在 `expires_at` 窗口内时，才可把不一致视为本地落后并按完整授权 / 补拉路径处理。
 
@@ -431,9 +438,9 @@ Policy Server decision 是 out-of-band 的签名决策，本身不进入 Realm S
 
 对应 wire event：
 
-- `ak.moderation.decision` — 由持有 `ak.realm.moderation_policy` 或 `ak.policy.manage` 的 actor 签发的 Control Move；registered reducer projection 在 `ak.component.moderation_state.v1:<target>` control cell 上写一个 `or_set add`。
+- `ak.moderation.decision` — 由持有专用 action `ak.moderation.decision`（或 capability action registry 明确登记覆盖该 action 的 aggregate admin action）的 actor 签发的 Control Move；registered reducer projection 在 `ak.component.moderation_state.v1:<target>` control cell 上写一个 `or_set add`。
 - `ak.moderation.decision.lift` — registered reducer projection 在同一 cell 上写 `or_set remove`，针对此前 add 的 tag。
-- 两者的 `refs[role=authorized_by]` SHOULD 引用对应 Policy Server signed decision（role=`policy_decision`）作为风险决策证据；该 ref 不参与签名校验等价性，仅用于审计和回放。Policy Server signed decision 本身不是 capability 来源——签发 Control Move 的 actor 必须独立持有 `ak.realm.moderation_policy` 或 `ak.policy.manage`。
+- 两者的 `refs[role=authorized_by]` SHOULD 引用对应 Policy Server signed decision（role=`policy_decision`）作为风险决策证据；该 ref 不参与签名校验等价性，仅用于审计和回放。Policy Server signed decision 本身不是 capability 来源——签发 Control Move 的 actor 必须独立持有专用 action `ak.moderation.decision`（或 registry 明确覆盖它的 aggregate admin action）。
 
 Reducer 与所有读路径 MUST：
 

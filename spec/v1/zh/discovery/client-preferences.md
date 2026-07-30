@@ -33,13 +33,11 @@ Account Data 的存储、namespace key、`derive_account_data_key`、value encry
 
 ### 2.1 服务端 policy projection 能力协商（normative）
 
-account data 默认是 holder-private 加密数据，Sync Service 只存不透明密文（[`../models/account-data.md` §1](../models/account-data.md)）。presence / typing 的精确 kind、target 与 visibility policy 不再交给服务端读取；发送端按 [`profiles-presence.md` §3.4](./profiles-presence.md) 选择可安全加密的 scope。服务端仅可读取其它明确声明、确有服务端执行需要的最小 policy projection（例如 blocklist data class）。"account data 加密"与"服务端执行 policy"之间的边界必须显式协商：
+account data 默认是 holder-private 加密数据，Sync Service 只存不透明密文（[`../models/account-data.md` §1](../models/account-data.md)）。presence / typing 的精确 kind、target 与 visibility policy 不交给服务端读取；发送端按 [`profiles-presence.md` §3.4](./profiles-presence.md) 选择可安全加密的 scope。服务端仅可读取其它明确声明、确有服务端执行需要的最小 policy projection（例如单独授权的 blocklist data class）。"account data 加密"与"服务端执行 policy"之间的边界必须显式协商：
 
 - 服务端 MUST 在 `ak.server.query.describe`（`ServiceDescribe`）中声明它能否读取每个最小 policy projection（例如通过 `plaintext_visible_services.data_classes` 或等价 `policy_projection_readable[]` 声明）。`presence_visibility` 不得声明为服务端可读；未声明的其它 data class 视为不能读取。
-- 客户端据该声明选择执行位置：
-  - 服务端声明可读对应 projection 且 holder 已显式授权 → 客户端 MAY 采用**服务端 gate**（服务端据 projection 执行 presence / typing fanout 与 blocklist 过滤）。
-  - 服务端未声明可读、或 holder 未授权 → 客户端 MUST 采用**客户端本地 gate**，并且服务端 MUST 对跨设备 / 跨接收方 fanout fail closed（与 [`profiles-presence.md` §3.4`](./profiles-presence.md) "无法读取最小 policy projection 时 MUST 对 fanout fail closed" 同口径）。
-- 无论哪种模式，服务端执行 blocklist / presence 过滤 MUST NOT 让发送方、被查询方或 federation peer 区分"被屏蔽"与"无权限 / 不存在 / 离线"（§3.5）。该协商只决定 gate 在哪一侧执行，不改变对外不可区分要求。
+- Presence / typing 的 policy gate **固定在发送客户端**：客户端只向符合本端 membership、contact 与 visibility 判断的整个加密 scope 发送；无法安全选择 scope 时 MUST 抑制发送。Sync Service 只按外层已签名 `scope_ref` 做成员级 fanout，不读取或推断 `ak.presence.visibility`，也不得因无法读取该 key 而把整个 opaque Signal rail 判为不可转发。
+- 单独声明且 holder 明确授权的其它最小 projection（例如 blocklist data class）可由服务端执行；其过滤结果 MUST NOT 让发送方、被查询方或 federation peer 区分"被屏蔽"与"无权限 / 不存在 / 离线"（§3.5）。
 
 ## 3. 标准账户数据类型
 
@@ -80,6 +78,14 @@ account data 默认是 holder-private 加密数据，Sync Service 只存不透�
 控制各个 Realm 或全局的通知覆盖行为（详见 `push-notifications.md`）。
 
 **Key:** `ak.push_rules` 和 `ak.dnd_schedule`
+
+Notification projection 的 `dismissed` / `archived` 跨设备状态使用
+`ak.notifications.inbox.<notification_id>`。加密 value MUST 绑定同一 `notification_id`、
+`state ∈ {dismissed, archived}`、HLC 与 device tie-break 材料，并按 account-data CAS
+重试循环合并；`read` / `unread` 仍由 read cursor 派生，不得写入该 key。
+
+Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST validate 为
+`ak.schema.view.v1` 且 `visibility="private"`。共享 View 仍只能使用 `ak.view.*` Event。
 
 ### 3.3 自定义 Emoji 与 Sticker (Custom Emojis)
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-30.6",
+  "version": "2026-07-30.8",
   "source_of_truth": false,
-  "generated_at": "2026-07-30T03:00:08Z",
+  "generated_at": "2026-07-30T05:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -954,7 +954,10 @@
       "idempotency_mechanism": "none",
       "retry_safe": false,
       "uncertain_outcome": {
-        "strategy": "manual_confirmation"
+        "strategy": "revoke_then_reissue",
+        "revoke_operation_id": "ak.self.invite_locator.command.revoke",
+        "reissue_operation_id": "ak.self.invite_locator.command.issue",
+        "requires_fresh_request_identity": true
       },
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome",
@@ -1469,8 +1472,8 @@
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
       "durable_effect": {
-        "kind": "event_log",
-        "event_kind_source": "$request.signed_event_units[*].event.kind"
+        "kind": "none",
+        "rationale": "returns_client_authoring_material_or_an_existing_projection_and_never_commits_the_draft_events"
       }
     },
     {
@@ -1573,8 +1576,8 @@
       },
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome",
       "durable_effect": {
-        "kind": "event_log",
-        "event_kind_source": "$request.event_units[*].event.kind"
+        "kind": "none",
+        "rationale": "v1_surface_is_declared_but_always_returns_unsupported_feature_until_a_signed_event_submission_request_contract_is_registered"
       }
     },
     {
@@ -1971,7 +1974,10 @@
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome",
       "durable_effect": {
         "kind": "event_log",
-        "event_kind_source": "$request.submissions[*].event.kind"
+        "event_kind_sources": [
+          "$request.event.kind",
+          "$request.events[*].event.kind"
+        ]
       }
     },
     {
@@ -2058,7 +2064,7 @@
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome",
       "durable_effect": {
         "kind": "event_log",
-        "event_kind_source": "$request.submissions[*].event.kind"
+        "event_kind_source": "$request.events[*].event.kind"
       }
     },
     {

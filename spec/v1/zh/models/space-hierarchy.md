@@ -83,7 +83,7 @@ Effective default Realm 解析是非递归的，MUST NOT 读取 parent，也 MUS
 | `wip_limit` | no | `integer`，1..100000 | 目标 List 允许的 active Strand 数上限；省略表示不设置协议级 WIP 上限。 |
 | `wip_limit_enforcement` | conditional | `enum(warn, reject, require_review)` | `wip_limit` 存在时必填。`warn` 允许写入但产生稳定诊断；`reject` 以 `failed_precondition` 拒绝；`require_review` 要求写入引用 accepted review / approval proof。 |
 
-`ak.strand.move` / `ak.strand.reorder` 必须在其 `seal_basis` 对应的目标 List state 上计算 effective WIP，计数只包含同一 Board 下 position cell 当前指向该 List 且 Strand 非终态的 distinct Strand。写入授权缓存键 MUST 至少包含 `(realm_id, frontier_digest, target_list_space_id)`；不得包含 View id，也不得读取 `View.grouping.wip_limit_enforcement`。`wip_limit_override=true` 只允许持有相应 override capability 的 actor 绕过目标 List policy；缺少 override 时按上述 enforcement 收口。
+`ak.strand.move` / `ak.strand.reorder` 必须在其 `seal_basis` 对应的目标 List state 上计算 effective WIP，计数只包含同一 Board 下 position cell 当前指向该 List 且 Strand 非终态的 distinct Strand。比较谓词固定为后像：`ak.strand.move` 先把本次移动应用到集合，再仅当 `count_after > wip_limit` 时触发 enforcement；目标 List 已包含该 Strand 时不得重复计数。`ak.strand.reorder` 不改变成员集合，因此不执行 WIP 拒绝（即使 List 当前恰好等于或因既有状态已经超过上限），只校验 rank / position 的其它规则。写入授权缓存键 MUST 至少包含 `(realm_id, frontier_digest, target_list_space_id)`；不得包含 View id，也不得读取 `View.grouping.wip_limit_enforcement`。`wip_limit_override=true` 只允许持有相应 override capability 的 actor 绕过目标 List policy；缺少 override 时按上述 enforcement 收口。
 
 默认情况下，workflow placement MUST resolve to the same effective Realm as the Strand：
 

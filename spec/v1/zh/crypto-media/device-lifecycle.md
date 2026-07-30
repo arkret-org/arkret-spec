@@ -468,7 +468,7 @@ DID-method history → principal_signing_key (PSK)
 
 设备状态由**两个正交维度**构成，二者独立演进、不可互相替代：
 
-- **Lifecycle 维度**：`active`（`ak.device.authorize` 在效）↔ `revoked`（`ak.device.revoke` 已吊销）。`revoked` 是 **terminal**——一旦吊销，该 `device_id` MUST NOT 被复活；重新启用需新设备新 `device_id` 走新 `ak.device.authorize`。目录态投影见 §8.2 `device_status`。
+- **Lifecycle 维度**：`active`（`ak.device.authorize` 在效）↔ `revoked`（显式 `ak.device.revoke` 已吊销，或所属 account 的 accepted `ak.account.status=deactivated` 触发 §5.2.3 级联）。`revoked` 是 **terminal**——一旦吊销，该 `device_id` MUST NOT 被复活；重新启用需新设备新 `device_id` 走新 `ak.device.authorize`。目录态投影见 §8.2 `device_status`。
 - **Trust 维度**：`unverified` / `cross_signed` / `needs_reverification` / `verified`，由 §5.2.1 验证算法 + §14 reset 规则驱动。
 
 两维度正交关系与合法转换如下：
@@ -481,7 +481,7 @@ DID-method history → principal_signing_key (PSK)
 正交转换规则：
 
 - **trust 出边**：`unverified → cross_signed`（binding 校验通过）；`unverified → verified`（§5.4 service-attested 入册链完整通过）；`cross_signed → verified`（人工 SAS/QR 验证）；`cross_signed`/`verified → needs_reverification`（cross-signing reset，§14.2 或 binding generation 落后）；`needs_reverification → cross_signed`（被新 generation SSK 重新 cross-sign，即出现 `ssk_generation == accepted_generation` 的有效 binding）；`needs_reverification → verified`（重新 cross-sign 后再次人工验证，或 service-attested 入册链在新 frontier 重新成立）。`verified` 不直接降回 `cross_signed`（人工信任只被 reset 显式作废为 `needs_reverification`）。
-- **lifecycle 出边**：`active → revoked`（`ak.device.revoke`），terminal，无逆边。
+- **lifecycle 出边**：`active → revoked` 只能由显式 `ak.device.revoke` 或所属 account 的 terminal deactivation fanout 触发，terminal，无逆边。两条路径都 MUST 在同一 reducer transaction 产生 device-list update；deactivation 级联不得伪造一条未由合法 actor 签发的 `ak.device.revoke` Event。
 - **revoked 设备的 trust 取值**：设备进入 `revoked` 后其 trust 维度**冻结**为吊销时刻的值且不再用于任何信任判定——receiver MUST 把 revoked 设备一律当作不可用于验签 / 不可接收新密钥（§8.2 / §9：`device_status != active` 即 fail-closed），无论其冻结的 trust 值为何。trust 维度仅对 `active` 设备有协议意义。
 - **非法迁移**：从 `revoked` 转出任何 lifecycle/trust 态 MUST 被拒绝（视为陈旧投影，按 control 流 frontier fail-closed）。
 
@@ -727,7 +727,7 @@ Content-Type: application/json
 
 服务端 MUST 同时执行请求级 `(sender, Idempotency-Key)` 幂等与上述消息级 `(sender_principal_id, sender_device_id, message_id)` 幂等；前者识别同一批 HTTP command，后者识别跨批次、跨连接的同一逻辑消息。已投递消息的队列删除只由接收设备的显式确认（`ak.self.device_messages.command.ack`，见下文与 [`client-sync.md` §10.1](../sync/client-sync.md)）驱动；sync cursor 推进 MUST NOT 触发删除。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导。
 
-若 `content` 已端到端加密，加密 AAD MUST 至少覆盖 `message_id`、`kind`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id`、`sent_at` 和 `expires_at`。队列服务不得重写这些字段。`Idempotency-Key` 是 HTTP 层语义，不进入 envelope，也不参与 AAD。
+若 `content` 已端到端加密，加密 AAD MUST 至少覆盖发送方在密封前已知且不可由队列服务物化的 `message_id`、`kind`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id` 和 `expires_at`。`sent_at` 由队列服务入队时物化，不得进入发送方构造的通用 AAD；具体 kind MAY 增加发送前已知的业务关联字段。队列服务不得重写已进入 AAD 的字段。`Idempotency-Key` 是 HTTP 层语义，不进入 envelope，也不参与 AAD。
 
 接收接口：
 
@@ -836,10 +836,10 @@ POST /_arkret/self/keys/claim
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `device_signing_key` | `did:key`(Ed25519 multibase) | optional | 该设备的**权威验签公钥**，来源 = 该设备权威 `ak.device.authorize.payload.device_public_key`(§5.2/§5.4)。MUST **仅对 verified 且未吊销**的设备返回。 |
-| `hpke_key` | `string`(multibase) | optional | 该设备的 **HPKE 密封公钥**，来源 = 该设备权威 `ak.device.authorize.payload.hpke_key`(§5.2/§5.4)**原样回显**；服务端 MUST NOT 在投影中替换该值。MUST 仅对 verified 且未吊销的设备返回。 |
+| `device_signing_key` | `did:key`(Ed25519 multibase) | optional | 该设备的**权威验签公钥**，来源 = 该设备权威 `ak.device.authorize.payload.device_public_key`(§5.2/§5.4)。MUST 仅在 lifecycle=`active`、`ak.device.authorize` 已被接受且未吊销 / generation-fenced 时返回；receiver-local trust 四态不参与服务端目录准入。 |
+| `hpke_key` | `string`(multibase) | optional | 该设备的 **HPKE 密封公钥**，来源 = 该设备权威 `ak.device.authorize.payload.hpke_key`(§5.2/§5.4)**原样回显**；服务端 MUST NOT 在投影中替换该值。返回条件与 `device_signing_key` 相同。 |
 | `trust_algorithms` | `string[]` | optional | 该设备声明的 canonical 算法集合，来源 = `ak.device.authorize.payload.algorithms`(§5.2)**原样回显**（UTF-8 bytewise 升序、去重）。与承载 prekey bundle 的同级 `algorithms` map 是不同字段。客户端执行 §8.3 第 3 步时以本字段与 `hpke_key`、`device_signing_key` 一起重建 `ak.device-trust-bind-v1` 输入。 |
-| `device_status` | `enum(active, revoked)` | optional | 目录态。`active` = 该设备 `device.authorize` 在效且未吊销；`revoked` = 已被 `ak.device.revoke` 吊销。 |
+| `device_status` | `enum(active, revoked)` | optional | 目录态。`active` = 该设备 `device.authorize` 在效且未吊销；`revoked` = 已被显式 `ak.device.revoke` 吊销，或所属 account 已 deactivated 并完成 terminal device fanout。 |
 | `cross_signing_binding` | `object` | optional | **Tier-2 / A 模型**：该设备权威 `ak.device.authorize.payload.cross_signing_binding`（§5.2）原样回显，形态 `{verification_method, alg, ssk_generation, signature}`。B 模型改用 `enrollment_authority_binding` + `authorized_generation_ref`，不得因无 cross-signing binding 降级。 |
 | `enrollment_authority_binding` | `object` | optional | **service-attested**：该设备权威 `ak.device.authorize.payload.enrollment_authority_binding`（§5.4）原样回显，形态 `{kind="service_attested", authority_did, authorization_ref}`。供客户端确认该 device-set 投影中的 device verify key、HPKE key 与算法集合来自已接受的入册权威路径，而非 Tier-1 裸服务断言。 |
 | `device_authorize_event_id` | `event_id` | optional | 当前 device-set 投影对应的 accepted `ak.device.authorize` event id。对 `service_attested` 设备，本字段 MUST 与 `enrollment_authority_binding` 一起返回，并标识其 `payload.device_public_key` 被投影为 `device_signing_key` 的授权事件。 |
@@ -852,7 +852,12 @@ POST /_arkret/self/keys/claim
 
 规则：
 
-- 服务端 MUST 仅对 verified 且未吊销设备返回 `device_signing_key`；对**吊销 / 未验**设备 MUST 省略 `device_signing_key`，并以 `device_status` 标注(吊销返 `revoked`)。即"省略 key" 与 "`device_status != active`" 等价表达设备不可用于验签。
+- 服务端 MUST 仅对 lifecycle=`active`、权威 `ak.device.authorize` 已接受且未吊销 /
+  generation-fenced 的设备返回 `device_signing_key`；不满足时 MUST 省略 key，并用
+  `device_status` 或 generation 状态表达服务端可判定的原因。receiver-local
+  `unverified/cross_signed/needs_reverification/verified` 不参与该目录是否返回 key 的判断；
+  客户端仍须按下述 Tier-2 链独立决定是否信任。`device_status=active` 是返回 key 的必要
+  条件，但客户端看到省略 key 时不得反推 receiver-local trust 状态。
 - **Tier-1 便捷面（降级行为）**：`device_signing_key` 承载服务端在 session-grant / `device.authorize` ingest 时已校验过的 `device_public_key` 断言。既没有 §8.3 `cross_signing_binding` 链、也没有 §5.4 `enrollment_authority_binding` + `device_authorize_event_id` 入册投影锚的客户端，其设备身份信任根退化为"承载服务端诚实"，与 §4「device 身份不可由服务端伪造」相悖，故 **Tier-1 是显式降级行为，MUST NOT 作为 `e2ee_client` conformance profile 下 E2EE / 通话 proof 验签路径的默认行为**：
   - 凡声明 `ak.profile.e2ee_client.v1` 的客户端，在 E2EE 消息与通话信令 proof 验签路径上 MUST 执行 §8.3 的 Tier-2 链验证；仅服务端断言（Tier-1）不满足该 profile 的接受判据。
   - 不在该 profile 下、仅凭 Tier-1 接受 `device_signing_key` 的客户端，MUST 向用户披露"该设备身份未经密码学交叉签名链验证、信任根为承载服务端"（例如以 `unverified` / `device_unverified` 标识呈现），MUST NOT 把该设备呈现为已验证。
@@ -979,8 +984,8 @@ upload、consume、revoke 的 byte-exact正向与负向向量由 `ak.vector.cryp
 - 同一 `keypackage_ref` 不得被多个 active claim 使用。
 - 过期、撤销、设备被移除或 principal control state 失效时，服务 MUST NOT 返回该 KeyPackage。
 - **`required_capabilities` ⊆ KeyPackage `capabilities`（normative subset rule）**：claim request 中的 `required_capabilities` 集合 MUST 是被领取 KeyPackage 上声明的 `capabilities`（见 [`encryption-and-audit.md` §2.6 KeyPackage payload](./encryption-and-audit.md)）的**子集**。任何 `required_capabilities ∖ capabilities ≠ ∅` 的 claim MUST 被服务端拒绝（与其它 claim 失败一致使用统一不透明错误码 `claim_failed`，但服务端 SHOULD 在内部审计日志中记录 `keypackage_capability_overreach` 以便滥用检测）。该规则避免了"客户端在 claim 时声明超过 KeyPackage 实际声明的能力，使后续 Welcome / Commit 在错误能力假设下进行"的隐性越权。
-- Device / Key Server 在 claim 成功响应中返回的每条 claim MUST 包含 `keypackage_digest = canonical_digest(KeyPackage bytes)`、`capabilities_digest = sha256(JCS(capabilities))`，并携带 claimed 设备的 trust binding。cross-signing 设备携带当前 accepted `ssk_generation`；§5.4 service-attested / enrollment-authority 设备携带该设备 accepted `ak.device.authorize` 的 `device_authorize_event_id`。二者 MUST 精确二选一。`ak.mls.welcome` MUST 回填同一 KeyPackage hash 到顶层 `payload.keypackage_digest` 和 `payload.claim_ref.keypackage_digest`，回填同一 digest 到 `payload.claim_ref.capabilities_digest`，并把 claim record 的 trust binding 原样回填到 `payload.claim_ref`；Welcome 接收端在解密前必须比对这些值与本地 claim 记录，并确认该 trust binding 仍指向 claimed 设备当前 accepted state，防止 group manager 或中间服务在 Welcome 阶段替换 KeyPackage、扩大 KeyPackage 能力集合、复用旧 SSK generation 或旧设备授权事件的 claim。
-- `payload.claim_envelope` 是 requester 对本次 Welcome 的独立签名 transcript，签名身份绑定 requester 而不是被 claim 的设备。cross-signing requester MUST 在 envelope 中携带 requester 当前 accepted `ssk_generation`，并用该 generation 的 SSK 签名；service-attested / enrollment-authority requester MUST 在 envelope 中携带 `requester_device_id`，并用该设备当前 accepted `ak.device.authorize.payload.device_public_key` 对 envelope canonical bytes 签名。二者 MUST 精确二选一。服务端和接收端 MUST 校验 envelope 的 `requester_did`、`requester_device_id`（若存在）、signature `kid` 与当前未撤销设备投影一致；不得把 claim/claim_ref 中属于 recipient KeyPackage 的 `device_authorize_event_id` 当作 requester 签名身份使用。
+- Device / Key Server 在 claim 成功响应中返回的每条 claim MUST 包含 `keypackage_digest = canonical_digest(KeyPackage bytes)`、`capabilities_digest = sha256(JCS(capabilities))`，并携带 claimed 设备的 trust binding。cross-signing 设备携带当前 accepted `ssk_generation`；§5.4 service-attested / enrollment-authority 设备携带该设备 accepted `ak.device.authorize` 的 `device_authorize_event_id`；Native Agent 设备携带当前 accepted `ak.agent.key.authorize` 的 `agent_key_authorize_event_id`。三者 MUST 精确三选一。`ak.mls.welcome` MUST 回填同一 KeyPackage hash 到顶层 `payload.keypackage_digest` 和 `payload.claim_ref.keypackage_digest`，回填同一 digest 到 `payload.claim_ref.capabilities_digest`，并把 claim record 的 trust binding 原样回填到 `payload.claim_ref`；Welcome 接收端在解密前必须比对这些值与本地 claim 记录，并确认该 trust binding 仍指向 claimed 设备当前 accepted state，防止 group manager 或中间服务在 Welcome 阶段替换 KeyPackage、扩大 KeyPackage 能力集合、复用旧 SSK generation、旧设备授权事件或旧 Agent key authorization 的 claim。
+- `payload.claim_envelope` 是 requester 对本次 Welcome 的独立签名 transcript，签名身份绑定 requester 而不是被 claim 的设备。cross-signing requester MUST 在 envelope 中携带 requester 当前 accepted `ssk_generation`，并用该 generation 的 SSK 签名；service-attested / enrollment-authority requester MUST 在 envelope 中携带 `requester_device_id` 与 `device_authorize_event_id`，并用该设备当前 accepted `ak.device.authorize.payload.device_public_key` 对 envelope canonical bytes 签名；Native Agent requester MUST 携带 `requester_device_id` 与当前 `agent_key_authorize_event_id`，并用该 authorization 绑定的 active Agent key 签名。三者 MUST 精确三选一。服务端和接收端 MUST 校验 envelope 的 `requester_did`、`requester_device_id`（若存在）、authorization ref、signature `kid` 与当前未撤销设备 / Agent key 投影一致；不得把 claim/claim_ref 中属于 recipient KeyPackage 的 authorization ref 当作 requester 签名身份使用。
 - `claim` 失败响应 MUST 对不存在、不可见、无可用设备和 policy denied 做反枚举处理。对外错误码合并为单一不透明错误码 `claim_failed`：通用部署 SHOULD 合并，**声明 `ak.profile.e2ee_client.v1` 的服务端 MUST 合并**——即在 `e2ee_client` profile 下，subset-rule 违反（§上条 `keypackage_capability_overreach`）、不存在、不可见、无可用设备、policy denied、过期 / 撤销等**所有**失败原因 MUST 对外返回同一 `claim_failed`，不得让 subset-rule 违反与其它失败产生可区分响应，否则攻击者可借响应差异探测目标 KeyPackage 的 capability 指纹（哪些 capability 被声明 / 未声明）。任何 profile 下都不得返回可区分失败原因的 error message。服务端 SHOULD 使用统一状态码、最小响应体、限速和延迟填充降低时序侧信道；实现不得故意让不同失败原因产生稳定可测的响应差异。
 - 设备 SHOULD 维持 `keypackage_min_available` 低水位，默认 8。Device / Key Server 的 **self / owning-device 可见** upload、claim 或 maintenance query 响应 SHOULD 返回 `available_count`；peer claim / outcome-query MUST NOT 返回该字段。客户端发现可用 KeyPackage 低于低水位时，MUST 在下一次 sync / device maintenance 周期补充上传，避免邀请路径因耗尽而失败。
 - claimed 但未 consume 的 KeyPackage 到达 claim `expires_at` 后 MUST 转为 revoked / unusable 状态；服务不得把它自动放回 `published`，也不得接受迟到的 consume。设备需要重新发布新的 KeyPackage。
@@ -1247,7 +1252,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 | `enc` | `string` | required | base64url HPKE（RFC 9180）封装密钥（KEM 输出）。 |
 | `ciphertext` | `string` | required | base64url HPKE AEAD 密文。HPKE AAD 见下方定义。 |
 
-HPKE AAD（本 kind 的具体绑定）MUST 是对以下字段的 canonical JSON（RFC 8785 JCS）：`message_id`、`kind`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id`、content 中的 `request_id`、content 中的 `secret_id`，以及 envelope 中已经通过 [`time.schema.json#/$defs/timestamp`](../../artifacts/schemas/time.schema.json) 验证的原字段 `expires_at`。`expires_at` 在 AAD 中仍是逐字相同的 `.sssZ` string；MUST NOT 另派生 `expires_at_unix` / `expires_at_unix_ms`，也不得宽松解析后重排。principal / device / message ID 与 `request_id` / `secret_id` 都使用外层原始 canonical string，在收发两端从 `DeviceMessageEnvelope` 与 `ak.secret.send.content` 确定性重建。把 `message_id` 与 `request_id` / `secret_id` 同时放入 AAD 可防止中间层替换外层幂等身份或业务关联字段。§7 的通用 AAD 最小集还要求覆盖 `sent_at`；由于 to-device 队列在物化时由服务端赋 `sent_at`，发送方在密封时无法预知它，因此本 kind 改由发送方分配的 `message_id` 与密封 plaintext 内的一次性 `request_id` 提供抗重放/新鲜性绑定。
+HPKE AAD（本 kind 的具体绑定）MUST 是对以下字段的 canonical JSON（RFC 8785 JCS）：`message_id`、`kind`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id`、content 中的 `request_id`、content 中的 `secret_id`，以及 envelope 中已经通过 [`time.schema.json#/$defs/timestamp`](../../artifacts/schemas/time.schema.json) 验证的原字段 `expires_at`。`expires_at` 在 AAD 中仍是逐字相同的 `.sssZ` string；MUST NOT 另派生 `expires_at_unix` / `expires_at_unix_ms`，也不得宽松解析后重排。principal / device / message ID 与 `request_id` / `secret_id` 都使用外层原始 canonical string，在收发两端从 `DeviceMessageEnvelope` 与 `ak.secret.send.content` 确定性重建。把 `message_id` 与 `request_id` / `secret_id` 同时放入 AAD 可防止中间层替换外层幂等身份或业务关联字段。§7 的通用 AAD 最小集不包含由队列服务物化的 `sent_at`；本 kind 由发送方分配的 `message_id` 与密封 plaintext 内的一次性 `request_id` 提供抗重放/新鲜性绑定。
 
 `ak.secret.send` 的 plaintext（仅 HPKE 解封后可见，不出现在 wire 任何明文字段）MUST 至少携带被请求 secret 本体、其版本号、`request_id` 与 `secret_id`；接收方解封后 MUST 校验内层 `request_id` / `secret_id` 与外层 content 一致、且 `request_id` 命中本端某个 pending 请求，否则丢弃。
 
@@ -1728,7 +1733,7 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 - 所有 proof 的 `alg` MUST 在 [`conformance/encoding.md` §6.1](../conformance/encoding.md) 的 Signature Suite registered set（签名算法白名单）内；未列入算法 MUST `unsupported_signature_alg`。
 - `issued_at` 与 receiver 本地时钟偏差超出 [`ak.profile.cross_signing.reset.v1`](../../artifacts/profiles/conformance-profiles.json) 声明的 `parameters.max_clock_skew_seconds`（默认 300s，允许范围 60–900s）MUST `cross_signing_reset_clock_skew_exceeded`。
 - 同一 `(principal_id, previous_generation)` 已被某条 reset 消费后，新到达的 reset MUST 以 `cross_signing_reset_replayed` 拒绝；replay-rejection 缓存保留时间不得少于 profile `parameters.reset_replay_cache_min_retention_seconds`（默认 90000s，对应 24h + 1h slack），且必须覆盖 `parameters.publish_recovery_window_seconds`（默认 86400s）所定义的"reset → publish"窗口。
-- Receiver MUST 在接受 reset 后 `parameters.publish_recovery_window_seconds` 之内观察到对应的 `ak.cross_signing.publish`；超时未观察到 MUST 进入 §14.2 第 5 项的 "无可用 SSK / USK" 状态，并拒绝任何引用 `new_generation` 的设备授权事件。
+- Receiver MUST 在接受 reset 后 `parameters.publish_recovery_window_seconds` 之内观察到对应的 `ak.cross_signing.publish`；超时未观察到 MUST 进入 §14.2 第 6 项的 "无可用 SSK / USK" 状态，并拒绝任何引用 `new_generation` 的设备授权事件。
 
 ## 15. Device Recovery Lifecycle
 

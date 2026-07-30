@@ -753,11 +753,6 @@
         },
         {
           "required": [
-            "presence"
-          ]
-        },
-        {
-          "required": [
             "notifications"
           ]
         },

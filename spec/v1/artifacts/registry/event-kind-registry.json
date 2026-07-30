@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-30.6",
+  "version": "2026-07-30.8",
   "source_of_truth": false,
-  "generated_at": "2026-07-30T03:00:08Z",
+  "generated_at": "2026-07-30T05:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -5506,8 +5506,8 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "admission": "self_authored_proof",
-      "payload": "Signed account lifecycle status",
+      "admission": "service_attested",
+      "payload": "Account Authority / authoritative Principal Server signed account lifecycle status. Event actor/proof controller is the authorized issuer service DID; payload account_id and principal_id MUST match its verified service-account binding.",
       "plane": "control",
       "sealed": true,
       "cell_writes": [

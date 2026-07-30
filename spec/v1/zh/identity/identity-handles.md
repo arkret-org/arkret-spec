@@ -199,7 +199,7 @@ Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时�
 
 **Step 0 — 候选集预过滤**（normative）：
 
-候选集 = `{ c | c ∈ claim_set_snapshot 且 c.binding_state == "verified" 且 c.created_at <= resolution_as_of 且 c.expires_at > resolution_as_of }`（`binding_state` 取 snapshot 中的 as-of 值），但 `verified` 只有在 §6 的 holder-acceptance 门禁已经通过后才成立：`proofs[]` MUST 至少包含一条 `proof_purpose="holder_acceptance"` 且由 `subject` DID 当前有效验证方法签发的 proof；issuer-only 自述的 `binding_state="verified"` MUST 在本步骤前降级并排除。再施加：
+候选集 = `{ c | c ∈ claim_set_snapshot 且 c.binding_state == "verified" 且 c.created_at <= resolution_as_of 且 c.expires_at > resolution_as_of }`（`binding_state` 取 snapshot 中的 as-of 值），但 `verified` 只有在 §6 的 holder-acceptance 门禁已经通过后才成立。holder acceptance 必须满足下列二者之一：(a) `proofs[]` 至少包含一条 `proof_purpose="holder_acceptance"` 且由 `subject` DID 在 `resolution_as_of` 时有效验证方法签发的 proof；(b) 对公开 handle，按时点解析的 `subject` DID Document `alsoKnownAs` 明确列出同一 canonical `user:domain` handle，且 verifier 已完成 claim→subject 与 document→handle 的双向逐字验证。issuer-only 自述的 `binding_state="verified"`、或未通过这两个分支之一的 claim MUST 在本步骤前降级并排除。再施加：
 
 - **生效时间下界**：`c.created_at <= resolution_as_of` MUST 成立——即在求值时刻该 claim 已被签发；这保证 audit / replay 用历史 `as_of` 时未来才签发的 claim 不会回到候选集，也不会通过 most-recent 抢占展示。`created_at` 是 handle_claim 的签发时刻（见 §5 example），不使用 forbidden 同义别名 `valid_from` / `issued_at`（handle claim 自身命名沿用 `created_at`；候选 schema 内的 `issued_at` 是另一对象，不在此层）。
 - **失效时间上界**：`c.expires_at > resolution_as_of` MUST 成立——过期 claim 不参与展示选择。
@@ -407,11 +407,11 @@ candidate **不得**直接构造自客户端字符串拼接、UI text、未签�
 ```text
 payload.actor_id = candidate.subject_id
 payload.delivery_binding.recipient_service_id = candidate.member_delivery_binding.recipient_service_id
-payload.delivery_binding.resolved_at = candidate.issued_at   // 确定性取值:issuer 签发 candidate 的时刻；当需要以 proof 时刻为准时，取 candidate.proofs[] 中最早的 created_at(min over proofs)，二者均为单一确定值，不得是区间或多值
+payload.delivery_binding.resolved_at = candidate.issued_at   // 唯一确定性取值
 payload.delivery_binding.service_acceptance_ref = candidate.member_delivery_binding.service_acceptance_ref
 payload.delivery_binding.policy_event_ref = candidate.member_delivery_binding.policy_event_ref
 payload.delivery_binding.delivery_modes = candidate.member_delivery_binding.delivery_modes
-payload.delivery_binding.binding_source = join-policy §5.1.2.1 决策树输出
+payload.delivery_binding.binding_source = member-delivery-binding.md §3.1 决策树输出
 ```
 
 `claim_digest`、`source_refs[]` 与 candidate proof digest SHOULD 进入 member Control Move 的 `refs[]`（`role="attestation"` 或 profile 声明的 role），用于审计和 replay 诊断；它们不得替代 `delivery_binding` 中的规范字段。映射过程中任何缺失字段、过期 candidate、audience 不匹配、issuer 未授权或 Realm `delivery_binding_policy` 不接受该 source，均 MUST fail closed。

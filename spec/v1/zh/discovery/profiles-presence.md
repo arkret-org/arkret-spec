@@ -317,7 +317,7 @@ Service。
 规则（normative）：
 
 - 存在未过期 `manual_state` 时，该 principal 的**所有**设备广播 `ak.presence` 的 `state` MUST 等于 `manual_state`；本地自动 idle 检测 MUST NOT 覆盖它。设备离线仍由广播缺失 / TTL 过期自然表现为 `offline`（§3.3 多设备聚合）。
-- `ak.presence.preference` 是**发送侧执行**的端侧偏好：执行主体是该 principal 自己的客户端。服务端 MUST NOT 要求读取该 key 的明文或投影（区别于 `ak.presence.visibility` 的最小 policy projection，§3.4），也不得把它纳入任何 policy projection 面；presence 隐私 gate 只以 `ak.presence.visibility` 为服务端可见输入。
+- `ak.presence.preference` 是**发送侧执行**的端侧偏好：执行主体是该 principal 自己的客户端。服务端 MUST NOT 要求读取该 key 的明文或投影；`ak.presence.visibility` 同样是发送侧私有输入，不进入任何服务端 policy projection。presence 隐私 gate 由发送客户端按 §3.4 执行。
 - `clears_at` 的到期判定在发送侧完成；客户端 SHOULD 在到期后的下一次广播周期内恢复自动状态，不要求毫秒级精确。客户端 SHOULD 在设置临时状态时提供常见过期档位（如 30 分钟 / 1 小时 / 今天）。
 - 手动 `dnd` 只改变 presence 展示语义，MUST NOT 被服务端隐式解释为通知抑制；通知抑制由 `ak.push_rules` / `ak.dnd_schedule`（[client-preferences.md §3.2](./client-preferences.md)）独立控制。客户端 SHOULD 在用户手动切换 `dnd` 时提供联动写入通知抑制的选项（informative UX 建议）。
 - 该 key 属于用户自身偏好，接收方无从（也无需）区分手动与自动状态；因此它不引入新的可见性面，§3.4 的全部隐私 gate 原样适用。

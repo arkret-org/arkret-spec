@@ -108,7 +108,7 @@ see_also:
 | Policy | 策略 | 运行期约束对象，用于授权、密钥、留存、治理与安全边界。 |
 | Invite | 邀请 | 邀请主体加入 Realm 或授予特定能力的标准对象/事件 payload。 |
 | Principal Server | 主体服务 | 主体控制或委托入口服务，承载 events / account aggregate / snapshot / discovery 等核心 API。Realm 内实际投递目标由成员 `delivery_binding.recipient_service_id` 决定；DID Document 默认 Principal Server 只可作为 join / rebind 时被 policy 允许的 binding 来源，不是 Realm delivery fallback。 |
-| Account Aggregate | 账号聚合 | Principal Server 对某 principal 的 actor-private 数据面聚合视图，聚合该账号跨 Realm 的 frontier 摘要、`to_device`、`account_data`、`device_lists`、notification / unread counts 与 presence；通过 `ak.self.account.stream.subscribe`（`GET /_arkret/self/account/subscribe`）以 delta frame 推送。它与「裸 Realm Event 查询面」（`ak.self.events.query.scan` / `ak.self.events.stream.subscribe`，逐 Realm 事件流）是不同的 selector / auth / freshness 边界，实现 MUST NOT 把二者合并为语义不明的单一 stream。中文统一译「账号聚合」。详见 [`sync/client-sync.md`](../sync/client-sync.md)。 |
+| Account Aggregate | 账号聚合 | Principal Server 对某 principal 的 actor-private 数据面聚合视图，聚合该账号跨 Realm 的 frontier 摘要、`to_device`、`account_data`、`device_lists` 与 notification / unread counts；通过 `ak.self.account.stream.subscribe`（`GET /_arkret/self/account/subscribe`）以 delta frame 推送。presence 是有界 TTL 的 encrypted Signal，走 Signal live rail，不进入账号聚合。它与「裸 Realm Event 查询面」（`ak.self.events.query.scan` / `ak.self.events.stream.subscribe`，逐 Realm 事件流）是不同的 selector / auth / freshness 边界，实现 MUST NOT 把二者合并为语义不明的单一 stream。中文统一译「账号聚合」。详见 [`sync/client-sync.md`](../sync/client-sync.md)。 |
 | Sync Service | 同步服务 | 公开/订阅事件与 frontier 的受控同步能力，通常由 Principal Server 提供。 |
 | Event Store Service | 事件存储服务 | 与 Sync Service 关联的持久化与检索服务角色。 |
 | Blob Store | 二进制对象存储 | 附件、媒体、文件对象的存储与引用服务。 |
@@ -139,8 +139,8 @@ see_also:
 | SecurityRotationTransaction | 安全轮换事务 | 固定绑定 revoke Event、新 secret commitment、backup series/envelope、active-series Event、erase confirmation 与 local commit 的 SecurityTransaction。 |
 | Pending Control Move | 待确认控制动作 | Control Move 已通过格式、签名、basis、授权与 precondition 初检，但尚未被有效 Seal 覆盖。 |
 | Rejected | 已拒绝 | Event / Seal 在格式、签名、schema、basis、precondition、授权、Lattice 或 `state_root` 校验上确定失败。 |
-| Seal | 检查点锚点 | Ordering authority 对控制面 frontier 的签名承诺；包含 predecessors、frontier、`control_event_set_root`、控制面 `state_root` 与 notary / committee signature。它只 finalizes 控制面；数据面 root 是观测承诺。 |
-| Genesis Seal | 创世检查点 | 某个 Realm 的 Seal DAG 根；它是唯一允许 `predecessor_refs=[]` 的 Seal，且 v1 要求控制面 `frontier=[]`。它为首个控制面写入提供治理基线，本身不是 Event，也不写入 cell。详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。 |
+| Seal | 检查点锚点 | Ordering authority 对控制面的签名承诺；wire 组件以 `seal.schema.json` 为准，包括 `predecessor_refs`、`covered_control_event_ids`、`covered_control_event_digests`、`control_event_set_root`、`state_root`、`seal_policy_ref`、`sealed_at` 与 `proof`。它只 finalizes 控制面；数据面 root 是观测承诺。 |
+| Genesis Seal | 创世检查点 | 某个 Realm 的 Seal DAG 根；它是唯一允许 `predecessor_refs=[]` 的 Seal，但 covered control set MUST 非空并原子覆盖 founding anchor unit。先接受空 Seal 再补 founding state 非法。它本身不是 Event，也不写入 cell。详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。 |
 | Seal DAG | 检查点图 | 某个 Realm 内已接受 Seal 形成的 DAG；多个 leaf 通过确定性 control view 合成。 |
 | Cell | 状态单元 | Lattice 维护的最小协议状态键，形如 `ak:cell:<component>:<subject>`；其中 `<component>` 是原样嵌入的完整 `ak.component.<facet-path>.v<n>` Cell Family 标识符，因此 canonical 实例具有 `ak:cell:ak.component...` 双层 Arkret 限定。 |
 | Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；v1 active 类型为 `or_set`、`mv_register`、`cas_register`、`fsm`、`counter`、`ordered_log`。各类型的 join 语义与 bottom 行为以权威源 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 为准；未同时具备 join、op schema、profile gate 与 conformance vectors 的实现私有 CRDT 不属于 v1 wire lattice。 |

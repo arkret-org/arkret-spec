@@ -98,7 +98,7 @@ Schema id: `ak.schema.realm.v1`
 | `sync_endpoints` | no | `array<ServiceBinding>` | Realm-level shared notary / Sync Service / mirror / federation 服务绑定；不是成员级 delivery binding。详见 [`../sync/federation.md`](../sync/federation.md)。 | Realm 委托同步与联邦入口。 |
 | `notary_profile` | yes | `enum(single_did, threshold, open_set, mixed)` | create-locked。 | Seal finality profile。 |
 | `digest_algorithm` | no | `enum(digest-suite-registry active ids；v1: sha256, blake3)` | create 时锁定，唯一例外是 `ak.realm.digest_suite_transition`（默认 `sha256`）。 | Digest suite（canonicalization × hash 注册元组，见 [`encoding.md` §3.1–§3.3](../conformance/encoding.md)）：裸 id = canonical JSON 归一化，点分 id（如 reserved 的 `cbor.sha256`）= 备用归一化编码 suite。Realm 内单一 suite 排他；切换走控制面 suite transition Seal（[`event-auth-state-resolution.md` §9.3.2](../authz/event-auth-state-resolution.md)）。 |
-| `notary` | yes | `object` | Genesis notary control cell 初值；其 `type` MUST 与 `notary_profile` 同源并满足对应 profile 的条件必填子字段。其 discriminator 子字段为 `type`（取值与 `notary_profile` 枚举同源：`single_did` / `threshold` / `open_set` / `mixed`）。**这是协议内 discriminator 默认用 `kind` 约定的已登记例外**（schema `realm.schema.json` 锁定 `notary.kind`），见 [`common-fields.md` §2](./common-fields.md)。 | 当前 Seal 签发规则。 |
+| `notary` | yes | `object` | Genesis notary control cell 初值；其 `kind` MUST 与 `notary_profile` 同源并满足对应 profile 的条件必填子字段。discriminator `kind` 的取值与 `notary_profile` 枚举同源：`single_did` / `threshold` / `open_set` / `mixed`；schema 以 `realm.schema.json` 为准。 | 当前 Seal 签发规则。 |
 | `availability_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省为 1 个 notary holder，仅约束 Seal include。 | bytes availability receipt 门槛。 |
 | `audit_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省时不得采信 range-completeness / transparency witness attestation。 | completeness / transparency witness policy。 |
 | `revocation_freshness_window_ms` | no | `integer` | 默认 24h；用于 DataEvent `seal_ref` 和 Control Move `seal_basis` 的撤销新鲜度判定。高风险写入 MAY 按 [`capabilities.md` §18.2](../authz/capabilities.md) 要求更短窗口。 | CBA 授权基准 freshness 上限。 |
@@ -294,7 +294,7 @@ Realm 有两个终态 event，语义不同：
 4. **Erasure Receipt 与 Legal Hold**：destroy 不自动触发 erasure。若部署进入 erasure 阶段，发布 `ak.audit.erasure_receipt`（schema `ak.schema.erasure_receipt.v1`），可能 `outcome=blocked_by_legal_hold`。Legal hold 优先于 destroy 的 GC 路径。
 5. **Federation Fanout**：终态 Event MUST 沿 federation 推送到所有曾持有该 Realm 状态的 peer Principal Server；peer 收到后 MUST 在 30 天内本地标记 `realm_terminal_state`、记录相同 `terminal_kind`，并停止接受该 Realm 的新 `ak.peer.events.command.submit`（包括 backfill 写入）。
 6. **Child Space / Strand cascade**：终态 accepted 后，home Realm 内所有 non-terminal Space、Strand placement 与 structural `contains` projection MUST NOT 作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为只读 locked projection（destroy 可用 `realm_destroyed_orphan`，tombstone 可用 `realm_tombstoned_orphan`）或自动 tombstone/archive；不得继续允许 `ak.strand.move`、`ak.space.parent`、`ak.space.update` 等普通写入复活它们。跨 Realm `parent_space_id` 指向终态 Realm 的 Space 时，引用方 MUST 在发现终态 frontier 后将该 edge 降级为 locked/lazy link，并在 30 days 的 `terminal_parent_repair_window` 内 reparent、archive 或 tombstone；不得传播终态 Realm 的 membership、capability、history 或 E2EE key material。
-7. **Circle scope cascade**：Realm 内的 [Circle](./circle.md) 在父 Realm tombstone 或 destroy 时一并 tombstone（Circle 不持有独立 federation identity，无法独立存活）。对象 `scope_circle_id` 指向已 tombstone Circle 时，写入 MUST fail closed（`failed_precondition`, `reason_code=scope_unavailable`）；projection MAY 显示同名 `scope_unavailable` 状态标记；`scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md) lifecycle cascade 表。
+7. **Circle scope cascade**：父 Realm tombstone 或 destroy 后，其内所有 [Circle](./circle.md) 的 **effective lifecycle** 立即进入 `realm_terminal`，但 Circle canonical lifecycle cell 不被隐式改写，也不合成 `ak.circle.tombstone`。该派生状态以父 Realm terminal Event 及其 Seal 为唯一依据，优先于 Circle 自身 `active` / `archived` projection。任何指向这些 Circle 的写入 MUST fail closed（`failed_precondition`, `reason_code=realm_terminal_state`）；projection MAY 显示 `scope_unavailable`，但 `scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md)。
 
 #### 2.6.2 跨 Principal Server Erasure Receipt Fanout（normative）
 
@@ -461,7 +461,7 @@ Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器�
 | `Space.scope_circle_id` | 本 Space 自身的 effective scope | reducer（写本 Space 时校验） |
 | `Space.child_scope_policy.require_scope_circle_id` | 子资源 scope 的 reducer-enforced 约束 | reducer（写子资源时校验） |
 
-三字段不是冗余：自身 scope ≠ 默认 hint ≠ 子资源约束，实现 MUST 分别消费。
+这两个字段不是冗余：自身 scope ≠ 子资源约束，实现 MUST 分别消费。
 
 ### 3.4 Lifecycle 与 Cascade 规则
 

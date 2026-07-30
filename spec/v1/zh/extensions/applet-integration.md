@@ -439,9 +439,35 @@ Arkret Sync Service / Events API 向 Applet 推送事件批次。
   ],
   "signals": [
     {
-      "type": "typing",
       "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-      "actor_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example"
+      "scope_ref": "ak:realm:0196419b-0000-7000-8000-000000000000",
+      "sender_actor_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example",
+      "sender_device_id": "ak:device:019640ed-8000-7000-8000-000000000001",
+      "seal_ref": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "signal_class": "session",
+      "sent_at": "2026-07-30T12:00:00Z",
+      "expires_at": "2026-07-30T12:00:30Z",
+      "encrypted_payload": {
+        "scheme": "ak.signal_exporter_aead.v1",
+        "key_ref": {
+          "algorithm": "MLS-EXPORTER-AEAD",
+          "group_state_ref": "ak:event:019640ed-8000-7000-8000-000000000003"
+        },
+        "purpose": "ak.signal.v1",
+        "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
+        "epoch": 7,
+        "nonce": "AAECAwQFBgcICQoL",
+        "ciphertext": "AQIDBAUGBwgJCgsMDQ4PEA",
+        "aad_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+      },
+      "proof": {
+        "kind": "detached_jws",
+        "verification_method": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example#device-1",
+        "alg": "EdDSA",
+        "envelope_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "created_at": "2026-07-30T12:00:00Z",
+        "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJl"
+      }
     }
   ]
 }
@@ -608,7 +634,8 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
 - `actor_id`
 - `applet_id`
 - `external_ref`，若来自外部网络
-- `authorization_ref`
+- `authorization_ref`，但仅 §8 下述 service-actor 自署且部署未铸造 registration grant ref
+  的例外 MAY 省略
 - `proofs[]`
 
 `authorization_ref` 的取值按事件签署主体区分：

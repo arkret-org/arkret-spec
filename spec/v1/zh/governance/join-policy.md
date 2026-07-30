@@ -118,7 +118,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | `challenge_response` | `provider_did: did`、`challenge_kinds: enum(captcha, pow, attested_human, idp_oidc)[]`、`max_proof_age: duration` | applicant MUST 完成 provider 颁发的挑战并提交 signed proof。详见 §12。 | `true` |
 | `application_form` | `questions[]`（见 §3.3） | applicant MUST 在 `member.application` 中提交对应 answer；reviewer 人工评估。 | `false` |
 | `manual_review` | （无额外字段） | reviewer 必须显式签署 accept；不要求结构化问卷。 | `false` |
-| `cooldown` | `min_interval_since_leave: duration` | applicant 上次 `ak.member.state{membership=leave}` 后未达冷却期 MUST 拒绝。仅作为 deny gate（与 `combinator` 无关，单独评估；亦不计入 §5 "applicant 拟使用的 gate 子集"的 `auto_resolve` 全称校验，见 §5）。此 gate 的语义是 **leave-cooldown**（按上次主动 leave 计时），prose / SDK 推荐用 `leave_cooldown` 称呼以区别于 §3 顶层字段 `cooldown_after_reject`（后者按上次 **review reject** 计时，作用于 `member.application` 重提，二者计时锚点、作用对象完全不同）。 | `true` |
+| `cooldown` | `min_interval_since_leave: duration` | applicant 上次**主动离开**后未达冷却期 MUST 拒绝。主动离开仅指由该 member 自己 author、满足 `Event.actor_id == payload.actor_id`、并把已 join membership 转为 `leave` 的 accepted `ak.member.state`；review reject、application cancel、`application_ttl` 到期或 ban 导致的 `leave` projection 不计入本 gate。仅作为 deny gate（与 `combinator` 无关，单独评估；亦不计入 §5 "applicant 拟使用的 gate 子集"的 `auto_resolve` 全称校验，见 §5）。此 gate 的语义是 **leave-cooldown**，prose / SDK 推荐用 `leave_cooldown` 称呼以区别于 §3 顶层字段 `cooldown_after_reject`（后者按上次 **review reject** 计时，作用于 `member.application` 重提，二者计时锚点、作用对象完全不同）。 | `true` |
 
 未注册 `kind` MUST schema_violation；未注册的 `(kind, subfield)` 组合按 lattice `bottom=reject` 处理。
 
@@ -233,11 +233,10 @@ C 轴与 `default_join_rule` 的交叉：
 **`closed` 的封闭豁免列表（normative）**：`closed` MUST 拒绝 applicant 自助提交的 `ak.member.state{join}` / `{knock}` 与 candidate application。它 MUST NOT 拒绝下列 authorized-writer 路径（本列表封闭，不得由实现自行扩展或收窄）：
 
 1. `ak.realm.admin` 持有者按 [`../models/common-fields.md` §4.5](../models/common-fields.md) 写入的 `leave -> join` / `invite -> join`；
-2. `ak.realm.join.review` 持有者写入的 `knock -> join`（用于本节"存量 in-flight 申请处置"）；
-3. [`../models/realm-and-space.md` §2.7](../models/realm-and-space.md) 的 Native Personal Agent controller carve-out；
-4. Realm bootstrap batch 内由 creator 写入的初始成员（1:1 Direct Conversation Realm 的 peer join 即此项，见 [`../identity/contact-and-direct-conversation.md` §6/§7](../identity/contact-and-direct-conversation.md)）。
+2. [`../models/realm-and-space.md` §2.7](../models/realm-and-space.md) 的 Native Personal Agent controller carve-out；
+3. Realm bootstrap batch 内由 creator 写入的初始成员（1:1 Direct Conversation Realm 的 peer join 即此项，见 [`../identity/contact-and-direct-conversation.md` §6/§7](../identity/contact-and-direct-conversation.md)）。
 
-这四项仍然要过 A / B 轴。`closed` 约束的是**入口模式**（谁可以自助发起加入），不是一条授权规则——把它扩大成"禁止一切 membership join 写入"会同时封死管理员加人、reviewer 完成 knock 审批的最后一步、controller 拉入自己的 Agent，以及 1:1 私聊的 peer bootstrap。
+这三项仍然要过 A / B 轴。`closed` 约束的是**入口模式**（谁可以自助发起加入），不是一条授权规则——把它扩大成"禁止一切 membership join 写入"会同时封死管理员加人、controller 拉入自己的 Agent，以及 1:1 私聊的 peer bootstrap。
 
 reducer 在 `ak.realm.join_rule` 与 join-policy cell 任一变更时 MUST 重新评估上述一致性约束；不一致 MUST `failed_precondition` 拒绝写入，并附带 `reason="join_rule_policy_mismatch"`。
 
@@ -349,7 +348,7 @@ stage 1 是公开 Control Move，stage 2 是 profile-private receipt，二者不
 - feature set 含 `candidate_join_policy_reviewer` 与 `candidate_member_application_intake`；
 - `profile_bindings["ak.profile.candidate.join_policy.v1"].carrier` 恰为 `"profile_private_http_receipt_v1"`。
 
-否则 client / conformance runner MUST 视为未启用并跳过 candidate 流程；server MUST 以 `unsupported_feature` / 404 fail closed，不得只暴露部分 write/read surface。HTTP request / response 的闭合 DTO 以 `ak.schema.join_policy_operations.v1`（`join-policy-operations.schema.json`）为准。
+否则 client / conformance runner MUST 视为未启用并跳过 candidate 流程；server MUST 以 `unsupported_feature` / 501 fail closed，不得只暴露部分 write/read surface。HTTP request / response 的闭合 DTO 以 `ak.schema.join_policy_operations.v1`（`join-policy-operations.schema.json`）为准。
 
 **receipt digest 与签名 transcript（normative）**：
 
@@ -390,7 +389,7 @@ receipt 与 private body MUST 在同一 durable transaction 中写入；任一 s
 | `realm_id` | yes | `id:realm` |  |
 | `application_ref` | yes | `receipt_digest` 或 profile-private `event_ref` | 指向 §7.2 的 signed application receipt；若实现 profile 已注册私有 application Event kind，MAY 指向该私有 Event id。不得引用未注册的裸名 `member.application`。 |
 | `decision` | yes | `enum(accept, reject, request_changes)` | review **结果**由本字段承载（accept / reject / request_changes），等价于本文件族 §5.5 appeal 的 `verdict` 角色。`request_changes` 允许 applicant 修订 answer 后重提，不计入 cooldown。 |
-| `reason_code` | conditional | `string` | 稳定**拒绝 / 变更细分原因码**：`incomplete_answers` / `policy_violation` / `claim_invalid` / `challenge_failed` / `duplicate` / `ttl_expired`（reducer 自动超时拒绝，见 §12）/ `other`。`decision ∈ {reject, request_changes}` 时必填；`decision=accept` 时省略或取保留值 `ok`（`ok` 不承载独立语义，成功结果由 `decision=accept` 表达）。本字段遵循 [`../models/common-fields.md` §2](../models/common-fields.md)（受控枚举用 `_code` 后缀），仅承载拒绝 / 变更细分，不兼表成功裁决。 |
+| `reason_code` | conditional | `string` | 稳定**拒绝 / 变更细分原因码**：`incomplete_answers` / `policy_violation` / `claim_invalid` / `challenge_failed` / `duplicate` / `ttl_expired`（reducer 自动超时拒绝，见 §12）/ `quorum_unreachable`（§3 N-of-M reviewer quorum 已不可达）/ `other`。`decision ∈ {reject, request_changes}` 时必填；`decision=accept` 时省略或取保留值 `ok`（`ok` 不承载独立语义，成功结果由 `decision=accept` 表达）。本字段遵循 [`../models/common-fields.md` §2](../models/common-fields.md)（受控枚举用 `_code` 后缀），仅承载拒绝 / 变更细分，不兼表成功裁决。 |
 | `reason_text` | no | `string` | 1..1000 chars 自由文本，对 applicant 可见。 |
 | `evidence_refs` | no | `event_ref[]` / `hash[]` | 评审依据的其它 event 或 signed receipt（如 `ak.audit.*` 风险记录）。 |
 | `reviewer_capability_proof` | yes | `object` | 引用授予 reviewer `review_capability`（§3 中那个 capability **action token**）的 **grant id** 与当时 frontier digest；reducer 必须在写入时再校验一次。注意：本字段承载 grant id 引用，`review_capability` 承载 action token，二者勿混用。 |

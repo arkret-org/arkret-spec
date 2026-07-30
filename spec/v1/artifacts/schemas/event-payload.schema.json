@@ -2058,9 +2058,7 @@
       "description": "A single participant value added by ak.call.state.payload.roster_delta. See crypto-media/call-state.md §4/§4.1.",
       "required": [
         "actor_id",
-        "device_id",
-        "participant_identity",
-        "participant_binding"
+        "device_id"
       ],
       "properties": {
         "actor_id": {
@@ -2080,10 +2078,12 @@
           }
         },
         "participant_identity": {
-          "$ref": "#/$defs/rtc_participant_identity"
+          "$ref": "#/$defs/rtc_participant_identity",
+          "description": "Required for sfu/mcu roster joins; MUST be absent for a direct p2p/mesh leg."
         },
         "participant_binding": {
-          "$ref": "#/$defs/participant_binding"
+          "$ref": "#/$defs/participant_binding",
+          "description": "Required for sfu/mcu roster joins; MUST be absent for a direct p2p/mesh leg. The containing call focus.mode selects the semantic branch."
         },
         "media": {
           "type": "object",
@@ -4999,6 +4999,18 @@
           "$ref": "./invite-delivery-request.schema.json#/$defs/invite_delivery_target",
           "description": "Public durable target for private invite delivery. payload.invitee is the subject; this object carries only the recipient Principal Server service DID."
         },
+        "delivery_status": {
+          "type": "string",
+          "enum": [
+            "routable",
+            "unroutable"
+          ],
+          "description": "Required on ak.invite.accept. Initial effective member delivery status; subject is the accepting invitee."
+        },
+        "delivery_binding": {
+          "$ref": "#/$defs/member_delivery_binding",
+          "description": "Required on routable ak.invite.accept. Establishes the invitee's effective member delivery binding atomically with invite -> join."
+        },
         "introduction_evidence_digest": {
           "$ref": "#/$defs/hash",
           "description": "Digest of private invite delivery introduction_evidence. Raw locator tokens and receive-policy state MUST NOT appear in durable Realm events."
@@ -7245,7 +7257,7 @@
     },
     "moderation_decision_payload": {
       "type": "object",
-      "description": "Payload for ak.moderation.decision. A sealed moderation decision that writes an or_set add effect onto the ak.component.moderation_state.v1 cell whose subject is target_ref (the moderated target_event_id / target_object_id canonical string). See zh/authz/policy-server.md §7.1 and zh/governance/content-moderation.md §2.6 / §8.1. Multiple active adds are a normal joinable OR-Set value and fold deterministically by hard_deny > quarantine > require_review > none; they are not moderation_control_split merely because more than one entry exists. This sealed payload accepts only hard_deny / quarantine / require_review. Runtime allow and soft_deny remain out-of-band Policy Server outcomes and MUST NOT be persisted as ak.moderation.decision adds. The optional action carries the finer-grained §5.3 moderation_policy action family. The actor MUST independently hold ak.realm.moderation_policy or ak.policy.manage; refs[role=authorized_by] SHOULD reference the Policy Server signed decision for audit (not a capability source).",
+      "description": "Payload for ak.moderation.decision. A sealed moderation decision that writes an or_set add effect onto the ak.component.moderation_state.v1 cell whose subject is target_ref. Multiple active adds fold by hard_deny > quarantine > require_review > none. dismiss is valid only when target_ref identifies the report Event being closed and contributes none to the content verdict fold. Runtime allow and soft_deny remain out-of-band outcomes. The actor MUST independently hold the registered ak.moderation.decision capability.",
       "required": [
         "target_ref",
         "decision",
@@ -7262,9 +7274,10 @@
           "enum": [
             "hard_deny",
             "quarantine",
-            "require_review"
+            "require_review",
+            "dismiss"
           ],
-          "description": "Sealed moderation-state decision verb (content-moderation.md §2.6 / §8.1). Lower snake_case. allow and soft_deny are out-of-band runtime outcomes and are intentionally excluded."
+          "description": "Sealed moderation-state decision verb. dismiss only resolves a report queue item and does not loosen the target content verdict. allow and soft_deny are out-of-band runtime outcomes."
         },
         "issuer": {
           "$ref": "./common-ids.schema.json#/$defs/did",

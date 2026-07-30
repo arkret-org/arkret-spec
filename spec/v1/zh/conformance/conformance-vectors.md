@@ -5141,11 +5141,19 @@ Expected：
 
 `ak.vector.mls_exporter_aead.seal_open_transcript.v1` 继续固定 `history_secret`、nonce、closed immutable header、plaintext 与 AES-128-GCM 输出，逐字节比较 `aead_aad_canonical_json` 和含 tag 的 ciphertext。修改 `aad.event_kind`、epoch、`key_ref.group_state_ref`、`aead_profile` 或 authentication tag 均 MUST 在 open 时拒绝；runner MUST 从 header 重建 JCS bytes，不得直接把 fixture 的 canonical JSON 字符串当作可信 AAD 输入。
 
-### 21.2 Reaction routing HMAC
+### 21.2 Signal、sender nonce prefix 与 mention routing KAT
+
+`ak.vector.signal.exporter_key_kat.v1` 固定 exporter secret、Realm context 与 active MLS ciphersuite，逐字节比较 `history_secret`、`ak.signal-v1` 的完整 KDFLabel info 与 16-byte Signal AEAD key；错误 label、非空第二级 context 或跨 epoch 复用均 MUST fail closed。
+
+`ak.vector.aead.sender_nonce_prefix_kat.v1` 固定 `arkret-aead-sender-nonce-prefix-v1` label、完整 `{key_ref, epoch, device_id, purpose, aead_profile}` JCS context、AES-GCM prefix 长度与 big-endian counter，逐字节比较 4-byte prefix 和最终 12-byte nonce。遗漏或修改任一 context 字段 MUST 产生不同前缀或在 seal 前拒绝。
+
+`ak.vector.mention.routing_hmac_kat.v1` 固定 exporter secret、Realm context、mentioned DID 与 routing label，逐字节比较 32-byte exporter output 与 HMAC-SHA256 tag。错误 label、跨 Realm、修改 DID 或跨 epoch 复用 key MUST fail closed。
+
+### 21.3 Reaction routing HMAC
 
 `ak.vector.reaction.routing_hmac_kat.v1` 固定 exporter secret、Realm context 与 routing label，要求分解形式 `U+0065 U+0301` 与预组形式 `U+00E9` 经 NFC 后产生完全相同的 tag，并覆盖 emoji modifier。跳过 NFC、错误 label、跨 Realm context 或跨 epoch 复用 exporter key MUST fail closed。
 
-### 21.3 RRK eager seal before GC
+### 21.4 RRK eager seal before GC
 
 `ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1` 要求 `durability_policy.mode != none` 时，在每个配置的 `recovery_recipients[]` 对应 `ak.realm_key.share` accepted 前保留 `history_secret[N]`。未达到完整目标集即 GC MUST 返回 `failed_precondition` / `durability_seal_missing_before_gc`；恢复 verification method 非 active 或未由 `ArkretRealmHistoryRecoveryKey` 指定时 MUST 返回 `durability_recovery_recipient_unverified` 且不得换用其它 key。threshold 只控制恢复授权，不缩减 eager-seal 目标集。
 

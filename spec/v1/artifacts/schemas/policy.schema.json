@@ -125,6 +125,11 @@
         "effect": {
           "$ref": "#/$defs/policy_effect"
         },
+        "priority": {
+          "type": "integer",
+          "default": 0,
+          "description": "Rule evaluation priority. Higher values are evaluated first; omitted means 0."
+        },
         "actions": {
           "type": "array",
           "minItems": 1,

@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-30.4",
+  "version": "2026-07-30.5",
   "source_of_truth": true,
-  "generated_at": "2026-07-30T03:30:17Z",
+  "generated_at": "2026-07-30T04:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -416,6 +416,19 @@
       ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/conformance/scalability-constraints.md",
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.scalability.relation_expansion_depth.v1",
+      "status": "active",
+      "domain": "scalability",
+      "applies_to_fixtures": [
+        "scalability-limits-fixture.json"
+      ],
+      "description": "A relation chain at depth 32 is fully expanded; a 33-level chain stops before reading level 33 and exposes a Lazy Link boundary instead of performing unbounded traversal.",
+      "source_refs": [
         "spec/v1/zh/conformance/scalability-constraints.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
@@ -4413,6 +4426,45 @@
         "ak.profile.e2ee_client.v1"
       ],
       "description": "Byte-exact AES-128-GCM seal/open KAT for the closed mls_exporter_aead_v1 pre-encryption immutable header, including header and authentication-tag negative mutations.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.signal.exporter_key_kat.v1",
+      "status": "active",
+      "domain": "signal",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1"
+      ],
+      "description": "Byte-level ak.history-v1 -> ak.signal-v1 ExpandWithLabel KAT for the SignalEnvelope AEAD key, including label, context, and epoch negative mutations.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.aead.sender_nonce_prefix_kat.v1",
+      "status": "active",
+      "domain": "aead",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1"
+      ],
+      "description": "Byte-level MLS-Exporter KAT for arkret-aead-sender-nonce-prefix-v1, including the exact JCS context, AES-GCM prefix length, counter concatenation, and context-field negative mutations.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mention.routing_hmac_kat.v1",
+      "status": "active",
+      "domain": "mention",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1"
+      ],
+      "description": "Byte-level arkret-mention-routing-v1 exporter and HMAC-SHA256 KAT over the mentioned DID, including label, Realm, DID, and epoch negative mutations.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"

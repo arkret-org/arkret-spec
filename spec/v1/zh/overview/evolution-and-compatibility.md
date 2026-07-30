@@ -56,7 +56,7 @@ stable v1 发布包一旦冻结，其 registry/schema/reducer release 即为不�
 
 每个实现 MUST 声明自己支持的 profile、operation、feature、schema 与 binding（见 [conformance/conformance-profiles.md](../conformance/conformance-profiles.md) §1-§2.1）。互通集合由双方声明能力的交集确定：
 
-- 未声明的 optional extension 可以省略交互或返回 `unsupported_feature` / `feature_not_advertised`；
+- 未声明的 optional extension 可以省略交互；若调用方仍尝试该交互，receiver 返回已登记的 wire code `unsupported_feature`。`feature_not_advertised` 只是在能力发现面描述“未广告”的状态标签，不是 wire 错误码；
 - 未声明的 required feature、critical extension、高风险 action 或影响授权 / 安全 / 密钥材料的能力 MUST fail closed；
 - federation peer 在接受跨域事件、snapshot、KeyPackage、directory claim、capability decision 或 applet transaction 前，必须验证本地 profile 与对端 profile 的交集覆盖该对象的全部 required semantics；
 - client 与 SDK 不得把本地 UI/配置开关当成协议能力声明；协议能力以 ServiceDescribe、profile matrix、event/schema registry 与签名对象内的 profile 绑定为准。

@@ -93,6 +93,8 @@ get 对 nonexistent、foreign-controller 与 unauthorized `sidecar_id` MUST 返�
 
 `state` 是由已接受的 controller account/Realm membership/lifecycle frontier 派生的 canonical projection，不提供 actor-authored `ak.sidecar.update/archive/restore`。`state_changed_at` 使用触发派生转换的已接受 Event timestamp；同一 control frontier 在所有 conforming reducer 上 MUST 得到同一状态。Backing Circle lifecycle 是 Sidecar state cascade 的执行结果，不是反向决定 Sidecar state 的真相源。
 
+**Backing Circle cascade 的物化边界（normative）**：Sidecar `active → suspended` 时不改写 backing Circle canonical lifecycle cell，只令 Sidecar admission gate 停止该 scope 的新写入。Sidecar 进入 `tombstoned` 时，同一触发 control frontier 必须把 backing Circle 的 **effective lifecycle** 派生为 terminal，并以触发 Sidecar terminal 的 accepted Event digest / covering Seal 作为唯一 cascade 锚点；实现 MUST NOT 合成无 actor 的 `ak.circle.tombstone`，也不得调用普通 Circle lifecycle operation。`ak.component.circle.lifecycle.v1` / tombstone cell 保持原 canonical 值，专用 Sidecar get/list、Circle-scope authorization、MLS reconciliation 与 retention worker在读取 backing Circle 时先应用该 terminal Sidecar cascade；因此即使普通 Circle cell 仍显示 `active`，任何新写入也 MUST 以 Sidecar terminal gate fail closed。相同触发 frontier 必须得到相同 effective terminal 结果；缺少触发 Event / Seal 时保持 dependency-pending，不得靠本地任务完成时间物化。这样 backing Circle 的“终止”是可重放的 reducer-derived cascade，而不是未登记的第二写路径。
+
 ## 4. 派生访问集合
 
 Sidecar 没有可编辑 membership。其 desired access set 为：

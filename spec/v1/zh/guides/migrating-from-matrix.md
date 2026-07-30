@@ -278,7 +278,7 @@ Matrix state event 没有显式的 cell 代数。Arkret v1 的 registry / Realm 
 - `cell_family`（稳定 `ak.component.*.v<n>` URI）
 - `cell_subject`（null、payload field 或 composite descriptor）
 - `lattice`（`or_set` / `mv_register` / `cas_register` / `fsm` / `counter` / `ordered_log`）
-- `bottom`（`reject` / `expose`）
+- `bottom`（`reject` / `expose` / `inert`）
 
 Receiver 不识别核心 lattice type 时 fail closed，扩展 cell family 通过 schema/profile 显式 opt-in（规范见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9 与 [`models/common-fields.md`](../models/common-fields.md) §3）。
 

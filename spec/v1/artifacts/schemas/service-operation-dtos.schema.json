@@ -2417,7 +2417,7 @@
     },
     "EventsResolveRequestBody": {
       "type": "object",
-      "description": "ak.self.events.query.resolve request body. At least one of event_ids or event_digests MUST be non-empty.",
+      "description": "ak.self.events.query.resolve request body. At least one of event_ids, event_digests, or seal_refs MUST be non-empty.",
       "properties": {
         "event_ids": {
           "type": "array",
@@ -2431,6 +2431,16 @@
             "type": "string"
           }
         },
+        "seal_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./event-envelope.schema.json#/$defs/seal_ref"
+          },
+          "description": "Exact Seal references needed to verify control state and construct publication evidence."
+        },
         "include_payload": {
           "type": "boolean",
           "default": true
@@ -2440,7 +2450,7 @@
     },
     "EventsResolveOutcome": {
       "type": "object",
-      "description": "ak.self.events.query.resolve result. `events[]` and `missing[]` plus optional `unauthorized[]` form a partition of the requested set.",
+      "description": "ak.self.events.query.resolve result. `events[]`, optional `seals[]`, and `missing[]` plus optional `unauthorized[]` form a partition of the requested selectors.",
       "required": [
         "events",
         "missing"
@@ -2450,6 +2460,12 @@
           "type": "array",
           "items": {
             "$ref": "./event-envelope.schema.json"
+          }
+        },
+        "seals": {
+          "type": "array",
+          "items": {
+            "$ref": "./seal.schema.json"
           }
         },
         "missing": {

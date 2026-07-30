@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-30.6",
+  "version": "2026-07-30.8",
   "source_of_truth": false,
-  "generated_at": "2026-07-30T03:00:08Z",
+  "generated_at": "2026-07-30T05:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -460,6 +460,12 @@
       "file": "schemas/call-recording-artifact.schema.json",
       "status": "active",
       "description": "Canonical metadata for call recording artifacts after Arkret blob pipeline ingestion, including recording exporter context, retention policy and deletion audit binding."
+    },
+    {
+      "schema_id": "ak.schema.call_signal_plaintext.v1",
+      "file": "schemas/call-signal-plaintext.schema.json",
+      "status": "active",
+      "description": "Closed top-level E2EE plaintext for ak.call.signal, with signal_kind-specific data validation defined by the WebRTC signaling profile."
     },
     {
       "schema_id": "ak.schema.encrypted_envelope.v1",

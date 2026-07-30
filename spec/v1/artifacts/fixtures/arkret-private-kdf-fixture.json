@@ -8,6 +8,9 @@
   "covers_vectors": [
     "ak.vector.mls_exporter_aead.content_key_derivation.v1",
     "ak.vector.mls_exporter_aead.seal_open_transcript.v1",
+    "ak.vector.signal.exporter_key_kat.v1",
+    "ak.vector.aead.sender_nonce_prefix_kat.v1",
+    "ak.vector.mention.routing_hmac_kat.v1",
     "ak.vector.reaction.routing_hmac_kat.v1",
     "ak.vector.mls_exporter_aead.rrk_eager_seal_before_gc.v1"
   ],
@@ -74,6 +77,83 @@
           "key_ref.group_state_ref",
           "aead_profile",
           "ciphertext_tag"
+        ],
+        "negative_decision": "reject"
+      }
+    },
+    {
+      "name": "signal_exporter_key_sha256_aes128gcm",
+      "vector_id": "ak.vector.signal.exporter_key_kat.v1",
+      "input": {
+        "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+        "realm_id_utf8": "ak:realm:019a7360-0000-7000-8000-000000000000",
+        "history_label": "ak.history-v1",
+        "signal_label": "ak.signal-v1",
+        "signal_context_hex": "",
+        "aead_nk": 16,
+        "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
+      },
+      "expected": {
+        "history_secret_hex": "c23c438ea6324409174e5fe5c330199fe511c44eca88f0100cc40eca29a84d2a",
+        "signal_expand_with_label_info_hex": "0010144d4c5320312e3020616b2e7369676e616c2d763100",
+        "signal_key_hex": "6c24824085cbce6c08585acf5b343a51",
+        "negative_mutations": [
+          "signal_label=ak.content-v1",
+          "signal_context=realm_id",
+          "reuse_signal_key_after_epoch_change"
+        ],
+        "negative_decision": "reject"
+      }
+    },
+    {
+      "name": "aead_sender_nonce_prefix_aes128gcm",
+      "vector_id": "ak.vector.aead.sender_nonce_prefix_kat.v1",
+      "input": {
+        "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+        "exporter_label": "arkret-aead-sender-nonce-prefix-v1",
+        "context": {
+          "key_ref": {
+            "algorithm": "MLS-EXPORTER-AEAD",
+            "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
+          },
+          "epoch": 42,
+          "device_id": "ak:device:019a7360-0000-7000-8000-000000000001",
+          "purpose": "mls_exporter_aead_content",
+          "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
+        },
+        "nonce_length_bytes": 12,
+        "counter_be64_hex": "0000000000000007"
+      },
+      "expected": {
+        "context_canonical_json": "{\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"device_id\":\"ak:device:019a7360-0000-7000-8000-000000000001\",\"epoch\":42,\"key_ref\":{\"algorithm\":\"MLS-EXPORTER-AEAD\",\"group_state_ref\":\"ak:event:01964148-0000-7000-8000-000000000000\"},\"purpose\":\"mls_exporter_aead_content\"}",
+        "sender_nonce_prefix_hex": "1fd3bc95",
+        "nonce_hex": "1fd3bc950000000000000007",
+        "negative_mutations": [
+          "omit_device_id",
+          "epoch=43",
+          "purpose=signal",
+          "aead_profile_changed"
+        ],
+        "negative_decision": "reject"
+      }
+    },
+    {
+      "name": "mention_routing_hmac_did",
+      "vector_id": "ak.vector.mention.routing_hmac_kat.v1",
+      "input": {
+        "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+        "realm_id_utf8": "ak:realm:019a7360-0000-7000-8000-000000000000",
+        "exporter_label": "arkret-mention-routing-v1",
+        "mentioned_did_utf8": "did:webvh:z6MkhAlice:example.com"
+      },
+      "expected": {
+        "routing_hmac_key_hex": "8735286815aa4aaa887018f249331ab8f800b46a9156aaef5ed089e087f957c2",
+        "routing_tag_hex": "41c455540fa92c5a3f49ba34d436261858dc3d31ab803267682df81ebfb20af4",
+        "negative_mutations": [
+          "wrong_exporter_label",
+          "different_realm_id",
+          "different_mentioned_did",
+          "reuse_key_after_epoch_change"
         ],
         "negative_decision": "reject"
       }

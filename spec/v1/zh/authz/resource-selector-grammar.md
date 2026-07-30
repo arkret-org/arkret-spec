@@ -406,8 +406,11 @@ function matches(target, selector):
         raise SchemaViolation("realm_wide match_scope only valid for space/circle/object/morph")
 
     if selector.kind == "realm":
-        return target.type == "realm" and (
-            selector.realm_id == "*" or target.id == selector.realm_id or target.realm_id == selector.realm_id
+        if selector.realm_id == "*":
+            return True
+        return (
+            (target.type == "realm" and target.id == selector.realm_id)
+            or target.realm_id == selector.realm_id
         )
 
     if selector.kind == "strand":

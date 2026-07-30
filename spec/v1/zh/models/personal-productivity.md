@@ -49,12 +49,11 @@ account-data 前加密。`planned_message_id=ak:message:<uuidv7>` MUST 在创建
 [`strand-and-message.md` §9.1](./strand-and-message.md#91-概览) 的 reducer 规则从 Event ID
 确定性派生。计划只持久化一个 UUID identity，不得保存第二份可写身份。
 
-同一 `planned_message_id` 的幂等规则如下：
-
-- 相同 canonical payload digest 的重复提交 MUST 视为 no-op。
-- 不同 canonical payload digest 的重复计划写入 MUST 返回 `duplicate_conflict`，reason 为
-  `message_id_conflict`。
-- 冲突时 MUST NOT 产生新的发送 Event，也不得替换已接受的消息。
+同一 `planned_message_id` 的计划更新完全沿用 encrypted account-data `cas_register`：
+写入方携带 `expected_revision`，revision 不匹配返回 `cas_conflict` 并由客户端解密、
+合并后重试；服务端不得解密或比较 `message_payload_digest`，也不得为该 key 另造
+`duplicate_conflict`。只有到期提交共享 Event 时，同一 `planned_event_id` 的不同 canonical
+Event bytes 才按 Event identity 规则返回 `duplicate_conflict`，且不得替换已接受的消息。
 
 `message_payload_digest` MUST 是 canonical `message_payload` 的 `sha256:<hex>` digest。到期
 提交的网络重试 MUST 重用相同 `planned_event_id` 与 canonical Event bytes；同一 Event ID 的

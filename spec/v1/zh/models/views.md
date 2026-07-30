@@ -132,6 +132,13 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 
 **共享 View 终态（normative）**：共享 View 的协议级移除复用 `ak.view.update`：owner 或持有 `ak.view.update` capability 的 actor 提交 patch `set.state="tombstoned"`。Reducer MUST 以 accepted update 的 canonical lifecycle timestamp 写 `state_changed_at`；actor MUST NOT 自报该字段。`tombstoned` 是 terminal：后续任何 update / reconcile 或尝试恢复 `active` MUST `failed_precondition`，`reason_code="view_already_terminal"`。Query / projection MUST 默认排除 tombstoned View；审计或显式 `include_terminal=true` 查询 MAY 返回保留定义的 stub。Private View 可由 owner-private account-data 删除，但一旦以 shared View 发布，移除必须走上述 durable update，不能仅做带外删除。
 
+**Private View 承载（normative）**：`visibility="private"` 的 View MUST 作为
+`ak.views.private.<view_id>` 加密 account data 保存；其 plaintext value 仍按
+`ak.schema.view.v1` 校验。`ak.view.create` / `ak.view.update` reducer MUST 拒绝
+`visibility="private"`（`schema_violation`, `reason_code="private_view_requires_account_data"`），
+不得把 title、query 或 layout 写入共享 Realm cell。查询共享 View 的 operation MUST 只返回
+`visibility="shared"`；private View 只经 holder 的 account-data surface 同步。
+
 JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `timeline` / `graph` / `document` / `composite` 分别只允许携带对应的 `collection` / `timeline` / `graph` / `document` / `dashboard` 配置。`kind="composite"` 的 `dashboard.widgets[]` 至少包含一个 widget；若携带 `renderer`，只能是 `dashboard` 或 profile-defined `custom`。
 
 若某个 UI 操作改变 Strand 所属 List、Strand rank、List rank、Strand discussion Message、Relation 或对象字段，必须使用对应对象 Event；只有改变共享 filter、sort、grouping、visible fields、renderer 或 layout 时才修改 View。个人偏好、临时排序、列宽、折叠状态、本地 pin、选择模式与分页大小 MUST 使用 actor-private account data 或等价私有 Event。
@@ -160,7 +167,7 @@ reconcile 不改变 §3.1 的终态规则：目标 View 的 accepted lifecycle s
 reconcile MUST 以 `failed_precondition`、`reason_code="view_already_terminal"` 拒绝。
 reconcile 同样 MUST NOT 写入被投影对象的任何 canonical state（§2.1）。
 
-### 3.2 `CollectionConfig`
+### 3.3 `CollectionConfig`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -174,7 +181,7 @@ reconcile 同样 MUST NOT 写入被投影对象的任何 canonical state（§2.1
 
 `selection_policy` 与 `page_size` 是终端/用户私有 presentation 偏好，不是 canonical `CollectionConfig` 字段；客户端 MUST 存入 actor-private account data 或仅保存在本地。Producer 不得把这两个键写入共享 View；closed schema 将其拒绝为 `schema_violation`。
 
-### 3.3 `CollectionGrouping`
+### 3.4 `CollectionGrouping`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -191,7 +198,7 @@ reconcile 同样 MUST NOT 写入被投影对象的任何 canonical state（§2.1
 
 `CollectionGrouping` 只定义读取与呈现分组，不承载写入 policy。WIP 上限及其 `warn | reject | require_review` enforcement 的唯一真相源是目标 `Space(kind=list).fields`，见 [`space-hierarchy.md` §6](./space-hierarchy.md)。View 不得携带 `wip_limit_enforcement`；renderer 可以展示目标 List 的 effective policy，但不得从 View 配置生成、覆盖或放宽写入判定。
 
-### 3.4 完整示例
+### 3.5 完整示例
 
 ```json
 {
@@ -342,8 +349,8 @@ Strand context MUST NOT 因为 actor 可读 Strand synthesis 就展开未被有�
 | 看板 | Board Space | 标准 Space 对象；授权、历史、E2EE 与 policy 仍解析到其 home Realm。 |
 | 列/泳道 | List Space | Board Space 内有序容器。 |
 | 卡片 | `strand` | 标准工作对象；是否呈现为卡片由 View renderer 和 item_render 决定。 |
-| 卡片属于列 | `Relation{relation_kind="contains", from_ref=list_id, to_ref=strand_id}` | 表示 List 与 Strand 的 canonical 包含关系。 |
-| 列属于看板 | `Relation{relation_kind="contains", from_ref=board_id, to_ref=list_id}` | 表示 Board 与 List 的 canonical 包含关系。 |
+| 卡片属于列 | 派生 `contains` projection | 真源是 `ak.component.strand.position.v1:<board_space_id>:<strand_id>` position cell；写入走 `ak.strand.move` / `ak.strand.reorder`，不得创建 canonical Relation。 |
+| 列属于看板 | 派生 `contains` projection | 真源是 `ak.component.space.parent.v1:<list_space_id>` parent cell；写入走 `ak.space.parent`，不得创建 canonical Relation。 |
 | 讨论入口 | `tracks` map 中 key `discussion` 对应的 entry | 讨论能力属于同一个 Strand；access 完全继承 Strand 的 effective scope（由 `Strand.scope_circle_id` 决定，null=Realm-default，否则=该 [Circle](./circle.md)）。 |
 
 ### 6.2 Board 不显示全 Realm 数据
@@ -383,11 +390,11 @@ Board projection MUST NOT 默认显示 Realm 中的全部 Strand。实现 MUST �
             "title": "Legal review"
           },
           "position": {
-            "model": "relation",
+            "model": "derived_relation",
             "scope_container_id": "ak:space:019641be-0000-7000-8000-000000000009",
             "container_id": "ak:space:019641be-0000-7000-8000-000000000010",
             "relation_kind": "contains",
-            "relation_id": "ak:relation:019641be-0000-7000-8000-000000000012",
+            "source_cell_id": "ak:cell:ak.component.strand.position.v1:ak:space:019641be-0000-7000-8000-000000000009:ak:strand:019641be-0000-7000-8000-000000000011",
             "rank": "mV"
           },
           "state": {

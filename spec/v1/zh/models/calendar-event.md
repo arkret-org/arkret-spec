@@ -208,6 +208,7 @@ registry 为该 cell write 登记 `effect_projection = set(payload.entry)`：**�
 | `calendar.status=cancelled` | MUST 拒绝构造新 RSVP（`calendar_event_cancelled`），历史 projection 保留 | 已存在的 RSVP 继续按 §9 显示，取消后到达的新 head 标注为对已取消事件的回应 |
 | schedule 未 `settled` | MUST 拒绝构造 RSVP（`calendar_schedule_unsettled`） | 该 head 按 §9 的 basis 轴归类 |
 | 该 occurrence 当前是否存在 | SHOULD 只对展开得到的 canonical key 构造 RSVP | 按 basis 判定 `current` / `stale_orphaned` |
+| 非 recurring Calendar 携带非 null occurrence | MUST 拒绝构造（`rsvp_occurrence_not_canonical`） | 该 instance head 不参加有效 RSVP fold，归入 diagnostics=`non_recurring_occurrence`；不得影响 `occurrence=null` 的 base head |
 
 服务端 MUST NOT 因为自己恰好能读明文 schedule 就把上表任一行提升为 admission 条件。
 

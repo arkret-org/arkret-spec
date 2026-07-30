@@ -78,10 +78,12 @@ submitted、pending、receipt、transparency entry、availability receipt、snap
 3. founding authority/notary；
 4. founding grant；
 5. base policy；
-6. 对 MLS-backed scope 必需的 epoch-0 governance binding。
+6. 对 MLS-backed scope，声明将由后续 `ak.mls.genesis` 建立 epoch-0 binding 的
+   bootstrap requirement；epoch-0 binding 本身由首个覆盖 `ak.mls.genesis` 的 Seal 验证。
 
-缺少任一 required cell、使用空 `control_event_set_root`、或先接受空 Seal 再补 authority，
-均为 `invalid_genesis_seal`。
+缺少任一 founding required cell、使用空 `control_event_set_root`、或先接受空 Seal 再补
+authority，均为 `invalid_genesis_seal`。MLS epoch-0 binding 不属于可在 `ak.mls.genesis`
+之前物化的 founding cell；其后续 Seal 义务不得被解释为允许补写其它 founding authority。
 
 ## 4. Proposal 有界决议
 

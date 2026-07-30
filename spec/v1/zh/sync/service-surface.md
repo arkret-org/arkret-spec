@@ -538,7 +538,7 @@ GET /_arkret/self/events/frontier?realm_id=<id>
 
 ## 5. Account Aggregate / Snapshot Surface
 
-Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Realm 的事件查询和实时订阅走 Events Surface（`ak.self.events.query.scan` / `ak.self.events.stream.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Realm frontier、to_device、account_data、device_lists 与 presence 的视图。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Realm policy 明确列出的 shared notary / Sync Service。
+Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Realm 的事件查询和实时订阅走 Events Surface（`ak.self.events.query.scan` / `ak.self.events.stream.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Realm frontier、to_device、account_data、device_lists 与 unread / notification counts 的视图；presence 是有界 TTL 的 encrypted Signal，走 Signal live rail，不进入该聚合。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Realm policy 明确列出的 shared notary / Sync Service。
 
 本节定义 account 与 snapshot 两类操作（事件流读取请到 Events Surface）：
 

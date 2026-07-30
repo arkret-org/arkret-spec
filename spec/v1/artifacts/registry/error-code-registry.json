@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-30.2",
+  "version": "2026-07-30.3",
   "codes": [
     {
       "code": "bad_json",
@@ -130,6 +130,10 @@
     {
       "code": "account_locked",
       "http_status": 401,
+      "http_status_by_context": {
+        "protected_resource": 401,
+        "session_issuance_or_refresh": 403
+      },
       "scope": "both",
       "description": "The principal account is locked. Existing session grants are invalidated and protected requests MUST fail closed; new session issuance MAY surface the same code with a 403 policy-denial status."
     },
@@ -142,6 +146,10 @@
     {
       "code": "account_deactivated",
       "http_status": 401,
+      "http_status_by_context": {
+        "protected_resource": 401,
+        "session_issuance_or_refresh": 403
+      },
       "scope": "both",
       "description": "The principal account is deactivated. Existing session grants are invalidated and protected requests MUST fail closed; new session issuance MAY surface the same code with a 403 policy-denial status."
     },
@@ -1073,7 +1081,7 @@
       "code": "invalid_genesis_seal",
       "http_status": 422,
       "scope": "both",
-      "description": "The first Seal of a Realm did not atomically cover and materialize the complete founding anchor unit, or it declared an empty covered set or an empty control_event_set_root. Distinct from seal_incomplete (a backfill gap in an otherwise valid chain) and from rejected_seal (a Seal whose covered Control Moves failed reducer validation): a genesis Seal that omits a required cell is never repairable by later Seals, because accepting an empty Seal first and adding the authority afterwards is exactly what this code forbids. See zh/authz/cba-profiles.md section 3."
+      "description": "The first Seal of a Realm did not atomically cover and materialize the complete founding anchor unit, or it declared an empty covered set or an empty control_event_set_root. The founding unit covers Realm metadata, creator membership, authority/notary, founding grant and base policy. For MLS-backed scope, epoch-0 binding is instead required on the first successor Seal covering ak.mls.genesis, whose seal_basis is the accepted Genesis Seal. Omitted founding authority is never repairable by later Seals. See zh/authz/cba-profiles.md section 3."
     },
     {
       "code": "seal_incomplete",
@@ -1364,9 +1372,9 @@
     },
     {
       "code": "upstream_unavailable",
-      "http_status": 412,
+      "http_status": 503,
       "scope": "endpoint",
-      "description": "A required upstream dependency is unavailable."
+      "description": "A required upstream dependency is temporarily unavailable. HTTP bindings MUST use 503 Service Unavailable and SHOULD include Retry-After when a retry window is known; 412 is reserved for failed request preconditions."
     },
     {
       "code": "agent_provision_fanout_unavailable",
@@ -1758,7 +1766,7 @@
         "seal",
         "state_resolution"
       ],
-      "description": "The first Seal of a Realm did not atomically cover the complete founding anchor unit (Realm metadata, creator joined membership, founding authority/notary, founding grant, base policy, and for an MLS-backed scope the epoch-0 governance binding), or used an empty covered set or empty control_event_set_root. See zh/authz/cba-profiles.md section 3."
+      "description": "The first Seal of a Realm did not atomically cover the complete founding anchor unit (Realm metadata, creator joined membership, founding authority/notary, founding grant and base policy), or used an empty covered set or empty control_event_set_root. MLS epoch-0 binding is checked on the first successor Seal covering ak.mls.genesis. See zh/authz/cba-profiles.md section 3."
     },
     {
       "code": "invalid_realm_founding_grant",
@@ -5153,6 +5161,22 @@
         "client_sync"
       ],
       "description": "Sub-reason for failed_precondition when any legacy plaintext broadcast envelope is submitted or received. Signal is encrypted-only in every scope; implementations MUST fail closed and MUST NOT advertise Signal for a scope unless they can verify its MLS basis, AAD, and proof. See zh/crypto-media/encryption-and-audit.md section 2.9.1."
+    },
+    {
+      "code": "primary_track_required",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "An ak.strand.tracks.update patch attempted to disable or remove the current primary track without atomically transferring primary status to another active track. Carried under failed_precondition; the patch is rejected atomically. See zh/models/strand-and-message.md section 4.7."
+    },
+    {
+      "code": "private_view_requires_account_data",
+      "applies_to": [
+        "event_envelope",
+        "schema_validation"
+      ],
+      "description": "A shared Realm View Event attempted to persist visibility=private. Private Views are encrypted holder account data under ak.views.private.<view_id> and MUST NOT enter the shared reducer. Carried under schema_violation. See zh/models/views.md."
     },
     {
       "code": "invite_kind_requires_revoke",

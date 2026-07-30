@@ -820,7 +820,7 @@ Minimal-metadata Realm 不改变签名责任。客户端在解密后仍必须验
 Reaction 事件 (`ak.reaction.*`) 的可见性规则：
 
 - 非 E2EE Realm：`reaction_payload.key` 直接携带 emoji（单 Unicode cluster 或 profile 注册的短 tag），可选 `annotation` 同样为明文。这与 Matrix `m.reaction` 行为一致。
-- E2EE Realm（存在 active Audit Applet Binding 或任何 `aad_visibility != opaque_id` 的 profile）：
+- `encryption_profile=mls_rfc9420` 的 E2EE Realm：
   - 真正的 emoji / annotation MUST 通过 `reaction_payload.encrypted_payload` 携带，envelope 复用 §2.3 的 MLS application key 流程。解密后的 plaintext JSON MUST validate as `event-payload.schema.json#/$defs/reaction_encrypted_payload_plaintext`，其中 plaintext `key` 是真实 emoji / 短 tag，不是外层 routing tag。
   - 明文 `reaction_payload.key` MUST 为 **keyed HMAC routing tag**:
 
@@ -836,7 +836,7 @@ Reaction 事件 (`ak.reaction.*`) 的可见性规则：
   - 明文 `annotation` MUST 省略；annotation 文本随 `encrypted_payload` 一同加密。
   - Routing tag 的构造经由 `MLS-Exporter` 自然绑定 `mls_group_id`(exporter secret 由 group 派生) 与当前 `epoch`(每次 commit 必变);`realm_id` 通过 exporter `context` 参数额外绑定，即便 group_id 出现重用 / 碰撞,realm_id 绑定仍能阻止跨 Realm 重放。接收方 MUST 在路由层校验 routing tag 与当前 Realm / epoch 一致。
   - **Within-epoch 频次分析的剩余 tradeoff（风险登记，normative honesty）**：keyed HMAC 在同 epoch 内"emoji X 被使用过 N 次"的频次仍然可见(同 emoji 同 epoch 产生同 tag,这是 OR-Set dedup 的前提);要消除该侧信道需要 per-message 随机 salt,但会破坏 dedup 与幂等。**风险登记**：routing tag 防的是离线字典枚举（群外不可由已知 emoji 字典反查 tag→emoji），但**不防频率分析**。在长 epoch 下，观察方（Sync Service / 持有 routing metadata 的中间服务）可从稳定 tag 提取两类可关联信号——(1) **per-emoji 频率分布**：每个 tag 在该 epoch 内的出现次数构成一张直方图，结合公开的 emoji 使用频率先验可对高频项（如 👍 / ❤️）做去匿名化猜测；(2) **per-DID 等值聚类**：同 `(actor_id, tag)` 反复出现使观察方能按 tag 把同一发送者的反应聚成等价类，即便不知道 tag 对应哪个 emoji，也能刻画"某 DID 偏好某固定 emoji"的可链接画像；epoch 越长，可观察窗口越大，去匿名化与聚类越可靠。**因此本机制提供的是机密性（confidentiality）而非不可关联性（unlinkability）——二者不等价，本规范不声称 routing tag 隐藏 per-emoji/per-DID 的频率与等值结构。** 任何启用 `reaction_routing_hmac_v1` 或 mention recipient routing token 的 Realm，客户端 / committer MUST 将单 epoch lifetime 限制为不超过 1 小时；达到上限时 MUST 按 §5.6 发起 self-update Commit，在新 epoch 生效前 MUST 暂停产生新的稳定 routing tag。无法执行该上限的部署 MUST 关闭这些 routing metadata，并把反应 / mention 完整放入密文。实现 SHOULD 通过 `aad_visibility=hidden` 关闭 message_id 暴露，使频次只能 per-target_ref 而非 per-message 关联；对高频项 MAY 额外引入 per-epoch padding / 盲化（如发送 decoy reaction 或对高频 tag 做计数扰动），但该缓解不在 v1 默认互操作范围、且不得破坏 OR-Set dedup 语义。普通 Realm 的基线 epoch 自保推进（触发阈值、重复 commit 抑制、与成员变动 commit 的合并）见 §5.6。
-- Minimal-metadata Realm (`ak.profile.mls.minimal_metadata_realm.v1`): 同上，且 `actor_id` MUST 使用 Realm-scoped pairwise DID,因此 `(actor_id, target_ref, routing_digest)` 三元组在服务侧也不直接暴露 principal。对声明该 profile 的 Realm，上一条中针对 within-epoch 频次侧信道的两项缓解从 SHOULD 升为 MUST：客户端 / committer MUST 通过缩短 MLS epoch lifetime 限制单 epoch 内可观察的频次窗口，且 epoch lifetime MUST ≤ 1 小时（实现 MAY 声明更短）；同时该 Realm MUST 使用 `aad_visibility=hidden` 关闭 message_id 暴露，使频次只能 per-target_ref 而非 per-message 关联。
+- Minimal-metadata Realm (`ak.profile.mls.minimal_metadata_realm.v1`): 同上，且 `actor_id` MUST 使用 Realm-scoped pairwise DID,因此 `(actor_id, target_ref, routing_digest)` 三元组在服务侧也不直接暴露 principal。它继承上一条对所有启用 routing metadata 的 Realm 已经生效的 `epoch lifetime ≤ 1 小时` MUST；在此基础上，该 profile 还 MUST 使用 `aad_visibility=hidden` 关闭 message_id 暴露，使频次只能 per-target_ref 而非 per-message 关联。
 - `ak.reaction.remove` 走相同规则；`encrypted_payload` 明文的 `remove_add_event_ids[]` MAY 引用要撤销的 add 事件 id 以加速本地 OR-Set 收敛，但不得将该 id 暴露在外层明文。
 
 服务端 / Sync Service 处理 reaction 时:
@@ -940,7 +940,7 @@ scheme 选择是 Realm policy 字段 `content_scheme`（经 `ak.realm.policy_bun
 
 发送设备必须把 §10.1 的 counter 状态与 epoch 一起耐久化。设备恢复备份、检测到 counter 丢失/回退、无法证明下一 counter 严格大于该域全部已用值，或接近 `2^64-1` 时 MUST 停止发送并先通过 accepted MLS Commit 推进 epoch；新 epoch 使用新的 exporter prefix 后才可从 0 重新计数。Receiver 必须维护 per-`(key_ref,epoch,device_id,purpose,aead_profile)` replay set 或无误判等价结构；counter rollback/reuse MUST fail closed，且不得用 random nonce 兜底。Conformance suite MUST 覆盖持久化回退与设备备份恢复负例。
 
-接收方 MUST 先按 §2.10.3 验签确定作者设备，再用 `history_secret[N]` 派生 `K_content[N]`、按 §10.1 用作者 `device_id` 重算 `sender_nonce_prefix` 校验 nonce 与 replay、以 `aad_bytes` 为 AEAD AAD 解密；AEAD 校验失败 MUST 按 §2.3.4（`payload_digest_mismatch` / `key_unavailable`）处理，不得把结果纳入 verified timeline。作者设备身份由 §2.10.3 Event 签名与 §10.1 nonce 前缀双重绑定。
+接收方 MUST 先按 §2.10.3 验签确定作者设备，再用 `history_secret[N]` 派生 `K_content[N]`、按 §10.1 用作者 `device_id` 重算 `sender_nonce_prefix` 校验 nonce 与 replay、以 `aead_aad_bytes` 为 AEAD AAD 解密；AEAD 校验失败 MUST 按 §2.3.4（`payload_digest_mismatch` / `key_unavailable`）处理，不得把结果纳入 verified timeline。作者设备身份由 §2.10.3 Event 签名与 §10.1 nonce 前缀双重绑定。
 
 **共享 `K_content[N]` 的关键安全前提（normative）**：与标准 MLS（`mls_rfc9420`，每个发送方有独立的 secret-tree 派生 leaf key、AEAD 上下文天然按 leaf 隔离）不同，本 scheme 的 `K_content[N]` 是**全 epoch 成员共享的同一把 AEAD key**。这使 **nonce / prefix 唯一性从"实现细节"上升为关键安全前提**：在共享 key 下，任意两个发送方若复用同一 `(K_content[N], nonce)` 即发生灾难性 AEAD nonce 重用（泄露 keystream / 可伪造）。因此本 scheme 比标准 MLS 更脆——其安全性额外依赖跨设备 nonce 前缀不碰撞。两条 MUST：(1) 发送方按 §10.1 `sender_nonce_prefix || device_nonce_counter_be64` 构造 nonce，per-sender 前缀 + 持久单调计数器保证 `(K_content[N], nonce)` 跨设备唯一、不回退 random；(2) **接收方对 nonce 的 sender prefix 校验 MUST NOT 省略**——接收方 MUST 按 §10.1 用已验签作者 `device_id` 重算期望的 `sender_nonce_prefix` 并逐字节比对密文携带的 nonce 前缀，不匹配 MUST fail closed（按 `payload_digest_mismatch` 处理），以闭合"伪造方借他人 prefix 制造碰撞"的面。prefix 唯一性与碰撞防护的 canonical 契约见 [`../conformance/encoding.md`](../conformance/encoding.md) §10.1。
 
@@ -1182,7 +1182,7 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 
 在此前提下，自保 commit 规则如下：
 
-- **触发（SHOULD）**：某 MLS-backed scope 在无 pending membership proposal 的情况下，当前 epoch 满足任一条件时，eligible committer（持有该 scope `ak.mls.commit` capability 的成员）SHOULD 发起一次 self-update Commit（`proposal_refs=[]`，仅 path update）：
+- **触发（SHOULD）**：未启用 §2.9 routing metadata 的普通 MLS-backed scope，在无 pending membership proposal 的情况下，当前 epoch 满足任一条件时，eligible committer（持有该 scope `ak.mls.commit` capability 的成员）SHOULD 发起一次 self-update Commit（`proposal_refs=[]`，仅 path update）。启用 `reaction_routing_hmac_v1` 或 mention recipient routing token 的 scope 不适用下方 7 天基线，而 MUST 在 epoch 到达 1 小时前按 §2.9 发起 self-update Commit：
   - epoch 内已观测 application message 数 ≥ 1000（实现 / 部署 MAY 声明更小阈值）；
   - epoch 存活时长 ≥ 7 天（实现 / 部署 MAY 声明更短）。
 - **重复 commit 抑制（normative）**：发起前 MUST 确认本地视图中同一 `(mls_group_id, base_epoch)` 不存在尚未判定的 pending `ak.mls.commit`（自保或其它）；存在时 MUST NOT 再发起。多客户端竞争 SHOULD 用确定性 jitter 错峰（例如按成员序 hash 排延迟），避免大群在阈值同时到达时齐发 commit。

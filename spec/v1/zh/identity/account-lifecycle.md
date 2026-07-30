@@ -110,7 +110,7 @@ Account Authority 与客户端 UI MUST 把 service-account 认证凭据（密码
 
 `reason_code` 表达**为什么**进入该状态（如 `abuse_review` / `gdpr_request` / `password_compromise`）；状态本身表达**当前所处阶段的协议行为契约**。两者不可替代。
 
-**认证错误码（normative）**：Account status 导致 session grant 或 grant-binding proof 失效时，服务端 MUST 返回与 current status 匹配的专用错误码，而不是退化成通用 `unauthenticated` / `capability_denied`。已签发 session 访问受保护 `/_arkret/self/*` 资源时：`soft_logged_out` 返回 `401 soft_logged_out`；`locked` 返回 `401 account_locked`；`deactivated` 返回 `401 account_deactivated`；`erasure_pending` 返回 `401 account_erased`。新 session grant 签发、session refresh 或登录完成阶段遇到当前 status 时：`locked` SHOULD 返回 `403 account_locked`；`suspended` MUST 返回 `403 account_suspended`；`deactivated` SHOULD 返回 `403 account_deactivated`；`erasure_pending` MUST 返回 `401 account_erased`。这些 code 的机器真源是 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)；HTTP status 的差异只表达“已持有 grant 失效”与“新 grant 被 policy 拒发”的入口差异，不改变 account status 语义。
+**认证错误码（normative）**：Account status 导致 session grant 或 grant-binding proof 失效时，服务端 MUST 返回与 current status 匹配的专用错误码，而不是退化成通用 `unauthenticated` / `capability_denied`。已签发 session 访问受保护 `/_arkret/self/*` 资源时：`soft_logged_out` 返回 `401 soft_logged_out`；`locked` 返回 `401 account_locked`；`deactivated` 返回 `401 account_deactivated`；`erasure_pending` 返回 `401 account_erased`。新 session grant 签发、session refresh 或登录完成阶段遇到当前 status 时：`locked` SHOULD 返回 `403 account_locked`；`suspended` MUST 返回 `403 account_suspended`；`deactivated` SHOULD 返回 `403 account_deactivated`；`erasure_pending` MUST 返回 `401 account_erased`。这些 code 的机器真源是 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)；`account_locked` / `account_deactivated` 的入口差异由同行 `http_status_by_context` 机读化，`http_status` 是通用默认值。HTTP status 的差异只表达“已持有 grant 失效”与“新 grant 被 policy 拒发”的入口差异，不改变 account status 语义。
 
 **合法状态转换（normative）**：上面的 severity-order 仲裁解决"并发 head 选谁"，不替代"哪些 `from → to` 转换本身合法"的定义。`ak.account.status` reducer MUST 按下表判定单条状态转换是否合法；非法转换 MUST `failed_precondition`，`reason_code="account_status_transition_invalid"`：
 
@@ -142,6 +142,8 @@ Account Authority 与客户端 UI MUST 把 service-account 认证凭据（密码
   "signature": {"kid": "did:webvh:zGtABZixoZZ3m4cFx3E65LCmg:auth.example#key-1", "sig": "..."}
 }
 ```
+
+`ak.account.status` 的 issuer MUST 是对该 `account_id` 具有权威性的 Account Authority，或该 service account 所属 Principal Server 的已委派 service DID。Event `actor_id`、proof controller 与 `signature.kid` controller MUST 解析到同一 issuer service DID；payload 的 `account_id` 与 `principal_id` MUST 逐字匹配该 issuer 在 Event CBA basis 下已验证的 service-account → principal binding。receiver MUST 验证 issuer key 在 `effective_at` 对应的验证窗口内 active，并验证该 service DID 的 Account Authority / Principal Server 委派覆盖目标 account；任一不一致 MUST `unauthorized` 或 `invalid_signature`，不得进入 account status ordered log。holder 自助请求、appeal、管理员操作或风控工作流只可触发该权威 issuer 发布状态，不能让 holder device、任意第三方 Principal Server 或未委派服务自行签发 `ak.account.status`。
 
 Current account status projection 是 ordered_log 上的确定性派生值，而不是简单取本地最后到达的 event。cell family `ak.component.account.status.v1` 的 `cell_subject` 是 `account_id`；`principal_id` 是该 service account 的绑定主体，不是 lifecycle key。本节定义的 severity-order 仲裁是该 cell 上的 canonical projection。若同一 `account_id` 出现并发 `ak.account.status` head，client / server MUST 按以下规则选择当前状态；同一 principal 绑定的其它 `account_id` MUST 独立求值：
 
@@ -272,6 +274,14 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 ## 8. Erasure
 
 `erasure_pending` 表示物理删除流程开始。实现 MUST 区分：
+
+**进入前置 fanout（normative）**：任何从 `active` / `soft_logged_out` / `locked` /
+`suspended` 直接进入 `erasure_pending` 的 accepted transition，MUST 在同一状态事务中先
+执行 §7.1 的本地撤销 fanout（session、device、Applet、KeyPackage、push route 与
+to-device queue），其失败与重试沿用 `deactivation_partial` 语义。Realm membership 处置
+逐 Realm 复用 `account_deactivation.member_action`；未配置时默认 `leave`。从
+`deactivated` 进入 `erasure_pending` 时不得重复产生已完成的撤销副作用，但 MUST 继续任何
+尚未完成的 fanout。只有该前置步骤被接管后，projection 才可对外宣告 §3 矩阵中的“已撤销”。
 
 - canonical event log：通常只能 redaction/minimization，不能破坏审计 hash 链。
 - blob bytes：可按 retention/legal hold 删除。

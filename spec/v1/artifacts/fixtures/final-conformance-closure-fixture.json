@@ -14,6 +14,7 @@
     "ak.vector.moderation.franking_roundtrip.v1",
     "ak.vector.moderation.evidence_package_minimal_disclosure.v1",
     "ak.vector.moderation.appeal_atomicity.v1",
+    "ak.vector.moderation.review_resolution_fold.v1",
     "ak.vector.relation.reference_projection_indistinguishable.v1",
     "ak.vector.sync.range_completeness_client_query.v1"
   ],

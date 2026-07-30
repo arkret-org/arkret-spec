@@ -168,7 +168,7 @@ Facet 字符串本身不是规范性 reducer 或授权来源。任何会改变�
 
 ### 3.4 Relation 是一等对象
 
-跨对象语义 MUST 使用 `relation` 表达，而不是藏在对象字段里。Relation 连接的是对象引用：标准字段 `from_ref` / `to_ref` 指向 canonical 对象的 `ak:<kind>:` typed ID，合法端点 kind 的权威集合（`realm` / `space` / `actor_profile` / `strand` / `message` / `morph` / `relation` / `event` / `view` / `blob`）见 [relation.md §1](./relation.md) 与 [relation.schema.json](../../artifacts/schemas/relation.schema.json)。Actor 端点可用其协作图展示镜像 `ak:actor_profile:`，也可直接使用该 actor 的 DID（principal）（见 [common-fields.md §4.1](./common-fields.md#41-did-适用边界)）。
+跨对象语义 MUST 使用 `relation` 表达，而不是藏在对象字段里。Relation 连接的是对象引用：标准字段 `from_ref` / `to_ref` 指向 canonical 对象的 `ak:<kind>:` typed ID，合法端点 kind 的权威集合（`realm` / `space` / `actor_profile` / `strand` / `message` / `morph` / `relation` / `event` / `view` / `blob`）见 [relation.md §1](./relation.md) 与 [relation.schema.json](../../artifacts/schemas/relation.schema.json)。Actor 端点 MUST 直接使用该 actor 的 DID（principal）；`ak:actor_profile:` 只表示展示镜像对象，不能代替 Actor 端点（见 [common-fields.md §4.1](./common-fields.md#41-did-适用边界)）。
 
 跨 Realm 引用规则、结构性 Relation 的本地约束（如 `contains` / `belongs_to` 不可跨 Realm）见 [relation.md](./relation.md)。
 

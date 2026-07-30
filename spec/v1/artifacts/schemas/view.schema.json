@@ -502,6 +502,41 @@
             "model",
             "scope_container_id",
             "container_id",
+            "relation_kind",
+            "source_cell_id",
+            "rank"
+          ],
+          "properties": {
+            "model": {
+              "const": "derived_relation"
+            },
+            "scope_container_id": {
+              "$ref": "#/$defs/object_ref"
+            },
+            "container_id": {
+              "$ref": "#/$defs/object_ref"
+            },
+            "relation_kind": {
+              "type": "string",
+              "minLength": 1
+            },
+            "source_cell_id": {
+              "type": "string",
+              "pattern": "^ak:cell:ak\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+:.+$"
+            },
+            "rank": {
+              "type": "string",
+              "pattern": "^[0-9A-Za-z]{1,128}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "model",
+            "scope_container_id",
+            "container_id",
             "relation_kind"
           ],
           "properties": {

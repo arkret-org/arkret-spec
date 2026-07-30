@@ -147,6 +147,13 @@ sidebar:
   3. `expires_at` > event `created_at`（不接受已过期 binding）；
   4. `sig` 通过签名验证。
   任一失败 → `failed_precondition` `reason="participant_binding_invalid"`。
+- **P2P / mesh roster 分支**：当当前 `focus.mode ∈ {p2p, mesh}` 且尚无
+  `session_focus` 时，roster join MUST 省略 `participant_identity` 与
+  `participant_binding`；participant identity 由 signed answer proof 中的
+  `(call_id, actor_id, device_id)` 组成，admission service 验证 answer 后接受 durable join。
+  当 `focus.mode ∈ {sfu, mcu}` 或已 committed `session_focus` 时，上述两个字段反而都 MUST
+  出现并按本节四项校验。模式分支由包含 roster delta 的同一 accepted call-state basis
+  决定，producer 不得自行声明第三个判据。
 - `mute_override`：每个 call leg 独立写入 `ak.component.call.mute_override.v1` CAS cell。`status=active` 时必须携带 `audio_muted/video_muted`；`status=cleared` 时二者必须省略。不同 leg 并发互不冲突，同一 leg 并发改写 fail closed。写入者 MUST 持有 `ak.call.moderate`。
 - `moderation_delta.op=remove_participant`：projected write 固定为 `add(tag=dot,value=removal)`。`kick` MUST 含 `device_id`；`ban` MUST 省略它。`moderation_delta.op=restore_participant` 固定移除 `observed_dot`，且只能移除已观察到、actor 一致的 ban，不能恢复 kick。
 
@@ -241,7 +248,7 @@ sidebar:
 
 ### 5.1 转写生命周期（normative）
 
-转写与录制平行：默认关闭，MUST 由 Realm policy 与 `ak.call.transcribe` capability 显式允许。转写态走 `ak.call.state` 的独立 `transcript_transition`（`to ∈ { transcribing, stopped, ready, failed }`，缺省=未转写），与 `state_transition` 及 `recording_transition` 三者正交。
+转写与录制平行：默认关闭，MUST 由 Realm policy 与 `ak.call.transcribe` capability 显式允许。转写态走 `ak.call.state` 的独立 `transcript_transition`（`to ∈ { stopped, ready, failed }`，缺省=未转写；进入 `transcribing` 只能由下述 `ak.call.recording.start` 派生），与 `state_transition` 及 `recording_transition` 三者正交。
 
 - 启动转写复用 `ak.call.recording.start` event kind，但 `capture_kind="transcript"`（该字段 required，无 missing-field default）；其 `recording_id` 同样是稳定 opaque 句柄，约束与 §5 录制 `recording_id` 完全一致（ASCII 子集 `[A-Za-z0-9._-]`、1–128 字节、逐字节 canonical、接收方 MUST NOT normalize），并进入 transcript key exporter Context。缺少 `ak.call.transcribe` 时 MUST 拒绝，`reason_code="transcription_denied"`。
 - 客户端 MUST 对所有参会者显示转写进行中提示（与录制提示同等级别）。

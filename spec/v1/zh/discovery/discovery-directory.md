@@ -184,16 +184,16 @@ flowchart TB
 
 ### 3.1 `discoverability × join_rule × history_visibility` 兼容矩阵（normative）
 
-下表声明 v1 在三组维度上**允许 / 禁止 / 不推荐**的组合。`✓` = 允许；`!` = 允许但 SHOULD 在 Realm create 时显示警告；`✗` = MUST 拒绝（reducer 在 `ak.realm.policy_bundle` accept 时返回 `policy_combination_invalid`）。本表不替代 §3 与上方各 enum 的语义；当某条规则与本表冲突时，更严格者（拒绝/警告）优先。
+下表声明 v1 在三组维度上**允许 / 禁止 / 不推荐**的组合。`✓` = 允许；`!` = 允许但 SHOULD 在 Realm create 时显示警告；`✗` = MUST 拒绝（任何写入三轴 cell 的 reducer 在 accept 时返回 `policy_combination_invalid`）。本表不替代 §3 与上方各 enum 的语义；当某条规则与本表冲突时，更严格者（拒绝/警告）优先。
 
 | discoverability ↓ \ join_rule → | `public` | `invite` | `knock` | `restricted` | `knock_restricted` | `closed` |
 | --- | --- | --- | --- | --- | --- | --- |
 | `public` | ✓ | ✓ | ✓ | ✓ | ✓ | ! |
 | `listed` | ! | ✓ | ✓ | ✓ | ✓ | ! |
-| `restricted` | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `unlisted` | ✗ | ✓ | ! | ✓ | ✓ | ✓ |
-| `invite_only` | ✗ | ✓ | ✗ | ✓ | ✗ | ✓ |
-| `secret` | ✗ | ✓ | ✗ | ✗ | ✗ | ✓ |
+| `restricted` | ! | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `unlisted` | ! | ✓ | ! | ✓ | ✓ | ✓ |
+| `invite_only` | ! | ✓ | ✗ | ✓ | ✗ | ✓ |
+| `secret` | ! | ✓ | ✗ | ✗ | ✗ | ✓ |
 
 `history_visibility` 与上述任一组合搭配时的额外约束：
 
@@ -202,7 +202,7 @@ flowchart TB
 - `shared` / `invited` / `joined` 与所有 discoverability 组合兼容。
 - `restricted` 历史可见性 MUST 与有效 `ak.realm.history_sharing_policy` 一致；缺少该 policy 时 reducer MUST 拒绝该 effective state。与 `discoverability=public` 组合时仍 SHOULD 限制 lazy member preview 防止枚举。
 
-实现 MUST 在 `ak.realm.policy_bundle` reducer 接受前用本表校验当前 effective 状态；变更任一字段使组合落入 `✗` 时 MUST 返回 `policy_combination_invalid` 并保留旧值。本表是 v1 wire 互操作的最小集，profile 可以**收紧**但不得放宽。
+本矩阵是 cell-level 不变量：实现 MUST 在 `ak.realm.policy_bundle`、`ak.realm.discovery`、`ak.realm.join_rule`、`ak.realm.history_visibility` 或任何其它写入三轴之一的 reducer 接受前，以同一 basis 的 post-write effective 三轴状态执行本表。使组合落入 `✗` 时 MUST 返回 `policy_combination_invalid` 并保留全部旧值；不得因写入只触及一个 cell 而跳过。本表是 v1 wire 互操作的最小集，profile 可以**收紧**但不得放宽。
 
 ### 3.2 Preview / Peek 与 History Visibility 的关系
 

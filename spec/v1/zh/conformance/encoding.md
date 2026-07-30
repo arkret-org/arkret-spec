@@ -463,7 +463,7 @@ ak:cursor:<base64url>
 
 ### 8.2 服务端 canonical 内部结构
 
-服务端在 base64url 编码前将 cursor 内部结构编码为 canonical JSON（按 §2 规则）。**v1 core cursor 内部结构 MUST 遵循 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)**：body 固定为 `{v, purpose, t, x, h}`，其中 `h` 是不可猜测的 server-side opaque handle（见 §8.3.1）。core schema `additionalProperties:false` 且 `required` 含 `h`；服务端 MUST NOT 在 cursor body 中内联 stream positions、barrier target、principal binding 或完整性证明字段。
+服务端在 base64url 编码前将 cursor 内部结构编码为 canonical JSON（按 §2 规则）。**v1 core cursor 内部结构 MUST 遵循 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)**：body 固定为 `{v, purpose, issued_at, expires_at, h}`；两个时间字段都使用 Arkret absolute instant 的固定 `.sssZ` 形式，`h` 是不可猜测的 server-side opaque handle（见 §8.3.1）。core schema `additionalProperties:false` 且 `required` 含上述全部字段；服务端 MUST NOT 在 cursor body 中内联 stream positions、barrier target、principal binding 或完整性证明字段。
 
 cursor 是 v1 中**唯一**的不透明 token 类型，统一承担增量同步、列表分页和写后读屏障用途。`purpose` 字段区分两个语义：`stream`（增量同步与列表分页位置承诺）与 `barrier`（读己之所写屏障）。每个 transport / API binding MUST 在自己的绑定文档中声明哪些 wire 位置接受哪一种 `purpose`。
 

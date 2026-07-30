@@ -224,12 +224,12 @@ consent revoke 被 accepted Seal 覆盖后，下列下游缓存 MUST eager inval
 | Private contact discovery PSI 结果 / invite handoff cache | 按 `(holder_did, peer_did)` 失效，下次查询走完整 consent 重判 | 不返回 stale PSI match 或 invite handoff，防止 peer 看到已撤销的"可联系"指示。 |
 | MIMI consent check cache（interop 模块） | 按 `(holder_did, peer_did, scope)` 失效；`any` revoke 失效全部 scope | interop bridge 下次跨协议解析 MUST 重新校验。 |
 | Push / contact discovery 缓存（含 PSI 结果） | 按 `(holder_did, peer_did)` 失效；PSI 索引 MUST 在下次轮转时排除 revoked peer | 即使 cache TTL 未到，revoke 后下一次 contact sync MUST 反映新状态。 |
-| Invite gate cache（§6.1 invite 前置 gate） | 按 `(holder_did, peer_did, scope)` 失效 | 即便已缓存"该 peer 有 active consent"，revoke 后下一次 invite MUST 重判，旧 cache MUST NOT 让 invite Control Move 通过 precondition。 |
+| Invite admission gate cache（§6.1 invite 前置 gate） | 按 `(holder_did, peer_did, scope)` 失效 | 即便已缓存"该 peer 有 active consent"，revoke 后下一次 invite MUST 在提交目标 Realm Control Move 前重判；旧 cache MUST NOT 让 facade / invite service 放行。 |
 | In-flight invite 与 DM Realm | **不**追溯 — 已发出的 invite / 已创建的 DM Realm 不自动撤销（与 §3.3 撤销 Seal 覆盖前不追溯的规则一致）；如需撤销，单独发 `ak.invite.revoke` / member remove。 | 不自动级联撤销已生效邀请或 DM Realm。 |
 
 `consent_scope="any"` 被撤销后 cascade 失效规则：上面 5 类缓存中所有 consent_scope 的 entry 必须一起失效，包括 `invite`、`direct_message`、`voice_call`、`video_call`、`presence`。不允许实现把 `any` revoke 只清单一 scope。
 
-`ak.vector.consent.cache_invalidation.v1` 覆盖 (a) revoke 后 private contact discovery / invite handoff 立即不返回该 peer；(b) revoke 后下一次 invite Control Move 被 precondition 拒绝（capability gate 重判）；(c) `any` revoke cascade 失效所有 consent_scope cache；(d) revoke 后 PSI 索引在下一次轮转时排除该 peer。
+`ak.vector.consent.cache_invalidation.v1` 覆盖 (a) revoke 后 private contact discovery / invite handoff 立即不返回该 peer；(b) revoke 后下一次 invite 在目标 Realm Control Move 提交前被 admission gate 拒绝（capability gate 重判）；(c) `any` revoke cascade 失效所有 consent_scope cache；(d) revoke 后 PSI 索引在下一次轮转时排除该 peer。
 
 ## 5. Cell Join 与 Effective Consent
 
@@ -249,20 +249,20 @@ Consent cell 是 or_set lattice（dot-based observed-remove，详见 [`event-aut
 
 ### 6.1 Invite 前置 gate
 
-Peer 发送 invite Control Move 时，invite service / facade 在 Control Move 接受 / 投递前查询 holder 的 consent cell。查询强度按 profile 分两档（与 §4.1.2 invite gate cache 的 revoke 后 MUST 重判咬合：被 eager invalidate 的 cache 在下一次 invite 时,`require_explicit_consent` profile 下 MUST 走完整重判，旧 cache MUST NOT 让 invite Control Move 通过 precondition）：
+Peer 发送 invite Control Move 时，invite service / facade 在把 Control Move 提交给目标 Realm 前查询 holder 的 consent cell。Consent cell 位于 holder PCR，而目标 invite Move 位于目标 Realm；因此该检查是**跨 Realm operation admission gate**，不是 CBA `preconditions[]`。CBA precondition 只能引用并求值同一目标 Realm 的 cell；producer、facade 与 reducer MUST NOT 把 holder PCR cell id、跨 Realm state root 或 consent query result 塞进目标 Move 的 `preconditions[]`，目标 Realm reducer也不得读取 holder PCR 当前态作为本 Realm reducer 输入。查询强度按 profile 分两档（与 §4.1.2 invite gate cache 的 revoke 后 MUST 重判咬合：被 eager invalidate 的 cache 在下一次 invite 时，`require_explicit_consent` profile 下 MUST 走完整重判，旧 cache MUST NOT 让 facade / invite service 放行）：
 
-- **`require_explicit_consent` profile**：invite service / facade **MUST** 查询 holder consent cell,并按 §6.1 step 2 的 `failed_precondition` 路径拒绝无 active grant 的 invite（consent gate 强制,gate 查询是其 precondition）。
+- **`require_explicit_consent` profile**：invite service / facade **MUST** 查询 holder consent cell，并按 §6.1 step 2 的 `failed_precondition` 路径拒绝无 active grant 的 invite（consent gate 强制，但属于 operation admission，不是 Event/CBA precondition）。
 - **default profile**：invite service / facade **SHOULD** 查询；无 active grant 时 MAY 进入 holder quarantine inbox（见 §6.1 step 2 与下述 quarantine inbox 定义）,而非直接拒绝或放行。
 
 查询步骤：
 
 1. 调用 holder 的 principal control Realm（或受托 contact discovery service）查询所有候选 consent cell（subject 由 holder consent 命名约定决定），跑 or_set join 后筛选 `value.intent` 匹配 `(peer=requester, scope="invite" OR consent_scope="any")` 当前 active 的 dot 集合。
 2. 若没有匹配的活跃 grant：
-   - **`require_explicit_consent` profile**：invite Control Move MUST `failed_precondition` reject（consent gate 可表达为 invite Control Move 的 precondition：`active_intent_exists((requester, "invite"|"any"))`，由 reducer 把它编译为对 cell `active_dots` 的过滤）。Peer SHOULD 通过 `ak.private_contact_discovery.v1` 等机制请求 holder 显式授权后重试。
+   - **`require_explicit_consent` profile**：invite service / facade MUST 在提交目标 Realm Control Move 前以 `failed_precondition` 拒绝；不得创建一个随后等待目标 reducer 读取 holder PCR 的 pending Move。Peer SHOULD 通过 `ak.private_contact_discovery.v1` 等机制请求 holder 显式授权后重试。
    - **default profile**：invite MAY 进入 holder 的 quarantine inbox（"陌生人邀请"），由 holder 在 UI 上 review 后构造 grant Control Move 或丢弃。
-3. 若有匹配活跃 grant 且当前时间在 `[not_before, expires_at]`：invite Control Move 正常 accepted，并等待 accepted Seal 覆盖后生效。
+3. 若有匹配活跃 grant 且当前时间在 `[not_before, expires_at]`：facade / invite service 才可提交目标 Realm invite Control Move；该 Move 随后只按目标 Realm 自身的 schema、capability、CBA basis 与 Seal 规则 accepted。
 
-policy MAY 声明 `ak.realm.policy_bundle` 中的 `preauth` component 包含 `require_consent: true`，对该 Realm 的所有 invite Control Move 强制以 consent cell precondition 表达。
+跨服务查询结果 MUST 由 holder PCR 的权威服务签名，或由 facade 在同一受信服务边界内直接从已验证 holder PCR view 求值；结果至少绑定 holder、requester、concrete scope、holder PCR frontier / Seal ref 与有效期。它是短期 admission evidence，不进入目标 Event canonical bytes，也不成为目标 Realm state root 的叶子。`ak.realm.policy_bundle` 的 `preauth.require_consent=true` 对该 Realm 的所有 invite 强制执行上述 admission gate；它 MUST NOT 被解释为允许跨 Realm CBA precondition。
 
 #### 6.1.1 Quarantine inbox（default profile no-consent invite 暂存）
 
@@ -293,7 +293,7 @@ policy MAY 声明 `ak.realm.policy_bundle` 中的 `preauth` component 包含 `re
 
 ### 6.2 Contact / DM 前置 gate
 
-发起 1:1 message Realm、WebRTC call、presence subscription 时，发起方客户端 **MUST** 在发起前 preflight 目标的 consent state（consent_scope = `direct_message` / `voice_call` / `video_call` / `presence`），但该 preflight **不是**接收侧授权根。目标 holder 的 Principal Server、Sync Service、Call / Media token issuer 与目标客户端在投递、fanout、响铃 UI、presence fanout、media token 签发或入会前 **MUST** 重新执行 consent gate；没有 active 目标 consent（对应 scope 或 `any`）时必须 fail closed / quarantine（按 profile），且不得触发响铃 UI、presence 可见性、typing/receipt 副作用或 call token 签发。接收侧 **MUST NOT** 信任发起方提交的 consent proof 作为唯一依据。
+发起 1:1 message Realm、WebRTC call、presence subscription 时，发起方客户端 **SHOULD** 在发起前 preflight 目标的 consent state（consent_scope = `direct_message` / `voice_call` / `video_call` / `presence`），但该 preflight **不是**接收侧授权根。目标未披露可用的 opaque green-light 或其它可验证 proof 时，客户端 MAY 继续发起，但 MUST 把结果视为 `consent_unverified`；preflight 不可得本身不得被解释为 consent 已授予。目标 holder 的 Principal Server、Sync Service、Call / Media token issuer 与目标客户端在投递、fanout、响铃 UI、presence fanout、media token 签发或入会前 **MUST** 重新执行 consent gate；没有 active 目标 consent（对应 scope 或 `any`）时必须 fail closed / quarantine（按 profile），且不得触发响铃 UI、presence 可见性、typing/receipt 副作用或 call token 签发。接收侧 **MUST NOT** 信任发起方提交的 consent proof 作为唯一依据。
 
 WebRTC `ak.call.signal{signal_kind=invite}` 在服务端投递与目标客户端展示前都 MUST 校验 `voice_call` / `video_call` consent；无 consent 的 invite MUST 被丢弃或进入 profile 声明的 quarantine，且不得产生 VoIP push / ringing UI。Presence subscription / fanout 由 Sync Service 在每次订阅建立和每次 fanout 前校验 holder 对 observer 的 `presence` consent；无 consent 时不得泄露在线、离线、last active bucket 或订阅是否存在。
 

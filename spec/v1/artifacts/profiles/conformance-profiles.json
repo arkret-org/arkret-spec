@@ -1,6 +1,6 @@
 {
-  "version": "2026-07-30.2",
-  "generated_at": "2026-07-30T03:30:17Z",
+  "version": "2026-07-30.3",
+  "generated_at": "2026-07-30T04:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -337,8 +337,8 @@
     "read_only_unknown_accepted_kind": {
       "must_preserve_raw_event": true,
       "must_mark_projection_incomplete": true,
+      "fallback_behavior": "generic_fallback",
       "allowed_results": [
-        "generic_fallback",
         "projection_incomplete",
         "unsupported_feature"
       ]
@@ -350,18 +350,18 @@
     },
     "unknown_required_feature_or_critical_extension": {
       "must_fail_closed": true,
+      "processing_disposition": "soft_fail",
       "allowed_results": [
         "unsupported_feature",
         "schema_violation",
-        "soft_fail",
         "quarantine"
       ]
     },
     "optional_extension": {
       "may_omit_interaction": true,
+      "capability_state": "feature_not_advertised",
       "allowed_results": [
-        "unsupported_feature",
-        "feature_not_advertised"
+        "unsupported_feature"
       ]
     }
   },
@@ -1331,11 +1331,25 @@
           "ak.session.grant",
           "ak.cross_signing.publish",
           "ak.cross_signing.reset",
-          "ak.policy.set",
-          "ak.mls.keypackage",
-          "ak.account.status",
-          "ak.consent.grant",
-          "ak.consent.revoke",
+        "ak.policy.set",
+        "ak.mls.proposal",
+        "ak.mls.genesis",
+        "ak.mls.commit",
+        "ak.mls.commit_failed",
+        "ak.mls.welcome",
+        "ak.mls.keypackage",
+        "ak.realm_key.share",
+        "ak.realm_key.withheld",
+        "ak.realm_key.share_audit",
+        "ak.key_backup.active_series",
+        "ak.account.status",
+        "ak.consent.grant",
+        "ak.consent.revoke",
+        "ak.contact.requested",
+        "ak.contact.accepted",
+        "ak.contact.rejected",
+        "ak.contact.tombstoned",
+        "ak.direct_conversation.bound",
           "ak.profile.create",
           "ak.profile.update",
           "ak.agent.key.authorize",

@@ -46,7 +46,7 @@ Strand 顶层字段不承载额外模式或业务分类；默认入口由 track 
 - **权威状态放在 Realm，单指针。** 权威当前值是 Realm 投影的 `default_strand_id`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的可选 / nullable 字段）。它由 `ak.realm.set_default_strand` 事件投影得到（cell `ak.component.realm.set_default_strand.v1`、`cas_register`、`bottom=reject`）。**单一指针**避免多个 Strand 各自声明"我是默认"导致的多默认脏态；`null` / 缺省表示该 Realm 没有指定默认 Strand。**Null 归一（normative）**：cell 当前无默认时，`default_strand_id` 的 canonical 形态 MUST 为**显式 `null`**（固定二选一，不允许 "absent" 与 "explicit null" 两种语义并存）；reducer 在投影写入与 `expected_default_strand_id` CAS 比较前 MUST 先把缺省与显式 `null` 归一为同一 `null` 值，再做 whole-value 比较。该口径与 [§8.3](#83-cell-basis-与写入事件) watch cell `expected_value` 的 whole-value compare 一致（省略 = `head_eq null`），避免 "absent vs null" 导致 CAS 比较落空。
 - **Strand 侧只暴露派生标记。** Strand 投影（[`ProjectionStrandRow`](../../artifacts/schemas/service-operation-dtos.schema.json)）的 `is_default` 是**派生**字段（`is_default == (strand_id == realm.default_strand_id)`），**不是**独立存储，投影器从 Realm 的 `default_strand_id` 计算得到。Strand 对象本身不持有任何"默认"布尔位。
 - **设置 / 变更走事件驱动，不强制原子。** 改变默认 Strand 仅通过 `ak.realm.set_default_strand` 事件（payload 至少 `{realm_id, strand_id}`，见 [`event-payload.schema.json` `realm_set_default_strand_payload`](../../artifacts/schemas/event-payload.schema.json)）。授权是标准 Realm-admin 闸门:写入方 MUST 持有 `ak.realm.admin`（aggregate admin 覆盖）或被直接授予同名动作 `ak.realm.set_default_strand`（risk medium，见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)）。Realm 指针更新与 Strand 创建之间不要求单一原子事务，最终一致即可。
-- **reducer 防悬空（MUST）。** reducer 在投影 `ak.realm.set_default_strand` 时，被指向的 `strand_id` MUST 已经是本 Realm 内**已投影且非 tombstoned** 的 Strand；否则 MUST 拒绝（`failed_precondition`），不得写入悬空指针。因此 `default_strand_id` 永远指向一个存在的 Strand，`is_default` 永远不会因悬空指针被错误派生为 `true`。payload 的可选字段 `expected_default_strand_id` 提供乐观并发（CAS):存在时 reducer 仅在 Realm 当前 `default_strand_id` 等于该值时接受，否则 `failed_precondition`。
+- **reducer 防悬空（MUST）。** reducer 在投影 `ak.realm.set_default_strand` 时，被指向的 `strand_id` MUST 已经是本 Realm 内**已投影且非 tombstoned** 的 Strand；否则 MUST 拒绝（`failed_precondition`），不得写入悬空指针。因此 `default_strand_id` 永远指向一个存在的 Strand，`is_default` 永远不会因悬空指针被错误派生为 `true`。目标 cell 为初始 `null` 时省略 `expected_default_strand_id` 等价于 `head_eq null`；cell 为非初始态时该字段 MUST 提供并编译为 `head_eq`，否则 reducer MUST `failed_precondition`，不得无条件覆盖。
 - **客户端确定性发现（MUST NOT 靠实现细节）。** 客户端 MUST 通过下面两种确定性途径之一识别默认讨论 Strand:(a) 读取 Realm 投影的 `default_strand_id`；或 (b) 读取 Strand 投影的 `is_default`。客户端 MUST NOT 依赖"Strand 复用 Realm UUID""默认 Strand 是创建时间最早的 Strand"等任何实现细节或启发式来推断默认 Strand。
 
 ## 3. Strand Schema 与字段
@@ -132,7 +132,7 @@ Schema id: `ak.schema.strand.v1`
 {
   "kind": "ak.strand.stage.set",
   "payload": {
-    "target_ref": "ak:strand:...",
+    "strand_id": "ak:strand:...",
     "stage": "blocked",
     "expected_stage": "in_progress"
   }
@@ -141,7 +141,7 @@ Schema id: `ak.schema.strand.v1`
 
 - `strand_id`：必填。
 - `stage`：必填，必须是上面 8 值之一。
-- `expected_stage`：可选，编译为 cell `head_eq` precondition，避免并发覆盖（与 `ak.strand.watch.set` 的 `expected_value` 同模式）。省略时等价无 CAS。
+- `expected_stage`：目标 stage cell 为初始态时 MAY 省略（等价 `head_eq null`）；非初始态时 MUST 提供并编译为 cell `head_eq` precondition，否则 `failed_precondition`。这与 `ak.strand.watch.set` 的 `expected_value` whole-value CAS 同模式，不存在无条件覆盖。
 
 **Payload 不携带 reason / note / explanation 字段**。stage 变更的"为什么"由人类讨论承担：
 
@@ -257,6 +257,8 @@ Track 配置不携带 `access` 子对象（v1 不支持 `track_scoped` hybrid �
 5. 仍无法唯一确定时，Reducer MUST fail closed，要求通过 `ak.strand.tracks.update` 显式设置 `tracks.<name>.is_primary=true`。
 
 `is_primary=false` 与省略 `is_primary` 等价；它不是阻止默认派生的 veto。
+上述候选集只包含 `enabled=true`（或按 schema 缺省为 true）的 track。显式 primary 指向
+disabled track 时 reducer MUST `failed_precondition`（`reason_code="track_disabled"`）。
 
 resolved primary 只影响默认打开哪个协作面，不改变 `strand_id`，不授予读取、写入或管理权限。
 
@@ -277,6 +279,9 @@ resolved primary 只影响默认打开哪个协作面，不改变 `strand_id`，
 
 - track 在 map 中存在且 `enabled=true`（或 schema 默认为 true）即表示 active。
 - 关闭 track 通过 `ak.strand.tracks.update` patch `tracks.<name>.enabled: set false`（或从 map 中删除该 key、或写 profile 声明的 archived state），不得留下可写入的 disabled track。
+- 关闭任何当前 primary track 时，MUST 在同一 patch 把 primary 移交给另一个 active track；
+  若不存在其它 active track，整个 patch MUST `failed_precondition`
+  （`reason_code="primary_track_required"`）。该规则不因 track 名是否为 `synthesis` 而改变。
 - View 的 renderer 选择 SHOULD 基于 View 定义、对象类型、Realm schema/profile、track config 和可见字段；不得要求 Strand 额外声明模式字段。
 
 ### 4.8 Track 写入: `ak.strand.tracks.update`
@@ -289,7 +294,7 @@ Track 写入路径只有一个 event kind: **`ak.strand.tracks.update`**(注意�
 {
   "kind": "ak.strand.tracks.update",
   "payload": {
-    "strand_id": "ak:strand:...",
+    "target_ref": "ak:strand:...",
     "patch": {
       "tracks.discussion.enabled":   { "$op": "set", "value": true },
       "tracks.discussion.profile":   { "$op": "set", "value": "review" },
@@ -474,7 +479,7 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
   - `payload.level_public` MUST 省略或显式 `false`；写入 `level_public=true` MUST `failed_precondition`（`reason="watch_level_public_must_be_self"`）。理由：是否公开自己的订阅意图属于个人 opt-in publication，不得由他人代写。
   - 每条 `.others` 写入 MUST 与一条 `ak.audit.accessed` event 形成可验证配对：业务 event 的 `refs[]` MUST 包含 `{id: <audit_event_id>, role: "audit_pair", critical: true}`，audit event payload MUST 使用 `access_kind="watch_set_others"`，并绑定 `writer_actor_id`、`target_actor_id`、`target_cell_id`、`paired_event_id`、`paired_event_digest`、`cell_head_before` 与 `cell_head_after`。二者 MUST 位于同一 ordered submit batch；batch 验证器在接受任何一条前先检查该配对 invariant。缺失、目标不一致、digest 不匹配或不在同 batch 时 reducer MUST 拒绝业务 event（`failed_precondition`，`reason="watch_set_others_audit_missing"`）。
   - 被加为 watcher 的 actor MAY 随时通过自写 cell 覆盖（升级 / 降级 / 自行 `muted` / 自行 `level_public`），无需对方同意。
-- 创建者隐式订阅：reducer 在 `ak.strand.create` 写入时 MAY 同时为 `created_by` actor 建立 `level=participating` 的通知订阅。v1 默认只在 actor-private / notification dispatcher state 中启用该默认值；若 profile 选择把它物化为共享 `ak.strand.watch.set` cell，必须显式声明该行为，并仍保持 `level_public=false`。该写入不消耗 `ak.strand.watch.set.others`，但若物化为共享 cell，仍记入 cell 历史。
+- 创建者隐式订阅：`ak.strand.create` 后，notification dispatcher MAY 在 actor-private 派生状态中把 `created_by` 视为 `level=participating`；该默认值不写共享 cell、不进入 state_root。需要 durable 共享 watch 状态时，创建者客户端必须另行提交已登记的 `ak.strand.watch.set` Control Move。
 - 如需管理员强制静音某 actor 的通知（e.g. 反骚扰、moderation 场景），MUST 使用独立 moderation event（`ak.moderation.decision` 或 profile-specific kind），不得复用个人 watch preference。
 
 ### 8.5 投影脱敏（normative）

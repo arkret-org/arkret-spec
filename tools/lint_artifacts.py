@@ -2303,7 +2303,9 @@ def check_operation_durable_effect_contract(lint: Lint) -> None:
         if kind == "event_log":
             event_kinds = effect.get("event_kinds")
             source = effect.get("event_kind_source")
-            if (event_kinds is None) == (source is None):
+            sources = effect.get("event_kind_sources")
+            mapping_forms = sum(value is not None for value in (event_kinds, source, sources))
+            if mapping_forms != 1:
                 lint.fail(path, f"{operation_id} event_log effect must declare exactly one mapping form")
             if event_kinds is not None:
                 if not isinstance(event_kinds, list) or not event_kinds:
@@ -2316,6 +2318,19 @@ def check_operation_durable_effect_contract(lint: Lint) -> None:
                 not isinstance(source, str) or not source.startswith("$request.")
             ):
                 lint.fail(path, f"{operation_id}.event_kind_source must be a $request JSON path")
+            if sources is not None and (
+                not isinstance(sources, list)
+                or not sources
+                or any(
+                    not isinstance(item, str) or not item.startswith("$request.")
+                    for item in sources
+                )
+                or len(sources) != len(set(sources))
+            ):
+                lint.fail(
+                    path,
+                    f"{operation_id}.event_kind_sources must be a non-empty unique array of $request JSON paths",
+                )
         elif kind == "actor_private_event":
             if effect.get("event_kind") not in actor_private:
                 lint.fail(path, f"{operation_id} must map actor_private_event to an active private kind")
@@ -2844,6 +2859,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                     allowed_strategies = {
                         "query_operation",
                         "reissue_material",
+                        "revoke_then_reissue",
                         "manual_confirmation",
                         "drop_unconfirmed",
                     }
@@ -2864,10 +2880,28 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                             operation_path,
                             f"{operation_id} uncertain_outcome strategy {strategy!r} must not declare operation_id",
                         )
-                    if strategy == "reissue_material" and uncertain_outcome.get("requires_fresh_request_identity") is not True:
+                    if strategy == "revoke_then_reissue":
+                        revoke_operation = uncertain_outcome.get("revoke_operation_id")
+                        reissue_operation = uncertain_outcome.get("reissue_operation_id")
+                        if revoke_operation not in operation_ids or reissue_operation not in operation_ids:
+                            lint.fail(
+                                operation_path,
+                                f"{operation_id} revoke_then_reissue must reference known revoke and reissue operations",
+                            )
+                        if revoke_operation == reissue_operation:
+                            lint.fail(
+                                operation_path,
+                                f"{operation_id} revoke_then_reissue must use distinct revoke and reissue operations",
+                            )
+                    elif "revoke_operation_id" in uncertain_outcome or "reissue_operation_id" in uncertain_outcome:
                         lint.fail(
                             operation_path,
-                            f"{operation_id} reissue_material must require a fresh request identity",
+                            f"{operation_id} uncertain_outcome strategy {strategy!r} must not declare revoke/reissue operation ids",
+                        )
+                    if strategy in {"reissue_material", "revoke_then_reissue"} and uncertain_outcome.get("requires_fresh_request_identity") is not True:
+                        lint.fail(
+                            operation_path,
+                            f"{operation_id} {strategy} must require a fresh request identity",
                         )
             elif uncertain_outcome is not None:
                 lint.fail(
