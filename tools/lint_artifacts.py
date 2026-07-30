@@ -3127,7 +3127,13 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     )
     action_path = ARTIFACTS / "registry" / "capability-action-registry.json"
     action_registry = load_json(lint, action_path) or {}
-    for row in action_registry.get("actions", []) if isinstance(action_registry, dict) else []:
+    action_rows = action_registry.get("actions", []) if isinstance(action_registry, dict) else []
+    capability_actions = {
+        row.get("action")
+        for row in action_rows
+        if isinstance(row, dict) and isinstance(row.get("action"), str)
+    }
+    for row in action_rows:
         if not isinstance(row, dict):
             continue
         action = row.get("action", "<unknown>")
@@ -3174,6 +3180,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         "profiles": profiles,
         "claimable_profiles": claimable_profiles,
         "constraint_types": constraint_types,
+        "capability_actions": capability_actions,
     }
 
 
@@ -3349,6 +3356,45 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
         for constraint_kind in requirement.get("required_constraint_kinds", []):
             if constraint_kind not in known["constraint_types"]:
                 lint.fail(path, f"{profile_id} requires invalid constraint_kind: {constraint_kind}")
+
+        authority_rule_keys = {
+            "issuer_action",
+            "grantable_action",
+            "required_registration_event_kind",
+            "required_claimed_profile",
+            "required_constraint_kind",
+            "required_constraint_subkind",
+            "subject_binding",
+            "scope_binding",
+            "epoch_binding",
+            "requested_action_binding",
+        }
+        for index, rule in enumerate(requirement.get("non_event_grant_authority_rules", [])):
+            label = f"{profile_id}.non_event_grant_authority_rules[{index}]"
+            if not isinstance(rule, dict) or set(rule.keys()) != authority_rule_keys:
+                lint.fail(path, f"{label} must use the closed non-event authority rule shape")
+                continue
+            if rule.get("issuer_action") not in known["capability_actions"]:
+                lint.fail(path, f"{label} issuer_action is not registered")
+            if rule.get("grantable_action") not in known["capability_actions"]:
+                lint.fail(path, f"{label} grantable_action is not registered")
+            if rule.get("required_registration_event_kind") not in known["event_kinds"]:
+                lint.fail(path, f"{label} required_registration_event_kind is not registered")
+            if rule.get("required_claimed_profile") not in known["profiles"]:
+                lint.fail(path, f"{label} required_claimed_profile is not registered")
+            if rule.get("required_constraint_kind") not in known["constraint_types"]:
+                lint.fail(path, f"{label} required_constraint_kind is not registered")
+            if rule.get("required_constraint_subkind") != "applet_delegation":
+                lint.fail(path, f"{label} uses an unsupported constraint subkind")
+            expected_bindings = {
+                "subject_binding": "registration.service_id",
+                "scope_binding": "grant.resource_exact_registration_scope",
+                "epoch_binding": "constraint.registration_epoch_exact_registration",
+                "requested_action_binding": "grant.action_in_registration.requested_scopes",
+            }
+            for field, expected in expected_bindings.items():
+                if rule.get(field) != expected:
+                    lint.fail(path, f"{label}.{field} must equal {expected}")
 
         for fixture in requirement.get("required_fixtures", []):
             if fixture not in fixture_files:

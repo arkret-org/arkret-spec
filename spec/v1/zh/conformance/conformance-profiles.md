@@ -762,6 +762,11 @@ MUST NOT：
 - portal Realm metadata
 - external event deduplication
 - bridge error event
+- 执行 `non_event_grant_authority_rules[]`：只有 active `ak.realm.admin` issuer 向同 scope
+  已 accepted bridge registration 的 service、按 exact `applet_delegation`
+  applet/service/epoch binding 签发其已请求的 `ak.applet.ghost.provision` 时允许；owner
+  shortcut、缺 profile、错 epoch/subject/scope/constraint 与其它 non-event action 必须
+  `grant_exceeds_issuer_authority`
 
 `ak.profile.applet_delegated.v1` inherits `ak.profile.applet_service.v1` and MUST 支持 delegated native-user acting 的 `executed_by` / `authorization_ref` / `applet_id` 校验、dual-signature attribution 与 `registration_epoch` evidence verification。
 

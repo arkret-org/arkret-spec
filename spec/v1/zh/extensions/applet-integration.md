@@ -232,6 +232,17 @@ Applet 安装使用 self/admin aggregate operation。它不创建 install 专用
   改写 event id/frontier/seal basis、以 service notary 代签 Event，或替 grant issuer 生成
   payload proof。`registration_event.actor_id`、每条 grant Event 的 `actor_id`、grant `issuer`
   与 authenticated install actor MUST 全部逐字相等。
+- `ak.profile.applet_bridge.v1` 对 non-event action `ak.applet.ghost.provision` 的唯一首发
+  authority 是其机器 artifact `non_event_grant_authority_rules[]`：issuer 必须在同一
+  `seal_basis` joined view 下持有覆盖 effective scope 的 `ak.realm.admin`；registration
+  必须已 accepted、`claimed_profiles[]` 包含 `ak.profile.applet_bridge.v1`、service/epoch/
+  requested scopes 与 grant 的 subject、`applet_delegation` constraint 及 action 逐字绑定。
+  Realm owner、membership、package controller proof 或 install endpoint authentication
+  均不得替代该 authority。规则只覆盖 `ak.applet.ghost.provision`，不得类推到其它
+  non-event action。
+  Conformance 必须执行
+  `ak.vector.capability.applet_bridge_non_event_grant_authority.v1` 的 owner/profile/binding
+  正负向矩阵。
 
 当 controller proof 无效、DID Document 不可解析或 key ref 不匹配、namespace pattern 非法、exclusive namespace 与 active install 冲突、requested action 不在 capability registry、effective_scope 所属 Realm policy 禁止 Applet/Ghost Actor/widget/E2EE、或 package 已过期时，Preview MUST fail closed。
 

@@ -131,6 +131,20 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 
 聚合 admin action（如 `ak.realm.admin` / `ak.policy.manage`）在该上界校验中的展开 **MUST** 以 issuer grant 的签名 / registry basis 为锚：reducer 先解析 child grant 每个 `actions[]` 的 `target_event_kinds`，再在同一 registry basis 下解析 issuer 持有的聚合 action 覆盖集。issuer 字面持有 child action 时可直接满足上界；issuer 仅持有聚合 action 时，只有当该聚合 action 在该 basis 的 effective coverage set 覆盖 child action 的全部 `target_event_kinds`，且 issuer resources / constraints 覆盖 child resources / constraints 时，才视为满足上界。历史聚合 grant **MUST NOT** 自动继承后来 registry 新增的 `target_event_kinds`；新增覆盖必须按 §5.0.1 重新签发或通过显式 opt-in 绑定新的 registry digest。聚合展开 **MUST NOT** 授权 `event_mapping_kind="non_event_surface"` 的 child action；这类 action 只能由 issuer 字面持有相同 action，或由 profile 显式声明的非事件面授权规则覆盖。
 
+Profile 对 non-event action 的显式授权规则必须登记在
+`conformance-profiles.json#/profile_requirements/<profile>/non_event_grant_authority_rules[]`；
+散文声明或只把 action 列入 `required_capability_actions[]` 不构成权限来源。每条规则必须逐字
+登记 `issuer_action`、`grantable_action`、`required_registration_event_kind`、
+`required_claimed_profile`、`required_constraint_kind/subkind`、`subject_binding`、
+`scope_binding`、`epoch_binding` 与 `requested_action_binding`。Reducer 只有在同一
+`seal_basis` joined view 下 issuer 的 active grant 覆盖 `issuer_action` 和 child resource，
+且被引用 registration、subject、constraint、epoch、scope、requested action 全部满足规则时，
+才可把该规则视为 child action 的 issuer 上界；任一 registration 缺失、profile 未声明、
+epoch/subject/scope/constraint 不一致、action 未被 registration 请求，或 rule/profile
+unsupported 时都必须 `grant_exceeds_issuer_authority` fail closed。该机制不是 sovereign
+豁免，不允许 owner/membership 隐式授权，也不允许 profile 声明 wildcard/prefix action。
+机器正负向闭包由 `ak.vector.capability.applet_bridge_non_event_grant_authority.v1` 覆盖。
+
 凡 `actions[]` 含 `event_mapping_kind="aggregate_admin"` 的 grant，wire body MUST 携带 `capability_action_registry_digest`，并由 grant proof 覆盖。该 digest 为 `sha256:` + SHA-256（RFC 8785 JCS bytes of the complete canonical `capability-action-registry.json` object）；签发者 MUST 用该 digest 对应 registry 展开 coverage。Receiver 必须能够按 digest 取得同一 registry snapshot；未知 digest、snapshot 不可得或 JCS 重算不等时 MUST fail closed（`failed_precondition`，`reason_code="capability_registry_basis_unavailable"`），不得回退到当前 registry。非 aggregate grant MAY 携带该字段作审计锚，但不得改变逐字 action 命中语义。
 
 - 越界（`actions[]` 含 issuer 自身不持有的 action，或 `resources[]` 超出 issuer 自身命中范围）时 reducer **MUST** fail closed：对 actions / resources 越界返回 `schema_violation`（`reason="grant_exceeds_issuer_authority"`），对授权前置不成立（issuer 在该 basis 下不持有所需上界能力）返回 `failed_precondition`（`reason="grant_exceeds_issuer_authority"`）。实现 **MUST NOT** 把"持有 `ak.capability.grant` action"误当作"可凭空铸造任意 capability"。

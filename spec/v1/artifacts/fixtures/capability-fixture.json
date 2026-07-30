@@ -778,6 +778,84 @@
       ]
     },
     {
+      "name": "applet_bridge_non_event_grant_authority",
+      "vector_id": "ak.vector.capability.applet_bridge_non_event_grant_authority.v1",
+      "profile": "ak.profile.applet_bridge.v1",
+      "rule": {
+        "issuer_action": "ak.realm.admin",
+        "grantable_action": "ak.applet.ghost.provision",
+        "required_registration_event_kind": "ak.applet.registration",
+        "required_constraint_kind": "delegation_control",
+        "required_constraint_subkind": "applet_delegation"
+      },
+      "cases": [
+        {
+          "name": "exact_bridge_registration_binding",
+          "issuer_effective_actions": [
+            "ak.realm.admin"
+          ],
+          "registration": {
+            "event_kind": "ak.applet.registration",
+            "applet_id": "ak:applet:01964120-1000-7000-8000-000000000000",
+            "service_id": "did:webvh:z6mkfixture:bridge.example",
+            "registration_epoch": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "claimed_profiles": [
+              "ak.profile.applet_service.v1",
+              "ak.profile.applet_bridge.v1"
+            ],
+            "requested_scopes": [
+              "ak.applet.ghost.provision"
+            ]
+          },
+          "grant": {
+            "subject": "did:webvh:z6mkfixture:bridge.example",
+            "actions": [
+              "ak.applet.ghost.provision"
+            ],
+            "constraints": [
+              {
+                "constraint_kind": "delegation_control",
+                "constraint_subkind": "applet_delegation",
+                "applet_id": "ak:applet:01964120-1000-7000-8000-000000000000",
+                "executed_by": "did:webvh:z6mkfixture:bridge.example",
+                "registration_epoch": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            ],
+            "resource_matches_registration_scope": true
+          },
+          "expected": {
+            "decision": "accept"
+          }
+        },
+        {
+          "name": "owner_without_explicit_realm_admin",
+          "issuer_is_realm_owner": true,
+          "issuer_effective_actions": [],
+          "expected": {
+            "decision": "reject",
+            "reason": "grant_exceeds_issuer_authority"
+          }
+        },
+        {
+          "name": "profile_or_binding_mismatch",
+          "mutate_each": [
+            "remove_bridge_claimed_profile",
+            "change_subject",
+            "change_applet_id",
+            "change_registration_epoch",
+            "widen_resource",
+            "remove_requested_action",
+            "change_constraint_subkind",
+            "change_action_to_other_non_event_surface"
+          ],
+          "expected": {
+            "all_rejected": true,
+            "reason": "grant_exceeds_issuer_authority"
+          }
+        }
+      ]
+    },
+    {
       "name": "quota_linearizable_authority",
       "vector_id": "ak.vector.constraint.quota_linearizable_authority.v1",
       "constraint": {

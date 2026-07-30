@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-30.3",
+  "version": "2026-07-30.4",
   "source_of_truth": true,
-  "generated_at": "2026-07-30T03:12:00Z",
+  "generated_at": "2026-07-30T03:30:17Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4521,6 +4521,21 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.capability.applet_bridge_non_event_grant_authority.v1",
+      "status": "active",
+      "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
+      "description": "Profile-declared non-event grant authority permits only exact Realm-admin-to-active-bridge-registration ak.applet.ghost.provision grants and rejects owner shortcuts or binding drift.",
+      "source_refs": [
+        "spec/v1/zh/authz/capabilities.md",
+        "spec/v1/zh/extensions/applet-integration.md",
+        "spec/v1/artifacts/profiles/conformance-profiles.json",
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]
     },
     {

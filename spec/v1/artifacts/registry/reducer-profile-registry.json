@@ -1,6 +1,6 @@
 {
-  "version": "2026-07-30.7",
-  "generated_at": "2026-07-30T03:10:00Z",
+  "version": "2026-07-30.8",
+  "generated_at": "2026-07-30T03:30:17Z",
   "source_of_truth": true,
   "description": "Canonical reducer profile declarations and generated content-addressed semantic closures used for federation service_binding_ref.reducer_profile_digest.",
   "canonicalization": "json_jcs",
@@ -1330,7 +1330,7 @@
         "fixture_contracts": [
           {
             "fixture": "capability-fixture.json",
-            "semantic_projection_digest": "sha256:1305274ec5037c7adde0998c1fd70e8cf240f49c0b099e3c441a2c1502eb2016"
+            "semantic_projection_digest": "sha256:60e787df069ac79a60abe030c2bae55c951b94d095347e10731a11f91632af8c"
           },
           {
             "fixture": "cba-lattice-fixture.json",
@@ -1400,7 +1400,7 @@
           },
           {
             "ref": "zh/authz/capabilities.md",
-            "content_digest": "sha256:2ca87f4344ed259667ec2da8f549571057ec012116af60e5528c1fb896b335ef"
+            "content_digest": "sha256:ab4814e6b79c58b402b3f2632c5ada66285ffe2f60d982ca251e42a30c6ef91d"
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
@@ -1440,7 +1440,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:8baccdefb0d3e840f016a0db994a3d14aa6488c80ff3cd94400387fee2518d16"
+      "reducer_profile_digest": "sha256:df65509c07fe065f26c18ce01a8ff73d549d69ec35556a34e59bc2da2caa4fc6"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
