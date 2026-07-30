@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-30",
+  "version": "2026-07-30.1",
   "source_of_truth": false,
-  "generated_at": "2026-07-30T00:00:00Z",
+  "generated_at": "2026-07-30T01:48:48Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -137,6 +137,25 @@
       ],
       "profile": "ak.profile.agent_sidecar.v1",
       "event_mapping_kind": "scope_suffix_variant"
+    },
+    {
+      "action": "ak.applet.ghost.provision",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [
+        "applet_id",
+        "executed_by",
+        "registration_epoch"
+      ],
+      "required_evaluator_checks": [
+        "active_applet_registration_exact",
+        "ghost_actor_namespace_match",
+        "ghost_provision_pair_atomic"
+      ],
+      "target_event_kinds": [],
+      "profile": "ak.profile.applet_bridge.v1",
+      "event_mapping_kind": "non_event_surface",
+      "notes": "Authorizes the installed Applet service to invoke the closed Ghost Actor provisioning aggregate for one exact effective Realm scope. The operation accepts the caller-signed ak.identity.accountability_grant + ak.profile.create pair atomically; it is not a generic authorization for either Event kind."
     },
     {
       "action": "ak.approval.vote",

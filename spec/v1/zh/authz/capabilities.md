@@ -285,6 +285,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.circle.member.add.others`（high risk；代他人写入 Circle membership，MUST 与 `ak.audit.accessed` 配对）
 - `ak.circle.audit`（high risk；审计读取 Circle 元数据 / activity rollup，MUST 与 `ak.audit.accessed` 配对）
 - `ak.realm.admin`
+- `ak.applet.ghost.provision`（high risk、profile=`ak.profile.applet_bridge.v1`、`target_event_kinds=[]`、`event_mapping_kind=non_event_surface`；授权 installed Applet service 调用闭合的 Ghost Actor provisioning aggregate；grant MUST 以 `applet_id`、`executed_by`、`registration_epoch` 约束绑定 active registration，且不得解释为对 `ak.identity.accountability_grant` 或 `ak.profile.create` 的通用授权）
 - `ak.audit.applet_binding`（high risk；新增、暂停或撤销 Audit Applet Binding；target=`ak.audit.applet_binding`）
 - `ak.audit.session.authorize`（high risk；授权某个 Audit Applet release session；Circle-scoped session 必须由覆盖该 Circle 的 grant 授权）
 - `ak.realm.link`（管理 Realm 间关系图，target=`ak.realm.link`）

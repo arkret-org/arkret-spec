@@ -1,6 +1,6 @@
 {
-  "version": "2026-07-30",
-  "generated_at": "2026-07-30T00:00:00Z",
+  "version": "2026-07-30.1",
+  "generated_at": "2026-07-30T01:48:48Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2745,7 +2745,8 @@
       "required_endpoints": [
         "ak.edge.applet.actor.query.resolve",
         "ak.edge.applet.realm.query.resolve",
-        "ak.edge.applet.query.protocol_metadata"
+        "ak.edge.applet.query.protocol_metadata",
+        "ak.self.applet.ghost.command.provision"
       ],
       "required_event_kinds": [
         "ak.applet.bridge_error"
@@ -2754,7 +2755,11 @@
       "required_schemas": [
         "ak.schema.event.v1",
         "ak.schema.event_payload.v1",
-        "ak.schema.seal.v1"
+        "ak.schema.seal.v1",
+        "ak.schema.applet_ghost_operations.v1"
+      ],
+      "required_capability_actions": [
+        "ak.applet.ghost.provision"
       ],
       "required_fixtures": [
         "capability-fixture.json",
