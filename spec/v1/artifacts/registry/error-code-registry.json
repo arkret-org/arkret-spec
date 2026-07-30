@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-30",
+  "version": "2026-07-30.1",
   "codes": [
     {
       "code": "bad_json",
@@ -1134,7 +1134,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "ak.self.applet.command.install recomputed the canonical InstallPlan from the submitted Applet Package, approved_scopes, effective_scope, and current Realm/Circle policy, and the recomputed plan_digest did not exactly match the submitted plan_digest. Server MUST fail closed and require a fresh preview/approval before fan-out. See zh/extensions/applet-integration.md §4b."
+      "description": "ak.self.applet.command.install recomputed the canonical InstallPlan from the submitted Applet Package, caller-signed registration/capability-grant Events, effective_scope, and current Realm/Circle policy, and the recomputed plan_digest did not exactly match the submitted plan_digest. Server MUST fail closed and require a fresh preview/approval before formal Event admission. See zh/extensions/applet-integration.md §4b."
     },
     {
       "code": "applet_e2ee_join_unauthorized",

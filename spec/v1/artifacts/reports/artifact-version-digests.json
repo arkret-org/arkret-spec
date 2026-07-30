@@ -57,9 +57,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
-      "version": "2026-07-30",
+      "version": "2026-07-30.1",
       "generated_at": null,
-      "content_digest": "sha256:8e5333fe961e6aec1f0e9bc36461d1de9c13c23d92c3bbb22d72b6c5ac19c41b"
+      "content_digest": "sha256:f8a2a4dfa9cb78e68f1f8fa1e87531b0f0158729d4744013a1c6a49f2a90c5f7"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
