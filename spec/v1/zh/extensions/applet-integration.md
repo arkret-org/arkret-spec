@@ -217,7 +217,7 @@ Applet 安装使用 self/admin aggregate operation。它不创建 install 专用
 | operation_id | HTTP | 语义 |
 | --- | --- | --- |
 | `ak.self.applet.install.command.preview` | `POST /_arkret/self/applets/install/preview` | 只读预览，返回 canonical `InstallPlan` 与 `plan_digest`。 |
-| `ak.self.applet.command.install` | `POST /_arkret/self/applets/install` | 提交安装，必须带 `Idempotency-Key` 与 preview 得到的 `plan_digest`。 |
+| `ak.self.applet.command.install` | `POST /_arkret/self/applets/install` | 提交安装，必须带 `Idempotency-Key`、preview 得到的 `plan_digest`，以及管理员已签名的 formal registration/grant Events。 |
 | `ak.self.applet.command.revoke` | `POST /_arkret/self/applets/{applet_id}/revoke` | 撤销 effective install。 |
 
 `effective_scope` 是单次 install 的唯一目标:
@@ -227,6 +227,11 @@ Applet 安装使用 self/admin aggregate operation。它不创建 install 专用
 - 单次 install operation 只处理一个 `effective_scope`。多 Realm、多 Circle 批量安装和跨 sovereign server 的 install 事务聚合不是 v1 目标。
 - install preview/commit MUST 由目标 Realm 的 controlling Principal Server 或 Realm policy 明确授权的 authz service 承载；联邦投递只传播 fan-out 后的正式 events，不把 install operation 本身变成跨 server 分布式事务。
 - install commit 的授权门是机读 `ak.realm.admin` capability(§4)：commit 提交的 admin actor MUST 持有覆盖目标 Realm 的 active `ak.realm.admin` grant(或 Realm policy 授权的等价 authz service);fan-out 出的 `ak.applet.registration` 是该 capability action 的目标 event kind。reduce-time 缺少该授权时 MUST fail closed,reason=`applet_registration_unauthorized`，且整个 install 标记 rejected(无 effective install)。
+- commit 的 `registration_event` 与每条 `capability_grant_events[]` MUST 是该 admin caller
+  已完成签名、可直接进入通用 Event admission 的 formal Event；服务端 MUST NOT 重建 Event、
+  改写 event id/frontier/seal basis、以 service notary 代签 Event，或替 grant issuer 生成
+  payload proof。`registration_event.actor_id`、每条 grant Event 的 `actor_id`、grant `issuer`
+  与 authenticated install actor MUST 全部逐字相等。
 
 当 controller proof 无效、DID Document 不可解析或 key ref 不匹配、namespace pattern 非法、exclusive namespace 与 active install 冲突、requested action 不在 capability registry、effective_scope 所属 Realm policy 禁止 Applet/Ghost Actor/widget/E2EE、或 package 已过期时，Preview MUST fail closed。
 
@@ -234,9 +239,10 @@ Commit MUST 执行：
 
 - 在 fan-out 前持久化 install execution record:`(principal_service_id, admin_actor_id, Idempotency-Key, body_hash, submitted_plan_digest, status, produced_event_refs[])`。
 - 对同一 `Idempotency-Key` + 同一 body canonical hash 重试返回同一结果和同一批 accepted event refs；同一 key + 不同 body MUST 返回 `duplicate_conflict`。
-- 每个 fan-out step 提交前先记录 `step_index`、canonical event body hash、目标 event kind 与 `pending` 状态；accepted 后先把 event ref 写回 record，再继续后续 fan-out 或响应客户端。若进程在 submit accepted 与 ref 写回之间崩溃，重试 MUST 先按 deterministic event id 或 canonical body hash 查询是否已有 accepted event，补写 ref 后继续，不得直接重提。
+- 每个 fan-out step 提交前先记录 caller 提交的 `event_id`、`step_index`、canonical event body hash、目标 event kind 与 `pending` 状态；accepted 后先把 event ref 写回 record，再继续后续 fan-out 或响应客户端。若进程在 submit accepted 与 ref 写回之间崩溃，重试 MUST 先按该 caller-signed event id 与 canonical body hash 查询是否已有 accepted event，补写 ref 后继续，不得生成替代 id 或重建 Event。
 - 重新计算 plan；不得盲信客户端传回的 `InstallPlan`。
-- 将 package requested scopes、commit `approved_scopes`、当前 Realm/Circle policy 取交集后生成候选 Approved Capability Set。`approved_scopes` 是管理员意图，不是 grant truth。
+- 从 `capability_grant_events[]` 提取 actions/resources，与 package requested scopes、当前 Realm/Circle policy 取交集后重建 Approved Capability Set；不得接受未请求 action、scope widening、重复 action，或缺少 `delegation_control.applet_delegation` 精确绑定的 grant。
+- `registration_event.payload` MUST 与 package 派生 registration payload canonical bytes 完全相同；每条 grant 的 subject MUST 等于 package `service_id`，resource MUST 等于本次唯一 `effective_scope`，constraint MUST 绑定相同 `applet_id + service_id + registration_epoch`。任一不匹配 MUST 在提交首条 Event 前 fail closed。
 - 当 recomputed plan canonical `plan_digest` 与提交的 `plan_digest` 不一致时 MUST fail closed，返回 `applet_install_plan_mismatch`，并要求管理员重新 preview/approve。
 
 多事件 fan-out 不是分布式原子事务；安全性依赖 registration 无 grant 即无授权。preview-time reject MUST NOT 提交任何 durable event。reduce-time reject MUST 把 accepted refs 与 rejected refs 写入 install execution record 和 audit/projection。registration 成功但所有 grant 失败时 MUST 返回 rejected，标记 registration 无 effective install，并在 local projection / audit 显式显示 orphan registration。
@@ -326,7 +332,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
 }
 ```
 
-constraint 内 MUST 只使用 [`authz/constraint-schema.md`](../authz/constraint-schema.md) 登记的 `scope_limitation` 字段（如 `allowed_data_labels` / `allowed_endpoints` / `allowed_*_container_refs` 等）。该 capability 与具体 applet 的绑定不写在 constraint 里，而是由 §5.1 registration 的 `namespaces.actors[].pattern`（声明可代理的 ghost actor 命名空间）与 §11 delegated agent 的 `applet_id` / `authorization_ref` 在 Event 层校验。
+scope 限制 MUST 只使用 [`authz/constraint-schema.md`](../authz/constraint-schema.md) 登记的 `scope_limitation` 字段（如 `allowed_data_labels` / `allowed_endpoints` / `allowed_*_container_refs` 等）；与具体 Applet install 的安全绑定 MUST 另外使用标准 `constraint_kind="delegation_control" + constraint_subkind="applet_delegation"`，并完整携带 `applet_id`、`executed_by=service_id`、`registration_epoch`。§5.1 registration namespace 与 §11 Event envelope 的 `applet_id` / `authorization_ref` 是使用时的交叉校验，不能替代 grant 自身的绑定。
 
 除非 Applet 拥有 effective grant，或以委托授权身份显式代表已授权 actor 行事（此时 MUST 满足 [§11](#11-masquerading-与-delegated-agent) delegated agent 的全部字段 `executed_by` / `authorization_ref` / `applet_id` 与对应 reducer 校验），否则 Applet MUST NOT 向 Realm 写入。
 

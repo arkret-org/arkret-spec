@@ -1,6 +1,6 @@
 {
-  "version": "2026-07-30.1",
-  "generated_at": "2026-07-30T01:48:48Z",
+  "version": "2026-07-30.2",
+  "generated_at": "2026-07-30T01:57:53Z",
   "source_of_truth": true,
   "description": "Canonical reducer profile declarations and generated content-addressed semantic closures used for federation service_binding_ref.reducer_profile_digest.",
   "canonicalization": "json_jcs",
@@ -1683,11 +1683,11 @@
           },
           {
             "ref": "zh/sync/service-http-binding.md",
-            "content_digest": "sha256:c1caa61d98f762eaa0eeb758a32f0eeaa596307e88b82e8571b197358fa31c6b"
+            "content_digest": "sha256:440d6308e32674152c40d4a7dd2ce230c82fe8edc6977298858b75ec22b7380a"
           }
         ]
       },
-      "reducer_profile_digest": "sha256:eaa49c17332db7f6990231b0664689b1040872350fbe2c2cc5fdc60c3412d128"
+      "reducer_profile_digest": "sha256:0a0e2fcef4cfd5f2759dbd866e7fda740eb62e4f39798e541b551915875a4674"
     }
   ],
   "generated_fields": [

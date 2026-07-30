@@ -185,11 +185,21 @@ Install commit request:
     "kind": "realm",
     "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
   },
-  "approved_scopes": [
+  "registration_event": {
+    "kind": "ak.applet.registration",
+    "actor_id": "did:webvh:z6MkAdmin:acme.example",
+    "payload": {},
+    "proofs": []
+  },
+  "capability_grant_events": [
     {
-      "actions": ["ak.message.create"],
-      "realm_ids": ["ak:realm:0196419b-0000-7000-8000-000000000000"],
-      "constraints": []
+      "kind": "ak.capability.grant",
+      "actor_id": "did:webvh:z6MkAdmin:acme.example",
+      "payload": {
+        "grant_id": "ak:grant:0196419b-0000-7000-8000-000000000001",
+        "grant": {}
+      },
+      "proofs": []
     }
   ],
   "actor_policy": {
@@ -204,6 +214,10 @@ Install commit request:
   }
 }
 ```
+
+上例只展示字段归属；`registration_event` 与 `capability_grant_events[]` 的省略字段和空
+`proofs`/`grant` 在真实请求中不合法。真实值 MUST 是通过 Event、payload 与 capability
+schema 的完整 admin-caller-signed formal Event，服务端不得代签或重建。
 
 Commit 响应 MUST 通过 [`schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome`](../../artifacts/schemas/applet-install-operations.schema.json) 校验，并包含 `ok`、`install_id`、`applet_id`、`registration_event_ref`、`registration_epoch`、`bot_actor_id`、`capability_grant_refs`、`membership_event_refs`、`e2ee_authorization_refs`、`widget_policy_ref`、`effective_status`、`rejected`。
 

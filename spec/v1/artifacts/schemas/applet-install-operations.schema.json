@@ -175,7 +175,8 @@
         "plan_digest",
         "applet_package",
         "effective_scope",
-        "approved_scopes"
+        "registration_event",
+        "capability_grant_events"
       ],
       "properties": {
         "plan_digest": {
@@ -187,11 +188,48 @@
         "effective_scope": {
           "$ref": "#/$defs/effective_scope"
         },
-        "approved_scopes": {
+        "registration_event": {
+          "allOf": [
+            {
+              "$ref": "./event-envelope.schema.json"
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "ak.applet.registration"
+                }
+              }
+            }
+          ],
+          "description": "Caller-signed formal registration Event. actor_id MUST equal the authenticated install admin, payload MUST exactly equal the registration derived from applet_package, and the controller proof copied into payload.proof remains independently required."
+        },
+        "capability_grant_events": {
           "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
           "items": {
-            "$ref": "#/$defs/scope_grant"
-          }
+            "allOf": [
+              {
+                "$ref": "./event-envelope.schema.json"
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind"
+                ],
+                "properties": {
+                  "kind": {
+                    "const": "ak.capability.grant"
+                  }
+                }
+              }
+            ]
+          },
+          "description": "Caller-signed formal capability-grant Events. Each Event actor and grant issuer MUST equal the authenticated install admin; subjects, actions, resources and applet_delegation constraints MUST exactly match the recomputed install plan and effective_scope."
         },
         "actor_policy": {
           "$ref": "#/$defs/actor_policy"

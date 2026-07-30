@@ -1124,13 +1124,15 @@
           "plan_digest",
           "applet_package",
           "effective_scope",
-          "approved_scopes"
+          "registration_event",
+          "capability_grant_events"
         ],
         "properties": [
           "plan_digest",
           "applet_package",
           "effective_scope",
-          "approved_scopes",
+          "registration_event",
+          "capability_grant_events",
           "actor_policy",
           "e2ee_policy",
           "widget_policy"
