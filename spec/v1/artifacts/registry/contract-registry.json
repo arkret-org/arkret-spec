@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-30.8",
+  "version": "2026-07-30.9",
   "source_of_truth": true,
-  "generated_at": "2026-07-30T05:00:00Z",
+  "generated_at": "2026-07-30T05:56:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -9899,10 +9899,7 @@
         "idempotency_mechanism": "none",
         "retry_safe": false,
         "uncertain_outcome": {
-          "strategy": "revoke_then_reissue",
-          "revoke_operation_id": "ak.self.invite_locator.command.revoke",
-          "reissue_operation_id": "ak.self.invite_locator.command.issue",
-          "requires_fresh_request_identity": true
+          "strategy": "manual_confirmation"
         },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome",
@@ -10378,7 +10375,10 @@
         "idempotency_mechanism": "none",
         "retry_safe": false,
         "uncertain_outcome": {
-          "strategy": "manual_confirmation"
+          "strategy": "revoke_then_reissue",
+          "revoke_operation_id": "ak.self.invite_locator.command.revoke",
+          "reissue_operation_id": "ak.self.invite_locator.command.issue",
+          "requires_fresh_request_identity": true
         },
         "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_rotate_request_body",
         "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome",
