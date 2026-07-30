@@ -5,7 +5,7 @@
   },
   "suite": "privacy_security",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-05-02",
+  "version": "2026-07-30",
   "conformance_vectors": [
     "ak.vector.directory.public_realm_search.v1",
     "ak.vector.directory.organization_search.v1",
@@ -40,7 +40,8 @@
     "ak.vector.search.surface_separation_no_plaintext_leakage.v1",
     "ak.vector.identity.internationalized_identifier_profiles.v1",
     "ak.vector.identity.authority_local_skeleton_collision.v1",
-    "ak.vector.identity_link.minimal_metadata_author_credential.v1"
+    "ak.vector.identity_link.minimal_metadata_author_credential.v1",
+    "ak.vector.actor.accountability_grant_required.v1"
   ],
   "cases": [
     {
@@ -705,6 +706,73 @@
         "canonical_equality_uses_skeleton": false,
         "skeleton_enters_wire_or_proof": false
       }
+    },
+    {
+      "vector_id": "ak.vector.actor.accountability_grant_required.v1",
+      "name": "actor_profile_accountability_grant_is_deterministic",
+      "runner": "cotest::conformance::privacy_security::run_actor_accountability_grant_required_vector",
+      "cases": [
+        {
+          "name": "create_missing_grant_rejects_whole_event",
+          "event_kind": "ak.profile.create",
+          "accountable_principal_ids": [
+            "did:webvh:z6mkfixture:organization.example"
+          ],
+          "matching_active_grants": [],
+          "expected": {
+            "decision": "failed_precondition",
+            "reason_code": "accountability_grant_missing",
+            "profile_cell_unchanged": true
+          }
+        },
+        {
+          "name": "update_missing_one_of_multiple_grants_rejects_whole_event",
+          "event_kind": "ak.profile.update",
+          "accountable_principal_ids": [
+            "did:webvh:z6mkfixture:organization.example",
+            "did:webvh:z6mkfixture:controller.example"
+          ],
+          "matching_active_grants": [
+            "did:webvh:z6mkfixture:controller.example"
+          ],
+          "expected": {
+            "decision": "failed_precondition",
+            "reason_code": "accountability_grant_missing",
+            "profile_cell_unchanged": true,
+            "must_not_accept_stripped_projection": true
+          }
+        },
+        {
+          "name": "all_grants_active_accepts_exact_signed_value",
+          "event_kind": "ak.profile.update",
+          "accountable_principal_ids": [
+            "did:webvh:z6mkfixture:organization.example"
+          ],
+          "matching_active_grants": [
+            "did:webvh:z6mkfixture:organization.example"
+          ],
+          "expected": {
+            "decision": "accept",
+            "stored_accountable_principal_ids_equal_signed_payload": true
+          }
+        },
+        {
+          "name": "later_revoke_marks_existing_projection_unverified",
+          "profile_write_was_valid_when_accepted": true,
+          "grant_status_after_acceptance": "revoked",
+          "expected": {
+            "profile_event_remains_in_log": true,
+            "projection_trust_state": "unverified",
+            "next_profile_update_with_revoked_entry": "accountability_grant_missing"
+          }
+        }
+      ],
+      "assertions": [
+        "missing accountability grant rejects the entire profile Event on every conformant verifier",
+        "reducer never accepts a field-stripped Actor Profile value",
+        "accepted cell value preserves the signed payload exactly",
+        "unverified presentation state applies only after a previously valid grant expires or is revoked"
+      ]
     },
     {
       "vector_id": "ak.vector.identity_link.minimal_metadata_author_credential.v1",

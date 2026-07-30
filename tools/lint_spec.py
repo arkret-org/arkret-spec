@@ -75,6 +75,13 @@ TABLE_DELIMITER_CELL_RE = re.compile(r"^:?-{3,}:?$")
 FRONTMATTER_RE = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n", re.DOTALL)
 PROPOSAL_FILE_RE = re.compile(r"^(?P<num>[0-9]{4})-[A-Za-z0-9_.-]+\.md$")
 OLD_CHINESE_NORMATIVE_DISCLAIMER_RE = re.compile(r"中文.*(?:不构成规范要求|只供阅读理解)")
+HISTORICAL_NORMATIVE_RE = re.compile(
+    r"v1\s*变更说明|本(?:条|节).{0,24}早先|迁移前只能|既有authorization缺少binding"
+)
+NONDETERMINISTIC_NORMATIVE_RE = re.compile(
+    r"MAY\s+accept\s+but\s+mark|部署\s*policy\s*可选其一",
+    re.IGNORECASE,
+)
 REQUIRED_CHINESE_NORMATIVE_ROWS = {
     "必须 / 要求": "`MUST` / `REQUIRED`",
     "只能 / 仅限": "`MUST`",
@@ -367,13 +374,21 @@ def lint_file(path: Path) -> list[Finding]:
 
     findings.extend(lint_table_blocks(path, text, body_offset))
 
-    for idx, raw in enumerate(text.splitlines(), start=1):
+    all_lines = text.splitlines()
+    previous_nonblank_by_line: list[str] = []
+    previous_nonblank = ""
+    for line in all_lines:
+        previous_nonblank_by_line.append(previous_nonblank)
+        if line.strip():
+            previous_nonblank = line.strip()
+
+    for idx, raw in enumerate(all_lines, start=1):
         # Skip lines inside fenced code blocks heuristically: tracked below.
         pass
 
     in_code = False
     pending_ignore: set[str] = set()
-    for idx, raw in enumerate(text.splitlines(), start=1):
+    for idx, raw in enumerate(all_lines, start=1):
         stripped = raw.strip()
         if stripped.startswith("```"):
             in_code = not in_code
@@ -415,6 +430,37 @@ def lint_file(path: Path) -> list[Finding]:
 
         # Strip inline code spans before second-person / punctuation checks.
         scrubbed = re.sub(r"`[^`]*`", "", raw)
+
+        informative_exception = "_Informative._" in previous_nonblank_by_line[idx - 1]
+        if (
+            is_normative
+            and "HY001" not in ignored
+            and not informative_exception
+            and HISTORICAL_NORMATIVE_RE.search(scrubbed)
+        ):
+            findings.append(
+                Finding(
+                    path,
+                    idx,
+                    "HY001",
+                    "historical/migration narrative is forbidden in current normative prose",
+                    "error",
+                )
+            )
+        if (
+            is_normative
+            and "ND001" not in ignored
+            and NONDETERMINISTIC_NORMATIVE_RE.search(scrubbed)
+        ):
+            findings.append(
+                Finding(
+                    path,
+                    idx,
+                    "ND001",
+                    "deployment-selectable acceptance semantics would break deterministic reduction",
+                    "error",
+                )
+            )
 
         if "ST002" not in ignored and SECOND_PERSON_RE.search(scrubbed):
             findings.append(

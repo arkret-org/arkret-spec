@@ -56,7 +56,7 @@
     "state_digest": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
-      "description": "Hash of the canonical reducer-derived state at the snapshot frontier (Lattice cell values keyed by cell_family/cell_subject, plus reducer_profile / schema_profile_refs). This binds *what the state is*. Paired with event_set_commitment which binds *which events produced it*: a verifier replays the events covered by event_set_commitment under reducer_profile and MUST obtain the same state_digest. The two digests are independent and BOTH required — state_digest alone cannot detect missing-event tampering, event_set_commitment alone cannot detect reducer divergence."
+      "description": "RFC 6962 domain-separated Merkle root of the canonical reducer-derived state at the snapshot frontier (Lattice cell values keyed by cell_family/cell_subject, plus reducer_profile / schema_profile_refs): leaf=H(0x00||leaf_data), node=H(0x01||left||right), odd tail promoted. This binds *what the state is*. Paired with event_set_commitment which binds *which events produced it*: a verifier replays the events covered by event_set_commitment under reducer_profile and MUST obtain the same state_digest. The two digests are independent and BOTH required — state_digest alone cannot detect missing-event tampering, event_set_commitment alone cannot detect reducer divergence."
     },
     "frontier": {
       "type": "object",
@@ -82,7 +82,7 @@
     },
     "event_set_commitment": {
       "type": "object",
-      "description": "Commitment to the *set of events* whose replay produces state_digest. Algorithm + root + covered_event_count name the canonical reduction of those events; covered_event_ids / actor_seq_ranges narrow which event ids and per-actor sequences are bound. Paired with state_digest (see state_digest description): both fields are independently required because state_digest binds reducer output and event_set_commitment binds reducer input.",
+      "description": "Commitment to the *set of events* whose replay produces state_digest. merkle_event_set_v1 uses the same RFC 6962 domain-separated family as state_digest and Seal roots: leaf=H(0x00||leaf_data), node=H(0x01||left||right), odd tail promoted. Algorithm + root + covered_event_count name the canonical reduction of those events; covered_event_ids / actor_seq_ranges narrow which event ids and per-actor sequences are bound. Paired with state_digest (see state_digest description): both fields are independently required because state_digest binds reducer output and event_set_commitment binds reducer input.",
       "required": [
         "algorithm",
         "root",

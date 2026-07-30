@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.encoding.core.v1"
   },
   "profile": "ak.vector_group.encoding.v1",
-  "version": "2026-07-28",
+  "version": "2026-07-30",
   "description": "Machine-readable encoding & crypto vectors mirrored from zh/conformance/conformance-vectors.md §1.3-§1.13. Conformance runners MUST execute every vector and compare canonical_bytes / digest / order outputs. The crypto.ed25519_detached_jws vector lives separately in crypto-signature-fixture.json; the rank_order vector covers hex-Base32 rank string ordering (LIST item placement).",
   "generator_semantics": "Vectors of kind *_reject_generated carry a `generator` object instead of literal input bytes: the runner MUST construct the input at execution time from the generator parameters (e.g. nesting_depth, array_item_count) following the generator.rule text, so the fixture never stores megabyte-scale literals. Rejection is asserted exactly as for literal-input vectors.",
   "vectors": [
@@ -946,9 +946,9 @@
     {
       "vector_id": "ak.vector.encoding.canonical_event_tie_break.v1",
       "kind": "canonical_event_tie_break",
-      "description": "Single protocol-wide winner rule for both concurrent candidate sets and logical-slot equivocation candidate sets. The comparison key is the decoded digest octets of canonical_digest(envelope_without_proofs_unsigned_reducer_stamps), bytewise greatest, with the canonical suite id as secondary key only when the octets are identical.",
+      "description": "Single protocol-wide winner rule for both concurrent candidate sets and logical-slot equivocation candidate sets. The comparison key is the decoded digest octets of canonical_digest(envelope_without_proofs_unsigned_actor_kind), bytewise greatest, with the canonical suite id as secondary key only when the octets are identical.",
       "digest_preimage": {
-        "source": "envelope_without_proofs_unsigned_reducer_stamps",
+        "source": "envelope_without_proofs_unsigned_actor_kind",
         "removed_top_level_fields": [
           "proofs",
           "unsigned",

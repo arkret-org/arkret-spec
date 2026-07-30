@@ -3,7 +3,7 @@ title: 实现 Profile 与一致性要求
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-16
+updated: 2026-07-30
 sidebar:
   label: 实现 Profile
 ---
@@ -588,8 +588,6 @@ Deployment profile 用于发布与验收，不替代实现 profile。完整 depl
 - closed federation default
 - 导入导出审查
 - 外部服务与 applet allowlist
-
-`ak.profile.accountable_principals.strict_reject.v1` 是 deployment hardening profile。声明该 profile 的 Realm / deployment MUST 在 `Actor Profile.accountable_principal_ids[]` 中任一 DID 缺少 active `ak.identity.accountability_grant` 时拒绝整个 `ak.profile.create` / `ak.profile.update` Event（`failed_precondition`, reason=`accountability_grant_missing`），不得使用默认的"strip unverifiable entry + audit log"路径。未声明该 profile 时，默认行为仍是 [`models/actor.md` §3.3.1](../models/actor.md) 的剔除 + audit log。
 
 ## 18. Agent Runtime
 

@@ -3,7 +3,7 @@ title: Encoding, IDs, Hashes, Signatures
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-29
+updated: 2026-07-30
 sidebar:
   label: Encoding & IDs
 ---
@@ -145,14 +145,19 @@ v1 active 集合刻意保持最小（`sha256` + `blake3`）。需要 algorithm d
 
 ### 3.3.1 Snapshot / Event-set Merkle Root 编码
 
-Snapshot reducer output root 与 snapshot event-set commitment 使用同一 Merkle 组合规则；领域章节只定义 leaf 的构造方式。本节定义 leaf 进入树之后的 byte-level 规则，供 [`snapshot-schema.md`](./snapshot-schema.md) §4 / §6 引用。
+Snapshot reducer output root 与 snapshot event-set commitment MUST 使用
+[`event-auth-state-resolution.md` §6.2.2](../authz/event-auth-state-resolution.md)
+定义的同一套 RFC 6962 域分隔 Merkle 组合规则；领域章节只定义 `leaf_data`
+与 leaf 顺序。本节钉定 snapshot 的领域映射：
 
-- Leaf 输入 MUST 是已按领域规则产生的 `<suite>:<hex>` digest。v1 base 支持 `sha256:<64 lowercase hex>`；进入树组合前 MUST 去掉 `sha256:` 前缀并解码为 raw 32 bytes。非 `sha256` suite 只有在对应 profile 明确声明同一 Merkle 组合规则和 digest 长度时才可用于该 root。
-- Internal node bytes MUST 是 `sha256(left_raw || right_raw)`，其中 `left_raw` 与 `right_raw` 是左右子节点的 raw digest bytes；wire 输出仍为 `sha256:<lowercase_hex>`。
-- Odd level MUST promote the trailing node unchanged to the next level. 实现 MUST NOT 复制尾节点。
-- Single-leaf tree root MUST equal that leaf digest。
-- Empty leaf set root MUST be `sha256` over the empty byte string：`sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`。
-- Tree construction itself does not sort leaves. 每个领域规范必须先声明 leaf 顺序；snapshot state leaves 使用 `(kind, id)` canonical byte order，snapshot event-set leaves 使用 `(actor_id, actor_seq, event_id)`。
+- 领域规则先产生 `<suite>:<hex>` digest，去掉 suite 前缀并解码为 raw bytes，作为 `leaf_data`。
+- leaf MUST 为 `H(0x00 || leaf_data)`；内部节点 MUST 为 `H(0x01 || left_raw || right_raw)`。
+- 奇数层尾节点 MUST 原样提升且不得复制；单 leaf root MUST 是带 `0x00` 前缀的 leaf hash。
+- 空集合 root MUST 是 `H` over empty bytes；`sha256` 时为 `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`。
+- tree construction 本身不排序。snapshot state leaves 使用 `(kind, id)` canonical byte order，snapshot event-set leaves 使用 `(actor_id, actor_seq, event_id)`。
+
+snapshot、event-set 与 Seal root 因而共用一套 byte-level 实现；任何无
+`0x00` / `0x01` 域分隔的旧式组合 MUST 被当作 root mismatch 拒绝。
 
 ### 3.4 Multihash 兼容（profile-gated）
 
@@ -282,7 +287,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 Proof MUST bind（下列为绑定字段集合；canonical binding object 的实际字节顺序由 §2 canonical JSON 的 JCS key 排序决定，下方 JSON 示例与本清单的列举顺序仅为可读性，不代表签名字节顺序）:
 
 - `context = "ak.event-proof-v1"`：固定 signing-context domain tag；不从 Event envelope 读取，verifier 构造 binding object 时 MUST 写入该常量。
-- `event_digest = canonical_digest(envelope_without_proofs_unsigned_reducer_stamps)`
+- `event_digest = canonical_digest(envelope_without_proofs_unsigned_actor_kind)`
 - `actor_id`
 - `verification_method`
 - `created_at`
@@ -418,7 +423,7 @@ function compare_hlc(hlc1, hlc2):
 实现 MUST：
 
 - 用正则 `^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$` 验证 HLC 格式。HLC **纯格式违例**（不匹配该正则、段长 / 字符集 / 大小写不合、`unix_ms_hex > ffffffffffff` 等单纯的 well-formedness 失败）MUST 返回 `schema_violation`（与 [`conformance-vectors.md` §1.10.1](./conformance-vectors.md) 钉定的单值一致）。格式合法但发生 §7 语义回绕 / tuple 复用时，submit 路径同样返回 `schema_violation`，同步 / backfill 路径则 quarantine；不得选择其它错误码或 soft-fail 后继续该分支。
-- 按本节的两层 drift 模型验证物理时间：超 `hard_future_skew_ms` MUST reject / quarantine；超 `expected_future_skew_ms` SHOULD soft-fail / quarantine。这两个阈值的默认数值以规模上限登记表 [`scalability-constraints.md`](./scalability-constraints.md) §2 为单一真相源（本节不重复字面值，避免漂移）。该校验是 envelope freshness / DoS guard，不是授权、Lattice winner、Control Move precondition 或 Seal finality 输入；通过 drift 校验的 HLC 仍只可用于本节开头列出的两个因果不可比 tie-break 用途。
+- 按本节的两层 drift 模型验证物理时间：超 `hard_future_skew_ms` MUST reject / quarantine；超 `expected_future_skew_ms` SHOULD soft-fail / quarantine。这两个阈值的默认数值以规模上限登记表 [`scalability-constraints.md`](./scalability-constraints.md) §2 为单一真相源（本节不重复字面值，避免漂移）。本路径校验的是 envelope freshness / DoS guard；通过 drift 校验的 **HLC 值本身**仍不得进入授权、Lattice winner、Control Move precondition 或 Seal finality，只可用于本节开头列出的两个因果不可比 tie-break。`hard_future_skew_ms` 作为协议级常量还被 Seal 与授权文档复用于各自基于 verifier 本地时间的上界校验；这种常量复用不把 HLC 变成那些路径的语义输入。
 - profile MAY 通过 `state_event_expected_future_skew_ms` 对 state event（capability / membership / policy / service binding / Realm upgrade / MLS commit 等）施加更严窗口；未声明时按 `expected_future_skew_ms` 处理。
 - 拒绝 `unix_ms_hex > ffffffffffff` 的 HLC 值（物理时间溢出，需未来扩展 HLC profile 才可使用）。
 - 维护本地单调性；本地时钟落后远端时推进到远端时间，超前时限制推进速率。

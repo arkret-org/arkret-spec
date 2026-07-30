@@ -6713,7 +6713,6 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
 
             if key == "event_kind" and value.startswith("ak.") and value not in known["event_kinds"]:
                 lint.fail(path, f"{json_path} references unregistered Event.kind: {value}")
-
             if key in {"operation_id", "mapped_operation_id"} and value.startswith("ak."):
                 if value not in known["operation_ids"]:
                     lint.fail(path, f"{json_path} references unregistered operation_id: {value}")
@@ -6725,6 +6724,121 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
 
             for match in TYPED_ID_TOKEN_RE.finditer(value):
                 check_typed_id_token(lint, path, json_path, match.group(1), match.group(2), known)
+
+
+def check_snapshot_merkle_fixture(lint: Lint) -> None:
+    """Execute the snapshot RFC 6962 root KAT, including actor subranges."""
+
+    path = ARTIFACTS / "fixtures" / "sync-fixture.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+    challenge = data.get("snapshot_inclusion_challenge")
+    if not isinstance(challenge, dict):
+        lint.fail(path, "snapshot_inclusion_challenge must be an object")
+        return
+    entries = challenge.get("event_set_entries")
+    manifest = challenge.get("manifest")
+    response = challenge.get("base_response")
+    if not isinstance(entries, list) or not isinstance(manifest, dict) or not isinstance(response, dict):
+        lint.fail(path, "snapshot Merkle KAT is missing entries, manifest, or response")
+        return
+
+    def leaf_data(entry: Any) -> bytes:
+        return hashlib.sha256(canonical_json(entry).encode("utf-8")).digest()
+
+    def merkle_root(raw_leaf_data: list[bytes]) -> str:
+        if not raw_leaf_data:
+            root = hashlib.sha256(b"").digest()
+        else:
+            level = [hashlib.sha256(b"\x00" + value).digest() for value in raw_leaf_data]
+            while len(level) > 1:
+                next_level: list[bytes] = []
+                for offset in range(0, len(level), 2):
+                    if offset + 1 == len(level):
+                        next_level.append(level[offset])
+                    else:
+                        next_level.append(
+                            hashlib.sha256(b"\x01" + level[offset] + level[offset + 1]).digest()
+                        )
+                level = next_level
+            root = level[0]
+        return "sha256:" + root.hex()
+
+    try:
+        ordered = sorted(
+            entries,
+            key=lambda row: (
+                row["actor_id"].encode("utf-8"),
+                row["actor_seq"],
+                row["event_id"].encode("utf-8"),
+            ),
+        )
+        computed = merkle_root([leaf_data(row) for row in ordered])
+        commitment = manifest["event_set_commitment"]
+        declared = commitment["root"]
+    except (KeyError, TypeError) as exc:
+        lint.fail(path, f"snapshot Merkle KAT has malformed input: {exc}")
+        return
+
+    if declared != computed:
+        lint.fail(path, f"snapshot manifest RFC 6962 root {declared} != computed {computed}")
+    if response.get("commitment_root") != computed:
+        lint.fail(path, "snapshot inclusion response root does not match computed manifest root")
+
+    ranges = commitment.get("actor_seq_ranges")
+    if not isinstance(ranges, list):
+        lint.fail(path, "snapshot Merkle KAT actor_seq_ranges must be an array")
+        return
+    for row in ranges:
+        if not isinstance(row, dict):
+            lint.fail(path, "snapshot Merkle actor_seq_range must be an object")
+            continue
+        try:
+            selected = [
+                entry
+                for entry in ordered
+                if entry["actor_id"] == row["actor_id"]
+                and row["from_seq"] <= entry["actor_seq"] <= row["to_seq"]
+            ]
+            range_root = merkle_root([leaf_data(entry) for entry in selected])
+        except (KeyError, TypeError) as exc:
+            lint.fail(path, f"snapshot Merkle actor_seq_range is malformed: {exc}")
+            continue
+        if row.get("root") != range_root:
+            lint.fail(
+                path,
+                f"snapshot actor range {row.get('actor_id')} root {row.get('root')} "
+                f"!= computed {range_root}",
+            )
+
+    legacy_case = next(
+        (
+            row
+            for row in challenge.get("cases", [])
+            if isinstance(row, dict) and row.get("name") == "legacy_unprefixed_commitment_root"
+        ),
+        None,
+    )
+    if (
+        not isinstance(legacy_case, dict)
+        or legacy_case.get("replacement_root") == computed
+        or legacy_case.get("expected", {}).get("decision") != "reject"
+    ):
+        lint.fail(path, "snapshot Merkle KAT must reject a distinct legacy unprefixed root")
+
+
+def check_canonical_digest_alias(lint: Lint) -> None:
+    """Keep one exact name for the Event digest preimage across prose and artifacts."""
+
+    forbidden = "envelope_without_proofs_unsigned_reducer_stamps"
+    for path in sorted({*markdown_files(), *raw_artifact_files()}):
+        if forbidden in read_text(path):
+            lint.fail(
+                path,
+                f"forbidden Event digest preimage alias `{forbidden}`; "
+                "use `envelope_without_proofs_unsigned_actor_kind`",
+            )
 
 
 def check_fixture_schema_validation_cases(lint: Lint, path: Path, data: Any) -> None:
@@ -8090,7 +8204,8 @@ def check_field_order(lint: Lint) -> None:
 
     Two enforcement tiers:
 
-    * Hard rules (errors) — wire-stable precedence and immediate-follow rules
+    * Hard rules (errors) — wire-stable leading-group, precedence and
+      immediate-follow rules
       that already hold across every current schema:
         - created_by MUST precede created_at; created_at MUST precede updated_at;
           updated_by MUST precede updated_at.
@@ -8108,6 +8223,7 @@ def check_field_order(lint: Lint) -> None:
     """
 
     rules = _load_field_order_rules(lint)
+    leading_group = rules.get("leading_group") or []
     hard_precedence = rules.get("hard_precedence") or []
     hard_immediate = rules.get("hard_immediate_follow") or []
     ordered_groups = rules.get("ordered_groups") or {}
@@ -8116,8 +8232,27 @@ def check_field_order(lint: Lint) -> None:
     subject_anchors = set(role_rule.get("subject_anchors") or [])
     role_field = role_rule.get("role_field")
 
-    def check_order_of_keys(path: Path, json_path: str, keys: list[str], where: str) -> None:
+    def check_order_of_keys(
+        path: Path,
+        json_path: str,
+        keys: list[str],
+        where: str,
+        enforce_leading_group: bool,
+    ) -> None:
         index = {key: position for position, key in enumerate(keys)}
+
+        # Present members of the canonical identity/schema/scope leading group
+        # must occupy the first slots when the object declares that convention
+        # by beginning `required` with one of those members. This preserves
+        # non-canonical DTO/scope shapes that merely happen to carry realm_id.
+        if enforce_leading_group:
+            present_leaders = [member for member in leading_group if member in index]
+            if keys[:len(present_leaders)] != present_leaders:
+                lint.fail(
+                    path,
+                    f"{json_path}.{where}: leading group {present_leaders} MUST occupy "
+                    "the first declared slots in that order",
+                )
 
         # Hard precedence (errors).
         for rule in hard_precedence:
@@ -8189,14 +8324,32 @@ def check_field_order(lint: Lint) -> None:
     def check_node(path: Path, json_path: str, node: dict) -> None:
         props = node.get("properties")
         if isinstance(props, dict):
-            check_order_of_keys(path, json_path, list(props.keys()), "properties")
             required = node.get("required")
+            present_leaders = [member for member in leading_group if member in props]
+            enforce_leading_group = (
+                isinstance(required, list)
+                and "schema" in present_leaders
+                and required[: len(present_leaders)] == present_leaders
+            )
+            check_order_of_keys(
+                path,
+                json_path,
+                list(props.keys()),
+                "properties",
+                enforce_leading_group,
+            )
             if isinstance(required, list):
                 # Check required entries in the order they are declared. A field
                 # listed in required but absent from properties is left to the
                 # existing schema-shape checks; we only order known property keys.
                 req_keys = [r for r in required if isinstance(r, str)]
-                check_order_of_keys(path, json_path, req_keys, "required")
+                check_order_of_keys(
+                    path,
+                    json_path,
+                    req_keys,
+                    "required",
+                    enforce_leading_group,
+                )
 
     def recurse(path: Path, json_path: str, node: Any) -> None:
         if isinstance(node, dict):
@@ -10341,6 +10494,7 @@ def main(argv: list[str] | None = None) -> int:
             ("vector_refs", lambda: check_vector_reference_closure(lint)),
             ("security_fixture", lambda: check_security_closure_fixture(lint)),
             ("fixtures", lambda: check_fixtures(lint, known)),
+            ("snapshot_merkle", lambda: check_snapshot_merkle_fixture(lint)),
             ("fixture_runner", lambda: check_fixture_runner_contract(lint)),
             ("websocket_binding", lambda: check_websocket_binding_fixture(lint)),
             ("crypto_signatures", lambda: check_crypto_signature_fixture(lint)),
@@ -10368,6 +10522,7 @@ def main(argv: list[str] | None = None) -> int:
             ("profile_graph", lambda: check_profile_dependency_graph(lint)),
             ("field_matrix", lambda: check_common_object_field_matrix(lint)),
             ("event_proof_digest", lambda: check_event_proof_digest_shape(lint)),
+            ("digest_alias", lambda: check_canonical_digest_alias(lint)),
             ("announce_ids", lambda: check_legacy_announce_id_form(lint)),
             ("directory_fields", lambda: check_directory_field_drift(lint)),
             ("typed_id_prose", lambda: check_typed_id_prose_consistency(lint)),

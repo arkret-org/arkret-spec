@@ -721,6 +721,9 @@
         "created_at"
       ],
       "properties": {
+        "schema": {
+          "const": "ak.identity.recovery_proof.v1"
+        },
         "kind": {
           "const": "principal_signing"
         },
@@ -770,9 +773,6 @@
         "created_at": {
           "$ref": "#/$defs/timestamp",
           "description": "Session creation/signing time, not client proof creation time."
-        },
-        "schema": {
-          "const": "ak.identity.recovery_proof.v1"
         }
       },
       "additionalProperties": false
@@ -798,6 +798,9 @@
         "proof_body"
       ],
       "properties": {
+        "schema": {
+          "const": "ak.identity.recovery_proof.v1"
+        },
         "kind": {
           "$ref": "#/$defs/proof_kind"
         },
@@ -849,9 +852,6 @@
         "proof_body": {
           "type": "object",
           "description": "The selected proof object with signature bytes omitted where the kind-specific verification rule says so."
-        },
-        "schema": {
-          "const": "ak.identity.recovery_proof.v1"
         }
       },
       "additionalProperties": false

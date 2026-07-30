@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.authz.cba_lattice.v1"
   },
   "profile": "ak.vector_group.cba_lattice.v1",
-  "version": "2026-06-11",
+  "version": "2026-07-30",
   "notes": [
     "These vectors pin CBA dual-plane semantics. DataEvent vectors use signed kind + payload + scope_ref + seal_ref and never use preconditions. Control Move vectors use signed kind + payload + scope_ref + seal_basis and may use preconditions. Every cell write is receiver-projected from the registered reducer contract.",
     "Seal delta entries reference only newly sealed control-plane event digests. Cumulative coverage is derived from predecessor_refs[] plus delta[]. DataEvent digests may appear in data_event_set_root / data_view_root observations, but those roots do not confer control-plane finality.",
@@ -492,6 +492,20 @@
           "expected": {
             "result": "accept_temporarily",
             "query_grade": "stale"
+          }
+        },
+        {
+          "name": "rejecting_revoked_key_within_freshness_window_is_nonconformant",
+          "key_id": "device-1",
+          "key_epoch": 4,
+          "revoked_at_seal": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "seal_ref": "ak:seal:sha256:2121212121212121212121212121212121212121212121212121212121212121",
+          "seal_ref_distance_ms": 3600000,
+          "implementation_result": "reject",
+          "expected": {
+            "conformance": "fail",
+            "required_result": "accept_temporarily",
+            "required_query_grade": "stale"
           }
         },
         {

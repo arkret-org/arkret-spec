@@ -3,7 +3,7 @@ title: Conformance Suite（自动化互操作测试）
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-29
+updated: 2026-07-30
 sidebar:
   label: Conformance Suite
 ---
@@ -76,7 +76,6 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 - `ak.profile.traffic_metadata_hardened.v1`
 - `ak.profile.key_backup.memory_hard.v1`
 - `ak.profile.circle_seal_cadence.fixed_5m.v1`
-- `ak.profile.accountable_principals.strict_reject.v1`
 
 ## 3. OpenAPI 与 Transport 一致性
 

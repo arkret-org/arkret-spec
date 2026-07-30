@@ -3,7 +3,7 @@ title: Scalability Constraints
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-29
+updated: 2026-07-30
 ---
 
 ## 0. 规范语言
@@ -58,7 +58,7 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 手写 CBOR 声明长度自洽性 | 声明长度 ≤ 剩余输入 | CBOR string / byte string / array / map 头部声明的长度或项数 MUST ≤ 实际剩余输入可满足的量；违反时 decoder MUST 在按声明长度分配缓冲区之前 reject（`schema_violation`，`reason_code=cbor_bounds_invalid`）。indefinite-length 项（map `0xbf` / array `0x9f` / string `0x5f`、`0x7f`）违反 deterministic encoding（RFC 8949 §4.2），MUST reject（`schema_violation`，`reason_code=cbor_not_deterministic`），不得归一化后接受。负例见 [conformance-vectors.md](./conformance-vectors.md) §1.12.1。 |
 | 单 actor 每毫秒 HLC 生成事件数 | 65,536（HLC logical 4 hex 段上限） | HLC wire 形态为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，logical 段为 16-bit；同一 actor 在同一 ms 内最多分配 65,536 个 logical 值（`0x0000`–`0xFFFF`，即 0..65535），第 65,537 个 event 触发 HLC logical 段饱和，producer MUST 等待至下一 ms 再生成或返回本地错误 `hlc_logical_overflow`，MUST NOT wrap 或复用相同 HLC。HLC 仅作为时间线 advisory tie-breaker，不参与授权或状态收敛——饱和不影响协议正确性，只影响展示排序。[^hlc-throughput] [^hlc-logical-width] |
 | 单 actor 持续吞吐建议 | ≤ 100,000 events/min | Producer SHOULD 在生产侧自我限速，避免在突发情况下饱和 HLC logical 段或下游 reducer。超过该建议持续吞吐时，actor SHOULD 拆分为多 device / 多 actor 并行，或考虑使用 batch event。 |
-| HLC `hard_future_skew_ms`（硬 future drift 上限） | 300,000 ms（5 分钟） | 见 [encoding.md](./encoding.md) §7.2。HLC `unix_ms` 超本地时钟该阈值时 receiver MUST reject / quarantine。该校验是 envelope freshness / DoS guard，非授权、Lattice winner、Control Move precondition 或 Seal finality 输入。 |
+| 协议级 `hard_future_skew_ms`（硬 future drift 上限） | 300,000 ms（5 分钟） | 这是 v1 跨时间校验的单一硬上界：HLC 入站 freshness 超界时 MUST reject / quarantine；Seal `sealed_at` 超界时进入 `seal_deferred_future_skew` 非终态；授权 verification time、`approved_at`、quota / temporal constraint 超界时 MUST fail closed。复用同一常量不使 producer 可控 HLC 成为授权、Lattice winner、Control Move precondition 或 Seal finality 输入；这些路径各自使用 verifier 固定的本地时间和其领域文档定义的处理结果。见 [encoding.md](./encoding.md) §7.2、[event-auth-state-resolution.md](../authz/event-auth-state-resolution.md) §3.3 与 [constraint-schema.md](../authz/constraint-schema.md) §16–§17。 |
 | HLC `expected_future_skew_ms`（软 future drift 阈值） | 30,000 ms（30 秒） | 见 [encoding.md](./encoding.md) §7.2。超该阈值但未超 `hard_future_skew_ms` 时 receiver SHOULD soft-fail / quarantine。 |
 | HLC `state_event_expected_future_skew_ms`（state event 软阈值） | 默认按 `expected_future_skew_ms` | 见 [encoding.md](./encoding.md) §7.2。profile MAY 对 state event（capability / membership / policy / service binding / Realm upgrade / MLS commit 等）声明更严窗口；未声明时按 `expected_future_skew_ms` 处理。 |
 
@@ -238,6 +238,9 @@ JCS(body) bytes <= operation.max_canonical_body_bytes
 | 单个 claim 的 `trusted_issuers[]` / `roles[]` 项数 | 16 | 超过时 MUST reject；canonical schema 同步 `maxItems: 16`。 |
 | Constraint object 内嵌套层级 | 4 | 超过时 MUST reject；与 selector AST 深度分别计量。 |
 | 单个 device pairing transcript 失败提交数 | 10 | 达到上限时 pairing code MUST 锁定并永久失效；不得重置计数继续猜测。 |
+| capability freshness `clock_skew_tolerance_ms` | 60,000 ms（60 秒，default） | 服务协商参数；用于 freshness 状态分级，不替代 §2 的协议级 `hard_future_skew_ms`。见 [`capabilities.md` §18.2](../authz/capabilities.md)。 |
+| high-risk capability `freshness_required_ms` / `freshness_hard_limit_ms` | 180,000 / 300,000 ms（3 / 5 分钟，default） | high-risk 默认值。`freshness_required_ms` MUST 严格大于 `2 * clock_skew_tolerance_ms`，且 MUST 小于或等于 `freshness_hard_limit_ms`；无效协商配置 MUST `schema_violation`。 |
+| medium-risk capability `freshness_required_ms` / `freshness_hard_limit_ms` | 300,000 / 600,000 ms（5 / 10 分钟，default） | medium-risk 默认值。必须满足与上一行相同的相对约束；超过 hard limit 后 MUST fail closed。 |
 | 高频路径 authz snapshot 最大重建延迟 | 5 秒（SHOULD，本地性能建议） | `chat_mvp`、`kanban_mvp`、`full_client` 和 `principal_server` 相关服务 SHOULD 满足。这是**本地性能 / SLA 建议**，非 wire interoperability bound——对端无法仅凭 wire object 核验本地重建是否 ≤5s，故不构成 §1 意义上的可互操作核验项。 |
 
 上述 cursor / selector / policy-array 边界由 active `ak.vector.scalability.cursor_selector_limits.v1` 在 `scalability-limits-fixture.json` 中执行。
@@ -262,9 +265,9 @@ JCS(body) bytes <= operation.max_canonical_body_bytes
 | 单次 Lattice join 内存预算 | 实现声明 | 服务 MUST 暴露，超出时返回可恢复错误而不是 OOM。 |
 | `revocation_freshness_window_ms` | 86,400,000 ms（24h，default）| `realm.schema.json`；按 Seal DAG notary 提交时间差度量（[`event-auth-state-resolution.md` §4.3](../authz/event-auth-state-resolution.md)）。`risk_tier=high` capability 无宽限（等效 0）。高风险 Realm SHOULD 取更短值。 |
 | `receipt_sla_ms` | 86,400,000 ms（24h，default 与 v1 wire maximum）| `realm.schema.json`；pending Control Move 得到 signed receipt / rejection 的截止（[`event-auth-state-resolution.md` §7.2](../authz/event-auth-state-resolution.md)）。按 notary 提交时间计。 |
-| `proposal_decision_window_ms` | 30,000 ms（30s，default）；`minimum=1`；`maximum=86,400,000`（24h） | `realm.schema.json`；proposal receipt 的首个可验证决议窗口。到期前须 include / signed-reject / bounded signed-defer；不是接受或 finality SLA。 |
-| `proposal_absolute_deadline_ms` | 90,000 ms（90s，default）；`minimum=1`；`maximum=259,200,000`（72h） | `realm.schema.json`；从 receipt signed `received_at` 起不可延长的决议绝对窗口。defer 必须原样保留 `absolute_due_at`。 |
-| 单个 pending Control Move 累计 defer 数（`max_proposal_defers`）| 2（default 与 protocol maximum）| `realm.schema.json`；每次 defer 绑定原 receipt、closed reason 与递增 deadline；超过仍未 include / signed-reject 构成 decision-overdue / censorship evidence（[`event-auth-state-resolution.md` §7.2](../authz/event-auth-state-resolution.md)）。 |
+| `proposal_decision_window_ms` | 30,000 ms（30s，default）；`minimum=1`；`maximum=86,400,000`（24h） | `realm.schema.json`；proposal receipt 的首个可验证决议窗口。必须满足 `proposal_decision_window_ms <= proposal_absolute_deadline_ms`；违反时 Realm create / policy update MUST `schema_violation`。若 `max_proposal_defers > 0`，必须严格小于。到期前须 include / signed-reject / bounded signed-defer；不是接受或 finality SLA。 |
+| `proposal_absolute_deadline_ms` | 90,000 ms（90s，default）；`minimum=1`；`maximum=259,200,000`（72h） | `realm.schema.json`；从 receipt signed `received_at` 起不可延长的决议绝对窗口。defer 必须原样保留 `absolute_due_at`；与 decision window 的相对约束见上一行。 |
+| 单个 pending Control Move 累计 defer 数（`max_proposal_defers`）| 2（default 与 protocol maximum）| `realm.schema.json`；每次 defer 绑定原 receipt、closed reason 与递增 deadline；两窗口相等时 MUST 为 `0`，否则不存在合法的递增 deadline。超过仍未 include / signed-reject 构成 decision-overdue / censorship evidence（[`event-auth-state-resolution.md` §7.2](../authz/event-auth-state-resolution.md)）。 |
 
 CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 Seal inclusion proof、state_root、frontier 和 chunk digest。对缺失、不可达或高成本 `refs` 的 backfill，接收方 MAY 在预算耗尽后把 DataEvent 保持 observed-only、把 Control Move 保持 pending，或返回带精确 typed missing sets 的 `dependency_missing`；只有服务本身暂时不能处理请求时才使用 `temporarily_unavailable`。不得在同步写入路径无界递归展开。
 

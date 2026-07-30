@@ -1,5 +1,6 @@
 {
-  "version": "2026-07-13",
+  "version": "2026-07-30",
+  "generated_at": "2026-07-30T00:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -621,7 +622,6 @@
     "ak.profile.traffic_metadata_hardened.v1": "admin",
     "ak.profile.key_backup.memory_hard.v1": "admin",
     "ak.profile.circle_seal_cadence.fixed_5m.v1": "admin",
-    "ak.profile.accountable_principals.strict_reject.v1": "admin",
     "ak.profile.notary.single_did.v1": "admin",
     "ak.profile.notary.threshold.v1": "admin",
     "ak.profile.notary.open_set.v1": "admin",
@@ -681,8 +681,7 @@
     "ak.profile.mls.minimal_metadata_realm.v1",
     "ak.profile.traffic_metadata_hardened.v1",
     "ak.profile.key_backup.memory_hard.v1",
-    "ak.profile.circle_seal_cadence.fixed_5m.v1",
-    "ak.profile.accountable_principals.strict_reject.v1"
+    "ak.profile.circle_seal_cadence.fixed_5m.v1"
   ],
   "vector_groups": [
     "ak.vector_group.capability.v1",
@@ -3992,33 +3991,6 @@
           "description": "At least one relay/indirection/decoy mechanism MUST be enabled for cross-domain high-privacy routes.",
           "value_shape": "string"
         }
-      }
-    },
-    "ak.profile.accountable_principals.strict_reject.v1": {
-      "role": "admin",
-      "description": "Deployment hardening profile for Actor Profile accountability. When declared, any Actor Profile create/update that contains an accountable_principal_ids[] entry without an active ak.identity.accountability_grant MUST reject the whole Event with failed_precondition/accountability_grant_missing instead of stripping the unverifiable entry.",
-      "required_endpoints": [
-        "ak.self.events.command.submit"
-      ],
-      "required_event_kinds": [
-        "ak.profile.create",
-        "ak.profile.update",
-        "ak.identity.accountability_grant"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ak.schema.actor_profile.v1",
-        "ak.schema.event.v1"
-      ],
-      "required_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "accountable_principal_ids_strict_reject"
-        ],
-        "unsupported_optional": "default to strip + audit log behavior from models/actor.md §3.3.1"
       }
     },
     "ak.profile.attested_audit.e2ee.v1": {

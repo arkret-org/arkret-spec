@@ -3,7 +3,7 @@ title: CBA profile、并发类别与终态
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-28
+updated: 2026-07-30
 ---
 
 # CBA profile、并发类别与终态
@@ -111,6 +111,11 @@ Realm 可通过 `proposal_decision_window_ms`、`proposal_absolute_deadline_ms` 
 - 最多 2 次 signed defer；
 - 每次 defer 必须带 closed `reason_code` 和新的 `decision_due_at`；
 - `absolute_due_at - received_at` 不得超过 72 hours，且 defer 不得改变 `absolute_due_at`。
+- Realm 参数 MUST 满足
+  `proposal_decision_window_ms <= proposal_absolute_deadline_ms`；若
+  `max_proposal_defers > 0`，该关系 MUST 为严格小于。两窗口相等时
+  `max_proposal_defers` MUST 为 `0`。Realm create / policy reducer 必须在写入前校验，
+  违反时以 `schema_violation` 拒绝整个 Control Move。
 
 每个 defer MUST 引用完整canonical receipt-set digest，绑定同一 proposal / Realm /
 authority set，并由该receipt set要求的quorum对同一payload产生canonical `proofs[]`；

@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-29",
+  "version": "2026-07-30",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -44,7 +44,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#3-hash",
-      "section_digest": "sha256:19826c3e35d3c0130a792894b196eff09b824fd3a3bba09d079f016b2ee21e6b",
+      "section_digest": "sha256:8aa4caa6e3f0bc48262e8ec1e826a3d69a8498bf38ea1a425a527db2d9159141",
       "requirement": "Digest suite identifiers, canonical event digest computation and the bytewise tie-break order are fixed; implementations MUST NOT substitute another hash encoding or comparison direction.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -59,7 +59,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#6-signature",
-      "section_digest": "sha256:6f96093f38f36b87fd535d084c5ec65f7ac86d91ca54b7ad5e2e5429859044bf",
+      "section_digest": "sha256:7c89cc5e0a12c5b4ca6887bc4b2f91c879018b577218d94e48840492b8bbf06e",
       "requirement": "The signature binding payload MUST bind algorithm, domain and audience; a signature valid for one domain or audience MUST NOT verify for another.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -75,7 +75,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#7-hlc",
-      "section_digest": "sha256:75907f6d5b8f5a5628a9f8b7dd132df363edc5b43407029442c3e30a94ecf514",
+      "section_digest": "sha256:788a953caa23eee1287dc12528ea1a3cbea050518182a56ebc13a5ca1aad1f1c",
       "requirement": "HLC well-formedness, logical-counter overflow handling and the causal-first usage boundary: HLC breaks ties between causally incomparable items only and MUST NOT select a winner in shared protocol state.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -226,7 +226,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:36a4832d5d3c6f4402b8f3794799c3a61e8cc63ef9980feee4e9c1dce293ac84",
+      "section_digest": "sha256:b61bb46866eb3a8d23b4e4325a44e4065097d2de1abc8a2837dd9b97716a2d85",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, and equivocating notaries are quarantined instead of silently merged.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -269,7 +269,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#9-lattice-与冲突语义",
-      "section_digest": "sha256:14270ccf5ca0fd94e422453c2edcf218a733746ffd8b2a3a868911612fe56da4",
+      "section_digest": "sha256:a67cd2ec50566ceabcebd3aad7531609d17d1b81d554d594bcf79b579736e079",
       "requirement": "Lattice joins are idempotent, commutative and associative per family; data-plane conflicts return structured bottom instead of electing a winner by arrival order or HLC.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -390,6 +390,42 @@
         "ak.vector.membership.delivery_binding.handover.v1",
         "ak.vector.membership.delivery_binding.unroutable.v1",
         "ak.vector.membership.delivery_binding.policy_mismatch.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-027",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#43-seal_ref-验证与撤销",
+      "section_digest": "sha256:0ed4fadfab81e5f4a3f4edb4110e00b856b0aa046361f72dc41c13286b12c704",
+      "requirement": "A revoked authorization observed inside the configured freshness window remains deterministically accepted-but-stale for reducer input; a deployment may hide it locally but MUST NOT reject it from the canonical join.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.cba_lattice.auth_context_epoch_pinning_reject.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-028",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/models/actor.md#331-accountable_principal_ids-的可验证性normative",
+      "section_digest": "sha256:122f7717e08995ebdcf56247a5d08dccc006640178b8eaed44d81327f5400d79",
+      "requirement": "Every accountable principal on an Actor Event must have an active matching accountability grant; any missing grant rejects the whole Event without a stripped projection.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.actor.accountability_grant_required.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-029",
+      "status": "active",
+      "category": "state_machine",
+      "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#72-控制面-receipt-与-inclusion-obligation",
+      "section_digest": "sha256:9bd3d256110095353711551f098efa35f285bf14421ea6e82a441233901cde75",
+      "requirement": "Realm proposal configuration must leave a realizable decision schedule: decision window does not exceed the absolute deadline, equality is valid only when deferral is disabled, and invalid create/update writes reject without state change.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.cba.proposal_window_configuration.v1"
       ]
     }
   ]

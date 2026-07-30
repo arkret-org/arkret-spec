@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-20",
+  "version": "2026-07-30",
   "source_of_truth": false,
-  "generated_at": "2026-07-20T00:00:00Z",
+  "generated_at": "2026-07-30T00:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -25,6 +25,7 @@
     "Generated views MAY change shape, grouping, or field order, but MUST NOT introduce, rename, or remove operation_id values that are absent from this catalog.",
     "Supporting Arkret core does not imply support for every registered operation. Implementations MUST advertise supported_operations and supported_profiles explicitly.",
     "Each surface_groups entry carries a tier (see surface_classes); only the core tier is implied by claiming v1 protocol support. Extension, interop_bridge, and deployment_local surfaces require explicit advertisement.",
+    "surface_classes defines the closed tier vocabulary and surface_groups is the sole canonical operation grouping view; generators MUST NOT emit a third top-level surfaces collection.",
     "Profile matrices in artifacts/profiles/conformance-profiles.json define role-level MUST/SHOULD requirements; the surface groups below define machine-readable capability families for discovery, docs, and lint.",
     "Each operation MUST declare success_shape_kind so SDKs can determine success handling without endpoint-name hard-coding.",
     "Operations with typed OpenAPI bodies SHOULD declare request_schema_ref and/or response_schema_ref. The referenced schema fragment is the source for generated DTO docs and MUST match the OpenAPI component referenced by the HTTP binding.",
@@ -3218,6 +3219,5 @@
     "binary_stream": "Binary or octet-stream response body.",
     "metadata_headers": "Metadata-only success expressed through HTTP headers.",
     "empty_response": "No success body is defined."
-  },
-  "surfaces": []
+  }
 }

@@ -3,7 +3,7 @@ title: Conformance Vectors
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-29
+updated: 2026-07-30
 ---
 
 本文是 v1 conformance 测试向量的人类阅读入口，按域分组呈现核心 normative steps。完整 active vector 集合的机器真相源是 `artifacts/registry/vector-registry.json`；测试 runner MUST 从 registry 的 `source_refs` 加载本文件、领域文档与 fixture，不得假定本文件正文穷尽列出所有 vector id。
@@ -1180,10 +1180,13 @@ ak.vector.cba_lattice.auth_context_epoch_pinning_reject.v1
 期望：
 
 - Case A：receiver MUST 拒绝或隐藏（`stale_seal_ref` / `failed_precondition`）。
-- Case B：receiver MAY 暂时接受，query grade MUST 标记 `stale`。
+- Case B：receiver MUST 暂时接受，query grade MUST 标记 `stale`；选择拒绝该窗口内 Event 的实现
+  不符合本向量。
 - Case C：receiver MUST `failed_precondition`，不得回退到"当前 DID 文档"判定。
 
-失败条件：用当前 DID 文档替代 `seal_ref` 时点判定；Case A 被静默接受；Case B 接受后不降级 grade。
+失败条件：用当前 DID 文档替代 `seal_ref` 时点判定；Case A 被静默接受；Case B 被拒绝，或接受后
+不降级 grade。Case A 的 reject 与 hide 只允许改变本地保留/诊断可见性，对 data-cell join 输入
+必须同为排除。
 
 ### 2.15 Vector: compaction Seal 节律义务
 
@@ -1386,7 +1389,7 @@ ak.vector.lattice.ordered_log_join.v1
 - **Case B — 逐字等价重复**：同一 `(cell, actor_id, issuer_seq)` 的两条 entry，完整 canonical `write.op` bytes 相同。
 - **Case C — equivocation**：同一 `(cell, actor_id, issuer_seq)` 的两条 entry，完整 canonical `write.op` bytes 不同（含 `op.value` 相同而 `op` 其它字段不同的子例，以及 `op.value` 不含任何 `entry_id` 字段的子例），两个候选 Event 的 canonical `event_digest` 不同。
 - **Case D — 因果边不改变 winner**：与 Case C 相同的候选集，但较小 `event_digest` 的候选通过 `prev_refs` / `causal_refs` 因果地晚于较大者。
-- **Case E — digest collision**：两个候选的 canonical `envelope_without_proofs_unsigned_reducer_stamps` bytes 不同，却得到完全相同的 typed `event_digest`（同 suite、同 octets）。
+- **Case E — digest collision**：两个候选的 canonical `envelope_without_proofs_unsigned_actor_kind` bytes 不同，却得到完全相同的 typed `event_digest`（同 suite、同 octets）。
 - **Case F — 仅 proofs / reducer stamp 不同**：两个候选的 canonical digest preimage bytes 逐字相同，只有 `proofs` 集或 reducer-stamped `actor_kind` 不同。`scope_ref` 不同必然改变 digest，不属于本例。
 - **Case G — 跨 suite 比较**：两个候选使用不同 digest suite，且 typed wire string 的 UTF-8 顺序与 decoded digest octets 顺序**相反**。
 
@@ -5214,7 +5217,7 @@ receipt schema；其中的示意 JWS / digest 不得用于密码学断言，也�
 Steps:
 
 1. 构造并发候选集与同一 `(cell, actor_id, issuer_seq)` 逻辑 slot 的 equivocation 候选集。
-2. 对每个候选计算 `canonical_digest(envelope_without_proofs_unsigned_reducer_stamps)`。
+2. 对每个候选计算 `canonical_digest(envelope_without_proofs_unsigned_actor_kind)`。
 3. 解码 typed digest 的 hex 为 octets，按 unsigned lexicographic order 取最大者。
 
 Expected:
@@ -5749,3 +5752,17 @@ runner MUST 执行 `agent-signer-evidence-fixture.json` 的完整 `binding_vecto
 controller proof signing input、binding digest、accepted state / transition witness 与 freshness
 边界，并覆盖 active、revoked、superseded、unresolved 及字段篡改分支。只加载 fixture、只验证来源服务
 签名或跳过任一 case 均不构成通过。
+
+## 29. Actor accountability grant closure vector
+
+`vector_id`: `ak.vector.actor.accountability_grant_required.v1`
+
+runner MUST 执行 `privacy-security-fixture.json` 的 Actor Profile accountability case：
+
+- `ak.profile.create` / `ak.profile.update` 的 `accountable_principal_ids[]` 任一 DID 缺少 active、
+  未过期且 subject/issuer 匹配的 `ak.identity.accountability_grant` 时，整个 Event MUST
+  `failed_precondition`、`reason_code=accountability_grant_missing`，Profile cell 保持不变；
+- 所有 grant 有效时，写入值 MUST 与签名 payload 精确一致；
+- 接受 Event 后 grant 才过期或 revoked 时，既有投影可降级为 `unverified`，但下一次仍携带该
+  条目的 Profile 写入必须拒绝；
+- 任何“接受 Event，但从数组剔除无 grant 条目后再写入”的结果均不符合本向量。

@@ -3,7 +3,7 @@ title: Standard Event and Object Schema Registry
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-07-30
 sidebar:
   label: Schema Registry
 ---
@@ -308,6 +308,7 @@ OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical 
 **a. 开放注册集（open registry set）**——以独立 registry JSON 承载的字符串值集合：event kind（`event-kind-registry.json`）、error `code` / `reason_code`（`error-code-registry.json`）、relation kind（`relation-kind-registry.json`）、capability action、typed id kind（`id-kind-registry.json`——typed ID 前缀为 wire 字符串值集，新增 kind 向后兼容，与同源 generated 的 event kind / capability action 同类）、feature id 等。
 
 - 新增条目是**向后兼容演进**（minor）：只体现在 registry 的 `version` / `generated_at` 推进，不要求新 schema 版本，也不要求 schema profile bump。
+- registry / profile 的规范内容发生任何变化时，顶层 `version` MUST 推进；若该 artifact 携带 `generated_at`，该时间戳也 MUST 推进且日期必须与 date-shaped `version` 一致。`tools/check_artifact_versions.py` 的内容摘要排除这两个元数据字段，并把其余内容绑定到受版本控制的 reference manifest；内容变化但元数据未推进、或 metadata/content reference 漂移，均 MUST 使 release gate 失败。
 - 已发布实现遇到不在其本地 registry 快照中的值时，MUST 按**未知值保留**处理：不得因此让整个对象 / 信封反序列化失败。反序列化层保留之后的语义处置按各消费面既有规则执行——未知值保留**不等于**语义接受：写入权威接收方对未声明支持的标准 event kind 仍按 [conformance-profiles.md §2.1](./conformance-profiles.md) 返回 `unsupported_feature` / `unsupported_event_kind` / `schema_violation` 或 quarantine；未注册 relation kind 按 relation-kind-registry `registry_rules` 保留为 opaque edge 且不得推断语义；fail-closed 门（未知 critical feature、授权判定）照常适用。
 - 生成代码 SHOULD 为开放注册集值提供 non-exhaustive / `Unknown(String)` 兜底变体，MUST NOT 用封闭 enum 让未知值导致整体反序列化失败。
 

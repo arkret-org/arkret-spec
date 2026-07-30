@@ -3,7 +3,7 @@ title: Actor & Actor Profile
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-30
 ---
 
 ## 0. 规范语言
@@ -92,10 +92,11 @@ Schema id: `ak.schema.actor_profile.v1`
 因此 reducer **MUST** 校验:
 
 1. 写入 / 更新 `Actor Profile.accountable_principal_ids[]` 的 Event 提交时，reducer MUST 对数组中**每个** DID 检查是否存在已 sealed 的 `ak.identity.accountability_grant` event，其 `issuer = <该 DID>`、`subject = profile.principal_id`、`grant_status = "active"`、`not_before <= now`，且若声明了 `expires_at` 则 `now <= expires_at`。grant proof 使用 accepted auth-state / issuer key binding 验证；只有首次接受新 issuer / key、binding invalidation 或显式 freshness 触发时才解析 DID，不得在每次 profile replay 时在线解析。
-2. 不存在对应 grant 的 DID 条目 MUST 被 reducer 从 accountable_principal_ids 中剔除(或整个 Event 以 `failed_precondition` reason=`accountability_grant_missing` 拒绝；部署 policy 可选其一，默认推荐"剔除 + audit log",见下方)。
+2. 任一 DID 条目不存在对应 active grant 时，reducer MUST 以 `failed_precondition`
+   reason=`accountability_grant_missing` 拒绝整个 `ak.profile.create` / `ak.profile.update`
+   Event，且不得写入或裁剪后写入 Actor Profile cell。该判定只依赖签名 payload 与冻结的
+   control-plane basis，所有 verifier 必须得到相同结果。
 3. accountability grant 被签发方 revoke 后,reducer **SHOULD** 在 freshness 窗口(默认 ≤ 1 小时)内把对应 actor profile 的 `accountable_principal_ids[]` 中该条目降级为 `unverified`(projection 层标记),并在下次 actor profile update 时移除。
-
-**Profile-visible 选择**：deployment 若需要让选择 wire-visible，可声明 `ak.profile.accountable_principals.strict_reject.v1` profile（整 Realm 走 reject 路径，而非默认"strip + audit log"）；该 profile 在 [`../conformance/conformance-profiles.md` §17](../conformance/conformance-profiles.md) 与 `artifacts/profiles/conformance-profiles.json` 注册。
 
 `ak.identity.accountability_grant` 字段:
 
@@ -117,11 +118,15 @@ Accountability 状态按 `(issuer, subject, normalized exact scope set)` 独立�
 
 **UI / projection 责任**:
 
-- 客户端 UI **MUST** 把 `accountable_principal_ids[]` 中已校验通过的 DID 与 unverified(grant 缺失 / 过期 / revoked)的 DID 以可感知、可测试的 presentation invariant 区分；具体文案、图形、隐藏策略或控件形式属于实现自由，但 verified 与 unverified 两种状态不得在同一上下文中呈现为等价信任暗示。
+- 客户端 UI **MUST** 把 `accountable_principal_ids[]` 中已校验通过的 DID 与因既有 grant 后续过期 /
+  revoked 而成为 unverified 的 DID 以可感知、可测试的 presentation invariant 区分；具体文案、
+  图形、隐藏策略或控件形式属于实现自由，但 verified 与 unverified 两种状态不得在同一上下文中
+  呈现为等价信任暗示。缺失 grant 的新声明不会进入 cell，不属于此展示分支。
 - 客户端 UI **MUST NOT** 仅根据 actor profile 字面值显示信任暗示。
 - Directory / Search 投影把 `accountable_principal_ids` 作为过滤条件时 MUST 只对 verified 条目生效。
 
-**Why**: 没有这层校验时,actor 可以伪造任意大型组织或知名实体作为"担保人",借此社工诱导对端；有了 grant-based 校验，虚假声明会被 reducer 剔除,UI 不会显示信任暗示。
+**Why**: 没有这层校验时,actor 可以伪造任意大型组织或知名实体作为"担保人",借此社工诱导对端；
+有了 grant-based 准入校验，虚假声明的整个 Event 会被确定性拒绝，不能进入 Actor Profile cell。
 
 ## 4. 跨链路引用对照
 

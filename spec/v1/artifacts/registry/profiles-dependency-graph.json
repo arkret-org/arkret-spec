@@ -1,8 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-07-21",
+  "version": "2026-07-30",
   "kind": "profiles_dependency_graph",
   "source_role": "generated",
+  "generated_at": "2026-07-30T00:00:00Z",
   "source_of_truth": false,
   "generated_from": "profiles/conformance-profiles.json#/profile_requirements",
   "generated_by": "tools/lint_artifacts.py#check_profile_dependency_graph",
@@ -13,7 +14,6 @@
     "mutually_exclusive_with": "Profiles linked by this edge MUST NOT be claimed together; reducer / discovery MUST reject the combination (typically with reason_code conflicting_*_profiles)."
   },
   "nodes": [
-    "ak.profile.accountable_principals.strict_reject.v1",
     "ak.profile.agent_auth.v1",
     "ak.profile.agent_delegation_policy.v1",
     "ak.profile.agent_participation_policy.v1",

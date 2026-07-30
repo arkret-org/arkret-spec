@@ -3,7 +3,7 @@ title: Key Management
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-17
+updated: 2026-07-30
 ---
 
 ## 0. 规范语言
@@ -218,7 +218,7 @@ JCS(binding object with controller_proof.jws omitted)
 
 authorization准入按 Event admission receipt固定的accepted frontier判断；历史复验按 `[valid_from, valid_until)` 区间判断。后来正常rotation/revoke不会追溯抹除边界前的合法签名；但新Event的freshness observation不得早于其admission。`revoked`、`superseded`、`expired`、`conflicted`或边界后签名是确定性拒绝；evidence缺失、超freshness window或网络失败是 `Unresolved/Stale`，绝不得提升为Verified。
 
-既有authorization缺少binding时不得由服务端从session row合成证书。controller MUST走same-key re-authorization产生replacement authorize Event与v1 binding；runtime key可以保持不变。迁移前只能显示 `verification_pending/legacy_evidence_missing`。
+任何缺少 `signing_key_binding_digest` 证据的 authorization 都是 unresolved，服务端不得从 session row 合成证书，也不得提升为 Verified。客户端 MUST 显示 `verification_pending`；controller MUST 通过 same-key re-authorization 产生 replacement authorize Event 与完整 v1 binding，runtime key MAY 保持不变。
 - **Sidecar exposure 披露**：pairing approval UI 上，若该 controller 在新 agent 将要 active 的任一 Realm 中已存在独立 Agent Sidecar 对象，实现 MUST 显式披露“该 agent 激活并完成 access/MLS reconciliation 后，将获得这些 Realm 中现有私人 AI 工作区未来内容的访问权”（见 [`../models/sidecar.md` §4](../models/sidecar.md)）。
 - **Lifecycle**:`ak.self.agent.command.pause` / `ak.self.agent.command.resume` / `ak.self.agent.command.deactivate` 是 agent lifecycle 写入。对应 Event 都是写入 `ak.component.agent.status.v1` 的 Control Move，authoring basis 只由 Event Envelope 顶层 `seal_basis` 表达；payload 不携带独立 freshness frontier。Resume reducer 在接受时以 accepted current control frontier 重校验 controller / agent / key / capability / Realm policy / accountability grant。Pause 保留 durable state 但拒绝新 session；Auth Server MUST 在独立于 session TTL 的 pause revocation freshness window（MUST ≤ 60 秒）内对已签发 session token fail closed。实现 MAY 通过同步 token revocation、introspection fail-closed、资源访问时强制 agent status freshness check 或等价机制达成，但 MUST NOT 把该窗口设为 session 最大 TTL，也 MUST NOT 仅等待 token 自然过期。Deactivate 是 terminal；请求 MUST 携带 controller 签名的 lifecycle Event、覆盖当前全部 active key 的 `ak.agent.key.revoke` Events，以及覆盖当前全部 unrevoked grant 的 `ak.capability.revoke` Events；三类 Event 的 `kind` 必须分别精确匹配，Event payload 中可选的 `reason` 必须与请求 `reason` 同为缺省或逐字相等，同一 `(realm_id, actor_id)` chain 中的 Event 必须按 causal submission order 排列。只有权威投影中对应集合本来为空时，相关 revoke 数组才可为空。服务 MUST 先验证集合覆盖并幂等接受 revoke Events，重检 active key / unrevoked grant 均为空后才接受 terminal lifecycle Event；覆盖不足或接受后投影仍有残留时 MUST 返回 `failed_precondition` + `reason_code=agent_deactivation_revocations_incomplete`，缺少 controller 签名 Event proof 时 MUST 返回 `controller_signed_event_required`。任何 revoke 未接受时 MUST 保持非 terminal，以便调用方用相同 Event id 安全重试。完成后还要撤销 runtime endpoint，并使该 agent 全部 open pairing handle 永久不可解析。pause / resume 是纯 lifecycle 意图写入,MUST NOT 与 open pairing handle 互锁:resume 不要求先关闭或作废 replacement handle,renew-pairing 也不要求先 pause(见「Pairing 续期」);意图切换与 handle 消费/过期各自独立收敛。
 - **Resume 时 Sidecar exposure 重新披露（normative）**：`ak.self.agent.command.resume` 提交前，实现 MUST 重新执行上一条流程，列出 agent 在 pause 期间因 controller 新建/ensure 或新加入 Realm 而新增的 Sidecar desired-access exposure；若集合非空，resume MUST 在 controller 显式再次同意之前拒绝执行（不得 silent resume），并把确认作为 audit 事件留底。仅当 pause 期间无新增 Sidecar exposure 时可不重复披露。恢复 active 只改变 desired access；实际读取仍须等待 backing scope/MLS reconciliation 完成。

@@ -3,7 +3,7 @@ title: Snapshot, Chunk, and Encrypted Envelope Schema
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-30
 sidebar:
   label: Snapshot & Envelope
 ---
@@ -124,7 +124,7 @@ Snapshot-assisted pruning 只能删除或压缩某个存储边界内的 raw payl
 
 ## 4. State Hash
 
-`state_digest` MUST 是 canonical reducer 输出之上的 Merkle root。该 Merkle root 使用 [`encoding.md`](./encoding.md) §3.3.1 的 snapshot/event-set Merkle 规则：leaf 值是 `sha256:<hex>` wire hash，进入树组合前 MUST 解码为 raw 32 bytes；内部节点为 `sha256(left_raw || right_raw)`；奇数层尾节点提升到上一层且不复制；单 leaf root 等于该 leaf；空 leaf 集合 root 为 `sha256` 空字节，即 `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`。
+`state_digest` MUST 是 canonical reducer 输出之上的 Merkle root。该 Merkle root 使用 [`encoding.md`](./encoding.md) §3.3.1 的统一 RFC 6962 域分隔规则：领域 leaf digest 去掉 suite 前缀并解码为 raw bytes 后作为 `leaf_data`；leaf 为 `sha256(0x00 || leaf_data)`，内部节点为 `sha256(0x01 || left_raw || right_raw)`；奇数层尾节点提升到上一层且不复制；单 leaf root 等于带 `0x00` 前缀的 leaf hash；空 leaf 集合 root 为 `sha256` 空字节，即 `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`。
 
 Leaf hash：
 
@@ -163,7 +163,7 @@ Snapshot signer authority 只能证明谁签发了 reduced state；它不能证�
 `event_set_commitment.root` 承诺 snapshot frontier 覆盖的 Event Envelope ID 与 canonical event hash 的有序集合。输入 leaf entry MUST 按 `(actor_id, actor_seq, event_id)` 排序；每个 entry 的 canonical JSON object 字段语义为 `{event_id,event_digest,actor_id,actor_seq,hlc}`。实现 MUST 至少支持以下一种算法：
 
 - `ordered_event_id_sha256_v1`：对排序后的 entry array 计算 `sha256(canonical_json(entries))`；空集合输入为 canonical JSON `[]`。
-- `merkle_event_set_v1`：先对每个 entry 计算 `sha256(canonical_json(entry))` 作为 leaf，再按 [`encoding.md`](./encoding.md) §3.3.1 的 snapshot/event-set Merkle 规则构造 root；空集合 root 为 `sha256` 空字节。
+- `merkle_event_set_v1`：先对每个 entry 计算 `sha256(canonical_json(entry))` 作为 `leaf_data`，再按 [`encoding.md`](./encoding.md) §3.3.1 的统一 RFC 6962 规则计算 `sha256(0x00 || leaf_data)` leaf 与 `sha256(0x01 || left || right)` internal node；空集合 root 为 `sha256` 空字节。无域分隔的 root MUST 拒绝。
 
 ### 6.1 能力边界（normative — what omission challenge can and cannot prove）
 

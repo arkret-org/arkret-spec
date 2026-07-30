@@ -3,7 +3,7 @@ title: Event Auth、CBA 双平面与状态收敛
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-07-30
 sidebar:
   label: Event Auth & State Resolution
 ---
@@ -134,10 +134,14 @@ Receiver MUST：
 
 ```text
 if distance(seal_ref, R) <= revocation_freshness_window:
-  MAY accept but mark query grade stale
+  MUST accept and mark query grade stale
 else:
-  MUST reject or hide the DataEvent
+  MUST exclude the DataEvent from data-cell join input
 ```
+
+超窗后的 receiver MAY 在本地保留 Event 供审计并对普通查询隐藏，也 MAY 在准入面直接拒绝；
+两种形态对 reducer 输入必须完全等价：该 Event 及其依赖闭包不得参与任何 data-cell join、
+`state_root` leaf 或授权判断。窗口内接受与 stale 标记是同一确定性结果，不是实现可选项。
 
 **`distance` 度量与窗口单位（normative）**：`revocation_freshness_window` 的权威字段是 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `revocation_freshness_window_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`）。`distance(seal_ref, R)` MUST 按**控制面 Seal DAG 上 notary 签署的提交时间差**度量：取撤销 Seal `R` 与 `seal_ref` 各自签名 transcript 内 notary 提交时间（沿 Seal DAG，`R` 是 `seal_ref` 后继，见 §6.3），求二者毫秒差。该度量只用进入 Seal 签名 transcript 的 notary 提交时间，**不**用 DataEvent 自报的 `created_at` 或本地接收时间——时间来自被签名的 Seal 拓扑，可验证、跨 receiver 确定复现。`distance > revocation_freshness_window_ms` 即超窗。
 
@@ -315,7 +319,10 @@ inclusion proof 使用 Merkle audit path，non-membership 使用 sorted-neighbor
 - **单 leaf 树**：root 等于该单 leaf 的 `H(0x00 || leaf_data)`（**注意带 `0x00` 前缀**，不是裸 `leaf_data` 的 hash）。
 - **空集合**：root 为 `H` over the empty byte string；`sha256` 下即 `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`（与 RFC 6962 §2.1 `MTH({}) = SHA-256()` 一致）。
 
-> **与 snapshot Merkle 的区分（normative）**：本组合规则（带 `0x00` / `0x01` 域分隔、单 leaf 带前缀）适用于 **Seal 级 root**；[`conformance/encoding.md` §3.3.1](../conformance/encoding.md) 的 snapshot / event-set Merkle 规则（无前缀、单 leaf 等于裸 digest）适用于 **snapshot `state_digest` 与 event-set commitment**。二者是两个独立的 Merkle 族，实现 MUST NOT 互换：Seal root 用本节规则，snapshot root 用 encoding.md §3.3.1 规则。
+[`conformance/encoding.md` §3.3.1](../conformance/encoding.md) 的 snapshot
+`state_digest` 与 event-set commitment 复用本节 byte-level 规则，并只在
+`leaf_data` 构造与排序键上作领域特化。实现 MUST 为所有这些 root 使用同一套
+`0x00` leaf / `0x01` node 域分隔代码。
 
 ### 6.3 Seal 接受规则
 
@@ -444,7 +451,12 @@ Realm 的 `proposal_decision_window_ms` 给出首个决议窗口（default 30,00
 24h），`proposal_absolute_deadline_ms` 给出从 signed `received_at` 起不可延长的绝对窗口
 （default 90,000ms，协议硬上限 72h），`max_proposal_defers` 给出 defer 次数上限
 （default 2，协议硬上限 2）。profile / deployment MAY 声明更短窗口或更少 defer，
-不得放宽协议硬上限。
+不得放宽协议硬上限。`ak.realm.create` 与任何更新这些 Realm 参数的 Control Move 在写入前
+MUST 校验 `proposal_decision_window_ms <= proposal_absolute_deadline_ms`；违反时整个 Event
+MUST 以 `schema_violation` 拒绝。若 `max_proposal_defers > 0`，两者 MUST 严格小于，以保证
+至少存在一个严格递增且不晚于 `absolute_due_at` 的 defer deadline；两者相等时
+`max_proposal_defers` MUST 为 `0`。该判定基于签名 payload 与冻结 basis，是所有 reducer
+必须执行的确定性跨字段校验。
 
 **外部 authority receipt set（normative）**：当接收 Event 的 Principal Server 不持有当前
 notary authority，或单个 signer 不能满足 threshold/mixed quorum 时，它不得用服务密钥代签。
@@ -669,7 +681,7 @@ AvailabilityReceipt {
 - **`head_eq`**：谓词形态为 `{kind:"head_eq", cell:"ak:cell:...", value:<json>}`。Reducer MUST 在该 Move 的 `seal_basis` 治理 view 下读取目标 cell 的 settled value，并按 canonical JSON whole-value compare 与 `value` 比较；二者 bit-exact 相等时通过。cell 缺失时 settled value 为 `null`，因此省略业务字段与显式缺省不得被当作匹配。若目标 cell 在该 basis 下为 `⊥`，`head_eq` MUST fail closed（failure status `failed_bottom`，`reason=cell_in_bottom_state`，见 §13）。
 - **`cas_register`**：set write 在目标 cell 的 settled 值为非初始态时，Control Move MUST 携带命中本 cell 的 `head_eq` precondition；DataEvent 若声明使用 CAS 语义，MUST 通过 causal refs 与领域 lattice 规则表达同等约束。缺失 CAS basis 时 receiver MUST 以 `failed_precondition` 拒绝该 write，并按多 cell 原子性拒绝整个 reducer input，不得实现无条件覆盖。并发且互不可达的 CAS set 若都在各自 `seal_basis` 下通过但写入不同值，join 结果为 `⊥`；同值重复 set 幂等。
 - **`fsm`**：transition write MUST 声明 `from` 与 `to`。同一 CBA basis 内相同 `(from,to)` 的重复 transition 是幂等的；同一 `from` 指向不同 `to` 的 sibling transition 返回 `⊥`。跨 basis 顺序仅由 causal refs 与 Seal DAG 决定；同一 basis 内不得用 HLC、接收顺序或 actor id 选择状态机 winner。
-- **`ordered_log`**：每个 reducer-projected `op.kind="append"` write MUST 携带 `issuer_seq`；其它 op kind 禁止该字段。issuer 固定为 envelope `actor_id`，序号作用域固定为 `(write.cell, actor_id)`，从 `0` 开始逐一递增，producer 不得复用其它 cell 的计数或用全局 `actor_seq` 代替。同一 `(write.cell, actor_id, write.op.issuer_seq)` 的判定使用完整 canonical `write.op` JSON bytes。每个 issuer 子链只把从 `0` 开始的连续 prefix 纳入 cell value；issuer 子链出现缺口时，缺口后的 entry MUST 保留为 pending / diagnostic 输入，但不得进入 cell value、`state_root` leaf 或授权判断。依赖补齐后按同一规则确定性重算。bytes 相同是 duplicate，幂等去重，不产生多个 entry；非逐字等价是 issuer equivocation，MUST 按 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的全协议唯一 tie-break 收敛——对每个候选计算其所在 Event 的 canonical `event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned_reducer_stamps)`，见 [`../conformance/encoding.md` §6](../conformance/encoding.md)），按 §4.2 的 decoded-octets 比较取最大者作为该 issuer sequence 的唯一 entry 进入连续 prefix；其余候选 MUST 保留为 duplicate/equivocation 诊断，并仍留在 canonical event log 与审计视图中，MUST NOT 被删除。producer 是否在 Event DAG 中人为加入因果边 MUST NOT 改变该 slot winner，也不得把 seq 复用洗成合法的下一条 append。digest collision 与“仅 `proofs` / reducer stamps 不同”的区分同样按 §4.2 处理。
+- **`ordered_log`**：每个 reducer-projected `op.kind="append"` write MUST 携带 `issuer_seq`；其它 op kind 禁止该字段。issuer 固定为 envelope `actor_id`，序号作用域固定为 `(write.cell, actor_id)`，从 `0` 开始逐一递增，producer 不得复用其它 cell 的计数或用全局 `actor_seq` 代替。同一 `(write.cell, actor_id, write.op.issuer_seq)` 的判定使用完整 canonical `write.op` JSON bytes。每个 issuer 子链只把从 `0` 开始的连续 prefix 纳入 cell value；issuer 子链出现缺口时，缺口后的 entry MUST 保留为 pending / diagnostic 输入，但不得进入 cell value、`state_root` leaf 或授权判断。依赖补齐后按同一规则确定性重算。bytes 相同是 duplicate，幂等去重，不产生多个 entry；非逐字等价是 issuer equivocation，MUST 按 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的全协议唯一 tie-break 收敛——对每个候选计算其所在 Event 的 canonical `event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned_actor_kind)`，见 [`../conformance/encoding.md` §6](../conformance/encoding.md)），按 §4.2 的 decoded-octets 比较取最大者作为该 issuer sequence 的唯一 entry 进入连续 prefix；其余候选 MUST 保留为 duplicate/equivocation 诊断，并仍留在 canonical event log 与审计视图中，MUST NOT 被删除。producer 是否在 Event DAG 中人为加入因果边 MUST NOT 改变该 slot winner，也不得把 seq 复用洗成合法的下一条 append。digest collision 与“仅 `proofs` / reducer stamps 不同”的区分同样按 §4.2 处理。
 
 本条允许确定性选一，而紧邻的 §9.3 counter / escrow 并发 sibling 仍 fail closed，二者不矛盾：counter sibling 累加可消耗量，任选 winner 可能隐藏双花，损害无界且不能仅凭单 slot 局部判定，因此必须等待 actor-chain repair；`ordered_log` 的 `(cell, actor_id, issuer_seq)` tuple 只容纳一个 entry，winner 可由该有限候选集机械确定，loser 又完整保留为可审计 equivocation。本规则 MUST NOT 外溢到 counter / escrow。
 
@@ -705,12 +717,9 @@ payload 为 `{target_cell, resolved_value, reason?}`。它在 registry 中登记
 `reset` 形态：目标 cell 由签名 payload 的完整 `cell_id` 给出，
 写入值为 `resolved_value`。
 
-> **v1 变更说明**：本节早先写作"不是新 event kind，而是一条针对该 cell 的
-> Control Move，由 `refs[]` role 识别"。那在 producer 还能写 `effects[]` 时成立；
-> v1 删除该数组后，一条 Control Move 的写入**完全**由它自己 kind 的注册
-> contract 派生，因此"无 kind 的恢复"派生不出任何写入，该句不可满足。
-> 本节因此登记了唯一的恢复 kind。识别仍不依赖 kind 名单独成立：
-> 下列条件全部为 MUST，reducer 仅在 cell 处于 `⊥` 时接受它。
+该恢复写入必须由已注册的 `ak.state.conflict_recovery` contract 唯一派生；
+不得用 `refs[]` role、producer 自报 effects 或未注册 kind 替代。识别不只依赖
+kind 名：下列条件全部为 MUST，reducer 仅在 cell 处于 `⊥` 时接受它。
 
 它 MUST 满足：
 

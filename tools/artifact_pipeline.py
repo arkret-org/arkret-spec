@@ -15,7 +15,7 @@ Layout (post-restructure):
 This pipeline owns two responsibilities only:
 
   generate   regenerate derived registry views from contract-registry.json
-  check      verify no drift, fixture digests, then run lint_artifacts.py
+  check      verify no drift, fixture digests, artifact versions, then run lints
 
 The legacy "sync canonical files into zh/ mirrors" and "rewrite generated
 markdown tables inside zh/sync/service-api-schema.{md,mdx}" responsibilities
@@ -48,6 +48,7 @@ PROFILE_REGISTRY_PATH = ARTIFACTS / "profiles" / "conformance-profiles.json"
 LINT_SCRIPT = Path(__file__).with_name("lint_artifacts.py")
 PROSE_LINT_SCRIPT = Path(__file__).with_name("lint_spec.py")
 FIXTURE_DIGEST_SCRIPT = Path(__file__).with_name("check_fixture_digests.py")
+ARTIFACT_VERSION_SCRIPT = Path(__file__).with_name("check_artifact_versions.py")
 COMPLETENESS_REPORT_SCRIPT = Path(__file__).with_name("gen_operation_completeness_report.py")
 SITE_META_PATH = ROOT / "site" / "src" / "lib" / "site-meta.ts"
 PUBLIC_V1 = ROOT / "site" / "public" / "v1"
@@ -853,6 +854,11 @@ def run_fixture_digest_check() -> int:
     return result.returncode
 
 
+def run_artifact_version_check() -> int:
+    result = subprocess.run([sys.executable, str(ARTIFACT_VERSION_SCRIPT)], cwd=ROOT)
+    return result.returncode
+
+
 def run_operation_completeness_report(mode: str) -> int:
     result = subprocess.run(
         [sys.executable, str(COMPLETENESS_REPORT_SCRIPT), mode], cwd=ROOT
@@ -884,9 +890,16 @@ def cmd_check(_: argparse.Namespace) -> int:
     print_contract_status()
     completeness_status = run_operation_completeness_report("check")
     fixture_status = run_fixture_digest_check()
+    artifact_version_status = run_artifact_version_check()
     lint_status = run_lint()
     prose_lint_status = run_prose_lint()
-    return completeness_status or fixture_status or lint_status or prose_lint_status
+    return (
+        completeness_status
+        or fixture_status
+        or artifact_version_status
+        or lint_status
+        or prose_lint_status
+    )
 
 
 def cmd_snapshot(_: argparse.Namespace) -> int:

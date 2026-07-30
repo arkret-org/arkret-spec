@@ -1,13 +1,14 @@
 {
   "profile": "ak.vector_group.cba_lattice.v1",
-  "version": "2026-07-29",
+  "version": "2026-07-30",
   "suite": "control_proposal_receipt",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.cba.control_proposal_receipt.v1"
   },
   "covers_vectors": [
-    "ak.vector.cba.external_proposal_receipt_quorum.v1"
+    "ak.vector.cba.external_proposal_receipt_quorum.v1",
+    "ak.vector.cba.proposal_window_configuration.v1"
   ],
   "cases": [
     {
@@ -103,6 +104,46 @@
       "expected": {
         "decision": "reject",
         "reason": "failed_precondition"
+      }
+    },
+    {
+      "name": "proposal_decision_window_after_absolute_deadline_rejected",
+      "vector_id": "ak.vector.cba.proposal_window_configuration.v1",
+      "realm_configuration": {
+        "proposal_decision_window_ms": 3600000,
+        "proposal_absolute_deadline_ms": 90000,
+        "max_proposal_defers": 0
+      },
+      "expected": {
+        "decision": "reject",
+        "reason": "schema_violation",
+        "must_not_write_realm_state": true
+      }
+    },
+    {
+      "name": "equal_proposal_windows_without_defers_accepted",
+      "vector_id": "ak.vector.cba.proposal_window_configuration.v1",
+      "realm_configuration": {
+        "proposal_decision_window_ms": 90000,
+        "proposal_absolute_deadline_ms": 90000,
+        "max_proposal_defers": 0
+      },
+      "expected": {
+        "decision": "accept"
+      }
+    },
+    {
+      "name": "equal_proposal_windows_with_defers_rejected",
+      "vector_id": "ak.vector.cba.proposal_window_configuration.v1",
+      "realm_configuration": {
+        "proposal_decision_window_ms": 90000,
+        "proposal_absolute_deadline_ms": 90000,
+        "max_proposal_defers": 1
+      },
+      "expected": {
+        "decision": "reject",
+        "reason": "schema_violation",
+        "must_not_write_realm_state": true
       }
     }
   ]

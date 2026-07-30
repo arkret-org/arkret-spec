@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.sync.core.v1"
   },
   "profile": "ak.vector_group.sync.v1",
-  "version": "2026-07-10",
+  "version": "2026-07-30",
   "schema_validation_cases": [
     {
       "name": "device_message_envelope_with_message_id_valid",
@@ -490,9 +490,11 @@
       "event_id_sample_count_at_least_max_20_log2_covered_count",
       "actor_seq_range_samples_cover_three_actors",
       "event_set_entries_recompute_manifest_root",
+      "rfc6962_domain_separation_applies_to_snapshot_roots",
       "proofs_bind_samples_to_event_set",
       "silent_actor_seq_gaps_reject_snapshot",
-      "commitment_root_mismatch_rejects_snapshot"
+      "commitment_root_mismatch_rejects_snapshot",
+      "legacy_unprefixed_root_rejects_snapshot"
     ],
     "manifest": {
       "snapshot_ref": "ak:snapshot:01965000-0000-7000-8000-000000000001",
@@ -500,26 +502,26 @@
       "created_at": "2026-04-26T00:00:00.000Z",
       "event_set_commitment": {
         "algorithm": "merkle_event_set_v1",
-        "root": "sha256:c243eb685fedded736ed0ccf5e6dff8ebdc0ff673e31919c98290022d59610c7",
+        "root": "sha256:36cd99d1a18c97734dba991dd240e1ac91915a1249984d1081828213a18c4fe1",
         "covered_event_count": 20,
         "actor_seq_ranges": [
           {
             "actor_id": "did:webvh:z6mkfixture:alice.example",
             "from_seq": 100,
             "to_seq": 106,
-            "root": "sha256:0226d526369020fd32f3f2aa4a277270f6808e46262019ee2a00b2636f052dc9"
+            "root": "sha256:f90fe90acfc75e14516014406abb8b47a04391502552ad9d9b801df72ebfbe11"
           },
           {
             "actor_id": "did:webvh:z6mkfixture:bob.example",
             "from_seq": 200,
             "to_seq": 206,
-            "root": "sha256:c1093c0c47d275edbd280eb978fd66b4e4b5672a64e232ec40ba16bf0a3558ef"
+            "root": "sha256:02f8840b7bb6fb7ffa2e853b5bba708919d0fa564b69463da34335186ed94b8a"
           },
           {
             "actor_id": "did:webvh:z6mkfixture:chrid.example",
             "from_seq": 300,
             "to_seq": 305,
-            "root": "sha256:8e58aa4ab684481d86d38614db05b53f1cab1b98c9f670ad8adec6099e8cd24a"
+            "root": "sha256:a7d8cb63dc15eee5c783ddcc2fd954da59a163fece94b82aa01dcf119accff67"
           }
         ]
       },
@@ -819,7 +821,7 @@
     },
     "base_response": {
       "commitment_algorithm": "merkle_event_set_v1",
-      "commitment_root": "sha256:c243eb685fedded736ed0ccf5e6dff8ebdc0ff673e31919c98290022d59610c7",
+      "commitment_root": "sha256:36cd99d1a18c97734dba991dd240e1ac91915a1249984d1081828213a18c4fe1",
       "proofs": [
         {
           "kind": "event_id",
@@ -965,6 +967,15 @@
       {
         "name": "commitment_root_mismatch",
         "mutation": "commitment_root_mismatch",
+        "expected": {
+          "decision": "reject",
+          "reason": "inclusion_proof_failed"
+        }
+      },
+      {
+        "name": "legacy_unprefixed_commitment_root",
+        "mutation": "replace_commitment_root",
+        "replacement_root": "sha256:c243eb685fedded736ed0ccf5e6dff8ebdc0ff673e31919c98290022d59610c7",
         "expected": {
           "decision": "reject",
           "reason": "inclusion_proof_failed"

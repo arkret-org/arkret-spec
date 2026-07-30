@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-17",
+  "version": "2026-07-30",
   "source_of_truth": true,
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
@@ -40,6 +40,31 @@
         "spec/v1/artifacts/fixtures/control-proposal-receipt-fixture.json"
       ],
       "description": "External authority member receipt issuance, canonical receipt-set assembly, common-window calculation, threshold deduplication, exact replay and decision-chain binding."
+    },
+    {
+      "vector_id": "ak.vector.cba.proposal_window_configuration.v1",
+      "status": "active",
+      "domain": "cba",
+      "applies_to_fixtures": [
+        "control-proposal-receipt-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/control-proposal-receipt-fixture.json"
+      ],
+      "description": "Realm proposal decision windows are ordered and realizable: decision <= absolute, equality is accepted only with zero defers, and invalid configurations fail before any Realm state write."
+    },
+    {
+      "vector_id": "ak.vector.actor.accountability_grant_required.v1",
+      "status": "active",
+      "domain": "actor",
+      "applies_to_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/privacy-security-fixture.json"
+      ],
+      "description": "Actor Profile accountability admission is deterministic: every declared principal needs an active matching grant, any missing grant rejects the whole Event, and field-stripped acceptance is non-conformant."
     },
     {
       "vector_id": "ak.vector.security_transaction.resilience.v1",
@@ -3631,7 +3656,7 @@
       "applies_to_fixtures": [
         "sync-fixture.json"
       ],
-      "description": "High-assurance snapshot inclusion-challenge sampling verifies sufficient event_id and actor_seq_range coverage, recomputes the event-set Merkle root, rejects commitment-root mismatch, and rejects silent actor sequence gaps.",
+      "description": "High-assurance snapshot inclusion-challenge sampling verifies sufficient event_id and actor_seq_range coverage, recomputes the RFC 6962 domain-separated event-set Merkle root (0x00 leaf / 0x01 node), rejects the legacy unprefixed root, rejects commitment-root mismatch, and rejects silent actor sequence gaps.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/sync-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"

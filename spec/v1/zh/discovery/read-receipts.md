@@ -3,7 +3,7 @@ title: "Read Receipts & Markers"
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-29
+updated: 2026-07-30
 ---
 
 ## 0. 规范语言
@@ -99,7 +99,9 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 - `disclosure="disabled"`：合规客户端 MUST NOT 生成该 scope 的 `ak.receipt.read`。**执行点在客户端**：Sync Service 看不到 Signal 的 payload 类型（[`../sync/signal.md`](../sync/signal.md) §1 下外层 header 无任何产品选择器，receipt 与 typing 同为 `session` class 且 payload 不透明），因此**不得**要求服务端识别并丢弃它。接收方客户端解密后 MUST 丢弃并不呈现该 scope 的 receipt。Read Cursor 不受影响。
 - `visibility="private"`：**执行点在客户端**。Sync Service 能强制的唯一收窄维度是签名的 `scope_ref`：它 MUST 仅向该 scope 内的成员 fanout。它**不能**再收窄到“仅 `event_id` 的发送者”——§2.1 已规定 `event_id` 位于 `encrypted_payload` 内且服务端不得看见或据其路由，要求它按该字段定向投递与§2.1 直接矛盾。接收方客户端解密后，若自己不是该 receipt 所引 `event_id` 的发送者，MUST 丢弃并不呈现。Push Gateway MUST NOT 据 `private` receipt 产生通知。
 
-  > **v1 变更说明**：本条早先要求 Sync Service “仅向 receipt 引用的 `event_id` 的发送者 fanout”，并就发送者不可投递写了一整段静默丢弃细则。那在明文 ephemeral rail 上成立；v1 把 receipt 放进 `SignalEnvelope` 后不再成立——服务端既看不到 `event_id`，也分不出这是 receipt 还是 typing signal。本节开头已定性 `ak.receipt.read` 是**软声明 / 合规承诺而非密码学强制**，因此把 `private` 的执行点放在客户端与该定性一致；服务端仍保留 scope 收窄这一层。要恢复服务端定向投递，必须先在 Signal 外层 header 引入产品语义选择器，而那正是 v1 删除明文 rail 时明确否决的方向。
+  `private` 的执行点固定在客户端：加密 `SignalEnvelope` 的服务端看不到内部
+  `event_id` 或 signal kind，只能执行外层 scope 收窄。实现 MUST NOT 为定向
+  receipt fanout 在 Signal 外层增加产品语义选择器。
 - Child Realm policy MUST 等于或更严格于父策略，同时不得破坏父策略声明的合规下限。visibility 仅允许 `public→members→private` 方向收紧。disclosure 的隐私收紧方向是 `optional→disabled`；父策略为 `required` 时，child 不得降到 `optional` 或 `disabled`，除非父 policy 显式声明 `receipt_compliance_opt_in.child_privacy_tightening_against_required=true`。放宽方向 MUST 被 reducer 拒绝。
 - 与 §2.3 防雪崩规则共存：即便 `disclosure="required"`，客户端仍 MUST 按 debounce / merge 规则发送，不得为合规绕开限流。
 
