@@ -430,7 +430,7 @@ Arkret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 - `allowed_data_labels`
 - `allowed_endpoints`
 
-**delegation_control**（求值规则见 [`constraint-schema.md` §7.3](./constraint-schema.md)：`prohibit_subdelegation=true` ⇒ child `max_delegation_depth` MUST=0；`scope_expansion_allowed=true` 在 v1 MUST 被 reducer 拒绝（`schema_violation`，与 §10.1 收窄不变量矛盾）；`delegation_scope` 三值 `narrowing_only`/`same_scope`/`custom` 各自校验规则）
+**delegation_control**（普通委托控制求值规则见 [`constraint-schema.md` §7.4](./constraint-schema.md)：`prohibit_subdelegation=true` ⇒ child `max_delegation_depth` MUST=0；`scope_expansion_allowed=true` 在 v1 MUST 被 reducer 拒绝（`schema_violation`，与 §10.1 收窄不变量矛盾）；`delegation_scope` 三值 `narrowing_only`/`same_scope`/`custom` 各自校验规则；Applet grant 绑定见同文 §7.3）
 
 - `max_delegation_depth`
 - `delegation_path`

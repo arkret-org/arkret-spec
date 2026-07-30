@@ -53,7 +53,7 @@
     },
     "constraint_subkind": {
       "type": "string",
-      "description": "Optional discriminator within a constraint_kind. Standard values: claim_based.{claim,approval,accountability}; quota.{rate,resource}; confidentiality.{encryption,visibility}; temporal.{window,edit_window,redact_window,session}. Per constraint-schema.md §2.2, device/session binding is NOT an independent constraint_subkind: it is the claim_based constraint_subkind=claim sub-case expressed via claim issuer = device cross-signing key. Implementations MAY require constraint_subkind for these families and fail closed on unknown values.",
+      "description": "Optional discriminator within a constraint_kind. Standard values: claim_based.{claim,approval,accountability}; quota.{rate,resource}; confidentiality.{encryption,visibility}; temporal.{window,edit_window,redact_window,session}; delegation_control.{applet_delegation}. Per constraint-schema.md §2.2, device/session binding is NOT an independent constraint_subkind: it is the claim_based constraint_subkind=claim sub-case expressed via claim issuer = device cross-signing key. Implementations MAY require constraint_subkind for these families and fail closed on unknown values.",
       "enum": [
         "claim",
         "approval",
@@ -65,7 +65,8 @@
         "window",
         "edit_window",
         "redact_window",
-        "session"
+        "session",
+        "applet_delegation"
       ]
     },
     "applies_to_actions": {
@@ -501,6 +502,21 @@
     "parent_reference_required": {
       "type": "boolean"
     },
+    "applet_id": {
+      "type": "string",
+      "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "delegation_control(constraint_subkind=applet_delegation) binding to the accepted Applet registration."
+    },
+    "executed_by": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+      "description": "delegation_control(constraint_subkind=applet_delegation) binding to the concrete Applet service, bot, or provisioned ghost DID that may execute the grant."
+    },
+    "registration_epoch": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "delegation_control(constraint_subkind=applet_delegation) binding to the canonical Applet registration epoch."
+    },
     "blob_max_bytes": {
       "type": "integer",
       "minimum": 0
@@ -789,6 +805,71 @@
       "then": {
         "required": [
           "constraint_scope"
+        ]
+      }
+    },
+    {
+      "$comment": "Applet delegated grants must carry the complete grant-local registration binding. effective_scope is represented by the enclosing capability grant resources[] selector and is not duplicated here.",
+      "if": {
+        "properties": {
+          "constraint_subkind": {
+            "const": "applet_delegation"
+          }
+        },
+        "required": [
+          "constraint_subkind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "constraint_kind": {
+            "const": "delegation_control"
+          }
+        },
+        "required": [
+          "constraint_kind",
+          "applet_id",
+          "executed_by",
+          "registration_epoch"
+        ]
+      }
+    },
+    {
+      "$comment": "Applet binding fields are reserved for the registered delegation_control.applet_delegation shape; partial or cross-family use is invalid.",
+      "if": {
+        "anyOf": [
+          {
+            "required": [
+              "applet_id"
+            ]
+          },
+          {
+            "required": [
+              "executed_by"
+            ]
+          },
+          {
+            "required": [
+              "registration_epoch"
+            ]
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "constraint_kind": {
+            "const": "delegation_control"
+          },
+          "constraint_subkind": {
+            "const": "applet_delegation"
+          }
+        },
+        "required": [
+          "constraint_kind",
+          "constraint_subkind",
+          "applet_id",
+          "executed_by",
+          "registration_epoch"
         ]
       }
     },

@@ -66,6 +66,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `scope_limitation` | （省略 = 普通 scope） | core | Realm / Strand / View / track 范围。 | core |
 | `scope_limitation` 带 `allowed_relation_kinds` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `ak.profile.kanban_mvp.v1` |
 | `delegation_control` | — | core | 委托深度、路径、`delegation_scope` 等。 | core |
+| `delegation_control` | `applet_delegation` | extension | Applet grant-local 绑定：`applet_id` + `executed_by` + `registration_epoch`；effective scope 由 grant `resources[]` selector 表达。 | `ak.profile.applet_service.v1` |
 | `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `constraint_scope` + `burst`）。 | core |
 | `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resources` / `max_total_blob_bytes`）。 | `ak.profile.constraint.resource_limit.v1` |
 | `claim_based` | `claim` | extension | `required_claims[]` 凭证 / 证明要求；responsible / guardian / controller 通过 claim 表达，device binding 通过 claim issuer = device cross-signing key 表达。 | `ak.profile.constraint.claim_based.v1` |
@@ -74,7 +75,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `confidentiality` | `encryption` | extension | 强制加密、key 轮换、key issuer。 | `ak.profile.constraint.encryption_requirement.v1` |
 | `confidentiality` | `visibility` | extension | 对象 / 消息可见性裁剪、`redacted_history_allowed`。 | `ak.profile.constraint.visibility_control.v1` |
 
-> v1 共 8 个核心 typed family，narrow-scoped 子类作为可选 `constraint_subkind` 表达：`edit_window` / `redact_window` / `window` / `session` 走 `temporal` (constraint_subkind 标记)；`container_move` 走 `scope_limitation`；`rate_limiting` / `resource_limit` 走 `quota` (`constraint_subkind=rate` / `resource`)；`approval_workflow` / `accountability` 走 `claim_based` (`constraint_subkind=approval` / `accountability`)；其中通过 claim 表达 responsible / guardian / controller 的凭证条件仍走 `constraint_subkind=claim`，不会取代独立的 grant-local `constraint_subkind=accountability`。device/session binding **不是 claim_based 的独立 constraint_subkind**，并入 `constraint_subkind=claim`，通过 claim issuer = device cross-signing key 表达；`encryption_requirement` / `visibility_control` 走 `confidentiality` (`constraint_subkind=encryption` / `visibility`)。底层字段或 constraint_subkind 值——`recurrence` / `max_session_duration` / `condition.kind` / `required_claims[]` 等都是合法字段（见 §3 / §4 / §10）。canonical 8 family：`temporal` / `field_access` / `kind_restriction` / `scope_limitation` / `delegation_control` / `quota` / `claim_based` / `confidentiality`。
+> v1 共 8 个核心 typed family，narrow-scoped 子类作为可选 `constraint_subkind` 表达：`edit_window` / `redact_window` / `window` / `session` 走 `temporal` (constraint_subkind 标记)；`container_move` 走 `scope_limitation`；Applet registration grant 绑定走 `delegation_control` (`constraint_subkind=applet_delegation`)；`rate_limiting` / `resource_limit` 走 `quota` (`constraint_subkind=rate` / `resource`)；`approval_workflow` / `accountability` 走 `claim_based` (`constraint_subkind=approval` / `accountability`)；其中通过 claim 表达 responsible / guardian / controller 的凭证条件仍走 `constraint_subkind=claim`，不会取代独立的 grant-local `constraint_subkind=accountability`。device/session binding **不是 claim_based 的独立 constraint_subkind**，并入 `constraint_subkind=claim`，通过 claim issuer = device cross-signing key 表达；`encryption_requirement` / `visibility_control` 走 `confidentiality` (`constraint_subkind=encryption` / `visibility`)。底层字段或 constraint_subkind 值——`recurrence` / `max_session_duration` / `condition.kind` / `required_claims[]` 等都是合法字段（见 §3 / §4 / §10）。canonical 8 family：`temporal` / `field_access` / `kind_restriction` / `scope_limitation` / `delegation_control` / `quota` / `claim_based` / `confidentiality`。
 
 未注册的 `constraint_kind` 或未注册的 `(constraint_kind, constraint_subkind)` 组合 MUST fail closed。新增 family / constraint_subkind 必须先在本表登记，并在 grant-constraint schema 的 `constraint_kind` 与 `constraint_subkind` enum 中注册。
 
@@ -93,6 +94,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `scope_limitation`（带 `allowed_*_container_refs` / `wip_limit_override`） | `realm_state` | (realm_id, frontier_digest, target_container_id) | 看目标 List policy / WIP |
 | `scope_limitation`（带 `blob_presign_scope` / `allowed_endpoints` / `allowed_data_labels`） | `stateless` | (constraint_digest, op_target) | 对 presign / agent / applet 请求字段做集合或模式匹配 |
 | `delegation_control` | `grant_local` | (grant_id) | 只看 grant 自身 path / depth |
+| `delegation_control` (`constraint_subkind=applet_delegation`) | `grant_local` | (grant_id) | 对照 grant 内的 Applet / executor / registration epoch 绑定；registration evidence freshness 由引用解析另行校验 |
 | `quota` (`constraint_subkind=rate`) | `external` | 不可缓存 | 必须查 actor 历史计数 |
 | `quota` (`constraint_subkind=resource`，`blob_max_bytes` 单次) | `stateless` | 单次操作的字节计数无需历史 | |
 | `quota` (`constraint_subkind=resource`，`max_resources` / `max_total_blob_bytes` 累计) | `external` | 不可缓存 | 必须查 scope 内累计 |
@@ -319,7 +321,27 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-### 7.3 委托控制字段的 reducer 求值规则（normative）
+### 7.3 Applet 委托绑定（constraint_subkind=applet_delegation）
+
+Applet install 签发的每个 `ak.capability.grant` MUST 携带以下规范约束：
+
+```json
+{
+  "constraint_kind": "delegation_control",
+  "constraint_subkind": "applet_delegation",
+  "effect": "allow",
+  "evaluation_class": "grant_local",
+  "applet_id": "ak:applet:8a0baad5-6000-7000-8000-000000000000",
+  "executed_by": "did:webvh:z9CalAppTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:calendar-applet.example",
+  "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+}
+```
+
+`applet_id`、`executed_by`、`registration_epoch` 三个字段 MUST 同时出现；缺少任一字段或把字段放入其他 family / subkind 均为 `schema_violation`。grant 的 `resources[]` MUST 精确覆盖单次 install 的 `effective_scope`，并作为 `(applet_id, effective_scope, registration_epoch)` 中 scope 的唯一 wire 表达；constraint 不重复存储 `effective_scope`。`executed_by` MUST 是 registration 接受的 service DID / `bot_actor_id`，或已按 Applet profile provision 的具体 ghost DID；不得仅凭 namespace wildcard 签发代表 native principal 的 grant。
+
+该约束只表达 grant-local 绑定，所以 canonical `evaluation_class=grant_local`。授权 verifier 仍 MUST 解析 `applet_id` 指向的 accepted registration，展开 `registration_epoch` evidence，并验证 grant resource selector、Event `scope_ref`、Event `executed_by` 与 registration 的当前有效 key/material 一致；这一步不得因 grant-local 分类而跳过或缓存为永远有效。未知的旧式 `constraint_kind=applet_delegation_binding` 不属于 v1 wire，MUST fail closed，不得作为别名接受。
+
+### 7.4 委托控制字段的 reducer 求值规则（normative）
 
 §7.1 / §7.2 的委托控制字段不只是枚举声明；reducer 在 accept `ak.capability.delegate` 派生 grant 时 **MUST** 按下列规则求值，违反即 fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的收窄约束表叠加生效（先过 §10.1 的 actions/resources/window 收窄，再过本节字段规则）。
 
