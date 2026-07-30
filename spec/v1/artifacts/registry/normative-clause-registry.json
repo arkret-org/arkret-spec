@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-30.2",
+  "version": "2026-07-30.4",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -212,7 +212,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#5-control-move",
-      "section_digest": "sha256:c7ff928001b8052ee1d4868a06b0e380782bc3f66c34e731a3b0c6beb9bb8c7e",
+      "section_digest": "sha256:8c1f2b854ae6ddd4e2edb496fb2e6c6c634a499a3cf5eaf158069b90751600f8",
       "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal; events in the same batch MUST NOT advance the authorization basis they rely on.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -226,7 +226,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:826e2f14e7e26fef9ab76f477f563fdf7683809334793fe185458230cb7557d5",
+      "section_digest": "sha256:0b2a3913e600ddad43dd75adcd2f0a481279293169c2fbe4c5b5f81ace09d16c",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, and equivocating notaries are quarantined instead of silently merged.",
       "testability_grade": "vector",
       "evidence_refs": [

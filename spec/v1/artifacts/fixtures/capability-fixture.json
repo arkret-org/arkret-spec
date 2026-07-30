@@ -668,111 +668,120 @@
       }
     },
     {
-      "name": "realm_founding_grant_bootstrap",
-      "vector_id": "ak.vector.capability.realm_founding_grant_bootstrap.v1",
+      "name": "realm_authority_root_bootstrap",
+      "vector_id": "ak.vector.realm.authority_root_bootstrap.v1",
       "cases": [
         {
-          "name": "closed_form_founding_grant",
+          "name": "registered_authority_root_genesis",
           "batch_order": [
             "ak.realm.create",
-            "ak.capability.grant",
             "ak.realm.policy_bundle"
           ],
           "created_by": "did:webvh:z6mkfixture:founder.example",
-          "founding_grant": {
-            "issuer": "did:webvh:z6mkfixture:founder.example",
-            "subject": "did:webvh:z6mkfixture:founder.example",
-            "actions": [
-              "ak.realm.admin",
-              "ak.capability.grant",
-              "ak.capability.revoke",
-              "ak.realm_key.share",
-              "ak.message.create"
-            ],
-            "resources": [
-              {
-                "kind": "realm",
-                "realm_id": "ak:realm:01964120-0000-7000-8000-000000000000",
-                "match_scope": "realm_wide"
-              }
-            ]
+          "authority_root_cell": "ak:cell:ak.component.realm.authority_root.v1:null",
+          "authority_root_value": {
+            "controller_id": "did:webvh:z6mkfixture:founder.example",
+            "controller_epoch": 0,
+            "authority_generation": 0,
+            "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a"
           },
           "expected": {
             "decision": "accept_atomically",
             "creator_membership": "join",
-            "founding_grant_active": true,
-            "creator_message_create_at_genesis_seal": "allowed",
-            "creator_can_grant_member_message_create": true,
-            "member_without_explicit_message_grant": "missing_capability"
+            "registered_cell_write_count": 5,
+            "authority_root_present_at_genesis_seal": true,
+            "creator_effective_owner_at_genesis_seal": true,
+            "creator_strand_create_at_accepted_seal": "allowed",
+            "creator_can_grant_member_strand_create": true,
+            "member_without_explicit_grant": "missing_capability"
           }
         },
         {
-          "name": "missing_founding_grant",
+          "name": "missing_authority_root_cell",
           "batch_order": [
-            "ak.realm.create",
-            "ak.realm.policy_bundle"
+            "ak.realm.create"
           ],
+          "omit_registered_cell_write": "ak.component.realm.authority_root.v1",
           "expected": {
             "decision": "reject_atomically",
-            "reason": "realm_founding_grant_missing",
+            "reason": "realm_authority_root_missing",
             "realm_created": false,
             "creator_membership_written": false
           }
         },
         {
-          "name": "founding_grant_to_third_party_or_widened",
+          "name": "author_supplied_root_value_rejected",
+          "batch_order": [
+            "ak.realm.create"
+          ],
+          "created_by": "did:webvh:z6mkfixture:founder.example",
+          "authority_root_value": {
+            "controller_id": "did:webvh:z6mkfixture:other.example",
+            "controller_epoch": 1,
+            "authority_generation": 1,
+            "capability_action_registry_digest": "sha256:9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a",
+            "owner_override": true
+          },
+          "expected": {
+            "decision": "reject_atomically",
+            "reason": "realm_authority_root_conflict",
+            "realm_created": false
+          }
+        },
+        {
+          "name": "registry_digest_not_recomputable",
+          "batch_order": [
+            "ak.realm.create"
+          ],
+          "created_by": "did:webvh:z6mkfixture:founder.example",
+          "capability_action_registry_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+          "registry_snapshot_retrievable": false,
+          "expected": {
+            "decision": "reject_atomically",
+            "reason": "capability_registry_basis_unavailable",
+            "realm_created": false,
+            "fallback_to_embedded_registry": "forbidden"
+          }
+        },
+        {
+          "name": "legacy_founding_grant_shape_is_not_a_root",
           "batch_order": [
             "ak.realm.create",
             "ak.capability.grant"
           ],
           "created_by": "did:webvh:z6mkfixture:founder.example",
-          "founding_grant": {
-            "issuer": "did:webvh:z6mkfixture:founder.example",
-            "subject": "did:webvh:z6mkfixture:other.example",
-            "actions": [
-              "ak.realm.admin",
-              "ak.capability.grant",
-              "ak.capability.revoke",
-              "ak.realm_key.share",
-              "ak.message.create",
-              "ak.audit.export"
-            ]
-          },
-          "expected": {
-            "decision": "reject_atomically",
-            "reason": "invalid_realm_founding_grant",
-            "realm_created": false
-          }
-        },
-        {
-          "name": "legacy_four_action_founding_shape",
-          "batch_order": [
-            "ak.realm.create",
-            "ak.capability.grant"
+          "legacy_self_grant_actions": [
+            "ak.realm.admin",
+            "ak.capability.grant",
+            "ak.capability.revoke",
+            "ak.realm_key.share",
+            "ak.message.create"
           ],
-          "created_by": "did:webvh:z6mkfixture:founder.example",
-          "founding_grant": {
-            "issuer": "did:webvh:z6mkfixture:founder.example",
-            "subject": "did:webvh:z6mkfixture:founder.example",
-            "actions": [
-              "ak.realm.admin",
-              "ak.capability.grant",
-              "ak.capability.revoke",
-              "ak.realm_key.share"
-            ]
-          },
-          "expected": {
-            "decision": "reject_atomically",
-            "reason": "invalid_realm_founding_grant",
-            "realm_created": false
-          }
-        },
-        {
-          "name": "founding_shape_replayed_after_bootstrap",
-          "same_batch_as_create": false,
           "expected": {
             "decision": "reject",
-            "reason": "invalid_realm_founding_grant"
+            "reason": "grant_exceeds_issuer_authority",
+            "recognized_as_authority_root": false
+          }
+        },
+        {
+          "name": "staged_root_proof_replayed_outside_batch",
+          "same_batch_as_create": false,
+          "authorization_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
+          "root_proof_kind": "staged",
+          "expected": {
+            "decision": "reject",
+            "reason": "realm_authority_controller_mismatch"
+          }
+        },
+        {
+          "name": "accepted_seal_root_proof_inside_genesis_batch",
+          "same_batch_as_create": true,
+          "authorization_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
+          "root_proof_kind": "accepted_seal_inclusion",
+          "expected": {
+            "decision": "reject",
+            "reason": "realm_authority_controller_mismatch",
+            "note": "no accepted Seal exists yet inside the genesis batch; only the staged root value is resolvable there"
           }
         }
       ]

@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-30.6",
+  "version": "2026-07-31.7",
   "source_of_truth": true,
-  "generated_at": "2026-07-30T09:30:00Z",
+  "generated_at": "2026-07-31T06:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1057,13 +1057,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.capability.realm_founding_grant_bootstrap.v1",
+      "vector_id": "ak.vector.realm.authority_root_bootstrap.v1",
       "status": "active",
-      "domain": "capability",
+      "domain": "realm",
       "applies_to_fixtures": [
         "capability-fixture.json"
       ],
-      "description": "Realm create is atomically paired with one immediately following closed-form self founding grant for created_by; missing, widened, third-party, reordered, or post-bootstrap replayed founding grants fail closed without leaving a partial Realm or membership.",
+      "description": "Realm create atomically materializes five registered cell writes including the singleton ak.component.realm.authority_root.v1 cell whose controller is created_by at epoch 0 and generation 0; missing roots, author-supplied root values, unrecomputable registry digests, legacy founding-grant shapes, and staged/accepted root proofs used outside their basis all fail closed without leaving a partial Realm or membership.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/capability-fixture.json"

@@ -71,18 +71,30 @@ submitted、pending、receipt、transparency entry、availability receipt、snap
 均不改变控制状态。只有 Control Move 进入一个密码学有效、其 covered set 与 `state_root`
 重算一致的 accepted Seal 后才生效。
 
-空 genesis Seal 非法。首 Seal MUST 原子覆盖并物化：
+空 genesis Seal 非法。首 Seal MUST 原子覆盖并物化 `ak.realm.create` 的**五条 registered write**，
+逐条与 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative)
+的注册投影一致（该节是唯一权威来源，本清单不得与其漂移）：
 
-1. Realm metadata；
-2. creator joined membership；
-3. founding authority/notary；
-4. founding grant；
-5. base policy；
-6. 对 MLS-backed scope，声明将由后续 `ak.mls.genesis` 建立 epoch-0 binding 的
-   bootstrap requirement；epoch-0 binding 本身由首个覆盖 `ak.mls.genesis` 的 Seal 验证。
+1. Realm metadata（`ak.component.realm.metadata.v1`）；
+2. creator joined membership（`ak.component.member.state.v1`，`cell_subject` = `payload.object.created_by`）；
+3. create 审计日志条目（`ak.component.realm.create.v1`，`issuer_seq=0`）；
+4. founding notary（`ak.component.notary.v1`）；
+5. founding authority root cell（`ak.component.realm.authority_root.v1`），其
+   `controller_id` / `controller_epoch` / `authority_generation` / `capability_action_registry_digest`
+   由注册 `value_projection` 从 create payload 确定性派生。
+
+对 MLS-backed scope，首 Seal 还 MUST 声明将由后续 `ak.mls.genesis` 建立 epoch-0 binding 的
+bootstrap requirement；epoch-0 binding 本身由首个覆盖 `ak.mls.genesis` 的 Seal 验证。
+
+创建者的 root authority 只来自第 5 条 authority-root cell。v1 **没有** founding
+`ak.capability.grant`：不得要求、也不得接受"紧随 create 的封闭 self grant"作为 genesis 必需项；
+缺少该 cell 时整个 bootstrap unit MUST 原子拒绝（`failed_precondition`，
+`reason="realm_authority_root_missing"`）。base policy（`ak.realm.policy_bundle`）与其它初始
+facet 是 §2.5 白名单内的 **MAY** 同批 follow-up，不是 genesis Seal 的 MUST 物化项；genesis 不得因
+缺少 policy bundle 判 `invalid_genesis_seal`。
 
 缺少任一 founding required cell、使用空 `control_event_set_root`、或先接受空 Seal 再补
-authority，均为 `invalid_genesis_seal`。MLS epoch-0 binding 不属于可在 `ak.mls.genesis`
+authority（含 authority-root cell），均为 `invalid_genesis_seal`。MLS epoch-0 binding 不属于可在 `ak.mls.genesis`
 之前物化的 founding cell；其后续 Seal 义务不得被解释为允许补写其它 founding authority。
 
 ## 4. Proposal 有界决议

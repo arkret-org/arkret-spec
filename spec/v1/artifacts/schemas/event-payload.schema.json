@@ -8581,7 +8581,7 @@
     },
     "realm_create_payload": {
       "type": "object",
-      "description": "Create payload uses the full Realm object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance. Batch-level validation MUST also require this create to be immediately followed by the closed-form creator self-grant defined by zh/models/realm-and-space.md section 2.5; create plus founding grant is one atomic bootstrap unit, and a missing or widened founding grant rejects the whole unit.",
+      "description": "Create payload uses the full Realm object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance. payload.object.capability_action_registry_digest MUST resolve to a retrievable capability-action-registry.json snapshot whose RFC 8785 JCS recomputation matches, and the reducer MUST copy that signed value verbatim into the ak.component.realm.authority_root.v1 cell rather than inferring it from its own embedded registry. All five registered cell writes defined by zh/models/realm-and-space.md section 2.5 are one atomic unit; any of them failing rejects the whole create.",
       "required": [
         "object"
       ],

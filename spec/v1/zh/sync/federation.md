@@ -3,7 +3,7 @@ title: Federation
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-07-30
 ---
 
 ## 0. 规范语言
@@ -452,7 +452,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(resolv
 
 Arkret v1 的普通联邦批量传播采用依赖感知的 partial accept：默认最小原子单元是单个 Event 及其已接受依赖，而不是整个请求数组。接收方已经 accepted 的 Event 不因后续 Event 失败而回滚；后续 Event 若依赖同批失败项，必须拒绝或隔离并暴露依赖诊断。
 
-已由 core profile 注册为原子协议单元的批次是例外，不能由 transport 拆分或 partial accept。普通 Realm founding unit `ak.realm.create → creator founding ak.capability.grant → closed bootstrap facets` MUST 保持为一个 `events[]` 请求、按原顺序整体验证并在一个持久化事务中提交；sender 不得为其中每个 Event 建独立 outbox 项，receiver 不得先提交 create 再等待 founding grant。该 unit 任一项失败时整组均不得推进 reducer / projection；依赖尚未到达或 Realm founding unit 正在乱序恢复时，receiver MUST 返回 HTTP 409 `dependency_missing`，其 closed `error.details` MUST 使用 `EventsDependencyMissingProblem` 并给出精确 missing refs，而不是返回 HTTP 200 partial。`dependency_missing` 是请求可通过标准 peer dependency resolve 补齐后重试的冲突，不得改写成服务不可用；只有服务本身暂时不能处理请求时才使用 HTTP 503 `temporarily_unavailable`。其它需要 all-or-nothing 的批处理必须由 profile / critical extension 显式注册，不能由部署私自推断。
+已由 core profile 注册为原子协议单元的批次是例外，不能由 transport 拆分或 partial accept。普通 Realm founding unit `ak.realm.create → closed bootstrap facets` MUST 保持为一个 `events[]` 请求、按原顺序整体验证并在一个持久化事务中提交；create 的 Realm metadata、creator membership、create 审计日志、founding notary 与 founding authority root cell（`ak.component.realm.authority_root.v1`）五条 registered write 由该 Event 的 reducer contract 原子承担（[`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative)），wire 上不再有独立的 founding `ak.capability.grant` 槽位。sender 不得为其中每个 Event 建独立 outbox 项，receiver 不得先提交 create 再异步补写 authority root 或后续 bootstrap facet。该 unit 任一项失败时整组均不得推进 reducer / projection；依赖尚未到达或 Realm founding unit 正在乱序恢复时，receiver MUST 返回 HTTP 409 `dependency_missing`，其 closed `error.details` MUST 使用 `EventsDependencyMissingProblem` 并给出精确 missing refs，而不是返回 HTTP 200 partial。`dependency_missing` 是请求可通过标准 peer dependency resolve 补齐后重试的冲突，不得改写成服务不可用；只有服务本身暂时不能处理请求时才使用 HTTP 503 `temporarily_unavailable`。其它需要 all-or-nothing 的批处理必须由 profile / critical extension 显式注册，不能由部署私自推断。
 
 `events[].event` MUST 属于 `service_binding_ref.realm_id` 指定的唯一 Realm，项数为 1..500，并按数组顺序处理。为使固定验证阶段无歧义，所有 Control Event MUST 位于所有 DataEvent 之前；每个阶段内部保持 sender 给出的相对顺序，receiver 不得重排。同批中已接受的 Event 仅可作为**解析材料**（resolution-only）出现在后续 Event 中：可以满足 `prev_refs` 的 byte / event-id 解析、actor event chain 链接、`causal_refs` 或 payload-level causal reference 等结构性引用；但**不得**作为同批后续 Event 的授权基准。DataEvent MUST 按自身 `seal_ref` 验证；Control Move MUST 按自身 `seal_basis` 验证。
 

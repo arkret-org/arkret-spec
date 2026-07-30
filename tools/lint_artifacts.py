@@ -3328,6 +3328,13 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
     for profile_id in sorted(declared_profiles - set(requirements.keys())):
         lint.fail(path, f"profile_requirements missing declared profile: {profile_id}")
 
+    action_registry = load_json(lint, ARTIFACTS / "registry" / "capability-action-registry.json") or {}
+    capability_action_rows = {
+        row["action"]: row
+        for row in (action_registry.get("actions", []) if isinstance(action_registry, dict) else [])
+        if isinstance(row, dict) and isinstance(row.get("action"), str)
+    }
+
     fixture_files = {fixture.name for fixture in (ARTIFACTS / "fixtures").glob("*.json")}
     fixture_documents = {
         fixture.name: load_json(lint, fixture)
@@ -3398,8 +3405,32 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
             if constraint_kind not in known["constraint_types"]:
                 lint.fail(path, f"{profile_id} requires invalid constraint_kind: {constraint_kind}")
 
+        for action in requirement.get("owner_grant_authority_actions", []):
+            if action not in known["capability_actions"]:
+                lint.fail(
+                    path,
+                    f"{profile_id}.owner_grant_authority_actions names an unregistered action: {action}",
+                )
+                continue
+            row = capability_action_rows.get(action)
+            if not isinstance(row, dict) or row.get("profile") != profile_id:
+                lint.fail(
+                    path,
+                    f"{profile_id}.owner_grant_authority_actions may only list actions gated by this profile: {action}",
+                )
+            elif any(
+                row.get(flag) is True
+                for flag in ("root_control_only", "subject_only", "reducer_only")
+            ):
+                lint.fail(
+                    path,
+                    f"{profile_id}.owner_grant_authority_actions MUST NOT list a "
+                    f"root_control_only / subject_only / reducer_only action: {action}",
+                )
+
         authority_rule_keys = {
             "issuer_action",
+            "issuer_owner_authority_allowed",
             "grantable_action",
             "required_registration_event_kind",
             "required_claimed_profile",
@@ -3417,6 +3448,8 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
                 continue
             if rule.get("issuer_action") not in known["capability_actions"]:
                 lint.fail(path, f"{label} issuer_action is not registered")
+            if not isinstance(rule.get("issuer_owner_authority_allowed"), bool):
+                lint.fail(path, f"{label}.issuer_owner_authority_allowed must be a boolean")
             if rule.get("grantable_action") not in known["capability_actions"]:
                 lint.fail(path, f"{label} grantable_action is not registered")
             if rule.get("required_registration_event_kind") not in known["event_kinds"]:

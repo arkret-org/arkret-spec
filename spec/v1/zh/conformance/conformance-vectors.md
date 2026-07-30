@@ -2017,15 +2017,27 @@ ak.vector.capability.membership_is_not_baseline.v1
 - 成员资格（`ak.member.state{join}`）本身**不**隐含任何 action capability——授权核心是 allow-grant + explicit revoke（[`../authz/capabilities.md`](../authz/capabilities.md)、[`../governance/content-moderation.md` §2.4](../governance/content-moderation.md)），不存在"成员即可写"的 baseline 能力。
 - 无匹配 grant 时核心写入 MUST 被拒（`missing_capability`），且**没有任何 deny 层 / 成员身份能补足缺失的 capability**。
 
-### 4.6 Vector: Realm Founding Grant Bootstrap
+### 4.6 Vector: Realm Authority Root Bootstrap
 
 向量名称：
 
 ```text
-ak.vector.capability.realm_founding_grant_bootstrap.v1
+ak.vector.realm.authority_root_bootstrap.v1
 ```
 
-本向量固化 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 与 [`capabilities.md`](../authz/capabilities.md) §3.2：`ak.realm.create` 必须与紧随其后的封闭 creator self founding grant 原子 bootstrap。合法形态只向创建者授予 Realm-wide 的 `ak.realm.admin` / `ak.capability.grant` / `ak.capability.revoke` / `ak.realm_key.share` / `ak.message.create`；缺失、改序、授予第三方、增加或删除 action / resource / constraint、使用旧四项 shape，或在 batch 外重放该例外时，整个 bootstrap unit MUST fail closed，不得留下 Realm、membership 或 grant 半成品。founding grant 写入后是普通可撤销 OR-Set grant；创建者在 genesis Seal 上可凭该显式 grant author `ak.message.create`，并可在 issuer upper-bound 内向已加入成员签发显式 message grant；只有 membership、没有该 grant 的成员仍 MUST `missing_capability`，不得因本次活性修复得到隐式 baseline capability。
+本向量固化 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 与 [`capabilities.md`](../authz/capabilities.md) §3.2：`ak.realm.create` MUST 在同一原子 unit 内物化五条 registered cell write，其中第五条是唯一的 `ak.component.realm.authority_root.v1:null` cell，值恰为 `{controller_id = payload.object.created_by, controller_epoch = 0, authority_generation = 0, capability_action_registry_digest = payload.object.capability_action_registry_digest}`。
+
+正例：五条 registered write 全部落入 genesis `state_root`，创建者在 genesis Seal 下即具有 effective `ak.realm.owner`；该批 accepted 后，创建者凭 accepted-Seal root-cell inclusion proof 可直接 author `ak.strand.create`（该 kind 在 owner operational coverage 内），也可在 owner 的 `grant_authority_actions` 上界内向成员签发 strand grant。
+
+负例（每条各自 MUST fail closed，不得留下 Realm / membership 半成品）：
+
+- 缺 authority-root cell → `realm_authority_root_missing`；
+- author 自行提供 `controller_id` / 非零 `controller_epoch` / 非零 `authority_generation` / 与签名 payload 不一致的 registry digest / 四字段之外的额外成员 → `realm_authority_root_conflict`；
+- `capability_action_registry_digest` 对应 snapshot 不可取得或 JCS 重算不一致 → `capability_registry_basis_unavailable`，且 MUST NOT 回退到本机当前 embedded registry；
+- 夹带旧四项 / 五项 / 三项 founding-grant shape 的 self grant MUST NOT 被识别为 authority root，仍按 §3.2 普通 issuer 上界判定为 `grant_exceeds_issuer_authority`；
+- staged root proof 在 genesis batch 之外重放，或在 batch 内改用 accepted-Seal inclusion proof（此时尚无 accepted Seal）→ `realm_authority_controller_mismatch`。
+
+只有 `ak.member.state{join}`、没有任何显式 grant 的成员仍 MUST `missing_capability`：authority root 只为 root controller 建立 authority，MUST NOT 为普通成员建立 baseline capability，也 MUST NOT 由 `created_by`、membership 或 `realm_state.owner` 投影镜像回退推导。
 
 ### 4.7 Vector: Quota Linearizable Authority
 
@@ -5285,12 +5297,12 @@ Expected:
 
 Steps:
 
-1. 提交普通 Realm 的 bootstrap batch：`ak.realm.create` + 紧邻 founding grant。
+1. 提交普通 Realm 的 bootstrap batch：`ak.realm.create`（wire 上唯一必需 Event，v1 无 founding grant 槽位），可选跟随 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 白名单内的同批 follow-up facet。
 2. 两个独立实现各自按 `contract-registry.json` 的 `ak.realm.create` `cell_writes[]` 派生并应用 reducer projection，再重算 genesis Seal 的治理 `state_root`。
 
 Expected:
 
-- create Event 的 reducer 输出 MUST 恰好含四条：`ak.component.realm.metadata.v1:null`（`set`）、`ak.component.member.state.v1:<created_by>`（`transition` `leave -> join`）、`ak.component.realm.create.v1:null`（`append`，`issuer_seq=0`）、`ak.component.notary.v1:null`（`set`）。少一条或多一条表示 registry/vector drift，门禁 MUST 失败。
+- create Event 的 reducer 输出 MUST 恰好含五条：`ak.component.realm.metadata.v1:null`（`set`）、`ak.component.member.state.v1:<created_by>`（`transition` `leave -> join`）、`ak.component.realm.create.v1:null`（`append`，`issuer_seq=0`）、`ak.component.notary.v1:null`（`set`）、`ak.component.realm.authority_root.v1:null`（`set`，值由注册 `value_projection` 从 create payload 派生）。少一条或多一条表示 registry/vector drift，门禁 MUST 失败。
 - 两个实现的 genesis `state_root` MUST 逐字节相同（KAT）。
 - `ak:cell:ak.component.member.state.v1:<created_by>` MUST 有 inclusion proof；对同一 cell 求 non-membership proof MUST 失败（负例）。
 - `ak.component.realm.metadata.v1` MUST 在 genesis Seal 即出现在 leaf 集合中；"仅在首次 `ak.realm.update` 之后才出现"视为不合规（负例）。
@@ -5369,7 +5381,7 @@ Expected:
 - 负例：denylist 命中的 principal 的 `ak.invite.create` 与 `ak.invite.accept` MUST fail closed，对外统一 `gate_check_failed`。
 - 负例：`public` Realm 上冷却期内重新 join MUST 被拒。
 - 一负一正：`closed` 下 applicant 自助 join MUST 被拒；`ak.realm.admin` 写入 MUST 通过。
-- 正例：DM Realm 的 create + founding grant + peer join batch MUST 成功，最终 active member count = 2。
+- 正例：DM Realm 的 create + peer join batch MUST 成功，最终 active member count = 2。
 - 负例：向已 active 的 DM Realm 加第三人 MUST 被拒。
 
 ### 23.7 Quarantine 不可区分等价类
@@ -5399,9 +5411,9 @@ Steps:
 
 Expected:
 
-- 正例存在：`founding_grant_event.kind="ak.capability.grant"` 且 nested `grant.proofs=[]` MUST 校验通过。
-- 六个 draft slot 各自的 `kind` 是 const；互换任意两个 slot MUST `schema_violation`（负例）。`main_strand_grant_event` 还 MUST 只包含 `actions=["ak.strand.create"]`，增加其它 action MUST `schema_violation`。
-- 缺失 `founding_grant_event`、非空 envelope `proofs`、非空 nested `grant.proofs` MUST `schema_violation`（负例）。
+- 正例存在：`peer_member_event.kind="ak.member.state"` 且 envelope `proofs=[]` MUST 校验通过；其 `authorization_ref` 是与同批 `realm_event` 绑定的 staged authority-root ref。
+- 四个 draft slot 各自的 `kind` 是 const；互换任意两个 slot MUST `schema_violation`（负例）。
+- 缺失 `peer_member_event`、非空 envelope `proofs` MUST `schema_violation`（负例）。
 
 ### 23.9 3PID claim 过期判定的 canonical 时点
 

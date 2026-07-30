@@ -3,7 +3,7 @@ title: 术语表
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-07-30
 see_also:
   - ../index.md
   - architecture.md
@@ -140,7 +140,7 @@ see_also:
 | Pending Control Move | 待确认控制动作 | Control Move 已通过格式、签名、basis、授权与 precondition 初检，但尚未被有效 Seal 覆盖。 |
 | Rejected | 已拒绝 | Event / Seal 在格式、签名、schema、basis、precondition、授权、Lattice 或 `state_root` 校验上确定失败。 |
 | Seal | 检查点锚点 | Ordering authority 对控制面的签名承诺；wire 组件以 `seal.schema.json` 为准，包括 `predecessor_refs`、`covered_control_event_ids`、`covered_control_event_digests`、`control_event_set_root`、`state_root`、`seal_policy_ref`、`sealed_at` 与 `proof`。它只 finalizes 控制面；数据面 root 是观测承诺。 |
-| Genesis Seal | 创世检查点 | 某个 Realm 的 Seal DAG 根；它是唯一允许 `predecessor_refs=[]` 的 Seal，但 covered control set MUST 非空并原子覆盖 founding anchor unit。先接受空 Seal 再补 founding state 非法。它本身不是 Event，也不写入 cell。详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。 |
+| Genesis Seal | 创世检查点 | 某个 Realm 的 Seal DAG 根；它是唯一允许 `predecessor_refs=[]` 的 Seal，但 covered control set MUST 非空并原子覆盖 founding anchor unit——即 `ak.realm.create` 的五条 registered write：Realm metadata、creator membership、create 审计日志、founding notary 与 founding authority root cell（`ak.component.realm.authority_root.v1`）；v1 不含 founding `ak.capability.grant`。先接受空 Seal 再补 founding state（含 authority-root cell）非法。它本身不是 Event，也不写入 cell。详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 与 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative)。 |
 | Seal DAG | 检查点图 | 某个 Realm 内已接受 Seal 形成的 DAG；多个 leaf 通过确定性 control view 合成。 |
 | Cell | 状态单元 | Lattice 维护的最小协议状态键，形如 `ak:cell:<component>:<subject>`；其中 `<component>` 是原样嵌入的完整 `ak.component.<facet-path>.v<n>` Cell Family 标识符，因此 canonical 实例具有 `ak:cell:ak.component...` 双层 Arkret 限定。 |
 | Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；v1 active 类型为 `or_set`、`mv_register`、`cas_register`、`fsm`、`counter`、`ordered_log`。各类型的 join 语义与 bottom 行为以权威源 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 为准；未同时具备 join、op schema、profile gate 与 conformance vectors 的实现私有 CRDT 不属于 v1 wire lattice。 |

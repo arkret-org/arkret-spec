@@ -68,15 +68,7 @@ def check_required_schema_branch_witnesses() -> str | None:
     }
     witnesses = {
         "unsigned_direct_realm_create_event": ("ak.realm.create", {}),
-        "unsigned_direct_founding_grant_event": (
-            "ak.capability.grant",
-            {"grant": {"proofs": []}},
-        ),
         "unsigned_direct_peer_member_event": ("ak.member.state", {}),
-        "unsigned_direct_main_strand_grant_event": (
-            "ak.capability.grant",
-            {"grant": {"actions": ["ak.strand.create"], "proofs": []}},
-        ),
         "unsigned_direct_main_strand_event": ("ak.strand.create", {}),
         "unsigned_direct_binding_event": ("ak.direct_conversation.bound", {}),
     }

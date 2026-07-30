@@ -3,7 +3,7 @@ title: 有界离线发布、AuthorizationLease 与 IngressReceipt
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-28
+updated: 2026-07-30
 ---
 
 # 有界离线发布、AuthorizationLease 与 IngressReceipt
@@ -48,7 +48,12 @@ authorization。verifier MUST 从 accepted CBA basis
 
 三个已注册的 closed genesis family（ordinary Realm founding unit、self-principal PCR
 bootstrap unit 与 accepted controller delegation 精确绑定的 managed Agent PCR create）
-没有先验 Seal。仅对这些完整 unit，`basis_ref` MAY 是
+没有先验 Seal。ordinary Realm founding unit 的 wire 必需项**只有** `ak.realm.create` 一条 Event：
+Realm metadata、creator membership、create 审计日志、founding notary 与 founding authority root
+cell（`ak.component.realm.authority_root.v1`）这五条由该 Event 的注册 reducer contract 投影原子承担
+（[`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative)），
+unit 内除 create 外只可含该节封闭白名单内的同批 follow-up，且**不含**任何 founding
+`ak.capability.grant`。仅对这些完整 unit，`basis_ref` MAY 是
 `{anchor_unit:{realm_id,event_digests[],unit_digest}}`，其中 event digest 按 unit 必需顺序排列，
 `unit_digest = sha256(canonical_json({realm_id,event_digests}))`。issuer MUST 在签发前验证完整
 closed unit、root/enrollment authority proof、creator/session/device、notary declaration、actor

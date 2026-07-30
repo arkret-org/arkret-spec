@@ -146,7 +146,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 
 规模型授权上限已由 active `ak.vector.scalability.capability_limits.v1` 与 `scalability-limits-fixture.json` 的生成式 runner 固化：delegation chain 深度 5、单次展开 1,025 grants、单 grant 65 constraints、selector AST 深度 9 均必须 fail closed；这些 case 与下列语义型 capability coverage 同属认证闭包，不得只运行其一。
 
-- 首发 grant issuer 上界校验：grant 的 `actions[]` / `resources[]` 超出 issuer 当前 effective capability 时 MUST 拒绝（`grant_exceeds_issuer_authority`），并覆盖 freshness unknown fail-closed。
+- 首发 grant issuer 上界校验：grant 的 `actions[]` / `resources[]` 超出 issuer 当前 effective capability 时 MUST 拒绝（`grant_exceeds_issuer_authority`），并覆盖 freshness unknown fail-closed。runner MUST 覆盖 owner authority 的两个合法来源：(a) authority-root cell（`ak.component.realm.authority_root.v1`）的 current controller 凭同一 Seal basis 下的 registered inclusion proof 取得 effective `ak.realm.owner`，其上界来自该 cell 的 `grant_authority_actions`；(b) 由此派生的可撤销 co-owner `ak.realm.owner` grant。负例 MUST 包含：以 `created_by`、membership 或 `realm_state.owner` 一类 projection mirror 回退充当上界来源，以及 controller 不匹配 / root cell 缺失（`realm_authority_controller_mismatch` / `realm_authority_root_missing`）。
 - effective validity window 归一化：`effective_not_before >= effective_expires_at` MUST 拒绝（`grant_validity_window_empty`）。
 - `delegation_expiry_seal` 防滚动续期：re-delegate MUST NOT 刷新整条链的 expiry seal，任何 widened expiry MUST 拒绝。
 - delegation cycle detection：含 revoke-then-re-delegate 与 batch 场景的环 MUST 拒绝（`delegation_cycle`）。

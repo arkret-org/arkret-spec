@@ -513,9 +513,7 @@
             "mls_welcome_event_ref",
             "claimed_keypackage",
             "realm_event",
-            "founding_grant_event",
             "peer_member_event",
-            "main_strand_grant_event",
             "main_strand_event",
             "binding_event",
             "expires_at"
@@ -530,15 +528,13 @@
             "claimed_keypackage": { "$ref": "./keypackage-operations.schema.json#/$defs/keypackage_claim_record" },
             "claim_receipt": { "$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt" },
             "realm_event": { "$ref": "#/$defs/unsigned_direct_realm_create_event" },
-            "founding_grant_event": { "$ref": "#/$defs/unsigned_direct_founding_grant_event" },
             "peer_member_event": { "$ref": "#/$defs/unsigned_direct_peer_member_event" },
-            "main_strand_grant_event": { "$ref": "#/$defs/unsigned_direct_main_strand_grant_event" },
             "main_strand_event": { "$ref": "#/$defs/unsigned_direct_main_strand_event" },
             "binding_event": { "$ref": "#/$defs/unsigned_direct_binding_event" },
             "expires_at": { "$ref": "#/$defs/timestamp" }
           },
           "additionalProperties": false,
-          "description": "Immutable client-side materialization plan issued only after a KeyPackage claim is final. The participant submits realm_event, founding_grant_event, and peer_member_event as the atomic ordinary-Realm bootstrap unit, then uses the founding grant's ak.capability.grant authority to submit main_strand_grant_event before main_strand_event. The participant authors real MLS genesis/add-commit/Welcome objects from claimed_keypackage, then submits the remaining post-bootstrap Realm Events before binding_event in the participant PCR. No service may synthesize participant Event proofs or MLS ciphertext."
+          "description": "Immutable client-side materialization plan issued only after a KeyPackage claim is final. The participant submits realm_event and peer_member_event as the atomic ordinary-Realm genesis unit; peer_member_event is authorized by a staged authority-root proof bound to realm_event in the same batch. Once that batch is canonically accepted, the creator is already an ak.realm.owner whose operational coverage includes ak.strand.create, so main_strand_event is submitted directly under an accepted-Seal inclusion proof of the ak.component.realm.authority_root.v1 cell; no separate capability grant is involved. The participant authors real MLS genesis/add-commit/Welcome objects from claimed_keypackage, then submits the remaining post-bootstrap Realm Events before binding_event in the participant PCR. No service may synthesize participant Event proofs or MLS ciphertext."
         }
       },
       "allOf": [
@@ -645,7 +641,7 @@
         "proofs": { "type": "array", "maxItems": 0 }
       },
       "additionalProperties": true,
-      "description": "Shared envelope shape of every unsigned draft Event in a direct_conversation_materialization plan. proofs MUST be empty: the service issues an authoring draft and never signs on behalf of the participant. Each draft slot narrows this base to exactly one kind via its own role-closed definition; the six slots are NOT interchangeable."
+      "description": "Shared envelope shape of every unsigned draft Event in a direct_conversation_materialization plan. proofs MUST be empty: the service issues an authoring draft and never signs on behalf of the participant. Each draft slot narrows this base to exactly one kind via its own role-closed definition; the four slots are NOT interchangeable."
     },
     "unsigned_direct_realm_create_event": {
       "allOf": [
@@ -659,31 +655,6 @@
       ],
       "description": "Bootstrap unit event 1. payload.object MUST be the Direct Conversation Realm object (ak.profile.direct_conversation_realm.v1) whose id equals this envelope realm_id and whose created_by equals actor_id."
     },
-    "unsigned_direct_founding_grant_event": {
-      "allOf": [
-        { "$ref": "#/$defs/unsigned_direct_materialization_event_base" },
-        {
-          "properties": {
-            "kind": { "const": "ak.capability.grant" },
-            "payload": {
-              "type": "object",
-              "required": ["grant"],
-              "properties": {
-                "grant": {
-                  "type": "object",
-                  "required": ["proofs"],
-                  "properties": {
-                    "proofs": { "type": "array", "maxItems": 0 }
-                  }
-                }
-              }
-            }
-          },
-          "required": ["kind"]
-        }
-      ],
-      "description": "Bootstrap unit event 2: the creator founding ak.capability.grant required by models/realm-and-space.md section 2.5. It MUST immediately follow realm_event in the same atomic batch. The nested grant is delivered in authoring state with grant.proofs empty; the participant device generates the issuer-attestation proof per authz/capabilities.md section 3.0.1. No service may synthesize it."
-    },
     "unsigned_direct_peer_member_event": {
       "allOf": [
         { "$ref": "#/$defs/unsigned_direct_materialization_event_base" },
@@ -694,41 +665,7 @@
           "required": ["kind"]
         }
       ],
-      "description": "Bootstrap unit event 3: the peer member join written by the creator under the founding grant. It is the bootstrap initial member carve-out of governance/join-policy.md section 4, not a third-party member_add, and it is exempt from seal_basis per authz/event-auth-state-resolution.md section 5."
-    },
-    "unsigned_direct_main_strand_grant_event": {
-      "allOf": [
-        { "$ref": "#/$defs/unsigned_direct_materialization_event_base" },
-        {
-          "properties": {
-            "kind": { "const": "ak.capability.grant" },
-            "payload": {
-              "type": "object",
-              "required": ["grant"],
-              "properties": {
-                "grant": {
-                  "type": "object",
-                  "required": ["actions", "proofs"],
-                  "properties": {
-                    "actions": {
-                      "type": "array",
-                      "prefixItems": [
-                        { "const": "ak.strand.create" }
-                      ],
-                      "items": false,
-                      "minItems": 1,
-                      "maxItems": 1
-                    },
-                    "proofs": { "type": "array", "maxItems": 0 }
-                  }
-                }
-              }
-            }
-          },
-          "required": ["kind"]
-        }
-      ],
-      "description": "Post-bootstrap least-authority grant authorizing only ak.strand.create for the creator in this Direct Conversation Realm. The nested grant is returned unsigned and MUST receive a participant device issuer-attestation before the outer Event is signed."
+      "description": "Bootstrap unit event 2: the peer member join written by the creator under the staged ak.component.realm.authority_root.v1 proof bound to realm_event in the same genesis batch. It is the bootstrap initial member carve-out of governance/join-policy.md section 4, not a third-party member_add, and it is exempt from seal_basis per authz/event-auth-state-resolution.md section 5."
     },
     "unsigned_direct_main_strand_event": {
       "allOf": [

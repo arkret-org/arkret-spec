@@ -52,9 +52,12 @@
         },
         {
           "$ref": "#/$defs/did_delegation_ref"
+        },
+        {
+          "$ref": "#/$defs/realm_authority_root_ref"
         }
       ],
-      "description": "Optional. Required when executed_by is present. Prefer a materialized ak:grant:* id; an event id is allowed only when it points to the accepted grant/delegation event that produced the effective authorization; a DID-document delegation URL (did_delegation_ref) is allowed when the delegation is expressed in the principal DID document (for example ArkretDeviceEnrollmentAuthority or the managed-agent principal-control delegation). Reducer MUST validate the referenced grant/delegation covers the event kind and target resource and is within its effective validity window; for did_delegation_ref the designation is resolved against the actor_id principal DID document at the event's accepted-at."
+      "description": "Optional. Required when executed_by is present. Prefer a materialized ak:grant:* id; an event id is allowed only when it points to the accepted grant/delegation event that produced the effective authorization; a DID-document delegation URL (did_delegation_ref) is allowed when the delegation is expressed in the principal DID document (for example ArkretDeviceEnrollmentAuthority or the managed-agent principal-control delegation); realm_authority_root_ref designates this Realm's registered authority-root cell and is the only form that resolves to Realm owner authority rather than to a grant. Reducer MUST validate the referenced grant/delegation covers the event kind and target resource and is within its effective validity window; for did_delegation_ref the designation is resolved against the actor_id principal DID document at the event's accepted-at."
     },
     "applet_id": {
       "$ref": "#/$defs/applet_id",
@@ -4246,6 +4249,11 @@
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
       "description": "DID URL of a delegation entry in the principal DID document that designates the executed_by principal as authorized for the action (e.g. a ArkretDeviceEnrollmentAuthority service entry id, or a capabilityDelegation verification method id). Used as authorization_ref when the delegation lives in the DID document rather than in an on-stream grant/event. Resolved against the principal DID document at the event's accepted-at (point-in-time), so enrollment-authority key rotation does not invalidate prior authorizations."
+    },
+    "realm_authority_root_ref": {
+      "type": "string",
+      "const": "ak:cell:ak.component.realm.authority_root.v1:null",
+      "description": "Designates the registered authority-root cell of the envelope's own realm_id. This is a closed constant, not a general cell_ref: only the singleton ak.component.realm.authority_root.v1 cell carries Realm owner authority, and widening it to an arbitrary cell_ref would let any projected cell be presented as an authorization source. Reducer MUST resolve it against that cell in the Event's authorization basis and verify controller_id == the authorizing principal, plus the cell's capability_action_registry_digest and authority_generation. Inside the ak.realm.create genesis batch the staged root value is used and the Event MUST descend from the same batch's create Event through prev_refs; outside that batch an accepted-Seal inclusion proof is required and a staged proof MUST be rejected. See zh/models/realm-and-space.md section 2.5 and zh/authz/capabilities.md section 3.2."
     },
     "seal_ref": {
       "type": "string",

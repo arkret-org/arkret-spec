@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-30.4",
+  "version": "2026-07-31.7",
   "codes": [
     {
       "code": "bad_json",
@@ -1081,7 +1081,7 @@
       "code": "invalid_genesis_seal",
       "http_status": 422,
       "scope": "both",
-      "description": "The first Seal of a Realm did not atomically cover and materialize the complete founding anchor unit, or it declared an empty covered set or an empty control_event_set_root. The founding unit covers Realm metadata, creator membership, authority/notary, founding grant and base policy. For MLS-backed scope, epoch-0 binding is instead required on the first successor Seal covering ak.mls.genesis, whose seal_basis is the accepted Genesis Seal. Omitted founding authority is never repairable by later Seals. See zh/authz/cba-profiles.md section 3."
+      "description": "The first Seal of a Realm did not atomically cover and materialize the complete founding anchor unit, or it declared an empty covered set or an empty control_event_set_root. The founding unit covers the five registered ak.realm.create cell writes: Realm metadata, creator membership, the create log, authority/notary and the authority-root cell. For MLS-backed scope, epoch-0 binding is instead required on the first successor Seal covering ak.mls.genesis, whose seal_basis is the accepted Genesis Seal. Omitted founding authority is never repairable by later Seals. See zh/authz/cba-profiles.md section 3."
     },
     {
       "code": "seal_incomplete",
@@ -1753,12 +1753,30 @@
       "description": "A ak.realm.create event attempted to create a Realm id whose genesis cell is already set. Reducer MUST reject the duplicate create without rewriting create-locked fields."
     },
     {
-      "code": "realm_founding_grant_missing",
+      "code": "realm_authority_root_missing",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution",
+        "auth_decision"
+      ],
+      "description": "The Realm has no registered ak.component.realm.authority_root.v1 cell in the authorization basis, or a ak.realm.create bootstrap unit failed to materialize it. Reducer MUST reject the entire bootstrap unit atomically without leaving Realm metadata or creator membership, and MUST NOT fall back to created_by, membership or a realm_state.owner projection mirror. See zh/models/realm-and-space.md section 2.5."
+    },
+    {
+      "code": "realm_authority_root_conflict",
       "applies_to": [
         "event_envelope",
         "state_resolution"
       ],
-      "description": "A ak.realm.create bootstrap batch did not place the required closed-form creator self founding grant immediately after the create event. Reducer MUST reject the entire bootstrap unit atomically without leaving Realm metadata or creator membership. See zh/models/realm-and-space.md section 2.5."
+      "description": "The authority-root cell value was author-supplied or otherwise diverges from the registered value_projection: controller_id not equal to payload.object.created_by, a non-zero controller_epoch or authority_generation at genesis, a capability_action_registry_digest differing from the signed create payload, or members beyond the closed four-field shape. Reducer MUST reject the whole unit. See zh/models/realm-and-space.md section 2.5."
+    },
+    {
+      "code": "realm_authority_controller_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution",
+        "auth_decision"
+      ],
+      "description": "An Event presented ak:cell:ak.component.realm.authority_root.v1:null as its authorization_ref but the cell's current controller_id is not the authorizing principal, or the epoch / authority_generation / registry digest bound at issuance no longer matches the cell in that basis. Includes replaying a staged genesis-batch root proof outside its atomic bootstrap unit. See zh/authz/capabilities.md section 3.2."
     },
     {
       "code": "invalid_genesis_seal",
@@ -1766,16 +1784,7 @@
         "seal",
         "state_resolution"
       ],
-      "description": "The first Seal of a Realm did not atomically cover the complete founding anchor unit (Realm metadata, creator joined membership, founding authority/notary, founding grant and base policy), or used an empty covered set or empty control_event_set_root. MLS epoch-0 binding is checked on the first successor Seal covering ak.mls.genesis. See zh/authz/cba-profiles.md section 3."
-    },
-    {
-      "code": "invalid_realm_founding_grant",
-      "applies_to": [
-        "event_envelope",
-        "state_resolution",
-        "auth_decision"
-      ],
-      "description": "The purported Realm founding grant was outside the ak.realm.create atomic bootstrap unit, did not target created_by, or widened the closed actions/resources/constraints shape. Reducer MUST reject it and, during bootstrap, roll back the entire unit. See zh/models/realm-and-space.md section 2.5 and zh/authz/capabilities.md section 3.2."
+      "description": "The first Seal of a Realm did not atomically cover the complete founding anchor unit (the five registered ak.realm.create cell writes: Realm metadata, creator joined membership, create log, founding notary and the authority-root cell), or used an empty covered set or empty control_event_set_root. MLS epoch-0 binding is checked on the first successor Seal covering ak.mls.genesis. See zh/authz/cba-profiles.md section 3."
     },
     {
       "code": "realm_organization_authorization_invalid",

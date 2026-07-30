@@ -127,17 +127,29 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 
 委派路径（`ak.capability.delegate` 派生 grant）由 §10.1 强制 `child.actions[] ⊆ parent.actions[]`、resources 收窄等上界约束，防止再授权扩权。**链首的首发 grant（`ak.capability.grant`，无 `parent_grant_id`）受对称的 issuer 自身权限上界约束**：仅持有 `ak.capability.grant` action 本身**不足以**签发任意 grant。
 
-签发首发（非 delegate 派生）`ak.capability.grant` 时，reducer **MUST** 校验：grant 的 `actions[]` 与 `resources[]` 所表达的能力 **MUST ⊆** issuer 在签发时点（按该 grant 的 seal basis / `auth_state_digest`）**自身有效持有**的 effective capability——即 issuer 自身经由 Realm 角色、`ak.realm.admin` / `ak.policy.manage` 等 admin capability、membership 或上游 grant，确实持有覆盖所授 `actions[]`（且 resources 不超出自身命中范围）的有效授权。issuer 不得签发授予他人超出自身持有能力的 grant。
+签发首发（非 delegate 派生）`ak.capability.grant` 时，reducer **MUST** 校验：grant 的 `actions[]` 与 `resources[]` 所表达的能力 **MUST ⊆** issuer 在签发时点（按该 grant 的 seal basis / `auth_state_digest`）**自身有效持有**的 effective capability。effective capability 的来源是一个**封闭列表**：active 上游 grant（含 `ak.realm.admin` / `ak.policy.manage` 等 admin capability 与 `ak.realm.owner` co-owner grant），或本节下文的 Realm authority-root cell current controller。**membership、`created_by`、Realm 角色标签与任何 `realm_state.owner` 一类投影镜像都不是授权来源**，MUST NOT 参与该判定。issuer 不得签发授予他人超出自身持有能力的 grant。
 
-聚合 admin action（如 `ak.realm.admin` / `ak.policy.manage`）在该上界校验中的展开 **MUST** 以 issuer grant 的签名 / registry basis 为锚：reducer 先解析 child grant 每个 `actions[]` 的 `target_event_kinds`，再在同一 registry basis 下解析 issuer 持有的聚合 action 覆盖集。issuer 字面持有 child action 时可直接满足上界；issuer 仅持有聚合 action 时，只有当该聚合 action 在该 basis 的 effective coverage set 覆盖 child action 的全部 `target_event_kinds`，且 issuer resources / constraints 覆盖 child resources / constraints 时，才视为满足上界。历史聚合 grant **MUST NOT** 自动继承后来 registry 新增的 `target_event_kinds`；新增覆盖必须按 §5.0.1 重新签发或通过显式 opt-in 绑定新的 registry digest。聚合展开 **MUST NOT** 授权 `event_mapping_kind="non_event_surface"` 的 child action；这类 action 只能由 issuer 字面持有相同 action，或由 profile 显式声明的非事件面授权规则覆盖。
+聚合 admin action（如 `ak.realm.admin` / `ak.policy.manage`）在该上界校验中的展开 **MUST** 以 issuer grant 的签名 / registry basis 为锚：reducer 先解析 child grant 每个 `actions[]` 的 `target_event_kinds`，再在同一 registry basis 下解析 issuer 持有的聚合 action 覆盖集。issuer 字面持有 child action 时可直接满足上界；issuer 仅持有聚合 action 时，只有当该聚合 action 在该 basis 的 effective coverage set 覆盖 child action 的全部 `target_event_kinds`，且 issuer resources / constraints 覆盖 child resources / constraints 时，才视为满足上界。覆盖集为空（`target_event_kinds == []`）的 child action **MUST NOT** 由任何聚合满足——空集是任意集合的子集，若不显式拦下，每个非事件面 action 都会被每个聚合"覆盖"。历史聚合 grant **MUST NOT** 自动继承后来 registry 新增的 `target_event_kinds`；新增覆盖必须按 §5.0.1 重新签发或通过显式 opt-in 绑定新的 registry digest。聚合展开 **MUST NOT** 授权 `event_mapping_kind="non_event_surface"` 的 child action；这类 action 只有三个已注册的上界来源：issuer 字面持有相同 action、由 profile 显式声明的非事件面授权规则覆盖，或由下文 Realm owner authority 的 `grant_authority_actions` 逐字命中。
+
+**Realm owner authority（normative）**：`ak.realm.owner` 是 Realm 内最高的显式授权聚合，有且仅有两个来源：
+
+1. **root authority**——[`realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 的 `ak.component.realm.authority_root.v1` cell 的 current controller。该分支的 operational authorization **MUST** 使用该 cell 在同一 Seal basis 下的 registered inclusion proof；**MUST NOT** 回退到 `realm_state.owner`、membership 或 `created_by`。
+2. **co-owner grant**——一条 active 的普通 `ak.realm.owner` grant。它给予 owner 的 operational / grant authority，但**不**给予 root-control authority：持有人不控制 authority-root cell。
+
+两个来源在 §3.2 上界校验中的判定规则相同，且 **MUST 按 action id 求值**：child action MUST 逐字存在于同一 registry basis 下 `ak.realm.owner` 的 `grant_authority_actions`。**MUST NOT** 用 `target_event_kinds ⊆ owner.target_event_kinds` 反推 action-level 授权——多个 action 可以映射到同一 event kind（例如 `ak.agent.sidecar.write` 与 `ak.message.create`、`ak.self.agent.grant.command.attach` 与 `ak.capability.grant`），以 event kind 相等或子集关系满足 action-level grant authority 会让被排除的 profile action 串权。`grant_authority_actions` 包含 core `non_event_surface` action 与 `ak.realm_key.share`，因此 owner 可以先给自己或他人签发这些字面 grant，再由普通 action admission 使用该字面 grant；owner authority 本身**不**直接放行任何 non-event endpoint。profile action 默认不在该集合内：只有当同一 seal basis 下该 profile active、且该 action 逐字登记在其 `owner_grant_authority_actions[]` 中时，owner 才可签发，且该 profile 既有的 registration / constraint / evidence gate 继续完整执行。`root_control_only` / `subject_only` / `reducer_only` 的 action 永不进入任何派生集合，因此无论 owner 来源为何都不可签发。
 
 Profile 对 non-event action 的显式授权规则必须登记在
 `conformance-profiles.json#/profile_requirements/<profile>/non_event_grant_authority_rules[]`；
 散文声明或只把 action 列入 `required_capability_actions[]` 不构成权限来源。每条规则必须逐字
 登记 `issuer_action`、`grantable_action`、`required_registration_event_kind`、
 `required_claimed_profile`、`required_constraint_kind/subkind`、`subject_binding`、
-`scope_binding`、`epoch_binding` 与 `requested_action_binding`。Reducer 只有在同一
-`seal_basis` joined view 下 issuer 的 active grant 覆盖 `issuer_action` 和 child resource，
+`scope_binding`、`epoch_binding`、`requested_action_binding` 与
+`issuer_owner_authority_allowed`。`issuer_owner_authority_allowed=true` 时 issuer 侧另接受
+Realm effective owner（authority-root cell current controller 或 active co-owner grant）；
+该扩展只替换 issuer 来源，profile 的 registration / constraint / evidence gate 一条不减。
+Reducer 只有在同一
+`seal_basis` joined view 下 issuer 的 active grant 覆盖 `issuer_action`（或按上一句取得
+effective owner）和 child resource，
 且被引用 registration、subject、constraint、epoch、scope、requested action 全部满足规则时，
 才可把该规则视为 child action 的 issuer 上界；任一 registration 缺失、profile 未声明、
 epoch/subject/scope/constraint 不一致、action 未被 registration 请求，或 rule/profile
@@ -150,8 +162,8 @@ unsupported 时都必须 `grant_exceeds_issuer_authority` fail closed。该机�
 - 越界（`actions[]` 含 issuer 自身不持有的 action，或 `resources[]` 超出 issuer 自身命中范围）时 reducer **MUST** fail closed：对 actions / resources 越界返回 `schema_violation`（`reason="grant_exceeds_issuer_authority"`），对授权前置不成立（issuer 在该 basis 下不持有所需上界能力）返回 `failed_precondition`（`reason="grant_exceeds_issuer_authority"`）。实现 **MUST NOT** 把"持有 `ak.capability.grant` action"误当作"可凭空铸造任意 capability"。
 - 该校验在 issuer 的有效权限随撤销 / 过期收缩时同样适用：issuer 在签发 basis 下不再持有某 action，则不得据此签发包含该 action 的首发 grant。
 - 此规则关闭"窄 `ak.capability.grant` 持有者凭空签出更宽 grant"的权限提升面，与 §10.1 委派收窄对称；它**不**妨碍合法的 admin 角色分配——持有 `ak.realm.admin` 等 admin capability 的 issuer 本身即持有相应 action 上界，因此可正常把这些 action 授予他人。
-- v1 唯一不从既有 grant / role 读取上界的 core 路径，是 [`realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 定义的 **founding grant**：它必须与 `ak.realm.create` 位于同一 ordered submit batch、必须紧随 create、subject / issuer 必须都是 `created_by`，且 actions、`capability_action_registry_digest` 与 Realm-wide resource 必须逐字满足该节的封闭形态。该一次性 genesis authority **仅豁免 issuer 既有上界，不豁免本节对 aggregate-admin registry basis 的要求**；它只授权写出这条 self grant，不授权给第三方发 grant，也不授权增加其它 action / resource / constraint。任一字段越界、registry digest 缺失/未知/不匹配，或 batch 外重放该形态，reducer MUST fail closed（`failed_precondition`，`reason="invalid_realm_founding_grant"`）。
-- 除上述封闭 founding grant 外，v1 不定义“可凭空授予自身不持有能力”的 sovereign 豁免。部署 policy 不得自行放宽本节上界；需要不同 bootstrap authority 的 extension 必须注册独立 profile、完整定义机器可验证的权限来源与收窄规则，未声明 / 不支持该 profile 时 fail closed。
+- v1 授权图的唯一 genesis base case 是 [`realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 的 `ak.component.realm.authority_root.v1` cell，它由 `ak.realm.create` 的注册 reducer contract 在 genesis `state_root` 内原子物化，**不是**一条 per-person grant，因此不存在"issuer 凭空给自己签发一条 grant"的路径。root controller 的上界仍完整适用本节：child action 必须逐字命中 `ak.realm.owner` 的 `grant_authority_actions`，含 `aggregate_admin` 的 child grant 仍 MUST 携带并满足 registry basis 要求。cell 缺失、controller 不匹配、epoch / generation 不一致或 registry digest 不可重算时 MUST fail closed（`failed_precondition`，`reason="realm_authority_root_missing"` 或 `"realm_authority_controller_mismatch"`）。
+- 除该 registered authority root 外，v1 不定义“可凭空授予自身不持有能力”的 sovereign 豁免，也不承认任何形态的 creator / owner omnipotence 捷径。部署 policy 不得自行放宽本节上界；需要不同 bootstrap authority 的 extension 必须注册独立 profile、完整定义机器可验证的权限来源与收窄规则，未声明 / 不支持该 profile 时 fail closed。
 
 **确定性 basis 与 freshness 解耦（normative）**：首发 grant 的 issuer 上界校验 MUST 有确定性求值 basis，不得退化为对 §18.2 freshness 的循环依赖（"上界够新才算够新"）。具体：
 
@@ -299,6 +311,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.circle.member.add.others`（high risk；代他人写入 Circle membership，MUST 与 `ak.audit.accessed` 配对）
 - `ak.circle.audit`（high risk；审计读取 Circle 元数据 / activity rollup，MUST 与 `ak.audit.accessed` 配对）
 - `ak.realm.admin`
+- `ak.realm.owner`（high risk；Realm 内最高显式授权聚合。两个来源见 §3.2：authority-root cell 的 current controller，或一条 active 的普通 co-owner grant。它同时携带两个由 registry 规则派生的集合——`target_event_kinds` 只用于直接 Event admission，`grant_authority_actions` 只用于 §3.2 的 issuer 上界；两者 MUST NOT 互换使用。`root_control_only` / `subject_only` / `reducer_only` 的 action 不在任一集合内，因此 owner 既不能直接 author 也不能签发它们）
 - `ak.applet.ghost.provision`（high risk、profile=`ak.profile.applet_bridge.v1`、`target_event_kinds=[]`、`event_mapping_kind=non_event_surface`；授权 installed Applet service 调用闭合的 Ghost Actor provisioning aggregate；grant MUST 以 `applet_id`、`executed_by`、`registration_epoch` 约束绑定 active registration，且不得解释为对 `ak.identity.accountability_grant` 或 `ak.profile.create` 的通用授权）
 - `ak.audit.applet_binding`（high risk；新增、暂停或撤销 Audit Applet Binding；target=`ak.audit.applet_binding`）
 - `ak.audit.session.authorize`（high risk；授权某个 Audit Applet release session；Circle-scoped session 必须由覆盖该 Circle 的 grant 授权）

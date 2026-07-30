@@ -110,6 +110,186 @@ def public_registry_paths() -> list[Path]:
     return [current_public_registry_path()]
 
 
+# Capability action rows may declare a machine-evaluated derivation instead of a
+# hand-maintained list. The rule is the source of truth; the materialized list is
+# a cached projection that `check` recomputes, so hand-editing either the
+# contract registry row or the generated view is a drift failure.
+CAPABILITY_ACTION_DERIVATION_RULES = {
+    "coverage_rule": "target_event_kinds",
+    "grant_authority_rule": "grant_authority_actions",
+}
+CAPABILITY_ACTION_DERIVATION_FLAGS = ("root_control_only", "subject_only", "reducer_only")
+CAPABILITY_ACTION_RULE_KEYS = {
+    "exclude_self",
+    "require_profile_null",
+    "exclude_event_mapping_kinds",
+    "exclude_flags",
+    "exclude_categories",
+    "exclude_action_prefixes",
+    "exclude_actions",
+}
+
+
+def capability_action_rows(catalog: dict[str, Any]) -> list[dict[str, Any]]:
+    section = catalog.get("capability_action_registry")
+    if not isinstance(section, dict):
+        raise SystemExit("contract registry missing capability_action_registry")
+    rows = section.get("actions")
+    if not isinstance(rows, list):
+        raise SystemExit("capability_action_registry.actions must be an array")
+    return [row for row in rows if isinstance(row, dict)]
+
+
+def capability_action_flag(row: dict[str, Any], flag: str) -> bool:
+    value = row.get(flag)
+    if value is None:
+        return False
+    if not isinstance(value, bool):
+        raise SystemExit(
+            f"capability action {row.get('action')!r} {flag} must be a boolean"
+        )
+    return value
+
+
+def rule_string_list(rule: dict[str, Any], key: str, rule_ref: str) -> list[str]:
+    value = rule.get(key, [])
+    if not isinstance(value, list) or any(not isinstance(item, str) or not item for item in value):
+        raise SystemExit(f"{rule_ref}.{key} must be an array of non-empty strings")
+    return value
+
+
+def capability_action_rule_selection(
+    rule: object, rows: list[dict[str, Any]], owner_action: str, rule_ref: str
+) -> list[dict[str, Any]]:
+    """Evaluate one closed action-predicate rule over the registry rows."""
+    if not isinstance(rule, dict):
+        raise SystemExit(f"{rule_ref} must be an object")
+    unknown = sorted(set(rule) - CAPABILITY_ACTION_RULE_KEYS)
+    if unknown:
+        raise SystemExit(f"{rule_ref} has unknown member(s) {unknown}")
+    exclude_self = rule.get("exclude_self", False)
+    require_profile_null = rule.get("require_profile_null", False)
+    for key, value in (
+        ("exclude_self", exclude_self),
+        ("require_profile_null", require_profile_null),
+    ):
+        if not isinstance(value, bool):
+            raise SystemExit(f"{rule_ref}.{key} must be a boolean")
+    exclude_mapping_kinds = set(rule_string_list(rule, "exclude_event_mapping_kinds", rule_ref))
+    exclude_flags = rule_string_list(rule, "exclude_flags", rule_ref)
+    unknown_flags = sorted(set(exclude_flags) - set(CAPABILITY_ACTION_DERIVATION_FLAGS))
+    if unknown_flags:
+        raise SystemExit(f"{rule_ref}.exclude_flags has unknown flag(s) {unknown_flags}")
+    exclude_categories = set(rule_string_list(rule, "exclude_categories", rule_ref))
+    exclude_prefixes = tuple(rule_string_list(rule, "exclude_action_prefixes", rule_ref))
+    exclude_actions = set(rule_string_list(rule, "exclude_actions", rule_ref))
+    known_actions = {row.get("action") for row in rows}
+    unknown_actions = sorted(action for action in exclude_actions if action not in known_actions)
+    if unknown_actions:
+        raise SystemExit(f"{rule_ref}.exclude_actions names unregistered action(s) {unknown_actions}")
+
+    selected: list[dict[str, Any]] = []
+    for row in rows:
+        action = row.get("action")
+        if not isinstance(action, str):
+            continue
+        if exclude_self and action == owner_action:
+            continue
+        if action in exclude_actions:
+            continue
+        if require_profile_null and row.get("profile") is not None:
+            continue
+        if row.get("event_mapping_kind") in exclude_mapping_kinds:
+            continue
+        if row.get("category") in exclude_categories:
+            continue
+        if exclude_prefixes and action.startswith(exclude_prefixes):
+            continue
+        if any(capability_action_flag(row, flag) for flag in exclude_flags):
+            continue
+        selected.append(row)
+    return selected
+
+
+def capability_action_derivations(catalog: dict[str, Any]) -> dict[str, dict[str, list[str]]]:
+    """Materialized value for every rule-derived capability action field."""
+    rows = capability_action_rows(catalog)
+    derived: dict[str, dict[str, list[str]]] = {}
+    for row in rows:
+        action = row.get("action")
+        if not isinstance(action, str):
+            continue
+        for rule_key, field in CAPABILITY_ACTION_DERIVATION_RULES.items():
+            if rule_key not in row:
+                continue
+            rule_ref = f"capability_action_registry.actions[{action}].{rule_key}"
+            selected = capability_action_rule_selection(row[rule_key], rows, action, rule_ref)
+            if field == "target_event_kinds":
+                values: set[str] = set()
+                for selected_row in selected:
+                    targets = selected_row.get("target_event_kinds")
+                    if not isinstance(targets, list):
+                        raise SystemExit(
+                            f"{rule_ref} selected {selected_row.get('action')!r} without target_event_kinds"
+                        )
+                    values.update(target for target in targets if isinstance(target, str))
+            else:
+                values = {
+                    selected_row["action"]
+                    for selected_row in selected
+                    if isinstance(selected_row.get("action"), str)
+                }
+            if not values:
+                raise SystemExit(f"{rule_ref} selected nothing; a derived authority set MUST NOT be empty")
+            derived.setdefault(action, {})[field] = sorted(values)
+    return derived
+
+
+def apply_capability_action_derivations(catalog: dict[str, Any]) -> list[str]:
+    """Write derived fields back into the catalog; return the changed action ids."""
+    derived = capability_action_derivations(catalog)
+    changed: list[str] = []
+    for row in capability_action_rows(catalog):
+        action = row.get("action")
+        if action not in derived:
+            continue
+        for field, values in derived[action].items():
+            if row.get(field) != values:
+                row[field] = values
+                if action not in changed:
+                    changed.append(action)
+    return changed
+
+
+def write_capability_action_derivations() -> None:
+    catalog = load_contract_registry()
+    changed = apply_capability_action_derivations(catalog)
+    if not changed:
+        return
+    CONTRACT_REGISTRY_PATH.write_text(dump_json(catalog), encoding="utf-8", newline="\n")
+    print(
+        f"updated {CONTRACT_REGISTRY_PATH.relative_to(ROOT).as_posix()} "
+        f"(derived capability action fields: {', '.join(changed)})"
+    )
+
+
+def check_capability_action_derivations() -> list[str]:
+    catalog = load_contract_registry()
+    derived = capability_action_derivations(catalog)
+    errors: list[str] = []
+    for row in capability_action_rows(catalog):
+        action = row.get("action")
+        if action not in derived:
+            continue
+        for field, values in derived[action].items():
+            if row.get(field) != values:
+                errors.append(
+                    f"derived capability action drift: {action}.{field} does not match its rule "
+                    "(run python tools/artifact_pipeline.py generate)"
+                )
+    return errors
+
+
 def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str, Any]]:
     version, generated_at = registry_generation_metadata(catalog)
     generated = catalog.get("derived_registry_views")
@@ -867,6 +1047,7 @@ def run_operation_completeness_report(mode: str) -> int:
 
 
 def cmd_generate(_: argparse.Namespace) -> int:
+    write_capability_action_derivations()
     write_derived_registry_views()
     write_operation_schema_index()
     write_reducer_profile_registry()
@@ -876,7 +1057,8 @@ def cmd_generate(_: argparse.Namespace) -> int:
 
 
 def cmd_check(_: argparse.Namespace) -> int:
-    errors = check_derived_registry_views()
+    errors = check_capability_action_derivations()
+    errors.extend(check_derived_registry_views())
     errors.extend(check_operation_schema_index())
     errors.extend(check_reducer_profile_registry())
     errors.extend(check_classification_discipline())
