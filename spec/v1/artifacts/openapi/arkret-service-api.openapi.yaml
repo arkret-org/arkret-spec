@@ -7711,7 +7711,7 @@ paths:
       operationId: ak.self.realm_policy_server.resource.delete
       security:
       - bearerAuth: []
-      summary: Tombstone the ak.realm.policy_server cell.
+      summary: Submit a durable ak.realm.policy_server Move with payload {tombstone:true}.
       parameters:
       - in: path
         name: realm_id
@@ -7720,7 +7720,9 @@ paths:
           type: string
       responses:
         '200':
-          description: Realm policy-server config tombstoned (empty body).
+          description: Realm policy-server direct config tombstoned, or an existing tombstone replayed idempotently (empty body).
+        '404':
+          description: The Realm direct cell has never been written or is inherited-only; no ancestor cell is mutated.
   /_arkret/self/realms/{realm_id}:
     get:
       operationId: ak.self.realm.resource.get

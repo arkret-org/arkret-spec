@@ -1748,11 +1748,29 @@
       "if": {
         "properties": {
           "kind": {
+            "const": "ak.realm.policy_server"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_policy_server_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
             "enum": [
               "ak.realm.policy",
               "ak.realm.join_rule",
               "ak.realm.discovery",
-              "ak.realm.policy_server",
               "ak.realm.policy_bundle",
               "ak.realm.delivery_binding_policy",
               "ak.realm.asset_privacy_policy",

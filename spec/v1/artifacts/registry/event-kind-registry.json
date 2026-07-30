@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-30.1",
+  "version": "2026-07-30.2",
   "source_of_truth": false,
-  "generated_at": "2026-07-30T01:48:48Z",
+  "generated_at": "2026-07-30T02:18:59Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -832,7 +832,8 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Realm Policy Server binding",
+      "payload": "Realm Policy Server direct binding or durable value tombstone. Declaration payloads and {tombstone:true} both set ak.component.realm.policy_server.v1 through the registered cas_register effect; effective queries treat the tombstone as absence of a direct binding and resume governed_by fallback.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_server_payload",
       "plane": "control",
       "sealed": true,
       "cell_writes": [

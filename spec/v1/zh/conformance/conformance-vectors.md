@@ -4733,6 +4733,49 @@ Expected：
 - **Case B**：decision 接受（对照正样本）。
 - `bound_to.realm_id` / `actor_id` / `action` 任一与本次 request 不一致时同样 MUST 拒绝（防止 allow decision 跨 (realm, actor) 上下文泄漏）。
 
+### 15.4.1 Vector: Realm Policy Server 持久删除与重复删除
+
+`vector_id`: `ak.vector.policy_server.binding_tombstone.v1`
+
+本向量固定 [`policy-server.md`](../authz/policy-server.md) §2.2 的 DELETE 映射。具备
+`ak.policy.manage` 的 actor 删除一个有 direct declaration、同时通过 `governed_by` 可继承
+组织声明的 Realm；receiver 必须从 DELETE 构造 payload 精确为 `{"tombstone":true}` 的
+`ak.realm.policy_server` Control Move，并将 `set(value=payload)` 纳入 Seal 与 `state_root`。
+
+Expected：
+
+- Seal 接受前 effective state 不变；接受后 direct cell 的 settled value 是显式 tombstone，
+  GET 返回组织声明并标记 `from_org_fallback=true`；
+- 对 settled tombstone 重复 DELETE 返回幂等空成功，cell value 与 `state_root` 不变；
+- 从未有 direct declaration / tombstone 时 DELETE 返回 `not_found`；仅继承到的配置不构成
+  direct declaration，删除不得改写祖先 Realm cell；
+- tombstone payload 必须精确为 `{"tombstone":true}`；`tombstone=false`、`null`、空 object 或
+  与任一 declaration 字段混合都必须在 reducer 前以 `schema_violation` 拒绝；
+- 缺 `ak.policy.manage` 时必须在构造 / 接受 Control Move 前拒绝，不能先写 tombstone 再补审计。
+
+### 15.4.2 Vector: Realm Policy Server Replace/Delete 并发
+
+`vector_id`: `ak.vector.policy_server.replace_delete_conflict.v1`
+
+从同一 frozen declaration head 分别构造一个 replacement 与一个 tombstone sibling；两者都带
+命中旧完整 value 的 `head_eq`，并被同一 predecessor view 的并发 Seal 分支接受。
+
+Expected：不同 `set` value 的 `cas_register` join 为 `⊥`、`bottom=reject`；GET、Policy Server
+调用和依赖该 cell 的写入均 `failed_bottom`。实现不得按 HLC / 到达顺序选择 replacement 或
+tombstone，也不得在本级 `⊥` 时跳过到组织 fallback。仅 `ak.state.conflict_recovery` 可恢复。
+
+### 15.4.3 Vector: Realm Policy Server Tombstone 联邦回放与 Seal
+
+`vector_id`: `ak.vector.policy_server.tombstone_federation_replay.v1`
+
+对端分别按 Event→Seal、Seal→Event、含 Event / Seal 重复的顺序接收同一 tombstone。依赖未齐时
+保持 pending；Event、Seal 与 predecessor 全部可用后，receiver 必须从 registry 重算
+`ak.component.realm.policy_server.v1:null` 的 `set({"tombstone":true})`。
+
+Expected：全部顺序收敛为相同 cell value 与 `state_root`；重复传输幂等；Event 保留在 canonical
+log 并参与后续 federation / snapshot；重启回放或从 sealed cell store hydrate 后 direct config
+仍为 tombstone，不得因结构化缓存重建遗漏而复活。
+
 ### 15.5 Vector: Key Backup Unlock Proof 校验
 
 `vector_id`: `ak.vector.key_backup.unlock_proof.v1`

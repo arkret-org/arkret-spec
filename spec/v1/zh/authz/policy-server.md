@@ -22,8 +22,8 @@ Realm 可通过 state event 声明策略服务：
 {
   "kind": "ak.realm.policy_server",
   "payload": {
-    "server_id": "did:webvh:z9oyrNdJAoqkAh5Remo6dZUdV:policy.example.com",
-    "endpoint": "https://policy.example.com/_arkret/self/policy/check",
+    "policy_server_did": "did:webvh:z9oyrNdJAoqkAh5Remo6dZUdV:policy.example.com",
+    "policy_server_url": "https://policy.example.com/_arkret/self/policy/check",
     "public_keys": [
       "did:webvh:z9oyrNdJAoqkAh5Remo6dZUdV:policy.example.com#key-1"
     ],
@@ -43,7 +43,9 @@ Realm 可通过 state event 声明策略服务：
     ],
     "abuse_profile_ref": "ak.policy:abuse-v1",
     "fail_mode": "soft_deny",
-    "cache_ttl_seconds": 300
+    "cache_ttl_seconds": 300,
+    "timeout_ms": 2000,
+    "on_timeout": "fail_closed"
   }
 }
 ```
@@ -51,6 +53,10 @@ Realm 可通过 state event 声明策略服务：
 声明该事件需要 `ak.policy.manage` capability。
 
 `policy_sources[]` 中每一项 MUST 是 `{"kind": "<event_kind>"}` 形态的 object（如示例所示）。Reducer / Policy Server canonical transcript 仅接受 object form；不接受裸字符串简写——若实现需要把字符串映射到 object，必须在客户端构造 Event 之前完成，使写到 wire 上的形态始终是 canonical object，避免 signature/hash transcript 在不同实现之间不一致。
+
+`policy_server_url` MUST 是无 userinfo、query 与 fragment 的 HTTPS URL，path 精确为
+`/_arkret/self/policy/check`；`timeout_ms` 若存在 MUST ≥ 1。operation DTO 与 durable declaration
+对此使用同一约束，不得让管理接口接受 reducer 随后必然拒绝的配置。
 
 ### 2.1 policy_sources 不可解析时 fail-closed（normative）
 
@@ -62,6 +68,47 @@ Realm 可通过 state event 声明策略服务：
 - `fail_mode=open`：仅在 declaration 显式声明且非公开 Realm 时才允许按基础授权继续（§6 对 `open` 的硬约束适用）。
 
 被 redact 是不可解析的一种：一个被 redact 的 moderation_policy event MUST NOT 被解释为"放开该 policy 维度"。多个 policy_sources 中只要有任一不可解析，整体即按上述 fail_mode 处理，MUST NOT 因其余 source 可解析就跳过缺失 source 的治理维度。
+
+### 2.2 声明替换、持久删除与组织回退（normative）
+
+`ak.realm.policy_server` payload 由
+[`event-payload.schema.json#/$defs/realm_policy_server_payload`](../../artifacts/schemas/event-payload.schema.json)
+封闭为两种互斥形态：
+
+1. declaration：至少携带 `policy_server_did` 与 `policy_server_url`，可携带本节其余声明字段；
+2. value tombstone：精确为 `{"tombstone":true}`，不得同时携带任何 declaration 字段。
+
+两种形态都写同一 `ak.component.realm.policy_server.v1:null` cell。Registry reducer contract
+固定为 `cas_register` / `bottom=reject` / `set(value=payload)`；tombstone 是一个由 Event、Seal、
+联邦与回放共同承诺的显式 cell 值，不是删除 Event、物理删除 cell、写 `null`，也不是只清理本地
+projection cache。
+
+Self-management operation 的映射固定如下：
+
+- `ak.self.realm_policy_server.resource.replace`（`PUT
+  /_arkret/self/realms/{realm_id}/policy-server`）在 `ak.policy.manage` admission 通过后，
+  MUST 构造 payload 等于已验证 request body 的 durable `ak.realm.policy_server` Control Move；
+- `ak.self.realm_policy_server.resource.delete`（`DELETE` 同一路径）在同一 capability admission
+  通过后，MUST 构造 payload 精确为 `{"tombstone":true}` 的 durable
+  `ak.realm.policy_server` Control Move；
+- direct cell 从未写入时，replace 写入初始 declaration，不要求 CAS precondition；direct cell
+  已有任一 settled value（declaration 或 tombstone）时，replace MUST 按
+  [`event-auth-state-resolution.md` §9.3.1](./event-auth-state-resolution.md) 携带命中该完整
+  settled value 的 `head_eq` precondition。delete 只在 settled value 为 declaration 时构造
+  tombstone Move，并携带命中该完整 declaration 的 `head_eq`；settled value 已是 tombstone 时
+  直接按下述幂等规则返回。任何 mutation 都必须经控制面 Seal 接受后才改变 effective state。
+
+同一 frozen basis 上并发的 replace 与 delete 写入不同值，按 `cas_register` join 为 `⊥`；
+读取、Policy Server 调用与依赖该 cell 的写入 MUST fail closed，直到按 §9.5
+conflict-recovery Move 恢复，接收方不得按 HLC、到达顺序或本地管理员请求顺序选 winner。
+对已 settled tombstone 重复 DELETE 是幂等空成功：MUST NOT 追加不同 cell 值或改变
+`state_root`。从未有 direct declaration / tombstone 的 Realm 执行 DELETE 返回 `not_found`；
+继承得到的配置不算本 Realm direct declaration，DELETE 不得为“删除继承值”而修改祖先 cell。
+
+effective query 对每一级 Realm 执行相同规则：declaration 是该级的有效结果；tombstone 或从未
+写入表示该级没有 direct binding，继续沿 active `governed_by` 链查找；链耗尽时退回纯本地
+capability 判定。链中任一 policy-server cell 为 `⊥` 时查询 MUST fail closed，不得跳过该级
+继续采用更远祖先；`governed_by` 歧义、环或不可解析同样不得按本地遍历顺序选一个祖先。
 
 ## 3. Check Request
 
@@ -145,7 +192,7 @@ Content-Type: application/json
 | `bound_to.actor_id` | `did` | required | 等于 request `actor_id`。 |
 | `bound_to.action` | `string` | required | 等于 request `action`。 |
 | `bound_to.request_canonical_digest` | `sha256:<hash>` | required | 等于 request `request_canonical_digest`。 |
-| `bound_to.policy_server_id` | `did` | required | 签发该 decision 的 Policy Server DID；必须与 declaration `server_id` 和 `signature.kid` 控制者一致。 |
+| `bound_to.policy_server_id` | `did` | required | 签发该 decision 的 Policy Server DID；必须与 declaration `policy_server_did` 和 `signature.kid` 控制者一致。 |
 | `decision` | `enum(allow,soft_deny,hard_deny,quarantine,require_review)` | required | 策略决策。 |
 | `reason_code` | `string` | required | 稳定原因码。 |
 | `expires_at` | `datetime` | required | 决策缓存过期时间。 |

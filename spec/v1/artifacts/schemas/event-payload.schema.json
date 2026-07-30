@@ -9248,6 +9248,115 @@
         }
       ]
     },
+    "realm_policy_server_payload": {
+      "description": "Closed payload for ak.realm.policy_server. A declaration writes the complete direct Realm binding; {tombstone:true} is a durable value tombstone that removes the direct binding from effective queries without erasing the cell history.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/realm_policy_server_declaration_payload"
+        },
+        {
+          "$ref": "#/$defs/realm_policy_server_tombstone_payload"
+        }
+      ]
+    },
+    "realm_policy_server_declaration_payload": {
+      "type": "object",
+      "required": [
+        "policy_server_did",
+        "policy_server_url"
+      ],
+      "properties": {
+        "policy_server_did": {
+          "$ref": "#/$defs/did"
+        },
+        "policy_server_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://[^/?#@]+/_arkret/self/policy/check$"
+        },
+        "public_keys": {
+          "type": "array",
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/did_url"
+          },
+          "uniqueItems": true
+        },
+        "applies_to": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "join",
+              "invite",
+              "message",
+              "media",
+              "applet",
+              "directory",
+              "call",
+              "federation"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "policy_sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "uniqueItems": true
+        },
+        "abuse_profile_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "fail_mode": {
+          "type": "string",
+          "enum": [
+            "open",
+            "soft_deny",
+            "quarantine",
+            "closed"
+          ]
+        },
+        "cache_ttl_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "on_timeout": {
+          "type": "string",
+          "enum": [
+            "fail_closed",
+            "deny"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_policy_server_tombstone_payload": {
+      "type": "object",
+      "required": [
+        "tombstone"
+      ],
+      "properties": {
+        "tombstone": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    },
     "realm_search_policy_payload": {
       "type": "object",
       "required": [
