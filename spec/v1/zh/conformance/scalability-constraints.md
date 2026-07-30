@@ -254,7 +254,7 @@ JCS(body) bytes <= operation.max_canonical_body_bytes
 | 单个 DataEvent canonical size | 1 MiB | 与 §2.1.1 同一测量对象与同一数值；超过时 MUST reject 为 `payload_too_large`。 |
 | 单个 Control Move canonical size | 1 MiB | 与 §2.1.1 同一测量对象与同一数值；超过时 MUST reject 为 `payload_too_large`。 |
 | 单个 Control Move 的 `preconditions[]` 项数 | 256 | 这是 wire schema 的 `maxItems`；超过时 MUST reject。 |
-| 单个 Event 的 reducer-projected cell write 数 | 256 | receiver 从 registry 重算；超过时 MUST `reducer_projection_failed`，协议设计者需拆成多个 Event 或使用已注册的 typed control transaction。 |
+| 单个 Event 的 reducer-projected cell write 数 | 128 | receiver 从 registry 重算；与 Event Envelope `cell_writes.maxItems=128` 使用同一上限。任何 projection（包括 `ak.patch.apply` 的 cell 展开）超过时 MUST `reducer_projection_failed`，协议设计者需拆成多个 Event 或使用已注册的 typed control transaction；registry 不得给某 kind 登记更高局部上限。 |
 | 单个 Seal 新增 Control Move 数 | 1,000 | 超过时 MUST 拆分 Seal；接收方 MAY 返回 `rate_limited` 或 `temporarily_unavailable`。 |
 | Seal DAG leaf 数 | 实现声明 | 超过时 SHOULD 请求或生成 signed compaction Seal；查询可使用 deterministic Seal view。 |
 | 单个 `CbaProofBundle` canonical bytes | 8 MiB | 超过时 MUST `limit_exceeded`；不得截断或产生部分 accepted state。 |
@@ -270,6 +270,10 @@ JCS(body) bytes <= operation.max_canonical_body_bytes
 | 单个 pending Control Move 累计 defer 数（`max_proposal_defers`）| 2（default 与 protocol maximum）| `realm.schema.json`；每次 defer 绑定原 receipt、closed reason 与递增 deadline；两窗口相等时 MUST 为 `0`，否则不存在合法的递增 deadline。超过仍未 include / signed-reject 构成 decision-overdue / censorship evidence（[`event-auth-state-resolution.md` §7.2](../authz/event-auth-state-resolution.md)）。 |
 
 CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 Seal inclusion proof、state_root、frontier 和 chunk digest。对缺失、不可达或高成本 `refs` 的 backfill，接收方 MAY 在预算耗尽后把 DataEvent 保持 observed-only、把 Control Move 保持 pending，或返回带精确 typed missing sets 的 `dependency_missing`；只有服务本身暂时不能处理请求时才使用 `temporarily_unavailable`。不得在同步写入路径无界递归展开。
+
+同一资源的上限只能有一个 canonical 数值：通用 Event 上限约束所有具体 Event kind，具体
+projection / patch / profile 只能声明相同或更低的值，不得扩大它。发布门禁 MUST 解析 registry
+中所有 `apply_patch.max_cell_writes` 并验证其不超过本节 128。
 
 ### 4.1 Progressive CBA Backfill Profile
 

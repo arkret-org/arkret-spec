@@ -6846,8 +6846,8 @@
             "published",
             "claimed",
             "consumed",
-            "expired",
-            "revoked"
+            "revoked",
+            "retired"
           ]
         },
         "claim_id": {

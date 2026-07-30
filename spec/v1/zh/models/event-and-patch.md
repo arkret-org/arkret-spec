@@ -278,6 +278,27 @@ dot 拼接与 `or_set_batch_add` 的 tag 编码由 `ak.vector.encoding.or_set_do
 （[`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json)）固定，含裸 event_id
 作 tag 与用 wire 数组下标充当第三段的负向例。
 
+**共享 FSM 真相源（normative）**：任何 `lattice="fsm"` 的共享 cell write 都 MUST 按
+`contract-registry.json` 的 `event_kind_registry.fsm_contracts[cell_family]` 解析唯一状态机。
+该 family contract 封闭登记 `axis`、`states`、`initial_state(s)`、`terminal_states`、
+`allowed_transitions`、并发冲突与幂等重放语义；event kind 行只登记写入 family 与投影，
+MUST NOT 在 `parameters.states` / `parameters.allowed_transitions` 再复制一份状态图。
+多个 family 共享状态图时 MUST 引用 `fsm_templates` 并提供完整 `instance_parameters`；
+例如 Realm / Circle membership 只通过 `delivery_binding_rebind` 实例参数决定是否包含
+`join -> join`。receiver 必须先解析 template 实例，再验证投影边；未登记 family、缺实例
+参数、未知状态或未列边均 MUST fail closed。same-state 是否可用也完全由解析后的
+`allowed_transitions` 决定，不存在跨所有 FSM 的隐含禁止或隐含 no-op。
+
+**Actor-private 状态合约（normative）**：`wire_scope="actor_private_event"` 的 Event 不进入共享
+Data/Control reducer，因而 MUST NOT 声明共享 `plane`、`sealed`、CBA 或
+`cell_contracts`。其 durable 投影必须在
+`event_kind_registry.actor_private_contracts.event_writes` 中精确登记，并解析到一个
+`ak.private.*` family；family 的合并语义只可引用同处登记的 `merge_definitions`。
+v1 封闭支持 `server_revision_cas`、`fsm_cas`、`cas_register` 与
+`causal_then_hlc_then_device`，实现不得按到达顺序或 event kind 名称另猜 merge。
+actor-private 只表示状态可见性与归属，不表示可以省略持久化、CAS、签名 envelope 或
+重放校验。
+
 **`reset` 与 `cell_ref`（normative，封闭于单一 kind）**：上述全部 projection 都写入一个由
 registry 字面 `cell_family` + `cell_subject` 静态确定的 cell。唯一例外是
 `ak.state.conflict_recovery`（[`../authz/event-auth-state-resolution.md` §9.5](../authz/event-auth-state-resolution.md)）：
@@ -324,13 +345,27 @@ barrier 串行化。实现不得按 Event kind 名称猜测类别。
 求值规则：
 
 - `condition` 命中时 reducer 必须执行该目标；未命中时不得执行。实现 MUST NOT 把未命中的
-  目标写成 same-value/no-op——对 `fsm` cell 而言 same-state transition 本身非法。
+  目标写成 same-value/no-op。对 `fsm` cell 而言，same-state 是否合法只由该 family 的
+  已解析 `allowed_transitions` 决定；未登记 self-transition 时必须拒绝。
 - 无 `condition` 的目标是无条件必需目标。
 - 未知 `kind`、缺 `field`、`field` 不是点分具名路径、`field_equals` 缺 `const` 或 `const` 不是标量，MUST fail closed（registry 无效，发布门禁失败）。
 - **`any_field_present` 的两种正当用途**：(i) 同一语义值在同 kind 的不同 payload 形态下落在不同路径（例如 invite 既可用 `payload.invite` 完整对象、也可用扁平字段承载）；(ii) 同一 cell 承载多个不同字段，其中任一字段出现即需写该 cell。
 - **subject 可派生性（normative）**：条件命中时该目标的 `cell_subject` MUST 可派生。用途 (i) 下 `cell_subject` 必然是 `coalesce`，其 `fields[]` MUST 与 `condition.fields[]` 逐项一致、同序——否则会出现「条件命中但 subject 无法派生」或反之的组合；该一致性由 `tools/lint_artifacts.py` 机械校验。用途 (ii) 下 `cell_subject` 取一个与条件字段无关的路径，该路径 MUST 是 payload 的无条件必填字段。
 - `condition` 只决定该目标是否参与，MUST NOT 改变 `cell_family`、`cell_subject` 派生式、
   `lattice` 或 `bottom`；需要按判别值切换取值字段时使用已登记的 `select` component。
+
+**持久化前态约束（`pre_state_requirements`，normative）**：event contract MAY 登记一个
+封闭的前态准入数组。reducer 先按 `cell_family` 与 `subject` 读取已接受前态，再依次执行：
+
+- `predicate:{kind:"stored_field_present",field}`：该具名字段存在且非 `null`；
+- `predicate:{kind:"stored_field_equals_payload",field,payload_field}`：持久化字段存在，
+  `payload_field` 也存在，且二者逐字节相等。
+
+任一失败时必须原样返回该 requirement 登记的 `failure.code` / `failure.reason_code`，整个
+Move 不得产生任何 cell write。实现不能用请求另传的同名字段替代持久化前态。当前
+`ak.invite.cancel` 先要求目标 Invite 已有 `invitee`，把该 kind 封闭在普通定向邀请；再要求
+它与签名 `payload.invitee` 相等，保证 Invite lifecycle 与 member state 两条投影原子参与。
+第三方/token invite 必须使用 `ak.invite.revoke`。
 
 `ak.mls.genesis` / `ak.mls.commit` 的三目标合约固定为 MLS epoch、key schedule 与 covered-seals；`ak.invite.accept` 固定为 invite lifecycle 与 member state；`ak.invite.claim` 固定为 invite lifecycle 与 subject-bound membership proposal。generic/message redaction 写入单调 `ak.component.object.redaction.v1` fact；对象的 effective terminal/redacted 状态由该 fact 与对象 lifecycle cell 联合派生，不允许用到达顺序选择是否清除内容。闭包与正负路径由 `ak.vector.event_kind.cell_contract_closure.v1` 固定。
 

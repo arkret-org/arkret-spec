@@ -2015,6 +2015,318 @@ def lint_effect_projection(
                 lint_effect_source(lint, path, f"{branch_ref}.value", branch["value"])
 
 
+def _resolved_fsm_contract(
+    lint: Lint,
+    path: Path,
+    family: str,
+    contract: object,
+    templates: dict[str, object],
+) -> dict[str, object] | None:
+    ref = f"event_kind_registry.fsm_contracts[{family!r}]"
+    if not isinstance(contract, dict):
+        lint.fail(path, f"{ref} must be an object")
+        return None
+    template_name = contract.get("template")
+    if template_name is None:
+        return contract
+    if not isinstance(template_name, str) or not isinstance(templates.get(template_name), dict):
+        lint.fail(path, f"{ref}.template must name a registered FSM template")
+        return None
+    template = templates[template_name]
+    assert isinstance(template, dict)
+    parameter_schema = template.get("parameter_schema", {})
+    required = [
+        name
+        for name, schema in parameter_schema.items()
+        if isinstance(name, str) and isinstance(schema, dict) and schema.get("required") is True
+    ] if isinstance(parameter_schema, dict) else []
+    parameters = contract.get("instance_parameters")
+    if not isinstance(required, list) or not all(isinstance(item, str) for item in required):
+        lint.fail(path, f"fsm template {template_name!r} has invalid required_instance_parameters")
+        return None
+    if not isinstance(parameters, dict) or set(parameters) != set(required):
+        lint.fail(
+            path,
+            f"{ref}.instance_parameters must provide exactly {sorted(required)}",
+        )
+        return None
+    resolved: dict[str, object] = {
+        key: value
+        for key, value in template.items()
+        if key not in {"required_instance_parameters", "conditional_transitions"}
+    }
+    transitions = list(resolved.get("allowed_transitions", []))
+    conditional = template.get("conditional_transitions", [])
+    if not isinstance(conditional, list):
+        lint.fail(path, f"fsm template {template_name!r}.conditional_transitions must be an array")
+        return None
+    for index, item in enumerate(conditional):
+        item_ref = f"fsm template {template_name!r}.conditional_transitions[{index}]"
+        if not isinstance(item, dict):
+            lint.fail(path, f"{item_ref} must be an object")
+            continue
+        when = item.get("when")
+        transition = item.get("transition")
+        if (
+            not isinstance(when, dict)
+            or not isinstance(when.get("parameter"), str)
+            or "const" not in when
+            or not isinstance(transition, list)
+            or len(transition) != 2
+        ):
+            lint.fail(path, f"{item_ref} must declare when.parameter, when.const, and a pair transition")
+            continue
+        if parameters.get(when["parameter"]) == when["const"]:
+            transitions.append(transition)
+    resolved["allowed_transitions"] = transitions
+    for key, value in contract.items():
+        if key not in {"template", "instance_parameters"}:
+            resolved[key] = value
+    resolved["instance_parameters"] = parameters
+    return resolved
+
+
+def check_state_contract_closure(lint: Lint) -> None:
+    """Close FSM and actor-private state semantics over the canonical contract."""
+
+    path = ARTIFACTS / "registry" / "contract-registry.json"
+    root = load_json(lint, path) or {}
+    registry = root.get("event_kind_registry")
+    if not isinstance(registry, dict):
+        lint.fail(path, "event_kind_registry must be an object")
+        return
+    rows = registry.get("event_kinds")
+    contracts = registry.get("cell_contracts")
+    templates = registry.get("fsm_templates")
+    fsm_contracts = registry.get("fsm_contracts")
+    private = registry.get("actor_private_contracts")
+    if not isinstance(rows, list) or not isinstance(contracts, dict):
+        lint.fail(path, "event_kind_registry must contain event_kinds and cell_contracts")
+        return
+    if not isinstance(templates, dict) or not isinstance(fsm_contracts, dict):
+        lint.fail(path, "event_kind_registry must contain fsm_templates and fsm_contracts")
+        return
+    if not isinstance(private, dict):
+        lint.fail(path, "event_kind_registry.actor_private_contracts must be an object")
+        return
+
+    event_rows = {
+        row.get("event_kind"): row
+        for row in rows
+        if isinstance(row, dict) and isinstance(row.get("event_kind"), str)
+    }
+    resolved_contracts: dict[str, dict[str, object]] = {}
+    for family, contract in fsm_contracts.items():
+        if not isinstance(family, str) or CELL_FAMILY_RE.fullmatch(family) is None:
+            lint.fail(path, f"fsm_contracts key must be a canonical cell family: {family!r}")
+            continue
+        resolved = _resolved_fsm_contract(lint, path, family, contract, templates)
+        if resolved is None:
+            continue
+        states = resolved.get("states")
+        transitions = resolved.get("allowed_transitions")
+        initial_values = (
+            [resolved.get("initial_state")]
+            if "initial_state" in resolved
+            else resolved.get("initial_states")
+        )
+        terminal = resolved.get("terminal_states", [])
+        if (
+            not isinstance(states, list)
+            or not states
+            or not all(isinstance(value, str) and value for value in states)
+            or len(states) != len(set(states))
+        ):
+            lint.fail(path, f"fsm_contracts[{family!r}].states must be a non-empty unique string array")
+            continue
+        state_set = set(states)
+        if (
+            not isinstance(initial_values, list)
+            or not initial_values
+            or not set(initial_values) <= state_set
+        ):
+            lint.fail(path, f"fsm_contracts[{family!r}] must declare valid initial_state(s)")
+        if not isinstance(terminal, list) or not set(terminal) <= state_set:
+            lint.fail(path, f"fsm_contracts[{family!r}].terminal_states must be a states subset")
+        if not isinstance(transitions, list):
+            lint.fail(path, f"fsm_contracts[{family!r}].allowed_transitions must be an array")
+            continue
+        seen_edges: set[tuple[str, str]] = set()
+        for index, edge in enumerate(transitions):
+            if (
+                not isinstance(edge, list)
+                or len(edge) != 2
+                or not all(isinstance(value, str) for value in edge)
+                or not set(edge) <= state_set
+            ):
+                lint.fail(path, f"fsm_contracts[{family!r}].allowed_transitions[{index}] is invalid")
+                continue
+            pair = (edge[0], edge[1])
+            if pair in seen_edges:
+                lint.fail(path, f"fsm_contracts[{family!r}] repeats transition {pair}")
+            seen_edges.add(pair)
+        resolved_contracts[family] = resolved
+
+    shared_fsm_families: set[str] = set()
+    for kind, contract in contracts.items():
+        if not isinstance(contract, dict):
+            continue
+        for write in contract.get("cell_writes", []):
+            if not isinstance(write, dict) or write.get("lattice") != "fsm":
+                continue
+            family = write.get("cell_family")
+            if isinstance(family, str):
+                shared_fsm_families.add(family)
+                if family not in resolved_contracts:
+                    lint.fail(path, f"{kind} writes FSM family {family} without one fsm_contract")
+                elif resolved_contracts[family].get("axis") == "object_lifecycle":
+                    modality = event_rows.get(kind, {}).get("lifecycle_modality")
+                    if modality not in {"reversible", "terminal"}:
+                        lint.fail(
+                            path,
+                            f"{kind} writes object_lifecycle FSM {family} but has no valid lifecycle_modality",
+                        )
+            projection = write.get("effect_projection")
+            if (
+                isinstance(projection, dict)
+                and projection.get("kind") == "apply_patch"
+                and isinstance(projection.get("max_cell_writes"), int)
+                and projection["max_cell_writes"] > 128
+            ):
+                lint.fail(path, f"{kind} apply_patch max_cell_writes exceeds Event limit 128")
+        requirements = contract.get("pre_state_requirements", [])
+        if not isinstance(requirements, list):
+            lint.fail(path, f"{kind}.pre_state_requirements must be an array")
+        for index, requirement in enumerate(requirements):
+            if not isinstance(requirement, dict):
+                lint.fail(path, f"{kind}.pre_state_requirements[{index}] must be an object")
+                continue
+            predicate = requirement.get("predicate")
+            predicate_valid = isinstance(predicate, dict) and isinstance(
+                predicate.get("field"), str
+            )
+            if predicate_valid and predicate.get("kind") == "stored_field_present":
+                predicate_valid = set(predicate) == {"kind", "field"}
+            elif predicate_valid and predicate.get("kind") == "stored_field_equals_payload":
+                predicate_valid = (
+                    set(predicate) == {"kind", "field", "payload_field"}
+                    and isinstance(predicate.get("payload_field"), str)
+                    and predicate["payload_field"].startswith("payload.")
+                )
+            else:
+                predicate_valid = False
+            if (
+                requirement.get("cell_family") not in resolved_contracts
+                or not predicate_valid
+                or not isinstance(requirement.get("failure"), dict)
+                or not isinstance(requirement["failure"].get("code"), str)
+                or not isinstance(requirement["failure"].get("reason_code"), str)
+            ):
+                lint.fail(path, f"{kind}.pre_state_requirements[{index}] is not a closed stored-field predicate")
+
+    extra_contracts = set(resolved_contracts) - shared_fsm_families
+    if extra_contracts:
+        lint.fail(path, f"unreferenced fsm_contracts: {sorted(extra_contracts)}")
+    for kind, row in event_rows.items():
+        parameters = row.get("parameters")
+        if isinstance(parameters, dict) and ({"states", "allowed_transitions"} & set(parameters)):
+            lint.fail(path, f"{kind} duplicates family FSM state semantics in event parameters")
+
+    merge_definitions = private.get("merge_definitions")
+    private_families = private.get("cell_families")
+    private_writes = private.get("event_writes")
+    if (
+        not isinstance(merge_definitions, dict)
+        or not isinstance(private_families, dict)
+        or not isinstance(private_writes, dict)
+    ):
+        lint.fail(path, "actor_private_contracts must declare merge_definitions, cell_families, event_writes")
+        return
+    for family, family_contract in private_families.items():
+        if (
+            not isinstance(family, str)
+            or not family.startswith("ak.private.")
+            or not isinstance(family_contract, dict)
+            or family_contract.get("merge") not in merge_definitions
+        ):
+            lint.fail(path, f"invalid actor-private cell family contract {family!r}")
+    actor_private = {
+        kind for kind, row in event_rows.items() if row.get("wire_scope") == "actor_private_event"
+    }
+    if set(private_writes) != actor_private:
+        lint.fail(
+            path,
+            "actor_private_contracts.event_writes must cover active actor-private kinds exactly; "
+            f"missing={sorted(actor_private - set(private_writes))}, "
+            f"extra={sorted(set(private_writes) - actor_private)}",
+        )
+    for kind in actor_private:
+        row = event_rows[kind]
+        if kind in contracts or "plane" in row or "sealed" in row or row.get("reducer_input") is not False:
+            lint.fail(path, f"{kind} must not reuse shared plane/seal/reducer cell semantics")
+        write = private_writes.get(kind)
+        if not isinstance(write, dict) or write.get("cell_family") not in private_families:
+            lint.fail(path, f"{kind} must resolve to one registered actor-private cell family")
+
+
+def check_operation_durable_effect_contract(lint: Lint) -> None:
+    path = ARTIFACTS / "registry" / "contract-registry.json"
+    root = load_json(lint, path) or {}
+    event_registry = root.get("event_kind_registry", {})
+    operation_registry = root.get("operation_registry", {})
+    rows = event_registry.get("event_kinds", []) if isinstance(event_registry, dict) else []
+    operations = operation_registry.get("operations", []) if isinstance(operation_registry, dict) else []
+    active = {
+        row.get("event_kind")
+        for row in rows
+        if isinstance(row, dict) and row.get("status") != "retired"
+    }
+    actor_private = {
+        row.get("event_kind")
+        for row in rows
+        if isinstance(row, dict)
+        and row.get("status") != "retired"
+        and row.get("wire_scope") == "actor_private_event"
+    }
+    if not isinstance(operations, list):
+        lint.fail(path, "operation_registry.operations must be an array")
+        return
+    for operation in operations:
+        if not isinstance(operation, dict) or "idempotency_mechanism" not in operation:
+            continue
+        operation_id = operation.get("operation_id", "<unknown>")
+        effect = operation.get("durable_effect")
+        if not isinstance(effect, dict):
+            lint.fail(path, f"{operation_id} is a write operation without durable_effect")
+            continue
+        kind = effect.get("kind")
+        if kind == "event_log":
+            event_kinds = effect.get("event_kinds")
+            source = effect.get("event_kind_source")
+            if (event_kinds is None) == (source is None):
+                lint.fail(path, f"{operation_id} event_log effect must declare exactly one mapping form")
+            if event_kinds is not None:
+                if not isinstance(event_kinds, list) or not event_kinds:
+                    lint.fail(path, f"{operation_id}.durable_effect.event_kinds must be non-empty")
+                else:
+                    for event_kind in event_kinds:
+                        if event_kind not in active or event_kind in actor_private:
+                            lint.fail(path, f"{operation_id} maps to invalid shared Event {event_kind!r}")
+            if source is not None and (
+                not isinstance(source, str) or not source.startswith("$request.")
+            ):
+                lint.fail(path, f"{operation_id}.event_kind_source must be a $request JSON path")
+        elif kind == "actor_private_event":
+            if effect.get("event_kind") not in actor_private:
+                lint.fail(path, f"{operation_id} must map actor_private_event to an active private kind")
+        elif kind == "none":
+            rationale = effect.get("rationale")
+            if not isinstance(rationale, str) or not rationale:
+                lint.fail(path, f"{operation_id} durable_effect none must state a rationale")
+        else:
+            lint.fail(path, f"{operation_id} has unknown durable_effect kind {kind!r}")
+
+
 def check_registries(lint: Lint) -> dict[str, set[str]]:
     event_path = ARTIFACTS / "registry" / "event-kind-registry.json"
     schema_path = ARTIFACTS / "registry" / "schema-registry.json"
@@ -3183,12 +3495,16 @@ def check_fixture_runner_contract(lint: Lint) -> None:
             "schema_refs_resolve",
             "write_retry_contract",
             "read_retry_contract",
+            "write_durable_effect_contract",
         },
         "event_kind_lattice_dispatch_fixture": {
             "registered_dispatch_target",
             "or_set_bottom_never_rejects",
             "family_semantics_present",
             "unknown_dispatch_fails_closed",
+            "fsm_family_contract_closure",
+            "actor_private_contract_closure",
+            "lifecycle_modality_scope",
         },
         "event_kind_payload_coverage_fixture": {
             "catalog_registry_bijection",
@@ -10422,6 +10738,7 @@ def main(argv: list[str] | None = None) -> int:
             ("timestamp_profile", lambda: check_timestamp_profile_single_source(lint)),
             ("proof_contexts", lambda: check_proof_context_registry(lint)),
             ("registries", lambda: check_registries(lint)),
+            ("state_contract_closure", lambda: check_state_contract_closure(lint)),
             ("protocol_layers", lambda: check_protocol_layer_registry(lint)),
         ],
         quiet=args.quiet,
@@ -10464,6 +10781,10 @@ def main(argv: list[str] | None = None) -> int:
         [
             ("openapi_component_order", lambda: check_openapi_schema_component_order(lint)),
             ("operation_surfaces", lambda: check_operation_surfaces(lint, known)),
+            (
+                "operation_durable_effect",
+                lambda: check_operation_durable_effect_contract(lint),
+            ),
             ("service_describe", lambda: check_service_describe_alignment(lint)),
             ("policy_check", lambda: check_policy_check_alignment(lint)),
             ("dedicated_schemas", lambda: check_openapi_dedicated_operation_schemas(lint)),

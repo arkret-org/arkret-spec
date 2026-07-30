@@ -109,7 +109,6 @@ effective query 对每一级 Realm 执行相同规则：declaration 是该级的
 写入表示该级没有 direct binding，继续沿 active `governed_by` 链查找；链耗尽时退回纯本地
 capability 判定。链中任一 policy-server cell 为 `⊥` 时查询 MUST fail closed，不得跳过该级
 继续采用更远祖先；`governed_by` 歧义、环或不可解析同样不得按本地遍历顺序选一个祖先。
-
 ## 3. Check Request
 
 ```http

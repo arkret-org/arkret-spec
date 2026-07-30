@@ -4775,7 +4775,6 @@ tombstone，也不得在本级 `⊥` 时跳过到组织 fallback。仅 `ak.state
 Expected：全部顺序收敛为相同 cell value 与 `state_root`；重复传输幂等；Event 保留在 canonical
 log 并参与后续 federation / snapshot；重启回放或从 sealed cell store hydrate 后 direct config
 仍为 tombstone，不得因结构化缓存重建遗漏而复活。
-
 ### 15.5 Vector: Key Backup Unlock Proof 校验
 
 `vector_id`: `ak.vector.key_backup.unlock_proof.v1`
@@ -4963,7 +4962,7 @@ Expected：
 
 `vector_id`: `ak.vector.keypackage.last_resort_claim_and_reuse.v1`
 
-本向量固化 §2.6.2 的优先序、复用与幂等 consume MUST：池中存在普通包时 claim MUST 优先返回普通包，仅普通包池空时 MAY 返回 `last_resort=true` 包；last-resort 包 MUST NOT 进入单次 `consumed` 终态，在 `published` 与多次 `claimed` 之间循环；`ak.keys.keypackages.consume` 对 last-resort `keypackage_ref` MUST 被识别为幂等（返回成功但不改 `published`，不得返回 `keypackage_already_consumed`）；每次消费 MUST emit append-only 审计记录。
+本向量固化 §2.6.2 的优先序、复用与幂等 consume MUST：池中存在普通包时 claim MUST 优先返回普通包，仅普通包池空时 MAY 返回 `last_resort=true` 包；last-resort 包 MUST NOT 进入单次 `claimed` / `consumed` 状态，而是始终保持 `published`，每次领取以独立 `keypackage_claim_record` 表达；`ak.keys.keypackages.consume` 对 last-resort `keypackage_ref` MUST 被识别为幂等（返回成功但不改 `published`，不得返回 `keypackage_already_consumed`）；每次消费 MUST 追加 claim audit record，不得伪造 KeyPackage FSM transition。
 
 Steps（前置：服务端在 `ak.server.query.describe.supported_features` 声明 `ak.feature.mls_last_resort_keypackage.v1`，目标 Realm policy 允许 last-resort join）：
 

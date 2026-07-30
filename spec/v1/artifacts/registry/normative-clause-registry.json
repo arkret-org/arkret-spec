@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-30",
+  "version": "2026-07-30.1",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -115,7 +115,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#2-http-传输与编码",
-      "section_digest": "sha256:b506187daec3daa1b7d1ee1947e47aacd9fe210541751de5b21b04f9beb178a2",
+      "section_digest": "sha256:0f11096e9f018b464a2a72f99b1e72a10b74316e34a8086f372cddbe0a4c894c",
       "requirement": "Transport encoding bounds: Content-Encoding is forbidden on non-streaming JSON operations and every size limit MUST be enforced before the body is fully buffered or parsed.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -130,7 +130,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#24-operation-id-kindaction-taxonomy",
-      "section_digest": "sha256:e5c0eb8dbf32ade613e8b38c0dc90480fd6958d266e30b3976cba248febdf688",
+      "section_digest": "sha256:1fa17bd38467444878fc869c96265566e0d71d23f13c197be055084ea326980a",
       "requirement": "Every operation_id ends with <kind>.<action> drawn from the closed kind set, and the action MUST describe a protocol effect rather than an HTTP method name.",
       "testability_grade": "api_shape",
       "test_plan": "Enforced mechanically by tools/lint_artifacts.py: every operation_id in operation-registry.json is checked against the closed kind set and against forbidden HTTP-method action names. There is no runtime vector because the obligation is on the published contract, not on request handling."
@@ -167,7 +167,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:11e6346a5cbaa4e8a22cb09aa769fe4f1cad15c748bc3ae54ce12dafe0365f3b",
+      "section_digest": "sha256:a26b38f4203bd8a1a40204817bba6563dc937d670e206bca110dc1073e0f2d11",
       "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, and encryption floors MUST NOT be downgraded.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -331,7 +331,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/models/governance-objects.md#5-invite",
-      "section_digest": "sha256:3c2820c9f238e09cfecff1e22542e7c4185162d48832a942e9451449e96d7cd2",
+      "section_digest": "sha256:d2fcfbf03a78dc59b262840e9a301185cf2576f173edffa0bc5e7cd156393a29",
       "requirement": "Invite claim is a state machine: a consumed token MUST NOT be re-subjected, expiry uses canonical time, and the membership transition is atomic with the claim.",
       "testability_grade": "vector",
       "evidence_refs": [

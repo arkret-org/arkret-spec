@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.mls_governance_binding.full.v1",
-  "version": "2026-07-21",
+  "version": "2026-07-30",
   "suite": "keypackage_lifecycle",
   "runner": {
     "kind": "named_suite",
@@ -51,7 +51,21 @@
         "visible responses expose available_count when the pool is below keypackage_min_available",
         "claim attempts above 5 per requester/target tuple in 60 seconds fail without target enumeration",
         "the audit reason for rate limiting is keypackage_claim_rate_limited",
-        "expired claimed KeyPackages become revoked or unusable and late consume is rejected"
+        "expired claimed KeyPackages become revoked or unusable and late consume is rejected",
+        "published to retired is constructible for account deactivation",
+        "expired is not a KeyPackage lifecycle wire state and must fail schema validation"
+      ],
+      "wire_state_cases": [
+        {
+          "from": "published",
+          "to": "retired",
+          "expected": "accepted"
+        },
+        {
+          "from": "published",
+          "to": "expired",
+          "expected": "schema_violation"
+        }
       ]
     },
     {

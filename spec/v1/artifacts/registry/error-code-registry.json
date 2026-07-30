@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-30.1",
+  "version": "2026-07-30.2",
   "codes": [
     {
       "code": "bad_json",
@@ -5153,6 +5153,14 @@
         "client_sync"
       ],
       "description": "Sub-reason for failed_precondition when any legacy plaintext broadcast envelope is submitted or received. Signal is encrypted-only in every scope; implementations MUST fail closed and MUST NOT advertise Signal for a scope unless they can verify its MLS basis, AAD, and proof. See zh/crypto-media/encryption-and-audit.md section 2.9.1."
+    },
+    {
+      "code": "invite_kind_requires_revoke",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "ak.invite.cancel targeted a token/3PID Invite without a stored direct invitee binding. Only ak.invite.revoke may terminate that Invite class."
     }
   ]
 }

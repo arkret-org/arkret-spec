@@ -1,6 +1,6 @@
 {
   "suite": "event_kind_lattice_dispatch_fixture",
-  "version": "2026-07-10",
+  "version": "2026-07-30",
   "runner": {
     "kind": "registry_coverage",
     "inputs": [
@@ -26,6 +26,18 @@
     {
       "id": "unknown_dispatch_fails_closed",
       "rule": "Unknown component, lattice family, or critical dispatch metadata is rejected before state mutation."
+    },
+    {
+      "id": "fsm_family_contract_closure",
+      "rule": "Every lattice=fsm cell family resolves to exactly one closed fsm_contract after template instance parameters are applied; event rows never duplicate the table."
+    },
+    {
+      "id": "actor_private_contract_closure",
+      "rule": "Every active actor_private_event resolves to one actor-private event write and cell-family merge contract, with no shared Realm plane/sealed contract."
+    },
+    {
+      "id": "lifecycle_modality_scope",
+      "rule": "Every writer of an object_lifecycle FSM family declares lifecycle_modality; workflow, membership, status, audit and OR-Set revocation axes are excluded."
     }
   ]
 }
