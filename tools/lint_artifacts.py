@@ -3300,6 +3300,13 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
         for fixture in (ARTIFACTS / "fixtures").glob("*.json")
     }
     vector_registry = load_json(lint, ARTIFACTS / "registry" / "vector-registry.json")
+    event_payload_schema_path = ARTIFACTS / "schemas" / "event-payload.schema.json"
+    event_payload_schema = load_json(lint, event_payload_schema_path)
+    applet_registration_payload = (
+        event_payload_schema.get("$defs", {}).get("applet_registration_payload", {})
+        if isinstance(event_payload_schema, dict)
+        else {}
+    )
     vector_ids = {
         row.get("vector_id")
         for row in (vector_registry or {}).get("vectors", [])
@@ -3395,6 +3402,19 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
             for field, expected in expected_bindings.items():
                 if rule.get(field) != expected:
                     lint.fail(path, f"{label}.{field} must equal {expected}")
+            if rule.get("required_registration_event_kind") == "ak.applet.registration":
+                registration_required = applet_registration_payload.get("required", [])
+                registration_properties = applet_registration_payload.get("properties", {})
+                if "claimed_profiles" not in registration_required:
+                    lint.fail(
+                        event_payload_schema_path,
+                        f"{label} requires durable claimed_profiles but applet registration does not require it",
+                    )
+                if "claimed_profiles" not in registration_properties:
+                    lint.fail(
+                        event_payload_schema_path,
+                        f"{label} requires durable claimed_profiles but applet registration does not define it",
+                    )
 
         for fixture in requirement.get("required_fixtures", []):
             if fixture not in fixture_files:

@@ -137,6 +137,10 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
   "controller_id": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
   "base_url": "https://slack-bridge.example/applet",
   "bot_actor_id": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:bot",
+  "claimed_profiles": [
+    "ak.profile.applet_service.v1",
+    "ak.profile.applet_bridge.v1"
+  ],
   "protocols": [
     "slack"
   ],
@@ -193,6 +197,9 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
 - `applet_id` MUST 稳定。
 - `service_id` MUST 可解析，并声明 Applet endpoint。
 - `controller_id` MUST 对 registration 签名。
+- `claimed_profiles` MUST 从已验证 package 原样复制到 durable registration，至少包含
+  `ak.profile.applet_service.v1`；profile-bound authority 只读取 accepted Event，不得读取
+  preview/package cache。
 - `namespaces` MUST 明确声明，不能默认为全网。
 - exclusive namespace 冲突时，registry / authz service MUST 拒绝后注册者。
 - `requested_scopes` 只是请求权限，不是实际授权。

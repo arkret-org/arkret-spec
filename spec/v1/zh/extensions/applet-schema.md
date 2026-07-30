@@ -22,6 +22,7 @@ updated: 2026-07-02
   "controller_id": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
   "base_url": "https://applet.example/applet",
   "bot_actor_id": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example:bot",
+  "claimed_profiles": ["ak.profile.applet_service.v1", "ak.profile.applet_bridge.v1"],
   "protocols": ["slack"],
   "namespaces": {
     "actors": [],
@@ -56,6 +57,11 @@ updated: 2026-07-02
 
 > **`requested_scopes` 是请求声明，不是授权**：该数组只是 Applet 在 registration 时声明它"打算请求的能力范围"，用于 Realm owner / human reviewer 审批 UI 展示。registration 接受**不**等于授予；Applet 实际写入 / 读取任何对象都需要独立的 `ak.capability.grant` event 命中具体 action / resource selector / constraint。reducer **MUST NOT** 因为 `requested_scopes` 包含某 action 而隐式 allow 该 action。详见 [`extensions/applet-integration.md` §11](./applet-integration.md)（末段）与 §4.1。
 
+> **`claimed_profiles` 是 durable profile binding**：安装方 MUST 从已验证 Applet Package
+> 原样复制 canonical profile-id 集合，且至少包含 `ak.profile.applet_service.v1`。它不是
+> capability；但 profile-bound grant authority rule 只能读取已 accepted registration Event
+> 中的该字段，不能读取带外 package cache、preview DTO 或 registry 响应。
+
 > **`registration_epoch`（registration epoch hash）**：对该 registration 的 canonical security transcript（不含 `proof` 与 `registration_epoch` 自身）取的稳定 epoch hash，唯一标识本次 registration 的安全版本。它用于 [`applet-integration.md` §11](./applet-integration.md) 的 delegated-agent grant 绑定：grant constraint MUST 绑定 `registration_epoch`。transcript MUST 通过 [`ak.schema.applet_registration_epoch_transcript.v1`](../../artifacts/schemas/applet-registration-epoch-transcript.schema.json) 校验，并按下方 §1.0.1 的唯一算法计算。registration 首次接受、renew / key 变更、binding invalidation 或 authority freshness 到期时，verifier MUST 展开 transcript evidence，解析或按 method-specific version evidence 读取 service DID Document，并确认 DID Document digest、accepted signing key set 与 epoch 捕获值一致；无版本化 `did:web` 在这些触发点 MUST re-fetch canonical document 并比对 digest。普通 grant 存储、匹配与 reducer replay 只绑定已接受的该 epoch，不得逐次 re-fetch。该字段 required。
 
 ### 1.0.1 `registration_epoch` transcript 与计算算法（normative）
@@ -79,6 +85,7 @@ updated: 2026-07-02
   "controller_id",
   "base_url",
   "bot_actor_id",
+  "claimed_profiles",
   "protocols",
   "namespaces",
   "receive_events",

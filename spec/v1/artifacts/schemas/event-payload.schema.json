@@ -1168,6 +1168,7 @@
         "controller_id",
         "base_url",
         "bot_actor_id",
+        "claimed_profiles",
         "protocols",
         "namespaces",
         "receive_events",
@@ -1206,6 +1207,18 @@
         },
         "bot_actor_id": {
           "$ref": "#/$defs/did"
+        },
+        "claimed_profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/profile_id"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "contains": {
+            "const": "ak.profile.applet_service.v1"
+          },
+          "description": "Canonical Applet implementation profiles copied from the accepted package. These durable claims are the authority source for profile-bound grant rules."
         },
         "protocols": {
           "$ref": "#/$defs/string_list"
@@ -7548,6 +7561,10 @@
     "non_empty_string": {
       "type": "string",
       "minLength": 1
+    },
+    "profile_id": {
+      "type": "string",
+      "pattern": "^ak\\.profile\\.[a-z0-9_.-]+\\.v1$"
     },
     "notary_fault_censorship_payload": {
       "type": "object",
