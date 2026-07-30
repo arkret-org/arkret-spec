@@ -71,6 +71,34 @@
         "stale_authstate_reused": false,
         "matching_authstate_reused": true
       }
+    },
+    {
+      "name": "binding_tombstone",
+      "vector_id": "ak.vector.policy_server.binding_tombstone.v1",
+      "replace_payload": {
+        "server_id": "did:webvh:z6mkfixture:policy.example.com",
+        "endpoint": "https://policy.example.com/_arkret/self/policy/check",
+        "public_keys": [
+          "did:webvh:z6mkfixture:policy.example.com#key-1"
+        ],
+        "applies_to": [
+          "join",
+          "message"
+        ],
+        "fail_mode": "closed"
+      },
+      "delete_payload": {
+        "tombstone": true,
+        "reason_code": "policy_server_binding_removed"
+      },
+      "expected": {
+        "delete_event_kind": "ak.realm.policy_server",
+        "delete_projection": "set_payload_tombstone",
+        "repeat_delete": "idempotent_success",
+        "query_uses_governed_by_fallback": true,
+        "concurrent_replace_delete": "cas_conflict",
+        "federation_replay_preserves_tombstone": true
+      }
     }
   ]
 }

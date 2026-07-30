@@ -4733,6 +4733,25 @@ Expected：
 - **Case B**：decision 接受（对照正样本）。
 - `bound_to.realm_id` / `actor_id` / `action` 任一与本次 request 不一致时同样 MUST 拒绝（防止 allow decision 跨 (realm, actor) 上下文泄漏）。
 
+### 15.4.1 Vector: Policy Server Binding Tombstone
+
+`vector_id`: `ak.vector.policy_server.binding_tombstone.v1`
+
+本向量固化 [`policy-server.md`](../authz/policy-server.md) §2.2：DELETE 必须提交 closed
+`ak.realm.policy_server` tombstone Event，并在删除后沿 `governed_by` 回退。
+
+Cases / Expected：
+
+- 首次 DELETE 必须接受 payload
+  `{"tombstone":true,"reason_code":"policy_server_binding_removed"}`；同一 deletion identity
+  重放返回相同结果且不产生第二次状态变化。
+- tombstone 后存在有效祖先 declaration 时 query 必须返回继承值并置
+  `from_org_fallback=true`；无祖先声明时返回 `not_found`，不得复活旧本地值。
+- 并发 replace / delete 必须按 registered CAS cell 暴露冲突并 fail closed，不得按 HTTP
+  到达顺序静默选 winner。
+- federation replay 与 snapshot rebuild 必须保留 tombstone，旧 declaration 在任何节点都
+  不得重新生效。
+
 ### 15.5 Vector: Key Backup Unlock Proof 校验
 
 `vector_id`: `ak.vector.key_backup.unlock_proof.v1`
@@ -4920,7 +4939,7 @@ Expected：
 
 `vector_id`: `ak.vector.keypackage.last_resort_claim_and_reuse.v1`
 
-本向量固化 §2.6.2 的优先序、复用与幂等 consume MUST：池中存在普通包时 claim MUST 优先返回普通包，仅普通包池空时 MAY 返回 `last_resort=true` 包；last-resort 包 MUST NOT 进入单次 `consumed` 终态，在 `published` 与多次 `claimed` 之间循环；`ak.keys.keypackages.consume` 对 last-resort `keypackage_ref` MUST 被识别为幂等（返回成功但不改 `published`，不得返回 `keypackage_already_consumed`）；每次消费 MUST emit append-only 审计记录。
+本向量固化 §2.6.2 的优先序、复用与幂等 consume MUST：池中存在普通包时 claim MUST 优先返回普通包，仅普通包池空时 MAY 返回 `last_resort=true` 包；last-resort 包 MUST NOT 进入单次 `claimed` / `consumed` 状态，而是始终保持 `published`，每次领取以独立 `keypackage_claim_record` 表达；`ak.keys.keypackages.consume` 对 last-resort `keypackage_ref` MUST 被识别为幂等（返回成功但不改 `published`，不得返回 `keypackage_already_consumed`）；每次消费 MUST 追加 claim audit record，不得伪造 KeyPackage FSM transition。
 
 Steps（前置：服务端在 `ak.server.query.describe.supported_features` 声明 `ak.feature.mls_last_resort_keypackage.v1`，目标 Realm policy 允许 last-resort join）：
 

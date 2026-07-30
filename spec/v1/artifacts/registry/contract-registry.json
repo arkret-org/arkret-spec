@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-30.1",
+  "version": "2026-07-30.5",
   "source_of_truth": true,
-  "generated_at": "2026-07-30T01:48:48Z",
+  "generated_at": "2026-07-30T02:44:34Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -167,8 +167,10 @@
       "Every standard ak.* Event.kind admitted through Event Envelope MUST appear in this registry. Signal payload types and DeviceMessageEnvelope message kinds are intentionally outside this Event registry.",
       "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
       "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
-      "Every active lifecycle event kind MUST declare lifecycle_modality. Use reversible for a reversible lifecycle facet or either member of an archive/restore pair, and terminal for an irreversible transition that cannot be restored. Reducers and SDKs MUST NOT infer modality from event-kind spelling or the presence of a sibling event.",
+      "lifecycle_modality applies to physical object lifecycle writes, identified mechanically by an fsm_contract whose axis is object_lifecycle, plus explicitly registered reversible Realm lifecycle facets. Every active event kind that writes such a family MUST declare lifecycle_modality. Use reversible for a reversible facet or either member of an archive/restore pair, and terminal for an irreversible transition. Workflow, membership, status, audit, key-material and OR-Set revocation axes are excluded. Reducers and SDKs MUST read this field and MUST NOT infer modality from event-kind spelling.",
       "Every active reducer-input durable kind MUST declare plane, sealed, and a complete machine-readable cell contract. A single-target kind MAY use the legacy cell_family/cell_subject/lattice/bottom shorthand. cell_writes[] is the general authority and is REQUIRED for multi-target kinds; each entry declares cell_family, cell_subject, lattice, bottom, optional initial_value, and optional condition. A condition marks the target as conditional: it uses the closed grammar {kind: field_present|field_absent|field_equals|any_field_present, field: <dot-path>, const?: <scalar>, fields?: [<dot-path>...]} evaluated as a pure function of the schema-validated payload. When the condition holds the target is required and the reducer MUST derive exactly one matching write from kind+payload; when it does not hold the reducer MUST NOT derive that write. See zh/models/event-and-patch.md section 2.4.2. The generator materializes the single-target shorthand when cell_writes[] has one entry. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, an explicitly sourced payload.* or envelope.actor_id field path, a coalesce descriptor, or a composite descriptor. Bare field paths and other envelope.* fields are invalid. plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject, expose, or inert; inert MUST be used when the lattice cannot produce Bottom. initial_value declares the value the cas_register reports before any reducer write has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` implements singleton-once-set cells.",
+      "Every lattice=fsm cell write MUST resolve by cell_family to exactly one fsm_contract. Event-kind parameters MUST NOT duplicate states or allowed_transitions. Template-backed contracts resolve their instance_parameters before transition validation; unresolved templates, parameters or conditional edges fail closed.",
+      "Every active wire_scope=actor_private_event kind MUST resolve to exactly one entry in actor_private_contracts.event_writes. Actor-private writes use only the registered actor_private_contracts.cell_families merge contract, never shared Realm plane/sealed routing, CBA fields, reducer_input, or shared cell_contracts.",
       "Protocol-singleton cells MAY take their genesis value from a create payload, but every subsequent write MUST use a registered event_kind. ak.component.notary.v1 is canonically defined in zh/authz/event-auth-state-resolution.md section 6.5; its genesis value comes from ak.realm.create and subsequent writes use ak.realm.notary.",
       "Lattice MUST be one of the fully specified core types: or_set, mv_register, cas_register, fsm, counter, ordered_log. A new lattice type cannot become active until its join, bottom, op schema, profile gate, and conformance vectors are all registered.",
       "State convergence is defined by CBA: DataEvent writes are projected and locally accepted against seal_ref, Control Move writes are projected and finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
@@ -1745,10 +1747,7 @@
             "lattice": "fsm",
             "bottom": "reject",
             "effect_projection": {
-              "kind": "transition",
-              "from": {
-                "const": "pending"
-              },
+              "kind": "transition_to",
               "to": {
                 "const": "accepted"
               }
@@ -1811,7 +1810,38 @@
             }
           }
         ],
-        "concurrency_class": "security_barrier"
+        "concurrency_class": "security_barrier",
+        "pre_state_requirements": [
+          {
+            "cell_family": "ak.component.invite.lifecycle.v1",
+            "subject": {
+              "field": "payload.invite_id"
+            },
+            "predicate": {
+              "kind": "stored_field_present",
+              "field": "invitee"
+            },
+            "failure": {
+              "code": "failed_precondition",
+              "reason_code": "invite_kind_requires_revoke"
+            }
+          },
+          {
+            "cell_family": "ak.component.invite.lifecycle.v1",
+            "subject": {
+              "field": "payload.invite_id"
+            },
+            "predicate": {
+              "kind": "stored_field_equals_payload",
+              "field": "invitee",
+              "payload_field": "payload.invitee"
+            },
+            "failure": {
+              "code": "failed_precondition",
+              "reason_code": "reducer_projection_failed"
+            }
+          }
+        ]
       },
       "ak.invite.claim": {
         "plane": "control",
@@ -5010,54 +5040,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Typed Realm link graph edge. link_kind declares governance / discoverability / import-export / confidential-extension semantics; it is never generic parent/child containment and never implicitly propagates membership, capabilities, history, E2EE keys, retention, or federation policy.",
-        "parameters": {
-          "initial_states": [
-            "active",
-            "rejected",
-            "tombstoned"
-          ],
-          "states": [
-            "active",
-            "rejected",
-            "tombstoned"
-          ],
-          "terminal_states": [
-            "tombstoned"
-          ],
-          "idempotent_replay": "same_status_same_basis_noop",
-          "concurrent_sibling_conflict": "bottom",
-          "allowed_transitions": [
-            [
-              "active",
-              "active"
-            ],
-            [
-              "active",
-              "rejected"
-            ],
-            [
-              "active",
-              "tombstoned"
-            ],
-            [
-              "rejected",
-              "rejected"
-            ],
-            [
-              "rejected",
-              "active"
-            ],
-            [
-              "rejected",
-              "tombstoned"
-            ],
-            [
-              "tombstoned",
-              "tombstoned"
-            ]
-          ]
-        }
+        "payload": "Typed Realm link graph edge. link_kind declares governance / discoverability / import-export / confidential-extension semantics; it is never generic parent/child containment and never implicitly propagates membership, capabilities, history, E2EE keys, retention, or federation policy."
       },
       {
         "event_kind": "ak.realm.policy",
@@ -5514,83 +5497,7 @@
         "admission_capabilities": [
           "ak.realm.admin"
         ],
-        "payload": "Realm membership state",
-        "parameters": {
-          "initial_state": "leave",
-          "states": [
-            "invite",
-            "join",
-            "knock",
-            "leave",
-            "ban"
-          ],
-          "allowed_transitions": [
-            [
-              "leave",
-              "invite"
-            ],
-            [
-              "leave",
-              "knock"
-            ],
-            [
-              "leave",
-              "join"
-            ],
-            [
-              "invite",
-              "join"
-            ],
-            [
-              "invite",
-              "leave"
-            ],
-            [
-              "knock",
-              "invite"
-            ],
-            [
-              "knock",
-              "join"
-            ],
-            [
-              "knock",
-              "leave"
-            ],
-            [
-              "join",
-              "join"
-            ],
-            [
-              "join",
-              "leave"
-            ],
-            [
-              "leave",
-              "ban"
-            ],
-            [
-              "invite",
-              "ban"
-            ],
-            [
-              "knock",
-              "ban"
-            ],
-            [
-              "join",
-              "ban"
-            ],
-            [
-              "ban",
-              "leave"
-            ],
-            [
-              "ban",
-              "invite"
-            ]
-          ]
-        }
+        "payload": "Realm membership state"
       },
       {
         "event_kind": "ak.member.identity.update",
@@ -6224,21 +6131,7 @@
         "status": "active",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Push route binding for a (recipient_service_id, principal, device, push_route) tuple. Carries push_target_id, push_gateway_did, encryption_key, capabilities. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_id context.",
-        "cell_family": "ak.component.device.push_route.v1",
-        "cell_subject": {
-          "components": [
-            "payload.recipient_service_id",
-            "payload.principal_id",
-            "payload.device_id",
-            "payload.push_route"
-          ],
-          "kind": "composite"
-        },
-        "lattice": "cas_register",
-        "bottom": "reject",
-        "plane": "control",
-        "sealed": true
+        "payload": "Push route binding for a (recipient_service_id, principal, device, push_route) tuple. Carries push_target_id, push_gateway_did, encryption_key, capabilities. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_id context."
       },
       {
         "event_kind": "ak.cross_signing.publish",
@@ -6349,40 +6242,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Audit Applet Binding. Declares that an audit applet/service may request staged historical release sessions for a specific Realm or Circle effective_scope. Binding is control-plane only: it does not add the applet to MLS, does not subscribe it to signal sync, and does not grant plaintext/history keys. Bindings are non-retroactive: activation_frontier_digest / first_auditable_epoch define the earliest eligible material, and later policy changes MUST NOT expand eligibility for already encrypted messages.",
-        "parameters": {
-          "initial_states": [
-            "active"
-          ],
-          "states": [
-            "active",
-            "suspended",
-            "revoked"
-          ],
-          "terminal_states": [
-            "revoked"
-          ],
-          "idempotent_replay": "same_status_same_basis_noop",
-          "concurrent_sibling_conflict": "bottom",
-          "allowed_transitions": [
-            [
-              "active",
-              "suspended"
-            ],
-            [
-              "active",
-              "revoked"
-            ],
-            [
-              "suspended",
-              "active"
-            ],
-            [
-              "suspended",
-              "revoked"
-            ]
-          ]
-        }
+        "payload": "Audit Applet Binding. Declares that an audit applet/service may request staged historical release sessions for a specific Realm or Circle effective_scope. Binding is control-plane only: it does not add the applet to MLS, does not subscribe it to signal sync, and does not grant plaintext/history keys. Bindings are non-retroactive: activation_frontier_digest / first_auditable_epoch define the earliest eligible material, and later policy changes MUST NOT expand eligibility for already encrypted messages."
       },
       {
         "event_kind": "ak.audit.session.request",
@@ -6390,45 +6250,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Audit release session request. Must reference an active ak.audit.applet_binding and a bounded historical target range or target_refs.",
-        "parameters": {
-          "initial_states": [
-            "request"
-          ],
-          "states": [
-            "request",
-            "authorize",
-            "notice",
-            "close"
-          ],
-          "terminal_states": [
-            "close"
-          ],
-          "idempotent_replay": "same_stage_same_basis_noop",
-          "concurrent_sibling_conflict": "bottom",
-          "allowed_transitions": [
-            [
-              "request",
-              "authorize"
-            ],
-            [
-              "authorize",
-              "notice"
-            ],
-            [
-              "request",
-              "close"
-            ],
-            [
-              "authorize",
-              "close"
-            ],
-            [
-              "notice",
-              "close"
-            ]
-          ]
-        }
+        "payload": "Audit release session request. Must reference an active ak.audit.applet_binding and a bounded historical target range or target_refs."
       },
       {
         "event_kind": "ak.audit.session.authorize",
@@ -6436,45 +6258,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Audit release session authorization by a scoped approver. Approves only the intersection of request, binding, policy, and effective_scope.",
-        "parameters": {
-          "initial_states": [
-            "request"
-          ],
-          "states": [
-            "request",
-            "authorize",
-            "notice",
-            "close"
-          ],
-          "terminal_states": [
-            "close"
-          ],
-          "idempotent_replay": "same_stage_same_basis_noop",
-          "concurrent_sibling_conflict": "bottom",
-          "allowed_transitions": [
-            [
-              "request",
-              "authorize"
-            ],
-            [
-              "authorize",
-              "notice"
-            ],
-            [
-              "request",
-              "close"
-            ],
-            [
-              "authorize",
-              "close"
-            ],
-            [
-              "notice",
-              "close"
-            ]
-          ]
-        }
+        "payload": "Audit release session authorization by a scoped approver. Approves only the intersection of request, binding, policy, and effective_scope."
       },
       {
         "event_kind": "ak.audit.session.notice",
@@ -6482,45 +6266,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Member-visible notice for an audit release session. Circle-scoped notices are visible only to the target Circle audience and authorized moderators/admins.",
-        "parameters": {
-          "initial_states": [
-            "request"
-          ],
-          "states": [
-            "request",
-            "authorize",
-            "notice",
-            "close"
-          ],
-          "terminal_states": [
-            "close"
-          ],
-          "idempotent_replay": "same_stage_same_basis_noop",
-          "concurrent_sibling_conflict": "bottom",
-          "allowed_transitions": [
-            [
-              "request",
-              "authorize"
-            ],
-            [
-              "authorize",
-              "notice"
-            ],
-            [
-              "request",
-              "close"
-            ],
-            [
-              "authorize",
-              "close"
-            ],
-            [
-              "notice",
-              "close"
-            ]
-          ]
-        }
+        "payload": "Member-visible notice for an audit release session. Circle-scoped notices are visible only to the target Circle audience and authorized moderators/admins."
       },
       {
         "event_kind": "ak.audit.release",
@@ -6541,45 +6287,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Close an audit release session and freeze its final release_refs. release_refs MUST exactly equal the accepted ordered release log at the close seal_basis. Close is terminal; for same-basis close versus release, close wins and the competing release is rejected.",
-        "parameters": {
-          "initial_states": [
-            "request"
-          ],
-          "states": [
-            "request",
-            "authorize",
-            "notice",
-            "close"
-          ],
-          "terminal_states": [
-            "close"
-          ],
-          "idempotent_replay": "same_stage_same_basis_noop",
-          "concurrent_sibling_conflict": "bottom",
-          "allowed_transitions": [
-            [
-              "request",
-              "authorize"
-            ],
-            [
-              "authorize",
-              "notice"
-            ],
-            [
-              "request",
-              "close"
-            ],
-            [
-              "authorize",
-              "close"
-            ],
-            [
-              "notice",
-              "close"
-            ]
-          ]
-        }
+        "payload": "Close an audit release session and freeze its final release_refs. release_refs MUST exactly equal the accepted ordered release log at the close seal_basis. Close is terminal; for same-basis close versus release, close wins and the competing release is rejected."
       },
       {
         "event_kind": "ak.audit.ryw_receipt",
@@ -6777,94 +6485,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Call state",
-        "parameters": {
-          "initial_states": [
-            "scheduled",
-            "ringing",
-            "connecting"
-          ],
-          "states": [
-            "scheduled",
-            "ringing",
-            "connecting",
-            "active",
-            "ended",
-            "missed",
-            "failed",
-            "cancelled"
-          ],
-          "terminal_states": [
-            "ended",
-            "missed",
-            "failed",
-            "cancelled"
-          ],
-          "idempotent_replay": "same_to_state_same_basis_noop",
-          "concurrent_sibling_conflict": "bottom",
-          "allowed_transitions": [
-            [
-              "scheduled",
-              "ringing"
-            ],
-            [
-              "scheduled",
-              "connecting"
-            ],
-            [
-              "scheduled",
-              "cancelled"
-            ],
-            [
-              "scheduled",
-              "missed"
-            ],
-            [
-              "scheduled",
-              "failed"
-            ],
-            [
-              "ringing",
-              "connecting"
-            ],
-            [
-              "ringing",
-              "active"
-            ],
-            [
-              "ringing",
-              "missed"
-            ],
-            [
-              "ringing",
-              "cancelled"
-            ],
-            [
-              "ringing",
-              "failed"
-            ],
-            [
-              "connecting",
-              "active"
-            ],
-            [
-              "connecting",
-              "failed"
-            ],
-            [
-              "connecting",
-              "ended"
-            ],
-            [
-              "active",
-              "ended"
-            ],
-            [
-              "active",
-              "failed"
-            ]
-          ]
-        }
+        "payload": "Call state"
       },
       {
         "event_kind": "ak.call.recording.start",
@@ -6896,6 +6517,954 @@
       "merge_safe": "Operation commutes under its declared lattice and may execute concurrently with other merge_safe operations after ordinary causal validation.",
       "exclusive": "Operation requires exclusive compare-and-apply for its target cell set but does not globally serialize unrelated security authority.",
       "security_barrier": "Authority, membership, key, scope, policy, recovery, or identity transition that serializes against every concurrent security_barrier touching the same signed scope."
+    },
+    "fsm_templates": {
+      "ak.fsm.membership.v1": {
+        "states": [
+          "invite",
+          "join",
+          "knock",
+          "leave",
+          "ban"
+        ],
+        "initial_state": "leave",
+        "terminal_states": [],
+        "idempotent_replay": "same_transition_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "leave",
+            "invite"
+          ],
+          [
+            "leave",
+            "knock"
+          ],
+          [
+            "leave",
+            "join"
+          ],
+          [
+            "invite",
+            "join"
+          ],
+          [
+            "invite",
+            "leave"
+          ],
+          [
+            "knock",
+            "invite"
+          ],
+          [
+            "knock",
+            "join"
+          ],
+          [
+            "knock",
+            "leave"
+          ],
+          [
+            "join",
+            "leave"
+          ],
+          [
+            "leave",
+            "ban"
+          ],
+          [
+            "invite",
+            "ban"
+          ],
+          [
+            "knock",
+            "ban"
+          ],
+          [
+            "join",
+            "ban"
+          ],
+          [
+            "ban",
+            "leave"
+          ],
+          [
+            "ban",
+            "invite"
+          ]
+        ],
+        "conditional_transitions": [
+          {
+            "when": {
+              "parameter": "delivery_binding_rebind",
+              "const": true
+            },
+            "transition": [
+              "join",
+              "join"
+            ]
+          }
+        ],
+        "parameter_schema": {
+          "delivery_binding_rebind": {
+            "value_shape": "boolean",
+            "required": true
+          }
+        }
+      }
+    },
+    "fsm_contracts": {
+      "ak.component.agent.status.v1": {
+        "axis": "status",
+        "states": [
+          "active",
+          "paused",
+          "deactivated"
+        ],
+        "terminal_states": [
+          "deactivated"
+        ],
+        "idempotent_replay": "same_transition_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "active",
+            "paused"
+          ],
+          [
+            "paused",
+            "active"
+          ],
+          [
+            "active",
+            "deactivated"
+          ],
+          [
+            "paused",
+            "deactivated"
+          ]
+        ],
+        "initial_state": "active"
+      },
+      "ak.component.audit.binding.v1": {
+        "axis": "audit",
+        "states": [
+          "active",
+          "suspended",
+          "revoked"
+        ],
+        "terminal_states": [
+          "revoked"
+        ],
+        "idempotent_replay": "same_status_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "active",
+            "suspended"
+          ],
+          [
+            "active",
+            "revoked"
+          ],
+          [
+            "suspended",
+            "active"
+          ],
+          [
+            "suspended",
+            "revoked"
+          ]
+        ],
+        "initial_states": [
+          "active"
+        ]
+      },
+      "ak.component.audit.session.v1": {
+        "axis": "audit",
+        "states": [
+          "request",
+          "authorize",
+          "notice",
+          "close"
+        ],
+        "terminal_states": [
+          "close"
+        ],
+        "idempotent_replay": "same_stage_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "request",
+            "authorize"
+          ],
+          [
+            "authorize",
+            "notice"
+          ],
+          [
+            "request",
+            "close"
+          ],
+          [
+            "authorize",
+            "close"
+          ],
+          [
+            "notice",
+            "close"
+          ]
+        ],
+        "initial_states": [
+          "request"
+        ]
+      },
+      "ak.component.call.recording.v1": {
+        "axis": "workflow",
+        "states": [
+          "recording",
+          "stopped",
+          "ready",
+          "failed"
+        ],
+        "terminal_states": [
+          "ready",
+          "failed"
+        ],
+        "idempotent_replay": "same_transition_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "recording",
+            "stopped"
+          ],
+          [
+            "recording",
+            "ready"
+          ],
+          [
+            "recording",
+            "failed"
+          ],
+          [
+            "stopped",
+            "ready"
+          ]
+        ],
+        "initial_states": [
+          "recording"
+        ]
+      },
+      "ak.component.call.state.v1": {
+        "axis": "workflow",
+        "states": [
+          "scheduled",
+          "ringing",
+          "connecting",
+          "active",
+          "ended",
+          "missed",
+          "failed",
+          "cancelled"
+        ],
+        "terminal_states": [
+          "ended",
+          "missed",
+          "failed",
+          "cancelled"
+        ],
+        "idempotent_replay": "same_to_state_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "scheduled",
+            "ringing"
+          ],
+          [
+            "scheduled",
+            "connecting"
+          ],
+          [
+            "scheduled",
+            "cancelled"
+          ],
+          [
+            "scheduled",
+            "missed"
+          ],
+          [
+            "scheduled",
+            "failed"
+          ],
+          [
+            "ringing",
+            "connecting"
+          ],
+          [
+            "ringing",
+            "active"
+          ],
+          [
+            "ringing",
+            "missed"
+          ],
+          [
+            "ringing",
+            "cancelled"
+          ],
+          [
+            "ringing",
+            "failed"
+          ],
+          [
+            "connecting",
+            "active"
+          ],
+          [
+            "connecting",
+            "failed"
+          ],
+          [
+            "connecting",
+            "ended"
+          ],
+          [
+            "active",
+            "ended"
+          ],
+          [
+            "active",
+            "failed"
+          ]
+        ],
+        "initial_states": [
+          "scheduled",
+          "ringing",
+          "connecting"
+        ]
+      },
+      "ak.component.call.transcript.v1": {
+        "axis": "workflow",
+        "states": [
+          "transcribing",
+          "stopped",
+          "ready",
+          "failed"
+        ],
+        "terminal_states": [
+          "ready",
+          "failed"
+        ],
+        "idempotent_replay": "same_transition_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "transcribing",
+            "stopped"
+          ],
+          [
+            "transcribing",
+            "ready"
+          ],
+          [
+            "transcribing",
+            "failed"
+          ],
+          [
+            "stopped",
+            "ready"
+          ]
+        ],
+        "initial_states": [
+          "transcribing"
+        ]
+      },
+      "ak.component.circle.lifecycle.v1": {
+        "axis": "object_lifecycle",
+        "states": [
+          "active",
+          "archived"
+        ],
+        "terminal_states": [],
+        "idempotent_replay": "same_transition_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "active",
+            "archived"
+          ],
+          [
+            "archived",
+            "active"
+          ]
+        ],
+        "initial_state": "active"
+      },
+      "ak.component.circle.member.v1": {
+        "axis": "membership",
+        "template": "ak.fsm.membership.v1",
+        "instance_parameters": {
+          "delivery_binding_rebind": false
+        }
+      },
+      "ak.component.invite.lifecycle.v1": {
+        "axis": "workflow",
+        "states": [
+          "pending",
+          "accepted",
+          "rejected",
+          "revoked",
+          "expired",
+          "claimed",
+          "send_failed",
+          "revoked_by_capability_loss",
+          "revoked_by_inviter_left",
+          "invalidated_by_rate_limit"
+        ],
+        "terminal_states": [
+          "accepted",
+          "rejected",
+          "revoked",
+          "expired",
+          "revoked_by_capability_loss",
+          "revoked_by_inviter_left",
+          "invalidated_by_rate_limit"
+        ],
+        "idempotent_replay": "same_transition_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "pending",
+            "accepted"
+          ],
+          [
+            "pending",
+            "rejected"
+          ],
+          [
+            "pending",
+            "revoked"
+          ],
+          [
+            "pending",
+            "expired"
+          ],
+          [
+            "pending",
+            "claimed"
+          ],
+          [
+            "pending",
+            "send_failed"
+          ],
+          [
+            "pending",
+            "revoked_by_capability_loss"
+          ],
+          [
+            "pending",
+            "revoked_by_inviter_left"
+          ],
+          [
+            "pending",
+            "invalidated_by_rate_limit"
+          ],
+          [
+            "claimed",
+            "accepted"
+          ],
+          [
+            "claimed",
+            "rejected"
+          ],
+          [
+            "claimed",
+            "revoked"
+          ],
+          [
+            "claimed",
+            "expired"
+          ],
+          [
+            "claimed",
+            "revoked_by_capability_loss"
+          ],
+          [
+            "claimed",
+            "revoked_by_inviter_left"
+          ],
+          [
+            "claimed",
+            "invalidated_by_rate_limit"
+          ],
+          [
+            "send_failed",
+            "pending"
+          ],
+          [
+            "send_failed",
+            "revoked"
+          ],
+          [
+            "send_failed",
+            "expired"
+          ],
+          [
+            "send_failed",
+            "revoked_by_capability_loss"
+          ],
+          [
+            "send_failed",
+            "revoked_by_inviter_left"
+          ],
+          [
+            "send_failed",
+            "invalidated_by_rate_limit"
+          ]
+        ],
+        "initial_state": "pending"
+      },
+      "ak.component.member.state.v1": {
+        "axis": "membership",
+        "template": "ak.fsm.membership.v1",
+        "instance_parameters": {
+          "delivery_binding_rebind": true
+        }
+      },
+      "ak.component.mls.keypackage.v1": {
+        "axis": "key_material",
+        "states": [
+          "published",
+          "claimed",
+          "consumed",
+          "revoked",
+          "retired"
+        ],
+        "terminal_states": [
+          "consumed",
+          "revoked",
+          "retired"
+        ],
+        "idempotent_replay": "same_transition_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "published",
+            "claimed"
+          ],
+          [
+            "published",
+            "revoked"
+          ],
+          [
+            "published",
+            "retired"
+          ],
+          [
+            "claimed",
+            "consumed"
+          ],
+          [
+            "claimed",
+            "revoked"
+          ]
+        ],
+        "initial_state": "published",
+        "state_preserving_profiles": [
+          {
+            "profile": "ak.feature.mls_last_resort_keypackage.v1",
+            "action": "claim_or_consume",
+            "required_state": "published",
+            "audit_effect": "append_keypackage_claim_record"
+          }
+        ]
+      },
+      "ak.component.moderation.appeal.v1": {
+        "axis": "workflow",
+        "states": [
+          "submitted",
+          "under_review",
+          "decided",
+          "closed"
+        ],
+        "terminal_states": [
+          "closed"
+        ],
+        "idempotent_replay": "same_transition_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "submitted",
+            "under_review"
+          ],
+          [
+            "under_review",
+            "decided"
+          ],
+          [
+            "submitted",
+            "closed"
+          ],
+          [
+            "under_review",
+            "closed"
+          ],
+          [
+            "decided",
+            "closed"
+          ]
+        ],
+        "initial_state": "submitted"
+      },
+      "ak.component.morph.lifecycle.v1": {
+        "axis": "object_lifecycle",
+        "states": [
+          "active",
+          "archived"
+        ],
+        "terminal_states": [],
+        "idempotent_replay": "same_transition_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "active",
+            "archived"
+          ],
+          [
+            "archived",
+            "active"
+          ]
+        ],
+        "initial_state": "active"
+      },
+      "ak.component.realm.link.v1": {
+        "axis": "relationship",
+        "states": [
+          "active",
+          "rejected",
+          "tombstoned"
+        ],
+        "terminal_states": [
+          "tombstoned"
+        ],
+        "idempotent_replay": "same_status_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "active",
+            "active"
+          ],
+          [
+            "active",
+            "rejected"
+          ],
+          [
+            "active",
+            "tombstoned"
+          ],
+          [
+            "rejected",
+            "rejected"
+          ],
+          [
+            "rejected",
+            "active"
+          ],
+          [
+            "rejected",
+            "tombstoned"
+          ],
+          [
+            "tombstoned",
+            "tombstoned"
+          ]
+        ],
+        "initial_states": [
+          "active",
+          "rejected",
+          "tombstoned"
+        ]
+      },
+      "ak.component.relation.lifecycle.v1": {
+        "axis": "object_lifecycle",
+        "states": [
+          "active",
+          "tombstoned"
+        ],
+        "terminal_states": [
+          "tombstoned"
+        ],
+        "idempotent_replay": "same_transition_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "active",
+            "tombstoned"
+          ]
+        ],
+        "initial_state": "active"
+      },
+      "ak.component.space.lifecycle.v1": {
+        "axis": "object_lifecycle",
+        "states": [
+          "active",
+          "archived",
+          "tombstoned"
+        ],
+        "terminal_states": [
+          "tombstoned"
+        ],
+        "idempotent_replay": "same_transition_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "active",
+            "archived"
+          ],
+          [
+            "archived",
+            "active"
+          ],
+          [
+            "active",
+            "tombstoned"
+          ],
+          [
+            "archived",
+            "tombstoned"
+          ]
+        ],
+        "initial_state": "active"
+      },
+      "ak.component.strand.lifecycle.v1": {
+        "axis": "object_lifecycle",
+        "states": [
+          "active",
+          "archived"
+        ],
+        "terminal_states": [],
+        "idempotent_replay": "same_transition_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "active",
+            "archived"
+          ],
+          [
+            "archived",
+            "active"
+          ]
+        ],
+        "initial_state": "active"
+      }
+    },
+    "actor_private_contracts": {
+      "merge_definitions": {
+        "server_revision_cas": "Whole-value compare-and-set on expected_revision; accepted revision increments by one and the revision high-water mark survives tombstone GC.",
+        "fsm_cas": "Closed FSM transition checked against the family table and current revision; concurrent siblings fail closed.",
+        "cas_register": "Single actor-private register; concurrent distinct values fail closed rather than using arrival order.",
+        "causal_then_hlc_then_device": "Causal dominance wins; only causally incomparable positions compare HLC, and only equal HLC values compare device_id lexicographically."
+      },
+      "cell_families": {
+        "ak.private.account.blocklist.v1": {
+          "merge": "server_revision_cas",
+          "tombstone": "value_tombstone"
+        },
+        "ak.private.account_data.v1": {
+          "merge": "server_revision_cas",
+          "tombstone": "versioned_tombstone"
+        },
+        "ak.private.agent.draft.v1": {
+          "merge": "fsm_cas",
+          "fsm": {
+            "axis": "workflow",
+            "states": [
+              "proposed",
+              "approved",
+              "rejected",
+              "published"
+            ],
+            "terminal_states": [
+              "rejected",
+              "published"
+            ],
+            "idempotent_replay": "same_transition_same_basis_noop",
+            "concurrent_sibling_conflict": "bottom",
+            "allowed_transitions": [
+              [
+                "proposed",
+                "approved"
+              ],
+              [
+                "proposed",
+                "rejected"
+              ],
+              [
+                "approved",
+                "published"
+              ]
+            ],
+            "initial_state": "proposed",
+            "external_transitions": [
+              {
+                "from": "approved",
+                "to": "published",
+                "trigger": "approved_shared_event_accepted_and_approval_nonce_consumed"
+              }
+            ]
+          }
+        },
+        "ak.private.device.push_route.v1": {
+          "merge": "cas_register",
+          "bottom": "reject"
+        },
+        "ak.private.read_cursor.v1": {
+          "merge": "causal_then_hlc_then_device",
+          "provisional_when_causal_closure_missing": true
+        }
+      },
+      "event_writes": {
+        "ak.agent.draft.propose": {
+          "cell_family": "ak.private.agent.draft.v1",
+          "cell_subject": {
+            "kind": "composite",
+            "components": [
+              "payload.agent_id",
+              "payload.draft_id"
+            ]
+          },
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": null
+            },
+            "to": {
+              "const": "proposed"
+            }
+          }
+        },
+        "ak.agent.action_request": {
+          "cell_family": "ak.private.agent.draft.v1",
+          "cell_subject": {
+            "kind": "composite",
+            "components": [
+              "payload.agent_id",
+              "payload.draft_id"
+            ]
+          },
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": null
+            },
+            "to": {
+              "const": "proposed"
+            }
+          }
+        },
+        "ak.agent.action_approve": {
+          "cell_family": "ak.private.agent.draft.v1",
+          "cell_subject": {
+            "kind": "composite",
+            "components": [
+              "payload.agent_id",
+              "payload.draft_id"
+            ]
+          },
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "proposed"
+            },
+            "to": {
+              "const": "approved"
+            }
+          }
+        },
+        "ak.agent.action_reject": {
+          "cell_family": "ak.private.agent.draft.v1",
+          "cell_subject": {
+            "kind": "composite",
+            "components": [
+              "payload.agent_id",
+              "payload.draft_id"
+            ]
+          },
+          "effect_projection": {
+            "kind": "transition",
+            "from": {
+              "const": "proposed"
+            },
+            "to": {
+              "const": "rejected"
+            }
+          }
+        },
+        "ak.account.blocklist": {
+          "cell_family": "ak.private.account.blocklist.v1",
+          "cell_subject": {
+            "field": "envelope.actor_id",
+            "kind": "did"
+          },
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
+        },
+        "ak.account_data.set": {
+          "cell_family": "ak.private.account_data.v1",
+          "cell_subject": {
+            "kind": "composite",
+            "components": [
+              "envelope.actor_id",
+              "payload.key"
+            ]
+          },
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
+        },
+        "ak.device.push_route": {
+          "cell_family": "ak.private.device.push_route.v1",
+          "cell_subject": {
+            "kind": "composite",
+            "components": [
+              "payload.recipient_service_id",
+              "payload.principal_id",
+              "payload.device_id",
+              "payload.push_route"
+            ]
+          },
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
+        },
+        "ak.read_cursor.advance": {
+          "cell_family": "ak.private.read_cursor.v1",
+          "cell_subject": {
+            "kind": "composite",
+            "components": [
+              "envelope.actor_id",
+              "payload.realm_id",
+              "payload.read_scope"
+            ]
+          },
+          "effect_projection": {
+            "kind": "merge",
+            "value": {
+              "field": "payload"
+            }
+          }
+        }
+      }
     }
   },
   "schema_registry": {
@@ -8403,6 +8972,7 @@
       "resource.replace operations MUST bind to HTTP PUT; resource.delete operations MUST bind to HTTP DELETE; command, upload, exchange, and complex query body operations SHOULD bind to HTTP POST unless their operation notes define a stricter resource URI replacement contract.",
       "Every write operation (kind command/upload/exchange, and resource.replace / resource.delete) MUST declare idempotency_mechanism (one of idempotency_key, object_id, request_id, canonical_hash, protocol_sequence, none) and retry_safe (boolean). Read-only operations (query/stream/resource.get/resource.head) MUST NOT declare these fields.",
       "idempotency_mechanism is the machine-readable source of truth for which idempotency mechanism from api-conventions.md section 6 an operation uses. canonical_hash operations MUST also declare canonical_hash_input as either full_body or an RFC 6901 JSON Pointer. retry_safe=true means a byte-identical full retry of the same request cannot produce duplicate side effects: it returns the original outcome, an equivalent idempotent no-op, or a deterministic conflict. retry_safe=false means blind retries MAY duplicate side effects or consume one-time material; clients MUST NOT retry such operations without out-of-band reconciliation.",
+      "Every write operation MUST declare durable_effect. kind=event_log identifies an Arkret Event committed by successful completion and declares either event_kinds[] or an event_kind_source JSON path; kind=actor_private_event declares the actor-private Event kind committed; kind=none declares no Arkret Event and requires a stable rationale. Service-local durable state, identity-method logs, queues, session/material stores, external effects and returned-but-uncommitted Event material all use kind=none with an accurate rationale. Missing, unknown or inactive declared Event kinds fail closed.",
       "Every operation MUST declare body_class, a closed value of non_streaming_json, streaming_ndjson, or binary_stream. body_class=non_streaming_json binds the operation to the general size contract in zh/conformance/scalability-constraints.md section 2.1: canonical request/response body <= 8 MiB, HTTP message content wire bytes <= 16 MiB, Content-Encoding MUST be absent, and every byte overflow maps to payload_too_large. streaming_ndjson and binary_stream operations are excluded from the whole-body limits and MUST define their own per-frame / per-chunk / pending bounds (scalability-constraints section 2.1.7).",
       "max_canonical_body_bytes is OPTIONAL and only for a body_class=non_streaming_json operation whose normative limit is LOWER than the general 8 MiB. It MUST NOT declare a value above 8 MiB, and deployments MUST NOT lower the general interoperability constants through Describe (scalability-constraints section 2.1.6).",
       "max_items is REQUIRED for a body_class=non_streaming_json operation whose request or response carries a top-level array with a normative count bound. max_items and the byte budget are a conjunctive two-dimensional constraint: a count bound never promises that max_items objects of near-maximum size fit in one body, and implementations MUST NOT lower a registered count because a fixture-median product exceeds the byte budget (scalability-constraints section 2.1.5)."
@@ -8829,7 +9399,11 @@
         "idempotency_mechanism": "request_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_handoff_request_body",
-        "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_handoff_outcome"
+        "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_handoff_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.gate.account.command.issue_identity_binding_challenge",
@@ -8841,7 +9415,11 @@
         "idempotency_mechanism": "request_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_binding_challenge_request_body",
-        "response_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_binding_challenge_outcome"
+        "response_schema_ref": "schemas/account-operations.schema.json#/$defs/identity_binding_challenge_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.gate.account.command.register",
@@ -8855,7 +9433,11 @@
         "canonical_hash_input": "full_body",
         "retry_safe": true,
         "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_request_body",
-        "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_outcome"
+        "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.gate.account.command.pair_device",
@@ -8872,7 +9454,11 @@
           "operation_id": "ak.self.account.query.viewer"
         },
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome"
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.gate.account.command.enroll_device",
@@ -8889,7 +9475,11 @@
           "operation_id": "ak.self.account.query.viewer"
         },
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome"
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "returns_signed_event_material_without_committing_it"
+        }
       },
       {
         "operation_id": "ak.gate.account.command.authorize_recovery_device",
@@ -8902,7 +9492,11 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/recovery-authority.schema.json#/$defs/authorize_recovery_device_request",
-        "response_schema_ref": "schemas/recovery-authority.schema.json#/$defs/authorize_recovery_device_outcome"
+        "response_schema_ref": "schemas/recovery-authority.schema.json#/$defs/authorize_recovery_device_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "returns_signed_event_material_without_committing_it"
+        }
       },
       {
         "operation_id": "ak.gate.account.command.issue_session_grant",
@@ -8920,7 +9514,11 @@
           "requires_fresh_request_identity": true
         },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.gate.account.command.revoke_session",
@@ -8936,7 +9534,11 @@
           "operation_id": "ak.gate.account.command.introspect_session_grant"
         },
         "request_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_request_body",
-        "response_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_outcome"
+        "response_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.gate.account.command.refresh_session_grant",
@@ -8953,7 +9555,11 @@
           "requires_fresh_request_identity": true
         },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.gate.account.command.promote_recovery_session_grant",
@@ -8965,7 +9571,11 @@
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,
         "request_schema_ref": "schemas/recovery-authority.schema.json#/$defs/promote_recovery_session_grant_request",
-        "response_schema_ref": "schemas/recovery-authority.schema.json#/$defs/promote_recovery_session_grant_outcome"
+        "response_schema_ref": "schemas/recovery-authority.schema.json#/$defs/promote_recovery_session_grant_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.gate.account.command.logout_auth_session",
@@ -8981,7 +9591,11 @@
           "operation_id": "ak.gate.account.command.introspect_session_grant"
         },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.gate.account.command.introspect_session_grant",
@@ -8993,7 +9607,11 @@
         "idempotency_mechanism": "none",
         "retry_safe": true,
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.gate.account.command.logout",
@@ -9009,7 +9627,11 @@
           "operation_id": "ak.gate.account.command.introspect_session_grant"
         },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.gate.account.command.pair_agent_key",
@@ -9021,7 +9643,11 @@
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome"
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.agent.command.provision",
@@ -9033,7 +9659,14 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome"
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.identity.accountability_grant",
+            "ak.agent.selector_claim"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.agent.command.renew_pairing",
@@ -9049,7 +9682,11 @@
           "operation_id": "ak.self.agent.resource.get"
         },
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_outcome"
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_renew_pairing_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.agent.query.list",
@@ -9083,7 +9720,13 @@
           "operation_id": "ak.self.agent.resource.get"
         },
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pause_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state"
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.self.agent.pause"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.agent.command.resume",
@@ -9099,7 +9742,13 @@
           "operation_id": "ak.self.agent.resource.get"
         },
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_resume_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state"
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.self.agent.resume"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.agent.command.deactivate",
@@ -9115,7 +9764,13 @@
           "operation_id": "ak.self.agent.resource.get"
         },
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state"
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.self.agent.deactivate"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.agent.grant.command.attach",
@@ -9131,7 +9786,13 @@
           "operation_id": "ak.self.authz.grants.query.effective"
         },
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome"
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.capability.grant"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.agent.grant.resource.delete",
@@ -9142,7 +9803,13 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome"
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.capability.revoke"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.agent.sidecar.command.ensure",
@@ -9154,7 +9821,17 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_outcome"
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_ensure_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.sidecar.create",
+            "ak.circle.create",
+            "ak.circle.member.state",
+            "ak.strand.create",
+            "ak.relation.create"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.agent.sidecar.resource.get",
@@ -9186,7 +9863,14 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_replace_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome"
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.capability.grant",
+            "ak.capability.revoke"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.agent.participation.resource.get",
@@ -9211,7 +9895,11 @@
           "strategy": "manual_confirmation"
         },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.edge.applet.query.describe",
@@ -9231,7 +9919,11 @@
         "idempotency_mechanism": "none",
         "retry_safe": true,
         "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body",
-        "response_schema_ref": "schemas/applet-install-plan.schema.json"
+        "response_schema_ref": "schemas/applet-install-plan.schema.json",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "read_only_preview_despite_post_binding"
+        }
       },
       {
         "operation_id": "ak.self.applet.command.install",
@@ -9243,7 +9935,14 @@
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_request_body",
-        "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome"
+        "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.applet.registration",
+            "ak.capability.grant"
+          ]
+        }
       },
       {
         "operation_id": "ak.edge.applet.query.ping",
@@ -9291,7 +9990,14 @@
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body",
-        "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_outcome"
+        "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.capability.revoke",
+            "ak.member.state"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.applet.ghost.command.provision",
@@ -9303,7 +10009,14 @@
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
-        "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome"
+        "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.identity.accountability_grant",
+            "ak.profile.create"
+          ]
+        }
       },
       {
         "operation_id": "ak.edge.applet.third_party_locations.query.list",
@@ -9380,6 +10093,10 @@
               "applet_namespace_mismatch"
             ]
           }
+        },
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
         }
       },
       {
@@ -9437,7 +10154,11 @@
         "canonical_hash_input": "full_body",
         "retry_safe": true,
         "request_schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_request_body",
-        "response_schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_outcome"
+        "response_schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.blob.command.presign",
@@ -9455,7 +10176,11 @@
           "requires_fresh_request_identity": true
         },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.device_messages.query.list",
@@ -9477,7 +10202,11 @@
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.device_messages.command.ack",
@@ -9490,7 +10219,11 @@
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.contact.command.request",
@@ -9507,7 +10240,14 @@
           "operation_id": "ak.self.contact.query.list"
         },
         "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_request_body",
-        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_outcome"
+        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.contact.requested",
+            "ak.consent.grant"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.contact.command.respond",
@@ -9524,7 +10264,15 @@
           "operation_id": "ak.self.contact.query.list"
         },
         "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request_body",
-        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_outcome"
+        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.contact.accepted",
+            "ak.contact.rejected",
+            "ak.consent.grant"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.contact.query.list",
@@ -9551,7 +10299,14 @@
           "operation_id": "ak.self.contact.query.list"
         },
         "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body",
-        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone"
+        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.contact.tombstoned",
+            "ak.consent.revoke"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.invite_receive_policy.resource.get",
@@ -9574,7 +10329,11 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/invite-receive-policy.schema.json",
-        "response_schema_ref": "schemas/invite-receive-policy.schema.json"
+        "response_schema_ref": "schemas/invite-receive-policy.schema.json",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.invite_locator.command.issue",
@@ -9592,7 +10351,11 @@
           "requires_fresh_request_identity": true
         },
         "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_request_body",
-        "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome"
+        "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.invite_locator.command.rotate",
@@ -9608,7 +10371,11 @@
           "strategy": "manual_confirmation"
         },
         "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_rotate_request_body",
-        "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome"
+        "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.invite_locator.command.revoke",
@@ -9621,7 +10388,11 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_request_body",
-        "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_outcome"
+        "response_schema_ref": "schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.direct_conversation.command.resolve",
@@ -9634,7 +10405,11 @@
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body",
-        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome"
+        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kind_source": "$request.signed_event_units[*].event.kind"
+        }
       },
       {
         "operation_id": "ak.self.circle.command.create",
@@ -9651,7 +10426,13 @@
           "operation_id": "ak.self.circle.query.list"
         },
         "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_create_request_body",
-        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
+        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.circle.create"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.circle.query.list",
@@ -9688,7 +10469,13 @@
           "operation_id": "ak.self.circle.resource.get"
         },
         "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_request_body",
-        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome"
+        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.circle.member.state"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.circle.member.resource.delete",
@@ -9700,7 +10487,13 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
-        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome"
+        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.circle.member.state"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.circle.command.rotate_scope",
@@ -9716,7 +10509,11 @@
           "strategy": "query_operation",
           "operation_id": "ak.self.circle.resource.get"
         },
-        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome"
+        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kind_source": "$request.event_units[*].event.kind"
+        }
       },
       {
         "operation_id": "ak.self.circle.command.archive",
@@ -9733,7 +10530,13 @@
           "operation_id": "ak.self.circle.resource.get"
         },
         "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
-        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
+        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.circle.archive"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.circle.command.restore",
@@ -9750,7 +10553,13 @@
           "operation_id": "ak.self.circle.resource.get"
         },
         "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
-        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
+        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.circle.restore"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.circle.command.tombstone",
@@ -9767,7 +10576,13 @@
           "operation_id": "ak.self.circle.resource.get"
         },
         "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
-        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
+        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.circle.tombstone"
+          ]
+        }
       },
       {
         "operation_id": "ak.find.directory.command.announce",
@@ -9783,7 +10598,11 @@
           "operation_id": "ak.find.directory.query.resolve_target"
         },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.find.directory.query.describe",
@@ -9916,7 +10735,11 @@
           "strategy": "manual_confirmation"
         },
         "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body",
-        "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_outcome"
+        "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.find.directory.command.withdraw",
@@ -9931,7 +10754,11 @@
           "strategy": "manual_confirmation"
         },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.find.directory.command.takedown_appeal",
@@ -9947,7 +10774,11 @@
           "strategy": "manual_confirmation"
         },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.events.query.describe",
@@ -10038,7 +10869,11 @@
         "canonical_hash_input": "/event",
         "retry_safe": true,
         "request_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_request",
-        "response_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_outcome"
+        "response_schema_ref": "schemas/control-proposal-decision.schema.json#/$defs/proposal_receipt_issue_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "pre_admission_receipt_only_no_event_commit"
+        }
       },
       {
         "operation_id": "ak.self.authorization_leases.command.issue",
@@ -10053,7 +10888,11 @@
         "canonical_hash_input": "/events",
         "retry_safe": true,
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueRequest",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthorizationLeaseIssueOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "pre_admission_only_no_event_commit"
+        }
       },
       {
         "operation_id": "ak.self.events.command.submit",
@@ -10067,7 +10906,11 @@
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kind_source": "$request.submissions[*].event.kind"
+        }
       },
       {
         "operation_id": "ak.self.events.command.submit_seal",
@@ -10081,7 +10924,11 @@
         "canonical_hash_input": "/id",
         "retry_safe": true,
         "request_schema_ref": "schemas/seal.schema.json",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventSealSubmitOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventSealSubmitOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "commits_a_seal_not_an_event"
+        }
       },
       {
         "operation_id": "ak.peer.events.query.describe",
@@ -10146,7 +10993,11 @@
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kind_source": "$request.submissions[*].event.kind"
+        }
       },
       {
         "operation_id": "ak.peer.invites.command.submit",
@@ -10159,7 +11010,11 @@
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/invite-delivery-request.schema.json",
-        "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome"
+        "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "delivers_existing_signed_event_without_committing_a_local_event"
+        }
       },
       {
         "operation_id": "ak.peer.contacts.command.submit",
@@ -10172,7 +11027,11 @@
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/peer-contact-delivery-request.schema.json",
-        "response_schema_ref": "schemas/peer-contact-delivery-request.schema.json#/$defs/peer_contact_delivery_outcome"
+        "response_schema_ref": "schemas/peer-contact-delivery-request.schema.json#/$defs/peer_contact_delivery_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "delivers_existing_signed_fact_without_committing_a_local_event"
+        }
       },
       {
         "operation_id": "ak.peer.keys.keypackages.command.claim",
@@ -10189,7 +11048,11 @@
           "operation_id": "ak.peer.keys.keypackages.query.claim"
         },
         "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_request_body",
-        "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_outcome"
+        "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/peer_key_packages_claim_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.peer.keys.keypackages.query.claim",
@@ -10228,7 +11091,11 @@
           "strategy": "drop_unconfirmed"
         },
         "request_schema_ref": "schemas/signal-relay.schema.json",
-        "response_schema_ref": "schemas/signal-relay.schema.json#/$defs/signal_relay_outcome"
+        "response_schema_ref": "schemas/signal-relay.schema.json#/$defs/signal_relay_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "ephemeral_signal_must_not_be_durable_event"
+        }
       },
       {
         "operation_id": "ak.self.signal.command.send",
@@ -10245,7 +11112,11 @@
           "strategy": "drop_unconfirmed"
         },
         "request_schema_ref": "schemas/signal-envelope.schema.json",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SignalSubmitOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SignalSubmitOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "ephemeral_signal_must_not_be_durable_event"
+        }
       },
       {
         "operation_id": "ak.self.signal.stream.subscribe",
@@ -10272,7 +11143,11 @@
           "requires_fresh_request_identity": true
         },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.root.identity.registry.query.describe",
@@ -10330,7 +11205,11 @@
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.root.identity.service_registration.command.ensure",
@@ -10343,7 +11222,11 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationEnsureRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ServiceRegistrationOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.root.identity.service_registration.resource.get",
@@ -10371,7 +11254,11 @@
           "requires_fresh_request_identity": true
         },
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallengeRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallenge"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationChallenge",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.root.identity.organization_registration.command.ensure",
@@ -10384,7 +11271,11 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationEnsureRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.root.identity.organization_registration.resource.get",
@@ -10407,7 +11298,11 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRefreshRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.root.identity.organization_registration.command.revoke",
@@ -10420,7 +11315,11 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationRevokeRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/OrganizationRegistrationOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.root.identity.recovery_policy.resource.get",
@@ -10443,7 +11342,13 @@
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,
         "request_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_request",
-        "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome"
+        "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.policy.set"
+          ]
+        }
       },
       {
         "operation_id": "ak.root.identity.recovery_session.command.create",
@@ -10459,7 +11364,11 @@
           "operation_id": "ak.root.identity.recovery_session.resource.get"
         },
         "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
-        "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state"
+        "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.root.identity.recovery_session.resource.get",
@@ -10484,7 +11393,11 @@
           "operation_id": "ak.root.identity.recovery_session.resource.get"
         },
         "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body",
-        "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome"
+        "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.recovery_authority_ticket.command.issue",
@@ -10497,7 +11410,11 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/recovery-authority.schema.json#/$defs/ticket_issue_request",
-        "response_schema_ref": "schemas/recovery-authority.schema.json"
+        "response_schema_ref": "schemas/recovery-authority.schema.json",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.security_transaction.command.create",
@@ -10510,7 +11427,11 @@
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,
         "request_schema_ref": "schemas/security-transaction.schema.json#/$defs/create_request",
-        "response_schema_ref": "schemas/security-transaction.schema.json"
+        "response_schema_ref": "schemas/security-transaction.schema.json",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.security_transaction.resource.get",
@@ -10533,7 +11454,11 @@
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,
         "request_schema_ref": "schemas/security-transaction.schema.json#/$defs/continue_request",
-        "response_schema_ref": "schemas/security-transaction.schema.json"
+        "response_schema_ref": "schemas/security-transaction.schema.json",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.keys.command.claim",
@@ -10549,7 +11474,11 @@
           "operation_id": "ak.self.keys.query.lookup"
         },
         "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_request_body",
-        "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_outcome"
+        "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.keys.backups.resource.delete",
@@ -10561,7 +11490,11 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body",
-        "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome"
+        "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.keys.backup_series.command.erase",
@@ -10575,7 +11508,11 @@
         "canonical_hash_input": "/transaction_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_request_body",
-        "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_outcome"
+        "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.keys.backups.query.list",
@@ -10596,7 +11533,11 @@
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/key-backup.schema.json",
-        "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_replace_outcome"
+        "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_replace_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.keys.backups.command.unlock",
@@ -10613,7 +11554,11 @@
           "requires_fresh_request_identity": true
         },
         "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body",
-        "response_schema_ref": "schemas/key-backup.schema.json"
+        "response_schema_ref": "schemas/key-backup.schema.json",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.keys.keypackages.command.claim",
@@ -10630,7 +11575,11 @@
           "requires_fresh_request_identity": true
         },
         "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
-        "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_outcome"
+        "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.keys.keypackages.command.consume",
@@ -10646,7 +11595,11 @@
           "operation_id": "ak.self.keys.query.lookup"
         },
         "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body",
-        "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_outcome"
+        "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.keys.keypackages.command.revoke",
@@ -10662,7 +11615,11 @@
           "operation_id": "ak.self.keys.query.lookup"
         },
         "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_request_body",
-        "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_outcome"
+        "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.keys.keypackages.upload.create",
@@ -10679,7 +11636,11 @@
           "requires_fresh_request_identity": true
         },
         "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_request_body",
-        "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_outcome"
+        "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.keys.query.lookup",
@@ -10715,7 +11676,11 @@
           "operation_id": "ak.self.keys.query.lookup"
         },
         "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_request_body",
-        "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_outcome"
+        "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.media.query.ice_config",
@@ -10749,7 +11714,11 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body",
-        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome"
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.open.agent_pairing.query.runtime_key_request_status",
@@ -10778,7 +11747,11 @@
           "requires_fresh_request_identity": true
         },
         "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_request_body",
-        "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_outcome"
+        "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.open.device_pairing.query.resolve",
@@ -10846,7 +11819,11 @@
           "operation_id": "ak.open.mimi.query.group_info"
         },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",
-        "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome"
+        "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.open.mimi.command.notify",
@@ -10861,7 +11838,11 @@
           "strategy": "drop_unconfirmed"
         },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_request_body",
-        "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_outcome"
+        "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.open.mimi.query.provider_directory",
@@ -10888,7 +11869,11 @@
           "requires_fresh_request_identity": true
         },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_request_body",
-        "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_outcome"
+        "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.open.mimi.command.report_abuse",
@@ -10904,7 +11889,11 @@
           "strategy": "manual_confirmation"
         },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body",
-        "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_outcome"
+        "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.open.mimi.command.request_consent",
@@ -10920,7 +11909,11 @@
           "operation_id": "ak.self.consent.query.list"
         },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body",
-        "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_outcome"
+        "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.open.mimi.command.update_room",
@@ -10936,7 +11929,11 @@
           "operation_id": "ak.open.mimi.query.group_info"
         },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body",
-        "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome"
+        "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.open.mimi.command.submit_message",
@@ -10952,7 +11949,11 @@
           "operation_id": "ak.open.mimi.query.group_info"
         },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_request_body",
-        "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_outcome"
+        "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.open.mimi.command.update_consent",
@@ -10968,7 +11969,11 @@
           "operation_id": "ak.self.consent.query.list"
         },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body",
-        "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome"
+        "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.moderation.command.report",
@@ -10983,7 +11988,13 @@
           "strategy": "manual_confirmation"
         },
         "request_schema_ref": "schemas/moderation-report.schema.json",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.self.moderation.report"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.policy.query.check",
@@ -11021,7 +12032,13 @@
           "operation_id": "ak.self.realm_link.query.list"
         },
         "request_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body",
-        "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome"
+        "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.realm.link"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.realm_link.resource.delete",
@@ -11033,7 +12050,13 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
-        "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome"
+        "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.realm.link"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.realm_link.query.effective_policy",
@@ -11076,7 +12099,13 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_replace_request_body",
-        "response_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view"
+        "response_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.realm.policy_server"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.realm_policy_server.resource.delete",
@@ -11087,7 +12116,13 @@
         "body_class": "non_streaming_json",
         "success_shape_kind": "empty_response",
         "idempotency_mechanism": "object_id",
-        "retry_safe": true
+        "retry_safe": true,
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.realm.policy_server"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.realm.resource.get",
@@ -11114,7 +12149,13 @@
           "operation_id": "ak.self.realm.resource.get"
         },
         "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
-        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
+        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.realm.archive"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.realm.command.freeze",
@@ -11131,7 +12172,13 @@
           "operation_id": "ak.self.realm.resource.get"
         },
         "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
-        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
+        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.realm.freeze"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.realm.command.tombstone",
@@ -11148,7 +12195,13 @@
           "operation_id": "ak.self.realm.resource.get"
         },
         "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
-        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
+        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.realm.tombstone"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.realm.command.destroy",
@@ -11165,7 +12218,13 @@
           "operation_id": "ak.self.realm.resource.get"
         },
         "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
-        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
+        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.realm.destroy"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.realm.query.export",
@@ -11198,7 +12257,13 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body",
-        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document"
+        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.realm.moderation_policy"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.realm.join_application.command.submit",
@@ -11211,7 +12276,11 @@
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_submit_request",
-        "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome"
+        "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.realm.join_application.command.review",
@@ -11224,7 +12293,11 @@
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_review_request",
-        "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome"
+        "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.realm.join_application.command.cancel",
@@ -11237,7 +12310,11 @@
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_cancel_request",
-        "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome"
+        "response_schema_ref": "schemas/join-policy-operations.schema.json#/$defs/application_mutation_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.realm.join_application.query.list",
@@ -11304,7 +12381,13 @@
           "operation_id": "ak.self.consent.query.list"
         },
         "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
-        "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
+        "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.consent.grant"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.consent.command.revoke",
@@ -11321,7 +12404,13 @@
           "operation_id": "ak.self.consent.query.list"
         },
         "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
-        "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
+        "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.consent.revoke"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.consent.command.request",
@@ -11338,7 +12427,11 @@
           "operation_id": "ak.self.consent.query.list"
         },
         "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
-        "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_outcome"
+        "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.account_data.query.list",
@@ -11371,7 +12464,11 @@
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,
         "request_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_replace_request_body",
-        "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry"
+        "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry",
+        "durable_effect": {
+          "kind": "actor_private_event",
+          "event_kind": "ak.account_data.set"
+        }
       },
       {
         "operation_id": "ak.self.account_data.resource.delete",
@@ -11383,7 +12480,11 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,
-        "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome"
+        "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome",
+        "durable_effect": {
+          "kind": "actor_private_event",
+          "event_kind": "ak.account_data.set"
+        }
       },
       {
         "operation_id": "ak.self.read_cursor.command.advance",
@@ -11396,7 +12497,11 @@
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,
         "request_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_advance_request_body",
-        "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome"
+        "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome",
+        "durable_effect": {
+          "kind": "actor_private_event",
+          "event_kind": "ak.read_cursor.advance"
+        }
       },
       {
         "operation_id": "ak.self.read_cursor.query.list",
@@ -11449,7 +12554,11 @@
         "idempotency_mechanism": "none",
         "retry_safe": true,
         "request_schema_ref": "schemas/view.schema.json#/$defs/view_projection_request_body",
-        "response_schema_ref": "schemas/view.schema.json#/$defs/collection_projection_view"
+        "response_schema_ref": "schemas/view.schema.json#/$defs/collection_projection_view",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.morph.resource.get",
@@ -11471,7 +12580,11 @@
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
         "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_request_body",
-        "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome"
+        "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.edge.push.command.register_device",
@@ -11486,7 +12599,11 @@
           "strategy": "manual_confirmation"
         },
         "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_request_body",
-        "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_outcome"
+        "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.edge.push.command.unregister_device",
@@ -11501,7 +12618,11 @@
           "strategy": "manual_confirmation"
         },
         "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body",
-        "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_unregister_device_outcome"
+        "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_unregister_device_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.server.query.describe",
@@ -11544,7 +12665,13 @@
           "operation_id": "ak.self.account.query.viewer"
         },
         "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_request_body",
-        "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_outcome"
+        "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_outcome",
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.profile.update"
+          ]
+        }
       },
       {
         "operation_id": "ak.self.account.stream.subscribe",
@@ -11566,7 +12693,11 @@
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeOutcome"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeOutcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
       },
       {
         "operation_id": "ak.self.snapshot.query.manifest_head",

@@ -541,7 +541,7 @@ Arkret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sy
 
 ### 5a.2 注册与撤销
 
-- 设备 MUST 通过 `ak.device.push_route` actor-private state Event 把 `(recipient_service_id, principal_id, device_id, push_route, push_target_id, push_gateway_did, encryption_key, capabilities)` 写入当前投递 Principal Server 可见的 principal control stream 或等价 actor-private state；该 Event 不携带 CBA reducer 字段，不进入 shared Realm Seal coverage。目标 actor-private cell 的 `cell_subject` 由 schema registry 声明的 composite `(payload.recipient_service_id, payload.principal_id, payload.device_id, payload.push_route)` 派生（cas_register, bottom=reject）。`recipient_service_id` MUST 与 [`governance/member-delivery-binding.md` §2](../governance/member-delivery-binding.md) 接受准则中该 device 所属 member 的 `delivery_binding.recipient_service_id` 一致；推送注册按 `(recipient_service_id, principal, device, push_route)` 维度隔离，同一 DID 在不同 Principal Server 上下文中的 push route 不共享、不可关联。
+- 设备 MUST 通过 `ak.device.push_route` actor-private state Event 把 `(recipient_service_id, principal_id, device_id, push_route, push_target_id, push_gateway_did, encryption_key, capabilities)` 写入当前投递 Principal Server 可见的 principal control stream 或等价 actor-private state；该 Event 不携带 CBA reducer 字段，不进入 shared Realm Seal coverage。目标 actor-private cell 的 `cell_subject` 由 canonical `contract-registry.json` 的 `event_kind_registry.actor_private_contracts` 声明为 composite `(payload.recipient_service_id, payload.principal_id, payload.device_id, payload.push_route)`，family 使用 `cas_register` 且 `bottom=reject`；schema registry 只负责 payload 形状，不是 merge 真相源。`recipient_service_id` MUST 与 [`governance/member-delivery-binding.md` §2](../governance/member-delivery-binding.md) 接受准则中该 device 所属 member 的 `delivery_binding.recipient_service_id` 一致；推送注册按 `(recipient_service_id, principal, device, push_route)` 维度隔离，同一 DID 在不同 Principal Server 上下文中的 push route 不共享、不可关联。
 - 撤销：设备 MUST 在同一 actor-private cell 上写后继 `ak.device.push_route` event 设置 `revoked: true` 或重新写入新 `push_target_id`；service / gateway MUST 在 actor-private state 收敛后停止接受旧伪名。
 - 轮换：客户端 SHOULD 在 push token 变化、设备恢复、Out-of-band 重新登录、或自定义 rotation 周期（默认 ≤ 90 天）时轮换 `push_target_id`。
 - 长期不可恢复性：服务方在丢弃旧 `push_target_id` 后 MUST NOT 保留可把旧 / 新伪名链接回同一 `(recipient_service_id, principal, device)` 的索引；只允许在 rotation 时短暂保留以便迁移未投递消息。短暂保留期 MUST ≤ 24h，或与单条未投递消息 TTL 取较短者；超过该窗口 MUST 物理删除旧 `push_target_id` 与对应索引材料，不得保留任何能把新旧映射回同一 device 的信息。
@@ -975,7 +975,7 @@ upload、consume、revoke 的 byte-exact正向与负向向量由 `ak.vector.cryp
 
 规则：
 
-- `claim` MUST 原子地把 KeyPackage 从 `published` 转为 `claimed`。
+- 对普通 single-use KeyPackage，`claim` MUST 原子地把 KeyPackage 从 `published` 转为 `claimed`。协商启用的 `last_resort=true` 包是唯一例外：包本身保持 `published`，每次领取只追加独立 `keypackage_claim_record`（见 [`encryption-and-audit.md` §2.6.2](./encryption-and-audit.md)）。
 - 同一 `keypackage_ref` 不得被多个 active claim 使用。
 - 过期、撤销、设备被移除或 principal control state 失效时，服务 MUST NOT 返回该 KeyPackage。
 - **`required_capabilities` ⊆ KeyPackage `capabilities`（normative subset rule）**：claim request 中的 `required_capabilities` 集合 MUST 是被领取 KeyPackage 上声明的 `capabilities`（见 [`encryption-and-audit.md` §2.6 KeyPackage payload](./encryption-and-audit.md)）的**子集**。任何 `required_capabilities ∖ capabilities ≠ ∅` 的 claim MUST 被服务端拒绝（与其它 claim 失败一致使用统一不透明错误码 `claim_failed`，但服务端 SHOULD 在内部审计日志中记录 `keypackage_capability_overreach` 以便滥用检测）。该规则避免了"客户端在 claim 时声明超过 KeyPackage 实际声明的能力，使后续 Welcome / Commit 在错误能力假设下进行"的隐性越权。
@@ -1002,7 +1002,7 @@ upload、consume、revoke 的 byte-exact正向与负向向量由 `ak.vector.cryp
 
 转换约束：
 
-- **`published → claimed` 原子**：`claim` MUST 原子转换；同一 `keypackage_ref` 不得被多个 active claim 占用。
+- **`published → claimed` 原子**：普通 single-use 包的 `claim` MUST 原子转换；同一 `keypackage_ref` 不得被多个 active claim 占用。`last_resort=true` 包不执行该状态边，始终保持 `published`，其多个 active claim 由互相独立的 append-only claim record 表达。
 - **`claimed` 不回 `published`**：claimed 但未 consume 的 KeyPackage 到达 claim `expires_at` 后 MUST 转 `revoked`，服务 MUST NOT 自动放回 `published`，也 MUST NOT 接受迟到的 consume。
 - **终态集合**：`{ consumed, revoked, retired }` 均为 terminal，任何转出 MUST 被拒绝。`published` / `claimed` 的过期或吊销一律收敛到 `revoked`（claim 路径同步 freshness 判定，扫描周期 SHOULD ≤ 60s，见上）。
 - **`retired`**：仅 account deactivation fanout（[`../identity/account-lifecycle.md` §7.1](../identity/account-lifecycle.md)）把 unused（`published`）KeyPackage 标 `retired`；已 `claimed` / `consumed` 的不改写。新邀请 MUST NOT 从 `retired` / `revoked` / `consumed` 的 KeyPackage 选取。

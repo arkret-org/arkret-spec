@@ -105,6 +105,23 @@ ak.<surface>.<domain-or-subject...>.<kind>.<action>
 
 HTTP method 不是 operation action 的来源：同一 `query.scan` 语义可以有 GET query string 与 POST/body 两种 HTTP binding；这种情况必须标记为 binding variant，而不是发明新的协议操作。`ak.self.events.query.scan_body` 必须声明 `binding_variant_of="ak.self.events.query.scan"`，非 HTTP transport 仍使用 canonical `ak.self.events.query.scan`。
 
+### 2.4.1 写操作的 durable effect 闭包（normative）
+
+每个带 `idempotency_mechanism` 的写 operation 都 MUST 在 canonical
+`contract-registry.json` 的 operation 行声明一个 `durable_effect`，且只可使用：
+
+- `event_log`：显式列出非 actor-private 的 active `event_kinds[]`；若请求本身承载任意
+  Event，则改用唯一 `event_kind_source="$request.<path>"`，receiver 从已通过 schema 的请求
+  按该 JSON path 取 kind；
+- `actor_private_event`：显式登记唯一 active actor-private `event_kind`；
+- `none`：必须给出稳定、具体的 `rationale`，说明结果只改变 service-local material、
+  identity log、队列、外部系统，或仅返回待签/待提交材料，不产生 Arkret durable Event。
+
+一个 operation 不得同时声明静态 kind 与动态 source，也不得把 actor-private kind 填进
+`event_log`。HTTP / gRPC / MQ adapter 必须实现同一 mapping；成功响应不能绕过该声明产生
+未登记 durable Event。该闭包由 `tools/lint_artifacts.py` 与
+`operation-registry-coverage-fixture.json` 机械校验。
+
 **`viewer` action（术语定义）**：`ak.self.account.query.viewer` 的含义钉死为：**当前已认证 holder 的主体自读投影**。目标不由 path / query 中的外部 id 定位，而由 holder-bound `user_session` 的会话绑定决定，故不建模为 `resource.get`；命名沿用 GraphQL 生态的 `viewer` 惯例（"viewer = 发起请求的已认证主体"）。它与 `query.describe`（服务能力元数据，可 pre-auth）的区分见 [`service-http-binding.md` §5.1](./service-http-binding.md)。注意区分本规范 prose 中 `viewer` 的另一用法：可见性 / 投影语境（pins、history visibility、conformance vector 的 `viewer_*` 字段）里的 "viewer" 指**正在读取内容、作为可见性评估视角的主体**，不是本 operation；`reviewer`（审核者）与两者均无关，全文检索 `viewer` 时勿混入。
 
 ### 2.5 HTTP method 语义

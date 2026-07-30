@@ -63,6 +63,22 @@ Realm 可通过 state event 声明策略服务：
 
 被 redact 是不可解析的一种：一个被 redact 的 moderation_policy event MUST NOT 被解释为"放开该 policy 维度"。多个 policy_sources 中只要有任一不可解析，整体即按上述 fail_mode 处理，MUST NOT 因其余 source 可解析就跳过缺失 source 的治理维度。
 
+### 2.2 Declaration 删除与继承回退（normative）
+
+`ak.self.realm_policy_server.resource.delete` MUST 提交一条 durable
+`ak.realm.policy_server` Control Move，而不是只删除服务数据库配置。其 closed payload 固定为
+`{"tombstone":true,"reason_code":"policy_server_binding_removed"}`；该 payload 与 §2 的完整
+declaration 二选一，并写入同一个 per-Realm CAS cell。DELETE 与 PUT 并发时必须按该 cell 的
+registered CAS / `bottom=reject` 语义处理，不能按 HTTP 到达顺序决定；相同 deletion identity
+重放必须返回相同结果且不得追加第二次状态变化。
+
+tombstone accepted 后，本 Realm 的 direct declaration 视为不存在，query / policy evaluation
+立即沿 `governed_by` 祖先链解析最近的有效 declaration；找到继承值时投影
+`from_org_fallback=true`，整条祖先链均无声明时才 `not_found` / 使用本地基础 capability
+检查。联邦复制、snapshot 和 replay MUST 保留 tombstone，MUST NOT 因本地物理删除而让旧
+declaration 复活。admin DTO 的 `policy_server_did` / `policy_server_url` 必须在构造 Event
+前确定性映射到 canonical `server_id` / `endpoint`。
+
 ## 3. Check Request
 
 ```http

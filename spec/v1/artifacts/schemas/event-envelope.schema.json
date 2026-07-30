@@ -497,6 +497,25 @@
       }
     },
     {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.policy_server"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_policy_server_payload"
+          }
+        }
+      }
+    },
+    {
       "$comment": "Known active reducer-input event kinds MUST carry exactly one CBA basis shape: DataEvent (seal_ref + auth_context, no preconditions/seal_basis), Control Move (seal_basis, no seal_ref/auth_context), the ak.realm.create genesis bootstrap shape, OR a Realm bootstrap follow-up shape (same submit batch after create; batch context is enforced by admission, not JSON Schema). Reducer writes are derived from kind+payload and the registry contract. Unknown extension kinds must declare their own critical extension requirements and are not matched by this branch.",
       "if": {
         "properties": {
@@ -631,7 +650,6 @@
               "ak.realm.plaintext_visible_services",
               "ak.realm.policy",
               "ak.realm.policy_bundle",
-              "ak.realm.policy_server",
               "ak.realm.preview_policy",
               "ak.realm.read_receipt_policy",
               "ak.realm.schema",

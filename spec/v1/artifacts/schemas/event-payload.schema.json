@@ -6846,8 +6846,8 @@
             "published",
             "claimed",
             "consumed",
-            "expired",
-            "revoked"
+            "revoked",
+            "retired"
           ]
         },
         "claim_id": {
@@ -10273,6 +10273,107 @@
         }
       },
       "additionalProperties": false
+    },
+    "realm_policy_server_payload": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "server_id",
+            "endpoint",
+            "public_keys",
+            "applies_to"
+          ],
+          "properties": {
+            "server_id": {
+              "$ref": "#/$defs/did"
+            },
+            "endpoint": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https://"
+            },
+            "public_keys": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "applies_to": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "join",
+                  "invite",
+                  "message",
+                  "media",
+                  "applet",
+                  "directory",
+                  "call",
+                  "federation"
+                ]
+              }
+            },
+            "policy_sources": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "object",
+                "required": [
+                  "kind"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "pattern": "^ak\\."
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "abuse_profile_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "fail_mode": {
+              "type": "string",
+              "enum": [
+                "open",
+                "soft_deny",
+                "quarantine",
+                "closed"
+              ]
+            },
+            "cache_ttl_seconds": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "tombstone",
+            "reason_code"
+          ],
+          "properties": {
+            "tombstone": {
+              "const": true
+            },
+            "reason_code": {
+              "const": "policy_server_binding_removed"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     }
   }
 }

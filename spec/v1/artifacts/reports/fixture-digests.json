@@ -122,7 +122,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-lattice-dispatch-fixture.json",
-      "sha256": "f193e06f027c368f7a283a1eab00ee27c6d5e44a3aa667f5414cf5d8afa27a4b"
+      "sha256": "8f2508e401a881de803ecb2bae9119acd3c7200dfc7a8fad91ecdb25babd04ab"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
@@ -130,7 +130,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "c533e6c24e80d85abede94d5026d1ccf85c87d369b4d4be203dcd3b3e9052997"
+      "sha256": "1880ac26f1d0da2ce65b2d9d5d69cbca51b3214789aa006839c82c8b8637bb2a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -170,7 +170,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "3923ca1b94bc2f3274a21fa43e222c2c58b437701c4e73e20f4539c987e366f3"
+      "sha256": "ad2c2bf7dd38b8a551be99002c924d299761d62ac00929251826aca98c849df2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
@@ -210,7 +210,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/operation-registry-coverage-fixture.json",
-      "sha256": "0bb1a4fee4fb711313268b34e85bece44cc8bd41847d4c08c61f11665e3885fe"
+      "sha256": "6bef63979e88f70f9fa778f9356d8d35b1bf65bd3334a8a9ae2103a14d72e732"
     },
     {
       "path": "spec/v1/artifacts/fixtures/organization-registration-fixture.json",
@@ -218,7 +218,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/policy-server-fixture.json",
-      "sha256": "d7e161c526d3d521d99a8372d17bb4b288733153c88b7ff49d3ec2736b6e1564"
+      "sha256": "2db5ebd47b1befc375788b02f439b22cb3d8a12a1abfa9d7be685a2ef4b6a00f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
@@ -226,7 +226,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "d5dc8fd9f2a068f473693ea86e0e44321694608a898947d6dc887f388dc35693"
+      "sha256": "575dfb55cd4c1218b9a1c6541475190d881f277a50b45eaa83fde5f3b8a49054"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",

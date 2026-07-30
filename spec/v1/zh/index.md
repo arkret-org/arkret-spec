@@ -22,13 +22,13 @@ see_also:
 `arkret-spec` 是 **Arkret v1 去中心化协作协议规范**。其核心不是界面，而是"可验证协作事实 + 可投影的对象语义"：
 
 - 身份主键：DID principal
-- 数据主语（canonical 对象清单）：Realm / Circle / Agent Sidecar / Space（含 Board/List）/ Strand / Message / Relation / Morph / Event / View / Capability
+- 数据主语（核心对象导览）：Realm / Circle / Agent Sidecar / Space（含 Board/List）/ Strand / Message / Relation / Morph / Event / View / Capability
 - 审计主语：signed Event + per-actor event chain
 - 权限主语：capability
 - 呈现主语：views / projection
 - 扩展承载：Morph（同时是上面 canonical 对象清单中的开放对象）+ schema / profile-defined facets
 
-> 上面"数据主语"是本规范的 canonical 对象清单；§6 与其他章节引用对象集合时以此为准。Morph 既是 canonical 对象清单中的开放对象，也充当 schema / profile 扩展承载，两处指的是同一对象，不是两类东西。
+> 上面“数据主语”只用于快速建立核心模型，不是完整 canonical kind 清单。canonical materialized object 的分类与文档索引以 [`models/overview.md`](./models/overview.md) 为准；所有 typed-id kind 与 wire form 的完整机器真相源是 [`artifacts/registry/id-kind-registry.json`](../artifacts/registry/id-kind-registry.json)。Morph 既是其中的开放对象，也充当 schema / profile 扩展承载，两处指的是同一对象，不是两类东西。
 
 > **关于 “v1”（消歧）**：本规范树的 `v1/` 目录、`stability: v1` 以及 `ak.*.v1` 标识符中的 `v1`，指的是**协议代际**（对应 `protocol_version="1.0"` 与 schema id / event kind 后缀承载的 wire 级版本），**不是 URL 路径版本号**。HTTP path 不含任何版本段（不存在 `/v1/`、`/api/v1`），版本是元数据，通过 `*.describe` 协商；规则见 [`sync/api-conventions.md` §11](./sync/api-conventions.md)。current-v1 树只定义这一代协议标识符；未发布阶段的破坏性修订直接更新 canonical v1 真源，不增加 path 版本或未来 major profile。
 

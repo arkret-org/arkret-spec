@@ -1,6 +1,6 @@
 {
   "suite": "operation_registry_coverage_fixture",
-  "version": "2026-07-10",
+  "version": "2026-07-30",
   "runner": {
     "kind": "registry_coverage",
     "inputs": [
@@ -34,6 +34,10 @@
     {
       "id": "read_retry_contract",
       "rule": "Read-only query and resource-get operations do not invent an idempotency key contract."
+    },
+    {
+      "id": "write_durable_effect_contract",
+      "rule": "Every write operation declares whether success commits an Arkret Event, an actor-private Event, or no Event with a stable rationale; declared event kinds are active and resolvable."
     }
   ]
 }
