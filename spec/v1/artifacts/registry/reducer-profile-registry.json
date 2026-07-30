@@ -1,6 +1,6 @@
 {
-  "version": "2026-07-30.13",
-  "generated_at": "2026-07-30T09:30:00Z",
+  "version": "2026-07-30.14",
+  "generated_at": "2026-07-30T21:05:00Z",
   "source_of_truth": true,
   "description": "Canonical reducer profile declarations and generated content-addressed semantic closures used for federation service_binding_ref.reducer_profile_digest.",
   "canonicalization": "json_jcs",
@@ -436,7 +436,7 @@
           {
             "schema_id": "ak.schema.realm.v1",
             "registry_row_digest": "sha256:2ff03e9141d22bd758188fff95da4914fce65f690793f86720fcb3eb3c03e1ac",
-            "document_digest": "sha256:5a55149e1e663d79e3b1e8d4f345d504f04643edc06cc6eafecc8640fb65144a"
+            "document_digest": "sha256:d52f3005e6d9d8016a71c52afc3c80340e81173793380a71bfb7392f4ecdb71b"
           },
           {
             "schema_id": "ak.schema.seal.v1",
@@ -518,7 +518,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:277a2b1e4bd751dfe177f5de40d68e1bc4fff9842d80bbff94370f3a8f499813"
+      "reducer_profile_digest": "sha256:0a5d696f768dbcd6284d3f2b5cc38c8244a72fc3b7c2632449a4229ff8ee48dd"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -729,7 +729,7 @@
           {
             "schema_id": "ak.schema.realm.v1",
             "registry_row_digest": "sha256:2ff03e9141d22bd758188fff95da4914fce65f690793f86720fcb3eb3c03e1ac",
-            "document_digest": "sha256:5a55149e1e663d79e3b1e8d4f345d504f04643edc06cc6eafecc8640fb65144a"
+            "document_digest": "sha256:d52f3005e6d9d8016a71c52afc3c80340e81173793380a71bfb7392f4ecdb71b"
           },
           {
             "schema_id": "ak.schema.relation.v1",
@@ -801,7 +801,7 @@
           },
           {
             "ref": "zh/models/realm-and-space.md",
-            "content_digest": "sha256:8d97b5b76cddbd01e0300c94103e349c7fbae243b00ebc62b80c4753e8b3b7ab"
+            "content_digest": "sha256:942e07dfe9b79006fe55182284371b9ca886a0918aedc53e8ebaa166366aff1d"
           },
           {
             "ref": "zh/models/relation.md",
@@ -813,7 +813,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:2ca6fafddc92ce3c4deb907df5262bf7e1701eb73fcedbebaf54952f2d6cddcf"
+      "reducer_profile_digest": "sha256:f3f0f1f9c4d0529f7e7fa4570b40083d30889d0f23f8574672f288df09bc385a"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1299,7 +1299,7 @@
           {
             "schema_id": "ak.schema.realm.v1",
             "registry_row_digest": "sha256:2ff03e9141d22bd758188fff95da4914fce65f690793f86720fcb3eb3c03e1ac",
-            "document_digest": "sha256:5a55149e1e663d79e3b1e8d4f345d504f04643edc06cc6eafecc8640fb65144a"
+            "document_digest": "sha256:d52f3005e6d9d8016a71c52afc3c80340e81173793380a71bfb7392f4ecdb71b"
           },
           {
             "schema_id": "ak.schema.relation.v1",
@@ -1416,7 +1416,7 @@
           },
           {
             "ref": "zh/models/realm-and-space.md",
-            "content_digest": "sha256:8d97b5b76cddbd01e0300c94103e349c7fbae243b00ebc62b80c4753e8b3b7ab"
+            "content_digest": "sha256:942e07dfe9b79006fe55182284371b9ca886a0918aedc53e8ebaa166366aff1d"
           },
           {
             "ref": "zh/models/relation.md",
@@ -1440,7 +1440,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:439f101467961130a57db93387816ac510c33a09520dcfd6f244659d96675275"
+      "reducer_profile_digest": "sha256:a92ebf94e957d8786341869cc8b9d3f6b348a2986b51ba44acec7b7f2334c714"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",

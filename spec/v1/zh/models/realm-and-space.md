@@ -106,7 +106,7 @@ Schema id: `ak.schema.realm.v1`
 | `max_delegation_lifetime_ms` | no | `integer` | 默认 24h；用于 [`capabilities.md` §10.1](../authz/capabilities.md) 无限期 parent grant 首次转授时冻结 `delegation_expiry_seal`。effective 值取 Realm 字段与任何 grant / policy / deployment / profile 更短窗口的最小值。 | 委托防滚动续期窗口。 |
 | `bottom_escalation_after_ms` | no | `integer` | cell `⊥` 持续超过该窗口后，reducer / Projection SHOULD 标记 `escalated_at` 并触发带外告警；详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。 | bottom 诊断升级窗口。 |
 | `cell_lattices` | no | `array<CellLattice>` | `CellLattice` 结构（cell family / lattice / bottom 等）定义见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)。 | Realm-specific 扩展 cell family。 |
-| `co_write_policy` | no | `array<array<component>>` | `component`（cell component 标识）语义见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)。 | Control Move 原子写约束。 |
+| `cowrite_policy` | no | `array<array<component>>` | `component`（cell component 标识）语义见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)。 | Control Move 原子写约束。 |
 | `retention_policy_id` | no | `id:policy` |  | 保留策略。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
 | `created_by` | yes | `did` | 必须是 create event 授权主体。 | 创建 Principal。 |

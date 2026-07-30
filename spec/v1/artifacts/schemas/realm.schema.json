@@ -653,7 +653,7 @@
       },
       "uniqueItems": true
     },
-    "co_write_policy": {
+    "cowrite_policy": {
       "type": "array",
       "description": "Optional whitelist constraining which cell families may be written by the same Move.",
       "items": {
