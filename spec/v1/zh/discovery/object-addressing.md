@@ -100,6 +100,19 @@ sigil 是展示与输入层 affordance，**不是 wire 的一部分**：strip �
 
 **命名空间不相交，无全局唯一约束（normative）**：handle 与 realm alias 占据**两个不相交的命名空间**，分别由 `resolve_handle` 解析为 holder / principal DID、由 `resolve_realm` 解析为 `ak:realm:<uuid>`。协议 **MUST NOT** 要求两命名空间间全局唯一：同一 `<localpart>:<domain>` MAY 同时是一个 handle 与一个 realm alias，由 sigil 在显示 / 输入期区分，线上字段（自带类型上下文）无歧义。同一 `<domain>` 的 issuer **MAY** 选择在两命名空间间保留 / 对齐同名（本地治理策略），但这不是协议强制约束，实现 MUST NOT 因此在两命名空间间引入跨注册表唯一性检查。
 
+**alias 的唯一 wire 承载（normative）**：realm alias 的唯一 wire 承载是专用 facet Event `ak.realm.alias`，它写入 `ak.component.realm.alias.v1`（`cas_register`，`cell_subject=null`，`bottom=reject`，`concurrency_class=security_barrier`）。payload 封闭为两种互斥形态：declaration `{"alias": "<localpart>:<domain>"}` 与精确 value tombstone `{"tombstone": true}`（wire schema 见 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `$defs/realm_alias_payload`）。由此推出以下 MUST：
+
+- **Realm object 不承载 alias**：`realm.schema.json` 是闭合 schema（`unevaluatedProperties: false`）且不注册 `alias` 属性；`ak.realm.create` 的 `payload.object.alias`、`ak.realm.update` 的 `patch.alias`、以及任何 Realm 生命周期 Event 的 payload 顶层 `alias` / `realm_alias` 一律 MUST 拒绝为 `schema_violation`（登记见 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。**同一事实只有一个输入形态**：接受多形态是 create-time alias 与闭合 schema 分叉的根因，实现 MUST NOT 保留 fallback 读取链。
+- **创建时设置 alias 是同批 follow-up**：需要在创建时即拥有 alias 的 Realm 在同一 `ak.self.events.command.submit` 批次内、`ak.realm.create` 与 founding grant 之后提交一条 `ak.realm.alias`。该 kind 属 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 的免 `seal_basis` 封闭 follow-up 列表；批次外的 `ak.realm.alias` 与普通 Control Move 一样 MUST 携带 `seal_basis`。
+- **rename / release**：改名是对同一 cell 的后继 `set`，释放 alias 是显式 tombstone；命中既有 settled value 时 MUST 携带 whole-value `head_eq` 前置条件。tombstone 是 Event / Seal / 联邦回放 / `state_root` 共同承诺的显式值，不是物理删除；tombstone 后该 Realm 只能按 `realm_id` 寻址。
+- **授权**：`ak.realm.alias` 由同名 action `ak.realm.alias`（`risk_tier=high`）或覆盖它的聚合 `ak.realm.admin` 授权（见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)）。
+- **issuer authority 绑定**：alias 的 `<domain>` 是签发该 alias 的 authority，Realm 自身 notary 签名并不证明该 domain 的 issuer 批准了这次占用。因此 reducer / registrar MUST 校验 `<domain>` 是该 Realm `trust_domain` 的 authority domain，否则 fail closed（`failed_precondition`，`reason="realm_alias_authority_mismatch"`）。
+- **命名空间占用**：canonical alias 已被同一 authority 的 realm-alias namespace 内**另一个** Realm 持有时，后来的 declaration MUST 拒绝（`failed_precondition`，`reason="realm_alias_taken"`），MUST NOT 把 alias 改指到新 Realm；释放必须由持有方先发 tombstone。handle namespace 的同名占用**不**构成冲突（两命名空间不相交，见上）。
+- **解析方向**：`resolve_realm` / `resolve_target` / `ak.edge.applet.realm.query.resolve` 的 alias 输入 MUST 解析自 effective `ak.component.realm.alias.v1`（tombstone 视为不存在），并按 §3.1 规范化为 canonical `realm_id` 后再做身份比对。Directory 行是该 cell 的投影，不是独立真相源。
+- **PCR 不得有 alias**：`ak.realm.alias` 不在 `ak.profile.principal_control_realm.v1` 的 event-kind allowlist 内，Principal Control Realm 只能按 `realm_id` 寻址（写入 MUST `principal_control_event_kind_forbidden`）。
+
+本条的规范执行向量是 `ak.vector.event_kind.realm_alias_single_carrier.v1`。
+
 **混淆防护（normative）**：realm alias 的 canonical equality 是 prepared localpart + lowercase A-label domain 的精确相等。registrar MAY 按 handle §17 在同一 authority 的 **realm-alias namespace** 内建立 UTS #39 skeleton collision index并要求 `Highly Restrictive`；碰撞返回 `failed_precondition` `reason="realm_alias_homograph_forbidden"`。skeleton 不得进入 wire equality。handle 与 realm alias namespace 不相交，跨 namespace skeleton 相同不构成冲突，由 sigil 与类型上下文消歧。
 
 **Native personal Agent selector slug（normative）**：`@<controller-handle>/<agent_slug>` 的 `agent_slug` 复用 `arkret_human_identifier` preparation，长度 1..64 Unicode code points且不超过 256 UTF-8 octets；`/`、`@`、`:`、`#`、`?`、`\\`、空白与控制字符均禁止。`总结助手` 是合法 canonical slug。slug 只在 controller namespace 内唯一，是可变、可撤销、非授权的用户标签；若实现需要 URL path / machine-only ASCII token，必须定义独立字段，不能收窄 `agent_slug`。

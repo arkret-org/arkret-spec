@@ -507,6 +507,124 @@
       }
     },
     {
+      "name": "realm_object_alias_property_rejected",
+      "schema_ref": "schemas/realm.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:alias",
+      "instance": {
+        "id": "ak:realm:0196419b-0000-7000-8000-000000000020",
+        "schema": "ak.schema.realm.v1",
+        "title": "Launch Plan Confidential Realm",
+        "created_by": "did:webvh:z6mkfixture:acme.example",
+        "trust_domain": "ak:trust_domain:did.webvh.acme.example",
+        "schema_refs": [
+          "ak.schema.realm.v1"
+        ],
+        "default_discoverability": "invite_only",
+        "default_join_rule": "invite",
+        "history_visibility": "joined",
+        "encryption_profile": "mls_rfc9420",
+        "notary_profile": "single_did",
+        "notary": {
+          "did": "did:webvh:z6mkfixture:notary.acme.example",
+          "kind": "single_did"
+        },
+        "created_at": "2026-04-26T00:00:00.000Z",
+        "alias": "general:acme.example"
+      }
+    },
+    {
+      "name": "realm_object_history_sharing_policy_property_rejected",
+      "schema_ref": "schemas/realm.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:history_sharing_policy",
+      "instance": {
+        "id": "ak:realm:0196419b-0000-7000-8000-000000000021",
+        "schema": "ak.schema.realm.v1",
+        "title": "Managed Agent Principal Control Realm",
+        "created_by": "did:webvh:z6mkfixture:agent.example",
+        "trust_domain": "ak:trust_domain:did.webvh.agent.example",
+        "schema_refs": [
+          "ak.schema.realm.v1",
+          "ak.profile.principal_control_realm.v1"
+        ],
+        "default_discoverability": "secret",
+        "default_join_rule": "closed",
+        "history_visibility": "restricted",
+        "encryption_profile": "mls_rfc9420",
+        "notary_profile": "single_did",
+        "notary": {
+          "did": "did:webvh:z6mkfixture:agent.example",
+          "kind": "single_did"
+        },
+        "fields": {
+          "purpose": "principal_control"
+        },
+        "content_encryption_floor": "e2ee_required",
+        "metadata_encryption_floor": "e2ee_required",
+        "created_at": "2026-04-26T00:00:00.000Z",
+        "history_sharing_policy": {
+          "version": 1,
+          "default_key_share": "deny",
+          "pre_join_history": "deny",
+          "allowed_key_sources": [
+            "key_backup"
+          ],
+          "allowed_receiver_states": [
+            "active_member"
+          ],
+          "audit": {
+            "share_audit_event_required": true,
+            "access_audit_required": true
+          }
+        }
+      }
+    },
+    {
+      "name": "realm_alias_declaration_payload_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_alias_payload",
+      "expect_valid": true,
+      "instance": {
+        "alias": "general:acme.example"
+      }
+    },
+    {
+      "name": "realm_alias_tombstone_payload_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_alias_payload",
+      "expect_valid": true,
+      "instance": {
+        "tombstone": true
+      }
+    },
+    {
+      "name": "realm_alias_payload_declaration_plus_tombstone_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_alias_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "instance": {
+        "alias": "general:acme.example",
+        "tombstone": true
+      }
+    },
+    {
+      "name": "realm_alias_payload_sigil_prefixed_alias_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_alias_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "instance": {
+        "alias": "#general:acme.example"
+      }
+    },
+    {
+      "name": "realm_alias_payload_bare_localpart_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_alias_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:is not valid under any of the given schemas",
+      "instance": {
+        "alias": "general"
+      }
+    },
+    {
       "name": "policy_check_request_valid_bound_context",
       "schema_ref": "openapi/arkret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequestBody",
       "expect_valid": true,

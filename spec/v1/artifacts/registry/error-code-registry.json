@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-30.3",
+  "version": "2026-07-30.4",
   "codes": [
     {
       "code": "bad_json",
@@ -3636,6 +3636,22 @@
         "service_call"
       ],
       "description": "Realm alias registration collided with the same authority-local realm-alias-namespace UTS #39 skeleton index or failed its declared Highly Restrictive registration policy. Skeletons do not define canonical equality; cross-namespace handle/realm-alias homographs are disambiguated by sigil and type context. See zh/discovery/object-addressing.md §3.3."
+    },
+    {
+      "code": "realm_alias_taken",
+      "applies_to": [
+        "state_resolution",
+        "service_call"
+      ],
+      "description": "An ak.realm.alias declaration requested a canonical alias already held by a different Realm in the same issuing authority's realm-alias namespace. The alias registrar MUST reject the later claim rather than re-pointing the alias; releasing an alias requires the holding Realm to publish an ak.realm.alias tombstone first. Handle namespace occupancy is NOT a collision (the two namespaces are disjoint). See zh/discovery/object-addressing.md §3.3."
+    },
+    {
+      "code": "realm_alias_authority_mismatch",
+      "applies_to": [
+        "state_resolution",
+        "service_call"
+      ],
+      "description": "An ak.realm.alias declaration carried an alias whose <domain> is not an authority domain of this Realm's trust_domain, so the Realm's own notary signature is not evidence that the domain's alias issuer authorized the claim. Reducers and directories MUST fail closed instead of registering a foreign-domain alias. See zh/discovery/object-addressing.md §3.3."
     },
     {
       "code": "reserved_circle_short_name",

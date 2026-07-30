@@ -629,6 +629,7 @@
               "ak.profile.update",
               "ak.reaction.add",
               "ak.reaction.remove",
+              "ak.realm.alias",
               "ak.realm.archive",
               "ak.realm.asset_privacy_policy",
               "ak.realm.create",
@@ -824,7 +825,10 @@
               "kind": {
                 "enum": [
                   "ak.member.state",
+                  "ak.realm.alias",
+                  "ak.realm.delivery_binding_policy",
                   "ak.realm.discovery",
+                  "ak.realm.history_sharing_policy",
                   "ak.realm.history_visibility",
                   "ak.realm.join_rule",
                   "ak.realm.plaintext_visible_services",
@@ -1644,6 +1648,25 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/realm_inheritance_policy_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.alias"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_alias_payload"
           }
         }
       }

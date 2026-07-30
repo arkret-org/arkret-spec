@@ -303,6 +303,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.audit.applet_binding`（high risk；新增、暂停或撤销 Audit Applet Binding；target=`ak.audit.applet_binding`）
 - `ak.audit.session.authorize`（high risk；授权某个 Audit Applet release session；Circle-scoped session 必须由覆盖该 Circle 的 grant 授权）
 - `ak.realm.link`（管理 Realm 间关系图，target=`ak.realm.link`）
+- `ak.realm.alias`（high risk；占用、改名或 tombstone Realm 的人类可读 alias，target=`ak.realm.alias`；alias 是用户会键入和转发的地址，夺取或改指它是钓鱼 / 冒名原语，见 [`../discovery/object-addressing.md` §3.3](../discovery/object-addressing.md)）
 - `ak.realm.upgrade`
 - `ak.realm.moderation_policy`（管理 Realm 审核策略，target=`ak.realm.moderation_policy`）
 - `ak.realm.plaintext_visible_services`（high risk；修改 E2EE 边界外可见明文的服务声明，target=`ak.realm.plaintext_visible_services`）

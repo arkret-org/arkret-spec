@@ -19,10 +19,32 @@
     "created_at"
   ],
   "not": {
-    "required": [
-      "created_by_principal"
-    ],
-    "$comment": "forbidden Realm authorship field; canonical name is created_by"
+    "anyOf": [
+      {
+        "required": [
+          "created_by_principal"
+        ],
+        "$comment": "forbidden Realm authorship field; canonical name is created_by"
+      },
+      {
+        "required": [
+          "alias"
+        ],
+        "$comment": "forbidden Realm addressing field; the only alias carrier is the ak.realm.alias Event (ak.component.realm.alias.v1). See zh/discovery/object-addressing.md section 3.3."
+      },
+      {
+        "required": [
+          "history_sharing_policy"
+        ],
+        "$comment": "forbidden Realm policy field; the E2EE history sharing policy is the ak.realm.history_sharing_policy facet cell, and Principal Control Realms take a profile-fixed baseline instead. See zh/governance/history-visibility.md section 6 and zh/models/realm-and-space.md section 2.8.1."
+      },
+      {
+        "required": [
+          "plaintext_visible_services"
+        ],
+        "$comment": "forbidden Realm policy field; the only carrier is the ak.realm.plaintext_visible_services facet cell. See zh/sync/service-surface.md."
+      }
+    ]
   },
   "properties": {
     "id": {

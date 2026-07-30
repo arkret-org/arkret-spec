@@ -315,6 +315,7 @@ Arkret v1 把 Realm-level policy 映射为 Control Move 的 registered cell proj
 | `ak.component.realm.join_rule.v1` | `ak.realm.join_rule` | `participation` 中 `join_policy` 子字段（粗粒度入口枚举） |
 | `ak.component.realm.history_visibility.v1` | `ak.realm.history_visibility` | `history_sharing` 的 visibility 子字段 |
 | `ak.component.realm.discovery.v1` | `ak.realm.discovery` | `participation` 中 `discoverability` 子字段 |
+| `ak.component.realm.alias.v1` | `ak.realm.alias` | （Arkret 专属；MIMI 的 room URI / hub-local name 不是可映射 policy component） |
 | `ak.component.realm.policy_server.v1` | `ak.realm.policy_server` | （Arkret 专属，与 MIMI hub provider 概念解耦） |
 | `ak.component.realm.policy_bundle.v1` | `ak.realm.policy_bundle` | MIMI policy component 集合声明（root + active list） |
 | `ak.component.realm.history_sharing_policy.v1` | `ak.realm.history_sharing_policy` | `history_sharing` |

@@ -174,6 +174,7 @@ SignalEnvelope 与 DeviceMessageEnvelope 不属于 Event kind registry，因此�
 | --- | --- |
 | `ak.realm.create` | Realm create |
 | `ak.realm.update` | Realm patch |
+| `ak.realm.alias` | Realm alias declaration or durable value tombstone（alias 的唯一 wire 承载） |
 | `ak.realm.upgrade` | Realm version upgrade |
 | `ak.realm.organization` | Organization-authorized Realm relationship statement or revocation |
 | `ak.realm.link` | Typed Realm link graph edge |

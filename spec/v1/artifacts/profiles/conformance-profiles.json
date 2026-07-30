@@ -1,6 +1,6 @@
 {
-  "version": "2026-07-30.3",
-  "generated_at": "2026-07-30T04:00:00Z",
+  "version": "2026-07-30.4",
+  "generated_at": "2026-07-30T09:30:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1405,6 +1405,50 @@
         "content_encryption_floor": "e2ee_required",
         "metadata_encryption_floor": "e2ee_required"
       },
+      "history_sharing_policy_fixed_baseline": {
+        "rationale": "A PCR MUST declare history_visibility=restricted, and zh/governance/history-visibility.md section 3 forbids an effective restricted visibility without an accepted ak.realm.history_sharing_policy. But a PCR can never publish one: realm_event_kind_policy is allowlist_only and does not list that kind, PCR genesis is the closed two-Event unit create + ak.device.authorize (managed Agent PCR genesis is a single create), and the post-bootstrap recovery-material gate admits only its own closed write set. This profile therefore supplies the effective value. Implementations MUST evaluate PCR history key share against this literal value; producers MUST NOT declare it on the Realm object (realm.schema.json is closed and has no history_sharing_policy property) and MUST NOT emit ak.realm.history_sharing_policy into a PCR.",
+        "value": {
+          "version": 1,
+          "default_key_share": "deny",
+          "pre_join_history": "rule_only",
+          "post_removal_recovery": "deny",
+          "allowed_key_sources": [
+            "own_device",
+            "verified_member_device",
+            "key_backup"
+          ],
+          "allowed_receiver_states": [
+            "active_member"
+          ],
+          "audit": {
+            "share_audit_event_required": true,
+            "access_audit_required": true
+          },
+          "restricted_rules": [
+            {
+              "rule_id": "principal_control_authorized_device",
+              "receiver_classes": [
+                "active_member"
+              ],
+              "allowed_history_visibility_values": [
+                "restricted"
+              ],
+              "range": "all_visible_at_t0",
+              "key_sources": [
+                "own_device",
+                "verified_member_device",
+                "key_backup"
+              ],
+              "history_scope": {
+                "kind": "realm"
+              },
+              "audit_required": true
+            }
+          ]
+        },
+        "release_range_clamp": "range=all_visible_at_t0 is the policy ceiling, not the released interval. The releasing side MUST additionally clamp to the receiving device's accepted ak.device.authorize frontier per zh/identity/key-management.md section 5.0.1 (PCR history key share release authorization) and MUST NOT release earlier or concurrent-branch epoch keys. Pre-authorize control state reaches a new device through the durable device-list / normalized principal view baseline, not through earlier epoch keys.",
+        "excluded_key_sources": "archive_node and recovery_service are deliberately absent: a PCR is security_class=high_assurance with federation_policy in {closed, restricted, quarantine}, and its history secrets MUST NOT be recoverable through a third-party archive or recovery service. Managed Agent PCR continuity uses the controller-owned mls_history backup, which is a key_backup source."
+      },
       "binding_invariants": [
         "realm_id MUST equal the principal_control_realm_id resolved for the principal DID.",
         "fields.purpose MUST be principal_control and schema_refs MUST contain ak.profile.principal_control_realm.v1.",
@@ -1414,7 +1458,9 @@
         "history_visibility MUST be restricted; new same-principal devices obtain prior control history via durable device-list / normalized principal view baseline and policy-gated MLS history key share, not by joining at the current epoch.",
         "Control events MUST bind principal_id / device_id / session grant audience to the same principal DID or an explicitly trusted recovery/session issuer.",
         "A managed Agent principal_control_realm_id and immutable requested_scope commitment MUST be verified from the unique ArkretPrincipalControlRealm DID service entry at accepted-at; the public entry fixes only realm_id, controller_did, authorization_ref and the domain-separated requested_scope_digest. The complete scope MUST come from a controller-signed verifier/audience/challenge-bound private disclosure whose digest matches that commitment. Implementation-private deterministic derivation or a service-local Agent row is not protocol evidence.",
-        "Managed Agent PCR genesis created_by and notary MUST equal the Agent DID; a controller authoring under delegation MUST be recorded as executed_by and MUST NOT synthesize an Agent signature."
+        "Managed Agent PCR genesis created_by and notary MUST equal the Agent DID; a controller authoring under delegation MUST be recorded as executed_by and MUST NOT synthesize an Agent signature.",
+        "The effective ak.realm.history_sharing_policy of a PCR is history_sharing_policy_fixed_baseline.value, supplied by this profile. Producers MUST NOT declare history_sharing_policy on the Realm object and MUST NOT emit ak.realm.history_sharing_policy into a PCR; that kind is absent from realm_event_kind_policy.allowed_event_kinds and the write MUST be rejected with principal_control_event_kind_forbidden.",
+        "A PCR MUST NOT carry a Realm alias. ak.realm.alias is absent from realm_event_kind_policy.allowed_event_kinds, so a PCR is addressable only by realm_id; a human-readable alias on an identity-infrastructure control stream would publish the principal's control Realm under a guessable name."
       ]
     },
     "ak.profile.core_event_store.v1": {

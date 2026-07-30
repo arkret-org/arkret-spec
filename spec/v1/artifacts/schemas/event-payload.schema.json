@@ -8528,6 +8528,42 @@
       },
       "additionalProperties": false
     },
+    "realm_alias_payload": {
+      "description": "Closed payload for ak.realm.alias, the ONLY wire carrier of a Realm alias. A declaration writes the complete canonical alias; {tombstone:true} is a durable value tombstone that removes the alias from effective resolution without erasing the cell history. realm.schema.json is closed and has no alias property, and ak.realm.create / ak.realm.update payloads MUST NOT carry one.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/realm_alias_declaration_payload"
+        },
+        {
+          "$ref": "#/$defs/realm_alias_tombstone_payload"
+        }
+      ]
+    },
+    "realm_alias_declaration_payload": {
+      "type": "object",
+      "required": [
+        "alias"
+      ],
+      "properties": {
+        "alias": {
+          "$ref": "string-profiles.schema.json#/$defs/canonical_handle",
+          "description": "Canonical realm alias <localpart>:<domain> (zh/discovery/object-addressing.md §3.3). Sigil-free: the display forms #general:acme.example and general@acme.example MUST NOT reach the wire. <domain> is the issuing authority and MUST be an authority domain of this Realm's trust_domain; a foreign-domain claim MUST be rejected with reason realm_alias_authority_mismatch."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_alias_tombstone_payload": {
+      "type": "object",
+      "required": [
+        "tombstone"
+      ],
+      "properties": {
+        "tombstone": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    },
     "realm_archive_payload": {
       "type": "object",
       "required": [

@@ -70,7 +70,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "a1f5f413d308cc31516785491545d7b44074d35889a6fb9ef888ef4f80ca1138"
+      "sha256": "71df0f60b8233dc2ea135d30df27882964f94c79cbc55a316eea52f4f0a141e1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -130,7 +130,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "19200fb3493a04ed396ec185109dda3afa4b28a12a6d963289b1cb8187f3808c"
+      "sha256": "39a2becbbfc0f60cfffc8f6120b1bedd40ac9d5ac516001e6695a23278647fb7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -142,7 +142,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
-      "sha256": "1470e48762f2b7d5a3a84815c3c03b6d897751c5b09365dc2d3d06df52a24933"
+      "sha256": "6b5ceb428d034e25e2619b97c68af544d317d81c01af38b2dc00a5025e4bb84a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
@@ -262,7 +262,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "90c10be300a44129989f3d5fb2d8bfd56f0bde59b976d30dc447585b5026a89e"
+      "sha256": "87b0c8912614d742e142ae2ad01357655f6d511fafc8aa1a8f3d44fe6cdf2008"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

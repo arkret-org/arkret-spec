@@ -224,7 +224,7 @@ Schema id: `ak.schema.realm.v1`
 
 - `ak.realm.create` 自身；
 - 紧邻的 founding grant（`ak.capability.grant`）；
-- 同批同 actor 的初始 facet follow-up：`ak.realm.join_rule`、`ak.realm.history_visibility`、`ak.realm.discovery`、`ak.realm.policy_bundle`、`ak.realm.plaintext_visible_services`；
+- 同批同 actor 的初始 facet follow-up：`ak.realm.join_rule`、`ak.realm.history_visibility`、`ak.realm.discovery`、`ak.realm.policy_bundle`、`ak.realm.plaintext_visible_services`、`ak.realm.history_sharing_policy`、`ak.realm.delivery_binding_policy`、`ak.realm.alias`。后三项在本列表内是**必需**而非便利：`history_visibility=restricted` 的 effective state 要求同批前序已接受一份 `ak.realm.history_sharing_policy`（[`../governance/history-visibility.md` §3](../governance/history-visibility.md)）；creator 的 `binding_source="realm_policy"` delivery binding 要求真实 `policy_event_ref`，该 policy Event 只能在同批（[`../governance/member-delivery-binding.md` §3.1.1](../governance/member-delivery-binding.md)）；alias 是 Realm 的唯一 wire 承载且不在 Realm object 内（[`../discovery/object-addressing.md` §3.3](../discovery/object-addressing.md)），创建时命名只能走同批 follow-up。该封闭列表与 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json) 的 bootstrap follow-up 免 basis 分支 MUST 逐条一致；
 - 同批由 creator 写入的 **bootstrap 初始成员 `ak.member.state{join}`**，含 1:1 Direct Conversation Realm 的 peer join（[`../identity/contact-and-direct-conversation.md` §6](../identity/contact-and-direct-conversation.md)）与 [`../governance/member-delivery-binding.md` §3.1.1](../governance/member-delivery-binding.md) 的 creator `join -> join` delivery-binding self-transition。
 
 不在该列表内的 Control Move 一律要求 `seal_basis`。PCR 则只允许上文 create + first-authorize 两项 shape；不得把普通 Realm follow-up 白名单或 founding grant混入 PCR bootstrap。批次结束后所有普通 Control Move 按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#5-control-move) 携带 basis。
@@ -350,6 +350,13 @@ Realm（ak.schema.realm.v1，schema 层统一）
 - Native Personal Agent 作为独立 principal 使用自己的 PCR，不得复用 controller PCR id。Agent DID 与 PCR id 的绑定、controller delegation、`actor_id` / `executed_by` authoring 和 agent/controller 控制事实落点以 [`identity/key-management.md` §4.1](../identity/key-management.md) 为权威；实现私有 deterministic id 派生不是验证证据。Profile allowlist 虽包含 Agent PCR 与 controller PCR 两组 agent-control kind，reducer 必须按 `agent_control_event_placement` 再做落点约束，不能把 allowlist 并集解释成跨 principal 通用写权限。
 - 跨 principal 写入（另一个 principal 的 device / session 状态）MUST `unauthorized` reject。
 - "私有"语义由 **用途 + event-kind allowlist** 锁定，不是 access control。PCR 在结构上允许 multi-member（该 principal 的所有设备 / agent）。
+- **history sharing policy 由 profile 固定，PCR 不声明也不发出（normative）**：PCR 必须 `history_visibility="restricted"`，而 [`../governance/history-visibility.md` §3](../governance/history-visibility.md) 要求 effective `restricted` 必须有一份已接受的 `ak.realm.history_sharing_policy`。但 PCR **无法**发出该 Event——`ak.realm.history_sharing_policy` 不在 profile 的 `realm_event_kind_policy.allowed_event_kinds` 内（`allowlist_only: true`），PCR genesis 是 create + `ak.device.authorize` 的封闭两条 unit（managed Agent PCR genesis 只有一条 create），bootstrap 后的 `recovery_material_pending` gate 又只允许它自己那个封闭写入集合（[`../identity/key-management.md` §5.0.1](../identity/key-management.md)）。因此 effective 值由 profile 提供：`ak.profile.principal_control_realm.v1` 的 `history_sharing_policy_fixed_baseline.value` 是该 PCR 的 effective `ak.realm.history_sharing_policy`，key source 与 reducer MUST 按该字面值求值。对应地：
+  - Realm object **MUST NOT** 声明 `history_sharing_policy`（`realm.schema.json` 闭合且无此属性，[`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json) 已登记 hard reject）；
+  - 向 PCR 提交 `ak.realm.history_sharing_policy` MUST `principal_control_event_kind_forbidden`；
+  - baseline 的 `restricted_rules[].range="all_visible_at_t0"` 只是 policy 上界，实际释放区间仍 MUST 按 [`../identity/key-management.md` §5.0.1](../identity/key-management.md) 的 "PCR history key share 释放授权" 收敛到接收设备 accepted `ak.device.authorize` 的 frontier；授权之前的控制历史由 durable device-list / normalized principal view baseline 提供，而不是更早的 epoch key；
+  - baseline 不含 `archive_node` / `recovery_service` key source：PCR 是 `high_assurance` 且非 open federation，其历史密钥 MUST NOT 经第三方 archive / recovery 服务恢复；managed Agent PCR 的连续性走 controller 持有的 `mls_history` backup（属 `key_backup` 来源）。
+  - 本条的规范执行向量是 `ak.vector.history_sharing.principal_control_profile_baseline.v1`。
+- **PCR 不得有 alias（normative）**：`ak.realm.alias` 同样不在 allowlist 内，PCR 只能按 `realm_id` 寻址；给身份基础设施控制流挂一个人类可读、可猜测的短地址会把 principal 的控制 Realm 公开暴露。写入 MUST `principal_control_event_kind_forbidden`。
 
 #### 2.8.2 Collaboration Realm
 

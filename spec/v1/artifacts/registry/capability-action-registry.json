@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-30.9",
+  "version": "2026-07-30.10",
   "source_of_truth": false,
-  "generated_at": "2026-07-30T05:56:00Z",
+  "generated_at": "2026-07-30T09:30:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1081,6 +1081,7 @@
       "target_event_kinds": [
         "ak.realm.organization",
         "ak.realm.link",
+        "ak.realm.alias",
         "ak.realm.policy",
         "ak.realm.join_rule",
         "ak.realm.history_visibility",
@@ -1105,6 +1106,18 @@
       ],
       "profile": null,
       "event_mapping_kind": "aggregate_admin"
+    },
+    {
+      "action": "ak.realm.alias",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm.alias"
+      ],
+      "profile": null,
+      "notes": "Claims, renames or tombstones the Realm's human-readable alias (ak.realm.alias event; projects ak.component.realm.alias.v1). high risk because an alias is the address users type and share: capturing or re-pointing one is a phishing / impersonation primitive. Holding ak.realm.admin (aggregate admin coverage) satisfies admission, or grant this specific action directly. See zh/discovery/object-addressing.md §3.3.",
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "ak.realm.archive",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-30.9",
+  "version": "2026-07-30.10",
   "source_of_truth": true,
-  "generated_at": "2026-07-30T05:56:00Z",
+  "generated_at": "2026-07-30T09:30:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -3733,6 +3733,25 @@
         ],
         "concurrency_class": "security_barrier"
       },
+      "ak.realm.alias": {
+        "plane": "control",
+        "sealed": true,
+        "cell_writes": [
+          {
+            "cell_family": "ak.component.realm.alias.v1",
+            "cell_subject": null,
+            "lattice": "cas_register",
+            "bottom": "reject",
+            "effect_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload"
+              }
+            }
+          }
+        ],
+        "concurrency_class": "security_barrier"
+      },
       "ak.realm.upgrade": {
         "plane": "control",
         "sealed": true,
@@ -5017,6 +5036,15 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Realm patch"
+      },
+      {
+        "event_kind": "ak.realm.alias",
+        "category": "realm",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Realm alias declaration or durable value tombstone. The declaration is the ONLY wire carrier of a Realm alias: realm.schema.json is closed and carries no alias property, and ak.realm.create / ak.realm.update payloads MUST NOT carry one. Declaration payloads and {tombstone:true} both set ak.component.realm.alias.v1 through the registered cas_register effect; effective resolution treats the tombstone as absence of an alias and falls back to realm_id-only addressing.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_alias_payload"
       },
       {
         "event_kind": "ak.realm.upgrade",
@@ -13812,6 +13840,7 @@
         "target_event_kinds": [
           "ak.realm.organization",
           "ak.realm.link",
+          "ak.realm.alias",
           "ak.realm.policy",
           "ak.realm.join_rule",
           "ak.realm.history_visibility",
@@ -13836,6 +13865,18 @@
         ],
         "profile": null,
         "event_mapping_kind": "aggregate_admin"
+      },
+      {
+        "action": "ak.realm.alias",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.realm.alias"
+        ],
+        "profile": null,
+        "notes": "Claims, renames or tombstones the Realm's human-readable alias (ak.realm.alias event; projects ak.component.realm.alias.v1). high risk because an alias is the address users type and share: capturing or re-pointing one is a phishing / impersonation primitive. Holding ak.realm.admin (aggregate admin coverage) satisfies admission, or grant this specific action directly. See zh/discovery/object-addressing.md §3.3.",
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "ak.realm.archive",

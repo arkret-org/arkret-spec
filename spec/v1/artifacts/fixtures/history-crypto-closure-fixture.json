@@ -13,7 +13,8 @@
     "ak.vector.disappearing.read_trigger_multi_aggregator_convergence.v1",
     "ak.vector.disappearing.on_last_read_offline_window.v1",
     "ak.vector.preview.token_scoped_stripped_state.v1",
-    "ak.vector.history_sharing.e2ee_prejoin_key_share_policy.v1"
+    "ak.vector.history_sharing.e2ee_prejoin_key_share_policy.v1",
+    "ak.vector.history_sharing.principal_control_profile_baseline.v1"
   ],
   "cases": [
     {
@@ -441,6 +442,104 @@
           "key_share_present": false,
           "expected": {
             "client_prejoin_event_state": "decryption_pending"
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.history_sharing.principal_control_profile_baseline.v1",
+      "assertions": [
+        "pcr_restricted_visibility_is_satisfied_by_the_profile_fixed_baseline_without_an_accepted_policy_event",
+        "pcr_realm_object_must_not_declare_history_sharing_policy",
+        "pcr_must_not_emit_ak_realm_history_sharing_policy",
+        "pcr_release_range_is_clamped_to_the_receiving_device_authorize_frontier",
+        "pcr_baseline_excludes_archive_node_and_recovery_service_key_sources",
+        "ordinary_collaboration_realm_has_no_implied_baseline"
+      ],
+      "scenarios": [
+        {
+          "name": "pcr_authorized_device_gets_history_key_from_profile_baseline",
+          "realm_profile": "ak.profile.principal_control_realm.v1",
+          "history_visibility": "restricted",
+          "history_sharing_policy": "profile_fixed_baseline",
+          "accepted_history_sharing_policy_event_present": false,
+          "receiver_class": "active_member",
+          "receiver_state_valid": true,
+          "receiver_device_authorize_accepted": true,
+          "key_source": "verified_member_device",
+          "expected": {
+            "decision": "share_key",
+            "matched_restricted_rule_id": "principal_control_authorized_device",
+            "history_sharing_policy_missing_raised": false,
+            "released_range_baseline": "receiver_device_ak_device_authorize_accepted_frontier"
+          }
+        },
+        {
+          "name": "pcr_managed_agent_single_event_genesis_still_has_an_effective_policy",
+          "realm_profile": "ak.profile.principal_control_realm.v1",
+          "genesis_shape": "single_ak_realm_create",
+          "history_visibility": "restricted",
+          "history_sharing_policy": "profile_fixed_baseline",
+          "accepted_history_sharing_policy_event_present": false,
+          "expected": {
+            "decision": "accept_genesis",
+            "history_sharing_policy_missing_raised": false
+          }
+        },
+        {
+          "name": "pcr_object_declares_history_sharing_policy",
+          "realm_profile": "ak.profile.principal_control_realm.v1",
+          "mutation": "ak.realm.create carries payload.object.history_sharing_policy",
+          "expected": {
+            "decision": "reject",
+            "reason": "schema_violation"
+          }
+        },
+        {
+          "name": "pcr_emits_history_sharing_policy_event",
+          "realm_profile": "ak.profile.principal_control_realm.v1",
+          "mutation": "submit ak.realm.history_sharing_policy into the PCR",
+          "expected": {
+            "decision": "reject",
+            "reason": "principal_control_event_kind_forbidden"
+          }
+        },
+        {
+          "name": "pcr_release_before_device_authorize_frontier",
+          "realm_profile": "ak.profile.principal_control_realm.v1",
+          "history_visibility": "restricted",
+          "history_sharing_policy": "profile_fixed_baseline",
+          "receiver_class": "active_member",
+          "key_source": "verified_member_device",
+          "requested_range": "epochs_earlier_than_receiver_device_authorize_frontier",
+          "release_range_clamp": "range=all_visible_at_t0 is the policy ceiling; the release interval is clamped by the key-management PCR history key share release authorization",
+          "expected": {
+            "decision": "withhold",
+            "reason": "policy_denied"
+          }
+        },
+        {
+          "name": "pcr_archive_node_source",
+          "realm_profile": "ak.profile.principal_control_realm.v1",
+          "history_visibility": "restricted",
+          "history_sharing_policy": "profile_fixed_baseline",
+          "receiver_class": "active_member",
+          "key_source": "archive_node",
+          "expected": {
+            "decision": "withhold",
+            "reason": "policy_denied"
+          }
+        },
+        {
+          "name": "ordinary_realm_restricted_without_policy_event",
+          "realm_profile": null,
+          "history_visibility": "restricted",
+          "history_sharing_policy": null,
+          "accepted_history_sharing_policy_event_present": false,
+          "baseline_scope": "only ak.profile.principal_control_realm.v1 supplies a profile-fixed baseline",
+          "expected": {
+            "decision": "reject",
+            "reason": "history_sharing_policy_missing"
           }
         }
       ]

@@ -1166,6 +1166,73 @@
       "vector_id": "ak.vector.seal.same_batch_bottom_reject_serialization.v1"
     },
     {
+      "name": "realm_alias_single_carrier",
+      "vector_id": "ak.vector.event_kind.realm_alias_single_carrier.v1",
+      "description": "A Realm alias has exactly one wire carrier. ak.realm.alias sets ak.component.realm.alias.v1 (cas_register, cell_subject=null, bottom=reject); the closed realm.schema.json object and the ak.realm.create / ak.realm.update payloads carry no alias, and no implementation may keep a fallback input chain over several shapes.",
+      "required_projected_writes": [
+        {
+          "cell": "ak:cell:ak.component.realm.alias.v1:null",
+          "op_kind": "set"
+        }
+      ],
+      "expected": {
+        "declaration_payload": {
+          "alias": "general:acme.example"
+        },
+        "create_time_alias_shape": "same ordered submit batch after ak.realm.create and the founding grant, seal_basis exempt as a registered bootstrap follow-up",
+        "post_bootstrap_alias_shape": "ordinary Control Move carrying seal_basis",
+        "rename_shape": "successor set on the same cell carrying whole-value head_eq",
+        "release_shape": "explicit {tombstone:true} set; effective resolution treats it as absence and the Realm stays addressable only by realm_id",
+        "resolution_source": "resolve_realm / resolve_target / ak.edge.applet.realm.query.resolve read the effective cell; directory rows are a projection, not a second source of truth",
+        "authorized_by": [
+          "ak.realm.alias",
+          "ak.realm.admin"
+        ]
+      },
+      "negative_cases": [
+        {
+          "name": "alias_on_realm_object",
+          "mutation": "ak.realm.create carries payload.object.alias",
+          "expected": "schema_violation (realm.schema.json is closed and explicitly forbids alias)"
+        },
+        {
+          "name": "alias_in_realm_patch",
+          "mutation": "ak.realm.update carries payload.patch.alias",
+          "expected": "schema_violation"
+        },
+        {
+          "name": "alias_at_payload_top_level",
+          "mutation": "a Realm lifecycle Event carries payload.alias or payload.realm_alias",
+          "expected": "schema_violation"
+        },
+        {
+          "name": "foreign_authority_domain",
+          "mutation": "declaration alias domain is not an authority domain of this Realm trust_domain",
+          "expected": "failed_precondition with reason realm_alias_authority_mismatch"
+        },
+        {
+          "name": "alias_held_by_another_realm",
+          "mutation": "declare a canonical alias already held by a different Realm in the same authority realm-alias namespace",
+          "expected": "failed_precondition with reason realm_alias_taken; the alias MUST NOT be re-pointed and the holder MUST tombstone first"
+        },
+        {
+          "name": "same_string_occupied_in_handle_namespace",
+          "mutation": "declare an alias whose canonical string is an existing handle at the same authority",
+          "expected": "accepted; the handle and realm-alias namespaces are disjoint and no cross-registry uniqueness check exists"
+        },
+        {
+          "name": "concurrent_distinct_alias_declarations",
+          "mutation": "two mutually unreachable ak.realm.alias set Moves declare different aliases for the same Realm",
+          "expected": "bottom_conflict (cas_register bottom=reject); resolution fails closed instead of picking a winner"
+        },
+        {
+          "name": "alias_in_principal_control_realm",
+          "mutation": "submit ak.realm.alias into a Principal Control Realm",
+          "expected": "principal_control_event_kind_forbidden (the kind is absent from the PCR allowlist)"
+        }
+      ]
+    },
+    {
       "name": "realm_create_projection_closure",
       "vector_id": "ak.vector.event_kind.realm_create_projection_closure.v1",
       "description": "ak.realm.create deterministically projects all four registered writes, so two independent implementations recompute a byte-identical genesis state_root without producer-supplied reducer state.",

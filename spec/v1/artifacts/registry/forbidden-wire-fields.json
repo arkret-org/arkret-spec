@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 1,
+  "version": 2,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -3265,6 +3265,42 @@
         "negative_test"
       ],
       "notes": "The reserved stage field is limited to the protocol 8-value Strand/Morph progress axis."
+    },
+    {
+      "id": "alias",
+      "context": "realm_object_or_realm_lifecycle_payload",
+      "since_revision": "2026-07-30",
+      "rejection_level": "hard_reject",
+      "replacement": "ak.realm.alias",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "realm.schema.json is a closed object (unevaluatedProperties:false) and has no alias property. A Realm alias has exactly one wire carrier: the ak.realm.alias Event. ak.realm.create payload.object.alias, ak.realm.update payload.patch.alias, and a payload top-level alias / realm_alias on any Realm lifecycle Event MUST all be rejected; accepting several input shapes for one fact is how create-time alias diverged from the closed schema. See zh/discovery/object-addressing.md §3.3."
+    },
+    {
+      "id": "realm_alias",
+      "context": "realm_object_or_realm_lifecycle_payload",
+      "since_revision": "2026-07-30",
+      "rejection_level": "hard_reject",
+      "replacement": "ak.realm.alias",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Prefixed spelling of the forbidden Realm lifecycle alias field. The ak.realm.alias declaration payload field is named alias; there is no realm_alias wire field on any Event payload."
+    },
+    {
+      "id": "history_sharing_policy",
+      "context": "realm_object",
+      "since_revision": "2026-07-30",
+      "rejection_level": "hard_reject",
+      "replacement": "ak.realm.history_sharing_policy",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "The Realm E2EE history sharing policy is a mutable policy facet cell (ak.component.realm.history_sharing_policy.v1), never a create-locked property of the closed realm.schema.json object. Principal Control Realms do not declare it at all: the ak.profile.principal_control_realm.v1 profile fixes the effective baseline value (zh/models/realm-and-space.md §2.8.1)."
     }
   ]
 }

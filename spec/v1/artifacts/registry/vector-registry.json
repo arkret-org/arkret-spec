@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-30.5",
+  "version": "2026-07-30.6",
   "source_of_truth": true,
-  "generated_at": "2026-07-30T04:00:00Z",
+  "generated_at": "2026-07-30T09:30:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2271,6 +2271,20 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.history_sharing.principal_control_profile_baseline.v1",
+      "status": "active",
+      "domain": "history_sharing",
+      "applies_to_fixtures": [
+        "history-crypto-closure-fixture.json"
+      ],
+      "description": "A Principal Control Realm takes its effective ak.realm.history_sharing_policy from the ak.profile.principal_control_realm.v1 fixed baseline: restricted visibility is satisfied without an accepted policy Event, the Realm object must not declare the policy, the PCR must not emit the policy Event, release is clamped to the receiving device's ak.device.authorize frontier, and ordinary Collaboration Realms get no implied baseline.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
+        "spec/v1/zh/governance/history-visibility.md",
+        "spec/v1/zh/models/realm-and-space.md"
       ]
     },
     {
@@ -4822,6 +4836,19 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/conformance/encoding.md",
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.event_kind.realm_alias_single_carrier.v1",
+      "status": "active",
+      "domain": "event_kind",
+      "applies_to_vector_groups": [
+        "ak.vector_group.cba_lattice.v1"
+      ],
+      "description": "ak.realm.alias is the only wire carrier of a Realm alias: declaration / tombstone shapes, the create-time bootstrap follow-up and post-bootstrap seal_basis shapes, head_eq rename, issuer-authority binding, namespace occupancy, disjointness from the handle namespace, cas_register bottom on concurrent distinct declarations, and rejection of alias on the closed Realm object or in a PCR.",
+      "source_refs": [
+        "spec/v1/zh/discovery/object-addressing.md",
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
     },
     {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-30.9",
+  "version": "2026-07-30.10",
   "source_of_truth": false,
-  "generated_at": "2026-07-30T05:56:00Z",
+  "generated_at": "2026-07-30T09:30:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -257,6 +257,42 @@
         },
         "expected_prestate": {
           "field": "payload.expected_state_digest"
+        }
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
+    },
+    {
+      "event_kind": "ak.realm.alias",
+      "category": "realm",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Realm alias declaration or durable value tombstone. The declaration is the ONLY wire carrier of a Realm alias: realm.schema.json is closed and carries no alias property, and ak.realm.create / ak.realm.update payloads MUST NOT carry one. Declaration payloads and {tombstone:true} both set ak.component.realm.alias.v1 through the registered cas_register effect; effective resolution treats the tombstone as absence of an alias and falls back to realm_id-only addressing.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_alias_payload",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.realm.alias.v1",
+          "cell_subject": null,
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier",
+      "cell_family": "ak.component.realm.alias.v1",
+      "cell_subject": null,
+      "effect_projection": {
+        "kind": "set",
+        "value": {
+          "field": "payload"
         }
       },
       "lattice": "cas_register",
