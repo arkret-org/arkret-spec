@@ -3408,7 +3408,7 @@
           "$ref": "#/$defs/SessionGrantDpopBindingProof",
           "description": "`ak.profile.agent_auth.v1` overlay. DPoP proof JWT for the holder key that the issued session grant will bind to. REQUIRED when `proof.proof_kind=\"agent_key_proof\"`; the Account Authority verifies the proof and materializes the resulting JWK thumbprint into the issued grant's `cnf.jkt` / session_public_key binding."
         },
-        "applet_delegation": {
+        "applet_authority": {
           "$ref": "#/$defs/SessionGrantAppletDelegation",
           "description": "Applet-specific delegated session binding. When present, the session grant, proof digest, persistence row, introspection metadata, and revoke selector are bound to the same applet_id, effective_scope, and registration_epoch."
         },

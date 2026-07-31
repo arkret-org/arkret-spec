@@ -1192,6 +1192,15 @@
             "created_at": "2026-05-20T00:00:00.000Z",
             "jws": "a..b"
           }
+        ],
+        "issuer_authority_refs": [
+          {
+            "kind": "realm_root",
+            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+            "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
+            "controller_epoch_at_issuance": 0,
+            "authority_generation": 0
+          }
         ]
       }
     },

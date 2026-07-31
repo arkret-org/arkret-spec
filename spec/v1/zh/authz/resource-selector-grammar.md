@@ -266,7 +266,7 @@ Shorthand 中位于对象-id 位置的 `*` 只表示“省略对应 canonical id
 `realm:*`
 
 - 匹配：所有可评估 Realm。
-- 要求：SHOULD 始终配合短有效期、`max_delegation_depth=0`、审批和审计理由。
+- 要求：SHOULD 始终配合短有效期、`max_authority_depth=0`、审批和审计理由。
 
 ### 4.2 Space 选择器
 
@@ -563,14 +563,14 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 **治理面 wildcard 硬约束（normative）**：`policy:*`、`schema:*` 以及覆盖治理对象的 `object:*:policy` / `object:*:schema` 等通配，会把 policy / schema 管理面授权扩大到整个 Realm 的全部 policy / schema 对象，是与 `actor:*` 同级的高危授权放大面。因此这些治理面 wildcard **MUST** 满足以下二者之一，否则 receiver / reducer **MUST** 以 `schema_violation` + `selector_governance_wildcard_forbidden` 拒绝：
 
 - **被拒绝**：部署 policy 声明不允许治理面 wildcard 时，`policy:*` / `schema:*` / 治理 `object` wildcard 一律 **MUST** 拒绝；或
-- **被强收窄**：grant **MUST** 同时携带 `max_delegation_depth=0`（不可再委托）与有限 `effective_expires_at`（不得无限期），且 **MUST** 配管理员审批与审计理由。
+- **被强收窄**：grant **MUST** 同时携带 `max_authority_depth=0`（不可再委托）与有限 `effective_expires_at`（不得无限期），且 **MUST** 配管理员审批与审计理由。
 
 非治理面 wildcard（`realm:*`、`object:*:<非治理类型>` 等）的缓解措施：
 
 - 始终配合 `expires_at` 使用。
 - 与 `allowed_object_kinds`、`allowed_space_kinds`、`allowed_morph_kinds`、`allowed_facets`、`allowed_tracks` 等约束组合。
 - 要求管理员审批与审计理由。
-- `max_delegation_depth` SHOULD 为 0。
+- `max_authority_depth` SHOULD 为 0。
 
 ### 8.2 非 canonical selector domain
 

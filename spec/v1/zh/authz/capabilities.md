@@ -67,6 +67,15 @@ ID 语义：
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "issuer": "did:webvh:z6qRDFWgaBgTY3UGDLivJztno:acme.example.com",
   "subject": "did:webvh:z8NNMm8UHw7JcDSuuZd34UisF:agent.copy.example.com",
+  "issuer_authority_refs": [
+    {
+      "kind": "realm_root",
+      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+      "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
+      "controller_epoch_at_issuance": 0,
+      "authority_generation": 0
+    }
+  ],
   "actions": [
     "ak.strand.read",
     "ak.strand.update",
@@ -125,9 +134,9 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 
 ### 3.2 首发 grant 的 issuer 自身权限上界（normative）
 
-委派路径（`ak.capability.delegate` 派生 grant）由 §10.1 强制 `child.actions[] ⊆ parent.actions[]`、resources 收窄等上界约束，防止再授权扩权。**链首的首发 grant（`ak.capability.grant`，无 `parent_grant_id`）受对称的 issuer 自身权限上界约束**：仅持有 `ak.capability.grant` action 本身**不足以**签发任意 grant。
+以 `kind="grant"` ref 签出的 grant 由 §10.1 强制逐 action 的 `child.actions[] ⊆ union(refs.actions)`、resources 收窄等上界约束，防止再授权扩权。**以 `kind="realm_root"` ref 签出的 grant 受对称的 issuer 自身权限上界约束**：仅持有 `ak.capability.grant` action 本身**不足以**签发任意 grant。两条路径是同一种 grant，只是 `issuer_authority_refs[]` 的 ref 类型不同。
 
-签发首发（非 delegate 派生）`ak.capability.grant` 时，reducer **MUST** 校验：grant 的 `actions[]` 与 `resources[]` 所表达的能力 **MUST ⊆** issuer 在签发时点（按该 grant 的 seal basis / `auth_state_digest`）**自身有效持有**的 effective capability。effective capability 的来源是一个**封闭列表**：active 上游 grant（含 `ak.realm.admin` / `ak.policy.manage` 等 admin capability 与 `ak.realm.owner` co-owner grant），或本节下文的 Realm authority-root cell current controller。**membership、`created_by`、Realm 角色标签与任何 `realm_state.owner` 一类投影镜像都不是授权来源**，MUST NOT 参与该判定。issuer 不得签发授予他人超出自身持有能力的 grant。
+签发以 `realm_root` ref 为根的 `ak.capability.grant` 时，reducer **MUST** 校验：grant 的 `actions[]` 与 `resources[]` 所表达的能力 **MUST ⊆** issuer 在签发时点（按该 grant 的 seal basis / `auth_state_digest`）**自身有效持有**的 effective capability。effective capability 的来源是一个**封闭列表**：active 上游 grant（含 `ak.realm.admin` / `ak.policy.manage` 等 admin capability 与 `ak.realm.owner` co-owner grant），或本节下文的 Realm authority-root cell current controller。**membership、`created_by`、Realm 角色标签与任何 `realm_state.owner` 一类投影镜像都不是授权来源**，MUST NOT 参与该判定。issuer 不得签发授予他人超出自身持有能力的 grant。
 
 聚合 admin action（如 `ak.realm.admin` / `ak.policy.manage`）在该上界校验中的展开 **MUST** 以 issuer grant 的签名 / registry basis 为锚：reducer 先解析 child grant 每个 `actions[]` 的 `target_event_kinds`，再在同一 registry basis 下解析 issuer 持有的聚合 action 覆盖集。issuer 字面持有 child action 时可直接满足上界；issuer 仅持有聚合 action 时，只有当该聚合 action 在该 basis 的 effective coverage set 覆盖 child action 的全部 `target_event_kinds`，且 issuer resources / constraints 覆盖 child resources / constraints 时，才视为满足上界。覆盖集为空（`target_event_kinds == []`）的 child action **MUST NOT** 由任何聚合满足——空集是任意集合的子集，若不显式拦下，每个非事件面 action 都会被每个聚合"覆盖"。历史聚合 grant **MUST NOT** 自动继承后来 registry 新增的 `target_event_kinds`；新增覆盖必须按 §5.0.1 重新签发或通过显式 opt-in 绑定新的 registry digest。聚合展开 **MUST NOT** 授权 `event_mapping_kind="non_event_surface"` 的 child action；这类 action 只有三个已注册的上界来源：issuer 字面持有相同 action、由 profile 显式声明的非事件面授权规则覆盖，或由下文 Realm owner authority 的 `grant_authority_actions` 逐字命中。
 
@@ -326,8 +335,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.schema.define`
 - `ak.schema.update`
 - `ak.capability.grant`
-- `ak.capability.delegate`
-- `ak.capability.derived`（risk_tier=medium；记录从 parent grant 机械派生出的 child grant 记录，target=`ak.capability.derived`。与 `ak.capability.delegate` 的区别：`delegate` 是“主体主动再授权第三方”的授权动作，`derived` 仅承载 reducer / 工具按既有委托规则物化出的派生 grant 记录，不引入新的授权意图）
+- `ak.capability.derived`（risk_tier=medium；记录 reducer 按 Realm link inheritance policy 机械物化出的 grant 记录，target=`ak.capability.derived`。它标记 `reducer_only`：任何 principal 都不得 author 它，因此它与 `ak.capability.grant` 的区别不是“谁再授权谁”，而是“谁写的”——`grant` 承载主体的授权意图并按 §10 的 issuer authority 规则求值，`derived` 只承载 reducer 依 [`realm-links.md` §6](../models/realm-links.md) 物化的派生记录，不引入新的授权意图）
 - `ak.capability.revoke`
 - `ak.agent.key.authorize`（high risk；授权 agent key，target=`ak.agent.key.authorize`。key 替换不设独立 rotate action：runtime replacement 的 controller-signed authorize Event 必须用精确 `supersedes[]` 列出全部既有 active authorization；reducer 接受该单一 Event 时原子 observe-remove，见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md)）
 - `ak.agent.key.revoke`（high risk；撤销 agent key，target=`ak.agent.key.revoke`）
@@ -459,12 +467,12 @@ Arkret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 - `allowed_data_labels`
 - `allowed_endpoints`
 
-**delegation_control**（普通委托控制求值规则见 [`constraint-schema.md` §7.4](./constraint-schema.md)：`prohibit_subdelegation=true` ⇒ child `max_delegation_depth` MUST=0；`scope_expansion_allowed=true` 在 v1 MUST 被 reducer 拒绝（`schema_violation`，与 §10.1 收窄不变量矛盾）；`delegation_scope` 三值 `narrowing_only`/`same_scope`/`custom` 各自校验规则；Applet grant 绑定见同文 §7.3）
+**authority_control**（普通委托控制求值规则见 [`constraint-schema.md` §7.4](./constraint-schema.md)：`authority_regrant_allowed=true` ⇒ child `max_authority_depth` MUST=0；`scope_expansion_allowed=true` 在 v1 MUST 被 reducer 拒绝（`schema_violation`，与 §10.1 收窄不变量矛盾）；`authority_scope` 三值 `narrowing_only`/`same_scope`/`custom` 各自校验规则；Applet grant 绑定见同文 §7.3）
 
-- `max_delegation_depth`
-- `delegation_path`
-- `prohibit_subdelegation`
-- `delegation_scope`
+- `max_authority_depth`
+- `authority_path`
+- `authority_regrant_allowed`
+- `authority_scope`
 - `scope_expansion_allowed`
 - `parent_reference_required`
 
@@ -560,12 +568,12 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 | `message_edit_window` | `temporal` | `edit_window` | `message_edit_window` |
 | `message_redact_window` | `temporal` | `redact_window` | `message_redact_window` |
 | `redact_after_window_allowed` | `temporal` | `edit_window` / `redact_window` | `redact_after_window_allowed`（窗口修饰符，见 [`constraint-schema.md` §14.2](./constraint-schema.md)） |
-| `max_delegation_depth` | `delegation_control` | — | `max_delegation_depth` |
-| `delegation_path` | `delegation_control` | — | `delegation_path`（委托链 DID 路径约束，见 [`constraint-schema.md` §7](./constraint-schema.md)） |
-| `prohibit_subdelegation` | `delegation_control` | — | `prohibit_subdelegation` |
-| `delegation_scope` | `delegation_control` | — | `delegation_scope`（`narrowing_only` / `same_scope` / `custom`） |
-| `scope_expansion_allowed` | `delegation_control` | — | `scope_expansion_allowed` |
-| `parent_reference_required` | `delegation_control` | — | `parent_reference_required` |
+| `max_authority_depth` | `authority_control` | — | `max_authority_depth` |
+| `authority_path` | `authority_control` | — | `authority_path`（委托链 DID 路径约束，见 [`constraint-schema.md` §7](./constraint-schema.md)） |
+| `authority_regrant_allowed` | `authority_control` | — | `authority_regrant_allowed` |
+| `authority_scope` | `authority_control` | — | `authority_scope`（`narrowing_only` / `same_scope` / `custom`） |
+| `scope_expansion_allowed` | `authority_control` | — | `scope_expansion_allowed` |
+| `parent_reference_required` | `authority_control` | — | `parent_reference_required` |
 | `rate_limit` | `quota` | `rate` | `max_operations`, `period`, `constraint_scope`, `burst` |
 | `resource_limit` | `quota` | `resource` | `max_resources`, `resource_kind`, `constraint_scope`（scope 内累计资源数量上限） |
 | `max_total_blob_bytes` | `quota` | `resource` | `max_total_blob_bytes`, `constraint_scope`（scope 内累计字节上限） |
@@ -623,7 +631,7 @@ Capability 必须支持“有直接身份但需要责任主体/监护主体/控�
 风险分层硬约束：
 
 - `risk_tier=high` 的 action MUST 有 `expires_at`、resource selector narrowing、authorization evidence ref 与 audit evidence。
-- 对需要更高保证的 high-risk action，profile MAY 要求显式 approval / proposal workflow、默认不可转授（无 `delegation_control` 约束，等价 `max_delegation_depth=0`）、更短 child grant TTL、不可扩大 scope 和 approver DID 记录；该要求 MUST NOT 通过 registry 未定义的第四级风险字符串表达。
+- 对需要更高保证的 high-risk action，profile MAY 要求显式 approval / proposal workflow、默认不可转授（无 `authority_control` 约束，等价 `max_authority_depth=0`）、更短 child grant TTL、不可扩大 scope 和 approver DID 记录；该要求 MUST NOT 通过 registry 未定义的第四级风险字符串表达。
 - Agent / service principal 的 grant 无论 action 风险级别如何，默认 MUST 有 resource selector；缺失时 reducer MUST `failed_precondition`。
 - Agent / service principal 的 grant 的 `expires_at` 分层要求:`risk_tier=high` 的 action 按上文风险分层硬约束 MUST 有有限 `expires_at`;registry `required_constraints` 列出 `expires_at` 的 action(如 `ak.agent.sidecar.publish`)同样 MUST,缺失时 reducer MUST `failed_precondition`。**低 / 中风险** action 的 agent grant MAY 不设时间过期(longevity-safe:失效控制由撤销链、pause / deactivate kill switch 与 controller lifecycle / membership 级联承担，见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md));agent 的常驻工作面(read / draft / reply_as_agent / organizer)全部落在该层，因此配对完成后的持续在线不依赖任何 grant 定时器。
 
@@ -693,68 +701,98 @@ canonical 展开表:
 
 > 上表 canonical actions 与 required constraints 以 [`../../artifacts/registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 为准。当 registry 声明某 action 的 `required_constraints` 或 `risk_tier` 变化时，本表 MUST 随之更新；二者冲突时以 registry 为权威。
 
-## 10. Delegation
+## 10. Issuer authority
 
-委托表示 subject 可以将其能力的一部分再授予第三方。
+v1 只有**一种** grant 形态。每条 grant 用 `issuer_authority_refs[]` 记录它是凭什么被签出的：
 
-若 `max_delegation_depth = 0`，则 MUST NOT 继续委托。
-若大于 0，则：
+| | root controller 直发 | 普通 principal 再授予 |
+| --- | --- | --- |
+| ref | `{kind:"realm_root", realm_id, cell_ref, controller_epoch_at_issuance, authority_generation}` | 一个或多个 `{kind:"grant", grant_id}` |
+| issuer 证明 | 签发 Seal basis 下 root cell 的 `controller_id == issuer` | 每条 ref 的 `subject == issuer` |
+| 持续有效性 | root 存在、Realm 未终止且 `authority_generation` 与 ref 相同；controller transfer 不影响 | 该 ref grant 当前 active |
+| 上界 | root owner ceiling ∩ Realm policy | union(ref grants) ∩ Realm policy |
 
-- 每次再授权 MUST 递减深度。
-- 再授权 MUST NOT 扩大原始资源范围和动作范围。
-- 委托链 MUST 可验证。
+wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是全部差异。`realm_root` 是有根终点，`grant` 是一条边。
 
-### 10.1 时效收窄（normative）
+`issuer_authority_refs[]` MUST 非空、canonical 去重，且 reducer MUST 拒绝不贡献任何覆盖的冗余 ref。所有 ref 的能力并集 MUST 覆盖 child 的全部 (action, resource)；标记 `root_control_only` 的 action 永远不能成为 child（见 §3.2）。
 
-`ak.capability.delegate` 派生 grant **MUST** 满足时间窗口收窄,reducer 校验:
+若某条 ref 的 `authority_control` constraint 声明 `authority_regrant_allowed=false`，则以它为 ref 的 grant MUST 把 `max_authority_depth` 置 0，且 MUST NOT 再被任何 grant 引用为 ref；违反时 reducer MUST 以 `failed_precondition` reason=`authority_regrant_denied` 拒绝。
 
-| 子 grant 字段 | 与 parent grant 关系 |
+**求值时机（normative）**：child grant 的有效性在**每次授权判定时**按当前 refs 状态重算，不做级联写。`kind="grant"` ref 失活按 action 传播；`kind="realm_root"` ref 只检查 cell 存在、Realm 未终止且当前 `authority_generation` 与 ref 相同，**不比较** current controller / epoch。因此 `ak.realm.owner.transfer` 不影响任何既有 child，只有 `ak.realm.authority.reset` 才整代失效。
+
+**审计（normative）**：reducer MUST 从 refs 结构派生并物化两个字段，二者都不是作者声明，因此不可谎报：
+
+- `authority_depth`：`realm_root` ref 深度为 0，grant 自身为 `max(refs.authority_depth) + 1`。root controller 直发为 1，成员再授予为 2。取签发时静态值，撤销不重算——撤销只改有效性、不改历史结构；实际链深可能小于记录值，对 `max_authority_depth` 判定是偏严方向。
+- `authority_root_refs[]`：direct `realm_root` refs 并上 `union(grant_refs.authority_root_refs)`。它**不是单值**——多亲与 `ak.capability.derived` 的跨 Realm 继承都可能追溯到不同 root / generation。去重键为 `(realm_id, cell_ref, authority_generation)`，MUST 按 unsigned-byte lexicographic 排序；`controller_epoch_at_issuance` 属每条 grant 的 issuance audit，不进入 root identity 去重键。
+
+两者 MUST 登记进 `ak.capability.grant` 的 `cell_writes[]`（见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `cell_contracts`）——未登记的 reducer 顺带写入 MUST NOT 进入 `state_root`（[`realm-and-space.md`](../models/realm-and-space.md)）。refs 指向的 grant 尚未投影时 depth / roots 算不出，MUST 走 dependency pending 或 `temporarily_unavailable`，**MUST NOT** 猜一个深度。
+
+审计因此退化为单字段过滤（"权限扩散了几跳、根在哪里"），不需要递归 join，也不会因为各实现自行递归重建而在联邦对端得到不一致的视图。
+
+### 10.1 时效与约束收窄（normative）
+
+收窄**逐 action 判定**：对 child 的每个 action，窗口与约束以**覆盖该 action 的 refs** 为准。全局取 min/max 会让只被晚窗口 ref 覆盖的 action 借到早窗口，反之亦然。
+
+| 子 grant 字段 | 与覆盖该 action 的 refs 的关系 |
 | --- | --- |
-| `effective_not_before` | MUST ≥ `parent.effective_not_before` |
-| `effective_expires_at` | MUST 存在且 ≤ `parent.effective_expires_at`(无限期 parent MUST NOT 直接作为无 seal 的 delegation source,见下方"固定 seal 防滚动续期"段；若 parent 未声明 finite effective upper bound,delegate 时 child MUST 自带 `expires_at` 或 temporal `expires_at`)。**注意：仅"child 自带 `expires_at` ≤ `now + max_delegation_lifetime_ms`"不足以防滚动续期；整条 child 链每一级的 `effective_expires_at` 还 MUST ≤ 不可刷新的固定 `delegation_expiry_seal`，见下方"固定 seal 防滚动续期"段。** |
-| `max_delegation_depth` | MUST ≤ `parent.max_delegation_depth - 1` |
-| `actions[]` | MUST ⊆ `parent.actions[]` |
-| `resources[]` | MUST 是 `parent.resources[]` 的 selector-narrowing 子集(见 `resource-selector-grammar.md`) |
-| `constraints[]` | MUST 至少包含 parent 的所有 deny / require / quarantine constraints; MAY 增加更严格的 allow constraints |
+| `effective_not_before` | MUST ≥ 覆盖该 action 的 refs 中最早的 `effective_not_before` |
+| `effective_expires_at` | MUST ≤ 覆盖该 action 的 refs 中最晚的 `effective_expires_at`；该 action 按 §8 分层必须有限期而所有覆盖它的 ref 都无 finite upper bound 时，见下方"固定 seal 防滚动续期" |
+| `max_authority_depth` | MUST ≤ `min(grant_refs.max_authority_depth) - 1`。未声明视为**无限**；`realm_root` ref 无 grant-local depth。若需要 Realm 级默认上限，MUST 先在 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 注册可选字段再引用，不得引用未注册的"root policy 上限"概念 |
+| `actions[]` | MUST ⊆ union(refs 的 actions)（`realm_root` ref 贡献该 root 的 owner ceiling） |
+| `resources[]` | MUST 是 union(refs 的 resources) 的 selector-narrowing 子集（见 [`resource-selector-grammar.md`](./resource-selector-grammar.md)） |
+| `constraints[]` | MUST 至少包含覆盖该 action 的各 `grant` ref 的全部 deny / require / quarantine constraints 的并集（更严者胜）；MAY 增加更严格的 allow constraints。`realm_root` ref 没有 grant-local constraint，只提供同 generation 的 owner ceiling |
 
-违反任何一项 reducer MUST 返回 `failed_precondition` reason=`delegation_expiry_widening`(对窗口),或 `schema_violation`(对 actions / resources / constraints 越界)。
+违反窗口项 reducer MUST 返回 `failed_precondition` reason=`authority_expiry_widening`；违反 actions / resources / constraints 越界返回 `schema_violation`。
 
-**固定 seal 防滚动续期（normative）**：仅靠"child 自带 `expires_at` ≤ `now + max_delegation_lifetime_ms`"不足以约束无限期 parent——parent 可以每 `max_delegation_lifetime_ms` 自我 re-delegate 一次，每次都让 child 取得一个新的 `now + 24h`，从而把"无 finite upper bound 的 parent"漂白成事实无限期的 child 链。为关闭该面，无 finite effective upper bound 的 parent grant **MUST NOT** 直接作为 delegation source；任何从它派生的 child 链 MUST 绑定一个**固定 `delegation_expiry_seal`**，且整条链每一级的 `effective_expires_at` **MUST** ≤ `delegation_expiry_seal`，re-delegate **MUST NOT** 刷新该 seal：
+签发时的这组校验是 hygiene；**实际授权以求值时的 refs 存活判定为准**（见上文"求值时机"），两者并存不矛盾。
 
-- 若 parent grant 自身有 finite `effective_expires_at`，则 `delegation_expiry_seal = parent.effective_expires_at`（与表中收窄规则一致）。
-- 若 parent grant 无 finite effective upper bound，则其第一次作为 delegation source 时，reducer **MUST** 冻结 `delegation_expiry_seal = first_delegation_sealed_at + max_delegation_lifetime_ms`（默认 24 小时），并把该 seal 作为不可变 child-chain 属性记录（`refs[role="delegation_expiry_seal"]` 或 profile 声明的等价字段）。
-- 同一无限期 parent 的后续 re-delegate **MUST** 复用同一 `delegation_expiry_seal`，**MUST NOT** 用新的 `now` 重新计算；child 的 `effective_expires_at` 超过该 seal 时 reducer **MUST** 返回 `failed_precondition` reason=`delegation_expiry_widening`。
+**固定 seal 防滚动续期（normative）**：仅靠"child 自带 `expires_at` ≤ `now + max_authority_lifetime_ms`"不足以约束无限期 ref——ref 持有人可以每 `max_authority_lifetime_ms` 自我再签一次，每次让 child 取得新的 `now + 24h`，从而把无 finite upper bound 的 ref 漂白成事实无限期的链。为关闭该面，当某 action 按 §8 分层**必须有限期**、而覆盖它的 refs 均无 finite upper bound 时，该 child 链 MUST 绑定一个**固定 `authority_expiry_seal`**，整条链每一级该 action 的 `effective_expires_at` MUST ≤ 该 seal，再签 MUST NOT 刷新它：
 
-`max_delegation_lifetime_ms` 是 Realm authz 参数，wire 承载位置为 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的同名可选字段与 [`realm-and-space.md` §2.3](../models/realm-and-space.md) 字段表。缺省值为 `86400000`（24 小时）。若 grant / policy / deployment profile 声明更短窗口，effective value MUST 取所有适用窗口的最小值；child grant 或下游 profile 不得放宽父 Realm 的 effective value。实现无法读取该参数时 MUST 使用缺省值，不得把无限期 parent 视作可无限滚动续期。
+- 覆盖该 action 的 refs 中存在 finite `effective_expires_at` 时，`authority_expiry_seal` 取其中最晚者（与表中收窄规则一致）。
+- 全部无 finite upper bound 时，其第一次作为 issuer authority 使用时 reducer MUST 冻结 `authority_expiry_seal = first_sealed_at + max_authority_lifetime_ms`（默认 24 小时），并作为不可变 child-chain 属性记录（`refs[role="authority_expiry_seal"]` 或 profile 声明的等价字段）。
+- 同一 ref 的后续再签 MUST 复用同一 `authority_expiry_seal`，MUST NOT 用新的 `now` 重算；child 的 `effective_expires_at` 超过该 seal 时 reducer MUST 返回 `failed_precondition` reason=`authority_expiry_widening`。
 
-本规则与 §8 "delegated grant MUST 有有限 expiry" 对齐：任何 child 链最终 expiry 都 MUST 可追溯到一个不随 re-delegate 推移的固定时点。
+该规则**不引用 event kind**，也不引用"是否经过转手"：触发条件完全来自 §8 的分层与 refs 的窗口。
+
+`max_authority_lifetime_ms` 是 Realm authz 参数，wire 承载位置为 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的同名可选字段与 [`realm-and-space.md` §2.3](../models/realm-and-space.md) 字段表。缺省值为 `86400000`（24 小时）。若 grant / policy / deployment profile 声明更短窗口，effective value MUST 取所有适用窗口的最小值；child grant 或下游 profile 不得放宽父 Realm 的 effective value。实现无法读取该参数时 MUST 使用缺省值，不得把无限期 ref 视作可无限滚动续期。
 
 ### 10.2 Cycle detection（normative）
 
-`ak.capability.delegate` event 的 `refs[]` 中包含 `role="parent_grant"` 引用作为父 grant id。Reducer **MUST** 把所有已 sealed 的 delegation 关系视为有向图，节点是 `grant_id`,边是 `(parent_grant_id, child_grant_id)`,并按下列算法做 cycle detection:
+Reducer MUST 把 `issuer_authority_refs[]` 中 `kind="grant"` 的条目视为有向图的边，节点是 `grant_id`：边为 `(ref.grant_id → child_grant_id)`。`kind="realm_root"` 是**有根终点**，不产生任何边，因此不参与环检测。一条 grant 可有多条出边，DFS 是多出度遍历。
 
-Delegation Move SHOULD 同时记录签发时点的 parent `auth_state_digest` / `auth_frontier`（可放入 `refs[role="auth_frontier"]`、grant audit metadata 或 profile 声明的等价字段）。该记录不替代实时 revoke/freshness 校验，但用于审计 child grant 是基于哪个 parent policy/auth frontier 派生的；缺失时实现仍 MUST 重新按当前 frontier 验证，MUST NOT 把 child grant 当作不可追溯授权。
+1. 收到新的 `ak.capability.grant(child_grant_id, issuer_authority_refs)` 时，reducer 沿全部 `grant` ref 做 DFS，直到遇到只有 `realm_root` ref 的 grant（有根终点）或深度达到上限。
+2. 若 DFS 过程中发现新 `child_grant_id` 出现在已访问 ancestor 集合中（即新 grant 会 close 一条循环 path），reducer MUST 拒绝本 Event，reason=`authority_cycle`，MUST NOT 接受任何子 grant 即便它们单看 valid。互相支撑的环 MUST 被拒绝，且求值 MUST NOT 递归不终止。
+3. DFS 深度上限 default 4，即 [`scalability-constraints.md` §3](../conformance/scalability-constraints.md) 的 canonical 上限（profile MAY 声明更低上限，MUST NOT 放宽）；超过深度的 chain 视作病态，reducer MUST 退化为拒绝。此外 grant 的 `max_authority_depth` 字段本身 MUST ≤ 4：reducer 在 **accept grant 时** 即 MUST 校验该字段 ≤ DFS 深度上限，声明更大值的 grant MUST 以 `schema_violation` 拒绝（[`grant-constraint.schema.json`](../../artifacts/schemas/grant-constraint.schema.json) 已用 `maximum:4` 静态强制），而非仅在 DFS 遍历时截断——避免字段声明语义与实际兜底上限不一致而误导审计 / UI。
+4. 当某条 ref grant 已被 revoke 但 freshness 未到达时，reducer 仍 MUST 把它视为 cycle detection 的 ancestor 节点（防止攻击者 revoke-then-re-issue 构造环）。
+5. 同一 Event 携带的多 child grant（批量签发）MUST 整体 fail-or-pass；部分接受会产生不完整的图结构，reducer MUST NOT 部分接受。
 
-1. 收到新的 `ak.capability.delegate(child_grant_id, parent_grant_id)` 时,reducer 沿 parent chain 做 DFS,直到遇到无 parent 的 root grant 或深度 = `max_delegation_depth_observed`。
-2. 若在 DFS 过程中发现新 `child_grant_id` 出现在已访问 ancestor 集合中(即新 grant 会 close 一条循环 path),reducer **MUST** 拒绝整条 delegation chain 上的本 Event,reason=`delegation_cycle`,MUST NOT 接受任何子 grant 即便它们单看 valid。
-3. DFS 深度上限 default 4，即 [`scalability-constraints.md` §3](../conformance/scalability-constraints.md) 的 delegation chain 深度 canonical 上限(profile MAY 声明更低上限，MUST NOT 放宽)；超过深度的 chain 视作病态，reducer MUST 退化为拒绝。此外，grant 的 `max_delegation_depth` 字段本身 MUST ≤ 4:reducer 在 **accept grant 时** 即 MUST 校验该字段 ≤ DFS 深度上限，声明更大值的 grant MUST 以 `schema_violation` 拒绝(`grant-constraint.schema.json` 已用 `maximum:4` 静态强制)，而非仅在 DFS 遍历时截断——避免字段声明语义与实际兜底上限(4)不一致而误导审计 / UI。
-4. 当 parent grant 已被 revoke 但 freshness 未到达时,reducer 仍 MUST 把它视为 cycle detection 的 ancestor 节点(prevent 攻击者 revoke-then-re-delegate 构造环)。
-5. 同一 delegate event 携带的多 child grant(批量委托)MUST 整体 fail-or-pass;部分接受会产生不完整的图结构,reducer MUST NOT 部分接受。
+grant SHOULD 同时记录签发时点的 `auth_state_digest` / `auth_frontier`（可放入 `refs[role="auth_frontier"]`、grant audit metadata 或 profile 声明的等价字段）。该记录不替代实时 revoke / freshness 校验，但用于审计 child grant 是基于哪个 policy / auth frontier 派生的；缺失时实现仍 MUST 重新按当前 frontier 验证，MUST NOT 把 child grant 当作不可追溯授权。
 
-实现 SHOULD 维护 in-memory delegation-graph adjacency cache,以使每次 delegate 校验为 O(depth);冷启动时从 sealed control Events 与可验证 DataEvent 授权引用重建。
+实现 SHOULD 维护 in-memory authority-graph adjacency cache，以使每次校验为 O(depth)；冷启动时从 sealed control Events 与可验证 DataEvent 授权引用重建。
 
 ### 10.3 Revoke 因果传播
 
-`parent grant` 被 revoke 时，所有 derived child grant **MUST** 在该 revoke 的 causal 后继中失效。DataEvent 对 revoke 的窗口判定见 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md)，风险分级与 freshness 降级见本文件 [§18.2](#182-撤销新鲜度-revocation-freshness)。revoke 与 freshness 不一致期间，derived child grant 已发起的 in-flight Event 必须沿用这两处的同一套风险分级，不得另造无窗口规则。
+某条 ref grant 被 revoke 时，所有以它为 ref 的 grant MUST 在该 revoke 的 causal 后继中失效。DataEvent 对 revoke 的窗口判定见 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md)，风险分级与 freshness 降级见本文件 [§18.2](#182-撤销新鲜度-revocation-freshness)。revoke 与 freshness 不一致期间，child grant 已发起的 in-flight Event 必须沿用这两处的同一套风险分级，不得另造无窗口规则。
 
-授权解析 `refs[role="parent_grant"]` / `parent_grant_id` 时，reducer MUST 主动查询本地已 accepted 的 grant/revoke index。若任一 ancestor parent grant 在本地已知为 revoked、superseded、expired 或 tombstoned：高风险 action 的 child grant 及依赖它的 Event MUST 立即 `failed_precondition`，`reason="grant_revoked_upstream"`；中低风险 DataEvent 则 MUST 按 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md) 的 causal distance window 判定，在窗口内接受时标记 `authorization_freshness="stale"`，越窗后拒绝。若本地无法确认 parent freshness，则按 §18.2 风险表处理：高风险与跨域 grant 相关 action MUST fail closed，低风险只可进入 pending / limited 模式。
+解析 `issuer_authority_refs[]` 时，reducer MUST 主动查询本地已 accepted 的 grant / revoke index。若任一 `kind="grant"` ancestor 在本地已知为 revoked、superseded、expired 或 tombstoned：高风险 action 的 child grant 及依赖它的 Event MUST 立即 `failed_precondition`，`reason="grant_revoked_upstream"`；中低风险 DataEvent 则 MUST 按 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md) 的 causal distance window 判定，在窗口内接受时标记 `authorization_freshness="stale"`，越窗后拒绝。若本地无法确认 freshness，则按 §18.2 风险表处理：高风险与跨域 grant 相关 action MUST fail closed，低风险只可进入 pending / limited 模式。
 
 `grant_id` 是授权图的唯一追踪键。所有 reducer-input Event 的 `refs[role="authorized_by"]` MUST 指向 `ak:grant:<uuid>` 或 profile 注册的不可变 grant record id；MUST NOT 指向一次 `ak.self.policy.query.check`（默认 path `/_arkret/self/policy/check`）decision、human role、Event id alias 或当前 membership cell。节点 MUST 为每个 accepted / pending Event 记录 `authorized_by.grant_id[]` 与 grant canonical digest，用于 revoke 后的影响面枚举。revoke 生效后：
 
 1. 该 grant 直接授权的 pending Event MUST fail closed；
-2. 该 grant 派生出的 child grant MUST 标记 `revoked_upstream`。child grant 的有效性 **MUST** 取其**所有** parent path freshness 的最严格值（min over paths）：只要有**任一**关键 ancestor 在该 child 的某条 parent path 上为 `revoked` / `superseded` / `expired` / `tombstoned` / freshness `unknown`，整个 child grant 即 **MUST** 降级 fail-closed，**MUST NOT** 因为存在另一条"仍有效的 alternate parent path"而保持有效。实现 **MUST NOT** 把 multi-path delegation 当作可漂白单条 path 撤销的冗余授权；多 path 只增加约束、不放宽约束。child grant 仅当其**每一条** parent path 上的全部关键 ancestor 都仍有效时才保持有效；
+2. 以它为 ref 的 grant MUST 标记 `revoked_upstream`。child grant 的有效性 MUST 取其**所有** ref path freshness 的最严格值（min over paths）：只要有**任一**关键 ancestor 在某条 path 上为 `revoked` / `superseded` / `expired` / `tombstoned` / freshness `unknown`，整个 child grant 即 MUST 降级 fail-closed，MUST NOT 因为存在另一条"仍有效的 alternate path"而保持有效。实现 MUST NOT 把多 ref 当作可漂白单条 path 撤销的冗余授权；多 ref 只增加约束、不放宽约束。child grant 仅当其**每一条** path 上的全部关键 ancestor 都仍有效时才保持有效；
 3. 依赖该 grant 的 allow cache、policy decision cache、projection shortcut 和 server-side cursor authority MUST 在同一 reducer transaction 内失效；
-4. 已 accepted / sealed 的历史 Event 保留审计事实，但后续 snapshot / range completeness / export MUST NOT 再把它作为“当前仍授权”的证据。
+4. 已 accepted / sealed 的历史 Event 保留审计事实，但后续 snapshot / range completeness / export MUST NOT 再把它作为"当前仍授权"的证据。
+
+### 10.4 Revoke 与 relinquish 的分工（normative）
+
+撤销与主动放弃不共用一个 Event：
+
+- `ak.capability.revoke`：actor MUST 先通过普通 action authorization，随后 target guard 只接受 `actor == target.issuer`，或 actor 是 **target grant 自身 `realm_id`** 的 current root controller。仅仅控制 `authority_root_refs[]` 中某个跨 Realm 上游 root **不**获得撤销权。后一分支保证 Realm 转让后新 root owner 能治理旧 controller 签出的 grant；普通 co-owner 与 sibling 不能借 `ak.realm.owner` 撤销上游或同级 grant。不满足时 reducer MUST 拒绝，reason=`grant_revoke_not_authorized`。
+- `ak.capability.relinquish`：subject-only self-service Control Move，只接受 `actor == target.subject`。它只减少 actor 自身权限，因此 **MUST NOT** 要求 actor 另持 `ak.capability.revoke`——否则一个窄权限持有人可能无权放弃自己持有的东西。不满足时 reducer MUST 拒绝，reason=`grant_relinquish_not_subject`。被放弃 grant 的 descendants 同样按 refs 在读取时失效。
+- authority-root cell **不是** grant，不能成为 revoke / relinquish 的 target；root controller 退出只能走 `ak.realm.owner.transfer`。
+- target grant 尚未投影时，revoke / relinquish MUST 进入 dependency pending，**MUST NOT** 预写未经关系校验的 tombstone——target guard 需要 target 才能校验 issuer / root-controller / subject 关系。pending revoke MUST 在 target grant 投影的**同一原子投影步**内生效，不得存在"grant 先短暂可用于授权判定"的窗口；验证通过后 §12.1 的终态规则照旧（已 revoked 的 `grant_id` re-add 不复活）。
+
+拒绝 MUST NOT 把 target 是否存在、或属于哪个 Realm，泄漏给无权 actor。
 
 ## 11. 有效权限集合
 
@@ -788,7 +826,7 @@ v1 canonical `ak.capability.revoke` payload MUST 携带顶层 `grant_id`；regis
 
 ### 12.1 Grant cell 的确定性收敛（normative）
 
-capability 授权状态投影到 cell family `ak.component.capability.grant.v1`（见 [`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的 `ak.capability.grant` / `ak.capability.revoke`），`cell_subject` 从 `payload.grant_id` 派生（每个 `grant_id` 一个 cell），`lattice = or_set`；`ak.capability.delegate` 投影到 `ak.component.capability.delegate.v1`（同收敛规则，另以 `refs[role="parent_grant"]` 维护 delegation 链，见 §10）。收敛规则：
+capability 授权状态投影到 cell family `ak.component.capability.grant.v1`（见 [`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的 `ak.capability.grant` / `ak.capability.revoke`），`cell_subject` 从 `payload.grant_id` 派生（每个 `grant_id` 一个 cell），`lattice = or_set`。v1 只有这一个 capability cell family：再授予不是另一种 Event，而是同一个 `ak.capability.grant` 携带 `kind="grant"` 的 `issuer_authority_refs[]`（见 §10），因此不存在第二个被写入却无人读取的 family。收敛规则：
 
 - **grant** = 对该 grant cell 的 or_set **add**：add dot = 该 `ak.capability.grant` 事件的 `ak:event:<event_id>:<write_index>`（dot 的规范定义见 [`../models/event-and-patch.md`](../models/event-and-patch.md) §2.4.2），value = grant 的 canonical 快照。
 - **revoke** = 对**同一** grant cell 的 or_set **remove**，observe 该 grant 的 add dot（与 [`../identity/consent-model.md`](../identity/consent-model.md) 的 consent revoke `observed_dots` 语义一致）。`ak.capability.revoke` 以顶层 `grant_id` 定位目标 cell；reducer **MUST** 在该 revoke Control Move 的 `seal_basis` view 下把目标 grant 的 add dot 解析为合法 add op 后再 supersede。已被 observe-remove 的 add **MUST NOT** 因同 `grant_id` 的后续 re-add / 重放而复活（remove-after-observed-add 为终态）；多 issuer 并发 revoke 同一 grant 收敛于 or_set 的去重语义。

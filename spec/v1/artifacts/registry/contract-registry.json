@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-31.11",
+  "version": "2026-07-31.12",
   "source_of_truth": true,
-  "generated_at": "2026-07-31T06:00:00Z",
+  "generated_at": "2026-07-31T07:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -940,31 +940,6 @@
         ],
         "concurrency_class": "exclusive"
       },
-      "ak.capability.delegate": {
-        "plane": "control",
-        "sealed": true,
-        "cell_writes": [
-          {
-            "cell_family": "ak.component.capability.delegate.v1",
-            "cell_subject": {
-              "field": "payload.grant_id",
-              "kind": "string"
-            },
-            "lattice": "or_set",
-            "bottom": "inert",
-            "effect_projection": {
-              "kind": "or_set_add",
-              "tag": {
-                "dot": true
-              },
-              "value": {
-                "field": "payload"
-              }
-            }
-          }
-        ],
-        "concurrency_class": "security_barrier"
-      },
       "ak.capability.derived": {
         "plane": "control",
         "sealed": true,
@@ -1010,6 +985,25 @@
               "value": {
                 "field": "payload"
               }
+            }
+          }
+        ],
+        "concurrency_class": "security_barrier"
+      },
+      "ak.capability.relinquish": {
+        "plane": "control",
+        "sealed": true,
+        "cell_writes": [
+          {
+            "cell_family": "ak.component.capability.grant.v1",
+            "cell_subject": {
+              "field": "payload.grant_id",
+              "kind": "string"
+            },
+            "lattice": "or_set",
+            "bottom": "inert",
+            "effect_projection": {
+              "kind": "or_set_remove_observed"
             }
           }
         ],
@@ -3101,6 +3095,25 @@
           }
         ]
       },
+      "ak.realm.alias": {
+        "plane": "control",
+        "sealed": true,
+        "cell_writes": [
+          {
+            "cell_family": "ak.component.realm.alias.v1",
+            "cell_subject": null,
+            "lattice": "cas_register",
+            "bottom": "reject",
+            "effect_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload"
+              }
+            }
+          }
+        ],
+        "concurrency_class": "security_barrier"
+      },
       "ak.realm.archive": {
         "plane": "control",
         "sealed": true,
@@ -3133,6 +3146,50 @@
               "kind": "set",
               "value": {
                 "field": "payload"
+              }
+            }
+          }
+        ],
+        "concurrency_class": "security_barrier"
+      },
+      "ak.realm.authority.basis_update": {
+        "plane": "control",
+        "sealed": true,
+        "cell_writes": [
+          {
+            "cell_family": "ak.component.realm.authority_root.v1",
+            "cell_subject": null,
+            "lattice": "cas_register",
+            "bottom": "reject",
+            "effect_projection": {
+              "kind": "apply_patch",
+              "patch": {
+                "field": "payload.patch"
+              },
+              "expected_prestate": {
+                "field": "payload.expected_state_digest"
+              }
+            }
+          }
+        ],
+        "concurrency_class": "security_barrier"
+      },
+      "ak.realm.authority.reset": {
+        "plane": "control",
+        "sealed": true,
+        "cell_writes": [
+          {
+            "cell_family": "ak.component.realm.authority_root.v1",
+            "cell_subject": null,
+            "lattice": "cas_register",
+            "bottom": "reject",
+            "effect_projection": {
+              "kind": "apply_patch",
+              "patch": {
+                "field": "payload.patch"
+              },
+              "expected_prestate": {
+                "field": "payload.expected_state_digest"
               }
             }
           }
@@ -3555,6 +3612,28 @@
         ],
         "concurrency_class": "security_barrier"
       },
+      "ak.realm.owner.transfer": {
+        "plane": "control",
+        "sealed": true,
+        "cell_writes": [
+          {
+            "cell_family": "ak.component.realm.authority_root.v1",
+            "cell_subject": null,
+            "lattice": "cas_register",
+            "bottom": "reject",
+            "effect_projection": {
+              "kind": "apply_patch",
+              "patch": {
+                "field": "payload.patch"
+              },
+              "expected_prestate": {
+                "field": "payload.expected_state_digest"
+              }
+            }
+          }
+        ],
+        "concurrency_class": "security_barrier"
+      },
       "ak.realm.plaintext_visible_services": {
         "plane": "control",
         "sealed": true,
@@ -3761,25 +3840,6 @@
               },
               "expected_prestate": {
                 "field": "payload.expected_state_digest"
-              }
-            }
-          }
-        ],
-        "concurrency_class": "security_barrier"
-      },
-      "ak.realm.alias": {
-        "plane": "control",
-        "sealed": true,
-        "cell_writes": [
-          {
-            "cell_family": "ak.component.realm.alias.v1",
-            "cell_subject": null,
-            "lattice": "cas_register",
-            "bottom": "reject",
-            "effect_projection": {
-              "kind": "set",
-              "value": {
-                "field": "payload"
               }
             }
           }
@@ -4606,6 +4666,25 @@
           }
         ]
       },
+      "ak.state.conflict_recovery": {
+        "plane": "control",
+        "sealed": true,
+        "cell_writes": [
+          {
+            "cell_ref": {
+              "kind": "cell_ref",
+              "field": "payload.target_cell"
+            },
+            "effect_projection": {
+              "kind": "reset",
+              "value": {
+                "field": "payload.resolved_value"
+              }
+            }
+          }
+        ],
+        "concurrency_class": "security_barrier"
+      },
       "ak.strand.archive": {
         "plane": "control",
         "sealed": true,
@@ -4991,25 +5070,6 @@
             }
           }
         ]
-      },
-      "ak.state.conflict_recovery": {
-        "plane": "control",
-        "sealed": true,
-        "cell_writes": [
-          {
-            "cell_ref": {
-              "kind": "cell_ref",
-              "field": "payload.target_cell"
-            },
-            "effect_projection": {
-              "kind": "reset",
-              "value": {
-                "field": "payload.resolved_value"
-              }
-            }
-          }
-        ],
-        "concurrency_class": "security_barrier"
       }
     },
     "event_kinds": [
@@ -5994,14 +6054,6 @@
         "payload": "Capability grant"
       },
       {
-        "event_kind": "ak.capability.delegate",
-        "category": "authz",
-        "status": "active",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Capability delegation"
-      },
-      {
         "event_kind": "ak.capability.revoke",
         "category": "authz",
         "status": "active",
@@ -6574,6 +6626,39 @@
         "reducer_input": true,
         "admission": "self_authored_proof",
         "payload": "Sovereign DID resolver policy state"
+      },
+      {
+        "event_kind": "ak.realm.owner.transfer",
+        "category": "realm",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Realm authority-root controller transfer"
+      },
+      {
+        "event_kind": "ak.realm.authority.reset",
+        "category": "realm",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Realm authority generation reset"
+      },
+      {
+        "event_kind": "ak.realm.authority.basis_update",
+        "category": "realm",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Realm authority-root capability registry basis update"
+      },
+      {
+        "event_kind": "ak.capability.relinquish",
+        "category": "authz",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "admission": "self_authored_proof",
+        "payload": "Subject-authored release of the actor own capability grant"
       }
     ],
     "concurrency_class_definitions": {
@@ -13124,19 +13209,6 @@
         "event_mapping_kind": "scope_suffix_variant"
       },
       {
-        "action": "ak.capability.delegate",
-        "category": "management",
-        "risk_tier": "high",
-        "required_constraints": [
-          "max_delegation_depth"
-        ],
-        "target_event_kinds": [
-          "ak.capability.delegate"
-        ],
-        "profile": null,
-        "event_mapping_kind": "same_name"
-      },
-      {
         "action": "ak.capability.derived",
         "category": "management",
         "risk_tier": "medium",
@@ -13158,6 +13230,19 @@
           "ak.capability.grant"
         ],
         "profile": null,
+        "event_mapping_kind": "same_name"
+      },
+      {
+        "action": "ak.capability.relinquish",
+        "category": "management",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.capability.relinquish"
+        ],
+        "profile": null,
+        "subject_only": true,
+        "notes": "Subject-only self-service release of the actor own grant. Authority comes from the target grant subject signature and the reducer target guard, never from a capability, so it is excluded from every derived authority set.",
         "event_mapping_kind": "same_name"
       },
       {
@@ -13929,6 +14014,32 @@
         "event_mapping_kind": "same_name"
       },
       {
+        "action": "ak.realm.authority.basis_update",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.realm.authority.basis_update"
+        ],
+        "profile": null,
+        "root_control_only": true,
+        "notes": "Re-anchors the authority-root capability-action registry digest to a retrievable, recomputable, active snapshot. Changes neither controller nor generation and never retroactively widens an existing grant.",
+        "event_mapping_kind": "same_name"
+      },
+      {
+        "action": "ak.realm.authority.reset",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.realm.authority.reset"
+        ],
+        "profile": null,
+        "root_control_only": true,
+        "notes": "Advances the authority generation, invalidating every grant anchored to the previous one at read time. Destructive root control; never grantable.",
+        "event_mapping_kind": "same_name"
+      },
+      {
         "action": "ak.realm.create",
         "category": "general",
         "risk_tier": "medium",
@@ -14053,7 +14164,6 @@
           "ak.call.recording.start",
           "ak.call.state",
           "ak.call.summary",
-          "ak.capability.delegate",
           "ak.capability.grant",
           "ak.capability.revoke",
           "ak.circle.archive",
@@ -14168,7 +14278,6 @@
           "ak.call.screen_share",
           "ak.call.signal.send",
           "ak.call.transcribe",
-          "ak.capability.delegate",
           "ak.capability.grant",
           "ak.capability.revoke",
           "ak.circle.audit",
@@ -14310,6 +14419,19 @@
           ]
         },
         "event_mapping_kind": "aggregate_admin"
+      },
+      {
+        "action": "ak.realm.owner.transfer",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ak.realm.owner.transfer"
+        ],
+        "profile": null,
+        "root_control_only": true,
+        "notes": "Rotates the controller binding of the Realm authority-root cell. Authored only by the current controller with successor acceptance; it MUST NOT be granted, so it is excluded from every derived owner authority set.",
+        "event_mapping_kind": "same_name"
       },
       {
         "action": "ak.realm.plaintext_visible_services",

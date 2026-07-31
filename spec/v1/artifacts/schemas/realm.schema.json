@@ -640,11 +640,11 @@
       "default": 86400000,
       "description": "Structural obligation, not advisory: maximum interval between compaction Seals (Seals carrying covered_event_digests[] or an equivalent verifiable full-coverage manifest). Because the cumulative control-plane covered set is defined recursively from predecessor_refs + delta, compaction Seals are the only bounded bootstrap points for new verifiers; a notary that exceeds this interval degrades bootstrap to walking the chain to genesis. open_set deployments MUST use <= 86400000 (24h); threshold deployments MUST use <= 604800000 (7d); single_did SHOULD use <= 86400000. Receivers SHOULD raise governance health alarms when the live chain exceeds the declared interval. See authz/event-auth-state-resolution.md section 6.2 and conformance vector ak.vector.cba_lattice.seal_compaction_interval_enforced.v1."
     },
-    "max_delegation_lifetime_ms": {
+    "max_authority_lifetime_ms": {
       "type": "integer",
       "minimum": 1,
       "default": 86400000,
-      "description": "Realm-level maximum lifetime window used when an otherwise unbounded parent grant first delegates. Reducers freeze delegation_expiry_seal = first_delegation_sealed_at + effective max_delegation_lifetime_ms and MUST NOT refresh it on re-delegation. Effective value is the minimum of this field and any stricter grant, policy, deployment, or profile override. Defaults to 86400000 ms (24h). See zh/authz/capabilities.md §10.1."
+      "description": "Realm-level maximum lifetime window used when an otherwise unbounded parent grant first delegates. Reducers freeze authority_expiry_seal = first_delegation_sealed_at + effective max_authority_lifetime_ms and MUST NOT refresh it on re-delegation. Effective value is the minimum of this field and any stricter grant, policy, deployment, or profile override. Defaults to 86400000 ms (24h). See zh/authz/capabilities.md §10.1."
     },
     "bottom_escalation_after_ms": {
       "type": "integer",

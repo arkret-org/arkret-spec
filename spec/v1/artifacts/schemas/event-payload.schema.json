@@ -2875,6 +2875,22 @@
       },
       "additionalProperties": false
     },
+    "capability_relinquish_payload": {
+      "type": "object",
+      "description": "ak.capability.relinquish — subject-only release of the actor own grant. The authority is the target grant subject's signature, never a capability: a narrowly-scoped holder that was never granted ak.capability.revoke must still be able to give up what it holds. The reducer target guard accepts actor == target.subject and nothing else, so this can never become an unauthorized revocation. Descendants of the released grant fail through their issuer_authority_refs at read time.",
+      "required": [
+        "grant_id"
+      ],
+      "properties": {
+        "grant_id": {
+          "$ref": "#/$defs/grant_id"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
     "capability_revoke_payload": {
       "type": "object",
       "required": [
@@ -7575,10 +7591,6 @@
       "type": "string",
       "minLength": 1
     },
-    "profile_id": {
-      "type": "string",
-      "pattern": "^ak\\.profile\\.[a-z0-9_.-]+\\.v1$"
-    },
     "notary_fault_censorship_payload": {
       "type": "object",
       "description": "Notary censorship evidence: a signed control-plane receipt whose event digest is provably absent from the obliged Seal's control_event_set_root and that received neither signed-reject nor defer. Does NOT automatically disqualify the notary; adds an audit fault record. See authz/event-auth-state-resolution.md section 7.2.",
@@ -8380,6 +8392,10 @@
       },
       "additionalProperties": false
     },
+    "profile_id": {
+      "type": "string",
+      "pattern": "^ak\\.profile\\.[a-z0-9_.-]+\\.v1$"
+    },
     "profile_realm_override_payload": {
       "type": "object",
       "description": "Realm-scoped actor profile override payload for ak.profile.realm_override. target_ref is the Actor Profile being overridden; target_realm_id is the Realm where the override applies.",
@@ -8528,17 +8544,6 @@
       },
       "additionalProperties": false
     },
-    "realm_alias_payload": {
-      "description": "Closed payload for ak.realm.alias, the ONLY wire carrier of a Realm alias. A declaration writes the complete canonical alias; {tombstone:true} is a durable value tombstone that removes the alias from effective resolution without erasing the cell history. realm.schema.json is closed and has no alias property, and ak.realm.create / ak.realm.update payloads MUST NOT carry one.",
-      "oneOf": [
-        {
-          "$ref": "#/$defs/realm_alias_declaration_payload"
-        },
-        {
-          "$ref": "#/$defs/realm_alias_tombstone_payload"
-        }
-      ]
-    },
     "realm_alias_declaration_payload": {
       "type": "object",
       "required": [
@@ -8551,6 +8556,17 @@
         }
       },
       "additionalProperties": false
+    },
+    "realm_alias_payload": {
+      "description": "Closed payload for ak.realm.alias, the ONLY wire carrier of a Realm alias. A declaration writes the complete canonical alias; {tombstone:true} is a durable value tombstone that removes the alias from effective resolution without erasing the cell history. realm.schema.json is closed and has no alias property, and ak.realm.create / ak.realm.update payloads MUST NOT carry one.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/realm_alias_declaration_payload"
+        },
+        {
+          "$ref": "#/$defs/realm_alias_tombstone_payload"
+        }
+      ]
     },
     "realm_alias_tombstone_payload": {
       "type": "object",
@@ -8575,6 +8591,82 @@
         },
         "reason": {
           "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_authority_basis_update_payload": {
+      "type": "object",
+      "description": "ak.realm.authority.basis_update — re-anchor the authority-root capability-action registry digest. The root basis never drifts with a software version: a controller adopts a new capability surface explicitly, and historical Seals keep resolving against the digest they were issued under. It changes neither controller nor generation and never retroactively widens an existing grant.",
+      "required": [
+        "realm_id",
+        "expected_state_digest",
+        "patch"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "expected_state_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "JCS SHA-256 digest of the authority-root cell value this Event expects to replace. The reducer MUST compare-and-swap against it and reject a stale value rather than overwrite."
+        },
+        "patch": {
+          "type": "object",
+          "required": [
+            "capability_action_registry_digest"
+          ],
+          "properties": {
+            "capability_action_registry_digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "description": "JCS SHA-256 digest of a retrievable, recomputable, compatible and active capability-action-registry.json snapshot. An unknown or incompatible snapshot MUST fail closed."
+            }
+          },
+          "additionalProperties": false,
+          "description": "The authority-root members this Event changes. Every member absent here is preserved verbatim by the reducer."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_authority_reset_payload": {
+      "type": "object",
+      "description": "ak.realm.authority.reset — advance the authority generation. Every grant anchored to the previous generation fails at read time without any cascading write. Destructive: this is not how a controller hands the Realm over, and it MUST carry an independent confirmation.",
+      "required": [
+        "realm_id",
+        "expected_state_digest",
+        "patch",
+        "destructive_confirmation"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "expected_state_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "JCS SHA-256 digest of the authority-root cell value this Event expects to replace. The reducer MUST compare-and-swap against it and reject a stale value rather than overwrite."
+        },
+        "patch": {
+          "type": "object",
+          "required": [
+            "authority_generation"
+          ],
+          "properties": {
+            "authority_generation": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "MUST equal the expected value's authority_generation + 1."
+            }
+          },
+          "additionalProperties": false,
+          "description": "The authority-root members this Event changes. Every member absent here is preserved verbatim by the reducer."
+        },
+        "destructive_confirmation": {
+          "type": "string",
+          "const": "ak.realm.authority.reset",
+          "description": "Explicit confirmation token. A reset discards an entire authority tree, so it MUST NOT be reachable by replaying a transfer body."
         }
       },
       "additionalProperties": false
@@ -9314,16 +9406,51 @@
         }
       ]
     },
-    "realm_policy_server_payload": {
-      "description": "Closed payload for ak.realm.policy_server. A declaration writes the complete direct Realm binding; {tombstone:true} is a durable value tombstone that removes the direct binding from effective queries without erasing the cell history.",
-      "oneOf": [
-        {
-          "$ref": "#/$defs/realm_policy_server_declaration_payload"
+    "realm_owner_transfer_payload": {
+      "type": "object",
+      "description": "ak.realm.owner.transfer — rotate the controller binding of the Realm authority-root cell. It changes controller_id and increments controller_epoch only: authority_generation, the cell ref and every existing grant are untouched, so the whole authority tree issued by the previous controller stays valid. This is not a reparent — the root never moves.",
+      "required": [
+        "realm_id",
+        "expected_state_digest",
+        "patch",
+        "successor_acceptance"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        {
-          "$ref": "#/$defs/realm_policy_server_tombstone_payload"
+        "expected_state_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "JCS SHA-256 digest of the authority-root cell value this Event expects to replace. The reducer MUST compare-and-swap against it and reject a stale value rather than overwrite."
+        },
+        "patch": {
+          "type": "object",
+          "required": [
+            "controller_id",
+            "controller_epoch"
+          ],
+          "properties": {
+            "controller_id": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+              "description": "The successor principal that becomes the root controller."
+            },
+            "controller_epoch": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "MUST equal the expected value's controller_epoch + 1."
+            }
+          },
+          "additionalProperties": false,
+          "description": "The authority-root members this Event changes. Every member absent here is preserved verbatim by the reducer."
+        },
+        "successor_acceptance": {
+          "$ref": "#/$defs/signature_material",
+          "description": "Independent acceptance proof from the successor. The current controller proof, this proof, the payload and the expected root value MUST all enter the same signing transcript, so neither party can be bound to a transfer it did not see."
         }
-      ]
+      },
+      "additionalProperties": false
     },
     "realm_policy_server_declaration_payload": {
       "type": "object",
@@ -9410,6 +9537,17 @@
         }
       },
       "additionalProperties": false
+    },
+    "realm_policy_server_payload": {
+      "description": "Closed payload for ak.realm.policy_server. A declaration writes the complete direct Realm binding; {tombstone:true} is a durable value tombstone that removes the direct binding from effective queries without erasing the cell history.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/realm_policy_server_declaration_payload"
+        },
+        {
+          "$ref": "#/$defs/realm_policy_server_tombstone_payload"
+        }
+      ]
     },
     "realm_policy_server_tombstone_payload": {
       "type": "object",
@@ -10046,6 +10184,28 @@
       },
       "additionalProperties": false
     },
+    "state_conflict_recovery_payload": {
+      "type": "object",
+      "description": "Control cell bottom recovery. zh/authz/event-auth-state-resolution.md section 9.5 resolves a bottom=reject cell that has joined to Bottom back to a single legal value. The authorization and the pre-conflict anchor are not payload fields: they are refs[] entries with role=recovery_capability and role=state_witness.",
+      "required": [
+        "target_cell",
+        "resolved_value"
+      ],
+      "properties": {
+        "target_cell": {
+          "$ref": "./event-envelope.schema.json#/$defs/cell_ref",
+          "description": "The cell being recovered. It MUST be in Bottom when the reducer applies this Event; on any other cell state the write MUST be rejected. This is the only registered kind whose write target is resolved from the payload rather than from a literal cell_family in the registry, because a recovery addresses one cell of an arbitrary family."
+        },
+        "resolved_value": {
+          "description": "The single legal value the cell resolves to. Section 9.5 requires the Move to declare it, so it is signed payload, never reducer-synthesized."
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 512
+        }
+      },
+      "additionalProperties": false
+    },
     "state_payload": {
       "type": "object",
       "minProperties": 1,
@@ -10423,28 +10583,6 @@
         },
         "definition": {
           "$ref": "./view.schema.json"
-        }
-      },
-      "additionalProperties": false
-    },
-    "state_conflict_recovery_payload": {
-      "type": "object",
-      "description": "Control cell bottom recovery. zh/authz/event-auth-state-resolution.md section 9.5 resolves a bottom=reject cell that has joined to Bottom back to a single legal value. The authorization and the pre-conflict anchor are not payload fields: they are refs[] entries with role=recovery_capability and role=state_witness.",
-      "required": [
-        "target_cell",
-        "resolved_value"
-      ],
-      "properties": {
-        "target_cell": {
-          "$ref": "./event-envelope.schema.json#/$defs/cell_ref",
-          "description": "The cell being recovered. It MUST be in Bottom when the reducer applies this Event; on any other cell state the write MUST be rejected. This is the only registered kind whose write target is resolved from the payload rather than from a literal cell_family in the registry, because a recovery addresses one cell of an arbitrary family."
-        },
-        "resolved_value": {
-          "description": "The single legal value the cell resolves to. Section 9.5 requires the Move to declare it, so it is signed payload, never reducer-synthesized."
-        },
-        "reason": {
-          "type": "string",
-          "maxLength": 512
         }
       },
       "additionalProperties": false

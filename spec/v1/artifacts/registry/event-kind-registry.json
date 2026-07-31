@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-31.11",
+  "version": "2026-07-31.12",
   "source_of_truth": false,
-  "generated_at": "2026-07-31T06:00:00Z",
+  "generated_at": "2026-07-31T07:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -5064,53 +5064,6 @@
       "bottom": "inert"
     },
     {
-      "event_kind": "ak.capability.delegate",
-      "category": "authz",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Capability delegation",
-      "plane": "control",
-      "sealed": true,
-      "cell_writes": [
-        {
-          "cell_family": "ak.component.capability.delegate.v1",
-          "cell_subject": {
-            "field": "payload.grant_id",
-            "kind": "string"
-          },
-          "lattice": "or_set",
-          "bottom": "inert",
-          "effect_projection": {
-            "kind": "or_set_add",
-            "tag": {
-              "dot": true
-            },
-            "value": {
-              "field": "payload"
-            }
-          }
-        }
-      ],
-      "concurrency_class": "security_barrier",
-      "cell_family": "ak.component.capability.delegate.v1",
-      "cell_subject": {
-        "field": "payload.grant_id",
-        "kind": "string"
-      },
-      "effect_projection": {
-        "kind": "or_set_add",
-        "tag": {
-          "dot": true
-        },
-        "value": {
-          "field": "payload"
-        }
-      },
-      "lattice": "or_set",
-      "bottom": "inert"
-    },
-    {
       "event_kind": "ak.capability.revoke",
       "category": "authz",
       "status": "active",
@@ -8711,6 +8664,165 @@
       },
       "lattice": "cas_register",
       "bottom": "reject"
+    },
+    {
+      "event_kind": "ak.realm.owner.transfer",
+      "category": "realm",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Realm authority-root controller transfer",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.realm.authority_root.v1",
+          "cell_subject": null,
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            },
+            "expected_prestate": {
+              "field": "payload.expected_state_digest"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier",
+      "cell_family": "ak.component.realm.authority_root.v1",
+      "cell_subject": null,
+      "effect_projection": {
+        "kind": "apply_patch",
+        "patch": {
+          "field": "payload.patch"
+        },
+        "expected_prestate": {
+          "field": "payload.expected_state_digest"
+        }
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
+    },
+    {
+      "event_kind": "ak.realm.authority.reset",
+      "category": "realm",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Realm authority generation reset",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.realm.authority_root.v1",
+          "cell_subject": null,
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            },
+            "expected_prestate": {
+              "field": "payload.expected_state_digest"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier",
+      "cell_family": "ak.component.realm.authority_root.v1",
+      "cell_subject": null,
+      "effect_projection": {
+        "kind": "apply_patch",
+        "patch": {
+          "field": "payload.patch"
+        },
+        "expected_prestate": {
+          "field": "payload.expected_state_digest"
+        }
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
+    },
+    {
+      "event_kind": "ak.realm.authority.basis_update",
+      "category": "realm",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Realm authority-root capability registry basis update",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.realm.authority_root.v1",
+          "cell_subject": null,
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            },
+            "expected_prestate": {
+              "field": "payload.expected_state_digest"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier",
+      "cell_family": "ak.component.realm.authority_root.v1",
+      "cell_subject": null,
+      "effect_projection": {
+        "kind": "apply_patch",
+        "patch": {
+          "field": "payload.patch"
+        },
+        "expected_prestate": {
+          "field": "payload.expected_state_digest"
+        }
+      },
+      "lattice": "cas_register",
+      "bottom": "reject"
+    },
+    {
+      "event_kind": "ak.capability.relinquish",
+      "category": "authz",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "admission": "self_authored_proof",
+      "payload": "Subject-authored release of the actor own capability grant",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.capability.grant.v1",
+          "cell_subject": {
+            "field": "payload.grant_id",
+            "kind": "string"
+          },
+          "lattice": "or_set",
+          "bottom": "inert",
+          "effect_projection": {
+            "kind": "or_set_remove_observed"
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier",
+      "cell_family": "ak.component.capability.grant.v1",
+      "cell_subject": {
+        "field": "payload.grant_id",
+        "kind": "string"
+      },
+      "effect_projection": {
+        "kind": "or_set_remove_observed"
+      },
+      "lattice": "or_set",
+      "bottom": "inert"
     }
   ],
   "concurrency_class_definitions": {

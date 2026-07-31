@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 1,
+  "version": 2,
   "kind": "forbidden_model_terms",
   "source_of_truth": true,
   "description": "Current-model lint registry for terms that are not valid v1 core concept names. It is a prose/code hygiene aid, not a wire contract; conformance scanners may grep downstream prose and source for occurrences outside allowed_contexts.",
@@ -31,69 +31,17 @@
       "notes": "Use Arkret / arkret / `ak.` / `ak:` in all current prose, identifiers, file names, and UI copy; the listed term and prefixes are forbidden current-wire inputs."
     },
     {
-      "id": "Room",
-      "context": "core_model_name",
-      "since_revision": "0a5ab85",
-      "rejection_level": "hard_reject",
-      "replacement": "Realm",
-      "allowed_contexts": [
-        "changelog",
-        "interop_module",
-        "negative_test"
-      ],
-      "notes": "Room is not the v1 core model. Use Realm (federation / identity / replication boundary), Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md), Strand, or Space as applicable. 'Room' is permitted only when contrasting v1 with Matrix in interop documentation."
-    },
-    {
-      "id": "Realm(kind=list)",
-      "context": "model_identifier",
-      "since_revision": "0a5ab85",
-      "rejection_level": "hard_reject",
-      "replacement": "Space(kind=list)",
-      "allowed_contexts": [
-        "changelog",
-        "legacy_migration",
-        "negative_test"
-      ],
-      "notes": "List-shaped containers are Spaces, not Realms. Realm remains the boundary concept; container shape (board / list / etc.) lives on Space."
-    },
-    {
-      "id": "strand_branch",
-      "context": "identifier_or_field_name",
-      "since_revision": "0a5ab85",
-      "rejection_level": "hard_reject",
-      "replacement": "strand_track",
-      "allowed_contexts": [
-        "changelog",
-        "legacy_migration",
-        "negative_test"
-      ],
-      "notes": "Branch terminology was removed across Strand. Use track (display-only segment identifier). Variable / field names containing 'strand_branch' MUST be renamed."
-    },
-    {
-      "id": "track members",
+      "id": "Controlled Collaboration Realm",
       "context": "prose_or_ui_copy",
-      "since_revision": "0a5ab85",
+      "since_revision": "2026-05-25",
       "rejection_level": "hard_reject",
-      "replacement": "Realm members (or Circle members, when Strand.scope_circle_id points at a Circle)",
+      "replacement": "External Collaboration Realm",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Track does not carry independent membership; the entire Strand shares one effective scope (Strand.scope_circle_id). UI copy and docs MUST refer to Realm members or Circle members (per zh/models/circle.md). A Strand needing its own membership boundary MUST set scope_circle_id to point at an intra-Realm Circle; per-track membership boundaries do not exist."
-    },
-    {
-      "id": "Room visibility",
-      "context": "prose_or_ui_copy",
-      "since_revision": "0a5ab85",
-      "rejection_level": "hard_reject",
-      "replacement": "Realm history visibility / discoverability / join rule",
-      "allowed_contexts": [
-        "changelog",
-        "interop_module",
-        "negative_test"
-      ],
-      "notes": "Visibility is split in v1 into three independent axes: Discoverability, Join Rule, History Visibility (see spec-map 3.4). 'Room visibility' conflates them and MUST NOT be used."
+      "notes": "Use 'External Collaboration Realm' (the role defined in zh/models/realm-and-space.md §2.7). The sovereign-deployment policy bundle that historically motivated the 'Controlled' prefix is now expressed as 'in sovereign deployment, External Collaboration Realm MUST satisfy …' and lives in zh/sync/sovereign-deployment.md §4 under ak.profile.sovereign_deployment.v1; it is not a Realm constraint_subkind. The infrastructure-isolation pattern 'Controlled Collaboration Enclave' is a separate, unchanged concept."
     },
     {
       "id": "Place",
@@ -109,30 +57,56 @@
       "notes": "Place was the pre-inversion container-shape model name. After the Realm/Space inversion the container model is Space (board / list / etc.) and the security boundary is Realm. 'Place' MUST NOT appear as a core model name in current normative prose, SDK identifiers, or UI copy. Existing zh prose still mentioning 'Place' MUST be migrated to 'Space (container)'."
     },
     {
-      "id": "Controlled Collaboration Realm",
-      "context": "prose_or_ui_copy",
-      "since_revision": "2026-05-25",
+      "id": "Realm(kind=list)",
+      "context": "model_identifier",
+      "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "External Collaboration Realm",
+      "replacement": "Space(kind=list)",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Use 'External Collaboration Realm' (the role defined in zh/models/realm-and-space.md §2.7). The sovereign-deployment policy bundle that historically motivated the 'Controlled' prefix is now expressed as 'in sovereign deployment, External Collaboration Realm MUST satisfy …' and lives in zh/sync/sovereign-deployment.md §4 under ak.profile.sovereign_deployment.v1; it is not a Realm constraint_subkind. The infrastructure-isolation pattern 'Controlled Collaboration Enclave' is a separate, unchanged concept."
+      "notes": "List-shaped containers are Spaces, not Realms. Realm remains the boundary concept; container shape (board / list / etc.) lives on Space."
     },
     {
-      "id": "受控协作 Realm",
-      "context": "prose_or_ui_copy",
-      "since_revision": "2026-05-25",
+      "id": "Room",
+      "context": "core_model_name",
+      "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "External Collaboration Realm",
+      "replacement": "Realm",
+      "allowed_contexts": [
+        "changelog",
+        "interop_module",
+        "negative_test"
+      ],
+      "notes": "Room is not the v1 core model. Use Realm (federation / identity / replication boundary), Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md), Strand, or Space as applicable. 'Room' is permitted only when contrasting v1 with Matrix in interop documentation."
+    },
+    {
+      "id": "Room visibility",
+      "context": "prose_or_ui_copy",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": "Realm history visibility / discoverability / join rule",
+      "allowed_contexts": [
+        "changelog",
+        "interop_module",
+        "negative_test"
+      ],
+      "notes": "Visibility is split in v1 into three independent axes: Discoverability, Join Rule, History Visibility (see spec-map 3.4). 'Room visibility' conflates them and MUST NOT be used."
+    },
+    {
+      "id": "cleartext",
+      "context": "prose_or_ui_copy",
+      "since_revision": "2026-06-08",
+      "rejection_level": "hard_reject",
+      "replacement": "plaintext",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Chinese form of 'Controlled Collaboration Realm'; use 'External Collaboration Realm' per zh/models/realm-and-space.md §2.7. The strict sovereign-deployment policy previously implied by '受控' is now stated as a deployment-profile requirement on External Collaboration Realm in zh/sync/sovereign-deployment.md §4."
+      "notes": "Use plaintext for unencrypted user-readable material. cleartext is a legacy synonym and MUST NOT appear in current normative prose, code comments, identifiers, or UI copy except when naming historical forbidden fields in migration or negative-test contexts."
     },
     {
       "id": "cx.",
@@ -159,17 +133,82 @@
       "notes": "Legacy Contrix typed-ID prefix. Current Arkret v1 typed IDs use ak:; cx: may appear only in migration notes or negative tests."
     },
     {
-      "id": "cleartext",
-      "context": "prose_or_ui_copy",
-      "since_revision": "2026-06-08",
-      "rejection_level": "hard_reject",
-      "replacement": "plaintext",
+      "id": "delegate",
+      "context": "authz_model_term",
+      "since_revision": "2026-07-31",
+      "rejection_level": "docs_only",
+      "replacement": "authority",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Use plaintext for unencrypted user-readable material. cleartext is a legacy synonym and MUST NOT appear in current normative prose, code comments, identifiers, or UI copy except when naming historical forbidden fields in migration or negative-test contexts."
+      "notes": "v1 has one grant shape. A grant records the authority it was issued under in issuer_authority_refs; a realm_root ref is a rooted terminal and a grant ref is an edge. There is no separate delegation event, cell family or wire bit, so the word names nothing in the current model. Unrelated senses stay legitimate and are out of scope here: DID-document capabilityDelegation, the controller-to-agent authority the ak.profile.agent_delegation_policy.v1 profile governs, and delegated_pcr_genesis admission."
+    },
+    {
+      "id": "delegation",
+      "context": "authz_model_term",
+      "since_revision": "2026-07-31",
+      "rejection_level": "docs_only",
+      "replacement": "authority",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "v1 has one grant shape. A grant records the authority it was issued under in issuer_authority_refs; a realm_root ref is a rooted terminal and a grant ref is an edge. There is no separate delegation event, cell family or wire bit, so the word names nothing in the current model. Unrelated senses stay legitimate and are out of scope here: DID-document capabilityDelegation, the controller-to-agent authority the ak.profile.agent_delegation_policy.v1 profile governs, and delegated_pcr_genesis admission."
+    },
+    {
+      "id": "strand_branch",
+      "context": "identifier_or_field_name",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": "strand_track",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Branch terminology was removed across Strand. Use track (display-only segment identifier). Variable / field names containing 'strand_branch' MUST be renamed."
+    },
+    {
+      "id": "subdelegation",
+      "context": "authz_model_term",
+      "since_revision": "2026-07-31",
+      "rejection_level": "docs_only",
+      "replacement": "authority",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "v1 has one grant shape. A grant records the authority it was issued under in issuer_authority_refs; a realm_root ref is a rooted terminal and a grant ref is an edge. There is no separate delegation event, cell family or wire bit, so the word names nothing in the current model. Unrelated senses stay legitimate and are out of scope here: DID-document capabilityDelegation, the controller-to-agent authority the ak.profile.agent_delegation_policy.v1 profile governs, and delegated_pcr_genesis admission."
+    },
+    {
+      "id": "track members",
+      "context": "prose_or_ui_copy",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": "Realm members (or Circle members, when Strand.scope_circle_id points at a Circle)",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Track does not carry independent membership; the entire Strand shares one effective scope (Strand.scope_circle_id). UI copy and docs MUST refer to Realm members or Circle members (per zh/models/circle.md). A Strand needing its own membership boundary MUST set scope_circle_id to point at an intra-Realm Circle; per-track membership boundaries do not exist."
+    },
+    {
+      "id": "受控协作 Realm",
+      "context": "prose_or_ui_copy",
+      "since_revision": "2026-05-25",
+      "rejection_level": "hard_reject",
+      "replacement": "External Collaboration Realm",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Chinese form of 'Controlled Collaboration Realm'; use 'External Collaboration Realm' per zh/models/realm-and-space.md §2.7. The strict sovereign-deployment policy previously implied by '受控' is now stated as a deployment-profile requirement on External Collaboration Realm in zh/sync/sovereign-deployment.md §4."
     }
   ]
 }

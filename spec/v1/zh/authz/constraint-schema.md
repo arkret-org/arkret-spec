@@ -65,8 +65,8 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `kind_restriction` | — | core | 对象类型 / Realm kind / Morph type / facet 限制。 | core |
 | `scope_limitation` | （省略 = 普通 scope） | core | Realm / Strand / View / track 范围。 | core |
 | `scope_limitation` 带 `allowed_relation_kinds` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `ak.profile.kanban_mvp.v1` |
-| `delegation_control` | — | core | 委托深度、路径、`delegation_scope` 等。 | core |
-| `delegation_control` | `applet_delegation` | extension | Applet grant-local 绑定：`applet_id` + `executed_by` + `registration_epoch`；effective scope 由 grant `resources[]` selector 表达。 | `ak.profile.applet_service.v1` |
+| `authority_control` | — | core | 委托深度、路径、`authority_scope` 等。 | core |
+| `authority_control` | `applet_authority` | extension | Applet grant-local 绑定：`applet_id` + `executed_by` + `registration_epoch`；effective scope 由 grant `resources[]` selector 表达。 | `ak.profile.applet_service.v1` |
 | `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `constraint_scope` + `burst`）。 | core |
 | `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resources` / `max_total_blob_bytes`）。 | `ak.profile.constraint.resource_limit.v1` |
 | `claim_based` | `claim` | extension | `required_claims[]` 凭证 / 证明要求；responsible / guardian / controller 通过 claim 表达，device binding 通过 claim issuer = device cross-signing key 表达。 | `ak.profile.constraint.claim_based.v1` |
@@ -75,7 +75,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `confidentiality` | `encryption` | extension | 强制加密、key 轮换、key issuer。 | `ak.profile.constraint.encryption_requirement.v1` |
 | `confidentiality` | `visibility` | extension | 对象 / 消息可见性裁剪、`redacted_history_allowed`。 | `ak.profile.constraint.visibility_control.v1` |
 
-> v1 共 8 个核心 typed family，narrow-scoped 子类作为可选 `constraint_subkind` 表达：`edit_window` / `redact_window` / `window` / `session` 走 `temporal` (constraint_subkind 标记)；`container_move` 走 `scope_limitation`；Applet registration grant 绑定走 `delegation_control` (`constraint_subkind=applet_delegation`)；`rate_limiting` / `resource_limit` 走 `quota` (`constraint_subkind=rate` / `resource`)；`approval_workflow` / `accountability` 走 `claim_based` (`constraint_subkind=approval` / `accountability`)；其中通过 claim 表达 responsible / guardian / controller 的凭证条件仍走 `constraint_subkind=claim`，不会取代独立的 grant-local `constraint_subkind=accountability`。device/session binding **不是 claim_based 的独立 constraint_subkind**，并入 `constraint_subkind=claim`，通过 claim issuer = device cross-signing key 表达；`encryption_requirement` / `visibility_control` 走 `confidentiality` (`constraint_subkind=encryption` / `visibility`)。底层字段或 constraint_subkind 值——`recurrence` / `max_session_duration` / `condition.kind` / `required_claims[]` 等都是合法字段（见 §3 / §4 / §10）。canonical 8 family：`temporal` / `field_access` / `kind_restriction` / `scope_limitation` / `delegation_control` / `quota` / `claim_based` / `confidentiality`。
+> v1 共 8 个核心 typed family，narrow-scoped 子类作为可选 `constraint_subkind` 表达：`edit_window` / `redact_window` / `window` / `session` 走 `temporal` (constraint_subkind 标记)；`container_move` 走 `scope_limitation`；Applet registration grant 绑定走 `authority_control` (`constraint_subkind=applet_authority`)；`rate_limiting` / `resource_limit` 走 `quota` (`constraint_subkind=rate` / `resource`)；`approval_workflow` / `accountability` 走 `claim_based` (`constraint_subkind=approval` / `accountability`)；其中通过 claim 表达 responsible / guardian / controller 的凭证条件仍走 `constraint_subkind=claim`，不会取代独立的 grant-local `constraint_subkind=accountability`。device/session binding **不是 claim_based 的独立 constraint_subkind**，并入 `constraint_subkind=claim`，通过 claim issuer = device cross-signing key 表达；`encryption_requirement` / `visibility_control` 走 `confidentiality` (`constraint_subkind=encryption` / `visibility`)。底层字段或 constraint_subkind 值——`recurrence` / `max_session_duration` / `condition.kind` / `required_claims[]` 等都是合法字段（见 §3 / §4 / §10）。canonical 8 family：`temporal` / `field_access` / `kind_restriction` / `scope_limitation` / `authority_control` / `quota` / `claim_based` / `confidentiality`。
 
 未注册的 `constraint_kind` 或未注册的 `(constraint_kind, constraint_subkind)` 组合 MUST fail closed。新增 family / constraint_subkind 必须先在本表登记，并在 grant-constraint schema 的 `constraint_kind` 与 `constraint_subkind` enum 中注册。
 
@@ -93,8 +93,8 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `scope_limitation`（普通 scope） | `stateless` | (constraint_digest, op_target) | |
 | `scope_limitation`（带 `allowed_*_container_refs` / `wip_limit_override`） | `realm_state` | (realm_id, frontier_digest, target_container_id) | 看目标 List policy / WIP |
 | `scope_limitation`（带 `blob_presign_scope` / `allowed_endpoints` / `allowed_data_labels`） | `stateless` | (constraint_digest, op_target) | 对 presign / agent / applet 请求字段做集合或模式匹配 |
-| `delegation_control` | `grant_local` | (grant_id) | 只看 grant 自身 path / depth |
-| `delegation_control` (`constraint_subkind=applet_delegation`) | `grant_local` | (grant_id) | 对照 grant 内的 Applet / executor / registration epoch 绑定；registration evidence freshness 由引用解析另行校验 |
+| `authority_control` | `grant_local` | (grant_id) | 只看 grant 自身 path / depth |
+| `authority_control` (`constraint_subkind=applet_authority`) | `grant_local` | (grant_id) | 对照 grant 内的 Applet / executor / registration epoch 绑定；registration evidence freshness 由引用解析另行校验 |
 | `quota` (`constraint_subkind=rate`) | `external` | 不可缓存 | 必须查 actor 历史计数 |
 | `quota` (`constraint_subkind=resource`，`blob_max_bytes` 单次) | `stateless` | 单次操作的字节计数无需历史 | |
 | `quota` (`constraint_subkind=resource`，`max_resources` / `max_total_blob_bytes` 累计) | `external` | 不可缓存 | 必须查 scope 内累计 |
@@ -301,11 +301,11 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 ```json
 {
-  "constraint_kind": "delegation_control",
+  "constraint_kind": "authority_control",
   "effect": "allow",
-  "max_delegation_depth": 2,
-  "delegation_path": ["did:webvh:zABpBQTRWzuVZjF4X1cTUVGZ8:org.example.com"],
-  "prohibit_subdelegation": false
+  "max_authority_depth": 2,
+  "authority_path": ["did:webvh:zABpBQTRWzuVZjF4X1cTUVGZ8:org.example.com"],
+  "authority_regrant_allowed": false
 }
 ```
 
@@ -313,22 +313,22 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 ```json
 {
-  "constraint_kind": "delegation_control",
+  "constraint_kind": "authority_control",
   "effect": "allow",
-  "delegation_scope": "narrowing_only",
+  "authority_scope": "narrowing_only",
   "scope_expansion_allowed": false,
   "parent_reference_required": true
 }
 ```
 
-### 7.3 Applet 委托绑定（constraint_subkind=applet_delegation）
+### 7.3 Applet 委托绑定（constraint_subkind=applet_authority）
 
 Applet install 签发的每个 `ak.capability.grant` MUST 携带以下规范约束：
 
 ```json
 {
-  "constraint_kind": "delegation_control",
-  "constraint_subkind": "applet_delegation",
+  "constraint_kind": "authority_control",
+  "constraint_subkind": "applet_authority",
   "effect": "allow",
   "evaluation_class": "grant_local",
   "applet_id": "ak:applet:8a0baad5-6000-7000-8000-000000000000",
@@ -345,17 +345,17 @@ Applet install 签发的每个 `ak.capability.grant` MUST 携带以下规范约�
 
 §7.1 / §7.2 的委托控制字段不只是枚举声明；reducer 在 accept `ak.capability.delegate` 派生 grant 时 **MUST** 按下列规则求值，违反即 fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的收窄约束表叠加生效（先过 §10.1 的 actions/resources/window 收窄，再过本节字段规则）。
 
-**`prohibit_subdelegation`**：
+**`authority_regrant_allowed`**：
 
-- `prohibit_subdelegation=true` ⇒ child grant 的 `max_delegation_depth` **MUST = 0**。reducer 在派生 child 时 MUST 强制把 child 的 `max_delegation_depth` 视为 `0`；若 child grant 声明了 `max_delegation_depth > 0`，reducer **MUST** 返回 `schema_violation`（`reason="subdelegation_prohibited"`）。`prohibit_subdelegation=true` 的 grant 持有者 MUST NOT 再签发任何下游 `ak.capability.delegate`。
-- `prohibit_subdelegation=false`（默认）时不额外约束，深度仍受 §10.1 `max_delegation_depth ≤ parent - 1` 与 §10.2 DFS 上限 4 治理。
+- `authority_regrant_allowed=true` ⇒ child grant 的 `max_authority_depth` **MUST = 0**。reducer 在派生 child 时 MUST 强制把 child 的 `max_authority_depth` 视为 `0`；若 child grant 声明了 `max_authority_depth > 0`，reducer **MUST** 返回 `schema_violation`（`reason="authority_regrant_denied"`）。`authority_regrant_allowed=true` 的 grant 持有者 MUST NOT 再签发任何下游 `ak.capability.delegate`。
+- `authority_regrant_allowed=false`（默认）时不额外约束，深度仍受 §10.1 `max_authority_depth ≤ parent - 1` 与 §10.2 DFS 上限 4 治理。
 
 **`scope_expansion_allowed`**：
 
 - v1 中 [`capabilities.md` §10.1](./capabilities.md) 强制 child `actions[]` ⊆ parent、`resources[]` 为 parent 的 selector-narrowing 子集。`scope_expansion_allowed=true` 与该收窄不变量直接矛盾，因此 **v1 reducer MUST 拒绝** `scope_expansion_allowed=true`，返回 `schema_violation`（`reason="scope_expansion_forbidden"`）。该字段在 v1 wire 上只允许取 `false`（缺省即 `false`）；声明 `true` 不构成"扩权许可"，而是非法 grant。
 - 若未来某 profile 确需 scope 扩展语义，MUST 注册独立 profile 并在该 profile 内重新定义上界来源；v1 core 不提供。
 
-**`delegation_scope`（三值）**：取值 ∈ `{narrowing_only, same_scope, custom}`，reducer 校验规则：
+**`authority_scope`（三值）**：取值 ∈ `{narrowing_only, same_scope, custom}`，reducer 校验规则：
 
 | 值 | 校验规则 |
 | --- | --- |
@@ -363,7 +363,7 @@ Applet install 签发的每个 `ak.capability.grant` MUST 携带以下规范约�
 | `same_scope` | child 的 `actions[]` MUST = parent（逐元素相等集合），`resources[]` MUST 与 parent selector 等价（既不放宽也不收窄），`constraints[]` MUST ⊇ parent 约束集。用于"原样转授但不扩权"的场景（如委托给 standby principal）。任一维度不等价 MUST 返回 `schema_violation`（`reason="delegation_scope_mismatch"`）。 |
 | `custom` | 必须由声明该值的 extension profile 定义完整收窄判据；未声明对应 profile 的 reducer **MUST fail closed**（`schema_violation`，`reason="delegation_scope_custom_unsupported"`），MUST NOT 把 `custom` 当作 `narrowing_only` 的别名放行。 |
 
-未注册的 `delegation_scope` 值 MUST fail closed。`delegation_scope` 与 `scope_expansion_allowed` 同时出现且语义冲突时（如 `same_scope` 但 `scope_expansion_allowed=true`），按更严格规则裁决——`scope_expansion_allowed=true` 在 v1 已被独立拒绝（见上），因此该组合整体 `schema_violation`。
+未注册的 `authority_scope` 值 MUST fail closed。`authority_scope` 与 `scope_expansion_allowed` 同时出现且语义冲突时（如 `same_scope` 但 `scope_expansion_allowed=true`），按更严格规则裁决——`scope_expansion_allowed=true` 在 v1 已被独立拒绝（见上），因此该组合整体 `schema_violation`。
 
 **`parent_reference_required`**：
 
@@ -1108,15 +1108,15 @@ Grant envelope 字段、签名规则与必填性以
 
 ```json
 {
-  "constraint_kind": "delegation_control",
+  "constraint_kind": "authority_control",
   "effect": "allow",
-  "max_delegation_depth": 1,
-  "delegation_scope": "narrowing_only"
+  "max_authority_depth": 1,
+  "authority_scope": "narrowing_only"
 }
 ```
 
-Delegated grant MUST 等于或窄于 parent grant。`max_delegation_depth`、
-`delegation_path`、`prohibit_subdelegation` 见 §7.1。
+Delegated grant MUST 等于或窄于 parent grant。`max_authority_depth`、
+`authority_path`、`authority_regrant_allowed` 见 §7.1。
 
 #### 20.3.5 Container Move Scope Constraint
 

@@ -420,8 +420,8 @@
       ]
     },
     {
-      "name": "delegate_chain_multi_level",
-      "vector_id": "ak.vector.capability.delegate_chain.v1",
+      "name": "authority_chain_multi_level",
+      "vector_id": "ak.vector.capability.authority_chain.v1",
       "base": {
         "grant_id": "ak:grant:019640d0-b800-7000-8000-000000000000",
         "root_event_id": "ak:event:01964180-0350-72ab-a000-000000000000",
@@ -430,10 +430,31 @@
           "ak.realm.admin"
         ]
       },
-      "delegations": [
+      "action_query": {
+        "actor_id": "did:webvh:z6mkfixture:intern.example.com",
+        "action": "ak.invite.create",
+        "resource": "ak:realm:0196414c-8000-7000-8000-000000000000",
+        "request_time": "2026-04-26T01:00:00.000Z",
+        "request_audience": "did:webvh:z6mkfixture:vendor.example"
+      },
+      "expected": {
+        "authorized": true,
+        "valid_chain": [
+          "ak:grant:019640d0-b800-7000-8000-000000000000",
+          "ak:grant:019640d0-c000-7000-8000-000000000000",
+          "ak:grant:019640d0-c400-7000-8000-000000000000"
+        ],
+        "constraints_checked": {
+          "time": true,
+          "resource_scope": true,
+          "rate_limit": true,
+          "audience": true
+        }
+      },
+      "authority_chain": [
         {
           "event_id": "ak:event:019640d0-c000-7000-8000-000000000000",
-          "kind": "ak.capability.delegate",
+          "kind": "ak.capability.grant",
           "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
           "scope_ref": {
             "kind": "realm",
@@ -442,7 +463,12 @@
           "actor_id": "did:webvh:z6mkfixture:root-admin.example.com",
           "payload": {
             "grant_id": "ak:grant:019640d0-c000-7000-8000-000000000000",
-            "parent_grant_id": "ak:grant:019640d0-b800-7000-8000-000000000000",
+            "issuer_authority_refs": [
+              {
+                "kind": "grant",
+                "grant_id": "ak:grant:019640d0-b800-7000-8000-000000000000"
+              }
+            ],
             "subject": "did:webvh:z6mkfixture:ops.example.com",
             "resources": [
               {
@@ -452,7 +478,6 @@
               }
             ],
             "actions": [
-              "ak.capability.delegate",
               "ak.invite.create"
             ],
             "constraints": [
@@ -478,14 +503,14 @@
             },
             {
               "id": "ak:grant:019640d0-b800-7000-8000-000000000000",
-              "role": "parent_grant",
+              "role": "issuer_authority",
               "critical": true
             }
           ]
         },
         {
           "event_id": "ak:event:019640d0-c400-7000-8000-000000000000",
-          "kind": "ak.capability.delegate",
+          "kind": "ak.capability.grant",
           "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
           "scope_ref": {
             "kind": "realm",
@@ -494,7 +519,12 @@
           "actor_id": "did:webvh:z6mkfixture:ops.example.com",
           "payload": {
             "grant_id": "ak:grant:019640d0-c400-7000-8000-000000000000",
-            "parent_grant_id": "ak:grant:019640d0-c000-7000-8000-000000000000",
+            "issuer_authority_refs": [
+              {
+                "kind": "grant",
+                "grant_id": "ak:grant:019640d0-c000-7000-8000-000000000000"
+              }
+            ],
             "subject": "did:webvh:z6mkfixture:intern.example.com",
             "resources": [
               {
@@ -531,33 +561,12 @@
             },
             {
               "id": "ak:grant:019640d0-c000-7000-8000-000000000000",
-              "role": "parent_grant",
+              "role": "issuer_authority",
               "critical": true
             }
           ]
         }
-      ],
-      "action_query": {
-        "actor_id": "did:webvh:z6mkfixture:intern.example.com",
-        "action": "ak.invite.create",
-        "resource": "ak:realm:0196414c-8000-7000-8000-000000000000",
-        "request_time": "2026-04-26T01:00:00.000Z",
-        "request_audience": "did:webvh:z6mkfixture:vendor.example"
-      },
-      "expected": {
-        "authorized": true,
-        "valid_chain": [
-          "ak:grant:019640d0-b800-7000-8000-000000000000",
-          "ak:grant:019640d0-c000-7000-8000-000000000000",
-          "ak:grant:019640d0-c400-7000-8000-000000000000"
-        ],
-        "constraints_checked": {
-          "time": true,
-          "resource_scope": true,
-          "rate_limit": true,
-          "audience": true
-        }
-      }
+      ]
     },
     {
       "name": "revoke_rollback_forward_recompute",
@@ -794,8 +803,8 @@
         "issuer_action": "ak.realm.admin",
         "grantable_action": "ak.applet.ghost.provision",
         "required_registration_event_kind": "ak.applet.registration",
-        "required_constraint_kind": "delegation_control",
-        "required_constraint_subkind": "applet_delegation"
+        "required_constraint_kind": "authority_control",
+        "required_constraint_subkind": "applet_authority"
       },
       "cases": [
         {
@@ -823,8 +832,8 @@
             ],
             "constraints": [
               {
-                "constraint_kind": "delegation_control",
-                "constraint_subkind": "applet_delegation",
+                "constraint_kind": "authority_control",
+                "constraint_subkind": "applet_authority",
                 "applet_id": "ak:applet:01964120-1000-7000-8000-000000000000",
                 "executed_by": "did:webvh:z6mkfixture:bridge.example",
                 "registration_epoch": "sha256:1111111111111111111111111111111111111111111111111111111111111111"

@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-30.4",
+  "version": "2026-07-30.5",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -240,14 +240,14 @@
       "clause_id": "AK-NC-016",
       "status": "active",
       "category": "authorization",
-      "source_anchor": "spec/v1/zh/authz/capabilities.md#10-delegation",
-      "section_digest": "sha256:c4897f38cb5dc3f7ff7bd792545aa4747d2ed3c25b6668a9f18319e7be847204",
-      "requirement": "Delegation chains stay within the issuer authority and validity window; cycles and expired links MUST fail closed rather than widen the effective permission set.",
+      "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
+      "section_digest": "sha256:e9a4cd920659275bb0d73bd696dd716b7ddc510bf264646d2cf3b72cc2560a38",
+      "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window; cycles over grant refs and inactive refs MUST fail closed rather than widen the effective permission set.",
       "testability_grade": "vector",
       "evidence_refs": [
-        "ak.vector.capability.delegate_chain.v1",
-        "ak.vector.capability.delegation_cycle.v1",
-        "ak.vector.capability.delegation_expiry_seal.v1",
+        "ak.vector.capability.authority_chain.v1",
+        "ak.vector.capability.authority_cycle.v1",
+        "ak.vector.capability.authority_expiry_seal.v1",
         "ak.vector.capability.issuer_authority_bound.v1"
       ]
     },
@@ -256,7 +256,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#12-revocation",
-      "section_digest": "sha256:7f560901ee8388f2a1bee7c3624204e40d506810b51b06430ae1e8ea41484c59",
+      "section_digest": "sha256:e4827ed60948c8b46fcbfa6157cc2eb0695d45f4c59fb2014025e7150c388d5d",
       "requirement": "Revocation rolls back downstream grants and forces a re-check of dependent decisions; a revoked grant MUST NOT keep authorizing pending or cached writes.",
       "testability_grade": "vector",
       "evidence_refs": [

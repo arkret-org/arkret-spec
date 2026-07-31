@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-31.11",
+  "version": "2026-07-31.12",
   "source_of_truth": false,
-  "generated_at": "2026-07-31T06:00:00Z",
+  "generated_at": "2026-07-31T07:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -331,19 +331,6 @@
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "ak.capability.delegate",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [
-        "max_delegation_depth"
-      ],
-      "target_event_kinds": [
-        "ak.capability.delegate"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
       "action": "ak.capability.derived",
       "category": "management",
       "risk_tier": "medium",
@@ -365,6 +352,19 @@
         "ak.capability.grant"
       ],
       "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.capability.relinquish",
+      "category": "management",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.capability.relinquish"
+      ],
+      "profile": null,
+      "subject_only": true,
+      "notes": "Subject-only self-service release of the actor own grant. Authority comes from the target grant subject signature and the reducer target guard, never from a capability, so it is excluded from every derived authority set.",
       "event_mapping_kind": "same_name"
     },
     {
@@ -1136,6 +1136,32 @@
       "event_mapping_kind": "same_name"
     },
     {
+      "action": "ak.realm.authority.basis_update",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm.authority.basis_update"
+      ],
+      "profile": null,
+      "root_control_only": true,
+      "notes": "Re-anchors the authority-root capability-action registry digest to a retrievable, recomputable, active snapshot. Changes neither controller nor generation and never retroactively widens an existing grant.",
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.realm.authority.reset",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm.authority.reset"
+      ],
+      "profile": null,
+      "root_control_only": true,
+      "notes": "Advances the authority generation, invalidating every grant anchored to the previous one at read time. Destructive root control; never grantable.",
+      "event_mapping_kind": "same_name"
+    },
+    {
       "action": "ak.realm.create",
       "category": "general",
       "risk_tier": "medium",
@@ -1260,7 +1286,6 @@
         "ak.call.recording.start",
         "ak.call.state",
         "ak.call.summary",
-        "ak.capability.delegate",
         "ak.capability.grant",
         "ak.capability.revoke",
         "ak.circle.archive",
@@ -1375,7 +1400,6 @@
         "ak.call.screen_share",
         "ak.call.signal.send",
         "ak.call.transcribe",
-        "ak.capability.delegate",
         "ak.capability.grant",
         "ak.capability.revoke",
         "ak.circle.audit",
@@ -1517,6 +1541,19 @@
         ]
       },
       "event_mapping_kind": "aggregate_admin"
+    },
+    {
+      "action": "ak.realm.owner.transfer",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.realm.owner.transfer"
+      ],
+      "profile": null,
+      "root_control_only": true,
+      "notes": "Rotates the controller binding of the Realm authority-root cell. Authored only by the current controller with successor acceptance; it MUST NOT be granted, so it is excluded from every derived owner authority set.",
+      "event_mapping_kind": "same_name"
     },
     {
       "action": "ak.realm.plaintext_visible_services",

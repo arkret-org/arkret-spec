@@ -38,7 +38,7 @@ MIMI Provider Facade 的 active interop vectors 为 `ak.vector.mimi.provider_dir
 
 - CBA / open_set 多 leaf 下 per-cell lattice join `J(L)` 是纯函数，且与输入顺序、接收方、墙钟无关；所有 conformant reducer 对同一 accepted Seal frontier 收敛到同一 cell value。
 - 并发分支撤销 fail closed：grant / capability revoke 与被授权 Event 并发时，joined control view MUST 重判并拒绝不再满足授权的 Event。
-- Capability delegation 单调衰减：`child.actions ⊆ parent.actions`、resource selector 不放宽、约束不放宽、`delegation_expiry_seal` 只能收窄或固定，不能被子 grant 延长。
+- Capability delegation 单调衰减：`child.actions ⊆ parent.actions`、resource selector 不放宽、约束不放宽、`authority_expiry_seal` 只能收窄或固定，不能被子 grant 延长。
 - Delegation graph 无环，且环检测在并发分支合并、离线 replay 与 migration context 下结果一致。
 - Control-cell bottom / conflict-recovery 只能按 `event-auth-state-resolution.md` §9.5 的唯一 recovery Move 出 ⊥，其它路径 fail closed。
 
@@ -1718,7 +1718,7 @@ ak.vector.capability.<scenario>.v1
 向量名称：
 
 ```text
-ak.vector.capability.delegate_chain.v1
+ak.vector.capability.authority_chain.v1
 ```
 
 输入事件链：
@@ -1734,15 +1734,15 @@ ak.vector.capability.delegate_chain.v1
     ],
     "constraints": []
   },
-  "delegations": [
+  "authority_chain": [
     {
       "event_id": "ak:event:019640d0-c000-7000-8000-000000000000",
-      "kind": "ak.capability.delegate",
+      "kind": "ak.capability.grant",
       "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:webvh:z6mkfixture:root-admin.example.com",
       "payload": {
         "grant_id": "ak:grant:019640d0-c000-7000-8000-000000000000",
-        "parent_grant_id": "ak:grant:019640d0-b800-7000-8000-000000000000",
+        "issuer_authority_refs": [{"kind": "grant", "grant_id": "ak:grant:019640d0-b800-7000-8000-000000000000"}],
         "subject": "did:webvh:z6mkfixture:ops.example.com",
         "resources": [
           {
@@ -1752,7 +1752,6 @@ ak.vector.capability.delegate_chain.v1
           }
         ],
         "actions": [
-          "ak.capability.delegate",
           "ak.invite.create"
         ],
         "constraints": [
@@ -1777,12 +1776,12 @@ ak.vector.capability.delegate_chain.v1
     },
     {
       "event_id": "ak:event:019640d0-c400-7000-8000-000000000000",
-      "kind": "ak.capability.delegate",
+      "kind": "ak.capability.grant",
       "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:webvh:z6mkfixture:ops.example.com",
       "payload": {
         "grant_id": "ak:grant:019640d0-c400-7000-8000-000000000000",
-        "parent_grant_id": "ak:grant:019640d0-c000-7000-8000-000000000000",
+        "issuer_authority_refs": [{"kind": "grant", "grant_id": "ak:grant:019640d0-c000-7000-8000-000000000000"}],
         "subject": "did:webvh:z6mkfixture:intern.example.com",
         "resources": [
           {

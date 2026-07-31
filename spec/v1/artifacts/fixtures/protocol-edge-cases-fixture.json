@@ -8,8 +8,8 @@
   "covers_vectors": [
     "ak.vector.capability.issuer_authority_bound.v1",
     "ak.vector.capability.validity_window.v1",
-    "ak.vector.capability.delegation_expiry_seal.v1",
-    "ak.vector.capability.delegation_cycle.v1",
+    "ak.vector.capability.authority_expiry_seal.v1",
+    "ak.vector.capability.authority_cycle.v1",
     "ak.vector.capability.moderation_dependency.v1",
     "ak.vector.capability.freshness_risk_matrix.v1",
     "ak.vector.capability.global_decision_merge.v1",
@@ -59,8 +59,8 @@
       }
     },
     {
-      "name": "delegation_expiry_seal",
-      "vector_id": "ak.vector.capability.delegation_expiry_seal.v1",
+      "name": "authority_expiry_seal",
+      "vector_id": "ak.vector.capability.authority_expiry_seal.v1",
       "variants": [
         "redelegate_same_bound",
         "redelegate_shorter_bound",
@@ -68,13 +68,13 @@
         "fixed_seal_replay"
       ],
       "expected": {
-        "widened_reason": "delegation_expiry_widening",
+        "widened_reason": "authority_expiry_widening",
         "expiry_seal_rotated": false
       }
     },
     {
-      "name": "delegation_cycle",
-      "vector_id": "ak.vector.capability.delegation_cycle.v1",
+      "name": "authority_cycle",
+      "vector_id": "ak.vector.capability.authority_cycle.v1",
       "variants": [
         "direct_cycle",
         "multi_hop_cycle",
@@ -83,7 +83,7 @@
       ],
       "expected": {
         "decision": "reject",
-        "reason_code": "delegation_cycle",
+        "reason_code": "authority_cycle",
         "batch_atomic": true
       }
     },

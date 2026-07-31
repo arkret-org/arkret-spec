@@ -1,6 +1,6 @@
 {
-  "version": "2026-07-31.5",
-  "generated_at": "2026-07-31T06:00:00Z",
+  "version": "2026-07-31.6",
+  "generated_at": "2026-07-31T07:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1492,7 +1492,7 @@
         "field_access",
         "kind_restriction",
         "scope_limitation",
-        "delegation_control",
+        "authority_control",
         "quota"
       ],
       "required_constraint_subkinds": [
@@ -2828,8 +2828,8 @@
           "grantable_action": "ak.applet.ghost.provision",
           "required_registration_event_kind": "ak.applet.registration",
           "required_claimed_profile": "ak.profile.applet_bridge.v1",
-          "required_constraint_kind": "delegation_control",
-          "required_constraint_subkind": "applet_delegation",
+          "required_constraint_kind": "authority_control",
+          "required_constraint_subkind": "applet_authority",
           "subject_binding": "registration.service_id",
           "scope_binding": "grant.resource_exact_registration_scope",
           "epoch_binding": "constraint.registration_epoch_exact_registration",
@@ -3070,7 +3070,6 @@
       ],
       "required_event_kinds": [
         "ak.capability.grant",
-        "ak.capability.delegate",
         "ak.capability.revoke",
         "ak.message.create"
       ],

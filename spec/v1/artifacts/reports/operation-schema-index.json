@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-31.11",
+  "version": "2026-07-31.12",
   "source_of_truth": false,
-  "generated_at": "2026-07-31T06:00:00Z",
+  "generated_at": "2026-07-31T07:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -301,7 +301,7 @@
           "agent_scope_request",
           "requested_scope_disclosure",
           "dpop_binding_proof",
-          "applet_delegation",
+          "applet_authority",
           "proof"
         ],
         "closed": true

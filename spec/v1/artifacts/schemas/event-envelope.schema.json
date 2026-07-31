@@ -529,6 +529,7 @@
               "ak.agent.key.authorize",
               "ak.agent.key.revoke",
               "ak.agent.selector_claim",
+              "ak.agent.sidecar.exchange.control",
               "ak.applet.bridge_error",
               "ak.applet.discovery",
               "ak.applet.registration",
@@ -542,9 +543,9 @@
               "ak.call.recording.start",
               "ak.call.state",
               "ak.call.summary",
-              "ak.capability.delegate",
               "ak.capability.derived",
               "ak.capability.grant",
+              "ak.capability.relinquish",
               "ak.capability.revoke",
               "ak.circle.archive",
               "ak.circle.create",
@@ -552,7 +553,6 @@
               "ak.circle.restore",
               "ak.circle.tombstone",
               "ak.circle.update",
-              "ak.sidecar.create",
               "ak.consent.grant",
               "ak.consent.revoke",
               "ak.contact.accepted",
@@ -564,20 +564,11 @@
               "ak.cross_signing.publish",
               "ak.cross_signing.reset",
               "ak.device.authorize",
-              "ak.device.reanchor",
               "ak.device.list_update",
+              "ak.device.reanchor",
               "ak.device.revoke",
               "ak.did.proof",
               "ak.direct_conversation.bound",
-              "ak.strand.archive",
-              "ak.strand.create",
-              "ak.strand.move",
-              "ak.strand.reorder",
-              "ak.strand.restore",
-              "ak.strand.stage.set",
-              "ak.strand.tracks.update",
-              "ak.strand.update",
-              "ak.strand.watch.set",
               "ak.handle.discovery",
               "ak.identity.accountability_grant",
               "ak.identity.disclosure_policy",
@@ -593,7 +584,6 @@
               "ak.key_backup.active_series",
               "ak.member.identity.update",
               "ak.member.state",
-              "ak.agent.sidecar.exchange.control",
               "ak.message.create",
               "ak.message.redact",
               "ak.message.revise",
@@ -635,12 +625,14 @@
               "ak.realm.alias",
               "ak.realm.archive",
               "ak.realm.asset_privacy_policy",
+              "ak.realm.authority.basis_update",
+              "ak.realm.authority.reset",
               "ak.realm.create",
               "ak.realm.delivery_binding_policy",
               "ak.realm.destroy",
+              "ak.realm.digest_suite_transition",
               "ak.realm.disappearing_policy",
               "ak.realm.discovery",
-              "ak.realm.digest_suite_transition",
               "ak.realm.freeze",
               "ak.realm.history_sharing_policy",
               "ak.realm.history_visibility",
@@ -651,6 +643,7 @@
               "ak.realm.moderation_policy",
               "ak.realm.notary",
               "ak.realm.organization",
+              "ak.realm.owner.transfer",
               "ak.realm.plaintext_visible_services",
               "ak.realm.policy",
               "ak.realm.policy_bundle",
@@ -677,6 +670,7 @@
               "ak.self.agent.resume",
               "ak.self.moderation.report",
               "ak.session.grant",
+              "ak.sidecar.create",
               "ak.sovereign.did_policy",
               "ak.space.archive",
               "ak.space.create",
@@ -684,6 +678,15 @@
               "ak.space.restore",
               "ak.space.tombstone",
               "ak.space.update",
+              "ak.strand.archive",
+              "ak.strand.create",
+              "ak.strand.move",
+              "ak.strand.reorder",
+              "ak.strand.restore",
+              "ak.strand.stage.set",
+              "ak.strand.tracks.update",
+              "ak.strand.update",
+              "ak.strand.watch.set",
               "ak.view.create",
               "ak.view.reconcile",
               "ak.view.update"
@@ -2744,7 +2747,6 @@
           "kind": {
             "enum": [
               "ak.capability.grant",
-              "ak.capability.delegate",
               "ak.capability.derived"
             ]
           }
@@ -4044,6 +4046,82 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/state_conflict_recovery_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.owner.transfer"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_owner_transfer_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.authority.reset"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_authority_reset_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.authority.basis_update"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_authority_basis_update_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.capability.relinquish"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/capability_relinquish_payload"
           }
         }
       }

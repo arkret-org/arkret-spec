@@ -134,7 +134,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 
 本节为优先级示例，完整必测集合以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为准。
 
-- `ak.vector.capability.delegate_chain.v1`
+- `ak.vector.capability.authority_chain.v1`
   - grant 链条（多层委派）与 selector 条件（时间、对象、速率）冲突场景。
   - 期望输出：可验证且具备时间边界的派生有效性。
 - `ak.vector.capability.revoke_rollback.v1`
@@ -142,14 +142,14 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 - `ak.vector.capability.approval_constraint.v1`
   - high risk action 未满足 approval 时应软拒绝或进入 proposal 流程。
 
-**Capability semantic coverage（normative gate）**：下列行为已由 `protocol-edge-cases-fixture.json` 的 active 向量固化：`ak.vector.capability.issuer_authority_bound.v1`、`ak.vector.capability.validity_window.v1`、`ak.vector.capability.delegation_expiry_seal.v1`、`ak.vector.capability.delegation_cycle.v1`、`ak.vector.capability.moderation_dependency.v1`、`ak.vector.capability.freshness_risk_matrix.v1`、`ak.vector.capability.global_decision_merge.v1`。进入 `v1-conformance-certified` 前，capability runner MUST 执行其全部正负例并保存逐 case 结果：
+**Capability semantic coverage（normative gate）**：下列行为已由 `protocol-edge-cases-fixture.json` 的 active 向量固化：`ak.vector.capability.issuer_authority_bound.v1`、`ak.vector.capability.validity_window.v1`、`ak.vector.capability.authority_expiry_seal.v1`、`ak.vector.capability.authority_cycle.v1`、`ak.vector.capability.moderation_dependency.v1`、`ak.vector.capability.freshness_risk_matrix.v1`、`ak.vector.capability.global_decision_merge.v1`。进入 `v1-conformance-certified` 前，capability runner MUST 执行其全部正负例并保存逐 case 结果：
 
 规模型授权上限已由 active `ak.vector.scalability.capability_limits.v1` 与 `scalability-limits-fixture.json` 的生成式 runner 固化：delegation chain 深度 5、单次展开 1,025 grants、单 grant 65 constraints、selector AST 深度 9 均必须 fail closed；这些 case 与下列语义型 capability coverage 同属认证闭包，不得只运行其一。
 
 - 首发 grant issuer 上界校验：grant 的 `actions[]` / `resources[]` 超出 issuer 当前 effective capability 时 MUST 拒绝（`grant_exceeds_issuer_authority`），并覆盖 freshness unknown fail-closed。runner MUST 覆盖 owner authority 的两个合法来源：(a) authority-root cell（`ak.component.realm.authority_root.v1`）的 current controller 凭同一 Seal basis 下的 registered inclusion proof 取得 effective `ak.realm.owner`，其上界来自该 cell 的 `grant_authority_actions`；(b) 由此派生的可撤销 co-owner `ak.realm.owner` grant。负例 MUST 包含：以 `created_by`、membership 或 `realm_state.owner` 一类 projection mirror 回退充当上界来源，以及 controller 不匹配 / root cell 缺失（`realm_authority_controller_mismatch` / `realm_authority_root_missing`）。
 - effective validity window 归一化：`effective_not_before >= effective_expires_at` MUST 拒绝（`grant_validity_window_empty`）。
-- `delegation_expiry_seal` 防滚动续期：re-delegate MUST NOT 刷新整条链的 expiry seal，任何 widened expiry MUST 拒绝。
-- delegation cycle detection：含 revoke-then-re-delegate 与 batch 场景的环 MUST 拒绝（`delegation_cycle`）。
+- `authority_expiry_seal` 防滚动续期：re-delegate MUST NOT 刷新整条链的 expiry seal，任何 widened expiry MUST 拒绝。
+- delegation cycle detection：含 revoke-then-re-delegate 与 batch 场景的环 MUST 拒绝（`authority_cycle`）。
 - `depends_on_moderation_state` 静态 lint：满足 capabilities.md §18.1 条件而缺少显式 `true` 的 grant MUST schema-fail。
 - freshness 风险表：高风险 `stale` / `unknown` MUST fail closed；中风险 `unknown` MUST fail closed；本地 pending tier 在 `unknown` 下 MUST 不对外同步。
 - 跨 grant 全局合并：任一命中 grant 的 deny / quarantine / require_review MUST 全局生效，runner MUST 覆盖"MUST NOT 逐 grant 独立求值后取任一 ALLOWED 即放行"的负向样例。

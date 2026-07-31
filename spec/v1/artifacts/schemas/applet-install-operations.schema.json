@@ -229,7 +229,7 @@
               }
             ]
           },
-          "description": "Caller-signed formal capability-grant Events. Each Event actor and grant issuer MUST equal the authenticated install admin; subjects, actions, resources and applet_delegation constraints MUST exactly match the recomputed install plan and effective_scope."
+          "description": "Caller-signed formal capability-grant Events. Each Event actor and grant issuer MUST equal the authenticated install admin; subjects, actions, resources and applet_authority constraints MUST exactly match the recomputed install plan and effective_scope."
         },
         "actor_policy": {
           "$ref": "#/$defs/actor_policy"

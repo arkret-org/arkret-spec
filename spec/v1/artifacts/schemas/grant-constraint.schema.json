@@ -7,7 +7,7 @@
     }
   },
   "title": "Arkret Grant Constraint",
-  "$comment": "Property ordering is grouped by constraint family to match capabilities.md §6 (the human-readable family map): discriminator/meta, then temporal, field_access, kind_restriction, scope_limitation, delegation_control, quota, claim_based, confidentiality, then the moderation cache-invalidation hint. Canonical JSON re-sorts keys lexicographically so this ordering is presentation-only and does not affect the wire (see C13-07).",
+  "$comment": "Property ordering is grouped by constraint family to match capabilities.md §6 (the human-readable family map): discriminator/meta, then temporal, field_access, kind_restriction, scope_limitation, authority_control, quota, claim_based, confidentiality, then the moderation cache-invalidation hint. Canonical JSON re-sorts keys lexicographically so this ordering is presentation-only and does not affect the wire (see C13-07).",
   "type": "object",
   "required": [
     "constraint_kind",
@@ -25,7 +25,7 @@
         "field_access",
         "kind_restriction",
         "scope_limitation",
-        "delegation_control",
+        "authority_control",
         "quota",
         "claim_based",
         "confidentiality"
@@ -53,7 +53,7 @@
     },
     "constraint_subkind": {
       "type": "string",
-      "description": "Optional discriminator within a constraint_kind. Standard values: claim_based.{claim,approval,accountability}; quota.{rate,resource}; confidentiality.{encryption,visibility}; temporal.{window,edit_window,redact_window,session}; delegation_control.{applet_delegation}. Per constraint-schema.md §2.2, device/session binding is NOT an independent constraint_subkind: it is the claim_based constraint_subkind=claim sub-case expressed via claim issuer = device cross-signing key. Implementations MAY require constraint_subkind for these families and fail closed on unknown values.",
+      "description": "Optional discriminator within a constraint_kind. Standard values: claim_based.{claim,approval,accountability}; quota.{rate,resource}; confidentiality.{encryption,visibility}; temporal.{window,edit_window,redact_window,session}; authority_control.{applet_authority}. Per constraint-schema.md §2.2, device/session binding is NOT an independent constraint_subkind: it is the claim_based constraint_subkind=claim sub-case expressed via claim issuer = device cross-signing key. Implementations MAY require constraint_subkind for these families and fail closed on unknown values.",
       "enum": [
         "claim",
         "approval",
@@ -66,7 +66,7 @@
         "edit_window",
         "redact_window",
         "session",
-        "applet_delegation"
+        "applet_authority"
       ]
     },
     "applies_to_actions": {
@@ -472,23 +472,23 @@
       "uniqueItems": true,
       "description": "Allowed outbound endpoint origins or deployment-approved endpoint patterns for applet / agent / connector operations."
     },
-    "max_delegation_depth": {
+    "max_authority_depth": {
       "type": "integer",
       "minimum": 0,
       "maximum": 4,
       "description": "Maximum remaining delegation hops. Bounded by the canonical delegation chain depth ceiling (4) defined in zh/conformance/scalability-constraints.md §3 and zh/authz/capabilities.md §10.2; reducers MUST reject grants declaring a larger value at accept time rather than only truncating during DFS."
     },
-    "delegation_path": {
+    "authority_path": {
       "type": "array",
       "items": {
         "type": "string",
         "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
       }
     },
-    "prohibit_subdelegation": {
+    "authority_regrant_allowed": {
       "type": "boolean"
     },
-    "delegation_scope": {
+    "authority_scope": {
       "type": "string",
       "enum": [
         "narrowing_only",
@@ -505,17 +505,17 @@
     "applet_id": {
       "type": "string",
       "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "delegation_control(constraint_subkind=applet_delegation) binding to the accepted Applet registration."
+      "description": "authority_control(constraint_subkind=applet_authority) binding to the accepted Applet registration."
     },
     "executed_by": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-      "description": "delegation_control(constraint_subkind=applet_delegation) binding to the concrete Applet service, bot, or provisioned ghost DID that may execute the grant."
+      "description": "authority_control(constraint_subkind=applet_authority) binding to the concrete Applet service, bot, or provisioned ghost DID that may execute the grant."
     },
     "registration_epoch": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$",
-      "description": "delegation_control(constraint_subkind=applet_delegation) binding to the canonical Applet registration epoch."
+      "description": "authority_control(constraint_subkind=applet_authority) binding to the canonical Applet registration epoch."
     },
     "blob_max_bytes": {
       "type": "integer",
@@ -813,7 +813,7 @@
       "if": {
         "properties": {
           "constraint_subkind": {
-            "const": "applet_delegation"
+            "const": "applet_authority"
           }
         },
         "required": [
@@ -823,7 +823,7 @@
       "then": {
         "properties": {
           "constraint_kind": {
-            "const": "delegation_control"
+            "const": "authority_control"
           }
         },
         "required": [
@@ -835,7 +835,7 @@
       }
     },
     {
-      "$comment": "Applet binding fields are reserved for the registered delegation_control.applet_delegation shape; partial or cross-family use is invalid.",
+      "$comment": "Applet binding fields are reserved for the registered authority_control.applet_authority shape; partial or cross-family use is invalid.",
       "if": {
         "anyOf": [
           {
@@ -858,10 +858,10 @@
       "then": {
         "properties": {
           "constraint_kind": {
-            "const": "delegation_control"
+            "const": "authority_control"
           },
           "constraint_subkind": {
-            "const": "applet_delegation"
+            "const": "applet_authority"
           }
         },
         "required": [

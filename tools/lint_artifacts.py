@@ -3458,7 +3458,7 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
                 lint.fail(path, f"{label} required_claimed_profile is not registered")
             if rule.get("required_constraint_kind") not in known["constraint_types"]:
                 lint.fail(path, f"{label} required_constraint_kind is not registered")
-            if rule.get("required_constraint_subkind") != "applet_delegation":
+            if rule.get("required_constraint_subkind") != "applet_authority":
                 lint.fail(path, f"{label} uses an unsupported constraint subkind")
             expected_bindings = {
                 "subject_binding": "registration.service_id",
