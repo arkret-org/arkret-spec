@@ -6368,7 +6368,7 @@ def check_event_admission_coverage(lint: Lint) -> None:
                         if not isinstance(variant, dict):
                             lint.fail(event_path, f"{kind}: admission_variants[{index}] MUST be an object")
                             continue
-                        unknown_variant_keys = set(variant) - {"when", "admission", "admission_capabilities"}
+                        unknown_variant_keys = set(variant) - {"when", "admission"}
                         if unknown_variant_keys:
                             lint.fail(event_path, f"{kind}: admission_variants[{index}] has unknown keys {sorted(unknown_variant_keys)!r}")
                         when = variant.get("when")
@@ -6419,30 +6419,34 @@ def check_event_admission_coverage(lint: Lint) -> None:
                             seen_predicates.add(predicate_key)
                         if variant_admission not in allowed_classes - {"conditional"}:
                             lint.fail(event_path, f"{kind}: admission_variants[{index}] has invalid admission {variant_admission!r}")
-                        caps = variant.get("admission_capabilities")
-                        if variant_admission == "capability_gated":
-                            if not isinstance(caps, list) or not caps:
-                                lint.fail(event_path, f"{kind}: capability_gated admission variant MUST list admission_capabilities")
-                            else:
-                                for cap in caps:
-                                    if cap not in action_names:
-                                        lint.fail(event_path, f"{kind}: admission variant references unknown action {cap!r}")
-                        elif "admission_capabilities" in variant:
-                            lint.fail(event_path, f"{kind}: admission_capabilities only allowed on capability_gated variants")
+                        if variant_admission == "capability_gated" and kind not in covered:
+                            lint.fail(
+                                event_path,
+                                f"{kind}: capability_gated admission variant but no action's "
+                                "target_event_kinds lists this kind - admission has a single "
+                                "direction of truth",
+                            )
                     if otherwise_count != 1:
                         lint.fail(event_path, f"{kind}: admission=conditional MUST contain exactly one final otherwise variant")
-                if "admission_capabilities" in event:
-                    lint.fail(event_path, f"{kind}: admission=conditional keeps capabilities inside admission_variants")
             elif admission == "capability_gated":
-                caps = event.get("admission_capabilities")
-                if not isinstance(caps, list) or not caps:
-                    lint.fail(event_path, f"{kind}: admission=capability_gated MUST list non-empty admission_capabilities")
-                else:
-                    for cap in caps:
-                        if cap not in action_names:
-                            lint.fail(event_path, f"{kind}: admission_capabilities references unknown action {cap!r}")
-            elif "admission_capabilities" in event:
-                lint.fail(event_path, f"{kind}: admission_capabilities only allowed when admission=capability_gated")
+                if kind not in covered:
+                    lint.fail(
+                        event_path,
+                        f"{kind}: admission=capability_gated but no action's target_event_kinds "
+                        "lists this kind - admission has a single direction of truth",
+                    )
+            if "admission_capabilities" in event or (
+                isinstance(event.get("admission_variants"), list)
+                and any(
+                    isinstance(variant, dict) and "admission_capabilities" in variant
+                    for variant in event["admission_variants"]
+                )
+            ):
+                lint.fail(
+                    event_path,
+                    f"{kind}: admission_capabilities is retired; the authorizing actions are "
+                    "exactly the ones whose target_event_kinds list the kind",
+                )
 
 
 def _resolve_dto_object(schema_ref: str) -> dict | None:

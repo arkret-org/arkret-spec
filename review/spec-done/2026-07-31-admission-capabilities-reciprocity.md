@@ -1,6 +1,16 @@
 # `admission_capabilities` and `target_event_kinds` are not required to agree
 
-Status: open (2026-07-31)
+Status: closed (2026-07-31, same day)
+Resolution: `admission_capabilities` is retired. Admission has a single direction
+of truth: the authorizing actions for a capability_gated kind are exactly the
+ones whose `target_event_kinds` list it. The three orphaned kinds were added to
+the actions the prose already named as their governors (`capabilities.md` line
+883 for `ak.member.state` -> `ak.realm.admin`; `ak.organization.moderation_policy`
+and `ak.mimi.room_binding` -> `ak.policy.manage` / `ak.realm.admin`), the
+per-event lists were deleted, and the lint now enforces the closure: every
+capability_gated kind (direct or conditional variant) MUST be listed by at least
+one action. The owner aggregate rederives to 110 kinds and now covers
+`ak.member.state` directly.
 Detected by: `cotest` live harness migration to the Realm authority-root model
 Affected surfaces: capability action registry, event kind registry, every receiver
 that decides "does this grant authorize this Event kind?"

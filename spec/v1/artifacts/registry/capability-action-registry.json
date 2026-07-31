@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-31.13",
+  "version": "2026-07-31.14",
   "source_of_truth": false,
-  "generated_at": "2026-07-31T15:00:00Z",
+  "generated_at": "2026-07-31T16:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1009,7 +1009,9 @@
         "ak.realm.preview_policy",
         "ak.realm.moderation_policy",
         "ak.realm.disappearing_policy",
-        "ak.realm.search_policy"
+        "ak.realm.search_policy",
+        "ak.organization.moderation_policy",
+        "ak.mimi.room_binding"
       ],
       "profile": null,
       "event_mapping_kind": "aggregate_admin"
@@ -1107,7 +1109,9 @@
         "ak.realm.disappearing_policy",
         "ak.realm.search_policy",
         "ak.realm.set_default_strand",
-        "ak.applet.registration"
+        "ak.applet.registration",
+        "ak.member.state",
+        "ak.mimi.room_binding"
       ],
       "profile": null,
       "event_mapping_kind": "aggregate_admin"
@@ -1301,9 +1305,11 @@
         "ak.invite.create",
         "ak.invite.revoke",
         "ak.invite.third_party",
+        "ak.member.state",
         "ak.message.create",
         "ak.message.redact",
         "ak.message.revise",
+        "ak.mimi.room_binding",
         "ak.mls.commit",
         "ak.mls.commit_failed",
         "ak.mls.genesis",
@@ -1322,6 +1328,7 @@
         "ak.morph.schema_migrate",
         "ak.morph.stage.set",
         "ak.morph.update",
+        "ak.organization.moderation_policy",
         "ak.policy.action",
         "ak.policy.rule",
         "ak.policy.set",
