@@ -159,9 +159,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/reducer-profile-registry.json",
-      "version": "2026-07-31.5",
-      "generated_at": "2026-07-31T16:00:00Z",
-      "content_digest": "sha256:bb7207e6eec32e93daeedcaa9ef4f47b82009faf492e0b39d0d8c286c0d2d7e4"
+      "version": "2026-07-31.6",
+      "generated_at": "2026-07-31T17:00:00Z",
+      "content_digest": "sha256:038edd21606c6f38ea6bda6db4d2a36ee0a17c29cea9082add974b7efd1986f0"
     },
     {
       "path": "spec/v1/artifacts/registry/registry-manifest.json",

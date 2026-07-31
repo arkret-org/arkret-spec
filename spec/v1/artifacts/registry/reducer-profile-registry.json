@@ -1,6 +1,6 @@
 {
-  "version": "2026-07-31.5",
-  "generated_at": "2026-07-31T16:00:00Z",
+  "version": "2026-07-31.6",
+  "generated_at": "2026-07-31T17:00:00Z",
   "source_of_truth": true,
   "description": "Canonical reducer profile declarations and generated content-addressed semantic closures used for federation service_binding_ref.reducer_profile_digest.",
   "canonicalization": "json_jcs",
@@ -1400,7 +1400,7 @@
           },
           {
             "ref": "zh/authz/capabilities.md",
-            "content_digest": "sha256:4939be8db2405feb49ad52c72c31de64149e35ff73e1760969cf9d45f973ce8b"
+            "content_digest": "sha256:0ae8c41e973313a2e0bb0ecd8c2621e4e4e40468bbb01e0859a197c61f6a3886"
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
@@ -1440,7 +1440,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:a37726cb31c83c09c63c456213a8e91d0e06ab74012be8c6b8e94e8bac9eeb5f"
+      "reducer_profile_digest": "sha256:bc12172da67eee92b6bfcdc611ae7b97894ca8c92303421ef77dd5402e16df0d"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",

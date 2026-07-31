@@ -3450,28 +3450,13 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
             if constraint_kind not in known["constraint_types"]:
                 lint.fail(path, f"{profile_id} requires invalid constraint_kind: {constraint_kind}")
 
-        for action in requirement.get("owner_grant_authority_actions", []):
-            if action not in known["capability_actions"]:
-                lint.fail(
-                    path,
-                    f"{profile_id}.owner_grant_authority_actions names an unregistered action: {action}",
-                )
-                continue
-            row = capability_action_rows.get(action)
-            if not isinstance(row, dict) or row.get("profile") != profile_id:
-                lint.fail(
-                    path,
-                    f"{profile_id}.owner_grant_authority_actions may only list actions gated by this profile: {action}",
-                )
-            elif any(
-                row.get(flag) is True
-                for flag in ("root_control_only", "subject_only", "reducer_only")
-            ):
-                lint.fail(
-                    path,
-                    f"{profile_id}.owner_grant_authority_actions MUST NOT list a "
-                    f"root_control_only / subject_only / reducer_only action: {action}",
-                )
+        if "owner_grant_authority_actions" in requirement:
+            lint.fail(
+                path,
+                f"{profile_id}: owner_grant_authority_actions is retired; a profile action "
+                "is owner-grantable exactly when the Realm declares the profile "
+                "(capabilities.md section 3.2)",
+            )
 
         authority_rule_keys = {
             "issuer_action",
