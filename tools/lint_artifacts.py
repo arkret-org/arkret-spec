@@ -1518,6 +1518,47 @@ VALUE_PROJECTION_DIGEST_INPUTS = {
     "event_payload_canonical_bytes",
 }
 
+# Reducer derivations a cell write may add on top of the projected payload.
+#
+# The projected cell value is what a `state_root` leaf hashes, so a field the
+# reducer computes rather than copies has to be named here or two conforming
+# implementations could disagree on the root while both matching the schema.
+# The set is closed: a derivation is a normative reducer rule, not an
+# implementation's private cache. See zh/authz/capabilities.md section 10.
+CELL_WRITE_DERIVATIONS = {
+    "capability_authority_depth",
+    "capability_authority_root_refs",
+}
+
+
+def lint_derived_members(lint: Lint, path: Path, ref: str, members: object) -> None:
+    """Validate a cell write's registered reducer derivations."""
+    if not isinstance(members, list) or not members:
+        lint.fail(path, f"{ref} must be a non-empty array")
+        return
+    seen_names: set[str] = set()
+    for index, member in enumerate(members):
+        member_ref = f"{ref}[{index}]"
+        if not isinstance(member, dict):
+            lint.fail(path, f"{member_ref} must be an object")
+            continue
+        unknown = set(member) - {"name", "derivation"}
+        if unknown:
+            lint.fail(path, f"{member_ref} has unknown member(s) {sorted(unknown)}")
+        name = member.get("name")
+        if not isinstance(name, str) or not name:
+            lint.fail(path, f"{member_ref}.name must be a non-empty string")
+        elif name in seen_names:
+            lint.fail(path, f"{member_ref}.name duplicates another member")
+        else:
+            seen_names.add(name)
+        derivation = member.get("derivation")
+        if derivation not in CELL_WRITE_DERIVATIONS:
+            lint.fail(
+                path,
+                f"{member_ref}.derivation must be one of {sorted(CELL_WRITE_DERIVATIONS)}",
+            )
+
 # encoding.md 9.5.1: a registered path is dot-separated *named* fields only.
 # Array indices, wildcards and empty segments have no defined evaluation, so a
 # registry carrying one would pass lint yet be underivable.
@@ -2524,6 +2565,10 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                 if "value_projection" in write:
                     lint_value_projection(
                         lint, event_path, f"{write_ref}.value_projection", write["value_projection"]
+                    )
+                if "derived_members" in write:
+                    lint_derived_members(
+                        lint, event_path, f"{write_ref}.derived_members", write["derived_members"]
                     )
                 if "effect_projection" in write:
                     lint_effect_projection(

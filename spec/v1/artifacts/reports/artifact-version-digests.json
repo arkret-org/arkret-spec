@@ -21,20 +21,20 @@
     },
     {
       "path": "spec/v1/artifacts/registry/binding-kind-registry.json",
-      "version": "2026-07-31.12",
-      "generated_at": "2026-07-31T07:00:00Z",
+      "version": "2026-07-31.13",
+      "generated_at": "2026-07-31T15:00:00Z",
       "content_digest": "sha256:dfb055a9e4c061b8b6eba878f56b4c32b7ed27e6c3560f2342f3dc32844eeddf"
     },
     {
       "path": "spec/v1/artifacts/registry/calendar-timezone-registry.json",
-      "version": "2026-07-31.12",
-      "generated_at": "2026-07-31T07:00:00Z",
+      "version": "2026-07-31.13",
+      "generated_at": "2026-07-31T15:00:00Z",
       "content_digest": "sha256:f540c35cee7467fdb38a280b5d4baae5cf078d7c565228f860fa1d47b008e392"
     },
     {
       "path": "spec/v1/artifacts/registry/capability-action-registry.json",
-      "version": "2026-07-31.12",
-      "generated_at": "2026-07-31T07:00:00Z",
+      "version": "2026-07-31.13",
+      "generated_at": "2026-07-31T15:00:00Z",
       "content_digest": "sha256:c17583d7ec50f125e8b1b699331a3af0dd4c82e1550cc2ef3632b4bd1b494774"
     },
     {
@@ -45,9 +45,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-07-31.12",
-      "generated_at": "2026-07-31T07:00:00Z",
-      "content_digest": "sha256:5326b96b862b16e3aa11b1cafe7f582e5341dacab5e6bed6ee9ec8d298395839"
+      "version": "2026-07-31.13",
+      "generated_at": "2026-07-31T15:00:00Z",
+      "content_digest": "sha256:9f4cc2c4f372d4fe65203be438f8dfac08ab7eed5ae40737bc7835feacdb5d4b"
     },
     {
       "path": "spec/v1/artifacts/registry/digest-suite-registry.json",
@@ -63,9 +63,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
-      "version": "2026-07-31.12",
-      "generated_at": "2026-07-31T07:00:00Z",
-      "content_digest": "sha256:d6fb5da8fbd40345f4011f02be0d408f56e47b8a08976fceb4feccaaca428bf1"
+      "version": "2026-07-31.13",
+      "generated_at": "2026-07-31T15:00:00Z",
+      "content_digest": "sha256:940c3feb1b7a75a087ea75955d2137dd7f42081f1d63b4e16e58269dfc3fe174"
     },
     {
       "path": "spec/v1/artifacts/registry/exporter-label-registry.json",
@@ -93,8 +93,8 @@
     },
     {
       "path": "spec/v1/artifacts/registry/id-kind-registry.json",
-      "version": "2026-07-31.12",
-      "generated_at": "2026-07-31T07:00:00Z",
+      "version": "2026-07-31.13",
+      "generated_at": "2026-07-31T15:00:00Z",
       "content_digest": "sha256:7b5c74df3b295cb2009144a0c6fa03d217b960890626f7f8ca226bbee5236925"
     },
     {
@@ -117,9 +117,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-07-30.5",
+      "version": "2026-07-31.1",
       "generated_at": null,
-      "content_digest": "sha256:cc58950ae2af6849d0735bde224829c9f4e355a0464e2d8656d3fe641e68bf39"
+      "content_digest": "sha256:b56e058a0964aea7622b634196e726e161fdb20d439a69847a1821dfe267769d"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",
@@ -129,8 +129,8 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-07-31.12",
-      "generated_at": "2026-07-31T07:00:00Z",
+      "version": "2026-07-31.13",
+      "generated_at": "2026-07-31T15:00:00Z",
       "content_digest": "sha256:abba6e8912e1658bd495ff6252a4bb3a2ba4e090516f65bc636a8b58326e6075"
     },
     {
@@ -159,9 +159,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/reducer-profile-registry.json",
-      "version": "2026-07-31.3",
-      "generated_at": "2026-07-31T14:00:00Z",
-      "content_digest": "sha256:ec4c4981df3e3da543f33ba0ef93a624e3570107675c38efa2f39ea55da8fa77"
+      "version": "2026-07-31.4",
+      "generated_at": "2026-07-31T15:00:00Z",
+      "content_digest": "sha256:dbde208edf73481ee472f1543ba0af81b01ffee376551b31937d7d060056a5fe"
     },
     {
       "path": "spec/v1/artifacts/registry/registry-manifest.json",
@@ -183,8 +183,8 @@
     },
     {
       "path": "spec/v1/artifacts/registry/schema-registry.json",
-      "version": "2026-07-31.12",
-      "generated_at": "2026-07-31T07:00:00Z",
+      "version": "2026-07-31.13",
+      "generated_at": "2026-07-31T15:00:00Z",
       "content_digest": "sha256:5c7d4b0c96efa665efcdb31ad0208a2abc0a697ccf119220ca30e7ac1722e342"
     },
     {
@@ -207,8 +207,8 @@
     },
     {
       "path": "spec/v1/artifacts/registry/track-name-registry.json",
-      "version": "2026-07-31.12",
-      "generated_at": "2026-07-31T07:00:00Z",
+      "version": "2026-07-31.13",
+      "generated_at": "2026-07-31T15:00:00Z",
       "content_digest": "sha256:931cd839a81f5f04e6286b9f2980de2202b267cf1084dc28a9a449ffa52f14b9"
     },
     {

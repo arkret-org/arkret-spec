@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-31.12",
+  "version": "2026-07-31.13",
   "source_of_truth": true,
-  "generated_at": "2026-07-31T07:00:00Z",
+  "generated_at": "2026-07-31T15:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -985,7 +985,17 @@
               "value": {
                 "field": "payload"
               }
-            }
+            },
+            "derived_members": [
+              {
+                "name": "authority_depth",
+                "derivation": "capability_authority_depth"
+              },
+              {
+                "name": "authority_root_refs",
+                "derivation": "capability_authority_root_refs"
+              }
+            ]
           }
         ],
         "concurrency_class": "security_barrier"

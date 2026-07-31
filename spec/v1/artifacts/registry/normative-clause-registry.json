@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-30.5",
+  "version": "2026-07-31.1",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -241,7 +241,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:e9a4cd920659275bb0d73bd696dd716b7ddc510bf264646d2cf3b72cc2560a38",
+      "section_digest": "sha256:a99e4d44df756bd4a0e82ec104af4a1edbc80fc126a6b45d03169d65a9d4c4ca",
       "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window; cycles over grant refs and inactive refs MUST fail closed rather than widen the effective permission set.",
       "testability_grade": "vector",
       "evidence_refs": [

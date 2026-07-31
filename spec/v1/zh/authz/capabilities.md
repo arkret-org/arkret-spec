@@ -725,7 +725,7 @@ wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是
 - `authority_depth`：`realm_root` ref 深度为 0，grant 自身为 `max(refs.authority_depth) + 1`。root controller 直发为 1，成员再授予为 2。取签发时静态值，撤销不重算——撤销只改有效性、不改历史结构；实际链深可能小于记录值，对 `max_authority_depth` 判定是偏严方向。
 - `authority_root_refs[]`：direct `realm_root` refs 并上 `union(grant_refs.authority_root_refs)`。它**不是单值**——多亲与 `ak.capability.derived` 的跨 Realm 继承都可能追溯到不同 root / generation。去重键为 `(realm_id, cell_ref, authority_generation)`，MUST 按 unsigned-byte lexicographic 排序；`controller_epoch_at_issuance` 属每条 grant 的 issuance audit，不进入 root identity 去重键。
 
-两者 MUST 登记进 `ak.capability.grant` 的 `cell_writes[]`（见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `cell_contracts`）——未登记的 reducer 顺带写入 MUST NOT 进入 `state_root`（[`realm-and-space.md`](../models/realm-and-space.md)）。refs 指向的 grant 尚未投影时 depth / roots 算不出，MUST 走 dependency pending 或 `temporarily_unavailable`，**MUST NOT** 猜一个深度。
+两者 MUST 登记进 `ak.capability.grant` 的 `cell_writes[].derived_members[]`（见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `cell_contracts`），派生名分别为 `capability_authority_depth` 与 `capability_authority_root_refs`；该 `derivation` 取值集合是封闭的，新增派生等同新增 normative reducer 规则。未登记的 reducer 顺带写入 MUST NOT 进入 `state_root`（[`realm-and-space.md`](../models/realm-and-space.md)）。refs 指向的 grant 尚未投影时 depth / roots 算不出，MUST 走 dependency pending 或 `temporarily_unavailable`，**MUST NOT** 猜一个深度。
 
 审计因此退化为单字段过滤（"权限扩散了几跳、根在哪里"），不需要递归 join，也不会因为各实现自行递归重建而在联邦对端得到不一致的视图。
 
