@@ -301,9 +301,11 @@ policy_digest = "sha256:" + lowercase_hex(SHA-256(RFC8785_JCS(policy_snapshot)))
 （[`did-binding-contracts.schema.json#/$defs/freshness_profile`](../../artifacts/schemas/did-binding-contracts.schema.json)）：
 
 - 每个 DID authority call site MUST 经 operation / action 登记显式引用一个
-  `freshness_profile_id`；不得靠「directory 一类」这样的自然语言猜档。未知 id、未登记
-  action 或 method selector 不匹配时，一律按 `high` tier 的
-  `synchronous_refresh_or_fail_closed` 处理；**不存在**默认为「任意缓存皆可」的路径；
+  [`did-freshness-profile-registry.json`](../../artifacts/registry/did-freshness-profile-registry.json)
+  已登记的 `freshness_profile_id`；不得靠「directory 一类」这样的自然语言猜档，更不得由
+  实现方或部署自行编造 id。未知 id、未登记 action 或 method selector 不匹配时，一律按
+  `high` tier 的 `synchronous_refresh_or_fail_closed` 处理；**不存在**默认为「任意缓存
+  皆可」的路径；registry 只固定 id 与 `risk_tier`，数值窗口仍由部署申报（见本节末）；
 - `high` tier 的 action 集合至少覆盖并逐字引用 [`identity-did.md` §3.4](./identity-did.md)
   的高风险枚举；`high` 不得消费 stale binding，必须同步 refresh 或 fail closed，
   `fresh_for_seconds` 与 `hard_expiry_seconds` 全部有限且

@@ -50,6 +50,12 @@
       "content_digest": "sha256:18fceb42b38bea11f629f3d2cb58e62a2c31d6a8286d87a1c2f573d8f4054be5"
     },
     {
+      "path": "spec/v1/artifacts/registry/did-freshness-profile-registry.json",
+      "version": "2026-08-01",
+      "generated_at": null,
+      "content_digest": "sha256:a37ceae8419005d71bd0d3bf185632fe73e3c7eed999ff7a7111bf93e25fe0c3"
+    },
+    {
       "path": "spec/v1/artifacts/registry/digest-suite-registry.json",
       "version": "2026-06-10",
       "generated_at": null,
@@ -165,9 +171,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/registry-manifest.json",
-      "version": "2026-05-08",
+      "version": "2026-08-01",
       "generated_at": null,
-      "content_digest": "sha256:e20dd088cece6ee50ee6a45fb47e61abaf85b4b74aa085852f4ef0120fe6e0e0"
+      "content_digest": "sha256:9d3f749e37fb240c1b6167ebce85c6307ea45f20c15a8da854803b0f50e316c2"
     },
     {
       "path": "spec/v1/artifacts/registry/relation-kind-registry.json",

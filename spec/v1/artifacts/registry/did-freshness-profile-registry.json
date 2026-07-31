@@ -1,0 +1,41 @@
+{
+  "version": "2026-08-01",
+  "source_of_truth": true,
+  "description": "Canonical registry of the did-usage-and-verification.md section 5.4 freshness profile ids a DID authority call site may reference. Registration fixes the id and its risk_tier; the numeric windows are declared per deployment and enter profile_policy of the section 5.3 resolver policy snapshot, so no network-wide minute count is implied.",
+  "registry_rules": [
+    "freshness_profile_id values MUST be unique and MUST match ^ak\\.did_freshness\\.[a-z0-9_]+\\.v[0-9]+$",
+    "Every DID authority call site MUST reference exactly one registered freshness_profile_id; natural-language tier guessing is forbidden",
+    "An unknown id, an unregistered action or a non-matching did_method_selector MUST be treated as the high tier with synchronous_refresh_or_fail_closed; there is no path that defaults to accepting any cached binding",
+    "risk_tier is fixed by registration. A deployment declares only the numeric windows, which MUST satisfy the tier constraints in did-usage-and-verification.md section 5.4",
+    "Adding a profile is a backward-compatible minor; changing an existing profile's risk_tier requires a new id"
+  ],
+  "profiles": [
+    {
+      "freshness_profile_id": "ak.did_freshness.unregistered_fail_closed.v1",
+      "risk_tier": "high",
+      "did_method_selector": ["*"],
+      "stale_behavior": "synchronous_refresh_or_fail_closed",
+      "description": "The fallback an unknown id, an unregistered action or a non-matching method selector resolves to. Registered so the fail-closed default is itself a declared row rather than an implementation constant.",
+      "defined_in": "zh/identity/did-usage-and-verification.md",
+      "schema_ref": "schemas/did-binding-contracts.schema.json#/$defs/freshness_profile"
+    },
+    {
+      "freshness_profile_id": "ak.did_freshness.authority_high_risk.v1",
+      "risk_tier": "high",
+      "did_method_selector": ["*"],
+      "stale_behavior": "synchronous_refresh_or_fail_closed",
+      "description": "The profile the identity-did.md section 3.4 high-risk authority enumeration references: recovery completion, session grant revoke lifecycle proofs, administrative risk actions and revocation approvals, organization registry bootstrap, erasure receipts and account DID binding control proofs. Never consumes a stale binding.",
+      "defined_in": "zh/identity/did-usage-and-verification.md",
+      "schema_ref": "schemas/did-binding-contracts.schema.json#/$defs/freshness_profile"
+    },
+    {
+      "freshness_profile_id": "ak.did_freshness.authority_controller.v1",
+      "risk_tier": "high",
+      "did_method_selector": ["*"],
+      "stale_behavior": "synchronous_refresh_or_fail_closed",
+      "description": "The profile the section 4 controller and agent-signer authority triggers reference: controller proof verification and agent key pairing resolve the same controller DID repeatedly across one interactive approval flow. Separate from ak.did_freshness.authority_high_risk.v1 so a deployment can declare a wider window for it without widening the high-risk enumeration; the new verification method trigger is served by the verification_method-keyed store entry and by explicit invalidation, not by the clock.",
+      "defined_in": "zh/identity/did-usage-and-verification.md",
+      "schema_ref": "schemas/did-binding-contracts.schema.json#/$defs/freshness_profile"
+    }
+  ]
+}
