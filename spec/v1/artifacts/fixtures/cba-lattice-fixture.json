@@ -451,7 +451,8 @@
                 "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
                 "op": {
                   "kind": "set",
-                  "value": "v2"
+                  "value": "v2",
+                  "from": "v1"
                 }
               }
             ]
@@ -459,7 +460,8 @@
           "expected": {
             "result": "accept_after_valid_seal",
             "cell_value": "v2",
-            "replay_order_independent": true
+            "replay_order_independent": true,
+            "note": "Per event-auth-state-resolution.md section 9.3.1 the projector copies the whole-value head_eq into op.from, so the join sees the v1 -> v2 supersession chain and settles on v2 instead of bottom. The blind write above deliberately has no from: it forms a second chain head and the defensive join stays bottom."
           }
         }
       ],

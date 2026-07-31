@@ -1,6 +1,6 @@
 {
-  "version": "2026-07-31.7",
-  "generated_at": "2026-07-31T18:00:00Z",
+  "version": "2026-07-31.8",
+  "generated_at": "2026-07-31T19:00:00Z",
   "source_of_truth": true,
   "description": "Canonical reducer profile declarations and generated content-addressed semantic closures used for federation service_binding_ref.reducer_profile_digest.",
   "canonicalization": "json_jcs",
@@ -452,7 +452,7 @@
         "fixture_contracts": [
           {
             "fixture": "cba-lattice-fixture.json",
-            "semantic_projection_digest": "sha256:539d47e042ae94d08298ecbd8e3a61aa80ce8d3cc423bd5e534fb044122aef72"
+            "semantic_projection_digest": "sha256:2cc0362740d074e1dab55c5d6760b2f646ef6005e7eb7c8796617e25d2cbe0f1"
           },
           {
             "fixture": "crypto-signature-fixture.json",
@@ -506,7 +506,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:f6c985e376019852ae75f40153dc040e51d1efed7b4e4dfc1070838464adb13c"
+            "content_digest": "sha256:7cfb7a1154530e3dae2c778a269e1d14d2dee4df9258564b79ac525b755f80f4"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -518,7 +518,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:3578c1ce11c0f073c8723d96090c76da0d2bb6b75b1633b3cedb1f59b5f8534c"
+      "reducer_profile_digest": "sha256:26fb3531e5ee8b5ee1482668184e60f4c680e26dfe5c0f161add72f4572098b0"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -755,7 +755,7 @@
         "fixture_contracts": [
           {
             "fixture": "cba-lattice-fixture.json",
-            "semantic_projection_digest": "sha256:539d47e042ae94d08298ecbd8e3a61aa80ce8d3cc423bd5e534fb044122aef72"
+            "semantic_projection_digest": "sha256:2cc0362740d074e1dab55c5d6760b2f646ef6005e7eb7c8796617e25d2cbe0f1"
           },
           {
             "fixture": "crypto-signature-fixture.json",
@@ -813,7 +813,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:be057fcb8da52db8ef7cc787613ee5e36e9a4cf11a1438574a2199bf26c6022c"
+      "reducer_profile_digest": "sha256:0081fcf86f0d9a384fb7b39cf4a5eca13f23557460e891ffbab7ed88121f09b9"
     },
     {
       "profile_id": "ak.profile.principal_server.v1",
@@ -1334,7 +1334,7 @@
           },
           {
             "fixture": "cba-lattice-fixture.json",
-            "semantic_projection_digest": "sha256:539d47e042ae94d08298ecbd8e3a61aa80ce8d3cc423bd5e534fb044122aef72"
+            "semantic_projection_digest": "sha256:2cc0362740d074e1dab55c5d6760b2f646ef6005e7eb7c8796617e25d2cbe0f1"
           },
           {
             "fixture": "crypto-signature-fixture.json",
@@ -1408,7 +1408,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:f6c985e376019852ae75f40153dc040e51d1efed7b4e4dfc1070838464adb13c"
+            "content_digest": "sha256:7cfb7a1154530e3dae2c778a269e1d14d2dee4df9258564b79ac525b755f80f4"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -1440,7 +1440,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:969d596079fca3f561b666f134a8de07b5874004b8571b5f0d911ec4fd095ba0"
+      "reducer_profile_digest": "sha256:be08e405b0ad2c32f6ff738d8f2cab282245649646cf22a89defc0fe1c99d46e"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",

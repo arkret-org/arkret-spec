@@ -79,7 +79,11 @@ Realm 可通过 state event 声明策略服务：
 2. value tombstone：精确为 `{"tombstone":true}`，不得同时携带任何 declaration 字段。
 
 两种形态都写同一 `ak.component.realm.policy_server.v1:null` cell。Registry reducer contract
-固定为 `cas_register` / `bottom=reject` / `set(value=payload)`；tombstone 是一个由 Event、Seal、
+固定为 `cas_register` / `bottom=reject` / `set(value=payload)`；按
+[`event-auth-state-resolution.md` §9.3.1](./event-auth-state-resolution.md) 的全局规则，
+projector 把命中本 cell 的 whole-value `head_eq` 值复制进 `op.from`（初始 declaration 无
+precondition，`from` 缺省），declaration → tombstone → 再 declaration 因此构成单一取代链，
+join 到唯一终值而不是 `⊥`。tombstone 是一个由 Event、Seal、
 联邦与回放共同承诺的显式 cell 值，不是删除 Event、物理删除 cell、写 `null`，也不是只清理本地
 projection cache。
 

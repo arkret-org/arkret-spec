@@ -4751,7 +4751,10 @@ Expected：
 本向量固定 [`policy-server.md`](../authz/policy-server.md) §2.2 的 DELETE 映射。具备
 `ak.policy.manage` 的 actor 删除一个有 direct declaration、同时通过 `governed_by` 可继承
 组织声明的 Realm；receiver 必须从 DELETE 构造 payload 精确为 `{"tombstone":true}` 的
-`ak.realm.policy_server` Control Move，并将 `set(value=payload)` 纳入 Seal 与 `state_root`。
+`ak.realm.policy_server` Control Move，并将 `set(value=payload, from=<被删除的完整
+declaration>)` 纳入 Seal 与 `state_root`（`from` 由 projector 按
+[`event-auth-state-resolution.md` §9.3.1](../authz/event-auth-state-resolution.md) 从
+whole-value `head_eq` 复制，declaration → tombstone 因此按取代链 join 到 tombstone）。
 
 Expected：
 

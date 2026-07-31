@@ -113,8 +113,16 @@
             "kind": "set",
             "value": {
               "tombstone": true
+            },
+            "from": {
+              "policy_server_did": "did:webvh:z6mkfixture:realm-policy.example",
+              "policy_server_url": "https://realm-policy.example/_arkret/self/policy/check",
+              "cache_ttl_seconds": 300,
+              "timeout_ms": 2000,
+              "on_timeout": "fail_closed"
             }
-          }
+          },
+          "note": "op.from is the whole-value head_eq the DELETE carried (the settled declaration), copied by the projector per event-auth-state-resolution.md section 9.3.1; the declaration -> tombstone supersession chain joins to the tombstone instead of bottom."
         }
       },
       "invalid_tombstone_payloads": [

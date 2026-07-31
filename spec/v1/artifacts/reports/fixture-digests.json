@@ -70,7 +70,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "71df0f60b8233dc2ea135d30df27882964f94c79cbc55a316eea52f4f0a141e1"
+      "sha256": "79085cea070a2da60d828d6ca8a201fd20c18f7592904f45807facd97c154a4f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
@@ -222,7 +222,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/policy-server-fixture.json",
-      "sha256": "8c2ecdc6d06d63e916c4fb271386183f30afaff7cdaa8d916e25d9d6ad766ca8"
+      "sha256": "67c111a2d5aa3e576fc08343691f3c8a699238551d145281e28eb8206c43b9c1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
