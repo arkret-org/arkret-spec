@@ -167,10 +167,59 @@
       "type": "string",
       "pattern": "^device_pairing_request:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "proof": {
+    "agent_runtime_key_possession_proof": {
       "type": "object",
-      "minProperties": 1,
-      "additionalProperties": true
+      "description": "Closed Ed25519 proof that the submitter controls the proposed native Agent runtime key and possesses the authoritative pairing secret. Canonical transcript, equality, freshness, and final-commit re-verification rules are defined in key-management.md section 3.6.2.",
+      "required": [
+        "kind",
+        "verification_method",
+        "alg",
+        "challenge",
+        "audience",
+        "expires_at",
+        "created_at",
+        "runtime_key_binding_digest",
+        "transcript_digest",
+        "signature"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "agent_runtime_key_possession"
+        },
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
+        },
+        "alg": {
+          "type": "string",
+          "const": "EdDSA"
+        },
+        "challenge": {
+          "$ref": "#/$defs/opaque_local_id"
+        },
+        "audience": {
+          "$ref": "#/$defs/did"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "runtime_key_binding_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "transcript_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "signature": {
+          "$ref": "#/$defs/base64url",
+          "minLength": 86,
+          "maxLength": 86,
+          "description": "Unpadded base64url encoding of the 64-byte raw Ed25519 signature over the canonical transcript."
+        }
+      },
+      "additionalProperties": false
     },
     "public_key": {
       "$ref": "./public-key.schema.json#/$defs/public_key",
@@ -335,7 +384,7 @@
         },
         "pairing_expires_at": {
           "$ref": "#/$defs/timestamp",
-          "description": "Authoritative pairing expiry instant. This projection may preserve RFC 3339 sub-millisecond precision; consumers MUST NOT hash its raw JSON spelling. For ak.agent.key_pairing_request_binding.v1, parse this value and normalize expires_at to UTC with exactly three fractional digits (YYYY-MM-DDTHH:mm:ss.SSSZ), discarding sub-millisecond precision, before canonical JSON hashing."
+          "description": "Authoritative pairing expiry instant in the shared byte-canonical UTC millisecond profile. The projection and ak.agent.key_pairing_request_binding.v1.expires_at use the same exact string; offset or sub-millisecond wire spellings are schema violations and MUST NOT be normalized by a verifier."
         },
         "approval_request_id": {
           "$ref": "#/$defs/opaque_local_id"
@@ -706,7 +755,7 @@
           "$ref": "#/$defs/public_key"
         },
         "proof_of_possession": {
-          "$ref": "#/$defs/proof"
+          "$ref": "#/$defs/agent_runtime_key_possession_proof"
         },
         "requested_scope_disclosure": {
           "$ref": "./agent-requested-scope-disclosure.schema.json",
@@ -776,7 +825,7 @@
           "$ref": "#/$defs/public_key"
         },
         "proof_of_possession": {
-          "$ref": "#/$defs/proof"
+          "$ref": "#/$defs/agent_runtime_key_possession_proof"
         },
         "runtime_attestation": {
           "$ref": "#/$defs/runtime_attestation"
@@ -808,7 +857,7 @@
           "$ref": "#/$defs/public_key"
         },
         "proof_of_possession": {
-          "$ref": "#/$defs/proof"
+          "$ref": "#/$defs/agent_runtime_key_possession_proof"
         },
         "runtime_attestation": {
           "$ref": "#/$defs/runtime_attestation"

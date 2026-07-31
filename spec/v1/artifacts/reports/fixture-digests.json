@@ -22,7 +22,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "7d5a714d322b173573460b7558a83d9066e458b5227f432eb06502e5e7396c52"
+      "sha256": "db52dc2598d927eb809bbc4c0a6b56b0cd9fd5e8b1b8920ad4487e63c3fd5125"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
@@ -134,7 +134,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "fe9e24a19429cbc5310a989c1c2ac7b9a6dce22a7303bf406dd55bfb99001b34"
+      "sha256": "34ea6cfa0b02c51caa40388d6f296e960a61000230ff909a799c08e820f2a0c2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -174,7 +174,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "ad2c2bf7dd38b8a551be99002c924d299761d62ac00929251826aca98c849df2"
+      "sha256": "4f4f035abe041ccca593d155338fdeb9c30366315085e1f7f5a6957862ff14ab"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
@@ -266,7 +266,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "ca48a5b16f1ebfe161c72aead08505c5620b3542b45da9497bd56b58f950c575"
+      "sha256": "5e9e6cc371bc99d948e1ce7f5a33184ad6fb32f0e8b7f3bc202d16c48d62b973"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

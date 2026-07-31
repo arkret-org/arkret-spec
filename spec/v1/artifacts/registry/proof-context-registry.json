@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-24",
+  "version": "2026-07-31",
   "source_of_truth": true,
   "description": "Canonical domain-separation contexts for Arkret detached proofs. Context is part of the canonical signing binding object and is not a wire field in the generic proof shape.",
   "registry_rules": [
@@ -51,6 +51,23 @@
       ],
       "defined_in": "zh/identity/key-management.md",
       "schema_ref": "schemas/agent-requested-scope-disclosure.schema.json"
+    },
+    {
+      "context": "ak.agent-runtime-key-possession-proof-v1",
+      "object_family": "agent_runtime_key_possession",
+      "binding_fields": [
+        "kind",
+        "verification_method",
+        "alg",
+        "challenge",
+        "audience",
+        "created_at",
+        "expires_at",
+        "pairing_code",
+        "runtime_key_binding_digest"
+      ],
+      "defined_in": "zh/identity/key-management.md#362-runtime-request-binding审批竞态与账号通知normative",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_key_possession_proof"
     },
     {
       "context": "ak.agent-selector-claim-proof-v1",
@@ -398,6 +415,23 @@
       ],
       "defined_in": "zh/governance/join-policy.md#711-candidate-profile-的唯一承载normative",
       "schema_ref": "schemas/join-policy-operations.schema.json#/$defs/review_receipt"
+    },
+    {
+      "context": "ak.keypackage-claim-request-proof-v1",
+      "object_family": "keypackage_claim_request",
+      "binding_fields": [
+        "payload_digest",
+        "requester",
+        "target_principal_id",
+        "intended_realm_id",
+        "claim_nonce",
+        "verification_method",
+        "created_at",
+        "proof_purpose",
+        "audience"
+      ],
+      "defined_in": "zh/crypto-media/device-lifecycle.md#901-self-claim-requester-proof-与重放闭包normative",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackage_claim_proof"
     },
     {
       "context": "ak.member-delivery-binding-candidate-proof-v1",

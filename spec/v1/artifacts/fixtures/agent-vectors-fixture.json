@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.personal_agent_provisioning.v1",
-  "version": "2026-07-17",
+  "version": "2026-07-31",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -36,7 +36,16 @@
           "kty": "OKP"
         },
         "proof_of_possession": {
-          "challenge": "agent_pairing_request:01964137-0000-7000-8000-000000000000"
+          "kind": "agent_runtime_key_possession",
+          "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+          "alg": "EdDSA",
+          "challenge": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
+          "audience": "did:webvh:z6mkfixture:pair.example",
+          "created_at": "2026-07-17T13:45:07.734Z",
+          "expires_at": "2026-07-17T13:50:07.734Z",
+          "runtime_key_binding_digest": "sha256:a2d4f27ec366e970e2f4f7853414c2ce3ec266d720bc77c0fcb0a513e86bd3f7",
+          "transcript_digest": "sha256:7eee89f289121a3b8e86ba0244e1c252aaacaed8c0d7d21c8de2355baf9d1362",
+          "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         }
       }
     },
@@ -56,7 +65,16 @@
           "kty": "OKP"
         },
         "proof_of_possession": {
-          "challenge": "agent_pairing_request:01964137-0000-7000-8000-000000000000"
+          "kind": "agent_runtime_key_possession",
+          "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+          "alg": "EdDSA",
+          "challenge": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
+          "audience": "did:webvh:z6mkfixture:pair.example",
+          "created_at": "2026-07-17T13:45:07.734Z",
+          "expires_at": "2026-07-17T13:50:07.734Z",
+          "runtime_key_binding_digest": "sha256:a2d4f27ec366e970e2f4f7853414c2ce3ec266d720bc77c0fcb0a513e86bd3f7",
+          "transcript_digest": "sha256:7eee89f289121a3b8e86ba0244e1c252aaacaed8c0d7d21c8de2355baf9d1362",
+          "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         },
         "pairing_code": "forbidden-controller-projection-secret"
       }
@@ -77,9 +95,38 @@
           "kty": "OKP"
         },
         "proof_of_possession": {
-          "challenge": "agent_pairing_request:01964137-0000-7000-8000-000000000000"
+          "kind": "agent_runtime_key_possession",
+          "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+          "alg": "EdDSA",
+          "challenge": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
+          "audience": "did:webvh:z6mkfixture:pair.example",
+          "created_at": "2026-07-17T13:45:07.734Z",
+          "expires_at": "2026-07-17T13:50:07.734Z",
+          "runtime_key_binding_digest": "sha256:a2d4f27ec366e970e2f4f7853414c2ce3ec266d720bc77c0fcb0a513e86bd3f7",
+          "transcript_digest": "sha256:7eee89f289121a3b8e86ba0244e1c252aaacaed8c0d7d21c8de2355baf9d1362",
+          "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         },
         "requested_scope_disclosure": {}
+      }
+    },
+    {
+      "name": "agent_runtime_approval_controller_projection_rejects_open_pop",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_controller_projection",
+      "expect_valid": false,
+      "first_expected_error": "contains:proof_of_possession",
+      "instance": {
+        "pairing_request_id": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
+        "agent_id": "did:webvh:z6mkagent:agent.example",
+        "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+        "public_key": {
+          "alg": "EdDSA",
+          "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "kid": "did:webvh:z6mkagent:agent.example#runtime-1",
+          "kty": "OKP"
+        },
+        "proof_of_possession": {
+          "challenge": "agent_pairing_request:01964137-0000-7000-8000-000000000000"
+        }
       }
     }
   ],
@@ -199,41 +246,61 @@
       "name": "agent_runtime_key_binding",
       "vector_id": "ak.vector.agent.runtime_key_binding.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_runtime_key_binding_vector",
-      "canonical_binding_json": "{\"agent_id\":\"did:webvh:z6mkagent:agent.example\",\"attestation_digest\":\"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b\",\"kind\":\"ak.agent.runtime_key_binding.v1\",\"pairing_request_id\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"public_key_digest\":\"sha256:7bfcb9251367ab71fd32c19fc23c11b46ddbc371b52fcb5a75eaa1a79f5f463b\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
+      "canonical_binding_json": "{\"agent_id\":\"did:webvh:z6mkagent:agent.example\",\"attestation_digest\":\"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b\",\"kind\":\"ak.agent.runtime_key_binding.v1\",\"pairing_request_id\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"public_key_digest\":\"sha256:3f8b93f88218363d5d1c236b3f52ccb173c25545de57e3e5122fca676dab728f\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
       "source_public_key": {
         "alg": "EdDSA",
         "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-        "kid": "runtime-1",
+        "kid": "did:webvh:z6mkagent:agent.example#runtime-1",
         "kty": "OKP"
       },
       "source_runtime_attestation": null,
-      "expected_public_key_digest": "sha256:7bfcb9251367ab71fd32c19fc23c11b46ddbc371b52fcb5a75eaa1a79f5f463b",
+      "expected_public_key_digest": "sha256:3f8b93f88218363d5d1c236b3f52ccb173c25545de57e3e5122fca676dab728f",
       "expected_attestation_digest": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
-      "expected_binding_digest": "sha256:1dd1a4f03dfc6086a43ae3f0e1eca877c9040c25fd95fc48d1b278568306fb06",
+      "expected_binding_digest": "sha256:a2d4f27ec366e970e2f4f7853414c2ce3ec266d720bc77c0fcb0a513e86bd3f7",
       "pairing_request_binding_input": {
         "controller_id": "did:webvh:z6mkcontroller:controller.example",
         "agent_id": "did:webvh:z6mkagent:agent.example",
         "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
         "pairing_request_id": "pairing_request:01964137-0000-7000-8000-000000000000",
-        "pairing_code": "fixture-pairing-code",
+        "pairing_code": "AAAAAAAAAAAAAAAAAAAAAA",
         "pairing_expires_at_inputs": [
-          "2026-07-17T13:50:07.734Z",
+          "2026-07-17T13:50:07.734Z"
+        ],
+        "rejected_noncanonical_pairing_expires_at_inputs": [
           "2026-07-17T13:50:07.734997Z",
           "2026-07-17T21:50:07.734+08:00"
         ],
-        "audience": "https://pair.example/_arkret/gate/account/agent-key-pair"
+        "audience": "did:webvh:z6mkfixture:pair.example"
       },
       "canonical_pairing_expires_at": "2026-07-17T13:50:07.734Z",
-      "canonical_pairing_request_binding_json": "{\"agent_id\":\"did:webvh:z6mkagent:agent.example\",\"audience\":\"https://pair.example/_arkret/gate/account/agent-key-pair\",\"controller_id\":\"did:webvh:z6mkcontroller:controller.example\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"ak.agent.key_pairing_request_binding.v1\",\"operation_id\":\"ak.gate.account.command.pair_agent_key\",\"pairing_code\":\"fixture-pairing-code\",\"pairing_request_id\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"runtime_public_key_digest\":\"sha256:7bfcb9251367ab71fd32c19fc23c11b46ddbc371b52fcb5a75eaa1a79f5f463b\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
-      "expected_pairing_request_binding_digest": "sha256:efa5a4362f7e9da83f03aaa986faeac77140d8b15e8e62c8842d4a78c5eb6661",
+      "proof_of_possession": {
+        "kind": "agent_runtime_key_possession",
+        "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+        "alg": "EdDSA",
+        "challenge": "pairing_request:01964137-0000-7000-8000-000000000000",
+        "audience": "did:webvh:z6mkfixture:pair.example",
+        "created_at": "2026-07-17T13:45:07.734Z",
+        "expires_at": "2026-07-17T13:50:07.734Z",
+        "runtime_key_binding_digest": "sha256:a2d4f27ec366e970e2f4f7853414c2ce3ec266d720bc77c0fcb0a513e86bd3f7",
+        "transcript_digest": "sha256:7eee89f289121a3b8e86ba0244e1c252aaacaed8c0d7d21c8de2355baf9d1362",
+        "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "canonical_possession_transcript_json": "{\"alg\":\"EdDSA\",\"audience\":\"did:webvh:z6mkfixture:pair.example\",\"challenge\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"context\":\"ak.agent-runtime-key-possession-proof-v1\",\"created_at\":\"2026-07-17T13:45:07.734Z\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"agent_runtime_key_possession\",\"pairing_code\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"runtime_key_binding_digest\":\"sha256:a2d4f27ec366e970e2f4f7853414c2ce3ec266d720bc77c0fcb0a513e86bd3f7\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
+      "expected_possession_transcript_digest": "sha256:7eee89f289121a3b8e86ba0244e1c252aaacaed8c0d7d21c8de2355baf9d1362",
+      "expected_proof_of_possession_digest": "sha256:ab047a2665994750646c2d10c1c5ac0fba6e4c9b10211d6b174e538a2f9109f1",
+      "canonical_pairing_request_binding_json": "{\"agent_id\":\"did:webvh:z6mkagent:agent.example\",\"audience\":\"did:webvh:z6mkfixture:pair.example\",\"controller_id\":\"did:webvh:z6mkcontroller:controller.example\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"ak.agent.key_pairing_request_binding.v1\",\"operation_id\":\"ak.gate.account.command.pair_agent_key\",\"pairing_code\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"pairing_request_id\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"proof_of_possession_digest\":\"sha256:ab047a2665994750646c2d10c1c5ac0fba6e4c9b10211d6b174e538a2f9109f1\",\"runtime_key_binding_digest\":\"sha256:a2d4f27ec366e970e2f4f7853414c2ce3ec266d720bc77c0fcb0a513e86bd3f7\"}",
+      "expected_pairing_request_binding_digest": "sha256:688b66eed5bbc5e5b3e8e258e8058917ac888a155ad76a61883e448393133548",
       "assertions": [
         "same stable binding retry retains approval_request_id and notification id and emits action update",
         "a runtime persists and reuses one local key binding for an open pairing_request_id across process restart and channel delete/recreate",
         "a runtime that loses the bound key stops and renews pairing instead of overwriting the pending request with a different key",
         "different stable binding on one open pairing_request_id fails with HTTP 409 agent_runtime_request_conflict without replacement",
+        "the possession proof is a closed Ed25519 shape and binds the authoritative pairing handle, pairing secret, service DID, stable runtime binding and no-more-than-five-minute window",
+        "public_key.kid, request verification_method and proof verification_method are byte-identical DID URLs controlled by the Agent",
         "final approval recomputes the current stable binding and full ak.agent.key_pairing_request_binding.v1 digest from persistence",
-        "pairing request binding expiry is parsed and normalized to UTC RFC 3339 with exactly three fractional digits before hashing",
-        "microsecond and offset spellings that normalize to the same UTC millisecond produce the same pairing request binding digest",
+        "the controller approval digest binds the current proof_of_possession_digest so a same-binding proof refresh invalidates a stale prompt",
+        "a producer floors typed instants to UTC milliseconds before serializing pairing expiry, and the binding hashes that exact canonical wire string",
+        "microsecond and offset wire spellings are schema violations and are rejected before pairing request digest verification",
         "a stale controller approval fails closed",
         "pairing code, proof of possession and attestation bytes never appear in the account notification delta",
         "the authenticated pending_runtime_key_request controller projection is closed and omits pairing_code, requested_scope_disclosure and authorize_event"

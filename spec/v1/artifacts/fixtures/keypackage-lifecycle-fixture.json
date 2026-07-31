@@ -6,6 +6,117 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.crypto.keypackage_lifecycle.v1"
   },
+  "schema_validation_cases": [
+    {
+      "name": "self_keypackage_claim_closed_proof_valid",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
+      "expect_valid": true,
+      "instance": {
+        "target_principal_id": "did:webvh:z6mkfixture:bob.example",
+        "intended_realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "requester": "did:webvh:z6mkfixture:alice.example",
+        "required_capabilities": [
+          "mls"
+        ],
+        "claim_nonce": "AAAAAAAAAAAAAAAAAAAAAA",
+        "expires_at": "2026-07-31T00:05:00.000Z",
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
+            "alg": "EdDSA",
+            "payload_digest": "sha256:a3b359db5508038c628aa0999c3431b45237ed2a5df91d18d0d5b14c0ca821f0",
+            "created_at": "2026-07-31T00:00:00.000Z",
+            "audience": "did:webvh:z6mkfixture:ps.example",
+            "proof_purpose": "holder_acceptance",
+            "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+          }
+        ]
+      }
+    },
+    {
+      "name": "self_keypackage_claim_rejects_missing_proof",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
+      "expect_valid": false,
+      "first_expected_error": "contains:proofs",
+      "instance": {
+        "target_principal_id": "did:webvh:z6mkfixture:bob.example",
+        "intended_realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "requester": "did:webvh:z6mkfixture:alice.example",
+        "required_capabilities": [
+          "mls"
+        ],
+        "claim_nonce": "AAAAAAAAAAAAAAAAAAAAAA",
+        "expires_at": "2026-07-31T00:05:00.000Z"
+      }
+    },
+    {
+      "name": "self_keypackage_claim_rejects_multiple_proofs",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
+      "expect_valid": false,
+      "first_expected_error": "contains:proofs",
+      "instance": {
+        "target_principal_id": "did:webvh:z6mkfixture:bob.example",
+        "intended_realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "requester": "did:webvh:z6mkfixture:alice.example",
+        "required_capabilities": [
+          "mls"
+        ],
+        "claim_nonce": "AAAAAAAAAAAAAAAAAAAAAA",
+        "expires_at": "2026-07-31T00:05:00.000Z",
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
+            "alg": "EdDSA",
+            "payload_digest": "sha256:a3b359db5508038c628aa0999c3431b45237ed2a5df91d18d0d5b14c0ca821f0",
+            "created_at": "2026-07-31T00:00:00.000Z",
+            "audience": "did:webvh:z6mkfixture:ps.example",
+            "proof_purpose": "holder_acceptance",
+            "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+          },
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
+            "alg": "EdDSA",
+            "payload_digest": "sha256:a3b359db5508038c628aa0999c3431b45237ed2a5df91d18d0d5b14c0ca821f0",
+            "created_at": "2026-07-31T00:00:00.000Z",
+            "audience": "did:webvh:z6mkfixture:ps.example",
+            "proof_purpose": "holder_acceptance",
+            "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+          }
+        ]
+      }
+    },
+    {
+      "name": "self_keypackage_claim_rejects_short_nonce",
+      "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
+      "expect_valid": false,
+      "first_expected_error": "contains:claim_nonce",
+      "instance": {
+        "target_principal_id": "did:webvh:z6mkfixture:bob.example",
+        "intended_realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "requester": "did:webvh:z6mkfixture:alice.example",
+        "required_capabilities": [
+          "mls"
+        ],
+        "claim_nonce": "too-short",
+        "expires_at": "2026-07-31T00:05:00.000Z",
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ak_self_signing_v1",
+            "alg": "EdDSA",
+            "payload_digest": "sha256:a3b359db5508038c628aa0999c3431b45237ed2a5df91d18d0d5b14c0ca821f0",
+            "created_at": "2026-07-31T00:00:00.000Z",
+            "audience": "did:webvh:z6mkfixture:ps.example",
+            "proof_purpose": "holder_acceptance",
+            "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+          }
+        ]
+      }
+    }
+  ],
   "covers_vectors": [
     "ak.vector.keypackage.exhaustion_claim_limits.v1",
     "ak.vector.keypackage.last_resort_claim_and_reuse.v1",
@@ -14,6 +125,7 @@
     "ak.vector.keypackage.peer_claim_atomic_idempotency.v1",
     "ak.vector.keypackage.peer_claim_double_authorization_privacy.v1",
     "ak.vector.keypackage.peer_claim_loser_revocation.v1",
+    "ak.vector.keypackage.self_claim_authorization_idempotency.v1",
     "ak.vector.mls.welcome_keypackage_hash.v1"
   ],
   "cases": [
@@ -183,6 +295,64 @@
         "claim CAS and the serialized success outcome commit at one linearization boundary",
         "an uncertain caller queries the original request instead of issuing a fresh claim",
         "same request id with another canonical digest cannot mutate KeyPackage state"
+      ]
+    },
+    {
+      "name": "self_claim_authorization_idempotency",
+      "vector_id": "ak.vector.keypackage.self_claim_authorization_idempotency.v1",
+      "kind": "self_claim_authorization_and_linearization",
+      "authority_service_id": "did:webvh:z6mkfixture:ps.example",
+      "proof_free_request": {
+        "target_principal_id": "did:webvh:z6mkfixture:bob.example",
+        "intended_realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "requester": "did:webvh:z6mkfixture:alice.example",
+        "required_capabilities": [
+          "mls"
+        ],
+        "claim_nonce": "AAAAAAAAAAAAAAAAAAAAAA",
+        "expires_at": "2026-07-31T00:05:00.000Z"
+      },
+      "canonical_proof_free_request_json": "{\"claim_nonce\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"expires_at\":\"2026-07-31T00:05:00.000Z\",\"intended_realm_id\":\"ak:realm:0196419b-0000-7000-8000-000000000000\",\"requester\":\"did:webvh:z6mkfixture:alice.example\",\"required_capabilities\":[\"mls\"],\"target_principal_id\":\"did:webvh:z6mkfixture:bob.example\"}",
+      "payload_digest": "sha256:a3b359db5508038c628aa0999c3431b45237ed2a5df91d18d0d5b14c0ca821f0",
+      "canonical_proof_binding_json": "{\"audience\":\"did:webvh:z6mkfixture:ps.example\",\"claim_nonce\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"context\":\"ak.keypackage-claim-request-proof-v1\",\"created_at\":\"2026-07-31T00:00:00.000Z\",\"intended_realm_id\":\"ak:realm:0196419b-0000-7000-8000-000000000000\",\"payload_digest\":\"sha256:a3b359db5508038c628aa0999c3431b45237ed2a5df91d18d0d5b14c0ca821f0\",\"proof_purpose\":\"holder_acceptance\",\"requester\":\"did:webvh:z6mkfixture:alice.example\",\"target_principal_id\":\"did:webvh:z6mkfixture:bob.example\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ak_self_signing_v1\"}",
+      "proof_binding_digest": "sha256:5dab5d64a36ec6ce8373df68a6ea640775174b10e11e5f40fb490105ab5279ca",
+      "object_identity": {
+        "requester": "did:webvh:z6mkfixture:alice.example",
+        "claim_nonce": "AAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "sequence": [
+        "claim_cas_and_ledger_commit_but_response_is_lost",
+        "retry_same_identity_and_payload_digest",
+        "reuse_identity_with_conflicting_payload_digest"
+      ],
+      "negative_mutations": [
+        "missing_proof",
+        "multiple_proofs",
+        "open_proof_object",
+        "wrong_audience",
+        "wrong_proof_purpose",
+        "stale_or_future_created_at",
+        "short_claim_nonce",
+        "cross_identity_model_signer",
+        "revoked_requester_key",
+        "bearer_token_without_sender_constraint",
+        "target_policy_denied"
+      ],
+      "expected": {
+        "published_to_claimed_cas_count": 1,
+        "replay_response": "byte_identical_original_outcome",
+        "conflicting_digest_external_error": "claim_failed",
+        "conflicting_digest_audit_reason": "duplicate_conflict",
+        "inventory_lookup_before_conflict": false,
+        "second_keypackage_claimed": false
+      },
+      "assertions": [
+        "the proof payload digest covers every actually present proof-free request field",
+        "exactly one holder-acceptance proof binds requester, target, Realm, nonce and authority service DID",
+        "proof verification is independent of sender-constrained transport authentication and target policy",
+        "claim CAS, nonce ledger and serialized outcome commit at one linearization boundary",
+        "same identity and digest replay returns the original outcome without selecting another package",
+        "conflicting identity reuse fails before target inventory lookup"
       ]
     },
     {

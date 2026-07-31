@@ -229,11 +229,36 @@ Conformance vector：`ak.vector.agent.runtime_key_binding.v1`。
 
 每个 open `pairing_request_id` 同时最多一个 pending runtime key binding。服务端 MUST 以 canonical JSON 对象计算稳定 digest，kind 固定为 `ak.agent.runtime_key_binding.v1`，对象字段为 `{kind, agent_id, pairing_request_id, verification_method, public_key_digest, attestation_digest}`；`public_key_digest` 与 `attestation_digest` 分别对 `agent_runtime_approval_request_body.public_key` 和 `runtime_attestation`（缺省时为 JSON `null`）的 canonical JSON bytes 计算 SHA-256 typed digest。外层 binding 对象再按同一规则计算 SHA-256 typed digest。pairing code、过期时间、PoP challenge/signature 等 freshness proof 不得进入这份稳定身份。canonical helper 只能由 arkret-rust-sdk 定义并供实现复用。
 
+`proof_of_possession` MUST 验证 `agent-operations.schema.json#/$defs/agent_runtime_key_possession_proof`，不得接受旧的开放 JSON、实现私有字段或算法 fallback。v1 runtime key profile 固定为 Ed25519：`public_key.kty="OKP"`、`public_key.alg="EdDSA"`，`public_key.key` 解码后恰为 32 bytes；`public_key.kid`、request `verification_method` 与 proof `verification_method` MUST byte-identical，且该 DID URL 的 controller MUST 等于 request `agent_id`。proof `kind` 固定为 `agent_runtime_key_possession`，`alg` 固定为 `EdDSA`，`signature` 是 64-byte raw Ed25519 signature 的无 padding base64url 表达。key 与 signature 解码后还 MUST 以 canonical unpadded base64url 重编码并与 wire byte-identical；非零 unused bits、padding 或其它别名表达必须拒绝。
+
+构造方先计算上述稳定 `runtime_key_binding_digest`，再对以下闭合对象的 JCS bytes 签名；`context` 只存在于签名输入，不是 wire 字段：
+
+```json
+{
+  "context": "ak.agent-runtime-key-possession-proof-v1",
+  "kind": "agent_runtime_key_possession",
+  "verification_method": "<request.verification_method>",
+  "alg": "EdDSA",
+  "challenge": "<pairing_request_id>",
+  "audience": "<pairing record service_id>",
+  "created_at": "<proof.created_at>",
+  "expires_at": "<proof.expires_at>",
+  "pairing_code": "<pairing record pairing_code>",
+  "runtime_key_binding_digest": "<stable binding digest>"
+}
+```
+
+proof `challenge` MUST byte-identical 于权威 pairing record 的 `pairing_request_id`，不得由 caller 另造；`audience` MUST byte-identical 于 bootstrap 与 record 的 service DID `service_id`，不得使用 URL、HTTP Host 或请求体自选 verifier；签名输入中的 `pairing_code` MUST byte-identical 于 runtime body 与 record 中的 ≥128-bit secret，但不得复制到 proof 或 controller projection。`transcript_digest` MUST 等于上述 JCS bytes 的 SHA-256 typed digest；接收方必须先独立重建并比较 digest，再用 request `public_key` 验 Ed25519 signature。任一 equality、长度、digest 或 signature 不符都在创建/更新 pending request 前 fail closed。
+
+`created_at`、proof `expires_at` 和 pairing record `pairing_expires_at` 均使用固定毫秒 UTC profile。proof MUST 满足 `created_at <= verifier_now + 60s`、`created_at < expires_at <= created_at + 300s` 且 `expires_at <= pairing_expires_at`。首次 runtime submit 与首次 final pairing 状态变更都必须在 `verifier_now < expires_at` 且 pairing record 未过期时复验；已经 accepted 的完全相同 Event-id 幂等重放只返回原 outcome，不重新执行状态变更。`pairing_request_id` 与 secret 是服务端发放的权威 challenge，故本流程不新增 caller-controlled challenge endpoint；同 stable binding retry 可提交新的短窗 proof，服务端用它原子替换当前完整 request。
+
 Runtime MUST 在首次提交前持久化本地 key seed/private key，并在同一 open `pairing_request_id` 的整个生命周期内跨进程重启、配置重载和同名 channel 删除/重建复用同一 key binding；发现已有合法 key 时不得用新 seed 覆盖。若原 key 已丢失、损坏或无法访问，runtime MUST 停止重试并要求 controller 执行 `renew-pairing`，取得新 handle 后才能生成新 key。Runtime 不得把服务端的 `agent_runtime_request_conflict` 当成“以新 key 覆盖旧 pending request”的许可。
 
-该 digest 与 controller `ak.agent.key.authorize.payload.approval_evidence.request_canonical_digest` 使用的 `ak.agent.key_pairing_request_binding.v1` 不同：后者绑定 pairing handle、当前完整 request 与 freshness 字段，是 controller 批准的证据。最终 `ak.gate.account.command.pair_agent_key` MUST 从数据库当前持久化的完整 runtime request 重新计算二者，并与 controller 签名证据、提交 body 和当前 stable binding 比较；不得只比较提交 body 与 pairing handle。过期 prompt 或任一不一致必须 fail closed，客户端重新读取。
+该 digest 与 controller `ak.agent.key.authorize.payload.approval_evidence.request_canonical_digest` 使用的 `ak.agent.key_pairing_request_binding.v1` 不同：后者是 controller 对当前 runtime request 与 pairing record 的批准证据。其唯一 canonical 对象为 `{kind, operation_id, controller_id, agent_id, pairing_request_id, pairing_code, expires_at, audience, runtime_key_binding_digest, proof_of_possession_digest}`：`kind="ak.agent.key_pairing_request_binding.v1"`，`operation_id="ak.gate.account.command.pair_agent_key"`，`expires_at` byte-identical 于权威 `pairing_expires_at`，`audience` byte-identical 于 record `service_id`，`proof_of_possession_digest` 是当前闭合 proof wire object 的 JCS SHA-256 typed digest；不得加入或省略字段。runtime public key、verification method 与 optional attestation 已由 `runtime_key_binding_digest` 闭合绑定，不重复铺开，也不得用只绑定 public-key digest 的旧 helper。
 
-`ak.agent.key_pairing_request_binding.v1.expires_at` 与权威 `pairing_expires_at` 都使用统一 UTC 毫秒 profile `YYYY-MM-DDTHH:mm:ss.SSSZ`。构造方 MUST 先把 typed instant 按 Unix 时间向负无穷方向 floor 到毫秒，再以恰好三位小数和大写 `Z` 序列化；投影、transcript 和摘要绑定使用逐字相同的 canonical string，不得从宽松 RFC 3339 输入临时正规化，也不得另派生 epoch 字段。非法或非 canonical wire 输入必须在摘要验证前 fail closed。
+最终 `ak.gate.account.command.pair_agent_key` MUST 从数据库当前持久化的 runtime request 与 pairing record 重新计算 stable binding、PoP transcript/digest/signature 和 pairing-request binding，并与 controller 签名 `approval_evidence.request_canonical_digest`、提交 body、`signing_key_binding`、`authorize_event` payload 及当前 stable binding 比较；final body 的 `proof_of_possession` MUST byte-identical 于当前持久化 proof。不得只比较提交 body 与 pairing handle。same-binding retry 刷新 proof 后，任何绑定旧 `proof_of_possession_digest` 的 controller prompt/approval 自动失效；过期 prompt 或任一不一致必须 fail closed，客户端重新读取。
+
+`ak.agent.key_pairing_request_binding.v1.expires_at` 与权威 `pairing_expires_at`、PoP `created_at` / `expires_at` 都使用统一 UTC 毫秒 profile `YYYY-MM-DDTHH:mm:ss.SSSZ`。构造方 MUST 先把 typed instant 按 Unix 时间向负无穷方向 floor 到毫秒，再以恰好三位小数和大写 `Z` 序列化；投影、transcript 和摘要绑定使用逐字相同的 canonical string，不得从宽松 RFC 3339 输入临时正规化，也不得另派生 epoch 字段。非法或非 canonical wire 输入必须在摘要验证前 fail closed。
 
 首次合法请求生成一个稳定 `approval_request_id` 和 `ak:notification:*` id，并在创建 pairing record 的 account context 中物化 `agent_runtime_approval action=add`。相同 stable binding 的重试是幂等的：允许刷新 PoP 和完整 request，但保留两项 id，并物化 `action=update`。已有 pending 时，不同 stable binding MUST 返回 HTTP 409 `agent_runtime_request_conflict`，不得替换 controller 当前看到的请求。
 

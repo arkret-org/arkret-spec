@@ -959,6 +959,40 @@ entry signature 不覆盖、替代或降级 batch signature。batch signature �
 
 upload、consume、revoke 的 byte-exact正向与负向向量由 `ak.vector.crypto.keypackage_write_transcripts.v1` 固化。SDK helper输出与该 fixture不一致时实现 MUST fail closed；不得以当前 server或client实现为兼容依据。
 
+### 9.0.1 Self claim requester proof 与重放闭包（normative）
+
+`ak.self.keys.keypackages.command.claim` 是同一 KeyPackage authority 内的领取面，但 bearer/session 身份本身不能替代对具体领取意图的签名授权。request MUST 携带恰好一个 `proofs[]` 元素并验证 `keypackage-operations.schema.json#/$defs/keypackage_claim_proof`；v1 保留复数 wire 字段只为兼容，未定义 quorum、hybrid 或“任一通过”语义。零个、两个以上、开放对象、`domain`、非 `holder_acceptance` purpose 或非 DID `audience` 都必须在选择 KeyPackage 前拒绝。
+
+先从闭合 request 删除顶层 `proofs`（不是置为 `null`），保留所有实际存在的 optional 字段，计算 `payload_digest = SHA-256(JCS(request_without_proofs))` typed digest。proof `payload_digest` MUST 与之 byte-identical；detached JWS 的 payload segment MUST 为空，并对下列唯一 canonical binding object 的 JCS bytes 签名：
+
+```json
+{
+  "context": "ak.keypackage-claim-request-proof-v1",
+  "payload_digest": "<proof.payload_digest>",
+  "requester": "<request.requester>",
+  "target_principal_id": "<request.target_principal_id>",
+  "intended_realm_id": "<request.intended_realm_id>",
+  "claim_nonce": "<request.claim_nonce>",
+  "verification_method": "<proof.verification_method>",
+  "created_at": "<proof.created_at>",
+  "proof_purpose": "holder_acceptance",
+  "audience": "<receiving KeyPackage authority service DID>"
+}
+```
+
+proof `kind` MUST 为 `detached_jws`，`audience` MUST byte-identical 于实际接收并持有 KeyPackage 池的 authority service DID，不得使用 HTTP Host、URL 或 caller 自选值；JWS protected `alg`、proof `alg` 与解析到的 key algorithm 必须一致，禁止逐 key/逐算法 fallback。首次改变 KeyPackage 状态时，`created_at <= verifier_now + 60s`、`created_at < request.expires_at <= created_at + 300s` 且 `verifier_now < request.expires_at`；非 canonical timestamp、过期或未来时间都在 inventory lookup/CAS 前 fail closed。
+
+verification method 的 DID controller MUST 等于 `requester`，并按 requester 的已接受身份模型唯一解析：cross-signing 模型使用 current accepted SSK；service-attested 模型使用 current accepted、未撤销的 device signing key，且 authenticated session 的稳定 `device_id` 必须匹配；Native Agent 使用 current accepted `ak.agent.key.authorize.verification_method`，且 session 的 Agent/device 绑定与 MLS endpoint 必须匹配；service requester 使用该 service DID 的 current assertion method，并且 service delegation/capability 必须覆盖本 operation。不得跨身份模型降级，普通 device proof、Agent proof 与 service proof 不能相互替代。该 proof 也不能替代 RFC 9421/DPoP sender-constrained transport authentication、target consent/contact/capability/policy 检查，或后续 MLS `payload.claim_envelope` 的独立签名绑定。
+
+`claim_nonce` MUST 是 22..128 字符无 padding base64url，携带至少 128 bits CSPRNG entropy，并与 `requester` 组成 self claim 的 protocol object identity。authority MUST 以 `(requester, claim_nonce)` 建唯一 ledger，在同一原子事务/线性化点写入 `payload_digest`、KeyPackage `published -> claimed` CAS（或 last-resort claim record）和 byte-exact terminal outcome：
+
+- 同一 identity、同一 `payload_digest` 的重试返回第一次的 byte-identical outcome（包括当时的 `available_count`），不得再次选包或推进状态；
+- 同一 identity、不同 `payload_digest` 必须在 inventory lookup/CAS 前 fail closed，外部保持统一 `claim_failed`，内部审计 `duplicate_conflict`；
+- 首次收到时 request 已过期且 ledger 不存在，必须拒绝且不得创建 claim；已有 terminal ledger 的读取仍须当前有效、与 `requester`/device/service 绑定一致的 sender-constrained authentication，绝不能让 proof 历史有效性绕过当前 revoke/pause/deactivate；
+- terminal outcome 与 digest ledger MUST 至少保留到全部返回 claim 已进入 `consumed`/`revoked` terminal state，且不得早于 `request.expires_at + 24h`。清理完整 outcome 后仍必须保留到 request 已不可能重新通过 freshness gate 的 nonce tombstone；重放永远不能创建第二次 claim。
+
+因此 operation registry 的本 operation 使用 `idempotency_mechanism=object_id`、`retry_safe=true`；调用方在不确定结果后重试同一 request identity，而不是换 nonce 重新领取。此 ledger 只闭合 transport/result uncertainty，不改变一次性 KeyPackage 每份最多一次 `published -> claimed` 的状态机约束。正负路径由 `ak.vector.keypackage.self_claim_authorization_idempotency.v1` 固化。
+
 `claim` 请求字段：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
@@ -969,9 +1003,9 @@ upload、consume、revoke 的 byte-exact正向与负向向量由 `ak.vector.cryp
 | `requester` | `did` | required | 发起 claim 的 actor 或 service DID。 |
 | `required_capabilities` | `string[]` | required | 需要的 content / MLS / policy profile。 |
 | `minimal_metadata_allowed` | `boolean` | optional | 是否允许 pseudonymous credential。 |
-| `claim_nonce` | `string` | required | 防重放随机数。 |
+| `claim_nonce` | `string` | required | 至少 128-bit CSPRNG entropy；与 `requester` 组成 claim object identity 和原子幂等 ledger key。 |
 | `expires_at` | `datetime` | required | claim 有效期。 |
-| `proofs` | `proof[]` | optional | self surface 的 requester / service / device proof；peer surface 不复用此开放字段，而使用 §9.2 的闭合 `requester_authorization`。 |
+| `proofs` | `keypackage_claim_proof[1]` | required | 恰好一个 requester `holder_acceptance` detached-JWS proof，完整语义见 §9.0.1；peer surface 不复用此字段，而使用 §9.2 的闭合 `requester_authorization`。 |
 
 `claim` 响应字段：
 

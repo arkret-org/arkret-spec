@@ -102,10 +102,34 @@
       },
       "additionalProperties": false
     },
-    "proof": {
-      "type": "object",
-      "minProperties": 1,
-      "additionalProperties": true
+    "keypackage_claim_proof": {
+      "description": "Exactly one requester authorization proof is required by a v1 self KeyPackage claim. It reuses the generic non-Event detached-JWS wire leaf while closing audience, purpose, and domain choices for this object family; canonical binding and signer-authority rules are defined in device-lifecycle.md section 9.0.1.",
+      "allOf": [
+        {
+          "$ref": "./event-envelope.schema.json#/$defs/proof"
+        },
+        {
+          "type": "object",
+          "required": [
+            "audience",
+            "proof_purpose"
+          ],
+          "properties": {
+            "audience": {
+              "$ref": "#/$defs/did"
+            },
+            "proof_purpose": {
+              "type": "string",
+              "const": "holder_acceptance"
+            }
+          },
+          "not": {
+            "required": [
+              "domain"
+            ]
+          }
+        }
+      ]
     },
     "failure": {
       "type": "object",
@@ -399,7 +423,8 @@
         "requester",
         "required_capabilities",
         "claim_nonce",
-        "expires_at"
+        "expires_at",
+        "proofs"
       ],
       "properties": {
         "target_principal_id": {
@@ -415,7 +440,10 @@
           "$ref": "#/$defs/string_list"
         },
         "claim_nonce": {
-          "$ref": "#/$defs/base64url"
+          "$ref": "#/$defs/base64url",
+          "minLength": 22,
+          "maxLength": 128,
+          "description": "Requester-generated object identity carrying at least 128 bits of CSPRNG entropy. Together with requester it keys the atomic self-claim idempotency ledger."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -444,9 +472,11 @@
         "proofs": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/proof"
+            "$ref": "#/$defs/keypackage_claim_proof"
           },
-          "minItems": 1
+          "minItems": 1,
+          "maxItems": 1,
+          "description": "v1 requires exactly one holder_acceptance proof. The plural field is retained for wire compatibility; quorum or hybrid proof semantics require a future profile and MUST NOT be inferred by accepting extra entries."
         }
       },
       "additionalProperties": false

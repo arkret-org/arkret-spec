@@ -3310,6 +3310,23 @@ Expected：
 - A 的 Welcome MUST quarantine / ignore，不得建立可发送 MLS state。
 - A 的 claim 在 expiry 前保持 `claimed`（或经授权提前 `revoked`），到期 MUST 为 `revoked`；任何时刻都不得释放回 `published`。
 
+### 10.3.4 Vector: Self Claim Authorization And Idempotency
+
+`vector_id`: `ak.vector.keypackage.self_claim_authorization_idempotency.v1`
+
+Steps：
+
+1. requester 以恰好一个 fresh `holder_acceptance` proof 提交 self claim；proof payload digest、audience、requester、target、Realm 与 claim nonce 均正确，authority 在提交 KeyPackage CAS 后丢失响应。
+2. requester 以同一 `(requester, claim_nonce)` 与相同 proof-free payload digest 重试；再以同一 identity 修改 target / Realm / capability 得到另一 digest。
+3. 分别施加零 proof、两个 proof、开放对象、wrong audience/purpose、stale/future proof、短 nonce、跨身份模型 signer、已 revoke device/Agent key、仅 bearer token、以及 proof 有效但 target consent/policy 不满足的单点变异。
+
+Expected：
+
+- 正例的 proof 必须按 `ak.keypackage-claim-request-proof-v1` 重建并验证；KeyPackage `published -> claimed` CAS、`(requester, claim_nonce, payload_digest)` ledger 与序列化 outcome 只有一个线性化点，CAS 次数恰为 1。
+- 相同 identity/digest 的重试返回 byte-identical 原 outcome（含原 `available_count`），不得再次选择 KeyPackage；冲突 digest 在 inventory lookup 前以统一 `claim_failed` fail closed，内部 reason 为 `duplicate_conflict`。
+- 所有 proof/schema/freshness/authority 变异都在读取 target inventory 或改变状态前失败；proof 不替代 sender-constrained transport authentication、当前 revoke/lifecycle 检查、target consent/policy 或后续 MLS claim envelope。
+- 首次到达的过期请求绝不创建 claim；已有 terminal ledger 只能向当前仍被授权的同一 requester/session binding 返回原 outcome，nonce 重放在任何时间都不能创建第二次 claim。
+
 ### 10.4 Vector: Soft Logout DID Proof Required
 
 `vector_id`: `ak.vector.auth.soft_logout_did_proof.v1`
@@ -3661,18 +3678,18 @@ Expected:
 Steps:
 
 1. Runtime `R1` 对 open pairing handle 提交 key `K1`；服务端按 [`key-management.md` §3.6.2](../identity/key-management.md) 计算 stable binding digest，生成 approval/notification id 并发送 notification `add`。
-2. `R1` 以相同 Agent、handle、verification method、public key 和 attestation 重试，但刷新 pairing code proof / PoP challenge；服务端重算 stable digest。
+2. `R1` 以相同 Agent、handle、verification method、public key 和 attestation 重试；权威 pairing code、challenge、audience 不变，只刷新 PoP `created_at` / `expires_at` / `transcript_digest` / `signature`，服务端重算 stable digest 与 current pairing-request digest。
 3. Runtime `R2` 在同一 handle 提交不同 public key `K2`。
-4. Controller device `C1` 读取当前 request 并签审批；在提交前，同一 binding 的完整 request 又因 PoP 刷新而 update。
-5. 变体：Controller device `C0` 持有旧的、不同 stable binding 对应的 prompt/审批证据并提交最终 pair。
+4. Controller device `C0` 读取 proof `P1` 并签审批；提交前同一 stable binding 刷新为 `P2`，`C0` 再提交绑定 `P1` digest 的旧审批。
+5. Controller device `C1` 重新读取当前 `P2`，核对 pairing secret 后签署当前 `ak.agent.key_pairing_request_binding.v1` 并提交 final pair；另施加 wrong challenge/audience/secret、超过 5 分钟、public-key/method 不等、坏 transcript digest/signature 与旧开放 proof 的单点变异。
 
 Expected:
 
 - 第 1 步得到 fixture 固定的 `public_key_digest`、`attestation_digest` 与 `expected_binding_digest`；helper 输出必须逐字匹配。
-- 第 2 步 digest、approval id、notification id 不变，projection action 为 `update`；freshness 字段不进入 stable digest。
+- 第 2 步 stable digest、approval id、notification id 不变，projection action 为 `update`；freshness 字段不进入 stable digest，但 `proof_of_possession_digest` 与 pairing-request digest 必须改变。
 - 第 3 步 MUST HTTP 409 `agent_runtime_request_conflict`，不得覆盖 K1、approval id 或 notification id。
-- 第 4 步服务端必须从当前持久化完整 request 重算 `ak.agent.key_pairing_request_binding.v1`；若 controller 签名绑定当前值，审批成功并在 durable authorize accepted 后发 `remove(reason=approved)`。
-- 第 5 步 MUST fail closed；过期 prompt 不得消费 handle或激活 key。
+- 第 4 步 MUST fail closed；旧 proof/prompt 不得消费 handle 或激活 key。
+- 第 5 步服务端必须从当前持久化 request 与 pairing record 重算 stable binding、PoP transcript/digest/signature 和 `ak.agent.key_pairing_request_binding.v1`；只有 controller 签名绑定当前值时审批成功，并在 durable authorize accepted 后发 `remove(reason=approved)`。全部单点变异都必须在状态改变前 fail closed。
 - 所有 notification delta 与 provider-visible blind push 中均不得出现 pairing code、public key、PoP、attestation、display name 或 slug。
 
 ### 11.2.2 Vector: Managed Agent PCR 分离

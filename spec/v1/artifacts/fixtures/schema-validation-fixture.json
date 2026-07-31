@@ -2764,8 +2764,16 @@
           "key": "cHVibGljLWtleQ"
         },
         "proof_of_possession": {
-          "kind": "detached_jws",
-          "jws": "a..b"
+          "kind": "agent_runtime_key_possession",
+          "verification_method": "did:webvh:z6mkfixture:agent.example#key-1",
+          "alg": "EdDSA",
+          "challenge": "pairing-request-01970e58",
+          "audience": "did:webvh:z6mkfixture:pair.example",
+          "expires_at": "2026-05-20T00:05:00.000Z",
+          "created_at": "2026-05-20T00:00:00.000Z",
+          "runtime_key_binding_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "transcript_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         }
       }
     },

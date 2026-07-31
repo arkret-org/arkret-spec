@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-31.9",
+  "version": "2026-07-31.10",
   "source_of_truth": true,
-  "generated_at": "2026-07-31T18:00:00Z",
+  "generated_at": "2026-07-31T20:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3236,6 +3236,20 @@
       "description": "Concurrent Direct Conversation candidates may claim different single-use KeyPackages, but only the canonical binding winner activates Welcome and consumes; the loser Welcome is quarantined and its unconsumed claim expires to revoked, never published.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.keypackage.self_claim_authorization_idempotency.v1",
+      "status": "active",
+      "domain": "keypackage",
+      "applies_to_fixtures": [
+        "keypackage-lifecycle-fixture.json"
+      ],
+      "description": "Self KeyPackage claim requires exactly one fresh requester holder-acceptance proof bound to the proof-free request and authority DID. The (requester, claim_nonce) object identity atomically binds payload digest, KeyPackage CAS and byte-identical outcome; exact retry never claims twice and conflicting reuse fails before inventory lookup.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/crypto-media/device-lifecycle.md",
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
       ]
     },
