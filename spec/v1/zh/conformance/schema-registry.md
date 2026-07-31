@@ -79,6 +79,7 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 | feature id（`supported_features` / `experimental_features` 值） | `ak.feature.identity.webvh_native_log.v1`、`ak.feature.mls_governance_binding.full.v1` | service-surface.md 与对应能力文档；feature id 是 describe 协商值，未识别值按各 describe 消费方规则忽略或 fail closed |
 | DID Document / 外部生态 profile 值 | `ak.org.governance.v1` | identity-did.md 示例上下文 |
 | E2EE application message kind | `ak.identity_link` | 定义文档（encryption-and-audit.md）；其 payload schema（`ak.schema.identity_link.v1`）仍 MUST 注册，kind 本身不进 durable event registry（不经 reducer / Seal 路径） |
+| Signal plaintext payload kind | `ak.presence`、`ak.typing`、`ak.receipt.read`、`ak.call.signal`、`ak.message.stream` | [`../sync/signal.md` §1.1](../sync/signal.md) 的封闭登记表；每个 kind 的 closed plaintext schema 仍 MUST 注册（`ak.schema.signal_presence.v1` / `ak.schema.signal_typing.v1` / `ak.schema.read_receipt.v1` / `ak.schema.call_signal_plaintext.v1` / `ak.schema.signal_message_stream.v1`），kind 本身位于 ciphertext、不进 event-kind registry，也不分配 `wire_scope` |
 | 标准 account-data tag 词表 | `ak.favorite` | client-preferences.md §3.1（标准 tag 词表；tag 是加密 account data 内的私有分组标签，不进 wire registry） |
 
 ### 1.3 Interop 命名空间例外
@@ -131,7 +132,7 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 | `ak.schema.handle_claim.v1` | Handle Claim |
 | `ak.schema.realm_join_candidate.v1` | Realm join candidate routing hint |
 | `ak.schema.media_metadata.v1` | Media Metadata |
-| `ak.schema.read_receipt.v1` | Read Receipt |
+| `ak.schema.read_receipt.v1` | Read Receipt Signal plaintext（`ak.receipt.read`；见 [`../sync/signal.md` §1.1](../sync/signal.md)） |
 | `ak.schema.blob.v1` | Blob Metadata |
 | `ak.schema.encrypted_envelope.v1` | MLS Encrypted Payload Envelope |
 | `ak.schema.account_data_encrypted_value.v1` | Principal-private Account Data AEAD envelope |
@@ -163,6 +164,9 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 - `actor_private_event`：进入加密 account data 或 actor-private stream。
 
 SignalEnvelope 与 DeviceMessageEnvelope 不属于 Event kind registry，因此不分配 `wire_scope`。
+Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` / `ak.call.signal` /
+`ak.message.stream`）因此**不出现在** §4 的 event kind 文档视图中；其封闭登记表见
+[`../sync/signal.md` §1.1](../sync/signal.md)，豁免依据见 §1.2。
 
 实现不得仅靠本文件定义；必须加载机器 registry 或等价生成产物。
 
@@ -227,7 +231,6 @@ SignalEnvelope 与 DeviceMessageEnvelope 不属于 Event kind registry，因此�
 | `ak.reaction.add` | Reaction add |
 | `ak.reaction.remove` | Reaction remove |
 | `ak.read_cursor.advance` | Read cursor advance event |
-| `ak.receipt.read` | Read receipt event |
 
 ### 4.3 授权与治理
 
@@ -255,7 +258,6 @@ SignalEnvelope 与 DeviceMessageEnvelope 不属于 Event kind registry，因此�
 | `ak.device.authorize` | Device authorization |
 | `ak.device.revoke` | Device revocation |
 | `ak.device.list_update` | Device list update |
-| `ak.call.signal` | WebRTC signal message |
 
 ### 4.4 加密、协作与扩展
 

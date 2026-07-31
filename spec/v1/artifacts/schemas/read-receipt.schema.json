@@ -1,32 +1,25 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/read-receipt.schema.json",
-  "$defs": {
-    "timestamp": {
-      "$ref": "./time.schema.json#/$defs/timestamp"
-    }
-  },
-  "title": "Arkret Read Receipt",
-  "description": "Public/shared read receipt for Strand timeline UI hint. NOT canonical truth, NOT a multi-device cursor (see read-cursor.schema.json for that). MUST NOT generate push notifications. Privacy is governed by Realm policy: Realms MAY allow public, members-only, or actor-private receipt sharing.",
+  "title": "Arkret Read Receipt Signal Plaintext",
+  "description": "Closed decrypted Signal plaintext payload profile for ak.receipt.read, carried only inside ak.schema.signal_envelope.v1 with signal_class=session. It is a Strand timeline UI hint, NOT canonical truth, NOT a durable Event, and NOT a multi-device cursor (see read-cursor.schema.json for that). MUST NOT generate push notifications. Realm scope, sender identity and send time come from the enclosing signed envelope and are not duplicated here. Privacy is governed by Realm policy: Realms MAY allow public, members-only, or actor-private receipt sharing. See zh/discovery/read-receipts.md sections 2.1 / 6.2 and zh/sync/signal.md section 1.1.",
   "type": "object",
   "required": [
-    "receipt_kind",
-    "schema",
-    "realm_id",
+    "kind",
+    "payload_sequence",
     "actor_id",
     "read_scope",
-    "event_id",
-    "created_at"
+    "event_id"
   ],
   "properties": {
-    "receipt_kind": {
-      "const": "read"
+    "kind": {
+      "const": "ak.receipt.read"
     },
-    "schema": {
-      "const": "ak.schema.read_receipt.v1"
-    },
-    "realm_id": {
-      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+    "payload_sequence": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615,
+      "description": "Sender-device sequence within the signed Signal scope; the third component of the (sender_device_id, scope_ref, payload_sequence) receiver dedupe triple in zh/sync/signal.md section 2. Monotonic per sender device and scope."
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/did",
@@ -257,9 +250,6 @@
         }
       ],
       "additionalProperties": false
-    },
-    "created_at": {
-      "$ref": "#/$defs/timestamp"
     }
   },
   "additionalProperties": false

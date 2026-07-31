@@ -3565,6 +3565,183 @@
         "events": []
       },
       "first_expected_error": "$.events: [] should be non-empty"
+    },
+    {
+      "name": "read_receipt_signal_plaintext_valid",
+      "schema_ref": "schemas/read-receipt.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "kind": "ak.receipt.read",
+        "payload_sequence": 41,
+        "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+        "event_id": "ak:event:01964387-7000-7000-8000-000000000000",
+        "read_scope": {
+          "kind": "strand",
+          "object_ref": "ak:strand:01964200-0000-7000-8000-000000000001",
+          "track_name": "discussion"
+        }
+      }
+    },
+    {
+      "name": "read_receipt_signal_plaintext_missing_payload_sequence_invalid",
+      "schema_ref": "schemas/read-receipt.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "kind": "ak.receipt.read",
+        "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+        "event_id": "ak:event:01964387-7000-7000-8000-000000000000",
+        "read_scope": {
+          "kind": "strand",
+          "object_ref": "ak:strand:01964200-0000-7000-8000-000000000001",
+          "track_name": "discussion"
+        }
+      },
+      "first_expected_error": "$: 'payload_sequence' is a required property"
+    },
+    {
+      "name": "read_receipt_signal_plaintext_durable_object_fields_invalid",
+      "schema_ref": "schemas/read-receipt.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "kind": "ak.receipt.read",
+        "payload_sequence": 41,
+        "schema": "ak.schema.read_receipt.v1",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+        "event_id": "ak:event:01964387-7000-7000-8000-000000000000",
+        "read_scope": {
+          "kind": "strand",
+          "object_ref": "ak:strand:01964200-0000-7000-8000-000000000001",
+          "track_name": "discussion"
+        },
+        "created_at": "2026-04-26T00:00:00.000Z"
+      },
+      "first_expected_error": "$: Additional properties are not allowed ('created_at', 'realm_id', 'schema' were unexpected)"
+    },
+    {
+      "name": "call_signal_plaintext_missing_payload_sequence_invalid",
+      "schema_ref": "schemas/call-signal-plaintext.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "kind": "ak.call.signal",
+        "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+        "signal_kind": "candidate",
+        "seq": 14,
+        "data": {}
+      },
+      "first_expected_error": "$: 'payload_sequence' is a required property"
+    },
+    {
+      "name": "signal_presence_plaintext_valid",
+      "schema_ref": "schemas/signal-presence.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "kind": "ak.presence",
+        "payload_sequence": 7,
+        "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+        "state": "dnd",
+        "status_message": "In a meeting",
+        "last_active_at": "2026-04-26T00:00:00.000Z/2026-04-26T00:01:00.000Z",
+        "ttl_ms": 30000
+      }
+    },
+    {
+      "name": "signal_presence_plaintext_unknown_state_invalid",
+      "schema_ref": "schemas/signal-presence.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "kind": "ak.presence",
+        "payload_sequence": 7,
+        "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+        "state": "unavailable",
+        "ttl_ms": 30000
+      },
+      "first_expected_error": "$.state: 'unavailable' is not one of ['online', 'idle', 'offline', 'dnd']"
+    },
+    {
+      "name": "signal_typing_plaintext_valid",
+      "schema_ref": "schemas/signal-typing.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "kind": "ak.typing",
+        "payload_sequence": 8,
+        "strand_id": "ak:strand:01964200-0000-7000-8000-000000000001",
+        "track_name": "discussion",
+        "typing": true,
+        "ttl_ms": 5000
+      }
+    },
+    {
+      "name": "signal_typing_plaintext_ttl_over_session_ceiling_invalid",
+      "schema_ref": "schemas/signal-typing.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "kind": "ak.typing",
+        "payload_sequence": 8,
+        "strand_id": "ak:strand:01964200-0000-7000-8000-000000000001",
+        "typing": true,
+        "ttl_ms": 30001
+      },
+      "first_expected_error": "$.ttl_ms: 30001 is greater than the maximum of 30000"
+    },
+    {
+      "name": "realm_policy_bundle_genesis_components_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
+      "expect_valid": true,
+      "instance": {
+        "policy_revision": 1,
+        "content_encryption_floor": "e2ee_required",
+        "metadata_encryption_floor": "e2ee_required",
+        "media_service_decrypts": false,
+        "join_policy": {
+          "gates": [
+            {
+              "gate_id": "principal-admission",
+              "kind": "principal_admission",
+              "allowed_did_methods": [
+                "did:webvh"
+              ]
+            }
+          ],
+          "combinator": "all"
+        },
+        "agent_participation": {
+          "native_agent": {
+            "reply": true,
+            "accept_third_party_mention": false,
+            "act_on_behalf": false
+          }
+        },
+        "account_deactivation": {
+          "member_action": "leave_self_initiated"
+        },
+        "availability_policy": {
+          "min_holders": 1,
+          "holder_roles": [
+            "notary"
+          ],
+          "applies_to": [
+            "seal_include"
+          ]
+        },
+        "preauth": {
+          "require_consent": true
+        }
+      }
+    },
+    {
+      "name": "realm_policy_bundle_facet_component_echo_invalid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
+      "expect_valid": false,
+      "instance": {
+        "policy_revision": 2,
+        "components": {
+          "read_receipt": {
+            "disclosure": "optional"
+          }
+        }
+      },
+      "first_expected_error": "$: Additional properties are not allowed ('components' was unexpected)"
     }
   ]
 }

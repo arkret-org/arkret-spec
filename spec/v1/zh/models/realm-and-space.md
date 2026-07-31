@@ -67,6 +67,8 @@ Realm 与 MLS group 不是同义词：
 
 Realm policy component `availability_policy` 声明 Control Move、snapshot 与 backfill bytes 的签名持有者门槛；`audit_policy` 声明 range-completeness / transparency witness 白名单、最小 attestation 份数与独立性。二者均经 `ak.realm.policy_bundle` 写入并进入 `policy_root`，结构以 `realm.schema.json` 为机器真源；实现不得用未登记的 profile-local 隐式集合替代。
 
+**bundle 组件集合边界（normative）**：`ak.realm.policy_bundle` 是**闭合对象**（[`event-payload.schema.json#/$defs/realm_policy_bundle_payload`](../../artifacts/schemas/event-payload.schema.json)，`additionalProperties: false`），承载且仅承载**没有独立 facet event kind** 的 Realm policy 组件：`policy_revision`、`content_scheme`、`content_encryption_floor`、`metadata_encryption_floor`、`durability_policy`、`mls_send_pause`、`relaxed_window_max_ms`、`media_service_decrypts`、`join_policy`、`agent_participation`、`account_deactivation`、`availability_policy`、`audit_policy`、`preauth`。已经拥有自己 event kind 与 cell 的组件（`ak.realm.join_rule` / `ak.realm.history_visibility` / `ak.realm.discovery` / `ak.realm.read_receipt_policy` / `ak.realm.asset_privacy_policy` / `ak.realm.delivery_binding_policy` / `ak.realm.moderation_policy` / `ak.realm.media_service` / `ak.realm.plaintext_visible_services` / `ak.realm.disappearing_policy` / ...）MUST 走各自的 facet event，MUST NOT 在 bundle payload 内回显或再声明一次 "active set"；它们按 [`../crypto-media/encryption-and-audit.md` §2.5.1](../crypto-media/encryption-and-audit.md) 的 `ak.component.realm.*policy*` leaf 过滤与 bundle cell 并列进入同一 `policy_root`。未登记字段在 wire 解析阶段即 `schema_violation`。
+
 ### 2.3 Schema id 与字段
 
 Schema id: `ak.schema.realm.v1`

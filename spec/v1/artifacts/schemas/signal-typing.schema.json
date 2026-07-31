@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/signal-typing.schema.json",
+  "title": "Arkret Typing Signal Plaintext",
+  "description": "Closed decrypted Signal plaintext payload profile for ak.typing, carried only inside ak.schema.signal_envelope.v1 with signal_class=session. The target Strand and the exact kind MUST stay inside the ciphertext and MUST NOT be exposed to the Sync Service. Realm scope and sender identity come from the enclosing signed envelope and are not duplicated here. See zh/discovery/profiles-presence.md section 3.5 and zh/sync/signal.md section 1.1.",
+  "type": "object",
+  "required": [
+    "kind",
+    "payload_sequence",
+    "strand_id",
+    "typing"
+  ],
+  "properties": {
+    "kind": {
+      "const": "ak.typing"
+    },
+    "payload_sequence": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615,
+      "description": "Sender-device sequence within the signed Signal scope; the third component of the (sender_device_id, scope_ref, payload_sequence) receiver dedupe triple in zh/sync/signal.md section 2. Receivers apply it as a monotonic filter only after the Signal proof, scope, Seal/MLS basis and AAD have verified and the payload has decrypted."
+    },
+    "strand_id": {
+      "type": "string",
+      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Target Strand. It MUST lie inside the Realm/Circle security scope named by the signed outer scope_ref."
+    },
+    "track_name": {
+      "const": "discussion",
+      "description": "Optional. When present it MUST be discussion; when omitted the receiver resolves it as discussion."
+    },
+    "typing": {
+      "type": "boolean",
+      "description": "True while the sender is composing; senders SHOULD emit at most one update every 3 seconds and MUST send typing=false when composition stops."
+    },
+    "ttl_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 30000,
+      "description": "Optional plaintext indicator lifetime. It MUST NOT widen the outer Signal TTL, whose session-class ceiling is 30 seconds (zh/sync/signal.md section 2); clients clear the indicator once it expires."
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-31.17",
+  "version": "2026-08-01.1",
   "source_of_truth": false,
-  "generated_at": "2026-07-31T21:00:00Z",
+  "generated_at": "2026-08-01T01:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -373,6 +373,18 @@
       "description": "Closed decrypted Signal payload profile for transient Message generation keyframe, delta, and abort frames."
     },
     {
+      "schema_id": "ak.schema.signal_presence.v1",
+      "file": "schemas/signal-presence.schema.json",
+      "status": "active",
+      "description": "Closed decrypted Signal payload profile for ak.presence state, status message and activity bucket."
+    },
+    {
+      "schema_id": "ak.schema.signal_typing.v1",
+      "file": "schemas/signal-typing.schema.json",
+      "status": "active",
+      "description": "Closed decrypted Signal payload profile for ak.typing Strand composition indicators."
+    },
+    {
       "schema_id": "ak.schema.signal_relay.v1",
       "file": "schemas/signal-relay.schema.json",
       "status": "active",
@@ -539,7 +551,9 @@
     },
     {
       "schema_id": "ak.schema.read_receipt.v1",
-      "file": "schemas/read-receipt.schema.json"
+      "file": "schemas/read-receipt.schema.json",
+      "status": "active",
+      "description": "Closed decrypted Signal payload profile for ak.receipt.read timeline read hints."
     },
     {
       "schema_id": "ak.schema.did_key_log_entry.v1",

@@ -625,12 +625,12 @@ Cache-Control: public, immutable, max-age=31536000
 规则：
 
 - 私有 Realm、E2EE 附件和高隐私 minimal-metadata Realm 默认 SHOULD 使用 `provider_proxy` 或 `ohttp_relay`，不得默认 direct download。对 `ak.profile.mls.minimal_metadata_realm.v1` Realm-owned blob，§5.4.4.1 的 presign hard reject 优先于本节的 `download_mode=direct`；deployment 不得用 direct download policy 绕过 minimal-metadata bearer URL 禁令。
-- `direct_download_allowed` 的 presign 缺省值是 false：只有本 policy 已进入 current effective `ak.realm.policy_bundle` 且字段逐字为 true 才允许继续评估 presign。policy 缺失、不可验证、未被 effective policy 引用或字段省略都 MUST 按 false 处理；deployment-wide “允许 direct”不得覆盖 Realm-owned blob 的该缺省。
+- `direct_download_allowed` 的 presign 缺省值是 false：只有本 policy 的 `ak.component.realm.asset_privacy_policy.v1` cell 在当前 Seal basis 下有非 `⊥` 值且字段逐字为 true 才允许继续评估 presign。policy 缺失、处于 `⊥`、不可验证或字段省略都 MUST 按 false 处理；deployment-wide “允许 direct”不得覆盖 Realm-owned blob 的该缺省。
 - `direct_download_allowed=false` 时，客户端 MUST NOT 绕过代理直接访问 `Location` 或外部 URL；服务端也不得返回强制 direct 的 redirect。该约束同样禁止 bearer presign：服务端 MUST NOT 为 `direct_download_allowed=false` Realm-owned blob 签发 `ak.self.blob.command.presign` URL（§5.4.4.1 `direct_download_disallowed_presign_forbidden`），因为 presign 就是一个可转发的 direct bearer URL。
 - Proxy 服务不因参与下载而获得正文解密权。E2EE 附件必须保持密文，proxy 只能处理密文字节、size bucket、content hash 和授权 envelope。
 - `max_plaintext_metadata` 控制服务可见 metadata。高隐私 Realm SHOULD 使用 bucketed size、MIME family，而不是精确文件名、精确字节数或完整 MIME。
 - 无论采用哪种下载路径，客户端 MUST 校验内容 hash、ciphertext digest 和 E2EE attachment metadata；proxy 成功不等于内容可信。
-- `ak.realm.asset_privacy_policy` SHOULD 被 `ak.realm.policy_bundle` payload 中的 `components.asset` 引用，并纳入 MLS-bound `policy_root`。
+- `ak.realm.asset_privacy_policy` 由它自己的 Event kind 写入 `ak.component.realm.asset_privacy_policy.v1` cell，**不**在 `ak.realm.policy_bundle` payload 内重复声明；它按 [`encryption-and-audit.md` §2.5.1](./encryption-and-audit.md) 的 `ak.component.realm.*policy*` leaf 过滤自动进入 MLS-bound `policy_root`。
 
 ## 7. Safety
 

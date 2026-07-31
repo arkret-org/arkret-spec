@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/signal-presence.schema.json",
+  "title": "Arkret Presence Signal Plaintext",
+  "description": "Closed decrypted Signal plaintext payload profile for ak.presence, carried only inside ak.schema.signal_envelope.v1 with signal_class=session. Presence is never a durable Event; the exact kind, actor, state and activity time MUST stay inside the ciphertext. Realm scope and sender identity come from the enclosing signed envelope and are not duplicated here; receivers MUST require actor_id == envelope sender_actor_id. See zh/discovery/profiles-presence.md section 3.3 and zh/sync/signal.md section 1.1.",
+  "type": "object",
+  "required": [
+    "kind",
+    "payload_sequence",
+    "actor_id",
+    "state",
+    "ttl_ms"
+  ],
+  "properties": {
+    "kind": {
+      "const": "ak.presence"
+    },
+    "payload_sequence": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615,
+      "description": "Sender-device sequence within the signed Signal scope; the third component of the (sender_device_id, scope_ref, payload_sequence) receiver dedupe triple in zh/sync/signal.md section 2. Multi-device presence aggregation only considers signals whose sequence has not rolled back."
+    },
+    "actor_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did",
+      "description": "DID of the actor whose presence this is. MUST equal the enclosing envelope sender_actor_id."
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "online",
+        "idle",
+        "offline",
+        "dnd"
+      ],
+      "description": "Closed v1 presence state set. Unknown values MUST be dropped or rejected as schema_violation; receivers MUST NOT map them onto an approximate state. Invisibility is not a state value: it is expressed by ak.presence.visibility=nobody."
+    },
+    "status_message": {
+      "type": "string",
+      "maxLength": 256,
+      "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\u007F-\\u009F]*$",
+      "description": "Optional NFC status text, at most 256 Unicode code points. U+0009 and U+000A are the only permitted control characters; all other C0/C1 controls are rejected. NFC normalization is enforced after decryption by the receiver."
+    },
+    "last_active_at": {
+      "oneOf": [
+        {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z/[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$"
+        }
+      ],
+      "description": "Optional and omitted by default. Either an RFC 3339 UTC instant or a Unix-epoch-aligned ISO 8601 <start>/<end> interval bucket. The bucket duration MUST be at least PT60S and MUST match the Realm policy granularity; that bound and the epoch alignment cannot be expressed in JSON Schema and are enforced by the receiver, which MUST fail closed on malformed values."
+    },
+    "ttl_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 30000,
+      "description": "Plaintext presence lifetime. It MUST NOT widen the outer Signal TTL, whose session-class ceiling is 30 seconds (zh/sync/signal.md section 2); receivers treat the effective lifetime as the minimum of this value and the envelope expires_at."
+    }
+  },
+  "additionalProperties": false
+}

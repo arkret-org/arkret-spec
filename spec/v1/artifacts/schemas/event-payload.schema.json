@@ -5155,7 +5155,7 @@
       "additionalProperties": false
     },
     "join_policy_payload": {
-      "$comment": "Value-shape schema for the realm.join_policy.v1 cell (written as a sub-component of ak.realm.policy_bundle). Structural validation is JSON Schema; property-level gate_id uniqueness within gates[] cannot be expressed in pure JSON Schema 2020-12, so it is enforced by (a) reducer rejection with reason_code=join_policy_duplicate_gate_id and (b) tools/lint_artifacts.py check_join_policy_gate_id_uniqueness over fixtures and Markdown examples. uniqueItems below catches whole-object duplicates as a baseline. See zh/governance/join-policy.md §3 / §3.1.",
+      "$comment": "Value shape of the join_policy component of realm_policy_bundle_payload; it has no separate Event kind and no separate cell family, and rides inside the ak.component.realm.policy_bundle.v1 cas_register value. Structural validation is JSON Schema; property-level gate_id uniqueness within gates[] cannot be expressed in pure JSON Schema 2020-12, so it is enforced by (a) reducer rejection with reason_code=join_policy_duplicate_gate_id and (b) tools/lint_artifacts.py check_join_policy_gate_id_uniqueness over fixtures and Markdown examples. uniqueItems below catches whole-object duplicates as a baseline. See zh/governance/join-policy.md §3 / §3.1.",
       "type": "object",
       "required": [
         "gates",
@@ -9578,7 +9578,7 @@
     },
     "realm_policy_bundle_payload": {
       "type": "object",
-      "$comment": "Payload for ak.realm.policy_bundle — the payload IS this flat closed object (not a state_payload wrapper); event-envelope.schema.json dispatches the kind directly to this def, and the def name follows the ak.<x> -> <x>_payload derivation rule.",
+      "$comment": "Payload for ak.realm.policy_bundle — the payload IS this flat closed object (not a state_payload wrapper); event-envelope.schema.json dispatches the kind directly to this def, and the def name follows the ak.<x> -> <x>_payload derivation rule. The closed property set is the complete set of Realm policy components that have no independent facet Event kind. Components that DO have their own kind and cell (ak.realm.join_rule, ak.realm.history_visibility, ak.realm.read_receipt_policy, ak.realm.asset_privacy_policy, ak.realm.delivery_binding_policy, ak.realm.moderation_policy, ak.realm.media_service, ak.realm.plaintext_visible_services, ...) are written by those events and are already covered by policy_root's ak.component.realm.*policy* leaf filter; they MUST NOT be echoed here.",
       "description": "Enabled Realm policy component set, written wholesale into the ak.component.realm.policy_bundle.v1 cas_register cell: every revision restates the complete enabled component set and the Realm object's derived policy fields re-derive from the latest accepted bundle. policy_revision is strictly monotonic; the reducer rejects rollback or gaps, and policy_frontier_digest MUST cover policy_revision (see contract-registry event-kind row and models/realm-and-space.md sections 2.3/2.3.1).",
       "required": [
         "policy_revision"
@@ -9608,6 +9608,59 @@
             "advisory"
           ],
           "description": "Declaring advisory downgrades the MLS send pause from MUST to SHOULD and is only accepted when the Realm declares ak.profile.e2ee_relaxed.v1 (crypto-media/encryption-and-audit.md section 2.4.1); omitting the field in a later revision reverts to the strict default."
+        },
+        "relaxed_window_max_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Declared ak.profile.e2ee_relaxed.v1 removed-member decryption window. Omitting it means the 30000 ms default. The 300000 ms absolute ceiling is enforced by the reducer and independently by every receiver with reason_code relaxed_window_exceeds_ceiling, NOT by this schema: a wire value above the ceiling MUST surface as that reason code rather than schema_violation, and receivers MUST NOT silently clamp it. See crypto-media/encryption-and-audit.md section 2.4.1.",
+          "$comment": "Deliberately unbounded above; ak.vector.e2ee_relaxed.window_exceeds_ceiling.v1 requires 300001 to reach the reducer."
+        },
+        "media_service_decrypts": {
+          "type": "boolean",
+          "description": "Whether a media service listed in plaintext_visible_services may decrypt call media. Defaults to false when absent. It is one of the three conditions that MUST all hold (ak.realm.media_service declaration + plaintext_visible_services grant + this toggle), it is a leaf of discussion_metadata_digest, and a policy_root that does not cover it MUST be treated as not enabled. See crypto-media/media-service-binding.md section 8.2."
+        },
+        "join_policy": {
+          "$ref": "#/$defs/join_policy_payload"
+        },
+        "agent_participation": {
+          "$ref": "./realm.schema.json#/properties/agent_participation"
+        },
+        "account_deactivation": {
+          "type": "object",
+          "required": [
+            "member_action"
+          ],
+          "properties": {
+            "member_action": {
+              "type": "string",
+              "enum": [
+                "leave_self_initiated",
+                "retain_membership",
+                "leave_all"
+              ],
+              "description": "How this Realm disposes of a principal's membership when the account enters deactivated. Defaults to leave_self_initiated when the component is absent. Unrecognized values fail closed to retain_membership with a policy parse warning and MUST NOT silently fall back to the default. The single authority for the closed enum and its disposition semantics is identity/account-lifecycle.md section 7.1."
+            }
+          },
+          "additionalProperties": false
+        },
+        "availability_policy": {
+          "$ref": "./realm.schema.json#/properties/availability_policy"
+        },
+        "audit_policy": {
+          "$ref": "./realm.schema.json#/properties/audit_policy"
+        },
+        "preauth": {
+          "type": "object",
+          "required": [
+            "require_consent"
+          ],
+          "properties": {
+            "require_consent": {
+              "type": "boolean",
+              "description": "When true, every invite into this Realm MUST pass the holder consent admission gate in identity/consent-model.md section 6.1 before the invite Control Move is submitted. It MUST NOT be read as permission for a cross-Realm CBA precondition."
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

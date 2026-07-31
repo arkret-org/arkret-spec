@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-31.2",
+  "version": "2026-08-01.2",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -167,7 +167,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:282a6291a3d31c1057e1cac766710b466c4f1fd06d84ce7d9a912c6ffe8cf534",
+      "section_digest": "sha256:c9351a5bf79bc38652f85679618d68c1d4e17776d112f12e4f7a4abcd10241fb",
       "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, and encryption floors MUST NOT be downgraded.",
       "testability_grade": "vector",
       "evidence_refs": [

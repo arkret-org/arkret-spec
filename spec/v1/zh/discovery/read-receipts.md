@@ -39,9 +39,13 @@ updated: 2026-07-30
 外层 `signal_class` 固定为 `session`；`ak.receipt.read`、read target、Event id、HLC 与 actor
 都必须位于 `encrypted_payload` 中，Sync Service 不得看见或按这些字段路由。
 
-plaintext 解密后使用闭合对象 `ak.schema.read_receipt.v1`，至少包含
-`kind="ak.receipt.read"`、`actor_id`、单调 `payload_sequence`、`read_scope` 与已读至的
-`event_id`，并可包含 `hlc`。外层 `sender_actor_id` MUST 等于 plaintext `actor_id`。
+plaintext 解密后使用闭合对象 `ak.schema.read_receipt.v1`
+（[`read-receipt.schema.json`](../../artifacts/schemas/read-receipt.schema.json)，
+`additionalProperties: false`）：required 字段为 `kind="ak.receipt.read"`、单调
+`payload_sequence`、`actor_id`、`read_scope` 与已读至的 `event_id`，唯一可选字段是 `hlc`。
+`kind` 与 `payload_sequence` 按 [`../sync/signal.md` §1.1](../sync/signal.md) 的 plaintext
+通用最小集必填；Realm scope、发送者与发送时间由外层已签名 envelope 承载，plaintext MUST NOT
+重复 `realm_id` / `created_at`。外层 `sender_actor_id` MUST 等于 plaintext `actor_id`。
 
 接收方只有在验证 Signal proof、Seal basis、MLS epoch/AAD、TTL 并成功解密后，才能更新
 UI。relay attestation 不能替代 sender device proof。任何把 receipt target 或精确 kind 放到
@@ -67,7 +71,7 @@ Push Gateway MUST NOT 因 read receipt 产生通知。它只能把 receipt / mar
 
 ### 2.5 Realm 披露策略 (Disclosure Policy)
 
-Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 `ak.receipt.read` 的披露要求。需要让 Strand 时间线与父 Realm 在 read receipt policy 上分离时，整个 Strand 通过 `Strand.scope_circle_id` 落在一个 [Circle](../models/circle.md)（参见 [`../models/strand-and-message.md` §5](../models/strand-and-message.md)）；effective policy 由父 Realm `ak.realm.read_receipt_policy` 与 Circle 自身策略取更严格者。Track 级别 override 不在 v1 范围内。该 policy SHOULD 由 Event kind `ak.realm.policy_bundle` 的 payload path `components.read_receipt` 引用；在 MLS-backed scope 中还必须纳入 MLS-bound `policy_root`。
+Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 `ak.receipt.read` 的披露要求。需要让 Strand 时间线与父 Realm 在 read receipt policy 上分离时，整个 Strand 通过 `Strand.scope_circle_id` 落在一个 [Circle](../models/circle.md)（参见 [`../models/strand-and-message.md` §5](../models/strand-and-message.md)）；effective policy 由父 Realm `ak.realm.read_receipt_policy` 与 Circle 自身策略取更严格者。Track 级别 override 不在 v1 范围内。该 policy 由它自己的 Event kind `ak.realm.read_receipt_policy` 写入 `ak.component.realm.read_receipt_policy.v1` cell，**不**在 `ak.realm.policy_bundle` payload 内重复声明；它按 [`../crypto-media/encryption-and-audit.md` §2.5.1](../crypto-media/encryption-and-audit.md) 的 `ak.component.realm.*policy*` leaf 过滤自动进入 MLS-bound `policy_root`。
 
 > **Realm 作用域** 由 enclosing Event envelope 的 `realm_id` 决定；payload 本身不重复 `realm_id`。Payload schema 在 [`event-payload.schema.json#/$defs/read_receipt_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 为闭合对象（`additionalProperties: false`），任何未识别字段或 `receipt_compliance_opt_in` 子字段拼写错误在 wire 解析阶段就会以 `schema_violation` 拒绝。Payload **MUST 至少包含一个字段**（schema `minProperties: 1`）：空 `{}` 在语义上与"从不写该 event"等价，因此 MUST 被拒绝；想要"用默认值"的 Realm 直接省略该 event 即可。
 
@@ -227,21 +231,20 @@ Read Cursor 是 actor-private 状态。最小结构示例：
 
 ### 6.2 Receipt 公开形态
 
-Receipt 可以公开或私有，取决于 Realm policy。schema：`ak.schema.read_receipt.v1`：
+Receipt 对谁可见取决于 Realm policy，但它始终只作为 §2.1 的 Signal plaintext 出现。
+schema：`ak.schema.read_receipt.v1`：
 
 ```json
 {
-  "receipt_kind": "read",
-  "schema": "ak.schema.read_receipt.v1",
-  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "kind": "ak.receipt.read",
+  "payload_sequence": 41,
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+  "event_id": "ak:event:01964387-7000-7000-8000-000000000000",
   "read_scope": {
     "kind": "strand",
     "object_ref": "ak:strand:01964200-0000-7000-8000-000000000001",
     "track_name": "discussion"
-  },
-  "event_id": "ak:event:01964387-7000-7000-8000-000000000000",
-  "created_at": "2026-04-26T00:00:00Z"
+  }
 }
 ```
 

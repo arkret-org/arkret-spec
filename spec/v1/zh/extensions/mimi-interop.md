@@ -376,7 +376,7 @@ Arkret v1 把 Realm-level policy 映射为 Control Move 的 registered cell proj
 | `ak.component.realm.discovery.v1` | `ak.realm.discovery` | `participation` 中 `discoverability` 子字段 |
 | `ak.component.realm.alias.v1` | `ak.realm.alias` | （Arkret 专属；MIMI 的 room URI / hub-local name 不是可映射 policy component） |
 | `ak.component.realm.policy_server.v1` | `ak.realm.policy_server` | （Arkret 专属，与 MIMI hub provider 概念解耦） |
-| `ak.component.realm.policy_bundle.v1` | `ak.realm.policy_bundle` | MIMI policy component 集合声明（root + active list） |
+| `ak.component.realm.policy_bundle.v1` | `ak.realm.policy_bundle` | 没有独立 facet event kind 的 Realm policy 组件集合（`join_policy` / `agent_participation` / `account_deactivation` / `availability_policy` / `audit_policy` / `preauth` / 加密 floor 与 scheme 等）；对应 MIMI 的 `participation.join_policy`、`preauth` 与 `bot` 子字段 |
 | `ak.component.realm.history_sharing_policy.v1` | `ak.realm.history_sharing_policy` | `history_sharing` |
 | `ak.component.realm.asset_privacy_policy.v1` | `ak.realm.asset_privacy_policy` | `asset` |
 | `ak.component.realm.moderation_policy.v1` | `ak.realm.moderation_policy` | `logging` 的 abuse-report 子字段 + 自定义 `moderation` extension |
@@ -398,7 +398,15 @@ Arkret v1 把 Realm-level policy 映射为 Control Move 的 registered cell proj
 | --- | --- | --- | --- |
 | `realm.join_policy`（candidate workflow concept/action 名称，不是 v1 wire `Event.kind`；见 [`../conformance/schema-registry.md` §4.1](../conformance/schema-registry.md)） | `ak.profile.candidate.join_policy.v1` | `participation.join_policy` 子字段（结构化 gates / reviewer / TTL）；MIMI 侧未覆盖部分以 `application/vnd.arkret.component+json` 私有扩展承载 | MIMI facade **MUST reject / omit**，不得写入 shared Realm history |
 
-> 历史的 MIMI components（`roles`、`preauth`、`bot`、`message_expiration`、`operational`）在 Arkret 中是 `ak.realm.policy_bundle` cell 的子字段，而不是独立 kind。Facade 接收 MIMI policy update 时 MUST 把这些 components 归约为 `ak.realm.policy_bundle` Control Move payload，再按 registry 派生 cell write。
+> 历史的 MIMI components（`roles`、`preauth`、`bot`、`message_expiration`、`operational`）在 Arkret 中都不是独立 Event kind。它们没有统一承载：facade 接收 MIMI policy update 时 MUST 按下表逐项归约到已登记的 Arkret 承载，再按 registry 派生 cell write；无法映射的子字段按 §9.2 unknown handling 处理，MUST NOT 塞进任何 closed payload 的未登记字段。
+>
+> | MIMI component | Arkret 承载 |
+> | --- | --- |
+> | `roles` | `ak.capability.grant` / `ak.capability.revoke`（capability 是 allow 的唯一来源，不是 policy 子字段） |
+> | `preauth` | `ak.realm.policy_bundle` payload 的 `preauth` 组件（[`../identity/consent-model.md` §6.1](../identity/consent-model.md)） |
+> | `bot` | `ak.realm.policy_bundle` payload 的 `agent_participation` 组件（[`../models/realm-and-space.md` §2.2](../models/realm-and-space.md)） |
+> | `message_expiration` | `ak.realm.disappearing_policy` facet event 与其自有 cell |
+> | `operational` | `ak.realm.policy` facet event（`ak.component.realm.policy.v1`，见 §9.1 首行） |
 >
 > MIMI room policy 投影 MUST 落在有效 Realm 的 `ak.realm.policy_bundle` cell；不存在 track-scoped policy projection——track 不携带独立 access。当 MIMI room 映射的 Strand 通过 `scope_circle_id` 落在 Realm 内的 [Circle](../models/circle.md) 时，Circle-local policy 通过 Circle 自身 `policy_root` 表达，与父 Realm policy 取更严格者。
 

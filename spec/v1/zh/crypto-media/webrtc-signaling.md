@@ -79,6 +79,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 ```json
 {
   "kind": "ak.call.signal",
+  "payload_sequence": 60,
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_kind": "moderation",
   "seq": 30,
@@ -269,8 +270,12 @@ Seal basis、scope/MLS epoch 与 AAD，然后解密并检查 plaintext sequence 
 [`signal-envelope.schema.json`](../../artifacts/schemas/signal-envelope.schema.json)；
 proof context 固定为 `ak.signal-proof-v1`。
 
-解密后的 plaintext 顶层必须通过 [`call-signal-plaintext.schema.json`](../../artifacts/schemas/call-signal-plaintext.schema.json)（`ak.schema.call_signal_plaintext.v1`），闭合字段为 `kind=ak.call.signal`、`call_id`、
-`signal_kind`、`seq` 与 `data`。允许的 `signal_kind` 为 `invite` / `answer` /
+解密后的 plaintext 顶层必须通过 [`call-signal-plaintext.schema.json`](../../artifacts/schemas/call-signal-plaintext.schema.json)（`ak.schema.call_signal_plaintext.v1`），闭合字段为 `kind=ak.call.signal`、
+`payload_sequence`、`call_id`、`signal_kind`、`seq` 与 `data`。`payload_sequence` 是
+[`../sync/signal.md` §1.1](../sync/signal.md) 对全部 plaintext profile 强制的通用字段，按
+sender device 与 signed scope 单调，服务于 §2 的 `(sender_device_id, scope_ref,
+payload_sequence)` 去重；它与本节按 `(realm_id, call_id, actor_id, device_id)` 防回滚的
+`seq` 相互独立，任一方 MUST NOT 替代另一方。允许的 `signal_kind` 为 `invite` / `answer` /
 `candidate` / `reject` / `hangup` / `renegotiate` / `mute_state` / `media_state` /
 `speaking` / `focus_join` / `focus_leave` / `moderation` / `error` / `ack`。
 
@@ -283,6 +288,7 @@ Invite payload:
 ```json
 {
   "kind": "ak.call.signal",
+  "payload_sequence": 30,
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_kind": "invite",
   "seq": 12,
@@ -307,6 +313,7 @@ Answer payload:
 ```json
 {
   "kind": "ak.call.signal",
+  "payload_sequence": 31,
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_kind": "answer",
   "seq": 13,
@@ -328,6 +335,7 @@ Candidate payload:
 ```json
 {
   "kind": "ak.call.signal",
+  "payload_sequence": 32,
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_kind": "candidate",
   "seq": 14,
@@ -354,6 +362,7 @@ Candidate payload:
 ```json
 {
   "kind": "ak.call.signal",
+  "payload_sequence": 40,
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_kind": "renegotiate",
   "seq": 20,
@@ -382,6 +391,7 @@ Candidate payload:
 ```json
 {
   "kind": "ak.call.signal",
+  "payload_sequence": 41,
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_kind": "mute_state",
   "seq": 21,
@@ -399,6 +409,7 @@ Candidate payload:
 ```json
 {
   "kind": "ak.call.signal",
+  "payload_sequence": 42,
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_kind": "mute_state",
   "seq": 22,
@@ -417,6 +428,7 @@ Candidate payload:
 ```json
 {
   "kind": "ak.call.signal",
+  "payload_sequence": 43,
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_kind": "speaking",
   "seq": 23,
@@ -450,6 +462,7 @@ Candidate payload:
 ```json
 {
   "kind": "ak.call.signal",
+  "payload_sequence": 50,
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_kind": "media_state",
   "seq": 7,

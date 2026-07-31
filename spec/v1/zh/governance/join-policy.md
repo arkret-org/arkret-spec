@@ -57,15 +57,18 @@ updated: 2026-07-13
 ## 3. Cell Family 与 State Event
 
 ```text
-cell_id     := ak:cell:ak.component.realm.join_policy.v1:null
+event kind  := ak.realm.policy_bundle
+cell_id     := ak:cell:ak.component.realm.policy_bundle.v1:null
 lattice     := cas_register
 bottom      := reject
-value shape := JoinPolicy（见下）
+payload path:= join_policy
+value shape := JoinPolicy（见下；机器真源
+               [`event-payload.schema.json#/$defs/join_policy_payload`](../../artifacts/schemas/event-payload.schema.json)）
 ```
 
-本 cell 的 `cell_subject=null`，与 [`member-delivery-binding.md`](member-delivery-binding.md) §4 的 `ak.component.realm.delivery_binding_policy.v1` 统一：二者都是由 Event envelope `realm_id` 定位的 per-Realm 单例 policy cell。null subject 的 canonical wire 形态（字面 ASCII `null`）及"不得把 `realm_id`、Realm 角色分类或任何 payload 派生值编码进 subject 段"的禁令是全协议规则，canonical 定义在 [`../conformance/encoding.md` §4](../conformance/encoding.md)；本节不再重复承载该规则。
+Join policy **没有**独立 Event kind，也**没有**独立 cell family：它是 `ak.realm.policy_bundle` payload 的 `join_policy` 组件，随整个 bundle 一起写入 per-Realm 单例 `ak.component.realm.policy_bundle.v1` cell，因此也随 `policy_revision` 单调推进、被同一 cas_register 语义整体替换（每次 revision 重述完整启用组件集）。这与 [`member-delivery-binding.md`](member-delivery-binding.md) §4 的 `ak.component.realm.delivery_binding_policy.v1` 形成对照：后者有自己的 facet event 与独立 cell，前者没有。两个 cell 的 `cell_subject` 都为 `null`，都由 Event envelope `realm_id` 定位。null subject 的 canonical wire 形态（字面 ASCII `null`）及"不得把 `realm_id`、Realm 角色分类或任何 payload 派生值编码进 subject 段"的禁令是全协议规则，canonical 定义在 [`../conformance/encoding.md` §4](../conformance/encoding.md)；本节不再重复承载该规则。
 
-写入 cell 的候选概念在正式登记前记为 `realm.join_policy`（裸名仅是 design-time concept/action，不是 v1 wire `Event.kind`，也 MUST NOT 作为 Event envelope 的 `kind` 上链或同步），需要 `ak.policy.manage` capability（与 `ak.realm.policy_server` / `ak.realm.policy_bundle` 同等级）。`ak.realm.create` 时 SHOULD 通过 `ak.realm.policy_bundle` 一并提供 join policy 初值；省略时 cell 维持 `null`，行为退化为"`default_join_rule` 单独决定"。
+写入 cell 的候选概念在正式登记前记为 `realm.join_policy`（裸名仅是 design-time concept/action，不是 v1 wire `Event.kind`，也 MUST NOT 作为 Event envelope 的 `kind` 上链或同步），需要 `ak.policy.manage` capability（与 `ak.realm.policy_server` / `ak.realm.policy_bundle` 同等级）。`ak.realm.create` 时 SHOULD 通过 `ak.realm.policy_bundle` 一并提供 join policy 初值；bundle 内省略 `join_policy` 组件即表示未声明 join policy，行为退化为"`default_join_rule` 单独决定"。
 
 JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 

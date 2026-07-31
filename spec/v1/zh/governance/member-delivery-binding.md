@@ -99,7 +99,7 @@ Realm history SHOULD NOT 写入受限组织 handle 明文。需要审计时，Co
 
 ## 4. Policy 事件：`ak.realm.delivery_binding_policy`
 
-Realm 通过独立的 `ak.realm.delivery_binding_policy` event 声明对成员投递绑定的强约束。该事件写入 `ak.component.realm.delivery_binding_policy.v1` cell（cas_register, cell_subject=null, bottom=reject），与 `ak.realm.join_rule` / `ak.realm.history_visibility` 等其它 realm policy 事件并列。Realm 在 `ak.realm.policy_bundle` 中将该 component 列入 active set 后，reducer 强制其约束。
+Realm 通过独立的 `ak.realm.delivery_binding_policy` event 声明对成员投递绑定的强约束。该事件写入 `ak.component.realm.delivery_binding_policy.v1` cell（cas_register, cell_subject=null, bottom=reject），与 `ak.realm.join_rule` / `ak.realm.history_visibility` 等其它 realm policy 事件并列。该 cell 在当前 Seal basis 下有非 `⊥` 值后 reducer 即强制其约束；它**不**在 `ak.realm.policy_bundle` payload 内重复声明，也不存在额外的 bundle-side "active set" 开关。
 
 ```json
 {
@@ -137,7 +137,7 @@ Realm 通过独立的 `ak.realm.delivery_binding_policy` event 声明对成员�
 | `rebind_authorization` | `enum(member, member_and_admin, admin_only, service_only, any)` | `member_and_admin` | rebind Control Move 的合法签名 / 背书集合（见 §6）。 |
 | `expires_after_seconds` | `int?` | unset = 不过期 | 该 Realm 中所有 binding 的最大有效期；reducer MUST 在物化时把 `delivery_binding.expires_at = resolved_at + expires_after_seconds`，除非 binding 显式声明更短的 `expires_at`。 |
 
-`ak.component.realm.delivery_binding_policy.v1` 是 cas_register cell（`cell_subject=null`，每 Realm 一个）。变更走 [`models/realm-and-space.md`](../models/realm-and-space.md) 的 `ak.realm.policy_bundle` 通用路径。
+`ak.component.realm.delivery_binding_policy.v1` 是 cas_register cell（`cell_subject=null`，每 Realm 一个）。变更走本节的 `ak.realm.delivery_binding_policy` facet event，与 [`models/realm-and-space.md` §2.3](../models/realm-and-space.md) 其它 per-facet Realm policy 事件同一路径；`ak.realm.policy_bundle` 只承载没有独立 facet event kind 的组件。
 
 ## 5. 路由不可降级（normative）
 

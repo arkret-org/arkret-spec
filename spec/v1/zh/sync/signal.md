@@ -12,7 +12,8 @@ updated: 2026-07-28
 
 Signal 是可选 Extension，不是 durable Event 或 core to-device 的别名。它只有一个
 encrypted envelope、一条 send/subscribe live rail 与一个可选单跳 peer relay。
-标准 plaintext payload profile 必须在独立 closed schema 中登记；profile schema 只在接收端
+标准 plaintext payload profile 必须在独立 closed schema 中登记（封闭登记表与通用最小集见
+§1.1）；profile schema 只在接收端
 解密后应用，不得把其中的 `kind`、产品 target 或 sequence 提升到外层 routing metadata。
 
 ## 1. Envelope
@@ -108,6 +109,38 @@ durable delivery guarantee 的 Signal rail，任何一跳都不得为追求各�
 
 精确 payload type、Strand/Message/Call/receipt target、sequence 与内容都在 ciphertext 内。
 服务端不得要求或推断更细 `signal_kind`。
+
+### 1.1 Plaintext payload profile 通用最小集（normative）
+
+每个标准 plaintext payload profile 都 MUST 在独立 closed schema（`additionalProperties:
+false`）中登记，并且 MUST 至少携带下面两个通用字段——它们不是各 profile 的可选装饰，而是
+Signal rail 的路由与去重前提：
+
+| 字段 | 约束 |
+| --- | --- |
+| `kind` | `const`，取该 profile 的 payload kind（如 `ak.receipt.read`）。它是解密后的唯一 payload 判别式；外层不得出现同义 selector。 |
+| `payload_sequence` | 非负整数，按 sender device 与 signed scope 单调；§2 的 `(sender_device_id, scope_ref, payload_sequence)` 去重三元组第三项。profile 自己的产品序列（call 的 `seq`、message stream 的 `seq`）与它相互独立，不得互相替代。 |
+
+Realm scope、sender device 与发送时间由外层已签名 envelope 承载，plaintext MUST NOT 重复
+`realm_id`、`sender_device_id` 与 `sent_at`（或等价的 `created_at`）；需要它们时接收方直接从
+envelope 取值。profile 需要在密文内表达读者 / 发布者身份时使用 `actor_id`，接收方 MUST 校验
+它逐字等于外层 `sender_actor_id`（`ak.receipt.read` 与 `ak.presence` 属此类）。plaintext TTL
+字段（`ttl_ms`）只能收紧、不得放宽外层 `expires_at`。
+
+v1 已登记的 plaintext payload profile 是封闭集合：
+
+| payload `kind` | schema id | 定义正文 |
+| --- | --- | --- |
+| `ak.presence` | `ak.schema.signal_presence.v1` | [`../discovery/profiles-presence.md` §3.3](../discovery/profiles-presence.md) |
+| `ak.typing` | `ak.schema.signal_typing.v1` | [`../discovery/profiles-presence.md` §3.5](../discovery/profiles-presence.md) |
+| `ak.receipt.read` | `ak.schema.read_receipt.v1` | [`../discovery/read-receipts.md` §2.1](../discovery/read-receipts.md) |
+| `ak.call.signal` | `ak.schema.call_signal_plaintext.v1` | [`../crypto-media/webrtc-signaling.md` §5](../crypto-media/webrtc-signaling.md) |
+| `ak.message.stream` | `ak.schema.signal_message_stream.v1` | §7 |
+
+接收方 MUST 先按外层 §3 admission 校验并解密，再按 `kind` 选中对应 closed schema 校验；
+未登记的 `kind`、未通过对应 closed schema 的 plaintext MUST 以 `schema_violation` 丢弃，
+MUST NOT 按字段名手工解析。新增 profile 只能新增登记行，不得新增 endpoint、
+`SignalStreamFrame` kind 或 server-visible selector（§4.1）。
 
 ## 2. 时间与资源上限
 

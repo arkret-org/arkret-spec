@@ -229,9 +229,12 @@ Profile 后续变更通过 `ak.profile.update` Move / compatible Event 提交。
 ### 3.3 Presence plaintext 与聚合
 
 Presence 使用 [`SignalEnvelope`](../sync/signal.md)，外层 `signal_class=session`。解密后的
-闭合 plaintext 至少包含 `kind=ak.presence`、`actor_id`、`state`、`payload_sequence` 与
-`ttl_ms`，可包含 `status_message` 和 `last_active_at`。精确 kind、actor、状态与活动时间
-不得出现在外层。
+plaintext MUST 通过闭合 schema `ak.schema.signal_presence.v1`
+（[`signal-presence.schema.json`](../../artifacts/schemas/signal-presence.schema.json)，
+`additionalProperties: false`）：required 字段为 `kind="ak.presence"`、`payload_sequence`、
+`actor_id`、`state` 与 `ttl_ms`，可选字段只有 `status_message` 和 `last_active_at`。
+`kind` 与 `payload_sequence` 按 [`../sync/signal.md` §1.1](../sync/signal.md) 的 plaintext
+通用最小集必填。精确 kind、actor、状态与活动时间不得出现在外层。
 
 `status_message` MUST 不超过 256 Unicode code points，NFC 规范化，且不得含除 U+0009 /
 U+000A 外的 C0/C1 control。`last_active_at` 默认省略；policy 允许时只能使用 RFC 3339 UTC
@@ -281,10 +284,12 @@ relay attestation 不能替代 sender proof。`dnd` / `idle` 等细分只在成�
 
 ### 3.5 Typing 指示器
 
-Typing 使用 [`SignalEnvelope`](../sync/signal.md)，外层 `signal_class=session`。
-`kind=ak.typing`、`strand_id`、`track_name`、`typing`、`payload_sequence` 和可选
-`ttl_ms` 全部位于 ciphertext plaintext 内；不得把目标 Strand 或精确 kind 暴露给 Sync
-Service。
+Typing 使用 [`SignalEnvelope`](../sync/signal.md)，外层 `signal_class=session`。解密后的
+plaintext MUST 通过闭合 schema `ak.schema.signal_typing.v1`
+（[`signal-typing.schema.json`](../../artifacts/schemas/signal-typing.schema.json)，
+`additionalProperties: false`）：required 字段为 `kind="ak.typing"`、`payload_sequence`、
+`strand_id` 与 `typing`，可选字段只有 `track_name` 和 `ttl_ms`。全部字段位于 ciphertext
+plaintext 内；不得把目标 Strand 或精确 kind 暴露给 Sync Service。
 
 - `track_name` present 时 MUST 为 `discussion`，省略时接收方解析为 `discussion`；
 - plaintext TTL 不得放宽外层 Signal TTL，客户端到期后自动清除指示；
