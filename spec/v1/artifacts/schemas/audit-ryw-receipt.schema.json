@@ -136,7 +136,7 @@
                 "description": "Service DID of the witness that produced this receipt."
               },
               "verification_method": {
-                "type": "string",
+                "$ref": "./common-ids.schema.json#/$defs/did_url",
                 "description": "DID URL of the key the witness used to sign (e.g. did:web:...#key-1). MUST be distinct from other witnesses' verification_method values for 'federation_witness_attested' to be valid."
               },
               "controlling_organization": {

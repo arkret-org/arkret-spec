@@ -21,8 +21,7 @@
       "$ref": "./common-ids.schema.json#/$defs/device_id"
     },
     "verification_method": {
-      "type": "string",
-      "minLength": 1,
+      "$ref": "./common-ids.schema.json#/$defs/did_url",
       "maxLength": 1024,
       "description": "MUST equal actor_id + '#' + device_id."
     },

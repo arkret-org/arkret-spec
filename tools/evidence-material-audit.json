@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 85,
+  "audited_occurrence_count": 88,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -61,6 +61,29 @@
       "disposition": "polymorphic_container",
       "material_families": ["proof", "attestation"],
       "reason": "Accepts possession, consent, shared-membership, handle-claim, and authenticated-service introduction material."
+    },
+    {
+      "file": "did-binding-contracts.schema.json",
+      "key": "evidence_dependencies",
+      "occurrences": 1,
+      "disposition": "derived_summary",
+      "reason": "Sorted dependency coordinates (witness DIDs, controlling organizations, history heads) mechanically extracted from the retained evidence receipt for selective invalidation reverse lookup; carries no proof material itself."
+    },
+    {
+      "file": "did-binding-contracts.schema.json",
+      "key": "evidence_receipt",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["proof", "commitment"],
+      "reason": "Canonical retained receipt whose JCS digest is the verified binding's evidence_digest; method_proofs rows carry the per-method resolver proof material and document_digest is the normalized-document commitment."
+    },
+    {
+      "file": "did-binding-contracts.schema.json",
+      "key": "webvh_log_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": ["attestation", "commitment"],
+      "reason": "did:webvh method proof row inside the evidence receipt: witness attestations (witness set sorted by witness_did plus the canonical witness proof set digest) and the verified log head commitment."
     },
     {
       "file": "event-envelope.schema.json",

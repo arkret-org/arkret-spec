@@ -68,9 +68,35 @@ MUST fail closed（同 `encoding.md` §10.1 对全部 MLS-exporter 派生 domain
 `scheme` 会使每次激活都变成一次 wire-breaking 变更，v1 不采用该形态。
 
 `aad_digest` 不包含自身、ciphertext 或 proof。`envelope_digest` 则覆盖移除 `proof` 后的完整
-SignalEnvelope，因此同时承诺 ciphertext 与 `aad_digest`。`verification_method` 必须在
-`seal_ref` 下解析为 `sender_actor_id` 为 `sender_device_id` 授权的 active device signing
-method；不得用 verification-method fragment 与 device id 的字符串相等代替该授权验证。
+SignalEnvelope，因此同时承诺 ciphertext 与 `aad_digest`。
+
+**两个独立状态域（normative）**：Signal 验证涉及两个互不替代的状态域，`seal_ref` 只选择
+其中第一个：
+
+1. **Realm / scope 授权域**：`seal_ref` 必须解析为 `realm_id` 的已知 Seal；sender actor 在该
+   Realm / scope basis 下的实时发送资格、`signal_class` action gate 与产品级 action（§7）都在
+   该 basis 下求值。
+2. **设备授权域**：principal 的设备授权、吊销、A 模型 cross-signing generation 与 B 模型
+   device generation fence 按**每个 verifier 当时的 current accepted device directory**
+   （[`../crypto-media/device-lifecycle.md` §5.4 / §8.2](../crypto-media/device-lifecycle.md)）
+   求值，与 `seal_ref` 无关；目标 Realm 的 Seal 不覆盖、也无法定位另一个 principal-control
+   Realm 的设备集状态。
+
+`proof.verification_method` MUST 逐字等于 `` `{sender_actor_id}#{sender_device_id}` ``；
+逐字相等只是目录 lookup key 的完整性条件，不能代替设备授权验证。verifier MUST 用
+`(sender_actor_id, sender_device_id)` 从其 current accepted principal-control /
+device-directory frontier 解析权威 verify key，并完成适用的 A 模型 cross-signing 链或
+B 模型 enrollment-authority + active-generation 校验。当前目录缺失、`device_status !=
+active`、设备已撤销、generation fenced / conflicted、信任链不完整或签名验证失败一律 fail
+closed。已观察到 device-list / generation frontier 变化后 MUST NOT 继续使用旧 positive
+cache。
+
+设备在 `seal_ref` 之后才获得授权、验证时已处于 current active 状态时，Signal **通过设备
+授权这一关**——这不是历史授权回溯，而是两个状态域的既定语义；该 envelope 仍须通过同
+Realm `seal_ref` 下的 scope / action 校验、短 TTL、AAD / MLS epoch 与 replay 校验。反之，
+同一 Signal 可能在 ingress 接受、在 receiver 到达前因设备撤销而被 receiver 丢弃；这符合无
+durable delivery guarantee 的 Signal rail，任何一跳都不得为追求各跳一致而回退到历史已撤销
+设备。
 
 `signal_class` 是服务端可见的唯一产品分类：
 
@@ -101,12 +127,27 @@ method；不得用 verification-method fragment 与 device id 的字符串相等
 sender、ingress、relay 和 receiver 都 MUST 验证：
 
 1. `scope_ref.realm_id == realm_id`；
-2. `seal_ref` 可验证，且 sender device 在该 basis 对 scope 有实时发送资格；
-3. `signal_class=moderation` 还具有对应 moderation action；
-4. E2EE profile、epoch/AAD binding、proof 与 TTL 有效。
+2. `seal_ref` 可验证，且 sender **actor** 在该 Realm / scope basis 下有实时发送资格
+   （Realm / scope 授权域）；
+3. sender **device** 的签名方法按 §1 的设备授权域规则在 verifier 的 current accepted
+   device directory 下解析并通过 A / B 模型信任链校验；
+4. `signal_class=moderation` 还具有对应 moderation action；
+5. E2EE profile、epoch/AAD binding、proof 与 TTL 有效。`expires_at` 已过期的 envelope 在
+   **任何**入口（含 local `POST /_arkret/self/signal`）MUST 被拒绝为 `invalid_param`，
+   不得接受后静默丢弃。
 
 不存在 plaintext branch。任何 MLS-backed scope 的 plaintext signal/legacy ephemeral 输入
 MUST 以 `signal_plaintext_forbidden` fail closed。
+
+conformance（`ak.vector.signal.device_authorization_domain.v1`）至少覆盖：
+
+1. 设备在 current directory 为 active、授权晚于 `seal_ref`：设备授权检查通过；
+2. 设备在 `seal_ref` 时曾 active、当前已 revoked / fenced / conflicted：拒绝；
+3. fragment 看似为 device id 但完整 `verification_method` 不逐字等于
+   `` `{sender_actor_id}#{sender_device_id}` ``：拒绝；
+4. current directory key 或 Tier-2 / service-attested 信任锚缺失：拒绝；
+5. 设备 current active 但 sender 在 Realm `seal_ref` 下无 scope 发送资格或缺
+   `signal_class` action：拒绝。
 
 Service Describe 的服务级 operation 广告仅表示 transport surface 存在，不表示每个 scope
 可用。实现只有在同时提供 scope-aware profile/limit descriptor，并能在目标 scope 验证
@@ -177,8 +218,9 @@ Signature profile。带 body 的 request MUST 携带并签名覆盖 `Content-Dig
 
 ### 4.3 Source 与 destination admission
 
-source 对每个 envelope MUST 先完成与 local `send` 相同的 schema、device proof、signed
-`scope_ref`、`seal_ref`、`signal_class`、TTL 与 MLS/AAD admission，再按当前 accepted member
+source 对每个 envelope MUST 先完成与 local `send` 相同的 schema、device proof（§1 设备
+授权域：current accepted directory）、signed `scope_ref`、`seal_ref`（Realm / scope 授权域）、
+`signal_class`、TTL 与 MLS/AAD admission，再按当前 accepted member
 delivery binding 计算 destination service 集。source 只向至少托管一个 scope 内 active member
 的 service 发一份 request；request 不携带 member、principal、device 或精确产品 target 列表。
 一个 Realm 的多个 destination 由 source 分别直发，不能串成 relay chain。
@@ -192,7 +234,9 @@ destination 在任何 local fanout 前 MUST：
 3. 验证 `Source-Service-ID` 是每个 sender actor/device 在当前 accepted member delivery
    binding 下的直接托管 service；不成立的 item 进入下述静默丢弃路径。这同时阻止
    destination 把收到的 signal 再转发第三 peer；
-4. 重新验证完整 `SignalEnvelope` schema、producer device proof、`seal_ref`、sender 在
+4. 重新验证完整 `SignalEnvelope` schema、producer device proof（每一跳都按**自己的**
+   current accepted device directory 重新执行 §1 设备授权域校验；signed `scope/basis` 只是
+   Realm 授权 basis，不得误读为设备授权 basis）、`seal_ref`、sender 在
    signed scope/basis 的资格、三值 `signal_class` action gate、TTL、epoch/AAD binding；
 5. 只按外层 `scope_ref` 计算本地 eligible devices，并执行 membership、Circle visibility、
    blocklist 与本地 rate/backpressure policy；

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 2,
+  "version": 3,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -3301,6 +3301,30 @@
         "negative_test"
       ],
       "notes": "The Realm E2EE history sharing policy is a mutable policy facet cell (ak.component.realm.history_sharing_policy.v1), never a create-locked property of the closed realm.schema.json object. Principal Control Realms do not declare it at all: the ak.profile.principal_control_realm.v1 profile fixes the effective baseline value (zh/models/realm-and-space.md §2.8.1)."
+    },
+    {
+      "id": "retention_policy",
+      "context": "realm_object_or_realm_lifecycle_payload",
+      "since_revision": "2026-07-31",
+      "rejection_level": "hard_reject",
+      "replacement": "retention_policy_id -> ak:policy: Policy object (policy_kind=retention)",
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Realm-level retention has exactly one wire carrier: Realm.retention_policy_id referencing an ak:policy: Policy object with policy_kind=retention (written via ak.policy.set). An inline retention_policy object at payload top level, on payload.object, or in a Realm patch was never a registered carrier and MUST be rejected; deployment admin-plane retention configuration is local operations tooling, not a protocol object, and never enters Event history. See zh/models/realm-and-space.md §2.3."
+    },
+    {
+      "id": "cowrite_policy",
+      "context": "realm_object_or_realm_lifecycle_payload",
+      "since_revision": "2026-07-31",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "Removed dead field (previously also spelled co_write_policy). Which cell families an Event kind writes — and which writes form an atomic unit — is fixed by the contract-registry cell_writes contracts and registered atomic units; a Realm-configurable co-write whitelist never had admission, join, or reason-code semantics and no implementation ever evaluated or produced it. If a per-Realm co-write constraint is ever genuinely needed it must return together with complete notary admission and reducer rules, not as a bare optional field."
     }
   ]
 }

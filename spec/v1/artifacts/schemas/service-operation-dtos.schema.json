@@ -1201,7 +1201,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[^\\s]+$"
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
         "type": {
           "const": "Multikey"
@@ -1228,7 +1228,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[^\\s]+$"
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
         "type": {
           "const": "ArkretService"
@@ -1295,7 +1295,7 @@
           "minItems": 1,
           "items": {
             "type": "string",
-            "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[^\\s]+$"
+            "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
           }
         },
         "assertionMethod": {
@@ -1303,7 +1303,7 @@
           "minItems": 1,
           "items": {
             "type": "string",
-            "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[^\\s]+$"
+            "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
           }
         },
         "service": {
@@ -1375,7 +1375,7 @@
         },
         "verificationMethod": {
           "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[^\\s]+$"
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
         "proofPurpose": {
           "const": "assertionMethod"

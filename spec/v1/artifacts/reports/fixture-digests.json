@@ -93,6 +93,10 @@
       "sha256": "4e07b5fec16d198194bdf1abea8a4a1d3d220ce558689acb96e4627f78c9079d"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",
+      "sha256": "ee67d9f467ee3d1c1bbcfb90b75f725bab30bf41202c4a2e5ade2e393968f1ee"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/did-webvh-v1-fixture.json",
       "sha256": "66871fe564e355e179bac1c0969c30a910fe099c70f2d24bd796e43c13a5a145"
     },
@@ -130,7 +134,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "a6ae542ce7949abb57d595a7a5a91db14a9a50c968b4d7eca41ba09c243ec82e"
+      "sha256": "fe9e24a19429cbc5310a989c1c2ac7b9a6dce22a7303bf406dd55bfb99001b34"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
@@ -194,7 +198,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
-      "sha256": "8db78ac7a0e4730ba355d6d2dcec139868e5935c4d451250607bf7bb38359972"
+      "sha256": "1f74b7b418396e0ef482fff6b56df5a74b0454010eee57113991884dc17cf270"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",

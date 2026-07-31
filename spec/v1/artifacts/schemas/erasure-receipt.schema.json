@@ -157,8 +157,7 @@
         ],
         "properties": {
           "verification_method": {
-            "type": "string",
-            "minLength": 1
+            "$ref": "./common-ids.schema.json#/$defs/did_url"
           },
           "payload_digest": {
             "$ref": "#/$defs/hash"

@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/high-risk-authority-proof.schema.json",
+  "title": "Arkret High-Risk Authority Proof Family",
+  "description": "Shared authority proof family for service operations that key-management.md designates as high-risk material destruction or equivalent (first consumer: active-series key backup tail deletion, key-management.md section 7.8). Exactly one closed branch: principal_signing, device_quorum, or trusted_recovery_service, discriminated by `kind`. Every branch reuses the common detached-JWS leaf (event-envelope.schema.json#/$defs/proof) over the operation's single canonical delete-intent transcript; branches never restate the leaf fields. An ordinary current-device session proof is deliberately NOT a branch of this family — operations that accept it for low-risk paths must say so in their own normative text. cross-signing-reset.schema.json keeps its own raw-signature proof shapes because its section 14.1 transcript embeds proof_body material inside the signed bytes; the branch taxonomy (kind names and verification obligations) is aligned with this family, the signature leaf is not, and no third hand-copied definition may be introduced.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/principal_signing_proof"
+    },
+    {
+      "$ref": "#/$defs/device_quorum_proof"
+    },
+    {
+      "$ref": "#/$defs/trusted_recovery_service_proof"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "device_id": {
+      "$ref": "./common-ids.schema.json#/$defs/device_id"
+    },
+    "detached_proof": {
+      "$ref": "./event-envelope.schema.json#/$defs/proof",
+      "description": "Common detached-JWS leaf. `payload_digest` MUST be the digest of the operation's canonical transcript (for key backup deletion: the delete-intent transcript of key-management.md section 7.8.1); `created_at` MUST fall inside the server-issued challenge window when the operation binds one."
+    },
+    "principal_signing_proof": {
+      "type": "object",
+      "description": "Principal-control-key proof. The proof's verification_method MUST be a principal-grade DID-control verification method whose controller DID is byte-identical to the transcript's principal_id, and that key MUST be a currently accepted principal control key at proof.created_at. Device keys, service keys and retired keys MUST be rejected.",
+      "required": [
+        "kind",
+        "proof"
+      ],
+      "properties": {
+        "kind": {
+          "const": "principal_signing"
+        },
+        "proof": {
+          "$ref": "#/$defs/detached_proof"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_quorum_signature": {
+      "type": "object",
+      "required": [
+        "device_id",
+        "proof"
+      ],
+      "properties": {
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "proof": {
+          "$ref": "#/$defs/detached_proof",
+          "description": "Detached-JWS leaf whose verification_method MUST resolve, at proof.created_at, to an authorized non-revoked device key of exactly this device_id under the transcript's principal_id. Every quorum member signs the same canonical transcript bytes."
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_quorum_proof": {
+      "type": "object",
+      "description": "Device-quorum proof. The schema enforces only the minimum wire shape (threshold>=2, signatures.minItems=1). Verification is normative in the consuming operation's text: (a) every signature MUST verify over the same canonical transcript; (b) signatures MUST be deduplicated by device_id; (c) the count of valid deduplicated signatures MUST be >= threshold; (d) threshold MUST equal the currently accepted recovery policy device-quorum k — a smaller issuer-supplied threshold MUST be rejected as failed_precondition. A deployment whose policy k is below 2 cannot use this branch and must use principal_signing or trusted_recovery_service instead; a single current device proof is not a high-risk quorum.",
+      "required": [
+        "kind",
+        "threshold",
+        "signatures"
+      ],
+      "properties": {
+        "kind": {
+          "const": "device_quorum"
+        },
+        "threshold": {
+          "type": "integer",
+          "minimum": 2,
+          "description": "The quorum threshold the issuer claims to satisfy. MUST equal the principal's currently accepted recovery_policy device-quorum k; receivers MUST cross-check per description rule (d)."
+        },
+        "signatures": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/device_quorum_signature"
+          },
+          "description": "minItems=1 is the schema floor only; receiver-side verification requires deduplicated valid signature count >= threshold per description rule (c)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "trusted_recovery_service_proof": {
+      "type": "object",
+      "description": "Trusted recovery service proof. The verification_method of `proof` MUST be controlled by service_id, and service_id MUST be authorized as a trusted recovery service by the recovery policy / DID delegation snapshotted into the referenced recovery session. The session MUST be unexpired, unconsumed for this purpose, and MUST have been established by principal_signing, recovery unlock or device_quorum — the service alone is never a sufficient factor.",
+      "required": [
+        "kind",
+        "service_id",
+        "recovery_session_id",
+        "proof"
+      ],
+      "properties": {
+        "kind": {
+          "const": "trusted_recovery_service"
+        },
+        "service_id": {
+          "$ref": "#/$defs/did"
+        },
+        "recovery_session_id": {
+          "type": "string",
+          "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Verified, unexpired, unconsumed recovery session authenticated by principal_signing, recovery unlock or device_quorum. A service-only session is not a second factor."
+        },
+        "attestation_ref": {
+          "type": "string",
+          "pattern": "^ak:attestation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Optional attestation object for service_id. If present, receivers MUST resolve it in the same trust_domain as the operation and reject cross-domain attestations."
+        },
+        "proof": {
+          "$ref": "#/$defs/detached_proof"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

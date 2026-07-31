@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-07-18",
+  "version": "2026-07-31",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -1148,10 +1148,20 @@
       ]
     },
     {
+      "operation_id": "ak.self.keys.backups.command.issue_delete_challenge",
+      "http_alias": "POST /_arkret/self/keys/backups/{backup_id}/delete-challenge",
+      "operation_specific": [
+        "not_found"
+      ]
+    },
+    {
       "operation_id": "ak.self.keys.backups.resource.delete",
       "http_alias": "DELETE /_arkret/self/keys/backups/{backup_id}",
       "operation_specific": [
-        "not_found"
+        "not_found",
+        "failed_precondition",
+        "challenge_expired",
+        "duplicate_conflict"
       ]
     },
     {

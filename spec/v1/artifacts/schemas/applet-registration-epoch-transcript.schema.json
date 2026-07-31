@@ -45,11 +45,11 @@
   "$defs": {
     "did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:.+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "did_url": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:.+#[^#]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
     },
     "hash": {
       "type": "string",

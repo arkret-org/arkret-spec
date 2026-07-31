@@ -1,0 +1,129 @@
+{
+  "runner": {
+    "kind": "known_answer_tests",
+    "entrypoint": "ak.suite.identity.did_binding_digests.v1"
+  },
+  "suite": "did_binding_digests",
+  "version": "2026-07-31",
+  "covers_vectors": [
+    "ak.vector.did_binding.document_digest_kat.v1",
+    "ak.vector.did_binding.evidence_receipt_kat.v1",
+    "ak.vector.did_binding.policy_snapshot_kat.v1"
+  ],
+  "description": "Known-answer tests for the identity/did-usage-and-verification.md section 5 binding digests: document_digest over the normalized DID Document projection, evidence_digest over the canonical evidence receipt (did-binding-contracts.schema.json#/$defs/evidence_receipt), and policy_digest over the canonical resolver policy snapshot (#/$defs/resolver_policy_snapshot). All digests are sha256:lowercase_hex(SHA-256(RFC8785_JCS(object))). Every case is trust-domain-local: recomputability and change-sensitivity are asserted, cross-deployment equality is not.",
+  "cases": [
+    {
+      "name": "document_digest_normalized_projection",
+      "vector_id": "ak.vector.did_binding.document_digest_kat.v1",
+      "input": {
+        "normalized_document": {
+          "id": "did:web:alice.example",
+          "verificationMethod": [
+            {
+              "id": "did:web:alice.example#key-1",
+              "type": "Multikey",
+              "controller": "did:web:alice.example",
+              "publicKeyMultibase": "z6MkfixtureAlicePublicKey1111111111111111111"
+            }
+          ],
+          "assertionMethod": [
+            "did:web:alice.example#key-1"
+          ],
+          "authentication": [
+            "did:web:alice.example#key-1"
+          ]
+        }
+      },
+      "expected": {
+        "jcs_utf8": "{\"assertionMethod\":[\"did:web:alice.example#key-1\"],\"authentication\":[\"did:web:alice.example#key-1\"],\"id\":\"did:web:alice.example\",\"verificationMethod\":[{\"controller\":\"did:web:alice.example\",\"id\":\"did:web:alice.example#key-1\",\"publicKeyMultibase\":\"z6MkfixtureAlicePublicKey1111111111111111111\",\"type\":\"Multikey\"}]}",
+        "document_digest": "sha256:e4a3730d9803d558ae8badcaa80cf1ab1e63412e9dc33b30d8152793fab43c9e"
+      },
+      "assertions": [
+        "re-serializing the same document with any other raw JSON property order MUST produce the same digest",
+        "changing verificationMethod[0].controller to did:web:mallory.example MUST change the digest to sha256:b420fff5994914129b4593a13f9c331d27f4cc0843a616b75a9bac7bfe9b3cb7",
+        "a raw resolver response digest MUST NOT be carried in document_digest; raw bytes use raw_document_digest"
+      ]
+    },
+    {
+      "name": "evidence_receipt_proofless_method",
+      "vector_id": "ak.vector.did_binding.evidence_receipt_kat.v1",
+      "input": {
+        "evidence_receipt": {
+          "kind": "ak.did.binding_evidence.v1",
+          "method": "web",
+          "document_digest": "sha256:e4a3730d9803d558ae8badcaa80cf1ab1e63412e9dc33b30d8152793fab43c9e",
+          "method_proofs": []
+        }
+      },
+      "expected": {
+        "evidence_digest": "sha256:d56326337f12f9526faf0dc23e7e2438e8932aca73c2f0309fba8648dbc7dc91"
+      },
+      "assertions": [
+        "a proofless method degrades to an empty method_proofs array, never to an implementation-invented placeholder object",
+        "the receipt MUST be retained so the digest is recomputable by an auditor"
+      ]
+    },
+    {
+      "name": "evidence_receipt_webvh_log",
+      "vector_id": "ak.vector.did_binding.evidence_receipt_kat.v1",
+      "input": {
+        "evidence_receipt": {
+          "kind": "ak.did.binding_evidence.v1",
+          "method": "webvh",
+          "document_digest": "sha256:d2c46d4b11aaae4500a13bf3d606ef3c4402cb77af32702c844bacce10b3d0ae",
+          "method_proofs": [
+            {
+              "kind": "webvh_log",
+              "history_head": "1-QmZfixtureEntryHash11111111111111111111111",
+              "witnesses": [
+                {
+                  "witness_did": "did:web:witness-a.example",
+                  "controlling_organization": "did:web:witness-org-a.example"
+                },
+                {
+                  "witness_did": "did:web:witness-b.example",
+                  "controlling_organization": "did:web:witness-org-b.example"
+                }
+              ],
+              "witness_proofs_digest": "sha256:16464f3b1cc438f0a3640cf498358f787adebc965cabfaab512c3b01e5d6448d"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "evidence_digest": "sha256:5cc077563fdc83d3331ad2ecdc8f0d619937745c1c398e586818041ddebc480e"
+      },
+      "assertions": [
+        "witnesses MUST be sorted by witness_did in UTF-8 byte order and duplicates rejected; resolver response order is not a canonical order",
+        "changing any witness row or the witness_proofs_digest MUST change evidence_digest",
+        "the extracted evidence_dependencies record for this receipt is {witness_dids:[did:web:witness-a.example, did:web:witness-b.example], witness_controlling_organizations:[did:web:witness-org-a.example, did:web:witness-org-b.example], history_heads:[1-QmZfixtureEntryHash11111111111111111111111]}"
+      ]
+    },
+    {
+      "name": "policy_snapshot_base_profile",
+      "vector_id": "ak.vector.did_binding.policy_snapshot_kat.v1",
+      "input": {
+        "policy_snapshot": {
+          "kind": "ak.did.resolver_policy.v1",
+          "policy_profile": "ak.did_resolver_policy_profile.base.v1",
+          "accepted_did_methods": [
+            "did:key:",
+            "did:web:",
+            "did:webvh:"
+          ],
+          "fail_mode": "fail_closed",
+          "trust_roots": [],
+          "profile_policy": {}
+        }
+      },
+      "expected": {
+        "policy_digest": "sha256:baa89dd4c408e6ef4dd9e803082396d5d104e97315ea385fd46cc6e6eb9a71e8"
+      },
+      "assertions": [
+        "flipping fail_mode to allow_cached_on_error MUST change the digest to sha256:a0538d5c6aa75fabf0492476e68d3a97bf35ff050ee8df601f3f62cf98b8b595",
+        "enum values MUST use the registered wire tokens; a language-native debug rendering such as FailClosed MUST be rejected before digesting",
+        "an unknown policy_profile, an unknown profile_policy field, or a missing registered field MUST fail closed instead of digesting"
+      ]
+    }
+  ]
+}

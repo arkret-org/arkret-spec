@@ -659,19 +659,6 @@
       },
       "uniqueItems": true
     },
-    "cowrite_policy": {
-      "type": "array",
-      "description": "Optional whitelist constraining which cell families may be written by the same Move.",
-      "items": {
-        "type": "array",
-        "items": {
-          "type": "string",
-          "pattern": "^ak\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
-        },
-        "minItems": 1,
-        "uniqueItems": true
-      }
-    },
     "retention_policy_id": {
       "type": "string",
       "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -1046,7 +1033,7 @@
           "description": "Principal holding the RRK private key. SHOULD resolve to an Organization Principal for org_recovery_key/threshold; MAY be a personal principal for personal Realms."
         },
         "verification_method": {
-          "type": "string",
+          "$ref": "./common-ids.schema.json#/$defs/did_url",
           "description": "Reference to a verification method in principal_id's DID Document designated by an active ArkretRealmHistoryRecoveryKey service entry (identity/identity-did.md §8.3). The RRK HPKE public key; history-recovery domain, separate from did_recovery."
         },
         "controller_organization": {

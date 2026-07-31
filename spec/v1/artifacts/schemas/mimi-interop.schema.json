@@ -3,7 +3,7 @@
   "$id": "https://arkret.org/v1/schemas/mimi-interop.schema.json",
   "title": "Arkret MIMI Interoperability",
   "description": "Provider directory, room binding, and content mapping receipt objects for ak.profile.mimi_interop.v1.",
-  "$comment": "Intentionally relaxed interop-extension surface: this profile tracks evolving IETF MIMI Internet-Drafts (see zh/extensions/mimi-interop.md §1), so additionalProperties is left open at the top level and on the mimi/binding_scope/payload subtrees to forward-carry draft fields without a breaking schema bump. Known fields are pinned; unknown draft fields are tolerated rather than rejected. The proof object below gives a minimal required core so the openness is limited to known extension subtrees and does not mask a missing signature. Unknown fields anywhere on this surface are security-inert (see zh/extensions/mimi-interop.md §9.2): receivers MUST ignore them for all security decisions and MUST NOT let them affect authorization, identity binding, policy_root, MLS epoch/group state, routing, or any signature/digest transcript.",
+  "$comment": "Intentionally relaxed interop-extension surface: this profile tracks evolving IETF MIMI Internet-Drafts (see zh/extensions/mimi-interop.md §1), so additionalProperties is left open at the top level and on the mimi/binding_scope/payload subtrees to forward-carry draft fields without a breaking schema bump. Known fields are pinned; unknown draft fields are tolerated rather than rejected. The provider_directory security core (schema, service_id, proof) and the complete capability declaration are required, and proof is the shared closed detached-JWS shape, so the openness is limited to extension subtrees and cannot mask a missing or unverifiable signature. Unknown fields anywhere on this surface are security-inert (see zh/extensions/mimi-interop.md §9.2): receivers MUST ignore them for all security decisions and MUST NOT let them affect authorization, identity binding, policy_root, MLS epoch/group state, routing, or any signature/digest transcript.",
   "anyOf": [
     {
       "$ref": "#/$defs/provider_directory"
@@ -33,10 +33,14 @@
     },
     "provider_directory": {
       "type": "object",
+      "$comment": "The Arkret facade's outbound self-declaration (service_kind is a single-role const). The security core (schema discriminator, service_id, proof) and the complete capability declaration are all required so the signed unsigned projection (extensions/mimi-interop.md section 3.1) covers everything a consumer routes or negotiates on. Top-level and mimi-subtree extension openness is retained for draft evolution, but unknown fields MUST NOT change endpoint derivation, capability negotiation, authorization, routing or signature verification, and never enter the v1 transcript.",
       "required": [
+        "schema",
+        "service_id",
         "service_kind",
         "supported_profiles",
-        "mimi"
+        "mimi",
+        "proof"
       ],
       "properties": {
         "schema": {
@@ -53,18 +57,27 @@
           "items": {
             "type": "string"
           },
+          "minItems": 1,
+          "uniqueItems": true,
           "contains": {
             "const": "ak.profile.mimi_interop.v1"
-          }
+          },
+          "description": "Sorted unique by UTF-8 byte order; the sorted array is what enters the signed projection."
         },
         "mimi": {
           "type": "object",
           "required": [
             "protocol_draft",
             "content_draft",
+            "room_policy_draft",
+            "identifier_draft",
             "base_url",
             "provider_id",
-            "features"
+            "endpoints",
+            "features",
+            "mls_cipher_suites",
+            "content_profiles",
+            "room_policy_components"
           ],
           "properties": {
             "protocol_draft": {
@@ -86,8 +99,18 @@
             "provider_id": {
               "$ref": "#/$defs/mimi_uri"
             },
+            "endpoints": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/provider_directory_endpoint"
+              },
+              "description": "Sorted by endpoint_id; endpoint_id unique across rows. Effective URLs derive only via a standard URL parser under the verified HTTPS base_url with same-origin re-check and the section 3 SSRF policy (extensions/mimi-interop.md section 3.1)."
+            },
             "features": {
               "type": "array",
+              "minItems": 1,
               "items": {
                 "type": "string",
                 "enum": [
@@ -106,6 +129,7 @@
             },
             "mls_cipher_suites": {
               "type": "array",
+              "minItems": 1,
               "items": {
                 "type": "string",
                 "enum": [
@@ -117,6 +141,7 @@
             },
             "content_profiles": {
               "type": "array",
+              "minItems": 1,
               "items": {
                 "type": "string",
                 "enum": [
@@ -130,6 +155,7 @@
             },
             "room_policy_components": {
               "type": "array",
+              "minItems": 1,
               "items": {
                 "type": "string"
               },
@@ -139,23 +165,41 @@
           "additionalProperties": true
         },
         "proof": {
-          "type": "object",
-          "required": [
-            "verification_method",
-            "signature"
-          ],
-          "properties": {
-            "verification_method": {
-              "type": "string"
-            },
-            "signature": {
-              "type": "string"
-            }
-          },
-          "additionalProperties": true
+          "$ref": "./event-envelope.schema.json#/$defs/proof",
+          "description": "Detached JWS by a verification method controlled by service_id over the canonical unsigned projection (extensions/mimi-interop.md section 3.1). payload_digest is the projection digest; the proof object itself never enters the projection. A digest or dev placeholder is not a signature."
         }
       },
       "additionalProperties": true
+    },
+    "provider_directory_endpoint": {
+      "type": "object",
+      "required": [
+        "endpoint_id",
+        "relative_path"
+      ],
+      "properties": {
+        "endpoint_id": {
+          "type": "string",
+          "enum": [
+            "key_material",
+            "room_update",
+            "notify",
+            "submit_message",
+            "group_info",
+            "consent",
+            "identifier_query",
+            "report_abuse",
+            "proxy_download"
+          ],
+          "description": "The feature this endpoint serves; the id set is the same closed feature enum, and each endpoint_id appears at most once."
+        },
+        "relative_path": {
+          "type": "string",
+          "pattern": "^/[^\\s?#\\\\]*$",
+          "description": "Normalized relative path: begins with '/', no scheme, authority, query, fragment, whitespace or backslash. Receivers MUST additionally reject '.' / '..' dot segments and percent-encoded '/', '\\', '.' or '..' after decoding (extensions/mimi-interop.md section 3.1)."
+        }
+      },
+      "additionalProperties": false
     },
     "room_binding": {
       "type": "object",

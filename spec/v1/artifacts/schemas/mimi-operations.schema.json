@@ -138,7 +138,8 @@
           "const": "detached_jws"
         },
         "verification_method": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "./common-ids.schema.json#/$defs/did_url",
+          "description": "DID URL of a verification method authorized by the issuer's current DID Document (extensions/mimi-interop.md section 5.1)."
         },
         "alg": {
           "const": "EdDSA"

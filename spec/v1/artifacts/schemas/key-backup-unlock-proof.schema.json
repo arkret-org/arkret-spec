@@ -120,7 +120,7 @@
     },
     "did_url": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#]+#[A-Za-z0-9._:-]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

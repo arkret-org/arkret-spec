@@ -94,8 +94,8 @@
     },
     "did_url": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#]+#[A-Za-z0-9._:-]+$",
-      "description": "DID URL with required key fragment. Fragment characters constrained to RFC 3986 unreserved + `:` for stable key ids. DID method-name normalized to lowercase per W3C DID 1.0."
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+      "description": "DID URL with required key fragment. Fragment characters constrained to the ASCII set `[A-Za-z0-9._:-]` (a strict subset of RFC 3986 unreserved, excluding `~`, plus `:`) for stable byte-comparable key ids; see the Arkret verification-method DID URL profile in identity/did-usage-and-verification.md section 2.2. DID method-name normalized to lowercase per W3C DID 1.0."
     },
     "signature_b64u": {
       "type": "string",

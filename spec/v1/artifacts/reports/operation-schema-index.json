@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-31.14",
+  "version": "2026-07-31.15",
   "source_of_truth": false,
-  "generated_at": "2026-07-31T16:00:00Z",
+  "generated_at": "2026-07-31T18:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -4719,15 +4719,65 @@
       }
     },
     {
+      "operation_id": "ak.self.keys.backups.command.issue_delete_challenge",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_issue_delete_challenge_request_body",
+        "schema_kind": "object",
+        "required": [
+          "request_id"
+        ],
+        "properties": [
+          "request_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_challenge",
+        "schema_kind": "object",
+        "required": [
+          "challenge_id",
+          "challenge",
+          "nonce",
+          "operation",
+          "principal_id",
+          "backup_id",
+          "audience",
+          "service_id",
+          "request_id",
+          "issued_at",
+          "expires_at"
+        ],
+        "properties": [
+          "challenge_id",
+          "challenge",
+          "nonce",
+          "operation",
+          "principal_id",
+          "backup_id",
+          "audience",
+          "service_id",
+          "request_id",
+          "issued_at",
+          "expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.self.keys.backups.resource.delete",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body",
         "schema_kind": "object",
         "required": [
+          "request_id",
+          "challenge_id",
           "proof"
         ],
         "properties": [
+          "request_id",
+          "challenge_id",
           "proof",
           "reason"
         ],

@@ -139,6 +139,7 @@ DEVICE_ID_PATTERN = r"^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9
 DID_LEGACY_PREFIX_PATTERN = r"^did:"
 DID_LEGACY_GREEDY_PATTERN = r"^did:[a-z0-9]+:[^\s]+$"
 DID_BARE_PATTERN = r"^did:[a-z0-9]+:[^\s#?]+$"
+DID_URL_PROFILE_PATTERN = r"^did:[a-z0-9]+:[^\s#?]+#[A-Za-z0-9._:-]+$"
 GENERIC_OPERATION_REQUEST_REF = "#/components/schemas/OperationRequest"
 GENERIC_OPERATION_RESULT_REF = "#/components/schemas/OperationResult"
 
@@ -5900,17 +5901,81 @@ def check_did_and_device_constraints(lint: Lint) -> None:
     """Reject ambiguous DID/DID URL and device_id constraints in machine artifacts."""
     openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
 
-    for path in sorted((ARTIFACTS / "schemas").glob("*.schema.json")):
+    schema_paths = sorted((ARTIFACTS / "schemas").glob("*.schema.json"))
+    schema_docs: dict[str, Any] = {}
+    for path in schema_paths:
         data = load_json(lint, path)
+        if isinstance(data, dict):
+            schema_docs[path.name] = data
+
+    def resolve_terminal(owner_name: str, node: Any) -> Any:
+        """Follow $ref chains (local and sibling-file) to the terminal constraint node."""
+        seen: set[tuple[str, str]] = set()
+        while isinstance(node, dict) and isinstance(node.get("$ref"), str):
+            ref = node["$ref"]
+            file_part, _, fragment = ref.partition("#")
+            if file_part in ("", "."):
+                target_name = owner_name
+            else:
+                target_name = file_part.removeprefix("./")
+                if "/" in target_name:
+                    return None
+            key = (target_name, fragment)
+            if key in seen:
+                return None
+            seen.add(key)
+            target_doc = schema_docs.get(target_name)
+            if target_doc is None:
+                return None
+            try:
+                node = resolve_json_pointer(target_doc, f"#{fragment}" if fragment else "#")
+            except KeyError:
+                return None
+            owner_name = target_name
+        return node
+
+    for path in schema_paths:
+        data = schema_docs.get(path.name)
         if not isinstance(data, dict):
             continue
+        defs = data.get("$defs", {})
+        if isinstance(defs, dict):
+            local_did_url = defs.get("did_url")
+            if (
+                isinstance(local_did_url, dict)
+                and "pattern" in local_did_url
+                and local_did_url["pattern"] != DID_URL_PROFILE_PATTERN
+            ):
+                lint.fail(
+                    path,
+                    "$defs.did_url must equal the Arkret verification-method DID URL profile "
+                    "(common-ids.schema.json#/$defs/did_url)",
+                )
+            local_did = defs.get("did")
+            if isinstance(local_did, dict) and "pattern" in local_did and local_did["pattern"] != DID_BARE_PATTERN:
+                lint.fail(path, "$defs.did must equal the canonical bare DID pattern (common-ids.schema.json#/$defs/did)")
         for json_path, value, key in walk_json(data):
             if key == "pattern" and value == DID_LEGACY_GREEDY_PATTERN:
                 lint.fail(path, f"{json_path} uses legacy greedy DID pattern; use bare DID or DID URL pattern")
             if key == "properties" and isinstance(value, dict):
-                vm_schema = value.get("verification_method")
-                if isinstance(vm_schema, dict) and vm_schema.get("pattern") in {DID_LEGACY_GREEDY_PATTERN, DID_BARE_PATTERN}:
-                    lint.fail(path, f"{json_path}.verification_method must use a DID URL pattern with a key fragment")
+                for vm_key in ("verification_method", "verificationMethod"):
+                    vm_schema = value.get(vm_key)
+                    if not isinstance(vm_schema, dict):
+                        continue
+                    terminal = resolve_terminal(path.name, vm_schema)
+                    if not isinstance(terminal, dict):
+                        continue
+                    if terminal.get("type") == "array":
+                        # DID Document verification-method object arrays are covered by
+                        # their item schemas, not by the DID URL profile.
+                        continue
+                    if terminal.get("pattern") != DID_URL_PROFILE_PATTERN:
+                        lint.fail(
+                            path,
+                            f"{json_path}.{vm_key} must resolve to the Arkret verification-method DID URL "
+                            "profile (common-ids.schema.json#/$defs/did_url); see "
+                            "identity/did-usage-and-verification.md section 2.2.1",
+                        )
 
     openapi = load_yaml(lint, openapi_path)
     if not isinstance(openapi, dict):

@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-31.14",
+  "version": "2026-07-31.15",
   "source_of_truth": false,
-  "generated_at": "2026-07-31T16:00:00Z",
+  "generated_at": "2026-07-31T18:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -305,6 +305,7 @@
         "ak.self.keys.backups.resource.replace",
         "ak.self.keys.backups.query.list",
         "ak.self.keys.backups.command.unlock",
+        "ak.self.keys.backups.command.issue_delete_challenge",
         "ak.self.keys.backups.resource.delete",
         "ak.self.keys.backup_series.command.erase"
       ],
@@ -2549,13 +2550,33 @@
       }
     },
     {
+      "operation_id": "ak.self.keys.backups.command.issue_delete_challenge",
+      "http": "POST /_arkret/self/keys/backups/{backup_id}/delete-challenge",
+      "grpc": "SelfKeys/BackupsIssueDeleteChallenge",
+      "mq": "self.keys.backups.command.issue_delete_challenge",
+      "notes": "Issues the durable, single-use, short-TTL (<=300s) challenge that every high-risk backup delete proof must sign over. While a challenge for the same (principal_id, backup_id, request_id) is still valid the service returns the same challenge; a different request_id mints a new one. See key-management.md section 7.8.1.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "/request_id",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_issue_delete_challenge_request_body",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_challenge",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+      }
+    },
+    {
       "operation_id": "ak.self.keys.backups.resource.delete",
       "http": "DELETE /_arkret/self/keys/backups/{backup_id}",
       "grpc": "SelfKeys/BackupsDelete",
       "mq": "self.keys.backups.resource.delete",
+      "notes": "High-risk delete guarded by a server-issued single-use challenge and the shared high-risk authority proof family (key-management.md section 7.8/7.8.1). The challenge is consumed atomically with the first successful delete; a byte-identical retry returns the stored terminal outcome, and the same request_id with a different canonical digest is a duplicate conflict.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "idempotency_mechanism": "object_id",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "/request_id",
       "retry_safe": true,
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome",

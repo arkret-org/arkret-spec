@@ -20,7 +20,7 @@
         "verification_method": {
           "type": "string",
           "format": "uri",
-          "pattern": "^did:[^#?]+#[^#?]+$"
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
         "authorization_event_id": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref"
@@ -70,7 +70,7 @@
         "verification_method": {
           "type": "string",
           "format": "uri",
-          "pattern": "^did:[^#?]+#[^#?]+$"
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
         "agent_key_authorize_event_id": {
           "$ref": "./event-envelope.schema.json#/$defs/event_ref"

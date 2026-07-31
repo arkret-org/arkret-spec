@@ -517,7 +517,8 @@
       ],
       "properties": {
         "verification_method": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "./common-ids.schema.json#/$defs/did_url",
+          "description": "DID URL of the requesting participant's signing key; ownership, freshness, and exact request binding are normative in device-lifecycle.md section 9.2."
         },
         "requester_device_id": {
           "$ref": "#/$defs/device_id"

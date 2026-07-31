@@ -1,0 +1,317 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/did-binding-contracts.schema.json",
+  "title": "Arkret Verified DID Binding Contracts",
+  "description": "Canonical shapes behind identity/did-usage-and-verification.md section 5: the retained evidence receipt whose digest is the binding's evidence_digest, the resolver policy snapshot whose digest is the binding's policy_digest, the mechanically extracted evidence dependency record used for selective invalidation, the limited-trust pin record, and the freshness profile row every authority call site references. These objects are trust-domain-local: the contracts guarantee recomputability and change-sensitivity, not cross-deployment digest equality.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/evidence_receipt"
+    },
+    {
+      "$ref": "#/$defs/resolver_policy_snapshot"
+    },
+    {
+      "$ref": "#/$defs/evidence_dependencies"
+    },
+    {
+      "$ref": "#/$defs/limited_trust"
+    },
+    {
+      "$ref": "#/$defs/freshness_profile"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Typed lowercase-hex SHA-256 digest."
+    },
+    "method_token": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+$",
+      "description": "Canonical lowercase DID method token (W3C DID 1.0 method-name), e.g. key, web, webvh."
+    },
+    "evidence_receipt": {
+      "type": "object",
+      "description": "Canonical evidence receipt. evidence_digest = \"sha256:\" + lowercase_hex(SHA-256(RFC8785_JCS(evidence_receipt))). The receipt MUST be retained so an auditor can recompute the digest; a method without proofs degrades to an empty method_proofs array (a document-bound receipt), never to an implementation-invented placeholder. Unknown method or proof kinds fail closed.",
+      "required": [
+        "kind",
+        "method",
+        "document_digest",
+        "method_proofs"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ak.did.binding_evidence.v1"
+        },
+        "method": {
+          "$ref": "#/$defs/method_token"
+        },
+        "document_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Digest of the resolver's verified normalized DID Document projection (did-usage-and-verification.md section 5.1); never the raw response bytes (those use the differently named raw_document_digest)."
+        },
+        "method_proofs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/webvh_log_evidence"
+          },
+          "description": "Closed per-method proof rows; empty for proofless methods (did:key, bare did:web). v1 registers exactly one row kind (webvh_log); receiving any unregistered proof kind fails closed. Rows never reuse resolver response order: each row kind registers its own canonical sort and duplicate-rejection rules."
+        }
+      },
+      "additionalProperties": false
+    },
+    "webvh_log_evidence": {
+      "type": "object",
+      "description": "did:webvh method evidence row. witnesses are sorted by witness_did (UTF-8 byte order) with duplicates rejected; witness_proofs_digest commits to the canonical raw witness proof set so the receipt stays change-sensitive to any witness signature change.",
+      "required": [
+        "kind",
+        "history_head",
+        "witnesses",
+        "witness_proofs_digest"
+      ],
+      "properties": {
+        "kind": {
+          "const": "webvh_log"
+        },
+        "history_head": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The verified webvh log head (versionId / entry-hash form) this binding pinned."
+        },
+        "witnesses": {
+          "type": "array",
+          "minItems": 0,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "required": [
+              "witness_did",
+              "controlling_organization"
+            ],
+            "properties": {
+              "witness_did": {
+                "$ref": "#/$defs/did"
+              },
+              "controlling_organization": {
+                "$ref": "#/$defs/did"
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": "Sorted by witness_did, UTF-8 byte order; duplicates rejected. These rows double as the evidence dependency coordinates for selective invalidation."
+        },
+        "witness_proofs_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "resolver_policy_snapshot": {
+      "type": "object",
+      "description": "Canonical resolver policy snapshot. policy_digest = \"sha256:\" + lowercase_hex(SHA-256(RFC8785_JCS(policy_snapshot))). The snapshot MUST be retainable and rebuildable so auditors can recompute the digest and verify that any security-relevant configuration change necessarily changes it. Enum values MUST use the registered wire tokens below; language-native debug formats are forbidden. accepted_did_methods and trust_roots are sorted by UTF-8 byte order with duplicates rejected; strings receive no Unicode normalization.",
+      "required": [
+        "kind",
+        "policy_profile",
+        "accepted_did_methods",
+        "fail_mode",
+        "trust_roots",
+        "profile_policy"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ak.did.resolver_policy.v1"
+        },
+        "policy_profile": {
+          "type": "string",
+          "pattern": "^ak\\.did_resolver_policy_profile\\.[a-z0-9_]+\\.v[0-9]+$",
+          "description": "Registered resolver policy profile id; the schema discriminator for profile_policy. v1 registers ak.did_resolver_policy_profile.base.v1 (empty closed profile_policy). A deployment introducing extra policy dimensions MUST register its own profile with an additionalProperties:false schema listing every configuration field that changes resolution, verification, network boundaries, size limits or degradation behavior as required. Unknown profiles, unknown fields, and missing registered fields all fail closed."
+        },
+        "accepted_did_methods": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^did:[a-z0-9]+:$"
+          },
+          "description": "Normalized did:<method>: prefixes, sorted, deduplicated."
+        },
+        "fail_mode": {
+          "type": "string",
+          "enum": [
+            "fail_closed",
+            "allow_cached_on_error"
+          ]
+        },
+        "trust_roots": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Sorted, deduplicated; may be empty."
+        },
+        "profile_policy": {
+          "type": "object",
+          "description": "Profile-specific dimensions validated by the closed schema the policy_profile registers; the base profile requires exactly the empty object. Any change here changes the digest, so section 5 invalidation obligations are preserved for deployment-specific knobs."
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "policy_profile": {
+                "const": "ak.did_resolver_policy_profile.base.v1"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "profile_policy": {
+                "const": {}
+              }
+            }
+          }
+        }
+      ]
+    },
+    "evidence_dependencies": {
+      "type": "object",
+      "description": "Structured dependency record mechanically extracted from the evidence receipt (did-usage-and-verification.md section 5.6). It answers 'which bindings depend on witness X / log head H' — a mapping a digest cannot provide because digests are one-way. Proofless methods produce the empty record.",
+      "required": [
+        "witness_dids",
+        "witness_controlling_organizations",
+        "history_heads"
+      ],
+      "properties": {
+        "witness_dids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "description": "Sorted, deduplicated; empty for proofless methods."
+        },
+        "witness_controlling_organizations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "description": "Sorted, deduplicated; empty for proofless methods."
+        },
+        "history_heads": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Sorted, deduplicated; empty for proofless methods."
+        }
+      },
+      "additionalProperties": false
+    },
+    "limited_trust": {
+      "type": "object",
+      "description": "Per-pin limited-trust record (did-usage-and-verification.md section 5.5). Omitted entirely when both pins are present; when present, each state MUST be consistent with the actual presence of the corresponding pin field. method_unsupported is a legitimate terminal state (did:key has no history); not_surfaced marks a resolver that failed to surface evidence its method supports and is treated as a failure state, not a normal audit note.",
+      "required": [
+        "history_head",
+        "version_id"
+      ],
+      "properties": {
+        "history_head": {
+          "type": "string",
+          "enum": [
+            "pinned",
+            "method_unsupported",
+            "not_surfaced"
+          ]
+        },
+        "version_id": {
+          "type": "string",
+          "enum": [
+            "pinned",
+            "method_unsupported",
+            "not_surfaced"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "freshness_profile": {
+      "type": "object",
+      "description": "One registered freshness profile row (did-usage-and-verification.md section 5.4). Every DID authority call site references exactly one freshness_profile_id through its operation/action registration; natural-language tier guessing is forbidden. Deployments declare their rows in machine-readable form and the declared snapshot enters profile_policy of the resolver policy snapshot, so changing any number structurally invalidates existing bindings. Tier constraints (finite windows, ordering, stale behavior) are normative in section 5.4.",
+      "required": [
+        "freshness_profile_id",
+        "risk_tier",
+        "did_method_selector",
+        "fresh_for_seconds",
+        "stale_grace_seconds",
+        "hard_expiry_seconds",
+        "stale_behavior"
+      ],
+      "properties": {
+        "freshness_profile_id": {
+          "type": "string",
+          "pattern": "^ak\\.did_freshness\\.[a-z0-9_]+\\.v[0-9]+$"
+        },
+        "risk_tier": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "did_method_selector": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^(\\*|did:[a-z0-9]+:)$"
+          },
+          "description": "did:<method>: prefixes this row applies to, or the single wildcard \"*\"."
+        },
+        "fresh_for_seconds": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "description": "The single freshness threshold: refresh_after = verified_at + fresh_for_seconds, and the authority call's max_age MUST equal the same value — two separately maintained constants are forbidden."
+        },
+        "stale_grace_seconds": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "hard_expiry_seconds": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "stale_behavior": {
+          "type": "string",
+          "enum": [
+            "accepted_without_network",
+            "accepted_and_background_refresh",
+            "synchronous_refresh_or_fail_closed"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

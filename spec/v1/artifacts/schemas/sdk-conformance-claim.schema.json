@@ -79,7 +79,7 @@
       "required": ["id", "verification_method"],
       "properties": {
         "id": { "$ref": "./common-ids.schema.json#/$defs/did" },
-        "verification_method": { "type": "string", "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[^\\s]+$", "maxLength": 2048 }
+        "verification_method": { "type": "string", "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$", "maxLength": 2048 }
       }
     },
     "proof": {
@@ -87,7 +87,7 @@
       "additionalProperties": false,
       "required": ["kid", "alg", "signature"],
       "properties": {
-        "kid": { "type": "string", "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[^\\s]+$", "maxLength": 2048 },
+        "kid": { "type": "string", "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$", "maxLength": 2048 },
         "alg": { "enum": ["EdDSA", "ES256", "ML-DSA-65"] },
         "signature": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$", "minLength": 43, "maxLength": 8192 }
       }

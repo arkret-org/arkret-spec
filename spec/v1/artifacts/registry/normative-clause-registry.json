@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-31.1",
+  "version": "2026-07-31.2",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -269,7 +269,7 @@
       "status": "active",
       "category": "reducer",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#9-lattice-与冲突语义",
-      "section_digest": "sha256:a67cd2ec50566ceabcebd3aad7531609d17d1b81d554d594bcf79b579736e079",
+      "section_digest": "sha256:7d773b72fed92dd806d4dcdc14d964102e869a92d4797ada1137dd4acad3e3a9",
       "requirement": "Lattice joins are idempotent, commutative and associative per family; data-plane conflicts return structured bottom instead of electing a winner by arrival order or HLC.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -277,6 +277,7 @@
         "ak.vector.lattice.counter_join.v1",
         "ak.vector.lattice.ordered_log_join.v1",
         "ak.vector.lattice.fsm_join.v1",
+        "ak.vector.lattice.cas_register_supersession.v1",
         "ak.vector.lattice.ordered_log_gap.v1",
         "ak.vector.cba_lattice.data_plane_conflict_returns_bottom_without_winner.v1",
         "ak.vector.cba_lattice.cas_mixed_basis.v1"

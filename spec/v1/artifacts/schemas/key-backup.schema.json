@@ -657,7 +657,7 @@
           "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "verification_method": {
-          "type": "string",
+          "$ref": "./common-ids.schema.json#/$defs/did_url",
           "description": "DID URL identifying the device signing key."
         },
         "signature_algorithm": {

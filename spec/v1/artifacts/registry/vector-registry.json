@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-31.8",
+  "version": "2026-07-31.9",
   "source_of_truth": true,
-  "generated_at": "2026-07-31T07:00:00Z",
+  "generated_at": "2026-07-31T18:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1579,6 +1579,45 @@
       ]
     },
     {
+      "vector_id": "ak.vector.did_binding.document_digest_kat.v1",
+      "status": "active",
+      "domain": "did_binding",
+      "applies_to_fixtures": [
+        "did-binding-digest-fixture.json"
+      ],
+      "description": "document_digest is sha256:lowercase_hex(SHA-256(RFC8785_JCS(normalized DID Document projection))): any raw JSON property reordering keeps the digest identical, changing any controller / verification relationship / service / security-relevant extension property necessarily changes it, and raw response bytes are never carried in document_digest (they use raw_document_digest).",
+      "source_refs": [
+        "spec/v1/zh/identity/did-usage-and-verification.md",
+        "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.did_binding.evidence_receipt_kat.v1",
+      "status": "active",
+      "domain": "did_binding",
+      "applies_to_fixtures": [
+        "did-binding-digest-fixture.json"
+      ],
+      "description": "evidence_digest is recomputable from the retained canonical evidence receipt (ak.did.binding_evidence.v1): a proofless method degrades to an empty method_proofs array rather than a placeholder, webvh witness rows are sorted by witness_did with duplicates rejected, any method evidence change changes the digest, and unknown method or proof kinds fail closed.",
+      "source_refs": [
+        "spec/v1/zh/identity/did-usage-and-verification.md",
+        "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.did_binding.policy_snapshot_kat.v1",
+      "status": "active",
+      "domain": "did_binding",
+      "applies_to_fixtures": [
+        "did-binding-digest-fixture.json"
+      ],
+      "description": "policy_digest is recomputable from the retained canonical resolver policy snapshot (ak.did.resolver_policy.v1): required core dimensions (accepted_did_methods, fail_mode, trust_roots) plus the profile-closed profile_policy, registered wire tokens only (language-native debug renderings rejected), and flipping any security-relevant field necessarily changes the digest while unknown profiles or fields fail closed.",
+      "source_refs": [
+        "spec/v1/zh/identity/did-usage-and-verification.md",
+        "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.direct_conversation.binding_lifecycle.v1",
       "status": "active",
       "domain": "direct_conversation",
@@ -3061,6 +3100,18 @@
       ]
     },
     {
+      "vector_id": "ak.vector.key_backup.delete_authority.v1",
+      "status": "active",
+      "domain": "key_backup",
+      "applies_to_profiles": [
+        "ak.profile.key_backup.memory_hard.v1"
+      ],
+      "description": "Active-series tail deletion accepts exactly the three high-risk authority proof branches (principal_signing / device_quorum / trusted_recovery_service) over the canonical delete-intent transcript bound to a server-issued single-use challenge: ordinary current-device proof on an active tail, non-tail single deletion, deduplicated quorum below policy k, expired or consumed recovery session, replayed or expired challenge, and any tampered transcript field (backup_id / reason / audience / nonce) MUST all be rejected; a byte-identical retry returns the stored terminal outcome without re-admitting the consumed challenge.",
+      "source_refs": [
+        "spec/v1/zh/identity/key-management.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.key_backup.kdf_floor_rejected.v1",
       "status": "active",
       "domain": "key_backup",
@@ -3198,6 +3249,18 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.lattice.cas_register_supersession.v1",
+      "status": "active",
+      "domain": "lattice",
+      "applies_to_vector_groups": [
+        "ak.vector_group.cba_lattice.v1"
+      ],
+      "description": "cas_register join is the pure maximal-chain function over set ops carrying from: a sequential governance lifecycle (declaration -> whole-value head_eq tombstone -> re-declaration) joins to the single terminal value instead of bottom; two ops with the same from and different values form two maximal chains and join to bottom; a non-initial op whose from matches no covered value is a dangling supersession and fails closed to bottom; duplicate (value, from) sets are idempotent; supersession binds by value, so ABA reuse is the documented value-CAS semantic and families needing generational distinction embed a monotonic component in the value.",
+      "source_refs": [
+        "spec/v1/zh/authz/event-auth-state-resolution.md"
       ]
     },
     {
@@ -3586,6 +3649,18 @@
         "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
         "spec/v1/zh/extensions/mimi-interop.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mimi.provider_directory_signature.v1",
+      "status": "active",
+      "domain": "mimi",
+      "applies_to_profiles": [
+        "ak.profile.mimi_interop.v1"
+      ],
+      "description": "The provider directory carries its full required security core and capability declaration, and its detached JWS verifies over the exact canonical unsigned projection: missing required capabilities or empty capability arrays, tampered endpoints / cipher suites / content profiles / room policy components, a proof controller different from service_id, an unknown extension attempting to change routing, a stale created_at, a dev digest in place of a signature, and an HTTP-signature-valid but directory-JWS-invalid response (and the reverse) MUST all be rejected.",
+      "source_refs": [
+        "spec/v1/zh/extensions/mimi-interop.md"
       ]
     },
     {
@@ -4875,6 +4950,19 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.signal.device_authorization_domain.v1",
+      "status": "active",
+      "domain": "signal",
+      "applies_to_profiles": [
+        "ak.profile.principal_server.v1",
+        "ak.profile.full_client.v1"
+      ],
+      "description": "Signal verification uses two independent state domains: seal_ref selects only the Realm/scope authorization basis, while device authorization resolves against each verifier's current accepted device directory. A device authorized after seal_ref but currently active passes the device check; a device active at seal_ref but currently revoked/fenced/conflicted is rejected; a verification_method whose full value is not byte-identical to sender_actor_id#sender_device_id is rejected; a missing current directory key or missing Tier-2/service-attested trust anchor is rejected; a currently active device whose sender lacks scope send eligibility or the signal_class action under the Realm seal_ref is rejected.",
+      "source_refs": [
+        "spec/v1/zh/sync/signal.md"
       ]
     },
     {

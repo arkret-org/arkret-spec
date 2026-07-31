@@ -685,7 +685,34 @@ AvailabilityReceipt {
 本节是 Control Move `preconditions[]` 中 `Predicate` 与 core lattice join 规则的散文权威；schema 只给字段形状，不能替代本节的求值语义。
 
 - **`head_eq`**：谓词形态为 `{kind:"head_eq", cell:"ak:cell:...", value:<json>}`。Reducer MUST 在该 Move 的 `seal_basis` 治理 view 下读取目标 cell 的 settled value，并按 canonical JSON whole-value compare 与 `value` 比较；二者 bit-exact 相等时通过。cell 缺失时 settled value 为 `null`，因此省略业务字段与显式缺省不得被当作匹配。若目标 cell 在该 basis 下为 `⊥`，`head_eq` MUST fail closed（failure status `failed_bottom`，`reason=cell_in_bottom_state`，见 §13）。
-- **`cas_register`**：set write 在目标 cell 的 settled 值为非初始态时，Control Move MUST 携带命中本 cell 的 `head_eq` precondition；DataEvent 若声明使用 CAS 语义，MUST 通过 causal refs 与领域 lattice 规则表达同等约束。缺失 CAS basis 时 receiver MUST 以 `failed_precondition` 拒绝该 write，并按多 cell 原子性拒绝整个 reducer input，不得实现无条件覆盖。并发且互不可达的 CAS set 若都在各自 `seal_basis` 下通过但写入不同值，join 结果为 `⊥`；同值重复 set 幂等。
+- **`cas_register`**：set write 在目标 cell 的 settled 值为非初始态时，Control Move MUST 携带命中本 cell 的 `head_eq` precondition；DataEvent 若声明使用 CAS 语义，MUST 通过 causal refs 与领域 lattice 规则表达同等约束。缺失 CAS basis 时 receiver MUST 以 `failed_precondition` 拒绝该 write，并按多 cell 原子性拒绝整个 reducer input，不得实现无条件覆盖。
+
+  **projected write 携带前驱（normative）**：`cas_register` 的注册 `set` effect 投影为 lattice
+  op 时，projector MUST 把该 Move 命中本 cell 的 whole-value `head_eq` precondition 的
+  `value` 复制进 `op.from`（与 `fsm` 声明 `from` / `to` 对称；`LatticeOp` 已有该字段）；
+  无该 precondition 的初始写入 `op.from` 缺省。本规则对全部 `cas_register` cell family
+  全局生效，不逐 family 登记。
+
+  **join（normative，纯函数）**：join 的输入是 `covered(L)` 中命中该 cell 的 set op 集合，
+  求值只依赖 op 自身：
+
+  1. 按 canonical `(value, from)` 去重；同 `(value, from)` 的重复 set 幂等；
+  2. `from` 缺省的 op 是**链首**；op `X` 到 op `Y` 存在取代边当且仅当
+     `Y.from == X.value`（canonical whole-value 相等）；
+  3. **极大链** = 从某链首出发、每个 op 至多使用一次、无法再延长的取代路径；
+  4. 所有极大链的终值去重后：恰一个值 → 该值即 settled value；多于一个 → `⊥`；存在
+     非链首 op 其 `from` 不匹配集合内任何 op 的 `value`（悬空取代——prefix-closed
+     coverage 下不可达，只可能来自损坏或不完整的 store）→ `⊥` fail closed；空集合 →
+     初始态。
+
+  取代按 **value** 绑定（与 `head_eq` 的 whole-value 比较同源），因此 value 复用（ABA）
+  不可区分是本 lattice 的既定语义；需要区分「同值不同世代」的 cell family MUST 在 value
+  内自带单调分量（如 `policy_bundle` 的 `policy_revision`）。由此：顺序替换（后继 `from`
+  命中前驱 value，含 declaration → tombstone → 再 declaration 的治理生命周期）join 到单一
+  终值，**不再**落 `⊥`；并发且互不可达的 set 落在同一前驱上且写不同值时形成多条极大链 →
+  `⊥`。§9.5 conflict-recovery 的入口条件不变（`⊥` = 多终值或悬空取代）；`state_root` leaf
+  仍取 joined settled value，历史 view 按任意 prefix-closed 覆盖集重算本 join 即可重建。
+  conformance 入口：`ak.vector.lattice.cas_register_supersession.v1`。
 - **`fsm`**：transition write MUST 声明 `from` 与 `to`。同一 CBA basis 内相同 `(from,to)` 的重复 transition 是幂等的；同一 `from` 指向不同 `to` 的 sibling transition 返回 `⊥`。跨 basis 顺序仅由 causal refs 与 Seal DAG 决定；同一 basis 内不得用 HLC、接收顺序或 actor id 选择状态机 winner。
 - **`ordered_log`**：每个 reducer-projected `op.kind="append"` write MUST 携带 `issuer_seq`；其它 op kind 禁止该字段。issuer 固定为 envelope `actor_id`，序号作用域固定为 `(write.cell, actor_id)`，从 `0` 开始逐一递增，producer 不得复用其它 cell 的计数或用全局 `actor_seq` 代替。同一 `(write.cell, actor_id, write.op.issuer_seq)` 的判定使用完整 canonical `write.op` JSON bytes。每个 issuer 子链只把从 `0` 开始的连续 prefix 纳入 cell value；issuer 子链出现缺口时，缺口后的 entry MUST 保留为 pending / diagnostic 输入，但不得进入 cell value、`state_root` leaf 或授权判断。依赖补齐后按同一规则确定性重算。bytes 相同是 duplicate，幂等去重，不产生多个 entry；非逐字等价是 issuer equivocation，MUST 按 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的全协议唯一 tie-break 收敛——对每个候选计算其所在 Event 的 canonical `event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned_actor_kind)`，见 [`../conformance/encoding.md` §6](../conformance/encoding.md)），按 §4.2 的 decoded-octets 比较取最大者作为该 issuer sequence 的唯一 entry 进入连续 prefix；其余候选 MUST 保留为 duplicate/equivocation 诊断，并仍留在 canonical event log 与审计视图中，MUST NOT 被删除。producer 是否在 Event DAG 中人为加入因果边 MUST NOT 改变该 slot winner，也不得把 seq 复用洗成合法的下一条 append。digest collision 与“仅 `proofs` / reducer stamps 不同”的区分同样按 §4.2 处理。
 

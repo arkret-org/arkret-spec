@@ -81,7 +81,7 @@ Arkret v1 把三件事分开处理：
 
 #### 2.1.2 Pairing challenge proof transcript（normative）
 
-`challenge_proof` 是新设备对 `new_device_pubkey` 的 possession proof，且**必须绑定本次配对挑战**。它的 wire 形态是 [`device-pairing.schema.json`](../../artifacts/schemas/device-pairing.schema.json) 的 `device_pairing_challenge_proof`（`{transcript, alg, verification_method, transcript_digest, signature}`），MUST NOT 退化为无语义的 base64url 字节串。
+`challenge_proof` 是新设备对 `new_device_pubkey` 的 possession proof，且**必须绑定本次配对挑战**。它的 wire 形态是 [`device-pairing.schema.json`](../../artifacts/schemas/device-pairing.schema.json) 的 `device_pairing_challenge_proof`（`{transcript, kid, alg, transcript_digest, signature}`），MUST NOT 退化为无语义的 base64url 字节串。`kid` 是选择 staged key 的 device-local `ak:device:` key id（[`did-usage-and-verification.md` §2.3](../identity/did-usage-and-verification.md) 已登记的非 DID 分支），不是 DID URL，因此不得命名为 `verification_method`。
 
 **签名输入（两个封闭 transcript，由 proof 的 `transcript` 字段判别）**：
 
@@ -116,7 +116,7 @@ ak.device-pairing.challenge.to_device.v1:
 
 **签名与验签**：
 
-- 签名密钥固定为 `new_device_pubkey` 对应的私钥；`verification_method` MUST 逐字节等于 `new_device_pubkey.kid`，`alg` MUST 是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json) 的 active suite 且与 `new_device_pubkey.alg` 相容。
+- 签名密钥固定为 `new_device_pubkey` 对应的私钥；proof 的 `kid` MUST 逐字节等于 `new_device_pubkey.kid`，`alg` MUST 是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json) 的 active suite 且与 `new_device_pubkey.alg` 相容。
 - verifier MUST **自己重算** transcript bytes，MUST NOT 用「与存档副本逐字节相等」代替验签。重算 digest 与 `transcript_digest` 不等 MUST 拒绝，且 MUST 在验签之前拒绝。各 verifier 的 transcript 输入来源固定如下：
 
   | verifier | 路径 | transcript 输入来源 |
@@ -134,7 +134,7 @@ ak.device-pairing.challenge.to_device.v1:
 
 **为什么必须绑定这些值**：只签静态公钥的 proof 可跨 request、跨 origin、跨过期窗口重放；只做非空/格式检查等于没有 PoP。`gate_audience` 阻断跨 Account Authority 重放，`pairing_code` + `device_pairing_request_id` + `server_nonce`（或路径 B 的 `transaction_id` + `request_canonical_digest`）阻断跨 request 重放，`expires_at` 阻断过期窗口外重放。
 
-**失败语义**：transcript 重算不符、`verification_method` 与 `new_device_pubkey.kid` 不等、`alg` 不在 active suite、签名验证失败，一律 `failed_precondition`，对外按 §2.1.1 第 5 条的防枚举要求返回统一形态；同一 pairing transcript 累计 10 次失败后按 [`../sync/service-http-binding.md` §3](../sync/service-http-binding.md) 锁定并永久失效。
+**失败语义**：transcript 重算不符、proof `kid` 与 `new_device_pubkey.kid` 不等、`alg` 不在 active suite、签名验证失败，一律 `failed_precondition`，对外按 §2.1.1 第 5 条的防枚举要求返回统一形态；同一 pairing transcript 累计 10 次失败后按 [`../sync/service-http-binding.md` §3](../sync/service-http-binding.md) 锁定并永久失效。
 
 #### 2.1.3 Pairing challenge 的 conformance 入口
 
@@ -142,7 +142,7 @@ ak.device-pairing.challenge.to_device.v1:
 [`../conformance/conformance-vectors.md` 23.10](../conformance/conformance-vectors.md)）。它覆盖
 stage 到 gate 的 round-trip 正例、同一 `new_device_pubkey` canonical bytes 与 digest 全程不变，
 以及坏 audience / 坏 request digest / 旧 pairing code / 跨 request 重放 / 过期 / 改 key / 坏签名 /
-`verification_method` 不匹配 / 跨路径复用 proof / 旧 `{kid, alg, public_key}` 形态 /
+proof `kid` 不匹配 / 跨路径复用 proof / 旧 `{kid, alg, public_key}` 形态 /
 stage 请求携带 proof 等负向量。
 
 ### 2.2 设备吊销
@@ -346,8 +346,8 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 | --- | --- | --- |
 | `principal_signing_key` | required | PSK 当前公钥引用。`kid` MUST 出现在该 principal 当前 DID document 或 key-log head 的 verification methods 中；服务端不接受 `kid` 不在当前控制集中的 publish。 |
 | `trust_domain` | required | 部署级 trust domain（`ak:trust_domain:<scope>`）。Receiver MUST 在验证任一 binding 签名前先检查该值与当前接收上下文一致；不一致 MUST `cross_domain_replay_rejected`。 |
-| `self_signing_key` | required | SSK 公钥 + 由 PSK 对 canonical SSK record 的签名。`binding.verification_method` MUST 与 `principal_signing_key.kid` 相同 DID 控制集。 |
-| `user_signing_key` | required | USK 公钥 + 由 PSK 对 canonical USK record 的签名；MUST 与 `self_signing_key` 不同 `public_key`。 |
+| `self_signing_key` | required | SSK 公钥 + 由 PSK 对 canonical SSK record 的签名。`binding.verification_method` MUST 逐字节等于 `principal_signing_key.kid`：验证方必须能唯一确定验签用的 PSK，不得在多 PSK verification method 之间逐个试签。若未来要支持 PSK 轮换窗口内的双 method，必须新增显式判别字段，不得放宽本相等约束。 |
+| `user_signing_key` | required | USK 公钥 + 由 PSK 对 canonical USK record 的签名；MUST 与 `self_signing_key` 不同 `public_key`。其 `binding.verification_method` 受与 `self_signing_key` 同一条约束：MUST 逐字节等于 `principal_signing_key.kid`。 |
 | `expected_previous_generation` | required | CAS precondition。首次 publish 使用 `0`；后续 publish MUST 等于 receiver 当前 accepted generation。 |
 | `generation` | required | 单调递增整数。每次 cross-signing reset（§14）MUST `generation += 1`。Receiver 见到 `generation` 比已 accepted 状态低的 publish MUST 拒绝。 |
 | `issued_at` | required | 发布时间；MUST be no later than 接收方本地时钟 + protocol skew。 |
@@ -452,7 +452,11 @@ DID-method history → principal_signing_key (PSK)
 
 1. 解析 principal control stream 中 `accepted_generation = max(publish.generation)` 的 `ak.cross_signing.publish` 事件作为当前 PSK / SSK / USK。
 2. 校验 `publish.principal_signing_key.kid` 出现在该 principal DID method 当前控制集中。
-3. 校验 `publish.self_signing_key.binding.signature` 由 PSK 对 §5.1 canonical 输入签名。
+3. 校验 `publish.self_signing_key.binding.verification_method` 与
+   `publish.user_signing_key.binding.verification_method` 均逐字节等于
+   `publish.principal_signing_key.kid`（不等 MUST 拒绝整个 publish，不得改用其它 PSK
+   verification method 试签），然后校验两个 `binding.signature` 由该 PSK 对 §5.1
+   canonical 输入签名。
 4. 在该设备的最新 accepted `ak.device.authorize` 事件中判定授权 regime：
    - 若存在 `enrollment_authority_binding.kind="service_attested"`，receiver MUST 在当前 principal-control frontier 重新执行 §5.4 的入册权威委派、按时点签名、payload-to-projection 相等与未吊销校验。全部通过时 trust state 直接为 `verified`；任一步失败为 `unverified`。该分支不要求 `cross_signing_binding`，并以 accepted `device_authorize_event_id` 作为可复算锚。
    - 否则读取 `cross_signing_binding`；若缺失 MUST 视为 `unverified`，不得回退到"已授权 ⇒ cross-signed"。
@@ -705,8 +709,8 @@ Content-Type: application/json
           },
           "challenge_proof": {
             "transcript": "ak.device-pairing.challenge.to_device.v1",
+            "kid": "ak:device:01964137-0000-7000-8000-000000000000",
             "alg": "Ed25519",
-            "verification_method": "ak:device:01964137-0000-7000-8000-000000000000",
             "transcript_digest": "sha256:89abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234567",
             "signature": "base64url..."
           },

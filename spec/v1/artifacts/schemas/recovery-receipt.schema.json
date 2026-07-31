@@ -267,7 +267,7 @@
       ],
       "properties": {
         "verification_method": {
-          "type": "string",
+          "$ref": "./common-ids.schema.json#/$defs/did_url",
           "description": "DID URL of the new_device_id's accepted device key. Receivers MUST resolve it through the principal control stream and verify that ak.device.authorize for new_device_id was accepted before this receipt was signed; service keys and unauthorised fresh-device keys MUST NOT sign a formal recovery_receipt."
         },
         "signature_algorithm": {

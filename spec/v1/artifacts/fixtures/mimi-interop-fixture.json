@@ -27,6 +27,7 @@
       "vector_id": "ak.vector.mimi.provider_directory_draft_pinning.v1",
       "name": "provider_directory_draft_pinning",
       "input": {
+        "schema": "ak.schema.mimi_interop.v1",
         "service_id": "did:webvh:z6mkfixture:mimi.example.com",
         "service_kind": "mimi_provider_facade",
         "supported_profiles": [
@@ -39,6 +40,36 @@
           "identifier_draft": "draft-kohbrok-mimi-identifiers-01",
           "base_url": "https://mimi.example.com/_arkret/open/mimi",
           "provider_id": "mimi://mimi.example.com",
+          "endpoints": [
+            {
+              "endpoint_id": "consent",
+              "relative_path": "/consent"
+            },
+            {
+              "endpoint_id": "group_info",
+              "relative_path": "/group-info"
+            },
+            {
+              "endpoint_id": "identifier_query",
+              "relative_path": "/identifier-query"
+            },
+            {
+              "endpoint_id": "key_material",
+              "relative_path": "/key-material"
+            },
+            {
+              "endpoint_id": "proxy_download",
+              "relative_path": "/proxy-download"
+            },
+            {
+              "endpoint_id": "report_abuse",
+              "relative_path": "/report-abuse"
+            },
+            {
+              "endpoint_id": "submit_message",
+              "relative_path": "/submit-message"
+            }
+          ],
           "features": [
             "key_material",
             "submit_message",
@@ -47,7 +78,26 @@
             "identifier_query",
             "report_abuse",
             "proxy_download"
+          ],
+          "mls_cipher_suites": [
+            "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
+          ],
+          "content_profiles": [
+            "application/mimi-content",
+            "application/vnd.arkret.content+json"
+          ],
+          "room_policy_components": [
+            "membership_style",
+            "moderation"
           ]
+        },
+        "proof": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixture:mimi.example.com#mimi-provider",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:89abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234567",
+          "created_at": "2026-07-31T00:00:00Z",
+          "jws": "c2ln"
         }
       },
       "expected": "accepted_only_when_profile_and_pinned_drafts_match"

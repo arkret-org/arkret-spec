@@ -1818,8 +1818,6 @@
               "ak.realm.policy",
               "ak.realm.join_rule",
               "ak.realm.discovery",
-              "ak.realm.policy_bundle",
-              "ak.realm.delivery_binding_policy",
               "ak.realm.asset_privacy_policy",
               "ak.realm.moderation_policy",
               "ak.realm.media_service",
@@ -1835,6 +1833,44 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/state_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.policy_bundle"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_policy_bundle_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.delivery_binding_policy"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_delivery_binding_policy_payload"
           }
         }
       }

@@ -366,7 +366,7 @@
       ],
       "properties": {
         "verification_method": {
-          "type": "string",
+          "$ref": "#/$defs/did_url",
           "description": "DID URL identifying the authorized issuer: bootstrap-accepted first device for genesis; current SSK for later A-model updates; current-generation accepted device for later B-model updates; or a coordinator satisfying the superseded policy quorum. Receivers resolve this semantic authority from accepted principal-control state, not from arbitrary DID Document membership."
         },
         "signature_algorithm": {
@@ -857,7 +857,7 @@
     },
     "did_url": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#]+#[A-Za-z0-9._:-]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"

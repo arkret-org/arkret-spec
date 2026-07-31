@@ -81,7 +81,7 @@
       "description": "Proof of possession of the staged new_device_pubkey, bound to the server-minted pairing challenge. Signing input is UTF8(\"ak.device-pairing.challenge.v1\\n\") || canonical_json({client_nonce, device_pairing_request_id, expires_at, gate_audience, new_device_pubkey_digest, pairing_code, server_nonce}); see crypto-media/device-lifecycle.md section 2.1.2. The proof can only be generated after staging returns, because it commits to server-minted values that do not exist at stage time.",
       "required": [
         "transcript",
-        "verification_method",
+        "kid",
         "alg",
         "transcript_digest",
         "signature"
@@ -95,9 +95,9 @@
           ],
           "description": "Names the exact signing transcript. ak.device-pairing.challenge.v1 is the server-mediated short-link path and commits to {client_nonce, device_pairing_request_id, expires_at, gate_audience, new_device_pubkey_digest, pairing_code, server_nonce}. ak.device-pairing.challenge.to_device.v1 is the to-device verification path and commits to {expires_at, gate_audience, new_device_pubkey_digest, pairing_code, request_canonical_digest, transaction_id}. A verifier MUST select the member set from this discriminator and MUST NOT accept a proof whose transcript name does not match the path it is verifying."
         },
-        "verification_method": {
+        "kid": {
           "$ref": "#/$defs/device_id",
-          "description": "MUST equal new_device_pubkey.kid. The proof is verified with the staged new_device_pubkey and with no other key."
+          "description": "MUST equal new_device_pubkey.kid. The proof is verified with the staged new_device_pubkey and with no other key. This is a device-local ak:device key id selecting the staged key (identity/did-usage-and-verification.md section 2.3), not a DID URL; it is deliberately not named verification_method."
         },
         "alg": {
           "$ref": "#/$defs/non_empty_string"

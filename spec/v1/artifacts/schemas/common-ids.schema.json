@@ -38,7 +38,8 @@
     },
     "did_url": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+      "description": "Arkret verification-method DID URL profile (identity/did-usage-and-verification.md section 2.2): lowercase method name, no query, required fragment, fragment limited to ASCII [A-Za-z0-9._:-]. Every verification_method-family field and every kid/key_ref a schema declares to be a DID URL MUST resolve to exactly this definition; values compare byte-for-byte with no URI normalization or percent-decoding."
     }
   }
 }

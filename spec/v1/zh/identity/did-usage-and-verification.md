@@ -3,7 +3,7 @@ title: DID 使用与验证边界
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-29
+updated: 2026-07-31
 ---
 
 ## 0. 规范语言
@@ -103,6 +103,31 @@ JOSE / JWK 的 `kid`、`key_ref` 与 `authorization_ref` 仅在其对象 schema 
 DID URL 时才属于本表；这些裸字段名不是 DID URL 的通用别名。`device_signing_key` 的
 `did:key` 形态是自描述公钥编码，不会使设备成为 DID 主体。
 
+#### 2.2.1 Arkret verification-method DID URL profile
+
+本表所有字段的机器约束是**同一个**定义：
+[`common-ids.schema.json#/$defs/did_url`](../../artifacts/schemas/common-ids.schema.json)，
+即正则 `^did:[a-z0-9]+:[^\s#?]+#[A-Za-z0-9._:-]+$`。该 profile 比通用 W3C DID URL 更窄，
+逐部分含义如下：
+
+- **method 名**固定为 lowercase `[a-z0-9]+`（W3C DID 1.0 的 method-name 小写归一化形）；
+- **`#fragment` 必备**，query `?` 在整个值中禁止出现；bare DID 不是合法值；
+- **fragment 字符集精确限定为 ASCII `[A-Za-z0-9._:-]+`**。这是 RFC 3986 unreserved 的
+  严格子集（刻意排除 `~`）再加 `:`，目的是 key id 稳定且可逐字节比较；
+- **method-specific-id** 允许除空白、`#`、`?` 以外的任意字符；本 profile 当前**不**排除
+  path 形态的 `/`。若未来需要禁止 path，必须修改本 profile 的唯一定义并做兼容扫描，
+  不得在正文单方面声称已禁止；
+- verification method id 按完整字符串**逐字节比较**，不做 URI normalization、
+  percent-decoding 或任何等价折叠。所有把两个 verification method 判等的规范条款都以
+  该比较为准。
+
+任何 schema 中名为 `verification_method` / `verificationMethod` 的字符串属性（DID Document
+的 verification method **对象数组**除外），以及 schema 声明为 DID URL 的 `kid` / `key_ref`
+等封闭 key reference，其约束 MUST 解析到与本 profile 逐字等价的定义（直接 `$ref`
+`common-ids#/$defs/did_url`、`$ref` 一份逐字等于它的本地 `$defs/did_url`，或内联同一
+pattern）。机器门禁 `tools/lint_artifacts.py` 强制这条一致性；新增更宽或更窄的变体一律
+视为 spec 缺陷。
+
 ### 2.3 条件性或多态字段
 
 | 字段 | DID 条件 | 非 DID 形态 |
@@ -163,7 +188,7 @@ Document 解析、history 验证或网络请求：
 | DID rotation、recovery、deactivation、method continuity 或 service endpoint / delegation 变更 | 精确历史版本、previous head / sequence、recovery / continuity proof、目标 trust domain 与 policy | 必须按事件接受时点或显式 pinned version 验证，不能只看当前文档。 |
 | 新 service DID 被加入 federation peer、plaintext-visible service、media / push / audit / directory / policy allowlist | service control、service kind、endpoint delegation、trust domain、policy scope | 已验证的同一 service binding 在有效期内可复用；普通请求不重复解析。 |
 | membership / MLS admission 引入此前未接受的 principal、pairwise DID 映射或新的 delivery service binding | principal / pairwise link、KeyPackage / device or agent key binding、service binding | 既有 active member 的普通消息、presence、read receipt 不触发。 |
-| 高风险写入显式要求的 freshness 已过期，或收到 rotation / deactivation / witness fork / policy-change invalidation | 与该风险级别对应的最新 method evidence 或指定历史版本 | 低风险读路径不得因后台刷新失败而偷偷 live fallback；高风险操作 fail closed 或等待刷新。 |
+| 高风险写入显式要求的 freshness 已过期，或收到 rotation / deactivation / witness fork / policy-change invalidation | 与该风险级别对应的最新 method evidence 或指定历史版本 | 低风险读路径不得因后台刷新失败而偷偷 live fallback；高风险操作 fail closed 或等待刷新。本表所称「高风险」**就是** [`identity-did.md` §3.4](./identity-did.md) 的 normative 枚举（新写入、grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation、joining new Realm、accepting invite）；freshness 阈值与 stale 行为由调用点引用的 §5.4 freshness profile 决定，不由实现自由发挥。 |
 | 验证第三方 claim / receipt / attestation 时，本地没有其 issuer key 的已接受绑定 | issuer DID、verification method、claim purpose / audience / status / revocation | 同 issuer、key epoch、purpose 与 policy 下可复用。 |
 
 除上述触发条件外，业务代码 MUST NOT 自行增加“保险起见再 resolve 一次”的路径。若一个业务
@@ -173,16 +198,25 @@ Document 解析、history 验证或网络请求：
 ## 5. 验证结果、缓存与失效
 
 DID 权威验证的产物 MUST 是可复用、可审计的 verified binding，而不是一个无上下文的
-`verified=true`：
+`verified=true`。**可审计的实际含义是可复算**：每个 digest 字段都必须有留存的 canonical
+输入对象，审计者能据其重算出同一 digest。binding 是 trust-domain 本地产物，本节合同保证的是
+（i）可复算、（ii）任何安全相关输入变化必然改变 digest、（iii）无证据场景有规范化退化形；
+**不承诺**不同部署对同一 DID 算出相同 digest。机器形状统一登记在
+[`did-binding-contracts.schema.json`](../../artifacts/schemas/did-binding-contracts.schema.json)，
+KAT 见 [`did-binding-digest-fixture.json`](../../artifacts/fixtures/did-binding-digest-fixture.json)
+（`ak.vector.did_binding.document_digest_kat.v1`、
+`ak.vector.did_binding.evidence_receipt_kat.v1`、
+`ak.vector.did_binding.policy_snapshot_kat.v1`）。
 
 | 字段 | 要求 |
 | --- | --- |
 | `did` | 被验证的 bare DID。 |
 | `trust_domain` / `purpose` | 结果适用的本地信任域与用途（principal、service、issuer、controller 等）。 |
 | `method` / `verification_method` | DID method 与被接受的具体 DID URL；不适用具体 key 时可省略后者。 |
-| `document_digest` / `history_head` / `version_id` | 固定验证依据；method 不支持的字段可省略，但必须记录该 limited-trust 能力。 |
-| `evidence_digest` / `policy_digest` | method evidence 与 resolver / Realm policy 的绑定。 |
-| `verified_at` / `refresh_after` / `expires_at` | 验证时间、后台刷新点与硬失效点；具体必填性由 method / risk profile 决定。 |
+| `document_digest` / `history_head` / `version_id` | 固定验证依据；计算方式见 §5.1。method 不支持或 resolver 未传出的 pin 可省略，但 MUST 按 §5.5 的 `limited_trust` 记录逐 pin 状态。 |
+| `evidence_digest` / `policy_digest` | method evidence 与 resolver policy 的绑定；分别由 §5.2 的 canonical evidence receipt 与 §5.3 的 canonical policy snapshot 定义，二者并列携带、互不嵌套。 |
+| `evidence_dependencies` | 从 evidence receipt 机械提取的结构化依赖清单（§5.6）；无 evidence 的 method 为空集。 |
+| `verified_at` / `refresh_after` / `expires_at` | 验证时间、后台刷新点与硬失效点；必填性与取值由调用点引用的 §5.4 freshness profile 决定（tier 决定必填性、申报决定数值）。 |
 | `status` | `active`、`stale`、`deactivated`、`quarantined` 或等价封闭状态。 |
 
 实现 SHOULD 先查本地 accepted auth-state、verified binding store 与 resolution cache，再决定是否
@@ -190,11 +224,151 @@ DID 权威验证的产物 MUST 是可复用、可审计的 verified binding，�
 authority-grade 结果标为 stale。仅当 §4 的触发场景要求新鲜证据时，调用方才等待刷新或 fail
 closed。
 
+### 5.1 `document_digest`：normalized projection 与固定算法
+
+`document_digest` 摘要的是 resolver **已验证并返回的 normalized DID Document projection**，
+不是 resolver 原始响应 bytes：
+
+- projection MUST 保留所有会影响 key authorization、controller、service routing 或 method
+  policy 的原始属性（含 `@context` 之外的 method extension property），不得只摘要
+  convenience key index；normalized projection 的 schema、已知字段、extension 保留规则与
+  重复 / 冲突属性拒绝规则由 DID resolution 合同统一登记；
+- 计算固定为 `"sha256:" + lowercase_hex(SHA-256(RFC8785_JCS(normalized_document)))`；
+- raw 响应若需取证，使用**不同名**的 `raw_document_digest`，两者 MUST NOT 互换或混用。
+
+### 5.2 `evidence_digest`：canonical evidence receipt 经 resolver 通道产生
+
+method evidence（webvh log head、witness proof set、consistency / receipt 材料）只存在于
+resolver 手中，不可能从 DID Document 推导，因此 resolver 合同 MUST 把它与文档一起返回
+（`ResolvedDid { document, method_evidence }` 形态）；任何「调用方事后补 evidence digest」
+的 API 形状都是不合规实现。verifier 在其内部据此构造 canonical evidence receipt 并计算
+digest：
+
+```text
+evidence_receipt = {
+  "kind": "ak.did.binding_evidence.v1",
+  "method": "<canonical lowercase method token>",
+  "document_digest": "<§5.1 的 document_digest>",
+  "method_proofs": <按 method 登记的闭合行；无 proof 的 method 为 []>
+}
+evidence_digest = "sha256:" + lowercase_hex(SHA-256(RFC8785_JCS(evidence_receipt)))
+```
+
+- receipt 本体 MUST 留存（可复算义务）；
+- 无 proof 的 method（`did:key`、裸 `did:web`）规范化退化为空 `method_proofs` 的
+  document 绑定 receipt；实现自造常量占位符 MUST 被判为不合规；
+- 每个 method 的 evidence 行 MUST 登记：必备字段、禁止字段、数组的 canonical 排序键、
+  重复项拒绝规则与缺省值编码；不得把 resolver 返回顺序当作摘要顺序。v1 登记唯一的行
+  `webvh_log`（log head、按 `witness_did` 排序去重的 `{witness_did,
+  controlling_organization}` 集合、witness proof set 的 canonical digest）；未知 method
+  evidence kind 一律 fail closed；
+- `policy_digest` **不进** receipt：binding 并列携带两个 digest，嵌套会把 evidence 失效与
+  policy 轮换耦合并双计一个维度。
+
+### 5.3 `policy_digest`：canonical resolver policy snapshot
+
+`policy_digest` 是 binding 复用判据（§4）、binding key 的一维与失效索引的一维，其输入是
+canonical policy snapshot：
+
+```text
+policy_snapshot = {
+  "kind": "ak.did.resolver_policy.v1",
+  "policy_profile": "<登记的 resolver policy profile id>",
+  "accepted_did_methods": [<did:<m>: 前缀形式，排序去重>],
+  "fail_mode": "fail_closed" | "allow_cached_on_error",
+  "trust_roots": [<排序去重，可为空>],
+  "profile_policy": { <profile 闭合 schema 校验的部署特有维度> }
+}
+policy_digest = "sha256:" + lowercase_hex(SHA-256(RFC8785_JCS(policy_snapshot)))
+```
+
+- **必含三项**（可接受 method、失败降级行为、信任根）是任何 resolver policy 的安全核心，
+  不允许漏摘；
+- `policy_profile` 是 `profile_policy` 的 schema discriminator：每个登记 profile MUST 给出
+  `additionalProperties: false` 的闭合 schema，并把所有会改变解析、验证、网络边界、大小
+  限制或降级行为的配置列为 required；v1 登记基础 profile
+  `ak.did_resolver_policy_profile.base.v1`（`profile_policy` 恒为 `{}`）。未知 profile、
+  未知字段、缺少已登记字段一律 fail closed；
+- enum 值 MUST 使用登记 wire token，禁止语言原生调试格式（`"FailClosed"` 一类编码分叉
+  即由此消除）；集合按 UTF-8 byte order 排序去重；字符串不做 Unicode 等价归一化，除非对应
+  字段 registry 明确规定；
+- snapshot MUST 可留存 / 可重建；「任何安全相关配置变化 ⇒ digest 变化」由此可被外部验证。
+  「两个部署 digest 相等」只在配置逐字段等价时作为推论成立，不是设计目标。
+
+### 5.4 freshness profile：tier 决定必填性、申报决定数值
+
+`refresh_after` / `expires_at` 的必填性与取值由**已登记的 freshness profile** 决定
+（[`did-binding-contracts.schema.json#/$defs/freshness_profile`](../../artifacts/schemas/did-binding-contracts.schema.json)）：
+
+- 每个 DID authority call site MUST 经 operation / action 登记显式引用一个
+  `freshness_profile_id`；不得靠「directory 一类」这样的自然语言猜档。未知 id、未登记
+  action 或 method selector 不匹配时，一律按 `high` tier 的
+  `synchronous_refresh_or_fail_closed` 处理；**不存在**默认为「任意缓存皆可」的路径；
+- `high` tier 的 action 集合至少覆盖并逐字引用 [`identity-did.md` §3.4](./identity-did.md)
+  的高风险枚举；`high` 不得消费 stale binding，必须同步 refresh 或 fail closed，
+  `fresh_for_seconds` 与 `hard_expiry_seconds` 全部有限且
+  `0 < fresh_for <= hard_expiry`，没有 stale consumption window；
+- `low` 只允许 registry 明列的 accepted-only 只读 / replay 路径：stale 可用且不得因普通
+  请求 live fallback（§3 的锚点纪律）；其 profile 可显式允许无 hard expiry；
+- `medium` 必须逐 operation 登记，不能定义成「high 与 low 之间」。它可消费 stale 的条件是
+  年龄未超过有限的 `stale_grace_seconds`；每次消费 MUST 记录 `stale_evidence_used` 审计并
+  调度按 `(did, trust_domain, purpose, policy_digest)` 去重、有上限的后台 refresh；refresh
+  失败时保持 degraded / quarantined 标记，不得把 action「降级为 low」；越过 grace 或 hard
+  expiry 后 fail closed。数值满足 `0 < fresh_for < stale_grace <= hard_expiry`；
+- `fresh_for_seconds` 是唯一 freshness 阈值：`refresh_after = verified_at +
+  fresh_for_seconds`，authority 调用的 `max_age` MUST 等于同一值，不得维护两份常量；所有
+  窗口都相对 `verified_at` 计算；
+- profile 数值由部署以机器可读形式申报，申报 snapshot 进入 §5.3 的
+  `profile_policy`——任何数值或行为修改都会结构性失效旧 binding。conformance 读取每个部署
+  的申报值，在 `fresh_for-1` / `fresh_for` / `stale_grace` / `stale_grace+1` 边界断言行为，
+  并断言 `low` 的 authority call = 0、`medium` 只调度一次后台 refresh、`high` 同步 refresh
+  失败即 fail closed；无需全网统一分钟数即可移植。
+
+### 5.5 limited trust：逐 pin 记录，构造期一致性是协议义务
+
+`history_head` / `version_id` 任一 pin 缺失时，binding MUST 携带 `limited_trust` 记录
+（两者皆 pinned 时整个对象省略）：
+
+```text
+limited_trust: {
+  "history_head": "pinned" | "method_unsupported" | "not_surfaced",
+  "version_id":   "pinned" | "method_unsupported" | "not_surfaced"
+}
+```
+
+- 每个状态 MUST 与对应 pin 字段的实际有无一致；「缺 pin 但未记录」「已全 pin 却记
+  非 pinned」「记录与实际矛盾」都 MUST 在构造期拒绝；
+- `method_unsupported` 是合法终态（`did:key` 确实没有 history）；`not_surfaced` 是
+  resolver 未兑现其 method / profile 能力的**失败态**——§5.2 的 resolver 通道落地后，
+  `did:webvh` 的 `not_surfaced` 应当清零而不是被固化；
+- 消费规则与 §5.4 联动：`high` 对任何非 pinned 状态 fail closed；`medium` 仅当其 profile
+  显式允许对应 pin 缺失、且结果保持 degraded / quarantined、不建立普通 active authority
+  binding 时才可继续；`low` accepted-only 路径按已登记规则消费。`method_unsupported`
+  不自动代表「足够可信」，仍受 adapter 的 limited-trust profile 与 action profile 上界约束；
+- [`identity-did.md`](./identity-did.md) 的 adapter 级 "limited trust profile" 声明是该
+  adapter 产生的所有 binding 状态的**上界**；adapter 级声明与 binding 级记录互不替代。
+
+### 5.6 失效索引与 evidence 依赖反查
+
 rotation、deactivation、witness fork、controller / service delegation 变化、Realm resolver
 policy 变化和 explicit revocation MUST 使受影响 binding 失效或进入 stale / quarantined。
 失效索引至少能按 DID、verification method、history head、trust domain、purpose 与 policy
 digest 定位。后台 watcher / refresh 可以主动更新绑定，但不得在失败时把信任降级到另一个 DID
 method。
+
+witness 级失效触发（witness 被撤销、witness 组织归属被合并判定、consistency proof 被证伪）
+的发起方持有的是**依赖坐标**（witness DID、组织、log head），不是 digest 值，因此：
+
+- binding MUST 携带 `evidence_dependencies`（[`did-binding-contracts.schema.json#/$defs/evidence_dependencies`](../../artifacts/schemas/did-binding-contracts.schema.json)）：
+  从 §5.2 receipt **机械提取**的 `witness_dids` / `witness_controlling_organizations` /
+  `history_heads` 排序去重集合；无 evidence 的 method 为空集；
+- 对声明 evidence-bearing 的 method，binding store MUST 支持按 evidence dependency 反查
+  受影响 binding（至少 by witness DID），使 witness 级失效可以选择性执行并向审计者解释
+  依赖关系；这是新增的 selective-invalidation 合同，本节之前的六维「至少」清单不因此扩大；
+- `evidence_digest` MAY 另作点查 selector（已知具体 binding 时点对点失效其 evidence），
+  它是便利项，不是 witness 级失效的解法；
+- 在依赖记录落地前，`for_did` 粗粒度清扫满足「受影响 binding 必须失效」的安全下界，但其
+  连带失效无关 binding 的可用性损失与不可解释性正是本节要求依赖记录的原因。
 
 ## 6. 实现分层要求
 

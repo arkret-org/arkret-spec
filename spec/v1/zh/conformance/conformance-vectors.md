@@ -5440,7 +5440,7 @@ Expected:
 
 - 正例：proof 覆盖 `ak.device-pairing.challenge.v1` transcript 的全部 member，verifier 独立重算 transcript 后验签通过。
 - 正例：同一 `new_device_pubkey` object 的 canonical bytes 与 `new_device_pubkey_digest` 在 stage / resolve / gate 三处逐字节不变。
-- 负例：坏 `gate_audience`、坏 `request_canonical_digest`、旧 `pairing_code`、跨 request 重放、过期窗口外、改 key、坏签名、`verification_method` 与 `new_device_pubkey.kid` 不等、路径 A 的 proof 用于路径 B，一律 MUST 拒绝。
+- 负例：坏 `gate_audience`、坏 `request_canonical_digest`、旧 `pairing_code`、跨 request 重放、过期窗口外、改 key、坏签名、proof `kid` 与 `new_device_pubkey.kid` 不等、proof 使用已废弃的 `verification_method` 字段名承载 device key id、路径 A 的 proof 用于路径 B，一律 MUST 拒绝。
 - 负例：正文旧示例形态 `{kid, alg, public_key}` MUST 被 canonical `PublicKey` schema 拒绝（缺 `kty` / 缺 `key` / 多余 `public_key`）。
 - 负例：stage 请求携带 challenge proof MUST `schema_violation`（proof 必须承诺 stage 才铸出的值，因此不可能在 stage 时存在）。
 - 负例：`ak.gate.account.command.pair_device` 同时携带 `device_pairing_request_id` 与 `challenge_transcript`，或两者都不携带，MUST `schema_violation`（schema 以 `oneOf` 强制该 XOR，gate 必须确定该用哪套 transcript）。
@@ -5827,3 +5827,54 @@ runner MUST 执行 `privacy-security-fixture.json` 的 Actor Profile accountabil
 - 接受 Event 后 grant 才过期或 revoked 时，既有投影可降级为 `unverified`，但下一次仍携带该
   条目的 Profile 写入必须拒绝；
 - 任何“接受 Event，但从数组剔除无 grant 条目后再写入”的结果均不符合本向量。
+
+## 30. cas_register supersession join closure vector
+
+`vector_id`: `ak.vector.lattice.cas_register_supersession.v1`
+
+规则正文见 [`../authz/event-auth-state-resolution.md` §9.3.1](../authz/event-auth-state-resolution.md)。
+
+Runner MUST 覆盖：
+
+1. 顺序治理生命周期 declaration → whole-value `head_eq` tombstone → 再 declaration 的三个
+   set op join 到单一终值，不落 `⊥`（policy-server §2.2 标准流程即正例）；
+2. 同一前驱（相同 `from`）上的两个不同值 set 形成两条极大链，join 为 `⊥`，`bottom=reject`
+   cell 物化 `failed_bottom`；
+3. 非链首 op 的 `from` 不匹配集合内任何 op 的 value（悬空取代）时 join 为 `⊥` fail closed；
+4. 同 `(value, from)` 的重复 set 幂等去重，不产生第二条链；
+5. value 复用（ABA）按 value 绑定语义收敛到最长链终值；带单调分量（如 `policy_revision`）
+   的 family 不产生歧义；
+6. 任意 prefix-closed 覆盖子集重算 join 得到该子集的确定性历史 view。
+
+## 31. Key backup delete authority closure vector
+
+`vector_id`: `ak.vector.key_backup.delete_authority.v1`
+
+规则正文见 [`../identity/key-management.md` §7.8 / §7.8.1](../identity/key-management.md)。
+Runner MUST 覆盖 §7.8.1 第 5 条列举的全部正负例：三个 high-risk 分支正例、普通 device proof
+删 active tail 被拒、非尾部单删被拒、quorum 去重 / 低于 policy `k` 被拒、recovery session
+过期或已消费被拒、challenge 重放 / 过期被拒、篡改 `backup_id` / `reason` / `audience` /
+`nonce` 任一 transcript 字段后验签失败，以及逐字节相同重试返回已存 terminal outcome 且不
+重新验收已消费 challenge。
+
+## 32. MIMI provider directory signature closure vector
+
+`vector_id`: `ak.vector.mimi.provider_directory_signature.v1`
+
+规则正文见 [`../extensions/mimi-interop.md` §3.1](../extensions/mimi-interop.md)。Runner MUST
+覆盖该节列举的正向签名向量与全部负例：缺任一 required 能力或能力数组为空、篡改
+endpoint / cipher suite / content profile / room policy、proof controller 与 `service_id`
+不同、unknown extension 试图改变路由、过期 `created_at`、dev 摘要冒充签名、HTTP signature
+合法但 directory JWS 无效（及反向）。
+
+## 33. Signal device authorization domain closure vector
+
+`vector_id`: `ak.vector.signal.device_authorization_domain.v1`
+
+规则正文见 [`../sync/signal.md` §1 / §3](../sync/signal.md)。Runner MUST 覆盖 §3 conformance
+清单的五个 case：授权晚于 `seal_ref` 但 current active 的设备通过设备授权关；`seal_ref` 时
+active 但当前 revoked / fenced / conflicted 的设备被拒；`verification_method` 不逐字等于
+`{sender_actor_id}#{sender_device_id}` 被拒；current directory key 或 Tier-2 /
+service-attested 信任锚缺失被拒；设备 current active 但 sender 无 Realm `seal_ref` 下 scope
+资格或 `signal_class` action 被拒。另 MUST 断言 `expires_at` 已过期的 envelope 在 local
+ingress 被 `invalid_param` 拒绝。

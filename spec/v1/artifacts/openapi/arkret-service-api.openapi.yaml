@@ -1614,10 +1614,14 @@ components:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_outcome
     KeyPackagesUploadRequestBody:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_request_body
+    KeysBackupsDeleteChallenge:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_delete_challenge
     KeysBackupsDeleteOutcome:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome
     KeysBackupsDeleteRequestBody:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body
+    KeysBackupsIssueDeleteChallengeRequestBody:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_issue_delete_challenge_request_body
     KeysBackupsList:
       $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_list
     KeysBackupsReplaceOutcome:
@@ -6297,6 +6301,11 @@ paths:
       operationId: ak.self.keys.backups.resource.delete
       security:
       - bearerAuth: []
+      x-arkret-auth:
+        public_metadata: false
+        proof_in_body: true
+        proof_field: proof
+        notes: A bearer token alone MUST be rejected. The body MUST carry a ak.schema.high_risk_authority_proof.v1 branch signing the canonical delete-intent transcript bound to a valid unconsumed server-issued challenge; the server verifies challenge freshness, path/audience binding and the branch-specific authority before deleting, and consumes the challenge in the same transaction (key-management.md §7.8/§7.8.1).
       parameters:
       - in: path
         name: backup_id
@@ -6317,6 +6326,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/KeysBackupsDeleteOutcome'
+  /_arkret/self/keys/backups/{backup_id}/delete-challenge:
+    post:
+      operationId: ak.self.keys.backups.command.issue_delete_challenge
+      security:
+      - bearerAuth: []
+      parameters:
+      - in: path
+        name: backup_id
+        required: true
+        schema:
+          type: string
+          pattern: ^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeysBackupsIssueDeleteChallengeRequestBody'
+      responses:
+        '200':
+          description: Durable single-use short-TTL delete challenge the high-risk delete proof must sign over
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeysBackupsDeleteChallenge'
   /_arkret/self/keys/backups/{backup_id}/unlock:
     post:
       operationId: ak.self.keys.backups.command.unlock

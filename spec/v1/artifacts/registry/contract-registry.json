@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-31.14",
+  "version": "2026-07-31.15",
   "source_of_truth": true,
-  "generated_at": "2026-07-31T16:00:00Z",
+  "generated_at": "2026-07-31T18:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -5268,7 +5268,8 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Enabled Realm policy components set. Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_digest MUST cover policy_revision."
+        "payload": "Enabled Realm policy components set, written wholesale into the cas_register cell (every revision restates the complete component set). Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_digest MUST cover policy_revision.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload"
       },
       {
         "event_kind": "ak.realm.history_sharing_policy",
@@ -5284,7 +5285,8 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Constraints on member delivery_binding: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, who may sign rebind. Governs reducer acceptance of ak.member.state{membership=join}.delivery_binding (see governance/join-policy.md §5.1)."
+        "payload": "Constraints on member delivery_binding: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, who may sign rebind. Governs reducer acceptance of ak.member.state{membership=join}.delivery_binding (see governance/join-policy.md §5.1).",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_delivery_binding_policy_payload"
       },
       {
         "event_kind": "ak.realm.asset_privacy_policy",
@@ -6432,8 +6434,23 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "admission": "self_authored_proof",
-        "payload": "Moderation report"
+        "admission": "conditional",
+        "admission_variants": [
+          {
+            "when": {
+              "payload_path": "provenance",
+              "const": "mimi_facade"
+            },
+            "admission": "service_attested"
+          },
+          {
+            "when": {
+              "otherwise": true
+            },
+            "admission": "self_authored_proof"
+          }
+        ],
+        "payload": "Moderation report. A report authored by the reporter's own device admits as self_authored_proof (actor == subject == payload.reporter). An inbound MIMI report mapped by the provider facade sets payload.provenance=mimi_facade and admits as service_attested: the envelope actor is the facade service DID, payload.reporter carries the Arkret principal resolved under extensions/mimi-interop.md section 10/11 consent and holder-claim rules, payload.source_provider carries the origin MIMI provider, and the reducer MUST verify the actor service operates the MIMI facade for payload.realm_id. The facade MUST NOT author actor_id as the reporter principal."
       },
       {
         "event_kind": "ak.moderation.franking_proof",
@@ -8318,6 +8335,18 @@
         "description": "Wire payload schema for ak.cross_signing.reset — retires the current (SSK, USK) generation under one of four kinds of high-risk proof. See device-lifecycle.md §14.1."
       },
       {
+        "schema_id": "ak.schema.high_risk_authority_proof.v1",
+        "file": "schemas/high-risk-authority-proof.schema.json",
+        "status": "active",
+        "description": "Shared high-risk authority proof family (principal_signing / device_quorum / trusted_recovery_service) over an operation's canonical transcript, each branch reusing the common detached-JWS leaf. First consumer: active-series key backup tail deletion (key-management.md §7.8)."
+      },
+      {
+        "schema_id": "ak.schema.did_binding_contracts.v1",
+        "file": "schemas/did-binding-contracts.schema.json",
+        "status": "active",
+        "description": "Verified DID binding contracts behind identity/did-usage-and-verification.md §5: canonical evidence receipt (evidence_digest), canonical resolver policy snapshot (policy_digest), mechanically extracted evidence dependency record, per-pin limited-trust record, and the freshness profile row every authority call site references."
+      },
+      {
         "schema_id": "ak.schema.seal.v1",
         "file": "schemas/seal.schema.json",
         "status": "active",
@@ -9391,6 +9420,7 @@
           "ak.self.keys.backups.resource.replace",
           "ak.self.keys.backups.query.list",
           "ak.self.keys.backups.command.unlock",
+          "ak.self.keys.backups.command.issue_delete_challenge",
           "ak.self.keys.backups.resource.delete",
           "ak.self.keys.backup_series.command.erase"
         ],
@@ -11635,13 +11665,33 @@
         }
       },
       {
+        "operation_id": "ak.self.keys.backups.command.issue_delete_challenge",
+        "http": "POST /_arkret/self/keys/backups/{backup_id}/delete-challenge",
+        "grpc": "SelfKeys/BackupsIssueDeleteChallenge",
+        "mq": "self.keys.backups.command.issue_delete_challenge",
+        "notes": "Issues the durable, single-use, short-TTL (<=300s) challenge that every high-risk backup delete proof must sign over. While a challenge for the same (principal_id, backup_id, request_id) is still valid the service returns the same challenge; a different request_id mints a new one. See key-management.md section 7.8.1.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "canonical_hash",
+        "canonical_hash_input": "/request_id",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_issue_delete_challenge_request_body",
+        "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_challenge",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
+        }
+      },
+      {
         "operation_id": "ak.self.keys.backups.resource.delete",
         "http": "DELETE /_arkret/self/keys/backups/{backup_id}",
         "grpc": "SelfKeys/BackupsDelete",
         "mq": "self.keys.backups.resource.delete",
+        "notes": "High-risk delete guarded by a server-issued single-use challenge and the shared high-risk authority proof family (key-management.md section 7.8/7.8.1). The challenge is consumed atomically with the first successful delete; a byte-identical retry returns the stored terminal outcome, and the same request_id with a different canonical digest is a duplicate conflict.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
+        "idempotency_mechanism": "canonical_hash",
+        "canonical_hash_input": "/request_id",
         "retry_safe": true,
         "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body",
         "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome",

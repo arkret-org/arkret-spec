@@ -190,7 +190,8 @@
           "$ref": "#/$defs/did"
         },
         "verification_method": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "./common-ids.schema.json#/$defs/did_url",
+          "description": "DID URL of the issuer key that signed this presentation; its controller MUST equal iss."
         },
         "audience": {
           "$ref": "#/$defs/did"

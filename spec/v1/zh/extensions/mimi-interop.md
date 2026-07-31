@@ -93,6 +93,65 @@ GET /_arkret/open/mimi/provider-directory
 
 **出站网络目标策略（normative，SSRF 防护）**：facade 在向对端 provider 声明的 `base_url`（及其派生 endpoint）发起任何 server-side 请求前，MUST 对该 URL（含 redirect 后实际目标）执行 [`../sync/api-conventions.md` §11.2](../sync/api-conventions.md) 出站网络目标策略；命中云 metadata / 内网 / 回环等禁止地址类别时 MUST 拒绝，`base_url` scheme MUST 限 `https`。签名 proof 只证明"是这个 provider"，不证明"网络目标合法"。
 
+### 3.1 Provider directory 的签名 projection 与验证算法（normative）
+
+directory 文档由 [`mimi-interop.schema.json#/$defs/provider_directory`](../../artifacts/schemas/mimi-interop.schema.json)
+定义：安全核心（`schema`、`service_id`、`proof`）与完整能力声明（`endpoints` /
+`features` / `mls_cipher_suites` / `content_profiles` / `room_policy_components`，均
+`minItems: 1`、排序去重）全部必备。`proof` 是共享闭合 detached-JWS
+（[`event-envelope.schema.json#/$defs/proof`](../../artifacts/schemas/event-envelope.schema.json)），
+签名主体是 `service_id` 控制的 verification method；dev 摘要或任何可由公开输入复算的值不是签名。
+
+**精确（非"至少"）unsigned projection**。`proof.payload_digest` 是下列闭合对象的
+canonical JSON（[`../conformance/encoding.md` §2](../conformance/encoding.md)，JCS）
+SHA-256 typed digest；proof 自身与任何未登记扩展字段都不进入 projection：
+
+```text
+{
+  "context": "ak.mimi.provider_directory.v1",
+  "schema": ...,
+  "service_id": ...,
+  "service_kind": ...,
+  "supported_profiles": <sorted unique>,
+  "mimi": {
+    "protocol_draft": ..., "content_draft": ...,
+    "room_policy_draft": ..., "identifier_draft": ...,
+    "base_url": ..., "provider_id": ...,
+    "endpoints": <sorted by endpoint_id>,
+    "features": <sorted unique>,
+    "mls_cipher_suites": <sorted unique>,
+    "content_profiles": <sorted unique>,
+    "room_policy_components": <sorted unique>
+  }
+}
+```
+
+draft extension 的开放性保留在 wire 层，但未知字段 MUST NOT 改变 endpoint 派生、能力
+协商、授权、路由或验签结果，也不得进入 v1 transcript；新增安全语义必须先登记进 profile
+schema 与本 projection，不能靠未签名 extension 暗中生效。
+
+**endpoint 行**。`endpoints[]` 的每行是闭合 `{endpoint_id, relative_path}`；`endpoint_id`
+取值集合与 `features` 同一封闭枚举且每个 id 至多出现一次。`relative_path` MUST 是以 `/`
+开头、不含 scheme、authority、query、fragment、空白与反斜杠的规范化相对路径；
+percent-decoding 后出现 `.` / `..` 段、编码的 `/` 或 `\` 一律拒绝。effective URL 只能通过
+标准 URL parser 在已验证的 HTTPS `base_url` 下解析，解析后 MUST 再次同 origin，并执行本节
+出站网络目标策略——签过名的 endpoint 列表不豁免 SSRF 检查。
+
+**接收方验证算法**。除按共享 proof 定义重算 `payload_digest`、验证 JWS 与 `created_at`
+freshness 外，接收方 MUST：
+
+1. 要求 `proof.verification_method` 的 controller DID 与 `service_id` 逐字节相等，并确认该
+   key 在当前 service DID Document 中被授权用于 service assertion；DID URL 可解析本身不构成
+   接受理由；
+2. 随后独立验证 HTTP Message Signature、TLS、DID service endpoint、Realm policy 委托与
+   SSRF policy——directory proof 不替代其中任何一项；
+3. 任一 required 能力缺失、能力数组为空、endpoint 行非法或 projection 重算不符时整体拒绝。
+
+conformance：`ak.vector.mimi.provider_directory_signature.v1` MUST 覆盖正向签名向量，以及
+缺失任一 required 能力、篡改 endpoint / cipher suite / content profile / room policy、proof
+controller 与 `service_id` 不同、unknown extension 试图改变路由、过期 `created_at`、HTTP
+signature 合法但 directory JWS 无效（及反向）等负向量。
+
 ## 4. Room Binding
 
 允许被导出为 MIMI room 的 Arkret 对象 MUST 有写入 `ak.component.mimi.room_binding.v1` cell 的 Control Move registered projection。对应 Event kind 为 `ak.mimi.room_binding`；cell subject 是 `payload.mimi_room_uri`。
@@ -378,6 +437,19 @@ MIMI identifier MUST NOT 被直接作为 Arkret actor。映射规则：
 `ak.open.mimi.command.report_abuse` MUST 映射到 `ak.self.moderation.command.report`。E2EE report SHOULD 携带 message franking proof、encrypted evidence package、reporter signature、MIMI room id、provider id 和 target event hash。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Realm policy 授权的 moderation recipient 可以解密 evidence。
 
 入站 MIMI report 的 `reporter` MUST 按 [§10 Identifiers And Consent](#10-identifiers-and-consent) 的 consent / holder-claim 规则解析到 Arkret principal,facade MUST NOT 仅凭来源 provider 的断言把 report 归因到既有 principal(防止以他人名义举报)。映射前 facade 还 MUST 校验该 reporter 对 `target_ref` 在对应 Realm / scope 内可见(对齐 [`../governance/content-moderation.md` §3.1/§3.3](../governance/content-moderation.md)),并把 [`../governance/content-moderation.md` §3.1.1](../governance/content-moderation.md) 的 per-reporter 限速至少按 (映射后 reporter principal DID, 来源 provider service DID) 双维度施加；不满足按 pairwise / pending 处理或拒绝。
+
+**归属与 admission 的分离（normative）**：facade 不持有映射后 principal 的任何签名密钥，
+MUST NOT 以该 principal 作为 envelope `actor_id` 代签 report。`ak.self.moderation.report`
+的 admission 是 conditional（contract-registry `admission_variants`）：
+
+- reporter 自己的设备发出的 report 走 `self_authored_proof`，reducer 验证
+  `actor == payload.reporter`；payload 不携带 `provenance` 或取 `"self"`；
+- facade 映射的入站 MIMI report 设 `payload.provenance="mimi_facade"`，走
+  `service_attested`：envelope `actor_id` 是 facade 的 service DID，
+  `payload.reporter` 是按本节规则解析出的 Arkret principal，
+  `payload.source_provider` 必填并携带来源 provider 的 service DID；reducer MUST 验证
+  actor service 确实为 `payload.realm_id` 运营 MIMI facade。归属（attribution）由
+  `payload.reporter` 承载，作者（authorship）由 envelope actor 承载，两者不得混同。
 
 `ak.open.mimi.command.proxy_download` MUST 遵守 `ak.realm.asset_privacy_policy`。当 policy 要求 `provider_proxy` 或 `ohttp_relay` 时，facade 不得返回 direct object-store URL。下载成功不证明内容可信，客户端仍 MUST 验证 content hash、ciphertext digest 和 attachment metadata。
 

@@ -3836,9 +3836,9 @@
       },
       "additionalProperties": false
     },
-    "delivery_binding_policy_payload": {
+    "realm_delivery_binding_policy_payload": {
       "type": "object",
-      "$comment": "Payload for ak.realm.delivery_binding_policy. Closed object so that misspelled fields are rejected with schema_violation. The enclosing Event envelope carries realm_id. See zh/governance/member-delivery-binding.md §4.",
+      "$comment": "Payload for ak.realm.delivery_binding_policy — the payload IS this flat closed object (not a state_payload wrapper); event-envelope.schema.json dispatches the kind directly to this def, and the def name follows the ak.<x> -> <x>_payload derivation rule. Closed object so that misspelled fields are rejected with schema_violation. The enclosing Event envelope carries realm_id. See zh/governance/member-delivery-binding.md §4.",
       "description": "Realm-level constraints on member delivery_binding acceptance: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, and who may sign rebind. allowed_recipient_services is fail-closed: empty array [] = reject any recipient service; use the explicit sentinel [\"*\"] to mean unrestricted. minProperties: 1 so an empty {} payload is schema_violation (semantically equivalent to never writing the event).",
       "minProperties": 1,
       "properties": {
@@ -5073,7 +5073,7 @@
             },
             "verification_method": {
               "type": "string",
-              "pattern": "^did:[a-z0-9]+:[^\\s#]+#[^\\s#]+$",
+              "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
               "description": "DID URL with required key fragment. Method-name normalized to lowercase per W3C DID 1.0; matches the strict form used by $defs/verification_method elsewhere in this schema."
             },
             "subject_id": {
@@ -5116,7 +5116,7 @@
           "properties": {
             "verification_method": {
               "type": "string",
-              "pattern": "^did:[a-z0-9]+:[^\\s#]+#[^\\s#]+$",
+              "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
               "description": "Current verification method of subject_id."
             },
             "alg": {
@@ -7381,6 +7381,18 @@
         "reporter": {
           "$ref": "#/$defs/did"
         },
+        "provenance": {
+          "type": "string",
+          "enum": [
+            "self",
+            "mimi_facade"
+          ],
+          "description": "Admission discriminator (contract-registry admission_variants). Absent or \"self\": the reporter's own device authored the Event (self_authored_proof, actor == reporter). \"mimi_facade\": the Event is service-authored by the MIMI provider facade (service_attested); reporter carries the Arkret principal resolved under extensions/mimi-interop.md section 10/11, and source_provider is required."
+        },
+        "source_provider": {
+          "$ref": "#/$defs/did",
+          "description": "Origin MIMI provider's service DID for a facade-mapped report. Required exactly when provenance is \"mimi_facade\"; forbidden otherwise."
+        },
         "evidence_refs": {
           "type": "array",
           "items": {
@@ -7394,7 +7406,33 @@
           "type": "object"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "provenance": {
+                "const": "mimi_facade"
+              }
+            },
+            "required": [
+              "provenance"
+            ]
+          },
+          "then": {
+            "required": [
+              "source_provider"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "source_provider"
+              ]
+            }
+          }
+        }
+      ]
     },
     "morph_create_payload": {
       "type": "object",
@@ -9538,6 +9576,42 @@
       },
       "additionalProperties": false
     },
+    "realm_policy_bundle_payload": {
+      "type": "object",
+      "$comment": "Payload for ak.realm.policy_bundle — the payload IS this flat closed object (not a state_payload wrapper); event-envelope.schema.json dispatches the kind directly to this def, and the def name follows the ak.<x> -> <x>_payload derivation rule.",
+      "description": "Enabled Realm policy component set, written wholesale into the ak.component.realm.policy_bundle.v1 cas_register cell: every revision restates the complete enabled component set and the Realm object's derived policy fields re-derive from the latest accepted bundle. policy_revision is strictly monotonic; the reducer rejects rollback or gaps, and policy_frontier_digest MUST cover policy_revision (see contract-registry event-kind row and models/realm-and-space.md sections 2.3/2.3.1).",
+      "required": [
+        "policy_revision"
+      ],
+      "minProperties": 2,
+      "properties": {
+        "policy_revision": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Strictly monotonic bundle revision; rollback or gaps are rejected."
+        },
+        "content_scheme": {
+          "$ref": "./realm.schema.json#/properties/content_scheme"
+        },
+        "content_encryption_floor": {
+          "$ref": "./realm.schema.json#/properties/content_encryption_floor"
+        },
+        "metadata_encryption_floor": {
+          "$ref": "./realm.schema.json#/properties/metadata_encryption_floor"
+        },
+        "durability_policy": {
+          "$ref": "./realm.schema.json#/properties/durability_policy"
+        },
+        "mls_send_pause": {
+          "type": "string",
+          "enum": [
+            "advisory"
+          ],
+          "description": "Declaring advisory downgrades the MLS send pause from MUST to SHOULD and is only accepted when the Realm declares ak.profile.e2ee_relaxed.v1 (crypto-media/encryption-and-audit.md section 2.4.1); omitting the field in a later revision reverts to the strict default."
+        }
+      },
+      "additionalProperties": false
+    },
     "realm_policy_server_payload": {
       "description": "Closed payload for ak.realm.policy_server. A declaration writes the complete direct Realm binding; {tombstone:true} is a durable value tombstone that removes the direct binding from effective queries without erasing the cell history.",
       "oneOf": [
@@ -10525,7 +10599,7 @@
     },
     "verification_method": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#]+#[^\\s#]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
       "description": "DID URL of a concrete verification method. Bare DIDs are not valid where a key binding is required."
     },
     "view_payload": {

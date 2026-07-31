@@ -32,7 +32,7 @@
     "verification_method": {
       "type": "string",
       "format": "uri",
-      "pattern": "^did:[^#?]+#[^#?]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
     },
     "public_key": {
       "$ref": "#/$defs/public_key"
@@ -95,7 +95,7 @@
         "verification_method": {
           "type": "string",
           "format": "uri",
-          "pattern": "^did:[^#?]+#[^#?]+$"
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
         },
         "jws": {
           "type": "string",

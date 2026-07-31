@@ -943,9 +943,62 @@ controller fresh-device recovery 仍先完成自己的普通 §7.3 / `device-lif
 - **认证降级阻断**：`POST /_arkret/self/keys/backups/{backup_id}/unlock` 即便对自己的备份也 MUST 要求 fresh device proof（与 §7.4 fresh challenge 相同绑定：challenge / audience / service_id / principal_id / key_id / nonce / 过期时间）。bearer token 单独到达 MUST 被拒绝。
 - **审计记录**：超出阈值或在异常时间窗内的下载 MUST 写入 `ak.audit.accessed`，`access_kind="key_backup_read"`，并按 `ak.profile.attested_audit.e2ee.v1`（若声明）配对 audit pair。
 - **跨 actor 拒绝**：服务端 MUST 在 envelope `actor_id` 与请求 caller 不一致时返回 `forbidden`，并不得通过 metadata 暴露 envelope 是否存在。§7.5.6 managed Agent PCR backup 的 envelope `actor_id` 是 controller，上传/列出/解锁 caller 也始终是该 controller；`contents[].managed_principal_binding.managed_principal_id` 不把 Agent 变成 backup owner，不构成跨 actor 例外。
-- **删除验证**：active series 内的非尾部 envelope MUST NOT 被单独删除。`DELETE` 尾部 envelope MUST 额外要求 `crypto-media/device-lifecycle.md` §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）并写入 `access_kind="key_backup_delete"` 审计。仅持普通 device proof 的 caller 只能删除 `expired_at < now` 且不属于 active series 的旧 envelope，或对已被 active-series record 移出 primary source 的旧 series 发起整组 erasure/retention 删除。设备revoke轮换的整组删除必须使用[`security-transactions.md` §3](./security-transactions.md)登记的transaction-bound operation；普通DELETE outcome不得作为`erase_confirmation_digest`来源。
+- **删除验证**：active series 内的非尾部 envelope MUST NOT 被单独删除。`DELETE` 尾部 envelope MUST 携带 [`high-risk-authority-proof.schema.json`](../../artifacts/schemas/high-risk-authority-proof.schema.json) 的三分支之一（`principal_signing` / `device_quorum` / `trusted_recovery_service`），按 §7.8.1 绑定服务端签发的单次 challenge 并签署 canonical delete-intent transcript，然后写入 `access_kind="key_backup_delete"` 审计。普通 current device proof **不是**该 family 的第四分支：仅持普通 device proof 的 caller 只能删除 `expired_at < now` 且不属于 active series 的旧 envelope，或对已被 active-series record 移出 primary source 的旧 series 发起整组 erasure/retention 删除。设备revoke轮换的整组删除必须使用[`security-transactions.md` §3](./security-transactions.md)登记的transaction-bound operation；普通DELETE outcome不得作为`erase_confirmation_digest`来源。
 
 实现 MAY 在 deployment policy 中收紧上述阈值；MUST NOT 放宽超过本节默认。
+
+#### 7.8.1 高风险删除的 challenge 与 canonical delete-intent transcript
+
+freshness MUST 由服务端发放，不得接受 caller 自造 nonce：
+
+1. **challenge 签发**。`ak.self.keys.backups.command.issue_delete_challenge`
+   （`POST /_arkret/self/keys/backups/{backup_id}/delete-challenge`，request body 为闭合
+   `{request_id}`）返回 durable、单次使用、TTL 不超过 300 秒的 challenge
+   （[`keys-operations.schema.json#/$defs/keys_backups_delete_challenge`](../../artifacts/schemas/keys-operations.schema.json)），
+   至少绑定 `{challenge_id, challenge, nonce, operation, principal_id, backup_id, audience,
+   service_id, request_id, issued_at, expires_at}`。同一 `(principal_id, backup_id,
+   request_id)` 在 challenge 尚有效时 MUST 返回同一 challenge；不同 `request_id` 签发新
+   challenge。
+2. **唯一 canonical delete-intent transcript**。所有 proof 分支（含 device quorum 中的每一份
+   签名）MUST 覆盖同一 canonical bytes：
+
+   ```text
+   {
+     "context": "ak.keys.backup_delete.v1",
+     "operation": "ak.self.keys.backups.resource.delete",
+     "request_id": <DELETE body request_id>,
+     "principal_id": <authenticated principal>,
+     "backup_id": <path value, byte-identical>,
+     "reason": <request value or JSON null>,
+     "challenge_id": <server-issued id>,
+     "challenge": <server-issued bytes>,
+     "nonce": <server-issued nonce>,
+     "audience": <server-issued audience>,
+     "service_id": <server DID>,
+     "issued_at": <server-issued timestamp>,
+     "expires_at": <server-issued timestamp>
+   }
+   ```
+
+   `payload_digest = "sha256:" + lowercase_hex(SHA-256(RFC8785_JCS(transcript)))`。`reason`
+   缺省 MUST 固定编码为 JSON `null`，不得省略该键；proof 的 `created_at` MUST 落在
+   challenge window（`issued_at`..`expires_at`）内。
+3. **验证与消费**。`DELETE` body 为闭合 `{request_id, challenge_id, proof, reason?}`。服务端
+   MUST 先按当前 caller / path / audience / service 校验 challenge（重放、过期、path 不同、
+   audience / service 不同一律 fail closed），再验证 proof 分支的授权（`principal_signing`
+   的 controller 必须逐字节等于 `principal_id` 且该 key 在 `created_at` 是当前 principal
+   control key；`device_quorum` 去重后有效签名数不小于当前 recovery policy 的 `k` 且请求
+   `threshold` 等于该 `k`；`trusted_recovery_service` 的 session 必须未过期、未消费且由
+   principal signing / recovery unlock / device quorum 建立），最后在成功删除的同一事务中
+   原子消费 challenge。
+4. **幂等**。服务端以 `(principal_id, backup_id, request_id)` 保存 canonical request digest 与
+   terminal outcome：完全相同的网络重试返回已存 outcome，不重新验收已消费 challenge；同
+   `request_id` 不同 digest 返回 duplicate conflict。"单次 challenge"与 registry 声明的
+   DELETE retry-safe 由此并存。
+5. **conformance**。`ak.vector.key_backup.delete_authority.v1` MUST 覆盖：三个 high-risk
+   分支的正例、普通 device proof 删除 active tail 被拒、非尾部单独删除被拒、quorum 去重 /
+   低于 policy `k` 被拒、session 过期或已消费被拒、challenge 重放 / 过期被拒，以及篡改
+   `backup_id` / `reason` / `audience` / `nonce` 任一 transcript 字段后验签必然失败。
 
 ### 7.9 Algorithm Agility & Forward Compatibility
 

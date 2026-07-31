@@ -46,9 +46,8 @@
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
     "kid": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Verification method identifier within the principal's DID document or key log."
+      "$ref": "./common-ids.schema.json#/$defs/did_url",
+      "description": "DID URL of a verification method within the principal's current DID document or key-log head. Published cross-signing keys are controller keys, so this is always a DID URL, never a profile-local key label."
     },
     "alg": {
       "type": "string",
@@ -84,12 +83,12 @@
         "key_format": { "$ref": "#/$defs/key_format" },
         "binding": {
           "type": "object",
+          "$comment": "Cross-field constraint (not expressible in JSON Schema, enforced by conformance vectors and receivers): binding.verification_method MUST be byte-identical to principal_signing_key.kid, so the verifying PSK is uniquely determined without trial verification.",
           "required": ["verification_method", "alg", "signature"],
           "properties": {
             "verification_method": {
-              "type": "string",
-              "minLength": 1,
-              "description": "PSK kid that signed this subordinate key's canonical signing input."
+              "$ref": "./common-ids.schema.json#/$defs/did_url",
+              "description": "DID URL of the PSK verification method that signed this subordinate key's canonical signing input. MUST be byte-identical to principal_signing_key.kid."
             },
             "alg": { "$ref": "#/$defs/alg" },
             "signature": {

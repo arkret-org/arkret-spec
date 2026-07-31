@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-31.14",
+  "version": "2026-07-31.15",
   "source_of_truth": false,
-  "generated_at": "2026-07-31T16:00:00Z",
+  "generated_at": "2026-07-31T18:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -710,6 +710,18 @@
       "file": "schemas/cross-signing-reset.schema.json",
       "status": "active",
       "description": "Wire payload schema for ak.cross_signing.reset — retires the current (SSK, USK) generation under one of four kinds of high-risk proof. See device-lifecycle.md §14.1."
+    },
+    {
+      "schema_id": "ak.schema.high_risk_authority_proof.v1",
+      "file": "schemas/high-risk-authority-proof.schema.json",
+      "status": "active",
+      "description": "Shared high-risk authority proof family (principal_signing / device_quorum / trusted_recovery_service) over an operation's canonical transcript, each branch reusing the common detached-JWS leaf. First consumer: active-series key backup tail deletion (key-management.md §7.8)."
+    },
+    {
+      "schema_id": "ak.schema.did_binding_contracts.v1",
+      "file": "schemas/did-binding-contracts.schema.json",
+      "status": "active",
+      "description": "Verified DID binding contracts behind identity/did-usage-and-verification.md §5: canonical evidence receipt (evidence_digest), canonical resolver policy snapshot (policy_digest), mechanically extracted evidence dependency record, per-pin limited-trust record, and the freshness profile row every authority call site references."
     },
     {
       "schema_id": "ak.schema.seal.v1",

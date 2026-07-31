@@ -159,8 +159,8 @@
     },
     "verification_method": {
       "type": "string",
-      "pattern": "^did:[a-z0-9]+:[^\\s#]+#[A-Za-z0-9._:-]+$",
-      "description": "DID URL the receiving verifier uses to resolve attestation_key. MUST live under audit_service_actor_id's DID Document or a DID Document explicitly delegated by the active audit binding. Fragment characters are constrained to RFC 3986 unreserved + `:` for stable key ids. DID method-name normalized to lowercase per W3C DID 1.0."
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+      "description": "DID URL the receiving verifier uses to resolve attestation_key. MUST live under audit_service_actor_id's DID Document or a DID Document explicitly delegated by the active audit binding. Fragment characters are constrained to the ASCII set `[A-Za-z0-9._:-]` (a strict subset of RFC 3986 unreserved, excluding `~`, plus `:`) for stable byte-comparable key ids; see the Arkret verification-method DID URL profile in identity/did-usage-and-verification.md section 2.2. DID method-name normalized to lowercase per W3C DID 1.0."
     },
     "validity": {
       "type": "object",
