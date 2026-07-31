@@ -144,6 +144,7 @@ GENERIC_OPERATION_REQUEST_REF = "#/components/schemas/OperationRequest"
 GENERIC_OPERATION_RESULT_REF = "#/components/schemas/OperationResult"
 
 SECURITY_CLOSURE_VECTOR_IDS = {
+    "ak.vector.aad_visibility.policy_ceiling.v1",
     "ak.vector.federation.idempotency_after_key_revoke.v1",
     "ak.vector.webrtc.media_plaintext_downgrade.v1",
     "ak.vector.identity_link.eager_invalidation.v1",

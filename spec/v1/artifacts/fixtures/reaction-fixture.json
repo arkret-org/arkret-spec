@@ -216,7 +216,9 @@
       "notes": "In an E2EE realm the plaintext key is the v1 keyed-HMAC routing tag: HMAC-SHA256(key = MLS-Exporter(\"arkret-reaction-routing-v1\", context = realm_id), data = NFC(canonical_emoji)); see zh/crypto-media/encryption-and-audit.md §2.9. The 32-byte tag is carried in `key` as a 256-bit hex digest (the sha256: prefix below denotes the digest wire-encoding, not the derivation). Two adds with the same routing tag from the same actor in the same epoch collapse to one OR-Set membership; the tag differs in a different epoch because the MLS exporter secret rotates on every commit, so it does not dedup across epochs. realm_id is bound via the exporter context, providing defense-in-depth even if mls_group_id is reused across deployments.",
       "context": {
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000129",
-        "aad_visibility": "hidden",
+        "aad_visibility": {
+      "event_id": "routing_digest"
+    },
         "mls_group_id": "Zm9vYmFy",
         "epoch": 7
       },
@@ -300,7 +302,9 @@
       "notes": "Same canonical emoji yields a different routing hash after MLS epoch rotation; the new add is a fresh OR-Set entry, not a duplicate of the pre-rotation one.",
       "context": {
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000129",
-        "aad_visibility": "hidden",
+        "aad_visibility": {
+      "event_id": "hidden"
+    },
         "mls_group_id": "Zm9vYmFy",
         "old_epoch": 7,
         "new_epoch": 8

@@ -9599,6 +9599,25 @@
         "metadata_encryption_floor": {
           "$ref": "./realm.schema.json#/properties/metadata_encryption_floor"
         },
+        "aad_visibility": {
+          "type": "object",
+          "$comment": "One registered axis in v1. The AAD field set has exactly one wire discriminator, encrypted-envelope.schema.json#/properties/aad_visibility_event_id; the object shape leaves room for a second registered axis without renaming the component, and additionalProperties=false hard-rejects unregistered axis names at wire parse time.",
+          "required": [
+            "event_id"
+          ],
+          "properties": {
+            "event_id": {
+              "type": "string",
+              "enum": [
+                "hidden",
+                "routing_digest",
+                "opaque_id"
+              ],
+              "description": "Realm ceiling on encrypted-envelope aad_visibility_event_id. Disclosure order is hidden < routing_digest < opaque_id; an envelope MUST NOT declare a wider value than this ceiling, and a receiver that sees one MUST reject it with reason_code aad_visibility_policy_violation. An envelope MAY declare a narrower value. Absent component means the hidden ceiling, so routing_digest and opaque_id are only reachable after the Realm declares them. See crypto-media/encryption-and-audit.md sections 2.3.2 and 2.8."
+            }
+          },
+          "additionalProperties": false
+        },
         "durability_policy": {
           "$ref": "./realm.schema.json#/properties/durability_policy"
         },

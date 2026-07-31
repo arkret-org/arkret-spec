@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-31.8",
+  "version": "2026-08-01.1",
   "codes": [
     {
       "code": "bad_json",
@@ -1672,6 +1672,14 @@
     }
   ],
   "reason_codes": [
+    {
+      "code": "aad_visibility_policy_violation",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when an encrypted envelope declares an aad_visibility_event_id wider than the Realm ceiling in ak.realm.policy_bundle payload aad_visibility.event_id (disclosure order hidden < routing_digest < opaque_id; an absent component means the hidden ceiling). Receivers and reducers MUST reject and MUST NOT silently downgrade the envelope to hidden. See zh/crypto-media/encryption-and-audit.md §2.8."
+    },
     {
       "code": "abuse_cluster",
       "applies_to": [

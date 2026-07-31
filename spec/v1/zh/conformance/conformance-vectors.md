@@ -3219,6 +3219,31 @@ Expected：
 - Receiver 不得回退 current epoch、未验证 ratchet-tree cache、真实 principal DID 或 principal device directory。
 - 所有失败 case 都在内容进入 verified timeline 前 fail closed。
 
+### 9.15 Vector: AAD Visibility Policy Ceiling
+
+`vector_id`: `ak.vector.aad_visibility.policy_ceiling.v1`
+
+机器 fixture：`security-closure-fixture.json` 中同名 vector；执行入口以 fixture `runner` 元数据为准。
+
+Preconditions：
+
+- Realm policy 上限来自 `ak.realm.policy_bundle` payload 的 `aad_visibility.event_id`；披露序为 `hidden < routing_digest < opaque_id`（见 [`../crypto-media/encryption-and-audit.md` §2.8](../crypto-media/encryption-and-audit.md)）。
+- 信封的 `aad_visibility_event_id` 与 `aad` 字段集合本身已按 §2.3.1 / §2.3.2 自洽。
+
+Cases：
+
+1. 上限 `routing_digest`，信封 `routing_digest`：接受。
+2. 上限 `routing_digest`，信封 `hidden`：接受——更严格的信封只披露更少，MUST NOT 因为「与 policy 不等」而拒绝。
+3. 上限 `routing_digest`，信封 `opaque_id`：以 `failed_precondition`（`reason_code="aad_visibility_policy_violation"`）拒绝。
+4. Realm 未声明 `aad_visibility` 组件，信封 `routing_digest`：拒绝，理由同上——缺省上限是 `hidden`，未声明不等于不限制。
+5. 实现把越界信封静默降级为 `hidden` 后继续处理：视为实现 bug，不得出现。
+
+Expected：
+
+- 判定只用当前 accepted policy bundle cell 值与信封 discriminator 两个输入，不看 `aad` 内容本身。
+- 上限收紧或放宽都要等新的 `ak.mls.commit` 覆盖新 `policy_root` 之后才对后续 epoch 生效；在覆盖前按上一 accepted `policy_root` 判定。
+- 拒绝发生在信封进入路由 / 去重 / verified timeline 之前。
+
 ## 10. Service Closure Vectors
 
 ### 10.1 Vector: Signal Class And TTL

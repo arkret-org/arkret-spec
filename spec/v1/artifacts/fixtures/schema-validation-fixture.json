@@ -3730,6 +3730,41 @@
       }
     },
     {
+      "name": "realm_policy_bundle_aad_visibility_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
+      "expect_valid": true,
+      "instance": {
+        "policy_revision": 3,
+        "aad_visibility": {
+          "event_id": "routing_digest"
+        }
+      }
+    },
+    {
+      "name": "realm_policy_bundle_aad_visibility_unregistered_axis_invalid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
+      "expect_valid": false,
+      "instance": {
+        "policy_revision": 3,
+        "aad_visibility": {
+          "message_id": "hidden",
+          "event_id": "routing_digest",
+          "debug_trace_id": "disabled"
+        }
+      },
+      "first_expected_error": "$.aad_visibility: Additional properties are not allowed ('debug_trace_id', 'message_id' were unexpected)"
+    },
+    {
+      "name": "realm_policy_bundle_aad_visibility_missing_axis_invalid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
+      "expect_valid": false,
+      "instance": {
+        "policy_revision": 3,
+        "aad_visibility": {}
+      },
+      "first_expected_error": "$.aad_visibility: 'event_id' is a required property"
+    },
+    {
       "name": "realm_policy_bundle_facet_component_echo_invalid",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
       "expect_valid": false,

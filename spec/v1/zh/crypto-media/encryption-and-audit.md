@@ -149,7 +149,7 @@ Realm policy MUST 通过 Event kind `ak.realm.policy_bundle` 的 payload path `m
 | `content_type` | string | 是 | 解密后内容的 MIME 类型 |
 | `ciphertext` | base64url | 是 | `mls_rfc9420` scheme 为 MLS PrivateMessage / application message 序列化字节;`mls_exporter_aead_v1` scheme 为 §2.10 定义的 `nonce \|\| AEAD_seal(K_content[N], nonce, aad_bytes, plaintext)`（nonce/AAD 遵循 [encoding.md](../conformance/encoding.md) §10.1；AEAD tag 含在 seal 输出内）。 |
 | `authentication_tag` | base64url | 禁止 | v1 两个 scheme 下均 **MUST NOT 出现**:`mls_rfc9420` 的 tag 已在 MLS message 内、`mls_exporter_aead_v1` 的 AEAD tag 已附在 `ciphertext` 内，均不重复拆出;schema 用顶层 `not` 拒绝该字段（携带者 `schema_violation`）。 |
-| `aad_visibility_event_id` | enum(hidden, routing_digest, opaque_id) | 是 | `aad.event_id` / `aad.event_ref_digest` 的 schema discriminator；receiver 必须按该值校验 AAD 字段集合。 |
+| `aad_visibility_event_id` | enum(hidden, routing_digest, opaque_id) | 是 | `aad.event_id` / `aad.event_ref_digest` 的 schema discriminator；receiver 必须按该值校验 AAD 字段集合，并按 §2.8 校验它不宽于 Realm `aad_visibility.event_id` 上限。 |
 | `aad` | object | 是 | 路由元数据；明文但被 AEAD 认证。 |
 | `aad.realm_id` | id:realm | 是 | 路由与授权的 Realm。 |
 | `aad.event_kind` | string | 是 | 路由 event kind。 |
@@ -167,7 +167,7 @@ Ratchet tree MUST 由 `ak.mls.genesis`、Welcome、Commit 或 group state proof 
 
 #### 2.3.2 AAD 可见性 Profile 与 canonical 序列化
 
-AAD 字段集合受 Realm 的 `aad_visibility` policy 约束。隐私优先 Realm SHOULD 只保留路由所需的 `realm_id`、event kind、epoch 和不可逆 routing hash；需要跨 provider 投递确认的 Realm MAY 暴露 opaque `event_id` / `message_id`，但该选择 MUST 在 Realm policy 中声明并纳入 MLS-bound `policy_root`。
+AAD 字段集合受 Realm 的 `aad_visibility` policy 组件约束（承载与上限语义见 §2.8）。隐私优先 Realm SHOULD 只保留路由所需的 `realm_id`、event kind、epoch 和不可逆 routing hash；需要跨 provider 投递确认的 Realm MAY 暴露 opaque `aad.event_id`，但该选择 MUST 先由 `ak.realm.policy_bundle` 的 `aad_visibility.event_id` 声明——组件缺省时上限为 `hidden`，越界信封按 §2.8 拒绝。该组件随 bundle cell 进入 MLS-bound `policy_root`。
 
 `aad_visibility_event_id` 是 schema discriminator，控制 `aad.event_id` 与 `aad.event_ref_digest`：
 
@@ -787,28 +787,52 @@ Minimal-metadata Realm 不改变签名责任。客户端在解密后仍必须验
 - 设备丢失或恢复后，MUST 清除所有 identity_link 缓存。
 - conformance vector `ak.vector.identity_link.eager_invalidation.v1`（参见 `conformance-vectors.md`）覆盖 ban / leave / remove 三种触发条件下的 eager invalidation 行为；`ak.vector.identity_link.policy_tightening_invalidation.v1` 覆盖 disclosure policy、history visibility、minimal metadata mode、linked Realm visibility 与 Circle effective-scope visibility 收紧后的 eager invalidation 行为。
 
-### 2.8 Message ID AAD 可见性
+### 2.8 AAD 可见性 policy 组件（normative）
 
-加密信封中的 AAD 能帮助路由和诊断，但也可能成为跨服务关联信号。Realm policy MUST 声明 `aad_visibility`：
+加密信封中的 AAD 能帮助路由和诊断，但也可能成为跨服务关联信号。Realm 通过
+`ak.realm.policy_bundle` payload 的 `aad_visibility` 组件声明本 Realm 允许的 AAD 披露上限
+（[`event-payload.schema.json#/$defs/realm_policy_bundle_payload`](../../artifacts/schemas/event-payload.schema.json)，
+闭合对象）。它随 bundle cell 进入 MLS-bound `policy_root`，因此 §2.5.1 的 governance
+binding 天然覆盖它：
 
 ```json
 {
   "aad_visibility": {
-    "message_id": "hidden",
-    "event_id": "routing_digest",
-    "debug_trace_id": "disabled"
+    "event_id": "routing_digest"
   }
 }
 ```
 
-取值：
+**v1 只有一条已登记的可见性轴**：`event_id`，对应逐信封 discriminator
+`aad_visibility_event_id`（[`encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json)）。
+`aad_visibility` 是闭合对象，未登记的轴名在 wire 解析阶段即 `schema_violation`——新增轴
+必须同时新增一个真实的信封字段与判别式，不得只在 policy 侧凭空多一个 key。
 
-- `hidden`：默认值；不在 MLS AAD 或服务可见 metadata 中暴露稳定 message id。
-- `routing_digest`：只暴露不可逆 hash，用于去重、幂等和 backfill 诊断。
-- `opaque_id`：暴露 opaque event/message id，用于跨 provider 投递确认。
-- `debug`：仅限短期调试或受控企业 profile；MUST 有过期时间、审计和用户/管理员可见声明。
+`event_id` 取值与 §2.3.2 的 discriminator 同源，共三值：
 
-隐私优先 Realm SHOULD 使用 `hidden` 或 `routing_digest`。企业合规或 federation 调试场景 MAY 使用 `opaque_id`，但 MUST 在 `governance_binding.policy_root` 覆盖的 policy 中声明，并且不得把正文、附件名、mention、reply excerpt 或 sender handle 放入 AAD。
+| 值 | 含义 |
+| --- | --- |
+| `hidden` | 组件缺省时的取值；AAD 不暴露任何稳定 event 标识（`aad.event_id` 与 `aad.event_ref_digest` 都省略）。 |
+| `routing_digest` | 只暴露 §2.3.2 canonical 公式算出的不可逆 `event_ref_digest`，用于去重、幂等和 backfill 诊断。 |
+| `opaque_id` | 暴露 opaque `aad.event_id`，用于跨 provider 投递确认。 |
+
+**上限语义（normative）**：披露序为 `hidden < routing_digest < opaque_id`。
+信封的 `aad_visibility_event_id` MUST NOT 宽于 Realm 当前 accepted `aad_visibility.event_id`；
+更严（更靠近 `hidden`）永远允许，因为它只披露更少。组件缺省时上限即 `hidden`，因此
+`routing_digest` 与 `opaque_id` 只有在 Realm 显式声明之后才可达——这正是本节与 §2.3.2
+「该选择 MUST 在 Realm policy 中声明」的执行点。接收方与 reducer 观察到越界信封时 MUST 以
+`failed_precondition`（`reason_code="aad_visibility_policy_violation"`）拒绝，MUST NOT 静默
+降级为 `hidden` 后继续处理。可执行覆盖见
+[`../conformance/conformance-vectors.md`](../conformance/conformance-vectors.md) 的
+`ak.vector.aad_visibility.policy_ceiling.v1`。
+
+上限只约束**最大**披露；需要保证跨 provider 去重可用的 Realm 还必须在产品层要求 producer
+实际使用所声明的级别，协议不代替这一层。policy 的收紧与放宽都按 §2.3 的通用规则，在新的
+`ak.mls.commit` 覆盖新 `policy_root` 之后才对该 scope 后续 epoch 生效。
+
+隐私优先 Realm SHOULD 使用 `hidden` 或 `routing_digest`。企业合规或 federation 调试场景
+MAY 使用 `opaque_id`，并且任何取值下都不得把正文、附件名、mention、reply excerpt 或 sender
+handle 放入 AAD。
 
 加密信封的 Event kind 字段在 AAD 中规范名为 `aad.event_kind`；Realm policy、AAD visibility、日志和 conformance vector MUST 使用该名字。
 

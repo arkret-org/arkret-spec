@@ -1594,6 +1594,181 @@
           }
         }
       ]
+    },
+    {
+      "vector_id": "ak.vector.aad_visibility.policy_ceiling.v1",
+      "steps": [
+        {
+          "name": "envelope_at_declared_ceiling_accepted",
+          "input": {
+            "policy_aad_visibility_event_id": "routing_digest",
+            "envelope_aad_visibility_event_id": "routing_digest"
+          },
+          "expected": {
+            "outcome": "accepted",
+            "invariants": [
+              "decision uses only the accepted policy bundle value and the envelope discriminator"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.aad_visibility.policy_ceiling.v1",
+              "preconditions": {
+                "policy_aad_visibility_event_id": "routing_digest",
+                "envelope_aad_visibility_event_id": "routing_digest"
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "envelope_at_declared_ceiling_accepted",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "policy_aad_visibility_event_id": "routing_digest",
+                "envelope_aad_visibility_event_id": "routing_digest"
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "accepted",
+              "invariants": [
+                "decision uses only the accepted policy bundle value and the envelope discriminator"
+              ]
+            },
+            "expected_external_response": {
+              "outcome": "accepted"
+            },
+            "expected_audit_reason": "accepted"
+          }
+        },
+        {
+          "name": "envelope_narrower_than_ceiling_accepted",
+          "input": {
+            "policy_aad_visibility_event_id": "routing_digest",
+            "envelope_aad_visibility_event_id": "hidden"
+          },
+          "expected": {
+            "outcome": "accepted",
+            "invariants": [
+              "a narrower envelope discloses less and MUST NOT be rejected for differing from policy"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.aad_visibility.policy_ceiling.v1",
+              "preconditions": {
+                "policy_aad_visibility_event_id": "routing_digest",
+                "envelope_aad_visibility_event_id": "hidden"
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "envelope_narrower_than_ceiling_accepted",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "policy_aad_visibility_event_id": "routing_digest",
+                "envelope_aad_visibility_event_id": "hidden"
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "accepted",
+              "invariants": [
+                "a narrower envelope discloses less and MUST NOT be rejected for differing from policy"
+              ]
+            },
+            "expected_external_response": {
+              "outcome": "accepted"
+            },
+            "expected_audit_reason": "accepted"
+          }
+        },
+        {
+          "name": "envelope_wider_than_ceiling_rejected",
+          "input": {
+            "policy_aad_visibility_event_id": "routing_digest",
+            "envelope_aad_visibility_event_id": "opaque_id"
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "aad_visibility_policy_violation",
+            "invariants": [
+              "receiver does not silently downgrade the envelope to hidden"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.aad_visibility.policy_ceiling.v1",
+              "preconditions": {
+                "policy_aad_visibility_event_id": "routing_digest",
+                "envelope_aad_visibility_event_id": "opaque_id"
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "envelope_wider_than_ceiling_rejected",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "policy_aad_visibility_event_id": "routing_digest",
+                "envelope_aad_visibility_event_id": "opaque_id"
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "rejected",
+              "reason_code": "aad_visibility_policy_violation",
+              "invariants": [
+                "receiver does not silently downgrade the envelope to hidden"
+              ]
+            },
+            "expected_external_response": {
+              "outcome": "rejected",
+              "reason_code": "aad_visibility_policy_violation"
+            },
+            "expected_audit_reason": "aad_visibility_policy_violation"
+          }
+        },
+        {
+          "name": "absent_component_defaults_to_hidden_ceiling",
+          "input": {
+            "policy_aad_visibility_component_present": false,
+            "envelope_aad_visibility_event_id": "routing_digest"
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "aad_visibility_policy_violation",
+            "invariants": [
+              "an undeclared component is the hidden ceiling, not an absent constraint"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ak.vector.aad_visibility.policy_ceiling.v1",
+              "preconditions": {
+                "policy_aad_visibility_component_present": false,
+                "envelope_aad_visibility_event_id": "routing_digest"
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "absent_component_defaults_to_hidden_ceiling",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "policy_aad_visibility_component_present": false,
+                "envelope_aad_visibility_event_id": "routing_digest"
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "rejected",
+              "reason_code": "aad_visibility_policy_violation",
+              "invariants": [
+                "an undeclared component is the hidden ceiling, not an absent constraint"
+              ]
+            },
+            "expected_external_response": {
+              "outcome": "rejected",
+              "reason_code": "aad_visibility_policy_violation"
+            },
+            "expected_audit_reason": "aad_visibility_policy_violation"
+          }
+        }
+      ]
     }
   ]
 }
