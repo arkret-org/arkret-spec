@@ -147,7 +147,7 @@
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "MUST resolve, at seal_ref, to the active device signing method authorized for sender_device_id under sender_actor_id. No fragment-to-device-id string equality is implied."
+          "description": "MUST equal `{sender_actor_id}#{sender_device_id}` verbatim. That equality is only the completeness condition of the directory lookup key and never stands in for device authorization: the verifier MUST resolve the authoritative verify key for (sender_actor_id, sender_device_id) from its own current accepted device directory, which is a state domain seal_ref does not select (zh/sync/signal.md section 1)."
         },
         "alg": {
           "type": "string",
