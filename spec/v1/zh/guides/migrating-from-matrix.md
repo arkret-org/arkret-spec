@@ -287,7 +287,7 @@ Receiver 不识别核心 lattice type 时 fail closed，扩展 cell family 通�
 Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Arkret v1 引入 **MLS Governance Binding**（profile `ak.profile.mls_governance_binding.full.v1`，定义见 `crypto-media/encryption-and-audit.md §2.5`），把 MLS epoch 强绑定到 governance state，由两层 wire-level artifact 协同工作：
 
 - **Commit 侧** —— 每个 `ak.mls.commit` 携带 `governance_binding`（GroupContext extension `mls_governance_binding`），把 membership / policy / capability / discussion-metadata roots 哈希进 MLS transcript。
-- **Lattice 侧** —— MLS commit 是 Control Move，写入 `mls_epoch_cell`、`key_schedule_cell` 与 `covered_seals_cell`（or_set）。E2EE message DataEvent 用 `seal_ref` 指向已被 MLS governance binding 覆盖的治理 Seal。
+- **Lattice 侧** —— MLS commit 是 Control Move，写入 `mls_epoch_cell`、`key_schedule_cell` 与 `covered_seals_cell`（or_set）。E2EE message DataEvent 用 `seal_ref` 选定治理求值视图，该视图下的 `covered_seals_cell` 必须覆盖消息依赖的治理 Seal 集 `M`；`seal_ref` 自身不在 `M` 中（一个 Seal 不可能覆盖自己，见 `crypto-media/encryption-and-audit.md §2.5.2`）。
 
 **理由**：撤销、ban、device revoke 和 policy 收紧不只停在应用层 accepted；它们被 MLS epoch / key schedule 覆盖后才影响新消息解密能力。`covered_seals_cell` 让这条 "governance state 已被 commit attest 覆盖" 的事实变成可被 reducer 确定性查询的 lattice cell，而不是隐含在 transcript hash 里的 ad-hoc 检查。governance / recovery Move 不引用 `covered_seals_cell`，因此 MLS 卡住不会阻止冲突修复。
 

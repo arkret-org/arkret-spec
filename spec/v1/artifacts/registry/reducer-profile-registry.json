@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-01.6",
-  "generated_at": "2026-08-01T06:00:00Z",
+  "version": "2026-08-01.7",
+  "generated_at": "2026-08-01T07:00:00Z",
   "source_of_truth": true,
   "description": "Canonical reducer profile declarations and generated content-addressed semantic closures used for federation service_binding_ref.reducer_profile_digest.",
   "canonicalization": "json_jcs",
@@ -506,7 +506,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:984582bee57839767fd6302913b11a745de86a643ccccfaff26e3621de8ee0f3"
+            "content_digest": "sha256:e9ce1ee62614dc3bd5167bfb0ebb753aaf4b04a8e834291c9e1c92e2415b9601"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -518,7 +518,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:f9007019fef1ce0c139ed53dd2bf85f9f3856471f90171701203ad452a45598c"
+      "reducer_profile_digest": "sha256:f865958b8fc52dba65ee9ad5e83de454cfef23c0964629c07c07b12a6e77aff2"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -1408,7 +1408,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:984582bee57839767fd6302913b11a745de86a643ccccfaff26e3621de8ee0f3"
+            "content_digest": "sha256:e9ce1ee62614dc3bd5167bfb0ebb753aaf4b04a8e834291c9e1c92e2415b9601"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -1440,7 +1440,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:7fd07bd4e86de0275ce58907fa1e88a6466cdb0fcf7e54214068e7ba6b0202de"
+      "reducer_profile_digest": "sha256:f39cf929461cbe51eaf62d34c538412932daf921260301adba6356fc039365f1"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",

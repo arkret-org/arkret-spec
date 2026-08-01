@@ -908,6 +908,25 @@ Expected：
 
 Arkret 不复制易漂移的外部密码学金值；本向量直接 pin MLS WG `mlswg/mls-implementations` 的 `test-vectors/` corpus commit `cfd450286d1bfd9cd2519b95c80f9771f94a5b1a`。声明 MLS 支持的实现 MUST 对 ciphersuite `0x0001` 运行 registry 列出的 `crypto-basics.json`、`key-schedule.json`、`messages.json`、`welcome.json` 与 `treekem.json` 全部适用 case，并逐字节匹配编码、KEM/HPKE 输出、joiner / epoch secret、Welcome 与 TreeKEM 派生值。只通过 Arkret 结构绑定 fixture、不运行该字节级 corpus，不足以声明 `ak.vector.mls.rfc9420_mti_kat.v1` 通过。更换 upstream commit 必须作为 registry review 变更并重新跑全套 KAT。
 
+### 2.5.5 Vector: Covered Seals 不自指
+
+`vector_id`: `ak.vector.mls.covered_seals_no_self_reference.v1`
+
+本向量固定 [`encryption-and-audit.md` §2.5.2](../crypto-media/encryption-and-audit.md#252-covered-seals-cell-covered_seals_cell) 的两条结构性规则：`covered_seal_refs` 只能断言 `seal_basis` 已可见的 Seal，且重建 `M` 时不得无条件加入消息自身的 `seal_ref`。
+
+Steps：
+
+1. 构造 `ak.mls.commit` `C`，其 `covered_seal_refs` 包含首次把 `C` 纳入 accepted control state 的 Seal（或任何不在 `C.seal_basis.leaves[]` predecessor closure 内的 Seal）。
+2. 另取一条各方面合规的 E2EE application DataEvent，其 `seal_ref=S` 指向 accepted 治理 Seal，且 `S` 上没有发生 (a)/(b)/(c) 三组治理 cell 的任何变更。
+3. Reducer 按 §2.5.2 重建算法独立重建 `M`。
+
+Expected：
+
+- 第 1 步的 commit MUST 被拒绝，且不得推进 `mls_epoch_cell` / `covered_seals_cell`；实现不得把越界或自指 seal ref 当作可忽略的冗余项静默丢弃后接受该 commit。
+- 第 3 步重建出的 `M` MUST NOT 含 `S`；该 DataEvent MUST 被接受。把 `S` 无条件放进 `M` 的实现会对每条合规密文返回 `failed_precondition` / `mls_governance_binding_stale`，即为不通过。
+- Fixture MUST 同时提供正向对照：`S` 确实收纳了某个治理 cell 的 last-changing Move 时，`S` 经由 (a)/(b)/(c) 枚举进入 `M`，coverage 为假、发送暂停。
+- Conformance fixture MUST NOT 在 Seal `S` 的 sealed ops 中写入 `covered_seals ∋ S.id` 来"造出"覆盖：该状态在 accepted control state 中不可构造，用它铺路的测试只会掩盖 gate 缺陷。
+
 ### 2.6 Vector: 数据面冲突返回 Bottom 且不选 Winner
 
 向量名称：

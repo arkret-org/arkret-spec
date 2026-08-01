@@ -3,9 +3,9 @@
   "artifacts": [
     {
       "path": "spec/v1/artifacts/profiles/conformance-profiles.json",
-      "version": "2026-07-31.6",
-      "generated_at": "2026-07-31T07:00:00Z",
-      "content_digest": "sha256:1d81d2d864b507536e827120e7f93b2c74d1da6601a0180cbd84910a99809709"
+      "version": "2026-08-01.1",
+      "generated_at": "2026-08-01T06:00:00Z",
+      "content_digest": "sha256:27e5c36fd8162970ee3338259f78bd7c4b40c30083866a0e294686c2b84331d9"
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
@@ -63,9 +63,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
-      "version": "2026-08-01.1",
+      "version": "2026-08-01.2",
       "generated_at": null,
-      "content_digest": "sha256:73787fb0763ee6628ca74ee3bf4ebb798444f300a6e165a64162e5fd39f9effa"
+      "content_digest": "sha256:58ff50c546f914ad95d91de39f42d8538dfa7d95a199577450972f0bf557ce74"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
@@ -123,9 +123,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-08-01.3",
+      "version": "2026-08-01.5",
       "generated_at": null,
-      "content_digest": "sha256:1a0b846553c51de960abe68ba2a0222b9c8741c76b32880145805be34cd6ec55"
+      "content_digest": "sha256:94446216973eb623fb6853237b11a5ff6f448bf04b06aebd6ed3d828636569a9"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",
@@ -165,9 +165,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/reducer-profile-registry.json",
-      "version": "2026-08-01.6",
-      "generated_at": "2026-08-01T06:00:00Z",
-      "content_digest": "sha256:b3e3fff5478adab28bc087afb0830611466e07b5b5963447004aee8dde2db470"
+      "version": "2026-08-01.7",
+      "generated_at": "2026-08-01T07:00:00Z",
+      "content_digest": "sha256:d3fbed0b81fc9a62c93b466d0f232b73a529e5647a5c9629932fa46f9885a8f0"
     },
     {
       "path": "spec/v1/artifacts/registry/registry-manifest.json",
@@ -219,9 +219,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-08-01.2",
-      "generated_at": "2026-08-01T06:00:00Z",
-      "content_digest": "sha256:45a676b16251b02d5ef447248e8a6f31f34ba88fbaf41f20ad9560cff9a08e0a"
+      "version": "2026-08-01.3",
+      "generated_at": "2026-08-01T07:00:00Z",
+      "content_digest": "sha256:50e40712b0c6d62aebb9e7efced25782e219d13f552a3f67a9e6fb0bf8d14876"
     }
   ]
 }

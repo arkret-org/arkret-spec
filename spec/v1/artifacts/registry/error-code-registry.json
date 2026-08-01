@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-01.1",
+  "version": "2026-08-01.2",
   "codes": [
     {
       "code": "bad_json",
@@ -3013,7 +3013,7 @@
         "state_resolution",
         "federation_transaction"
       ],
-      "description": "An MLS commit's mls_governance_binding GroupContext extension declares a policy_root (or realm policy digest) that does not match the policy root the group's epoch chain is genesis-bound to. The receiver MUST reject the commit - and, on a federation push, the batch - rather than advance an epoch under a forged or stale governance binding. See zh/crypto-media/encryption-and-audit.md §2.5.1."
+      "description": "An MLS commit's mls_governance_binding GroupContext extension does not match the governance state the group's epoch chain is bound to: a policy_root (or realm policy digest) differing from the genesis-bound policy root, or a covered_seal_refs entry outside the commit's seal_basis predecessor closure - including the Seal that admits the commit itself, which no Control Move can attest. The receiver MUST reject the commit - and, on a federation push, the batch - rather than advance an epoch under a forged or stale governance binding. See zh/crypto-media/encryption-and-audit.md §2.5.1."
     },
     {
       "code": "grant_exceeds_issuer_authority",

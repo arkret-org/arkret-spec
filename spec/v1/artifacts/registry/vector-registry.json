@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-01.2",
+  "version": "2026-08-01.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-01T06:00:00Z",
+  "generated_at": "2026-08-01T07:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3744,6 +3744,20 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
         "spec/v1/zh/extensions/mimi-interop.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mls.covered_seals_no_self_reference.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_fixtures": [
+        "final-conformance-closure-fixture.json"
+      ],
+      "description": "covered_seal_refs may only attest Seals already visible from the commit's seal_basis, and the DataEvent's own seal_ref never enters the governance Seal dependency set M. A Seal cannot cover itself, so requiring it makes every E2EE application DataEvent permanently unsendable.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
+        "spec/v1/zh/crypto-media/encryption-and-audit.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },

@@ -398,7 +398,7 @@ flowchart TB
     GB -- "MLS Commit registered projections" --> CFC
     GB -- "推进 epoch" --> EpC
 
-    Msg["E2EE application DataEvent<br/>seal_ref: covered_seals_cell contains 自身 governance Seal"]
+    Msg["E2EE application DataEvent<br/>seal_ref 的 covered_seals_cell 覆盖依赖集 M"]
     CFC -. "未覆盖 → fail closed<br/>暂停发送 / epoch_update_required" .-> Msg
     CFC -- "覆盖 → 允许发送" --> Msg
 ```
@@ -448,6 +448,7 @@ MLS group 的 key scope 由 `effective_scope`（§2.5 开头）唯一决定，**
 **E2EE Realm MUST 声明 `ak.profile.mls_governance_binding.full.v1`**：声明 `encryption_profile="mls_rfc9420"` 的 Realm 隐式继承该 profile（`ak.profile.e2ee_client.v1` 直接 `inherits` 它）。所有 `ak.mls.commit` MUST 携带 GroupContext extension 形态的 `governance_binding`；仅 transcript-authenticated 而无 GroupContext extension 的实现不符合 v1。
 
 - `membership_frontier` MUST 覆盖本次 Commit 声称生效的成员、invite/leave/ban 和设备信任 cell。
+- **`covered_seal_refs` 可见性约束（normative）**：每个元素 MUST 是本次 Commit 的 `seal_basis` 已可见的 accepted governance Seal——即落在 `seal_basis.leaves[]` 自身或其 predecessor closure 内（[`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#5-control-move)）。Control Move 只能断言 authoring 时已存在的 Seal：首次把该 Commit 纳入 accepted control state 的 Seal 及其任何后继 MUST NOT 出现在 `covered_seal_refs` 中，producer 也 MUST NOT 列入不在自己 basis closure 内的并发分支 Seal。Receiver MUST 独立校验该约束，任一元素越界时以 `governance_binding_mismatch` 拒绝该 commit（federation push 上拒绝整批）且不得推进 `mls_epoch_cell` / `covered_seals_cell`；不得把越界元素当作冗余项静默丢弃后接受该 commit。该约束有两个作用：阻止 producer 声称覆盖它从未验证过的治理状态，以及使 §2.5.2 的 `S ∉ covered_seals_cell@J(S)` 成为可机械检查的结构性事实而不只是构造惯例。
 - `binding_version` MUST 为 `1`；`encoding_profile` MUST 为 `cbor-deterministic-rfc8949-v1`。两者进入 GroupContext extension bytes、Event payload 和 `covered_seals_cell` canonical value，接收方不得从 codepoint 或 profile id 隐式推断。
 - `binding_profile` 与 `reducer_profile` 是 required 字段。`binding_profile` MUST 等于该 Realm 实际声明的 MLS governance binding profile：默认/full Realm 为 `ak.profile.mls_governance_binding.full.v1`；唯一 v1 降级 Realm 为 `ak.profile.e2ee_relaxed.v1`。接收方 MUST NOT 在字段缺失时用本地默认值补齐，也 MUST NOT 把未知 profile 当作 full profile 处理；缺失、未知或与 Realm policy / ServiceDescribe / federation peer 声明不一致时 MUST fail closed。
 - `previous_epoch` / `next_epoch` MUST 同时出现在 `governance_binding` 与 `ak.mls.commit` payload 中；接收端 MUST 校验 `payload.base_epoch == governance_binding.previous_epoch` 且 `payload.next_epoch == governance_binding.next_epoch`。任一不一致时该 commit 不得推进 `mls_epoch_cell`。
@@ -516,14 +517,18 @@ Chunk 0 请求 MUST 使用 `chunk_index=0` 且不得携带 `expected_bundle_dige
 
 因此 cell 的**默认态**（任何尚未被 commit 覆盖的 governance Seal）求值为 `expose=false=暂停`，等价 fail-closed：只有显式的、不可伪造的 commit attestation 才能把某个 Seal 元素从默认 `expose` 翻转为 `covered`，缺失证据时系统停在"不发送"而不是"发送"。这与 §2.4.1 "发现 `epoch_update_required` 后 MUST 暂停" 同构——没有 commit 覆盖 = 默认拒绝。
 
-**E2EE DataEvent 的 seal_ref 求值规则（normative）**：E2EE application message DataEvent 的 `seal_ref` MUST 指向已被 `covered_seals_cell` 覆盖的治理 Seal；该 Seal view 中的 membership / policy / capability frontier 必须与消息 epoch / key schedule 一致。求值规则：
+**E2EE DataEvent 的 seal_ref 求值规则（normative）**：E2EE application message DataEvent 的 `seal_ref` MUST 指向一个 accepted 治理 Seal `S`，且 `J(S)` 下的 `covered_seals_cell` MUST 覆盖该消息依赖的全部 governance Seal（下方 `M`）；该 Seal view 中的 membership / policy / capability frontier 必须与消息 epoch / key schedule 一致。求值规则：
 
-- `M` 定义为该消息 `effective_scope` 在当前治理视图下需要被 MLS epoch 覆盖的 governance Seal 集合：包括消息 `seal_ref` 指向的 Seal、该 scope 最新 accepted membership / history visibility / plaintext-visible service / asset privacy / logging / bot / applet / agent policy / moderation policy / capability grant-revoke frontier 所属的 Seal，以及这些 frontier 因 Realm/Circle cascade 产生的最新治理 Seal。`M` 是 scope 级集合，不是 producer 自选的 per-message 子集；任一新 governance Seal 推进都会把对应元素加入 `M`，直到后续 accepted MLS Commit 重新 attest。
+- `M` 定义为该消息 `effective_scope` 在当前治理视图下需要被 MLS epoch 覆盖的 governance Seal 集合：该 scope 最新 accepted membership / history visibility / plaintext-visible service / asset privacy / logging / bot / applet / agent policy / moderation policy / capability grant-revoke frontier 所属的 Seal，以及这些 frontier 因 Realm/Circle cascade 产生的最新治理 Seal。`M` 是 scope 级集合，不是 producer 自选的 per-message 子集；任一新 governance Seal 推进都会把对应元素加入 `M`，直到后续 accepted MLS Commit 重新 attest。
+- 消息自身的 `S` **MUST NOT** 被无条件加入 `M`：`S ∈ covered_seals_cell@J(S)` 对任意 `S` **结构性恒假**，不是可以靠等待或重试满足的活性条件。理由是两条独立的构造性事实：(i) `covered_seals_cell` 的元素只来自 accepted `ak.mls.genesis` / `ak.mls.commit` 的 `covered_seal_refs`，而 §2.5.1 的 `covered_seal_refs` 可见性约束把每个元素限制在该 Move `seal_basis` 的 predecessor closure 内，`J(S)` 又只由 `covered_set(S)` 决定，故 `covered_seals_cell@J(S)` 的每个元素都是 `S` 的真祖先 Seal，永远不是 `S` 自身（Seal 是 DAG，不存在可用 `max` 比较的全序，恒假性来自祖先关系而非序号大小）；(ii) Seal id 内容寻址给出同一结论的更强形式——`S.id = H(seal_canonical_bytes)` 覆盖 `delta[]` 与 `predecessor_refs[]`（[`event-auth-state-resolution.md` §6.1](../authz/event-auth-state-resolution.md#61-seal-id-与签名-transcript)），`covered_set(S)` 中每个 Move 的 digest 都被 `S.id` 传递承诺，因此一个断言 `S.id` 的 Move 需要 hash 自指，构造上不可能存在。把 `S` 无条件放进 `M` 会让 coverage 对**任何** Seal 恒假，E2EE application DataEvent 永不可发送，且无法用「等待更新的 Seal」或「先发一条 self-update Commit」绕开——Commit 自身也会生成新的 Seal，把 head 推进一格后面对同一自指条件。`S` 上若确有治理变更，该变更所在 cell 的 last-changing Move 的首次覆盖 Seal 本身就是 `S`，由下方重建算法的 (a)/(b)/(c) 自然纳入 `M`；这正是 ban / revoke 立即触发 send-pause 的机制，不需要也不得靠无条件加入 `S` 表达。
 - 覆盖满足 **当且仅当** `M` 中**每一个**元素都在该 Seal view 下的 `covered_seals_cell` `active_dots` 的 attested-frontier 并集内（全称量化，不是存在量化）；任一元素求值为 `expose` → 整个 coverage false → DataEvent `failed_precondition`，reducer 不接受该消息进入 verified timeline。
 - `contains` 在 sealed control state 上求值，不读取本地未 sealed 的 pending commit；客户端不得用"我本地已构造但尚未被 accepted Seal 覆盖的 commit"来满足该 coverage。
 - `M` 单调增长：governance Seal 推进后，旧 covered 集合不自动覆盖新元素；新元素回到默认 `expose`，直到后续 commit 重新 attest——这正是 ban / revoke 在新消息上生效的机制。
+- **send-pause 的解除路径（normative）**：`M` 出现未覆盖元素时（包括治理变更恰好落在候选 `seal_ref` 自身、使该 Seal 经 (a)/(b)/(c) 进入 `M` 的情形），发送方 MUST NOT 用同一个 `seal_ref` 反复重试。唯一解除路径是：等待一条把该 governance Seal 列入 `covered_seal_refs` 的 `ak.mls.commit` 被某个 accepted Seal `S'` 收纳，再把消息的 `seal_ref` 重解析到 `S'`——此时该 commit ∈ `covered_set(S')`，`J(S')` 下 coverage 为真。该路径是有限等待而非死锁：每次 governance 推进只需一条 commit 加一次 sealing，且该 commit 断言的是它 authoring 时已存在的 Seal，不触发上一条的自指约束。
 
-**`M` 的确定性重建算法（normative）**：receiver 以消息 `seal_ref=S` 与其 `effective_scope` 为输入，先重建 `J(S)`，再枚举三组输入：(a) `membership_frontier` 覆盖的 membership/device/lifecycle cell；(b) 按 §2.5.1 `policy_root` leaf 过滤规则得到的全部 policy cell；(c) 按 §2.5.1 `capability_root` leaf 过滤规则得到的全部 capability cell。对每个当前物化 cell，取在 `covered_set(S)` 中最后一次改变该物化值的 Control Move，并取首次把该 Move 纳入 accepted control state 的 Seal id；再加入消息自身的 `S` 与由这些 cell 触发、在 `S` 可见的最新 Realm/Circle cascade Seal。所有 Seal id 去重后按 Unicode code point 升序即为 `M`。若存在多个并发 Move 共同决定 lattice value，必须加入覆盖每个 contributing head 的 Seal；任一 head 的首次覆盖 Seal 无法证明时 fail closed。producer 不得传入或删减 `M`，receiver 必须独立重建。
+`covered_seal_refs` 的 basis 可见性与 `S ∉ M` 这两条结构性规则由 conformance vector `ak.vector.mls.covered_seals_no_self_reference.v1` 固化。
+
+**`M` 的确定性重建算法（normative）**：receiver 以消息 `seal_ref=S` 与其 `effective_scope` 为输入，先重建 `J(S)`，再枚举三组输入：(a) `membership_frontier` 覆盖的 membership/device/lifecycle cell；(b) 按 §2.5.1 `policy_root` leaf 过滤规则得到的全部 policy cell；(c) 按 §2.5.1 `capability_root` leaf 过滤规则得到的全部 capability cell。对每个当前物化 cell，取在 `covered_set(S)` 中最后一次改变该物化值的 Control Move，并取首次把该 Move 纳入 accepted control state 的 Seal id；再加入由这些 cell 触发、在 `S` 可见的最新 Realm/Circle cascade Seal。所有 Seal id 去重后按 Unicode code point 升序即为 `M`。`S` 只有在它自身收纳了 (a)/(b)/(c) 中某个 cell 的 last-changing Move 时才作为该 Move 的首次覆盖 Seal 进入 `M`，不得无条件加入（理由见上方 `S` MUST NOT 条）。若存在多个并发 Move 共同决定 lattice value，必须加入覆盖每个 contributing head 的 Seal；任一 head 的首次覆盖 Seal 无法证明时 fail closed。producer 不得传入或删减 `M`，receiver 必须独立重建。
 
 规则：
 

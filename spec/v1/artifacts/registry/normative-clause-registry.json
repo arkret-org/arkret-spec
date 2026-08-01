@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-01.3",
+  "version": "2026-08-01.5",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -167,12 +167,13 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:99bc21afaac6b2b199d113362f8a663693d2b76ec90229bdfa5e3568dbadb091",
-      "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, encryption floors MUST NOT be downgraded, and an encrypted envelope MUST NOT disclose an AAD event id wider than the Realm aad_visibility ceiling.",
+      "section_digest": "sha256:951f712ce3c828c1a4307519638308fbec272939344df273c4d1d65d74e2ab3e",
+      "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, encryption floors MUST NOT be downgraded, an encrypted envelope MUST NOT disclose an AAD event id wider than the Realm aad_visibility ceiling, and a governance binding MUST NOT attest a Seal outside its own seal_basis closure.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.mls.rfc9420_mti_kat.v1",
         "ak.vector.mls.welcome_keypackage_hash.v1",
+        "ak.vector.mls.covered_seals_no_self_reference.v1",
         "ak.vector.e2ee.content_floor_downgrade_rejected.v1",
         "ak.vector.e2ee.metadata_floor_downgrade_rejected.v1",
         "ak.vector.aad_visibility.policy_ceiling.v1"

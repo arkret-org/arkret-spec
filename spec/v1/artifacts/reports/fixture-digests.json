@@ -138,7 +138,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-      "sha256": "fdffbc37cc27c00cdd091f2d06cd876efdfa41de49e4fb42ad02c3ac3592e36a"
+      "sha256": "a0fc1a2fc3caf81585c6735f92ad8bce64e400ded0c711036d2aa1f1615b98c7"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hash-transition-fixture.json",

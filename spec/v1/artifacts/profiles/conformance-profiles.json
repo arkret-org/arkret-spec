@@ -1,6 +1,6 @@
 {
-  "version": "2026-07-31.6",
-  "generated_at": "2026-07-31T07:00:00Z",
+  "version": "2026-08-01.1",
+  "generated_at": "2026-08-01T06:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -3873,7 +3873,7 @@
     },
     "ak.profile.mls_governance_binding.full.v1": {
       "inherits": [],
-      "description": "MLS Governance Binding (full): the v1 hardening profile that binds MLS epochs to governance state. Required for E2EE Realms. MLS commits are Control Moves carrying a governance_binding payload (membership_frontier / policy_root / capability_root / discussion_metadata_hash, transcript-hashed via the mls_governance_binding GroupContext extension) and update three control cells (mls_epoch, key_schedule, covered_seals_cell). E2EE message DataEvents must carry a seal_ref covered by the MLS governance binding; governance / recovery Control Moves do not depend on it.",
+      "description": "MLS Governance Binding (full): the v1 hardening profile that binds MLS epochs to governance state. Required for E2EE Realms. MLS commits are Control Moves carrying a governance_binding payload (membership_frontier / policy_root / capability_root / discussion_metadata_hash, transcript-hashed via the mls_governance_binding GroupContext extension) and update three control cells (mls_epoch, key_schedule, covered_seals_cell). An E2EE message DataEvent's seal_ref selects the governance view whose covered_seals_cell must cover the message's governance Seal dependency set M; the seal_ref Seal itself is never in M, because a Control Move can only attest Seals already visible from its seal_basis and no Seal can cover itself. Governance / recovery Control Moves do not depend on it.",
       "required_endpoints": [
         "ak.self.keys.keypackages.command.claim",
         "ak.self.keys.keypackages.command.consume",
@@ -3933,7 +3933,8 @@
         "governance_binding.binding_profile missing or not ak.profile.mls_governance_binding.full.v1 for a full-profile Realm",
         "governance_binding.reducer_profile missing or mismatched with the negotiated Realm reducer profile",
         "binding_version, encoding_profile, effective_scope, mls_group_id, previous_epoch, next_epoch, membership_frontier, policy_root, or covered_seals_cell verification mismatch",
-        "DataEvent seal_ref not covered by covered_seals_cell for the message governance frontier"
+        "governance_binding.covered_seal_refs naming a Seal outside the commit's seal_basis predecessor closure, or the Seal that admits the commit itself",
+        "covered_seals_cell at the DataEvent seal_ref not covering the message's governance Seal dependency set M"
       ]
     },
     "ak.profile.mls.minimal_metadata_realm.v1": {
