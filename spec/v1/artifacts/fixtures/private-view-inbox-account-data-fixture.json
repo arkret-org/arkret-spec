@@ -1,0 +1,242 @@
+{
+  "profile": "ak.profile.full_client.v1",
+  "version": "2026-08-01",
+  "suite": "private_view_inbox_account_data",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.account_data.private_view_inbox_binding.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.account_data.private_view_inbox_binding.v1"
+  ],
+  "cases": [
+    {
+      "name": "key_patterns_require_a_full_typed_id_tail",
+      "accepted_keys": [
+        "ak.views.private.ak:view:0196419b-0000-7000-8000-000000000001",
+        "ak.notifications.inbox.ak:notification:0196419b-0000-7000-8000-000000000002"
+      ],
+      "rejected_keys": [
+        "ak.views.private",
+        "ak.views.private.",
+        "ak.views.private.quarterly-plan",
+        "ak.views.private.ak:realm:0196419b-0000-7000-8000-000000000001",
+        "ak.notifications.inbox",
+        "ak.notifications.inbox.",
+        "ak.notifications.inbox.ak:view:0196419b-0000-7000-8000-000000000001"
+      ],
+      "expected": {
+        "rejected_error": "invalid_param",
+        "bare_namespace_is_not_a_writable_key": true,
+        "unregistered_key_fallback_unreachable": true
+      }
+    },
+    {
+      "name": "storage_is_encrypted_account_data",
+      "account_data_key": "ak.views.private.ak:view:0196419b-0000-7000-8000-000000000001",
+      "requests": [
+        {
+          "id": "plaintext_definition",
+          "operation": "replace",
+          "expected_revision": 0,
+          "content": {
+            "schema": "ak.schema.view.v1",
+            "id": "ak:view:0196419b-0000-7000-8000-000000000001",
+            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+            "kind": "collection",
+            "visibility": "private",
+            "title": "Quarterly plan",
+            "layout": {
+              "columns": 3
+            }
+          }
+        },
+        {
+          "id": "encrypted_definition",
+          "operation": "replace",
+          "expected_revision": 0,
+          "content": "encrypted_account_data_envelope"
+        }
+      ],
+      "expected": {
+        "accepted": [
+          "encrypted_definition"
+        ],
+        "rejected": [
+          "plaintext_definition"
+        ],
+        "rejected_error": "invalid_param",
+        "envelope_aad_binds": [
+          "actor_id",
+          "account_data_key"
+        ],
+        "server_reads_plaintext": false
+      }
+    },
+    {
+      "name": "private_view_plaintext_binds_its_own_key",
+      "account_data_key": "ak.views.private.ak:view:0196419b-0000-7000-8000-000000000001",
+      "decrypted_plaintext_cases": [
+        {
+          "name": "accepted",
+          "schema": "ak.schema.view.v1",
+          "id": "ak:view:0196419b-0000-7000-8000-000000000001",
+          "visibility": "private",
+          "state": "active",
+          "accepted": true
+        },
+        {
+          "name": "shared_visibility",
+          "visibility": "shared",
+          "accepted": false
+        },
+        {
+          "name": "visibility_absent",
+          "visibility": null,
+          "accepted": false
+        },
+        {
+          "name": "foreign_view_id",
+          "id": "ak:view:0196419b-0000-7000-8000-000000000009",
+          "visibility": "private",
+          "accepted": false
+        },
+        {
+          "name": "shared_terminal_state",
+          "visibility": "private",
+          "state": "tombstoned",
+          "accepted": false
+        }
+      ],
+      "expected": {
+        "enforcement_point": "holder_client",
+        "server_can_recheck": false
+      }
+    },
+    {
+      "name": "shared_view_surfaces_never_carry_private",
+      "requests": [
+        {
+          "id": "view_create_private",
+          "surface": "ak.view.create",
+          "visibility": "private"
+        },
+        {
+          "id": "view_update_private",
+          "surface": "ak.view.update",
+          "visibility": "private"
+        }
+      ],
+      "expected": {
+        "all_rejected": true,
+        "error": "schema_violation",
+        "reason_code": "private_view_requires_account_data",
+        "shared_view_query_visibility": [
+          "shared"
+        ],
+        "private_definition_in_shared_realm_cell": false
+      }
+    },
+    {
+      "name": "inbox_state_is_closed_to_dismissed_and_archived",
+      "account_data_key": "ak.notifications.inbox.ak:notification:0196419b-0000-7000-8000-000000000002",
+      "decrypted_plaintext_cases": [
+        {
+          "name": "dismissed",
+          "state": "dismissed",
+          "accepted": true
+        },
+        {
+          "name": "archived",
+          "state": "archived",
+          "accepted": true
+        },
+        {
+          "name": "read",
+          "state": "read",
+          "accepted": false
+        },
+        {
+          "name": "unread",
+          "state": "unread",
+          "accepted": false
+        },
+        {
+          "name": "foreign_notification_id",
+          "notification_id": "ak:notification:0196419b-0000-7000-8000-000000000009",
+          "state": "archived",
+          "accepted": false
+        }
+      ],
+      "expected": {
+        "value_binds": [
+          "notification_id",
+          "state",
+          "updated_hlc",
+          "origin_device_id"
+        ],
+        "read_state_source": "read_cursor"
+      }
+    },
+    {
+      "name": "inbox_merge_is_hlc_then_device_tie_break",
+      "account_data_key": "ak.notifications.inbox.ak:notification:0196419b-0000-7000-8000-000000000002",
+      "values": [
+        {
+          "id": "device_a",
+          "state": "dismissed",
+          "updated_hlc": "01970e589d21-0001-a13f9c2e",
+          "origin_device_id": "ak:device:0196419b-0000-7000-8000-000000000001"
+        },
+        {
+          "id": "device_b_newer_hlc",
+          "state": "archived",
+          "updated_hlc": "01970e589d22-0000-a13f9c2e",
+          "origin_device_id": "ak:device:0196419b-0000-7000-8000-000000000002"
+        },
+        {
+          "id": "device_b_equal_hlc",
+          "state": "archived",
+          "updated_hlc": "01970e589d21-0001-a13f9c2e",
+          "origin_device_id": "ak:device:0196419b-0000-7000-8000-000000000002"
+        }
+      ],
+      "expected": {
+        "newer_hlc_winner": "device_b_newer_hlc",
+        "equal_hlc_winner": "device_b_equal_hlc",
+        "all_delivery_orders_equal": true,
+        "merge_runs_on": "client_plaintext"
+      }
+    },
+    {
+      "name": "deletion_mode_is_physical_delete",
+      "account_data_keys": [
+        "ak.views.private.ak:view:0196419b-0000-7000-8000-000000000001",
+        "ak.notifications.inbox.ak:notification:0196419b-0000-7000-8000-000000000002"
+      ],
+      "requests": [
+        {
+          "id": "physical_delete",
+          "surface": "ak.self.account_data.resource.delete",
+          "operation": "delete",
+          "expected_revision": 4
+        },
+        {
+          "id": "offline_stale_rewrite",
+          "operation": "replace",
+          "expected_revision": 3,
+          "content": "encrypted_account_data_envelope"
+        }
+      ],
+      "expected": {
+        "physical_delete": "accepted",
+        "final_revision": 5,
+        "resource_get": "not_found",
+        "not_found_current_revision": 5,
+        "offline_stale_rewrite": "cas_conflict",
+        "revival_allowed": false
+      }
+    }
+  ],
+  "minimum_independent_runners": 2
+}

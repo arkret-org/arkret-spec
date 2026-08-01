@@ -87,6 +87,10 @@ Notification projection 的 `dismissed` / `archived` 跨设备状态使用
 Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST validate 为
 `ak.schema.view.v1` 且 `visibility="private"`。共享 View 仍只能使用 `ak.view.*` Event。
 
+以上两个 key 的可执行覆盖见
+[`../conformance/conformance-vectors.md` §5.11](../conformance/conformance-vectors.md) 的
+`ak.vector.account_data.private_view_inbox_binding.v1`。
+
 ### 3.3 自定义 Emoji 与 Sticker (Custom Emojis)
 
 用户个人收藏的表情包或贴纸集。

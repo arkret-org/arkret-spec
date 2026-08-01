@@ -137,7 +137,9 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 `ak.schema.view.v1` 校验。`ak.view.create` / `ak.view.update` reducer MUST 拒绝
 `visibility="private"`（`schema_violation`, `reason_code="private_view_requires_account_data"`），
 不得把 title、query 或 layout 写入共享 Realm cell。查询共享 View 的 operation MUST 只返回
-`visibility="shared"`；private View 只经 holder 的 account-data surface 同步。
+`visibility="shared"`；private View 只经 holder 的 account-data surface 同步。可执行覆盖见
+[`../conformance/conformance-vectors.md` §5.11](../conformance/conformance-vectors.md) 的
+`ak.vector.account_data.private_view_inbox_binding.v1`。
 
 JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `timeline` / `graph` / `document` / `composite` 分别只允许携带对应的 `collection` / `timeline` / `graph` / `document` / `dashboard` 配置。`kind="composite"` 的 `dashboard.widgets[]` 至少包含一个 widget；若携带 `renderer`，只能是 `dashboard` 或 profile-defined `custom`。
 

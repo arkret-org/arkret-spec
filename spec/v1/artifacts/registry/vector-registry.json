@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-01.1",
+  "version": "2026-08-01.2",
   "source_of_truth": true,
-  "generated_at": "2026-08-01T05:00:00Z",
+  "generated_at": "2026-08-01T06:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -29,6 +29,21 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/models/account-data.md",
         "spec/v1/artifacts/fixtures/account-data-cas-convergence-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.account_data.private_view_inbox_binding.v1",
+      "status": "active",
+      "domain": "account_data",
+      "applies_to_fixtures": [
+        "private-view-inbox-account-data-fixture.json"
+      ],
+      "description": "The two registered typed-id account-data namespaces are closed: ak.views.private.<view_id> and ak.notifications.inbox.<notification_id> accept only a full typed id tail, reject the bare namespace instead of falling through to the permissive unregistered-key branch, refuse plaintext content, bind the decrypted private View to visibility=private and its own view_id while the shared ak.view.* surfaces reject visibility=private, close the inbox value to dismissed/archived with an HLC-then-device_id merge, and delete physically without allowing revival.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/discovery/client-preferences.md",
+        "spec/v1/zh/models/views.md"
       ]
     },
     {

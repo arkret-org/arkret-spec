@@ -2489,6 +2489,53 @@ Expected：
 - 任意投递顺序下，所有设备在耗尽重试循环后 MUST 收敛到同一 `(revision, content)`。
 - 缺少 `expected_revision` 的 `ak.account_data.set` payload、`resource.replace` body 或 `resource.delete` query MUST 在 handler 前以 `schema_violation` 拒绝。
 
+### 5.11 Vector: Private View 与 Notification 收件箱 account-data 承载
+
+`vector_id`: `ak.vector.account_data.private_view_inbox_binding.v1`
+
+两个 key pattern 的唯一真源是
+[`../models/views.md` §3.1](../models/views.md)、
+[`../discovery/client-preferences.md` §3.2](../discovery/client-preferences.md) 与
+`registry/account-data-key-registry.json` 的
+`ak.views.private.<view_id>` / `ak.notifications.inbox.<notification_id>` 两行。
+本向量固化"key 必须带完整 typed id 尾缀、value 必须是加密 envelope、明文语义只能在
+holder 客户端校验"三点。服务端只见 key 与密文。
+
+Cases：
+
+1. **key pattern 闭合**：两个 namespace MUST 只接受完整 typed id 尾缀
+   （`ak.views.private.ak:view:<uuidv7>`、`ak.notifications.inbox.ak:notification:<uuidv7>`）。
+   裸 namespace（`ak.views.private`）、空尾缀（`ak.views.private.`）、非 typed id 尾缀与
+   跨 kind 尾缀 MUST 拒绝；实现 MUST NOT 让它们落到未注册 key 的宽松兜底分支。
+2. **storage=encrypted_account_data**：把 `ak.schema.view.v1` 明文（含 `title` / `query` /
+   `layout`）写入 `ak.views.private.<view_id>` MUST 拒绝；同一 key 的加密 envelope MUST 接受，
+   且 envelope AAD MUST 同时绑定 `actor_id` 与 `account_data_key`。
+3. **private View 明文绑定自身 key**：解密后的 plaintext MUST validate 为 `ak.schema.view.v1`、
+   `visibility="private"`、`id` 等于 key 尾缀。`visibility="shared"`、缺省 `visibility`、
+   他 View 的 `id`、以及共享终态 `state="tombstoned"` MUST 拒绝。该层 MUST 在 holder 客户端
+   执行——服务端没有明文，无法复核。
+4. **共享 surface 不承载 private**：`ak.view.create` / `ak.view.update` 携带
+   `visibility="private"` MUST 以 `schema_violation`、`reason_code="private_view_requires_account_data"`
+   拒绝；查询共享 View 的 operation MUST 只返回 `visibility="shared"`；private 定义 MUST NOT
+   出现在任何共享 Realm cell。
+5. **收件箱 state 闭合**：value MUST 绑定 `notification_id`、`state ∈ {dismissed, archived}`、
+   HLC 与 device tie-break 材料，且 `notification_id` MUST 等于 key 尾缀。`read` / `unread`
+   MUST 拒绝写入该 key——它们仍由 read cursor 派生。
+6. **收件箱合并**：同一 notification 的两份 value 先比 HLC，HLC 相等时比 `origin_device_id`
+   字典序。两种到达顺序 MUST 选出同一 winner，且合并只发生在客户端 CAS 重试循环内的明文上。
+7. **physical_delete**：两个 key 的 `deletion_mode` 均为 `physical_delete`，
+   `ak.self.account_data.resource.delete` MUST 接受；删除后 `resource.get` 返回 `not_found`
+   且带 revision high-water mark，离线设备的旧 `expected_revision` 重写 MUST 以 `cas_conflict`
+   拒绝，不得复活。
+
+Expected：
+
+- case 1 的每个被拒 key 都不得产生任何存储副作用，也不得改变 revision。
+- case 2 与 case 3 合起来构成完整闭合：服务端保证密文，客户端保证语义；只做其中一半的实现
+  MUST 判为 conformance failure。
+- key 内嵌完整 typed id 带来的存在性泄露是 registry 已接受的取舍（与 `ak.tags.realm.<realm_id>`
+  同级）；实现 MUST NOT 再往 key 里追加 `realm_id`、`title` 或其派生物扩大泄露面。
+
 ## 6. Space Lifecycle Vectors
 
 ### 6.1 目标

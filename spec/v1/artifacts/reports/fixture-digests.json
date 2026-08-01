@@ -229,6 +229,10 @@
       "sha256": "14adbe13f26129cf2df1161f9c1cdd7979515e1874e52dcb7601a29b5c6941b9"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",
+      "sha256": "ab9d61be11ec83914ea25a49ac2d51ddccc8b21a3e3465f1af582f7bc027e118"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
       "sha256": "d31ff8de83150a2c2483ebfd390828017ae251ca4309ee778b2b8c49e87bbeae"
     },
