@@ -779,7 +779,8 @@
       "type": "object",
       "required": [
         "ok",
-        "authorized_event_ref",
+        "activation_state",
+        "authorize_event_ref",
         "signing_key_binding"
       ],
       "properties": {
@@ -787,7 +788,15 @@
           "type": "boolean",
           "const": true
         },
-        "authorized_event_ref": {
+        "activation_state": {
+          "type": "string",
+          "enum": [
+            "awaiting_accepted_frontier",
+            "active"
+          ],
+          "description": "Two-phase pairing result. awaiting_accepted_frontier means the exact authorization Event is durable but is not yet authorization state; the controller MUST close it into a managed Agent-PCR Seal and retry the identical idempotent request. active means portable signer evidence can be built from an accepted Seal and only then may the runtime be treated as authorized."
+        },
+        "authorize_event_ref": {
           "$ref": "#/$defs/event_id"
         },
         "signing_key_binding": {

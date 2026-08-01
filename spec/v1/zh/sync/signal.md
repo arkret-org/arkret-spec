@@ -77,20 +77,32 @@ SignalEnvelope，因此同时承诺 ciphertext 与 `aad_digest`。
 1. **Realm / scope 授权域**：`seal_ref` 必须解析为 `realm_id` 的已知 Seal；sender actor 在该
    Realm / scope basis 下的实时发送资格、`signal_class` action gate 与产品级 action（§7）都在
    该 basis 下求值。
-2. **设备授权域**：principal 的设备授权、吊销、A 模型 cross-signing generation 与 B 模型
-   device generation fence 按**每个 verifier 当时的 current accepted device directory**
-   （[`../crypto-media/device-lifecycle.md` §5.4 / §8.2](../crypto-media/device-lifecycle.md)）
-   求值，与 `seal_ref` 无关；目标 Realm 的 Seal 不覆盖、也无法定位另一个 principal-control
-   Realm 的设备集状态。
+2. **sender-key 授权域**：普通 user / org principal 的设备授权、吊销、A 模型 cross-signing
+   generation 与 B 模型 device generation fence 按**每个 verifier 当时的 current accepted
+   device directory**（[`../crypto-media/device-lifecycle.md` §5.4 / §8.2](../crypto-media/device-lifecycle.md)）
+   求值；Native Agent 则按其 current accepted `ak.agent.key.authorize` 与 portable signer
+   evidence 求值。两类都与 `seal_ref` 无关；目标 Realm 的 Seal 不覆盖、也无法定位另一个
+   principal-control Realm 的 device / Agent-key 状态。
 
 `proof.verification_method` MUST 逐字等于 `` `{sender_actor_id}#{sender_device_id}` ``；
-逐字相等只是目录 lookup key 的完整性条件，不能代替设备授权验证。verifier MUST 用
-`(sender_actor_id, sender_device_id)` 从其 current accepted principal-control /
-device-directory frontier 解析权威 verify key，并完成适用的 A 模型 cross-signing 链或
-B 模型 enrollment-authority + active-generation 校验。当前目录缺失、`device_status !=
-active`、设备已撤销、generation fenced / conflicted、信任链不完整或签名验证失败一律 fail
-closed。已观察到 device-list / generation frontier 变化后 MUST NOT 继续使用旧 positive
-cache。
+逐字相等只是 sender endpoint 与签名方法的完整性条件，不能代替授权验证。普通 principal
+的 verifier MUST 用 `(sender_actor_id, sender_device_id)` 从 current accepted
+principal-control / device-directory frontier 解析权威 verify key，并完成适用的 A 模型
+cross-signing 链或 B 模型 enrollment-authority + active-generation 校验。Native Agent 的
+verifier MUST 要求该 `sender_device_id` 等于 Agent session / MLS endpoint 的稳定绑定，并以
+同一 `proof.verification_method` 解析 current active accepted `ak.agent.key.authorize`；其
+signing-key binding、state witness、freshness、revoke / supersede / expiry / conflict 语义按
+[`../identity/key-management.md` §3.6.1](../identity/key-management.md) 的 portable signer
+evidence 验证，MUST NOT fallback 到 device directory、controller device 或裸 fragment。
+portable signer evidence 的 state witness 与 Seal lineage MUST 锚定该 Agent 的
+principal-control Realm；目标 Signal 的 `realm_id` / `seal_ref` 只用于共享 scope 与发送资格
+校验。接收方 MUST NOT 要求 evidence witness Realm 等于目标 Signal Realm，也不得用目标
+Realm 替代 evidence 的 `authorization_realm_id` 进行验证；否则任何 PCR 与会话 Realm 分离的
+合法 Agent 都会被错误拒绝。evidence query 服务必须先按目标 Realm 验证 requester 与 Agent
+的当前共享上下文，再最小披露该 Agent 的 PCR 授权证据。
+任一当前授权目录 / evidence 缺失、inactive、revoked、fenced / conflicted、信任链不完整、
+freshness 不足或签名失败一律 fail closed。已观察到相关 frontier 变化后 MUST NOT 继续使用
+旧 positive cache。
 
 设备在 `seal_ref` 之后才获得授权、验证时已处于 current active 状态时，Signal **通过设备
 授权这一关**——这不是历史授权回溯，而是两个状态域的既定语义；该 envelope 仍须通过同

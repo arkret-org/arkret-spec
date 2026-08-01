@@ -109,6 +109,7 @@ ID 语义：
       "allowed_write_fields": ["metadata.title", "metadata.summary", "content", "metadata.fields.review_status"]
     }
   ],
+  "issued_at": "2026-04-26T00:00:00.000Z",
   "proofs": [
     {
       "kind": "detached_jws",

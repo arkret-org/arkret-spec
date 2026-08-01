@@ -45,9 +45,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/classification-field-registry.json",
-      "version": "2026-07-26",
+      "version": "2026-08-01.1",
       "generated_at": null,
-      "content_digest": "sha256:bf5b5aa66e97cec179499036f96bf01c7ddbf4cb8dc42279ab1625fa5dd8dfe0"
+      "content_digest": "sha256:c11928da2e3c757d94b1ee899680912cac8803d613fbbc2e7e55e3f1f299cda6"
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",

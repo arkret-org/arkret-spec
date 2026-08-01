@@ -651,6 +651,8 @@ MUST 支持:
 - key proof 绑定 `challenge`(也充当 per-request nonce,服务端 MUST 在 replay window 内拒绝同值) / `audience` / `request_canonical_digest` / agent principal(由 `principal_id` + `proof.verification_method` 一致性 enforced) / `expires_at`。Wire 不引入独立的 `nonce` 字段；agent proof schema 仅有 `challenge`,它就是 nonce 概念的承载者
 - Replay table 覆盖 proof `expires_at` 后的 grace window
 - Session TTL 默认 ≤ 15 分钟,profile 可声明更长但 ≤ 60 分钟
+- 声明可交互 Realm / Direct Conversation chat runtime 时，provision/key/session 三层服务面 scope 必须覆盖 `ak.self.events.stream.subscribe`、`ak.self.events.query.scan`、`ak.self.events.query.frontier`、`ak.self.events.command.submit`、`ak.self.authorization_leases.command.issue`；声明在线 presence 时还必须覆盖 `ak.self.signal.command.send`。内容读写能力继续由独立 `ak.event.read` / `ak.message.create` Realm grant 与 participation gate 强制。缺失 immutable provision action 必须报告 migration required 并 provision 新 Agent principal，不得由 re-pairing 静默扩大
+- 在线 Agent presence 必须遵守 [`profiles-presence.md` §3.3](../discovery/profiles-presence.md) 的短 TTL 刷新合同：30 秒 session ceiling 下 SHOULD 每 20–25 秒发送新的加密 `ak.presence`，持久化递增 sequence 与 MLS nonce，无法在 expiry 前安全提交时自然降级为 offline；进程 / stream keepalive 不构成 presence
 - Structured human approval request 返回统一错误信封：`error.code=claim_required`，`error.details={reason_code: human_approval_required, approval_request_id}`；details 必须通过 `agent-operations.schema.json#/$defs/agent_human_approval_error_details`，且不得向 agent runtime 展示 CAPTCHA / OTP。实现必须通过 `ak.vector.agent_auth.human_approval_required.v1`
 
 MUST NOT:

@@ -2833,44 +2833,16 @@
     "capability_grant_payload": {
       "type": "object",
       "required": [
-        "grant_id"
+        "grant_id",
+        "grant"
       ],
-      "anyOf": [
-        {
-          "required": [
-            "grant"
-          ]
-        },
-        {
-          "required": [
-            "grant_id",
-            "subject",
-            "actions",
-            "resources"
-          ]
-        }
-      ],
+      "description": "Canonical ak.capability.grant payload. The complete signed CapabilityGrant is mandatory; the former flat subject/actions/resources alternative is not v1 wire because it cannot carry proofs or issuer_authority_refs.",
       "properties": {
         "grant": {
           "$ref": "./capability-grant.schema.json"
         },
         "grant_id": {
           "$ref": "#/$defs/grant_id"
-        },
-        "subject": {},
-        "actions": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 1
-        },
-        "resources": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          },
-          "minItems": 1
         }
       },
       "additionalProperties": false
@@ -4643,6 +4615,36 @@
     "encrypted_metadata": {
       "$ref": "./encrypted-envelope.schema.json"
     },
+    "message_encrypted_content": {
+      "allOf": [
+        {
+          "$ref": "./encrypted-envelope.schema.json"
+        },
+        {
+          "properties": {
+            "content_type": {
+              "const": "application/vnd.arkret.message+json"
+            }
+          }
+        }
+      ],
+      "description": "MLS-protected Message ContentBlock bound to its one canonical decrypted schema."
+    },
+    "message_encrypted_metadata": {
+      "allOf": [
+        {
+          "$ref": "./encrypted-envelope.schema.json"
+        },
+        {
+          "properties": {
+            "content_type": {
+              "const": "application/vnd.arkret.message-metadata+json"
+            }
+          }
+        }
+      ],
+      "description": "MLS-protected Message metadata bound to its one canonical decrypted schema."
+    },
     "encrypted_payload": {
       "$ref": "./encrypted-envelope.schema.json"
     },
@@ -6009,13 +6011,13 @@
           "$ref": "#/$defs/content_block"
         },
         "encrypted_content": {
-          "$ref": "#/$defs/encrypted_content"
+          "$ref": "#/$defs/message_encrypted_content"
         },
         "metadata": {
           "$ref": "#/$defs/message_metadata"
         },
         "encrypted_metadata": {
-          "$ref": "#/$defs/encrypted_metadata"
+          "$ref": "#/$defs/message_encrypted_metadata"
         },
         "blob_refs": {
           "type": "array",
@@ -6387,13 +6389,13 @@
           "$ref": "#/$defs/content_block"
         },
         "encrypted_content": {
-          "$ref": "#/$defs/encrypted_content"
+          "$ref": "#/$defs/message_encrypted_content"
         },
         "metadata": {
           "$ref": "#/$defs/message_metadata"
         },
         "encrypted_metadata": {
-          "$ref": "#/$defs/encrypted_metadata"
+          "$ref": "#/$defs/message_encrypted_metadata"
         },
         "reason": {
           "type": "string"

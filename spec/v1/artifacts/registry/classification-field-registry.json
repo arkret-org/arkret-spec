@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-26",
+  "version": "2026-08-01.1",
   "source_of_truth": true,
   "description": "Machine authority for the kind/type/class/tier naming axes. Entries are exact-context permissions, never basename allowlists.",
   "axis_rules": {
@@ -60,6 +60,24 @@
       "external_standard": "HTTP Semantics",
       "external_field_path": "Content-Type field value",
       "round_trip_requirement": "Preserve the HTTP media type value used to label the encrypted content.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/event-payload.schema.json",
+      "json_pointer": "/$defs/message_encrypted_content/allOf/1/properties/content_type",
+      "external_standard": "HTTP Semantics",
+      "external_field_path": "Content-Type field value",
+      "round_trip_requirement": "Preserve the HTTP media type value used to label encrypted message content. Arkret narrows it to the single registered value application/vnd.arkret.message+json so a receiver can route the ciphertext to exactly one decrypted ContentBlock schema; the narrowing selects among external media types and does not extend the external vocabulary.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/event-payload.schema.json",
+      "json_pointer": "/$defs/message_encrypted_metadata/allOf/1/properties/content_type",
+      "external_standard": "HTTP Semantics",
+      "external_field_path": "Content-Type field value",
+      "round_trip_requirement": "Preserve the HTTP media type value used to label encrypted Message metadata. Arkret narrows it to the single registered value application/vnd.arkret.message-metadata+json so a receiver can route the ciphertext to exactly one decrypted MessageMetadata schema; the narrowing selects among external media types and does not extend the external vocabulary.",
       "dispatch_authority": "external_standard",
       "arkret_extensions_allowed": false
     },
@@ -132,6 +150,24 @@
       "external_standard": "IANA Media Types and HTTP Content-Type",
       "external_field_path": "Content-Type media type",
       "round_trip_requirement": "Preserve each thumbnail media type without Arkret taxonomy remapping.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/message.schema.json",
+      "json_pointer": "/properties/encrypted_content/allOf/1/properties/content_type",
+      "external_standard": "HTTP Semantics",
+      "external_field_path": "Content-Type field value",
+      "round_trip_requirement": "Preserve the HTTP media type value used to label encrypted message content. Arkret narrows it to the single registered value application/vnd.arkret.message+json so a receiver can route the ciphertext to exactly one decrypted ContentBlock schema; the narrowing selects among external media types and does not extend the external vocabulary.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/message.schema.json",
+      "json_pointer": "/properties/encrypted_metadata/allOf/1/properties/content_type",
+      "external_standard": "HTTP Semantics",
+      "external_field_path": "Content-Type field value",
+      "round_trip_requirement": "Preserve the HTTP media type value used to label encrypted Message metadata. Arkret narrows it to the single registered value application/vnd.arkret.message-metadata+json so a receiver can route the ciphertext to exactly one decrypted MessageMetadata schema; the narrowing selects among external media types and does not extend the external vocabulary.",
       "dispatch_authority": "external_standard",
       "arkret_extensions_allowed": false
     },

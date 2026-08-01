@@ -15,6 +15,7 @@
     "subject",
     "actions",
     "resources",
+    "issued_at",
     "proofs",
     "issuer_authority_refs"
   ],

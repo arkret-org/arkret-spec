@@ -1014,7 +1014,7 @@ verification method 的 DID controller MUST 等于 `requester`，并按 requeste
 | `claims` | `object[]` | required | 每个 claimed KeyPackage 的 `claim_id`、`keypackage_ref`、`keypackage_digest`、device binding、expiry、capabilities 和 `capabilities_digest = sha256(JCS(capabilities))`。 |
 | `failures` | `object[]` | optional | 不可领取设备与原因；不得泄露不可见用户或设备。 |
 
-`consume` request MUST validate `schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body`，并由 Welcome 接收方或授权发送方在 Welcome 成功处理且新的 MLS group state 已 durable 持久化后调用，绑定 `key_package_refs[]`、`consumer_device_id`、`signature`，以及可选 `claim_ids[]`、`welcome_ref`、`realm_id`、`strand_id`、`mls_group_id`、`epoch`。若持久化失败，runtime MUST NOT 调用 consume；若 consume响应丢失，必须以同一 signed typed request幂等重试。`revoke` request MUST validate `#/$defs/key_packages_revoke_request_body`，可由设备、principal controller 或 policy授权服务发起。
+`consume` request MUST validate `schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body`，并由 Welcome 接收方或授权发送方在 Welcome 成功处理且新的 MLS group state 已 durable 持久化后调用，绑定 `key_package_refs[]`、`consumer_device_id`、`signature`，以及可选 `claim_ids[]`、`welcome_ref`、`realm_id`、`strand_id`、`mls_group_id`、`epoch`。若持久化失败，runtime MUST NOT 调用 consume；若 consume响应丢失，必须以同一 signed typed request幂等重试。服务端 MUST 把与首次成功 consume 完全相同的重试作为成功返回，不得因 KeyPackage 已进入 `consumed` 而返回失败。对于 Direct Conversation，只有在 request 精确匹配 active canonical binding、accepted Welcome、claim、recipient principal/device、Realm、Strand、MLS group 与 epoch 后，服务端才可在 terminal KeyPackage row 已清理或不可用时把该重试视为幂等成功；任何字段不同仍 MUST fail closed。实现 SHOULD 保留足够的 terminal consume ledger，使幂等判断不依赖 inventory row 的生命周期。`revoke` request MUST validate `#/$defs/key_packages_revoke_request_body`，可由设备、principal controller 或 policy授权服务发起。
 
 规则：
 

@@ -151,6 +151,8 @@ v1 规范采用窄读：private contact discovery 响应 MAY 在 PSI set-members
 
 联系人 accepted 后，或用户从自己的 Native Personal Agent 入口发起私聊时，客户端不应手工拼 Realm / Strand。`ak.self.direct_conversation.command.resolve` 是 pair 到 canonical 1:1 DM 入口的幂等 resolver。联系人侧栏中的 owned-Agent 行属于本节的直接会话入口；它不需要当前 Collaboration Realm/Strand 上下文，也不得调用 Sidecar ensure。
 
+**入口可发现性（normative）**：`collaboration_role="direct_conversation"` 的 Realm，无论其 binding 是 pending、active canonical、duplicate、non-canonical、retired 或尚不可解析，都不具备普通 Collaboration Realm 的导航 / 发现资格；generic Realm discovery/navigation projection MUST 排除它，或以不可作为普通入口的 typed role 明确标记，使客户端 MUST 排除。客户端仍 MAY 在本地同步状态中保留这些 Realm 以完成 MLS、消息与历史恢复，但只能在持有本节 resolver 的 `found` 或等价、仍有效的 active canonical binding 投影证据时，经 Direct Conversation 专用入口进入；不得仅因为同步到了一个 DM Realm 就把它当作普通协作入口。该规则也适用于唯一 active canonical Realm："至多一个"不等于"可作为普通 Realm 发现一个"。具体界面布局不属于本规范范围。
+
 | operation | HTTP | Body / Response | 说明 |
 | --- | --- | --- | --- |
 | `ak.self.direct_conversation.command.resolve` | `POST /_arkret/self/direct-conversations/resolve` | `DirectConversationResolveRequestBody` / `DirectConversationResolveOutcome` | 解析或创建这对 actor 的 canonical 1:1 DM 入口 |
@@ -163,6 +165,7 @@ Resolver MUST：
    - `managed_agent_controller`：peer 是 lifecycle `active`、runtime key 已授权的 Native Personal Agent，且其 immutable controller binding bit-identical 指向 requester。
 2. `accepted_contact` basis 还 MUST 验证目标 holder 对 requester 有 active `consent_scope=direct_message` 或 `any`。`managed_agent_controller` basis 的 provisioning/controller binding 是该 controller 发起专属 Agent 私聊的授权根，不额外伪造 contact 或 consent fact；非 controller、paused/deactivated/unpaired Agent 均不得使用该分支。任一 basis 不成立时，对 requester 统一返回 `failed_precondition` / `direct_conversation_unavailable`。服务端 MAY 在 holder-private 审计中区分具体原因，但响应状态、body 与时序 MUST 不可区分。只想基于 consent 发起其它非联系人 DM 的 profile 必须另行注册 operation。
 3. 查询 direct conversation binding。若已有 structurally eligible 的 active canonical binding，返回其 `realm_id` 与 `main_strand_id`。若旧 active binding 已被 accepted member leave/ban、Realm 终态或 main Strand 终态立即失去资格，但尚无 participant 原签名 retired fact，`create=true` MUST 先返回 `authoring_kind=direct_conversation_retirement`；不得直接创建 successor 或由服务端改投影。
+   - 对 owned Native Personal Agent，resolver 的 `found` 与 Agent participation policy 是两个独立的协议结果。客户端 MAY 在打开专用会话入口时另行请求 `ak.self.agent.participation.resource.replace` 以启用 Agent reply，但该 policy 写入、对应 capability grant 物化或 effective-ceiling 检查失败时，MUST NOT 把已经得到的 `found` 降级为 `direct_conversation_unavailable`、MUST NOT 阻止进入已有 canonical 会话，也 MUST NOT 因此创建第二个候选 Realm；客户端 SHOULD 在会话内明确显示“Agent 当前不可回复”及修复入口。
 4. 若 `create=false` 且不存在 binding，返回 `not_found`。
 5. 若 `create=true`，先确定 KeyPackage claim，再向参与者返回不可变 materialization draft；真正的 Realm create / member add / Strand create、MLS group create / add-commit / Welcome 与 binding 必须由参与者设备完成签名并经 canonical Event rail 接受。同 Principal Server 可使用 self KeyPackage claim；跨 Principal Server MUST 使用 [`device-lifecycle.md` §9.2](../crypto-media/device-lifecycle.md) 的 participant-authorized peer claim，不得调用对端 `/_arkret/self/*` 或以 Event push 模拟 claim。Principal Server 不持有参与者设备私钥，也不得直接调用 reducer 伪装这些事实已经成为 Event。该编排的失败路径 MUST 返回如下终态错误，且 MUST NOT 把半成品 Realm 作为 canonical binding 返回：
    - **对端 principal 不可解析**（peer DID 无法解析到有效 principal / control state）：返回 `failed_precondition` / `peer_unresolvable`，不发起 KeyPackage claim 或 Realm create。
@@ -170,6 +173,8 @@ Resolver MUST：
    - **create 编排中途失败**（Realm / membership / MLS group / Strand 任一步已创建但后续步骤或 binding fact 未写成）：返回 `temporarily_unavailable`（可重试）；已创建的 Realm 按下文 orphan / non-canonical 规则处理，MUST NOT 作为默认聊天入口返回。重试 MAY 在 participants / membership / main Strand / contact refs 完全匹配后补写 binding，否则创建新候选并由 deterministic canonical selection 收敛。
 
 Resolver create 是多步编排，不是单个 reducer 原子操作。若 Realm / membership / Strand 已创建但 binding fact 未写成，该 Realm 只能作为 orphan / non-canonical 候选存在；重试 MAY 在验证其 participants、membership、main Strand、contact refs 与请求 pair 完全匹配后补写 binding，否则必须创建新的候选并让 deterministic canonical selection 收敛。没有 binding 的 orphan Realm 不得作为默认聊天入口返回。
+
+实现 SHOULD 优先修复并复用字段与 accepted frontier 完全匹配的 pending orphan，避免每次重试都制造新 Realm。无法修复的 orphan / loser MUST 继续遵守上述导航隐藏规则；部署 MAY 在可证明其不含用户消息、未被任何 active/retired binding 引用且审计保留期已满足后清理，否则只能作为内部诊断 / 历史对象保留，不得直接删除用户历史。
 
 `state=authoring_required` 是显式的客户端签名状态，不是成功终态；该状态 MUST 携带 `authoring_kind`，且 `created` MUST 为 `false`：
 

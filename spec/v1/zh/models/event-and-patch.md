@@ -72,6 +72,45 @@ Schema id: `ak.schema.event.v1`
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。**producer / self submit 与 peer submit 的 Event MUST NOT 携带该字段**；它只能由接收服务在 read view 上添加，任何实现都 MUST NOT 把它用于身份、授权、reducer 或签名判断。service-added `unsigned` 单对象 canonical JSON MUST NOT 超过 16 KiB，见 [`../conformance/scalability-constraints.md` §2.1.1](../conformance/scalability-constraints.md)。 | 仅 read view 的本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof（`minItems: 1`）。 | 签名证明。 |
 
+#### 2.2.1 Wire Event 与 producer 的已验证提交态（normative）
+
+`ak.schema.event.v1` 是所有 durable Event 的统一 wire envelope。MLS
+`genesis` / `commit` / `welcome`、携带 MLS 加密正文的 `ak.message.create` 与明文允许的
+Event 都使用同一组 envelope 字段；它们由 `kind` 与注册 payload schema 区分。内容是否由
+MLS 保护是 payload protection 维度，不是第二种 Event envelope。SDK / 实现 MUST NOT 定义
+字段规则不同的通用 `MlsEvent` wire 类型，或因 payload 已加密而省略该 Event 所属 CBA plane
+的字段。特别地，加密 `ak.message.create` 仍是 DataEvent，仍 MUST 携带 `seal_ref +
+auth_context`。
+
+Producer SDK 还 MUST 在与外层提交态正交的 payload protection 轴上提供等价于
+`PlainPayload<T> | MlsEncryptedPayload<T>` 的 closed choice。前者持有通过 `T` 自身 schema
+校验的明文值；后者持有通过 `encrypted-envelope` 校验的 MLS envelope，并把
+`content_type` 精确绑定到 `T` 注册的唯一解密 schema。`MlsEncryptedPayload<T>` 的类型参数
+不得只是未经检查的 marker：构造时 `content_type` 不匹配 MUST fail closed。Message
+ContentBlock 的 canonical MLS `content_type` 是
+`application/vnd.arkret.message+json`；发送方不得另造
+`application/vnd.arkret.content-block+json` 等私有别名。Message metadata 是不同的 plaintext
+schema，其 canonical MLS `content_type` 是 `application/vnd.arkret.message-metadata+json`；它
+MUST 使用 `MlsEncryptedPayload<MessageMetadata>`，不得用 ContentBlock wrapper 加密或解密。
+`MlsWelcomePayload`、
+`MlsCommitPayload`、`MlsGenesisPayload` 等是由 Event `kind` 分派的具体 MLS 协议 payload，
+不等同于这个内容保护 wrapper。
+
+通用 wire `Event` 为支持解析全部 plane，可以把 `seal_ref`、`auth_context`、`seal_basis`
+表示为条件字段；但 producer SDK MUST 将“可解析 wire object”与“可提交 Event”建模为不同
+状态。普通首发 / lease / submit API MUST 只接受一个已经通过完整 Event schema 与 CBA shape
+校验、且不能再原地修改 envelope 的已验证提交态，其 closed variant 至少区分：
+
+- DataEvent：`seal_ref + auth_context` 必填，`seal_basis + preconditions` 禁止；
+- Control Move：`seal_basis` 必填，`seal_ref + auth_context` 禁止；
+- non-reducer Event：全部 CBA reducer 字段禁止。
+
+Anchor Unit 是显式、闭合且有序的 batch protocol，MUST 由对应 bootstrap / re-anchor unit
+validator 构造；SDK MUST NOT 用“一个或一批 Event 的 CBA 条件字段均为空”推断它是 Anchor
+Unit。raw `Event` MAY 用于反序列化、检查、草稿中间态或兼容读取，但 MUST NOT 绕过上述
+转换直接进入 publication-evidence 或 submit 网络边界。转换失败 MUST 在发起网络请求前
+fail closed。
+
 Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。`effects`、`conflict_keys_digest` 与 producer-selected `auth_context.capability_refs` 均不是 v1 wire 字段；遇到它们 MUST `schema_violation`。扩展字段不得直接加在顶层；非关键扩展只能放入 payload schema 明确声明的 `x_*` 槽。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的扩展字段；关键扩展必须通过 `requirements.critical_extensions[]` 声明并 fail closed。
 
 v1 **不登记** `ak.control.primitive`，也不定义 `PrimitiveControlOperations`。每个 Control Move

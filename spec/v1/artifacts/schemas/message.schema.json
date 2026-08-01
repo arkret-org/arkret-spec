@@ -132,14 +132,36 @@
       "$ref": "#/$defs/content_block"
     },
     "encrypted_content": {
-      "$ref": "./encrypted-envelope.schema.json",
+      "allOf": [
+        {
+          "$ref": "./encrypted-envelope.schema.json"
+        },
+        {
+          "properties": {
+            "content_type": {
+              "const": "application/vnd.arkret.message+json"
+            }
+          }
+        }
+      ],
       "description": "Encrypted envelope whose plaintext is the Message ContentBlock."
     },
     "metadata": {
       "$ref": "#/$defs/message_metadata"
     },
     "encrypted_metadata": {
-      "$ref": "./encrypted-envelope.schema.json",
+      "allOf": [
+        {
+          "$ref": "./encrypted-envelope.schema.json"
+        },
+        {
+          "properties": {
+            "content_type": {
+              "const": "application/vnd.arkret.message-metadata+json"
+            }
+          }
+        }
+      ],
       "description": "Encrypted envelope whose plaintext is a message_metadata object."
     },
     "state": {
