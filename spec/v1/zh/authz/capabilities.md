@@ -344,7 +344,7 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.self.agent.command.pause`(controller-only;target=`ak.self.agent.pause`)
 - `ak.self.agent.command.resume`(controller-only;target=`ak.self.agent.resume`)
 - `ak.self.agent.command.deactivate`(controller-only,terminal;target=`ak.self.agent.deactivate`,fan-out 见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
-- `ak.self.agent.grant.command.attach`(controller-only,high risk;为 agent 附加完整、已签名的 capability grant,`target_event_kinds=[ak.capability.grant]`;grant subject MUST 是该 agent principal、issuer MUST 是 authenticated controller、`realm_id` MUST 存在且 Event MUST 写入该受治理 Realm，并且 MUST NOT 超过 controller 可委托范围；服务端不得补默认 action/resource)
+- `ak.self.agent.grant.command.attach`(controller-only,high risk;为 agent 附加完整、已签名的 capability grant,`target_event_kinds=[ak.capability.grant]`;grant subject MUST 是该 agent principal、issuer MUST 是 authenticated controller、`realm_id` MUST 存在且 Event MUST 写入该受治理 Realm，并且 MUST NOT 超过 controller 的 issuer-authority 上界；服务端不得补默认 action/resource)
 - `ak.self.agent.grant.resource.delete`(controller-only,medium risk;撤销 agent capability grant,`target_event_kinds=[ak.capability.revoke]`;撤销后后续 agent action proof MUST fail closed)
 - `ak.agent.draft.propose`(agent-initiated draft;target=`ak.agent.draft.propose`,wire_scope=`actor_private_event`)
 - `ak.agent.action_request`(agent-initiated action request;target=`ak.agent.action_request`)
@@ -467,14 +467,13 @@ Arkret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 - `allowed_data_labels`
 - `allowed_endpoints`
 
-**authority_control**（普通委托控制求值规则见 [`constraint-schema.md` §7.4](./constraint-schema.md)：`authority_regrant_allowed=true` ⇒ child `max_authority_depth` MUST=0；`scope_expansion_allowed=true` 在 v1 MUST 被 reducer 拒绝（`schema_violation`，与 §10.1 收窄不变量矛盾）；`authority_scope` 三值 `narrowing_only`/`same_scope`/`custom` 各自校验规则；Applet grant 绑定见同文 §7.3）
+**authority_control**（普通再授权控制求值规则见 [`constraint-schema.md` §7.4](./constraint-schema.md)：`authority_regrant_allowed=false` ⇒ child `max_authority_depth` MUST=0；`scope_expansion_allowed=true` 在 v1 MUST 被 reducer 拒绝（`schema_violation`，与 §10.1 收窄不变量矛盾）；`authority_scope` 三值 `narrowing_only`/`same_scope`/`custom` 各自校验规则；Applet grant 绑定见同文 §7.3）
 
 - `max_authority_depth`
 - `authority_path`
 - `authority_regrant_allowed`
 - `authority_scope`
 - `scope_expansion_allowed`
-- `parent_reference_required`
 
 **quota**
 
@@ -520,7 +519,7 @@ effective_not_before = max(grant.not_before?, temporal.not_before[]?)
 effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 ```
 
-缺省的 lower bound 视为无下限；缺省的 upper bound 视为无上限，但高风险、agent、service、delegated grant 仍按本文风险规则 MUST 有有限 `effective_expires_at`。若归一化后 `effective_not_before >= effective_expires_at`，reducer MUST `failed_precondition`，`reason="grant_validity_window_empty"`。授权日志、缓存 key、delegation narrowing 和 revoke freshness 判断都 MUST 使用 effective window，MUST NOT 分别按顶层字段和 temporal constraint 做两次不一致判断。
+缺省的 lower bound 视为无下限；缺省的 upper bound 视为无上限，但 agent / service principal 的高风险 action 与 registry `required_constraints` 明列 `expires_at` 的 action 仍按 §8 风险分层 MUST 有有限 `effective_expires_at`。若归一化后 `effective_not_before >= effective_expires_at`，reducer MUST `failed_precondition`，`reason="grant_validity_window_empty"`。授权日志、缓存 key、issuer-authority 收窄和 revoke freshness 判断都 MUST 使用 effective window，MUST NOT 分别按顶层字段和 temporal constraint 做两次不一致判断。
 
 | 扁平名称 | Typed `constraint_kind` | `constraint_subkind` | 对应字段 |
 |----------|------------------------|----------|----------|
@@ -569,11 +568,10 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 | `message_redact_window` | `temporal` | `redact_window` | `message_redact_window` |
 | `redact_after_window_allowed` | `temporal` | `edit_window` / `redact_window` | `redact_after_window_allowed`（窗口修饰符，见 [`constraint-schema.md` §14.2](./constraint-schema.md)） |
 | `max_authority_depth` | `authority_control` | — | `max_authority_depth` |
-| `authority_path` | `authority_control` | — | `authority_path`（委托链 DID 路径约束，见 [`constraint-schema.md` §7](./constraint-schema.md)） |
+| `authority_path` | `authority_control` | — | `authority_path`（授权链 DID 路径约束，见 [`constraint-schema.md` §7](./constraint-schema.md)） |
 | `authority_regrant_allowed` | `authority_control` | — | `authority_regrant_allowed` |
 | `authority_scope` | `authority_control` | — | `authority_scope`（`narrowing_only` / `same_scope` / `custom`） |
 | `scope_expansion_allowed` | `authority_control` | — | `scope_expansion_allowed` |
-| `parent_reference_required` | `authority_control` | — | `parent_reference_required` |
 | `rate_limit` | `quota` | `rate` | `max_operations`, `period`, `constraint_scope`, `burst` |
 | `resource_limit` | `quota` | `resource` | `max_resources`, `resource_kind`, `constraint_scope`（scope 内累计资源数量上限） |
 | `max_total_blob_bytes` | `quota` | `resource` | `max_total_blob_bytes`, `constraint_scope`（scope 内累计字节上限） |
@@ -626,7 +624,7 @@ Capability 必须支持“有直接身份但需要责任主体/监护主体/控�
 - owner / guardian / controller 不会自动把自己的权限传给 subject。
 - subject 要执行操作，仍然必须命中显式 grant。
 - 高风险动作 MUST 按 action registry 的 `risk_tier` 要求 responsible / guardian / controller approval 或等价 proposal workflow。
-- Event MUST 记录 grant、delegation chain、approval 证据和执行上下文；缺失时 reducer MUST fail closed。
+- Event MUST 记录 grant、issuer-authority chain、approval 证据和执行上下文；缺失时 reducer MUST fail closed。
 
 风险分层硬约束：
 
@@ -669,7 +667,7 @@ system/human -> `ak.strand.update` 或 `ak.morph.update`
 
 预设名的语义约束(MUST):
 
-- **预设名不进入 canonical wire。** 预设只是 UI / SDK 便捷输入;server 接收与持久化的永远是 `ak.capability.grant` 的 `actions[]`、resource selector、registered constraints 与 effective validity window(§6.1)。任何 grant 校验、审计、delegation 收窄都基于展开后的 canonical 形态,MUST NOT 依赖预设名。
+- **预设名不进入 canonical wire。** 预设只是 UI / SDK 便捷输入;server 接收与持久化的永远是 `ak.capability.grant` 的 `actions[]`、resource selector、registered constraints 与 effective validity window(§6.1)。任何 grant 校验、审计、issuer-authority 收窄都基于展开后的 canonical 形态,MUST NOT 依赖预设名。
 - **预设是 additive shorthand,不表达 deny / cap / only。** 同时选择多个预设时，结果是各预设 action / grant template 的**并集**;预设**不**移除、上限化或否定任何其他预设授予的权限。历史命名(如 `read_only` / `draft_only`)有 deny / cap 误导性,MUST NOT 作为 normative 预设名出现。若部署需要收窄，收窄只能通过 resource selector 与 constraint 表达，不能通过预设名。
 - **实现 MUST NOT 引入未在下表登记的预设名**(例如 `write_summary` 等任意字符串)而不先在本表登记。
 - **高风险预设 MUST 展开为完整 grant template**——包含 registry 要求的 required constraints 与有限 `expires_at`,而非无约束的 action union。
@@ -910,7 +908,7 @@ profile-gated 动作沿用同一原则：出现在 schedule、roster 或成员�
 1. 解析 actor DID。
 2. 验证签名链。
 3. 查找当时有效 grant 集。
-4. 展开 delegation，并执行 cycle detection。
+4. 展开 `issuer_authority_refs[]`，并执行 cycle detection。
 5. 判断 resource selector 是否覆盖 target。
 6. 判断 action 是否匹配。
 7. 判断 constraints 是否满足。**当多个 grant 同时命中该 `(action, resource)` 时，constraint 求值 MUST 走 [`constraint-schema.md` §15.4](./constraint-schema.md) 的跨 grant 全局合并入口（`evaluate_constraints_across_grants`），任一命中 grant 的 deny / quarantine / require_review 全局生效，MUST NOT 逐 grant 独立求值后取"任一 ALLOWED 即放行"。**

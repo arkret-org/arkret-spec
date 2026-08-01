@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-01.3",
+  "version": "2026-08-01.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-01T07:00:00Z",
+  "generated_at": "2026-08-01T09:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -993,6 +993,18 @@
       ]
     },
     {
+      "vector_id": "ak.vector.capability.authority_audit.v1",
+      "status": "active",
+      "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
+      "description": "Multi-parent authority audit materialization derives maximum depth plus canonical sorted and deduplicated root identities; missing parents remain dependency-pending and independent reducers produce the same state-root input.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.capability.authority_chain.v1",
       "status": "active",
       "domain": "capability",
@@ -1029,6 +1041,30 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.capability.authority_liveness.v1",
+      "status": "active",
+      "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
+      "description": "Grant-ref liveness follows upstream revocation without cascade writes, root refs survive controller transfer but fail after generation reset, and root-control terminal events reject ordinary grant proofs.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.capability.derived_authority_inheritance.v1",
+      "status": "active",
+      "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
+      "description": "Reducer-only ak.capability.derived follows the unified issuer-authority rules while retaining Realm-link inheritance behavior and remaining unauthorable by principals.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]
     },
     {
@@ -1104,6 +1140,30 @@
       ],
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.capability.relinquish_pending.v1",
+      "status": "active",
+      "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
+      "description": "Subject-only relinquish needs no revoke grant, rejects non-subjects and root-cell targets, and both revoke and relinquish stay dependency-pending without prewriting tombstones when the target grant is unresolved.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.capability.unified_authority_constraints.v1",
+      "status": "active",
+      "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-fixture.json"
+      ],
+      "description": "The unified grant form preserves depth, expiry-seal, cycle and constraint inheritance, permits unbounded low/medium-risk multi-hop agent grants, and requires finite expiry for high-risk agent or service grants.",
+      "source_refs": [
         "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]
     },

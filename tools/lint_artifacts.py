@@ -4035,7 +4035,6 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ak.audit.ryw_receipt", "audit_payload"),
     ("ak.call.recording.start", "call_payload"),
     ("ak.call.state", "call_payload"),
-    ("ak.capability.delegate", "capability_grant_payload"),
     ("ak.capability.derived", "capability_grant_payload"),
     ("ak.circle.archive", "object_lifecycle_payload"),
     ("ak.circle.restore", "object_lifecycle_payload"),

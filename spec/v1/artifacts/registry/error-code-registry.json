@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-01.2",
+  "version": "2026-08-01.3",
   "codes": [
     {
       "code": "bad_json",
@@ -2638,7 +2638,7 @@
       "description": "An applet/service call used a delegated device session that the deactivation/lock fanout revoked (ak.applet.registration delegated devices). The call MUST fail closed. See zh/identity/account-lifecycle.md §7.1."
     },
     {
-      "code": "delegation_scope_custom_unsupported",
+      "code": "authority_scope_custom_unsupported",
       "applies_to": [
         "event_envelope",
         "auth_decision"
@@ -2646,12 +2646,12 @@
       "description": "A grant declared `authority_scope=custom`, which v1 does not define an evaluable semantics for. The reducer MUST reject (schema_violation) until a future profile assigns custom-scope evaluation rules. See zh/authz/constraint-schema.md §7."
     },
     {
-      "code": "delegation_scope_mismatch",
+      "code": "authority_scope_mismatch",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A delegated grant violated its parent's `authority_scope`: `narrowing_only` requires the child resources/actions to be a strict-or-equal subset that narrows at least one axis, and `same_scope` requires the child to match the parent's scope exactly. The reducer MUST reject a child that exceeds or fails to satisfy the declared narrowing discipline. See zh/authz/constraint-schema.md §7."
+      "description": "A child grant violated its issuer authority's `authority_scope`: `narrowing_only` requires the child resources/actions to be a strict-or-equal subset that narrows at least one axis, and `same_scope` requires the child to match the issuer authority's scope exactly. The reducer MUST reject a child that exceeds or fails to satisfy the declared narrowing discipline. See zh/authz/constraint-schema.md §7."
     },
     {
       "code": "delivery_binding_handover_proof_invalid",
@@ -3021,7 +3021,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A first-issue `ak.capability.grant` (no parent_grant_id) attempts to grant actions[] / resources[] that exceed the issuer's own effective capability at the issuing seal basis. Holding the `ak.capability.grant` action alone does not permit minting authority the issuer does not itself hold; reducers MUST fail closed (schema_violation for actions/resources over-scope, failed_precondition when the issuer does not hold the required upper bound at that basis), symmetric to the delegation narrowing rule. See zh/authz/capabilities.md §3.2."
+      "description": "An `ak.capability.grant` attempts to grant actions[] / resources[] that exceed the union of its `issuer_authority_refs[]` at the issuing seal basis. Holding the `ak.capability.grant` action alone does not permit minting authority the issuer does not itself hold; reducers MUST fail closed (schema_violation for actions/resources over-scope, failed_precondition when the issuer does not hold the required upper bound at that basis). See zh/authz/capabilities.md §3.2."
     },
     {
       "code": "grant_relinquish_not_subject",
@@ -3644,14 +3644,6 @@
         "moderation_report"
       ],
       "description": "Standard moderation reason: misleading / false information posing harm."
-    },
-    {
-      "code": "missing_parent_reference",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "A delegated grant whose parent carries `parent_reference_required=true` omitted the explicit `parent_grant_id` / `refs[role=authorized_by]` linkage back to the parent grant. The reducer MUST reject so the delegation chain stays explicitly anchored. See zh/authz/constraint-schema.md §7 / zh/authz/capabilities.md §10."
     },
     {
       "code": "mls_governance_binding_stale",

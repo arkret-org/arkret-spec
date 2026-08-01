@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-01.8",
-  "generated_at": "2026-08-01T08:00:00Z",
+  "version": "2026-08-01.10",
+  "generated_at": "2026-08-01T11:00:00Z",
   "source_of_truth": true,
   "description": "Canonical reducer profile declarations and generated content-addressed semantic closures used for federation service_binding_ref.reducer_profile_digest.",
   "canonicalization": "json_jcs",
@@ -506,7 +506,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:a59b5cbb374ae8e9ba0ca292ab91193e3021ab2222f6446f9da35517ca6918b0"
+            "content_digest": "sha256:514de953f9c794c00c5b8d26661c460f9442675b2add418461a65a240d944d86"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -518,7 +518,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:97995910442ead720bc6e8975c791fc5933c7e78bc0550415afed6ac438c1677"
+      "reducer_profile_digest": "sha256:e1275d12fa370ddb60104c31701f80c41ba5515913cdcaf01db8ef6cfbda9ee3"
     },
     {
       "profile_id": "ak.profile.kanban_mvp.v1",
@@ -1259,7 +1259,7 @@
           {
             "schema_id": "ak.schema.capability.v1",
             "registry_row_digest": "sha256:a0d907c823a2cb25558e0054410f278414ecaa049c28d7467f24312cd9bd06b4",
-            "document_digest": "sha256:16fb5a9600ac48d3ecc38f3d2f2674c8e44d42db88366002473a8dfc289a7bf4"
+            "document_digest": "sha256:aaba8c118a846e024c1e37320b39b7a423c945d12a8645b87991d3e0ec174e04"
           },
           {
             "schema_id": "ak.schema.cursor.v1",
@@ -1284,7 +1284,7 @@
           {
             "schema_id": "ak.schema.grant_constraint.v1",
             "registry_row_digest": "sha256:aab22a798871a440ca0e79f101d3066b9199e591a9097b0e65e9fbd35197a6d3",
-            "document_digest": "sha256:1ab2cfc313238c89363e5062e92dc2b9bb827017e74a1eb4fe10daf54b49a8b4"
+            "document_digest": "sha256:d95f0c874e49c1855532ed6dfc267e8d56f489b33b3c07b775a95dde81e3be42"
           },
           {
             "schema_id": "ak.schema.invite.v1",
@@ -1330,7 +1330,7 @@
         "fixture_contracts": [
           {
             "fixture": "capability-fixture.json",
-            "semantic_projection_digest": "sha256:c628a83dedefd3d91e4b38d391e5259b471ae67eb0b5b95004c844c5de6002e4"
+            "semantic_projection_digest": "sha256:8042656cbf09078575b3fcfa367c343867f80dc93d662809e26bc9bf8990e83c"
           },
           {
             "fixture": "cba-lattice-fixture.json",
@@ -1400,7 +1400,7 @@
           },
           {
             "ref": "zh/authz/capabilities.md",
-            "content_digest": "sha256:0ae8c41e973313a2e0bb0ecd8c2621e4e4e40468bbb01e0859a197c61f6a3886"
+            "content_digest": "sha256:e3683a6643413b355d2076fd6a572d939cf4e061d2c92f371c4d85b89b53e5af"
           },
           {
             "ref": "zh/authz/event-auth-state-resolution.md",
@@ -1408,7 +1408,7 @@
           },
           {
             "ref": "zh/conformance/conformance-vectors.md",
-            "content_digest": "sha256:a59b5cbb374ae8e9ba0ca292ab91193e3021ab2222f6446f9da35517ca6918b0"
+            "content_digest": "sha256:514de953f9c794c00c5b8d26661c460f9442675b2add418461a65a240d944d86"
           },
           {
             "ref": "zh/conformance/encoding.md",
@@ -1440,7 +1440,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:cd61606762bd70d820f916b457f8f7417a1bfdc56560b46431ab385de5b1d297"
+      "reducer_profile_digest": "sha256:74733a241353465290ef055d85b94c5c002f4b3d028039507dbc9742598f0ab8"
     },
     {
       "profile_id": "ak.profile.federation_minimal.v1",
@@ -1679,15 +1679,15 @@
           },
           {
             "ref": "zh/sync/federation.md",
-            "content_digest": "sha256:919a5d2338b738f1a4625c7ec2acdf7cc0297bffc0b1db5964881b8c8cf04253"
+            "content_digest": "sha256:ce3af21516c1b17a58f551c3531da93c257a86fbcfba72904a610f9350627922"
           },
           {
             "ref": "zh/sync/service-http-binding.md",
-            "content_digest": "sha256:2d90ed46da96377306bcb5fdedf5a10e41c1076a61fdfd8062c29fb32b6a1218"
+            "content_digest": "sha256:91f73d85505fe7d668edcbc49ecf32ef7b38ee2406b20d556c09d283fb84df20"
           }
         ]
       },
-      "reducer_profile_digest": "sha256:ed22f53ffbfee5dc64e15522ac8f1ff7755b8d67f957d90bf83252e6975f2477"
+      "reducer_profile_digest": "sha256:112d2a2ade12b73ac0e60c7c8c207000d9eb3e3ab117a015a945a81a01438152"
     }
   ],
   "generated_fields": [

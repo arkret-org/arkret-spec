@@ -65,7 +65,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `kind_restriction` | — | core | 对象类型 / Realm kind / Morph type / facet 限制。 | core |
 | `scope_limitation` | （省略 = 普通 scope） | core | Realm / Strand / View / track 范围。 | core |
 | `scope_limitation` 带 `allowed_relation_kinds` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `ak.profile.kanban_mvp.v1` |
-| `authority_control` | — | core | 委托深度、路径、`authority_scope` 等。 | core |
+| `authority_control` | — | core | 再授权深度、路径、`authority_scope` 等。 | core |
 | `authority_control` | `applet_authority` | extension | Applet grant-local 绑定：`applet_id` + `executed_by` + `registration_epoch`；effective scope 由 grant `resources[]` selector 表达。 | `ak.profile.applet_service.v1` |
 | `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `constraint_scope` + `burst`）。 | core |
 | `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resources` / `max_total_blob_bytes`）。 | `ak.profile.constraint.resource_limit.v1` |
@@ -295,9 +295,9 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 `blob_presign_scope` 是 `ak.self.blob.command.presign` 的必需约束之一，限制可签发的 purpose、Realm 和可选 blob ref pattern。`allowed_endpoints` / `allowed_data_labels` 用于 agent、applet、export、connector 等会把数据发往外部 endpoint 的 action；实现 MUST 对请求中的目标 endpoint 与数据分类做 fail-closed 匹配，未知 data class 或 endpoint 不得按 allow 处理。
 
-## 7. 委托控制
+## 7. 再授权控制
 
-### 7.1 委托深度
+### 7.1 再授权深度
 
 ```json
 {
@@ -309,19 +309,18 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-### 7.2 委托范围
+### 7.2 再授权范围
 
 ```json
 {
   "constraint_kind": "authority_control",
   "effect": "allow",
   "authority_scope": "narrowing_only",
-  "scope_expansion_allowed": false,
-  "parent_reference_required": true
+  "scope_expansion_allowed": false
 }
 ```
 
-### 7.3 Applet 委托绑定（constraint_subkind=applet_authority）
+### 7.3 Applet 授权绑定（constraint_subkind=applet_authority）
 
 Applet install 签发的每个 `ak.capability.grant` MUST 携带以下规范约束：
 
@@ -341,14 +340,22 @@ Applet install 签发的每个 `ak.capability.grant` MUST 携带以下规范约�
 
 该约束只表达 grant-local 绑定，所以 canonical `evaluation_class=grant_local`。授权 verifier 仍 MUST 解析 `applet_id` 指向的 accepted registration，展开 `registration_epoch` evidence，并验证 grant resource selector、Event `scope_ref`、Event `executed_by` 与 registration 的当前有效 key/material 一致；这一步不得因 grant-local 分类而跳过或缓存为永远有效。未知的旧式 `constraint_kind=applet_delegation_binding` 不属于 v1 wire，MUST fail closed，不得作为别名接受。
 
-### 7.4 委托控制字段的 reducer 求值规则（normative）
+### 7.4 再授权控制字段的 reducer 求值规则（normative）
 
-§7.1 / §7.2 的委托控制字段不只是枚举声明；reducer 在 accept `ak.capability.delegate` 派生 grant 时 **MUST** 按下列规则求值，违反即 fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的收窄约束表叠加生效（先过 §10.1 的 actions/resources/window 收窄，再过本节字段规则）。
+§7.1 / §7.2 的再授权控制字段不只是枚举声明；reducer 在 accept 以 `kind="grant"` 的
+`issuer_authority_refs[]` 为签发依据的 `ak.capability.grant` 时 **MUST** 按下列规则求值，违反即
+fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的收窄约束表叠加生效
+（先过 §10.1 的 actions/resources/window 收窄，再过本节字段规则）。
 
 **`authority_regrant_allowed`**：
 
-- `authority_regrant_allowed=true` ⇒ child grant 的 `max_authority_depth` **MUST = 0**。reducer 在派生 child 时 MUST 强制把 child 的 `max_authority_depth` 视为 `0`；若 child grant 声明了 `max_authority_depth > 0`，reducer **MUST** 返回 `schema_violation`（`reason="authority_regrant_denied"`）。`authority_regrant_allowed=true` 的 grant 持有者 MUST NOT 再签发任何下游 `ak.capability.delegate`。
-- `authority_regrant_allowed=false`（默认）时不额外约束，深度仍受 §10.1 `max_authority_depth ≤ parent - 1` 与 §10.2 DFS 上限 4 治理。
+- `authority_regrant_allowed=false`（默认）⇒ child grant 的 `max_authority_depth` **MUST = 0**。
+  reducer 在派生 child 时 MUST 强制把 child 的 `max_authority_depth` 视为 `0`；若 child grant 声明了
+  `max_authority_depth > 0`，reducer **MUST** 返回 `schema_violation`
+  （`reason="authority_regrant_denied"`）。该 child MUST NOT 再被任何下游 grant 的
+  `issuer_authority_refs[]` 引用。
+- `authority_regrant_allowed=true` 时允许继续再授权，深度仍受 §10.1
+  `max_authority_depth ≤ parent - 1` 与 §10.2 DFS 上限 4 治理。
 
 **`scope_expansion_allowed`**：
 
@@ -360,14 +367,14 @@ Applet install 签发的每个 `ak.capability.grant` MUST 携带以下规范约�
 | 值 | 校验规则 |
 | --- | --- |
 | `narrowing_only`（缺省） | child 的 `actions[]` MUST ⊊ 或 ⊆ parent，`resources[]` MUST 是 parent 的 selector-narrowing 子集，且 child `constraints[]` MUST 至少与 parent 等严（含 parent 全部 deny/quarantine/require_review，MAY 增更严 allow）。等同 §10.1 的默认收窄语义。 |
-| `same_scope` | child 的 `actions[]` MUST = parent（逐元素相等集合），`resources[]` MUST 与 parent selector 等价（既不放宽也不收窄），`constraints[]` MUST ⊇ parent 约束集。用于"原样转授但不扩权"的场景（如委托给 standby principal）。任一维度不等价 MUST 返回 `schema_violation`（`reason="delegation_scope_mismatch"`）。 |
-| `custom` | 必须由声明该值的 extension profile 定义完整收窄判据；未声明对应 profile 的 reducer **MUST fail closed**（`schema_violation`，`reason="delegation_scope_custom_unsupported"`），MUST NOT 把 `custom` 当作 `narrowing_only` 的别名放行。 |
+| `same_scope` | child 的 `actions[]` MUST = parent（逐元素相等集合），`resources[]` MUST 与 parent selector 等价（既不放宽也不收窄），`constraints[]` MUST ⊇ parent 约束集。用于“原样再授权但不扩权”的场景（如授予 standby principal）。任一维度不等价 MUST 返回 `schema_violation`（`reason="authority_scope_mismatch"`）。 |
+| `custom` | 必须由声明该值的 extension profile 定义完整收窄判据；未声明对应 profile 的 reducer **MUST fail closed**（`schema_violation`，`reason="authority_scope_custom_unsupported"`），MUST NOT 把 `custom` 当作 `narrowing_only` 的别名放行。 |
 
 未注册的 `authority_scope` 值 MUST fail closed。`authority_scope` 与 `scope_expansion_allowed` 同时出现且语义冲突时（如 `same_scope` 但 `scope_expansion_allowed=true`），按更严格规则裁决——`scope_expansion_allowed=true` 在 v1 已被独立拒绝（见上），因此该组合整体 `schema_violation`。
 
-**`parent_reference_required`**：
-
-- `parent_reference_required=true`（委托链上 SHOULD 默认）⇒ child `ak.capability.delegate` event **MUST** 携带 `refs[role="parent_grant"]` 指向 parent grant id（见 [`capabilities.md` §10.2](./capabilities.md)）；缺失 MUST 返回 `failed_precondition`（`reason="missing_parent_reference"`）。该字段使 delegation 链可被 §10.2 cycle detection 与 §10.3 revoke 因果传播追踪。
+所有 `ak.capability.grant` 都必须携带非空、类型化的 `issuer_authority_refs[]`；因此不存在可选的
+“要求 parent ref”开关。grant ref 本身就是显式的上游 authority 边，供 §10.2 环检测与 §10.3
+撤销活性检查使用。
 
 ## 8. 配额 (Quota)
 
@@ -1104,7 +1111,7 @@ Grant envelope 字段、签名规则与必填性以
 }
 ```
 
-#### 20.3.4 Delegation 控制
+#### 20.3.4 再授权控制
 
 ```json
 {
@@ -1115,7 +1122,7 @@ Grant envelope 字段、签名规则与必填性以
 }
 ```
 
-Delegated grant MUST 等于或窄于 parent grant。`max_authority_depth`、
+Child grant MUST 等于或窄于其 issuer-authority grants。`max_authority_depth`、
 `authority_path`、`authority_regrant_allowed` 见 §7.1。
 
 #### 20.3.5 Container Move Scope Constraint

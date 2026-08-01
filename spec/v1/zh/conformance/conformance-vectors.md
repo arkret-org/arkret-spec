@@ -11,7 +11,7 @@ updated: 2026-08-01
 1. Encoding & Crypto（canonical JSON、digest、signature binding、HLC、cursor、encrypted envelope）
 2. CBA · Lattice（DataEvent acceptance、Control Move Seal finality、cas_register、Seal DAG）
 3. Redaction（约束与可见性）
-4. Capability（delegation、revoke、approval）
+4. Capability（authority chain、revoke、approval）
 5. Sync（client sync、pagination、snapshot、MLS epoch backfill）
 6. Space Lifecycle
 7. Member Delivery Binding
@@ -38,8 +38,8 @@ MIMI Provider Facade 的 active interop vectors 为 `ak.vector.mimi.provider_dir
 
 - CBA / open_set 多 leaf 下 per-cell lattice join `J(L)` 是纯函数，且与输入顺序、接收方、墙钟无关；所有 conformant reducer 对同一 accepted Seal frontier 收敛到同一 cell value。
 - 并发分支撤销 fail closed：grant / capability revoke 与被授权 Event 并发时，joined control view MUST 重判并拒绝不再满足授权的 Event。
-- Capability delegation 单调衰减：`child.actions ⊆ parent.actions`、resource selector 不放宽、约束不放宽、`authority_expiry_seal` 只能收窄或固定，不能被子 grant 延长。
-- Delegation graph 无环，且环检测在并发分支合并、离线 replay 与 migration context 下结果一致。
+- Capability authority 单调衰减：`child.actions ⊆ issuer authority actions`、resource selector 不放宽、约束不放宽、`authority_expiry_seal` 只能收窄或固定，不能被 child grant 延长。
+- Authority graph 无环，且环检测在并发分支合并、离线 replay 与 migration context 下结果一致。
 - Control-cell bottom / conflict-recovery 只能按 `event-auth-state-resolution.md` §9.5 的唯一 recovery Move 出 ⊥，其它路径 fail closed。
 
 工具栈不在 v1 固定：TLA+ 适合状态机 / lattice 收敛，Tamarin / ProVerif 适合协议认证与攻击者模型，Alloy / property-based runner 可覆盖结构不变量。profile MAY 选择不同工具，但输出必须能被 reviewer 复现，并把每个 proof obligation 映射到规范章节、registry row 或 vector id。
@@ -1732,7 +1732,7 @@ ak.vector.capability.<scenario>.v1
 - 授权时间窗约束是否导致一致结果。
 - 关键路径必须拒绝 `authorization-only` 假阳性。
 
-### 4.2 Vector: 多级委托链
+### 4.2 Vector: 多级授权链
 
 向量名称：
 
@@ -1789,8 +1789,7 @@ ak.vector.capability.authority_chain.v1
         ]
       },
       "refs": [
-        { "id": "ak:grant:019640d0-b800-7000-8000-000000000000", "role": "authorized_by", "critical": true },
-        { "id": "ak:grant:019640d0-b800-7000-8000-000000000000", "role": "parent_grant", "critical": true }
+        { "id": "ak:grant:019640d0-b800-7000-8000-000000000000", "role": "authorized_by", "critical": true }
       ]
     },
     {
@@ -1830,8 +1829,7 @@ ak.vector.capability.authority_chain.v1
         ]
       },
       "refs": [
-        { "id": "ak:grant:019640d0-c000-7000-8000-000000000000", "role": "authorized_by", "critical": true },
-        { "id": "ak:grant:019640d0-c000-7000-8000-000000000000", "role": "parent_grant", "critical": true }
+        { "id": "ak:grant:019640d0-c000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
       ]
     }
   ],
@@ -1866,7 +1864,7 @@ ak.vector.capability.authority_chain.v1
 
 失败判定：
 
-- 忽略中间 delegate 层直接用 root 进行授权。
+- 忽略中间 authority grant 直接用 root 进行授权。
 - 忽略 `audiences` 约束。
 - 时间边界过期仍返回 true。
 

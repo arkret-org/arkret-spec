@@ -63,9 +63,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
-      "version": "2026-08-01.2",
+      "version": "2026-08-01.3",
       "generated_at": null,
-      "content_digest": "sha256:58ff50c546f914ad95d91de39f42d8538dfa7d95a199577450972f0bf557ce74"
+      "content_digest": "sha256:2a4dd15ef71ae4ddcacf058b38786334442ec8918655d0eb1bb8c82c422b9a75"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
@@ -87,9 +87,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/forbidden-wire-fields.json",
-      "version": 3,
+      "version": 4,
       "generated_at": null,
-      "content_digest": "sha256:6764ac3cc84d45f2377e698159b72b73967012b150580b3b1ea7b8c7e3365bc7"
+      "content_digest": "sha256:1a5fadfd76a41c92e0b12b76bcbccae39b9d3dfa87977c7dcf1551a8c8d13e4b"
     },
     {
       "path": "spec/v1/artifacts/registry/hpke-suite-registry.json",
@@ -165,9 +165,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/reducer-profile-registry.json",
-      "version": "2026-08-01.8",
-      "generated_at": "2026-08-01T08:00:00Z",
-      "content_digest": "sha256:07c7cc96d8f544b9991a1ee6f9718021a42029834552eed3e585c80db0a85ad4"
+      "version": "2026-08-01.10",
+      "generated_at": "2026-08-01T11:00:00Z",
+      "content_digest": "sha256:9aca54dd17c440fb4e02d5ce64166d6db1e11103038f54c4abb83ab13b861599"
     },
     {
       "path": "spec/v1/artifacts/registry/registry-manifest.json",
@@ -219,9 +219,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-08-01.3",
-      "generated_at": "2026-08-01T07:00:00Z",
-      "content_digest": "sha256:50e40712b0c6d62aebb9e7efced25782e219d13f552a3f67a9e6fb0bf8d14876"
+      "version": "2026-08-01.5",
+      "generated_at": "2026-08-01T09:00:00Z",
+      "content_digest": "sha256:e2c9c85bdd930fec84c33b4a2155be8aea78bbda934b05c67c7881d26f329ede"
     }
   ]
 }

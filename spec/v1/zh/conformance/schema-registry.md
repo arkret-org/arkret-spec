@@ -237,7 +237,6 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | event type | payload |
 | --- | --- |
 | `ak.capability.grant` | Grant |
-| `ak.capability.delegate` | Delegate grant |
 | `ak.capability.revoke` | Revocation |
 | `ak.capability.derived` | Derived capability state |
 | `ak.account.status` | Signed account lifecycle status |

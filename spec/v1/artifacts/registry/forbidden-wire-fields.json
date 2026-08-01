@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 3,
+  "version": 4,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
@@ -1107,16 +1107,16 @@
     },
     {
       "id": "source_capability",
-      "context": "capability_delegate_payload",
+      "context": "capability_grant_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "parent_grant_id",
+      "replacement": "issuer_authority_refs",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Capability delegation names the parent grant explicitly."
+      "notes": "A capability grant names all issuer authority through typed issuer_authority_refs."
     },
     {
       "id": "parent_realm_id",
@@ -2947,12 +2947,12 @@
       "context": "all_arkret_owned_wire_contexts",
       "since_revision": "2026-07-26",
       "rejection_level": "hard_reject",
-      "replacement": "parent_reference_required",
+      "replacement": "issuer_authority_refs",
       "allowed_contexts": [
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed by the protocol-wide naming-discipline closure; current v1 readers and reducers must reject the legacy spelling."
+      "notes": "The optional switch was removed: every capability grant carries non-empty typed issuer_authority_refs."
     },
     {
       "id": "require_audit_trail",

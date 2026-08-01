@@ -641,7 +641,12 @@
         },
         {
           "grant_id": "ak:grant:01964110-0400-7000-8000-000000000000",
-          "parent_grant_id": "ak:grant:01964110-0000-7000-8000-000000000000",
+        "issuer_authority_refs": [
+          {
+            "kind": "grant",
+            "grant_id": "ak:grant:01964110-0000-7000-8000-000000000000"
+          }
+        ],
           "subject": "did:webvh:z6mkfixture:bob.example.com",
           "actions": [
             "ak.strand.update"
@@ -974,6 +979,384 @@
           "expected_matches": false
         }
       ]
+    },
+    {
+      "name": "authority_liveness_and_root_lifecycle",
+      "vector_id": "ak.vector.capability.authority_liveness.v1",
+      "root": {
+        "realm_id": "ak:realm:01990000-0000-7000-8000-000000000001",
+        "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
+        "controller_id": "did:web:alice.example",
+        "controller_epoch": 0,
+        "authority_generation": 4,
+        "capability_action_registry_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "grants": [
+        {
+          "grant_id": "ak:grant:01990000-0000-7000-8000-000000000011",
+          "issuer": "did:web:alice.example",
+          "subject": "did:web:bob.example",
+          "issuer_authority_refs": [
+            {
+              "kind": "realm_root",
+              "realm_id": "ak:realm:01990000-0000-7000-8000-000000000001",
+              "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
+              "controller_epoch_at_issuance": 0,
+              "authority_generation": 4
+            }
+          ]
+        },
+        {
+          "grant_id": "ak:grant:01990000-0000-7000-8000-000000000012",
+          "issuer": "did:web:bob.example",
+          "subject": "did:web:carol.example",
+          "issuer_authority_refs": [
+            {
+              "kind": "grant",
+              "grant_id": "ak:grant:01990000-0000-7000-8000-000000000011"
+            }
+          ]
+        }
+      ],
+      "cases": [
+        {
+          "name": "controller_transfer_preserves_chain",
+          "next_root": {
+            "controller_id": "did:web:bob.example",
+            "controller_epoch": 1,
+            "authority_generation": 4
+          },
+          "successor_active_member": true,
+          "successor_acceptance": "accepted",
+          "expected": {
+            "accepted": true,
+            "active_grants": [
+              "ak:grant:01990000-0000-7000-8000-000000000011",
+              "ak:grant:01990000-0000-7000-8000-000000000012"
+            ],
+            "root_identity_unchanged": true
+          }
+        },
+        {
+          "name": "generation_reset_invalidates_chain",
+          "next_root": {
+            "controller_id": "did:web:alice.example",
+            "controller_epoch": 0,
+            "authority_generation": 5
+          },
+          "destructive_confirmation": "ak.realm.authority.reset",
+          "expected": {
+            "accepted": true,
+            "active_grants": []
+          }
+        },
+        {
+          "name": "ancestor_revoke_has_no_cascade_write",
+          "revoked_grant_id": "ak:grant:01990000-0000-7000-8000-000000000011",
+          "expected": {
+            "active_grants": [],
+            "written_grant_ids": [
+              "ak:grant:01990000-0000-7000-8000-000000000011"
+            ]
+          }
+        },
+        {
+          "name": "transfer_missing_acceptance_rejected",
+          "next_root": {
+            "controller_id": "did:web:bob.example",
+            "controller_epoch": 1,
+            "authority_generation": 4
+          },
+          "successor_active_member": true,
+          "expected": {
+            "accepted": false
+          }
+        },
+        {
+          "name": "stale_or_noncontroller_transfer_rejected",
+          "actor_is_current_controller": false,
+          "expected_state_matches": false,
+          "expected": {
+            "accepted": false
+          }
+        },
+        {
+          "name": "terminal_root_control_requires_root_proof",
+          "event_kinds": [
+            "ak.realm.destroy",
+            "ak.realm.tombstone"
+          ],
+          "authorization_ref": "ak:grant:01990000-0000-7000-8000-000000000011",
+          "expected": {
+            "accepted": false,
+            "reason_code": "realm_authority_controller_mismatch"
+          }
+        },
+        {
+          "name": "terminal_root_control_accepts_current_controller_root_proof",
+          "event_kinds": [
+            "ak.realm.destroy",
+            "ak.realm.tombstone"
+          ],
+          "actor_is_current_controller": true,
+          "authorization_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
+          "destructive_confirmation_present": true,
+          "expected": {
+            "accepted": true
+          }
+        },
+        {
+          "name": "basis_update_changes_only_registry_digest",
+          "next_root": {
+            "controller_id": "did:web:alice.example",
+            "controller_epoch": 0,
+            "authority_generation": 4,
+            "capability_action_registry_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          },
+          "snapshot_available": true,
+          "snapshot_compatible": true,
+          "expected": {
+            "accepted": true,
+            "controller_unchanged": true,
+            "generation_unchanged": true,
+            "old_grant_basis_unchanged": true
+          }
+        },
+        {
+          "name": "unknown_basis_update_rejected",
+          "snapshot_available": false,
+          "snapshot_compatible": false,
+          "expected": {
+            "accepted": false,
+            "reason_code": "capability_registry_basis_unavailable"
+          }
+        },
+        {
+          "name": "new_controller_can_revoke_old_controller_grant",
+          "actor": "did:web:bob.example",
+          "target_grant_realm_id": "ak:realm:01990000-0000-7000-8000-000000000001",
+          "actor_is_target_realm_current_controller": true,
+          "expected": {
+            "accepted": true
+          }
+        },
+        {
+          "name": "old_controller_loses_root_authority_after_transfer",
+          "actor": "did:web:alice.example",
+          "actor_is_target_realm_current_controller": false,
+          "actor_has_independent_grant": false,
+          "expected": {
+            "accepted": false
+          }
+        },
+        {
+          "name": "concurrent_old_basis_root_write_rejected",
+          "expected_state_matches": false,
+          "security_barrier_conflict": true,
+          "expected": {
+            "accepted": false,
+            "reason_code": "realm_authority_root_conflict"
+          }
+        },
+        {
+          "name": "multi_ref_partial_revocation_rechecks_per_action",
+          "authority_refs": [
+            {
+              "grant_id": "ak:grant:01990000-0000-7000-8000-000000000031",
+              "active": false,
+              "actions": ["ak.message.create"]
+            },
+            {
+              "grant_id": "ak:grant:01990000-0000-7000-8000-000000000032",
+              "active": true,
+              "actions": ["ak.reaction.add"]
+            }
+          ],
+          "expected": {
+            "active_actions": ["ak.reaction.add"],
+            "inactive_actions": ["ak.message.create"]
+          }
+        }
+      ]
+    },
+    {
+      "name": "relinquish_and_dependency_pending",
+      "vector_id": "ak.vector.capability.relinquish_pending.v1",
+      "cases": [
+        {
+          "name": "subject_relinquishes_without_revoke_capability",
+          "actor": "did:web:bob.example",
+          "target_subject": "did:web:bob.example",
+          "has_revoke_capability": false,
+          "expected": {
+            "accepted": true
+          }
+        },
+        {
+          "name": "non_subject_relinquish_rejected",
+          "actor": "did:web:mallory.example",
+          "target_subject": "did:web:bob.example",
+          "expected": {
+            "accepted": false,
+            "reason_code": "grant_relinquish_not_subject"
+          }
+        },
+        {
+          "name": "unknown_revoke_and_relinquish_pending",
+          "target_projected": false,
+          "operations": [
+            "ak.capability.revoke",
+            "ak.capability.relinquish"
+          ],
+          "expected": {
+            "outcome": "dependency_pending",
+            "tombstone_written": false
+          }
+        },
+        {
+          "name": "root_cell_is_not_a_grant_target",
+          "target_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
+          "expected": {
+            "accepted": false,
+            "reason_code": "schema_violation"
+          }
+        },
+        {
+          "name": "subject_only_is_not_grantable",
+          "action": "ak.capability.relinquish",
+          "expected": {
+            "owner_grant_authority": false,
+            "ordinary_grant_authority": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "unified_authority_constraints",
+      "vector_id": "ak.vector.capability.unified_authority_constraints.v1",
+      "cases": [
+        {
+          "name": "low_and_medium_agent_multi_hop_may_be_unbounded",
+          "subject_kind": "agent",
+          "risk_tiers": [
+            "low",
+            "medium"
+          ],
+          "authority_depth": 3,
+          "expires_at": null,
+          "expected": {
+            "accepted": true
+          }
+        },
+        {
+          "name": "high_risk_agent_requires_expiry",
+          "subject_kind": "agent",
+          "risk_tier": "high",
+          "expires_at": null,
+          "expected": {
+            "accepted": false,
+            "reason_code": "agent_grant_expiry_required"
+          }
+        },
+        {
+          "name": "high_risk_service_requires_expiry",
+          "subject_kind": "service",
+          "risk_tier": "high",
+          "expires_at": null,
+          "expected": {
+            "accepted": false,
+            "reason_code": "agent_grant_expiry_required"
+          }
+        },
+        {
+          "name": "depth_expiry_cycle_and_constraints_remain_enforced",
+          "checks": {
+            "authority_depth": "authority_depth_exceeded",
+            "expiry_seal": "authority_expiry_widening",
+            "cycle": "authority_cycle",
+            "constraint_inheritance": "grant_exceeds_issuer_authority"
+          },
+          "expected": {
+            "all_fail_closed": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "authority_audit_materialization",
+      "vector_id": "ak.vector.capability.authority_audit.v1",
+      "parents": [
+        {
+          "grant_id": "ak:grant:01990000-0000-7000-8000-000000000021",
+          "authority_depth": 1,
+          "authority_root_refs": [
+            {
+              "kind": "realm_root",
+              "realm_id": "ak:realm:01990000-0000-7000-8000-000000000003",
+              "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
+              "authority_generation": 2
+            },
+            {
+              "kind": "realm_root",
+              "realm_id": "ak:realm:01990000-0000-7000-8000-000000000002",
+              "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
+              "authority_generation": 7
+            }
+          ]
+        },
+        {
+          "grant_id": "ak:grant:01990000-0000-7000-8000-000000000022",
+          "authority_depth": 3,
+          "authority_root_refs": [
+            {
+              "kind": "realm_root",
+              "realm_id": "ak:realm:01990000-0000-7000-8000-000000000002",
+              "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
+              "authority_generation": 7
+            }
+          ]
+        }
+      ],
+      "child_issuer_authority_refs": [
+        {
+          "kind": "grant",
+          "grant_id": "ak:grant:01990000-0000-7000-8000-000000000021"
+        },
+        {
+          "kind": "grant",
+          "grant_id": "ak:grant:01990000-0000-7000-8000-000000000022"
+        }
+      ],
+      "expected": {
+        "authority_depth": 4,
+        "authority_root_refs": [
+          {
+            "kind": "realm_root",
+            "realm_id": "ak:realm:01990000-0000-7000-8000-000000000002",
+            "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
+            "authority_generation": 7
+          },
+          {
+            "kind": "realm_root",
+            "realm_id": "ak:realm:01990000-0000-7000-8000-000000000003",
+            "cell_ref": "ak:cell:ak.component.realm.authority_root.v1:null",
+            "authority_generation": 2
+          }
+        ],
+        "independent_state_roots_equal": true,
+        "missing_parent_outcome": "dependency_pending"
+      }
+    },
+    {
+      "name": "derived_uses_issuer_authority_rules",
+      "vector_id": "ak.vector.capability.derived_authority_inheritance.v1",
+      "source_refs_active": true,
+      "realm_link_policy_allows": true,
+      "expected": {
+        "derived_grant_active": true,
+        "authority_rule": "issuer_authority",
+        "authorable_by_principal": false
+      }
     },
     {
       "name": "sensitive_field_handling",

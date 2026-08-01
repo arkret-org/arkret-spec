@@ -476,7 +476,7 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 4,
-      "description": "Maximum remaining delegation hops. Bounded by the canonical delegation chain depth ceiling (4) defined in zh/conformance/scalability-constraints.md §3 and zh/authz/capabilities.md §10.2; reducers MUST reject grants declaring a larger value at accept time rather than only truncating during DFS."
+      "description": "Maximum remaining authority hops. Bounded by the canonical authority-chain depth ceiling (4) defined in zh/conformance/scalability-constraints.md §3 and zh/authz/capabilities.md §10.2; reducers MUST reject grants declaring a larger value at accept time rather than only truncating during DFS."
     },
     "authority_path": {
       "type": "array",
@@ -497,9 +497,6 @@
       ]
     },
     "scope_expansion_allowed": {
-      "type": "boolean"
-    },
-    "parent_reference_required": {
       "type": "boolean"
     },
     "applet_id": {

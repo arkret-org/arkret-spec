@@ -127,7 +127,7 @@
       "minItems": 1,
       "uniqueItems": true,
       "maxItems": 16,
-      "description": "The authority this grant was issued under. Every grant has one — a root controller's grant anchors on the authority-root cell, and any further grant anchors on the grants its issuer already holds. There is no second kind of grant and no 'is this a delegation' bit: the ref type is the whole difference. Authorization is recomputed from these refs on every decision, so revoking an ancestor invalidates its descendants at read time without any cascading write.",
+      "description": "The authority this grant was issued under. Every grant has one: a root controller’s grant anchors on the authority-root cell, and any further grant anchors on the grants its issuer already holds. The typed ref is the only distinction within the unified grant shape. Authorization is recomputed from these refs on every decision, so revoking an ancestor invalidates its descendants at read time without any cascading write.",
       "items": {
         "oneOf": [
           {

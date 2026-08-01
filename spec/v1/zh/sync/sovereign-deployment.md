@@ -188,7 +188,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 
 **`did:key` 的 `ephemeral_only` enforcement 语义（normative）**：`method_policy` 把某 method（默认 `did:key`）设为 `ephemeral_only` 时，该取值是可测试约束而非口号。落入 `ephemeral_only` 的 DID **MUST NOT** 被用作：
 
-- principal-level `ak.capability.grant` / `ak.capability.delegate` 的 grant subject；
+- principal-level `ak.capability.grant` 的 grant subject；
 - 跨 epoch 的 membership key（即作为 `ak.member.state` 的长期 `actor_id` 跨越 MLS epoch rotation 或 Seal epoch 持续有效）；
 - 任何长期身份锚点（DID resolver / witness / OOBI 解析意义上的持久主体）。
 
