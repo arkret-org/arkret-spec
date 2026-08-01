@@ -9868,6 +9868,24 @@
       "type": "string",
       "pattern": "^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "relation_tombstone_payload": {
+      "type": "object",
+      "description": "Payload for ak.relation.tombstone. relation_id is the sole target carrier for the irreversible active -> tombstoned transition; target_ref and update-style patch fields are forbidden. When supplied, reason is retained on the Event and is not copied into the materialized Relation object.",
+      "required": [
+        "relation_id"
+      ],
+      "properties": {
+        "relation_id": {
+          "$ref": "#/$defs/relation_id"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "additionalProperties": false
+    },
     "relation_update_payload": {
       "type": "object",
       "oneOf": [

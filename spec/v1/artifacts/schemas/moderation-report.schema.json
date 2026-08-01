@@ -174,6 +174,7 @@
     },
     "franking_proof": {
       "type": "object",
+      "description": "Canonical franking proof object used both as the complete payload of an ak.moderation.franking_proof durable Event and, when submitted with a report, as ModerationReport.franking_proof. The proof is created independently of a report; event_id names the encrypted Event whose receipt is proven, while the enclosing proof Event has its own distinct Event.event_id.",
       "required": [
         "kind",
         "franking_proof_id",
@@ -200,7 +201,8 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "event_id": {
-          "$ref": "#/$defs/event_ref"
+          "$ref": "#/$defs/event_ref",
+          "description": "Event ID of the encrypted Event whose receipt is proven. This is the moderation franking-proof cell subject, not the enclosing ak.moderation.franking_proof Event's own event_id."
         },
         "routing_metadata_digest": {
           "$ref": "#/$defs/hash",

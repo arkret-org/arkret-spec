@@ -4024,7 +4024,7 @@ KIND_PAYLOAD_RENAME_EXEMPTIONS: dict[str, str] = {
 # Legitimate kind → payload-class pairs where multiple kinds intentionally
 # share a "category" payload class (object_lifecycle, state, audit, view,
 # invite, capability_grant, generic_standard, reaction, container_position,
-# call, message_redact, relation_update, space_state_transition, strand_patch,
+# call, message_redact, space_state_transition, strand_patch,
 # object_patch). Adding a new dispatch that doesn't match the last-segment
 # rule MUST add the pair here, forcing reviewer awareness of the rename.
 LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
@@ -4059,7 +4059,6 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ak.invite.create", "invite_payload"),
     ("ak.invite.revoke", "invite_payload"),
     ("ak.invite.third_party", "invite_payload"),
-    ("ak.moderation.franking_proof", "audit_payload"),
     ("ak.morph.archive", "object_lifecycle_payload"),
     ("ak.morph.restore", "object_lifecycle_payload"),
     ("ak.morph.update", "object_patch_payload"),
@@ -4084,7 +4083,6 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ak.realm.schema", "state_payload"),
     ("ak.realm.update", "object_patch_payload"),
     ("ak.redaction", "message_redact_payload"),
-    ("ak.relation.tombstone", "relation_update_payload"),
     ("ak.schema.define", "state_payload"),
     ("ak.schema.update", "state_payload"),
     ("ak.sovereign.did_policy", "state_payload"),
@@ -4739,6 +4737,46 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     }
     for token in sorted(active_envelope_event_kinds - payload_dispatch_kinds):
         lint.fail(path, f"active Event.kind missing payload schema dispatch: {token}")
+
+    # An explicit registry payload_schema_ref is the canonical payload carrier.
+    # The Event Envelope kind dispatch MUST select that exact schema location;
+    # otherwise registry-driven SDKs and envelope-driven validators can accept
+    # different payload languages for the same Event kind.
+    event_registry_path = ARTIFACTS / "registry" / "event-kind-registry.json"
+    event_registry = load_json(lint, event_registry_path)
+    dispatch_refs: dict[str, set[str]] = {}
+    for kind, ref in collect_payload_dispatch_refs(data):
+        dispatch_refs.setdefault(kind, set()).add(ref)
+
+    def normalize_payload_ref(ref: str, base: Path) -> str | None:
+        file_ref, separator, fragment = ref.partition("#")
+        target = (base / file_ref).resolve()
+        try:
+            relative = target.relative_to(ARTIFACTS.resolve()).as_posix()
+        except ValueError:
+            return None
+        return relative + (f"#{fragment}" if separator else "")
+
+    if isinstance(event_registry, dict):
+        for row in event_registry.get("event_kinds", []):
+            if not isinstance(row, dict):
+                continue
+            kind = row.get("event_kind")
+            registered_ref = row.get("payload_schema_ref")
+            if not isinstance(kind, str) or not isinstance(registered_ref, str):
+                continue
+            normalized_registered = normalize_payload_ref(registered_ref, ARTIFACTS)
+            normalized_dispatches = {
+                normalized
+                for ref in dispatch_refs.get(kind, set())
+                if (normalized := normalize_payload_ref(ref, path.parent)) is not None
+            }
+            if normalized_registered is None or normalized_registered not in normalized_dispatches:
+                lint.fail(
+                    path,
+                    f"kind {kind} registry payload_schema_ref {registered_ref!r} is not selected "
+                    f"by Event Envelope payload dispatch {sorted(normalized_dispatches)}",
+                )
 
     check_composite_subject_terminal_types(lint, path, data)
 

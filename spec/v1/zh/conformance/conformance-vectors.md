@@ -3,7 +3,7 @@ title: Conformance Vectors
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-30
+updated: 2026-08-01
 ---
 
 本文是 v1 conformance 测试向量的人类阅读入口，按域分组呈现核心 normative steps。完整 active vector 集合的机器真相源是 `artifacts/registry/vector-registry.json`；测试 runner MUST 从 registry 的 `source_refs` 加载本文件、领域文档与 fixture，不得假定本文件正文穷尽列出所有 vector id。
@@ -5989,3 +5989,15 @@ active 但当前 revoked / fenced / conflicted 的设备被拒；`verification_m
 service-attested 信任锚缺失被拒；设备 current active 但 sender 无 Realm `seal_ref` 下 scope
 资格或 `signal_class` action 被拒。另 MUST 断言 `expires_at` 已过期的 envelope 在 local
 ingress 被 `invalid_param` 拒绝。
+
+## 34. Active Event payload carrier closure
+
+`vector_group`: `ak.vector_group.event_kind_payload_coverage.v1`
+
+Runner MUST 加载 [`event-kind-payload-coverage-fixture.json`](../../artifacts/fixtures/event-kind-payload-coverage-fixture.json)，并同时执行 registry 闭包与其中的 `schema_validation_cases`。对每个 active `durable_event` / `actor_private_event` kind，payload validator 必须能由 `payload_schema`、`payload_schema_ref` 或 canonical kind-dispatched payload definition 唯一解析；若 registry 显式声明 `payload_schema_ref`，Event Envelope 对该 kind 的 dispatch MUST 指向同一 schema location，不能让 registry-driven SDK 与 envelope-driven validator 接受不同 payload language。
+
+本组对 `ak.relation.tombstone` 与 `ak.moderation.franking_proof` 的最低覆盖是：
+
+- `ak.relation.tombstone` 正例只携带 `relation_id` 与可选 `reason`，并解析到 `relation_tombstone_payload`；携带 `target_ref` / `patch` 的 update 形态 MUST schema-invalid。Registry cell subject 必须由 `payload.relation_id` 解析为 `id:relation`。
+- `ak.moderation.franking_proof` 正例必须通过 `moderation-report.schema.json#/$defs/franking_proof`，registry 与 Event Envelope 必须引用同一个 def；只带 `report_id` / `target_ref` 的 report-keyed 形态 MUST schema-invalid。Registry cell subject 必须由目标 `payload.event_id` 解析为 `id:event`，不得使用外层 proof Event 自身的 `event_id`，也不得退回不存在的 report 字段。
+- 任一显式 schema ref 不存在、ref fragment 不可解析、Event Envelope 错接到共享 `audit_payload` / `relation_update_payload`、或 cell subject 在所选 payload class 上无可解析标量端点，均 MUST 使本组失败；`generic_standard_payload` 不能替代上述两条 kind-specific 合同。

@@ -130,11 +130,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
-      "sha256": "748e1e4a7c04702c6092b365bd13a9e23e8b26517e02e7c80db6fd2d4adcf859"
+      "sha256": "a0eec83109011940da702fd83f8e65ce5bfe899086f2d237bdea92dd4e8abe01"
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "78ddda4b8d4154326d965cd8ddf0c4571f75614c27f01ebe3702dd59510b8d87"
+      "sha256": "1b745e2f3a33d409cd843dbc24a3a013d049835e2424754415dc10fb5bf676ad"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",

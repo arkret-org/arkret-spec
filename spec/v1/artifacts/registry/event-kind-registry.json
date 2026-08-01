@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-01.2",
+  "version": "2026-08-01.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-01T05:00:00Z",
+  "generated_at": "2026-08-01T08:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -4439,7 +4439,8 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Relation tombstone",
+      "payload": "Irreversible Relation lifecycle transition. payload.relation_id is the sole target carrier; payload.target_ref and update-style payload.patch are forbidden. Optional payload.reason is retained on the Event, while the materialized Relation stores only state=tombstoned and state_changed_at=Event.created_at.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_tombstone_payload",
       "lifecycle_modality": "terminal",
       "plane": "control",
       "sealed": true,
@@ -4447,11 +4448,8 @@
         {
           "cell_family": "ak.component.relation.lifecycle.v1",
           "cell_subject": {
-            "kind": "coalesce",
-            "fields": [
-              "payload.relation_id",
-              "payload.target_ref"
-            ]
+            "kind": "id:relation",
+            "field": "payload.relation_id"
           },
           "lattice": "fsm",
           "bottom": "reject",
@@ -4466,11 +4464,8 @@
       "concurrency_class": "exclusive",
       "cell_family": "ak.component.relation.lifecycle.v1",
       "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.relation_id",
-          "payload.target_ref"
-        ]
+        "kind": "id:relation",
+        "field": "payload.relation_id"
       },
       "effect_projection": {
         "kind": "transition_to",
@@ -7442,18 +7437,16 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "crypto_verifiable",
-      "payload": "Moderation franking proof",
+      "payload": "Receiving-service proof that one encrypted target Event was received. The payload is exactly moderation-report.schema.json#/$defs/franking_proof; payload.event_id identifies the proven Event and is the ak.component.moderation.franking_proof.v1 cell subject. A proof is created independently of any later report, so report_id and target_ref are not payload fields.",
+      "payload_schema_ref": "schemas/moderation-report.schema.json#/$defs/franking_proof",
       "plane": "data",
       "sealed": false,
       "cell_writes": [
         {
           "cell_family": "ak.component.moderation.franking_proof.v1",
           "cell_subject": {
-            "kind": "coalesce",
-            "fields": [
-              "payload.report_id",
-              "payload.target_ref"
-            ]
+            "kind": "id:event",
+            "field": "payload.event_id"
           },
           "lattice": "ordered_log",
           "bottom": "expose",
@@ -7470,11 +7463,8 @@
       ],
       "cell_family": "ak.component.moderation.franking_proof.v1",
       "cell_subject": {
-        "kind": "coalesce",
-        "fields": [
-          "payload.report_id",
-          "payload.target_ref"
-        ]
+        "kind": "id:event",
+        "field": "payload.event_id"
       },
       "effect_projection": {
         "kind": "append",

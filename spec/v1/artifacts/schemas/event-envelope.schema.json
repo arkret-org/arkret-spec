@@ -2490,10 +2490,7 @@
       "if": {
         "properties": {
           "kind": {
-            "enum": [
-              "ak.relation.update",
-              "ak.relation.tombstone"
-            ]
+            "const": "ak.relation.update"
           }
         },
         "required": [
@@ -2504,6 +2501,25 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/relation_update_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.relation.tombstone"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/relation_tombstone_payload"
           }
         }
       }
@@ -3889,7 +3905,6 @@
           "kind": {
             "enum": [
               "ak.audit.ryw_receipt",
-              "ak.moderation.franking_proof",
               "ak.attestation.range_completeness"
             ]
           }
@@ -3902,6 +3917,25 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/audit_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.moderation.franking_proof"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./moderation-report.schema.json#/$defs/franking_proof"
           }
         }
       }

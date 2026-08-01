@@ -1,15 +1,70 @@
 {
   "suite": "event_kind_payload_coverage_fixture",
-  "version": "2026-07-10",
+  "version": "2026-08-01",
   "runner": {
     "kind": "registry_coverage",
     "inputs": [
       "registry/contract-registry.json",
       "registry/event-kind-registry.json",
       "schemas/event-envelope.schema.json",
-      "schemas/event-payload.schema.json"
+      "schemas/event-payload.schema.json",
+      "schemas/moderation-report.schema.json"
     ]
   },
+  "schema_validation_cases": [
+    {
+      "name": "relation_tombstone_payload_accepts_canonical_target",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/relation_tombstone_payload",
+      "expect_valid": true,
+      "instance": {
+        "relation_id": "ak:relation:01964180-0000-7000-8000-000000000000",
+        "reason": "relationship no longer applies"
+      }
+    },
+    {
+      "name": "relation_tombstone_rejects_update_payload_shape",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/relation_tombstone_payload",
+      "expect_valid": false,
+      "first_expected_error": "contains:relation_id",
+      "instance": {
+        "target_ref": "ak:relation:01964180-0000-7000-8000-000000000000",
+        "patch": []
+      }
+    },
+    {
+      "name": "moderation_franking_proof_accepts_canonical_proof",
+      "schema_ref": "schemas/moderation-report.schema.json#/$defs/franking_proof",
+      "expect_valid": true,
+      "instance": {
+        "kind": "ak.moderation.franking_proof",
+        "franking_proof_id": "ak:franking_proof:0196425b-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
+        "routing_metadata_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "aad_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "sender_claim": {
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
+          "mls_group_id_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+        },
+        "received_by": "did:webvh:z6mkfixture:sync.example",
+        "received_at": "2026-08-01T00:00:00.000Z",
+        "replay_nonce": "fixture-nonce-0001",
+        "signature": "c2lnbmF0dXJl"
+      }
+    },
+    {
+      "name": "moderation_franking_proof_rejects_report_subject_aliases",
+      "schema_ref": "schemas/moderation-report.schema.json#/$defs/franking_proof",
+      "expect_valid": false,
+      "first_expected_error": "contains:kind",
+      "instance": {
+        "report_id": "ak:report:0196425b-0000-7000-8000-000000000000",
+        "target_ref": "ak:event:019640ed-8000-7000-8000-000000000000"
+      }
+    }
+  ],
   "assertions": [
     {
       "id": "catalog_registry_bijection",
@@ -17,7 +72,7 @@
     },
     {
       "id": "payload_schema_ref_resolves",
-      "rule": "Every durable event kind declares a payload_schema_ref that resolves to an existing JSON Schema location."
+      "rule": "Every active durable event kind resolves through payload_schema, payload_schema_ref, or its canonical kind-dispatched event-payload definition; every explicit payload_schema_ref resolves and matches the Event Envelope dispatch for that kind."
     },
     {
       "id": "wire_scope_matches_envelope",

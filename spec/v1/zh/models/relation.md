@@ -40,7 +40,7 @@ Schema id: `ak.schema.relation.v1`
 | `to_ref` | yes | `string` | MUST 是 `ak:<kind>:...` 或 DID。 | 终点对象/Actor/Realm 引用。 |
 | `rank` | no | `string` | 见 `encoding.md` §9。**与 Space.rank 顶层字段对齐**——v1 把 rank 提升到顶层，`fields.rank` 在 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。 | 有序关系（如 `contains list -> strand`）的稳定 rank。 |
 | `fields` | no | `object` | 可放 role、edge metadata；MUST NOT 包含 `rank`（已提升到顶层）。 | 关系属性。 |
-| `state` | no | `enum(active, tombstoned)` | `tombstoned` 同时覆盖删除与 redaction；原因保存在对应 `ak.relation.tombstone` / `ak.redaction` event 上，物化对象只保留当前状态。 | 关系状态。 |
+| `state` | no | `enum(active, tombstoned)` | `tombstoned` 同时覆盖删除与 redaction；若操作提供原因，原因保存在对应 `ak.relation.tombstone` / `ak.redaction` event 上，物化对象只保留当前状态。 | 关系状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -48,6 +48,15 @@ Schema id: `ak.schema.relation.v1`
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
 **生命周期（normative）**：Relation 的 `state` 只取 `active` / `tombstoned` 两值，**没有 `archived` 态**——这是有意取舍，区别于含 `archived` 的 Circle / Morph 等对象（[`common-fields.md` §5.2](./common-fields.md) 模板）：Relation 是一等边，要么有效（`active`）要么作废（`tombstoned`，不可逆，由 `ak.relation.tombstone` / `ak.redaction` 写入），不存在"暂时收起、可恢复"的中间态。需要"软隐藏"某条关系时，由查询 / projection 层过滤，不引入额外 canonical 生命周期态。生命周期仅 `active → tombstoned` 单向迁移。
+
+**`ak.relation.tombstone` payload（normative）**：该 Event 的 payload 由 [`event-payload.schema.json#/$defs/relation_tombstone_payload`](../../artifacts/schemas/event-payload.schema.json) 定义，唯一目标字段是必填的 `relation_id: id:relation`；可选 `reason` 是保留在 Event 上的人类可读原因。`target_ref`、`patch`、`expected_state_digest` 以及其它 `ak.relation.update` 字段在 tombstone payload 上 MUST 以 `schema_violation` 拒绝，不允许两个目标别名形成双源。Reducer MUST 验证 `relation_id` 指向本 Event `realm_id` 内当前为 `active` 的 Relation；目标不存在、属于其它 Realm 或已经 `tombstoned` 时 MUST `failed_precondition`。接受后只执行 `active → tombstoned`，并把物化 `state_changed_at` 设为该 Event 的 `created_at`；`reason` 不复制到 Relation 对象。
+
+```text
+{
+  "relation_id": "ak:relation:01964180-0000-7000-8000-000000000000",
+  "reason": "relationship no longer applies"
+}
+```
 
 Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询层或 schema 派生。
 

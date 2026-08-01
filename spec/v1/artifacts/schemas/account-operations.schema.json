@@ -362,6 +362,11 @@
           "$ref": "./handle-claim.schema.json#/properties/handle",
           "description": "Canonical handle of the authenticated service account. This unsigned UX hint is only for display and local artifact naming; it MUST NOT be treated as principal identity evidence, authorization, or a service-account-to-principal binding."
         },
+        "preferred_locale": {
+          "type": "string",
+          "enum": ["en", "zh"],
+          "description": "Optional private UI-language preference of the authenticated service account. It is returned only in this DPoP-bound handoff response so the client can continue the just-completed authentication flow in the selected language; it MUST NOT be copied into a public actor profile."
+        },
         "account_handoff_grant": {
           "type": "string",
           "minLength": 32,

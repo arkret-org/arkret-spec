@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-01.2",
+  "version": "2026-08-01.3",
   "source_of_truth": false,
-  "generated_at": "2026-08-01T05:00:00Z",
+  "generated_at": "2026-08-01T08:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
