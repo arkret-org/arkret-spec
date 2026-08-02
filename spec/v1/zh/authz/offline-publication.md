@@ -205,13 +205,15 @@ peer federation 使用：
 EventFederationSubmission {
   event,
   authorization_lease?,
-  ingress_receipts[],
+  ingress_receipts[], // online 必须为空；delayed/offline 必须非空
   control_proposal_receipt?
 }
 ```
 
-至少携带一个 receipt；lease 仅在来源明确声明该 Event 使用离线窗口时出现。receiver 再按目标 Realm 的 issuer/threshold/transparency policy 判断证据
-是否充分。request 级 `cba_proof_bundles[]` 只负责补齐 basis closure。任何服务都不得把这些
+普通在线 federation 必须同时省略 lease 并携带空 `ingress_receipts[]`；来源明确声明该 Event 使用
+延迟/离线窗口时，必须同时携带 lease 与至少一个绑定该 lease 的 receipt。receiver 再按目标 Realm
+的 issuer/threshold/transparency policy 判断离线证据是否充分。request 级 `cba_proof_bundles[]`
+只负责补齐 basis closure。任何服务都不得把这些
 传输证据复制进 Event，或因本地较晚首次见到而改写 `received_at`。
 
 `control_proposal_receipt` 只允许 Control Move，且必须是

@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-02.11",
-  "generated_at": "2026-08-02T20:00:00Z",
+  "version": "2026-08-02.12",
+  "generated_at": "2026-08-02T20:30:00Z",
   "source_of_truth": true,
   "description": "Canonical reducer profile declarations and generated content-addressed semantic closures used for federation service_binding_ref.reducer_profile_digest.",
   "canonicalization": "json_jcs",
@@ -1645,7 +1645,7 @@
           },
           {
             "fixture": "federation-fixture.json",
-            "semantic_projection_digest": "sha256:39a9700c6a95fe2e37c7cc8cb56be5a8fcf99597e8f7db78d30a7efa9ea3d2ab"
+            "semantic_projection_digest": "sha256:ba04dd6455dfe649e19bae1f1e63224d6cdea7b1bbe1938f9bd3be17b29f470b"
           },
           {
             "fixture": "sync-fixture.json",
@@ -1679,7 +1679,7 @@
           },
           {
             "ref": "zh/sync/federation.md",
-            "content_digest": "sha256:6e824eb8cf6b0e16135856c8b082c77621704acd4d3e4f331ce7d7a4e19383c4"
+            "content_digest": "sha256:5acdea0d350b6e899f5bf16da7a0ee5194720f79dccd8d961318c83041f4a38e"
           },
           {
             "ref": "zh/sync/service-http-binding.md",
@@ -1687,7 +1687,7 @@
           }
         ]
       },
-      "reducer_profile_digest": "sha256:46789ffcf7f7018eebb828cc5418b282959b6db70397e6207149b2eb737cd15d"
+      "reducer_profile_digest": "sha256:7a413f4883521c55470779208f4ebf72fd2a051938f7bd94c41f7e7d6c2688e1"
     }
   ],
   "generated_fields": [

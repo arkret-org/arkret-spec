@@ -4194,7 +4194,7 @@
     },
     "EventFederationSubmission": {
       "type": "object",
-      "description": "Previously receipted Event publication evidence transported between peers. The receiving peer independently revalidates the Event, receipts, CBA closure and, only when present, an explicit delayed/offline authorization lease.",
+      "description": "Event publication transported between peers. Online federation carries an empty ingress_receipts array and no authorization_lease; explicit delayed/offline federation carries its lease and one or more lease-bound receipts. The receiving peer independently revalidates the Event, current admission, optional delayed evidence and CBA closure.",
       "required": [
         "event",
         "ingress_receipts"
@@ -4208,7 +4208,7 @@
         },
         "ingress_receipts": {
           "type": "array",
-          "minItems": 1,
+          "minItems": 0,
           "maxItems": 32,
           "uniqueItems": true,
           "items": {
@@ -4220,6 +4220,29 @@
           "description": "Canonical external-authority receipt set for a federated Control Move. Forbidden for DataEvents."
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "authorization_lease"
+            ]
+          },
+          "then": {
+            "properties": {
+              "ingress_receipts": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "ingress_receipts": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "RealmActorFrontierView": {

@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8466,
+    "total_properties": 8468,
     "total_schema_documents": 154,
     "by_presence_class": {
       "optional": 2832,
       "optional_defaulted": 79,
       "required": 5206,
       "required_nullable": 90,
-      "tristate": 259
+      "tristate": 261
     },
-    "tristate_occurrences": 259,
-    "tristate_audit_targets": 159,
+    "tristate_occurrences": 261,
+    "tristate_audit_targets": 160,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 149,
+      "absent_null_equivalent": 150,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -257,6 +257,8 @@
     "service-describe.schema.json/allOf/3/then/properties/supported_profiles",
     "service-describe.schema.json/allOf/5/then/properties/auth_metadata",
     "service-operation-dtos.schema.json/$defs/DeviceMessagesGetOutcome/allOf/0/if/properties/messages",
+    "service-operation-dtos.schema.json/$defs/EventFederationSubmission/allOf/0/else/properties/ingress_receipts",
+    "service-operation-dtos.schema.json/$defs/EventFederationSubmission/allOf/0/then/properties/ingress_receipts",
     "service-operation-dtos.schema.json/$defs/EventsDependencyMissingProblem/anyOf/0/properties/missing_event_ids",
     "service-operation-dtos.schema.json/$defs/EventsDependencyMissingProblem/anyOf/1/properties/missing_event_digests",
     "service-operation-dtos.schema.json/$defs/EventsDependencyMissingProblem/anyOf/2/properties/missing_seal_refs",
@@ -1630,6 +1632,17 @@
       "instance_path": "/messages",
       "occurrences": [
         "/$defs/DeviceMessagesGetOutcome/allOf/0/if/properties/messages"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
+      "shape": "/$defs/EventFederationSubmission",
+      "instance_path": "/ingress_receipts",
+      "occurrences": [
+        "/$defs/EventFederationSubmission/allOf/0/else/properties/ingress_receipts",
+        "/$defs/EventFederationSubmission/allOf/0/then/properties/ingress_receipts"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -10880,6 +10893,8 @@
         "/$defs/DirectoryWithdrawRequestBody/properties/governance_proof": "required",
         "/$defs/DirectoryWithdrawRequestBody/properties/reason": "optional",
         "/$defs/DirectoryWithdrawRequestBody/properties/resource_id": "required",
+        "/$defs/EventFederationSubmission/allOf/0/else/properties/ingress_receipts": "tristate",
+        "/$defs/EventFederationSubmission/allOf/0/then/properties/ingress_receipts": "tristate",
         "/$defs/EventFederationSubmission/properties/authorization_lease": "optional",
         "/$defs/EventFederationSubmission/properties/control_proposal_receipt": "optional",
         "/$defs/EventFederationSubmission/properties/event": "required",
