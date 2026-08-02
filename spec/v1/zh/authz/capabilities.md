@@ -109,23 +109,13 @@ ID 语义：
       "allowed_write_fields": ["metadata.title", "metadata.summary", "content", "metadata.fields.review_status"]
     }
   ],
-  "issued_at": "2026-04-26T00:00:00.000Z",
-  "proofs": [
-    {
-      "kind": "detached_jws",
-      "alg": "EdDSA",
-      "verification_method": "did:webvh:z6qRDFWgaBgTY3UGDLivJztno:acme.example.com#device-1",
-      "payload_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-      "created_at": "2026-04-26T00:00:00.000Z",
-      "jws": "eyJhbGciOiJFZERTQSJ9..signature"
-    }
-  ]
+  "issued_at": "2026-04-26T00:00:00.000Z"
 }
 ```
 
-### 3.0.1 Grant proof transcript 与验签（normative）
+### 3.0.1 单一 durable signature（normative）
 
-`CapabilityGrant.proofs[]` 不是 Event envelope proof 的替代品，两层证明都必须独立成立。每条 grant proof 的 `payload_digest` 固定为 `sha256(RFC8785-JCS(grant body 删除 proofs 字段))`；签名输入固定为 RFC 8785 JCS：`{context:"ak.capability-grant-proof-v1", payload_digest, issuer, subject, verification_method, created_at, domain?, audience?}`，再按 v1 detached JWS profile 生成 `base64url({"alg":"EdDSA"})..signature`。`verification_method` MUST 由 `issuer` 控制；`proof_purpose` 若存在 MUST 为 `issuer_attestation`。Receiver MUST 重算 digest、重建 transcript、按 accepted-at 有效 issuer key 验证每条 proof，并拒绝空 proof、purpose 越界、verification method 非 issuer 所有、digest 不一致或 JWS 不成立的 grant。只验证承载它的 Event proof、只检查 `proofs` 非空，或由 service 代签 / 补造 grant proof，均不合规。
+`ak.capability.grant` 的 `grant` 是无内层 proof 的 closed `CapabilityGrantBody`。唯一 durable issuer signature 是承载该 payload 的 Event envelope proof；它同时覆盖 actor、scope、typed authority refs、完整 grant body 与时间。该 Event 的 actor MUST 等于 `grant.issuer`，且本 kind MUST NOT 使用 `executed_by`，从而不存在 executor 与 issuer 不同却遗漏第二签名的问题。需要独立携带、不同 signer、quorum/threshold 或独立密码学 transcript 的证明必须使用另行注册的 typed payload，不得把通用 `proofs[]` 加回 grant body。服务端不得代签或补造 Event proof。
 
 ### 3.1 条件化 Grant
 
@@ -204,7 +194,7 @@ v1 普通授权仍以 capability grant 为默认。唯一注册的 profile-scope
 
 Direct Conversation root owner 还必须与 profile phase mask 求交：founding 仅可完成逐字段绑定 draft，active
 phase 只保留注册 root-control，普通 operational/grant/member/policy/terminal coverage 被拒绝。完整规则见
-[`contact-and-direct-conversation.md` §7.2–§7.4](../identity/contact-and-direct-conversation.md)。
+[`contact-and-direct-conversation.md` §7.1–§7.2](../identity/contact-and-direct-conversation.md)。
 机器正负向闭包由 `ak.vector.capability.direct_conversation_participant_authority.v1` 固定。
 
 ## 4. Resource Selector

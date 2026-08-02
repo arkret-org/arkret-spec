@@ -444,7 +444,7 @@
     },
     "agent_deactivate_payload": {
       "type": "object",
-      "description": "Payload for ak.self.agent.deactivate. Revocation fan-out and future agent-session rejection are judged at the accepted Seal covering this Move (or its successors); the authoring basis is the Control Move envelope seal_basis. The payload carries no frontier field.",
+      "description": "Payload for the single terminal ak.self.agent.deactivate Control Move. At the accepted Seal covering this Move, every verifier mechanically AND-gates all subordinate Agent runtime-key authorizations, sessions, pairing handles, capability grants, KeyPackages, presence and future submissions on lifecycle=active. Historical child Events remain auditable; explicit child revokes are not prerequisites and are reserved for targeted revocation while the Agent is non-terminal. The lifecycle state witness is sufficient transition evidence for every derived ineffective child.",
       "required": [
         "agent_id",
         "controller_id",
@@ -2836,7 +2836,7 @@
         "grant_id",
         "grant"
       ],
-      "description": "Canonical ak.capability.grant payload. The complete signed CapabilityGrant is mandatory; the former flat subject/actions/resources alternative is not v1 wire because it cannot carry proofs or issuer_authority_refs.",
+      "description": "Canonical ak.capability.grant payload. grant is a closed CapabilityGrantBody without an inner proof. The Event envelope proof is the sole durable issuer signature and covers actor, scope, typed authority refs, payload and time. This kind MUST NOT use executed_by; cases with a different executor/issuer require a separately registered payload-proof shape.",
       "properties": {
         "grant": {
           "$ref": "./capability-grant.schema.json"
@@ -2950,7 +2950,8 @@
             {
               "type": "null"
             }
-          ]
+          ],
+          "description": "Optional optimistic-concurrency guard, orthogonal to the membership transition guard. The three wire states are distinct: omission applies no CAS and leaves legality to the FSM guard, explicit null asserts the actor currently has no membership record in this Circle, and a concrete value asserts the current membership equals it. A failed assertion MUST be rejected with failed_precondition. See zh/models/circle.md §9.1."
         }
       },
       "additionalProperties": false
@@ -4431,20 +4432,18 @@
     },
     "direct_conversation_bound_payload": {
       "type": "object",
-      "description": "Principal-scoped signed binding from an unordered participant pair to one DM Realm segment and main Strand. Issuer MUST be one of the participants; the original signed envelope may be mirrored by the other participant. Canonical active and retired facts form a verified predecessor chain; pending, orphan, duplicate and non-canonical candidates never enter that chain.",
+      "description": "Immutable principal-scoped signed binding from an unordered participant pair to its single stable DM Realm and main Strand. Issuer MUST be one of the participants; the original signed envelope may be mirrored by the other participant. MLS generations are projected separately and are not part of the permanent binding.",
       "required": [
         "pair_key",
         "participants_unordered",
         "realm_id",
         "main_strand_id",
-        "mls_group_id",
         "authorization_basis",
         "member_event_refs",
         "main_strand_create_ref",
         "mls_genesis_event_ref",
         "mls_commit_event_ref",
         "mls_welcome_event_ref",
-        "binding_state",
         "created_at"
       ],
       "properties": {
@@ -4468,11 +4467,6 @@
         "main_strand_id": {
           "$ref": "#/$defs/strand_id"
         },
-        "mls_group_id": {
-          "type": "string",
-          "minLength": 1,
-          "description": "MLS group bound to this DM Realm segment."
-        },
         "authorization_basis": {
           "$ref": "#/$defs/direct_conversation_authorization_basis"
         },
@@ -4495,79 +4489,11 @@
           "$ref": "#/$defs/event_ref",
           "description": "Accepted Welcome Event paired with mls_commit_event_ref."
         },
-        "supersedes_binding_ref": {
-          "$ref": "#/$defs/event_ref",
-          "description": "For a retired fact, the exact active binding Event made ineligible by retirement_cause_event_ref."
-        },
-        "retirement_cause_event_ref": {
-          "$ref": "#/$defs/event_ref",
-          "description": "Accepted structural terminal Event that made the superseded active segment ineligible: participant leave/ban, Realm terminal state, or canonical main Strand terminal state. Contact or consent changes are not valid retirement causes."
-        },
-        "predecessor_binding_ref": {
-          "$ref": "#/$defs/event_ref",
-          "description": "Canonical retired binding Event for the immediately preceding segment of the same pair_key and trust_domain. It is omitted only for the first segment relative to complete verified evidence."
-        },
-        "binding_state": {
-          "type": "string",
-          "enum": [
-            "active",
-            "retired"
-          ],
-          "description": "Authored fact state. duplicate and non_canonical are derived projection states selected by the canonical candidate reducer and are never authored on wire."
-        },
         "created_at": {
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "binding_state": {
-                "const": "retired"
-              }
-            },
-            "required": [
-              "binding_state"
-            ]
-          },
-          "then": {
-            "required": [
-              "supersedes_binding_ref",
-              "retirement_cause_event_ref"
-            ]
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "binding_state": {
-                "const": "active"
-              }
-            },
-            "required": [
-              "binding_state"
-            ]
-          },
-          "then": {
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "supersedes_binding_ref"
-                  ]
-                },
-                {
-                  "required": [
-                    "retirement_cause_event_ref"
-                  ]
-                }
-              ]
-            }
-          }
-        }
-      ]
+      "additionalProperties": false
     },
     "effective_scope": {
       "oneOf": [
@@ -6405,7 +6331,7 @@
     },
     "mimi_room_binding_payload": {
       "type": "object",
-      "description": "Payload for ak.mimi.room_binding. Writes the ak.component.mimi.room_binding.v1 cell whose subject is payload.mimi_room_uri (see event-kind-registry.json cell_subject). Authoritative field set: zh/extensions/mimi-interop.md §3. The binding is a projection of a Arkret Realm/Strand discussion track into a MIMI room; it is not canonical truth. Creation / update / revocation MUST hold ak.policy.manage, ak.realm.admin, or an equivalent interop capability. E2EE MIMI rooms MUST bind mls_group_id and pass the MLS Governance Binding covered_seals_cell precondition.",
+      "description": "Payload for ak.mimi.room_binding. Writes the ak.component.mimi.room_binding.v1 cell whose subject is payload.mimi_room_uri (see event-kind-registry.json cell_subject). Authoritative field set: zh/extensions/mimi-interop.md §3. The binding is a projection of an Arkret Realm/Strand discussion track into a MIMI room; it is not canonical truth. Creation / update / revocation MUST hold ak.policy.manage, ak.realm.admin, or an equivalent interop capability. E2EE MIMI rooms MUST bind mls_group_id and pass the active MLS security_frontier_digest gate.",
       "required": [
         "profile",
         "mimi_room_uri",
@@ -6520,7 +6446,7 @@
             "governance_binding",
             "group_state_update",
             "keypackage_claim",
-            "policy_root_mismatch",
+            "security_frontier_mismatch",
             "unsupported_cipher_suite",
             "storage_failure",
             "unknown_epoch",
@@ -6722,9 +6648,7 @@
         "mls_group_id",
         "previous_epoch",
         "next_epoch",
-        "membership_frontier",
-        "covered_seal_refs",
-        "policy_root",
+        "security_frontier_digest",
         "binding_profile",
         "reducer_profile"
       ],
@@ -6759,30 +6683,9 @@
           "type": "integer",
           "minimum": 0
         },
-        "membership_frontier": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/event_ref"
-          },
-          "minItems": 1
-        },
-        "covered_seal_refs": {
-          "type": "array",
-          "description": "Non-empty exact set of governance Seal references attested by this MLS binding. The reducer deterministically adds each value to ak.component.covered_seals.v1; every value is covered by the MLS transcript.",
-          "items": {
-            "$ref": "#/$defs/seal_ref"
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "policy_root": {
-          "$ref": "#/$defs/hash"
-        },
-        "capability_root": {
-          "$ref": "#/$defs/hash"
-        },
-        "discussion_metadata_digest": {
-          "$ref": "#/$defs/hash"
+        "security_frontier_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Canonical digest of the closed key-access frontier for this MLS scope: effective membership; only participant device/Agent keys referenced by current or pending MLS leaves; MLS group membership; and encryption/history policy that changes current or historical key access. Capability, ordinary metadata, moderation, routing, contact and consent-only facts are excluded unless their accepted effect actually removes an MLS leaf. Producers do not supply an arbitrary event list; every verifier rederives the digest from accepted Seal state."
         },
         "sidecar_binding": {
           "$ref": "#/$defs/sidecar_mls_binding",
@@ -6796,7 +6699,7 @@
         "reducer_profile": {
           "type": "string",
           "minLength": 1,
-          "description": "Reducer profile identifier used to interpret membership_frontier, policy_root, capability_root, and covered_seals_cell semantics. Receivers MUST fail closed when this field is missing or does not match the reducer profile negotiated for the Realm/federation peer."
+          "description": "Reducer profile identifier used to interpret the closed security_frontier_digest projection. Receivers MUST fail closed when this field is missing or does not match the reducer profile negotiated for the Realm/federation peer."
         }
       },
       "allOf": [
@@ -6868,24 +6771,6 @@
           "then": {
             "required": [
               "circle_id"
-            ]
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "binding_profile": {
-                "const": "ak.profile.mls_governance_binding.full.v1"
-              }
-            },
-            "required": [
-              "binding_profile"
-            ]
-          },
-          "then": {
-            "required": [
-              "capability_root",
-              "discussion_metadata_digest"
             ]
           }
         }
@@ -7022,6 +6907,7 @@
         "claim_id",
         "claim_ref",
         "claim_envelope",
+        "commit_ref",
         "governance_binding",
         "expires_at"
       ],
@@ -9683,7 +9569,7 @@
         },
         "media_service_decrypts": {
           "type": "boolean",
-          "description": "Whether a media service listed in plaintext_visible_services may decrypt call media. Defaults to false when absent. It is one of the three conditions that MUST all hold (ak.realm.media_service declaration + plaintext_visible_services grant + this toggle), it is a leaf of discussion_metadata_digest, and a policy_root that does not cover it MUST be treated as not enabled. See crypto-media/media-service-binding.md section 8.2."
+          "description": "Whether a media service listed in plaintext_visible_services may decrypt call media. Defaults to false when absent. It is one of three conditions that MUST all hold (ak.realm.media_service declaration + plaintext_visible_services grant + this toggle). Because it changes who may receive media keys, it enters the media scope security_frontier_digest; a generation that does not cover the current value cannot authorize media decryption. See crypto-media/media-service-binding.md section 8.2."
         },
         "join_policy": {
           "$ref": "#/$defs/join_policy_payload"
@@ -9825,7 +9711,7 @@
     },
     "realm_set_default_strand_payload": {
       "type": "object",
-      "description": "Payload for ak.realm.set_default_strand. Sets / changes the Realm's authoritative default discussion Strand pointer. Reducer projects strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify strand_id references a projected, non-tombstoned Strand in this Realm; a dangling reference MUST be rejected with failed_precondition. The Strand projection is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage. expected_default_strand_id, when present, compiles to a cell head_eq precondition for optimistic concurrency (CAS); omission is no CAS.",
+      "description": "Payload for ak.realm.set_default_strand. Sets / changes the Realm's authoritative default discussion Strand pointer. Reducer projects strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify strand_id references a projected, non-tombstoned Strand in this Realm; a dangling reference MUST be rejected with failed_precondition. The Strand projection is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage. expected_default_strand_id compiles to a cell head_eq precondition for optimistic concurrency (CAS). Absent and explicit null are normalized to the same null value before comparison, so omission asserts head_eq null and is only valid while the cell is still in its initial no-default state; once a default is set the field MUST be present, otherwise the reducer MUST reject with failed_precondition and MUST NOT overwrite unconditionally.",
       "required": [
         "realm_id",
         "strand_id"
@@ -9846,7 +9732,7 @@
               "type": "null"
             }
           ],
-          "description": "Optional optimistic-concurrency guard. When present, the reducer accepts the write only if the Realm's current default_strand_id equals this value (null asserts no default is currently set). Mismatch MUST be rejected (failed_precondition)."
+          "description": "Optimistic-concurrency guard compared as a whole value after absent and explicit null are normalized to null. The reducer accepts the write only if the Realm's current default_strand_id equals this value (null asserts no default is currently set). Omission therefore asserts head_eq null and MUST fail once a default exists. Mismatch MUST be rejected (failed_precondition)."
         },
         "reason": {
           "type": "string"

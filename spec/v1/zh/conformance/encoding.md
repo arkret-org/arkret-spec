@@ -79,6 +79,27 @@ v1 的 machine-readable profile 与版本钉定见 [`string-profile-registry.jso
 
 UTS #39 skeleton 只是 registration authority 在**同一 namespace**内使用的派生 collision index，不是 canonical value、wire 字段、proof transcript 或协议 equality。authority MAY 要求 `Highly Restrictive` restriction level；skeleton 数据版本升级时 MUST 重建派生索引但 MUST NOT 改写既有 canonical identifier。不同 authority 或 handle / realm-alias 两个不相交 namespace 的 skeleton 相同，不建立协议等价。
 
+`string-profiles.schema.json` 为上述 profile 声明 8 个自定义 JSON string format。这些 format 的
+normative 语义由 PRECIS、UTS #46 与 NFC 决定，JSON Schema 的 `pattern` / `minLength` / `maxLength`
+只做粗粒度 shape 检查，因此实现 MUST 在 schema 校验之外执行 profile validator。唯一的正负向 vector
+集合是 [`string-profile-fixture.json`](../../artifacts/fixtures/string-profile-fixture.json)，每个被拒值
+显式声明拒绝层：`schema_pattern` 表示粗 schema 已能拒绝，`profile_validator` 表示该值刻意通过粗
+schema、只有 profile validator 能拒绝。任何实现只要接受后一类值，即使 JSON Schema 校验通过也不合规。
+
+| Format | Vector |
+| --- | --- |
+| `arkret-human-identifier` | `ak.vector.encoding.string_profile_human_identifier.v1` |
+| `arkret-agent-slug` | `ak.vector.encoding.string_profile_agent_slug.v1` |
+| `arkret-idna-a-label-domain` | `ak.vector.encoding.string_profile_idna_a_label_domain.v1` |
+| `arkret-canonical-handle` | `ak.vector.encoding.string_profile_canonical_handle.v1` |
+| `arkret-acct-uri` | `ak.vector.encoding.string_profile_acct_uri.v1` |
+| `arkret-single-line-display-text` | `ak.vector.encoding.string_profile_single_line_display_text.v1` |
+| `arkret-short-text` | `ak.vector.encoding.string_profile_short_text.v1` |
+| `arkret-content-text` | `ak.vector.encoding.string_profile_content_text.v1` |
+
+`format: binary` 只出现在 multipart / binary-stream transport shape，不是 JSON string 内容编码断言，
+因此不在本表内，也 MUST NOT 被实现伪装成一个恒真的 string format assertion。
+
 #### 2.2.1 IDNA domain profile
 
 面向用户的 domain 输入 MAY 是 U-label；canonical wire、签名、缓存键和唯一索引 MUST 使用 UTS #46 Nontransitional Processing 得到的小写 A-label，并启用 `CheckHyphens=true`、`CheckBidi=true`、`CheckJoiners=true`、`UseSTD3ASCIIRules=true`、`VerifyDnsLength=true`。实现 MUST 拒绝 trailing dot、空 label、单 label domain、超过 63 octets 的 label、超过 253 octets 的 domain、无效 `xn--` 与不能通过 ToUnicode → ToASCII round-trip 的 A-label。JSON Schema 的 ASCII pattern 只做粗粒度 shape 检查，不能替代该 normative validator。

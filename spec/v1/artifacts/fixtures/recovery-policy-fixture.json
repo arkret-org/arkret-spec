@@ -31,9 +31,7 @@
           "seal_basis": {
             "leaves": [
               "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            ],
-            "control_event_set_root": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-            "state_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            ]
           },
           "payload": {
             "policy_id": "ak:policy:019a8200-0000-7000-8000-000000000003",
@@ -83,9 +81,7 @@
           "basis_ref": {
             "leaves": [
               "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            ],
-            "control_event_set_root": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-            "state_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            ]
           },
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "device_id": "ak:device:019a8200-0000-7000-8000-000000000004",

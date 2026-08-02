@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-02.1",
+  "version": "2026-08-02.3",
   "source_of_truth": true,
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
@@ -27,7 +27,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#2-canonical-json",
-      "section_digest": "sha256:2110d23a1b22df2db7921477ad72e319072546d95d8afb98eed814169ccd0958",
+      "section_digest": "sha256:f61ed7a9ac8614167a98d3fd60bf9aa8a0117b036aadc6b8d0fb37a738a658c3",
       "requirement": "Canonical JSON serialization (key order, number form, NFC strings, duplicate-key rejection) is the single encoding used for every digest, signature and canonical comparison.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -36,7 +36,15 @@
         "ak.vector.encoding.canonical_json.utf16_supplementary_order.v1",
         "ak.vector.encoding.reject_duplicate_key.v1",
         "ak.vector.encoding.reject_noncanonical_numbers.v1",
-        "ak.vector.encoding.reject_non_nfc_string.v1"
+        "ak.vector.encoding.reject_non_nfc_string.v1",
+        "ak.vector.encoding.string_profile_human_identifier.v1",
+        "ak.vector.encoding.string_profile_agent_slug.v1",
+        "ak.vector.encoding.string_profile_idna_a_label_domain.v1",
+        "ak.vector.encoding.string_profile_canonical_handle.v1",
+        "ak.vector.encoding.string_profile_acct_uri.v1",
+        "ak.vector.encoding.string_profile_single_line_display_text.v1",
+        "ak.vector.encoding.string_profile_short_text.v1",
+        "ak.vector.encoding.string_profile_content_text.v1"
       ]
     },
     {
@@ -167,8 +175,8 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#2-基础加密架构mls-与-arkret-的融合",
-      "section_digest": "sha256:951f712ce3c828c1a4307519638308fbec272939344df273c4d1d65d74e2ab3e",
-      "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, encryption floors MUST NOT be downgraded, an encrypted envelope MUST NOT disclose an AAD event id wider than the Realm aad_visibility ceiling, and a governance binding MUST NOT attest a Seal outside its own seal_basis closure.",
+      "section_digest": "sha256:ddd311136512e1fc3a284ede1c989a766c0d9b015826f63270db77819d90ce3d",
+      "requirement": "MLS integration boundary: only registered active ciphersuites reach the wire, Welcome and KeyPackage binding is verified byte-exactly, encryption floors MUST NOT be downgraded, an encrypted envelope MUST NOT disclose an AAD event id wider than the Realm aad_visibility ceiling, and every MLS epoch MUST bind the independently re-derived security frontier for its accepted key-access state.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.mls.rfc9420_mti_kat.v1",
@@ -214,7 +222,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#5-control-move",
-      "section_digest": "sha256:238db7947ffd350e9326f9e549603c63d7fa72bd0e050c59bc9db34a00c110db",
+      "section_digest": "sha256:6e11ec0e51f009d8e121f75d91d217593889b00e62152b1894fe70deab3a005f",
       "requirement": "A Control Move MUST carry a CBA basis covered by an accepted Seal; events in the same batch MUST NOT advance the authorization basis they rely on.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -228,7 +236,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#6-seal",
-      "section_digest": "sha256:0b2a3913e600ddad43dd75adcd2f0a481279293169c2fbe4c5b5f81ace09d16c",
+      "section_digest": "sha256:1bcdb00a0a0b1cbc30f1079fa318911b19b8fe243b5ea1fb28442f3626027c5e",
       "requirement": "Seal canonical bytes exclude self-reference and DataEvent digests, compaction preserves control roots, and equivocating notaries are quarantined instead of silently merged.",
       "testability_grade": "vector",
       "evidence_refs": [

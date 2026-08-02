@@ -833,11 +833,11 @@ ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1
 输入：
 
 - Control Move 携带签名 `scope_ref`、`seal_basis` 与必要 `preconditions[]`；writes 由 reducer vector 重算。
-- 同形 Control Move 的负向 case 缺少 `seal_basis`，或 `seal_basis.state_root` 与 leaves 重算不一致。
+- 同形 Control Move 的负向 case 缺少 `seal_basis`，或 `leaves[]` 未按 canonical unsigned bytes 排序、含重复项、引用未知/无效 Seal。
 
 期望：
 
-- 缺 `seal_basis` 或 basis 不一致 MUST `failed_precondition` / `rejected_seal`。
+- 缺 `seal_basis` 或 leaves 无法验证 MUST `failed_precondition` / `rejected_seal`；producer 不携带可由 leaves 重算的 roots。
 - 通过验证的 Control Move 仍只是 `control_pending`，直到某 Seal 的递归覆盖集覆盖其 digest 并重算控制面 `state_root`。
 
 ### 2.5 Vector: 同批提交不推进授权 Basis
@@ -868,11 +868,11 @@ Steps：
 
 1. 构造 `ak.mls.commit`，`payload.base_epoch = 41`、`payload.next_epoch = 42`。
 2. `payload.governance_binding.previous_epoch = 40` 或 `payload.governance_binding.next_epoch = 43`。
-3. 其它 signature、proposal refs、policy root 和 membership frontier 均有效。
+3. 其它 signature、proposal refs 和 `security_frontier_digest` 均有效。
 
 Expected：
 
-- Receiver / reducer MUST reject 该 commit，且不得推进 `mls_epoch_cell` 或 `covered_seals_cell`。
+- Receiver / reducer MUST reject 该 commit，且不得推进 `mls_epoch_cell` 或 active MLS generation projection。
 - `governance_binding.previous_epoch` / `next_epoch` MUST 与 payload 顶层 epoch 字段一致；不得只相信其中一侧。
 
 ### 2.5.2 Vector: MLS Governance Proof Bundle 双消费者闭环
@@ -881,9 +881,9 @@ Expected：
 
 `vector_id`: `ak.vector.mls.governance_proof.materializer.v1`
 
-两条 active vector 共用 [`mls-governance-proof-fixture.json`](../../artifacts/fixtures/mls-governance-proof-fixture.json) 的同一份 byte-level KAT。server-consumer runner MUST 从 fixture 的 accepted Seal、完整 covered Event 集与 joined control state 重建四个有界 chunk，逐字节复算 Event/Seal/请求/chunk/manifest/Bundle commitments，并与 `expected_acquisition.responses[]` 精确比较；SDK-consumer runner MUST 以相同 responses、commit transcript binding 与本地 trust context 执行 [`encryption-and-audit.md` §2.5.1.1](../crypto-media/encryption-and-audit.md#2511-accepted-seal-治理证明-bundlenormative) 的固定验证顺序。具体执行入口以 fixture `runner` 元数据为准。只加载 fixture、只做 schema validation、只检查 `governance_binding.previous_epoch/next_epoch` 或只返回一个总 pass 均不构成通过。
+两条 active vector 共用 [`mls-governance-proof-fixture.json`](../../artifacts/fixtures/mls-governance-proof-fixture.json) 的同一份 byte-level KAT。server-consumer runner MUST 从 fixture 的 accepted Seal、完整 covered Event 集与 joined control state 重建有界 chunk，逐字节复算 Event/Seal/请求/chunk/manifest/Bundle commitments 与 `security_frontier_digest`，并与 `expected_acquisition.responses[]` 精确比较；SDK-consumer runner MUST 以相同 responses、Commit transcript binding 与本地 trust context 执行 [`encryption-and-audit.md` §2.5.1](../crypto-media/encryption-and-audit.md#251-security-binding-payload) 的固定验证顺序。具体执行入口以 fixture `runner` 元数据为准。只加载 fixture、只做 schema validation、只检查 `governance_binding.previous_epoch/next_epoch` 或只返回一个总 pass 均不构成通过。
 
-Verifier mutation matrix MUST 在需要测试语义阶段时重算所有 transport commitments，覆盖：Bundle 自报但本地未信任的 anchor、断裂/分叉 Seal path、错误 notary authority；covered digest/state leaf/frontier Event 的缺失、多余、重复和乱序；frontier Event proof 与跨 Realm/scope；chunk root、缺块、重复块和乱序；Realm/group/epoch/profile/reducer binding，以及 `policy_root`、`capability_root`、`discussion_metadata_digest` 不匹配。任一 reject case 都不得持久化 verified Bundle 或推进 MLS epoch。
+Verifier mutation matrix MUST 在需要测试语义阶段时重算所有 transport commitments，覆盖：Bundle 自报但本地未信任的 anchor、断裂/分叉 Seal path、错误 notary authority；covered digest/state leaf/frontier Event 的缺失、多余、重复和乱序；frontier Event proof 与跨 Realm/scope；chunk root、缺块、重复块和乱序；Realm/group/epoch/profile/reducer binding，以及 `security_frontier_digest` 不匹配。任一 reject case 都不得持久化 verified Bundle 或推进 MLS epoch。
 
 Materializer matrix MUST 覆盖精确有效输出，以及 unknown/unreachable anchor、缺失或分叉 Seal material、撤销后的 notary、缺失 covered Event、control-cell Bottom、scope visibility denial 与总界超限；失败时 response count 必须为 0，不能输出 partial manifest。两条 runner 在同一 profile certification job 中还 MUST 执行 companion `ak.vector.scalability.mls_governance_proof_bounds.v1` 的全部 `limit-1 / limit / limit+1` 与 chunk acquisition cases，并记录每 case 的 stage、reason/error、response count、bundle/chunk digests、epoch transition 与 peak buffer bytes。
 
@@ -908,24 +908,40 @@ Expected：
 
 Arkret 不复制易漂移的外部密码学金值；本向量直接 pin MLS WG `mlswg/mls-implementations` 的 `test-vectors/` corpus commit `cfd450286d1bfd9cd2519b95c80f9771f94a5b1a`。声明 MLS 支持的实现 MUST 对 ciphersuite `0x0001` 运行 registry 列出的 `crypto-basics.json`、`key-schedule.json`、`messages.json`、`welcome.json` 与 `treekem.json` 全部适用 case，并逐字节匹配编码、KEM/HPKE 输出、joiner / epoch secret、Welcome 与 TreeKEM 派生值。只通过 Arkret 结构绑定 fixture、不运行该字节级 corpus，不足以声明 `ak.vector.mls.rfc9420_mti_kat.v1` 通过。更换 upstream commit 必须作为 registry review 变更并重新跑全套 KAT。
 
-### 2.5.5 Vector: Covered Seals 不自指
+### 2.5.5 Vector: MLS Security Frontier 精确且不吸收普通 Seal
 
 `vector_id`: `ak.vector.mls.covered_seals_no_self_reference.v1`
 
-本向量固定 [`encryption-and-audit.md` §2.5.2](../crypto-media/encryption-and-audit.md#252-covered-seals-cell-covered_seals_cell) 的两条结构性规则：`covered_seal_refs` 只能断言 `seal_basis` 已可见的 Seal，且重建 `M` 时不得无条件加入消息自身的 `seal_ref`。
+该历史 vector id 为兼容保留；当前语义固定 [`encryption-and-audit.md` §2.5.2](../crypto-media/encryption-and-audit.md#252-send-gate-与-self-heal) 的两条结构性规则：security frontier 只吸收改变密钥访问资格的 closed cell set，普通 DataEvent 的 `seal_ref` 与 MLS frontier 正交。
 
 Steps：
 
-1. 构造 `ak.mls.commit` `C`，其 `covered_seal_refs` 包含首次把 `C` 纳入 accepted control state 的 Seal（或任何不在 `C.seal_basis.leaves[]` predecessor closure 内的 Seal）。
-2. 另取一条各方面合规的 E2EE application DataEvent，其 `seal_ref=S` 指向 accepted 治理 Seal，且 `S` 上没有发生 (a)/(b)/(c) 三组治理 cell 的任何变更。
-3. Reducer 按 §2.5.2 重建算法独立重建 `M`。
+1. 从 accepted state 重算 digest `F`，提交 `ak.mls.commit C` 绑定 `F` 并推进 epoch。
+2. 接受只改变 display metadata、普通 capability、moderation 或 routing 的 Control Move，再提交 E2EE application DataEvent；其 `seal_ref=S` 指向最新 accepted Seal。
+3. 接受一次实际撤销当前 MLS leaf 的 device/Agent runtime key revoke，令重算 digest 变为 `F2`，但尚未接受绑定 `F2` 的新 Commit。
 
 Expected：
 
-- 第 1 步的 commit MUST 被拒绝，且不得推进 `mls_epoch_cell` / `covered_seals_cell`；实现不得把越界或自指 seal ref 当作可忽略的冗余项静默丢弃后接受该 commit。
-- 第 3 步重建出的 `M` MUST NOT 含 `S`；该 DataEvent MUST 被接受。把 `S` 无条件放进 `M` 的实现会对每条合规密文返回 `failed_precondition` / `mls_governance_binding_stale`，即为不通过。
-- Fixture MUST 同时提供正向对照：`S` 确实收纳了某个治理 cell 的 last-changing Move 时，`S` 经由 (a)/(b)/(c) 枚举进入 `M`，coverage 为假、发送暂停。
-- Conformance fixture MUST NOT 在 Seal `S` 的 sealed ops 中写入 `covered_seals ∋ S.id` 来"造出"覆盖：该状态在 accepted control state 中不可构造，用它铺路的测试只会掩盖 gate 缺陷。
+- 第 1 步 Commit MUST accepted，并把 active generation projection 绑定到 `F`。
+- 第 2 步 DataEvent MUST accepted；把普通 `S` 或无关 cell 机械加入 frontier 并返回 `mls_governance_binding_stale` 即为不通过。
+- 第 3 步之后新的 application DataEvent MUST 暂停并返回 `mls_governance_binding_stale`，直到 active member 发起且 receiver 接受绑定 `F2` 的 self-heal Commit。
+- Fixture MUST 同时证明 contact/consent-only suspension 禁止发送但不改变 digest；若该动作伴随实际 member/leaf remove，则由 remove 改变 digest。
+
+### 2.5.6 Vector: SDK Event 两条正交强类型轴
+
+`vector_id`: `ak.vector.sdk.event_type_axes.v1`
+
+官方 SDK 的 compile-fail/type-error runner MUST 执行
+[`sdk-event-type-axes-fixture.json`](../../artifacts/fixtures/sdk-event-type-axes-fixture.json)。它至少证明：
+
+- `ControlMove` 缺 `seal_basis`、`DataEvent` 缺 `seal_ref/auth_context` 无法产生可提交值；
+- 普通 raw Event batch 不能因 CBA 条件字段缺失而被推断为 `AnchorUnit`；
+- `MlsCommitPayload` 缺完整 Commit bytes、epoch 或 `security_frontier_digest` 无法构造；
+- plain application payload 不能误走 MLS Commit validator，`MlsEncryptedPayload<T>` 不能序列化为 plain payload；
+- SDK 生成的 immutable verified submission bytes 逐字通过服务端同一 Event schema、canonicalization 与 proof transcript 验证。
+
+只做运行时 JSON 校验、不提供 compile-fail 或公开 API inventory，不能声明本向量通过。公开 submit API
+若接受 raw map、可变 verified envelope 或未转换的 wire Event，亦为不通过。
 
 ### 2.6 Vector: 数据面冲突返回 Bottom 且不选 Winner
 
@@ -3037,7 +3053,7 @@ Negative cases：
 
 Steps：
 
-1. Origin service `did:webvh:z6mkfixture:alpha.example` 使用 active service key 向 destination 提交 `POST /_arkret/peer/events`（`ak.peer.events.command.submit`），header 绑定 `Source-Service-ID`、`Destination-Service-ID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Request-Canonical-Digest`、`Idempotency-Key`，批次 accepted。
+1. Origin service `did:webvh:z6mkfixture:alpha.example` 使用 active service key 向 destination 提交 `POST /_arkret/peer/events`（`ak.peer.events.command.submit`），header 绑定 `Source-Service-ID`、`Destination-Service-ID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Content-Digest`、`Idempotency-Key`，批次 accepted；destination 从已验证 body bytes 内部计算 request digest。
 2. Realm policy 或 DID Document 随后撤销该 origin service key；destination 的 accepted authorization frontier 前进。
 3. 攻击者重放完全相同的 HTTP body、signature 与 `Idempotency-Key`。
 
@@ -3060,7 +3076,7 @@ Steps：
 Expected：
 
 - 三种情况均 MUST 拒绝 join / publish media key。
-- 前两种情况（policy_root 未覆盖 `media_service_decrypts`、SFU 未列入 `plaintext_visible_services`）的稳定失败原因均为已注册的 `media_plaintext_service_not_authorised`（见 `../../artifacts/registry/error-code-registry.json`，其描述同时覆盖这两个子情形）；UI 未显示 required plaintext warning 的情况 MUST 以等价稳定 reason_code 拒绝 join。
+- 前两种情况（security frontier 未覆盖 `media_service_decrypts`、SFU 未列入 `plaintext_visible_services`）的稳定失败原因均为已注册的 `media_plaintext_service_not_authorised`（见 `../../artifacts/registry/error-code-registry.json`，其描述同时覆盖这两个子情形）；UI 未显示 required plaintext warning 的情况 MUST 以等价稳定 reason_code 拒绝 join。
 
 ### 9.3 Vector: Identity Link Eager Invalidation
 
@@ -3306,7 +3322,7 @@ Cases：
 Expected：
 
 - 判定只用当前 accepted policy bundle cell 值与信封 discriminator 两个输入，不看 `aad` 内容本身。
-- 上限收紧或放宽都要等新的 `ak.mls.commit` 覆盖新 `policy_root` 之后才对后续 epoch 生效；在覆盖前按上一 accepted `policy_root` 判定。
+- 只有上限变化实际改变 metadata key access 时才进入 `security_frontier_digest` 并等待新 `ak.mls.commit`；纯 AAD disclosure 变化按当前 accepted policy 即时判定，不得机械触发 rekey。
 - 拒绝发生在信封进入路由 / 去重 / verified timeline 之前。
 
 ## 10. Service Closure Vectors
@@ -3550,13 +3566,13 @@ Steps：
 
 1. `ak.device.revoke` 作为 Control Move 提交，信封携带有效 `seal_basis`（单 leaf，取自 `ak.self.events.query.frontier` 的 Realm Seal view），随后被 principal control stream 的 accepted Seal S 覆盖（`control_sealed`）。
 2. 攻击者重放该设备在 S 之后（以 S 或其后继 Seal view 判定）签发的 session grant、KeyPackage publish 或 to-device write。
-3. 某 E2EE Realm 提交 MLS Remove，但 `governance_binding.membership_frontier` 未覆盖该 `ak.device.revoke` 事件，也未覆盖导入该撤销的 Realm governance Control Move。
-4. 客户端在 `ak.self.events.query.frontier` 来源不可用（错误或缺 `seal_id` / `control_event_set_root`）时尝试提交 `ak.device.revoke`。
+3. 某 E2EE Realm 提交 MLS Remove，但其 `governance_binding.security_frontier_digest` 不是从包含该 device revoke/leaf remove 的 accepted state 重算所得。
+4. 客户端在 `ak.self.events.query.frontier` 来源不可用（错误或缺 `seal_id`）时尝试提交 `ak.device.revoke`。
 
 Expected：
 
 - 第 2 步 MUST fail closed；实现不得用本地布尔缓存替代以 S 或其后继 Seal view 的判定。
-- 第 3 步 Remove 不得使 `covered_seals_cell` 声称已覆盖该设备撤销；后续 E2EE DataEvent 仍必须被 `covered_seals_cell` gate 阻塞。
+- 第 3 步 Commit MUST reject，且 active MLS generation 不得推进；后续 E2EE DataEvent 继续被 security frontier gate 阻塞。
 - 第 4 步客户端 MUST fail closed，不得伪造 `seal_basis`；缺失或不一致 basis 的 Control Move 按 `ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1` 拒收。
 
 ### 10.10 Vector: Push Wakeup Policy
@@ -3690,7 +3706,7 @@ Expected：
 
 Steps:
 
-1. Controller 调用 `ak.self.agent.command.provision`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限，得到 `agent_id`、`requested_scope_digest` 与 `pairing_request_id`；服务端在 Agent DID accepted inception history 的唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 只固定 digest，公开 entry 不含完整 scope。Controller 按 `sha256(canonical_json({agent_id, controller_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算并逐字匹配；provisioning 只写 accountability / selector facts，不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope` 的变体必须 schema validation 失败。
+1. Controller 调用 `ak.self.agent.command.provision`，以必填 `requested_scope` 声明 Agent 的 immutable 全局权限硬上限。prepare 返回 allocation 与 digest 且没有 durable side effect；Controller 按 `sha256(canonical_json({agent_id, controller_id, kind:"ak.agent.requested_scope_commitment.v1", requested_scope}))` 重算并逐字匹配，再用 SDK author 一个无内层 proof 的 `ak.agent.provision` Event。commit 只接受该单一 Event，并在一个 reducer transaction 原子投影 provision/accountability/selector，随后返回 `pairing_request_id`。Agent DID accepted inception history 的唯一 `ArkretPrincipalControlRealm.serviceEndpoint` 只固定 digest，公开 entry 不含完整 scope。provisioning 不创建 Agent Profile、key authorization 或 Realm grant。省略 `requested_scope` 的变体必须 schema validation 失败。
 2. Agent runtime 生成 key pair，取得 pairing verifier 签名的 presentation request/challenge；controller 生成符合 `ak.schema.agent_requested_scope_disclosure.v1`、绑定该 verifier/audience/challenge 且接收窗口不超过 300 秒的私有披露，与 key pair request 一起提交。controller-signed `ak.agent.key.authorize.payload.agent_key_scope` 使用 actions/resources/constraints 的严格子集。另提交一个超出 action/resource ceiling 或删除 provision mandatory constraint 的变体。
 3. Pairing endpoint 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与 `agent_id` bit-identical。
 4. 批准后写入 `ak.agent.key.authorize`；随后为该 Agent 附加一个更窄的 Realm-scoped grant，并分别尝试附加含未 provision action、超出显式内容 resource ceiling 的 grant。
@@ -3698,7 +3714,7 @@ Steps:
 Expected:
 
 - 第 3 步 verification_method 与 agent_id 不一致时 MUST `failed_precondition` `reason=verification_method_principal_mismatch`。
-- 第 1 步 DID commitment 必须与 fixture 固定 digest 匹配；公开 service endpoint 必须是 `{realm_id, controller_did, authorization_ref, requested_scope_digest}` 闭合四元组，出现 `requested_scope` 或其它 scope/resource/constraint 明文字段 MUST reject。
+- 第 1 步 DID commitment 必须与 fixture 固定 digest 匹配；`ak.agent.provision` Event proof 是唯一签名，payload 出现内层 proof、拆成 accountability/selector Event pair 或 reducer 暴露部分 projection 都 MUST reject。公开 service endpoint 必须是 `{realm_id, controller_did, authorization_ref, requested_scope_digest}` 闭合四元组，出现 `requested_scope` 或其它 scope/resource/constraint 明文字段 MUST reject。
 - 第 2 步 disclosure 的 controller proof、request/challenge 单次性、verifier/audience、接收窗口与 digest 必须全部通过；缺失、摘要不匹配、重放或错 audience MUST fail closed，且不得退回服务本地 Agent row 作为权威来源。完整 disclosure 不得进入 authorize Event、Realm history、pairing code 或通知。
 - 在第 4 步之前，任何 `agent_key_proof` session grant 请求 MUST fail closed。
 - 第 2 步更窄 key scope MUST 接受；任何 action/resource 越界或删除 mandatory constraint 的 key scope MUST fail closed。实现不得要求 key scope 与 provision scope 完全相等。
@@ -3790,7 +3806,7 @@ Steps:
 
 1. Provision Agent DID `A`，controller DID 为 `C`；Agent DID Document 写唯一 `ArkretPrincipalControlRealm` service entry，分配 `PCR_A`，并只固定 immutable `requested_scope` 的域分离 digest；完整 scope 由 controller-private disclosure 出示，controller 已有 `PCR_C`。
 2. Controller 按 delegation 创建 `PCR_A` genesis，并写 Agent profile/key/lifecycle facts。
-3. Provisioning 只把 accountability grant 与 selector claim 写入 `PCR_C`；无论 `requested_scope` 是否列出内容 action 或显式内容 resource selector，都不得产生 pending / active capability grant。内容授权只能由后续独立、完整签名且写入对应受治理 Realm 的 `ak.capability.grant` 产生；operation/service scope 同样不生成隐式 `ak.event.read` 或其它内容 grant。
+3. Provisioning 的单一 `ak.agent.provision` Event 写入 `PCR_C`，并原子投影 provisioning、accountability 与 selector facts；无论 `requested_scope` 是否列出内容 action 或显式内容 resource selector，都不得产生 pending / active capability grant。内容授权只能由后续独立、完整签名且写入对应受治理 Realm 的 `ak.capability.grant` 产生；operation/service scope 同样不生成隐式 `ak.event.read` 或其它内容 grant。
 4. 变体 A：实现把 `PCR_C` deterministic id 当作 Agent PCR；变体 B：在 `PCR_A` 或 `PCR_C` id 上创建缺 PCR marker、restricted history、MLS profile 或任一 E2EE floor 的 Realm；变体 C：服务端以 Agent DID 伪造 proof，省略 `executed_by=C` / `authorization_ref`，或引用的 delegation purpose/resource scope 不覆盖目标 Event kind/PCR；变体 D：把 `requested_scope` 当作 Realm grant、在 provisioning 时物化内容权限，或在后续 Realm grant / participation 中允许超出 `requested_scope.actions[]` 的 action。
 
 Expected:
@@ -3798,7 +3814,7 @@ Expected:
 - `PCR_A != PCR_C`，且 receiver 必须从 Agent DID accepted-at history 验证 service entry 的 PCR/controller/authorization/digest 四元组，再验证 controller-signed private disclosure 后使用 scope；不得验证实现私有派生算法或信任服务本地 scope row。
 - `PCR_A.created_by == PCR_A.notary == A`，purpose/profile/history/encryption floor 全部满足 PCR invariant。
 - Controller 写 Agent PCR 时 `actor_id=A`、`executed_by=C`，proof method 属于 C，delegation 覆盖目标 kind；不得伪造 A 签名。
-- Agent profile、key authorize/revoke、lifecycle 只进入 `PCR_A`；accountability/selector facts 只进入 `PCR_C`；Realm-specific capability grant 只进入其所治理 Realm；pairing request/notification 不进入任一 PCR。
+- Agent profile、key authorize/revoke、lifecycle 只进入 `PCR_A`；单一 provision Event及其 accountability/selector projections 只进入 `PCR_C`；Realm-specific capability grant 只进入其所治理 Realm；pairing request/notification 不进入任一 PCR。
 - 四个变体全部 fail closed，且不得留下非 PCR Realm 占用任一 principal control id，也不得扩大 Agent 的内容权限。
 
 ### 11.2.3 Vector: Managed Agent PCR Recovery
@@ -3948,6 +3964,13 @@ Expected:
 - A 的 active session `S` MUST 在 revocation freshness window(≤ session TTL)内 fail closed。
 - A 后续任何 `ak.gate.account.command.issue_session_grant` MUST fail closed。
 - A MUST 立即离开相关 Sidecar desired access；服务端停止投递，并对每个 backing Circle 主动 fan-out `ak.circle.member.state -> leave` 与 MLS remove/epoch rotation。
+
+同一 vector 还必须覆盖 Agent 自身的 terminal deactivation：request 只携带一个 controller-signed
+`ak.self.agent.deactivate` lifecycle submission；accepted 后全部 runtime key、session、pairing handle、
+以 Agent 为 subject/executor 的 grant、KeyPackage/presence/new Event 在 ≤60 秒 bounded freshness 内机械
+ineffective。客户端提交逐 key/grant revoke bundle、只清 UI cache、或让任一 child authorization 绕过
+`lifecycle=deactivated` AND gate 均为不通过。read view 必须分别返回 durable `lifecycle`、含闭合
+`blockers[]` 的 `readiness` 与带 `expires_at/refresh_after` 的短期 `presence`；`offline` 不得替代前两轴。
 
 ### 11.5 Vector: Act-on-behalf Attribution
 

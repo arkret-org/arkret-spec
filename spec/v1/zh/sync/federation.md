@@ -90,7 +90,6 @@ Arkret 是去中心化协议，不同用户或组织各自运行受控 Principal
 - `destination-service-endpoint-digest`（自定义 header `Destination-Service-Endpoint-Digest`；shared ingress / 多租户 / allowlist endpoint 场景必填）
 - `source-trust-domain`（自定义 header `Source-Trust-Domain`）
 - `destination-trust-domain`（自定义 header `Destination-Trust-Domain`）
-- `request-canonical-digest`（自定义 header `Request-Canonical-Digest`；带 body 或需要批次幂等 / replay key 的请求必填，`POST /_arkret/peer/events` MUST 携带。无 body 的 `GET` pull MUST NOT 携带 `Request-Canonical-Digest`，`Signature-Input` 也 MUST NOT 绑定 `request-canonical-digest`；其查询语义由 `@method` / `@target-uri` 及 source / destination service DID、trust domain、endpoint digest 绑定）
 - `idempotency-key`（自定义 header `Idempotency-Key`；当该 header 参与幂等或 replay key 时必填并进入签名 transcript）
 - 签名 parameters MUST 包含 `created` 与 `expires`（不得用 `Date` header 替代）
 
@@ -105,7 +104,7 @@ Arkret 是去中心化协议，不同用户或组织各自运行受控 Principal
 - 接收方 MUST 解析 `Destination-Service-ID` 的 service endpoint registry，并验证 HTTP Message Signature 中的 `@authority` / `@target-uri` host 与该 endpoint 或 Realm policy 明确授权的 shared ingress 一致；不一致 MUST 归入本节统一最小披露失败族，对外使用同一鉴权失败 envelope，内部 audit-only reason 可记为 `federation_authority_mismatch`。若只绑定 `Destination-Service-ID` 而不校验 `@authority`，同一签名可能被错误投递到另一个虚拟 host。
 - shared ingress / 多租户反向代理场景下，TLS Server Name (SNI) 与 `Destination-Service-ID` DID Document 中声明的 service endpoint origin MUST 直接匹配，或该 exact origin MUST 出现在 Realm policy / service delegation 明确登记的 shared ingress allowlist 中。Wildcard host 不能隐式覆盖 service DID 列表；若 deployment 用同一 host 承载多个 service DID，发送方 MUST 携带 `Destination-Service-Endpoint-Digest` header（endpoint canonical URL 的 `sha256:` digest），该 header MUST 进入 HTTP Message Signature transcript，接收方 MUST 与 DID Document / allowlist 中的 endpoint digest 比对。
 - 请求带 body 时 MUST 携带 `Content-Digest`；sender MUST 发送 Arkret canonical JSON 作为 exact HTTP message content，receiver MUST 对收到的 exact content bytes 校验唯一 RFC 9530 `sha-256` digest，并拒绝 parse 后再 canonicalize 才匹配的非 canonical wire，完整 byte-level 算法见 [`service-http-binding.md` §2.5.1](./service-http-binding.md)。无 body 的 `GET` pull MUST NOT 携带 `Content-Digest`，`Signature-Input` 也 MUST NOT 绑定 `content-digest`。
-- 请求携带 `Request-Canonical-Digest` 时，该值 MUST 按 [`service-http-binding.md` §2.5.1](./service-http-binding.md) 等于同一 exact canonical content bytes 的 Arkret `sha256:<lowercase-hex>` digest，并进入签名 transcript；接收方在幂等缓存命中前仍须校验其与 exact body bytes 一致。无 body 的 `GET` pull MUST NOT 携带 `Request-Canonical-Digest`，`Signature-Input` 也 MUST NOT 绑定 `request-canonical-digest`；其查询语义由 `@method` / `@target-uri` 与 source / destination service DID、trust domain、endpoint digest 绑定，验签方对 GET pull 的 transcript MUST NOT 包含 `content-digest` / `request-canonical-digest` 这两个组件。
+- 接收方从已经通过 `Content-Digest` 校验的 exact canonical body bytes 内部计算 Arkret `sha256:<lowercase-hex>`，用于幂等、replay cache 与审计；sender 不再发送第二个等价 `Request-Canonical-Digest` header。无 body 请求不得携带 `Content-Digest`；其查询语义由 method、target、双方 service DID、trust domain 与 endpoint digest 绑定。
 - 受保护联邦 endpoint MUST NOT 接受 query string 认证。
 - 签名失败、`destination` 不匹配、digest 不匹配或时间窗口失效，接收方 MUST 返回**统一最小披露**错误响应，对外形态在这几类原因之间 MUST NOT 可区分（详见 §8.3）。具体而言：
   - 这几类失败 MUST 复用 `api-conventions.md` 的标准 JSON error envelope，并对所有这几类原因返回**同一个** HTTP status 与**同一个** `reason_code`（使用 `error-code-registry` 中已登记的统一鉴权失败码，如 `capability_denied`；不得为不同失败原因返回不同 status / `reason_code`）。错误 envelope 的可见字段 MUST NOT 携带 Realm、Actor、Event、binding 或 frontier 是否存在的任何可区分信息。
@@ -156,11 +155,11 @@ Realm 级 server ACL 的权威表达是 `ak.realm.moderation_policy` 中的 serv
 
 ### 4.0.1 MLS-backed Realm 联邦互操作下界（normative）
 
-任一 federation transaction 携带或依赖 `encryption_profile="mls_rfc9420"` 的 Realm 状态、`ak.mls.genesis`、`ak.mls.commit`、`ak.mls.welcome`、MLS-backed E2EE DataEvent 或 `covered_seals_cell` projection 时，接收方 MUST 把 [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.5 的 `ak.profile.mls_governance_binding.full.v1` 视为 MLS 联邦互操作下界。该下界至少包含：
+任一 federation transaction 携带或依赖 `encryption_profile="mls_rfc9420"` 的 Realm 状态、`ak.mls.genesis`、`ak.mls.commit`、`ak.mls.welcome`、MLS-backed E2EE DataEvent 或 active MLS security-frontier projection 时，接收方 MUST 把 [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.5 的 `ak.profile.mls_governance_binding.full.v1` 视为 MLS 联邦互操作下界。该下界至少包含：
 
 - `governance_binding.binding_profile` 与 `governance_binding.reducer_profile` 均存在，且与 Realm policy、ServiceDescribe / peer profile 声明和当前 reducer profile digest 一致；
-- `ak.mls.commit` 的 MLS GroupContext extensions 中存在固定 codepoint `mls_governance_binding` (`0xF1C0`)，并且 extension bytes、Event payload 与 registered `covered_seals_cell` projection 相互匹配；
-- `covered_seals_cell` 对 E2EE DataEvent 的 `seal_ref` 做全称 coverage gate；缺 coverage 时消息不得进入 verified timeline；
+- `ak.mls.commit` 的 MLS GroupContext extensions 中存在固定 codepoint `mls_governance_binding` (`0xF1C0`)，并且 extension bytes、Event payload 与 registered active generation projection 相互匹配；
+- `security_frontier_digest` 必须从 accepted key-access state 独立重算；E2EE DataEvent 的 group/epoch 必须指向当前 digest，普通 `seal_ref` 另行按 Event admission 验证；
 - peer 的 `ServiceDescribe.supported_profiles` / `supported_features` 声明足以支持该下界；仅支持 payload fallback、替换私用 codepoint 或省略 GroupContext extension 的 peer 不满足下界。
 
 `ak.profile.e2ee_relaxed.v1` 是低于上述下界的显式降级声明，而不是另一个 full binding 等价形态。它只允许在 `federation_policy="closed"` 或满足 `encryption-and-audit.md` §2.4.1 federation guard 的 `restricted` Realm 中跨 peer 传播；`open` / `quarantine` federation MUST reject。restricted federation 中，所有参与 peer 还必须在 describe 中声明 `ak.feature.e2ee_relaxed.v1`，并公开不超过 `relaxed_window_max_ms` 的 fanout SLA；无法证明时接收方 MUST fail closed。
@@ -173,7 +172,7 @@ Fail-closed 条件：
 - `binding_profile` 缺失、未知、与 Realm policy 不一致，或 full Realm 上出现 relaxed binding；
 - `reducer_profile` 缺失或与本批次签名 transcript / service binding 中的 reducer profile digest 不一致；
 - `0xF1C0` extension 缺失、被其它私用 codepoint 替代、或 extension canonical bytes 与 Event payload 不一致；
-- `covered_seals_cell` 未覆盖消息依赖的 governance frontier；
+- active MLS generation 未覆盖最新 key-access security frontier，或把普通 capability/metadata Seal 错误吸收到该 frontier；
 - relaxed federation guard 中任一 SLA、窗口或 federation_policy 条件无法证明。
 
 上述失败 MUST 在接收方推进本地 Realm frontier 前处理：写入型 push 返回 reject/quarantine 或 `temporarily_unavailable`，pull/backfill 结果保持未验证，不得清除 `state_mismatch`，snapshot/frontier witness 也不得把该 MLS epoch 标为可用。错误对外仍遵守 §3.2 / §8.3 的最小披露原则；内部 audit reason 可以记录为 `profile_unsupported`、`mls_send_pause_advisory_requires_e2ee_relaxed_profile`、`conflicting_e2ee_profiles`、`e2ee_relaxed_federation_policy_unsupported`、`mls_governance_binding_stale` 或对应 binding mismatch 族。
@@ -230,9 +229,8 @@ Destination-Service-Endpoint-Digest: sha256:<hex>
 Source-Trust-Domain: ak:trust_domain:did.webvh.alpha.example
 Destination-Trust-Domain: ak:trust_domain:did.webvh.beta.example
 Content-Digest: sha-256=:<base64>:
-Request-Canonical-Digest: sha256:<hex>
 Idempotency-Key: <opaque-key>
-Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-id" "destination-service-id" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "request-canonical-digest" "idempotency-key");created=...;expires=...
+Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-id" "destination-service-id" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "idempotency-key");created=...;expires=...
 Signature: sig1=:base64...:
 ```
 
@@ -245,12 +243,11 @@ Signature: sig1=:base64...:
 | `Destination-Service-Endpoint-Digest` | header | `sha256:<hash>` | conditional | shared ingress / 多租户 / allowlist endpoint 场景 required；endpoint canonical URL 的 digest，MUST 进入签名 transcript 并与 DID Document service endpoint 或 Realm policy allowlist 匹配。 |
 | `Source-Trust-Domain` | header | `id:trust_domain` | required | 来源 deployment trust domain；与签名 transcript 绑定，用于 receiver trust policy、审计与跨域 replay 隔离。 |
 | `Destination-Trust-Domain` | header | `id:trust_domain` | required | 目标 deployment trust domain；MUST 等于接收方 `ServiceDescribe.trust_domain` 与目标 Realm `trust_domain`。 |
-| `Request-Canonical-Digest` | header | `sha256:<hash>` | conditional | 仅有 body 请求携带（`POST /_arkret/peer/events` required）；按 [`service-http-binding.md` §2.5.1](./service-http-binding.md) 对 exact canonical HTTP content bytes 计算的 Arkret SHA-256 digest，MUST 与 `Content-Digest` 覆盖同一组 bytes，并进入签名 transcript 与幂等 replay key。无 body 的 `GET` pull MUST NOT 携带该 header，`Signature-Input` 也 MUST NOT 绑定 `request-canonical-digest`。 |
 | `Idempotency-Key` | header | `string` | conditional | 当发送方希望请求级幂等、批次 replay key 或 partial retry 去重时 required；该 header MUST 进入 HTTP Message Signature transcript。 |
-| `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 至少绑定 `@method`、`@target-uri`、`@authority`、`source-service-id`、`destination-service-id`、`source-trust-domain`、`destination-trust-domain`，以及 `created` / `expires` 参数。有 body 请求（`POST /_arkret/peer/events`）MUST 额外绑定 `content-digest` 与 `request-canonical-digest`；无 body 的 `GET` pull MUST NOT 绑定 `content-digest` / `request-canonical-digest`。出现 `Destination-Service-Endpoint-Digest` 时也 MUST 绑定 `destination-service-endpoint-digest`；出现 `Idempotency-Key` 时也 MUST 绑定 `idempotency-key`。 |
+| `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 至少绑定 `@method`、`@target-uri`、`@authority`、`source-service-id`、`destination-service-id`、`source-trust-domain`、`destination-trust-domain`，以及 `created` / `expires` 参数。有 body 请求 MUST 额外绑定 `content-digest`；无 body 请求 MUST NOT 绑定它。出现 endpoint digest 或 Idempotency-Key 时也 MUST 绑定对应 header。 |
 | `Signature` | header | `string` | required | 来源 service DID 的 HTTP Message Signature。 |
 | `Content-Digest` | header | `sha-256=:...:` | conditional | 仅有 body 请求携带（`POST /_arkret/peer/events` required）；MUST 按 [`service-http-binding.md` §2.5.1](./service-http-binding.md) 覆盖 exact canonical HTTP content bytes。接收方 MUST 在 JSON 业务解析与验签前对 exact bytes 重算并校验，且 MUST 拒绝 `sha256=:` alias、非 canonical JSON wire 与 parse-then-canonicalize verification。无 body 的 `GET` pull MUST NOT 携带该 header，`Signature-Input` 也 MUST NOT 绑定 `content-digest`。 |
-| `events` | body | `EventFederationSubmission[]` | required | 每项包含完整签名 `event`、其 `authorization_lease` 与至少一个 `ingress_receipts[]`；Control Move还可携带唯一`control_proposal_receipt` authority set。DataEvent禁止该字段。这些证据不进入Event canonical bytes；receiver必须独立重算Event digest，验证ingress receipt policy，并对Control receipt逐成员验签、重算共同窗口与当前notary quorum。 |
+| `events` | body | `EventFederationSubmission[]` | required | 每项包含完整签名 `event` 与至少一个 `ingress_receipts[]`；只有显式离线/延迟发布才携带 `authorization_lease`。Control Move还可携带唯一 `control_proposal_receipt` authority set，DataEvent禁止该字段。receiver独立重算 Event digest、当前 admission 与证据。 |
 | `cba_proof_bundles` | body | `CbaProofBundle[]` | optional | 最多 64 个 receiver-relative CBA 依赖 bundle。bundle 可以是有界、完整可验证的超集，不要求字节级最小；每个内含对象独立验签、重算 root 与 reducer，缺项返回精确 missing refs。 |
 | `signer_key_evidence` | body | `FederatedDeviceSigningKeyEvidence[]` | optional | 原 Event proof 所用 active device signing key 的 portable authorization evidence。每项 `verification_method` MUST 精确等于 `actor_id + "#" + device_id`、必须出现在同请求某个 Event proof 中，`device_signing_key` MUST 是 Ed25519 `did:key`；`device_authorize_event` MUST 是来源 authority 当前 active projection 所引用的原始、已接受、`service_attested` `ak.device.authorize` Event，且其 payload 必须逐字绑定同一 actor/device/key。该数组被外层 HTTP Message Signature 覆盖，不进入被投递 Event digest、Realm reducer、Seal 或 timeline。 |
 | `service_binding_ref` | body | `object` | required | 接收方服务绑定快照（v1 联邦特有的请求级元数据；client write 时省略）。 |
@@ -473,7 +470,7 @@ MUST 在发送 DataEvent 前等待/取得协议有效的 compacted Seal，或通
 
 普通批次中，某 Event 缺 Event、Seal、predecessor 或 Seal delta 所覆盖的 Control Event 时，receiver MUST 继续处理与它独立且闭包完整的其它 Event，并以 HTTP 200 `status=partial`、该项 `rejected[].reason_code=dependency_missing` 返回；`accepted[]` / `duplicate[]` 允许均为空。该 rejected item MUST 携带至少一个非空、UTF-8 bytewise 排序且去重的 `missing_event_ids[]`、`missing_event_digests[]` 或 `missing_seal_refs[]`。永久的 ID、结构、签名、Realm、root 或授权错误必须使用对应永久 reason，不得伪装为 dependency missing。只有已注册的原子 founding unit 维持整组零写入并整体返回 HTTP 409 `dependency_missing`。同批中尚未处理、已拒绝或隔离的 Event 不能被视为已接受依赖。
 
-**partial accept 后的 retry 边界（normative）**：任何已收到的 submit 响应都终结该请求的 `Idempotency-Key`。sender 收到仍有 `rejected[]` / `quarantine[]` / 未发送依赖的响应后，MUST 把下一次 retry 组装成新的 batch，只包含尚未被确认且仍需投递的 Event；不得原样重放包含已确认 Event 的旧 `events[]` 来“补齐失败项”。内容完全相同的幂等重复项 MUST 列入 `duplicate[]`（幂等 no-op），MUST NOT 当作 `rejected[]`。补齐依赖后的下一次 submit 即使 Event body 未变，也 MUST 使用新的 `Idempotency-Key`（或省略），并重新计算外层 `Content-Digest`、`Request-Canonical-Digest` 与 HTTP signature transcript；MUST NOT 以旧 key 期待重新求值，幂等缓存命中的旧 partial / error outcome 也不得被当作新 retry 的成功证明。接收方 MUST 在 `rejected[]` 项内携带原数组 `index` 与 `id`，使 sender 能机械求差。只有**未收到任何响应**（超时 / transport failure）时，逐字节相同请求的全量重试 MUST 复用同一 `Idempotency-Key`，见 [`api-conventions.md` §6.2](./api-conventions.md)。
+**partial accept 后的 retry 边界（normative）**：任何已收到的 submit 响应都终结该请求的 `Idempotency-Key`。sender 收到仍有 `rejected[]` / `quarantine[]` / 未发送依赖的响应后，MUST 把下一次 retry 组装成新的 batch，只包含尚未被确认且仍需投递的 Event；不得原样重放包含已确认 Event 的旧 `events[]` 来“补齐失败项”。内容完全相同的幂等重复项 MUST 列入 `duplicate[]`（幂等 no-op），MUST NOT 当作 `rejected[]`。补齐依赖后的下一次 submit 即使 Event body 未变，也 MUST 使用新的 `Idempotency-Key`（或省略），并重新计算外层 `Content-Digest` 与 HTTP signature transcript；MUST NOT 以旧 key 期待重新求值，幂等缓存命中的旧 partial / error outcome 也不得被当作新 retry 的成功证明。接收方 MUST 在 `rejected[]` 项内携带原数组 `index` 与 `id`，使 sender 能机械求差。只有**未收到任何响应**（超时 / transport failure）时，逐字节相同请求的全量重试 MUST 复用同一 `Idempotency-Key`，见 [`api-conventions.md` §6.2](./api-conventions.md)。
 
 **标准 dependency resolve（normative）**：`POST /_arkret/peer/events/resolve` 是缺失
 Event/CBA 材料的唯一 peer read/fetch surface；它不是写入轨，不接受 Seal 提交，也不推进
@@ -589,7 +586,7 @@ sequenceDiagram
     Cli->>Alpha: 提交 signed Event 到 Realm S
     Alpha->>Pol: 解析应接收的 Principal Server
     Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(realm_policy_digest / membership_frontier / delivery_binding_frontier / reducer_profile_digest)
-    Alpha->>Beta: POST /_arkret/peer/events (ak.peer.events.command.submit)<br>HTTP Message Sig (RFC 9421)<br>Source/Destination Service DID + Trust Domain<br>Content-Digest / Request-Canonical-Digest<br>service_binding_ref / events 数组
+    Alpha->>Beta: POST /_arkret/peer/events (ak.peer.events.command.submit)<br>HTTP Message Sig (RFC 9421)<br>Source/Destination Service DID + Trust Domain<br>Content-Digest + receiver-computed canonical body digest<br>service_binding_ref / events 数组
     note over Beta: 校验:<br>1. 签名 transcript + destination DID 匹配<br>2. content-digest 覆盖 body<br>3. allow list / federation_policy<br>4. service_binding_ref 与本地一致<br>5. reducer_profile_digest 逐字节一致(不一致整批拒绝)<br>6. 逐 Event verify_event + actor chain<br>7. CBA basis + Lattice / Seal
     Beta-->>Alpha: 200 + accepted / rejected / quarantine
     note over Alpha: 失败项<br>重试 / quarantine / 暴露给上游 actor
@@ -606,7 +603,7 @@ sequenceDiagram
 Arkret v1 联邦推送使用 `POST /_arkret/peer/events`（`ak.peer.events.command.submit`）：
 
 - 幂等以 `(Source-Service-ID, Destination-Service-ID, event_id)` 逐事件去重；接收方对重复 `event_id` 且内容一致 MUST 在 `duplicate[]` 中确认（幂等 no-op）而非报错，内容不一致 MUST 以 `duplicate_conflict`（409）拒绝（参见 §4.3）。
-- 批次级重放检测使用签名 transcript 中的 `Request-Canonical-Digest` 与 `Idempotency-Key` header（详见 §8.5），不引入额外的 path 事务 ID。
+- 批次级重放检测使用 receiver 从已验证 exact body bytes 计算的 canonical digest 与签名覆盖的 `Idempotency-Key`；不引入额外 path 事务 ID。
 - `quarantine[]` 是 `EventsSubmitOutcome` 的独立响应字段；实现 MUST NOT 把隔离项折叠进 `rejected[]`，除非调用方明确使用不支持 `quarantine[]` 的旧本地 adapter，且该 adapter 不得声明 v1 wire conformance。
 - 持续同步、批量重试和 frontier 交换通过组合 `ak.peer.events.command.submit`（推送，本节）、`ak.peer.events.query.scan` / `ak.peer.events.query.resolve`（拉取 / backfill / 补洞，§4.2）与 `ak.peer.events.query.frontier`（§4.5）完成；无需额外的有状态事务 endpoint。
 
@@ -623,7 +620,7 @@ Signature-Input: ...
 Signature: ...
 ```
 
-GET pull 无 body，但签名 transcript MUST 覆盖 §3.2 中适用于无 body 请求的最小 component 集：`@method`、`@target-uri`、`@authority`、`source-service-id`、`destination-service-id`、`source-trust-domain`、`destination-trust-domain`，以及签名 parameter `created` / `expires`（`content-digest` / `request-canonical-digest` 仅在有 body 时携带，GET pull MUST NOT 携带这两个 header，`Signature-Input` 也 MUST NOT 绑定 `content-digest` / `request-canonical-digest`）。示例中的 `Signature-Input: ...` 为省略写法，实际 covered components 以 §3.2 为准。
+GET pull 无 body，但签名 transcript MUST 覆盖 §3.2 中适用于无 body 请求的最小 component 集：`@method`、`@target-uri`、`@authority`、`source-service-id`、`destination-service-id`、`source-trust-domain`、`destination-trust-domain`，以及签名 parameter `created` / `expires`（GET pull MUST NOT 携带或绑定 `content-digest`）。示例中的 `Signature-Input: ...` 为省略写法，实际 covered components 以 §3.2 为准。
 
 请求字段（query；完整参数集与默认顺序规则见 [`service-http-binding.md` §3.3](./service-http-binding.md)）：
 
@@ -647,7 +644,7 @@ GET pull 无 body，但签名 transcript MUST 覆盖 §3.2 中适用于无 body 
 
 > `snapshot_bootstrap` 字段以 optional 形式出现在 `ak.peer.events.query.scan` 响应中（仅 Realm policy 显式允许时）。若接收方需要直接按 event id / digest 补洞，必须使用 `POST /_arkret/peer/events/resolve`（`ak.peer.events.query.resolve`），不得改用 self surface。
 
-**Pull 授权 freshness（normative，与 §8.5.1 互补）**：§8.5.1 处理的是 push 路径——把 service key state 一起进入 idempotency cache key，从而在 cache hit 时仍重做授权检查；而 pull 路径根本**不进幂等缓存**：无 body 的 `GET` pull 省略 `Content-Digest` / `Request-Canonical-Digest`（§3.2），因此不像 push 那样把 canonical digest 纳入幂等缓存键。两条路径用**不同机制**关闭同一个"撤销后重放"窗口（push 靠 cache-key 绑定 + cache hit 重校验，pull 靠每次请求强制重新解析 service binding freshness），互为补充而非镜像对称。每次 pull 请求，接收方（被拉取的源服务）MUST 在返回事件前重新解析并校验请求方 `Source-Service-ID` 的 service binding freshness——当前 `verification_method` 仍 active、未 revoke，且该 source 在目标 Realm policy 下仍持有 `federation_peer` 角色——并 MUST NOT 因 `(Source-Service-ID, query)` 命中任何幂等 / 响应缓存而豁免该重新授权检查。请求方 service key 已 revoke 或 service binding 已被 Realm policy 移除时，MUST 返回 `capability_denied` / `policy_denied`，不得从缓存回放历史事件批次给已失权的 puller。
+**Pull 授权 freshness（normative，与 §8.5.1 互补）**：§8.5.1 处理的是 push 路径——把 service key state 一起进入 idempotency cache key，从而在 cache hit 时仍重做授权检查；而 pull 路径根本**不进幂等缓存**：无 body 的 `GET` pull 省略 `Content-Digest`（§3.2），因此不像 push 那样把 receiver-computed canonical body digest 纳入幂等缓存键。两条路径用**不同机制**关闭同一个"撤销后重放"窗口（push 靠 cache-key 绑定 + cache hit 重校验，pull 靠每次请求强制重新解析 service binding freshness），互为补充而非镜像对称。每次 pull 请求，接收方（被拉取的源服务）MUST 在返回事件前重新解析并校验请求方 `Source-Service-ID` 的 service binding freshness——当前 `verification_method` 仍 active、未 revoke，且该 source 在目标 Realm policy 下仍持有 `federation_peer` 角色——并 MUST NOT 因 `(Source-Service-ID, query)` 命中任何幂等 / 响应缓存而豁免该重新授权检查。请求方 service key 已 revoke 或 service binding 已被 Realm policy 移除时，MUST 返回 `capability_denied` / `policy_denied`，不得从缓存回放历史事件批次给已失权的 puller。
 
 `snapshot_bootstrap` 字段（存在时）：
 
@@ -888,8 +885,8 @@ v1 联邦与单域 client 请求不共享 HTTP attack surface：federation serve
 
 | 联邦行为 | peer endpoint | 认证模式 |
 | --- | --- | --- |
-| 跨域推送 Event（含批处理） | `POST /_arkret/peer/events`（`ak.peer.events.command.submit`） | service_signature（HTTP Message Signature）+ `Source-Service-ID` / `Destination-Service-ID` / `Source-Trust-Domain` / `Destination-Trust-Domain` / `Request-Canonical-Digest` header；Realm policy 必须列出 source service DID 为合法 federation peer。 |
-| 跨域 backfill / 拉取缺失历史 | `GET /_arkret/peer/events?before=<cursor>`（`ak.peer.events.query.scan`） | 同一 service signature 规则；无 body 的 pull 请求不携带 `Content-Digest` / `Request-Canonical-Digest`（`Signature-Input` 也不绑定 `content-digest` / `request-canonical-digest`），但仍 MUST 绑定 source/destination service DID 与 trust domain。 |
+| 跨域推送 Event（含批处理） | `POST /_arkret/peer/events`（`ak.peer.events.command.submit`） | service_signature（HTTP Message Signature）+ `Source-Service-ID` / `Destination-Service-ID` / `Source-Trust-Domain` / `Destination-Trust-Domain` / `Content-Digest` header；Realm policy 必须列出 source service DID 为合法 federation peer。 |
+| 跨域 backfill / 拉取缺失历史 | `GET /_arkret/peer/events?before=<cursor>`（`ak.peer.events.query.scan`） | 同一 service signature 规则；无 body 的 pull 请求不携带 `Content-Digest`（`Signature-Input` 也不绑定 `content-digest`），但仍 MUST 绑定 source/destination service DID 与 trust domain。 |
 | 跨域按 id / digest 补洞 | `POST /_arkret/peer/events/resolve`（`ak.peer.events.query.resolve`） | 同上；服务端按 Realm policy、history visibility 与 reference disclosure 裁剪响应。 |
 | 跨域 Realm 成员视图 | `GET /_arkret/peer/events`（`ak.peer.events.query.scan`） + `ak.member.state` 过滤 | 同上；服务端按 Realm policy 决定哪些成员对该 service DID 可见。 |
 | 跨域 snapshot-assisted bootstrap | `GET /_arkret/peer/snapshot/head`（`ak.peer.snapshot.query.manifest_head`） | 同上；manifest 必须签名并绑定 authority_binding。 |
@@ -904,9 +901,9 @@ Destination-Service-ID: did:webvh:z94DeARq4Vqk5S1h3tFsxPnwq:server.beta.example
 Destination-Service-Endpoint-Digest: sha256:<hex>
 Source-Trust-Domain: ak:trust_domain:did.webvh.acme.example
 Destination-Trust-Domain: ak:trust_domain:did.webvh.beta.example
-Request-Canonical-Digest: sha256:...
+
 Idempotency-Key: <opaque-key>
-Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-id" "destination-service-id" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "request-canonical-digest" "idempotency-key");created=...;expires=...
+Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-id" "destination-service-id" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "idempotency-key");created=...;expires=...
 Signature: sig1=:<base64>:
 ```
 
@@ -1074,7 +1071,7 @@ cache frontier rollback、同selector的binding/state-root分歧或transparency 
 - 单事件级别仍以 `event_id` 去重，规则见 4.3 节；`event_id` 去重是 durable Event 语义的一部分，不受上述幂等记录保留窗口限制；
 - 对同一 `(Source-Service-ID, Destination-Service-ID, endpoint, realm_id?)` 计数窗口，若 60 秒内相同 canonical request hash 被拒绝 ≥ 3 次，或 5 分钟内总请求数 ≥ 10 且失败率 ≥ 50%，接收方 MUST 将该来源在该 endpoint / Realm 范围内暂停至少 60 秒，并返回 `rate_limited`（可附 `retry_after_ms` / HTTP `Retry-After`）或 `temporarily_unavailable`。
 
-**该回压窗口同样覆盖 pull 路径（normative）**：上面的失败率熔断与暂停窗口不仅适用于 push（`POST /_arkret/peer/events`），也 MUST 适用于 pull / resolve（`GET /_arkret/peer/events` 的 `ak.peer.events.query.scan`、`POST /_arkret/peer/events/resolve` 的 `ak.peer.events.query.resolve`）。无 body 的 GET pull 没有 `Request-Canonical-Digest`，其"相同 canonical request hash"判定改用 `(@method, @target-uri, source/destination service DID, trust domain, endpoint digest)` 规范化键（§3.2 GET pull transcript 绑定的同一组件集），其余熔断阈值、暂停时长与 `Retry-After` 语义与 push 一致。这与 §8.1 的 per-`(realm_id, peer_service_id)` 速率上限互补：§8.1 限稳态速率，本条限失败放大与抖动。
+**该回压窗口同样覆盖 pull 路径（normative）**：上面的失败率熔断与暂停窗口不仅适用于 push（`POST /_arkret/peer/events`），也 MUST 适用于 pull / resolve（`GET /_arkret/peer/events` 的 `ak.peer.events.query.scan`、`POST /_arkret/peer/events/resolve` 的 `ak.peer.events.query.resolve`）。无 body 的 GET pull 没有 body digest，其相同 request key 使用 `(@method, @target-uri, source/destination service DID, trust domain, endpoint digest)` 规范化键（§3.2 GET pull transcript 绑定的同一组件集），其余熔断阈值、暂停时长与 `Retry-After` 语义与 push 一致。这与 §8.1 的 per-`(realm_id, peer_service_id)` 速率上限互补：§8.1 限稳态速率，本条限失败放大与抖动。
 
 #### 8.5.1 Idempotency cache 绑定 service key state（normative）
 

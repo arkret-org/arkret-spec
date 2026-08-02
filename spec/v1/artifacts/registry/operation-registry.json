@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.3",
+  "version": "2026-08-02.5",
   "source_of_truth": false,
-  "generated_at": "2026-08-02T13:00:00Z",
+  "generated_at": "2026-08-02T15:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -163,8 +163,7 @@
         "ak.self.invite_locator.command.issue",
         "ak.self.invite_locator.command.rotate",
         "ak.self.invite_locator.command.revoke",
-        "ak.self.direct_conversation.command.resolve",
-        "ak.self.direct_conversation_segment.query.list"
+        "ak.self.direct_conversation.command.resolve"
       ],
       "surface_class": "extension"
     },
@@ -728,8 +727,7 @@
       "durable_effect": {
         "kind": "event_log",
         "event_kinds": [
-          "ak.identity.accountability_grant",
-          "ak.agent.selector_claim"
+          "ak.agent.provision"
         ]
       }
     },
@@ -1467,7 +1465,7 @@
       "http": "POST /_arkret/self/direct-conversations/resolve",
       "grpc": "SelfDirectConversation/Resolve",
       "mq": "self.direct_conversation.command.resolve",
-      "notes": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent. Recreate after a structural terminal Event first returns a participant-signed retirement draft when the canonical retired fact is missing; cross-Principal-Server create=true then uses the reserved remote KeyPackage claim and materialization authoring stages. Only found is an active success state.",
+      "notes": "Idempotent resolver for the pair's single stable Direct Conversation. Existing bindings return found or suspended without consulting KeyPackage inventory. First creation uses the deterministic coordinator and one durable reserved/materializing/found operation; every retry after external effect retains the same operation, Realm and main Strand identifiers.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
@@ -1476,20 +1474,8 @@
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
       "durable_effect": {
         "kind": "none",
-        "rationale": "returns_client_authoring_material_or_an_existing_projection_and_never_commits_the_draft_events"
+        "rationale": "the_service_persists_only_the_coordinator_operation_record_and_returns_participant_authoring_material_or_an_existing_projection"
       }
-    },
-    {
-      "operation_id": "ak.self.direct_conversation_segment.query.list",
-      "http": "POST /_arkret/self/direct-conversations/segments/query",
-      "grpc": "SelfDirectConversationSegment/List",
-      "mq": "self.direct_conversation_segment.query.list",
-      "notes": "Principal-private paginated projection of the verified canonical segment lineage for the authenticated actor and one peer. Rows are ordered by predecessor chain, not timestamps; pending, orphan, duplicate and non-canonical candidates are excluded. The POST body is a read-only complex query and the operation declares no idempotency mechanism.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "max_items": 200,
-      "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_segment_list_request_body",
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_segment_list"
     },
     {
       "operation_id": "ak.self.circle.command.create",
@@ -1882,7 +1868,7 @@
       "http": "POST /_arkret/self/events/mls-governance-proof",
       "grpc": "SelfEvents/MlsGovernanceProof",
       "mq": "self.events.query.mls_governance_proof",
-      "notes": "Return one bounded, manifest-committed chunk of a complete_control_state_v1 proof bundle for one authenticated, caller-visible Realm/scope. The request MUST name an exact locally trusted_anchor_seal_id and chunk_index; later chunks pin expected_bundle_digest. The service MUST build from that anchor and return mls_governance_anchor_unreachable instead of substituting another anchor. The service derives membership_frontier and all governance roots from one accepted Seal view; callers cannot supply roots. Responses bind canonical acquisition identity with proof_request_digest, commit all chunks under chunks_root, and use bundle_digest rather than accepted_seal_id as the logical content address. Each response is at most 4 MiB; the logical bundle is at most 256 MiB, 1024 chunks, 4096 Seals, 1048576 covered digests, 262144 control leaves and 128 frontier Events. Exceeding a total bound returns mls_governance_proof_bounds_exceeded with no partial output. Implementations MUST enforce Realm/scope visibility before materialization and MUST fail closed when any covered Event, control state, Seal path, chunk commitment, signature authority, or reducer profile cannot be reconstructed.",
+      "notes": "Return one bounded, manifest-committed chunk of a complete_control_state_v1 proof bundle for one authenticated, caller-visible Realm/scope. The request MUST name an exact locally trusted_anchor_seal_id and chunk_index; later chunks pin expected_bundle_digest. The service MUST build from that anchor and return mls_governance_anchor_unreachable instead of substituting another anchor. From one accepted Seal view it supplies enough complete state to rederive the closed key-access projection in mls-security-frontier-registry.json; callers cannot supply roots or choose frontier members. Responses bind canonical acquisition identity with proof_request_digest, commit all chunks under chunks_root, and use bundle_digest rather than accepted_seal_id as the logical content address. Each response is at most 4 MiB; the logical bundle is at most 256 MiB, 1024 chunks, 4096 Seals, 1048576 covered digests, 262144 control leaves and 128 frontier Events. Exceeding a total bound returns mls_governance_proof_bounds_exceeded with no partial output. Implementations MUST enforce Realm/scope visibility before materialization and MUST fail closed when any covered Event, control state, Seal path, chunk commitment, signature authority, or reducer profile cannot be reconstructed.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/proof_request",

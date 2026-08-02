@@ -22,7 +22,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "db52dc2598d927eb809bbc4c0a6b56b0cd9fd5e8b1b8920ad4487e63c3fd5125"
+      "sha256": "4b9785caa7a18aac400e544d8ac9a8072fd745075022efff3fe6d1c951fbd800"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
@@ -106,7 +106,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-fixture.json",
-      "sha256": "88a0555caa9d0d31f014a93b1ff5cc7fb6e3fb0e6f962b99644da0a560799ef5"
+      "sha256": "8c8bec1104e7343e1babc3fe0d2ba5a04f829334641a3411cc653d49b0ed25aa"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
@@ -134,11 +134,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "01bd80b6ec48f5c29b109f84f23f70910cff34a6e55e007e086714ba5568c6db"
+      "sha256": "329f560bd1a665797d841dd9cc86f9fbec7f8a1ca51b854c24ca97b96191ebfd"
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-      "sha256": "a0fc1a2fc3caf81585c6735f92ad8bce64e400ded0c711036d2aa1f1615b98c7"
+      "sha256": "1ffe95ae725182a65aa4efa30d8b77047be8ad51f74c378efba8547aa52bd0af"
     },
     {
       "path": "spec/v1/artifacts/fixtures/hash-transition-fixture.json",
@@ -202,7 +202,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-proof-fixture.json",
-      "sha256": "bd93aa4d456f365514ab207f313521f861bfa21133485cd92581e61ecdeb17c0"
+      "sha256": "babb995e04d2fa7d0fb186b86fa1c2cf03bcff43a16289024ec64b2a5e2415bd"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-rfc9420-kat-fixture.json",
@@ -258,7 +258,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/recovery-policy-fixture.json",
-      "sha256": "33b806e8e72d2aa3b756c6ff7f17a067c78bb7b95cb5729e8d0562d770957f0e"
+      "sha256": "1bdf6ddd5e57f152978fc0bee81a83061f20aac5ef3b58d4c1887af48162a809"
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
@@ -270,11 +270,15 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "6d8d08cbfc16592305399f89954b1d5c1e05c034c56311311fe7db8bb2016112"
+      "sha256": "7950822d7df2b3510d02061a792e8d02781c4903d66f01e855fe5ad2c4525f37"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
       "sha256": "12c1db1d90e9d111236821800896f7812a176dca3fec00f59b8728f6a0ac8824"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/sdk-event-type-axes-fixture.json",
+      "sha256": "a4a74f2e5932021a4aef691e27f8dfddcde48fc2234ccd70aa314d8ed919d95f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/seal-submit-fixture.json",
@@ -282,7 +286,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-fixture.json",
-      "sha256": "046e0762552519df0e0c01c3911c895d79d91948cdebc7ee77eba92d6f05b19a"
+      "sha256": "cc2e67d797a0156c967608b008bfdbc8e30ed1f87ec8720bc3818bbbdb51d9bc"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",
@@ -290,7 +294,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
-      "sha256": "a0ab50a152f72043ae816132547ae01300506bcf3d566eba8211a0035f750edb"
+      "sha256": "deb063063354e34b6dcafc820704848c83f749ac55505ee43cb41693e1891506"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
@@ -302,7 +306,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",
-      "sha256": "1940ad19f73723eb2a843ca919d53800ad62ae159eed7ae32e7a67696ef67c05"
+      "sha256": "8fb57f1cbd8a1273e88a866fe9607f546f1d6ddb72ad4daa27a10f82a87c7131"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/string-profile-fixture.json",
+      "sha256": "1f19a092023d01b4058af3408620f92ecbbad953e15827f81e1fe6a8b6adde23"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",

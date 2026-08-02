@@ -370,10 +370,10 @@
           }
         },
         {
-          "name": "mls_remove_missing_governance_frontier",
-          "mls_remove_covers_revocation": false,
+          "name": "mls_remove_missing_security_frontier",
+          "security_frontier_includes_revocation": false,
           "expected": {
-            "covered_seals_cell_claims_revocation": false,
+            "active_generation_advanced": false,
             "e2ee_data_gate": "blocked",
             "reason": "epoch_update_required"
           }

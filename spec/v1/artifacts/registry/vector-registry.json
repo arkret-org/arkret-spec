@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.2",
+  "version": "2026-08-02.3",
   "source_of_truth": true,
-  "generated_at": "2026-08-02T14:00:00Z",
+  "generated_at": "2026-08-02T15:00:00Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1720,26 +1720,26 @@
       ]
     },
     {
-      "vector_id": "ak.vector.direct_conversation.binding_lifecycle.v1",
+      "vector_id": "ak.vector.direct_conversation.stable_allocation.v1",
       "status": "active",
       "domain": "direct_conversation",
       "applies_to_fixtures": [
         "direct-conversation-fixture.json"
       ],
-      "description": "Authored active/retired binding facts and the participant-leave, Realm-terminal and main-Strand-terminal retirement boundary that forces fresh Realm, Strand and MLS identifiers.",
+      "description": "Deterministic coordinator selection, one durable reserved/materializing/found operation per pair, pre-effect reservation expiry, non-expiring materialization and same-ID crash/retry recovery.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
       ]
     },
     {
-      "vector_id": "ak.vector.direct_conversation.canonical_candidate.v1",
+      "vector_id": "ak.vector.direct_conversation.suspend_rejoin.v1",
       "status": "active",
       "domain": "direct_conversation",
       "applies_to_fixtures": [
         "direct-conversation-fixture.json"
       ],
-      "description": "Valid candidate filtering, causal supersession and unsigned-byte event_digest maximum selection for concurrent Direct Conversation bindings.",
+      "description": "Leave, block, contact/consent and terminal gates suspend the immutable conversation; recovery reuses the same Realm and main Strand with a new active MLS generation and never automatically redelivers old epoch keys or history secrets.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md",
         "spec/v1/artifacts/fixtures/direct-conversation-fixture.json"
@@ -2611,6 +2611,110 @@
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.string_profile_acct_uri.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_vector_groups": [
+        "ak.vector_group.encoding.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/encoding.md",
+        "spec/v1/artifacts/fixtures/string-profile-fixture.json"
+      ],
+      "description": "Positive and negative wire vectors for the arkret-acct-uri custom JSON string format, including negatives that only the normative profile validator can reject."
+    },
+    {
+      "vector_id": "ak.vector.encoding.string_profile_agent_slug.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_vector_groups": [
+        "ak.vector_group.encoding.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/encoding.md",
+        "spec/v1/artifacts/fixtures/string-profile-fixture.json"
+      ],
+      "description": "Positive and negative wire vectors for the arkret-agent-slug custom JSON string format, including negatives that only the normative profile validator can reject."
+    },
+    {
+      "vector_id": "ak.vector.encoding.string_profile_canonical_handle.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_vector_groups": [
+        "ak.vector_group.encoding.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/encoding.md",
+        "spec/v1/artifacts/fixtures/string-profile-fixture.json"
+      ],
+      "description": "Positive and negative wire vectors for the arkret-canonical-handle custom JSON string format, including negatives that only the normative profile validator can reject."
+    },
+    {
+      "vector_id": "ak.vector.encoding.string_profile_content_text.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_vector_groups": [
+        "ak.vector_group.encoding.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/encoding.md",
+        "spec/v1/artifacts/fixtures/string-profile-fixture.json"
+      ],
+      "description": "Positive and negative wire vectors for the arkret-content-text custom JSON string format, including negatives that only the normative profile validator can reject."
+    },
+    {
+      "vector_id": "ak.vector.encoding.string_profile_human_identifier.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_vector_groups": [
+        "ak.vector_group.encoding.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/encoding.md",
+        "spec/v1/artifacts/fixtures/string-profile-fixture.json"
+      ],
+      "description": "Positive and negative wire vectors for the arkret-human-identifier custom JSON string format, including negatives that only the normative profile validator can reject."
+    },
+    {
+      "vector_id": "ak.vector.encoding.string_profile_idna_a_label_domain.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_vector_groups": [
+        "ak.vector_group.encoding.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/encoding.md",
+        "spec/v1/artifacts/fixtures/string-profile-fixture.json"
+      ],
+      "description": "Positive and negative wire vectors for the arkret-idna-a-label-domain custom JSON string format, including negatives that only the normative profile validator can reject."
+    },
+    {
+      "vector_id": "ak.vector.encoding.string_profile_short_text.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_vector_groups": [
+        "ak.vector_group.encoding.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/encoding.md",
+        "spec/v1/artifacts/fixtures/string-profile-fixture.json"
+      ],
+      "description": "Positive and negative wire vectors for the arkret-short-text custom JSON string format, including negatives that only the normative profile validator can reject."
+    },
+    {
+      "vector_id": "ak.vector.encoding.string_profile_single_line_display_text.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_vector_groups": [
+        "ak.vector_group.encoding.v1"
+      ],
+      "source_refs": [
+        "spec/v1/zh/conformance/encoding.md",
+        "spec/v1/artifacts/fixtures/string-profile-fixture.json"
+      ],
+      "description": "Positive and negative wire vectors for the arkret-single-line-display-text custom JSON string format, including negatives that only the normative profile validator can reject."
     },
     {
       "vector_id": "ak.vector.envelope.negative_admission.v1",
@@ -3831,7 +3935,7 @@
       "applies_to_fixtures": [
         "final-conformance-closure-fixture.json"
       ],
-      "description": "covered_seal_refs may only attest Seals already visible from the commit's seal_basis, and the DataEvent's own seal_ref never enters the governance Seal dependency set M. A Seal cannot cover itself, so requiring it makes every E2EE application DataEvent permanently unsendable.",
+      "description": "Historical vector id retained for compatibility. It now proves that MLS security_frontier_digest includes only registered key-access state: unrelated capability/metadata Seal changes and the DataEvent's own seal_ref do not change it, while an active MLS leaf revoke blocks sending until a new Commit covers the rederived frontier.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/crypto-media/encryption-and-audit.md",
@@ -4687,6 +4791,20 @@
       "source_refs": [
         "spec/v1/zh/conformance/scalability-constraints.md",
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sdk.event_type_axes.v1",
+      "status": "active",
+      "domain": "sdk",
+      "applies_to_fixtures": [
+        "sdk-event-type-axes-fixture.json"
+      ],
+      "description": "Official SDKs expose orthogonal closed outer submission and payload-protection types, compile-fail invalid combinations, and serialize verified values through the same canonical schema/transcript used by service admission.",
+      "source_refs": [
+        "spec/v1/zh/models/event-and-patch.md",
+        "spec/v1/zh/conformance/conformance-profiles.md",
+        "spec/v1/artifacts/fixtures/sdk-event-type-axes-fixture.json"
       ]
     },
     {

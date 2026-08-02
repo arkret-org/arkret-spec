@@ -482,7 +482,7 @@ GET /_arkret/self/events/describe
 POST /_arkret/self/events
 ```
 
-请求体是一个 `EventInitialSubmission {event, authorization_lease, cba_proof_bundles[]?}`，
+请求体是一个 `EventInitialSubmission {event, authorization_lease?, cba_proof_bundles[]?}`，
 或 `{events: EventInitialSubmission[]}`。发布证据不进入 Event canonical bytes。
 
 要求：

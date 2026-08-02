@@ -50,6 +50,8 @@ PROSE_LINT_SCRIPT = Path(__file__).with_name("lint_spec.py")
 FIXTURE_DIGEST_SCRIPT = Path(__file__).with_name("check_fixture_digests.py")
 ARTIFACT_VERSION_SCRIPT = Path(__file__).with_name("check_artifact_versions.py")
 COMPLETENESS_REPORT_SCRIPT = Path(__file__).with_name("gen_operation_completeness_report.py")
+PRESENCE_MANIFEST_SCRIPT = Path(__file__).with_name("gen_property_presence_manifest.py")
+SCHEMA_COVERAGE_SCRIPT = Path(__file__).with_name("gen_schema_consumer_coverage.py")
 SITE_META_PATH = ROOT / "site" / "src" / "lib" / "site-meta.ts"
 PUBLIC_V1 = ROOT / "site" / "public" / "v1"
 OPERATION_SCHEMA_INDEX_PATH = ARTIFACTS / "reports" / "operation-schema-index.json"
@@ -1046,14 +1048,30 @@ def run_operation_completeness_report(mode: str) -> int:
     return result.returncode
 
 
+def run_property_presence_manifest(mode: str) -> int:
+    result = subprocess.run(
+        [sys.executable, str(PRESENCE_MANIFEST_SCRIPT), mode], cwd=ROOT
+    )
+    return result.returncode
+
+
+def run_schema_consumer_coverage(mode: str) -> int:
+    result = subprocess.run(
+        [sys.executable, str(SCHEMA_COVERAGE_SCRIPT), mode], cwd=ROOT
+    )
+    return result.returncode
+
+
 def cmd_generate(_: argparse.Namespace) -> int:
     write_capability_action_derivations()
     write_derived_registry_views()
     write_operation_schema_index()
     write_reducer_profile_registry()
     completeness_status = run_operation_completeness_report("generate")
+    presence_status = run_property_presence_manifest("generate")
+    coverage_status = run_schema_consumer_coverage("generate")
     print_contract_status()
-    return completeness_status
+    return completeness_status or presence_status or coverage_status
 
 
 def cmd_check(_: argparse.Namespace) -> int:
@@ -1071,12 +1089,15 @@ def cmd_check(_: argparse.Namespace) -> int:
         return 1
     print_contract_status()
     completeness_status = run_operation_completeness_report("check")
+    presence_status = run_property_presence_manifest("check")
+    coverage_status = run_schema_consumer_coverage("check")
     fixture_status = run_fixture_digest_check()
     artifact_version_status = run_artifact_version_check()
     lint_status = run_lint()
     prose_lint_status = run_prose_lint()
     return (
         completeness_status
+        or presence_status
         or fixture_status
         or artifact_version_status
         or lint_status

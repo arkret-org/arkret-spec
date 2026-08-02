@@ -213,7 +213,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 - KeyPackage publish / fetch / verify
 - KeyPackage claim / consume / revoke lifecycle
 - Welcome / Commit / Proposal event
-- MLS Governance Binding：`governance_binding` 的 GroupContext extension 验证 + `covered_seals_cell` 的 reducer 累积
+- MLS Security Frontier Binding：`governance_binding.security_frontier_digest` 的 GroupContext extension 验证 + 当前 active MLS generation projection
 - minimal-metadata pseudonymous credential handling when profile is advertised
 - AAD visibility policy handling
 - epoch mismatch recovery
@@ -224,7 +224,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 - lost-device response
 - local plaintext search for encrypted content
 
-声明 `ak.profile.mls_governance_binding.full.v1`（即 MLS Governance Binding 的 full 形态，见 `crypto-media/encryption-and-audit.md §2.5`）时，客户端和服务端 MUST 额外验证 commit 携带的 `governance_binding` 覆盖 membership、history visibility、plaintext-visible service、asset privacy、logging、bot / applet / agent policy、moderation policy 与 capability grant / revoke frontier，并 MUST 通过 `covered_seals_cell` coverage gate E2EE DataEvent 的 `seal_ref`。无法验证 `governance_binding` 指向的 Seal view 时，客户端 MUST fail closed，至少不得接受依赖未知应用状态的新 epoch。该 profile 的机器 requirement closure 必须包含 `ak.self.events.query.mls_governance_proof`、`ak.schema.mls_governance_proof_bundle.v1` 与 `mls-governance-proof-fixture.json`；认证器 MUST 分别以 SDK consumer 和 server consumer 角色执行 fixture 登记的 verify / materialize runner，并连同 `ak.vector.scalability.mls_governance_proof_bounds.v1` 输出逐 case 结果。任一角色缺失、只做 schema shape check 或未执行完整 mutation/limit matrix 时不得声明 full profile 通过。
+声明 `ak.profile.mls_governance_binding.full.v1`（兼容保留的 profile id；其 v1 当前语义见 `crypto-media/encryption-and-audit.md §2.5`）时，客户端和服务端 MUST 验证 Commit 的 `governance_binding.security_frontier_digest` 精确覆盖会改变当前或历史密钥访问资格的闭合 frontier：membership、实际 MLS leaf 使用的 device/Agent runtime key、MLS group membership 与 encryption/history key-access policy。普通 capability、metadata、moderation、routing、contact/consent-only 变化不得令 digest stale；若它们同时产生 member/leaf remove，则只由该 remove 进入 frontier。E2EE DataEvent 的普通 `seal_ref` 与 MLS frontier 正交；服务端不得要求同一 Seal 覆盖自身。无法从 accepted state 重建当前 frontier 时客户端 MUST fail closed。该 profile 的机器 requirement closure 必须包含 `ak.self.events.query.mls_governance_proof`、`ak.schema.mls_governance_proof_bundle.v1` 与 `mls-governance-proof-fixture.json`；认证器 MUST 分别以 SDK consumer 和 server consumer 角色执行 fixture 登记的 verify / materialize runner，并连同 `ak.vector.scalability.mls_governance_proof_bounds.v1` 输出逐 case 结果。任一角色缺失、只做 schema shape check 或未执行完整 mutation/limit matrix时不得声明 full profile 通过。
 
 声明 `ak.profile.attested_audit.e2ee.v1` 时，审计 applet release service MUST 提供可验证 remote attestation，并执行 active binding、session request/authorize/notice、sealed `ak.audit.release`、RYW receipt 等待和成员可见 disclosure；RYW receipt 的 `audit_assurance_class` MUST 等于 `attested_hardware`。声明 `ak.profile.disclosed_audit.e2ee.v1` 时，不要求 TEE attestation，但 Realm / Circle policy 和加入 UI MUST 明确展示这是流程性披露；同样不得绕过 Audit Applet Binding + release session 留痕流程；RYW receipt 的 `audit_assurance_class` MUST 等于 `disclosed_policy`。审计 applet 不是 MLS 成员，也不获得实时消息 fanout。两个 profile 不再共享 family 前缀，对外材料 MUST 遵守 `encryption-and-audit.md §3` / `audited-e2ee.md` 的禁用措辞条款，不得将 disclosed 类宣传为密码学/硬件强制审计。
 
@@ -651,7 +651,7 @@ MUST 支持:
 - key proof 绑定 `challenge`(也充当 per-request nonce,服务端 MUST 在 replay window 内拒绝同值) / `audience` / `request_canonical_digest` / agent principal(由 `principal_id` + `proof.verification_method` 一致性 enforced) / `expires_at`。Wire 不引入独立的 `nonce` 字段；agent proof schema 仅有 `challenge`,它就是 nonce 概念的承载者
 - Replay table 覆盖 proof `expires_at` 后的 grace window
 - Session TTL 默认 ≤ 15 分钟,profile 可声明更长但 ≤ 60 分钟
-- 声明可交互 Realm / Direct Conversation chat runtime 时，provision/key/session 三层服务面 scope 必须覆盖 `ak.self.events.stream.subscribe`、`ak.self.events.query.scan`、`ak.self.events.query.frontier`、`ak.self.events.command.submit`、`ak.self.authorization_leases.command.issue`；声明在线 presence 时还必须覆盖 `ak.self.signal.command.send`。内容读写能力继续由独立 `ak.event.read` / `ak.message.create` Realm grant 与 participation gate 强制。缺失 immutable provision action 必须报告 migration required 并 provision 新 Agent principal，不得由 re-pairing 静默扩大
+- 声明可交互 Realm / Direct Conversation chat runtime 时，provision/key/session 三层服务面 scope 必须覆盖 `ak.self.events.stream.subscribe`、`ak.self.events.query.scan`、`ak.self.events.query.frontier`、`ak.self.events.command.submit`；只有声明延迟/离线发布能力时才额外要求 `ak.self.authorization_leases.command.issue`。声明在线 presence 时还必须覆盖 `ak.self.signal.command.send`。内容读写能力继续由独立 `ak.event.read` / `ak.message.create` Realm grant 与 participation gate 强制。缺失 immutable provision action 必须报告 migration required 并 provision 新 Agent principal，不得由 re-pairing 静默扩大
 - 在线 Agent presence 必须遵守 [`profiles-presence.md` §3.3](../discovery/profiles-presence.md) 的短 TTL 刷新合同：30 秒 session ceiling 下 SHOULD 每 20–25 秒发送新的加密 `ak.presence`，持久化递增 sequence 与 MLS nonce，无法在 expiry 前安全提交时自然降级为 offline；进程 / stream keepalive 不构成 presence
 - Structured human approval request 返回统一错误信封：`error.code=claim_required`，`error.details={reason_code: human_approval_required, approval_request_id}`；details 必须通过 `agent-operations.schema.json#/$defs/agent_human_approval_error_details`，且不得向 agent runtime 展示 CAPTCHA / OTP。实现必须通过 `ak.vector.agent_auth.human_approval_required.v1`
 
@@ -1004,6 +1004,7 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 | <a id="ak-sdk-020"></a>20 | 客户端 MUST 优先遵循 `Retry-After`，不得按本地上限截断后提前重试 | api-conventions §9 | **V/U**（注入时钟与出向请求观测） |
 | <a id="ak-sdk-021"></a>21 | 客户端 MUST 仅按 `has_more` 决定是否继续分页 | api-conventions §7.1 | **V/A**（分页响应向量与 paginator API） |
 | <a id="ak-sdk-022"></a>22 | SDK MUST 暴露 canonical confusable check 为可调用 utility | encoding §2.1 | **V/A**（confusable test set 与 public API inventory） |
+| <a id="ak-sdk-023"></a>23 | SDK MUST 以正交 closed types 区分 `DataEvent` / `ControlMove` / `AnchorUnit` 与 `PlainPayload<T>` / `MlsEncryptedPayload<T>` / 具体 MLS 协议 payload；非法组合必须在网络前 compile-fail/type-error，verified submission 不得再原地修改 | event-and-patch §2.2.1 | **V/A**（`ak.vector.sdk.event_type_axes.v1`、compile-fail suite 与 public API inventory） |
 
 ### 23.3 "仅 API 形状可保证"类的 SDK 实现指引
 
@@ -1016,6 +1017,7 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 - SHOULD 将开放注册集建模为可保留未知字符串的 non-exhaustive 类型，并为 schema 明示扩展位保留 raw canonical value；不得用封闭 enum 或丢弃未知字段的通用反序列化默认破坏条款 16、17。
 - SHOULD 将 cursor 与 `ack_token` 都建模为 opaque newtype，并让 paginator 只消费 `has_more`；自动重试器必须显式消费 operation 的 `retry_safe` 与服务端 `Retry-After`（对应条款 18–21）。
 - SHOULD 提供不依赖 UI 的 confusable-check public utility，并以 canonical test set 固定输出（对应条款 22）。
+- MUST 让 outer shape 与 payload shape 的非法组合无法通过公开构造器产生；raw wire Event 只能进入解析/草稿态，必须显式转换成 immutable verified submission 后才可交给 publication evidence 或 submit API（对应条款 23）。
 
 声明遵循本节的 SDK MUST 发布符合 [`sdk-conformance-claim.schema.json`](../../artifacts/schemas/sdk-conformance-claim.schema.json)（`ak.schema.sdk_conformance_claim.v1`）的 machine-readable claim；`ak.vector.sdk_conformance.claim_validation.v1` 与 `sdk-conformance-claim-fixture.json` 是其可执行证据。SDK 为每个适用 `AK-SDK-NNN` clause 提供一个 `clause_claims[]` 条目，至少给出 `result` 与不可变 `evidence[]` 引用；每条 evidence 都 MUST 携带非零 content digest。V 级证据引用向量结果，A级引用 public API inventory，U 级引用代码 / 配置 / 数据流审计；`not_applicable` 必须携带机器可读理由。SDK release 必须以 `sdk_artifact.uri + sdk_artifact.digest` 绑定确切发布物，同时钉定非零 `spec_revision` 与 `sdk_conformance_contract` 的 canonical digest，防止用新条款解释旧证据或把一份结果移植到另一产物。claim 必须声明 `issued_at`、issuer DID 与 verification method；`proof.signature` 覆盖 UTF-8 `"arkret-sdk-conformance-claim-v1\n"` 加移除顶层 `proof` 后对象的 RFC 8785 JCS bytes，`proof.kid` 必须等于 `issuer.verification_method`。验证器除执行 JSON Schema 外，MUST 验证发布物、证据与 contract digest，解析 spec revision，验证 issuer 当前授权及签名，并执行 clause ID 唯一性与已知 clause 集合检查；任一步失败都不得接受 conformance 声明，重复 clause MUST `duplicate_clause_claim`。验证器还 MUST 按 `sdk_conformance_contract.evidence_coverage_semantics`（`acceptable_set`）强制证据类型覆盖：对每个 `result=pass` / `result=fail` 的 clause claim，MUST 存在至少一条 evidence，且每条 `evidence[].kind` MUST 属于该 clause 在 contract 中登记的 `required_evidence` 集合；仅由该集合外类型佐证的 pass / fail clause MUST 被拒绝。该检查独立于且叠加于上面的 digest / 签名检查，`required_evidence` 采用可接受集合语义（列出可接受的证据类型，而非要求全部类型齐备）。
 

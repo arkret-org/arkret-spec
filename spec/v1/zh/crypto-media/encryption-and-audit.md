@@ -105,9 +105,9 @@ Realm policy MUST 通过 Event kind `ak.realm.policy_bundle` 的 payload path `m
 
 **`plaintext_visible_services` prose 权威（normative）**：本节是该 Realm policy 组件的唯一字段级 prose 真相源。每个条目 MUST 声明受托服务 DID、机器可校验的 `data_classes[]`（`message_content`、`attachment_preview`、`full_text_index`、`embedding`、`notification_summary`、`media_plaintext` 等注册值）与 `visibility`；自由文本 `purposes` 只作解释，MUST NOT 单独授权明文。新增、扩大、收缩或移除条目只能由具备 `ak.realm.plaintext_visible_services` capability 的 actor 通过同名 policy Event 写入；普通 `ak.realm.update`、ServiceDescribe 自声明或服务本地配置 MUST NOT 扩大边界。ServiceDescribe 声明的 `plaintext_visibility` 只能是当前 Realm policy 授权集合的子集，任何接收、索引、projection、通知或 media 路径都必须在披露前按 `(service DID, data_class, visibility, policy_root)` 逐项校验，缺失或不匹配时 fail closed。
 
-`metadata_encryption_floor` 必须纳入 MLS governance binding `policy_root`。客户端 / 服务端不得仅通过 `encryption_profile="mls_rfc9420"` 推断 metadata 处理方式；缺省规则是：MLS 或 `content_encryption_floor=e2ee_required` Realm 为 `e2ee_required`，其他 Realm 为 `allow_plaintext`。
+`metadata_encryption_floor` 会改变 metadata key access 时必须纳入 MLS `security_frontier_digest`。客户端 / 服务端不得仅通过 `encryption_profile="mls_rfc9420"` 推断 metadata 处理方式；缺省规则是：MLS 或 `content_encryption_floor=e2ee_required` Realm 为 `e2ee_required`，其他 Realm 为 `allow_plaintext`。
 
-`plaintext_visible_services` 的生效边界与 MLS governance binding 对齐。任何扩大或收缩都 MUST 被新的 `ak.mls.commit` 覆盖后，才可用于该 scope 后续 epoch 的新明文披露判定；在覆盖前，客户端与服务端 MUST 继续使用上一 accepted epoch 的 `policy_root`。当列表收缩或移除某服务时，被移除服务从覆盖该变更的下一 epoch 起 MUST NOT 再接收新的明文、可逆摘要、索引输入、通知摘要或 media plaintext；该服务在移除前已合法收到的历史副本不能被密码学回收，但其继续保留、删除、审计和导出义务 MUST 按移除前已声明的 retention / erasure policy 执行。对 in-flight 明文，发送方和转发服务 MUST 在观察到收缩 frontier 后停止新的投递，无法证明属于旧 epoch 授权窗口的任务 MUST fail closed。
+`plaintext_visible_services` 的 ordinary service authorization 由 Event/CBA/Seal 即时判定，不因普通 endpoint 或 metadata 变化机械 rekey。只有改变当前或历史密钥取得者的扩大/收缩才进入 `security_frontier_digest` 并等待新的 `ak.mls.commit`；在覆盖前继续使用上一 accepted epoch 的 key-access view。被移除服务从覆盖该变更的下一 epoch 起不得再接收新明文；既有历史副本仍按当时 retention / erasure policy 处理。
 
 #### 2.3.1 Envelope Wire 结构
 
@@ -167,7 +167,7 @@ Ratchet tree MUST 由 `ak.mls.genesis`、Welcome、Commit 或 group state proof 
 
 #### 2.3.2 AAD 可见性 Profile 与 canonical 序列化
 
-AAD 字段集合受 Realm 的 `aad_visibility` policy 组件约束（承载与上限语义见 §2.8）。隐私优先 Realm SHOULD 只保留路由所需的 `realm_id`、event kind、epoch 和不可逆 routing hash；需要跨 provider 投递确认的 Realm MAY 暴露 opaque `aad.event_id`，但该选择 MUST 先由 `ak.realm.policy_bundle` 的 `aad_visibility.event_id` 声明——组件缺省时上限为 `hidden`，越界信封按 §2.8 拒绝。该组件随 bundle cell 进入 MLS-bound `policy_root`。
+AAD 字段集合受 Realm 的 `aad_visibility` policy 组件约束（承载与上限语义见 §2.8）。隐私优先 Realm SHOULD 只保留路由所需的 `realm_id`、event kind、epoch 和不可逆 routing hash；需要跨 provider 投递确认的 Realm MAY 暴露 opaque `aad.event_id`，但该选择 MUST 先由 `ak.realm.policy_bundle` 的 `aad_visibility.event_id` 声明——组件缺省时上限为 `hidden`，越界信封按 §2.8 拒绝。只有该组件的变化改变密钥可见性时才进入 MLS `security_frontier_digest`；其它 AAD disclosure 仍由 Event/CBA/Seal admission 保护。
 
 `aad_visibility_event_id` 是 schema discriminator，控制 `aad.event_id` 与 `aad.event_ref_digest`：
 
@@ -291,12 +291,12 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
 
 Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须确定：
 
-- 会影响 E2EE 可见性的 `ak.member.state`（Realm-level）或 MLS-backed `ak.circle.member.state`（Circle-level）accepted 后（track 不携带独立 membership；Realm 内的子事件边界由 [Circle](../models/circle.md) 通过 `Strand.scope_circle_id` 表达，并由 `ak.circle.member.state` 管理 Circle 成员），相应 MLS-backed scope（Realm-default 或 Circle）进入 `epoch_update_required`，直到有 winning `ak.mls.commit` 的 `governance_binding.membership_frontier` 覆盖该 membership frontier。Plaintext Circle 只执行 membership / delivery / query 裁剪，不进入 MLS epoch 状态机。
+- 会影响 E2EE 可见性的 `ak.member.state`（Realm-level）或 MLS-backed `ak.circle.member.state`（Circle-level）accepted 后（track 不携带独立 membership；Realm 内的子事件边界由 [Circle](../models/circle.md) 通过 `Strand.scope_circle_id` 表达，并由 `ak.circle.member.state` 管理 Circle 成员），相应 MLS-backed scope（Realm-default 或 Circle）进入 `epoch_update_required`，直到 winning `ak.mls.commit.governance_binding.security_frontier_digest` 等于最新可重算 key-access frontier。Plaintext Circle 只执行 membership / delivery / query 裁剪，不进入 MLS epoch 状态机。
 - 新加入成员在 Welcome / Commit 被接受并成功处理前，只能看到 policy 允许的 stripped metadata、邀请信息或 `decryption_pending` 占位；不得看到加入前后正文，除非 history visibility、history sharing policy 和 key share event 均明确授权。`history_visibility=shared` 只表示 joined 后具备读取 join 前历史的资格；旧 epoch key 仍必须通过 `ak.realm_key.share` 或等价 policy-authorized recovery path 交付。`history_visibility=joined` 下，join 前正文和旧 epoch key MUST 被拒绝。
 - 被移除、ban 或离开的成员在对应 membership frontier 之后不得接收新 epoch 的 Welcome、group secret 或 history key share。若客户端仍收到使用旧 epoch 加密的新正文，必须标记 `state_mismatch` 或拒绝解密结果进入 verified timeline。
-- 发送客户端在发现 `epoch_update_required` 后 **MUST** 暂停该 scope 的新**加密 application messages** 并标记 `encryption_transition_pending`，直到 effective epoch 的 `covered_seals_cell` 覆盖最新 governance Seal。该规则适用于所有声明 `encryption_profile="mls_rfc9420"` 的 Realm，无论 `security_class`——忽略 governance Seal coverage 的发送会让 ban / revoke 在新消息上失效，正是引入 MLS Governance Binding 要消除的风险。
+- 发送客户端在发现 `epoch_update_required` 后 **MUST** 暂停该 scope 的新**加密 application messages** 并标记 `encryption_transition_pending`，直到 effective epoch 的 `security_frontier_digest` 等于最新 key-access frontier。该规则适用于所有声明 `encryption_profile="mls_rfc9420"` 的 Realm，无论 `security_class`——忽略 governance Seal coverage 的发送会让 ban / revoke 在新消息上失效，正是引入 MLS Governance Binding 要消除的风险。
 
-  **明文发送豁免（normative）**：send-pause 只约束需要 MLS-backed 密文的发送。当某 scope 的 effective `content_encryption_floor=allow_plaintext` 且该消息以明文发送时，不受 MLS epoch / `covered_seals_cell` gating——明文消息的 ban / revoke 由 membership cell 即时生效，不依赖 epoch 推进。这使 “`encryption_profile=mls_rfc9420` + `allow_plaintext`” 的可升级默认形态在明文期间无需为每次成员变更推进 MLS epoch；一旦 effective floor 抬到 `e2ee_required`（或该消息以密文发送），完整 §2.5 governance-binding send-pause 立即恢复，首条密文发送 MUST 等待覆盖当前 membership frontier 的 epoch。`encryption_profile=none` 的 scope 不拥有 MLS group，本规则不适用。
+  **明文发送豁免（normative）**：send-pause 只约束需要 MLS-backed 密文的发送。当某 scope 的 effective `content_encryption_floor=allow_plaintext` 且该消息以明文发送时，不受 MLS epoch / `security_frontier_digest` gating——明文消息的 ban / revoke 由 membership cell 即时生效，不依赖 epoch 推进。这使 “`encryption_profile=mls_rfc9420` + `allow_plaintext`” 的可升级默认形态在明文期间无需为每次成员变更推进 MLS epoch；一旦 effective floor 抬到 `e2ee_required`（或该消息以密文发送），完整 §2.5 governance-binding send-pause 立即恢复，首条密文发送 MUST 等待覆盖当前 membership frontier 的 epoch。`encryption_profile=none` 的 scope 不拥有 MLS group，本规则不适用。
 
   **`mls_send_pause="advisory"` 降级规则**：把上述 MUST 暂停降级为 SHOULD 的能力**仅在显式 degraded profile** `ak.profile.e2ee_relaxed.v1` 下允许声明，不得在默认 `ak.profile.mls_governance_binding.full.v1` profile 或任何声称 “完整 MLS Governance Binding” 的部署中使用。该字段在符合资格的部署中也 MUST：
 
@@ -310,7 +310,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
   **降级声明义务（normative）**：`ak.profile.e2ee_relaxed.v1` 不是本地优化开关，而是可审计的协议降级声明。有效声明必须同时满足：Realm `schema_refs` 明文记录 `ak.profile.e2ee_relaxed.v1`（经 `ak.realm.create` 或 `ak.realm.schema` 写入），且 `ak.realm.policy_bundle` 明文记录 `mls_send_pause="advisory"`——profile id 与 `mls_send_pause` 分属两个承载，bundle 闭合 payload 内没有 profile 字段；服务端 `ServiceDescribe.supported_profiles` / `supported_features` 声明 `ak.profile.e2ee_relaxed.v1` / `ak.feature.e2ee_relaxed.v1`；该 Realm 后续每个 MLS `governance_binding.binding_profile` 写为 `ak.profile.e2ee_relaxed.v1` 并携带匹配的 `reducer_profile`；sync metadata、snapshot、backup/export 与 interop mapping receipt 必须保留 `e2ee_relaxed=true` 和 `relaxed_window_max_ms`。任一条件缺失、互相矛盾、或仅通过部署私有配置 / UI 标签 / 省略 GroupContext extension 表达降级，接收方 MUST 按未声明降级 fail closed：拒绝 Realm 写入、quarantine 相关 MLS artifact，或拒绝 old-epoch decrypt 进入 verified timeline。
 
-  **联邦互操作下界（normative）**：跨 deployment 的 MLS-backed Realm 以 `ak.profile.mls_governance_binding.full.v1` 为 E2EE 互操作下界。`ak.profile.e2ee_relaxed.v1` 是低于该下界的显式降级，只能在 `federation_policy="closed"` 或满足上方 restricted federation guard 的 `restricted` Realm 中出现；open / quarantine federation MUST reject。联邦 peer 未在 describe 中声明所需 profile/feature、未公开满足窗口的 fanout SLA、或 MLS commit / DataEvent 的 `binding_profile`、`reducer_profile`、`covered_seals_cell` 无法验证时，接收方 MUST reject 或 quarantine，不得把该 peer 的 push 用于推进本地 Realm frontier。
+  **联邦互操作下界（normative）**：跨 deployment 的 MLS-backed Realm 以 `ak.profile.mls_governance_binding.full.v1` 为 E2EE 互操作下界。`ak.profile.e2ee_relaxed.v1` 是低于该下界的显式降级，只能在 `federation_policy="closed"` 或满足上方 restricted federation guard 的 `restricted` Realm 中出现；open / quarantine federation MUST reject。联邦 peer 未在 describe 中声明所需 profile/feature、未公开满足窗口的 fanout SLA、或 MLS commit / DataEvent 的 `binding_profile`、`reducer_profile`、`security_frontier_digest` 无法验证时，接收方 MUST reject 或 quarantine，不得把该 peer 的 push 用于推进本地 Realm frontier。
 
   声明 advisory 但未声明 `ak.profile.e2ee_relaxed.v1` profile 的 Realm create / policy update event MUST 被 reducer 拒绝。详见 §2.4.2 与 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)。
 - Realm / reducer profile MUST 声明 `max_mls_commit_delay_ms`，**默认 30,000 ms**；profile MAY 覆盖（交互式 profile SHOULD be no greater than 30,000 ms，高延迟 / 批量 profile MAY 声明更大值）。客户端在 commit 滞后超过该 effective 值后 MUST 将该 scope 降级为 read-only / send blocked，服务端 SHOULD 返回 `epoch_update_required` 或 `temporarily_unavailable`。
@@ -331,8 +331,8 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
 | 维度 | 默认 (`mls_governance_binding.full.v1`) | 降级 (`e2ee_relaxed.v1`) |
 | --- | --- | --- |
-| `mls_send_pause` 默认 | MUST 暂停直到 covered_seals_cell 覆盖 | 允许声明 `"advisory"`,降为 SHOULD |
-| `covered_seals_cell` 覆盖检查 | reducer/客户端 MUST enforce | 仍然写入但 send-side 不阻塞 |
+| `mls_send_pause` 默认 | MUST 暂停直到 security frontier 被当前 Commit 覆盖 | 允许声明 `"advisory"`,降为 SHOULD |
+| `security_frontier_digest` 匹配 | reducer/客户端 MUST enforce | 仍然写入并验证，但 send-side 可按声明窗口延迟阻塞 |
 | 被踢者继续解密窗口 | ≤ MLS commit roundtrip(密码学保证) | ≤ `relaxed_window_max_ms`(默认 30s,部署声明) |
 | 接收端 verified timeline 检查 | epoch 不匹配 → 拒绝 | epoch 不匹配且超出 `relaxed_window_max_ms` → 拒绝 |
 | UI 警示 | 无 | **MUST 显示 banner-level 警示**，并明确披露：该 Realm 使用降级 E2EE；踢出 / ban 不具备密码学即时生效保证；旧成员可能在声明窗口内继续解密最近消息。 |
@@ -351,261 +351,73 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
   - 在 sync metadata 中标记该 Realm 为 `e2ee_relaxed=true`,导出 / 备份 / 跨设备时保留该标记
 - 服务端 `ak.server.query.describe.supported_features` **MUST** 列出 `ak.feature.e2ee_relaxed.v1` 才能接受该 profile 的 Realm 写入
 
-**禁止扩展**:本 profile 不允许进一步降级到"不 enforce `covered_seals_cell` 写入" / "允许跨 epoch 解密无窗口限制"。降级到此为止；更宽松场景应当退回到**非 E2EE** Realm(`encryption_profile="none"`)而不是继续放宽 E2EE 承诺。
+**禁止扩展**:本 profile 不允许进一步降级到"不验证 `security_frontier_digest`" / "允许跨 epoch 解密无窗口限制"。降级到此为止；更宽松场景应当退回到**非 E2EE** Realm(`encryption_profile="none"`)而不是继续放宽 E2EE 承诺。
 
-### 2.5 MLS Governance Binding
+### 2.5 MLS Security Frontier Binding
 
-**MLS Governance Binding** 是 Arkret v1 把 **MLS epoch 与 governance state（membership / policy / capability / Seal coverage）强绑定** 的机制，相对于 Matrix 把 Olm/Megolm 与 room state 当作两条并行轨而言，它是 v1 的核心新增层。该机制由两个 wire-level artifact 组成，分工固定：
+Arkret v1 把 MLS epoch 只绑定到会改变当前或历史密钥取得者的 accepted control state。普通 Event admission 的 seal_ref 与 MLS security frontier 是正交证明：seal_ref 选择该 Event 的 CBA 授权视图；security_frontier_digest 证明当前 MLS epoch 已覆盖最新 key-access state。任何 Seal 都不得因为被消息引用而要求 MLS Commit 反向覆盖自身。
 
-| 层 | 名称（wire-level） | 角色 |
-|---|---|---|
-| **Commit-side proof** | `governance_binding`（GroupContext extension `mls_governance_binding`，定义见 §2.5.1，CBOR 编码见 §2.5.3） | 每个 `ak.mls.commit` 携带的 binding payload，把本次 epoch 推进所**断言覆盖**的 governance roots（`membership_frontier` / `policy_root` / `capability_root` / `discussion_metadata_digest`）哈希进 MLS transcript |
-| **Lattice-side accumulator** | `covered_seals_cell`（cell family `ak.component.covered_seals.v1`，or_set，bottom=expose，见 §2.5.2） | MLS Commit Control Move 的 registered projection cell，**累计**已被 commit attest 的 governance Seal；E2EE DataEvent 用 `seal_ref` 与 `contains` 求值 gate 自身依赖的 governance Seal |
+每个 MLS scope 投影唯一 current state：
 
-两层缺一不可：`governance_binding` 提供 per-commit 的不可伪造证据并由 MLS transcript hash 覆盖，`covered_seals_cell` 沉淀 reducer 可查询的累计状态供 E2EE DataEvent `seal_ref` coverage 引用。
+- mls_group_id；
+- epoch；
+- security_frontier_digest；
+- commit_ref（genesis 时为 genesis Event ref）。
 
-下图把两层结构和 application message 如何被 gate 画在一起：
+security_frontier_digest 的输入由 [`mls-security-frontier-registry.json`](../../artifacts/registry/mls-security-frontier-registry.json) 闭合登记，并从 accepted Seal state 与 RFC 9420 current/pending leaf set 确定性重建：
 
-```mermaid
-flowchart TB
-    subgraph GS ["Arkret Governance State (per effective scope: Realm / Circle)"]
-        direction TB
-        Memb["membership cells"]
-        Pol["policy cells (join_rule / history_visibility / plaintext-visible / moderation / lifecycle)"]
-        Cap["capability cells (grant / revoke / delegate)"]
-        Disc["discussion metadata (名称 / 头像 / 主题 / federation 元数据)"]
-        Anc["governance Seal coverage"]
-        Memb --> Anc
-        Pol --> Anc
-        Cap --> Anc
-        Disc --> Anc
-    end
+1. Realm / Circle membership join、leave、remove、ban，以及实际使当前 MLS leaf 无效的 participant terminal；
+2. 当前或 pending MLS leaf 实际引用的 participant device / Agent runtime key authorize、revoke、replacement；
+3. MLS group membership；
+4. 改变谁能取得当前或历史密钥的 encryption floor、content encryption scheme、history visibility / sharing policy。
 
-    subgraph CS ["Commit-side proof (per ak.mls.commit)"]
-        direction TB
-        GB["governance_binding<br/>membership_frontier / policy_root<br/>capability_root / discussion_metadata_digest<br/>previous_epoch → next_epoch"]
-        Trans["MLS GroupContext extension<br/>mls_governance_binding (0xF1C0, deterministic CBOR)<br/>→ 进入 MLS transcript hash"]
-        GB --> Trans
-    end
+与当前或 pending leaf 无关的 device/Agent key、普通 capability、message/Strand metadata、moderation、display metadata、media/routing endpoint 和 contact/consent-only state MUST 排除。block/contact/consent 会立即禁止新 application message、call signal 与 Welcome，但除非其 accepted effect 同时 remove leaf，否则不单独触发 rekey。
 
-    subgraph LS ["Lattice-side accumulator"]
-        direction TB
-        CFC["covered_seals_cell<br/>(or_set, bottom=expose)<br/>累加已被 commit attest 的 governance Seal"]
-        EpC["mls_epoch_cell / key_schedule_cell"]
-    end
+producer 不提交任意 Event/Seal ref 清单来定义 frontier。所有实现必须从相同 accepted state 得到逐字节相同的 canonical digest；未知 cell family 或无法闭合依赖时 fail closed。
+#### 2.5.1 Security binding payload
 
-    Anc -- "Commit 读取并断言" --> GB
-    GB -- "MLS Commit registered projections" --> CFC
-    GB -- "推进 epoch" --> EpC
+ak.mls.genesis、ak.mls.commit、需要绑定当前 epoch 的 ak.mls.welcome 与 MLS proposal 使用同一 mls_governance_binding closed object。必需字段是：
 
-    Msg["E2EE application DataEvent<br/>seal_ref 的 covered_seals_cell 覆盖依赖集 M"]
-    CFC -. "未覆盖 → fail closed<br/>暂停发送 / epoch_update_required" .-> Msg
-    CFC -- "覆盖 → 允许发送" --> Msg
-```
+| 字段 | 约束 |
+| --- | --- |
+| binding_version | 固定 1 |
+| encoding_profile | 固定 cbor-deterministic-rfc8949-v1 |
+| realm_id / effective_scope / circle_id? | 精确标识 Realm-default 或 Circle MLS scope |
+| mls_group_id | 目标 group |
+| previous_epoch / next_epoch | genesis 为 0/0；Commit 必须 next=previous+1 |
+| security_frontier_digest | 按 §2.5 的闭合集合重算 |
+| binding_profile / reducer_profile | 显式解释 profile；缺失或不支持 fail closed |
+| sidecar_binding? | 只在 Agent Sidecar backing Circle 中出现 |
 
-读图要点：
+membership_frontier、covered_seal_refs、policy_root、capability_root 与 discussion_metadata_digest 不再是 wire 字段。它们把同一 accepted state 重复拆成多个 producer-supplied commitments，并导致无关治理变化阻断消息；receiver 改为从 Seal state 直接重算唯一 security_frontier_digest。
 
-- 撤销 / ban / device revoke / policy 收紧只在 governance state 里 accepted **不够**——必须有后续 `ak.mls.commit` 把对应 governance Seal 写进 `covered_seals_cell`，新 application message 才会被 gate 阻止使用旧 epoch key。
-- Governance / recovery Control Move 不依赖 `covered_seals_cell`，因此 MLS epoch 卡住时仍可提交修复 Control Move 并由 Seal finalization 生效。
-- 客户端验证 `governance_binding` 时无法回补 inclusion proof 或 hash 不匹配 → epoch 标记 `decryption_pending` / `state_mismatch`，禁用该 epoch 解密新正文。
+每个 ak.mls.commit MUST 同时携带 mls_group_id、base_epoch、next_epoch、完整 commit_bytes_b64、commit_digest 与 governance_binding。receiver 先校验 digest，再按 RFC 9420 应用完整 Commit bytes，并核对 epoch、group 与 security frontier。只提供 digest 或 object ref 不合规。
 
-MLS 不应只保护正文，也必须帮助成员发现服务端是否向不同客户端展示了不同的成员、策略或 discussion 元数据 —— 这是引入 MLS Governance Binding 的根本动机。撤销、ban、device revoke 和 policy 收紧不能只在应用层 accepted；它们必须被 MLS epoch / key schedule 覆盖后才能影响新消息解密能力。
+ak.mls.welcome MUST 携带 commit_ref，并与同一 Commit、recipient 和 claimed KeyPackage 逐字段闭合。Delivery/Sync Service 必须原样保留完整 payload；不得转发缺 claim、commit_ref、binding 或 ciphertext 的缩减 envelope。
+#### 2.5.2 Send gate 与 self-heal
 
-MLS group 的 scope 绑定到 tagged `effective_scope`：`{kind:"realm", realm_id}` 时 group 覆盖 Realm-default scope（Realm 自身使用 `encryption_profile="mls_rfc9420"`）；`{kind:"circle", realm_id, circle_id}` 时仅当该 [Circle](../models/circle.md) 使用 `encryption_profile="mls_rfc9420"` 才拥有独立 MLS group，与 Realm-default group 完全独立，且 Circle key MUST NOT 从 Realm-default key 派生。两个 group 通过 `(realm_id, circle_id?)` 复合 scope 区分，不依赖 track-scoped key model 或跨 Realm linked-Realm 模型。
+E2EE DataEvent 必须声明 mls_group_id、epoch 与 security_frontier_digest，并携带普通 Event admission 所需的 seal_ref。receiver 接受 application message 当且仅当：
 
-#### 2.5.1 Governance Binding Payload (`governance_binding`)
+1. Event 的 seal_ref / CBA admission 独立通过；
+2. group 与 scope 匹配；
+3. epoch 等于 winning MLS epoch；
+4. message 的 security_frontier_digest 等于 receiver 在该 Event basis 可验证的最新 key-access frontier；
+5. winning genesis/Commit Event 已 accepted，且其完整 RFC 9420 transcript 绑定同一 digest。
 
-每个 `ak.mls.commit` MUST 绑定一个 `governance_binding`，并把该引用纳入 MLS transcript 或等价的 commit-authenticated data：
+若存在尚未被 winning Commit 覆盖的 key-affecting fact，scope 进入 epoch_update_required，所有新加密 application message、call signal 和 Welcome暂停；返回 mls_governance_binding_stale。无关 capability、metadata、moderation、routing 或 consent-only state 前进时 MUST NOT 产生该错误。
 
-```json
-{
-  "governance_binding": {
-    "binding_version": 1,
-    "encoding_profile": "cbor-deterministic-rfc8949-v1",
-    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-    "effective_scope": {
-      "kind": "realm",
-      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
-    },
-    "mls_group_id": "base64url...",
-    "previous_epoch": 41,
-    "next_epoch": 42,
-    "membership_frontier": ["ak:event:8ea2dd8c-c436-7b94-9000-000000000000"],
-    "covered_seal_refs": ["ak:seal:sha256:governance_seal_covered_by_this_binding"],
-    "policy_root": "sha256:canonical_state_policy_root",
-    "capability_root": "sha256:effective_capability_root",
-    "discussion_metadata_digest": "sha256:canonical_discussion_metadata",
-    "binding_profile": "ak.profile.mls_governance_binding.full.v1",
-    "reducer_profile": "ak.reducer.v1"
-  }
-}
-```
+任一 active member 客户端观察到 epoch_update_required 后 MUST 发起 self-heal Commit；并发 proposal/Commit 按现行 MLS winner/CAS 规则收敛。消息数、epoch 存活时长与 routing-token scope 的自保推进上限保持不变。明文 scope 不受 MLS epoch gate，但仍受即时 membership/authorization admission。
+#### 2.5.3 GroupContext extension 与 proof materialization
 
-MLS group 的 key scope 由 `effective_scope`（§2.5 开头）唯一决定，**不存在 per-track MLS group**——整个 Strand 共享单一安全边界（见 [`strand-and-message.md`](../models/strand-and-message.md) §3）。`governance_binding` 是封闭对象，不携带 `strand_id` 或 `track_name`；
+MLS GroupContext extension type 0xF1C0 继续把确定性 CBOR 编码的完整 mls_governance_binding 纳入 confirmed_transcript_hash。canonical map 只包含 §2.5.1 的字段；禁止 indefinite-length CBOR、非最短整数、重复/乱序 map key、未知字段或 JSON/CBOR 混用。
 
-**顶层 `circle_id` 的出现条件（normative，与 §2.5.3 冗余表一致）**：`governance_binding` 顶层的可选 `circle_id` 字段 MUST **当且仅当** `effective_scope.kind == "circle"` 时出现，且 MUST 等于 `effective_scope.circle_id`；`effective_scope.kind == "realm"` 时顶层 MUST NOT 携带 `circle_id`。上面的 JSON 示例 `effective_scope.kind="realm"`，故顶层不含 `circle_id`；Circle-scoped commit 的 `governance_binding` 顶层 MUST 同时含 `realm_id` 与 `circle_id`，二者均与 `effective_scope` 内对应字段 bit-identical。该顶层字段是离线审计冗余字段（CBOR 编码见 §2.5.3，标 `optional, only when effective_scope.kind="circle"`），不一致时 receiver MUST 拒绝该 commit（governance_binding 可能被错误重绑定到不同 Circle）。Strand 级上下文只能出现在 application message AAD 或外层 payload 中，且不得据此派生独立 membership、history visibility 或 MLS group。验证边界是 Realm/Circle membership、history visibility、policy state 与 `allowed_tracks` action scope；`allowed_tracks` 只缩小已授权动作的 track 范围，不授予独立 track-level ACL。
+轻客户端可以请求 mls-governance-proof-bundle 来取得从 trusted anchor 到 accepted Seal 的完整、有界、分块 proof materialization。bundle 的作用是让 verifier 重建 accepted control state 与 security_frontier_digest；它不让服务选择可信 anchor，也不把旧 covered_seals_cell 恢复为协议状态。
 
-**E2EE Realm MUST 声明 `ak.profile.mls_governance_binding.full.v1`**：声明 `encryption_profile="mls_rfc9420"` 的 Realm 隐式继承该 profile（`ak.profile.e2ee_client.v1` 直接 `inherits` 它）。所有 `ak.mls.commit` MUST 携带 GroupContext extension 形态的 `governance_binding`；仅 transcript-authenticated 而无 GroupContext extension 的实现不符合 v1。
+历史向量 id `ak.vector.mls.covered_seals_no_self_reference.v1` 为 registry 稳定性保留，但其当前
+断言是“普通 Seal/`seal_ref` 不进入 security frontier，active leaf revoke 必须进入”，不再测试已删除
+的 covered-seals accumulator。
 
-- `membership_frontier` MUST 覆盖本次 Commit 声称生效的成员、invite/leave/ban 和设备信任 cell。
-- **`covered_seal_refs` 可见性约束（normative）**：每个元素 MUST 是本次 Commit 的 `seal_basis` 已可见的 accepted governance Seal——即落在 `seal_basis.leaves[]` 自身或其 predecessor closure 内（[`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#5-control-move)）。Control Move 只能断言 authoring 时已存在的 Seal：首次把该 Commit 纳入 accepted control state 的 Seal 及其任何后继 MUST NOT 出现在 `covered_seal_refs` 中，producer 也 MUST NOT 列入不在自己 basis closure 内的并发分支 Seal。Receiver MUST 独立校验该约束，任一元素越界时以 `governance_binding_mismatch` 拒绝该 commit（federation push 上拒绝整批）且不得推进 `mls_epoch_cell` / `covered_seals_cell`；不得把越界元素当作冗余项静默丢弃后接受该 commit。该约束有两个作用：阻止 producer 声称覆盖它从未验证过的治理状态，以及使 §2.5.2 的 `S ∉ covered_seals_cell@J(S)` 成为可机械检查的结构性事实而不只是构造惯例。
-- `binding_version` MUST 为 `1`；`encoding_profile` MUST 为 `cbor-deterministic-rfc8949-v1`。两者进入 GroupContext extension bytes、Event payload 和 `covered_seals_cell` canonical value，接收方不得从 codepoint 或 profile id 隐式推断。
-- `binding_profile` 与 `reducer_profile` 是 required 字段。`binding_profile` MUST 等于该 Realm 实际声明的 MLS governance binding profile：默认/full Realm 为 `ak.profile.mls_governance_binding.full.v1`；唯一 v1 降级 Realm 为 `ak.profile.e2ee_relaxed.v1`。接收方 MUST NOT 在字段缺失时用本地默认值补齐，也 MUST NOT 把未知 profile 当作 full profile 处理；缺失、未知或与 Realm policy / ServiceDescribe / federation peer 声明不一致时 MUST fail closed。
-- `previous_epoch` / `next_epoch` MUST 同时出现在 `governance_binding` 与 `ak.mls.commit` payload 中；接收端 MUST 校验 `payload.base_epoch == governance_binding.previous_epoch` 且 `payload.next_epoch == governance_binding.next_epoch`。任一不一致时该 commit 不得推进 `mls_epoch_cell`。
-- `policy_root` MUST 覆盖本次 Commit 依赖的 policy / join rule / history visibility / history sharing / media service / plaintext-visible service / moderation / lifecycle cell。
-- full profile 下 `capability_root` MUST 出现，并 MUST 覆盖本次 Commit 依赖的 grant / revoke / delegate / derived capability cell；缺失即拒绝 governance binding。`ak.profile.e2ee_relaxed.v1` 可按其显式降级规则省略。
-- full profile 下 `discussion_metadata_digest` MUST 出现。v1 的 canonical 输入固定为同一 Seal view 下的成员可见媒体解密披露事实：`media_service_decrypts` 与 `data_classes[]` 包含 `media_plaintext` 的获准服务 DID 集；自由文本 `purposes` 不参与授权或摘要计算。算法见下方“证明 Bundle 与验证顺序”。Realm/Strand 名称、头像、主题等用户可读 metadata 在默认 `metadata_encryption_floor=e2ee_required` 下属于 MLS 密文，不能伪装成可由控制状态重算的治理字段。接收方 MUST 从同一 Seal view 独立重算，缺失或不匹配即拒绝 governance binding。
-- 客户端在接受 MLS epoch 前 MUST 独立验证 `governance_binding` 指向的 Arkret Seal view 与 state_root。无法回补 Control Move inclusion proof 或 hash 不匹配时 MUST 标记 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
-- 并发 Commit 是并发 Control Move。它们只有被 accepted Seal 覆盖，且其 preconditions 在 `seal_basis` 指向的控制面 pre-state 下成立时，才能推进 `mls_epoch_cell`。
-
-**`policy_root` / `capability_root` canonical 计算（normative）**：两者都是 [`event-auth-state-resolution.md` §6.2.1](../authz/event-auth-state-resolution.md#621-治理-state_root-的-merkle-计算规则normative) `state_root` 算法的确定性过滤视图，使用同一 hash suite、JCS leaf 前像、`0x00` / `0x01` 域分隔、奇数节点提升与空树 root。
-
-1. 从 `governance_binding` 引用的 accepted Seal 重建 joined control state `J(S)`；`⊥` cell 不进入 root，并使依赖它的 commit fail closed。
-2. `policy_root` 的 leaf 集是 `J(S)` 中当前 `effective_scope` 可见的 policy cell：cell family 为 `ak.component.realm.*policy*`、`ak.component.realm.join_rule.v1`、`ak.component.realm.history_visibility.v1`、`ak.component.realm.media_service.v1`、`ak.component.realm.policy_bundle.v1`、`ak.component.realm.plaintext_visible_services.v1`，以及同 scope 的 Circle history/encryption/lifecycle policy cell。未知或 profile 新增的 policy family 只有在 profile 的 governance-binding coverage registry 显式登记后才可加入；full profile 遇到未登记且会影响解密/投递的 family MUST fail closed。
-3. `capability_root` 的 leaf 集是 `J(S)` 中 cell family 以 `ak.component.capability.` 开头的全部 grant、revoke、delegate 与 derived-capability cell；不得由 producer 选择子集。
-4. 每个 leaf 的 `leaf_preimage`、排序与 hash 完全复用 §6.2.1：`canonical_json({"cell":"<cell_wire_id>","state":{"value":<lattice_value>}})`，按 `cell_wire_id` Unicode code point 升序。wire root 形态为 `<suite>:<lowercase_hex>`。
-
-Verifier MUST 从同一 Seal view 独立枚举 leaf 集并重算两个 root；producer 少报、漏报、重排或使用不同编码时 MUST 拒绝 `governance_binding`。Conformance suite MUST 为单 leaf、奇数 leaf、空集合与“漏一个治理 cell”提供 byte-level KAT。
-
-##### 2.5.1.1 Accepted Seal 治理证明 Bundle（normative）
-
-full profile 的客户端不能只接收服务端声明的 `state_root` 或由服务端挑选的若干 inclusion branch。仅证明“给出的叶子确实在树中”不能证明服务端没有漏掉另一个 policy / capability / membership 叶子，因此 v1 首版使用 [`mls-governance-proof-bundle.schema.json`](../../artifacts/schemas/mls-governance-proof-bundle.schema.json) 的 `complete_control_state_v1` 完整物化形态：
-
-- 请求 MUST 携带 verifier 本地已信任的 `trusted_anchor_seal_id` 与 `chunk_index`；`seal_path` collection 只能从该精确锚点（或其直接 successor）延伸到 `accepted_seal_id`，响应同名字段 MUST 与请求逐字相同。Bundle 自报的锚点**不产生信任**，服务端不得静默替换锚点。Bootstrap 客户端只有在 Realm create/join、已验证 snapshot/compaction 或等价 authenticated bootstrap package 已建立信任后，才能把 genesis/compaction Seal 用作请求锚。
-- 所有响应重复同一固定大小 `chunk_manifest`，并只携带一个非空 collection chunk。全局 chunk 顺序固定为 `seal_path`、`covered_event_digests`、`control_state`、`frontier_events`；同 collection 的 `start_index` 从 0 无缝递增。`chunks_root` 按 `chunk_index` 承诺全部 `chunk_digest`，每个响应用 `chunk_proof` 证明当前块 inclusion。普通 HTTP 分页、服务端自报 total、缺块继续验证或混用不同 `bundle_digest` 的块都不能构成完整性证明。
-- 拼接后的 `covered_event_digests` 是目标 Seal 的完整递归 `covered_set`，按 wire 值 canonical 升序；verifier 用 §6.2.2 的 `H(0x00 || event_digest_raw)` / `H(0x01 || left || right)` 规则流式重算 `control_event_set_root`。
-- 拼接后的 `control_state` 是目标 Seal 下全部 non-`⊥` joined control cell 的完整物化，按 cell id 升序；verifier 用 §6.2.1/§6.2.2 流式重算 `state_root`。`⊥` cell 不进入数组；binding 依赖的任何 family 存在 `⊥` 时仍必须 fail closed。
-- 拼接后的 `frontier_events` 是 `membership_frontier` 指向的完整签名 Control Move Envelope 集，按 Event digest wire 值升序；verifier 重算 Event digest、验证签名与 Realm/scope，确认 digest 属于完整 `covered_event_digests`，并确认 registered reducer projection 命中当前 scope 注册的 membership / device trust / account lifecycle family。
-
-该形态比选择性 multiproof 大，但它是现有 `state_root` 与 `control_event_set_root` 承诺下能证明集合完备性的最小安全 bootstrap。`accepted_seal_id` 只标识目标 Seal，不能唯一标识 Bundle。请求 identity 固定为 RFC 8785 canonical object `{realm_id,effective_scope,mls_group_id,previous_epoch,next_epoch,binding_profile,reducer_profile,trusted_anchor_seal_id}`；transport 字段 `chunk_index` / `expected_bundle_digest` 不进入 identity。响应 `proof_request_digest=sha256(utf8("arkret-mls-governance-proof-request-v1\n") || canonical_json(proof_identity))`。每个 `chunk_digest=sha256(utf8("arkret-mls-governance-proof-chunk-v1\n") || canonical_json({chunk_index,collection,start_index,items}))`；`chunks_root` 对按 index 排列的 `chunk_digest_raw` 使用 §6.2.2 同形的 SHA-256 `0x00` leaf / `0x01` node 规则。完整逻辑 Bundle 的内容地址为 `bundle_digest=sha256(utf8("arkret-mls-governance-proof-bundle-v1\n") || canonical_json(response_without_bundle_digest_and_chunk))`，因其中含 `chunks_root` 而传递承诺所有块。域分隔字符串末尾均为单个 LF (`0a`)。
-
-Chunk 0 请求 MUST 使用 `chunk_index=0` 且不得携带 `expected_bundle_digest`；取得 manifest 后，后续请求 MUST 带同一 proof identity、目标 `chunk_index` 与 chunk 0 返回的 `expected_bundle_digest`。服务端/客户端 MAY 以 `(proof_request_digest, accepted_seal_id)` 建 acquisition index，MUST 以 `bundle_digest` 存储 manifest、以 `chunk_digest` 存储 chunk；不得以 `accepted_seal_id` 单独缓存响应。若指定的 manifest 已不可用，服务端返回 `frontier_unavailable`，caller 只能从 chunk 0 重启。`chunk_index >= chunk_count` 返回 `invalid_param`。只有后续规范注册了带范围完整性或等价 non-membership 证明的 compact profile，才可省略未揭示叶子。
-
-每个 HTTP/JSON chunk response 最大 4 MiB；manifest 最多承诺 1,024 chunks、256 MiB canonical item bytes、4,096 个 Seal、1,048,576 个 covered digest、262,144 个 control-state leaf 与 128 个 frontier Event；单块各 collection 分别最多 128 / 8,192 / 1,024 / 32 项。完整数值与 Service Describe 声明见 [`scalability-constraints.md` §6](../conformance/scalability-constraints.md)。服务端必须流式计数/哈希，不能为计算 manifest 无界聚合；客户端不得依赖声明长度预分配。任一总界无法满足时，服务端 MUST 返回 HTTP 422 `mls_governance_proof_bounds_exceeded` 且不得返回部分 manifest/Bundle。只有 `seal_path` 超限可换用本地已信任的更近锚重试；其它超界在 v1 full profile 下必须 fail closed。
-
-若服务端无法从请求的精确 `trusted_anchor_seal_id` 构造到目标 Seal 的已验证路径，MUST 返回 HTTP 409 `mls_governance_anchor_unreachable`，且不得在 error detail 中把服务端自选 Seal 表述为可信替代。客户端 MAY 仅用自己本地已信任的更旧 genesis/compaction/prior-success anchor 重试，或改向另一授权 proof service 请求；不得因服务端建议而把新 anchor 加入 trust store。暂时缺失本应可达的 Seal material 使用 `frontier_unavailable`，与“该 anchor 不在目标 ancestry/无法桥接”区分。
-
-验证顺序固定如下，任一步失败都不得构造、接受或持久化 full-profile MLS epoch：
-
-1. 流式接收时先执行 4 MiB byte cap，再校验每个响应 schema；以 proof identity 重算 `proof_request_digest`，要求响应 `trusted_anchor_seal_id == request.trusted_anchor_seal_id`，并校验 `realm_id` / `effective_scope` / `reducer_profile` 与 commit 中 `governance_binding` 逐字段一致，拒绝未知 `materialization_profile`。
-2. 对每个响应用去掉 `bundle_digest` 与 `chunk` 的 top-level object 重算 `bundle_digest`；chunk 0 建立 expected digest，后续响应及请求必须精确复用。要求 `response.chunk.chunk_index == request.chunk_index`；chunk 0 必须为 `collection=seal_path,start_index=0`。校验 manifest 的固定 bounds、`chunk_index < chunk_count`，重算 `chunk_digest` 并验证 `chunk_proof` 到 `chunks_root`。
-3. 按全局 collection 顺序流式取得全部 `chunk_count` 个块；拒绝空块、重复/缺失 chunk index、collection 回退、`start_index` 重叠或缺口、跨块 canonical order 破坏。逐 item 累计 canonical byte 数和四类计数，要求与 manifest 精确相等且不超 §6 上限；同时从全部 chunk digest 重算 `chunks_root`。在全部块完成前不得把任一集合标为完整。
-4. 确认 request anchor 已在本地 trust store；从该 `trusted_anchor_seal_id` 出发，按拓扑顺序验证拼接 `seal_path` 的 Seal id、predecessor closure、notary authorization、签名、时间与 fork 状态；末项必须为 `accepted_seal_id`。响应出现不同 anchor 即拒绝，不得尝试验证后“顺便信任”。
-5. 校验拼接 `covered_event_digests` canonical 升序、全局去重且为完整 covered set，并流式重算目标 Seal 的 `control_event_set_root`。
-6. 校验拼接 `frontier_events` 按 digest 升序且与 `membership_frontier` Event ID 集精确相等；对每个 Event 重算 producer digest、验证 proofs、确认 digest inclusion、控制面 family、Realm 与 scope。缺一项、多一项或跨 scope 重放都拒绝。
-7. 校验拼接 `control_state` cell id canonical 升序且无重复，拒绝任何显式 Bottom 条目，流式重算并比对目标 Seal 的 `state_root`。
-8. 从完整控制状态按 §2.5.1 的过滤规则重算 `policy_root` 与 `capability_root`；不得使用目标 Seal 的全量 `state_root` 代替任一过滤 root。
-9. 从同一控制状态重算 `discussion_metadata_digest`：构造 `canonical_json({"media_service_decrypts":<bool>,"plaintext_visible_services":[<service DID>...]})`，服务 DID 按 Unicode code point 升序并去重；布尔值缺省为 `false`，集合缺省为空。结果为 `sha256(canonical_json_bytes)` 的 wire hash。来源只能是 `policy_root` 覆盖的 `ak.component.realm.policy_bundle.v1` / `ak.component.realm.plaintext_visible_services.v1` 有效值，不能读取服务端私有 projection 或 UI 状态。
-10. 将四类本地结果与 transcript-authenticated `governance_binding` 比较，并再校验 group id、previous/next epoch、binding profile 与 reducer profile。全部通过后才可把 logical proof bundle 标为已验证，以 `(proof_request_digest, accepted_seal_id)` 建 acquisition index、以 `bundle_digest` 存 manifest、以 `chunk_digest` 存 chunks；单独 `accepted_seal_id` 命中不得返回缓存 Bundle。
-
-完整物化 Bundle 是轻客户端验证 signed state commitment 的载荷，不把轻客户端升级成全历史 verifier。持有全部 Control Move 的 full verifier 仍 MUST 按 §6.3 重放 Seal transition；两者若对同一目标 Seal 得出不同结果，必须拒绝并进入 fork / state mismatch 处理，不能以服务端物化覆盖本地重放结果。
-
-#### 2.5.2 Covered Seals Cell (`covered_seals_cell`)
-
-`covered_seals_cell`（cell family `ak.component.covered_seals.v1`，or_set，bottom=expose）是 MLS Governance Binding 的 lattice 侧累加器。它声明 "本 MLS group 已由 commit attest 覆盖的 governance Seal 集合"；MLS Commit 被建模为 Control Move，读取 governance Seal，写入：
-
-- `mls_epoch_cell`
-- `key_schedule_cell`
-- `covered_seals_cell`（把本次 commit 的 `governance_binding` 所断言的 governance Seal 加入 or_set）
-
-**`bottom=expose` 语义（normative，默认态等价 fail-closed）**：本 cell 的 `bottom`（⊥，即一个 governance Seal 元素**尚未**被任何 accepted commit attest 覆盖的状态）定义为 `expose`。在 coverage accumulator 上下文中，"expose" 指该 Seal 仍**暴露在 MLS governance 覆盖之外**——它代表"该 membership / policy / capability 变更尚未被 MLS epoch 覆盖"，**不是**"允许发送"。E2EE DataEvent 的 `seal_ref` gate 把 `expose` 求值为 **覆盖不满足 → 发送暂停**。真值表：
-
-| Seal 元素在 `covered_seals_cell` 中的状态 | join 值 | `contains` 求值 | E2EE DataEvent 结果 |
-| --- | --- | --- | --- |
-| 已被某 accepted commit 的 `governance_binding` attest（add dot 在 or_set 中） | `covered` | true | 允许发送该 epoch |
-| 从未被 attest，或被 attest 后又被新 Seal 取代而未重新覆盖 | `expose`（= ⊥） | false | **MUST 暂停发送**（`encryption_transition_pending` / `epoch_update_required`） |
-
-因此 cell 的**默认态**（任何尚未被 commit 覆盖的 governance Seal）求值为 `expose=false=暂停`，等价 fail-closed：只有显式的、不可伪造的 commit attestation 才能把某个 Seal 元素从默认 `expose` 翻转为 `covered`，缺失证据时系统停在"不发送"而不是"发送"。这与 §2.4.1 "发现 `epoch_update_required` 后 MUST 暂停" 同构——没有 commit 覆盖 = 默认拒绝。
-
-**E2EE DataEvent 的 seal_ref 求值规则（normative）**：E2EE application message DataEvent 的 `seal_ref` MUST 指向一个 accepted 治理 Seal `S`，且 `J(S)` 下的 `covered_seals_cell` MUST 覆盖该消息依赖的全部 governance Seal（下方 `M`）；该 Seal view 中的 membership / policy / capability frontier 必须与消息 epoch / key schedule 一致。求值规则：
-
-- `M` 定义为该消息 `effective_scope` 在当前治理视图下需要被 MLS epoch 覆盖的 governance Seal 集合：该 scope 最新 accepted membership / history visibility / plaintext-visible service / asset privacy / logging / bot / applet / agent policy / moderation policy / capability grant-revoke frontier 所属的 Seal，以及这些 frontier 因 Realm/Circle cascade 产生的最新治理 Seal。`M` 是 scope 级集合，不是 producer 自选的 per-message 子集；任一新 governance Seal 推进都会把对应元素加入 `M`，直到后续 accepted MLS Commit 重新 attest。
-- 消息自身的 `S` **MUST NOT** 被无条件加入 `M`：`S ∈ covered_seals_cell@J(S)` 对任意 `S` **结构性恒假**，不是可以靠等待或重试满足的活性条件。理由是两条独立的构造性事实：(i) `covered_seals_cell` 的元素只来自 accepted `ak.mls.genesis` / `ak.mls.commit` 的 `covered_seal_refs`，而 §2.5.1 的 `covered_seal_refs` 可见性约束把每个元素限制在该 Move `seal_basis` 的 predecessor closure 内，`J(S)` 又只由 `covered_set(S)` 决定，故 `covered_seals_cell@J(S)` 的每个元素都是 `S` 的真祖先 Seal，永远不是 `S` 自身（Seal 是 DAG，不存在可用 `max` 比较的全序，恒假性来自祖先关系而非序号大小）；(ii) Seal id 内容寻址给出同一结论的更强形式——`S.id = H(seal_canonical_bytes)` 覆盖 `delta[]` 与 `predecessor_refs[]`（[`event-auth-state-resolution.md` §6.1](../authz/event-auth-state-resolution.md#61-seal-id-与签名-transcript)），`covered_set(S)` 中每个 Move 的 digest 都被 `S.id` 传递承诺，因此一个断言 `S.id` 的 Move 需要 hash 自指，构造上不可能存在。把 `S` 无条件放进 `M` 会让 coverage 对**任何** Seal 恒假，E2EE application DataEvent 永不可发送，且无法用「等待更新的 Seal」或「先发一条 self-update Commit」绕开——Commit 自身也会生成新的 Seal，把 head 推进一格后面对同一自指条件。`S` 上若确有治理变更，该变更所在 cell 的 last-changing Move 的首次覆盖 Seal 本身就是 `S`，由下方重建算法的 (a)/(b)/(c) 自然纳入 `M`；这正是 ban / revoke 立即触发 send-pause 的机制，不需要也不得靠无条件加入 `S` 表达。
-- 覆盖满足 **当且仅当** `M` 中**每一个**元素都在该 Seal view 下的 `covered_seals_cell` `active_dots` 的 attested-frontier 并集内（全称量化，不是存在量化）；任一元素求值为 `expose` → 整个 coverage false → DataEvent `failed_precondition`，reducer 不接受该消息进入 verified timeline。
-- `contains` 在 sealed control state 上求值，不读取本地未 sealed 的 pending commit；客户端不得用"我本地已构造但尚未被 accepted Seal 覆盖的 commit"来满足该 coverage。
-- `M` 单调增长：governance Seal 推进后，旧 covered 集合不自动覆盖新元素；新元素回到默认 `expose`，直到后续 commit 重新 attest——这正是 ban / revoke 在新消息上生效的机制。
-- **send-pause 的解除路径（normative）**：`M` 出现未覆盖元素时（包括治理变更恰好落在候选 `seal_ref` 自身、使该 Seal 经 (a)/(b)/(c) 进入 `M` 的情形），发送方 MUST NOT 用同一个 `seal_ref` 反复重试。唯一解除路径是：等待一条把该 governance Seal 列入 `covered_seal_refs` 的 `ak.mls.commit` 被某个 accepted Seal `S'` 收纳，再把消息的 `seal_ref` 重解析到 `S'`——此时该 commit ∈ `covered_set(S')`，`J(S')` 下 coverage 为真。该路径是有限等待而非死锁：每次 governance 推进只需一条 commit 加一次 sealing，且该 commit 断言的是它 authoring 时已存在的 Seal，不触发上一条的自指约束。
-
-`covered_seal_refs` 的 basis 可见性与 `S ∉ M` 这两条结构性规则由 conformance vector `ak.vector.mls.covered_seals_no_self_reference.v1` 固化。
-
-**`M` 的确定性重建算法（normative）**：receiver 以消息 `seal_ref=S` 与其 `effective_scope` 为输入，先重建 `J(S)`，再枚举三组输入：(a) `membership_frontier` 覆盖的 membership/device/lifecycle cell；(b) 按 §2.5.1 `policy_root` leaf 过滤规则得到的全部 policy cell；(c) 按 §2.5.1 `capability_root` leaf 过滤规则得到的全部 capability cell。对每个当前物化 cell，取在 `covered_set(S)` 中最后一次改变该物化值的 Control Move，并取首次把该 Move 纳入 accepted control state 的 Seal id；再加入由这些 cell 触发、在 `S` 可见的最新 Realm/Circle cascade Seal。所有 Seal id 去重后按 Unicode code point 升序即为 `M`。`S` 只有在它自身收纳了 (a)/(b)/(c) 中某个 cell 的 last-changing Move 时才作为该 Move 的首次覆盖 Seal 进入 `M`，不得无条件加入（理由见上方 `S` MUST NOT 条）。若存在多个并发 Move 共同决定 lattice value，必须加入覆盖每个 contributing head 的 Seal；任一 head 的首次覆盖 Seal 无法证明时 fail closed。producer 不得传入或删减 `M`，receiver 必须独立重建。
-
-规则：
-
-- E2EE application DataEvent 的 `seal_ref` MUST 指向一个治理 Seal，且该 Seal 的 `covered_seals_cell` MUST `contains` 该消息依赖的 governance Seal。
-- 客户端在 MLS Commit Control Move 滞后超过 `max_mls_commit_delay_ms`（默认 30,000 ms，见 §2.4.1）时 MUST 进入 `epoch_update_required`，并 MUST 暂停发送新 application messages，直到 `covered_seals_cell` 覆盖最新 governance Seal。所有 `encryption_profile="mls_rfc9420"` 的 Realm 均适用，无论 `security_class`；只有显式声明并通过 §2.4.1 / §2.4.2 所有 guard 的 `ak.profile.e2ee_relaxed.v1` Realm 可把发送侧暂停降为 SHOULD。audited / high-confidentiality / minimal-metadata Realm 以及 open / quarantine federation Realm MUST NOT 使用该降级。
-- 撤销与失效（如 ban、revoke）只有被 `covered_seals_cell` 覆盖后，才能阻止后续 application messages 解密；旧 epoch 中已分发的 key material 仍可能被原持有者使用。
-- Governance / recovery Control Move 不依赖 `covered_seals_cell`，因此 MLS epoch 卡住时仍可提交修复 Control Move 并由 Seal finality 生效。
-
-Control Move 在被 accepted Seal 覆盖前是 pending；进入 `sealed` 后是否可用于 E2EE 由 `covered_seals_cell` coverage 决定。
-
-#### 2.5.3 GroupContext Extension 定义
-
-Arkret v1 定义以下 MLS GroupContext extension 绑定形状；codepoint 以 `artifacts/registry/mls-extension-registry.json` 中的 active entry 为准。
-
-| 字段 | 值 |
-|------|-----|
-| ExtensionType（IANA name） | `mls_governance_binding`（与 `artifacts/registry/mls-extension-registry.json` 的 source-of-truth name 一致） |
-| ExtensionType（数值 codepoint） | `0xF1C0` ∈ MLS GroupContext **private-use range `0xF000`–`0xFFFF`**（RFC 9420 §17.6 / IANA MLS registry）。**Arkret v1 wire 形态固定（pinned）为 `0xF1C0`,任何实现 MUST 使用该 codepoint;deployment policy MUST NOT 用其他 codepoint 覆盖该 binding。** `ak.profile.mls_governance_binding.full.v1` MUST 使用 `0xF1C0`。所有 Arkret 私有 MLS 扩展 codepoint 集中登记在 `artifacts/registry/mls-extension-registry.json`。 |
-| ExtensionData | `governance_binding` 对象的 CBOR 编码 |
-
-CBOR 编码 MUST 使用 RFC 8949 §4.2.1 的 core deterministic encoding。**map key MUST 按其编码后字节的 bytewise lexicographic 序排列**（即 RFC 8949 §4.2.1 原文规则）。注意这**不是**对 key 明文的排序：text string 的 head 字节编码了长度，因此对本 binding 的全部 key 而言等价于「先按长度、再按 UTF-8 字节」——例如 `realm_id`（8 字节，head `0x68`）排在 `binding_profile`（15 字节，head `0x6F`）**之前**。选用该规则而非自拟细则，是因为 `encoding_profile` 取值字面就是 `cbor-deterministic-rfc8949-v1`，且 [`../conformance/encoding.md` §2.3](../conformance/encoding.md) 要求引入 CBOR 的 profile pin 上游已标准化的 deterministic profile（CDE / dCBOR，二者均强制 §4.2.1）而非自拟等价规则；条件字段不满足出现条件时 **MUST 从 CBOR map 整体省略该 key，MUST NOT 写入 null 占位**——`circle_id` 只在 Circle scope 出现，`sidecar_binding` 只在 effective scope 是 reducer-managed Sidecar backing Circle 时出现，`capability_root` / `discussion_metadata_digest` 在 full profile 必填、仅在显式 `ak.profile.e2ee_relaxed.v1` 降级时可省略。deterministic CBOR 下 null 占位会改变 canonical 字节序，导致不同实现对同一 governance binding 得出不一致编码；§4.2.1 排序只对实际存在（present）的 key 生效。**下表已按 wire 顺序书写**（包括嵌套 map），省略某个条件 key 时其余 key 的相对顺序不变：
-
-```text
-{                                 ; keys in RFC 8949 4.2.1 order: length, then bytes
-  "realm_id":            tstr,
-  "circle_id":           tstr,    ; optional, only when effective_scope.kind="circle"
-  "next_epoch":          uint,
-  "policy_root":         bstr,    ; decoded digest bytes, not the "sha256:" text
-  "mls_group_id":        bstr,    ; decoded base64url bytes
-  "previous_epoch":      uint,
-  "binding_profile":     tstr,
-  "binding_version":     uint,    ; v1 = 1
-  "capability_root":     bstr,    ; required in full profile; omitted only by relaxed profile
-  "effective_scope":     { "kind": tstr, "realm_id": tstr, "circle_id": tstr? },
-  "reducer_profile":     tstr,
-  "sidecar_binding": {              ; required only for a Sidecar backing Circle
-    "sidecar_id": tstr,
-    "control_frontier": [+ tstr],
-    "desired_access_digest": bstr
-  }?,
-  "encoding_profile":    tstr,    ; "cbor-deterministic-rfc8949-v1"
-  "covered_seal_refs":   [+ tstr], ; non-empty unique set of governance Seal refs
-  "membership_frontier": [+ tstr],
-  "discussion_metadata_digest": bstr ; required in full profile; omitted only by relaxed profile
-}
-```
-
-`bstr` 在本 map 中只表示**二进制值**：`policy_root` / `capability_root` / `discussion_metadata_digest` 是解码后的 digest 字节（不含 `sha256:` 前缀），`mls_group_id` 是解码后的 base64url 字节。`ak:` 开头的标识符一律是 `tstr`，与 `realm_id` / `circle_id` / `sidecar_id` 同型——包括 `membership_frontier`、`covered_seal_refs` 与 `control_frontier` 三个数组。把它们编为 `bstr` 会让 `bstr` 在同一个 map 里同时表示「解码后的二进制」与「UTF-8 文本字节」，实现方无法从类型判断应否解码。
-
-**字段冗余说明（normative rationale）**：
-
-| 字段 | 是否在 MLS GroupContext 已被绑定 | 保留理由 |
-|------|------------------------------|---------|
-| `binding_version` / `encoding_profile` | 否 | **必须**：把 codepoint 之外的 wire version 与 canonical encoding 锁入 signed bytes，使不同实现对同一 governance binding 得出相同 canonical 形态。 |
-| `mls_group_id` | 是（MLS group_id 是 GroupContext 的标准字段） | **保留**：让 binding payload 可离线独立审计——审计员只读取 governance_binding bytes 即可验证它属于哪个 MLS group，无需附带完整 commit envelope 或 GroupContext。 |
-| `next_epoch` / `previous_epoch` | 是（MLS epoch 是 GroupContext 的标准字段） | **保留**：同上，为离线审计提供完整 epoch 上下文；同时让 `covered_seals_cell` reducer 在不访问 MLS 库的情况下也能 join。 |
-| `effective_scope` / `realm_id` / `circle_id` | **否**（Arkret-specific，MLS 不知道 Realm / Circle 概念） | **必须**：`effective_scope` 是把 MLS group 锚定到 Arkret governance state 的核心绑定；Realm-default group 使用 `{kind:"realm", realm_id}`，Circle group 使用 `{kind:"circle", realm_id, circle_id}`。`realm_id` 与可选 `circle_id` 是离线审计冗余字段，MUST 与 `effective_scope` 一致；缺失或不一致会使 governance_binding 可能被错误重绑定到不同 Realm/Circle 的 commit。 |
-| `policy_root` / `capability_root` / `membership_frontier` / `discussion_metadata_digest` | 否 | **必须**：governance state 的核心证据，本规范的根本目的。 |
-| `binding_profile` / `reducer_profile` | 否 | **必须**：profile id 决定接收方如何解释 root hash 与 frontier 集合；不能从 MLS transcript 推导。 |
-| `sidecar_binding` | 否 | **条件必须**：仅对 reducer-managed Sidecar backing Circle 出现，把独立 Sidecar identity、规范 desired-access digest 与 accepted control frontier 锁入 transcript；普通 Realm/Circle scope 携带该字段或 Sidecar scope 缺失该字段都必须拒绝。 |
-
-简言之：MLS-redundant 字段（`mls_group_id` / `previous_epoch` / `next_epoch`）以约 ~50 字节的 wire 代价换取 binding payload 的离线自含性；非冗余字段是 governance binding 真正承载的事实。
-
-**为什么禁止私有 codepoint 覆盖（normative rationale）**：允许 deployment 在 IANA 私用段内选择不同 codepoint（例如 `0xF1C1`）覆盖 `0xF1C0` 的路径在联邦边界 (federation Realm 跨 deployment) 上**无法静态 enforce**——两个独立合规的 deployment 各自合法选择不同 codepoint 后，接入同一 federation Realm 时, GroupContext extensions 中**任意一侧看不到对方的 extension**(因为 codepoint 不同)。MLS receiver 对未知 codepoint 的 extension 默认 ignore,因此 governance binding 会**静默退化为单边 binding**：本端按自己的 codepoint 解析+校验 + `confirmed_transcript_hash` 推进, 对端 binding 缺失但 epoch 仍前进 = 等价于 binding 被绕过。Receiver 没有可靠途径区分"对方使用了不同 codepoint(私有覆盖)"与"对方实现根本不携带 binding extension(降级 binding)"。
-
-为关闭这条 federation 静默降级路径，v1 不提供 deployment 私有 codepoint 覆盖机制；声明 `ak.profile.mls_governance_binding.full.v1` 的实现只能发送和接受 `0xF1C0`。
-
-`governance_binding` 是封闭对象；不得携带 `"strand_id"`、`"track"` 或其它 profile 未登记字段。Strand / Message 上下文只可作为 application message context / AAD 出现，**不**决定 key scope；key scope 只能由 `effective_scope` 决定，并且必须进入 deterministic CBOR canonical bytes。
-
-规则：
-
-- 声明 full binding profile 时，`mls_governance_binding` extension MUST 出现在每次 `ak.mls.commit` 对应的 GroupContext `extensions` 字段中。
-- `confirmed_transcript_hash` 的计算覆盖包含该 extension 的 GroupContext，从而将 Arkret 应用状态绑定到 MLS transcript。
-- 不能发送或验证该 GroupContext extension 的实现不得声明 `ak.profile.mls_governance_binding.full.v1`，不得参与 MLS-backed federation 互操作下界声明。
-- 接收方在声称 full binding 或 federation MLS 下界的上下文中看不到 `0xF1C0` extension，或看到不同私有 codepoint 时，MUST fail closed：该 commit 不得推进 `mls_epoch_cell` / `covered_seals_cell`，依赖它的 DataEvent 必须保持 `decryption_pending` / `state_mismatch` 或 quarantine。
-- 接收方验证 Commit 时 MUST 解码 `mls_governance_binding` extension 并执行 section 2.5 中的 `governance_binding` 验证规则。
-
+验证顺序是：校验 trusted anchor 与 Seal path → 重算 covered control set 和 joined state → 按 registry closed frontier 过滤 key-access cells → 重算 security_frontier_digest → 比较 GroupContext extension 与 Event payload → 应用 Commit bytes。任一步缺失、歧义或不一致都 fail closed。相同 bundle identity 与 chunks_root 才可复用 cache。
 ### 2.6 KeyPackage Claim 生命周期
 
 Native Agent 的 claimed-endpoint trust binding 由 conformance vector `ak.vector.agent.mls_keypackage_authorization.v1` 固化。
@@ -797,7 +609,7 @@ Minimal-metadata Realm 不改变签名责任。客户端在解密后仍必须验
 加密信封中的 AAD 能帮助路由和诊断，但也可能成为跨服务关联信号。Realm 通过
 `ak.realm.policy_bundle` payload 的 `aad_visibility` 组件声明本 Realm 允许的 AAD 披露上限
 （[`event-payload.schema.json#/$defs/realm_policy_bundle_payload`](../../artifacts/schemas/event-payload.schema.json)，
-闭合对象）。它随 bundle cell 进入 MLS-bound `policy_root`，因此 §2.5.1 的 governance
+闭合对象）。它只在改变 key access 时进入 MLS `security_frontier_digest`；其余语义由 policy cell 与 Event admission 保护，因此 §2.5.1 的 security
 binding 天然覆盖它：
 
 ```json
@@ -833,7 +645,7 @@ binding 天然覆盖它：
 
 上限只约束**最大**披露；需要保证跨 provider 去重可用的 Realm 还必须在产品层要求 producer
 实际使用所声明的级别，协议不代替这一层。policy 的收紧与放宽都按 §2.3 的通用规则，在新的
-`ak.mls.commit` 覆盖新 `policy_root` 之后才对该 scope 后续 epoch 生效。
+`ak.mls.commit` 覆盖包含该 key-access 变化的新 `security_frontier_digest` 之后才对该 scope 后续 epoch 生效。
 
 隐私优先 Realm SHOULD 使用 `hidden` 或 `routing_digest`。企业合规或 federation 调试场景
 MAY 使用 `opaque_id`，并且任何取值下都不得把正文、附件名、mention、reply excerpt 或 sender
@@ -894,7 +706,7 @@ basis、AAD 与 proof 时才能广告 Signal；能力缺失表现为该 scope �
 
 默认内容 scheme `mls_rfc9420`（MLS PrivateMessage）提供 per-message 前向安全，但其消息密钥由 MLS secret tree 单向棘轮、用完即焚，**后加入成员在密码学上无法解开 join 前 epoch 的内容**（这是 MLS 前向安全的本质，不是实现缺陷）。需要把历史授权给后加入成员的 Realm，MUST 改用本节定义的 `mls_exporter_aead_v1` scheme：内容用一把**可保留、可重新封装**的 per-epoch `history_secret` 加密，从而能经 `ak.realm_key.share` 合法交付给后加入成员。
 
-scheme 选择是 Realm policy 字段 `content_scheme`（经 `ak.realm.policy_bundle` 写入；[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 取 `mls_rfc9420` / `mls_exporter_aead_v1`；缺省时 `encryption_profile=mls_rfc9420` 的 Realm 视为 `mls_rfc9420`），MUST 纳入 MLS governance binding 的 `policy_root`（§2.5.1）。同一 Realm 的 effective content scheme 由该字段在每个 epoch 的 `T0` 决定；不同 epoch 可使用不同 scheme（切换只对其后 epoch 生效，§2.10.6）。每条密文 envelope 自身的 `scheme` 字段记录其所用 scheme，故接收方解密时直接读 envelope，无需回溯 policy。
+scheme 选择是 Realm policy 字段 `content_scheme`（经 `ak.realm.policy_bundle` 写入；[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 取 `mls_rfc9420` / `mls_exporter_aead_v1`；缺省时 `encryption_profile=mls_rfc9420` 的 Realm 视为 `mls_rfc9420`），MUST 纳入 MLS governance binding 的 `security_frontier_digest`（§2.5.1）。同一 Realm 的 effective content scheme 由该字段在每个 epoch 的 `T0` 决定；不同 epoch 可使用不同 scheme（切换只对其后 epoch 生效，§2.10.6）。每条密文 envelope 自身的 `scheme` 字段记录其所用 scheme，故接收方解密时直接读 envelope，无需回溯 policy。
 
 上述缺省值只能在客户端已经验证当前 `ak.realm.create`、且当前 `ak.realm.policy_bundle` projection 已知不存在覆盖值后应用；“同步尚未给出安全基线”不等于“policy 缺省”。若 initial / incremental sync 尚未提供或验证足以确定 `encryption_profile` 与 effective `content_scheme` 的当前安全基线，加密 producer MUST 暂停并报告 `encryption_policy_pending`，不得猜测 `mls_rfc9420` 后产生与实际 exporter policy 不同的 wire ciphertext。同步服务提供该基线的义务见 [`../sync/client-sync.md`](../sync/client-sync.md) §13。
 
@@ -1140,7 +952,7 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 
 Genesis 接受规则：
 
-1. 创建者必须在 `governance_binding.membership_frontier` 和 `policy_root` 覆盖的状态下有创建该 MLS group 的权限；通常需要 `ak.mls.genesis` 或包含该动作的管理 grant。
+1. 创建者必须在 `governance_binding.security_frontier_digest` 所覆盖的 accepted key-access state下有创建该 MLS group 的权限；通常需要 `ak.mls.genesis` 或包含该动作的管理 grant。
 2. `governance_binding.next_epoch` MUST 为 `0`；若包含 `previous_epoch`，也 MUST 为 `0`。
 3. 同一 `(effective_scope, mls_group_id)` 的 genesis cell 使用 `cas_register + bottom=reject`。并发重复 genesis 会使该 cell 返回 `⊥`，后续 MLS Commit Control Move 必须 fail closed，直到 recovery Control Move 修复。
 4. Genesis 后即可发送 epoch 0 application message。第一次成员变动或 group context extension 更新必须使用 `ak.mls.commit` Control Move，其 `base_epoch=0`、`base_epoch_ref` 指向 effective `ak.mls.genesis`、`next_epoch=1`。
@@ -1211,7 +1023,7 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 - `mls_group_id`
 - `commit_ref`
 - `epoch`
-- `failure_stage`，例如 `welcome_decrypt`、`transcript_verify`、`governance_binding`、`group_state_update`、`keypackage_claim`、`policy_root_mismatch`、`unsupported_cipher_suite`、`storage_failure`
+- `failure_stage`，例如 `welcome_decrypt`、`transcript_verify`、`governance_binding`、`group_state_update`、`keypackage_claim`、`security_frontier_mismatch`、`unsupported_cipher_suite`、`storage_failure`
 - `reporter_device_id`
 - `failed_at`
 

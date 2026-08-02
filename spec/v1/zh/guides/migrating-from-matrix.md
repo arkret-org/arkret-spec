@@ -119,7 +119,7 @@ Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰�
 | Matrix | Arkret | 说明 |
 | --- | --- | --- |
 | Megolm outbound session（per-sender ratchet） | MLS exporter / application key per epoch | Arkret 没有 per-sender Megolm session；群组密钥状态由 MLS group state、epoch、KeyPackage 演进。 |
-| Megolm inbound session 缓存 | MLS group state + epoch material 写入 `mls_epoch_cell`、`key_schedule_cell`、`covered_seals_cell` | epoch 被 lattice cell 显式承载，governance 状态通过 §6.5 的 MLS Governance Binding 与 MLS transcript 哈希绑定。 |
+| Megolm inbound session 缓存 | MLS group state + epoch material 写入 `mls_epoch_cell`、`key_schedule_cell` 与 active security-frontier projection | epoch 与 key-access frontier 由 MLS transcript 和 reducer projection 共同绑定。 |
 | Megolm Ed25519 签名（per-message） | MLS application message 内嵌签名 + MLS transcript | 完整性来自 MLS 标准；不再额外维护 per-message Megolm 签名链。 |
 
 #### 4.5.4 Cross-Signing 与信任视图
@@ -286,10 +286,10 @@ Receiver 不识别核心 lattice type 时 fail closed，扩展 cell family 通�
 
 Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Arkret v1 引入 **MLS Governance Binding**（profile `ak.profile.mls_governance_binding.full.v1`，定义见 `crypto-media/encryption-and-audit.md §2.5`），把 MLS epoch 强绑定到 governance state，由两层 wire-level artifact 协同工作：
 
-- **Commit 侧** —— 每个 `ak.mls.commit` 携带 `governance_binding`（GroupContext extension `mls_governance_binding`），把 membership / policy / capability / discussion-metadata roots 哈希进 MLS transcript。
-- **Lattice 侧** —— MLS commit 是 Control Move，写入 `mls_epoch_cell`、`key_schedule_cell` 与 `covered_seals_cell`（or_set）。E2EE message DataEvent 用 `seal_ref` 选定治理求值视图，该视图下的 `covered_seals_cell` 必须覆盖消息依赖的治理 Seal 集 `M`；`seal_ref` 自身不在 `M` 中（一个 Seal 不可能覆盖自己，见 `crypto-media/encryption-and-audit.md §2.5.2`）。
+- **Commit 侧** —— 每个 `ak.mls.commit` 携带 `governance_binding`（GroupContext extension `mls_governance_binding`），把唯一 `security_frontier_digest` 哈希进 MLS transcript；digest 只覆盖会改变密钥访问资格的 closed state。
+- **Lattice 侧** —— MLS Commit 是 Control Move，写入 `mls_epoch_cell`、`key_schedule_cell` 与 active security-frontier projection。E2EE message DataEvent 的普通 `seal_ref` 只用于 Event admission；MLS gate 独立检查消息 group/epoch 对应的 digest 是否仍等于当前 key-access frontier。
 
-**理由**：撤销、ban、device revoke 和 policy 收紧不只停在应用层 accepted；它们被 MLS epoch / key schedule 覆盖后才影响新消息解密能力。`covered_seals_cell` 让这条 "governance state 已被 commit attest 覆盖" 的事实变成可被 reducer 确定性查询的 lattice cell，而不是隐含在 transcript hash 里的 ad-hoc 检查。governance / recovery Move 不引用 `covered_seals_cell`，因此 MLS 卡住不会阻止冲突修复。
+**理由**：member/leaf remove、device revoke 和 key-access policy 收紧被新 MLS epoch 覆盖后才限制新消息密钥；普通 capability、metadata 或 moderation 变化没有改变谁持有 epoch key，不应机械阻塞发送。active projection 使 Commit 所覆盖的精确 digest 可确定性查询，governance / recovery Move 不依赖它，因此 MLS 卡住不会阻止冲突修复。
 
 ### 6.6 Holder-Private Consent
 
@@ -310,7 +310,7 @@ Arkret 可以继续吸收 Matrix 的成熟经验：
 ## 8. 相关文档
 
 - [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) — Move、Seal、Lattice、bottom diagnostics、E2EE MLS Move
-- [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) — MLS Governance Binding：`governance_binding` 与 `covered_seals_cell`
+- [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) — MLS Security Frontier Binding：`governance_binding.security_frontier_digest` 与 active generation projection
 - [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) — device 密钥记录、prekey / fallback / KeyPackage claim、to-device 验证状态机、`push_target_id`、key backup envelope
 - [`identity/key-management.md`](../identity/key-management.md) — inception / principal / recovery / device / session / agent / KeyPackage 密钥层级，`backup_kind` 域隔离，社交恢复
 - [`identity/consent-model.md`](../identity/consent-model.md) — holder-private consent on consent cell（or_set lattice）

@@ -34,7 +34,7 @@ Arkret v1 的一致性层采用 **CBA（Control-plane Basis-committed Sealing）
 | Lattice | Realm schema 为每个 cell family 选择的封闭核心代数类型。`join()` 返回值或 bottom (`⊥`)。 |
 | Bottom (`⊥`) | 某个 control cell 或 opt-in control object 在当前 seal view 下无有效单值或存在非法状态。数据面默认不产生协议级 `⊥`；普通冲突暴露为多 head。 |
 | seal_ref | DataEvent 声明的授权基准：一个已接受控制面 Seal id。 |
-| seal_basis | Control Move 签名覆盖的控制面基线：`{leaves[], control_event_set_root, state_root}`。 |
+| seal_basis | Control Move 签名覆盖的控制面基线：canonical sorted、duplicate-free `{leaves[]}`。Seal roots 由 receiver 从被引用 Seal 重算，不在 Event 复制。 |
 | control_event_set_root | Seal 对递归控制面覆盖集 `covered_set(S)` 的 authenticated root。basis、inclusion、non-membership、receipt obligation 与 censorship evidence 都以它为锚点。 |
 | KeyView | Seal 对某个 data cell 的观测记录，包含 cell、lattice type、heads / value digest 与 last covered event。 |
 | Event Batch Receipt | issuer（relay / notary / witness / Principal Server）对其选择承诺的 Event 集合签发的 receipt object（`ak.schema.event_batch_receipt.v1`）。数据面单事件"已看见"确认是其 `events[]` 单元素用法。它不是准入证明，不进入 state。 |
@@ -215,8 +215,6 @@ ControlMove {
   preconditions[]
   seal_basis {
     leaves[]                     // accepted Seal id, canonical 升序去重
-    control_event_set_root       // leaves view 覆盖的控制面事件集合 root
-    state_root                   // leaves view 下的治理 state root
   }
   refs[]
   payload
@@ -225,9 +223,9 @@ ControlMove {
 
 Control Move 规则：
 
-1. `seal_basis` 的三个字段全部进入 canonical Event bytes，并由 `event_digest` / `proofs[]` 覆盖。
-2. `leaves[]` MUST 只引用 accepted Seal。单 leaf basis 是轻 producer 的默认形态。account client 铸造单 leaf basis 的注册来源是 `ak.self.events.query.frontier` 的 `realm_id` 形响应（Realm Seal view `{realm_id, seal_id, control_event_set_root, state_root, hlc?}`，见 `../sync/service-http-binding.md`）；该来源不可用时 MUST fail closed，不得伪造 basis。
-3. 多 leaf basis 只有完整 verifier 或持有 signed view certificate / state transition proof 的 producer MAY 签；轻客户端 MUST NOT 签自己无法验证的 multi-leaf union basis。
+1. `seal_basis.leaves[]` 进入 canonical Event bytes，并由 `event_digest` / `proofs[]` 覆盖。producer 不复制 `control_event_set_root` 或 `state_root`。
+2. `leaves[]` MUST 只引用 accepted Seal，按 unsigned-byte order 严格排序、去重。单 leaf basis 是轻 producer 的默认形态。account client 从 `ak.self.events.query.frontier` 取得 signed Seal id；该来源不可用时 MUST fail closed。
+3. 多 leaf basis 只有已验证每个 Seal signature、predecessor closure、control covered set 与 joined state 的 producer MAY 签；轻客户端 MUST NOT 签自己无法验证的 multi-leaf union。旁路 proof bundle只补依赖，不进入 Event digest。
 4. reducer contract 的派生写 MUST 只引用 control plane cell。若需同时写 data cell，必须拆成后续 DataEvent。
 5. `preconditions[]` 与全部派生写是原子集合；任一 precondition 不成立，整个 Control Move 失败。
 
@@ -237,15 +235,14 @@ Control Move 规则：
 verify_control_move(M, pre_state):
   1. 验 canonical bytes、event_digest、proofs[] 与 realm_id。
   2. 验 seal_basis.leaves[] 均在接收 Seal 的 predecessor closure 内。
-  3. 验 seal_basis.control_event_set_root 与 leaves view 的控制面事件集合一致。
-  4. 验 seal_basis.state_root 与 leaves view 的治理 state 一致。
-  5. 验 refs[] 中所有 critical ref 已知且 valid。
-  6. 对每个 precondition 读取 pre_state 并判定。
-  7. 从 kind + payload 派生全部 write，对每项执行 lattice validate_op 与 authz check；DM profile 还必须在同一 seal_basis joined view 求值 participant source 与 root-owner phase mask。
-  8. PASS / FAIL。
+  3. 解析并验证 leaves[] Seal，重算各自 control_event_set_root/state_root，再重建 union covered set 与 joined governance state。
+  4. 验 refs[] 中所有 critical ref 已知且 valid。
+  5. 对每个 precondition 读取 pre_state 并判定。
+  6. 从 kind + payload 派生全部 write，对每项执行 lattice validate_op 与 authz check；DM profile 还必须在同一 seal_basis joined view 求值 participant source 与 root-owner phase mask。
+  7. PASS / FAIL。
 ```
 
-轻节点可以依赖 `control_event_set_root` 的 inclusion / non-membership proof 和治理 state inclusion proof 做局部验证；缺 proof 时 MUST fail closed，不得盲信未验证 root。
+轻节点可以依赖被引用 Seal 自身 `control_event_set_root` 的 inclusion / non-membership proof 和治理 state inclusion proof 做局部验证；缺 proof 时 MUST fail closed，不得盲信未验证 root。`ak.device.reanchor.pre_fence_basis` 仍保留 roots，因为它们参与 recovery frontier CAS，不受本节 Event seal_basis 去重影响。
 
 ## 6. Seal
 
@@ -316,13 +313,13 @@ Seal MUST 签 `control_event_set_root`。默认 root 是对 canonical 升序 `co
 - 空集合 root 使用 §6.2.2 定义的 RFC 6962 空树 root（`H` over the empty byte string）；
 - 更复杂的 radix trie / zkVM state proof MAY 在后续规范中作为规模触发机制定义，但 v1 core 不依赖它。
 
-`control_event_set_root` 是 `seal_basis`、控制面 receipt obligation、inclusion list、censorship evidence 与 seal transparency 的共同锚点。`delta[]` 只是本批新增集合；root 承诺的是递归覆盖集。Compaction Seal MAY 显式携带 `covered_event_digests[]`，但 receiver MUST 验证它等于 `delta[]` 与所有 predecessor 覆盖集的并集。
+`control_event_set_root` 是 Seal、控制面 receipt obligation、inclusion list、censorship evidence 与 seal transparency 的共同锚点。`delta[]` 只是本批新增集合；Control Move 仅用 `seal_basis.leaves[]` 引用该承诺；root 承诺的是递归覆盖集。Compaction Seal MAY 显式携带 `covered_event_digests[]`，但 receiver MUST 验证它等于 `delta[]` 与所有 predecessor 覆盖集的并集。
 
 **Compaction 节律是结构性义务（normative）**：因为累计覆盖集由 `predecessor_refs + delta` 递归定义，compaction Seal（携带 `covered_event_digests[]` 或等价可验证全覆盖 manifest 的 Seal）是新 verifier 唯一的有界 bootstrap 物化点。Realm MUST 在 create payload 中声明 `seal_compaction_max_interval_ms`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)，默认 86,400,000 ms；`open_set` 部署 MUST ≤ 24h，`threshold` 部署 MUST ≤ 7d，`single_did` SHOULD ≤ 24h）。notary 超出声明间隔仍未签发 compaction Seal 时，receiver SHOULD 触发治理健康告警；新 verifier 此时只能退回从 genesis 走链或从最近已验证 compaction Seal 接链。该义务由 conformance vector `ak.vector.cba_lattice.seal_compaction_interval_enforced.v1` 固定。
 
 ### 6.2.1 治理 `state_root` 的 Merkle 计算规则（normative）
 
-Seal 顶层的治理 `state_root`（§6 Seal schema、§4 Control Move `seal_basis.state_root`、§6.3 step 10 "重算治理 state_root"、§7.1 log entry 中的同名字段）是对**当前 joined 治理状态全部 control cell** 的 authenticated Merkle root。它与 §6.2 `control_event_set_root`、§6.4 三个观测 root 同属一个 Seal 的承诺族，**MUST 使用 §6.2.2 的统一 Seal Merkle 组合规则**（带 `0x00` / `0x01` 域分隔），使一个 Realm 实现可对全部 Seal 级 root 共用同一套 Merkle 代码与 conformance vector 形状，并使 governance root 获得与观测 root 同等的 leaf/node 第二原像域分隔。
+Seal 顶层的治理 `state_root`（§6 Seal schema、§6.3 step 10 "重算治理 state_root"、§7.1 log entry 中的同名字段）是对**当前 joined 治理状态全部 control cell** 的 authenticated Merkle root。它与 §6.2 `control_event_set_root`、§6.4 三个观测 root 同属一个 Seal 的承诺族，**MUST 使用 §6.2.2 的统一 Seal Merkle 组合规则**（带 `0x00` / `0x01` 域分隔），使一个 Realm 实现可对全部 Seal 级 root 共用同一套 Merkle 代码与 conformance vector 形状，并使 governance root 获得与观测 root 同等的 leaf/node 第二原像域分隔。
 
 leaf 集合与顺序：
 
@@ -798,13 +795,13 @@ v1 不定义跨所有 query / search / projection 响应通用的 `basis` / `gra
 
 ## 11. E2EE 与 MLS
 
-MLS governance binding 是 `seal_ref` 模式的特例：
+MLS security frontier binding 与普通 `seal_ref` 正交：
 
-- MLS epoch、key schedule、covered_seals_cell 属于 control plane。
-- E2EE message 属于 data plane，必须携带 `seal_ref`，并证明其消息 epoch / key schedule 在该 seal 下有效。
+- MLS epoch、key schedule 与 active security-frontier projection 属于 control plane。
+- E2EE message 属于 data plane，必须携带普通 admission 的 `seal_ref`，并独立证明其消息 epoch / key schedule 绑定当前 security frontier。
 - MLS commit 是 Control Move，写 MLS control cells，并由 Seal 裁决。
 
-E2EE message 不等待数据面 seal；它只等待其 `seal_ref` 对应的 MLS / membership / capability 控制状态可验证。
+E2EE message 不等待数据面 Seal；它等待普通 Event admission 成立，并要求 active MLS generation 已覆盖最新 key-access frontier。普通 capability 或 metadata 变化不触发 MLS gate。
 
 ## 12. Snapshot、GC 与恢复
 

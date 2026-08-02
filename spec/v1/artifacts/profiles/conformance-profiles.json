@@ -1,6 +1,6 @@
 {
-  "version": "2026-08-02.2",
-  "generated_at": "2026-08-02T12:00:00Z",
+  "version": "2026-08-02.4",
+  "generated_at": "2026-08-02T15:00:00Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -317,6 +317,19 @@
         ],
         "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-022",
         "summary": "Expose the canonical confusable check as a callable SDK utility",
+        "required_evidence": [
+          "vector_result",
+          "public_api_inventory"
+        ]
+      },
+      {
+        "clause_id": "AK-SDK-023",
+        "grades": [
+          "V",
+          "A"
+        ],
+        "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-023",
+        "summary": "Expose orthogonal closed Event outer-shape and payload-protection types and reject invalid combinations before network submission",
         "required_evidence": [
           "vector_result",
           "public_api_inventory"
@@ -764,10 +777,12 @@
         "ak.schema.event.v1",
         "ak.schema.cursor.v1",
         "ak.schema.event_batch_receipt.v1",
-        "ak.schema.seal.v1"
+        "ak.schema.seal.v1",
+        "ak.schema.string_profiles.v1"
       ],
       "required_fixtures": [
-        "encoding-fixture.json"
+        "encoding-fixture.json",
+        "string-profile-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -1174,10 +1189,9 @@
   "profile_requirements": {
     "ak.profile.direct_conversation_realm.v1": {
       "role": "admin",
-      "description": "Fail-closed Realm role profile for the canonical two-principal Direct Conversation Collaboration Realm. The role is identified only by schema_refs containing this profile together with fields.collaboration_role=direct_conversation.",
+      "description": "Fail-closed Realm role profile for one stable two-principal Direct Conversation. The role is identified only by schema_refs containing this profile together with fields.collaboration_role=direct_conversation.",
       "required_endpoints": [
         "ak.self.direct_conversation.command.resolve",
-        "ak.self.direct_conversation_segment.query.list",
         "ak.self.events.command.submit",
         "ak.peer.contacts.command.submit",
         "ak.peer.keys.keypackages.command.claim",
@@ -1233,11 +1247,11 @@
       "feature_discovery": {
         "required": [
           "direct_conversation_realm_role",
-          "direct_conversation_binding_reducer",
-          "direct_conversation_membership_retirement",
+          "direct_conversation_stable_binding_reducer",
+          "direct_conversation_durable_creation_operation",
+          "direct_conversation_suspend_rejoin",
           "direct_conversation_participant_authority",
-          "direct_conversation_root_owner_mask",
-          "direct_conversation_segment_lineage"
+          "direct_conversation_root_owner_mask"
         ],
         "unsupported_optional": "not applicable: a receiver that cannot enforce this role MUST reject or quarantine the Realm create as unsupported_feature and MUST NOT treat it as an ordinary Collaboration Realm"
       },
@@ -1253,14 +1267,14 @@
         "schema_refs MUST contain ak.profile.direct_conversation_realm.v1 and fields.collaboration_role MUST equal direct_conversation; either marker without the other is schema_violation.",
         "content_encryption_floor and metadata_encryption_floor MUST both equal e2ee_required.",
         "The ak.realm.create Event requirements.schema MUST contain ak.profile.direct_conversation_realm.v1 and requirements.critical_extensions MUST contain fail_closed=true id ak.feature.direct_conversation_realm_role.v1 for payload scope.",
-        "Exactly the two stable subject DIDs in the canonical active binding may be active Realm principal members; any third-party join or invite MUST be rejected.",
+        "Exactly the two stable subject DIDs in the immutable binding may be Realm principal members; any third-party join or invite MUST be rejected.",
         "Space events are forbidden in a Direct Conversation Realm with direct_conversation_space_forbidden; additional ordinary Strands remain allowed.",
         "The canonical main Strand MUST be active, belong to the Realm, have no Circle scope, and expose an active primary discussion track.",
-        "Cross-Principal-Server creation MUST complete the participant-authorized peer KeyPackage claim authoring step before the binding authoring step; Direct Conversation claims MUST bind pair_key, intended Realm, main Strand and MLS group and MUST NOT use a last-resort KeyPackage.",
-        "A participant leave or ban, Realm tombstone or destroy, or main Strand archive or tombstone retires the active binding and requires a fresh Realm, main Strand and MLS group for the next create=true resolution.",
-        "Contact tombstone and direct_message consent revoke block new resolver success and default message send but do not by themselves rewrite Realm history or retire an otherwise structurally active binding.",
-        "At most one active canonical binding exists per trust_domain and unordered stable-DID pair. Retired historical segments form one verified predecessor chain; pending, orphan, duplicate and non-canonical candidates never enter that chain.",
-        "A non-first active binding MUST reference the canonical retired predecessor binding Event. A retired fact MUST reference both the superseded active binding Event and the accepted structural terminal Event that made it ineligible.",
+        "First creation MUST use the deterministic coordinator and one durable reserved/materializing/found operation. The coordinator commits materializing and locks operation, Realm and main Strand identifiers before KeyPackage claim or any founding Event; materializing never expires or reallocates.",
+        "Cross-Principal-Server creation MUST complete participant-authorized peer KeyPackage claim before materialization; Direct Conversation claims bind operation, pair, intended Realm, main Strand and initial MLS group and MUST NOT use a last-resort KeyPackage.",
+        "The binding is immutable and fixes pair_key, participant pair, Realm and main Strand exactly once. It carries no authored lifecycle state or MLS group; current MLS generation is a separate accepted-history projection.",
+        "Leave, ban, block, contact/consent revoke and participant terminal state suspend new writes without destroying the binding or creating a successor Realm. Recovery reuses the same Realm and MUST NOT automatically redeliver old epoch keys or history secrets.",
+        "Principal-private deletion and global content/key erasure retain stable pair, Realm and main Strand identity. The resolver never returns a competing candidate or performs winner selection.",
         "Participant authority and root-owner masking are conjunctive profile admission rules and MUST be evaluated from the same accepted evidence basis as the target action; neither created_by nor membership alone is an authorization source."
       ],
       "participant_authority": {
@@ -1285,7 +1299,7 @@
           "ak.strand.create",
           "ak.typing.broadcast"
         ],
-        "scope_rule": "active_non_circle_discussion_strands_in_bound_realm",
+        "scope_rule": "non_suspended_non_circle_discussion_strands_in_stably_bound_realm_using_current_active_mls_generation",
         "consent_gated_actions": [
           "ak.call.join",
           "ak.call.screen_share",
@@ -1308,21 +1322,21 @@
             "ak.mls.commit",
             "ak.mls.welcome"
           ],
-          "binding_rule": "exact_unexpired_materialization_draft_only",
+          "binding_rule": "exact_nonexpiring_materializing_operation_draft_only",
           "user_content_forbidden": true
         },
-        "active_phase": {
+        "stable_phase": {
           "allowed_root_control_actions": [
             "ak.realm.authority.basis_update",
             "ak.realm.authority.reset",
             "ak.realm.authority.transfer"
           ],
-          "transfer_successor_rule": "other_active_participant_with_successor_acceptance",
+          "transfer_successor_rule": "other_nonterminal_participant_with_successor_acceptance_and_same_stable_coordinates",
           "ordinary_grants_default": "deny",
           "operational_owner_aggregate": "masked"
         },
         "grant_exceptions": {
-          "subjects": "canonical_participants_only",
+          "subjects": "stable_binding_participants_only",
           "actions": "participant_allowlist_or_registered_narrow_profile_ceiling_only",
           "constraints": "tighten_only",
           "forbidden_actions": [
@@ -1333,15 +1347,11 @@
           ]
         },
         "terminal_cleanup": {
-          "allowed_root_control_actions": [
-            "ak.realm.destroy",
-            "ak.realm.tombstone"
-          ],
-          "active_participants_required": 0,
-          "binding_state_required": "retired_or_absent",
-          "referenced_lineage_anchors_preserved": true,
+          "allowed_root_control_actions": [],
+          "terminal_participants_required": 2,
+          "stable_binding_identity_preserved": true,
           "unknown_reference_closure": "fail_closed",
-          "tombstone_successor_rule": "realm_migration_only_not_direct_conversation_lineage"
+          "successor_direct_conversation_forbidden": true
         }
       }
     },
@@ -1450,6 +1460,7 @@
           "ak.profile.update",
           "ak.agent.key.authorize",
           "ak.agent.key.revoke",
+          "ak.agent.provision",
           "ak.self.agent.pause",
           "ak.self.agent.resume",
           "ak.self.agent.deactivate",
@@ -1479,6 +1490,7 @@
           "ak.self.agent.deactivate"
         ],
         "controller_pcr_event_kinds": [
+          "ak.agent.provision",
           "ak.identity.accountability_grant",
           "ak.agent.selector_claim"
         ],
@@ -1488,7 +1500,7 @@
         ],
         "rules": [
           "Agent PCR events MUST target the Agent DID bound to the Realm; controller execution uses actor_id=Agent DID, executed_by=controller DID, and a verified authorization_ref.",
-          "Controller-owned accountability and selector facts MUST target the controller PCR and reference the Agent DID; they MUST NOT be moved into the Agent PCR.",
+          "Initial provisioning MUST use one controller-owned ak.agent.provision Event in the controller PCR and atomically project provision, accountability and selector facts; later standalone accountability/selector changes remain controller-owned and MUST NOT move into the Agent PCR.",
           "Pairing requests and account approval notifications MUST NOT be written to any PCR or Collaboration Realm."
         ]
       },
@@ -2322,12 +2334,12 @@
       },
       "e2ee_mls_interop_floor": {
         "minimum_profile": "ak.profile.mls_governance_binding.full.v1",
-        "applies_when": "Any federation transaction carries or depends on encryption_profile=\"mls_rfc9420\", ak.mls.genesis, ak.mls.commit, ak.mls.welcome, MLS-backed E2EE DataEvents, or covered_seals_cell state.",
+        "applies_when": "Any federation transaction carries or depends on encryption_profile=\"mls_rfc9420\", ak.mls.genesis, ak.mls.commit, ak.mls.welcome, MLS-backed E2EE DataEvents, or active MLS security-frontier state.",
         "required_artifacts": [
           "governance_binding.binding_profile",
           "governance_binding.reducer_profile",
           "mls_governance_binding GroupContext extension 0xF1C0",
-          "ak.component.covered_seals.v1"
+          "mls-security-frontier-registry.json"
         ],
         "downgrade_profile": "ak.profile.e2ee_relaxed.v1",
         "downgrade_admission": "Only closed or restricted federation may accept ak.profile.e2ee_relaxed.v1, and restricted federation MUST satisfy the bounded-SLA federation_guard in that profile. Open and quarantine federation MUST reject the relaxed downgrade.",
@@ -3077,7 +3089,7 @@
       ],
       "required_event_kinds": [
         "ak.profile.create",
-        "ak.identity.accountability_grant",
+        "ak.agent.provision",
         "ak.agent.selector_claim",
         "ak.agent.key.authorize",
         "ak.agent.key.revoke",
@@ -3095,6 +3107,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.actor_profile.v1",
+        "ak.schema.agent_provision.v1",
         "ak.schema.agent_selector_claim.v1",
         "ak.schema.capability.v1",
         "ak.schema.key_backup.v1",
@@ -3329,7 +3342,7 @@
         "required_checks": [
           "ak.mimi.room_binding.mls_group_id matches the MLS governance_binding mls_group_id",
           "governance_binding.binding_profile and reducer_profile are present and supported",
-          "covered_seals_cell covers the governance frontier needed by the projected message",
+          "the active MLS generation security_frontier_digest equals the rederived current key-access frontier",
           "MIMI draft/profile fields are ignored for security decisions unless mapped to registered Arkret policy/capability state"
         ],
         "downgrade_handling": "The ak.profile.e2ee_relaxed.v1 downgrade MUST NOT be represented to MIMI peers as equivalent to full MLS governance binding. If both sides explicitly support relaxed Arkret semantics, the relaxed federation guard still applies; otherwise the facade MUST reject or quarantine with mimi_room_state_incompatible or a governance binding reason.",
@@ -3969,7 +3982,7 @@
     },
     "ak.profile.mls_governance_binding.full.v1": {
       "inherits": [],
-      "description": "MLS Governance Binding (full): the v1 hardening profile that binds MLS epochs to governance state. Required for E2EE Realms. MLS commits are Control Moves carrying a governance_binding payload (membership_frontier / policy_root / capability_root / discussion_metadata_hash, transcript-hashed via the mls_governance_binding GroupContext extension) and update three control cells (mls_epoch, key_schedule, covered_seals_cell). An E2EE message DataEvent's seal_ref selects the governance view whose covered_seals_cell must cover the message's governance Seal dependency set M; the seal_ref Seal itself is never in M, because a Control Move can only attest Seals already visible from its seal_basis and no Seal can cover itself. Governance / recovery Control Moves do not depend on it.",
+      "description": "MLS Security Frontier Binding (full): required for E2EE Realms. Each MLS genesis/Commit transcript binds one security_frontier_digest deterministically rederived from accepted key-access state: membership; only keys referenced by current/pending leaves; MLS membership; and encryption/history policy that changes key access. Ordinary Event seal_ref admission is independent. Capability, metadata, moderation, routing and consent-only changes do not block messages unless their accepted effect actually changes an MLS leaf.",
       "required_endpoints": [
         "ak.self.keys.keypackages.command.claim",
         "ak.self.keys.keypackages.command.consume",
@@ -4000,15 +4013,14 @@
         "required": [
           "mls_governance_binding_extension",
           "move_based_mls_commit",
-          "covered_seals_cell",
+          "security_frontier_digest",
           "mls_epoch_cell",
           "governance_binding_profile_required",
           "mls_governance_proof_bundle"
         ],
-        "unsupported_optional": "fail closed on root mismatch"
+        "unsupported_optional": "fail closed on security frontier mismatch"
       },
       "required_cells": [
-        "ak:cell:ak.component.covered_seals.v1:<mls_group_id>",
         "ak:cell:ak.component.mls.epoch.v1:<mls_group_id>",
         "ak:cell:ak.component.mls.key_schedule.v1:<mls_group_id>"
       ],
@@ -4020,7 +4032,7 @@
         "forbids_silent_downgrade": [
           "omitting the GroupContext extension",
           "using a deployment-private alternate extension codepoint",
-          "accepting an MLS commit without covered_seals_cell effects",
+          "accepting an MLS commit without rederiving security_frontier_digest",
           "treating ak.profile.e2ee_relaxed.v1 as full binding"
         ]
       },
@@ -4028,9 +4040,10 @@
         "governance_binding GroupContext extension missing from ak.mls.commit",
         "governance_binding.binding_profile missing or not ak.profile.mls_governance_binding.full.v1 for a full-profile Realm",
         "governance_binding.reducer_profile missing or mismatched with the negotiated Realm reducer profile",
-        "binding_version, encoding_profile, effective_scope, mls_group_id, previous_epoch, next_epoch, membership_frontier, policy_root, or covered_seals_cell verification mismatch",
-        "governance_binding.covered_seal_refs naming a Seal outside the commit's seal_basis predecessor closure, or the Seal that admits the commit itself",
-        "covered_seals_cell at the DataEvent seal_ref not covering the message's governance Seal dependency set M"
+        "binding_version, encoding_profile, effective_scope, mls_group_id, previous_epoch, next_epoch, or security_frontier_digest verification mismatch",
+        "producer-supplied arbitrary frontier members instead of registry-closed derivation",
+        "a key-affecting accepted state change not covered by the winning Commit",
+        "an unrelated capability, metadata, moderation, routing, contact or consent-only change incorrectly forcing a Commit"
       ]
     },
     "ak.profile.mls.minimal_metadata_realm.v1": {

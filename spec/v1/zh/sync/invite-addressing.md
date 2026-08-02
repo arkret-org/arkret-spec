@@ -299,7 +299,7 @@ operation_id = ak.peer.invites.command.submit
 
 request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Principal Server MUST：
 
-1. 验证 service-to-service authentication，绑定 Source/Destination service DID、trust domain、Request-Canonical-Digest、Content-Digest 与 idempotency key。
+1. 验证 service-to-service authentication，绑定 Source/Destination service DID、trust domain、Content-Digest 与 idempotency key；接收方从已验证的 exact canonical body bytes 内部计算 request digest。
 2. 验证 `Destination-Service-ID == invite_address.recipient_service_id`。
 3. 验证 `invite_event.kind == "ak.invite.create"`、Event signature、Realm capability、`invite_id` 与 `realm_id`。
 4. 验证 `invite_event.payload.invitee == invite_address.subject_id`。

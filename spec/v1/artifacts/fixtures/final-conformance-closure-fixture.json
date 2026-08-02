@@ -285,38 +285,42 @@
     {
       "vector_id": "ak.vector.mls.covered_seals_no_self_reference.v1",
       "assertions": [
-        "covered_seal_refs_outside_seal_basis_closure_rejected",
-        "covered_seal_refs_naming_the_admitting_seal_rejected",
-        "rejected_commit_does_not_advance_mls_or_covered_seals_cells",
-        "required_governance_seal_set_excludes_the_dataevent_seal_ref",
-        "governance_change_at_seal_ref_enters_M_through_cell_enumeration"
+        "commit_binds_rederived_security_frontier_digest",
+        "unrelated_governance_does_not_change_security_frontier",
+        "dataevent_seal_ref_is_orthogonal_to_security_frontier",
+        "active_leaf_revoke_pauses_sending_until_new_commit"
       ],
       "cases": [
         {
-          "name": "commit_attests_its_own_admitting_seal",
-          "covered_seal_refs_within_seal_basis_closure": false,
-          "expected": {
-            "decision": "reject",
-            "reason": "governance_binding_mismatch",
-            "mls_epoch_cell_advanced": false,
-            "covered_seals_cell_advanced": false
-          }
-        },
-        {
-          "name": "quiet_seal_ref_is_not_self_required",
-          "governance_change_at_seal_ref": false,
+          "name": "valid_security_frontier_commit",
+          "security_frontier_matches_accepted_key_access_state": true,
           "expected": {
             "decision": "accept",
-            "seal_ref_in_required_governance_seals": false
+            "mls_epoch_cell_advanced": true,
+            "active_generation_advanced": true
           }
         },
         {
-          "name": "governance_change_at_seal_ref_pauses_sending",
-          "governance_change_at_seal_ref": true,
+          "name": "unrelated_governance_and_new_seal_ref",
+          "changed_cells": [
+            "ak.component.message.metadata.v1",
+            "ak.component.capability.grant.v1"
+          ],
+          "expected": {
+            "decision": "accept",
+            "security_frontier_changed": false
+          }
+        },
+        {
+          "name": "active_leaf_revoke_pauses_sending",
+          "changed_cells": [
+            "ak.component.agent.key.v1"
+          ],
           "expected": {
             "decision": "reject",
             "reason": "mls_governance_binding_stale",
-            "seal_ref_in_required_governance_seals": true
+            "security_frontier_changed": true,
+            "self_heal_commit_required": true
           }
         }
       ]
@@ -326,7 +330,7 @@
       "assertions": [
         "governance_previous_epoch_matches_payload_base_epoch",
         "governance_next_epoch_matches_payload_next_epoch",
-        "rejected_commit_does_not_advance_mls_or_covered_seals_cells"
+        "rejected_commit_does_not_advance_mls_or_active_generation"
       ],
       "commit": {
         "base_epoch": 41,
@@ -341,7 +345,7 @@
         "decision": "reject",
         "reason": "epoch_update_required",
         "mls_epoch_cell_advanced": false,
-        "covered_seals_cell_advanced": false
+        "active_generation_advanced": false
       }
     },
     {

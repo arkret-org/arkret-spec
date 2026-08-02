@@ -64,8 +64,6 @@ Control Move 是控制面写入。它的核心字段如下：
 | 字段 | 含义 |
 | --- | --- |
 | `seal_basis.leaves[]` | 签名时采用的 Seal leaf 集合。 |
-| `seal_basis.control_event_set_root` | 该基准 view 中控制面 Event digest 集合根。 |
-| `seal_basis.state_root` | 该基准 view 中控制面 cell root。 |
 | `preconditions[]` | 可选控制面 pre-state predicate。 |
 | reducer contract | 从 kind + payload 派生控制面 cell 与 Lattice 操作；全部目标 MUST 为 `plane="control"`。 |
 
@@ -118,7 +116,7 @@ DataEvent 的安全问题主要是签名伪造、授权过期、写入不属于 
 接收方 MUST：
 
 1. 对非 anchor-unit 的 Control Move，确认 Event 携带签名 `scope_ref`、`seal_basis`，且不携带 `seal_ref` 或 `auth_context`。
-2. 确认 `seal_basis.leaves[]` 均为已接受 Seal，且合成 view 的 `control_event_set_root` 与 `state_root` 与 Event 内声明一致。
+2. 确认 `seal_basis.leaves[]` canonical sorted、duplicate-free 且均为已接受 Seal；从这些 Seal 合成 view 并重算 `control_event_set_root` 与 `state_root`，Event 不重复声明 roots。
 3. 在该 control basis 下验证 signer、capability、policy、membership、Realm lifecycle、Circle lifecycle 与 object scope；Circle `state=active` MUST 在 `seal_basis.leaves[]` 合成的 joined control view 中求值，并在 Seal 接受时由 `apply_seal` step 8 对冻结 predecessor joined governance state 重验。
 4. 求值 `preconditions[]`；任一 predicate 不成立则拒绝该 Control Move。
 5. 从注册的 reducer contract 重算全部 cell writes，确认它们只命中 control plane cell。

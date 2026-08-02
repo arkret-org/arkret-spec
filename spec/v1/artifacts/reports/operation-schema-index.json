@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.3",
+  "version": "2026-08-02.5",
   "source_of_truth": false,
-  "generated_at": "2026-08-02T13:00:00Z",
+  "generated_at": "2026-08-02T15:00:00Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -635,7 +635,7 @@
             "required": [
               "agent_id",
               "principal_control_realm_id",
-              "provision_events"
+              "provision_event"
             ],
             "properties": [
               "phase"
@@ -744,14 +744,10 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_view",
         "schema_kind": "object",
         "required": [
-          "agent",
-          "status",
-          "runtime_state"
+          "agent"
         ],
         "properties": [
           "agent",
-          "status",
-          "runtime_state",
           "grants",
           "key_state"
         ],
@@ -823,15 +819,11 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body",
         "schema_kind": "object",
         "required": [
-          "lifecycle_event",
-          "key_revocation_events",
-          "capability_revocation_events"
+          "lifecycle_event"
         ],
         "properties": [
           "reason",
-          "lifecycle_event",
-          "key_revocation_events",
-          "capability_revocation_events"
+          "lifecycle_event"
         ],
         "closed": true
       },
@@ -1642,6 +1634,7 @@
           "requested_scopes",
           "message",
           "idempotency_key",
+          "operation_id",
           "recipient_service_id",
           "introduction_evidence"
         ],
@@ -1963,51 +1956,19 @@
         "schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
         "schema_kind": "object",
         "required": [
-          "state"
+          "state",
+          "pair_key"
         ],
         "properties": [
           "state",
+          "pair_key",
           "realm_id",
           "main_strand_id",
           "binding_event_ref",
-          "created",
-          "authoring_kind",
+          "operation",
+          "next_action",
           "claim_authorization_draft",
-          "materialization_draft",
-          "retirement_draft"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.direct_conversation_segment.query.list",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_segment_list_request_body",
-        "schema_kind": "object",
-        "required": [
-          "peer"
-        ],
-        "properties": [
-          "peer",
-          "cursor",
-          "limit"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_segment_list",
-        "schema_kind": "object",
-        "required": [
-          "pair_key",
-          "segments",
-          "has_more"
-        ],
-        "properties": [
-          "pair_key",
-          "segments",
-          "next_cursor",
-          "has_more"
+          "materialization_draft"
         ],
         "closed": true
       }
@@ -3308,8 +3269,7 @@
             "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventInitialSubmission",
             "schema_kind": "object",
             "required": [
-              "event",
-              "authorization_lease"
+              "event"
             ],
             "properties": [
               "event",
@@ -5419,13 +5379,17 @@
         "schema_kind": "object",
         "required": [
           "ok",
-          "status",
-          "runtime_state"
+          "lifecycle",
+          "runtime_state",
+          "readiness",
+          "presence"
         ],
         "properties": [
           "ok",
-          "status",
+          "lifecycle",
           "runtime_state",
+          "readiness",
+          "presence",
           "approval_request_id",
           "authorized_event_ref",
           "authorized_verification_method",

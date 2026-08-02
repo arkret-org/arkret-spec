@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.3",
+  "version": "2026-08-02.5",
   "source_of_truth": true,
-  "generated_at": "2026-08-02T13:00:00Z",
+  "generated_at": "2026-08-02T15:00:00Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "derived_registry_views": [
     {
@@ -125,11 +125,12 @@
         "activation_checks": [
           "realm_profile_and_discriminator_exact",
           "realm_create_critical_extension_present",
-          "active_canonical_binding_exact",
+        "stable_binding_exact",
           "actor_is_one_of_exactly_two_stable_participants",
           "actor_membership_active_join",
-          "realm_main_strand_target_scope_and_mls_cross_binding_exact",
-          "realm_binding_and_target_strand_non_terminal",
+        "realm_main_strand_and_target_scope_exact",
+        "active_mls_generation_cross_binding_exact",
+        "realm_binding_and_target_strand_non_terminal_or_suspended",
           "resource_within_dm_realm_non_circle_discussion_scope",
           "current_contact_consent_gate_for_send_like_actions",
           "action_specific_self_device_mls_and_agent_gates"
@@ -371,6 +372,69 @@
               "tag": {
                 "dot": true
               },
+              "value": {
+                "field": "payload"
+              }
+            }
+          }
+        ],
+        "concurrency_class": "security_barrier"
+      },
+      "ak.agent.provision": {
+        "plane": "control",
+        "sealed": true,
+        "cell_writes": [
+          {
+            "cell_family": "ak.component.agent.provision.v1",
+            "cell_subject": {
+              "field": "payload.agent_id",
+              "kind": "id:actor"
+            },
+            "lattice": "cas_register",
+            "bottom": "reject",
+            "effect_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload"
+              }
+            }
+          },
+          {
+            "cell_family": "ak.component.identity.accountability.v1",
+            "cell_subject": {
+              "kind": "composite",
+              "components": [
+                "payload.controller_id",
+                "payload.agent_id",
+                {
+                  "kind": "string_set_digest",
+                  "field": "payload.accountability_scope",
+                  "context": "ak.accountability-scope-set-v1"
+                }
+              ]
+            },
+            "lattice": "cas_register",
+            "bottom": "reject",
+            "effect_projection": {
+              "kind": "set",
+              "value": {
+                "field": "payload"
+              }
+            }
+          },
+          {
+            "cell_family": "ak.component.agent.selector_claim.v1",
+            "cell_subject": {
+              "components": [
+                "payload.controller_id",
+                "payload.agent_slug"
+              ],
+              "kind": "composite"
+            },
+            "lattice": "mv_register",
+            "bottom": "expose",
+            "effect_projection": {
+              "kind": "set",
               "value": {
                 "field": "payload"
               }
@@ -2314,22 +2378,6 @@
                 "field": "payload.governance_binding"
               }
             }
-          },
-          {
-            "cell_family": "ak.component.covered_seals.v1",
-            "cell_subject": {
-              "kind": "string",
-              "field": "payload.mls_group_id"
-            },
-            "lattice": "or_set",
-            "bottom": "inert",
-            "effect_projection": {
-              "kind": "or_set_batch_add",
-              "values": {
-                "field": "payload.governance_binding.covered_seal_refs"
-              },
-              "tag_context": "ak.covered-seal-tag-v1"
-            }
           }
         ],
         "concurrency_class": "security_barrier"
@@ -2393,22 +2441,6 @@
               "value": {
                 "field": "payload.governance_binding"
               }
-            }
-          },
-          {
-            "cell_family": "ak.component.covered_seals.v1",
-            "cell_subject": {
-              "kind": "string",
-              "field": "payload.mls_group_id"
-            },
-            "lattice": "or_set",
-            "bottom": "inert",
-            "effect_projection": {
-              "kind": "or_set_batch_add",
-              "values": {
-                "field": "payload.governance_binding.covered_seal_refs"
-              },
-              "tag_context": "ak.covered-seal-tag-v1"
             }
           }
         ],
@@ -5618,6 +5650,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
+        "admission": "self_authored_proof",
         "payload": "Issuer-signed endorsement that a subject DID (typically an agent / service / hosted actor) is accountable_principal_ids the issuer for a declared scope (employment / contracted_service / agent_operator / etc.). Every `Actor Profile.accountable_principal_ids[]` entry requires a matching active grant at profile admission; a missing grant deterministically rejects the whole profile Event with accountability_grant_missing. See zh/models/actor.md §3.3.1. expires_at is optional; absent means non-expiring, governed by grant_status revocation and controller lifecycle cascade.",
         "payload_schema_ref": "schemas/accountability-grant.schema.json"
       },
@@ -6057,11 +6090,22 @@
         "payload": "Agent signing key revocation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_revoke_payload and bind agent_id, key_id, revoked_at, and revoked_by; the revocation's control-plane basis is the Control Move envelope seal_basis, and its cutoff is the accepted Seal covering the Move."
       },
       {
+        "event_kind": "ak.agent.provision",
+        "category": "agent",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "admission": "self_authored_proof",
+        "payload": "Controller-authored native personal Agent provisioning fact. One Event proof binds the allocated Agent DID/PCR, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability and selector cells; no nested payload proof or partial two-Event state is valid.",
+        "payload_schema_ref": "schemas/agent-provision.schema.json"
+      },
+      {
         "event_kind": "ak.agent.selector_claim",
         "category": "agent",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
+        "admission": "self_authored_proof",
         "payload": "Controller-owned signed selector statement binding (controller_subject, agent_slug) to one native personal agent DID. The Event belongs in the controller Principal Control Realm, never the Agent PCR or a Collaboration Realm. Concurrent distinct current values remain visible and make selector resolution ambiguous/fail-closed.",
         "payload_schema_ref": "schemas/agent-selector-claim.schema.json"
       },
@@ -6087,7 +6131,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent lifecycle terminal state. MUST fan-out ak.agent.key.revoke for all active agent keys, ak.capability.revoke for all unrevoked grants, and runtime endpoint revocation. Terminal — no transition out."
+        "payload": "Agent lifecycle terminal state. One accepted controller-authorized Event is the unavoidable parent AND gate for every runtime key, session, pairing handle, capability grant, KeyPackage, presence and future submission. Cleanup is asynchronous and MUST NOT synthesize or require child revocation Events. Terminal — no transition out."
       },
       {
         "event_kind": "ak.agent.draft.propose",
@@ -6215,7 +6259,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Principal-scoped binding from unordered participant pair to canonical DM Realm and main Strand."
+        "payload": "Immutable principal-scoped binding from an unordered participant pair to its single stable DM Realm and main Strand; active MLS generation is projected separately."
       },
       {
         "event_kind": "ak.account.status",
@@ -7734,6 +7778,12 @@
         "file": "schemas/accountability-grant.schema.json",
         "status": "active",
         "description": "Issuer-signed accountability endorsement for Actor Profile accountable_principal_ids verification."
+      },
+      {
+        "schema_id": "ak.schema.agent_provision.v1",
+        "file": "schemas/agent-provision.schema.json",
+        "status": "active",
+        "description": "Single controller-authored native personal Agent provisioning payload with atomic accountability and selector projections."
       },
       {
         "schema_id": "ak.schema.agent_selector_claim.v1",
@@ -9369,8 +9419,7 @@
           "ak.self.invite_locator.command.issue",
           "ak.self.invite_locator.command.rotate",
           "ak.self.invite_locator.command.revoke",
-          "ak.self.direct_conversation.command.resolve",
-          "ak.self.direct_conversation_segment.query.list"
+          "ak.self.direct_conversation.command.resolve"
         ],
         "surface_class": "extension"
       },
@@ -9934,8 +9983,7 @@
         "durable_effect": {
           "kind": "event_log",
           "event_kinds": [
-            "ak.identity.accountability_grant",
-            "ak.agent.selector_claim"
+            "ak.agent.provision"
           ]
         }
       },
@@ -10673,7 +10721,7 @@
         "http": "POST /_arkret/self/direct-conversations/resolve",
         "grpc": "SelfDirectConversation/Resolve",
         "mq": "self.direct_conversation.command.resolve",
-        "notes": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent. Recreate after a structural terminal Event first returns a participant-signed retirement draft when the canonical retired fact is missing; cross-Principal-Server create=true then uses the reserved remote KeyPackage claim and materialization authoring stages. Only found is an active success state.",
+        "notes": "Idempotent resolver for the pair's single stable Direct Conversation. Existing bindings return found or suspended without consulting KeyPackage inventory. First creation uses the deterministic coordinator and one durable reserved/materializing/found operation; every retry after external effect retains the same operation, Realm and main Strand identifiers.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -10682,20 +10730,8 @@
         "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
         "durable_effect": {
           "kind": "none",
-          "rationale": "returns_client_authoring_material_or_an_existing_projection_and_never_commits_the_draft_events"
+          "rationale": "the_service_persists_only_the_coordinator_operation_record_and_returns_participant_authoring_material_or_an_existing_projection"
         }
-      },
-      {
-        "operation_id": "ak.self.direct_conversation_segment.query.list",
-        "http": "POST /_arkret/self/direct-conversations/segments/query",
-        "grpc": "SelfDirectConversationSegment/List",
-        "mq": "self.direct_conversation_segment.query.list",
-        "notes": "Principal-private paginated projection of the verified canonical segment lineage for the authenticated actor and one peer. Rows are ordered by predecessor chain, not timestamps; pending, orphan, duplicate and non-canonical candidates are excluded. The POST body is a read-only complex query and the operation declares no idempotency mechanism.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "max_items": 200,
-        "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_segment_list_request_body",
-        "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_segment_list"
       },
       {
         "operation_id": "ak.self.circle.command.create",
@@ -11088,7 +11124,7 @@
         "http": "POST /_arkret/self/events/mls-governance-proof",
         "grpc": "SelfEvents/MlsGovernanceProof",
         "mq": "self.events.query.mls_governance_proof",
-        "notes": "Return one bounded, manifest-committed chunk of a complete_control_state_v1 proof bundle for one authenticated, caller-visible Realm/scope. The request MUST name an exact locally trusted_anchor_seal_id and chunk_index; later chunks pin expected_bundle_digest. The service MUST build from that anchor and return mls_governance_anchor_unreachable instead of substituting another anchor. The service derives membership_frontier and all governance roots from one accepted Seal view; callers cannot supply roots. Responses bind canonical acquisition identity with proof_request_digest, commit all chunks under chunks_root, and use bundle_digest rather than accepted_seal_id as the logical content address. Each response is at most 4 MiB; the logical bundle is at most 256 MiB, 1024 chunks, 4096 Seals, 1048576 covered digests, 262144 control leaves and 128 frontier Events. Exceeding a total bound returns mls_governance_proof_bounds_exceeded with no partial output. Implementations MUST enforce Realm/scope visibility before materialization and MUST fail closed when any covered Event, control state, Seal path, chunk commitment, signature authority, or reducer profile cannot be reconstructed.",
+        "notes": "Return one bounded, manifest-committed chunk of a complete_control_state_v1 proof bundle for one authenticated, caller-visible Realm/scope. The request MUST name an exact locally trusted_anchor_seal_id and chunk_index; later chunks pin expected_bundle_digest. The service MUST build from that anchor and return mls_governance_anchor_unreachable instead of substituting another anchor. From one accepted Seal view it supplies enough complete state to rederive the closed key-access projection in mls-security-frontier-registry.json; callers cannot supply roots or choose frontier members. Responses bind canonical acquisition identity with proof_request_digest, commit all chunks under chunks_root, and use bundle_digest rather than accepted_seal_id as the logical content address. Each response is at most 4 MiB; the logical bundle is at most 256 MiB, 1024 chunks, 4096 Seals, 1048576 covered digests, 262144 control leaves and 128 frontier Events. Exceeding a total bound returns mls_governance_proof_bounds_exceeded with no partial output. Implementations MUST enforce Realm/scope visibility before materialization and MUST fail closed when any covered Event, control state, Seal path, chunk commitment, signature authority, or reducer profile cannot be reconstructed.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/mls-governance-proof-bundle.schema.json#/$defs/proof_request",
@@ -13775,7 +13811,7 @@
         "required_constraints": [],
         "required_evaluator_checks": [
           "welcome_recipient_is_active_device_of_same_participant",
-          "mls_group_matches_active_direct_conversation_binding"
+          "mls_group_matches_current_active_direct_conversation_generation"
         ],
         "target_event_kinds": [
           "ak.mls.welcome"
@@ -14832,8 +14868,7 @@
         "risk_tier": "high",
         "required_constraints": [],
         "target_event_kinds": [
-          "ak.identity.accountability_grant",
-          "ak.agent.selector_claim"
+          "ak.agent.provision"
         ],
         "profile": "ak.profile.personal_agent_provisioning.v1",
         "migration_group": "ak._0008_agent_provisioning",

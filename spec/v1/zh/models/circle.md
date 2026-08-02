@@ -317,6 +317,20 @@ Circle membership 使用 [`common-fields.md` §4.5](./common-fields.md#45-参数
 
 Circle 与 Realm 共用 `$defs/membership_state` 单一枚举真源和同一 transition graph；差异由实例参数与 guard 列表达，不再维护第二张转换表。Circle 不承载成员级 delivery binding，因此 `join -> join` 与其余 same-state transition 一样非法。membership 与物理 lifecycle state 正交，不受 [`common-fields.md` §5.1](./common-fields.md) 的 lifecycle same-state 规则覆盖。需要幂等重试的 producer MUST 基于当前 membership state 重新提交合法 transition，而非重放 same-state 写入。
 
+**`expected_membership` 的三态语义（normative）**：`ak.circle.member.state` 的可选
+`expected_membership` 是并发写入下的乐观保护，与 transition guard 正交，且三种 wire 形态互不等价：
+
+- **省略**：不施加 CAS。合法性完全由本节 FSM transition guard 判定。这与
+  [`strand-and-message.md` §2](./strand-and-message.md) 的 `expected_default_strand_id` 不同——
+  那里的 cell 是无 FSM guard 的 `cas_register`，省略必须归一为 `head_eq null`；这里的非法转移
+  已由 guard 拒绝，因此省略不会导致无条件覆盖。
+- **显式 `null`**：断言该 actor 当前在本 Circle **没有任何 membership 记录**，即这是首次写入。
+  已存在任意 membership 时 reducer MUST `failed_precondition`。
+- **具体枚举值**：断言当前 membership 逐字等于该值，不等时 MUST `failed_precondition`。
+
+因此实现 MUST NOT 把"省略"与"显式 `null`"折叠为同一状态：前者放弃 CAS，后者是一个会失败的断言。
+producer 类型系统 MUST 保留 Missing / Null / Value 三态，普通二态 optional 会丢失该区分。
+
 ### 9.2 Lifecycle cascade
 
 Circle lifecycle 只有 `active` / `archived` / `tombstoned` 三态，对应 `ak.circle.archive` / `ak.circle.restore` / `ak.circle.tombstone`。v1 不定义 `ak.circle.freeze` 或 `ak.circle.destroy`：`archived` 是可恢复的新写入冻结；`tombstoned` 是 Circle 本身的不可逆终态；父 Realm 的 `freeze` / `destroy` 在父边界统一生效，Circle 不持有独立 federation identity 或 successor 语义。
@@ -365,7 +379,7 @@ tombstone / destroy 时，即使 Circle canonical state 仍为 `active`，receiv
 - `encryption_profile=mls_rfc9420`:Circle 拥有独立 MLS group，独立 epoch，独立 key tree。**MUST NOT** 从 Realm-default MLS group key 派生 Circle key(否则全 Realm 都能解密)。
 - Realm 移除某 actor MUST 触发该 actor 所在所有 Circle 的 membership cascade；对 MLS-backed Circle 还 MUST 触发对应 MLS `remove` proposal，并在 Realm-default 也是 MLS-backed 时触发 Realm-default rotate。这是必要的密码学卫生，reducer-enforced。已知运维代价见 §10.3。
 - Circle MLS handshake (commit/welcome/proposal) 投递严格限于 Circle 成员，不进入 Realm-default sync 流。
-- MLS governance binding 的 scope 使用 tagged `effective_scope`。Realm-default MLS group 使用 `{kind:"realm", realm_id}`；Circle commit / welcome / genesis MUST 使用 `{kind:"circle", realm_id, circle_id}`，并绑定 `circle_id`、Circle membership frontier、Circle policy root 与父 Realm policy floor frontier。接收端验证时，`governance_binding.realm_id` / `circle_id` 与 `effective_scope` 任一不匹配 MUST fail closed；Strand `track_name` 或 `strand_id` 不得参与 MLS key scope 判定。
+- MLS governance binding 的 scope 使用 tagged `effective_scope`。Realm-default MLS group 使用 `{kind:"realm", realm_id}`；Circle commit / welcome / genesis MUST 使用 `{kind:"circle", realm_id, circle_id}`，其 `security_frontier_digest` 按机器 registry 投影 Circle membership、Circle history/encryption key-access 值与父 Realm key-access floor。接收端验证时，`governance_binding.realm_id` / `circle_id` 与 `effective_scope` 任一不匹配 MUST fail closed；Strand `track_name` 或 `strand_id` 不得参与 MLS key scope 判定。
 
 ### 10.2 Seal stream
 

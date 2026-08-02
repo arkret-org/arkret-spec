@@ -341,7 +341,6 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | 单 principal active device 数 | 100 | 超过时 Device / Key Server MAY require admin approval or device cleanup。 |
 | 单个 Seal 的 `predecessor_refs[]` | 128 | 超过时接收方 MUST 以 `payload_too_large` 拒绝，不得截断或只验证前缀。开放 notary set 必须先合并 DAG frontier，再形成后继 Seal。 |
 | 单个 compaction Seal 的 `covered_event_digests[]` | 1,048,576 | 超过时接收方 MUST 以 `payload_too_large` 拒绝，不得接受不完整覆盖。更大状态必须使用已登记的分块 completeness proof / MLS Governance Proof，而不是生成无界单对象。 |
-| 单 MLS commit 绑定的 `membership_frontier` refs | 128 | 超过时 MUST 使用签名 state root / snapshot reference。 |
 | 单个 MLS Governance Proof HTTP/JSON 响应 | 4 MiB（4,194,304 bytes） | 包含重复的 Bundle metadata、manifest、一个 chunk 及其 inclusion proof 的完整接收字节数；server MUST 在发送前 enforce，client MUST 在流式接收时 enforce，不能只信任 `Content-Length`。超限响应 MUST 丢弃且不得部分解析为有效 chunk。 |
 | `complete_control_state_v1` 逻辑 Bundle canonical item bytes 总和 | 256 MiB（268,435,456 bytes） | `chunk_manifest.total_item_bytes` 是四类集合每个 item 的 RFC 8785 canonical JSON UTF-8 长度之和，不含数组括号和重复 metadata；client MUST 流式重算，MUST NOT 按声明值预分配。超过时 server MUST 返回 422 `mls_governance_proof_bounds_exceeded`，不得截断。 |
 | MLS Governance Proof 集合总项数 | `seal_path` 4,096；`covered_event_digests` 1,048,576；`control_state` 262,144；`frontier_events` 128 | `chunk_manifest.collection_totals` 与实际无缝拼接后的计数 MUST 精确相等。任一总数超过上限时不得生成 manifest；server 返回 `mls_governance_proof_bounds_exceeded`。只有 `seal_path` 超限时 caller MAY 用自己已信任的更近 anchor 重试；其它总界超限必须 fail closed，等待单独注册的 compact completeness profile 或更小的 accepted state。 |

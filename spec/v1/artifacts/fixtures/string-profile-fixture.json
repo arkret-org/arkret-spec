@@ -1,0 +1,278 @@
+{
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.encoding.string_profiles.v1"
+  },
+  "suite": "string_profiles",
+  "profile": "ak.vector_group.encoding.v1",
+  "version": "2026-08-02",
+  "description": "Machine-readable positive and negative vectors for the eight Arkret custom JSON string formats declared by string-profiles.schema.json and pinned by string-profile-registry.json. Every implementation that consumes these formats MUST execute both lists.",
+  "layering_semantics": "Each rejected value declares the layer that MUST reject it. rejected_by=schema_pattern values are already rejected by the coarse JSON Schema shape, so a runner without a Unicode profile implementation still fails them. rejected_by=profile_validator values deliberately satisfy the coarse pattern and length keywords and can only be rejected by the normative PRECIS / UTS #46 / NFC profile validator; a runner that accepts any of them has an incomplete implementation even when its JSON Schema validation passes.",
+  "vectors": [
+    {
+      "vector_id": "ak.vector.encoding.string_profile_human_identifier.v1",
+      "kind": "string_profile_format",
+      "format": "arkret-human-identifier",
+      "schema_ref": "schemas/string-profiles.schema.json#/$defs/human_identifier_localpart",
+      "accepted": [
+        "小明",
+        "用户123",
+        "δοκιμή",
+        "alice"
+      ],
+      "rejected": [
+        {
+          "value": "ＡＬＩＣＥ",
+          "rejected_by": "profile_validator",
+          "reason": "RFC 8265 UsernameCaseMapped width mapping and lowercasing rewrite the value, so the wire form is not canonical"
+        },
+        {
+          "value": "Alice",
+          "rejected_by": "profile_validator",
+          "reason": "canonical receivers validate the prepared form and MUST NOT case-map before verification"
+        },
+        {
+          "value": "éxample",
+          "rejected_by": "profile_validator",
+          "reason": "the decomposed sequence is not NFC"
+        },
+        {
+          "value": "bad‮name",
+          "rejected_by": "profile_validator",
+          "reason": "a bidi override control is forbidden in identifiers"
+        },
+        {
+          "value": "bad name",
+          "rejected_by": "schema_pattern",
+          "reason": "whitespace is excluded by the coarse identifier pattern"
+        },
+        {
+          "value": "bad:name",
+          "rejected_by": "schema_pattern",
+          "reason": "the Arkret handle separator is a structural delimiter, not an identifier character"
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.string_profile_agent_slug.v1",
+      "kind": "string_profile_format",
+      "format": "arkret-agent-slug",
+      "schema_ref": "schemas/string-profiles.schema.json#/$defs/agent_slug",
+      "accepted": [
+        "总结助手",
+        "要約bot",
+        "helper"
+      ],
+      "rejected": [
+        {
+          "value": "Helper",
+          "rejected_by": "profile_validator",
+          "reason": "UsernameCaseMapped lowercases the slug, so the uppercase wire form is not canonical"
+        },
+        {
+          "value": "helper​",
+          "rejected_by": "profile_validator",
+          "reason": "a zero width space is a disallowed format character in the PRECIS IdentifierClass"
+        },
+        {
+          "value": "bad/slug",
+          "rejected_by": "schema_pattern",
+          "reason": "path separators are excluded by the coarse identifier pattern"
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.string_profile_idna_a_label_domain.v1",
+      "kind": "string_profile_format",
+      "format": "arkret-idna-a-label-domain",
+      "schema_ref": "schemas/string-profiles.schema.json#/$defs/canonical_domain",
+      "accepted": [
+        "domain.xn--fiqs8s",
+        "example.com"
+      ],
+      "rejected": [
+        {
+          "value": "xn--a.example",
+          "rejected_by": "profile_validator",
+          "reason": "the A-label cannot be decoded and fails the ToUnicode round trip"
+        },
+        {
+          "value": "ab--cd.example",
+          "rejected_by": "profile_validator",
+          "reason": "CheckHyphens rejects hyphens in the third and fourth positions of a non-punycode label"
+        },
+        {
+          "value": "domain.中国",
+          "rejected_by": "schema_pattern",
+          "reason": "canonical wire domains are A-labels; the U-label form never appears on the wire"
+        },
+        {
+          "value": "example.com.",
+          "rejected_by": "schema_pattern",
+          "reason": "a trailing dot is not part of the canonical domain"
+        },
+        {
+          "value": "EXAMPLE.com",
+          "rejected_by": "schema_pattern",
+          "reason": "canonical domains are lowercase"
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.string_profile_canonical_handle.v1",
+      "kind": "string_profile_format",
+      "format": "arkret-canonical-handle",
+      "schema_ref": "schemas/string-profiles.schema.json#/$defs/canonical_handle",
+      "accepted": [
+        "小明:domain.xn--fiqs8s",
+        "alice:example.com"
+      ],
+      "rejected": [
+        {
+          "value": "ＡＬＩＣＥ:example.com",
+          "rejected_by": "profile_validator",
+          "reason": "the localpart is not the prepared UsernameCaseMapped form"
+        },
+        {
+          "value": "alice:xn--a.example",
+          "rejected_by": "profile_validator",
+          "reason": "the domain half fails the UTS #46 A-label round trip"
+        },
+        {
+          "value": "éxample:example.com",
+          "rejected_by": "profile_validator",
+          "reason": "the localpart is not NFC"
+        },
+        {
+          "value": "alice@example.com",
+          "rejected_by": "schema_pattern",
+          "reason": "the acct-style spelling is not the canonical handle wire form"
+        },
+        {
+          "value": "alice:example.com.",
+          "rejected_by": "schema_pattern",
+          "reason": "a trailing dot is not part of the canonical domain half"
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.string_profile_acct_uri.v1",
+      "kind": "string_profile_format",
+      "format": "arkret-acct-uri",
+      "schema_ref": "schemas/string-profiles.schema.json#/$defs/acct_uri",
+      "accepted": [
+        "acct:%E5%B0%8F%E6%98%8E@domain.xn--fiqs8s",
+        "acct:alice@example.com"
+      ],
+      "rejected": [
+        {
+          "value": "acct:Alice@example.com",
+          "rejected_by": "profile_validator",
+          "reason": "the decoded localpart is not the prepared UsernameCaseMapped form"
+        },
+        {
+          "value": "acct:%e5%B0%8F@example.com",
+          "rejected_by": "schema_pattern",
+          "reason": "percent escapes MUST use uppercase hexadecimal"
+        },
+        {
+          "value": "小明@example.com",
+          "rejected_by": "schema_pattern",
+          "reason": "the acct scheme is required"
+        },
+        {
+          "value": "acct:alice@example.com:443",
+          "rejected_by": "schema_pattern",
+          "reason": "acct URIs carry no port"
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.string_profile_single_line_display_text.v1",
+      "kind": "string_profile_format",
+      "format": "arkret-single-line-display-text",
+      "schema_ref": "schemas/string-profiles.schema.json#/$defs/single_line_display_text",
+      "accepted": [
+        "中文标题 🚀 / R&D（第二阶段）",
+        "مشروع Arkret 2026",
+        "👩‍💻 开发者社区"
+      ],
+      "rejected": [
+        {
+          "value": "é",
+          "rejected_by": "profile_validator",
+          "reason": "display text MUST be NFC"
+        },
+        {
+          "value": "   ",
+          "rejected_by": "schema_pattern",
+          "reason": "whitespace-only display text is forbidden"
+        },
+        {
+          "value": "line\nbreak",
+          "rejected_by": "schema_pattern",
+          "reason": "single-line display text rejects line breaks"
+        },
+        {
+          "value": "x‮y",
+          "rejected_by": "schema_pattern",
+          "reason": "bidi override controls are forbidden"
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.string_profile_short_text.v1",
+      "kind": "string_profile_format",
+      "format": "arkret-short-text",
+      "schema_ref": "schemas/string-profiles.schema.json#/$defs/short_text",
+      "accepted": [
+        "first\nsecond",
+        "摘要 🚀"
+      ],
+      "rejected": [
+        {
+          "value": "é",
+          "rejected_by": "profile_validator",
+          "reason": "short text MUST be NFC"
+        },
+        {
+          "value": "first\rsecond",
+          "rejected_by": "schema_pattern",
+          "reason": "CR is forbidden; only LF is a permitted break"
+        },
+        {
+          "value": "x‮y",
+          "rejected_by": "schema_pattern",
+          "reason": "bidi embedding and override controls are forbidden"
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.encoding.string_profile_content_text.v1",
+      "kind": "string_profile_format",
+      "format": "arkret-content-text",
+      "schema_ref": "schemas/string-profiles.schema.json#/$defs/content_text",
+      "accepted": [
+        "first\r\nsecond",
+        "正文 🚀\ttab"
+      ],
+      "rejected": [
+        {
+          "value": "é",
+          "rejected_by": "profile_validator",
+          "reason": "content text MUST be NFC"
+        },
+        {
+          "value": "before\u0000after",
+          "rejected_by": "schema_pattern",
+          "reason": "NUL and other non-text controls are forbidden"
+        },
+        {
+          "value": "text﻿",
+          "rejected_by": "schema_pattern",
+          "reason": "a byte order mark is forbidden inside content"
+        }
+      ]
+    }
+  ]
+}

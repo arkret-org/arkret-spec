@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-31",
+  "version": "2026-08-02",
   "source_of_truth": true,
   "description": "Canonical domain-separation contexts for Arkret detached proofs. Context is part of the canonical signing binding object and is not a wire field in the generic proof shape.",
   "registry_rules": [
@@ -128,21 +128,6 @@
       ],
       "defined_in": "zh/crypto-media/audited-e2ee.md",
       "schema_ref": "schemas/audit-ryw-receipt.schema.json"
-    },
-    {
-      "context": "ak.capability-grant-proof-v1",
-      "object_family": "capability_grant",
-      "binding_fields": [
-        "payload_digest",
-        "issuer",
-        "subject",
-        "verification_method",
-        "created_at",
-        "domain?",
-        "audience?"
-      ],
-      "defined_in": "zh/authz/capabilities.md",
-      "schema_ref": "schemas/capability-grant.schema.json"
     },
     {
       "context": "ak.control-proposal-decision-proof-v1",

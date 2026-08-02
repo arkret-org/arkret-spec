@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-08-02.1",
+  "version": "2026-08-02.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -551,24 +551,10 @@
       "operation_id": "ak.self.direct_conversation.command.resolve",
       "http_alias": "POST /_arkret/self/direct-conversations/resolve",
       "operation_specific": [
-        "not_found",
         "failed_precondition",
-        "keypackage_unknown",
-        "direct_conversation_unavailable",
-        "direct_conversation_lineage_conflict",
-        "direct_conversation_predecessor_required",
-        "direct_conversation_retirement_evidence_required"
+        "direct_conversation_unavailable"
       ],
-      "description": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true returns participant-authoring retirement/materialization steps as needed and only found identifies the canonical active entry."
-    },
-    {
-      "operation_id": "ak.self.direct_conversation_segment.query.list",
-      "http_alias": "POST /_arkret/self/direct-conversations/segments/query",
-      "operation_specific": [
-        "not_found",
-        "direct_conversation_lineage_conflict"
-      ],
-      "description": "Principal-private read of one pair's verified canonical segment chain. An unknown/invisible pair is not enumerable; an internally conflicting verified lineage fails closed instead of being timestamp-sorted."
+      "description": "Idempotent resolver for a pair's one stable conversation. Existing conversations return found or suspended without a KeyPackage lookup. All undisclosable no-binding, peer, contact and consent failures collapse to direct_conversation_unavailable; typed success states are found, creation_required, suspended and temporarily_unavailable."
     },
     {
       "operation_id": "ak.find.directory.command.announce",
@@ -950,7 +936,7 @@
         "media_plaintext_service_not_authorised",
         "media_service_foci_required"
       ],
-      "description": "Media service token exchange (zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ak.call.join capability, focus_id against current foci[], session_focus persistence, MLS governance binding policy_root freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ak.realm.media_service does not declare explicit foci[]."
+      "description": "Media service token exchange (zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ak.call.join capability, focus_id against current foci[], session_focus persistence, MLS media security-frontier freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ak.realm.media_service does not declare explicit foci[]."
     },
     {
       "operation_id": "ak.root.identity.registry.query.describe",

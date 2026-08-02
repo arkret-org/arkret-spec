@@ -50,7 +50,7 @@ updated: 2026-07-02
 | User / client | Arkret principal DID + device id，可按 Realm policy 使用 pairwise DID 或 room-scoped pseudonym。 |
 | Room | Arkret Strand discussion track 的 MIMI room 投影，可附带所在 Realm 的最小上下文。 |
 
-MIMI facade 不是新的真相源。Arkret native 侧的 canonical truth 是 signed DataEvent、Control Move、Seal coverage、Lattice cell state、capability refs 与 MLS Governance Binding（`governance_binding` + `covered_seals_cell`）。MIMI room state 是对这些状态的互操作投影。
+MIMI facade 不是新的真相源。Arkret native 侧的 canonical truth 是 signed DataEvent、Control Move、Seal coverage、Lattice cell state、capability refs 与 MLS Security Frontier Binding（`governance_binding.security_frontier_digest` + active generation projection）。MIMI room state 是对这些状态的互操作投影。
 
 ## 3. Provider Discovery
 
@@ -191,7 +191,7 @@ signature 合法但 directory JWS 无效（及反向）等负向量。
   - `follower`:本地 facade 作为 follower provider 参与远端 hub 拥有的 room,接收 fanout 并向 hub 提交本地 writes;
   - `observer`:本地 facade 只读投影该 room（监听 fanout / groupInfo 用于本地呈现或审计），MUST NOT 代表本地参与方向 MIMI room 提交 writes 或承担 hub fanout 职责。
 - `ak.mimi.room_binding` 的创建、更新和撤销 MUST require `ak.policy.manage`、`ak.realm.admin` 或等价 interop capability。
-- E2EE MIMI room MUST 绑定 `mls_group_id`，并按 [`../crypto-media/encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md)（MLS Governance Binding）的 `covered_seals_cell` precondition 校验 membership、policy 和 capability。
+- E2EE MIMI room MUST 绑定 `mls_group_id`，并按 [`../crypto-media/encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md) 校验当前 epoch 的 `security_frontier_digest`；membership、实际 leaf key 与 key-access policy 进入 frontier，普通 capability 仍由 Event admission 独立校验。
 - MIMI facade 在无法解析或验证 Arkret MLS Governance Binding 时 MUST fail closed：入站 MIMI room state、groupInfo、key material 或 message 不得直接投影到 Arkret Realm，而是进入 quarantine，reason=`mimi_governance_binding_missing` 或更具体的 binding mismatch 错误。
 - 撤销 binding 后，facade MUST 停止接受新的 MIMI writes，只允许 backfill、tombstone、report、legal hold 或 migration proof 等维护操作。`status` 的完整生命周期状态机（初始状态、合法迁移、终态、非法迁移拒绝、`migrating` 窗口与并发收敛）见 §4.2。
 
@@ -199,7 +199,7 @@ signature 合法但 directory JWS 无效（及反向）等负向量。
 
 - `ak.mimi.room_binding.mls_group_id`、MIMI groupInfo 中的 group id、Arkret `governance_binding.mls_group_id` 必须一致；
 - `governance_binding.binding_profile` 与 `governance_binding.reducer_profile` 必须存在且被本 facade 支持；未知或缺失时不得用 MIMI draft 字段、provider 目录或本地配置补齐；
-- `covered_seals_cell` 必须覆盖要投影消息依赖的 Arkret governance frontier；
+- active MLS generation 的 `security_frontier_digest` 必须等于从当前 accepted key-access state 重算的值；
 - MIMI 未知字段仍按 §9.2 安全惰性处理，不得提升 provider role、放宽 `policy_root` 或改变 MLS epoch / group state 判定。
 
 `ak.profile.e2ee_relaxed.v1` 不得被 facade 对外表述为等价 full MLS Governance Binding。若本地 Realm 是 relaxed 降级，facade 只有在双方都显式声明 Arkret relaxed 语义、且满足 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.4.1 的 federation guard 时，才可投影 relaxed 窗口内的消息；否则 MUST reject / quarantine，reason 使用 `mimi_room_state_incompatible`、`mimi_governance_binding_missing` 或 `mimi_governance_binding_mismatch`。
@@ -271,9 +271,9 @@ MIMI facade 至少定义以下 canonical operation：
 
 HTTP Message Signature profile（适用于 provider-to-provider 写入）：
 
-- 请求 MUST 携带 `Signature`、`Signature-Input`、`Content-Digest`、`Request-Canonical-Digest`、`Source-Service-ID`、`Destination-Service-ID` 和 `Provider-ID`；room-scoped endpoint 还 MUST 携带 `MIMI-Room-URI`。
-- sender MUST 按 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md) 把 `canonical_json(request_body)` 的结果逐字节作为 exact HTTP message content，且不得应用 `Content-Encoding`；`Content-Digest` MUST 是 RFC 9530 `sha-256=:base64(SHA-256(exact_http_content_bytes)):`，`Request-Canonical-Digest` MUST 是同一组 bytes 的 Arkret `sha256:<lowercase-hex>` digest。receiver MUST 先对收到的 exact content bytes 校验二者，再严格解析并确认 wire 本身就是 canonical JSON；MUST NOT parse arbitrary JSON 后仅对 canonicalized value 求 digest。
-- `Signature-Input` 的 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`request-canonical-digest`、`source-service-id`、`destination-service-id`、`provider-id`；room-scoped endpoint MUST additionally cover `mimi-room-uri`。`created`、`expires`、`keyid` 和 `alg="ed25519"` 参数 MUST 存在，且 `expires-created <= 300s`、`created` 在接收方时钟 ±30s 内、`expires` 未过期。
+- 请求 MUST 携带 `Signature`、`Signature-Input`、`Content-Digest`、`Source-Service-ID`、`Destination-Service-ID` 和 `Provider-ID`；room-scoped endpoint 还 MUST 携带 `MIMI-Room-URI`。
+- sender MUST 按 [`../sync/service-http-binding.md` §2.5.1](../sync/service-http-binding.md) 把 `canonical_json(request_body)` 的结果逐字节作为 exact HTTP message content，且不得应用 `Content-Encoding`；`Content-Digest` MUST 是 RFC 9530 `sha-256=:base64(SHA-256(exact_http_content_bytes)):`。receiver MUST 先校验 exact content bytes 的 `Content-Digest`，再严格解析并确认 wire 本身就是 canonical JSON，并从这些 bytes 内部计算 Arkret request digest；MUST NOT parse arbitrary JSON 后仅对 canonicalized value 求 digest。
+- `Signature-Input` 的 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-id`、`destination-service-id`、`provider-id`；room-scoped endpoint MUST additionally cover `mimi-room-uri`。`created`、`expires`、`keyid` 和 `alg="ed25519"` 参数 MUST 存在，且 `expires-created <= 300s`、`created` 在接收方时钟 ±30s 内、`expires` 未过期。
 - `keyid` MUST 是 `Source-Service-ID` 所控制的 Ed25519 verification method；接收方 MUST 用已接受的 service key binding 或已配置信任根取得它。只有新 service / key、binding invalidation 或显式 freshness 失效时才做 DID authority resolution，普通请求不得逐次在线解析。HTTP signature 只认证 provider service source，不替代 Actor DID/device 签名、MLS transcript、capability 或 Realm policy 校验。
 
 Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Arkret DataEvent、Control Move 或 to-device message。MIMI 传输签名只证明 provider 来源，不替代 Actor DID / device 签名、MLS transcript、capability 或 Realm policy。
@@ -319,7 +319,7 @@ Bearer user session 只证明当前调用会话；它 MUST 与 `actor_id` 一致
 
 1. 验证 provider signature、room binding、destination、body digest 和重放窗口。同时 MUST 校验本 binding 的 `local_provider_role ∈ { hub, follower }`;`local_provider_role=observer` 的 binding 不得代表本地参与方提交 writes(见 §4),facade MUST 拒绝该 submit_message,reason=`mimi_observer_write_forbidden`。
 2. 验证 MLS epoch 与 `ak.mimi.room_binding.mls_group_id` 匹配。
-3. 按 MLS Governance Binding 验证：commit 携带的 `governance_binding` 解析到的 Arkret Seal view 与 state_root，且 `covered_seals_cell` 覆盖该消息所需 governance frontier。
+3. 按 MLS Security Frontier Binding 验证：Commit 携带的 `governance_binding.security_frontier_digest` 与从 accepted key-access state 重算的值相同，消息 group/epoch 指向该 active generation；普通 Event `seal_ref` 另行通过 admission。
 4. 将 MIMI content container 映射为 `ak.message.create`、`ak.message.revise`、`ak.message.redact`、`ak.reaction.add`、`ak.reaction.remove` 或 `ak.relation.*`。
 5. 保留原始 MIMI envelope hash、provider id、message id 和 accepted timestamp 作为 interop metadata。
 6. 对无法确认授权、epoch、content 或 policy 的消息返回 `temporarily_unavailable`、`dependency_missing`、`capability_denied` 或 `quarantine`。

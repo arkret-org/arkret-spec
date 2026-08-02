@@ -83,13 +83,13 @@ sidebar:
 
 `ak.realm.media_service` 的 `service_id`、`ice_config_endpoint` 与 `foci[].token_endpoint` 是媒体 token / TURN credential 签发权与 issuer DID 锚定的**信任根**(见 §3 / §7 与 [`call-state.md` §4.1](./call-state.md))。为保证"谁担保该 `service_id` / endpoint 列表未被篡改",本节固定:
 
-- `ak.realm.media_service` state event(含其 `service_id`、`ice_config_endpoint` 与全部 `foci[].token_endpoint`)MUST 被纳入该 Realm policy 的 `policy_root`,并被**当前 epoch 的 MLS governance binding**(见 [`encryption-and-audit.md` §2.5](./encryption-and-audit.md))覆盖;`policy_root` 物化时 MUST 把该 event 的 canonical digest 作为输入之一。
-- 客户端在把 `service_id` / `ice_config_endpoint` / `foci[].token_endpoint` 锚定为 credential issuer DID **之前**,MUST 校验该 event 处于当前 epoch governance binding 覆盖之下(即其 digest 可由当前 `policy_root` / governance binding 重建);覆盖校验失败 MUST fail closed(`media_service_binding_uncovered`),不得向未被治理绑定覆盖的 endpoint 兑换 token 或 ICE/TURN credential。
-- 服务端 MUST NOT 在实时路径中接受或回填未被当前 epoch governance binding 覆盖的 `ak.realm.media_service`;epoch 推进后，旧 epoch 覆盖的媒体服务声明 MUST 重新经新 epoch governance binding 覆盖才继续作为 issuer 信任根。
+- `ak.realm.media_service` state Event（含 `service_id`、`ice_config_endpoint` 与全部 `foci[].token_endpoint`）MUST 通过普通 Event proof、CBA admission 与 accepted Seal state 物化；客户端不得接受未进入当前 accepted policy projection 的本地/OOB endpoint。
+- 客户端在把这些字段锚定为 credential issuer DID 前，MUST 从当前 accepted Seal view 验证该 exact cell value 与 Event proof；缺失或 stale 时 fail closed（`media_service_binding_uncovered`）。普通 endpoint 变更不改变 MLS key 持有人，因此不得仅为它强制 rekey。
+- 只有 `media_service_decrypts` 或 `plaintext_visible_services` 的 accepted effect 改变媒体明文/密钥接收者时，才按 [`encryption-and-audit.md` §2.5](./encryption-and-audit.md) 进入 `security_frontier_digest` 并等待新 Commit。
 
 ## 3. Token Exchange (normative)
 
-会议加入前，客户端 MUST 先向 `foci[].token_endpoint` 兑换 backend 凭证；issuer 是 Arkret-side 授权组件，对协议层不透明的 `backend_token` 由 backend SDK 解析。Token endpoint 等价于 [MSC4195 `lk-jwt-service`](https://github.com/element-hq/lk-jwt-service)，但绑定到 Arkret 的 capability / Realm policy / MLS governance binding。
+会议加入前，客户端 MUST 先向 `foci[].token_endpoint` 兑换 backend 凭证；issuer 是 Arkret-side 授权组件，对协议层不透明的 `backend_token` 由 backend SDK 解析。Token endpoint 等价于 [MSC4195 `lk-jwt-service`](https://github.com/element-hq/lk-jwt-service)，但绑定到 Arkret 的 capability、当前 accepted Realm policy；服务实际取得媒体明文时还必须绑定 MLS security frontier。
 
 请求：
 
@@ -165,7 +165,7 @@ Token issuer MUST 在签发前校验：
 - Realm policy 允许该 `focus_id`（即 focus 出现在当前 `ak.realm.media_service.foci[]` 中）。
 - 如果 `ak.component.call.focus.v1` 已存在 `session_focus`，请求的 `focus_id` 必须与其完全一致；不一致 MUST 返回 `focus_mismatch`。
 - call state 允许新 participant；且按分层 predicate 校验该 `(actor_id, device_id)`：actor 在 `realm_id` 的 Realm membership 为 `join`（若 scoped 到 Circle 则同时为该 Circle 活跃成员）、account status 不为 `suspended` / `deactivated` / `erasure_pending`、`device_id` 的 device grant 未 revoked。
-- MLS governance binding `policy_root` 与 `ak.realm.media_service` 当前 epoch 一致（防 stale policy）；不一致返回 `mls_governance_binding_stale`。
+- `ak.realm.media_service` 与 token request 使用同一 current accepted policy projection；stale endpoint 返回 `media_service_binding_uncovered`。若服务将解密媒体，另要求 active MLS `security_frontier_digest` 覆盖当前 key-access policy；不一致返回 `mls_governance_binding_stale`。
 - 如果 backend 将解密媒体（`media_service_decrypts=true`），完整执行 §8.2 的三层校验。
 
 ### 3.1 签名 domain label 分离（normative）
@@ -286,11 +286,11 @@ Conformance vectors for the full media binding framework：
 
 `media_service_decrypts=true` **不**是一个可单独由 SFU 服务自报或客户端配置的开关。它 MUST 同时满足下列约束，否则客户端 MUST 拒绝加入会议、SFU MUST 拒绝媒体协商：
 
-1. **进入 `ak.realm.policy_bundle`**：`media_service_decrypts=true` MUST 由一条 `ak.realm.policy_bundle`（或对应 Realm policy facet event）显式写入，受 capability `ak.policy.manage` 控制，并随 Realm policy `policy_root` 一同被 [`encryption-and-audit.md` §2.5](./encryption-and-audit.md) 的 MLS governance binding 覆盖。policy_root 未包含该开关时 MUST 视为未开启。
+1. **进入 `ak.realm.policy_bundle`**：`media_service_decrypts=true` MUST 由一条 `ak.realm.policy_bundle` 显式写入，受 capability `ak.policy.manage` 控制；当前 accepted bundle 未包含该开关时 MUST 视为未开启。
 2. **进入 `plaintext_visible_services`**：解密媒体的 SFU / MCU service DID MUST 在 Realm policy 的 `plaintext_visible_services[]`（或等价 media plaintext service policy）中显式列出，且该条目的机器可判定 `data_classes[]` MUST 包含 `media_plaintext`。自由文本 `purposes` 只作解释，MUST NOT 单独授权明文。仅出现在 `media_services[]`、仅在 `purposes` 中声称媒体处理用途，或未获 `media_plaintext` data class 的服务 MUST 被视为禁止解密媒体的 SFU；其试图协商解密角色时 MUST 返回 `media_plaintext_service_not_authorised`。
-3. **MLS Governance Binding 覆盖**：成员在 join 前 MUST 校验当前 epoch 的 governance binding `policy_root` 涵盖前两条规则的 cell value；不一致时 MUST 触发 `mls_governance_binding_stale` 并拒绝媒体协商（不能依赖 SFU 单方面声明）。
-4. **Downgrade 攻击拒绝**：从 `media_service_decrypts=false` 切换到 `true`（或反向）MUST 走 `ak.realm.policy_bundle` 正常路径并伴随客户端 UI 显著二次确认；UI 未展示警示或用户未完成二次确认时 MUST 在发放 join token / media key 前拒绝（`media_plaintext_warning_required`）。不允许 SFU 直接以 OOB 控制信号宣告自己已"获得解密权"。在 governance binding 尚未 commit 新 policy_root 的窗口内，客户端 MUST 沿用旧 policy 视图判定，禁止根据 OOB 字段提前授权。
-5. **进入成员可见 metadata**：`media_service_decrypts=true` 这一"该 Realm 媒体可被服务解密"的事实 MUST 进入 governance binding 覆盖的成员可见 metadata（如 `discussion_metadata_digest`），使任意成员无需依赖客户端 UI 即可从 MLS transcript 独立复算该事实。该 digest MUST 由前 1–3 条所覆盖的 policy cell value 确定性派生；成员本地复算结果与 governance binding 覆盖值不一致时 MUST 触发 `mls_governance_binding_stale` 并拒绝媒体协商。
-6. **Conformance negative vector** `ak.vector.webrtc.media_plaintext_downgrade.v1` 必须覆盖：(a) policy_root 未覆盖 `media_service_decrypts` ⇒ 拒绝加入；(b) SFU 未列入 `plaintext_visible_services` 而协商解密 ⇒ 拒绝媒体；(c) UI 未显示警示 ⇒ 拒绝加入；(d) 成员从 MLS transcript 独立复算的 `media_service_decrypts` 事实与 governance binding 覆盖的成员可见 metadata 不一致 ⇒ 拒绝媒体协商。
+3. **MLS Security Frontier 覆盖**：成员在 join 前 MUST 独立重算当前 epoch 的 `security_frontier_digest`，确认它覆盖前两条规则产生的实际 key-access value；不一致时 MUST 触发 `mls_governance_binding_stale` 并拒绝媒体协商（不能依赖 SFU 单方面声明）。
+4. **Downgrade 攻击拒绝**：从 `media_service_decrypts=false` 切换到 `true`（或反向）MUST 走 `ak.realm.policy_bundle` 正常路径并伴随客户端 UI 显著二次确认；UI 未展示警示或用户未完成二次确认时 MUST 在发放 join token / media key 前拒绝（`media_plaintext_warning_required`）。不允许 SFU 直接以 OOB 控制信号宣告自己已"获得解密权"。由于该事实改变谁可取得媒体密钥，它必须改变 media scope 的 `security_frontier_digest`；新 Commit accepted 前客户端沿用旧视图并禁止按 OOB 字段提前授权。
+5. **进入密钥访问前沿**：`media_service_decrypts=true` 这一事实 MUST 从前 1–3 条所覆盖的 policy cell value 确定性进入 media security frontier，使任意成员无需依赖客户端 UI 即可从 MLS transcript 独立复算。成员本地重算结果与 active generation digest 不一致时 MUST 触发 `mls_governance_binding_stale` 并拒绝媒体协商；该规则不把普通 discussion metadata 加入消息 MLS frontier。
+6. **Conformance negative vector** `ak.vector.webrtc.media_plaintext_downgrade.v1` 必须覆盖：(a) security frontier 未覆盖 `media_service_decrypts` ⇒ 拒绝加入；(b) SFU 未列入 `plaintext_visible_services` 而协商解密 ⇒ 拒绝媒体；(c) UI 未显示警示 ⇒ 拒绝加入；(d) 成员从 accepted policy 独立复算的 media key-access fact 与 active generation digest 不一致 ⇒ 拒绝媒体协商。
 
-实际效果：SFU / MCU 不能在 MLS transcript 之外单独变更为可解密媒体的一方。任何看起来"切换成功"但未被 governance binding 覆盖的状态都是 attack，必须 fail closed。
+实际效果：SFU / MCU 不能在 MLS transcript 之外单独变更为可解密媒体的一方。任何看起来“切换成功”但未被 security frontier 覆盖的状态都是 attack，必须 fail closed。

@@ -4163,11 +4163,8 @@
     },
     "EventInitialSubmission": {
       "type": "object",
-      "description": "Initial durable Event publication. The Event remains the only signed business fact; lease and dependency bundles are independently verified publication evidence and are excluded from the Event digest.",
-      "required": [
-        "event",
-        "authorization_lease"
-      ],
+      "description": "Initial durable Event publication. Online submission requires only the complete signed Event and performs current-state admission atomically. authorization_lease is optional and valid only for an explicitly requested delayed/offline publication window. Lease and dependency bundles are excluded from the Event digest.",
+      "required": ["event"],
       "properties": {
         "event": {
           "$ref": "#/$defs/EventSubmitEnvelope"
@@ -4193,10 +4190,9 @@
     },
     "EventFederationSubmission": {
       "type": "object",
-      "description": "Previously receipted Event publication evidence transported between peers. The receiving peer revalidates the Event, lease, receipts and CBA closure independently.",
+      "description": "Previously receipted Event publication evidence transported between peers. The receiving peer independently revalidates the Event, receipts, CBA closure and, only when present, an explicit delayed/offline authorization lease.",
       "required": [
         "event",
-        "authorization_lease",
         "ingress_receipts"
       ],
       "properties": {

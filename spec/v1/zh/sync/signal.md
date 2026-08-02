@@ -255,8 +255,8 @@ request 是闭合对象：
 `payload_too_large`。
 
 本 operation 复用 [`federation.md` §3.2](./federation.md) 的 service-to-service HTTP Message
-Signature profile。带 body 的 request MUST 携带并签名覆盖 `Content-Digest` 与
-`Request-Canonical-Digest`，并覆盖 `@method`、`@target-uri`、`@authority`、
+Signature profile。带 body 的 request MUST 携带并签名覆盖 `Content-Digest`，并覆盖
+`@method`、`@target-uri`、`@authority`、
 `Source-Service-ID`、`Destination-Service-ID`、两个 trust domain，以及 shared ingress
 时的 `Destination-Service-Endpoint-Digest`。本 operation 把通用签名窗口进一步收紧为
 `expires-created ≤ 5 seconds`；其它 clock-skew、endpoint、canonical body 与最小披露规则不变。

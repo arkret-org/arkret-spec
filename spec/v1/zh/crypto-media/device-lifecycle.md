@@ -155,7 +155,7 @@ stage 请求携带 proof 等负向量。
 
 当设备丢失时，用户可从任何其他已授权设备、DID 控制密钥或 recovery policy 允许的恢复服务发起吊销操作：发布 `ak.device.revoke`，停止接受该设备的新签名写入，并对受影响的 MLS 群组触发 `Remove` 与 Epoch 更新。若该设备曾被写入 DID Document，撤销流程还必须按 DID method 规则移除或失效对应 verification method。
 
-`ak.device.revoke` 是 principal control stream 上的 Control Move：其 Event Envelope MUST 携带 `seal_basis`（撤销方签名时观察到的 accepted Seal view `{leaves[], control_event_set_root, state_root}`，进入 canonical event bytes 并被撤销证明签名覆盖，见 `../authz/event-auth-state-resolution.md` §5）；payload 不携带任何 frontier 字段。客户端铸造单 leaf basis 的注册来源是 `ak.self.events.query.frontier?realm_id=<principal_control_realm_id>`（Realm Seal view `{realm_id, seal_id, control_event_set_root, state_root, hlc?}`，取 `leaves=[seal_id]`）；该来源不可用时 MUST fail closed，不得伪造 basis。撤销自被 accepted Seal 覆盖（`control_sealed`）起生效；Principal Server / Sync Service 在拒绝该设备后续 session grant、KeyPackage、to-device write 或 Event write 时，MUST 以该 covering Seal 或其后继 Seal view 作为判定依据，不得用本地布尔缓存替代。
+`ak.device.revoke` 是 principal control stream 上的 Control Move：其 Event Envelope MUST 携带 `seal_basis={leaves[]}`（撤销方签名时观察到的 accepted Seal refs，进入 canonical Event bytes 并被撤销证明签名覆盖，见 `../authz/event-auth-state-resolution.md` §5）；payload 不携带任何 frontier 字段。客户端铸造 single-leaf basis 的注册来源是 `ak.self.events.query.frontier?realm_id=<principal_control_realm_id>` 返回的 Realm Seal view，取 `leaves=[seal_id]`；client MUST 验证所引 Seal并自行重算 roots，但不把 roots 复制进 Event。来源不可用时 MUST fail closed，不得伪造 basis。撤销自被 accepted Seal 覆盖（`control_sealed`）起生效；Principal Server / Sync Service 在拒绝该设备后续 session grant、KeyPackage、to-device write 或 Event write 时，MUST 以该 covering Seal 或其后继 Seal view 作为判定依据，不得用本地布尔缓存替代。
 
 **accepted→sealed 窗口的预先 fail-closed（normative）**：撤销已被受理服务 accepted、但尚未被 covering Seal 覆盖（`control_sealed`）的窗口内，受理服务对该设备后续 session grant / KeyPackage / to-device write / Event write 的处置规则按 profile 分级：
 
@@ -163,7 +163,7 @@ stage 请求携带 proof 等负向量。
 - **声明 `ak.profile.e2ee_client.v1` 或任何专门 hardening / 高安全 deployment profile（如 `high_security_organization` / `sovereign_deployment`）的部署 MUST 在该窗口内预先 fail closed**——高安全语境下"撤销已提交即不再为该设备服务"是硬承诺，不得在等待 Seal 期间继续放行被撤销设备的写入或密钥获取。
 - receipt→decision 窗口 MUST 服从 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §7.2 的 proposal 有界决议合同；它保证 include / signed-reject / bounded signed-defer 之一，不保证 proposal 被接受，也不是 Seal finality SLA。设备撤销 proposal 尚未进入 accepted Seal 时，若旧授权安全性无法证明，受理服务 MUST fail closed；MLS-backed scope 另受 [`encryption-and-audit.md` §2.4](../crypto-media/encryption-and-audit.md) `max_mls_commit_delay_ms` 发送阻塞窗口约束。迟到但有效的 Seal 仍按 CBA 规则接受，decision-overdue fault 保留。
 
-共享 E2EE Realm 不能只看到“某设备已撤销”的服务端布尔值就推进新 epoch。对应 `ak.mls.commit` Remove 的 `governance_binding.membership_frontier` MUST 覆盖该 `ak.device.revoke` 事件本身，或覆盖一个已经把该撤销导入 Realm governance state 的显式 Control Move，且该撤销 MUST 已被 principal control stream 的 accepted Seal 覆盖；否则该 Remove 不满足 MLS Governance Binding，新的 `covered_seals_cell` 不得声称已覆盖该设备撤销。
+共享 E2EE Realm 不能只看到“某设备已撤销”的服务端布尔值就推进新 epoch。对应 `ak.mls.commit` Remove 的 `governance_binding.security_frontier_digest` MUST 从已经包含该 `ak.device.revoke` 或将其导入 Realm 的显式 leaf-remove Control Move 的 accepted state 重算，且该撤销 MUST 已被 principal control stream 的 accepted Seal 覆盖；否则 Commit 不满足 MLS Security Frontier Binding，active generation 不得推进。
 
 
 ## 3. 企业单点登录 (SSO / OIDC Gateway)
@@ -1089,7 +1089,7 @@ peer claim MUST 同时满足两层授权，任一层缺失或失效都 MUST fail
    `claim_authorization_draft` MUST 是闭合的 `{request, transport_binding}` 对象；`transport_binding` 明确携带 `source_service_id`、`destination_service_id`、`source_trust_domain` 与 `destination_trust_domain`。客户端 MUST 对 resolver 返回的这些值作 UI / account-context 一致性校验后原样签名，MUST NOT 从本地 endpoint 配置猜测或替换它们。`signature.kid` MUST 等于 `verification_method`。cross-signing 模型必须且只能携带当前 accepted `ssk_generation`，并由该代 SSK 签名；§5.4 service-attested / enrollment-authority 模型必须且只能携带 `requester_device_id + device_authorize_event_id`，并由该 accepted、未撤销设备的 `device_public_key` 签名。目标服务 MUST 独立解析 requester DID / accepted generation / device authorization，不得信任来源服务对 participant key 的裸断言。
 
    对 service-attested device model，客户端签名后，来源 Principal Server MUST 在发往 peer command 的 body 追加 `requester_signing_key_evidence`（schema `federated-device-signing-key-evidence.schema.json`）。该字段不进入 participant authorization transcript，也不得由客户端自报：其中 `device_authorize_event` 必须是来源当前 active device projection 所引用的原始 accepted `ak.device.authorize` Event。目标服务 MUST 重算该 Event digest / proof transcript，按 Event accepted-at 时点从 requester DID 独立验证 enrollment delegation 与 authority proof，并逐字核对 actor、device、`device_public_key` 和 `device_authorize_event_id` 后，才可用该 key 验证 participant authorization。外层来源服务签名只证明该已验证授权当前仍 active；它不能把裸 key 升格成 participant trust root。cross-signing model 不使用此 evidence；目标必须能从已验证的 requester cross-signing state 独立解析指定 generation，否则 peer claim fail closed。
-2. **service authorization**：外层请求 MUST 使用 RFC 9421 HTTP Message Signature，绑定 `@method`、`@target-uri`、`@authority`、`Content-Digest`、`Request-Canonical-Digest`、`Source-Service-ID`、`Destination-Service-ID`、`Source-Trust-Domain`、`Destination-Trust-Domain` 与 `Idempotency-Key`。`Idempotency-Key` MUST 逐字等于 body `claim_request_id`。
+2. **service authorization**：外层请求 MUST 使用 RFC 9421 HTTP Message Signature，绑定 `@method`、`@target-uri`、`@authority`、`Content-Digest`、`Source-Service-ID`、`Destination-Service-ID`、`Source-Trust-Domain`、`Destination-Trust-Domain` 与 `Idempotency-Key`。`Idempotency-Key` MUST 逐字等于 body `claim_request_id`。
 
 `claim_request_id` 与 `claim_nonce` 各自 MUST 含至少 128 bits 不可预测熵。`requester_authorization.signed_at` 不得在接收方当前时间未来 60 秒以上；`expires_at` MUST 晚于 `signed_at` 且 `expires_at - signed_at <= 300s`。外层 HTTP signature 的 `created` / `expires` 窗口同样 MUST 不超过 300 秒。两层签名均绑定 source / destination / trust-domain，可阻断可信来源服务把授权转发给另一目标或另一部署重放。
 
@@ -1107,7 +1107,7 @@ peer claim MUST 同时满足两层授权，任一层缺失或失效都 MUST fail
 
 #### 9.2.3 原子幂等 ledger 与不确定结果
 
-目标 authority MUST 持久化以 `(Source-Service-ID, claim_request_id)` 唯一索引的 claim ledger，并将 `Request-Canonical-Digest` 记为 `request_digest`。下列动作必须处于同一事务 / 等价线性化边界：
+目标 authority MUST 持久化以 `(Source-Service-ID, claim_request_id)` 唯一索引的 claim ledger，并把从已验证 exact canonical body bytes 内部计算的 Arkret digest 记为 `request_digest`。下列动作必须处于同一事务 / 等价线性化边界：
 
 1. 核对已由唯一索引保护的 request reservation 与 digest；
 2. 选择仍为 `published` 且通过 freshness / capability gate 的 KeyPackage；

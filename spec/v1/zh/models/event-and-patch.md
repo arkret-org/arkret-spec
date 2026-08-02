@@ -66,7 +66,7 @@ Schema id: `ak.schema.event.v1`
 | `preconditions` | conditional | `array<Predicate>` | 仅 Control Move 携带；在 `seal_basis` 治理 view 下求值。DataEvent MUST 省略。 | 控制面原子条件。 |
 | `seal_ref` | conditional | `id:seal` | DataEvent 必填；指向已接受控制面 Seal，作为授权验证基线。 | 数据面授权基准。 |
 | `auth_context` | conditional | `object` | DataEvent 必填；pin DID/key epoch。有效 capability 集合从 `seal_ref` 治理状态派生，producer 不提交重复引用。 | 数据面签名密钥上下文。 |
-| `seal_basis` | conditional | `object` | Control Move 必填；`{leaves[], control_event_set_root, state_root}` 全部进入 canonical bytes。 | 控制面提交基线。 |
+| `seal_basis` | conditional | `object` | Control Move 必填；只含 canonical sorted、duplicate-free `leaves[]` 并进入 canonical bytes。receiver 验证这些 Seal 并重算 covered control set、joined state 与 Seal roots；不得由 producer 重复抄写 roots。 | 控制面提交基线。 |
 | `payload` | yes | `object` | 由 event kind schema 定义。 | 事件负载。 |
 | `redacts` | no | `id:event` | 仅 redaction event 使用。 | 被撤回事件。 |
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。**producer / self submit 与 peer submit 的 Event MUST NOT 携带该字段**；它只能由接收服务在 read view 上添加，任何实现都 MUST NOT 把它用于身份、授权、reducer 或签名判断。service-added `unsigned` 单对象 canonical JSON MUST NOT 超过 16 KiB，见 [`../conformance/scalability-constraints.md` §2.1.1](../conformance/scalability-constraints.md)。 | 仅 read view 的本地/传输附加信息。 |
@@ -110,6 +110,20 @@ validator 构造；SDK MUST NOT 用“一个或一批 Event 的 CBA 条件字段
 Unit。raw `Event` MAY 用于反序列化、检查、草稿中间态或兼容读取，但 MUST NOT 绕过上述
 转换直接进入 publication-evidence 或 submit 网络边界。转换失败 MUST 在发起网络请求前
 fail closed。
+
+#### 2.2.2 SDK orchestration 边界（normative）
+
+官方 SDK MUST 为跨多次 HTTP round trip 的安全流程提供单一高层入口，至少包括
+`resolve_or_create_direct_conversation(peer)`、`deactivate_agent(agent_id, reason)` 与
+`prepare_mls_security_commit(scope)`。调用方只持有服务返回的一个 durable `operation_id` 和闭合
+`next_action` variant；SDK 必须穷尽处理该 union，并在 restart/retry 后恢复同一 operation。产品代码
+不得自行分配第二组 Event id、Realm/main Strand、KeyPackage claim 或 MLS Commit draft。
+
+`deactivate_agent` 只 author 一个 controller-signed terminal lifecycle Event；
+`prepare_mls_security_commit` 从 accepted state 重算当前 `security_frontier_digest` 并构造含完整 RFC 9420
+Commit bytes 的 `MlsCommitPayload`。所有高层入口最终都必须返回 §2.2.1 的 immutable verified
+submission；任何返回 raw mutable map、让调用方补 CBA 字段或自行拼 transcript 的 API 不合规。
+该边界由 `ak.vector.sdk.event_type_axes.v1` 的 compile-fail/type-error suite 固定。
 
 Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。`effects`、`conflict_keys_digest` 与 producer-selected `auth_context.capability_refs` 均不是 v1 wire 字段；遇到它们 MUST `schema_violation`。扩展字段不得直接加在顶层；非关键扩展只能放入 payload schema 明确声明的 `x_*` 槽。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的扩展字段；关键扩展必须通过 `requirements.critical_extensions[]` 声明并 fail closed。
 
@@ -242,19 +256,9 @@ receiver MUST 从签名 envelope、schema-validated payload 与冻结前态重�
   `expected_prestate` 是在此之上的额外守卫，不是替代品。
 - `{"kind":"append","value":source,"issuer_seq":source}` 只用于 `ordered_log`，精确派生 `{"kind":"append","value":...,"issuer_seq":...}`；`issuer_seq` 必须求值为无符号整数。
 - `{"kind":"or_set_delta","selector":"payload.<path>","branches":{...}}` 只用于 `or_set`。selector 值必须精确命中一个 branch；每个 branch 的 `op` 只能为 `add` 或 `remove`。`add` 必须同时登记 `tag` 与 `value` source，`remove` 必须只登记 `tag` source；分别精确派生同名 op。
-- `or_set_add` 产生一个 add；`or_set_batch_add` 对已验证、唯一的 payload array 逐项 add。
-  批量形式只用于 MLS Governance Binding 的 `covered_seal_refs`，数组顺序按 canonical value
-  排序后编号，确保不同接收方产生同一 tag 集。其 tag 编码固定为（与
-  [`../conformance/encoding.md`](../conformance/encoding.md) §9.5.1 的 `string_set_digest` 同构）：
-
-  ```text
-  batch_tag(i) = base64url_nopad(sha256(
-      utf8(tag_context) || 0x0A || utf8(dot) || 0x0A || canonical_json(values[i])
-  ))
-  ```
-
-  其中 `dot` 是本 write 的 canonical dot（见下），`values[]` 已按 canonical value 升序排序，
-  `i` 是排序后的 0-based 下标。任何其它 digest 算法、拼接顺序、分隔符或输出编码都不符合 v1。
+- `or_set_add` 产生一个 add。v1 active reducer contract 不登记 producer array 到多条 OR-Set add
+  的通用展开；需要多个独立 add 时必须使用各自已登记的 Event/write，不能把 payload 数组解释为
+  隐式 reducer 程序。
 - `{"kind":"or_set_remove_observed"}` 与
   `{"kind":"or_set_remove_observed","match":{"element_field":"<name>","source":source}}`
   只用于 `or_set`。无 `match` 时移除该目标 cell 在**冻结前态**下全部存活的 add dot；
@@ -278,7 +282,7 @@ receiver MUST 从签名 envelope、schema-validated payload 与冻结前态重�
   推断并移除未枚举的其它 dot。元素 MUST 是本节定义的 canonical dot 形态；数组为空、含重复项、
   含非 dot 字符串，或 `source` 路径不存在，均 MUST fail closed。
 
-  这是 `or_set_batch_add` 之外唯一的批量特例，只用于**部分撤销**：移除集合由 producer 在
+  这是 v1 唯一的批量 OR-Set 特例，只用于**部分撤销**：移除集合由 producer 在
   payload 中显式枚举，而不是由冻结前态确定。它与 `or_set_remove_observed` 的分工是封闭的——
   前者移除 producer 指名的子集，后者移除冻结前态下的全部存活 dot；两者 MUST NOT 互相替代。
   规范来源见 [`../identity/consent-model.md`](../identity/consent-model.md) §3.3 的
@@ -286,9 +290,8 @@ receiver MUST 从签名 envelope、schema-validated payload 与冻结前态重�
   且 reducer MUST NOT 基于一个 `consent_scope=any` 的 dot 推断移除其它 dot）。
 
   > 与 §2.4.2 末段「一个 payload delta 需要多个同 family op 时必须使用唯一批量特例」的关系：
-  > 批量特例现在是**两个**且各自封闭——add 侧 `or_set_batch_add`（只用于 MLS Governance
-  > Binding 的 `covered_seal_refs`），remove 侧 `or_set_remove_dots`（只用于 payload 显式
-  > 枚举的 dot 数组）。其它 payload 数组仍然 MUST NOT 被当作隐含 op 次序。
+  > 批量特例只有 remove 侧 `or_set_remove_dots`（只用于 payload 显式枚举的 dot 数组）。
+  > 其它 payload 数组 MUST NOT 被当作隐含 op 次序。
 - projection 不声明的 `reason`、`issuer_seq`、`tag`、`value` 等 op 成员 MUST 缺省；source
   路径不存在、selector 未命中或投影与 lattice 不兼容表示 registry/Event 无法求值，MUST
   fail closed，不得退化为实现私有默认值。
@@ -313,8 +316,8 @@ wire 不存在 producer 书写的 effect 数组（见 §2.4 的单一事实源�
 登记的封闭 tag 派生式；MUST NOT 直接使用裸 `{"envelope_field":"event_id"}`——裸 event_id
 在同 Event 写多个 `or_set` 目标时不唯一。
 
-dot 拼接与 `or_set_batch_add` 的 tag 编码由 `ak.vector.encoding.or_set_dot_and_batch_tag.v1`
-（[`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json)）固定，含裸 event_id
+dot 拼接由 `ak.vector.encoding.or_set_dot_and_batch_tag.v1`（历史 id，当前只验证 dot；
+[`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json)）固定，含裸 event_id
 作 tag 与用 wire 数组下标充当第三段的负向例。
 
 **共享 FSM 真相源（normative）**：任何 `lattice="fsm"` 的共享 cell write 都 MUST 按

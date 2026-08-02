@@ -151,7 +151,7 @@
         }
       ],
       "additionalProperties": false,
-      "description": "Authenticated account-client query input. The service derives all governance roots and membership_frontier from one accepted Seal view; callers MUST NOT supply any root or frontier. chunk_index and expected_bundle_digest select transport chunks and are excluded from proof_request_digest. The caller MUST name one locally trusted anchor. If the service cannot prove a path from that exact anchor to the target accepted Seal, it returns mls_governance_anchor_unreachable and MUST NOT suggest or substitute an untrusted anchor. Genesis requests MUST use previous_epoch=0 and next_epoch=0; commit requests MUST use next_epoch=previous_epoch+1."
+      "description": "Authenticated account-client query input. The service materializes accepted control state from one Seal view so the client can rederive the registry-closed security_frontier_digest; callers MUST NOT supply roots or frontier members. chunk_index and expected_bundle_digest select transport chunks and are excluded from proof_request_digest. The caller MUST name one locally trusted anchor. If the service cannot prove a path from that exact anchor to the target accepted Seal, it returns mls_governance_anchor_unreachable and MUST NOT suggest or substitute an untrusted anchor. Genesis requests MUST use previous_epoch=0 and next_epoch=0; commit requests MUST use next_epoch=previous_epoch+1."
     },
     "collection_totals": {
       "type": "object",

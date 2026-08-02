@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.3",
+  "version": "2026-08-02.5",
   "source_of_truth": false,
-  "generated_at": "2026-08-02T13:00:00Z",
+  "generated_at": "2026-08-02T15:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -2178,6 +2178,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
+      "admission": "self_authored_proof",
       "payload": "Issuer-signed endorsement that a subject DID (typically an agent / service / hosted actor) is accountable_principal_ids the issuer for a declared scope (employment / contracted_service / agent_operator / etc.). Every `Actor Profile.accountable_principal_ids[]` entry requires a matching active grant at profile admission; a missing grant deterministically rejects the whole profile Event with accountability_grant_missing. See zh/models/actor.md §3.3.1. expires_at is optional; absent means non-expiring, governed by grant_status revocation and controller lifecycle cascade.",
       "payload_schema_ref": "schemas/accountability-grant.schema.json",
       "plane": "control",
@@ -4789,11 +4790,83 @@
       "concurrency_class": "security_barrier"
     },
     {
+      "event_kind": "ak.agent.provision",
+      "category": "agent",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "admission": "self_authored_proof",
+      "payload": "Controller-authored native personal Agent provisioning fact. One Event proof binds the allocated Agent DID/PCR, controller delegation, immutable requested-scope digest, accountability scope and selector. Admission atomically projects the provision, accountability and selector cells; no nested payload proof or partial two-Event state is valid.",
+      "payload_schema_ref": "schemas/agent-provision.schema.json",
+      "plane": "control",
+      "sealed": true,
+      "cell_writes": [
+        {
+          "cell_family": "ak.component.agent.provision.v1",
+          "cell_subject": {
+            "field": "payload.agent_id",
+            "kind": "id:actor"
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
+        },
+        {
+          "cell_family": "ak.component.identity.accountability.v1",
+          "cell_subject": {
+            "kind": "composite",
+            "components": [
+              "payload.controller_id",
+              "payload.agent_id",
+              {
+                "kind": "string_set_digest",
+                "field": "payload.accountability_scope",
+                "context": "ak.accountability-scope-set-v1"
+              }
+            ]
+          },
+          "lattice": "cas_register",
+          "bottom": "reject",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
+        },
+        {
+          "cell_family": "ak.component.agent.selector_claim.v1",
+          "cell_subject": {
+            "components": [
+              "payload.controller_id",
+              "payload.agent_slug"
+            ],
+            "kind": "composite"
+          },
+          "lattice": "mv_register",
+          "bottom": "expose",
+          "effect_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          }
+        }
+      ],
+      "concurrency_class": "security_barrier"
+    },
+    {
       "event_kind": "ak.agent.selector_claim",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
+      "admission": "self_authored_proof",
       "payload": "Controller-owned signed selector statement binding (controller_subject, agent_slug) to one native personal agent DID. The Event belongs in the controller Principal Control Realm, never the Agent PCR or a Collaboration Realm. Concurrent distinct current values remain visible and make selector resolution ambiguous/fail-closed.",
       "payload_schema_ref": "schemas/agent-selector-claim.schema.json",
       "plane": "control",
@@ -4936,7 +5009,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Agent lifecycle terminal state. MUST fan-out ak.agent.key.revoke for all active agent keys, ak.capability.revoke for all unrevoked grants, and runtime endpoint revocation. Terminal — no transition out.",
+      "payload": "Agent lifecycle terminal state. One accepted controller-authorized Event is the unavoidable parent AND gate for every runtime key, session, pairing handle, capability grant, KeyPackage, presence and future submission. Cleanup is asynchronous and MUST NOT synthesize or require child revocation Events. Terminal — no transition out.",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -5485,7 +5558,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Principal-scoped binding from unordered participant pair to canonical DM Realm and main Strand.",
+      "payload": "Immutable principal-scoped binding from an unordered participant pair to its single stable DM Realm and main Strand; active MLS generation is projected separately.",
       "plane": "control",
       "sealed": true,
       "cell_writes": [
@@ -6196,22 +6269,6 @@
               "field": "payload.governance_binding"
             }
           }
-        },
-        {
-          "cell_family": "ak.component.covered_seals.v1",
-          "cell_subject": {
-            "kind": "string",
-            "field": "payload.mls_group_id"
-          },
-          "lattice": "or_set",
-          "bottom": "inert",
-          "effect_projection": {
-            "kind": "or_set_batch_add",
-            "values": {
-              "field": "payload.governance_binding.covered_seal_refs"
-            },
-            "tag_context": "ak.covered-seal-tag-v1"
-          }
         }
       ],
       "concurrency_class": "security_barrier"
@@ -6254,22 +6311,6 @@
             "value": {
               "field": "payload.governance_binding"
             }
-          }
-        },
-        {
-          "cell_family": "ak.component.covered_seals.v1",
-          "cell_subject": {
-            "kind": "string",
-            "field": "payload.mls_group_id"
-          },
-          "lattice": "or_set",
-          "bottom": "inert",
-          "effect_projection": {
-            "kind": "or_set_batch_add",
-            "values": {
-              "field": "payload.governance_binding.covered_seal_refs"
-            },
-            "tag_context": "ak.covered-seal-tag-v1"
           }
         }
       ],

@@ -128,6 +128,63 @@
           "challenge": "agent_pairing_request:01964137-0000-7000-8000-000000000000"
         }
       }
+    },
+    {
+      "name": "agent_provision_payload_single_event_valid",
+      "schema_ref": "schemas/agent-provision.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.agent_provision.v1",
+        "agent_id": "did:webvh:z6mkagent:agent.example",
+        "controller_id": "did:webvh:z6mkcontroller:controller.example",
+        "principal_control_realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
+        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
+        "agent_slug": "summary",
+        "accountability_scope": "agent_operator",
+        "requested_scope_digest": "sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042",
+        "selector_visibility": "private",
+        "created_at": "2026-08-02T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "agent_provision_payload_rejects_nested_proof",
+      "schema_ref": "schemas/agent-provision.schema.json",
+      "expect_valid": false,
+      "first_expected_error": "contains:proofs",
+      "instance": {
+        "schema": "ak.schema.agent_provision.v1",
+        "agent_id": "did:webvh:z6mkagent:agent.example",
+        "controller_id": "did:webvh:z6mkcontroller:controller.example",
+        "principal_control_realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
+        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#controller-delegation",
+        "agent_slug": "summary",
+        "accountability_scope": "agent_operator",
+        "requested_scope_digest": "sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042",
+        "selector_visibility": "private",
+        "created_at": "2026-08-02T00:00:00.000Z",
+        "proofs": []
+      }
+    },
+    {
+      "name": "agent_readiness_closed_blockers_valid",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_readiness",
+      "expect_valid": true,
+      "instance": {
+        "state": "not_ready",
+        "blockers": [
+          "keypackage_empty",
+          "reply_capability_missing"
+        ]
+      }
+    },
+    {
+      "name": "agent_presence_requires_expiry_and_refresh",
+      "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_presence",
+      "expect_valid": false,
+      "first_expected_error": "contains:expires_at",
+      "instance": {
+        "state": "offline"
+      }
     }
   ],
   "cases": [
@@ -163,16 +220,17 @@
         "agent provision capability action matches the operation id",
         "provision fails without a controller recovery policy before creating any Agent DID, PCR, or grant side effect",
         "prepare allocates agent_id and principal_control_realm_id without durable Agent, PCR, accountability, selector, pairing or grant side effects",
-        "the controller recomputes requested_scope_digest and uses the Arkret SDK canonical authoring API for both payload proofs, effects and Event envelopes",
-        "commit accepts exactly one controller-signed ak.identity.accountability_grant and one controller-signed ak.agent.selector_claim whose source_refs binds the accountability Event id",
-        "both provisioning Events pass the ordinary Event proof verifier and admission pipeline; a service-authored, payload-only or dev-proof substitute is rejected in every mode",
-        "an exact commit retry identified by the allocated agent_id and two Event ids returns the original outcome, while an Event-id byte mismatch conflicts",
-        "a crash after admitting only the first Event is recovered by replaying the same closed pair and never by minting replacement Event ids or proofs",
+        "the controller recomputes requested_scope_digest and uses the Arkret SDK canonical authoring API for one ak.agent.provision Event",
+        "the provision payload carries no nested proof; the Event envelope proof is the only signature",
+        "the provision Event passes the ordinary Event proof verifier and admission pipeline; a service-authored or dev-proof substitute is rejected in every mode",
+        "one reducer transaction atomically projects provision, accountability and selector cells; partial projection is impossible",
+        "an exact commit retry identified by the allocation and one Event id returns the original outcome, while an Event-id byte mismatch conflicts",
+        "a crash is recovered by replaying the same Event and never by minting replacement Event ids or proofs",
         "complete returns the Agent PCR binding with pcr_recovery pending and does not pre-write an Agent profile or runtime key authorization",
         "requested_scope is required, immutable and records a global hard ceiling rather than a grant",
         "the accepted Agent DID service entry is a closed four-field binding that fixes only the domain-separated requested_scope digest and contains no complete scope",
         "pairing and grant admission require a controller-signed verifier-bound private requested_scope disclosure whose digest matches the accepted-at DID commitment",
-        "provisioning writes only accountability and selector facts and never materializes Realm grants",
+        "provisioning writes one durable fact whose projections include accountability and selector and never materializes Realm grants",
         "a narrower per-key scope is accepted while a wider action/resource scope or omitted mandatory provision constraint is rejected",
         "a narrower Realm grant is accepted while an omitted action or out-of-ceiling content resource is rejected with agent_grant_exceeds_requested_scope",
         "missing accountability grants fail with accountability_grant_missing"
@@ -316,7 +374,7 @@
         "controller-authored agent PCR events use actor_id equal to agent DID, executed_by equal to controller DID, and a verified authorization_ref",
         "delegated admission fails when the accepted-at delegation purpose or resource scope does not cover the target Event kind and Agent PCR",
         "agent profile, key authorization and lifecycle events land in the agent PCR",
-        "accountability grant and agent selector claim land in the controller PCR",
+        "one agent provision Event and its accountability and selector projections land in the controller PCR",
         "pairing requests and approval notifications land in neither PCR",
         "a non-PCR Realm at either principal_control_realm_id fails closed"
       ]
@@ -375,7 +433,11 @@
         "agent lifecycle operation ids retain canonical namespaces",
         "active to paused to active to deactivated is accepted",
         "deactivated is terminal and resume fails with agent_deactivated",
-        "pause while paused fails with agent_paused"
+        "pause while paused fails with agent_paused",
+        "deactivation accepts one lifecycle Event and rejects client-authored key or grant revocation bundles",
+        "deactivated is a mandatory AND gate for every runtime key, session, pairing handle, grant, KeyPackage, presence and new Event path within sixty seconds",
+        "agent views expose lifecycle, readiness blockers and expiring presence as three orthogonal axes",
+        "offline never means deactivated, unpaired or direct-conversation missing"
       ]
     },
     {

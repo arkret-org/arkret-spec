@@ -10,8 +10,7 @@ updated: 2026-07-30
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
-Arkret v1 不承诺无限期离线写在任意未来都可首次发布。撤销边界由 basis-bound lease 与签名
-ingress receipt 给出；Event `created_at` 和 verifier 本地首次见到时间均无此权限。
+Arkret v1 的普通在线 Event 不需要预先申请 AuthorizationLease：接收服务在一个 transaction 内按最新 accepted state 完成 admission 与持久化。只有调用方明确请求延迟/离线发布窗口时才使用 basis-bound lease；IngressReceipt 仍是可选 seen/availability evidence，不是 Event 有效性或最终性证明。Event `created_at` 和 verifier 本地首次见到时间均不能创造离线发布权限。
 
 ## 1. AuthorizationLease
 
@@ -40,8 +39,7 @@ authority_set_ref, verification_method, created_at, domain?, audience?})`；proo
 数组长度本身不等于 quorum。
 
 `basis_ref` 在普通 `single_did` / `threshold` / `mixed` 发布下是单个 accepted Seal ref；在
-`open_set` 下必须是包含 `leaves[]`、`control_event_set_root` 与 `state_root` 的完整
-`seal_basis`，不能用任一单 leaf 冒充 joined view。lease 只能收窄该 basis 中已存在的
+`open_set` 下必须是只含 canonical sorted `leaves[]` 的完整 `seal_basis`，不能用任一单 leaf 冒充 joined view。issuer 与 verifier 均须解析这些 Seal 并重算 union covered set、joined state 与 roots。lease 只能收窄该 basis 中已存在的
 authorization。verifier MUST 从 accepted CBA basis
 验证 issuer/delegation、actor/device、scope、action、risk 与有效期；lease 不能创建 capability，
 不能把 medium/high action 降为 low，也不能跨 scope 使用。
@@ -186,18 +184,18 @@ reducer、已进入数据 projection、已被 peer 看见或已获 Seal finality
 
 ### 2.1 提交与重传封装
 
-lease、receipt 与 `CbaProofBundle` 都不是 Event 字段，也不进入 Event digest。首次提交使用：
+lease、receipt 与 `CbaProofBundle` 都不是 Event 字段，也不进入 Event digest。普通在线首次提交只要求 `event`；显式延迟/离线模式才附加 lease：
 
 ```text
 EventInitialSubmission {
   event,
-  authorization_lease,
+  authorization_lease?,
   cba_proof_bundles?,
   control_proposal_receipt?
 }
 ```
 
-ingress 在验证 lease、Event proof、scope 与 CBA basis 后，必须把签发的 receipt 持久化并通过
+ingress 直接验证 Event proof、scope 与当前 CBA basis；携带 lease 时还必须验证 lease。若签发 receipt，则必须把它持久化并通过
 `EventsSubmitOutcome.ingress_receipts[]` 返回。相同 Event canonical bytes 的幂等重试必须返回
 原 receipt，不得用新的 `received_at` 重签，从而延长已经固定的撤销窗口。
 
@@ -206,13 +204,13 @@ peer federation 使用：
 ```text
 EventFederationSubmission {
   event,
-  authorization_lease,
+  authorization_lease?,
   ingress_receipts[],
   control_proposal_receipt?
 }
 ```
 
-至少携带一个 receipt；receiver 再按目标 Realm 的 issuer/threshold/transparency policy 判断证据
+至少携带一个 receipt；lease 仅在来源明确声明该 Event 使用离线窗口时出现。receiver 再按目标 Realm 的 issuer/threshold/transparency policy 判断证据
 是否充分。request 级 `cba_proof_bundles[]` 只负责补齐 basis closure。任何服务都不得把这些
 传输证据复制进 Event，或因本地较晚首次见到而改写 `received_at`。
 
@@ -223,7 +221,7 @@ Principal Server在不持有真实authority key时补签。
 
 ### 2.2 租约签发
 
-客户端通过 `ak.self.authorization_leases.command.issue`
+只有显式延迟/离线流程的客户端通过 `ak.self.authorization_leases.command.issue`
 （`POST /_arkret/self/authorization-leases`）提交且只能二选一：
 `AuthorizationLeaseIssueRequest {events: Event[1..500]}` 或
 `AuthorizationLeaseIssueRequest {intents: AuthorizationLeaseIssueIntent[1..500]}`。Event 必须已完成最终签名；服务端

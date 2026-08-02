@@ -1,0 +1,2045 @@
+{
+  "schema": "arkret.schema-consumer-coverage.v1",
+  "source_of_truth": false,
+  "generated_by": "tools/gen_schema_consumer_coverage.py",
+  "generated_from": [
+    "spec/v1/artifacts/registry/schema-registry.json",
+    "spec/v1/artifacts/registry/operation-registry.json",
+    "spec/v1/artifacts/registry/event-kind-registry.json",
+    "spec/v1/artifacts/profiles/conformance-profiles.json",
+    "spec/v1/artifacts/schemas/*.json",
+    "spec/v1/artifacts/fixtures/*.json"
+  ],
+  "description": "Per-logical-schema consumer coverage. A schema that only compiles has no proven wire consumer; this report separates operation request/response binding, admitted Event contracts, structural $ref use and conformance vector coverage so an unused schema cannot hide behind a startup compile.",
+  "consumer_definitions": {
+    "inbound": "bound as an operation request body, or an admitted Event envelope/payload contract.",
+    "outbound": "bound as an operation response body.",
+    "schema_reference": "referenced by another schema, so it is a structural component.",
+    "event_kind": "bound by the Event kind registry, so a durable Event selects it by kind.",
+    "vectors": "required by a conformance profile or vector group, or referenced by a fixture.",
+    "prose": "named by the normative text, which is where a runtime-dispatched contract is defined.",
+    "startup_compile": "a schema registry row, compiled by the startup catalog gate."
+  },
+  "binding_kind_definitions": {
+    "exact": "the reference targets this logical schema itself.",
+    "fragment": "the reference targets a $defs fragment of the same document.",
+    "registered": "the schema ID appears in the Event kind registry.",
+    "required_schema": "listed in a conformance profile or vector group required_schemas.",
+    "fixture": "the schema ID appears in a conformance fixture.",
+    "normative_text": "the schema ID appears in the normative prose."
+  },
+  "summary": {
+    "total_schemas": 177,
+    "by_consumer": {
+      "event_kind": 12,
+      "inbound": 41,
+      "outbound": 44,
+      "prose": 109,
+      "schema_reference": 159,
+      "startup_compile": 177,
+      "vectors": 110
+    },
+    "without_wire_consumer": 11,
+    "without_vector_coverage": 67
+  },
+  "without_wire_consumer": [
+    "ak.schema.account_data_encrypted_value.v1",
+    "ak.schema.applet.v1",
+    "ak.schema.authority_set_policy.v1",
+    "ak.schema.call_signal_plaintext.v1",
+    "ak.schema.draft_sync.v1",
+    "ak.schema.morph.customer_risk.ext.v1",
+    "ak.schema.morph.customer_risk.v1",
+    "ak.schema.read_receipt.v1",
+    "ak.schema.signal_presence.v1",
+    "ak.schema.signal_typing.v1",
+    "ak.schema.transport_binding.v1"
+  ],
+  "without_vector_coverage": [
+    "ak.schema.account_data_encrypted_value.v1",
+    "ak.schema.account_data_operations.v1",
+    "ak.schema.account_operations.v1",
+    "ak.schema.accountability_grant.v1",
+    "ak.schema.agent_operations.v1",
+    "ak.schema.agent_pairing_bootstrap.v1",
+    "ak.schema.applet.v1",
+    "ak.schema.applet_edge_operations.v1",
+    "ak.schema.applet_install_operations.v1",
+    "ak.schema.applet_install_plan.v1",
+    "ak.schema.applet_widget_declaration.v1",
+    "ak.schema.audit_release_attestation.v1",
+    "ak.schema.authz_operations.v1",
+    "ak.schema.availability_receipt.v1",
+    "ak.schema.blob_operations.v1",
+    "ak.schema.bottom.v1",
+    "ak.schema.call_signal_plaintext.v1",
+    "ak.schema.circle_operations.v1",
+    "ak.schema.common_ids.v1",
+    "ak.schema.consent_operations.v1",
+    "ak.schema.contact_operations.v1",
+    "ak.schema.content_block_poll.v1",
+    "ak.schema.delivery_binding_stale.v1",
+    "ak.schema.device_pairing_bootstrap.v1",
+    "ak.schema.device_pairing_operations.v1",
+    "ak.schema.did_binding_contracts.v1",
+    "ak.schema.did_continuity_proof.v1",
+    "ak.schema.directory_operations.v1",
+    "ak.schema.extension_manifest.v1",
+    "ak.schema.federated_device_signing_key_evidence.v1",
+    "ak.schema.high_risk_authority_proof.v1",
+    "ak.schema.ice_config_response.v1",
+    "ak.schema.inclusion_list.v1",
+    "ak.schema.invite_delivery_request.v1",
+    "ak.schema.invite_receive_policy.v1",
+    "ak.schema.keypackage_operations.v1",
+    "ak.schema.keys_operations.v1",
+    "ak.schema.list_handles_for_subject_response.v1",
+    "ak.schema.media_operations.v1",
+    "ak.schema.member_delivery_binding_candidate.v1",
+    "ak.schema.member_identity.v1",
+    "ak.schema.mimi_operations.v1",
+    "ak.schema.moderation_appeal.v1",
+    "ak.schema.object_addressing.v1",
+    "ak.schema.offline_publication.v1",
+    "ak.schema.patch.v1",
+    "ak.schema.peer_contact_delivery_request.v1",
+    "ak.schema.principal_locator.v1",
+    "ak.schema.public_key.v1",
+    "ak.schema.push_operations.v1",
+    "ak.schema.query.v1",
+    "ak.schema.range_completeness_attestation.v1",
+    "ak.schema.read_cursor_operations.v1",
+    "ak.schema.realm_join_candidate.v1",
+    "ak.schema.realm_link_operations.v1",
+    "ak.schema.realm_organization_operations.v1",
+    "ak.schema.realm_policy_server_operations.v1",
+    "ak.schema.realm_read_operations.v1",
+    "ak.schema.recovery_authority_ticket.v1",
+    "ak.schema.recovery_completion_attestation.v1",
+    "ak.schema.sdk_conformance_claim.v1",
+    "ak.schema.seal_transparency.v1",
+    "ak.schema.security_rotation_local_commit.v1",
+    "ak.schema.service_operation_dtos.v1",
+    "ak.schema.signal_presence.v1",
+    "ak.schema.signal_typing.v1",
+    "ak.schema.time.v1"
+  ],
+  "schemas": [
+    {
+      "schema_id": "ak.schema.account_data_encrypted_value.v1",
+      "file": "schemas/account-data-encrypted-value.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "startup_compile": "exact"
+      },
+      "wire_covered": false
+    },
+    {
+      "schema_id": "ak.schema.account_data_operations.v1",
+      "file": "schemas/account-data-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.account_operations.v1",
+      "file": "schemas/account-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.account_subscribe_frame.v1",
+      "file": "schemas/account-subscribe-frame.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.accountability_grant.v1",
+      "file": "schemas/accountability-grant.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.actor_profile.v1",
+      "file": "schemas/actor-profile.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.agent_operations.v1",
+      "file": "schemas/agent-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.agent_pairing_bootstrap.v1",
+      "file": "schemas/agent-operations.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/agent_pairing_bootstrap"
+    },
+    {
+      "schema_id": "ak.schema.agent_provision.v1",
+      "file": "schemas/agent-provision.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.agent_requested_scope_disclosure.v1",
+      "file": "schemas/agent-requested-scope-disclosure.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "fixture"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.agent_selector_claim.v1",
+      "file": "schemas/agent-selector-claim.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.agent_sidecar.v1",
+      "file": "schemas/agent-sidecar.schema.json",
+      "consumers": {
+        "event_kind": "registered",
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.agent_sidecar_event_exchange_binding.v1",
+      "file": "schemas/agent-sidecar-event-exchange-binding.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.agent_sidecar_exchange_control.v1",
+      "file": "schemas/agent-sidecar-exchange-control.schema.json",
+      "consumers": {
+        "event_kind": "registered",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.agent_sidecar_exchange_projection.v1",
+      "file": "schemas/agent-sidecar-exchange-projection.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.agent_sidecar_view_state.v1",
+      "file": "schemas/agent-sidecar-view-state.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.agent_signer_evidence.v1",
+      "file": "schemas/agent-signer-evidence.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.agent_signer_evidence_bundle.v1",
+      "file": "schemas/agent-signer-evidence-operations.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/sync_bundle"
+    },
+    {
+      "schema_id": "ak.schema.agent_signer_evidence_query_outcome.v1",
+      "file": "schemas/agent-signer-evidence-operations.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/query_outcome"
+    },
+    {
+      "schema_id": "ak.schema.agent_signer_evidence_query_request.v1",
+      "file": "schemas/agent-signer-evidence-operations.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/query_request"
+    },
+    {
+      "schema_id": "ak.schema.agent_signing_key_binding.v1",
+      "file": "schemas/agent-signing-key-binding.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.applet.v1",
+      "file": "schemas/applet.schema.json",
+      "consumers": {
+        "startup_compile": "exact"
+      },
+      "wire_covered": false
+    },
+    {
+      "schema_id": "ak.schema.applet_edge_operations.v1",
+      "file": "schemas/applet-edge-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.applet_ghost_operations.v1",
+      "file": "schemas/applet-ghost-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.applet_install_operations.v1",
+      "file": "schemas/applet-install-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.applet_install_plan.v1",
+      "file": "schemas/applet-install-plan.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.applet_package.v1",
+      "file": "schemas/applet-package.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.applet_registration_epoch_transcript.v1",
+      "file": "schemas/applet-registration-epoch-transcript.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.applet_widget_declaration.v1",
+      "file": "schemas/applet-widget-declaration.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.audit_release_attestation.v1",
+      "file": "schemas/audit-release-attestation.schema.json",
+      "consumers": {
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.audit_ryw_receipt.v1",
+      "file": "schemas/audit-ryw-receipt.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.authority_set_policy.v1",
+      "file": "schemas/authority-set-policy.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "startup_compile": "exact",
+        "vectors": "fixture"
+      },
+      "wire_covered": false
+    },
+    {
+      "schema_id": "ak.schema.authz_operations.v1",
+      "file": "schemas/authz-operations.schema.json",
+      "consumers": {
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.availability_receipt.v1",
+      "file": "schemas/availability-receipt.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.backup_series_erase_confirmation.v1",
+      "file": "schemas/keys-operations.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/backup_series_erase_confirmation"
+    },
+    {
+      "schema_id": "ak.schema.blob.v1",
+      "file": "schemas/blob.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.blob_operations.v1",
+      "file": "schemas/blob-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.bottom.v1",
+      "file": "schemas/bottom.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.calendar_event.v1",
+      "file": "schemas/calendar-event.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.call_recording_artifact.v1",
+      "file": "schemas/call-recording-artifact.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "fixture"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.call_signal_plaintext.v1",
+      "file": "schemas/call-signal-plaintext.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "startup_compile": "exact"
+      },
+      "wire_covered": false
+    },
+    {
+      "schema_id": "ak.schema.capability.v1",
+      "file": "schemas/capability-grant.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.cba_proof_bundle.v1",
+      "file": "schemas/cba-proof-bundle.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.circle.v1",
+      "file": "schemas/circle.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.circle_operations.v1",
+      "file": "schemas/circle-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.common_ids.v1",
+      "file": "schemas/common-ids.schema.json",
+      "consumers": {
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.consent_operations.v1",
+      "file": "schemas/consent-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.contact_operations.v1",
+      "file": "schemas/contact-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.content_block_poll.v1",
+      "file": "schemas/content-block-poll.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.cross_signing_publish.v1",
+      "file": "schemas/cross-signing-publish.schema.json",
+      "consumers": {
+        "event_kind": "registered",
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.cross_signing_reset.v1",
+      "file": "schemas/cross-signing-reset.schema.json",
+      "consumers": {
+        "event_kind": "registered",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.cursor.v1",
+      "file": "schemas/cursor.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.delivery_binding_stale.v1",
+      "file": "schemas/delivery-binding-stale.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.device_message.v1",
+      "file": "schemas/device-message.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.device_pairing_bootstrap.v1",
+      "file": "schemas/device-pairing.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/device_pairing_bootstrap"
+    },
+    {
+      "schema_id": "ak.schema.device_pairing_operations.v1",
+      "file": "schemas/device-pairing.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.device_reanchor.v1",
+      "file": "schemas/device-reanchor.schema.json",
+      "consumers": {
+        "event_kind": "registered",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.did_binding_contracts.v1",
+      "file": "schemas/did-binding-contracts.schema.json",
+      "consumers": {
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.did_continuity_proof.v1",
+      "file": "schemas/did-continuity-proof.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.did_key_log_entry.v1",
+      "file": "schemas/did-key-log-entry.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.did_webvh_witness_receipt.v1",
+      "file": "schemas/did-webvh-witness-receipt.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "fixture"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.directory_operations.v1",
+      "file": "schemas/directory-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.disappearing_messages.v1",
+      "file": "schemas/disappearing-messages.schema.json",
+      "consumers": {
+        "event_kind": "registered",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.draft_sync.v1",
+      "file": "schemas/draft-sync.schema.json",
+      "consumers": {
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": false
+    },
+    {
+      "schema_id": "ak.schema.encrypted_envelope.v1",
+      "file": "schemas/encrypted-envelope.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.erasure_receipt.v1",
+      "file": "schemas/erasure-receipt.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "fixture"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.erasure_verification_stub.v1",
+      "file": "schemas/erasure-verification-stub.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "fixture"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.event.v1",
+      "file": "schemas/event-envelope.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.event_batch_receipt.v1",
+      "file": "schemas/event-batch-receipt.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.event_payload.v1",
+      "file": "schemas/event-payload.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.events_subscribe_frame.v1",
+      "file": "schemas/events-subscribe-frame.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.extension_manifest.v1",
+      "file": "schemas/extension-manifest.schema.json",
+      "consumers": {
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.federated_device_signing_key_evidence.v1",
+      "file": "schemas/federated-device-signing-key-evidence.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.file_transfer.v1",
+      "file": "schemas/file-transfer.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.grant_constraint.v1",
+      "file": "schemas/grant-constraint.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.handle_claim.v1",
+      "file": "schemas/handle-claim.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.high_risk_authority_proof.v1",
+      "file": "schemas/high-risk-authority-proof.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.ice_config_response.v1",
+      "file": "schemas/ice-config-response.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.identity_link.v1",
+      "file": "schemas/identity-link.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.identity_receipt.v1",
+      "file": "schemas/identity-receipt.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.inclusion_list.v1",
+      "file": "schemas/inclusion-list.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.invite.v1",
+      "file": "schemas/invite.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.invite_delivery_request.v1",
+      "file": "schemas/invite-delivery-request.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "outbound": "fragment",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.invite_receive_policy.v1",
+      "file": "schemas/invite-receive-policy.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "outbound": "exact",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.join_policy_operations.v1",
+      "file": "schemas/join-policy-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.key_backup.v1",
+      "file": "schemas/key-backup.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "outbound": "exact",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.key_backup_active_series.v1",
+      "file": "schemas/key-backup-active-series.schema.json",
+      "consumers": {
+        "event_kind": "registered",
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.key_backup_plaintext.v1",
+      "file": "schemas/key-backup-plaintext.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.key_backup_unlock_proof.v1",
+      "file": "schemas/key-backup-unlock-proof.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "fixture"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.key_transparency.v1",
+      "file": "schemas/key-transparency.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.keypackage_operations.v1",
+      "file": "schemas/keypackage-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.keys_operations.v1",
+      "file": "schemas/keys-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.list_handles_for_subject_response.v1",
+      "file": "schemas/list-handles-for-subject-response.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "prose": "normative_text",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.media_metadata.v1",
+      "file": "schemas/media-metadata.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.media_operations.v1",
+      "file": "schemas/media-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.member_delivery_binding_candidate.v1",
+      "file": "schemas/member-delivery-binding-candidate.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.member_identity.v1",
+      "file": "schemas/member-identity.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.message.v1",
+      "file": "schemas/message.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.mimi_interop.v1",
+      "file": "schemas/mimi-interop.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.mimi_operations.v1",
+      "file": "schemas/mimi-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.mls_governance_proof_bundle.v1",
+      "file": "schemas/mls-governance-proof-bundle.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "exact",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.moderation_appeal.v1",
+      "file": "schemas/moderation-appeal.schema.json",
+      "consumers": {
+        "event_kind": "registered",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.moderation_queue_item.v1",
+      "file": "schemas/moderation-queue-item.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.moderation_report.v1",
+      "file": "schemas/moderation-report.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.morph.customer_risk.ext.v1",
+      "file": "schemas/morph-customer-risk-ext.schema.json",
+      "consumers": {
+        "startup_compile": "exact",
+        "vectors": "fixture"
+      },
+      "wire_covered": false
+    },
+    {
+      "schema_id": "ak.schema.morph.customer_risk.v1",
+      "file": "schemas/morph-customer-risk.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "startup_compile": "exact",
+        "vectors": "fixture"
+      },
+      "wire_covered": false
+    },
+    {
+      "schema_id": "ak.schema.morph.v1",
+      "file": "schemas/morph.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.notification.v1",
+      "file": "schemas/notification.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.object_addressing.v1",
+      "file": "schemas/object-addressing.schema.json",
+      "consumers": {
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.offline_publication.v1",
+      "file": "schemas/offline-publication.schema.json",
+      "consumers": {
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.patch.v1",
+      "file": "schemas/patch.schema.json",
+      "consumers": {
+        "event_kind": "registered",
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.peer_contact_delivery_request.v1",
+      "file": "schemas/peer-contact-delivery-request.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "outbound": "fragment",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.personal_productivity.v1",
+      "file": "schemas/personal-productivity.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.pin.v1",
+      "file": "schemas/pin.schema.json",
+      "consumers": {
+        "event_kind": "registered",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.policy.v1",
+      "file": "schemas/policy.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.principal_locator.v1",
+      "file": "schemas/principal-locator.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "exact",
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.public_key.v1",
+      "file": "schemas/public-key.schema.json",
+      "consumers": {
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.push_operations.v1",
+      "file": "schemas/push-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.query.v1",
+      "file": "schemas/query.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.range_completeness_attestation.v1",
+      "file": "schemas/range-completeness-attestation.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.read_cursor.v1",
+      "file": "schemas/read-cursor.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.read_cursor_operations.v1",
+      "file": "schemas/read-cursor-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.read_receipt.v1",
+      "file": "schemas/read-receipt.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "startup_compile": "exact",
+        "vectors": "fixture"
+      },
+      "wire_covered": false
+    },
+    {
+      "schema_id": "ak.schema.realm.v1",
+      "file": "schemas/realm.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.realm_join_candidate.v1",
+      "file": "schemas/realm-join-candidate.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.realm_link_operations.v1",
+      "file": "schemas/realm-link-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.realm_organization_operations.v1",
+      "file": "schemas/realm-organization-operations.schema.json",
+      "consumers": {
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.realm_policy_server_operations.v1",
+      "file": "schemas/realm-policy-server-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.realm_read_operations.v1",
+      "file": "schemas/realm-read-operations.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.recovery_authority_ticket.v1",
+      "file": "schemas/recovery-authority.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "exact",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.recovery_completion_attestation.v1",
+      "file": "schemas/recovery-authority.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/recovery_completion_attestation"
+    },
+    {
+      "schema_id": "ak.schema.recovery_policy.v1",
+      "file": "schemas/recovery-policy.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.recovery_receipt.v1",
+      "file": "schemas/recovery-receipt.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.recovery_session.v1",
+      "file": "schemas/recovery-session.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.relation.v1",
+      "file": "schemas/relation.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.resource_selector.v1",
+      "file": "schemas/resource-selector.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.rsvp.v1",
+      "file": "schemas/rsvp.schema.json",
+      "consumers": {
+        "event_kind": "registered",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.sdk_conformance_claim.v1",
+      "file": "schemas/sdk-conformance-claim.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.seal.v1",
+      "file": "schemas/seal.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.seal_transparency.v1",
+      "file": "schemas/seal-transparency.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.search_service.v1",
+      "file": "schemas/search-service.schema.json",
+      "consumers": {
+        "event_kind": "registered",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.security_rotation_local_commit.v1",
+      "file": "schemas/security-transaction.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/security_rotation_local_commit"
+    },
+    {
+      "schema_id": "ak.schema.security_transaction.v1",
+      "file": "schemas/security-transaction.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "exact",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.service_describe.v1",
+      "file": "schemas/service-describe.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.service_operation_dtos.v1",
+      "file": "schemas/service-operation-dtos.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.signal_envelope.v1",
+      "file": "schemas/signal-envelope.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.signal_message_stream.v1",
+      "file": "schemas/signal-message-stream.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.signal_presence.v1",
+      "file": "schemas/signal-presence.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "startup_compile": "exact"
+      },
+      "wire_covered": false
+    },
+    {
+      "schema_id": "ak.schema.signal_relay.v1",
+      "file": "schemas/signal-relay.schema.json",
+      "consumers": {
+        "inbound": "exact",
+        "outbound": "fragment",
+        "prose": "normative_text",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.signal_stream_frame.v1",
+      "file": "schemas/signal-stream-frame.schema.json",
+      "consumers": {
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.signal_typing.v1",
+      "file": "schemas/signal-typing.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "startup_compile": "exact"
+      },
+      "wire_covered": false
+    },
+    {
+      "schema_id": "ak.schema.snapshot.v1",
+      "file": "schemas/snapshot.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.space.v1",
+      "file": "schemas/space.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.strand.v1",
+      "file": "schemas/strand.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.string_profiles.v1",
+      "file": "schemas/string-profiles.schema.json",
+      "consumers": {
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.time.v1",
+      "file": "schemas/time.schema.json",
+      "consumers": {
+        "schema_reference": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.transport_binding.v1",
+      "file": "schemas/transport-binding.schema.json",
+      "consumers": {
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": false
+    },
+    {
+      "schema_id": "ak.schema.view.v1",
+      "file": "schemas/view.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.websocket_authenticate_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/authenticate"
+    },
+    {
+      "schema_id": "ak.schema.websocket_challenge_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/challenge"
+    },
+    {
+      "schema_id": "ak.schema.websocket_client_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/client_frame"
+    },
+    {
+      "schema_id": "ak.schema.websocket_close_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/close"
+    },
+    {
+      "schema_id": "ak.schema.websocket_closed_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/closed"
+    },
+    {
+      "schema_id": "ak.schema.websocket_control_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/control"
+    },
+    {
+      "schema_id": "ak.schema.websocket_data_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/data"
+    },
+    {
+      "schema_id": "ak.schema.websocket_dpop_claims.v1",
+      "file": "schemas/websocket-dpop-proof.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/claims"
+    },
+    {
+      "schema_id": "ak.schema.websocket_dpop_proof.v1",
+      "file": "schemas/websocket-dpop-proof.schema.json",
+      "consumers": {
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.websocket_dpop_protected_header.v1",
+      "file": "schemas/websocket-dpop-proof.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/protected_header"
+    },
+    {
+      "schema_id": "ak.schema.websocket_error_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/error"
+    },
+    {
+      "schema_id": "ak.schema.websocket_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "fragment",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true
+    },
+    {
+      "schema_id": "ak.schema.websocket_open_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/open"
+    },
+    {
+      "schema_id": "ak.schema.websocket_opened_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/opened"
+    },
+    {
+      "schema_id": "ak.schema.websocket_ping_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/ping"
+    },
+    {
+      "schema_id": "ak.schema.websocket_pong_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/pong"
+    },
+    {
+      "schema_id": "ak.schema.websocket_reauth_required_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/reauth_required"
+    },
+    {
+      "schema_id": "ak.schema.websocket_server_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "consumers": {
+        "prose": "normative_text",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/server_frame"
+    },
+    {
+      "schema_id": "ak.schema.websocket_welcome_frame.v1",
+      "file": "schemas/websocket-frame.schema.json",
+      "consumers": {
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "fragment": "#/$defs/welcome"
+    }
+  ]
+}

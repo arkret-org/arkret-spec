@@ -6,7 +6,7 @@
       "$ref": "./time.schema.json#/$defs/timestamp"
     }
   },
-  "title": "Arkret Capability Grant",
+  "title": "Arkret Capability Grant Body",
   "type": "object",
   "required": [
     "id",
@@ -16,7 +16,6 @@
     "actions",
     "resources",
     "issued_at",
-    "proofs",
     "issuer_authority_refs"
   ],
   "properties": {
@@ -114,14 +113,6 @@
     },
     "revoked_at": {
       "$ref": "#/$defs/timestamp"
-    },
-    "proofs": {
-      "type": "array",
-      "description": "Detached grant proofs sign canonical_json({context:'ak.capability-grant-proof-v1', payload_digest, issuer, subject, verification_method, created_at, domain?, audience?}); context is a fixed signing-context domain tag, not a wire field. payload_digest is the canonical hash of the grant body with proofs removed.",
-      "items": {
-        "$ref": "./event-envelope.schema.json#/$defs/proof"
-      },
-      "minItems": 1
     },
     "issuer_authority_refs": {
       "type": "array",

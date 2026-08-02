@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.3",
+  "version": "2026-08-02.5",
   "source_of_truth": false,
-  "generated_at": "2026-08-02T13:00:00Z",
+  "generated_at": "2026-08-02T15:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -34,6 +34,12 @@
       "file": "schemas/accountability-grant.schema.json",
       "status": "active",
       "description": "Issuer-signed accountability endorsement for Actor Profile accountable_principal_ids verification."
+    },
+    {
+      "schema_id": "ak.schema.agent_provision.v1",
+      "file": "schemas/agent-provision.schema.json",
+      "status": "active",
+      "description": "Single controller-authored native personal Agent provisioning payload with atomic accountability and selector projections."
     },
     {
       "schema_id": "ak.schema.agent_selector_claim.v1",

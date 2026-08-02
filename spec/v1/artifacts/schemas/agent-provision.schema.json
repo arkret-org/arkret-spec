@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/agent-provision.schema.json",
+  "title": "Arkret Agent Provision",
+  "description": "Controller-authored payload that creates one native personal Agent provisioning fact and atomically projects its accountability and controller-scoped selector bindings. The containing Event proof is the only signature; this payload carries no nested proof.",
+  "type": "object",
+  "required": [
+    "schema",
+    "agent_id",
+    "controller_id",
+    "principal_control_realm_id",
+    "controller_authorization_ref",
+    "agent_slug",
+    "accountability_scope",
+    "requested_scope_digest",
+    "selector_visibility",
+    "created_at"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.agent_provision.v1"
+    },
+    "agent_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "controller_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did"
+    },
+    "principal_control_realm_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+    },
+    "controller_authorization_ref": {
+      "$ref": "./common-ids.schema.json#/$defs/did_url"
+    },
+    "agent_slug": {
+      "$ref": "./string-profiles.schema.json#/$defs/agent_slug"
+    },
+    "accountability_scope": {
+      "oneOf": [
+        {
+          "const": "agent_operator"
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "const": "agent_operator"
+          }
+        }
+      ],
+      "description": "Closed singleton scope. Canonical authors emit the string form; receivers normalize the optional singleton-array form only for compatibility with the shared accountability cell subject derivation."
+    },
+    "requested_scope_digest": {
+      "$ref": "#/$defs/hash"
+    },
+    "selector_visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "restricted",
+        "private"
+      ]
+    },
+    "selector_audience": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "created_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "selector_visibility": {
+            "const": "restricted"
+          }
+        },
+        "required": [
+          "selector_visibility"
+        ]
+      },
+      "then": {
+        "required": [
+          "selector_audience"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "selector_audience"
+          ]
+        }
+      }
+    }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    }
+  }
+}

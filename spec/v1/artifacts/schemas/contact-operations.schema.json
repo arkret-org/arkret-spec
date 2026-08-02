@@ -243,6 +243,10 @@
         "idempotency_key": {
           "$ref": "#/$defs/non_empty_string"
         },
+        "operation_id": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Previously returned stable creation operation identifier. Retries after any externally visible effect MUST reuse this identifier."
+        },
         "recipient_service_id": {
           "$ref": "#/$defs/did",
           "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When target is hosted on a different Principal Server, the requester MUST supply the target home service DID so the issuer-side server federates the signed ak.contact.requested fact via ak.peer.contacts.command.submit. Omit for same-server requests."
@@ -463,123 +467,45 @@
       ],
       "additionalProperties": false
     },
-    "direct_conversation_segment_list_request_body": {
+    "direct_conversation_operation": {
       "type": "object",
-      "description": "Read-only complex-query body for the authenticated principal-private historical segment projection. It carries no idempotency field.",
-      "required": [
-        "peer"
-      ],
+      "required": ["operation_id", "pair_key", "coordinator_service_id", "operation_state"],
       "properties": {
-        "peer": {
-          "$ref": "#/$defs/did"
-        },
-        "cursor": {
-          "$ref": "#/$defs/cursor"
-        },
-        "limit": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 200,
-          "default": 50
-        }
+        "operation_id": { "$ref": "#/$defs/non_empty_string" },
+        "pair_key": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "coordinator_service_id": { "$ref": "#/$defs/did" },
+        "operation_state": { "type": "string", "enum": ["reserved", "materializing", "found"] },
+        "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
+        "main_strand_id": { "$ref": "#/$defs/strand_id" },
+        "expires_at": { "$ref": "#/$defs/timestamp" }
       },
-      "additionalProperties": false
-    },
-    "direct_conversation_segment_entry": {
-      "type": "object",
-      "required": [
-        "pair_key",
-        "binding_state",
-        "realm_id",
-        "main_strand_id",
-        "mls_group_id",
-        "binding_event_ref",
-        "content_readability"
+      "allOf": [
+        {
+          "if": { "properties": { "operation_state": { "const": "reserved" } }, "required": ["operation_state"] },
+          "then": { "required": ["expires_at"] },
+          "else": {
+            "required": ["realm_id", "main_strand_id"],
+            "not": { "required": ["expires_at"] }
+          }
+        }
       ],
-      "properties": {
-        "pair_key": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
-        },
-        "binding_state": {
-          "type": "string",
-          "enum": [
-            "active",
-            "retired"
-          ]
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "main_strand_id": {
-          "$ref": "#/$defs/strand_id"
-        },
-        "mls_group_id": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "binding_event_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "predecessor_binding_ref": {
-          "$ref": "#/$defs/event_id"
-        },
-        "content_readability": {
-          "type": "string",
-          "enum": [
-            "readable",
-            "metadata_only",
-            "content_unavailable"
-          ],
-          "description": "Caller-specific status derived from this segment's own membership/history/retention state and MLS key availability. It never inherits from another segment."
-        }
-      },
-      "additionalProperties": false
-    },
-    "direct_conversation_segment_list": {
-      "type": "object",
-      "required": [
-        "pair_key",
-        "segments",
-        "has_more"
-      ],
-      "properties": {
-        "pair_key": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
-        },
-        "segments": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/direct_conversation_segment_entry"
-          },
-          "maxItems": 200
-        },
-        "next_cursor": {
-          "$ref": "#/$defs/cursor"
-        },
-        "has_more": {
-          "type": "boolean"
-        }
-      },
       "additionalProperties": false,
-      "description": "Authenticated principal-private canonical segment chain ordered from oldest to newest within the page. The only active row, when present, is the verified chain tail. Pending, orphan, duplicate and non-canonical candidates are excluded."
+      "description": "Coordinator-owned durable allocation. reserved is removable only before any KeyPackage claim, accepted founding Event, or other external effect. materializing and found permanently retain the same Realm and main Strand identifiers."
     },
     "direct_conversation_resolve_outcome": {
       "type": "object",
-      "required": [
-        "state"
-      ],
+      "required": ["state", "pair_key"],
       "properties": {
         "state": {
           "type": "string",
           "enum": [
             "found",
-            "authoring_required",
-            "not_found",
-            "retired",
-            "non_canonical"
+            "creation_required",
+            "suspended",
+            "temporarily_unavailable"
           ]
         },
+        "pair_key": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
@@ -589,15 +515,13 @@
         "binding_event_ref": {
           "$ref": "#/$defs/event_id"
         },
-        "created": {
-          "type": "boolean"
-        },
-        "authoring_kind": {
+        "operation": { "$ref": "#/$defs/direct_conversation_operation" },
+        "next_action": {
           "type": "string",
           "enum": [
             "remote_keypackage_claim",
-            "direct_conversation_retirement",
-            "direct_conversation_materialization"
+            "direct_conversation_materialization",
+            "retry"
           ]
         },
         "claim_authorization_draft": {
@@ -607,7 +531,9 @@
         "materialization_draft": {
           "type": "object",
           "required": [
-            "materialization_id",
+            "operation_id",
+            "operation_state",
+            "pair_key",
             "claim_nonce",
             "mls_group_id",
             "mls_genesis_event_ref",
@@ -618,10 +544,13 @@
             "peer_member_event",
             "main_strand_event",
             "binding_event",
-            "expires_at"
+            "coordinator_service_id"
           ],
           "properties": {
-            "materialization_id": { "$ref": "#/$defs/non_empty_string" },
+            "operation_id": { "$ref": "#/$defs/non_empty_string" },
+            "operation_state": { "const": "materializing" },
+            "pair_key": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+            "coordinator_service_id": { "$ref": "#/$defs/did" },
             "claim_nonce": { "$ref": "./keypackage-operations.schema.json#/$defs/base64url" },
             "mls_group_id": { "$ref": "#/$defs/non_empty_string" },
             "mls_genesis_event_ref": { "$ref": "#/$defs/event_id" },
@@ -632,54 +561,17 @@
             "realm_event": { "$ref": "#/$defs/unsigned_direct_realm_create_event" },
             "peer_member_event": { "$ref": "#/$defs/unsigned_direct_peer_member_event" },
             "main_strand_event": { "$ref": "#/$defs/unsigned_direct_main_strand_event" },
-            "binding_event": { "$ref": "#/$defs/unsigned_direct_binding_event" },
-            "expires_at": { "$ref": "#/$defs/timestamp" }
+            "binding_event": { "$ref": "#/$defs/unsigned_direct_binding_event" }
           },
           "additionalProperties": false,
-          "description": "Immutable client-side materialization plan issued only after a KeyPackage claim is final and any required canonical retired predecessor is available. The participant submits realm_event and peer_member_event as the atomic ordinary-Realm genesis unit. Main Strand and MLS genesis/add-commit/Welcome writes are admitted only by the Direct Conversation root-owner founding mask and must match this exact unexpired draft; no ordinary grant is involved. The participant authors real MLS objects from claimed_keypackage, then submits binding_event in the participant PCR. No service may synthesize participant Event proofs or MLS ciphertext."
-        },
-        "retirement_draft": {
-          "type": "object",
-          "required": [
-            "draft_token",
-            "pair_key",
-            "supersedes_binding_ref",
-            "retirement_cause_event_ref",
-            "retirement_event",
-            "expires_at"
-          ],
-          "properties": {
-            "draft_token": {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            "pair_key": {
-              "type": "string",
-              "pattern": "^sha256:[0-9a-f]{64}$"
-            },
-            "supersedes_binding_ref": {
-              "$ref": "#/$defs/event_id"
-            },
-            "retirement_cause_event_ref": {
-              "$ref": "#/$defs/event_id"
-            },
-            "retirement_event": {
-              "$ref": "#/$defs/unsigned_direct_binding_event"
-            },
-            "expires_at": {
-              "$ref": "#/$defs/timestamp"
-            }
-          },
-          "additionalProperties": false,
-          "description": "Immutable participant-authoring draft for the canonical retired binding fact required before a successor can be materialized. The service validates the accepted structural terminal cause and reserves bytes, but never signs or mutates the binding projection on behalf of a participant."
+          "description": "Immutable client-side plan for the pair's only durable materializing operation. The participant authors real MLS objects and founding Events; services never synthesize participant proofs or MLS ciphertext. The draft has no expiry because materializing identifiers cannot be reallocated."
         }
       },
       "allOf": [
         {
           "if": {
             "properties": {
-              "state": {
-                "const": "authoring_required"
-              }
+              "state": { "const": "creation_required" }
             },
             "required": [
               "state"
@@ -687,21 +579,16 @@
           },
           "then": {
             "required": [
-              "authoring_kind",
-              "created"
-            ],
-            "properties": {
-              "created": {
-                "const": false
-              }
-            }
+              "operation",
+              "next_action"
+            ]
           },
           "else": {
             "not": {
               "anyOf": [
                 {
                   "required": [
-                    "authoring_kind"
+                    "next_action"
                   ]
                 },
                 {
@@ -716,7 +603,7 @@
                 },
                 {
                   "required": [
-                    "retirement_draft"
+                    "operation"
                   ]
                 }
               ]
@@ -726,43 +613,12 @@
         {
           "if": {
             "properties": {
-              "authoring_kind": {
-                "const": "direct_conversation_retirement"
-              }
-            },
-            "required": [
-              "authoring_kind"
-            ]
-          },
-          "then": {
-            "required": [
-              "retirement_draft"
-            ],
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "claim_authorization_draft"
-                  ]
-                },
-                {
-                  "required": [
-                    "materialization_draft"
-                  ]
-                }
-              ]
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "authoring_kind": {
+              "next_action": {
                 "const": "remote_keypackage_claim"
               }
             },
             "required": [
-              "authoring_kind"
+              "next_action"
             ]
           },
           "then": {
@@ -777,12 +633,12 @@
         {
           "if": {
             "properties": {
-              "authoring_kind": {
+              "next_action": {
                 "const": "direct_conversation_materialization"
               }
             },
             "required": [
-              "authoring_kind"
+              "next_action"
             ]
           },
           "then": {
@@ -796,14 +652,14 @@
                     "claim_authorization_draft"
                   ]
                 },
-                {
-                  "required": [
-                    "retirement_draft"
-                  ]
-                }
+                { "required": ["claim_authorization_draft"] }
               ]
             }
           }
+        },
+        {
+          "if": { "properties": { "state": { "enum": ["found", "suspended"] } }, "required": ["state"] },
+          "then": { "required": ["realm_id", "main_strand_id", "binding_event_ref"] }
         }
       ],
       "additionalProperties": false

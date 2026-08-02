@@ -20,6 +20,7 @@ import hashlib
 import re
 import sys
 import time
+import unicodedata
 import urllib.parse
 import warnings
 from collections import Counter
@@ -3601,9 +3602,9 @@ def check_sdk_conformance_contract(lint: Lint) -> None:
         source_anchor = clause.get("source_anchor")
         if not isinstance(source_anchor, str) or not source_anchor.startswith("spec/v1/zh/") or "#" not in source_anchor:
             lint.fail(path, f"{label}.source_anchor must reference a stable zh/ heading")
-    expected_ids = {f"AK-SDK-{index:03d}" for index in range(1, 23)}
+    expected_ids = {f"AK-SDK-{index:03d}" for index in range(1, 24)}
     if seen != expected_ids:
-        lint.fail(path, "sdk_conformance_contract must define exactly AK-SDK-001 through AK-SDK-022")
+        lint.fail(path, "sdk_conformance_contract must define exactly AK-SDK-001 through AK-SDK-023")
 
     schema_path = ARTIFACTS / "schemas" / "sdk-conformance-claim.schema.json"
     fixture_path = ARTIFACTS / "fixtures" / "sdk-conformance-claim-fixture.json"
@@ -7819,7 +7820,7 @@ def check_markdown_full_object_example(lint: Lint, path: Path, block_index: int,
             + ", ".join(missing),
         )
 
-    if schema_ref not in {"schemas/event-envelope.schema.json", "schemas/capability-grant.schema.json"}:
+    if schema_ref != "schemas/event-envelope.schema.json":
         return
 
     proofs = data.get("proofs")
@@ -8594,6 +8595,289 @@ def check_encrypted_envelope_digest_vector(lint: Lint) -> None:
     expected_digest = "sha256:" + hashlib.sha256(canonical_metadata.encode("utf-8") + ciphertext).hexdigest()
     if vector.get("expected_digest") != expected_digest:
         lint.fail(fixture_path, "Encrypted Envelope expected_digest mismatch")
+
+
+ONE_OF_REFERENCE_RE = re.compile(
+    r"^(?:https://arkret\.org/v1/schemas/|schemas/|\./|\.\./schemas/)?"
+    r"([A-Za-z0-9._-]+\.json)(#.*)?$"
+)
+
+
+def check_one_of_branch_discriminability(lint: Lint) -> None:
+    """Every object-union `oneOf` must have a decidable branch.
+
+    ``oneOf`` means "exactly one branch matches". When the branches are objects
+    that overlap, a single instance can satisfy two of them and the whole union
+    fails, and a statically typed decoder has no principled way to choose. A
+    union is decidable when one of these holds:
+
+      * a discriminator: one required property carries a distinct single value
+        (``const`` or a one-entry ``enum``) in every branch;
+      * structural exclusivity: for every pair of branches, one side is closed
+        and the other requires a property that side does not declare, the two
+        pin a shared required property to different constants, or one side
+        explicitly refuses a property the other requires.
+
+    Two shapes are deliberately out of scope. A document-level ``oneOf`` is a
+    catalog of DTOs whose consumers bind a fragment, not a runtime union. A
+    constraint-style ``oneOf`` whose branches declare no ``required`` and no
+    ``$ref`` expresses legal field combinations of one object, and its
+    discriminator lives on the enclosing schema.
+    """
+
+    documents = {
+        path.name: load_json(lint, path)
+        for path in sorted((ARTIFACTS / "schemas").glob("*.json"))
+    }
+
+    def resolve_pointer(document: Any, pointer: str) -> Any:
+        node = document
+        for part in pointer.lstrip("#/").split("/"):
+            if not part:
+                continue
+            part = part.replace("~1", "/").replace("~0", "~")
+            if isinstance(node, dict) and part in node:
+                node = node[part]
+            elif isinstance(node, list) and part.isdigit() and int(part) < len(node):
+                node = node[int(part)]
+            else:
+                return None
+        return node
+
+    def deref(node: Any, current: str, depth: int = 0) -> Any:
+        if depth > 8 or not isinstance(node, dict) or "$ref" not in node:
+            return node
+        reference = node["$ref"]
+        if reference.startswith("#"):
+            return deref(resolve_pointer(documents[current], reference), current, depth + 1)
+        match = ONE_OF_REFERENCE_RE.match(reference)
+        if not match or match.group(1) not in documents:
+            return None
+        target = documents[match.group(1)]
+        return deref(resolve_pointer(target, match.group(2) or "#"), match.group(1), depth + 1)
+
+    def single_valued(node: Any) -> str | None:
+        if not isinstance(node, dict):
+            return None
+        if "const" in node:
+            return json.dumps(node["const"], sort_keys=True)
+        enum = node.get("enum")
+        if isinstance(enum, list) and len(enum) == 1:
+            return json.dumps(enum[0], sort_keys=True)
+        return None
+
+    def discriminator(branches: list[dict[str, Any]], outer_required: set[str]) -> str | None:
+        candidates: set[str] | None = None
+        for branch in branches:
+            required = set(branch.get("required", [])) | outer_required
+            properties = branch.get("properties") or {}
+            names = {name for name in required if single_valued(properties.get(name))}
+            candidates = names if candidates is None else candidates & names
+        for name in sorted(candidates or ()):
+            values = [single_valued((branch.get("properties") or {})[name]) for branch in branches]
+            if len(set(values)) == len(values):
+                return name
+        return None
+
+    def closed(node: dict[str, Any]) -> bool:
+        return node.get("additionalProperties") is False or node.get("unevaluatedProperties") is False
+
+    def forbidden(node: dict[str, Any]) -> set[str]:
+        names: set[str] = set()
+        negated = node.get("not")
+        if isinstance(negated, dict):
+            names.update(name for name in negated.get("required", []) if isinstance(name, str))
+            for branch in negated.get("anyOf", []) or []:
+                if isinstance(branch, dict):
+                    names.update(n for n in branch.get("required", []) if isinstance(n, str))
+        return names
+
+    def exclusive(left: dict[str, Any], right: dict[str, Any]) -> bool:
+        left_required = set(left.get("required", []))
+        right_required = set(right.get("required", []))
+        if forbidden(left) & right_required or forbidden(right) & left_required:
+            return True
+        if closed(right) and left_required - set((right.get("properties") or {}).keys()):
+            return True
+        if closed(left) and right_required - set((left.get("properties") or {}).keys()):
+            return True
+        for name in left_required & right_required:
+            left_value = single_valued((left.get("properties") or {}).get(name))
+            right_value = single_valued((right.get("properties") or {}).get(name))
+            if left_value and right_value and left_value != right_value:
+                return True
+        return False
+
+    def sites(name: str, node: Any, pointer: str, out: list[tuple[str, list[Any], set[str]]]) -> None:
+        if isinstance(node, dict):
+            branches = node.get("oneOf")
+            if isinstance(branches, list) and len(branches) > 1:
+                out.append((pointer, branches, set(node.get("required", []))))
+            for key, value in node.items():
+                sites(name, value, f"{pointer}/{key}", out)
+        elif isinstance(node, list):
+            for index, value in enumerate(node):
+                sites(name, value, f"{pointer}/{index}", out)
+
+    for document_name, document in documents.items():
+        if not isinstance(document, dict):
+            continue
+        path = ARTIFACTS / "schemas" / document_name
+        found: list[tuple[str, list[Any], set[str]]] = []
+        sites(document_name, document, "", found)
+        for pointer, branches, outer_required in found:
+            if pointer == "":
+                continue
+            if all(
+                isinstance(branch, dict) and not branch.get("required") and "$ref" not in branch
+                for branch in branches
+            ):
+                continue
+            resolved = [deref(branch, document_name) for branch in branches]
+            if not all(isinstance(node, dict) for node in resolved):
+                continue
+            if not all(
+                node.get("type") == "object" or "properties" in node for node in resolved
+            ):
+                continue
+            if discriminator(resolved, outer_required):
+                continue
+            if all(
+                exclusive(left, right)
+                for index, left in enumerate(resolved)
+                for right in resolved[index + 1 :]
+            ):
+                continue
+            lint.fail(
+                path,
+                f"{pointer or '/'} oneOf object branches are not decidable: add a required "
+                "single-valued discriminator, close a branch, or make the required sets exclusive",
+            )
+
+
+def check_string_profile_format_vectors(lint: Lint) -> None:
+    """The custom string formats must keep one executable vector set.
+
+    ``string-profiles.schema.json`` declares eight ``arkret-*`` formats whose
+    normative semantics (PRECIS, UTS #46, NFC) cannot be expressed by the
+    coarse JSON Schema pattern and length keywords. This check binds the
+    fixture to the schema so every format keeps positive and negative vectors,
+    and it proves the declared rejection layer of each negative value: a
+    ``schema_pattern`` value must already fail the coarse shape, while a
+    ``profile_validator`` value must pass it, which is exactly why a runtime
+    that only validates JSON Schema is insufficient.
+    """
+
+    schema_path = ARTIFACTS / "schemas" / "string-profiles.schema.json"
+    fixture_path = ARTIFACTS / "fixtures" / "string-profile-fixture.json"
+    schema = load_json(lint, schema_path)
+    fixture = load_json(lint, fixture_path)
+    if not isinstance(schema, dict) or not isinstance(fixture, dict):
+        return
+    if Draft202012Validator is None:
+        return
+
+    defs = schema.get("$defs")
+    if not isinstance(defs, dict):
+        lint.fail(schema_path, "string profiles schema must declare $defs")
+        return
+    declared_formats = {
+        node["format"]: f"schemas/string-profiles.schema.json#/$defs/{name}"
+        for name, node in defs.items()
+        if isinstance(node, dict) and isinstance(node.get("format"), str)
+    }
+
+    vectors = fixture.get("vectors")
+    if not isinstance(vectors, list) or not vectors:
+        lint.fail(fixture_path, "string profile fixture must declare a non-empty vectors list")
+        return
+
+    covered: dict[str, str] = {}
+    for index, vector in enumerate(vectors):
+        label = f"vectors[{index}]"
+        if not isinstance(vector, dict):
+            lint.fail(fixture_path, f"{label} must be an object")
+            continue
+        format_name = vector.get("format")
+        schema_ref = vector.get("schema_ref")
+        if not isinstance(format_name, str) or format_name not in declared_formats:
+            lint.fail(fixture_path, f"{label}.format is not declared by string-profiles.schema.json")
+            continue
+        if format_name in covered:
+            lint.fail(fixture_path, f"{label}.format duplicates {format_name}")
+            continue
+        covered[format_name] = schema_ref if isinstance(schema_ref, str) else ""
+        if schema_ref != declared_formats[format_name]:
+            lint.fail(
+                fixture_path,
+                f"{label}.schema_ref must be {declared_formats[format_name]} for {format_name}",
+            )
+            continue
+
+        definition = dict(defs[schema_ref.rsplit("/", 1)[-1]])
+        definition.pop("format", None)
+        definition["$defs"] = defs
+        validator = Draft202012Validator(definition)
+
+        accepted = vector.get("accepted")
+        if not isinstance(accepted, list) or not accepted:
+            lint.fail(fixture_path, f"{label}.accepted must be a non-empty list")
+        else:
+            for value in accepted:
+                if not isinstance(value, str):
+                    lint.fail(fixture_path, f"{label}.accepted values must be strings")
+                elif not validator.is_valid(value):
+                    lint.fail(
+                        fixture_path,
+                        f"{label}.accepted value fails the coarse {format_name} shape: {value!r}",
+                    )
+                elif unicodedata.normalize("NFC", value) != value:
+                    lint.fail(
+                        fixture_path,
+                        f"{label}.accepted value is not NFC: {value!r}",
+                    )
+
+        rejected = vector.get("rejected")
+        if not isinstance(rejected, list) or not rejected:
+            lint.fail(fixture_path, f"{label}.rejected must be a non-empty list")
+            continue
+        profile_only = 0
+        for position, case in enumerate(rejected):
+            case_label = f"{label}.rejected[{position}]"
+            if not isinstance(case, dict):
+                lint.fail(fixture_path, f"{case_label} must be an object")
+                continue
+            value = case.get("value")
+            layer = case.get("rejected_by")
+            if not isinstance(value, str):
+                lint.fail(fixture_path, f"{case_label}.value must be a string")
+                continue
+            if not isinstance(case.get("reason"), str) or not case.get("reason"):
+                lint.fail(fixture_path, f"{case_label}.reason must be a non-empty string")
+            if layer not in {"schema_pattern", "profile_validator"}:
+                lint.fail(fixture_path, f"{case_label}.rejected_by must be schema_pattern or profile_validator")
+                continue
+            accepted_by_shape = validator.is_valid(value)
+            if layer == "schema_pattern" and accepted_by_shape:
+                lint.fail(
+                    fixture_path,
+                    f"{case_label} claims schema_pattern but the coarse shape accepts it: {value!r}",
+                )
+            if layer == "profile_validator":
+                profile_only += 1
+                if not accepted_by_shape:
+                    lint.fail(
+                        fixture_path,
+                        f"{case_label} claims profile_validator but the coarse shape already rejects it: {value!r}",
+                    )
+        if profile_only == 0:
+            lint.fail(
+                fixture_path,
+                f"{label} must carry at least one profile_validator-only negative for {format_name}",
+            )
+
+    for format_name in sorted(set(declared_formats) - set(covered)):
+        lint.fail(fixture_path, f"custom format has no vector: {format_name}")
 
 
 def check_declared_canonical_json_strings(lint: Lint) -> None:
@@ -9561,11 +9845,18 @@ def check_mls_governance_proof_fixture(lint: Lint) -> None:
     if known.get("seal_digest") != seal_digest or known.get("seal_canonical_bytes") != len(seal_bytes):
         lint.fail(path, "known-answer Seal commitment mismatch")
 
-    discussion_input = {"media_service_decrypts": False, "plaintext_visible_services": []}
-    discussion_bytes = canonical_json(discussion_input).encode("utf-8")
-    discussion_digest = wire_sha256(discussion_bytes)
-    if known.get("discussion_metadata_digest") != discussion_digest or known.get("discussion_input_canonical_bytes") != len(discussion_bytes):
-        lint.fail(path, "known-answer discussion metadata commitment mismatch")
+    security_frontier_input = {
+        "profile": "ak.security_frontier.key_access.v1",
+        "cells": state,
+    }
+    security_frontier_bytes = canonical_json(security_frontier_input).encode("utf-8")
+    security_frontier_digest = wire_sha256(security_frontier_bytes)
+    if known.get("security_frontier_digest") != security_frontier_digest or known.get("security_frontier_input_canonical_bytes") != len(security_frontier_bytes):
+        lint.fail(path, "known-answer security frontier commitment mismatch")
+    commit_context = data.get("commit_context", {})
+    binding = commit_context.get("transcript_authenticated_governance_binding", {}) if isinstance(commit_context, dict) else {}
+    if not isinstance(binding, dict) or binding.get("security_frontier_digest") != security_frontier_digest:
+        lint.fail(path, "governance binding must contain the rederived security_frontier_digest")
 
     proof_identity = source.get("proof_identity", {})
     identity_bytes = canonical_json(proof_identity).encode("utf-8")
@@ -9651,7 +9942,8 @@ def check_mls_governance_proof_fixture(lint: Lint) -> None:
         "chunks_root_mismatch", "missing_chunk", "duplicate_chunk", "chunk_order",
         "binding_realm_mismatch", "binding_group_mismatch", "binding_previous_epoch_mismatch",
         "binding_next_epoch_mismatch", "binding_profile_mismatch", "binding_reducer_mismatch",
-        "policy_root_mismatch", "capability_root_mismatch", "discussion_metadata_digest_mismatch",
+        "security_frontier_digest_mismatch", "unrelated_capability_does_not_change_frontier",
+        "active_leaf_revoke_missing_from_frontier",
     }
     verifier_cases = data.get("verifier_cases", [])
     actual_verifier_cases = {
@@ -11092,6 +11384,8 @@ def main(argv: list[str] | None = None) -> int:
             ("canonical_digests", lambda: check_canonical_digest_fixtures(lint)),
             ("batch_receipt", lambda: check_event_batch_receipt_normalization_vector(lint)),
             ("encrypted_digest", lambda: check_encrypted_envelope_digest_vector(lint)),
+            ("string_profiles", lambda: check_string_profile_format_vectors(lint)),
+            ("one_of_branches", lambda: check_one_of_branch_discriminability(lint)),
             ("canonical_strings", lambda: check_declared_canonical_json_strings(lint)),
             ("reducer_digest", lambda: check_reducer_profile_digest_closure(lint)),
             ("mls_proof", lambda: check_mls_governance_proof_fixture(lint)),

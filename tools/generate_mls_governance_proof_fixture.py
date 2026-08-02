@@ -277,11 +277,11 @@ def build_fixture() -> dict[str, Any]:
         "event_digests": [event_rows[0][1], event_rows[1][1]],
     }
     completeness_root = merkle_root_from_leaf_data([canonical_bytes(completeness_leaf)])
-    discussion_input = {
-        "media_service_decrypts": False,
-        "plaintext_visible_services": [],
+    security_frontier_input = {
+        "profile": "ak.security_frontier.key_access.v1",
+        "cells": control_state,
     }
-    discussion_metadata_digest = wire_digest(canonical_bytes(discussion_input))
+    security_frontier_digest = wire_digest(canonical_bytes(security_frontier_input))
     seal_body = {
         "realm_id": realm_id,
         "predecessor_refs": [],
@@ -305,11 +305,7 @@ def build_fixture() -> dict[str, Any]:
         "mls_group_id": "Z3JvdXAtMDE",
         "previous_epoch": 41,
         "next_epoch": 42,
-        "membership_frontier": [event["event_id"] for event in frontier_events],
-        "covered_seal_refs": [seal_id],
-        "policy_root": EMPTY_SHA256,
-        "capability_root": EMPTY_SHA256,
-        "discussion_metadata_digest": discussion_metadata_digest,
+        "security_frontier_digest": security_frontier_digest,
         "binding_profile": "ak.profile.mls_governance_binding.full.v1",
         "reducer_profile": "ak.reducer.core.v1",
     }
@@ -455,9 +451,9 @@ def build_fixture() -> dict[str, Any]:
         mutation_case("binding_next_epoch_mismatch", "replace_binding_next_epoch", "binding", "governance_binding_mismatch"),
         mutation_case("binding_profile_mismatch", "replace_binding_profile", "binding", "profile_unsupported"),
         mutation_case("binding_reducer_mismatch", "replace_binding_reducer", "binding", "profile_unsupported"),
-        mutation_case("policy_root_mismatch", "replace_policy_root", "binding_roots", "governance_binding_mismatch"),
-        mutation_case("capability_root_mismatch", "replace_capability_root", "binding_roots", "governance_binding_mismatch"),
-        mutation_case("discussion_metadata_digest_mismatch", "replace_discussion_metadata_digest", "binding_roots", "governance_binding_mismatch"),
+        mutation_case("security_frontier_digest_mismatch", "replace_security_frontier_digest", "security_frontier", "governance_binding_mismatch"),
+        mutation_case("unrelated_capability_does_not_change_frontier", "append_unrelated_capability", "security_frontier", "unexpected_frontier_change"),
+        mutation_case("active_leaf_revoke_missing_from_frontier", "remove_active_leaf_revoke", "security_frontier", "governance_binding_mismatch"),
     ]
     materializer_cases = [
         materializer_case("valid_materialization", "none", None),
@@ -566,8 +562,8 @@ def build_fixture() -> dict[str, Any]:
             "state_root": state_root,
             "completeness_leaf_canonical_bytes": len(canonical_bytes(completeness_leaf)),
             "completeness_root": completeness_root,
-            "discussion_input_canonical_bytes": len(canonical_bytes(discussion_input)),
-            "discussion_metadata_digest": discussion_metadata_digest,
+            "security_frontier_input_canonical_bytes": len(canonical_bytes(security_frontier_input)),
+            "security_frontier_digest": security_frontier_digest,
             "seal_canonical_bytes": len(canonical_bytes(seal_body)),
             "seal_digest": seal_digest,
             "proof_identity_canonical_bytes": len(canonical_bytes(proof_identity)),

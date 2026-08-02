@@ -161,8 +161,6 @@ grpc:
       Set: ak.self.invite_receive_policy.resource.replace
     SelfDirectConversation:
       Resolve: ak.self.direct_conversation.command.resolve
-    SelfDirectConversationSegment:
-      List: ak.self.direct_conversation_segment.query.list
     FindDirectory:
       Announce: ak.find.directory.command.announce
       Describe: ak.find.directory.query.describe
@@ -390,7 +388,6 @@ mq:
     self.invite_receive_policy.resource.get: ak.self.invite_receive_policy.resource.get
     self.invite_receive_policy.resource.replace: ak.self.invite_receive_policy.resource.replace
     self.direct_conversation.command.resolve: ak.self.direct_conversation.command.resolve
-    self.direct_conversation_segment.query.list: ak.self.direct_conversation_segment.query.list
     self.circle.command.create: ak.self.circle.command.create
     self.circle.query.list: ak.self.circle.query.list
     self.circle.resource.get: ak.self.circle.resource.get

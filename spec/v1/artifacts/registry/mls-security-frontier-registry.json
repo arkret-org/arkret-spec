@@ -1,0 +1,141 @@
+{
+  "version": "2026-08-02",
+  "source_of_truth": true,
+  "profile_id": "ak.security_frontier.v1",
+  "description": "Closed machine contract for the accepted state that changes current or historical MLS key access. Producers never choose frontier members. Verifiers project these inputs from one accepted Seal view and the RFC 9420 group state, then compare the resulting digest with the governance binding.",
+  "canonicalization": "json_jcs",
+  "digest_suite": "sha256",
+  "digest_input": {
+    "required": [
+      "profile_id",
+      "effective_scope",
+      "cell_entries",
+      "mls_leaf_set_digest"
+    ],
+    "cell_entry_shape": {
+      "required": [
+        "cell_family",
+        "cell_subject",
+        "projected_value_digest"
+      ],
+      "ordering": "Sort by UTF-8 bytes of cell_family, then canonical JCS bytes of cell_subject, then projected_value_digest; reject duplicates."
+    },
+    "digest_rule": "security_frontier_digest = sha256(JCS({profile_id,effective_scope,cell_entries,mls_leaf_set_digest})). accepted Seal ids, ordinary Event seal_ref values and producer-supplied Event lists are not digest members."
+  },
+  "cell_rules": [
+    {
+      "cell_family": "ak.component.member.state.v1",
+      "scope": "Realm-default MLS scope",
+      "projected_values": [
+        "join",
+        "leave",
+        "ban"
+      ],
+      "include_when": "The subject is in the effective Realm scope. invite and knock do not create an MLS leaf and are excluded."
+    },
+    {
+      "cell_family": "ak.component.circle.member.v1",
+      "scope": "Circle MLS scope",
+      "projected_values": [
+        "join",
+        "leave",
+        "ban"
+      ],
+      "include_when": "The cell subject names the effective Circle. invite and knock are excluded."
+    },
+    {
+      "cell_family": "ak.component.account.status.v1",
+      "scope": "Any MLS scope",
+      "projected_fields": [
+        "principal_id",
+        "status"
+      ],
+      "include_when": "The principal owns a current or pending MLS leaf and the effective terminal status changes leaf eligibility."
+    },
+    {
+      "cell_family": "ak.component.agent.status.v1",
+      "scope": "Any MLS scope",
+      "projected_fields": [
+        "agent_id",
+        "status"
+      ],
+      "include_when": "The Agent owns a current or pending MLS leaf and status=deactivated changes leaf eligibility. pause alone is an admission gate and is excluded."
+    },
+    {
+      "cell_family": "ak.component.device.authorization.v1",
+      "scope": "Any MLS scope",
+      "projection": "Effective authorization set for the exact principal/device keys referenced by current or pending MLS leaves.",
+      "include_when": "At least one current or pending leaf references the exact device key. Unreferenced devices are excluded."
+    },
+    {
+      "cell_family": "ak.component.device.reanchor.v1",
+      "scope": "Any MLS scope",
+      "projection": "Effective device generation for principals that own a current or pending MLS leaf.",
+      "include_when": "The generation fence changes validity of a key referenced by a current or pending leaf."
+    },
+    {
+      "cell_family": "ak.component.agent.key.v1",
+      "scope": "Any MLS scope",
+      "projection": "Effective authorization set for exact Agent runtime keys referenced by current or pending MLS leaves.",
+      "include_when": "At least one current or pending leaf references the exact Agent key. Unreferenced Agent keys are excluded."
+    },
+    {
+      "cell_family": "ak.component.realm.policy_bundle.v1",
+      "scope": "Realm-default and parent floor for Circle MLS scopes",
+      "projected_fields": [
+        "content_scheme",
+        "content_encryption_floor",
+        "metadata_encryption_floor",
+        "media_service_decrypts"
+      ],
+      "include_when": "Only these fields are projected. Other bundle fields remain protected by Event/CBA/Seal admission but do not force rekey."
+    },
+    {
+      "cell_family": "ak.component.realm.history_visibility.v1",
+      "scope": "Realm-default and parent floor for Circle MLS scopes",
+      "projection": "Effective history visibility value."
+    },
+    {
+      "cell_family": "ak.component.realm.history_sharing_policy.v1",
+      "scope": "Realm-default and parent floor for Circle MLS scopes",
+      "projection": "Fields that determine current or historical key eligibility."
+    },
+    {
+      "cell_family": "ak.component.realm.plaintext_visible_services.v1",
+      "scope": "Realm-default and parent floor for Circle MLS scopes",
+      "projection": "Service principals and data classes permitted to receive current or historical plaintext/key material.",
+      "include_when": "A value change expands or contracts actual plaintext/key recipients; endpoint-only metadata is excluded."
+    },
+    {
+      "cell_family": "ak.component.circle.create.v1",
+      "scope": "Circle MLS scope",
+      "projected_fields": [
+        "encryption_profile",
+        "history_visibility"
+      ]
+    },
+    {
+      "cell_family": "ak.component.circle.metadata.v1",
+      "scope": "Circle MLS scope",
+      "projected_fields": [
+        "history_visibility"
+      ],
+      "include_when": "Only the effective patched history_visibility value is projected. Display and directory metadata are excluded."
+    }
+  ],
+  "mls_tree_rule": {
+    "input": "The canonical current/pending RFC 9420 leaf set for the effective group, including leaf credential and referenced device/Agent key identity but excluding tree-shape-only metadata.",
+    "digest": "mls_leaf_set_digest = sha256(JCS(canonical_leaf_entries)). Leaf entries are sorted by their canonical JCS bytes and duplicates are rejected.",
+    "commit_rule": "For a Commit, compute the next frontier against the post-Commit winning leaf set and the accepted control state selected by the Commit authoring basis. The governance binding is inside the same RFC 9420 transcript; the key-schedule cell containing that binding is never recursively included."
+  },
+  "always_excluded": [
+    "ordinary capability grant/revoke state",
+    "message, Strand, display and directory metadata",
+    "moderation and read-receipt policy",
+    "media or routing endpoint metadata that does not change plaintext/key recipients",
+    "contact, consent, block or pause facts whose accepted effect does not remove an MLS leaf",
+    "ordinary Event seal_ref and accepted Seal identifiers",
+    "producer-supplied Event, Seal, root or frontier member lists"
+  ],
+  "unknown_input_behavior": "fail_closed"
+}

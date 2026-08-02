@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-02.3",
+  "version": "2026-08-02.5",
   "source_of_truth": false,
-  "generated_at": "2026-08-02T13:00:00Z",
+  "generated_at": "2026-08-02T15:00:00Z",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "source_pattern": "^ak\\.authority\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
@@ -40,11 +40,12 @@
       "activation_checks": [
         "realm_profile_and_discriminator_exact",
         "realm_create_critical_extension_present",
-        "active_canonical_binding_exact",
+        "stable_binding_exact",
         "actor_is_one_of_exactly_two_stable_participants",
         "actor_membership_active_join",
-        "realm_main_strand_target_scope_and_mls_cross_binding_exact",
-        "realm_binding_and_target_strand_non_terminal",
+        "realm_main_strand_and_target_scope_exact",
+        "active_mls_generation_cross_binding_exact",
+        "realm_binding_and_target_strand_non_terminal_or_suspended",
         "resource_within_dm_realm_non_circle_discussion_scope",
         "current_contact_consent_gate_for_send_like_actions",
         "action_specific_self_device_mls_and_agent_gates"

@@ -181,7 +181,7 @@ Sidecar MLS bootstrap 复用标准 `ak.mls.genesis` Event 与 `POST /_arkret/sel
 }
 ```
 
-字段顺序不参与 JSON 语义，但 deterministic CBOR 必须按 RFC 8949 deterministic map-key ordering；SDK 是唯一编码实现。Genesis、每次 Sidecar Add/Remove/self-update Commit及对应 Welcome MUST 携带同一个由其 base control view 计算的 binding。Sidecar application DataEvent 不重复携带完整 binding；它必须引用已由当前 GroupContext binding 约束的 group/epoch，并按 [`encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md#25-mls-governance-binding) 通过 `seal_ref`/`covered_seals_cell` gate。服务端在 admission 时必须重新计算 current Sidecar/binding；`sidecar_id`、backing Circle、desired digest、frontier、Realm、group 或 epoch 任一不匹配都 fail closed。历史 Event 保留其创建时 binding，不因后续 desired set 变化重写。
+字段顺序不参与 JSON 语义，但 deterministic CBOR 必须按 RFC 8949 deterministic map-key ordering；SDK 是唯一编码实现。Genesis、每次 Sidecar Add/Remove/self-update Commit及对应 Welcome MUST 携带同一个由其 base control view 计算的 binding。Sidecar application DataEvent 不重复携带完整 binding；它必须引用已由当前 GroupContext binding 约束的 group/epoch，并按 [`encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md#25-mls-security-frontier-binding) 证明 active generation 的 `security_frontier_digest` 等于当前 key-access frontier；普通 `seal_ref` 仅用于 Event admission。服务端在 admission 时必须重新计算 current Sidecar/binding；`sidecar_id`、backing Circle、desired digest、frontier、Realm、group 或 epoch 任一不匹配都 fail closed。历史 Event 保留其创建时 binding，不因后续 desired set 变化重写。
 
 ### 5.3 Effective roster 证据
 

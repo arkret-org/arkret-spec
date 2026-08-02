@@ -165,12 +165,8 @@
     },
     "seal_basis": {
       "type": "object",
-      "description": "Control Move only. Signed governance basis for preconditions and reducer derivation. control_event_set_root covers only control-plane event digests; state_root covers only control-plane cells.",
-      "required": [
-        "leaves",
-        "control_event_set_root",
-        "state_root"
-      ],
+      "description": "Control Move only. Signed governance basis for preconditions and reducer derivation. The canonical sorted Seal leaves are the sole producer commitment; receivers resolve and verify each Seal and deterministically recompute the covered control set and joined state. Seal roots remain on the Seal itself and are not copied into the Event.",
+      "required": ["leaves"],
       "properties": {
         "leaves": {
           "type": "array",
@@ -180,12 +176,6 @@
           "minItems": 1,
           "maxItems": 64,
           "uniqueItems": true
-        },
-        "control_event_set_root": {
-          "$ref": "#/$defs/hash"
-        },
-        "state_root": {
-          "$ref": "#/$defs/hash"
         }
       },
       "additionalProperties": false
@@ -579,6 +569,7 @@
               "ak.actor.discovery",
               "ak.agent.key.authorize",
               "ak.agent.key.revoke",
+              "ak.agent.provision",
               "ak.agent.selector_claim",
               "ak.agent.sidecar.exchange.control",
               "ak.applet.bridge_error",
@@ -987,6 +978,25 @@
                 "$comment": "MUST contain at least one inclusion_proof ref"
               }
             ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.agent.provision"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./agent-provision.schema.json"
           }
         }
       }

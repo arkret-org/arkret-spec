@@ -20,7 +20,7 @@
               "Destination-Service-ID": "did:webvh:z6mkfixture:beta.example",
               "Source-Trust-Domain": "ak:trust_domain:did.webvh.alpha.example",
               "Destination-Trust-Domain": "ak:trust_domain:did.webvh.beta.example",
-              "Request-Canonical-Digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "Content-Digest": "sha-256=:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=:",
               "Idempotency-Key": "idem-001"
             },
             "origin_key_state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -41,7 +41,7 @@
                   "Destination-Service-ID": "did:webvh:z6mkfixture:beta.example",
                   "Source-Trust-Domain": "ak:trust_domain:did.webvh.alpha.example",
                   "Destination-Trust-Domain": "ak:trust_domain:did.webvh.beta.example",
-                  "Request-Canonical-Digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "Content-Digest": "sha-256=:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=:",
                   "Idempotency-Key": "idem-001"
                 },
                 "origin_key_state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -58,7 +58,7 @@
                   "Destination-Service-ID": "did:webvh:z6mkfixture:beta.example",
                   "Source-Trust-Domain": "ak:trust_domain:did.webvh.alpha.example",
                   "Destination-Trust-Domain": "ak:trust_domain:did.webvh.beta.example",
-                  "Request-Canonical-Digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "Content-Digest": "sha-256=:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=:",
                   "Idempotency-Key": "idem-001"
                 },
                 "origin_key_state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -172,7 +172,7 @@
         {
           "name": "policy_missing_media_service_decrypts",
           "input": {
-            "policy_root_covers_media_service_decrypts": false
+            "security_frontier_covers_media_service_decrypts": false
           },
           "expected": {
             "outcome": "rejected",
@@ -185,7 +185,7 @@
             "given_state": {
               "vector_id": "ak.vector.webrtc.media_plaintext_downgrade.v1",
               "preconditions": {
-                "policy_root_covers_media_service_decrypts": false
+                "security_frontier_covers_media_service_decrypts": false
               }
             },
             "operation": "security_closure.evaluate",
@@ -193,7 +193,7 @@
               "step": "policy_missing_media_service_decrypts",
               "canonicalization": "fixture_json_v1",
               "input": {
-                "policy_root_covers_media_service_decrypts": false
+                "security_frontier_covers_media_service_decrypts": false
               }
             },
             "expected_state_transition": {
@@ -261,7 +261,7 @@
           "name": "client_warning_not_present",
           "input": {
             "media_service_decrypts": true,
-            "policy_root_covers_media_service_decrypts": true,
+            "security_frontier_covers_media_service_decrypts": true,
             "sfu_service_id": "did:webvh:z6mkfixture:sfu.example",
             "plaintext_visible_services": [
               "did:webvh:z6mkfixture:sfu.example"
@@ -281,7 +281,7 @@
               "vector_id": "ak.vector.webrtc.media_plaintext_downgrade.v1",
               "preconditions": {
                 "media_service_decrypts": true,
-                "policy_root_covers_media_service_decrypts": true,
+                "security_frontier_covers_media_service_decrypts": true,
                 "plaintext_visible_services_contains_sfu": true,
                 "prominent_client_warning_present": false,
                 "second_confirmation_completed": false
@@ -314,7 +314,7 @@
           "name": "independent_transcript_recomputation_mismatch",
           "input": {
             "media_service_decrypts": true,
-            "policy_root_covers_media_service_decrypts": true,
+            "security_frontier_covers_media_service_decrypts": true,
             "member_recomputed_media_service_decrypts": false,
             "governance_binding_metadata_media_service_decrypts": true
           },
@@ -331,7 +331,7 @@
               "vector_id": "ak.vector.webrtc.media_plaintext_downgrade.v1",
               "preconditions": {
                 "media_service_decrypts": true,
-                "policy_root_covers_media_service_decrypts": true,
+                "security_frontier_covers_media_service_decrypts": true,
                 "member_recomputed_media_service_decrypts": false,
                 "governance_binding_metadata_media_service_decrypts": true
               }
